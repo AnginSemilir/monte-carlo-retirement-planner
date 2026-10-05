@@ -46,7 +46,8 @@ Arms: SNAP, S-LO, S-HI, S-INT, PCLSI, P-LO and P-HI on each household, with HYB'
 - **The data:** per household and arm, each path's survival (0 or 1), lifetime tax and terminal net, from the per-path files.
 - **Item 1 (primary; single look):** on S130 and S128, per path y = P-LO - P-HI in survival; Fisher's paired randomization test (reduce-7ar.mjs flipP, B 20,000 sign flips from fixed seeds, one-sided) of mean(y) above 0 (LO) and below 0 (HI), Holm over the 4; SPLIT otherwise. HELD when S130 reads LO; FALSIFIED when S130 reads HI; else INCONCLUSIVE. S128 a scored leg (LEGS line); S370 reported at raw p.
 - **Item 2:** the same on y = S-HI - S-LO with its own Holm over 4: HELD when S130 reads HI; FALSIFIED when S130 reads LO; else INCONCLUSIVE. S128 a leg; S370 reported.
-- **Secondary (declared, decides nothing):** the low edge's share of PCLSI over HYB and the high edge's of S-INT over SNAP; S-INT against PCLSI (the tables' own part) and against SNAP; each pair's survival, tax and net change with its se.
+- **The share rule (registered; decides O101-EDGE and O83's survival cost; S130 only):** the low edge's share of PCLSI's gain over HYB, (P-LO - HYB) / (PCLSI - HYB) in paths: 0.7 or more with item 1 HELD settles O101-EDGE held at grade B, under 0.7 leaves EDGE and WITHIN unseparated; the high edge's share of the interpolated read's gain on SNAP's tables, (S-HI - SNAP) / (S-INT - SNAP): 0.7 or more with item 2 HELD settles O83's survival cost (the shipping default's pause at the 0.75 edge) at grade B, under 0.7 leaves it unseparated; each NOT APPLICABLE when its item is not HELD. The reducer prints both and a SHARES line (reduce-edge.mjs shareRule; planted at the bar, below it, and with the item not HELD). Under the registered model the bar separates EDGE from WITHIN but not from TABLES or STEP: on item 1 P(share 0.7 or more) is 0.626 under EDGE, 0.018 under WITHIN, 0.192 under TABLES and 0.190 under STEP (results-derive-edge.txt section 3; item 2 0.605, 0.023, 0.196, 0.189) - so a SETTLED read is evidence for EDGE against WITHIN, not proof; a point read, so grade B.
+- **Secondary (declared, decides nothing):** the shares on S128 and S370; S-INT against PCLSI (the tables' own part) and against SNAP; each pair's survival, tax and net change with its se.
 - **Reported, not items:** flat years with the pension live by the used share's band, per arm.
 - **NOT SETTLED**, if any gate fails: the stamps; a unit missing, repeated or not done; a ran line off HYB's settings or the arm's tables, read or segment, or at a tie margin or death tax other than 0; a household's units on different paths or access lines; a per-path file missing, unstamped or off its sum line; the SNAP or PCLSI arm off HYB's per-path file on any path, or HYB's files failing their own gate.
 - **Declared choices, not derived:** S130 as the deciding household (the largest gain, HYB's pause at the low edge plainest); S128 as a leg (its gain smaller); the middle bucket as the segments' boundary (where both readings agree).
@@ -55,34 +56,34 @@ Arms: SNAP, S-LO, S-HI, S-INT, PCLSI, P-LO and P-HI on each household, with HYB'
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | the low edge carries more of PCLSI's gain on its own tables (grade A for the direction); O101-EDGE is settled held only if the low edge's share (secondary, reported) is 0.7 or more, and then at grade B; a share under 0.7 leaves EDGE and WITHIN unseparated and O101 open; PCLSI goes to the maintainer as ending the snap's pause at the edge its tables make steepest | 0.38 |
+| item 1 HELD | the low edge carries more of PCLSI's gain on its own tables (grade A for the direction); by the share rule, a share of 0.7 or more on S130 settles O101-EDGE held (grade B) and PCLSI goes to the maintainer as ending the snap's pause at the edge its tables make steepest; a share under 0.7 leaves EDGE and WITHIN unseparated, O101 open, and PCLSI goes with the read's attribution only (grade A from HYB) | 0.38 |
 | item 1 INCONCLUSIVE | the gain is not shown to lean to either edge: O101 stays open, WITHIN (no allowance cost inside a bucket) read from the split arms' flat years; PCLSI goes with the read's attribution only (grade A from HYB) | 0.34 |
 | item 1 FALSIFIED | the high edge carries more of the gain on PCLSI's tables, against HYB's traces: the trace measures (derive-hyb-edges.mjs) are re-checked against the split arms before any mechanism is put; review-causes.md settles O101-EDGE not held | 0.28 |
 
 ## Decision fed
 
-- **Item 1 HELD:** the direction held; O101-EDGE held only with the low edge's share 0.7 or more (grade B), else O101 open with EDGE and WITHIN unseparated; PCLSI is put as ending the snap's pause.
+- **Item 1 HELD:** the direction held; with the low edge's share 0.7 or more (the share rule), O101-EDGE held at grade B and PCLSI put as ending the snap's pause; otherwise O101 open, EDGE and WITHIN unseparated, and PCLSI put with the read's attribution only.
 - **Item 1 FALSIFIED or INCONCLUSIVE:** O101 open; PCLSI is put with the read's attribution alone.
-- **Item 2 HELD:** on SNAP's tables the 0.75 edge carries more of the interpolated read's gain - the shipping default's survival cost is its pause at the 0.75 edge: O83 confirmed at grade A (the shipping default's own tables; the plan-auditor's BLOCKING 1 of 5 Oct 12:22 UK: O83's grade A rests on this item, not item 1), and O83's product finding goes to the maintainer.
+- **Item 2 HELD:** on SNAP's tables the 0.75 edge carries more of the interpolated read's gain (grade A for the direction). By the share rule, a high-edge share of 0.7 or more on S130 settles O83's survival cost - the shipping default's pause at the 0.75 edge - at grade B, and O83's product finding goes to the maintainer with it; under 0.7 it stays as item 2 INCONCLUSIVE below (the plan-auditor's BLOCKINGs of 5 Oct 12:22 and 12:29 UK: O83 rests on this item, not item 1, and a direction alone cannot separate EDGE from WITHIN).
 - **Item 2 FALSIFIED:** on SNAP's tables the low edge carries more, against SNAP's 6.86 flat years at [0.6, 0.75) (results-derive-hyb-edges.txt): O83's hold is not the shipping default's survival cost; O83 is put back to grade C and its product finding withheld until the flat years per split arm say where the gain comes from.
-- **Item 2 INCONCLUSIVE:** O83 stays at grade B; its product finding goes as a hold the traces show, with no survival cost settled; S-INT against SNAP (secondary) is O88's separating arm, reported.
-- **In every branch:** pclsInterp and pclsSeg stay off in the code until the maintainer decides; no product change; PR5's caveat (a nonzero death tax unchecked beyond these households) stays with the axis decision.
+- **Item 2 INCONCLUSIVE (or HELD with the share under 0.7):** O83 stays at grade B; its product finding goes as a hold the traces show, with no survival cost settled.
+- **In every branch:** S-INT against SNAP (secondary) is O88's separating arm (SNAP's tables read by interpolation), reported for O88 whatever the items read; pclsInterp and pclsSeg stay off in the code until the maintainer decides; no product change; PR5's caveat (a nonzero death tax unchecked beyond these households) stays with the axis decision.
 
 ## Provenance
 
 - **The design:** the deep review after HYB (deep-review-log.md 5 Oct 11:50 UK: EDGE-SPLIT, its arms on both tables, S130 and S128, S370 reported, seed 7005, 6,000 paths, through HYB's identity gate); O101's gate (PLAN.md).
 - **The build:** grid.js pclsSeg (fb408d9); audit-edge.mjs; reduce-edge.mjs (planted checks; mutations: results-reduce-edge-mutations.txt); preflight-edge.sh with preflight-parse-edge.mjs; derive-edge.mjs; batch-edge.sh.
-- **Amended after registration, before launch (the plan-auditor's FAIL of 5 Oct 12:22 UK):** item 1's HELD restated as a direction, O101-EDGE settled only with the low edge's share 0.7 or more (BLOCKING 1), and O83's grade A moved to item 2; the derivation gives the split arms room outside their parents - the relocated pause in half of every story's draws (BLOCKING 2; the HYB close's lesson); item 2's FALSIFIED and INCONCLUSIVE branches registered (BLOCKING 3); the interval, the prior's wording and the cost from the script's output (MINORs 4-6). The credences re-derived.
+- **Amended after registration, before launch (the plan-auditor's FAIL of 5 Oct 12:22 UK):** item 1's HELD restated as a direction, O101-EDGE settled only with the low edge's share 0.7 or more (BLOCKING 1), and O83 moved to item 2; the derivation gives the split arms room outside their parents - the relocated pause in half of every story's draws (BLOCKING 2; the HYB close's lesson); item 2's FALSIFIED and INCONCLUSIVE branches registered (BLOCKING 3); the interval, the prior's wording and the cost from the script's output (MINORs 4-6). The credences re-derived. Then, on its FAIL of 12:29 UK: item 2's HELD a direction too, O83's survival cost settled only by the share rule at grade B (BLOCKING 1); the share rule registered as a deciding rule on S130 in the Decision rule and printed by the reducer (BLOCKING 2; 28 planted checks, 27 of 27 mutations); O88's line in every branch (MINOR 3); item 1 HELD under the bar put with the read's attribution only (MINOR 4).
 
 ## Derivation script
 
-- `derive: research/solver/derive-edge.mjs > research/solver/results-derive-edge.txt sha256 562bf144dd1fe27e`
+- `derive: research/solver/derive-edge.mjs > research/solver/results-derive-edge.txt sha256 bf55e5e964d2b815`
   (each item's outcomes under each of the review's stories, the relocated pause in half the draws; the priors, the review's and the sceptical one; the share's centiles; the credences; the cost)
 
 ## Point and interval
 
-- **Item 1:** P-LO's share of PCLSI's gain over HYB on S130, about 0.41 (median under the registered prior, the relocated pause included; 80% interval 0.02 to 0.78, results-derive-edge.txt section 3).
-- **Item 2:** S-HI's share of the interpolated read's gain over SNAP on S130, about 0.41 (0.00 to 0.78; the stand-in's gain, grade C).
+- **Item 1:** P-LO's share of PCLSI's gain over HYB on S130, about 0.42 (median under the registered prior, the relocated pause included; 80% interval 0.02 to 0.78, results-derive-edge.txt section 3).
+- **Item 2:** S-HI's share of the interpolated read's gain over SNAP on S130, about 0.41 (-0.01 to 0.78; the stand-in's gain, grade C).
 
 ## Credence
 

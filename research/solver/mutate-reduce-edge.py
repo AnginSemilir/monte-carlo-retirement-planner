@@ -30,5 +30,11 @@ M = [
   ("one: splitItem(files, 'P-LO', 'P-HI', 'LO', 'HI', opts)", "one: splitItem(files, 'P-HI', 'P-LO', 'LO', 'HI', opts)"),
   ("two: splitItem(files, 'S-HI', 'S-LO', 'HI', 'LO', opts)", "two: splitItem(files, 'S-LO', 'S-HI', 'HI', 'LO', opts)"),
   ("const legs = rows.filter(r => r.id !== 'S130' && DECIDE.includes(r.id))", "const legs = rows.filter(r => r.id !== 'S130')"),
+  # the share rule
+  ("s >= SHARE_BAR ? 'SETTLED'", "s > SHARE_BAR ? 'SETTLED'"),
+  ("v !== 'HELD' ? 'NOT APPLICABLE'", "false ? 'NOT APPLICABLE'"),
+  ("const F = k => files[`S130 ${k}`];", "const F = k => files[`S128 ${k}`];"),
+  ("lo = share(diff(F('P-LO'), F('HYB')), diff(F('PCLSI'), F('HYB')))", "lo = share(diff(F('P-HI'), F('HYB')), diff(F('PCLSI'), F('HYB')))"),
+  ("hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('SNAP')))", "hi = share(diff(F('S-HI'), F('SNAP')), diff(F('PCLSI'), F('SNAP')))"),
 ]
 run('reduce-edge.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

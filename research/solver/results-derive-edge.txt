@@ -21,11 +21,13 @@ EDGE-SPLIT'S DERIVATION (predictions/diag-edge.md): the power by story and the m
   prior A, item 2: HELD 0.745 INCONCLUSIVE 0.174 FALSIFIED 0.081; point 0.74
   prior B, item 1: HELD 0.375 INCONCLUSIVE 0.343 FALSIFIED 0.282; point 0.53
   prior B, item 2: HELD 0.331 INCONCLUSIVE 0.426 FALSIFIED 0.243; point 0.53
-  prior B, item 1: the first split arm's share of the gain over its snapped parent on S130 (relocation included), 10th and 90th centiles 0.02 and 0.78, median 0.41
-  prior B, item 2: the first split arm's share of the gain over its snapped parent on S130 (relocation included), 10th and 90th centiles 0.00 and 0.78, median 0.41
+  item 1, P(share 0.7 or more) by story: EDGE 0.626, WITHIN 0.018, TABLES 0.192, NOISE 0.000, STEP 0.190
+  item 2, P(share 0.7 or more) by story: EDGE 0.605, WITHIN 0.023, TABLES 0.196, NOISE 0.000, STEP 0.189
+  prior B, item 1: the first split arm's share of the gain over its snapped parent on S130 (relocation included), 10th and 90th centiles 0.02 and 0.78, median 0.42
+  prior B, item 2: the first split arm's share of the gain over its snapped parent on S130 (relocation included), 10th and 90th centiles -0.01 and 0.78, median 0.41
 
 4. THE CREDENCES (prior B, the mixture, each outcome to two places; the point the first split arm's median share of its item's gain over the snapped parent, relocation included; check-prediction.mjs holds the prediction to these)
-CREDENCE item 1: point 0.41 HELD 0.38 INCONCLUSIVE 0.34 FALSIFIED 0.28
+CREDENCE item 1: point 0.42 HELD 0.38 INCONCLUSIVE 0.34 FALSIFIED 0.28
 CREDENCE item 2: point 0.41 HELD 0.33 INCONCLUSIVE 0.43 FALSIFIED 0.24
 
 5. THE COST (HYB's seconds, results/diaghyb case logs: solves 319-387 s, forward arms 518-600 s): 2 solves and 7 forward arms a household at the slowest, 4974 s, 1.38 hours a household; 3 households in parallel on quiet cores; each process stopped at 4 hours.

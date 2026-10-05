@@ -17,9 +17,13 @@
  *     FALSIFIED when S130 reads HI; else INCONCLUSIVE. S128 a scored leg; S370 reported (raw p).
  *   ITEM 2 (SNAP's tables): per path y = S-HI - S-LO, the same test and Holm over its own 4; HI, LO or SPLIT. HELD when S130
  *     reads HI; FALSIFIED when S130 reads LO; else INCONCLUSIVE. S128 a scored leg; S370 reported.
- *   SECONDARY (declared, decides nothing): the low edge's share of PCLSI's gain over HYB ((P-LO - HYB) / (PCLSI - HYB)) and
- *     the high edge's on SNAP's tables ((S-HI - SNAP) / (S-INT - SNAP)); S-INT against PCLSI (the tables' own part, O101's
- *     third cause) and against SNAP; every pair's survival, tax and net change.
+ *   THE SHARE RULE (registered; the plan-auditor's BLOCKINGs of 5 Oct 12:22 and 12:29 UK: a direction alone cannot separate
+ *     EDGE from WITHIN): on S130 only, the low edge's share of PCLSI's gain over HYB, (P-LO - HYB) / (PCLSI - HYB) in paths,
+ *     at 0.7 or more with item 1 HELD settles O101-EDGE held (grade B), else UNSEPARATED; the high edge's share of the
+ *     interpolated read's gain on SNAP's tables, (S-HI - SNAP) / (S-INT - SNAP), at 0.7 or more with item 2 HELD settles O83's
+ *     survival cost (grade B), else UNSEPARATED; NOT APPLICABLE when its item is not HELD.
+ *   SECONDARY (declared, decides nothing): S-INT against PCLSI (the tables' own part, O101's third cause) and against SNAP;
+ *     every pair's survival, tax and net change; the shares on S128 and S370.
  *   REPORTED: flat years with the pension live by the used share's band per arm (derive-hyb-edges.mjs flatYears).
  *   node research/solver/reduce-edge.mjs [dir] [paths] [points] > research/solver/results-edge.txt
  *   node research/solver/reduce-edge.mjs --planted   the planted checks alone, the outcomes they reach and the EDGES
@@ -128,6 +132,7 @@ export function identity(files, hyb) {
 }
 
 const mean = xs => xs.reduce((t, x) => t + x, 0) / xs.length;
+const diff = (X, Z) => { let s = 0; for (let j = 0; j < X.N; j++) s += X.survived[j] - Z.survived[j]; return s; };
 /* one item: per path y = A - B in survival over the deciding households, Holm over their 2 x 2; S370 reported at raw p */
 function splitItem(files, a, b, up, dn, { b: nb = B } = {}) {
   const ys = PANEL.map(id => { const X = files[`${id} ${a}`], Z = files[`${id} ${b}`]; return Array.from({ length: X.N }, (_, j) => X.survived[j] - Z.survived[j]); });
@@ -145,8 +150,15 @@ function splitItem(files, a, b, up, dn, { b: nb = B } = {}) {
 export function items(files, opts = {}) {
   return { one: splitItem(files, 'P-LO', 'P-HI', 'LO', 'HI', opts), two: splitItem(files, 'S-HI', 'S-LO', 'HI', 'LO', opts) };
 }
-const diff = (X, Z) => { let s = 0; for (let j = 0; j < X.N; j++) s += X.survived[j] - Z.survived[j]; return s; };
 export const share = (num, den) => (den ? num / den : NaN);
+export const SHARE_BAR = 0.7;
+/* the share rule on S130: each share, and SETTLED / UNSEPARATED / NOT APPLICABLE by its item's outcome */
+export function shareRule(files, r) {
+  const F = k => files[`S130 ${k}`];
+  const lo = share(diff(F('P-LO'), F('HYB')), diff(F('PCLSI'), F('HYB'))), hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('SNAP')));
+  const rule = (v, s) => (v !== 'HELD' ? 'NOT APPLICABLE' : s >= SHARE_BAR ? 'SETTLED' : 'UNSEPARATED');
+  return { lo, hi, edge: rule(r.one.v, lo), o83: rule(r.two.v, hi) };
+}
 
 /* flat years with the pension live by the used share's band (derive-hyb-edges.mjs flatYears, copied: it runs on import) */
 const buf = s => { const x = Buffer.from(s, 'base64'); return x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength); };
@@ -172,7 +184,9 @@ export function reading(files, out = console.log, opts = {}) {
     for (const x of it.rows) out(`  ${x.id.padEnd(8)} ${a} over ${b}: b ${x.b} c ${x.c} change ${f3(100 * (x.c - x.b) / x.N)} | mean y ${(1e4 * x.my).toFixed(1)}e-4, p ${pv(x.pU)} / ${pv(x.pD)}, Holm ${pv(x.hU)} / ${pv(x.hD)} | ${x.read}`);
     out(`  -> ${it.v} (HELD when S130 reads ${up}; FALSIFIED when S130 reads ${dn}; else INCONCLUSIVE)`);
   }
-  out('\nSECONDARY (declared; decides nothing): the edges\' shares, the tables\' own part, every pair\'s change a path (survival in points, tax and net, se over paths)');
+  const S = shareRule(files, r);
+  out(`\nTHE SHARE RULE (registered; S130 only; the bar ${SHARE_BAR}): the low edge's share of PCLSI over HYB ${f3(S.lo)} -> O101-EDGE ${S.edge}; the high edge's share of S-INT over SNAP ${f3(S.hi)} -> O83's survival cost ${S.o83}`);
+  out('\nSECONDARY (declared; decides nothing): the edges\' shares on every household, the tables\' own part, every pair\'s change a path (survival in points, tax and net, se over paths)');
   for (const id of PANEL) {
     const F = k => files[`${id} ${k}`], H = files[`${id} HYB`];
     out(`  ${id.padEnd(8)} the low edge's share of PCLSI over HYB ${f3(share(diff(F('P-LO'), H), diff(F('PCLSI'), H)))} (P-LO over HYB ${diff(F('P-LO'), H)}, P-HI over HYB ${diff(F('P-HI'), H)}, PCLSI over HYB ${diff(F('PCLSI'), H)} paths); the high edge's share of S-INT over SNAP ${f3(share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('SNAP'))))} (S-HI ${diff(F('S-HI'), F('SNAP'))}, S-LO ${diff(F('S-LO'), F('SNAP'))}, S-INT ${diff(F('S-INT'), F('SNAP'))} paths over SNAP)`);
@@ -181,8 +195,9 @@ export function reading(files, out = console.log, opts = {}) {
   out('\nREPORTED: flat years with the pension live (pension over 10,000, the used share growing under 0.01), a path\'s mean, by the used share\'s band: [0.15, 0.25) / [0.25, 0.6) / [0.6, 0.75)');
   for (const id of PANEL) for (const a of [...ARMS, 'HYB']) { const fy = flatYears(a === 'HYB' ? files[`${id} HYB`] : files[`${id} ${a}`]); out(`  ${`${id} ${a}`.padEnd(14)} ${fy ? fy.map(f2).join(' / ') : 'no pension trace'}`); }
   out(`\nOUTCOME: 1 ${r.one.v}; 2 ${r.two.v}`);
+  out(`SHARES: O101-EDGE ${S.edge}; O83 ${S.o83}`);
   out(`LEGS: ${[['1', r.one], ['2', r.two]].flatMap(([k, it]) => it.legs.map(l => `item ${k} ${l.id} ${l.v}`)).join('; ')}`);
-  return r;
+  return { ...r, shares: S };
 }
 
 /* ---- planted checks: built logs and files, faults planted in them ---- */
@@ -238,7 +253,14 @@ function planted() {
   { const r = R({ save: { S130: { 'S-HI': 100, 'S-LO': 100 } } }); cases.push(['the two edges equal on SNAP\'s tables on S130 read SPLIT, item 2 INCONCLUSIVE', `${r.two.rows[0].read} ${r.two.v}`, 'SPLIT INCONCLUSIVE']); }
   { const r = R({ save: { S128: { 'P-LO': 50, 'P-HI': 150 } } }); cases.push(['S128 reversed alone leaves item 1 HELD and scores its leg FALSIFIED', `${r.one.v} ${JSON.stringify(r.one.legs)}`, 'HELD [{"id":"S128","v":"FALSIFIED"}]']); }
   { const r = R({ save: { S370: { 'P-LO': 50, 'P-HI': 150 } } }); cases.push(['S370 reversed is reported only: no leg, item 1 HELD', `${r.one.v} ${r.one.rows[2].read} ${r.one.legs.length}`, 'HELD REPORTED 1']); } EDGES.push('a reported household reading the other way');
-  { const lines = []; const fs = builtFiles({}), hy = builtHyb({}); for (const id of PANEL) fs[`${id} HYB`] = hy[`${id} HYB`]; reading(fs, l => lines.push(l), { b: PB }); cases.push(['the reading runs to its outcome and legs lines', `${lines.some(l => l === '\nOUTCOME: 1 HELD; 2 HELD')} ${lines.some(l => /^LEGS: item 1 S128 HELD; item 2 S128 HELD$/.test(l))}`, 'true true']); }
+  const SR = o => { const fs = builtFiles(o), hy = builtHyb(o); for (const id of PANEL) fs[`${id} HYB`] = hy[`${id} HYB`]; return shareRule(fs, items(fs, { b: PB })); };
+  { const s = SR({}); cases.push(['the share rule: P-LO 150 of PCLSI 200 over HYB (0.75) and S-HI 150 of S-INT 200 (0.75) settle both', `${s.lo} ${s.edge} ${s.hi} ${s.o83}`, '0.75 SETTLED 0.75 SETTLED']); }
+  { const s = SR({ save: { S130: { 'P-LO': 140, 'S-HI': 140 } } }); cases.push(['EDGE: a share of exactly 0.7 settles', `${s.lo} ${s.edge} ${s.o83}`, '0.7 SETTLED SETTLED']); } EDGES.push('a share exactly at the bar');
+  { const s = SR({ save: { S130: { 'P-LO': 120, 'S-HI': 120 } } }); cases.push(['a share of 0.6 with the item HELD leaves EDGE and WITHIN unseparated', `${s.edge} ${s.o83}`, 'UNSEPARATED UNSEPARATED']); }
+  { const s = SR({ save: { S130: { 'P-LO': 100, 'P-HI': 100, 'S-HI': 100, 'S-LO': 100 } } }); cases.push(['an item not HELD makes its share rule not applicable, whatever the share', `${s.edge} ${s.o83}`, 'NOT APPLICABLE NOT APPLICABLE']); }
+  { const s = SR({ save: { S130: { 'S-HI': 130, 'S-INT': 150 } } }); cases.push(['the high edge\'s share is over S-INT\'s gain, not PCLSI\'s (130 of 150, not of 200)', `${s.hi.toFixed(3)} ${s.o83}`, '0.867 SETTLED']); }
+  { const s = SR({ save: { S130: { 'P-LO': 150 }, S128: { 'P-LO': 10 } } }); cases.push(['the rule reads S130 only (S128\'s share does not move it)', s.edge, 'SETTLED']); }
+  { const lines = []; const fs = builtFiles({}), hy = builtHyb({}); for (const id of PANEL) fs[`${id} HYB`] = hy[`${id} HYB`]; reading(fs, l => lines.push(l), { b: PB }); cases.push(['the reading runs to its outcome, shares and legs lines', `${lines.some(l => l === '\nOUTCOME: 1 HELD; 2 HELD')} ${lines.some(l => l === 'SHARES: O101-EDGE SETTLED; O83 SETTLED')} ${lines.some(l => /^LEGS: item 1 S128 HELD; item 2 S128 HELD$/.test(l))}`, 'true true true']); }
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

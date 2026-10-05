@@ -20,4 +20,9 @@ caught: 19: const h = holm(DECIDE.flatMap(id => p[PANEL.indexOf(id)]));
 caught: 20: one: splitItem(files, 'P-LO', 'P-HI', 'LO', 'HI', opts)
 caught: 21: two: splitItem(files, 'S-HI', 'S-LO', 'HI', 'LO', opts)
 caught: 22: const legs = rows.filter(r => r.id !== 'S130' && DECIDE.incl
-22 of 22 mutations caught
+caught: 23: s >= SHARE_BAR ? 'SETTLED'
+caught: 24: v !== 'HELD' ? 'NOT APPLICABLE'
+caught: 25: const F = k => files[`S130 ${k}`];
+caught: 26: lo = share(diff(F('P-LO'), F('HYB')), diff(F('PCLSI'), F('HY
+caught: 27: hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('S
+27 of 27 mutations caught

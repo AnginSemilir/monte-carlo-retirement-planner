@@ -106,6 +106,8 @@ const pointOf = S => S.reduce((t, [nm, p]) => t + p * MEANS[nm], 0);
 console.log(`\n3. THE PRIORS: A, the review's: ${STORIES_A.map(([nm, p]) => `${nm} ${f2(p)}`).join(', ')}; B, registered (a stated sceptical choice) - EDGE at ${f3(P_EDGE)}, Laplace on the record that ${HITS} of ${TRIES} items leaning on a review's cause or story read as it said, the rest in the review's proportions: ${STORIES.map(([nm, p]) => `${nm} ${f3(p)}`).join(', ')}`);
 for (const [nm, S] of [['A', STORIES_A], ['B', STORIES]]) for (const it of [1, 2]) { const m = mixOf(S, it); console.log(`  prior ${nm}, item ${it}: HELD ${f3(m.HELD)} INCONCLUSIVE ${f3(m.INCONCLUSIVE)} FALSIFIED ${f3(m.FALSIFIED)}; point ${f2(pointOf(S))}`); }
 const point = pointOf(STORIES);
+// the share rule's bar (predictions/diag-edge.md): how often the first split arm's share reaches 0.7 on S130, story by story
+for (const it of [1, 2]) console.log(`  item ${it}, P(share 0.7 or more) by story: ${STORIES_A.map(([nm, , f, g]) => { let k = 0; for (let r = 0; r < R; r++) if (draw(IN[it].S130, f(), g).share >= 0.7) k++; return `${nm} ${f3(k / R)}`; }).join(', ')}`);
 const MED = {};
 for (const it of [1, 2]) { const xs = shares(STORIES, it); MED[it] = pct(xs, 0.5); console.log(`  prior B, item ${it}: the first split arm's share of the gain over its snapped parent on S130 (relocation included), 10th and 90th centiles ${f2(pct(xs, 0.1))} and ${f2(pct(xs, 0.9))}, median ${f2(pct(xs, 0.5))}`); }
 console.log(`\n4. THE CREDENCES (prior B, the mixture, each outcome to two places; the point the first split arm's median share of its item's gain over the snapped parent, relocation included; check-prediction.mjs holds the prediction to these)`);

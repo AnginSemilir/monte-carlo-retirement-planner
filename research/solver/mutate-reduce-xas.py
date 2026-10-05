@@ -40,6 +40,11 @@ M = [
   # the detectable size beside each item
   ("return { sd: s, mdd: z * s / Math.sqrt(y.length) };", "return { sd: s, mdd: z * s / y.length };"),
   ("const Z2 = 1.96 + 0.8416,", "const Z2 = 1.96,"),
+  # a SPLIT read CLOSE or WEAK
+  ("(detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK')", "(detect(y, z).mdd >= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK')"),
+  ("(detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK')", "'CLOSE'"),
+  ("split: r1 === 'SPLIT' ? splitKind(y1, d1, Z2) : null", "split: r1 === 'SPLIT' ? 'CLOSE' : null"),
+  ("const splits = r2.map((x, i) => (x === 'SPLIT' ? splitKind(ys[i], ds[i], Z4) : null));", "const splits = r2.map((x, i) => (x === 'SPLIT' ? 'WEAK' : null));"),
 ]
 M = [m for m in M if m[0] != m[1]]
 run('reduce-xas.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

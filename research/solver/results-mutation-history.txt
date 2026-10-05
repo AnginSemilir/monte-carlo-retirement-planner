@@ -40,3 +40,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 08:56 UTC | reduce-xas.mjs 1a3ec2b5fcb2 | 23 of 27 caught | escaped: NOT CAUGHT: 7: if (r !== R || n !== N || x !== X) bad.push(; NOT CAUGHT: 9: if (!t) return [`${tag}: missing`];; NOT CAUGHT: 10: ['read', 'ex5', 'exF', 'claim'].some(q => !Array.isArray(A[q; NOT CAUGHT: 22: const r1 = h1[0] < ALPHA ? 'REP' : h1[1] < ALPHA ? 'QUAD' : 
 2026-10-05 08:57 UTC | reduce-xas.mjs 731ac3f6537b | 27 of 27 caught | escaped: none
 2026-10-05 09:10 UTC | reduce-xas.mjs f564b28fb553 | 29 of 29 caught | escaped: none
+2026-10-05 09:15 UTC | reduce-xas.mjs 28996d3d925a | 33 of 33 caught | escaped: none

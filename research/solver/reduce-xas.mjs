@@ -131,6 +131,14 @@ export function drawCheck(files) {
   }
   return bad;
 }
+// the realised per-path sd of y and the |mean y| the item shows at 80% power after its Holm (normal approximation: z 1.96
+// + 0.8416 over 2 tests one-sided, 2.2414 + 0.8416 over 4), so a SPLIT is read against the test's achieved power (the
+// plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK: sd(y) is not bounded by sd(D)). A SPLIT is CLOSE (the two terms within a
+// fifth of the error they split) only where that detectable size is at most a fifth of |mean D| over the same paths;
+// otherwise WEAK - the test could not have told a gap of that size (the plan-auditor's BLOCKING 1 of 5 Oct 10:17 UK)
+const Z2 = 1.96 + 0.8416, Z4 = 2.2414 + 0.8416;
+export const detect = (y, z) => { const s = sdOf(y); return { sd: s, mdd: z * s / Math.sqrt(y.length) }; };
+export const splitKind = (y, d, z) => (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK');
 const stepYears = t => [...new Set(t.t.filter((_, j) => t.kind[j] === 1))];
 export function items(files) {
   const rq = (t, a) => j => { const A = t.arms[a]; return (A.read[j] - A.ex5[j]) - (A.ex5[j] - A.exF[j]); };
@@ -139,20 +147,18 @@ export function items(files) {
   const y1 = perPath(S, sel(S, j => before.has(S.t[j]) && S.kind[j] === 0), rq(S, 'COV'));
   const h1 = holm([flipP(y1, B, 7002), flipP(y1.map(x => -x), B, 7003)]);
   const r1 = h1[0] < ALPHA ? 'REP' : h1[1] < ALPHA ? 'QUAD' : 'SPLIT';
-  const one = { y: y1, h: h1, read: r1, v: r1 === 'REP' ? 'HELD' : r1 === 'QUAD' ? 'FALSIFIED' : 'INCONCLUSIVE', years: [...before].sort((a, b) => a - b) };
+  const J1 = sel(S, j => before.has(S.t[j]) && S.kind[j] === 0), d1 = perPath(S, J1, j => S.arms.COV.read[j] - S.arms.COV.claim[j]);
+  const one = { y: y1, d: d1, h: h1, read: r1, split: r1 === 'SPLIT' ? splitKind(y1, d1, Z2) : null, v: r1 === 'REP' ? 'HELD' : r1 === 'QUAD' ? 'FALSIFIED' : 'INCONCLUSIVE', years: [...before].sort((a, b) => a - b) };
   // ITEM 2: BASE, the step years, S370 and S130
   const ids = ['S370', 'S130'], ys = ids.map(id => { const t = files[id]; return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'BASE')); });
   const h2 = holm(ys.flatMap(y => [flipP(y, B, 7002), flipP(y.map(x => -x), B, 7003)]));
   const r2 = ids.map((_, i) => (h2[2 * i] < ALPHA ? 'REP' : h2[2 * i + 1] < ALPHA ? 'QUAD' : 'SPLIT'));
-  const two = { ys, h: h2, reads: r2, v: r2.every(x => x === 'REP') ? 'HELD' : r2.some(x => x === 'QUAD') ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  const ds = ids.map(id => { const t = files[id]; return perPath(t, sel(t, j => t.kind[j] === 1), j => t.arms.BASE.read[j] - t.arms.BASE.claim[j]); });
+  const splits = r2.map((x, i) => (x === 'SPLIT' ? splitKind(ys[i], ds[i], Z4) : null));
+  const two = { ys, ds, h: h2, reads: r2, splits, split: splits.includes('WEAK') ? 'WEAK' : splits.includes('CLOSE') ? 'CLOSE' : null, v: r2.every(x => x === 'REP') ? 'HELD' : r2.some(x => x === 'QUAD') ? 'FALSIFIED' : 'INCONCLUSIVE' };
   return { one, two };
 }
 const f4 = x => (Number.isFinite(x) ? x.toExponential(4) : 'NaN');
-// the realised per-path sd of y and the |mean y| the item shows at 80% power after its Holm (normal approximation: z 1.96
-// + 0.8416 over 2 tests one-sided, 2.2414 + 0.8416 over 4), so a SPLIT is read against the test's achieved power (the
-// plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK: sd(y) is not bounded by sd(D))
-const Z2 = 1.96 + 0.8416, Z4 = 2.2414 + 0.8416;
-export const detect = (y, z) => { const s = sdOf(y); return { sd: s, mdd: z * s / Math.sqrt(y.length) }; };
 export function reading(files, units, out = console.log) {
   const R = items(files);
   out('\nTHE SPLIT: read - claim = rep (read - ex5) + quad (ex5 - exF) + draw (exF - claim), means over reads');
@@ -184,8 +190,8 @@ export function reading(files, units, out = console.log) {
       out(`  ${a} with the other arm's opening: survived ${u126.swap[a].own} to ${u126.swap[a].swapped} of ${u126.swap[a].paths} (b ${b} lost, c ${c} saved)`);
     }
   }
-  out(`\nITEM 1 (primary): COV on S370 in the years before each step (${R.one.years.join(', ')}), per path y = rep - quad: mean ${f4(mean(R.one.y))} over ${R.one.y.length} paths (sd ${f4(detect(R.one.y, Z2).sd)}, detectable ${f4(detect(R.one.y, Z2).mdd)} at 80% power); Holm p (REP, QUAD) ${R.one.h.map(x => x.toFixed(4)).join(', ')} -> ${R.one.read} -> item 1 ${R.one.v}`);
-  out(`ITEM 2: BASE at the step years, per path y = rep - quad: ${['S370', 'S130'].map((id, i) => `${id} mean ${f4(mean(R.two.ys[i]))} over ${R.two.ys[i].length} paths (sd ${f4(detect(R.two.ys[i], Z4).sd)}, detectable ${f4(detect(R.two.ys[i], Z4).mdd)}), Holm p ${R.two.h[2 * i].toFixed(4)}/${R.two.h[2 * i + 1].toFixed(4)} ${R.two.reads[i]}`).join('; ')} -> item 2 ${R.two.v}`);
+  out(`\nITEM 1 (primary): COV on S370 in the years before each step (${R.one.years.join(', ')}), per path y = rep - quad: mean ${f4(mean(R.one.y))} over ${R.one.y.length} paths (sd ${f4(detect(R.one.y, Z2).sd)}, detectable ${f4(detect(R.one.y, Z2).mdd)} at 80% power); Holm p (REP, QUAD) ${R.one.h.map(x => x.toFixed(4)).join(', ')} -> ${R.one.read}${R.one.split ? ` (${R.one.split}: detectable ${f4(detect(R.one.y, Z2).mdd)} against a fifth of |mean D| ${f4(Math.abs(mean(R.one.d)) / 5)})` : ''} -> item 1 ${R.one.v}${R.one.split ? ` (${R.one.split})` : ''}`);
+  out(`ITEM 2: BASE at the step years, per path y = rep - quad: ${['S370', 'S130'].map((id, i) => `${id} mean ${f4(mean(R.two.ys[i]))} over ${R.two.ys[i].length} paths (sd ${f4(detect(R.two.ys[i], Z4).sd)}, detectable ${f4(detect(R.two.ys[i], Z4).mdd)}), Holm p ${R.two.h[2 * i].toFixed(4)}/${R.two.h[2 * i + 1].toFixed(4)} ${R.two.reads[i]}${R.two.splits[i] ? ` ${R.two.splits[i]} (a fifth of |mean D| ${f4(Math.abs(mean(R.two.ds[i])) / 5)})` : ''}`).join('; ')} -> item 2 ${R.two.v}${R.two.v === 'INCONCLUSIVE' && R.two.split ? ` (${R.two.split})` : ''}`);
   return R;
 }
 
@@ -243,8 +249,9 @@ function planted() {
   // the defaults: rep 0.01 against quad 0.001 (COV, years before) and 0.02 against 0.002 (BASE, steps) on every path -> REP both
   { const r = Rd({}); cases.push(['rep above quad everywhere reads items 1 and 2 HELD', `${r.one.v} ${r.two.v}`, 'HELD HELD']); }
   cases.push(['quad above rep on S370\'s years before reads item 1 FALSIFIED', Rd({ c1: { S370: [0.001, 0.01] } }).one.v, 'FALSIFIED']);
-  cases.push(['rep equal to quad on S370\'s years before reads item 1 INCONCLUSIVE', Rd({ c1: { S370: [0.005, 0.005] } }).one.v, 'INCONCLUSIVE']); EDGES.push('rep equal to quad on every path (y = 0)');
-  cases.push(['a noisy split on S370 reads item 1 INCONCLUSIVE', Rd({ c1: { S370: [0.001, 0] }, noisy: true }).one.v, 'INCONCLUSIVE']);
+  { const r = Rd({ c1: { S370: [0.005, 0.005] } }); cases.push(['rep equal to quad on S370\'s years before reads item 1 INCONCLUSIVE, CLOSE', `${r.one.v} ${r.one.split}`, 'INCONCLUSIVE CLOSE']); } EDGES.push('rep equal to quad on every path (y = 0)');
+  { const r = Rd({ c1: { S370: [0.001, 0] }, noisy: true }); cases.push(['a noisy split on S370 reads item 1 INCONCLUSIVE, WEAK (detectable above a fifth of D)', `${r.one.v} ${r.one.split}`, 'INCONCLUSIVE WEAK']); } EDGES.push('a SPLIT whose detectable size exceeds a fifth of D (WEAK)');
+  { const r = Rd({ c2: { S370: [0.01, 0.01] } }); cases.push(['rep equal to quad at S370\'s steps reads item 2 CLOSE on S370', `${r.two.splits[0]}`, 'CLOSE']); }
   cases.push(['a weak split on S370 (Holm p between 0.05 and 0.5) reads item 1 INCONCLUSIVE', Rd({ c1: { S370: [WEAK, 0] }, noisy: true }).one.v, 'INCONCLUSIVE']); EDGES.push('a split shown alone but not at the 0.05 line');
   cases.push(['quad above rep at S130\'s steps reads item 2 FALSIFIED', Rd({ c2: { S130: [0.002, 0.02] } }).two.v, 'FALSIFIED']);
   cases.push(['rep equal to quad at S370\'s steps reads item 2 INCONCLUSIVE', Rd({ c2: { S370: [0.01, 0.01] } }).two.v, 'INCONCLUSIVE']);

@@ -27,4 +27,8 @@ caught: 26: return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'BASE'
 caught: 27: const key = t.k[j] * 1e6 + t.p[j];
 caught: 28: return { sd: s, mdd: z * s / Math.sqrt(y.length) };
 caught: 29: const Z2 = 1.96 + 0.8416,
-29 of 29 mutations caught
+caught: 30: (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK
+caught: 31: (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK
+caught: 32: split: r1 === 'SPLIT' ? splitKind(y1, d1, Z2) : null
+caught: 33: const splits = r2.map((x, i) => (x === 'SPLIT' ? splitKind(y
+33 of 33 mutations caught

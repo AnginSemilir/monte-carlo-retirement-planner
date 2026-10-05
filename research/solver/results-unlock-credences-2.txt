@@ -1,0 +1,83 @@
+THE SECOND UNLOCK'S CHECKS (5 Oct): the planted cases and the mutations, as the scripts print them
+
+== node research/tests/plan-checker.test.mjs (the new cases)
+PASS  planted fault caught (retro): a hyphenated test scored with no close (ADOPT-PI was skipped before)
+PASS  closes out of the scorecard's order: each names its own window by date and passes
+PASS  planted fault caught (retro): the earlier close by date misses its window's BLOCKING code (the scorecard order would have hidden it)
+PASS  planted: an item that can never read FALSIFIED is refused, twice (under 3, and the Decision fed names it)
+PASS  a derived credence with its judged one, its CREDENCE line and its point passes
+PASS  planted: no judged credence beside the derived one is refused
+PASS  planted: an outcome named twice on one credence line is refused
+PASS  planted: an item the Decision rule names with no credence line is refused
+PASS  EDGE: a number inside a name (S130) is not the point; the first standalone number is
+PASS  EDGE: a point written without its leading zero (.5) reads as 0.5
+PASS  exemptBy: only a commit inside the boundary's ancestry exempts; an uncommitted file (no commit) never does
+PASS  the two boundaries are the first unlock's commit and the second unlock's base
+PASS  by ancestry: diag-edge (added after d4487bd) is held to the credence rule, diag-xas (added before it) is not
+PASS  by ancestry: diag-edge (added before ed5db5c) is exempt from the judged rules; judged: true forces them; a file not on disk is not held
+PASS  planted: an uncommitted prediction is held to both rules (no commit can exempt it)
+PASS  judged committed before the derivation's output passes
+PASS  planted: the judged lines and the derivation's output in one commit are refused
+PASS  planted: judged lines committed after the derivation's output are refused
+PASS  planted: judged lines and output both uncommitted are refused (commit the judgement alone first)
+PASS  planted: the output committed and the judged lines not are refused
+PASS  EDGE: judged lines committed and the derivation not yet run passes
+PASS  "Judged: none" declines to judge and passes (the decisive check leaves it out)
+PASS  a kind's base rate, or the deep-review record's, passes
+PASS  planted: an item with no base rate is refused
+PASS  planted: a base rate on no kind is refused
+PASS  planted: a scorecard with no KIND BASE RATES line is refused, not passed
+PASS  the wiring: checkPredictionText runs credenceProblems on a prediction held to it
+PASS  the wiring: a prediction held to no credence rule is not checked for one
+PASS  the wiring: checkPredictionText runs the base-rate check on a prediction held to the judged rules, and only then
+PASS  an uncommitted prediction on disk is held to the decision rules
+PASS  planted: "the next close" is the next in time, not in the file (a REPLACE in a close written below a later one is still held to landing)
+237 passed
+
+== node research/solver/record-deep-review.mjs --planted (its cases include: an id the findings never rank refused; rival causes summing to 1.40 refused; a sum of 1.05 passes, 1.06 does not; CAUSES OVERLAP; a quote not a line of its results file refused; append-only)
+planted (30): all read as they should
+
+== node research/tests/hooks.test.mjs (review-causes.md protected)
+PASS  planted: settling, changing or removing a deep-review cause by hand is refused (record-deep-review.mjs --settle writes them)
+PASS  EDGE: the settling script itself is allowed
+228 passed
+
+== python3 research/solver/mutate-credence-checks.py
+CAUGHT   record-deep-review: if (missing.length) return `CAUSE CREDENCES names
+CAUGHT   record-deep-review: const named = id => [id, id.split('-').pop()]
+CAUGHT   record-deep-review: if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))
+CAUGHT   record-deep-review: if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))
+CAUGHT   record-deep-review: export const SUM_MAX = 1.05;
+CAUGHT   record-deep-review: const pre = c.slice(0, c.search(/CAUSE CREDENCES:/i))
+CAUGHT   record-deep-review: if (!DECIDING.test(q)) { errs.push(
+CAUGHT   record-deep-review: if (!String(text).split('\n').some(l => l.trim() === q)) { e
+CAUGHT   record-deep-review: if (!String(text).split('\n').some(l => l.trim() === q)) { e
+CAUGHT   record-deep-review: if (!m) { errs.push(`"${raw.slice(0, 60)}" is not
+CAUGHT   record-deep-review: committed != null && !String(now).startsWith(committed)
+CAUGHT   record-deep-review: if (seen.has(k)) { errs.push(`${at}: settled twice`); contin
+item 4: 12/12 caught
+CAUGHT   if (m[1] in d) Object.defineProperty
+CAUGHT   if (d.twice) P.push
+CAUGHT   if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule
+CAUGHT   else if (firstNum(line) !== Number(g.point))
+CAUGHT   /(?<![\w.])(\d+(?:\.\d+)?|\.\d+)(?![\w])/
+CAUGHT   export const exemptBy = (commit, ancestors) => !!commit && ancestors.h
+CAUGHT   export const CREDENCE_BOUNDARY = 'd4487bd'
+CAUGHT   opts.judged === true || (onDisk(name) && heldBy(name, JUDGED_BOUNDARY)
+CAUGHT   if (J === D) return
+CAUGHT   if (git(['merge-base', '--is-ancestor', J, D]) === null) return
+CAUGHT   if (!J && !D) return [
+CAUGHT   if (!J) return [`the derivation
+CAUGHT   if (/^\s*-\s*\*\*Judged:\*\*\s*none\b/mi.test(text)) return [];
+CAUGHT   if (!line) return ['results-scorecard.txt has no KIND
+CAUGHT   if (!b) P.push(`item ${m[1]}: no "- **Base rate
+CAUGHT   Math.abs(r - Number(b[1])) <= 0.01 + 1e-9
+CAUGHT   && heldToJudged(name, { judged })) errs.push(...baseRateProblems(text)
+CAUGHT   && heldToCredence(name, { credence })) errs.push(...credenceProblems(t
+CAUGHT   heldBy(name, CREDENCE_BOUNDARY)));
+19/19 caught
+CAUGHT   check-plan: matchAll(/^(\S+) \(.*\): Brier /gm)
+CAUGHT   check-plan:   found.sort((a, b) => a.c.at - b.c.at);
+
+CAUGHT   check-plan: if (c !== penult) continue;
+item 5: 3/3 caught

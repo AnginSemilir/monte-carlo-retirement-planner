@@ -9,10 +9,13 @@
  *   node research/solver/record-deep-review.mjs --retirement "<the retirement pass: each automation or retirement with its
  *        mechanical source; debt: each AUTOMATE or REPLACE lesson not yet carried out, built or dropped with its reason>"
  *        (RULES.md section 10: the line triggers.mjs counts closes from; this log is locked, so the count cannot be reset)
+ *   node research/solver/record-deep-review.mjs --settle "<receipt time> | <id> | held|not | <results file> | <its deciding line>"
+ *        (a ranked cause settled by a registered result: appended to review-causes.md, which only this writes)
  *   node research/solver/record-deep-review.mjs --planted          the planted checks alone
  * The receipt's time is the clock's (UK), its level and the test it covers are read from the records, not typed.
  */
 import { readFileSync, appendFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { index, scoredTests, stamp } from './uncertainty.mjs';
@@ -51,8 +54,52 @@ export function findingsProblem(f) {
   if (cc.length < 2) return 'CAUSE CREDENCES names fewer than two causes; a ranking names two or more';
   if (cc.some(x => !(x.p >= 0 && x.p <= 1))) return 'a cause credence is not a probability from 0 to 1';
   if (new Set(cc.map(x => x.id)).size !== cc.length) return 'a cause id appears twice in CAUSE CREDENCES';
+  // the second unlock (5 Oct; the plan-auditor's MINOR 3 of 11:37 UK): each id is a cause the findings rank before the
+  // segment (the id, or its part after the last hyphen: O101-EDGE or EDGE), and rival causes' credences sum to at most
+  // 1.05 unless the findings say "CAUSES OVERLAP: <why>" (more than one can be the cause)
+  const pre = c.slice(0, c.search(/CAUSE CREDENCES:/i)), esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = id => [id, id.split('-').pop()].filter(Boolean).some(w => new RegExp(`(^|[^\\w])${esc(w)}($|[^\\w])`).test(pre));
+  const missing = cc.filter(x => !named(x.id));
+  if (missing.length) return `CAUSE CREDENCES names ${missing.map(x => x.id).join(', ')}, not a cause the findings rank before it (the id, or its part after the last hyphen, written there)`;
+  const sum = cc.reduce((s, x) => s + x.p, 0);
+  if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre)) return `the cause credences sum to ${sum.toFixed(2)}: rival causes sum to at most ${SUM_MAX} (or the findings say "CAUSES OVERLAP: <why>" before them)`;
   return null;
 }
+export const SUM_MAX = 1.05;
+
+/* THE CAUSES SETTLED BY A REGISTERED RESULT, NOT BY THE AUTHOR (the second unlock of 5 Oct; the plan-auditor's MINOR 3 of
+   11:37 UK). review-causes.md is written only by --settle (pre-tool.mjs PROTECTED; its committed text must stay a prefix of
+   the file, so a settled line cannot be removed or changed), one line per settled cause:
+     - <the receipt's time> | <id> | held|not | <results file> | <the results file's deciding line, quoted whole>
+   The quoted line must be a line of that results file, and a deciding one (OUTCOME:, SHARES:, LEGS: or "=> "): a
+   cause is settled by what a reducer printed, not by judgement. scorecard.mjs scores the stated credences against them. */
+export const DECIDING = /^(OUTCOME|SHARES|LEGS):|^=> /;
+const SETTLE = /^- ([^|\n]+?) \| ([\w+-]+) \| (held|not) \| ([^|\n]+?) \| (.+?)\s*$/;
+export function statedCauses(log) {
+  const stated = new Map();
+  for (const m of String(log).matchAll(/^- (\d{1,2} \w{3} \d{2}:\d{2}) UK \| covered [^\n]*$/gm)) { const cc = causeCredences(m[0]); if (cc && cc.length && cc.every(Boolean)) for (const x of cc) stated.set(`${m[1]}|${x.id}`, x.p); }
+  return stated;
+}
+// `read(file)` gives a results file's text, or null when it does not exist
+export function settlements(log, settled, read = () => null) {
+  const stated = statedCauses(log), pairs = [], seen = new Set(), errs = [];
+  for (const raw of String(settled).split('\n')) {
+    if (!raw.startsWith('- ')) continue;
+    const m = SETTLE.exec(raw);
+    if (!m) { errs.push(`"${raw.slice(0, 60)}" is not "- <time> | <id> | held|not | <results file> | <its deciding line>"`); continue; }
+    const k = `${m[1].replace(/ UK$/, '')}|${m[2]}`, at = `${m[1]} ${m[2]}`, q = m[5].trim();
+    if (!stated.has(k)) { errs.push(`${at}: no receipt states that cause`); continue; }
+    if (seen.has(k)) { errs.push(`${at}: settled twice`); continue; }
+    const text = read(m[4]);
+    if (text == null) { errs.push(`${at}: its results file ${m[4]} does not exist`); continue; }
+    if (!DECIDING.test(q)) { errs.push(`${at}: it quotes "${q.slice(0, 50)}", not a deciding line (OUTCOME:, SHARES:, LEGS: or "=> ")`); continue; }
+    if (!String(text).split('\n').some(l => l.trim() === q)) { errs.push(`${at}: the quoted line is not a line of ${m[4]}`); continue; }
+    seen.add(k); pairs.push({ p: stated.get(k), o: m[3] === 'held' ? 1 : 0 });
+  }
+  return { stated, pairs, errs };
+}
+// append-only: the committed text must remain the start of the file
+export const appendOnlyProblem = (committed, now) => (committed != null && !String(now).startsWith(committed) ? 'review-causes.md no longer begins with its committed text: a settled line was removed or changed (it is append-only)' : null);
 export function retirementProblem(f) {
   const c = cleanFindings(f);
   if (c.length < MIN_FINDINGS) return `the retirement pass is ${c.length} characters; it names each automation or retirement with its mechanical source, and the follow-through debt (at least ${MIN_FINDINGS})`;
@@ -78,13 +125,32 @@ function planted() {
     ['a pipe in the findings cannot split the line', String(line.split(' | ').length), '4'],
     ['short findings are refused', String(!!findingsProblem('families: none')), 'true'],
     ['planted: full-length findings with no CAUSE CREDENCES are refused', String(!!findingsProblem(long)), 'true'],
-    ['full findings with their cause credences pass', String(findingsProblem(`${long} CAUSE CREDENCES: rep=0.45; quad=0.35`)), 'null'],
+    ['full findings with their cause credences pass', String(findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.45; quad=0.35`)), 'null'],
     ['the cause credences read back, a full stop ending them', JSON.stringify(causeCredences('ranked: a, b. CAUSE CREDENCES: rep=0.45; quad=.35. The decisive test X')), '[{"id":"rep","p":0.45},{"id":"quad","p":0.35}]'],
-    ['EDGE: credences of 0 and 1 pass', String(findingsProblem(`${long} CAUSE CREDENCES: rep=0; quad=1`)), 'null'],
-    ['planted: a cause credence above 1 is refused', String(!!findingsProblem(`${long} CAUSE CREDENCES: rep=1.4; quad=0.35`)), 'true'],
-    ['planted: one cause alone is refused', String(!!findingsProblem(`${long} CAUSE CREDENCES: rep=0.45`)), 'true'],
-    ['planted: a repeated cause id is refused', String(!!findingsProblem(`${long} CAUSE CREDENCES: rep=0.45; rep=0.35`)), 'true'],
-    ['planted: a credence written as a word is refused', String(!!findingsProblem(`${long} CAUSE CREDENCES: rep=likely; quad=0.35`)), 'true'],
+    ['EDGE: credences of 0 and 1 pass', String(findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0; quad=1`)), 'null'],
+    ['planted: a cause credence above 1 is refused', String(!!findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=1.4; quad=0.35`)), 'true'],
+    ['planted: one cause alone is refused', String(!!findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.45`)), 'true'],
+    ['planted: a repeated cause id is refused', String(!!findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.45; rep=0.35`)), 'true'],
+    ['planted: a cause id the findings never rank is refused', String(/not a cause the findings rank/.test(findingsProblem(`${long} ranked: rep. CAUSE CREDENCES: rep=0.45; quad=0.35`) || '')), 'true'],
+    ['EDGE: an id named in the findings by its part after the hyphen passes (O101-EDGE as EDGE)', String(findingsProblem(`${long} ranked: EDGE, WITHIN. CAUSE CREDENCES: O101-EDGE=0.7; O101-WITHIN=0.3`)), 'null'],
+    ['planted: an id written only after the segment is refused', String(!!findingsProblem(`${long} ranked: rep. CAUSE CREDENCES: rep=0.45; quad=0.35. quad`)), 'true'],
+    ['planted: rival causes summing to 1.4 are refused', String(/sum to 1\.40/.test(findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.7; quad=0.7`) || '')), 'true'],
+    ['EDGE: a sum of 1.05 passes, 1.06 does not', `${findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.7; quad=0.35`)} ${!!findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.7; quad=0.36`)}`, 'null true'],
+    ['"CAUSES OVERLAP:" before the segment lets overlapping causes sum past 1', String(findingsProblem(`${long} ranked: rep, quad. CAUSES OVERLAP: both can act at once. CAUSE CREDENCES: rep=0.7; quad=0.7`)), 'null'],
+    ...(() => {
+      const LG = '- 5 Oct 12:00 UK | covered X | level HIGH | ranked rep, quad. CAUSE CREDENCES: rep=0.6; quad=0.3. next\n';
+      const files = { 'results-x.txt': 'x\nOUTCOME: 1 HELD; 2 HELD\nSHARES: O101-EDGE SETTLED; O83 SETTLED\n' }, rd = f => (f in files ? files[f] : null);
+      const s = l => settlements(LG, `# head\n\n    - <time> | <id> | the format, indented\n${l}\n`, rd);
+      return [
+        ['a settlement quoting its results file\'s deciding line is scored', (r => `${r.pairs.length} ${r.errs.length} ${r.pairs[0].p} ${r.pairs[0].o}`)(s('- 5 Oct 12:00 | rep | held | results-x.txt | SHARES: O101-EDGE SETTLED; O83 SETTLED')), '1 0 0.6 1'],
+        ['planted: a quote that is not a line of its results file is refused', String(/not a line of results-x\.txt/.test(s('- 5 Oct 12:00 | rep | held | results-x.txt | SHARES: O101-EDGE SETTLED').errs[0])), 'true'],
+        ['planted: a quoted line that decides nothing is refused', String(/not a deciding line/.test(s('- 5 Oct 12:00 | rep | held | results-x.txt | x').errs[0])), 'true'],
+        ['planted: a settlement with no quote is refused', String(/is not "- <time>/.test(s('- 5 Oct 12:00 | rep | held | results-x.txt').errs[0])), 'true'],
+        ['planted: a cause no receipt states, one settled twice, a missing file', `${s('- 5 Oct 12:00 | draw | held | results-x.txt | OUTCOME: 1 HELD; 2 HELD').errs.length} ${s('- 5 Oct 12:00 | rep | held | results-x.txt | OUTCOME: 1 HELD; 2 HELD\n- 5 Oct 12:00 | rep | not | results-x.txt | OUTCOME: 1 HELD; 2 HELD').errs.length} ${s('- 5 Oct 12:00 | quad | not | results-y.txt | OUTCOME: 1 HELD; 2 HELD').errs.length}`, '1 1 1'],
+        ['append-only: a file that grew passes; one whose committed text changed or lost a line is refused', `${appendOnlyProblem('a\nb\n', 'a\nb\nc\n')} ${!!appendOnlyProblem('a\nb\n', 'a\n')} ${!!appendOnlyProblem('a\nb\n', 'a\nB\nc\n')} ${appendOnlyProblem(null, 'x')}`, 'null true true null'],
+      ];
+    })(),
+    ['planted: a credence written as a word is refused', String(!!findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=likely; quad=0.35`)), 'true'],
     ['the start line carries a readable ISO time', String(Number.isFinite(Date.parse(/^- started (\S+)$/.exec(startLine(new Date('2026-09-26T15:48:00Z')))[1]))), 'true'],
     ['a retirement pass with no debt list is refused', String(!!retirementProblem(`${long} source: review-log tags`)), 'true'],
     ['a retirement pass with no mechanical source is refused', String(!!retirementProblem(`${long} debt: none`)), 'true'],
@@ -112,6 +178,18 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const line = retirementLine({ when: ukNow(), findings: r });
     appendFileSync(LOG, `${line}\n`);
     console.log(`recorded: ${line.slice(0, 160)}${line.length > 160 ? '...' : ''}`);
+    process.exit(0);
+  }
+  if (a.includes('--settle')) {
+    const s = String(a[a.indexOf('--settle') + 1] || '').trim(), line = s.startsWith('- ') ? s : `- ${s}`;
+    const CAUSES = join(HERE, 'review-causes.md'), now = existsSync(CAUSES) ? readFileSync(CAUSES, 'utf8') : '';
+    let committed = null;
+    try { committed = execFileSync('git', ['show', 'HEAD:research/solver/review-causes.md'], { cwd: join(HERE, '..', '..'), stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { /* not yet committed */ }
+    const read = f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : null);
+    const r = settlements(readFileSync(LOG, 'utf8'), `${now}\n${line}\n`, read), ao = appendOnlyProblem(committed, now);
+    if (ao || r.errs.length) { console.error(`not recorded: ${[ao, ...r.errs].filter(Boolean).join('; ')}`); process.exit(2); }
+    appendFileSync(CAUSES, `${now.endsWith('\n') || !now ? '' : '\n'}${line}\n`);
+    console.log(`settled: ${line}`);
     process.exit(0);
   }
   const i = a.indexOf('--findings'), f = i >= 0 ? a[i + 1] : '';

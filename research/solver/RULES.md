@@ -244,16 +244,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
 28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
    counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
-29. check-plan.mjs's retro check reads a close's test name with /^(\w+) \(.*\): Brier /, so a hyphenated name (ADOPT-PI) is
-   skipped, and its REPLACE follow-through takes the next close by position in lessons.md, not by time, so a close written
-   above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
+29. The retro reads any test name without a space and orders the closes, and the REPLACE check's next close, by date
+   (check-plan.mjs, the second unlock of 5 Oct; it found COV-B-STEP's close missing four codes, now named).
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
-31. Credences are held to their derivation only in tests committed from 5 Oct 11:20 UK, and loosely (the plan-auditor's
-   MINORs 1-3 of 5 Oct 11:37 UK): an item with no Item line is unchecked; a repeated outcome is checked at its last value,
-   scored at its first; any number on the point line passes; a back-dated commit or reused name exempts a file; two
-   mutants survive. CAUSE CREDENCES ids are not tied to the causes nor their sum bounded; review-causes.md is unprotected.
-
+31. The credence rule binds predictions added after d4487bd, judged-before-derived and the base rate those after ed5db5c
+   (by ancestry; the second unlock of 5 Oct): none is held to the last two yet, so they have run on plants only. A cause's
+   settlement must quote its results file's deciding line, but held or not is still the author's reading of that line.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

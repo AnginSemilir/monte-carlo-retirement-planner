@@ -1,6 +1,6 @@
 # THE SECOND UNLOCK'S CHECKS, EACH SHOWN TO MATTER (RULES.md rule 2): every mutation of the new credence, ancestry,
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
-# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: 19 of 19 caught)
+# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 19 of 19, item 4 12 of 12, item 5 3 of 3)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -26,6 +26,36 @@ M=[
  ("&& heldToCredence(name, { credence })) errs.push(...credenceProblems(text));", "&& false) errs.push(...credenceProblems(text));"),
  ("heldBy(name, CREDENCE_BOUNDARY)));", "true));"),
 ]
+# item 4: the deep reviews' causes (record-deep-review.mjs; its planted checks, then scorecard.mjs's, must fail)
+M4=[
+ ("if (missing.length) return `CAUSE CREDENCES names", "if (false) return `CAUSE CREDENCES names"),
+ ("const named = id => [id, id.split('-').pop()]", "const named = id => [id]"),
+ ("if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))", "if (sum > SUM_MAX + 1e-9)"),
+ ("if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))", "if (false)"),
+ ("export const SUM_MAX = 1.05;", "export const SUM_MAX = 1.5;"),
+ ("const pre = c.slice(0, c.search(/CAUSE CREDENCES:/i))", "const pre = c"),
+ ("if (!DECIDING.test(q)) { errs.push(", "if (false) { errs.push("),
+ ("if (!String(text).split('\\n').some(l => l.trim() === q)) { errs.push(", "if (!String(text).includes(q)) { errs.push("),
+ ("if (!String(text).split('\\n').some(l => l.trim() === q)) { errs.push(", "if (false) { errs.push("),
+ ("if (!m) { errs.push(`\"${raw.slice(0, 60)}\" is not", "if (!m) { continue; errs.push(`\"${raw.slice(0, 60)}\" is not"),
+ ("committed != null && !String(now).startsWith(committed)", "false"),
+ ("if (seen.has(k)) { errs.push(`${at}: settled twice`); continue; }", ""),
+]
+q='/home/user/vitejs-vite-kdvuf9qw/research/solver/record-deep-review.mjs'
+orig4=open(q).read()
+caught4=0
+try:
+  for a,b in M4:
+    assert orig4.count(a)==1,(orig4.count(a),a[:60])
+    open(q,'w').write(orig4.replace(a,b))
+    r=subprocess.run(['node','research/solver/record-deep-review.mjs','--planted'],cwd=ROOT,capture_output=True,text=True)
+    ok = r.returncode!=0
+    caught4+=ok
+    print(('CAUGHT  ' if ok else 'SURVIVED'), 'record-deep-review:', a[:60])
+finally:
+  open(q,'w').write(orig4)
+print(f'item 4: {caught4}/{len(M4)} caught')
+
 caught=0
 try:
   for a,b in M:
@@ -38,3 +68,24 @@ try:
 finally:
   open(p,'w').write(orig)
 print(f'{caught}/{len(M)} caught')
+
+# item 5: the retro's hyphenated names and windows by date (check-plan.mjs; plan-checker.test.mjs must fail)
+M5=[
+ ("matchAll(/^(\\S+) \\(.*\\): Brier /gm)", "matchAll(/^(\\w+) \\(.*\\): Brier /gm)"),
+ ("  found.sort((a, b) => a.c.at - b.c.at);\n", ""),
+ ("if (c !== penult) continue;", "if (c !== L.closes[L.closes.length - 2]) continue;"),
+]
+r5='/home/user/vitejs-vite-kdvuf9qw/research/solver/check-plan.mjs'.replace('/home/user/vitejs-vite-kdvuf9qw', ROOT)
+orig5=open(r5).read()
+caught5=0
+try:
+  for a,b in M5:
+    assert orig5.count(a)==1,(orig5.count(a),a[:60])
+    open(r5,'w').write(orig5.replace(a,b))
+    r=subprocess.run(['node','research/tests/plan-checker.test.mjs'],cwd=ROOT,capture_output=True,text=True)
+    ok = r.returncode!=0
+    caught5+=ok
+    print(('CAUGHT  ' if ok else 'SURVIVED'), 'check-plan:', a[:60])
+finally:
+  open(r5,'w').write(orig5)
+print(f'item 5: {caught5}/{len(M5)} caught')

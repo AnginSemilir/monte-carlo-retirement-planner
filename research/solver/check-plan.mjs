@@ -155,13 +155,15 @@ const OUTCOME_WORD = /(?:\breads?|->|:)\s*CALIBRATED\b/g;
 export const REPLACE_FROM = minuteKey('4 Oct 14:30 UK');
 export function replaceProblems(L, readFile) {
   const P = [], norm = x => String(x).replace(/\s+/g, ' ').trim();
-  L.closes.forEach((c, i) => {
+  // "the next close" is the next in time, not in the file (the second unlock of 5 Oct: HYB's close sits above COV-B-STEP's)
+  const byTime = L.closes.filter(c => c.at !== null).sort((a, b) => a.at - b.at), penult = byTime[byTime.length - 2];
+  L.closes.forEach(c => {
     if (c.at === null || c.at < REPLACE_FROM) return;
     for (const l of c.lines.filter(x => /\bREPLACE\b/.test(x))) {
       const tgt = (/\bin ([\w./-]+\.(?:md|mjs|js|sh|cjs))\b/.exec(l.split('REPLACE')[1] || '') || [])[1], w = (/\bwith:\s*(.{40,})/.exec(l) || [])[1];
       if (!tgt || !w) { P.push(`${c.test}: a REPLACE line needs "in <target file>" and "with: <the new text, 40 characters or more>" ("${l.slice(0, 50)}")`); continue; }
       // checked at the next close only: a later rewording of the target is the next change's business (the auditor's MINOR 6)
-      if (i !== L.closes.length - 2) continue;
+      if (c !== penult) continue;
       const txt = readFile ? readFile(tgt) : null;
       if (txt === null) P.push(`${c.test}: the REPLACE target ${tgt} does not exist`);
       else if (!norm(txt).includes(norm(w).slice(0, 40))) P.push(`${c.test}: its REPLACE text has not landed in ${tgt} by the next close ("${norm(w).slice(0, 40)}")`);
@@ -170,18 +172,26 @@ export function replaceProblems(L, readFile) {
   return P;
 }
 export function retroProblems({ lessons, scorecard, reviewLog, readFile }) {
-  const P = [], tests = [...String(scorecard ?? '').matchAll(/^(\w+) \(.*\): Brier /gm)].map(m => m[1]);
+  // any name without a space (the second unlock of 5 Oct, RULES.md limit 29: /^(\w+)/ skipped ADOPT-PI and COV-B-STEP)
+  const P = [], tests = [...String(scorecard ?? '').matchAll(/^(\S+) \(.*\): Brier /gm)].map(m => m[1]);
   if (lessons === null) return tests.length ? ['lessons.md is missing (RULES.md section 10: it holds the seed and every close)'] : [];
   const L = lessonsOf(lessons);
   if (!L.seed || L.seed.at === null) return ['lessons.md has no seed line "Seed: after <test> (<D Mon HH:MM>)"'];
   const from = tests.indexOf(L.seed.test);
   if (from < 0) return [`lessons.md's seed names ${L.seed.test}, which is not in results-scorecard.txt`];
   const receipts = receiptsOf(reviewLog ?? '');
-  let prev = L.seed.at;
+  const found = [];
   for (const t of tests.slice(from + 1)) {
     const c = L.closes.find(x => x.test === t);
     if (!c) { P.push(`${t} is scored but lessons.md has no "## ${t} (closed <D Mon HH:MM>)" entry: write its lessons`); continue; }
     if (c.at === null) { P.push(`${t}: the close's time "${c.when}" does not parse`); continue; }
+    found.push({ t, c });
+  }
+  // each close's window of BLOCKING findings runs from the close before it in time (the second unlock: the scorecard's
+  // order is not the closes' order, so a close scored later but closed earlier left a window part-covered)
+  found.sort((a, b) => a.c.at - b.c.at);
+  let prev = L.seed.at;
+  for (const { t, c } of found) {
     if (c.lines.length < LESSON_LINES[0] || c.lines.length > LESSON_LINES[1]) P.push(`${t}: ${c.lines.length} lesson lines, need ${LESSON_LINES[0]} to ${LESSON_LINES[1]}`);
     const named = new Set();
     for (const l of c.lines) {

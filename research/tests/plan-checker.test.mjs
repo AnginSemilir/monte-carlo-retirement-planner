@@ -225,6 +225,14 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(!retro(good.replace('[T:relook]', '[T:figure]'), undefined, rlog.replace('30 Sept, 20:00', '30 Sept, 17:00')).some(e => e.startsWith('[retro]')), 'a BLOCKING before the seed is not the close\'s to name; a carried one never is');
   caught(retro(good + '- [T:c-gate] a -> DROP: x\n'.repeat(5)), 'retro', 'six lesson lines, over the five');
   caught(retro(good.replace('(closed 30 Sep 21:00)', '(closed later)')), 'retro', 'a close whose time does not parse');
+  // THE RETRO'S HYPHENATED NAMES AND WINDOWS BY DATE (the second unlock of 5 Oct, RULES.md limit 29)
+  caught(retro(good, '7zz (y): Brier 0.2 over 1 (1 0.5 -> held)\nADOPT-PI (y): Brier 0.1 over 1 (1 0.5 -> held)\n'), 'retro', 'a hyphenated test scored with no close (ADOPT-PI was skipped before)');
+  { const two = s => '7zz (y): Brier 0.2 over 1 (1 0.5 -> held)\nCOV-B (y): Brier 0.1 over 1 (1 0.5 -> held)\n';
+    const log2 = rlog + '- 30 Sept, 22:00 UK | plan ' + 'b'.repeat(40) + ' | FAIL | plan-auditor | BLOCKING 1. [T:design] z\n';
+    // COV-B scored after 7zz but closed before it: by date its window is the seed to 20:30 (the relook BLOCKING at 20:00), 7zz's is 20:30 to 23:00 (design at 22:00)
+    const byDate = seed + '## 7zz (closed 30 Sep 23:00)\n- [T:design] y -> DROP\n## COV-B (closed 30 Sep 20:30)\n- [T:relook] x -> DROP\n';
+    ok(!retro(byDate, two(), log2).some(e => e.startsWith('[retro]')), 'closes out of the scorecard\'s order: each names its own window by date and passes');
+    caught(retro(byDate.replace('- [T:relook] x -> DROP', '- [T:design] x -> DROP'), two(), log2), 'retro', 'the earlier close by date misses its window\'s BLOCKING code (the scorecard order would have hidden it)'); }
   // the budget
   caught(run({ rules: base.rules + 'x'.repeat(RULES_BUDGET) }), 'budget', 'RULES.md over its budget');
   // its own fixture, not the live plan (O72: a full archive left the live plan nothing to move, so a plant on it planted
@@ -376,6 +384,7 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" with nothing named\n'), rf).some(e => /needs "in <target file>"/.test(e)), 'planted: a REPLACE with no target or new text is refused');
   ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" in a.md with: text not yet landed but this is the latest close of all\n'), rf).length === 0, 'EDGE: the latest close is not yet held to landing');
   ok(replaceProblems(L('## 7zz (closed 3 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" with nothing\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n'), rf).length === 0, 'EDGE: a close before 4 Oct 14:30 UK is exempt');
+  ok(replaceProblems(L('## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" in a.md with: some other text entirely that the file never came to hold\n'), rf).some(e => /has not landed/.test(e)), 'planted: "the next close" is the next in time, not in the file (a REPLACE in a close written below a later one is still held to landing)');
 }
 
 // THE PLAN'S SHAPE (the process review, 4 Oct, item 9; the maintainer's unlock of 4 Oct)

@@ -44,7 +44,10 @@ export const PROTECTED = [
   'research/solver/uncertainty.mjs', 'research/solver/record-deep-review.mjs', 'research/solver/deep-review-log.md', '.claude/agents/deep-reviewer.md',
   // the feedback loop (RULES.md section 10; the maintainer's unlock of 30 Sep): its codes and counts, their test, and the
   // skill, which the Edit tool could change while only the shell was refused
-  'research/solver/triggers.mjs', 'research/tests/triggers.test.mjs', '.claude/skills/'
+  'research/solver/triggers.mjs', 'research/tests/triggers.test.mjs', '.claude/skills/',
+  // the deep reviews' causes, settled only by record-deep-review.mjs --settle quoting a registered result (the second
+  // unlock of 5 Oct): a settlement written, changed or removed by hand would let the author score the reviews
+  'research/solver/review-causes.md'
 ];
 const isProtected = rel => PROTECTED.some(p => (p.endsWith('/') ? rel.startsWith(p) : rel === p));
 

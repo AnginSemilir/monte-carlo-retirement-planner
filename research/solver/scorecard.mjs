@@ -22,7 +22,8 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ITEM_KINDS, KINDS } from './item-kinds.mjs';
-import { causeCredences } from './record-deep-review.mjs';
+import { settlements, appendOnlyProblem } from './record-deep-review.mjs';
+import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // each test the scorecard covers: its prediction and the file its reducer's output is saved to when it is read
@@ -249,20 +250,11 @@ export function judgedCheck(pairs, need = 30) {
 
 // THE DEEP REVIEWS' CAUSE CREDENCES (the maintainer's 'unlock enforcement' of 5 Oct): each receipt in deep-review-log.md
 // carrying "CAUSE CREDENCES: <id>=<p>; ..." (record-deep-review.mjs requires it), scored against review-causes.md, whose
-// lines "- <the receipt's time, as the log gives it> | <id> | held|not | <results file>" record a settled cause, written
-// when a result settles it and citing that result (the file must exist). A settlement naming no stated cause, or a
-// cause settled twice, is an error
-export function causeScores(log, settled, exists = () => true) {
-  const stated = new Map();
-  for (const m of String(log).matchAll(/^- (\d{1,2} \w{3} \d{2}:\d{2}) UK \| covered [^\n]*$/gm)) { const cc = causeCredences(m[0]); if (cc && cc.length && cc.every(Boolean)) for (const x of cc) stated.set(`${m[1]}|${x.id}`, x.p); }
-  const pairs = [], seen = new Set(), errs = [];
-  for (const m of String(settled).matchAll(/^- ([^|\n]+?) \| ([\w+-]+) \| (held|not) \| ([^|\n]+?)\s*$/gm)) {
-    const k = `${m[1].replace(/ UK$/, '')}|${m[2]}`;
-    if (!stated.has(k)) { errs.push(`${m[1]} ${m[2]}: no receipt states that cause`); continue; }
-    if (seen.has(k)) { errs.push(`${m[1]} ${m[2]}: settled twice`); continue; }
-    if (!exists(m[4])) { errs.push(`${m[1]} ${m[2]}: its results file ${m[4]} does not exist`); continue; }
-    seen.add(k); pairs.push({ p: stated.get(k), o: m[3] === 'held' ? 1 : 0 });
-  }
+// lines record a settled cause with the results file's own deciding line quoted (the second unlock: settled by a registered
+// result, not by the author; record-deep-review.mjs --settle writes them and settlements() checks them, here as there).
+// `read(file)` gives a results file's text, or null when it does not exist
+export function causeScores(log, settled, read = () => null) {
+  const { stated, pairs, errs } = settlements(log, settled, read);
   return { stated: stated.size, pairs, errs, line: `DEEP-REVIEW CAUSES: ${stated.size} stated, ${pairs.length} settled${pairs.length ? `, Brier ${brier(pairs).toFixed(3)}` : ''}` };
 }
 
@@ -364,10 +356,12 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['the first look is frozen: tests after it do not change its read', (() => { const first = many(8, () => ({ rpsJ: 0.3, rpsD: 0.1 }), 32), later = Array.from({ length: 20 }, (_, i) => ({ test: `u${i}`, rpsJ: 0.1, rpsD: 0.3 })); return `${judgedCheck(first).read} ${judgedCheck([...first, ...later]).read} ${judgedCheck([...first, ...later]).look}`; })(), 'DERIVED DERIVED 1']);
   cases.push(['a NEITHER first look is followed by a second on the new tests only', (() => { const first = many(6, k => ({ rpsJ: k < 3 ? 0.3 : 0.1, rpsD: 0.2 })), second = Array.from({ length: 32 }, (_, i) => ({ test: `v${i % 8}`, rpsJ: 0.3, rpsD: 0.1 })); const r = judgedCheck([...first, ...second]); return `${r.read} ${r.look}`; })(), 'DERIVED 2']);
   const LOG = '- 5 Oct 12:00 UK | covered X | level HIGH | ranked (1) a (2) b. CAUSE CREDENCES: rep=0.6; quad=0.3. next\n- 5 Oct 09:00 UK | covered X | level HIGH | no credences\n';
-  cases.push(['the deep reviews\' cause credences: read from the receipts, scored as settled', (() => { const r = causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt\n'); return `${r.stated} ${r.pairs.length} ${r.errs.length} ${brier(r.pairs).toFixed(2)}`; })(), '2 1 0 0.16']);
-  cases.push(['planted: a settlement naming no stated cause is an error', String(causeScores(LOG, '- 5 Oct 12:00 | draw | held | results-x.txt\n').errs.length), '1']);
-  cases.push(['planted: a cause settled twice is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt\n- 5 Oct 12:00 | quad | not | results-x.txt\n- 5 Oct 12:00 | rep | not | results-x.txt\n').errs.length), '1']);
-  cases.push(['planted: a settlement citing a missing results file is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-none.txt\n', f => f !== 'results-none.txt').errs.length), '1']);
+  { const RX = f => (f === 'results-x.txt' ? 'x\nOUTCOME: 1 HELD\n' : null);
+    cases.push(['the deep reviews\' cause credences: read from the receipts, scored as settled', (() => { const r = causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt | OUTCOME: 1 HELD\n', RX); return `${r.stated} ${r.pairs.length} ${r.errs.length} ${brier(r.pairs).toFixed(2)}`; })(), '2 1 0 0.16']);
+    cases.push(['planted: a settlement naming no stated cause is an error', String(causeScores(LOG, '- 5 Oct 12:00 | draw | held | results-x.txt | OUTCOME: 1 HELD\n', RX).errs.length), '1']);
+    cases.push(['planted: a cause settled twice is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt | OUTCOME: 1 HELD\n- 5 Oct 12:00 | quad | not | results-x.txt | OUTCOME: 1 HELD\n- 5 Oct 12:00 | rep | not | results-x.txt | OUTCOME: 1 HELD\n', RX).errs.length), '1']);
+    cases.push(['planted: a settlement citing a missing results file is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-none.txt | OUTCOME: 1 HELD\n', RX).errs.length), '1']);
+    cases.push(['planted: a settlement whose quote is not in its results file is an error (settled by judgement)', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt | OUTCOME: 1 FALSIFIED\n', RX).errs.length), '1']); }
   cases.push(['EDGE: no settlements reads 0 settled, no Brier', causeScores(LOG, '').line, 'DEEP-REVIEW CAUSES: 2 stated, 0 settled']);
   cases.push(['the kind\'s base rate: 3 held of 4 ATTRIB items reads (3 + 1) / (4 + 2), and an unseen kind is absent', (() => { const r = kindRates([1, 1, 1, 0].map(o => ({ kind: 'ATTRIB', o }))); return `${r.ATTRIB.rate.toFixed(4)} ${r.ATTRIB.n} ${'NOHARM' in r}`; })(), '0.6667 4 false']);
   cases.push(['discrimination: a judged set that ranks perfectly and a derived set that ranks backwards', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }, { judged: 0.1, derived: 0.8, o: 0 }]); return `${d.aucJ} ${d.aucD} ${d.both}`; })(), '1 0 true']);
@@ -405,7 +399,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const k of KINDS.filter(x => K[x]).concat(Object.keys(K).filter(x => !KINDS.includes(x)))) console.log(`  ${k.padEnd(9)} ${String(K[k].n).padStart(3)}   ${K[k].meanP.toFixed(2)}   ${K[k].held.toFixed(2)}   ${K[k].brier.toFixed(3)}   ${K[k].kindRate.toFixed(3)}`);
   if (rpsAll.length) console.log(`THREE-OUTCOME ITEMS: ranked probability score ${(rpsAll.reduce((a, x) => a + x.rps, 0) / rpsAll.length).toFixed(3)} over ${rpsAll.length}, a uniform forecast ${(rpsAll.reduce((a, x) => a + x.uniform, 0) / rpsAll.length).toFixed(3)}`);
   if (legAll.length) console.log(`LEGS (an item needing every household, scored household by household): Brier ${brier(legAll).toFixed(3)} over ${legAll.length}`);
-  { const C = causeScores(read('deep-review-log.md') || '', read('review-causes.md') || '', f => existsSync(join(HERE, f))); if (C.errs.length) { console.log(`ERROR - review-causes.md: ${C.errs.join('; ')}`); process.exit(1); } console.log(C.line); }
+  { let committed = null; try { committed = execFileSync('git', ['show', 'HEAD:research/solver/review-causes.md'], { cwd: join(HERE, '..', '..'), stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { /* not committed yet */ }
+    const ao = appendOnlyProblem(committed, read('review-causes.md') || '');
+    if (ao) { console.log(`ERROR - ${ao}`); process.exit(1); }
+    const C = causeScores(read('deep-review-log.md') || '', read('review-causes.md') || '', f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : null)); if (C.errs.length) { console.log(`ERROR - review-causes.md: ${C.errs.join('; ')}`); process.exit(1); } console.log(C.line); }
   { const R = kindRates(tagged), rec = /read as the review said (\d+) of (\d+)/.exec(read('deep-review-log.md') || '');
     console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}${rec ? `; an item leaning on a deep review's cause or story ${((+rec[1] + 1) / (+rec[2] + 2)).toFixed(2)} (${rec[1]} of ${rec[2]}, deep-review-log.md)` : ''}`); }
   if (judgedAll.length) { const D = discrimination(judgedAll); console.log(`DISCRIMINATION, judged against derived (the same items and events): ${D.both ? `AUC judged ${D.aucJ.toFixed(2)}, derived ${D.aucD.toFixed(2)}; resolution judged ${D.resJ.toFixed(3)}, derived ${D.resD.toFixed(3)}` : 'accruing - the items so far all of one outcome'} over ${D.n}`); }

@@ -1,6 +1,6 @@
 # THE SECOND UNLOCK'S CHECKS, EACH SHOWN TO MATTER (RULES.md rule 2): every mutation of the new credence, ancestry,
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
-# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 19 of 19, item 4 12 of 12, item 5 3 of 3)
+# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct, after the auditor's MINORs: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -10,7 +10,8 @@ M=[
  ("if (d.twice) P.push", "if (false) P.push"),
  ("if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule", "if (false) P.push(`item ${m[1]}: the Decision rule"),
  ("else if (firstNum(line) !== Number(g.point))", "else if (!String(line).includes(String(g.point)))"),
- ("/(?<![\\w.])(\\d+(?:\\.\\d+)?|\\.\\d+)(?![\\w])/", "/(\\d+(?:\\.\\d+)?|\\.\\d+)/"),
+ ("/(?<![\\w.])(-?(?:", "/(-?(?:"),
+ ("/(?<![\\w.])(-?(?:", "/(?<![\\w.])((?:"),
  ("export const exemptBy = (commit, ancestors) => !!commit && ancestors.has(commit);", "export const exemptBy = (commit, ancestors) => !commit || ancestors.has(commit);"),
  ("export const CREDENCE_BOUNDARY = 'd4487bd'", "export const CREDENCE_BOUNDARY = 'ed5db5c'"),
  ("opts.judged === true || (onDisk(name) && heldBy(name, JUDGED_BOUNDARY))", "opts.judged === true || (onDisk(name) && heldBy(name, CREDENCE_BOUNDARY))"),
@@ -22,9 +23,12 @@ M=[
  ("if (!line) return ['results-scorecard.txt has no KIND", "if (false) return ['results-scorecard.txt has no KIND"),
  ("if (!b) P.push(`item ${m[1]}: no \"- **Base rate", "if (false) P.push(`item ${m[1]}: no \"- **Base rate"),
  ("Math.abs(r - Number(b[1])) <= 0.01 + 1e-9", "Math.abs(r - Number(b[1])) <= 0.02 + 1e-9"),
- ("&& heldToJudged(name, { judged })) errs.push(...baseRateProblems(text), ...judgedOrderProblems(name, text));", "&& false) errs.push(...baseRateProblems(text), ...judgedOrderProblems(name, text));"),
+ ("&& heldToJudged(name, { judged })) errs.push(...baseRateProblems(text, { name }), ...judgedOrderProblems(name, text));", "&& false) errs.push(...baseRateProblems(text, { name }), ...judgedOrderProblems(name, text));"),
  ("&& heldToCredence(name, { credence })) errs.push(...credenceProblems(text));", "&& false) errs.push(...credenceProblems(text));"),
  ("heldBy(name, CREDENCE_BOUNDARY)));", "true));"),
+ ("(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+))(?![\\w])", "((?:\\d+(?:\\.\\d+)?|\\.\\d+))(?![\\w])"),
+ ("if (judgedOf(then) !== judgedOf(text)) return", "if (false) return"),
+ ("const sc = scorecard ?? atAdd ??", "const sc = scorecard ??"),
 ]
 # item 4: the deep reviews' causes (record-deep-review.mjs; its planted checks, then scorecard.mjs's, must fail)
 M4=[

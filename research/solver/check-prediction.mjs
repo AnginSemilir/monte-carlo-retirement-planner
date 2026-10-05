@@ -172,7 +172,7 @@ const NUM = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
 const distOf = s => { const d = {}; for (const m of String(s).matchAll(new RegExp(String.raw`\b(HELD|INCONCLUSIVE|FALSIFIED)\s+` + NUM, 'g'))) { if (m[1] in d) Object.defineProperty(d, 'twice', { value: m[1], enumerable: false }); else d[m[1]] = Number(m[2]); } return d; };
 const fullDist = d => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].every(k => k in d);
 // the point is the first standalone number on the item's line (a number inside a name, S130, is not one), not any number on it
-const firstNum = s => { const m = /(?<![\w.])(\d+(?:\.\d+)?|\.\d+)(?![\w])/.exec(String(s)); return m ? Number(m[1]) : NaN; };
+const firstNum = s => { const m = /(?<![\w.])(-?(?:\d+(?:\.\d+)?|\.\d+))(?![\w])/.exec(String(s)); return m ? Number(m[1]) : NaN; };   // a minus sign kept (the plan-auditor's MINOR 3 after 5b7a773)
 export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
   const cred = section(text, 'Credence', { note: true });
   if (cred === null) return ['missing section "## Credence"'];
@@ -257,13 +257,23 @@ export function judgedOrderProblems(name, text, { git = gitRun } = {}) {
   if (!D) return [];
   if (J === D) return [`the "Judged, item" lines and the derivation's output arrive in one commit (${J.slice(0, 7)}): commit the judgement first`];
   if (git(['merge-base', '--is-ancestor', J, D]) === null) return [`the "Judged, item" lines (${J.slice(0, 7)}) were committed after the derivation's output (${D.slice(0, 7)}): judged before derived`];
+  // and not edited since: the judged lines as they stood when the derivation's output was added are the ones here (the
+  // plan-auditor's MINOR 1 after 5b7a773: git log -S sees only a change in how often the string occurs, not in the numbers)
+  const judgedOf = s => String(s).split('\n').filter(l => /^\s*-\s*\*\*Judged, item/.test(l)).map(l => l.trim()).join('\n');
+  const then = git(['show', `${D}:${pathOf(name)}`]);
+  if (then === null) return [`the prediction does not exist at the derivation's commit (${D.slice(0, 7)}): its judged lines there cannot be read`];
+  if (judgedOf(then) !== judgedOf(text)) return [`the "Judged, item" lines differ from those at the derivation's commit (${D.slice(0, 7)}): a judgement edited after the derivation tells the decisive check nothing`];
   return [];
 }
 /* A BASE RATE ON EVERY ITEM (the second unlock): each item carries "- **Base rate, item N:** p", p within 0.01 of a rate on
    results-scorecard.txt's KIND BASE RATES line (a kind's, or the deep-review record's) - the derivation starts there */
-export function baseRateProblems(text, { scorecard = null } = {}) {
+// the rates are read from results-scorecard.txt as committed with the prediction's own latest add (the plan-auditor's MINOR 2
+// after 5b7a773: the live scorecard moves with every scored test, and a registered prediction must not start failing), the
+// working copy for a prediction not yet committed
+export function baseRateProblems(text, { scorecard = null, name = null, git = gitRun } = {}) {
   const cred = section(text, 'Credence', { note: true }) || '';
-  const sc = scorecard ?? (existsSync(REPO + 'research/solver/results-scorecard.txt') ? readFileSync(REPO + 'research/solver/results-scorecard.txt', 'utf8') : '');
+  const added = name ? latestAdd().get(pathOf(name)) : null, atAdd = added ? git(['show', `${added}:research/solver/results-scorecard.txt`]) : null;
+  const sc = scorecard ?? atAdd ?? (existsSync(REPO + 'research/solver/results-scorecard.txt') ? readFileSync(REPO + 'research/solver/results-scorecard.txt', 'utf8') : '');
   const line = (/^KIND BASE RATES[^:]*: (.*)$/m.exec(sc) || [])[1];
   if (!line) return ['results-scorecard.txt has no KIND BASE RATES line to take a base rate from'];
   const rates = [...line.matchAll(/\b(\d\.\d\d) \(\d+ of \d+/g)].map(m => Number(m[1]));
@@ -327,7 +337,7 @@ export function checkPredictionText(text, { name, decision, credence, judged } =
   }
   if ((!kind || /^test/i.test(kind)) && heldToDecision(name, { decision })) errs.push(...decisionTableProblems(text), ...mechanismProblems(text));
   if ((!kind || /^test/i.test(kind)) && heldToCredence(name, { credence })) errs.push(...credenceProblems(text));
-  if ((!kind || /^test/i.test(kind)) && heldToJudged(name, { judged })) errs.push(...baseRateProblems(text), ...judgedOrderProblems(name, text));
+  if ((!kind || /^test/i.test(kind)) && heldToJudged(name, { judged })) errs.push(...baseRateProblems(text, { name }), ...judgedOrderProblems(name, text));
   const table = section(text, 'Fair-test table');
   if (table === null) { errs.push('missing section "## Fair-test table"'); return errs; }
   const rows = table.split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));

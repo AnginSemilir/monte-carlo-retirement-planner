@@ -249,8 +249,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
 31. The credence rule binds predictions added after d4487bd, judged-before-derived and the base rate those after ed5db5c
-   (by ancestry; the second unlock of 5 Oct): none is held to the last two yet, so they have run on plants only. A cause's
-   settlement must quote its results file's deciding line, but held or not is still the author's reading of that line.
+   (by ancestry; the second unlock of 5 Oct): none is held to the last two yet, so they have run on plants only. A base rate may be any kind's, not the
+   item's own. A cause id need only be named before CAUSE CREDENCES, not ranked. A settlement must quote its results
+   file's deciding line, but held or not is still the author's reading of that line.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

@@ -302,6 +302,8 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     ok(withRule('- **Item 1** decides.').length === 0, 'EDGE: a Decision rule naming only the items with credence lines passes');
     ok(cp(good, '- **Item 1:** on S130 about 0.5 (0.2 to 0.8).').length === 0, 'EDGE: a number inside a name (S130) is not the point; the first standalone number is');
     ok(cp(good, '- **Item 1:** about 0.6, or 0.5 on S128.').some(e => /its first number, 0\.6/.test(e)), 'planted: the derivation\'s point later on the line, behind another number, is refused');
+    { const neg = s => credenceProblems(pr(good, s), { readOut: f => (f.endsWith('out.txt') ? out.replace('point 0.5', 'point -0.82') : null) });
+      ok(neg('- **Item 1:** about -0.82 (-1.2 to -0.4).').length === 0 && neg('- **Item 1:** about 0.82 (-1.2 to -0.4).').some(e => /not the derivation's -0\.82/.test(e)), 'EDGE: a negative point keeps its sign (-0.82 passes, 0.82 does not)'); }
     ok(cp(good, '- **Item 1:** about .5 (0.2 to 0.8).').length === 0, 'EDGE: a point written without its leading zero (.5) reads as 0.5');
     // the boundary by ancestry, not the commit date
     ok(exemptBy('aaa', new Set(['aaa', 'bbb'])) === true && exemptBy('ccc', new Set(['aaa'])) === false && exemptBy(undefined, new Set(['aaa'])) === false && exemptBy(null, new Set()) === false, 'exemptBy: only a commit inside the boundary\'s ancestry exempts; an uncommitted file (no commit) never does');
@@ -312,9 +314,11 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
       writeFileSync(tmp, '# planted\n');
       try { ok(heldToCredence(tmp) === true && heldToJudged(tmp) === true, 'planted: an uncommitted prediction is held to both rules (no commit can exempt it)'); } finally { rmSync(tmp, { force: true }); } }
     // JUDGED BEFORE DERIVED: a stand-in git (args -> output, null for a failed command)
-    const jg = ({ J = null, D = null, anc = true }) => args => args.includes('-S') ? (J ? `${J}\n` : '') : args.includes('--diff-filter=A') ? (D ? `${D}\n` : '') : args[0] === 'merge-base' ? (anc ? '' : null) : null;
     const jt = pr(good);
+    const jg = ({ J = null, D = null, anc = true, then = jt }) => args => args.includes('-S') ? (J ? `${J}\n` : '') : args.includes('--diff-filter=A') ? (D ? `${D}\n` : '') : args[0] === 'merge-base' ? (anc ? '' : null) : args[0] === 'show' ? then : null;
     ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'bbb2222' }) }).length === 0, 'judged committed before the derivation\'s output passes');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'bbb2222', then: jt.replace('HELD 0.45, INCONCLUSIVE 0.20', 'HELD 0.35, INCONCLUSIVE 0.30') }) }).some(e => /differ from those at the derivation's commit/.test(e)), 'planted: judged lines edited after the derivation\'s output was committed are refused');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'bbb2222', then: jt.replace('## Power', '## Power\n\nreworded') }) }).length === 0, 'EDGE: other edits after the derivation leave the judged check alone');
     ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'aaa1111' }) }).some(e => /arrive in one commit/.test(e)), 'planted: the judged lines and the derivation\'s output in one commit are refused');
     ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'bbb2222', D: 'aaa1111', anc: false }) }).some(e => /committed after the derivation/.test(e)), 'planted: judged lines committed after the derivation\'s output are refused');
     ok(judgedOrderProblems('p.md', jt, { git: jg({}) }).some(e => /both uncommitted/.test(e)), 'planted: judged lines and output both uncommitted are refused (commit the judgement alone first)');
@@ -328,6 +332,8 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     ok(br(null).some(e => /no "- \*\*Base rate, item 1/.test(e)), 'planted: an item with no base rate is refused');
     ok(br('0.65').some(e => /0\.65 is no rate on the KIND BASE RATES line/.test(e)), 'planted: a base rate on no kind is refused');
     ok(br('0.51').length === 0 && br('0.52').length > 0, 'EDGE: 0.01 from a rate passes, 0.02 does not');
+    { const at = 'KIND BASE RATES (x): ATTRIB 0.50 (14 of 28)\n', fake = args => (args[0] === 'show' ? at : null), p0 = pr(`- **Base rate, item 1:** 0.50\n${good}`);
+      ok(baseRateProblems(p0, { name: 'research/solver/predictions/diag-edge.md', git: fake }).length === 0 && baseRateProblems(p0.replace('0.50\n', '0.80\n'), { name: 'research/solver/predictions/diag-edge.md', git: fake }).length > 0, 'a committed prediction is checked against the scorecard as committed with it, not the live one (0.50 there passes; 0.80, live NOHARM, does not)'); }
     ok(baseRateProblems(pr(good), { scorecard: 'no such line' }).some(e => /no KIND BASE RATES line/.test(e)), 'planted: a scorecard with no KIND BASE RATES line is refused, not passed');
     // the wiring: checkPredictionText calls the checks when a prediction is held to them, and not when it is not
     const wired = (o, re) => checkPredictionText(pr(good), { name: 'not-on-disk-x.md', ...o }).some(e => re.test(e));

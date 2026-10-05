@@ -1,3 +1,5 @@
+FAIR-TEST GATE: research/solver/predictions/diag-edge.md was corrected after launch (77bf795c at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.
+
 GATE: passed - EDGE-SPLIT's 21 units through reduce-edge.mjs's gate and THE IDENTITY against HYB's files (HYB's HYB arm joins)
 
 THE 2x2 (survivors of the paths; each part alone over SNAP; the per-path interaction PCLSI - HYB - S-INT + SNAP, two-sided sign-flip p)
@@ -6,6 +8,6 @@ THE 2x2 (survivors of the paths; each part alone over SNAP; the per-path interac
   S370  SNAP 4200 HYB 4205 S-INT 4202 PCLSI 4248 of 6000 | tables alone (HYB less SNAP) 5 | read alone (S-INT less SNAP) 2 | both (PCLSI less SNAP) 48 | interaction +41 paths, p 1.0e-4
 
 EVERY ARM IN ORDER OF SURVIVAL (survivors, zero-tax years with the pension live in the 18 years from access, mean lifetime tax)
-  S130: PCLSI 5117 / 0.03 / 819k; P-LO 4980 / 4.08 / 1125k; SNAP 4974 / 4.48 / 1140k; S-LO 4974 / 4.48 / 1140k; S-HI 4934 / 5.00 / 1203k; S-INT 4934 / 5.00 / 1203k; P-HI 4926 / 6.70 / 1269k; HYB 4925 / 6.72 / 1272k
-  S128: PCLSI 4097 / 0.90 / 187k; S-HI 4087 / 3.35 / 244k; S-INT 4087 / 3.35 / 244k; SNAP 4073 / 2.83 / 259k; S-LO 4073 / 2.83 / 259k; P-LO 4069 / 3.17 / 253k; P-HI 4059 / 3.33 / 259k; HYB 4052 / 3.41 / 288k
-  S370: PCLSI 4248 / 0.04 / 1350k; P-LO 4223 / 0.78 / 1375k; P-HI 4211 / 0.70 / 1400k; HYB 4205 / 0.71 / 1405k; S-HI 4202 / 0.56 / 1388k; S-INT 4202 / 0.56 / 1388k; SNAP 4200 / 0.52 / 1388k; S-LO 4200 / 0.52 / 1388k
+  S130: PCLSI 5117 / 0.03 / 819k; P-LO 4980 / 4.67 / 1125k; SNAP 4974 / 4.93 / 1140k; S-LO 4974 / 4.93 / 1140k; S-HI 4934 / 5.27 / 1203k; S-INT 4934 / 5.27 / 1203k; P-HI 4926 / 6.94 / 1269k; HYB 4925 / 6.95 / 1272k
+  S128: PCLSI 4097 / 0.91 / 187k; S-HI 4087 / 3.37 / 244k; S-INT 4087 / 3.37 / 244k; SNAP 4073 / 2.84 / 259k; S-LO 4073 / 2.84 / 259k; P-LO 4069 / 3.17 / 253k; P-HI 4059 / 3.34 / 259k; HYB 4052 / 3.41 / 288k
+  S370: PCLSI 4248 / 0.04 / 1350k; P-LO 4223 / 0.80 / 1375k; P-HI 4211 / 0.77 / 1400k; HYB 4205 / 0.78 / 1405k; S-HI 4202 / 0.57 / 1388k; S-INT 4202 / 0.57 / 1388k; SNAP 4200 / 0.53 / 1388k; S-LO 4200 / 0.53 / 1388k

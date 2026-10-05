@@ -9,6 +9,9 @@
 export const LABEL_MAX = 40;
 const ITEM_ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|M\d{1,2}|K\d)\b/g;
 export const hasFigure = s => /\d/.test(String(s).replace(ITEM_ID, ''));
+// a row's standing is never a label (the plan-auditor's MINOR 5 after 24d232f: 'open' to 'resolved', 'grade C' to 'grade A'
+// and 'withheld' to 'released' each passed as a label): a label carries no status, grade, verdict or negation word
+export const STANDING = /\b(open|resolved|closed|noted|settled|unsettled|grade|held|falsified|inconclusive|read|registered|done|cancelled|dropped|superseded|expired|withheld|released|confirmed|refuted|provisional|pass|passed|fail|failed|not|no|never)\b/i;
 export function parseLabels(msgText) {
   const out = [];
   for (const raw of String(msgText).split('\n')) {
@@ -23,6 +26,7 @@ export function labelProblem(oldRow, newRow, from, to) {
   if (!from || from === to) return 'the old text is empty or the same as the new';
   if (from.length > LABEL_MAX || to.length > LABEL_MAX) return `a label is at most ${LABEL_MAX} characters`;
   if (hasFigure(from) || hasFigure(to)) return 'a label carries no figure (a number outside an item id)';
+  if (STANDING.test(from) || STANDING.test(to)) return 'a label carries no status, grade, verdict or negation word (a row\'s standing is never a label)';
   if (oldRow == null || newRow == null) return 'the row is not both removed and added by the change';
   if (!oldRow.includes(from)) return `the old row does not contain "${from}"`;
   if (oldRow.split(from).join(to) !== newRow) return 'the row changed beyond the declared substitution';

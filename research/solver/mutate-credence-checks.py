@@ -1,6 +1,6 @@
 # THE SECOND UNLOCK'S CHECKS, EACH SHOWN TO MATTER (RULES.md rule 2): every mutation of the new credence, ancestry,
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
-# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct, after the auditor's MINORs: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3)
+# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3, labels 8 of 8)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -101,6 +101,7 @@ M6=[
  ("research/solver/relook-label.mjs", "export const LABEL_MAX = 40;", "export const LABEL_MAX = 4000;"),
  ("research/solver/relook-label.mjs", "if (!oldRow.includes(from)) return", "if (false) return"),
  ("research/solver/relook-label.mjs", "if (!from || from === to) return", "if (false) return"),
+ ("research/solver/relook-label.mjs", "if (STANDING.test(from) || STANDING.test(to)) return", "if (false) return"),
  ("research/solver/relook.mjs", "if (labelErrs.length) {", "if (false) {"),
  ("research/solver/relook.mjs", "ids.delete(id); labelled.push(id);", "labelled.push(id);"),
 ]

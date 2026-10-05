@@ -4,7 +4,7 @@
  * snapped read), HYB (PCLSI's tables, snapped read), S-INT (SNAP's tables, interpolated read) and PCLSI (both) on the same
  * paths: each household's survivors, each part alone over SNAP, both together, and the per-path interaction
  * PCLSI - HYB - S-INT + SNAP with its two-sided sign-flip p (reduce-7ar.mjs flipP). Unregistered and read after the fact:
- * grade C, deciding nothing. Also each arm's zero-tax years with the pension live in the 18 years from access, and its mean
+ * grade C, deciding nothing. Also each arm's zero-tax years (tax under 100, as derive-hyb-edges.mjs) with the pension live in the 18 years from access, and its mean
  * lifetime tax, so the order of the arms can be read against survival.
  *   node research/solver/derive-edge-2x2.mjs > research/solver/results-derive-edge-2x2.txt
  */
@@ -36,7 +36,7 @@ function zeroTax(T, id) {
   const pen = arr(T, 'pen'), tp = arr(T, 'taxPaid'), a = accessOf(id);
   if (!(pen instanceof Float32Array) || !(tp instanceof Float32Array) || a === null) return NaN;
   let n = 0;
-  for (let j = 0; j < T.N; j++) for (let k = a; k < Math.min(T.Y, a + 18); k++) { const o = j * T.Y + k; if (pen[o] > 1e4 && tp[o] <= 0) n++; }
+  for (let j = 0; j < T.N; j++) for (let k = a; k < Math.min(T.Y, a + 18); k++) { const o = j * T.Y + k; if (pen[o] > 1e4 && tp[o] < 100) n++; }
   return n / T.N;
 }
 const surv = T => T.survived.reduce((s, x) => s + x, 0), meanTax = T => T.tax.reduce((s, x) => s + x, 0) / T.N;

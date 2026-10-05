@@ -375,28 +375,36 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     writeFileSync(m, `x\n\nrelook: ${[...new Set(ids)].join(', ')} unchanged: short\n`); ok(run() === 1, 'EDGE: an answer with a reason under ten characters is refused');
   }  // A LABEL-ONLY EDIT (the maintainer's unlock of 5 Oct, the third): declared in the message, checked exactly
   { const { parseLabels, labelProblem, LABEL_MAX } = await import('../solver/relook-label.mjs');
-    const o = '| O76 | x | y | z | read with COV-B-STEP (the 5 Oct 08:51 row, PROVISIONAL on O96; grade B) | open |';
-    const n = o.replace('PROVISIONAL on O96', 'O96 since resolved');
+    const o = '| O76 | x | y | z | the detail in items/O76.md, as COV-B-STEP put it (grade B) | open |';
+    const n = o.replace('the detail in items/O76.md', 'the moved detail in items/O76-detail.md');
     const d = parseLabels('x\n# relook-label: O1: "a" -> "b"\nrelook-label: O76, 7an: "PROVISIONAL on O96" -> "O96 since resolved"\n');
     ok(d.length === 1 && d[0].ids.join() === 'O76,7an' && d[0].from === 'PROVISIONAL on O96' && d[0].to === 'O96 since resolved', 'a label declaration reads back, ids and both texts (a commented line is not one)');
-    ok(labelProblem(o, n, 'PROVISIONAL on O96', 'O96 since resolved') === null, 'a row whose whole edit is the declared substitution passes');
-    ok(/beyond the declared/.test(labelProblem(o, n.replace('grade B', 'grade A'), 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: a row with another edit beside the label is refused');
-    ok(/beyond the declared/.test(labelProblem(o, n.replace('| open |', '| resolved |'), 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: a status change beside the label is refused');
+    ok(labelProblem(o, n, 'the detail in items/O76.md', 'the moved detail in items/O76-detail.md') === null, 'a row whose whole edit is the declared substitution passes');
+    ok(/beyond the declared/.test(labelProblem(o, n.replace('grade B', 'grade A'), 'the detail in items/O76.md', 'the moved detail in items/O76-detail.md') || ''), 'planted: a row with another edit beside the label is refused');
+    ok(/beyond the declared/.test(labelProblem(o, n.replace('| open |', '| resolved |'), 'the detail in items/O76.md', 'the moved detail in items/O76-detail.md') || ''), 'planted: a status change beside the label is refused');
     ok(/no figure/.test(labelProblem(o, o.replace('08:51', '09:51'), '08:51', '09:51') || ''), 'planted: a changed figure is never a label');
     ok(labelProblem('| O9 | about O96 |', '| O9 | about O97 |', 'O96', 'O97') === null, 'EDGE: an item id is not a figure');
+    for (const [a, b] of [['open', 'resolved'], ['grade C', 'grade A'], ['withheld', 'released'], ['PROVISIONAL on O96', 'O96 since resolved'], ['shown', 'not shown']]) ok(/standing is never a label/.test(labelProblem(`| O9 | x ${a} y |`, `| O9 | x ${b} y |`, a, b) || ''), `planted: a change of standing ('${a}' to '${b}') is not a label`);
     ok(LABEL_MAX === 40 && /at most/.test(labelProblem(o, o, 'x'.repeat(41), 'y') || '') && labelProblem('| O9 | ' + 'x'.repeat(40) + ' |', '| O9 | ' + 'y'.repeat(40) + ' |', 'x'.repeat(40), 'y'.repeat(40)) === null, 'planted: a label of 41 characters is refused; EDGE: 40 passes');
-    ok(/does not contain/.test(labelProblem(o, n, 'not in the row', 'z') || ''), 'planted: a declared old text not in the row is refused');
-    ok(/empty or the same/.test(labelProblem(o, o, 'grade', 'grade') || '') && /not both removed and added/.test(labelProblem(undefined, n, 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: an empty or unchanged label, or a row the change does not edit, is refused');
+    ok(/does not contain/.test(labelProblem(o, n, 'absent from the row', 'z') || ''), 'planted: a declared old text not in the row is refused');
+    ok(/empty or the same/.test(labelProblem(o, o, 'grade', 'grade') || '') && /not both removed and added/.test(labelProblem(undefined, n, 'the detail in items/O76.md', 'the moved detail in items/O76-detail.md') || ''), 'planted: an empty or unchanged label, or a row the change does not edit, is refused');
     // end to end on a real commit: 6264149's label edit on four rows spared their dependants, a false declaration stops it
     const m2 = join(tmpdir(), `relook-label-${process.pid}.txt`), rl = () => { try { return { code: 0, out: execFileSync('node', [join(S, 'relook.mjs'), '--base', '6264149^..6264149', '--msg', m2], { stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
     writeFileSync(m2, 'x\n'); const before = rl();
     writeFileSync(m2, 'x\nrelook-label: O76, O91, 7an, COV: "PROVISIONAL on O96" -> "O96 since resolved"\n'); const after = rl();
-    // the rows are scanned in the plan as it stands, so the counts move as the plan grows: what is pinned is that the labelled ids
-    // leave the change's items and the rows to answer fall (19 to 2 on the plan as it stood at 51f11e4)
-    const named = s => ((/named by the change \(([^)]*)\)/.exec(s) || [])[1] || '').split(', '), rows = s => Number((/; (\d+) live row/.exec(s) || [])[1]);
-    ok(named(before.out).includes('7an') && named(before.out).includes('O76') && !named(after.out).includes('7an') && !named(after.out).includes('O76') && rows(after.out) < rows(before.out) && /label-only edits declared and checked/.test(after.out), 'on 6264149 the declared label takes 7an and O76 out of the change\'s items and the rows to answer fall');
+    // the motivating label was a change of standing (provisional to resolved), so the check refuses it and the rows stay listed
+    ok(/19 live row|\d+ live row/.test(before.out) && after.code === 1 && /RELOOK LABEL REFUSED: O76: a label carries no status/.test(after.out), 'on 6264149 the label "PROVISIONAL on O96" to "O96 since resolved" is a change of standing and is refused');
     writeFileSync(m2, 'x\nrelook-label: O83: "PROVISIONAL on O96" -> "O96 since resolved"\n'); const bad = rl();
     ok(bad.code === 1 && /RELOOK LABEL REFUSED: O83/.test(bad.out), 'planted: a label declared for a row with a substantive edit (O83 in 6264149) stops the commit');
+    // end to end on a fixture (--plan, --diff-file): a row whose only edit is a declared label names no dependants
+    { const fp = join(tmpdir(), `relook-plan-${process.pid}.md`), fd = join(tmpdir(), `relook-diff-${process.pid}.txt`);
+      const oldR = '| O1 | a thing; the detail in items/O1.md | x | Claude | y | open |', newR = oldR.replace('the detail in items/O1.md', 'the detail moved to items/O1-detail.md');
+      writeFileSync(fp, ['| id | what | found | owner | gate | status |', '|---|---|---|---|---|---|', newR, '| O2 | rests on O1 | x | Claude | y | open |'].join('\n') + '\n');
+      writeFileSync(fd, `--- a/PLAN.md\n+++ b/PLAN.md\n@@ -3 +3 @@\n-${oldR}\n+${newR}\n`);
+      const fx = msg => { writeFileSync(m2, msg); try { return { code: 0, out: execFileSync('node', [join(S, 'relook.mjs'), '--plan', fp, '--diff-file', fd, '--msg', m2], { stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
+      const no = fx('x\n'), yes = fx('x\nrelook-label: O1: "the detail in items/O1.md" -> "the detail moved to items/O1-detail.md"\n');
+      ok(no.code === 1 && /RELOOK UNANSWERED \(1\): O2/.test(no.out) && yes.code === 0 && /0 live row/.test(yes.out), 'a fixture: the dependant O2 must be answered, unless O1\'s only edit is the declared label');
+      rmSync(fp, { force: true }); rmSync(fd, { force: true }); }
     rmSync(m2, { force: true }); }
 }
 

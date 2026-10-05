@@ -22,17 +22,21 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseLabels, labelProblem } from './relook-label.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = join(HERE, 'PLAN.md');
+// --plan <file> and --diff-file <file> (a unified diff of the plan) run the whole check on a fixture, for the planted cases
+const _a = process.argv.slice(2), _opt = k => { const i = _a.indexOf(k); return i >= 0 ? _a[i + 1] : null; };
+const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = _opt('--plan') || join(HERE, 'PLAN.md'), DIFF_FILE = _opt('--diff-file');
 export const ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
 const argv = process.argv.slice(2), bi = argv.indexOf('--base');
 const SINCE = argv.includes('--since-review'), STAGED = argv.includes('--staged'), mi = argv.indexOf('--msg'), MSG = mi >= 0 ? argv[mi + 1] : null;
-const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1) && (mi < 0 || i !== mi + 1));
+const skip = new Set(['--plan', '--diff-file'].map(k => argv.indexOf(k)).filter(i => i >= 0).map(i => i + 1));
+const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1) && (mi < 0 || i !== mi + 1) && !skip.has(i));
 const lines = readFileSync(PLAN, 'utf8').split('\n');
 // the change's added lines, and the rows they sit in (a table row is one line)
 let added = [], removed = [];
 if (!given.length) {
   let diff;
-  if (SINCE) {
+  if (DIFF_FILE) diff = readFileSync(DIFF_FILE, 'utf8');
+  else if (SINCE) {
     // the last receipt's plan blob against the working tree's, as record-review.mjs --diff does
     const { receipts, planBlob } = await import('./record-review.mjs');
     const last = receipts().slice(-1)[0], now = planBlob(true);

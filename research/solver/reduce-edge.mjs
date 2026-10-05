@@ -169,8 +169,12 @@ export function shareRule(files, r, { b: nb = B } = {}) {
 const buf = s => { const x = Buffer.from(s, 'base64'); return x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength); };
 const BANDS = [['[0.15, 0.25)', 0.15, 0.25], ['[0.25, 0.6)', 0.25, 0.6], ['[0.6, 0.75)', 0.6, 0.75]];
 export function flatYears(T) {
-  const pen = T.raw && typeof T.raw.pen === 'string' ? new Float32Array(buf(T.raw.pen)) : T.pen;
-  if (!pen) return null;
+  // a base64 string is decoded wherever it sits, and anything else that is not a whole Float32Array is refused: HYB's files
+  // came through reduce-adoptpi.mjs decode with pen still a string, pen[o] a character, and every year skipped - a row of
+  // 0.00 from a check that ran on nothing (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK)
+  const src = T.raw && T.raw.pen !== undefined ? T.raw.pen : T.pen;
+  const pen = typeof src === 'string' ? new Float32Array(buf(src)) : src;
+  if (!(pen instanceof Float32Array) || pen.length !== T.N * T.Y) throw new Error(`flatYears: ${T.id} ${T.arm}: no decoded pension trace of ${T.N * T.Y} values (${typeof src}${pen && pen.length !== undefined ? `, ${pen.length}` : ''})`);
   const n = BANDS.map(() => 0);
   for (let j = 0; j < T.N; j++) for (let k = 0; k + 1 < T.Y; k++) {
     const o = j * T.Y + k, x = T.u[o];
@@ -198,7 +202,7 @@ export function reading(files, out = console.log, opts = {}) {
     for (const [a, c] of [['PCLSI', 'S-INT'], ['SNAP', 'S-INT'], ['HYB', 'P-LO'], ['HYB', 'P-HI'], ['SNAP', 'S-HI'], ['SNAP', 'S-LO']]) { const p = paired(a === 'HYB' ? H : F(a), F(c)); out(`  ${id.padEnd(8)} ${c} less ${a}`.padEnd(30) + `survival ${f3(100 * (p.c - p.b) / p.N).padStart(7)}  tax ${f2(p.tax.m).padStart(11)} (${f2(p.tax.se)})  net ${f2(p.net.m).padStart(12)} (${f2(p.net.se)})`); }
   }
   out('\nREPORTED: flat years with the pension live (pension over 10,000, the used share growing under 0.01), a path\'s mean, by the used share\'s band: [0.15, 0.25) / [0.25, 0.6) / [0.6, 0.75)');
-  for (const id of PANEL) for (const a of [...ARMS, 'HYB']) { const fy = flatYears(a === 'HYB' ? files[`${id} HYB`] : files[`${id} ${a}`]); out(`  ${`${id} ${a}`.padEnd(14)} ${fy ? fy.map(f2).join(' / ') : 'no pension trace'}`); }
+  for (const id of PANEL) for (const a of [...ARMS, 'HYB']) { const fy = flatYears(a === 'HYB' ? files[`${id} HYB`] : files[`${id} ${a}`]); out(`  ${`${id} ${a}`.padEnd(14)} ${fy.map(f2).join(' / ')}`); }
   out(`\nOUTCOME: 1 ${r.one.v}; 2 ${r.two.v}`);
   out(`SHARES: O101-EDGE ${S.edge}; O83 ${S.o83}`);
   out(`LEGS: ${[['1', r.one], ['2', r.two]].flatMap(([k, it]) => it.legs.map(l => `item ${k} ${l.id} ${l.v}`)).join('; ')}`);
@@ -214,12 +218,12 @@ const fileName = (id, arm) => `${id}-${arm.toLowerCase()}.json.gz`;
    PCLSI and S-INT 200, P-LO, S-HI 150, P-HI, S-LO 50, SNAP and HYB 0); tax 100 and net 1000 a path; used shares 0.3 */
 const SAVE = { SNAP: 0, HYB: 0, PCLSI: 200, 'P-LO': 150, 'P-HI': 50, 'S-INT': 200, 'S-HI': 150, 'S-LO': 50 };
 function builtFile(id, arm, o = {}) {
-  const N = NB, sv = new Uint8Array(N), tax = new Float32Array(N).fill(100), net = new Float32Array(N).fill(1000), u = new Float32Array(N * YB).fill(0.3);
+  const N = NB, sv = new Uint8Array(N), tax = new Float32Array(N).fill(100), net = new Float32Array(N).fill(1000), u = new Float32Array(N * YB).fill(0.3), pen = new Float32Array(N * YB);
   const k = ((o.save || {})[id] || {})[arm] ?? SAVE[arm];
   for (let j = 0; j < N; j++) sv[j] = j < 1800 + k ? 1 : 0;   // k below 0: the arm loses paths every other arm saves
   if (o.idOff && id === 'S128' && arm === 'PCLSI' && o.hybSide) tax[7] += 1;
   const A = ARM[arm] || { tables: 'PCLSI', read: 'false', seg: 'none' };
-  return { id, arm, dt: false, read: A.read === 'true', seg: A.seg === 'none' ? null : A.seg, tables: A.tables, stamp: o.stOff && id === 'S128' && arm === 'P-HI' ? { ...ST, audit: 'zzz' } : ST, N, Y: YB, survived: sv, tax, net, u };
+  return { id, arm, dt: false, read: A.read === 'true', seg: A.seg === 'none' ? null : A.seg, tables: A.tables, stamp: o.stOff && id === 'S128' && arm === 'P-HI' ? { ...ST, audit: 'zzz' } : ST, N, Y: YB, survived: sv, tax, net, u, pen: o.penB64 ? Buffer.from(pen.buffer).toString('base64') : pen };
 }
 const builtFiles = (o = {}) => Object.fromEntries([...UNIT_KEYS, ...PANEL.map(id => `${id} HYB`)].map(k => { const { id, arm } = splitK(k); return [k, builtFile(id, arm, o)]; }));
 function builtLog(o = {}) {
@@ -245,6 +249,9 @@ function planted() {
   const cases = [], PB = 2000;
   const G = o => { const us = parse(builtLog(o)); const g = gate(us, { npw: NB }); if (g.length) return g; const tr = loadTraces(us, '/x', ST, builtRead(o)); return tr.bad.length ? tr.bad : identity(tr.files, builtHyb(o)); };
   cases.push(['a built set gates clean, the identity included', String(G({}).length), '0']);
+  { const N = 1, Y = 3, u = new Float32Array([0.2, 0.2, 0.2]), pen = new Float32Array([2e4, 2e4, 2e4]), b64 = Buffer.from(pen.buffer).toString('base64');
+    const t = x => { try { return flatYears(x).map(v => v.toFixed(0)).join(' '); } catch (e) { return 'ERROR'; } };
+    cases.push(['flatYears: a decoded trace, a base64 one (HYB through decode) and one under raw read alike; no trace, or a short one, is an error', `${t({ id: 'X', arm: 'A', N, Y, u, pen })}|${t({ id: 'X', arm: 'A', N, Y, u, pen: b64 })}|${t({ id: 'X', arm: 'A', N, Y, u, raw: { pen: b64 } })}|${t({ id: 'X', arm: 'A', N, Y, u })}|${t({ id: 'X', arm: 'A', N, Y, u, pen: new Float32Array(2) })}`, '2 0 0|2 0 0|2 0 0|ERROR|ERROR']); EDGES.push('a pension trace still in base64'); }
   { const g = gate(parse(builtLog({ skip: 'S128 P-HI' })), { npw: NB }); cases.push(['the gate alone names a missing unit', String(g.some(x => /^S128 P-HI: 0 unit lines, not 1$/.test(x))), 'true']); }
   for (const [nm, o] of [['a unit not done', { notDone: true }], ['P-LO on SNAP\'s tables', { tablesOff: true }], ['S-HI read on the low segment', { segOff: true }], ['a unit at a tie margin', { tieOff: true }],
     ['a unit at a death tax of 0.4', { dtOff: true }], ['a household\'s units on different paths', { pathsOff: true }], ['a sum line off its file', { sumOff: true }],

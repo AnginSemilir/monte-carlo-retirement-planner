@@ -51,3 +51,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 12:00 UTC | reduce-edge.mjs d319f05f253e | 30 of 30 caught | escaped: none
 2026-10-05 12:18 UTC | reduce-edge.mjs a544eafd28f4 | 31 of 31 caught | escaped: none
 2026-10-05 13:25 UTC | reduce-edge.mjs 8b35ba6fa692 | 31 of 31 caught | escaped: none
+2026-10-05 15:52 UTC | reduce-edge.mjs 96b7669104bb | 33 of 33 caught | escaped: none

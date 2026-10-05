@@ -41,5 +41,8 @@ M = [
   ("gHi = shown(F('S-INT'), F('SNAP'), 7102)", "gHi = true"),
   ("const gLo = shown(F('PCLSI'), F('HYB'), 7101)", "const gLo = true"),
   ("nb, seed) < ALPHA;", "nb, seed) < 0.5;"),
+  # the flat-year trace (the deep review after EDGE-SPLIT: a base64 pen read as characters)
+  ("const pen = typeof src === 'string' ? new Float32Array(buf(src)) : src;", "const pen = src;"),
+  ("if (!(pen instanceof Float32Array) || pen.length !== T.N * T.Y) throw", "if (false) throw"),
 ]
 run('reduce-edge.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

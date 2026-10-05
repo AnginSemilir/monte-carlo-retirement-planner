@@ -390,8 +390,11 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     // end to end on a real commit: 6264149's label edit on four rows spared their dependants, a false declaration stops it
     const m2 = join(tmpdir(), `relook-label-${process.pid}.txt`), rl = () => { try { return { code: 0, out: execFileSync('node', [join(S, 'relook.mjs'), '--base', '6264149^..6264149', '--msg', m2], { stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
     writeFileSync(m2, 'x\n'); const before = rl();
-    writeFileSync(m2, 'x\nrelook-label: O76, O91, 7an, COV: "PROVISIONAL on O96" -> "O96 since resolved"\nrelook: O71, O95 unchanged: fixture answers for the two rows the change itself names\n'); const after = rl();
-    ok(/19 live row/.test(before.out) && after.code === 0 && /2 live row/.test(after.out), 'on 6264149 the declared label cuts the rows to answer from 19 to 2, and the two answered pass');
+    writeFileSync(m2, 'x\nrelook-label: O76, O91, 7an, COV: "PROVISIONAL on O96" -> "O96 since resolved"\n'); const after = rl();
+    // the rows are scanned in the plan as it stands, so the counts move as the plan grows: what is pinned is that the labelled ids
+    // leave the change's items and the rows to answer fall (19 to 2 on the plan as it stood at 51f11e4)
+    const named = s => ((/named by the change \(([^)]*)\)/.exec(s) || [])[1] || '').split(', '), rows = s => Number((/; (\d+) live row/.exec(s) || [])[1]);
+    ok(named(before.out).includes('7an') && named(before.out).includes('O76') && !named(after.out).includes('7an') && !named(after.out).includes('O76') && rows(after.out) < rows(before.out) && /label-only edits declared and checked/.test(after.out), 'on 6264149 the declared label takes 7an and O76 out of the change\'s items and the rows to answer fall');
     writeFileSync(m2, 'x\nrelook-label: O83: "PROVISIONAL on O96" -> "O96 since resolved"\n'); const bad = rl();
     ok(bad.code === 1 && /RELOOK LABEL REFUSED: O83/.test(bad.out), 'planted: a label declared for a row with a substantive edit (O83 in 6264149) stops the commit');
     rmSync(m2, { force: true }); }

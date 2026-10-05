@@ -110,4 +110,4 @@ From results-derive-edge.txt section 2 (each discordant path of the read's gain 
 
 ## Changes after seeing results
 
-None.
+One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.

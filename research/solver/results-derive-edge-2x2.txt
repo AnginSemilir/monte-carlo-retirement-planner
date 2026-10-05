@@ -1,0 +1,11 @@
+GATE: passed - EDGE-SPLIT's 21 units through reduce-edge.mjs's gate and THE IDENTITY against HYB's files (HYB's HYB arm joins)
+
+THE 2x2 (survivors of the paths; each part alone over SNAP; the per-path interaction PCLSI - HYB - S-INT + SNAP, two-sided sign-flip p)
+  S130  SNAP 4974 HYB 4925 S-INT 4934 PCLSI 5117 of 6000 | tables alone (HYB less SNAP) -49 | read alone (S-INT less SNAP) -40 | both (PCLSI less SNAP) 143 | interaction +232 paths, p 1.0e-4
+  S128  SNAP 4073 HYB 4052 S-INT 4087 PCLSI 4097 of 6000 | tables alone (HYB less SNAP) -21 | read alone (S-INT less SNAP) 14 | both (PCLSI less SNAP) 24 | interaction +31 paths, p 1.3e-2
+  S370  SNAP 4200 HYB 4205 S-INT 4202 PCLSI 4248 of 6000 | tables alone (HYB less SNAP) 5 | read alone (S-INT less SNAP) 2 | both (PCLSI less SNAP) 48 | interaction +41 paths, p 1.0e-4
+
+EVERY ARM IN ORDER OF SURVIVAL (survivors, zero-tax years with the pension live in the 18 years from access, mean lifetime tax)
+  S130: PCLSI 5117 / 0.03 / 819k; P-LO 4980 / 4.08 / 1125k; SNAP 4974 / 4.48 / 1140k; S-LO 4974 / 4.48 / 1140k; S-HI 4934 / 5.00 / 1203k; S-INT 4934 / 5.00 / 1203k; P-HI 4926 / 6.70 / 1269k; HYB 4925 / 6.72 / 1272k
+  S128: PCLSI 4097 / 0.90 / 187k; S-HI 4087 / 3.35 / 244k; S-INT 4087 / 3.35 / 244k; SNAP 4073 / 2.83 / 259k; S-LO 4073 / 2.83 / 259k; P-LO 4069 / 3.17 / 253k; P-HI 4059 / 3.33 / 259k; HYB 4052 / 3.41 / 288k
+  S370: PCLSI 4248 / 0.04 / 1350k; P-LO 4223 / 0.78 / 1375k; P-HI 4211 / 0.70 / 1400k; HYB 4205 / 0.71 / 1405k; S-HI 4202 / 0.56 / 1388k; S-INT 4202 / 0.56 / 1388k; SNAP 4200 / 0.52 / 1388k; S-LO 4200 / 0.52 / 1388k

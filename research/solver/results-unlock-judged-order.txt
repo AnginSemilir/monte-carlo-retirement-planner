@@ -56,3 +56,10 @@ CAUGHT   relook-label.mjs: if (STANDING.test(from) || STANDING.test(to)) return
 CAUGHT   relook.mjs: if (labelErrs.length) {
 CAUGHT   relook.mjs: ids.delete(id); labelled.push(id);
 labels: 8/8 caught
+
+# the tests the 20:19 row cites (the plan-auditor's MINOR 5 of 5 Oct on 967f853), run on the working tree: its only uncommitted
+# change to either is record-deep-review.mjs passing lessons.md to uncertainty.mjs's index, which the planted checks do not reach
+node research/tests/plan-checker.test.mjs:
+259 passed
+node research/solver/record-deep-review.mjs --planted:
+planted (34): all read as they should

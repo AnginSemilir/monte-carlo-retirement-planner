@@ -242,15 +242,16 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    (the plan-auditor's MINOR 1 of 3 Oct 18:42 UK). The plan-auditor's grep of the corrected phrase stays the check that
    catches those; the report is an aid, not a guard. The EDGES requirement binds predictions first committed from 3 Oct
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
-28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
-   counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
-29. The retro (check-plan.mjs) reads any '<token> (<what>): Brier' line as a scored test, a summary line too (scorecard.mjs words
-   LEGS around it); fix at the next unlock: read only the per-test lines. relook.mjs matches no named test (XAS, RTAX).
-30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
-   commit (MINOR 3 of 5 Oct 10:09 UK).
-31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, those after ed5db5c
-   (by ancestry): none is held to these two yet. A base rate may be any kind's; a cause id need only be named, not
-   ranked; a settlement quotes its deciding line, but held or not is the author's reading of it.
+28. triggers.mjs drops a malformed tag (one with spaces) silently: neither counted nor listed as unknown (MINOR 2 of
+   4 Oct 04:49 UK). No claim rests on the count.
+29. The retro (check-plan.mjs) reads any '<token> (<what>): Brier' line as a test, a summary too (scorecard.mjs words LEGS
+   around it); fix: read only per-test lines. relook.mjs matches no named test (XAS, RTAX).
+30. The pre-commit and Stop hooks check the working tree, untracked files included; CI checks the commit.
+31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, after ed5db5c (XAS-R
+   the first). The order is read from commits: a derivation run before the judged lines' first commit passes (XAS-R's,
+   748c53e: the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
+   author's reading.
+32. uncertainty.mjs counts tests since a review in the scorecard's order, not by close (MINOR 6 on 967f853): fix pending.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

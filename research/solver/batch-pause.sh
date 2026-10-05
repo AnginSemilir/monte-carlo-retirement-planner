@@ -9,4 +9,4 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 seq 0 3 | xargs -P 4 -I{} sh -c \
   'timeout 10800 node research/solver/audit-pause.mjs 30 1000 part {}/4 7005 > research/solver/results/diagpause/case{}.txt 2>&1 || echo "part {} exited $?"'
 echo "PAUSE runs done $(TZ=Europe/London date +%H:%M) UK"
-node research/solver/reduce-pause.mjs "$OUT" || echo "=== reduce-pause.mjs did not run to its reading inside the snapshot: reduce in the real tree"
+node research/solver/reduce-pause.mjs "$OUT" || echo "=== reduce-pause.mjs did not run to its reading inside the snapshot (EDGE-SPLIT's declared correction needs git): reduce in the real tree"

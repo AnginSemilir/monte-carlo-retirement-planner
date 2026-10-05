@@ -81,7 +81,11 @@ FORCE's design (the deep review of 5 Oct 16:36 UK; O103): where each arm's read 
 
 ## Budget line
 
-Two 30-point solves (EDGE-SPLIT's: SNAP's 618 s and PCLSI's 389 s on S130; results/diagedge/case0.txt), one per part; eight forward runs on 1,000 paths (EDGE-SPLIT's 6,000 took 638 to 1,019 s); the sweep, 22 chooser calls a flat year (the build check at 4 points: about 2.3 ms a call, 467 flat years on 20 paths). About 4 core-hours, about an hour on four cores; the preflight's timing revises it before launch.
+Measured by the preflight (results/diagpause-preflight/case0-3.txt, 30 points, 20 paths, four parts at once): each part's solve 288 to 326 s, each forward run 2 s, each sweep 2 to 10 s for 40 to 226 flat years. At 1,000 paths: about 100 s a forward run and 100 to 500 s a sweep, so about 25 to 30 minutes a part, four parts at once - under 2 core-hours.
+
+## Seen before launch
+
+The preflight's reducer printed its reading on 20 paths (results/diagpause-preflight; reduce-pause.mjs --preflight, run in the real tree after the snapshot's copy could not read EDGE-SPLIT's declared correction without git), and the author saw it before launch. Nothing in the measure, the bands, the registered figures, the falsifiers or the intervals was changed after it.
 
 ## Changes after seeing results
 

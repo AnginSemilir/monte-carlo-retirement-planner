@@ -187,6 +187,20 @@ export function information(pairs) {
 }
 // by kind: the author's Brier, and that of the kind's base rate from earlier tests only ((held + 1) / (items + 2), so a kind
 // with no history starts at a half) - the forecast the author's credence has to beat
+// THE KIND'S BASE RATE (the maintainer's 'Yes' of 5 Oct to the unlocked improvements: a new item's credence starts from how
+// often items of its kind have held, and the derivation says why it moves from there): per kind over every scored item,
+// Laplace (held + 1) / (n + 2), the line new-prediction.mjs copies into a new prediction's Credence scaffold
+export function kindRates(tagged) {
+  const out = {};
+  for (const x of tagged) { const r = out[x.kind] ||= { n: 0, h: 0 }; r.n++; r.h += x.o; }
+  return Object.fromEntries(Object.entries(out).map(([k, r]) => [k, { n: r.n, held: r.h, rate: (r.h + 1) / (r.n + 2) }]));
+}
+// DISCRIMINATION, JUDGED AGAINST DERIVED (the same 'Yes'): the RPS check (O29) can reward a flat forecast; the AUC and the
+// resolution of each set on the same items and events say which separates what holds from what does not
+export function discrimination(pairs) {
+  const J = information(pairs.map(x => ({ p: x.judged, o: x.o }))), D = information(pairs.map(x => ({ p: x.derived, o: x.o })));
+  return { n: pairs.length, both: pairs.some(x => x.o === 1) && pairs.some(x => x.o === 0), aucJ: J.auc, aucD: D.auc, resJ: J.res, resD: D.res };
+}
 export function byKind(tagged) {
   const seen = {}, out = {};
   let cur = null, pending = [];
@@ -355,6 +369,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['planted: a cause settled twice is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt\n- 5 Oct 12:00 | quad | not | results-x.txt\n- 5 Oct 12:00 | rep | not | results-x.txt\n').errs.length), '1']);
   cases.push(['planted: a settlement citing a missing results file is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-none.txt\n', f => f !== 'results-none.txt').errs.length), '1']);
   cases.push(['EDGE: no settlements reads 0 settled, no Brier', causeScores(LOG, '').line, 'DEEP-REVIEW CAUSES: 2 stated, 0 settled']);
+  cases.push(['the kind\'s base rate: 3 held of 4 ATTRIB items reads (3 + 1) / (4 + 2), and an unseen kind is absent', (() => { const r = kindRates([1, 1, 1, 0].map(o => ({ kind: 'ATTRIB', o }))); return `${r.ATTRIB.rate.toFixed(4)} ${r.ATTRIB.n} ${'NOHARM' in r}`; })(), '0.6667 4 false']);
+  cases.push(['discrimination: a judged set that ranks perfectly and a derived set that ranks backwards', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }, { judged: 0.1, derived: 0.8, o: 0 }]); return `${d.aucJ} ${d.aucD} ${d.both}`; })(), '1 0 true']);
+  cases.push(['EDGE: discrimination over items all of one outcome says so (no AUC)', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }]); return `${d.both} ${Number.isNaN(d.aucJ)}`; })(), 'false true']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }
@@ -389,5 +406,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (rpsAll.length) console.log(`THREE-OUTCOME ITEMS: ranked probability score ${(rpsAll.reduce((a, x) => a + x.rps, 0) / rpsAll.length).toFixed(3)} over ${rpsAll.length}, a uniform forecast ${(rpsAll.reduce((a, x) => a + x.uniform, 0) / rpsAll.length).toFixed(3)}`);
   if (legAll.length) console.log(`LEGS (an item needing every household, scored household by household): Brier ${brier(legAll).toFixed(3)} over ${legAll.length}`);
   { const C = causeScores(read('deep-review-log.md') || '', read('review-causes.md') || '', f => existsSync(join(HERE, f))); if (C.errs.length) { console.log(`ERROR - review-causes.md: ${C.errs.join('; ')}`); process.exit(1); } console.log(C.line); }
+  { const R = kindRates(tagged), rec = /read as the review said (\d+) of (\d+)/.exec(read('deep-review-log.md') || '');
+    console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}${rec ? `; an item leaning on a deep review's cause or story ${((+rec[1] + 1) / (+rec[2] + 2)).toFixed(2)} (${rec[1]} of ${rec[2]}, deep-review-log.md)` : ''}`); }
+  if (judgedAll.length) { const D = discrimination(judgedAll); console.log(`DISCRIMINATION, judged against derived (the same items and events): ${D.both ? `AUC judged ${D.aucJ.toFixed(2)}, derived ${D.aucD.toFixed(2)}; resolution judged ${D.resJ.toFixed(3)}, derived ${D.resD.toFixed(3)}` : 'accruing - the items so far all of one outcome'} over ${D.n}`); }
   if (judgedAll.length) { const J = judgedCheck(judgedAll); console.log(`JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged ${(judgedAll.reduce((a, x) => a + (x.judged - x.o) ** 2, 0) / judgedAll.length).toFixed(3)}, derived ${(judgedAll.reduce((a, x) => a + (x.derived - x.o) ** 2, 0) / judgedAll.length).toFixed(3)} over ${judgedAll.length}; the decisive check (O29): ${J.line}`); }
 }

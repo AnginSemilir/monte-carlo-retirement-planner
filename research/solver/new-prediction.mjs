@@ -6,7 +6,7 @@
  * Fill every section and every "?" in the fair-test table, run check-prediction.mjs on it, commit and PUSH it, then
  * launch: PREDICTION=research/solver/predictions/<name>.md research/solver/run-from-snapshot.sh bash <batch-script>
  */
-import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blankTable } from './fair-variables.mjs';
@@ -16,6 +16,10 @@ if (!name || !/^[a-z0-9][a-z0-9.-]*$/.test(name)) { console.error('usage: new-pr
 const dir = join(dirname(fileURLToPath(import.meta.url)), 'predictions');
 mkdirSync(dir, { recursive: true });
 const file = join(dir, `${name}.md`);
+// the kinds' base rates as the scorecard last printed them (results-scorecard.txt; the maintainer's 'Yes' of 5 Oct): a new
+// item's credence starts from its kind's rate, and the derivation's priors say why they move from it
+const sc = join(dirname(fileURLToPath(import.meta.url)), 'results-scorecard.txt');
+const baseRates = (existsSync(sc) && (/^KIND BASE RATES[^:]*: (.*)$/m.exec(readFileSync(sc, 'utf8')) || [])[1]) || 'NOT FOUND - run node research/solver/scorecard.mjs > research/solver/results-scorecard.txt';
 if (existsSync(file)) { console.error(`${file} exists; a registered prediction is changed only under "Changes after seeing results"`); process.exit(1); }
 const now = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 writeFileSync(file, `# Prediction: ${name}
@@ -61,6 +65,11 @@ priors over the Power section's stories (the split, one-flip and band stories in
 taken from the scorecard. An item that needs every household carries a line per household, its reducer printing
 "LEGS: N/<household> <OUTCOME>" beside "OUTCOME: ...".
 
+Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RATES, as of this file's writing: ${baseRates}).
+The derivation's priors begin there and state why they move from it; an item resting on a deep review's ranked cause or
+story starts from that record's rate, not the review's own probability.
+
+- **Base rate, item 1:** ? (its kind's rate above, the starting credence for HELD)
 - **Item 1:** HELD ?, INCONCLUSIVE ?, FALSIFIED ? (derived: the derivation script's section)
 - **Judged, item 1:** HELD ?, INCONCLUSIVE ?, FALSIFIED ? (the author's judgement, written before the derivation)
 - **Kinds:** 1 ? (NOHARM, EFFECT, ATTRIB, SIZE or CTRL)

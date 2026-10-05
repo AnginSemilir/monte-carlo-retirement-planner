@@ -1,7 +1,7 @@
 /*
  * THE TIE MARGIN'S SIZE FOR TAIL (predictions/diag-tail.md, the derivation): ADOPT-PI's unit (no reader, the product's settings,
- * lambda held, the estate weight 0.02, 30 points) on share 0.90 and S130 under PCLSI, 500 paths at seed 7005 (ADOPT-PI's first
- * 500), run forward with the tie margin at 0 and at 1e-10, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4 and 1e-3 set after the solve: per
+ * lambda held, the estate weight 0.02, 30 points) on share 0.90 and S130 under PCLSI, 500 paths at seed 7002 (tuning: the
+ * margin is chosen here, so not on seed 7005, whose 6,000 paths TAIL reports from - the plan-auditor's BLOCKING 1 of 5 Oct), run forward with the tie margin at 0 and at 1e-10, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4 and 1e-3 set after the solve: per
  * margin the paths whose lifetime tax changes against margin 0, the paths lost and saved, and the mean tax and net change.
  * A plateau - the same paths changing over a range of margins - says the margin acts on the flat region (moves the table
  * cannot tell apart) and not on real trade-offs, inside it. Beside it the bound by algebra: a move within m of the best costs
@@ -20,7 +20,7 @@ import { codeId } from './code-id.mjs';
 
 const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
 console.log(`stamp: code ${cid ? cid.hash : 'unknown'} audit ${own} prediction ${process.env.PREDICTION_FILE || 'NOT-LAUNCHED'} sha ${process.env.PREDICTION_SHA || '-'}`);
-const POINTS = Number(process.argv[2] || 30), NP = Number(process.argv[3] || 500), SEED = 7005, LAMBDA = 0.0223606797749979, W = 0.02;
+const POINTS = Number(process.argv[2] || 30), NP = Number(process.argv[3] || 500), SEED = 7002, LAMBDA = 0.0223606797749979, W = 0.02;
 const MARGINS = [1e-10, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3];
 // audit-tail.mjs's variant() for share 0.90, copied (its module runs its jobs on import)
 const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');

@@ -38,4 +38,5 @@ export const ITEM_KINDS = {
  '7au':{1:'ATTRIB',2:'NOHARM'},
  'ADOPT-PI':{1:'NOHARM',2:'EFFECT'},
  'COV-B-STEP':{1:'NOHARM',2:'NOHARM',3:'ATTRIB'},
+ 'HYB':{1:'ATTRIB'},   // the split of ADOPT-PI's gain between the read and the tables (diag-hyb.md; labelled at its read)
 };

@@ -14,10 +14,13 @@
 //     listed must be answered in the message on a line "relook: <id>[, <id> ...] unchanged: <reason>" (or touched by the
 //     change); exits 1 naming the rows unanswered. Relook findings were 9 BLOCKINGs and 27 MINORs in 20 closes, and 7ar's
 //     REPLACE asked for this; --msg also works with given ids or --base, for a test
+//     A row whose only edit is a declared label, 'relook-label: <id>[, ...]: "<old>" -> "<new>"' in the message and checked
+//     exactly by relook-label.mjs, does not name its dependants (the maintainer's unlock of 5 Oct, the third)
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseLabels, labelProblem } from './relook-label.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = join(HERE, 'PLAN.md');
 export const ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
@@ -26,7 +29,7 @@ const SINCE = argv.includes('--since-review'), STAGED = argv.includes('--staged'
 const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1) && (mi < 0 || i !== mi + 1));
 const lines = readFileSync(PLAN, 'utf8').split('\n');
 // the change's added lines, and the rows they sit in (a table row is one line)
-let added = [];
+let added = [], removed = [];
 if (!given.length) {
   let diff;
   if (SINCE) {
@@ -46,6 +49,7 @@ if (!given.length) {
     catch (e) { console.error(`relook: git diff ${base} failed: ${e.message.split('\n')[0]}`); process.exit(2); }
   }
   added = diff.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1));
+  removed = diff.split('\n').filter(l => l.startsWith('-') && !l.startsWith('---')).map(l => l.slice(1));
   if (!added.length) { console.log(`relook: PLAN.md has no change against ${STAGED ? 'HEAD (staged)' : base}: nothing to re-look`); process.exit(0); }
 }
 const touched = new Set(added);
@@ -57,6 +61,18 @@ const isItem = k => !!k && (/^O\d{1,3}$/.test(k) || /^([78][a-z]{1,2}|E[1-4]|P|Q
 const isLedger = k => !!k && /^\d{1,2} [A-Z][a-z]{2} \d{2}:\d{2}$/.test(k.trim());
 // ids: a new ledger row's bold headline, and the key of each live row the change edits
 const ids = new Set(given.length ? given : added.flatMap(l => (isLedger(key(l)) ? [...bold(l).matchAll(ID)].map(m => m[1]) : isItem(key(l)) ? [key(l)] : [])));
+// declared labels (--msg only): a row whose whole edit is the declared substitution is dropped from the ids, unless a new
+// ledger row's headline names it too; a declaration its row's change does not match stops the commit
+const headIds = new Set(added.flatMap(l => (isLedger(key(l)) ? [...bold(l).matchAll(ID)].map(m => m[1]) : [])));
+const labelled = [], labelErrs = [];
+if (MSG && !given.length) {
+  for (const d of parseLabels(readFileSync(MSG, 'utf8'))) for (const id of d.ids) {
+    const p = labelProblem(removed.find(l => key(l) === id), added.find(l => key(l) === id), d.from, d.to);
+    if (p) labelErrs.push(`${id}: ${p}`); else if (!headIds.has(id)) { ids.delete(id); labelled.push(id); }
+  }
+}
+if (labelErrs.length) { console.log(`RELOOK LABEL REFUSED: ${labelErrs.join('; ')}`); process.exit(1); }
+if (labelled.length) console.log(`relook: label-only edits declared and checked, their dependants not listed: ${labelled.join(', ')}`);
 // an open row: a register row whose status (its last cell) is open; a schedule row not yet read, done or dropped
 const lastCell = l => { const c = l.split(' | '); return (c[c.length - 1] || '').replace(/\|\s*$/, '').replace(/\*\*/g, '').trim(); };
 const open = l => { const k = key(l), st = lastCell(l); if (/^O\d/.test(k)) return /^open/i.test(st); return !/^(READ|DONE|CANCELLED|SUPERSEDED|EXPIRED|RESOLVED|SETTLED|CLOSED|DROPPED)\b/.test(st); };

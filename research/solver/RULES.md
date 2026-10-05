@@ -639,7 +639,7 @@ catches. The always-read files have budgets (check-plan.mjs); finished rows move
 **The process mechanisms of 4 Oct** (the process review, deep-review-log.md 4 Oct 13:52 UK; the maintainer: "Agree, do all
 Unlock enforcement"). A test registered from 4 Oct 14:30 UK carries a decision table whose action changes with chance a
 quarter or more (else a waiver), and a Mechanism field anchored in the code with a derive line of the cause's incidence
-(check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg). A REPLACE lesson names its
+(check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg), except the dependants of a row whose only edit is a label declared in the message and checked exactly (relook-label.mjs; the unlock of 5 Oct, the third). A REPLACE lesson names its
 target and lands there by the next close (check-plan's retro). A new plan row is at most 3,000 bytes and a longer row may
 not grow (detail to items/<id>.md); a new decimal figure in a register or schedule row is in a results file, prediction or runs.log the row cites (known limit 20a); the
 premises at risk carry code anchors that must match their files; a status restated outside its item's row is warned of.

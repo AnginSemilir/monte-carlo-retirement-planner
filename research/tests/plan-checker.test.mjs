@@ -373,7 +373,28 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     const ids = execFileSync('node', [join(S, 'relook.mjs'), 'O67']).toString().match(/PLAN\.md:\d+\s+(\S+)/g).map(x => x.split(/\s+/)[1]);
     writeFileSync(m, `x\n\nrelook: ${[...new Set(ids)].join(', ')} unchanged: a test fixture, nothing moves here\n`); ok(run() === 0, 'a commit message answering every listed row passes');
     writeFileSync(m, `x\n\nrelook: ${[...new Set(ids)].join(', ')} unchanged: short\n`); ok(run() === 1, 'EDGE: an answer with a reason under ten characters is refused');
-  }
+  }  // A LABEL-ONLY EDIT (the maintainer's unlock of 5 Oct, the third): declared in the message, checked exactly
+  { const { parseLabels, labelProblem, LABEL_MAX } = await import('../solver/relook-label.mjs');
+    const o = '| O76 | x | y | z | read with COV-B-STEP (the 5 Oct 08:51 row, PROVISIONAL on O96; grade B) | open |';
+    const n = o.replace('PROVISIONAL on O96', 'O96 since resolved');
+    const d = parseLabels('x\n# relook-label: O1: "a" -> "b"\nrelook-label: O76, 7an: "PROVISIONAL on O96" -> "O96 since resolved"\n');
+    ok(d.length === 1 && d[0].ids.join() === 'O76,7an' && d[0].from === 'PROVISIONAL on O96' && d[0].to === 'O96 since resolved', 'a label declaration reads back, ids and both texts (a commented line is not one)');
+    ok(labelProblem(o, n, 'PROVISIONAL on O96', 'O96 since resolved') === null, 'a row whose whole edit is the declared substitution passes');
+    ok(/beyond the declared/.test(labelProblem(o, n.replace('grade B', 'grade A'), 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: a row with another edit beside the label is refused');
+    ok(/beyond the declared/.test(labelProblem(o, n.replace('| open |', '| resolved |'), 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: a status change beside the label is refused');
+    ok(/no figure/.test(labelProblem(o, o.replace('08:51', '09:51'), '08:51', '09:51') || ''), 'planted: a changed figure is never a label');
+    ok(labelProblem('| O9 | about O96 |', '| O9 | about O97 |', 'O96', 'O97') === null, 'EDGE: an item id is not a figure');
+    ok(LABEL_MAX === 40 && /at most/.test(labelProblem(o, o, 'x'.repeat(41), 'y') || '') && labelProblem('| O9 | ' + 'x'.repeat(40) + ' |', '| O9 | ' + 'y'.repeat(40) + ' |', 'x'.repeat(40), 'y'.repeat(40)) === null, 'planted: a label of 41 characters is refused; EDGE: 40 passes');
+    ok(/does not contain/.test(labelProblem(o, n, 'not in the row', 'z') || ''), 'planted: a declared old text not in the row is refused');
+    ok(/empty or the same/.test(labelProblem(o, o, 'grade', 'grade') || '') && /not both removed and added/.test(labelProblem(undefined, n, 'PROVISIONAL on O96', 'O96 since resolved') || ''), 'planted: an empty or unchanged label, or a row the change does not edit, is refused');
+    // end to end on a real commit: 6264149's label edit on four rows spared their dependants, a false declaration stops it
+    const m2 = join(tmpdir(), `relook-label-${process.pid}.txt`), rl = () => { try { return { code: 0, out: execFileSync('node', [join(S, 'relook.mjs'), '--base', '6264149^..6264149', '--msg', m2], { stdio: 'pipe' }).toString() }; } catch (e) { return { code: e.status, out: String(e.stdout) }; } };
+    writeFileSync(m2, 'x\n'); const before = rl();
+    writeFileSync(m2, 'x\nrelook-label: O76, O91, 7an, COV: "PROVISIONAL on O96" -> "O96 since resolved"\nrelook: O71, O95 unchanged: fixture answers for the two rows the change itself names\n'); const after = rl();
+    ok(/19 live row/.test(before.out) && after.code === 0 && /2 live row/.test(after.out), 'on 6264149 the declared label cuts the rows to answer from 19 to 2, and the two answered pass');
+    writeFileSync(m2, 'x\nrelook-label: O83: "PROVISIONAL on O96" -> "O96 since resolved"\n'); const bad = rl();
+    ok(bad.code === 1 && /RELOOK LABEL REFUSED: O83/.test(bad.out), 'planted: a label declared for a row with a substantive edit (O83 in 6264149) stops the commit');
+    rmSync(m2, { force: true }); }
 }
 
 // THE REPLACE FOLLOW-THROUGH (the process review, 4 Oct; the maintainer's unlock of 4 Oct)

@@ -93,3 +93,26 @@ try:
 finally:
   open(r5,'w').write(orig5)
 print(f'item 5: {caught5}/{len(M5)} caught')
+
+# the third unlock: a label-only edit, declared and checked (relook-label.mjs, relook.mjs; plan-checker.test.mjs must fail)
+M6=[
+ ("research/solver/relook-label.mjs", "if (oldRow.split(from).join(to) !== newRow) return", "if (false) return"),
+ ("research/solver/relook-label.mjs", "export const hasFigure = s => /\\d/.test(", "export const hasFigure = s => false && /\\d/.test("),
+ ("research/solver/relook-label.mjs", "export const LABEL_MAX = 40;", "export const LABEL_MAX = 4000;"),
+ ("research/solver/relook-label.mjs", "if (!oldRow.includes(from)) return", "if (false) return"),
+ ("research/solver/relook-label.mjs", "if (!from || from === to) return", "if (false) return"),
+ ("research/solver/relook.mjs", "if (labelErrs.length) {", "if (false) {"),
+ ("research/solver/relook.mjs", "ids.delete(id); labelled.push(id);", "labelled.push(id);"),
+]
+caught6=0
+for f,a,b in M6:
+  fp=os.path.join(ROOT,f); o=open(fp).read()
+  assert o.count(a)==1,(f,o.count(a),a[:50])
+  try:
+    open(fp,'w').write(o.replace(a,b))
+    r=subprocess.run(['node','research/tests/plan-checker.test.mjs'],cwd=ROOT,capture_output=True,text=True)
+    ok=r.returncode!=0; caught6+=ok
+    print(('CAUGHT  ' if ok else 'SURVIVED'), f.split('/')[-1]+':', a[:55])
+  finally:
+    open(fp,'w').write(o)
+print(f'labels: {caught6}/{len(M6)} caught')

@@ -115,11 +115,13 @@ export function makeGrid(m, opts = {}) {
   // The default since the 41-household re-run: every loss smaller, no win lost, six times faster.
   const total = (opts.coords || 'total') === 'total';
   const n1 = total ? ((pts && pts.total) || opts.points || 40) : np;
-  const n2 = total ? ((pts && pts.share) || opts.shares || 6) : ni;
+  // COV-B (`coverage`, research only; items/COV.md): one more share slot, the edge node in step years (a copy of a = 1 elsewhere)
+  const COV = !!opts.coverage; if (COV && !total) throw new Error('coverage needs the total-wealth coordinates');
+  const n2 = total ? ((pts && pts.share) || opts.shares || 6) + (COV ? 1 : 0) : ni;
   const n3 = total ? ((pts && pts.share) || opts.shares || 6) : nt;
   if (total) {
     axes.W = logAxis(n1, spend * 0.1, spend * top(open.pen + open.isa + open.tax));
-    axes.a = linAxis(n2);
+    axes.a = linAxis(COV ? n2 - 1 : n2);
     axes.b = linAxis(n3);
   }
   const size = n1 * n2 * n3 * gain.length * pcls.length;
@@ -128,6 +130,7 @@ export function makeGrid(m, opts = {}) {
     m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
     /* Phase 6e arms 3 and 4. Both default off, so the shipped build is bit-identical to before. */
     gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
+    cov: COV ? { years: [] } : null, // COV-B: per step year every wealth row's share nodes (np x ni, sorted), set by `solve`
     /* 7ap (the deep review after 7al, O71): the allowance axis interpolated, not snapped. Research only, default off. */
     pclsInterp: pclsInterpOf(opts),
     /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
@@ -232,9 +235,9 @@ function cashAtOf(m, t, taxPot) {
 }
 
 /* The same cell as a six-slot vector for the fast flow: pen, isa, taxable, gain fraction, tax-free used, lump taken. */
-export function toVec(g, ip, ii, it, ig, ic, out) {
+export function toVec(g, ip, ii, it, ig, ic, out, yr = -1) {
   if (g.mode === 'total') {
-    const W = g.axes.W.pts[ip], a = g.axes.a.pts[ii], b = g.axes.b.pts[it];
+    const W = g.axes.W.pts[ip], a = g.cov ? shareNode(g, ip, ii, yr) : g.axes.a.pts[ii], b = g.axes.b.pts[it];
     const pen = a * W, rest = W - pen, isa = b * rest;
     out[0] = pen; out[1] = isa; out[2] = rest - isa;
   } else {
@@ -247,6 +250,7 @@ export function toVec(g, ip, ii, it, ig, ic, out) {
 
 /* Where a six-slot vector sits on the grid. */
 export function locateVec(g, s) {
+  if (g.cov) throw new Error('coverage: locateVec has no year; read through readValues or nearestIndex with the year');
   const pf = Math.min(1, s[4] / g.m.P.lsa);
   // when the allowance axis is interpolated (7ap), `ic` is the LOWER bracket and `icw` the weight on the one above
   const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;
@@ -262,6 +266,33 @@ export function locateVec(g, s) {
   }
   return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic, igw, icw };
 }
+
+/*
+ * COV-B (`coverage`): the share value of slot `ii` on wealth row `ip` in year `yr`. In a step year the row's nodes are
+ * the share axis's own with the edge node inserted in order (solve.js sets them); elsewhere the extra last slot repeats
+ * the top node (a = 1). Off, the share axis's node.
+ */
+export function shareNode(g, ip, ii, yr) {
+  if (!g.cov) return g.axes.a.pts[ii];
+  if (!(yr >= 0)) throw new Error('coverage: a share node needs the year');
+  const R = g.cov.years[yr];
+  if (R) return R[ip * g.ni + ii];
+  return ii < g.axes.a.n ? g.axes.a.pts[ii] : 1;
+}
+/* COV-B: where share `a` sits on wealth row `ip` in year `yr`: the lower slot and the weight on the next, skipping
+   zero-width cells (a repeated node); outside step years the share axis's own six-node arithmetic */
+const SL = new Float64Array(2);
+function shareLoc(g, ip, a, yr) {
+  const R = g.cov.years[yr];
+  if (!R) { const f = (a <= 0 ? 0 : a >= 1 ? 1 : a) * (g.axes.a.n - 1), i = Math.min(g.axes.a.n - 2, Math.floor(f)); SL[0] = i; SL[1] = f - i; return SL; }
+  const o = ip * g.ni, last = g.ni - 1;
+  // the last cell of positive width whose lower node is at or below a (nodes ascend); below every node, the first such cell
+  let c = -1;
+  for (let i = 0; i < last; i++) if (R[o + i + 1] > R[o + i] && (c < 0 || R[o + i] <= a)) c = i;
+  const lo = R[o + c], hi = R[o + c + 1];
+  SL[0] = c; SL[1] = Math.min(1, Math.max(0, (a - lo) / (hi - lo))); return SL;
+}
+export function shareLocOf(g, ip, a, yr) { const r = shareLoc(g, ip, a, yr); return { i: r[0], w: r[1] }; }
 
 /*
  * THE HOT READ: both tables at one position, nothing allocated.
@@ -301,8 +332,26 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
   const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
   const ig = gb ? gb.i : nearest(g.gain, s[3]);
   const n = g.stride.isa, nn = g.stride.tax;
+  const wp1 = LOC[1], wt1 = LOC[5], wp0 = 1 - wp1, wt0 = 1 - wt1;
+  if (g.cov) {
+    // COV-B: each wealth row has its own share nodes in a step year, so the share is located on each corner's row; the
+    // corner order k = dp + 2 di + 4 dt is kept for the gain and allowance layers below
+    if (!(yr >= 0)) throw new Error('coverage: readValues needs the year of the table read');
+    const W0 = s[0] + s[1] + s[2], a = W0 > 0 ? s[0] / W0 : 0, p0 = LOC[0], p1 = p0 + 1;
+    let r = shareLoc(g, p0, a, yr); const ia0 = r[0], wa0 = r[1];
+    r = shareLoc(g, p1, a, yr); const ia1 = r[0], wa1 = r[1];
+    const b0 = LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
+    IDX[0] = p0 + ia0 * n + b0;           W[0] = wp0 * (1 - wa0) * wt0;
+    IDX[1] = p1 + ia1 * n + b0;           W[1] = wp1 * (1 - wa1) * wt0;
+    IDX[2] = p0 + (ia0 + 1) * n + b0;     W[2] = wp0 * wa0 * wt0;
+    IDX[3] = p1 + (ia1 + 1) * n + b0;     W[3] = wp1 * wa1 * wt0;
+    IDX[4] = IDX[0] + nn;                 W[4] = wp0 * (1 - wa0) * wt1;
+    IDX[5] = IDX[1] + nn;                 W[5] = wp1 * (1 - wa1) * wt1;
+    IDX[6] = IDX[2] + nn;                 W[6] = wp0 * wa0 * wt1;
+    IDX[7] = IDX[3] + nn;                 W[7] = wp1 * wa1 * wt1;
+  } else {
   const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
-  const wp1 = LOC[1], wi1 = LOC[3], wt1 = LOC[5], wp0 = 1 - wp1, wi0 = 1 - wi1, wt0 = 1 - wt1;
+  const wi1 = LOC[3], wi0 = 1 - wi1;
   IDX[0] = i0;           W[0] = wp0 * wi0 * wt0;
   IDX[1] = i0 + 1;       W[1] = wp1 * wi0 * wt0;
   IDX[2] = i0 + n;       W[2] = wp0 * wi1 * wt0;
@@ -311,6 +360,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
   IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
+  }
   /*
    * PHASE 6e ARM 3. With the gain axis interpolated, the same eight corners are read again one gain
    * bucket up and the two sets are blended. Sixteen reads instead of eight on this path, no extra cells.
@@ -359,7 +409,11 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
     // `g.readerAcc` (research only, 7ak's attribution: unset in every product path): the accessible money the reader's
     // chance is read at, in place of this position's own ISA plus taxable pot
-    const v = RD.chance(g.readerAcc ? g.readerAcc(s) : s[1] + s[2]) * cc + rr;
+    // RTAX v2 (`readerTax`; items/RTAX.md): in a step year, inside the edge band, support is the flow's at this position
+    const acc = g.readerAcc ? g.readerAcc(s) : s[1] + s[2], tx = g.reader.tax ? g.reader.tax[yr] : null;
+    if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one');
+    const pr = tx && tx.inBand(acc) ? (tx.payable(s) ? 1 : 0) : RD.chance(acc);
+    const v = pr * cc + rr;
     out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);
   } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
   else out[0] = expit(ls);
@@ -550,6 +604,7 @@ export function locateState(g, st) { return locateVec(g, vecOf(g.m, st)); }
  * making it and not survives the read.
  */
 export function interp(g, arr, loc, survival) {
+  if (g.cov) throw new Error('coverage: interp has no year; read through readValues');
   const { p, i, t, ig, ic } = loc;
   // Phase 6e arm 3: when the gain axis is interpolated, loc carries the weight on the bucket above
   const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;

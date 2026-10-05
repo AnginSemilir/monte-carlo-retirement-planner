@@ -84,7 +84,7 @@ export function bridgeChance(acc, bills, rho, vol, tol = 1) {
  *   R_i = S_i - p_i c_i                     (probability space; reassembled as p x I[c] + I[R])
  * At a node the read gives back p_i c_i + R_i = S_i to rounding (the node-reproduction check).
  */
-export function buildReaderTable(g, S, chance) {
+export function buildReaderTable(g, S, chance, support = null, yr = -1) {
   if (g.mode !== 'total') throw new Error('the bridge reader needs total-wealth coordinates');
   const n = g.size, p = new Float64Array(n), c = new Float64Array(n), R = new Float64Array(n);
   const sup = new Uint8Array(n), v = new Float64Array(7);
@@ -92,8 +92,8 @@ export function buildReaderTable(g, S, chance) {
   const row = (ip, it, ig, ic) => ((ic * NG + ig) * nt + it) * np + ip;
   for (let ic = 0; ic < NCL; ic++) for (let ig = 0; ig < NG; ig++) for (let it = 0; it < nt; it++) for (let ii = 0; ii < ni; ii++) for (let ip = 0; ip < np; ip++) {
     const i = g.index(ip, ii, it, ig, ic);
-    toVec(g, ip, ii, it, ig, ic, v);
-    p[i] = chance(v[1] + v[2]);
+    toVec(g, ip, ii, it, ig, ic, v, yr);
+    p[i] = support ? support(v) : chance(v[1] + v[2]);   // `support` (RTAX v2, solve.js): the node's support decided by the flow inside the edge band
     if (p[i] >= 0.5) { sup[i] = 1; c[i] = Math.min(1, Math.max(0, S[i] / p[i])); }
   }
   const rowHas = new Uint8Array(np * nt * NG * NCL);

@@ -34,7 +34,7 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi, shareNode, shareLocOf } from './grid.js';
 import { referenceChance, orderChance, buildReaderTable } from './reader.js';
 import * as F from './fast.js';
 
@@ -655,6 +655,103 @@ export function solve(E, M, plan, opts = {}) {
       return f;
     };
     g.reader = { years, of: new Map(), chanceOf, unsupported: 0, copied: 0, copiedTop: 0, nodes: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
+    /*
+     * RTAX v2, THE READER'S SUPPORT WITH THIS YEAR'S TAX (`readerTax`, research only, default off; items/RTAX.md, PLAN.md
+     * RTAX and O92). The reference's bills carry no tax (needY - inY), while the flow's year pays savings, dividend and
+     * capital gains tax and fails at unmet > 1, so a position the reference calls supported can fail every move by the
+     * tax (results-covflow.txt). In a step year - every world's reference 1 at d0 - tol/2 and 0 at d0 - 2 tol, so nothing
+     * after today stands between money and bill - support is decided by the flow inside the edge band [d0 - tol,
+     * d0 + tauBar]: p = 1 when some floor move pays the year from the position (the distinct floor moves, tier variants
+     * reusing their base's flow), else 0; outside the band the reference reads as before. tauBar is 1.25 times the
+     * largest tax at a paying state of a fixed lattice with accessible money d0 to 1.5 d0 (tax = accessible money less d0 less the best floor
+     * move's accessible money after the flow, net of unmet: no income tax on guaranteed income, which the bills net off).
+     * The flows run on their own compiled context, so a read never disturbs the cell loop's scratch. Spread years are
+     * untouched (the later bills' tax is a separate option, not built).
+     */
+    if (opts.readerTax) {
+      if (opts.bridgeStep === 'exact') throw new Error("readerTax cannot run with bridgeStep 'exact': stepAtOf puts the step at the untaxed bills");
+      const z0 = shifts[centre], zLast = m.shiftZ;
+      if (z0 === undefined) delete m.shiftZ; else m.shiftZ = z0;
+      const cR = F.compile(m, actions);
+      if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
+      const lv0 = Math.min(...levelOf), bases = actions.map((a, ai) => ai).filter(ai => levelOf[ai] === lv0 && tierBase[ai] === ai);
+      const fb = new Float64Array(7), TOL = 1;
+      const best = (t, s) => {
+        let pays = false, L = -Infinity;
+        for (const ai of bases) {
+          for (let q = 0; q < 7; q++) fb[q] = s[q];
+          const u = F.flow(cR, t, ai, fb);
+          if (!(u > 1 || cR.last.preNmpaInsolvent)) pays = true;
+          const Lm = fb[1] + fb[2] - u; if (Lm > L) L = Lm;
+        }
+        return { pays, L };
+      };
+      const tax = new Array(T + 2).fill(null), v = new Float64Array(7);
+      for (let t = 0; t <= T; t++) {
+        if (!years[t]) continue;
+        const fs = Array.from({ length: K }, (_, k) => chanceOf(k, t)), d0 = fs[0].schedule.bills[0];
+        if (!fs.every(f => f.schedule.bills[0] === d0 && f(d0 - TOL / 2) === 1 && f(d0 - 2 * TOL) === 0)) continue;
+        // the bound on a fixed lattice of states, not the grid's nodes (a coarse grid may hold no node near the edge, the
+        // first build's fault: reader-tax.test.mjs check 4 at 4 points): accessible money d0 to 1.5 d0 in twentieths, the ISA
+        // share of it 0 to 1 in tenths, the gain 0.05 to 1, the allowance used at the grid's buckets, the pension 0 or equal
+        let tb = 0;
+        for (let k = 0; k <= 10; k++) for (let j = 0; j <= 10; j++) for (const gn of [0.05, 0.25, 0.55, 0.8, 1]) for (const pf of g.pcls) for (const pr of [0, 1]) {
+          const A = d0 * (1 + k / 20), isa = A * j / 10;
+          v[0] = pr * A; v[1] = isa; v[2] = A - isa; v[3] = gn; v[4] = pf * m.P.lsa; v[5] = pf > 0 ? 1 : 0; v[6] = -1;
+          const o = best(t, v);
+          if (o.pays && A - d0 - o.L > tb) tb = A - d0 - o.L;
+        }
+        const tauBar = 1.25 * tb;
+        tax[t] = { d0, tauBar, tol: TOL, payable: (s) => best(t, s).pays, inBand: (A) => A >= d0 - TOL && A <= d0 + tauBar };
+      }
+      g.reader.tax = tax;
+    }
+    /*
+     * COV-B, THE STEP-YEAR EDGE NODE (`coverage`, research only, default off; items/COV.md, items/RTAX.md). In a step year
+     * each wealth row W_j gets one more share node, where the year's bill can just be paid from accessible money with the
+     * year's tax: a*_j = 1 - (d0 - tol/2 + tauMax_j) / W_j, tauMax_j the largest edge tax on the row over every ISA share,
+     * gain and allowance bucket (each found by bisection on the share with the floor moves' flow; 0 without readerTax,
+     * so the node sits at the reference's own edge). The share axis's own nodes are all kept; the node is inserted in
+     * order, merged with a node within 1e-9, and left out where a*_j falls outside (0, 1) (the extra slot then repeats
+     * a = 1). Outside step years the extra slot repeats a = 1 and is copied, not solved (the cell loop below).
+     */
+    if (opts.coverage) {
+      const ni = g.ni, nA = g.axes.a.n, TOLc = 1;
+      const zc = shifts[centre], zl = m.shiftZ;
+      if (zc === undefined) delete m.shiftZ; else m.shiftZ = zc;
+      const cC = F.compile(m, actions);
+      if (zl === undefined) delete m.shiftZ; else m.shiftZ = zl;
+      const lvc = Math.min(...levelOf), basesC = actions.map((a, ai) => ai).filter(ai => levelOf[ai] === lvc && tierBase[ai] === ai);
+      const fc = new Float64Array(7), vc = new Float64Array(7);
+      const paysAt = (t, s) => { for (const ai of basesC) { for (let q = 0; q < 7; q++) fc[q] = s[q]; const u = F.flow(cC, t, ai, fc); if (!(u > 1 || cC.last.preNmpaInsolvent)) return true; } return false; };
+      g.cov.nodes = 0;
+      for (let t = 0; t <= T; t++) {
+        if (!years[t]) continue;
+        const fs = Array.from({ length: K }, (_, k) => chanceOf(k, t)), d0 = fs[0].schedule.bills[0];
+        if (!fs.every(f => f.schedule.bills[0] === d0 && f(d0 - TOLc / 2) === 1 && f(d0 - 2 * TOLc) === 0)) continue;
+        const Rn = new Float64Array(g.np * ni);
+        for (let ip = 0; ip < g.np; ip++) {
+          const Wj = g.axes.W.pts[ip];
+          let tauMax = 0;
+          if (opts.readerTax && Wj > d0) {
+            for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) {
+              const at = (a) => { const pen = a * Wj, rest = Wj - pen, isa = g.axes.b.pts[it] * rest; vc[0] = pen; vc[1] = isa; vc[2] = rest - isa; vc[3] = g.gain[ig]; vc[4] = g.pcls[ic] * m.P.lsa; vc[5] = g.pcls[ic] > 0 ? 1 : 0; vc[6] = -1; return vc; };
+              if (!paysAt(t, at(0))) continue;   // the row cannot pay at any share here: no edge on it
+              let lo = 0, hi = 1;
+              for (let q = 0; q < 40; q++) { const mid = (lo + hi) / 2; if (paysAt(t, at(mid))) lo = mid; else hi = mid; }
+              const edgeTax = Wj * (1 - lo) - (d0 - TOLc);
+              if (edgeTax > tauMax) tauMax = edgeTax;
+            }
+          }
+          const aStar = Wj > 0 ? 1 - (d0 - TOLc / 2 + tauMax) / Wj : -Infinity;
+          const row = Array.from({ length: nA }, (_, i) => g.axes.a.pts[i]);
+          if (aStar > 0 && aStar < 1 && !row.some(x => Math.abs(x - aStar) <= 1e-9)) { row.push(aStar); row.sort((x, y) => x - y); g.cov.nodes++; }
+          while (row.length < ni) row.push(1);
+          for (let ii = 0; ii < ni; ii++) Rn[ip * ni + ii] = row[ii];
+        }
+        g.cov.years[t] = Rn;
+      }
+    }
   } else if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
 
   /*
@@ -687,7 +784,7 @@ export function solve(E, M, plan, opts = {}) {
   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
   const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
   const failBuf = new Uint8Array(A);
-  let evaluated = 0, e3Copied = 0;
+  let evaluated = 0, e3Copied = 0, covCopied = 0;
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
   /*
@@ -742,6 +839,8 @@ export function solve(E, M, plan, opts = {}) {
   // Q's fix (stepExpect): research only; with the reader alone, since only the reader's read has the step
   if (opts.bridgeStep && opts.bridgeStep !== 'exact') throw new Error(`bridgeStep ${opts.bridgeStep}: only 'exact'`);
   const STEPX = opts.bridgeStep === 'exact' && opts.bridgeRead === 'reader', sx = new Float64Array(4), sxR = new Float64Array(4);
+  if (opts.coverage && (opts.bridgeRead !== 'reader' || opts.bridgeStep === 'exact' || opts.holdTier || opts.e3 !== false)) throw new Error("coverage needs the bridge reader, e3: false, and neither bridgeStep 'exact' nor holdTier (items/COV.md: each shown identical with it before it joins)");
+  if (opts.readerTax && opts.bridgeRead !== 'reader') throw new Error("readerTax needs the bridge reader (bridgeRead: 'reader')");
   if (opts.bridgeStep === 'exact' && opts.bridgeRead !== 'reader') throw new Error("bridgeStep 'exact' needs the bridge reader (bridgeRead: 'reader')");
   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
@@ -770,7 +869,16 @@ export function solve(E, M, plan, opts = {}) {
                 e3Copied++;
                 continue;
               }
-              toVec(g, ip, ii, it, ig, ic, base);
+              // COV-B: a slot repeating the node below it (the extra slot outside an inserted edge) is copied, not solved
+              if (g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t)) {
+                const src = g.index(ip, ii - 1, it, ig, ic);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                covCopied++;
+                continue;
+              }
+              toVec(g, ip, ii, it, ig, ic, base, t);
               if (TERN) {
                 cellStamp++;
                 const ensure = (ai) => {
@@ -1053,14 +1161,16 @@ export function solve(E, M, plan, opts = {}) {
       if (g.reader && g.reader.years[t]) {
         const ls = Ly.lsurv[t], Sc = new Float64Array(ls.length);
         for (let i = 0; i < ls.length; i++) Sc[i] = 1 / (1 + Math.exp(-ls[i]));
-        const chance = g.reader.chanceOf(k, t), tb = buildReaderTable(g, Sc, chance);
+        const chance = g.reader.chanceOf(k, t), tx = g.reader.tax ? g.reader.tax[t] : null;
+        // RTAX v2: inside the edge band a node's support is the flow's (items/RTAX.md)
+        const tb = buildReaderTable(g, Sc, chance, tx ? (vv) => { const A = vv[1] + vv[2]; return tx.inBand(A) ? (tx.payable(vv) ? 1 : 0) : chance(A); } : null, t);
         g.reader.of.set(ls, { chance, c: tb.c, R: tb.R, p: tb.p, t, k });
         g.reader.unsupported += tb.unsupported; g.reader.copied += tb.copied; g.reader.copiedTop += tb.copiedTop; g.reader.nodes += tb.nodes; g.reader.built++;
       }
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
@@ -1097,9 +1207,9 @@ export function solve(E, M, plan, opts = {}) {
     worlds: null,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
-    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const k = Math.min(t, T), o = readValues(g, lsurv[k], beq[k], s, new Float64Array(4), lresil[k], null, k); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
@@ -1113,8 +1223,8 @@ export function solve(E, M, plan, opts = {}) {
      * test asks each table what the opening position is worth, and that is the one question a table
      * exists to answer. Same bodies as above, bound to this world's six tables.
      */
-    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s)]]; },
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))]]; },
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const kk = Math.min(t, T), o = readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), lresilW[k][kk], null, kk); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
   return r;
 }
@@ -1142,8 +1252,8 @@ export function chooseAction(r, s, t, held = null) {
    * On, every move is scored at the exact position against the end-of-plan rule the backward pass itself
    * applies at t = T (scoreMoves below), so the last year is the same exact maximisation as every other.
    */
-  if (t >= T && !r.finalExact && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
-  if (t >= T && !r.finalExact) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
+  if (t >= T && !r.finalExact && !r.mix) return r.pol[T][nearestIndex(r.g, s, T)];
+  if (t >= T && !r.finalExact) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s, T)];
   if (r.c.tiers.gia) r.giaHold = -1;
   const eps = r.eps;
   const n = actions.length;
@@ -1360,7 +1470,7 @@ export function runPolicy(r, zs, opts = {}) {
   };
   for (let t = st0 ? st0.t : 0; t <= T; t++) {
     // `choose` (research only, 7r's swap arms): a caller's own chooser in place of the solver's; absent, nothing changes
-    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : opts.choose ? opts.choose(t, s, held) : chooseAction(r, s, t, held));
+    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))] : opts.choose ? opts.choose(t, s, held) : chooseAction(r, s, t, held));
     // M15: the move as run, with the taxable account kept at its tier when the decision said so
     const act = giaOn && r.giaHold >= 0 && !(st0 && t === st0.t) && !opts.stored ? c.actWithGia(ai, r.giaHold) : c.acts[ai];
     if (opts.visit) opts.visit(t, s, held, ai);
@@ -1603,7 +1713,15 @@ export function solveFlex(E, M, plan, opts = {}) {
 
 // exported for 7ae's decision log (research/solver/audit-s126.mjs diag7ae): the cell whose stored move the forward chooser is
 // compared with; the solver's own rule, not a copy
-export function nearestIndex(g, s) {
+export function nearestIndex(g, s, yr = -1) {
+  if (g.cov) {
+    // COV-B: the nearest wealth row, then the nearest share slot on that row's own nodes in that year
+    if (!(yr >= 0)) throw new Error('coverage: nearestIndex needs the year');
+    const W = s[0] + s[1] + s[2], a = W > 0 ? s[0] / W : 0;
+    const l = locateVec({ ...g, cov: null }, s);
+    const ip = Math.min(g.np - 1, l.p.i + (l.p.w > 0.5 ? 1 : 0)), sa = shareLocOf(g, ip, a, yr);
+    return g.index(ip, Math.min(g.ni - 1, sa.i + (sa.w > 0.5 ? 1 : 0)), Math.min(g.nt - 1, l.t.i + (l.t.w > 0.5 ? 1 : 0)), l.ig + (l.igw > 0.5 ? 1 : 0), l.ic + (l.icw > 0.5 ? 1 : 0));
+  }
   const loc = locateVec(g, s);
   return g.index(Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
     Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)),

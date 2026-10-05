@@ -1,0 +1,11 @@
+GATE: passed (reduce-covb.mjs's gate and the fair-gate stamp check over results/diagcovb)
+
+1. TAX'S FIXED READS AGAINST BASE'S (O98)
+  S130      reads 6000: TAX differs from BASE on 0, largest 0.00e+0
+  S370      reads 41436: TAX differs from BASE on 5935, largest 7.97e-7 (at y1w0,y1w2,y2w0,y2w2,y3w0,y3w2,y4w0,y4w2,y5w0)
+  bridge 4  reads 18000: TAX differs from BASE on 0, largest 0.00e+0
+  S126      reads 6000: TAX differs from BASE on 0, largest 0.00e+0
+
+2. PATHS LOST AND SAVED UNDER COV AGAINST BASE, BY WORLD (O99 c)
+  S126         lost 14 (worlds 13/1/0), saved 3 (worlds 2/1/0); the lost paths' fail years 34,34,35,37,39,39,39,39,39,39,39,39,39,39
+  S126 all-ISA lost 16 (worlds 15/1/0), saved 2 (worlds 2/0/0); the lost paths' fail years 34,34,35,37,38,39,39,39,39,39,39,39,39,39,39,39

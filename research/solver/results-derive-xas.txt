@@ -1,0 +1,39 @@
+GATE: passed (reduce-covb.mjs's gate and the fair-gate stamp check over results/diagcovb)
+
+1. D = read - claim by household, arm and reader year (COV-B-STEP's fixed reads at BASE's states)
+  S370      BASE year 1 spread: reads 6000 mean D -1.238e-2 sd 7.385e-2
+  S370      BASE year 2 spread: reads 6000 mean D -5.714e-3 sd 7.397e-2
+  S370      BASE year 3 step  : reads 6000 mean D 2.033e-2 sd 5.718e-2
+  S370      BASE year 4 spread: reads 5859 mean D -3.457e-3 sd 6.282e-2
+  S370      BASE year 5 spread: reads 5859 mean D -1.846e-3 sd 6.141e-2
+  S370      BASE year 6 spread: reads 5859 mean D -2.377e-3 sd 6.243e-2
+  S370      BASE year 7 step  : reads 5859 mean D 3.206e-2 sd 7.442e-2
+  S370      COV  year 1 spread: reads 6000 mean D -1.219e-2 sd 7.336e-2
+  S370      COV  year 2 spread: reads 6000 mean D 1.304e-2 sd 7.324e-2
+  S370      COV  year 3 step  : reads 6000 mean D -4.560e-4 sd 5.460e-2
+  S370      COV  year 4 spread: reads 5859 mean D -2.924e-3 sd 6.342e-2
+  S370      COV  year 5 spread: reads 5859 mean D -1.812e-3 sd 6.205e-2
+  S370      COV  year 6 spread: reads 5859 mean D 2.517e-2 sd 6.346e-2
+  S370      COV  year 7 step  : reads 5859 mean D -4.075e-3 sd 6.861e-2
+  S130      BASE year 1 step  : reads 6000 mean D 2.010e-2 sd 5.448e-2
+  S130      COV  year 1 step  : reads 6000 mean D -4.850e-3 sd 5.070e-2
+  bridge 4  BASE year 1 spread: reads 6000 mean D -5.748e-4 sd 4.533e-3
+  bridge 4  BASE year 2 spread: reads 6000 mean D -5.556e-4 sd 4.583e-3
+  bridge 4  BASE year 3 step  : reads 6000 mean D 2.387e-4 sd 4.678e-3
+  bridge 4  COV  year 1 spread: reads 6000 mean D -5.018e-4 sd 4.720e-3
+  bridge 4  COV  year 2 spread: reads 6000 mean D -2.279e-4 sd 4.926e-3
+  bridge 4  COV  year 3 step  : reads 6000 mean D -4.634e-4 sd 4.781e-3
+  S126      BASE year 1 step  : reads 6000 mean D -5.517e-5 sd 2.808e-3
+  S126      COV  year 1 step  : reads 6000 mean D -4.075e-4 sd 2.866e-3
+
+2. POWER: the smallest |mean y| shown after Holm, y = rep - quad a path, its sd at most D's (the draw removed)
+  item 1 (COV, S370, years 2, 6): per-path sd at most 1.367e-1; 80% power after Holm over 2 for |mean y| 4.944e-3 a path, against COV's mean D there 1.304e-2 and 2.517e-2 (summed 3.821e-2)
+  item 2 (BASE, S370, step years 3, 7): per-path sd at most 1.316e-1; 80% power after Holm over 4 for |mean y| 5.238e-3 a path, against BASE's mean D 2.033e-2 and 3.206e-2
+  item 2 (BASE, S130, step years 1): per-path sd at most 5.448e-2; 80% power after Holm over 4 for |mean y| 2.169e-3 a path, against BASE's mean D 2.010e-2
+
+3. THE COST (COV-B-STEP's seconds, measured under its own load)
+  S130      solves 1107 + 1516 s; re-read 585 s x 4; 1.38 core-hours
+  S370      solves 906 + 1232 s; re-read 1521 s x 4; 2.28 core-hours
+  bridge 4  solves 880 + 1092 s; re-read 956 s x 4; 1.61 core-hours
+  S126      solves 836 + 1008 s; re-read 846 s x 4; swap 2752 s; 2.22 core-hours
+  total 7.5 core-hours; one process a household on four cores: 2.28 hours (an upper estimate, grade C)

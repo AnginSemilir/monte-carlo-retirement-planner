@@ -1,0 +1,28 @@
+caught: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);
+caught: 2: if (!u.done) bad.push(`${tag}: not done`);
+caught: 3: if (u.solve.BASE && (field(u.solve.BASE, 'readerTax') !== '-
+caught: 4: if (u.solve.COV && (field(u.solve.COV, 'readerTax') === '-' 
+caught: 5: const want = { mix: '3', pts, seed: SEED,
+caught: 6: if (!(R > 0 && N > 0 && X > 0)) bad.push(
+caught: 7: if (r !== R || n !== N || x !== X) bad.push(
+caught: 8: ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] 
+caught: 9: if (!t) return [`${tag}: missing`];
+caught: 10: ['read', 'ex5', 'exF', 'claim'].some(q => !Array.isArray(A[q
+caught: 11: Math.abs(F.arms[a].read[j] - t.arms[a].read[j]) > 2e-9 || 
+caught: 12: if (off) bad.push(`${tag}: ${off} reads differ
+caught: 13: if (!(Math.abs(m) <= DRAW_Z * se + 1e-12)) bad.push(
+caught: 14: const A = t.arms[a], y = perPath(t, J, j => A.exF[j] - A.cla
+caught: 15: const rq = (t, a) => j => { const A = t.arms[a]; return (A.r
+caught: 16: const rq = (t, a) => j => { const A = t.arms[a]; return (A.r
+caught: 17: const S = files.S370, before = new Set(stepYears(S).map(x =>
+caught: 18: before.has(S.t[j]) && S.kind[j] === 0), rq(S, 'COV'));
+caught: 19: before.has(S.t[j]) && S.kind[j] === 0), rq(S, 'COV'));
+caught: 20: const h1 = holm([flipP(y1, B, 7002), flipP(y1.map(x => -x), 
+caught: 21: const r1 = h1[0] < ALPHA ? 'REP' : h1[1] < ALPHA ? 'QUAD' : 
+caught: 22: const r1 = h1[0] < ALPHA ? 'REP' : h1[1] < ALPHA ? 'QUAD' : 
+caught: 23: v: r2.every(x => x === 'REP') ? 'HELD' : r2.some(x => x === 
+caught: 24: v: r2.every(x => x === 'REP') ? 'HELD' : r2.some(x => x === 
+caught: 25: const ids = ['S370', 'S130'], ys
+caught: 26: return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'BASE'
+caught: 27: const key = t.k[j] * 1e6 + t.p[j];
+27 of 27 mutations caught

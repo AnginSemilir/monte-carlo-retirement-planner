@@ -1,0 +1,83 @@
+GATE: passed - 6 households (4 and the controls bridge 0 and S126 all-ISA), each once and done with its arms; each arm's settings taking; seed 7002, 30 points, 6000 paths; every file stamped as the logs, its survivors equal to the sum lines; the controls identical where they must be
+COV-B-STEP: PMAP's unit (BASE), with the reader's tax (TAX, RTAX v2) and with the tax and the step-year edge node (COV, COV-B), on S130, S370, bridge 4, S126; ORDER on S370 (O81); controls bridge 0 and S126 all-ISA; 6000 paired paths a household (seed 7002), 30 points
+
+ITEM 1 (primary, harm): COV against BASE, the paired survival change per household (b lost, c saved), the household's margin, harm's exact McNemar p Holm over 4
+  S130           BASE 80.95%  b 0  c 0  change 0.000 [0.000, 0.000]  margin 0.50  p Holm 1.00e+0  no material harm
+  S370           BASE 71.18%  b 14  c 22  change 0.133 [-0.078, 0.322]  margin 0.50  p Holm 1.00e+0  no material harm
+  bridge 4       BASE 99.37%  b 2  c 2  change 0.000 [-0.058, 0.058]  margin 0.25  p Holm 1.00e+0  no material harm
+  S126           BASE 99.52%  b 14  c 3  change -0.183 [-0.262, -0.037]  margin 0.25  p Holm 2.55e-2  inconclusive
+  -> INCONCLUSIVE (HELD when every household reads no material harm; FALSIFIED when any reads harm; else INCONCLUSIVE)
+
+ITEM 2 (primary, harm): TAX against BASE, the paired survival change per household (b lost, c saved), the household's margin, harm's exact McNemar p Holm over 4
+  S130           BASE 80.95%  b 0  c 0  change 0.000 [0.000, 0.000]  margin 0.50  p Holm 1.00e+0  no material harm
+  S370           BASE 71.18%  b 0  c 0  change 0.000 [0.000, 0.000]  margin 0.50  p Holm 1.00e+0  no material harm
+  bridge 4       BASE 99.37%  b 0  c 0  change 0.000 [0.000, 0.000]  margin 0.25  p Holm 1.00e+0  no material harm
+  S126           BASE 99.52%  b 0  c 0  change 0.000 [0.000, 0.000]  margin 0.25  p Holm 1.00e+0  no material harm
+  -> HELD (HELD when every household reads no material harm; FALSIFIED when any reads harm; else INCONCLUSIVE)
+
+ITEM 3 (primary, mechanism): along BASE's paths at each household's last step year, on the reads where COV's chooser makes BASE's move, d = BASE's read less COV's at the same state and layer; the sign test per household, Holm over them; mean D = the read less the claim at t + 1 (the claims the same in both there: the gate)
+  S130           year 1 reads 6000  d > 0 6000  d < 0 0  p Holm 0.00e+0  mean d 2.4954e-2  mean D BASE 2.0104e-2 COV -4.8501e-3  LOWER, closer
+  S370           year 7 reads 5859  d > 0 5859  d < 0 0  p Holm 0.00e+0  mean d 3.6133e-2  mean D BASE 3.2058e-2 COV -4.0749e-3  LOWER, closer
+  bridge 4       year 3 reads 6000  d > 0 6000  d < 0 0  p Holm 0.00e+0  mean d 7.0211e-4  mean D BASE 2.3866e-4 COV -4.6345e-4  LOWER, not closer
+  S126           year 1 reads 6000  d > 0 6000  d < 0 0  p Holm 0.00e+0  mean d 3.5229e-4  mean D BASE -5.5172e-5 COV -4.0746e-4  LOWER, not closer
+  -> INCONCLUSIVE (HELD when every household with such reads shows COV's read lower and its mean error nearer 0; FALSIFIED when any shows it higher; else INCONCLUSIVE)
+
+REPORTED (not read as a verdict)
+  COV against TAX, the paired survival change (the node's own effect, the tax held):
+    S130           TAX 80.95%  b 0  c 0  change 0.000 points
+    S370           TAX 71.18%  b 14  c 22  change 0.133 points
+    bridge 4       TAX 99.37%  b 2  c 2  change 0.000 points
+    S126           TAX 99.52%  b 14  c 3  change -0.183 points
+  S370's 2x2 (points): COV - BASE 0.133 (b 14 c 22); CORD - ORDER 0.150 (b 13 c 22); ORDER - BASE 0.000; CORD - COV 0.017; the interaction (CORD - ORDER) - (COV - BASE) 0.017
+  TAX against BASE on item 3's reads (TAX's chooser making BASE's move), and item 3's statistic on every step year (S370's earlier step year is not clean: its claim's table differs by arm):
+    S130           TAX mean d 0.0000e+0 (reads 6000) | every step year: reads 6000 mean d 2.4954e-2 mean D BASE 2.0104e-2 COV -4.8501e-3 | last-year reads where COV moves differently 0
+    S370           TAX mean d 0.0000e+0 (reads 5859) | every step year: reads 11742 mean d 3.2268e-2 mean D BASE 2.6075e-2 COV -2.2958e-3 | last-year reads where COV moves differently 0
+    bridge 4       TAX mean d 0.0000e+0 (reads 6000) | every step year: reads 6000 mean d 7.0211e-4 mean D BASE 2.3866e-4 COV -4.6345e-4 | last-year reads where COV moves differently 0
+    S126           TAX mean d 0.0000e+0 (reads 6000) | every step year: reads 6000 mean d 3.5229e-4 mean D BASE -5.5172e-5 COV -4.0746e-4 | last-year reads where COV moves differently 0
+  the step reads by household, step year, world and BASE's own support (O91: no pooled figure stands for a slice; S370's year 3 is not clean for item 3), on the reads where COV's chooser makes BASE's move: reads, mean d (BASE - COV), mean D BASE and COV:
+    S130           year/world/support 1/0/sup   reads  2000 | mean d 5.1024e-2 | mean D BASE 4.8479e-2 COV -2.5456e-3
+    S130           year/world/support 1/1/sup   reads  2000 | mean d 2.1845e-2 | mean D BASE 1.1339e-2 COV -1.0506e-2
+    S130           year/world/support 1/2/sup   reads  2000 | mean d 1.9947e-3 | mean D BASE 4.9542e-4 COV -1.4993e-3
+    S370           year/world/support 3/0/sup   reads  1845 | mean d 5.1564e-2 | mean D BASE 4.3584e-2 COV 3.5763e-3 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 3/0/uns   reads   105 | mean d 0.0000e+0 | mean D BASE 1.0000e-6 COV 1.0000e-6 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 3/1/sup   reads  1935 | mean d 3.2024e-2 | mean D BASE 1.8590e-2 COV -3.0385e-3 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 3/1/uns   reads    26 | mean d 0.0000e+0 | mean D BASE 1.0000e-6 COV 1.0000e-6 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 3/2/sup   reads  1962 | mean d 5.1432e-3 | mean D BASE 9.9918e-4 COV -1.9376e-3 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 3/2/uns   reads    10 | mean d 0.0000e+0 | mean D BASE 1.0000e-6 COV 1.0000e-6 (not item 3: its claim's table differs by arm)
+    S370           year/world/support 7/0/sup   reads  1895 | mean d 5.8873e-2 | mean D BASE 6.2142e-2 COV 3.2697e-3
+    S370           year/world/support 7/1/sup   reads  1974 | mean d 4.4291e-2 | mean D BASE 3.2057e-2 COV -1.2234e-2
+    S370           year/world/support 7/2/sup   reads  1990 | mean d 6.3866e-3 | mean D BASE 3.4111e-3 COV -2.9755e-3
+    bridge 4       year/world/support 3/0/sup   reads  2000 | mean d 2.0713e-3 | mean D BASE 7.1831e-4 COV -1.3530e-3
+    bridge 4       year/world/support 3/1/sup   reads  2000 | mean d 3.3887e-5 | mean D BASE -1.8744e-6 COV -3.5761e-5
+    bridge 4       year/world/support 3/2/sup   reads  2000 | mean d 1.1880e-6 | mean D BASE -4.3685e-7 COV -1.6248e-6
+    S126           year/world/support 1/0/sup   reads  2000 | mean d 1.0401e-3 | mean D BASE -1.5848e-4 COV -1.1986e-3
+    S126           year/world/support 1/1/sup   reads  2000 | mean d 1.6058e-5 | mean D BASE -6.2585e-6 COV -2.2317e-5
+    S126           year/world/support 1/2/sup   reads  2000 | mean d 7.1493e-7 | mean D BASE -7.7769e-7 COV -1.4926e-6
+  the spread reads at fixed policy, mean D per arm by household, year and world (O81; reads, then each arm):
+    S370           year/world 1/0   reads  2000 | BASE -1.6020e-2 TAX -1.6020e-2 COV -1.5330e-2 ORDER -9.0544e-3 CORD -8.5947e-3
+    S370           year/world 1/1   reads  2000 | BASE -1.6379e-2 TAX -1.6379e-2 COV -1.6332e-2 ORDER -7.2382e-3 CORD -7.3346e-3
+    S370           year/world 1/2   reads  2000 | BASE -4.7421e-3 TAX -4.7421e-3 COV -4.9110e-3 ORDER -1.1923e-3 CORD -1.3758e-3
+    S370           year/world 2/0   reads  2000 | BASE -6.2010e-3 TAX -6.2010e-3 COV 2.7106e-2 ORDER -1.5808e-4 CORD 3.2827e-2
+    S370           year/world 2/1   reads  2000 | BASE -8.7216e-3 TAX -8.7216e-3 COV 1.1354e-2 ORDER -4.8481e-3 CORD 1.5113e-2
+    S370           year/world 2/2   reads  2000 | BASE -2.2208e-3 TAX -2.2208e-3 COV 6.5344e-4 ORDER -7.2081e-4 CORD 2.1433e-3
+    S370           year/world 4/0   reads  1895 | BASE -1.2213e-3 TAX -1.2213e-3 COV -8.0658e-5 ORDER -1.4077e-3 CORD -2.6299e-4
+    S370           year/world 4/1   reads  1974 | BASE -7.0301e-3 TAX -7.0301e-3 COV -6.4417e-3 ORDER -7.0612e-3 CORD -6.4731e-3
+    S370           year/world 4/2   reads  1990 | BASE -2.0414e-3 TAX -2.0414e-3 COV -2.1415e-3 ORDER -2.0481e-3 CORD -2.1482e-3
+    S370           year/world 5/0   reads  1895 | BASE 2.0602e-3 TAX 2.0602e-3 COV 2.4658e-3 ORDER 2.0474e-3 CORD 2.4540e-3
+    S370           year/world 5/1   reads  1974 | BASE -5.4771e-3 TAX -5.4771e-3 COV -5.5284e-3 ORDER -5.4893e-3 CORD -5.5399e-3
+    S370           year/world 5/2   reads  1990 | BASE -1.9632e-3 TAX -1.9632e-3 COV -2.1983e-3 ORDER -1.9646e-3 CORD -2.1997e-3
+    S370           year/world 6/0   reads  1895 | BASE 1.2065e-3 TAX 1.2065e-3 COV 4.7023e-2 ORDER 1.2064e-3 CORD 4.7023e-2
+    S370           year/world 6/1   reads  1974 | BASE -6.3031e-3 TAX -6.3031e-3 COV 2.6964e-2 ORDER -6.3036e-3 CORD 2.6963e-2
+    S370           year/world 6/2   reads  1990 | BASE -1.8943e-3 TAX -1.8943e-3 COV 2.5728e-3 ORDER -1.8943e-3 CORD 2.5728e-3
+    bridge 4       year/world 1/0   reads  2000 | BASE -1.6803e-3 TAX -1.6803e-3 COV -1.4626e-3
+    bridge 4       year/world 1/1   reads  2000 | BASE -4.2188e-5 TAX -4.2188e-5 COV -4.0749e-5
+    bridge 4       year/world 1/2   reads  2000 | BASE -1.9996e-6 TAX -1.9996e-6 COV -1.9978e-6
+    bridge 4       year/world 2/0   reads  2000 | BASE -1.6324e-3 TAX -1.6324e-3 COV -6.6769e-4
+    bridge 4       year/world 2/1   reads  2000 | BASE -3.2689e-5 TAX -3.2689e-5 COV -1.5176e-5
+    bridge 4       year/world 2/2   reads  2000 | BASE -1.7531e-6 TAX -1.7531e-6 COV -9.6581e-7
+  S130           moves TAX step 6000/0 before 6000/0 (same/differ) secs 585 | COV step 6000/0 before 6000/0 (same/differ) secs 585 | peak memory 847 MB
+  S370           moves TAX step 11859/0 before 11859/0 (same/differ) secs 1521 | COV step 11742/117 before 10504/1355 (same/differ) secs 1521 | ORDER step 11853/6 before 11859/0 (same/differ) secs 1521 | CORD step 11755/104 before 10504/1355 (same/differ) secs 1521 | peak memory 1721 MB
+  bridge 4       moves TAX step 6000/0 before 6000/0 (same/differ) secs 956 | COV step 6000/0 before 10/5990 (same/differ) secs 956 | peak memory 846 MB
+  S126           moves TAX step 6000/0 before 6000/0 (same/differ) secs 846 | COV step 6000/0 before 0/6000 (same/differ) secs 846 | peak memory 849 MB
+
+OUTCOME: 1 INCONCLUSIVE; 2 HELD; 3 INCONCLUSIVE

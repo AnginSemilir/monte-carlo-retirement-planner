@@ -54,6 +54,7 @@ export const TESTS = [
   { name: '7at (the allowance axis with a bucket at the wall, and O76\'s read (b))', prediction: 'predictions/diag-7at.md', results: 'results-7at.txt' },
   { name: '7au (the learner at P\'s settings)', prediction: 'predictions/diag-7au.md', results: 'results-7au.txt' },
   { name: 'ADOPT-PI (the interpolated allowance axis in the shipping default)', prediction: 'predictions/adopt-pi.md', results: 'results-adoptpi.txt' },
+  { name: 'COV-B-STEP (the reader\'s tax and the step-year edge node)', prediction: 'predictions/diag-covb.md', results: 'results-covb.txt' },
 ];
 
 export function credences(predText) {

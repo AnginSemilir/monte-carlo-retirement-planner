@@ -31,3 +31,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 05:55 UTC | reduce-tail.mjs dbb4e0a3b624 | 28 of 32 caught | escaped: NOT CAUGHT: 1: if (n !== 1) bad.push(`${k}: ${n} unit lines, not 1`);; NOT CAUGHT: 15: const pass = ex.outcome === 'no material harm' && u.lo > -ma; NOT CAUGHT: 23: ph[2 * i] < ALPHA ? 'HELD' : ph[2 * i + 1] < ALPHA ? 'FALSIF; NOT CAUGHT: 32: if (S.net[j] > cap || P.net[j] > cap) { nTail++;
 2026-10-05 06:08 UTC | reduce-tail.mjs 9b72e0693e3d | 32 of 32 caught | escaped: none
 2026-10-05 06:33 UTC | reduce-tail.mjs e1ffc5f69b16 | 33 of 33 caught | escaped: none
+2026-10-05 06:56 UTC | reduce-tail.mjs b04eed5788fe | 32 of 32 caught | escaped: none

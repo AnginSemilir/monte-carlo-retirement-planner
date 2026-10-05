@@ -10,7 +10,7 @@ M = [
   ("if (!u.done) bad.push(`${tag}: not done`);", ""),
   ("mix: '3', tables: A.tables, read: A.read,", "mix: '3', read: A.read,"),
   ("mix: '3', tables: A.tables, read: A.read,", "mix: '3', tables: A.tables,"),
-  ("deathTax: u.dt ? DT_RATE : '0' };", "};"),
+  ("deathTax: '0' };", "};"),
   ("if (num(u.ran, 'tieMargin') !== A.tie)", "if (false)"),
   ("if (new Set(us.map(u => u.sum.pathsum)).size > 1)", "if (false)"),
   ("if (s !== u.sum.survived) bad.push(", "if (false) bad.push("),
@@ -26,7 +26,7 @@ M = [
   ("const v1 = one.some(r => r.read === 'harm') ? 'FALSIFIED'", "const v1 = one.every(r => r.read === 'harm') ? 'FALSIFIED'"),
   ("margin = marginFor(100 * p.snap)", "margin = 0.5"),
   ("paired(F(`${id} PCLSI`), F(`${id} PCLSI-TIE`))", "paired(F(`${id} PCLSI-TIE`), F(`${id} PCLSI`))"),
-  # items 2 and 3
+  # item 2
   ("const gj = P.tax[j] - S.tax[j], xj = P.tax[j] - T.tax[j]; g.push(gj); up.push(xj - gj / 2);", "const gj = P.tax[j] - S.tax[j], xj = P.tax[j] - T.tax[j]; g.push(gj); up.push(xj - gj);"),
   ("const gj = P.tax[j] - S.tax[j], xj = P.tax[j] - T.tax[j];", "const gj = P.tax[j] - S.tax[j], xj = T.tax[j] - S.tax[j];"),
   ("pre: mg > 0, noPre: 'NO GAP'", "pre: true, noPre: 'NO GAP'"),
@@ -34,13 +34,12 @@ M = [
   ("ph[2 * i] < ALPHA ? 'HELD' : ph[2 * i + 1] < ALPHA ? 'FALSIFIED'", "ph[2 * i] < ALPHA ? 'HELD' : ph[2 * i + 1] < 0.5 ? 'FALSIFIED'"),
   ("out.filter(r => r.read === 'FALSIFIED').length >= 3 ? 'FALSIFIED'", "out.filter(r => r.read === 'FALSIFIED').length >= 2 ? 'FALSIFIED'"),
   ("const v = out.every(r => r.read === 'HELD') ? 'HELD'", "const v = out.filter(r => r.read === 'HELD').length >= 3 ? 'HELD'"),
-  ("const a = P.net[j] - S.net[j], c = PD.net[j] - SD.net[j]; n0.push(a); up.push(c - a / 2);", "const a = P.net[j] - S.net[j], c = PD.net[j] - SD.net[j]; n0.push(a); up.push(a / 2 - c);"),
   ("closed: mg ? (mean(up) + mg / 2) / mg : NaN", "closed: mg ? mean(up) / mg : NaN"),
-  # item 4
+  # item 3
   ("return Array.from({ length: S.N }, (_, j) => P.survived[j] - 2 * H.survived[j] + S.survived[j]);", "return Array.from({ length: S.N }, (_, j) => P.survived[j] - H.survived[j]);"),
-  ("const p4 = ys.flatMap(y => [flipP(y, b, 7002), flipP(y.map(x => -x), b, 7003)]), h4 = holm(p4);", "const p4 = ys.flatMap(y => [flipP(y, b, 7002), flipP(y, b, 7003)]), h4 = holm(p4);"),
-  ("read: h4[2 * i] < ALPHA ? 'READ' : h4[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'", "read: h4[2 * i] < ALPHA ? 'READ' : 'TABLES'"),
-  ("v4 = s130 === 'READ' ? 'HELD' : s130 === 'TABLES' ? 'FALSIFIED'", "v4 = s130 === 'READ' ? 'HELD' : s130 !== 'BOTH' ? 'FALSIFIED'"),
+  ("const p3 = ys.flatMap(y => [flipP(y, b, 7002), flipP(y.map(x => -x), b, 7003)]), h3 = holm(p3);", "const p3 = ys.flatMap(y => [flipP(y, b, 7002), flipP(y, b, 7003)]), h3 = holm(p3);"),
+  ("read: h3[2 * i] < ALPHA ? 'READ' : h3[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'", "read: h3[2 * i] < ALPHA ? 'READ' : 'TABLES'"),
+  ("v3 = s130 === 'READ' ? 'HELD' : s130 === 'TABLES' ? 'FALSIFIED'", "v3 = s130 === 'READ' ? 'HELD' : s130 !== 'BOTH' ? 'FALSIFIED'"),
   ("readShare: tot ? (r.c - r.b) / tot : NaN", "readShare: tot ? (t.c - t.b) / tot : NaN"),
   # the split
   ("if (S.net[j] > cap || P.net[j] > cap) { nTail++;", "if (S.net[j] > cap && P.net[j] > cap) { nTail++;"),

@@ -5,12 +5,10 @@
 //   2. item 2: PCLSI's per-path extra tax g over SNAP on each loser (ADOPT-PI's files); the margin modelled as closing each
 //      path's whole gap with chance c and none of it otherwise (x = g B, B ~ Bernoulli(c), seeded); the read through
 //      reduce-tail.mjs's own closure test (flipP, Holm over the 10) for c in 0.3, 0.4, 0.5, 0.6, 0.7, 1;
-//   3. item 3: the same with the estate loss n0 at death tax 0 kept on each path with chance k (n4 = n0 B) for k in 0, 0.3,
-//      0.4, 0.5, 0.6, 1;
-//   4. item 4: on S130, S370 and S128, ADOPT-PI's per-path survival in SNAP and PCLSI, HYB built to take PCLSI's outcome on
+//   3. item 3: on S130, S370 and S128, ADOPT-PI's per-path survival in SNAP and PCLSI, HYB built to take PCLSI's outcome on
 //      a share s of the discordant paths (every s-th, so the split is exact) and SNAP's on the rest, for s in 0, 0.1, 0.25,
 //      0.4, 0.5, 0.6, 0.75, 1; y = (PCLSI - HYB) - (HYB - SNAP) a path, reduce-tail.mjs's randomization test, Holm over the 6;
-//   5. the cost: ADOPT-PI's solve and forward seconds per unit (its solve and sum lines), a job's solves and forward runs as
+//   4. the cost: ADOPT-PI's solve and forward seconds per unit (its solve and sum lines), a job's solves and forward runs as
 //      audit-tail.mjs's armsOf, four cores longest first (batch-tail.sh).
 //   node research/solver/derive-tail.mjs > research/solver/results-derive-tail.txt
 // e3 off: no solve is run here
@@ -43,7 +41,7 @@ for (const id of TAIL) {
   console.log(`  ${id.padEnd(16)} PCLSI ${(100 * S / N).toFixed(2)}% margin ${margin} | lost with none saved: up to ${most(() => 0)} | lost with lost - 5 saved: up to ${most(k => Math.max(0, Math.min(N - S, k - 5)))}`);
 }
 
-// 2 and 3: the closure test as reduce-tail.mjs runs it (closure() is internal: flipP of up and of -up, Holm over the 10)
+// 2: the closure test as reduce-tail.mjs runs it (closure() is internal: flipP of up and of -up, Holm over the 10)
 const read = rowsUp => { const ps = rowsUp.flatMap(up => [flipP(up, B, 7002), flipP(up.map(x => -x), B, 7003)]), ph = holm(ps); return rowsUp.map((_, i) => (ph[2 * i] < ALPHA ? 'HELD' : ph[2 * i + 1] < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE')); };
 const verdict = rs => (rs.every(r => r === 'HELD') ? 'HELD' : rs.filter(r => r === 'FALSIFIED').length >= 3 ? 'FALSIFIED' : 'INCONCLUSIVE');
 console.log('\n2. ITEM 2: g = tax(PCLSI) - tax(SNAP) a path (ADOPT-PI\'s files); the margin closes each path\'s whole gap with chance c (x = g B); reduce-tail.mjs\'s test of mean(x - g/2), Holm over 10');
@@ -53,16 +51,8 @@ for (const c of [0.3, 0.4, 0.5, 0.6, 0.7, 1]) {
   const r = rng(Math.round(9000 + 100 * c)), rs = read(LOSERS.map(id => G[id].map(g => (r() < c ? g : 0) - g / 2)));
   console.log(`  c ${c.toFixed(1)}: ${LOSERS.map((id, i) => `${id} ${rs[i]}`).join(', ')} -> ${verdict(rs)}`);
 }
-console.log('\n3. ITEM 3: n0 = net(PCLSI) - net(SNAP) at death tax 0 a path (ADOPT-PI\'s files); the loss kept at 0.4 on each path with chance k (n4 = n0 B); the test of mean(n4 - n0/2), Holm over 10');
-const N0 = Object.fromEntries(LOSERS.map(id => { const S = F[`${id} SNAP`], P = F[`${id} PCLSI`]; return [id, Array.from({ length: S.N }, (_, j) => P.net[j] - S.net[j])]; }));
-console.log(`  mean n0: ${LOSERS.map(id => `${id} ${mean(N0[id]).toFixed(0)}`).join(', ')}`);
-for (const k of [0, 0.3, 0.4, 0.5, 0.6, 1]) {
-  const r = rng(Math.round(9500 + 100 * k)), rs = read(LOSERS.map(id => N0[id].map(n => (r() < k ? n : 0) - n / 2)));
-  console.log(`  k ${k.toFixed(1)}: ${LOSERS.map((id, i) => `${id} ${rs[i]}`).join(', ')} -> ${verdict(rs)}`);
-}
-
-// 4. item 4
-console.log('\n4. ITEM 4: HYB built from ADOPT-PI\'s SNAP and PCLSI paths, taking PCLSI\'s outcome on a share s of the discordant paths (the tables\' share); y = (PCLSI - HYB) - (HYB - SNAP), the randomization test above and below 0, Holm over 6');
+// 3. item 3
+console.log('\n3. ITEM 3: HYB built from ADOPT-PI\'s SNAP and PCLSI paths, taking PCLSI\'s outcome on a share s of the discordant paths (the tables\' share); y = (PCLSI - HYB) - (HYB - SNAP), the randomization test above and below 0, Holm over 6');
 const cells = Object.fromEntries(HYB_PANEL.map(id => [id, paired(F[`${id} SNAP`], F[`${id} PCLSI`])]));
 console.log(`  ${HYB_PANEL.map(id => `${id} b ${cells[id].b} c ${cells[id].c}`).join(', ')}`);
 for (const s of [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1]) {
@@ -75,8 +65,8 @@ for (const s of [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1]) {
   console.log(`  s ${s.toFixed(2)}: ${HYB_PANEL.map((id, i) => `${id} ${reads[i]}`).join(', ')} -> ${reads[0] === 'READ' ? 'HELD' : reads[0] === 'TABLES' ? 'FALSIFIED' : 'INCONCLUSIVE'}`);
 }
 
-// 5. the cost from ADOPT-PI's own seconds
-console.log('\n5. THE COST (ADOPT-PI\'s solve and forward seconds a unit at 6,000 paths; DT jobs at the household\'s death-tax-0 seconds, NOT CHECKED at 0.4 on the losers)');
+// 4. the cost from ADOPT-PI's own seconds
+console.log('\n4. THE COST (ADOPT-PI\'s solve and forward seconds a unit at 6,000 paths)');
 const secs = {};
 for (const t of Object.values(logs)) {
   let id = null, arm = null;

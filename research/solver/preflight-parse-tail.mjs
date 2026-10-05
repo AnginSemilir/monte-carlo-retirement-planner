@@ -4,7 +4,7 @@
  * per-path file checks, identity and reading. The identity runs against ADOPT-PI's own preflight (results/diagadoptpi-preflight:
  * the same unit at 4 points, 20 paths, seed 7005; through reduce-adoptpi.mjs's parse, gate and file checks at that size), so
  * the code since ADOPT-PI is shown to leave the SNAP and PCLSI arms path for path where they were. Planted: a done line
- * dropped, HYB's read logged interpolated, PCLSI-TIE logged at another margin, a DT unit at death tax 0, a sum line off its
+ * dropped, HYB's read logged interpolated, PCLSI-TIE logged at another margin, a unit logged at a death tax of 0.4, a sum line off its
  * file by a survivor, and one path's tax moved in a PCLSI file against ADOPT-PI's must each be refused.
  *   node research/solver/preflight-parse-tail.mjs [dir]
  */
@@ -37,7 +37,7 @@ const planted = [
   ['a done line dropped', () => run(texts.map((t, i) => (i === 0 ? t.replace(/^\s+done .*\n/m, '') : t))).bad],
   ['HYB logged interpolated', () => run(at(/\/HYB \|/, t => t.replace(/(ran OFF\/PRODUCT\/W0\.02\/HYB: .* read )false/, '$1true'))).bad],
   ['PCLSI-TIE at another margin', () => run(at(/\/PCLSI-TIE \|/, t => t.replace(/(ran OFF\/PRODUCT\/W0\.02\/PCLSI-TIE: .* tieMargin )\S+/, '$10.0001'))).bad],
-  ['a DT unit at death tax 0', () => run(at(/\/DT\/SNAP \|/, t => t.replace(/(ran OFF\/PRODUCT\/W0\.02\/DT\/SNAP: .*deathTax )0\.4/, '$10'))).bad],
+  ['a unit at a death tax of 0.4', () => run(at(/W0\.02\/SNAP \|/, t => t.replace(/(ran OFF\/PRODUCT\/W0\.02\/SNAP: .*deathTax )0\b/, '$10.4'))).bad],
   ['a sum line off its file by a survivor', () => run(at(/W0\.02\/SNAP \|/, t => t.replace(/(sum OFF\/PRODUCT\/W0\.02\/SNAP: paths 20 survived )(\d+)/, (m, a, n) => `${a}${Number(n) === 0 ? 1 : Number(n) - 1}`))).bad],
   ['one path\'s tax off ADOPT-PI\'s', () => run(texts, fs => { fs['S130 PCLSI'].tax[3] += 1; }).bad],
 ];
@@ -45,4 +45,4 @@ for (const [nm, f] of planted) if (!(f().length > 0)) { console.log(`PREFLIGHT P
 let lines = 0, reached = false;
 reading(files, us, l => { lines++; if (/^\n?OUTCOME:/.test(l)) reached = true; }, { b: 200 });
 if (!reached) { console.log('PREFLIGHT PARSE FAILED: the reading did not reach its outcome'); process.exit(1); }
-console.log(`PREFLIGHT PARSE PASSED: ${us.length} units parsed and gated at the preflight's size, every per-path file held to its sum line, the SNAP and PCLSI arms equal to ADOPT-PI's preflight path for path on ${UNIT_KEYS.filter(k => / (SNAP|PCLSI)$/.test(k) && !/ DT /.test(k)).length} units; ${planted.length} planted faults refused; the reading ran to its outcome (${lines} lines, not read)`);
+console.log(`PREFLIGHT PARSE PASSED: ${us.length} units parsed and gated at the preflight's size, every per-path file held to its sum line, the SNAP and PCLSI arms equal to ADOPT-PI's preflight path for path on ${UNIT_KEYS.filter(k => / (SNAP|PCLSI)$/.test(k)).length} units; ${planted.length} planted faults refused; the reading ran to its outcome (${lines} lines, not read)`);

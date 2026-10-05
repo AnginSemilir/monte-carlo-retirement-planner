@@ -137,14 +137,16 @@ export function openCheck(u, xu) {
   if (!tb || !(Math.abs(tb.score - xu.scoreBase) <= 1e-4)) bad.push(`S126: BASE's score of its own opening ${tb ? tb.score : '-'}, XAS's ${xu.scoreBase}`);
   return bad;
 }
-// THE BASE GUARD, two-sided: under BASE, (v-a) moves no household's year-before reads more than GUARD further from the
-// one-step value than the reader's own read sits (|mean va - ex5| at most |mean read - ex5| + GUARD), S370 and bridge 4
+// THE BASE GUARD, on S370 and bridge 4: under BASE, (v-a) adds no optimism (mean va - ex5 at most GUARD: the registered
+// refusal, kept - the plan-auditor's BLOCKING 1 of 5 Oct on 070b559), and moves no year's reads more than GUARD further
+// from the one-step value than the reader's own read sits, either way (|mean va - ex5| at most |mean read - ex5| + GUARD)
 export function guard(files) {
   const bad = [];
   for (const id of READ_UNITS) {
     const t = files[id]; if (!t) continue;
     for (const y of [...new Set(t.t)].sort((a, b) => a - b)) {
       const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A = t.arms.BASE, m = mean(J.map(j => A.va[j] - A.ex5[j])), r = mean(J.map(j => A.read[j] - A.ex5[j]));
+      if (!(m <= GUARD + 1e-12)) bad.push(`the BASE guard: ${id} year ${y} BASE's mean (va - ex5) ${f4(m)} above ${GUARD} (optimism added)`);
       if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(`the BASE guard: ${id} year ${y} BASE's mean (va - ex5) ${f4(m)} against the reader's (read - ex5) ${f4(r)}: more than ${GUARD} further from the one-step value`);
     }
   }
@@ -250,7 +252,7 @@ function built(id, o = {}) {
     t.p.push(p); t.t.push(yr); t.k.push(k); t.top.push(o.unclassed && id === 'S370' ? -1 : 1);
     for (const a of ARMS) {
       const A = t.arms[a], ex5 = 0.5, noise = o.noisy ? (p % 2 ? 0.03 : -0.03) : 0;
-      const read = a === 'COV' ? ex5 + 0.02 : ex5, va = a === 'COV' ? read - sh[yr] * 0.02 + noise : ex5 + (o.baseVa || 0) + (id === 'bridge 4' ? (o.baseVaB4 || 0) : 0);
+      const read = a === 'COV' ? ex5 + 0.02 : ex5 + (o.baseRep || 0), va = a === 'COV' ? read - sh[yr] * 0.02 + noise : ex5 + (o.baseVa || 0) + (id === 'bridge 4' ? (o.baseVaB4 || 0) : 0);
       A.read.push(read); A.ex5.push(ex5); A.rr.push(read); A.plain.push(read - 0.01); A.va.push(va); A.vb.push(a === 'COV' ? read - sh[yr] * 0.01 + noise : va); A.vaw.push(0.5); A.vbs.push(p % 2);
     }
   }
@@ -260,7 +262,7 @@ function built(id, o = {}) {
 const builtFiles = (o = {}) => Object.fromEntries(UNITS.map(id => [id, built(id, o)]));
 // XAS's files as the identity reads them: the same reads, plus a year XAS-R does not read
 const xasOf = (o = {}) => Object.fromEntries(READ_UNITS.map(id => {
-  const b = built(id, {}), X = { t: [], k: [], p: [], arms: { BASE: { read: [], ex5: [] }, COV: { read: [], ex5: [] } } };
+  const b = built(id, { baseRep: o.baseRep }), X = { t: [], k: [], p: [], arms: { BASE: { read: [], ex5: [] }, COV: { read: [], ex5: [] } } };
   b.t.forEach((y, j) => { X.t.push(y); X.k.push(b.k[j]); X.p.push(b.p[j]); for (const a of ARMS) { X.arms[a].read.push(b.arms[a].read[j] + (o.identOff && id === 'S370' && a === 'COV' && j === 0 ? 1e-6 : 0)); X.arms[a].ex5.push(b.arms[a].ex5[j]); } });
   if (!o.missingYear) { X.t.push(3); X.k.push(0); X.p.push(0); for (const a of ARMS) { X.arms[a].read.push(0.4); X.arms[a].ex5.push(0.4); } }
   if (o.extraRead && id === 'S370') { X.t.push(2); X.k.push(0); X.p.push(NB); for (const a of ARMS) { X.arms[a].read.push(0.5); X.arms[a].ex5.push(0.5); } }
@@ -287,6 +289,10 @@ function planted() {
     ['a failed terms check', { termsBad: true }], ['(v-a) adding optimism under BASE (the guard)', { baseVa: 6e-3 }], ['(v-a) moving BASE\'s reads pessimistic past the margin (the guard, two-sided)', { baseVa: -6e-3 }], ['(v-a) moving bridge 4\'s BASE reads alone (the guard on both households)', { baseVaB4: 6e-3 }]]) cases.push([`the gate refuses ${nm}`, String(G(o).length > 0), 'true']);
   cases.push(['the guard passes at its margin', String(G({ baseVa: 5e-3 }).length), '0']);
   cases.push(['the guard passes at its margin, pessimistic', String(G({ baseVa: -5e-3 }).length), '0']);
+  // BASE's own rep not 0 (S370's full-scale year 2 is -6.2866e-3, results-xas.txt): the one-sided refusal and the |rep| term each bind
+  cases.push(['planted: optimism past 5e-3 is refused even where BASE\'s rep is large (rep -6e-3, va - ex5 +6e-3)', String(G({ baseRep: -6e-3, baseVa: 6e-3 }).length > 0), 'true']);
+  cases.push(['a pessimistic move within |rep| + 5e-3 passes (rep -6e-3, va - ex5 -9e-3)', String(G({ baseRep: -6e-3, baseVa: -9e-3 }).length), '0']);
+  cases.push(['planted: a pessimistic move past |rep| + 5e-3 is refused (rep -6e-3, va - ex5 -1.2e-2)', String(G({ baseRep: -6e-3, baseVa: -1.2e-2 }).length > 0), 'true']); EDGES.push('BASE\'s own rep not 0, the guard\'s two terms each binding');
   EDGES.push('a node check run on nothing', 'a read 1e-6 off XAS\'s', 'the BASE guard at its margin (5e-3) and just past it');
   const us = parse(builtLog({}));
   const Rd = (o, uo = {}) => { const r = reading(builtFiles(o), parse(builtLog(uo)), () => {}); REACHED[1].add(r.one.v); REACHED[2].add(r.two.v); return r; };

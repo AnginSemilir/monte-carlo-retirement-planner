@@ -58,3 +58,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 18:09 UTC | reduce-xasr.mjs 5251d44a28ec | 36 of 36 caught | escaped: none
 2026-10-05 19:39 UTC | reduce-xasr.mjs 06f33fcc15b1 | 38 of 41 caught | escaped: NOT APPLIED (0 matches): 29: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA; NOT APPLIED (0 matches): 30: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA; NOT APPLIED (0 matches): 31: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA
 2026-10-05 19:40 UTC | reduce-xasr.mjs 06f33fcc15b1 | 41 of 41 caught | escaped: none
+2026-10-05 20:16 UTC | reduce-xasr.mjs 0511b6ee871f | 0 of 43 caught | escaped: the true script fails its planted set
+2026-10-05 20:16 UTC | reduce-xasr.mjs d5ee5245a8b7 | 43 of 43 caught | escaped: none

@@ -27,6 +27,8 @@ M = [
   ("if (!tb || !(Math.abs(tb.score - xu.scoreBase) <= 1e-4)) bad.push(", "if (!tb) bad.push("),
   # the guard
   ("if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(", "if (!(m <= Math.abs(r) + GUARD + 1e-12)) bad.push("),
+  ("if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(", "if (!(Math.abs(m) <= GUARD + 1e-12)) bad.push("),
+  ("if (!(m <= GUARD + 1e-12)) bad.push(", "if (false) bad.push("),
   ("if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(", "if (!(Math.abs(m) <= Math.abs(r) + GUARD + 2e-3)) bad.push("),
   ("const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A = t.arms.BASE,", "const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A = t.arms.COV,"),
   ("for (const id of READ_UNITS) {\n    const t = files[id]; if (!t) continue;", "for (const id of ['S370']) {\n    const t = files[id]; if (!t) continue;"),

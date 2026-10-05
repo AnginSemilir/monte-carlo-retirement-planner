@@ -172,6 +172,10 @@ export function reading(files, units, out = console.log) {
   out('\nBY WORLD, TOP CELL AND STRADDLE (step and year-before reads; rep and quad means)');
   for (const id of UNITS) {
     const t = files[id], before = new Set(stepYears(t).map(x => x - 1));
+    // a classifier that ran on nothing is an error, not an empty slice (the deep review after XAS, FLAG 1: audit-xas read
+    // axes.a.length, so every read classed -1 and the top and inner slices printed nothing, silently)
+    const unclassed = t.top.filter(x => x !== 0 && x !== 1).length;
+    if (unclassed) out(`  ${id.padEnd(9)} TOP-CELL SLICE NOT RUN: the classifier left ${unclassed} of ${t.top.length} reads unclassed (audit-xas.mjs's first build; the straddle slice stands)`);
     for (const a of ARMS) for (const [nm, f] of [['step', j => t.kind[j] === 1], ['before', j => before.has(t.t[j]) && t.kind[j] === 0]]) {
       const parts = [];
       for (const k of [0, 1, 2]) for (const [lab, g] of [['top', j => t.top[j] === 1], ['inner', j => t.top[j] === 0], ['straddle', j => t.strad[j] === 1]]) {
@@ -264,6 +268,8 @@ function planted() {
   { const d = detect([1, -1, 1, -1], Z2); cases.push(['the detectable size of y = +-1 on 4 paths', `${d.sd.toFixed(4)} ${d.mdd.toFixed(4)}`, '1.1547 1.6175']); } EDGES.push('the detectable size on a balanced y');
   // the scorecard's lines: OUTCOME with both items, LEGS with item 2's households
   { const lines = []; reading(builtFiles({ c2: { S130: [0.002, 0.02] } }), parse(builtLog({})), l => lines.push(l)); const o = lines.find(l => /^\nOUTCOME:/.test(l)), g = lines.find(l => /^LEGS:/.test(l)); cases.push(['the OUTCOME and LEGS lines the scorecard reads', `${o && o.trim()} | ${g}`, 'OUTCOME: 1 HELD; 2 FALSIFIED | LEGS: 2/S370 HELD; 2/S130 FALSIFIED']); }
+  { const fs = builtFiles({}); for (const id of UNITS) fs[id].top = fs[id].top.map(() => -1); const lines = []; reading(fs, us, l => lines.push(l)); cases.push(['a top-cell classifier that ran on nothing prints NOT RUN for every household', String(lines.filter(l => /TOP-CELL SLICE NOT RUN: the classifier left 48 of 48/.test(l)).length), String(UNITS.length)]); }
+  { const lines = []; reading(builtFiles({}), us, l => lines.push(l)); cases.push(['a classified set prints no NOT RUN line', String(lines.filter(l => /NOT RUN/.test(l)).length), '0']); } EDGES.push('a classifier that returned -1 on every read');
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

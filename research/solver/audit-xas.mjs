@@ -138,9 +138,11 @@ UNITS.forEach((id, ui) => {
     // stepExpect declined (no step, or outside z in [-9, 9]): the 5 points stood, so not a step read
     return v;
   };
-  // the share's position and the straddle under BASE's move
+  // the share's position and the straddle under BASE's move. axes.a is { pts, n } (grid.js linAxis): the first build read
+  // axes.a.length, undefined, so every read classed -1 and the top-cell slice printed nothing (the deep review after XAS,
+  // deep-review-log.md 5 Oct 18:48 UK, FLAG 1); a read classed -1 now stops the audit below
   const post = new Float64Array(8), grown = new Float64Array(8), rb = new Float64Array(4);
-  const topCell = (g, st) => { const Wt = st[0] + st[1] + st[2], a = Wt > 0 ? st[0] / Wt : 0, sh = g.axes && g.axes.a ? g.axes.a : null; return sh && sh.length >= 2 ? (a >= sh[sh.length - 2] ? 1 : 0) : -1; };
+  const topCell = (g, st) => { const Wt = st[0] + st[1] + st[2], a = Wt > 0 ? st[0] / Wt : 0, sh = g.axes && g.axes.a ? g.axes.a.pts : null; return sh && sh.length >= 2 ? (a >= sh[sh.length - 2] ? 1 : 0) : -1; };
   const straddle = (tab, st, t, held, ai) => {
     const at = schedOf(tab, t), c = tab.c;
     if (at === null) return -1;
@@ -199,6 +201,7 @@ UNITS.forEach((id, ui) => {
     }
   }
   console.log(`${''.padEnd(16)} checks: rates ${CHK.rates - CHK.ratesBad}/${CHK.rates} nodes ${CHK.nodes - CHK.nodesBad}/${CHK.nodes} mix ${CHK.mix - CHK.mixBad}/${CHK.mix}`);
+  if (X.top.some(x => x !== 0 && x !== 1)) { console.error(`audit-xas: ${id}: the top-cell classifier did not run (${X.top.filter(x => x !== 0 && x !== 1).length} of ${N} reads unclassed)`); process.exit(2); }
   if (CHK.ratesBad || CHK.nodesBad || CHK.mixBad || !N) { console.error(`audit-xas: ${id}: a self-check failed or ran on nothing`); process.exit(2); }
   const rec = { id, p: X.p, t: X.t, k: X.k, kind: X.kind, top: X.top, strad: X.strad, exS: X.exS.map(x => (Number.isFinite(x) ? Math.round(x * 1e9) / 1e9 : null)), arms: Object.fromEntries(ARMS.map(([a]) => [a, Object.fromEntries(Object.entries(X.arms[a]).map(([q, v]) => [q, v.map(x => Math.round(x * 1e9) / 1e9)]))])) };
   // S126's opening: each arm's year-0 move, both moves' mixture scores in each arm, and the swap

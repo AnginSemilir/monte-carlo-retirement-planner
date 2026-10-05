@@ -45,6 +45,9 @@ M = [
   ("(detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK')", "'CLOSE'"),
   ("split: r1 === 'SPLIT' ? splitKind(y1, d1, Z2) : null", "split: r1 === 'SPLIT' ? 'CLOSE' : null"),
   ("const splits = r2.map((x, i) => (x === 'SPLIT' ? splitKind(ys[i], ds[i], Z4) : null));", "const splits = r2.map((x, i) => (x === 'SPLIT' ? 'WEAK' : null));"),
+  # the top-cell classifier that ran on nothing (the deep review after XAS, FLAG 1)
+  ("const unclassed = t.top.filter(x => x !== 0 && x !== 1).length;", "const unclassed = 0;"),
+  ("const unclassed = t.top.filter(x => x !== 0 && x !== 1).length;", "const unclassed = t.top.filter(x => x === 1).length;"),
   # the scorecard's lines
   ("const lab = x => (x === 'REP' ? 'HELD' : x === 'QUAD' ? 'FALSIFIED' : 'INCONCLUSIVE');", "const lab = x => (x === 'REP' ? 'HELD' : 'INCONCLUSIVE');"),
   ("out(`\\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);", "out(`\\nOUTCOME: 1 ${R.one.v}; 2 ${R.one.v}`);"),

@@ -27,8 +27,12 @@ THE SPLIT: read - claim = rep (read - ex5) + quad (ex5 - exF) + draw (exF - clai
   S126      COV  year 1 step  : reads 6000 D -4.0746e-4 rep -3.8201e-4 quad -1.0271e-6 draw -2.4425e-5
 
 BY WORLD, TOP CELL AND STRADDLE (step and year-before reads; rep and quad means)
+  S370      TOP-CELL SLICE NOT RUN: the classifier left 41436 of 41436 reads unclassed (audit-xas.mjs's first build; the straddle slice stands)
   S370      BASE before: w0 straddle 490: rep -2.7268e-2 quad 1.2371e-4; w1 straddle 205: rep -4.7915e-2 quad 8.2945e-3; w2 straddle 60: rep -4.1940e-2 quad 8.5457e-3
   S370      COV  before: w0 straddle 490: rep -2.3984e-3 quad 1.7371e-4; w1 straddle 205: rep -2.3648e-2 quad 7.6247e-3; w2 straddle 60: rep -3.5307e-2 quad 8.2578e-3
+  S130      TOP-CELL SLICE NOT RUN: the classifier left 6000 of 6000 reads unclassed (audit-xas.mjs's first build; the straddle slice stands)
+  bridge 4  TOP-CELL SLICE NOT RUN: the classifier left 18000 of 18000 reads unclassed (audit-xas.mjs's first build; the straddle slice stands)
+  S126      TOP-CELL SLICE NOT RUN: the classifier left 6000 of 6000 reads unclassed (audit-xas.mjs's first build; the straddle slice stands)
 
 S126'S OPENING (reported)
   year-0 moves BASE 59 COV 5

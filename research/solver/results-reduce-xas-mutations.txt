@@ -31,6 +31,8 @@ caught: 30: (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK
 caught: 31: (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK
 caught: 32: split: r1 === 'SPLIT' ? splitKind(y1, d1, Z2) : null
 caught: 33: const splits = r2.map((x, i) => (x === 'SPLIT' ? splitKind(y
-caught: 34: const lab = x => (x === 'REP' ? 'HELD' : x === 'QUAD' ? 'FAL
-caught: 35: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
-35 of 35 mutations caught
+caught: 34: const unclassed = t.top.filter(x => x !== 0 && x !== 1).leng
+caught: 35: const unclassed = t.top.filter(x => x !== 0 && x !== 1).leng
+caught: 36: const lab = x => (x === 'REP' ? 'HELD' : x === 'QUAD' ? 'FAL
+caught: 37: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
+37 of 37 mutations caught

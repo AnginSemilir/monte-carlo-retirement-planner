@@ -25,4 +25,6 @@ caught: 24: v: r2.every(x => x === 'REP') ? 'HELD' : r2.some(x => x ===
 caught: 25: const ids = ['S370', 'S130'], ys
 caught: 26: return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'BASE'
 caught: 27: const key = t.k[j] * 1e6 + t.p[j];
-27 of 27 mutations caught
+caught: 28: return { sd: s, mdd: z * s / Math.sqrt(y.length) };
+caught: 29: const Z2 = 1.96 + 0.8416,
+29 of 29 mutations caught

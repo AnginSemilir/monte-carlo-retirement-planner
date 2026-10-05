@@ -37,6 +37,9 @@ M = [
   ("const ids = ['S370', 'S130'], ys", "const ids = ['S370', 'S370'], ys"),
   ("return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'BASE'));", "return perPath(t, sel(t, j => t.kind[j] === 1), rq(t, 'COV'));"),
   ("const key = t.k[j] * 1e6 + t.p[j];", "const key = t.p[j];"),
+  # the detectable size beside each item
+  ("return { sd: s, mdd: z * s / Math.sqrt(y.length) };", "return { sd: s, mdd: z * s / y.length };"),
+  ("const Z2 = 1.96 + 0.8416,", "const Z2 = 1.96,"),
 ]
 M = [m for m in M if m[0] != m[1]]
 run('reduce-xas.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

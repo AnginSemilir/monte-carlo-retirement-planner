@@ -148,6 +148,11 @@ export function items(files) {
   return { one, two };
 }
 const f4 = x => (Number.isFinite(x) ? x.toExponential(4) : 'NaN');
+// the realised per-path sd of y and the |mean y| the item shows at 80% power after its Holm (normal approximation: z 1.96
+// + 0.8416 over 2 tests one-sided, 2.2414 + 0.8416 over 4), so a SPLIT is read against the test's achieved power (the
+// plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK: sd(y) is not bounded by sd(D))
+const Z2 = 1.96 + 0.8416, Z4 = 2.2414 + 0.8416;
+export const detect = (y, z) => { const s = sdOf(y); return { sd: s, mdd: z * s / Math.sqrt(y.length) }; };
 export function reading(files, units, out = console.log) {
   const R = items(files);
   out('\nTHE SPLIT: read - claim = rep (read - ex5) + quad (ex5 - exF) + draw (exF - claim), means over reads');
@@ -179,8 +184,8 @@ export function reading(files, units, out = console.log) {
       out(`  ${a} with the other arm's opening: survived ${u126.swap[a].own} to ${u126.swap[a].swapped} of ${u126.swap[a].paths} (b ${b} lost, c ${c} saved)`);
     }
   }
-  out(`\nITEM 1 (primary): COV on S370 in the years before each step (${R.one.years.join(', ')}), per path y = rep - quad: mean ${f4(mean(R.one.y))} over ${R.one.y.length} paths; Holm p (REP, QUAD) ${R.one.h.map(x => x.toFixed(4)).join(', ')} -> ${R.one.read} -> item 1 ${R.one.v}`);
-  out(`ITEM 2: BASE at the step years, per path y = rep - quad: ${['S370', 'S130'].map((id, i) => `${id} mean ${f4(mean(R.two.ys[i]))} over ${R.two.ys[i].length} paths, Holm p ${R.two.h[2 * i].toFixed(4)}/${R.two.h[2 * i + 1].toFixed(4)} ${R.two.reads[i]}`).join('; ')} -> item 2 ${R.two.v}`);
+  out(`\nITEM 1 (primary): COV on S370 in the years before each step (${R.one.years.join(', ')}), per path y = rep - quad: mean ${f4(mean(R.one.y))} over ${R.one.y.length} paths (sd ${f4(detect(R.one.y, Z2).sd)}, detectable ${f4(detect(R.one.y, Z2).mdd)} at 80% power); Holm p (REP, QUAD) ${R.one.h.map(x => x.toFixed(4)).join(', ')} -> ${R.one.read} -> item 1 ${R.one.v}`);
+  out(`ITEM 2: BASE at the step years, per path y = rep - quad: ${['S370', 'S130'].map((id, i) => `${id} mean ${f4(mean(R.two.ys[i]))} over ${R.two.ys[i].length} paths (sd ${f4(detect(R.two.ys[i], Z4).sd)}, detectable ${f4(detect(R.two.ys[i], Z4).mdd)}), Holm p ${R.two.h[2 * i].toFixed(4)}/${R.two.h[2 * i + 1].toFixed(4)} ${R.two.reads[i]}`).join('; ')} -> item 2 ${R.two.v}`);
   return R;
 }
 
@@ -244,6 +249,8 @@ function planted() {
   cases.push(['quad above rep at S130\'s steps reads item 2 FALSIFIED', Rd({ c2: { S130: [0.002, 0.02] } }).two.v, 'FALSIFIED']);
   cases.push(['rep equal to quad at S370\'s steps reads item 2 INCONCLUSIVE', Rd({ c2: { S370: [0.01, 0.01] } }).two.v, 'INCONCLUSIVE']);
   cases.push(['the other households\' splits do not move item 1', Rd({ c1: { S130: [0.001, 0.01], 'bridge 4': [0.001, 0.01] } }).one.v, 'HELD']); EDGES.push('a split on a household the item does not read');
+  // the detectable size: y of +-1 on 4 paths has sd 1.1547 and, over 2 tests, |mean y| 2.8016 x 1.1547 / 2 detectable
+  { const d = detect([1, -1, 1, -1], Z2); cases.push(['the detectable size of y = +-1 on 4 paths', `${d.sd.toFixed(4)} ${d.mdd.toFixed(4)}`, '1.1547 1.6175']); } EDGES.push('the detectable size on a balanced y');
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

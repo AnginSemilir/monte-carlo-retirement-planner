@@ -253,6 +253,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct; ADOPT-PI's close was checked by
    hand against triggers.mjs's CODES and the BLOCKING codes since 7au's close, and 7au's REPLACE text is in
    new-prediction.mjs). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
+30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
+   commit (the plan-auditor's MINOR 3 of 5 Oct 10:09 UK).
 
 ---
 

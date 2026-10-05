@@ -26,10 +26,10 @@ GATE: passed (reduce-covb.mjs's gate and the fair-gate stamp check over results/
   S126      BASE year 1 step  : reads 6000 mean D -5.517e-5 sd 2.808e-3
   S126      COV  year 1 step  : reads 6000 mean D -4.075e-4 sd 2.866e-3
 
-2. POWER: the smallest |mean y| shown after Holm, y = rep - quad a path, its sd at most D's (the draw removed)
-  item 1 (COV, S370, years 2, 6): per-path sd at most 1.367e-1; 80% power after Holm over 2 for |mean y| 4.944e-3 a path, against COV's mean D there 1.304e-2 and 2.517e-2 (summed 3.821e-2)
-  item 2 (BASE, S370, step years 3, 7): per-path sd at most 1.316e-1; 80% power after Holm over 4 for |mean y| 5.238e-3 a path, against BASE's mean D 2.033e-2 and 3.206e-2
-  item 2 (BASE, S130, step years 1): per-path sd at most 5.448e-2; 80% power after Holm over 4 for |mean y| 2.169e-3 a path, against BASE's mean D 2.010e-2
+2. POWER AT AN ASSUMED SPREAD (grade C): the smallest |mean y| shown after Holm if y = rep - quad has a per-path sd equal to D's; not a bound - the reducer prints the realised sd(y) beside each item
+  item 1 (COV, S370, years 2, 6): per-path sd taken as 1.367e-1; 80% power after Holm over 2 for |mean y| 4.944e-3 a path, against COV's mean D there 1.304e-2 and 2.517e-2 (summed 3.821e-2)
+  item 2 (BASE, S370, step years 3, 7): per-path sd taken as 1.316e-1; 80% power after Holm over 4 for |mean y| 5.238e-3 a path, against BASE's mean D 2.033e-2 and 3.206e-2
+  item 2 (BASE, S130, step years 1): per-path sd taken as 5.448e-2; 80% power after Holm over 4 for |mean y| 2.169e-3 a path, against BASE's mean D 2.010e-2
 
 3. THE COST (COV-B-STEP's seconds, measured under its own load)
   S130      solves 1107 + 1516 s; re-read 585 s x 4; 1.38 core-hours

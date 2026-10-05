@@ -2,9 +2,10 @@
 // reduce-covb.mjs's gate and stamp check first, rule 3 - reduce-xas.mjs covbFiles):
 //   1. per household, arm and reader year: reads, mean D = read - claim and its per-path sd - the size each item splits,
 //      and the noise the draw term carries (the claim's year-to-year spread);
-//   2. item 1's and item 2's power: y = rep - quad is a function of the state, with no draw in it, so its per-path spread is
-//      bounded above by the spread of D itself (which adds the draw); at that bound, the smallest |mean y| each test shows
-//      after Holm (one-sided 0.05/2 and 0.05/4, normal approximation) against the D it splits;
+//   2. item 1's and item 2's power at an ASSUMED spread: the per-path sd of y = rep - quad taken as D's. Not a bound (the
+//      plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK): var(rep - quad) = var(rep + quad) - 4 cov(rep, quad), and rep and quad
+//      share ex5 with opposite signs, so cov is negative where the 5-point value errs and sd(y) can exceed sd(D) less the
+//      draw; grade C. The reducer prints the realised sd(y) and the detectable |mean y| beside each item;
 //   3. the cost: COV-B-STEP's solve seconds for BASE and COV (its solve lines), the fixed re-read's seconds (its moves lines)
 //      times the extra scoring (two arms x three one-step values against one chooseAction a read), S126's swap at two
 //      forward runs an arm; four households on four cores.
@@ -35,7 +36,7 @@ for (const id of IDS) {
   }
 }
 
-console.log('\n2. POWER: the smallest |mean y| shown after Holm, y = rep - quad a path, its sd at most D\'s (the draw removed)');
+console.log('\n2. POWER AT AN ASSUMED SPREAD (grade C): the smallest |mean y| shown after Holm if y = rep - quad has a per-path sd equal to D\'s; not a bound - the reducer prints the realised sd(y) beside each item');
 const z = p => { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; (0.5 * (1 + erf(m / Math.SQRT2)) < 1 - p ? (lo = m) : (hi = m)); } return lo; };
 function erf(x) { const t = 1 / (1 + 0.3275911 * Math.abs(x)), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; }
 {
@@ -43,12 +44,12 @@ function erf(x) { const t = 1 / (1 + 0.3275911 * Math.abs(x)), y = 1 - (((((1.06
   // item 1: COV, S370, the years before each step, a path's reads summed (two years: the sd of a sum at most twice one year's)
   const s1 = before.reduce((s, t) => s + SD[`S370 COV ${t}`], 0), n1 = 6000, mdd1 = (z(0.05 / 2) + z(0.2)) * s1 / Math.sqrt(n1);
   const Dbef = before.map(t => { const J = F.t.map((x, j) => (x === t ? j : -1)).filter(j => j >= 0); return mean(J.map(j => F.arms.COV.read[j] - F.arms.COV.claim[j])); });
-  console.log(`  item 1 (COV, S370, years ${before.join(', ')}): per-path sd at most ${e(s1)}; 80% power after Holm over 2 for |mean y| ${e(mdd1)} a path, against COV's mean D there ${Dbef.map(e).join(' and ')} (summed ${e(Dbef.reduce((s, x) => s + x, 0))})`);
+  console.log(`  item 1 (COV, S370, years ${before.join(', ')}): per-path sd taken as ${e(s1)}; 80% power after Holm over 2 for |mean y| ${e(mdd1)} a path, against COV's mean D there ${Dbef.map(e).join(' and ')} (summed ${e(Dbef.reduce((s, x) => s + x, 0))})`);
   for (const id of ['S370', 'S130']) {
     const G = C.files[id].fixed, st = [...new Set(G.t.filter((_, j) => G.kind[j] === 1))], s2 = st.reduce((s, t) => s + SD[`${id} BASE ${t}`], 0), n2 = 6000;
     const mdd2 = (z(0.05 / 4) + z(0.2)) * s2 / Math.sqrt(n2);
     const Dst = st.map(t => { const J = G.t.map((x, j) => (x === t ? j : -1)).filter(j => j >= 0); return mean(J.map(j => G.arms.BASE.read[j] - G.arms.BASE.claim[j])); });
-    console.log(`  item 2 (BASE, ${id}, step years ${st.join(', ')}): per-path sd at most ${e(s2)}; 80% power after Holm over 4 for |mean y| ${e(mdd2)} a path, against BASE's mean D ${Dst.map(e).join(' and ')}`);
+    console.log(`  item 2 (BASE, ${id}, step years ${st.join(', ')}): per-path sd taken as ${e(s2)}; 80% power after Holm over 4 for |mean y| ${e(mdd2)} a path, against BASE's mean D ${Dst.map(e).join(' and ')}`);
   }
 }
 

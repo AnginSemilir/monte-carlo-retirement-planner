@@ -1,0 +1,70 @@
+GATE: passed - 21 units, each once and done, HYB's settings and the arm's tables, read and segment, tie margin 0 and death tax 0 on every ran line; each household's units on one access line and one set of paths; every per-path file present, stamped and holding its sum line; the SNAP and PCLSI arms equal to HYB's per-path files on every path (HYB's files through their own gate), HYB's HYB arm joining the reading
+
+EDGE-SPLIT: HYB's unit (no reader, the product's settings, lambda held, the estate weight 0.02, 30 points), seed 7005, death tax 0, every arm of a household on the same paths; SNAP, S-LO, S-HI, S-INT, PCLSI, P-LO, P-HI and HYB's own HYB arm (by the identity) on S130, S128, S370.
+
+ITEM 1 (primary; PCLSI's tables): y = P-LO - P-HI a path in survival (the low edge interpolated against the high); the randomization test (B 20000) of mean(y) above 0 (LO) and below (HI), Holm over 4 (S130, S128); S370 reported at raw p
+  S130     P-LO over P-HI: b 39 c 93 change 0.900 | mean y 90.0e-4, p 5.00e-5 / 1.00e+0, Holm 2.00e-4 / 1.00e+0 | LO
+  S128     P-LO over P-HI: b 42 c 52 change 0.167 | mean y 16.7e-4, p 1.74e-1 / 8.70e-1, Holm 5.23e-1 / 1.00e+0 | SPLIT
+  S370     P-LO over P-HI: b 13 c 25 change 0.200 | mean y 20.0e-4, p 3.31e-2 / 9.86e-1, Holm - / - | REPORTED
+  -> HELD (HELD when S130 reads LO; FALSIFIED when S130 reads HI; else INCONCLUSIVE)
+
+ITEM 2 (SNAP's tables): y = S-HI - S-LO a path in survival (the high edge interpolated against the low); the randomization test (B 20000) of mean(y) above 0 (HI) and below (LO), Holm over 4 (S130, S128); S370 reported at raw p
+  S130     S-HI over S-LO: b 67 c 27 change -0.667 | mean y -66.7e-4, p 1.00e+0 / 5.00e-5, Holm 1.00e+0 / 2.00e-4 | LO
+  S128     S-HI over S-LO: b 25 c 39 change 0.233 | mean y 23.3e-4, p 5.04e-2 / 9.70e-1, Holm 1.51e-1 / 1.00e+0 | SPLIT
+  S370     S-HI over S-LO: b 23 c 25 change 0.033 | mean y 3.3e-4, p 4.54e-1 / 6.68e-1, Holm - / - | REPORTED
+  -> FALSIFIED (HELD when S130 reads HI; FALSIFIED when S130 reads LO; else INCONCLUSIVE)
+
+THE SHARE RULE (registered; S130 only; the bar 0.7): the low edge's share of PCLSI over HYB 0.286 (the gain shown) -> O101-EDGE UNSEPARATED; the high edge's share of S-INT over SNAP 1.000 (the gain NOT shown) -> O83's survival cost NOT APPLICABLE
+
+SECONDARY (declared; decides nothing): the edges' shares on every household, the tables' own part, every pair's change a path (survival in points, tax and net, se over paths)
+  S130     the low edge's share of PCLSI over HYB 0.286 (P-LO over HYB 55, P-HI over HYB 1, PCLSI over HYB 192 paths); the high edge's share of S-INT over SNAP 1.000 (S-HI -40, S-LO 0, S-INT -40 paths over SNAP)
+  S130     S-INT less PCLSI   survival  -3.050  tax   383357.22 (3082.23)  net   -232845.00 (9323.28)
+  S130     S-INT less SNAP    survival  -0.667  tax    62343.86 (895.11)  net     29131.90 (2980.24)
+  S130     P-LO less HYB      survival   0.917  tax  -147584.68 (1727.83)  net     36647.83 (3824.59)
+  S130     P-HI less HYB      survival   0.017  tax    -2979.26 (204.61)  net      8854.72 (1091.89)
+  S130     S-HI less SNAP     survival  -0.667  tax    62343.86 (895.11)  net     29131.91 (2980.24)
+  S130     S-LO less SNAP     survival   0.000  tax       -0.02 (0.01)  net         0.03 (0.04)
+  S128     the low edge's share of PCLSI over HYB 0.378 (P-LO over HYB 17, P-HI over HYB 7, PCLSI over HYB 45 paths); the high edge's share of S-INT over SNAP 1.000 (S-HI 14, S-LO 0, S-INT 14 paths over SNAP)
+  S128     S-INT less PCLSI   survival  -0.167  tax    57516.29 (947.02)  net      -874.10 (2410.50)
+  S128     S-INT less SNAP    survival   0.233  tax   -14688.13 (723.65)  net     16600.81 (952.85)
+  S128     P-LO less HYB      survival   0.283  tax   -34403.95 (511.54)  net    -33534.43 (1644.44)
+  S128     P-HI less HYB      survival   0.117  tax   -28296.83 (466.69)  net     11291.00 (615.09)
+  S128     S-HI less SNAP     survival   0.233  tax   -14688.13 (723.65)  net     16600.81 (952.85)
+  S128     S-LO less SNAP     survival   0.000  tax        0.00 (0.00)  net         0.00 (0.00)
+  S370     the low edge's share of PCLSI over HYB 0.419 (P-LO over HYB 18, P-HI over HYB 6, PCLSI over HYB 43 paths); the high edge's share of S-INT over SNAP 1.000 (S-HI 2, S-LO 0, S-INT 2 paths over SNAP)
+  S370     S-INT less PCLSI   survival  -0.767  tax    37613.84 (1324.55)  net   -599777.69 (314485.13)
+  S370     S-INT less SNAP    survival   0.033  tax     -888.08 (582.44)  net    105405.54 (6063.12)
+  S370     P-LO less HYB      survival   0.300  tax   -29925.62 (647.38)  net     37136.47 (17337.08)
+  S370     P-HI less HYB      survival   0.100  tax    -5434.23 (271.71)  net     14240.16 (1991.44)
+  S370     S-HI less SNAP     survival   0.033  tax     -888.61 (582.45)  net    105407.84 (6063.14)
+  S370     S-LO less SNAP     survival   0.000  tax        0.63 (0.13)  net        -2.58 (0.63)
+
+REPORTED: flat years with the pension live (pension over 10,000, the used share growing under 0.01), a path's mean, by the used share's band: [0.15, 0.25) / [0.25, 0.6) / [0.6, 0.75)
+  S130 SNAP      0.00 / 0.00 / 6.86
+  S130 S-LO      0.00 / 0.00 / 6.86
+  S130 S-HI      0.00 / 6.95 / 0.00
+  S130 S-INT     0.00 / 6.95 / 0.00
+  S130 PCLSI     0.00 / 0.00 / 0.00
+  S130 P-LO      0.00 / 0.00 / 8.65
+  S130 P-HI      6.08 / 0.00 / 0.00
+  S130 HYB       0.00 / 0.00 / 0.00
+  S128 SNAP      0.00 / 0.20 / 5.42
+  S128 S-LO      0.00 / 0.20 / 5.42
+  S128 S-HI      0.00 / 2.18 / 0.11
+  S128 S-INT     0.00 / 2.18 / 0.11
+  S128 PCLSI     0.00 / 0.23 / 0.17
+  S128 P-LO      0.00 / 0.17 / 6.60
+  S128 P-HI      1.18 / 0.12 / 0.07
+  S128 HYB       0.00 / 0.00 / 0.00
+  S370 SNAP      0.00 / 0.00 / 0.18
+  S370 S-LO      0.00 / 0.00 / 0.18
+  S370 S-HI      0.00 / 0.25 / 0.00
+  S370 S-INT     0.00 / 0.25 / 0.00
+  S370 PCLSI     0.00 / 0.00 / 0.00
+  S370 P-LO      0.00 / 0.00 / 0.30
+  S370 P-HI      0.30 / 0.00 / 0.00
+  S370 HYB       0.00 / 0.00 / 0.00
+
+OUTCOME: 1 HELD; 2 FALSIFIED
+SHARES: O101-EDGE UNSEPARATED; O83 NOT APPLICABLE
+LEGS: item 1 S128 INCONCLUSIVE; item 2 S128 INCONCLUSIVE

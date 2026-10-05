@@ -1,0 +1,62 @@
+O96: THE ENGINE SUITE, ALL 82 FILES (5 Oct)
+
+Files 1-51 (scratchpad/engine-suite.log, under load): one failure, solver-fast.test.mjs C2 (timing, 1040ns over the 1000ns bar); every correctness check passed.
+Files 52-82 (scratchpad/engine-rest.log, at nice 19): 31 files run, files failing: 0.
+
+== solver-fast.test.mjs alone on quiet cores (uptime: load average: 0.62, 1.36, 2.42)
+=========== A. RANDOM POSITIONS AND MOVES, AGAINST THE EXACT MODEL ===========
+PASS  A1  the flow agrees with the exact model on 6400 random positions and moves  -- worst £0.0000
+PASS  A2  ...including the pre-access insolvency flag  -- 0 disagreements
+PASS  A3  ...and growth from the post-decision state  -- worst £0.0000
+=========== B. THE TAX TABLE IS THE ENGINE'S TAX ===========
+PASS  B1  net income from the table matches the engine at every £137 to £400k  -- worst £0.0000
+PASS  B2  ...and for a Scottish taxpayer, whose ladder has six rungs  -- worst £0.0000
+=========== C. SPEED, WHICH IS WHY THE FILE EXISTS ===========
+      per year: exact model 4250ns, fast flow 635ns (6.7x)
+PASS  C1  the fast flow is at least five times the exact model  -- 6.7x
+PASS  C2  ...and under a microsecond a year  -- 635ns
+=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT MODEL (plan 2d) ===========
+PASS  D1  a state with the rails on hands the fast flow eleven slots
+PASS  D2  the year's target and the multiplier agree with the model every year, cuts and floor included  -- worst 0.0000, 14 cuts, 15 at the floor
+=========== E. THE RESEARCH OPPONENTS: VANGUARD DYNAMIC SPENDING AND ARVA (plan 2d.2) ===========
+PASS  E1  the rule slots start empty: no rate yet, multiplier one
+PASS  E2  Vanguard starts at the target and never moves the multiplier more than +5% or -2.5% a year  -- steps 0.985..1.003
+PASS  E3  ...after a crash it cuts, by the 2.5% a year the rule allows, not all at once  -- low 0.817
+PASS  E4  ARVA's rate is the household's geometric expected real return, between 0 and 6%  -- 3.26%
+PASS  E5  ARVA spends the pot as an annuity: on a flat path the multiplier stays near where it starts and never falls below the floor  -- mult 0.78..1.35
+PASS  E6  ...and after good years it spends up, above the target  -- peak level 3.08
+
+=========== 15 passed, 0 failed ===========
+
+== files 52-82, each file's last line
+research/tests/solver-final.test.mjs: solver-final: 4 passed
+research/tests/solver-flex.test.mjs: =========== 18 passed, 0 failed ===========
+research/tests/solver-giatiers.test.mjs: 10 passed
+research/tests/solver-gridfidelity.test.mjs: =========== 31 passed, 0 failed ===========
+research/tests/solver-hold.test.mjs: 18 passed, 0 failed
+research/tests/solver-joint.test.mjs: 10 passed, 0 failed
+research/tests/solver-learn.test.mjs: =========== 23 passed, 0 failed ===========
+research/tests/solver-levers.test.mjs: solver-levers: 8 passed
+research/tests/solver-minpot.test.mjs: =========== 9 passed, 0 failed ===========
+research/tests/solver-mixture-shared.test.mjs: =========== 7 passed, 0 failed ===========
+research/tests/solver-mixture.test.mjs: =========== 8 passed, 0 failed ===========
+research/tests/solver-model.test.mjs: =========== 35 passed, 0 failed ===========
+research/tests/solver-plan.test.mjs: solver-plan: 27 passed
+research/tests/solver-pol-width.test.mjs: solver-pol-width: 5 passed (largest stored move 260 of 432)
+research/tests/solver-quadnodes.test.mjs: solver-quadnodes: 8 passed
+research/tests/solver-raisesurv.test.mjs: solver-raisesurv: 7 passed
+research/tests/solver-signedgap.test.mjs: 12 passed, 0 failed
+research/tests/solver-step.test.mjs: 10 passed, 0 failed
+research/tests/solver-step2.test.mjs: solver-step2: 7 passed
+research/tests/solver-switchcharge.test.mjs: 10 passed, 0 failed
+research/tests/solver-tiers.test.mjs: =========== 21 passed, 0 failed ===========
+research/tests/solver-tierstate.test.mjs: 17 passed, 0 failed
+research/tests/solver-verify-noop.test.mjs: =========== 5 passed, 0 failed ===========
+research/tests/solver.test.mjs: =========== 16 passed, 0 failed ===========
+research/tests/spendbands.test.mjs: 
+research/tests/spendgrid.test.mjs: =========== 27 passed, 0 failed ===========
+research/tests/stats.test.mjs: stats: 38 passed
+research/tests/trace-mask.test.mjs: trace-mask: 8 passed
+research/tests/triggers.test.mjs: 44 passed
+research/tests/uktax.test.mjs: []
+research/tests/whole-score-objective.test.mjs: whole-score-objective: 11 passed

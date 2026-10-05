@@ -59,6 +59,7 @@ export const TESTS = [
   { name: 'COV-B-STEP (the reader\'s tax and the step-year edge node)', prediction: 'predictions/diag-covb.md', results: 'results-covb.txt' },
   { name: 'HYB (the forward-only hybrid: ADOPT-PI\'s gain split between the read and the tables)', prediction: 'predictions/diag-hyb.md', results: 'results-hyb.txt' },
   { name: 'XAS (the exact one-step check: representation against quadrature at the step reads)', prediction: 'predictions/diag-xas.md', results: 'results-xas.txt' },
+  { name: 'EDGE (EDGE-SPLIT: which snap edge carries PCLSI\'s gain, on each table)', prediction: 'predictions/diag-edge.md', results: 'results-edge.txt' },
 ];
 
 export function credences(predText) {

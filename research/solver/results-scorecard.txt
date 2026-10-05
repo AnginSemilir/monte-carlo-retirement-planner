@@ -32,6 +32,7 @@ ADOPT-PI (the interpolated allowance axis in the shipping default): Brier 0.111 
 COV-B-STEP (the reader's tax and the step-year edge node): Brier 0.317 over 3 (1 0.7 -> not; 2 0.8 -> held; 3 0.65 -> not)
 HYB (the forward-only hybrid: ADOPT-PI's gain split between the read and the tables): Brier 0.360 over 1 (1 0.4 -> held)
 XAS (the exact one-step check: representation against quadrature at the step reads): PENDING (no results-xas.txt yet)
+EDGE (EDGE-SPLIT: which snap edge carries PCLSI's gain, on each table): PENDING (no results-edge.txt yet)
 
 CUMULATIVE: Brier 0.233 over 145 items
 RELIABILITY (credence bin: items, mean credence, share held):
@@ -49,4 +50,4 @@ BY KIND (items, mean credence, share held, the author's Brier, the Brier of the 
   CTRL       10   0.74   0.70   0.163   0.256
   WHOLE       6   0.47   0.50   0.192   0.301
 THREE-OUTCOME ITEMS: ranked probability score 0.121 over 8, a uniform forecast 0.215
-DEEP-REVIEW CAUSES: 0 stated, 0 settled
+DEEP-REVIEW CAUSES: 5 stated, 0 settled

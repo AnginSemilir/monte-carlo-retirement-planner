@@ -1,0 +1,29 @@
+EDGE-SPLIT'S DERIVATION (predictions/diag-edge.md): the power by story and the mixture; planted: passed
+
+1. INPUTS (read from results-hyb.txt and results-derive-hyb-edges.txt)
+  item 1, the read's discordant paths (PCLSI over HYB): S130 c 202 b 10; S128 c 73 b 28
+  item 2, PCLSI over SNAP as S-INT over SNAP's stand-in (grade C): S130 c 168 b 25; S128 c 73 b 49
+
+2. THE OUTCOMES BY STORY (20000 draws a story and item, seed 7005): HELD / INCONCLUSIVE / FALSIFIED
+  item 1 EDGE  : 1.000 / 0.000 / 0.000   (the power: HELD under the ranked cause)
+  item 1 WITHIN: 0.271 / 0.453 / 0.276
+  item 1 TABLES: 0.409 / 0.181 / 0.410
+  item 1 NOISE : 0.010 / 0.980 / 0.011
+  item 1 STEP  : 0.409 / 0.180 / 0.411
+  item 2 EDGE  : 0.997 / 0.003 / 0.000   (the power: HELD under the ranked cause)
+  item 2 WITHIN: 0.201 / 0.599 / 0.200
+  item 2 TABLES: 0.379 / 0.241 / 0.380
+  item 2 NOISE : 0.008 / 0.985 / 0.007
+  item 2 STEP  : 0.383 / 0.237 / 0.380
+
+3. THE PRIORS: A, the review's: EDGE 0.70, WITHIN 0.15, TABLES 0.10, NOISE 0.03, STEP 0.02; B, registered - EDGE at the record's rate (1 of 19 review-ranked causes read as the review said; Laplace 0.095), the rest in the review's proportions: EDGE 0.095, WITHIN 0.452, TABLES 0.302, NOISE 0.090, STEP 0.060
+  prior A, item 1: HELD 0.790 INCONCLUSIVE 0.119 FALSIFIED 0.091; point 0.74
+  prior A, item 2: HELD 0.774 INCONCLUSIVE 0.150 FALSIFIED 0.076; point 0.74
+  prior B, item 1: HELD 0.367 INCONCLUSIVE 0.359 FALSIFIED 0.274; point 0.53
+  prior B, item 2: HELD 0.324 INCONCLUSIVE 0.448 FALSIFIED 0.229; point 0.53
+
+4. THE CREDENCES (prior B, the mixture, each outcome to two places; the point the edge's expected share of its item's gain; check-prediction.mjs holds the prediction to these)
+CREDENCE item 1: point 0.53 HELD 0.37 INCONCLUSIVE 0.36 FALSIFIED 0.27
+CREDENCE item 2: point 0.53 HELD 0.32 INCONCLUSIVE 0.45 FALSIFIED 0.23
+
+5. THE COST (HYB's seconds, results/diaghyb case logs: a solve about 320-390 s, a forward arm about 520-600 s): 2 solves and 7 forward arms a household, 3 households in parallel - about 1.6 hours on a quiet machine, 3 core-processes; each process stopped at 4 hours.

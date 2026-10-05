@@ -398,7 +398,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log('BY KIND (items, mean credence, share held, the author\'s Brier, the Brier of the kind\'s base rate from earlier tests):');
   for (const k of KINDS.filter(x => K[x]).concat(Object.keys(K).filter(x => !KINDS.includes(x)))) console.log(`  ${k.padEnd(9)} ${String(K[k].n).padStart(3)}   ${K[k].meanP.toFixed(2)}   ${K[k].held.toFixed(2)}   ${K[k].brier.toFixed(3)}   ${K[k].kindRate.toFixed(3)}`);
   if (rpsAll.length) console.log(`THREE-OUTCOME ITEMS: ranked probability score ${(rpsAll.reduce((a, x) => a + x.rps, 0) / rpsAll.length).toFixed(3)} over ${rpsAll.length}, a uniform forecast ${(rpsAll.reduce((a, x) => a + x.uniform, 0) / rpsAll.length).toFixed(3)}`);
-  if (legAll.length) console.log(`LEGS (an item needing every household, scored household by household): Brier ${brier(legAll).toFixed(3)} over ${legAll.length}`);
+  if (legAll.length) {
+  // worded so no line but a test's reads '<name> (<what>): Brier' (check-plan.mjs's retro reads any such line as a scored test)
+  console.log(`LEGS, an item needing every household scored household by household: Brier ${brier(legAll).toFixed(3)} over ${legAll.length}`);
+  }
   { let committed = null; try { committed = execFileSync('git', ['show', 'HEAD:research/solver/review-causes.md'], { cwd: join(HERE, '..', '..'), stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { /* not committed yet */ }
     const ao = appendOnlyProblem(committed, read('review-causes.md') || '');
     if (ao) { console.log(`ERROR - ${ao}`); process.exit(1); }

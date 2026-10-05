@@ -1,0 +1,42 @@
+GATE: passed - 4 households, each once and done with BASE and COV at COV-B-STEP's unit (seed 7002, 30 points, 6000 paths, 41 fine points); every self-check passed on something; every file stamped as the logs; the reads equal COV-B-STEP's read for read (its own gate passed first); the draw within 4 se of 0 on every household, arm and kind
+
+THE SPLIT: read - claim = rep (read - ex5) + quad (ex5 - exF) + draw (exF - claim), means over reads
+  S370      BASE year 1 spread: reads 6000 D -1.2380e-2 rep -1.2777e-2 quad 6.3613e-5 draw 3.3305e-4 quadS 7.8061e-5 (6000 with a step next year)
+  S370      BASE year 2 spread: reads 6000 D -5.7145e-3 rep -6.2866e-3 quad 4.0008e-4 draw 1.7207e-4 quadS 4.8040e-4 (6000 with a step next year)
+  S370      BASE year 3 step  : reads 6000 D 2.0331e-2 rep 2.0159e-2 quad 2.5641e-5 draw 1.4652e-4 quadS 0.0000e+0 (6000 with a step next year)
+  S370      BASE year 4 spread: reads 5859 D -3.4570e-3 rep -1.4723e-3 quad 1.3371e-5 draw -1.9980e-3 quadS 0.0000e+0 (5859 with a step next year)
+  S370      BASE year 5 spread: reads 5859 D -1.8458e-3 rep -1.8218e-3 quad -2.7233e-5 draw 3.1978e-6 quadS 0.0000e+0 (5859 with a step next year)
+  S370      BASE year 6 spread: reads 5859 D -2.3768e-3 rep -1.9464e-3 quad -1.6529e-5 draw -4.1385e-4 quadS -1.7135e-6 (5859 with a step next year)
+  S370      BASE year 7 step  : reads 5859 D 3.2058e-2 rep 3.2472e-2 quad -6.4779e-6 draw -4.0765e-4 quadS NaN (0 with a step next year)
+  S370      COV  year 1 spread: reads 6000 D -1.2191e-2 rep -1.2579e-2 quad 6.3248e-5 draw 3.2436e-4
+  S370      COV  year 2 spread: reads 6000 D 1.3038e-2 rep 1.2480e-2 quad 3.7590e-4 draw 1.8233e-4
+  S370      COV  year 3 step  : reads 6000 D -4.5597e-4 rep -6.1823e-4 quad 2.4082e-5 draw 1.3818e-4
+  S370      COV  year 4 spread: reads 5859 D -2.9238e-3 rep -8.8686e-4 quad 1.0548e-5 draw -2.0474e-3
+  S370      COV  year 5 spread: reads 5859 D -1.8117e-3 rep -1.7834e-3 quad -2.8633e-5 draw 3.1693e-7
+  S370      COV  year 6 spread: reads 5859 D 2.5167e-2 rep 2.5652e-2 quad -1.6830e-5 draw -4.6834e-4
+  S370      COV  year 7 step  : reads 5859 D -4.0749e-3 rep -3.6608e-3 quad -6.4779e-6 draw -4.0765e-4
+  S130      BASE year 1 step  : reads 6000 D 2.0104e-2 rep 2.0405e-2 quad -1.1045e-6 draw -2.9987e-4 quadS NaN (0 with a step next year)
+  S130      COV  year 1 step  : reads 6000 D -4.8501e-3 rep -4.5492e-3 quad -1.1045e-6 draw -2.9987e-4
+  bridge 4  BASE year 1 spread: reads 6000 D -5.7483e-4 rep -5.3682e-4 quad -8.3386e-7 draw -3.7178e-5 quadS 0.0000e+0 (6000 with a step next year)
+  bridge 4  BASE year 2 spread: reads 6000 D -5.5562e-4 rep -6.0365e-4 quad -2.0481e-6 draw 5.0080e-5 quadS 0.0000e+0 (6000 with a step next year)
+  bridge 4  BASE year 3 step  : reads 6000 D 2.3866e-4 rep 2.8006e-4 quad -1.0072e-6 draw -4.0392e-5 quadS NaN (0 with a step next year)
+  bridge 4  COV  year 1 spread: reads 6000 D -5.0178e-4 rep -4.6236e-4 quad -9.3544e-7 draw -3.8485e-5
+  bridge 4  COV  year 2 spread: reads 6000 D -2.2795e-4 rep -2.7959e-4 quad -2.1956e-6 draw 5.3844e-5
+  bridge 4  COV  year 3 step  : reads 6000 D -4.6345e-4 rep -4.2205e-4 quad -1.0072e-6 draw -4.0392e-5
+  S126      BASE year 1 step  : reads 6000 D -5.5172e-5 rep -2.9720e-5 quad -1.0271e-6 draw -2.4425e-5 quadS NaN (0 with a step next year)
+  S126      COV  year 1 step  : reads 6000 D -4.0746e-4 rep -3.8201e-4 quad -1.0271e-6 draw -2.4425e-5
+
+BY WORLD, TOP CELL AND STRADDLE (step and year-before reads; rep and quad means)
+  S370      BASE before: w0 straddle 490: rep -2.7268e-2 quad 1.2371e-4; w1 straddle 205: rep -4.7915e-2 quad 8.2945e-3; w2 straddle 60: rep -4.1940e-2 quad 8.5457e-3
+  S370      COV  before: w0 straddle 490: rep -2.3984e-3 quad 1.7371e-4; w1 straddle 205: rep -2.3648e-2 quad 7.6247e-3; w2 straddle 60: rep -3.5307e-2 quad 8.2578e-3
+
+S126'S OPENING (reported)
+  year-0 moves BASE 59 COV 5
+  BASE with the other arm's opening: survived 5971 to 5968 of 6000 (b 4 lost, c 1 saved)
+  COV with the other arm's opening: survived 5960 to 5971 of 6000 (b 3 lost, c 14 saved)
+
+ITEM 1 (primary): COV on S370 in the years before each step (2, 6), per path y = rep - quad: mean 3.7170e-2 over 6000 paths (sd 4.3307e-2, detectable 1.5664e-3 at 80% power); Holm p (REP, QUAD) 0.0001, 1.0000 -> REP -> item 1 HELD
+ITEM 2: BASE at the step years, per path y = rep - quad: S370 mean 5.1849e-2 over 6000 paths (sd 4.6700e-2, detectable 1.8587e-3), Holm p 0.0002/1.0000 REP; S130 mean 2.0406e-2 over 6000 paths (sd 2.0881e-2, detectable 8.3108e-4), Holm p 0.0002/1.0000 REP -> item 2 HELD
+
+OUTCOME: 1 HELD; 2 HELD
+LEGS: 2/S370 HELD; 2/S130 HELD

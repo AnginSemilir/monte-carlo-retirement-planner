@@ -25,4 +25,4 @@ DESIGNED, cut 4 Oct; PMAP read (the 4 Oct 18:25 row): TOP CELL, so the share-cou
 
 ## Added 5 Oct with COV-B-STEP's read
 
-COV-B-STEP READ (the 5 Oct 08:51 row, PROVISIONAL): item 3 INCONCLUSIVE, so by its decision fed 7an does not run on COV's arm; 7an waits on the deep review after COV-B-STEP (due), which says whether family 3 has a fix to test at all (O98, O99).
+COV-B-STEP READ (the 5 Oct 08:51 row, PROVISIONAL): item 3 INCONCLUSIVE, so by its decision fed 7an does not run on COV's arm; 7an waited on the deep review after COV-B-STEP, which (deep-review-log.md 5 Oct 09:27 UK) stops 7an's registration until XAS reads (the schedule row XAS; O98, O99).

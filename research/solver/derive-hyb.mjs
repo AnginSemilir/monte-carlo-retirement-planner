@@ -4,6 +4,7 @@
 //      share s of the discordant paths (every s-th, so the split is exact) and SNAP's on the rest, for s in 0, 0.1, 0.25,
 //      0.4, 0.5, 0.6, 0.75, 1; y = (PCLSI - HYB) - (HYB - SNAP) a path, the randomization test above and below 0, Holm over
 //      the 6, read as reduce-hyb.mjs reads it;
+//   1b. item 1 with a flip floor: HYB also flips f paths each way where SNAP and PCLSI agree (f 25, 75, 150);
 //   2. the cost: ADOPT-PI's solve and forward seconds per unit (its solve and sum lines): a household's two solves, SNAP's
 //      forward run and two on PCLSI's tables (PCLSI and HYB); three households on three cores.
 //   node research/solver/derive-hyb.mjs > research/solver/results-derive-hyb.txt
@@ -34,6 +35,25 @@ for (const s of [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1]) {
   const h = holm(ys.flatMap(y => [flipP(y, B, 7002), flipP(y.map(x => -x), B, 7003)]));
   const reads = PANEL.map((id, i) => (h[2 * i] < ALPHA ? 'READ' : h[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'));
   console.log(`  s ${s.toFixed(2)}: ${PANEL.map((id, i) => `${id} ${reads[i]}`).join(', ')} -> ${reads[0] === 'READ' ? 'HELD' : reads[0] === 'TABLES' ? 'FALSIFIED' : 'INCONCLUSIVE'}`);
+}
+
+// 1b. the same with a flip floor (the deep review after COV-B-STEP, 5 Oct 09:27 UK: a null perturbation also flips paths - S130
+// lost 25 under PCLSI in ADOPT-PI, and 14 of 500 moved under a 1e-10 tie margin): HYB additionally takes the other outcome on f
+// paths each way among those where SNAP and PCLSI agree (every k-th, fixed), so its own noise is in both of its comparisons
+console.log('\n1b. ITEM 1 WITH A FLIP FLOOR: as 1, and HYB also flips f paths each way (lost and saved) among the paths SNAP and PCLSI agree on');
+for (const f of [25, 75, 150]) for (const s of [0, 0.1, 0.25, 0.4, 0.5]) {
+  const ys = PANEL.map(id => {
+    const S = F[`${id} SNAP`].survived, P = F[`${id} PCLSI`].survived; let acc = 0, up = 0, dn = 0;
+    return Array.from({ length: S.length }, (_, j) => {
+      let H = S[j];
+      if (S[j] !== P[j]) { acc += s; if (acc >= 1 - 1e-9) { acc -= 1; H = P[j]; } }
+      else if (j % 7 === 3) { if (S[j] === 1 && dn < f) { H = 0; dn++; } else if (S[j] === 0 && up < f) { H = 1; up++; } }
+      return P[j] - 2 * H + S[j];
+    });
+  });
+  const h = holm(ys.flatMap(y => [flipP(y, B, 7002), flipP(y.map(x => -x), B, 7003)]));
+  const reads = PANEL.map((id, i) => (h[2 * i] < ALPHA ? 'READ' : h[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'));
+  console.log(`  f ${String(f).padStart(3)} s ${s.toFixed(2)}: ${PANEL.map((id, i) => `${id} ${reads[i]}`).join(', ')} -> ${reads[0] === 'READ' ? 'HELD' : reads[0] === 'TABLES' ? 'FALSIFIED' : 'INCONCLUSIVE'}`);
 }
 
 console.log('\n2. THE COST (ADOPT-PI\'s solve and forward seconds a unit at 6,000 paths)');

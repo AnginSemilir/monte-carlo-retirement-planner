@@ -139,6 +139,26 @@ export function items(files, { b = B } = {}) {
   return { one, v1 };
 }
 
+/* the traces' spend level and tiers per path-year (audit-hyb.mjs saves record.mjs's trace; null in a built file without them) */
+const raw8 = v => (v instanceof Uint8Array ? v : typeof v === 'string' ? new Uint8Array(Buffer.from(v, 'base64')) : null);
+/* REPORTED (the deep review after COV-B-STEP, 5 Oct 09:27 UK; O95's root-cause step): for two arms of a household, the year each
+   discordant path first differs in its tier or spend level, as counts by year; and each arm's year-0 move (tier code, level) */
+export function divergence(A, B) {
+  const la = raw8(A.level), lb = raw8(B.level), ta = raw8(A.tier), tb = raw8(B.tier);
+  if (!la || !lb || !ta || !tb) return null;
+  const Y = A.Y, by = new Map(); let none = 0;
+  for (let j = 0; j < A.N; j++) {
+    if (A.survived[j] === B.survived[j]) continue;
+    let t = -1; for (let k = 0; k < Y; k++) { const o = j * Y + k; if (la[o] !== lb[o] || ta[o] !== tb[o]) { t = k; break; } }
+    if (t < 0) none++; else by.set(t, (by.get(t) || 0) + 1);
+  }
+  return { by: [...by.entries()].sort((x, y) => x[0] - y[0]), none };
+}
+export function opening(T) {
+  const l = raw8(T.level), t = raw8(T.tier); if (!l || !t) return null;
+  const m = new Map(); for (let j = 0; j < T.N; j++) { const k = `tier ${t[j * T.Y]} level ${l[j * T.Y]}`; m.set(k, (m.get(k) || 0) + 1); }
+  return [...m.entries()].sort((x, y) => y[1] - x[1]);
+}
 const f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-'), f3 = x => (Number.isFinite(x) ? x.toFixed(3) : '-'), pv = x => (Number.isFinite(x) ? x.toExponential(2) : '-');
 export function reading(files, out = console.log, opts = {}) {
   const r = items(files, opts);
@@ -148,6 +168,11 @@ export function reading(files, out = console.log, opts = {}) {
   out(`  -> ${r.v1} (HELD when S130 reads READ; FALSIFIED when S130 reads TABLES; else INCONCLUSIVE)`);
   out('\nSECONDARY (declared; decides nothing): paired changes a path, survival in points, tax and net (se over paths)');
   for (const id of PANEL) for (const [a, c] of [['SNAP', 'PCLSI'], ['SNAP', 'HYB'], ['HYB', 'PCLSI']]) { const p = paired(files[`${id} ${a}`], files[`${id} ${c}`]); out(`  ${id.padEnd(8)} ${c} less ${a}`.padEnd(28) + `survival ${f3(100 * (p.c - p.b) / p.N).padStart(7)}  tax ${f2(p.tax.m).padStart(11)} (${f2(p.tax.se)})  net ${f2(p.net.m).padStart(12)} (${f2(p.net.se)})`); }
+  out('\nREPORTED (the deep review after COV-B-STEP): the first year a discordant path differs in tier or spend level (year: paths), and each arm\'s year-0 move');
+  for (const id of PANEL) {
+    for (const [a, c] of [['SNAP', 'HYB'], ['HYB', 'PCLSI'], ['SNAP', 'PCLSI']]) { const d = divergence(files[`${id} ${a}`], files[`${id} ${c}`]); out(`  ${id.padEnd(8)} ${c} against ${a}: ${d ? `${d.by.map(([t, n]) => `${t}:${n}`).join(' ') || 'no discordant path'}${d.none ? ` | no difference in tier or level on ${d.none}` : ''}` : 'no traces'}`); }
+    out(`  ${id.padEnd(8)} year-0 move: ${ARMS.map(a => { const o = opening(files[`${id} ${a}`]); return `${a} ${o ? o.map(([k, n]) => `${k} (${n})`).join(', ') : 'no traces'}`; }).join(' | ')}`);
+  }
   out('\nREPORTED: the hold per arm (paths reaching 0.6 of the allowance, crossing 0.75, the mean years in [0.6, 0.75) of the reaching paths)');
   for (const k of UNIT_KEYS) { const h = hold(files[k]); out(`  ${k.padEnd(14)} reach ${String(h.reach).padStart(5)} cross ${String(h.cross).padStart(5)} dwell ${f2(h.dwell)}`); }
   out(`\nOUTCOME: 1 ${r.v1}`);
@@ -209,6 +234,11 @@ function planted() {
   cases.push(['HYB saving 90 on S370 alone moves nothing on S130', R({ hyb: { S370: 90 } }).v1, 'HELD']);
   { const r = R({ noGain: ['S130'] }); cases.push(['no discordant path between SNAP, HYB and PCLSI on S130 reads SPLIT, item 1 INCONCLUSIVE', `${r.one[0].read} ${r.v1}`, 'SPLIT INCONCLUSIVE']); } EDGES.push('no discordant path on the deciding household');
   { const r = R({ noGain: ['S130'], hyb: { S130: 30 } }); cases.push(['HYB saving 30 where PCLSI saves none (the read costing what the tables give) reads TABLES', `${r.one[0].read} ${r.one[0].readShare}`, 'TABLES NaN']); } EDGES.push('a hybrid above PCLSI (the read\'s part negative; no total gain)');
+  { const N = 4, Y = 3, mk = (sv, lv, tr) => ({ N, Y, survived: Uint8Array.from(sv), level: Uint8Array.from(lv), tier: Uint8Array.from(tr) });
+    const A = mk([1, 1, 0, 1], [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const Bb = mk([1, 0, 1, 0], [100, 100, 100, 100, 90, 100, 100, 100, 100, 100, 100, 100], [0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0]);
+    const d = divergence(A, Bb), o = opening(Bb);
+    cases.push(['the divergence counts path 1 at year 1 (level), path 2 at year 0 (tier), path 3 with no difference', `${JSON.stringify(d.by)} ${d.none} ${o[0][0]} ${o[0][1]}`, '[[0,1],[1,1]] 1 tier 0 level 100 3']); } EDGES.push('a discordant path with no difference in tier or level');
   { const lines = []; reading(builtFiles({}), l => lines.push(l), { b: PB }); cases.push(['the reading runs to its outcome', String(lines.some(l => /^\nOUTCOME: 1 HELD$/.test(l))), 'true']); }
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }

@@ -17,7 +17,7 @@ On S130 (with S370 and S128 reported), does the read of the allowance axis - PCL
 - **The two changes in PCLSI.** Under SNAP the chooser reads next year's value at the nearest allowance bucket, so the value drops when the used share crosses 0.75 and the chooser holds just below it, deferring taxable pension draws while the ISA is spent (O83; DPC: S130's dwell 9.86 years under SNAP, 2.16 under PCLSI). PCLSI also solves the tables with the blended read, so the values stored at the buckets change (the continuation no longer sees the cliff). HYB keeps PCLSI's tables and restores the snapped read, so the cliff is back in the chooser on tables solved without it.
 - **ADOPT-PI's cells** (results-derive-hyb.txt, from ADOPT-PI's per-path files): S130 25 lost and 168 saved of 6,000 (PCLSI against SNAP), S370 43 and 91, S128 49 and 73.
 - **What each outcome would say.** If the gain is the chooser's hold (O83), HYB brings the hold back and sits near SNAP: the read carries the gain (READ). If it is the tables' after-access optimism (O66) that PCLSI corrects, HYB sits near PCLSI (TABLES). Both at once read SPLIT.
-- **The checks, each failed on a planted fault first:** reduce-hyb.mjs's 22 planted checks (every outcome reached; EDGES named) and 22 of 22 mutations caught (results-reduce-hyb-mutations.txt); the preflight (preflight-hyb.sh, preflight-parse-hyb.mjs): the 3 jobs at 4 points and 20 paths through the reducer's gate and THE IDENTITY against ADOPT-PI's own preflight files, with 6 planted faults refused - passed through the launcher (results/hyb-preflight.log: PREFLIGHT PARSE PASSED, the SNAP and PCLSI arms equal to ADOPT-PI's preflight path for path on 6 units).
+- **The checks, each failed on a planted fault first:** reduce-hyb.mjs's 23 planted checks (every outcome reached; EDGES named) and 22 of 22 mutations caught (results-reduce-hyb-mutations.txt); the preflight (preflight-hyb.sh, preflight-parse-hyb.mjs): the 3 jobs at 4 points and 20 paths through the reducer's gate and THE IDENTITY against ADOPT-PI's own preflight files, with 6 planted faults refused - passed through the launcher (results/hyb-preflight.log: PREFLIGHT PARSE PASSED, the SNAP and PCLSI arms equal to ADOPT-PI's preflight path for path on 6 units).
 
 ## Prediction
 
@@ -44,7 +44,7 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 - **The data:** per household and arm, each path's survival (0 or 1), lifetime tax and terminal net, from the per-path files.
 - **Item 1 (primary; single look):** on S130, S370 and S128, per path y = (PCLSI - HYB) - (HYB - SNAP) in survival; Fisher's paired randomization test (reduce-7ar.mjs flipP, B 20,000 sign flips from fixed seeds, one-sided) of mean(y) above 0 (READ) and below 0 (TABLES), Holm over the 6; SPLIT otherwise. HELD when S130 reads READ; FALSIFIED when S130 reads TABLES; else INCONCLUSIVE. S370 and S128 reported.
 - **Secondary (declared, decides nothing):** every pair's survival change, mean tax and net change with its se.
-- **Reported, not items:** the hold per arm (reduce-adoptpi.mjs hold). O88's split by exact entry year over HYB's used-share traces on S130 and S370 (PLAN.md O88's gate) is a derive after the read, not a registered reading.
+- **Reported, not items:** the hold per arm (reduce-adoptpi.mjs hold); for each pair of arms, the year each discordant path first differs in its tier or spend level, and each arm's year-0 move (the deep review after COV-B-STEP: where one opening decision flips, path counts are not mechanism evidence, so the read says how many decisions differ and when). O88's split by exact entry year over HYB's used-share traces on S130 and S370 (PLAN.md O88's gate) is a derive after the read, not a registered reading.
 - **NOT SETTLED**, if any gate fails: the stamps; a unit missing, repeated or not done; a ran line off ADOPT-PI's settings or the arm's tables or read, or at a tie margin or death tax other than 0; a household's units on different paths or access lines; a per-path file missing, unstamped or off its sum line; the SNAP or PCLSI arm off ADOPT-PI's per-path file on any path, or ADOPT-PI's files failing their own gate.
 - **Declared choices, not derived:** more than half as the line between 'the read's gain' and 'the tables''; S130 as the deciding household (the largest, best-powered gain).
 
@@ -52,9 +52,9 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | put PCLSI to the maintainer with its survival gain attributed to the chooser's read (the hold at the false cliff, O83), so the gain needs no change to the tables; O89 split | 0.50 |
-| item 1 INCONCLUSIVE | put PCLSI to the maintainer with the gain unsplit between the read and the tables (O89 open), on ADOPT-PI's survival readings alone | 0.30 |
-| item 1 FALSIFIED | the gain is the tables' (O66's after-access optimism corrected): before PCLSI goes to the maintainer, read the tables' after-access calibration under PCLSI on S130 (7al's stage reading), since a gain from the tables may be optimism moved rather than removed | 0.20 |
+| item 1 HELD | put PCLSI to the maintainer with its survival gain attributed to the chooser's read (the hold at the false cliff, O83), so the gain needs no change to the tables; O89 split | 0.40 |
+| item 1 INCONCLUSIVE | put PCLSI to the maintainer with the gain unsplit between the read and the tables (O89 open), on ADOPT-PI's survival readings alone | 0.45 |
+| item 1 FALSIFIED | the gain is the tables' (O66's after-access optimism corrected): before PCLSI goes to the maintainer, read the tables' after-access calibration under PCLSI on S130 (7al's stage reading), since a gain from the tables may be optimism moved rather than removed | 0.15 |
 
 ## Decision fed
 
@@ -71,7 +71,7 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 
 ## Derivation script
 
-- `derive: research/solver/derive-hyb.mjs > research/solver/results-derive-hyb.txt sha256 2cc0d8e9571b8fd9`
+- `derive: research/solver/derive-hyb.mjs > research/solver/results-derive-hyb.txt sha256 fc619756d7ddd65a`
   (item 1 at modelled table shares over ADOPT-PI's cells; the cost)
 
 ## Point and interval
@@ -80,11 +80,11 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 
 ## Credence
 
-- **Item 1:** HELD 0.50, INCONCLUSIVE 0.30, FALSIFIED 0.20.
+- **Item 1:** HELD 0.40, INCONCLUSIVE 0.45, FALSIFIED 0.15 (restated for the flip floor before registration: the point, a tables' share about 0.2, sits near the HELD/SPLIT line once HYB's own flips are counted).
 
 ## Power
 
-From results-derive-hyb.txt, HYB built from ADOPT-PI's paths with a share s of the discordant paths given to the tables: S130 reads READ (HELD) at s 0, 0.10 and 0.25, SPLIT (INCONCLUSIVE) at 0.40 to 0.60, TABLES (FALSIFIED) at 0.75 and 1. S370 reads READ only to s 0.10 and TABLES only at 1; S128 (49 lost, 73 saved) reads SPLIT at every s - its gain is too small to split at 6,000 paths, so it is reported, not read.
+From results-derive-hyb.txt, HYB built from ADOPT-PI's paths with a share s of the discordant paths given to the tables: S130 reads READ (HELD) at s 0, 0.10 and 0.25, SPLIT (INCONCLUSIVE) at 0.40 to 0.60, TABLES (FALSIFIED) at 0.75 and 1. S370 reads READ only to s 0.10 and TABLES only at 1; S128 (49 lost, 73 saved) reads SPLIT at every s - its gain is too small to split at 6,000 paths, so it is reported, not read. With a flip floor (the deep review after COV-B-STEP, 5 Oct 09:27 UK: a null perturbation flips paths too - S130 lost 25 under PCLSI in ADOPT-PI, and 14 of 500 moved under a 1e-10 tie margin), HYB also flipping f paths each way where SNAP and PCLSI agree (results-derive-hyb.txt section 1b): at f 25 S130 still reads READ to s 0.25; at f 75 only to s 0.10, SPLIT from 0.25; at f 150 the fixed flip pattern reads READ to s 0.40, a property of that one pattern, not more power - so the HELD region narrows to a tables' share of about 0.1 to 0.25 depending on how much HYB flips by itself.
 
 ## Budget line
 
@@ -94,7 +94,8 @@ From results-derive-hyb.txt, HYB built from ADOPT-PI's paths with a share s of t
 
 - **First:** the identity fails - the code since ADOPT-PI is not inert on its unit; the preflight's identity at 4 points against ADOPT-PI's own preflight is the check before launch, and a failure there stops the launch.
 - **Second:** HYB is not a clean split: the snapped read on PCLSI's tables may hold at a different place from SNAP's (the bucket values differ), so 'the read's part' includes how the tables and the snap interact; the item reads which arm HYB sits nearer, not a pure decomposition, and says so if SPLIT.
-- **Third:** S130's gain is large and concentrated (168 saved), but if HYB moves paths both ways the discordance grows and SPLIT becomes likelier at a true share near a half.
+- **Third:** S130's gain is large and concentrated (168 saved), but if HYB moves paths both ways the discordance grows and SPLIT becomes likelier at a true share near a half (the flip floor, results-derive-hyb.txt 1b).
+- **Fourth:** if the arms differ by a single opening move (every path starts from one state, so one flipped year-0 move changes all 6,000), the split is a statement about that one decision, not about a mechanism along the paths; the reported year-0 move per arm says which.
 
 ## Changes after seeing results
 

@@ -112,7 +112,7 @@ From results-derive-covb.txt:
 
 ## Budget line
 
-16.9 core-hours from PMAP's own seconds (three arms, five on S370, and the fixed-policy run), the longest job 4.31 hours, about 5.0 hours on four cores longest first with no other job beside it (results-derive-covb.txt); readerTax's and coverage's own cost, the fixed run's extra chooser calls and the peak memory measured in the preflight (the deep review of 5 Oct 01:49 UK estimated about 17 core-hours, 5.5 hours on four free cores and about 7 with one light job beside it, NOT CHECKED). Launched when ADOPT-PI leaves the cores, with the light lane quiet.
+16.9 core-hours from PMAP's own seconds (three arms, five on S370, and the fixed-policy run), the longest job 4.31 hours, about 5.0 hours on four cores longest first with no other job beside it (results-derive-covb.txt); readerTax's and coverage's own cost, the fixed run's extra chooser calls and the peak memory measured in the preflight (the deep review of 5 Oct 01:49 UK estimated about 17 core-hours, 5.5 hours on four free cores and about 7 with one light job beside it, NOT CHECKED). Restated from the preflight before launch (the plan-auditor's MINOR of 5 Oct, grade C, NOT CHECKED at 30 points): scaling section 4's seconds by the preflight's S370 solves at 4 points (BASE 93, TAX 95, COV 108, ORDER 198, CORD 286 s; results/diagcovb-preflight/case1.txt) gives S370 about 6.1 hours, about 18.9 core-hours and about 6.1 hours on four free cores; a light job beside it would bring S370 near the 12-hour limit, so the light lane stays quiet while it runs (a timeout loses the household and the gate refuses the run, it does not bias it). Launched when ADOPT-PI leaves the cores.
 
 ## Pre-mortem
 

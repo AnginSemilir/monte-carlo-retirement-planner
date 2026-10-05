@@ -25,7 +25,9 @@ import { parseLabels, labelProblem } from './relook-label.mjs';
 // --plan <file> and --diff-file <file> (a unified diff of the plan) run the whole check on a fixture, for the planted cases
 const _a = process.argv.slice(2), _opt = k => { const i = _a.indexOf(k); return i >= 0 ? _a[i + 1] : null; };
 const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = _opt('--plan') || join(HERE, 'PLAN.md'), DIFF_FILE = _opt('--diff-file');
-export const ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
+// premises (PR1, PR2, ...) are items too: a result that falsifies one must reach its row (the plan-auditor's FAIL on f60d68a:
+// XAS falsified PR9 and relook never listed it). Named tests (XAS, HYB, RTAX, ...) are not matched: a known limit (RULES.md)
+export const ID = /\b(O\d{1,3}|PR\d{1,2}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
 const argv = process.argv.slice(2), bi = argv.indexOf('--base');
 const SINCE = argv.includes('--since-review'), STAGED = argv.includes('--staged'), mi = argv.indexOf('--msg'), MSG = mi >= 0 ? argv[mi + 1] : null;
 const skip = new Set(['--plan', '--diff-file'].map(k => argv.indexOf(k)).filter(i => i >= 0).map(i => i + 1));
@@ -61,7 +63,7 @@ const touched = new Set(added);
 // live rows it edits - not every id a long row mentions in passing (that listed 94 rows for one decision row)
 const bold = l => [...l.matchAll(/\*\*([^*]+)\*\*/g)].map(m => m[1]).join(' ');
 const key = l => (/^\| ([^|]+?) \|/.exec(l) || [])[1];
-const isItem = k => !!k && (/^O\d{1,3}$/.test(k) || /^([78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)$/.test(k));
+const isItem = k => !!k && (/^O\d{1,3}$/.test(k) || /^PR\d{1,2}$/.test(k) || /^([78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)$/.test(k));
 const isLedger = k => !!k && /^\d{1,2} [A-Z][a-z]{2} \d{2}:\d{2}$/.test(k.trim());
 // ids: a new ledger row's bold headline, and the key of each live row the change edits
 const ids = new Set(given.length ? given : added.flatMap(l => (isLedger(key(l)) ? [...bold(l).matchAll(ID)].map(m => m[1]) : isItem(key(l)) ? [key(l)] : [])));

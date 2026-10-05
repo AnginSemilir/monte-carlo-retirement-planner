@@ -244,13 +244,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
 28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
    counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
-29. Closed by the second unlock (5 Oct): the retro reads hyphenated names and orders closes by date (check-plan.mjs).
+29. The retro (check-plan.mjs) reads any '<token> (<what>): Brier' line as a scored test, a summary line too (scorecard.mjs words
+   LEGS around it); fix at the next unlock: read only the per-test lines. relook.mjs matches no named test (XAS, RTAX).
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
-31. The credence rule binds predictions added after d4487bd, judged-before-derived and the base rate those after ed5db5c
-   (by ancestry; the second unlock of 5 Oct): none is held to the last two yet, so they have run on plants only. A base rate may be any kind's, not the
-   item's own. A cause id need only be named before CAUSE CREDENCES, not ranked. A settlement must quote its results
-   file's deciding line, but held or not is still the author's reading of that line.
+31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, those after ed5db5c
+   (by ancestry): none is held to these two yet. A base rate may be any kind's; a cause id need only be named, not
+   ranked; a settlement quotes its deciding line, but held or not is the author's reading of it.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

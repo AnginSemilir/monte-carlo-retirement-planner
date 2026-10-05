@@ -288,7 +288,7 @@ export function hybFiles(dir = join(HERE, 'results', 'diaghyb')) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nOUTCOMES REACHED: item 1: ${[...REACHED[1]].sort().join(', ')}; item 2: ${[...REACHED[2]].sort().join(', ')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nOUTCOMES REACHED: item 1: ${[...REACHED[1]].sort().join(', ')}\nOUTCOMES REACHED: item 2: ${[...REACHED[2]].sort().join(', ')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const DIR = args[0] || join(HERE, 'results', 'diagedge'), npw = Number(args[1] || NPW), pts = args[2] || PTS;
   const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse);

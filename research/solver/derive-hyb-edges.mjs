@@ -6,7 +6,9 @@
  *   1. flat years with the pension live: years with the pension pot above 10,000 and the used share of the allowance u growing
  *      by under 0.01 to the next year, by u's band - [0.15, 0.25) (the snap's 0.25 edge, the bucket at 0), [0.25, 0.6) and
  *      [0.6, 0.75) (the 0.75 edge, DP's band) - a path's mean;
- *   2. zero-tax years with a live pension in years 2 to 19 (tax paid under 100, the pension pot above 10,000), a path's mean,
+ *   2. zero-tax years with a live pension in the 18 years from the household's access year (its access line; tax paid under
+ *      100, the pension pot above 10,000), a path's mean (the plan-auditor's MINOR 5 of 5 Oct: years 2 to 19 counted S370's
+ *      years before access),
  *      with the lifetime tax (thousands a path) and the survivors;
  *   3. the first year any state differs (u by over 1e-4, either pot by over 1, the spend level or the tier) per arm pair,
  *      over the discordant paths and over all paths, with u's band in the first arm the year before (the decision year) -
@@ -39,9 +41,9 @@ export function flatYears(T) {
   }
   return n.map(v => v / T.N);
 }
-export function zeroTax(T) {
+export function zeroTax(T, from = 2) {
   let z = 0, tx = 0, s = 0;
-  for (let j = 0; j < T.N; j++) { tx += T.tax[j]; s += T.survived[j]; for (let k = 2; k < Math.min(20, T.Y); k++) { const o = j * T.Y + k; if (T.taxPaid[o] < 100 && T.pen[o] > 1e4) z++; } }
+  for (let j = 0; j < T.N; j++) { tx += T.tax[j]; s += T.survived[j]; for (let k = from; k < Math.min(from + 18, T.Y); k++) { const o = j * T.Y + k; if (T.taxPaid[o] < 100 && T.pen[o] > 1e4) z++; } }
   return { zero: z / T.N, tax: tx / T.N / 1e3, surv: s };
 }
 const bandOf = u => (u < 0.15 ? 'u<0.15' : u < 0.25 ? '[0.15,0.25)' : u < 0.6 ? '[0.25,0.6)' : u < 0.75 ? '[0.6,0.75)' : 'u>=0.75');
@@ -76,13 +78,15 @@ requireFairLogs(logs, PRED);
 const bad = gate(units);
 const tr = bad.length ? { bad: [] } : loadTraces(units, DIR, stampOf(Object.values(logs)[0]));
 if (bad.length || tr.bad.length) { console.log(`GATE: FAILED\n  ${[...bad, ...tr.bad].join('\n  ')}`); process.exit(1); }
-const F = {};
+const F = {}, ACC = {};
+for (const u of units) if (u.done && !(u.id in ACC)) ACC[u.id] = Number((/\byear (\d+) /.exec(u.access) || [])[1]);
+if (Object.values(ACC).some(x => !Number.isFinite(x))) { console.log(`GATE: FAILED - an access line without its year: ${JSON.stringify(ACC)}`); process.exit(1); }
 for (const id of ['S130', 'S128', 'S370']) for (const a of ['snap', 'hyb', 'pclsi']) F[`${id} ${a}`] = full(JSON.parse(gunzipSync(readFileSync(join(DIR, `${id}-${a}.json.gz`))).toString()));
 console.log('GATE: passed (reduce-hyb.mjs\'s gate and the fair-gate stamp check over results/diaghyb; the identity against ADOPT-PI\'s files is results-hyb.txt\'s); planted: passed\n');
 console.log('1. FLAT YEARS WITH THE PENSION LIVE (pension pot over 10,000, u growing under 0.01), a path\'s mean, by u\'s band: SNAP / HYB / PCLSI');
 for (const id of ['S130', 'S128', 'S370']) { const r = ['snap', 'hyb', 'pclsi'].map(a => flatYears(F[`${id} ${a}`])); console.log(`  ${id.padEnd(5)} ${BANDS.map(([nm], b) => `${nm} ${r.map(x => x[b].toFixed(2)).join(' / ')}`).join('   ')}`); }
-console.log('\n2. ZERO-TAX YEARS WITH A LIVE PENSION, years 2 to 19 (a path\'s mean); lifetime tax (thousands a path); survivors of the paths: SNAP / HYB / PCLSI');
-for (const id of ['S130', 'S128', 'S370']) { const r = ['snap', 'hyb', 'pclsi'].map(a => zeroTax(F[`${id} ${a}`])); console.log(`  ${id.padEnd(5)} zero-tax years ${r.map(x => x.zero.toFixed(2)).join(' / ')}   tax ${r.map(x => x.tax.toFixed(0)).join(' / ')}   survivors ${r.map(x => x.surv).join(' / ')}`); }
+console.log('\n2. ZERO-TAX YEARS WITH A LIVE PENSION, the 18 years from access (a path\'s mean); lifetime tax (thousands a path); survivors of the paths: SNAP / HYB / PCLSI');
+for (const id of ['S130', 'S128', 'S370']) { const r = ['snap', 'hyb', 'pclsi'].map(a => zeroTax(F[`${id} ${a}`], ACC[id])); console.log(`  ${id.padEnd(5)} access year ${ACC[id]}  zero-tax years ${r.map(x => x.zero.toFixed(2)).join(' / ')}   tax ${r.map(x => x.tax.toFixed(0)).join(' / ')}   survivors ${r.map(x => x.surv).join(' / ')}`); }
 console.log('\n3. THE FIRST YEAR ANY STATE DIFFERS (u, either pot, level, tier): over the discordant paths (year:paths), u\'s band in the first arm the year before, and over all paths');
 const s = m => [...m.entries()].sort((x, y) => (typeof x[0] === 'number' ? x[0] - y[0] : String(x[0]).localeCompare(String(y[0])))).map(([k, v]) => `${k}:${v}`).join(' ');
 for (const id of ['S130', 'S128', 'S370']) for (const [a, c] of [['hyb', 'pclsi'], ['snap', 'hyb'], ['snap', 'pclsi']]) {

@@ -29,7 +29,7 @@
  *   REPORTED: per arm the paths reaching 0.6 of the allowance, crossing 0.75, and the mean years in [0.6, 0.75) of the
  *     reaching paths (the hold, as DPC saw it, at a second seed).
  *   node research/solver/reduce-adoptpi.mjs [dir] [paths] [points] > research/solver/results-adoptpi.txt
- *   node research/solver/reduce-adoptpi.mjs --planted   the planted checks alone
+ *   node research/solver/reduce-adoptpi.mjs --planted   the planted checks alone, and the outcomes they reach (OUTCOMES REACHED)
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -225,7 +225,7 @@ function builtFile(id, arm, dt, o = {}) {
 }
 const builtFiles = (o = {}) => Object.fromEntries(UNIT_KEYS.map(k => { const dt = k.includes(' DT '), arm = k.slice(k.lastIndexOf(' ') + 1), id = k.slice(0, k.length - arm.length - 1).replace(/ DT$/, ''); return [k, builtFile(id, arm, dt, o)]; }));
 function builtRead(o) { const fs = builtFiles(o); return f => { const k = UNIT_KEYS.find(x => { const dt = x.includes(' DT '), arm = x.slice(x.lastIndexOf(' ') + 1), id = x.slice(0, x.length - arm.length - 1).replace(/ DT$/, ''); return f.endsWith(`${id.replace(/[ +]/g, '_')}-${dt ? 'dt-' : ''}${arm.toLowerCase()}.json.gz`); }); if (f.endsWith('S999-snap.json.gz')) return builtFile('S999', 'SNAP', false, o); return o.missing && k === 'bridge 4 PCLSI' ? null : fs[k] || null; }; }
-const EDGES = [];
+const EDGES = [], REACHED = { 1: new Set(), 2: new Set() };
 function planted() {
   const cases = [];
   const G = o => { const us = parse(builtLog(o)); const g = gate(us, { npw: 2000 }); return g.length ? g : loadTraces(us, '/x', ST, builtRead(o)).bad; };
@@ -233,7 +233,8 @@ function planted() {
   for (const [nm, o] of [['a missing unit', { skip: 'S126 SNAP' }], ['an extra household', { extra: true }], ['a unit not done', { notDone: true }], ['a reader in an arm', { reader: true }],
     ['another seed in an arm', { seedOff: true }], ['SNAP interpolated', { wrongInterp: true }], ['a death-tax unit at death tax 0', { dtOff: true }], ['a household\'s access lines differing', { accessOff: true }],
     ['a household\'s arms on different paths', { pathsOff: true }], ['a sum line off its file\'s survivors', { sumOff: true }], ['a file with another stamp', { stOff: true }], ['a missing file', { missing: true }]]) cases.push([`the gate refuses ${nm}`, String(G(o).length > 0), 'true']);
-  const R = o => reading(builtFiles(o), () => {});
+  // every reading a plant makes records the outcomes it reached (OUTCOMES REACHED, check-prediction.mjs --outcomes)
+  const R = o => { const r = reading(builtFiles(o), () => {}); REACHED[1].add(r.v1); REACHED[2].add(r.v2); return r; };
   // ITEM 1: none differ -> 0 discordant everywhere: no material harm (the EDGE: 0 of 0 is no material harm, never 'at the line')
   { const r = R({ scen: { S130: [0, 40], S370: [0, 40] } }); cases.push(['0 discordant paths on 23 households reads them no material harm and item 1 HELD', `${r.one.filter(x => x.outcome === 'no material harm').length} ${r.v1}`, '25 HELD']); } EDGES.push('0 of 0 discordant paths (no material harm)');
   // a clear harm: 60 lost and none saved on 2,000 paths (3 points at a 0.5 margin, survival 95%: 0.25) -> harm
@@ -268,7 +269,7 @@ const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).fil
 export { builtLog, logsOf };
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\n${[1, 2].map(k => `OUTCOMES REACHED: item ${k}: ${[...REACHED[k]].sort().join(', ')}`).join('\n')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const DIR = args[0] || join(HERE, 'results', 'diagadoptpi'), npw = Number(args[1] || NPW), pts = args[2] || PTS;
   const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse);

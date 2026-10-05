@@ -198,23 +198,37 @@ export function byKind(tagged) {
 }
 
 // THE DECISIVE CHECK (O29; the 5 Oct 10:29 row; its rule written before the first pair is read, the plan-auditor's
-// BLOCKING 1 of 5 Oct 10:38 UK): over items carrying both a judged and a derived full distribution, d = RPS(judged) -
-// RPS(derived) per item, averaged within each test (a test's items, legs left out, share one run); Fisher's sign-flip
-// randomization over tests (exact when 16 tests or fewer, else 20,000 flips from seed 7002), one-sided above 0 (DERIVED
-// better) and below (JUDGED better), Holm over the 2 at 0.05; a single look once 30 such items have accrued: DERIVED
-// (HELD), JUDGED (FALSIFIED) or NEITHER (INCONCLUSIVE); before 30, ACCRUING
-export function judgedCheck(pairs, need = 30) {
-  const ok = pairs.filter(x => x.rpsJ !== null && x.rpsD !== null && x.test !== undefined), byTest = new Map();
-  for (const x of ok) { const a = byTest.get(x.test) || []; a.push(x.rpsJ - x.rpsD); byTest.set(x.test, a); }
-  const d = [...byTest.values()].map(a => a.reduce((s, v) => s + v, 0) / a.length), n = ok.length, m = d.length ? d.reduce((s, v) => s + v, 0) / d.length : NaN;
-  if (n < need) return { n, tests: d.length, mean: m, read: 'ACCRUING', line: `ACCRUING - ${n} of ${need} items over ${d.length} tests, mean RPS(judged) - RPS(derived) a test ${Number.isFinite(m) ? m.toFixed(4) : '-'}` };
+// BLOCKING 1 of 5 Oct 10:38 UK, and its looks fixed before the first read, its MINORs 1 and 2 of 5 Oct 10:45 UK): over
+// items carrying both a judged and a derived full distribution, d = RPS(judged) - RPS(derived) per item, averaged within
+// each test (a test's items, legs left out, share one run); Fisher's sign-flip randomization over tests (exact up to 16
+// tests, else 20,000 flips from an exact 32-bit generator seeded 7002), one-sided above 0 (DERIVED better) and below
+// (JUDGED better), Holm over the 2. LOOK 1 reads the first whole tests, in the scorecard's order, whose items first reach
+// 30 - the same tests at every later run, so the read is frozen once taken; if it reads NEITHER, LOOK 2 reads only the
+// tests after them, once their items reach 30. Each look at 0.025, so the two together keep a false call under 0.05.
+// DERIVED (HELD), JUDGED (FALSIFIED) or NEITHER (INCONCLUSIVE); before a look's 30, ACCRUING
+export const LOOK_ALPHA = 0.025;
+export function signFlip(d, alpha = LOOK_ALPHA) {
   const obs = d.reduce((s, v) => s + v, 0), flips = [];
   if (d.length <= 16) for (let b = 0; b < 1 << d.length; b++) flips.push(d.reduce((s, v, i) => s + ((b >> i) & 1 ? -v : v), 0));
-  else { let x = 7002; const r = () => ((x = (x * 1103515245 + 12345) % 2147483648) / 2147483648); for (let i = 0; i < 20000; i++) flips.push(d.reduce((s, v) => s + (r() < 0.5 ? -v : v), 0)); }
+  else { let x = 7002; const r = () => ((x = (Math.imul(x, 1103515245) + 12345) >>> 0) / 4294967296); for (let i = 0; i < 20000; i++) flips.push(d.reduce((s, v) => s + (r() < 0.5 ? -v : v), 0)); }
   const pUp = flips.filter(s => s >= obs - 1e-12).length / flips.length, pDn = flips.filter(s => s <= obs + 1e-12).length / flips.length;
   const holmU = pUp <= pDn ? Math.min(1, 2 * pUp) : Math.max(Math.min(1, 2 * pDn), pUp), holmD = pDn < pUp ? Math.min(1, 2 * pDn) : Math.max(Math.min(1, 2 * pUp), pDn);
-  const read = holmU < 0.05 ? 'DERIVED' : holmD < 0.05 ? 'JUDGED' : 'NEITHER';
-  return { n, tests: d.length, mean: m, pUp: holmU, pDn: holmD, read, line: `${read} - ${n} items over ${d.length} tests, mean RPS(judged) - RPS(derived) a test ${m.toFixed(4)}, Holm p (derived better, judged better) ${holmU.toFixed(4)}, ${holmD.toFixed(4)}` };
+  return { pUp: holmU, pDn: holmD, read: holmU < alpha ? 'DERIVED' : holmD < alpha ? 'JUDGED' : 'NEITHER' };
+}
+export function judgedCheck(pairs, need = 30) {
+  const ok = pairs.filter(x => x.rpsJ !== null && x.rpsD !== null && x.test !== undefined), order = [], byTest = new Map();
+  for (const x of ok) { if (!byTest.has(x.test)) { byTest.set(x.test, []); order.push(x.test); } byTest.get(x.test).push(x.rpsJ - x.rpsD); }
+  // the looks: consecutive whole tests, each look closing at the first test that brings its items to `need`
+  const looks = []; let cur = [], cnt = 0;
+  for (const tst of order) { cur.push(tst); cnt += byTest.get(tst).length; if (cnt >= need) { looks.push({ tests: cur, n: cnt }); cur = []; cnt = 0; } }
+  const mean = ts => { const d = ts.map(tst => { const a = byTest.get(tst); return a.reduce((s, v) => s + v, 0) / a.length; }); return { d, m: d.reduce((s, v) => s + v, 0) / d.length }; };
+  const fmt = (k, L, r, dd) => `LOOK ${k}: ${r.read} - ${L.n} items over ${L.tests.length} tests (${L.tests.join(', ')}), mean RPS(judged) - RPS(derived) a test ${dd.m.toFixed(4)}, Holm p (derived better, judged better) ${r.pUp.toFixed(4)}, ${r.pDn.toFixed(4)} at ${LOOK_ALPHA}`;
+  if (!looks.length) { const n = ok.length; return { read: 'ACCRUING', n, line: `ACCRUING - ${n} of ${need} items over ${order.length} tests` }; }
+  const d1 = mean(looks[0].tests), r1 = signFlip(d1.d);
+  if (r1.read !== 'NEITHER') return { read: r1.read, look: 1, line: fmt(1, looks[0], r1, d1) };
+  if (looks.length < 2) return { read: 'NEITHER', look: 1, line: `${fmt(1, looks[0], r1, d1)}; LOOK 2 accruing: ${cnt} of ${need} new items` };
+  const d2 = mean(looks[1].tests), r2 = signFlip(d2.d);
+  return { read: r2.read, look: 2, line: `${fmt(1, looks[0], r1, d1)}; ${fmt(2, looks[1], r2, d2)}` };
 }
 
 // PLANTED, before any real file is read (rule 6: a check is trusted only after it has failed on a planted fault)
@@ -303,11 +317,17 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['planted: a distribution not summing to 1 stops the scorecard', t(() => credences(pred('- **Item 1:** HELD 0.5, INCONCLUSIVE 0.3, FALSIFIED 0.3.'))), 'ERROR item 1: its three outcomes sum to 1.100, not 1']);
   cases.push(['the judged credence is scored beside the derived, each leg against the LEGS line', t(() => { const r = scoreTest(pred('- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Judged, item 1:** FALSIFIED 0.5, HELD 0.3, INCONCLUSIVE 0.2.\n- **Item 1, leg S370:** HELD 0.7, INCONCLUSIVE 0.2, FALSIFIED 0.1.'), 'x\nOUTCOME: 1 HELD\nLEGS: 1/S370 INCONCLUSIVE\n'); return JSON.stringify([r.pairs[0].o, r.judged[0].judged, r.judged[0].o, r.legs[0].o, r.rps[0].rps.toFixed(4), r.judged[0].rpsJ.toFixed(4)]); }), '[1,0.3,1,0,"0.2756","0.3700"]']);
   cases.push(['planted: leg credences with no LEGS line stop the scorecard', t(() => scoreTest(pred('- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Item 1, leg S370:** HELD 0.7, INCONCLUSIVE 0.2, FALSIFIED 0.1.'), 'x\nOUTCOME: 1 HELD\n')), 'ERROR leg credences but no LEGS line in the results']);
+  const many = (k, f, n = 30) => Array.from({ length: n }, (_, i) => ({ test: `t${i % k}`, ...f(i % k) }));
   cases.push(['the decisive check: under 30 items it is ACCRUING', judgedCheck([{ test: 'a', rpsJ: 0.3, rpsD: 0.1 }]).read, 'ACCRUING']);
-  cases.push(['the decisive check: derived better on all 6 tests of 30 items reads DERIVED', judgedCheck(Array.from({ length: 30 }, (_, i) => ({ test: `t${i % 6}`, rpsJ: 0.3, rpsD: 0.1 }))).read, 'DERIVED']);
-  cases.push(['the decisive check: judged better on 6 tests reads JUDGED', judgedCheck(Array.from({ length: 30 }, (_, i) => ({ test: `t${i % 6}`, rpsJ: 0.1, rpsD: 0.3 }))).read, 'JUDGED']);
-  cases.push(['the decisive check: mixed signs read NEITHER (a test is one cluster, however many items)', judgedCheck(Array.from({ length: 30 }, (_, i) => ({ test: `t${i % 6}`, rpsJ: i % 6 < 3 ? 0.3 : 0.1, rpsD: 0.2 }))).read, 'NEITHER']);
-  cases.push(['the decisive check: 30 items in 4 tests cannot show either at 0.05 (exact: 1/16 one-sided, 1/8 after Holm)', judgedCheck(Array.from({ length: 30 }, (_, i) => ({ test: `t${i % 4}`, rpsJ: 0.3, rpsD: 0.1 }))).read, 'NEITHER']);
+  cases.push(['the decisive check: derived better on all 8 tests (4 items each) reads DERIVED (exact 1/256, Holm 1/128, under 0.025)', judgedCheck(many(8, () => ({ rpsJ: 0.3, rpsD: 0.1 }), 32)).read, 'DERIVED']);
+  cases.push(['the decisive check: judged better on all 8 tests reads JUDGED', judgedCheck(many(8, () => ({ rpsJ: 0.1, rpsD: 0.3 }), 32)).read, 'JUDGED']);
+  cases.push(['the decisive check: 6 tests all one way read NEITHER - 1/64 alone is under 0.025, Holm 1/32 is not (the Holm step pinned)', judgedCheck(many(6, () => ({ rpsJ: 0.3, rpsD: 0.1 }))).read, 'NEITHER']);
+  cases.push(['the decisive check: mixed signs read NEITHER (a test is one cluster, however many items)', judgedCheck(many(6, k => ({ rpsJ: k < 3 ? 0.3 : 0.1, rpsD: 0.2 }))).read, 'NEITHER']);
+  cases.push(['the decisive check: 30 tests of one item each, all one way, read DERIVED by the random branch', judgedCheck(many(32, () => ({ rpsJ: 0.3, rpsD: 0.1 }), 32)).read, 'DERIVED']);
+  cases.push(['the decisive check: 30 tests of mixed signs read NEITHER by the random branch', judgedCheck(many(32, k => ({ rpsJ: k % 2 ? 0.3 : 0.1, rpsD: 0.2 }), 32)).read, 'NEITHER']);
+  cases.push(['the 32-bit generator: 100,000 draws from 7002 all distinct', (() => { let x = 7002; const s = new Set(); for (let i = 0; i < 100000; i++) { x = (Math.imul(x, 1103515245) + 12345) >>> 0; s.add(x); } return String(s.size); })(), '100000']);
+  cases.push(['the first look is frozen: tests after it do not change its read', (() => { const first = many(8, () => ({ rpsJ: 0.3, rpsD: 0.1 }), 32), later = Array.from({ length: 20 }, (_, i) => ({ test: `u${i}`, rpsJ: 0.1, rpsD: 0.3 })); return `${judgedCheck(first).read} ${judgedCheck([...first, ...later]).read} ${judgedCheck([...first, ...later]).look}`; })(), 'DERIVED DERIVED 1']);
+  cases.push(['a NEITHER first look is followed by a second on the new tests only', (() => { const first = many(6, k => ({ rpsJ: k < 3 ? 0.3 : 0.1, rpsD: 0.2 })), second = Array.from({ length: 32 }, (_, i) => ({ test: `v${i % 8}`, rpsJ: 0.3, rpsD: 0.1 })); const r = judgedCheck([...first, ...second]); return `${r.read} ${r.look}`; })(), 'DERIVED 2']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }

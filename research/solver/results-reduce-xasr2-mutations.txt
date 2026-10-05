@@ -1,0 +1,36 @@
+caught: 1: for (const u of units) if (u.plant) bad.push(
+caught: 2: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);
+caught: 3: if (!(P.nodes[1] > 0 && P.cross[1] > 0 && P.fine[1] > 0)) ba
+caught: 4: if (!(P.nodes[1] > 0 && P.cross[1] > 0 && P.fine[1] > 0)) ba
+caught: 5: if (!okFrac(P.nodes) || !okFrac(P.cr) || !okFrac(P.fine)) ba
+caught: 6: if (!okFrac(P.cross)) bad.push(
+caught: 7: if (ARMS.every(a => u.per[a] && u.per[a].cr && !(u.per[a].cr
+caught: 8: for (const a of ARMS) if (!u.blend[a] || !(u.blend[a].top > 
+caught: 9: const okFrac = f => f && f[0] === f[1];
+caught: 10: if (!N || !(k > 0) || ['arm', 'k', 't', 's41', 'p', 'cL'].so
+caught: 11: if (b.top.some(x => x !== 0 && x !== 1)) bad.push(
+caught: 12: ['bR', 'bE', 'hR', 'hE'].some(q => !Array.isArray(A[q]) || A
+caught: 13: if (!(m <= GUARD + 1e-12)) bad.push(`the BASE guard:
+caught: 14: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 15: for (const id of READ_UNITS) {
+    const t = files[id]; if (
+caught: 16: if (!bad.length) bad.push(...guard(fs));
+caught: 17: const D = perPath(S, J, j => A.read[j] - A.vb[j])
+caught: 18: lo: D.map((d, i) => d - LO1 * P[i]), hi: D.map((d, i) => HI1
+caught: 19: r.pLo < ALPHA && r.s >= HI1 ? 'TOPCELL'
+caught: 20: r.pHi < ALPHA && r.s <= LO1 ? 'REF'
+caught: 21: !(r.s >= S_MIN && r.s <= S_MAX) ? 'CONSTRUCT'
+caught: 22: per.every(r => r.read === 'TOPCELL') ? 'HELD'
+caught: 23: A = S.arms.COV, years
+caught: 24: const qr = quantRatio(S.nodes, 'BASE');
+caught: 25: const J = N.s5.map((_, j) => j).filter(j => N.arm[j] === arm
+caught: 26: Math.abs(N.s5[j] - N.p[j] * N.cL[j])
+caught: 27: qr.ratio >= Q2_HELD - 1e-12 ? 'HELD'
+caught: 28: qr.ratio <= Q2_FALS + 1e-12 ? 'FALSIFIED'
+caught: 29: const signs = pB < ALPHA && pH < ALPHA && eB.b < 0 && eB.h >
+caught: 30: Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.ab
+caught: 31: Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.ab
+caught: 32: const noSmaller = Math.abs(eC.b) >= Math.abs(eB.b) && Math.a
+caught: 33: const b = files.S126.blend, J = b.top.map((x, j) => (x === 1
+caught: 34: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.three.v}`)
+34 of 34 mutations caught

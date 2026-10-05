@@ -24,7 +24,7 @@ writeFileSync(file, `# Prediction: ${name}
 - **Kind:** test
 - **Written:** ${now} UK, before the run
 - **Seeds:** ? (each seed and its use, from the registry in RULES.md section 8 item 9, or "none: <why>")
-- **Unmasking:** ? (RULES.md section 9: the known error the tested arm removes, the baseline behaviour that error drives, and the arm or item that tells a harmful change from one that unmasks another error; or "none: <why the thing tested removes no known error>")
+- **Unmasking:** ? (RULES.md section 9: the known error the tested arm removes, the baseline behaviour that error drives, and the arm or item that tells a harmful change from one that unmasks another error. For each arm, name the arm pair that splits a harm under it and the households it runs on; where no pair exists, write that the harm is NOT SETTLED as that arm's until a named decomposing run reads it; or "none: <why the thing tested removes no known error>")
 - **Plan section:** PLAN.md "?"
 
 ## Question

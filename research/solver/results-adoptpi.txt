@@ -1,0 +1,100 @@
+GATE: passed - 56 units (25 households x 2 arms, 3 death-tax households x 2), each once and done, the shipping default's settings and the arm's axis and death tax on every ran line; each household's units on one access line and one set of paths; every per-path file present, stamped and holding its sum line
+
+ADOPT-PI: the interpolated allowance axis (PCLSI) against today's snap (SNAP) in the shipping default (no reader, the product's settings, lambda held, the estate weight 0.02, 30 points), DP's panel, 6000 paired paths (seed 7005); PR5's death-tax arm (S130, S370, S128, the pension death tax 0.4).
+
+ITEM 1 (primary): the paired survival change PCLSI less SNAP per household, b lost and c saved; the household's margin (0.25 points at SNAP survival of 95% or more, else 0.5); harm's exact McNemar p, Holm over 25; no material harm when the exact interval's lower end is above minus the margin, harm when the adjusted p is under 0.05 and the point loss at least the margin, else inconclusive
+  household        SNAP %   b     c     change   [95% interval]     margin  p Holm     outcome
+  share 0.50        99.52     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  share 0.70        99.33     2     2    0.000  [-0.058, 0.058]              0.25    1.00e+0  no material harm
+  share 0.78        99.78     0     2    0.033  [-0.023, 0.033]              0.25    1.00e+0  no material harm
+  share 0.90        99.32     2     5    0.050  [-0.049, 0.108]              0.25    1.00e+0  no material harm
+  share 0.95        73.82     1     3    0.033  [-0.041, 0.066]              0.50    1.00e+0  no material harm
+  bridge 0          99.48     1     2    0.017  [-0.041, 0.049]              0.25    1.00e+0  no material harm
+  bridge 1          99.32     3     2   -0.017  [-0.075, 0.059]              0.25    1.00e+0  no material harm
+  bridge 6          99.45     0     1    0.017  [-0.016, 0.017]              0.25    1.00e+0  no material harm
+  wealth x0.5       95.08     1     5    0.067  [-0.028, 0.099]              0.25    1.00e+0  no material harm
+  wealth x2        100.00     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S120             100.00     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S122              99.70     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S126              99.80     2     1   -0.017  [-0.049, 0.041]              0.25    1.00e+0  no material harm
+  bridge 4          99.58     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S360              34.25     0     0    0.000  [0.000, 0.000]               0.50    1.00e+0  no material harm
+  S194              98.37     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S124              93.90     0     1    0.017  [-0.016, 0.017]              0.50    1.00e+0  no material harm
+  S128              67.88    49    73    0.400  [0.023, 0.757]               0.50    1.00e+0  no material harm
+  S130              82.90    25   168    2.383  [2.025, 2.666]               0.50    1.00e+0  no material harm
+  S366              99.23     1     0   -0.017  [-0.017, 0.016]              0.25    1.00e+0  no material harm
+  S370              70.00    43    91    0.800  [0.415, 1.148]               0.50    1.00e+0  no material harm
+  bridge 4+cost     95.33     2     2    0.000  [-0.058, 0.058]              0.25    1.00e+0  no material harm
+  S162              98.72     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S172              98.65     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  S168             100.00     0     0    0.000  [0.000, 0.000]               0.25    1.00e+0  no material harm
+  the floor (the 23 outside S130 and S370): b 64 c 99 of 138000: change 0.025 points, unconditional [0.007, 0.044] against minus 0.1 (exact conditional [0.007, 0.043], reported)
+  -> HELD (HELD when no household reads harm and the floor's lower end is above minus 0.1; FALSIFIED when any household reads harm or the floor's upper end is below minus 0.1; else INCONCLUSIVE)
+
+ITEM 2 (primary): the gain on S130 and S370, the exact one-sided McNemar p of c saved in b + c, Holm over 2; GAIN when the adjusted p is under 0.05 with c > b
+  S130             b 25 c 168 change 2.383 points | p 0.00e+0 Holm 0.00e+0 | GAIN
+  S370             b 43 c 91 change 0.800 points | p 2.06e-5 Holm 2.06e-5 | GAIN
+  -> HELD (HELD when both read GAIN; FALSIFIED when either change is 0 or below; else INCONCLUSIVE)
+
+SECONDARY (declared; decides nothing): the mean paired change PCLSI less SNAP per path in lifetime tax and in terminal net (se over paths), at death tax 0
+  share 0.50       tax    3997.97 (207.04)   net   -22457.92 (1703.53)
+  share 0.70       tax    7507.92 (291.32)   net   -38599.01 (2995.45)
+  share 0.78       tax    1037.73 (110.43)   net    -2866.25 (306.16)
+  share 0.90       tax   16507.08 (492.38)   net   -80863.65 (5387.14)
+  share 0.95       tax   15741.20 (479.66)   net   -79739.74 (5095.20)
+  bridge 0         tax   11480.00 (389.64)   net   -71151.03 (5682.67)
+  bridge 1         tax   13634.41 (445.91)   net   -98554.91 (6692.19)
+  bridge 6         tax    3932.96 (284.92)   net   -21196.56 (1014.56)
+  wealth x0.5      tax   -1240.72 (150.46)   net   -20144.27 (1476.84)
+  wealth x2        tax    2247.18 (145.88)   net    -3155.71 (316.31)
+  S120             tax      97.06 (26.86)   net     -150.84 (60.08)
+  S122             tax     667.18 (71.63)   net    -3592.59 (694.54)
+  S126             tax    1534.97 (147.40)   net    -5090.84 (435.35)
+  bridge 4         tax    2197.71 (206.61)   net   -11948.28 (648.34)
+  S360             tax    2822.21 (197.86)   net   -14793.76 (1546.07)
+  S194             tax      -5.59 (4.54)   net     -131.55 (43.43)
+  S124             tax    -119.27 (24.66)   net    -5272.73 (304.10)
+  S128             tax  -72204.42 (862.48)   net    17474.91 (2356.16)
+  S130             tax -321013.36 (2895.26)   net   261976.90 (9239.00)
+  S366             tax    7003.39 (341.38)   net   -23594.37 (1501.11)
+  S370             tax  -38501.92 (1430.37)   net   705183.23 (314209.05)
+  bridge 4+cost    tax   22541.86 (629.51)   net  -198639.63 (11556.66)
+  S162             tax    4690.27 (219.26)   net   -23292.28 (1895.51)
+  S172             tax      11.81 (8.10)   net     -231.39 (56.80)
+  S168             tax     591.19 (81.60)   net    -2295.13 (514.34)
+
+SECONDARY (PR5): the death-tax arm, PCLSI less SNAP at the pension death tax 0.4, beside the same household at 0
+  S130             survival 2.383 at 0, 2.500 at 0.4 (b 27 c 177) | tax -321013.36 at 0, -250976.22 at 0.4 | net 261976.90 (9239.00) at 0, 76817.54 (4665.78) at 0.4 | the net change's sign + to +
+  S370             survival 0.800 at 0, 0.667 at 0.4 (b 50 c 90) | tax -38501.92 at 0, -30756.22 at 0.4 | net 705183.23 (314209.05) at 0, 256402.68 (144074.73) at 0.4 | the net change's sign + to +
+  S128             survival 0.400 at 0, 0.500 at 0.4 (b 50 c 80) | tax -72204.42 at 0, -44497.25 at 0.4 | net 17474.91 (2356.16) at 0, 30259.46 (1327.02) at 0.4 | the net change's sign + to +
+
+REPORTED: the hold as DPC saw it (paths reaching 0.6 of the allowance, crossing 0.75, the mean years in [0.6, 0.75) of the reaching paths)
+  share 0.50       SNAP reach 1256 cross  983 dwell  5.62 | PCLSI reach 1258 cross  993 dwell  3.16
+  share 0.70       SNAP reach 1525 cross 1076 dwell  7.77 | PCLSI reach 1520 cross 1262 dwell  3.28
+  share 0.78       SNAP reach  392 cross  196 dwell  5.97 | PCLSI reach  377 cross  273 dwell  3.34
+  share 0.90       SNAP reach 3846 cross  242 dwell  7.69 | PCLSI reach 3518 cross 1591 dwell  3.10
+  share 0.95       SNAP reach 3902 cross  462 dwell  8.47 | PCLSI reach 3747 cross 1536 dwell  3.99
+  bridge 0         SNAP reach 1608 cross  486 dwell 10.42 | PCLSI reach 1591 cross 1313 dwell  3.49
+  bridge 1         SNAP reach 1786 cross  430 dwell 10.98 | PCLSI reach 1742 cross 1388 dwell  3.44
+  bridge 6         SNAP reach 4711 cross   27 dwell  4.77 | PCLSI reach 4386 cross  682 dwell  3.31
+  wealth x0.5      SNAP reach  410 cross  217 dwell  5.50 | PCLSI reach  337 cross  233 dwell  3.22
+  wealth x2        SNAP reach  575 cross  121 dwell  7.36 | PCLSI reach  559 cross  400 dwell  3.13
+  S120             SNAP reach  308 cross  173 dwell  3.07 | PCLSI reach  310 cross  174 dwell  2.84
+  S122             SNAP reach 1114 cross  768 dwell  3.98 | PCLSI reach 1123 cross  807 dwell  3.41
+  S126             SNAP reach 1294 cross   76 dwell  3.64 | PCLSI reach 1113 cross  299 dwell  2.12
+  bridge 4         SNAP reach 3285 cross   47 dwell  3.50 | PCLSI reach 2943 cross  453 dwell  2.35
+  S360             SNAP reach 1238 cross 1064 dwell  4.90 | PCLSI reach 1241 cross 1128 dwell  3.07
+  S194             SNAP reach   29 cross    8 dwell  9.48 | PCLSI reach   29 cross    8 dwell  9.45
+  S124             SNAP reach  177 cross  112 dwell  3.35 | PCLSI reach  179 cross  115 dwell  3.26
+  S128             SNAP reach 5482 cross 5098 dwell  9.87 | PCLSI reach 5500 cross 5088 dwell  3.94
+  S130             SNAP reach 5998 cross 5991 dwell  9.81 | PCLSI reach 6000 cross 5992 dwell  2.14
+  S366             SNAP reach 5465 cross  421 dwell  6.51 | PCLSI reach 5308 cross 1187 dwell  4.67
+  S370             SNAP reach 5279 cross 5266 dwell  2.50 | PCLSI reach 5279 cross 5264 dwell  1.40
+  bridge 4+cost    SNAP reach 4206 cross  280 dwell  8.63 | PCLSI reach 3875 cross 1686 dwell  3.38
+  S162             SNAP reach 1199 cross  970 dwell  6.31 | PCLSI reach 1195 cross  981 dwell  3.22
+  S172             SNAP reach   47 cross   25 dwell  2.87 | PCLSI reach   50 cross   25 dwell  2.76
+  S168             SNAP reach  581 cross  234 dwell  5.00 | PCLSI reach  589 cross  261 dwell  4.24
+  panel: mean dwell of the reaching paths SNAP 6.94, PCLSI 3.16
+
+OUTCOME: 1 HELD; 2 HELD

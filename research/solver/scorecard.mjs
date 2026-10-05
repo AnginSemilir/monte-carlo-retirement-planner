@@ -53,6 +53,7 @@ export const TESTS = [
   { name: '7as (the charge\'s size and S194\'s bad-world slice)', prediction: 'predictions/diag-7as.md', results: 'results-7as.txt' },
   { name: '7at (the allowance axis with a bucket at the wall, and O76\'s read (b))', prediction: 'predictions/diag-7at.md', results: 'results-7at.txt' },
   { name: '7au (the learner at P\'s settings)', prediction: 'predictions/diag-7au.md', results: 'results-7au.txt' },
+  { name: 'ADOPT-PI (the interpolated allowance axis in the shipping default)', prediction: 'predictions/adopt-pi.md', results: 'results-adoptpi.txt' },
 ];
 
 export function credences(predText) {

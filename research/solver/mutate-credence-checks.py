@@ -1,6 +1,7 @@
 # THE SECOND UNLOCK'S CHECKS, EACH SHOWN TO MATTER (RULES.md rule 2): every mutation of the new credence, ancestry,
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
-# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3, labels 8 of 8)
+# run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3, labels 8 of 8;
+# the fourth unlock, the judged order's first commit: items 1-3 25 of 25 - results-unlock-judged-order.txt)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -17,7 +18,9 @@ M=[
  ("opts.judged === true || (onDisk(name) && heldBy(name, JUDGED_BOUNDARY))", "opts.judged === true || (onDisk(name) && heldBy(name, CREDENCE_BOUNDARY))"),
  ("if (J === D) return", "if (false) return"),
  ("if (git(['merge-base', '--is-ancestor', J, D]) === null) return", "if (false) return"),
- ("if (!J && !D) return [", "if (false) return ["),
+ ("if (!J && !D) { const st", "if (false) { const st"),
+ ("return st && st.trim() ? [`the \"Judged, item\" lines and the derivation", "return false ? [`the \"Judged, item\" lines and the derivation"),
+ ("return st && st.trim() ? [`the \"Judged, item\" lines and the derivation", "return true ? [`the \"Judged, item\" lines and the derivation"),
  ("if (!J) return [`the derivation", "if (false) return [`the derivation"),
  ("if (/^\\s*-\\s*\\*\\*Judged:\\*\\*\\s*none\\b/mi.test(text)) return [];", ""),
  ("if (!line) return ['results-scorecard.txt has no KIND", "if (false) return ['results-scorecard.txt has no KIND"),

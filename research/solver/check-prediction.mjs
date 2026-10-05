@@ -252,7 +252,10 @@ export function judgedOrderProblems(name, text, { git = gitRun } = {}) {
   const J = first(['log', '--reverse', '--format=%H', '-S', '**Judged, item', '--', pathOf(name)]);
   const out = outs[0].startsWith('research/') ? outs[0] : `research/solver/${outs[0]}`;
   const D = first(['log', '--diff-filter=A', '--reverse', '--format=%H', '--', out]);
-  if (!J && !D) return [`the judged credences and the derivation's output (${out}) are both uncommitted: commit the "Judged, item" lines alone first, then run the derivation (judged before derived, the second unlock of 5 Oct)`];
+  // neither committed: the commit being made is the judgement's own unless it stages the output with it. The pre-commit hook
+  // checks a first commit before it exists, so refusing here refused every new test's registration (XAS-R, 5 Oct; the fourth
+  // unlock, drafts/locked-proposal-judged-order.md); the order is then held when the output's commit is read (J before D)
+  if (!J && !D) { const st = git(['diff', '--cached', '--name-only', '--', out]); return st && st.trim() ? [`the "Judged, item" lines and the derivation's output (${out}) are staged in one commit: commit the judgement first (judged before derived, the second unlock of 5 Oct)`] : []; }
   if (!J) return [`the derivation's output (${out}) is committed but the "Judged, item" lines are not: a judgement written after the derivation tells the decisive check nothing (or write "- **Judged:** none")`];
   if (!D) return [];
   if (J === D) return [`the "Judged, item" lines and the derivation's output arrive in one commit (${J.slice(0, 7)}): commit the judgement first`];

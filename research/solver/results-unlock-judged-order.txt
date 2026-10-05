@@ -1,0 +1,53 @@
+CAUGHT   record-deep-review: if (missing.length) return `CAUSE CREDENCES names
+CAUGHT   record-deep-review: const named = id => [id, id.split('-').pop()]
+CAUGHT   record-deep-review: if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))
+CAUGHT   record-deep-review: if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))
+CAUGHT   record-deep-review: export const SUM_MAX = 1.05;
+CAUGHT   record-deep-review: const pre = c.slice(0, c.search(/CAUSE CREDENCES:/i))
+CAUGHT   record-deep-review: if (!DECIDING.test(q)) { errs.push(
+CAUGHT   record-deep-review: if (!String(text).split('\n').some(l => l.trim() === q)) { e
+CAUGHT   record-deep-review: if (!String(text).split('\n').some(l => l.trim() === q)) { e
+CAUGHT   record-deep-review: if (!m) { errs.push(`"${raw.slice(0, 60)}" is not
+CAUGHT   record-deep-review: committed != null && !String(now).startsWith(committed)
+CAUGHT   record-deep-review: if (seen.has(k)) { errs.push(`${at}: settled twice`); contin
+item 4: 12/12 caught
+CAUGHT   if (m[1] in d) Object.defineProperty
+CAUGHT   if (d.twice) P.push
+CAUGHT   if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule
+CAUGHT   else if (firstNum(line) !== Number(g.point))
+CAUGHT   /(?<![\w.])(-?(?:
+CAUGHT   /(?<![\w.])(-?(?:
+CAUGHT   export const exemptBy = (commit, ancestors) => !!commit && ancestors.h
+CAUGHT   export const CREDENCE_BOUNDARY = 'd4487bd'
+CAUGHT   opts.judged === true || (onDisk(name) && heldBy(name, JUDGED_BOUNDARY)
+CAUGHT   if (J === D) return
+CAUGHT   if (git(['merge-base', '--is-ancestor', J, D]) === null) return
+CAUGHT   if (!J && !D) { const st
+CAUGHT   return st && st.trim() ? [`the "Judged, item" lines and the derivation
+CAUGHT   return st && st.trim() ? [`the "Judged, item" lines and the derivation
+CAUGHT   if (!J) return [`the derivation
+CAUGHT   if (/^\s*-\s*\*\*Judged:\*\*\s*none\b/mi.test(text)) return [];
+CAUGHT   if (!line) return ['results-scorecard.txt has no KIND
+CAUGHT   if (!b) P.push(`item ${m[1]}: no "- **Base rate
+CAUGHT   Math.abs(r - Number(b[1])) <= 0.01 + 1e-9
+CAUGHT   && heldToJudged(name, { judged })) errs.push(...baseRateProblems(text,
+CAUGHT   && heldToCredence(name, { credence })) errs.push(...credenceProblems(t
+CAUGHT   heldBy(name, CREDENCE_BOUNDARY)));
+CAUGHT   (-?(?:\d+(?:\.\d+)?|\.\d+))(?![\w])
+CAUGHT   if (judgedOf(then) !== judgedOf(text)) return
+CAUGHT   const sc = scorecard ?? atAdd ??
+25/25 caught
+CAUGHT   check-plan: matchAll(/^(\S+) \(.*\): Brier /gm)
+CAUGHT   check-plan:   found.sort((a, b) => a.c.at - b.c.at);
+
+CAUGHT   check-plan: if (c !== penult) continue;
+item 5: 3/3 caught
+CAUGHT   relook-label.mjs: if (oldRow.split(from).join(to) !== newRow) return
+CAUGHT   relook-label.mjs: export const hasFigure = s => /\d/.test(
+CAUGHT   relook-label.mjs: export const LABEL_MAX = 40;
+CAUGHT   relook-label.mjs: if (!oldRow.includes(from)) return
+CAUGHT   relook-label.mjs: if (!from || from === to) return
+CAUGHT   relook-label.mjs: if (STANDING.test(from) || STANDING.test(to)) return
+CAUGHT   relook.mjs: if (labelErrs.length) {
+CAUGHT   relook.mjs: ids.delete(id); labelled.push(id);
+labels: 8/8 caught

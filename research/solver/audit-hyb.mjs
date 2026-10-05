@@ -1,6 +1,6 @@
 /*
  * HYB: THE FORWARD-ONLY HYBRID (PLAN.md O89; the maintainer's go-ahead, the 5 Oct 06:29 row; the tie-margin items and the
- * death-tax group dropped by the maintainer, the 5 Oct 08:00 and 08:56 rows). A TEST (predictions/diag-hyb.md). ADOPT-PI's unit
+ * death-tax group dropped by the maintainer, the 5 Oct 08:00 and 08:58 rows). A TEST (predictions/diag-hyb.md). ADOPT-PI's unit
  * (no reader, the product's settings, lambda held, the estate weight 0.02, 30 points, seed 7005, death tax 0) on S130, S370
  * and S128, one process a household: SNAP's and PCLSI's tables solved; forward runs
  *   SNAP and PCLSI: ADOPT-PI's arms again (the identity: the reducer holds them to ADOPT-PI's per-path files);

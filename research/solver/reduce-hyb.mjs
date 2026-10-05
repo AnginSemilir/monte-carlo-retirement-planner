@@ -2,7 +2,7 @@
  * HYB'S REDUCER (PLAN.md O89; audit-hyb.mjs; predictions/diag-hyb.md). A TEST on ADOPT-PI's unit at seed 7005 and death tax 0,
  * every arm of a household on the same paths: the forward-only hybrid (HYB: PCLSI's tables read through the snap) beside
  * SNAP and PCLSI on S130, S370 and S128 - whether ADOPT-PI's survival gain is the read's or the tables'. (The tie-margin items
- * and the death-tax group were dropped by the maintainer before registration, the 5 Oct 08:00 and 08:56 rows.)
+ * and the death-tax group were dropped by the maintainer before registration, the 5 Oct 08:00 and 08:58 rows.)
  * THE GATE: the stamps (fair-gate.mjs requireFairLogs against predictions/diag-hyb.md); every unit once and done (3 households
  *   x 3 arms); each ran line ADOPT-PI's settings (no reader, 30 points, seed 7005, 6,000 paths, the estate weight 0.02, the
  *   switch margin 0.001, buckets 0,0.5,1) with its arm's tables and read, tie margin 0 and death tax 0; a household's units on

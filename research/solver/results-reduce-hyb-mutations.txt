@@ -1,0 +1,23 @@
+caught: 1: if (n !== 1) bad.push(`${k}: ${n} unit lines, not 1`);
+caught: 2: if (!u.done) bad.push(`${tag}: not done`);
+caught: 3: mix: '3', tables: A.tables, read: A.read,
+caught: 4: mix: '3', tables: A.tables, read: A.read,
+caught: 5: read: A.read, deathTax: '0' };
+caught: 6: if (num(u.ran, 'tieMargin') !== 0)
+caught: 7: if (new Set(us.map(u => u.sum.pathsum)).size > 1)
+caught: 8: if (s !== u.sum.survived) bad.push(
+caught: 9: ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] 
+caught: 10: if (!t) return [`${tag}: missing`];
+caught: 11: if (t.survived[j] !== o.survived[j] || t.tax[j] !== o.tax[j]
+caught: 12: if (n) bad.push(`identity
+caught: 13: for (const id of PANEL) for (const a of ['SNAP', 'PCLSI']) {
+caught: 14: return Array.from({ length: S.N }, (_, j) => P.survived[j] -
+caught: 15: return Array.from({ length: S.N }, (_, j) => P.survived[j] -
+caught: 16: const p1 = ys.flatMap(y => [flipP(y, b, 7002), flipP(y.map(x
+caught: 17: read: h1[2 * i] < ALPHA ? 'READ' : h1[2 * i + 1] < ALPHA ? '
+caught: 18: read: h1[2 * i] < ALPHA ? 'READ' : h1[2 * i + 1] < ALPHA ? '
+caught: 19: v1 = s130 === 'READ' ? 'HELD' : s130 === 'TABLES' ? 'FALSIFI
+caught: 20: const s130 = one.find(r => r.id === 'S130').read
+caught: 21: readShare: tot ? (r.c - r.b) / tot : NaN
+caught: 22: const t = paired(F(`${id} SNAP`), F(`${id} HYB`)), r = paire
+22 of 22 mutations caught

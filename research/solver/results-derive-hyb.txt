@@ -1,0 +1,18 @@
+GATE: passed (reduce-adoptpi.mjs's gate and the fair-gate stamp check over results/diagadoptpi)
+
+1. ITEM 1: HYB built from ADOPT-PI's SNAP and PCLSI paths, taking PCLSI's outcome on a share s of the discordant paths (the tables' share); y = (PCLSI - HYB) - (HYB - SNAP), the randomization test above and below 0, Holm over 6
+  S130 b 25 c 168, S370 b 43 c 91, S128 b 49 c 73
+  s 0.00: S130 READ, S370 READ, S128 SPLIT -> HELD
+  s 0.10: S130 READ, S370 READ, S128 SPLIT -> HELD
+  s 0.25: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
+  s 0.40: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.50: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.60: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.75: S130 TABLES, S370 SPLIT, S128 SPLIT -> FALSIFIED
+  s 1.00: S130 TABLES, S370 TABLES, S128 SPLIT -> FALSIFIED
+
+2. THE COST (ADOPT-PI's solve and forward seconds a unit at 6,000 paths)
+  S130     solves 219 + 254 s; forward SNAP 419 s, 2 on PCLSI's tables at 428 s: 0.49 core-hours
+  S370     solves 244 + 278 s; forward SNAP 407 s, 2 on PCLSI's tables at 426 s: 0.49 core-hours
+  S128     solves 227 + 257 s; forward SNAP 367 s, 2 on PCLSI's tables at 370 s: 0.44 core-hours
+  total 1.4 core-hours; one process a household on three cores: 0.49 hours (ADOPT-PI's seconds, measured under its own load)

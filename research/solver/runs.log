@@ -155,3 +155,4 @@
 05 Oct 14:43 UK | main | research/solver/predictions/diag-edge.md | code 98fed13c0e83 | 2187780 | load 4.33 4.13 3.53 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-edge.sh
 05 Oct 16:43 UK | main | research/solver/predictions/diag-xas.md | code 98fed13c0e83 | 6264149 | load 1.76 1.87 1.97 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-xas.sh
 05 Oct 19:16 UK | main | none: XAS-R's build check - audit-xasr.mjs at 4 points and 3 paths a world, its self-checks only, no figure read | code 98fed13c0e83 | 01bc9ed | load 1.01 1.04 0.82 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/preflight-xasr.sh
+05 Oct 22:09 UK | main | research/solver/predictions/diag-xasr.md | code 98fed13c0e83 | e49fb89 | load 1.04 1.03 1.00 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-xasr.sh

@@ -1,0 +1,37 @@
+GATE (all but the BASE guard): passed - 3 households, every self-check, the identity against XAS's reads, S126's openings
+THE BASE GUARD: FAILED - the test is NOT SETTLED (its registered rule); what follows is observation, grade C
+  the BASE guard: S370 year 2 BASE's mean (va - ex5) 1.1305e-1 above 0.005 (optimism added)
+  the BASE guard: S370 year 2 BASE's mean (va - ex5) 1.1305e-1 against the reader's (read - ex5) -6.2866e-3: more than 0.005 further from the one-step value
+  the BASE guard: S370 year 6 BASE's mean (va - ex5) -2.0443e-1 against the reader's (read - ex5) -1.9464e-3: more than 0.005 further from the one-step value
+  the BASE guard: bridge 4 year 2 BASE's mean (va - ex5) -4.0868e-2 against the reader's (read - ex5) -6.0365e-4: more than 0.005 further from the one-step value
+
+OBSERVED, NOT SETTLED (the reducer's reading, the guard set aside; no item is read from it):
+
+THE YEAR-BEFORE READS (means over reads: rep = read - ex5; each construct's own error and the share of rep it removes)
+  S370      BASE year 2: reads 6000 (top cell 6000) rep -6.2866e-3; va 1.1305e-1 removes 18.982 (applied on 0.888 of the top reads' weight); vb -5.4892e-3 removes 0.127; plain -7.6261e-1
+  S370      BASE year 6: reads 5859 (top cell 5854) rep -1.9464e-3; va -2.0443e-1 removes -104.027 (applied on 1.000 of the top reads' weight); vb -1.4335e-3 removes 0.264; plain -7.3525e-1
+  S370      COV  year 2: reads 6000 (top cell 6000) rep 1.2480e-2; va 1.3989e-1 removes -10.209 (applied on 0.888 of the top reads' weight); vb 2.1784e-2 removes -0.746; plain -7.3406e-1
+  S370      COV  year 6: reads 5859 (top cell 5854) rep 2.5652e-2; va -1.7172e-1 removes 7.694 (applied on 1.000 of the top reads' weight); vb 3.2944e-2 removes -0.284; plain -7.0233e-1
+  bridge 4  BASE year 2: reads 6000 (top cell 6000) rep -6.0365e-4; va -4.0868e-2 removes -66.701 (applied on 1.000 of the top reads' weight); vb -5.0875e-4 removes 0.157; plain -8.6537e-1
+  bridge 4  COV  year 2: reads 6000 (top cell 6000) rep -2.7959e-4; va -4.0269e-2 removes -143.027 (applied on 1.000 of the top reads' weight); vb 1.6380e-4 removes 1.586; plain -8.6604e-1
+
+(v-b) BY THE 0.9 NODE'S SUPPORT (COV; reported: under YB-GRID it removes about what (v-a) does whatever the support, under YB-COPY mainly where the node is supported)
+  S370      year 2 top reads 6000: va removes -10.209, vb -0.746 (not within 0.15); vb on supported 5968 -0.740, on unsupported 32 0.376
+  S370      year 6 top reads 5854: va removes 7.695, vb -0.284 (not within 0.15); vb on supported 5764 -0.285, on unsupported 90 -0.114
+  bridge 4  year 2 top reads 6000: va removes -143.027, vb 1.586 (not within 0.15); vb on supported 6000 1.586, on unsupported 0 -
+
+PASS-THROUGH (COV less BASE: each read on ex5; the share of the gap to 0.93 closed = (slope - the reader's) / (0.93 - the reader's))
+  S370      year 2: reader 0.309; va 0.084 (closes -0.36); vb 0.044 (closes -0.43); plain -0.004
+  S370      year 6: reader 0.213; va 0.080 (closes -0.19); vb 0.031 (closes -0.25); plain -0.101
+  bridge 4  year 2: reader 0.503; va 0.093 (closes -0.96); vb 0.042 (closes -1.08); plain -0.409
+
+S126'S OPENING SCORES BY TERM (each arm's mixture score of each opening move; score = surv + resil + beq - short)
+  BASE BASE-move     move 59: score 1.0367e+0 surv 9.9812e-1 resil 0.0000e+0 beq 3.0689e-2 short -7.8737e-3
+  BASE COV-move      move 5: score 1.0333e+0 surv 9.9807e-1 resil 0.0000e+0 beq 2.8475e-2 short -6.7847e-3
+  COV BASE-move      move 59: score 1.0772e+0 surv 9.9794e-1 resil 0.0000e+0 beq 4.7865e-2 short -3.1433e-2
+  COV COV-move       move 5: score 1.0784e+0 surv 9.9784e-1 resil 0.0000e+0 beq 4.7539e-2 short -3.3038e-2
+
+ITEM 1 (primary): COV on S370, the share of rep (v-a) removes, per year: year 2 s -10.209 over 6000 paths, Holm p LO 1.0000 HI 0.0002 -> CONSTRUCT; year 6 s 7.694 over 5859 paths, Holm p LO 0.0002 HI 1.0000 -> CONSTRUCT -> item 1 INCONCLUSIVE
+ITEM 2: S126's opening, the rise COV less BASE and q = (resil rise + beq rise - short rise) / score rise: BASE-move score 4.0500e-2 surv -1.8000e-4 resil 0.0000e+0 beq 1.7176e-2 short -2.3559e-2 q 1.006; COV-move score 4.5100e-2 surv -2.3000e-4 resil 0.0000e+0 beq 1.9064e-2 short -2.6253e-2 q 1.005 -> item 2 HELD
+
+OUTCOME: 1 INCONCLUSIVE; 2 HELD

@@ -79,6 +79,14 @@ Seed: after 7ai (30 Sep 17:53)
 - [T:design] two decompositions were claimed that no arm performs (O81's spread reads at fixed policy, a TAX harm under S370's 2x2), and O89's split was named over SNAP's hold years, which select on one arm's behaviour -> REPLACE "Unmasking" guidance in research/solver/new-prediction.mjs with: For each arm, name the arm pair that splits a harm under it and the households it runs on; where no pair exists, write that the harm is NOT SETTLED as that arm's until a named decomposing run reads it
 - [T:stale] [T:enforce] [T:other:edit] touched rows were left contradicting themselves (the 01:30 row's dangling reference, the ledger's 'trade-off' against O97's split), a plan-row edit put two rows' cells one column off (a64a466), and test:engine had stopped at file 41 since 24 Sep (O96) -> DROP: each fixed when found (the rows rebuilt and checked by the auditor; settings.test.mjs skips comments)
 
+## HYB (closed 5 Oct 11:39)
+
+- [T:c-falsify] one arm differing in one piece (PCLSI's tables read through the snap), held path for path to ADOPT-PI's files by the gate, split O89 in a single run (results-hyb.txt) -> DROP: the reducer's identity gate already makes it routine (reduce-hyb.mjs)
+- [T:design] item 1 HELD at a judged 0.40 while the derivation's point (the tables' share about 0.2) said HELD, and the realised share was above 1 on S130 and S128; the four design FAILs since COV-B-STEP's close (the 09:46 flip floor, the 10:09 and 10:14 XAS power and SPLIT, the 10:38 decisive check with no rule) were each a number or check written without its derivation -> AUTOMATE check-prediction.mjs's CREDENCE rule (d4487bd) and scorecard.mjs judgedCheck (8bdc81c)
+- [T:order] [T:relook] dropping TAIL left it named live in four places and HYB's launch order unstated (the 09:20 FAILs, the 09:27 FAIL's relook) -> DROP: relook.mjs listed the rows; fixed in each receipt's next commit
+- [T:stale] [T:figure] [T:format] [T:code] [T:register] the BLOCKINGs from 7au's close to COV-B-STEP's, lessoned in the ADOPT-PI and COV-B-STEP closes, which check-plan.mjs's retro skips for their hyphenated names (RULES.md limit 29) -> DROP: named again here so the window is whole; the fix is limit 29's at the next unlock
+- [T:overclaim] COV-B-STEP's read stated as settled while its engine-suite gate (O96) was unmet (the 09:27 FAIL); here the Decision fed's 'O83 confirmed' was held back when the reported hold contradicted it (O101) -> DROP: the PROVISIONAL marker and the auditor's code-against-claim step catch it
+
 ## COV-B-STEP (closed 5 Oct 08:51)
 
 PROVISIONAL on O96: the read is provisional until the engine suite passes; these lessons stand on the run's conduct, not its figures.

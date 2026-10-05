@@ -249,7 +249,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
-31. Credences are held to their derivation only in tests committed from 5 Oct 11:20 UK (CREDENCE_FROM); older ones are judged.
+31. Credences are held to their derivation only in tests committed from 5 Oct 11:20 UK, and loosely (the plan-auditor's
+   MINORs 1-3 of 5 Oct 11:37 UK): an item with no Item line is unchecked; a repeated outcome is checked at its last value,
+   scored at its first; any number on the point line passes; a back-dated commit or reused name exempts a file; two
+   mutants survive. CAUSE CREDENCES ids are not tied to the causes nor their sum bounded; review-causes.md is unprotected.
 
 ---
 

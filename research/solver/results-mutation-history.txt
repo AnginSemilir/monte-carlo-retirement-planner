@@ -53,3 +53,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 13:25 UTC | reduce-edge.mjs 8b35ba6fa692 | 31 of 31 caught | escaped: none
 2026-10-05 15:52 UTC | reduce-edge.mjs 96b7669104bb | 33 of 33 caught | escaped: none
 2026-10-05 17:51 UTC | reduce-xas.mjs 34501d8e52bd | 37 of 37 caught | escaped: none
+2026-10-05 18:07 UTC | reduce-xasr.mjs 470b2d72fd46 | 29 of 35 caught | escaped: NOT CAUGHT: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);; NOT CAUGHT: 21: const D = perPath(S, J, j => A.read[j] - A.va[j]),; NOT CAUGHT: 30: q: (d('beq') - d('short')) / d('score'); NOT CAUGHT: 31: q: (d('beq') - d('short')) / d('score'); NOT CAUGHT: 34: const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`]; NOT CAUGHT: 35: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
+2026-10-05 18:08 UTC | reduce-xasr.mjs cc83235137a7 | 35 of 35 caught | escaped: none
+2026-10-05 18:09 UTC | reduce-xasr.mjs 5251d44a28ec | 36 of 36 caught | escaped: none

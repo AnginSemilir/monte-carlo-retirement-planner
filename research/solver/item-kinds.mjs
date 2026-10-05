@@ -39,6 +39,7 @@ export const ITEM_KINDS = {
  'ADOPT-PI':{1:'NOHARM',2:'EFFECT'},
  'COV-B-STEP':{1:'NOHARM',2:'NOHARM',3:'ATTRIB'},
  'HYB':{1:'ATTRIB'},   // the split of ADOPT-PI's gain between the read and the tables (diag-hyb.md; labelled at its read)
+ 'XASR':{1:'ATTRIB',2:'ATTRIB'},   // YB-COPY against YB-GRID at the year before each step, and S126-BLEND (diag-xasr.md; labelled at its registration)
  'XAS':{1:'ATTRIB',2:'ATTRIB'},   // which part of the step-read error is the table's and which the quadrature's (diag-xas.md; labelled at its read)
  'EDGE':{1:'ATTRIB',2:'ATTRIB'},   // which snap edge carries the read's gain, on each table (diag-edge.md; labelled at its read)
 };

@@ -49,3 +49,4 @@ BY KIND (items, mean credence, share held, the author's Brier, the Brier of the 
   CTRL       10   0.74   0.70   0.163   0.256
   WHOLE       6   0.47   0.50   0.192   0.301
 THREE-OUTCOME ITEMS: ranked probability score 0.111 over 7, a uniform forecast 0.206
+DEEP-REVIEW CAUSES: 0 stated, 0 settled

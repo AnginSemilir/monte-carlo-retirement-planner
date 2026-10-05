@@ -80,7 +80,7 @@ Arms: BASE and COV, COV-B-STEP's, at the same states (BASE's paths and moves: a 
 
 ## Derivation script
 
-- `derive: research/solver/derive-xas.mjs > research/solver/results-derive-xas.txt sha256 4c1e61596da9490c`
+- `derive: research/solver/derive-xas.mjs > research/solver/results-derive-xas.txt sha256 c5d114f42cb9833d`
   (the sizes each item splits; the power; the cost)
 
 ## Point and interval

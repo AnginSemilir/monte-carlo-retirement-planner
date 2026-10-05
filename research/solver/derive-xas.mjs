@@ -96,9 +96,12 @@ const Phi = x => 0.5 * (1 + erf(x / Math.SQRT2));
     console.log(`  item 1 at ${mult}x the assumed spread: detectable fraction ${f.toFixed(3)} of D; HELD when s > ${up.toFixed(3)}, FALSIFIED when s < ${dn.toFixed(3)}: HELD ${pH.toFixed(3)} INCONCLUSIVE ${(1 - pH - pF).toFixed(3)} FALSIFIED ${pF.toFixed(3)}`);
   }
   console.log(`  item 1 (prior s ~ normal(${point}, ${sdS.toFixed(3)}), the 80% interval ${lo80} to ${hi80}): HELD ${out[0].toFixed(2)} INCONCLUSIVE ${out[1].toFixed(2)} FALSIFIED ${out[2].toFixed(2)}`);
+  // the line check-prediction.mjs reads (credences derived, the maintainer's unlock of 5 Oct)
+  console.log(`CREDENCE item 1: point ${point} HELD ${out[0].toFixed(2)} INCONCLUSIVE ${out[1].toFixed(2)} FALSIFIED ${out[2].toFixed(2)}`);
   const w = 0.3, story = { S370: [0.85, 0.12, 0.03], S130: [0.9, 0.08, 0.02] }, coin = [1 / 3, 1 / 3, 1 / 3];
   const per = Object.fromEntries(Object.entries(story).map(([id, p]) => [id, p.map((x, i) => (1 - w) * x + w * coin[i])]));
   const H = per.S370[0] * per.S130[0], Fz = 1 - (1 - per.S370[2]) * (1 - per.S130[2]);
   for (const [id, p] of Object.entries(per)) console.log(`  item 2 ${id}: story (a) REP ${story[id][0]} SPLIT ${story[id][1]} QUAD ${story[id][2]}, mixed with a coin at weight ${w}: REP ${p[0].toFixed(3)} SPLIT ${p[1].toFixed(3)} QUAD ${p[2].toFixed(3)}`);
   console.log(`  item 2 (both REP for HELD, either QUAD for FALSIFIED): HELD ${H.toFixed(2)} INCONCLUSIVE ${(1 - H - Fz).toFixed(2)} FALSIFIED ${Fz.toFixed(2)}`);
+  console.log(`CREDENCE item 2: point - HELD ${H.toFixed(2)} INCONCLUSIVE ${(1 - H - Fz).toFixed(2)} FALSIFIED ${Fz.toFixed(2)}`);
 }

@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
-import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision } from '../solver/check-prediction.mjs';
+import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -270,6 +270,23 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(decisionTableProblems('## Question\nx\n').some(e => /missing section "## Decision table"/.test(e)), 'planted: a test with no decision table is refused');
   ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.85 |\n| 1 FALSIFIED | drop COV | 0.15 |')).some(e => /under a quarter/.test(e)), 'planted: a test whose action changes with chance 0.15 is refused (7av\'s pattern)');
   ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.85 |\n| 1 FALSIFIED | drop COV | 0.15 |\n- **Waiver:** the maintainer asked for this confirmation before Phase 4') ).length === 0, 'a waiver with its reason lets a low-value test through');
+  // CREDENCES DERIVED (the maintainer's unlock of 5 Oct): the stated distribution within 0.05 of the derivation's CREDENCE line,
+  // the judged one beside it, and the point the derivation used named in Point and interval
+  { const pr = (cr, pt = '- **Item 1:** about 0.5 (0.2 to 0.8).') => `# Prediction: x\n\n## Credence\n\n${cr}\n\n## Derivation script\n\n- \`derive: research/solver/d.mjs > research/solver/out.txt sha256 0123456789abcdef\`\n\n## Point and interval\n\n${pt}\n\n## Power\n\nx\n`;
+    const out = 'x\nCREDENCE item 1: point 0.5 HELD 0.34 INCONCLUSIVE 0.32 FALSIFIED 0.34\n', rd = f => (f.endsWith('out.txt') ? out : null);
+    const good = '- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Judged, item 1:** HELD 0.45, INCONCLUSIVE 0.20, FALSIFIED 0.35.';
+    const cp = (cr, pt) => credenceProblems(pr(cr, pt), { readOut: rd });
+    ok(cp(good).length === 0, 'a derived credence with its judged one, its CREDENCE line and its point passes');
+    ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.40, INCONCLUSIVE 0.26, FALSIFIED 0.34')).some(e => /more than 0\.05 apart/.test(e)), 'planted: a stated credence 0.06 off the derived one is refused');
+    ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.38, INCONCLUSIVE 0.28, FALSIFIED 0.34')).length === 0, 'EDGE: 0.04 off the derived one passes');
+    ok(cp(good.split('\n')[0]).some(e => /Judged, item 1/.test(e)), 'planted: no judged credence beside the derived one is refused');
+    ok(cp(good.replace('FALSIFIED 0.34.', 'FALSIFIED 0.44.')).some(e => /sum to 1\.100/.test(e)), 'planted: three outcomes not summing to 1 are refused');
+    ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.68, FALSIFIED 0.32')).some(e => /not all three outcomes/.test(e)), 'planted: a credence naming two outcomes is refused');
+    ok(cp(good, '- **Item 1:** about 0.6 (0.3 to 0.9).').some(e => /not the derivation's 0\.5/.test(e)), 'planted: a point not the derivation\'s (XAS\'s first credence against its point) is refused');
+    ok(cp(good, '- **Item 1:** about 0.55 (0.3 to 0.9).').some(e => /not the derivation's 0\.5/.test(e)), 'EDGE: 0.55 does not pass for the point 0.5 (a whole-number match)');
+    ok(credenceProblems(pr(good), { readOut: () => 'no credence lines' }).some(e => /prints no "CREDENCE item 1/.test(e)), 'planted: a derivation printing no CREDENCE line is refused');
+    ok(credenceProblems(pr(good).replace(/- `derive:[^\n]*\n/, ''), { readOut: rd }).some(e => /no "derive:" line/.test(e)), 'planted: no derive line is refused');
+    ok(heldToCredence('x.md', { at: CREDENCE_FROM - 60000 }) === false && heldToCredence('research/solver/predictions/diag-xas.md', { at: CREDENCE_FROM }) === true, 'a prediction committed before CREDENCE_FROM is exempt, one at it or after is held'); }
   ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.5 |\n| 1 FALSIFIED | build COV | 0.5 |')).some(e => /one action only/.test(e)), 'planted: a table with one action is refused');
   ok(decisionTableProblems(dt('| 1 HELD | a | 0.5 |\n| 1 FALSIFIED | b | 0.3 |')).some(e => /sum to 0.800/.test(e)), 'planted: credences that do not sum to 1 are refused');
   ok(decisionTableProblems(dt('| 1 HELD | a | 0.75 |\n| 1 FALSIFIED | b | 0.25 |')).length === 0, 'EDGE: a chance of exactly a quarter passes');

@@ -158,7 +158,56 @@ const onDisk = name => !!name && (existsSync(name) || existsSync(REPO + 'researc
 // `at` stands in for the first-commit time in a test (no prediction is committed after DECISION_FROM yet)
 export const heldToDecision = (name, opts = {}) => opts.decision === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)('at' in opts ? opts.at : committedAt(name)));
 
-export function checkPredictionText(text, { name, decision } = {}) {
+// CREDENCES DERIVED (the maintainer's 'unlock enforcement' of 5 Oct, on the deep review of the prediction record,
+// deep-review-log.md 5 Oct 10:16 UK: every credence so far judged, none computed from the Power section's stories, and one
+// contradicting its own point). A test first committed from CREDENCE_FROM on gives each item its full distribution
+// ("- **Item N:** HELD p, INCONCLUSIVE q, FALSIFIED r"), summing to 1, and the author's judged one beside it ("- **Judged,
+// item N:** ..."); its derivation script's output (a "derive:" line's file) prints "CREDENCE item N: point X HELD p
+// INCONCLUSIVE q FALSIFIED r" (X "-" for an item with no numeric point), each stated probability within CREDENCE_TOL of the
+// derived one, and the Point and interval section's line for the item names the derive's point
+export const CREDENCE_FROM = Date.parse('2026-10-05T11:20:00+01:00');
+export const CREDENCE_TOL = 0.05;
+const NUM = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
+const distOf = s => { const d = {}; for (const m of String(s).matchAll(new RegExp(String.raw`\b(HELD|INCONCLUSIVE|FALSIFIED)\s+` + NUM, 'g'))) d[m[1]] = Number(m[2]); return d; };
+const fullDist = d => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].every(k => k in d);
+const hasNum = (s, x) => new RegExp(String.raw`(?<![\d.])` + String(x).replace('.', '\\.') + String.raw`(?![\d])`).test(s);
+export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
+  const cred = section(text, 'Credence', { note: true });
+  if (cred === null) return ['missing section "## Credence"'];
+  const items = new Map(), judged = new Map();
+  for (const m of cred.matchAll(/^\s*-\s*\*\*Item (\d+):\*\*\s*([^\n]*)$/gm)) items.set(m[1], distOf(m[2]));
+  for (const m of cred.matchAll(/^\s*-\s*\*\*Judged, item (\d+):\*\*\s*([^\n]*)$/gm)) judged.set(m[1], distOf(m[2]));
+  if (!items.size) return ['"## Credence" gives no "- **Item N:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (credences derived, the maintainer\'s unlock of 5 Oct)'];
+  const P = [];
+  for (const [k, d] of items) {
+    if (!fullDist(d)) { P.push(`item ${k}: its credence names ${Object.keys(d).join(', ') || 'no outcome'}, not all three outcomes`); continue; }
+    const s = d.HELD + d.INCONCLUSIVE + d.FALSIFIED;
+    if (Math.abs(s - 1) > 0.011) P.push(`item ${k}: its three outcomes sum to ${s.toFixed(3)}, not 1`);
+    if (!judged.has(k) || !fullDist(judged.get(k))) P.push(`item ${k}: no "- **Judged, item ${k}:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (the author's judgement, written before the derivation, scored beside it)`);
+  }
+  // the derivation's CREDENCE lines
+  const der = section(text, 'Derivation script', { note: true }) || '';
+  const outs = [...der.matchAll(DERIVE)].map(m => m[2]);
+  const read = readOut || (f => { const x = [f, `research/solver/${f.replace(/^research\/solver\//, '')}`].map(y => root + y).find(y => existsSync(y)); return x ? readFileSync(x, 'utf8') : null; });
+  const derived = new Map();
+  for (const o of outs) { const txt = read(o); if (txt) for (const m of txt.matchAll(new RegExp(String.raw`^\s*CREDENCE item (\d+): point (\S+) HELD ` + NUM + String.raw` INCONCLUSIVE ` + NUM + String.raw` FALSIFIED ` + NUM, 'gm'))) derived.set(m[1], { point: m[2], HELD: Number(m[3]), INCONCLUSIVE: Number(m[4]), FALSIFIED: Number(m[5]) }); }
+  if (!outs.length) P.push('credences derived: no "derive:" line names the derivation\'s output');
+  const pt = section(text, 'Point and interval', { note: true }) || '';
+  for (const [k, d] of items) {
+    const g = derived.get(k);
+    if (!g) { P.push(`item ${k}: the derivation's output prints no "CREDENCE item ${k}: point X HELD p INCONCLUSIVE q FALSIFIED r" line`); continue; }
+    if (fullDist(d)) for (const o of ['HELD', 'INCONCLUSIVE', 'FALSIFIED']) if (Math.abs(d[o] - g[o]) > CREDENCE_TOL + 1e-9) P.push(`item ${k}: ${o} stated ${d[o]}, derived ${g[o]} (more than ${CREDENCE_TOL} apart)`);
+    if (g.point !== '-') {
+      const line = (new RegExp(String.raw`^\s*-\s*\*\*Item ${k}:\*\*([^\n]*)$`, 'm').exec(pt) || [])[1];
+      if (!line) P.push(`item ${k}: "## Point and interval" has no "- **Item ${k}:**" line for the derivation's point ${g.point}`);
+      else if (!hasNum(line, g.point)) P.push(`item ${k}: the point stated in "## Point and interval" is not the derivation's ${g.point} (a credence contradicting its own point)`);
+    }
+  }
+  return P;
+}
+export const heldToCredence = (name, opts = {}) => opts.credence === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= CREDENCE_FROM)('at' in opts ? opts.at : committedAt(name)));
+
+export function checkPredictionText(text, { name, decision, credence } = {}) {
   const errs = [];
   if (!/^#\s+Prediction:\s+\S/m.test(text)) errs.push('the first heading must be "# Prediction: <name>"');
   const field = f => { const m = new RegExp(`^-\\s+\\*\\*${f}:\\*\\*\\s*(.+)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
@@ -208,6 +257,7 @@ export function checkPredictionText(text, { name, decision } = {}) {
     }
   }
   if ((!kind || /^test/i.test(kind)) && heldToDecision(name, { decision })) errs.push(...decisionTableProblems(text), ...mechanismProblems(text));
+  if ((!kind || /^test/i.test(kind)) && heldToCredence(name, { credence })) errs.push(...credenceProblems(text));
   const table = section(text, 'Fair-test table');
   if (table === null) { errs.push('missing section "## Fair-test table"'); return errs; }
   const rows = table.split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));

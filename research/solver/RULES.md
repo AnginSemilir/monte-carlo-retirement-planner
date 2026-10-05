@@ -234,12 +234,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    record-review.mjs --withdraw-move <blob> --reason records a WITHDRAWN line, and liveReceipts drops the withdrawn move
    from every base lookup (research/tests/triggers.test.mjs, three cases, shown to fail with the filter removed); the
    move of 1 Oct 02:12 UK is withdrawn so (review-log.md 06:50 UK).
-26. The hooks test's timing override is unbounded: HOOKS_TIMING_SCALE (the hooks test, 2ccef75) multiplies its
-   wall-clock bounds by any factor, so a scale of 100 gives the '{' case 600 s against the 38 s fault it guards (the
-   plan-auditor's BLOCKING 1 of 1 Oct 10:44 UK and MINOR 2 of 10:46 UK; O54). The maintainer kept the doubling under load
-   (1 Oct 11:04 UK); the override is to accept only a scale below 1 (the planted case needs no more), which needs an
-   unlock. Until then: nothing sets the variable but a planted run by hand, and CI and the pre-commit hook run without it. **Closed by the maintainer's unlock, 3 Oct:** the
-   override only tightens - a scale below 1 is used, any other ignored (a scale of 100 leaves the '{' case at 6 s).
+26. Closed by the maintainer's unlock, 3 Oct: the hooks test's HOOKS_TIMING_SCALE only tightens - a scale below 1 is
+   used, any other ignored (a scale of 100 leaves the '{' case at 6 s; O54).
 27. The stale-phrase report (check-plan.mjs stalePhrases, 3 Oct) sees only a clause of 40 characters or more copied word for
    word into another line: a stale phrase left in the same table line as the edit (the line is added again, carrying it),
    or a shorter or reworded survivor, is not reported - run over the 10:08 and 18:13 FAILs' own commits it reports nothing
@@ -253,7 +249,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
-31. check-prediction.mjs checks a credence is present, not that it is derived (MINOR 3, 5 Oct 10:38 UK).
+31. Credences are held to their derivation only in tests committed from 5 Oct 11:20 UK (CREDENCE_FROM); older ones are judged.
 
 ---
 
@@ -498,7 +494,7 @@ script, its output hash recorded), Point and interval (a point and an 80% interv
 item's outcome probabilities derived from priors over the Power section's stories, the judged ones beside them; no cap), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
 looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
 would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
-`check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK), and the launcher's re-run of each derive line.
+`check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK; Credence within 0.05 of the derive's CREDENCE lines, 5 Oct), and the launcher's re-run of each derive line.
 **The scorecard** (built 26 Sep, research/solver/scorecard.mjs; 8j): each item's credence against its outcome, the Brier score per test and cumulatively,
 target below 0.20; it starts with 7e. Every recommendation to the maintainer quotes the current score.
 
@@ -627,7 +623,7 @@ result, and the Stop hook refuses to end a turn while one is due, except for 30 
 --start`. A deep review gets no ledger row: its findings go into the rows they move (the plan-update skill). The `deep-reviewer` agent steps back across the
 record - families, unmasking, premises, calibration by slice, the ranked root causes and the one decisive test - and
 records its receipt with `record-deep-review.mjs`, which takes the time from the clock and the level and the test covered
-from the records. The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also
+from the records, and refuses ranked causes without CAUSE CREDENCES (5 Oct; review-causes.md scores them). The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also
 runs both scripts' own planted checks).
 
 ## 10. The feedback loop: each test's lessons change the framework, adding or removing (the maintainer, 30 Sep)

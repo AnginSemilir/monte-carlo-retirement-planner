@@ -42,9 +42,13 @@ research/tests suites and small read-only scripts over saved traces are allowed.
    whether the aggregate hides a slice that is badly off.
 7. **Root causes, ranked.** For the largest family: each candidate cause with the evidence for and against it (cite the
    files and grades), what each predicts that the others do not, and the one test that would separate them - its arms,
-   its cases and roughly its cost. Say what you would stop doing until it is answered.
+   its cases and roughly its cost. Say what you would stop doing until it is answered. Give each ranked cause a short id
+   and its probability of being the cause (the maintainer's unlock of 5 Oct): derive it where the records allow (counts,
+   base rates, a likelihood ratio from the evidence for and against), and say which are judged. They are scored against
+   research/solver/review-causes.md as results settle them, so a cause you cannot price is still given your best number.
 8. Tag each family, flag and cause with the trigger code of the situation it arose in, where one fits
    (`[T:<code>]`, research/solver/triggers.mjs CODES), and a root cause you found with `[T:c-deep]`. Record the receipt: `node research/solver/record-deep-review.mjs --findings "<families>; <unmasking flags>; <premises at
-   risk>; <the ranked causes and the decisive test, in a few sentences>"`. It appends one line to
+   risk>; <the ranked causes and the decisive test, in a few sentences>; CAUSE CREDENCES: <id>=<p>; <id>=<p>"`. It appends one line to
    research/solver/deep-review-log.md with the time from the clock (UK), the last test in results-scorecard.txt and the
-   level from uncertainty.mjs, and refuses findings under 200 characters. Report the same in your answer.
+   level from uncertainty.mjs, and refuses findings under 200 characters or without two or more cause credences, each from
+   0 to 1. Report the same in your answer.

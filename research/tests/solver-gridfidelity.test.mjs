@@ -26,7 +26,7 @@ const LSA = m.P.lsa;
 /* a probe vector: pen, isa, taxable, gain fraction, allowance used, lump taken, cash ISA */
 const vec = (gf, used) => Float64Array.from([300000, 120000, 90000, gf, used, used > 0 ? 1 : 0, 0]);
 
-const ONLY = process.env.GRIDFID_ONLY || '';   // 'E': section E alone (research/solver/mutate-grid-pclsinterp.py)
+const ONLY = process.env.GRIDFID_ONLY || '';   // 'E': section E alone; 'F': section F (research/solver/mutate-grid-pclsinterp.py runs with 'F', E always running)
 console.log('=========== A. THE SHIPPED BUILD DID NOT MOVE ===========');
 if (!ONLY || ONLY.includes('A')) {
   const a = solve(E, M, plan, { points: 14 });
@@ -136,6 +136,29 @@ console.log('=========== E. THE ALLOWANCE AXIS INTERPOLATED (7ap; PLAN.md O71) =
     fs.every(f => cOf(gI, vec(0.25, f * LSA)) === cOf(gN, vec(0.25, f * LSA))), fs.map(f => `${f}->${gI.pcls[cOf(gI, vec(0.25, f * LSA))]}`).join(' '));
   ok('E11 and under the interpolated gain axis, the snap\'s gain bucket (0.39 -> 0.25, 0.41 -> 0.55)',
     [0.05, 0.2, 0.39, 0.41, 0.6].every(f => gOf(gG, vec(f, 0)) === gOf(gN, vec(f, 0))), [0.05, 0.2, 0.39, 0.41, 0.6].map(f => `${f}->${gG.gain[gOf(gG, vec(f, 0))]}`).join(' '));
+}
+
+console.log('=========== F. THE INTERPOLATED ALLOWANCE READ ON ONE SEGMENT (EDGE-SPLIT; PLAN.md O101) ===========');
+if (!ONLY || ONLY.includes('F')) {
+  const gN = makeGrid(m, {}), gI = makeGrid(m, { pclsInterp: true }), gL = makeGrid(m, { pclsInterp: true, pclsSeg: 'lo' }), gH = makeGrid(m, { pclsInterp: true, pclsSeg: 'hi' });
+  const table = g => { const ls = new Float64Array(g.size), bq = new Float64Array(g.size); for (let i = 0; i < g.size; i++) bq[i] = g.pcls[Math.floor(i / g.stride.pcls)]; return { ls, bq }; };
+  const read = (g, f) => { const t = table(g), out = new Float64Array(4); readValues(g, t.ls, t.bq, vec(0.25, f * LSA), out); return out[1]; };
+  const lo = [0, 0.1, 0.2, 0.3, 0.45], hi = [0.55, 0.69, 0.74, 0.76, 0.9, 1];
+  ok('F1  the default is no segment', gN.pclsSeg === null && gI.pclsSeg === null);
+  ok('F2  lo: interpolated at and below the middle bucket (the used share itself), snapped above it (0.69 and 0.74 read 0.5, 0.76 reads 1)',
+    lo.every(f => Math.abs(read(gL, f) - f) < 1e-12) && hi.every(f => read(gL, f) === read(gN, f)), [...lo, ...hi].map(f => `${f}->${read(gL, f).toFixed(3)}`).join(' '));
+  ok('F3  hi: snapped below the middle bucket (0.1 and 0.2 read 0, 0.3 reads 0.5), interpolated at and above it',
+    lo.every(f => read(gH, f) === read(gN, f)) && hi.every(f => Math.abs(read(gH, f) - f) < 1e-12), [...lo, ...hi].map(f => `${f}->${read(gH, f).toFixed(3)}`).join(' '));
+  ok('F4  at the middle bucket every reading agrees', [gN, gI, gL, gH].every(g => read(g, 0.5) === 0.5));
+  const lL = locateVec(gL, vec(0.25, 0.2 * LSA)), lL2 = locateVec(gL, vec(0.25, 0.74 * LSA)), lH = locateVec(gH, vec(0.25, 0.2 * LSA)), lH2 = locateVec(gH, vec(0.25, 0.74 * LSA));
+  ok('F5  locateVec agrees: lo brackets 0.2 (weight 0.4) and snaps 0.74 (bucket 0.5, no weight); hi snaps 0.2 (bucket 0) and brackets 0.74 (0.48)',
+    lL.ic === 0 && Math.abs(lL.icw - 0.4) < 1e-12 && lL2.ic === 1 && lL2.icw === 0 && lH.ic === 0 && lH.icw === 0 && lH2.ic === 1 && Math.abs(lH2.icw - 0.48) < 1e-12,
+    JSON.stringify([lL.ic, lL.icw, lL2.ic, lL2.icw, lH.ic, lH.icw, lH2.ic, lH2.icw]));
+  const refused = o => { try { makeGrid(m, o); return false; } catch { return true; } };
+  ok('F6  pclsSeg without pclsInterp, or not lo or hi, is refused', refused({ pclsSeg: 'lo' }) && refused({ pclsInterp: true, pclsSeg: 'mid' }));
+  const g4 = makeGrid(m, { pclsInterp: true }); g4.pclsSeg = 'lo'; g4.pcls = [0, 0.25, 0.5, 1];
+  let threw = false; try { locateVec(g4, vec(0.25, 0.3 * LSA)); } catch { threw = true; }
+  ok('F7  a segment on an axis that is not three buckets is refused at the read', threw);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

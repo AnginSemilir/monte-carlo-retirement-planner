@@ -132,7 +132,7 @@ export function makeGrid(m, opts = {}) {
     gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
     cov: COV ? { years: [] } : null, // COV-B: per step year every wealth row's share nodes (np x ni, sorted), set by `solve`
     /* 7ap (the deep review after 7al, O71): the allowance axis interpolated, not snapped. Research only, default off. */
-    pclsInterp: pclsInterpOf(opts),
+    pclsInterp: pclsInterpOf(opts), pclsSeg: pclsSegOf(opts),   // pclsSeg: EDGE-SPLIT (O101), research only, default null; see the file's end
     /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
     shareDead: opts.shareDead === 'drop' || opts.shareDead === 'linear' ? opts.shareDead : null,
     /* F1, the cliff-aware read of a bridge year (see bridgeAdjust); set by `solve` when `bridgeRead` is on */
@@ -253,7 +253,7 @@ export function locateVec(g, s) {
   if (g.cov) throw new Error('coverage: locateVec has no year; read through readValues or nearestIndex with the year');
   const pf = Math.min(1, s[4] / g.m.P.lsa);
   // when the allowance axis is interpolated (7ap), `ic` is the LOWER bracket and `icw` the weight on the one above
-  const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const cb = !pclsOnSeg(g, pf) ? null : g.pclsInterp ? bracket(g.pcls, pf) : null;
   const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
   const icw = cb ? cb.w : 0;
   // when the gain axis is interpolated, `ig` is the LOWER bracket and `igw` the weight on the one above
@@ -327,7 +327,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   }
   const pf = Math.min(1, s[4] / g.m.P.lsa);
-  const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const cb = !pclsOnSeg(g, pf) ? null : g.pclsInterp ? bracket(g.pcls, pf) : null;
   const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
   const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
   const ig = gb ? gb.i : nearest(g.gain, s[3]);
@@ -665,4 +665,22 @@ export function zeroGrowthNeed(m, t) {
   }
   ctx.oneOffCosts.forEach((amt, year) => { if (year >= ctx.baseYear + t) need += amt / (1 - worstRate); });
   return Math.max(need, ctx.solvencyFloor);
+}
+
+/* EDGE-SPLIT (O101, the deep review after HYB): the interpolated allowance read on one segment only - 'lo' below the
+   middle bucket, 'hi' above it, the snap on the other. Research only, default off (null). Kept at the file's end so the
+   lines above, which registered predictions anchor by number, do not move. */
+function pclsSegOf(opts) {
+  if (opts.pclsSeg == null) return null;
+  if (opts.pclsSeg !== 'lo' && opts.pclsSeg !== 'hi') throw new Error(`grid: pclsSeg is 'lo' or 'hi', not ${opts.pclsSeg}`);
+  if (!opts.pclsInterp) throw new Error('grid: pclsSeg splits the interpolated allowance read; set pclsInterp with it');
+  return opts.pclsSeg;
+}
+/* Whether a used share pf is on the segment where the allowance axis is read interpolated (7ap): always, unless `pclsSeg`
+   is set - then only on its segment ('lo': at or below the middle bucket; 'hi': at or above it), so the snap's cliff on
+   the other segment stays (EDGE-SPLIT, O101). At the middle bucket itself both readings agree. */
+function pclsOnSeg(g, pf) {
+  if (!g.pclsSeg) return true;
+  if (g.pcls.length !== 3) throw new Error(`grid: pclsSeg needs the three-bucket allowance axis, not ${g.pcls.length}`);
+  return g.pclsSeg === 'lo' ? pf <= g.pcls[1] : pf >= g.pcls[1];
 }

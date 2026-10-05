@@ -2,7 +2,7 @@
 # THE INTERPOLATED ALLOWANCE AXIS'S TESTS, SHOWN TO FAIL (rule 6; PLAN.md 7ap; the plan-auditor's MINOR 2 of 30 Sep 23:32 UK):
 # each line plants one fault in src/solver/grid.js or solve.js's `pclsInterp` code IN PLACE (the tests import the real
 # modules; a copy of src/ is refused by the hook), runs research/tests/solver-gridfidelity.test.mjs's section E
-# (GRIDFID_ONLY=E) and must see a FAIL line; the file is restored from its bytes in a finally block, and the restored bytes
+# and F (GRIDFID_ONLY=F; E always runs; F is EDGE-SPLIT's segment, O101) and must see a FAIL line; the file is restored from its bytes in a finally block, and the restored bytes
 # are checked. Every plant must apply exactly as written; the true code must pass. Any plant not applied or not caught fails
 # the script (exit 1). Never run it while a batch runs from the real tree (the launcher's snapshot is not touched).
 #   python3 research/solver/mutate-grid-pclsinterp.py > research/solver/results-grid-pclsinterp-mutations.txt
@@ -13,15 +13,19 @@ GRID, SOLVE = os.path.join(ROOT, 'src', 'solver', 'grid.js'), os.path.join(ROOT,
 TEST = os.path.join(ROOT, 'research', 'tests', 'solver-gridfidelity.test.mjs')
 P = [
     ("readValues drops the upper allowance corners", GRID, "W[k + NC] = W[k] * cw; W[k] *= 1 - cw;", "W[k + NC] = 0; W[k] *= 1 - cw;"),
-    ("readValues ignores the option", GRID, "const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;\n  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);\n  const gb = g.gainInterp", "const cb = null;\n  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);\n  const gb = g.gainInterp"),
+    ("readValues ignores the option", GRID, "const cb = !pclsOnSeg(g, pf) ? null : g.pclsInterp ? bracket(g.pcls, pf) : null;\n  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);\n  const gb = g.gainInterp", "const cb = null;\n  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);\n  const gb = g.gainInterp"),
     ("interp() ignores the allowance weight", GRID, "const cw = g.pclsInterp && loc.icw > 0", "const cw = false && loc.icw > 0"),
     ("the option is never set", GRID, "  return !!opts.pclsInterp;", "  return false;"),
     ("pclsInterp and pclsStrict accepted together", GRID, "if (opts.pclsInterp && opts.pclsStrict) throw", "if (false) throw"),
+    ("EDGE-SPLIT: the segments swapped", GRID, "return g.pclsSeg === 'lo' ? pf <= g.pcls[1] : pf >= g.pcls[1];", "return g.pclsSeg === 'hi' ? pf <= g.pcls[1] : pf >= g.pcls[1];"),
+    ("EDGE-SPLIT: the segment ignored", GRID, "  if (!g.pclsSeg) return true;", "  return true;"),
+    ("EDGE-SPLIT: the three-bucket guard removed", GRID, "if (g.pcls.length !== 3) throw", "if (false) throw"),
+    ("EDGE-SPLIT: pclsSeg accepted without pclsInterp", GRID, "if (!opts.pclsInterp) throw new Error('grid: pclsSeg", "if (false) throw new Error('grid: pclsSeg"),
     ("nearestIndex takes the lower allowance bracket", SOLVE, "loc.ic + (loc.icw > 0.5 ? 1 : 0))", "loc.ic)"),
     ("nearestIndex takes the lower gain bracket", SOLVE, "loc.ig + (loc.igw > 0.5 ? 1 : 0), loc.ic", "loc.ig, loc.ic"),
 ]
 def run():
-    p = subprocess.run(['node', TEST], capture_output=True, text=True, cwd=ROOT, env={**os.environ, 'GRIDFID_ONLY': 'E'})
+    p = subprocess.run(['node', TEST], capture_output=True, text=True, cwd=ROOT, env={**os.environ, 'GRIDFID_ONLY': 'F'})
     return p.stdout + p.stderr
 sha = lambda f: hashlib.sha256(open(f, 'rb').read()).hexdigest()[:12]
 out = run()

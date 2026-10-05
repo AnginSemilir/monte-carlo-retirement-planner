@@ -1,0 +1,14 @@
+# cov-b.test.mjs at 392f6ec, run 5 Oct (4 points; S130, S000)
+  ok  1. coverage refuses no reader and e3 on
+  ok  1b. under coverage locateVec, interp, readValues, nearestIndex and toVec refuse without the year
+  ok  2. S000 identical slot for slot with slot 6 the copy (28 years); S130's node carries its own value (meta {"nodes":2,"copied":8532})
+  ok  3. every table at every old node equal from step year 1 on; the year before differs
+  ok  4. every step-year node locates to itself and reads back (26); the non-step layout misses 4
+  ok  5. every inserted node is paid at every share, gain and allowance bucket (108); 2 below the edge fails 108
+  ok  6. nearestIndex returns a cell holding every step-year node's state (1404) and agrees with readValues; the non-step layout misses 162
+  ok  7. readValues with both interpolated axes equals the independent per-row multilinear read at 400 step-year states (worst 2.3e-14); the six-node layout differs at 163
+  ok  8. every repeated slot is a copy in every year, world and tier-state layer (460728 cells across 3 worlds); slot 6 against slot 4 differs at 227071
+  ok  9. the 1 year(s) with nodes are step years; the 1 spread reader year(s) fail the step test and carry none
+  ok  10. at a = 1 and W = 0 the reads equal coverage off's (270); 1e-12 either side of every node finite and within the slope's bound (3024; the narrowest cell 5.95e-3); a = 1 - 1e-3 differs at 54
+  ok  11. on 2 rows a share between the node below and the edge never reads above the edge (40); the six-node layout does at 40
+cov-b: 12 checks passed

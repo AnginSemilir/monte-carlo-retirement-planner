@@ -1,0 +1,31 @@
+XAS S370 MIXTURE SELF-CHECK DIAGNOSTIC (a measurement; runs.log 5 Oct 14:36 UK): a scratch copy of audit-xas.mjs, BASE arm only, 500 paths a world, every mismatch of the mixture re-sum classified. The xas figure lines are left out (the test's own reads; XAS reruns).
+
+=== a MEASUREMENT, not a test: diagnosing XAS S370's mixture self-check (141 of 41436 re-sums off); classifies the mismatches, decides nothing (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-COGzTx   from ed5db5c + 2 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code 98fed13c0e83 (smoke stamp 948e0f57e964): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+stamp: code 98fed13c0e83 audit c0757fffd381 prediction none sha -
+XAS: READER/TS+J/W0.02/PCLSI at 6 share points, 30 wealth points, 500 paths a world (seed 7002); arms BASE and COV; exact one-step values at 41 points; 1 households; part 0/1
+S370             case | unit READER/TS+J/W0.02/PCLSI | lambda 0.0223606797749979 tier own riskAbove auto mix 3 | arms BASE
+                 solve BASE: secs 1327 pts 30 shares 6 readerYears 8 readerTax - coverage -
+                 ran READER/TS+J/W0.02/PCLSI: mix 3 pts 30 seed 7002 paths 1500 worlds 3 steps none readerYears 0,1,2,3,4,5,6,7,255 nf 41 access 8 years 45
+                 checks: rates 10340/10340 nodes 10340/10340 mix 10300/10340
+audit-xas: S370: a self-check failed or ran on nothing
+DIAG {"chooser -Inf sum -Inf t 3":40}

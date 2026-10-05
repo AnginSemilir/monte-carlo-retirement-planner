@@ -177,7 +177,9 @@ UNITS.forEach((id, ui) => {
           X.exS.push(stepOne(tb, st, t, held, ai));
           // self-check: BASE's move's mixture score re-summed from each world's scoreMoves equals what chooseAction ranked
           let s = 0; base.mix.tables.forEach((tab, kk) => { scoreMoves(tab, st, t, SC, TX, BQ, held); s += base.mix.weights[kk] * SC[ai]; });
-          CHK.mix++; if (!(Math.abs(s - mixSC) <= 1e-12)) CHK.mixBad++;
+          // equal counts as a match: where every move fails in some world both are -Infinity, and |-Inf - -Inf| is NaN (S370's
+          // 141 of 41,436 reads in the first launch, every one of them such a position; the diagnostic of 5 Oct 14:36 UK)
+          CHK.mix++; if (!(s === mixSC || Math.abs(s - mixSC) <= 1e-12)) CHK.mixBad++;
           pend = true;
         }
         prev = ai;

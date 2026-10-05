@@ -248,6 +248,11 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
 28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
    counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
+29. check-plan.mjs's retro check reads a close's test name with /^(\w+) \(.*\): Brier /, so a hyphenated name (ADOPT-PI) is
+   skipped, and its REPLACE follow-through takes the next close by position in lessons.md, not by time, so a close written
+   above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct; ADOPT-PI's close was checked by
+   hand against triggers.mjs's CODES and the BLOCKING codes since 7au's close, and 7au's REPLACE text is in
+   new-prediction.mjs). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
 
 ---
 

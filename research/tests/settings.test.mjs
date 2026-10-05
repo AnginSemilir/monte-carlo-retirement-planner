@@ -37,7 +37,9 @@ const seen = { batch: 0, smoke: 0 };
 for (const f of readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x) || x === 'smoke.sh')) {
   const text = readFileSync(join(S, f), 'utf8');
   if (!/experiment\.mjs/.test(text)) continue;
-  const lines = text.split('\n').filter(l => !/node\s+\S*\/(?!experiment\.mjs)[\w.-]+\.mjs/.test(l)).join('\n');
+  // shell comments are prose, not settings (batch-m14c.sh's header reads 'with BETAUDIT=1: betAudit ...', parsed as "1:"
+  // and refused since 24 Sep, which stopped test:engine at this file)
+  const lines = text.split('\n').filter(l => !/^\s*#/.test(l) && !/node\s+\S*\/(?!experiment\.mjs)[\w.-]+\.mjs/.test(l)).join('\n');
   // a whole assignment in quotes ("PLANTIER=Medium Risk") first, then the bare ones
   // (one quoted string can hold several: "BLOCKTRIM=1 RAISECAP=1" is split before each NAME=)
   const quoted = [...lines.matchAll(/["']([A-Z][A-Z0-9_]*=[^"'$]*)["']/g)].flatMap(m => m[1].split(/\s+(?=[A-Z][A-Z0-9_]*=)/)).map(x => { const k = x.slice(0, x.indexOf('=')), v = x.slice(x.indexOf('=') + 1); return [k, k === 'PLANTIER' ? v.trim() : v.split(/\s+/)[0]]; });   // only a tier name has spaces

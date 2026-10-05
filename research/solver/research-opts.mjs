@@ -9,9 +9,14 @@
  *       wrong copy caught; about 18% off the solve. By the 30 Sep 09:49 mechanism (PLAN.md, the E3 paragraph) it is a
  *       research default only: PRODUCT_BASELINE carries e3: false, pinned with this file by research/tests/e3-default.test.mjs.
  *
+ * E3c's scope: SHIP, PRODUCT and TSJ at 6 share points, without pclsInterp and on code from before readerTax. Outside it -
+ * the interpolated allowance axis (PCLSI, the unit PMAP, 7an and COV-B-STEP use), readerTax, 11 or 12 share points - the
+ * identity is NOT CHECKED by a run; the deep review of 5 Oct 01:49 UK argues it holds by construction (the copied cells
+ * have an exactly empty taxable pot, and the flow rebuilds the gain basis from the pot; grade B, from the code), which a
+ * run there would confirm.
  * A research script first committed from E3_FROM on spreads RESEARCH_OPTS into its options, or carries a line
- * "// e3 off: <why>" (coverage refuses e3, 11 or 12 share points where E3's identity is unchecked, a run that must match
- * older records); research/tests/e3-default.test.mjs fails on one that does neither.
+ * "// e3 off: <why>" (coverage refuses e3; a unit outside E3c's scope above; a run that must match older records);
+ * research/tests/e3-default.test.mjs fails on one that does neither.
  */
 export const RESEARCH_OPTS = Object.freeze({ e3: true });
 export const E3_FROM = '2026-10-05T01:30:00+01:00';

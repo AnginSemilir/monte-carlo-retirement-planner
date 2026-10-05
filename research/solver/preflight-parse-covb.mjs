@@ -3,7 +3,7 @@
  * preflight is launched under "none", so the preflight calls the reducer's own parse, gate (at the preflight's size: 4 points,
  * 20 paths a world), per-path file checks and reading. Planted: a copy with one household's done line dropped, a copy with
  * COV's coverage entry removed, a copy with a sum line's survivors off its file by one, and a copy with S370's ORDER arm
- * dropped from its case line must each be refused.
+ * dropped from its case line, and a copy with CORD's step years off COV's must each be refused.
  *   node research/solver/preflight-parse-covb.mjs [dir]
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -25,7 +25,8 @@ const planted = [
   ['a done line dropped', () => run(texts.map((t, i) => (i === 0 ? t.replace(/^\s+done .*\n/m, '') : t))).bad],
   ['COV without its coverage entry', () => run(at(/^S130 /m, t => t.replace(/(solve COV: .* coverage )\S+/, '$1-'))).bad],
   ['a sum line off its file by a survivor', () => run(at(/^S126 /m, t => t.replace(/(sum TAX: paths \d+ survived )(\d+)/, (m, a, n) => `${a}${Number(n) === 0 ? 1 : Number(n) - 1}`))).bad],
-  ['S370 without its ORDER arm', () => run(at(/^S370 /m, t => t.replace(/arms BASE,TAX,COV,ORDER/, 'arms BASE,TAX,COV'))).bad],
+  ['S370 without its ORDER and CORD arms', () => run(at(/^S370 /m, t => t.replace(/arms BASE,TAX,COV,ORDER,CORD/, 'arms BASE,TAX,COV'))).bad],
+  ['CORD with other step years than COV', () => run(at(/^S370 /m, t => t.replace(/(solve CORD: .* stepYears )(\S+)/, (m, x) => `${x}99`))).bad],
 ];
 for (const [nm, f] of planted) if (!(f().length > 0)) { console.log(`PREFLIGHT PARSE FAILED: the gate does not refuse ${nm}`); process.exit(1); }
 const { files } = loadFiles(us, DIR, ST, SIZE.npw);

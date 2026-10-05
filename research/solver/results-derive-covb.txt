@@ -4,6 +4,12 @@
   bridge 4   reads 6000 | weight at 6 0.5886, 0.5824, 0.5764 | with the node 0.0000, 0.0000, 0.0000
   S126       reads 6000 | weight at 6 0.3575, 0.3584, 0.3592 | with the node 0.0000, 0.0000, 0.0000
 
+1b. STEP READS BY YEAR (results/diagpmap, every world, stepsup and stepuns): item 3 reads the last step year
+  S130       year 1: 6000 | last step year 1: 6000 reads
+  S370       year 3: 6000, year 7: 5859 | last step year 7: 5859 reads
+  bridge 4   year 3: 6000 | last step year 3: 6000 reads
+  S126       year 1: 6000 | last step year 1: 6000 reads
+
 2. ITEMS 1 AND 2 at 6,000 paths: k lost and k saved a household (net 0), through reduce-covb.mjs items()
   BASE 90% k  0: item 1 HELD (S130 [0.000, 0.000] no material harm; S370 [0.000, 0.000] no material harm; bridge 4 [0.000, 0.000] no material harm; S126 [0.000, 0.000] no material harm)
   BASE 90% k  5: item 1 HELD (S130 [-0.104, 0.104] no material harm; S370 [-0.104, 0.104] no material harm; bridge 4 [-0.104, 0.104] no material harm; S126 [-0.104, 0.104] no material harm)
@@ -16,19 +22,19 @@
   BASE 97% k 40: item 1 INCONCLUSIVE (S130 [-0.304, 0.304] inconclusive; S370 [-0.304, 0.304] inconclusive; bridge 4 [-0.304, 0.304] inconclusive; S126 [-0.304, 0.304] inconclusive)
   BASE 97% k 80: item 1 INCONCLUSIVE (S130 [-0.426, 0.426] inconclusive; S370 [-0.426, 0.426] inconclusive; bridge 4 [-0.426, 0.426] inconclusive; S126 [-0.426, 0.426] inconclusive)
 
-3. ITEM 3: the exact sign test, Holm over the 4, at PMAP's read counts with every read changed and a share q down
+3. ITEM 3: the exact sign test, Holm over the 4, at the last step year's read counts with every read changed and a share q down
   q 0.50: Holm p S130 1.00e+0, S370 1.00e+0, bridge 4 1.00e+0, S126 1.00e+0 -> not every household shown
-  q 0.51: Holm p S130 3.73e-1, S370 1.25e-1, bridge 4 3.73e-1, S126 3.73e-1 -> not every household shown
-  q 0.52: Holm p S130 6.09e-3, S370 6.39e-5, bridge 4 6.09e-3, S126 6.09e-3 -> every household shown
-  q 0.55: Holm p S130 3.00e-14, S370 1.03e-26, bridge 4 3.00e-14, S126 3.00e-14 -> every household shown
-  q 0.60: Holm p S130 6.41e-54, S370 5.62e-104, bridge 4 6.41e-54, S126 6.41e-54 -> every household shown
+  q 0.51: Holm p S130 4.98e-1, S370 4.98e-1, bridge 4 4.98e-1, S126 4.98e-1 -> not every household shown
+  q 0.52: Holm p S130 8.12e-3, S370 8.12e-3, bridge 4 8.12e-3, S126 8.12e-3 -> every household shown
+  q 0.55: Holm p S130 4.00e-14, S370 4.00e-14, bridge 4 4.00e-14, S126 4.00e-14 -> every household shown
+  q 0.60: Holm p S130 8.55e-54, S370 4.35e-53, bridge 4 8.55e-54, S126 8.55e-54 -> every household shown
   q 0.80: Holm p S130 0.00e+0, S370 0.00e+0, bridge 4 0.00e+0, S126 0.00e+0 -> every household shown
 
-4. THE COST (PMAP's solve and forward seconds a household; an arm a solve and a forward run, the fixed-policy run one more forward run)
+4. THE COST (PMAP's solve and forward seconds a household; an arm a solve and a forward run, the fixed-policy run one more forward run; the light lane quiet)
   S130           solve 1580 s, forward 902 s; 3 arms and the fixed run: 2.32 core-hours
-  S370           solve 1863 s, forward 1031 s; 4 arms and the fixed run: 3.50 core-hours
+  S370           solve 1863 s, forward 1031 s; 5 arms and the fixed run: 4.31 core-hours
   bridge 4       solve 1816 s, forward 1055 s; 3 arms and the fixed run: 2.69 core-hours
   S126           solve 1723 s, forward 1030 s; 3 arms and the fixed run: 2.58 core-hours
   bridge 0       solve 1613 s, forward 943 s; 3 arms and the fixed run: 2.39 core-hours
   S126 all-ISA   solve 1723 s, forward 1030 s; 3 arms and the fixed run: 2.58 core-hours
-  total 16.1 core-hours; the longest job 3.50 hours; on four cores, longest first, 5.0 hours (NOT CHECKED: readerTax's and coverage's own cost, the tax pass and the node bisection, measured in the preflight)
+  total 16.9 core-hours; the longest job 4.31 hours; on four cores, longest first, 5.0 hours (NOT CHECKED: readerTax's and coverage's own cost and the fixed run's extra chooser calls at every reader year, measured in the preflight; a light job beside it roughly doubles the wall time)

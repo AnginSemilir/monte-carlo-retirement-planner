@@ -1,7 +1,8 @@
 # THE SECOND UNLOCK'S CHECKS, EACH SHOWN TO MATTER (RULES.md rule 2): every mutation of the new credence, ancestry,
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
 # run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3, labels 8 of 8;
-# the fourth unlock, the judged order's first commit: items 1-3 25 of 25 - results-unlock-judged-order.txt)
+# the fourth unlock, the judged order's first commit and the receipt's test (O107): items 1-3 25 of 25, item 4 17 of 17 -
+# results-unlock-judged-order.txt)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -35,6 +36,11 @@ M=[
 ]
 # item 4: the deep reviews' causes (record-deep-review.mjs; its planted checks, then scorecard.mjs's, must fail)
 M4=[
+ ("if (best === null || v >= bt) { best = t; bt = v; }", "if (true) { best = t; bt = v; }"),
+ ("v = c === undefined || c === null ? -Infinity : c;", "v = c === undefined || c === null ? Infinity : c;"),
+ ("closes.set(m[1], stamp(m[2]));", "closes.set(m[1], Number(m[2].split(' ')[0]));"),
+ ("export const coveredOf = rd => latestCovered(rd('results-scorecard.txt'), rd('lessons.md'));", "export const coveredOf = rd => (scoredTests(rd('results-scorecard.txt')).pop() || {}).name;"),
+ ("receiptLine({ when, covered: coveredOf(rd), level, findings })", "receiptLine({ when, covered: (scoredTests(rd('results-scorecard.txt')).pop() || {}).name, level, findings })"),
  ("if (missing.length) return `CAUSE CREDENCES names", "if (false) return `CAUSE CREDENCES names"),
  ("const named = id => [id, id.split('-').pop()]", "const named = id => [id]"),
  ("if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))", "if (sum > SUM_MAX + 1e-9)"),

@@ -108,6 +108,20 @@ export function retirementProblem(f) {
   return null;
 }
 export const retirementLine = ({ when, findings }) => `- ${when} UK | retirement | ${cleanFindings(findings)}`;
+// THE TEST A RECEIPT COVERS: the scored test closed last (lessons.md "## <test> (closed D Mon HH:MM)"), not the last in the
+// scorecard's file order - scorecard.mjs lists EDGE after XAS though XAS closed later, so the receipt after XAS said EDGE
+// (PLAN.md O107; the fourth unlock). A test with no close in lessons.md ranks below every closed one; ties go to file order.
+export function latestCovered(sc, lessons) {
+  const tests = scoredTests(sc), closes = new Map();
+  for (const m of String(lessons || '').matchAll(/^## (\S+) \(closed (\d{1,2} \w{3} \d{2}:\d{2})\)/gm)) closes.set(m[1], stamp(m[2]));
+  let best = null, bt = -Infinity;
+  for (const t of tests) { const c = closes.get(t.name.split(' (')[0]), v = c === undefined || c === null ? -Infinity : c; if (best === null || v >= bt) { best = t; bt = v; } }
+  return best ? best.name : null;
+}
+// what the recorder covers, read from the files as the receipt is written (`rd` reads a file of this folder, '' if absent)
+export const coveredOf = rd => latestCovered(rd('results-scorecard.txt'), rd('lessons.md'));
+// the receipt the recorder appends, from the folder's files as `rd` reads them
+export const receiptFor = (rd, { when, level, findings }) => receiptLine({ when, covered: coveredOf(rd), level, findings });
 export function receiptLine({ when, covered, level, findings }) {
   if (!covered) throw new Error('no scored test to cover: results-scorecard.txt has none');
   return `- ${when} UK | covered ${covered} | level ${level} | ${cleanFindings(findings)}`;
@@ -123,6 +137,10 @@ function planted() {
     ['the clock in UK time, no comma', ukNow(new Date('2026-09-26T15:48:00Z')), '26 Sep 16:48'],
     ['the receipt is read back by uncertainty.mjs: its test and its time', `${u.covered} ${stamp(u.last) === stamp('26 Sep 16:48')}`, '7t (b) true'],
     ['a pipe in the findings cannot split the line', String(line.split(' | ').length), '4'],
+    ['planted: the receipt covers the test closed last, not the last in file order (O107: EDGE listed after XAS)', String(latestCovered('XAS (x): Brier 0.1 over 1 (1 0.5 -> held)\nEDGE (y): Brier 0.2 over 1 (1 0.5 -> held)\n', '## XAS (closed 5 Oct 18:33)\n\n## EDGE (closed 5 Oct 16:25)\n')), 'XAS (x)'],
+    ['EDGE: a test with no close ranks below a closed one, and with no closes at all the last in file order is kept', `${latestCovered('A (a): Brier 0.1 over 1 (1 0.5 -> held)\nB (b): Brier 0.1 over 1 (1 0.5 -> held)\n', '## A (closed 1 Oct 09:00)\n')} / ${latestCovered(sc, '')}`, 'A (a) / 7t (b)'],
+    ['the receipt the recorder appends covers the test closed last (receiptFor, the main path\'s own call)', receiptFor(p => ({ 'results-scorecard.txt': 'XAS (x): Brier 0.1 over 1 (1 0.5 -> held)\nEDGE (y): Brier 0.2 over 1 (1 0.5 -> held)\n', 'lessons.md': '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n' })[p] || '', { when: '5 Oct 19:00', level: 'HIGH', findings: long }).split(' | ')[1], 'covered XAS (x)'],
+    ['EDGE: a close in a later month outranks an earlier day number', String(latestCovered('A (a): Brier 0.1 over 1 (1 0.5 -> held)\nB (b): Brier 0.1 over 1 (1 0.5 -> held)\n', '## A (closed 2 Oct 09:00)\n## B (closed 30 Sep 23:00)\n')), 'A (a)'],
     ['short findings are refused', String(!!findingsProblem('families: none')), 'true'],
     ['planted: full-length findings with no CAUSE CREDENCES are refused', String(!!findingsProblem(long)), 'true'],
     ['full findings with their cause credences pass', String(findingsProblem(`${long} ranked: rep, quad. CAUSE CREDENCES: rep=0.45; quad=0.35`)), 'null'],
@@ -197,7 +215,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (bad) { console.error(`not recorded: ${bad}\nusage: --start | --findings "<...>"`); process.exit(2); }
   const rd = p => (existsSync(join(HERE, p)) ? readFileSync(join(HERE, p), 'utf8') : '');
   const sc = rd('results-scorecard.txt'), u = index({ scorecard: sc, plan: rd('PLAN.md'), log: rd('deep-review-log.md') });
-  const line = receiptLine({ when: ukNow(), covered: (scoredTests(sc).pop() || {}).name, level: u.level, findings: f });
+  const line = receiptFor(rd, { when: ukNow(), level: u.level, findings: f });
   appendFileSync(LOG, `${line}\n`);
   console.log(`recorded: ${line.slice(0, 160)}${line.length > 160 ? '...' : ''}`);
 }

@@ -1,3 +1,8 @@
+CAUGHT   record-deep-review: if (best === null || v >= bt) { best = t; bt = v; }
+CAUGHT   record-deep-review: v = c === undefined || c === null ? -Infinity : c;
+CAUGHT   record-deep-review: closes.set(m[1], stamp(m[2]));
+CAUGHT   record-deep-review: export const coveredOf = rd => latestCovered(rd('results-sco
+CAUGHT   record-deep-review: receiptLine({ when, covered: coveredOf(rd), level, findings 
 CAUGHT   record-deep-review: if (missing.length) return `CAUSE CREDENCES names
 CAUGHT   record-deep-review: const named = id => [id, id.split('-').pop()]
 CAUGHT   record-deep-review: if (sum > SUM_MAX + 1e-9 && !/CAUSES OVERLAP:/i.test(pre))
@@ -10,7 +15,7 @@ CAUGHT   record-deep-review: if (!String(text).split('\n').some(l => l.trim() ==
 CAUGHT   record-deep-review: if (!m) { errs.push(`"${raw.slice(0, 60)}" is not
 CAUGHT   record-deep-review: committed != null && !String(now).startsWith(committed)
 CAUGHT   record-deep-review: if (seen.has(k)) { errs.push(`${at}: settled twice`); contin
-item 4: 12/12 caught
+item 4: 17/17 caught
 CAUGHT   if (m[1] in d) Object.defineProperty
 CAUGHT   if (d.twice) P.push
 CAUGHT   if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule

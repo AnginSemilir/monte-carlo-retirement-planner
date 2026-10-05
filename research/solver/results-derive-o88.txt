@@ -26,3 +26,18 @@ O88 OVER ADOPT-PI'S TRACES: the band [0.6, 0.75) State Pension drop (mean growth
   S162                  12 | - (0)                  - (0)            - (0)           | - (0)                   - (0)            - (0)
   S172                  12 | - (0)                  - (0)            - (0)           | - (0)                   - (0)            - (0)
   S168                  12 | - (0)                  - (0)            - (0)           | - (0)                   - (0)            - (0)
+
+THE LATE BIN BY EXACT ENTRY OFFSET d = SP year - entry year (the households with late path-years): drop (State Pension year path-years / year-before path-years)
+  household        arm   d 0                       d 1                       d 2                       d 3                       d 4                       
+  share 0.95       SNAP  - (1/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  share 0.95       PCLSI - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  wealth x0.5      SNAP  - (1/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  wealth x0.5      PCLSI - (2/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  S130             SNAP  - (1435/0)                -0.0211 (2999/2999)       -0.0185 (1011/1011)       -0.0087 (318/318)         -0.0018 (61/61)           
+  S130             PCLSI - (52/0)                  -0.0016 (4099/4477)       -0.0207 (35/433)          - (0/51)                  - (0/0)                   
+  S366             SNAP  - (2/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  S366             PCLSI - (1/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  S370             SNAP  - (60/0)                  -0.0177 (468/823)         0.0164 (1834/3123)        -0.0004 (46/359)          -0.0037 (18/32)           
+  S370             PCLSI - (156/0)                 -0.0121 (180/1108)        -0.0147 (36/1424)         - (0/22)                  - (0/0)                   
+  bridge 4+cost    SNAP  - (4/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  bridge 4+cost    PCLSI - (7/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   

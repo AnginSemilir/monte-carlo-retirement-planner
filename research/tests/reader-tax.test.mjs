@@ -15,6 +15,26 @@
  *      reference) agrees with the flow at the state. Planted: tauBar set to 0 must misread some state.
  *   5. An all-ISA household (S126 with its taxable and cash pots moved into the ISA): readerTax on equals off at every
  *      node's support. Planted: a payable() that asks 1,000 more than the bill must differ.
+ * Added before COV-B-STEP's launch (the plan-auditor's BLOCKING 1 of 5 Oct 03:33 UK). items/RTAX.md's seven tests and
+ * where each stands under v2: 1 (off bit-identical) is check 2 and the golden and reader tests; 2 (tau against a
+ * hand-worked case) is superseded - v2 uses the tax only for the band's width, tauBar, and check 4 shows the band wide
+ * enough (no misread outside it, a band of width 0 planted); 3 (support against the floor flows on the four households
+ * and on one with taxable guaranteed income) is checks 3, 4 and 6; 4 (node reproduction) is check 7; 5 (all-ISA) is check
+ * 5; 6 (the two-sided misclassification bar) is superseded - inside the band v2's support is the flow's by construction,
+ * so the bar is read outside it, by check 4 here and results-rtaxmis.txt's third run; 7 (e3 and the level search) is
+ * check 8.
+ *   Checks 3 and 4 read the support through readValues itself (the solve's value(), its inBand and payable observed),
+ *   not a copy of its branch.
+ *   6. Checks 3 and 4 on S370, bridge 4 (S126 built with a four-year bridge), S126, and S130 with 20,000 a year of taxed
+ *      earnings until pension access (no panel household has taxable guaranteed income in the bridge): no edge position
+ *      or edge-band state misread through readValues. Planted: today's support calls some failing position supported on
+ *      one of them, and a band of width 0 misreads some state.
+ *   7. Node reproduction with readerTax and coverage on (COV-B's edge nodes sit inside the band, so in-band nodes exist):
+ *      at every node of every reader table the read gives back the node's survival, p c + R = S, to 1e-9; some nodes are
+ *      in the band. Planted: with p taken as 1 at the read the largest miss exceeds 1e-9.
+ *   8. The tax table does not depend on e3 or the level search: with e3 on, and separately with the ternary level search,
+ *      each step year's d0 and tauBar equal readerTax's alone and payable agrees at 500 band states. Planted: S126's table
+ *      against S130's differs.
  *   node research/tests/reader-tax.test.mjs
  */
 import assert from 'node:assert/strict';
@@ -22,7 +42,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
 import { solvePlan } from '../../src/solver/solve.js';
-import { toVec } from '../../src/solver/grid.js';
+import { toVec, readValues } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
@@ -40,6 +60,16 @@ function judge(r) {
 }
 const stepYears = r => (r.g.reader.tax || []).map((x, t) => (x ? t : -1)).filter(t => t >= 0);
 const tablesOf = r => [...r.g.reader.of.values()];
+// the support readValues itself uses at a state: its inBand and payable observed through the solve's value(), the reference
+// chance where it does not ask payable (the read's own branch, grid.js readValues)
+function readSupport(r, t, s) {
+  const tx = r.g.reader.tax[t], RD = tablesOf(r).find(x => x.t === t), ib = tx.inBand, pb = tx.payable;
+  let band = null, pay = null;
+  tx.inBand = A => { band = ib(A); return band; }; tx.payable = x => { pay = pb(x); return pay; };
+  try { r.value(s, t); } finally { tx.inBand = ib; tx.payable = pb; }
+  if (band === null) throw new Error('readValues did not ask inBand at a step-year read');
+  return band ? pay : RD.chance(s[1] + s[2]) >= 0.5;
+}
 
 // 1. throws
 {
@@ -95,7 +125,7 @@ const off = solve(s130), on = solve(s130, { readerTax: true });
       toVec(g, ip, 0, it, ig, ic, v);
       const Wt = g.axes.W.pts[ip]; if (!(Wt > A0)) continue;
       const a = 1 - A0 / Wt, pen = a * Wt, rest = Wt - pen, isa = g.axes.b.pts[it] * rest; v[0] = pen; v[1] = isa; v[2] = rest - isa;
-      const truth = pays(t, v), A = v[1] + v[2], sup = tx.inBand(A) ? tx.payable(v) : RD.chance(A) >= 0.5, today = RD.chance(A) >= 0.5;
+      const truth = pays(t, v), A = v[1] + v[2], sup = readSupport(on, t, v), today = RD.chance(A) >= 0.5;
       checked++; if (sup && !truth) falseSup++; if (!sup && truth) falseFail++; if (today && !truth) todayFalseSup++;
     }
   }
@@ -118,8 +148,8 @@ const off = solve(s130), on = solve(s130, { readerTax: true });
       const A0 = d0 * (0.95 + 0.15 * rnd()), Wt = A0 / (1 - 0.5 * rnd()), a = 1 - A0 / Wt, b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd();
       const pen = a * Wt, rest = Wt - pen, isa = b * rest, s = Float64Array.from([pen, isa, rest - isa, gain, pf * lsa, pf > 0 ? 1 : 0, -1]);
       const A = s[1] + s[2], truth = pays(t, s);
-      const sup = (x) => (x.inBand(A) ? x.payable(s) : RD.chance(A) >= 0.5);
-      n4++; if (sup(tx) !== truth) mis++; if (sup(zero) !== truth) misZero++;
+      const supZ = zero.inBand(A) ? tx.payable(s) : RD.chance(A) >= 0.5;
+      n4++; if (readSupport(on, t, s) !== truth) mis++; if (supZ !== truth) misZero++;
     }
   }
   assert.equal(mis, 0, `readerTax: ${mis} of ${n4} edge states misread`);
@@ -150,5 +180,105 @@ const off = solve(s130), on = solve(s130, { readerTax: true });
   assert.equal(readDiff, 0, `all-ISA: ${readDiff} of ${nb} band reads differ`);
   assert.ok(plantDiff > 0, 'planted: a payable() asking 1,000 more must differ somewhere in the band');
   ok(`5. all-ISA: readerTax on equals off at every node (${pa.length} tables) and at ${nb} band reads (tauBar ${Math.round(tx.tauBar)}); the planted payable differs at ${plantDiff}`);
+}
+
+// the households for checks 6 and 8
+const LIQ = /^S&S ISA|^Other Investments|^Cash/;
+function bridgeVariant(years) {
+  const p = JSON.parse(JSON.stringify(find('S126').plan)), nmpa = E.num(p.demographics.privatePensionAge, 58), age = nmpa - years;
+  p.demographics = { ...p.demographics, currentAgeSelf: age, retireAgeSelf: Math.min(age, E.num(p.demographics.retireAgeSelf, 55)) };
+  return prep({ plan: p });
+}
+function earningsVariant() {
+  const p = JSON.parse(JSON.stringify(find('S130').plan)), age = E.num(p.demographics.currentAgeSelf, 56), nmpa = E.num(p.demographics.privatePensionAge, 58);
+  p.otherIncomes = [...(p.otherIncomes || []), { id: 'rtax-earn', incomeType: 'earnings', amount: 20000, owner: 'Myself', startAge: age, endAge: nmpa - 1 }];
+  return prep({ plan: p });
+}
+
+// 6. checks 3 and 4 through readValues on S370, bridge 4, S126 and S130 with taxed earnings in the bridge
+{
+  const rows = [];
+  let anyToday = 0, anyZero = 0;
+  for (const [id, plan] of [['S370', prep(find('S370'))], ['bridge 4', bridgeVariant(4)], ['S126', prep(find('S126'))], ['S130 + earnings', earningsVariant()]]) {
+    const r = solve(plan, { readerTax: true }), pays = judge(r), g = r.g, v = new Float64Array(7), lsa = g.m.P.lsa;
+    const ts = stepYears(r); assert.ok(ts.length >= 1, `${id} has a step year under readerTax`);
+    let checked = 0, bad = 0, today = 0, n6 = 0, mis = 0, misZero = 0;
+    let seed = 777; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    for (const t of ts) {
+      const tx = g.reader.tax[t], RD = tablesOf(r).find(x => x.t === t), A0 = tx.d0 - tx.tol / 2, d0 = tx.d0;
+      for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ip = 0; ip < g.np; ip++) {
+        toVec(g, ip, 0, it, ig, ic, v);
+        const Wt = g.axes.W.pts[ip]; if (!(Wt > A0)) continue;
+        const pen = (1 - A0 / Wt) * Wt, rest = Wt - pen, isa = g.axes.b.pts[it] * rest; v[0] = pen; v[1] = isa; v[2] = rest - isa;
+        const truth = pays(t, v); checked++;
+        if (readSupport(r, t, v) !== truth) bad++;
+        if (RD.chance(v[1] + v[2]) >= 0.5 && !truth) today++;
+      }
+      for (let q = 0; q < 1000; q++) {
+        const Aq = d0 * (0.95 + 0.15 * rnd()), Wt = Aq / (1 - 0.5 * rnd()), a = 1 - Aq / Wt, b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd();
+        const pen = a * Wt, rest = Wt - pen, isa = b * rest, s2 = Float64Array.from([pen, isa, rest - isa, gain, pf * lsa, pf > 0 ? 1 : 0, -1]);
+        const A = s2[1] + s2[2], truth = pays(t, s2); n6++;
+        if (readSupport(r, t, s2) !== truth) mis++;
+        const supZ = A >= d0 - tx.tol && A <= d0 ? tx.payable(s2) : RD.chance(A) >= 0.5; if (supZ !== truth) misZero++;
+      }
+    }
+    assert.ok(checked > 0, `${id}: edge positions were checked`);
+    assert.equal(bad, 0, `${id}: ${bad} of ${checked} edge positions misread through readValues`);
+    assert.equal(mis, 0, `${id}: ${mis} of ${n6} edge-band states misread through readValues`);
+    anyToday += today; anyZero += misZero;
+    rows.push(`${id} (steps ${ts.join(',')}, tauBar ${ts.map(t => Math.round(g.reader.tax[t].tauBar)).join(',')}): edge ${checked}, band ${n6}, today false support ${today}, width-0 misreads ${misZero}`);
+  }
+  assert.ok(anyToday > 0, 'planted: today\'s support must call some failing edge position supported on one of the four');
+  assert.ok(anyZero > 0, 'planted: a band of width 0 must misread some state on one of the four');
+  ok(`6. through readValues, no edge position or edge-band state misread on ${rows.length} more households: ${rows.join('; ')}`);
+}
+
+// 7. node reproduction with readerTax and coverage on (in-band nodes exist); p taken as 1 misses (planted)
+{
+  const r = solve(s130, { readerTax: true, coverage: true }), g = r.g, rd = new Float64Array(4), v = new Float64Array(7);
+  let worst = 0, worstPlanted = 0, nodes = 0, inBand = 0;
+  for (const [ls, T] of g.reader.of) {
+    const tx = g.reader.tax ? g.reader.tax[T.t] : null;
+    for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
+      const i = g.index(ip, ii, it, ig, ic);
+      toVec(g, ip, ii, it, ig, ic, v, T.t);
+      readValues(g, ls, ls, v, rd, null, null, T.t);
+      const held = 1 / (1 + Math.exp(-ls[i]));
+      worst = Math.max(worst, Math.abs(rd[0] - held)); nodes++;
+      if (tx && tx.inBand(v[1] + v[2])) inBand++;
+      const ch = T.chance; T.chance = () => 1; readValues(g, ls, ls, v, rd, null, null, T.t); T.chance = ch;
+      worstPlanted = Math.max(worstPlanted, Math.abs(rd[0] - held));
+    }
+  }
+  assert.ok(nodes > 0 && inBand > 0, `node reproduction needs in-band nodes (${inBand} of ${nodes})`);
+  assert.ok(worst <= 1e-9, `node reproduction with readerTax and coverage: largest miss ${worst}`);
+  assert.ok(worstPlanted > 1e-9, 'planted: with p taken as 1 the read must miss some node');
+  ok(`7. node reproduction with readerTax and coverage: ${nodes} nodes over ${g.reader.of.size} tables (${inBand} in the band), largest miss ${worst.toExponential(1)}; with p taken as 1, ${worstPlanted.toFixed(3)}`);
+}
+
+// 8. the tax table with e3 on and with the ternary level search equals readerTax's alone; S126's against S130's differs (planted)
+{
+  const ref = on, lsa = ref.g.m.P.lsa;
+  const same = (a, b) => {
+    const ta = stepYears(a), tb = stepYears(b); if (ta.join() !== tb.join()) return false;
+    let seed = 99; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    for (const t of ta) {
+      const x = a.g.reader.tax[t], y = b.g.reader.tax[t];
+      if (x.d0 !== y.d0 || x.tauBar !== y.tauBar) return false;
+      for (let q = 0; q < 500; q++) {
+        const A = x.d0 - x.tol + (x.tauBar + x.tol) * rnd(), Wt = A / (1 - 0.5 * rnd()), pen = Wt - A, isa = rnd() * A, pf = rnd();
+        const s2 = Float64Array.from([pen, isa, A - isa, 0.05 + 0.5 * rnd(), pf * lsa, pf > 0 ? 1 : 0, -1]);
+        if (x.payable(s2) !== y.payable(s2)) return false;
+      }
+    }
+    return true;
+  };
+  const withE3 = solve(s130, { readerTax: true, e3: true }), withTern = solvePlan(E, M, s130, { ...BASE, readerTax: true, levelSearch: 'ternary' });
+  assert.ok(withE3.meta.e3 && withTern.meta.levelSearch === 'ternary', 'e3 and the ternary level search took');
+  assert.ok(same(ref, withE3), 'the tax table with e3 on differs from readerTax\'s alone');
+  assert.ok(same(ref, withTern), 'the tax table with the ternary level search differs from readerTax\'s alone');
+  const other = solve(prep(find('S126')), { readerTax: true });
+  assert.ok(!same(ref, other), 'planted: S126\'s tax table must differ from S130\'s');
+  ok(`8. the tax table with e3 on and with the ternary level search equals readerTax's alone (d0, tauBar, payable at 500 band states a step year); S126's differs`);
 }
 console.log(`reader-tax: ${n} checks passed`);

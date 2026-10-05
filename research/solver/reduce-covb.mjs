@@ -26,7 +26,8 @@
  *   REPORTED: COV against TAX (survival: the node's own effect); the S370 2x2 (COV - BASE, CORD - ORDER, ORDER - BASE, CORD -
  *     COV, and the interaction); TAX's d against BASE on the same reads (its sign fixed by construction: the tax only removes
  *     support); item 3's statistic on every step year (S370's year 3 not clean: its claim's table differs by arm); the
- *     spread reads' mean D per arm by household, year and world at fixed policy (O81); the reads where an arm moves
+ *     step reads by household, step year, world and support (O91), the spread reads' mean D per arm by household, year and
+ *     world at fixed policy (O81); the reads where an arm moves
  *     differently; the moves.
  *   node research/solver/reduce-covb.mjs [dir] [paths a world] [points] > research/solver/results-covb.txt
  *   node research/solver/reduce-covb.mjs --planted   the planted checks alone, and the outcomes they reach (OUTCOMES REACHED)
@@ -181,6 +182,15 @@ export function reading(files, units, out = console.log) {
     const tx = item3Of(F, 'TAX', () => true, j => F.t[j] === F.last && F.arms.TAX.same[j] === 1), all = item3Of(F, 'COV', () => true, j => F.kind[j] === 1 && F.arms.COV.same[j] === 1);
     const moved = F.t.reduce((c, t, j) => c + (t === F.last && F.arms.COV.same[j] === 0 ? 1 : 0), 0);
     out(`    ${id.padEnd(14)} TAX mean d ${e4(tx.md)} (reads ${tx.n}) | every step year: reads ${all.n} mean d ${e4(all.md)} mean D BASE ${e4(all.mB)} COV ${e4(all.mC)} | last-year reads where COV moves differently ${moved}`);
+  }
+  out('  the step reads by household, step year, world and BASE\'s own support (O91: no pooled figure stands for a slice; S370\'s year 3 is not clean for item 3), on the reads where COV\'s chooser makes BASE\'s move: reads, mean d (BASE - COV), mean D BASE and COV:');
+  for (const id of PANEL) {
+    const F = files[id].fixed, cells = new Map();
+    for (let j = 0; j < F.t.length; j++) if (F.kind[j] === 1 && F.arms.COV.same[j] === 1) { const q = `${F.t[j]}/${F.k[j]}/${F.sup[j] ? 'sup' : 'uns'}`; if (!cells.has(q)) cells.set(q, []); cells.get(q).push(j); }
+    for (const [q, js] of [...cells].sort((a, b) => a[0].localeCompare(b[0], 'en', { numeric: true }))) {
+      const x = item3Of(F, 'COV', () => true, j => js.includes(j));
+      out(`    ${id.padEnd(14)} year/world/support ${q.padEnd(9)} reads ${String(x.n).padStart(5)} | mean d ${e4(x.md)} | mean D BASE ${e4(x.mB)} COV ${e4(x.mC)}${id === 'S370' && Number(q.split('/')[0]) !== F.last ? ' (not item 3: its claim\'s table differs by arm)' : ''}`);
+    }
   }
   out('  the spread reads at fixed policy, mean D per arm by household, year and world (O81; reads, then each arm):');
   for (const id of PANEL) {

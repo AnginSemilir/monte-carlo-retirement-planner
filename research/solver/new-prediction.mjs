@@ -53,6 +53,18 @@ table (every other status is written out, with its reason).
 
 ${blankTable()}
 
+## Credence
+
+The maintainer's 'Go ahead' of 5 Oct on the deep review of the prediction record (deep-review-log.md 5 Oct 10:16 UK): write
+the judged lines first, then run the derivation script, whose section computes each outcome's probability from stated
+priors over the Power section's stories (the split, one-flip and band stories included) through the decision bands. No cap
+taken from the scorecard. An item that needs every household carries a line per household, its reducer printing
+"LEGS: N/<household> <OUTCOME>" beside "OUTCOME: ...".
+
+- **Item 1:** HELD ?, INCONCLUSIVE ?, FALSIFIED ? (derived: the derivation script's section)
+- **Judged, item 1:** HELD ?, INCONCLUSIVE ?, FALSIFIED ? (the author's judgement, written before the derivation)
+- **Kinds:** 1 ? (NOHARM, EFFECT, ATTRIB, SIZE or CTRL)
+
 ## Changes after seeing results
 
 None.

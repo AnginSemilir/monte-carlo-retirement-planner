@@ -250,9 +250,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
 29. check-plan.mjs's retro check reads a close's test name with /^(\w+) \(.*\): Brier /, so a hyphenated name (ADOPT-PI) is
    skipped, and its REPLACE follow-through takes the next close by position in lessons.md, not by time, so a close written
-   above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct; ADOPT-PI's close was checked by
-   hand against triggers.mjs's CODES and the BLOCKING codes since 7au's close, and 7au's REPLACE text is in
-   new-prediction.mjs). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
+   above an older one stops the older one's check (the plan-auditor's MINOR 5 of 5 Oct; ADOPT-PI's close checked by hand). Proposed fix at the next unlock: /^(\S+) \(/ and closes ordered by their dates. No claim rests on it.
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (the plan-auditor's MINOR 3 of 5 Oct 10:09 UK).
 
@@ -495,8 +493,8 @@ its planted outcomes); each reducer on the rule carries planted checks and a mut
 
 **Predictions** (the review's section 15) gain these fields: Decision fed (what each outcome changes: held, falsified or
 inconclusive), Provenance (every input number with its source), Derivation script (the arithmetic in a committed
-script, its output hash recorded), Point and interval (a point and an 80% interval per primary quantity), Credence (the
-author's probability for each item), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
+script, its output hash recorded), Point and interval (a point and an 80% interval per primary quantity), Credence (each
+item's outcome probabilities derived from priors over the Power section's stories, the judged ones beside them; no cap), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
 looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
 would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
 `check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK), and the launcher's re-run of each derive line.

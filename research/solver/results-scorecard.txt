@@ -30,6 +30,8 @@ P (the switch charged in both passes: which explanation carries families 1 and 2
 7au (the learner at P's settings): Brier 0.163 over 2 (1 0.55 -> not; 2 0.85 -> held)
 ADOPT-PI (the interpolated allowance axis in the shipping default): Brier 0.111 over 2 (1 0.75 -> held; 2 0.6 -> held)
 COV-B-STEP (the reader's tax and the step-year edge node): Brier 0.317 over 3 (1 0.7 -> not; 2 0.8 -> held; 3 0.65 -> not)
+HYB (the forward-only hybrid: ADOPT-PI's gain split between the read and the tables): PENDING (no results-hyb.txt yet)
+XAS (the exact one-step check: representation against quadrature at the step reads): PENDING (no results-xas.txt yet)
 
 CUMULATIVE: Brier 0.232 over 144 items
 RELIABILITY (credence bin: items, mean credence, share held):
@@ -37,3 +39,13 @@ RELIABILITY (credence bin: items, mean credence, share held):
   60-75%         28   0.64   0.54
   75-90%         21   0.79   0.95
   90% and over    5   0.93   0.80
+
+INFORMATION: base rate 0.625 held; always the base rate scores 0.234; over the distinct credences reliability 0.037, resolution 0.040, uncertainty 0.234; AUC 0.62 (0.5 is no discrimination)
+BY KIND (items, mean credence, share held, the author's Brier, the Brier of the kind's base rate from earlier tests):
+  NOHARM     33   0.57   0.82   0.239   0.175
+  EFFECT     23   0.58   0.70   0.210   0.237
+  ATTRIB     27   0.46   0.48   0.302   0.267
+  SIZE       45   0.56   0.53   0.216   0.277
+  CTRL       10   0.74   0.70   0.163   0.256
+  WHOLE       6   0.47   0.50   0.192   0.301
+THREE-OUTCOME ITEMS: ranked probability score 0.111 over 7, a uniform forecast 0.206

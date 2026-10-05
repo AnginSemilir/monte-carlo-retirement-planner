@@ -21,6 +21,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ITEM_KINDS, KINDS } from './item-kinds.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // each test the scorecard covers: its prediction and the file its reducer's output is saved to when it is read
@@ -55,6 +56,8 @@ export const TESTS = [
   { name: '7au (the learner at P\'s settings)', prediction: 'predictions/diag-7au.md', results: 'results-7au.txt' },
   { name: 'ADOPT-PI (the interpolated allowance axis in the shipping default)', prediction: 'predictions/adopt-pi.md', results: 'results-adoptpi.txt' },
   { name: 'COV-B-STEP (the reader\'s tax and the step-year edge node)', prediction: 'predictions/diag-covb.md', results: 'results-covb.txt' },
+  { name: 'HYB (the forward-only hybrid: ADOPT-PI\'s gain split between the read and the tables)', prediction: 'predictions/diag-hyb.md', results: 'results-hyb.txt' },
+  { name: 'XAS (the exact one-step check: representation against quadrature at the step reads)', prediction: 'predictions/diag-xas.md', results: 'results-xas.txt' },
 ];
 
 export function credences(predText) {
@@ -88,7 +91,21 @@ export function credences(predText) {
   const wholes = [];
   const pn = /P named[^:]*:\s*(?:about\s+)?(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(m[1]); if (pn) wholes.push({ item: 'P named', p: Number(pn[1]) });
   const rj = /At\s+least\s+one\s+READER\+J\s+candidate\s+by\s+the\s+whole\s+score:\s*(?:about\s+)?(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(m[1]); if (rj) wholes.push({ item: 'a READER+J candidate by the whole score', p: Number(rj[1]) });
-  return { items, ...(Object.keys(predicted).length ? { predicted } : {}), ...(wholes.length ? { wholes } : {}), overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : all && /^At\s+least/.test(all[0]) ? 'a cause HELD' : 'carried forward' };
+  // THE MAINTAINER'S 'GO AHEAD' OF 5 OCT (the deep review of the prediction record, deep-review-log.md 5 Oct 10:16 UK): a
+  // full three-outcome distribution per item (for the ranked probability score), the author's judged credence registered
+  // beside the derived one ("**Judged, item N:** HELD p, ..."), a credence per leg of an item that needs every household
+  // ("**Item N, leg S370:** HELD p, ..."), and the items' kinds ("**Kinds:** 1 ATTRIB; 2 SIZE")
+  const DIST = String.raw`((?:HELD|FALSIFIED|INCONCLUSIVE)\s+(?:\d+(?:\.\d+)?|\.\d+)(?:,\s*(?:HELD|FALSIFIED|INCONCLUSIVE)\s+(?:\d+(?:\.\d+)?|\.\d+))*)`;
+  const distOf = s => { const d = {}; for (const y of s.matchAll(/(HELD|FALSIFIED|INCONCLUSIVE)\s+(\d+(?:\.\d+)?|\.\d+)/g)) d[y[1]] = Number(y[2]); return d; };
+  const firstOf = s => { const y = /(HELD|FALSIFIED|INCONCLUSIVE)\s+(\d+(?:\.\d+)?|\.\d+)/.exec(s); return { pred: y[1], p: Number(y[2]) }; };
+  const dists = {}, judged = {}, legs = {}, kinds = {};
+  for (const x of m[1].matchAll(new RegExp(String.raw`\*\*Item (\d+):\*\*\s*` + DIST, 'g'))) dists[x[1]] = distOf(x[2]);
+  for (const x of m[1].matchAll(new RegExp(String.raw`\*\*Judged, item (\d+):\*\*\s*` + DIST, 'g'))) judged[x[1]] = { ...firstOf(x[2]), dist: distOf(x[2]) };
+  for (const x of m[1].matchAll(new RegExp(String.raw`\*\*Item (\d+), leg ([\w.+-]+):\*\*\s*` + DIST, 'g'))) legs[`${x[1]}/${x[2]}`] = { ...firstOf(x[3]), dist: distOf(x[3]) };
+  const kl = /\*\*Kinds:\*\*\s*([^\n]*)/.exec(m[1]); if (kl) for (const y of kl[1].matchAll(/(\d+)\s+([A-Z]+)/g)) kinds[y[1]] = y[2];
+  for (const [k, d] of [...Object.entries(dists), ...Object.values(judged).map(j => [null, j.dist]), ...Object.values(legs).map(j => [null, j.dist])]) { const s = Object.values(d).reduce((a, b) => a + b, 0); if (Object.keys(d).length === 3 && Math.abs(s - 1) > 0.011) throw new Error(`${k ? `item ${k}` : 'a judged or leg line'}: its three outcomes sum to ${s.toFixed(3)}, not 1`); }
+  const extra = { ...(Object.keys(dists).length ? { dists } : {}), ...(Object.keys(judged).length ? { judged } : {}), ...(Object.keys(legs).length ? { legs } : {}), ...(Object.keys(kinds).length ? { kinds } : {}) };
+  return { items, ...extra, ...(Object.keys(predicted).length ? { predicted } : {}), ...(wholes.length ? { wholes } : {}), overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : all && /^At\s+least/.test(all[0]) ? 'a cause HELD' : 'carried forward' };
 }
 
 export function outcomes(resultsText) {
@@ -103,7 +120,8 @@ export function outcomes(resultsText) {
   // a numbered-items reducer's "OUTCOME: 1 INCONCLUSIVE, 2 HELD, ..., 7 NOT REPRODUCED" (reduce-7v.mjs): each item's outcome
   // as printed, scored against the outcome its credence names (scoreTest)
   const numbered = numbered0;
-  if (numbered) return { labels: Object.fromEntries(numbered[1].split(/[,;]\s*/).map(x => { const [, k, o] = /^(\d+)\s+(.+)$/.exec(x); return [k, o]; })), overall: null,
+  const legLine = /^LEGS:\s*(.+)$/m.exec(resultsText), legLabels = legLine ? Object.fromEntries(legLine[1].split(/;\s*/).map(x => { const [, k, o] = /^(\d+\/[\w.+-]+)\s+(HELD|FALSIFIED|INCONCLUSIVE)$/.exec(x.trim()) || []; return [k, o]; }).filter(([k]) => k)) : null;
+  if (numbered) return { ...(legLabels ? { legLabels } : {}), labels: Object.fromEntries(numbered[1].split(/[,;]\s*/).map(x => { const [, k, o] = /^(\d+)\s+(.+)$/.exec(x); return [k, o]; })), overall: null,
     wholes: { 'P named': /^ATTRIBUTION[^\n]*HELD:[^\n]*\bP\b/m.test(resultsText) ? 1 : 0, 'a READER+J candidate by the whole score': /^\s*READER\+J\/\S+\s+survival\s+\S+\s+whole score CANDIDATE/m.test(resultsText) ? 1 : 0 } };
   if (!v && !many) return { refused: 'no verdict line' };
   const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
@@ -132,13 +150,49 @@ export function scoreTest(predText, resultsText) {
   const pairs = ck.map(k => ({ item: k, p: c.items[k], o: o.items[k] }));
   if (c.overall !== null) pairs.push({ item: c.overallLabel, p: c.overall, o: o.overall });
   for (const w of c.wholes || []) { if (!o.wholes || !(w.item in o.wholes)) throw new Error(`the whole "${w.item}": no outcome`); pairs.push({ item: w.item, p: w.p, o: o.wholes[w.item] }); }
-  return { status: 'SCORED', pairs, brier: brier(pairs) };
+  // the extras: each three-outcome item's ranked probability score, the judged credence paired with the derived, each leg
+  const extras = {};
+  if (o.labels && c.dists) extras.rps = Object.entries(c.dists).filter(([k, d]) => Object.keys(d).length === 3 && o.labels[k] in d).map(([k, d]) => ({ item: k, rps: rps(d, o.labels[k]), uniform: rps({ HELD: 1 / 3, INCONCLUSIVE: 1 / 3, FALSIFIED: 1 / 3 }, o.labels[k]) }));
+  if (o.labels && c.judged) extras.judged = Object.entries(c.judged).filter(([k]) => k in o.labels).map(([k, j]) => ({ item: k, judged: j.p, derived: c.items[k], o: o.labels[k] === j.pred ? 1 : 0, oDerived: o.items[k] }));
+  if (c.legs) { if (!o.legLabels) throw new Error('leg credences but no LEGS line in the results'); extras.legs = Object.entries(c.legs).map(([k, j]) => { if (!(k in o.legLabels)) throw new Error(`leg ${k}: no outcome on the LEGS line`); return { item: k, p: j.p, o: o.legLabels[k] === j.pred ? 1 : 0 }; }); }
+  if (c.kinds) extras.kinds = c.kinds;
+  return { status: 'SCORED', pairs, brier: brier(pairs), ...extras };
 }
 
 export const brier = pairs => pairs.reduce((a, x) => a + (x.p - x.o) ** 2, 0) / pairs.length;
 export const BINS = [[0, 0.6, 'under 60%'], [0.6, 0.75, '60-75%'], [0.75, 0.9, '75-90%'], [0.9, 1.0001, '90% and over']];
 export function reliability(pairs) {
   return BINS.map(([lo, hi, label]) => { const b = pairs.filter(x => x.p >= lo && x.p < hi); return { label, n: b.length, meanP: b.length ? b.reduce((a, x) => a + x.p, 0) / b.length : null, held: b.length ? b.reduce((a, x) => a + x.o, 0) / b.length : null }; });
+}
+
+// the ranked probability score of a three-outcome distribution, the outcomes ordered FALSIFIED < INCONCLUSIVE < HELD: the
+// mean over the two cut points of (forecast's cumulative - outcome's cumulative)^2; 0 is perfect, a uniform forecast scores
+// 5/18 on an end outcome and 1/9 on the middle one
+export const ORDER = ['FALSIFIED', 'INCONCLUSIVE', 'HELD'];
+export function rps(dist, label) { let cf = 0, co = 0, s = 0; for (const k of ORDER.slice(0, 2)) { cf += dist[k] || 0; co += label === k ? 1 : 0; s += (cf - co) ** 2; } return s / 2; }
+// how much the credences say beyond the base rate: the base rate's own Brier, and the decomposition over the distinct
+// credence values (Brier = reliability - resolution + uncertainty), and the area under the ROC curve (0.5 is no
+// discrimination)
+export function information(pairs) {
+  const n = pairs.length, base = pairs.reduce((a, x) => a + x.o, 0) / n, unc = base * (1 - base);
+  const groups = new Map(); for (const x of pairs) { const g = groups.get(x.p) || { n: 0, h: 0 }; g.n++; g.h += x.o; groups.set(x.p, g); }
+  let rel = 0, res = 0; for (const [p, g] of groups) { const f = g.h / g.n; rel += g.n * (p - f) ** 2; res += g.n * (f - base) ** 2; }
+  const pos = pairs.filter(x => x.o === 1), neg = pairs.filter(x => x.o === 0);
+  let auc = 0; for (const a of pos) for (const b of neg) auc += a.p > b.p ? 1 : a.p === b.p ? 0.5 : 0;
+  return { base, baseBrier: unc, rel: rel / n, res: res / n, unc, auc: pos.length && neg.length ? auc / (pos.length * neg.length) : NaN };
+}
+// by kind: the author's Brier, and that of the kind's base rate from earlier tests only ((held + 1) / (items + 2), so a kind
+// with no history starts at a half) - the forecast the author's credence has to beat
+export function byKind(tagged) {
+  const seen = {}, out = {};
+  let cur = null, pending = [];
+  const flush = () => { for (const x of pending) { const s = seen[x.kind] ||= { n: 0, h: 0 }; s.n++; s.h += x.o; } pending = []; };
+  for (const x of tagged) {
+    if (x.test !== cur) { flush(); cur = x.test; }
+    const s = seen[x.kind] || { n: 0, h: 0 }, kr = (s.h + 1) / (s.n + 2), r = out[x.kind] ||= { n: 0, p: 0, h: 0, b: 0, bk: 0 };
+    r.n++; r.p += x.p; r.h += x.o; r.b += (x.p - x.o) ** 2; r.bk += (kr - x.o) ** 2; pending.push(x);
+  }
+  return Object.fromEntries(Object.entries(out).map(([k, r]) => [k, { n: r.n, meanP: r.p / r.n, held: r.h / r.n, brier: r.b / r.n, kindRate: r.bk / r.n }]));
 }
 
 // PLANTED, before any real file is read (rule 6: a check is trusted only after it has failed on a planted fault)
@@ -218,6 +272,15 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['7ap: items separated by semicolons are each scored', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.45; 2 (INCONCLUSIVE), 0.45; 3 (HELD), 0.65.'), 'x\nOUTCOME: 1 HELD; 2 HELD; 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.45:1 2:0.45:0 3:0.65:1']);
   cases.push(['7ah: a numbered line with a trailing "; note" reads its items and leaves the note unscored', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (HELD), 0.30.'), 'x\nOUTCOME: 1 HELD, 2 FALSIFIED; 6 (the split): no opening flips\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.6:1 2:0.3:0']);
   cases.push(['7ah: a revised list after a bracket and colon ("...0.026): 1 (HELD), 0.35; ...") overrides the first list, item 1 included', t(() => { const c = credences(readFileSync(join(HERE, 'predictions/diag-7ah.md'), 'utf8')); return JSON.stringify(c.items); }), '{"1":0.35,"2":0.45,"3":0.3,"4":0.4,"5":0.5,"7":0.75,"8":0.7}']);
+  // the 5 Oct extras (the maintainer's 'Go ahead' on the deep review's proposals)
+  cases.push(['rps: a sure HELD on HELD scores 0, a sure FALSIFIED on HELD 1, a uniform on HELD 5/18 and on INCONCLUSIVE 1/9', [rps({ HELD: 1, INCONCLUSIVE: 0, FALSIFIED: 0 }, 'HELD'), rps({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 1 }, 'HELD'), rps({ HELD: 1 / 3, INCONCLUSIVE: 1 / 3, FALSIFIED: 1 / 3 }, 'HELD'), rps({ HELD: 1 / 3, INCONCLUSIVE: 1 / 3, FALSIFIED: 1 / 3 }, 'INCONCLUSIVE')].map(x => x.toFixed(4)).join(','), '0.0000,1.0000,0.2778,0.1111']);
+  cases.push(['information: always the base rate has resolution 0 and Brier = uncertainty; a perfect split has AUC 1', t(() => { const a = information([{ p: 0.5, o: 1 }, { p: 0.5, o: 0 }]), b = information([{ p: 0.9, o: 1 }, { p: 0.1, o: 0 }]); return [a.res, a.unc, a.auc, b.auc].map(x => x.toFixed(3)).join(','); }), '0.000,0.250,0.500,1.000']);
+  cases.push(['information: Brier = reliability - resolution + uncertainty over distinct credences', t(() => { const ps = [{ p: 0.7, o: 1 }, { p: 0.7, o: 0 }, { p: 0.7, o: 1 }, { p: 0.2, o: 0 }, { p: 0.2, o: 1 }], i = information(ps); return String(Math.abs(brier(ps) - (i.rel - i.res + i.unc)) < 1e-12); }), 'true']);
+  cases.push(['byKind: the kind rate uses earlier tests only (a first test scores the kind at a half)', t(() => { const k = byKind([{ test: 'a', kind: 'X', p: 0.9, o: 1 }, { test: 'a', kind: 'X', p: 0.9, o: 1 }, { test: 'b', kind: 'X', p: 0.9, o: 0 }]).X; return [k.n, k.kindRate.toFixed(4)].join(','); }), '3,0.3542']);
+  cases.push(['a full distribution, a judged line, two legs and the kinds are read', t(() => { const c = credences(pred('- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Judged, item 1:** HELD 0.45, INCONCLUSIVE 0.20, FALSIFIED 0.35.\n- **Item 1, leg S370:** HELD 0.7, INCONCLUSIVE 0.2, FALSIFIED 0.1.\n- **Item 1, leg S130:** HELD 0.73, INCONCLUSIVE 0.16, FALSIFIED 0.11.\n- **Kinds:** 1 ATTRIB.')); return JSON.stringify([c.items, c.dists['1'].FALSIFIED, c.judged['1'].p, Object.keys(c.legs), c.kinds]); }), '[{"1":0.34},0.34,0.45,["1/S370","1/S130"],{"1":"ATTRIB"}]']);
+  cases.push(['planted: a distribution not summing to 1 stops the scorecard', t(() => credences(pred('- **Item 1:** HELD 0.5, INCONCLUSIVE 0.3, FALSIFIED 0.3.'))), 'ERROR item 1: its three outcomes sum to 1.100, not 1']);
+  cases.push(['the judged credence is scored beside the derived, each leg against the LEGS line', t(() => { const r = scoreTest(pred('- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Judged, item 1:** FALSIFIED 0.5, HELD 0.3, INCONCLUSIVE 0.2.\n- **Item 1, leg S370:** HELD 0.7, INCONCLUSIVE 0.2, FALSIFIED 0.1.'), 'x\nOUTCOME: 1 HELD\nLEGS: 1/S370 INCONCLUSIVE\n'); return JSON.stringify([r.pairs[0].o, r.judged[0].judged, r.judged[0].o, r.legs[0].o, r.rps[0].rps.toFixed(4)]); }), '[1,0.5,0,0,"0.2756"]']);
+  cases.push(['planted: leg credences with no LEGS line stop the scorecard', t(() => scoreTest(pred('- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34.\n- **Item 1, leg S370:** HELD 0.7, INCONCLUSIVE 0.2, FALSIFIED 0.1.'), 'x\nOUTCOME: 1 HELD\n')), 'ERROR leg credences but no LEGS line in the results']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }
@@ -227,7 +290,7 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const read = f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : null);
   console.log('THE SCORECARD: the author\'s stated credence against each item\'s outcome (PLAN.md 8j). Brier target below 0.20; always 50% scores 0.25.\n');
-  const all = [];
+  const all = [], tagged = [], rpsAll = [], legAll = [], judgedAll = [];
   for (const T of TESTS) {
     const p = read(T.prediction);
     if (p === null) { console.log(`${T.name}: ERROR - no prediction file ${T.prediction}`); process.exit(1); }
@@ -235,9 +298,21 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (s.status !== 'SCORED') { console.log(`${T.name}: ${s.status}${s.why ? ` (${s.why})` : ` (no ${T.results} yet)`}`); continue; }
     console.log(`${T.name}: Brier ${s.brier.toFixed(3)} over ${s.pairs.length} (${s.pairs.map(x => `${x.item} ${x.p} -> ${x.o ? 'held' : 'not'}`).join('; ')})`);
     all.push(...s.pairs);
+    const short = T.name.split(' ')[0];
+    for (const x of s.pairs) tagged.push({ test: short, kind: (s.kinds && s.kinds[x.item]) || (ITEM_KINDS[short] && ITEM_KINDS[short][x.item]) || (/^\d+$/.test(x.item) ? 'UNTAGGED' : 'WHOLE'), p: x.p, o: x.o });
+    rpsAll.push(...(s.rps || [])); legAll.push(...(s.legs || [])); judgedAll.push(...(s.judged || []));
   }
   if (!all.length) { console.log('\nNo scored tests yet: no cumulative score.'); process.exit(0); }
   console.log(`\nCUMULATIVE: Brier ${brier(all).toFixed(3)} over ${all.length} items`);
   console.log('RELIABILITY (credence bin: items, mean credence, share held):');
   for (const b of reliability(all)) console.log(`  ${b.label.padEnd(13)} ${String(b.n).padStart(3)}   ${b.meanP === null ? '  -  ' : b.meanP.toFixed(2)}   ${b.held === null ? '  -  ' : b.held.toFixed(2)}`);
+  // the 5 Oct measures (the deep review of the prediction record; the maintainer's 'Go ahead')
+  const I = information(all);
+  console.log(`\nINFORMATION: base rate ${I.base.toFixed(3)} held; always the base rate scores ${I.baseBrier.toFixed(3)}; over the distinct credences reliability ${I.rel.toFixed(3)}, resolution ${I.res.toFixed(3)}, uncertainty ${I.unc.toFixed(3)}; AUC ${I.auc.toFixed(2)} (0.5 is no discrimination)`);
+  const K = byKind(tagged);
+  console.log('BY KIND (items, mean credence, share held, the author\'s Brier, the Brier of the kind\'s base rate from earlier tests):');
+  for (const k of KINDS.filter(x => K[x]).concat(Object.keys(K).filter(x => !KINDS.includes(x)))) console.log(`  ${k.padEnd(9)} ${String(K[k].n).padStart(3)}   ${K[k].meanP.toFixed(2)}   ${K[k].held.toFixed(2)}   ${K[k].brier.toFixed(3)}   ${K[k].kindRate.toFixed(3)}`);
+  if (rpsAll.length) console.log(`THREE-OUTCOME ITEMS: ranked probability score ${(rpsAll.reduce((a, x) => a + x.rps, 0) / rpsAll.length).toFixed(3)} over ${rpsAll.length}, a uniform forecast ${(rpsAll.reduce((a, x) => a + x.uniform, 0) / rpsAll.length).toFixed(3)}`);
+  if (legAll.length) console.log(`LEGS (an item needing every household, scored household by household): Brier ${brier(legAll).toFixed(3)} over ${legAll.length}`);
+  if (judgedAll.length) console.log(`JUDGED AGAINST DERIVED (paired, the same items): judged ${(judgedAll.reduce((a, x) => a + (x.judged - x.o) ** 2, 0) / judgedAll.length).toFixed(3)}, derived ${(judgedAll.reduce((a, x) => a + (x.derived - x.oDerived) ** 2, 0) / judgedAll.length).toFixed(3)} over ${judgedAll.length} (the decisive check: over the next 30 items the derived must score lower)`);
 }

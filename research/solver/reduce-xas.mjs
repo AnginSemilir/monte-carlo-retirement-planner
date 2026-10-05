@@ -192,6 +192,10 @@ export function reading(files, units, out = console.log) {
   }
   out(`\nITEM 1 (primary): COV on S370 in the years before each step (${R.one.years.join(', ')}), per path y = rep - quad: mean ${f4(mean(R.one.y))} over ${R.one.y.length} paths (sd ${f4(detect(R.one.y, Z2).sd)}, detectable ${f4(detect(R.one.y, Z2).mdd)} at 80% power); Holm p (REP, QUAD) ${R.one.h.map(x => x.toFixed(4)).join(', ')} -> ${R.one.read}${R.one.split ? ` (${R.one.split}: detectable ${f4(detect(R.one.y, Z2).mdd)} against a fifth of |mean D| ${f4(Math.abs(mean(R.one.d)) / 5)})` : ''} -> item 1 ${R.one.v}${R.one.split ? ` (${R.one.split})` : ''}`);
   out(`ITEM 2: BASE at the step years, per path y = rep - quad: ${['S370', 'S130'].map((id, i) => `${id} mean ${f4(mean(R.two.ys[i]))} over ${R.two.ys[i].length} paths (sd ${f4(detect(R.two.ys[i], Z4).sd)}, detectable ${f4(detect(R.two.ys[i], Z4).mdd)}), Holm p ${R.two.h[2 * i].toFixed(4)}/${R.two.h[2 * i + 1].toFixed(4)} ${R.two.reads[i]}${R.two.splits[i] ? ` ${R.two.splits[i]} (a fifth of |mean D| ${f4(Math.abs(mean(R.two.ds[i])) / 5)})` : ''}`).join('; ')} -> item 2 ${R.two.v}${R.two.v === 'INCONCLUSIVE' && R.two.split ? ` (${R.two.split})` : ''}`);
+  // the scorecard's lines: each item's outcome, and item 2's households as legs (REP held, SPLIT inconclusive, QUAD falsified)
+  const lab = x => (x === 'REP' ? 'HELD' : x === 'QUAD' ? 'FALSIFIED' : 'INCONCLUSIVE');
+  out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
+  out(`LEGS: ${['S370', 'S130'].map((id, i) => `2/${id} ${lab(R.two.reads[i])}`).join('; ')}`);
   return R;
 }
 
@@ -258,6 +262,8 @@ function planted() {
   cases.push(['the other households\' splits do not move item 1', Rd({ c1: { S130: [0.001, 0.01], 'bridge 4': [0.001, 0.01] } }).one.v, 'HELD']); EDGES.push('a split on a household the item does not read');
   // the detectable size: y of +-1 on 4 paths has sd 1.1547 and, over 2 tests, |mean y| 2.8016 x 1.1547 / 2 detectable
   { const d = detect([1, -1, 1, -1], Z2); cases.push(['the detectable size of y = +-1 on 4 paths', `${d.sd.toFixed(4)} ${d.mdd.toFixed(4)}`, '1.1547 1.6175']); } EDGES.push('the detectable size on a balanced y');
+  // the scorecard's lines: OUTCOME with both items, LEGS with item 2's households
+  { const lines = []; reading(builtFiles({ c2: { S130: [0.002, 0.02] } }), parse(builtLog({})), l => lines.push(l)); const o = lines.find(l => /^\nOUTCOME:/.test(l)), g = lines.find(l => /^LEGS:/.test(l)); cases.push(['the OUTCOME and LEGS lines the scorecard reads', `${o && o.trim()} | ${g}`, 'OUTCOME: 1 HELD; 2 FALSIFIED | LEGS: 2/S370 HELD; 2/S130 FALSIFIED']); }
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

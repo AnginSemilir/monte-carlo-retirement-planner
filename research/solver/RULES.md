@@ -494,7 +494,7 @@ its planted outcomes); each reducer on the rule carries planted checks and a mut
 **Predictions** (the review's section 15) gain these fields: Decision fed (what each outcome changes: held, falsified or
 inconclusive), Provenance (every input number with its source), Derivation script (the arithmetic in a committed
 script, its output hash recorded), Point and interval (a point and an 80% interval per primary quantity), Credence (each
-item's outcome probabilities derived from priors over the Power section's stories, the judged ones beside them; no cap), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
+item's outcome probabilities derived from priors over the Power section's stories, the judged ones beside them; no cap; the derivation itself unchecked), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
 looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
 would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
 `check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK), and the launcher's re-run of each derive line.

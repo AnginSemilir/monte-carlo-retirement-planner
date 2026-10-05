@@ -1,0 +1,55 @@
+GATE: passed (reduce-adoptpi.mjs's gate and the fair-gate stamp check over results/diagadoptpi)
+
+1. ITEM 1: the most paths PCLSI-TIE may lose against PCLSI and still pass (exact no material harm AND the guarded lower end above minus the margin), with 0 saved, and with saved = lost - 5
+  share 0.90       PCLSI 99.37% margin 0.25 | lost with none saved: up to 7 | lost with lost - 5 saved: up to 13
+  share 0.95       PCLSI 73.85% margin 0.5 | lost with none saved: up to 19 | lost with lost - 5 saved: up to 79
+  bridge 1         PCLSI 99.30% margin 0.25 | lost with none saved: up to 7 | lost with lost - 5 saved: up to 13
+  bridge 4+cost    PCLSI 95.33% margin 0.25 | lost with none saved: up to 7 | lost with lost - 5 saved: up to 13
+  S366             PCLSI 99.22% margin 0.25 | lost with none saved: up to 7 | lost with lost - 5 saved: up to 13
+  S130             PCLSI 85.28% margin 0.5 | lost with none saved: up to 19 | lost with lost - 5 saved: up to 79
+  S370             PCLSI 70.80% margin 0.5 | lost with none saved: up to 19 | lost with lost - 5 saved: up to 79
+
+2. ITEM 2: g = tax(PCLSI) - tax(SNAP) a path (ADOPT-PI's files); the margin closes each path's whole gap with chance c (x = g B); reduce-tail.mjs's test of mean(x - g/2), Holm over 10
+  mean g: share 0.90 16507, share 0.95 15741, bridge 1 13634, bridge 4+cost 22542, S366 7003; paths with g not 0: share 0.90 4683, share 0.95 3748, bridge 1 4022, bridge 4+cost 5066, S366 3820
+  c 0.3: share 0.90 FALSIFIED, share 0.95 FALSIFIED, bridge 1 FALSIFIED, bridge 4+cost FALSIFIED, S366 FALSIFIED -> FALSIFIED
+  c 0.4: share 0.90 FALSIFIED, share 0.95 FALSIFIED, bridge 1 FALSIFIED, bridge 4+cost FALSIFIED, S366 FALSIFIED -> FALSIFIED
+  c 0.5: share 0.90 INCONCLUSIVE, share 0.95 INCONCLUSIVE, bridge 1 INCONCLUSIVE, bridge 4+cost INCONCLUSIVE, S366 INCONCLUSIVE -> INCONCLUSIVE
+  c 0.6: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost HELD, S366 HELD -> HELD
+  c 0.7: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost HELD, S366 HELD -> HELD
+  c 1.0: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost HELD, S366 HELD -> HELD
+
+3. ITEM 3: n0 = net(PCLSI) - net(SNAP) at death tax 0 a path (ADOPT-PI's files); the loss kept at 0.4 on each path with chance k (n4 = n0 B); the test of mean(n4 - n0/2), Holm over 10
+  mean n0: share 0.90 -80864, share 0.95 -79740, bridge 1 -98555, bridge 4+cost -198640, S366 -23594
+  k 0.0: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost HELD, S366 HELD -> HELD
+  k 0.3: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost HELD, S366 HELD -> HELD
+  k 0.4: share 0.90 HELD, share 0.95 HELD, bridge 1 HELD, bridge 4+cost INCONCLUSIVE, S366 HELD -> INCONCLUSIVE
+  k 0.5: share 0.90 INCONCLUSIVE, share 0.95 INCONCLUSIVE, bridge 1 INCONCLUSIVE, bridge 4+cost INCONCLUSIVE, S366 INCONCLUSIVE -> INCONCLUSIVE
+  k 0.6: share 0.90 INCONCLUSIVE, share 0.95 INCONCLUSIVE, bridge 1 INCONCLUSIVE, bridge 4+cost INCONCLUSIVE, S366 FALSIFIED -> INCONCLUSIVE
+  k 1.0: share 0.90 FALSIFIED, share 0.95 FALSIFIED, bridge 1 FALSIFIED, bridge 4+cost FALSIFIED, S366 FALSIFIED -> FALSIFIED
+
+4. ITEM 4: HYB built from ADOPT-PI's SNAP and PCLSI paths, taking PCLSI's outcome on a share s of the discordant paths (the tables' share); y = (PCLSI - HYB) - (HYB - SNAP), the randomization test above and below 0, Holm over 6
+  S130 b 25 c 168, S370 b 43 c 91, S128 b 49 c 73
+  s 0.00: S130 READ, S370 READ, S128 SPLIT -> HELD
+  s 0.10: S130 READ, S370 READ, S128 SPLIT -> HELD
+  s 0.25: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
+  s 0.40: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.50: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.60: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  s 0.75: S130 TABLES, S370 SPLIT, S128 SPLIT -> FALSIFIED
+  s 1.00: S130 TABLES, S370 TABLES, S128 SPLIT -> FALSIFIED
+
+5. THE COST (ADOPT-PI's solve and forward seconds a unit at 6,000 paths; DT jobs at the household's death-tax-0 seconds, NOT CHECKED at 0.4 on the losers)
+  share 0.90 TAIL      solves 372 + 424 s; forward SNAP 676 s, 2 on PCLSI's tables at 633 s: 0.76 core-hours
+  share 0.95 TAIL      solves 329 + 365 s; forward SNAP 489 s, 2 on PCLSI's tables at 534 s: 0.63 core-hours
+  bridge 1 TAIL        solves 325 + 388 s; forward SNAP 801 s, 2 on PCLSI's tables at 968 s: 0.96 core-hours
+  bridge 4+cost TAIL   solves 249 + 284 s; forward SNAP 435 s, 2 on PCLSI's tables at 476 s: 0.53 core-hours
+  S366 TAIL            solves 267 + 303 s; forward SNAP 498 s, 2 on PCLSI's tables at 540 s: 0.60 core-hours
+  S130 TAIL            solves 219 + 254 s; forward SNAP 419 s, 3 on PCLSI's tables at 428 s: 0.60 core-hours
+  S370 TAIL            solves 244 + 278 s; forward SNAP 407 s, 3 on PCLSI's tables at 426 s: 0.61 core-hours
+  S128 HYB             solves 227 + 257 s; forward SNAP 367 s, 2 on PCLSI's tables at 370 s: 0.44 core-hours
+  share 0.90 DT        solves 372 + 424 s; forward SNAP 676 s, 1 on PCLSI's tables at 633 s: 0.58 core-hours
+  share 0.95 DT        solves 329 + 365 s; forward SNAP 489 s, 1 on PCLSI's tables at 534 s: 0.48 core-hours
+  bridge 1 DT          solves 325 + 388 s; forward SNAP 801 s, 1 on PCLSI's tables at 968 s: 0.69 core-hours
+  bridge 4+cost DT     solves 249 + 284 s; forward SNAP 435 s, 1 on PCLSI's tables at 476 s: 0.40 core-hours
+  S366 DT              solves 267 + 303 s; forward SNAP 498 s, 1 on PCLSI's tables at 540 s: 0.45 core-hours
+  total 7.7 core-hours; the longest job 0.96 hours; on four cores, longest first, 2.2 hours (ADOPT-PI's seconds were measured under its own load; the per-path trace record's own cost NOT CHECKED, measured in the preflight's seconds only at 20 paths)

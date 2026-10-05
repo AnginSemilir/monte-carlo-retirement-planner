@@ -1,0 +1,32 @@
+GATE: passed - XAS's 4 households through reduce-xas.mjs's gate, the identity against COV-B-STEP's reads and the draw check
+
+1. THE SIZES (COV, rep = read - ex5 in the years before each step; P a path's sum over the year's reads)
+  S370     year 2: reads 6000, mean rep 1.248e-2; paths 6000, mean P 1.248e-2, sd P 2.241e-2
+  S370     year 6: reads 5859, mean rep 2.565e-2; paths 5859, mean P 2.565e-2, sd P 2.213e-2
+  bridge 4 year 2: reads 6000, mean rep -2.796e-4; paths 6000, mean P -2.796e-4, sd P 6.227e-4
+
+2. THE POWER (item 1: tests of mean(D - 0.3 P) and mean(0.6 P - D) above 0, one-sided, Holm over four; at 80% power the
+   detectable distance of s from a threshold is (z + z80) sd(D - c P) / (sqrt(n) mean P), the spread ASSUMED equal to sd(P))
+  S370 year 2 at 1x the assumed spread: s told from 0.3 or 0.6 at a distance of 0.0715
+  S370 year 2 at 2x the assumed spread: s told from 0.3 or 0.6 at a distance of 0.1430
+  S370 year 6 at 1x the assumed spread: s told from 0.3 or 0.6 at a distance of 0.0348
+  S370 year 6 at 2x the assumed spread: s told from 0.3 or 0.6 at a distance of 0.0695
+
+3. THE COST (XAS's measured seconds; XAS-R re-solves both arms and re-reads the years before each step with up to 8
+   node builds a read - taken at three times XAS's forward read, an upper estimate, grade C)
+  S370    : solves 3122 s, XAS's read 944 s -> XAS-R about 5954 s (1.65 h)
+  bridge 4: solves 3053 s, XAS's read 835 s -> XAS-R about 5558 s (1.54 h)
+  S126    : solves 2945 s, XAS's read 710 s -> XAS-R about 5075 s (1.41 h)
+  all three: 4.61 core-hours; one process a household, three at once: the longest household's time
+
+4. THE CREDENCES, DERIVED FROM STATED PRIORS (grade C: the priors are judged, the arithmetic is not)
+  item 1, story YB-COPY (weight 0.275): a year COPY 0.841, GRID 0.001; both years COPY 0.708, both GRID 0.000
+  item 1, story YB-GRID (weight 0.2): a year COPY 0.000, GRID 0.933; both years COPY 0.000, both GRID 0.871
+  item 1, story neither (weight 0.525): a year COPY 0.400, GRID 0.300; both years COPY 0.160, both GRID 0.090
+  item 1: HELD 0.28 INCONCLUSIVE 0.50 FALSIFIED 0.22; the share's expectation 0.50
+CREDENCE item 1: point 0.50 HELD 0.28 INCONCLUSIVE 0.50 FALSIFIED 0.22
+  item 2, story S126-BLEND (weight 0.45): q >= 0.8 0.933, q <= 0.5 0.000
+  item 2, story survival (weight 0.2): q >= 0.8 0.001, q <= 0.5 0.933
+  item 2, story neither (weight 0.35): q >= 0.8 0.200, q <= 0.5 0.500
+  item 2: HELD 0.49 INCONCLUSIVE 0.15 FALSIFIED 0.36; q's expectation 0.64
+CREDENCE item 2: point 0.64 HELD 0.49 INCONCLUSIVE 0.15 FALSIFIED 0.36

@@ -1,0 +1,19 @@
+GATE (all but the BASE guard, which results-xasr.txt reports failed): passed; planted: passed
+
+1. THE NODE CACHE'S SIGNATURE (O109): mean (va - ex5), reads with va at the clamp (all, by world), per arm
+  S370      year 2 BASE reads 6000  mean (va - ex5) 1.1305e-1  at the clamp 3735 (by world 0:28/2000 1:1726/2000 2:1981/2000)
+  S370      year 2 COV  reads 6000  mean (va - ex5) 1.3989e-1  at the clamp 3719 (by world 0:28/2000 1:1710/2000 2:1981/2000)
+  S370      year 6 BASE reads 5859  mean (va - ex5) -2.0443e-1  at the clamp 23 (by world 0:0/1895 1:3/1974 2:20/1990)
+  S370      year 6 COV  reads 5859  mean (va - ex5) -1.7172e-1  at the clamp 23 (by world 0:0/1895 1:3/1974 2:20/1990)
+  bridge 4  year 2 BASE reads 6000  mean (va - ex5) -4.0868e-2  at the clamp 688 (by world 0:311/2000 1:234/2000 2:143/2000)
+  bridge 4  year 2 COV  reads 6000  mean (va - ex5) -4.0269e-2  at the clamp 688 (by world 0:311/2000 1:234/2000 2:143/2000)
+
+2. BASE'S MIDPOINT NODE AGAINST THE READER: mean (vb - read); top-cell reads with the 0.9 node supported (vbs above 0)
+  S370      year 2 mean (vb - read) 7.9745e-4  max |vb - read| 9.5935e-3  supported 5996 of 6000 top-cell reads (99.9%)
+  S370      year 6 mean (vb - read) 5.1289e-4  max |vb - read| 4.7600e-3  supported 5819 of 5854 top-cell reads (99.4%)
+  bridge 4  year 2 mean (vb - read) 9.4904e-5  max |vb - read| 1.5896e-2  supported 6000 of 6000 top-cell reads (100.0%)
+
+3. S126'S OPENING TERMS (results/diagxasr/case2.txt; score = surv + resil + beq - short): the move-59-less-move-5 gap
+  BASE gap: surv 5.0000e-5 resil 0.0000e+0 beq 2.2140e-3 -short 1.0890e-3  sum 3.3530e-3 (score 3.4000e-3, rounded)
+  COV  gap: surv 1.0000e-4 resil 0.0000e+0 beq 3.2600e-4 -short -1.6050e-3  sum -1.1790e-3 (score -1.2000e-3, rounded)
+  COV's change: surv 5.0000e-5 beq -1.8880e-3 -short -2.6940e-3  sum -4.5320e-3

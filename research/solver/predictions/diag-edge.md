@@ -20,8 +20,8 @@ On PCLSI's tables, does interpolating the read below the middle bucket (removing
 
 ## Prediction
 
-- **Item 1 HELD:** on S130 P-LO saves more paths than P-HI (the low edge carries PCLSI's gain over HYB; point: the low edge's share about 0.53 under the registered prior).
-- **Item 2 HELD:** on S130 S-HI saves more paths than S-LO (the high edge carries the interpolated read's gain on SNAP's tables).
+- **Item 1 HELD:** on S130 P-LO saves more paths than P-HI - the low edge carries more of PCLSI's gain over HYB than the high edge (a direction; it does not by itself separate EDGE from WITHIN, which the low edge's share, reported, speaks to).
+- **Item 2 HELD:** on S130 S-HI saves more paths than S-LO - the high edge carries more of the interpolated read's gain on SNAP's tables than the low edge.
 
 ## Falsified if
 
@@ -55,47 +55,50 @@ Arms: SNAP, S-LO, S-HI, S-INT, PCLSI, P-LO and P-HI on each household, with HYB'
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | O101-EDGE settled (grade A): PCLSI's gain is the end of the snap's pause at the edge the tables make steepest; PCLSI goes to the maintainer with that mechanism and O83 confirmed at grade A; review-causes.md settles O101-EDGE held | 0.37 |
-| item 1 INCONCLUSIVE | the gain is not one edge's: O101 stays open, its next cause WITHIN (no allowance cost inside a bucket) read from the split arms' flat years; PCLSI goes with the read's attribution only (grade A from HYB) | 0.36 |
-| item 1 FALSIFIED | the high edge carries the gain on PCLSI's tables, against HYB's traces: the trace measures (derive-hyb-edges.mjs) are re-checked against the split arms before any mechanism is put; O101-EDGE settled not held | 0.27 |
+| item 1 HELD | the low edge carries more of PCLSI's gain on its own tables (grade A for the direction); O101-EDGE is settled held only if the low edge's share (secondary, reported) is 0.7 or more, and then at grade B; a share under 0.7 leaves EDGE and WITHIN unseparated and O101 open; PCLSI goes to the maintainer as ending the snap's pause at the edge its tables make steepest | 0.38 |
+| item 1 INCONCLUSIVE | the gain is not shown to lean to either edge: O101 stays open, WITHIN (no allowance cost inside a bucket) read from the split arms' flat years; PCLSI goes with the read's attribution only (grade A from HYB) | 0.34 |
+| item 1 FALSIFIED | the high edge carries more of the gain on PCLSI's tables, against HYB's traces: the trace measures (derive-hyb-edges.mjs) are re-checked against the split arms before any mechanism is put; review-causes.md settles O101-EDGE not held | 0.28 |
 
 ## Decision fed
 
-- **Item 1 HELD:** O101's EDGE cause held; O83 confirmed at grade A; PCLSI is put as ending the snap's pause.
+- **Item 1 HELD:** the direction held; O101-EDGE held only with the low edge's share 0.7 or more (grade B), else O101 open with EDGE and WITHIN unseparated; PCLSI is put as ending the snap's pause.
 - **Item 1 FALSIFIED or INCONCLUSIVE:** O101 open; PCLSI is put with the read's attribution alone.
-- **Item 2 HELD:** on SNAP's tables the 0.75 edge carries the interpolated read's gain - the shipping default's pause is the 0.75 edge's (O83's product finding, PLAN.md O83's gate).
+- **Item 2 HELD:** on SNAP's tables the 0.75 edge carries more of the interpolated read's gain - the shipping default's survival cost is its pause at the 0.75 edge: O83 confirmed at grade A (the shipping default's own tables; the plan-auditor's BLOCKING 1 of 5 Oct 12:22 UK: O83's grade A rests on this item, not item 1), and O83's product finding goes to the maintainer.
+- **Item 2 FALSIFIED:** on SNAP's tables the low edge carries more, against SNAP's 6.86 flat years at [0.6, 0.75) (results-derive-hyb-edges.txt): O83's hold is not the shipping default's survival cost; O83 is put back to grade C and its product finding withheld until the flat years per split arm say where the gain comes from.
+- **Item 2 INCONCLUSIVE:** O83 stays at grade B; its product finding goes as a hold the traces show, with no survival cost settled; S-INT against SNAP (secondary) is O88's separating arm, reported.
 - **In every branch:** pclsInterp and pclsSeg stay off in the code until the maintainer decides; no product change; PR5's caveat (a nonzero death tax unchecked beyond these households) stays with the axis decision.
 
 ## Provenance
 
 - **The design:** the deep review after HYB (deep-review-log.md 5 Oct 11:50 UK: EDGE-SPLIT, its arms on both tables, S130 and S128, S370 reported, seed 7005, 6,000 paths, through HYB's identity gate); O101's gate (PLAN.md).
 - **The build:** grid.js pclsSeg (fb408d9); audit-edge.mjs; reduce-edge.mjs (planted checks; mutations: results-reduce-edge-mutations.txt); preflight-edge.sh with preflight-parse-edge.mjs; derive-edge.mjs; batch-edge.sh.
+- **Amended after registration, before launch (the plan-auditor's FAIL of 5 Oct 12:22 UK):** item 1's HELD restated as a direction, O101-EDGE settled only with the low edge's share 0.7 or more (BLOCKING 1), and O83's grade A moved to item 2; the derivation gives the split arms room outside their parents - the relocated pause in half of every story's draws (BLOCKING 2; the HYB close's lesson); item 2's FALSIFIED and INCONCLUSIVE branches registered (BLOCKING 3); the interval, the prior's wording and the cost from the script's output (MINORs 4-6). The credences re-derived.
 
 ## Derivation script
 
-- `derive: research/solver/derive-edge.mjs > research/solver/results-derive-edge.txt sha256 174cd52e1cfeeb8e`
-  (each item's outcomes under each of the review's stories; the priors, the review's and the record-informed; the credences; the cost)
+- `derive: research/solver/derive-edge.mjs > research/solver/results-derive-edge.txt sha256 562bf144dd1fe27e`
+  (each item's outcomes under each of the review's stories, the relocated pause in half the draws; the priors, the review's and the sceptical one; the share's centiles; the credences; the cost)
 
 ## Point and interval
 
-- **Item 1:** the low edge's share of PCLSI's gain over HYB on S130 about 0.53 under the registered prior (0.1 to 1.0); about 0.85 if the review's ranked cause holds.
-- **Item 2:** the high edge's share of the interpolated read's gain on SNAP's tables on S130 about 0.53 (0.1 to 1.0).
+- **Item 1:** P-LO's share of PCLSI's gain over HYB on S130, about 0.41 (median under the registered prior, the relocated pause included; 80% interval 0.02 to 0.78, results-derive-edge.txt section 3).
+- **Item 2:** S-HI's share of the interpolated read's gain over SNAP on S130, about 0.41 (0.00 to 0.78; the stand-in's gain, grade C).
 
 ## Credence
 
-- **Item 1:** HELD 0.37, INCONCLUSIVE 0.36, FALSIFIED 0.27 (derived, results-derive-edge.txt section 4: the stories' outcomes mixed under prior B - the ranked cause EDGE at the record's rate for a review's ranked cause, 1 of 19 read as the review said, Laplace 0.095, the rest in the review's proportions; under the review's own priors, prior A, the first outcome would be 0.790).
-- **Item 2:** HELD 0.32, INCONCLUSIVE 0.45, FALSIFIED 0.23 (derived, section 4, prior B; under prior A the first outcome would be 0.774).
+- **Item 1:** HELD 0.38, INCONCLUSIVE 0.34, FALSIFIED 0.28 (derived, results-derive-edge.txt section 4: the stories' outcomes mixed under prior B, a stated sceptical choice - EDGE at 0.095, Laplace on the record that 1 of 19 items leaning on a review's cause or story read as it said, the rest in the review's proportions; under the review's own priors, prior A, the first outcome would be 0.779).
+- **Item 2:** HELD 0.33, INCONCLUSIVE 0.43, FALSIFIED 0.24 (derived, section 4, prior B; under prior A the first outcome would be 0.745).
 - **Judged, item 1:** HELD 0.60, INCONCLUSIVE 0.25, FALSIFIED 0.15 (the author's judgement, written after the derivation had run - not blind; scored beside the derived credence).
 - **Judged, item 2:** HELD 0.55, INCONCLUSIVE 0.30, FALSIFIED 0.15 (as item 1's judgement).
 - **Kinds:** 1 ATTRIB; 2 ATTRIB.
 
 ## Power
 
-From results-derive-edge.txt section 2 (each discordant path of the read's gain assigned to one edge, a noise floor of as many again as the gain's lost paths, the reducer's test with Holm over 4 on S130 and S128): under the ranked cause (the edge's share uniform on 0.7 to 1) item 1 reads HELD on 1.000 of draws and item 2 on 0.997; under WITHIN (0.3 to 0.7) item 1 reads HELD 0.271, INCONCLUSIVE 0.453, FALSIFIED 0.276; with no gain at all (NOISE) INCONCLUSIVE 0.980. Item 2's input is PCLSI over SNAP as a stand-in for S-INT over SNAP, never run (grade C).
+From results-derive-edge.txt section 2 (each discordant path of the read's gain assigned to one edge, a noise floor of as many again as the gain's lost paths, and in half the draws the pause relocated - each split arm losing up to half the gain's saved paths again, so it can fall outside its parents; the reducer's test with Holm over 4 on S130 and S128): under the ranked cause (the edge's share uniform on 0.7 to 1) item 1 reads HELD on 0.979 of draws and item 2 on 0.951; under WITHIN (0.3 to 0.7) item 1 reads HELD 0.270, INCONCLUSIVE 0.458, FALSIFIED 0.272 - so HELD alone does not separate EDGE from WITHIN, and the decision table settles EDGE only with the share; with no gain at all (NOISE) INCONCLUSIVE 0.689. Item 2's input is PCLSI over SNAP as a stand-in for S-INT over SNAP, never run (grade C).
 
 ## Budget line
 
-3 jobs of 2 solves and 7 forward arms each, about 1.6 hours on three quiet cores from HYB's seconds (results-derive-edge.txt section 5); launched after XAS frees the cores.
+3 jobs of 2 solves and 7 forward arms each, 1.38 hours a household at HYB's slowest seconds, the three in parallel (results-derive-edge.txt section 5); launched after XAS frees the cores.
 
 ## Pre-mortem
 

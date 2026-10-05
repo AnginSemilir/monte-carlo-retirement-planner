@@ -214,7 +214,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const bad = findingsProblem(f);
   if (bad) { console.error(`not recorded: ${bad}\nusage: --start | --findings "<...>"`); process.exit(2); }
   const rd = p => (existsSync(join(HERE, p)) ? readFileSync(join(HERE, p), 'utf8') : '');
-  const sc = rd('results-scorecard.txt'), u = index({ scorecard: sc, plan: rd('PLAN.md'), log: rd('deep-review-log.md') });
+  const sc = rd('results-scorecard.txt'), u = index({ scorecard: sc, plan: rd('PLAN.md'), log: rd('deep-review-log.md'), lessons: rd('lessons.md') });
   const line = receiptFor(rd, { when: ukNow(), level: u.level, findings: f });
   appendFileSync(LOG, `${line}\n`);
   console.log(`recorded: ${line.slice(0, 160)}${line.length > 160 ? '...' : ''}`);

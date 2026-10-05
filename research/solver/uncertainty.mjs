@@ -58,12 +58,23 @@ export function registerFamilies(plan) {
 export function ledgerAfter(plan, after) {
   return plan.split('\n').filter(l => /^\| \d{1,2} \w{3} \d{2}:\d{2} \|/.test(l)).map(l => ({ t: stamp(l.slice(2, 14)), line: l })).filter(r => after === null || r.t > after);
 }
-export function index({ scorecard, plan, log }) {
+// the tests closed after the covered one, by their closes in lessons.md ("## <test> (closed D Mon HH:MM)"): the scorecard's
+// file order lists EDGE after XAS though XAS closed later (O107; the plan-auditor's MINOR 6 on 967f853, the fourth unlock).
+// Without lessons.md, or with no close for the covered test, the file order as before; a test with no close is not after.
+export function testsAfter(tests, covered, lessons) {
+  if (covered === null) return tests;
+  const closes = new Map();
+  for (const m of String(lessons || '').matchAll(/^## (\S+) \(closed (\d{1,2} \w{3} \d{2}:\d{2})\)/gm)) closes.set(m[1], stamp(m[2]));
+  const key = n => n.split(' (')[0], c = closes.get(key(covered));
+  if (c === undefined || c === null) return tests.slice(tests.findIndex(t => t.name === covered) + 1);
+  return tests.filter(t => { const v = closes.get(key(t.name)); return v !== undefined && v !== null && v > c; });
+}
+export function index({ scorecard, plan, log, lessons = null }) {
   const tests = scoredTests(scorecard);
   const last = (log || '').split('\n').filter(l => /^- .* UK \| covered /.test(l)).pop() || null;
   const since = last ? stamp(last) : null, covered = last ? /\| covered (.+?) \|/.exec(last)[1].trim() : null;
   const all = tests.flatMap(t => t.items), cal = brier(all.slice(-10));
-  const after = covered === null ? tests : tests.slice(tests.findIndex(t => t.name === covered) + 1);
+  const after = testsAfter(tests, covered, lessons);
   const surprises = after.flatMap(t => t.items.filter(([p, o]) => (p >= 0.8 && !o) || (p <= 0.3 && o)).map(([p, o]) => `${t.name} ${p} ${o ? 'held' : 'missed'}`));
   const fams = registerFamilies(plan), family = Math.max(0, ...Object.values(fams));
   const rows = ledgerAfter(plan, since);
@@ -100,6 +111,10 @@ function planted() {
     ['the level: calibration 0.40 is HIGH, so a review is due', `${u.level} ${u.due}`, 'HIGH true'],
     ['LOW with nothing settled is not due; LOW with one settled result is (a review after every result, 4 Oct)', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 1 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
     ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
+    ['planted: a test listed before the covered one but closed after it counts as after (O107: XAS listed before EDGE, closed later)', testsAfter([{ name: 'XAS (x)' }, { name: 'EDGE (y)' }], 'EDGE (y)', '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n').map(t => t.name).join(','), 'XAS (x)'],
+    ['planted: a test listed after the covered one but closed before it does not count', String(testsAfter([{ name: 'XAS (x)' }, { name: 'EDGE (y)' }], 'XAS (x)', '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n').length), '0'],
+    ['EDGE: with no lessons the file order stands', testsAfter([{ name: 'A (a)' }, { name: 'B (b)' }], 'A (a)', '').map(t => t.name).join(','), 'B (b)'],
+    ['index passes lessons.md to the ordering: a surprise in a test listed before the covered one but closed after it counts', String(index({ scorecard: 'XAS (x): Brier 0.81 over 1 (1 0.9 -> not)\nEDGE (y): Brier 0 over 1 (1 0.5 -> held)\n', plan: '', log: '- 5 Oct 19:00 UK | covered EDGE (y) | x\n', lessons: '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n' }).surprises.length), '1'],
     ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
     ['"no material harm" and "no harm" are not harm verdicts; a harm beside them still is', (() => { const rows = ['| 30 Sep 14:20 | **7ah READ: no material harm on the six households** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:10 | **7x READ: no harm to survival** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:00 | **7y READ: no material harm on five, harm on S126** | y | prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 30 Sep 13:00 UK | covered 7r (b) | x' }).unmask); })(), '1'],
     ['a deep review\'s row naming predictions is not a settled result; a read row citing a review later in its cell is', (() => { const rows = ['| 4 Oct 12:09 | **The pre-launch review** | y | deep review: deep-review-log.md (4 Oct 12:01 UK); fair-test: n/a (a review); prediction: predictions/a.md; grade A |', '| 4 Oct 12:30 | **7x read** | y | results: results-7x.txt; fair-test: pass; prediction: predictions/a.md; deep review: deep-review-log.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 4 Oct 12:01 UK | covered 7r (b) | x' }).settled); })(), '1'],
@@ -114,7 +129,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const n = planted();
   if (process.argv.includes('--planted')) { console.log(`planted (${n}): all read as they should`); process.exit(0); }
   const rd = f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : '');
-  const u = index({ scorecard: rd('results-scorecard.txt'), plan: rd('PLAN.md'), log: rd('deep-review-log.md') });
+  const u = index({ scorecard: rd('results-scorecard.txt'), plan: rd('PLAN.md'), log: rd('deep-review-log.md'), lessons: rd('lessons.md') });
   if (process.argv.includes('--due')) { console.log(u.due ? `DEEP REVIEW DUE (${u.level})` : `no deep review due (${u.level})`); process.exit(u.due ? 1 : 0); }
   console.log(`THE UNCERTAINTY INDEX (RULES.md section 9): ${u.level}; a deep review ${u.due ? 'IS DUE' : 'is not due'}`);
   console.log(`  last deep review: ${u.last || 'none yet'}`);

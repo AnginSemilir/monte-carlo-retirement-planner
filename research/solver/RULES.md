@@ -251,7 +251,6 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    the first). The order is read from commits: a derivation run before the judged lines' first commit passes (XAS-R's,
    748c53e: the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
    author's reading.
-32. uncertainty.mjs counts tests since a review in the scorecard's order, not by close (MINOR 6 on 967f853): fix pending.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

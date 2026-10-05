@@ -2,7 +2,8 @@
 # judged-order and base-rate checks must make research/tests/plan-checker.test.mjs fail. In place, restored after;
 # run from anywhere: python3 research/solver/mutate-credence-checks.py (5 Oct: items 1-3 23 of 23, item 4 12 of 12, item 5 3 of 3, labels 8 of 8;
 # the fourth unlock, the judged order's first commit and the receipt's test (O107): items 1-3 25 of 25, item 4 17 of 17 -
-# results-unlock-judged-order.txt)
+# results-unlock-judged-order.txt; the fifth, the tests since a review by close (MINOR 6): uncertainty 4 of 4 -
+# results-unlock-uncertainty.txt)
 import subprocess, os
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 p=os.path.join(ROOT,'research/solver/check-prediction.mjs')
@@ -126,3 +127,26 @@ for f,a,b in M6:
   finally:
     open(fp,'w').write(o)
 print(f'labels: {caught6}/{len(M6)} caught')
+
+# the tests since a review by close time (uncertainty.mjs testsAfter; the plan-auditor's MINOR 6 on 967f853, kept on the
+# maintainer's 'Unlock enforcement' of 5 Oct, the fifth): its planted checks must fail (uncertainty.mjs --planted)
+M7=[
+ ("return tests.filter(t => { const v = closes.get(key(t.name)); return v !== undefined && v !== null && v > c; });", "return tests.slice(tests.findIndex(t => t.name === covered) + 1);"),
+ ("return v !== undefined && v !== null && v > c; });", "return v !== undefined && v !== null && v >= c; });"),
+ ("if (c === undefined || c === null) return tests.slice(", "if (true) return tests.slice("),
+ ("  const after = testsAfter(tests, covered, lessons);", "  const after = testsAfter(tests, covered, null);"),
+]
+u='/home/user/vitejs-vite-kdvuf9qw/research/solver/uncertainty.mjs'
+origu=open(u).read()
+caught7=0
+try:
+  for a,b in M7:
+    assert origu.count(a)==1,(origu.count(a),a[:60])
+    open(u,'w').write(origu.replace(a,b))
+    r=subprocess.run(['node','research/solver/uncertainty.mjs','--planted'],cwd=ROOT,capture_output=True,text=True)
+    ok = r.returncode!=0
+    caught7+=ok
+    print(('CAUGHT  ' if ok else 'SURVIVED'), 'uncertainty:', a[:60])
+finally:
+  open(u,'w').write(origu)
+print(f'uncertainty: {caught7}/{len(M7)} caught')

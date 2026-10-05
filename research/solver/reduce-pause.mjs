@@ -146,8 +146,10 @@ export function readArm(t) {
    u, the share with it in MID - on the fixed move's score (key 'fix') or the envelope ('env') */
 export function figures(rows, key) {
   if (key !== 'fix' && key !== 'env') throw new Error(`figures: key ${key}`);
-  const rs = rows.filter(r => Number.isFinite(r[key].ahead.m));
-  return { n: rows.length, read: rs.length, within: rs.length ? rs.filter(r => r[key].ahead.m - r.u0 <= NEAR + 1e-12).length / rs.length : NaN, mid: rs.length ? rs.filter(r => r[key].ahead.m >= MID[0] - 1e-12 && r[key].ahead.m <= MID[1] + 1e-12).length / rs.length : NaN };
+  // a year counts only where its read falls ahead of u (the steepest step ahead negative): a flat or rising read has no steep
+  // point to pause below (the plan-auditor's MINOR 1 of 6 Oct on 3c21081); those years are counted apart (none)
+  const rs = rows.filter(r => Number.isFinite(r[key].ahead.m) && r[key].ahead.s < 0);
+  return { n: rows.length, read: rs.length, none: rows.length - rs.length, within: rs.length ? rs.filter(r => r[key].ahead.m - r.u0 <= NEAR + 1e-12).length / rs.length : NaN, mid: rs.length ? rs.filter(r => r[key].ahead.m >= MID[0] - 1e-12 && r[key].ahead.m <= MID[1] + 1e-12).length / rs.length : NaN };
 }
 export function reading(files, out = console.log) {
   const f3 = x => (Number.isFinite(x) ? x.toFixed(3) : '-'), e = x => (Number.isFinite(x) ? x.toExponential(3) : '-');
@@ -159,13 +161,13 @@ export function reading(files, out = console.log) {
   for (const a of ARMS) {
     if (!MAIN[a]) { out(`  ${a.padEnd(6)} no main band (EDGE-SPLIT: no flat years in the three bands)`); continue; }
     const b = R[a].filter(r => r.band === MAIN[a]), F = figures(b, 'fix'), V = figures(b, 'env');
-    out(`  ${a.padEnd(6)} ${MAIN[a].padEnd(12)} n ${F.n}   within ${f3(F.within)} of ${F.read}   in the middle ${f3(F.mid)}   | envelope within ${f3(V.within)} of ${V.read}   in the middle ${f3(V.mid)}`);
+    out(`  ${a.padEnd(6)} ${MAIN[a].padEnd(12)} n ${F.n}   within ${f3(F.within)} of ${F.read}   in the middle ${f3(F.mid)}   no fall ahead ${F.none}   | envelope within ${f3(V.within)} of ${V.read}   in the middle ${f3(V.mid)}`);
   }
   out(`\n3. PER BAND, every arm (the fixed move): n, within ${NEAR}, in the middle, the commonest midpoint ahead (its share), the median slope ahead (score per unit u)`);
   for (const a of ARMS) for (const [nm] of BANDS) {
     const b = R[a].filter(r => r.band === nm); if (!b.length) continue;
-    const F = figures(b, 'fix'), md = mode(b.filter(r => Number.isFinite(r.fix.ahead.m)).map(r => r.fix.ahead.m));
-    out(`  ${a.padEnd(6)} ${nm.padEnd(12)} n ${String(F.n).padStart(6)}   within ${f3(F.within)}   in the middle ${f3(F.mid)}   commonest ${f3(md.m)} (${f3(md.n / Math.max(1, F.read))})   slope ${e(med(b.map(r => r.fix.ahead.s).filter(Number.isFinite)))}`);
+    const F = figures(b, 'fix'), md = mode(b.filter(r => Number.isFinite(r.fix.ahead.m) && r.fix.ahead.s < 0).map(r => r.fix.ahead.m));
+    out(`  ${a.padEnd(6)} ${nm.padEnd(12)} n ${String(F.n).padStart(6)}   within ${f3(F.within)}   in the middle ${f3(F.mid)}   no fall ahead ${F.none}   commonest ${f3(md.m)} (${f3(md.n / Math.max(1, F.read))})   slope ${e(med(b.map(r => r.fix.ahead.s).filter(Number.isFinite)))}`);
   }
   out(`\n4. THE STEEPEST FALL OVER THE WHOLE AXIS (the fixed move): its commonest midpoint (share), the median slope`);
   for (const a of ARMS) { const md = mode(R[a].map(r => r.fix.all.m).filter(Number.isFinite)); out(`  ${a.padEnd(6)} at ${f3(md.m)} (${f3(md.n / Math.max(1, R[a].length))})   median slope ${e(med(R[a].map(r => r.fix.all.s).filter(Number.isFinite)))}`); }
@@ -237,13 +239,16 @@ function planted() {
     const files = Object.fromEntries(ARMS.map(a => [a, a === 'P-HI' ? T4 : empty])), lines = [];
     reading(files, x => lines.push(x));
     const ph = lines.find(x => /^ {2}P-HI +\[0\.15,0\.25\) +n 3 /.test(x)) || '';
-    cases.push(['the reading\'s registered line for P-HI: the fixed move first, the envelope second', /within 0\.667 of 3 +in the middle 0\.333 +\| envelope within 0\.000 of 3 +in the middle 0\.000/.test(ph), true]);
+    cases.push(['the reading\'s registered line for P-HI: the fixed move first, the envelope second', /within 0\.667 of 3 +in the middle 0\.333 +no fall ahead 0 +\| envelope within 0\.000 of 3 +in the middle 0\.000/.test(ph), true]);
     const B = readArm({ ugrid: G, fp: [0], fu: [0.5], fx: Float64Array.from(G.map(u => (u > 0.6 ? 0 : 1))), fv: Float64Array.from(G.map(u => (u > 0.6 ? 0 : 1))), fc: new Uint8Array(K) });
     cases.push(['a fall at the 0.6-0.65 step from u 0.5: 0.125 ahead, outside 0.1 and outside the middle', `${figures(B, 'fix').within} ${figures(B, 'fix').mid}`, '0 0']);
     const C = readArm({ ugrid: G, fp: [0], fu: [0.5], fx: Float64Array.from(G.map(u => (u > 0.58 ? 0 : 1))), fv: Float64Array.from(G.map(u => (u > 0.58 ? 0 : 1))), fc: new Uint8Array(K) });
     cases.push(['a fall at the 0.55-0.6 step from u 0.5: 0.075 ahead, within 0.1 and in the middle', `${figures(C, 'fix').within} ${figures(C, 'fix').mid}`, '1 1']);
     EDGES.push('a fall exactly past the 0.1 and the middle bounds');
-    cases.push(['an empty band reads n 0 and no shares', JSON.stringify(figures([], 'fix')), '{"n":0,"read":0,"within":null,"mid":null}']);
+    cases.push(['an empty band reads n 0 and no shares', JSON.stringify(figures([], 'fix')), '{"n":0,"read":0,"none":0,"within":null,"mid":null}']);
+    const flatR = readArm({ ugrid: G, fp: [0, 1], fu: [0.2, 0.2], fx: Float64Array.from([...G.map(() => 1), ...G.map(u => 1 + u)]), fv: Float64Array.from([...G.map(() => 1), ...G.map(u => 1 + u)]), fc: new Uint8Array(2 * K) });
+    cases.push(['a flat and a rising read have no fall ahead: counted apart, never within', JSON.stringify(figures(flatR, 'fix')), '{"n":2,"read":0,"none":2,"within":null,"mid":null}']);
+    EDGES.push('a flat or rising read (no fall ahead)');
     EDGES.push('an empty band');
   }
   const fails = cases.filter(([, got, want]) => String(got) !== String(want));

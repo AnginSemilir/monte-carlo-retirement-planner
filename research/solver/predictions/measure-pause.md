@@ -26,7 +26,7 @@ Where, at each arm's flat years, does its own read fall most steeply as u rises,
 - the self-check on every flat year, run on more than nothing;
 - the scale plant (PAUSE_PLANT=scale: the setter writes u, not u x lsa) caught by the audit's own self-check on both arms of the plant run (the preflight asserts repro below its count, the count above 0), and refused by the gate.
 
-**The registered figures** (reduce-pause.mjs section 2, THE REGISTERED FIGURES; the plan-auditor's BLOCKING 1 of 6 Oct on 1fde232), on the fixed move, in each arm's MAIN PAUSE BAND - SNAP, S-LO and P-LO [0.6, 0.75); P-HI and HYB [0.15, 0.25); S-HI and S-INT [0.25, 0.6); PCLSI none (EDGE-SPLIT's flat years, results-edge.txt REPORTED). Of the band's flat years with a fall ahead of u: WITHIN, the share whose steepest fall ahead (the most negative step between grid points with its midpoint above u) lies 0.1 or less above u; MIDDLE, the share with that midpoint in [0.4, 0.6]. The envelope's figures are printed beside them and read nothing.
+**The registered figures** (reduce-pause.mjs section 2, THE REGISTERED FIGURES; the plan-auditor's BLOCKING 1 of 6 Oct on 1fde232), on the fixed move, in each arm's MAIN PAUSE BAND - SNAP, S-LO and P-LO [0.6, 0.75); P-HI and HYB [0.15, 0.25); S-HI and S-INT [0.25, 0.6); PCLSI none (EDGE-SPLIT's flat years, results-edge.txt REPORTED). Of the band's flat years with a fall ahead of u (the steepest step above u negative; a year whose read is flat or rising ahead is counted apart, as 'no fall ahead', and in neither share): WITHIN, the share whose steepest fall ahead (the most negative step between grid points with its midpoint above u) lies 0.1 or less above u; MIDDLE, the share with that midpoint in [0.4, 0.6]. The envelope's figures are printed beside them and read nothing.
 
 No derivation script: no figure is computed before the run.
 
@@ -69,7 +69,7 @@ FORCE's design (the deep review of 5 Oct 16:36 UK; O103): where each arm's read 
 - **The design:** O103's gate (the plan-auditor's FAIL of 5 Oct 16:35 UK and the deep review of 16:36 UK); scheduled first by the deep review after XAS-R (5 Oct 23:18 UK).
 - **The build:**
   - audit-pause.mjs: audit-edge.mjs's plan, solve and forward run copied (e3 off, the identity's condition), HYB's arm added (PCLSI's tables, the snapped read); the pension-live years' states, held tiers and moves kept; the sweep at every flat year with u under 0.99 (a spent allowance cannot pause): the fixed move's score, the envelope and the move change at each u; the self-check; the scale plant;
-  - reduce-pause.mjs: stamps; a plant refused; the gate (every arm once and done at EDGE-SPLIT's unit, one access line, one pathsum, the self-check passed on every flat year and run on more than nothing); the files against the logs; THE IDENTITY against EDGE-SPLIT's and HYB's files through their own gates; the reading with the registered figures; 22 planted cases (among them a stay-rule drop the envelope reads and the fixed move does not, and the reading's registered line itself) and an EDGES line;
+  - reduce-pause.mjs: stamps; a plant refused; the gate (every arm once and done at EDGE-SPLIT's unit, one access line, one pathsum, the self-check passed on every flat year and run on more than nothing); the files against the logs; THE IDENTITY against EDGE-SPLIT's and HYB's files through their own gates; the reading with the registered figures; 23 planted cases (among them a flat and a rising read counted apart, a stay-rule drop the envelope reads and the fixed move does not, and the reading's registered line itself) and an EDGES line;
   - batch-pause.sh, preflight-pause.sh.
 
 ## Point and interval
@@ -85,4 +85,4 @@ Two 30-point solves (EDGE-SPLIT's: SNAP's 618 s and PCLSI's 389 s on S130; resul
 
 ## Changes after seeing results
 
-None: no result has been seen. Amended before launch on the plan-auditor's FAIL of 6 Oct on 1fde232: the measure is the fixed move's score, the envelope beside it (BLOCKING 2); the registered figures named and printed in each arm's main band, with planted cases (BLOCKING 1); the preflight asserts the self-check catches the plant (MINOR 3).
+None: no result has been seen. Amended before launch on the plan-auditor's FAIL of 6 Oct on 1fde232: the measure is the fixed move's score, the envelope beside it (BLOCKING 2); the registered figures named and printed in each arm's main band, with planted cases (BLOCKING 1); the preflight asserts the self-check catches the plant (MINOR 3). After the plan-auditor's PASS on 3c21081, its MINOR 1: a year with no fall ahead is counted apart, not in WITHIN or MIDDLE (a planted case added; no result seen).

@@ -35,3 +35,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 07:31 UTC | reduce-tail.mjs 6fd259c6e849 | 32 of 32 caught | escaped: none
 2026-10-05 07:52 UTC | reduce-hyb.mjs b504af185677 | 21 of 22 caught | escaped: NOT CAUGHT: 18: read: h1[2 * i] < ALPHA ? 'READ' : h1[2 * i + 1] < ALPHA ? '
 2026-10-05 07:57 UTC | reduce-hyb.mjs 44191e13fee1 | 22 of 22 caught | escaped: none
+2026-10-05 08:22 UTC | reduce-hyb.mjs bab0b21fae38 | 22 of 22 caught | escaped: none

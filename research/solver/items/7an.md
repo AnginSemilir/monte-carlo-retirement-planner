@@ -18,3 +18,11 @@ The supported bridge step reads' unsupported weight by arithmetic at 6 to 16 sha
 
 So at 11 nested points S130 and S126 are cleared, each with one replicate a world; bridge 4 and S370 are narrowed, not
 cleared. S126's role at 11 points (a second control beside S130, or a test household read at 6 to 9 points only) is O90's.
+
+## The status cell moved from PLAN.md on 5 Oct (the row was over the 3000-byte cap; the plan keeps a pointer), as it stood:
+
+DESIGNED, cut 4 Oct; PMAP read (the 4 Oct 18:25 row): TOP CELL, so the share-count arms read the top cell's width; at 11 points S130 and S126 are cleared and bridge 4 and S370 narrowed (clearing counts and clusters per household: items/7an.md; S126's role: O90); gate: before any grid default, before any fix of the chooser's consistency (O49), before 7u registers (the maintainer, 30 Sep 20:54 UK); family 3's rule-5 hold is RTAX's (the 4 Oct 21:57 row), not 7an's; DECIDED (the 4 Oct 18:49 row, its root-cause step superseded by RTAX at the 21:57 row): COV-B-STEP before 7an; 7an is PR4's resolution test, after COV on COV's arm, S126 a second control (O90)
+
+## Added 5 Oct with COV-B-STEP's read
+
+COV-B-STEP READ (the 5 Oct 08:51 row, PROVISIONAL): item 3 INCONCLUSIVE, so by its decision fed 7an does not run on COV's arm; 7an waits on the deep review after COV-B-STEP (due), which says whether family 3 has a fix to test at all (O98, O99).

@@ -9,10 +9,13 @@
  *   run on more than nothing; every file present, stamped as the logs, its flat years the sweep line's count;
  *   THE IDENTITY (rule 3, a re-use of EDGE-SPLIT's and HYB's files): each arm's u, pension pot and other pots, every year of
  *   the first N paths, equal EDGE-SPLIT's file for the arm (HYB: HYB's own HYB arm), those files first passing their own gate.
- * THE READING (described in predictions/measure-pause.md; a measurement, no verdict): per arm, the flat years by u's band; the
- *   read's steepest fall over u (the most negative step between grid points, its midpoint) - over the whole axis and AHEAD of
- *   the year's own u (midpoints above it); the distance from u to the steepest fall ahead; the share of flat years whose
- *   steepest fall ahead lies within 0.1 of u (a pause just below a steep point); per band, the commonest midpoint ahead.
+ * THE READING (described in predictions/measure-pause.md; a measurement, no verdict): the read is the score of the move the
+ *   run took that year, read at each u (the fixed move: no move change or stay rule in it; the plan-auditor's BLOCKING 2 of
+ *   6 Oct on 1fde232), the envelope (the chooser's own move at each u) beside it. Per arm: the flat years by u's band and how
+ *   often the chooser's move changes over the sweep; THE REGISTERED FIGURES in each arm's main pause band (MAIN) - of the
+ *   flat years with a fall ahead, the share whose steepest fall ahead (the most negative step between grid points above u,
+ *   its midpoint) lies within 0.1 above u, and the share with it in [0.4, 0.6] (their BLOCKING 1); the same per band for every
+ *   arm, with the commonest midpoint ahead; the steepest fall over the whole axis.
  *   node research/solver/reduce-pause.mjs [dir] [paths] [points] > research/solver/results-pause.txt   (--preflight: preflight-pause.sh's)
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -86,7 +89,7 @@ export function gate(units, { pts = PTS, npw = NPW } = {}) {
 
 const bytes = s => { const x = Buffer.from(s, 'base64'); return x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength); };
 const f32 = x => (x instanceof Float32Array ? x : new Float32Array(bytes(x)));   // a reference loader may have decoded u already
-export const decodeP = t => ({ ...t, u: f32(t.u), pen: f32(t.pen), non: f32(t.non), fv: t.fv == null ? null : new Float64Array(bytes(t.fv)) });
+export const decodeP = t => ({ ...t, u: f32(t.u), pen: f32(t.pen), non: f32(t.non), fv: t.fv == null ? null : new Float64Array(bytes(t.fv)), fx: t.fx == null ? null : new Float64Array(bytes(t.fx)), fc: t.fc == null ? null : new Uint8Array(bytes(t.fc)) });
 export function checkFile(t, u, st) {
   const tag = `${u.arm} file`;
   if (!t) return [`${tag}: missing`];
@@ -95,7 +98,7 @@ export function checkFile(t, u, st) {
   if (t.plant) bad.push(`${tag}: carries the plant ${t.plant}`);
   if (t.arm !== u.arm || t.N !== u.sum.paths || t.Y !== years || t.tables !== A.tables || String(t.read) !== A.read || String(t.seg ?? 'none') !== A.seg) bad.push(`${tag}: arm ${t.arm} tables ${t.tables} read ${t.read} seg ${t.seg} paths ${t.N} years ${t.Y}, not the unit's`);
   if (t.u.length !== t.N * t.Y || t.pen.length !== t.N * t.Y || t.non.length !== t.N * t.Y) bad.push(`${tag}: per-path-year arrays of the wrong length`);
-  if (t.fp.length !== u.sweep.flat || t.ft.length !== t.fp.length || t.fu.length !== t.fp.length || !t.fv || t.fv.length !== t.fp.length * t.ugrid.length || t.ugrid.length !== 21) bad.push(`${tag}: ${t.fp.length} flat years in the file, ${u.sweep.flat} on the sweep line, or the read's arrays the wrong length`);
+  if (t.fp.length !== u.sweep.flat || t.ft.length !== t.fp.length || t.fu.length !== t.fp.length || !t.fv || t.fv.length !== t.fp.length * t.ugrid.length || !t.fx || t.fx.length !== t.fv.length || !t.fc || t.fc.length !== t.fv.length || t.ugrid.length !== 21) bad.push(`${tag}: ${t.fp.length} flat years in the file, ${u.sweep.flat} on the sweep line, or the read's arrays the wrong length`);
   return bad;
 }
 /* THE IDENTITY: this run's first N paths against the reference file's, every year (Float32 as both store them) */
@@ -125,29 +128,47 @@ export function shape(v, grid, u0) {
 const med = a => { if (!a.length) return NaN; const b = [...a].sort((x, y) => x - y), h = b.length >> 1; return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2; };
 const mode = a => { const c = new Map(); for (const x of a) c.set(x, (c.get(x) || 0) + 1); let best = null, n = 0; for (const [k, v] of c) if (v > n || (v === n && k < best)) { best = k; n = v; } return { m: best, n }; };
 
+// each arm's main pause band (EDGE-SPLIT's flat years, results-edge.txt REPORTED; predictions/measure-pause.md)
+export const MAIN = { SNAP: '[0.6,0.75)', 'S-LO': '[0.6,0.75)', 'P-LO': '[0.6,0.75)', 'P-HI': '[0.15,0.25)', HYB: '[0.15,0.25)', 'S-HI': '[0.25,0.6)', 'S-INT': '[0.25,0.6)', PCLSI: null };
+export const MID = [0.4, 0.6];
+/* per flat year: the shape of the fixed move's score (the read along the move the run took: the primary measure) and of the
+   envelope (the chooser's own move at each u, its stay rule included), and the share of grid points where the move changed */
 export function readArm(t) {
   const G = t.ugrid, K = G.length, rows = [];
   for (let i = 0; i < t.fp.length; i++) {
-    const v = t.fv.subarray(i * K, (i + 1) * K), u0 = t.fu[i], sh = shape(v, G, u0);
-    rows.push({ u0, band: bandOf(u0), all: sh.all, ahead: sh.ahead, rise: v[K - 1] - v[0] });
+    const u0 = t.fu[i], fx = t.fx.subarray(i * K, (i + 1) * K), fv = t.fv.subarray(i * K, (i + 1) * K);
+    let ch = 0; for (let k = 0; k < K; k++) ch += t.fc[i * K + k];
+    rows.push({ u0, band: bandOf(u0), fix: shape(fx, G, u0), env: shape(fv, G, u0), changed: ch / K });
   }
   return rows;
 }
+/* the registered figures of one set of rows (an arm's main band): n, the share with the steepest fall ahead within NEAR above
+   u, the share with it in MID - on the fixed move's score (key 'fix') or the envelope ('env') */
+export function figures(rows, key) {
+  if (key !== 'fix' && key !== 'env') throw new Error(`figures: key ${key}`);
+  const rs = rows.filter(r => Number.isFinite(r[key].ahead.m));
+  return { n: rows.length, read: rs.length, within: rs.length ? rs.filter(r => r[key].ahead.m - r.u0 <= NEAR + 1e-12).length / rs.length : NaN, mid: rs.length ? rs.filter(r => r[key].ahead.m >= MID[0] - 1e-12 && r[key].ahead.m <= MID[1] + 1e-12).length / rs.length : NaN };
+}
 export function reading(files, out = console.log) {
   const f3 = x => (Number.isFinite(x) ? x.toFixed(3) : '-'), e = x => (Number.isFinite(x) ? x.toExponential(3) : '-');
-  out(`PAUSE (S130, EDGE-SPLIT's unit, the first ${files[ARMS[0]].N} paths): where each arm pauses against its own read's steepest fall over u. A measurement: no verdict.`);
+  out(`PAUSE (S130, EDGE-SPLIT's unit, the first ${files[ARMS[0]].N} paths): where each arm pauses against the steepest fall of its own read over u. A measurement: no verdict. The read is the score of the move the run took, read at each u (the fixed move); the envelope (the chooser's own move at each u, its switch-margin stay rule included) is the second line.`);
   out(`\n1. FLAT YEARS BY u'S BAND (pension live, u under 0.99), a path's mean: ${BANDS.map(b => b[0]).join(' / ')}`);
   const R = {};
-  for (const a of ARMS) { R[a] = readArm(files[a]); out(`  ${a.padEnd(6)} ${BANDS.map(([nm]) => (R[a].filter(r => r.band === nm).length / files[a].N).toFixed(2)).join(' / ')}   all ${(R[a].length / files[a].N).toFixed(2)}`); }
-  out(`\n2. THE READ'S STEEPEST FALL OVER THE WHOLE AXIS at the flat years: its commonest midpoint (share), the median slope (score per unit u)`);
-  for (const a of ARMS) { const md = mode(R[a].map(r => r.all.m)); out(`  ${a.padEnd(6)} at ${f3(md.m)} (${f3(md.n / Math.max(1, R[a].length))})   median slope ${e(med(R[a].map(r => r.all.s)))}`); }
-  out(`\n3. THE STEEPEST FALL AHEAD OF THE YEAR'S OWN u: within ${NEAR} above u (a pause just below a steep point), the median distance, and per band the commonest midpoint ahead (share of the band)`);
+  for (const a of ARMS) { R[a] = readArm(files[a]); out(`  ${a.padEnd(6)} ${BANDS.map(([nm]) => (R[a].filter(r => r.band === nm).length / files[a].N).toFixed(2)).join(' / ')}   all ${(R[a].length / files[a].N).toFixed(2)}   the chooser's move changes on ${f3(R[a].reduce((x, r) => x + r.changed, 0) / Math.max(1, R[a].length))} of the grid points`); }
+  out(`\n2. THE REGISTERED FIGURES, each arm's main pause band (predictions/measure-pause.md): flat years n; of those with a fall ahead, the share with the steepest fall ahead within ${NEAR} above u, and the share with it in [${MID.join(', ')}] - the fixed move | the envelope`);
   for (const a of ARMS) {
-    const rs = R[a].filter(r => Number.isFinite(r.ahead.m)), d = rs.map(r => r.ahead.m - r.u0);
-    out(`  ${a.padEnd(6)} within ${NEAR}: ${f3(rs.filter(r => r.ahead.m - r.u0 <= NEAR).length / Math.max(1, rs.length))} of ${rs.length}   median distance ${f3(med(d))}   median slope ahead ${e(med(rs.map(r => r.ahead.s)))}`);
-    out(`         ${BANDS.map(([nm]) => { const b = rs.filter(r => r.band === nm), md = mode(b.map(r => r.ahead.m)); return b.length ? `${nm} ${f3(md.m)} (${f3(md.n / b.length)})` : `${nm} -`; }).join('   ')}`);
+    if (!MAIN[a]) { out(`  ${a.padEnd(6)} no main band (EDGE-SPLIT: no flat years in the three bands)`); continue; }
+    const b = R[a].filter(r => r.band === MAIN[a]), F = figures(b, 'fix'), V = figures(b, 'env');
+    out(`  ${a.padEnd(6)} ${MAIN[a].padEnd(12)} n ${F.n}   within ${f3(F.within)} of ${F.read}   in the middle ${f3(F.mid)}   | envelope within ${f3(V.within)} of ${V.read}   in the middle ${f3(V.mid)}`);
   }
-  out(`\n4. THE READ'S TOTAL CHANGE FROM u = 0 TO u = 1 at the flat years (median): ${ARMS.map(a => `${a} ${e(med(R[a].map(r => r.rise)))}`).join('   ')}`);
+  out(`\n3. PER BAND, every arm (the fixed move): n, within ${NEAR}, in the middle, the commonest midpoint ahead (its share), the median slope ahead (score per unit u)`);
+  for (const a of ARMS) for (const [nm] of BANDS) {
+    const b = R[a].filter(r => r.band === nm); if (!b.length) continue;
+    const F = figures(b, 'fix'), md = mode(b.filter(r => Number.isFinite(r.fix.ahead.m)).map(r => r.fix.ahead.m));
+    out(`  ${a.padEnd(6)} ${nm.padEnd(12)} n ${String(F.n).padStart(6)}   within ${f3(F.within)}   in the middle ${f3(F.mid)}   commonest ${f3(md.m)} (${f3(md.n / Math.max(1, F.read))})   slope ${e(med(b.map(r => r.fix.ahead.s).filter(Number.isFinite)))}`);
+  }
+  out(`\n4. THE STEEPEST FALL OVER THE WHOLE AXIS (the fixed move): its commonest midpoint (share), the median slope`);
+  for (const a of ARMS) { const md = mode(R[a].map(r => r.fix.all.m).filter(Number.isFinite)); out(`  ${a.padEnd(6)} at ${f3(md.m)} (${f3(md.n / Math.max(1, R[a].length))})   median slope ${e(med(R[a].map(r => r.fix.all.s).filter(Number.isFinite)))}`); }
   return R;
 }
 
@@ -198,6 +219,33 @@ function planted() {
   cases.push(['the identity: a longer reference is read on its first N', identity(mk([0.1, 0.2]), mk([0.1, 0.2, 0.5, 0.6], 2), 'x').length, 0]);
   cases.push(['the identity: all NaN compares nothing and refuses', identity(mk([NaN, NaN]), mk([NaN, NaN]), 'x').some(x => /compared nothing/.test(x)), true]);
   EDGES.push('an identity with every value missing (compared nothing)');
+  // the registered figures: a built file of three flat years in [0.15, 0.25) - the fixed move falls at 0.225 (within 0.1) on two
+  // and at 0.525 on the third (in the middle); the envelope adds a stay-rule drop at 0.325 on all three
+  {
+    const K = G.length, fu = [0.2, 0.2, 0.2], fall = [0.225, 0.225, 0.525];
+    const fx = [], fv = [], fc = [];
+    fu.forEach((u0, i) => G.forEach((u, k) => { const x = 1 - 0.01 * u - (u > fall[i] ? 0.5 : 0); fx.push(x); fv.push(x - (u > 0.325 ? 0.9 : 0)); fc.push(u > 0.325 ? 1 : 0); }));
+    const T = { ugrid: G, fp: [0, 1, 2], fu, fx: Float64Array.from(fx), fv: Float64Array.from(fv), fc: Uint8Array.from(fc) }, rows = readArm(T);
+    const F = figures(rows, 'fix'), V = figures(rows, 'env');
+    cases.push(['the fixed move: two of three within 0.1, one of three in the middle', `${F.n} ${F.within.toFixed(3)} ${F.mid.toFixed(3)}`, '3 0.667 0.333']);
+    cases.push(['the envelope reads the stay-rule drop at 0.325 instead: none within 0.1, none in the middle', `${V.within.toFixed(3)} ${V.mid.toFixed(3)}`, '0.000 0.000']);
+    cases.push(['the move changes on the grid points above 0.325', rows[0].changed.toFixed(3), (14 / 21).toFixed(3)]);
+    EDGES.push('a stay-rule drop the envelope reads and the fixed move does not');
+    // the reading itself: P-HI's main band carries the built years (and one year outside it), every other arm none; its registered line reads the fixed move
+    const empty = { ugrid: G, N: 1, fp: [], fu: [], fx: new Float64Array(0), fv: new Float64Array(0), fc: new Uint8Array(0) };
+    const T4 = { ...T, N: 4, fp: [0, 1, 2, 3], fu: [...fu, 0.5], fx: Float64Array.from([...fx, ...G.map(() => 1)]), fv: Float64Array.from([...fv, ...G.map(() => 1)]), fc: Uint8Array.from([...fc, ...G.map(() => 0)]) };   // a fourth year outside the band
+    const files = Object.fromEntries(ARMS.map(a => [a, a === 'P-HI' ? T4 : empty])), lines = [];
+    reading(files, x => lines.push(x));
+    const ph = lines.find(x => /^ {2}P-HI +\[0\.15,0\.25\) +n 3 /.test(x)) || '';
+    cases.push(['the reading\'s registered line for P-HI: the fixed move first, the envelope second', /within 0\.667 of 3 +in the middle 0\.333 +\| envelope within 0\.000 of 3 +in the middle 0\.000/.test(ph), true]);
+    const B = readArm({ ugrid: G, fp: [0], fu: [0.5], fx: Float64Array.from(G.map(u => (u > 0.6 ? 0 : 1))), fv: Float64Array.from(G.map(u => (u > 0.6 ? 0 : 1))), fc: new Uint8Array(K) });
+    cases.push(['a fall at the 0.6-0.65 step from u 0.5: 0.125 ahead, outside 0.1 and outside the middle', `${figures(B, 'fix').within} ${figures(B, 'fix').mid}`, '0 0']);
+    const C = readArm({ ugrid: G, fp: [0], fu: [0.5], fx: Float64Array.from(G.map(u => (u > 0.58 ? 0 : 1))), fv: Float64Array.from(G.map(u => (u > 0.58 ? 0 : 1))), fc: new Uint8Array(K) });
+    cases.push(['a fall at the 0.55-0.6 step from u 0.5: 0.075 ahead, within 0.1 and in the middle', `${figures(C, 'fix').within} ${figures(C, 'fix').mid}`, '1 1']);
+    EDGES.push('a fall exactly past the 0.1 and the middle bounds');
+    cases.push(['an empty band reads n 0 and no shares', JSON.stringify(figures([], 'fix')), '{"n":0,"read":0,"within":null,"mid":null}']);
+    EDGES.push('an empty band');
+  }
   const fails = cases.filter(([, got, want]) => String(got) !== String(want));
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;
@@ -214,11 +262,11 @@ async function references() {
   if (bad.length) return { bad: bad.map(x => `EDGE-SPLIT's files: ${x}`), refs };
   const tr = RE.loadTraces(units, dir, stampOf(Object.values(logs)[0]));
   if (tr.bad.length) return { bad: tr.bad.map(x => `EDGE-SPLIT's files: ${x}`), refs };
-  for (const a of ARMS.filter(x => x !== 'HYB')) { const t = tr.files[`S130 ${a}`]; refs[a] = t ? decodeP({ ...t.raw, fv: null }) : null; }
+  for (const a of ARMS.filter(x => x !== 'HYB')) { const t = tr.files[`S130 ${a}`]; refs[a] = t ? decodeP({ ...t.raw, fv: null, fx: null, fc: null }) : null; }
   const H = RE.hybFiles();
   if (H.bad.length) return { bad: H.bad, refs };
   const h = H.files['S130 HYB'];
-  refs.HYB = h ? decodeP({ ...h, fv: null }) : null;
+  refs.HYB = h ? decodeP({ ...h, fv: null, fx: null, fc: null }) : null;
   return { bad: [], refs };
 }
 

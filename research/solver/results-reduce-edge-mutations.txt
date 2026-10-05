@@ -27,5 +27,6 @@ caught: 26: lo = share(diff(F('P-LO'), F('HYB')), diff(F('PCLSI'), F('HY
 caught: 27: hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('S
 caught: 28: v !== 'HELD' || !g ? 'NOT APPLICABLE'
 caught: 29: gHi = shown(F('S-INT'), F('SNAP'), 7102)
-caught: 30: nb, seed) < ALPHA;
-30 of 30 mutations caught
+caught: 30: const gLo = shown(F('PCLSI'), F('HYB'), 7101)
+caught: 31: nb, seed) < ALPHA;
+31 of 31 mutations caught

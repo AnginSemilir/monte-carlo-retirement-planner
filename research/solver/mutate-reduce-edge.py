@@ -39,6 +39,7 @@ M = [
   # the gain guard
   ("v !== 'HELD' || !g ? 'NOT APPLICABLE'", "v !== 'HELD' ? 'NOT APPLICABLE'"),
   ("gHi = shown(F('S-INT'), F('SNAP'), 7102)", "gHi = true"),
+  ("const gLo = shown(F('PCLSI'), F('HYB'), 7101)", "const gLo = true"),
   ("nb, seed) < ALPHA;", "nb, seed) < 0.5;"),
 ]
 run('reduce-edge.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

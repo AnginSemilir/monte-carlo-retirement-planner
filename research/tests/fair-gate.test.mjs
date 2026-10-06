@@ -3,7 +3,8 @@
  * Synthetic result files only: no solve, no results directory needed.
  */
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareData, parseAccept, formatReport, checkLogStamps } from '../solver/fair-gate.mjs';
@@ -134,5 +135,18 @@ function unstampedImports(SF, root = ROOT) {
 const loose = unstampedImports(SF);
 ok(loose.length === 0, `every module a stamped script imports is stamped too (outside: ${loose.join(', ') || 'none'})`);
 ok(['research/solver/settings.mjs', 'research/solver/code-id.mjs'].every(x => SF.includes(x)), 'settings.mjs and code-id.mjs are in the smoke stamp');
+// the stamp follows imports to the end (the maintainer's unlock of 6 Oct): planted, an audit importing a.mjs that imports
+// b.mjs; the one-level stamp of before left b.mjs out
+{
+  const T = mkdtempSync(join(tmpdir(), 'stamp-')), SD = join(T, 'research/solver');
+  mkdirSync(SD, { recursive: true }); mkdirSync(join(T, 'src/solver'), { recursive: true });
+  writeFileSync(join(SD, 'audit-plant.mjs'), "import { a } from './a.mjs';\n");
+  writeFileSync(join(SD, 'a.mjs'), "import { b } from './b.mjs';\nexport const a = b;\n");
+  writeFileSync(join(SD, 'b.mjs'), 'export const b = 1;\n');
+  const PS = smokeFiles(T);
+  ok(PS.includes('research/solver/a.mjs') && PS.includes('research/solver/b.mjs'), `planted: a module two imports down from a stamped audit is stamped (${PS.filter(x => /\/(a|b)\.mjs$/.test(x)).join(', ')})`);
+  ok(unstampedImports(PS.filter(x => existsSync(join(T, x))), T).length === 0, 'planted: the transitive scan finds nothing outside the planted stamp');
+  rmSync(T, { recursive: true, force: true });
+}
 
 console.log(`\n${n} passed`);

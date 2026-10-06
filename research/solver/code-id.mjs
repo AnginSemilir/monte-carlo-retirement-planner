@@ -13,13 +13,15 @@
  * research/solver script a batch-*.sh names), the modules they import from outside those - settings.mjs (every
  * experiment.mjs run checks its settings with it) and this file - and smoke.sh itself, so an edit to any of them re-runs
  * the smoke test (24 Sep: the audit's ids-mode bug sat in a file the code hash left out; settings.mjs and code-id.mjs
- * were outside the stamp until the maintainer's unlock at 13:44 UK). It is kept apart from the code hash so the
+ * were outside the stamp until the maintainer's unlock at 13:44 UK) - and every module any of those imports, followed all the
+ * way down (the maintainer's unlock of 6 Oct: one level left research-opts.mjs, imported by candidate.mjs, outside the
+ * stamp of a script importing candidate.mjs; PLAN.md's bugs list, 6 Oct). It is kept apart from the code hash so the
  * result files' identity (fair-gate's MIXED CODE check) does not move when only an audit script changes.
  */
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -46,11 +48,23 @@ export function smokeFiles(root = ROOT) {
   for (const b of all.filter(f => /^batch-.+\.sh$/.test(f)))
     for (const m of readFileSync(join(dir, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)) named.add(m[1]);
   const run = all.filter(f => /^audit-.+\.mjs$/.test(f) || /^(select-phase4|couple-gate|bridge-gate|seedcheck)\.mjs$/.test(f) || named.has(f));
-  // and every module those scripts import from this directory (fair-gate.test.mjs: every module a stamped script imports is
-  // stamped too; 25 Sep evening, reduce-7e.mjs's stats.mjs and fair-gate.mjs were outside the stamp)
-  const imported = new Set();
-  for (const f of run) for (const m of readFileSync(join(dir, f), 'utf8').matchAll(/from '\.\/([\w.-]+\.mjs)'/g)) if (all.includes(m[1])) imported.add(m[1]);
-  return [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), ...[...imported].sort().map(f => `research/solver/${f}`), 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])];
+  const seed = [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])];
+  // and every module those import, from anywhere in the repository, followed to the end (fair-gate.test.mjs: every module
+  // a stamped script imports is stamped too; 25 Sep evening, reduce-7e.mjs's stats.mjs and fair-gate.mjs were outside the
+  // stamp; 6 Oct, research-opts.mjs, two imports down from size-probe.mjs)
+  const seen = new Set(seed), queue = seed.filter(f => /\.m?js$/.test(f)), extra = [];
+  while (queue.length) {
+    const f = queue.shift(), p = join(root, f);
+    if (!existsSync(p)) continue;
+    for (const m of readFileSync(p, 'utf8').matchAll(/(?:from\s+|import\s*\(\s*)['"]([^'"]+)['"]/g)) {
+      if (!m[1].startsWith('.')) continue;
+      const rel = relative(root, join(root, dirname(f), m[1]));
+      if (rel.startsWith('..') || seen.has(rel)) continue;
+      seen.add(rel); extra.push(rel);
+      if (/\.m?js$/.test(rel)) queue.push(rel);
+    }
+  }
+  return [...seed, ...extra.sort()];
 }
 
 export function smokeId(root = ROOT) {

@@ -17,7 +17,9 @@
  *   e3 here rests on E3c beyond its checked scope: E3c ran TSJ as the reader with tierState and jointWorlds only
  *     (audit-e3c.mjs), so e3's identity with Q's fix (bridgeStep 'exact'), with the charge (switchCharge, margin 0) and with
  *     pclsInterp is NOT CHECKED by a run - grade B by construction (the deep review of 5 Oct 01:49 UK: the copied cells have
- *     an exactly empty taxable pot); an identity run under CANDIDATE_OPTS on a household where Q acts (share 0.95) would close it
+ *     an exactly empty taxable pot); CLOSED by E3-CAND (PLAN.md's 6 Oct 23:49 row, results-e3cand.txt): every table bit for
+ *     bit the same with e3 on and off under CANDIDATE_OPTS at 30 points on share 0.95 (where Q acts) and S130 (where the
+ *     interpolated axis acts), grade A on those two
  *   Open before 7u (PLAN.md 7u, the 30 Sep 18:50 condition): a unit test of Q with the tier state and joint worlds; the smoke
  *     solve in candidate.test.mjs is the first run of Q with TS+J, the charge and e3 together, not that test
  *   the tier returns at the medians of their blends - O60 (30 Sep 18:50 UK, 'Adopt before 7u'): a change to the plan's

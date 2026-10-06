@@ -50,10 +50,10 @@ SIZING BEFORE PHASE 4 (derive-sizing.mjs)
   Phase 4: 52.7 h
   in all, the sized part: 116.4 wall-hours of compute
 
-4. THE WORK AROUND A RUN (no cores), from the records: DT-O97 proposed 6 Oct 08:08 UK (the deep review after FORCE-X), launched 11:58 UK (runs.log), its batch done 13:38 UK (the ledger's 13:40 row; results/diagdto97's last file 12:38 UTC), read 13:40 UK: 5.5 h from proposal to read, its batch 1.7 h of it, so about 3.8 h a test beside its compute. One test, grade C
+4. THE WORK AROUND A RUN (no cores), from the records: DT-O97 proposed 6 Oct 08:08 UK (the deep review after FORCE-X), launched 11:58 UK (runs.log), its batch done 13:38 UK (the ledger's 13:40 row; results/diagdto97's last file 12:38 UTC), read 13:40 UK: 5.5 h from proposal to read, its batch 1.7 h of it, so about 3.9 h a test beside its compute. One test, grade C
 
 5. GATE 5 FROM THE PROBE: the budget is 1.25 x 355 s = 443.8 s; the candidate's one-core solve is 1068 s, so E2 must speed it up x2.41 or more on four cores (E2's own estimate is near x4, NOT CHECKED until built and timed). On a two-core device E2 gives at most x2: 534.0 s, 1.5 x the product's - over the budget (the grade-D premise in condition 5). The probe ran four at once, not on a quiet machine: gate 5's own timing is GATE5's. The forward run is not in gate 5: the candidate's is x1.23 the product's per path
 
-6. THE CALENDAR, JUDGED (grade D; inputs: builds {"E2":8,"P4-LAND":3,"7q option":6,"8g engines":16,"8h design and build":12,"8i":3} hours of work, the work around a run 3.8 h a test from section 4, 13 tests)
+6. THE CALENDAR, JUDGED (grade D; inputs: builds {"E2":8,"P4-LAND":3,"7q option":6,"8g engines":16,"8h design and build":12,"8i":3} hours of work, the work around a run 3.9 h a test from section 4, 13 tests)
   as gated: undatable - 7u waits for 7an, 7an for NSB and the undesigned table fix
-  7u released from 7an (NSB, 7an and O67's step still run, on the same four cores, but not before it): compute 116.4 wall-hours, builds 48.0 h, the work around the runs 49.4 h; with builds and reviews overlapping the batches, about 6.9 to 8.9 days of continuous work before Phase 4 reads, if every step reads as expected (a result that redirects the plan stops the queue there)
+  7u released from 7an (NSB, 7an and O67's step still run, on the same four cores, but not before it): compute 116.4 wall-hours, builds 48.0 h, the work around the runs 50.7 h; with builds and reviews overlapping the batches, about 6.9 to 9.0 days of continuous work before Phase 4 reads, if every step reads as expected (a result that redirects the plan stops the queue there)

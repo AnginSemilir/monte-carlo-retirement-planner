@@ -32,3 +32,7 @@ COV-B-STEP READ (the 5 Oct 08:51 row, PROVISIONAL): item 3 INCONCLUSIVE, so by i
 XAS-R2 READ (the 6 Oct 02:47 row; results-xasr2.txt): item 1 HELD for COV on S370 only - the midpoint node removes 1.038 and 1.013 of COV's year-before error, but 7an has no COV arm, and on BASE the same node removes 0.127 and 0.264 (O113). So 7an registers only after O113 is weighed, its prediction carrying a COV arm on S370 or stating that its BASE unit is where item 1 did not hold (the plan-auditor's BLOCKING 1 of 6 Oct on b22439c).
 
 Moved from the row (6 Oct, the row over its cap), still carried (7ak's follow-up; the plan-auditor's MINOR 2 of 30 Sep 19:49 UK): the dead-cell part, 1266 of bridge 4's 4600 disagreements, all in year 3 and all the reverse way, reported beside the readings; and the disagreement read-outs on bridge 4 - decisions changed, the paired simulated survival, the year-0 gap, the bridge stage's table-against-realised residual (S130 the control; bridge 0, which has no reader year, is not a unit).
+
+## 6 Oct: off 7u's path
+
+The maintainer, 6 Oct (PLAN.md's 15:45 row: 'I'll go with your recommendations'): 7u no longer waits for 7an; the gate 'before 7u registers (the maintainer, 30 Sep 20:54 UK)' above is released. 7an follows 7u, with O67's step and the table fix; a fix they bring re-enters through its own confirmation on a fresh held-out seed. 7an's other gates stand.

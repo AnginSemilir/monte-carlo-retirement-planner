@@ -111,7 +111,8 @@ console.log(`  Phase 4: ${f1(W('PHASE 4'))} h`);
 console.log(`  in all, the sized part: ${f1(wallSum([...before7u, '7u', ...after7u, 'PHASE 4']))} wall-hours of compute`);
 
 // 4. the work around each run, from two tests' own records (proposal to read, the ledger and runs.log)
-const AROUND = 3.8;
+// proposal 08:08, batch 11:58 to 13:38, read 13:40 UK: (read - proposal) - (batch end - launch), in hours
+const AROUND = +(((13 * 60 + 40) - (8 * 60 + 8)) / 60 - ((13 * 60 + 38) - (11 * 60 + 58)) / 60).toFixed(1);
 console.log(`\n4. THE WORK AROUND A RUN (no cores), from the records: DT-O97 proposed 6 Oct 08:08 UK (the deep review after FORCE-X), launched 11:58 UK (runs.log), its batch done 13:38 UK (the ledger's 13:40 row; results/diagdto97's last file 12:38 UTC), read 13:40 UK: 5.5 h from proposal to read, its batch 1.7 h of it, so about ${AROUND} h a test beside its compute. One test, grade C`);
 
 // 5. gate 5's arithmetic (Phase 4 condition 5: the candidate's wall-clock solve at most 1.25x today's product solve)

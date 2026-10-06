@@ -2,9 +2,9 @@
 
 - **Run:** `research/solver/batch-forcex.sh` - results/diagforcex/case0-5.txt and the per-arm files (audit-forcex.mjs, six parts, one solve each), read by `reduce-forcex.mjs` into results-forcex.txt
 - **Kind:** test
-- **Written:** 6 Oct, before the run (its time is its registering commit's, git log); the design: the deep review after PAUSE (deep-review-log.md 6 Oct 01:52 UK), FORCE-X, under the maintainer's standing go-ahead of 4 Oct ("I go ahead with your recommendations ... until I say stop"). The judged credences were committed first as drafts/diag-forcex.md (abf0365), the derivation's output after (3e501ac); moved here unchanged but for the derived lines and the sections below, after PAUSE-S128 read HELD (the 04:02 row), whose Decision fed registers FORCE-X as proposed. Declared (RULES.md known limit 31): the move itself restarts git's first commit of this path.
+- **Written:** 6 Oct, before the run (its time is its registering commit's, git log); the design: the deep review after PAUSE (deep-review-log.md 6 Oct 01:52 UK), FORCE-X, under the maintainer's standing go-ahead of 4 Oct ("I go ahead with your recommendations ... until I say stop"). The judged credences were committed first as drafts/diag-forcex.md (abf0365), the derivation's output after (3e501ac); moved here unchanged but for the derived lines, the sections below and three edits (the Judged line reworded to name each outcome once - its numbers and the scratch figures unchanged - and the Prediction and Mechanism lines; the plan-auditor's MINOR 4 of 6 Oct on 9386fc7), after PAUSE-S128 read HELD (the 04:02 row), whose Decision fed registers FORCE-X as proposed. Declared (RULES.md known limit 31): the move itself restarts git's first commit of this path.
 - **Seeds:** 7005 selection: EDGE-SPLIT's and HYB's paths (6,000 a household), so every forced arm is paired path for path with its unforced partner and with PCLSI; no held-out seed is touched.
-- **Unmasking:** FORCE-X removes no error from the product. It overrides the chooser in one place - a year where the arm would pause just below its own read's first price point - and lets the chooser run free after. If the pause is what costs the snapped arms survival (LOSS-PAUSE), forcing past the price point recovers the gap; if a tables channel costs it (LOSS-TABLES), the force recovers little; a force that raises survival and lowers the net (LOSS-OPT) says the pause was the score's own optimum. A forced draw can also unmask: past the price point the arm faces its read's next edge (HYB's 0.75), so S-INT+X is read for HOLD-PRICE's own prediction (it re-pauses past the kink while the edge arms draw on), and PCLSI+X, which has no edge, is the control.
+- **Unmasking:** FORCE-X removes no error from the product. It overrides the chooser in one place - a year where the arm would pause just below its own read's first price point - and lets the chooser run free after. If the pause is what costs the snapped arms survival (LOSS-PAUSE), forcing past the price point recovers the gap; if a tables channel costs it (LOSS-TABLES), the force recovers little; a force that raises survival and lowers the net (LOSS-OPT) says the pause was the score's own optimum. HYB+X is forced at both its read's edges (0.25 and 0.75: audit-forcex.mjs PRICE), so it is HYB with neither pause. S-INT+X is reported only: S-INT pauses mostly just past its kink, in [0.5, 0.525) (5992 of its 6952 S130 flat years in PAUSE's files, against 946 in [0.45, 0.5)), so its force cell [0.45, 0.5) acts on about a seventh of its pause years and its re-pause read shows mostly the unforced pause - it cannot separate HOLD-PRICE (the plan-auditor's MINOR 2 of 6 Oct on 9386fc7). PCLSI+X, which has no edge, is the control.
 - **Mechanism:** src/solver/fast.js:533 "if (c.forceTF > 0) {" (step 7b' : the forced draw, tested by research/tests/solver-forcex.test.mjs, 12 of 12, and mutate-fast-forcex.py, 10 of 10); audit-forcex.mjs forcePoint (the force cell [p - 0.05, p) on a would-be pause, the move run on a copy first).
 - **Plan section:** PLAN.md "FORCE-X", "PAUSE-S128", "O101", "O103", "O104", "O111", "O112"
 
@@ -14,7 +14,7 @@ On S130, does forcing the draw past each snapped arm's first price point recover
 
 ## Derivation
 
-- **The gaps and the power** (results-derive-forcex.txt sections 1 and 2; EDGE-SPLIT's and HYB's S130 files through their own gates): PCLSI's survival gap over SNAP 143 paths (it saves 168, loses 25), over P-LO 137 (148, 11), over HYB 192 (202, 10); with the same true recovery r on all three and a symmetric flip on 0.01 of the other paths (assumed, NOT CHECKED), the rule reads HELD at r 0.9 on every draw, FALSIFIED at r 0.3 or less on 0.95 or more, and INCONCLUSIVE at r 0.5 and 0.7.
+- **The gaps and the power** (results-derive-forcex.txt sections 1 and 2; EDGE-SPLIT's and HYB's S130 files through their own gates): PCLSI's survival gap over SNAP 143 paths (it saves 168, loses 25), over P-LO 137 (148, 11), over HYB 192 (202, 10); with the same true rescue share r on all three (the share of the paths PCLSI saves that the force saves too) and a symmetric flip on 0.01 of the other paths (assumed, NOT CHECKED), the rule reads HELD at r 0.9 on every draw, FALSIFIED at r 0.3 or less on 0.95 or more, and INCONCLUSIVE at r 0.5 and 0.7. r is not the registered R: since about 83% of paths survive, the symmetric flip costs about 20 paths net an arm, so r 0.7 gives R about 0.61 to 0.68 and r 0.3 about 0.17 to 0.21 (the plan-auditor's MINOR 1 of 6 Oct on 9386fc7); at R exactly 0.3 or 0.7 the rule reads mostly INCONCLUSIVE.
 - **The force acts where the arms pause:** PAUSE's re-read (results-derive-pause-review.txt; O111) puts SNAP's and P-LO's pauses in [0.70, 0.75) and HYB's in [0.20, 0.25) on S130; PAUSE-S128 tests that out of sample before this registers. The acting share is printed first and the run refused under a half on any deciding arm.
 - **The checks, each failed on a planted fault first:** reduce-forcex.mjs's 24 planted checks (every outcome of item 1 reached; EDGES), mutate-reduce-forcex.py 24 of 24; the leak plant (FORCEX_PLANT=leak) the identity must refuse, in the preflight.
 
@@ -31,7 +31,7 @@ On S130, does forcing the draw past each snapped arm's first price point recover
 | # | Variable | Arm A | Arm B | Status (SAME / TESTED / ONE ARM ONLY / N/A) and why |
 |---|---|---|---|---|
 | 15 | The tax-free lump sum rule | the arm's chooser | the same chooser, with one draw forced past its read's first price point at a would-be pause (fast.js step 7b') | TESTED - the thing tested |
-| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | audit-edge.mjs and audit-hyb.mjs (EDGE-SPLIT's and HYB's files) | audit-forcex.mjs with fast.js step 7b' | TESTED - the force is the change; otherwise held by the identity to each path's first force, and fast.js unchanged when the force is unset (solver-forcex.test.mjs) |
+| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | audit-edge.mjs and audit-hyb.mjs (EDGE-SPLIT's and HYB's files) | audit-forcex.mjs with fast.js step 7b' | TESTED - the force is the change; otherwise held by the identity to each path's first force, and fast.js unchanged when the force is unset (the c.forceTF > 0 guard, and PAUSE-S128 ran on this code, aefe1e31fe04, with its identity against EDGE-SPLIT's S128 files passing: results-pause128.txt) |
 | 6 | The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them | none | none | N/A - lambda held, no landing |
 | 12 | The paths | EDGE-SPLIT's 6,000 a household (seed 7005) | the same | SAME - held path for path to EDGE-SPLIT's and HYB's files up to each path's first force by the identity |
 | 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - no rival |
@@ -75,7 +75,7 @@ On S130, does forcing the draw past each snapped arm's first price point recover
 
 ## Point and interval
 
-- **Item 1:** the recovery R, about 0.59 on each deciding arm (0.1 to 1.0; the point from results-derive-forcex.txt's CREDENCE line).
+- **Item 1:** the rescue share r about 0.59 on each deciding arm (0.1 to 1.0; the CREDENCE line's point, the stories' mean r); the registered recovery R it implies under the derivation's flip model is lower, about 0.49 to 0.55 (the plan-auditor's MINOR 1 of 6 Oct on 9386fc7).
 
 ## Credence
 
@@ -86,19 +86,19 @@ On S130, does forcing the draw past each snapped arm's first price point recover
 
 ## Power
 
-From results-derive-forcex.txt section 2, at an ASSUMED flip share (grade C): the rule separates full recovery from none on every draw (HELD at r 0.9 and 1, FALSIFIED at r 0.1 and 0); at the thresholds themselves it is mostly INCONCLUSIVE (r 0.7: HELD 0.03; r 0.3: FALSIFIED 0.95). A force that rescues some paths and loses others (a flip share well above 0.01) widens the INCONCLUSIVE band.
+From results-derive-forcexb.txt section 2, at an ASSUMED flip share (grade C), in the rescue share r, not R: the rule separates full recovery from none on every draw (HELD at r 0.9 and 1, FALSIFIED at r 0.1 and 0); r 0.7 (R about 0.61 to 0.68) reads HELD 0.03, and r 0.3 (R about 0.17 to 0.21, below the threshold) FALSIFIED 0.95; at R exactly 0.7 or 0.3 the rule reads mostly INCONCLUSIVE. A force that rescues some paths and loses others (a flip share well above 0.01) widens the INCONCLUSIVE band.
 
 ## Budget line
 
-Six parts, four at once, each one solve (EDGE-SPLIT's 30-point solves, about 10 minutes each under load, PAUSE's logs) and two or three forward runs of 6,000 paths with the move run twice a pause year (EDGE-SPLIT's forward runs about 10 minutes a 6,000-path arm, so about 20 minutes here); about 3.5 core-hours by the deep review's estimate, about 1.5 hours at four at once; each part stopped at 6 hours.
+Six parts, four at once, each one solve and two or three forward runs of 6,000 paths with the move run twice a pause year: from EDGE-SPLIT's measured solve and forward-run times (results/diagedge/case*.txt) about 5.8 core-hours, about 2.3 hours in two waves at four at once (the plan-auditor's MINOR 5 of 6 Oct on 9386fc7; the deep review's 3.5 was low); each part stopped at 6 hours.
 
 ## Pre-mortem
 
 - **First:** the force acts rarely on SNAP (its pauses mostly after year 12, when a forced draw is taxed at the basic rate and the chooser may draw it back the next year), so SNAP+X reads PARTIAL while P-LO+X and HYB+X recover: INCONCLUSIVE for a reason that is about timing, not the pause (O112).
 - **Second:** the force rescues the paths PCLSI saves but loses others (the forced tax on paths that would have survived anyway), so D and P disagree path by path and R sits in the middle with a wide spread.
-- **Third:** past the first price point HYB+X meets its read's 0.75 edge and pauses there instead, so the force moves HYB's pause rather than removing it: the re-pause read shows it, and item 1 reads PARTIAL for HYB.
+- **Third:** HYB+X is forced at both edges, so after 0.25 it is forced again just below 0.75: two forced draws a path cost more tax than PCLSI's interpolated draws, so HYB+X recovers less than its gap and reads PARTIAL for a reason about the forced draws' tax, not the pause.
 - **Fourth:** the identity before the first force fails because the copy run of the move is not the move the run takes (a hidden state the flow touches, as O109's cache was): the gate refuses the run.
 
 ## Changes after seeing results
 
-None: no result has been seen.
+None: no result has been seen. Amended before launch on the plan-auditor's PASS of 6 Oct on 9386fc7, its MINORs 1-6: the power stated in the rescue share r with R's implied values, the point R about 0.5; S-INT+X's force cell declared to miss most of its pauses, so S-INT+X reported only; HYB+X declared forced at both edges (Unmasking, pre-mortem 3); the move's edits declared; the budget from EDGE-SPLIT's measured times; fair-test row 28's evidence. No threshold, rule, arm, price point or credence changed.

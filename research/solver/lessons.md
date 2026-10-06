@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## XAS-R2 (closed 6 Oct 02:47)
+
+- [T:c-falsify] [T:code] [T:register] O109's arm-blind cache, fixed with the row cache keyed by arm and held state, the self-checks counted per arm and a planted cross-arm read refused in the preflight, let one run split three questions cleanly (results-xasr2.txt: 1 HELD, 2 HELD, 3 HELD, the gate passing per arm) -> DROP: the per-arm checks and the plant did their work; the "Same pattern searched" in O109 found no other arm-blind cache
+- [T:design] [T:order] the three items were all deep-review causes, and the base-rate shading (0.10, 1 of 19 in deep-review-log.md) took them to 0.28, 0.24 and 0.21 where the judged credences were 0.40, 0.45 and 0.35; all three held, Brier 0.573 (results-scorecard-xasr2.txt) -> DROP: the scorecard's judged-against-derived check (O29) is the registered way to decide between the two and stands at 7 of its 30 items; settling YB-TOPCELL, VA-QUANT and S126-BLEND in review-causes.md (locked) is the deep reviewer's, and moves the deep-review rate itself
+- [T:overclaim] [T:stale] [T:relook] PAUSE's re-read was first written as "never ahead" and "dropped the step", then left stale in the 01:23 headline after O111 was fixed (FAILs on 9154f64 and 1c4d5a1); PAUSE-S128 was registered as "unseen" while DPC and 7ag had placed SNAP's pause on S128 (FAIL on 2f69deb) -> AUTOMATE (proposed for the next unlock of check-prediction.mjs): a "Seen before launch" section must list, by script, every results file and deep-review receipt naming the prediction's household with one of its arms
+- [T:design] PAUSE's registered figure missed by its own definition (a midpoint above u; the steepest step, not the first), so its falsifiers fired on the figure, not the mechanism (O111) -> DROP: PAUSE-S128's reducer plants the hypothesis's own geometry (fallsFrom on an edge inside u's own grid cell, a fall exactly 0.1 ahead) and its mutations caught 22 of 22; a rule would restate what the planted-check rule (CHECKLIST item 6) already asks
+
 ## Before the seed (30 Sep, from the day's receipts; not a close)
 - [T:sentinel] 7ak's reducer read an empty pooled class as a gap of 0 (the 16:21 and 16:29 FAILs) -> AUTOMATE the reducers' planted empty-class case (reduce-7ak.mjs, reduce-7al.mjs), and OUTCOMES REACHED under --planted
 - [T:relook] the 7u row and O60 were not moved by the reads that changed them (the 17:58 and 18:10 FAILs); O67 was listed and still missed -> AUTOMATE relook.mjs, the plan-auditor's step 1

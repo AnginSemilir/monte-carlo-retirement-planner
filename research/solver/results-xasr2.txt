@@ -1,0 +1,33 @@
+GATE: passed - 3 households once and done at XAS's unit; every self-check passed on something, per arm; every read and ex5 is XAS's at the same path, world and year (XAS's files through their own gate); S126's openings are XAS's; the BASE guard on vb holds
+planted checks: 47
+
+THE YEAR-BEFORE READS (means over reads: rep = read - ex5; each construct's own error and the share of rep it removes; every construct on its own arm's tables)
+  S370      BASE year 2: reads 6000 rep -6.2866e-3; vb -5.4892e-3 removes 0.127; va 1.1305e-1 removes 18.982; va41 7.5069e-2 removes 12.941
+  S370      BASE year 6: reads 5859 rep -1.9464e-3; vb -1.4335e-3 removes 0.264; va -2.0443e-1 removes -104.027; va41 -7.0525e-2 removes -35.233
+  S370      COV  year 2: reads 6000 rep 1.2480e-2; vb -4.7025e-4 removes 1.038; va 1.2128e-1 removes -8.718; va41 8.3844e-2 removes -5.718
+  S370      COV  year 6: reads 5859 rep 2.5652e-2; vb -3.4071e-4 removes 1.013; va -1.8482e-1 removes 8.205; va41 -7.8697e-2 removes 4.068
+  bridge 4  BASE year 2: reads 6000 rep -6.0365e-4; vb -5.0875e-4 removes 0.157; va -4.0868e-2 removes -66.701; va41 -1.3332e-2 removes -21.085
+  bridge 4  COV  year 2: reads 6000 rep -2.7959e-4; vb -8.8123e-4 removes -2.152; va -4.0550e-2 removes -144.030; va41 -1.3015e-2 removes -45.549
+
+(v-a) ON THE FINE POINTS AGAINST THE GUARD'S TERMS (reported: BASE's mean va41 - ex5 per year, and against the reader's own)
+  S370 year 2 BASE's mean (va41 - ex5) 7.5069e-2 above 0.005 (optimism added)
+  S370 year 2 BASE's mean (va41 - ex5) 7.5069e-2 against the reader's (read - ex5) -6.2866e-3: more than 0.005 further from the one-step value
+  S370 year 6 BASE's mean (va41 - ex5) -7.0525e-2 against the reader's (read - ex5) -1.9464e-3: more than 0.005 further from the one-step value
+  bridge 4 year 2 BASE's mean (va41 - ex5) -1.3332e-2 against the reader's (read - ex5) -6.0365e-4: more than 0.005 further from the one-step value
+
+THE (v-a) NODES: mean |S*5 - S*41| over mean |S*5 - p* cL| per household and arm
+  S370      BASE nodes 312: 1.1174e-1 over 1.9278e-1 = 0.580
+  S370      COV  nodes 312: 9.9016e-2 over 1.9158e-1 = 0.517
+  bridge 4  BASE nodes 76: 1.6757e-1 over 2.6453e-1 = 0.633
+  bridge 4  COV  nodes 76: 1.6722e-1 over 2.6397e-1 = 0.633
+
+S126'S STEP-YEAR READS IN BASE'S TOP CELL (read - one-step, mean over reads): bequest | shortfall
+  BASE -7.9116e+5 | 2.4013e-2  (each arm at its own move)
+  COV  3.9722e+3 | 8.8344e-4  (each arm at its own move)
+  COV at BASE's move (reported): 3.9722e+3 | 8.8344e-4; COV's move agrees with BASE's on 6000 of 6000 reads; 0 top-cell reads left out for a failing move
+
+ITEM 1 (primary): COV on S370, the share of rep the midpoint node removes, per year: year 2 s 1.038 over 6000 paths, Holm p LO 0.0002 HI 1.0000 -> TOPCELL; year 6 s 1.013 over 5859 paths, Holm p LO 0.0002 HI 1.0000 -> TOPCELL -> item 1 HELD
+ITEM 2: BASE's (v-a) nodes on S370 (312): mean |S*5 - S*41| 1.1174e-1 over mean |S*5 - p* cL| 1.9278e-1 = 0.580 -> item 2 HELD
+ITEM 3: S126, 6000 top-cell step reads on 6000 paths (each arm at its own move; 0 left out for a failing move): BASE bequest -7.9116e+5 (Holm p low 0.0001), shortfall 2.4013e-2 (Holm p high 0.0001); COV bequest 3.9722e+3, shortfall 8.8344e-4 -> item 3 HELD
+
+OUTCOME: 1 HELD; 2 HELD; 3 HELD

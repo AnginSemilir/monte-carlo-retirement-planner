@@ -5,7 +5,8 @@
  * PCLSI's unforced survival as the gap's far end.
  * THE GATE: the stamps (fair-gate.mjs requireFairLogs); a plant line refuses the logs; 12 units once and done, each ran line
  *   EDGE-SPLIT's unit with the arm's tables, read, segment and price points; one access line and one pathsum a household; every
- *   file present, stamped as the logs, its survivors the sum line's; every force carried u to its price point or past it;
+ *   file present, stamped as the logs, its survivors the sum line's; every force with a next year carried u to its price
+ *   point or past it, or drew the whole pension pot (carry(); a force in a path's failing year has no next u, not checked);
  *   ACTING (from the unforced partners' files, FLAG 4: inside the forced run the force removes the holds it targets): of each
  *   deciding arm's S130 hold years (pension live, u in [0.15, 0.99), u growing by under 0.02), the share inside a force cell
  *   ([p - 0.10, p) with next year's u under p) - refused under a half;
@@ -365,7 +366,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (!R.bad.length) { for (const id of PANEL) for (const a of ARMS) { const t = files[`${id} ${a}`], r = refs[`${id} ${ARM[a].partner}`]; bad.push(...identity(t, PRE && t ? headOf(r, t.N) : r, `${id} ${a} against ${ARM[a].partner}'s file${PRE ? ' (its first paths)' : ''}`)); } bad.push(...actingProblems(refs)); }
   }
   if (bad.length) { console.log(`GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
-  console.log(`GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force carried u past its price point or drew the whole pension pot; the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: ${np} passed\n`);
+  console.log(`GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force with a next year carried u past its price point or drew the whole pension pot (a force in a path's failing year has no next u and is not checked); the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: ${np} passed\n`);
   if (PRE) { console.log('PREFLIGHT: the stamp check skipped; no figure is read'); process.exit(0); }
   reading(files, refs);
 }

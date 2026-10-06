@@ -247,8 +247,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, after ed5db5c (XAS-R
    the first). The order is read from commits: a derivation run before the judged lines' first commit passes (748c53e,
    the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
-   author's reading. Neither git log follows a move: a prediction moved from drafts/ with its output reads as judged with
-   it, and a rename restarts the first commit: either passes judged-after-derived (O110, XAS-R2).
+   author's reading. Neither git log follows a move (a move from drafts/ or a rename passes judged-after-derived), and
+   the judged lines are read at their first commit, so a later edit committed with a new output passes (O110).
 32. testsAfter (uncertainty.mjs) never counts a scored test with no close in lessons.md; its two callers are untested.
 33. scorecard.mjs's deep-review cause base rate reads deep-review-log.md's one "N of M" line; settling causes does not
    move it (MINOR 4 on b22439c).

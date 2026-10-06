@@ -12,7 +12,7 @@ GATE (EDGE-SPLIT's and HYB's files, each through its own gate): passed; planted:
   P-LO   price 0.75      saved 148, reached 148 (1.000)   first would-be hold at year 11   leaves PCLSI at year 9   held at or before leaving 0.027
   HYB    price 0.25,0.75 saved 202, reached 202 (1.000)   first would-be hold at year 4   leaves PCLSI at year 5   held at or before leaving 0.995
 
-2. ITEM 1'S POWER: true rescue shares (r P-LO, r HYB), the registered rule (Holm over four), 40 draws (flipP B 2000); the flip share on the other paths from the files, f = 2 x (paths PCLSI loses that the arm keeps) / the arm's survivors: P-LO 0.004, HYB 0.004 (grade C, an upper analogue); then the sensitivity rows at f 0.01 and 0.03 on both arms
+2. ITEM 1'S POWER: true rescue shares (r P-LO, r HYB), the registered rule (Holm over four), 40 draws (flipP B 2000); the flip share on the other paths from the files, f = 2 x (paths PCLSI loses that the arm keeps) / the arm's survivors: P-LO 0.004, HYB 0.004 (grade C, an analogue, NOT CHECKED); then the sensitivity rows at f 0.01 and 0.02 and 0.03 on both arms
   r 0.00, 0.00: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
   r 0.10, 0.10: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
   r 0.30, 0.30: HELD 0.00 FALSIFIED 0.68 INCONCLUSIVE 0.33
@@ -27,6 +27,10 @@ GATE (EDGE-SPLIT's and HYB's files, each through its own gate): passed; planted:
   sensitivity, f 0.01 on both: r 0.70, 0.70: HELD 0.03 FALSIFIED 0.00 INCONCLUSIVE 0.97
   sensitivity, f 0.01 on both: r 0.90, 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
   sensitivity, f 0.01 on both: r 1.00, 1.00: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  sensitivity, f 0.02 on both: r 0.30, 0.30: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  sensitivity, f 0.02 on both: r 0.70, 0.70: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  sensitivity, f 0.02 on both: r 0.90, 0.90: HELD 0.25 FALSIFIED 0.00 INCONCLUSIVE 0.75
+  sensitivity, f 0.02 on both: r 1.00, 1.00: HELD 0.97 FALSIFIED 0.00 INCONCLUSIVE 0.03
   sensitivity, f 0.03 on both: r 0.30, 0.30: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
   sensitivity, f 0.03 on both: r 0.70, 0.70: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
   sensitivity, f 0.03 on both: r 0.90, 0.90: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00

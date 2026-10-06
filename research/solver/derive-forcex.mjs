@@ -13,8 +13,9 @@
  *      keeps the arm's outcome elsewhere, with a symmetric flip on a share f of the other paths: each flipped path changes
  *      state with chance one half, so a survivor dies with chance f/2. f per arm from the files: the nearest record of a
  *      policy change killing paths that survived is PCLSI against the arm itself - the paths PCLSI loses that the arm keeps -
- *      so f = 2 x loses / the arm's survivors (grade C: PCLSI differs from the arm far more than one forced draw does, so an
- *      upper analogue). The deep review's premise (g) quoted 0.027 to 0.035 of 6,000 as the arms' decided paths against
+ *      so f = 2 x loses / the arm's survivors (grade C, an analogue, NOT CHECKED: PCLSI differs from the arm far more than
+ *      one forced draw does, but a forced arm departs from its partner on most paths after its first force, as PCLSI departs
+ *      from HYB from year 5; the plan-auditor's MINOR 2 of 6 Oct on 39b2184). The deep review's premise (g) quoted 0.027 to 0.035 of 6,000 as the arms' decided paths against
  *      PCLSI; those count the gap paths themselves, so they bound nothing about the other paths. A first run of this script
  *      used 0.03 from that figure (declared in the prediction); it is kept as a sensitivity row beside 0.01, the first
  *      design's assumption. Read by the registered rule (reduce-forcex.mjs item1: flipP, Holm over four, LO 0.3, HI 0.7)
@@ -28,7 +29,7 @@
  */
 import { recovery, item1, references, DECIDE, LIVE, CELL, FLAT, ARM } from './reduce-forcex.mjs';
 
-const R_BOOT = 40, B_FLIP = 2000, SENS = [0.01, 0.03];
+const R_BOOT = 40, B_FLIP = 2000, SENS = [0.01, 0.02, 0.03];
 const ARMS = ['P-LO+X', 'HYB+X'], SHOWN = ['SNAP+X', ...ARMS];
 const f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-'), f3 = x => (Number.isFinite(x) ? x.toFixed(3) : '-');
 const rng = s => () => { s |= 0; s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -82,7 +83,7 @@ const RCH = {};
 for (const a of SHOWN) { const q = reach(refOf(a), pc, ARM[a].price.split(',').map(Number)); RCH[a] = q; console.log(`  ${ARM[a].partner.padEnd(6)} price ${ARM[a].price.padEnd(9)} saved ${q.saved}, reached ${q.reached} (${f3(q.share)})   first would-be hold at year ${q.hold}   leaves PCLSI at year ${q.leaves}   held at or before leaving ${f3(q.early)}`); }
 
 const FL = Object.fromEntries(ARMS.map(a => { const A = AR[a], s = A.reduce((x, y) => x + y, 0), loses = A.filter((x, j) => PC[j] - x < 0).length; return [a, 2 * loses / s]; }));
-console.log(`\n2. ITEM 1'S POWER: true rescue shares (r P-LO, r HYB), the registered rule (Holm over four), ${R_BOOT} draws (flipP B ${B_FLIP}); the flip share on the other paths from the files, f = 2 x (paths PCLSI loses that the arm keeps) / the arm's survivors: ${ARMS.map(a => `${ARM[a].partner} ${f3(FL[a])}`).join(', ')} (grade C, an upper analogue); then the sensitivity rows at f ${SENS.join(' and ')} on both arms`);
+console.log(`\n2. ITEM 1'S POWER: true rescue shares (r P-LO, r HYB), the registered rule (Holm over four), ${R_BOOT} draws (flipP B ${B_FLIP}); the flip share on the other paths from the files, f = 2 x (paths PCLSI loses that the arm keeps) / the arm's survivors: ${ARMS.map(a => `${ARM[a].partner} ${f3(FL[a])}`).join(', ')} (grade C, an analogue, NOT CHECKED); then the sensitivity rows at f ${SENS.join(' and ')} on both arms`);
 const powerAt = (rs, fs, seed) => { const rand = rng(seed), n = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 }; for (let b = 0; b < R_BOOT; b++) n[item1(ARMS.map((a, i) => recovery(simulate(AR[a], PC, rs[i], rand, fs[i]), AR[a], PC)), { b: B_FLIP }).v]++; return Object.fromEntries(Object.entries(n).map(([k, v]) => [k, v / R_BOOT])); };
 const POW = new Map(), key = (rs, fs) => [...rs, ...fs].map(x => x.toFixed(4)).join(',');
 const power = (rs, fs = ARMS.map(a => FL[a])) => { const k = key(rs, fs); if (!POW.has(k)) POW.set(k, powerAt(rs, fs, 7005 + Math.round(1000 * rs[0]) + 7 * Math.round(1000 * rs[1]))); return POW.get(k); };

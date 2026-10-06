@@ -3,7 +3,7 @@
  * review after PAUSE-S128 (deep-review-log.md 6 Oct 04:34 UK). Four forced arms a household on S130 (deciding), S128 and S370
  * (reported), forward only, each against its unforced partner from EDGE-SPLIT's files (SNAP, P-LO, PCLSI) or HYB's (HYB), and
  * PCLSI's unforced survival as the gap's far end.
- * THE GATE: the stamps (fair-gate.mjs requireFairLogs); a plant line refuses the logs; 15 units once and done, each ran line
+ * THE GATE: the stamps (fair-gate.mjs requireFairLogs); a plant line refuses the logs; 12 units once and done, each ran line
  *   EDGE-SPLIT's unit with the arm's tables, read, segment and price points; one access line and one pathsum a household; every
  *   file present, stamped as the logs, its survivors the sum line's; every force carried u to its price point or past it;
  *   ACTING (from the unforced partners' files, FLAG 4: inside the forced run the force removes the holds it targets): of each
@@ -148,6 +148,9 @@ export function checkFile(t, u, st) {
   if (carried !== landed) bad.push(`${k}: ${landed - carried} forces did not carry u to the price point`);
   return bad;
 }
+/* the first n paths of a reference file (the preflight runs 20 paths against EDGE-SPLIT's 6,000: the plan-auditor's MINOR 7 of
+   6 Oct on 39b2184); a file already n paths or fewer is returned as it is, so the real run's check stays exact */
+export const headOf = (r, n) => (!r || !(r.N > n) ? r : { ...r, N: n, u: r.u.subarray(0, n * r.Y), pen: r.pen.subarray(0, n * r.Y), non: r.non.subarray(0, n * r.Y), survived: r.survived.subarray(0, n), tax: r.tax.subarray(0, n), net: r.net.subarray(0, n) });
 /* THE IDENTITY: the forced run against its partner, every year up to each path's first force, and never-forced paths' ends */
 export function identity(t, ref, tag) {
   if (!ref) return [`identity ${tag}: the partner file missing`];
@@ -277,7 +280,9 @@ function planted() {
   cases.push(['the identity: a change at the first force\'s own year refuses (the state then is before the force)', identity(mk([0.1, 0.9, 0.3, 0.1, 0.2, 0.3], [1, -1]), ref, 'x').some(x => /3 of 15/.test(x)), true]);
   cases.push(['the identity: a never-forced path that ends differently refuses', identity(mk([0.1, 0.2, 0.3, 0.1, 0.2, 0.3], [-1, -1], [1, 0]), ref, 'x').some(x => /1 of 2 never-forced/.test(x)), true]);
   cases.push(['the identity: all NaN compares nothing and refuses', identity(mk(Array(6).fill(NaN), [-1, -1]), mk(Array(6).fill(NaN), [-1, -1]), 'x').some(x => /compared nothing/.test(x)), true]);
-  EDGES.push('a difference in the first force\'s own year', 'an identity with every value missing');
+  const ref3 = mk([0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.5, 0.5, 0.5], [-1, -1, -1], [1, 1, 0], 3); ref3.tax = Float32Array.from([1, 1, 7]); ref3.net = Float32Array.from([1, 1, 7]);
+  cases.push(['the identity: a 2-path run against a 3-path reference refuses; against its first 2 paths (headOf) it passes; headOf leaves a 2-path file as it is', `${identity(ref, ref3, 'x').some(x => /3 paths/.test(x))} ${identity(ref, headOf(ref3, 2), 'x').length} ${headOf(ref, 2) === ref}`, 'true 0 true']);
+  EDGES.push('a difference in the first force\'s own year', 'an identity with every value missing', 'a preflight run shorter than its reference');
   // recovery and the reading: full recovery, none, half; no gap
   const n = 400, A0 = Array(n).fill(0), Pg = Array.from({ length: n }, (_, j) => (j < 100 ? 1 : 0));
   const full = recovery(Pg, A0, Pg), none = recovery(A0, A0, Pg), half = recovery(Array.from({ length: n }, (_, j) => (j < 50 ? 1 : 0)), A0, Pg), nogap = recovery(A0, A0, A0);
@@ -337,7 +342,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (!bad.length) {
     const R = await references(); refs = R.refs;
     bad.push(...R.bad);
-    if (!R.bad.length) { for (const id of PANEL) for (const a of ARMS) bad.push(...identity(files[`${id} ${a}`], refs[`${id} ${ARM[a].partner}`], `${id} ${a} against ${ARM[a].partner}'s file`)); bad.push(...actingProblems(refs)); }
+    if (!R.bad.length) { for (const id of PANEL) for (const a of ARMS) { const t = files[`${id} ${a}`], r = refs[`${id} ${ARM[a].partner}`]; bad.push(...identity(t, PRE && t ? headOf(r, t.N) : r, `${id} ${a} against ${ARM[a].partner}'s file${PRE ? ' (its first paths)' : ''}`)); } bad.push(...actingProblems(refs)); }
   }
   if (bad.length) { console.log(`GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
   console.log(`GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force carried u past its price point; the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: ${np} passed\n`);

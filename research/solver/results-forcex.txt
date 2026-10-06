@@ -1,0 +1,62 @@
+FAIR-TEST GATE: research/solver/predictions/diag-forcex.md was corrected after launch (8f591e48 at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - Declared correction after launch (6 Oct, reduce-forcex.mjs; made on the gate's lines alone, before any figure was read): the gate refused the run because 5 of the S128 forces (1 on P-LO+X, 2 on HYB+X, 2 on PCLSI+X; none on S130 or S370) did not carry u to the price point. Each was a force whose required draw exceeded the whole pension pot (pension 14,834 to 34,155 against a gross need of 37,085 to 102,325), so the force drew the whole pot and the pension was 0 the next year; the force acted as built (fast.js step 7b' caps the draw at the pot), and the gate's carry check assumed every pot can pay for the carry. The check now counts a force as carried when it reaches its price point or draws the whole pot (the next year's pension under 1), refuses any other short force, and prints the emptied count per arm (reduce-forcex.mjs carry(), a planted case, two mutations). One slip, declared: after the correction the reducer was run once in full with its output cut to its first four lines, which showed the gate passing and the reading's opening sentence, no figure. Same pattern searched: audit-forcex.mjs's force cell asks only that the pension exceed 10,000 (LIVE), not that it can pay for the carry; no other check in reduce-forcex.mjs assumes the carry is affordable. No threshold, rule, arm, item or credence changed.
+
+FAIR-TEST GATE: research/solver/predictions/diag-edge.md was corrected after launch (77bf795c at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.
+
+GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force carried u past its price point or drew the whole pension pot; the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: 27 passed
+
+FORCE-X (EDGE-SPLIT's unit, seed 7005, 6000 paths a household): each arm with the draw forced past its read's first price point at a would-be hold, against the same arm unforced (EDGE-SPLIT's and HYB's files) and PCLSI unforced.
+
+THE FORCE (each arm: forced years, the paths forced; ACTING from the unforced partner: its hold years, the share inside a force cell; the forced run's own hold years)
+  S130  SNAP+X   forced   5931   paths  5931   partner holds  43912   acting 0.982   forced run's holds   6791   stopped by an emptied pot 0
+  S130  P-LO+X   forced   5977   paths  5977   partner holds  58342   acting 0.993   forced run's holds   6518   stopped by an emptied pot 0
+  S130  HYB+X    forced  11977   paths  6000   partner holds  55178   acting 0.993   forced run's holds  12757   stopped by an emptied pot 0
+  S130  PCLSI+X  forced     20   paths    19   partner holds   1227   acting 0.019   forced run's holds   1246   stopped by an emptied pot 0
+  S128  SNAP+X   forced   4586   paths  4586   partner holds  37777   acting 0.858   forced run's holds  10377   stopped by an emptied pot 0
+  S128  P-LO+X   forced   4829   paths  4829   partner holds  44610   acting 0.885   forced run's holds  11597   stopped by an emptied pot 1
+  S128  HYB+X    forced  10511   paths  5734   partner holds  34623   acting 0.931   forced run's holds  18227   stopped by an emptied pot 2
+  S128  PCLSI+X  forced    649   paths   634   partner holds   8443   acting 0.136   forced run's holds   9672   stopped by an emptied pot 2
+  S370  SNAP+X   forced   2646   paths  2646   partner holds   4942   acting 0.721   forced run's holds   3249   stopped by an emptied pot 0
+  S370  P-LO+X   forced   3763   paths  3763   partner holds   7217   acting 0.765   forced run's holds   4530   stopped by an emptied pot 0
+  S370  HYB+X    forced   9613   paths  4965   partner holds  13635   acting 0.955   forced run's holds   9917   stopped by an emptied pot 0
+  S370  PCLSI+X  forced      4   paths     4   partner holds    907   acting 0.028   forced run's holds    918   stopped by an emptied pot 0
+
+ITEM 1 (primary; S130; P-LO and HYB, PCLSI's tables): the share of each arm's survival gap to PCLSI the force recovers, R = sum((a+X) - a) / sum(PCLSI - a); LO mean(D - 0.3 P) above 0, HI mean(0.7 P - D) above 0, Holm over the four
+  P-LO+X   R 0.905 (recovered 124 of a 137-path gap)   Holm p LO 0.0002 HI 1.0000 -> RECOVERS
+  HYB+X    R 0.885 (recovered 170 of a 192-path gap)   Holm p LO 0.0002 HI 1.0000 -> RECOVERS
+  -> HELD (HELD, LOSS-HOLD: both RECOVER; FALSIFIED, LOSS-READ or the force's own cost: both KEEP; else INCONCLUSIVE)
+
+REPORTED (raw p, deciding nothing): P-LO and HYB on S128 and S370; SNAP+X on every household (the tables' share)
+  S128  P-LO+X   R 0.214 (recovered 6 of a 28-path gap)   p LO 0.6693 HI 0.0037 -> KEEPS
+  S128  HYB+X    R 0.133 (recovered 6 of a 45-path gap)   p LO 0.8290 HI 0.0004 -> KEEPS
+  S370  P-LO+X   R 0.640 (recovered 16 of a 25-path gap)   p LO 0.0244 HI 0.3486 -> PARTIAL
+  S370  HYB+X    R 0.581 (recovered 25 of a 43-path gap)   p LO 0.0285 HI 0.1830 -> PARTIAL
+  S130  SNAP+X   R 0.755 (recovered 108 of a 143-path gap)   p LO 0.0000 HI 0.8264 -> RECOVERS
+  S128  SNAP+X   R 0.417 (recovered 10 of a 24-path gap)   p LO 0.3474 HI 0.2031 -> PARTIAL
+  S370  SNAP+X   R 0.271 (recovered 13 of a 48-path gap)   p LO 0.6235 HI 0.0037 -> KEEPS
+
+REPORTED: on S130's saved paths (PCLSI survives, the arm does not), the median year the arm leaves PCLSI, its median first force year, and the other pots' median gap to PCLSI at the force
+  SNAP+X   saved 168, forced 168   leaves PCLSI at year 4   first force at year 13   other pots' gap at the force -64641.53
+  P-LO+X   saved 148, forced 148   leaves PCLSI at year 9   first force at year 11   other pots' gap at the force 71402.28
+  HYB+X    saved 202, forced 202   leaves PCLSI at year 5   first force at year 4   other pots' gap at the force 0.00
+
+REPORTED: each forced arm against its partner, a path - survival (points), tax and net (se)
+  S130  SNAP+X   survival 1.800   tax -261876.68 (2403.94)   net 64635.38 (6985.70)
+  S130  P-LO+X   survival 2.067   tax -308704.59 (2808.70)   net 15544.89 (8422.81)
+  S130  HYB+X    survival 2.833   tax -478865.74 (3772.99)   net 51800.15 (9944.75)
+  S130  PCLSI+X  survival 0.000   tax -35.94 (23.33)   net -6.67 (6.67)
+  S128  SNAP+X   survival 0.167   tax -59823.78 (763.23)   net -5449.69 (1515.13)
+  S128  P-LO+X   survival 0.100   tax -65609.63 (803.98)   net -21697.12 (1984.61)
+  S128  HYB+X    survival 0.100   tax -97060.63 (1090.10)   net -62647.12 (2970.41)
+  S128  PCLSI+X  survival -0.167   tax 126.72 (44.98)   net -422.23 (110.04)
+  S370  SNAP+X   survival 0.217   tax -6799.52 (883.58)   net -58679.15 (17329.63)
+  S370  P-LO+X   survival 0.267   tax -14866.29 (860.97)   net -39767.43 (15122.99)
+  S370  HYB+X    survival 0.417   tax -59150.48 (1025.32)   net -46214.03 (20238.32)
+  S370  PCLSI+X  survival 0.000   tax 0.93 (0.93)   net -60.07 (60.07)
+  OPT (survival up and net down on every forced arm but the control): S130 no, S128 yes, S370 yes
+
+REPORTED: hold years after a path's first force, the share within 0.05 past the price point it crossed (the edge arms should draw on)
+  S130  SNAP+X 0.000 of 473   P-LO+X 0.002 of 414   HYB+X 0.003 of 6757
+  S128  SNAP+X 0.167 of 1614   P-LO+X 0.299 of 3049   HYB+X 0.081 of 12408
+  S370  SNAP+X 0.000 of 130   P-LO+X 0.000 of 277   HYB+X 0.000 of 4865
+
+OUTCOME: 1 HELD

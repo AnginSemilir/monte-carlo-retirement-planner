@@ -62,6 +62,7 @@ export const TESTS = [
   { name: 'XAS (the exact one-step check: representation against quadrature at the step reads)', prediction: 'predictions/diag-xas.md', results: 'results-xas.txt' },
   { name: 'EDGE (EDGE-SPLIT: which snap edge carries PCLSI\'s gain, on each table)', prediction: 'predictions/diag-edge.md', results: 'results-edge.txt' },
   { name: 'XAS-R2 (the year-before reads split three ways: the top cell, the (v-a) nodes, S126\'s blend)', prediction: 'predictions/diag-xasr2.md', results: 'results-xasr2.txt' },
+  { name: 'FORCE-X (the draw forced past the read\'s first price point at a would-be hold)', prediction: 'predictions/diag-forcex.md', results: 'results-forcex.txt' },
 ];
 
 export function credences(predText) {

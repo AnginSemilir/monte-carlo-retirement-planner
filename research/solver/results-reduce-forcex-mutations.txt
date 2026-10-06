@@ -1,0 +1,25 @@
+caught: 1: for (const u of units) if (u.plant) bad.push(
+caught: 2: if (n !== 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);
+caught: 3: for (const [f, v] of Object.entries(want)) if (field(u.ran, 
+caught: 4: if (new Set(h.filter(u => u.sum).map(u => u.sum.pathsum)).si
+caught: 5: else if (f.acting / f.pauses < ACT) bad.push(
+caught: 6: else if (f.acting / f.pauses < ACT) bad.push(
+caught: 7: for (const u of real.filter(x => x.id === DECIDE && DECIDING
+caught: 8: if (!(f.pauses > 0)) bad.push(
+caught: 9: for (let y = 0; y <= last; y++) {
+caught: 10: const last = t.first[j] >= 0 ? t.first[j] : t.Y - 1;
+caught: 11: if (t.first[j] < 0) { ends++; if (t.survived[j] !== ref.surv
+caught: 12: if (!(cells > 0)) bad.push(
+caught: 13: for (let j = 0; j < n; j++) { D[j] = X[j] - A[j]; G[j] = P[j
+caught: 14: R: sG > 0 ? sD / sG : NaN
+caught: 15: lo: D.map((d, j) => d - LO * G[j]), hi: D.map((d, j) => HI *
+caught: 16: pLo < ALPHA && r.R >= HI ? 'RECOVERS'
+caught: 17: pLo < ALPHA && r.R >= HI ? 'RECOVERS'
+caught: 18: pHi < ALPHA && r.R <= LO ? 'KEEPS'
+caught: 19: const v = reads.every(r => r.read === 'RECOVERS') ? 'HELD'
+caught: 20: : reads.every(r => r.read === 'KEEPS') ? 'FALSIFIED'
+caught: 21: (!(r.sG > 0) ? 'NO GAP'
+caught: 22: if (!f || t.pt[i] <= f.t) continue;
+caught: 23: if (t.pu[i] >= f.p - 1e-12 && t.pu[i] < f.p + PAST) near++;
+caught: 24: if (t.pu[i] >= f.p - 1e-12 && t.pu[i] < f.p + PAST) near++;
+24 of 24 mutations caught

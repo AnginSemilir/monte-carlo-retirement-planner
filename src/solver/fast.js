@@ -524,6 +524,29 @@ export function flow(c, t, ai, s) {
       isa += toIsa; isaContrib += toIsa; addGia(net - toIsa); harvested += net;
     }
   }
+  /*
+   * 7b'. FORCE-X (research only, PLAN.md's FORCE-X; research/solver/audit-forcex.mjs): `c.forceTF`, set by a forward run's
+   * own chooser for this one year, forces one pension draw whose tax-free part is that amount (within the allowance left),
+   * taxed with the year's income and re-wrapped as the harvest is (ISA first, then the GIA at cost). It is cleared here, so it
+   * acts once; unset (every solve and every other run), nothing changes.
+   */
+  if (c.forceTF > 0) {
+    const want = c.forceTF; c.forceTF = 0;
+    const headroom = a.lump && lumpTaken ? 0 : Math.max(0, P.lsa - cumPcls);
+    const gross = access && retired && pen > 0 && headroom > 0 ? Math.min(pen, Math.min(want, headroom) / P.pclsProp) : 0;
+    if (gross > 0) {
+      pen -= gross; drawdown += gross;
+      const taxFree = Math.min(gross * P.pclsProp, headroom);
+      cumPcls += taxFree;
+      const before = netOf(tb, taxable);
+      taxable += gross - taxFree;
+      const net = taxFree + (netOf(tb, taxable) - before);
+      const room = Math.max(0, P.isaAllowance - isaContrib);
+      const toIsa = Math.min(net, room);
+      isa += toIsa; isaContrib += toIsa; addGia(net - toIsa);
+      c.forced = gross;
+    }
+  }
   // 7c. capital gains on the year's disposals, settled cash -> GIA -> ISA -> pension
   if (cgtOn) {
     const taxableGain = Math.max(0, realised - yr.cgtExempt[t]);

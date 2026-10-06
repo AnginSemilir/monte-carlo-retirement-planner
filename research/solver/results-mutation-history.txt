@@ -67,3 +67,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 00:22 UTC | reduce-xasr2.mjs 9e924685feb9 | 37 of 37 caught | escaped: none
 2026-10-06 01:33 UTC | reduce-pause128.mjs f06eecd556ef | 19 of 22 caught | escaped: NOT CAUGHT: 14: if (r.first - u <= NEAR + 1e-12) first++;; NOT CAUGHT: 17: if (rd.some(a => F[a].loc < FALL || F[a].first < FALL)) retu; NOT CAUGHT: 22: LOC ${f3(F[a].loc)}   FIRST ${f3(F[a].first)}
 2026-10-06 01:33 UTC | reduce-pause128.mjs 8c89daf2af95 | 22 of 22 caught | escaped: none
+2026-10-06 02:01 UTC | reduce-forcex.mjs ac873605d158 | 22 of 24 caught | escaped: NOT CAUGHT: 14: R: sG > 0 ? sD / sG : NaN; NOT CAUGHT: 15: lo: D.map((d, j) => d - LO * G[j]), hi: D.map((d, j) => HI *
+2026-10-06 02:02 UTC | reduce-forcex.mjs 17b262332ad4 | 24 of 24 caught | escaped: none

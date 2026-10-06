@@ -9,9 +9,10 @@
  *   2. ITEM 1's POWER: for a true share s, D = s P + e (e: BASE's per-path read - vb, centred, paired by path), read by the
  *      registered rule (reduce-xasr2.mjs items: flipP, Holm over four, LO1 0.2, HI1 0.5, the bounds), over R bootstrap
  *      resamples of the paths; the chance of HELD, FALSIFIED and INCONCLUSIVE at each s.
- *   3. THE CREDENCES: the deep review's cause credences (deep-review-log.md 5 Oct 23:18 UK, CAUSE CREDENCES) as stories, each
- *      with its expected reading (item 1: YB-TOPCELL s 0.7, YB-REF and YB-NODEQ s 0.1, the rest s 0.35; item 2 and item 3 by
- *      the stated maps), shaded toward the deep-review record's base rate (ranked causes read as ranked 1 of 19).
+ *   3. THE CREDENCES: from each item's base rate, 0.10 (the deep-review record's: ranked causes read as ranked 1 of 19): the
+ *      deep review's leading cause (deep-review-log.md 5 Oct 23:18 UK, CAUSE CREDENCES) halfway from its credence to 0.10, the
+ *      other stories sharing the rest in proportion, the review's unassigned mass kept; each story with its expected reading
+ *      (item 1: YB-TOPCELL s 0.7, YB-REF and YB-NODEQ s 0.1, the rest s 0.35; items 2 and 3 by the stated maps).
  *   node research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2b.txt
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -82,11 +83,23 @@ for (const s of S_GRID) {
   console.log(`  s ${f2(s)}: HELD ${f2(POW[s].HELD)} FALSIFIED ${f2(POW[s].FALSIFIED)} INCONCLUSIVE ${f2(POW[s].INCONCLUSIVE)}`);
 }
 // 3. credences
-console.log('\n3. THE CREDENCES (the deep review\'s cause credences as stories, normalised within each question, then shaded toward the base rate: weight 0.7 on the stories, 0.3 on an even split)');
-const shade = (o) => { const k = Object.keys(o), t = k.reduce((s, x) => s + o[x], 0); return Object.fromEntries(k.map(x => [x, 0.7 * o[x] / t + 0.3 / k.length])); };
+// from the base rate (the plan-auditor's BLOCKING 1 of 6 Oct on 3584a41: the derivation starts at the item's base rate, 0.10
+// for a deep review's ranked cause, results-scorecard.txt KIND BASE RATES): the leading story's weight halfway from the
+// review's credence to 0.10 (XAS-R's construction, results-derive-xasr.txt section 4); the rest share what is left in
+// proportion to the review's credences, the review's unassigned mass kept with the last story (never renormalised away)
+export const BASE_RATE = 0.10;
+export function shade(o, lead) {
+  const w = { [lead]: (o[lead] + BASE_RATE) / 2 }, rest = Object.keys(o).filter(k => k !== lead), rs = rest.reduce((s, k) => s + o[k], 0);
+  for (const k of rest) w[k] = (1 - w[lead]) * o[k] / rs;
+  return w;
+}
+// PLANTED: the lead halfway to the base rate, the rest in proportion, the weights summing to 1
+{ const w = shade({ A: 0.5, B: 0.3, C: 0.2 }, 'A'); if (!(Math.abs(w.A - 0.3) < 1e-12 && Math.abs(w.B - 0.42) < 1e-12 && Math.abs(w.C - 0.28) < 1e-12)) { console.log(`PLANTED CHECK FAILED: shade ${JSON.stringify(w)}`); process.exit(1); } }
+console.log('\n3. THE CREDENCES (from the base rate 0.10: the leading story halfway from the review\'s credence to it, the other stories sharing the rest in proportion to the review\'s credences, the review\'s unassigned mass kept with the last)');
 const near = s => POW[S_GRID.reduce((b, x) => (Math.abs(x - s) < Math.abs(b - s) ? x : b), S_GRID[0])];
 {
-  const w = shade({ TOPCELL: 0.45, 'REF+NODEQ': 0.27, REST: 0.09 }), sOf = { TOPCELL: 0.7, 'REF+NODEQ': 0.1, REST: 0.35 }, c = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
+  const w = shade({ TOPCELL: 0.45, 'REF+NODEQ': 0.27, REST: 0.28 }, 'TOPCELL'),   // REST: TAX, POLICY, QUAD 0.09 and the unassigned 0.19
+    sOf = { TOPCELL: 0.7, 'REF+NODEQ': 0.1, REST: 0.35 }, c = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
   for (const [k, wk] of Object.entries(w)) { const p = near(sOf[k]); for (const o of Object.keys(c)) c[o] += wk * p[o]; }
   console.log(`  item 1 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)} at s ${sOf[k]}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
   console.log(`CREDENCE item 1: point ${f2(Object.entries(w).reduce((s, [k, v]) => s + v * sOf[k], 0))} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
@@ -94,7 +107,8 @@ const near = s => POW[S_GRID.reduce((b, x) => (Math.abs(x - s) < Math.abs(b - s)
 {
   // item 2: QUANT reads HELD, REF FALSIFIED, a further bug (VA-BUG) or neither INCONCLUSIVE; exact arithmetic over the nodes,
   // so each story reads its own outcome with 0.8 and the middle band with 0.2
-  const w = shade({ QUANT: 0.5, REF: 0.35, BUG: 0.08 }), c = { HELD: 0.8 * w.QUANT, FALSIFIED: 0.8 * w.REF, INCONCLUSIVE: w.BUG + 0.2 * (w.QUANT + w.REF) };
+  const w = shade({ QUANT: 0.5, REF: 0.35, BUG: 0.15 }, 'QUANT'),   // BUG: VA-BUG 0.08 and the unassigned 0.07
+    c = { HELD: 0.8 * w.QUANT, FALSIFIED: 0.8 * w.REF, INCONCLUSIVE: w.BUG + 0.2 * (w.QUANT + w.REF) };
   console.log(`  item 2 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
   // the point: the ratio each story expects (QUANT 0.7, REF 0.1, BUG 0.35), weighted
   console.log(`CREDENCE item 2: point ${f2(0.7 * w.QUANT + 0.1 * w.REF + 0.35 * w.BUG)} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
@@ -103,7 +117,8 @@ const near = s => POW[S_GRID.reduce((b, x) => (Math.abs(x - s) < Math.abs(b - s)
   // item 3: S126-BLEND reads HELD when COV's edge node removes half or more (0.7), else INCONCLUSIVE; another non-survival
   // channel (NSOTHER) leaves the errors in place under COV (FALSIFIED 0.6, INCONCLUSIVE 0.4); the tie (TIE) moves no read
   // (FALSIFIED 0.5, INCONCLUSIVE 0.5)
-  const w = shade({ BLEND: 0.5, NSOTHER: 0.3, TIE: 0.12 }), c = { HELD: 0.7 * w.BLEND, FALSIFIED: 0.6 * w.NSOTHER + 0.5 * w.TIE, INCONCLUSIVE: 0.3 * w.BLEND + 0.4 * w.NSOTHER + 0.5 * w.TIE };
+  const w = shade({ BLEND: 0.5, NSOTHER: 0.3, TIE: 0.2 }, 'BLEND'),   // TIE: S126-TIE 0.12 and the unassigned 0.08
+    c = { HELD: 0.7 * w.BLEND, FALSIFIED: 0.6 * w.NSOTHER + 0.5 * w.TIE, INCONCLUSIVE: 0.3 * w.BLEND + 0.4 * w.NSOTHER + 0.5 * w.TIE };
   console.log(`  item 3 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
   // the point: COV's error as a share of BASE's that each story expects (BLEND 0.2, NSOTHER 1, TIE 1), weighted
   console.log(`CREDENCE item 3: point ${f2(0.2 * w.BLEND + 1 * w.NSOTHER + 1 * w.TIE)} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);

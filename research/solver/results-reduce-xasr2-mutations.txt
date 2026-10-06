@@ -9,7 +9,7 @@ caught: 8: for (const a of ARMS) if (!u.blend[a] || !(u.blend[a].top >
 caught: 9: const okFrac = f => f && f[0] === f[1];
 caught: 10: if (!N || !(k > 0) || ['arm', 'k', 't', 's41', 'p', 'cL'].so
 caught: 11: if (b.top.some(x => x !== 0 && x !== 1)) bad.push(
-caught: 12: ['bR', 'bE', 'hR', 'hE'].some(q => !Array.isArray(A[q]) || A
+caught: 12: ['bR', 'bE', 'hR', 'hE', 'bE0', 'hE0', 'agree'].some(q => !A
 caught: 13: if (!(m <= GUARD + 1e-12)) bad.push(`the BASE guard:
 caught: 14: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
 caught: 15: for (const id of READ_UNITS) {
@@ -31,6 +31,9 @@ caught: 29: const signs = pB < ALPHA && pH < ALPHA && eB.b < 0 && eB.h >
 caught: 30: Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.ab
 caught: 31: Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.ab
 caught: 32: const noSmaller = Math.abs(eC.b) >= Math.abs(eB.b) && Math.a
-caught: 33: const b = files.S126.blend, J = b.top.map((x, j) => (x === 1
-caught: 34: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.three.v}`)
-34 of 34 mutations caught
+caught: 33: const Jtop = b.top.map((x, j) => (x === 1 ? j : -1)).filter(
+caught: 34: J = Jtop.filter(j => ARMS.every(a => fin(a, j)));
+caught: 35: const err = (a, r, e) => mean(J.map(j => b.arms[a][r][j] - b
+caught: 36: else if (A.bR.some(x => !Number.isFinite(x)) || A.hR.some(x 
+caught: 37: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.three.v}`)
+37 of 37 mutations caught

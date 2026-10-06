@@ -10,8 +10,9 @@
  *     and the row's 0.8 node's c; and va41, (v-a) rebuilt on S*41. Self-check (fine): the fine path at the solve's own 5
  *     points and weights reproduces S*5.
  *   ITEM 3 (S126-BLEND): S126 along BASE's paths, at each reader step year (S126's year 1) where the read lies in the top
- *     share cell, per arm: the bequest and shortfall tables' reads against their one-step values for BASE's move (bq and h
- *     of scoreMoves; h = surv + wB bq - the score with the resilience weight 0).
+ *     share cell, per arm: the bequest and shortfall tables' reads against their one-step values for the ARM'S OWN move at
+ *     the state (bq and h of scoreMoves; h = surv + wB bq - the score with the resilience weight 0), BASE's move's values
+ *     beside them (reported) and whether the two moves agree; a failing move's values are NaN, counted and left out.
  * Item 1 (YB-TOPCELL) reads vb, now on each arm's own tables, as XAS-R read it.
  * What follows is audit-xasr.mjs's description, unchanged in substance:
  * XAS-R: THE YEAR-BEFORE READ THREE WAYS, AT FIXED POLICY. XAS's unit (READER/TS+J/W0.02/PCLSI, 6 share points, 30 wealth
@@ -346,7 +347,7 @@ UNITS.forEach((id, ui) => {
     // shortfall tables' reads (readValues out[1], out[3]) at BASE's state through the layer of BASE's previous move, against
     // their one-step values for BASE's move (scoreMoves' bq; h = surv + wB bq - the score with the resilience weight 0); the
     // read classed in BASE's top share cell or not
-    const B3 = { k: [], p: [], t: [], top: [], arms: Object.fromEntries(ARMS.map(([a]) => [a, { bR: [], bE: [], hR: [], hE: [] }])) }, RD4 = new Float64Array(4), nA = base.g.axes.a.n;
+    const B3 = { k: [], p: [], t: [], top: [], arms: Object.fromEntries(ARMS.map(([a]) => [a, { bR: [], bE: [], hR: [], hE: [], bE0: [], hE0: [], agree: [] }])) }, RD4 = new Float64Array(4), nA = base.g.axes.a.n;
     const t3 = Date.now();
     for (let k = 0; k < K; k++) {
       const z = base.mix.nodes[k];
@@ -362,11 +363,19 @@ UNITS.forEach((id, ui) => {
               const tab = R[a].mix.tables[k], Ln = layerOf(tab, prev), A = B3.arms[a];
               readValues(R[a].g, Ln.lsurv[t], Ln.beq[t], st, RD4, Ln.lresil[t], Ln.short[t], t);
               A.bR.push(RD4[1]); A.hR.push(RD4[3]);
-              scoreMoves(tab, st, t, SC, TX, BQ, held, null, SV);
-              const bq = BQ[ai], sv = SV[ai], wR0 = tab.wR;
-              tab.wR = 0;
-              try { scoreMoves(tab, st, t, SC, TX, BQ, held, null, SV); } finally { tab.wR = wR0; }
-              A.bE.push(bq); A.hE.push(sv + tab.wB * bq - SC[ai]);
+              // each arm's own move at the state (its tables store its own chosen move at a node: the plan-auditor's BLOCKING 2
+              // of 6 Oct on 3584a41), BASE's move beside it (reported), and whether they agree
+              const gh2 = R[a].giaHold, aiA = a === 'BASE' ? ai : chooseAction(R[a], st, t, held); R[a].giaHold = gh2;
+              const one = mv => {
+                scoreMoves(tab, st, t, SC, TX, BQ, held, null, SV);
+                const s1 = SC[mv], bq = BQ[mv], sv = SV[mv], wR0 = tab.wR;
+                tab.wR = 0;
+                try { scoreMoves(tab, st, t, SC, TX, BQ, held, null, SV); } finally { tab.wR = wR0; }
+                // a failing move (score -Infinity) has no one-step value: NaN, counted and left out by the reducer
+                return s1 === -Infinity || SC[mv] === -Infinity ? [NaN, NaN] : [bq, sv + tab.wB * bq - SC[mv]];
+              };
+              const [bO, hO] = one(aiA), [b0, h0] = aiA === ai ? [bO, hO] : one(ai);
+              A.bE.push(bO); A.hE.push(hO); A.bE0.push(b0); A.hE0.push(h0); A.agree.push(aiA === ai ? 1 : 0);
             }
           }
           base.giaHold = gh;
@@ -379,7 +388,8 @@ UNITS.forEach((id, ui) => {
     const N3 = B3.t.length, top3 = B3.top.filter(x => x === 1).length;
     for (const [a] of ARMS) {
       const A = B3.arms[a], J = B3.top.map((x, j) => (x === 1 ? j : -1)).filter(j => j >= 0), m = f => (J.length ? J.reduce((s, j) => s + f(j), 0) / J.length : NaN);
-      console.log(`${''.padEnd(16)} blend ${a}: reads ${N3} top ${top3} beq ${f4(m(j => A.bR[j] - A.bE[j]))} short ${f4(m(j => A.hR[j] - A.hE[j]))} secs ${Math.round((Date.now() - t3) / 1000)}`);
+      const fail = J.filter(j => !Number.isFinite(A.bE[j]) || !Number.isFinite(A.hE[j])).length, ok = J.filter(j => Number.isFinite(A.bE[j]) && Number.isFinite(A.hE[j])), mo = f => (ok.length ? ok.reduce((s, j) => s + f(j), 0) / ok.length : NaN);
+      console.log(`${''.padEnd(16)} blend ${a}: reads ${N3} top ${top3} beq ${f4(mo(j => A.bR[j] - A.bE[j]))} short ${f4(mo(j => A.hR[j] - A.hE[j]))} agree ${J.filter(j => A.agree[j] === 1).length} failed ${fail} secs ${Math.round((Date.now() - t3) / 1000)}`);
     }
     if (!N3 || !top3 || B3.top.some(x => x !== 0 && x !== 1)) { console.error(`audit-xasr2: ${id}: item 3 read ${N3} step reads, ${top3} in the top cell, or a read unclassed`); process.exit(2); }
     rec.blend = { k: B3.k, p: B3.p, t: B3.t, top: B3.top, arms: Object.fromEntries(ARMS.map(([a]) => [a, Object.fromEntries(Object.entries(B3.arms[a]).map(([q, v]) => [q, r12(v)]))])) };

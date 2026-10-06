@@ -18,7 +18,7 @@ M = [
   # the files
   ("if (!N || !(k > 0) || ['arm', 'k', 't', 's41', 'p', 'cL'].some(", "if (!N || ['arm'].some("),
   ("if (b.top.some(x => x !== 0 && x !== 1)) bad.push(", "if (b.top.some(x => x > 1)) bad.push("),
-  ("['bR', 'bE', 'hR', 'hE'].some(q => !Array.isArray(A[q]) || A[q].length !== n)", "['bR', 'bE'].some(q => !Array.isArray(A[q]) || A[q].length !== n)"),
+  ("['bR', 'bE', 'hR', 'hE', 'bE0', 'hE0', 'agree'].some(q => !Array.isArray(A[q]) || A[q].length !== n)", "['bR', 'bE'].some(q => !Array.isArray(A[q]) || A[q].length !== n)"),
   # the guard
   ("if (!(m <= GUARD + 1e-12)) bad.push(`the BASE guard:", "if (false) bad.push(`the BASE guard:"),
   ("if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(", "if (!(m <= Math.abs(r) + GUARD + 1e-12)) bad.push("),
@@ -44,7 +44,11 @@ M = [
   ("Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.abs(eC.h) <= REMOVE * Math.abs(eB.h) + 1e-15", "Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15"),
   ("Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.abs(eC.h)", "Math.abs(eC.b) < REMOVE * Math.abs(eB.b) - 1e-9 && Math.abs(eC.h)"),
   ("const noSmaller = Math.abs(eC.b) >= Math.abs(eB.b) && Math.abs(eC.h) >= Math.abs(eB.h);", "const noSmaller = Math.abs(eC.b) >= Math.abs(eB.b) || Math.abs(eC.h) >= Math.abs(eB.h);"),
-  ("const b = files.S126.blend, J = b.top.map((x, j) => (x === 1 ? j : -1)).filter(j => j >= 0);", "const b = files.S126.blend, J = b.top.map((x, j) => j);"),
+  ("const Jtop = b.top.map((x, j) => (x === 1 ? j : -1)).filter(j => j >= 0),", "const Jtop = b.top.map((x, j) => j),"),
+  # item 3 at each arm's own move, failing moves left out, the table reads finite
+  ("J = Jtop.filter(j => ARMS.every(a => fin(a, j)));", "J = Jtop;"),
+  ("const err = (a, r, e) => mean(J.map(j => b.arms[a][r][j] - b.arms[a][e][j]));", "const err = (a, r, e) => mean(J.map(j => b.arms[a][r][j] - b.arms[a][e === 'bE' && a === 'COV' ? 'bE0' : e][j]));"),
+  ("else if (A.bR.some(x => !Number.isFinite(x)) || A.hR.some(x => !Number.isFinite(x))) bad.push(", "else if (false) bad.push("),
   # the scorecard's line
   ("out(`\\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.three.v}`);", "out(`\\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.one.v}`);"),
 ]

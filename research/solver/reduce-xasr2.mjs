@@ -133,7 +133,8 @@ export function checkFile(t, u, st, X, npw = NPW) {
     if (b.top.some(x => x !== 0 && x !== 1)) bad.push(`${tag}: an item 3 read unclassed for the top cell`);
     for (const a of ARMS) {
       const A = b.arms && b.arms[a];
-      if (!A || ['bR', 'bE', 'hR', 'hE'].some(q => !Array.isArray(A[q]) || A[q].length !== n)) bad.push(`${tag}: ${a}'s item 3 columns missing or of the wrong length`);
+      if (!A || ['bR', 'bE', 'hR', 'hE', 'bE0', 'hE0', 'agree'].some(q => !Array.isArray(A[q]) || A[q].length !== n)) bad.push(`${tag}: ${a}'s item 3 columns missing or of the wrong length`);
+      else if (A.bR.some(x => !Number.isFinite(x)) || A.hR.some(x => !Number.isFinite(x))) bad.push(`${tag}: ${a}'s item 3 table reads not all finite (a read never fails: only a failing move's one-step value may be missing)`);
       else if (u.blend[a] && (u.blend[a].reads !== n || u.blend[a].top !== b.top.filter(x => x === 1).length)) bad.push(`${tag}: ${a}'s blend line off the file`);
     }
   }
@@ -176,7 +177,10 @@ export function items(files, units) {
   const qr = quantRatio(S.nodes, 'BASE');
   const two = { ...qr, v: !(qr.n > 0) || !Number.isFinite(qr.ratio) ? 'INCONCLUSIVE' : qr.ratio >= Q2_HELD - 1e-12 ? 'HELD' : qr.ratio <= Q2_FALS + 1e-12 ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 3
-  const b = files.S126.blend, J = b.top.map((x, j) => (x === 1 ? j : -1)).filter(j => j >= 0);
+  // the top-cell step reads where both arms' own moves have one-step values (a failing move's are NaN, null in the file:
+  // counted and left out - the plan-auditor's MINOR 4 of 6 Oct on 3584a41)
+  const b = files.S126.blend, fin = (a, j) => Number.isFinite(b.arms[a].bE[j]) && Number.isFinite(b.arms[a].hE[j]);
+  const Jtop = b.top.map((x, j) => (x === 1 ? j : -1)).filter(j => j >= 0), J = Jtop.filter(j => ARMS.every(a => fin(a, j)));
   const per3 = q => perPath({ k: b.k, p: b.p }, J, q), cnt = per3(() => 1);
   const err = (a, r, e) => mean(J.map(j => b.arms[a][r][j] - b.arms[a][e][j]));
   const eB = { b: err('BASE', 'bR', 'bE'), h: err('BASE', 'hR', 'hE') }, eC = { b: err('COV', 'bR', 'bE'), h: err('COV', 'hR', 'hE') };
@@ -185,7 +189,8 @@ export function items(files, units) {
   const signs = pB < ALPHA && pH < ALPHA && eB.b < 0 && eB.h > 0;
   const removes = Math.abs(eC.b) <= REMOVE * Math.abs(eB.b) + 1e-15 && Math.abs(eC.h) <= REMOVE * Math.abs(eB.h) + 1e-15;
   const noSmaller = Math.abs(eC.b) >= Math.abs(eB.b) && Math.abs(eC.h) >= Math.abs(eB.h);
-  const three = { n: J.length, paths: cnt.length, eB, eC, pB, pH, v: signs && removes ? 'HELD' : noSmaller ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  const agree = J.filter(j => b.arms.COV.agree[j] === 1).length, e0 = (a, r, e) => mean(J.map(j => b.arms[a][r][j] - b.arms[a][e][j]).filter(Number.isFinite));
+  const three = { n: J.length, dropped: Jtop.length - J.length, agree, paths: cnt.length, eB, eC, eC0: { b: e0('COV', 'bR', 'bE0'), h: e0('COV', 'hR', 'hE0') }, pB, pH, v: signs && removes ? 'HELD' : noSmaller ? 'FALSIFIED' : 'INCONCLUSIVE' };
   return { one, two, three };
 }
 export function reading(files, units, out = console.log) {
@@ -204,10 +209,11 @@ export function reading(files, units, out = console.log) {
   out('\nTHE (v-a) NODES: mean |S*5 - S*41| over mean |S*5 - p* cL| per household and arm');
   for (const id of READ_UNITS) for (const a of ARMS) { const q = quantRatio(files[id].nodes, a); out(`  ${id.padEnd(9)} ${a.padEnd(4)} nodes ${q.n}: ${f4(q.q)} over ${f4(q.d)} = ${f3(q.ratio)}`); }
   out('\nS126\'S STEP-YEAR READS IN BASE\'S TOP CELL (read - one-step, mean over reads): bequest | shortfall');
-  for (const a of ARMS) out(`  ${a.padEnd(4)} ${f4(a === 'BASE' ? R.three.eB.b : R.three.eC.b)} | ${f4(a === 'BASE' ? R.three.eB.h : R.three.eC.h)}`);
+  for (const a of ARMS) out(`  ${a.padEnd(4)} ${f4(a === 'BASE' ? R.three.eB.b : R.three.eC.b)} | ${f4(a === 'BASE' ? R.three.eB.h : R.three.eC.h)}  (each arm at its own move)`);
+  out(`  COV at BASE's move (reported): ${f4(R.three.eC0.b)} | ${f4(R.three.eC0.h)}; COV's move agrees with BASE's on ${R.three.agree} of ${R.three.n} reads; ${R.three.dropped} top-cell reads left out for a failing move`);
   out(`\nITEM 1 (primary): COV on S370, the share of rep the midpoint node removes, per year: ${R.one.per.map(r => `year ${r.y} s ${f3(r.s)} over ${r.n} paths, Holm p LO ${r.pLo.toFixed(4)} HI ${r.pHi.toFixed(4)} -> ${r.read}`).join('; ')} -> item 1 ${R.one.v}`);
   out(`ITEM 2: BASE's (v-a) nodes on S370 (${R.two.n}): mean |S*5 - S*41| ${f4(R.two.q)} over mean |S*5 - p* cL| ${f4(R.two.d)} = ${f3(R.two.ratio)} -> item 2 ${R.two.v}`);
-  out(`ITEM 3: S126, ${R.three.n} top-cell step reads on ${R.three.paths} paths: BASE bequest ${f4(R.three.eB.b)} (Holm p low ${R.three.pB.toFixed(4)}), shortfall ${f4(R.three.eB.h)} (Holm p high ${R.three.pH.toFixed(4)}); COV bequest ${f4(R.three.eC.b)}, shortfall ${f4(R.three.eC.h)} -> item 3 ${R.three.v}`);
+  out(`ITEM 3: S126, ${R.three.n} top-cell step reads on ${R.three.paths} paths (each arm at its own move; ${R.three.dropped} left out for a failing move): BASE bequest ${f4(R.three.eB.b)} (Holm p low ${R.three.pB.toFixed(4)}), shortfall ${f4(R.three.eB.h)} (Holm p high ${R.three.pH.toFixed(4)}); COV bequest ${f4(R.three.eC.b)}, shortfall ${f4(R.three.eC.h)} -> item 3 ${R.three.v}`);
   out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}; 3 ${R.three.v}`);
   return R;
 }
@@ -249,7 +255,7 @@ function built(id, o = {}) {
   const COLS = ['read', 'ex5', 'rr', 'plain', 'va', 'va41', 'vb', 'vaw', 'vbs'];
   const t = { stamp: ST, id, npw: NB, p: [], t: [], k: [], top: [], arms: Object.fromEntries(ARMS.map(a => [a, Object.fromEntries(COLS.map(q => [q, []]))])) };
   if (!READ_UNITS.includes(id)) {
-    const b = { k: [], p: [], t: [], top: [], arms: Object.fromEntries(ARMS.map(a => [a, { bR: [], bE: [], hR: [], hE: [] }])) }, keep = o.keep ?? 0.2;
+    const b = { k: [], p: [], t: [], top: [], arms: Object.fromEntries(ARMS.map(a => [a, { bR: [], bE: [], hR: [], hE: [], bE0: [], hE0: [], agree: [] }])) }, keep = o.keep ?? 0.2;
     for (let k = 0; k < 3; k++) for (let p = 0; p < NB; p++) {
       const inTop = !(o.mixTop3 && p % 2);
       b.k.push(k); b.p.push(p); b.t.push(1); b.top.push(o.unclassed3 && k === 0 && p === 0 ? -1 : o.blendNone ? 0 : inTop ? 1 : 0);
@@ -257,9 +263,15 @@ function built(id, o = {}) {
       for (const a of ARMS) {
         const f = a === 'COV' ? keep : 1, fh = a === 'COV' && o.keepH !== undefined ? o.keepH : f;
         b.arms[a].bE.push(0.3); b.arms[a].bR.push(0.3 + (inTop ? f * ((o.baseB ?? -0.01) + nz) : 0.05)); b.arms[a].hE.push(0.1); b.arms[a].hR.push(0.1 + fh * (0.01 + nz));
+        // BASE's move's values for COV: o.policyGap moves them (a policy gap the own-move read must not take in)
+        b.arms[a].bE0.push(0.3 + (a === 'COV' ? (o.policyGap || 0) : 0)); b.arms[a].hE0.push(0.1); b.arms[a].agree.push(a === 'COV' && o.policyGap ? 0 : 1);
       }
     }
     if (o.lenOff3) b.arms.COV.hR.pop();
+    // a failing move on the first read: its one-step values missing (null in the file), with a wrong-sign read that would
+    // turn item 3 if it were read
+    if (o.failMove) { b.arms.COV.bE[0] = null; b.arms.COV.hE[0] = null; b.arms.BASE.bR[0] = 0.3 + 0.5; }
+    if (o.nullRead) b.arms.BASE.hR[1] = null;
     t.blend = b;
     return t;
   }
@@ -333,6 +345,9 @@ function planted() {
   cases.push(['COV removing the bequest error but keeping the shortfall\'s reads INCONCLUSIVE', Rd({ keepH: 1 }).three.v, 'INCONCLUSIVE']); EDGES.push('COV removing one term\'s error and not the other\'s');
   cases.push(['BASE reading bequest HIGH (the wrong sign) never reads HELD', Rd({ baseB: 0.01 }).three.v === 'HELD' ? 'HELD' : 'not HELD', 'not HELD']); EDGES.push('BASE\'s bequest error of the wrong sign');
   cases.push(['item 3 reads the top-cell reads alone (half the reads outside it, of the wrong sign)', Rd({ mixTop3: true }).three.v, 'HELD']); EDGES.push('step reads outside the top cell beside those in it');
+  cases.push(['a failing move\'s read is left out, not read (item 3 still HELD)', Rd({ failMove: true }).three.v + ' ' + Rd({ failMove: true }).three.dropped, 'HELD 1']); EDGES.push('a failing move at an item 3 read (its one-step value missing)');
+  cases.push(['item 3 reads COV at its own move: a policy gap at BASE\'s move does not enter (HELD)', Rd({ policyGap: 0.5 }).three.v, 'HELD']); EDGES.push('COV\'s own move differing from BASE\'s');
+  cases.push(['the gate refuses a missing table read in item 3', String(G({ nullRead: true }).length > 0), 'true']);
   cases.push(['BASE\'s signs not shown on noise (+-0.05) never reads HELD', Rd({ noisy3: true }).three.v === 'HELD' ? 'HELD' : 'not HELD', 'not HELD']);
   { const lines = []; reading(builtFiles({ keep: 1, q: 0.1 }), parse(builtLog({})), l => lines.push(l)); const o = lines.find(l => /^\nOUTCOME:/.test(l)); cases.push(['the OUTCOME line the scorecard reads', o && o.trim(), 'OUTCOME: 1 HELD; 2 FALSIFIED; 3 FALSIFIED']); }
   const fails = cases.filter(([, got, want]) => got !== want);

@@ -14,10 +14,10 @@ GATE (XAS-R's, all but the BASE guard, which XAS-R2 does not read): passed; plan
   s 0.70: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
   s 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
 
-3. THE CREDENCES (the deep review's cause credences as stories, normalised within each question, then shaded toward the base rate: weight 0.7 on the stories, 0.3 on an even split)
-  item 1 (stories TOPCELL 0.489 at s 0.7, REF+NODEQ 0.333 at s 0.1, REST 0.178 at s 0.35): HELD 0.49 INCONCLUSIVE 0.18 FALSIFIED 0.33
-CREDENCE item 1: point 0.44 HELD 0.49 INCONCLUSIVE 0.18 FALSIFIED 0.33
-  item 2 (stories QUANT 0.476, REF 0.363, BUG 0.160): HELD 0.38 INCONCLUSIVE 0.33 FALSIFIED 0.29
-CREDENCE item 2: point 0.43 HELD 0.38 INCONCLUSIVE 0.33 FALSIFIED 0.29
-  item 3 (stories BLEND 0.480, NSOTHER 0.328, TIE 0.191): HELD 0.34 INCONCLUSIVE 0.37 FALSIFIED 0.29
-CREDENCE item 3: point 0.62 HELD 0.34 INCONCLUSIVE 0.37 FALSIFIED 0.29
+3. THE CREDENCES (from the base rate 0.10: the leading story halfway from the review's credence to it, the other stories sharing the rest in proportion to the review's credences, the review's unassigned mass kept with the last)
+  item 1 (stories TOPCELL 0.275 at s 0.7, REF+NODEQ 0.356 at s 0.1, REST 0.369 at s 0.35): HELD 0.28 INCONCLUSIVE 0.37 FALSIFIED 0.36
+CREDENCE item 1: point 0.36 HELD 0.28 INCONCLUSIVE 0.37 FALSIFIED 0.36
+  item 2 (stories QUANT 0.300, REF 0.490, BUG 0.210): HELD 0.24 INCONCLUSIVE 0.37 FALSIFIED 0.39
+CREDENCE item 2: point 0.33 HELD 0.24 INCONCLUSIVE 0.37 FALSIFIED 0.39
+  item 3 (stories BLEND 0.300, NSOTHER 0.420, TIE 0.280): HELD 0.21 INCONCLUSIVE 0.40 FALSIFIED 0.39
+CREDENCE item 3: point 0.76 HELD 0.21 INCONCLUSIVE 0.40 FALSIFIED 0.39

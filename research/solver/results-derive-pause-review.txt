@@ -1,0 +1,49 @@
+PAUSE'S GATE (reduce-pause.mjs: stamps, self-check, the identity against EDGE-SPLIT's and HYB's files): passed; planted: passed
+
+1. WHERE THE PAUSES SIT (each arm's main band): the share in the cell below the edge, and in its upper half
+  SNAP   n 6842: [0.70, 0.75) 1.000, [0.725, 0.75) 0.611
+  S-LO   n 6842: [0.70, 0.75) 1.000, [0.725, 0.75) 0.611
+  P-LO   n 8648: [0.70, 0.75) 1.000, [0.725, 0.75) 0.948
+  P-HI   n 6054: [0.20, 0.25) 1.000, [0.225, 0.25) 1.000
+  HYB    n 6054: [0.20, 0.25) 1.000, [0.225, 0.25) 1.000
+  S-HI   n 6952: within 0.025 of 0.5 0.998
+  S-INT  n 6952: within 0.025 of 0.5 0.998
+
+2. THE FALL AHEAD WITH u'S OWN CELL COUNTED (the fixed move): the steepest fall's far end within 0.1 of u; the first fall past the switch margin within 0.1 of u
+  SNAP   n 6842: steepest within 0.1 1.000; first fall past 1e-3 within 0.1 0.980 (a first fall found on 0.980)
+  S-LO   n 6842: steepest within 0.1 1.000; first fall past 1e-3 within 0.1 0.980 (a first fall found on 0.980)
+  P-LO   n 8648: steepest within 0.1 1.000; first fall past 1e-3 within 0.1 0.866 (a first fall found on 0.866)
+  P-HI   n 6054: steepest within 0.1 1.000; first fall past 1e-3 within 0.1 0.968 (a first fall found on 0.968)
+  HYB    n 6054: steepest within 0.1 0.010; first fall past 1e-3 within 0.1 0.968 (a first fall found on 0.969)
+  S-HI   n 6952: steepest within 0.1 0.029; first fall past 1e-3 within 0.1 0.834 (a first fall found on 0.872)
+  S-INT  n 6952: steepest within 0.1 0.029; first fall past 1e-3 within 0.1 0.834 (a first fall found on 0.872)
+
+3. HYB AGAINST P-HI in [0.15, 0.25): P-HI's band years 6054, the same path-years in HYB 6054, the fixed read equal to 1e-12 up to u 0.45 on 6054, the move-change flags equal on 6054
+
+4. THE FIRST MOVE CHANGE ABOVE u (the envelope): where it sits (the commonest grid points, share), env - fix there (median), the share under the switch margin, the fixed read's fall from u's cell to there (median)
+  SNAP   n 6842: changes on 6842, first at 0.75 6501, 0.80 341; env - fix 2.22e-2; under 1e-3 0.047; the fixed read's fall 2.31e-2
+  S-LO   n 6842: changes on 6842, first at 0.75 6501, 0.80 341; env - fix 2.22e-2; under 1e-3 0.047; the fixed read's fall 2.31e-2
+  P-LO   n 8648: changes on 8647, first at 0.75 6626, 0.80 2021; env - fix 4.96e-3; under 1e-3 0.194; the fixed read's fall 5.80e-3
+  P-HI   n 6054: changes on 6054, first at 0.30 4913, 0.25 1141; env - fix 7.48e-3; under 1e-3 0.068; the fixed read's fall 1.24e-2
+  HYB    n 6054: changes on 6054, first at 0.30 4913, 0.25 1141; env - fix 7.48e-3; under 1e-3 0.068; the fixed read's fall 1.24e-2
+  S-HI   n 6952: changes on 6952, first at 1.00 1637, 0.65 644; env - fix 3.06e-5; under 1e-3 0.910; the fixed read's fall 1.94e-2
+  S-INT  n 6952: changes on 6952, first at 1.00 1637, 0.65 644; env - fix 3.06e-5; under 1e-3 0.910; the fixed read's fall 1.94e-2
+
+5. THE ALLOWANCE'S PRICE: the fixed read's drop from u 0 to 0.5 (median; exactly 0 counted) and from 0.5 to 1 (median)
+  SNAP   flat years with u 0.15 or more 6844: 0 to 0.5 0.00e+0 (exactly 0 on 6844); 0.5 to 1 2.31e-2
+  S-INT  flat years with u 0.15 or more 6952: 0 to 0.5 0.00e+0 (exactly 0 on 6448); 0.5 to 1 3.67e-2
+  S-HI   flat years with u 0.15 or more 6952: 0 to 0.5 0.00e+0 (exactly 0 on 6448); 0.5 to 1 3.67e-2
+  PCLSI  flat years with u 0.15 or more 6: 0 to 0.5 1.66e-3 (exactly 0 on 1); 0.5 to 1 2.73e-3
+  P-LO   flat years with u 0.15 or more 8648: 0 to 0.5 4.41e-3 (exactly 0 on 1); 0.5 to 1 5.81e-3
+  P-HI   flat years with u 0.15 or more 6054: 0 to 0.5 1.24e-2 (exactly 0 on 0); 0.5 to 1 1.57e-2
+  HYB    flat years with u 0.15 or more 6097: 0 to 0.5 1.24e-2 (exactly 0 on 0); 0.5 to 1 1.57e-2
+  pre-access years (u under 0.15) matched, 2000: SNAP's tables (S-INT) 0 to 0.5 0.00e+0 (exactly 0 on 2000), 0.5 to 1 1.33e-2; PCLSI's tables 0 to 0.5 2.72e-3, 0.5 to 1 3.29e-3
+
+6. WHEN THE PAUSES FALL: the share of each arm's band years before year 12 (S130's State Pension)
+  SNAP   n 6842: before year 12 0.008
+  S-LO   n 6842: before year 12 0.008
+  P-LO   n 8648: before year 12 0.036
+  P-HI   n 6054: before year 12 0.816
+  HYB    n 6054: before year 12 0.816
+  S-HI   n 6952: before year 12 0.353
+  S-INT  n 6952: before year 12 0.353

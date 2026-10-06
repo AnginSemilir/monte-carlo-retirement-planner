@@ -47,3 +47,12 @@ PAUSE'S GATE (reduce-pause.mjs: stamps, self-check, the identity against EDGE-SP
   HYB    n 6054: before year 12 0.816
   S-HI   n 6952: before year 12 0.353
   S-INT  n 6952: before year 12 0.353
+
+7. WHICH RULE MADE THE REGISTERED FIGURE (the fixed move's steepest step from u's own cell up): in u's own cell (dropped by l.124 when u is in its upper half / counted), in the next cell, two or more cells up
+  SNAP   n 6842: own cell 6498 (dropped 3840, counted 2658); next cell 344; two or more cells up 0; (counted own + next) / n 0.439
+  S-LO   n 6842: own cell 6498 (dropped 3840, counted 2658); next cell 344; two or more cells up 0; (counted own + next) / n 0.439
+  P-LO   n 8648: own cell 6622 (dropped 6175, counted 447); next cell 2025; two or more cells up 0; (counted own + next) / n 0.286
+  P-HI   n 6054: own cell 1141 (dropped 1141, counted 0); next cell 4913; two or more cells up 0; (counted own + next) / n 0.812
+  HYB    n 6054: own cell 38 (dropped 38, counted 0); next cell 20; two or more cells up 5996; (counted own + next) / n 0.003
+  S-HI   n 6952: own cell 141 (dropped 6, counted 135); next cell 59; two or more cells up 6752; (counted own + next) / n 0.028
+  S-INT  n 6952: own cell 141 (dropped 6, counted 135); next cell 59; two or more cells up 6752; (counted own + next) / n 0.028

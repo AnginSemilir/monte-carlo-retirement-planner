@@ -99,3 +99,19 @@ for (const a of ['SNAP', 'S-INT', 'S-HI', 'PCLSI', 'P-LO', 'P-HI', 'HYB']) {
 }
 console.log('\n6. WHEN THE PAUSES FALL: the share of each arm\'s band years before year 12 (S130\'s State Pension)');
 for (const a of Object.keys(BAND)) { const j = A[a], T = j.ft.filter((_, k) => inBand(j, k, a)); console.log(`  ${a.padEnd(6)} n ${T.length}: before year 12 ${f3(T.filter(t => t < 12).length / T.length)}`); }
+// 7. WHICH RULE MADE EACH REGISTERED MISS (the plan-auditor's BLOCKING 1 on 9154f64): the steepest step from u's own cell up
+//    sits in u's own cell, the next cell, or further; of those in u's own cell, reduce-pause.mjs l.124 ('ahead' = midpoint above
+//    u) drops it when u lies in the cell's upper half and counts it otherwise. The registered WITHIN is then the share whose
+//    steepest step l.124 counts and lies within 0.1 (u's cell counted, or the next cell); a miss from 'steepest, not first' is a
+//    steepest step two or more cells up.
+console.log('\n7. WHICH RULE MADE THE REGISTERED FIGURE (the fixed move\'s steepest step from u\'s own cell up): in u\'s own cell (dropped by l.124 when u is in its upper half / counted), in the next cell, two or more cells up');
+for (const a of Object.keys(BAND)) {
+  const j = A[a], G = j.ugrid, n = G.length; let N = 0, own = 0, dropped = 0, next = 0, far = 0;
+  for (let k = 0; k < j.fu.length; k++) {
+    if (!inBand(j, k, a)) continue; N++;
+    const u = j.fu[k], row = j.FX.subarray(k * n, (k + 1) * n), ib = G.findIndex(g => g > u) - 1;
+    let best = 0, bi = -1; for (let i = Math.max(0, ib); i + 1 < n; i++) { const d = row[i + 1] - row[i]; if (d < best) { best = d; bi = i; } }
+    if (bi === ib) { own++; if (!((G[bi] + G[bi + 1]) / 2 > u)) dropped++; } else if (bi === ib + 1) next++; else if (bi > ib + 1) far++;
+  }
+  console.log(`  ${a.padEnd(6)} n ${N}: own cell ${own} (dropped ${dropped}, counted ${own - dropped}); next cell ${next}; two or more cells up ${far}; (counted own + next) / n ${f3((own - dropped + next) / N)}`);
+}

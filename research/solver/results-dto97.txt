@@ -1,0 +1,54 @@
+GATE: passed - 14 units once and done at ADOPT-PI's unit and the death tax 0.4; each household on ADOPT-PI's paths (its pathsum and access line), ADOPT-PI's files through their own gate; planted: 35 passed
+
+DT-O97: ADOPT-PI's unit (the shipping default, seed 7005, 6000 paired paths, 30 points) at a pension death tax of 0.4, PCLSI against SNAP, on O97's seven loss households, each path paired with ADOPT-PI's death-tax-0 files
+
+ITEM 1 (primary): survival at 0.4, PCLSI less SNAP, b lost and c saved; the household's margin; harm's exact McNemar p, Holm over 7; the floor over the 7 against minus 0.1
+  household        SNAP %   b     c     change   [95% interval]     margin  p Holm     outcome
+  share 0.70        99.35     1     6    0.083  [-0.018, 0.116]              0.25    1.0000   no material harm
+  share 0.90        99.33     3     3    0.000  [-0.076, 0.076]              0.25    1.0000   no material harm
+  share 0.95        73.78     0     2    0.033  [-0.023, 0.033]              0.50    1.0000   no material harm
+  bridge 0          99.52     2     1   -0.017  [-0.049, 0.041]              0.25    1.0000   no material harm
+  bridge 1          99.35     1     5    0.067  [-0.028, 0.099]              0.25    1.0000   no material harm
+  bridge 4+cost     95.35     3     6    0.050  [-0.060, 0.128]              0.25    1.0000   no material harm
+  S366              99.25     1     1    0.000  [-0.032, 0.032]              0.25    1.0000   no material harm
+  the floor: b 11 c 24 of 42000: change 0.031 points, unconditional [0.002, 0.060]
+  -> HELD
+
+ITEM 2 (primary): the net change PCLSI less SNAP a path at 0.4 against 0; the kept share k = mean at 0.4 / mean at 0; DT: mean(d4 - 0.25 d0) above 0, TAIL: mean(0.5 d0 - d4) above 0, sign-flip tests, Holm over 14
+  share 0.70       net change at 0   -38599.01   at 0.4  -113952.18   kept   2.952   Holm p DT 1.0000 TAIL 0.0007 -> TAIL
+  share 0.90       net change at 0   -80863.65   at 0.4   -23659.10   kept   0.293   Holm p DT 1.0000 TAIL 1.0000 -> UNCLEAR
+  share 0.95       net change at 0   -79739.74   at 0.4   -17318.61   kept   0.217   Holm p DT 1.0000 TAIL 1.0000 -> UNCLEAR
+  bridge 0         net change at 0   -71151.03   at 0.4   -64629.89   kept   0.908   Holm p DT 1.0000 TAIL 0.0007 -> TAIL
+  bridge 1         net change at 0   -98554.91   at 0.4   -40835.12   kept   0.414   Holm p DT 1.0000 TAIL 1.0000 -> UNCLEAR
+  bridge 4+cost    net change at 0  -198639.63   at 0.4   -43776.12   kept   0.220   Holm p DT 1.0000 TAIL 1.0000 -> UNCLEAR
+  S366             net change at 0   -23594.37   at 0.4   180523.44   kept  -7.651   Holm p DT 0.0007 TAIL 1.0000 -> DT
+  -> INCONCLUSIVE (1 DT, 2 TAIL of 7; HELD (DT) when 5 or more read DT, FALSIFIED (TAIL) when 5 or more read TAIL, else INCONCLUSIVE)
+
+REPORTED: the tax change PCLSI less SNAP a path at 0 and at 0.4, and at 0.4 with the death charge (0.4 x the pension at a path's last year); the review's revaluation of the 0 files at 0.4 with the policy held, against the re-solved net change
+  share 0.70       tax at 0     7507.92   at 0.4    94418.14   with the death charge  -563163.92   | revalued net change      -14.85 against re-solved  -113952.18
+  share 0.90       tax at 0    16507.08   at 0.4   113523.85   with the death charge  -590760.92   | revalued net change     4784.45 against re-solved   -23659.10
+  share 0.95       tax at 0    15741.20   at 0.4    96827.86   with the death charge  -493188.39   | revalued net change     3707.17 against re-solved   -17318.61
+  bridge 0         tax at 0    11480.00   at 0.4   105766.58   with the death charge  -571388.39   | revalued net change    -2800.28 against re-solved   -64629.89
+  bridge 1         tax at 0    13634.41   at 0.4   107255.70   with the death charge  -571605.65   | revalued net change    -7700.21 against re-solved   -40835.12
+  bridge 4+cost    tax at 0    22541.86   at 0.4   113861.49   with the death charge  -589302.37   | revalued net change   -32842.72 against re-solved   -43776.12
+  S366             tax at 0     7003.39   at 0.4   123490.82   with the death charge  -399046.37   | revalued net change     8648.99 against re-solved   180523.44
+
+REPORTED: the per-arm split (the deep review of 6 Oct 10:37 UK) - each arm's re-solved net at 0.4 less its own revaluation, mean (se) a path; the extra on d is PCLSI's less SNAP's, what the re-solve adds to item 2's net change beyond the revaluation (near 0: DT; negative: DT-DRIFT, PCLSI's tail net lowered by its own re-solve). Item 2 is not attributed until this is read
+  share 0.70       SNAP   -779824.92 (  54346.73)   PCLSI   -893762.25 (  62481.27)   extra on d   -113937.33 (  12450.63)
+  share 0.90       SNAP   -824590.61 (  57233.27)   PCLSI   -853034.16 (  62279.21)   extra on d    -28443.55 (   7917.10)
+  share 0.95       SNAP   -705298.78 (  51115.85)   PCLSI   -726324.56 (  54307.08)   extra on d    -21025.78 (   5331.85)
+  bridge 0         SNAP   -905228.29 (  49090.66)   PCLSI   -967057.91 (  54372.61)   extra on d    -61829.62 (   7870.34)
+  bridge 1         SNAP   -875508.73 (  54762.32)   PCLSI   -908643.63 (  58460.89)   extra on d    -33134.90 (   7162.98)
+  bridge 4+cost    SNAP   -888392.44 (  67910.57)   PCLSI   -899325.84 (  68400.79)   extra on d    -10933.40 (  17847.34)
+  S366             SNAP     24429.68 (   9484.63)   PCLSI    196304.13 (  10020.60)   extra on d    171874.45 (   2308.63)
+
+REPORTED: the hold (paths reaching 0.6 of the allowance, crossing 0.75, the mean years in [0.6, 0.75) of the reaching paths), each arm at 0 and at the death tax
+  share 0.70       SNAP 0  1525  1076  7.77 0.4  5307  4246 18.67 | PCLSI 0  1520  1262  3.28 0.4  5289  4814  3.78
+  share 0.90       SNAP 0  3846   242  7.69 0.4  5747  4702 21.13 | PCLSI 0  3518  1591  3.10 0.4  5749  5285  4.50
+  share 0.95       SNAP 0  3902   462  8.47 0.4  4382  3644 22.71 | PCLSI 0  3747  1536  3.99 0.4  4385  4158  4.38
+  bridge 0         SNAP 0  1608   486 10.42 0.4  5638  4764 19.58 | PCLSI 0  1591  1313  3.49 0.4  5661  5216  4.38
+  bridge 1         SNAP 0  1786   430 10.98 0.4  5636  4635 20.12 | PCLSI 0  1742  1388  3.44 0.4  5659  5161  4.34
+  bridge 4+cost    SNAP 0  4206   280  8.63 0.4  5549  4549 21.41 | PCLSI 0  3875  1686  3.38 0.4  5551  5159  4.36
+  S366             SNAP 0  5465   421  6.51 0.4  5886  5462 22.52 | PCLSI 0  5308  1187  4.67 0.4  5894  5647  4.28
+
+OUTCOME: 1 HELD; 2 INCONCLUSIVE

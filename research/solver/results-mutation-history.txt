@@ -65,3 +65,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 23:45 UTC | reduce-xasr2.mjs 97edb2035270 | 34 of 34 caught | escaped: none
 2026-10-06 00:21 UTC | reduce-xasr2.mjs 9e924685feb9 | 35 of 37 caught | escaped: NOT APPLIED (0 matches): 12: ['bR', 'bE', 'hR', 'hE'].some(q => !Array.isArray(A[q]) || A; NOT APPLIED (0 matches): 33: const b = files.S126.blend, J = b.top.map((x, j) => (x === 1
 2026-10-06 00:22 UTC | reduce-xasr2.mjs 9e924685feb9 | 37 of 37 caught | escaped: none
+2026-10-06 01:33 UTC | reduce-pause128.mjs f06eecd556ef | 19 of 22 caught | escaped: NOT CAUGHT: 14: if (r.first - u <= NEAR + 1e-12) first++;; NOT CAUGHT: 17: if (rd.some(a => F[a].loc < FALL || F[a].first < FALL)) retu; NOT CAUGHT: 22: LOC ${f3(F[a].loc)}   FIRST ${f3(F[a].first)}
+2026-10-06 01:33 UTC | reduce-pause128.mjs 8c89daf2af95 | 22 of 22 caught | escaped: none

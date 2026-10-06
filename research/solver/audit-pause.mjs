@@ -17,6 +17,8 @@
  *   takes the move the run took and both scores equal the forward run's, at every flat year.
  * Parts: four processes, two arms each, one solve each (SNAP's or PCLSI's tables).
  *   node research/solver/audit-pause.mjs [points=30] [paths=1000] part k/4 [seed=7005]
+ * PAUSE_HH=S128 (PAUSE-S128, predictions/measure-pause-s128.md: the deep review after PAUSE's out-of-sample step): the same
+ *   run on S128, three arms (SNAP, P-LO, HYB), one a part: part k/3. Unset, the run is PAUSE's on S130 as registered.
  *   PAUSE_PLANT=scale: the setter writes u, not u x lsa (the self-check must refuse it)
  */
 // e3 off, as audit-edge.mjs (the identity holds this run to EDGE-SPLIT's files, which ran with it off)
@@ -46,13 +48,14 @@ const part = process.argv[4] === 'part' ? process.argv[5] : '0/1';
 const [pk, pn] = part.split('/').map(Number);
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7005;
 if (!(SEED >= 1)) { console.error(`audit-pause: bad seed ${process.argv[6]}`); process.exit(2); }
-const LAMBDA = 0.0223606797749979, W = 0.02, ID = 'S130';
+const LAMBDA = 0.0223606797749979, W = 0.02, ID = process.env.PAUSE_HH || 'S130';
+if (ID !== 'S130' && ID !== 'S128') { console.error(`audit-pause: PAUSE_HH ${ID} (S130 or S128)`); process.exit(2); }
 // audit-edge.mjs's ARM, copied, and HYB's arm (audit-hyb.mjs: PCLSI's tables, the snapped read)
 export const ARM = { SNAP: { tables: 'SNAP', read: false, seg: null }, 'S-LO': { tables: 'SNAP', read: true, seg: 'lo' }, 'S-HI': { tables: 'SNAP', read: true, seg: 'hi' }, 'S-INT': { tables: 'SNAP', read: true, seg: null },
   PCLSI: { tables: 'PCLSI', read: true, seg: null }, 'P-LO': { tables: 'PCLSI', read: true, seg: 'lo' }, 'P-HI': { tables: 'PCLSI', read: true, seg: 'hi' }, HYB: { tables: 'PCLSI', read: false, seg: null } };
-export const PARTS = [['SNAP', 'S-LO'], ['S-HI', 'S-INT'], ['PCLSI', 'P-LO'], ['P-HI', 'HYB']];
+export const PARTS = ID === 'S128' ? [['SNAP'], ['P-LO'], ['HYB']] : [['SNAP', 'S-LO'], ['S-HI', 'S-INT'], ['PCLSI', 'P-LO'], ['P-HI', 'HYB']];
 export const UGRID = Array.from({ length: 21 }, (_, i) => i / 20);
-if (!(pn === PARTS.length && pk >= 0 && pk < pn) && !(pn === 1 && pk === 0)) { console.error(`audit-pause: bad part ${part} (4 parts, or 0/1 for all)`); process.exit(2); }
+if (!(pn === PARTS.length && pk >= 0 && pk < pn) && !(pn === 1 && pk === 0)) { console.error(`audit-pause: bad part ${part} (${PARTS.length} parts, or 0/1 for all)`); process.exit(2); }
 const MINE = pn === 1 ? PARTS.flat() : PARTS[pk];
 const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 console.log(`PAUSE: EDGE-SPLIT's unit (no reader, the product's settings, lambda held, the estate weight ${W}), ${POINTS} points, the first ${NP} paths (seed ${SEED}), death tax 0; ${MINE.join(', ')} on ${ID}; the read over u at ${UGRID.length} points`);

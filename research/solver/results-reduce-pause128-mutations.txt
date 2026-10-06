@@ -1,0 +1,23 @@
+caught: 1: for (const u of units) if (u.plant) bad.push(
+caught: 2: for (const u of units) if (u.stray) bad.push(
+caught: 3: if (n !== 1) bad.push(`${a}: ${n} unit lines, not 1`);
+caught: 4: if (field(u.ran, k) !== v) bad.push(
+caught: 5: if (!(s.n > 0)) bad.push(
+caught: 6: if (s.ok !== s.n) bad.push(
+caught: 7: if (new Set(real.filter(u => u.sum).map(u => u.sum.pathsum))
+caught: 8: if (fi < 0 && d < -MARGIN) fi = i;
+caught: 9: for (let i = Math.max(0, ib); i + 1 < G.length; i++)
+caught: 10: PRICE[a].some(p => u >= p - 0.05 - 1e-12 && u < p)
+caught: 11: PRICE[a].some(p => u >= p - 0.05 - 1e-12 && u < p)
+caught: 12: HYB: [0.25, 0.75] };
+caught: 13: if (!(u >= LO_U && u < HI_U)) continue;
+caught: 14: if (r.first - u <= NEAR + 1e-12) first++;
+caught: 15: if (r.first - u <= NEAR + 1e-12) first++;
+caught: 16: read: n >= MIN_N,
+caught: 17: if (rd.some(a => F[a].loc < FALL || F[a].first < FALL)) retu
+caught: 18: if (rd.some(a => F[a].loc < FALL || F[a].first < FALL)) retu
+caught: 19: if (rd.length === ARMS.length && rd.every(a => F[a].loc >= H
+caught: 20: if (rd.length === ARMS.length && rd.every(a => F[a].loc >= H
+caught: 21: if (rd.length === ARMS.length && rd.every(a => F[a].loc >= H
+caught: 22: LOC ${f3(F[a].loc)}   FIRST ${f3(F[a].first)}
+22 of 22 mutations caught

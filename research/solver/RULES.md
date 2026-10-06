@@ -234,10 +234,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    record-review.mjs --withdraw-move <blob> --reason records a WITHDRAWN line, and liveReceipts drops the withdrawn move
    from every base lookup (research/tests/triggers.test.mjs, three cases, shown to fail with the filter removed); the
    move of 1 Oct 02:12 UK is withdrawn so (review-log.md 06:50 UK).
-26. Closed (the maintainer's unlock, 3 Oct): the hooks test's HOOKS_TIMING_SCALE only tightens (O54).
+26. Closed 3 Oct (O54).
 27. The stale-phrase report (check-plan.mjs stalePhrases, 3 Oct) sees only a clause of 40 characters or more copied word for
    word into another line: a stale phrase left in the same table line as the edit (the line is added again, carrying it),
-   or a shorter or reworded survivor, is not reported (the plan-auditor's MINOR 1 of 3 Oct 18:42 UK); its grep of the
+   or a shorter or reworded survivor, is not reported (MINOR 1 of 3 Oct 18:42 UK); its grep of the
    corrected phrase is the check, the report an aid. EDGES binds predictions first committed from 3 Oct 19:00 UK.
 28. triggers.mjs drops a malformed tag (with spaces) silently, uncounted (MINOR 2 of 4 Oct 04:49 UK). No claim rests on it.
 29. The retro (check-plan.mjs) reads any '<token> (<what>): Brier' line as a test, a summary too (scorecard.mjs words LEGS
@@ -245,11 +245,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 30. The pre-commit and Stop hooks check the working tree, untracked files included; CI checks the commit. The lock reads a
    command's text, not a script file it runs: uncertainty.mjs was written by one after an unlock lapsed (5 Oct).
 31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, after ed5db5c (XAS-R
-   the first). The order is read from commits: a derivation run before the judged lines' first commit passes (XAS-R's,
-   748c53e: the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
+   the first). The order is read from commits: a derivation run before the judged lines' first commit passes (748c53e,
+   the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
    author's reading. Neither git log follows a move: a prediction moved from drafts/ with its output reads as judged with
-   it, and a renamed output restarts its first commit, so a rename would pass a judged-after-derived case (O110, XAS-R2).
+   it, and a rename restarts the first commit: either passes judged-after-derived (O110, XAS-R2).
 32. testsAfter (uncertainty.mjs) never counts a scored test with no close in lessons.md; its two callers are untested.
+33. scorecard.mjs's deep-review cause base rate reads deep-review-log.md's one "N of M" line; settling causes does not
+   move it (MINOR 4 on b22439c).
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

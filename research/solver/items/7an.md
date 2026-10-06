@@ -26,3 +26,9 @@ DESIGNED, cut 4 Oct; PMAP read (the 4 Oct 18:25 row): TOP CELL, so the share-cou
 ## Added 5 Oct with COV-B-STEP's read
 
 COV-B-STEP READ (the 5 Oct 08:51 row, PROVISIONAL): item 3 INCONCLUSIVE, so by its decision fed 7an does not run on COV's arm; 7an waited on the deep review after COV-B-STEP, which (deep-review-log.md 5 Oct 09:27 UK) stops 7an's registration until XAS reads (the schedule row XAS; O98, O99).
+
+## Added 6 Oct with XAS-R2's read
+
+XAS-R2 READ (the 6 Oct 02:47 row; results-xasr2.txt): item 1 HELD for COV on S370 only - the midpoint node removes 1.038 and 1.013 of COV's year-before error, but 7an has no COV arm, and on BASE the same node removes 0.127 and 0.264 (O113). So 7an registers only after O113 is weighed, its prediction carrying a COV arm on S370 or stating that its BASE unit is where item 1 did not hold (the plan-auditor's BLOCKING 1 of 6 Oct on b22439c).
+
+Moved from the row (6 Oct, the row over its cap), still carried (7ak's follow-up; the plan-auditor's MINOR 2 of 30 Sep 19:49 UK): the dead-cell part, 1266 of bridge 4's 4600 disagreements, all in year 3 and all the reverse way, reported beside the readings; and the disagreement read-outs on bridge 4 - decisions changed, the paired simulated survival, the year-0 gap, the bridge stage's table-against-realised residual (S130 the control; bridge 0, which has no reader year, is not a unit).

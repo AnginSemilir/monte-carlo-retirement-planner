@@ -1,0 +1,42 @@
+FAIR-TEST GATE: research/solver/predictions/diag-edge.md was corrected after launch (77bf795c at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.
+
+GATE (EDGE-SPLIT's and HYB's files, each through its own gate): passed; planted: passed
+
+1. THE GAPS (S130, per path, P = PCLSI - a in survival; SNAP reported, not deciding)
+  SNAP   survivors 4974 (PCLSI 5117): PCLSI saves 168, loses 25, the gap 143 paths
+  P-LO   survivors 4980 (PCLSI 5117): PCLSI saves 148, loses 11, the gap 137 paths
+  HYB    survivors 4925 (PCLSI 5117): PCLSI saves 202, loses 10, the gap 192 paths
+
+1b. THE REACH (S130's saved paths: PCLSI survives, the arm does not; a would-be hold in the arm's unforced file: pension live, u in [p - 0.1, p), next u under p, growth under 0.02)
+  SNAP   price 0.75      saved 168, reached 168 (1.000)   first would-be hold at year 13   leaves PCLSI at year 4   held at or before leaving 0.214
+  P-LO   price 0.75      saved 148, reached 148 (1.000)   first would-be hold at year 11   leaves PCLSI at year 9   held at or before leaving 0.027
+  HYB    price 0.25,0.75 saved 202, reached 202 (1.000)   first would-be hold at year 4   leaves PCLSI at year 5   held at or before leaving 0.995
+
+2. ITEM 1'S POWER: true rescue shares (r P-LO, r HYB), the registered rule (Holm over four), 40 draws (flipP B 2000); the flip share on the other paths from the files, f = 2 x (paths PCLSI loses that the arm keeps) / the arm's survivors: P-LO 0.004, HYB 0.004 (grade C, an upper analogue); then the sensitivity rows at f 0.01 and 0.03 on both arms
+  r 0.00, 0.00: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  r 0.10, 0.10: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  r 0.30, 0.30: HELD 0.00 FALSIFIED 0.68 INCONCLUSIVE 0.33
+  r 0.50, 0.50: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  r 0.70, 0.70: HELD 0.10 FALSIFIED 0.00 INCONCLUSIVE 0.90
+  r 0.80, 0.80: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  r 0.90, 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  r 1.00, 1.00: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  r 0.90, 0.50: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  r 0.50, 0.90: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  sensitivity, f 0.01 on both: r 0.30, 0.30: HELD 0.00 FALSIFIED 0.97 INCONCLUSIVE 0.03
+  sensitivity, f 0.01 on both: r 0.70, 0.70: HELD 0.03 FALSIFIED 0.00 INCONCLUSIVE 0.97
+  sensitivity, f 0.01 on both: r 0.90, 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  sensitivity, f 0.01 on both: r 1.00, 1.00: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  sensitivity, f 0.03 on both: r 0.30, 0.30: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  sensitivity, f 0.03 on both: r 0.70, 0.70: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  sensitivity, f 0.03 on both: r 0.90, 0.90: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  sensitivity, f 0.03 on both: r 1.00, 1.00: HELD 0.05 FALSIFIED 0.00 INCONCLUSIVE 0.95
+
+3. THE CREDENCES (the deep review's cause credences of 6 Oct 04:34 UK, already shaded by the base rate in its receipt, not shaded again; LOSS-TABLES folded into the unassigned mass; LOSS-HOLD's r scaled by each arm's reach)
+  HOLD  0.55 at r 0.900, 0.900: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  READ  0.15 at r 0.100, 0.100: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  OPT   0.08 at r 0.500, 0.500: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  NOISE 0.02 at r 0.000, 0.000: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  OTHER 0.20 at r 0.500, 0.500: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  the stories' mean r: P-LO 0.65, HYB 0.65
+CREDENCE item 1: point 0.65 HELD 0.55 INCONCLUSIVE 0.28 FALSIFIED 0.17

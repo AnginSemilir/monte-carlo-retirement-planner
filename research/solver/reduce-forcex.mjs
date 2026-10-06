@@ -308,7 +308,7 @@ function planted() {
 const logsIn = dir => (existsSync(dir) ? Object.fromEntries(readdirSync(dir).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => [f, readFileSync(join(dir, f), 'utf8')])) : {});
 const readGz = f => (existsSync(f) ? JSON.parse(gunzipSync(readFileSync(f)).toString()) : null);
 /* EDGE-SPLIT's files and HYB's, through their own gates (rule 3), decoded */
-async function references() {
+export async function references() {
   const RE = await import('./reduce-edge.mjs'), dir = join(HERE, 'results', 'diagedge'), logs = logsIn(dir), units = Object.values(logs).flatMap(RE.parse);
   requireFairLogs(logs, RE.PRED);
   const bad = RE.gate(units), refs = {};

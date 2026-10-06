@@ -1,0 +1,7 @@
+# 7aj: the judged credences, committed before its derivation
+
+Written 6 Oct, after the build of audit-7aj.mjs and reduce-7aj.mjs, before derive-7aj.mjs is written or run. Moved into predictions/diag-7aj.md's Credence section unchanged, with the derivation's output.
+
+- **Judged, item 1:** HELD 0.75, INCONCLUSIVE 0.18, FALSIFIED 0.07 (survival at the estate weight 0.01, the candidate against the shipping default on 7e's 25, the exact rule with Holm and the guarded unconditional interval: at 0.02 the bundle passed both on all 25 (results-7af.txt, results-7ag.txt; the closest, wealth x2's 0 saved/5 lost, unconditional -0.147 against the 0.25 margin); between 0.02 and 0.01 the bundle's own survival moved 0.09 points or less on 7ah's six (results-7ah.txt); the candidate adds Q's step, the charge, e3, the interpolated allowance axis and the blend tiers since 7af, each tested apart but never together on the panel, so a household near the line (wealth x2, S124, S128) may read inconclusive, and a part's harm somewhere is possible)
+- **Judged, item 2:** HELD 0.82, INCONCLUSIVE 0.13, FALSIFIED 0.05 (the whole score at 0.01: at 0.02 every household's lower end sat above -0.03 (S122 -0.016, S168 -0.028); at 0.01 the estate's part weighs half, so the rest's gain shrinks toward the survival part, which item 1 expects at no harm)
+- **Judged, item 3:** HELD 0.85, INCONCLUSIVE 0.10, FALSIFIED 0.05 (spending while both spend: at 0.02 the worst household was S370 at -1.40% and the mean was positive; the 5% line is far, the 1% mean line further)

@@ -12,7 +12,7 @@
  *   3. THE CREDENCES: the deep review's cause credences (deep-review-log.md 5 Oct 23:18 UK, CAUSE CREDENCES) as stories, each
  *      with its expected reading (item 1: YB-TOPCELL s 0.7, YB-REF and YB-NODEQ s 0.1, the rest s 0.35; item 2 and item 3 by
  *      the stated maps), shaded toward the deep-review record's base rate (ranked causes read as ranked 1 of 19).
- *   node research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2.txt
+ *   node research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2b.txt
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';

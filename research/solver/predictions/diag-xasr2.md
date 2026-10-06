@@ -17,7 +17,7 @@ XAS-R ended NOT SETTLED by its BASE guard (results-xasr.txt), and its COV half w
 
 ## Derivation
 
-- **The sizes and the power** (results-derive-xasr2.txt sections 1 and 2; XAS-R's files through every gate but its BASE guard, reading only the columns no node cache touched): COV's per-path representation error on S370 in the years before a step, and BASE's per-path movement of the midpoint node (built on BASE's own nodes, valid) as the noise proxy for item 1's D.
+- **The sizes and the power** (results-derive-xasr2b.txt sections 1 and 2; XAS-R's files through every gate but its BASE guard, reading only the columns no node cache touched): COV's per-path representation error on S370 in the years before a step, and BASE's per-path movement of the midpoint node (built on BASE's own nodes, valid) as the noise proxy for item 1's D.
 - **What each outcome would say.** Item 1: if the year-before read sees COV's step-year correction only through the top cell's lower node, a node at the cell's midpoint carrying the arm's own continuation removes most of the error (s 0.5 or more); if the error is the reference's or the nodes' own, the midpoint node removes little (s 0.2 or less). Item 2: if (v-a)'s failure is its 5-point quadrature at a straddling state, S* moves toward the copied value at 41 points by half or more of its departure; if the reference is mislocated, it barely moves. Item 3: if BASE blends the dead node's b = 0 and h = failCost into the top-cell read, the bequest read sits below its one-step value and the shortfall read above, and COV's edge node at the step removes half or more of each.
 - **The constructs are exact where they are defined:** at a node, the read reproduces the solved survival (the node-reproduction check, per arm); the fine path at the solve's own 5 points reproduces S*5 (the fine check); every cached row is used only by the solve that built it (the cross check, O109's fault refused).
 - **The checks, each failed on a planted fault first:** reduce-xasr2.mjs's 44 planted checks (every outcome of every item reached; EDGES: a cross-arm cache use, a check run on nothing in one arm only, the guard on vb at its margin, BASE's own rep not 0 with the guard's two terms each binding, the thresholds exactly, a share past its threshold the test does not show, item 3's reads outside the top cell), 34 of 34 mutations caught (results-reduce-xasr2-mutations.txt); the audit's cross check against the crossarm plant in the preflight.
@@ -86,12 +86,12 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 ## Derivation script
 
-- `derive: research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2.txt sha256 a80f01f933dc0492`
-  (the sizes, the power, the credences; run after the judged credences were committed, 120d1f4, as drafts/diag-xasr2.md)
+- `derive: research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2b.txt sha256 a80f01f933dc0492`
+  (the sizes, the power, the credences; run after the judged credences were committed, 120d1f4 at 00:48 UK as drafts/diag-xasr2.md; first committed as results-derive-xasr2.txt in 04cf0c7 with the move to this path, and renamed, unchanged (the same sha256), in the next commit, because check-prediction.mjs's judged-order check reads this path's history without following the move and so saw the judgement and the output arrive together (O110))
 
 ## Point and interval
 
-- **Item 1:** the share s the midpoint node removes, about 0.44 (0.1 to 0.85; the point from results-derive-xasr2.txt's CREDENCE line).
+- **Item 1:** the share s the midpoint node removes, about 0.44 (0.1 to 0.85; the point from results-derive-xasr2b.txt's CREDENCE line).
 - **Item 2:** the ratio about 0.43 (0.1 to 0.9).
 - **Item 3:** COV's error about 0.62 of BASE's on each term (0 to 1.2).
 
@@ -100,7 +100,7 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 - **Base rate, item 1:** 0.10 (it leans on the deep review's ranked cause YB-TOPCELL: the deep-review record's rate, results-scorecard.txt KIND BASE RATES)
 - **Base rate, item 2:** 0.10 (it leans on the deep review's ranked cause VA-QUANT: the same record's rate)
 - **Base rate, item 3:** 0.10 (it leans on the deep review's story S126-BLEND: the same record's rate)
-- **Item 1:** HELD 0.49, INCONCLUSIVE 0.18, FALSIFIED 0.33 (derived, results-derive-xasr2.txt section 3: three stories - YB-TOPCELL at s 0.7, YB-REF with YB-NODEQ at s 0.1, the rest at s 0.35 - weighted by the review's credences shaded 0.3 toward an even split, through section 2's power)
+- **Item 1:** HELD 0.49, INCONCLUSIVE 0.18, FALSIFIED 0.33 (derived, results-derive-xasr2b.txt section 3: three stories - YB-TOPCELL at s 0.7, YB-REF with YB-NODEQ at s 0.1, the rest at s 0.35 - weighted by the review's credences shaded 0.3 toward an even split, through section 2's power)
 - **Item 2:** HELD 0.38, INCONCLUSIVE 0.33, FALSIFIED 0.29 (derived, section 3: VA-QUANT, VA-REF and VA-BUG weighted as item 1's, each reading its own outcome with 0.8 and the middle band with 0.2)
 - **Item 3:** HELD 0.34, INCONCLUSIVE 0.37, FALSIFIED 0.29 (derived, section 3: S126-BLEND reading its own outcome on 0.7 of its weight, another channel the falsifying one on 0.6 of its weight, the tie on 0.5)
 - **Judged, item 1:** HELD 0.40, INCONCLUSIVE 0.35, FALSIFIED 0.25 (the author's judgement, written before the derivation: the review puts YB-TOPCELL at 0.45 against YB-REF 0.15 and YB-NODEQ 0.12, and BASE's midpoint node stayed near the reader where there is little to remove, but its ranked causes have read as ranked in 1 of 19 items, and either year in the middle band reads INCONCLUSIVE)
@@ -110,7 +110,7 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 ## Power
 
-Item 1 from results-derive-xasr2.txt section 2, at an ASSUMED noise (grade C): with D = s P + e and e BASE's per-path movement of the midpoint node (sd 1.0667e-3 in year 2, 6.4357e-4 in year 6, against P's 2.2414e-2 and 2.2134e-2), the rule reads HELD at s 0.6 and above and FALSIFIED at s 0.1 and below in every resample, and mostly INCONCLUSIVE at the thresholds themselves (s 0.5: HELD 0.25; s 0.2: FALSIFIED 0.22). COV's own noise is not known before the run; if it is ten times BASE's, the bands widen and the power is overstated. Item 2 is exact arithmetic over the nodes the paths reach. Item 3's sign tests run over S126's 6,000 paths' top-cell step reads; its removal condition is exact arithmetic.
+Item 1 from results-derive-xasr2b.txt section 2, at an ASSUMED noise (grade C): with D = s P + e and e BASE's per-path movement of the midpoint node (sd 1.0667e-3 in year 2, 6.4357e-4 in year 6, against P's 2.2414e-2 and 2.2134e-2), the rule reads HELD at s 0.6 and above and FALSIFIED at s 0.1 and below in every resample, and mostly INCONCLUSIVE at the thresholds themselves (s 0.5: HELD 0.25; s 0.2: FALSIFIED 0.22). COV's own noise is not known before the run; if it is ten times BASE's, the bands widen and the power is overstated. Item 2 is exact arithmetic over the nodes the paths reach. Item 3's sign tests run over S126's 6,000 paths' top-cell step reads; its removal condition is exact arithmetic.
 
 ## Budget line
 

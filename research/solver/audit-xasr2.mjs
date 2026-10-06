@@ -160,6 +160,7 @@ UNITS.forEach((id, ui) => {
   const R = {};
   for (const [key, o] of ARMS) {
     const t0 = Date.now();
+    // e3 off: coverage refuses e3, and XAS's unit ran without it (the identity against XAS's saved reads)
     const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, shares: SH, bridgeRead: 'reader', bequestWeight: W, tierState: true, jointWorlds: true, pclsInterp: true, e3: false, ...o });
     if (!r.meta.tierState || !r.meta.jointWorlds || r.g.pclsInterp !== true || r.meta.e3) { console.error(`audit-xasr2: ${id} ${key} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds} pclsInterp ${r.g.pclsInterp}`); process.exit(2); }
     if (!!o.readerTax !== !!(r.g.reader && r.g.reader.tax) || !!o.coverage !== !!r.g.cov) { console.error(`audit-xasr2: ${id} ${key}: the arm's settings did not take`); process.exit(2); }

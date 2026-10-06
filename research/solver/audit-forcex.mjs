@@ -15,7 +15,7 @@
  *   node research/solver/audit-forcex.mjs [points=30] [paths=6000] part k/6 [seed=7005]
  *   FORCEX_PLANT=leak: a one-pound force in every year that is not forced (the identity before the first force must refuse it)
  */
-// e3 off, as audit-edge.mjs (the identity holds this run to EDGE-SPLIT's files, which ran with it off)
+// e3 off: as audit-edge.mjs - the identity holds this run to EDGE-SPLIT's files, which ran with it off
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';

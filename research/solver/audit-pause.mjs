@@ -21,7 +21,7 @@
  *   run on S128, three arms (SNAP, P-LO, HYB), one a part: part k/3. Unset, the run is PAUSE's on S130 as registered.
  *   PAUSE_PLANT=scale: the setter writes u, not u x lsa (the self-check must refuse it)
  */
-// e3 off, as audit-edge.mjs (the identity holds this run to EDGE-SPLIT's files, which ran with it off)
+// e3 off: as audit-edge.mjs - the identity holds this run to EDGE-SPLIT's files, which ran with it off
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, runPolicy, chooseAction } from '../../src/solver/solve.js';

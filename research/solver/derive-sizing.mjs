@@ -112,3 +112,17 @@ console.log(`  in all, the sized part: ${f1(wallSum([...before7u, '7u', ...after
 
 // 4. the work around each run, from two tests' own records (proposal to read, the ledger and runs.log)
 console.log('\n4. THE WORK AROUND A RUN (no cores), from the records: DT-O97 proposed 6 Oct 08:08 UK (the deep review after FORCE-X), launched 11:58 (runs.log), its batch done by 12:38 (results/diagdto97\'s last file), read 13:40 (the ledger): 5.5 h from proposal to read, its batch about 0.7 h of it. One test, grade C: about 4 to 5 hours a test beside its compute');
+
+// 5. gate 5's arithmetic (Phase 4 condition 5: the candidate's wall-clock solve at most 1.25x today's product solve)
+const need = U.cand / (1.25 * U.prod);
+console.log(`\n5. GATE 5 FROM THE PROBE: the budget is 1.25 x ${U.prod} s = ${f1(1.25 * U.prod)} s; the candidate's one-core solve is ${U.cand} s, so E2 must speed it up x${need.toFixed(2)} or more on four cores (E2's own estimate is near x4, NOT CHECKED until built and timed). On a two-core device E2 gives at most x2: ${f1(U.cand / 2)} s, ${f1(U.cand / 2 / U.prod)} x the product's - over the budget (the grade-D premise in condition 5). The probe ran four at once, not on a quiet machine: gate 5's own timing is GATE5's. The forward run is not in gate 5: the candidate's is x${(U.candFwdK / U.prodFwdK).toFixed(2)} the product's per path`);
+
+// 6. the calendar, judged (grade D): builds in hours of work, the work around a run from section 4, both overlapping the
+// batches where the order allows; the compute from section 3. Two cases: 7u as gated (undatable) and 7u released from 7an
+const BUILD_HOURS = { E2: 8, 'P4-LAND': 3, '7q option': 6, '8g engines': 16, '8h design and build': 12, '8i': 3 };
+const tests = ['E2-EXACT', 'GATE5', '7aj', '7u', '7o', 'O21', '7q', '8', '8d', '8f', '8g', '8h', 'PHASE 4'];
+const buildH = Object.values(BUILD_HOURS).reduce((t, h) => t + h, 0), aroundH = tests.length * 4.5;
+const releasedWall = wallSum(['E2-EXACT', 'GATE5', '7aj', '7u', ...after7u, 'PHASE 4']);
+console.log(`\n6. THE CALENDAR, JUDGED (grade D; inputs: builds ${JSON.stringify(BUILD_HOURS)} hours of work, the work around a run 4.5 h a test from section 4, ${tests.length} tests)`);
+console.log(`  as gated: undatable - 7u waits for 7an, 7an for NSB and the undesigned table fix`);
+console.log(`  7u released from 7an (NSB, 7an and O67's step beside it, not before it): compute ${f1(releasedWall)} wall-hours, builds ${f1(buildH)} h, the work around the runs ${f1(aroundH)} h; with builds and reviews overlapping the batches, about ${f1((releasedWall + 0.5 * (buildH + aroundH)) / 24)} to ${f1((releasedWall + buildH + aroundH) / 24)} days of continuous work before Phase 4 reads, if every step reads as expected (a result that redirects the plan stops the queue there)`);

@@ -122,7 +122,7 @@ function unstampedImports(SF, root = ROOT) {
   const out = new Set();
   for (const f of SF.filter(x => /\.(m?js)$/.test(x))) {
     const text = readFileSync(join(root, f), 'utf8');
-    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*)['"]([^'"]+)['"]/g)) {
+    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g)) {
       const spec = m[1];
       if (spec.startsWith('node:') || !(spec.startsWith('.') || spec.startsWith('/'))) continue;
       const abs = spec.startsWith('/') ? spec : join(root, dirname(f), spec);
@@ -146,6 +146,12 @@ ok(['research/solver/settings.mjs', 'research/solver/code-id.mjs'].every(x => SF
   const PS = smokeFiles(T);
   ok(PS.includes('research/solver/a.mjs') && PS.includes('research/solver/b.mjs'), `planted: a module two imports down from a stamped audit is stamped (${PS.filter(x => /\/(a|b)\.mjs$/.test(x)).join(', ')})`);
   ok(unstampedImports(PS.filter(x => existsSync(join(T, x))), T).length === 0, 'planted: the transitive scan finds nothing outside the planted stamp');
+  // a side-effect import and a require, each a step further down (the plan-auditor's MINOR on 09dd9a7335)
+  writeFileSync(join(SD, 'b.mjs'), "import './c.mjs';\nexport const b = 1;\n");
+  writeFileSync(join(SD, 'c.mjs'), "const d = require('./d.cjs');\n");
+  writeFileSync(join(SD, 'd.cjs'), 'module.exports = 1;\n');
+  const PS2 = smokeFiles(T);
+  ok(PS2.includes('research/solver/c.mjs') && PS2.includes('research/solver/d.cjs'), `planted: a side-effect import and a require are followed (${PS2.filter(x => /\/(c\.mjs|d\.cjs)$/.test(x)).join(', ')})`);
   rmSync(T, { recursive: true, force: true });
 }
 

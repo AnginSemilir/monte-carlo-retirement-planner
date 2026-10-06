@@ -15,11 +15,11 @@ PAUSE's re-read (results-derive-pause-review.txt; O111, HOLD-PRICE, grade C beca
 
 **From the code (grade A):** as PAUSE's (predictions/measure-pause.md): the allowance axis has three buckets (u = 0, 0.5, 1); the snapped read steps at 0.25 and 0.75; SNAP's tables price the first half at exactly 0 (results-derive-pause-review.txt section 5), so SNAP's read first prices at 0.75; P-LO interpolates at or below 0.5 and snaps above (a step at 0.75); HYB reads PCLSI's tables snapped, so both its edges (0.25, 0.75) can price. The measure is the fixed move (the score of the move the run took, read over u), PAUSE's primary measure.
 
-**What is already seen of S128 (declared):** EDGE-SPLIT's flat years by band (results-edge.txt REPORTED, a path's mean in [0.15, 0.25) / [0.25, 0.6) / [0.6, 0.75)): SNAP 0.00 / 0.20 / 5.42, P-LO 0.00 / 0.17 / 6.60, HYB 1.18 / 0.12 / 2.21. Where inside a band the pauses sit, and the read's shape over u, are not seen: no sweep has run on S128.
+**What is already seen of S128 (declared):** EDGE-SPLIT's flat years by band (results-edge.txt REPORTED, a path's mean in [0.15, 0.25) / [0.25, 0.6) / [0.6, 0.75)): SNAP 0.00 / 0.20 / 5.42, P-LO 0.00 / 0.17 / 6.60, HYB 1.18 / 0.12 / 2.21. Two earlier records also place SNAP's pause on S128 (the plan-auditor's BLOCKING 1 of 6 Oct on 2f69deb; not declared at registration): DPC (results-dpc.txt l.55 and l.80, seed 7002, the shipping default, which is EDGE-SPLIT's unit) has SNAP on S128 dwelling 10.04 years in [0.6, 0.75) below the 0.75 cliff, its pension share within one pace of the cliff 0.8581, SNAP-HOLD; 7ag's traces of OFF/PRODUCT (deep-review-log.md 30 Sep 22:51 UK) have S128's median path at u 0.739 by year 16, inside LOC's own cell, its pension draws stopping in years 17 to 22. LOC can also be computed without a sweep from the u and pension traces already in results/diagedge/S128-*.json.gz and results/diaghyb/S128-hyb.json.gz; nobody has computed it. So SNAP's LOC leg is NOT blind. What is unseen: FIRST on all three arms (the read's shape over u needs the sweep, never run on S128), and LOC on P-LO and HYB.
 
 **What the run checks before any figure:** each arm's u, pension pot and other pots, every year of the first 1,000 paths, equal EDGE-SPLIT's S128 file for the arm (HYB: HYB's own S128 HYB arm), those files first through their own gates; the sweep's self-check on every flat year, run on more than nothing; a case line for any other household refused; the scale plant caught by the audit's self-check and refused by the gate (the preflight).
 
-**The registered figures** (reduce-pause128.mjs section 2), per arm over its POST-ACCESS FLAT YEARS (pension live, u in [0.15, 0.99); no band is chosen, so no band choice can fit the result):
+**The registered figures** (reduce-pause128.mjs section 2), per arm over its flat years with u in [0.15, 0.99) (pension live; selected by u, not by year: the 0.15 floor stands in for access, so a flat year after access with u under 0.15 is not counted (the plan-auditor's MINOR 2 of 6 Oct on 2f69deb); no band is chosen, so no band choice can fit the result):
 - **LOC:** the share with u in the cell just below one of the arm's price points, [p - 0.05, p): SNAP and P-LO p = 0.75; HYB p = 0.25 or 0.75.
 - **FIRST:** the share whose first fall past the switch margin (1e-3), counted from u's own grid cell up, lies within 0.1 of u (derive-pause-review.mjs fallsFrom, copied into the reducer with its planted case).
 
@@ -29,7 +29,7 @@ No derivation script: no figure is computed before the run.
 
 ## Prediction
 
-HOLD-PRICE out of sample, the deep review's credence 0.75 for the cause, the author's 0.65 that this run reads HELD (HYB's upper band on S128, 2.21 a path, is the least sure part: on S130 HYB barely paused there, 0.04):
+HOLD-PRICE out of sample, the deep review's credence 0.75 for the cause, the author's 0.65 that this run reads HELD (HYB's upper band on S128, 2.21 a path, is the least sure part: on S130 HYB barely paused there, 0.04). The 0.65 and SNAP's intervals are not blind: the author had DPC's and 7ag's SNAP placements on S128 in the records (above); a HELD is out-of-sample support for HOLD-PRICE on FIRST (all three arms) and on LOC for P-LO and HYB only:
 - **SNAP and P-LO** pause in [0.70, 0.75): LOC 0.75 or more, FIRST 0.75 or more.
 - **HYB** pauses in [0.20, 0.25) or [0.70, 0.75): LOC 0.75 or more, FIRST 0.75 or more.
 
@@ -52,7 +52,7 @@ One set of arms (EDGE-SPLIT's SNAP and P-LO, HYB's HYB arm), measured on their o
 | 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - no rival |
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm |
 | 31 | Paired or not, and the standard error used | shares | the same | N/A - no comparison carries a standard error |
-| 33 | For timings: what else the machine was running | n/a | n/a | N/A - no timing is read (XAS-R2 runs beside it) |
+| 33 | For timings: what else the machine was running | n/a | n/a | N/A - no timing is read (launched after XAS-R2: the launcher runs one experiment at a time) |
 
 - **All other rows: SAME**
 
@@ -74,7 +74,7 @@ FORCE-X's registration (PLAN.md's schedule; the deep review after PAUSE): HELD o
 
 ## Budget line
 
-From PAUSE (results/diagpause case logs, 30 points, 1,000 paths): a part's solve about 5 minutes, its forward run about 2 and its sweep 2 to 8 minutes for its flat years. Three parts one at a time beside XAS-R2: under an hour, under 1 core-hour.
+From PAUSE's case logs (results/diagpause, 30 points, 1,000 paths; the plan-auditor's MINOR 3 of 6 Oct on 2f69deb): solves 540 to 627 s, forward runs 117 to 188 s, sweeps 416 to 778 s. Three parts one at a time after XAS-R2: about 67 minutes at the means, 80 at the worst, about 1.1 to 1.3 core-hours; each part stopped at 3 hours.
 
 ## Seen before launch
 
@@ -82,4 +82,4 @@ The preflight's reducer (results/diagpause128-preflight; reduce-pause128.mjs --p
 
 ## Changes after seeing results
 
-None: no result has been seen.
+None: no result has been seen. Amended before launch on the plan-auditor's FAIL of 6 Oct on 2f69deb: DPC's and 7ag's SNAP placements on S128 declared and SNAP's LOC leg, the 0.65 and SNAP's intervals graded not blind (BLOCKING 1); the 0.15 floor stated as selecting by u (MINOR 2); the budget from PAUSE's logged times, and the run after XAS-R2, not beside it (MINOR 3). No figure, threshold or price point changed.

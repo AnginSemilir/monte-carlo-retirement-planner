@@ -6,9 +6,11 @@
  * pclsInterp, e3 on) and OFF the same with e3 off and nothing else changed; an e3cand line on arrays and values above 0 with
  * cells copied above 0 (a comparison that ran on nothing, or an e3 that copied nothing, is an error, not a pass); share 0.95's
  * planted line present, and only there.
- * THE READING: EXACT when both households differ in 0 values with the same moves evaluated, and the planted wrong-twin copy
- * breaks identity; NOT EXACT when either differs (each named); PLANT NOT CAUGHT (the check proves nothing) when the planted
- * line differs in 0 values.
+ * THE READING: EXACT when both households differ in 0 values, e3 evaluating fewer moves than the solve without it (a copied
+ * cell is skipped before any move is evaluated, solve.js l.894-900: that is e3's saving, so the counts cannot be equal, as
+ * they must be in E2X where both arms have e3 on - the plan-auditor's BLOCKING 1 on 743ca2cb1d), and the planted wrong-twin
+ * copy breaks identity; NOT EXACT when either differs, or e3 evaluates as many moves or more (each named); PLANT NOT CAUGHT
+ * (the check proves nothing) when the planted line differs in 0 values.
  *   node research/solver/reduce-e3cand.mjs [dir] [points] > research/solver/results-e3cand.txt
  *   node research/solver/reduce-e3cand.mjs --planted   the planted checks alone
  *   node research/solver/reduce-e3cand.mjs <dir> <points> --preflight   a preflight's logs, stamps not checked
@@ -68,7 +70,7 @@ export function verdict(units) {
   const off = [];
   for (const u of units) {
     if (u.c.differ !== 0) off.push(`${u.id}: ${u.c.differ < 0 ? 'array shapes differ' : `${u.c.differ} of ${u.c.values} values differ`}`);
-    if (u.c.evOff !== u.c.evOn) off.push(`${u.id}: ${u.c.evOn} moves evaluated with e3 against ${u.c.evOff} without`);
+    if (!(u.c.evOn < u.c.evOff)) off.push(`${u.id}: ${u.c.evOn} moves evaluated with e3 against ${u.c.evOff} without (e3 copied ${u.c.copied} cells yet skipped no evaluation)`);
   }
   const pl = units.find(u => u.id === PLANTED_ON).planted;
   return { e3: !(pl > 0 || pl < 0) ? 'PLANT NOT CAUGHT' : off.length ? 'NOT EXACT' : 'EXACT', off };
@@ -93,7 +95,7 @@ function builtLog(o = {}) {
     const ranOf = (e3, x = {}) => `bridgeRead reader tierState true jointWorlds true bridgeStep ${x.step || 'exact'} switchCharge 0.001 switchMargin 0 pclsInterp ${x.pi || 'true'} e3 ${e3} points total30x6x6`;
     lines.push(`${''.padEnd(16)} ran ON: ${ranOf(o.onE3Off && id === 'S130' ? 'false' : 'true')}`);
     lines.push(`${''.padEnd(16)} ran OFF: ${ranOf('false', o.offDrift && id === 'share 0.95' ? { pi: 'false' } : o.noQ && id === 'S130' ? { step: 'null' } : {})}`);
-    const d = o.differ && id === 'S130' ? 7 : 0, ev = o.evaluated && id === 'share 0.95' ? 999 : 1000;
+    const d = o.differ && id === 'S130' ? 7 : 0, ev = o.evaluated && id === 'share 0.95' ? 1000 : 900;
     lines.push(`${''.padEnd(16)} e3cand: arrays ${o.empty && id === 'S130' ? 0 : 240} values 900000 differ ${d} evaluated 1000 ${ev} copied ${o.noCopy && id === 'S130' ? 0 : 5000}`);
     if (id === PLANTED_ON && !o.noPlant) lines.push(`${''.padEnd(16)} planted ON: the wrong twin at 8 points differ ${o.plantZero ? 0 : 4321}`);
     if (o.plantElsewhere && id === 'S130') lines.push(`${''.padEnd(16)} planted ON: the wrong twin at 8 points differ 4321`);
@@ -114,7 +116,7 @@ function planted() {
   const v = o => verdict(parse(builtLog(o)).filter(u => PANEL.includes(u.id)));
   cases.push(['both households exact, the plant caught: EXACT', v({}).e3, 'EXACT']);
   cases.push(['7 values differ on S130: NOT EXACT, named', `${v({ differ: true }).e3} ${v({ differ: true }).off[0]}`, 'NOT EXACT S130: 7 of 900000 values differ']);
-  cases.push(['one move fewer evaluated with e3 on share 0.95: NOT EXACT', v({ evaluated: true }).e3, 'NOT EXACT']);
+  cases.push(['e3 evaluating as many moves as without it on share 0.95 (it copied cells yet skipped nothing): NOT EXACT', v({ evaluated: true }).e3, 'NOT EXACT']); EDGES.push('e3 evaluating exactly as many moves as without it');
   cases.push(['the plant not caught (0 values differ): PLANT NOT CAUGHT', v({ plantZero: true }).e3, 'PLANT NOT CAUGHT']); EDGES.push('a plant that differs in 0 values');
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }

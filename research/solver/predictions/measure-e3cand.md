@@ -23,7 +23,7 @@ EXACT on both households; the plant breaks identity.
 
 ## Falsified if
 
-A measurement settles nothing; it is read against its condition: EXACT (both households 0 values differ with the same moves evaluated, the plant caught), NOT EXACT (either differs, each named), or PLANT NOT CAUGHT (the run is void).
+A measurement settles nothing; it is read against its condition: EXACT (both households 0 values differ, e3 evaluating fewer moves than the solve without it - a copied cell is skipped before any move is evaluated, solve.js l.894-900, so equal counts would mean e3 skipped nothing - and the plant caught), NOT EXACT (either differs, or e3 evaluates as many moves or more; each named), or PLANT NOT CAUGHT (the run is void).
 
 ## Fair-test table
 
@@ -44,7 +44,7 @@ One comparison on each household, in one process: OFF (the candidate with e3 off
 
 ## Decision fed
 
-- **EXACT:** e3's exactness under the candidate is grade A on these two households (the households where Q's step and the interpolated axis act), and candidate.mjs's 'NOT CHECKED' note is replaced by this run; 7aj's fair-test row 17 cites it; 7aj launches.
+- **EXACT** (the tables identical, e3 evaluating fewer moves, the plant caught): e3's exactness under the candidate is grade A on these two households (the households where Q's step and the interpolated axis act), and candidate.mjs's 'NOT CHECKED' note is replaced by this run; 7aj's fair-test row 17 cites it; 7aj launches.
 - **NOT EXACT:** e3 is taken out of the candidate (CANDIDATE_OPTS) until the cause is found, the households that differ go in the register with an owner and a gate, and 7aj is re-registered without e3 before it launches (its budget rises by e3's saving).
 - **PLANT NOT CAUGHT:** the run is void and re-run after the plant is mended; 7aj waits.
 
@@ -59,8 +59,8 @@ One comparison on each household, in one process: OFF (the candidate with e3 off
 
 ## Budget line
 
-From the sizing pass (results-sizing.txt): the candidate's solve 1068 s at the median, the largest 1230 s; e3 off adds its saving back (E3c: 17 to 22% of a solve). Per household about 1,070 s on and 1,300 s off, plus the plant at 8 points (about 100 s); both households at once: about 2.6 core-hours of wall over two cores, about 40 minutes.
+From the sizing pass (results-sizing.txt): the candidate's solve 1068 s at the median, the largest 1230 s; e3 off adds its saving back (E3c: 17 to 22% of a solve). Per household about 1,070 s on and 1,300 s off, plus the plant at 8 points (about 100 s): about 2,470 s a household, 1.37 core-hours for the two; both at once, about 40 minutes.
 
 ## Changes after seeing results
 
-None.
+None. (Before any result: the first launch, 6 Oct 22:20 UK, was stopped in its smoke run, before any household ran, when the plan-auditor's BLOCKING 1 on 743ca2cb1d found that EXACT required equal moves evaluated, which e3 can never meet; the condition was corrected and the run re-launched.)

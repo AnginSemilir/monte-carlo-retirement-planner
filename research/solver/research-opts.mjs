@@ -10,13 +10,24 @@
  *       research default only: PRODUCT_BASELINE carries e3: false, pinned with this file by research/tests/e3-default.test.mjs.
  *
  * E3c's scope: SHIP, PRODUCT and TSJ at 6 share points, without pclsInterp and on code from before readerTax. Outside it -
- * the interpolated allowance axis (PCLSI, the unit PMAP, 7an and COV-B-STEP use), readerTax, 11 or 12 share points - the
+ * the interpolated allowance axis (PCLSI, the unit PMAP, 7an and COV-B-STEP use), readerTax, Q's fix (bridgeStep 'exact'),
+ * the switch charge (switchCharge, margin 0) - the research candidate's (candidate.mjs) - 11 or 12 share points - the
  * identity is NOT CHECKED by a run; the deep review of 5 Oct 01:49 UK argues it holds by construction (the copied cells
  * have an exactly empty taxable pot, and the flow rebuilds the gain basis from the pot; grade B, from the code), which a
  * run there would confirm.
+ *   pclsInterp: true - the interpolated allowance axis (PCLSI), the fix of O71's snap: the maintainer, 6 Oct ('yes make the
+ *       fix the default' for the research candidate, not the app; the 4 Oct step-read condition replaced, 'Yes, replace it').
+ *       ADOPT-PI (results-adoptpi.txt): no material harm to survival on 25 households, the gain on S130 and S370 - with the
+ *       reader off only; with the reader on (the candidate, candidate.mjs) untested (O76). Its named caveats: O76, and PR5 (a
+ *       pension death tax of 0 on the library households, under which PCLSI's lucky-tail net falls: O97, DT-O97). With e3,
+ *       outside E3c's checked scope (above), NOT CHECKED by a run. PRODUCT_BASELINE does not carry it: the app stays on
+ *       the snapped axis until after Phase 4. Pinned with PLAN.md's "pclsInterpResearch" by research/tests/candidate.test.mjs.
+ *       An arm that needs the snap sets pclsInterp: false AFTER spreading RESEARCH_OPTS; a pclsStrict arm must too (grid.js
+ *       refuses the two together).
+ *
  * A research script first committed from E3_FROM on spreads RESEARCH_OPTS into its options, or carries a line
  * "// e3 off: <why>" (coverage refuses e3; a unit outside E3c's scope above; a run that must match older records);
  * research/tests/e3-default.test.mjs fails on one that does neither.
  */
-export const RESEARCH_OPTS = Object.freeze({ e3: true });
+export const RESEARCH_OPTS = Object.freeze({ e3: true, pclsInterp: true });
 export const E3_FROM = '2026-10-05T01:30:00+01:00';

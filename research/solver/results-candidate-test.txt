@@ -1,0 +1,32 @@
+PASS  the candidate: decided {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"tiers":"o60-blend"}, code {"bridgeRead":"reader","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"bridgeStep":"exact","switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true,"tiers":"o60-blend"}
+PASS  planted: a decided value the code does not carry fails the comparison
+PASS  planted: a code value the block does not carry fails it
+PASS  planted: a key missing from the block fails it
+PASS  planted: a block without "candidate" fails it
+PASS  CANDIDATE_OPTS and RESEARCH_OPTS are frozen
+PASS  the product's pclsInterp: decided false, code undefined
+PASS  planted: a decided product pclsInterp on fails
+PASS  planted: a code product pclsInterp on fails
+PASS  the research pclsInterp: decided true, research-opts.mjs true
+PASS  planted: a decided research pclsInterp off fails
+PASS  the candidate carries the research defaults (e3, pclsInterp)
+PASS  blendReals reads all five tiers (High Risk 4.97; Medium/High Risk 4.65; Medium Risk 4.18; Medium/Low Risk 3.55; Low Risk 2.76)
+PASS  planted: a missing tier row throws, not a default
+PASS  candidatePlan moves the five reals to the blend medians and nothing else
+PASS  planted: a moved tier outside the five fails the check
+PASS  solvePlan with nothing passed solves on the snapped axis (g.pclsInterp false)
+PASS  solveCandidate ran the candidate ({"bridgeRead":"reader","bridgeStep":"exact","tierState":true,"jointWorlds":true,"bequestWeight":0.02,"switchCharge":0.001,"switchMargin":0,"e3":true,"pclsInterp":true})
+PASS  planted: a solve that dropped a setting (bridgeStep) fails the same check
+PASS  an arm's own pclsInterp false, passed after the candidate, keeps the snap
+PASS  planted: pclsInterp false before the spread is flagged
+PASS  planted: a candidate key before the candidate spread is flagged
+PASS  a key after the spread is not flagged
+PASS  a key before a spread that does not carry it is not flagged (candidate.mjs's own shape)
+PASS  planted: a carried key before a nested conditional object and the spread is flagged
+PASS  planted: a carried key inside a nested conditional object before the spread is flagged
+PASS  planted: a variable spread before the research spread is flagged (audit-dto97.mjs's arm shape)
+PASS  a variable spread after the research spread is not flagged
+PASS  the scan finds the research scripts (284): a scan that ran on nothing is an error
+PASS  no research script sets a candidate key before spreading RESEARCH_OPTS or CANDIDATE_OPTS
+
+=========== 30 passed, 0 failed ===========

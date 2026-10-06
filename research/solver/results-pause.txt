@@ -1,0 +1,57 @@
+FAIR-TEST GATE: research/solver/predictions/diag-edge.md was corrected after launch (77bf795c at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.
+
+GATE: passed - 8 arms once and done at EDGE-SPLIT's unit; the sweep's self-check on every flat year; the identity, every year of the first 1000 paths, against EDGE-SPLIT's files and HYB's (each through its own gate); planted: 23 passed
+
+PAUSE (S130, EDGE-SPLIT's unit, the first 1000 paths): where each arm pauses against the steepest fall of its own read over u. A measurement: no verdict. The read is the score of the move the run took, read at each u (the fixed move); the envelope (the chooser's own move at each u, its switch-margin stay rule included) is the second line.
+
+1. FLAT YEARS BY u'S BAND (pension live, u under 0.99), a path's mean: u<0.15 / [0.15,0.25) / [0.25,0.6) / [0.6,0.75) / [0.75,0.99)
+  SNAP   2.00 / 0.00 / 0.00 / 6.84 / 0.00   all 8.84   the chooser's move changes on 0.777 of the grid points
+  S-LO   2.00 / 0.00 / 0.00 / 6.84 / 0.00   all 8.84   the chooser's move changes on 0.777 of the grid points
+  S-HI   2.00 / 0.00 / 6.95 / 0.00 / 0.00   all 8.95   the chooser's move changes on 0.560 of the grid points
+  S-INT  2.00 / 0.00 / 6.95 / 0.00 / 0.00   all 8.95   the chooser's move changes on 0.560 of the grid points
+  PCLSI  2.00 / 0.00 / 0.00 / 0.01 / 0.00   all 2.01   the chooser's move changes on 0.046 of the grid points
+  P-LO   2.00 / 0.00 / 0.00 / 8.65 / 0.00   all 10.65   the chooser's move changes on 0.809 of the grid points
+  P-HI   2.00 / 6.05 / 0.00 / 0.00 / 0.00   all 8.05   the chooser's move changes on 0.734 of the grid points
+  HYB    2.00 / 6.05 / 0.00 / 0.04 / 0.00   all 8.10   the chooser's move changes on 0.707 of the grid points
+
+2. THE REGISTERED FIGURES, each arm's main pause band (predictions/measure-pause.md): flat years n; of those with a fall ahead, the share with the steepest fall ahead within 0.1 above u, and the share with it in [0.4, 0.6] - the fixed move | the envelope
+  SNAP   [0.6,0.75)   n 6842   within 0.439 of 6841   in the middle 0.000   no fall ahead 1   | envelope within 0.993 of 6842   in the middle 0.000
+  S-LO   [0.6,0.75)   n 6842   within 0.439 of 6841   in the middle 0.000   no fall ahead 1   | envelope within 0.993 of 6842   in the middle 0.000
+  S-HI   [0.25,0.6)   n 6952   within 0.029 of 6952   in the middle 0.029   no fall ahead 0   | envelope within 0.031 of 6952   in the middle 0.031
+  S-INT  [0.25,0.6)   n 6952   within 0.029 of 6952   in the middle 0.029   no fall ahead 0   | envelope within 0.031 of 6952   in the middle 0.031
+  PCLSI  no main band (EDGE-SPLIT: no flat years in the three bands)
+  P-LO   [0.6,0.75)   n 8648   within 0.286 of 8643   in the middle 0.000   no fall ahead 5   | envelope within 0.991 of 8647   in the middle 0.000
+  P-HI   [0.15,0.25)  n 6054   within 0.812 of 6054   in the middle 0.002   no fall ahead 0   | envelope within 0.985 of 6054   in the middle 0.000
+  HYB    [0.15,0.25)  n 6054   within 0.003 of 6054   in the middle 0.000   no fall ahead 0   | envelope within 0.033 of 6054   in the middle 0.000
+
+3. PER BAND, every arm (the fixed move): n, within 0.1, in the middle, the commonest midpoint ahead (its share), the median slope ahead (score per unit u)
+  SNAP   u<0.15       n   2000   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.775 (1.000)   slope -3.304e-1
+  SNAP   [0.25,0.6)   n      2   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.725 (1.000)   slope -4.606e-1
+  SNAP   [0.6,0.75)   n   6842   within 0.439   in the middle 0.000   no fall ahead 1   commonest 0.975 (0.561)   slope -1.821e-3
+  S-LO   u<0.15       n   2000   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.775 (1.000)   slope -3.304e-1
+  S-LO   [0.25,0.6)   n      2   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.725 (1.000)   slope -4.606e-1
+  S-LO   [0.6,0.75)   n   6842   within 0.439   in the middle 0.000   no fall ahead 1   commonest 0.975 (0.561)   slope -1.821e-3
+  S-HI   u<0.15       n   2000   within 0.000   in the middle 0.500   no fall ahead 0   commonest 0.525 (0.500)   slope -3.832e-2
+  S-HI   [0.25,0.6)   n   6952   within 0.029   in the middle 0.029   no fall ahead 0   commonest 0.975 (0.935)   slope -9.725e-2
+  S-INT  u<0.15       n   2000   within 0.000   in the middle 0.500   no fall ahead 0   commonest 0.525 (0.500)   slope -3.832e-2
+  S-INT  [0.25,0.6)   n   6952   within 0.029   in the middle 0.029   no fall ahead 0   commonest 0.975 (0.935)   slope -9.725e-2
+  PCLSI  u<0.15       n   2000   within 0.000   in the middle 0.500   no fall ahead 0   commonest 0.525 (0.500)   slope -7.492e-3
+  PCLSI  [0.6,0.75)   n      5   within 1.000   in the middle 0.000   no fall ahead 0   commonest 0.725 (0.600)   slope -9.281e-3
+  PCLSI  [0.75,0.99)  n      1   within 1.000   in the middle 0.000   no fall ahead 0   commonest 0.975 (1.000)   slope -1.122e-8
+  P-LO   u<0.15       n   2000   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.775 (1.000)   slope -7.259e-2
+  P-LO   [0.6,0.75)   n   8648   within 0.286   in the middle 0.000   no fall ahead 5   commonest 0.975 (0.714)   slope -8.135e-4
+  P-HI   u<0.15       n   2000   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.275 (1.000)   slope -6.236e-2
+  P-HI   [0.15,0.25)  n   6054   within 0.812   in the middle 0.002   no fall ahead 0   commonest 0.275 (0.812)   slope -1.937e-1
+  HYB    u<0.15       n   2000   within 0.000   in the middle 0.000   no fall ahead 0   commonest 0.775 (1.000)   slope -7.259e-2
+  HYB    [0.15,0.25)  n   6054   within 0.003   in the middle 0.000   no fall ahead 0   commonest 0.775 (0.808)   slope -3.139e-1
+  HYB    [0.6,0.75)   n     43   within 0.116   in the middle 0.000   no fall ahead 0   commonest 0.975 (0.884)   slope -4.288e-4
+
+4. THE STEEPEST FALL OVER THE WHOLE AXIS (the fixed move): its commonest midpoint (share), the median slope
+  SNAP   at 0.725 (0.735)   median slope -4.622e-1
+  S-LO   at 0.725 (0.735)   median slope -4.622e-1
+  S-HI   at 0.975 (0.838)   median slope -9.530e-2
+  S-INT  at 0.975 (0.838)   median slope -9.530e-2
+  PCLSI  at 0.525 (0.501)   median slope -7.492e-3
+  P-LO   at 0.725 (0.622)   median slope -1.159e-1
+  P-HI   at 0.275 (0.858)   median slope -2.232e-1
+  HYB    at 0.775 (0.851)   median slope -2.810e-1

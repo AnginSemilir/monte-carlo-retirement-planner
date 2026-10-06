@@ -16,7 +16,8 @@
  *      O97-DT, the rest shared as the review's O97-TAIL 0.20, O97-PHOLD 0.10, O97-OTHER and the unassigned 0.10; O97-DT at the
  *      kept share the check's median rho predicts, TAIL at k 1, PHOLD at k 0.4, OTHER at k 0.5. The review's unshaded weights
  *      printed beside it as a sensitivity. Item 1 from the NOHARM base rate (results-scorecard.txt KIND BASE RATES): SAME at
- *      its share, SHIFT at the rest.
+ *      its share, SHIFT at the rest. The points: item 1 the floor's change in points (the death-tax-0 pairs' own under SAME,
+ *      a quarter-point lower under SHIFT), item 2 the kept share, each weighted as its credence.
  *   node research/solver/derive-dto97.mjs > research/solver/results-derive-dto97.txt
  */
 import { references, item1, item2, lastPension, PANEL, DT } from './reduce-dto97.mjs';
@@ -111,5 +112,10 @@ const W1 = { SAME: NOHARM_BASE, SHIFT: 1 - NOHARM_BASE }, c1 = mix(W1, P1);
 console.log(`  item 1 (SAME ${NOHARM_BASE}, the NOHARM base rate; SHIFT ${f2(1 - NOHARM_BASE)}): ${show(c1)}`);
 console.log(`  item 2 (from the deep-review base rate ${DR_BASE} times the review's likelihood ratio, 0.60 against its prior 0.30: ${Object.entries(W2s).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}): ${show(c2s)}`);
 console.log(`  item 2, sensitivity: the review's own weights, unshaded (${Object.entries(W2).map(([k, v]) => `${k} ${f2(v)}`).join(', ')}): ${show(c2)}`);
-console.log(`CREDENCE item 1: point ${f2(c1.HELD)} HELD ${f2(c1.HELD)} INCONCLUSIVE ${f2(c1.INCONCLUSIVE)} FALSIFIED ${f2(c1.FALSIFIED)}`);
+// item 1's point is a quantity, the floor's change in points (pooledSummed d): the death-tax-0 pairs' own under SAME, a
+// quarter-point lower under SHIFT, weighted as the credence (a first version printed the HELD probability as the point)
+const d0pool = item1(Object.fromEntries(PANEL.map(id => [id, paired(F[`${id} SNAP`], F[`${id} PCLSI`])]))).pool.d;
+if (!Number.isFinite(d0pool)) { console.log('NOT DERIVED: the death-tax-0 floor change is not finite'); process.exit(1); }
+console.log(`  item 1's point: the floor's change at death tax 0, ${f3(d0pool)} points; under SHIFT ${f3(d0pool - 0.25)}`);
+console.log(`CREDENCE item 1: point ${f2(W1.SAME * d0pool + W1.SHIFT * (d0pool - 0.25))} HELD ${f2(c1.HELD)} INCONCLUSIVE ${f2(c1.INCONCLUSIVE)} FALSIFIED ${f2(c1.FALSIFIED)}`);
 console.log(`CREDENCE item 2: point ${f2(mean(PANEL.map(id => W2s.DT * keptAt(id, RMED) + W2s.TAIL + W2s.PHOLD * 0.4 + W2s.OTHER * 0.5)))} HELD ${f2(c2s.HELD)} INCONCLUSIVE ${f2(c2s.INCONCLUSIVE)} FALSIFIED ${f2(c2s.FALSIFIED)}`);

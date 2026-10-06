@@ -37,7 +37,9 @@ const SEED = process.argv[6] ? Number(process.argv[6]) : 7005;
 if (!(SEED >= 1)) { console.error(`audit-dto97: bad seed ${process.argv[6]}`); process.exit(2); }
 const LAMBDA = 0.0223606797749979, W = 0.02, DEATH_TAX = 40;
 // the arms: [name, solvePlan's allowance options]; the death-tax households run both
-export const ARMS = [['SNAP', {}], ['PCLSI', { pclsInterp: true }]];
+// SNAP's snap set explicitly (pclsInterp false), so the arm stays today's snap whatever the solver's default (the
+// interpolated axis is to become the research candidate's default: the maintainer, 6 Oct); the solve is ADOPT-PI's SNAP
+export const ARMS = [['SNAP', { pclsInterp: false }], ['PCLSI', { pclsInterp: true }]];
 export const DT_PANEL = ['share 0.70', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 4+cost', 'S366'];
 
 // audit-dpc.mjs l.59-87, copied (its module runs its units on import): DP's panel and its built variants

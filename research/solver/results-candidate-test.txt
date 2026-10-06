@@ -26,7 +26,15 @@ PASS  planted: a carried key before a nested conditional object and the spread i
 PASS  planted: a carried key inside a nested conditional object before the spread is flagged
 PASS  planted: a variable spread before the research spread is flagged (audit-dto97.mjs's arm shape)
 PASS  a variable spread after the research spread is not flagged
-PASS  the scan finds the research scripts (284): a scan that ran on nothing is an error
+PASS  planted: a conditional spread with a variable branch before the spread is flagged
+PASS  planted: a carried shorthand key before the spread is flagged
+PASS  planted: a carried quoted key before the spread is flagged
+PASS  planted: a carried key in an earlier Object.assign source is flagged
+PASS  planted: a variable earlier Object.assign source is flagged
+PASS  a key in a later Object.assign source is not flagged
+PASS  shorthand keys the spread does not carry are not flagged
+PASS  a destructuring of RESEARCH_OPTS is not flagged
+PASS  the scan finds the research scripts and tests (368): a scan that ran on nothing is an error
 PASS  no research script sets a candidate key before spreading RESEARCH_OPTS or CANDIDATE_OPTS
 
-=========== 30 passed, 0 failed ===========
+=========== 38 passed, 0 failed ===========

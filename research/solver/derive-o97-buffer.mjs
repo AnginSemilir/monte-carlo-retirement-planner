@@ -12,7 +12,8 @@
  * each rate (mean, se over paths, and the median path's change), and in lifetime tax plus deferred tax (the whole tax bill
  * on the pension money). Declared: a flat drawing rate stands in for the tax a real draw-down would pay (the personal
  * allowance and the State Pension's use of it are ignored), and the last recorded pension stands in for the pension at the
- * horizon's end (as derive-dto97.mjs's revaluation, which its check against re-solved arms found to understate the shift).
+ * horizon's end (as derive-dto97.mjs's revaluation; the deep review after FORCE-X, 6 Oct 08:08 UK, found that
+ * revaluation overstating the re-solved shift about twofold on S130 and S370; derive-dto97.mjs has not been run since).
  *   node research/solver/derive-o97-buffer.mjs > research/solver/results-derive-o97-buffer.txt
  */
 import { references, lastPension } from './reduce-dto97.mjs';

@@ -84,6 +84,8 @@ console.log(`\n3. THE DERIVED CREDENCES: SAME at the NOHARM base rate ${BASE}, D
 const W = { SAME: BASE, DRIFT: (1 - BASE) / 2, ONE: (1 - BASE) / 2 };
 const cred = [0, 1, 2].map(i => Object.fromEntries(['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(o => [o, Object.keys(W).reduce((t, s) => t + W[s] * P[s][i][o], 0)])));
 cred.forEach((x, i) => console.log(`  item ${i + 1}: HELD ${x.HELD.toFixed(2)}, INCONCLUSIVE ${x.INCONCLUSIVE.toFixed(2)}, FALSIFIED ${x.FALSIFIED.toFixed(2)}`));
+// the point: item 1's mean survival change over the 25 under SAME, and the whole score's
+const pt = PANEL.map(id => { const r = rec[id], f = N / r.n; return 100 * (r.saved - r.lost) * f / N; });
 // the decision table's rows: all three HELD; any FALSIFIED; else (one or more INCONCLUSIVE, none FALSIFIED) - per draw, by story
 const rows = { all: 0, fals: 0, inc: 0 };
 for (const [name, S] of Object.entries(STORIES)) {
@@ -92,6 +94,9 @@ for (const [name, S] of Object.entries(STORIES)) {
   rows.all += W[name] * a / DRAWS; rows.fals += W[name] * f / DRAWS; rows.inc += W[name] * (DRAWS - a - f) / DRAWS;
 }
 console.log(`\n4. THE DECISION TABLE'S ROWS (derived): all three HELD ${rows.all.toFixed(2)}; any FALSIFIED ${rows.fals.toFixed(2)}; else (an INCONCLUSIVE, none FALSIFIED) ${rows.inc.toFixed(2)}`);
-// the point: item 1's mean survival change over the 25 under SAME, and the whole score's
-const pt = PANEL.map(id => { const r = rec[id], f = N / r.n; return 100 * (r.saved - r.lost) * f / N; });
+// the credence lines the prediction check reads, each with its item's point (item 1 the panel's mean survival change under
+// SAME, item 2 the whole score's least household point, item 3 spending's least household change in %)
+{ const pts = [(pt.reduce((t, x) => t + x, 0) / pt.length).toFixed(2), Math.min(...PANEL.map(id => rec[id].wsv + rec[id].wrest / 2)).toFixed(3), (100 * Math.min(...PANEL.map(id => rec[id].sd))).toFixed(2)];
+  console.log('');
+  cred.forEach((x, i) => console.log(`CREDENCE item ${i + 1}: point ${pts[i]} HELD ${x.HELD.toFixed(2)} INCONCLUSIVE ${x.INCONCLUSIVE.toFixed(2)} FALSIFIED ${x.FALSIFIED.toFixed(2)}`)); }
 console.log(`\n5. THE POINTS under SAME: the panel's mean survival change ${(pt.reduce((t, x) => t + x, 0) / pt.length).toFixed(3)} points (median ${[...pt].sort((x, y) => x - y)[12].toFixed(3)}, least ${Math.min(...pt).toFixed(3)} on ${PANEL[pt.indexOf(Math.min(...pt))]}); the whole score's least point ${Math.min(...PANEL.map(id => rec[id].wsv + rec[id].wrest / 2)).toFixed(3)}; spending's least ${(100 * Math.min(...PANEL.map(id => rec[id].sd))).toFixed(3)}%`);

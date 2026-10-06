@@ -270,8 +270,8 @@ export function reading(units, TR, out = console.log, n = N) {
   const spMemo = {};
   const SP = id => spMemo[id] || (spMemo[id] = (() => { const X = T(id, 'SHIP'), Y = T(id, 'CAND'), sy = spendYears(X, Y), sb = spendBoth(X, Y, sy), change = spendChange(sb.a, sb.b), N0 = X.N, rel = new Float64Array(N0), k = sb.a.length; let ma = 0; for (const x of sb.a) ma += x; ma /= k; sb.idx.forEach((pi, j) => { rel[pi] = (sb.b[j] - sb.a[j]) / ma * N0 / k; }); return { change, rel, kept: k, old: spendChange(spendPaths(X, sy), spendPaths(Y, sy)) }; })());
   out(`7AJ: THE RESEARCH CANDIDATE AGAINST THE SHIPPING DEFAULT AT THE ESTATE WEIGHT ${W} (predictions/diag-7aj.md; ${n} paths of seed ${SEED}, both arms on O60's blend-median tiers; the fair-test gate passed: the stamps, every unit once and done at the registered settings, the arms' settings, every trace the log's)\n`);
-  out('EVERY UNIT: the table, the simulated survival, the year-0 gap and opening, the risk-above decision, years below target, tier changes and estate');
-  for (const id of PANEL) for (const k of ['SHIP', 'CAND']) { const u = U(id, k); out(`  ${`${id} ${k}`.padEnd(20)} table ${u.table} sim ${u.run.sim.toFixed(2)} gap ${u.gap.gap} (opening ${u.gap.open1e3},${u.gap.open0}) riskAbove ${u.joint.decided} below ${u.run.below.toFixed(2)} changes ${u.run.changes.toFixed(3)} estate ${u.run.estate}`); }
+  out('EVERY UNIT: the table, the simulated survival, the table error (table less simulated: the misread 7af and 7ai saw on SHIP), the year-0 gap and opening, the risk-above decision, years below target, tier changes and estate');
+  for (const id of PANEL) for (const k of ['SHIP', 'CAND']) { const u = U(id, k); out(`  ${`${id} ${k}`.padEnd(20)} table ${u.table} sim ${u.run.sim.toFixed(2)} error ${(Number(u.table) - u.run.sim).toFixed(2)} gap ${u.gap.gap} (opening ${u.gap.open1e3},${u.gap.open0}) riskAbove ${u.joint.decided} below ${u.run.below.toFixed(2)} changes ${u.run.changes.toFixed(3)} estate ${u.run.estate}`); }
   const it = items(K, WL, SP);
   out('\nTHE ITEMS (each read by its registered rule)');
   for (const x of it) {

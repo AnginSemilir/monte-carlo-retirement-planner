@@ -23,4 +23,6 @@ caught: 22: v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INC
 caught: 23: v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INC
 caught: 24: if (v === v) return v; } return 0; }
 caught: 25: for (let y = t.Y - 1; y >= 0; y--) { const v = t.pen[j * t.Y
-25 of 25 mutations caught
+caught: 26: x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j) * A0
+caught: 27: x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j) * A0
+27 of 27 mutations caught

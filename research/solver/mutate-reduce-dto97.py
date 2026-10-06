@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # DT-O97'S REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6): each mutation breaks one part of reduce-dto97.mjs's gate,
-# pairing with ADOPT-PI, items or last-pension read in a scratch copy, runs the planted set and must see PLANTED CHECK FAILED.
+# pairing with ADOPT-PI, items, last-pension read or per-arm split in a scratch copy, runs the planted set and must see PLANTED CHECK FAILED.
 #   python3 research/solver/mutate-reduce-dto97.py > research/solver/results-reduce-dto97-mutations.txt
 from mutate_lib import run
 M = [
@@ -29,6 +29,8 @@ M = [
   ("v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INCONCLUSIVE'", "v: nDT >= NEED ? 'HELD' : nTAIL >= 3 ? 'FALSIFIED' : 'INCONCLUSIVE'"),
   ("if (v === v) return v; } return 0; }", "if (v === v) return v; } return NaN; }"),
   ("for (let y = t.Y - 1; y >= 0; y--) { const v = t.pen[j * t.Y + y];", "for (let y = 0; y < t.Y; y++) { const v = t.pen[j * t.Y + y];"),
+  ("x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j) * A0.survived[j]);", "x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j));"),
+  ("x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j) * A0.survived[j]);", "x[j] = A4.net[j] - A0.net[j];"),
 ]
 M = [m for m in M if m[0] != m[1]]
 run('reduce-dto97.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

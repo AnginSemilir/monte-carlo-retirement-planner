@@ -79,3 +79,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 08:08 UTC | reduce-dto97.mjs bb7ad695e272 | 23 of 23 caught | escaped: none
 2026-10-06 08:10 UTC | reduce-dto97.mjs d9f2ecdbd45c | 24 of 24 caught | escaped: none
 2026-10-06 08:22 UTC | reduce-dto97.mjs 8a2f31ace72a | 25 of 25 caught | escaped: none
+2026-10-06 10:06 UTC | reduce-dto97.mjs a34df878349a | 25 of 25 caught | escaped: none
+2026-10-06 10:07 UTC | reduce-dto97.mjs a34df878349a | 27 of 27 caught | escaped: none

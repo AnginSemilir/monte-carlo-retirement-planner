@@ -121,6 +121,13 @@ export function item2(rows, { b = B } = {}) {
 }
 /* a path's pension at its last recorded year (0 when none is recorded) */
 export function lastPension(t, j) { for (let y = t.Y - 1; y >= 0; y--) { const v = t.pen[j * t.Y + y]; if (v === v) return v; } return 0; }
+/* THE PER-ARM SPLIT (the deep review of 6 Oct 10:37 UK): per path, an arm's re-solved net at the death tax less its own
+   revaluation (its death-tax-0 net less the death tax x its last pension on a surviving path). 0 when the re-solve only
+   revalues; the PCLSI less SNAP difference is what the re-solve adds to item 2's d beyond the revaluation (DT against
+   DT-DRIFT). The last recorded pension stands in for the grown one the charge applies to (solve.js l.223 grown[0]): a
+   level bias in each arm, little in the difference, NOT CHECKED. */
+export function armSplit(A0, A4) { const n = A0.N, x = new Array(n); for (let j = 0; j < n; j++) x[j] = A4.net[j] - (A0.net[j] - DT * lastPension(A0, j) * A0.survived[j]); return x; }
+export function meanSe(x) { const n = x.length, m = mean(x), sd = Math.sqrt(x.reduce((a, v) => a + (v - m) * (v - m), 0) / (n - 1)); return { m, se: sd / Math.sqrt(n) }; }
 
 const f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-'), f3 = x => (Number.isFinite(x) ? x.toFixed(3) : '-'), pv = x => (Number.isFinite(x) ? x.toFixed(4) : '-');
 export function reading(files, refFiles, out = console.log, { b = B } = {}) {
@@ -151,6 +158,12 @@ export function reading(files, refFiles, out = console.log, { b = B } = {}) {
       rv += (P0.net[j] - DT * lastPension(P0, j) * P0.survived[j]) - (S0.net[j] - DT * lastPension(S0, j) * S0.survived[j]);
     }
     out(`  ${id.padEnd(16)} tax at 0 ${f2(t0 / N).padStart(11)}   at ${DT_RATE} ${f2(t4 / N).padStart(11)}   with the death charge ${f2(tc / N).padStart(11)}   | revalued net change ${f2(rv / N).padStart(11)} against re-solved ${f2(pairs[id] ? mean(arr(P4.net).map((v, j) => v - S4.net[j])) : NaN).padStart(11)}`);
+  }
+  out(`\nREPORTED: the per-arm split (the deep review of 6 Oct 10:37 UK) - each arm's re-solved net at ${DT_RATE} less its own revaluation, mean (se) a path; the extra on d is PCLSI's less SNAP's, what the re-solve adds to item 2's net change beyond the revaluation (near 0: DT; negative: DT-DRIFT, PCLSI's tail net lowered by its own re-solve). Item 2 is not attributed until this is read`);
+  for (const id of PANEL) {
+    const sS = armSplit(refFiles[`${id} SNAP`], files[`${id} DT SNAP`]), sP = armSplit(refFiles[`${id} PCLSI`], files[`${id} DT PCLSI`]);
+    const a = meanSe(sS), c = meanSe(sP), e = meanSe(sP.map((v, j) => v - sS[j])), c2 = x => `${f2(x.m).padStart(12)} (${f2(x.se).padStart(10)})`;
+    out(`  ${id.padEnd(16)} SNAP ${c2(a)}   PCLSI ${c2(c)}   extra on d ${c2(e)}`);
   }
   out('\nREPORTED: the hold (paths reaching 0.6 of the allowance, crossing 0.75, the mean years in [0.6, 0.75) of the reaching paths), each arm at 0 and at the death tax');
   for (const id of PANEL) { const h = (t) => { const x = hold(t); return `${String(x.reach).padStart(5)} ${String(x.cross).padStart(5)} ${f2(x.dwell).padStart(5)}`; }; out(`  ${id.padEnd(16)} SNAP 0 ${h(refFiles[`${id} SNAP`])} ${DT_RATE} ${h(files[`${id} DT SNAP`])} | PCLSI 0 ${h(refFiles[`${id} PCLSI`])} ${DT_RATE} ${h(files[`${id} DT PCLSI`])}`); }
@@ -239,6 +252,9 @@ function planted() {
     cases.push(['an undecoded pension trace is refused; decoded it passes', `${decodedProblems({ x: raw }).length} ${decodedProblems({ x: full(raw) }).length}`, '1 0']); EDGES.push('an undecoded pension trace'); }
   // the last pension: the last recorded year; 0 when none is recorded
   { const t = builtFile({ N: 2 }); t.pen.fill(NaN); t.pen[5] = 7; t.pen[9] = 9; cases.push(['the last pension is the last recorded year\'s, 0 when none', `${lastPension(t, 0)} ${lastPension(t, 1)}`, '9 0']); }
+  // the per-arm split: a re-solve that only revalues (net at the death tax = net at 0 less 0.4 x the pension on survivors) splits to 0; a drift of -100 a path shows as -100
+  { const A0 = builtFile({ N: 10, surv: 8, pens: 1000, net: j => 5000 + j }), A4 = builtFile({ N: 10, surv: 8, pens: 1000, net: j => (j < 8 ? 5000 + j - 400 : 5000 + j) }), D4 = builtFile({ N: 10, surv: 8, pens: 1000, net: j => (j < 8 ? 4900 + j - 400 : 4900 + j) });
+    cases.push(['the per-arm split of a pure revaluation is 0 on every path; a drift of -100 reads -100', `${armSplit(A0, A4).every(v => v === 0)} ${meanSe(armSplit(A0, D4)).m}`, 'true -100']); EDGES.push('a re-solve that only revalues'); }
   const fails = cases.filter(([, got, want]) => String(got) !== String(want));
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

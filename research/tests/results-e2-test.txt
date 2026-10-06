@@ -1,0 +1,11 @@
+PASS  S126 CANDIDATE at 4 points: every table bit for bit the same split 4 ways (1800 arrays, 2332800 values; 88.391 s unsplit, 28.032 s split)
+PASS  S126 CANDIDATE: the same moves evaluated (4953600) and cells copied (e3 {"copied":10560}, coverage null)
+PASS  S194 PRODUCT at 4 points: every table bit for bit the same split 4 ways (615 arrays, 797040 values; 40.401 s unsplit, 12.969 s split)
+PASS  S194 PRODUCT: the same moves evaluated (6376320) and cells copied (e3 null, coverage null)
+PASS  S130 COV at 4 points: every table bit for bit the same split 4 ways (600 arrays, 907200 values; 40.289 s unsplit, 12.235 s split)
+PASS  S130 COV: the same moves evaluated (6233760) and cells copied (e3 null, coverage {"nodes":2,"copied":8532})
+PASS  S130 COV: the copy pass ran on cells that read another cell of their year (8532 copied)
+PASS  planted: a part that claims cells and never writes them breaks identity (510632 values differ)
+PASS  planted: a part that fails fails the split solve (e2: part 0: another part failed, after 1.216 s)
+
+e2: 9 passed

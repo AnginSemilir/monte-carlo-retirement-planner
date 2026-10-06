@@ -122,7 +122,7 @@ function unstampedImports(SF, root = ROOT) {
   const out = new Set();
   for (const f of SF.filter(x => /\.(m?js)$/.test(x))) {
     const text = readFileSync(join(root, f), 'utf8');
-    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g)) {
+    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
       const spec = m[1];
       if (spec.startsWith('node:') || !(spec.startsWith('.') || spec.startsWith('/'))) continue;
       const abs = spec.startsWith('/') ? spec : join(root, dirname(f), spec);
@@ -150,8 +150,12 @@ ok(['research/solver/settings.mjs', 'research/solver/code-id.mjs'].every(x => SF
   writeFileSync(join(SD, 'b.mjs'), "import './c.mjs';\nexport const b = 1;\n");
   writeFileSync(join(SD, 'c.mjs'), "const d = require('./d.cjs');\n");
   writeFileSync(join(SD, 'd.cjs'), 'module.exports = 1;\n');
+  // a worker's file named by new URL (e2.mjs's e2-worker.mjs; the plan-auditor's MINOR 5 on c60a545864)
+  writeFileSync(join(SD, 'a.mjs'), "import { b } from './b.mjs';\nconst W = new URL('./w.mjs', import.meta.url);\nexport const a = b;\n");
+  writeFileSync(join(SD, 'w.mjs'), 'export const w = 1;\n');
   const PS2 = smokeFiles(T);
   ok(PS2.includes('research/solver/c.mjs') && PS2.includes('research/solver/d.cjs'), `planted: a side-effect import and a require are followed (${PS2.filter(x => /\/(c\.mjs|d\.cjs)$/.test(x)).join(', ')})`);
+  ok(PS2.includes('research/solver/w.mjs'), 'planted: a worker file named by new URL(..., import.meta.url) is followed');
   rmSync(T, { recursive: true, force: true });
 }
 

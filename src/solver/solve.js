@@ -584,19 +584,29 @@ export function solve(E, M, plan, opts = {}) {
     ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0) + (c.tiers.gia ? eqDrop(c.tiers.gia, c.acts[ai].tierGia) : 0))
     : 0));
 
+  /*
+   * E2 (PLAN.md Phase 4 condition 5, the maintainer 6 Oct): one solve split across cores. `opts.e2` = { part, parts,
+   * f64(n), u16(n), i32(n), barrier(), sum(n) }, built by research/solver/e2.mjs: every part runs this same solve, its
+   * tables in memory every part shares; a part solves each cell of a year it is first to claim, then all wait; part 0 makes the copied cells
+   * (e3, COV) and the log-odds, all wait again, and each part builds its own reader tables. Absent, nothing changes.
+   */
+  const E2 = opts.e2 && opts.e2.parts > 1 ? opts.e2 : null;
+  const f64 = E2 ? E2.f64 : (n) => new Float64Array(n), u16 = E2 ? E2.u16 : (n) => new Uint16Array(n);
   // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
-  const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = new Float64Array(g.size); return a; };
+  const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = f64(g.size); return a; };
   const survW = [], lsurvW = [], resilW = [], lresilW = [], beqW = [], polW = [], shortW = [];
   for (let k = 0; k < K; k++) {
     survW[k] = mk(); lsurvW[k] = mk(); resilW[k] = mk(); lresilW[k] = mk(); beqW[k] = mk(); shortW[k] = mk();
     // Uint16, not Uint8: with tiers and five spending levels the menu has 360 moves (432 with six), and a
     // byte silently wrapped every index above 255 to a different move. Found 23 Sep; see results-pol-overflow.txt
-    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint16Array(g.size);
+    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = u16(g.size);
   }
   // the tier state's layers (above): layer tsJ0, the plan's own pair, IS each world's tables; the others are allocated here
-  const mkPol = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = new Uint16Array(g.size); return a; };
+  const mkPol = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = u16(g.size); return a; };
   const layW = TS ? cs.map((_, k) => tsPairs.map((_, j) => (j === tsJ0 ? { surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k] }
     : { surv: mk(), lsurv: mk(), resil: mk(), lresil: mk(), beq: mk(), short: mk(), pol: mkPol() }))) : null;
+  // E2: who solves each cell this year - the first part to claim it (cells cost unequally, so a fixed share would idle parts)
+  const claim = E2 ? E2.i32(g.size) : null;
   const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
@@ -844,6 +854,21 @@ export function solve(E, M, plan, opts = {}) {
   if (opts.bridgeStep === 'exact' && opts.bridgeRead !== 'reader') throw new Error("bridgeStep 'exact' needs the bridge reader (bridgeRead: 'reader')");
   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
+  const isE3Copy = (ii, it, ig) => E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1);
+  const isCovCopy = (ip, ii, t) => !!g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t);
+  // E2's copy pass: the copied cells, in the loop's own order, so a copy of a copy reads its source already made
+  const copyPass = (t) => {
+    for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
+      const idx = g.index(ip, ii, it, ig, ic);
+      let src = -1;
+      if (isE3Copy(ii, it, ig)) { src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic); e3Copied++; }
+      else if (isCovCopy(ip, ii, t)) { src = g.index(ip, ii - 1, it, ig, ic); covCopied++; }
+      if (src < 0) continue;
+      for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+        L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+      }
+    }
+  };
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
     const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
@@ -854,12 +879,17 @@ export function solve(E, M, plan, opts = {}) {
       if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
     }
+    let cellNo = 0;
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
           for (let ii = 0; ii < g.ni; ii++) {
             for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
+              // E2: a copied cell reads another cell of this year, so the copies wait until every part's cells are done
+              if (E2 && (isE3Copy(ii, it, ig) || isCovCopy(ip, ii, t))) continue;
+              if (E2 && Atomics.compareExchange(claim, cellNo++, 0, 1) !== 0) continue;
+              if (E2 && E2.planted === 'drop' && E2.part === 1) continue;   // tests only: a part that claims cells and never writes them
               if (E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1)) {
                 // `e3PlantedWrongTwin` (tests only): copy from the ISA-share neighbour, so the identity test is shown to fail
                 const src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic);
@@ -1154,9 +1184,18 @@ export function solve(E, M, plan, opts = {}) {
         }
       }
     }
-    for (let k = 0; k < K; k++) for (const Ly of (TS ? layW[k] : [{ surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k] }])) {
-      toLogOdds(Ly.surv[t], Ly.lsurv[t]);
-      if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]);
+    const layersOf = (k) => (TS ? layW[k] : [{ surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k] }]);
+    if (E2) {
+      E2.barrier();
+      if (E2.part === 0) {
+        claim.fill(0);
+        copyPass(t);
+        for (let k = 0; k < K; k++) for (const Ly of layersOf(k)) { toLogOdds(Ly.surv[t], Ly.lsurv[t]); if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]); }
+      }
+      E2.barrier();
+    }
+    for (let k = 0; k < K; k++) for (const Ly of layersOf(k)) {
+      if (!E2) { toLogOdds(Ly.surv[t], Ly.lsurv[t]); if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]); }
       // the bridge reader: this year's table split into p x c + R, from the clamped survival the table now holds
       if (g.reader && g.reader.years[t]) {
         const ls = Ly.lsurv[t], Sc = new Float64Array(ls.length);
@@ -1170,9 +1209,11 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
+  if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); }
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };
+  if (E2) meta.e2 = { parts: E2.parts };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {

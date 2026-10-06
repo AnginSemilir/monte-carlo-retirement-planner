@@ -52,12 +52,13 @@ export function smokeFiles(root = ROOT) {
   // and every module those import, from anywhere in the repository, followed to the end (fair-gate.test.mjs: every module
   // a stamped script imports is stamped too; 25 Sep evening, reduce-7e.mjs's stats.mjs and fair-gate.mjs were outside the
   // stamp; 6 Oct, research-opts.mjs, two imports down from size-probe.mjs): from, dynamic import(), a side-effect import
-  // and require (the plan-auditor's MINOR on 09dd9a7335)
+  // and require (the plan-auditor's MINOR on 09dd9a7335), and a worker's file named by new URL(<its path>, import.meta.url)
+  // (its MINOR 5 on c60a545864: e2-worker.mjs)
   const seen = new Set(seed), queue = seed.filter(f => /\.m?js$/.test(f)), extra = [];
   while (queue.length) {
     const f = queue.shift(), p = join(root, f);
     if (!existsSync(p)) continue;
-    for (const m of readFileSync(p, 'utf8').matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*)['"]([^'"]+)['"]/g)) {
+    for (const m of readFileSync(p, 'utf8').matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
       if (!m[1].startsWith('.')) continue;
       const rel = relative(root, join(root, dirname(f), m[1]));
       if (rel.startsWith('..') || seen.has(rel)) continue;

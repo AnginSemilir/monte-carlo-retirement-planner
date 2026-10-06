@@ -74,3 +74,8 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 03:58 UTC | reduce-forcex.mjs 10b810eaed4a | 29 of 29 caught | escaped: none
 2026-10-06 04:53 UTC | reduce-forcex.mjs 42e47f874676 | 29 of 29 caught | escaped: none
 2026-10-06 06:44 UTC | reduce-forcex.mjs 6619b3734214 | 31 of 31 caught | escaped: none
+2026-10-06 08:07 UTC | reduce-dto97.mjs a5f270b33202 | 16 of 23 caught | escaped: NOT CAUGHT: 7: if (ref.length !== 2) { bad.push(; NOT CAUGHT: 10: const ph = holm(ids.map(id => mcnemarHarmP(pairs[id].b, pair; NOT CAUGHT: 12: pool.lo > -pool.margin ? 'HELD' : 'INCONCLUSIVE';; NOT CAUGHT: 13: if (!(mean(r.d0) < 0)) return [1, 1];; NOT CAUGHT: 16: const h = holm(ps);; NOT CAUGHT: 17: h[2 * i] < ALPHA ? 'DT' : h[2 * i + 1] < ALPHA ? 'TAIL' : 'U; NOT CAUGHT: 18: h[2 * i] < ALPHA ? 'DT' : h[2 * i + 1] < ALPHA ? 'TAIL' : 'U
+2026-10-06 08:08 UTC | reduce-dto97.mjs 67008e8698f3 | 0 of 23 caught | escaped: the true script fails its planted set
+2026-10-06 08:08 UTC | reduce-dto97.mjs bb7ad695e272 | 23 of 23 caught | escaped: none
+2026-10-06 08:10 UTC | reduce-dto97.mjs d9f2ecdbd45c | 24 of 24 caught | escaped: none
+2026-10-06 08:22 UTC | reduce-dto97.mjs 8a2f31ace72a | 25 of 25 caught | escaped: none

@@ -1,0 +1,26 @@
+caught: 1: if (!t || !(t.pen instanceof Float32Array) || t.pen.length !
+caught: 2: for (const k of UNIT_KEYS) { const n = units.filter(u => key
+caught: 3: if (!UNIT_KEYS.includes(tag)) { bad.push(`${tag}: not a regi
+caught: 4: if (!u.done) bad.push(`${tag}: not done`);
+caught: 5: pclsInterp: ARMS[u.arm], mix: '3', deathTax: DT_RATE };
+caught: 6: pclsInterp: ARMS[u.arm], mix: '3', deathTax: DT_RATE };
+caught: 7: if (new Set(us.map(u => u.sum.pathsum)).size > 1) bad.push(`
+caught: 8: if (ref.length !== 2) { bad.push(
+caught: 9: if (paths && ps.size !== 1) bad.push(`${id}: not ADOPT-PI's 
+caught: 10: if (paths && ps.size !== 1) bad.push(`${id}: not ADOPT-PI's 
+caught: 11: else if (t.N !== r.N || t.Y !== r.Y) bad.push(
+caught: 12: const ph = holm(ids.map(id => mcnemarHarmP(pairs[id].b, pair
+caught: 13: one.some(r => r.outcome === 'harm') || pool.hi < -pool.margi
+caught: 14: pool.lo > -pool.margin ? 'HELD' : 'INCONCLUSIVE';
+caught: 15: if (!(mean(r.d0) < 0)) return [1, 1];
+caught: 16: flipP(r.d4.map((x, j) => x - KEEP_DT * r.d0[j]), b, 7701 + 2
+caught: 17: flipP(r.d0.map((x, j) => KEEP_TAIL * x - r.d4[j]), b, 7702 +
+caught: 18: const h = holm(ps);
+caught: 19: h[2 * i] < ALPHA ? 'DT' : h[2 * i + 1] < ALPHA ? 'TAIL' : 'U
+caught: 20: h[2 * i] < ALPHA ? 'DT' : h[2 * i + 1] < ALPHA ? 'TAIL' : 'U
+caught: 21: v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INC
+caught: 22: v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INC
+caught: 23: v: nDT >= NEED ? 'HELD' : nTAIL >= NEED ? 'FALSIFIED' : 'INC
+caught: 24: if (v === v) return v; } return 0; }
+caught: 25: for (let y = t.Y - 1; y >= 0; y--) { const v = t.pen[j * t.Y
+25 of 25 mutations caught

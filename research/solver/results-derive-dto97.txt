@@ -16,20 +16,34 @@ GATE (ADOPT-PI's files, through their own gate): passed; planted: passed
   rho: median 1.781, range 1.250 to 2.899
   the kept share each loss household would show at the check's rho (median, low, high): share 0.70 -0.780 (-0.249, -1.897); share 0.90 -0.886 (-0.324, -2.070); share 0.95 -0.863 (-0.308, -2.033); bridge 0 -0.711 (-0.201, -1.784); bridge 1 -0.642 (-0.152, -1.672); bridge 4+cost -0.486 (-0.043, -1.419); S366 -1.433 (-0.708, -2.961)
 
-3. THE POWER: the registered rules over 20 path resamples (flipP B 2000)
+2b. THE PER-ARM SPLIT on the check households: each arm's re-solved net at 0.4 less its own revaluation, mean a path; the extra on d (PCLSI's less SNAP's) and its share of SNAP's mean net at 0
+  S130   SNAP   -77268.22   PCLSI  -198546.93   extra on d  -121278.72 (se 4257.12)   share of SNAP's net -2.653%
+  S370   SNAP   127612.85   PCLSI   -69138.24   extra on d  -196751.08 (se 237660.15)   share of SNAP's net -2.314%
+  S128   SNAP   -13213.12   PCLSI   -10657.64   extra on d     2555.48 (se 884.00)   share of SNAP's net 0.244%
+  the kept share each loss household would show at rho 1 with S128's drift (DT) and with S130's (DT-DRIFT): share 0.70 -0.605 / 6.576; share 0.90 -0.374 / 3.368; share 0.95 -0.323 / 2.959; bridge 0 -0.279 / 3.505; bridge 1 -0.162 / 2.693; bridge 4+cost 0.014 / 1.814; S366 -0.852 / 4.910
+
+3. THE POWER: the registered rules over 20 path resamples (flipP B 2000); d4 is the revaluation's per-path pattern scaled to a kept share (rho), plus a story's drift (a constant a path, its share of the household's SNAP mean net at 0), plus for NOISY extra per-path noise tripling the se of mean(d4 - 0.25 d0) (the review: the scaled model understates it 1.2 to 3.1 times)
   item 2, DT   : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 2, DTLO : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 2, DTHI : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, DRIFT: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
   item 2, TAIL : HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
   item 2, PHOLD: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 2, OTHER: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the rho sweep (no drift; reported, no story): 
+    rho 0.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+    rho 0.6: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+    rho 0.7: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+    rho 0.8: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+    rho 0.9: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+    rho 1.0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, DT with the noise tripled (reported, no story): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 1, SAME : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SMALL: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 1, SHIFT: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
 
 4. THE CREDENCES
-  item 1 (SAME 0.8, the NOHARM base rate; SHIFT 0.20): HELD 0.80 INCONCLUSIVE 0.00 FALSIFIED 0.20
-  item 2 (from the deep-review base rate 0.1 times the review's likelihood ratio, 0.60 against its prior 0.30: DT 0.280, TAIL 0.360, PHOLD 0.180, OTHER 0.180): HELD 0.28 INCONCLUSIVE 0.36 FALSIFIED 0.36
-  item 2, sensitivity: the review's own weights, unshaded (DT 0.60, TAIL 0.20, PHOLD 0.10, OTHER 0.10): HELD 0.60 INCONCLUSIVE 0.20 FALSIFIED 0.20
-  item 1's point: the floor's change at death tax 0, 0.010 points; under SHIFT -0.240
-CREDENCE item 1: point -0.04 HELD 0.80 INCONCLUSIVE 0.00 FALSIFIED 0.20
-CREDENCE item 2: point 0.29 HELD 0.28 INCONCLUSIVE 0.36 FALSIFIED 0.36
+  item 1 (SAME 0.8, the NOHARM base rate; SMALL and SHIFT 0.10 each): HELD 0.80 INCONCLUSIVE 0.10 FALSIFIED 0.10
+  item 2 (O97-DT at the deep-review base rate 0.1, the rest in the review's proportions: DT 0.100, DRIFT 0.553, TAIL 0.158, PHOLD 0.111, OTHER 0.079): HELD 0.10 INCONCLUSIVE 0.19 FALSIFIED 0.71
+  item 2, sensitivity: the review's own weights, normalised (DT 0.412, DRIFT 0.361, TAIL 0.103, PHOLD 0.072, OTHER 0.052): HELD 0.41 INCONCLUSIVE 0.12 FALSIFIED 0.46
+  item 1's point: the floor's change at death tax 0, 0.010 points; under SMALL -0.090, under SHIFT -0.240
+CREDENCE item 1: point -0.03 HELD 0.80 INCONCLUSIVE 0.10 FALSIFIED 0.10
+CREDENCE item 2: point 2.24 HELD 0.10 INCONCLUSIVE 0.19 FALSIFIED 0.71

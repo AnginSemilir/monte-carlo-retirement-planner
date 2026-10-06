@@ -4,6 +4,8 @@
 #   python3 research/solver/mutate-reduce-forcex.py > research/solver/results-reduce-forcex-mutations.txt
 from mutate_lib import run
 M = [
+  ("if (t.xt[i] + 1 < t.Y && t.pen[o] < 1) emptied++; else short++;", "emptied++;"),
+  ("if (t.xt[i] + 1 < t.Y && t.pen[o] < 1) emptied++; else short++;", "if (t.xt[i] + 1 < t.Y && t.pen[o] < 1e9) emptied++; else short++;"),
   # the gate
   ("for (const u of units) if (u.plant) bad.push(", "for (const u of []) if (u.plant) bad.push("),
   ("if (n !== 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);", "if (n > 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);"),

@@ -132,6 +132,19 @@ export function divergence(t, ref, pc) {
 const bytes = s => { const x = Buffer.from(s, 'base64'); return x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength); };
 const i16 = s => (s instanceof Int16Array ? s : new Int16Array(bytes(s)));
 export const decodeX = t => ({ ...decodeP({ ...decode(t), fv: null, fx: null, fc: null }), first: i16(t.first) });
+/* the carry: a force carried u to its price point, or stopped short because it drew the whole pension pot (the next year's
+   pension 0: no draw could carry it; a declared correction after launch, made on the gate's lines alone - predictions/diag-forcex.md,
+   Changes after seeing results); any other force short of its point is a fault */
+export function carry(t) {
+  let carried = 0, emptied = 0, short = 0;
+  t.xn.forEach((v, i) => {
+    if (v === null) return;
+    if (v >= t.xq[i] - 1e-9) { carried++; return; }
+    const o = t.xp[i] * t.Y + t.xt[i] + 1;
+    if (t.xt[i] + 1 < t.Y && t.pen[o] < 1) emptied++; else short++;
+  });
+  return { carried, emptied, short };
+}
 export function checkFile(t, u, st) {
   const k = `${keyOf(u)} file`;
   if (!t) return [`${k}: missing`];
@@ -143,9 +156,9 @@ export function checkFile(t, u, st) {
   let s = 0; for (let j = 0; j < t.N; j++) s += t.survived[j];
   if (s !== u.sum.survived) bad.push(`${k}: ${s} survivors in the file, ${u.sum.survived} on the sum line`);
   if (t.xp.length !== u.force.forced || [t.xt, t.xu, t.xq, t.xn].some(a => a.length !== t.xp.length)) bad.push(`${k}: ${t.xp.length} forced years in the file, ${u.force.forced} on the force line`);
-  const carried = t.xn.filter((v, i) => v !== null && v >= t.xq[i] - 1e-9).length, landed = t.xn.filter(v => v !== null).length;
-  if (carried !== u.force.carried) bad.push(`${k}: ${carried} carried forces in the file, ${u.force.carried} on the force line`);
-  if (carried !== landed) bad.push(`${k}: ${landed - carried} forces did not carry u to the price point`);
+  const c = carry(t);
+  if (c.carried !== u.force.carried) bad.push(`${k}: ${c.carried} carried forces in the file, ${u.force.carried} on the force line`);
+  if (c.short) bad.push(`${k}: ${c.short} forces did not carry u to the price point with pension left to draw`);
   return bad;
 }
 /* the first n paths of a reference file (the preflight runs 20 paths against EDGE-SPLIT's 6,000: the plan-auditor's MINOR 7 of
@@ -201,7 +214,7 @@ export function reading(files, refs, out = console.log, { b = B } = {}) {
   const arr = x => Array.from(x);
   out(`FORCE-X (EDGE-SPLIT's unit, seed 7005, ${files[`${DECIDE} ${ARMS[0]}`].N} paths a household): each arm with the draw forced past its read's first price point at a would-be hold, against the same arm unforced (EDGE-SPLIT's and HYB's files) and PCLSI unforced.`);
   out(`\nTHE FORCE (each arm: forced years, the paths forced; ACTING from the unforced partner: its hold years, the share inside a force cell; the forced run's own hold years)`);
-  for (const id of PANEL) for (const a of ARMS) { const t = files[`${id} ${a}`], s = actingFrom(refs[`${id} ${ARM[a].partner}`], ARM[a].price.split(',').map(Number)), pz = t.pu.filter(v => v >= 0.15).length; out(`  ${id.padEnd(5)} ${a.padEnd(8)} forced ${String(t.xp.length).padStart(6)}   paths ${String(arr(t.first).filter(v => v >= 0).length).padStart(5)}   partner holds ${String(s.holds).padStart(6)}   acting ${f3(s.share)}   forced run's holds ${String(pz).padStart(6)}`); }
+  for (const id of PANEL) for (const a of ARMS) { const t = files[`${id} ${a}`], s = actingFrom(refs[`${id} ${ARM[a].partner}`], ARM[a].price.split(',').map(Number)), pz = t.pu.filter(v => v >= 0.15).length; out(`  ${id.padEnd(5)} ${a.padEnd(8)} forced ${String(t.xp.length).padStart(6)}   paths ${String(arr(t.first).filter(v => v >= 0).length).padStart(5)}   partner holds ${String(s.holds).padStart(6)}   acting ${f3(s.share)}   forced run's holds ${String(pz).padStart(6)}   stopped by an emptied pot ${carry(t).emptied}`); }
   const R = {}, rec = (id, a) => recovery(arr(files[`${id} ${a}`].survived), arr(refs[`${id} ${ARM[a].partner}`].survived), arr(refs[`${id} PCLSI`].survived));
   const raw = (r, i, s) => { const pLo = r.sG > 0 ? flipP(r.lo, b, s + 2 * i) : 1, pHi = r.sG > 0 ? flipP(r.hi, b, s + 1 + 2 * i) : 1; return { ...r, pLo, pHi, read: readArm(r, pLo, pHi) }; };
   for (const id of PANEL) { const rs = DECIDING.map(a => rec(id, a)); R[id] = id === DECIDE ? item1(rs, { b }) : { reads: rs.map((r, i) => raw(r, i, 7401)) }; }
@@ -283,6 +296,13 @@ function planted() {
   const ref3 = mk([0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.5, 0.5, 0.5], [-1, -1, -1], [1, 1, 0], 3); ref3.tax = Float32Array.from([1, 1, 7]); ref3.net = Float32Array.from([1, 1, 7]);
   cases.push(['the identity: a 2-path run against a 3-path reference refuses; against its first 2 paths (headOf) it passes; headOf leaves a 2-path file as it is', `${identity(ref, ref3, 'x').some(x => /3 paths/.test(x))} ${identity(ref, headOf(ref3, 2), 'x').length} ${headOf(ref, 2) === ref}`, 'true 0 true']);
   EDGES.push('a difference in the first force\'s own year', 'an identity with every value missing', 'a preflight run shorter than its reference');
+  // the carry: path 0's force at year 0 reaches 0.75; path 1's stops at 0.70 with the pension emptied (0 the next year); path 0's
+  // second force at year 1 stops at 0.72 with pension left (a fault); a force in the last year has no next value (not counted)
+  {
+    const C = carry({ Y: 3, xp: [0, 1, 0, 1], xt: [0, 0, 1, 2], xq: [0.75, 0.75, 0.75, 0.75], xn: [0.76, 0.70, 0.72, null], pen: Float32Array.from([9, 9, 5, 9, 0, 0]) });
+    cases.push(['the carry: one carried, one stopped by an emptied pension pot, one short with pension left', JSON.stringify(C), '{"carried":1,"emptied":1,"short":1}']);
+    EDGES.push('a force that empties the pension pot short of its price point');
+  }
   // recovery and the reading: full recovery, none, half; no gap
   const n = 400, A0 = Array(n).fill(0), Pg = Array.from({ length: n }, (_, j) => (j < 100 ? 1 : 0));
   const full = recovery(Pg, A0, Pg), none = recovery(A0, A0, Pg), half = recovery(Array.from({ length: n }, (_, j) => (j < 50 ? 1 : 0)), A0, Pg), nogap = recovery(A0, A0, A0);
@@ -345,7 +365,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (!R.bad.length) { for (const id of PANEL) for (const a of ARMS) { const t = files[`${id} ${a}`], r = refs[`${id} ${ARM[a].partner}`]; bad.push(...identity(t, PRE && t ? headOf(r, t.N) : r, `${id} ${a} against ${ARM[a].partner}'s file${PRE ? ' (its first paths)' : ''}`)); } bad.push(...actingProblems(refs)); }
   }
   if (bad.length) { console.log(`GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
-  console.log(`GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force carried u past its price point; the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: ${np} passed\n`);
+  console.log(`GATE: passed - 12 units once and done at EDGE-SPLIT's unit; every force carried u past its price point or drew the whole pension pot; the force cells hold half or more of each deciding arm's S130 hold years (from its unforced partner); the identity, every year to each path's first force, against EDGE-SPLIT's and HYB's files (each through its own gate); planted: ${np} passed\n`);
   if (PRE) { console.log('PREFLIGHT: the stamp check skipped; no figure is read'); process.exit(0); }
   reading(files, refs);
 }

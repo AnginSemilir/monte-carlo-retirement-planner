@@ -69,3 +69,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 01:33 UTC | reduce-pause128.mjs 8c89daf2af95 | 22 of 22 caught | escaped: none
 2026-10-06 02:01 UTC | reduce-forcex.mjs ac873605d158 | 22 of 24 caught | escaped: NOT CAUGHT: 14: R: sG > 0 ? sD / sG : NaN; NOT CAUGHT: 15: lo: D.map((d, j) => d - LO * G[j]), hi: D.map((d, j) => HI *
 2026-10-06 02:02 UTC | reduce-forcex.mjs 17b262332ad4 | 24 of 24 caught | escaped: none
+2026-10-06 03:45 UTC | reduce-forcex.mjs c642e4ef6165 | 27 of 29 caught | escaped: NOT CAUGHT: 7: holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p ; NOT CAUGHT: 25: : reads.every(r => r.read === 'KEEPS') ? 'FALSIFIED'
+2026-10-06 03:46 UTC | reduce-forcex.mjs dbe2e7e9a5de | 29 of 29 caught | escaped: none

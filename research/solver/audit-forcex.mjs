@@ -1,14 +1,16 @@
 /*
  * FORCE-X: FORCE THE DRAW PAST THE READ'S FIRST PRICE POINT (PLAN.md's FORCE-X; proposed by the deep review after PAUSE,
  * deep-review-log.md 6 Oct 01:52 UK). EDGE-SPLIT's unit (audit-edge.mjs: no reader, the product's settings, lambda held, the
- * estate weight 0.02, 30 points, seed 7005, death tax 0, e3 off) on S130, S128 and S370, five arms each, forward only (the
+ * estate weight 0.02, 30 points, seed 7005, death tax 0, e3 off) on S130, S128 and S370, four arms each, forward only (the
  * tables are EDGE-SPLIT's, solved as audit-edge.mjs solves them):
- *   SNAP+X, P-LO+X, HYB+X (the deciding arms), S-INT+X (HOLD-PRICE's own check) and PCLSI+X (the control).
- * THE FORCE: at a year with the pension over 10,000, the arm's chosen move is run on a copy of the state (fast.js flow, the
- * year as the run will take it); if it would pause (u growing by under 0.01, u under 0.99) with u in [p - 0.05, p) for one of
- * the arm's price points p (PRICE below), the year's flow is given c.forceTF = (p + 0.01) x lsa less the copy's tax-free used:
- * one pension draw (fast.js step 7b') whose tax-free part carries u 0.01 past p. The chooser's move is not changed; the
- * chooser then runs free.
+ *   P-LO+X and HYB+X (the deciding arms: PCLSI's tables, so their gaps to PCLSI are the read's), SNAP+X (reported: the tables'
+ *   share) and PCLSI+X (the control). S-INT+X dropped (the deep review after PAUSE-S128, FLAG 5: S-INT holds past its kink).
+ * THE FORCE (amended before launch on the deep review after PAUSE-S128, deep-review-log.md 6 Oct 04:34 UK, FLAG 1): at a year
+ * with the pension over 10,000, the arm's chosen move is run on a copy of the state (fast.js flow, the year as the run will
+ * take it); if it would HOLD - u growing by under 0.02 (an allowance-only draw moves u 0.0156 a year, a zero draw 0), u under
+ * 0.99 - with u in [p - 0.10, p) and next year's u still under p, for one of the arm's price points p (PRICE below), the
+ * year's flow is given c.forceTF = (p + 0.01) x lsa less the copy's tax-free used: one pension draw (fast.js step 7b') whose
+ * tax-free part carries u 0.01 past p. The chooser's move is not changed; the chooser then runs free.
  * Recorded per path: survived, lifetime tax, terminal net, u, the pension pot and the other pots each year (as audit-edge.mjs,
  * so the reducer holds every year up to each path's first force to EDGE-SPLIT's file, the IDENTITY), the forced years (path,
  * year, u, p, the next year's u: the force must carry u to p or past it), and every pause year (path, year, u, forced).
@@ -46,13 +48,13 @@ if (!(SEED >= 1)) { console.error(`audit-forcex: bad seed ${process.argv[6]}`); 
 const LAMBDA = 0.0223606797749979, W = 0.02;
 export const PANEL = ['S130', 'S128', 'S370'];
 // the arms: EDGE-SPLIT's (audit-edge.mjs ARM) and HYB's (PCLSI's tables, the snapped read), each with the force
-export const ARM = { 'SNAP+X': { tables: 'SNAP', read: false, seg: null }, 'S-INT+X': { tables: 'SNAP', read: true, seg: null },
+export const ARM = { 'SNAP+X': { tables: 'SNAP', read: false, seg: null },
   'P-LO+X': { tables: 'PCLSI', read: true, seg: 'lo' }, 'HYB+X': { tables: 'PCLSI', read: false, seg: null }, 'PCLSI+X': { tables: 'PCLSI', read: true, seg: null } };
 // each arm's price points: where its read first prices the allowance (O111, HOLD-PRICE; predictions/diag-forcex.md)
-export const PRICE = { 'SNAP+X': [0.75], 'S-INT+X': [0.5], 'P-LO+X': [0.75], 'HYB+X': [0.25, 0.75], 'PCLSI+X': [0.25, 0.75] };
-export const CELL = 0.05, PAST = 0.01, FLAT = 0.01, LIVE = 1e4;
+export const PRICE = { 'SNAP+X': [0.75], 'P-LO+X': [0.75], 'HYB+X': [0.25, 0.75], 'PCLSI+X': [0.25, 0.75] };
+export const CELL = 0.10, PAST = 0.01, FLAT = 0.02, LIVE = 1e4;
 // one part per household and set of tables (one solve each)
-export const PARTS = PANEL.flatMap(id => [[id, 'SNAP', ['SNAP+X', 'S-INT+X']], [id, 'PCLSI', ['P-LO+X', 'HYB+X', 'PCLSI+X']]]);
+export const PARTS = PANEL.flatMap(id => [[id, 'SNAP', ['SNAP+X']], [id, 'PCLSI', ['P-LO+X', 'HYB+X', 'PCLSI+X']]]);
 if (process.argv[2] === '--jobs') { console.log(PARTS.length); process.exit(0); }
 if (!(pn === PARTS.length && pk >= 0 && pk < pn) && !(pn === 1 && pk === 0)) { console.error(`audit-forcex: bad part ${part} (${PARTS.length} parts, or 0/1 for all)`); process.exit(2); }
 const MINE = pn === 1 ? PARTS : [PARTS[pk]];
@@ -63,10 +65,10 @@ const M9 = 1000000007, f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-');
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
 const OUT = process.env.DIAGFORCEX_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagforcex');
 const gridsOf = r => [...new Set([r.g, ...(r.mix ? r.mix.tables.map(t => t.g) : [])])];
-/* the force's decision at one year: the price point the would-be pause sits below, or null */
+/* the force's decision at one year: the price point the would-be hold sits below (next year's u still under it), or null */
 export function forcePoint(prices, u, u1) {
   if (!(u < 0.99) || !(u1 - u < FLAT)) return null;
-  const p = prices.find(q => u >= q - CELL - 1e-12 && u < q);
+  const p = prices.find(q => u >= q - CELL - 1e-12 && u < q && u1 < q);
   return p === undefined ? null : p;
 }
 
@@ -88,7 +90,7 @@ for (const [id, tables, arms] of MINE) {
     console.log(`${''.padEnd(16)} solve ${L}: ${arm === arms[0] ? `secs ${secs}` : `shared ${tables}`}`);
     const grids = gridsOf(r);
     for (const g of grids) { g.pclsInterp = A.read; g.pclsSeg = A.seg; }
-    const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral} bridgeRead ${r.meta.bridgeRead} switchMargin ${r.meta.switchMargin} pcls ${r.g.pcls.join(',')} tables ${tables} read ${A.read} seg ${A.seg || 'none'} tieMargin ${r.tieMargin} deathTax ${m.ctx.pensionDeathTaxRate} price ${prices.join(',')} cell ${CELL} past ${PAST}`;
+    const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral} bridgeRead ${r.meta.bridgeRead} switchMargin ${r.meta.switchMargin} pcls ${r.g.pcls.join(',')} tables ${tables} read ${A.read} seg ${A.seg || 'none'} tieMargin ${r.tieMargin} deathTax ${m.ctx.pensionDeathTaxRate} price ${prices.join(',')} cell ${CELL} past ${PAST} flat ${FLAT}`;
     console.log(`${''.padEnd(16)} ran ${L}: ${ran}`);
     console.log(`${''.padEnd(16)} access ${L}: year ${access} years ${T} lsa ${lsa} open ${Math.round(m.ctx.accounts.reduce((x, a) => x + a.balance, 0))}`);
     const paths = E.pathsForSeed(SEED, NP, T), t1 = Date.now(), Y = T + 1;

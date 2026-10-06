@@ -9,10 +9,17 @@ M = [
   ("if (n !== 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);", "if (n > 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);"),
   ("for (const [f, v] of Object.entries(want)) if (field(u.ran, f) !== v)", "for (const [f, v] of Object.entries(want)) if (f !== 'price' && field(u.ran, f) !== v)"),
   ("if (new Set(h.filter(u => u.sum).map(u => u.sum.pathsum)).size > 1) bad.push(", "if (false) bad.push("),
-  ("else if (f.acting / f.pauses < ACT) bad.push(", "else if (f.acting / f.pauses <= ACT) bad.push("),
-  ("else if (f.acting / f.pauses < ACT) bad.push(", "else if (false) bad.push("),
-  ("for (const u of real.filter(x => x.id === DECIDE && DECIDING.includes(x.arm)", "for (const u of real.filter(x => DECIDING.includes(x.arm)"),
-  ("if (!(f.pauses > 0)) bad.push(", "if (false) bad.push("),
+  # the acting share, from the partner's file
+  ("if (!(ref.pen[i] > LIVE) || !(u >= 0.15 && u < 0.99) || !(u1 - u < FLAT)) continue;", "if (!(ref.pen[i] > LIVE) || !(u >= 0.15 && u < 0.99) || !(u1 - u < 0.01)) continue;"),
+  ("if (!(ref.pen[i] > LIVE) || !(u >= 0.15 && u < 0.99) || !(u1 - u < FLAT)) continue;", "if (!(u >= 0.15 && u < 0.99) || !(u1 - u < FLAT)) continue;"),
+  ("holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p && u1 < p)) inCell++;", "holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p)) inCell++;"),
+  ("holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p && u1 < p)) inCell++;", "holds++; if (prices.some(p => u >= p - 0.05 && u < p && u1 < p)) inCell++;"),
+  ("else if (s.share < ACT) bad.push(", "else if (s.share <= ACT) bad.push("),
+  ("else if (s.share < ACT) bad.push(", "else if (false) bad.push("),
+  ("if (!(s.holds > 0)) bad.push(", "if (false) bad.push("),
+  # divergence
+  ("if (!(pc.survived[j] === 1 && ref.survived[j] === 0)) continue;", "if (!(pc.survived[j] === 1)) continue;"),
+  ("gap.push(t.non[i] - pc.non[i]);", "gap.push(pc.non[i] - t.non[i]);"),
   # the identity
   ("for (let y = 0; y <= last; y++) {", "for (let y = 0; y < last; y++) {"),
   ("const last = t.first[j] >= 0 ? t.first[j] : t.Y - 1;", "const last = t.first[j] >= 0 ? t.first[j] + 1 : t.Y - 1;"),

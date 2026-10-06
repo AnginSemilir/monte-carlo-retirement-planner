@@ -89,12 +89,15 @@ const near = s => POW[S_GRID.reduce((b, x) => (Math.abs(x - s) < Math.abs(b - s)
   const w = shade({ TOPCELL: 0.45, 'REF+NODEQ': 0.27, REST: 0.09 }), sOf = { TOPCELL: 0.7, 'REF+NODEQ': 0.1, REST: 0.35 }, c = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
   for (const [k, wk] of Object.entries(w)) { const p = near(sOf[k]); for (const o of Object.keys(c)) c[o] += wk * p[o]; }
   console.log(`  item 1 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)} at s ${sOf[k]}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
+  console.log(`CREDENCE item 1: point ${f2(Object.entries(w).reduce((s, [k, v]) => s + v * sOf[k], 0))} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 }
 {
   // item 2: QUANT reads HELD, REF FALSIFIED, a further bug (VA-BUG) or neither INCONCLUSIVE; exact arithmetic over the nodes,
   // so each story reads its own outcome with 0.8 and the middle band with 0.2
   const w = shade({ QUANT: 0.5, REF: 0.35, BUG: 0.08 }), c = { HELD: 0.8 * w.QUANT, FALSIFIED: 0.8 * w.REF, INCONCLUSIVE: w.BUG + 0.2 * (w.QUANT + w.REF) };
   console.log(`  item 2 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
+  // the point: the ratio each story expects (QUANT 0.7, REF 0.1, BUG 0.35), weighted
+  console.log(`CREDENCE item 2: point ${f2(0.7 * w.QUANT + 0.1 * w.REF + 0.35 * w.BUG)} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 }
 {
   // item 3: S126-BLEND reads HELD when COV's edge node removes half or more (0.7), else INCONCLUSIVE; another non-survival
@@ -102,4 +105,6 @@ const near = s => POW[S_GRID.reduce((b, x) => (Math.abs(x - s) < Math.abs(b - s)
   // (FALSIFIED 0.5, INCONCLUSIVE 0.5)
   const w = shade({ BLEND: 0.5, NSOTHER: 0.3, TIE: 0.12 }), c = { HELD: 0.7 * w.BLEND, FALSIFIED: 0.6 * w.NSOTHER + 0.5 * w.TIE, INCONCLUSIVE: 0.3 * w.BLEND + 0.4 * w.NSOTHER + 0.5 * w.TIE };
   console.log(`  item 3 (stories ${Object.entries(w).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}): HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
+  // the point: COV's error as a share of BASE's that each story expects (BLEND 0.2, NSOTHER 1, TIE 1), weighted
+  console.log(`CREDENCE item 3: point ${f2(0.2 * w.BLEND + 1 * w.NSOTHER + 1 * w.TIE)} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 }

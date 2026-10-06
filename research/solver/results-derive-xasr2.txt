@@ -1,0 +1,23 @@
+GATE (XAS-R's, all but the BASE guard, which XAS-R2 does not read): passed; planted: passed
+
+1. THE SIZES (S370, per path, the years before a step): COV's P = sum (read - ex5); BASE's read - vb (the midpoint node's own movement, built on BASE's own nodes)
+  year 2: paths 6000; P mean 1.2480e-2 sd 2.2414e-2; BASE read - vb mean -7.9745e-4 sd 1.0667e-3
+  year 6: paths 5859; P mean 2.5652e-2 sd 2.2134e-2; BASE read - vb mean -5.1289e-4 sd 6.4357e-4
+
+2. ITEM 1'S POWER: D = s P + e (e: BASE's read - vb, centred), the registered rule, 60 bootstrap resamples of the paths (flipP B 2000)
+  s 0.05: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  s 0.10: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  s 0.20: HELD 0.00 FALSIFIED 0.22 INCONCLUSIVE 0.78
+  s 0.35: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  s 0.50: HELD 0.25 FALSIFIED 0.00 INCONCLUSIVE 0.75
+  s 0.60: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  s 0.70: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  s 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+
+3. THE CREDENCES (the deep review's cause credences as stories, normalised within each question, then shaded toward the base rate: weight 0.7 on the stories, 0.3 on an even split)
+  item 1 (stories TOPCELL 0.489 at s 0.7, REF+NODEQ 0.333 at s 0.1, REST 0.178 at s 0.35): HELD 0.49 INCONCLUSIVE 0.18 FALSIFIED 0.33
+CREDENCE item 1: point 0.44 HELD 0.49 INCONCLUSIVE 0.18 FALSIFIED 0.33
+  item 2 (stories QUANT 0.476, REF 0.363, BUG 0.160): HELD 0.38 INCONCLUSIVE 0.33 FALSIFIED 0.29
+CREDENCE item 2: point 0.43 HELD 0.38 INCONCLUSIVE 0.33 FALSIFIED 0.29
+  item 3 (stories BLEND 0.480, NSOTHER 0.328, TIE 0.191): HELD 0.34 INCONCLUSIVE 0.37 FALSIFIED 0.29
+CREDENCE item 3: point 0.62 HELD 0.34 INCONCLUSIVE 0.37 FALSIFIED 0.29

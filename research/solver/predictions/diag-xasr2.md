@@ -63,9 +63,9 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | the year-before error is the top cell's: 7an registers (its 11-point top cell is the midpoint node solved); the year-before edge node stays withdrawn unless item 2 reads QUANT | 0.40 |
-| item 1 INCONCLUSIVE | no year-before fix registered on XAS-R2 alone; 7an waits; the next deep review weighs YB-REF and YB-NODEQ against the top cell on the reported reads | 0.35 |
-| item 1 FALSIFIED | the error is the reference's or the nodes' own: a test of the spread reference's shape near its edge (O36, O81, O92) and of the year-before nodes' quadrature comes before 7an | 0.25 |
+| item 1 HELD | the year-before error is the top cell's: 7an registers (its 11-point top cell is the midpoint node solved); the year-before edge node stays withdrawn unless item 2 reads QUANT | 0.49 |
+| item 1 INCONCLUSIVE | no year-before fix registered on XAS-R2 alone; 7an waits; the next deep review weighs YB-REF and YB-NODEQ against the top cell on the reported reads | 0.18 |
+| item 1 FALSIFIED | the error is the reference's or the nodes' own: a test of the spread reference's shape near its edge (O36, O81, O92) and of the year-before nodes' quadrature comes before 7an | 0.33 |
 
 ## Decision fed
 
@@ -86,17 +86,23 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 ## Derivation script
 
-- (the sizes, the power, the credences: written after the judged credences below are committed)
+- `derive: research/solver/derive-xasr2.mjs > research/solver/results-derive-xasr2.txt sha256 a80f01f933dc0492`
+  (the sizes, the power, the credences; run after the judged credences were committed, 120d1f4, as drafts/diag-xasr2.md)
 
 ## Point and interval
 
-- **Item 1:** the share s the midpoint node removes, about 0.45 (0.1 to 0.85).
-- **Item 2:** the ratio about 0.5 (0.15 to 0.9).
-- **Item 3:** COV's error about 0.3 of BASE's on each term (0 to 1).
+- **Item 1:** the share s the midpoint node removes, about 0.44 (0.1 to 0.85; the point from results-derive-xasr2.txt's CREDENCE line).
+- **Item 2:** the ratio about 0.43 (0.1 to 0.9).
+- **Item 3:** COV's error about 0.62 of BASE's on each term (0 to 1.2).
 
 ## Credence
 
-- **Base rate, items 1-3:** 0.10 each (each leans on a deep review's ranked cause: the deep-review record's rate, results-scorecard.txt KIND BASE RATES)
+- **Base rate, item 1:** 0.10 (it leans on the deep review's ranked cause YB-TOPCELL: the deep-review record's rate, results-scorecard.txt KIND BASE RATES)
+- **Base rate, item 2:** 0.10 (it leans on the deep review's ranked cause VA-QUANT: the same record's rate)
+- **Base rate, item 3:** 0.10 (it leans on the deep review's story S126-BLEND: the same record's rate)
+- **Item 1:** HELD 0.49, INCONCLUSIVE 0.18, FALSIFIED 0.33 (derived, results-derive-xasr2.txt section 3: three stories - YB-TOPCELL at s 0.7, YB-REF with YB-NODEQ at s 0.1, the rest at s 0.35 - weighted by the review's credences shaded 0.3 toward an even split, through section 2's power)
+- **Item 2:** HELD 0.38, INCONCLUSIVE 0.33, FALSIFIED 0.29 (derived, section 3: VA-QUANT, VA-REF and VA-BUG weighted as item 1's, each reading its own outcome with 0.8 and the middle band with 0.2)
+- **Item 3:** HELD 0.34, INCONCLUSIVE 0.37, FALSIFIED 0.29 (derived, section 3: S126-BLEND reading its own outcome on 0.7 of its weight, another channel the falsifying one on 0.6 of its weight, the tie on 0.5)
 - **Judged, item 1:** HELD 0.40, INCONCLUSIVE 0.35, FALSIFIED 0.25 (the author's judgement, written before the derivation: the review puts YB-TOPCELL at 0.45 against YB-REF 0.15 and YB-NODEQ 0.12, and BASE's midpoint node stayed near the reader where there is little to remove, but its ranked causes have read as ranked in 1 of 19 items, and either year in the middle band reads INCONCLUSIVE)
 - **Judged, item 2:** HELD 0.45, INCONCLUSIVE 0.25, FALSIFIED 0.30 (the author's judgement, written before the derivation: the review puts VA-QUANT at 0.50 against VA-REF 0.35; XAS's straddle slice had a quadrature error twenty times the average, which favours QUANT, but the nodes' departures from the copy were large, up to a clamp, which a quadrature change may not reach)
 - **Judged, item 3:** HELD 0.35, INCONCLUSIVE 0.40, FALSIFIED 0.25 (the author's judgement, written before the derivation: the review puts S126-BLEND at 0.50 and says it explains the flip, not the loss; the step-year read errors were never measured, and both conditions - BASE's signs and COV's removal of half - must hold)
@@ -104,7 +110,7 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 ## Power
 
-Item 1 from results-derive-xasr2.txt section 2 (to be committed after the judged credences). Item 2 is exact arithmetic over the nodes the paths reach. Item 3's sign tests run over S126's 6,000 paths' top-cell step reads; its removal condition is exact arithmetic.
+Item 1 from results-derive-xasr2.txt section 2, at an ASSUMED noise (grade C): with D = s P + e and e BASE's per-path movement of the midpoint node (sd 1.0667e-3 in year 2, 6.4357e-4 in year 6, against P's 2.2414e-2 and 2.2134e-2), the rule reads HELD at s 0.6 and above and FALSIFIED at s 0.1 and below in every resample, and mostly INCONCLUSIVE at the thresholds themselves (s 0.5: HELD 0.25; s 0.2: FALSIFIED 0.22). COV's own noise is not known before the run; if it is ten times BASE's, the bands widen and the power is overstated. Item 2 is exact arithmetic over the nodes the paths reach. Item 3's sign tests run over S126's 6,000 paths' top-cell step reads; its removal condition is exact arithmetic.
 
 ## Budget line
 
@@ -119,4 +125,4 @@ Item 1 from results-derive-xasr2.txt section 2 (to be committed after the judged
 
 ## Changes after seeing results
 
-None.
+None. Moved from drafts/ (120d1f4, the judged lines) to its own path with the derivation's lines (the derived credences, the derive line, the power); the judged lines are unchanged.

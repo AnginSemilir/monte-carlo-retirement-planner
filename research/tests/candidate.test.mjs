@@ -70,13 +70,14 @@ const arm = solveCandidate(E, M, plan, { lambda: 0.5, points: 3, pclsInterp: fal
 ok(arm.g.pclsInterp === false, 'an arm\'s own pclsInterp false, passed after the candidate, keeps the snap');
 
 // 5. the spread-order hazard, scanned in every research script
+// A REGEX SCAN, NOT A PARSER: it covers the shapes planted below and no others (the plan-auditor's MINOR 3 on 9e3178c).
 // a key written before a spread (or an earlier Object.assign source) is overwritten if the spread carries it. Walk back from
 // each ...NAME (and each NAME passed to Object.assign) to its enclosing brace or paren, nesting balanced, then flag in what
 // comes before it (the plan-auditor's MINOR 3 on 8533b87 and MINOR 1 on dca9031): a carried key (plain, quoted or shorthand, in a nested conditional object too), a spread of a variable,
 // a conditional spread with a variable branch, or an earlier Object.assign source that is a variable
 const SPREADS = { RESEARCH_OPTS: Object.keys(RESEARCH_OPTS), CANDIDATE_OPTS: Object.keys(CANDIDATE_OPTS) };
 const hazard = src => {
-  const keyed = before => [...before.matchAll(/(?:['"]([A-Za-z_$][\w$]*)['"]|([A-Za-z_$][\w$]*))\s*:/g)].map(k => k[1] || k[2]);
+  const keyed = before => [...before.matchAll(/(?:\[\s*['"]([A-Za-z_$][\w$]*)['"]\s*\]|['"]([A-Za-z_$][\w$]*)['"]|([A-Za-z_$][\w$]*))\s*:/g)].map(k => k[1] || k[2] || k[3]);
   const shorthand = before => [...before.matchAll(/(?:^|[{,])\s*([A-Za-z_$][\w$]*)\s*(?=,|$)/g)].map(k => k[1]);
   const stripLiterals = t => { let o = t, p; do { p = o; o = o.replace(/\{[^{}]*\}/g, ''); } while (o !== p); return o; };
   for (const [name, carried] of Object.entries(SPREADS)) for (const m of src.matchAll(new RegExp(String.raw`(\.\.\.)?\b${name}\b`, 'g'))) {
@@ -90,7 +91,7 @@ const hazard = src => {
     if (spread && shorthand(stripLiterals(before)).some(k => carried.includes(k))) return true;
     if ([...before.matchAll(/\.\.\.\s*([A-Za-z_$][\w$.]*)/g)].some(k => !(k[1] in SPREADS))) return true;
     for (const g of before.matchAll(/\.\.\.\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g)) if (/[?:]\s*[A-Za-z_$]/.test(stripLiterals(g[1]).replace(/^[^?]*\?/, '?'))) return true;
-    if (assign && stripLiterals(before).split(',').map(x => x.trim()).some(x => /^[A-Za-z_$][\w$.]*$/.test(x) && !(x in SPREADS))) return true;
+    if (assign && stripLiterals(before).split(',').map(x => x.trim()).some(x => (/^[A-Za-z_$][\w$.]*$/.test(x) && !(x in SPREADS)) || /^[A-Za-z_$][\w$.]*\s*\(/.test(x))) return true;
   }
   return false;
 };
@@ -110,6 +111,9 @@ ok(hazard('Object.assign({}, AO, RESEARCH_OPTS)'), 'planted: a variable earlier 
 ok(!hazard('Object.assign({}, RESEARCH_OPTS, { pclsInterp: false })'), 'a key in a later Object.assign source is not flagged');
 ok(!hazard('solvePlan(E, M, plan, { lambda, points, ...RESEARCH_OPTS });'), 'shorthand keys the spread does not carry are not flagged');
 ok(!hazard('const { e3, ...rest } = RESEARCH_OPTS;'), 'a destructuring of RESEARCH_OPTS is not flagged');
+ok(hazard('Object.assign({}, mk(), RESEARCH_OPTS)'), 'planted: an earlier Object.assign source that is a call result is flagged');
+ok(hazard("solvePlan(E, M, plan, { ['pclsInterp']: false, ...RESEARCH_OPTS });"), 'planted: a carried computed key before the spread is flagged');
+ok(hazard('solvePlan(E, M, plan, { ...mk(), ...RESEARCH_OPTS });'), 'planted: a spread call result before the spread is flagged');
 const scripts = [...readdirSync(SOLVER).filter(f => /\.mjs$/.test(f)).map(f => join(SOLVER, f)), ...readdirSync(HERE).filter(f => /\.mjs$/.test(f) && f !== 'candidate.test.mjs').map(f => join(HERE, f))];
 ok(scripts.length > 20, `the scan finds the research scripts and tests (${scripts.length}): a scan that ran on nothing is an error`);
 const bad = scripts.filter(f => hazard(readFileSync(f, 'utf8')));

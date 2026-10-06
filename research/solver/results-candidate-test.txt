@@ -34,7 +34,10 @@ PASS  planted: a variable earlier Object.assign source is flagged
 PASS  a key in a later Object.assign source is not flagged
 PASS  shorthand keys the spread does not carry are not flagged
 PASS  a destructuring of RESEARCH_OPTS is not flagged
+PASS  planted: an earlier Object.assign source that is a call result is flagged
+PASS  planted: a carried computed key before the spread is flagged
+PASS  planted: a spread call result before the spread is flagged
 PASS  the scan finds the research scripts and tests (368): a scan that ran on nothing is an error
 PASS  no research script sets a candidate key before spreading RESEARCH_OPTS or CANDIDATE_OPTS
 
-=========== 38 passed, 0 failed ===========
+=========== 41 passed, 0 failed ===========

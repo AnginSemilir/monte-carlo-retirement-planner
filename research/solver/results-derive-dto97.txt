@@ -1,0 +1,35 @@
+GATE (ADOPT-PI's files, through their own gate): passed; planted: passed
+
+1. THE LOSS AT 0 AND THE REVALUATION AT 0.4 (the policy held), the net change PCLSI less SNAP a path
+  share 0.70       at 0   -38599.01   revalued      -14.85   kept 0.000
+  share 0.90       at 0   -80863.65   revalued     4784.45   kept -0.059
+  share 0.95       at 0   -79739.74   revalued     3707.17   kept -0.046
+  bridge 0         at 0   -71151.03   revalued    -2800.28   kept 0.039
+  bridge 1         at 0   -98554.91   revalued    -7700.21   kept 0.078
+  bridge 4+cost    at 0  -198639.63   revalued   -32842.72   kept 0.165
+  S366             at 0   -23594.37   revalued     8648.99   kept -0.367
+
+2. THE CHECK on the households ADOPT-PI re-solved at 0.4: the shift of the net change, revalued against re-solved; rho = re-solved / revalued
+  S130   at 0   261976.90   revalued   198096.26   re-solved    76817.54   rho 2.899
+  S370   at 0   705183.23   revalued   453153.76   re-solved   256402.68   rho 1.781
+  S128   at 0    17474.91   revalued    27703.99   re-solved    30259.46   rho 1.250
+  rho: median 1.781, range 1.250 to 2.899
+  the kept share each loss household would show at the check's rho (median, low, high): share 0.70 -0.780 (-0.249, -1.897); share 0.90 -0.886 (-0.324, -2.070); share 0.95 -0.863 (-0.308, -2.033); bridge 0 -0.711 (-0.201, -1.784); bridge 1 -0.642 (-0.152, -1.672); bridge 4+cost -0.486 (-0.043, -1.419); S366 -1.433 (-0.708, -2.961)
+
+3. THE POWER: the registered rules over 20 path resamples (flipP B 2000)
+  item 2, DT   : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, DTLO : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, DTHI : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, TAIL : HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, PHOLD: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, OTHER: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, SAME : HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SHIFT: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+
+4. THE CREDENCES
+  item 1 (SAME 0.8, the NOHARM base rate; SHIFT 0.20): HELD 0.80 INCONCLUSIVE 0.00 FALSIFIED 0.20
+  item 2 (from the deep-review base rate 0.1 times the review's likelihood ratio, 0.60 against its prior 0.30: DT 0.280, TAIL 0.360, PHOLD 0.180, OTHER 0.180): HELD 0.28 INCONCLUSIVE 0.36 FALSIFIED 0.36
+  item 2, sensitivity: the review's own weights, unshaded (DT 0.60, TAIL 0.20, PHOLD 0.10, OTHER 0.10): HELD 0.60 INCONCLUSIVE 0.20 FALSIFIED 0.20
+  item 1's point: the floor's change at death tax 0, 0.010 points; under SHIFT -0.240
+CREDENCE item 1: point -0.04 HELD 0.80 INCONCLUSIVE 0.00 FALSIFIED 0.20
+CREDENCE item 2: point 0.29 HELD 0.28 INCONCLUSIVE 0.36 FALSIFIED 0.36

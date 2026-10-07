@@ -20,7 +20,7 @@
  *   C. THE CHOOSER AT THE TRUE STATE, holding the plan's tiers (0/0, as the forward run's opening does, every move leaving
  *      it charged): at the opening and the step year's grid positions, in every world, where Q acts (stepExpect's own
  *      bracket) each move's score is within TOL = 0.001 of the same score over 4,000 equal-probability returns on the
- *      move's own layer; where it hands back, the five points' score to the bit; planted: where Q acts, the five points
+ *      move's own layer; where it hands back, the five points' score on the same tables to the bit; planted: where Q acts, the five points
  *      miss by more than TOL
  *   H. THE LAYER READ, planted, inside C's slice: on the moves where Q acts that go to another layer, every move made to
  *      read the default layer instead moves its score by more than TOL on some move
@@ -116,7 +116,7 @@ for (const t of stepYears) {
   const states = t === 0 ? [['the opening', s0]] : [];
   for (let ip = 0; ip < g.np; ip++) for (let ii = 0; ii < g.ni; ii++) for (const it of [0, g.nt - 1]) states.push([`year ${t} node ${ip}/${ii}/${it}`, toVec(g, ip, ii, it, 0, 0, new Float64Array(7), t)]);
   for (const [name, s] of states) for (let k = 0; k < K; k++) {
-    const wOn = on.worlds[k], sOn = scores(wOn, s, t, HELD0), sOff = scores(off.worlds[k], s, t, HELD0), sD = scores(denseView(wOn, t), s, t, HELD0), sWrong = scores(defaultLayerView(wOn), s, t, HELD0);
+    const wOn = on.worlds[k], sOn = scores(wOn, s, t, HELD0), sOff = scores(off.worlds[k], s, t, HELD0), sFive = scores({ ...wOn, stepExact: false }, s, t, HELD0), sD = scores(denseView(wOn, t), s, t, HELD0), sWrong = scores(defaultLayerView(wOn), s, t, HELD0);
     const stepAt = stepOf(wOn.lsurv[t + 1]);
     for (let ai = 0; ai < n; ai++) {
       if (!Number.isFinite(sD[ai])) { if (Number.isFinite(sOn[ai])) cOk = false; continue; }
@@ -130,7 +130,9 @@ for (const t of stepYears) {
         if (on.tsLayerOf[ai] !== J0) { actsOther++; const eP = Math.abs(sWrong[ai] - sOn[ai]); if (eP > worstPlant) { worstPlant = eP; wherePlant = `${name}, world ${k}, ${on.actions[ai].label}`; } }
       } else {
         idle++;
-        if (!Object.is(sOn[ai], sOff[ai])) { idOk = false; whereId = `${name}, world ${k}, ${on.actions[ai].label}: ${sOn[ai]} against ${sOff[ai]}`; }
+        // against the same tables with Q skipped at this state, not the Q-off solve: before the last reader year Q has also
+        // changed next year's tables (S360's first run compared with the Q-off solve and differed by 7.6e-6 at year 5)
+        if (!Object.is(sOn[ai], sFive[ai])) { idOk = false; whereId = `${name}, world ${k}, ${on.actions[ai].label}: ${sOn[ai]} against ${sFive[ai]}`; }
       }
       if (s === s0 && Number.isFinite(sOff[ai]) && Math.abs(sOff[ai] - sOn[ai]) > 1e-9) moved++;
     }

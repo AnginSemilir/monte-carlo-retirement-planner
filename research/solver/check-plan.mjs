@@ -208,7 +208,7 @@ export function retroProblems({ lessons, scorecard, reviewLog, readFile }) {
   }
   return [...P, ...replaceProblems(L, readFile)];
 }
-export function checkPlan({ plan, rules, checklist, added = [], removed = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
+export function checkPlan({ plan, rules, checklist, added = [], removed = [], addedItems = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
   const E = [];
   const err = (check, msg) => E.push(`[${check}] ${msg}`);
 
@@ -361,12 +361,15 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
   // GATE TESTS (RULES.md section 4 row 14; the maintainer's decision and unlock of 7 Oct, after the O55 unit test passed its
   // plants where the faults could not show): a new line recording a gate met by a research/tests file names the design
   // review of that test (`design review: <D Mon HH:MM> UK`); that receipt in deep-review-log.md names the test file and the
-  // blob it reviewed, which must be the file's blob now - an edit after the review needs a new review
+  // blob it reviewed, which must be the file's blob now - an edit after the review needs a new review. It reads the new
+  // lines of items/*.md too, where 7u's conditions are cleared, and any wording of a gate or condition met, passed,
+  // cleared or left (the deep review of 7 Oct 11:42 UK: 'condition met', 'leaves 7u's gates' and 'gate passed' escaped
+  // the first version, which read 'gate met' in PLAN.md alone)
   const drLog = opt('deep-review-log.md') ?? '';
-  for (const raw of added) {
-    const line = unquoted(raw, strikeAt(planLines, raw));
-    if (!GATE_MET.test(line)) continue;
-    const tests = [...new Set([...raw.matchAll(GATE_TEST_FILE)].map(m => gateTestOf(m[1])))];
+  for (const [raw, inPlan] of [...added.map(x => [x, true]), ...addedItems.map(x => [x, false])]) {
+    const line = inPlan ? unquoted(raw, strikeAt(planLines, raw)) : raw;
+    if (!gateMet(line)) continue;
+    const tests = gateTestsIn(raw, f => solverFileExists(`../tests/${f}`));
     if (!tests.length) continue;
     const head = `"${raw.trim().slice(0, 60)}..."`;
     const dr = /design review:\s*(\d{1,2} [A-Z][a-z]{2} \d{2}:\d{2}) UK/.exec(raw);
@@ -383,9 +386,20 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
   }
   return E;
 }
-// a gate recorded met (not "not met"), and the research/tests files a line cites: a results file reads as its test
-export const GATE_MET = /\bgates?\s+(?:is\s+|are\s+|now\s+)?met\b|\bGATE MET\b|\bmeets?\s+(?:its|the|O\d+'s)\s+gate\b/i;
+// a gate or condition recorded met, passed, cleared or left (not "not met"), and the research/tests files a line cites:
+// a results file reads as its test
+export const GATE_WORD = /\b(?:gates?|conditions?)\b/i;
+export const GATE_DONE = /\b(?:met|meets|pass(?:ed|es)?|cleared|satisfied|leaves?|left)\b/i;
+export const GATE_NOT = /\bnot\s+(?:yet\s+)?(?:met|passed|cleared|satisfied)\b|\b(?:still|remains?)\s+open\b/i;
+export const gateMet = line => GATE_WORD.test(line) && GATE_DONE.test(line) && !GATE_NOT.test(line);
 export const GATE_TEST_FILE = /research\/tests\/([\w.-]+?\.(?:test\.mjs|txt))\b/g;
+// the tests a line cites: by path, a test file by bare name, or a results file by bare name when research/tests holds it
+// (a bare 'results-solver-q-tsj-6pts.txt' escaped the path-only match, the 7 Oct unlock)
+export const gateTestsIn = (raw, inTests = () => false) => [...new Set([
+  ...[...raw.matchAll(GATE_TEST_FILE)].map(m => m[1]),
+  ...[...raw.matchAll(/(?<![\w/.-])([\w.-]+\.test\.mjs)\b/g)].map(m => m[1]),
+  ...[...raw.matchAll(/(?<![\w/.-])(results-[\w.-]+\.txt)\b/g)].map(m => m[1]).filter(inTests),
+].map(gateTestOf))];
 export const gateTestOf = f => (f.endsWith('.test.mjs') ? f : `${f.replace(/^results-/, '').replace(/\.txt$/, '').replace(/-\d+pts?$/, '')}.test.mjs`);
 // git's blob id of a text, as `git hash-object` prints it
 export const blobOf = text => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
@@ -425,7 +439,7 @@ export function stalePhrases({ plan, added = [], removed = [] }) {
 }
 
 export function runCli(argv = process.argv.slice(2)) {
-  let mode = 'tree', rev = null, added = [], removed = [], base = null;
+  let mode = 'tree', rev = null, added = [], removed = [], addedItems = [], base = null;
   const PLAN = 'research/solver/PLAN.md';
   try {
     if (argv.includes('--staged')) { mode = 'staged'; const d = git(`diff --cached -U0 -- ${PLAN}`); added = addedLines(d); removed = removedLines(d); base = 'HEAD'; }
@@ -440,10 +454,13 @@ export function runCli(argv = process.argv.slice(2)) {
       try { base = git('rev-parse --abbrev-ref --symbolic-full-name @{upstream}').trim(); } catch { base = 'HEAD'; }
       const d = git(`diff -U0 ${base} -- ${PLAN}`); added = addedLines(d); removed = removedLines(d);
     }
+    // the item files' new lines, for the gate-tests check (7u's conditions are cleared there)
+    const ITEMS = 'research/solver/items';
+    addedItems = addedLines(mode === 'staged' ? git(`diff --cached -U0 -- ${ITEMS}`) : mode === 'rev' ? (base ? git(`diff -U0 ${base} ${rev} -- ${ITEMS}`) : '') : git(`diff -U0 ${base} -- ${ITEMS}`));
   } catch (e) { console.error(`check-plan: git failed (${e.message.split('\n')[0]})`); return 2; }
   const read = source(mode, rev), has = exists(mode, rev);
   const warnings = [];
-  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, removed, readSolverFile: read, solverFileExists: has, warnings });
+  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, removed, addedItems, readSolverFile: read, solverFileExists: has, warnings });
   for (const w of warnings) console.log(`WARNING: ${w}`);
   if (errs.length) {
     console.log(`PLAN CHECK FAILED (${errs.length}) - ${mode === 'rev' ? `commit ${rev}` : mode}${base ? `, new lines against ${/^[0-9a-f]{40}$/.test(base) ? base.slice(0, 12) : base}` : ''}:`);

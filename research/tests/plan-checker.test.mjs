@@ -511,6 +511,14 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(gt('O55 gate met: research/tests/results-solver-gt-6pts.txt, 11 of 11', '').length === 1, 'planted fault caught (gate tests): the results file cited instead of the test is read as the test');
   ok(gt('7u gate met: results-7aj.txt, every item HELD', '').length === 0 && gt('O55 gate not met: research/tests/solver-gt.test.mjs failed H', '').length === 0, 'EDGES: a gate met by no research/tests file, and a gate not met, ask for no review');
   ok(blobOf('hello\n') === 'ce013625030ba8dba906f756967f9e9ca394464a', 'blobOf is git hash-object (the blob of "hello\\n")');
+  // the wordings and places the first version missed (the deep review of 7 Oct 11:42 UK), each refused without a review
+  const gtAt = (over, log = '') => { const fx = { 'deep-review-log.md': log, '../tests/solver-gt.test.mjs': TEST, '../tests/results-solver-gt-6pts.txt': 'x' };
+    return run({ added: [], ...over, readSolverFile: p => (p in fx ? fx[p] : read(p)), solverFileExists: p => p in fx || existsSync(join(S, p)) }).filter(e => e.startsWith('[gate tests]')); };
+  for (const w of ["O55's condition met: research/tests/results-solver-gt-6pts.txt", "O55 leaves 7u's gates (research/tests/solver-gt.test.mjs, 15 of 15)", "7u's O55 gate passed (research/tests/solver-gt.test.mjs)"])
+    ok(gtAt({ added: [w] }).length === 1, `planted fault caught (gate tests): "${w.slice(0, 40)}..." with no review`);
+  ok(gtAt({ addedItems: ["O55's gate met: research/tests/solver-gt.test.mjs passes"] }).length === 1, 'planted fault caught (gate tests): a gate met in an items/*.md line with no review');
+  ok(gtAt({ added: ['O55 gate met: results-solver-gt-6pts.txt, 15 of 15'] }).length === 1 && gtAt({ added: ['O55 gate met: solver-gt.test.mjs passes'] }).length === 1, 'planted fault caught (gate tests): the test or its results file cited by bare name');
+  ok(gtAt({ added: ["7u's gates still open: O55's test passes on one household (results-solver-gt-6pts.txt)"] }).length === 0 && gtAt({ added: ['the gate is met: results-7aj.txt, every item HELD'] }).length === 0, 'EDGES: "gates still open" asks no review, nor a gate met by a results file research/tests does not hold');
 }
 
 console.log(`\n${n} passed`);

@@ -100,6 +100,7 @@ const TOL = 0.003;
 // layers apart; the wider set is where a wrong layer shows)
 const states = [['the opening', s0]];
 for (let ip = 0; ip < on.g.np; ip++) for (let ii = 0; ii < on.g.ni; ii++) for (const it of [0, on.g.nt - 1]) states.push([`node ${ip}/${ii}/${it}`, toVec(on.g, ip, ii, it, 0, 0, new Float64Array(7), 0)]);
+const J0 = on.worlds[0].tsLayers.findIndex(L => L.lsurv === on.worlds[0].lsurv);
 let worstOn = 0, worstOff = 0, worstWrong = 0, cOk = true, where = '', whereWrong = '', layersRead = new Set(), moved = 0, cells = 0;
 const t1 = Date.now();
 for (const [name, s] of states) for (let k = 0; k < K; k++) {
@@ -109,7 +110,9 @@ for (const [name, s] of states) for (let k = 0; k < K; k++) {
     layersRead.add(on.tsLayerOf[ai]); cells++;
     const eOn = Math.abs(sOn[ai] - sD[ai]), eOff = Math.abs(sOff[ai] - sD[ai]), eWrong = Math.abs(sWrong[ai] - sD[ai]);
     if (eOn > worstOn) { worstOn = eOn; where = `${name}, world ${k}, ${on.actions[ai].label}`; }
-    if (eWrong > worstWrong) { worstWrong = eWrong; whereWrong = `${name}, world ${k}, ${on.actions[ai].label}`; }
+    // H counts only the moves the plant moves: those whose own layer is not the default one (the first widened run's
+    // H 'passed' on a default-layer move, Q's own C miss, which the plant cannot touch)
+    if (on.tsLayerOf[ai] !== J0 && eWrong > worstWrong) { worstWrong = eWrong; whereWrong = `${name}, world ${k}, ${on.actions[ai].label}`; }
     worstOff = Math.max(worstOff, eOff);
     if (eOn > TOL) cOk = false;
     if (s === s0 && Number.isFinite(sOff[ai]) && Math.abs(sOff[ai] - sOn[ai]) > 1e-9) moved++;
@@ -119,7 +122,7 @@ console.log(`${states.length} states x ${K} worlds, ${cells} finite move scores,
 ok('C  with Q, every move\'s score at every state read is within 0.003 of the 4,000-point score on its own layer, in every world', cOk && layersRead.size > 1, `worst ${worstOn.toFixed(5)} (${where}); ${layersRead.size} layers read by the finite moves`);
 ok('C  planted: the five points miss the 4,000-point score by more than 0.003 on some move', worstOff > TOL, `worst ${worstOff.toFixed(5)}`);
 console.log('=========== H. THE LAYER READ ===========');
-ok('H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move', worstWrong > TOL, `worst ${worstWrong.toFixed(5)} (${whereWrong})`);
+ok('H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move made to another layer', worstWrong > TOL, `worst ${worstWrong.toFixed(5)} (${whereWrong})`);
 console.log('=========== D. THE CHOOSER USES IT ===========');
 ok('D  the moves\' scores at the opening state differ on and off', moved > 0, `${moved} move-worlds moved`);
 

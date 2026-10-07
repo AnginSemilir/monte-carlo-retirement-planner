@@ -63,7 +63,7 @@ differ by world]. So:
 
 - Its recommendation: option B, one node a wealth row at the world-free step edge a = 1 - (d0 - tol)/W_j, added in step
   years only, behind a research option. At every step read of the four bridge households the reference is a pure
-  world-free step (solve.js l.644 since E2's lines, l.634 before, the bills `needY - inY`), so the edge does not depend on the world; PMAP's one-node
+  world-free step (solve.js l.660 since E3-PCLS's lines, l.644 since E2's, l.634 before, the bills `needY - inY`), so the edge does not depend on the world; PMAP's one-node
   variant leaves a mean weight of 0.0002 (results-pmap.txt). Spread years untouched (they would unmask O81's pessimism).
 - A1 only on bridgeTable v2's req[t], never on zeroGrowthNeed. With per-world acc*, B has A2's joint-worlds problem in
   spread years; at step years the edge is world-free.

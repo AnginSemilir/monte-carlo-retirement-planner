@@ -397,6 +397,22 @@ export function solve(E, M, plan, opts = {}) {
    */
   const E3 = !!opts.e3;
   /*
+   * E3's LUMP-SUM HALF (`e3pcls`; PLAN.md E3-PCLS; the maintainer, 6 Oct: 'Do the lump sum work before phase 4 anyway';
+   * research, off by default). The allowance used (cumPcls) and the lump-taken flag are read only where the pension holds
+   * money - the three read sites, each behind a pension-above-zero guard: the lump (fast.js l.399), drawPension (l.409) and
+   * the tax-free part of a draw (l.536; model.js step's lump and draw steps). Any new read of the allowance without that
+   * guard (a death-benefit allowance in the death tax, a state-dependent MPAA, a contribution move) breaks this silently.
+   * The copy is also exact only while bucket x lsa / lsa returns the bucket exactly (0, 0.5 and 1 do). So in total coordinates
+   * a cell whose pension is empty (share a = 0, or no wealth at all) has every allowance bucket equal to its zero bucket's -
+   * PROVIDED nothing can pay into the pension in that year or any later one. Contributions while an owner works (the plan's
+   * schedule or the solver's own saving choice), dated one-off deposits into a pension and staged transfers into one each
+   * refill it, and a refilled pension reads its allowance; so only the years after the last such possible inflow
+   * (`lastPenIn`) are copied. Exact only if that list of inflows is complete: research/tests/solver-e3pcls.test.mjs holds
+   * every table bit for bit against e3pcls off, and a planted copy that ignores the inflow rule must break identity on a
+   * household that still works.
+   */
+  const E3P = !!opts.e3pcls;
+  /*
    * P, THE SWITCH CHARGED (`switchCharge`, score units; PLAN.md P; the deep review after 7ae, deep-review-log.md 28 Sep
    * 22:52 UK; research only, off by default). `switchMargin` is a decision rule: a switch is suppressed unless it gains more
    * than the margin, and the table stores the value of the move made, never charging the margin - so a value that assumes
@@ -855,6 +871,34 @@ export function solve(E, M, plan, opts = {}) {
   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
   const isE3Copy = (ii, it, ig) => E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1);
+  if (E3P && (g.mode !== 'total' || g.cov)) throw new Error('e3pcls needs total coordinates and no coverage axis');
+  // the last year index in which money can enter a pension: a year an owner works, or a dated deposit or staged transfer into one
+  const lastPenIn = !E3P ? T : (() => {
+    const penIds = new Set(m.owners.map(o => o.ids && o.ids.pen).filter(Boolean)); let last = -1;
+    for (let k = 0; k <= T; k++) {
+      const year = m.ctx.baseYear + k;
+      const works = m.owners.some(o => (o.key === 'self' ? m.ctx.ageSelf0 : m.ctx.agePart0) + k < o.retireAge);
+      const dep = (m.ctx.oneOffContribs.get(year) || []).some(x => penIds.has(x.id));
+      const drip = (m.ctx.stagedTransfers.get(year) || []).some(x => penIds.has(x.toId));
+      // tests only (`e3pclsPlant`): drop one clause of the rule, so each is shown to matter on a household it alone sets
+      const P = opts.e3pclsPlant;
+      if ((works && P !== 'work') || (dep && P !== 'deposit') || (drip && P !== 'transfer')) last = k;
+    }
+    return opts.e3pclsPlant === 'all' ? -1 : last;   // tests only: copy in every year
+  })();
+  const firstCopyYear = opts.e3pclsPlant === 'boundary' ? lastPenIn : lastPenIn + 1;   // tests only: copy from the last inflow year itself
+  // which clause set lastPenIn (reported): 'work', 'deposit', 'transfer', or 'none' when nothing can refill a pension
+  const pclsSetBy = !E3P ? null : (() => {
+    if (lastPenIn < 0) return 'none';
+    const k = lastPenIn, year = m.ctx.baseYear + k, penIds = new Set(m.owners.map(o => o.ids && o.ids.pen).filter(Boolean)), by = [];
+    if (m.owners.some(o => (o.key === 'self' ? m.ctx.ageSelf0 : m.ctx.agePart0) + k < o.retireAge)) by.push('work');
+    if ((m.ctx.oneOffContribs.get(year) || []).some(x => penIds.has(x.id))) by.push('deposit');
+    if ((m.ctx.stagedTransfers.get(year) || []).some(x => penIds.has(x.toId))) by.push('transfer');
+    return by.join('+') || 'none';
+  })();
+  const penEmpty = (ip, ii) => g.axes.a.pts[ii] === 0 || g.axes.W.pts[ip] === 0;
+  const isPclsCopy = (ip, ii, ic, t) => E3P && ic > 0 && t >= firstCopyYear && penEmpty(ip, ii);
+  let pclsCopied = 0;
   const isCovCopy = (ip, ii, t) => !!g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t);
   // E2's copy pass: the copied cells, in the loop's own order, so a copy of a copy reads its source already made
   const copyPass = (t) => {
@@ -862,6 +906,7 @@ export function solve(E, M, plan, opts = {}) {
       const idx = g.index(ip, ii, it, ig, ic);
       let src = -1;
       if (isE3Copy(ii, it, ig)) { src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic); e3Copied++; }
+      else if (isPclsCopy(ip, ii, ic, t)) { src = g.index(ip, ii, it, ig, 0); pclsCopied++; }
       else if (isCovCopy(ip, ii, t)) { src = g.index(ip, ii - 1, it, ig, ic); covCopied++; }
       if (src < 0) continue;
       for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
@@ -887,7 +932,7 @@ export function solve(E, M, plan, opts = {}) {
             for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
               // E2: a copied cell reads another cell of this year, so the copies wait until every part's cells are done
-              if (E2 && (isE3Copy(ii, it, ig) || isCovCopy(ip, ii, t))) continue;
+              if (E2 && (isE3Copy(ii, it, ig) || isPclsCopy(ip, ii, ic, t) || isCovCopy(ip, ii, t))) continue;
               if (E2 && Atomics.compareExchange(claim, cellNo++, 0, 1) !== 0) continue;
               if (E2 && E2.planted === 'drop' && E2.part === 1) continue;   // tests only: a part that claims cells and never writes them
               if (E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1)) {
@@ -897,6 +942,15 @@ export function solve(E, M, plan, opts = {}) {
                   L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
                 }
                 e3Copied++;
+                continue;
+              }
+              // E3's lump-sum half: an empty pension past the last possible inflow reads its zero-allowance bucket
+              if (isPclsCopy(ip, ii, ic, t)) {
+                const src = g.index(ip, ii, it, ig, 0);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                pclsCopied++;
                 continue;
               }
               // COV-B: a slot repeating the node below it (the extra slot outside an inserted edge) is copied, not solved
@@ -1209,10 +1263,11 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); }
+  if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };
+  if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };
   if (E2) meta.e2 = { parts: E2.parts };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;

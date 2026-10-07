@@ -12,6 +12,22 @@ judged Q on moves Q never acts on (commits b272e6a, 97641da, 62857e9). Both were
 reviewed a test's design before its result counted: the plan-auditor reads plan changes, the deep reviewer reads results,
 and a unit test is neither a registered run nor, until it is recorded, a plan change.
 
+## 0. The stricter wording the design review proposes (deep-review-log.md, 7 Oct 09:37 UK)
+
+The first review under the rule found the Q test's plant caught only outside the slice where the fault acts, so it
+proposes this wording, adopted here for the maintainer's unlock (RULES.md row 14 is shortened to fit the byte budget and
+points here):
+
+> A test that meets a gate is design-reviewed before its result is recorded as meeting it. The review lists each fault the
+> gate guards and, for each: the check that would fail with it present; the slice of reads where it can act, with that
+> slice's count printed by the test; and a planted fault caught inside that slice, with the plant's effect over the
+> tolerance and the tolerance over the clean error each printed and each at least 2. A plant caught only outside its check's
+> slice is a vacuous pass. A test edited after a failing run is re-reviewed before its passing run counts.
+
+The review proposes the receipt be tied to the test file's git blob (so an edit after the review needs a new one). The
+design below keys it on the deep-review-log receipt's time and adds the blob: the receipt names the file and its blob's
+first 12 hex characters, and check-plan compares them with `git hash-object` of the file as committed.
+
 ## 1. CHECKLIST.md, item 6 (locked)
 
 Now:

@@ -175,7 +175,10 @@ export function unlockedFrom(transcriptText) {
   const lines = transcriptText.split('\n');
   for (let i = lines.length - 1; i >= 0; i--) {
     let j; try { j = JSON.parse(lines[i]); } catch { continue; }
-    if (j.type === 'queue-operation' && j.operation === 'enqueue' && typeof j.content === 'string' && !/^\s*</.test(j.content)) return false;
+    // a queued "unlock enforcement" neither ends an unlock nor starts one: it is the same instruction, sent again (the
+    // maintainer, 7 Oct: "change the hook so a queued unlock doesn't cancel it" - their second copy, queued mid-turn behind
+    // the delivered one, had ended the unlock it repeated)
+    if (j.type === 'queue-operation' && j.operation === 'enqueue' && typeof j.content === 'string' && !/^\s*</.test(j.content)) { if (UNLOCK.test(j.content)) continue; return false; }
     // a message typed mid-turn and absorbed into the turn: the harness records it as a queued_command attachment carrying the
     // typist's origin (a task notice is recorded the same way with commandMode task-notification and no origin), so it
     // starts an unlock as a delivered message does and, like one, a later message ends it (the maintainer typed "unlock

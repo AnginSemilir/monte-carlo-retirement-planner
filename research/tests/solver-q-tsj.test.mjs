@@ -16,7 +16,8 @@
  *      layer's does (so the default layer's place is the move's); planted: a layer table the reader never saw has no
  *      step (the check reads the layer's own entry, not a fallback)
  *   F. the 4,000-point reference integrates 1 and z^2
- *   C. THE CHOOSER AT THE TRUE STATE: at the opening state, in every world, each move's score with Q is within 0.003 of
+ *   C. THE CHOOSER AT THE TRUE STATE: at the opening state and year 0's grid positions (every wealth and pension share,
+ *      the accessible money all in the ISA or all taxable), in every world, each move's score with Q is within 0.003 of
  *      the same score over 4,000 equal-probability returns read from the move's own layer; planted: the five points
  *      miss that by more than 0.003 on some move (else C is vacuous)
  *   H. planted, the layer read: every move made to read the default layer instead of its own misses the 4,000-point
@@ -27,7 +28,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, scoreMoves } from '../../src/solver/solve.js';
-import { vecOf } from '../../src/solver/grid.js';
+import { vecOf, toVec } from '../../src/solver/grid.js';
 import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -91,25 +92,34 @@ const denseView = (w) => {
 // planted (H): every move reads the default layer's tables, Q still on
 const defaultLayerView = (w) => { const j0 = w.tsLayers.findIndex(L => L.lsurv === w.lsurv); return { ...w, tsLayers: w.tsLayers.map(() => w.tsLayers[j0]), ...fresh_ }; };
 const n = on.actions.length;
-const scores = (w) => { const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n); scoreMoves({ ...w, ...fresh_ }, s0, 0, SC, TX, BQ, null); return SC; };
+const scores = (w, s = s0) => { const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n); scoreMoves({ ...w, ...fresh_ }, s, 0, SC, TX, BQ, null); return SC; };
 const TOL = 0.003;
-let worstOn = 0, worstOff = 0, worstWrong = 0, cOk = true, where = '', layersRead = new Set(), moved = 0;
-for (let k = 0; k < K; k++) {
-  const wOn = on.worlds[k], sOn = scores(wOn), sOff = scores(off.worlds[k]), sD = scores(denseView(wOn)), sWrong = scores(defaultLayerView(wOn));
+// the states read: the opening, and year 0's grid positions at every wealth and pension share, the accessible money all
+// in the ISA or all in the taxable account, with no gain and no lump sum taken (the first run read the opening alone, and
+// there the layers' next-year tables are within 0.0004 of each other: H's plant was not caught, so C could not tell the
+// layers apart; the wider set is where a wrong layer shows)
+const states = [['the opening', s0]];
+for (let ip = 0; ip < on.g.np; ip++) for (let ii = 0; ii < on.g.ni; ii++) for (const it of [0, on.g.nt - 1]) states.push([`node ${ip}/${ii}/${it}`, toVec(on.g, ip, ii, it, 0, 0, new Float64Array(7), 0)]);
+let worstOn = 0, worstOff = 0, worstWrong = 0, cOk = true, where = '', whereWrong = '', layersRead = new Set(), moved = 0, cells = 0;
+const t1 = Date.now();
+for (const [name, s] of states) for (let k = 0; k < K; k++) {
+  const wOn = on.worlds[k], sOn = scores(wOn, s), sOff = scores(off.worlds[k], s), sD = scores(denseView(wOn), s), sWrong = scores(defaultLayerView(wOn), s);
   for (let ai = 0; ai < n; ai++) {
     if (!Number.isFinite(sD[ai])) { if (Number.isFinite(sOn[ai])) cOk = false; continue; }
-    layersRead.add(on.tsLayerOf[ai]);
+    layersRead.add(on.tsLayerOf[ai]); cells++;
     const eOn = Math.abs(sOn[ai] - sD[ai]), eOff = Math.abs(sOff[ai] - sD[ai]), eWrong = Math.abs(sWrong[ai] - sD[ai]);
-    if (eOn > worstOn) { worstOn = eOn; where = `world ${k}, ${on.actions[ai].label}`; }
-    worstOff = Math.max(worstOff, eOff); worstWrong = Math.max(worstWrong, eWrong);
+    if (eOn > worstOn) { worstOn = eOn; where = `${name}, world ${k}, ${on.actions[ai].label}`; }
+    if (eWrong > worstWrong) { worstWrong = eWrong; whereWrong = `${name}, world ${k}, ${on.actions[ai].label}`; }
+    worstOff = Math.max(worstOff, eOff);
     if (eOn > TOL) cOk = false;
-    if (Number.isFinite(sOff[ai]) && Math.abs(sOff[ai] - sOn[ai]) > 1e-9) moved++;
+    if (s === s0 && Number.isFinite(sOff[ai]) && Math.abs(sOff[ai] - sOn[ai]) > 1e-9) moved++;
   }
 }
-ok('C  with Q, every move\'s score at the opening state is within 0.003 of the 4,000-point score on its own layer, in every world', cOk && layersRead.size > 1, `worst ${worstOn.toFixed(5)} (${where}); ${layersRead.size} layers read by the finite moves`);
+console.log(`${states.length} states x ${K} worlds, ${cells} finite move scores, in ${((Date.now() - t1) / 1000).toFixed(0)} s`);
+ok('C  with Q, every move\'s score at every state read is within 0.003 of the 4,000-point score on its own layer, in every world', cOk && layersRead.size > 1, `worst ${worstOn.toFixed(5)} (${where}); ${layersRead.size} layers read by the finite moves`);
 ok('C  planted: the five points miss the 4,000-point score by more than 0.003 on some move', worstOff > TOL, `worst ${worstOff.toFixed(5)}`);
 console.log('=========== H. THE LAYER READ ===========');
-ok('H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move', worstWrong > TOL, `worst ${worstWrong.toFixed(5)}`);
+ok('H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move', worstWrong > TOL, `worst ${worstWrong.toFixed(5)} (${whereWrong})`);
 console.log('=========== D. THE CHOOSER USES IT ===========');
 ok('D  the moves\' scores at the opening state differ on and off', moved > 0, `${moved} move-worlds moved`);
 

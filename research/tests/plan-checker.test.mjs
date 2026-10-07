@@ -491,4 +491,26 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "r" in a.md with: some text the file never came to hold at any time at all\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n## 7zx (closed 4 Oct 17:00)\n- [T:design] z -> DROP\n'), () => '').length === 0, 'EDGE: a REPLACE two closes back is not re-checked (a later rewording is allowed)');
 }
 
+// GATE TESTS (RULES.md section 4 row 14; the maintainer, 7 Oct): a gate recorded met by a research/tests file names a design
+// review whose receipt names the test and its blob as it stands. A fixture log and a fixture test, the rest the real tree's
+{
+  const { blobOf } = await import('../solver/check-plan.mjs');
+  const TEST = 'export const x = 1;\n', blob = blobOf(TEST).slice(0, 12), other = blobOf('export const x = 2;\n').slice(0, 12);
+  const gt = (line, log) => {
+    const fx = { 'deep-review-log.md': log, '../tests/solver-gt.test.mjs': TEST };
+    const errs = run({ added: [line], readSolverFile: p => (p in fx ? fx[p] : read(p)), solverFileExists: p => p in fx || existsSync(join(S, p)) });
+    return errs.filter(e => e.startsWith('[gate tests]'));
+  };
+  const rec = body => `- 7 Oct 09:59 UK | covered x | level HIGH | ${body}`;
+  const met = 'O55 gate met: research/tests/solver-gt.test.mjs passes';
+  ok(gt(met, '').length === 1, 'planted fault caught (gate tests): a gate met by a test with no design review');
+  ok(gt(`${met}; design review: 7 Oct 09:58 UK`, rec(`solver-gt.test.mjs blob ${blob}`)).length === 1, 'planted fault caught (gate tests): a design review time with no receipt at that time');
+  ok(gt(`${met}; design review: 7 Oct 09:59 UK`, rec('solver-other.test.mjs')).length === 1, 'planted fault caught (gate tests): a receipt that names another test only');
+  ok(gt(`${met}; design review: 7 Oct 09:59 UK`, rec(`solver-gt.test.mjs blob ${other}`)).length === 1, 'planted fault caught (gate tests): a receipt naming the test at an older blob (the test edited after its review)');
+  ok(gt(`${met}; design review: 7 Oct 09:59 UK`, rec(`solver-gt.test.mjs blob ${blob}`)).length === 0, 'a gate met with a receipt naming the test at its blob as it stands passes');
+  ok(gt('O55 gate met: research/tests/results-solver-gt-6pts.txt, 11 of 11', '').length === 1, 'planted fault caught (gate tests): the results file cited instead of the test is read as the test');
+  ok(gt('7u gate met: results-7aj.txt, every item HELD', '').length === 0 && gt('O55 gate not met: research/tests/solver-gt.test.mjs failed H', '').length === 0, 'EDGES: a gate met by no research/tests file, and a gate not met, ask for no review');
+  ok(blobOf('hello\n') === 'ce013625030ba8dba906f756967f9e9ca394464a', 'blobOf is git hash-object (the blob of "hello\\n")');
+}
+
 console.log(`\n${n} passed`);

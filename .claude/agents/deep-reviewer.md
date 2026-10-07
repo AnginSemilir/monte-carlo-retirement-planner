@@ -52,3 +52,10 @@ research/tests suites and small read-only scripts over saved traces are allowed.
    research/solver/deep-review-log.md with the time from the clock (UK), the last test in results-scorecard.txt and the
    level from uncertainty.mjs, and refuses findings under 200 characters or without two or more cause credences, each from
    0 to 1. Report the same in your answer.
+9. A DESIGN REVIEW OF A GATE TEST (RULES.md section 4 row 14; the maintainer, 7 Oct): when asked whether a research/tests
+   file can meet a gate, list each fault the gate guards and, for each, the check that would fail with it present, the
+   slice of reads where it can act (its count printed by the test), and a planted fault caught inside that slice, with the
+   plant's effect over the tolerance and the tolerance over the clean error each printed and each at least 2; a plant caught
+   only outside its slice is a vacuous pass. Name in the findings the test file and its blob as reviewed
+   (`<file>.test.mjs blob <the first 12 hex of git hash-object>`): check-plan.mjs accepts the gate as met only on a receipt
+   naming the file at the blob it has when the gate is recorded, so a test edited after the review needs a new one.

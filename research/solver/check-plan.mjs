@@ -36,6 +36,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
@@ -357,8 +358,37 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
     if (lc && lc.length === 4 && !(/\bdecision:/i.test(lc[3]) && !/results:/i.test(lc[3])) && !/\bgrade [ABCD]\b/i.test(lc[3])) err('grade', `row "${(lc[0] || '').slice(0, 20)}": a new ledger row names its evidence grade in the evidence cell ("grade A" to "grade D"; RULES.md section 8)`);
     if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);
   }
+  // GATE TESTS (RULES.md section 4 row 14; the maintainer's decision and unlock of 7 Oct, after the O55 unit test passed its
+  // plants where the faults could not show): a new line recording a gate met by a research/tests file names the design
+  // review of that test (`design review: <D Mon HH:MM> UK`); that receipt in deep-review-log.md names the test file and the
+  // blob it reviewed, which must be the file's blob now - an edit after the review needs a new review
+  const drLog = opt('deep-review-log.md') ?? '';
+  for (const raw of added) {
+    const line = unquoted(raw, strikeAt(planLines, raw));
+    if (!GATE_MET.test(line)) continue;
+    const tests = [...new Set([...raw.matchAll(GATE_TEST_FILE)].map(m => gateTestOf(m[1])))];
+    if (!tests.length) continue;
+    const head = `"${raw.trim().slice(0, 60)}..."`;
+    const dr = /design review:\s*(\d{1,2} [A-Z][a-z]{2} \d{2}:\d{2}) UK/.exec(raw);
+    if (!dr) { err('gate tests', `${head} records a gate met by ${tests.join(', ')} with no "design review: <D Mon HH:MM> UK" (RULES.md section 4 row 14)`); continue; }
+    const receipt = drLog.split('\n').find(x => x.startsWith(`- ${dr[1]} UK |`));
+    if (!receipt) { err('gate tests', `${head}: no deep-review-log.md receipt at ${dr[1]} UK`); continue; }
+    for (const t of tests) {
+      const rel = `../tests/${t}`;
+      if (!solverFileExists(rel)) { err('gate tests', `${head}: research/tests/${t} does not exist`); continue; }
+      const blob = blobOf(readSolverFile(rel)).slice(0, 12);
+      if (!receipt.includes(t)) err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}`);
+      else if (!receipt.includes(`blob ${blob}`)) err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}'s blob as it stands (blob ${blob}): the test changed after its review, or the receipt names no blob`);
+    }
+  }
   return E;
 }
+// a gate recorded met (not "not met"), and the research/tests files a line cites: a results file reads as its test
+export const GATE_MET = /\bgates?\s+(?:is\s+|are\s+|now\s+)?met\b|\bGATE MET\b|\bmeets?\s+(?:its|the|O\d+'s)\s+gate\b/i;
+export const GATE_TEST_FILE = /research\/tests\/([\w.-]+?\.(?:test\.mjs|txt))\b/g;
+export const gateTestOf = f => (f.endsWith('.test.mjs') ? f : `${f.replace(/^results-/, '').replace(/\.txt$/, '').replace(/-\d+pts?$/, '')}.test.mjs`);
+// git's blob id of a text, as `git hash-object` prints it
+export const blobOf = text => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
 
 /* ---- reading the tree, the index or a commit ---- */
 const git = (cmd, opts = {}) => execSync(`git ${cmd}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20, ...opts }).toString();

@@ -5,7 +5,7 @@
 3. Reusing old result files for a new question is a new test: fair-test those files first.
 4. Every figure in the plan comes from a script's output over the files; cite the results file and the evidence grade (A-D) in the ledger's evidence cell.
 5. "No effect", "unaffected", "can't happen": add `evidence: <file or proof>` of grade A or B on the same line, or write NOT CHECKED.
-6. Trust a check only after it has failed on a planted fault. A check that ran on nothing is an error, not a pass.
+6. Trust a check only after it has failed on a planted fault. A check that ran on nothing is an error, not a pass. A test used to meet a gate is design-reviewed first (the deep-reviewer: could it pass with the fault present?), and the gate is recorded met with `design review: <D Mon HH:MM> UK`, a receipt naming the test's blob.
 7. After any code edit, the launcher's smoke run must pass on that code before a batch; re-test every caller.
 8. A decision changes the code default in the same commit, and the decided-defaults block; a test pins the two together.
 9. After a bug, search for the same pattern elsewhere and write "Same pattern searched:" with what was found.

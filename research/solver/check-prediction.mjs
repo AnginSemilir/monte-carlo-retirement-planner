@@ -181,6 +181,11 @@ export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
   for (const m of cred.matchAll(/^\s*-\s*\*\*Judged, item (\d+):\*\*\s*([^\n]*)$/gm)) judged.set(m[1], distOf(m[2]));
   if (!items.size) return ['"## Credence" gives no "- **Item N:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (credences derived, the maintainer\'s unlock of 5 Oct)'];
   const P = [];
+  // "- **Judged:** none" in the Credence section declines to judge (judgedOrderProblems' escape, for a derivation whose output
+  // was committed before any judgement): no judged line is then asked for, and none may stand beside it. Before the unlock of
+  // 7 Oct (diag-7aw) this check asked for the judged lines regardless, so the escape could never pass the whole check
+  const declined = /^\s*-\s*\*\*Judged:\*\*\s*none\b/mi.test(cred);
+  if (declined && judged.size) P.push('"- **Judged:** none" stands beside "- **Judged, item N:**" lines: decline to judge, or judge, not both');
   // every item the Decision rule names has a credence line (an item with none went unchecked)
   for (const m of (section(text, 'Decision rule', { note: true }) || '').matchAll(/\*\*Item (\d+)\b/g)) if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule names it but "## Credence" gives no "- **Item ${m[1]}:**" line`);
   for (const [k, d] of items) {
@@ -188,7 +193,7 @@ export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
     if (!fullDist(d)) { P.push(`item ${k}: its credence names ${Object.keys(d).join(', ') || 'no outcome'}, not all three outcomes`); continue; }
     const s = d.HELD + d.INCONCLUSIVE + d.FALSIFIED;
     if (Math.abs(s - 1) > 0.011) P.push(`item ${k}: its three outcomes sum to ${s.toFixed(3)}, not 1`);
-    if (!judged.has(k) || !fullDist(judged.get(k))) P.push(`item ${k}: no "- **Judged, item ${k}:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (the author's judgement, written before the derivation, scored beside it)`);
+    if (!declined && (!judged.has(k) || !fullDist(judged.get(k)))) P.push(`item ${k}: no "- **Judged, item ${k}:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (the author's judgement, written before the derivation, scored beside it)`);
   }
   // the derivation's CREDENCE lines
   const der = section(text, 'Derivation script', { note: true }) || '';

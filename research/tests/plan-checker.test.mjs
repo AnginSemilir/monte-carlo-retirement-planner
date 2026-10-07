@@ -288,6 +288,9 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.40, INCONCLUSIVE 0.26, FALSIFIED 0.34')).some(e => /more than 0\.05 apart/.test(e)), 'planted: a stated credence 0.06 off the derived one is refused');
     ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.38, INCONCLUSIVE 0.28, FALSIFIED 0.34')).length === 0, 'EDGE: 0.04 off the derived one passes');
     ok(cp(good.split('\n')[0]).some(e => /Judged, item 1/.test(e)), 'planted: no judged credence beside the derived one is refused');
+    ok(cp(`${good.split('\n')[0]}\n- **Judged:** none - the output was committed first`).length === 0, '"Judged: none" in the Credence section declines to judge and passes the whole credence check (the unlock of 7 Oct: it never could)');
+    ok(cp(`${good}\n- **Judged:** none`).some(e => /not both/.test(e)), 'planted: "Judged: none" beside judged lines is refused');
+    ok(credenceProblems(pr(good.split('\n')[0]).replace('## Power\n\nx', '## Power\n\n- **Judged:** none'), { readOut: rd }).some(e => /Judged, item 1/.test(e)), 'EDGE: "Judged: none" outside the Credence section declines nothing');
     ok(cp(good.replace('FALSIFIED 0.34.', 'FALSIFIED 0.44.')).some(e => /sum to 1\.100/.test(e)), 'planted: three outcomes not summing to 1 are refused');
     ok(cp(good.replace('HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34', 'HELD 0.68, FALSIFIED 0.32')).some(e => /not all three outcomes/.test(e)), 'planted: a credence naming two outcomes is refused');
     ok(cp(good, '- **Item 1:** about 0.6 (0.3 to 0.9).').some(e => /not the derivation's 0\.5/.test(e)), 'planted: a point not the derivation\'s (XAS\'s first credence against its point) is refused');

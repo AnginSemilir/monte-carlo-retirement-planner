@@ -17,9 +17,10 @@
  *      step (the check reads the layer's own entry, not a fallback)
  *   F. the 4,000-point reference integrates 1 and z^2
  *   C. THE CHOOSER AT THE TRUE STATE: at the opening state and year 0's grid positions (every wealth and pension share,
- *      the accessible money all in the ISA or all taxable), in every world, each move's score with Q is within 0.003 of
- *      the same score over 4,000 equal-probability returns read from the move's own layer; planted: the five points
- *      miss that by more than 0.003 on some move (else C is vacuous)
+ *      the accessible money all in the ISA or all taxable), in every world: where Q acts (the step within z in [-9, 9]),
+ *      each move's score is within 0.003 of the same score over 4,000 equal-probability returns read from the move's own
+ *      layer; where it hands back, the score is the five points' to the bit; planted: where Q acts, the five points miss
+ *      the 4,000-point score by more than 0.003 on some move (else C is vacuous)
  *   H. planted, the layer read: every move made to read the default layer instead of its own misses the 4,000-point
  *      score by more than 0.003 on some move (else C cannot tell the layers apart, and the layer read is untested)
  *   D. the chooser uses it: the moves' scores at the opening state differ on and off
@@ -29,6 +30,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, scoreMoves } from '../../src/solver/solve.js';
 import { vecOf, toVec } from '../../src/solver/grid.js';
+import * as F from '../../src/solver/fast.js';
 import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -101,26 +103,43 @@ const TOL = 0.003;
 const states = [['the opening', s0]];
 for (let ip = 0; ip < on.g.np; ip++) for (let ii = 0; ii < on.g.ni; ii++) for (const it of [0, on.g.nt - 1]) states.push([`node ${ip}/${ii}/${it}`, toVec(on.g, ip, ii, it, 0, 0, new Float64Array(7), 0)]);
 const J0 = on.worlds[0].tsLayers.findIndex(L => L.lsurv === on.worlds[0].lsurv);
-let worstOn = 0, worstOff = 0, worstWrong = 0, cOk = true, where = '', whereWrong = '', layersRead = new Set(), moved = 0, cells = 0;
+// where Q acts: stepExpect's own bracket - the move's accessible money after its flow, grown at z = -9 and z = 9 at the
+// move's rates (realAt, no path shift in year 0), straddles the reader's step; outside it Q hands back to the five points.
+// The second widened run's one C miss (node 4/4/5, world 1, 'taxable before ISA, spend 110%', 0.00411) was such a move:
+// the step at 23,199 of accessible money, the move's accessible money 43,570 even at z = -9, so Q never acted and the miss
+// is the five points' own error on a smooth integrand (no jump over 0.02 between returns 0.002 apart; 40,000 returns agree
+// with 4,000 to 2e-6; scratch diagnosis, the 7 Oct session). So C reads Q against the reference where it acts, and checks
+// it is the five points to the bit where it does not.
+const accAt = (w, ai, s, z) => { const post = Float64Array.from(s); F.flow(w.c, 0, ai, post); const act = w.c.acts[ai], x = new Float64Array(4); for (let i = 0; i < 4; i++) x[i] = Math.exp(Math.log(1 + act.real[i]) + act.volEffAt[0][i] * z) - 1; F.grow(w.c, 0, post, x); return post[1] + post[2]; };
+let worstOn = 0, worstOff = 0, worstWrong = 0, cOk = true, idOk = true, where = '', whereId = '', whereWrong = '', layersRead = new Set(), moved = 0, cells = 0, acts = 0, idle = 0;
 const t1 = Date.now();
 for (const [name, s] of states) for (let k = 0; k < K; k++) {
   const wOn = on.worlds[k], sOn = scores(wOn, s), sOff = scores(off.worlds[k], s), sD = scores(denseView(wOn), s), sWrong = scores(defaultLayerView(wOn), s);
+  const stepAt = stepOf(wOn.lsurv[1]);
   for (let ai = 0; ai < n; ai++) {
     if (!Number.isFinite(sD[ai])) { if (Number.isFinite(sOn[ai])) cOk = false; continue; }
     layersRead.add(on.tsLayerOf[ai]); cells++;
     const eOn = Math.abs(sOn[ai] - sD[ai]), eOff = Math.abs(sOff[ai] - sD[ai]), eWrong = Math.abs(sWrong[ai] - sD[ai]);
-    if (eOn > worstOn) { worstOn = eOn; where = `${name}, world ${k}, ${on.actions[ai].label}`; }
-    // H counts only the moves the plant moves: those whose own layer is not the default one (the first widened run's
-    // H 'passed' on a default-layer move, Q's own C miss, which the plant cannot touch)
+    const qActs = stepAt !== null && accAt(wOn, ai, s, -9) < stepAt && accAt(wOn, ai, s, 9) >= stepAt;
+    if (qActs) {
+      acts++;
+      if (eOn > worstOn) { worstOn = eOn; where = `${name}, world ${k}, ${on.actions[ai].label}`; }
+      worstOff = Math.max(worstOff, eOff);
+      if (eOn > TOL) cOk = false;
+    } else {
+      idle++;
+      if (!Object.is(sOn[ai], sOff[ai])) { idOk = false; whereId = `${name}, world ${k}, ${on.actions[ai].label}: ${sOn[ai]} against ${sOff[ai]}`; }
+    }
+    // H counts only the moves the plant moves: those whose own layer is not the default one (the second widened run's
+    // H 'passed' on a default-layer move, which the plant cannot touch)
     if (on.tsLayerOf[ai] !== J0 && eWrong > worstWrong) { worstWrong = eWrong; whereWrong = `${name}, world ${k}, ${on.actions[ai].label}`; }
-    worstOff = Math.max(worstOff, eOff);
-    if (eOn > TOL) cOk = false;
     if (s === s0 && Number.isFinite(sOff[ai]) && Math.abs(sOff[ai] - sOn[ai]) > 1e-9) moved++;
   }
 }
-console.log(`${states.length} states x ${K} worlds, ${cells} finite move scores, in ${((Date.now() - t1) / 1000).toFixed(0)} s`);
-ok('C  with Q, every move\'s score at every state read is within 0.003 of the 4,000-point score on its own layer, in every world', cOk && layersRead.size > 1, `worst ${worstOn.toFixed(5)} (${where}); ${layersRead.size} layers read by the finite moves`);
-ok('C  planted: the five points miss the 4,000-point score by more than 0.003 on some move', worstOff > TOL, `worst ${worstOff.toFixed(5)}`);
+console.log(`${states.length} states x ${K} worlds, ${cells} finite move scores (Q acts on ${acts}, hands back on ${idle}), in ${((Date.now() - t1) / 1000).toFixed(0)} s`);
+ok('C  where Q acts, every move\'s score is within 0.003 of the 4,000-point score on its own layer, in every world', cOk && acts > 0 && layersRead.size > 1, `worst ${worstOn.toFixed(5)} (${where}); ${acts} move scores; ${layersRead.size} layers read by the finite moves`);
+ok('C  where Q hands back (the step out of reach), every score is the five points\' to the bit', idOk && idle > 0, whereId || `${idle} move scores`);
+ok('C  planted: where Q acts, the five points miss the 4,000-point score by more than 0.003 on some move', worstOff > TOL, `worst ${worstOff.toFixed(5)}`);
 console.log('=========== H. THE LAYER READ ===========');
 ok('H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move made to another layer', worstWrong > TOL, `worst ${worstWrong.toFixed(5)} (${whereWrong})`);
 console.log('=========== D. THE CHOOSER USES IT ===========');

@@ -24,7 +24,9 @@
  *      miss by more than TOL
  *   H. THE LAYER READ, planted, inside C's slice: on the moves where Q acts that go to another layer, every move made to
  *      read the default layer instead moves its score by more than TOL on some move
- *   M. the margins, printed and each at least 2 (row 14): TOL over C's worst clean error, and H's plant over TOL
+ *   M. the margins, printed, not asserted (the maintainer, 7 Oct 13:22 UK, option (a): row 14 asks each to be at least 2, but
+ *      the wrong-layer plant moves scores only about 3-3.5 times Q's clean error, so no tolerance gives both 2; the gate is
+ *      judged by a design review with the margins on record): TOL over C's worst clean error, and H's plant over TOL
  *   E. THE BACKWARD PASS: at every step year's grid nodes, holding each tier pair, the forward chooser (chooseAction, the
  *      joint mixture) picks the move the table stored, and each world's stored score is the forward score of the stored
  *      move (less the switch charge, as the backward pass stores it); planted: the forward chooser without Q disagrees
@@ -144,7 +146,7 @@ ok('C  where Q hands back, every score is the five points\' to the bit', idOk &&
 ok('C  planted: where Q acts, the five points miss the 4,000-point score by more than 0.001 on some move', worstOff > TOL, `worst ${worstOff.toFixed(5)}`);
 ok('H  planted: where Q acts, reading the default layer moves some move to another layer by more than 0.001', worstPlant > TOL && actsOther > 0, `worst ${worstPlant.toFixed(5)} (${wherePlant}), over ${actsOther} moves`);
 const mClean = worstOn > 0 ? TOL / worstOn : Infinity, mPlant = worstPlant / TOL;
-ok('M  the margins are each at least 2: the tolerance over C\'s worst clean error, and H\'s plant over the tolerance', mClean >= 2 && mPlant >= 2, `clean ${mClean.toFixed(2)}x, plant ${mPlant.toFixed(2)}x`);
+console.log(`M  margins (reported, not asserted; row 14 asks 2 each): the tolerance over C's worst clean error ${mClean.toFixed(2)}x, H's plant over the tolerance ${mPlant.toFixed(2)}x${mClean >= 2 && mPlant >= 2 ? '' : ' -- BELOW 2, on record'}`);
 
 console.log('=========== E. THE BACKWARD PASS AGAINST THE FORWARD CHOOSER ===========');
 const offFwd = { ...on, mix: { ...on.mix, tables: on.mix.tables.map(tb => ({ ...tb, stepExact: false, ...fresh_ })) }, stepExact: false, ...fresh_ };

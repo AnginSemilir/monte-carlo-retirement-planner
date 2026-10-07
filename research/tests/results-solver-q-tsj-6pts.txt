@@ -1,0 +1,24 @@
+share 0.95 under the candidate at 6 points: two solves in 520 s
+PASS  setup  the candidate solves with the tier state, joint worlds and Q, and the household has reader years  -- 3 worlds, 3 tier layers, reader years 0, 1; opening accessible 47499
+=========== B. ONLY THE YEARS BEFORE A READER YEAR, IN EVERY LAYER ===========
+PASS  B  from the last bridge year on, every layer of every world is the same to the bit on and off  -- years 1 to 39, 3 x 3 layers
+PASS  B  before it, something differs (Q acts at the nodes under the tier state)
+=========== G. THE STEP'S PLACE IN EVERY LAYER ===========
+PASS  G  every layer's own reader puts the step where the default layer's does, in every world and reader year  -- 18 layer-years
+PASS  G  planted: a layer table the reader never saw has no step (the check reads each layer's own entry)
+=========== F. THE REFERENCE ===========
+PASS  F  the reference integrates 1 and z^2  -- 1.000000000, 0.99967
+=========== C. THE CHOOSER AT THE TRUE STATE, EACH MOVE ON ITS OWN LAYER ===========
+73 states x 3 worlds, 31752 finite move scores (Q acts on 3972, hands back on 27780), in 293 s
+PASS  C  where Q acts, every move's score is within 0.003 of the 4,000-point score on its own layer, in every world  -- worst 0.00027 (node 3/2/5, world 0, taxable before ISA, spend 80%); 3972 move scores; 3 layers read by the finite moves
+PASS  C  where Q hands back (the step out of reach), every score is the five points' to the bit  -- 27780 move scores
+PASS  C  planted: where Q acts, the five points miss the 4,000-point score by more than 0.003 on some move  -- worst 0.24855
+=========== H. THE LAYER READ ===========
+PASS  H  planted: every move reading the default layer misses the 4,000-point score by more than 0.003 on some move made to another layer  -- worst 0.00336 (node 4/4/0, world 1, taxable before ISA, spend 110%, pension 1 tier down, ISA 1 tier down)
+=========== D. THE CHOOSER USES IT ===========
+PASS  D  the moves' scores at the opening state differ on and off  -- 972 move-worlds moved
+
+11 passed, 0 failed
+
+
+run: node research/tests/solver-q-tsj.test.mjs 6, on 62857e9's test and 773e8d9's solver (code 6dfa9cfea59a), 07 Oct 09:04 UK, beside 7aj's batch

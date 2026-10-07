@@ -1,0 +1,24 @@
+GATE: passed - 10 units once and done at 30 points, OFF and ON the candidate with e3 and only e3pcls between them, every household testing its clause, every plant and split line present
+E3-PCLS-C, THE LUMP-SUM HALF'S PANEL IDENTITY CHECK (a measurement): 9 households at 30 points under the candidate with e3, e3pcls off against on; and S180 split 4 and 2 ways
+  household        set by          lastPenIn  differ/values           meta  reader  forward differ  copied   evaluated OFF/ON         fewer
+  S124             none                   -1  0/17496000              same  same            0/2000    44000  37152000/31872000       14.2%
+  S360             none                   -1  0/20120400              same  same            0/2000    50600  42724800/36652800       14.2%
+  S180             work                    4  0/17933400              same  same            0/2000    39600  38080800/33328800       12.5%
+  S194             deposit                 7  0/17933400              same  same            0/2000    36300  38080800/33724800       11.4%
+  S126             deposit                 4  0/17496000              same  same            0/2000    38500  37152000/32532000       12.4%
+  share 0.95       deposit                 4  0/17496000              same  same            0/2000    38500  37152000/32532000       12.4%
+  S130             deposit                 4  0/17496000              same  same            0/2000    38500  37152000/32532000       12.4%
+  bridge 6         deposit                 4  0/19245600              same  same            0/2000    42900  40867200/35719200       12.6%
+  S126+transfer    transfer               11  0/17496000              same  same            0/2000    30800  37152000/33456000       9.9%
+  S180 split 4 ways: 0 of 17933400 values differ; copied 39600 against 39600; evaluated 33328800 against 33328800
+  S180 split 2 ways: 0 of 17933400 values differ; copied 39600 against 39600; evaluated 33328800 against 33328800
+PLANTED: boundary on S180 differs in 70347 values
+PLANTED: work on S180 differs in 115899 values
+PLANTED: boundary on S126 differs in 86673 values
+PLANTED: deposit on S126 differs in 86673 values
+PLANTED: wrongtwin on share 0.95 differs in 1714630 values
+PLANTED: boundary on S126+transfer differs in 431405 values
+PLANTED: transfer on S126+transfer differs in 434402 values
+  the moves evaluated with e3pcls, fewer than without: median 12.4% (the deep review's prediction: 10 to 16%)
+
+VERDICT E3-PCLS UNDER THE CANDIDATE: EXACT

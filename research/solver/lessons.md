@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## 7aj (closed 7 Oct 11:29)
+
+- [T:design] [T:overclaim] [T:branch] the registrations of 7aj and E3-CAND each carried a claim their own design contradicted: 7aj's Unmasking read 'none' though CAND removes four known errors, and E2X's one-run timings were graded A (both BLOCKING on e7e0ec6d57); E3-CAND's EXACT asked for equal moves evaluated, which e3's copies make impossible (BLOCKING on 743ca2cb1d; the launch stopped, the verdict fixed to fewer moves) -> DROP: all three caught by the plan-auditor before any verdict was read; the Unmasking field and the grade rule already name them
+- [T:decision-fed] [T:stale] [T:other:scope] [T:figure] the sizing pass's records (6 Oct 15:30 and 15:45) put stale sizes and reasons to the maintainer: Phase 4's size left out work its own section registers, a file's UTC time was read as UK time, 8d's gate stood after 7o moved, and 7u's wait on 7an was given a reason the 30 Sep row did not give (three FAILs, 15:38, 15:46 and 15:59, with six BLOCKINGs between them) -> DROP: each caught by the plan-auditor before the maintainer answered; the clock slip is RULES.md section 4 row 12's
+- [T:figure] [T:register] item 1's point (+2.107) missed its 80% interval (1.6 to 1.9) high: the derivation carried 7af's and 7ag's records, which differ from 7aj in the weight, the tier returns and the candidate's later parts at once, and four households moved 0.9 to 3.2 points beyond them (results-compare-7aj.txt; O121) -> AUTOMATE (proposed for 7u's derivation): a derivation prints, beside each record it carries, every setting where that record differs from the run it predicts
+- [T:other:restart] container restarts stopped 7aj's first two runs, and 773e8d9's message said no unit had finished when 4 had -> AUTOMATE: batch-7aj.sh's resume step (14cb09d: a unit is kept only when its log names this code and ends done) goes into every new batch; the message is corrected in the 7 Oct 11:29 ledger row
+
 ## DT-O97 (closed 6 Oct 13:40)
 
 - [T:c-deep] [T:design] the first derivation carried the check households' rho to the loss households as a multiplier on the revaluation; the deep review of 10:37 split it by arm before launch (S130's rho was PCLSI's own re-solve), the reducer gained the per-arm split, and that split is what attributed the read (the re-solve's drift on five of seven, O118) -> DROP: caught by the pre-launch review the registration path already runs; the split stays in reduce-dto97.mjs

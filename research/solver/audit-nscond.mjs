@@ -447,7 +447,7 @@ UNITS.forEach((id, ui) => {
   for (const [a] of ARMS) { const Z = DSTEP[a], C = CHK[a]; console.log(`${''.padEnd(16)} deadstep ${a}: FAIL ${C.deadstepFail - C.deadstepFailBad}/${C.deadstepFail} clean error ${f4(Z.failErr)} tolerance ${f4(TOL_R)} plant ${f4(Z.plantFail)}; NEXT ${C.deadstepNext - C.deadstepNextBad}/${C.deadstepNext} clean error s ${f4(Z.sErr)} b ${f4(Z.bErr)} h ${f4(Z.hErr)} tolerance ${f4(TOL_S)} plant ${f4(Z.plantNext)}`); }
   const tableBad = ARMS.filter(([a]) => CHK[a].deadstepFailBad || CHK[a].deadstepNextBad || !(CHK[a].deadstepFail + CHK[a].deadstepNext > 0) || !CHK[a].noAccessDead).map(([a]) => a);
   if (tableBad.length) { console.error(`audit-nscond: ${id}: a table check failed or ran on nothing (${tableBad.map(a => `${a} ${JSON.stringify(CHK[a])}`).join('; ')})`); process.exit(2); }
-  if (TABLES) { for (const [a] of ARMS) console.log(`${''.padEnd(16)} tables ${a}: passed`); return; }
+  if (TABLES) { for (const [a] of ARMS) console.log(`${''.padEnd(16)} tables ${a}: passed noAccessDead ${CHK[a].noAccessDead}`); return; }
   const t2 = Date.now();
   for (let k = 0; k < K; k++) {
     const z = base.mix.nodes[k];

@@ -13,7 +13,8 @@
  *      Provenance declares them) read by the registered rule's cells; r at 30 points under three readings of where the
  *      live corners' error lies (along share, unrefined; along wealth, to first or second order in the node spacing),
  *      their weights judged after the previews; item 1's HELD carries the weight of the readings that put every TOL cell
- *      under the tolerance. Items 2 and 3 print their previews and keep them out of their credences (each says why).
+ *      under the tolerance. Item 2 prints its preview and keeps it out (it cannot speak to the rule); item 3 carries
+ *      year 6's by a reading judged after it.
  *   3. ITEM 2: S126's opening flips when the swap supplies at least the share f* of COV's change to the two moves'
  *      non-survival difference that BASE's score gap needs (a ratio of saved terms); the copy rule supplies the bequest
  *      COV's edge node supplies to within the live floor (judged: the read at a near 0.87 takes the 0.8 node's value).
@@ -82,20 +83,22 @@ console.log(`  credence: F3-NSBLEND shaded ${pN.toFixed(3)} x ${H_IF} + the rest
 // were printed before registration, so they enter here openly, after H_IF, Q_ELSE and F_ELSE (539a49f). The 4-point run
 // leaves the share axis as it is (6 points at both) and spaces the wealth nodes 29/3 times as wide as 30 points do: a
 // live corner's error along wealth falls by that ratio (a read beside a bend in the bequest) or by its square (a smooth
-// bequest), along share not at all. The three readings' weights are judged after the previews (LIVE_W): along share 0.3
-// (59 of S370's 63 BASE reads and all of bridge 4's lie in the top share cell, whose live corners are the next share node
-// down); along wealth to first order 0.3 (the reads lie by the cliff, where the bequest bends); to second order 0.4 (the
-// non-step reads sit above their one-step values though most of their weight is on a zero bequest: a straight line
-// across a convex bequest between wide nodes; S126's step year at 4 points already reads near its 30-point floor)
+// bequest), along share not at all. The three readings' weights are judged after the previews (LIVE_W), a third each, each
+// with a ground and none favoured: along share (59 of S370's 63 BASE reads and all of bridge 4's lie in the top share
+// cell, whose live corners are the next share node down); along wealth to first order (the reads lie by the cliff, where
+// the bequest bends); to second order (the non-step reads sit above their one-step values though most of their weight is
+// on a zero bequest: a straight line across a convex bequest between wide nodes reads high). (The registration's 0.4 on
+// the second order also cited S126's step year reading near its 30-point floor at 4 points: a ratio near 1, which under
+// this model speaks for no refinement if anything; the plan-auditor's MINOR of 8 Oct, review-log.md, dropped it.)
 const PREVIEW = { audit: '4dba7bf6a82c', points: 4 }, RATIO = (Number(PTS) - 1) / (PREVIEW.points - 1);
 const pv = Object.fromEntries(DECIDING.map(id => [id, JSON.parse(gunzipSync(readFileSync(join(HERE, 'results', 'diagnsb-preflight', `${id.replace(/\s+/g, '_')}.json.gz`))).toString())]));
 for (const [id, t] of Object.entries(pv)) if (t.stamp.audit !== PREVIEW.audit || t.points !== PREVIEW.points) throw new Error(`${id}: the preview is not the registered audit's at ${PREVIEW.points} points`);
 const cells = cellsOf(pv), tolCells = cells.filter(c => c.counts && (c.a === 'BASE' ? c.cls === 'all' : true));
 console.log(`\n2b. ITEM 1: THE PREVIEWS AT ${PREVIEW.points} POINTS (the preflight's files, audit ${PREVIEW.audit}, 3 paths a world; seen before registration, declared)`);
 for (const c of cells) console.log(`  ${c.id.padEnd(9)} ${c.a.padEnd(4)} ${c.cls.padEnd(7)}: ${c.n ? `reads ${c.n} paths ${c.paths}, ${c.counts ? 'counts' : 'does not count'}; mean wd ${c.mwd.toFixed(3)} eb/bE ${f3(c.mrel)} r ${c.mr.toFixed(4)} e ${c.me.toFixed(4)}${c.a === 'BASE' && c.cls === 'nonstep' ? `; QUART's margin (a quarter of wd less e) ${f3(QUART1 * c.mwd - c.me)}` : ''}` : 'no reads (no non-step reader year)'}`);
-const LIVE_W = [['along share, not refined', 1, 0.3], ['along wealth, first order', RATIO, 0.3], ['along wealth, second order', RATIO ** 2, 0.4]];
+const LIVE_W = [['along share, not refined', 1, 1 / 3], ['along wealth, first order', RATIO, 1 / 3], ['along wealth, second order', RATIO ** 2, 1 / 3]];
 let LIVE = 0;
-const worstAt = LIVE_W.map(([name, div, w]) => { const worst = Math.max(...tolCells.map(c => c.mr / div)), under = worst < TOL1; if (under) LIVE += w; console.log(`  read ${name} (r over ${div.toFixed(1)}; weight ${w}, judged): the largest TOL cell's r at ${PTS} points ${worst.toFixed(4)}, ${under ? 'every TOL cell under' : 'a TOL cell over'} ${TOL1}`); return [worst, w]; });
+const worstAt = LIVE_W.map(([name, div, w]) => { const worst = Math.max(...tolCells.map(c => c.mr / div)), under = worst < TOL1; if (under) LIVE += w; console.log(`  read ${name} (r over ${div.toFixed(1)}; weight ${w.toFixed(2)}, judged): the largest TOL cell's r at ${PTS} points ${worst.toFixed(4)}, ${under ? 'every TOL cell under' : 'a TOL cell over'} ${TOL1}`); return [worst, w]; });
 // the point: the largest TOL cell's r at 30 points (the cell HELD turns on), the readings' weighted median; 80% from the
 // smallest reading to the largest
 const sorted = [...worstAt].sort((x, y) => x[0] - y[0]);
@@ -150,16 +153,22 @@ const pR = YB2['YB2-REF'], pwL = Math.min(...pw.map(x => x.pl)), pwH = Math.min(
 const h3 = pR * pwL * pwL, fa3 = (1 - pR) * 0.7 * pwH * pwH, i3 = 1 - h3 - fa3;
 console.log(`  credence: YB2-REF shaded ${pR.toFixed(3)} x both years' LO power -> HELD ${h3.toFixed(2)}; the rest x 0.7 (judged) x both years' HI power -> FALSIFIED ${fa3.toFixed(2)}; INCONCLUSIVE ${i3.toFixed(2)}`);
 console.log(`  s's point: ${(pR * 0.6 + (1 - pR) * 0.1).toFixed(2)} (REF at 0.6, the rest at 0.1); 80% interval -0.10 to 0.75 (judged)`);
-// the preview (declared; kept out of the credence): the point lies between its two years and inside the interval, so it
-// stands; year 6's reads are all but unmoved by the rebuilt reference at 4 points (no sampling spread to weigh: a property
-// of that table, which item 3 measures on the 30-point one); were it carried, it would lower HELD
+// the preview (declared): the point lies between its two years and inside the interval, so it stands; year 6's reads are
+// all but unmoved by the rebuilt reference at 4 points (no sampling spread to weigh). The reference is rebuilt along the
+// share axis, which 30 points leave as it is (6 points at both), so the non-move may be the year's own and persist; or it
+// may be the 4-point table's (the reads fall in other cells at 30 points). STRUCT, the first, judged a half after the
+// preview (the plan-auditor's MINOR of 8 Oct, review-log.md: carried as item 1's previews are): year 6 then cannot read
+// REF, so HELD carries 1 - STRUCT; FALSIFIED is kept (the rest's NOTREF already holds year 6 at the HI power); the mass
+// moves to INCONCLUSIVE
 for (const r of yearsOf(pv.S370)) {
   const P = r.lo.map((l, i) => (l + r.hi[i]) / (HI3 - LO3)), D = r.lo.map((l, i) => l + LO3 * P[i]), sP = P.reduce((a, b) => a + b, 0);
   const I = pv.S370.item3, J = I.t.map((_, j) => j).filter(j => I.t[j] === r.y), moved = J.filter(j => I.rr[j] !== I.ro[j]).length;
   const se = Math.sqrt(D.reduce((a, d, i) => a + (d - r.s * P[i]) ** 2, 0)) / Math.abs(sP), big = Math.max(...J.map(j => Math.abs(I.rr[j] - I.ro[j]))) / Math.max(...J.map(j => Math.abs(I.rr[j] - I.ex5[j])));
-  console.log(`  the preview at ${PREVIEW.points} points (kept out): year ${r.y}, ${r.paths} paths: s ${r.s.toFixed(3)} (se ${se.toFixed(3)}, the delta method); the reference moves ${moved} of ${J.length} reads, the largest move ${big.toExponential(1)} of the largest |rep|`);
+  console.log(`  the preview at ${PREVIEW.points} points: year ${r.y}, ${r.paths} paths: s ${r.s.toFixed(3)} (se ${se.toFixed(3)}, the delta method); the reference moves ${moved} of ${J.length} reads, the largest move ${big.toExponential(1)} of the largest |rep|`);
 }
+const STRUCT = 0.5, h3b = h3 * (1 - STRUCT), fa3b = fa3, i3b = 1 - h3b - fa3b;
+console.log(`  credence with the preview: year 6's non-move persisting at ${PTS} points judged ${STRUCT} -> HELD ${h3.toFixed(2)} x ${1 - STRUCT} = ${h3b.toFixed(2)}; FALSIFIED kept at ${fa3b.toFixed(2)}; INCONCLUSIVE ${i3b.toFixed(2)}`);
 console.log(`\nCREDENCE item 1: point ${P1b.toFixed(4)} HELD ${h1b.toFixed(2)} INCONCLUSIVE ${i1b.toFixed(2)} FALSIFIED ${fa1b.toFixed(2)}`);
 console.log(`CREDENCE item 2: point ${fStar.toFixed(3)} HELD ${h2.toFixed(2)} INCONCLUSIVE ${i2.toFixed(2)} FALSIFIED ${fa2.toFixed(2)}`);
-console.log(`CREDENCE item 3: point ${(pR * 0.6 + (1 - pR) * 0.1).toFixed(2)} HELD ${h3.toFixed(2)} INCONCLUSIVE ${i3.toFixed(2)} FALSIFIED ${fa3.toFixed(2)}`);
-console.log(`\nDERIVED: item 1 HELD ${h1b.toFixed(2)} INCONCLUSIVE ${i1b.toFixed(2)} FALSIFIED ${fa1b.toFixed(2)}; item 2 HELD ${h2.toFixed(2)} INCONCLUSIVE ${i2.toFixed(2)} FALSIFIED ${fa2.toFixed(2)}; item 3 HELD ${h3.toFixed(2)} INCONCLUSIVE ${i3.toFixed(2)} FALSIFIED ${fa3.toFixed(2)}`);
+console.log(`CREDENCE item 3: point ${(pR * 0.6 + (1 - pR) * 0.1).toFixed(2)} HELD ${h3b.toFixed(2)} INCONCLUSIVE ${i3b.toFixed(2)} FALSIFIED ${fa3b.toFixed(2)}`);
+console.log(`\nDERIVED: item 1 HELD ${h1b.toFixed(2)} INCONCLUSIVE ${i1b.toFixed(2)} FALSIFIED ${fa1b.toFixed(2)}; item 2 HELD ${h2.toFixed(2)} INCONCLUSIVE ${i2.toFixed(2)} FALSIFIED ${fa2.toFixed(2)}; item 3 HELD ${h3b.toFixed(2)} INCONCLUSIVE ${i3b.toFixed(2)} FALSIFIED ${fa3b.toFixed(2)}`);

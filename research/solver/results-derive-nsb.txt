@@ -20,12 +20,12 @@ NSB: THE DERIVATION (records only: XAS-R2's files, the review's receipt, the sco
   S126      BASE all    : reads 9 paths 9, counts; mean wd 0.358 eb/bE -0.366 r 0.0072 e 0.3657
   S126      BASE nonstep: no reads (no non-step reader year)
   S126      COV  nonstep: no reads (no non-step reader year)
-  read along share, not refined (r over 1.0; weight 0.3, judged): the largest TOL cell's r at 30 points 0.8053, a TOL cell over 0.05
-  read along wealth, first order (r over 9.7; weight 0.3, judged): the largest TOL cell's r at 30 points 0.0833, a TOL cell over 0.05
-  read along wealth, second order (r over 93.4; weight 0.4, judged): the largest TOL cell's r at 30 points 0.0086, every TOL cell under 0.05
+  read along share, not refined (r over 1.0; weight 0.33, judged): the largest TOL cell's r at 30 points 0.8053, a TOL cell over 0.05
+  read along wealth, first order (r over 9.7; weight 0.33, judged): the largest TOL cell's r at 30 points 0.0833, a TOL cell over 0.05
+  read along wealth, second order (r over 93.4; weight 0.33, judged): the largest TOL cell's r at 30 points 0.0086, every TOL cell under 0.05
   QUART on every BASE non-step cell needs the live error cut by a common factor f: S370 1.18 to 1.97, bridge 4 0.95 to 1.59; together 1.18 to 1.59 (the readings: 1, 9.7 and 93.4)
   r's point: the largest TOL cell's r at 30 points 0.0833 (the readings' weighted median; 80% 0.0086 to 0.81); S126's floor 5.5093e-3 where the live corners read well
-  credence: HELD 0.68 (above) x 0.40, the weight of the readings that put every TOL cell under 0.05 -> HELD 0.27; FALSIFIED kept at 0.05 (the common band above: none of the three readings, a live error mostly along share with a small part along wealth); INCONCLUSIVE 0.67
+  credence: HELD 0.68 (above) x 0.33, the weight of the readings that put every TOL cell under 0.05 -> HELD 0.23; FALSIFIED kept at 0.05 (the common band above: none of the three readings, a live error mostly along share with a small part along wealth); INCONCLUSIVE 0.72
 
 3. ITEM 2: S126'S OPENING
   BASE's moves 59 (BASE) and 5 (COV). Under BASE's tables BASE's move leads by 3.3623e-3 (survival 5.9090e-5, non-survival 3.3033e-3); under COV's the non-survival difference is -1.2795e-3: COV's correction to it 4.5827e-3
@@ -39,11 +39,12 @@ NSB: THE DERIVATION (records only: XAS-R2's files, the review's receipt, the sco
   year 6: reads 5859 paths 5859; rep -1.9464e-3; vb's share 0.264 (XAS-R2's); power of LO at s 0.6 1.00, of HI at s 0.1 1.00 (each at 0.05/4, Holm's worst)
   credence: YB2-REF shaded 0.340 x both years' LO power -> HELD 0.34; the rest x 0.7 (judged) x both years' HI power -> FALSIFIED 0.46; INCONCLUSIVE 0.20
   s's point: 0.27 (REF at 0.6, the rest at 0.1); 80% interval -0.10 to 0.75 (judged)
-  the preview at 4 points (kept out): year 2, 9 paths: s 0.350 (se 0.269, the delta method); the reference moves 8 of 9 reads, the largest move 7.2e-1 of the largest |rep|
-  the preview at 4 points (kept out): year 6, 9 paths: s -0.000 (se 0.000, the delta method); the reference moves 2 of 9 reads, the largest move 4.3e-5 of the largest |rep|
+  the preview at 4 points: year 2, 9 paths: s 0.350 (se 0.269, the delta method); the reference moves 8 of 9 reads, the largest move 7.2e-1 of the largest |rep|
+  the preview at 4 points: year 6, 9 paths: s -0.000 (se 0.000, the delta method); the reference moves 2 of 9 reads, the largest move 4.3e-5 of the largest |rep|
+  credence with the preview: year 6's non-move persisting at 30 points judged 0.5 -> HELD 0.34 x 0.5 = 0.17; FALSIFIED kept at 0.46; INCONCLUSIVE 0.37
 
-CREDENCE item 1: point 0.0833 HELD 0.27 INCONCLUSIVE 0.67 FALSIFIED 0.05
+CREDENCE item 1: point 0.0833 HELD 0.23 INCONCLUSIVE 0.72 FALSIFIED 0.05
 CREDENCE item 2: point 0.734 HELD 0.90 INCONCLUSIVE 0.06 FALSIFIED 0.04
-CREDENCE item 3: point 0.27 HELD 0.34 INCONCLUSIVE 0.20 FALSIFIED 0.46
+CREDENCE item 3: point 0.27 HELD 0.17 INCONCLUSIVE 0.37 FALSIFIED 0.46
 
-DERIVED: item 1 HELD 0.27 INCONCLUSIVE 0.67 FALSIFIED 0.05; item 2 HELD 0.90 INCONCLUSIVE 0.06 FALSIFIED 0.04; item 3 HELD 0.34 INCONCLUSIVE 0.20 FALSIFIED 0.46
+DERIVED: item 1 HELD 0.23 INCONCLUSIVE 0.72 FALSIFIED 0.05; item 2 HELD 0.90 INCONCLUSIVE 0.06 FALSIFIED 0.04; item 3 HELD 0.17 INCONCLUSIVE 0.37 FALSIFIED 0.46

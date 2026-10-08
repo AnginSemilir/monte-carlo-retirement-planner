@@ -13,7 +13,8 @@
  *     the value's PROVISIONAL label lifted by 7as, 4 Oct 01:42 UK)
  *   RESEARCH_OPTS - e3, the empty-pot copy (E3c EXACT, 5 Oct), and pclsInterp, the interpolated allowance axis (6 Oct: 'yes
  *     make the fix the default'; the 4 Oct step-read condition replaced, 'Yes, replace it'; tested with the reader off only,
- *     ADOPT-PI; O76 and PR5 its named caveats)
+ *     ADOPT-PI; O76 and PR5 its named caveats), and e3pcls, E3's lump-sum half (E3-PCLS-C EXACT; 7 Oct 22:50 UK: 'yes, go
+ *     ahead.'), run only on code its identity test passed on (e3pcls-pin.mjs; solveCandidate checks the pin first)
  *   e3 here rests on E3c beyond its checked scope: E3c ran TSJ as the reader with tierState and jointWorlds only
  *     (audit-e3c.mjs), so e3's identity with Q's fix (bridgeStep 'exact'), with the charge (switchCharge, margin 0) and with
  *     pclsInterp is NOT CHECKED by a run - grade B by construction (the deep review of 5 Oct 01:49 UK: the copied cells have
@@ -35,6 +36,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { solvePlan } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from './research-opts.mjs';
+import { checkE3pclsPin } from './e3pcls-pin.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const CANDIDATE_OPTS = Object.freeze({
@@ -64,5 +66,8 @@ export function candidatePlan(E, plan, reals = blendReals()) {
 }
 /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top */
 export function solveCandidate(E, M, plan, extra = {}) {
-  return solvePlan(E, M, candidatePlan(E, plan), { ...CANDIDATE_OPTS, ...extra });
+  // e3pcls is exact only on the code its identity test last passed on (e3pcls-pin.mjs): refuse before any solve otherwise
+  const { e3pclsPinFile, e3pclsPinning, ...opts } = { ...CANDIDATE_OPTS, ...extra };
+  checkE3pclsPin({ ...opts, e3pclsPinFile, e3pclsPinning });
+  return solvePlan(E, M, candidatePlan(E, plan), opts);
 }

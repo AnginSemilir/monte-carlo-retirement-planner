@@ -204,10 +204,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    it counts.
 22. The launcher (run-from-snapshot.sh) re-runs a prediction's derivation script before it takes the lock and copies the
    tree, so a file edited while the derivation runs is baked into the snapshot uncommitted (the launcher warns "uncommitted
-   changes are baked into this snapshot"). 7ab's relaunch, 28 Sep: derive-7ab.mjs ran about 12:01 to 12:06 UK and
-   audit-s126.mjs gained its diag7ac branch at 12:05 UK, so 7ab's snapshot (/tmp/solver-snap-bYVs0g) carries it; its
-   diag7ab branch is identical to the committed one, and the file was committed unchanged afterwards (a7dc0d9) so 7ab's
-   audit stamp matches a commit (the plan-auditor's review of 57238f0, MINOR 2). Until the launcher snapshots first: no
+   changes are baked into this snapshot"): 7ab's relaunch, 28 Sep, baked in audit-s126.mjs's new diag7ac branch, its
+   diag7ab branch unchanged and committed as run (a7dc0d9; MINOR 2 on 57238f0). Until the launcher snapshots first: no
    edit to a file the snapshot copies while a launch is in its derivation step, and a warned snapshot is recorded with the
    file's commit.
 23. uncertainty.mjs l.51 counts a register family by a pattern that misses any register item whose family note is followed
@@ -252,6 +250,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 32. testsAfter (uncertainty.mjs) never counts a scored test with no close in lessons.md; its two callers are untested.
 33. scorecard.mjs's deep-review cause base rate reads deep-review-log.md's one "N of M" line; settling causes does not
    move it (MINOR 4 on b22439c).
+34. The e3pcls guard misses a direct solvePlan call outside its scan and an engine change: e3pcls-pin.mjs's header.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

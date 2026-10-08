@@ -17,6 +17,7 @@ import * as M from '../../src/solver/model.js';
 import { solvePlan } from '../../src/solver/solve.js';
 import { solveSplit } from '../solver/e2.mjs';
 import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
+import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -36,6 +37,7 @@ const CASES = [
 ];
 for (const [id, name, planFn, o] of CASES) {
   const plan = planFn(planOf(id)), opts = { lambda: LAMBDA, points: PTS, ...o };
+  checkE3pclsPin(opts);   // the candidate carries e3pcls (8 Oct): its unsplit solve below is a direct solvePlan
   const t0 = Date.now(), one = solvePlan(E, M, plan, opts), t1 = Date.now(), split = await solveSplit(E, M, plan, opts, PARTS), t2 = Date.now();
   const A = arrays(one), d = differ(A, arrays(split));
   ok(d === 0, `${id} ${name} at ${PTS} points: every table bit for bit the same split ${PARTS} ways (${A.length} arrays, ${values(A)} values; ${(t1 - t0) / 1000} s unsplit, ${(t2 - t1) / 1000} s split)`);

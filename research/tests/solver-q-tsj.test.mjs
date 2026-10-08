@@ -40,6 +40,7 @@ import { solvePlan, scoreMoves, chooseAction } from '../../src/solver/solve.js';
 import { vecOf, toVec } from '../../src/solver/grid.js';
 import * as F from '../../src/solver/fast.js';
 import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
+import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let passed = 0, failed = 0;
@@ -59,6 +60,7 @@ const household = () => {
 };
 const plan = candidatePlan(E, prep(household()));
 const o = { ...CANDIDATE_OPTS, lambda: LAMBDA, points: PTS };
+checkE3pclsPin(o);   // the candidate carries e3pcls (8 Oct): solved directly here, so checked here
 const t0 = Date.now();
 const on = solvePlan(E, M, plan, o), off = solvePlan(E, M, plan, { ...o, bridgeStep: undefined });
 console.log(`${HH} under the candidate at ${PTS} points: two solves in ${((Date.now() - t0) / 1000).toFixed(0)} s`);

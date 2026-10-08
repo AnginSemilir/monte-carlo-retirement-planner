@@ -17,6 +17,7 @@
 import { Worker, MessageChannel } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { solvePlan } from '../../src/solver/solve.js';
+import { checkE3pclsPin } from './e3pcls-pin.mjs';
 
 const WORKER = fileURLToPath(new URL('./e2-worker.mjs', import.meta.url));
 const WAIT_MS = 1000;
@@ -71,6 +72,9 @@ export function makePool(part, parts, control, ports, planted = null) {
 /* solvePlan split across `parts` cores; resolves to part 0's result once every worker has finished. `planted` (tests only):
    'drop' - part 1 claims cells and never writes them; 'throw' - part 2 fails before it starts */
 export async function solveSplit(E, M, plan, opts = {}, parts = 4, planted = null) {
+  // e3pcls is exact only on the code its identity test last passed on (e3pcls-pin.mjs): refuse before any solve otherwise
+  if (opts.e3pcls) checkE3pclsPin(opts);
+  { const { e3pclsPinFile, e3pclsPinning, ...rest } = opts; opts = rest; }   // the guard's own keys never reach the solve
   if (!(parts >= 2)) return solvePlan(E, M, plan, opts);
   const control = makeControl();
   const workers = [], ports = [], ends = [];

@@ -18,6 +18,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS, E3_FROM } from '../solver/research-opts.mjs';
+import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
@@ -35,6 +36,7 @@ const sc = buildScenarios().find(s => s.id === 'S130');
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...sc.plan.spending, floorSpend: Math.round(0.8 * E.num(sc.plan.spending.targetSpend, 0)) } }));
 const def = solvePlan(E, M, plan, { lambda: 0.5, points: 4 });
 ok(!def.meta.e3, `solvePlan with nothing passed solves without the copy (meta.e3 ${JSON.stringify(def.meta.e3)})`);
+checkE3pclsPin(RESEARCH_OPTS);   // RESEARCH_OPTS carries e3pcls (8 Oct): solved only on code its identity test passed on
 const on = solvePlan(E, M, plan, { lambda: 0.5, points: 4, ...RESEARCH_OPTS });
 ok(on.meta.e3 && on.meta.e3.copied > 0, `RESEARCH_OPTS turns the copy on (${on.meta.e3 && on.meta.e3.copied} cells copied)`);
 

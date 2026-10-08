@@ -27,9 +27,21 @@
  *       An arm that needs the snap sets pclsInterp: false AFTER spreading RESEARCH_OPTS; a pclsStrict arm must too (grid.js
  *       refuses the two together).
  *
+ *   e3pcls: true - E3's lump-sum half (solve.js `e3pcls`): a cell whose pension is empty, in a year after the last one
+ *       money can enter a pension, takes its zero allowance bucket's values. E3-PCLS-C (predictions/measure-e3pclsc.md;
+ *       results-e3pclsc.txt: EXACT) held every table, the reader's counters and 2,000 forward paths bit for bit the same
+ *       on and off under the research candidate at 30 points on nine households (four clause types), every plant caught,
+ *       about 12% fewer moves evaluated. A research default by the maintainer's decision of 7 Oct ('yes, go ahead'), with
+ *       a guard, the identity test run on every solver change: its exactness rests on the lists of pension inflows
+ *       and allowance reads staying complete, so solveCandidate and solveSplit refuse it while e3pcls-pin.mjs's pin (a
+ *       hash of the whole of src/solver and the candidate's research files) is stale, re-pinned only by
+ *       research/tests/solver-e3pcls.test.mjs --pin passing. PRODUCT_BASELINE does not carry it. Both pinned with PLAN.md's
+ *       "e3pclsResearch" and "e3pcls" by research/tests/e3pcls-guard.test.mjs. It refuses the coverage axis (solve.js), so a coverage
+ *       arm sets e3pcls: false after spreading RESEARCH_OPTS.
+ *
  * A research script first committed from E3_FROM on spreads RESEARCH_OPTS into its options, or carries a line
  * "// e3 off: <why>" (coverage refuses e3; a unit outside E3c's scope above; a run that must match older records);
  * research/tests/e3-default.test.mjs fails on one that does neither.
  */
-export const RESEARCH_OPTS = Object.freeze({ e3: true, pclsInterp: true });
+export const RESEARCH_OPTS = Object.freeze({ e3: true, pclsInterp: true, e3pcls: true });
 export const E3_FROM = '2026-10-05T01:30:00+01:00';

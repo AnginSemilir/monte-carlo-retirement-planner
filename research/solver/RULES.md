@@ -252,6 +252,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    (leadRate, 8 Oct); a lead is the highest stated credence among its receipt's ids sharing a prefix, so a receipt whose
    question's causes share no prefix counts each as its own lead (MINOR 4 on b22439c; MINOR 1 of 8 Oct on 20114d1b1f).
 34. The e3pcls guard misses a direct solvePlan call outside its scan and an engine change: e3pcls-pin.mjs's header.
+35. scorecard.mjs's interval index reads only '- **Item k:** ... 80% interval a to b' lines; other forms go unindexed.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

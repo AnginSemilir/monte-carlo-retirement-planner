@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## CARRY (closed 8 Oct 09:06)
+
+- [T:enforce] the e3pcls guard was first built narrower than the decision it served - chosen lines hashed where the maintainer agreed 'the e3pcls test run on every solver change' - and the deep review widened it three times before the plan-auditor still beat it with a deposit booked a year later -> AUTOMATE (done, f3b3fd0): the fingerprint hashes the whole of src/solver and the candidate's research files, every planted edit in research/tests/e3pcls-guard.test.mjs moving it; a guard is built to the decision's own words first
+- [T:design] CARRY's reader design came from the review with a fairness condition dropped in transcription (G1's same code), and its first registration's credences skipped the base rate and counted REOPT's uncertainty twice (a sampling spread on fixed saved paths) -> AUTOMATE (proposed for the next unlock): check-prediction refuses a test whose Base rate line names a deep review's cause unless the derivation's output prints the base rate it starts from, and a design copied from a receipt is diffed against the receipt's own gate list before registration
+- [T:other:design-check] four of the review's gate details were wrong against the real files (the audits' own names, Y per household, the risk-above field, a rotation that cannot make a departure), each found by building the gate against the files' structure before any value was read -> DROP: the plan-update skill's build order (the parser and gate before the read) caught them as designed
+- [T:overclaim] 7aw's ledger row first graded its evidence A, which RULES.md keeps for a registered exact test reproduced, not one run on the tuning seed (the plan-auditor's BLOCKING of 8 Oct 05:50 UK; fixed to B at 05:55) -> AUTOMATE (proposed for the next unlock): check-plan refuses an evidence cell's grade A unless its cited results come from more than one run of the test
+- [T:figure] the forecast's F1 named bridge 4+cost, 2% under the line, to flip; it held, and S172 - in the same SWITCH-RISK class, its gap crossing the line from above - flipped instead; the class-level forecasts F2 and F3 held (Brier 0.135 over three) -> DROP: a pick inside a class is scored as such; the carrying rule rests on the class, not the pick
+
 ## 7aw (closed 8 Oct 05:39)
 
 - [T:register] O55's gate record failed three audits on its register notes (19:17, 19:22, 19:26): the design review's open question QCLEAN had no row, then O121's family was called empty when O38 shared its mechanism, then counted two when O45 made three -> AUTOMATE (proposed for the next family note): before a family is named, a search of the open register rows for the mechanism's own words, its hits listed in the note with each one placed in or out

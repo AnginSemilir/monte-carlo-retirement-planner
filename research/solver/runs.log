@@ -188,3 +188,4 @@
 07 Oct 21:56 UK | main | none:  the preflight of 7aw (predictions/diag-7aw.md), 4 points and 20 paths, its parse, gate, traces and plant; no figure read | code 6dfa9cfea59a | fcff619 | load 0.96 0.98 1.27 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/preflight-7aw.sh
 07 Oct 22:38 UK | main | research/solver/predictions/diag-7aw.md | code 6dfa9cfea59a | c8c5da7 | load 0.96 1.52 2.96 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7aw.sh
 08 Oct 02:30 UK | main | research/solver/predictions/diag-7aw.md | code 6dfa9cfea59a | 770cfb2 | load 1.14 0.94 0.51 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7aw.sh
+08 Oct 09:06 UK | main | research/solver/predictions/diag-carry.md | code 6dfa9cfea59a | 3f40076 | load 1.00 1.02 1.00 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-carry.sh

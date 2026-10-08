@@ -593,16 +593,16 @@ The rules this adds:
    aggregate, since compensating errors cancel in the aggregate.
 5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
    note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area.
-   The first family, "the tables value extra risk too highly": O9, O16, O17, O18/O20, O19 with 7h, C5, O24, O26 (PLAN.md; O16 and O26
-   added by the first deep review, 26 Sep 17:12 UK), renamed at 7v's read (the fifth deep review, 27 Sep 18:02 UK) into
-   "a sub-margin opening gap decides the tier held for life" (O17, O24, O26, O30, O33) and a second family, "the chooser
-   keeps too much risk in the bad world" (O9, O20, O31, O32, O34; O35 added at 7w's read, O36 by the deep review after it), each over three members. The fifth deep review also
-   put C in the second family "in calibration only": one policy for every world removes the bad world's overrating but
-   moves few paths (7v item 5 FALSIFIED, results-7v.txt), so it is a member without an open register item (no fix rests on
-   it). The second family's root-cause step for its T/Q member was 7w's items 1-3 (PLAN.md); the first's diagnosis step was
-   7w's item 4 (the year-0 move freed at the product's margin, against margin 0). Both have run (7w read, 27 Sep 20:07 UK).
-   The deep review after 7w (27 Sep 20:17 UK) proposes merging the two families on one signature (the tables' year-0 gap
-   5 to 100 times below what the de-risk realises); their shared root-cause step is 7x, held-for-life tables (FS against W). 7x read 27 Sep 22:17 UK. Later family changes are in deep-review-log.md and the register: "the reader at the bridge" (after 7x), and "checks run where the fault cannot show" (after 7z, O40), whose root-cause step stands: every reducer prints the paths whose actions differ between arms, and every consistency check runs on the mixture (gate: before the next reducer is written and before any check is cited as no-harm evidence).
+   The families and their steps so far are in deep-review-log.md and the register: the first two ("a sub-margin opening
+   gap decides the tier held for life"; "the chooser keeps too much risk in the bad world"), merged on one signature after
+   7w and rooted by 7w and 7x; "the reader at the bridge"; and "checks run where the fault cannot show" (O40), whose
+   root-cause step stands: every reducer prints the paths whose actions differ between arms, and every consistency check
+   runs on the mixture (gate: before the next reducer is written and before any check is cited as no-harm evidence).
+   The carry family's step, CARRY (read 8 Oct 09:06 UK, held out on 7aw; results-carry.txt), gives the carrying rule for
+   derivations: a per-household record carries to a test that differs in one setting within its paired band, except where
+   a measured part is left out of the carry, where the setting moves a year-0 gap across the switch line (a flip), and on
+   a household whose smaller of saved and lost is 15 or more; each of those takes its own record. A whole score carried to
+   another weight is re-scored on the record's own traces with the policy held, beside each weight's own record (O123).
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

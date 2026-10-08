@@ -1,0 +1,109 @@
+FAIR-TEST GATE: passed - G1 one stamp a run, code 6dfa9cfea59a in both, each audit its stamp's, the audits the same code but W, comments and their names; G2 50 units a run, each once and done, the panel's 25; G3 ran and joint lines the same but bequestWeight; G4 N 8000 and seed 7002 in all 100 traces, each its log's, Y the same in each household's four, the 50 saved/lost pairs both files'; G5 S120's shipping default bit for bit the same
+CLASSES (re-derived from results-7aj.txt, the forecast's lists): SWITCH-RISK bridge 4+cost, S172, S124; HIGH-CHURN S128, S370, S130; the nineteen others
+
+EVERY HOUSEHOLD: the change in the candidate's gain from 0.01 to 0.02 (points), its se, sum x, the moved paths up/down with the exact sign test, departure; each arm's opening pair and risk-above at 0.01 -> 0.02 (* the figure the arm holds)
+  share 0.50                 change -0.050 se 0.043 sum -4 (up 4, down 8; sign p 3.9e-1) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  share 0.70                 change +0.000 se 0.043 sum 0 (up 6, down 6; sign p 1.0e+0) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  share 0.78                 change +0.000 se 0.000 sum 0 (up 0, down 0; sign p 1.0e+0) - | CAND 2,*2 -> 2,*2 | SHIP *2,2 -> *2,2 | flip no
+  share 0.90                 change +0.100 se 0.047 sum 8 (up 11, down 3; sign p 5.7e-2) - | CAND 0,*0 -> 0,*0 | SHIP *0,2 -> *0,2 | flip no
+  share 0.95                 change +0.050 se 0.035 sum 4 (up 6, down 2; sign p 2.9e-1) - | CAND 2,*2 -> 2,*2 | SHIP *0,1 -> *0,1 | flip no
+  bridge 0                   change +0.037 se 0.041 sum 3 (up 7, down 4; sign p 5.5e-1) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  bridge 1                   change -0.100 se 0.047 sum -8 (up 3, down 11; sign p 5.7e-2) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  bridge 6                   change -0.013 se 0.033 sum -1 (up 3, down 4; sign p 1.0e+0) - | CAND 0,*2 -> 0,*2 | SHIP *2,2 -> *2,2 | flip no
+  wealth x0.5                change -0.100 se 0.073 sum -8 (up 12, down 19; sign p 2.8e-1) - | CAND 2,*2 -> 2,*2 | SHIP *0,0 -> *0,0 | flip no
+  wealth x2                  change -0.025 se 0.018 sum -2 (up 0, down 2; sign p 5.0e-1) - | CAND 0,*0 -> 0,*0 | SHIP *2,2 -> *2,2 | flip no
+  S120                       change +0.000 se 0.000 sum 0 (up 0, down 0; sign p 1.0e+0) - | CAND 0,*0 -> 0,*0 | SHIP *2,2 -> *2,2 | flip no
+  S122                       change -0.075 se 0.031 sum -6 (up 0, down 6; sign p 3.1e-2) - | CAND 0,*0 -> 0,*0 | SHIP *0,0 -> *0,0 | flip no
+  S126                       change -0.037 se 0.022 sum -3 (up 0, down 3; sign p 2.5e-1) - | CAND 0,*2 -> 0,*2 | SHIP *2,2 -> *2,2 | flip no
+  bridge 4                   change -0.088 se 0.037 sum -7 (up 0, down 6; sign p 3.1e-2) - | CAND 0,*2 -> 0,*2 | SHIP *2,2 -> *2,2 | flip no
+  S360                       change -0.050 se 0.025 sum -4 (up 0, down 4; sign p 1.3e-1) - | CAND 0,*0 -> 0,*0 | SHIP *0,2 -> *0,2 | flip no
+  S194                       change -0.037 se 0.070 sum -3 (up 13, down 15; sign p 8.5e-1) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  S124           SWITCH-RISK change -0.050 se 0.064 sum -4 (up 10, down 13; sign p 6.8e-1) - | CAND 2,*2 -> 2,*2 | SHIP *2,2 -> *2,2 | flip no
+  S128           HIGH-CHURN  change -0.125 se 0.127 sum -10 (up 43, down 52; sign p 4.1e-1) - | CAND 2,*2 -> 2,*2 | SHIP *0,0 -> *0,0 | flip no
+  S130           HIGH-CHURN  change -0.300 se 0.085 sum -24 (up 11, down 35; sign p 5.4e-4) DEPARTS | CAND 2,*2 -> 2,*2 | SHIP *0,0 -> *0,0 | flip no
+  S366                       change -0.088 se 0.048 sum -7 (up 3, down 9; sign p 1.5e-1) - | CAND 2,*2 -> 2,*2 | SHIP *2,2 -> *2,2 | flip no
+  S370           HIGH-CHURN  change +0.163 se 0.096 sum 13 (up 34, down 19; sign p 5.3e-2) - | CAND 2,*2 -> 2,*2 | SHIP *0,0 -> *0,0 | flip no
+  bridge 4+cost  SWITCH-RISK change -0.013 se 0.048 sum -1 (up 7, down 8; sign p 1.0e+0) - | CAND 2,*2 -> 2,*2 | SHIP *0,2 -> *0,2 | flip no
+  S162                       change +0.000 se 0.043 sum 0 (up 6, down 6; sign p 1.0e+0) - | CAND 0,*2 -> 0,*2 | SHIP *0,2 -> *0,2 | flip no
+  S172           SWITCH-RISK change +0.213 se 0.076 sum 17 (up 26, down 8; sign p 2.9e-3) DEPARTS | CAND 2,*2 -> 2,*2 | SHIP *2,2 -> *0,2 | flip yes
+  S168                       change +0.000 se 0.000 sum 0 (up 0, down 0; sign p 1.0e+0) - | CAND 0,*0 -> 0,*0 | SHIP *0,1 -> *0,1 | flip no
+
+THE FORECAST, SCORED
+  F1 (0.55): not
+  F2 (0.75): held
+  F3 (0.8): held
+  F4 (0.85): void
+  Brier over the scored: 0.1350
+  reported, unpriced: flips on S172 yes, S124 no; on the nineteen: none
+
+THE CAUSES OF 7 OCT 22:06 UK
+=> CARRY-OMIT not
+=> CARRY-SWITCH unsettled
+=> CARRY-NARROW unsettled
+=> CARRY-OTHER not
+
+REPORTED, NOT SCORED
+  share 0.50     CAND +0.013 (se 0.022) SHIP +0.063 (se 0.037) | SHIP's gap 1.9258e-4 -> 1.6353e-4 (down)
+  share 0.70     CAND -0.025 (se 0.018) SHIP -0.025 (se 0.040) | SHIP's gap 2.9602e-4 -> 2.7692e-4 (down)
+  share 0.78     CAND +0.000 (se 0.000) SHIP +0.000 (se 0.000) | SHIP's gap 1.5341e-3 -> 1.8858e-3 (up)
+  share 0.90     CAND -0.013 (se 0.013) SHIP -0.112 (se 0.045) | SHIP's gap 1.2898e-4 -> 2.2963e-4 (up)
+  share 0.95     CAND +0.025 (se 0.018) SHIP -0.025 (se 0.031) | SHIP's gap 1.5690e-5 -> 1.6693e-5 (up)
+  bridge 0       CAND -0.025 (se 0.018) SHIP -0.063 (se 0.037) | SHIP's gap 2.6909e-4 -> 2.6094e-4 (down)
+  bridge 1       CAND -0.075 (se 0.035) SHIP +0.025 (se 0.031) | SHIP's gap 3.3359e-4 -> 3.2179e-4 (down)
+  bridge 6       CAND -0.013 (se 0.033) SHIP +0.000 (se 0.018) | SHIP's gap 3.5071e-3 -> 3.7366e-3 (up)
+  wealth x0.5    CAND +0.025 (se 0.047) SHIP +0.125 (se 0.056) | SHIP's gap 0 -> 0 (same)
+  wealth x2      CAND -0.025 (se 0.018) SHIP +0.000 (se 0.000) | SHIP's gap 1.4192e-2 -> 1.4030e-2 (down)
+  S120           CAND +0.000 (se 0.000) SHIP +0.000 (se 0.000) | SHIP's gap 2.4083e-2 -> 2.4185e-2 (up)
+  S122           CAND -0.013 (se 0.022) SHIP +0.063 (se 0.028) | SHIP's gap 0 -> 0 (same)
+  S126           CAND -0.025 (se 0.018) SHIP +0.013 (se 0.013) | SHIP's gap 1.3844e-2 -> 1.1830e-2 (down)
+  bridge 4       CAND -0.075 (se 0.031) SHIP +0.013 (se 0.022) | SHIP's gap 7.0862e-3 -> 6.0114e-3 (down)
+  S360           CAND -0.025 (se 0.018) SHIP +0.025 (se 0.018) | SHIP's gap 4.7051e-4 -> 5.0113e-4 (up)
+  S194           CAND +0.025 (se 0.050) SHIP +0.063 (se 0.060) | SHIP's gap 6.5162e-4 -> 5.4317e-4 (down)
+  S124           CAND +0.050 (se 0.053) SHIP +0.100 (se 0.047) | SHIP's gap 1.4634e-3 -> 1.5758e-3 (up)
+  S128           CAND +0.100 (se 0.085) SHIP +0.225 (se 0.090) | SHIP's gap 0 -> 0 (same)
+  S130           CAND -0.013 (se 0.048) SHIP +0.287 (se 0.070) | SHIP's gap 0 -> 0 (same)
+  S366           CAND -0.050 (se 0.031) SHIP +0.037 (se 0.033) | SHIP's gap 1.5184e-3 -> 1.3653e-3 (down)
+  S370           CAND +0.275 (se 0.071) SHIP +0.112 (se 0.060) | SHIP's gap 0 -> 0 (same)
+  bridge 4+cost  CAND -0.013 (se 0.028) SHIP +0.000 (se 0.040) | SHIP's gap 9.7966e-4 -> 9.4224e-4 (down)
+  S162           CAND +0.025 (se 0.035) SHIP +0.025 (se 0.025) | SHIP's gap 4.8349e-4 -> 4.4099e-4 (down)
+  S172           CAND +0.025 (se 0.043) SHIP -0.188 (se 0.062) | SHIP's gap 1.0806e-3 -> 9.7570e-4 (down)
+  S168           CAND +0.000 (se 0.000) SHIP +0.000 (se 0.000) | SHIP's gap 1.8286e-6 -> 3.5678e-6 (up)
+=> O121-WEIGHT not (SHIP 0.01 -> 0.02: S130 0.287, S370 0.112)
+
+ITEM 2: THE FIXED-POLICY RE-SCORE (7aj's traces scored at 0.02 with 7aw's settings; the controls first)
+  controls: 7aw's traces at 0.02 and 7aj's at 0.01 reproduce all 50 item-2 lines of their files to 0.0005; plant: the weight at 0.03 moves 25 of 25
+  S120           fixed-policy whole at 0.02 -0.016 (unconditional -0.089 to 0.058); 7aw's measured +0.081
+  S168           fixed-policy whole at 0.02 +0.026 (unconditional -0.039 to 0.090); 7aw's measured +0.070
+  wealth x2      fixed-policy whole at 0.02 +0.042 (unconditional -0.051 to 0.126); 7aw's measured +0.064
+  S122           fixed-policy whole at 0.02 +0.197 (unconditional 0.090 to 0.340); 7aw's measured +0.215
+  S124           fixed-policy whole at 0.02 +0.198 (unconditional 0.052 to 0.347); 7aw's measured +0.103
+  share 0.78     fixed-policy whole at 0.02 +0.211 (unconditional 0.127 to 0.309); 7aw's measured +0.260
+  S126           fixed-policy whole at 0.02 +0.219 (unconditional 0.134 to 0.324); 7aw's measured +0.227
+  bridge 4       fixed-policy whole at 0.02 +0.267 (unconditional 0.169 to 0.388); 7aw's measured +0.192
+  bridge 6       fixed-policy whole at 0.02 +0.328 (unconditional 0.227 to 0.442); 7aw's measured +0.260
+  S366           fixed-policy whole at 0.02 +0.404 (unconditional 0.275 to 0.560); 7aw's measured +0.257
+  share 0.50     fixed-policy whole at 0.02 +0.455 (unconditional 0.297 to 0.663); 7aw's measured +0.465
+  S172           fixed-policy whole at 0.02 +0.505 (unconditional 0.383 to 0.642); 7aw's measured +0.669
+  bridge 0       fixed-policy whole at 0.02 +0.635 (unconditional 0.468 to 0.855); 7aw's measured +0.741
+  S162           fixed-policy whole at 0.02 +0.656 (unconditional 0.478 to 0.873); 7aw's measured +0.717
+  S194           fixed-policy whole at 0.02 +0.673 (unconditional 0.490 to 0.885); 7aw's measured +0.665
+  share 0.70     fixed-policy whole at 0.02 +0.683 (unconditional 0.508 to 0.908); 7aw's measured +0.729
+  share 0.90     fixed-policy whole at 0.02 +0.739 (unconditional 0.566 to 0.962); 7aw's measured +0.892
+  wealth x0.5    fixed-policy whole at 0.02 +0.762 (unconditional 0.507 to 1.037); 7aw's measured +0.753
+  bridge 1       fixed-policy whole at 0.02 +0.805 (unconditional 0.616 to 1.048); 7aw's measured +0.759
+  S128           fixed-policy whole at 0.02 +0.979 (unconditional 0.413 to 1.547); 7aw's measured +0.915
+  S130           fixed-policy whole at 0.02 +3.820 (unconditional 3.307 to 4.350); 7aw's measured +3.574
+  bridge 4+cost  fixed-policy whole at 0.02 +4.385 (unconditional 3.881 to 4.942); 7aw's measured +4.437
+  S370           fixed-policy whole at 0.02 +6.682 (unconditional 5.866 to 7.502); 7aw's measured +6.873
+  S360           fixed-policy whole at 0.02 +13.523 (unconditional 12.597 to 14.472); 7aw's measured +13.475
+  share 0.95     fixed-policy whole at 0.02 +24.462 (unconditional 23.309 to 25.643); 7aw's measured +24.562
+  the least fixed-policy point -0.016 (S120) against 7aw's derived 80% interval -0.12 to +0.03
+=> O123-REOPT held
+=> O123-SCALE not
+=> O123-OTHER not
+
+THE ITEMS
+1. CARRY's rule held out on 7aw (F2 and F3, read literally): HELD
+2. O123's cause (the least fixed-policy point -0.016, 95% -0.089 to 0.058, against -0.12 to +0.03): HELD
+
+OUTCOME: 1 HELD, 2 HELD

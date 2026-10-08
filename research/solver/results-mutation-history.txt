@@ -89,3 +89,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-08 09:38 UTC | reduce-nsb.mjs 07e22ff62016 | 0 of 38 caught | escaped: the true script fails its planted set
 2026-10-08 09:39 UTC | reduce-nsb.mjs 0e18b9ebe8c7 | 38 of 38 caught | escaped: none
 2026-10-08 09:52 UTC | reduce-nsb.mjs 5a11c3fb375d | 38 of 38 caught | escaped: none
+2026-10-08 18:12 UTC | reduce-nscond.mjs 17132fee9876 | 44 of 46 caught | escaped: NOT CAUGHT: 31: if (u.item2[a] && (u.item2[a].states !== n2 || u.item2[a].ch; NOT CAUGHT: 37: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+2026-10-08 18:14 UTC | reduce-nscond.mjs 72b7d1dd2012 | 46 of 46 caught | escaped: none

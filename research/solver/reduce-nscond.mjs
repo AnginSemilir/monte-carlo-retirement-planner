@@ -251,7 +251,7 @@ function planted() {
   { const r = item1(set({ rhoOf: () => 1.03, lv: rho => rho - 1 })); ok(r.cells.every(c => !c.material) && r.v === 'INCONCLUSIVE', `item 1: live errors of 0.03, under the materiality floor ${MAT}, leave no material cell: INCONCLUSIVE (${r.v})`); }
   { const F = set({ rhoOf: () => 1 + MAT, nP: 8, ys: [1, 3] }), c = cellsOf(F); ok(c.every(x => x.counts && !x.material && Math.abs(x.mel - MAT) < 1e-13) && item1(F).v === 'INCONCLUSIVE', `EDGE item 1: a mean |elive| at ${MAT} to within 1e-13 (0.05 is no binary fraction; the rule's 1e-12 holds it at the line) is not material (${c.map(x => f4(x.mel)).join(',')})`); }
   { const F = set({ wd: WD_MIN, nP: 4, ys: [1] }), c = cellsOf(F); ok(c.every(x => x.mwd === WD_MIN && !x.counts) && item1(F).v === 'INCONCLUSIVE', `EDGE item 1: a mean wd of exactly ${WD_MIN} does not count (${item1(F).v})`); }
-  { const F = set(); const A = F.S370.item1.arms.BASE; A.bE[0] = NaN; A.wL[1] = 0; A.w0x[1] = 1 - A.wd[1]; A.SL[2] = 0; A.s1[3] = 0; const c = cellsOf(F).find(x => x.id === 'S370' && x.a === 'BASE' && x.cls === 'all'); ok(c.dropped === 4 && item1(F).v === 'HELD', `EDGE item 1: a failing move, a read with no live weight, live corners at survival 0 and a one-step survival of 0 are left out and counted (${c.dropped})`); }
+  { const F = set(); const A = F.S370.item1.arms.BASE; A.bE[0] = NaN; A.wL[1] = 0; A.w0x[1] = 1 - A.wd[1]; A.SL[2] = 0; A.s1[3] = 0; A.bE[4] = 0; const c = cellsOf(F).find(x => x.id === 'S370' && x.a === 'BASE' && x.cls === 'all'); ok(c.dropped === 5 && item1(F).v === 'HELD', `EDGE item 1: a failing move, a read with no live weight, live corners at survival 0, a one-step survival of 0 and a one-step bequest of 0 are left out and counted (${c.dropped})`); }
   { const r = item1(set({ cov: () => 0.5, rhoOf: (y, p, a) => (a === 'COV' ? 0.2 + 0.2 * rnd() : 0.5 + rnd()) })); ok(r.v === 'INCONCLUSIVE', `item 1: COV's non-step cells off the survival ratio keep it from HELD (${r.v})`); }
   { const r = item1(set({ lv: (rho, y) => (y === 2 ? 0.5 : rho - 1), rhoOf: y => (y === 2 ? 0.2 + 0.2 * rnd() : 0.5 + rnd()) })); const all = r.cells.find(c => c.id === 'S370' && c.a === 'BASE' && c.cls === 'all'), ns = r.cells.find(c => c.id === 'S370' && c.a === 'BASE' && c.cls === 'nonstep'); ok(r.v === 'INCONCLUSIVE' && !(all.pR < ALPHA) && ns.pR < ALPHA, `item 1: the step year far off the ratio and the non-step years on it: the non-step cells show R, the all-years cell does not, INCONCLUSIVE (${r.v})`); }
   // item 2 and item 3 are NSB's functions (reduce-nsb.mjs --planted plants their outcomes and edges); here they read the files
@@ -293,6 +293,7 @@ function planted() {
   { const g = JSON.parse(JSON.stringify(f0)); g.item1.arms.COV.wL[0] += 0.1; ok(checkFile(g, uF).length > 0, 'planted: the file check refuses weights that do not sum to 1'); }
   { const g = JSON.parse(JSON.stringify(f0)); g.item1.arms.BASE.wK[0] = g.item1.arms.BASE.wL[0] + 0.01; ok(checkFile(g, uF).length > 0, 'planted: the file check refuses a KEPT weight above the live weight'); }
   { const g = JSON.parse(JSON.stringify(f0)); delete g.item1.arms.BASE.SL; ok(checkFile(g, uF).length > 0, 'planted: the file check refuses a missing column'); }
+  ok(checkFile(f0, { ...uF, item2: { ...uF.item2, BASE: { states: 1, changed: 1 } } }).length > 0, 'planted: the file check refuses an item2 line whose changed count is off the file');
   return Object.assign(msgs, { reach });
 }
 
@@ -306,7 +307,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const k of [1]) console.log(`OUTCOMES REACHED: item ${k}: ${[...P0.reach[k]].sort().join(', ')}`);
     console.log('OUTCOMES REACHED: item 2: FALSIFIED, HELD, INCONCLUSIVE (NSB\'s function, planted in reduce-nsb.mjs)');
     console.log('OUTCOMES REACHED: item 3: FALSIFIED, HELD, INCONCLUSIVE (NSB\'s function, planted in reduce-nsb.mjs)');
-    console.log(`EDGES: a mean |elive| of exactly ${MAT}, a mean dead weight of exactly ${WD_MIN}, a failing move, no live weight, live survival 0 and a one-step survival of 0 left out, a DEADSTEP tolerance exactly twice its clean error, a year before a step at year 0 alone`);
+    console.log(`EDGES: a mean |elive| of exactly ${MAT}, a mean dead weight of exactly ${WD_MIN}, a failing move, no live weight, live survival 0, a one-step survival of 0 and a one-step bequest of 0 left out, a DEADSTEP tolerance exactly twice its clean error, a year before a step at year 0 alone`);
     process.exit(0);
   }
   const args = process.argv.slice(2).filter(a => !a.startsWith('--'));

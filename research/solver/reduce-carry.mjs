@@ -12,7 +12,8 @@
  *        folder and variable) are set aside (plant: a code line changed);
  *     G2 50 units a run, each (household, arm) once and done, the same 25 households, the forecast's panel;
  *     G3 per (household, arm), the ran and joint lines the same across the runs once bequestWeight is removed (plant: minPot)
- *        and the joint line's risk-above decision set aside, since the forecast reads its change as a flip (plant: a cap);
+ *        and the joint line's risk-above decision set aside, since the forecast reads its change as a flip (plant: a cap),
+ *        with the ran line's tiersAbove and tierState, which move with it, when it differs (plants through the parser);
  *     G4 N 8000 and seed 7002 in all 100 traces, each trace's stamp and survival its log's, Y the same in a household's four
  *        traces; the 50 saved/lost pairs recomputed from the traces equal to both results files' item-1 lines;
  *     G5 S120's shipping default the same in both runs, bit for bit in its six fields (plant: one trace rotated by a path -
@@ -125,9 +126,13 @@ export function g3(units) {
   for (const id of PANEL) for (const arm of ['CAND', 'SHIP']) {
     const [x, y] = ['aj', 'aw'].map(k => units[k].find(u => u.id === id && u.arm === arm));
     if (!x || !y) continue;
-    if (noWeight(x.ran) !== noWeight(y.ran)) bad.push(`G3: ${id} ${arm}: the ran lines differ beyond bequestWeight`);
     // the joint line's risk-above decision is a solve's outcome, which the forecast reads as a flip, so it is set aside
-    // here (the plan-auditor's MINOR 2 of 8 Oct 08:23 UK; a fourth correction, made before any read)
+    // here (the plan-auditor's MINOR 2 of 8 Oct 08:23 UK; a fourth correction, made before any read); when it differs,
+    // the ran line's tiersAbove and tierState move with it (solve.js sets both from the decision), so they are set aside
+    // too (its MINOR 1 of 8 Oct 08:36 UK)
+    const moved = (x.joint && x.joint.decided) !== (y.joint && y.joint.decided);
+    const ranOf = r => { const s = noWeight(r); return moved ? s.replace(/\s*(tiersAbove|tierState) \S+/g, '') : s; };
+    if (ranOf(x.ran) !== ranOf(y.ran)) bad.push(`G3: ${id} ${arm}: the ran lines differ beyond bequestWeight${moved ? ' and the tiers the risk-above decision sets' : ''}`);
     const settings = j => JSON.stringify({ ...(j || {}), decided: undefined });
     if (settings(x.joint) !== settings(y.joint)) bad.push(`G3: ${id} ${arm}: the joint lines differ beyond the risk-above decision`);
   }
@@ -271,7 +276,18 @@ function planted() {
     const C = U(0, 2);
     ok(flip({ CAND: C, SHIP: a }, { CAND: C, SHIP: b }).real && !flip({ CAND: C, SHIP: a }, { CAND: C, SHIP: c }).any, 'planted, through the parser: the joint line\'s risk-above decision changed is a flip, unchanged is none');
     const unitsOf = (x, y) => ({ aj: [{ ...x, ran: 'r' }], aw: [{ ...y, ran: 'r' }] });
-    ok(g3(unitsOf(a, b)).length === 0 && g3(unitsOf(a, { ...c, joint: { ...c.joint, cap: 401 } })).length === 1, 'G3 sets the risk-above decision aside and refuses a cap changed'); }
+    ok(g3(unitsOf(a, b)).length === 0 && g3(unitsOf(a, { ...c, joint: { ...c.joint, cap: 401 } })).length === 1, 'G3 sets the risk-above decision aside and refuses a cap changed');
+    // and the ran line's tiers that move with the decision, through the parser (the plan-auditor's MINOR 1 of 08:36 UK)
+    const ranLog = (w, decided, tiersAbove, tierState, minPot = 29000) => [`S120             case | unit CAND/CANDIDATE/W${w} | lambda 0.0223606797749979 tier own riskAbove auto mix 3`,
+      `                 ran CAND/CANDIDATE/W${w}: mix 3 pts 30 bequestWeight ${w} tiersAbove ${tiersAbove} minPot ${minPot} quad 5 tierState ${tierState} b x`,
+      `                 gap CAND/CANDIDATE/W${w}: 1.0e-4 opening 0,2`,
+      `                 joint CAND/CANDIDATE/W${w}: true switchMargin 0 scale 100 cap 400 deathTax 0 tier own riskAbove ${decided}`,
+      `                 done CAND/CANDIDATE/W${w}`].join('\n');
+    const r = (...q) => A.parse(ranLog(...q))[0], pair = (x, y) => ({ aj: [x], aw: [y] });
+    const off = r('0.01', 'off:_no_tier_above_the_plan', 0, '0/0,1/1'), on = r('0.02', 'on:_tier_3', 1, '0/0,1/1,2/2'), offTiers = r('0.02', 'off:_no_tier_above_the_plan', 1, '0/0,1/1,2/2');
+    ok(g3(pair(off, on)).length === 0, 'G3, through the parser: a decision moving off to on, with the tiers it sets, passes (a flip, not a refusal)');
+    ok(g3(pair(off, offTiers)).length === 1, 'planted: the tiers moving with the decision unchanged - G3 refuses');
+    ok(g3(pair(off, r('0.02', 'on:_tier_3', 1, '0/0,1/1,2/2', 29001))).length === 1, 'planted: a minPot changed beside a moved decision - G3 still refuses'); }
   // the classes
   { const t = ['  bridge 4+cost SHIP      table 1 sim 1 error 0 gap 9.7966e-4 (opening 1,1)', '  S172 SHIP      table 1 sim 1 error 0 gap 1.5e-3 (opening 1,1)', '  S126 SHIP      table 1 sim 1 error 0 gap 1.5001e-3 (opening 1,1)', '  S124 SHIP      table 1 sim 1 error 0 gap 6.67e-4 (opening 1,1)', '  S122 SHIP      table 1 sim 1 error 0 gap 6.6699e-4 (opening 1,1)', '  S120 SHIP      table 1 sim 1 error 0 gap >1 (opening 1,1)',
       '     S128           148 saved/150 lost of 8000  p', '     S130           15 saved/16 lost of 8000  p', '     S126           14 saved/90 lost of 8000  p'].join('\n');

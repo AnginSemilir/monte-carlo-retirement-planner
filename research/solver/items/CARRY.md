@@ -21,8 +21,9 @@ Each refusal has its plant (the deep review of 8 Oct 05:58 UK, its item 2, as it
 - **G3:** per (household, arm), the ran and joint lines equal across the runs once bequestWeight is removed. Plant: a
   minPot changed on one unit's ran line - G3 must refuse. (Corrected before any read: the joint line carries the
   risk-above decision, which the forecast reads as a flip when it changes, so G3 sets that field aside rather than
-  refuse it; the case line's riskAbove is the constant setting 'auto', so the flip reads the joint line's - the
-  plan-auditor's MINOR 2 of 8 Oct 08:23 UK; all 100 units on record read 'off: no tier above the plan'.)
+  refuse it, with the ran line's tiersAbove and tierState, which move with it, when it differs; the case line's riskAbove
+  is the constant setting 'auto', so the flip reads the joint line's - the plan-auditor's MINORs of 8 Oct 08:23 and
+  08:36 UK; all 100 units on record read 'off: no tier above the plan'.)
 - **G4:** N 8000 and seed 7002 in all 100 traces; Y the same across each household's four traces; each trace's survival
   its log's; the 50 saved/lost pairs recomputed from the traces equal both files' item-1 lines. (Corrected before any
   read: the review's "Y 40 in all 100" would refuse the records, Y running 38 to 46 across households - the

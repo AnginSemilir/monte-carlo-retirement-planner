@@ -105,6 +105,15 @@ const under = underAt(H);
 for (const [c, w] of Object.entries(O123)) { const o = under[c]; console.log(`  under ${c} (${f3(w)}): HELD ${f3(o.HELD)}, INCONCLUSIVE ${f3(o.INCONCLUSIVE)}, FALSIFIED ${f3(o.FALSIFIED)}`); }
 const i2 = mix2(under);
 for (const k of [2, 3]) { const o = mix2(underAt(k * H)); console.log(`  sensitivity, the half-width at ${k} times (${f3(k * H)}): HELD ${f2(o.HELD)} INCONCLUSIVE ${f2(o.INCONCLUSIVE)} FALSIFIED ${f2(o.FALSIFIED)}`); }
+// the 80% interval of the least point under the shaded mixture (the plan-auditor's MINOR 2 of 8 Oct 08:36 UK: the band is
+// REOPT's alone): OTHER's and SCALE's declared uniforms carry the tails; REOPT's mass lies inside the band, so its shape
+// there does not move the 10th or 90th percentile while OTHER's mass is above 0.10 and SCALE's above 0.10
+{ const q = p => { const o = O123['O123-OTHER'], sc = O123['O123-SCALE'];
+    if (p <= o) return -0.25 + (p / o) * (LO - -0.25);
+    if (p >= 1 - sc) return 0.10 - ((1 - p) / sc) * (0.10 - HI);
+    return NaN; };
+  if (!(O123['O123-OTHER'] > 0.10 && O123['O123-SCALE'] > 0.10)) throw new Error('the 80% interval\'s tails would fall inside REOPT\'s band: compute it from REOPT\'s shape');
+  console.log(`  the least point's 80% interval under the shaded mixture: ${f3(q(0.10))} to +${f3(q(0.90))} (REOPT's band ${LO} to +${HI} beside it, ${f3(O123['O123-REOPT'])} of the mass)`); }
 { const unshaded = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }; for (const [c, w] of Object.entries(REVIEW.O123)) for (const q in unshaded) unshaded[q] += w * under[c][q];
   console.log(`  for comparison, the review's credences unshaded: HELD ${f2(unshaded.HELD)} INCONCLUSIVE ${f2(unshaded.INCONCLUSIVE)} FALSIFIED ${f2(unshaded.FALSIFIED)}`); }
 

@@ -27,6 +27,7 @@ CARRY: THE DERIVATION (predictions/diag-carry.md; nothing here reads a trace or 
   under O123-OTHER (0.350): HELD 0.000, INCONCLUSIVE 0.646, FALSIFIED 0.354
   sensitivity, the half-width at 2 times (0.168): HELD 0.47 INCONCLUSIVE 0.52 FALSIFIED 0.00
   sensitivity, the half-width at 3 times (0.252): HELD 0.47 INCONCLUSIVE 0.52 FALSIFIED 0.00
+  the least point's 80% interval under the shaded mixture: -0.213 to +0.060 (REOPT's band -0.12 to +0.03 beside it, 0.475 of the mass)
   for comparison, the review's credences unshaded: HELD 0.85 INCONCLUSIVE 0.11 FALSIFIED 0.04
 
 4. THE CREDENCES

@@ -11,7 +11,8 @@
  *        audits the same code once comment lines, the W line and the run's own name (7aj/7aw in its messages, output
  *        folder and variable) are set aside (plant: a code line changed);
  *     G2 50 units a run, each (household, arm) once and done, the same 25 households, the forecast's panel;
- *     G3 per (household, arm), the ran and joint lines the same across the runs once bequestWeight is removed (plant: minPot);
+ *     G3 per (household, arm), the ran and joint lines the same across the runs once bequestWeight is removed (plant: minPot)
+ *        and the joint line's risk-above decision set aside, since the forecast reads its change as a flip (plant: a cap);
  *     G4 N 8000 and seed 7002 in all 100 traces, each trace's stamp and survival its log's, Y the same in a household's four
  *        traces; the 50 saved/lost pairs recomputed from the traces equal to both results files' item-1 lines;
  *     G5 S120's shipping default the same in both runs, bit for bit in its six fields (plant: one trace rotated by a path -
@@ -21,7 +22,7 @@
  *     shipping default, 1 at 0.01, 2 at 0.02); the change 100 mean(x) in points; its se 100 sd(x)/sqrt(8000), sd with n-1;
  *     a departure iff |sum x| >= 8 in integers (0.1 point is exactly 8 of 8,000; floats do not decide it) and
  *     |change| >= 2.58 se. A household with no path that moves has no departure.
- *   A FLIP: either arm's opening pair (both figures, as strings) or risk-above decision differs between the runs. The pair
+ *   A FLIP: either arm's opening pair (both figures, as strings) or risk-above decision (the joint line's) differs. The pair
  *     is [the tier at margin 0.001, the tier at margin 0] (audit-7aw.mjs openGap): the shipping default runs at 0.001, so its
  *     first figure is the one it holds and its second counterfactual; the candidate runs at margin 0, so its second is held
  *     and its first counterfactual. An outcome that a flip decides only through a counterfactual figure is EDGE.
@@ -125,7 +126,10 @@ export function g3(units) {
     const [x, y] = ['aj', 'aw'].map(k => units[k].find(u => u.id === id && u.arm === arm));
     if (!x || !y) continue;
     if (noWeight(x.ran) !== noWeight(y.ran)) bad.push(`G3: ${id} ${arm}: the ran lines differ beyond bequestWeight`);
-    if (JSON.stringify(x.joint) !== JSON.stringify(y.joint)) bad.push(`G3: ${id} ${arm}: the joint lines differ`);
+    // the joint line's risk-above decision is a solve's outcome, which the forecast reads as a flip, so it is set aside
+    // here (the plan-auditor's MINOR 2 of 8 Oct 08:23 UK; a fourth correction, made before any read)
+    const settings = j => JSON.stringify({ ...(j || {}), decided: undefined });
+    if (settings(x.joint) !== settings(y.joint)) bad.push(`G3: ${id} ${arm}: the joint lines differ beyond the risk-above decision`);
   }
   return bad;
 }
@@ -178,7 +182,7 @@ export function flip(uj, uw) {
   const f = {};
   for (const arm of ['CAND', 'SHIP']) {
     const a = uj[arm], b = uw[arm];
-    const first = String(a.gap.open1e3) !== String(b.gap.open1e3), second = String(a.gap.open0) !== String(b.gap.open0), ra = a.riskAbove !== b.riskAbove;
+    const first = String(a.gap.open1e3) !== String(b.gap.open1e3), second = String(a.gap.open0) !== String(b.gap.open0), ra = (a.joint && a.joint.decided) !== (b.joint && b.joint.decided);   // the decision, from the joint line (the case line's riskAbove is the constant setting 'auto')
     const held = arm === 'SHIP' ? first : second, counter = arm === 'SHIP' ? second : first;
     f[arm] = { first, second, ra, held, counter, any: first || second || ra, real: held || ra, firstRises: Number(b.gap.open1e3) > Number(a.gap.open1e3) };
   }
@@ -253,10 +257,21 @@ function planted() {
   { const C1 = one(N), S1 = one(N), C2 = one(N), S2 = one(N); for (let i = 0; i < 8; i++) C2[i] = 0; const r = change(C1, S1, C2, S2); ok(r.departs && r.sum === -8, `EDGE: 8 paths one way (sum -8, change ${r.change.toFixed(3)}, ${(r.change / r.se).toFixed(2)} se): a departure`); }
   { const C1 = one(N), S1 = one(N), C2 = one(N), S2 = one(N); for (let i = 0; i < 30; i++) C2[i] = 0; for (let i = 30; i < 52; i++) { C1[i] = 0; } const r = change(C1, S1, C2, S2); ok(!r.departs && r.sum === -8, `EDGE: sum -8 from 30 down and 22 up is under 2.58 se (z ${r.z.toFixed(2)}): no departure`); }
   // flips: a counterfactual figure alone
-  const U = (o1, o0, ra = 'off') => ({ gap: { open1e3: o1, open0: o0 }, riskAbove: ra });
+  const U = (o1, o0, ra = 'off') => ({ gap: { open1e3: o1, open0: o0 }, joint: { decided: ra } });
   { const f = flip({ CAND: U(0, 2), SHIP: U(1, 1) }, { CAND: U(1, 2), SHIP: U(1, 1) }); ok(f.any && !f.real, "the candidate's first figure alone moving is a flip, its counterfactual: any, not real"); }
   { const f = flip({ CAND: U(0, 2), SHIP: U(1, 1) }, { CAND: U(0, 2), SHIP: U(2, 1) }); ok(f.real && f.SHIP.firstRises, "the shipping default's first figure rising is a real flip"); }
   { const f = flip({ CAND: U(0, 2), SHIP: U(1, 1, 'a') }, { CAND: U(0, 2), SHIP: U(1, 1, 'b') }); ok(f.real, 'a risk-above decision changed is a flip'); }
+  { // the same through the parser, from log lines as the audits print them (the plan-auditor's MINOR 2: the decision is the
+    // joint line's, not the case line's constant riskAbove 'auto')
+    const log = (w, decided) => [`S120             case | unit SHIP/PRODUCT/W${w} | lambda 0.0223606797749979 tier own riskAbove auto mix 3`,
+      `                 gap SHIP/PRODUCT/W${w}: 9.0e-4 opening 1,1`,
+      `                 joint SHIP/PRODUCT/W${w}: false switchMargin 0.001 scale 100 cap 400 deathTax 0 tier own riskAbove ${decided}`,
+      `                 done SHIP/PRODUCT/W${w}`].join('\n');
+    const [a] = A.parse(log('0.01', 'off:_no_tier_above_the_plan')), [b] = A.parse(log('0.02', 'on:_tier_3')), [c] = A.parse(log('0.02', 'off:_no_tier_above_the_plan'));
+    const C = U(0, 2);
+    ok(flip({ CAND: C, SHIP: a }, { CAND: C, SHIP: b }).real && !flip({ CAND: C, SHIP: a }, { CAND: C, SHIP: c }).any, 'planted, through the parser: the joint line\'s risk-above decision changed is a flip, unchanged is none');
+    const unitsOf = (x, y) => ({ aj: [{ ...x, ran: 'r' }], aw: [{ ...y, ran: 'r' }] });
+    ok(g3(unitsOf(a, b)).length === 0 && g3(unitsOf(a, { ...c, joint: { ...c.joint, cap: 401 } })).length === 1, 'G3 sets the risk-above decision aside and refuses a cap changed'); }
   // the classes
   { const t = ['  bridge 4+cost SHIP      table 1 sim 1 error 0 gap 9.7966e-4 (opening 1,1)', '  S172 SHIP      table 1 sim 1 error 0 gap 1.5e-3 (opening 1,1)', '  S126 SHIP      table 1 sim 1 error 0 gap 1.5001e-3 (opening 1,1)', '  S124 SHIP      table 1 sim 1 error 0 gap 6.67e-4 (opening 1,1)', '  S122 SHIP      table 1 sim 1 error 0 gap 6.6699e-4 (opening 1,1)', '  S120 SHIP      table 1 sim 1 error 0 gap >1 (opening 1,1)',
       '     S128           148 saved/150 lost of 8000  p', '     S130           15 saved/16 lost of 8000  p', '     S126           14 saved/90 lost of 8000  p'].join('\n');
@@ -368,7 +383,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     H[id] = { dep: r.departs, flipAny: f.any, flipReal: f.real, ship: f.SHIP, change: r.change };
     const op = (arm, k) => { const u = U(k, id, arm); return arm === 'SHIP' ? `*${u.gap.open1e3},${u.gap.open0}` : `${u.gap.open1e3},*${u.gap.open0}`; };
     const cl = SWITCH_RISK.includes(id) ? 'SWITCH-RISK' : HIGH_CHURN.includes(id) ? 'HIGH-CHURN' : '';
-    console.log(`  ${id.padEnd(14)} ${cl.padEnd(11)} change ${r.change >= 0 ? '+' : ''}${r.change.toFixed(3)} se ${r.se.toFixed(3)} sum ${r.sum} (up ${r.up}, down ${r.down}; sign p ${r.sign.toExponential(1)}) ${r.departs ? 'DEPARTS' : '-'} | CAND ${op('CAND', 'aj')} -> ${op('CAND', 'aw')} ${U('aj', id, 'CAND').riskAbove === U('aw', id, 'CAND').riskAbove ? '' : 'riskAbove moved '}| SHIP ${op('SHIP', 'aj')} -> ${op('SHIP', 'aw')} ${U('aj', id, 'SHIP').riskAbove === U('aw', id, 'SHIP').riskAbove ? '' : 'riskAbove moved '}| flip ${f.real ? 'yes' : f.any ? 'counterfactual only' : 'no'}`);
+    console.log(`  ${id.padEnd(14)} ${cl.padEnd(11)} change ${r.change >= 0 ? '+' : ''}${r.change.toFixed(3)} se ${r.se.toFixed(3)} sum ${r.sum} (up ${r.up}, down ${r.down}; sign p ${r.sign.toExponential(1)}) ${r.departs ? 'DEPARTS' : '-'} | CAND ${op('CAND', 'aj')} -> ${op('CAND', 'aw')} ${U('aj', id, 'CAND').joint.decided === U('aw', id, 'CAND').joint.decided ? '' : 'riskAbove moved '}| SHIP ${op('SHIP', 'aj')} -> ${op('SHIP', 'aw')} ${U('aj', id, 'SHIP').joint.decided === U('aw', id, 'SHIP').joint.decided ? '' : 'riskAbove moved '}| flip ${f.real ? 'yes' : f.any ? 'counterfactual only' : 'no'}`);
   }
   const s = score(H, cls);
   console.log('\nTHE FORECAST, SCORED');

@@ -1,18 +1,24 @@
 /*
  * THE DERIVATION FOR CARRY (predictions/diag-carry.md; reduce-carry.mjs, the reader). From the records, before the reader
  * reads: the two deep reviews' cause credences (deep-review-log.md: 7 Oct 22:06 UK for the carry family, 8 Oct 05:58 UK
- * for O123), 7aj's per-household discordant counts (results-7aj.txt item 1, the fitted side of CARRY), and the sampling
- * spread of a whole-score point (the item-2 intervals of results-7aj.txt and results-7aw.txt, already read and recorded).
+ * for O123), the base rate of an item leaning on a deep review's cause (results-scorecard.txt), 7aj's per-household
+ * discordant counts (results-7aj.txt item 1, the fitted side of CARRY), and the width of the least household's whole-score
+ * interval (results-7aj.txt and results-7aw.txt item 2, already read and recorded).
  * Nothing here reads a trace or compares 7aj with 7aw.
  *   1. the inputs;
  *   2. item 1's power: under a symmetric null of m moving paths a household (m its 7aj discordant count, saved plus lost:
  *      a proxy, declared), the chance the reader's departure rule fires (|sum x| >= 8 and |change| >= 2.58 se, computed by
  *      the rule's own formula over the binomial); over the 22 households not HIGH-CHURN, the chance of a false departure
  *      that fails F2 or F3; and the power to see a one-margin departure (0.25 point, 20 net paths) on one of the nineteen;
- *   3. item 2's outcomes under each O123 cause: the least fixed-policy point drawn as each cause states it (declared shapes
- *      below), read by the registered rule (HELD in the band; outside, INCONCLUSIVE when its 95% interval, the median
- *      half-width of the whole-score intervals on record, reaches the band, else FALSIFIED);
- *   4. the credences and the decision table's row credences.
+ *   3. item 2's outcomes under each O123 cause: under REOPT the least fixed-policy point lies in the band by the cause's
+ *      own statement (the paths are saved and fixed, so no sampling spread is added: the plan-auditor's BLOCKING 1(b) of
+ *      8 Oct 08:23 UK); under SCALE and OTHER the point is drawn as each states it (declared shapes below) and read by the
+ *      registered rule (outside, INCONCLUSIVE when its 95% interval - the least household's half-width on record,
+ *      averaged over 7aj and 7aw - reaches the band, else FALSIFIED);
+ *   4. the credences FROM THE BASE RATE (results-scorecard.txt: an item leaning on a deep review's cause, 0.10; neither
+ *      receipt says it shaded toward it - BLOCKING 1(a)): each item's leading cause moved halfway from the review's
+ *      credence to the base rate, the other causes sharing the rest in proportion to the review's credences (derive-
+ *      xasr2.mjs's rule, the plan-auditor's BLOCKING 1 of 6 Oct); then through sections 2 and 3; and the decision table.
  *   node research/solver/derive-carry.mjs > research/solver/results-derive-carry.txt
  */
 import { readFileSync } from 'node:fs';
@@ -28,7 +34,14 @@ const f3 = x => x.toFixed(3), f2 = x => x.toFixed(2);
 // 1. the inputs
 const log = read('deep-review-log.md');
 const causesAt = stamp => { const line = log.split('\n').find(l => l.startsWith(`- ${stamp}`)); const m = line && /CAUSE CREDENCES: ([^\n|]*)$/.exec(line); if (!m) throw new Error(`no cause credences at ${stamp}`); return Object.fromEntries(m[1].split(';').map(x => x.trim().split('=')).map(([k, v]) => [k, Number(v)])); };
-const CARRY = causesAt('7 Oct 22:06 UK'), O123 = causesAt('8 Oct 05:58 UK');
+const REVIEW = { CARRY: causesAt('7 Oct 22:06 UK'), O123: causesAt('8 Oct 05:58 UK') };
+// the base rate: results-scorecard.txt's KIND BASE RATES, 'an item leaning on a deep review's cause or story'
+const BASE = Number((/leaning on a deep review's cause or story (\d\.\d+)/.exec(read('results-scorecard.txt')) || [])[1]);
+if (!(BASE > 0 && BASE < 1)) throw new Error('no base rate for an item leaning on a deep review\'s cause in results-scorecard.txt');
+// the lead halfway from the review's credence to the base rate, the others sharing the rest in proportion
+const shade = c => { const [lead] = Object.entries(c).sort((x, y) => y[1] - x[1])[0], L = (c[lead] + BASE) / 2, rest = Object.entries(c).filter(([k]) => k !== lead), tot = rest.reduce((t, [, v]) => t + v, 0);
+  return Object.fromEntries([[lead, L], ...rest.map(([k, v]) => [k, (1 - L) * v / tot])]); };
+const CARRY = shade(REVIEW.CARRY), O123 = shade(REVIEW.O123);
 const aj = classesFrom(read('results-7aj.txt'));
 const m = Object.fromEntries(PANEL.map(id => [id, aj.item1[id].saved + aj.item1[id].lost]));
 const nineteen = PANEL.filter(id => !SWITCH_RISK.includes(id) && !HIGH_CHURN.includes(id)), notHC = PANEL.filter(id => !HIGH_CHURN.includes(id));
@@ -37,15 +50,16 @@ const nineteen = PANEL.filter(id => !SWITCH_RISK.includes(id) && !HIGH_CHURN.inc
 const leastOf = rec => Object.entries(rec).sort((a, b) => a[1].d - b[1].d)[0];
 const L7aj = leastOf(item2Of(read('results-7aj.txt'))), L7aw = leastOf(item2Of(read('results-7aw.txt')));
 const H = ((L7aj[1].hi - L7aj[1].lo) + (L7aw[1].hi - L7aw[1].lo)) / 4;
-const SD = H / 1.96;   // the least point's sampling sd, from that interval (conservative: the guarded interval is wider than the point's spread)
 // the units whose two opening figures differ in 7aj (the counterfactual figure already apart from the held one): where a
 // counterfactual figure alone can move, so where an EDGE can arise
 const OPEN = [...read('results-7aj.txt').matchAll(/^  (.+?)\s+(SHIP|CAND)\s+table .* \(opening (\d+),(\d+)\)/gm)];
 const E = OPEN.filter(x => x[3] !== x[4]).length / OPEN.length;
 console.log('CARRY: THE DERIVATION (predictions/diag-carry.md; nothing here reads a trace or compares 7aj with 7aw)');
 console.log('\n1. THE INPUTS');
-console.log(`  the 7 Oct 22:06 UK causes: ${Object.entries(CARRY).map(([k, v]) => `${k} ${v}`).join(', ')}`);
-console.log(`  the 8 Oct 05:58 UK causes: ${Object.entries(O123).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+console.log(`  the 7 Oct 22:06 UK causes: ${Object.entries(REVIEW.CARRY).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+console.log(`  the 8 Oct 05:58 UK causes: ${Object.entries(REVIEW.O123).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+console.log(`  the base rate of an item leaning on a deep review's cause (results-scorecard.txt KIND BASE RATES): ${BASE}`);
+console.log(`  shaded (the lead halfway to the base rate, the rest in proportion): ${Object.entries(CARRY).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}; ${Object.entries(O123).map(([k, v]) => `${k} ${f3(v)}`).join(', ')}`);
 console.log(`  7aj's discordant paths (saved + lost), the proxy for the paths that can move between the weights: ${PANEL.map(id => `${id} ${m[id]}`).join(', ')}`);
 console.log(`  the least household's whole-score interval on record: 7aj ${L7aj[0]} half-width ${f3((L7aj[1].hi - L7aj[1].lo) / 2)}, 7aw ${L7aw[0]} ${f3((L7aw[1].hi - L7aw[1].lo) / 2)}; their mean ${f3(H)}, the half-width item 2's rule is read with here`);
 
@@ -72,26 +86,27 @@ const item1At = (e, show) => { const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 
   for (const [c, w] of Object.entries(CARRY)) {
     const pi = c === 'CARRY-OTHER' ? pow : 0, fal = 1 - (1 - FP) * (1 - pi), inc = c === 'CARRY-SWITCH' ? e * (1 - fal) : 0, held = 1 - fal - inc;
     o.FALSIFIED += w * fal; o.INCONCLUSIVE += w * inc; o.HELD += w * held;
-    if (show) console.log(`  under ${c} (${w}): FALSIFIED ${f3(fal)}, INCONCLUSIVE ${f3(inc)}, HELD ${f3(held)}`); }
+    if (show) console.log(`  under ${c} (${f3(w)}): FALSIFIED ${f3(fal)}, INCONCLUSIVE ${f3(inc)}, HELD ${f3(held)}`); }
   return o; };
 const i1 = item1At(E, true);
 for (const k of [2, 3]) { const o = item1At(Math.min(1, k * E), false); console.log(`  sensitivity, the EDGE share at ${k} times (${f3(Math.min(1, k * E))}): HELD ${f2(o.HELD)} INCONCLUSIVE ${f2(o.INCONCLUSIVE)} FALSIFIED ${f2(o.FALSIFIED)}`); }
 
-// 3. item 2's outcomes under each cause (DECLARED shapes: REOPT a normal about the derivation's -0.016 with sd SD;
-//    SCALE uniform over +0.03 to +0.10, the measured +0.064 inside it; OTHER uniform over -0.25 to -0.12)
-const [LO, HI] = O123_IV, sd = SD;
-const outcome2 = x => (x >= LO && x <= HI) ? 'HELD' : ((x + H < LO || x - H > HI) ? 'FALSIFIED' : 'INCONCLUSIVE');
-const Phi = z => { const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2), q = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - q : q; };
-const gridAt = (H0, lo, hi, dens) => { const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, n = 20000; let tot = 0; for (let i = 0; i < n; i++) { const x = lo + (hi - lo) * (i + 0.5) / n, w = dens(x); const out = (x >= LO && x <= HI) ? 'HELD' : ((x + H0 < LO || x - H0 > HI) ? 'FALSIFIED' : 'INCONCLUSIVE'); o[out] += w; tot += w; } for (const k in o) o[k] /= tot; return o; };
-const grid = (lo, hi, dens) => { const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, n = 20000; let tot = 0; for (let i = 0; i < n; i++) { const x = lo + (hi - lo) * (i + 0.5) / n, w = dens(x); o[outcome2(x)] += w; tot += w; } for (const k in o) o[k] /= tot; return o; };
-const under = { 'O123-REOPT': grid(-0.016 - 8 * sd, -0.016 + 8 * sd, x => Math.exp(-((x + 0.016) ** 2) / (2 * sd * sd))), 'O123-SCALE': grid(0.03 + 1e-9, 0.10, () => 1), 'O123-OTHER': grid(-0.25, -0.12 - 1e-9, () => 1) };
+// 3. item 2's outcomes under each cause. REOPT: the least fixed-policy point in the band by the cause's own statement
+//    (S120's fixed-policy whole is its derived -0.016, and the least of 25 is at most that; saved paths, no spread).
+//    DECLARED shapes for the others: SCALE uniform over +0.03 to +0.10 (the measured +0.064 inside it); OTHER uniform
+//    over -0.25 to -0.12; each read by the registered rule with the half-width H
+const [LO, HI] = O123_IV;
+const gridAt = (H0, lo, hi) => { const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, n = 20000; for (let i = 0; i < n; i++) { const x = lo + (hi - lo) * (i + 0.5) / n; o[(x >= LO && x <= HI) ? 'HELD' : ((x + H0 < LO || x - H0 > HI) ? 'FALSIFIED' : 'INCONCLUSIVE')] += 1 / n; } return o; };
+const underAt = H0 => ({ 'O123-REOPT': { HELD: 1, INCONCLUSIVE: 0, FALSIFIED: 0 }, 'O123-SCALE': gridAt(H0, HI + 1e-9, 0.10), 'O123-OTHER': gridAt(H0, -0.25, LO - 1e-9) });
+const mix2 = under => { const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }; for (const [c, w] of Object.entries(O123)) for (const q in o) o[q] += w * under[c][q]; return o; };
 console.log('\n3. ITEM 2 UNDER EACH CAUSE (the least fixed-policy point at 0.02, read by the registered rule)');
-console.log(`  DECLARED shapes: REOPT normal about -0.016 (the 7aw derivation's point, which the review's REOPT says holds under fixed policies), sd ${f3(sd)} (the half-width over 1.96); the interval's half-width ${f3(H)}; SCALE uniform +0.03 to +0.10; OTHER uniform -0.25 to -0.12`);
-const i2 = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 };
-for (const [c, w] of Object.entries(O123)) { const o = under[c]; for (const k in i2) i2[k] += w * o[k]; console.log(`  under ${c} (${w}): HELD ${f3(o.HELD)}, INCONCLUSIVE ${f3(o.INCONCLUSIVE)}, FALSIFIED ${f3(o.FALSIFIED)}`); }
-for (const k of [2, 3]) { const sdk = k * sd, Hk = k * H, u = { 'O123-REOPT': gridAt(Hk, -0.016 - 8 * sdk, -0.016 + 8 * sdk, x => Math.exp(-((x + 0.016) ** 2) / (2 * sdk * sdk))), 'O123-SCALE': gridAt(Hk, 0.03 + 1e-9, 0.10, () => 1), 'O123-OTHER': gridAt(Hk, -0.25, -0.12 - 1e-9, () => 1) };
-  const o = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }; for (const [c, w] of Object.entries(O123)) for (const q in o) o[q] += w * u[c][q];
-  console.log(`  sensitivity, the spread and half-width at ${k} times (sd ${f3(sdk)}, half-width ${f3(Hk)}): HELD ${f2(o.HELD)} INCONCLUSIVE ${f2(o.INCONCLUSIVE)} FALSIFIED ${f2(o.FALSIFIED)}`); }
+console.log(`  REOPT: in the band by its own statement (saved paths, no spread added); DECLARED shapes: SCALE uniform +0.03 to +0.10, OTHER uniform -0.25 to -0.12; the interval's half-width ${f3(H)}`);
+const under = underAt(H);
+for (const [c, w] of Object.entries(O123)) { const o = under[c]; console.log(`  under ${c} (${f3(w)}): HELD ${f3(o.HELD)}, INCONCLUSIVE ${f3(o.INCONCLUSIVE)}, FALSIFIED ${f3(o.FALSIFIED)}`); }
+const i2 = mix2(under);
+for (const k of [2, 3]) { const o = mix2(underAt(k * H)); console.log(`  sensitivity, the half-width at ${k} times (${f3(k * H)}): HELD ${f2(o.HELD)} INCONCLUSIVE ${f2(o.INCONCLUSIVE)} FALSIFIED ${f2(o.FALSIFIED)}`); }
+{ const unshaded = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }; for (const [c, w] of Object.entries(REVIEW.O123)) for (const q in unshaded) unshaded[q] += w * under[c][q];
+  console.log(`  for comparison, the review's credences unshaded: HELD ${f2(unshaded.HELD)} INCONCLUSIVE ${f2(unshaded.INCONCLUSIVE)} FALSIFIED ${f2(unshaded.FALSIFIED)}`); }
 
 // 4. the credences and the decision table
 console.log('\n4. THE CREDENCES');

@@ -19,9 +19,14 @@ Each refusal has its plant (the deep review of 8 Oct 05:58 UK, its item 2, as it
   folder and variable, 7aj/7AJ/DIAG7AJ_OUT/diag7aj; reduce-carry.mjs maps each run's name to one token first.)
 - **G2:** 50 units per run, each (household, arm) once and done, the same 25 households in both.
 - **G3:** per (household, arm), the ran and joint lines equal across the runs once bequestWeight is removed. Plant: a
-  minPot changed on one unit's ran line - G3 must refuse.
-- **G4:** N 8000, Y 40 and seed 7002 in all 100 traces; each trace's survival its log's; the 50 saved/lost pairs
-  recomputed from the traces equal both files' item-1 lines.
+  minPot changed on one unit's ran line - G3 must refuse. (Corrected before any read: the joint line carries the
+  risk-above decision, which the forecast reads as a flip when it changes, so G3 sets that field aside rather than
+  refuse it; the case line's riskAbove is the constant setting 'auto', so the flip reads the joint line's - the
+  plan-auditor's MINOR 2 of 8 Oct 08:23 UK; all 100 units on record read 'off: no tier above the plan'.)
+- **G4:** N 8000 and seed 7002 in all 100 traces; Y the same across each household's four traces; each trace's survival
+  its log's; the 50 saved/lost pairs recomputed from the traces equal both files' item-1 lines. (Corrected before any
+  read: the review's "Y 40 in all 100" would refuse the records, Y running 38 to 46 across households - the
+  plan-auditor's MINOR 3 of 8 Oct 08:23 UK.)
 - **G5:** S120's shipping-default six fields bit for bit the same across the runs. Plant: one trace rotated by a path -
   G5 must refuse. (Corrected before any read: the review also asked that the statistic print departures, which a
   rotation cannot make - sum x is the four survival totals added and subtracted, and a rotation keeps each total - so
@@ -62,6 +67,6 @@ before the reader's file exists; scaling any 0.01 record to 0.02.
 
 ## Registered
 
-predictions/diag-carry.md (the reader reduce-carry.mjs; the derivation derive-carry.mjs, results-derive-carry.txt). Two
-items: 1, CARRY's rule held out (F2 and F3, read literally, EDGE void); 2, O123's cause by the fixed-policy re-score. It
+predictions/diag-carry.md (the reader reduce-carry.mjs; the derivation derive-carry.mjs, results-derive-carry.txt), with
+four corrections to the review's design made before any read (G1, G3, G4, G5 above). Two items: 1, CARRY's rule held out (F2 and F3, read literally, EDGE void); 2, O123's cause by the fixed-policy re-score. It
 runs through the launcher (batch-carry.sh), zero cores, and its output is saved as results-carry.txt.

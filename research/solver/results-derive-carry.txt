@@ -1,0 +1,32 @@
+CARRY: THE DERIVATION (predictions/diag-carry.md; nothing here reads a trace or compares 7aj with 7aw)
+
+1. THE INPUTS
+  the 7 Oct 22:06 UK causes: CARRY-OMIT 0.43, CARRY-SWITCH 0.3, CARRY-NARROW 0.17, CARRY-OTHER 0.1
+  the 8 Oct 05:58 UK causes: O123-REOPT 0.85, O123-SCALE 0.05, O123-OTHER 0.1
+  7aj's discordant paths (saved + lost), the proxy for the paths that can move between the weights: share 0.50 27, share 0.70 33, share 0.78 2, share 0.90 33, share 0.95 1741, bridge 0 31, bridge 1 41, bridge 6 6, wealth x0.5 70, wealth x2 1, S120 0, S122 13, S126 3, bridge 4 6, S360 942, S194 31, S124 19, S128 375, S130 321, S366 16, S370 767, bridge 4+cost 297, S162 31, S172 10, S168 0
+  the least household's whole-score interval on record: 7aj S120 half-width 0.068, 7aw wealth x2 0.100; their mean 0.084, the half-width item 2's rule is read with here
+
+2. ITEM 1'S POWER (the reader's departure rule, exact over the binomial)
+  a false departure under a symmetric null, per household: share 0.50 5.9e-3, share 0.70 1.4e-2, share 0.78 0.0e+0, share 0.90 1.4e-2, share 0.95 9.6e-3, bridge 0 1.1e-2, bridge 1 1.2e-2, bridge 6 0.0e+0, wealth x0.5 1.2e-2, wealth x2 0.0e+0, S120 0.0e+0, S122 3.4e-3, S126 0.0e+0, bridge 4 0.0e+0, S360 1.0e-2, S194 1.1e-2, S124 4.4e-3, S128 9.7e-3, S130 1.0e-2, S366 4.2e-3, S370 9.3e-3, bridge 4+cost 1.1e-2, S162 1.1e-2, S172 2.0e-3, S168 0.0e+0
+  over the 22 not HIGH-CHURN (a departure there fails F2, or F3 on the nineteen): 0.124
+  the power to see a one-margin departure (20 net paths) on one of the nineteen, averaged: 0.830 (least 0.019)
+  the EDGE share: 20 of 7aj's 50 units have their two opening figures apart, 0.400 (a proxy for how often a counterfactual figure alone can move; grade C)
+  under CARRY-OMIT (0.43): FALSIFIED 0.124, INCONCLUSIVE 0.000, HELD 0.876
+  under CARRY-SWITCH (0.3): FALSIFIED 0.124, INCONCLUSIVE 0.350, HELD 0.525
+  under CARRY-NARROW (0.17): FALSIFIED 0.124, INCONCLUSIVE 0.000, HELD 0.876
+  under CARRY-OTHER (0.1): FALSIFIED 0.851, INCONCLUSIVE 0.000, HELD 0.149
+  sensitivity, the EDGE share at 2 times (0.800): HELD 0.59 INCONCLUSIVE 0.21 FALSIFIED 0.20
+  sensitivity, the EDGE share at 3 times (1.000): HELD 0.54 INCONCLUSIVE 0.26 FALSIFIED 0.20
+
+3. ITEM 2 UNDER EACH CAUSE (the least fixed-policy point at 0.02, read by the registered rule)
+  DECLARED shapes: REOPT normal about -0.016 (the 7aw derivation's point, which the review's REOPT says holds under fixed policies), sd 0.043 (the half-width over 1.96); the interval's half-width 0.084; SCALE uniform +0.03 to +0.10; OTHER uniform -0.25 to -0.12
+  under O123-REOPT (0.85): HELD 0.851, INCONCLUSIVE 0.148, FALSIFIED 0.001
+  under O123-SCALE (0.05): HELD 0.000, INCONCLUSIVE 1.000, FALSIFIED 0.000
+  under O123-OTHER (0.1): HELD 0.000, INCONCLUSIVE 0.646, FALSIFIED 0.354
+  sensitivity, the spread and half-width at 2 times (sd 0.086, half-width 0.168): HELD 0.50 INCONCLUSIVE 0.49 FALSIFIED 0.01
+  sensitivity, the spread and half-width at 3 times (sd 0.129, half-width 0.252): HELD 0.37 INCONCLUSIVE 0.62 FALSIFIED 0.01
+
+4. THE CREDENCES
+CREDENCE item 1: point - HELD 0.70 INCONCLUSIVE 0.11 FALSIFIED 0.20
+CREDENCE item 2: point -0.016 HELD 0.72 INCONCLUSIVE 0.24 FALSIFIED 0.04
+  the decision table's rows (the items taken as independent: one reads survival paths, the other whole scores of another run's traces): 1 HELD and 2 HELD 0.50; 1 HELD, 2 not 0.19; 1 not, 2 HELD 0.22; neither 0.08

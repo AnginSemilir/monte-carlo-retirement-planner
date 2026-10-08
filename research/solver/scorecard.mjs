@@ -294,6 +294,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
 `;
   const src7 = readFileSync(join(HERE, 'reduce-7e.mjs'), 'utf8'), i7 = src7.indexOf('function items(');
   const itemsSrc = src7.slice(i7, src7.indexOf('  // reported, not predicted', i7));
+  // and report(), which prints the FALSIFIER and verdict lines copied above (the plan-auditor, 8 Oct, MINOR 3: the hash
+  // covered items() alone); reduce-7e.mjs last changed in b4fcda4, before these lines were copied (d8c7b81)
+  const r7 = src7.indexOf('function report('), reportSrc = src7.slice(r7, src7.indexOf("if (process.argv.includes('--look1'))", r7));
   const cases = [
     ['credences parsed, reasons in brackets ignored', JSON.stringify(credences(P)), '{"items":{"1":0.7,"2":0.8,"3":0.9},"overall":0.6,"overallLabel":"carried forward"}'],
     ['outcomes parsed', JSON.stringify(outcomes(R)), '{"items":{"1":1,"2":0,"3":1},"overall":1}'],
@@ -314,7 +317,8 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['7e, the reducer\'s own lines, every item held', t(() => JSON.stringify(outcomes(R7(true)))), '{"items":{"1":1,"2":1,"3":1,"4":1,"5":1,"6":1,"7":1,"8":1,"9":1},"overall":1}'],
     ['7e, the reducer\'s own lines, every item missed', t(() => JSON.stringify(outcomes(R7(false)))), '{"items":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0,"8":0,"9":0},"overall":0}'],
     ['7e, its real prediction against the reducer\'s own lines, scored', t(() => scoreTest(readFileSync(join(HERE, 'predictions/bridge-reader.md'), 'utf8'), R7(true)).status), 'SCORED'],
-    ['7e: reduce-7e\'s items() unchanged since these lines were copied (else re-copy them)', createHash('sha256').update(itemsSrc).digest('hex').slice(0, 16), '21aadfd5e769be63'],
+    ['7e: reduce-7e\'s items() and report() unchanged since these lines were copied (else re-copy them)', createHash('sha256').update(itemsSrc).update(reportSrc).digest('hex').slice(0, 16), '00dec53125c7ae9d'],
+    ['planted: report() changed by one character moves that hash', createHash('sha256').update(itemsSrc).update(reportSrc + ' ').digest('hex').slice(0, 16) !== '00dec53125c7ae9d', true],
     ['planted: no verdict line is REFUSED', scoreTest(P, '1. a -> held\n2. b -> held\n3. c -> held').status, 'REFUSED'],
     ['planted: an item with a credence and no outcome stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held']))), 'ERROR items do not match: credence '],
     ['planted: an outcome with no credence stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held', '3. c -> held', '4. d -> held']))), 'ERROR items do not match: credence '],

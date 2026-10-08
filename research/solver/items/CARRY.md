@@ -13,14 +13,21 @@ and void. Its plants run on synthetic traces; the prediction and the reader are 
 Each refusal has its plant (the deep review of 8 Oct 05:58 UK, its item 2, as it lists them):
 
 - **G1:** one stamp per run; the same code in both runs (6dfa9cfea59a); each audit stamp the sha256 of that run's audit;
-  the two audits differ only in `W` and comment lines. Plant: a code line changed in one audit's copy - G1 must refuse.
+  the two audits the same code once comment lines, the `W` line and each run's own name are set aside. Plant: a code
+  line changed in one audit's copy - G1 must refuse. (Corrected before any read: the review's "differ only in W and
+  comment lines" is not so - `diff audit-7aj.mjs audit-7aw.mjs` shows each audit's name in its error messages, output
+  folder and variable, 7aj/7AJ/DIAG7AJ_OUT/diag7aj; reduce-carry.mjs maps each run's name to one token first.)
 - **G2:** 50 units per run, each (household, arm) once and done, the same 25 households in both.
 - **G3:** per (household, arm), the ran and joint lines equal across the runs once bequestWeight is removed. Plant: a
   minPot changed on one unit's ran line - G3 must refuse.
 - **G4:** N 8000, Y 40 and seed 7002 in all 100 traces; each trace's survival its log's; the 50 saved/lost pairs
   recomputed from the traces equal both files' item-1 lines.
 - **G5:** S120's shipping-default six fields bit for bit the same across the runs. Plant: one trace rotated by a path -
-  G5 must refuse, and the statistic must print departures.
+  G5 must refuse. (Corrected before any read: the review also asked that the statistic print departures, which a
+  rotation cannot make - sum x is the four survival totals added and subtracted, and a rotation keeps each total - so
+  the plant checks that the rotation moves paths both ways and widens the se, and G5 is what catches it.)
+- **G2 and G4** carry plants too (CHECKLIST item 6): a unit missing, repeated or not done; a saved count off by one, a
+  trace of another seed, one of a household's traces of another length.
 
 ## The statistic (the forecast's, verbatim)
 
@@ -52,3 +59,9 @@ reproduce its own item-2 lines. Plant: wb at 0.03 must move them.
 
 Fitting CARRY's rule on its three members without this forecast scored; reading CARRY's per-household changes or flips
 before the reader's file exists; scaling any 0.01 record to 0.02.
+
+## Registered
+
+predictions/diag-carry.md (the reader reduce-carry.mjs; the derivation derive-carry.mjs, results-derive-carry.txt). Two
+items: 1, CARRY's rule held out (F2 and F3, read literally, EDGE void); 2, O123's cause by the fixed-policy re-score. It
+runs through the launcher (batch-carry.sh), zero cores, and its output is saved as results-carry.txt.

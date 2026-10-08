@@ -41,8 +41,8 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
   - O55's gate is met, so NSB is 7u's last test gate.
   - The review recommends that 7u registers now with NS-COND beside it or after it, as family 3's design input. The
     other branch gives NSB a way to stop 7u by running item 2 on the candidate's own unit.
-  - The order is put to the maintainer, since the 6 Oct 15:45 order was the maintainer's. Until the answer, that
-    order stands.
+  - The order is put to the maintainer, since the 6 Oct 15:45 order was the maintainer's. DECIDED (the maintainer,
+    8 Oct 19:56 UK, PLAN.md's ledger: 'Go ahead'): 7u registers now, and NS-COND runs beside it or after it.
 - FLAG 3 [T:code]: the bequests kept at or below DEAD_LS break the bound survival x the largest estate (O128).
 - The re-scoped check, replacing deadExact:
   - the clamp clause is demoted to a census report: FAIL, NEXT and KEPT counts by arm and year, KEPT's bequest over

@@ -1,0 +1,39 @@
+caught: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);
+caught: 2: for (const u of units) if (u.plant) bad.push(
+caught: 3: if (new Set(st.map(s => s.code)).size > 1 || new Set(st.map(
+caught: 4: if (st[i].prediction !== pred) bad.push(
+caught: 5: if (u.unit !== L) bad.push(
+caught: 6: if (!u.done) bad.push(
+caught: 7: if (u.solve.COV && (field(u.solve.COV, 'readerTax') === '-' 
+caught: 8: for (const [k, v] of Object.entries(want)) if (field(u.ran, 
+caught: 9: for (const q of CHECKS) if (!okFrac(c[q])) bad.push(
+caught: 10: for (const q of MUST) if (!(c[q][1] > 0)) bad.push(
+caught: 11: if (a === 'BASE' && want3) for (const q of MUST3)
+caught: 12: const before = (field(u.ran, 'before') || 'none').split(',')
+caught: 13: if (want3 && !(u.item3 && u.item3.reads > 0)) bad.push(
+caught: 14: if (!t.stamp || `code ${t.stamp.code} audit ${t.stamp.audit}
+caught: 15: if (u.item2[a] && (u.item2[a].states !== n2 || u.item2[a].ch
+caught: 16: A.wd.some(x => !(x >= 0 && x <= 1 + 1e-12))
+caught: 17: Math.abs(I.vb[j] - X.vb[j]) <= IDT;
+caught: 18: const same = I.p[j] === x.p[j] && I.t[j] === x.t[j]
+caught: 19: Math.abs(I.ex5[j] - X.ex5[j]) <= IDT &&
+caught: 20: const mwd = mean(J.map(j => A.wd[j])), counts = J.length > 0
+caught: 21: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && (c
+caught: 22: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && (c
+caught: 23: tol: r.map(x => TOL1 - x)
+caught: 24: quart: e.map((x, i) => QUART1 * w[i] - x)
+caught: 25: heldCells = cells.filter(c => c.counts && (c.a === 'BASE' ? 
+caught: 26: heldCells.every(c => c.tolP < ALPHA) ? 'HELD'
+caught: 27: falsCells.length && falsCells.every(c => c.quartP < ALPHA) ?
+caught: 28: const v = !heldCells.length ? 'INCONCLUSIVE' :
+caught: 29: const held = (opening && opening.changed) || rows.some(r => 
+caught: 30: const held = (opening && opening.changed) || rows.some(r => 
+caught: 31: const held = (opening && opening.changed) || rows.some(r => 
+caught: 32: const fals = opening && !opening.changed && rows.length > 0 
+caught: 33: sg = Math.sign(P0.reduce((s, v) => s + v, 0)) || 1;
+caught: 34: r.pLo < ALPHA && r.s >= HI3 - 1e-12 ? 'REF'
+caught: 35: r.pHi < ALPHA && r.s <= LO3 + 1e-12 ? 'NOTREF'
+caught: 36: !(r.s >= S_MIN && r.s <= S_MAX) ? 'CONSTRUCT'
+caught: 37: per.length && per.every(r => r.read === 'REF') ? 'HELD'
+caught: 38: lo: D.map((d, i) => d - LO3 * P[i]), hi: D.map((d, i) => HI3
+38 of 38 mutations caught

@@ -83,3 +83,8 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 10:07 UTC | reduce-dto97.mjs a34df878349a | 27 of 27 caught | escaped: none
 2026-10-08 08:43 UTC | reduce-carry.mjs fe1090292035 | 30 of 34 caught | escaped: NOT CAUGHT: 4: if (us.length !== 50) bad.push(; NOT CAUGHT: 12: if (t.raw.N !== N || String(t.raw.seed) !== SEED) bad.push(; NOT CAUGHT: 24: const F2 = dep.every(id => fl(id) || cls.hc.includes(id));; NOT CAUGHT: 30: edge: lit.F2 !== alt.F2 }
 2026-10-08 08:43 UTC | reduce-carry.mjs e35a9950e3fd | 32 of 32 caught | escaped: none
+2026-10-08 09:35 UTC | reduce-nsb.mjs 5fb3196bb6d2 | 31 of 38 caught | escaped: NOT CAUGHT: 19: Math.abs(I.ex5[j] - X.ex5[j]) <= IDT &&; NOT CAUGHT: 20: const mwd = mean(J.map(j => A.wd[j])), counts = J.length > 0; NOT CAUGHT: 22: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && (c; NOT CAUGHT: 24: quart: e.map((x, i) => QUART1 * w[i] - x); NOT CAUGHT: 27: falsCells.length && falsCells.every(c => c.quartP < ALPHA) ?; NOT CAUGHT: 31: const held = (opening && opening.changed) || rows.some(r => ; NOT CAUGHT: 35: r.pHi < ALPHA && r.s <= LO3 + 1e-12 ? 'NOTREF'
+2026-10-08 09:38 UTC | reduce-nsb.mjs fc6b0097ee69 | 37 of 38 caught | escaped: NOT CAUGHT: 34: r.pLo < ALPHA && r.s >= HI3 - 1e-12 ? 'REF'
+2026-10-08 09:38 UTC | reduce-nsb.mjs 6df59d01e0a3 | 0 of 38 caught | escaped: the true script fails its planted set
+2026-10-08 09:38 UTC | reduce-nsb.mjs 07e22ff62016 | 0 of 38 caught | escaped: the true script fails its planted set
+2026-10-08 09:39 UTC | reduce-nsb.mjs 0e18b9ebe8c7 | 38 of 38 caught | escaped: none

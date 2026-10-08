@@ -248,8 +248,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    author's reading. Neither git log follows a move (a move from drafts/ or a rename passes judged-after-derived), and
    the judged lines are read at their first commit, so a later edit committed with a new output passes (O110).
 32. testsAfter (uncertainty.mjs) never counts a scored test with no close in lessons.md; its two callers are untested.
-33. scorecard.mjs's deep-review cause base rate reads deep-review-log.md's one "N of M" line; settling causes does not
-   move it (MINOR 4 on b22439c).
+33. scorecard.mjs's deep-review lead rate adds the leading causes settled since to the hand record's one "N of M" line
+   (leadRate, 8 Oct); a lead is the highest stated credence among its receipt's ids sharing a prefix, so a receipt whose
+   question's causes share no prefix counts each as its own lead (MINOR 4 on b22439c; MINOR 1 of 8 Oct on 20114d1b1f).
 34. The e3pcls guard misses a direct solvePlan call outside its scan and an engine change: e3pcls-pin.mjs's header.
 ---
 

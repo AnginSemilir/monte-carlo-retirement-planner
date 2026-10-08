@@ -5,8 +5,10 @@
  * tax and the coverage node), XAS's seed and paths, one process a household: S370, bridge 4 and S126 (deciding), S130 and
  * S128 (incidence). No solver change: every read is assembled here from the solved tables and held to the solver's own.
  * A node is DEAD when its stored survival log-odds are at or below grid.js's DEAD_LS (-11.5, l.436) and its bequest is 0:
- * a state every move fails stores b = 0 and the failure cost as its shortfall (solve.js l.1015). In a reader year a node
- * with no accessible money (the share axis's top node) faces the year's bill with nothing: checked dead (deadTop). A dead
+ * a state every move fails stores b = 0 and the failure cost as its shortfall (solve.js l.1015), its survival at the clamp
+ * (checked: deadExact). A node with no accessible money (the share axis's top node) is dead in a reader year whose bill
+ * its income does not meet; where income meets it (S370's year 4 in the build check of 8 Oct: every such node alive) it is
+ * not, so those nodes are reported by year (noAccess), not refused. A dead
  * node is ON THE SHARE AXIS when its share row (the same wealth, split, gain and allowance nodes) holds a live node: the
  * blend FLAG 1 names. A row dead throughout is the survival cliff along wealth (grid.js l.425-428: there the sharpness is
  * the point), and is not counted.
@@ -30,7 +32,8 @@
  * Self-checks, each refusing the run, each counted per arm and refused when it ran on nothing where it must run:
  *   replicaNS  the bequest and shortfall reads assembled from the corners equal the solver's;
  *   wdRead     wd from the corners equals the solver's own read of the dead indicator (readValues on a 0/1 array);
- *   deadTop    every node with no accessible money in a reader year is dead;
+ *   deadExact  every node classed dead holds the survival clamp's log-odds exactly (the threshold catches failed states
+ *              only), and some node with no accessible money is classed dead (it ran on the nodes it must catch);
  *   restore    after each swap every swapped array is the solve's own again;
  *   replica    the reader's survival read from the corners equals the solver's (item 3);
  *   rebuild    the reader table rebuilt at read time on the solve's own reference equals the stored one, node for node;
@@ -182,7 +185,7 @@ UNITS.forEach((id, ui) => {
   const paths = E.pathsForSeed(SEED, NPW, T);
   const NA = Math.max(...ARMS.map(([a]) => R[a].actions.length));
   const SC = new Float64Array(NA), TX = new Float64Array(NA), BQ = new Float64Array(NA), SV = new Float64Array(NA), RD4 = new Float64Array(4), RDD = new Float64Array(4);
-  const ZERO = () => ({ replicaNS: 0, replicaNSBad: 0, wdRead: 0, wdReadBad: 0, deadTop: 0, deadTopBad: 0, restore: 0, restoreBad: 0, replica: 0, replicaBad: 0, rebuild: 0, rebuildBad: 0, nodes: 0, nodesBad: 0, fine: 0, fineBad: 0 });
+  const ZERO = () => ({ replicaNS: 0, replicaNSBad: 0, wdRead: 0, wdReadBad: 0, deadExact: 0, deadExactBad: 0, noAccessDead: 0, restore: 0, restoreBad: 0, replica: 0, replicaBad: 0, rebuild: 0, rebuildBad: 0, nodes: 0, nodesBad: 0, fine: 0, fineBad: 0 });
   const CHK = Object.fromEntries(ARMS.map(([a]) => [a, ZERO()]));
   const layersOf = tab => (tab.tsLayers ? tab.tsLayers : [tab]);
   const layerOf = (tab, prevAi) => (tab.tsLayers ? tab.tsLayers[tab.tsLayerOf[prevAi]] : tab);
@@ -192,7 +195,8 @@ UNITS.forEach((id, ui) => {
   // THE DEAD NODES of an arm's layer at year t (lazily, once): the 0/1 indicator of every dead node (D), of the share-axis
   // dead (DS: a dead node whose share row holds a live node), its counts, and the swapped arrays of item 2 (bequest,
   // resilience and shortfall at each share-axis dead node taken from the nearest live node on its share row)
-  const DEAD = new Map(), MISS = new Map();   // MISS: deadTop's misses by arm, year and wealth node, with one example
+  const DEAD = new Map(), NOACC = new Map();   // NOACC: the nodes with no accessible money by arm and year, dead and alive
+  const LS_CLAMP = Math.log(CLAMP / (1 - CLAMP));
   const deadOf = (a, k, lj, t) => {
     const key = `${a}|${k}|${lj}|${t}`;
     let d = DEAD.get(key);
@@ -201,13 +205,16 @@ UNITS.forEach((id, ui) => {
     const D = new Float64Array(n);
     let nd = 0;
     for (let i = 0; i < n; i++) if (ls[i] <= DEAD_LS && bq[i] === 0) { D[i] = 1; nd++; }
-    // deadTop: in a reader year a node with no accessible money is dead
+    // deadExact: every node classed dead holds the clamp exactly; noAccess (reported): the nodes with no accessible money,
+    // dead or alive, by year
     const v = new Float64Array(7), C = CHK[a];
+    for (let i = 0; i < n; i++) if (D[i]) { C.deadExact++; if (!(Math.abs(ls[i] - LS_CLAMP) <= 1e-9)) C.deadExactBad++; }
     for (let ic = 0; ic < NCL; ic++) for (let ig = 0; ig < NG; ig++) for (let it = 0; it < nt; it++) for (let ii = 0; ii < ni; ii++) for (let ip = 0; ip < np; ip++) {
       toVec(g, ip, ii, it, ig, ic, v, t);
       if (v[1] + v[2] > 0) continue;
-      const i = g.index(ip, ii, it, ig, ic);
-      C.deadTop++; if (!D[i]) { C.deadTopBad++; const mk = `${a} t${t} ip${ip}`, x = MISS.get(mk) || { n: 0, ex: `ls ${ls[i].toFixed(3)} beq ${bq[i].toFixed(1)} short ${Ln.short[t][i].toFixed(4)} W ${g.axes.W.pts[ip].toFixed(0)} ii ${ii} it ${it} ig ${ig} ic ${ic}` }; x.n++; MISS.set(mk, x); }
+      const i = g.index(ip, ii, it, ig, ic), na = NOACC.get(`${a}|${t}`) || { dead: 0, alive: 0 };
+      if (D[i]) { na.dead++; C.noAccessDead++; } else na.alive++;
+      NOACC.set(`${a}|${t}`, na);
     }
     // the share-axis dead, and the swap: the copy rule along the share row, lower side first at each distance
     const DS = new Float64Array(n), sw = { beq: Float64Array.from(bq), short: Float64Array.from(Ln.short[t]), lresil: Float64Array.from(Ln.lresil[t]) };
@@ -415,14 +422,14 @@ UNITS.forEach((id, ui) => {
   }
   if (N3) { const J = X3.t.map((_, j) => j); console.log(`${''.padEnd(16)} item3 BASE: reads ${N3} top ${X3.top.filter(x => x === 1).length} rep ${f4(mean(J, j => X3.rr[j] - X3.ex5[j]))} ro ${f4(mean(J, j => X3.ro[j] - X3.ex5[j]))} vb ${f4(mean(J, j => X3.vb[j] - X3.ex5[j]))} vb41 ${f4(mean(J, j => X3.vb41[j] - X3.ex5[j]))} secs ${Math.round((Date.now() - t2) / 1000)}`); }
   for (const [a] of ARMS) { const E = [...DEAD.entries()].filter(([q]) => q.startsWith(`${a}|`)); console.log(`${''.padEnd(16)} dead ${a}: ${E.length} layer-years, nodes ${E.reduce((s, [, d]) => s + d.nd, 0)} on the share axis ${E.reduce((s, [, d]) => s + d.nds, 0)} copied ${E.reduce((s, [, d]) => s + d.copied, 0)}`); }
-  if (MISS.size) for (const [mk, x] of [...MISS.entries()].slice(0, 40)) console.log(`${''.padEnd(16)} deadTop miss ${mk}: ${x.n} (e.g. ${x.ex})`);
+  for (const [a] of ARMS) { const ys = [...NOACC.entries()].filter(([q]) => q.startsWith(`${a}|`)).sort((x, y) => +x[0].split('|')[1] - +y[0].split('|')[1]); console.log(`${''.padEnd(16)} noAccess ${a}: ${ys.map(([q, x]) => `t${q.split('|')[1]} dead ${x.dead} alive ${x.alive}`).join(', ')}`); }
   const ok = (x, bad) => `${x - bad}/${x}`;
-  for (const [a] of ARMS) { const C = CHK[a]; console.log(`${''.padEnd(16)} checks ${a}: ${Object.keys(ZERO()).filter(q => !q.endsWith('Bad')).map(q => `${q} ${ok(C[q], C[`${q}Bad`])}`).join(' ')}`); }
+  for (const [a] of ARMS) { const C = CHK[a]; console.log(`${''.padEnd(16)} checks ${a}: ${Object.keys(ZERO()).filter(q => !q.endsWith('Bad') && q !== 'noAccessDead').map(q => `${q} ${ok(C[q], C[`${q}Bad`])}`).join(' ')} noAccessDead ${C.noAccessDead}`); }
   // every check clean; the ones that must run on each arm ran (item 3's only on BASE, and only where a year precedes a step)
   const bad = ARMS.some(([a]) => Object.keys(CHK[a]).some(q => q.endsWith('Bad') && CHK[a][q]));
   // item 3 reads only after the first move: a year before a step at year 0 (S126's) has none
   const want3 = [...BEFORE].some(t => t > 0);
-  const must = ARMS.flatMap(([a]) => ['replicaNS', 'wdRead', 'deadTop', 'restore'].filter(q => !CHK[a][q]).map(q => `${a} ${q}`)).concat(want3 ? ['replica', 'rebuild', 'nodes', 'fine'].filter(q => !CHK.BASE[q]).map(q => `BASE ${q}`) : []);
+  const must = ARMS.flatMap(([a]) => ['replicaNS', 'wdRead', 'deadExact', 'noAccessDead', 'restore'].filter(q => !CHK[a][q]).map(q => `${a} ${q}`)).concat(want3 ? ['replica', 'rebuild', 'nodes', 'fine'].filter(q => !CHK.BASE[q]).map(q => `BASE ${q}`) : []);
   if (bad || must.length || !N1 || !N2 || (want3 && !N3)) { console.error(`audit-nsb: ${id}: a self-check failed or ran on nothing (${must.join(', ') || 'failed'}; reads ${N1}, states ${N2}; ${ARMS.map(([a]) => `${a} ${JSON.stringify(CHK[a])}`).join('; ')})`); process.exit(2); }
   const r12 = v => v.map(x => (typeof x === 'number' && Number.isFinite(x) ? Math.round(x * 1e12) / 1e12 : x === null || Number.isNaN(x) ? null : x));
   const pack = o => Object.fromEntries(Object.entries(o).map(([q, v]) => [q, Array.isArray(v) ? r12(v) : pack(v)]));

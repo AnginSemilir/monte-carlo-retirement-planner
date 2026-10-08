@@ -189,3 +189,5 @@
 07 Oct 22:38 UK | main | research/solver/predictions/diag-7aw.md | code 6dfa9cfea59a | c8c5da7 | load 0.96 1.52 2.96 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7aw.sh
 08 Oct 02:30 UK | main | research/solver/predictions/diag-7aw.md | code 6dfa9cfea59a | 770cfb2 | load 1.14 0.94 0.51 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7aw.sh
 08 Oct 09:06 UK | main | research/solver/predictions/diag-carry.md | code 6dfa9cfea59a | 3f40076 | load 1.00 1.02 1.00 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-carry.sh
+08 Oct 10:21 UK | light | none: NSB audit build check (debug at 4 points, 3 paths a world; not evidence for any test) | code 6dfa9cfea59a | 649a2e1 | load 1.99 1.58 1.12 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | node research/solver/audit-nsb.mjs 4 3 part 0/5 7002
+08 Oct 10:44 UK | light | none: NSB audit build check, deadTop's misses (debug at 4 points, 3 paths a world; not evidence for any test) | code 6dfa9cfea59a | 5d758b8 | load 2.08 1.90 1.59 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | node research/solver/audit-nsb.mjs 4 3 part 0/5 7002

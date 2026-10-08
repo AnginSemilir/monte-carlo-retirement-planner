@@ -46,7 +46,7 @@ export const PTS = '30', SEED = '7002', NPW = 2000, B = 20000, ALPHA = 0.05;
 export const WD_MIN = 0.1, TOL1 = 0.05, QUART1 = 0.25, CHANGE_HELD = 0.01, CHANGE_FALS = 0.001, MIN_STATES = 100, LO3 = 0.2, HI3 = 0.5, IDT = 2e-12;
 export const UNITS = ['S370', 'bridge 4', 'S126', 'S130', 'S128'], DECIDING = ['S370', 'bridge 4', 'S126'], IDENT = ['S370', 'bridge 4'], ARMS = ['BASE', 'COV'];
 const L = 'READER/TS+J/W0.02/PCLSI';
-const CHECKS = ['replicaNS', 'wdRead', 'deadTop', 'restore', 'replica', 'rebuild', 'nodes', 'fine'], MUST = ['replicaNS', 'wdRead', 'deadTop', 'restore'], MUST3 = ['replica', 'rebuild', 'nodes', 'fine'];
+const CHECKS = ['replicaNS', 'wdRead', 'deadExact', 'restore', 'replica', 'rebuild', 'nodes', 'fine'], MUST = ['replicaNS', 'wdRead', 'deadExact', 'restore'], MUST3 = ['replica', 'rebuild', 'nodes', 'fine'];
 const fileOf = id => `${id.replace(/\s+/g, '_')}.json.gz`;
 const field = (s, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(s); return m ? m[1] : null; };
 const esc = s => s.replace(/[/+.]/g, m => `\\${m}`);
@@ -68,7 +68,7 @@ export function parse(text) {
     else if ((m = /^\s+item1 (BASE|COV): reads (\d+) withDead (\d+) /.exec(line))) cur.item1[m[1]] = { reads: Number(m[2]), dead: Number(m[3]) };
     else if ((m = /^\s+item2 (BASE|COV): states (\d+) changed (\d+) /.exec(line))) cur.item2[m[1]] = { states: Number(m[2]), changed: Number(m[3]) };
     else if ((m = /^\s+item3 BASE: reads (\d+) /.exec(line))) cur.item3 = { reads: Number(m[1]) };
-    else if ((m = /^\s+checks (BASE|COV): (.*)$/.exec(line))) { const c = {}; for (const q of CHECKS) c[q] = frac(field(m[2], q)); cur.checks[m[1]] = c; }
+    else if ((m = /^\s+checks (BASE|COV): (.*)$/.exec(line))) { const c = {}; for (const q of CHECKS) c[q] = frac(field(m[2], q)); c.noAccessDead = Number(field(m[2], 'noAccessDead')); cur.checks[m[1]] = c; }
     else if (new RegExp(`^\\s+done ${esc(L)} `).test(line)) cur.done = true;
   }
   return us;
@@ -100,6 +100,7 @@ export function gate(units, { pts = PTS, npw = NPW, pred = PRED } = {}) {
       if (!c || CHECKS.some(q => !c[q])) { bad.push(`${tag}: no checks line for ${a}`); continue; }
       for (const q of CHECKS) if (!okFrac(c[q])) bad.push(`${tag}: ${a}'s ${q} check failed (${c[q][1] - c[q][0]} of ${c[q][1]})`);
       for (const q of MUST) if (!(c[q][1] > 0)) bad.push(`${tag}: ${a}'s ${q} check ran on nothing`);
+      if (!(c.noAccessDead > 0)) bad.push(`${tag}: ${a} classed no node with no accessible money dead (the dead classification ran on none it must catch)`);
       if (a === 'BASE' && want3) for (const q of MUST3) if (!(c[q][1] > 0)) bad.push(`${tag}: BASE's ${q} check ran on nothing`);
       if (!u.item1[a] || !(u.item1[a].reads > 0)) bad.push(`${tag}: ${a}'s item1 line missing or on no reads`);
       if (!u.item2[a] || !(u.item2[a].states > 0)) bad.push(`${tag}: ${a}'s item2 line missing or on no states`);
@@ -283,14 +284,14 @@ function planted() {
     `  solve BASE: secs 1 pts 30 shares 6 readerYears 3 readerTax - coverage -`, `  solve COV: secs 1 pts 30 shares 6 readerYears 3 readerTax ${o.tax || '1:2'} coverage {"nodes":1}`,
     `  ran ${L}: mix 3 pts ${o.pts || 30} seed 7002 paths 6000 worlds 3 steps 3 before ${o.before || '2'} readerYears 1,2,3`,
     ...ARMS.map(a => `  item1 ${a}: reads 10 withDead 5 top 5 across 0 wd x`), ...ARMS.map(a => `  item2 ${a}: states 10 changed 0 opening -`), ...(o.no3 ? [] : ['  item3 BASE: reads 6 top 6 rep x']),
-    ...ARMS.map(a => `  checks ${a}: ${CHECKS.map(q => `${q} ${o.bad === `${a}.${q}` ? '4/5' : o.none === `${a}.${q}` ? '0/0' : '5/5'}`).join(' ')}`), ...(o.undone ? [] : [`  done ${L} rss 1MB`])].join('\n');
+    ...ARMS.map(a => `  checks ${a}: ${CHECKS.map(q => `${q} ${o.bad === `${a}.${q}` ? '4/5' : o.none === `${a}.${q}` ? '0/0' : '5/5'}`).join(' ')} noAccessDead ${o.noacc === a ? 0 : 3}`), ...(o.undone ? [] : [`  done ${L} rss 1MB`])].join('\n');
   const G = (o = {}, drop = null) => gate(UNITS.filter(id => id !== drop).flatMap(id => parse(log(id, o[id] || {}))));
   ok(G().length === 0, 'the gate passes five clean logs');
   const planted1 = [
     ['a household missing', G({}, 'S128')], ['a plant line', G({ S370: { plant: 1 } })], ['a household not done', G({ S126: { undone: 1 } })],
     ['another code in one log', G({ S130: { code: 'd' } })], ['another prediction', G({ S370: { pred: 'x.md' } })], ['another unit', G({ S370: { unit: 'X/Y' } })],
     ['COV without the reader\'s tax', G({ S370: { tax: '-' } })], ['a ran line at 20 points', G({ S370: { pts: 20 } })],
-    ['a failed restore check', G({ S370: { bad: 'COV.restore' } })], ['a wdRead check on nothing', G({ S370: { none: 'BASE.wdRead' } })],
+    ['a failed restore check', G({ S370: { bad: 'COV.restore' } })], ['a failed deadExact check', G({ S128: { bad: 'BASE.deadExact' } })], ['no node with no accessible money classed dead on COV', G({ S130: { noacc: 'COV' } })], ['a wdRead check on nothing', G({ S370: { none: 'BASE.wdRead' } })],
     ['a rebuild check on nothing where a year before a step follows year 0', G({ S370: { none: 'BASE.rebuild' } })], ['no item 3 reads where they are due', G({ S370: { no3: 1 } })]];
   for (const [m, b] of planted1) ok(b.length > 0, `planted: the gate refuses ${m}`);
   ok(G({ S126: { before: '0', no3: 1, none: 'BASE.rebuild' } }).length === 0, 'EDGE: a year before a step at year 0 alone (S126) needs no item 3 reads and no rebuild check');

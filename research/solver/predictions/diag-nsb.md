@@ -2,7 +2,7 @@
 
 - **Run:** `research/solver/batch-nsb.sh` - results/diagnsb/case0-4.txt and the per-household files (audit-nsb.mjs, one process a household: S370, bridge 4 and S126 deciding, S130 and S128 for incidence, each BASE and COV), read by reduce-nsb.mjs into results-nsb.txt
 - **Kind:** test
-- **Written:** 8 Oct, before the run (its time is its registering commit's, git log); the design: the deep review after XAS-R2 (deep-review-log.md 6 Oct 03:10 UK) proposed NSB as its DECISIVE TEST - the dead node's non-survival values in every bridge year, read-only, as XAS-R2 (items 1 and 2: F3-NSBLEND; item 3: YB2-REF against YB2-NODEQ); the maintainer's 6 Oct 15:45 decision put it before 7u registers; the standing go-ahead of 4 Oct covers it (non-locked research work)
+- **Written:** 8 Oct, before the run (its time is its registering commit's, git log); the design: the deep review after XAS-R2 (deep-review-log.md 6 Oct 03:10 UK) proposed NSB as its DECISIVE TEST - the dead node's non-survival values in every bridge year, read-only, as XAS-R2 (items 1 and 2: F3-NSBLEND; item 3: YB2-REF against YB2-NODEQ); the maintainer's 6 Oct 15:45 decision put it before 7u registers; the standing go-ahead of 4 Oct covers it (non-locked research work); O115's gate met on 8 Oct, the maintainer's 'Go ahead with your recommendation': XAS-R2's six proposed causes settled by record-deep-review.mjs --settle (review-causes.md), the lead rate re-derived (results-scorecard.txt: 0.23, 5 of 24)
 - **Seeds:** 7002 tuning: NSB re-reads XAS's states (seed 7002, 2,000 paths a world) at XAS's unit, and its gate holds BASE's year-before reads, one-step values and midpoint construct to XAS-R2's saved files read for read. It chooses the next fix's design, which is tuning; no fix is read on it. Not 7005 (selection) and not 7004 (Phase 4's second seed).
 - **Unmasking:** NSB removes no error from the product or the solve: every read is assembled at read time from the solved tables, and item 2's swap is undone before the path moves on (the restore check). The known error items 1 and 2 target is the bequest and shortfall reads' blend with the share axis's dead node (b = 0, h = the failure cost) in every bridge year (PR10; FLAG 1). A later fix that removes that blend would move S126's opening toward COV's (item 2 reads whether it does), and S126's survival loss under COV is not COV's alone (O105): a loss on S126 under such a fix is read as unmasking (the reader's survival misread showing once the non-survival blend no longer hides it), split by a fixed-policy re-read before any harm is quoted. Item 3's reference is a read-time reconstruction; it changes nothing.
 - **Mechanism:** solve.js:1015 "if (failShort && fail) h = failCostAt[t];" (a state every move fails stores the failure cost as its shortfall, and its bequest 0); grid.js:389 "resilience and shortfall reads, are unchanged." (in a bridge year the bequest and shortfall reads blend their corners with no reader construct, the dead top share node among them); reader.js:116 "c[i] = c[g.index(ip, lo, it, ig, ic)]" (the survival read's copy rule at an unsupported node, which item 2's swap applies to the non-survival values). Incidence per unit: the audit prints each arm's share-axis dead nodes, their count and the copied count per layer-year, and each read's dead weight wd.
@@ -67,9 +67,9 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | PR10 falls in every bridge year: a dead-node rule for the non-survival reads is designed (the share-axis dead node's values from its live neighbour, or its weight dropped, as #106's 'drop' does for survival off the reader), and tested on S126 with simulation if item 2 also holds | 0.67 |
-| item 1 INCONCLUSIVE | the blend's incidence is read cell by cell from the report; a rule is designed only for the cells where it held | 0.27 |
-| item 1 FALSIFIED | FLAG 1's incidence claim falls: the blend is a step-year matter, COV's edge node already its fix; no rule beyond step years | 0.06 |
+| item 1 HELD | PR10 falls in every bridge year: a dead-node rule for the non-survival reads is designed (the share-axis dead node's values from its live neighbour, or its weight dropped, as #106's 'drop' does for survival off the reader), and tested on S126 with simulation if item 2 also holds | 0.68 |
+| item 1 INCONCLUSIVE | the blend's incidence is read cell by cell from the report; a rule is designed only for the cells where it held | 0.26 |
+| item 1 FALSIFIED | FLAG 1's incidence claim falls: the blend is a step-year matter, COV's edge node already its fix; no rule beyond step years | 0.05 |
 
 ## Decision fed
 
@@ -84,26 +84,26 @@ Arms: BASE and COV, XAS's, at the same states (BASE's paths and moves: a fixed-p
 
 - **The design:** the deep review after XAS-R2 (deep-review-log.md 6 Oct 03:10 UK: FLAG 1 the blend, FLAG 3 7an's arm, its DECISIVE TEST NSB, its CAUSE CREDENCES F3- and YB2-).
 - **The build:** audit-nsb.mjs (audit-xasr2.mjs's unit and read assembly, with the dead weight per read, the swapped re-choice and the read-time rebuild); reduce-nsb.mjs (planted checks; its mutation run); preflight-nsb.sh (the three audit plants); derive-nsb.mjs; batch-nsb.sh.
-- **Seen before registration (declared):** XAS-R2's results and files, and the review's scratch reads of them (FLAG 1's -0.354). The author ran derive-nsb.mjs while writing it, before any judged credence was written, and saw its draft credences: so this prediction declines to judge ("Judged: none" below), and its credences are the derivation's alone. Three build checks of the audit (runs.log 8 Oct, PREDICTION none, 4 points and 3 paths a world, S370 alone) printed its item lines at 4 points; the first showed the dead weight counting the survival cliff along wealth (a mean eb/bE of +0.072 at a mean wd of 0.733), and the share-axis rule above was written after it and before registration; the second printed deadTop's misses (S370's year 4, alive), and deadTop became deadExact; no figure at 30 points was seen.
+- **Seen before registration (declared):** XAS-R2's results and files, and the review's scratch reads of them (FLAG 1's -0.354). The author ran derive-nsb.mjs while writing it, before any judged credence was written, and saw its draft credences: so this prediction declines to judge ("Judged: none" below), and its credences are the derivation's alone. Three build checks of the audit (runs.log 8 Oct, PREDICTION none, 4 points and 3 paths a world, S370 alone) printed its item lines at 4 points; the first showed the dead weight counting the survival cliff along wealth (a mean eb/bE of +0.072 at a mean wd of 0.733), and the share-axis rule above was written after it and before registration; the second printed deadTop's misses (S370's year 4, alive), and deadTop became deadExact; the preflight (runs.log 8 Oct, PREDICTION none; preflight-nsb.sh) then passed: the reducer's gate on all five households at 4 points, and the deadshift, norestore and rebuild plants each refused by its own check; no figure at 30 points was seen. The derivation reads results-scorecard.txt as committed with this prediction (the lead rate 0.23 after O115's settlements).
 
 ## Derivation script
 
-- `derive: research/solver/derive-nsb.mjs > research/solver/results-derive-nsb.txt sha256 e52f5dc6688b094b`
+- `derive: research/solver/derive-nsb.mjs > research/solver/results-derive-nsb.txt sha256 d7eb29de650177db`
 
 ## Point and interval
 
 - **Item 1:** the mean r on a counting cell about 0.0055 (80%: 0.0028 to 0.10; the upper end judged, grade D away from S126's year 1).
 - **Item 2:** the share of COV's correction the swap must supply to flip S126's opening, f* 0.734 (the swap judged to supply about 1, so the opening 59 -> 5); other years' changed shares 80% 0 to 3% (judged).
-- **Item 3:** the share s about 0.24 (80%: -0.10 to 0.75; judged).
+- **Item 3:** the share s about 0.27 (80%: -0.10 to 0.75; judged).
 
 ## Credence
 
-- **Base rate, item 1:** 0.13 (it leans on the deep review's ranked cause F3-NSBLEND: the deep-review lead rate, results-scorecard.txt KIND BASE RATES)
+- **Base rate, item 1:** 0.23 (it leans on the deep review's ranked cause F3-NSBLEND: the deep-review lead rate, results-scorecard.txt KIND BASE RATES)
 - **Base rate, item 2:** 0.68 (an effect on decisions: the EFFECT kind's rate)
-- **Base rate, item 3:** 0.13 (it leans on the deep review's ranked cause YB2-REF: the deep-review lead rate)
-- **Item 1:** HELD 0.67, INCONCLUSIVE 0.27, FALSIFIED 0.06 (derived, results-derive-nsb.txt section 2: F3-NSBLEND halfway from the review's 0.44 to the lead rate (0.285) carrying HELD with 0.85; under the other causes the blend's arithmetic holding with a judged 0.6 (the bequest stored 0 at a failing state in every year, code grade A; the live floor away from S126's year 1 grade D); FALSIFIED on the rest with a judged 0.08)
+- **Base rate, item 3:** 0.23 (it leans on the deep review's ranked cause YB2-REF: the deep-review lead rate)
+- **Item 1:** HELD 0.68, INCONCLUSIVE 0.26, FALSIFIED 0.05 (derived, results-derive-nsb.txt section 2: F3-NSBLEND halfway from the review's 0.44 to the lead rate (0.335) carrying HELD with 0.85; under the other causes the blend's arithmetic holding with a judged 0.6 (the bequest stored 0 at a failing state in every year, code grade A; the live floor away from S126's year 1 grade D); FALSIFIED on the rest with a judged 0.08)
 - **Item 2:** HELD 0.90, INCONCLUSIVE 0.06, FALSIFIED 0.04 (derived, section 3: the chance the swap reaches f* = 0.734 of COV's correction, 0.86, with its share judged about 1, sd 0.25; with no flip a 1% share elsewhere judged 0.3, no change anywhere 0.25)
-- **Item 3:** HELD 0.29, INCONCLUSIVE 0.21, FALSIFIED 0.50 (derived, section 4: YB2-REF halfway from the review's 0.45 to the lead rate (0.290) times both years' LO power; the rest, with the review's unassigned 0.15, times a judged 0.7 times both years' HI power)
+- **Item 3:** HELD 0.34, INCONCLUSIVE 0.20, FALSIFIED 0.46 (derived, section 4: YB2-REF halfway from the review's 0.45 to the lead rate (0.340) times both years' LO power; the rest, with the review's unassigned 0.15, times a judged 0.7 times both years' HI power)
 - **Judged:** none (the author saw the derivation's draft credences while writing it, before any judgement: declared under Provenance)
 - **Kinds:** 1 ATTRIB; 2 EFFECT; 3 ATTRIB
 

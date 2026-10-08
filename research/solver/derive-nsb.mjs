@@ -20,6 +20,7 @@ import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { perPath } from './reduce-xasr.mjs';
 import { flipP } from './reduce-7ar.mjs';
 import { TOL1, LO3, HI3, ALPHA } from './reduce-nsb.mjs';
@@ -29,9 +30,19 @@ const read = f => readFileSync(join(HERE, f), 'utf8');
 const xf = id => JSON.parse(gunzipSync(readFileSync(join(HERE, 'results', 'diagxasr2', `${id.replace(/\s+/g, '_')}.json.gz`))).toString());
 const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), f4 = x => x.toExponential(4);
 const causes = (() => { const line = read('deep-review-log.md').split('\n').find(l => l.startsWith('- 6 Oct 03:10 UK')); const m = /CAUSE CREDENCES: ([^\n|]*)$/.exec(line); return Object.fromEntries(m[1].split(';').map(x => x.trim().split('=')).map(([k, v]) => [k, Number(v)])); })();
-const BASE = Number((/leaning on a deep review's cause or story (\d\.\d+)/.exec(read('results-scorecard.txt')) || [])[1]);
+// the scorecard as committed when predictions/diag-nsb.md was added (check-prediction.mjs baseRateProblems' rule), the
+// working copy before it is: a later scorecard moves the rates, and this must keep printing the registered derivation
+const SC = (() => {
+  try {
+    const git = a => execFileSync('git', a, { cwd: join(HERE, '..', '..'), stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const added = git(['log', '--diff-filter=A', '--format=%H', '--', 'research/solver/predictions/diag-nsb.md']).trim().split('\n').filter(Boolean).pop();
+    if (added) return git(['show', `${added}:research/solver/results-scorecard.txt`]);
+  } catch { /* no git: the working copy */ }
+  return read('results-scorecard.txt');
+})();
+const BASE = Number((/leaning on a deep review's cause or story (\d\.\d+)/.exec(SC) || [])[1]);
 if (!(BASE > 0 && BASE < 1)) throw new Error('no deep-review lead rate in results-scorecard.txt');
-const EFFECT = Number((/EFFECT (\d\.\d+) \(/.exec(read('results-scorecard.txt')) || [])[1]);
+const EFFECT = Number((/EFFECT (\d\.\d+) \(/.exec(SC) || [])[1]);
 // the lead of a question halfway to the base rate, the rest sharing what is left in proportion (derive-carry.mjs's shade)
 const shade = (pre, unassigned) => { const c = Object.fromEntries(Object.entries(causes).filter(([k]) => k.startsWith(pre))); if (unassigned > 0) c[`${pre}UNASSIGNED`] = unassigned; const [lead] = Object.entries(c).sort((x, y) => y[1] - x[1])[0], L = (c[lead] + BASE) / 2, rest = Object.entries(c).filter(([k]) => k !== lead), tot = rest.reduce((t, [, v]) => t + v, 0); return Object.fromEntries([[lead, L], ...rest.map(([k, v]) => [k, (1 - L) * v / tot])]); };
 const sum = pre => Object.entries(causes).filter(([k]) => k.startsWith(pre)).reduce((t, [, v]) => t + v, 0);

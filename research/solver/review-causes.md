@@ -18,3 +18,9 @@ twice, a results file that does not exist, or a quote that is not a deciding lin
 - 8 Oct 05:58 UK | O123-SCALE | not | results-carry.txt | => O123-SCALE not
 - 8 Oct 05:58 UK | O123-OTHER | not | results-carry.txt | => O123-OTHER not
 - 7 Oct 11:42 UK | O121-WEIGHT | not | results-carry.txt | => O121-WEIGHT not (SHIP 0.01 -> 0.02: S130 0.287, S370 0.112)
+- 5 Oct 23:18 UK | YB-TOPCELL | held | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD
+- 5 Oct 23:18 UK | YB-REF | not | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD
+- 5 Oct 23:18 UK | YB-NODEQ | not | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD
+- 5 Oct 23:18 UK | VA-QUANT | held | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD
+- 5 Oct 23:18 UK | S126-BLEND | held | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD
+- 5 Oct 23:18 UK | S126-NSOTHER | not | results-xasr2.txt | OUTCOME: 1 HELD; 2 HELD; 3 HELD

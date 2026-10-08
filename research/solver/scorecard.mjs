@@ -65,6 +65,7 @@ export const TESTS = [
   { name: 'FORCE-X (the draw forced past the read\'s first price point at a would-be hold)', prediction: 'predictions/diag-forcex.md', results: 'results-forcex.txt' },
   { name: 'DT-O97 (O97\'s loss at a pension death tax of 0.4)', prediction: 'predictions/diag-dto97.md', results: 'results-dto97.txt' },
   { name: '7aj (the research candidate against the shipping default at the estate weight 0.01, 25 households)', prediction: 'predictions/diag-7aj.md', results: 'results-7aj.txt' },
+  { name: '7aw (the research candidate against the shipping default at the estate weight 0.02, 25 households)', prediction: 'predictions/diag-7aw.md', results: 'results-7aw.txt' },
 ];
 
 export function credences(predText) {

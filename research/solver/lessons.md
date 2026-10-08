@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## 7aw (closed 8 Oct 05:39)
+
+- [T:register] O55's gate record failed three audits on its register notes (19:17, 19:22, 19:26): the design review's open question QCLEAN had no row, then O121's family was called empty when O38 shared its mechanism, then counted two when O45 made three -> AUTOMATE (proposed for the next family note): before a family is named, a search of the open register rows for the mechanism's own words, its hits listed in the note with each one placed in or out
+- [T:other:backlog] [T:order] [T:overclaim] [T:decision-fed] the 7aj record's next two audits (11:39, 11:45) found a backlogged finding left neither fixed nor tabled, the 7aj row out of order with the E3-PCLS row, the row claiming the candidate read at both settings when only 0.01 had been, and a price put to the maintainer that was 7aj's pre-run budget, not its measured run -> DROP: both caught before the maintainer answered; the measured price (results-time-7aj.txt) was then used for 7aw
+- [T:figure] item 2's point (-0.016) missed its 80% interval high (+0.064 on wealth x2): the derivation doubled the whole score's rest from 0.01 to 0.02, and on the households near the line the rest does not scale with the weight (O123) -> AUTOMATE (proposed for CARRY's carrying rule): a carried term that the setting does not scale in proportion is carried with its own measured spread, not multiplied
+- [T:other:judged] the derivation's output went in with 7aw's build (e834a6e) before any judged credence, so 7aw was registered with 'Judged: none' and the decisive check gained nothing from it; the check's escape could not pass until the 7 Oct unlock (5b06e1c) -> DROP: check-prediction's judged-before-derived rule refused the after-the-fact judgement as designed
+- [T:other:restart] a container restart stopped 7aw at 18 of 50 units; its resumable batch kept them on the same code, audit and prediction, so no unit ran twice and every stamp matched -> DROP: the resume step (lessons, 7aj) worked as designed
+
 ## 7aj (closed 7 Oct 11:29)
 
 - [T:design] [T:overclaim] [T:branch] the registrations of 7aj and E3-CAND each carried a claim their own design contradicted: 7aj's Unmasking read 'none' though CAND removes four known errors, and E2X's one-run timings were graded A (both BLOCKING on e7e0ec6d57); E3-CAND's EXACT asked for equal moves evaluated, which e3's copies make impossible (BLOCKING on 743ca2cb1d; the launch stopped, the verdict fixed to fewer moves) -> DROP: all three caught by the plan-auditor before any verdict was read; the Unmasking field and the grade rule already name them

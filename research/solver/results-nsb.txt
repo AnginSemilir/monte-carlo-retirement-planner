@@ -1,0 +1,6 @@
+FAIR-TEST GATE: FAILED
+  S370: not done
+  S370: BASE's deadExact check failed (1087 of 291871)
+  S370: COV's deadExact check failed (965 of 361626)
+  S370 file: missing
+  S370: no item-3 reads or no XAS-R2 file

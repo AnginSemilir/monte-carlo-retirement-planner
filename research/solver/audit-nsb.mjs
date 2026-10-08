@@ -377,6 +377,33 @@ UNITS.forEach((id, ui) => {
   const X1 = { k: [], p: [], t: [], step: [], arms: Object.fromEntries(ARMS.map(([a]) => [a, { top: [], wd: [], bR: [], bE: [], hR: [], hE: [], hD: [], agree: [] }])) };
   const X2 = { k: [], p: [], s: [], arms: Object.fromEntries(ARMS.map(([a]) => [a, { a0: [], a1: [] }])) };
   const X3 = { k: [], p: [], t: [], top: [], rr: [], ex5: [], ro: [], vb: [], vb41: [] };
+  if (process.env.NSB_CENSUS) {
+    // THE DEAD-NODE CENSUS (a measurement, PREDICTION none: NSB's deadExact refusal on S370 at 30 points, 8 Oct): per arm and
+    // read year, over every world and layer, the nodes at or below DEAD_LS (grid.js's dead), those storing bequest 0 (the
+    // audit's dead) at the clamp or off it, and those storing a bequest; the off-clamp dead's log-odds, their shortfall
+    // against the clamped dead's in the same layer, and how many lie on the share axis. Tables only: no read, no file
+    for (const [a] of ARMS) for (const t of [...RY].filter(y => y >= 1)) {
+      const c = { grid: 0, dead: 0, clamp: 0, off: 0, offDS: 0, kept: 0, keptMax: 0, beqMax: 0, lsMin: Infinity, lsMax: -Infinity, same: 0, rated: 0, rLo: Infinity, rHi: -Infinity };
+      for (let k = 0; k < K; k++) layersOf(R[a].mix.tables[k]).forEach((Ln, lj) => {
+        const ls = Ln.lsurv[t], bq = Ln.beq[t], sh = Ln.short[t], { DS } = deadOf(a, k, lj, t);
+        let fc = NaN;
+        for (let i = 0; i < ls.length; i++) if (ls[i] <= DEAD_LS && bq[i] === 0 && Math.abs(ls[i] - LS_CLAMP) <= 1e-9) { fc = sh[i]; break; }
+        for (let i = 0; i < ls.length; i++) {
+          if (bq[i] > c.beqMax) c.beqMax = bq[i];
+          if (!(ls[i] <= DEAD_LS)) continue;
+          c.grid++;
+          if (bq[i] !== 0) { c.kept++; if (bq[i] > c.keptMax) c.keptMax = bq[i]; continue; }
+          c.dead++;
+          if (Math.abs(ls[i] - LS_CLAMP) <= 1e-9) { c.clamp++; continue; }
+          c.off++; if (DS[i]) c.offDS++;
+          c.lsMin = Math.min(c.lsMin, ls[i]); c.lsMax = Math.max(c.lsMax, ls[i]);
+          if (Number.isFinite(fc) && fc !== 0) { c.rated++; if (sh[i] === fc) c.same++; c.rLo = Math.min(c.rLo, sh[i] / fc); c.rHi = Math.max(c.rHi, sh[i] / fc); }
+        }
+      });
+      console.log(`${''.padEnd(16)} census ${a} t${t}: at or below DEAD_LS ${c.grid}; bequest 0 ${c.dead} (at the clamp ${c.clamp}, off it ${c.off}, ${c.offDS} of them on the share axis); bequest kept ${c.kept} (largest ${c.keptMax.toExponential(2)}, the year's largest bequest ${c.beqMax.toExponential(2)})${c.off ? `; off-clamp log-odds ${c.lsMin.toFixed(3)} to ${c.lsMax.toFixed(3)}; shortfall the clamped dead's on ${c.same} of ${c.rated} (ratio ${c.rLo.toFixed(4)} to ${c.rHi.toFixed(4)})` : ''}`);
+    }
+    return;
+  }
   const t2 = Date.now();
   for (let k = 0; k < K; k++) {
     const z = base.mix.nodes[k];

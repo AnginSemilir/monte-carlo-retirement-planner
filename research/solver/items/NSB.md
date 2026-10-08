@@ -23,7 +23,8 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
     -13.280, shortfall 0.9496 to 0.9751 of the clamped dead's;
   - they are moves that survive the year into a next year that reads as all but dead, not failing states
     (solve.js l.990-1018);
-  - nodes at or below DEAD_LS that keep a bequest appear in every year (O128).
+  - nodes at or below DEAD_LS that keep a bequest appear in every year: 2900 to 8030 a year outside year 4, and in
+    year 4 every such node (29787 under BASE, 34533 under COV; O128).
 
 ## The deep review after NSB (deep-review-log.md 8 Oct 17:19 UK)
 

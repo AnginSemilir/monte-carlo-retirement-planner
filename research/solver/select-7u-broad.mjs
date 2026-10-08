@@ -17,6 +17,13 @@
  * reducer hold the panel to that file's BROAD line.
  * Phase 4's library half needs no other exclusion: its rule takes the first 20 free households at its own selection,
  * after excluding every id under results/, which 7u's logs will then hold.
+ * A FLAW IN STEP 2, FOUND AFTER THE SELECTION (8 Oct, building 7u's prediction; PLAN.md O129): reading gzipped traces
+ * through also reads their base64 payloads, where an id-like string ('+S482a') matches by chance. Of the 156 singles the
+ * header line counts as touched, 65 are found only inside gzipped payloads; a scan of names and plain text finds 91. So the
+ * pool was 48 households where the rule meant about 113, and "touched" overstates. The 30 are untouched by either scan
+ * (0 of 30 by the plain one), the extra exclusions fall at random with respect to the solver, and nothing outcome-related
+ * was seen before or after, so the panel is kept as selected and frozen (results-7u-broad.txt). A later selector (P4-LAND,
+ * 8f) reads a gzipped trace's id field, not its payload. This script is left as it ran, so it reproduces the frozen panel.
  *   node research/solver/select-7u-broad.mjs > research/solver/results-7u-broad.txt
  *   node research/solver/select-7u-broad.mjs --planted
  */

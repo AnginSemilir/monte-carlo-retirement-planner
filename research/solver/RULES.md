@@ -599,10 +599,12 @@ The rules this adds:
    root-cause step stands: every reducer prints the paths whose actions differ between arms, and every consistency check
    runs on the mixture (gate: before the next reducer is written and before any check is cited as no-harm evidence).
    The carry family's step, CARRY (read 8 Oct 09:06 UK, held out on 7aw; results-carry.txt), gives the carrying rule for
-   derivations: a per-household record carries to a test that differs in one setting within its paired band, except where
+   derivations: a per-household record carries to a test that differs in the estate weight alone (the only setting tested;
+   for any other, grade D) within its paired band, except where
    a measured part is left out of the carry, where the setting moves a year-0 gap across the switch line (a flip), and on
    a household whose smaller of saved and lost is 15 or more; each of those takes its own record. A whole score carried to
-   another weight is re-scored on the record's own traces with the policy held, beside each weight's own record (O123).
+   another weight is re-scored on the record's own traces with the policy held, beside each weight's own record (O123); each arm's own response to the weight is read apart, and with no record at the
+   new weight a derivation declares its interval wide, grade D (the deep review of 8 Oct 09:32 UK; family F-W).
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

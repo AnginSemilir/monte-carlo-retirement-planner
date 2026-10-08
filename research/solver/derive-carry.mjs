@@ -24,6 +24,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { classesFrom, item2Of, SWITCH_RISK, HIGH_CHURN, O123_IV, N, Z, MIN_SUM } from './reduce-carry.mjs';
 import { PANEL } from './reduce-7aw.mjs';
 
@@ -35,8 +36,16 @@ const f3 = x => x.toFixed(3), f2 = x => x.toFixed(2);
 const log = read('deep-review-log.md');
 const causesAt = stamp => { const line = log.split('\n').find(l => l.startsWith(`- ${stamp}`)); const m = line && /CAUSE CREDENCES: ([^\n|]*)$/.exec(line); if (!m) throw new Error(`no cause credences at ${stamp}`); return Object.fromEntries(m[1].split(';').map(x => x.trim().split('=')).map(([k, v]) => [k, Number(v)])); };
 const REVIEW = { CARRY: causesAt('7 Oct 22:06 UK'), O123: causesAt('8 Oct 05:58 UK') };
-// the base rate: results-scorecard.txt's KIND BASE RATES, 'an item leaning on a deep review's cause or story'
-const BASE = Number((/leaning on a deep review's cause or story (\d\.\d+)/.exec(read('results-scorecard.txt')) || [])[1]);
+// the base rate: results-scorecard.txt's KIND BASE RATES, 'an item leaning on a deep review's cause or story', as committed
+// when predictions/diag-carry.md was added (check-prediction.mjs baseRateProblems' rule; a later scorecard moves the rate,
+// and this file must keep printing the registered derivation: the plan-auditor's MINOR 2 of 8 Oct on PLAN.md 20114d1b1f)
+const SC_AT = (() => {
+  const git = a => execFileSync('git', a, { cwd: join(HERE, '..', '..'), stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+  const added = git(['log', '--diff-filter=A', '--format=%H', '--', 'research/solver/predictions/diag-carry.md']).trim().split('\n').pop();
+  if (!added) throw new Error('predictions/diag-carry.md was never committed: no scorecard to read the base rate from');
+  return git(['show', `${added}:research/solver/results-scorecard.txt`]);
+})();
+const BASE = Number((/leaning on a deep review's cause or story (\d\.\d+)/.exec(SC_AT) || [])[1]);
 if (!(BASE > 0 && BASE < 1)) throw new Error('no base rate for an item leaning on a deep review\'s cause in results-scorecard.txt');
 // the lead halfway from the review's credence to the base rate, the others sharing the rest in proportion
 const shade = c => { const [lead] = Object.entries(c).sort((x, y) => y[1] - x[1])[0], L = (c[lead] + BASE) / 2, rest = Object.entries(c).filter(([k]) => k !== lead), tot = rest.reduce((t, [, v]) => t + v, 0);

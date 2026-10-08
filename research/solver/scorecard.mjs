@@ -22,7 +22,7 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ITEM_KINDS, KINDS } from './item-kinds.mjs';
-import { settlements, appendOnlyProblem } from './record-deep-review.mjs';
+import { settlements, statedCauses, appendOnlyProblem } from './record-deep-review.mjs';
 import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -220,6 +220,30 @@ export function byKind(tagged) {
   return Object.fromEntries(Object.entries(out).map(([k, r]) => [k, { n: r.n, meanP: r.p / r.n, held: r.h / r.n, brier: r.b / r.n, kindRate: r.bk / r.n }]));
 }
 
+// THE DEEP REVIEWS' LEAD RATE (the deep review after XAS-R2, deep-review-log.md 6 Oct 03:10 UK, FLAG 2; retirement pass 4,
+// 8 Oct 09:15 UK: the rate was a frozen figure in one receipt's prose): the rate an item leaning on a deep review's cause or
+// story starts from. The hand record (the first receipt reading 'read as the review said h of n') plus every cause
+// review-causes.md settles that LED its question in a receipt after that one: the highest stated credence among the
+// receipt's causes sharing its prefix (the question: the id before its first '-'), ties all leading. Laplace (h + 1) /
+// (n + 2). Read only after settlements() has passed every settled line
+export function leadRate(log, settled) {
+  const lines = String(log).split('\n'), recAt = lines.findIndex(l => /read as the review said \d+ of \d+/.test(l));
+  const rec = recAt >= 0 ? /read as the review said (\d+) of (\d+)/.exec(lines[recAt]) : null, at = new Map(), stated = statedCauses(log);
+  lines.forEach((l, i) => { const m = /^- (\d{1,2} \w{3} \d{2}:\d{2}) UK \| covered /.exec(l); if (m && !at.has(m[1])) at.set(m[1], i); });
+  let h = 0, n = 0;
+  for (const raw of String(settled).split('\n')) {
+    const m = /^- ([^|\n]+?) \| ([\w+-]+) \| (held|not) \| /.exec(raw);
+    if (!m) continue;
+    const t = m[1].replace(/ UK$/, ''), q = m[2].split('-')[0];
+    if (!(at.get(t) > recAt)) continue;   // the hand record covers the receipts up to its own
+    let top = -Infinity;
+    for (const [k, p] of stated) { const [kt, id] = k.split('|'); if (kt === t && id.split('-')[0] === q) top = Math.max(top, p); }
+    if (stated.get(`${t}|${m[2]}`) >= top) { n++; h += m[3] === 'held' ? 1 : 0; }
+  }
+  const H = (rec ? +rec[1] : 0) + h, N = (rec ? +rec[2] : 0) + n, rate = (H + 1) / (N + 2);
+  return { h, n, H, N, rate, text: `an item leaning on a deep review's cause or story ${rate.toFixed(2)} (${H} of ${N}: ${rec ? `the hand record's ${rec[1]} of ${rec[2]}, deep-review-log.md, and ` : 'no hand record; '}the leading causes settled since, ${h} of ${n}, review-causes.md)` };
+}
+
 // THE DECISIVE CHECK (O29; the 5 Oct 10:29 row; its rule written before the first pair is read, the plan-auditor's
 // BLOCKING 1 of 5 Oct 10:38 UK, and its looks fixed before the first read, its MINORs 1 and 2 of 5 Oct 10:45 UK): over
 // items carrying both a judged and a derived full distribution, d = RPS(judged) - RPS(derived) per item, averaged within
@@ -373,6 +397,13 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     cases.push(['planted: a settlement citing a missing results file is an error', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-none.txt | OUTCOME: 1 HELD\n', RX).errs.length), '1']);
     cases.push(['planted: a settlement whose quote is not in its results file is an error (settled by judgement)', String(causeScores(LOG, '- 5 Oct 12:00 | rep | held | results-x.txt | OUTCOME: 1 FALSIFIED\n', RX).errs.length), '1']); }
   cases.push(['EDGE: no settlements reads 0 settled, no Brier', causeScores(LOG, '').line, 'DEEP-REVIEW CAUSES: 2 stated, 0 settled']);
+  { const LL = '- 5 Oct 09:00 UK | covered A | level HIGH | CAUSE CREDENCES: a-x=0.6; a-y=0.3\n- 5 Oct 10:00 UK | covered B | level HIGH | read as the review said 1 of 19. CAUSE CREDENCES: b-x=0.5\n- 6 Oct 01:00 UK | covered C | level HIGH | CAUSE CREDENCES: c-x=0.5; c-y=0.4; d-x=0.2; d-y=0.2\n';
+    const lr = s => { const r = leadRate(LL, s); return `${r.H}/${r.N} ${r.rate.toFixed(4)}`; };
+    cases.push(['the lead rate: no settlements reads the hand record alone, (1 + 1) / (19 + 2)', lr(''), '1/19 0.0952']);
+    cases.push(['the lead rate: a settled lead held after the record counts, and a settled cause that did not lead does not', lr('- 6 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | c-y | not | r.txt | OUTCOME: 1 HELD\n'), '2/20 0.1364']);
+    cases.push(['planted: a lead settled from a receipt the hand record already covers is not counted twice', lr('- 5 Oct 09:00 | a-x | held | r.txt | OUTCOME: 1 HELD\n'), '1/19 0.0952']);
+    cases.push(['EDGE: tied leads both lead, each question its own (c- and d- in one receipt), a lead not held counts in n only', lr('- 6 Oct 01:00 | d-x | held | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | d-y | not | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | c-x | not | r.txt | OUTCOME: 1 HELD\n'), '2/22 0.1250']);
+    cases.push(['EDGE: no hand record reads the settled leads alone', (() => { const r = leadRate(LL.replace('read as the review said 1 of 19. ', ''), '- 6 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n'); return `${r.H}/${r.N} ${r.rate.toFixed(4)}`; })(), '1/1 0.6667']); }
   cases.push(['the kind\'s base rate: 3 held of 4 ATTRIB items reads (3 + 1) / (4 + 2), and an unseen kind is absent', (() => { const r = kindRates([1, 1, 1, 0].map(o => ({ kind: 'ATTRIB', o }))); return `${r.ATTRIB.rate.toFixed(4)} ${r.ATTRIB.n} ${'NOHARM' in r}`; })(), '0.6667 4 false']);
   cases.push(['discrimination: a judged set that ranks perfectly and a derived set that ranks backwards', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }, { judged: 0.1, derived: 0.8, o: 0 }]); return `${d.aucJ} ${d.aucD} ${d.both}`; })(), '1 0 true']);
   cases.push(['EDGE: discrimination over items all of one outcome says so (no AUC)', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }]); return `${d.both} ${Number.isNaN(d.aucJ)}`; })(), 'false true']);
@@ -416,8 +447,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const ao = appendOnlyProblem(committed, read('review-causes.md') || '');
     if (ao) { console.log(`ERROR - ${ao}`); process.exit(1); }
     const C = causeScores(read('deep-review-log.md') || '', read('review-causes.md') || '', f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : null)); if (C.errs.length) { console.log(`ERROR - review-causes.md: ${C.errs.join('; ')}`); process.exit(1); } console.log(C.line); }
-  { const R = kindRates(tagged), rec = /read as the review said (\d+) of (\d+)/.exec(read('deep-review-log.md') || '');
-    console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}${rec ? `; an item leaning on a deep review's cause or story ${((+rec[1] + 1) / (+rec[2] + 2)).toFixed(2)} (${rec[1]} of ${rec[2]}, deep-review-log.md)` : ''}`); }
+  { const R = kindRates(tagged), LR = leadRate(read('deep-review-log.md') || '', read('review-causes.md') || '');
+    console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}; ${LR.text}`); }
   if (judgedAll.length) { const D = discrimination(judgedAll); console.log(`DISCRIMINATION, judged against derived (the same items and events): ${D.both ? `AUC judged ${D.aucJ.toFixed(2)}, derived ${D.aucD.toFixed(2)}; resolution judged ${D.resJ.toFixed(3)}, derived ${D.resD.toFixed(3)}` : 'accruing - the items so far all of one outcome'} over ${D.n}`); }
   if (judgedAll.length) { const J = judgedCheck(judgedAll); console.log(`JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged ${(judgedAll.reduce((a, x) => a + (x.judged - x.o) ** 2, 0) / judgedAll.length).toFixed(3)}, derived ${(judgedAll.reduce((a, x) => a + (x.derived - x.o) ** 2, 0) / judgedAll.length).toFixed(3)} over ${judgedAll.length}; the decisive check (O29): ${J.line}`); }
 }

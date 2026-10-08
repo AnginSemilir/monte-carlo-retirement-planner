@@ -81,3 +81,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-06 08:22 UTC | reduce-dto97.mjs 8a2f31ace72a | 25 of 25 caught | escaped: none
 2026-10-06 10:06 UTC | reduce-dto97.mjs a34df878349a | 25 of 25 caught | escaped: none
 2026-10-06 10:07 UTC | reduce-dto97.mjs a34df878349a | 27 of 27 caught | escaped: none
+2026-10-08 08:43 UTC | reduce-carry.mjs fe1090292035 | 30 of 34 caught | escaped: NOT CAUGHT: 4: if (us.length !== 50) bad.push(; NOT CAUGHT: 12: if (t.raw.N !== N || String(t.raw.seed) !== SEED) bad.push(; NOT CAUGHT: 24: const F2 = dep.every(id => fl(id) || cls.hc.includes(id));; NOT CAUGHT: 30: edge: lit.F2 !== alt.F2 }
+2026-10-08 08:43 UTC | reduce-carry.mjs e35a9950e3fd | 32 of 32 caught | escaped: none

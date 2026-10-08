@@ -12,3 +12,9 @@ the stated credences against these lines (the DEEP-REVIEW CAUSES line); a line n
 twice, a results file that does not exist, or a quote that is not a deciding line of that file stops the scorecard.
 
 ## Settled
+- 7 Oct 22:06 UK | CARRY-OMIT | not | results-carry.txt | => CARRY-OMIT not
+- 7 Oct 22:06 UK | CARRY-OTHER | not | results-carry.txt | => CARRY-OTHER not
+- 8 Oct 05:58 UK | O123-REOPT | held | results-carry.txt | => O123-REOPT held
+- 8 Oct 05:58 UK | O123-SCALE | not | results-carry.txt | => O123-SCALE not
+- 8 Oct 05:58 UK | O123-OTHER | not | results-carry.txt | => O123-OTHER not
+- 7 Oct 11:42 UK | O121-WEIGHT | not | results-carry.txt | => O121-WEIGHT not (SHIP 0.01 -> 0.02: S130 0.287, S370 0.112)

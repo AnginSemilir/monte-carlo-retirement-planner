@@ -72,3 +72,21 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
   - quoting NSB's item 2 counts as the candidate's;
   - reading the first run's unread item lines (declared in the re-registration; batch-nsb.sh's rm -rf clears them);
   - taking a 4-point pass of a premise check as a pass.
+
+## NS-COND as registered (the plan-auditor's PASS on 49faa11, review-log.md 8 Oct 23:03 UK, MINORs 1 and 3)
+
+- Item 2 runs the copy rule alone, not both rules as the deep review's test above asked.
+  - drafts/ns-cond-design.md l.43 left the drop rule as an open build question; the registration
+    (predictions/diag-nscond.md l.16 and l.59; audit-nscond.mjs swapIn, the copy arrays only) settles it by leaving
+    it out, as NSB's item 2 did.
+  - Why: item 1 already prints elive, the drop rule's read, per read, so the drop rule's direction is read there; a
+    drop-rule census would only count where its move changes, and no branch of the Decision fed reads that count.
+    Item 1 HELD designs no copy or drop rule (the STOP list above); FALSIFIED and INCONCLUSIVE go to 7an. The census
+    of whatever rule a HELD designs belongs to that fix's own test.
+- Item 1 FALSIFIED is not read as "the live error is resolution".
+  - By the derivation's own chances (results-derive-nscond.txt section 2), FALSIFIED comes under NSL-WEALTH or
+    NSL-SHARE with 0.14 x 0.40 each, under NSL-OTHER with 0.27 x 0.20 and under NSL-UNCOND with 0.45 x 0.02. Of
+    0.175 in all, resolution is 0.112 (0.64), NSL-OTHER 0.054 (0.31) and NSL-UNCOND 0.009 (0.05).
+  - So a FALSIFIED read is quoted as "not NSL-UNCOND's conditioned read: resolution or NSL-OTHER, 7an decides", its
+    attribution graded C. The action is the same under either cause: 7an's resolution check first, no conditioned
+    read.

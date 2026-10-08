@@ -41,6 +41,8 @@ DT-O97 (O97's loss at a pension death tax of 0.4): Brier 0.025 over 2 (1 0.8 -> 
 CARRY (the carry family's rule held out on 7aw, and O123's cause by the fixed-policy re-score): Brier 0.196 over 2 (1 0.65 -> held; 2 0.48 -> held)
 
 CUMULATIVE: Brier 0.229 over 163 items
+INTERVALS, each registered 80% interval against its reducer's REALISED line: 0 of 0 inside; 9 registered in 4 tests have no REALISED line (the reducers before 7u print none)
+INTERVAL FORMS over every prediction file: 42 write an 80% interval; 4 in the indexed form (diag-7aj, diag-7aw, diag-carry, diag-edge); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
 RELIABILITY (credence bin: items, mean credence, share held):
   under 60%     101   0.44   0.59
   60-75%         29   0.64   0.55
@@ -57,7 +59,7 @@ BY KIND (items, mean credence, share held, the author's Brier, the Brier of the 
   WHOLE       6   0.47   0.50   0.192   0.301
 THREE-OUTCOME ITEMS: ranked probability score 0.143 over 26, a uniform forecast 0.252
 LEGS, an item needing every household scored household by household: Brier 0.083 over 2
-DEEP-REVIEW CAUSES: 125 stated, 12 settled, Brier 0.097
+DEEP-REVIEW CAUSES: 129 stated, 12 settled, Brier 0.097
 KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.83 (34 of 40), EFFECT 0.68 (16 of 23), ATTRIB 0.59 (23 of 39), SIZE 0.53 (24 of 45), CTRL 0.67 (7 of 10), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.23 (5 of 24: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 4 of 5, review-causes.md)
 DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.59, derived 0.86; resolution judged 0.079, derived 0.130 over 13
 JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged 0.211, derived 0.245 over 13; the decisive check (O29): ACCRUING - 13 of 30 items over 6 tests

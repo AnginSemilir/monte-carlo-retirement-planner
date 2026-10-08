@@ -17,7 +17,7 @@
  *   node research/solver/scorecard.mjs              the scorecard (save it as results-scorecard.txt)
  *   node research/solver/scorecard.mjs --planted    the planted checks alone
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -199,6 +199,12 @@ export function intervalScores(entries) {
     scored.push({ test, item: k, v: re[k], lo: b.lo, hi: b.hi, inside: re[k] >= Math.min(b.lo, b.hi) && re[k] <= Math.max(b.lo, b.hi) });
   }
   return { scored, unscored, inside: scored.filter(x => x.inside).length };
+}
+// Over every prediction file: how many write an 80% interval at all, and how many of those the index can read (the
+// plan-auditor's MINOR 4 of 8 Oct 23:03 UK: the backlog's count came from a grep, not from this script; RULES.md limit 35)
+export function intervalForms(files) {
+  const carry = files.filter(f => /80% interval/.test(f.text)), indexed = carry.filter(f => Object.keys(intervalsOf(f.text)).length);
+  return { carry: carry.length, indexed: indexed.map(f => f.name), other: carry.length - indexed.length };
 }
 
 export const brier = pairs => pairs.reduce((a, x) => a + (x.p - x.o) ** 2, 0) / pairs.length;
@@ -445,6 +451,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     const r = intervalScores([{ test: 'a', iv: intervalsOf(PI), re: realisedOf('REALISED item 1: 2.107\nREALISED item 3: -1.0\n') }]);
     cases.push(['intervals scored: item 1 outside (O121\'s miss), item 3 at its end inside, item 2 unscored', `${r.scored.map(x => `${x.item}:${x.inside}`).join(',')} ${r.unscored.map(x => x.item).join(',')} ${r.inside}`, '1:false,3:true 2 1']);
     cases.push(['EDGE: no Point and interval section reads no interval', JSON.stringify(intervalsOf('# P\n\n## Power\n\n- **Item 1:** 80% interval 0 to 1\n')), '{}']);
+    const F = intervalForms([{ name: 'a', text: PI }, { name: 'b', text: '# P\n\n## Power\n\n- **Item 1:** 80% interval 0 to 1\n' }, { name: 'c', text: '# P\n\n## Point and interval\n\n- **Item 1:** 0.5; 95% interval 0 to 1\n' }]);
+    cases.push(['interval forms: a carries the indexed form, b an 80% interval outside it, c a 95% interval only (not counted)', `${F.carry} ${F.indexed.join(',')} ${F.other}`, '2 a 1']);
+    cases.push(['EDGE: no prediction files read no interval forms', JSON.stringify(intervalForms([])), '{"carry":0,"indexed":[],"other":0}']);
     cases.push(['7aj: its real prediction\'s three intervals', JSON.stringify(intervalsOf(readFileSync(join(HERE, 'predictions/diag-7aj.md'), 'utf8'))), '{"1":{"lo":1.6,"hi":1.9},"2":{"lo":-0.1,"hi":0.05},"3":{"lo":-2,"hi":-1}}']); }
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
@@ -471,7 +480,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`\nCUMULATIVE: Brier ${brier(all).toFixed(3)} over ${all.length} items`);
   { const ents = TESTS.map(T => ({ test: T.name.split(' ')[0], iv: intervalsOf(read(T.prediction) || ''), re: realisedOf(read(T.results)) })), S = intervalScores(ents);
     const nT = new Set(S.unscored.map(x => x.test)).size;
-    console.log(`INTERVALS, each registered 80% interval against its reducer's REALISED line: ${S.inside} of ${S.scored.length} inside${S.scored.length ? ` (80% expected)${S.scored.filter(x => !x.inside).length ? `; outside: ${S.scored.filter(x => !x.inside).map(x => `${x.test} item ${x.item} ${x.v} (${x.lo} to ${x.hi})`).join('; ')}` : ''}` : ''}; ${S.unscored.length} registered in ${nT} tests have no REALISED line (the reducers before 7u print none)`); }
+    console.log(`INTERVALS, each registered 80% interval against its reducer's REALISED line: ${S.inside} of ${S.scored.length} inside${S.scored.length ? ` (80% expected)${S.scored.filter(x => !x.inside).length ? `; outside: ${S.scored.filter(x => !x.inside).map(x => `${x.test} item ${x.item} ${x.v} (${x.lo} to ${x.hi})`).join('; ')}` : ''}` : ''}; ${S.unscored.length} registered in ${nT} tests have no REALISED line (the reducers before 7u print none)`);
+    const PD = join(HERE, 'predictions'), Fm = intervalForms(readdirSync(PD).filter(f => f.endsWith('.md')).sort().map(f => ({ name: f.replace(/\.md$/, ''), text: readFileSync(join(PD, f), 'utf8') })));
+    console.log(`INTERVAL FORMS over every prediction file: ${Fm.carry} write an 80% interval; ${Fm.indexed.length} in the indexed form (${Fm.indexed.join(', ')}); ${Fm.other} only in other forms, which the index cannot read (RULES.md known limit 35)`); }
   console.log('RELIABILITY (credence bin: items, mean credence, share held):');
   for (const b of reliability(all)) console.log(`  ${b.label.padEnd(13)} ${String(b.n).padStart(3)}   ${b.meanP === null ? '  -  ' : b.meanP.toFixed(2)}   ${b.held === null ? '  -  ' : b.held.toFixed(2)}`);
   // the 5 Oct measures (the deep review of the prediction record; the maintainer's 'Go ahead')

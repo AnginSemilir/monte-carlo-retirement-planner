@@ -96,3 +96,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-08 19:06 UTC | reduce-e3pclsc.mjs 365e96379caf | 18 of 21 caught | escaped: NOT CAUGHT: the gate ignores the candidate's settings; NOT CAUGHT: the gate ignores e3pcls per arm; NOT CAUGHT: the gate accepts OFF and ON differing beyond e3pcls
 2026-10-08 19:09 UTC | carry-diff.mjs e4485ea6f27b | 9 of 11 caught | escaped: NOT CAUGHT: an empty side not an error; NOT CAUGHT: a ran line under another unit's label read
 2026-10-08 19:09 UTC | carry-diff.mjs c8921e88f669 | 10 of 10 caught | escaped: none
+2026-10-08 19:33 UTC | reduce-7u.mjs 9b444b819ccd | 66 of 70 caught | escaped: NOT CAUGHT: the gate ignores the unit's weight; NOT CAUGHT: the gate takes a readerRef or coverage on the ran line; NOT APPLIED (0 matches): item 1's point the sum, not the mean; NOT CAUGHT: panel-7u.mjs: one weight's record for both
+2026-10-08 19:36 UTC | reduce-7u.mjs 46d00145602c | 70 of 70 caught | escaped: none

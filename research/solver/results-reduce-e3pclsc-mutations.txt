@@ -1,0 +1,22 @@
+caught: the gate accepts a missing household
+caught: the gate accepts a household not done
+caught: the gate accepts another grid
+caught: the gate accepts a missing split line
+caught: the gate accepts a comparison on no arrays
+caught: the gate accepts an e3pcls that copied nothing
+caught: the gate accepts a household whose lastPenIn another clause set
+caught: the gate accepts a missing plant line
+caught: the gate accepts an unregistered plant
+caught: differing values not counted
+caught: the metadata not compared
+caught: the reader's counters not compared
+caught: the forward run not compared
+caught: e3pcls evaluating as many moves passes
+caught: a plant at 0 counted caught
+caught: the split not compared
+caught: an uncaught plant read as NOT EXACT
+caught: the saving's median off by one
+NOT CAUGHT: the gate ignores the candidate's settings
+NOT CAUGHT: the gate ignores e3pcls per arm
+NOT CAUGHT: the gate accepts OFF and ON differing beyond e3pcls
+18 of 21 mutations caught

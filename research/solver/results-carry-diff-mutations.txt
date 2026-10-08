@@ -1,0 +1,11 @@
+caught: the filter ignored
+caught: an empty side or no shared household not an error
+caught: households in the new panel only not named
+caught: matched by household alone, not arm
+caught: a field on the new side only read as the same
+caught: differences not counted
+caught: the joint line not read
+caught: the joint margin folded into the ran line's
+caught: a ran line under another unit's label read
+caught: the stamps not read
+10 of 10 mutations caught

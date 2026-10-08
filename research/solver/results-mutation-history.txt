@@ -91,3 +91,8 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-08 09:52 UTC | reduce-nsb.mjs 5a11c3fb375d | 38 of 38 caught | escaped: none
 2026-10-08 18:12 UTC | reduce-nscond.mjs 17132fee9876 | 44 of 46 caught | escaped: NOT CAUGHT: 31: if (u.item2[a] && (u.item2[a].states !== n2 || u.item2[a].ch; NOT CAUGHT: 37: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
 2026-10-08 18:14 UTC | reduce-nscond.mjs 72b7d1dd2012 | 46 of 46 caught | escaped: none
+2026-10-08 19:05 UTC | reduce-7aj.mjs 6e9c9e40bbd1 | 43 of 48 caught | escaped: NOT CAUGHT: the gate accepts a missing ran line; NOT CAUGHT: the gate takes a readerRef, coverage, holdTier or death tax on the ran line; NOT CAUGHT: the gate accepts a missing gap line; NOT CAUGHT: the gate accepts a missing run line; NOT CAUGHT: item 1's interval unguarded
+2026-10-08 19:05 UTC | reduce-7aw.mjs 9c36b1748b10 | 43 of 48 caught | escaped: NOT CAUGHT: the gate accepts a missing ran line; NOT CAUGHT: the gate takes a readerRef, coverage, holdTier or death tax on the ran line; NOT CAUGHT: the gate accepts a missing gap line; NOT CAUGHT: the gate accepts a missing run line; NOT CAUGHT: item 1's interval unguarded
+2026-10-08 19:06 UTC | reduce-e3pclsc.mjs 365e96379caf | 18 of 21 caught | escaped: NOT CAUGHT: the gate ignores the candidate's settings; NOT CAUGHT: the gate ignores e3pcls per arm; NOT CAUGHT: the gate accepts OFF and ON differing beyond e3pcls
+2026-10-08 19:09 UTC | carry-diff.mjs e4485ea6f27b | 9 of 11 caught | escaped: NOT CAUGHT: an empty side not an error; NOT CAUGHT: a ran line under another unit's label read
+2026-10-08 19:09 UTC | carry-diff.mjs c8921e88f669 | 10 of 10 caught | escaped: none

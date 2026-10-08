@@ -469,8 +469,8 @@ checked by the plan-auditor by hand.
    more. At a true loss of 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time against 2.5%
    (results-pooled-fixed.txt), where the fixed-effect pool held 7.1% at 7e's two looks (results-pooled-floor.txt; random effects 6.1%) and 13.0% to 65.9% at a fixed path count (results-pooled-fixed.txt) - the pooled gate of 7u and 8f.
 5. **One primary outcome per test;** everything else is descriptive.
-6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
-   rate), from the nearest earlier records, by a committed script.
+6. **Power before the run:** by simulation through the reducer's own items, from each setting's own records, by a
+   committed script. N > 1.96^2 d / delta^2 (d the discordance rate) is only a floor: there a true 0 passes about half the time.
 7. **Sequential looks:** 1,000 paths, then 3,000 for the households still open, at error rates 0.005 then 0.045 (valid
    because pathsForSeed builds path i from seed + i x 7919, so the first 1,000 of 3,000 are the same paths).
 8. **Replication before a default changes:** a second held-out seed or panel, unless overwhelming (Holm-adjusted p below

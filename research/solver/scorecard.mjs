@@ -170,6 +170,37 @@ export function scoreTest(predText, resultsText) {
   return { status: 'SCORED', pairs, brier: brier(pairs), ...extras };
 }
 
+/* THE INTERVALS (the deep review after 7aj, 7 Oct 11:42 UK, and the plan-auditor's BACKLOG 8 of the 13:22 row: a forecast
+   that misses its point, O121's, showed in no index). Each item's registered 80% interval, read from the prediction's
+   "## Point and interval" section ("- **Item k:** ... 80% interval <lo> to <hi> ..."), against the value the reducer prints
+   on a line "REALISED item k: <value>" in the same unit. A reducer that prints no REALISED line leaves the interval
+   unscored, and the count of those is printed: the reducers before 7u print none, and back-scoring them would need a
+   per-test script re-deriving each realised figure from its results. */
+export function intervalsOf(predText) {
+  const sec = /^## Point and interval\s*$([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(predText), out = {};
+  if (!sec) return out;
+  const num = x => Number(x.replace(/^\+/, ''));
+  for (const L of sec[1].split('\n')) {
+    const m = /^- \*\*Item (\d+):\*\*(.*)$/.exec(L); if (!m) continue;
+    const iv = /80% interval ([-+]?\d+(?:\.\d+)?)%? to ([-+]?\d+(?:\.\d+)?)%?/.exec(m[2]); if (!iv) continue;
+    out[m[1]] = { lo: num(iv[1]), hi: num(iv[2]) };
+  }
+  return out;
+}
+export function realisedOf(resultsText) {
+  const out = {};
+  for (const m of (resultsText || '').matchAll(/^REALISED item (\d+): ([-+]?\d+(?:\.\d+)?(?:e[-+]?\d+)?)\b/gm)) out[m[1]] = Number(m[2]);
+  return out;
+}
+export function intervalScores(entries) {
+  const scored = [], unscored = [];
+  for (const { test, iv, re } of entries) for (const [k, b] of Object.entries(iv)) {
+    if (!(k in re)) { unscored.push({ test, item: k }); continue; }
+    scored.push({ test, item: k, v: re[k], lo: b.lo, hi: b.hi, inside: re[k] >= Math.min(b.lo, b.hi) && re[k] <= Math.max(b.lo, b.hi) });
+  }
+  return { scored, unscored, inside: scored.filter(x => x.inside).length };
+}
+
 export const brier = pairs => pairs.reduce((a, x) => a + (x.p - x.o) ** 2, 0) / pairs.length;
 export const BINS = [[0, 0.6, 'under 60%'], [0.6, 0.75, '60-75%'], [0.75, 0.9, '75-90%'], [0.9, 1.0001, '90% and over']];
 export function reliability(pairs) {
@@ -407,6 +438,14 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['the kind\'s base rate: 3 held of 4 ATTRIB items reads (3 + 1) / (4 + 2), and an unseen kind is absent', (() => { const r = kindRates([1, 1, 1, 0].map(o => ({ kind: 'ATTRIB', o }))); return `${r.ATTRIB.rate.toFixed(4)} ${r.ATTRIB.n} ${'NOHARM' in r}`; })(), '0.6667 4 false']);
   cases.push(['discrimination: a judged set that ranks perfectly and a derived set that ranks backwards', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }, { judged: 0.1, derived: 0.8, o: 0 }]); return `${d.aucJ} ${d.aucD} ${d.both}`; })(), '1 0 true']);
   cases.push(['EDGE: discrimination over items all of one outcome says so (no AUC)', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }]); return `${d.both} ${Number.isNaN(d.aucJ)}`; })(), 'false true']);
+  // the intervals (the deep review after 7aj)
+  { const PI = '# P\n\n## Point and interval\n\n- **Item 1:** 1.79 points; 80% interval 1.6 to 1.9 for the mean\n- **Item 2:** -0.016; 80% interval -0.213 to +0.060 under x\n- **Item 3:** -1.40%; 80% interval -2.0% to -1.0% for S370\n- **Item 4:** a count, no interval\n\n## Power\n\n- **Item 5:** 80% interval 0 to 1\n';
+    cases.push(['intervals: read from the Point and interval section only, signs and percent signs, an item with none left out', JSON.stringify(intervalsOf(PI)), '{"1":{"lo":1.6,"hi":1.9},"2":{"lo":-0.213,"hi":0.06},"3":{"lo":-2,"hi":-1}}']);
+    cases.push(['realised: read from REALISED lines only', JSON.stringify(realisedOf('x\nREALISED item 1: 2.107\nREALISED item 3: -1.0 (S370)\nitem 2: 5\n')), '{"1":2.107,"3":-1}']);
+    const r = intervalScores([{ test: 'a', iv: intervalsOf(PI), re: realisedOf('REALISED item 1: 2.107\nREALISED item 3: -1.0\n') }]);
+    cases.push(['intervals scored: item 1 outside (O121\'s miss), item 3 at its end inside, item 2 unscored', `${r.scored.map(x => `${x.item}:${x.inside}`).join(',')} ${r.unscored.map(x => x.item).join(',')} ${r.inside}`, '1:false,3:true 2 1']);
+    cases.push(['EDGE: no Point and interval section reads no interval', JSON.stringify(intervalsOf('# P\n\n## Power\n\n- **Item 1:** 80% interval 0 to 1\n')), '{}']);
+    cases.push(['7aj: its real prediction\'s three intervals', JSON.stringify(intervalsOf(readFileSync(join(HERE, 'predictions/diag-7aj.md'), 'utf8'))), '{"1":{"lo":1.6,"hi":1.9},"2":{"lo":-0.1,"hi":0.05},"3":{"lo":-2,"hi":-1}}']); }
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }
@@ -430,6 +469,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   if (!all.length) { console.log('\nNo scored tests yet: no cumulative score.'); process.exit(0); }
   console.log(`\nCUMULATIVE: Brier ${brier(all).toFixed(3)} over ${all.length} items`);
+  { const ents = TESTS.map(T => ({ test: T.name.split(' ')[0], iv: intervalsOf(read(T.prediction) || ''), re: realisedOf(read(T.results)) })), S = intervalScores(ents);
+    const nT = new Set(S.unscored.map(x => x.test)).size;
+    console.log(`INTERVALS, each registered 80% interval against its reducer's REALISED line: ${S.inside} of ${S.scored.length} inside${S.scored.length ? ` (80% expected)${S.scored.filter(x => !x.inside).length ? `; outside: ${S.scored.filter(x => !x.inside).map(x => `${x.test} item ${x.item} ${x.v} (${x.lo} to ${x.hi})`).join('; ')}` : ''}` : ''}; ${S.unscored.length} registered in ${nT} tests have no REALISED line (the reducers before 7u print none)`); }
   console.log('RELIABILITY (credence bin: items, mean credence, share held):');
   for (const b of reliability(all)) console.log(`  ${b.label.padEnd(13)} ${String(b.n).padStart(3)}   ${b.meanP === null ? '  -  ' : b.meanP.toFixed(2)}   ${b.held === null ? '  -  ' : b.held.toFixed(2)}`);
   // the 5 Oct measures (the deep review of the prediction record; the maintainer's 'Go ahead')

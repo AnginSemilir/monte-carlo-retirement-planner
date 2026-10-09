@@ -90,3 +90,25 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
   - So a FALSIFIED read is quoted as "not NSL-UNCOND's conditioned read: resolution or NSL-OTHER, 7an decides", its
     attribution graded C. The action is the same under either cause: 7an's resolution check first, no conditioned
     read.
+
+## 9 Oct: NS-COND READ (PLAN.md's 01:24 row; results-nscond.txt)
+
+- The gate passed: the fair-test gate, the five households once and done at XAS's unit, DEADSTEP and the census on each
+  arm, every self-check where it must run, and the identity against XAS-R2's files.
+- Item 1 INCONCLUSIVE, the cells apart:
+  - bridge 4's three cells show N: its live corners carry the state's survival (rho 9.9971e-1 on BASE's reads), so
+    dividing by rho cannot move the live read, and the conditioned read equals the copy read (6.2165e-1 both);
+  - S370's three cells show R and K, each small beside the error: BASE's reads |elive| 9.3654e-1, divided by rho
+    9.0184e-1, the conditioned read 9.0703e-1;
+  - S126's one cell is not material (|elive| 7.9910e-3); no counted read leans on a kept or an off-axis dead corner
+    (wK and w0x 0.000 on every cell).
+- Item 2 HELD: under BASE the copy rule changes S126's opening (59 to 3), every state's move on bridge 4 in years 0 to
+  2, and up to 15.02% of S370's (year 6); under COV it changes none of S126's year 0.
+- Item 3 INCONCLUSIVE (predicted FALSIFIED): S370 year 2 reads REF (s 0.606), year 6 NOTREF (s -0.000); PLAN.md O130.
+- What follows (the Decision fed, as registered): a conditioned read is designed only for S370's cells, its reach
+  bounded by the small R and K shown there; bridge 4's cells go to 7an's resolution question, quoted as "not
+  NSL-UNCOND's conditioned read: resolution or NSL-OTHER, 7an decides" (grade C); the copy rule is not a fix candidate;
+  YB2-NODEQ and CURV remain, and 7an's design names the year-before pessimism as untested on BASE.
+- The STOP list above, after the read: no dead-node copy or drop rule is designed (item 2 HELD: it exposes the live
+  over-reads); F3-NSBLEND stays unsettled (item 1 cannot test the blend, O114); NSB's and NS-COND's item 2 counts are
+  XAS's unit's, never the candidate's; NSB's first run's item lines stay unread.

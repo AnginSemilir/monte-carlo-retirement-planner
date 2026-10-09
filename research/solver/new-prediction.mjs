@@ -41,6 +41,7 @@ What the mathematics and the existing records say, with the scripts that compute
 Every check this prediction names (a gate, a count, a power model) is run once on a planted case of exactly its claim before registration, and that output is quoted here. A pace or rate is derived with the household's own parameters and as the same statistic the reducer prints (a mean over paths at the same horizon), not a borrowed parameter or an expected point.
 A cause test decides only on arms whose gap the named cause alone can carry; its reducer plants the hypothesis's own geometry (the smallest move the cause makes) as a case, and any gate on a forced or capped quantity plants the cap itself.
 A noise or flip parameter in the power model is computed by the derive script from the records it names, never typed from a receipt or a review's prose, and the power is printed at two larger values as sensitivity rows.
+A cause that turns on a ratio of table reads has that ratio previewed per cell at the preflight's grid before the credences are derived; where the ratio sits at 1 the cause cannot act there (NS-COND: bridge 4's rho 9.9971e-1).
 An out-of-sample household is an item with its own falsifier, not a report, when the test's deciding household is the one where the mechanism was first found.
 A net or estate item names which of the mean, the capped mean or the median it reads, and why the score or the app reads that one; the others are reported beside it (above the bequest cap the score is flat, so an uncapped mean follows the unscored tail: DT-O97).
 

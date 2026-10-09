@@ -36,3 +36,12 @@ Moved from the row (6 Oct, the row over its cap), still carried (7ak's follow-up
 ## 6 Oct: off 7u's path
 
 The maintainer, 6 Oct (PLAN.md's 15:45 row: 'I'll go with your recommendations'): 7u no longer waits for 7an; the gate 'before 7u registers (the maintainer, 30 Sep 20:54 UK)' above is released. 7an follows 7u, with O67's step and the table fix; a fix they bring re-enters through its own confirmation on a fresh held-out seed. 7an's other gates stand.
+
+## 9 Oct: what NS-COND's read adds (PLAN.md's 01:24 row; results-nscond.txt)
+
+- The resolution question takes the live corners' bequest over-read at the share-axis dead reads where survival does not
+  carry it: on bridge 4 the live corners carry the state's survival (rho 9.9971e-1), so the over-read (|elive|
+  6.2165e-1 on BASE's reads, 9.2670e-1 on its non-step reads) is resolution or NSL-OTHER, 7an to decide (grade C,
+  items/NSB.md); on S370 dividing by rho takes only a little of it (9.3654e-1 to 9.0184e-1).
+- 7an's design names the year-before pessimism as untested on BASE (NS-COND's Decision fed, item 3 INCONCLUSIVE), with
+  O130: the menu-order reference removes S370's year-2 pessimism (s 0.606) and none of year 6's (s -0.000).

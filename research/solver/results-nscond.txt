@@ -1,0 +1,40 @@
+FAIR-TEST GATE: passed - 5 households once and done at XAS's unit, one code and audit, each file its log's; THE TABLE CHECKS (DEADSTEP and the census) passed on each arm; every self-check passed, and ran where it must, per arm; THE IDENTITY: every item-3 read, ex5 and vb on S370 and bridge 4 is XAS-R2's at the same path, world and year (XAS-R2's files through their own gate)
+planted checks: 45
+
+ITEM 1: THE LIVE CORNERS' BEQUEST AT THE SHARE-AXIS DEAD READS (cells: a deciding household's reads touching a share-axis dead node, an arm and a class; counts when mean wd > 0.1, material when mean |elive| > 0.05; elive = B_L/bE - 1, rho = S_L/s1, eC the copy read's, eK the conditioned read's)
+  S370      BASE all     reads 35357 paths 6000 mean wd 0.497 w0x 0.000 wK 0.000 elive 9.3654e-1 |elive| 9.3654e-1 rho 1.0930e+2 |(1+elive)/rho-1| 9.0184e-1 |eC| 9.3654e-1 |eK| 9.0703e-1 R p 0.0009 K p 0.0009 N p 1.0000; left out 141
+  S370      BASE nonstep reads 23639 paths 6000 mean wd 0.423 w0x 0.000 wK 0.000 elive 1.2218e+0 |elive| 1.2218e+0 rho 1.6295e+2 |(1+elive)/rho-1| 1.1957e+0 |eC| 1.2218e+0 |eK| 1.1777e+0 R p 0.0009 K p 0.0009 N p 1.0000; left out 11859
+  S370      COV  nonstep reads 23639 paths 6000 mean wd 0.423 w0x 0.000 wK 0.000 elive 5.2301e-1 |elive| 5.2303e-1 rho 1.5499e+2 |(1+elive)/rho-1| 4.9106e-1 |eC| 5.2303e-1 |eK| 4.9891e-1 R p 0.0009 K p 0.0009 N p 1.0000; left out 534
+  bridge 4  BASE all     reads 18000 paths 6000 mean wd 0.470 w0x 0.000 wK 0.000 elive 6.2161e-1 |elive| 6.2165e-1 rho 9.9971e-1 |(1+elive)/rho-1| 6.2231e-1 |eC| 6.2165e-1 |eK| 6.2165e-1 R p 1.0000 K p 1.0000 N p 0.0009; left out 0
+  bridge 4  BASE nonstep reads 12000 paths 6000 mean wd 0.414 w0x 0.000 wK 0.000 elive 9.2670e-1 |elive| 9.2670e-1 rho 9.9942e-1 |(1+elive)/rho-1| 9.2784e-1 |eC| 9.2670e-1 |eK| 9.2670e-1 R p 1.0000 K p 1.0000 N p 0.0009; left out 6000
+  bridge 4  COV  nonstep reads 12000 paths 6000 mean wd 0.414 w0x 0.000 wK 0.000 elive 3.5038e-1 |elive| 3.5080e-1 rho 9.9972e-1 |(1+elive)/rho-1| 3.5129e-1 |eC| 3.5080e-1 |eK| 3.5080e-1 R p 1.0000 K p 1.0000 N p 0.0009; left out 0
+  S126      BASE all     reads 6000 paths 6000 mean wd 0.358 w0x 0.000 wK 0.000 elive 7.4040e-3 |elive| 7.9910e-3 rho 9.9997e-1 |(1+elive)/rho-1| 8.0225e-3 |eC| 7.9910e-3 |eK| 7.9912e-3 (not material); left out 0
+  S126      BASE nonstep reads 0 paths 0 mean wd - w0x - wK - elive NaN |elive| NaN rho NaN |(1+elive)/rho-1| NaN |eC| NaN |eK| NaN (does not count); left out 6000
+  S126      COV  nonstep reads 0 paths 0 mean wd - w0x - wK - elive NaN |elive| NaN rho NaN |(1+elive)/rho-1| NaN |eC| NaN |eK| NaN (does not count); left out 0
+  S130      BASE incidence: reads 6000, touching a share-axis dead node 6000, mean wd there 0.406
+  S130      COV  incidence: reads 6000, touching a share-axis dead node 0, mean wd there -
+  S128      BASE incidence: reads 6000, touching a share-axis dead node 6000, mean wd there 0.452
+  S128      COV  incidence: reads 6000, touching a share-axis dead node 0, mean wd there -
+
+ITEM 2: THE MOVES THE COPY RULE CHANGES (BASE; COV beside; a census over the states the paths reach)
+  S370      year  0: states 6000 changed 0 (0.00%); COV changed 0
+  S370      year  1: states 6000 changed 13 (0.22%); COV changed 23
+  S370      year  2: states 6000 changed 74 (1.23%); COV changed 23
+  S370      year  3: states 6000 changed 0 (0.00%); COV changed 0
+  S370      year  4: states 5859 changed 385 (6.57%); COV changed 398
+  S370      year  5: states 5859 changed 750 (12.80%); COV changed 676
+  S370      year  6: states 5859 changed 880 (15.02%); COV changed 0
+  bridge 4  year  0: states 6000 changed 6000 (100.00%); COV changed 6000
+  bridge 4  year  1: states 6000 changed 6000 (100.00%); COV changed 6000
+  bridge 4  year  2: states 6000 changed 5999 (99.98%); COV changed 0
+  S126      year  0: states 6000 changed 6000 (100.00%); COV changed 0
+  S126's opening under BASE: 59 -> 3 (changed)
+
+ITEM 3: THE YEAR BEFORE A STEP, BASE (s: the share of rep the menu-order reference removes; vb, NODEQ and vb41 the same for the midpoint construct, its 41-point nodes beyond it, and both)
+  S370      year 2: reads 6000 rep -6.2866e-3 s 0.606 vb 0.127 NODEQ -0.067 vb41 0.060
+  S370      year 6: reads 5859 rep -1.9464e-3 s -0.000 vb 0.264 NODEQ -0.271 vb41 -0.007
+  bridge 4  year 2: reads 6000 rep -6.0365e-4 s 0.000 vb 0.157 NODEQ -0.107 vb41 0.050
+  S370 year 2: LO p 0.0002 HI p 1.0000 -> REF
+  S370 year 6: LO p 1.0000 HI p 0.0002 -> NOTREF
+
+OUTCOME: 1 INCONCLUSIVE; 2 HELD; 3 INCONCLUSIVE

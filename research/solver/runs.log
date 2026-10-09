@@ -208,3 +208,4 @@
 09 Oct 05:11 UK | main | research/solver/predictions/confirm-7u.md | code 6dfa9cfea59a | 5e7bd90 | load 1.00 1.00 0.86 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7u.sh
 09 Oct 06:36 UK | light | none: NS-CAND build check - audit-nscand.mjs at 4 points, 3 paths a world, S126, its self-checks; not evidence for any test | code 6dfa9cfea59a | cbd45e3 | load 5.12 5.11 4.74 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | node research/solver/audit-nscand.mjs 4 3 part 1/2
 09 Oct 14:59 UK | main | research/solver/predictions/confirm-7u.md | code 6dfa9cfea59a | 797e443 | load 1.43 2.66 3.46 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7u.sh
+10 Oct 00:26 UK | main | research/solver/predictions/confirm-7u.md | code 6dfa9cfea59a | 1d7f892 | load 1.03 1.03 0.62 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-7u.sh

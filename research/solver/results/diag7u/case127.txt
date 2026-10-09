@@ -1,0 +1,50 @@
+stamp: code 6dfa9cfea59a audit aebb6703dd22 prediction research/solver/predictions/confirm-7u.md sha f0ec6c30edb27f358eedded4344fa44dd24dee95
+7U: the research candidate (solveCandidate, e3pcls on) against the shipping default (solvePlan, the product's settings), both on the candidate's plan (tiers o60-blend), the estate weights 0.02 and 0.01, 30 points, 8000 paths (seed 7013); 220 units; part 127/220
+S128             case | unit SHIP/PRODUCT/W0.02 | lambda 0.0223606797749979 tier own riskAbove auto mix 3
+                 solve SHIP/PRODUCT/W0.02: table 1.6254 secs 339
+                 ran SHIP/PRODUCT/W0.02: mix 3 pts 30 seed 7013 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 53000 quad 5 bequestWeight 0.02 finalIntegral true bridgeRead false switchMargin 0.001 switchCharge 0 e3 false e3pcls false pclsInterp false tiers High_Risk:4.97,Medium/High_Risk:4.65,Medium_Risk:4.18,Medium/Low_Risk:3.55,Low_Risk:2.76
+                 gap SHIP/PRODUCT/W0.02: 0 opening 0,0
+                 joint SHIP/PRODUCT/W0.02: false switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run SHIP/PRODUCT/W0.02: sim 71.4250 below 22.38 tier-below 29.49 changes 2.380 estate 927438 secs 744
+                 access SHIP/PRODUCT/W0.02: year 2 years 39
+                 resid SHIP/PRODUCT/W0.02 year 0: paths 8000 table 0.6259 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 1: paths 8000 table 76.2725 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 2: paths 8000 table 76.4969 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 3: paths 8000 table 76.4105 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 4: paths 8000 table 76.3570 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 5: paths 8000 table 76.1552 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 6: paths 8000 table 76.2291 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 7: paths 8000 table 76.1951 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 8: paths 8000 table 76.0764 realised 71.4250
+                 resid SHIP/PRODUCT/W0.02 year 9: paths 7994 table 76.0217 realised 71.4786
+                 resid SHIP/PRODUCT/W0.02 year 10: paths 7980 table 76.1657 realised 71.6040
+                 resid SHIP/PRODUCT/W0.02 year 11: paths 7946 table 76.4219 realised 71.9104
+                 resid SHIP/PRODUCT/W0.02 year 12: paths 7897 table 76.7553 realised 72.3566
+                 resid SHIP/PRODUCT/W0.02 year 13: paths 7832 table 77.2525 realised 72.9571
+                 resid SHIP/PRODUCT/W0.02 year 14: paths 7758 table 77.9782 realised 73.6530
+                 resid SHIP/PRODUCT/W0.02 year 15: paths 7697 table 78.5446 realised 74.2367
+                 resid SHIP/PRODUCT/W0.02 year 16: paths 7620 table 79.1320 realised 74.9869
+                 resid SHIP/PRODUCT/W0.02 year 17: paths 7539 table 79.7682 realised 75.7925
+                 resid SHIP/PRODUCT/W0.02 year 18: paths 7451 table 80.4658 realised 76.6877
+                 resid SHIP/PRODUCT/W0.02 year 19: paths 7360 table 81.2942 realised 77.6359
+                 resid SHIP/PRODUCT/W0.02 year 20: paths 7275 table 82.0385 realised 78.5430
+                 resid SHIP/PRODUCT/W0.02 year 21: paths 7173 table 83.0634 realised 79.6598
+                 resid SHIP/PRODUCT/W0.02 year 22: paths 7086 table 83.6619 realised 80.6379
+                 resid SHIP/PRODUCT/W0.02 year 23: paths 6999 table 84.1081 realised 81.6402
+                 resid SHIP/PRODUCT/W0.02 year 24: paths 6919 table 84.5158 realised 82.5842
+                 resid SHIP/PRODUCT/W0.02 year 25: paths 6827 table 84.9022 realised 83.6971
+                 resid SHIP/PRODUCT/W0.02 year 26: paths 6752 table 85.2658 realised 84.6268
+                 resid SHIP/PRODUCT/W0.02 year 27: paths 6678 table 86.0191 realised 85.5645
+                 resid SHIP/PRODUCT/W0.02 year 28: paths 6599 table 87.2912 realised 86.5889
+                 resid SHIP/PRODUCT/W0.02 year 29: paths 6525 table 88.3424 realised 87.5709
+                 resid SHIP/PRODUCT/W0.02 year 30: paths 6476 table 89.0452 realised 88.2335
+                 resid SHIP/PRODUCT/W0.02 year 31: paths 6387 table 90.3282 realised 89.4630
+                 resid SHIP/PRODUCT/W0.02 year 32: paths 6315 table 91.3700 realised 90.4830
+                 resid SHIP/PRODUCT/W0.02 year 33: paths 6250 table 92.1870 realised 91.4240
+                 resid SHIP/PRODUCT/W0.02 year 34: paths 6165 table 93.3265 realised 92.6845
+                 resid SHIP/PRODUCT/W0.02 year 35: paths 6082 table 94.5531 realised 93.9494
+                 resid SHIP/PRODUCT/W0.02 year 36: paths 6016 table 95.4855 realised 94.9801
+                 resid SHIP/PRODUCT/W0.02 year 37: paths 5965 table 96.0915 realised 95.7921
+                 resid SHIP/PRODUCT/W0.02 year 38: paths 5904 table 96.9102 realised 96.7818
+                 resid SHIP/PRODUCT/W0.02 year 39: paths 5852 table 97.7152 realised 97.6418
+                 done SHIP/PRODUCT/W0.02

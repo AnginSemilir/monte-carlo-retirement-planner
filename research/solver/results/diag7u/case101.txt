@@ -1,0 +1,9 @@
+stamp: code 6dfa9cfea59a audit aebb6703dd22 prediction research/solver/predictions/confirm-7u.md sha f0ec6c30edb27f358eedded4344fa44dd24dee95
+7U: the research candidate (solveCandidate, e3pcls on) against the shipping default (solvePlan, the product's settings), both on the candidate's plan (tiers o60-blend), the estate weights 0.02 and 0.01, 30 points, 8000 paths (seed 7013); 220 units; part 101/220
+S248             case | unit CAND/CANDIDATE/W0.01 | lambda 0.0223606797749979 tier own riskAbove auto mix 3
+                 solve CAND/CANDIDATE/W0.01: table 54.3781 secs 1182
+                 ran CAND/CANDIDATE/W0.01: mix 3 pts 30 seed 7013 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 128500 quad 5 bridgeStep exact tierState 0/0,1/1,2/2 bequestWeight 0.01 finalIntegral true bridgeRead reader switchMargin 0 switchCharge 0.001 e3 true e3pcls true pclsInterp true tiers High_Risk:4.97,Medium/High_Risk:4.65,Medium_Risk:4.18,Medium/Low_Risk:3.55,Low_Risk:2.76
+                 gap CAND/CANDIDATE/W0.01: 0 opening 0,0
+                 joint CAND/CANDIDATE/W0.01: true switchMargin 0 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run CAND/CANDIDATE/W0.01: sim 52.1625 below 15.63 tier-below 21.68 changes 1.844 estate 1356170 secs 791
+                 done CAND/CANDIDATE/W0.01

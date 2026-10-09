@@ -1,0 +1,135 @@
+7U DERIVATION: the power of the eight items, the derived credences, the points and their 80% intervals, from each weight's own record (7aj at 0.01, 7aw at 0.02), read through reduce-7u.mjs items(); the broad 30 drawn from the 25's no-gain households (grade D)
+
+1. THE RECORDS (CAND against SHIP on the tuning seed 7002, 8,000 paths; each weight its own)
+  at 0.02 (results-7aw.txt, sha256 02c600fbc5b06305): the gain set (record change at least 0.5 points) share 0.90, share 0.95, wealth x0.5, S360, S128, S130, S370, bridge 4+cost; the floor 47 households; the broad pool, the 25's no-gain households: 17
+    share 0.50     SHIP 99.65 (margin 0.25, year-0 table error 0.32)  saved 23 lost 0  whole +0.465 (0.319 to 0.662)  spending 0.435%
+    share 0.70     SHIP 99.46 (margin 0.25, year-0 table error 0.42)  saved 33 lost 0  whole +0.729 (0.554 to 0.954)  spending 0.585%
+    share 0.78     SHIP 99.88 (margin 0.25, year-0 table error -0.17)  saved 2 lost 0  whole +0.260 (0.173 to 0.361)  spending -0.049%
+    share 0.90     SHIP 99.36 (margin 0.25, year-0 table error -97.40)  saved 41 lost 0  whole +0.892 (0.701 to 1.134)  spending 0.529%
+    share 0.95     SHIP 74.28 (margin 0.5, year-0 table error -74.26)  saved 1745 lost 0  whole +24.562 (23.408 to 25.745)  spending 0.207%
+    bridge 0       SHIP 99.50 (margin 0.25, year-0 table error 0.47)  saved 34 lost 0  whole +0.741 (0.566 to 0.969)  spending 0.585%
+    bridge 1       SHIP 99.45 (margin 0.25, year-0 table error -6.95)  saved 33 lost 0  whole +0.759 (0.583 to 0.984)  spending 0.602%
+    bridge 6       SHIP 99.56 (margin 0.25, year-0 table error -90.80)  saved 4 lost 1  whole +0.260 (0.158 to 0.371)  spending 0.074%
+    wealth x0.5    SHIP 96.88 (margin 0.25, year-0 table error -89.09)  saved 53 lost 9  whole +0.753 (0.507 to 1.018)  spending -0.632%
+    wealth x2      SHIP 100.00 (margin 0.25, year-0 table error -5.07)  saved 0 lost 3  whole +0.064 (-0.047 to 0.153)  spending -0.062%
+    S120           SHIP 100.00 (margin 0.25, year-0 table error -8.70)  saved 0 lost 0  whole +0.081 (0.002 to 0.159)  spending 0.000%
+    S122           SHIP 99.75 (margin 0.25, year-0 table error -38.13)  saved 7 lost 0  whole +0.215 (0.122 to 0.335)  spending 0.045%
+    S126           SHIP 99.88 (margin 0.25, year-0 table error -28.70)  saved 2 lost 2  whole +0.227 (0.123 to 0.330)  spending -0.047%
+    bridge 4       SHIP 99.75 (margin 0.25, year-0 table error -86.40)  saved 3 lost 4  whole +0.192 (0.074 to 0.306)  spending -0.048%
+    S360           SHIP 37.20 (margin 0.5, year-0 table error -36.20)  saved 938 lost 0  whole +13.475 (12.551 to 14.422)  spending 0.030%
+    S194           SHIP 98.89 (margin 0.25, year-0 table error 0.55)  saved 29 lost 3  whole +0.665 (0.477 to 0.880)  spending 0.748%
+    S124           SHIP 96.03 (margin 0.25, year-0 table error -80.83)  saved 10 lost 9  whole +0.103 (-0.045 to 0.253)  spending -0.221%
+    S128           SHIP 72.42 (margin 0.5, year-0 table error -70.80)  saved 220 lost 151  whole +0.915 (0.350 to 1.480)  spending -0.619%
+    S130           SHIP 86.44 (margin 0.5, year-0 table error -78.09)  saved 286 lost 19  whole +3.574 (3.069 to 4.095)  spending -0.942%
+    S366           SHIP 99.42 (margin 0.25, year-0 table error -96.05)  saved 10 lost 3  whole +0.257 (0.127 to 0.400)  spending -0.007%
+    S370           SHIP 73.33 (margin 0.5, year-0 table error -73.20)  saved 661 lost 115  whole +6.873 (6.053 to 7.698)  spending -1.524%
+    bridge 4+cost  SHIP 95.84 (margin 0.25, year-0 table error -93.26)  saved 296 lost 0  whole +4.437 (3.933 to 4.994)  spending 0.594%
+    S162           SHIP 99.16 (margin 0.25, year-0 table error 0.66)  saved 33 lost 2  whole +0.717 (0.528 to 0.943)  spending 0.699%
+    S172           SHIP 98.94 (margin 0.25, year-0 table error 0.54)  saved 29 lost 4  whole +0.669 (0.479 to 0.884)  spending 0.401%
+    S168           SHIP 100.00 (margin 0.25, year-0 table error 0.00)  saved 0 lost 0  whole +0.070 (0.001 to 0.140)  spending 0.000%
+    SHIP's year-0 table error -70 or worse at 0.02 (section 9 rule 3; named in the pre-mortem): share 0.90 -97.40, share 0.95 -74.26, bridge 6 -90.80, wealth x0.5 -89.09, bridge 4 -86.40, S124 -80.83, S128 -70.80, S130 -78.09, S366 -96.05, S370 -73.20, bridge 4+cost -93.26
+  at 0.01 (results-7aj.txt, sha256 c2608164dfb21a75): the gain set (record change at least 0.5 points) share 0.95, bridge 1, wealth x0.5, S360, S128, S130, S370, bridge 4+cost; the floor 47 households; the broad pool, the 25's no-gain households: 17
+    share 0.50     SHIP 99.59 (margin 0.25, year-0 table error 0.38)  saved 27 lost 0  whole +0.452 (0.304 to 0.650)  spending 0.399%
+    share 0.70     SHIP 99.49 (margin 0.25, year-0 table error 0.41)  saved 33 lost 0  whole +0.617 (0.454 to 0.831)  spending 0.499%
+    share 0.78     SHIP 99.88 (margin 0.25, year-0 table error -0.12)  saved 2 lost 0  whole +0.118 (0.043 to 0.207)  spending -0.003%
+    share 0.90     SHIP 99.47 (margin 0.25, year-0 table error -97.18)  saved 33 lost 0  whole +0.639 (0.477 to 0.851)  spending 0.460%
+    share 0.95     SHIP 74.30 (margin 0.5, year-0 table error -74.28)  saved 1741 lost 0  whole +23.879 (22.756 to 25.031)  spending 0.150%
+    bridge 0       SHIP 99.56 (margin 0.25, year-0 table error 0.41)  saved 31 lost 0  whole +0.577 (0.420 to 0.786)  spending 0.498%
+    bridge 1       SHIP 99.42 (margin 0.25, year-0 table error -5.53)  saved 41 lost 0  whole +0.729 (0.550 to 0.961)  spending 0.512%
+    bridge 6       SHIP 99.56 (margin 0.25, year-0 table error -90.97)  saved 5 lost 1  whole +0.273 (0.179 to 0.379)  spending 0.577%
+    wealth x0.5    SHIP 96.75 (margin 0.25, year-0 table error -88.22)  saved 61 lost 9  whole +0.656 (0.410 to 0.922)  spending -0.428%
+    wealth x2      SHIP 100.00 (margin 0.25, year-0 table error -4.84)  saved 0 lost 1  whole +0.009 (-0.075 to 0.084)  spending -0.040%
+    S120           SHIP 100.00 (margin 0.25, year-0 table error -8.75)  saved 0 lost 0  whole -0.008 (-0.076 to 0.060)  spending 0.000%
+    S122           SHIP 99.69 (margin 0.25, year-0 table error -37.33)  saved 13 lost 0  whole +0.199 (0.096 to 0.340)  spending 0.134%
+    S126           SHIP 99.86 (margin 0.25, year-0 table error -24.60)  saved 3 lost 0  whole +0.128 (0.051 to 0.225)  spending -0.005%
+    bridge 4       SHIP 99.74 (margin 0.25, year-0 table error -84.60)  saved 6 lost 0  whole +0.175 (0.086 to 0.289)  spending 0.026%
+    S360           SHIP 37.17 (margin 0.5, year-0 table error -36.19)  saved 942 lost 0  whole +13.068 (12.172 to 13.986)  spending 0.016%
+    S194           SHIP 98.83 (margin 0.25, year-0 table error 0.61)  saved 30 lost 1  whole +0.606 (0.437 to 0.805)  spending 0.749%
+    S124           SHIP 95.92 (margin 0.25, year-0 table error -80.20)  saved 12 lost 7  whole +0.105 (-0.035 to 0.248)  spending -0.211%
+    S128           SHIP 72.20 (margin 0.5, year-0 table error -70.52)  saved 227 lost 148  whole +0.939 (0.380 to 1.500)  spending -0.604%
+    S130           SHIP 86.15 (margin 0.5, year-0 table error -77.08)  saved 306 lost 15  whole +3.657 (3.151 to 4.179)  spending -0.785%
+    S366           SHIP 99.39 (margin 0.25, year-0 table error -95.84)  saved 15 lost 1  whole +0.359 (0.237 to 0.508)  spending 0.456%
+    S370           SHIP 73.21 (margin 0.5, year-0 table error -73.09)  saved 650 lost 117  whole +6.604 (5.804 to 7.410)  spending -1.412%
+    bridge 4+cost  SHIP 95.84 (margin 0.25, year-0 table error -92.95)  saved 297 lost 0  whole +4.228 (3.737 to 4.772)  spending 0.512%
+    S162           SHIP 99.14 (margin 0.25, year-0 table error 0.71)  saved 31 lost 0  whole +0.602 (0.436 to 0.808)  spending 0.589%
+    S172           SHIP 99.13 (margin 0.25, year-0 table error 0.38)  saved 9 lost 1  whole +0.281 (0.170 to 0.408)  spending -0.170%
+    S168           SHIP 100.00 (margin 0.25, year-0 table error 0.00)  saved 0 lost 0  whole +0.013 (-0.051 to 0.076)  spending 0.000%
+    SHIP's year-0 table error -70 or worse at 0.01 (section 9 rule 3; named in the pre-mortem): share 0.90 -97.18, share 0.95 -74.28, bridge 6 -90.97, wealth x0.5 -88.22, bridge 4 -84.60, S124 -80.20, S128 -70.52, S130 -77.08, S366 -95.84, S370 -73.09, bridge 4+cost -92.95
+
+2. THE POWER: each story drawn 2000 times at each weight, the outcome shares per item (HELD / INCONCLUSIVE / FALSIFIED)
+  SAME   1: 0.837/0.159/0.004  2: 0.894/0.105/0.000  3: 1.000/0.000/0.000  4: 1.000/0.000/0.000  5: 0.970/0.030/0.001  6: 0.930/0.070/0.000  7: 1.000/0.000/0.000  8: 1.000/0.000/0.000
+  DRIFT  1: 0.003/0.772/0.225  2: 0.485/0.515/0.000  3: 1.000/0.000/0.000  4: 1.000/0.000/0.000  5: 0.052/0.913/0.035  6: 0.419/0.581/0.001  7: 1.000/0.000/0.000  8: 1.000/0.000/0.000
+  ONE    1: 0.000/0.000/1.000  2: 0.000/0.113/0.887  3: 1.000/0.000/0.000  4: 1.000/0.000/0.000  5: 0.000/0.000/1.000  6: 0.000/0.004/0.996  7: 1.000/0.000/0.000  8: 1.000/0.000/0.000
+  ONEB   1: 0.079/0.316/0.605  2: 0.356/0.399/0.245  3: 1.000/0.000/0.000  4: 1.000/0.000/0.000  5: 0.097/0.305/0.598  6: 0.334/0.339/0.328  7: 1.000/0.000/0.000  8: 1.000/0.000/0.000
+
+3. THE DERIVED CREDENCES: SAME at the NOHARM base rate 0.83 (results-scorecard.txt), DRIFT, ONE and ONEB 0.057 each (declared)
+  item 1: HELD 0.70, INCONCLUSIVE 0.19, FALSIFIED 0.11
+  item 2: HELD 0.79, INCONCLUSIVE 0.15, FALSIFIED 0.06
+  item 3: HELD 1.00, INCONCLUSIVE 0.00, FALSIFIED 0.00
+  item 4: HELD 1.00, INCONCLUSIVE 0.00, FALSIFIED 0.00
+  item 5: HELD 0.81, INCONCLUSIVE 0.09, FALSIFIED 0.09
+  item 6: HELD 0.81, INCONCLUSIVE 0.11, FALSIFIED 0.08
+  item 7: HELD 1.00, INCONCLUSIVE 0.00, FALSIFIED 0.00
+  item 8: HELD 1.00, INCONCLUSIVE 0.00, FALSIFIED 0.00
+
+4. THE DECISION TABLE'S ROWS (derived): all eight HELD 0.57; any FALSIFIED 0.12; else (an INCONCLUSIVE, none FALSIFIED) 0.31
+
+5. THE POINTS AND THEIR 80% INTERVALS: each item's realised point over the SAME draws, median (10th to 90th percentile)
+  item 1 (0.02; points, the mean survival change over the 55): 1.035 (80% interval 0.999 to 1.075)
+  item 2 (0.02; the least household whole-score point): -0.034 (80% interval -0.109 to 0.015)
+  item 3 (0.02; %, the least household spending change): -1.524 (80% interval -1.585 to -1.463)
+  item 4 (0.02; points, the floor's pooled change): 0.162 (80% interval 0.132 to 0.193)
+  item 5 (0.01; points, the mean survival change over the 55): 1.054 (80% interval 1.018 to 1.092)
+  item 6 (0.01; the least household whole-score point): -0.073 (80% interval -0.121 to -0.035)
+  item 7 (0.01; %, the least household spending change): -1.413 (80% interval -1.471 to -1.353)
+  item 8 (0.01; points, the floor's pooled change): 0.176 (80% interval 0.147 to 0.204)
+
+6. CARRY-DIFF: each cited record's run against 7u's (the preflight's logs: 7u's own audit at 4 points, 20 paths of 7002 - those three by design)
+CARRY-DIFF results/diag7aj -> 7u at 0.01: the cited run against the new one, matched by household and arm
+  stamps: cited code 6dfa9cfea59a audit 38589ee43925 | new code 6dfa9cfea59a audit aebb6703dd22
+  households: 25 in both; only cited 0; only new 30 (S236, S248, S262, S278, S284, S296, S364, S380, S394, S408, S002, S008, S016, S018, S028, S042, S044, S066, S072, S078, S088, S104, S144, S150, S156, S176, S190, S212, S214, S224: a carry across households)
+  arm CAND: 25 units matched
+    DIFFERS grid: on 25 of 25 (total30x6x6 -> total4x6x6 x25)
+    DIFFERS paths: on 25 of 25 (8000 -> 20 x25)
+    DIFFERS pts: on 25 of 25 (30 -> 4 x25)
+    ONLY NEW e3pcls: true (the cited run does not print it)
+    same on every matched unit: bequestWeight, bridgeRead, bridgeStep, cap, deathTax, e3, failShort, finalIntegral, jointMargin, jointWorlds, lambda, levels, minPot, mix, pclsInterp, quad, raiseSurv, riskAbove, scale, seed, switchCharge, switchMargin, tier, tierState, tiers, tiersAbove
+  arm SHIP: 25 units matched
+    DIFFERS grid: on 25 of 25 (total30x6x6 -> total4x6x6 x25)
+    DIFFERS paths: on 25 of 25 (8000 -> 20 x25)
+    DIFFERS pts: on 25 of 25 (30 -> 4 x25)
+    ONLY NEW e3pcls: false (the cited run does not print it)
+    same on every matched unit: bequestWeight, bridgeRead, cap, deathTax, e3, failShort, finalIntegral, jointMargin, jointWorlds, lambda, levels, minPot, mix, pclsInterp, quad, raiseSurv, riskAbove, scale, seed, switchCharge, switchMargin, tier, tiers, tiersAbove
+CARRY-DIFF results/diag7aw -> 7u at 0.02: the cited run against the new one, matched by household and arm
+  stamps: cited code 6dfa9cfea59a audit 21761ef9ec24 | new code 6dfa9cfea59a audit aebb6703dd22
+  households: 25 in both; only cited 0; only new 30 (S002, S008, S016, S018, S028, S042, S044, S066, S072, S078, S088, S104, S144, S150, S156, S176, S190, S212, S214, S224, S236, S248, S262, S278, S284, S296, S364, S380, S394, S408: a carry across households)
+  arm CAND: 25 units matched
+    DIFFERS grid: on 25 of 25 (total30x6x6 -> total4x6x6 x25)
+    DIFFERS paths: on 25 of 25 (8000 -> 20 x25)
+    DIFFERS pts: on 25 of 25 (30 -> 4 x25)
+    ONLY NEW e3pcls: true (the cited run does not print it)
+    same on every matched unit: bequestWeight, bridgeRead, bridgeStep, cap, deathTax, e3, failShort, finalIntegral, jointMargin, jointWorlds, lambda, levels, minPot, mix, pclsInterp, quad, raiseSurv, riskAbove, scale, seed, switchCharge, switchMargin, tier, tierState, tiers, tiersAbove
+  arm SHIP: 25 units matched
+    DIFFERS grid: on 25 of 25 (total30x6x6 -> total4x6x6 x25)
+    DIFFERS paths: on 25 of 25 (8000 -> 20 x25)
+    DIFFERS pts: on 25 of 25 (30 -> 4 x25)
+    ONLY NEW e3pcls: false (the cited run does not print it)
+    same on every matched unit: bequestWeight, bridgeRead, cap, deathTax, e3, failShort, finalIntegral, jointMargin, jointWorlds, lambda, levels, minPot, mix, pclsInterp, quad, raiseSurv, riskAbove, scale, seed, switchCharge, switchMargin, tier, tiers, tiersAbove
+
+7. THE BUDGET: each unit's measured solve plus 8,000 paths forward, from the records' own logs (results/diag7aj at 0.01, results/diag7aw at 0.02); a broad unit at the median of its arm's 25 at that weight (assumed)
+  CAND at 0.01: the 25 18.41 core-hours (median unit 0.745); the broad 30 at that median 22.36
+  SHIP at 0.01: the 25 14.45 core-hours (median unit 0.537); the broad 30 at that median 16.12
+  CAND at 0.02: the 25 17.61 core-hours (median unit 0.706); the broad 30 at that median 21.18
+  SHIP at 0.02: the 25 7.71 core-hours (median unit 0.311); the broad 30 at that median 9.33
+  in all 127.1 core-hours, about 31.8 h on four cores four units at once (e3pcls on in CAND saves moves, E3-PCLS-C's median 12.4% fewer evaluated; the stage logging adds a move's score per path-year on 24 units: neither counted)
+
+CREDENCE item 1: point 1.035 HELD 0.70 INCONCLUSIVE 0.19 FALSIFIED 0.11
+CREDENCE item 2: point -0.034 HELD 0.79 INCONCLUSIVE 0.15 FALSIFIED 0.06
+CREDENCE item 3: point -1.524 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+CREDENCE item 4: point 0.162 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+CREDENCE item 5: point 1.054 HELD 0.81 INCONCLUSIVE 0.09 FALSIFIED 0.09
+CREDENCE item 6: point -0.073 HELD 0.81 INCONCLUSIVE 0.11 FALSIFIED 0.08
+CREDENCE item 7: point -1.413 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+CREDENCE item 8: point 0.176 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+
+DERIVED: item 1 HELD 0.70 INCONCLUSIVE 0.19 FALSIFIED 0.11; item 2 HELD 0.79 INCONCLUSIVE 0.15 FALSIFIED 0.06; item 3 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; item 4 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; item 5 HELD 0.81 INCONCLUSIVE 0.09 FALSIFIED 0.09; item 6 HELD 0.81 INCONCLUSIVE 0.11 FALSIFIED 0.08; item 7 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; item 8 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00

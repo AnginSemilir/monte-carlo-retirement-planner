@@ -1,0 +1,27 @@
+=== a MEASUREMENT, not a test: 7u preflight (third launch; the first stopped at the background time limit, the second by a container restart, both unread) - its audit's 220 units at 4 points and 20 paths of the tuning seed 7002, four at once, the stage logging's identity check and three gate plants; no figure read, not evidence for any test (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-CqFKbB   from c9486b3 + 2 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+A. the e3pcls pin: fingerprint e59c46df851784bd over 11 files; pin e59c46df851784bd (8 Oct, 07:28 UK, research/tests/solver-e3pcls.test.mjs blob c75f5d8ac501): MATCHES
+B. units done by arm:
+    110 CAND
+    110 SHIP
+reduce-7u (the preflight) exit 0
+OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 2: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 3: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 4: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 5: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 6: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 7: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 8: FALSIFIED, HELD, INCONCLUSIVE
+PREFLIGHT: the gate passed on 220 units at 4 points and 20 paths of the tuning seed 7002 (the stamp check skipped: NOT-LAUNCHED); the reading below exercises the code, no figure is read
+OUTCOME: 1 INCONCLUSIVE, 2 INCONCLUSIVE, 3 HELD, 4 INCONCLUSIVE, 5 INCONCLUSIVE, 6 INCONCLUSIVE, 7 HELD, 8 INCONCLUSIVE
+C. S370-cand-candidate@w0.02.json.gz: IDENTICAL logged and unlogged (sim 70 and 70)
+C. S370-ship-product@w0.02.json.gz: IDENTICAL logged and unlogged (sim 65 and 65)
+D. the gate refused the plant (e3pcls is true, the prediction names false): 1 lines naming it
+D. the gate refused the plant (e3pcls is false, the prediction names true): 1 lines naming it
+D. the gate refused the plant (access lines, not 1): 1 lines naming it
+preflight done
+=== snapshot kept at /tmp/solver-snap-CqFKbB for provenance; remove it when the results are written up
+exit 0

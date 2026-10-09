@@ -118,7 +118,8 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
 - elive is scored against the one-step reference bE, which reads year t+1 through the same plain bequest blend
   (solve.js l.1009): in every year whose next year touches a share-axis dead corner, bE carries that year's under-read.
   Where the next year is clean, elive is small; on every contaminated cell-year it is large (the review's scratch reads,
-  grade C). NSL-PROP leads (PLAN.md PR12); NSL-UNCOND is out: S370's rho is 1 at its median with a near-dead tail
+  grade C). NSL-PROP leads (PLAN.md PR12); NSL-UNCOND is ranked last (judged 0.03): none on bridge 4, a small part on S370,
+  whose rho is 1 at its median with a near-dead tail
   (O131, results-nscond-rho.txt).
 - Two constructs were inert: the copy read equals the drop read here (its source is the cell's own live share corner),
   and in item 3 the reference's read equals BASE's on 5763 of S370's 5859 year-6 reads (O130, results-nscond-rho.txt).

@@ -153,7 +153,7 @@ for (const [dir, w] of [['diag7aj', '0.01'], ['diag7aw', '0.02']]) printDiff(car
   let total = 0;
   for (const [dir, w] of [['diag7aj', '0.01'], ['diag7aw', '0.02']]) {
     const C = readCases(join(HERE, 'results', dir));
-    for (const [arm, lab] of [['CAND', `CANDIDATE/W${w}`], ['SHIP', `PRODUCT/W${w}`]]) {
+    for (const [arm, lab] of [['CAND', `CAND/CANDIDATE/W${w}`], ['SHIP', `SHIP/PRODUCT/W${w}`]]) {   // the logs' own labels, arm first
       const c = C[lab]; if (!c || c.solve.length !== 25 || c.fwdK.length !== 25) { console.error(`derive-7u: ${dir} ${lab} has ${c ? c.solve.length : 0} units, not 25`); process.exit(2); }
       const u = c.solve.map((sv, i) => (sv + c.fwdK[i] * N / 1000) / 3600), med = [...u].sort((a, b) => a - b)[12], sum25 = u.reduce((t, x) => t + x, 0);
       total += sum25 + 30 * med;

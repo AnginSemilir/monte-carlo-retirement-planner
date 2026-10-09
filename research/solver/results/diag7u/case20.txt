@@ -1,0 +1,56 @@
+stamp: code 6dfa9cfea59a audit aebb6703dd22 prediction research/solver/predictions/confirm-7u.md sha f0ec6c30edb27f358eedded4344fa44dd24dee95
+7U: the research candidate (solveCandidate, e3pcls on) against the shipping default (solvePlan, the product's settings), both on the candidate's plan (tiers o60-blend), the estate weights 0.02 and 0.01, 30 points, 8000 paths (seed 7013); 220 units; part 20/220
+S370             case | unit CAND/CANDIDATE/W0.02 | lambda 0.0223606797749979 tier own riskAbove auto mix 3
+                 solve CAND/CANDIDATE/W0.02: table 80.7668 secs 1202
+                 ran CAND/CANDIDATE/W0.02: mix 3 pts 30 seed 7013 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 104000 quad 5 bridgeStep exact tierState 0/0,1/1,2/2 bequestWeight 0.02 finalIntegral true bridgeRead reader switchMargin 0 switchCharge 0.001 e3 true e3pcls true pclsInterp true tiers High_Risk:4.97,Medium/High_Risk:4.65,Medium_Risk:4.18,Medium/Low_Risk:3.55,Low_Risk:2.76
+                 gap CAND/CANDIDATE/W0.02: 2.6825e-2 opening 2,2
+                 joint CAND/CANDIDATE/W0.02: true switchMargin 0 scale 2400000 cap 9600000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run CAND/CANDIDATE/W0.02: sim 80.0375 below 24.25 tier-below 35.88 changes 1.471 estate 4219088 secs 1245
+                 access CAND/CANDIDATE/W0.02: year 8 years 45
+                 resid CAND/CANDIDATE/W0.02 year 0: paths 8000 table 83.1840 realised 80.0375
+                 resid CAND/CANDIDATE/W0.02 year 1: paths 8000 table 84.7039 realised 80.0375
+                 resid CAND/CANDIDATE/W0.02 year 2: paths 8000 table 85.7311 realised 80.0375
+                 resid CAND/CANDIDATE/W0.02 year 3: paths 8000 table 84.1525 realised 80.0375
+                 resid CAND/CANDIDATE/W0.02 year 4: paths 7900 table 85.8323 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 5: paths 7900 table 86.3841 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 6: paths 7900 table 87.1469 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 7: paths 7900 table 84.4853 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 8: paths 7900 table 84.5148 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 9: paths 7900 table 84.4908 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 10: paths 7900 table 84.5958 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 11: paths 7900 table 84.5622 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 12: paths 7900 table 84.4603 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 13: paths 7900 table 84.3532 realised 81.0506
+                 resid CAND/CANDIDATE/W0.02 year 14: paths 7898 table 84.3566 realised 81.0712
+                 resid CAND/CANDIDATE/W0.02 year 15: paths 7897 table 84.2603 realised 81.0814
+                 resid CAND/CANDIDATE/W0.02 year 16: paths 7891 table 84.2333 realised 81.1431
+                 resid CAND/CANDIDATE/W0.02 year 17: paths 7881 table 84.2222 realised 81.2460
+                 resid CAND/CANDIDATE/W0.02 year 18: paths 7862 table 84.2957 realised 81.4424
+                 resid CAND/CANDIDATE/W0.02 year 19: paths 7845 table 84.4512 realised 81.6189
+                 resid CAND/CANDIDATE/W0.02 year 20: paths 7821 table 84.5521 realised 81.8693
+                 resid CAND/CANDIDATE/W0.02 year 21: paths 7784 table 84.8457 realised 82.2585
+                 resid CAND/CANDIDATE/W0.02 year 22: paths 7739 table 85.1351 realised 82.7368
+                 resid CAND/CANDIDATE/W0.02 year 23: paths 7676 table 85.7817 realised 83.4158
+                 resid CAND/CANDIDATE/W0.02 year 24: paths 7617 table 86.2836 realised 84.0620
+                 resid CAND/CANDIDATE/W0.02 year 25: paths 7570 table 86.7412 realised 84.5839
+                 resid CAND/CANDIDATE/W0.02 year 26: paths 7509 table 87.3451 realised 85.2710
+                 resid CAND/CANDIDATE/W0.02 year 27: paths 7452 table 87.8392 realised 85.9232
+                 resid CAND/CANDIDATE/W0.02 year 28: paths 7382 table 88.4936 realised 86.7380
+                 resid CAND/CANDIDATE/W0.02 year 29: paths 7326 table 89.0310 realised 87.4010
+                 resid CAND/CANDIDATE/W0.02 year 30: paths 7271 table 89.5259 realised 88.0622
+                 resid CAND/CANDIDATE/W0.02 year 31: paths 7215 table 90.0938 realised 88.7457
+                 resid CAND/CANDIDATE/W0.02 year 32: paths 7146 table 90.8676 realised 89.6026
+                 resid CAND/CANDIDATE/W0.02 year 33: paths 7083 table 91.5365 realised 90.3995
+                 resid CAND/CANDIDATE/W0.02 year 34: paths 7032 table 92.1568 realised 91.0552
+                 resid CAND/CANDIDATE/W0.02 year 35: paths 6975 table 92.8172 realised 91.7993
+                 resid CAND/CANDIDATE/W0.02 year 36: paths 6924 table 93.4135 realised 92.4754
+                 resid CAND/CANDIDATE/W0.02 year 37: paths 6885 table 93.7925 realised 92.9993
+                 resid CAND/CANDIDATE/W0.02 year 38: paths 6827 table 94.4738 realised 93.7894
+                 resid CAND/CANDIDATE/W0.02 year 39: paths 6784 table 94.8759 realised 94.3838
+                 resid CAND/CANDIDATE/W0.02 year 40: paths 6731 table 95.4614 realised 95.1270
+                 resid CAND/CANDIDATE/W0.02 year 41: paths 6690 table 96.0034 realised 95.7100
+                 resid CAND/CANDIDATE/W0.02 year 42: paths 6644 table 96.5512 realised 96.3727
+                 resid CAND/CANDIDATE/W0.02 year 43: paths 6589 table 97.2555 realised 97.1771
+                 resid CAND/CANDIDATE/W0.02 year 44: paths 6549 table 97.8358 realised 97.7707
+                 resid CAND/CANDIDATE/W0.02 year 45: paths 6504 table 98.4688 realised 98.4471
+                 done CAND/CANDIDATE/W0.02

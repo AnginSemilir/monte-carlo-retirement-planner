@@ -45,3 +45,7 @@ The maintainer, 6 Oct (PLAN.md's 15:45 row: 'I'll go with your recommendations')
   items/NSB.md); on S370 dividing by rho takes only a little of it (9.3654e-1 to 9.0184e-1).
 - 7an's design names the year-before pessimism as untested on BASE (NS-COND's Decision fed, item 3 INCONCLUSIVE), with
   O130: the menu-order reference removes S370's year-2 pessimism (s 0.606) and none of year 6's (s -0.000).
+- Amended the same night by the deep review after NS-COND (deep-review-log.md 9 Oct 02:09 UK): bridge 4's over-read is
+  not sent to 7an until NS-PROP reads (PLAN.md's row): the over-read was scored against a one-step reference that itself
+  blends the next year's dead corners (PR12), and 7an's 11-point arm would shrink the band of states touching a dead
+  corner, which would read as resolution. O130's year 6 is untested, not NOTREF.

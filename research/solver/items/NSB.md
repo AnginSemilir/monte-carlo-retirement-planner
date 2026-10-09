@@ -102,8 +102,8 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
     9.0184e-1, the conditioned read 9.0703e-1;
   - S126's one cell is not material (|elive| 7.9910e-3); no counted read leans on a kept or an off-axis dead corner
     (wK and w0x 0.000 on every cell).
-- Item 2 HELD: under BASE the copy rule changes S126's opening (59 to 3), every state's move on bridge 4 in years 0 to
-  2, and up to 15.02% of S370's (year 6); under COV it changes none of S126's year 0.
+- Item 2 HELD: under BASE the copy rule changes S126's opening (59 to 3), every state's move on bridge 4 in years 0 and
+  1 and 5999 of 6000 in year 2, and up to 15.02% of S370's (year 6); under COV it changes none of S126's year 0.
 - Item 3 INCONCLUSIVE (predicted FALSIFIED): S370 year 2 reads REF (s 0.606), year 6 NOTREF (s -0.000); PLAN.md O130.
 - What follows (the Decision fed, as registered): a conditioned read is designed only for S370's cells, its reach
   bounded by the small R and K shown there; bridge 4's cells go to 7an's resolution question, quoted as "not
@@ -112,3 +112,16 @@ From PLAN.md's NSB row (moved here to keep the row inside its size limit, 8 Oct)
 - The STOP list above, after the read: no dead-node copy or drop rule is designed (item 2 HELD: it exposes the live
   over-reads); F3-NSBLEND stays unsettled (item 1 cannot test the blend, O114); NSB's and NS-COND's item 2 counts are
   XAS's unit's, never the candidate's; NSB's first run's item lines stay unread.
+
+## 9 Oct: the deep review after NS-COND (deep-review-log.md 9 Oct 02:09 UK)
+
+- elive is scored against the one-step reference bE, which reads year t+1 through the same plain bequest blend
+  (solve.js l.1009): in every year whose next year touches a share-axis dead corner, bE carries that year's under-read.
+  Where the next year is clean, elive is small; on every contaminated cell-year it is large (the review's scratch reads,
+  grade C). NSL-PROP leads (PLAN.md PR12); NSL-UNCOND is out: S370's rho is 1 at its median with a near-dead tail
+  (O131, results-nscond-rho.txt).
+- Two constructs were inert: the copy read equals the drop read here (its source is the cell's own live share corner),
+  and in item 3 the reference's read equals BASE's on 5763 of S370's 5859 year-6 reads (O130, results-nscond-rho.txt).
+- The decisive test NS-PROP (PLAN.md's row) and its STOP list replace the "What follows" and STOP bullets of the 9 Oct
+  section above: the conditioned read for S370, bridge 4 to 7an, and "the copy rule is not a fix candidate" all wait on
+  NS-PROP.

@@ -16,8 +16,10 @@
  * Self-checks, each refusing the run: partsSum (the parts rebuild each table's score within 1e-12 relative, every opening
  * and table), chooserTop (CAND's own opening is the best of the four by the chooser's score), swapIdentity (swapping a
  * plan-tier opening to its own layer changes nothing), forceIdentity (forcing CAND's own opening reproduces its unforced
- * run on every path: survival, failure kind, and its fail year or end wealth). NESPLIT_PLANT=partsum adds 1e-6 to one part (partsSum must refuse); NESPLIT_PLANT=force forces
- * the plan-tier opening at CAND's level as if it were CAND's own (forceIdentity must refuse).
+ * run on every path: survival, failure kind, and its fail year or end wealth). NESPLIT_PLANT=partsum moves CC's estate part
+ * by a millionth of itself (partsSum must refuse); NESPLIT_PLANT=force forces the other-tier partner of CAND's own opening as
+ * if it were its own (forceIdentity must refuse). partsSum checks the parts' arithmetic only: h is the residual, so a
+ * misread survival part could not show in it.
  *   node research/solver/audit-nesplit.mjs [points=30] [paths=8000] [paths a world=2000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';

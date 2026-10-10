@@ -15,9 +15,11 @@
  *   over the two weights. A weight MISREADS when the loss reads, d <= -0.25 and dT > -0.1 with dT >= d / 4 (the table sees
  *   at most a quarter of a real loss); it SEES when the loss reads and dT <= d / 2. HELD when both weights misread;
  *   FALSIFIED when both see; else INCONCLUSIVE.
- * ITEM 2 (correcting the survival read alone flips the choice; S364, both weights): G = chooser(own) - chooser(SS), and
- *   Gc = G - dT / 100 + d / 100, the gap with the table's survival difference replaced by the realised one. HELD when at
- *   both weights G > 0 and Gc < 0; FALSIFIED when Gc >= G / 2 at both; else INCONCLUSIVE.
+  * ITEM 2 (correcting the survival read alone flips the choice; S364, both weights): G = chooser(own) - chooser(SS), and
+ *   Gc = G - dT / 100 + d / 100, the gap with the table's survival difference replaced by the realised one, read at both
+ *   ends of d's unconditional 97.5% interval (stats.mjs survivalChangeU; amended on the plan-auditor's BLOCKING 1 of
+ *   10 Oct 18:14 UK): HELD when at both weights G > 0 and Gc at the interval's upper end (the least loss) is below 0;
+ *   FALSIFIED when Gc at its lower end (the most loss) is at least G / 2 at both; else INCONCLUSIVE.
  * ITEM 3 (the year-1 held-tier layer carries it; S364, both weights): Gs = the swapped chooser(own) - chooser(SS), own read
  *   through its plan-tier partner's year-1 layer. HELD when Gs <= 0 at both weights; FALSIFIED when Gs >= G / 2 at both;
  *   else INCONCLUSIVE (and INCONCLUSIVE when own holds the plan's tiers: no layer to swap).
@@ -40,7 +42,7 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
-import { holm, mcnemarHarmP } from './stats.mjs';
+import { holm, mcnemarHarmP, survivalChangeU } from './stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-nesplit.md';
@@ -136,9 +138,9 @@ export function gate(units, { pts = PTS, np = NP, npw = NPW, seed = SEED, files 
 
 // paired survival of run a against run b on the same paths: saved (a survives, b not), lost (b survives, a not)
 export function pairOf(bitsA, bitsB) {
-  let saved = 0, lost = 0;
-  for (let i = 0; i < bitsA.length; i++) { if (bitsA[i] && !bitsB[i]) saved++; else if (!bitsA[i] && bitsB[i]) lost++; }
-  return { saved, lost, n: bitsA.length, d: 100 * (saved - lost) / bitsA.length };
+  let saved = 0, lost = 0, both = 0;
+  for (let i = 0; i < bitsA.length; i++) { if (bitsA[i] && !bitsB[i]) saved++; else if (!bitsA[i] && bitsB[i]) lost++; else if (bitsA[i]) both++; }
+  return { saved, lost, both, n: bitsA.length, d: 100 * (saved - lost) / bitsA.length };
 }
 const partnerOf = { SS: 'SC', SC: 'SS', CS: 'CC', CC: 'CS' };
 
@@ -155,9 +157,15 @@ export function items(U) {
     x.sees = x.loss && x.dT <= d / 2;                                             // the table sees at least half of it
   });
   out[1] = { legs: i1, outcome: i1.every(x => x.misread) ? 'HELD' : i1.every(x => x.sees) ? 'FALSIFIED' : 'INCONCLUSIVE' };
-  // item 2: the chooser's gap with the table's survival difference replaced by the realised one
-  const i2 = s.map((u, j) => { const G = u.parts[u.own].chooser - u.parts.SS.chooser, Gc = G - i1[j].dT / 100 + i1[j].pair.d / 100; return { G, Gc }; });
-  out[2] = { legs: i2, outcome: i2.every(x => x.G > 0 && x.Gc < 0) ? 'HELD' : i2.every(x => x.Gc >= x.G / 2) ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  // item 2: the chooser's gap with the table's survival difference replaced by the realised one, read at both ends of the
+  // realised change's unconditional interval (stats.mjs survivalChangeU, at ALPHA over the two weights): the sampled d
+  // enters Gc, so a point read would call noise (the plan-auditor's BLOCKING 1 of 10 Oct 18:14 UK)
+  const i2 = s.map((u, j) => {
+    const G = u.parts[u.own].chooser - u.parts.SS.chooser, pr = i1[j].pair, dT = i1[j].dT;
+    const ci = survivalChangeU(pr.both, pr.lost, pr.saved, pr.n - pr.both - pr.lost - pr.saved, ALPHA / 2);
+    return { G, Gc: G - dT / 100 + pr.d / 100, GcHi: G - dT / 100 + ci.hi / 100, GcLo: G - dT / 100 + ci.lo / 100, lo: ci.lo, hi: ci.hi };
+  });
+  out[2] = { legs: i2, outcome: i2.every(x => x.G > 0 && x.GcHi < 0) ? 'HELD' : i2.every(x => x.GcLo >= x.G / 2) ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 3
   const i3 = s.map((u, j) => { const planTier = u.openings[u.own].tiers === '0,0'; return { Gs: u.swap[u.own].chooser - u.swap.SS.chooser, G: i2[j].G, planTier }; });
   out[3] = { legs: i3, outcome: i3.some(x => x.planTier) ? 'INCONCLUSIVE' : i3.every(x => x.Gs <= 0) ? 'HELD' : i3.every(x => x.Gs >= x.G / 2) ? 'FALSIFIED' : 'INCONCLUSIVE' };
@@ -184,7 +192,7 @@ const EDGES = [];
 function planted() {
   const cases = [];
   const P = (sv, chooser) => ({ sv, bq: 0, rs: 0, h: 0, wB: 0.02, wR: 0, score: chooser, charge: 0, chooser });
-  const pr = (saved, lost, n = 8000) => ({ saved, lost, n, d: 100 * (saved - lost) / n });
+  const pr = (saved, lost, n = 8000, both = 3) => ({ saved, lost, both, n, d: 100 * (saved - lost) / n });
   const mk = ({ svOwn = 4.8, svSS = 0.5, chOwn = 0.06, chSS = 0.02, swOwn = 0.01, lostOwn = 30, savedOwn = 0, lostD = 25, savedD = 0, lostP = 5, savedP = 0, lostX = 20, savedX = 0, own = 'CC', tiersOwn = '2,2' } = {}) => {
     const parts = { SS: P(svSS, chSS), SC: P(1, 0), CS: P(1, 0), CC: P(1, 0) }; parts[own] = P(svOwn, chOwn);
     const swap = { ...parts, [own]: P(svOwn, swOwn) };
@@ -211,6 +219,8 @@ function planted() {
   cases.push(['correcting the survival read flips the choice at one weight only: 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']);
   o = items(U(mk({ svOwn: 4.5, svSS: 0.5, chOwn: 0.06, chSS: 0.02 }), mk({ svOwn: 4.5, svSS: 0.5, chOwn: 0.06, chSS: 0.02 }), ctl));
   cases.push(['correcting the survival read flips the choice at both weights: 2 HELD', o[2].outcome, 'HELD']);
+  o = items(U(mk({ svOwn: 4.2, svSS: 0.5 }), mk({ svOwn: 4.2, svSS: 0.5 }), ctl));
+  cases.push(['the corrected gap flips at its point (-7.5e-4) but not at the interval\'s upper end (+6e-4): 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']); EDGES.push('a corrected gap that flips at its point but not at its interval\'s end');
   o = items(U(mk({ swOwn: 0.04 }), mk({ swOwn: 0.04 }), ctl));
   cases.push(['the swap leaves the gap at G / 2 exactly (0.02 of 0.04) at both weights: 3 FALSIFIED', o[3].outcome, 'FALSIFIED']); EDGES.push('a swapped gap exactly half the gap');
   o = items(U(mk({ swOwn: 0.03 }), base, ctl));
@@ -314,7 +324,7 @@ if (isMain) {
   console.log('\nTHE ITEMS (each read by its registered rule)');
   const l1 = it[1].legs.map((x, j) => `W${['0.02', '0.01'][j]} dT ${f4(x.dT)} pair ${x.pair.saved} saved/${x.pair.lost} lost (change ${f4(x.pair.d)}) Holm p ${e4(x.pHolm)}${x.misread ? ' MISREADS' : x.sees ? ' SEES' : ''}`);
   console.log(`1. NE-SURV, the table's survival gap against the realised one, own against SS on S364: ${it[1].outcome}\n     ${l1.join('\n     ')}`);
-  console.log(`2. correcting the survival read alone flips own's preference over SS: ${it[2].outcome}\n     ${it[2].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} corrected ${e4(x.Gc)}`).join('\n     ')}`);
+  console.log(`2. correcting the survival read alone flips own's preference over SS: ${it[2].outcome}\n     ${it[2].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} corrected ${e4(x.Gc)} (at d's ends ${f4(x.lo)} and ${f4(x.hi)}: ${e4(x.GcLo)} to ${e4(x.GcHi)})`).join('\n     ')}`);
   console.log(`3. the year-1 held-tier layer carries it: ${it[3].outcome}\n     ${it[3].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} swapped ${e4(x.Gs)}${x.planTier ? ' (own at the plan\'s tiers)' : ''}`).join('\n     ')}`);
   console.log(`4. the de-risk, not the spend, carries the simulated loss: ${it[4].outcome}\n     ${it[4].legs.map((x, j) => `W${['0.02', '0.01'][j]} de-risk ${x.D.saved} saved/${x.D.lost} lost (Holm p ${e4(x.pD)}) spend ${x.P.saved} saved/${x.P.lost} lost (Holm p ${e4(x.pP)}) SC against CS ${x.X.saved} saved/${x.X.lost} lost (Holm p ${e4(x.pX)} / ${e4(x.pY)})`).join('\n     ')}`);
   const l5 = it[5].legs[0];

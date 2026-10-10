@@ -19,16 +19,14 @@ let st = 7002; const rnd = () => { st |= 0; st = (st + 0x6D2B79F5) | 0; let t = 
 const pois = lam => { const L = Math.exp(-lam); let k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; };
 const DRAWS = 4000, N = 8000;
 
-// THE JUDGED LINES (written before the derivation was run; the prediction's Credence section quotes them)
+// THE JUDGED INPUTS (the conditionals and story weights the credences mix; the prediction's per-item judged lines were
+// withdrawn on the plan-auditor's BLOCKING 3 of 10 Oct 08:13 UK, so these inputs are the judgement on record)
 export const JUDGED = {
-  // amended on the plan-auditor's BLOCKING 1 of 10 Oct (item 1 reads the table's gap against the realised one, item 2 the
-  // gap with the survival read corrected): P(the table's survival gap is blind to a real loss, dT > -0.1 and >= d / 4, at
-  // both weights | cause); P(it sees at least half of it at both | cause); P(correcting the survival read flips the choice
-  // at both | cause, the table blind); P(correcting it leaves at least half the gap at both | cause)
+  // where the table's survival gap sits against the true loss, per cause (amended on the plan-auditor's BLOCKINGs of
+  // 10 Oct 08:13 and 18:14 UK): BLIND (it reads none of the loss, dT 0), SEES (all of it, dT = the true loss), the rest MID
+  // (a third of it); items 1 and 2 are then simulated through items() under each position and loss story
   blind: { 'NE-SURV': 0.9, 'NE-TS': 0.55, 'NE-NS': 0.55, 'NE-OTHER': 0.6 },
   sees: { 'NE-SURV': 0.03, 'NE-TS': 0.25, 'NE-NS': 0.25, 'NE-OTHER': 0.2 },
-  flip: { 'NE-SURV': 0.85, 'NE-TS': 0.2, 'NE-NS': 0.2, 'NE-OTHER': 0.4 },
-  noflip: { 'NE-SURV': 0.05, 'NE-TS': 0.5, 'NE-NS': 0.5, 'NE-OTHER': 0.35 },
   // P(the swapped year-1 layer leaves no gap at both weights | cause), and P(it leaves at least half at both)
   swapGone: { 'NE-SURV': 0.15, 'NE-TS': 0.6, 'NE-NS': 0.15, 'NE-OTHER': 0.25 },
   swapHalf: { 'NE-SURV': 0.6, 'NE-TS': 0.2, 'NE-NS': 0.6, 'NE-OTHER': 0.4 },
@@ -101,6 +99,31 @@ for (const s of Object.keys(JUDGED.splitStories)) {
   console.log(`    ${s.padEnd(6)}: HELD ${f4(item4[s].HELD)} INCONCLUSIVE ${f4(item4[s].INCONCLUSIVE)} FALSIFIED ${f4(item4[s].FALSIFIED)}`);
 }
 
+// items 1 and 2 by simulation through items(): the table's position (BLIND, SEES, MID) x the loss story; G each weight's
+// own year-0 gap from 7u's logs (the chooser's gap between its opening and staying, a stand-in for own against SS, grade D)
+const GAP = {};
+for (const t of Object.values(logs)) for (const m of t.matchAll(/^S364\s+case \| unit CAND\/\w+\/W(0\.0[12])[\s\S]*?gap CAND\/\w+\/W\1: (\S+) opening/gm)) GAP[m[1]] = Number(m[2]);
+if (!(GAP['0.02'] > 0 && GAP['0.01'] > 0)) { console.error('derive-nesplit: no year-0 gap for S364 in 7u\'s logs'); process.exit(2); }
+const POS = { BLIND: d => 0, SEES: d => d, MID: d => d / 3 };
+const share12 = {};
+console.log(`  items 1 and 2 (G from 7u's logs: ${GAP['0.02']} at 0.02, ${GAP['0.01']} at 0.01; both-survive 3 paths a weight):`);
+for (const pos of Object.keys(POS)) for (const st_ of Object.keys(JUDGED.lossStories)) {
+  const c = { i1: { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, i2: { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, both: 0, read: 0 };
+  for (let k = 0; k < DRAWS; k++) {
+    const u = ['0.02', '0.01'].map(w => {
+      const L = lossRate[st_](w), dTrue = -100 * L / N, dT = POS[pos](dTrue), G = GAP[w];
+      const x = unit({ ownSS: { ...pair(pois(CHURN), pois(L + CHURN)), both: 3 }, SCSS: pair(0, 0), CSSS: pair(0, 0) });
+      x.parts = { ...x.parts, SS: P(0.5, 0), CC: P(0.5 + dT, G) };
+      return x;
+    });
+    const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl });
+    c.i1[o[1].outcome]++; c.i2[o[2].outcome]++; if (o[1].outcome === 'HELD' && o[2].outcome === 'HELD') c.both++; if (o[1].legs.every(x => x.loss)) c.read++;
+  }
+  share12[`${pos}|${st_}`] = { i1: Object.fromEntries(Object.entries(c.i1).map(([k, v]) => [k, v / DRAWS])), i2: Object.fromEntries(Object.entries(c.i2).map(([k, v]) => [k, v / DRAWS])), both: c.both / DRAWS, read: c.read / DRAWS };
+  const q = share12[`${pos}|${st_}`];
+  console.log(`    ${pos.padEnd(5)} ${st_.padEnd(4)}: item 1 HELD ${f4(q.i1.HELD)} INCONCLUSIVE ${f4(q.i1.INCONCLUSIVE)} FALSIFIED ${f4(q.i1.FALSIFIED)}; item 2 HELD ${f4(q.i2.HELD)} INCONCLUSIVE ${f4(q.i2.INCONCLUSIVE)} FALSIFIED ${f4(q.i2.FALSIFIED)}; both HELD ${f4(q.both)}; the loss reads at both ${f4(q.read)}`);
+}
+
 // 3. THE CREDENCES
 const dr = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8');
 const rec = dr.split('\n').find(l => l.startsWith('- 10 Oct 04:17 UK'));
@@ -110,24 +133,22 @@ const all = Object.fromEntries(cc[1].split(';').map(x => x.trim().split('=')).fi
 const z = Object.values(all).reduce((t, v) => t + v, 0), CAUSE = Object.fromEntries(Object.entries(all).map(([k, v]) => [k, v / z]));
 console.log(`\n3. THE CREDENCES (the receipt of 10 Oct 04:17 UK: ${Object.entries(all).map(([k, v]) => `${k}=${v}`).join('; ')}, normalised over the NE causes; the judged conditionals in this script's JUDGED)`);
 const mix = f => Object.entries(CAUSE).reduce((t, [k, p]) => t + p * f(k), 0);
-const pLoss = Object.entries(JUDGED.lossStories).reduce((t, [s, p]) => t + p * powerLoss[s], 0);
-const pLossAll = JUDGED.lossStories.SAME + JUDGED.lossStories.HALF * 0.9868;   // the loss reads at both (section 2's HALF row, which reads without reaching -0.25)
-const pBlind = mix(k => JUDGED.blind[k]), pSees = mix(k => JUDGED.sees[k]);
-const c1 = { HELD: pBlind * pLoss, FALSIFIED: pSees * pLossAll }; c1.INCONCLUSIVE = 1 - c1.HELD - c1.FALSIFIED;
-const pFlip = mix(k => JUDGED.blind[k] * JUDGED.flip[k]), pNo = mix(k => JUDGED.noflip[k]);
-const c2 = { HELD: pFlip * pLossAll, FALSIFIED: pNo * pLossAll }; c2.INCONCLUSIVE = 1 - c2.HELD - c2.FALSIFIED;
+const posOf = k => ({ BLIND: JUDGED.blind[k], SEES: JUDGED.sees[k], MID: 1 - JUDGED.blind[k] - JUDGED.sees[k] });
+const over = f => mix(k => Object.entries(posOf(k)).reduce((t, [pos, pp]) => t + pp * Object.entries(JUDGED.lossStories).reduce((u, [st_, ps]) => u + ps * f(share12[`${pos}|${st_}`]), 0), 0));
+const c1 = Object.fromEntries(['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(o => [o, over(q => q.i1[o])]));
+const c2 = Object.fromEntries(['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(o => [o, over(q => q.i2[o])]));
+const pBoth12 = over(q => q.both), pLossAll = over(q => q.read);
 const c3 = { HELD: mix(k => JUDGED.swapGone[k]), FALSIFIED: mix(k => JUDGED.swapHalf[k]) }; c3.INCONCLUSIVE = 1 - c3.HELD - c3.FALSIFIED;
 const c4 = Object.fromEntries(['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(o => [o, Object.entries(JUDGED.splitStories).reduce((t, [s, p]) => t + p * item4[s][o], 0)]));
 const c5 = { HELD: JUDGED.control[0], INCONCLUSIVE: JUDGED.control[1], FALSIFIED: JUDGED.control[2] };
-console.log(`  item 1: P(the table blind) ${f4(pBlind)}, P(it sees half) ${f4(pSees)}, P(the loss reads and reaches -0.25 at both) ${f4(pLoss)}, P(the loss reads at both) ${f4(pLossAll)}`);
-console.log(`  item 2: P(blind and correcting flips) ${f4(pFlip)}, P(correcting leaves half) ${f4(pNo)}`);
+console.log(`  items 1 and 2 mixed over the causes' table positions and the loss stories (section 2's simulation): P(both HELD) ${f4(pBoth12)}; P(the loss reads at both) ${f4(pLossAll)}`);
 const pt = (arr, q) => { const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.max(0, Math.floor(q * a.length)))]; };
 const out = [[1, c1, pt(dDraws, 0.5)], [2, c2, NaN], [3, c3, NaN], [4, c4, pt(d4, 0.5)], [5, c5, NaN]];
 for (const [i, c, p] of out) console.log(`CREDENCE item ${i}: point ${Number.isFinite(p) ? f4(p) : '-'} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 console.log(`  POINT item 1: ${f4(pt(dDraws, 0.5))} (80% interval ${f4(pt(dDraws, 0.1))} to ${f4(pt(dDraws, 0.9))}; own against SS at 0.02 over the loss stories)`);
 console.log(`  POINT item 4: ${f4(pt(d4, 0.5))} (80% interval ${f4(pt(d4, 0.1))} to ${f4(pt(d4, 0.9))}; the de-risk against SS at 0.02 over the split stories)`);
 // the decision table's rows (judged as independent across items)
-const rowA = c1.HELD * (pFlip / Math.max(pBlind, 1e-9)), rowB = mix(k => JUDGED.swapGone[k] * (1 - JUDGED.blind[k] * JUDGED.flip[k])), rowC = c2.FALSIFIED * c3.FALSIFIED;
+const rowA = pBoth12, rowB = c3.HELD * (1 - c2.HELD), rowC = c2.FALSIFIED * c3.FALSIFIED;   // rows 2 and 3 with item 3 judged independent of item 2
 console.log(`  DECISION ROWS: items 1 and 2 HELD ${f2(rowA)}; item 3 HELD, item 2 not HELD ${f2(rowB)}; items 2 and 3 FALSIFIED ${f2(rowC)}; else ${f2(1 - rowA - rowB - rowC)}`);
 
 // 4. THE BUDGET, from 7u's own logs (S364 and bridge 4: each arm's solve and its 8,000-path forward)

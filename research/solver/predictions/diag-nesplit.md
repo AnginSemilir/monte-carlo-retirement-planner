@@ -20,22 +20,22 @@ What the mathematics and the existing records say, with the scripts that compute
 - **The tables are seed-free:** the solve reads no simulated path, so the candidate's tables at 30 points are 7u's; its own opening at 30 points is the one 7u's traces show (pension 2, ISA 2 at 0.90 and 0.95), and the table items (2, 3, the table half of 1) carry no sampling error. The build check at 4 points chose the plan's tiers at 0.80 (a coarser grid's tables, declared in Provenance), so the four openings collapse there; at 30 points they do not.
 - **The parts are exact:** scoreMoves scores a move as sv + wR rs + wB bq - h (solve.js l.1520-1521); with wB and wR set to 0 the score is sv - h, with wR 1 it is sv + rs - h, so h and rs follow, and the audit's partsSum check rebuilds every table's score from them within 1e-12 relative. The chooser then subtracts the switch charge from a move that leaves the held tiers (solve.js l.1388-1392), so its score is the mixture-weighted score less the charge; chooserTop checks the candidate's own opening is the best of the four by it.
 - **The forced runs are the candidate's own:** runPolicy's start takes the forced move in year 0 and the solver's own move after it (solve.js l.1555-1567); forceIdentity checks that forcing the candidate's own opening reproduces its unforced run on every path, so any difference between openings is the opening's.
-- **The checks, each failed on a planted fault first:** reduce-nesplit.mjs's 35 planted checks (`node research/solver/reduce-nesplit.mjs --planted`, EDGES printed), and the audit's two plants (partsum, force), each refused by the preflight (Provenance).
+- **The checks, each failed on a planted fault first:** reduce-nesplit.mjs's 38 planted checks (`node research/solver/reduce-nesplit.mjs --planted`, EDGES printed), and the audit's two plants, each refused by the preflight (Provenance): partsum moves CC's estate part, which carries wB (resilience carries wR, 0 in both arms, where a plant could not show); force runs the other-tier partner of CAND's own opening in its place, and forceIdentity compares each path's survival, failure kind and fail year or end wealth. partsSum checks the parts' arithmetic only: h is the residual, so a misread survival part could not show in it (declared).
 
 ## Prediction
 
-- **Item 1 HELD (NE-SURV):** at both weights the candidate's table gives its own opening a higher survival part than SS (SHIP's spend at the plan's tiers), and on the same paths its own opening loses to SS by the exact test.
-- **Item 2 HELD:** at both weights the survival part alone covers the whole chooser gap between its own opening and SS.
-- **Item 3 FALSIFIED:** the swapped year-1 layer leaves at least half of that gap at both weights (the held-tier layer does not carry the preference).
-- **Item 4 HELD:** in simulation the de-risk (SC against SS) carries more of the loss than the spend (CS against SS) at both weights.
+- **Item 1 HELD (NE-SURV):** at both weights its own opening loses to SS on the same paths by at least a quarter of a point (the loss reading by the exact test) while the candidate's table sees at most a quarter of that loss (its survival gap above -0.1 points).
+- **Item 2 HELD:** at both weights, with the table's survival difference replaced by the realised one, the chooser would prefer SS.
+- **Item 3 FALSIFIED:** the swapped year-1 layer leaves at least half of the chooser's gap at both weights (the held-tier layer does not carry the preference).
+- **Item 4 HELD:** in simulation the de-risk's loss reads (SC against SS) and the de-risk loses to the spend on the same paths (SC against CS) at both weights.
 - **Item 5 HELD:** on bridge 4 the table's survival ranking of the candidate's opening against its other-tier partner does not disagree in sign with a simulated difference that reads.
 
 ## Falsified if
 
-- **Item 1 FALSIFIED:** the table does not favour its own opening on survival at either weight (dT at or below 0 at both). INCONCLUSIVE when the table favours it but the simulated loss does not read at both weights, or the weights split.
-- **Item 2 FALSIFIED:** the survival part is at or below 0 at both weights. INCONCLUSIVE when it is positive but under the whole gap at a weight.
+- **Item 1 FALSIFIED:** at both weights the loss reads and the table sees at least half of it (dT at or below d / 2). INCONCLUSIVE otherwise when not HELD (the loss not reading or short of -0.25, or the table seeing between a quarter and a half).
+- **Item 2 FALSIFIED:** correcting the survival read leaves at least half the chooser's gap at both weights. INCONCLUSIVE when it flips the choice at one weight only, or shrinks the gap without flipping it.
 - **Item 3 HELD (the prediction missed):** the swap leaves no gap at both weights. INCONCLUSIVE when it shrinks the gap below half but not to 0, or own holds the plan's tiers.
-- **Item 4 FALSIFIED:** the spend's loss reads at both weights and exceeds the de-risk's. INCONCLUSIVE otherwise when not HELD.
+- **Item 4 FALSIFIED:** at both weights the spend's loss reads and the spend loses to the de-risk on the same paths. INCONCLUSIVE otherwise when not HELD.
 - **Item 5 FALSIFIED:** the signs disagree and the simulated difference reads (p below 0.05). INCONCLUSIVE when they disagree without reading.
 
 ## Fair-test table
@@ -56,31 +56,31 @@ table (every other status is written out, with its reason).
 
 ## Decision rule (registered before launch)
 
-- **Item 1 (primary; single look):** dT = sv(own) - sv(SS) in points in the candidate's tables; the paired survival of own against SS on the same 8,000 paths, the exact one-sided McNemar p for its loss (stats.mjs mcnemarHarmP), Holm over the two weights. HELD when at both weights dT > 0 and the loss reads (Holm p below 0.05, lost above saved); FALSIFIED when dT <= 0 at both; else INCONCLUSIVE.
-- **Item 2 (primary; single look; deterministic):** G = chooser(own) - chooser(SS), dS = dT / 100. HELD when at both weights G > 0 and dS >= G; FALSIFIED when dS <= 0 at both; else INCONCLUSIVE.
+- **Item 1 (primary; single look; the deep review's NE-SURV test, amended on the plan-auditor's BLOCKING 1 of 10 Oct 08:13 UK):** dT = sv(own) - sv(SS) in points in the candidate's tables; d = the paired survival change of own against SS on the same 8,000 paths, its exact one-sided McNemar p for the loss (stats.mjs mcnemarHarmP), Holm over the two weights. A weight MISREADS when the loss reads (Holm p below 0.05, lost above saved), d <= -0.25 and dT > -0.1 with dT >= d / 4; it SEES when the loss reads and dT <= d / 2. HELD when both misread; FALSIFIED when both see; else INCONCLUSIVE.
+- **Item 2 (primary; single look):** G = chooser(own) - chooser(SS); Gc = G - dT / 100 + d / 100, the gap with the table's survival difference replaced by the realised one. HELD when at both weights G > 0 and Gc < 0; FALSIFIED when Gc >= G / 2 at both; else INCONCLUSIVE.
 - **Item 3 (primary; single look; deterministic):** Gs = the swapped chooser(own) - chooser(SS), own read through its plan-tier partner's year-1 layer. HELD when Gs <= 0 at both; FALSIFIED when Gs >= G / 2 at both; else INCONCLUSIVE (and when own holds the plan's tiers).
-- **Item 4 (primary; single look):** D = SC against SS, P = CS against SS, each paired, exact one-sided p, Holm over the four. HELD when at both weights D's loss reads and its net loss exceeds P's; FALSIFIED when at both weights P's loss reads and exceeds D's; else INCONCLUSIVE.
+- **Item 4 (primary; single look; amended on the plan-auditor's BLOCKING 2):** D = SC against SS, P = CS against SS, X = SC against CS on the same paths, each exact one-sided, Holm over the eight (both directions of X). HELD when at both weights D's loss reads and SC loses to CS; FALSIFIED when at both weights P's loss reads and CS loses to SC; else INCONCLUSIVE.
 - **Item 5 (the control; single look):** own against its other-tier partner at the same spend on bridge 4 at 0.02; dT and the paired survival, two-sided exact (the smaller one-sided p doubled). FALSIFIED when the signs disagree and p < 0.05; INCONCLUSIVE when they disagree and p >= 0.05; HELD otherwise.
 - **Reported, not items:** every opening's parts and swapped parts, its table survival by world beside its simulated survival by world (PR16), its survival part in SHIP's tables, failures by kind (a run-out; the plan's end below its minimum pot), the reader's meter (PR15), both arms' unforced runs paired.
 - **NOT SETTLED**, if the gate fails (reduce-nesplit.mjs's header): the stamps; a unit missing, repeated or not done; a ran line off the candidate's or the product's settings, the registered points or the unit's weight; the arms at different menus, grids or minimum pots; an opening or the own line missing; a self-check short of every read or path; a run's sim line or file missing, or its bits not the log's.
-- **Declared choices, not derived:** the four openings (the review's design); the half-gap line in item 3; alpha 0.05 with Holm; the single look.
+- **Declared choices, not derived:** the four openings (the review's design); item 1's lines (-0.25 and -0.1, the review's; a quarter and a half of the realised loss); the half-gap lines in items 2 and 3; alpha 0.05 with Holm; the single look.
 
 ## Decision table
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | NE-SURV leads: the candidate's survival read at the near-dead bridge edge ranks the openings wrongly; O132's cause recorded at the item's grade (B, one seed); a near-edge fix is designed only after the maintainer's answer on PR13 and is tested on a fresh seed; 7u-F and the fix's test go to the maintainer together | 0.51 |
-| item 1 FALSIFIED, item 3 HELD | NE-TS leads: the tier-state layer carries the preference; the charge accounting goes to its own decomposition (the layer against the charge), registered before any change to the tier state | 0.08 |
-| items 1 and 3 FALSIFIED | the estate or shortfall parts carry it (NE-NS or other): NS-PROP is re-scoped onto the candidate at seed 7002 with S364 and bridge 4 deciding (PLAN.md NS-PROP's held branch) | 0.13 |
-| else | the unsettled items named; the parts printed decide the next split, registered as its own test; nothing goes to the maintainer unless a part reads | 0.28 |
+| items 1 and 2 HELD | NE-SURV leads: the candidate's survival read at the near-dead bridge edge misses a real loss and that alone decides the opening; O132's cause recorded at grade B (one seed); a near-edge fix is designed only after the maintainer's answer on PR13 and is tested on a fresh seed; 7u-F and the fix's test go to the maintainer together | 0.19 |
+| item 3 HELD, item 2 not HELD | NE-TS leads: the tier-state layer carries the preference; the charge accounting goes to its own decomposition (the layer against the charge), registered before any change to the tier state | 0.19 |
+| items 2 and 3 FALSIFIED | neither the survival read nor the layer carries it (NE-NS or other): NS-PROP is re-scoped onto the candidate at seed 7002 with S364 and bridge 4 deciding, whatever NS-CAND's census reads | 0.10 |
+| else | the unsettled items named; the parts printed decide the next split, registered as its own test; nothing goes to the maintainer unless a part reads | 0.52 |
 
-- **Waiver:** none needed: the chance the action changes is 0.49 (one less 0.51), above a quarter
+- **Waiver:** none needed: the chance the action changes is 0.48 (one less 0.52, the likeliest row), above a quarter
 
 ## Decision fed
 
-- **Item 1 HELD:** NE-SURV is recorded as O132's leading cause (grade B, one seed); the STOP list on S364 lifts for the cause, not for a fix; a near-edge fix is designed after the maintainer answers PR13, and tested on a fresh seed.
-- **Item 1 FALSIFIED:** NE-SURV leaves the lead; items 2 and 3 name the part (item 3 HELD: NE-TS's own decomposition; items 1 and 3 FALSIFIED: NS-PROP re-scoped onto the candidate).
-- **Item 1 INCONCLUSIVE:** the unsettled half (the table's dT or the simulated loss) is named; the next split is registered on the parts printed; nothing goes to the maintainer unless a part reads.
+- **Items 1 and 2 HELD:** NE-SURV is recorded as O132's leading cause (grade B, one seed); the STOP list on S364 lifts for the cause, not for a fix; a near-edge fix is designed after the maintainer answers PR13, and tested on a fresh seed. Item 1 HELD with item 2 not HELD: the survival read misses the loss but does not alone decide the opening; the parts printed go to the next split.
+- **Item 1 FALSIFIED:** the table sees the loss: NE-SURV leaves the lead; items 2 and 3 name the part (item 3 HELD: NE-TS's own decomposition; items 2 and 3 FALSIFIED: NS-PROP re-scoped onto the candidate).
+- **Item 1 INCONCLUSIVE:** the unsettled half (the realised loss short of -0.25, or the table seeing between a quarter and a half) is named; nothing goes to the maintainer unless a part reads.
 - **Item 4 HELD or FALSIFIED:** the de-risk or the spend names the part of the candidate S364's loss follows (STOP's 'blaming any one part' lifts only for that part, on S364); INCONCLUSIVE leaves it with both.
 - **Item 5 FALSIFIED:** the method misreads where the table is calibrated: items 1-4 are NOT SETTLED until the misread is explained; HELD or INCONCLUSIVE leaves them as read.
 - **In every branch:** no product change; the candidate's settings unchanged; 7u-F still waits for the maintainer's unlock and PR13's answer.
@@ -88,13 +88,14 @@ table (every other status is written out, with its reason).
 ## Provenance
 
 - **The design:** the deep review after 7u (deep-review-log.md 10 Oct 04:17 UK), its decisive test NE-SPLIT and its STOP list; PLAN.md's NE-SPLIT row (PROPOSED 10 Oct; the maintainer's 'Go ahead').
-- **The build:** audit-nesplit.mjs (d39e6ae; its per-world paths moved to the tuning seed in 64a923b, since 7003 is Phase 4's), reduce-nesplit.mjs, derive-nesplit.mjs, batch-nesplit.sh and preflight-nesplit.sh (64a923b; derive-nesplit.mjs's no-point form 2137e3c).
+- **The build:** audit-nesplit.mjs (d39e6ae; its per-world paths moved to the tuning seed in 64a923b, since 7003 is Phase 4's), reduce-nesplit.mjs, derive-nesplit.mjs, batch-nesplit.sh and preflight-nesplit.sh (64a923b; derive-nesplit.mjs's no-point form 2137e3c; the amendment 1901a97).
 - **Seen before registration (declared):** 7u's results in full (results-7u.txt) and the deep review's figures; NE-SPLIT's build check at 4 points, 40 paths and 10 a world (runs.log 10 Oct), whose own opening at 4 points was the plan's tiers at 0.80 on all three units (the four openings collapsing to two) and whose table and simulated figures at that grid were seen; the derivation's output (results-derive-nesplit.txt), run before the per-item judged lines below were written (the JUDGED block in derive-nesplit.mjs, its inputs, was written before its first run). A container restart on 10 Oct lost this file and the plan row's edit before they were committed; both were rewritten unchanged, and 7u's files restored from the 7u-results checkpoint reproduce results-7u.txt byte for byte.
-- **The preflight:** preflight-nesplit.sh on the tuning seed at 4 points, after this registration (runs.log 10 Oct): A, the reducer's planted checks; B, the audit's three units through the gate in --preflight mode; C, the audit's two plants (partsum, force) each refused; its output quoted here in an amendment before launch
+- **Amended before launch** on the plan-auditor's FAIL of 10 Oct 08:13 UK (review-log.md): items 1, 2 and 4 and the decision table rewritten (BLOCKINGs 1 and 2), the judged lines withdrawn (BLOCKING 3: they were written after the derivation had run), the plants fixed (MINOR 4), row 3 reconciled with NS-PROP's row (MINOR 5); the derivation re-derived from the amended reducer (1901a97).
+- **The preflight:** preflight-nesplit.sh on the tuning seed at 4 points, after the amendment (runs.log 10 Oct): A, the reducer's planted checks; B, the audit's three units through the gate in --preflight mode; C, the audit's two plants (partsum, force) each refused; its output quoted here before launch
 
 ## Derivation script
 
-- `derive: research/solver/derive-nesplit.mjs > research/solver/results-derive-nesplit.txt sha256 9a7993ca2a644969`
+- `derive: research/solver/derive-nesplit.mjs > research/solver/results-derive-nesplit.txt sha256 265af60004a90d3c`
   (7u's S364 and bridge 4 records behind 7u's gate, the power of items 1 and 4 under the loss and split stories through reduce-nesplit.mjs's own items(), the credences from the review's cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from 7u's logs)
 
 ## Point and interval
@@ -110,11 +111,11 @@ table (every other status is written out, with its reason).
 From results-derive-nesplit.txt section 2 (4,000 draws a story through reduce-nesplit.mjs's own items()):
 
 ```
-  item 1's simulated half, the loss reading at both weights: SAME 1.0000, HALF 0.9868, NULL 0.0000; SAME with the churn 8 and 12 times larger 0.9998 and 0.9970
-  item 4: DERISK HELD 1.0000; SPEND FALSIFIED 1.0000; BOTH HELD 0.2130 INCONCLUSIVE 0.5677 FALSIFIED 0.2193
+  item 1's simulated half, the loss reading at both weights and reaching -0.25: SAME 0.9327, HALF 0.0147, NULL 0.0000; SAME with the churn 8 and 12 times larger 0.9025 and 0.8782
+  item 4: DERISK HELD 0.9722 INCONCLUSIVE 0.0278; SPEND FALSIFIED 0.9710 INCONCLUSIVE 0.0290; BOTH INCONCLUSIVE 1.0000
 ```
 
-SAME carries 7u's S364 loss (0/31 at 0.02, 0/28 at 0.01) to own against SS; HALF half of it; NULL none beyond churn (a loss that was SHIP's continuation, not the opening). Items 2 and 3 are deterministic: no power to compute.
+SAME carries 7u's S364 loss (0/31 at 0.02, 0/28 at 0.01) to own against SS; HALF half of it, short of item 1's -0.25 line, so item 1 reads INCONCLUSIVE there by design (the review's line); NULL none beyond churn. Item 4's BOTH story, the de-risk and the spend alike, no longer names a part (the SC-against-CS pair). Items 2 and 3 read the tables beside item 1's simulated d: item 3 has no power to compute, item 2 inherits item 1's.
 
 ## Budget line
 
@@ -124,7 +125,7 @@ From results-derive-nesplit.txt section 4 (7u's own timings for S364 and bridge 
 
 - **First: the forced SS is not SHIP's run.** SS takes SHIP's spend at the plan's tiers in year 0 and the candidate's moves after it, so item 1 reads the opening, not the arms; a loss that was SHIP's continuation (it never moves on S364) reads as NULL, and item 1 then reads INCONCLUSIVE with the table's dT still printed.
 - **Second: the swap is a construct.** Reading a 2/2 move through the plan-tier layer values year 1 as if the plan's tiers were held without a move; it changes the continuation's held state and the charge it would pay together, so item 3 reads the layer as a whole, not the charge apart (NE-TS's own decomposition is the decision table's second row).
-- **Third: the near-dead counts are small.** S364 survives on tens of paths in 8,000; a split of the loss between the de-risk and the spend near half and half reads INCONCLUSIVE on item 4 (BOTH: 0.5677).
+- **Third: the near-dead counts are small.** S364 survives on tens of paths in 8,000; a loss half of 7u's falls short of item 1's -0.25 line (HALF: 0.0147), and a split of the loss between the de-risk and the spend near half and half reads INCONCLUSIVE on item 4 (BOTH: 1.0000).
 - **Fourth: NSL-PROP is present in the candidate's tables** (PR12): the estate and shortfall parts at S364's year-0 state blend dead corners, so h and bq carry it; items 2 and 3 read them as the table holds them, NE-NS's share is not separated from the blend's.
 - **Fifth: PR15 and PR16 are reported, not items:** the reader's chance and the survival by world are printed beside the forced runs, not tested.
 - **Sixth: the control's openings** may coincide on bridge 4 if SHIP's and the candidate's year-0 levels are equal; item 5 reads own against its other-tier partner, which always exists.
@@ -141,23 +142,19 @@ Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RA
 The derivation's priors begin there and state why they move from it; an item resting on a deep review's ranked cause or
 story starts from that record's rate, not the review's own probability.
 
-Items 1-3 rest on the review's ranked causes, so each starts from 0.23; the review's own lead credence (NE-SURV 0.45) is already its posterior shaded halfway to that rate (its receipt), and the derivation mixes the receipt's credences through the JUDGED conditionals and section 2's power, which is what moves item 1 above 0.23. Item 4 is an attribution (ATTRIB 0.56) moved by the split stories; item 5 a control (CTRL 0.67) moved up because the candidate's table on bridge 4 is calibrated in 7u (99.7554 against 99.76).
+Items 1-3 rest on the review's ranked causes, so each starts from 0.23; the review's own lead credence (NE-SURV 0.45) is already its posterior shaded halfway to that rate (its receipt), and the derivation mixes the receipt's credences through the JUDGED conditionals and section 2's power, which is what moves item 1 from 0.23. Item 1 HELD needs the realised loss at -0.25 or past, which only the SAME story reaches, so it sits near the base rate. Item 4 is an attribution (ATTRIB 0.56) moved by the split stories; item 5 a control (CTRL 0.67) moved up because the candidate's table on bridge 4 is calibrated in 7u (99.7554 against 99.76).
 
 - **Base rate, item 1:** 0.23 (a deep review's cause: NE-SURV)
 - **Base rate, item 2:** 0.23 (a deep review's cause)
 - **Base rate, item 3:** 0.23 (a deep review's cause: NE-TS)
 - **Base rate, item 4:** 0.56 (ATTRIB)
 - **Base rate, item 5:** 0.67 (CTRL)
-- **Item 1:** HELD 0.51, INCONCLUSIVE 0.20, FALSIFIED 0.29 (derived, results-derive-nesplit.txt section 3)
-- **Item 2:** HELD 0.33, INCONCLUSIVE 0.38, FALSIFIED 0.29 (derived)
+- **Item 1:** HELD 0.31, INCONCLUSIVE 0.58, FALSIFIED 0.11 (derived, results-derive-nesplit.txt section 3)
+- **Item 2:** HELD 0.35, INCONCLUSIVE 0.45, FALSIFIED 0.21 (derived)
 - **Item 3:** HELD 0.28, INCONCLUSIVE 0.26, FALSIFIED 0.46 (derived)
-- **Item 4:** HELD 0.51, INCONCLUSIVE 0.17, FALSIFIED 0.32 (derived)
+- **Item 4:** HELD 0.44, INCONCLUSIVE 0.32, FALSIFIED 0.24 (derived)
 - **Item 5:** HELD 0.80, INCONCLUSIVE 0.12, FALSIFIED 0.08 (derived: the JUDGED control line)
-- **Judged, item 1:** HELD 0.45, INCONCLUSIVE 0.25, FALSIFIED 0.30
-- **Judged, item 2:** HELD 0.35, INCONCLUSIVE 0.35, FALSIFIED 0.30
-- **Judged, item 3:** HELD 0.30, INCONCLUSIVE 0.25, FALSIFIED 0.45
-- **Judged, item 4:** HELD 0.45, INCONCLUSIVE 0.25, FALSIFIED 0.30
-- **Judged, item 5:** HELD 0.80, INCONCLUSIVE 0.12, FALSIFIED 0.08
+- **Judged:** none (the plan-auditor's BLOCKING 3 of 10 Oct 08:13 UK: the per-item judged lines were written after the derivation had run, so they are withdrawn; the JUDGED block in derive-nesplit.mjs, the derivation's inputs, is the judgement on record)
 - **Kinds:** 1 ATTRIB, 2 ATTRIB, 3 ATTRIB, 4 ATTRIB, 5 CTRL
 
 ## Changes after seeing results

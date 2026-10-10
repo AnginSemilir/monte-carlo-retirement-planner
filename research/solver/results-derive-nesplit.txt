@@ -12,28 +12,28 @@ FAIR-TEST GATE: passed (requireFairLogs over 220 logs of results/diag7u, 7u's re
   bridge 4 CAND W0.01: year-0 table 99.7855 sim 99.75 error 0.04 (results-7u.txt)
   bridge 4 SHIP W0.01: year-0 table 15.1379 sim 99.65 error -84.51 (results-7u.txt)
 
-2. THE POWER (the share of draws where the loss reads at both weights, Holm over the two; item 1's simulated half; the stories' own-against-SS loss from 7u's S364 legs, a carry from CAND-against-SHIP to own-against-SS, grade D)
-  SAME : loss reads at both 1.0000
-  HALF : loss reads at both 0.9868
+2. THE POWER (the share of draws where the loss reads at both weights and reaches -0.25 points (item 1's MISREADS with the table blind), Holm over the two; item 1's simulated half; the stories' own-against-SS loss from 7u's S364 legs, a carry from CAND-against-SHIP to own-against-SS, grade D)
+  SAME : loss reads at both 0.9327
+  HALF : loss reads at both 0.0147
   NULL : loss reads at both 0.0000
-  sensitivity, SAME with the churn 8 times larger (SAME x2): loss reads at both 0.9998
-  sensitivity, SAME with the churn 12 times larger (SAME x3): loss reads at both 0.9970
-  item 4 (the de-risk against the spend, Holm over four; the loss of the SAME story split as the story says, each pair's churn added):
-    DERISK: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
-    SPEND : HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-    BOTH  : HELD 0.2130 INCONCLUSIVE 0.5677 FALSIFIED 0.2193
+  sensitivity, SAME with the churn 8 times larger (SAME x2): loss reads at both 0.9025
+  sensitivity, SAME with the churn 12 times larger (SAME x3): loss reads at both 0.8782
+  item 4 (the de-risk against the spend, Holm over eight with SC against CS on the same paths; the loss of the SAME story split as the story says, each pair's churn added):
+    DERISK: HELD 0.9722 INCONCLUSIVE 0.0278 FALSIFIED 0.0000
+    SPEND : HELD 0.0000 INCONCLUSIVE 0.0290 FALSIFIED 0.9710
+    BOTH  : HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
 
 3. THE CREDENCES (the receipt of 10 Oct 04:17 UK: NE-SURV=0.45; NE-OTHER=0.24; NE-TS=0.23; NE-NS=0.08, normalised over the NE causes; the judged conditionals in this script's JUDGED)
-  item 1: P(dT above 0 at both) 0.6410, P(the loss reads at both) 0.7954; FALSIFIED takes 0.8 of P(dT not above 0), the rest a split by weight
-  item 2: P(the survival part covers the gap at both) 0.3311
-CREDENCE item 1: point -0.2125 HELD 0.51 INCONCLUSIVE 0.20 FALSIFIED 0.29
-CREDENCE item 2: point - HELD 0.33 INCONCLUSIVE 0.38 FALSIFIED 0.29
+  item 1: P(the table blind) 0.7195, P(it sees half) 0.1390, P(the loss reads and reaches -0.25 at both) 0.4249, P(the loss reads at both) 0.7954
+  item 2: P(blind and correcting flips) 0.4360, P(correcting leaves half) 0.2615
+CREDENCE item 1: point -0.2125 HELD 0.31 INCONCLUSIVE 0.58 FALSIFIED 0.11
+CREDENCE item 2: point - HELD 0.35 INCONCLUSIVE 0.45 FALSIFIED 0.21
 CREDENCE item 3: point - HELD 0.28 INCONCLUSIVE 0.26 FALSIFIED 0.46
-CREDENCE item 4: point -0.2125 HELD 0.51 INCONCLUSIVE 0.17 FALSIFIED 0.32
+CREDENCE item 4: point -0.2125 HELD 0.44 INCONCLUSIVE 0.32 FALSIFIED 0.24
 CREDENCE item 5: point - HELD 0.80 INCONCLUSIVE 0.12 FALSIFIED 0.08
   POINT item 1: -0.2125 (80% interval -0.4250 to 0.0000; own against SS at 0.02 over the loss stories)
   POINT item 4: -0.2125 (80% interval -0.3875 to -0.0250; the de-risk against SS at 0.02 over the split stories)
-  DECISION ROWS: item 1 HELD 0.51; item 1 FALSIFIED and 3 HELD 0.08; items 1 and 3 FALSIFIED 0.13; else 0.28
+  DECISION ROWS: items 1 and 2 HELD 0.19; item 3 HELD, item 2 not HELD 0.19; items 2 and 3 FALSIFIED 0.10; else 0.52
 
 4. THE BUDGET (7u's logs: each unit's solve and its 8,000 paths forward, results/diag7u)
   S364 W0.02: CAND solve 1272 s, SHIP solve 255 s, CAND 8,000 paths 388 s, SHIP 41 s: the unit about 1.30 core-hours

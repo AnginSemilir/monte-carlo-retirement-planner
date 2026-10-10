@@ -153,6 +153,10 @@ ok(L({ name: 'bridge-reader.md', predText: reg, texts: [read('batch-7e.sh')] }).
 ok(L({ name: null, texts: [read('batch-7e.sh')] }).some(e => /7011 is reserved.*measurement/.test(e)), 'planted: 7e\'s batch launched as a measurement is refused (7011 is reserved)');
 ok(L({ name: 'bridge-reader.md', texts: ['node research/solver/audit-s126.mjs bridge7e 16 1000 part 0/1 off,reader S126 7003'] }).some(e => /7003 is reserved/.test(e)), 'planted: Phase 4\'s seed in 7e\'s command is refused');
 ok(L({ name: 'k6-spread.md', predText: '- **Seeds:** 7012', texts: ['node x.mjs 7012 7004'] }).some(e => /7004.*does not declare/.test(e)), 'planted: a seed the Seeds field does not declare is refused');
+ok(L({ name: 'fresh-7uf.md', predText: '- **Seeds:** 7014', texts: ['node x.mjs 7014'] }).length === 0, '7u-F\'s seed launches under its own prediction (7014, owned by fresh-7uf*.md)');
+ok(L({ name: 'confirm-7u.md', predText: '- **Seeds:** 7013, 7014', texts: ['node x.mjs 7014'] }).some(e => /7014 is reserved/.test(e)), 'planted: 7u-F\'s seed under 7u\'s own prediction is refused');
+ok(L({ name: 'fresh-7uf.md', predText: '- **Seeds:** 7013, 7014', texts: ['node x.mjs 7013'] }).some(e => /7013 is reserved/.test(e)), 'planted: 7u\'s seed, already read, under 7u-F\'s prediction is refused');
+ok(L({ name: null, texts: ['node x.mjs 7014'] }).some(e => /7014 is reserved.*measurement/.test(e)), 'planted: 7u-F\'s seed under a measurement is refused');
 ok(L({ name: null, texts: ['# seed 7003 is Phase 4\'s\nnode x.mjs 7002'] }).length === 0 && L({ name: null, texts: ['timeout 7200 node x.mjs'] }).length === 0, 'comment lines and numbers that are not registered seeds (timeout 7200) are left alone');
 // every batch already written launches under the prediction whose Run field names it, or as a measurement if none does
 const { readdirSync } = await import('node:fs');

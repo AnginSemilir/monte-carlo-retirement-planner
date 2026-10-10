@@ -18,9 +18,10 @@ What the mathematics and the existing records say, with the scripts that compute
 
 - **The records** (results-derive-nesplit.txt section 1, 7u's files behind 7u's gate): on S364 the candidate against the shipping default reads 0 saved/31 lost at 0.02 and 0/28 at 0.01; the candidate opens at tier code 10 (pension 2, ISA 2) at a level of 0.90 (0.95 at 0.01) where the shipping default holds code 0 at 0.80; the candidate moves tier in year 1 on 5815 of 8000 paths at 0.02; every failure in both arms is a run-out, none the plan's end below its minimum pot (CAND 0/7997, SHIP 0/7966 at 0.02). The candidate's year-0 table reads 4.8605 against the simulated 0.04, the shipping default's 0.0383 against 0.42 (results-7u.txt). On bridge 4 at 0.02 the candidate's table reads 99.7554 against 99.76: calibrated, so the control.
 - **The tables are seed-free:** the solve reads no simulated path, so the candidate's tables at 30 points are 7u's; its own opening at 30 points is the one 7u's traces show (pension 2, ISA 2 at 0.90 and 0.95), and the table's own quantities (item 3, and dT and G in items 1 and 2) carry no sampling error; items 1 and 2 also read the simulated change d, which does (item 2 reads its corrected gap at both ends of d's interval). The build check at 4 points chose the plan's tiers at 0.80 (a coarser grid's tables, declared in Provenance), so the four openings collapse there; at 30 points they do not.
+- **G is at least 7u's year-0 gap** (grade A, by the code): 7u's gap is the smallest switch margin at which CAND keeps its held tiers, its opening's chooser score less its best staying move's (audit-7u.mjs openGap; solve.js l.1388-1409), and SS is one staying move, so G = chooser(own) - chooser(SS) is that gap or more; how far above is judged (derive-nesplit.mjs's gMult), and item 2 turns on it (Power).
 - **The parts are exact:** scoreMoves scores a move as sv + wR rs + wB bq - h (solve.js l.1520-1521); with wB and wR set to 0 the score is sv - h, with wR 1 it is sv + rs - h, so h and rs follow, and the audit's partsSum check rebuilds every table's score from them within 1e-12 relative. The chooser then subtracts the switch charge from a move that leaves the held tiers (solve.js l.1388-1392), so its score is the mixture-weighted score less the charge; chooserTop checks the candidate's own opening is the best of the four by it.
 - **The forced runs are the candidate's own:** runPolicy's start takes the forced move in year 0 and the solver's own move after it (solve.js l.1555-1567); forceIdentity checks that forcing the candidate's own opening reproduces its unforced run on every path, so any difference between openings is the opening's.
-- **The checks, each failed on a planted fault first:** reduce-nesplit.mjs's 38 planted checks (`node research/solver/reduce-nesplit.mjs --planted`, EDGES printed), and the audit's two plants, each refused by the preflight (Provenance): partsum moves CC's estate part, which carries wB (resilience carries wR, 0 in both arms, where a plant could not show); force runs the other-tier partner of CAND's own opening in its place, and forceIdentity compares each path's survival, failure kind and fail year or end wealth. partsSum checks the parts' arithmetic only: h is the residual, so a misread survival part could not show in it (declared).
+- **The checks, each failed on a planted fault first:** reduce-nesplit.mjs's 40 planted checks (`node research/solver/reduce-nesplit.mjs --planted`, EDGES printed), and the audit's two plants, each refused by the preflight (Provenance): partsum moves CC's estate part, which carries wB (resilience carries wR, 0 in both arms, where a plant could not show); force runs the other-tier partner of CAND's own opening in its place, and forceIdentity compares each path's survival, failure kind and fail year or end wealth. partsSum checks the parts' arithmetic only: h is the residual, so a misread survival part could not show in it (declared).
 
 ## Prediction
 
@@ -69,12 +70,12 @@ table (every other status is written out, with its reason).
 
 | outcomes | action | credence |
 |---|---|---|
-| items 1 and 2 HELD | NE-SURV leads: the candidate's survival read at the near-dead bridge edge misses a real loss and that alone decides the opening; O132's cause recorded at grade B (one seed); a near-edge fix is designed only after the maintainer's answer on PR13 and is tested on a fresh seed; 7u-F and the fix's test go to the maintainer together | 0.26 |
-| item 3 HELD, item 2 not HELD | NE-TS leads: the tier-state layer carries the preference; the charge accounting goes to its own decomposition (the layer against the charge), registered before any change to the tier state | 0.21 |
-| items 2 and 3 FALSIFIED | neither the survival read nor the layer carries it (NE-NS or other): NS-PROP, already re-scoped onto the candidate by NS-CAND's census, is registered with S364 and bridge 4 deciding | 0.04 |
-| else | the unsettled items named; the parts printed decide the next split, registered as its own test; nothing goes to the maintainer unless a part reads | 0.50 |
+| items 1 and 2 HELD | NE-SURV leads: the candidate's survival read at the near-dead bridge edge misses a real loss and that alone decides the opening; O132's cause recorded at grade B (one seed); a near-edge fix is designed only after the maintainer's answer on PR13 and is tested on a fresh seed; 7u-F and the fix's test go to the maintainer together | 0.22 |
+| item 3 HELD, item 2 not HELD | NE-TS leads: the tier-state layer carries the preference; the charge accounting goes to its own decomposition (the layer against the charge), registered before any change to the tier state | 0.16 |
+| items 2 and 3 FALSIFIED | neither the survival read nor the layer carries it (NE-NS or other): NS-PROP, already re-scoped onto the candidate by NS-CAND's census, is registered with S364 and bridge 4 deciding | 0.05 |
+| else | the unsettled items named; the parts printed decide the next split, registered as its own test; nothing goes to the maintainer unless a part reads | 0.57 |
 
-- **Waiver:** none needed: the chance the action changes is 0.50 (one less 0.50, the likeliest row), above a quarter
+- **Waiver:** none needed: the chance the action changes is 0.43 (one less 0.57, the likeliest row), above a quarter
 
 ## Decision fed
 
@@ -91,16 +92,17 @@ The decision table's rows decide (the plan-auditor's MINOR 3 of 10 Oct 18:14 UK)
 ## Provenance
 
 - **The design:** the deep review after 7u (deep-review-log.md 10 Oct 04:17 UK), its decisive test NE-SPLIT and its STOP list; PLAN.md's NE-SPLIT row (PROPOSED 10 Oct; the maintainer's 'Go ahead').
-- **The build:** audit-nesplit.mjs (d39e6ae; its per-world paths moved to the tuning seed in 64a923b, since 7003 is Phase 4's), reduce-nesplit.mjs, derive-nesplit.mjs, batch-nesplit.sh and preflight-nesplit.sh (64a923b; derive-nesplit.mjs's no-point form 2137e3c; the amendments 1901a97, 990a06f and 01f16e4).
-- **Seen before registration (declared):** 7u's results in full (results-7u.txt) and the deep review's figures; NE-SPLIT's build check at 4 points, 40 paths and 10 a world (runs.log 10 Oct), whose own opening at 4 points was the plan's tiers at 0.80 on all three units (the four openings collapsing to two) and whose table and simulated figures at that grid were seen; the derivation's output (results-derive-nesplit.txt), run before the per-item judged lines below were written (the JUDGED block in derive-nesplit.mjs, its inputs, was written before its first run). A container restart on 10 Oct lost this file and the plan row's edit before they were committed; both were rewritten unchanged, and 7u's files restored from the 7u-results checkpoint reproduce results-7u.txt byte for byte.
+- **The build:** audit-nesplit.mjs (d39e6ae; its per-world paths moved to the tuning seed in 64a923b, since 7003 is Phase 4's), reduce-nesplit.mjs, derive-nesplit.mjs, batch-nesplit.sh and preflight-nesplit.sh (64a923b; derive-nesplit.mjs's no-point form 2137e3c; the amendments 1901a97, 990a06f, 01f16e4 and 5daa9a8).
+- **Seen before registration (declared):** 7u's results in full (results-7u.txt) and the deep review's figures; NE-SPLIT's build check at 4 points, 40 paths and 10 a world (runs.log 10 Oct), whose own opening at 4 points was the plan's tiers at 0.80 on all three units (the four openings collapsing to two) and whose table and simulated figures at that grid were seen; the derivation's output (results-derive-nesplit.txt), run before the per-item judged lines below were written (the JUDGED block in derive-nesplit.mjs, its inputs, was written before its first run and extended after it, each time to carry an amended item's inputs: its blind and sees lines in 1901a97 after the first output, its table positions in 01f16e4 after the second, its G and dT stories in 5daa9a8 after the third; the plan-auditor's MINOR 5 of 10 Oct 18:44 UK). A container restart on 10 Oct lost this file and the plan row's edit before they were committed; both were rewritten unchanged, and 7u's files restored from the 7u-results checkpoint reproduce results-7u.txt byte for byte.
 - **Amended before launch** on the plan-auditor's FAIL of 10 Oct 08:13 UK (review-log.md): items 1, 2 and 4 and the decision table rewritten (BLOCKINGs 1 and 2), the judged lines withdrawn (BLOCKING 3: they were written after the derivation had run), the plants fixed (MINOR 4), row 3 reconciled with NS-PROP's row (MINOR 5); the derivation re-derived from the amended reducer (1901a97).
 - **Amended a second time before launch** on the plan-auditor's FAIL of 10 Oct 18:14 UK: item 2 read at both ends of d's interval, the four statements that called it sampling-free corrected, items 1 and 2 simulated through items() in the derivation (BLOCKING 1); the Decision fed made to follow the table (MINOR 3); NS-CAND read into the plan (MINOR 4).
+- **Amended a third time before launch** on the plan-auditor's FAIL of 10 Oct 18:44 UK: item 2 derived over G at and above 7u's gap and a blind table's dT, with the G it needs stated (BLOCKING 1); a planted case at item 2's FALSIFIED end (MINOR 2). The preflight's A runs the reducer as of its launch; its B and C are unchanged by this amendment (the audit is not touched).
 - **Also seen before launch (declared):** NS-CAND's measurement (results-nscand.txt, 990a06f), read into the plan's NS-PROP row; the fifth preflight's plant log at 4 points, whose parts lines (table survival, estate and score of each opening at that grid) were read while the partsum plant was debugged.
 - **The preflight:** preflight-nesplit.sh on the tuning seed at 4 points, after the amendments (runs.log 10 Oct 18:29 UK, the seventh launch; its output results-nesplit-preflight.txt): A, planted (39): all read as they should, EDGES printed; B, GATE: passed - the three units once and done at the registered settings (4 points, 40 paths, 10 a world, seed 7002), every self-check passed, every file the log's; C, the plant partsum: refused (exit 3; a self-check failed), the plant force: refused (exit 3; forcing CAND's own opening did not reproduce its run). The first to sixth launches were stopped or failed before a full read: the restart, a lost results file, the amendments, and the fifth's partsum plant not refused (fixed in 990a06f).
 
 ## Derivation script
 
-- `derive: research/solver/derive-nesplit.mjs > research/solver/results-derive-nesplit.txt sha256 35514ac5dae79548`
+- `derive: research/solver/derive-nesplit.mjs > research/solver/results-derive-nesplit.txt sha256 6a9692c75e6813b6`
   (7u's S364 and bridge 4 records behind 7u's gate, the power of items 1 and 4 under the loss and split stories through reduce-nesplit.mjs's own items(), the credences from the review's cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from 7u's logs)
 
 ## Point and interval
@@ -113,15 +115,17 @@ The decision table's rows decide (the plan-auditor's MINOR 3 of 10 Oct 18:14 UK)
 
 ## Power
 
-From results-derive-nesplit.txt section 2 (4,000 draws a story through reduce-nesplit.mjs's own items()):
+From results-derive-nesplit.txt section 2 (4,000 draws a cell through reduce-nesplit.mjs's own items()):
 
 ```
   item 1's simulated half, the loss reading at both weights and reaching -0.25: SAME 0.9327, HALF 0.0147, NULL 0.0000
-  items 1 and 2 by the table's position: BLIND SAME item 1 HELD 0.9260, item 2 HELD 0.7900; SEES SAME item 1 FALSIFIED 1.0000, item 2 INCONCLUSIVE 0.9932; any position NULL item 2 FALSIFIED about 0.45
+  item 2 HELD needs G below (dT - hi) / 100 at both weights: with dT 0, below 2.497e-3 at 0.02 (1.93 times 7u's gap) and 2.190e-3 at 0.01 (1.33 times)
+  item 2, a BLIND table at dT 0 under SAME, by G: 1 times the gap HELD 0.8005; 1.5 times 0.2367; 2 times 0.0125; 3 times 0.0000
+  items 1 and 2 over G (1, 1.5, 2, 3 times the gap) and a BLIND table's dT (0, 0.1, 1): BLIND SAME item 1 HELD 0.9302, item 2 HELD 0.7139; SEES SAME item 1 FALSIFIED 1.0000, item 2 INCONCLUSIVE 0.9048
   item 4: DERISK HELD 0.9722 INCONCLUSIVE 0.0278; SPEND FALSIFIED 0.9710 INCONCLUSIVE 0.0290; BOTH INCONCLUSIVE 1.0000
 ```
 
-SAME carries 7u's S364 loss (0/31 at 0.02, 0/28 at 0.01) to own against SS; HALF half of it, short of item 1's -0.25 line, so item 1 reads INCONCLUSIVE there by design (the review's line); NULL none beyond churn. Item 2's FALSIFIED is reachable mainly where there is no loss to correct: S364's chooser gap (7u's year-0 gap, 1.2931e-3 at 0.02, a stand-in for own against SS) is smaller than d's interval is wide, so where the table sees the loss item 2 reads INCONCLUSIVE and item 1 carries the reading. Item 4's BOTH story no longer names a part. Item 3 is a table quantity: no power to compute.
+SAME carries 7u's S364 loss (0/31 at 0.02, 0/28 at 0.01) to own against SS; HALF half of it, short of item 1's -0.25 line, so item 1 reads INCONCLUSIVE there by design (the review's line); NULL none beyond churn. Item 2 turns on G, which the code bounds below by 7u's year-0 gap (1.2931e-3 at 0.02, 1.644e-3 at 0.01) but not above: at a blind table's dT 0 it reads HELD only while G stays under about twice the gap at 0.02 and 1.33 times at 0.01, and a table that over-reads its own opening's survival by a point (dT 1) clears that for any G here. Where the table sees the loss item 2 reads INCONCLUSIVE and item 1 carries the reading. Item 4's BOTH story no longer names a part. Item 3 is a table quantity: no power to compute.
 
 ## Budget line
 
@@ -155,8 +159,8 @@ Items 1-3 rest on the review's ranked causes, so each starts from 0.23; the revi
 - **Base rate, item 3:** 0.23 (a deep review's cause: NE-TS)
 - **Base rate, item 4:** 0.56 (ATTRIB)
 - **Base rate, item 5:** 0.67 (CTRL)
-- **Item 1:** HELD 0.30, INCONCLUSIVE 0.58, FALSIFIED 0.11 (derived, results-derive-nesplit.txt section 3)
-- **Item 2:** HELD 0.26, INCONCLUSIVE 0.65, FALSIFIED 0.09 (derived)
+- **Item 1:** HELD 0.31, INCONCLUSIVE 0.58, FALSIFIED 0.11 (derived, results-derive-nesplit.txt section 3)
+- **Item 2:** HELD 0.41, INCONCLUSIVE 0.49, FALSIFIED 0.10 (derived)
 - **Item 3:** HELD 0.28, INCONCLUSIVE 0.26, FALSIFIED 0.46 (derived)
 - **Item 4:** HELD 0.44, INCONCLUSIVE 0.32, FALSIFIED 0.24 (derived)
 - **Item 5:** HELD 0.80, INCONCLUSIVE 0.12, FALSIFIED 0.08 (derived: the JUDGED control line)

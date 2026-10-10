@@ -12,7 +12,7 @@
  *   plan's tiers' layer (the swap); the survival part of each opening in SHIP's tables (reported);
  *   each opening forced in year 0 on the same paths with CAND's own moves after it (runPolicy's start), and the arms'
  *   unforced runs: survival, failures split by kind (a year with no money, or the plan's end below its minimum pot),
- *   and per world (each world's long-run shift fixed, NPW paths) beside that world's table survival.
+ *   and per world (the seed's first NPW paths, each world's long-run shift put in) beside that world's table survival.
  * Self-checks, each refusing the run: partsSum (the parts rebuild each table's score within 1e-12 relative, every opening
  * and table), chooserTop (CAND's own opening is the best of the four by the chooser's score), swapIdentity (swapping a
  * plan-tier opening to its own layer changes nothing), forceIdentity (forcing CAND's own opening reproduces its unforced
@@ -191,7 +191,7 @@ UNITS.forEach(([id, w], ui) => {
   console.log(`${''.padEnd(16)} checks ${L}: forceIdentity ${same}/${NP} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (same !== NP) { console.error(`audit-nesplit: ${id} ${L}: forcing CAND's own opening did not reproduce its run`); process.exit(3); }
   // per world: the world's long-run shift fixed (NS-CAND's paths), each opening forced
-  const K = cand.mix.nodes.length, wpaths = E.pathsForSeed(SEED + 1, NPW, T);
+  const K = cand.mix.nodes.length, wpaths = E.pathsForSeed(SEED, NPW, T);   // the seed's first NPW paths, each world's long-run shift put in
   for (let k = 0; k < K; k++) {
     const z = cand.mix.nodes[k];
     const line = OPENINGS.map(o => { let ok = 0; wpaths.forEach(zs => { const cz = Float64Array.from(zs); cz[cz.length - 1] = z; ok += runPolicy(cand, cz, { start: { t: 0, s: s0, held: H0(), firstAi: OP[o] } }).survived ? 1 : 0; }); return `${o} table ${f6(100 * P[o].per[k].sv)} sim ${ok}/${NPW}`; }).join('; ');

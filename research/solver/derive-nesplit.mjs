@@ -118,7 +118,7 @@ console.log(`  item 1: P(dT above 0 at both) ${f4(dPos)}, P(the loss reads at bo
 console.log(`  item 2: P(the survival part covers the gap at both) ${f4(cov)}`);
 const pt = (arr, q) => { const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.max(0, Math.floor(q * a.length)))]; };
 const out = [[1, c1, pt(dDraws, 0.5)], [2, c2, NaN], [3, c3, NaN], [4, c4, pt(d4, 0.5)], [5, c5, NaN]];
-for (const [i, c, p] of out) console.log(`CREDENCE item ${i}: point ${Number.isFinite(p) ? f4(p) : 'none'} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
+for (const [i, c, p] of out) console.log(`CREDENCE item ${i}: point ${Number.isFinite(p) ? f4(p) : '-'} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 console.log(`  POINT item 1: ${f4(pt(dDraws, 0.5))} (80% interval ${f4(pt(dDraws, 0.1))} to ${f4(pt(dDraws, 0.9))}; own against SS at 0.02 over the loss stories)`);
 console.log(`  POINT item 4: ${f4(pt(d4, 0.5))} (80% interval ${f4(pt(d4, 0.1))} to ${f4(pt(d4, 0.9))}; the de-risk against SS at 0.02 over the split stories)`);
 // the decision table's rows (items 1 and 3 read as independent, judged)

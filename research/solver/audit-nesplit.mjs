@@ -113,7 +113,11 @@ UNITS.forEach(([id, w], ui) => {
   const ownC = chooseAction(cand, s0, 0, H0()), ownS = chooseAction(ship, s0, 0, H0());
   const lvC = cand.levelOf[ownC], lvS = ship.levelOf[ownS];
   console.log(`${''.padEnd(16)} own ${L}: CAND ai ${ownC} level ${lvC} tiers ${acts[ownC].tierPen},${acts[ownC].tierIsa} SHIP ai ${ownS} level ${lvS} tiers ${ship.c.acts[ownS].tierPen},${ship.c.acts[ownS].tierIsa}`);
-  const find = (lv, tp) => { for (let ai = 0; ai < n; ai++) if (Math.abs(cand.levelOf[ai] - lv) < 1e-12 && acts[ai].tierPen === tp && acts[ai].tierIsa === tp && (acts[ai].tierGia || 0) === 0) return ai; return -1; };
+  // the rest of a move (its withdrawal steps, harvest, lump and sweep): every opening takes CAND's own, so the four differ in
+  // the spend and the tiers only (launch 1, runs.log 10 Oct 19:20 UK: bridge 4's own opening carried a recipe other than
+  // the first at its level and tiers, and the guard below refused it)
+  const rest = a => `${[...a.steps]}|${[...a.costSteps]}|${a.harvest}|${a.harvestCeil}|${a.lump}|${a.sweep}`, RC = rest(acts[ownC]);
+  const find = (lv, tp) => { for (let ai = 0; ai < n; ai++) if (Math.abs(cand.levelOf[ai] - lv) < 1e-12 && acts[ai].tierPen === tp && acts[ai].tierIsa === tp && (acts[ai].tierGia || 0) === 0 && rest(acts[ai]) === RC) return ai; return -1; };
   const OP = { SS: find(lvS, 0), SC: find(lvS, 2), CS: find(lvC, 0), CC: find(lvC, 2) };
   if (Object.values(OP).some(ai => ai < 0)) { console.error(`audit-nesplit: ${id}: an opening is not in CAND's action set (${JSON.stringify(OP)})`); process.exit(2); }
   // CAND's own opening is one of the four (its spend and tiers): which
@@ -171,7 +175,7 @@ UNITS.forEach(([id, w], ui) => {
     console.log(`${''.padEnd(16)} worldparts ${L} ${k}: ${P[k].per.map((p, j) => `w${j} sv ${f6(100 * p.sv)} sc ${f6(p.sc)}`).join('; ')}`);
   }
   // SHIP's tables: the survival part of the same openings, where SHIP's menu has them (reported)
-  const findS = (lv, tp) => { for (let ai = 0; ai < ship.actions.length; ai++) if (Math.abs(ship.levelOf[ai] - lv) < 1e-12 && ship.c.acts[ai].tierPen === tp && ship.c.acts[ai].tierIsa === tp && (ship.c.acts[ai].tierGia || 0) === 0) return ai; return -1; };
+  const findS = (lv, tp) => { for (let ai = 0; ai < ship.actions.length; ai++) if (Math.abs(ship.levelOf[ai] - lv) < 1e-12 && ship.c.acts[ai].tierPen === tp && ship.c.acts[ai].tierIsa === tp && (ship.c.acts[ai].tierGia || 0) === 0 && rest(ship.c.acts[ai]) === RC) return ai; return -1; };
   console.log(`${''.padEnd(16)} shipparts ${L}: ${OPENINGS.map(k => { const ai = findS(cand.levelOf[OP[k]], acts[OP[k]].tierPen); if (ai < 0) return `${k} none`; const x = mixParts(ship, ai); return `${k} sv ${f6(100 * x.sv)} score ${f6(x.score)}`; }).join('; ')}`);
   const rd = cand.meta.reader;
   if (rd) console.log(`${''.padEnd(16)} reader ${L}: ${['unsupported', 'copied', 'copiedTop', 'nodes'].map(k => `${k} ${Array.isArray(rd[k]) || ArrayBuffer.isView(rd[k]) ? [...rd[k]].slice(0, 3).join(',') : rd[k]}`).join(' ')}`);

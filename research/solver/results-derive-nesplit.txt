@@ -22,18 +22,27 @@ FAIR-TEST GATE: passed (requireFairLogs over 220 logs of results/diag7u, 7u's re
     DERISK: HELD 0.9722 INCONCLUSIVE 0.0278 FALSIFIED 0.0000
     SPEND : HELD 0.0000 INCONCLUSIVE 0.0290 FALSIFIED 0.9710
     BOTH  : HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  items 1 and 2 (G from 7u's logs: 0.0012931 at 0.02, 0.001644 at 0.01; both-survive 3 paths a weight):
+    BLIND SAME: item 1 HELD 0.9260 INCONCLUSIVE 0.0740 FALSIFIED 0.0000; item 2 HELD 0.7900 INCONCLUSIVE 0.2100 FALSIFIED 0.0000; both HELD 0.7900; the loss reads at both 1.0000
+    BLIND HALF: item 1 HELD 0.0143 INCONCLUSIVE 0.9858 FALSIFIED 0.0000; item 2 HELD 0.0015 INCONCLUSIVE 0.9985 FALSIFIED 0.0000; both HELD 0.0015; the loss reads at both 0.9878
+    BLIND NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.5513 FALSIFIED 0.4487; both HELD 0.0000; the loss reads at both 0.0000
+    SEES  SAME: item 1 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.9932 FALSIFIED 0.0067; both HELD 0.0000; the loss reads at both 1.0000
+    SEES  HALF: item 1 HELD 0.0000 INCONCLUSIVE 0.0103 FALSIFIED 0.9898; item 2 HELD 0.0000 INCONCLUSIVE 0.9832 FALSIFIED 0.0168; both HELD 0.0000; the loss reads at both 0.9910
+    SEES  NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.5433 FALSIFIED 0.4567; both HELD 0.0000; the loss reads at both 0.0000
+    MID   SAME: item 1 HELD 0.0000 INCONCLUSIVE 0.9995 FALSIFIED 0.0005; item 2 HELD 0.0508 INCONCLUSIVE 0.9493 FALSIFIED 0.0000; both HELD 0.0000; the loss reads at both 1.0000
+    MID   HALF: item 1 HELD 0.0077 INCONCLUSIVE 0.9800 FALSIFIED 0.0123; item 2 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; both HELD 0.0000; the loss reads at both 0.9865
+    MID   NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.5440 FALSIFIED 0.4560; both HELD 0.0000; the loss reads at both 0.0000
 
 3. THE CREDENCES (the receipt of 10 Oct 04:17 UK: NE-SURV=0.45; NE-OTHER=0.24; NE-TS=0.23; NE-NS=0.08, normalised over the NE causes; the judged conditionals in this script's JUDGED)
-  item 1: P(the table blind) 0.7195, P(it sees half) 0.1390, P(the loss reads and reaches -0.25 at both) 0.4249, P(the loss reads at both) 0.7954
-  item 2: P(blind and correcting flips) 0.4360, P(correcting leaves half) 0.2615
-CREDENCE item 1: point -0.2125 HELD 0.31 INCONCLUSIVE 0.58 FALSIFIED 0.11
-CREDENCE item 2: point - HELD 0.35 INCONCLUSIVE 0.45 FALSIFIED 0.21
+  items 1 and 2 mixed over the causes' table positions and the loss stories (section 2's simulation): P(both HELD) 0.2562; P(the loss reads at both) 0.7958
+CREDENCE item 1: point -0.2125 HELD 0.30 INCONCLUSIVE 0.58 FALSIFIED 0.11
+CREDENCE item 2: point - HELD 0.26 INCONCLUSIVE 0.65 FALSIFIED 0.09
 CREDENCE item 3: point - HELD 0.28 INCONCLUSIVE 0.26 FALSIFIED 0.46
 CREDENCE item 4: point -0.2125 HELD 0.44 INCONCLUSIVE 0.32 FALSIFIED 0.24
 CREDENCE item 5: point - HELD 0.80 INCONCLUSIVE 0.12 FALSIFIED 0.08
   POINT item 1: -0.2125 (80% interval -0.4250 to 0.0000; own against SS at 0.02 over the loss stories)
   POINT item 4: -0.2125 (80% interval -0.3875 to -0.0250; the de-risk against SS at 0.02 over the split stories)
-  DECISION ROWS: items 1 and 2 HELD 0.19; item 3 HELD, item 2 not HELD 0.19; items 2 and 3 FALSIFIED 0.10; else 0.52
+  DECISION ROWS: items 1 and 2 HELD 0.26; item 3 HELD, item 2 not HELD 0.21; items 2 and 3 FALSIFIED 0.04; else 0.50
 
 4. THE BUDGET (7u's logs: each unit's solve and its 8,000 paths forward, results/diag7u)
   S364 W0.02: CAND solve 1272 s, SHIP solve 255 s, CAND 8,000 paths 388 s, SHIP 41 s: the unit about 1.30 core-hours

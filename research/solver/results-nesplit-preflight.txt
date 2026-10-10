@@ -1,0 +1,12 @@
+=== a MEASUREMENT, not a test:  NE-SPLIT preflight (seventh launch, on the code of the second amendment; the sixth stopped unread for it) - the reducer's planted checks, the audit's three units at 4 points and 40 paths of the tuning seed 7002 through the gate, and its two plants each refused; not evidence for any test (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-Fm4ftK   from 01f16e4 + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code 6dfa9cfea59a (smoke stamp 7dc2273024a8): the modes in smoke.sh once, tiny (about 2-3 minutes)
+SMOKE PASSED
+A. planted (39): all read as they should EDGES: a realised loss exactly at -0.25, a pair with no discordant path, a corrected gap that flips at its point but not at its interval's end, a swapped gap exactly half the gap, an own opening at the plan's tiers, equal losses under the de-risk and the spend, a forceIdentity one path short 
+B. GATE: passed - the three units once and done at the registered settings (4 points, 40 paths, 10 a world, seed 7002); every self-check passed (partsSum, swapIdentity, chooserTop, forceIdentity on every path); every file the log's PREFLIGHT: the gate and the files read; no figure is read 
+C. the plant partsum: refused (exit 3; audit-nesplit: S364 NE/W0.02: a self-check failed or ran on nothing)
+C. the plant force: refused (exit 3; audit-nesplit: S364 NE/W0.02: forcing CAND's own opening did not reproduce its run)
+preflight done 18:39 UK
+=== snapshot kept at /tmp/solver-snap-Fm4ftK for provenance; remove it when the results are written up

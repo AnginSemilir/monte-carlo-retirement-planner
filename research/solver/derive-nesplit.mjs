@@ -34,6 +34,12 @@ export const JUDGED = {
   lossStories: { SAME: 0.45, HALF: 0.35, NULL: 0.2 },
   // where the simulated loss sits: the de-risk (DERISK), the spend (SPEND), both alike (BOTH)
   splitStories: { DERISK: 0.45, SPEND: 0.25, BOTH: 0.3 },
+  // G, the chooser's gap between CAND's opening and SS: at least 7u's year-0 gap by the code (grade A: the gap is CAND's
+  // opening less its best staying move, SS one staying move; audit-7u.mjs openGap, solve.js l.1388-1409), how far above
+  // judged (the plan-auditor's BLOCKING 1 of 10 Oct 18:44 UK); and where a BLIND table's survival gap dT sits inside the
+  // blind band (dT > -0.1 and >= d / 4), judged from 7u's table reading CAND's own survival at 4.8605 against 0.04
+  gMult: { 1: 0.35, 1.5: 0.3, 2: 0.2, 3: 0.15 },
+  blindDT: { 0: 0.3, 0.1: 0.3, 1: 0.4 },
   // the control (bridge 4 at 0.02, CAND's year-0 table near its simulation in 7u): HELD, INCONCLUSIVE, FALSIFIED
   control: [0.8, 0.12, 0.08],
 };
@@ -104,14 +110,18 @@ for (const s of Object.keys(JUDGED.splitStories)) {
 const GAP = {};
 for (const t of Object.values(logs)) for (const m of t.matchAll(/^S364\s+case \| unit CAND\/\w+\/W(0\.0[12])[\s\S]*?gap CAND\/\w+\/W\1: (\S+) opening/gm)) GAP[m[1]] = Number(m[2]);
 if (!(GAP['0.02'] > 0 && GAP['0.01'] > 0)) { console.error('derive-nesplit: no year-0 gap for S364 in 7u\'s logs'); process.exit(2); }
-const POS = { BLIND: d => 0, SEES: d => d, MID: d => d / 3 };
+const POS = { BLIND: null, SEES: d => d, MID: d => d / 3 };
 const share12 = {};
-console.log(`  items 1 and 2 (G from 7u's logs: ${GAP['0.02']} at 0.02, ${GAP['0.01']} at 0.01; both-survive 3 paths a weight):`);
-for (const pos of Object.keys(POS)) for (const st_ of Object.keys(JUDGED.lossStories)) {
+// what item 2 HELD needs: G below (dT - hi) / 100 at both weights, hi the upper end of d's interval at 7u's counts
+{ const { survivalChangeU } = await import('./stats.mjs');
+  for (const w of ['0.02', '0.01']) { const L = LEG[w].lost, ci = survivalChangeU(3, L, 0, N - 3 - L, 0.025);
+    console.log(`  item 2 HELD needs, at 0.${w.slice(2)} with 7u's 0 saved/${L} lost: G below (dT - ${ci.hi.toFixed(4)}) / 100, so with dT 0 below ${(-ci.hi / 100).toExponential(3)}, ${(-ci.hi / 100 / GAP[w]).toFixed(2)} times 7u's gap ${GAP[w]}`); } }
+console.log(`  items 1 and 2 (G 7u's year-0 gap ${GAP['0.02']} at 0.02 and ${GAP['0.01']} at 0.01, times ${Object.keys(JUDGED.gMult).join(', ')}; a BLIND table's dT ${Object.keys(JUDGED.blindDT).join(', ')}; both-survive 3 paths a weight):`);
+const simCell = (dTof, gm, st_) => {
   const c = { i1: { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, i2: { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }, both: 0, read: 0 };
   for (let k = 0; k < DRAWS; k++) {
     const u = ['0.02', '0.01'].map(w => {
-      const L = lossRate[st_](w), dTrue = -100 * L / N, dT = POS[pos](dTrue), G = GAP[w];
+      const L = lossRate[st_](w), dTrue = -100 * L / N, dT = dTof(dTrue), G = GAP[w] * gm;
       const x = unit({ ownSS: { ...pair(pois(CHURN), pois(L + CHURN)), both: 3 }, SCSS: pair(0, 0), CSSS: pair(0, 0) });
       x.parts = { ...x.parts, SS: P(0.5, 0), CC: P(0.5 + dT, G) };
       return x;
@@ -119,10 +129,21 @@ for (const pos of Object.keys(POS)) for (const st_ of Object.keys(JUDGED.lossSto
     const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl });
     c.i1[o[1].outcome]++; c.i2[o[2].outcome]++; if (o[1].outcome === 'HELD' && o[2].outcome === 'HELD') c.both++; if (o[1].legs.every(x => x.loss)) c.read++;
   }
-  share12[`${pos}|${st_}`] = { i1: Object.fromEntries(Object.entries(c.i1).map(([k, v]) => [k, v / DRAWS])), i2: Object.fromEntries(Object.entries(c.i2).map(([k, v]) => [k, v / DRAWS])), both: c.both / DRAWS, read: c.read / DRAWS };
-  const q = share12[`${pos}|${st_}`];
-  console.log(`    ${pos.padEnd(5)} ${st_.padEnd(4)}: item 1 HELD ${f4(q.i1.HELD)} INCONCLUSIVE ${f4(q.i1.INCONCLUSIVE)} FALSIFIED ${f4(q.i1.FALSIFIED)}; item 2 HELD ${f4(q.i2.HELD)} INCONCLUSIVE ${f4(q.i2.INCONCLUSIVE)} FALSIFIED ${f4(q.i2.FALSIFIED)}; both HELD ${f4(q.both)}; the loss reads at both ${f4(q.read)}`);
+  const f = x => Object.fromEntries(Object.entries(x).map(([k, v]) => [k, v / DRAWS]));
+  return { i1: f(c.i1), i2: f(c.i2), both: c.both / DRAWS, read: c.read / DRAWS };
+};
+const addW = (acc, q, w) => { for (const it of ['i1', 'i2']) for (const o of Object.keys(q[it])) acc[it][o] = (acc[it][o] || 0) + w * q[it][o]; acc.both += w * q.both; acc.read += w * q.read; };
+for (const pos of Object.keys(POS)) for (const st_ of Object.keys(JUDGED.lossStories)) {
+  const acc = { i1: {}, i2: {}, both: 0, read: 0 };
+  for (const [gm, pg] of Object.entries(JUDGED.gMult)) {
+    if (pos === 'BLIND') for (const [dt, pd] of Object.entries(JUDGED.blindDT)) addW(acc, simCell(() => Number(dt), Number(gm), st_), pg * pd);
+    else addW(acc, simCell(POS[pos], Number(gm), st_), pg);
+  }
+  share12[`${pos}|${st_}`] = acc;
+  console.log(`    ${pos.padEnd(5)} ${st_.padEnd(4)}: item 1 HELD ${f4(acc.i1.HELD)} INCONCLUSIVE ${f4(acc.i1.INCONCLUSIVE)} FALSIFIED ${f4(acc.i1.FALSIFIED)}; item 2 HELD ${f4(acc.i2.HELD)} INCONCLUSIVE ${f4(acc.i2.INCONCLUSIVE)} FALSIFIED ${f4(acc.i2.FALSIFIED)}; both HELD ${f4(acc.both)}; the loss reads at both ${f4(acc.read)}`);
 }
+// item 2 by G alone, the BLIND table at dT 0 under SAME (the sensitivity the plan-auditor asked to see)
+for (const gm of Object.keys(JUDGED.gMult)) { const q = simCell(() => 0, Number(gm), 'SAME'); console.log(`    sensitivity, BLIND dT 0 SAME, G ${gm} times the gap: item 2 HELD ${f4(q.i2.HELD)} INCONCLUSIVE ${f4(q.i2.INCONCLUSIVE)} FALSIFIED ${f4(q.i2.FALSIFIED)}`); }
 
 // 3. THE CREDENCES
 const dr = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8');

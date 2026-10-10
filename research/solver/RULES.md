@@ -242,10 +242,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    around it); fix: read only per-test lines. relook.mjs matches no named test (XAS, RTAX).
 30. The pre-commit and Stop hooks check the working tree, untracked files included; CI checks the commit. The lock reads a
    command's text, not a script file it runs: uncertainty.mjs was written by one after an unlock lapsed (5 Oct).
-31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, after ed5db5c (XAS-R
-   the first). The order is read from commits: a derivation run before the judged lines' first commit passes (748c53e,
+31. The credence rule binds predictions added after d4487bd; judged-before-derived and the base rate, after ed5db5c.
+   The order is read from commits: a derivation run before the judged lines' first commit passes (748c53e,
    the author's word). A base rate may be any kind's; a cause need only be named; a settlement's held is the
-   author's reading. Neither git log follows a move (a move from drafts/ or a rename passes judged-after-derived), and
+   author's reading. Neither git log follows a move or rename, and
    the judged lines are read at their first commit, so a later edit committed with a new output passes (O110).
 32. testsAfter (uncertainty.mjs) never counts a scored test with no close in lessons.md; its two callers are untested.
 33. scorecard.mjs's deep-review lead rate adds the leading causes settled since to the hand record's one "N of M" line
@@ -253,6 +253,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    question's causes share no prefix counts each as its own lead (MINOR 4 on b22439c; MINOR 1 of 8 Oct on 20114d1b1f).
 34. The e3pcls guard misses a direct solvePlan call outside its scan and an engine change: e3pcls-pin.mjs's header.
 35. scorecard.mjs's interval index reads only '- **Item k:** ... 80% interval a to b' lines; other forms go unindexed.
+36. check-prediction's 0.05 tolerance accepts a credence below a derived 1.00 (cap dropped 10 Oct).
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

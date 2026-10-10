@@ -221,6 +221,8 @@ function planted() {
   cases.push(['correcting the survival read flips the choice at both weights: 2 HELD', o[2].outcome, 'HELD']);
   o = items(U(mk({ svOwn: 4.2, svSS: 0.5 }), mk({ svOwn: 4.2, svSS: 0.5 }), ctl));
   cases.push(['the corrected gap flips at its point (-7.5e-4) but not at the interval\'s upper end (+6e-4): 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']); EDGES.push('a corrected gap that flips at its point but not at its interval\'s end');
+  o = items(U(mk({ svOwn: 2.0, svSS: 0.5 }), mk({ svOwn: 2.0, svSS: 0.5 }), ctl));
+  cases.push(['the corrected gap is at least half at its point (0.02125 of 0.04) but not at the interval\'s lower end (0.01937): 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']); EDGES.push('a corrected gap at half the gap at its point but under it at its interval\'s end');
   o = items(U(mk({ swOwn: 0.04 }), mk({ swOwn: 0.04 }), ctl));
   cases.push(['the swap leaves the gap at G / 2 exactly (0.02 of 0.04) at both weights: 3 FALSIFIED', o[3].outcome, 'FALSIFIED']); EDGES.push('a swapped gap exactly half the gap');
   o = items(U(mk({ swOwn: 0.03 }), base, ctl));

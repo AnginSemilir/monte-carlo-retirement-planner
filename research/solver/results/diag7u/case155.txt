@@ -5,3 +5,5 @@ S236             case | unit SHIP/PRODUCT/W0.02 | lambda 0.0223606797749979 tier
                  ran SHIP/PRODUCT/W0.02: mix 3 pts 30 seed 7013 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 65500 quad 5 bequestWeight 0.02 finalIntegral true bridgeRead false switchMargin 0.001 switchCharge 0 e3 false e3pcls false pclsInterp false tiers High_Risk:4.97,Medium/High_Risk:4.65,Medium_Risk:4.18,Medium/Low_Risk:3.55,Low_Risk:2.76
                  gap SHIP/PRODUCT/W0.02: 2.4358e-3 opening 2,2
                  joint SHIP/PRODUCT/W0.02: false switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run SHIP/PRODUCT/W0.02: sim 79.6000 below 17.32 tier-below 35.15 changes 1.110 estate 1240440 secs 533
+                 done SHIP/PRODUCT/W0.02

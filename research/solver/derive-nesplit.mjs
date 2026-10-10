@@ -23,7 +23,7 @@ const DRAWS = 4000, N = 8000;
 // withdrawn on the plan-auditor's BLOCKING 3 of 10 Oct 08:13 UK, so these inputs are the judgement on record)
 export const JUDGED = {
   // where the table's survival gap sits against the true loss, per cause (amended on the plan-auditor's BLOCKINGs of
-  // 10 Oct 08:13 and 18:14 UK): BLIND (it reads none of the loss, dT 0), SEES (all of it, dT = the true loss), the rest MID
+  // 10 Oct 08:13 and 18:14 UK): BLIND (it reads none of the loss, dT inside the blind band, blindDT below), SEES (all of it, dT = the true loss), the rest MID
   // (a third of it); items 1 and 2 are then simulated through items() under each position and loss story
   blind: { 'NE-SURV': 0.9, 'NE-TS': 0.55, 'NE-NS': 0.55, 'NE-OTHER': 0.6 },
   sees: { 'NE-SURV': 0.03, 'NE-TS': 0.25, 'NE-NS': 0.25, 'NE-OTHER': 0.2 },
@@ -105,8 +105,8 @@ for (const s of Object.keys(JUDGED.splitStories)) {
   console.log(`    ${s.padEnd(6)}: HELD ${f4(item4[s].HELD)} INCONCLUSIVE ${f4(item4[s].INCONCLUSIVE)} FALSIFIED ${f4(item4[s].FALSIFIED)}`);
 }
 
-// items 1 and 2 by simulation through items(): the table's position (BLIND, SEES, MID) x the loss story; G each weight's
-// own year-0 gap from 7u's logs (the chooser's gap between its opening and staying, a stand-in for own against SS, grade D)
+// items 1 and 2 by simulation through items(): the table's position (BLIND, SEES, MID) x the loss story x G, each weight's
+// own year-0 gap from 7u's logs times gMult (the gap is G's lower bound by the code, grade A; how far above, judged)
 const GAP = {};
 for (const t of Object.values(logs)) for (const m of t.matchAll(/^S364\s+case \| unit CAND\/\w+\/W(0\.0[12])[\s\S]*?gap CAND\/\w+\/W\1: (\S+) opening/gm)) GAP[m[1]] = Number(m[2]);
 if (!(GAP['0.02'] > 0 && GAP['0.01'] > 0)) { console.error('derive-nesplit: no year-0 gap for S364 in 7u\'s logs'); process.exit(2); }

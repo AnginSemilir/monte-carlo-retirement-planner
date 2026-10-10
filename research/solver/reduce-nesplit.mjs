@@ -9,19 +9,22 @@
  *   sim line; every file present, stamped as the logs, each run's survivors and bits hash the sim line's.
  * Openings: own = CAND's own opening (S364: CC); base = SS (SHIP's spend at the plan's tiers); for each, its chooser score
  *   (the mixture-weighted score less the switch charge) and its survival part sv in points.
- * ITEM 1 (NE-SURV, the survival read misranks; S364, both weights): dT = sv(own) - sv(SS) in CAND's tables; on the same paths
- *   the paired survival of own against SS (saved: own survives and SS not; lost: SS survives and own not), the exact
- *   one-sided McNemar p for lost, Holm over the two weights. HELD when at both weights dT > 0 and the loss reads (Holm p
- *   below 0.05, lost above saved); FALSIFIED when dT <= 0 at both weights; else INCONCLUSIVE.
- * ITEM 2 (the survival part carries the preference; S364, both weights): G = chooser(own) - chooser(SS), dS = dT / 100 in
- *   score units. HELD when at both weights G > 0 and dS >= G; FALSIFIED when dS <= 0 at both weights; else INCONCLUSIVE.
+ * ITEM 1 (NE-SURV, the survival read misses a real loss; S364, both weights; the deep review's test, deep-review-log.md
+ *   10 Oct 04:17 UK, amended on the plan-auditor's BLOCKING 1 of 10 Oct): dT = sv(own) - sv(SS) in points in CAND's tables;
+ *   d = the paired survival change of own against SS on the same paths, its exact one-sided McNemar p for the loss, Holm
+ *   over the two weights. A weight MISREADS when the loss reads, d <= -0.25 and dT > -0.1 with dT >= d / 4 (the table sees
+ *   at most a quarter of a real loss); it SEES when the loss reads and dT <= d / 2. HELD when both weights misread;
+ *   FALSIFIED when both see; else INCONCLUSIVE.
+ * ITEM 2 (correcting the survival read alone flips the choice; S364, both weights): G = chooser(own) - chooser(SS), and
+ *   Gc = G - dT / 100 + d / 100, the gap with the table's survival difference replaced by the realised one. HELD when at
+ *   both weights G > 0 and Gc < 0; FALSIFIED when Gc >= G / 2 at both; else INCONCLUSIVE.
  * ITEM 3 (the year-1 held-tier layer carries it; S364, both weights): Gs = the swapped chooser(own) - chooser(SS), own read
  *   through its plan-tier partner's year-1 layer. HELD when Gs <= 0 at both weights; FALSIFIED when Gs >= G / 2 at both;
  *   else INCONCLUSIVE (and INCONCLUSIVE when own holds the plan's tiers: no layer to swap).
- * ITEM 4 (the de-risk, not the spend, carries the simulated loss; S364, both weights): the de-risk D = SC against SS and the
- *   spend P = CS against SS, each paired, its exact one-sided p, Holm over the four. HELD when at both weights D's loss reads
- *   and its net loss (lost less saved) exceeds P's; FALSIFIED when at both weights P's loss reads and exceeds D's; else
- *   INCONCLUSIVE.
+ * ITEM 4 (the de-risk, not the spend, carries the simulated loss; S364, both weights; amended on the plan-auditor's
+ *   BLOCKING 2): D = SC against SS, P = CS against SS, and X = SC against CS on the same paths, each exact one-sided, Holm
+ *   over the eight. HELD when at both weights D's loss reads and SC loses to CS; FALSIFIED when at both weights P's loss
+ *   reads and CS loses to SC; else INCONCLUSIVE.
  * ITEM 5 (the control, bridge 4 at 0.02): own against its partner of the other tier at the same spend: dT and the paired
  *   survival, two-sided (the smaller one-sided p doubled). FALSIFIED when the signs disagree and the simulated difference
  *   reads (p below 0.05): the method reads a misranking where the table is calibrated; INCONCLUSIVE when the signs disagree
@@ -41,7 +44,7 @@ import { holm, mcnemarHarmP } from './stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-nesplit.md';
-export const PTS = '30', SEED = '7002', NP = 8000, NPW = 2000, ALPHA = 0.05;
+export const PTS = '30', SEED = '7002', NP = 8000, NPW = 2000, ALPHA = 0.05, MISREAD_D = -0.25, MISREAD_T = -0.1;
 export const UNITS = [['S364', '0.02'], ['S364', '0.01'], ['bridge 4', '0.02']];
 export const OPENINGS = ['SS', 'SC', 'CS', 'CC'], RUNS = [...OPENINGS, 'CANDOWN', 'SHIPOWN'];
 const lab = w => `NE/W${w}`, key = (id, w) => `${id} ${lab(w)}`;
@@ -143,22 +146,26 @@ const partnerOf = { SS: 'SC', SC: 'SS', CS: 'CC', CC: 'CS' };
 export function items(U) {
   const s = ['0.02', '0.01'].map(w => U[`S364 ${lab(w)}`]);
   const out = {};
-  // item 1
+  // item 1: the table's survival gap against the realised one (the review's NE-SURV test, deep-review-log.md 10 Oct 04:17 UK)
   const i1 = s.map(u => ({ dT: u.parts[u.own].sv - u.parts.SS.sv, pair: u.pairs.ownSS }));
   const p1 = holm(i1.map(x => mcnemarHarmP(x.pair.lost, x.pair.saved)));
-  i1.forEach((x, j) => { x.pHolm = p1[j]; x.loss = p1[j] < ALPHA && x.pair.lost > x.pair.saved; });
-  out[1] = { legs: i1, outcome: i1.every(x => x.dT > 0 && x.loss) ? 'HELD' : i1.every(x => x.dT <= 0) ? 'FALSIFIED' : 'INCONCLUSIVE' };
-  // item 2
-  const i2 = s.map(u => { const G = u.parts[u.own].chooser - u.parts.SS.chooser, dS = (u.parts[u.own].sv - u.parts.SS.sv) / 100; return { G, dS }; });
-  out[2] = { legs: i2, outcome: i2.every(x => x.G > 0 && x.dS >= x.G) ? 'HELD' : i2.every(x => x.dS <= 0) ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  i1.forEach((x, j) => {
+    x.pHolm = p1[j]; x.loss = p1[j] < ALPHA && x.pair.lost > x.pair.saved; const d = x.pair.d;
+    x.misread = x.loss && d <= MISREAD_D && x.dT > MISREAD_T && x.dT >= d / 4;   // the table sees at most a quarter of a real loss
+    x.sees = x.loss && x.dT <= d / 2;                                             // the table sees at least half of it
+  });
+  out[1] = { legs: i1, outcome: i1.every(x => x.misread) ? 'HELD' : i1.every(x => x.sees) ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  // item 2: the chooser's gap with the table's survival difference replaced by the realised one
+  const i2 = s.map((u, j) => { const G = u.parts[u.own].chooser - u.parts.SS.chooser, Gc = G - i1[j].dT / 100 + i1[j].pair.d / 100; return { G, Gc }; });
+  out[2] = { legs: i2, outcome: i2.every(x => x.G > 0 && x.Gc < 0) ? 'HELD' : i2.every(x => x.Gc >= x.G / 2) ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 3
   const i3 = s.map((u, j) => { const planTier = u.openings[u.own].tiers === '0,0'; return { Gs: u.swap[u.own].chooser - u.swap.SS.chooser, G: i2[j].G, planTier }; });
   out[3] = { legs: i3, outcome: i3.some(x => x.planTier) ? 'INCONCLUSIVE' : i3.every(x => x.Gs <= 0) ? 'HELD' : i3.every(x => x.Gs >= x.G / 2) ? 'FALSIFIED' : 'INCONCLUSIVE' };
-  // item 4
-  const i4 = s.map(u => ({ D: u.pairs.SCSS, P: u.pairs.CSSS }));
-  const p4 = holm(i4.flatMap(x => [mcnemarHarmP(x.D.lost, x.D.saved), mcnemarHarmP(x.P.lost, x.P.saved)]));
-  i4.forEach((x, j) => { x.pD = p4[2 * j]; x.pP = p4[2 * j + 1]; x.netD = x.D.lost - x.D.saved; x.netP = x.P.lost - x.P.saved; x.readD = x.pD < ALPHA && x.netD > 0; x.readP = x.pP < ALPHA && x.netP > 0; });
-  out[4] = { legs: i4, outcome: i4.every(x => x.readD && x.netD > x.netP) ? 'HELD' : i4.every(x => x.readP && x.netP > x.netD) ? 'FALSIFIED' : 'INCONCLUSIVE' };
+  // item 4: the de-risk (SC) and the spend (CS) each against SS, and against each other on the same paths
+  const i4 = s.map(u => ({ D: u.pairs.SCSS, P: u.pairs.CSSS, X: u.pairs.SCCS }));
+  const p4 = holm(i4.flatMap(x => [mcnemarHarmP(x.D.lost, x.D.saved), mcnemarHarmP(x.P.lost, x.P.saved), mcnemarHarmP(x.X.lost, x.X.saved), mcnemarHarmP(x.X.saved, x.X.lost)]));
+  i4.forEach((x, j) => { [x.pD, x.pP, x.pX, x.pY] = p4.slice(4 * j, 4 * j + 4); x.readD = x.pD < ALPHA && x.D.lost > x.D.saved; x.readP = x.pP < ALPHA && x.P.lost > x.P.saved; x.readX = x.pX < ALPHA && x.X.lost > x.X.saved; x.readY = x.pY < ALPHA && x.X.saved > x.X.lost; });
+  out[4] = { legs: i4, outcome: i4.every(x => x.readD && x.readX) ? 'HELD' : i4.every(x => x.readP && x.readY) ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 5
   const b = U[`bridge 4 ${lab('0.02')}`];
   const dT = b.parts[b.own].sv - b.parts[partnerOf[b.own]].sv, pr = b.pairs.ownPartner;
@@ -169,7 +176,7 @@ export function items(U) {
 }
 export const unitOf = (u, file) => {
   const bits = Object.fromEntries(RUNS.map(r => [r, Buffer.from(file.bits[r], 'base64')]));
-  return { ...u, own: u.ownKey, pairs: { ownSS: pairOf(bits[u.ownKey], bits.SS), SCSS: pairOf(bits.SC, bits.SS), CSSS: pairOf(bits.CS, bits.SS), ownPartner: pairOf(bits[u.ownKey], bits[partnerOf[u.ownKey]]), own: pairOf(bits.CANDOWN, bits.SHIPOWN) } };
+  return { ...u, own: u.ownKey, pairs: { ownSS: pairOf(bits[u.ownKey], bits.SS), SCSS: pairOf(bits.SC, bits.SS), CSSS: pairOf(bits.CS, bits.SS), SCCS: pairOf(bits.SC, bits.CS), ownPartner: pairOf(bits[u.ownKey], bits[partnerOf[u.ownKey]]), own: pairOf(bits.CANDOWN, bits.SHIPOWN) } };
 };
 
 // ---------------------------------------------------------------- planted checks
@@ -178,38 +185,44 @@ function planted() {
   const cases = [];
   const P = (sv, chooser) => ({ sv, bq: 0, rs: 0, h: 0, wB: 0.02, wR: 0, score: chooser, charge: 0, chooser });
   const pr = (saved, lost, n = 8000) => ({ saved, lost, n, d: 100 * (saved - lost) / n });
-  const mk = ({ svOwn = 4.8, svSS = 0.5, chOwn = 0.06, chSS = 0.02, swOwn = 0.01, lostOwn = 30, savedOwn = 0, lostD = 25, savedD = 0, lostP = 5, savedP = 0, own = 'CC', tiersOwn = '2,2' } = {}) => {
+  const mk = ({ svOwn = 4.8, svSS = 0.5, chOwn = 0.06, chSS = 0.02, swOwn = 0.01, lostOwn = 30, savedOwn = 0, lostD = 25, savedD = 0, lostP = 5, savedP = 0, lostX = 20, savedX = 0, own = 'CC', tiersOwn = '2,2' } = {}) => {
     const parts = { SS: P(svSS, chSS), SC: P(1, 0), CS: P(1, 0), CC: P(1, 0) }; parts[own] = P(svOwn, chOwn);
     const swap = { ...parts, [own]: P(svOwn, swOwn) };
     return { own, openings: { SS: { tiers: '0,0' }, SC: { tiers: '2,2' }, CS: { tiers: '0,0' }, CC: { tiers: '2,2' }, [own]: { tiers: tiersOwn } }, parts, swap,
-      pairs: { ownSS: pr(savedOwn, lostOwn), SCSS: pr(savedD, lostD), CSSS: pr(savedP, lostP), ownPartner: pr(savedOwn, lostOwn), own: pr(savedOwn, lostOwn) } };
+      pairs: { ownSS: pr(savedOwn, lostOwn), SCSS: pr(savedD, lostD), CSSS: pr(savedP, lostP), SCCS: pr(savedX, lostX), ownPartner: pr(savedOwn, lostOwn), own: pr(savedOwn, lostOwn) } };
   };
   const U = (a, b, c) => ({ [`S364 ${lab('0.02')}`]: a, [`S364 ${lab('0.01')}`]: b, [`bridge 4 ${lab('0.02')}`]: c });
   const base = mk(), ctl = mk({ svOwn: 99.8, svSS: 99.7, lostOwn: 0, savedOwn: 0 });
   let o = items(U(base, base, ctl));
   cases.push(['the review\'s geometry: the table favours own, own loses 0/30, survival over the whole gap, the swap removes it, the de-risk carries the loss: 1-4 HELD, 5 HELD', [1, 2, 3, 4, 5].map(i => o[i].outcome).join(), 'HELD,HELD,HELD,HELD,HELD']);
+  o = items(U(mk({ svOwn: 0.3, svSS: 0.5 }), mk({ svOwn: 0.3, svSS: 0.5 }), ctl));
+  cases.push(['the table sees over half the realised loss (dT -0.2 against -0.375) at both weights: 1 FALSIFIED, 2 FALSIFIED', [o[1].outcome, o[2].outcome].join(), 'FALSIFIED,FALSIFIED']);
+  o = items(U(mk({ lostOwn: 20 }), mk({ lostOwn: 20 }), ctl));
+  cases.push(['a realised loss exactly -0.25 (0 saved/20 lost) counts: 1 HELD', o[1].outcome, 'HELD']); EDGES.push('a realised loss exactly at -0.25');
+  o = items(U(mk({ svOwn: 0.45, svSS: 0.5 }), mk({ svOwn: 0.45, svSS: 0.5 }), ctl));
+  cases.push(['the review\'s case: dT -0.05 against a realised -0.375 is a misread, not a FALSIFIED: 1 HELD', o[1].outcome, 'HELD']);
   o = items(U(mk({ svOwn: 0.4, svSS: 0.5 }), mk({ svOwn: 0.4, svSS: 0.5 }), ctl));
-  cases.push(['the table does not favour own on survival at either weight: 1 FALSIFIED, 2 FALSIFIED', [o[1].outcome, o[2].outcome].join(), 'FALSIFIED,FALSIFIED']);
-  o = items(U(mk({ svOwn: 0.5, svSS: 0.5 }), mk({ svOwn: 0.5, svSS: 0.5 }), ctl));
-  cases.push(['dT exactly 0 is not above 0: 1 FALSIFIED', o[1].outcome, 'FALSIFIED']); EDGES.push('a table survival gap of exactly 0');
+  cases.push(['dT -0.1 against -0.375: the table sees over a quarter and under half, neither a misread nor a sight: 1 INCONCLUSIVE', o[1].outcome, 'INCONCLUSIVE']);
   o = items(U(mk({ lostOwn: 0, savedOwn: 0 }), base, ctl));
   cases.push(['no discordant path at one weight: 1 INCONCLUSIVE', o[1].outcome, 'INCONCLUSIVE']); EDGES.push('a pair with no discordant path');
   o = items(U(mk({ lostOwn: 4, savedOwn: 0 }), mk({ lostOwn: 4, savedOwn: 0 }), ctl));
   cases.push(['0 saved/4 lost at each weight (p 0.0625 alone): the loss does not read, 1 INCONCLUSIVE', o[1].outcome, 'INCONCLUSIVE']);
   o = items(U(mk({ svOwn: 2.0, svSS: 0.5, chOwn: 0.06, chSS: 0.02 }), base, ctl));
-  cases.push(['survival positive but under the gap at one weight (0.015 against 0.04): 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']);
+  cases.push(['correcting the survival read flips the choice at one weight only: 2 INCONCLUSIVE', o[2].outcome, 'INCONCLUSIVE']);
   o = items(U(mk({ svOwn: 4.5, svSS: 0.5, chOwn: 0.06, chSS: 0.02 }), mk({ svOwn: 4.5, svSS: 0.5, chOwn: 0.06, chSS: 0.02 }), ctl));
-  cases.push(['survival exactly the gap (0.04 against 0.04): 2 HELD', o[2].outcome, 'HELD']); EDGES.push('a survival part exactly equal to the whole gap');
+  cases.push(['correcting the survival read flips the choice at both weights: 2 HELD', o[2].outcome, 'HELD']);
   o = items(U(mk({ swOwn: 0.04 }), mk({ swOwn: 0.04 }), ctl));
   cases.push(['the swap leaves the gap at G / 2 exactly (0.02 of 0.04) at both weights: 3 FALSIFIED', o[3].outcome, 'FALSIFIED']); EDGES.push('a swapped gap exactly half the gap');
   o = items(U(mk({ swOwn: 0.03 }), base, ctl));
   cases.push(['the swap shrinks the gap but leaves it positive and under half at one weight: 3 INCONCLUSIVE', o[3].outcome, 'INCONCLUSIVE']);
   o = items(U(mk({ own: 'CS', tiersOwn: '0,0' }), base, ctl));
   cases.push(['own holds the plan\'s tiers: no layer to swap, 3 INCONCLUSIVE', o[3].outcome, 'INCONCLUSIVE']); EDGES.push('an own opening at the plan\'s tiers');
-  o = items(U(mk({ lostD: 5, lostP: 25 }), mk({ lostD: 5, lostP: 25 }), ctl));
+  o = items(U(mk({ lostD: 5, lostP: 25, lostX: 0, savedX: 20 }), mk({ lostD: 5, lostP: 25, lostX: 0, savedX: 20 }), ctl));
   cases.push(['the spend carries the loss at both weights: 4 FALSIFIED', o[4].outcome, 'FALSIFIED']);
-  o = items(U(mk({ lostD: 20, lostP: 20 }), mk({ lostD: 20, lostP: 20 }), ctl));
-  cases.push(['the de-risk and the spend lose alike: 4 INCONCLUSIVE', o[4].outcome, 'INCONCLUSIVE']); EDGES.push('equal net losses under the de-risk and the spend');
+  o = items(U(mk({ lostD: 20, lostP: 20, lostX: 4, savedX: 3 }), mk({ lostD: 20, lostP: 20, lostX: 4, savedX: 3 }), ctl));
+  cases.push(['the de-risk and the spend lose alike, SC against CS not reading: 4 INCONCLUSIVE', o[4].outcome, 'INCONCLUSIVE']); EDGES.push('equal losses under the de-risk and the spend');
+  o = items(U(mk({ lostD: 25, lostP: 15, lostX: 6, savedX: 1 }), mk({ lostD: 25, lostP: 15, lostX: 6, savedX: 1 }), ctl));
+  cases.push(['the de-risk loses more than the spend but SC against CS does not read: 4 INCONCLUSIVE', o[4].outcome, 'INCONCLUSIVE']);
   o = items(U(base, base, mk({ svOwn: 99.8, svSS: 99.7, lostOwn: 30, savedOwn: 0 })));
   cases.push(['the control misranks (table up, 0/30 in simulation): 5 FALSIFIED', o[5].outcome, 'FALSIFIED']);
   o = items(U(base, base, mk({ svOwn: 99.8, svSS: 99.7, lostOwn: 3, savedOwn: 0 })));
@@ -299,11 +312,11 @@ if (isMain) {
   }
   const it = items(U);
   console.log('\nTHE ITEMS (each read by its registered rule)');
-  const l1 = it[1].legs.map((x, j) => `W${['0.02', '0.01'][j]} dT ${f4(x.dT)} pair ${x.pair.saved} saved/${x.pair.lost} lost (change ${f4(x.pair.d)}) Holm p ${e4(x.pHolm)}`);
-  console.log(`1. NE-SURV, the survival read misranks own against SS on S364: ${it[1].outcome}\n     ${l1.join('\n     ')}`);
-  console.log(`2. the survival part carries own's preference over SS: ${it[2].outcome}\n     ${it[2].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} survival part ${e4(x.dS)}`).join('\n     ')}`);
+  const l1 = it[1].legs.map((x, j) => `W${['0.02', '0.01'][j]} dT ${f4(x.dT)} pair ${x.pair.saved} saved/${x.pair.lost} lost (change ${f4(x.pair.d)}) Holm p ${e4(x.pHolm)}${x.misread ? ' MISREADS' : x.sees ? ' SEES' : ''}`);
+  console.log(`1. NE-SURV, the table's survival gap against the realised one, own against SS on S364: ${it[1].outcome}\n     ${l1.join('\n     ')}`);
+  console.log(`2. correcting the survival read alone flips own's preference over SS: ${it[2].outcome}\n     ${it[2].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} corrected ${e4(x.Gc)}`).join('\n     ')}`);
   console.log(`3. the year-1 held-tier layer carries it: ${it[3].outcome}\n     ${it[3].legs.map((x, j) => `W${['0.02', '0.01'][j]} G ${e4(x.G)} swapped ${e4(x.Gs)}${x.planTier ? ' (own at the plan\'s tiers)' : ''}`).join('\n     ')}`);
-  console.log(`4. the de-risk, not the spend, carries the simulated loss: ${it[4].outcome}\n     ${it[4].legs.map((x, j) => `W${['0.02', '0.01'][j]} de-risk ${x.D.saved} saved/${x.D.lost} lost (Holm p ${e4(x.pD)}) spend ${x.P.saved} saved/${x.P.lost} lost (Holm p ${e4(x.pP)})`).join('\n     ')}`);
+  console.log(`4. the de-risk, not the spend, carries the simulated loss: ${it[4].outcome}\n     ${it[4].legs.map((x, j) => `W${['0.02', '0.01'][j]} de-risk ${x.D.saved} saved/${x.D.lost} lost (Holm p ${e4(x.pD)}) spend ${x.P.saved} saved/${x.P.lost} lost (Holm p ${e4(x.pP)}) SC against CS ${x.X.saved} saved/${x.X.lost} lost (Holm p ${e4(x.pX)} / ${e4(x.pY)})`).join('\n     ')}`);
   const l5 = it[5].legs[0];
   console.log(`5. the control (bridge 4 at 0.02): no misranking where the table is calibrated: ${it[5].outcome}\n     dT ${f4(l5.dT)} pair ${l5.pair.saved} saved/${l5.pair.lost} lost p ${e4(l5.p)}`);
   console.log(`REALISED item 1: ${f4(it[1].legs[0].pair.d)}`);

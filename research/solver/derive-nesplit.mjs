@@ -21,10 +21,14 @@ const DRAWS = 4000, N = 8000;
 
 // THE JUDGED LINES (written before the derivation was run; the prediction's Credence section quotes them)
 export const JUDGED = {
-  // P(the table's survival part favours CAND's own opening over SS at both weights | cause)
-  dTpos: { 'NE-SURV': 0.9, 'NE-TS': 0.4, 'NE-NS': 0.3, 'NE-OTHER': 0.5 },
-  // P(that survival part covers the whole chooser gap at both weights | cause)
-  covers: { 'NE-SURV': 0.7, 'NE-TS': 0.1, 'NE-NS': 0.1, 'NE-OTHER': 0.3 },
+  // amended on the plan-auditor's BLOCKING 1 of 10 Oct (item 1 reads the table's gap against the realised one, item 2 the
+  // gap with the survival read corrected): P(the table's survival gap is blind to a real loss, dT > -0.1 and >= d / 4, at
+  // both weights | cause); P(it sees at least half of it at both | cause); P(correcting the survival read flips the choice
+  // at both | cause, the table blind); P(correcting it leaves at least half the gap at both | cause)
+  blind: { 'NE-SURV': 0.9, 'NE-TS': 0.55, 'NE-NS': 0.55, 'NE-OTHER': 0.6 },
+  sees: { 'NE-SURV': 0.03, 'NE-TS': 0.25, 'NE-NS': 0.25, 'NE-OTHER': 0.2 },
+  flip: { 'NE-SURV': 0.85, 'NE-TS': 0.2, 'NE-NS': 0.2, 'NE-OTHER': 0.4 },
+  noflip: { 'NE-SURV': 0.05, 'NE-TS': 0.5, 'NE-NS': 0.5, 'NE-OTHER': 0.35 },
   // P(the swapped year-1 layer leaves no gap at both weights | cause), and P(it leaves at least half at both)
   swapGone: { 'NE-SURV': 0.15, 'NE-TS': 0.6, 'NE-NS': 0.15, 'NE-OTHER': 0.25 },
   swapHalf: { 'NE-SURV': 0.6, 'NE-TS': 0.2, 'NE-NS': 0.6, 'NE-OTHER': 0.4 },
@@ -61,34 +65,34 @@ for (const w of ['0.02', '0.01']) for (const id of ['S364', 'bridge 4']) for (co
 // 2. THE POWER, by simulation through reduce-nesplit.mjs's items()
 const P = (sv, chooser) => ({ sv, bq: 0, rs: 0, h: 0, wB: 0.02, wR: 0, score: chooser, charge: 0, chooser });
 const pair = (saved, lost) => ({ saved, lost, n: N, d: 100 * (saved - lost) / N });
-const unit = ({ ownSS, SCSS, CSSS }) => ({ own: 'CC', openings: { SS: { tiers: '0,0' }, SC: { tiers: '2,2' }, CS: { tiers: '0,0' }, CC: { tiers: '2,2' } },
+const unit = ({ ownSS, SCSS, CSSS, SCCS = pair(0, 0) }) => ({ own: 'CC', openings: { SS: { tiers: '0,0' }, SC: { tiers: '2,2' }, CS: { tiers: '0,0' }, CC: { tiers: '2,2' } },
   parts: { SS: P(0.5, 0.02), SC: P(1, 0), CS: P(1, 0), CC: P(4.8, 0.06) }, swap: { SS: P(0.5, 0.02), SC: P(1, 0), CS: P(1, 0), CC: P(4.8, 0.06) },
-  pairs: { ownSS, SCSS, CSSS, ownPartner: pair(0, 0), own: ownSS } });
+  pairs: { ownSS, SCSS, CSSS, SCCS, ownPartner: pair(0, 0), own: ownSS } });
 const ctl = unit({ ownSS: pair(0, 0), SCSS: pair(0, 0), CSSS: pair(0, 0) });
 const lossRate = { SAME: w => LEG[w].lost, HALF: w => LEG[w].lost / 2, NULL: () => 0 }, CHURN = 0.5;
-console.log('\n2. THE POWER (the share of draws where the loss reads at both weights, Holm over the two; item 1\'s simulated half; the stories\' own-against-SS loss from 7u\'s S364 legs, a carry from CAND-against-SHIP to own-against-SS, grade D)');
+console.log('\n2. THE POWER (the share of draws where the loss reads at both weights and reaches -0.25 points (item 1\'s MISREADS with the table blind), Holm over the two; item 1\'s simulated half; the stories\' own-against-SS loss from 7u\'s S364 legs, a carry from CAND-against-SHIP to own-against-SS, grade D)');
 const powerLoss = {}, dDraws = [];
 for (const [s] of Object.entries(JUDGED.lossStories)) {
   let reads = 0;
   for (let k = 0; k < DRAWS; k++) {
     const u = ['0.02', '0.01'].map(w => { const lost = pois(lossRate[s](w) + CHURN), saved = pois(CHURN); return unit({ ownSS: pair(saved, lost), SCSS: pair(0, 0), CSSS: pair(0, 0) }); });
     const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl });
-    if (o[1].legs.every(x => x.loss)) reads++;
+    if (o[1].legs.every(x => x.misread)) reads++;   // the synthetic table is blind (dT 4.3), so MISREADS = the loss reads at -0.25 or past
     if (rnd() < JUDGED.lossStories[s] * 3) dDraws.push(o[1].legs[0].pair.d);
   }
   powerLoss[s] = reads / DRAWS;
   console.log(`  ${s.padEnd(5)}: loss reads at both ${f4(powerLoss[s])}`);
 }
 for (const [s, v] of [['SAME x2', 2], ['SAME x3', 3]]) {   // sensitivity: the churn at two larger values
-  let reads = 0; for (let k = 0; k < DRAWS; k++) { const u = ['0.02', '0.01'].map(w => unit({ ownSS: pair(pois(CHURN * v * 4), pois(LEG[w].lost + CHURN * v * 4)), SCSS: pair(0, 0), CSSS: pair(0, 0) })); const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl }); if (o[1].legs.every(x => x.loss)) reads++; }
+  let reads = 0; for (let k = 0; k < DRAWS; k++) { const u = ['0.02', '0.01'].map(w => unit({ ownSS: pair(pois(CHURN * v * 4), pois(LEG[w].lost + CHURN * v * 4)), SCSS: pair(0, 0), CSSS: pair(0, 0) })); const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl }); if (o[1].legs.every(x => x.misread)) reads++; }
   console.log(`  sensitivity, SAME with the churn ${v * 4} times larger (${s}): loss reads at both ${f4(reads / DRAWS)}`);
 }
 const split = { DERISK: [0.9, 0.1], SPEND: [0.1, 0.9], BOTH: [0.5, 0.5] }, item4 = {}, d4 = [];
-console.log('  item 4 (the de-risk against the spend, Holm over four; the loss of the SAME story split as the story says, each pair\'s churn added):');
+console.log('  item 4 (the de-risk against the spend, Holm over eight with SC against CS on the same paths; the loss of the SAME story split as the story says, each pair\'s churn added):');
 for (const s of Object.keys(JUDGED.splitStories)) {
   const c = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 };
   for (let k = 0; k < DRAWS; k++) {
-    const u = ['0.02', '0.01'].map(w => unit({ ownSS: pair(0, 31), SCSS: pair(pois(CHURN), pois(LEG[w].lost * split[s][0] + CHURN)), CSSS: pair(pois(CHURN), pois(LEG[w].lost * split[s][1] + CHURN)) }));
+    const u = ['0.02', '0.01'].map(w => unit({ ownSS: pair(0, 31), SCSS: pair(pois(CHURN), pois(LEG[w].lost * split[s][0] + CHURN)), CSSS: pair(pois(CHURN), pois(LEG[w].lost * split[s][1] + CHURN)), SCCS: pair(pois(LEG[w].lost * split[s][1] + CHURN), pois(LEG[w].lost * split[s][0] + CHURN)) }));   // SC against CS: each side's own loss (independent losses, grade D)
     const o = items({ 'S364 NE/W0.02': u[0], 'S364 NE/W0.01': u[1], 'bridge 4 NE/W0.02': ctl });
     c[o[4].outcome]++;
     if (rnd() < JUDGED.splitStories[s] * 3) d4.push(o[4].legs[0].D.d);
@@ -107,23 +111,24 @@ const z = Object.values(all).reduce((t, v) => t + v, 0), CAUSE = Object.fromEntr
 console.log(`\n3. THE CREDENCES (the receipt of 10 Oct 04:17 UK: ${Object.entries(all).map(([k, v]) => `${k}=${v}`).join('; ')}, normalised over the NE causes; the judged conditionals in this script's JUDGED)`);
 const mix = f => Object.entries(CAUSE).reduce((t, [k, p]) => t + p * f(k), 0);
 const pLoss = Object.entries(JUDGED.lossStories).reduce((t, [s, p]) => t + p * powerLoss[s], 0);
-const dPos = mix(k => JUDGED.dTpos[k]);
-const c1 = { HELD: dPos * pLoss, FALSIFIED: (1 - dPos) * 0.8 }; c1.INCONCLUSIVE = 1 - c1.HELD - c1.FALSIFIED;
-const cov = mix(k => JUDGED.dTpos[k] * JUDGED.covers[k]);
-const c2 = { HELD: cov, FALSIFIED: (1 - dPos) * 0.8 }; c2.INCONCLUSIVE = 1 - c2.HELD - c2.FALSIFIED;
+const pLossAll = JUDGED.lossStories.SAME + JUDGED.lossStories.HALF * 0.9868;   // the loss reads at both (section 2's HALF row, which reads without reaching -0.25)
+const pBlind = mix(k => JUDGED.blind[k]), pSees = mix(k => JUDGED.sees[k]);
+const c1 = { HELD: pBlind * pLoss, FALSIFIED: pSees * pLossAll }; c1.INCONCLUSIVE = 1 - c1.HELD - c1.FALSIFIED;
+const pFlip = mix(k => JUDGED.blind[k] * JUDGED.flip[k]), pNo = mix(k => JUDGED.noflip[k]);
+const c2 = { HELD: pFlip * pLossAll, FALSIFIED: pNo * pLossAll }; c2.INCONCLUSIVE = 1 - c2.HELD - c2.FALSIFIED;
 const c3 = { HELD: mix(k => JUDGED.swapGone[k]), FALSIFIED: mix(k => JUDGED.swapHalf[k]) }; c3.INCONCLUSIVE = 1 - c3.HELD - c3.FALSIFIED;
 const c4 = Object.fromEntries(['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(o => [o, Object.entries(JUDGED.splitStories).reduce((t, [s, p]) => t + p * item4[s][o], 0)]));
 const c5 = { HELD: JUDGED.control[0], INCONCLUSIVE: JUDGED.control[1], FALSIFIED: JUDGED.control[2] };
-console.log(`  item 1: P(dT above 0 at both) ${f4(dPos)}, P(the loss reads at both) ${f4(pLoss)}; FALSIFIED takes 0.8 of P(dT not above 0), the rest a split by weight`);
-console.log(`  item 2: P(the survival part covers the gap at both) ${f4(cov)}`);
+console.log(`  item 1: P(the table blind) ${f4(pBlind)}, P(it sees half) ${f4(pSees)}, P(the loss reads and reaches -0.25 at both) ${f4(pLoss)}, P(the loss reads at both) ${f4(pLossAll)}`);
+console.log(`  item 2: P(blind and correcting flips) ${f4(pFlip)}, P(correcting leaves half) ${f4(pNo)}`);
 const pt = (arr, q) => { const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.max(0, Math.floor(q * a.length)))]; };
 const out = [[1, c1, pt(dDraws, 0.5)], [2, c2, NaN], [3, c3, NaN], [4, c4, pt(d4, 0.5)], [5, c5, NaN]];
 for (const [i, c, p] of out) console.log(`CREDENCE item ${i}: point ${Number.isFinite(p) ? f4(p) : '-'} HELD ${f2(c.HELD)} INCONCLUSIVE ${f2(c.INCONCLUSIVE)} FALSIFIED ${f2(c.FALSIFIED)}`);
 console.log(`  POINT item 1: ${f4(pt(dDraws, 0.5))} (80% interval ${f4(pt(dDraws, 0.1))} to ${f4(pt(dDraws, 0.9))}; own against SS at 0.02 over the loss stories)`);
 console.log(`  POINT item 4: ${f4(pt(d4, 0.5))} (80% interval ${f4(pt(d4, 0.1))} to ${f4(pt(d4, 0.9))}; the de-risk against SS at 0.02 over the split stories)`);
-// the decision table's rows (items 1 and 3 read as independent, judged)
-const rowA = c1.HELD, rowB = c1.FALSIFIED * c3.HELD, rowC = c1.FALSIFIED * c3.FALSIFIED;
-console.log(`  DECISION ROWS: item 1 HELD ${f2(rowA)}; item 1 FALSIFIED and 3 HELD ${f2(rowB)}; items 1 and 3 FALSIFIED ${f2(rowC)}; else ${f2(1 - rowA - rowB - rowC)}`);
+// the decision table's rows (judged as independent across items)
+const rowA = c1.HELD * (pFlip / Math.max(pBlind, 1e-9)), rowB = mix(k => JUDGED.swapGone[k] * (1 - JUDGED.blind[k] * JUDGED.flip[k])), rowC = c2.FALSIFIED * c3.FALSIFIED;
+console.log(`  DECISION ROWS: items 1 and 2 HELD ${f2(rowA)}; item 3 HELD, item 2 not HELD ${f2(rowB)}; items 2 and 3 FALSIFIED ${f2(rowC)}; else ${f2(1 - rowA - rowB - rowC)}`);
 
 // 4. THE BUDGET, from 7u's own logs (S364 and bridge 4: each arm's solve and its 8,000-path forward)
 console.log('\n4. THE BUDGET (7u\'s logs: each unit\'s solve and its 8,000 paths forward, results/diag7u)');

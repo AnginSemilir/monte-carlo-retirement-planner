@@ -16,7 +16,7 @@
  * Self-checks, each refusing the run: partsSum (the parts rebuild each table's score within 1e-12 relative, every opening
  * and table), chooserTop (CAND's own opening is the best of the four by the chooser's score), swapIdentity (swapping a
  * plan-tier opening to its own layer changes nothing), forceIdentity (forcing CAND's own opening reproduces its unforced
- * run on every path). NESPLIT_PLANT=partsum adds 1e-6 to one part (partsSum must refuse); NESPLIT_PLANT=force forces
+ * run on every path: survival, failure kind, and its fail year or end wealth). NESPLIT_PLANT=partsum adds 1e-6 to one part (partsSum must refuse); NESPLIT_PLANT=force forces
  * the plan-tier opening at CAND's level as if it were CAND's own (forceIdentity must refuse).
  *   node research/solver/audit-nesplit.mjs [points=30] [paths=8000] [paths a world=2000] part k/n [seed=7002]
  */
@@ -130,7 +130,7 @@ UNITS.forEach(([id, w], ui) => {
     let z, one;
     try { tab.wB = 0; tab.wR = 0; z = scoreOne(tab, ai); tab.wR = 1; one = scoreOne(tab, ai); } finally { tab.wB = wB; tab.wR = wR; }
     const p = { feasible: true, sc: full.sc, sv: full.sv, bq: full.bq, h: full.sv - z.sc, rs: one.sc - z.sc, wB, wR };
-    if (PLANT === 'partsum' && ai === OP.CC) p.rs += 1e-6;
+    if (PLANT === 'partsum' && ai === OP.CC) p.bq += 1e-6;   // bq carries wB (0.02 or 0.01); rs carries wR, 0 in both arms, so a plant there could not show
     CHK.partsSum++;
     const rebuilt = p.sv + wR * p.rs + wB * p.bq - p.h;
     if (!(Math.abs(rebuilt - p.sc) <= 1e-12 * Math.max(1, Math.abs(p.sc)))) CHK.partsSumBad++;
@@ -177,17 +177,18 @@ UNITS.forEach(([id, w], ui) => {
   // forward: each opening forced in year 0 with CAND's moves after it, and both arms unforced, on the same paths
   const f0 = Date.now(), paths = E.pathsForSeed(SEED, NP, T);
   const kindOf = o => (o.survived ? 0 : ('action' in o ? 1 : 2));   // 1: a year with no money; 2: the plan's end below its minimum pot
-  const RUNS = [...OPENINGS.map(k => [k, zs => runPolicy(cand, zs, { start: { t: 0, s: s0, held: H0(), firstAi: PLANT === 'force' && k === ownKey ? OP[ownKey === 'CS' ? 'CC' : 'CS'] : OP[k] } })]),
+  const RUNS = [...OPENINGS.map(k => [k, zs => runPolicy(cand, zs, { start: { t: 0, s: s0, held: H0(), firstAi: PLANT === 'force' && k === ownKey ? OP[{ SS: 'SC', SC: 'SS', CS: 'CC', CC: 'CS' }[ownKey]] : OP[k] } })]),
     ['CANDOWN', zs => runPolicy(cand, zs)], ['SHIPOWN', zs => runPolicy(ship, zs)]];
-  const bits = {}, kinds = {};
+  const bits = {}, kinds = {}, prints = {};
   for (const [k, run] of RUNS) {
-    const b = new Uint8Array(NP), kd = new Uint8Array(NP);
-    paths.forEach((zs, i) => { const o = run(zs); b[i] = o.survived ? 1 : 0; kd[i] = kindOf(o); });
-    bits[k] = b; kinds[k] = kd;
+    const b = new Uint8Array(NP), kd = new Uint8Array(NP), fp = new Float64Array(NP);
+    // fp: each path's fingerprint for forceIdentity - its end wealth if it survived, else minus its fail year
+    paths.forEach((zs, i) => { const o = run(zs); b[i] = o.survived ? 1 : 0; kd[i] = kindOf(o); fp[i] = o.survived ? o.terminal : -o.failYear; });
+    bits[k] = b; kinds[k] = kd; prints[k] = fp;
     const ok = b.reduce((t, x) => t + x, 0), early = kd.reduce((t, x) => t + (x === 1), 0), endBelow = kd.reduce((t, x) => t + (x === 2), 0);
     console.log(`${''.padEnd(16)} sim ${L} ${k}: survived ${ok} of ${NP} ran-out ${early} end-below-minpot ${endBelow} bits ${sha16(b)}`);
   }
-  let same = 0; for (let i = 0; i < NP; i++) if (bits[ownKey][i] === bits.CANDOWN[i] && kinds[ownKey][i] === kinds.CANDOWN[i]) same++;
+  let same = 0; for (let i = 0; i < NP; i++) if (bits[ownKey][i] === bits.CANDOWN[i] && kinds[ownKey][i] === kinds.CANDOWN[i] && prints[ownKey][i] === prints.CANDOWN[i]) same++;
   console.log(`${''.padEnd(16)} checks ${L}: forceIdentity ${same}/${NP} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (same !== NP) { console.error(`audit-nesplit: ${id} ${L}: forcing CAND's own opening did not reproduce its run`); process.exit(3); }
   // per world: the world's long-run shift fixed (NS-CAND's paths), each opening forced

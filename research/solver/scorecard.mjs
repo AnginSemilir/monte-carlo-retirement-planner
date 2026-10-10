@@ -68,6 +68,7 @@ export const TESTS = [
   { name: '7aw (the research candidate against the shipping default at the estate weight 0.02, 25 households)', prediction: 'predictions/diag-7aw.md', results: 'results-7aw.txt' },
   { name: 'CARRY (the carry family\'s rule held out on 7aw, and O123\'s cause by the fixed-policy re-score)', prediction: 'predictions/diag-carry.md', results: 'results-carry.txt' },
   { name: 'NS-COND (NSB re-scoped: what carries the live corners\' bequest error at the share-axis dead reads)', prediction: 'predictions/diag-nscond.md', results: 'results-nscond.txt' },
+  { name: '7u (the research candidate against the shipping default on the held-out seed, 55 households, both estate weights)', prediction: 'predictions/confirm-7u.md', results: 'results-7u.txt' },
 ];
 
 export function credences(predText) {

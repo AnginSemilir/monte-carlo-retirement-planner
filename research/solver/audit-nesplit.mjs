@@ -130,7 +130,9 @@ UNITS.forEach(([id, w], ui) => {
     let z, one;
     try { tab.wB = 0; tab.wR = 0; z = scoreOne(tab, ai); tab.wR = 1; one = scoreOne(tab, ai); } finally { tab.wB = wB; tab.wR = wR; }
     const p = { feasible: true, sc: full.sc, sv: full.sv, bq: full.bq, h: full.sv - z.sc, rs: one.sc - z.sc, wB, wR };
-    if (PLANT === 'partsum' && ai === OP.CC) p.bq += 1e-6;   // bq carries wB (0.02 or 0.01); rs carries wR, 0 in both arms, so a plant there could not show
+    // bq is in pounds and wB per pound (the weight over the household's scale), so the plant is relative; rs carries wR, 0 in
+    // both arms, so a plant there could not show (the plan-auditor's MINOR 4 of 10 Oct 08:13 UK; the preflight of 10 Oct)
+    if (PLANT === 'partsum' && ai === OP.CC) p.bq += 1e-6 * Math.max(1, Math.abs(p.bq));
     CHK.partsSum++;
     const rebuilt = p.sv + wR * p.rs + wB * p.bq - p.h;
     if (!(Math.abs(rebuilt - p.sc) <= 1e-12 * Math.max(1, Math.abs(p.sc)))) CHK.partsSumBad++;

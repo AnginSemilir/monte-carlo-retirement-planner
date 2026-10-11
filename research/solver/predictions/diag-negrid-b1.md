@@ -10,7 +10,7 @@
 
 ## Question
 
-The deep review after NE-BLEND stage A's decisive test, its stage B1: (1) does the gap between the log-odds read (LOR) and the probability read (BASE) on S380, at the plan-tier opening P and the de-risked opening D, shrink by half when the wealth axis goes from 30 points to 60 (RB-INTERP along W, against a gap the share axis, the split or the reference carries)? (2) do S380's tables come within half their coarse error of their runs at 60 points, under both reads? (3) do the 60-point tables price D against P - the de-risk family's choice (O142) - within a point of the paired runs in every world? (4) does bridge 4 stay calibrated at 60 points under both reads?
+The deep review after NE-BLEND stage A's decisive test, its stage B1: (1) does the gap between the log-odds read (LOR) and the probability read (BASE) on S380, at the plan-tier opening P and the de-risked opening D, shrink by half when the wealth axis goes from 30 points to 60 (RB-INTERP along W, against a gap the share axis, the split or the reference carries)? (2) do S380's tables come within half their coarse error of their runs at 60 points, under both reads? (3) do the 60-point tables price D against P - the de-risk family's choice (O142) - within a point of the paired runs in every world? (4) does bridge 4 stay calibrated at 60 points under BASE, the candidate's read (LOR's bridge 4 reported)?
 
 ## Derivation
 
@@ -23,15 +23,15 @@ The deep review after NE-BLEND stage A's decisive test, its stage B1: (1) does t
 - **Item 1 INCONCLUSIVE:** the read space's gap shrinks with the wealth axis but not by half in every counted cell (the derivation's likeliest, 0.53: RB-INTERP leads, but part of the gap is the share axis's).
 - **Item 2 INCONCLUSIVE:** the fine tables come closer to their runs without a clear half under both reads.
 - **Item 3 FALSIFIED:** the 60-point tables still misprice the de-risk by more than a point in some world (tied with INCONCLUSIVE at 0.37; taken because S380's coarse price error in world 0 is several points and the share axis is unchanged).
-- **Item 4 HELD:** bridge 4 stays within 0.3 points under both reads at 60 points.
+- **Item 4 HELD:** bridge 4 stays within 0.3 points under BASE at 60 points.
 
 ## Falsified if
 
-- **Item 1 HELD:** every counted cell's gap at least halves: the read space's gap is the wealth cell's (RB-INTERP along W).
+- **Item 1 HELD:** every counted cell's gap at least halves: the gap closes with the wealth axis (RB-INTERP or RB-SPACE: item 1 alone does not split them; each read's own move between the grids, reported, does).
 - **Item 1 FALSIFIED:** no counted cell's gap shrinks below 0.8 of its coarse size: the gap is not the wealth axis's.
 - **Item 2 HELD:** both reads come within half their coarse error of their runs at 60 points; FALSIFIED: both surely do not.
 - **Item 3 HELD:** the 60-point tables price D against P within a point of the paired runs in every world under both reads (the prediction missed).
-- **Item 4 FALSIFIED:** a world's interval for bridge 4 lies wholly outside 0.3 points under either read at 60 points.
+- **Item 4 FALSIFIED:** a world's interval for bridge 4 under BASE lies wholly outside 0.3 points at 60 points.
 
 ## Fair-test table
 
@@ -52,42 +52,43 @@ The deep review after NE-BLEND stage A's decisive test, its stage B1: (1) does t
 - **Item 1 (primary; single look; deterministic):** on S380, the gap g = LOR's table less BASE's at P and at D in worlds 0 and 1, a cell counted where the coarse gap is at least half a point; HELD when every counted cell's |fine gap| / |coarse gap| is at most 0.5; FALSIFIED when every counted cell's is at least 0.8; INCONCLUSIVE otherwise, or with no cell counted.
 - **Item 2 (single look):** on S380 at the fine grid, BASE at P and LOR at D (stage A's openings for them), A = the weighted sum over worlds (1/6, 2/3, 1/6) of |table less simulated|, against stage A's coarse A (BASE 2.5434, LOR 3.2377, from results-neblend-a.txt's world lines); HELD when both arms' A is at most half their coarse A at the point; FALSIFIED when both arms' lower bound (each world's distance from 0 of its interval, weighted) is above half; INCONCLUSIVE otherwise.
 - **Item 3 (primary; single look):** on S380 at the fine grid under each arm, per world, err = the table's D less P minus the paired runs' change of forcing D for P; HELD when every arm's and world's err is within a point at the point; FALSIFIED when some arm's and world's err interval lies wholly outside [-1, 1]; INCONCLUSIVE otherwise.
-- **Item 4 (control; single look):** bridge 4 at the fine grid, each arm's own opening: HELD when every world's table less simulated is within 0.3 points at the point under both arms; FALSIFIED when a world's interval lies wholly outside [-0.3, 0.3]; INCONCLUSIVE otherwise (NE-ROOT item 5's rule).
-- **Reported, not items:** every job's tables and own opening at both grids; the LOR clamp counts; the coarse tables' D less P against the fine runs' change; S224's fine world line beside NE-ROOT's coarse one (RB-INTERP predicts its after-access over-read shrinks); bridge 4's read-space gaps.
+- **Item 4 (control; single look):** bridge 4 at the fine grid under BASE, the candidate's read, at its own opening: HELD when every world's table less simulated is within 0.3 points at the point; FALSIFIED when a world's interval lies wholly outside [-0.3, 0.3]; INCONCLUSIVE otherwise (NE-ROOT item 5's rule). LOR's bridge 4 is reported beside it (its world-0 over-read is on record at the coarse grid, O141).
+- **Reported, not items:** every job's tables and own opening at both grids; the LOR clamp counts; the coarse tables' D less P against the fine runs' change; S224's fine world line beside NE-ROOT's coarse one (RB-INTERP predicts its after-access over-read shrinks); bridge 4's read-space gaps and LOR's bridge 4 at the fine grid; each read's own move between the grids at item 1's cells (deterministic: under RB-INTERP LOR's table moves too, under RB-SPACE it stays and BASE's moves to it - the read that splits them, which item 1 alone does not); each arm's error at its own fine opening beside item 2's (the chooser's selection).
 - **Declared choices, not derived:** 60 points (twice the candidate's 30: the review's design); half a point as the smallest gap read; the half and 0.8 ratio lines (the gap or error at most half: resolution's; at least 0.8: not); a point as the price line (the deep review's world line); the 0.3 control line (NE-ROOT's); P and D per household from NE-ROOT's openings (S380 12 and 14, bridge 4 57 and 59, S224 0 and 2).
 
 ## Decision table
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD, item 4 not FALSIFIED | the read space's gap is the wealth axis's resolution (RB-INTERP along W, grade B on one seed): the fine grid is the direction of a fix; the deep review after B1 designs the candidate at a finer wealth axis against today's (outcomes and cost, registered as its own test), B2 beside it for the share axis; items 2 and 3 say whether the fine tables reach their runs and price the de-risk | 0.28 |
+| item 1 HELD, item 4 not FALSIFIED | the read space's gap closes with the wealth axis: RB-SPLIT and RB-REF lose (grade B, one seed); RB-INTERP against RB-SPACE is split by each read's own move between the grids (reported), read by the deep review after B1, which designs the next step - under RB-INTERP the candidate at a finer wealth axis against today's (outcomes and cost, its own test), under RB-SPACE the log-odds read's own calibration - with B2 beside it for the share axis | 0.30 |
 | item 1 FALSIFIED | the read space's gap is not the wealth axis's: RB-INTERP along W out (grade B); B2 next (S364 at 6 and 12 shares under BASE and LOR, ORDER at 6), the share axis, the split and the reference its candidates | 0.17 |
-| item 4 FALSIFIED, item 1 not FALSIFIED | the fine grid moves bridge 4: no resolution fix as it stands; B2 next with bridge 4 read, and the deep review weighs the fine grid's control | 0.09 |
-| else | the unsettled items named; B2 as the deep review designed it, its items re-derived from these lines | 0.46 |
+| item 4 FALSIFIED, item 1 not FALSIFIED | the fine grid moves the candidate's read of bridge 4: no resolution fix as it stands; B2 next with bridge 4 read, and the deep review weighs the fine grid's control | 0.03 |
+| else | the unsettled items named; B2 as the deep review designed it, its items re-derived from these lines | 0.51 |
 
-- **Waiver:** none needed: the chance the action changes is 0.54 (one less 0.46, the likeliest row), above a quarter
+- **Waiver:** none needed: the chance the action changes is 0.49 (one less 0.51, the likeliest row), above a quarter
 
 ## Decision fed
 
 The decision table's rows decide; each item's own reading adds only this:
 
-- **Item 1 HELD:** the read space's gap at P and D on S380 is the wealth cell's (grade B, one seed); which read is right is not decided by it (both may err; item 2). FALSIFIED: the gap is not the wealth axis's. INCONCLUSIVE leaves it open.
-- **Item 2 HELD:** at 60 points both reads come within half their coarse error of their runs at stage A's openings (grade B; the two grids' continuations differ, so read as each grid's own calibration). FALSIFIED: neither does: doubling the wealth axis does not bring the tables to their runs. INCONCLUSIVE leaves it open.
+- **Item 1 HELD:** the read space's gap at P and D on S380 closes with the wealth axis (grade B, one seed): RB-SPLIT and RB-REF lose; whether it is the cell's width (RB-INTERP) or BASE's read moving to a right log-odds read (RB-SPACE) is not decided by item 1 (the plan-auditor's BLOCKING 1 of 11 Oct 17:45 UK) but by each read's own move between the grids, reported, at the deep review's grade. FALSIFIED: the gap is not the wealth axis's. INCONCLUSIVE leaves it open.
+- **Item 2 HELD:** at 60 points both reads come within half their coarse error of their runs at stage A's openings (grade B; the two grids' continuations differ, so read as each grid's own calibration; at 30 points each opening was its arm's own choice and carries the chooser's selection, at 60 it may not, so part of a fall may be selection's - each arm's error at its own fine opening is reported beside it: the plan-auditor's MINOR 3 of 17:45). FALSIFIED: neither does: doubling the wealth axis does not bring the tables to their runs. INCONCLUSIVE leaves it open.
 - **Item 3 HELD:** at 60 points the tables price the de-risk within a point of its runs in every world under both reads: O142's mispricing is a coarse-grid error (grade B). FALSIFIED: the fine tables misprice it somewhere: O142's mechanism survives the finer wealth axis and gets its own cause step. INCONCLUSIVE leaves it open.
-- **Item 4:** the control; its FALSIFIED decides row 3.
+- **Item 4:** the control, bridge 4 under BASE; its FALSIFIED decides row 3. LOR's bridge 4 at the fine grid is reported as O141's world-0 over-read, fine against coarse.
 - **In every branch:** no product change; the candidate's settings unchanged; 7u-F held (the maintainer, 11 Oct); NS-PROP waits on NE-GRID.
 
 ## Provenance
 
 - **The design:** the deep review after NE-BLEND stage A (deep-review-log.md 11 Oct 15:49 UK), its decisive test NE-GRID and its B1; adopted under the maintainer's standing go-ahead and put to the maintainer in the session (PLAN.md's 11 Oct 15:49 row; the plan-auditor's PASS of 11 Oct 16:15 UK).
+- **Amended before launch** on the plan-auditor's FAIL of 11 Oct 17:45 UK (review-log.md): row 1 and item 1's falsifier no longer credit RB-INTERP alone - each read's own move between the grids is reported as the read that splits RB-INTERP from RB-SPACE (BLOCKING 1); item 4's control is bridge 4 under BASE, LOR's reported, since LOR's coarse over-read is on record (BLOCKING 2), the derivation's item 4 story re-judged for BASE before its re-derived output (15f8404); item 2's selection asymmetry declared and each arm's error at its own fine opening reported (MINOR 3); 82 planted checks, 77 of 77 mutants caught; re-derived (sha256 954e23914955e6e3).
 - **Changed from the review's design (declared):** the capped-corner LOR read is not run (budget: its solves would add a third arm; the clamp count is reported instead, so whether a capped read could matter is shown); S224's LOR job is not simulated (no bridge year: identity by its tables, opening and LOR count); item 2 reads the fine error against stage A's coarse error at stage A's openings rather than re-running the coarse grid's paths; the review's 'weighted world line' read as the weighted absolute error against half its coarse size; the decision rows were restructured after the derivation's first output, which showed item 1 HELD - the most informative reading - feeding no row of its own (its JUDGED block unchanged; 9c70a0b).
-- **The build:** grid.js's LOR clamp counter (on existing lines, no mechanism anchor moved); the e3pcls pin re-run; audit-negrid.mjs, reduce-negrid-b1.mjs (81 planted checks, each item reaching all three outcomes from its own plants, EDGES; every boundary planted at a value the double holds exactly), mutate-reduce-negrid-b1.py (77 of 77 caught, results-reduce-negrid-b1-mutations.txt: O144's gate), derive-negrid-b1.mjs, batch-negrid-b1.sh, preflight-negrid-b1.sh.
+- **The build:** grid.js's LOR clamp counter (on existing lines, no mechanism anchor moved); the e3pcls pin re-run; audit-negrid.mjs, reduce-negrid-b1.mjs (82 planted checks, each item reaching all three outcomes from its own plants, EDGES; every boundary planted at a value the double holds exactly), mutate-reduce-negrid-b1.py (77 of 77 caught, results-reduce-negrid-b1-mutations.txt: O144's gate), derive-negrid-b1.mjs, batch-negrid-b1.sh, preflight-negrid-b1.sh.
 - **The preflight:** to be run through the launcher before launch and quoted here.
 - **Seen before registration (declared):** stage A's and NE-ROOT's results in full (results-neblend-a.txt, results-neroot.txt, results/diagneblend, results/diagneroot); the deep review's figures; the derivation's first output (its rows before they were restructured).
 
 ## Derivation script
 
-- `derive: research/solver/derive-negrid-b1.mjs > research/solver/results-derive-negrid-b1.txt sha256 459e618ed51f8179`
+- `derive: research/solver/derive-negrid-b1.mjs > research/solver/results-derive-negrid-b1.txt sha256 954e23914955e6e3`
   (stage A's S380 and bridge 4 lines behind its gate, NE-ROOT's bridge 4 and S224 behind its gate, the power of items 1-4 through reduce-negrid-b1.mjs's own items(), the credences from the review's cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from stage A's and NE-ROOT's logs)
 
 ## Point and interval
@@ -111,9 +112,9 @@ From results-derive-negrid-b1.txt section 2 (1,000 draws a cell at 4,000 paths a
   item 3, a price error of 0.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.6960 INCONCLUSIVE 0.3040 FALSIFIED 0.0000
   item 3, a price error of 1.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0190 INCONCLUSIVE 0.7930 FALSIFIED 0.1880
   item 3, a price error of 3 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0000 INCONCLUSIVE 0.0010 FALSIFIED 0.9990
-  item 4, bridge 4 kept: HELD 0.7610 INCONCLUSIVE 0.2390 FALSIFIED 0.0000
-  item 4, bridge 4 small: HELD 0.1490 INCONCLUSIVE 0.7640 FALSIFIED 0.0870
-  item 4, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 4, bridge 4 under BASE kept: HELD 0.8750 INCONCLUSIVE 0.1250 FALSIFIED 0.0000
+  item 4, bridge 4 under BASE small: HELD 0.1920 INCONCLUSIVE 0.7430 FALSIFIED 0.0650
+  item 4, bridge 4 under BASE broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
 ```
 
 Item 1 is deterministic, so its outcome follows the gap's ratio with no sampling noise (a cell's spread alone). Item 2 is weak: half the coarse error is about 1.3 points weighted for BASE and 1.6 for LOR, and LOR's fine table carries the read's gap (6.3457 in world 1 at the coarse grid), so it reads HELD only when the error and the gap both shrink to about a third; it is the likeliest INCONCLUSIVE (0.86) and feeds no row. Item 3 separates a half-point price error (HELD 0.70) from a three-point one (FALSIFIED 1.00) at the judged 5% churn.
@@ -137,7 +138,7 @@ the judged lines first, then run the derivation script, whose section computes e
 priors over the Power section's stories through the decision bands. No cap taken from the scorecard.
 
 Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RATES, as of this file's writing: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.70 (18 of 25), ATTRIB 0.50 (25 of 50), SIZE 0.53 (24 of 45), CTRL 0.69 (10 of 14), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.26 (6 of 25).
-Items 1-3 rest on the review's ranked causes (RB-INTERP leads at 0.45), so each starts from 0.26; the derivation mixes the receipt's cause credences through the JUDGED stories and section 2's power, which holds item 1 at 0.31 (RB-INTERP's 0.45 through a gap story that halves the gap in under half its draws), item 2 at 0.11 (its weak power) and item 3 at 0.26. Item 4 starts from CTRL's 0.69 and comes down to 0.44 on the judged chance that LOR's world-0 over-read on bridge 4 survives the finer grid.
+Items 1-3 rest on the review's ranked causes (RB-INTERP leads at 0.45), so each starts from 0.26; the derivation mixes the receipt's cause credences through the JUDGED stories and section 2's power, which holds item 1 at 0.31 (RB-INTERP's 0.45 through a gap story that halves the gap in under half its draws), item 2 at 0.11 (its weak power) and item 3 at 0.26. Item 4 starts from CTRL's 0.69 and moves to 0.78: bridge 4 is well funded and BASE calibrated it at the coarse grid, so the finer axis is judged to keep it.
 
 - **Base rate, item 1:** 0.26 (a deep review's cause: RB-INTERP)
 - **Base rate, item 2:** 0.26 (a deep review's cause: RB-INTERP)
@@ -146,7 +147,7 @@ Items 1-3 rest on the review's ranked causes (RB-INTERP leads at 0.45), so each 
 - **Item 1:** HELD 0.31, INCONCLUSIVE 0.53, FALSIFIED 0.17 (derived, results-derive-negrid-b1.txt section 3)
 - **Item 2:** HELD 0.11, INCONCLUSIVE 0.86, FALSIFIED 0.02 (derived)
 - **Item 3:** HELD 0.26, INCONCLUSIVE 0.37, FALSIFIED 0.37 (derived)
-- **Item 4:** HELD 0.44, INCONCLUSIVE 0.45, FALSIFIED 0.12 (derived)
+- **Item 4:** HELD 0.78, INCONCLUSIVE 0.18, FALSIFIED 0.03 (derived)
 - **Judged:** none (the judged inputs are derive-negrid-b1.mjs's JUDGED block, committed before its output)
 - **Kinds:** 1 ATTRIB, 2 ATTRIB, 3 ATTRIB, 4 CTRL
 

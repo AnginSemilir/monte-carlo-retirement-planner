@@ -30,18 +30,18 @@
   item 3, a price error of 0.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.6960 INCONCLUSIVE 0.3040 FALSIFIED 0.0000
   item 3, a price error of 1.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0190 INCONCLUSIVE 0.7930 FALSIFIED 0.1880
   item 3, a price error of 3 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0000 INCONCLUSIVE 0.0010 FALSIFIED 0.9990
-  item 4, bridge 4 kept: HELD 0.7610 INCONCLUSIVE 0.2390 FALSIFIED 0.0000
-  item 4, bridge 4 small: HELD 0.1490 INCONCLUSIVE 0.7640 FALSIFIED 0.0870
-  item 4, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 4, bridge 4 under BASE kept: HELD 0.8750 INCONCLUSIVE 0.1250 FALSIFIED 0.0000
+  item 4, bridge 4 under BASE small: HELD 0.1920 INCONCLUSIVE 0.7430 FALSIFIED 0.0650
+  item 4, bridge 4 under BASE broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
 
 3. THE CREDENCES (the receipt of 11 Oct 15:49 UK: RB-INTERP=0.45; RB-SPLIT=0.15; RB-REF=0.1; RB-SPACE=0.08; RB-OTHER=0.22; the judged stories in this script's JUDGED; 40000 draws)
 CREDENCE item 1: point 0.7630 HELD 0.31 INCONCLUSIVE 0.53 FALSIFIED 0.17
 CREDENCE item 2: point 0.6844 HELD 0.11 INCONCLUSIVE 0.86 FALSIFIED 0.02
 CREDENCE item 3: point - HELD 0.26 INCONCLUSIVE 0.37 FALSIFIED 0.37
-CREDENCE item 4: point - HELD 0.44 INCONCLUSIVE 0.45 FALSIFIED 0.12
+CREDENCE item 4: point - HELD 0.78 INCONCLUSIVE 0.18 FALSIFIED 0.03
   POINT item 1: 0.7630 (80% interval 0.4321 to 1.0716; the largest counted cell's |fine gap| / |coarse gap|)
   POINT item 2: 0.6844 (80% interval 0.2756 to 1.0512; BASE's fine A over its coarse A, the reducer's REALISED taking the larger arm's)
-  DECISION ROWS: item 1 HELD, item 4 not FALSIFIED 0.28; item 1 FALSIFIED 0.17; item 4 FALSIFIED, item 1 not FALSIFIED 0.09; else 0.46
+  DECISION ROWS: item 1 HELD, item 4 not FALSIFIED 0.30; item 1 FALSIFIED 0.17; item 4 FALSIFIED, item 1 not FALSIFIED 0.03; else 0.51
 
 4. THE BUDGET (stage A's logs, results/diagneblend; NE-ROOT's for S224, results/diagneroot; bridge 4 BASE taken at its LOR job's times)
   S380 BASE: coarse solve 1749 s; fine solve about 3498 s and 26000 runs at 0.1566 s: about 2.10 h fine

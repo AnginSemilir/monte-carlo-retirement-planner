@@ -1,0 +1,31 @@
+caught: 1: if (n !== 1) bad.push(`${key(id, w, arm)}:
+caught: 2: if (!j.done) bad.push(
+caught: 3: j.head.npw !== npw || j.head.seed !== seed
+caught: 5: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 6: Object.entries({ ...WANT[j.arm], ...COMMON })
+caught: 12: x.table.toFixed(4) !== ref[i].toFixed(4)
+caught: 13: if (!ref) bad.push(
+caught: 14: lo: y.table - 100 * h, hi: y.table - 100 * l
+caught: 16: return Math.min(1, 2 * binomUpperHalf(Math.max(b, c), n));
+caught: 17: else if (x && !y) b++; else if (!x && y) c++;
+caught: 19: c.some(x => x.lo > CTRL || x.hi < -CTRL)
+caught: 20: out[2] = keep(J[key('bridge 4', '0.02', 'LOR')]);
+caught: 21: const within = cw.every(x => Math.abs(x.d) <= WORLD)
+caught: 25: pairOf(bitsOf(base, k), bitsOf(lor, k))
+caught: 27: const held = pv < ALPHA && Math.abs(p0.change) >= MAT;
+caught: 28: (g.lo >= -MAT && g.hi <= MAT)
+caught: 29: g = guarded(survivalChangeU(p0.a, p0.b, p0.c, p0.d, ALPHA), 
+caught: 30: p0.change > 0 ? 'up' : 'down'
+NOT CAUGHT: 4: j.head.pts !== pts || j.head.npw
+NOT CAUGHT: 7: if (!j.own) bad.push(
+NOT CAUGHT: 8: j.world.some((x, i) => x.k !== i || x.n !== npw)
+NOT CAUGHT: 9: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1
+NOT CAUGHT: 10: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+NOT CAUGHT: 11: sha16(Buffer.from(f.bits[`OWN${x.k}`], 'base64')) !== x.bits
+NOT CAUGHT: 15: lo: dT / (100 * (h2 - l0))
+NOT CAUGHT: 18: c.every(x => Math.abs(x.d) <= CTRL)
+NOT CAUGHT: 22: over = sp.lo > SPREAD_OUT[1]
+NOT CAUGHT: 23: sp.point >= SPREAD[0] && sp.point <= SPREAD[1]
+NOT CAUGHT: 24: sp.hi < SPREAD_OUT[0] ? 'FALSIFIED'
+NOT CAUGHT: 26: const held = pv < ALPHA && Math.abs(p0.change) >= MAT;
+18 of 30 mutations caught

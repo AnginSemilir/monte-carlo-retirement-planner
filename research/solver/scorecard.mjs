@@ -72,6 +72,7 @@ export const TESTS = [
   { name: 'NE-SPLIT (S364\'s opening split by parts in the candidate\'s tables and forced, bridge 4 the control)', prediction: 'predictions/diag-nesplit.md', results: 'results-nesplit.txt' },
   { name: 'NE-ROOT (the candidate\'s S364 survival plateau: the residual, the chance and the reader armed one at a time, bridge 4 the control)', prediction: 'predictions/diag-neroot.md', results: 'results-neroot.txt' },
   { name: 'NE-BLEND-A (the bridge reader\'s residual zeroed and its read in log-odds, on bridge 4 and S380)', prediction: 'predictions/diag-neblend-a.md', results: 'results-neblend-a.txt' },
+  { name: 'NE-GRID-B1 (the wealth axis doubled: the two bridge reads at 30 and 60 points against their runs on S380, bridge 4 and S224)', prediction: 'predictions/diag-negrid-b1.md', results: 'results-negrid-b1.txt' },
 ];
 
 export function credences(predText) {

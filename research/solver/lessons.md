@@ -13,6 +13,12 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NE-GRID-B1 (closed 11 Oct 22:48)
+
+- [T:overclaim] NE-GRID's adoption row put the deep review's materiality answer to the maintainer without its qualifier - the candidate's own read kept more poor-world survival - so the line read as a possible 2.375-point cost of the defect (the plan-auditor's FAIL of 11 Oct 16:07 UK, BLOCKING 1); it was fixed before the line reached the maintainer -> AUTOMATE (proposed for the next unlock): the plan-update skill: a line put to the maintainer quotes the review's TO THE MAINTAINER verbatim beside any summary of it
+- [T:decision-fed] B1's first registration credited RB-INTERP with an item both leading causes predict, and read a control across both reads when one read's failure on it was already on record (the FAIL of 11 Oct 17:45 UK, BLOCKINGs 1 and 2) -> REPLACE in new-prediction.mjs with: An item that decides between causes names the outcome each cause predicts, and a row credits a cause only where the item's outcome is likelier under it than under every rival; a control reads only the arm whose failure would change the action.
+- [T:other:calibration] all four items HELD at credences 0.31, 0.11, 0.26 and 0.78 (Brier 0.466); item 1's realised 0.3163 lay below its 80% interval (0.4321 to 1.0716): the derivation started RB-INTERP from the deep-review track record and gave its gap story mass at 0.6 and 0.9, where Phase V's grid study already showed the tables moving with resolution -> REPLACE in new-prediction.mjs with: Where an earlier measurement of the same mechanism exists, the derivation's stories for it start from that measurement's size, scaled to the new case, before any shading toward a track record.
+
 ## NE-BLEND-A (closed 11 Oct 15:24)
 
 - [T:decision-fed] Twice since NE-ROOT's close a reading gave one part a combined change: NE-ROOT's write-up recorded PR17 and PR18 false on S364 where only the unreached row 1 said so (the plan-auditor's FAIL of 11 Oct 10:27 UK, BLOCKING 1), and stage A's first Decision fed gave item 4's change to the flattening in every row and read an over-steepened spread as 'not the cause' (the FAIL of 13:00 UK, BLOCKINGs 1 and 2) -> REPLACE in new-prediction.mjs with: A Decision fed that gives an arm's change to one part names the item that splits it and gives it only when that item reads HELD (RULES.md section 9 rule 1); a reading past the target (an over-correction) is read for the cause, never against it, and has its own row.

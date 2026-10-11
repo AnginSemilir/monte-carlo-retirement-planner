@@ -414,7 +414,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one');
     const pr = tx && tx.inBand(acc) ? (tx.payable(s) ? 1 : 0) : RD.chance(acc);
     const v = pr * cc + rr;
-    out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);
+    if (g.reader.blend === 'logodds') { let lo = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const vi = pr * RD.c[IDX[k]] + RD.R[IDX[k]], ci = vi < CLAMP ? CLAMP : (vi > 1 - CLAMP ? 1 - CLAMP : vi); lo += w * Math.log(ci / (1 - ci)); } out[0] = expit(lo); } else out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);   // NE-BLEND's LOR arm (`readerBlend: 'logodds'`, research only): each corner read at this position's chance, p x c_i + R_i, blended in log-odds
   } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
   else out[0] = expit(ls);
   out[1] = b;

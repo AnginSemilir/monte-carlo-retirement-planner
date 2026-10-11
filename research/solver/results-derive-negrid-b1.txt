@@ -1,0 +1,53 @@
+1. THE RECORDS (seed 7002, 4,000 paths a world; results/diagneblend behind stage A's gate, results/diagneroot behind NE-ROOT's: passed)
+  S380 BASE at P (ai 12), coarse, world 0: table 35.0977 simulated 30.8500 off 4.2477
+  S380 BASE at P (ai 12), coarse, world 1: table 76.2609 simulated 78.4000 off -2.1391
+  S380 BASE at P (ai 12), coarse, world 2: table 94.5685 simulated 97.0250 off -2.4565
+  S380 LOR at D (ai 14), coarse, world 0: table 30.4985 simulated 28.4750 off 2.0235
+  S380 LOR at D (ai 14), coarse, world 1: table 82.8315 simulated 78.6250 off 4.2065
+  S380 LOR at D (ai 14), coarse, world 2: table 98.3518 simulated 97.7750 off 0.5768
+  coarse A (weight x |table less simulated|): BASE 2.5435, LOR 3.2377
+  bridge 4 BASE at D (ai 59, NE-ROOT's SC), coarse, world 0: off 0.0969; under LOR (stage A) 0.4731
+  bridge 4 BASE at D (ai 59, NE-ROOT's SC), coarse, world 1: off 0.0322; under LOR (stage A) 0.0362
+  bridge 4 BASE at D (ai 59, NE-ROOT's SC), coarse, world 2: off -0.0044; under LOR (stage A) -0.0044
+  S224 BASE at its own opening (NE-ROOT), coarse, world 0: off -0.1094
+  S224 BASE at its own opening (NE-ROOT), coarse, world 1: off 1.3081
+  S224 BASE at its own opening (NE-ROOT), coarse, world 2: off 0.8613
+  the coarse gap by world (LOR's error at D less BASE's at P): -2.2242, 6.3457, 3.0333
+
+2. THE POWER (1000 draws a cell at 4000 paths a world through reduce-negrid-b1.mjs's items())
+  item 1, the gap's ratio about 0.3 (each cell +-0.15): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 1, the gap's ratio about 0.6 (each cell +-0.15): HELD 0.0010 INCONCLUSIVE 0.9990 FALSIFIED 0.0000
+  item 1, the gap's ratio about 0.9 (each cell +-0.15): HELD 0.0000 INCONCLUSIVE 0.5310 FALSIFIED 0.4690
+  item 2, BASE's error at 0.3 of its coarse one, the gap's ratio about 0.3: HELD 0.7270 INCONCLUSIVE 0.2730 FALSIFIED 0.0000
+  item 2, BASE's error at 0.3 of its coarse one, the gap's ratio about 0.6: HELD 0.0580 INCONCLUSIVE 0.9420 FALSIFIED 0.0000
+  item 2, BASE's error at 0.3 of its coarse one, the gap's ratio about 0.9: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 2, BASE's error at 0.6 of its coarse one, the gap's ratio about 0.3: HELD 0.2690 INCONCLUSIVE 0.7310 FALSIFIED 0.0000
+  item 2, BASE's error at 0.6 of its coarse one, the gap's ratio about 0.6: HELD 0.0660 INCONCLUSIVE 0.9320 FALSIFIED 0.0020
+  item 2, BASE's error at 0.6 of its coarse one, the gap's ratio about 0.9: HELD 0.0000 INCONCLUSIVE 0.9930 FALSIFIED 0.0070
+  item 2, BASE's error at 1 of its coarse one, the gap's ratio about 0.3: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 2, BASE's error at 1 of its coarse one, the gap's ratio about 0.6: HELD 0.0000 INCONCLUSIVE 0.9940 FALSIFIED 0.0060
+  item 2, BASE's error at 1 of its coarse one, the gap's ratio about 0.9: HELD 0.0000 INCONCLUSIVE 0.8750 FALSIFIED 0.1250
+  item 3, a price error of 0.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.6960 INCONCLUSIVE 0.3040 FALSIFIED 0.0000
+  item 3, a price error of 1.5 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0190 INCONCLUSIVE 0.7930 FALSIFIED 0.1880
+  item 3, a price error of 3 points in world 0 (a third of it in worlds 1 and 2): HELD 0.0000 INCONCLUSIVE 0.0010 FALSIFIED 0.9990
+  item 4, bridge 4 kept: HELD 0.7610 INCONCLUSIVE 0.2390 FALSIFIED 0.0000
+  item 4, bridge 4 small: HELD 0.1490 INCONCLUSIVE 0.7640 FALSIFIED 0.0870
+  item 4, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+
+3. THE CREDENCES (the receipt of 11 Oct 15:49 UK: RB-INTERP=0.45; RB-SPLIT=0.15; RB-REF=0.1; RB-SPACE=0.08; RB-OTHER=0.22; the judged stories in this script's JUDGED; 40000 draws)
+CREDENCE item 1: point 0.7630 HELD 0.31 INCONCLUSIVE 0.53 FALSIFIED 0.17
+CREDENCE item 2: point 0.6844 HELD 0.11 INCONCLUSIVE 0.86 FALSIFIED 0.02
+CREDENCE item 3: point - HELD 0.26 INCONCLUSIVE 0.37 FALSIFIED 0.37
+CREDENCE item 4: point - HELD 0.44 INCONCLUSIVE 0.45 FALSIFIED 0.12
+  POINT item 1: 0.7630 (80% interval 0.4321 to 1.0716; the largest counted cell's |fine gap| / |coarse gap|)
+  POINT item 2: 0.6844 (80% interval 0.2756 to 1.0512; BASE's fine A over its coarse A, the reducer's REALISED taking the larger arm's)
+  DECISION ROWS: item 1 HELD, item 4 not FALSIFIED 0.28; item 1 FALSIFIED 0.17; item 4 FALSIFIED, item 1 not FALSIFIED 0.09; else 0.46
+
+4. THE BUDGET (stage A's logs, results/diagneblend; NE-ROOT's for S224, results/diagneroot; bridge 4 BASE taken at its LOR job's times)
+  S380 BASE: coarse solve 1749 s; fine solve about 3498 s and 26000 runs at 0.1566 s: about 2.10 h fine
+  S380 LOR: coarse solve 1877 s; fine solve about 3754 s and 26000 runs at 0.1619 s: about 2.21 h fine
+  bridge 4 BASE: coarse solve 1680 s; fine solve about 3360 s and 26000 runs at 0.2023 s: about 2.39 h fine
+  bridge 4 LOR: coarse solve 1680 s; fine solve about 3360 s and 26000 runs at 0.2023 s: about 2.39 h fine
+  S224 BASE: coarse solve 1336 s; fine solve about 2672 s and 26000 runs at 0.1124 s: about 1.55 h fine
+  S224 LOR: coarse solve 1336 s; fine solve about 2672 s (no runs): about 0.74 h fine
+  total about 14.08 core-hours (an own opening that is neither P nor D adds about 0.54 h a job); the twelve jobs four at a time, about 3.52 h wall at the least

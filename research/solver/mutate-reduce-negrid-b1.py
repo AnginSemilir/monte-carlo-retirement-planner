@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+# NE-GRID B1'S REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6; O144: stage A's planted set missed 12 of 30, so this one is
+# held to every mutant caught before launch): each mutation breaks one part of reduce-negrid-b1.mjs's gate, intervals or
+# items in a scratch copy, runs the planted set on the copy and must see PLANTED CHECK FAILED (mutate_lib.py, which logs the
+# run to results-mutation-history.txt). Stage A's escapes are carried over in kind: the head, openings, world-line,
+# forceIdentity, file and bits checks; every boundary moved by one; point-or-bound reads; the p (here the interval) in a read.
+#   python3 research/solver/mutate-reduce-negrid-b1.py > research/solver/results-reduce-negrid-b1-mutations.txt
+from mutate_lib import run
+M = [
+  # the gate: jobs, stamp, settings, arms, pair, actions, tables, clamps, S224, runs, files, records
+  ("if (n !== 1) bad.push(`${key(id, arm, g)}:", "if (n > 1) bad.push(`${key(id, arm, g)}:"),
+  ("if (n !== 1) bad.push(`${key(id, arm, g)}:", "if (n < 1) bad.push(`${key(id, arm, g)}:"),
+  ("if (!j.done) bad.push(", "if (false) bad.push("),
+  ("['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] !== st0[f])", "['audit'].some(f => j.stamp[f] !== st0[f])"),
+  ("j.head.coarse !== coarse || j.head.fine !== fine || j.head.npw !== npw || j.head.seed !== seed", "j.head.coarse !== coarse || j.head.fine !== fine || j.head.npw !== npw"),
+  ("j.head.coarse !== coarse || j.head.fine !== fine || j.head.npw !== npw || j.head.seed !== seed", "j.head.coarse !== coarse || j.head.fine !== fine || j.head.seed !== seed"),
+  ("if (j.pts !== pts) bad.push(", "if (false) bad.push("),
+  ("if (!j.checks.armTook || j.checks.armTook[0] !== 1)", "if (!j.checks.armTook)"),
+  ("if (!j.checks.pairTook || j.checks.pairTook[0] !== 1)", "if (!j.checks.pairTook)"),
+  ("Object.entries({ ...WANT[j.arm], ...COMMON })", "Object.entries({ ...COMMON })"),
+  ("Object.entries({ ...WANT[j.arm], ...COMMON })", "Object.entries({ ...WANT[j.arm] })"),
+  ("if (field(ran, 'pts') !== pts) bad.push(", "if (false) bad.push("),
+  ("j.pair.P !== PAIRS[j.id][0] || j.pair.D", "j.pair.D"),
+  ("j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== j.pair.lD", "j.pair.tP !== '0,0' || j.pair.lP !== j.pair.lD"),
+  ("j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== j.pair.lD", "j.pair.tP !== '0,0' || j.pair.tD !== '2,2'"),
+  ("if (j.tables.length !== 3 || j.tables.some((x, i) => x.k !== i))", "if (j.tables.length > 3)"),
+  ("else if (j.arm === 'BASE' && j.clamps.n !== 0) bad.push(", "else if (false) bad.push("),
+  ("else if (j.arm === 'LOR' && j.id === 'S224' && j.clamps.n !== 0) bad.push(", "else if (false) bad.push("),
+  ("else if (j.arm === 'LOR' && j.id !== 'S224' && !(j.clamps.n > 0)) bad.push(", "else if (false) bad.push("),
+  ("if (!s || s.n !== npw) bad.push(", "if (!s) bad.push("),
+  ("if (!s || s.n !== npw) bad.push(", "if (s && s.n !== npw) bad.push("),
+  ("...(j.own && j.pair && j.own.ai !== j.pair.P && j.own.ai !== j.pair.D ? ['OWN'] : [])", "...([])"),
+  ("j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1] !== fi", "j.checks.forceIdentity[0] !== j.checks.forceIdentity[1]"),
+  ("j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1] !== fi", "j.checks.forceIdentity[0] !== fi"),
+  ("if (!f) bad.push(`${k}: its file ${j.file} is missing`);", "if (!f) ;"),
+  ("if (!f.stamp || !j.stamp || ['code', 'audit', 'prediction'].some(x => f.stamp[x] !== j.stamp[x]))", "if (!f.stamp)"),
+  ("typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[nm], 'base64')) !== s.bits", "typeof f.bits[nm] !== 'string'"),
+  ("typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[nm], 'base64')) !== s.bits", "f.bits[nm] !== undefined && sha16(Buffer.from(f.bits[nm], 'base64')) !== s.bits"),
+  ("if (hs.size > 1) bad.push(", "if (false) bad.push("),
+  ("['P', 'D', 'OWN'].some(o => !l.tables[i] || x[o].toFixed(6) !== l.tables[i][o].toFixed(6))", "['P', 'D'].some(o => !l.tables[i] || x[o].toFixed(6) !== l.tables[i][o].toFixed(6))"),
+  ("x[o].toFixed(6) !== l.tables[i][o].toFixed(6)", "x[o].toFixed(4) !== l.tables[i][o].toFixed(4)"),
+  ("|| !b.own || !l.own || b.own.ai !== l.own.ai)) bad.push(", ")) bad.push("),
+  ("if (!rec) bad.push(", "if (false) bad.push("),
+  ("j.tables.some((x, i) => x[o].toFixed(4) !== r.worlds[i].table.toFixed(4))", "j.tables.some((x, i) => x[o].toFixed(2) !== r.worlds[i].table.toFixed(2))"),
+  ("|| (r.own !== undefined && j.own && j.own.ai !== r.own)", ""),
+  ("chk(J[key('S380', 'BASE', 'coarse')], 'P', rec.s380BASE, 'S380 BASE at P');", ""),
+  ("chk(J[key('S380', 'LOR', 'coarse')], 'D', rec.s380LOR, 'S380 LOR at D');", ""),
+  ("chk(J[key('bridge 4', 'LOR', 'coarse')], 'D', rec.b4LOR, 'bridge 4 LOR at D');", ""),
+  ("chk(J[key('S224', 'BASE', 'coarse')], 'OWN', rec.s224BASE, 'S224 BASE at its own opening');", ""),
+  # the intervals
+  ("const [l, h] = clopperPearson(ok, n, 2 * a1); return { d: table - 100 * ok / n, lo: table - 100 * h, hi: table - 100 * l };", "const [l, h] = clopperPearson(ok, n, 2 * a1); return { d: table - 100 * ok / n, lo: table - 100 * l, hi: table - 100 * h };"),
+  ("const a1 = ALPHA / 6;", "const a1 = ALPHA / 2;"),
+  ("const dist0 = (lo, hi) => (lo > 0 ? lo : hi < 0 ? -hi : 0);", "const dist0 = (lo, hi) => (lo > 0 ? lo : 0);"),
+  ("if (x && y) a++; else if (x && !y) b++; else if (!x && y) c++; else d++;", "if (x && y) a++; else if (x && !y) c++; else if (!x && y) b++; else d++;"),
+  ("const u = guarded(survivalChangeU(c.a, c.b, c.c, c.d, ALPHA / 3), c.b, c.c, N, ALPHA / 3);", "const u = survivalChangeU(c.a, c.b, c.c, c.d, ALPHA / 3);"),
+  ("return { k, dt, ds: u.d, err: dt - u.d, lo: dt - u.hi, hi: dt - u.lo, cells: c };", "return { k, dt, ds: u.d, err: dt - u.d, lo: dt - u.lo, hi: dt - u.hi, cells: c };"),
+  ("pairCells(bitsOf(j, 'P', k), bitsOf(j, 'D', k))", "pairCells(bitsOf(j, 'D', k), bitsOf(j, 'P', k))"),
+  # item 1
+  ("const counted = q(Math.abs(gc)) >= GMIN;", "const counted = q(Math.abs(gc)) > GMIN;"),
+  ("const counted = q(Math.abs(gc)) >= GMIN;", "const counted = true;"),
+  ("for (const o of ['P', 'D']) for (const k of [0, 1]) {", "for (const o of ['P', 'D']) for (const k of [0, 1, 2]) {"),
+  ("cc.every(c => c.r <= SHRINK) ? 'HELD'", "cc.every(c => c.r < SHRINK) ? 'HELD'"),
+  ("cc.every(c => c.r <= SHRINK) ? 'HELD'", "cc.some(c => c.r <= SHRINK) ? 'HELD'"),
+  ("cc.every(c => c.r >= STAY) ? 'FALSIFIED'", "cc.every(c => c.r > STAY) ? 'FALSIFIED'"),
+  ("cc.every(c => c.r >= STAY) ? 'FALSIFIED'", "cc.some(c => c.r >= STAY) ? 'FALSIFIED'"),
+  ("r: counted ? q(Math.abs(gf) / Math.abs(gc)) : null", "r: counted ? q(gf / gc) : null"),
+  ("out[1] = { outcome: cc.length && cc.every", "out[1] = { outcome: cc.every"),
+  ("const gf = J[key('S380', 'LOR', 'fine')].tables[k][o] - J[key('S380', 'BASE', 'fine')].tables[k][o];", "const gf = J[key('S380', 'LOR', 'fine')].tables[k][o] - J[key('S380', 'BASE', 'coarse')].tables[k][o];"),
+  # item 2
+  ("for (const [arm, o] of [['BASE', 'P'], ['LOR', 'D']]) {", "for (const [arm, o] of [['BASE', 'D'], ['LOR', 'P']]) {"),
+  ("half: q(A) <= q(A30[arm] * SHRINK)", "half: q(A) < q(A30[arm] * SHRINK)"),
+  ("surelyNot: q(Alo) > q(A30[arm] * SHRINK)", "surelyNot: q(Alo) >= q(A30[arm] * SHRINK)"),
+  ("surelyNot: q(Alo) > q(A30[arm] * SHRINK)", "surelyNot: q(A) > q(A30[arm] * SHRINK)"),
+  ("conv.BASE.half && conv.LOR.half ? 'HELD'", "conv.BASE.half || conv.LOR.half ? 'HELD'"),
+  ("conv.BASE.surelyNot && conv.LOR.surelyNot ? 'FALSIFIED'", "conv.BASE.surelyNot || conv.LOR.surelyNot ? 'FALSIFIED'"),
+  ("const A = w.reduce((t, x, k) => t + WEIGHTS[k] * Math.abs(x.d), 0)", "const A = w.reduce((t, x, k) => t + WEIGHTS[k] * x.d, 0)"),
+  ("const A = w.reduce((t, x, k) => t + WEIGHTS[k] * Math.abs(x.d), 0)", "const A = w.reduce((t, x, k) => t + Math.abs(x.d) / 3, 0)"),
+  # item 3
+  ("pr.every(x => q(Math.abs(x.err)) <= PRICE) ? 'HELD'", "pr.every(x => q(Math.abs(x.err)) < PRICE) ? 'HELD'"),
+  ("pr.every(x => q(Math.abs(x.err)) <= PRICE) ? 'HELD'", "pr.every(x => q(x.err) <= PRICE) ? 'HELD'"),
+  ("pr.some(x => q(x.lo) > PRICE || q(x.hi) < -PRICE) ? 'FALSIFIED'", "pr.some(x => q(x.lo) > PRICE) ? 'FALSIFIED'"),
+  ("pr.some(x => q(x.lo) > PRICE || q(x.hi) < -PRICE) ? 'FALSIFIED'", "pr.some(x => q(x.err) > PRICE || q(x.err) < -PRICE) ? 'FALSIFIED'"),
+  ("const pr = [...price.BASE, ...price.LOR];", "const pr = [...price.BASE];"),
+  ("const dt = j.tables[k].D - j.tables[k].P;", "const dt = j.tables[k].P - j.tables[k].D;"),
+  # item 4
+  ("bw.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'", "bw.every(x => q(Math.abs(x.d)) < CTRL) ? 'HELD'"),
+  ("bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED'", "bw.some(x => q(x.lo) > CTRL) ? 'FALSIFIED'"),
+  ("bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED'", "bw.some(x => q(x.d) > CTRL) ? 'FALSIFIED'"),
+  ("const bw = [...b4.BASE.w, ...b4.LOR.w];", "const bw = [...b4.LOR.w];"),
+  ("const bw = [...b4.BASE.w, ...b4.LOR.w];", "const bw = [...b4.BASE.w];"),
+  ("o = j.own.ai === j.pair.P ? 'P' : j.own.ai === j.pair.D ? 'D' : 'OWN';", "o = 'P';"),
+  # the rounding the boundaries are read on
+  ("export const q = x => Math.round(x * 1e9) / 1e9;", "export const q = x => x;"),
+]
+M = [m for m in M if m[0] != m[1]]
+run('reduce-negrid-b1.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

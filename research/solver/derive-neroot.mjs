@@ -22,16 +22,18 @@ const DRAWS = 2000;
 
 // THE JUDGED INPUTS (written before this script's output; the prediction's per-item judged lines are these)
 export const JUDGED = {
-  // the share of SS's over-read in worlds 0 and 1 an arm removes, by cause: 0, 0.3, 0.6, 0.8 or all of it, or 'flip' (the
-  // over-read turned into an under-read as large); an arm's table moves toward its own simulated survival by that share in
-  // every world, its simulated survival held at NE-SPLIT's (its continuation's own change judged second-order)
+  // the share of SS's over-read in worlds 0 and 1 an arm removes, by cause: 0, 0.3, 0.6, 0.8 or all of it, or 'over' (an
+  // over-correction: the table driven to zero in worlds 0 and 1, so the arm's part drives the table's level); an arm's table
+  // moves toward its own simulated survival by that share in every world, never below zero, its simulated survival held at
+  // NE-SPLIT's (its continuation's own change judged second-order). 'over' was 'flip' (an under-read as large, built on
+  // tables below zero) until the plan-auditor's BLOCKING 1 of 11 Oct 05:18 UK; its weights are unchanged
   removes: {
-    R0: { 'OW-RSPLIT': { 0: 0.1, 0.3: 0.1, 0.6: 0.15, 0.8: 0.25, 1: 0.3, flip: 0.1 }, 'OW-PREF': { 0: 0.6, 0.3: 0.2, 0.6: 0.1, 0.8: 0.05, 1: 0.05, flip: 0 },
-      'OW-BUNDLE': { 0: 0.7, 0.3: 0.15, 0.6: 0.1, 0.8: 0.05, 1: 0, flip: 0 }, 'OW-OTHER': { 0: 0.4, 0.3: 0.25, 0.6: 0.15, 0.8: 0.1, 1: 0.05, flip: 0.05 } },
-    SIMP: { 'OW-RSPLIT': { 0: 0.6, 0.3: 0.25, 0.6: 0.1, 0.8: 0.05, 1: 0, flip: 0 }, 'OW-PREF': { 0: 0.1, 0.3: 0.1, 0.6: 0.2, 0.8: 0.25, 1: 0.3, flip: 0.05 },
-      'OW-BUNDLE': { 0: 0.8, 0.3: 0.15, 0.6: 0.05, 0.8: 0, 1: 0, flip: 0 }, 'OW-OTHER': { 0: 0.5, 0.3: 0.25, 0.6: 0.15, 0.8: 0.05, 1: 0.05, flip: 0 } },
-    READEROFF: { 'OW-RSPLIT': { 0: 0.05, 0.3: 0.1, 0.6: 0.15, 0.8: 0.2, 1: 0.2, flip: 0.3 }, 'OW-PREF': { 0: 0.05, 0.3: 0.1, 0.6: 0.15, 0.8: 0.2, 1: 0.2, flip: 0.3 },
-      'OW-BUNDLE': { 0: 0.7, 0.3: 0.2, 0.6: 0.1, 0.8: 0, 1: 0, flip: 0 }, 'OW-OTHER': { 0: 0.3, 0.3: 0.2, 0.6: 0.2, 0.8: 0.1, 1: 0.1, flip: 0.1 } },
+    R0: { 'OW-RSPLIT': { 0: 0.1, 0.3: 0.1, 0.6: 0.15, 0.8: 0.25, 1: 0.3, over: 0.1 }, 'OW-PREF': { 0: 0.6, 0.3: 0.2, 0.6: 0.1, 0.8: 0.05, 1: 0.05, over: 0 },
+      'OW-BUNDLE': { 0: 0.7, 0.3: 0.15, 0.6: 0.1, 0.8: 0.05, 1: 0, over: 0 }, 'OW-OTHER': { 0: 0.4, 0.3: 0.25, 0.6: 0.15, 0.8: 0.1, 1: 0.05, over: 0.05 } },
+    SIMP: { 'OW-RSPLIT': { 0: 0.6, 0.3: 0.25, 0.6: 0.1, 0.8: 0.05, 1: 0, over: 0 }, 'OW-PREF': { 0: 0.1, 0.3: 0.1, 0.6: 0.2, 0.8: 0.25, 1: 0.3, over: 0.05 },
+      'OW-BUNDLE': { 0: 0.8, 0.3: 0.15, 0.6: 0.05, 0.8: 0, 1: 0, over: 0 }, 'OW-OTHER': { 0: 0.5, 0.3: 0.25, 0.6: 0.15, 0.8: 0.05, 1: 0.05, over: 0 } },
+    READEROFF: { 'OW-RSPLIT': { 0: 0.05, 0.3: 0.1, 0.6: 0.15, 0.8: 0.2, 1: 0.2, over: 0.3 }, 'OW-PREF': { 0: 0.05, 0.3: 0.1, 0.6: 0.15, 0.8: 0.2, 1: 0.2, over: 0.3 },
+      'OW-BUNDLE': { 0: 0.7, 0.3: 0.2, 0.6: 0.1, 0.8: 0, 1: 0, over: 0 }, 'OW-OTHER': { 0: 0.3, 0.3: 0.2, 0.6: 0.2, 0.8: 0.1, 1: 0.1, over: 0.1 } },
   },
   // P(bridge 4 under the arm moves off its table by half a point in world 0): READEROFF brings back the no-reader dead-corner
   // pessimism (SHIP's bridge 4 table 13.3493 against 7980 of 8000 simulated, results-nesplit.txt); R0 and SIMP change the
@@ -43,7 +45,7 @@ export const JUDGED = {
   // item 4 (the residual's share of SS's year-1 read), by cause: HELD, INCONCLUSIVE, FALSIFIED
   item4: { 'OW-RSPLIT': [0.6, 0.3, 0.1], 'OW-PREF': [0.1, 0.3, 0.6], 'OW-BUNDLE': [0.3, 0.4, 0.3], 'OW-OTHER': [0.3, 0.4, 0.3] },
 };
-const BINS = [0, 0.3, 0.6, 0.8, 1, 'flip'], ARMS = ['R0', 'SIMP', 'READEROFF'];
+const BINS = [0, 0.3, 0.6, 0.8, 1, 'over'], ARMS = ['R0', 'SIMP', 'READEROFF'];
 
 // 1. THE RECORDS: NE-SPLIT's world lines, behind its gate
 const logs = Object.fromEntries(readdirSync(DNS).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => [f, readFileSync(join(DNS, f), 'utf8')]));
@@ -64,7 +66,7 @@ console.log(`  SS's gap over worlds 0 and 1 (NE-SPLIT's point, the BASE arm's ex
 
 // 2. THE POWER: each arm's story (the share removed, bridge 4 kept or off) drawn at 4,000 paths a world through items()
 const mkJob = (id, arm, worlds, sims) => ({ id, arm, w: '0.02', world: worlds.map((x, k) => ({ k, z: 0, weight: x.weight, by: { SS: { table: x.table, ok: sims[k], n: NPW } } })), split: [{ k: 0, o: 'SS', sv: 1, r: 0 }, { k: 1, o: 'SS', sv: 1, r: 0 }, { k: 2, o: 'SS', sv: 1, r: 0 }] });
-const armTable = (f) => SW.map(x => { const g = x.table - 100 * x.q, keep = f === 'flip' ? -1 : 1 - f; return { weight: x.weight, table: 100 * x.q + keep * g }; });
+const armTable = (f) => SW.map((x, k) => { const g = x.table - 100 * x.q, keep = f === 'over' ? (k < 2 ? -1 : 0) : 1 - f; return { weight: x.weight, table: Math.max(0, 100 * x.q + keep * g) }; });
 const b4Table = (off, size = 0.5) => BW.map((x, k) => ({ weight: x.weight, table: Math.max(0, x.table + (off && (k === 0 || size < 0) ? size : 0)) }));
 const drawS = () => SW.map(x => pois(NPW * x.q)), drawB = () => BW.map(x => NPW - pois(NPW * (1 - x.q)));
 const power = {}, removedDraws = {};
@@ -106,7 +108,7 @@ const rows = { r1: 0, r2: 0, r3: 0, r4: 0 }, rem = { 1: [], 2: [], 3: [] }, M = 
 for (let d = 0; d < M; d++) {
   const cause = pick(cc), out = {};
   ARMS.forEach((a, i) => {
-    const f = pick(JUDGED.removes[a][cause]), off = rnd() < JUDGED.ctrlOff[a], key = `${f === 'flip' ? 'flip' : Number(f)}|${off ? JUDGED.ctrlSize[a] : 0}`;
+    const f = pick(JUDGED.removes[a][cause]), off = rnd() < JUDGED.ctrlOff[a], key = `${f === 'over' ? 'over' : Number(f)}|${off ? JUDGED.ctrlSize[a] : 0}`;
     out[i + 1] = outOf(power[key]); cred[i + 1][out[i + 1]]++;
     const rd = removedDraws[key]; rem[i + 1].push(rd[Math.floor(rnd() * rd.length)]);
   });

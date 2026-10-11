@@ -135,8 +135,8 @@ JOBS.forEach(([id, w, arm], ji) => {
   const mt = cand.meta;
   const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12;
   const took = arm === 'BASE' ? mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerSplit && !mt.readerChance
-    : arm === 'R0' ? mt.bridgeRead === 'reader' && /^r0 /.test(mt.readerSplit || '') && !mt.readerChance
-      : arm === 'SIMP' ? mt.bridgeRead === 'reader' && mt.readerChance === 'sim' && !mt.readerSplit
+    : arm === 'R0' ? mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && /^r0 /.test(mt.readerSplit || '') && !mt.readerChance
+      : arm === 'SIMP' ? mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && mt.readerChance === 'sim' && !mt.readerSplit
         : mt.bridgeRead === false && !mt.bridgeStep && !mt.readerSplit && !mt.readerChance;
   const s0v = M.initialState(cand.m);
   const table = 100 * cand.worlds.reduce((t, wd, k) => t + cand.mix.weights[k] * wd.value(s0v, 0).survival, 0);

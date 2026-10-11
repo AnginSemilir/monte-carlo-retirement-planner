@@ -15,9 +15,11 @@
  *     the world (T0 <= T1 <= T2) and bridge 4 under the arm is not shown off its table by more than 0.3 points in any world
  *     (each world's interval of table less simulated, at the same bounds, reaches [-0.3, 0.3]: at 4,000 paths bridge 4's
  *     world-0 interval is about +-0.5 wide, and its point alone would block a true removal about 0.31 of the time,
- *     results-derive-neroot.txt section 2); FALSIFIED when the
- *     arm leaves at least three quarters of Gb at a bound's end (gap low end >= 0.75 Gb, or high end <= -0.75 Gb, an
- *     under-read as large); INCONCLUSIVE otherwise, and whenever Gb is not above 0.
+ *     results-derive-neroot.txt section 2); FALSIFIED when the arm leaves at least three quarters of Gb at a bound's
+ *     end (gap low end >= 0.75 Gb); INCONCLUSIVE otherwise, and whenever Gb is not above 0 - an arm whose gap's high end
+ *     falls below -Gb/2 has over-corrected (its part drives the table's level, but it under-reads its own runs), read
+ *     INCONCLUSIVE and printed as over-corrected, never as 'not the reader's' (the plan-auditor's BLOCKING 1 of 11 Oct
+ *     05:18 UK).
  *   4. stage 1, BASE: the residual carries most of SS's year-1 read in worlds 0 and 1 and little in world 2 - HELD when
  *     r / sv >= 0.5 in worlds 0 and 1 and <= 0.25 in world 2; FALSIFIED when r / sv <= 0.25 in both worlds 0 and 1;
  *     INCONCLUSIVE otherwise (a table quantity: no sampling).
@@ -84,7 +86,7 @@ export function parse(text) {
 
 const WANT = {
   BASE: { bridgeRead: 'reader', bridgeStep: 'exact', readerSplit: 'null', readerChance: 'null' },
-  R0: { bridgeRead: 'reader', readerChance: 'null' }, SIMP: { bridgeRead: 'reader', readerChance: 'sim', readerSplit: 'null' },
+  R0: { bridgeRead: 'reader', bridgeStep: 'exact', readerChance: 'null' }, SIMP: { bridgeRead: 'reader', bridgeStep: 'exact', readerChance: 'sim', readerSplit: 'null' },
   READEROFF: { bridgeRead: 'false', bridgeStep: 'null', readerSplit: 'null', readerChance: 'null' } };
 const COMMON = { jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001' };
 export function gate(jobs, { pts = PTS, npw = NPW, seed = SEED, files = null } = {}) {
@@ -152,10 +154,10 @@ export function items(J) {
     const ctrl = ctrlOf(J[key('bridge 4', '0.02', arm)], 'SS'), ctrlOk = ctrl.every(c => c.hi >= -CTRL && c.lo <= CTRL);
     let outcome;
     if (!(Gb > 0)) outcome = 'INCONCLUSIVE';
-    else if (g.lo >= KEEP * Gb || g.hi <= -KEEP * Gb) outcome = 'FALSIFIED';
+    else if (g.lo >= KEEP * Gb) outcome = 'FALSIFIED';
     else if (g.hi <= Gb / 2 && g.lo >= -Gb / 2 && order && ctrlOk) outcome = 'HELD';
     else outcome = 'INCONCLUSIVE';
-    out[i + 1] = { outcome, arm, Gb, g, T, order, ctrl, ctrlOk, removed: Gb > 0 ? 1 - g.point / Gb : NaN };
+    out[i + 1] = { outcome, arm, Gb, g, T, order, ctrl, ctrlOk, over: Gb > 0 && g.hi < -Gb / 2, removed: Gb > 0 ? 1 - g.point / Gb : NaN };
   });
   const ratio = [0, 1, 2].map(k => { const s = base.split.find(x => x.k === k && x.o === 'SS'); return s && s.sv > 0 ? s.r / s.sv : NaN; });
   out[4] = { outcome: ratio.some(x => !Number.isFinite(x)) ? 'INCONCLUSIVE' : ratio[0] >= MOST && ratio[1] >= MOST && ratio[2] <= LITTLE ? 'HELD' : ratio[0] <= LITTLE && ratio[1] <= LITTLE ? 'FALSIFIED' : 'INCONCLUSIVE', ratio };
@@ -165,7 +167,7 @@ export function items(J) {
 }
 
 /* PLANTED: every boundary the items and the gate turn on, read as it should */
-const EDGES = [];
+const EDGES = [], REACHED = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set(), 5: new Set() };
 function planted() {
   const W = [1 / 6, 2 / 3, 1 / 6];
   // a job from per-world (table, survivors) for SS (and SC equal); n paths a world
@@ -188,9 +190,12 @@ function planted() {
   cases.push(['an arm whose gap\'s high end is exactly half of Gb, the world order kept: 1 HELD', o(set({ [key('S364', '0.02', 'R0')]: atHalf }))[1].outcome, 'HELD']); EDGES.push('a gap removed exactly by half at its bound');
   const pastHalf = job('S364', 'R0', '0.02', atHalf.world.map(y => [y.by.SS.table + 0.01, y.by.SS.ok]));
   cases.push(['the same a hundredth of a point higher: 1 INCONCLUSIVE', o(set({ [key('S364', '0.02', 'R0')]: pastHalf }))[1].outcome, 'INCONCLUSIVE']);
-  const flipped = job('S364', 'SIMP', '0.02', [[-3.6 + 0.05, 2], [-3.2 + 0.35, 14], [1.8, 70]].map(([t, k]) => [t, k]));
-  const fl = gapOf(flipped, 'SS');
-  cases.push([`an arm that flips the gap into an under-read as large (gap ${fl.point.toFixed(3)} of Gb ${Gb.toFixed(3)}): 2 FALSIFIED`, o(set({ [key('S364', '0.02', 'SIMP')]: flipped }))[2].outcome, fl.hi <= -KEEP * Gb ? 'FALSIFIED' : 'INCONCLUSIVE']); EDGES.push('a gap flipped into an under-read of the same size');
+  const flipped = job('S364', 'SIMP', '0.02', [[0.2, 100], [0.3, 120], [1.8, 140]]);
+  cases.push([`an arm whose tables stay at or above zero but under-read its own runs past half (gap ${gapOf(flipped, 'SS').point.toFixed(3)} of Gb ${Gb.toFixed(3)}): 2 INCONCLUSIVE, over-corrected`, o(set({ [key('S364', '0.02', 'SIMP')]: flipped }))[2].outcome + (o(set({ [key('S364', '0.02', 'SIMP')]: flipped }))[2].over ? ' over' : ''), 'INCONCLUSIVE over', 2]); EDGES.push('an under-read past half (over-corrected)');
+  const zeroed = job('S364', 'READEROFF', '0.02', [[0, 2], [0, 14], [1.7, 70]]);
+  cases.push(['an arm that drives worlds 0 and 1 to a zero table (removed about 1.1), bridge 4 kept: 3 HELD', o(set({ [key('S364', '0.02', 'READEROFF')]: zeroed }))[3].outcome, 'HELD', 3]); EDGES.push('a table driven to zero');
+  cases.push(['SIMP removing the gap, the order kept, bridge 4 kept: 2 HELD', o(set({ [key('S364', '0.02', 'SIMP')]: job('S364', 'SIMP', '0.02', [[0.3, 2], [0.3, 14], [1.8, 70]]) }))[2].outcome, 'HELD', 2]);
+  cases.push(['READEROFF removing the gap with bridge 4 shown off: 3 INCONCLUSIVE', o(set({ [key('S364', '0.02', 'READEROFF')]: zeroed, [key('bridge 4', '0.02', 'READEROFF')]: job('bridge 4', 'READEROFF', '0.02', [[13.3, 3990], [13.3, 3998], [13.3, 4000]]) }))[3].outcome, 'INCONCLUSIVE', 3]);
   const tie = job('S364', 'R0', '0.02', [[0.3, 2], [0.3, 14], [1.8, 70]]);
   cases.push(['a world-order tie (T0 = T1) with the gap removed: 1 HELD', o(set({ [key('S364', '0.02', 'R0')]: tie }))[1].outcome, 'HELD']); EDGES.push('a world-order tie');
   const unordered = job('S364', 'R0', '0.02', [[0.4, 2], [0.3, 14], [1.8, 70]]);
@@ -249,7 +254,12 @@ function planted() {
   cases.push(['the gate refuses a file whose bits are not the log\'s', G(all(), { files: filesGood(bitsB) }).length > 0, true]);
   cases.push(['the gate refuses a missing file', G(all(), { files: {} }).length > 0, true]);
   let failed = 0;
-  for (const [what, got, want] of cases) { const okc = String(got) === String(want); if (!okc) failed++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${what}: ${JSON.stringify(got)}`); }
+  for (const [what, got, want] of cases) {
+    const okc = String(got) === String(want); if (!okc) failed++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${what}: ${JSON.stringify(got)}`);
+    // the outcomes each item's plants reach, from the cases that read as they should (the plan-auditor's MINOR 2 of 11 Oct 05:18 UK)
+    const m = /: (\d)(?:-(\d))? (HELD|INCONCLUSIVE|FALSIFIED)/.exec(what);
+    if (okc && m) { const a = Number(m[1]), b = Number(m[2] || m[1]), outs = String(want).split(','); for (let i = a; i <= b; i++) REACHED[i].add((outs[i - a] || outs[0]).split(' ')[0]); }
+  }
   if (failed) { console.log(`PLANTED CHECKS FAILED: ${failed} of ${cases.length}`); process.exit(1); }
   return cases.length;
 }
@@ -259,7 +269,7 @@ if (isMain) {
   const np_ = planted();
   if (process.argv.includes('--planted')) {
     console.log(`planted (${np_}): all read as they should\nEDGES: ${EDGES.join(', ')}`);
-    for (let i = 1; i <= 5; i++) console.log(`OUTCOMES REACHED: item ${i}: FALSIFIED, HELD, INCONCLUSIVE`);
+    for (let i = 1; i <= 5; i++) console.log(`OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`);
     process.exit(0);
   }
   const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
@@ -293,7 +303,7 @@ if (isMain) {
   console.log('\nTHE ITEMS (each read by its registered rule)');
   for (const i of [1, 2, 3]) {
     const x = it[i];
-    console.log(`${i}. ${x.arm} removes at least half of SS's gap in worlds 0 and 1, restores the world order, bridge 4 kept: ${x.outcome}\n     Gb ${f4(x.Gb)}; arm's gap ${f4(x.g.point)} (${f4(x.g.lo)} to ${f4(x.g.hi)}); removed ${f4(x.removed)}; SS tables by world ${x.T.map(f4).join(', ')} (order ${x.order ? 'rising' : 'not rising'}); bridge 4 table less simulated by world ${x.ctrl.map(c => `${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join(', ')} (${x.ctrlOk ? 'kept' : 'shown off'})`);
+    console.log(`${i}. ${x.arm} removes at least half of SS's gap in worlds 0 and 1, restores the world order, bridge 4 kept: ${x.outcome}\n     Gb ${f4(x.Gb)}; arm's gap ${f4(x.g.point)} (${f4(x.g.lo)} to ${f4(x.g.hi)}); removed ${f4(x.removed)}${x.over ? ' (over-corrected: an under-read past half)' : ''}; SS tables by world ${x.T.map(f4).join(', ')} (order ${x.order ? 'rising' : 'not rising'}); bridge 4 table less simulated by world ${x.ctrl.map(c => `${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join(', ')} (${x.ctrlOk ? 'kept' : 'shown off'})`);
   }
   console.log(`4. stage 1: the residual carries most of SS's year-1 read in worlds 0 and 1 and little in world 2: ${it[4].outcome}\n     r/sv by world ${it[4].ratio.map(f4).join(', ')}`);
   console.log(`5. the control, bridge 4 under BASE within 0.3 points in every world: ${it[5].outcome}\n     ${it[5].ctrl.map(c => `world ${c.k} ${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join('; ')}`);

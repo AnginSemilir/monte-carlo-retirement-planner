@@ -18,19 +18,19 @@ Items as the review proposed: (1) the BASE-LOR gap at each forced opening shrink
 - **Item 1 HELD:** S380's gap LOR less BASE, coarse to fine: P world 0 -3.5053 to -0.9234 (ratio 0.2634), P world 1 5.5921 to 1.0716 (0.1916), D world 0 -3.8897 to -1.2304 (0.3163), D world 1 6.4021 to 1.0961 (0.1712).
 - **Item 2 HELD:** BASE at P: A 1.1066 against half its coarse 1.2717 (by world 0.1454, -1.3917, -0.9274); LOR at D: A 0.4495 against half its coarse 1.6189 (by world -0.4707, -0.4918, 0.2591).
 - **Item 3 HELD:** D less P, table against the paired runs, err by world: BASE 0.2393, -0.3462, 0.0868; LOR -0.0177, -0.2717, 0.2300, every one within a point.
-- **Item 4 HELD:** bridge 4 under BASE at its own opening (D): 0.1160, -0.0102, -0.0042 by world. LOR's beside it (reported): 0.1678, -0.0097, -0.0042 - its coarse world-0 over-read of 0.4731 gone at 60 points.
+- **Item 4 HELD:** bridge 4 under BASE at its own opening (D): 0.1160, -0.0102, -0.0042 by world. LOR's beside it (reported): 0.1678, -0.0097, -0.0042 - its world-0 over-read smaller at its point than the coarse 0.4731, its interval (-0.1701 to 0.6118) still reaching it; the read-space gap there (LOR less BASE at D, world 0) fell from 0.3512 to 0.0518.
 - **Reported:**
   - Each read's own move between the grids at item 1's cells: BASE -1.8023, 1.1225, -1.9536, 1.2327; LOR 0.7795, -3.3981, 0.7057, -4.0733. LOR moved, most of all in world 1; under RB-SPACE it would have stayed.
   - Own openings: at 60 points both reads choose S380's plan-tier opening (ai 12); at 30 LOR chose the de-risked one (ai 14).
   - S380 at each arm's own fine opening: BASE 0.1454, -1.3917, -0.9274 (weighted 1.1066); LOR -0.4530, -0.2201, 0.0291 (weighted 0.2271).
-  - S224 (no bridge year) at its fine own opening (ai 0; ai 1 at 30): -1.6173, -0.8986, -0.0282 against NE-ROOT's coarse -0.1094, 1.3081, 0.8613. The wealth axis's resolution moves tables outside the bridge too.
+  - S224 (no bridge year): its tables at one opening moved with the grid (at P in world 1, 76.7930 at 30 points and 73.7264 at 60), so the wealth axis's resolution moves tables outside the bridge too. Its errors at its own openings (fine ai 0: -1.6173, -0.8986, -0.0282; NE-ROOT's coarse ai 1: -0.1094, 1.3081, 0.8613) are at two openings and within noise, not compared (the plan-auditor's MINOR 4 of 11 Oct 23:00 UK).
   - The coarse tables' D less P: BASE -0.7095, 0.1686, 0.1533; LOR -1.0939, 0.9785, 0.4940. The fine runs': BASE -1.1000, 0.6250, 0.2750; LOR -1.1500, 0.5750, 0.2750.
   - LOR's clamp counts on S380 at 60 points: n 6854093160, lo 346660020, hi 10578300.
 
 ## What it settles and what it leaves
 
 - **The decision table's row:** row 1 (item 1 HELD, item 4 not FALSIFIED).
-- **Settled (grade B, one seed):** doubling the wealth axis closes most of the gap between the two bridge reads on S380, and brings both within half their coarse error of their runs; the fine tables price the de-risk within a point; bridge 4 holds.
+- **Settled (grade B, one seed):** doubling the wealth axis closes most of the gap between the two bridge reads on S380, and brings both within half their coarse error of their runs; the fine tables price the de-risk within a point, and neither read chooses it - but forcing it still loses world-0 paths at 60 points (-1.1000, -1.1500), so O142's S380 member stands; bridge 4 holds under BASE.
 - **Open, for the deep review after B1:**
   - RB-INTERP against RB-SPACE, from each read's own move: LOR moved.
   - Whether 60 points is enough: BASE still under-reads S380's good world, its interval below 0.

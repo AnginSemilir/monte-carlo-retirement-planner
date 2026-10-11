@@ -29,3 +29,6 @@ twice, a results file that does not exist, or a quote that is not a deciding lin
 - 10 Oct 04:17 UK | NE-NS | not | results-nesplit.txt | OUTCOME: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 HELD
 - 10 Oct 04:17 UK | NE-OTHER | not | results-nesplit.txt | OUTCOME: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 HELD
 - 11 Oct 02:37 UK | OW-PREF | not | results-neroot.txt | OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 INCONCLUSIVE, 4 INCONCLUSIVE, 5 HELD
+- 11 Oct 10:33 UK | B4-COPY | held | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down
+- 11 Oct 10:33 UK | B4-R | not | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down
+- 11 Oct 10:33 UK | B4-OTHER | not | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down

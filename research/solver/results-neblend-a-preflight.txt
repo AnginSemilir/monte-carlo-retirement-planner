@@ -1,5 +1,5 @@
-A. planted (30): all read as they should EDGES: a control point exactly at 0.3, a spread as flat as BASE's, a spread ratio exactly at 0.97, a spread steepened past it, a pair with no discordant path, a change exactly at 0.5 points, a balanced swap of discordant paths, an arm named but not in the meta, a default moved by a ten-thousandth 
+A. planted (34): all read as they should EDGES: a control point exactly at 0.3, a spread as flat as BASE's, a spread ratio exactly at 0.97, a spread steepened past 1.05 (over-corrected), a world off at its point but not shown, a pair with no discordant path, a change down as well as up, a one-sided count the guard holds out, a McNemar count past the old underflow, a change exactly at 0.5 points, a balanced swap of discordant paths, an arm named but not in the meta, a default moved by a ten-thousandth 
 B. GATE: passed - the four jobs once and done at the registered settings (4 points, 40 paths a world, seed 7002); every arm in its solve's meta; every self-check passed (armTook, forceIdentity on world 0's first 1,000 paths); every file the log's PREFLIGHT: the gate and the files read; no figure is read 
 C. the plant arm: refused (exit 3; audit-neblend: bridge 4 LOR/W0.02: the arm's settings did not take)
 C. the plant force: refused (exit 3; audit-neblend: bridge 4 LOR/W0.02: forcing CAND's own opening did not reproduce its run)
-preflight done 12:59 UK
+preflight done 14:03 UK

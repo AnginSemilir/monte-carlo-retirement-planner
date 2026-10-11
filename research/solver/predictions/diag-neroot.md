@@ -19,7 +19,7 @@ NE-SPLIT found the candidate's tables blind to S364's loss (the 11 Oct 02:08 row
 - **The tables are seed-free and each arm is read against itself:** each arm's world-table survival at SS is set beside SS forced in year 0 with that arm's own moves after it, on the same 4,000 paths a world, so the gap measures that arm's calibration at S364's opening.
 - **Stage 1's split is exact and checked:** the survival part is linear in each reader table's c and R (the read is p x sum w c + sum w R, grid.js readValues), so scoring the opening with R set to 0 gives pc, with c set to 0 and R halved about 1 gives r, and pc + r rebuilds the survival part (splitIdentity, within 1e-5); the five corner-status shares sum to 1 (splitCover).
 - **G's size, from NE-SPLIT's records behind its gate (results-derive-neroot.txt section 1):** SS's gap over worlds 0 and 1 is 3.0090 points at NE-SPLIT's 2,000 paths; bridge 4's table less simulated is 0.1967, 0.0261 and -0.0045 by world.
-- **The checks, each failed on a planted fault first:** reduce-neroot.mjs's 29 planted checks (`node research/solver/reduce-neroot.mjs --planted`, EDGES printed), and the audit's two plants, each refused by the preflight (Provenance): split moves r by 1e-3 (splitIdentity refuses), arm runs the R0 job without its arm (armTook refuses).
+- **The checks, each failed on a planted fault first:** reduce-neroot.mjs's 32 planted checks (each item reaching all three outcomes from its own plants) (`node research/solver/reduce-neroot.mjs --planted`, EDGES printed), and the audit's two plants, each refused by the preflight (Provenance): split moves r by 1e-3 (splitIdentity refuses), arm runs the R0 job without its arm (armTook refuses).
 
 ## Prediction
 
@@ -31,9 +31,9 @@ NE-SPLIT found the candidate's tables blind to S364's loss (the 11 Oct 02:08 row
 
 ## Falsified if
 
-- **Item 1 FALSIFIED:** R0 leaves at least three quarters of SS's gap at a bound's end (or turns it into an under-read as large).
+- **Item 1 FALSIFIED:** R0 leaves at least three quarters of SS's over-read at a bound's end. (An under-read past half - the arm over-correcting, its part driving the table's level - reads INCONCLUSIVE, printed as over-corrected, for every arm.)
 - **Item 2 HELD (the prediction missed):** SIMP removes at least half the gap, restores the order, bridge 4 kept.
-- **Item 3 FALSIFIED:** the reader off leaves at least three quarters of the gap: the plateau is not the reader's.
+- **Item 3 FALSIFIED:** the reader off leaves at least three quarters of the over-read: the plateau is not the reader's.
 - **Item 4 FALSIFIED:** the residual carries at most a quarter of the read in both worlds 0 and 1.
 - **Item 5 FALSIFIED:** one world's interval of bridge 4's table less simulated lies wholly outside 0.3 points.
 
@@ -54,7 +54,7 @@ NE-SPLIT found the candidate's tables blind to S364's loss (the 11 Oct 02:08 row
 ## Decision rule (registered before launch)
 
 - **The gap (items 1-3):** SS's table survival less its simulated survival, in points, weighted over worlds 0 and 1 by the mixture's weights; each world's simulated survival bounded by its exact (Clopper-Pearson) interval one-sided at ALPHA / 6 = 0.0083 (two worlds and three arms: Bonferroni, Holm's first step, conservative), the bounds combined at the same weights. Gb is BASE's gap at its point.
-- **Items 1-3 (primary; single look; one per arm: R0, SIMP, READEROFF):** HELD when the arm's gap lies inside +-Gb/2 at both bounds, its SS table survival rises with the world (T0 <= T1 <= T2) and bridge 4 under the arm is not shown off its table by more than 0.3 points in any world (each world's interval of table less simulated, at the same bounds, reaches [-0.3, 0.3]); FALSIFIED when the arm leaves at least three quarters of Gb at a bound's end (low end >= 0.75 Gb, or high end <= -0.75 Gb); INCONCLUSIVE otherwise, and whenever Gb is not above 0.
+- **Items 1-3 (primary; single look; one per arm: R0, SIMP, READEROFF):** HELD when the arm's gap lies inside +-Gb/2 at both bounds, its SS table survival rises with the world (T0 <= T1 <= T2) and bridge 4 under the arm is not shown off its table by more than 0.3 points in any world (each world's interval of table less simulated, at the same bounds, reaches [-0.3, 0.3]); FALSIFIED when the arm leaves at least three quarters of Gb at a bound's end (low end >= 0.75 Gb); INCONCLUSIVE otherwise, and whenever Gb is not above 0; an arm whose gap's high end falls below -Gb/2 has over-corrected (its part drives the table's level but under-reads its own runs) and reads INCONCLUSIVE, printed as over-corrected - never as 'not the reader's' (the plan-auditor's BLOCKING 1 of 11 Oct 05:18 UK).
 - **Item 4 (stage 1; single look; deterministic):** r / sv for SS under BASE by world: HELD when >= 0.5 in worlds 0 and 1 and <= 0.25 in world 2; FALSIFIED when <= 0.25 in both worlds 0 and 1; INCONCLUSIVE otherwise.
 - **Item 5 (the control; single look):** bridge 4 under BASE: HELD when every world's table less simulated is within 0.3 points; FALSIFIED when one world's interval, at the same bounds, lies wholly outside [-0.3, 0.3]; INCONCLUSIVE otherwise.
 - **Reported, not items:** SC's gaps beside SS's; S364 at 0.01's split and world lines; S224's and S380's world lines at the candidate's own opening (whether the plateau reaches 7u-F's households, the plan-auditor's MINOR 2 of 11 Oct 02:53 UK); each reader table's nodes by status and its funded share corners' R and S - p.
@@ -64,21 +64,22 @@ NE-SPLIT found the candidate's tables blind to S364's loss (the 11 Oct 02:08 row
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD, item 2 not HELD | OW-RSPLIT leads (grade B, one seed): the reader's split leaves the near-edge survival in R; a fix of the split and R's blend is designed with NSL-PROP's R blend (NS-PROP folds into it), tested on a fresh seed, and goes to the maintainer with 7u-F (NE-SPLIT's row 1); PR17 and PR18 recorded false on S364 | 0.29 |
-| item 2 HELD, item 1 not HELD | OW-PREF leads: the lognormal reference chance over-reads at the near-dead edge (PR15 false on S364); a fix of p is designed and tested on a fresh seed, to the maintainer with 7u-F | 0.07 |
-| items 1, 2 and 3 FALSIFIED | not the reader (OW-BUNDLE or OW-OTHER): the next split, over the candidate's non-reader settings (e3, e3pcls, the tier state), is registered as its own test | 0.09 |
-| else | the unsettled items named; the stage-1 split and the arms' per-world lines decide the next split, registered as its own test; nothing goes to the maintainer unless an arm reads | 0.55 |
+| item 1 HELD, item 2 not HELD | OW-RSPLIT leads (grade B, one seed): the reader's split leaves the near-edge survival in R; a fix of the split and R's blend is designed - only after the maintainer agrees PR13's form (NE-SPLIT's row 1) - with NSL-PROP's R blend (NS-PROP folds into it), tested on a fresh seed, and goes to the maintainer with 7u-F; PR17 and PR18 recorded false on S364 | 0.34 |
+| item 2 HELD, item 1 not HELD | OW-PREF leads: the lognormal reference chance over-reads at the near-dead edge (PR15 false on S364); a fix of p is designed only after PR13's form is agreed, tested on a fresh seed, to the maintainer with 7u-F | 0.07 |
+| items 1, 2 and 3 FALSIFIED | not the reader (OW-BUNDLE or OW-OTHER): each arm left at least three quarters of the over-read; the next split, over the candidate's non-reader settings (e3, e3pcls, the tier state), is registered as its own test | 0.06 |
+| else | the unsettled items named; the stage-1 split and the arms' per-world lines decide the next split, registered as its own test; nothing goes to the maintainer unless an arm reads | 0.53 |
 
-- **Waiver:** none needed: the chance the action changes is 0.45 (one less 0.55, the likeliest row), above a quarter
+- **Waiver:** none needed: the chance the action changes is 0.47 (one less 0.53, the likeliest row), above a quarter
 
 ## Decision fed
 
 The decision table's rows decide; each item's own reading adds only this:
 
-- **Item 1 HELD (row 1):** OW-RSPLIT is recorded as O137's leading cause at grade B (one seed); NE-ROOT's STOP lifts for designing the split's fix, not for shipping one.
+- **Item 1 HELD (row 1):** OW-RSPLIT is recorded as O137's leading cause at grade B (one seed); NE-ROOT's STOP lifts for designing the split's fix once the maintainer agrees PR13's form (NE-SPLIT's row 1), not for shipping one.
 - **Item 2 HELD (row 2):** OW-PREF as above, PR15 recorded false on S364.
 - **Items 1 and 2 both HELD (row 4):** both parts carry it; their fixes are designed together and neither is recorded as the cause alone.
 - **Item 3:** HELD or FALSIFIED says whether the reader as a whole carries the plateau, grade C (two settings move together); its INCONCLUSIVE (bridge 4 shown off) is the expected reading and changes nothing.
+- **An arm over-corrected (any item):** its part drives the table's level; recorded beside the item's INCONCLUSIVE as evidence for that cause, never against it.
 - **Item 4 HELD or FALSIFIED:** the residual or the reference times the continuation carries S364's year-1 read; it supports or weakens row 1 but never decides a row alone.
 - **Item 5 FALSIFIED:** the method misreads where the table was calibrated: items 1-3 are NOT SETTLED until the misread is explained; HELD or INCONCLUSIVE leaves them as read.
 - **In every branch:** no product change; the candidate's settings unchanged; 7u-F waits as its row says; NS-PROP waits on this read.
@@ -86,6 +87,7 @@ The decision table's rows decide; each item's own reading adds only this:
 ## Provenance
 
 - **The design:** the deep review after NE-SPLIT (deep-review-log.md 11 Oct 02:37 UK), its decisive test NE-ROOT and its STOP list; PLAN.md's NE-ROOT row (PROPOSED 11 Oct).
+- **Amended before launch** on the plan-auditor's FAIL of 11 Oct 05:18 UK (review-log.md): the derivation's 'flip' story was built on survival tables below zero, so its credences, rows, points and one falsifier rested on an impossible case (BLOCKING 1) - now 'over', the table driven to zero in worlds 0 and 1, never below; an under-read past half reads INCONCLUSIVE as an over-correction, never as 'not the reader's'; credences, rows, points and the Power section re-derived (sha256 f7372a59d53b8644); OUTCOMES REACHED built from the plants, with HELD plants for SIMP and READEROFF (MINOR 2; 32 planted checks); row 1 restates PR13's condition (MINOR 3); the gate and the audit's armTook check bridgeStep 'exact' for R0 and SIMP (MINOR 4). The preflight re-run on the amended audit (below).
 - **Changed from the review's design (declared):** the arms' bridge 4 condition read at its interval (above); Bonferroni across the arms; S224's and S380's world lines as BASE jobs (MINOR 2 of 11 Oct 02:53 UK); SS and SC at SHIP's own opening's recipe (O136's lesson); the review's 'S - p, c and R at the funded share corners in every bridge year by world and layer' printed per reader table at its lowest pension share, supported nodes; forceIdentity on world 0's first 1,000 paths; S364 at 0.01 under BASE only.
 - **The build:** reader.js simChance and r0Split, solve.js's two options and their guards (one line each, so no mechanism anchor moved), research/tests/reader-neroot.test.mjs; audit-neroot.mjs, reduce-neroot.mjs, derive-neroot.mjs, batch-neroot.sh, preflight-neroot.sh.
 - **The preflight:** preflight-neroot.sh on the tuning seed at 4 points through the launcher (runs.log 11 Oct), quoted from results-neroot-preflight.txt: A. the reducer's 29 planted checks all read as they should, EDGES printed; B. GATE passed on the eleven jobs at 4 points and 40 paths a world, every arm in its solve's meta, the same SS and SC under every arm, every self-check passed; C. the plant split refused (exit 3: a stage-1 self-check failed) and the plant arm refused (exit 3: the arm's settings did not take). The gate's printed line then said 'forceIdentity on every path'; corrected to world 0's first 1,000 paths before launch (the check itself unchanged).
@@ -93,14 +95,14 @@ The decision table's rows decide; each item's own reading adds only this:
 
 ## Derivation script
 
-- `derive: research/solver/derive-neroot.mjs > research/solver/results-derive-neroot.txt sha256 fcbff1466b15e103`
+- `derive: research/solver/derive-neroot.mjs > research/solver/results-derive-neroot.txt sha256 f7372a59d53b8644`
   (NE-SPLIT's world lines behind its gate, the power of items 1-3 and 5 through reduce-neroot.mjs's own items(), the credences from the review's cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from NE-SPLIT's logs)
 
 ## Point and interval
 
-- **Item 1:** 0.5806, the share of SS's gap R0 removes (results-derive-neroot.txt section 3); 80% interval -0.0138 to 1.0215
-- **Item 2:** 0.2273, the share SIMP removes; 80% interval -0.0336 to 0.6600
-- **Item 3:** 0.8231, the share READEROFF removes; 80% interval 0.0032 to 2.0000 (2 is an under-read as large)
+- **Item 1:** 0.5197, the share of SS's gap R0 removes (results-derive-neroot.txt section 3); 80% interval -0.0138 to 1.0215
+- **Item 2:** 0.2235, the share SIMP removes; 80% interval -0.0336 to 0.6600
+- **Item 3:** 0.6343, the share READEROFF removes; 80% interval 0.0032 to 1.0960 (above 1 is a table driven to zero in worlds 0 and 1)
 - **Item 4:** none: a table quantity, deterministic
 - **Item 5:** none: a control
 
@@ -114,7 +116,7 @@ From results-derive-neroot.txt section 2 (2,000 draws a cell at 4,000 paths a wo
   removes 0.6 : INCONCLUSIVE 1.0000 (the world order is not restored: under the linear shrink it needs about 0.61)
   removes 0.8 : kept HELD 0.9990 | off 0.5 HELD 0.6245 | off -86 HELD 0.0000
   removes 1   : kept HELD 0.9995 | off 0.5 HELD 0.6220 | off -86 HELD 0.0000
-  removes flip: FALSIFIED 1.0000
+  removes over: kept HELD 0.9985 | off 0.5 HELD 0.6170 | off -86 HELD 0.0000 (the table driven to zero in worlds 0 and 1)
   item 5 (bridge 4 under BASE at NE-SPLIT's tables and rates): HELD 0.6950 INCONCLUSIVE 0.3050 FALSIFIED 0.0000
 ```
 
@@ -141,16 +143,16 @@ the judged lines first, then run the derivation script, whose section computes e
 priors over the Power section's stories through the decision bands. No cap taken from the scorecard.
 
 Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RATES, as of this file's writing: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.69 (17 of 24), ATTRIB 0.55 (25 of 45), SIZE 0.53 (24 of 45), CTRL 0.69 (8 of 11), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.26 (6 of 25).
-Items 1-4 rest on the review's ranked causes and its story, so each starts from 0.26; the review's own lead credence (OW-RSPLIT 0.53) is already its posterior shaded halfway to that rate (its receipt), and the derivation mixes the receipt's credences through the JUDGED stories (how much of the over-read each arm removes under each cause, how often it moves bridge 4 off and by how much) and section 2's power. Item 1 stands at 0.31 because R0 removes most of the over-read under OW-RSPLIT (0.55 of its draws at 0.8 or more) and bridge 4 is judged kept 0.7 of the time; item 3 at 0.01 because the reader off is judged to put bridge 4 off by about 86 points 0.95 of the time, which the control shows. Item 5 starts from CTRL's 0.69 and its derived 0.69 is the power alone.
+Items 1-4 rest on the review's ranked causes and its story, so each starts from 0.26; the review's own lead credence (OW-RSPLIT 0.53) is already its posterior shaded halfway to that rate (its receipt), and the derivation mixes the receipt's credences through the JUDGED stories (how much of the over-read each arm removes under each cause, how often it moves bridge 4 off and by how much) and section 2's power. Item 1 stands at 0.37 because R0 removes most of the over-read under OW-RSPLIT (0.65 of its judged weight at 0.8 or more, an over-correction included) and bridge 4 is judged kept 0.7 of the time; item 3 at 0.03 because the reader off is judged to put bridge 4 off by about 86 points 0.95 of the time, which the control shows. Item 5 starts from CTRL's 0.69 and its derived 0.69 is the power alone.
 
 - **Base rate, item 1:** 0.26 (a deep review's cause: OW-RSPLIT)
 - **Base rate, item 2:** 0.26 (a deep review's cause: OW-PREF)
 - **Base rate, item 3:** 0.26 (a deep review's cause: the reader as a whole)
 - **Base rate, item 4:** 0.26 (a deep review's story: OW-RSPLIT's prediction)
 - **Base rate, item 5:** 0.69 (CTRL)
-- **Item 1:** HELD 0.31, INCONCLUSIVE 0.34, FALSIFIED 0.35 (derived, results-derive-neroot.txt section 3)
+- **Item 1:** HELD 0.37, INCONCLUSIVE 0.35, FALSIFIED 0.29 (derived, results-derive-neroot.txt section 3)
 - **Item 2:** HELD 0.09, INCONCLUSIVE 0.35, FALSIFIED 0.56 (derived)
-- **Item 3:** HELD 0.01, INCONCLUSIVE 0.58, FALSIFIED 0.40 (derived)
+- **Item 3:** HELD 0.03, INCONCLUSIVE 0.78, FALSIFIED 0.19 (derived)
 - **Item 4:** HELD 0.44, INCONCLUSIVE 0.34, FALSIFIED 0.21 (derived: the JUDGED item-4 conditionals over the causes)
 - **Item 5:** HELD 0.69, INCONCLUSIVE 0.30, FALSIFIED 0.00 (derived: the power at NE-SPLIT's rates)
 - **Judged:** none (the judged inputs are derive-neroot.mjs's JUDGED block, committed before its output)

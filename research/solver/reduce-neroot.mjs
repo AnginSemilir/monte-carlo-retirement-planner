@@ -273,7 +273,7 @@ if (isMain) {
   const bad = gate(jobs, { pts: ptsA, npw: npwA, files });
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   console.log(`planted (${np_}): all read as they should`);
-  console.log(`GATE: passed - the eleven jobs once and done at the registered settings (${ptsA} points, ${npwA} paths a world, seed ${SEED}); every arm in its solve's meta; the same SS and SC under every arm; every self-check passed (armTook, splitIdentity, splitCover, forceIdentity on every path); every file the log's`);
+  console.log(`GATE: passed - the eleven jobs once and done at the registered settings (${ptsA} points, ${npwA} paths a world, seed ${SEED}); every arm in its solve's meta; the same SS and SC under every arm; every self-check passed (armTook, splitIdentity, splitCover, forceIdentity on world 0's first 1,000 paths); every file the log's`);
   if (PRE) { console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
   const J = Object.fromEntries(jobs.map(j => [key(j.id, j.w, j.arm), j]));
   const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : String(x));

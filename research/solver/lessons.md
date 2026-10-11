@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NE-ROOT (closed 11 Oct 10:07)
+
+- [T:figure] NE-SPLIT's first write-up misread item 4 at 0.02 and left out world 2, where most of the loss sat (the plan-auditor's FAIL of 11 Oct 02:32 UK, BLOCKINGs 1 and 2): the figures were the file's, the reading of them was by eye (which Holm p read at 0.05; which world held the loss) -> AUTOMATE: a reducer from NE-ROOT on prints its verdict words beside each figure (reads, unread, kept, shown off, over-corrected), as reduce-neroot.mjs does, so a write-up copies the reading rather than judging it
+- [T:decision-fed] the same write-up dropped two of the registered row 1's actions and recorded the maintainer's PR13 answer only inside other rows (BLOCKINGs 3 and 4 of 02:32) -> DROP: relook.mjs and the auditor caught both before the change stood, and a decision's own ledger row is already the rule (checklist item 8)
+- [T:design] NE-ROOT's derivation built an over-correction story on survival tables below zero, and its credences, rows and one falsifier rested on it (the plan-auditor's FAIL of 11 Oct 05:18 UK, BLOCKING 1) -> REPLACE in new-prediction.mjs with: A derivation's story that moves a table or a rate keeps it inside its range (survival between 0 and 100 points, a count at least 0), and the derive script asserts it.
+- [T:other:framing] the PR13 question put to the maintainer misstated its threshold, then understated its cost (the auditor's MINOR 1 of 07:51 UK); each was corrected and put again -> AUTOMATE (proposed for the next unlock): the plan-update skill: a question put to the maintainer quotes each option's consequence from a script's output, not from prose
+
 ## NE-SPLIT (closed 11 Oct 02:08)
 
 - [T:design] four BLOCKING findings on NE-SPLIT's design before launch (the plan-auditor's FAILs of 10 Oct: at 08:13 BLOCKINGs 1 and 2, item 1 read by sign alone and item 4 never tested directly; at 18:14 and 18:50 BLOCKING 1, item 2's gap read as sampling-free and G taken as exact where the code makes it a lower bound) -> REPLACE in new-prediction.mjs with: An item that reads a quantity built from simulated paths, or a bound the code gives, states its sampling interval and which side the bound sits on from the derivation's first draft, and its decision rule reads the interval's ends, not the point.

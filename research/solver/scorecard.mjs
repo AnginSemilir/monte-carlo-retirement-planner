@@ -70,6 +70,7 @@ export const TESTS = [
   { name: 'NS-COND (NSB re-scoped: what carries the live corners\' bequest error at the share-axis dead reads)', prediction: 'predictions/diag-nscond.md', results: 'results-nscond.txt' },
   { name: '7u (the research candidate against the shipping default on the held-out seed, 55 households, both estate weights)', prediction: 'predictions/confirm-7u.md', results: 'results-7u.txt' },
   { name: 'NE-SPLIT (S364\'s opening split by parts in the candidate\'s tables and forced, bridge 4 the control)', prediction: 'predictions/diag-nesplit.md', results: 'results-nesplit.txt' },
+  { name: 'NE-ROOT (the candidate\'s S364 survival plateau: the residual, the chance and the reader armed one at a time, bridge 4 the control)', prediction: 'predictions/diag-neroot.md', results: 'results-neroot.txt' },
 ];
 
 export function credences(predText) {

@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NE-SPLIT (closed 11 Oct 02:08)
+
+- [T:design] four BLOCKING findings on NE-SPLIT's design before launch (the plan-auditor's FAILs of 10 Oct: at 08:13 BLOCKINGs 1 and 2, item 1 read by sign alone and item 4 never tested directly; at 18:14 and 18:50 BLOCKING 1, item 2's gap read as sampling-free and G taken as exact where the code makes it a lower bound) -> REPLACE in new-prediction.mjs with: An item that reads a quantity built from simulated paths, or a bound the code gives, states its sampling interval and which side the bound sits on from the derivation's first draft, and its decision rule reads the interval's ends, not the point.
+- [T:order] the judged lines were committed after the derivation's output (the plan-auditor's FAIL of 10 Oct 08:13 UK, BLOCKING 3) -> DROP: the auditor caught it before launch and the order was restored by withdrawing the lines and committing them first; the pre-commit hook already refuses the two in one commit
+- [T:code] the audit built its openings from the first action at each spend and tier, so bridge 4's own opening at 30 points was none of the four (O136); the preflight's 4 points could not reach it -> DROP: the audit's own guard refused the unit before any figure was read, which is the check working, and the fix ran under every self-check
+- [T:other:pregate] the run's progress was checked by printing its sim lines, so S364's four counts at 0.02 were seen before the gate (declared in the 11 Oct 02:08 row) -> DROP: the reading is the reducer's by the registered rule, and progress is now read by counting lines, never printing them
+
 ## 7u (closed 10 Oct 03:46)
 
 - [T:design] 7u's points fell outside their 80% intervals on six of eight items (O134): the derivation carried the broad 30 from the 25's no-gain households (grade D), and the broad 30 gain more and spread wider than that subset, so the intervals were too narrow and centred low -> REPLACE in new-prediction.mjs with: A panel's households that no record covers are carried into the power and the intervals from a record of households chosen by the same rule, never from another panel's subset; where none exists, each interval is widened to the spread across the record's households and the carry is named grade D in the pre-mortem (7u: the broad 30 drawn from the 25's no-gain households put six of eight points outside their 80% intervals, the broad floor +0.360 against the 25's +0.162, results-7u.txt).

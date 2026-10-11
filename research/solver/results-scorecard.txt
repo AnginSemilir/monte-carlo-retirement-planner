@@ -41,27 +41,28 @@ DT-O97 (O97's loss at a pension death tax of 0.4): Brier 0.025 over 2 (1 0.8 -> 
 CARRY (the carry family's rule held out on 7aw, and O123's cause by the fixed-policy re-score): Brier 0.196 over 2 (1 0.65 -> held; 2 0.48 -> held)
 NS-COND (NSB re-scoped: what carries the live corners' bequest error at the share-axis dead reads): Brier 0.039 over 3 (1 0.28 -> not; 2 0.9 -> held; 3 0.17 -> not)
 7u (the research candidate against the shipping default on the held-out seed, 55 households, both estate weights): Brier 0.303 over 8 (1 0.7 -> not; 2 0.79 -> not; 3 0.98 -> held; 4 0.98 -> held; 5 0.81 -> not; 6 0.81 -> not; 7 0.98 -> held; 8 0.98 -> held)
+NE-SPLIT (S364's opening split by parts in the candidate's tables and forced, bridge 4 the control): Brier 0.227 over 5 (1 0.31 -> held; 2 0.41 -> held; 3 0.28 -> not; 4 0.44 -> not; 5 0.8 -> held)
 
-CUMULATIVE: Brier 0.229 over 174 items
-INTERVALS, each registered 80% interval against its reducer's REALISED line: 2 of 8 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); 9 registered in 4 tests have no REALISED line (the reducers before 7u print none)
-INTERVAL FORMS over every prediction file: 43 write an 80% interval; 5 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-carry, diag-edge); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
+CUMULATIVE: Brier 0.229 over 179 items
+INTERVALS, each registered 80% interval against its reducer's REALISED line: 4 of 10 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); 9 registered in 4 tests have no REALISED line (the reducers before 7u print none)
+INTERVAL FORMS over every prediction file: 44 write an 80% interval; 6 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-carry, diag-edge, diag-nesplit); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%     103   0.44   0.58
+  under 60%     107   0.43   0.58
   60-75%         30   0.65   0.53
-  75-90%         27   0.80   0.85
+  75-90%         28   0.80   0.86
   90% and over   14   0.95   0.93
 
-INFORMATION: base rate 0.644 held; always the base rate scores 0.229; over the distinct credences reliability 0.057, resolution 0.057, uncertainty 0.229; AUC 0.63 (0.5 is no discrimination)
+INFORMATION: base rate 0.642 held; always the base rate scores 0.230; over the distinct credences reliability 0.061, resolution 0.061, uncertainty 0.230; AUC 0.63 (0.5 is no discrimination)
 BY KIND (items, mean credence, share held, the author's Brier, the Brier of the kind's base rate from earlier tests):
   NOHARM     48   0.67   0.79   0.217   0.186
   EFFECT     24   0.60   0.71   0.202   0.232
-  ATTRIB     41   0.42   0.56   0.295   0.262
+  ATTRIB     45   0.42   0.56   0.293   0.261
   SIZE       45   0.56   0.53   0.216   0.277
-  CTRL       10   0.74   0.70   0.163   0.256
+  CTRL       11   0.74   0.73   0.152   0.242
   WHOLE       6   0.47   0.50   0.192   0.301
-THREE-OUTCOME ITEMS: ranked probability score 0.139 over 37, a uniform forecast 0.233
+THREE-OUTCOME ITEMS: ranked probability score 0.140 over 42, a uniform forecast 0.234
 LEGS, an item needing every household scored household by household: Brier 0.083 over 2
-DEEP-REVIEW CAUSES: 134 stated, 12 settled, Brier 0.097
-KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.69 (17 of 24), ATTRIB 0.56 (23 of 41), SIZE 0.53 (24 of 45), CTRL 0.67 (7 of 10), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.23 (5 of 24: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 4 of 5, review-causes.md)
+DEEP-REVIEW CAUSES: 142 stated, 12 settled, Brier 0.097
+KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.69 (17 of 24), ATTRIB 0.55 (25 of 45), SIZE 0.53 (24 of 45), CTRL 0.69 (8 of 11), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.23 (5 of 24: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 4 of 5, review-causes.md)
 DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.61, derived 0.63; resolution judged 0.117, derived 0.204 over 21
 JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged 0.228, derived 0.267 over 21; the decisive check (O29): ACCRUING - 21 of 30 items over 7 tests

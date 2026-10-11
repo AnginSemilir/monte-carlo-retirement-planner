@@ -69,6 +69,7 @@ export const TESTS = [
   { name: 'CARRY (the carry family\'s rule held out on 7aw, and O123\'s cause by the fixed-policy re-score)', prediction: 'predictions/diag-carry.md', results: 'results-carry.txt' },
   { name: 'NS-COND (NSB re-scoped: what carries the live corners\' bequest error at the share-axis dead reads)', prediction: 'predictions/diag-nscond.md', results: 'results-nscond.txt' },
   { name: '7u (the research candidate against the shipping default on the held-out seed, 55 households, both estate weights)', prediction: 'predictions/confirm-7u.md', results: 'results-7u.txt' },
+  { name: 'NE-SPLIT (S364\'s opening split by parts in the candidate\'s tables and forced, bridge 4 the control)', prediction: 'predictions/diag-nesplit.md', results: 'results-nesplit.txt' },
 ];
 
 export function credences(predText) {

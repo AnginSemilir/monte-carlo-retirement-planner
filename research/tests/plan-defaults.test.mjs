@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCT_DEFAULTS, PRODUCT_BASELINE } from '../../src/solver/solve.js';
-import { MARGINS, marginFor } from '../solver/stats.mjs';
+import { MARGINS, marginFor, marginRel } from '../solver/stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -29,6 +29,9 @@ ok(D.giaTiers === 'refused' && /if \(opts\.giaTiers\) throw/.test(src), 'the tax
 const keys = Object.keys(MARGINS);
 ok(D.margins && keys.length === Object.keys(D.margins).length && keys.every(k => D.margins[k] === MARGINS[k]), `the regimen's margins: decided ${JSON.stringify(D.margins)}, stats.mjs ${JSON.stringify(MARGINS)}`);
 ok(marginFor(D.margins.highAt) === D.margins.high && marginFor(D.margins.highAt - 0.1) === D.margins.low, `marginFor splits at the decided ${D.margins.highAt}%`);
+// the relative margin (the maintainer, 11 Oct: PR13's form): a tenth of the comparison arm's survival where smaller
+ok(D.margins.rel === 0.1 && Math.abs(marginRel(0.42) - 0.042) < 1e-12 && marginRel(5) === D.margins.low && marginRel(50) === D.margins.low && marginRel(96) === D.margins.high && marginRel(0) === 0, `marginRel: the smaller of marginFor and ${D.margins.rel} of the arm's survival (S364's 0.42 gives 0.042; 5 and above unchanged)`);
+ok(!(Math.abs(Math.min(marginFor(0.42), 0.2 * 0.42) - marginRel(0.42)) < 1e-12), 'planted: a fifth in place of the decided tenth would fail the marginRel line');
 const r7e = readFileSync(join(HERE, '../solver/reduce-7e.mjs'), 'utf8');
 ok(/const marginOf = marginFor;/.test(r7e) && /POOL_FLOOR = -MARGINS\.pooled/.test(r7e), "7e's reducer reads the decided margins from stats.mjs, not its own numbers");
 // planted: the check must be able to fail

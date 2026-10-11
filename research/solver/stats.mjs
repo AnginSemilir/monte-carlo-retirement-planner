@@ -12,9 +12,13 @@
 
 /* the regimen's margins, in points (the review's section 16 item 3; adopted by the maintainer 25 Sep 20:47 UK): 0.25
    where the comparison arm survives 95% or more, 0.5 below, 0.1 for a pooled mean. PLAN.md's decided-defaults block
-   carries the same numbers ("margins"). */
-export const MARGINS = Object.freeze({ high: 0.25, low: 0.5, pooled: 0.1, highAt: 95 });
+   carries the same numbers ("margins"). `rel` (the maintainer, 11 Oct, the session: 'A tenth (Recommended)', answering
+   PR13): for a test registered from 11 Oct the margin is the smaller of marginFor's and a tenth of the comparison arm's
+   survival (marginRel), so where that arm survives under 5 points a loss of its few surviving paths can read as harm;
+   a test registered before keeps marginFor, its registered rule. */
+export const MARGINS = Object.freeze({ high: 0.25, low: 0.5, pooled: 0.1, highAt: 95, rel: 0.1 });
 export const marginFor = offSim => (offSim >= MARGINS.highAt ? MARGINS.high : MARGINS.low);
+export const marginRel = offSim => Math.min(marginFor(offSim), MARGINS.rel * offSim);
 
 /* P(X >= k) for X ~ Bin(n, 1/2), exactly. Up to about 1,000 tosses the direct sum, as it always ran; above that 2^-n
  * underflows to 0 and the direct sum read 1 for every k (found 26 Sep building 7r, where n is 3,000 paths; no earlier

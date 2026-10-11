@@ -447,13 +447,12 @@ checked by the plan-auditor by hand.
    the guarded unconditional interval (stats.mjs survivalChangeU, Newcombe 1998 method 10, held at least as far out as the
    exact bound on a one-sided count: reduce-7aa.mjs guarded): a household passes only when the exact rule reads no
    material harm and the guarded interval's lower end is above minus the margin; harm as item 3 below. Calibrated at a
-   true loss at the margin (sim-survival-rule.mjs, results-sim-survival-rule.txt; the plan-auditor's BLOCKING 2 of 29 Sep
-   22:33 found the first citation calibrated the whole score instead): the rule passes it 1.72% to 2.67% of the time
+   true loss at the margin (sim-survival-rule.mjs, results-sim-survival-rule.txt): the rule passes it 1.72% to 2.67% of the time
    against 2.5% stated, at survival 46% to 99.8% and 8,000 or 16,000 paths - about nominal; the exact rule alone passes it
    47% to 48%.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
-   pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
-   test pinning them (plan-defaults.test.mjs, since 25 Sep 21:54 UK).
+   pooled mean; from 11 Oct a tenth of the arm's survival where smaller (stats.mjs marginRel; the maintainer, PR13). Gate
+   4's 1-point condition stays at the product level. The decided-defaults block holds them, pinned by plan-defaults.test.mjs.
 3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
    next look, or report the bound). A real loss smaller than the margin is reported and does not block.

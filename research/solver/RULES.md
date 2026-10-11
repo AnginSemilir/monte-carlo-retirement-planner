@@ -170,10 +170,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    runs.log 07:09 UK: S126 on 7v's own first 1,000 paths), and its lines were printed before registration (disclosed in
    predictions/diag-7v.md; the ninety-third review, BLOCKING 3, and the ninety-fourth, MINOR 8). Until a check exists, a
    timing measurement runs on a seed or paths the test will not read, or its lines are not read beyond the seconds.
-19. Rule 11's route for a change after launch (the prediction's "Changes after seeing results") was closed to a stamp-gated
-   test until 29 Sep: requireFairLogs (fair-gate.mjs checkLogStamps) had no accept path, so any edit to the prediction after
-   launch made the gate refuse the whole batch (7v, 27 Sep; 7af, 29 Sep). **Closed by the maintainer's unlock, 29 Sep:** the
-   gate now takes a declared correction (fair-gate.mjs declaredCorrection) - the file may differ from its launch blob, which
+19. Rule 11's route for a change after launch (the prediction's "Changes after seeing results"): since the maintainer's
+   unlock of 29 Sep the gate takes a declared correction (fair-gate.mjs declaredCorrection) - the file may differ from its launch blob, which
    git gives back by its hash, only in UK time tokens ("HH:MM UK") and by an addition to its "Changes after seeing results"
    that declares the change; the declaration is printed with the figures. Anything else - a prediction, falsifier, rule,
    fair-test row, figure or date - is still PREDICTION EDITED (research/tests/fair-gate.test.mjs, eight planted cases; each
@@ -254,6 +252,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 34. The e3pcls guard misses a direct solvePlan call outside its scan and an engine change: e3pcls-pin.mjs's header.
 35. scorecard.mjs's interval index reads only '- **Item k:** ... 80% interval a to b' lines; other forms go unindexed.
 36. check-prediction's 0.05 tolerance accepts a credence below a derived 1.00 (cap dropped 10 Oct).
+37. check-plan's design-review rule reads a gate recorded met only on a line naming a research/tests file; one naming no
+   test escapes it (the plan-auditor's MINOR 2 of 11 Oct 07:51 UK).
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)
@@ -452,7 +452,7 @@ checked by the plan-auditor by hand.
    47% to 48%.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean; from 11 Oct a tenth of the arm's survival where smaller, a household identical arms could not clear
-   reported only (stats.mjs; PR13). Gate 4's 1-point condition stays at the product level. The decided-defaults block
+   reported only, harm still read (stats.mjs; PR13). Gate 4's 1-point condition stays at the product level. The decided-defaults block
    holds them, pinned by plan-defaults.test.mjs.
 3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the

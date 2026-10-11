@@ -21,10 +21,11 @@ export const marginFor = offSim => (offSim >= MARGINS.highAt ? MARGINS.high : MA
 export const marginRel = offSim => Math.min(marginFor(offSim), MARGINS.rel * offSim);
 /* the relative margin's floor (the maintainer, 11 Oct, the session: 'Keep a tenth (Recommended)', the cost put correctly -
    the plan-auditor's MINOR 1 of 11 Oct 07:51 UK): a household whose comparison arm keeps so few surviving paths that
-   identical arms (none lost, none saved) could not clear the guarded rule is never certified, only reported, and its
-   report blocks no other household - about 39 surviving paths at any path count; a household whose arm never survives
-   can lose nothing, and is reported alike */
-export const relClearable = (alive, N) => alive > 0 && survivalChangeU(alive, 0, 0, N - alive).lo > -marginRel(100 * alive / N);
+   identical arms (none lost, none saved) could not clear the guarded rule at the look's level is never certified, only
+   reported - harm is still read on it - and its report blocks no other household: about 39 surviving paths at a single
+   look at 0.05, 40 at 0.045, 78 at 0.005, at any path count (the plan-auditor's MINOR 1 of 08:03 UK: the look's level);
+   a household whose arm never survives can lose nothing, and is reported alike */
+export const relClearable = (alive, N, level = 0.05) => alive > 0 && survivalChangeU(alive, 0, 0, N - alive, level).lo > -marginRel(100 * alive / N);
 
 /* P(X >= k) for X ~ Bin(n, 1/2), exactly. Up to about 1,000 tosses the direct sum, as it always ran; above that 2^-n
  * underflows to 0 and the direct sum read 1 for every k (found 26 Sep building 7r, where n is 3,000 paths; no earlier

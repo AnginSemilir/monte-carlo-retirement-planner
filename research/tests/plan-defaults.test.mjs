@@ -39,6 +39,7 @@ ok(relAt(marginRel), 'marginRel is a tenth of the survival at 1, 2, 3.3 and 4.9 
 ok(!relAt(x => (x < 1 ? 0.1 * x : marginFor(x))) && !relAt(x => (x > 0.5 ? Math.max(0.25, Math.min(marginFor(x), 0.1 * x)) : 0.1 * x)), 'planted: a form stepping at 1 point, and one flooring at 0.25, fail that line');
 // the floor: report-only where identical arms could not clear (about 39 surviving paths)
 ok(D.marginRelFloor === 'report-only' && !relClearable(38, 8000) && relClearable(39, 8000) && !relClearable(0, 8000) && !relClearable(38, 16000) && relClearable(40, 16000), `the relative margin's floor: decided ${D.marginRelFloor}; identical arms clear from 39 surviving paths (8,000 and 16,000 paths), never at 0`);
+ok(!relClearable(39, 8000, 0.045) && relClearable(40, 8000, 0.045) && !relClearable(77, 8000, 0.005) && relClearable(78, 8000, 0.005), 'the floor at the look\'s level: 40 surviving paths at 0.045, 78 at 0.005 (two looks), at 8,000 paths');
 ok(survivalChangeU(38, 0, 0, 8000 - 38).lo <= -marginRel(100 * 38 / 8000) && !((a, N) => a > 0)(0, 8000) && (a => a > 0)(38), 'planted: a floor that clears every household with survivors would pass 38 of 8,000, which identical arms cannot clear');
 const r7e = readFileSync(join(HERE, '../solver/reduce-7e.mjs'), 'utf8');
 ok(/const marginOf = marginFor;/.test(r7e) && /POOL_FLOOR = -MARGINS\.pooled/.test(r7e), "7e's reducer reads the decided margins from stats.mjs, not its own numbers");

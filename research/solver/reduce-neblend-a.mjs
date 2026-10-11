@@ -257,10 +257,10 @@ if (isMain) {
   console.log('\nTHE ITEMS (each read by its registered rule)');
   for (const i of [1, 2]) console.log(`${i}. ${i === 1 ? 'RZ' : 'LOR'} keeps bridge 4 within 0.3 points in every world: ${it[i].outcome}\n     ${it[i].c.map(c => `world ${c.k} ${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join('; ')}`);
   const s = it[3];
-  console.log(`3. LOR restores S380's spread across the worlds: ${s.outcome}\n     LOR's ratio ${f4(s.sp.point)} (${f4(s.sp.lo)} to ${f4(s.sp.hi)}); BASE's ${f4(s.base.point)} (${f4(s.base.lo)} to ${f4(s.base.hi)}); LOR table less simulated by world ${s.cw.map(c => `${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join(', ')}`);
+  console.log(`3. LOR restores S380's spread across the worlds: ${s.outcome}${s.over ? ' (over-corrected: the interval wholly above 1.05)' : ''}\n     LOR's ratio ${f4(s.sp.point)} (${f4(s.sp.lo)} to ${f4(s.sp.hi)}); BASE's ${f4(s.base.point)} (${f4(s.base.lo)} to ${f4(s.base.hi)}); LOR table less simulated by world ${s.cw.map(c => `${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join(', ')}`);
   const q = it[4];
-  console.log(`4. LOR changes S380's outcome in world 0: ${q.outcome}\n     own openings: BASE ai ${q.own.base.ai} (level ${q.own.base.level}, tiers ${q.own.base.tiers}), LOR ai ${q.own.lor.ai} (level ${q.own.lor.level}, tiers ${q.own.lor.tiers}); world 0: ${q.pr[0].c} saved/${q.pr[0].b} lost, change ${f4(q.pr[0].change)} (exact two-sided p ${e4(q.p)}; guarded interval ${f4(q.g.lo)} to ${f4(q.g.hi)}); REPORTED world 1 ${q.pr[1].c} saved/${q.pr[1].b} lost (${f4(q.pr[1].change)}), world 2 ${q.pr[2].c}/${q.pr[2].b} (${f4(q.pr[2].change)})`);
+  console.log(`4. LOR changes S380's outcome in world 0: ${q.outcome}${q.dir ? ` (${q.dir})` : ''}\n     own openings: BASE ai ${q.own.base.ai} (level ${q.own.base.level}, tiers ${q.own.base.tiers}), LOR ai ${q.own.lor.ai} (level ${q.own.lor.level}, tiers ${q.own.lor.tiers}); world 0: ${q.pr[0].c} saved/${q.pr[0].b} lost, change ${f4(q.pr[0].change)} (exact two-sided p ${e4(q.p)}; guarded interval ${f4(q.g.lo)} to ${f4(q.g.hi)}); REPORTED world 1 ${q.pr[1].c} saved/${q.pr[1].b} lost (${f4(q.pr[1].change)}), world 2 ${q.pr[2].c}/${q.pr[2].b} (${f4(q.pr[2].change)})`);
   console.log(`REALISED item 3: ${f4(s.sp.point)}`);
   console.log(`REALISED item 4: ${f4(q.pr[0].change)}`);
-  console.log(`OUTCOME: ${[1, 2, 3, 4].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  console.log(`OUTCOME: ${[1, 2, 3, 4].map(i => `${i} ${it[i].outcome}`).join(', ')}; item 3 ${s.over ? 'over-corrected' : 'not over-corrected'}, item 4 direction ${q.dir || 'none'}`);   // the words the decision table turns on (the plan-auditor's MINOR 1 of 11 Oct 13:29 UK); a '; note' is not scored (scorecard.mjs)
 }

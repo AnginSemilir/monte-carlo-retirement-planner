@@ -44,9 +44,12 @@ export const JUDGED = {
   price: { 'RB-INTERP': { 0.5: 0.5, 1.5: 0.3, 3: 0.2 }, 'RB-SPACE': { 0.5: 0.3, 1.5: 0.4, 3: 0.3 }, 'RB-SPLIT': { 0.5: 0.2, 1.5: 0.3, 3: 0.5 },
     'RB-REF': { 0.5: 0.2, 1.5: 0.3, 3: 0.5 }, 'RB-OTHER': { 0.5: 0.3, 1.5: 0.35, 3: 0.35 } },
   trueChange: [-2.375, 0.225, 0.75], churn: 0.05,
-  // item 4: bridge 4 at the fine grid: kept (BASE's coarse calibration under both arms), LOR's world-0 over-read kept at its
-  // stage A size (0.4731), or broken (2 points off in world 0), by whether the cause is the W axis's
-  b4: { 'RB-INTERP': { kept: 0.6, small: 0.35, broken: 0.05 }, other: { kept: 0.4, small: 0.5, broken: 0.1 } },
+  // item 4: bridge 4 at the fine grid under BASE, the candidate's read (amended on the plan-auditor's BLOCKING 2 of 11 Oct
+  // 17:45 UK, before the re-derived output: the control was both reads, so LOR's coarse over-read, on record, would have
+  // read as the fine grid's): kept (BASE's coarse calibration), off by LOR's stage A world-0 size, or broken (2 points
+  // off in world 0); a well-funded household, so the finer axis is judged to keep it, a little more under RB-INTERP.
+  // LOR's bridge 4 is set at its stage A over-read in every story (reported, not read)
+  b4: { 'RB-INTERP': { kept: 0.9, small: 0.08, broken: 0.02 }, other: { kept: 0.85, small: 0.12, broken: 0.03 } },
 };
 
 // 1. THE RECORDS: stage A's S380 and bridge 4 world lines behind its gate; NE-ROOT's S224 and bridge 4 BASE behind its gate
@@ -88,13 +91,13 @@ function setOf({ gapR = [0.5, 0.5, 0.5, 0.5], convB = 0.5, bias = [0, 0, 0], b4 
   const sims = (a, b) => Object.fromEntries([0, 1, 2].flatMap(k => [[`P${k}`, { ok: a[k], n: NPW }], [`D${k}`, { ok: b[k], n: NPW }]]));
   const drawPair = () => { const Pk = [], Dk = [], bits = []; for (let k = 0; k < 3; k++) { const okP = binom(NPW, qP[k]), half = NPW * JUDGED.churn / 2, dn = NPW * Math.abs(JUDGED.trueChange[k]) / 100; const lost = Math.min(okP, pois(half + (JUDGED.trueChange[k] < 0 ? dn : 0))), saved = Math.min(NPW - okP, pois(half + (JUDGED.trueChange[k] > 0 ? dn : 0))); Pk.push(okP); Dk.push(okP - lost + saved); bits.push([okP, lost, saved]); } return { P: Pk, D: Dk, bits }; };
   const dB = drawPair(), dL = drawPair();
-  const b4q = B4B.map(x => x.q), b4Shift = { kept: 0, small: (B4L[0].table - 100 * B4L[0].q) - (B4B[0].table - 100 * B4B[0].q), broken: 2 }[b4];
+  const lorB4 = (B4L[0].table - 100 * B4L[0].q) - (B4B[0].table - 100 * B4B[0].q), b4q = B4B.map(x => x.q), b4Shift = { kept: 0, small: lorB4, broken: 2 }[b4];
   const b4t = sh => B4B.map((x, k) => x.table + (k === 0 ? sh : 0));
   const b4sims = () => Object.fromEntries([0, 1, 2].flatMap(k => { const ok = binom(NPW, b4q[k]); return [[`P${k}`, { ok, n: NPW }], [`D${k}`, { ok, n: NPW }]]; }));
   const J = {
     [key('S380', 'BASE', 'coarse')]: job('S380', 'BASE', 'coarse', cBP, cBD), [key('S380', 'LOR', 'coarse')]: job('S380', 'LOR', 'coarse', cLP, cLD),
     [key('S380', 'BASE', 'fine')]: job('S380', 'BASE', 'fine', fBP, fBD, sims(dB.P, dB.D)), [key('S380', 'LOR', 'fine')]: job('S380', 'LOR', 'fine', fLP, fLD, sims(dL.P, dL.D)),
-    [key('bridge 4', 'BASE', 'fine')]: job('bridge 4', 'BASE', 'fine', b4t(0), b4t(0), b4sims()), [key('bridge 4', 'LOR', 'fine')]: job('bridge 4', 'LOR', 'fine', b4t(b4Shift), b4t(b4Shift), b4sims()),
+    [key('bridge 4', 'BASE', 'fine')]: job('bridge 4', 'BASE', 'fine', b4t(b4Shift), b4t(b4Shift), b4sims()), [key('bridge 4', 'LOR', 'fine')]: job('bridge 4', 'LOR', 'fine', b4t(lorB4), b4t(lorB4), b4sims()),
   };
   const mk = ([ok, lost, saved], o) => { const b = new Uint8Array(NPW); for (let i = 0; i < ok; i++) b[i] = 1; if (o === 'D') { for (let i = 0; i < lost; i++) b[i] = 0; for (let i = 0; i < saved; i++) b[ok + i] = 1; } return b; };
   const bitsOf = (j, o, k) => mk((j.arm === 'BASE' ? dB : dL).bits[k], o);
@@ -115,7 +118,7 @@ console.log(`\n2. THE POWER (${DRAWS} draws a cell at ${NPW} paths a world throu
 for (const r of [0.3, 0.6, 0.9]) console.log(`  item 1, the gap's ratio about ${r} (each cell +-0.15): ${row(`gap|${r}`)}`);
 for (const cb of [0.3, 0.6, 1]) for (const r of [0.3, 0.6, 0.9]) console.log(`  item 2, BASE's error at ${cb} of its coarse one, the gap's ratio about ${r}: ${row(`conv|${cb}|${r}`)}`);
 for (const b of [0.5, 1.5, 3]) console.log(`  item 3, a price error of ${b} points in world 0 (a third of it in worlds 1 and 2): ${row(`price|${b}`)}`);
-for (const s of ['kept', 'small', 'broken']) console.log(`  item 4, bridge 4 ${s}: ${row(`b4|${s}`)}`);
+for (const s of ['kept', 'small', 'broken']) console.log(`  item 4, bridge 4 under BASE ${s}: ${row(`b4|${s}`)}`);
 
 // 3. THE CREDENCES: the receipt's cause credences through the judged stories and section 2's power
 const rec = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 11 Oct 15:49 UK \|/.test(l));

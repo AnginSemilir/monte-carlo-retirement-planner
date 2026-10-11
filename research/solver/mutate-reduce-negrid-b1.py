@@ -86,8 +86,8 @@ M = [
   ("bw.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'", "bw.every(x => q(Math.abs(x.d)) < CTRL) ? 'HELD'"),
   ("bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED'", "bw.some(x => q(x.lo) > CTRL) ? 'FALSIFIED'"),
   ("bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED'", "bw.some(x => q(x.d) > CTRL) ? 'FALSIFIED'"),
-  ("const bw = [...b4.BASE.w, ...b4.LOR.w];", "const bw = [...b4.LOR.w];"),
-  ("const bw = [...b4.BASE.w, ...b4.LOR.w];", "const bw = [...b4.BASE.w];"),
+  ("const bw = b4.BASE.w;", "const bw = b4.LOR.w;"),
+  ("const bw = b4.BASE.w;", "const bw = [...b4.BASE.w, ...b4.LOR.w];"),
   ("o = j.own.ai === j.pair.P ? 'P' : j.own.ai === j.pair.D ? 'D' : 'OWN';", "o = 'P';"),
   # the rounding the boundaries are read on
   ("export const q = x => Math.round(x * 1e9) / 1e9;", "export const q = x => x;"),

@@ -71,8 +71,8 @@ caught: 70: const dt = j.tables[k].D - j.tables[k].P;
 caught: 71: bw.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'
 caught: 72: bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
 caught: 73: bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
-caught: 74: const bw = [...b4.BASE.w, ...b4.LOR.w];
-caught: 75: const bw = [...b4.BASE.w, ...b4.LOR.w];
+caught: 74: const bw = b4.BASE.w;
+caught: 75: const bw = b4.BASE.w;
 caught: 76: o = j.own.ai === j.pair.P ? 'P' : j.own.ai === j.pair.D ? 'D
 caught: 77: export const q = x => Math.round(x * 1e9) / 1e9;
 77 of 77 mutations caught

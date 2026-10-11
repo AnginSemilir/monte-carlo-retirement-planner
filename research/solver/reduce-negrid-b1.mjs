@@ -24,11 +24,15 @@
  *      against the simulated paired change of forcing D for P on the same paths (survivalChangeU at ALPHA / 3, guarded),
  *      err = table change less simulated change; HELD when every arm's and world's err is within a point at the point;
  *      FALSIFIED when some arm's and world's err interval lies wholly outside [-1, 1]; INCONCLUSIVE otherwise.
- *   4. Bridge 4 at the fine grid (the control): each arm's own opening, every world's table less simulated within 0.3
- *      points at the point (HELD); FALSIFIED when a world's interval lies wholly outside [-0.3, 0.3]; INCONCLUSIVE
- *      otherwise (NE-ROOT item 5's rule), over both arms.
+ *   4. Bridge 4 at the fine grid under BASE, the candidate's read (the control): its own opening, every world's table
+ *      less simulated within 0.3 points at the point (HELD); FALSIFIED when a world's interval lies wholly outside
+ *      [-0.3, 0.3]; INCONCLUSIVE otherwise (NE-ROOT item 5's rule). LOR's bridge 4 is reported beside it (its world-0
+ *      over-read was on record at the coarse grid, O141: the plan-auditor's BLOCKING 2 of 11 Oct 17:45 UK).
  * REPORTED: every job's tables and own opening, the clamp counts, the coarse tables' D less P against the fine runs' change,
- *   S224's fine world line beside NE-ROOT's coarse one, bridge 4's read-space gaps.
+ *   S224's fine world line beside NE-ROOT's coarse one, bridge 4's read-space gaps and LOR's bridge 4 at the fine grid;
+ *   each read's own move between the grids at item 1's cells (RB-INTERP: LOR's table moves too; RB-SPACE: it stays and
+ *   BASE's moves to it - item 1 alone does not split them: the plan-auditor's BLOCKING 1 of 11 Oct 17:45 UK); and each
+ *   arm's error at its own fine opening beside item 2's at stage A's (the chooser's selection: MINOR 3).
  *   node research/solver/reduce-negrid-b1.mjs [dir] [paths a world] [coarse] [fine] > research/solver/results-negrid-b1.txt   (--preflight, --planted)
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -198,7 +202,7 @@ export function items(J, bitsOf, A30) {
     const j = J[key('bridge 4', arm, 'fine')], o = j.own.ai === j.pair.P ? 'P' : j.own.ai === j.pair.D ? 'D' : 'OWN';
     b4[arm] = { o, w: [0, 1, 2].map(k => { const s = j.sims[`${o}${k}`]; return { k, ...offOf(j.tables[k][o === 'OWN' ? 'OWN' : o], s.ok, s.n) }; }) };
   }
-  const bw = [...b4.BASE.w, ...b4.LOR.w];
+  const bw = b4.BASE.w;
   out[4] = { outcome: bw.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD' : bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED' : 'INCONCLUSIVE', b4 };
   return out;
 }
@@ -260,17 +264,18 @@ function planted() {
   cases.push(['D loses 70 and saves 20 in world 0 (1.25 points), the table prices none, its interval reaching inside: 3 INCONCLUSIVE', run(price([0, 0, 0]), { 'S380 BASE 0': [70, 20] })[3].outcome, 'INCONCLUSIVE']);
   cases.push(['D saves 30 paths in world 2, loses none, the table prices 2.1 (FALSIFIED unguarded; the one-sided guard holds the interval out): 3 INCONCLUSIVE', run(price([0, 0, 2.1]), { 'S380 BASE 2': [0, 30] })[3].outcome, 'INCONCLUSIVE']); EDGES.push('a one-sided count the guard holds out');
   // item 4: bridge 4 at the fine grid, its own opening (P here)
-  const b4 = (d, arm = 'LOR') => J => { const j = J[key('bridge 4', arm, 'fine')]; j.sims.P0 = { ok: 3900, n: N }; j.tables[0].P = 97.8 - 0.3 + d; };
+  const b4 = (d, arm = 'BASE') => J => { const j = J[key('bridge 4', arm, 'fine')]; j.sims.P0 = { ok: 3900, n: N }; j.tables[0].P = 97.8 - 0.3 + d; };
   cases.push(['bridge 4 at its runs: 4 HELD', run(J => { for (const a of ARMS) { const j = J[key('bridge 4', a, 'fine')]; for (let k = 0; k < 3; k++) { j.sims[`P${k}`] = { ok: 3990, n: N }; j.tables[k].P = 99.75; } } })[4].outcome, 'HELD']);
   cases.push(['bridge 4 off by exactly 0.3 in world 0: 4 HELD', run(b4(0.3))[4].outcome, 'HELD']); EDGES.push('a control point exactly at 0.3');
   cases.push(['bridge 4 off by 0.3000001: 4 INCONCLUSIVE', run(b4(0.3000001))[4].outcome, 'INCONCLUSIVE']);
-  cases.push(['bridge 4 off by 0.3 computed as 0.30000000000000004 (1.3 against 1): read rounded: 4 HELD', run(J => { const j = J[key('bridge 4', 'LOR', 'fine')]; j.sims.P0 = { ok: 40, n: N }; j.tables[0].P = 1.3; })[4].outcome, 'HELD']); EDGES.push('a boundary the double overshoots');
+  cases.push(['bridge 4 off by 0.3 computed as 0.30000000000000004 (1.3 against 1): read rounded: 4 HELD', run(J => { const j = J[key('bridge 4', 'BASE', 'fine')]; j.sims.P0 = { ok: 40, n: N }; j.tables[0].P = 1.3; })[4].outcome, 'HELD']); EDGES.push('a boundary the double overshoots');
   cases.push(['bridge 4 off by 0.8 (its interval at ALPHA / 6 reaching inside 0.3, at ALPHA / 2 not): 4 INCONCLUSIVE', run(b4(0.8))[4].outcome, 'INCONCLUSIVE']);
   cases.push(['bridge 4 off by -0.5 at its point (its interval reaching inside): 4 INCONCLUSIVE', run(b4(-0.5))[4].outcome, 'INCONCLUSIVE']);
-  cases.push(['bridge 4 off by 2 (BASE): 4 FALSIFIED', run(b4(2, 'BASE'))[4].outcome, 'FALSIFIED']);
-  cases.push(['bridge 4 under by 2 (LOR): 4 FALSIFIED', run(b4(-2))[4].outcome, 'FALSIFIED']);
-  cases.push(['bridge 4\'s own opening is D, its D runs read (D off by 5, P at its runs): 4 FALSIFIED', run(J => { const j = J[key('bridge 4', 'LOR', 'fine')]; j.own.ai = PAIRS['bridge 4'][1]; j.tables[0].D = 55; })[4].outcome, 'FALSIFIED']);
-  cases.push(['bridge 4\'s own opening is P, its D off by 5 not read: 4 HELD', run(J => { J[key('bridge 4', 'LOR', 'fine')].tables[0].D = 55; })[4].outcome, 'HELD']);
+  cases.push(['bridge 4 off by 2 under BASE: 4 FALSIFIED', run(b4(2))[4].outcome, 'FALSIFIED']);
+  cases.push(['bridge 4 under by 2 under BASE: 4 FALSIFIED', run(b4(-2))[4].outcome, 'FALSIFIED']);
+  cases.push(['bridge 4 off by 2 under LOR alone (not the control: reported): 4 HELD', run(b4(2, 'LOR'))[4].outcome, 'HELD']); EDGES.push('the other read off, the control at its runs');
+  cases.push(['bridge 4\'s own opening is D, its D runs read (D off by 5, P at its runs): 4 FALSIFIED', run(J => { const j = J[key('bridge 4', 'BASE', 'fine')]; j.own.ai = PAIRS['bridge 4'][1]; j.tables[0].D = 55; })[4].outcome, 'FALSIFIED']);
+  cases.push(['bridge 4\'s own opening is P, its D off by 5 not read: 4 HELD', run(J => { J[key('bridge 4', 'BASE', 'fine')].tables[0].D = 55; })[4].outcome, 'HELD']);
   // the gate, on a synthetic log built as the audit prints
   const st = 'stamp: code C audit A prediction P sha S';
   const jobText = (id, arm, g, o = {}) => {
@@ -387,11 +392,13 @@ if (isMain) {
   console.log(`1. S380's read-space gap (LOR less BASE) shrinks by half from ${coarseA_} to ${fineA} points: ${it[1].outcome}\n     ${it[1].cells.map(c => `${c.o} world ${c.k}: coarse ${f4(c.gc)} fine ${f4(c.gf)}${c.counted ? ` ratio ${f4(c.r)}` : ' (not counted)'}`).join('; ')}`);
   console.log(`2. S380's tables converge toward their runs at ${fineA} points: ${it[2].outcome}\n     ${['BASE', 'LOR'].map(a => { const c = it[2].conv[a]; return `${a} at ${c.o}: A ${f4(c.A)} (lower bound ${f4(c.Alo)}) against coarse ${f4(c.A30)}, half ${f4(c.A30 * SHRINK)}; by world ${c.w.map(x => `${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join(', ')}`; }).join('; ')}`);
   console.log(`3. S380's tables price D against P at ${fineA} points: ${it[3].outcome}\n     ${['BASE', 'LOR'].map(a => `${a}: ${it[3].price[a].map(x => `world ${x.k} table ${f4(x.dt)} runs ${f4(x.ds)} (${x.cells.c} saved/${x.cells.b} lost) err ${f4(x.err)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`).join('\n     ')}`);
-  console.log(`4. bridge 4 within 0.3 points at ${fineA} points: ${it[4].outcome}\n     ${['BASE', 'LOR'].map(a => `${a} at ${it[4].b4[a].o}: ${it[4].b4[a].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`).join('\n     ')}`);
+  console.log(`4. bridge 4 under BASE within 0.3 points at ${fineA} points: ${it[4].outcome}\n     BASE at ${it[4].b4.BASE.o}: ${it[4].b4.BASE.w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}\n     REPORTED, LOR at ${it[4].b4.LOR.o}: ${it[4].b4.LOR.w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
   console.log('\nREPORTED');
   for (const a of ARMS) { const jc = J[key('S380', a, 'coarse')], jf = J[key('S380', a, 'fine')]; console.log(`  S380 ${a}: the coarse tables' D less P by world ${jc.tables.map(x => f4(x.D - x.P)).join(', ')} against the fine runs' ${it[3].price[a].map(x => f4(x.ds)).join(', ')}; own opening coarse ai ${jc.own.ai}, fine ai ${jf.own.ai}`); }
   { const jf = J[key('S224', 'BASE', 'fine')], o = jf.own.ai === jf.pair.P ? 'P' : jf.own.ai === jf.pair.D ? 'D' : 'OWN'; console.log(`  S224 BASE at its fine own opening (ai ${jf.own.ai}): table less simulated by world ${jf.tables.map(x => { const s = jf.sims[`${o}${x.k}`]; return f4(x[o] - 100 * s.ok / s.n); }).join(', ')}; NE-ROOT's coarse ${rec.s224BASE.worlds.map(x => f4(x.table - 100 * x.ok / x.n)).join(', ')}`); }
   for (const g of GRIDS) { const b = J[key('bridge 4', 'BASE', g)], l = J[key('bridge 4', 'LOR', g)]; console.log(`  bridge 4 ${g}: LOR less BASE at P ${l.tables.map((x, k) => f4(x.P - b.tables[k].P)).join(', ')}; at D ${l.tables.map((x, k) => f4(x.D - b.tables[k].D)).join(', ')}`); }
+  console.log(`  each read's own move between the grids at item 1's cells (fine less coarse; RB-INTERP: LOR's moves too, RB-SPACE: LOR's stays and BASE's moves to it): ${it[1].cells.map(c => `${c.o} world ${c.k} BASE ${f4(J[key('S380', 'BASE', 'fine')].tables[c.k][c.o] - J[key('S380', 'BASE', 'coarse')].tables[c.k][c.o])} LOR ${f4(J[key('S380', 'LOR', 'fine')].tables[c.k][c.o] - J[key('S380', 'LOR', 'coarse')].tables[c.k][c.o])}`).join('; ')}`);
+  for (const a of ARMS) { const jf = J[key('S380', a, 'fine')], o = jf.own.ai === jf.pair.P ? 'P' : jf.own.ai === jf.pair.D ? 'D' : 'OWN'; const w = jf.tables.map(x => { const s = jf.sims[`${o}${x.k}`]; return x[o] - 100 * s.ok / s.n; }); console.log(`  S380 ${a} at its own fine opening (ai ${jf.own.ai}, ${o}): table less simulated by world ${w.map(f4).join(', ')}; weighted |.| ${f4(w.reduce((t, x, k) => t + WEIGHTS[k] * Math.abs(x), 0))} (item 2 reads stage A's opening)`); }
   console.log(`REALISED item 1: ${f4(Math.max(...it[1].cells.filter(c => c.counted).map(c => c.r)))}`);
   console.log(`REALISED item 2: ${f4(Math.max(it[2].conv.BASE.A / it[2].conv.BASE.A30, it[2].conv.LOR.A / it[2].conv.LOR.A30))}`);
   console.log(`OUTCOME: ${[1, 2, 3, 4].map(i => `${i} ${it[i].outcome}`).join(', ')}`);

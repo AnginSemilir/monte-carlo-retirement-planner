@@ -451,8 +451,9 @@ checked by the plan-auditor by hand.
    against 2.5% stated, at survival 46% to 99.8% and 8,000 or 16,000 paths - about nominal; the exact rule alone passes it
    47% to 48%.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
-   pooled mean; from 11 Oct a tenth of the arm's survival where smaller (stats.mjs marginRel; the maintainer, PR13). Gate
-   4's 1-point condition stays at the product level. The decided-defaults block holds them, pinned by plan-defaults.test.mjs.
+   pooled mean; from 11 Oct a tenth of the arm's survival where smaller, a household identical arms could not clear
+   reported only (stats.mjs; PR13). Gate 4's 1-point condition stays at the product level. The decided-defaults block
+   holds them, pinned by plan-defaults.test.mjs.
 3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
    next look, or report the bound). A real loss smaller than the margin is reported and does not block.

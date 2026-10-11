@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCT_DEFAULTS, PRODUCT_BASELINE } from '../../src/solver/solve.js';
-import { MARGINS, marginFor, marginRel } from '../solver/stats.mjs';
+import { MARGINS, marginFor, marginRel, relClearable, survivalChangeU } from '../solver/stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -32,6 +32,14 @@ ok(marginFor(D.margins.highAt) === D.margins.high && marginFor(D.margins.highAt 
 // the relative margin (the maintainer, 11 Oct: PR13's form): a tenth of the comparison arm's survival where smaller
 ok(D.margins.rel === 0.1 && Math.abs(marginRel(0.42) - 0.042) < 1e-12 && marginRel(5) === D.margins.low && marginRel(50) === D.margins.low && marginRel(96) === D.margins.high && marginRel(0) === 0, `marginRel: the smaller of marginFor and ${D.margins.rel} of the arm's survival (S364's 0.42 gives 0.042; 5 and above unchanged)`);
 ok(!(Math.abs(Math.min(marginFor(0.42), 0.2 * 0.42) - marginRel(0.42)) < 1e-12), 'planted: a fifth in place of the decided tenth would fail the marginRel line');
+// inside the range where the relative margin binds (the plan-auditor's MINOR 2 of 11 Oct 07:51 UK: a form stepping at 1 point,
+// or flooring at 0.25, passed the first pin)
+const relAt = f => [1, 2, 3.3, 4.9].every(x => Math.abs(f(x) - Math.min(marginFor(x), 0.1 * x)) < 1e-12);
+ok(relAt(marginRel), 'marginRel is a tenth of the survival at 1, 2, 3.3 and 4.9 points (0.1, 0.2, 0.33, 0.49)');
+ok(!relAt(x => (x < 1 ? 0.1 * x : marginFor(x))) && !relAt(x => (x > 0.5 ? Math.max(0.25, Math.min(marginFor(x), 0.1 * x)) : 0.1 * x)), 'planted: a form stepping at 1 point, and one flooring at 0.25, fail that line');
+// the floor: report-only where identical arms could not clear (about 39 surviving paths)
+ok(D.marginRelFloor === 'report-only' && !relClearable(38, 8000) && relClearable(39, 8000) && !relClearable(0, 8000) && !relClearable(38, 16000) && relClearable(40, 16000), `the relative margin's floor: decided ${D.marginRelFloor}; identical arms clear from 39 surviving paths (8,000 and 16,000 paths), never at 0`);
+ok(survivalChangeU(38, 0, 0, 8000 - 38).lo <= -marginRel(100 * 38 / 8000) && !((a, N) => a > 0)(0, 8000) && (a => a > 0)(38), 'planted: a floor that clears every household with survivors would pass 38 of 8,000, which identical arms cannot clear');
 const r7e = readFileSync(join(HERE, '../solver/reduce-7e.mjs'), 'utf8');
 ok(/const marginOf = marginFor;/.test(r7e) && /POOL_FLOOR = -MARGINS\.pooled/.test(r7e), "7e's reducer reads the decided margins from stats.mjs, not its own numbers");
 // planted: the check must be able to fail

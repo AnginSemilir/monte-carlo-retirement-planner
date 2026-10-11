@@ -6,8 +6,8 @@ Items as the review proposed: (1) the BASE-LOR gap at each forced opening shrink
 
 ## As registered (predictions/diag-negrid-b1.md)
 
-- **Item 1:** S380's gap LOR less BASE at P and D in worlds 0 and 1, a cell counted where its coarse gap is at least half a point; HELD when every counted cell's ratio of fine to coarse gap is at most 0.5, FALSIFIED when every one's is at least 0.8; deterministic.
+- **Item 1:** S380's gap LOR less BASE at P and D in worlds 0 and 1, a cell counted where its coarse gap is at least half a point; HELD when every counted cell's ratio of fine to coarse gap is at most 0.5, FALSIFIED when every one's is at least 0.8; deterministic. It does not split RB-INTERP from RB-SPACE (both close the gap); each read's own move between the grids, reported, does (the plan-auditor's BLOCKING 1 of 11 Oct 17:45 UK).
 - **Item 2:** the review's weighted world line read as the weighted absolute error at stage A's openings (BASE at P, LOR at D) against half stage A's coarse error.
 - **Item 3:** the risk price per world and arm against the paired runs, within a point.
-- **Item 4:** bridge 4 within three tenths of a point under both arms; S224's identity across arms is in the gate (its LOR job not simulated: no bridge year).
-- **Declared departures:** the capped-corner LOR read not run (budget; the clamp count reported); the decision rows restructured after the derivation's first output (the prediction's Provenance).
+- **Item 4:** bridge 4 under BASE, the candidate's read, within three tenths of a point; LOR's reported, its coarse over-read on record (BLOCKING 2 of 17:45); S224's identity across arms is in the gate (its LOR job not simulated: no bridge year).
+- **Declared departures:** the capped-corner LOR read not run (budget; the clamp count reported); the decision rows restructured after the derivation's first output; item 2 read at stage A's openings, each arm's error at its own fine opening reported beside it (the chooser's selection, MINOR 3 of 17:45) (the prediction's Provenance).

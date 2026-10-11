@@ -124,14 +124,16 @@ const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 if (Object.keys(cc).length !== 5 || Math.abs(sum(cc) - 1) > 0.02) { console.log(`the receipt's CAUSE CREDENCES did not read (${JSON.stringify(cc)})`); process.exit(1); }
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return k; } return Object.keys(dist).pop(); };
 const outOf = p => { const u = rnd(); return u < p.HELD ? 'HELD' : u < p.HELD + p.INCONCLUSIVE ? 'INCONCLUSIVE' : 'FALSIFIED'; };
-const C = [1, 2, 3, 4].map(cnt), rows = { r1: 0, r2: 0, r3: 0, r4: 0, r5: 0 }, Mn = 40000, R1 = [], R2 = [];
+const C = [1, 2, 3, 4].map(cnt), rows = { r1: 0, r2: 0, r3: 0, r4: 0 }, Mn = 40000, R1 = [], R2 = [];
 for (let d = 0; d < Mn; d++) {
   const c = pick(cc);
   const g = Number(pick(JUDGED.gap[c])), cb = Number(pick(JUDGED.conv[c])), b = Number(pick(JUDGED.price[c])), s4 = pick(JUDGED.b4[c === 'RB-INTERP' ? 'RB-INTERP' : 'other']);
   const o = [outOf(P[`gap|${g}`]), outOf(P[`conv|${cb}|${g}`]), outOf(P[`price|${b}`]), outOf(P[`b4|${s4}`])];
   o.forEach((x, i) => C[i][x]++);
   R1.push(Math.max(0, g + 0.15 + (rnd() - 0.5) * 0.1)); R2.push(cb + (rnd() - 0.5) * 0.2);
-  if (o[0] === 'HELD' && o[1] === 'HELD' && o[3] === 'HELD') rows.r1++; else if (o[0] === 'FALSIFIED') rows.r2++; else if (o[1] === 'FALSIFIED') rows.r3++; else if (o[3] === 'FALSIFIED') rows.r4++; else rows.r5++;
+  // the rows (restructured after this script's first output, its JUDGED unchanged: item 1 HELD, the most informative
+  // reading, fed no row of its own - declared in the prediction): item 1 decides, item 4 guards it
+  if (o[0] === 'HELD' && o[3] !== 'FALSIFIED') rows.r1++; else if (o[0] === 'FALSIFIED') rows.r2++; else if (o[3] === 'FALSIFIED') rows.r3++; else rows.r4++;
 }
 const pct = (xs, q) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
 const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -139,7 +141,7 @@ console.log(`\n3. THE CREDENCES (the receipt of 11 Oct 15:49 UK: ${Object.entrie
 C.forEach((c, i) => console.log(`CREDENCE item ${i + 1}: point ${i === 0 ? f4(mean(R1)) : i === 1 ? f4(mean(R2)) : '-'} HELD ${f2(c.HELD / Mn)} INCONCLUSIVE ${f2(c.INCONCLUSIVE / Mn)} FALSIFIED ${f2(c.FALSIFIED / Mn)}`));
 console.log(`  POINT item 1: ${f4(mean(R1))} (80% interval ${f4(pct(R1, 0.1))} to ${f4(pct(R1, 0.9))}; the largest counted cell's |fine gap| / |coarse gap|)`);
 console.log(`  POINT item 2: ${f4(mean(R2))} (80% interval ${f4(pct(R2, 0.1))} to ${f4(pct(R2, 0.9))}; BASE's fine A over its coarse A, the reducer's REALISED taking the larger arm's)`);
-console.log(`  DECISION ROWS: items 1, 2 and 4 HELD ${f2(rows.r1 / Mn)}; item 1 FALSIFIED ${f2(rows.r2 / Mn)}; item 2 FALSIFIED, item 1 not ${f2(rows.r3 / Mn)}; item 4 FALSIFIED, items 1 and 2 not ${f2(rows.r4 / Mn)}; else ${f2(rows.r5 / Mn)}`);
+console.log(`  DECISION ROWS: item 1 HELD, item 4 not FALSIFIED ${f2(rows.r1 / Mn)}; item 1 FALSIFIED ${f2(rows.r2 / Mn)}; item 4 FALSIFIED, item 1 not FALSIFIED ${f2(rows.r3 / Mn)}; else ${f2(rows.r4 / Mn)}`);
 
 // 4. THE BUDGET: stage A's and NE-ROOT's logs (each job's solve, and its forward pass's seconds a path); the fine solve
 // taken as twice the coarse (the W axis doubled, the cells with it: linear, judged, NOT CHECKED until the preflight)

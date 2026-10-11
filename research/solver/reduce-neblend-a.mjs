@@ -11,14 +11,16 @@
  *      world's interval lies wholly outside [-0.3, 0.3]; INCONCLUSIVE otherwise (NE-ROOT item 5's rule).
  *   2. LOR keeps bridge 4: the same rule on LOR's bridge 4 job.
  *   3. LOR restores S380's spread across the worlds: the ratio (T2 - T0) / (S2 - S0) of the table's spread to the
- *      simulated at CAND's own opening, bounded by the worlds' bounds; HELD when its point lies in [0.97, 1.03] and no
- *      world is shown more than a point off (each world's interval of table less simulated reaches [-1, 1]); FALSIFIED
- *      when the ratio's interval lies wholly outside [0.95, 1.05] (still flattened, or steepened past it); INCONCLUSIVE
- *      otherwise. BASE's ratio is printed beside it.
+ *      simulated at CAND's own opening, bounded by the worlds' bounds; HELD when its point lies in [0.97, 1.03] and every
+ *      world's table less simulated is within a point (the point, as the deep review set it); FALSIFIED when the ratio's
+ *      interval lies wholly below 0.95 (still flattened); INCONCLUSIVE otherwise - and when it lies wholly above 1.05,
+ *      read and printed as over-corrected (the blend carries the spread and LOR overshoots), never as FALSIFIED (the
+ *      plan-auditor's BLOCKING 1 of 11 Oct 13:00 UK). BASE's ratio is printed beside it.
  *   4. LOR changes S380's outcome in world 0 (the poor world, where BASE's table over-reads): LOR's own opening and moves
  *      against BASE's, paired on the same 4,000 world-0 paths; HELD when the exact two-sided McNemar p is under ALPHA and
- *      the change is at least 0.5 points either way; FALSIFIED when the guarded interval of the change (survivalChangeU
- *      at ALPHA) lies inside [-0.5, 0.5]; INCONCLUSIVE otherwise.
+ *      the change is at least 0.5 points, printed with its direction (up: LOR saves paths; down: it loses them);
+ *      FALSIFIED when the guarded interval of the change (survivalChangeU at ALPHA, held out to the exact bound on a
+ *      one-sided count: reduce-7aa.mjs guarded) lies inside [-0.5, 0.5]; INCONCLUSIVE otherwise.
  * REPORTED: every job's world lines, the openings, BASE's spread ratio, the changes in worlds 1 and 2.
  *   node research/solver/reduce-neblend-a.mjs [dir] [paths a world] [points] > research/solver/results-neblend-a.txt   (--preflight, --planted)
  */
@@ -28,12 +30,13 @@ import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
-import { clopperPearson, survivalChangeU } from './stats.mjs';
+import { clopperPearson, survivalChangeU, binomUpperHalf } from './stats.mjs';
+import { guarded } from './reduce-7aa.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-neblend-a.md';
 export const PTS = '30', SEED = '7002', NPW = 4000, ALPHA = 0.05, CTRL = 0.3, WORLD = 1, MAT = 0.5;
-export const SPREAD = [0.97, 1.03], SPREAD_OUT = [0.95, 1.05];
+export const SPREAD = [0.97, 1.03], SPREAD_OUT = [0.95, 1.05];   // HELD band; FALSIFIED below its first, over-corrected above its second
 export const JOBS = [['bridge 4', '0.02', 'RZ'], ['bridge 4', '0.02', 'LOR'], ['S380', '0.02', 'BASE'], ['S380', '0.02', 'LOR']];
 const key = (id, w, arm) => `${id} ${arm}/W${w}`;
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
@@ -115,12 +118,11 @@ export function spreadOf(job) {
   const dT = w[2].table - w[0].table, dS = 100 * (w[2].ok / w[2].n - w[0].ok / w[0].n);
   return { point: dT / dS, lo: dT / (100 * (h2 - l0)), hi: dS > 0 && 100 * (l2 - h0) > 0 ? dT / (100 * (l2 - h0)) : Infinity };
 }
-/* the exact two-sided McNemar p on b lost and c saved */
+/* the exact two-sided McNemar p on b lost and c saved: twice the smaller tail, P(X >= max(b, c)) for X ~ Bin(b + c, 1/2)
+   by symmetry (stats.mjs binomUpperHalf, which builds large counts in logs: the plan-auditor's MINOR 5 of 11 Oct 13:00 UK) */
 export function mcnemar2(b, c) {
   const n = b + c; if (n === 0) return 1;
-  const k = Math.min(b, c); let p = 0, t = Math.pow(0.5, n);
-  for (let i = 0; i <= k; i++) { p += t; t = t * (n - i) / (i + 1); }
-  return Math.min(1, 2 * p);
+  return Math.min(1, 2 * binomUpperHalf(Math.max(b, c), n));
 }
 export function pairOf(bitsA, bitsB) {
   let a = 0, b = 0, c = 0, d = 0;
@@ -133,11 +135,12 @@ export function items(J, bitsOf) {
   out[1] = keep(J[key('bridge 4', '0.02', 'RZ')]);
   out[2] = keep(J[key('bridge 4', '0.02', 'LOR')]);
   const lor = J[key('S380', '0.02', 'LOR')], base = J[key('S380', '0.02', 'BASE')], sp = spreadOf(lor), cw = ctrlOf(lor);
-  const shownOff = cw.some(x => x.lo > WORLD || x.hi < -WORLD);
-  out[3] = { outcome: sp.point >= SPREAD[0] && sp.point <= SPREAD[1] && !shownOff ? 'HELD' : (sp.hi < SPREAD_OUT[0] || sp.lo > SPREAD_OUT[1]) ? 'FALSIFIED' : 'INCONCLUSIVE', sp, base: spreadOf(base), cw };
+  const within = cw.every(x => Math.abs(x.d) <= WORLD), over = sp.lo > SPREAD_OUT[1];
+  out[3] = { outcome: sp.point >= SPREAD[0] && sp.point <= SPREAD[1] && within ? 'HELD' : sp.hi < SPREAD_OUT[0] ? 'FALSIFIED' : 'INCONCLUSIVE', over, sp, base: spreadOf(base), cw };
   const pr = [0, 1, 2].map(k => pairOf(bitsOf(base, k), bitsOf(lor, k))), p0 = pr[0], pv = mcnemar2(p0.b, p0.c);
-  const g = survivalChangeU(p0.a, p0.b, p0.c, p0.d, ALPHA);
-  out[4] = { outcome: pv < ALPHA && Math.abs(p0.change) >= MAT ? 'HELD' : (g.lo >= -MAT && g.hi <= MAT) ? 'FALSIFIED' : 'INCONCLUSIVE', pr, p: pv, g, own: { base: base.own, lor: lor.own } };
+  const N0 = p0.a + p0.b + p0.c + p0.d, g = guarded(survivalChangeU(p0.a, p0.b, p0.c, p0.d, ALPHA), p0.b, p0.c, N0, ALPHA);
+  const held = pv < ALPHA && Math.abs(p0.change) >= MAT;
+  out[4] = { outcome: held ? 'HELD' : (g.lo >= -MAT && g.hi <= MAT) ? 'FALSIFIED' : 'INCONCLUSIVE', dir: held ? (p0.change > 0 ? 'up' : 'down') : null, pr, p: pv, g, own: { base: base.own, lor: lor.own } };
   return out;
 }
 
@@ -166,12 +169,19 @@ function planted() {
   cases.push(['LOR as flat as BASE (0.899): 3 FALSIFIED', o(set({ [key('S380', '0.02', 'LOR')]: job('S380', 'LOR', s380) }))[3].outcome, 'FALSIFIED']); EDGES.push('a spread as flat as BASE\'s');
   // the ends moved in by half the shortfall each, so every world stays inside a point; nudged so the ratio reads r or above
   const ratioAt = r => { const s0 = 100 * 1234 / NPW, s2 = 100 * 3881 / NPW, dS = s2 - s0, dl = (1 - r) * dS / 2; let t2 = s2 - dl; const t0 = s0 + dl; while ((t2 - t0) / dS < r) t2 += 1e-12; return job('S380', 'LOR', [[t0, 1234], [78.4, 3136], [t2, 3881]]); };
+  // steepened by lowering world 0's table, so every table stays inside 0 to 100
+  const steepAt = r => { const s0 = 100 * 1234 / NPW, s2 = 100 * 3881 / NPW; return job('S380', 'LOR', [[s0 - (r - 1) * (s2 - s0), 1234], [78.4, 3136], [s2, 3881]]); };
   cases.push(['LOR\'s spread ratio exactly 0.97: 3 HELD', o(set({ [key('S380', '0.02', 'LOR')]: ratioAt(0.97) }))[3].outcome, 'HELD']); EDGES.push('a spread ratio exactly at 0.97');
   cases.push(['LOR\'s spread ratio 0.96, its interval reaching 0.95: 3 INCONCLUSIVE', o(set({ [key('S380', '0.02', 'LOR')]: ratioAt(0.96) }))[3].outcome, 'INCONCLUSIVE']);
-  cases.push(['LOR steepened to 1.2: 3 FALSIFIED', o(set({ [key('S380', '0.02', 'LOR')]: ratioAt(1.2) }))[3].outcome, 'FALSIFIED']); EDGES.push('a spread steepened past it');
+  { const r = o(set({ [key('S380', '0.02', 'LOR')]: steepAt(1.2) }))[3]; cases.push(['LOR steepened to 1.2: 3 INCONCLUSIVE, over-corrected', `${r.outcome}${r.over ? ' over' : ''}`, 'INCONCLUSIVE over']); } EDGES.push('a spread steepened past 1.05 (over-corrected)');
+  cases.push(['LOR at its spread, world 1 1.5 points off at its point but its interval reaching 1: 3 INCONCLUSIVE', o(set({ [key('S380', '0.02', 'LOR')]: job('S380', 'LOR', [[30.85, 1234], [79.9, 3136], [97.0, 3881]]) }))[3].outcome, 'INCONCLUSIVE']); EDGES.push('a world off at its point but not shown');
   cases.push(['LOR at its spread but world 1 shown 3 points off: 3 INCONCLUSIVE', o(set({ [key('S380', '0.02', 'LOR')]: job('S380', 'LOR', [[30.85, 1234], [81.4, 3136], [97.0, 3881]]) }))[3].outcome, 'INCONCLUSIVE']);
   cases.push(['LOR and BASE identical on every world-0 path: 4 FALSIFIED', o(set())[4].outcome, 'FALSIFIED']); EDGES.push('a pair with no discordant path');
-  cases.push(['LOR saves 60 world-0 paths, loses none (1.5 points): 4 HELD', o(set(), bitsWith(0, 60))[4].outcome, 'HELD']);
+  { const r = o(set(), bitsWith(0, 60))[4]; cases.push(['LOR saves 60 world-0 paths, loses none (1.5 points): 4 HELD, up', `${r.outcome} ${r.dir}`, 'HELD up']); }
+  { const r = o(set(), bitsWith(60, 0))[4]; cases.push(['LOR loses 60 world-0 paths, saves none: 4 HELD, down', `${r.outcome} ${r.dir}`, 'HELD down']); } EDGES.push('a change down as well as up');
+  cases.push(['LOR saves 12, loses none: the guarded interval reaches past 0.5: 4 INCONCLUSIVE', o(set(), bitsWith(0, 12))[4].outcome, 'INCONCLUSIVE']); EDGES.push('a one-sided count the guard holds out');
+  { const z = (Math.abs(560 - 540) - 1) / Math.sqrt(1100), nrm = (() => { const t = 1 / (1 + 0.2316419 * z), d = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI); return 2 * d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))); })();
+    cases.push([`the exact test at 1,100 discordant paths (540 lost, 560 saved) meets the normal approximation with continuity (${nrm.toFixed(4)}), not 0`, Math.abs(mcnemar2(540, 560) - nrm) < 0.01, true]); } EDGES.push('a McNemar count past the old underflow');
   cases.push(['LOR saves exactly 20 paths, loses none (0.5 points): 4 HELD', o(set(), bitsWith(0, 20))[4].outcome, 'HELD']); EDGES.push('a change exactly at 0.5 points');
   cases.push(['LOR saves 30 and loses 30 (no net change, its interval inside 0.5): 4 FALSIFIED', o(set(), bitsWith(30, 30))[4].outcome, 'FALSIFIED']); EDGES.push('a balanced swap of discordant paths');
   cases.push(['LOR saves 30 and loses 15 (0.375 points, reads, but under 0.5): 4 INCONCLUSIVE', o(set(), bitsWith(15, 30))[4].outcome, 'INCONCLUSIVE']);
@@ -207,7 +217,7 @@ function planted() {
   let failed = 0;
   for (const [what, got, want] of cases) {
     const okc = String(got) === String(want); if (!okc) failed++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${what}: ${JSON.stringify(got)}`);
-    const m = /: (\d) (HELD|INCONCLUSIVE|FALSIFIED)/.exec(what); if (okc && m) REACHED[Number(m[1])].add(String(want));
+    const m = /: (\d) (HELD|INCONCLUSIVE|FALSIFIED)/.exec(what); if (okc && m) REACHED[Number(m[1])].add(String(want).split(' ')[0]);
   }
   if (failed) { console.log(`PLANTED CHECKS FAILED: ${failed} of ${cases.length}`); process.exit(1); }
   return cases.length;

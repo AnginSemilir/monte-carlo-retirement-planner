@@ -400,6 +400,15 @@ export function outcomeProblems(predText, plantedOutput) {
   for (const w of OUTCOME_WORDS) if (new RegExp(`\\b${w}\\b`).test(fed) && !all.has(w)) P.push(`the Decision fed names ${w}, which no plant reaches`);
   return P;
 }
+// A reducer's OUTCOMES REACHED line comes from its plants, never written with the outcomes as text (the plan-auditor's
+// MINOR 2 of 11 Oct 05:18 UK, carried at 05:44 UK: reduce-neroot.mjs first printed it as a constant, which outcomeProblems
+// cannot tell from a covered item; reduce-forcex.mjs, reduce-nesplit.mjs and reduce-nscond.mjs print it so, registered
+// before; the maintainer's 'unlock enforcement' of 11 Oct). Comment lines are not read. From CONSTANT_FROM.
+export const CONSTANT_FROM = Date.parse('2026-10-11T08:00:00+01:00');
+export function constantOutcomeProblems(source) {
+  const bad = String(source).split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l) && l.includes('OUTCOMES REACHED') && /\b(HELD|FALSIFIED|INCONCLUSIVE|HARM)\b/.test(l.slice(l.indexOf('OUTCOMES REACHED'))));
+  return bad.length ? [`the reducer writes its OUTCOMES REACHED line with the outcomes as text (${bad.length} line${bad.length > 1 ? 's' : ''}): build it from the plants that read as they should`] : [];
+}
 export const reducerOf = predText => (/^- \*\*Run:\*\*.*?\b(reduce-[\w-]+\.mjs)/m.exec(String(predText)) || [])[1] || null;
 
 export function checkPredictionFile(file) {
@@ -432,7 +441,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && pro
   const red = reducerOf(text);
   if (!red || !existsSync(`research/solver/${red}`)) { console.log(`outcome coverage refuses this launch: the Run line names no reducer (reduce-<name>.mjs) that exists${red ? ` (${red})` : ''}`); process.exit(1); }
   let out = ''; try { out = execFileSync('node', [`research/solver/${red}`, '--planted']).toString(); } catch (e) { console.log(`outcome coverage refuses this launch: ${red} --planted failed\n${String(e.stdout || '')}`); process.exit(1); }
-  const P = [...outcomeProblems(text, out), ...(first === null || Number.isNaN(first) || first >= EDGES_FROM ? edgeProblems(out) : [])];
+  const P = [...outcomeProblems(text, out), ...(first === null || Number.isNaN(first) || first >= EDGES_FROM ? edgeProblems(out) : []), ...(first === null || Number.isNaN(first) || first >= CONSTANT_FROM ? constantOutcomeProblems(readFileSync(`research/solver/${red}`, 'utf8')) : [])];
   if (P.length) { console.log(`outcome coverage refuses this launch (${red}):\n${P.map(e => `  - ${e}`).join('\n')}`); process.exit(1); }
   console.log(`outcomes: ${red} reaches every registered outcome (${out.split('\n').filter(l => l.startsWith('OUTCOMES REACHED')).join('; ')})`);
   process.exit(0);

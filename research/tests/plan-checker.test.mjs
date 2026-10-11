@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
+import { constantOutcomeProblems } from '../solver/check-prediction.mjs';
 import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM, heldToJudged, exemptBy, judgedOrderProblems, baseRateProblems, CREDENCE_BOUNDARY, JUDGED_BOUNDARY } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -259,6 +260,9 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(edgeProblems('planted (40): ok\n').length === 1, 'planted: a reducer with no EDGES line is refused (the retirement pass, 3 Oct)');
   ok(edgeProblems('EDGES: a gap of 0\n').length === 1, 'planted: an EDGES line naming one case is refused');
   ok(outcomeProblems(fed, 'planted (40): ok\n').length === 1, 'planted: a reducer with no OUTCOMES REACHED line is refused');
+  ok(constantOutcomeProblems(read('reduce-neroot.mjs')).length === 0, "a reducer that builds OUTCOMES REACHED from its plants passes (reduce-neroot.mjs)");
+  ok(constantOutcomeProblems(read('reduce-nesplit.mjs')).length === 1, "planted: the constant line reduce-nesplit.mjs prints is refused");
+  ok(constantOutcomeProblems("  console.log('OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE');").length === 1 && constantOutcomeProblems('// OUTCOMES REACHED: item 1: HELD, as a note').length === 0, 'planted: a literal outcomes line is refused and a comment is not read');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE\n').length === 2, 'planted: an item that can never read FALSIFIED is refused, twice (under 3, and the Decision fed names it)');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE, FALSIFIED\nOUTCOMES REACHED: item 2: HARM, NO MATERIAL HARM\n').length === 1, 'planted: a second item short of 3 is refused on its own');
   ok(outcomeProblems(`## Credence\nreads as predicted: 1 (HELD), 0.5; 2 (FALSIFIED), 0.4\n\n${fed}`, 'OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE\n').length === 1, 'planted: a prediction item the reducer prints no line for is refused (the auditor\'s MINOR 2)');

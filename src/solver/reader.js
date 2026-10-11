@@ -199,3 +199,60 @@ export function orderChance(bills, w, rate, orders, { draws = 12000, points = 16
   f.table = { grid, val };
   return f;
 }
+
+/*
+ * NE-ROOT'S TWO ARMS (research only, both default off; PLAN.md NE-ROOT, the deep review after NE-SPLIT, deep-review-log.md
+ * 11 Oct 02:37 UK). Neither runs unless a test sets it; no product path reads them.
+ *
+ * `readerChance: 'sim'` (SIMP): the same schedule as referenceChance - the same bills, the same per-year log drift `rho`
+ * and spread `vol` of the one reference mix - with the chance simulated instead of taken from a lognormal D: on `draws`
+ * seeded draws the money left once today's bill is paid grows by exp(rho_j + vol_j z) and pays each later bill in turn
+ * (money arriving, a negative bill, is added), failing once more than `tol` is unmet; tabulated over `points` levels of
+ * acc on common draws, made non-decreasing in acc and read by linear interpolation, as orderChance is.
+ */
+export function simChance(bills, rho, vol, { draws = 12000, points = 160, seed = 7002, tol = 1 } = {}) {
+  const h = bills.length;
+  if (h === 0) return () => 1;
+  const d0 = bills[0];
+  if (h === 1) return (acc) => (acc - d0 < -tol ? 0 : 1);
+  let s = seed >>> 0;
+  const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); while (v === 0) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const gr = new Float64Array(draws * (h - 1));
+  for (let d = 0; d < draws; d++) for (let j = 1; j < h; j++) gr[d * (h - 1) + j - 1] = Math.exp(rho[j - 1] + vol[j - 1] * gauss());
+  const later = bills.slice(1).reduce((t, b) => t + Math.max(0, b), 0);
+  const top = d0 + 3 * later + 1, grid = new Float64Array(points), val = new Float64Array(points);
+  grid[0] = d0 - tol; for (let g = 1; g < points; g++) grid[g] = d0 + tol + (top - d0 - tol) * (g - 1) / (points - 2);
+  const paysAll = (acc, d) => {
+    let pot = acc - d0;
+    if (pot < -tol) return false;
+    for (let j = 1; j < h; j++) { pot = Math.max(pot, 0) * gr[d * (h - 1) + j - 1] - bills[j]; if (pot < -tol) return false; }
+    return true;
+  };
+  for (let g = 0; g < points; g++) { let ok = 0; for (let d = 0; d < draws; d++) if (paysAll(grid[g], d)) ok++; val[g] = Math.max(ok / draws, g > 0 ? val[g - 1] : 0); }
+  const f = (acc) => {
+    if (acc - d0 < -tol) return 0;
+    if (acc >= top) return val[points - 1];
+    let i = 0;
+    if (acc >= grid[1]) i = Math.min(points - 2, 1 + Math.floor((acc - grid[1]) / (grid[2] - grid[1])));
+    const u = (acc - grid[i]) / (grid[i + 1] - grid[i]);
+    return val[i] + (val[i + 1] - val[i]) * Math.max(0, Math.min(1, u));
+  };
+  f.table = { grid, val };
+  return f;
+}
+
+/*
+ * `readerSplit: 'r0'` (R0): the split with nothing left in the residual - c_i = S_i / p_i at every node with p_i at least
+ * 1e-12 (taken in log space, unclipped: c above 1 where the solved survival beats the reference), R_i = S_i - p_i c_i (zero
+ * to rounding); a node below that keeps c = 0 and R = S, and is counted in `zeroP`. Replaces buildReaderTable's c and R.
+ */
+export function r0Split(S, p) {
+  const n = S.length, c = new Float64Array(n), R = new Float64Array(n);
+  let zeroP = 0;
+  for (let i = 0; i < n; i++) {
+    if (p[i] >= 1e-12) { c[i] = Math.exp(Math.log(Math.max(S[i], 1e-300)) - Math.log(p[i])); R[i] = S[i] - p[i] * c[i]; }
+    else { c[i] = 0; R[i] = S[i]; zeroP++; }
+  }
+  return { c, R, zeroP };
+}

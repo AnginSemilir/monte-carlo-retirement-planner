@@ -20,7 +20,10 @@ maintainer's words, which the maintainer may move.
    when its derivation puts the chance it leaves its question unsettled (the decision table's 'else' row) at 0.6 or
    more, or gives its primary item no outcome at 0.4 or more. The bar sits above the plan's usual long run: the last four
    (NE-SPLIT, NE-ROOT, NE-GRID B1, NE-GRID C) had 'else' rows of 0.57, 0.53, 0.51 and 0.41, so the first draft's 0.35
-   would have fired on every one (the plan-auditor's MINOR 1 of 12 Oct 13:08 UK). The check is made when the derivation's output lands, before
+   would have fired on every one (the plan-auditor's MINOR 1 of 12 Oct 13:08 UK). The second clause alone is not above the usual run: it would
+   have fired on NE-ROOT, whose primary item 1 read HELD 0.37, INCONCLUSIVE 0.35, FALSIFIED 0.29 (results-derive-neroot.txt),
+   and the maintainer was first asked about the bar with the 'else' rows' count only (the plan-auditor's MINOR 3 of
+   12 Oct 13:53 UK). The check is made when the derivation's output lands, before
    the prediction is registered; the review's findings go into the design before launch.
 
 ## How

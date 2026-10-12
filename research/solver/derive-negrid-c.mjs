@@ -142,7 +142,7 @@ console.log(`  DECISION ROWS: item 8 FALSIFIED ${f2(rows.A / Mn)}; item 1 FALSIF
 // a 120-point solve taken as the measured S380 ratio of 120 to 60 points times each household's 60-point solve; 12 shares
 // as four times the 6-share cells, 15 return nodes as three times the 5 (judged, NOT CHECKED until the preflight)
 const secs = (txt, re) => { const m = re.exec(txt); return m ? Number(m[1]) : NaN; };
-const meas = rf('results-negrid-c-measure.txt'), s120 = secs(meas, /solve CAND BASE\/P120S6Q5: table \S+ secs (\d+)/), peak = secs(meas, /peak memory \(VmHWM\) (\d+) kB/);
+const meas = rf('results-negrid-c-measure.txt'), s120 = secs(meas, /solve CAND BASE\/P120\S*: table \S+ secs (\d+)/), peak = secs(meas, /peak memory \(VmHWM\) (\d+) kB/);
 const logOf = (id, arm) => Object.values(logsB1).find(x => new RegExp(`^${id.replace(' ', '\\s')}\\s+case \\| job ${arm}/P60 \\|`, 'm').test(x));
 const t60 = (id, arm) => { const x = logOf(id, arm); return { solve: secs(x, /solve CAND \S+: table \S+ secs (\d+)/), fwd: secs(x, /forceIdentity \d+\/\d+ secs (\d+)/) / (2 * 3 * NPW + 2 * 1000) }; };
 const nr364 = Object.values(logsNR).find(x => /^S364\s+case \| job BASE\/W0\.02/m.test(x)), s364 = { solve: secs(nr364, /solve CAND \S+: table \S+ secs (\d+)/) * 2, fwd: secs(nr364, /forceIdentity \d+\/\d+ secs (\d+)/) / (3 * 3 * NPW + 2 * 1000) };

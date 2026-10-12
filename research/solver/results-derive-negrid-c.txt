@@ -16,12 +16,12 @@
 
 2. THE POWER (1000 draws a cell through reduce-negrid-c.mjs's items(); B1's records as they are)
   item 1, each cell's ratio about 0.25 (+-0.1): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
-  item 1, each cell's ratio about 0.35 (+-0.1): HELD 0.0060 INCONCLUSIVE 0.9940 FALSIFIED 0.0000
-  item 1, each cell's ratio about 0.5 (+-0.1): HELD 0.0000 INCONCLUSIVE 0.9950 FALSIFIED 0.0050
+  item 1, each cell's ratio about 0.35 (+-0.1): HELD 0.0090 INCONCLUSIVE 0.9910 FALSIFIED 0.0000
+  item 1, each cell's ratio about 0.5 (+-0.1): HELD 0.0000 INCONCLUSIVE 0.9870 FALSIFIED 0.0130
   item 1, each cell's ratio about 0.8 (+-0.1): HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-  item 2, S224's 120-point table 0 points off its 16,000-path runs: HELD 0.0010 INCONCLUSIVE 0.2670 FALSIFIED 0.7320
-  item 2, S224's 120-point table -1 points off its 16,000-path runs: HELD 0.2970 INCONCLUSIVE 0.6990 FALSIFIED 0.0040
-  item 2, S224's 120-point table -2 points off its 16,000-path runs: HELD 0.9970 INCONCLUSIVE 0.0030 FALSIFIED 0.0000
+  item 2, S224's 120-point table 0 points off its 16,000-path runs: HELD 0.0000 INCONCLUSIVE 0.3040 FALSIFIED 0.6960
+  item 2, S224's 120-point table -1 points off its 16,000-path runs: HELD 0.2980 INCONCLUSIVE 0.6970 FALSIFIED 0.0050
+  item 2, S224's 120-point table -2 points off its 16,000-path runs: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   item 2, S224's 120-point table -3 points off its 16,000-path runs: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 3 and 4, a job carrying 0.1 of S224's 60-point under-read: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
   items 3 and 4, a job carrying 0.3 of S224's 60-point under-read: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
@@ -34,22 +34,34 @@
   items 5-7, an arm carrying 0.6 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 5-7, an arm carrying 0.8 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 5-7, S364's 60-point over-read under half a point (not counted): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
-  item 8, bridge 4 kept: HELD 0.9120 INCONCLUSIVE 0.0880 FALSIFIED 0.0000
-  item 8, bridge 4 small: HELD 0.1240 INCONCLUSIVE 0.7720 FALSIFIED 0.1040
+  item 8, bridge 4 kept: HELD 0.9150 INCONCLUSIVE 0.0840 FALSIFIED 0.0010
+  item 8, bridge 4 small: HELD 0.1200 INCONCLUSIVE 0.7800 FALSIFIED 0.1000
   item 8, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 9, S224's floor-free 120-point table 0 points off its 16,000-path runs: HELD 0.7000 INCONCLUSIVE 0.3000 FALSIFIED 0.0000
+  item 9, S224's floor-free 120-point table -1 points off its 16,000-path runs: HELD 0.0080 INCONCLUSIVE 0.6850 FALSIFIED 0.3070
+  item 9, S224's floor-free 120-point table -2 points off its 16,000-path runs: HELD 0.0000 INCONCLUSIVE 0.0010 FALSIFIED 0.9990
+  item 9, S224's floor-free 120-point table -3 points off its 16,000-path runs: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 10, the line at 0.25 carrying 0.1 of S364's 60-point over-read (counted): HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 10, the line at 0.25 carrying 0.35 of S364's 60-point over-read (counted): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 10, the line at 0.25 carrying 0.6 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 10, the line at 0.25 carrying 0.8 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 10, S364's 60-point over-read under half a point (not counted): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
 
 3. THE CREDENCES (the receipt of 11 Oct 23:09 UK: RG-UNMASK=0.5; RG-WSLOW=0.15; RG-PATHS=0.15; RG-OTHER=0.2; S364-SHARE=0.3; S364-W=0.3; S364-COPY=0.15; S364-REF=0.07; S364-OTHER=0.18; the judged stories in this script's JUDGED; 40000 draws)
-CREDENCE item 1: point 0.4046 HELD 0.51 INCONCLUSIVE 0.43 FALSIFIED 0.06
-CREDENCE item 2: point -1.3373 HELD 0.55 INCONCLUSIVE 0.30 FALSIFIED 0.16
-CREDENCE item 3: point - HELD 0.24 INCONCLUSIVE 0.18 FALSIFIED 0.58
-CREDENCE item 4: point - HELD 0.24 INCONCLUSIVE 0.19 FALSIFIED 0.57
+CREDENCE item 1: point 0.4043 HELD 0.51 INCONCLUSIVE 0.43 FALSIFIED 0.06
+CREDENCE item 2: point -1.3301 HELD 0.54 INCONCLUSIVE 0.31 FALSIFIED 0.15
+CREDENCE item 3: point - HELD 0.24 INCONCLUSIVE 0.18 FALSIFIED 0.57
+CREDENCE item 4: point - HELD 0.24 INCONCLUSIVE 0.19 FALSIFIED 0.58
 CREDENCE item 5: point - HELD 0.29 INCONCLUSIVE 0.29 FALSIFIED 0.42
-CREDENCE item 6: point - HELD 0.29 INCONCLUSIVE 0.30 FALSIFIED 0.42
+CREDENCE item 6: point - HELD 0.29 INCONCLUSIVE 0.29 FALSIFIED 0.42
 CREDENCE item 7: point - HELD 0.13 INCONCLUSIVE 0.31 FALSIFIED 0.56
 CREDENCE item 8: point - HELD 0.83 INCONCLUSIVE 0.14 FALSIFIED 0.03
-  POINT item 1: 0.4046 (80% interval 0.2695 to 0.5783; the largest counted cell's |move 60 to 120| / |move 30 to 60|)
-  POINT item 2: -1.3373 (80% interval -2.7122 to 0.0114; S224's 120-point table less its 16,000-path runs, the lower world)
-  DECISION ROWS: item 8 FALSIFIED 0.03; item 1 FALSIFIED 0.06; item 1 HELD, item 2 not HELD 0.20; items 1 and 2 HELD 0.29; else 0.42
+CREDENCE item 9: point -0.8383 HELD 0.35 INCONCLUSIVE 0.31 FALSIFIED 0.34
+CREDENCE item 10: point - HELD 0.19 INCONCLUSIVE 0.30 FALSIFIED 0.50
+  POINT item 1: 0.4043 (80% interval 0.2693 to 0.5785; the largest counted cell's |move 60 to 120| / |move 30 to 60|)
+  POINT item 2: -1.3301 (80% interval -2.7040 to 0.0120; S224's 120-point table less its 16,000-path runs, the lower world)
+  POINT item 9: -0.8383 (80% interval -2.1895 to 0.1802; S224's floor-free 120-point table less its 16,000-path runs, the lower world)
+  DECISION ROWS: item 8 FALSIFIED 0.03; item 1 FALSIFIED 0.06; item 1 HELD, item 2 not HELD 0.21; items 1, 2 and 9 HELD 0.07; items 1 and 2 HELD, item 9 not HELD 0.21; else 0.41
 
 4. THE BUDGET (results-negrid-c-measure.txt: S380's 120-point solve 5046 s, peak memory 1093980 kB; B1's logs at 60 points; NE-ROOT's for S364, its 30-point solve doubled for 60)
   S380 BASE 120: solve about 5046 s, runs about 9162 s: about 3.95 h
@@ -62,4 +74,6 @@ CREDENCE item 8: point - HELD 0.83 INCONCLUSIVE 0.14 FALSIFIED 0.03
   S224 BASE 60 15 nodes: solve about 7677 s, runs about 3050 s: about 2.98 h
   S364 BASE 60: solve about 3510 s, runs about 988 s: about 1.25 h
   S364 ORDER 60: solve about 3510 s, runs about 988 s: about 1.25 h
-  total about 27.18 core-hours; the ten jobs four at a time, about 6.80 h wall at the least; the 120-point solve 1.47 times the 60-point
+  S224 BASE 120 floor 0: solve about 3770 s, runs about 7273 s: about 3.07 h
+  S364 BASE 60 line 0.25: solve about 3510 s, runs about 988 s: about 1.25 h
+  total about 31.50 core-hours; the twelve jobs four at a time, about 7.88 h wall at the least; the 120-point solve 1.47 times the 60-point

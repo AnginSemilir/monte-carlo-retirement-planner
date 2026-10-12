@@ -1,0 +1,8 @@
+NE-GRID C's code change against 0d38fe8b0fb6 (S364, 4 wealth points, the candidate's options)
+old code, defaults: tables 9adf125874e13b37 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line undefined secs 178
+new code, defaults: tables 9adf125874e13b37 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line 0.5 secs 182
+new code, line 0.5: tables 9adf125874e13b37 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line 0.5 secs 181
+new code, line 0.25: tables 0c924d785e8903e9 (259623 arrays) reader nodes 37908 copied 11988 supported 25920 unsupported 0 line 0.25 secs 184
+PASS 1. old and new code alike at defaults
+PASS 2. the line set at 0.5 alike to the default
+PASS 3. the line at 0.25 differs, more nodes supported

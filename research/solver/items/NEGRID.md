@@ -37,3 +37,10 @@ Items as the review proposed: (1) the BASE-LOR gap at each forced opening shrink
   - Whether a finer wealth axis changes outcomes on the panel, and at what cost.
   - The share axis, S364 and ORDER (B2).
   - S224's movement outside the bridge (the after-access family).
+
+## NE-GRID C, as registered (predictions/diag-negrid-c.md; the 12 Oct 06:07 row)
+
+- **Jobs (audit-negridc.mjs):** S380 under BASE (P on 16,000 paths a world) and LOR at 120 points; S224 under BASE at 120 points (P on 16,000); S224 under BASE at 60 points with 15 return nodes, and with 12 shares; S364 under BASE at 60 points with 6 and 12 shares, at 120 with 6, and under ORDER at 60 with 6; bridge 4 under BASE at 120 points.
+- **Items:** (1) convergence: every counted cell's move from 60 to 120 points at most 0.35 of its move from 30 to 60 (deterministic; S380 BASE and LOR, S224 BASE, P and D, worlds 0 and 1); (2) S224's 120-point table against its own 16,000-path runs (O145; a table against its own policy's runs, since the score weighs the estate); (3, 4) 15 return nodes or 12 shares carrying S224's 60-point under-read; (5, 6, 7) 12 shares, 120 points or ORDER carrying S364's 60-point over-read (B2); (8) bridge 4 within 0.3 points at 120 points.
+- **The causes:** a held/not/open line per cause by a registered map of the items' outcomes (RG-WSLOW, RG-PATHS, RG-UNMASK; S364-SHARE, S364-W, S364-REF), the review's process flag.
+- **Declared departures:** D's runs on 4,000 paths (P's on 16,000); S364's arms against C's own 60-point S364; the derivation's coupled S224 story fixed after its first output, its JUDGED unchanged (d06a3d6).

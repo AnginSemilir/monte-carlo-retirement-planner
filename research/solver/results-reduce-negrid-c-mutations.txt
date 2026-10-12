@@ -96,11 +96,17 @@ caught: 95: out['10'] = fall('BASE/P60S6Q5L25');
 caught: 96: out['10'] = fall('BASE/P60S6Q5L25');
 caught: 97: 'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome ==
 caught: 98: out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',
-caught: 99: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou
-caught: 100: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou
-caught: 101: L.push(`9. S224 without
-caught: 102: L.push(`10. the support line
-caught: 103: ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-caught: 104: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
-caught: 105: export const q = x => Math.round(x * 1e9) / 1e9;
-105 of 105 mutations caught
+caught: 99: 'S364-COPY': out['10'].outcome === 'HELD' ? 'held'
+caught: 100: out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open
+caught: 101: out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open
+caught: 102: c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)
+caught: 103: c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)
+caught: 104: const c10 = out['10'].cells.filter(c => c.counted),
+caught: 105: q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])
+caught: 106: q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])
+caught: 107: L.push(`9. S224 without
+caught: 108: L.push(`10. the support line
+caught: 109: ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+caught: 110: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
+caught: 111: export const q = x => Math.round(x * 1e9) / 1e9;
+111 of 111 mutations caught

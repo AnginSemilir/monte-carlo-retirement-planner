@@ -109,3 +109,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-12 08:35 UTC | reduce-negrid-c.mjs caac2326f3b9 | 104 of 106 caught | escaped: NOT CAUGHT: 11: Object.entries({ ...COMMON, readerBlend: BLEND[j.arm] }); NOT CAUGHT: 105: const short = ITEMS.filter(i => REACHED[i].size !== 3);
 2026-10-12 08:36 UTC | reduce-negrid-c.mjs f08e00b8dcb8 | 105 of 105 caught | escaped: none
 2026-10-12 08:56 UTC | reduce-negrid-c.mjs f08e00b8dcb8 | 105 of 105 caught | escaped: none
+2026-10-12 10:31 UTC | reduce-negrid-c.mjs 76771fa496c9 | 109 of 112 caught | escaped: NOT APPLIED (0 matches): 99: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou; NOT APPLIED (0 matches): 100: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou; NOT CAUGHT: 107: reaches = c10.length > 0 && c10.every(
+2026-10-12 10:33 UTC | reduce-negrid-c.mjs 76771fa496c9 | 111 of 111 caught | escaped: none

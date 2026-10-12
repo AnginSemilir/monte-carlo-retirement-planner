@@ -116,8 +116,16 @@ M = [
   # the new causes
   ("'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome === 'HELD' ? 'held'", "'RG-FLOOR': out['9'].outcome === 'HELD' ? 'held'"),
   ("out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',", "'open',"),
-  ("'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome]", "'S364-COPY': { HELD: 'held' }[out['10'].outcome]"),
-  ("'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome]", "'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['5'].outcome]"),
+  ("'S364-COPY': out['10'].outcome === 'HELD' ? 'held'", "'S364-COPY': out['5'].outcome === 'HELD' ? 'held'"),
+  ("out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open',", "false ? 'not' : 'open',"),
+  # S364-COPY's reach (the plan-auditor's BLOCKING 1 of 12 Oct 10:33 UK)
+  ("out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open',", "out['10'].outcome === 'FALSIFIED' ? 'not' : 'open',"),
+  ("c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)", "c10.every(c => reach(c.k) !== null && reach(c.k) > REACH)"),
+  ("c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)", "c10.some(c => reach(c.k) !== null && reach(c.k) >= REACH)"),
+  ("const c10 = out['10'].cells.filter(c => c.counted),", "const c10 = out['10'].cells,"),
+  ("q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])", "q((pbL[k].copy[0] - pb0[k].copy[0]) / pb0[k].copy[0])"),
+  ("q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])", "q(pb0[k].copy[0] - pbL[k].copy[0])"),
+  # (dropping reaches' guard on no counted world is equivalent: item 10 reads FALSIFIED only with a counted world, read3)
   # the read of items 9 and 10, and every item planted to its three outcomes
   ("L.push(`9. S224 without", "L.push(`9 S224 without"),
   ("L.push(`10. the support line", "L.push(`10 the support line"),

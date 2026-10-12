@@ -1,7 +1,7 @@
 /*
  * NE-GRID C's reducer (predictions/diag-negrid-c.md; PLAN.md NE-GRID-C; audit-negridc.mjs). The gate runs first and refuses
  * any log it cannot vouch for; the items are read only by their registered rules.
- * THE GATE: the ten jobs once and done, one stamp (code, audit, prediction) across the logs and in every file; the
+ * THE GATE: the twelve jobs once and done, one stamp (code, audit, prediction) across the logs and in every file; the
  *   registered settings (each job's points, shares and return nodes, paths a world, seed); each job's settings in its
  *   solve's meta and the candidate's others intact (armTook, the ran line); the forced pair at the registered actions and
  *   tiers (pairTook); three world tables a job; P's and D's runs (and the own opening's where it is neither) of the
@@ -47,7 +47,7 @@ import { parse as parseB1, gate as gateB1, records as recordsB1, key as keyB1 } 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-negrid-c.md';
 export const SEED = '7002', NPW = 4000, ALPHA = 0.05;
-export const GMIN = 0.5, SECOND = 0.35, FIRST = 0.5, UNDER = 0.5, CARRY = 0.5, LITTLE = 0.2, CTRL = 0.3;
+export const GMIN = 0.5, SECOND = 0.35, FIRST = 0.5, UNDER = 0.5, CARRY = 0.5, LITTLE = 0.2, CTRL = 0.3, REACH = 0.5;
 export const WEIGHTS = [1 / 6, 2 / 3, 1 / 6];
 export const PAIRS = Object.freeze({ S380: [12, 14], 'bridge 4': [57, 59], S224: [0, 2], S364: [12, 14] });
 export const JOBS = [['S380', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4, { floor: 0 }], ['S364', 'BASE', 60, 12, 5, 1], ['S224', 'BASE', 60, 12, 5, 1],
@@ -166,6 +166,13 @@ export function items(J, B1, b1Runs224, extra) {
   const fall = label => { const j = jt('S364', label); const c = over60.map(x => { const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted = q(x.o) >= GMIN; return { k: x.k, o: x.o, dropped, counted, frac: counted ? q(dropped / x.o) : null }; }); return { outcome: read3(c, x => x.frac >= CARRY, x => x.frac < LITTLE), cells: c }; };
   out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120S6Q5'); out['7'] = fall('ORDER/P60S6Q5');
   out['10'] = fall('BASE/P60S6Q5L25');
+  // the line's reach (the plan-auditor's BLOCKING 1 of 12 Oct 10:33 UK): the share of the 0.5 job's copied-corner weight at P
+  // that the 0.25 job no longer copies, by world (the probe); a line that moves under half of it in a counted world has not
+  // reached S364's copied corners there, and item 10 FALSIFIED then leaves S364-COPY open
+  const pb0 = (J[key('S364', 'BASE/P60S6Q5')] || {}).probe, pbL = (J[key('S364', 'BASE/P60S6Q5L25')] || {}).probe;
+  const reach = k => (pb0 && pbL && pb0[k] && pbL[k] && pb0[k].copy[0] > 0 ? q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0]) : null);
+  const c10 = out['10'].cells.filter(c => c.counted), reaches = c10.length > 0 && c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH);
+  out['10'].reach = [0, 1].map(reach);
   // item 9: S224 at 120 points with its minimum end pot removed, its table at P less its 16,000-path runs, worlds 0 and 1
   const j9 = jt('S224', 'BASE/P120S6Q5F0'), u9 = [0, 1].map(k => { const s = j9.sims[`P${k}`]; return { k, ...offOf(j9.tables[k].P, s.ok, s.n) }; });
   out['9'] = { outcome: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD' : u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED' : 'INCONCLUSIVE', w: u9 };
@@ -188,7 +195,7 @@ export function items(J, B1, b1Runs224, extra) {
     'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].outcome === 'FALSIFIED' && keepsMost ? 'not' : 'open',
     'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outcome] || 'open',
     'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome === 'HELD' ? 'held' : out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',
-    'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome] || 'open',
+    'S364-COPY': out['10'].outcome === 'HELD' ? 'held' : out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open',
   };
   return out;
 }
@@ -204,7 +211,7 @@ export function report(J, B1, runs224, extra, bitsOf, b1BitsOf) {
   for (const [i, what] of [['3', '15 return nodes'], ['4', '12 shares']]) L.push(`${i}. ${what} carry S224's 60-point under-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: under-read ${f4(c.u)}, rise ${f4(c.rise)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
   for (const [i, what] of [['5', '12 shares'], ['6', '120 points'], ['7', 'ORDER']]) L.push(`${i}. ${what} carry S364's 60-point over-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
   L.push(`9. S224 without its minimum end pot reads within half a point of its 16,000-path runs at 120 points: ${it['9'].outcome}`, `     ${it['9'].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
-  L.push(`10. the support line at 0.25 carries S364's 60-point over-read: ${it['10'].outcome}`, `     ${it['10'].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
+  L.push(`10. the support line at 0.25 carries S364's 60-point over-read: ${it['10'].outcome}`, `     ${it['10'].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`, `     the line's reach on the 0.5 job's copied-corner weight at P (S364-COPY's 'not' needs at least ${REACH} in every counted world): ${it['10'].reach.map((r, k) => `world ${k} ${r === null ? 'none (no probe or no copied weight)' : f4(r)}`).join(', ')}`);
   L.push(`8. bridge 4 within 0.3 points at 120 points: ${it[8].outcome}`, `     at ${it[8].o}: ${it[8].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
   L.push('', 'THE CAUSES (the registered map)');
   for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
@@ -342,7 +349,16 @@ function planted() {
   cases.push(['item 9 HELD, item 2 not: RG-FLOOR open', cz(s => {}, 'RG-FLOOR'), 'open']);
   cases.push(['item 9 FALSIFIED: RG-FLOOR not', cz(s => { setP(s, 'S224', 'BASE/P120S6Q5', 47); setP(s, 'S224', 'BASE/P120S6Q5F0', 47); }, 'RG-FLOOR'), 'not']);
   cases.push(['10 HELD: S364-COPY held', cz(lowered('BASE/P60S6Q5L25', 50), 'S364-COPY'), 'held']);
-  cases.push(['10 FALSIFIED: S364-COPY not', cz(o4, 'S364-COPY'), 'not']);
+  const probes = (w0, wL) => s => { for (const [l, w] of [['BASE/P60S6Q5', w0], ['BASE/P60S6Q5L25', wL]]) jt(s, 'S364', l).probe = [0, 1, 2].map(k => ({ copy: [Array.isArray(w) ? w[k] : w, 0, 0, 0, 0] })); };
+  const both = (...fs) => s => { for (const f of fs) f(s); };
+  cases.push(['10 FALSIFIED, the line moving exactly half the copied weight in both worlds: S364-COPY not', cz(both(o4, probes(0.7, 0.35)), 'S364-COPY'), 'not']); EDGES.push('a reach exactly at half');
+  cases.push(['10 FALSIFIED, the line moving 0.4999 of it: S364-COPY open', cz(both(o4, probes(0.7, 0.7 * 0.5001)), 'S364-COPY'), 'open']);
+  cases.push(['10 FALSIFIED with no probe: S364-COPY open', cz(o4, 'S364-COPY'), 'open']);
+  cases.push(['10 FALSIFIED, the line reaching world 0 only: S364-COPY open', cz(both(o4, probes(0.7, [0.1, 0.7, 0.7])), 'S364-COPY'), 'open']);
+  cases.push(['10 FALSIFIED, the 0.5 job copying nothing: S364-COPY open', cz(both(o4, probes(0, 0)), 'S364-COPY'), 'open']);
+  cases.push(['10 FALSIFIED, reaching world 0, world 1 not counted: S364-COPY not', cz(both(o4, s => { setP(s, 'S364', 'BASE/P60S6Q5', 50.3, [1]); setP(s, 'S364', 'BASE/P60S6Q5L25', 50.3, [1]); }, probes(0.7, [0.1, 0.7, 0.7])), 'S364-COPY'), 'not']);
+  cases.push(['10 HELD, the line reaching nothing: S364-COPY held', cz(both(lowered('BASE/P60S6Q5L25', 50), probes(0.7, 0.7)), 'S364-COPY'), 'held']);
+  cases.push(['10 FALSIFIED, the line moving all the copied weight (a reach of 1): S364-COPY not', cz(both(o4, probes(0.7, 0)), 'S364-COPY'), 'not']);
   cases.push(['7 INCONCLUSIVE: S364-REF open', cz(lowered('ORDER/P60S6Q5', 52, [0]), 'S364-REF'), 'open']);
   // the read end to end: report() on a synthetic set prints every item, every cause and the OUTCOME line
   { const st = base(); const ones = (n, ok) => { const b = new Uint8Array(n); for (let i = 0; i < ok; i++) b[i] = 1; return b; };
@@ -457,7 +473,7 @@ if (isMain) {
   }
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   console.log(`planted (${np_}): all read as they should`);
-  console.log(`GATE: passed - the ten jobs once and done at the registered settings (${npwA} paths a world, P at four times where registered, scale ${scaleA}, seed ${SEED}); every job's settings in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); no LOR read counted off the LOR job; every file the log's${PRE ? '' : '; NE-GRID B1\'s records behind its own gate'}`);
+  console.log(`GATE: passed - the twelve jobs once and done at the registered settings (${npwA} paths a world, P at four times where registered, scale ${scaleA}, seed ${SEED}); every job's settings in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); no LOR read counted off the LOR job; every file the log's${PRE ? '' : '; NE-GRID B1\'s records behind its own gate'}`);
   if (PRE) { console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
   const J = Object.fromEntries(jobs.map(j => [key(j.id, j.label), j]));
   const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : String(x));

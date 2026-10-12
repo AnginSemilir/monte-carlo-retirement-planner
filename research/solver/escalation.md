@@ -3,10 +3,9 @@
 The maintainer, 12 Oct 12:57 UK (the session): a deep-research review at the model and effort the maintainer named (not
 written here: no pushed file names a model, CLAUDE.md), "only in situations when the current deep review and subsequent
 tests fail repeatedly, to get out of very difficult situations, or when you're planning a >2 hour run with low
-confidence". This file is the rule in full; PLAN.md's method section points to it. RULES.md is at its byte budget, and
-the checklist does not carry it (CHECKLIST.md is locked; the hook refused the edit). Nothing enforces the triggers - no
-check, hook or checklist line - so the rule rests on the session reading this file until the maintainer's unlock adds
-the checklist line (the plan-auditor's MINOR 2 of 12 Oct 13:08 UK). The thresholds below are Claude's rendering of the
+confidence". This file is the rule in full; PLAN.md's method section points to it, and checklist item 11 carries the
+trigger (added on the maintainer's unlock of 12 Oct 13:37 UK; RULES.md is at its byte budget). The checklist is loaded
+at every start and restated after every compaction; no check or hook tests the triggers themselves. The thresholds below are Claude's rendering of the
 maintainer's words, which the maintainer may move.
 
 ## When (any one; outside these, never - a maximum-effort review is expensive)

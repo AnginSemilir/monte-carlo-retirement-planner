@@ -162,11 +162,15 @@ for (const [c, what] of [
 ok(is(bashIn(ROOT, 'cat <<<"cd x" && ls'), null), 'a here-string is not a here-document opening');
 // the '{' case's bound is 6 s (the maintainer's unlock, 30 Sep: it read 4.2 to 4.4 s on the machine after the 30 Sep restart,
 // idle and loaded alike, against about 2.0 s before; the fault it guards against took 38 s, so 6 s still catches it)
-// the wall-clock bounds are doubled while the machine is loaded (the 1-minute load average at or above its cores): they read
+// the wall-clock bounds are doubled while the machine is loaded (the 1-minute load average at or above its cores; half
+// its cores since 12 Oct, below): they read
 // 6.12 and 6.15 s against 6 s with a batch on all four cores (O54; 30 Sep 16:07 and 1 Oct 09:56 UK) and pass on the next try,
 // and the faults they guard against took 10 to 42 s, so a doubled bound still catches them (the maintainer's unlock, 1 Oct
 // 10:37 UK). HOOKS_TIMING_SCALE overrides the factor (a planted fault: a tiny scale must fail these checks).
-const LOADED = loadavg()[0] >= cpus().length;
+// Loaded from half the cores (the maintainer's unlock, 12 Oct): the '{' case read 6.36 s against 6 s with two solver
+// processes on the four cores, a 1-minute load under four, and passed on the next try idle; the doubled bounds (4 to 12 s)
+// still catch the faults (10 to 42 s).
+const LOADED = loadavg()[0] >= cpus().length / 2;
 // the override only tightens (a scale below 1, for the planted case); a larger one is ignored (RULES.md known limit 26, closed
 // by the maintainer's unlock of 3 Oct)
 const OVERRIDE = Number(process.env.HOOKS_TIMING_SCALE);

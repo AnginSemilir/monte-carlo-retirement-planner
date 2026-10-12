@@ -3,7 +3,11 @@
 The maintainer, 12 Oct 12:57 UK (the session): a deep-research review at the model and effort the maintainer named (not
 written here: no pushed file names a model, CLAUDE.md), "only in situations when the current deep review and subsequent
 tests fail repeatedly, to get out of very difficult situations, or when you're planning a >2 hour run with low
-confidence". Checklist item 11 carries the trigger; this file, the rule in full (RULES.md is at its byte budget).
+confidence". This file is the rule in full; PLAN.md's method section points to it. RULES.md is at its byte budget, and
+the checklist does not carry it (CHECKLIST.md is locked; the hook refused the edit). Nothing enforces the triggers - no
+check, hook or checklist line - so the rule rests on the session reading this file until the maintainer's unlock adds
+the checklist line (the plan-auditor's MINOR 2 of 12 Oct 13:08 UK). The thresholds below are Claude's rendering of the
+maintainer's words, which the maintainer may move.
 
 ## When (any one; outside these, never - a maximum-effort review is expensive)
 
@@ -14,8 +18,10 @@ confidence". Checklist item 11 carries the trigger; this file, the rule in full 
    members; or the plan-auditor FAILs the same registration three times on findings of the same kind; or the maintainer
    asks.
 3. **A long run planned with low confidence.** Before registering a run whose budget line puts it over 2 hours' wall,
-   when its derivation puts the chance it leaves its question unsettled (the decision table's 'else' row) at 0.35 or
-   more, or its primary item's likeliest outcome under 0.5. The check is made when the derivation's output lands, before
+   when its derivation puts the chance it leaves its question unsettled (the decision table's 'else' row) at 0.6 or
+   more, or gives its primary item no outcome at 0.4 or more. The bar sits above the plan's usual long run: the last four
+   (NE-SPLIT, NE-ROOT, NE-GRID B1, NE-GRID C) had 'else' rows of 0.57, 0.53, 0.51 and 0.41, so the first draft's 0.35
+   would have fired on every one (the plan-auditor's MINOR 1 of 12 Oct 13:08 UK). The check is made when the derivation's output lands, before
    the prediction is registered; the review's findings go into the design before launch.
 
 ## How
@@ -28,7 +34,9 @@ confidence". Checklist item 11 carries the trigger; this file, the rule in full 
   record has missed, methods and literature that bear on them, the root causes ranked with credences, the one decisive
   test with held / falsified / inconclusive lines and its cost, and, under trigger 3, what would leave the planned run
   wasted.
-- **The run.** By default automatic: a general-purpose agent spawned at the model and maximum effort the maintainer named,
+- **The run.** By default automatic: a general-purpose agent spawned at the model and maximum effort the maintainer named.
+  No pushed file names the model, so when a trigger fires the session asks the maintainer which model to use, in one
+  question that also offers the manual route (the plan-auditor's MINOR 3 of 12 Oct 13:08 UK); the agent is
   given the brief, the repository read-only (it writes no file) and web research allowed; its report comes back to the
   session. Or manual: the maintainer runs the brief in a separate deep-research window and pastes the report back.
 - **The record.** The report is saved verbatim beside its brief (`escalations/<D Mon>-<name>-report.md`) and a line added

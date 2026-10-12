@@ -92,6 +92,39 @@ M = [
   ("'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome === 'HELD' || out['4'].outcome === 'HELD') ? 'held'", "'RG-UNMASK': out[2].outcome === 'HELD' ? 'held'"),
   ("'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome === 'HELD' || out['4'].outcome === 'HELD') ? 'held'", "'RG-UNMASK': out[2].outcome === 'HELD' && out['3'].outcome === 'HELD' ? 'held'"),
   ("'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outcome] || 'open',", "'S364-REF': { HELD: 'held' }[out['7'].outcome] || 'open',"),
+  # the amendment of 12 Oct: the gate's floor, line and probe checks
+  ("if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOORS[j.id])) bad.push(", "if (false) bad.push("),
+  ("if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOORS[j.id])) bad.push(", "if (field(ran, 'floor') !== String(FLOORS[j.id])) bad.push("),
+  ("if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(", "if (false) bad.push("),
+  ("if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(", "if (field(ran, 'line') !== '0.5') bad.push("),
+  ("if (PROBED.has(k)) { const pb = j.probe || [];", "if (false) { const pb = j.probe || [];"),
+  ("if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))", "if ([0, 2].some(w => !pb[w] || !(pb[w].reads > 0)))"),
+  ("if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))", "if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads >= 0)))"),
+  ("if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)", "if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-1)"),
+  ("if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)", "if (Math.abs(x.sup[0] + x.clip[0] - 1) > 1e-5)"),
+  ("if (Math.abs(x.plain - x.del - x.res) > 1e-4)", "if (Math.abs(x.plain - x.del - x.res) > 1e-2)"),
+  # item 9
+  ("const j9 = jt('S224', 'BASE/P120S6Q5F0')", "const j9 = jt('S224', 'BASE/P120S6Q5')"),
+  ("u9 = [0, 1].map(", "u9 = [0].map("),
+  ("u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'", "u9.every(x => q(Math.abs(x.d)) < UNDER) ? 'HELD'"),
+  ("u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'", "u9.every(x => q(x.d) <= UNDER) ? 'HELD'"),
+  ("u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'", "u9.some(x => q(x.hi) <= -UNDER) ? 'FALSIFIED'"),
+  ("u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'", "u9.some(x => q(x.d) < -UNDER) ? 'FALSIFIED'"),
+  # item 10
+  ("out['10'] = fall('BASE/P60S6Q5L25');", "out['10'] = fall('BASE/P60S6Q5');"),
+  ("out['10'] = fall('BASE/P60S6Q5L25');", "out['10'] = fall('ORDER/P60S6Q5');"),
+  # the new causes
+  ("'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome === 'HELD' ? 'held'", "'RG-FLOOR': out['9'].outcome === 'HELD' ? 'held'"),
+  ("out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',", "'open',"),
+  ("'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome]", "'S364-COPY': { HELD: 'held' }[out['10'].outcome]"),
+  ("'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome]", "'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['5'].outcome]"),
+  # the read of items 9 and 10, and every item planted to its three outcomes
+  ("L.push(`9. S224 without", "L.push(`9 S224 without"),
+  ("L.push(`10. the support line", "L.push(`10 the support line"),
+  ("ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];", "ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];"),
+  ("const m = /: (\\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what);", "const m = /: (\\d) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what);"),
+  # (the check that every item is planted to its three outcomes guards the planted set itself, so no plant can catch its
+  # removal; the mutant above, the outcome regex reading one digit, shows it firing)
   # the rounding the boundaries are read on
   ("export const q = x => Math.round(x * 1e9) / 1e9;", "export const q = x => x;"),
 ]

@@ -14,16 +14,22 @@
  * Self-checks, each refusing the run: armTook (the job's settings in the solve's meta, the candidate's others intact),
  * pairTook (P and D at the registered tiers, one level and tier base) and forceIdentity (forcing CAND's own opening
  * reproduces its unforced run on world 0's first 1,000 paths).
+ * The amendment (12 Oct): S224 at 120 points with its minimum end pot removed (floor 0), S364 at 60 points with the reader's
+ * support line at 0.25 (L25), and the probe: on the PROBED jobs, every read the year-0 score at P makes, corner by corner
+ * (weight, the corner's chance p, its survival S = p c + R, c and R, by status: supported, clipped, below the line),
+ * summed by world.
  * NEGRIDC_PLANT=arm runs the S364 ORDER job without its reference (armTook must refuse); NEGRIDC_PLANT=pair takes D one
  * tier step off on that job (pairTook must refuse); NEGRIDC_PLANT=force forces another opening as CAND's own there
  * (forceIdentity must refuse).
+ * NEGRIDC_PLANT=floor runs S224's floor-free job with its floor (armTook must refuse: the floor did not take);
+ * NEGRIDC_PLANT=line runs S364's line job at the default line (armTook must refuse).
  *   node research/solver/audit-negridc.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  * scale divides every job's wealth points (the preflight's small grids); the 16,000-path runs are four times the paths.
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { runPolicy, chooseAction, scoreMoves } from '../../src/solver/solve.js';
-import { LOR_CLAMPS } from '../../src/solver/grid.js';
+import { LOR_CLAMPS, READER_PROBE } from '../../src/solver/grid.js';
 import { solveCandidate, CANDIDATE_OPTS } from './candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { SEED as SEED_7U } from './panel-7u.mjs';
@@ -34,14 +40,21 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
 
-// [household, arm, wealth points, shares, return nodes, P's paths a world as a multiple of the base]; the longest first
-export const JOBS = [['S380', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4], ['S364', 'BASE', 60, 12, 5, 1], ['S224', 'BASE', 60, 12, 5, 1],
+// [household, arm, wealth points, shares, return nodes, P's paths a world as a multiple of the base, changes]; the longest
+// first; the changes (the maintainer's amendment of 12 Oct on an external review): floor 0 removes the minimum end pot
+// (minPotYears 0, the product's own way to none), line sets the reader's support line (readerSupportLine)
+export const JOBS = [['S380', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4, { floor: 0 }], ['S364', 'BASE', 60, 12, 5, 1], ['S224', 'BASE', 60, 12, 5, 1],
   ['S380', 'LOR', 120, 6, 5, 1], ['bridge 4', 'BASE', 120, 6, 5, 1], ['S364', 'BASE', 120, 6, 5, 1], ['S224', 'BASE', 60, 6, 15, 1],
-  ['S364', 'BASE', 60, 6, 5, 1], ['S364', 'ORDER', 60, 6, 5, 1]];
+  ['S364', 'BASE', 60, 6, 5, 1], ['S364', 'BASE', 60, 6, 5, 1, { line: 0.25 }], ['S364', 'ORDER', 60, 6, 5, 1]];
 export const ARMS = Object.freeze({ BASE: {}, LOR: { readerBlend: 'logodds' }, ORDER: { readerRef: 'order' } });
 // the forced pair per household: S380's, bridge 4's and S224's as NE-GRID B1's; S364's NE-ROOT's SS and SC (results/diagneroot)
 export const PAIRS = Object.freeze({ S380: [12, 14], 'bridge 4': [57, 59], S224: [0, 2], S364: [12, 14] });
-export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
+export const jobLabel = ([, arm, pts, sh, qn, , ch = {}]) => `${arm}/P${pts}S${sh}Q${qn}${ch.floor === 0 ? 'F0' : ''}${ch.line ? `L${Math.round(ch.line * 100)}` : ''}`;
+// the jobs whose year-1 reads at P are logged corner by corner (the probe)
+export const PROBED = new Set(['S364 BASE/P60S6Q5', 'S364 BASE/P60S6Q5L25', 'S380 BASE/P120S6Q5']);
+// the minimum end pot the solve sets (solvePlan, solve.js: the plan's own, else one year's target spend), read from the
+// model's context by M.prepare on 12 Oct; a run whose context differs is refused
+export const FLOORS = Object.freeze({ S380: 52500, 'bridge 4': 29000, S224: 430000, S364: 205000 });
 if (process.argv[2] === '--units') { console.log(JOBS.length); process.exit(0); }
 const STAMP = (() => {
   const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
@@ -56,7 +69,7 @@ if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-negridc: bad part $
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7002;
 if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-negridc: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
 const PLANT = process.env.NEGRIDC_PLANT || '';
-if (PLANT && !['arm', 'pair', 'force'].includes(PLANT)) { console.error(`audit-negridc: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT && !['arm', 'pair', 'force', 'floor', 'line'].includes(PLANT)) { console.error(`audit-negridc: unknown plant ${PLANT}`); process.exit(2); }
 if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, FI = Math.min(NPW, 1000);
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-negridc: the candidate does not carry e3pcls'); process.exit(2); }
@@ -91,7 +104,7 @@ const H0 = () => ({ pen: 0, isa: 0, gia: 0 });
 console.log(`NE-GRID C: the candidate's own unit, ${NPW} paths a world (P four times that where marked), wealth points divided by ${SCALE} (seed ${SEED}); ${JOBS.length} jobs; part ${part}`);
 JOBS.forEach((job, ji) => {
   if (ji % pn !== pk) return;
-  const [id, arm, pts0, shares, quad, pMult] = job;
+  const [id, arm, pts0, shares, quad, pMult, ch = {}] = job;
   const h = caseOf(id);
   if (!h) { console.error(`audit-negridc: no case ${id}`); process.exit(2); }
   const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job), planted = id === 'S364' && arm === 'ORDER';
@@ -99,16 +112,17 @@ JOBS.forEach((job, ji) => {
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
   LOR_CLAMPS.n = 0; LOR_CLAMPS.lo = 0; LOR_CLAMPS.hi = 0;
-  const extra = { ...(PLANT === 'arm' && planted ? {} : ARMS[arm]), ...(shares !== 6 ? { shares } : {}), ...(quad !== 5 ? { quadNodes: quad } : {}) };
+  const extra = { ...(PLANT === 'arm' && planted ? {} : ARMS[arm]), ...(shares !== 6 ? { shares } : {}), ...(quad !== 5 ? { quadNodes: quad } : {}), ...(ch.line && PLANT !== 'line' ? { readerSupportLine: ch.line } : {}), ...(ch.floor === 0 && PLANT !== 'floor' ? { minPotYears: 0 } : {}) };
   const cand = solveCandidate(E, M, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W, ...extra });
   const cl = { ...LOR_CLAMPS }, mt = cand.meta;
   const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerSplit;
-  const took = (arm === 'LOR' ? mt.readerBlend === 'logodds' : !mt.readerBlend) && (arm === 'ORDER' ? mt.readerRef === 'order' : mt.readerRef !== 'order');
+  const floor = ch.floor === 0 ? 0 : FLOORS[id];
+  const took = (arm === 'LOR' ? mt.readerBlend === 'logodds' : !mt.readerBlend) && (arm === 'ORDER' ? mt.readerRef === 'order' : mt.readerRef !== 'order') && cand.m.ctx.solvencyFloor === floor && mt.readerSupportLine === (ch.line || 0.5);
   const s0v = M.initialState(cand.m);
   const table = 100 * cand.worlds.reduce((t, wd, k) => t + cand.mix.weights[k] * wd.value(s0v, 0).survival, 0);
   const rd = mt.reader || {};
   console.log(`${''.padEnd(16)} solve CAND ${L}: table ${table.toFixed(4)} secs ${Math.round((Date.now() - t0) / 1000)}`);
-  console.log(`${''.padEnd(16)} ran CAND ${L}: bridgeRead ${mt.bridgeRead} bridgeStep ${mt.bridgeStep} readerSplit ${mt.readerSplit} readerBlend ${mt.readerBlend} readerRef ${mt.readerRef || null} readerChance ${mt.readerChance} tierState ${mt.tierState} jointWorlds ${!!mt.jointWorlds} e3pcls ${!!mt.e3pcls} switchMargin ${cand.switchMargin} switchCharge ${cand.switchCharge} bequestWeight ${mt.bequestWeight} mix ${cand.mix.nodes.length} pts ${PTS} grid ${String(mt.points).replace(/ /g, '')}`);
+  console.log(`${''.padEnd(16)} ran CAND ${L}: bridgeRead ${mt.bridgeRead} bridgeStep ${mt.bridgeStep} readerSplit ${mt.readerSplit} readerBlend ${mt.readerBlend} readerRef ${mt.readerRef || null} readerChance ${mt.readerChance} tierState ${mt.tierState} jointWorlds ${!!mt.jointWorlds} e3pcls ${!!mt.e3pcls} switchMargin ${cand.switchMargin} switchCharge ${cand.switchCharge} bequestWeight ${mt.bequestWeight} mix ${cand.mix.nodes.length} pts ${PTS} grid ${String(mt.points).replace(/ /g, '')} floor ${cand.m.ctx.solvencyFloor} line ${mt.readerSupportLine}`);
   console.log(`${''.padEnd(16)} reader ${L}: tables ${rd.tables} unsupported ${rd.unsupported} copied ${rd.copied} copiedTop ${rd.copiedTop} nodes ${rd.nodes}; clamps n ${cl.n} lo ${cl.lo} hi ${cl.hi}`);
   console.log(`${''.padEnd(16)} checks ${L}: armTook ${took && common ? 1 : 0}/1`);
   if (!(took && common)) { console.error(`audit-negridc: ${id} ${L}: the job's settings did not take`); process.exit(3); }
@@ -128,6 +142,19 @@ JOBS.forEach((job, ji) => {
   for (let k = 0; k < K; k++) {
     const tab = cand.mix.tables[k];
     console.log(`${''.padEnd(16)} tables ${L} ${k} z ${cand.mix.nodes[k].toFixed(6)} weight ${cand.mix.weights[k].toFixed(6)}: P ${(100 * svOf(tab, P)).toFixed(6)} D ${(100 * svOf(tab, D)).toFixed(6)} OWN ${(100 * svOf(tab, ownC)).toFixed(6)}`);
+  }
+  if (PROBED.has(`${id} ${L}`)) {
+    const line = ch.line || 0.5;
+    for (let k = 0; k < K; k++) {
+      const acc = { reads: 0, W: 0, pr: 0, plain: 0, del: 0, res: 0, sup: [0, 0, 0, 0, 0], clip: [0, 0, 0, 0, 0], copy: [0, 0, 0, 0, 0] };   // [weight, w p, w S, w c, w R]
+      READER_PROBE.fn = (Wt, IDX, NC, RD, pr) => {
+        acc.reads++; acc.pr += pr;
+        for (let q = 0; q < NC; q++) { const w = Wt[q]; if (w === 0) continue; const i = IDX[q], pk = RD.p[i], ck = RD.c[i], rk = RD.R[i], sk = pk * ck + rk; const b = pk >= line ? (sk > pk ? acc.clip : acc.sup) : acc.copy; b[0] += w; b[1] += w * pk; b[2] += w * sk; b[3] += w * ck; b[4] += w * rk; acc.W += w; acc.plain += w * sk; acc.del += w * ck * pk; acc.res += w * rk; }
+      };
+      try { svOf(cand.mix.tables[k], P); } finally { READER_PROBE.fn = null; }
+      const f = (b, nm) => `${nm} w ${(b[0] / (acc.W || 1)).toFixed(6)} p ${(b[0] ? b[1] / b[0] : 0).toFixed(6)} S ${(b[0] ? 100 * b[2] / b[0] : 0).toFixed(6)} c ${(b[0] ? b[3] / b[0] : 0).toFixed(6)} R ${(b[0] ? 100 * b[4] / b[0] : 0).toFixed(6)}`;
+      console.log(`${''.padEnd(16)} probe ${L} ${k} P: reads ${acc.reads} pr ${(acc.reads ? acc.pr / acc.reads : 0).toExponential(4)} plain ${(100 * acc.plain / (acc.W || 1)).toFixed(6)} deletion ${(100 * acc.del / (acc.W || 1)).toFixed(6)} residual ${(100 * acc.res / (acc.W || 1)).toFixed(6)} | ${f(acc.sup, 'sup')} | ${f(acc.clip, 'clip')} | ${f(acc.copy, 'copy')}`);
+    }
   }
   const f0 = Date.now(), NP = NPW * pMult, wpaths = E.pathsForSeed(SEED, NP, T), bits = {};
   const opens = [['P', P, NP], ['D', D, NPW], ...(ownC !== P && ownC !== D ? [['OWN', ownC, NPW]] : [])];

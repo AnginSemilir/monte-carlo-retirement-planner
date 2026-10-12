@@ -94,7 +94,7 @@ export function buildReaderTable(g, S, chance, support = null, yr = -1) {
     const i = g.index(ip, ii, it, ig, ic);
     toVec(g, ip, ii, it, ig, ic, v, yr);
     p[i] = support ? support(v) : chance(v[1] + v[2]);   // `support` (RTAX v2, solve.js): the node's support decided by the flow inside the edge band
-    if (p[i] >= 0.5) { sup[i] = 1; c[i] = Math.min(1, Math.max(0, S[i] / p[i])); }
+    if (p[i] >= ((g.reader && g.reader.line) || 0.5)) { sup[i] = 1; c[i] = Math.min(1, Math.max(0, S[i] / p[i])); }   // the support line, 0.5 unless `readerSupportLine` (research only, NE-GRID C's copy-switch arm) sets it
   }
   const rowHas = new Uint8Array(np * nt * NG * NCL);
   // THE METER (the process review, deep-review-log.md 4 Oct 13:52 UK: `unsupported` below counts only rows with no support

@@ -106,3 +106,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-12 05:29 UTC | reduce-negrid-c.mjs da94edf061c8 | 72 of 72 caught | escaped: none
 2026-10-12 07:15 UTC | reduce-negrid-c.mjs fdbd095730f0 | 76 of 79 caught | escaped: NOT APPLIED (0 matches): 37: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.; NOT APPLIED (0 matches): 38: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.; NOT CAUGHT: 70: const lucky = [0, 1].some(
 2026-10-12 07:15 UTC | reduce-negrid-c.mjs 7124fdb040cd | 79 of 79 caught | escaped: none
+2026-10-12 08:35 UTC | reduce-negrid-c.mjs caac2326f3b9 | 104 of 106 caught | escaped: NOT CAUGHT: 11: Object.entries({ ...COMMON, readerBlend: BLEND[j.arm] }); NOT CAUGHT: 105: const short = ITEMS.filter(i => REACHED[i].size !== 3);
+2026-10-12 08:36 UTC | reduce-negrid-c.mjs f08e00b8dcb8 | 105 of 105 caught | escaped: none
+2026-10-12 08:56 UTC | reduce-negrid-c.mjs f08e00b8dcb8 | 105 of 105 caught | escaped: none

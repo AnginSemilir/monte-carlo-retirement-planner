@@ -76,5 +76,31 @@ caught: 75: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
 caught: 76: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
 caught: 77: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
 caught: 78: 'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outc
-caught: 79: export const q = x => Math.round(x * 1e9) / 1e9;
-79 of 79 mutations caught
+caught: 79: if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOO
+caught: 80: if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOO
+caught: 81: if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(
+caught: 82: if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(
+caught: 83: if (PROBED.has(k)) { const pb = j.probe || [];
+caught: 84: if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))
+caught: 85: if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))
+caught: 86: if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)
+caught: 87: if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)
+caught: 88: if (Math.abs(x.plain - x.del - x.res) > 1e-4)
+caught: 89: const j9 = jt('S224', 'BASE/P120S6Q5F0')
+caught: 90: u9 = [0, 1].map(
+caught: 91: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'
+caught: 92: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'
+caught: 93: u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'
+caught: 94: u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'
+caught: 95: out['10'] = fall('BASE/P60S6Q5L25');
+caught: 96: out['10'] = fall('BASE/P60S6Q5L25');
+caught: 97: 'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome ==
+caught: 98: out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',
+caught: 99: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou
+caught: 100: 'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].ou
+caught: 101: L.push(`9. S224 without
+caught: 102: L.push(`10. the support line
+caught: 103: ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+caught: 104: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
+caught: 105: export const q = x => Math.round(x * 1e9) / 1e9;
+105 of 105 mutations caught

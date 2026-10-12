@@ -1,6 +1,6 @@
 /*
  * NE-GRID C'S DERIVATION (predictions/diag-negrid-c.md): what NE-GRID B1's records say about the wealth axis's move from 30
- * to 60 points and S224's 60-point under-read, the power of items 1-8 by simulation through reduce-negrid-c.mjs's own
+ * to 60 points and S224's 60-point under-read, the power of items 1-10 by simulation through reduce-negrid-c.mjs's own
  * items(), the credences from the deep review's cause credences (deep-review-log.md 11 Oct 23:09 UK, read from the
  * receipt, not typed) and the judged stories below, the decision table's rows, the points and 80% intervals, and the budget
  * from the 120-point measurement (results-negrid-c-measure.txt) and B1's and NE-ROOT's logs. Reads B1's files behind B1's
@@ -43,6 +43,14 @@ export const JUDGED = {
   s364Counted: 0.85, s364Over: 1.5,
   // item 8: bridge 4 at 120 points under BASE: kept, off by half a point in world 0, broken (2 points)
   b4: { kept: 0.9, small: 0.08, broken: 0.02 },
+  // item 9 (the maintainer's amendment of 12 Oct on an external review): the chance S224's minimum end pot (430,000, the
+  // survival cliff at the plan's end, solve.js:1595) carries its 120-point under-read, by cause: the cliff is a step the
+  // wealth axis resolves slowly (RG-WSLOW's mechanism) or a table error the over-read hid (RG-UNMASK's); RG-PATHS leaves
+  // no under-read to carry. Carried, the floor-free table reads its runs (0 points off); not, the floor-free job keeps the
+  // floored one's under-read (item 2's story)
+  floorCarries: { 'RG-UNMASK': 0.4, 'RG-WSLOW': 0.4, 'RG-PATHS': 0, 'RG-OTHER': 0.3 },
+  // item 10 (the same amendment): the support line at 0.25 carries S364's 60-point over-read by S364-COPY's story
+  // (carryWhen) and by carryElse under the other S364 causes, as items 5-7; no new judged figure
 };
 
 // 1. THE RECORDS: B1's 30- and 60-point tables and S224's 60-point runs, behind B1's gate; NE-ROOT's S364 timings behind its
@@ -69,7 +77,7 @@ console.log(`  S224 BASE at P, 60 points, table less its 4,000-path runs: world 
 // 2. THE POWER through items(): a synthetic C per draw from the stories, B1's records as they are
 const tab3 = (P, D) => [0, 1, 2].map(k => ({ k, weight: WEIGHTS[k], P: P[k], D: D[k], OWN: P[k] }));
 const clamp = x => Math.min(100, Math.max(0, x));
-function setOf({ r = 0.25, u120 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counted: true, f5: 0.1, f6: 0.1, f7: 0.1 }, b4 = 'kept' } = {}) {
+function setOf({ r = 0.25, u120 = 0, u9 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counted: true, f5: 0.1, f6: 0.1, f7: 0.1, f10: 0.1 }, b4 = 'kept' } = {}) {
   const J = {};
   for (const jb of JOBS) { const [id, , , , , mult] = jb; J[key(id, jobLabel(jb))] = { id, label: jobLabel(jb), own: { ai: PAIRS[id][0] }, pair: { P: PAIRS[id][0], D: PAIRS[id][1] }, tables: tab3([50, 50, 50], [50, 50, 50]), sims: Object.fromEntries([0, 1, 2].flatMap(k => [[`P${k}`, { ok: binom(NPW * mult, 0.5), n: NPW * mult }], [`D${k}`, { ok: binom(NPW, 0.5), n: NPW }]])) }; }
   // item 1: the 120-point tables move on from 60 by r (spread +-0.1 a cell) of the 30-to-60 move
@@ -85,7 +93,9 @@ function setOf({ r = 0.25, u120 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counte
   // items 3 and 4: the 60-point jobs raise S224's table at P by a share of B1's under-read
   for (const [label, c] of [['BASE/P60S6Q15', carry3], ['BASE/P60S12Q5', carry4]]) { const j = J[key('S224', label)]; for (let k = 0; k < 2; k++) j.tables[k].P = clamp(B1.S224.BASE.fine[k].P - c * u60[k]); }
   // items 5-7: S364's 60-point baseline over its runs (counted or not), each arm lowering it by its share
-  { const base = J[key('S364', 'BASE/P60S6Q5')], over = s364.counted ? JUDGED.s364Over : 0.3; for (let k = 0; k < 2; k++) { const q = base.sims[`P${k}`].ok / base.sims[`P${k}`].n; base.tables[k].P = clamp(100 * q + over); for (const [label, f] of [['BASE/P60S12Q5', s364.f5], ['BASE/P120S6Q5', s364.f6], ['ORDER/P60S6Q5', s364.f7]]) J[key('S364', label)].tables[k].P = clamp(base.tables[k].P - f * over); } }
+  { const base = J[key('S364', 'BASE/P60S6Q5')], over = s364.counted ? JUDGED.s364Over : 0.3; for (let k = 0; k < 2; k++) { const q = base.sims[`P${k}`].ok / base.sims[`P${k}`].n; base.tables[k].P = clamp(100 * q + over); for (const [label, f] of [['BASE/P60S12Q5', s364.f5], ['BASE/P120S6Q5', s364.f6], ['ORDER/P60S6Q5', s364.f7], ['BASE/P60S6Q5L25', s364.f10]]) J[key('S364', label)].tables[k].P = clamp(base.tables[k].P - f * over); } }
+  // item 9: S224's floor-free job at 120 points, its table the floored one's (item 1's story), its runs' truth u9 under it
+  { const j0 = J[key('S224', 'BASE/P120S6Q5')], j = J[key('S224', 'BASE/P120S6Q5F0')]; j.tables = j0.tables.map(x => ({ ...x })); for (let k = 0; k < 2; k++) { const q = Math.min(1, Math.max(0, (j.tables[k].P - u9) / 100)); j.sims[`P${k}`] = { ok: binom(4 * NPW, q), n: 4 * NPW }; } }
   // item 8: bridge 4 at 120 points, runs at 98.7 in world 0 (B1's), its table kept, half a point off, or 2 off
   { const j = J[key('bridge 4', 'BASE/P120S6Q5')], q0 = 0.987, ok = binom(NPW, q0); j.sims.P0 = { ok, n: NPW }; j.tables[0].P = clamp(100 * q0 + { kept: 0, small: 0.5, broken: 2 }[b4]); for (const k of [1, 2]) { j.sims[`P${k}`] = { ok: binom(NPW, 0.9999), n: NPW }; j.tables[k].P = 99.99; } }
   for (const j of Object.values(J)) for (const x of j.tables) for (const o of ['P', 'D', 'OWN']) if (!(x[o] >= 0 && x[o] <= 100)) throw new Error(`a story's table left 0 to 100: ${j.id} ${j.label} ${o}`);
@@ -100,6 +110,9 @@ for (const c of [0.1, 0.3, 0.35, 0.5, 0.6, 0.8]) tally(`carry|${c}`, () => it(se
 for (const f of [0.1, 0.35, 0.6, 0.8]) tally(`s364|${f}`, () => it(setOf({ s364: { counted: true, f5: f, f6: f, f7: f } }))['5'].outcome);
 tally('s364|none', () => it(setOf({ s364: { counted: false, f5: 0.8, f6: 0.8, f7: 0.8 } }))['5'].outcome);
 for (const s of ['kept', 'small', 'broken']) tally(`b4|${s}`, () => it(setOf({ b4: s }))[8].outcome);
+for (const u of [0, -1, -2, -3]) tally(`floor|${u}`, () => it(setOf({ u9: u }))['9'].outcome);
+for (const f of [0.1, 0.35, 0.6, 0.8]) tally(`copy|${f}`, () => it(setOf({ s364: { counted: true, f5: 0.1, f6: 0.1, f7: 0.1, f10: f } }))['10'].outcome);
+tally('copy|none', () => it(setOf({ s364: { counted: false, f5: 0.8, f6: 0.8, f7: 0.8, f10: 0.8 } }))['10'].outcome);
 const row = k => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(x => `${x} ${f4(P[k][x])}`).join(' ');
 console.log(`\n2. THE POWER (${DRAWS} draws a cell through reduce-negrid-c.mjs's items(); B1's records as they are)`);
 for (const r of [0.25, 0.35, 0.5, 0.8]) console.log(`  item 1, each cell's ratio about ${r} (+-0.1): ${row(`conv|${r}`)}`);
@@ -108,6 +121,9 @@ for (const c of [0.1, 0.3, 0.35, 0.5, 0.6, 0.8]) console.log(`  items 3 and 4, a
 for (const f of [0.1, 0.35, 0.6, 0.8]) console.log(`  items 5-7, an arm carrying ${f} of S364's 60-point over-read (counted): ${row(`s364|${f}`)}`);
 console.log(`  items 5-7, S364's 60-point over-read under half a point (not counted): ${row('s364|none')}`);
 for (const s of ['kept', 'small', 'broken']) console.log(`  item 8, bridge 4 ${s}: ${row(`b4|${s}`)}`);
+for (const u of [0, -1, -2, -3]) console.log(`  item 9, S224's floor-free 120-point table ${u} points off its 16,000-path runs: ${row(`floor|${u}`)}`);
+for (const f of [0.1, 0.35, 0.6, 0.8]) console.log(`  item 10, the line at 0.25 carrying ${f} of S364's 60-point over-read (counted): ${row(`copy|${f}`)}`);
+console.log(`  item 10, S364's 60-point over-read under half a point (not counted): ${row('copy|none')}`);
 
 // 3. THE CREDENCES: the receipt's cause credences through the judged stories and section 2's power
 const rec = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 11 Oct 23:09 UK \|/.test(l));
@@ -118,30 +134,33 @@ if (Object.keys(rg).length !== 4 || Object.keys(s3).length !== 5 || Math.abs(sum
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return k; } return Object.keys(dist).pop(); };
 const outOf = p => { const u = rnd(); return u < p.HELD ? 'HELD' : u < p.HELD + p.INCONCLUSIVE ? 'INCONCLUSIVE' : 'FALSIFIED'; };
 const near = (x, keys) => keys.reduce((b, k) => (Math.abs(k - x) < Math.abs(b - x) ? k : b), keys[0]);
-const C = Object.fromEntries(['1', '2', '3', '4', '5', '6', '7', '8'].map(i => [i, cnt()])), rows = { A: 0, B: 0, C: 0, D: 0, E: 0 }, Mn = 40000, R1 = [], R2 = [];
+const C = Object.fromEntries(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(i => [i, cnt()])), rows = { A: 0, B: 0, C: 0, D1: 0, D2: 0, E: 0 }, Mn = 40000, R1 = [], R2 = [], R9 = [];
 for (let d = 0; d < Mn; d++) {
   const c = pick(rg), s = pick(s3);
   const r = Number(pick(JUDGED.conv[c === 'RG-WSLOW' ? 'RG-WSLOW' : 'other'])), u = Number(pick(JUDGED.under120[c]));
   const um = c === 'RG-UNMASK' ? pick(JUDGED.unmasked) : 'none';
   const c3 = Number(pick(um === 'quad' ? JUDGED.carryWhen : JUDGED.carryElse)), c4 = Number(pick(um === 'shares' ? JUDGED.carryWhen : JUDGED.carryElse));
   const counted = rnd() < JUDGED.s364Counted;
-  const fs = ['S364-SHARE', 'S364-W', 'S364-REF'].map(x => Number(pick(s === x ? JUDGED.carryWhen : JUDGED.carryElse)));
+  const fs = ['S364-SHARE', 'S364-W', 'S364-REF', 'S364-COPY'].map(x => Number(pick(s === x ? JUDGED.carryWhen : JUDGED.carryElse)));
+  const u9 = rnd() < JUDGED.floorCarries[c] ? 0 : u;
   const o = {
     1: outOf(P[`conv|${near(r, [0.25, 0.35, 0.5, 0.8])}`]), 2: outOf(P[`under|${u}`]), 3: outOf(P[`carry|${near(c3, [0.1, 0.3, 0.35, 0.5, 0.6, 0.8])}`]), 4: outOf(P[`carry|${near(c4, [0.1, 0.3, 0.35, 0.5, 0.6, 0.8])}`]),
     5: outOf(counted ? P[`s364|${near(fs[0], [0.1, 0.35, 0.6, 0.8])}`] : P['s364|none']), 6: outOf(counted ? P[`s364|${near(fs[1], [0.1, 0.35, 0.6, 0.8])}`] : P['s364|none']), 7: outOf(counted ? P[`s364|${near(fs[2], [0.1, 0.35, 0.6, 0.8])}`] : P['s364|none']),
     8: outOf(P[`b4|${pick(JUDGED.b4)}`]),
+    9: outOf(P[`floor|${u9}`]), 10: outOf(counted ? P[`copy|${near(fs[3], [0.1, 0.35, 0.6, 0.8])}`] : P['copy|none']),
   };
   for (const i of Object.keys(C)) C[i][o[i]]++;
-  R1.push(Math.max(0, r + 0.05 + (rnd() - 0.5) * 0.1)); R2.push(u + (rnd() - 0.5) * 0.6);
-  if (o[8] === 'FALSIFIED') rows.A++; else if (o[1] === 'FALSIFIED') rows.B++; else if (o[1] === 'HELD' && o[2] !== 'HELD') rows.C++; else if (o[1] === 'HELD' && o[2] === 'HELD') rows.D++; else rows.E++;
+  R1.push(Math.max(0, r + 0.05 + (rnd() - 0.5) * 0.1)); R2.push(u + (rnd() - 0.5) * 0.6); R9.push(u9 + (rnd() - 0.5) * 0.6);
+  if (o[8] === 'FALSIFIED') rows.A++; else if (o[1] === 'FALSIFIED') rows.B++; else if (o[1] === 'HELD' && o[2] !== 'HELD') rows.C++; else if (o[1] === 'HELD' && o[2] === 'HELD' && o[9] === 'HELD') rows.D1++; else if (o[1] === 'HELD' && o[2] === 'HELD') rows.D2++; else rows.E++;
 }
 const pct = (xs, q) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(q * s.length))]; };
 const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length;
 console.log(`\n3. THE CREDENCES (the receipt of 11 Oct 23:09 UK: ${Object.entries(cc).map(([k, v]) => `${k}=${v}`).join('; ')}; the judged stories in this script's JUDGED; ${Mn} draws)`);
-for (const [i, c] of Object.entries(C)) console.log(`CREDENCE item ${i}: point ${i === '1' ? f4(mean(R1)) : i === '2' ? f4(mean(R2)) : '-'} HELD ${f2(c.HELD / Mn)} INCONCLUSIVE ${f2(c.INCONCLUSIVE / Mn)} FALSIFIED ${f2(c.FALSIFIED / Mn)}`);
+for (const [i, c] of Object.entries(C)) console.log(`CREDENCE item ${i}: point ${i === '1' ? f4(mean(R1)) : i === '2' ? f4(mean(R2)) : i === '9' ? f4(mean(R9)) : '-'} HELD ${f2(c.HELD / Mn)} INCONCLUSIVE ${f2(c.INCONCLUSIVE / Mn)} FALSIFIED ${f2(c.FALSIFIED / Mn)}`);
 console.log(`  POINT item 1: ${f4(mean(R1))} (80% interval ${f4(pct(R1, 0.1))} to ${f4(pct(R1, 0.9))}; the largest counted cell's |move 60 to 120| / |move 30 to 60|)`);
 console.log(`  POINT item 2: ${f4(mean(R2))} (80% interval ${f4(pct(R2, 0.1))} to ${f4(pct(R2, 0.9))}; S224's 120-point table less its 16,000-path runs, the lower world)`);
-console.log(`  DECISION ROWS: item 8 FALSIFIED ${f2(rows.A / Mn)}; item 1 FALSIFIED ${f2(rows.B / Mn)}; item 1 HELD, item 2 not HELD ${f2(rows.C / Mn)}; items 1 and 2 HELD ${f2(rows.D / Mn)}; else ${f2(rows.E / Mn)}`);
+console.log(`  POINT item 9: ${f4(mean(R9))} (80% interval ${f4(pct(R9, 0.1))} to ${f4(pct(R9, 0.9))}; S224's floor-free 120-point table less its 16,000-path runs, the lower world)`);
+console.log(`  DECISION ROWS: item 8 FALSIFIED ${f2(rows.A / Mn)}; item 1 FALSIFIED ${f2(rows.B / Mn)}; item 1 HELD, item 2 not HELD ${f2(rows.C / Mn)}; items 1, 2 and 9 HELD ${f2(rows.D1 / Mn)}; items 1 and 2 HELD, item 9 not HELD ${f2(rows.D2 / Mn)}; else ${f2(rows.E / Mn)}`);
 
 // 4. THE BUDGET: the 120-point measurement for S380's solve, B1's logs for the 60-point solves and paths, NE-ROOT's for S364;
 // a 120-point solve taken as the measured S380 ratio of 120 to 60 points times each household's 60-point solve; 12 shares
@@ -156,8 +175,9 @@ const job = (name, solve, paths, fwd) => ({ name, solve, run: paths * fwd, total
 const base = mult => 3 * NPW * mult + 3 * NPW + 2 * 1000;   // P at mult times, D, forceIdentity's two runs on 1,000
 const B = [job('S380 BASE 120', s120, base(4), T.S380.fwd), job('S224 BASE 120', ratio * T.S224.solve, base(4), T.S224.fwd), job('S364 BASE 60 12 shares', 4 * T.S364.solve, base(1), T.S364.fwd), job('S224 BASE 60 12 shares', 4 * T.S224.solve, base(1), T.S224.fwd),
   job('S380 LOR 120', ratio * T.S380L.solve, base(1), T.S380L.fwd), job('bridge 4 BASE 120', ratio * T.b4.solve, base(1), T.b4.fwd), job('S364 BASE 120', ratio * T.S364.solve, base(1), T.S364.fwd), job('S224 BASE 60 15 nodes', 3 * T.S224.solve, base(1), T.S224.fwd),
-  job('S364 BASE 60', T.S364.solve, base(1), T.S364.fwd), job('S364 ORDER 60', T.S364.solve, base(1), T.S364.fwd)];
+  job('S364 BASE 60', T.S364.solve, base(1), T.S364.fwd), job('S364 ORDER 60', T.S364.solve, base(1), T.S364.fwd),
+  job('S224 BASE 120 floor 0', ratio * T.S224.solve, base(4), T.S224.fwd), job('S364 BASE 60 line 0.25', T.S364.solve, base(1), T.S364.fwd)];
 console.log(`\n4. THE BUDGET (results-negrid-c-measure.txt: S380's 120-point solve ${s120} s, peak memory ${peak} kB; B1's logs at 60 points; NE-ROOT's for S364, its 30-point solve doubled for 60)`);
 for (const b of B) console.log(`  ${b.name}: solve about ${Math.round(b.solve)} s, runs about ${Math.round(b.run)} s: about ${f2(b.total / 3600)} h`);
 const total = B.reduce((s, b) => s + b.total, 0), longest = Math.max(...B.map(b => b.total));
-console.log(`  total about ${f2(total / 3600)} core-hours; the ten jobs four at a time, about ${f2(Math.max(longest, total / 4) / 3600)} h wall at the least; the 120-point solve ${f2(ratio)} times the 60-point`);
+console.log(`  total about ${f2(total / 3600)} core-hours; the twelve jobs four at a time, about ${f2(Math.max(longest, total / 4) / 3600)} h wall at the least; the 120-point solve ${f2(ratio)} times the 60-point`);

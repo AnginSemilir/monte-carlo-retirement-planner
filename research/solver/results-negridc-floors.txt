@@ -1,0 +1,5 @@
+the minimum end pot by solvePlan's rule (PRODUCT_DEFAULTS.minPotYears 1), read from the model's context
+  S380      (S380): the plan's own 0, target spend 52500: solved with 52500 (1.00 years of target spend); with minPotYears 0: 0
+  S224      (S224): the plan's own 430000, target spend 70000: solved with 430000 (6.14 years of target spend); with minPotYears 0: 0
+  S364      (S364): the plan's own 205000, target spend 18500: solved with 205000 (11.08 years of target spend); with minPotYears 0: 0
+  bridge 4  (S126): the plan's own 0, target spend 29000: solved with 29000 (1.00 years of target spend); with minPotYears 0: 0

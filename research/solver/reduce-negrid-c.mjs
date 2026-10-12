@@ -50,14 +50,18 @@ export const SEED = '7002', NPW = 4000, ALPHA = 0.05;
 export const GMIN = 0.5, SECOND = 0.35, FIRST = 0.5, UNDER = 0.5, CARRY = 0.5, LITTLE = 0.2, CTRL = 0.3;
 export const WEIGHTS = [1 / 6, 2 / 3, 1 / 6];
 export const PAIRS = Object.freeze({ S380: [12, 14], 'bridge 4': [57, 59], S224: [0, 2], S364: [12, 14] });
-export const JOBS = [['S380', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4], ['S364', 'BASE', 60, 12, 5, 1], ['S224', 'BASE', 60, 12, 5, 1],
+export const JOBS = [['S380', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4], ['S224', 'BASE', 120, 6, 5, 4, { floor: 0 }], ['S364', 'BASE', 60, 12, 5, 1], ['S224', 'BASE', 60, 12, 5, 1],
   ['S380', 'LOR', 120, 6, 5, 1], ['bridge 4', 'BASE', 120, 6, 5, 1], ['S364', 'BASE', 120, 6, 5, 1], ['S224', 'BASE', 60, 6, 15, 1],
-  ['S364', 'BASE', 60, 6, 5, 1], ['S364', 'ORDER', 60, 6, 5, 1]];
-export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
+  ['S364', 'BASE', 60, 6, 5, 1], ['S364', 'BASE', 60, 6, 5, 1, { line: 0.25 }], ['S364', 'ORDER', 60, 6, 5, 1]];
+export const jobLabel = ([, arm, pts, sh, qn, , ch = {}]) => `${arm}/P${pts}S${sh}Q${qn}${ch.floor === 0 ? 'F0' : ''}${ch.line ? `L${Math.round(ch.line * 100)}` : ''}`;
+export const PROBED = new Set(['S364 BASE/P60S6Q5', 'S364 BASE/P60S6Q5L25', 'S380 BASE/P120S6Q5']);
+// each household's minimum end pot, the solver's survival cliff at the end of the plan: the one solvePlan sets (the plan's
+// own, else one year's target spend), read from the model's context by M.prepare on 12 Oct (audit-negridc.mjs's FLOORS)
+export const FLOORS = Object.freeze({ S380: 52500, 'bridge 4': 29000, S224: 430000, S364: 205000 });
 export const key = (id, label) => `${id} ${label}`;
 export const q = x => Math.round(x * 1e9) / 1e9;
 export const sha16 = buf => createHash('sha256').update(buf).digest('hex').slice(0, 16);
-const CASEL = /^(bridge 4|S380|S224|S364)\s+case \| job ((BASE|LOR|ORDER)\/P(\d+)S(\d+)Q(\d+)) \| points (\d+) \| lambda (\S+)$/;
+const CASEL = /^(bridge 4|S380|S224|S364)\s+case \| job ((BASE|LOR|ORDER)\/P(\d+)S(\d+)Q(\d+)(?:F0)?(?:L\d+)?) \| points (\d+) \| lambda (\S+)$/;
 const HEAD = /^NE-GRID C: .*, (\d+) paths a world .*divided by (\d+(?:\.\d+)?) \(seed (\d+)\)/;
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${esc(k)} (\\S+)`).exec(s); return m ? m[1] : null; };
@@ -80,6 +84,7 @@ export function parse(text) {
     else if ((m = /OWN ai (\d+) level (\S+) tiers (\S+)/.exec(l)) && l.startsWith(`openings ${L}:`)) j.own = { ai: Number(m[1]), level: m[2], tiers: m[3] };
     else if ((m = new RegExp(`^tables ${esc(L)} (\\d) z (\\S+) weight (\\S+): P (\\S+) D (\\S+) OWN (\\S+)$`).exec(l))) j.tables.push({ k: Number(m[1]), weight: Number(m[3]), P: Number(m[4]), D: Number(m[5]), OWN: Number(m[6]) });
     else if ((m = new RegExp(`^sim ${esc(L)} (\\d) (P|D|OWN) ai (\\d+): (\\d+)/(\\d+) bits (\\S+)$`).exec(l))) j.sims[`${m[2]}${m[1]}`] = { ai: Number(m[3]), ok: Number(m[4]), n: Number(m[5]), bits: m[6] };
+    else if ((m = new RegExp(`^probe ${esc(L)} (\\d) P: reads (\\d+) pr (\\S+) plain (\\S+) deletion (\\S+) residual (\\S+) \\| sup w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| clip w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| copy w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+)$`).exec(l))) { const n = m.slice(2).map(Number); (j.probe = j.probe || [])[Number(m[1])] = { reads: n[0], pr: n[1], plain: n[2], del: n[3], res: n[4], sup: n.slice(5, 10), clip: n.slice(10, 15), copy: n.slice(15, 20) }; }
     else if (l.startsWith(`file ${L}:`)) j.file = l.slice(`file ${L}:`.length).trim();
     else if (l === `done ${L}`) j.done = true;
   }
@@ -109,6 +114,10 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
     if (field(ran, 'pts') !== String(pts)) bad.push(`${k}: not solved at ${pts} points`);
     if (field(ran, 'grid') !== `total${pts}x${reg[3]}x${reg[3]}`) bad.push(`${k}: its grid is ${field(ran, 'grid')}, not ${pts} x ${reg[3]} x ${reg[3]}`);
     if (field(ran, 'mix') !== '3') bad.push(`${k}: not three worlds`);
+    const ch = reg[6] || {};
+    if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOORS[j.id])) bad.push(`${k}: its minimum end pot is ${field(ran, 'floor')}, not ${ch.floor === 0 ? 0 : FLOORS[j.id]}`);
+    if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(`${k}: its support line is ${field(ran, 'line')}, not ${ch.line || 0.5}`);
+    if (PROBED.has(k)) { const pb = j.probe || []; if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0))) bad.push(`${k}: the probe logged no reads in a world`); else for (const [w, x] of pb.entries()) { if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5) bad.push(`${k}: world ${w}'s probe weights do not sum to 1`); if (Math.abs(x.plain - x.del - x.res) > 1e-4) bad.push(`${k}: world ${w}'s probe breaks plain = deletion + residual`); } }
     if (!j.pair || j.pair.P !== PAIRS[j.id][0] || j.pair.D !== PAIRS[j.id][1] || j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== j.pair.lD) bad.push(`${k}: the forced pair is not the registered one`);
     if (!j.own) bad.push(`${k}: the openings line is missing or unread`);
     if (!j.reader) bad.push(`${k}: the reader line is missing`);
@@ -156,6 +165,10 @@ export function items(J, B1, b1Runs224, extra) {
   const b4 = jt('S364', 'BASE/P60S6Q5'), over60 = [0, 1].map(k => { const s = b4.sims[`P${k}`]; return { k, o: b4.tables[k].P - 100 * s.ok / s.n }; });
   const fall = label => { const j = jt('S364', label); const c = over60.map(x => { const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted = q(x.o) >= GMIN; return { k: x.k, o: x.o, dropped, counted, frac: counted ? q(dropped / x.o) : null }; }); return { outcome: read3(c, x => x.frac >= CARRY, x => x.frac < LITTLE), cells: c }; };
   out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120S6Q5'); out['7'] = fall('ORDER/P60S6Q5');
+  out['10'] = fall('BASE/P60S6Q5L25');
+  // item 9: S224 at 120 points with its minimum end pot removed, its table at P less its 16,000-path runs, worlds 0 and 1
+  const j9 = jt('S224', 'BASE/P120S6Q5F0'), u9 = [0, 1].map(k => { const s = j9.sims[`P${k}`]; return { k, ...offOf(j9.tables[k].P, s.ok, s.n) }; });
+  out['9'] = { outcome: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD' : u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED' : 'INCONCLUSIVE', w: u9 };
   // item 8: bridge 4 at 120 points, its own opening
   const j5 = jt('bridge 4', 'BASE/P120S6Q5'), o5 = j5.own.ai === j5.pair.P ? 'P' : j5.own.ai === j5.pair.D ? 'D' : 'OWN';
   const w5 = [0, 1, 2].map(k => { const s = j5.sims[`${o5}${k}`]; return { k, ...offOf(j5.tables[k][o5], s.ok, s.n) }; });
@@ -174,6 +187,8 @@ export function items(J, B1, b1Runs224, extra) {
     'S364-SHARE': { HELD: 'held', FALSIFIED: 'not' }[out['5'].outcome] || 'open',
     'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].outcome === 'FALSIFIED' && keepsMost ? 'not' : 'open',
     'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outcome] || 'open',
+    'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome === 'HELD' ? 'held' : out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',
+    'S364-COPY': { HELD: 'held', FALSIFIED: 'not' }[out['10'].outcome] || 'open',
   };
   return out;
 }
@@ -188,11 +203,14 @@ export function report(J, B1, runs224, extra, bitsOf, b1BitsOf) {
   L.push(`2. S224's under-read stays at 120 points on 16,000 paths a world: ${it[2].outcome}`, `     ${it[2].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
   for (const [i, what] of [['3', '15 return nodes'], ['4', '12 shares']]) L.push(`${i}. ${what} carry S224's 60-point under-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: under-read ${f4(c.u)}, rise ${f4(c.rise)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
   for (const [i, what] of [['5', '12 shares'], ['6', '120 points'], ['7', 'ORDER']]) L.push(`${i}. ${what} carry S364's 60-point over-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
+  L.push(`9. S224 without its minimum end pot reads within half a point of its 16,000-path runs at 120 points: ${it['9'].outcome}`, `     ${it['9'].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
+  L.push(`10. the support line at 0.25 carries S364's 60-point over-read: ${it['10'].outcome}`, `     ${it['10'].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
   L.push(`8. bridge 4 within 0.3 points at 120 points: ${it[8].outcome}`, `     at ${it[8].o}: ${it[8].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
   L.push('', 'THE CAUSES (the registered map)');
   for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
   L.push('', 'REPORTED');
   L.push(`  S364's over-read at 30 points (NE-ROOT, results-neroot.txt) by world: ${extra.over30.map(f4).join(', ')}`);
+  for (const k of PROBED) { const j = J[k]; if (!j || !j.probe) continue; for (const [w, x] of j.probe.entries()) L.push(`  probe ${k} world ${w} at P: reads ${x.reads}, mean query chance ${x.pr.toExponential(3)}; plain blend ${f4(x.plain)}, deletion ${f4(x.del)}, residual ${f4(x.res)}; ${['sup', 'clip', 'copy'].map(nm => `${nm} weight ${f4(x[nm][0])} p ${f4(x[nm][1])} S ${f4(x[nm][2])} c ${f4(x[nm][3])} R ${f4(x[nm][4])}`).join('; ')}`); }
   const sum = x => x.reduce((t, v) => t + v, 0);
   for (const id of ['S224', 'S380']) { const j = J[key(id, 'BASE/P120S6Q5')]; L.push(`  ${id} BASE at 120 points, P: ${[0, 1, 2].map(k => { const b = bitsOf(j, `P${k}`), a = b.subarray(0, NPW), r = b.subarray(NPW); return `world ${k} the first 4,000 paths ${f4(100 * sum(a) / a.length)}, the other 12,000 ${f4(r.length ? 100 * sum(r) / r.length : NaN)}, table ${f4(j.tables[k].P)}`; }).join('; ')}`); }
   for (const [id, label, arm] of [['S380', 'BASE/P120S6Q5', 'BASE'], ['S380', 'LOR/P120S6Q5', 'LOR'], ['S224', 'BASE/P120S6Q5', 'BASE'], ['bridge 4', 'BASE/P120S6Q5', 'BASE']]) {
@@ -201,7 +219,7 @@ export function report(J, B1, runs224, extra, bitsOf, b1BitsOf) {
   }
   L.push(`REALISED item 1: ${f4(Math.max(...it[1].cells.filter(c => c.counted).map(c => c.r)))}`);
   L.push(`REALISED item 2: ${f4(Math.min(...it[2].w.map(x => x.d)))}`);
-  L.push(`OUTCOME: ${['1', '2', '3', '4', '5', '6', '7', '8'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  L.push(`OUTCOME: ${['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
   return L;
 }
 
@@ -209,7 +227,7 @@ export function report(J, B1, runs224, extra, bitsOf, b1BitsOf) {
    exactly (or rounded to it, with the overshooting case planted) */
 const EDGES = [], REACHED = {};
 function planted() {
-  const N = NPW, cases = [], ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  const N = NPW, cases = [], ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   for (const i of ITEMS) REACHED[i] = new Set();
   const tab = (P, D, OWN = P) => [0, 1, 2].map(k => ({ k, weight: WEIGHTS[k], P: P[k], D: D[k], OWN: OWN[k] }));
   const flat = v => tab([v, v, v], [v, v, v]);
@@ -263,7 +281,7 @@ function planted() {
   cases.push(['an under-read exactly half a point is counted (runs 50.5, a rise of 0.5): 4 HELD', run(s => { s.runs = [0, 1, 2].map(() => ({ ok: 2020, n: N })); setP(s, 'S224', 'BASE/P60S12Q5', 50.5); })['4'].outcome, 'HELD']);
   cases.push(['3 reads the 15-node job, not the 12-share one (12 shares raise it, 15 nodes not): 3 FALSIFIED', run(s => { u2(s); setP(s, 'S224', 'BASE/P60S12Q5', 52); })['3'].outcome, 'FALSIFIED']);
   // item 4: S364 at 60 points and 6 shares over its runs by 4 (table 54 against 50)
-  const o4 = s => { for (const l of ['BASE/P60S6Q5', 'BASE/P60S12Q5', 'BASE/P120S6Q5', 'ORDER/P60S6Q5']) setP(s, 'S364', l, 54); };
+  const o4 = s => { for (const l of ['BASE/P60S6Q5', 'BASE/P60S12Q5', 'BASE/P120S6Q5', 'ORDER/P60S6Q5', 'BASE/P60S6Q5L25']) setP(s, 'S364', l, 54); };
   const lowered = (label, v, ks) => s => { o4(s); setP(s, 'S364', label, v, ks); };
   cases.push(['12 shares lower S364 by exactly half its over-read (54 to 52): 5 HELD', run(lowered('BASE/P60S12Q5', 52))['5'].outcome, 'HELD']);
   cases.push(['12 shares lower it by 1.9999: 5 INCONCLUSIVE', run(lowered('BASE/P60S12Q5', 52.0001))['5'].outcome, 'INCONCLUSIVE']);
@@ -278,6 +296,19 @@ function planted() {
   cases.push(['no 60-point over-read (S364 at its runs): 7 INCONCLUSIVE', run(s => setP(s, 'S364', 'ORDER/P60S6Q5', 48))['7'].outcome, 'INCONCLUSIVE']); EDGES.push('no over-read to carry');
   cases.push(['an over-read under half a point is not counted (0.4999): 5 INCONCLUSIVE', run(s => { setP(s, 'S364', 'BASE/P60S6Q5', 50.4999); setP(s, 'S364', 'BASE/P60S12Q5', 50); })['5'].outcome, 'INCONCLUSIVE']);
   cases.push(['6 reads the 120-point job, not ORDER (ORDER lowers it, 120 not): 6 FALSIFIED', run(lowered('ORDER/P60S6Q5', 50))['6'].outcome, 'FALSIFIED']);
+  // item 9: S224 at 120 points without its floor, P's runs on 16,000 paths at 8,000 (50)
+  cases.push(['S224 without its floor at its runs: 9 HELD', run(s => {})['9'].outcome, 'HELD']);
+  cases.push(['S224 without its floor under by exactly 0.5 at the point: 9 HELD', run(s => setP(s, 'S224', 'BASE/P120S6Q5F0', 49.5))['9'].outcome, 'HELD']); EDGES.push('a floor-free read exactly half a point under');
+  cases.push(['S224 without its floor under by 1 (not shown): 9 INCONCLUSIVE', run(s => setP(s, 'S224', 'BASE/P120S6Q5F0', 49))['9'].outcome, 'INCONCLUSIVE']);
+  cases.push(['S224 without its floor under by 3 in world 1: 9 FALSIFIED', run(s => setP(s, 'S224', 'BASE/P120S6Q5F0', 47, [1]))['9'].outcome, 'FALSIFIED']);
+  cases.push(['S224 without its floor over by 1 (within half a point fails): 9 INCONCLUSIVE', run(s => setP(s, 'S224', 'BASE/P120S6Q5F0', 51))['9'].outcome, 'INCONCLUSIVE']);
+  { const [l] = clopperPearson(8000, 16000, 2 * a1); cases.push(['S224 without its floor, its interval ending exactly at -0.5: 9 INCONCLUSIVE', run(s => setP(s, 'S224', 'BASE/P120S6Q5F0', 100 * l - 0.5))['9'].outcome, 'INCONCLUSIVE']); }
+  cases.push(['9 reads the floor-free job, not the floored one (the floored under by 3): 9 HELD', run(s => setP(s, 'S224', 'BASE/P120S6Q5', 47))['9'].outcome, 'HELD']);
+  // item 10: the support line at 0.25 against S364's 60-point over-read of 4
+  cases.push(['the line at 0.25 lowers S364 by exactly half its over-read: 10 HELD', run(lowered('BASE/P60S6Q5L25', 52))['10'].outcome, 'HELD']);
+  cases.push(['the line at 0.25 lowers it by 1.9999: 10 INCONCLUSIVE', run(lowered('BASE/P60S6Q5L25', 52.0001))['10'].outcome, 'INCONCLUSIVE']);
+  cases.push(['the line at 0.25 changes nothing: 10 FALSIFIED', run(o4)['10'].outcome, 'FALSIFIED']);
+  cases.push(['10 reads the line job, not ORDER (ORDER lowers it, the line not): 10 FALSIFIED', run(lowered('ORDER/P60S6Q5', 50))['10'].outcome, 'FALSIFIED']);
   // item 8: bridge 4 at 120 points, its own opening (P here), runs 3900 of 4000 (97.5)
   const b5 = (d, own = null) => s => { const j = jt(s, 'bridge 4', 'BASE/P120S6Q5'); j.sims.P0 = { ok: 3900, n: N }; j.tables[0].P = 97.5 + d; if (own !== null) { j.own.ai = own; j.sims.D0 = { ok: 3900, n: N }; j.tables[0].D = 97.5 + d; } };
   cases.push(['bridge 4 off by exactly 0.3: 8 HELD', run(b5(0.3))[8].outcome, 'HELD']); EDGES.push('a control point exactly at 0.3');
@@ -307,20 +338,26 @@ function planted() {
   cases.push(['6 FALSIFIED, the 60-point over-read exactly half the 30-point one (4 of 8): S364-W not', cz(s => { o4(s); s.over30 = [8, 8]; }, 'S364-W'), 'not']);
   cases.push(['6 HELD with 5 not: S364-W held', cz(lowered('BASE/P120S6Q5', 50), 'S364-W'), 'held']);
   cases.push(['7 FALSIFIED: S364-REF not', cz(o4, 'S364-REF'), 'not']);
+  cases.push(['items 2 and 9 HELD: RG-FLOOR held', cz(s => setP(s, 'S224', 'BASE/P120S6Q5', 47), 'RG-FLOOR'), 'held']);
+  cases.push(['item 9 HELD, item 2 not: RG-FLOOR open', cz(s => {}, 'RG-FLOOR'), 'open']);
+  cases.push(['item 9 FALSIFIED: RG-FLOOR not', cz(s => { setP(s, 'S224', 'BASE/P120S6Q5', 47); setP(s, 'S224', 'BASE/P120S6Q5F0', 47); }, 'RG-FLOOR'), 'not']);
+  cases.push(['10 HELD: S364-COPY held', cz(lowered('BASE/P60S6Q5L25', 50), 'S364-COPY'), 'held']);
+  cases.push(['10 FALSIFIED: S364-COPY not', cz(o4, 'S364-COPY'), 'not']);
   cases.push(['7 INCONCLUSIVE: S364-REF open', cz(lowered('ORDER/P60S6Q5', 52, [0]), 'S364-REF'), 'open']);
   // the read end to end: report() on a synthetic set prints every item, every cause and the OUTCOME line
   { const st = base(); const ones = (n, ok) => { const b = new Uint8Array(n); for (let i = 0; i < ok; i++) b[i] = 1; return b; };
     let lines = [], err = null; try { lines = report(st.J, st.B1, st.runs, xOf(st), (j, nm) => ones(j.sims[nm].n, j.sims[nm].ok), () => ones(N, 2000)); } catch (e) { err = e.message; }
     const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
-    cases.push(['the read prints every item\'s line, all six causes and an OUTCOME line of eight items, end to end', err || `${['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${oc.split(', ').length}`, 'true 6 8']); EDGES.push('the whole read printed'); }
+    cases.push(['the read prints every item\'s line, all eight causes and an OUTCOME line of ten items, end to end', err || `${['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${oc.split(', ').length}`, 'true 8 10']); EDGES.push('the whole read printed'); }
   // the gate, on a synthetic log built as the audit prints
   const jobText = (jb, o = {}) => {
-    const [id, arm, pts0, sh, qn, mult] = jb, L = jobLabel(jb), pad = ''.padEnd(16), pts = o.pts || Math.max(4, Math.round(pts0 / 30)), [P, D] = PAIRS[id], own = o.own !== undefined ? o.own : P, npw = 4;
-    const ran = o.ran || `bridgeRead reader bridgeStep exact readerSplit null readerBlend ${arm === 'LOR' ? 'logodds' : 'null'} readerRef ${o.ref || (arm === 'ORDER' ? 'order' : 'plan')} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix ${o.mix || 3} pts ${o.ranPts || pts} grid ${o.grid || `total${pts}x${sh}x${sh}`}`;
+    const [id, arm, pts0, sh, qn, mult, ch = {}] = jb, L = jobLabel(jb), pad = ''.padEnd(16), pts = o.pts || Math.max(4, Math.round(pts0 / 30)), [P, D] = PAIRS[id], own = o.own !== undefined ? o.own : P, npw = 4;
+    const ran = o.ran || `bridgeRead reader bridgeStep exact readerSplit null readerBlend ${arm === 'LOR' ? 'logodds' : 'null'} readerRef ${o.ref || (arm === 'ORDER' ? 'order' : 'plan')} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix ${o.mix || 3} pts ${o.ranPts || pts} grid ${o.grid || `total${pts}x${sh}x${sh}`} floor ${o.floor !== undefined ? o.floor : ch.floor === 0 ? 0 : FLOORS[id]} line ${o.line || ch.line || 0.5}`;
     const out = [`${id.padEnd(16)} case | job ${L} | points ${pts} | lambda 0.0223606797749979`, `${pad} solve CAND ${L}: table 3.0 secs 1`, `${pad} ran CAND ${L}: ${ran}`,
       `${pad} reader ${L}: tables 1 unsupported 0 copied 0 copiedTop 0 nodes 1; clamps n ${o.clampN !== undefined ? o.clampN : arm === 'LOR' ? 9 : 0} lo 0 hi 0`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`,
       `${pad} pair ${L}: P ai ${o.P !== undefined ? o.P : P} level 0.8 tiers 0,0; D ai ${D} level ${o.lD || '0.8'} tiers ${o.tD || '2,2'}`, `${pad} checks ${L}: pairTook ${o.pairTook !== undefined ? o.pairTook : 1}/1`, `${pad} openings ${L}: OWN ai ${own} level 0.8 tiers 0,0`];
     if (!o.dropTable) for (let k = 0; k < 3; k++) out.push(`${pad} tables ${L} ${k} z 0 weight ${WEIGHTS[k].toFixed(6)}: P 50.000000 D 50.000000 OWN 50.000000`);
+    if (PROBED.has(key(id, L)) && !o.dropProbe) for (let k = 0; k < 3; k++) out.push(`${pad} probe ${L} ${k} P: reads ${k === 1 && o.probeReads0 ? 0 : 9} pr 1.0e-4 plain 3.000000 deletion ${o.probeDel || '1.000000'} residual 2.000000 | sup w 0.100000 p 0.6 S 0.7 c 1 R 0.1 | clip w 0.200000 p 0.6 S 0.9 c 1 R 0.3 | copy w ${o.copyW || '0.700000'} p 0.01 S 0.04 c 1 R 0.03`);
     for (let k = 0; k < 3; k++) for (const [nm, np] of [['P', npw * mult], ['D', npw], ...(own !== P && own !== D ? [['OWN', npw]] : [])]) if (o.dropSim !== `${nm}${k}`) out.push(`${pad} sim ${L} ${k} ${nm} ai 1: 2/${nm === 'P' && o.pN ? o.pN : np} bits ${o.bitsHash || 'B' + nm + k}`);
     out.push(`${pad} checks ${L}: forceIdentity ${o.force !== undefined ? o.force : 4}/${o.forceOf || 4} secs 1`, `${pad} file ${L}: ${id.replace(/ /g, '_')}-${L.replace(/\//g, '-')}.json.gz`);
     if (o.done !== false) out.push(`${pad} done ${L}`);
@@ -345,13 +382,20 @@ function planted() {
   refuses('armTook 0', all({ [K('S364', 'ORDER/P60S6Q5')]: { armTook: 0 } }));
   refuses('ORDER whose solve carries no order reference', all({ [K('S364', 'ORDER/P60S6Q5')]: { ref: 'plan' } })); EDGES.push('an arm named but not in the meta');
   refuses('BASE carrying the order reference', all({ [K('S364', 'BASE/P60S6Q5')]: { ref: 'order' } }));
-  refuses('LOR whose solve carries no blend', all({ [K('S380', 'LOR/P120S6Q5')]: { ran: 'bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef plan readerChance null jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 mix 3 pts 4 grid total4x6x6' } }));
+  refuses('LOR whose solve carries no blend', all({ [K('S380', 'LOR/P120S6Q5')]: { ran: 'bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef plan readerChance null jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 mix 3 pts 4 grid total4x6x6 floor 52500 line 0.5' } }));
   refuses('the candidate without e3pcls', all({ [K('S364', 'BASE/P60S6Q5')]: { e3: 'false' } }));
   refuses('pairTook 0', all({ [K('S364', 'ORDER/P60S6Q5')]: { pairTook: 0 } }));
   refuses('a forced pair at other tiers', all({ [K('S380', 'BASE/P120S6Q5')]: { tD: '1,1' } }));
   refuses('a forced pair at two levels', all({ [K('S380', 'BASE/P120S6Q5')]: { lD: '0.9' } }));
   refuses('a forced pair at another action', all({ [K('S380', 'BASE/P120S6Q5')]: { P: 11, own: 11 } }));
   refuses('a missing world table', all({ [K('S380', 'BASE/P120S6Q5')]: { dropTable: true } }));
+  refuses('S224\'s floor-free job solved with its floor', all({ [K('S224', 'BASE/P120S6Q5F0')]: { floor: 430000 } })); EDGES.push('a floor that did not take');
+  refuses('S224 solved without its floor where registered', all({ [K('S224', 'BASE/P120S6Q5')]: { floor: 0 } }));
+  refuses('the line job solved at the default line', all({ [K('S364', 'BASE/P60S6Q5L25')]: { line: 0.5 } }));
+  refuses('a probed job with no probe lines', all({ [K('S364', 'BASE/P60S6Q5')]: { dropProbe: true } }));
+  refuses('a probe that logged no reads in a world', all({ [K('S380', 'BASE/P120S6Q5')]: { probeReads0: true } }));
+  refuses('a probe whose weights do not sum to 1', all({ [K('S364', 'BASE/P60S6Q5L25')]: { copyW: '0.690000' } }));
+  refuses('a probe breaking plain = deletion + residual', all({ [K('S364', 'BASE/P60S6Q5')]: { probeDel: '1.001000' } })); EDGES.push('a probe identity broken by a thousandth');
   refuses('a LOR read counted off the LOR job', all({ [K('S380', 'BASE/P120S6Q5')]: { clampN: 1 } })); EDGES.push('a clamp count of one');
   refuses('a missing D run in world 2', all({ [K('S380', 'LOR/P120S6Q5')]: { dropSim: 'D2' } }));
   refuses('P\'s runs at the base paths where four times were registered', all({ [K('S224', 'BASE/P120S6Q5')]: { pN: 4 } })); EDGES.push('runs at a quarter of the registered paths');
@@ -370,9 +414,11 @@ function planted() {
   let failed = 0;
   for (const [what, got, want] of cases) {
     const okc = String(got) === String(want); if (!okc) failed++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${what}: ${JSON.stringify(got)}`);
-    const m = /: (\d) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what); if (okc && m && REACHED[m[1]]) REACHED[m[1]].add(m[2]);
+    const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what); if (m && !REACHED[m[1]]) { failed++; console.log(`FAIL a case names item ${m[1]}, not one of the items`); } else if (okc && m) REACHED[m[1]].add(m[2]);
   }
   if (failed) { console.log(`PLANTED CHECK FAILED: ${failed} of ${cases.length}`); process.exit(1); }
+  const short = ITEMS.filter(i => REACHED[i].size !== 3);   // every item planted to all three of its outcomes
+  if (short.length) { console.log(`PLANTED CHECK FAILED: item ${short.join(', ')} not planted to all three outcomes`); process.exit(1); }
   return cases.length;
 }
 

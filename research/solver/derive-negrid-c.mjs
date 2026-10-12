@@ -107,8 +107,8 @@ const it = st => items(st.J, B1, runs224, st.extra);
 for (const r of [0.25, 0.35, 0.5, 0.8]) tally(`conv|${r}`, () => it(setOf({ r }))[1].outcome);
 for (const u of [0, -1, -2, -3]) tally(`under|${u}`, () => it(setOf({ u120: u }))[2].outcome);
 for (const c of [0.1, 0.3, 0.35, 0.5, 0.6, 0.8]) tally(`carry|${c}`, () => it(setOf({ carry3: c }))['3'].outcome);
-for (const f of [0.1, 0.35, 0.6, 0.8]) tally(`s364|${f}`, () => it(setOf({ s364: { counted: true, f5: f, f6: f, f7: f } }))['5'].outcome);
-tally('s364|none', () => it(setOf({ s364: { counted: false, f5: 0.8, f6: 0.8, f7: 0.8 } }))['5'].outcome);
+for (const f of [0.1, 0.35, 0.6, 0.8]) tally(`s364|${f}`, () => it(setOf({ s364: { counted: true, f5: f, f6: f, f7: f, f10: 0.1 } }))['5'].outcome);   // f10 given (the first run after the amendment stopped on the range check below: it was unset)
+tally('s364|none', () => it(setOf({ s364: { counted: false, f5: 0.8, f6: 0.8, f7: 0.8, f10: 0.8 } }))['5'].outcome);
 for (const s of ['kept', 'small', 'broken']) tally(`b4|${s}`, () => it(setOf({ b4: s }))[8].outcome);
 for (const u of [0, -1, -2, -3]) tally(`floor|${u}`, () => it(setOf({ u9: u }))['9'].outcome);
 for (const f of [0.1, 0.35, 0.6, 0.8]) tally(`copy|${f}`, () => it(setOf({ s364: { counted: true, f5: 0.1, f6: 0.1, f7: 0.1, f10: f } }))['10'].outcome);

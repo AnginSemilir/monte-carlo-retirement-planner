@@ -1,0 +1,74 @@
+[exp34_raw.pkl] TOY RESULTS - Exp 3: coarse-grid artefacts (households x mode; 9 grids: n in {28,30,32} x offset {0,1/4,1/2} cell)
+[product] base-grid gap error vs fine: median |err| 6.27e-03, 90% 1.05e-02, max 1.47e-02; mean err +6.18e-03
+[product] all 9 grids: median |err| 6.02e-03, max 1.76e-02; grid-to-grid SD of a gap: median 1.66e-03, max 2.57e-03
+[product] fine gaps of these households: median |gap| 1.05e-02; share |fine gap| < grid SD: 0.28
+[product] plain-argmax opening flips across the 9 grids: 1/30 households; base argmax != fine argmax: 15/30; margin-1e-3 rule flips: 3/30
+[product] relative move of the best-alternative gap vs base grid (|gap|>5e-4): 10% -39%, median +0%, 90% +53%
+[candidate] base-grid gap error vs fine: median |err| 6.43e-03, 90% 1.06e-02, max 1.39e-02; mean err +6.33e-03
+[candidate] all 9 grids: median |err| 6.19e-03, max 1.69e-02; grid-to-grid SD of a gap: median 1.88e-03, max 2.53e-03
+[candidate] fine gaps of these households: median |gap| 1.06e-02; share |fine gap| < grid SD: 0.27
+[candidate] plain-argmax opening flips across the 9 grids: 3/30 households; base argmax != fine argmax: 21/30; margin-1e-3 rule flips: 7/30
+[candidate] relative move of the best-alternative gap vs base grid (|gap|>5e-4): 10% -57%, median -2%, 90% +57%
+
+Coarse consistency (repeat of Exp 1-2 on the base coarse grid): table gap vs realised paired gap (N=24000/world)
+[P1] mean |real - table| 8.82e-03; within 2 SE 0.08; sign disagreement (|real|>2SE) 11/60; median paired SE 1.4e-03; switches/path by opening [3.26 3.11 3.52]
+[P2] mean |real - table| 1.73e-02; within 2 SE 0.03; sign disagreement (|real|>2SE) 14/60; median paired SE 1.6e-03; switches/path by opening [1.57 0.98 1.76]
+[C] mean |real - table| 8.54e-03; within 2 SE 0.08; sign disagreement (|real|>2SE) 11/60; median paired SE 1.4e-03; switches/path by opening [3.29 3.18 3.56]
+
+TOY RESULTS - Exp 4: opening rules on the coarse base grid; loss = R(best realised opening) - R(rule), realised under the
+pipeline continuation (coarse base tables), N=24000/world seed 777; rollouts use seed 4242. Units: survival (C: net of charges).
+
+[P1] 30 households; oracle = argmax of realised R; oracle != 0 in 13; median paired SE of opening differences 1.4e-03
+rule                       mean loss     worst  SE(wst)   >0.5pt  sig>2SE   !=orac  flips solves/paths
+a argmax                    +0.00257  +0.00852  0.00114        6       13       25      1        1 / 0
+b d=1e-4                    +0.00257  +0.00852  0.00114        6       13       25      1        1 / 0
+b d=3e-4                    +0.00257  +0.00852  0.00114        6       13       25      1        1 / 0
+b d=1e-3                    +0.00257  +0.00852  0.00114        6       13       25      3        1 / 0
+b d=est                     +0.00221  +0.00852  0.00114        4       11       23     10        9 / 0
+c N=1000                    +0.00060  +0.00456  0.00145        0        3        8    n/a   1 / 6k x T
+c N=4000                    +0.00059  +0.00347  0.00144        0        2       11     19  1 / 24k x T
+c N=8000                    +0.00017  +0.00232  0.00136        0        0        4    n/a  1 / 48k x T
+d unanimity                 +0.00240  +0.00852  0.00114        5       12       24      0        9 / 0
+keep plan tier (always 0)   +0.00337  +0.01333  0.00100        9        9       13      0        0 / 0
+F fine argmax               +0.00047  +0.00232  0.00136        0        2       10      0     fine / 0
+e hybrid tau=3e-3           +0.00159  +0.00724  0.00120        2        7       19    n/a 1 / 48k x T on 30%
+e hybrid tau=1e-2           +0.00017  +0.00232  0.00136        0        0        4    n/a 1 / 48k x T on 100%
+   largest (a) losses: T40-ML-1e-03 a=2 orac=1 loss +0.0085; T30-ML-1e-03 a=2 orac=1 loss +0.0072; T30-HM-2e-03 a=1 orac=0 loss +0.0056; T35-ML-1e-03 a=2 orac=1 loss +0.0055
+
+[P2] 30 households; oracle = argmax of realised R; oracle != 0 in 15; median paired SE of opening differences 1.6e-03
+rule                       mean loss     worst  SE(wst)   >0.5pt  sig>2SE   !=orac  flips solves/paths
+a argmax                    +0.00494  +0.02380  0.00159       11       16       22      1        1 / 0
+b d=1e-4                    +0.00494  +0.02380  0.00159       11       16       22      1        1 / 0
+b d=3e-4                    +0.00494  +0.02380  0.00159       11       16       22      1        1 / 0
+b d=1e-3                    +0.00494  +0.02380  0.00159       11       16       22      3        1 / 0
+b d=est                     +0.00449  +0.02380  0.00159        9       14       20     10        9 / 0
+c N=1000                    +0.00104  +0.00838  0.00154        3        4       10    n/a   1 / 6k x T
+c N=4000                    +0.00032  +0.00402  0.00161        0        1        6     12  1 / 24k x T
+c N=8000                    +0.00019  +0.00222  0.00161        0        0        6    n/a  1 / 48k x T
+d unanimity                 +0.00468  +0.02380  0.00159       10       15       21      0        9 / 0
+keep plan tier (always 0)   +0.00770  +0.02682  0.00122       10       11       15      0        0 / 0
+F fine argmax               +0.00100  +0.01435  0.00146        2        3        9      0     fine / 0
+e hybrid tau=3e-3           +0.00241  +0.01983  0.00163        5       10       16    n/a 1 / 48k x T on 30%
+e hybrid tau=1e-2           +0.00019  +0.00222  0.00161        0        0        6    n/a 1 / 48k x T on 100%
+   largest (a) losses: T40-ML-1e-03 a=2 orac=1 loss +0.0238; T30-ML-1e-03 a=2 orac=1 loss +0.0198; T35-ML-1e-03 a=2 orac=1 loss +0.0172; T40-ML+0e+00 a=2 orac=1 loss +0.0143
+
+[C] 30 households; oracle = argmax of realised R; oracle != 0 in 11; median paired SE of opening differences 1.4e-03
+rule                       mean loss     worst  SE(wst)   >0.5pt  sig>2SE   !=orac  flips solves/paths
+a argmax                    +0.00270  +0.00748  0.00114        5       12       26      3        1 / 0
+b d=1e-4                    +0.00270  +0.00748  0.00114        5       12       26      3        1 / 0
+b d=3e-4                    +0.00270  +0.00748  0.00114        5       12       26      4        1 / 0
+b d=1e-3                    +0.00251  +0.00748  0.00114        4       11       25      7        1 / 0
+b d=est                     +0.00175  +0.00748  0.00114        2        7       20     14        9 / 0
+c N=1000                    +0.00101  +0.00748  0.00114        1        4       13    n/a   1 / 6k x T
+c N=4000                    +0.00057  +0.00474  0.00142        0        2       10     21  1 / 24k x T
+c N=8000                    +0.00013  +0.00216  0.00136        0        0        5    n/a  1 / 48k x T
+d unanimity                 +0.00218  +0.00748  0.00114        3        9       23      0        9 / 0
+keep plan tier (always 0)   +0.00312  +0.01363  0.00126        9        9       11      0        0 / 0
+F fine argmax               +0.00018  +0.00177  0.00105        0        0        7      0     fine / 0
+e hybrid tau=3e-3           +0.00183  +0.00748  0.00114        3        7       20    n/a 1 / 48k x T on 23%
+e hybrid tau=1e-2           +0.00013  +0.00216  0.00136        0        0        5    n/a 1 / 48k x T on 100%
+   largest (a) losses: T40-ML-1e-03 a=2 orac=1 loss +0.0075; T30-ML-1e-03 a=2 orac=1 loss +0.0063; T30-HM-2e-03 a=1 orac=0 loss +0.0059; T40-HM-2e-03 a=1 orac=0 loss +0.0056
+
+cost column: backward solves per household / rollout paths (x T path-years); flips = households whose choice changes across the 9 grids
+(c) flips computed for N=4000 only (re-solved continuation per grid). Winner's curse: the oracle is the argmax of noisy R, so losses of
+rules that pick a truly-tied alternative are biased upward by O(SE); "sig>2SE" counts losses exceeding twice their paired SE.

@@ -1,0 +1,9 @@
+table gaps vs 0 [0.      0.00569 0.00895]  fixed-for-life diffs vs 0 [0.     0.0349 0.0562]
+margin   0.0: switches/path after yr0 [np.float64(2.262), np.float64(2.196), np.float64(1.179)]; open1-open0 realised +0.0056 (saved 365/lost 141) price/realised 1.02; open2-open0 realised +0.0084 (saved 607/lost 270) price/realised 1.06;
+margin 0.005: switches/path after yr0 [np.float64(1.325), np.float64(0.512), np.float64(0.399)]; open1-open0 realised -0.0183 (saved 240/lost 971) price/realised -0.31; open2-open0 realised +0.0107 (saved 709/lost 280) price/realised 0.83;
+margin  0.01: switches/path after yr0 [np.float64(0.56), np.float64(0.238), np.float64(0.28)]; open1-open0 realised +0.0096 (saved 740/lost 355) price/realised 0.59; open2-open0 realised +0.0478 (saved 1935/lost 23) price/realised 0.19;
+margin  0.02: switches/path after yr0 [np.float64(0.086), np.float64(0.041), np.float64(0.165)]; open1-open0 realised +0.0294 (saved 1175/lost 0) price/realised 0.19; open2-open0 realised +0.0700 (saved 2802/lost 0) price/realised 0.13;
+   item-9 analogue: lost by riskier opening 2802, paid every year but ended below P 0.08, median shortfall/P 0.48
+margin  0.05: switches/path after yr0 [np.float64(0.007), np.float64(0.002), np.float64(0.017)]; open1-open0 realised +0.0334 (saved 1335/lost 0) price/realised 0.17; open2-open0 realised +0.0572 (saved 2289/lost 0) price/realised 0.16;
+margin   1.0: switches/path after yr0 [np.float64(0.0), np.float64(0.0), np.float64(0.0)]; open1-open0 realised +0.0340 (saved 1360/lost 0) price/realised 0.17; open2-open0 realised +0.0560 (saved 2239/lost 0) price/realised 0.16;
+   item-9 analogue: lost by riskier opening 2239, paid every year but ended below P 0.13, median shortfall/P 0.49

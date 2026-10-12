@@ -1,0 +1,23 @@
+TOY RESULTS - Exp 3b: year-0 gap error (coarse - fine 640 pts) vs number of wealth points; 30 near-tie households x 2 gaps
+err = mean signed error; |err| = mean absolute; flip = share of households whose plain-argmax opening differs from the fine one
+mode       space      n  offset |        err      |err|   flip |   err(off) |err|(off)   flip
+product    logit     20 0 / 1/2 |  +1.25e-02   1.32e-02   0.57 |  +1.13e-02   1.21e-02   0.50
+product    logit     30 0 / 1/2 |  +6.18e-03   6.23e-03   0.50 |  +5.81e-03   5.90e-03   0.50
+product    logit     40 0 / 1/2 |  +3.12e-03   3.12e-03   0.43 |  +2.87e-03   2.87e-03   0.47
+product    logit     60 0 / 1/2 |  +1.19e-03   1.19e-03   0.30 |  +1.14e-03   1.14e-03   0.27
+product    logit     90 0 / 1/2 |  +5.58e-04   5.89e-04   0.20 |  +6.01e-04   6.04e-04   0.20
+product    logit    120 0 / 1/2 |  +2.92e-04   3.12e-04   0.13 |  +3.17e-04   3.37e-04   0.17
+product    logit    240 0 / 1/2 |  +6.92e-05   9.46e-05   0.10 |  +6.79e-05   7.99e-05   0.10
+product    prob      30 0 / 1/2 |  -2.96e-03   3.26e-03   0.43 |  -2.85e-03   3.21e-03   0.47
+product    prob      60 0 / 1/2 |  -1.22e-03   1.25e-03   0.33 |  -1.25e-03   1.27e-03   0.30
+product    prob     120 0 / 1/2 |  -4.71e-04   4.92e-04   0.17 |  -4.29e-04   4.60e-04   0.13
+candidate  logit     20 0 / 1/2 |  +1.26e-02   1.33e-02   0.73 |  +1.16e-02   1.23e-02   0.70
+candidate  logit     30 0 / 1/2 |  +6.33e-03   6.38e-03   0.70 |  +5.87e-03   5.96e-03   0.63
+candidate  logit     40 0 / 1/2 |  +3.11e-03   3.11e-03   0.50 |  +2.88e-03   2.88e-03   0.53
+candidate  logit     60 0 / 1/2 |  +1.31e-03   1.31e-03   0.30 |  +1.10e-03   1.11e-03   0.23
+candidate  logit     90 0 / 1/2 |  +5.22e-04   6.42e-04   0.10 |  +7.50e-04   7.56e-04   0.13
+candidate  logit    120 0 / 1/2 |  +2.83e-04   4.79e-04   0.10 |  +3.17e-04   4.39e-04   0.07
+candidate  logit    240 0 / 1/2 |  +5.71e-05   2.04e-04   0.00 |  +1.39e-05   1.70e-04   0.00
+candidate  prob      30 0 / 1/2 |  -3.18e-03   3.46e-03   0.27 |  -3.02e-03   3.39e-03   0.30
+candidate  prob      60 0 / 1/2 |  -1.32e-03   1.34e-03   0.23 |  -1.27e-03   1.30e-03   0.23
+candidate  prob     120 0 / 1/2 |  -5.16e-04   6.08e-04   0.10 |  -5.18e-04   5.98e-04   0.10

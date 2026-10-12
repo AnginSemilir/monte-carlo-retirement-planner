@@ -1,0 +1,21 @@
+T 35 38s
+T 40 79s
+TOY RESULTS - Exp 1b: near-tie households, product mode, fine grid, N=48000/world (paired, seed 2024)
+tab = year-0 table gap (one-year effect); real(m) = realised survival gap with forward chooser margin m;
+static = gap if each opening were held for life (fixed-policy solve); per-world: table | realised (m=0.01)
+T35 HM tie             W0  20.10 S 0.684 | tab g1 +0.00000 | static -0.04685 | real(0.001) +0.00012+-0.00089 sw 2.90/3.07 | real(0.01) -0.00379+-0.00111 sw 1.08/1.05 |
+    per-world (table | realised m=0.01): w0 -0.0039|-0.0285+-0.0017 w1 +0.0004|-0.0011+-0.0016 w2 +0.0024|+0.0100+-0.0012
+T35 HM tie x1.03       W0  20.70 S 0.715 | tab g1 +0.00159 | static -0.02991 | real(0.001) +0.00098+-0.00087 sw 2.97/2.94 | real(0.01) -0.00235+-0.00110 sw 1.13/0.96 |
+    per-world (table | realised m=0.01): w0 -0.0024|-0.0265+-0.0017 w1 +0.0021|+0.0006+-0.0016 w2 +0.0034|+0.0099+-0.0011
+T35 HL tie (q2=q0)     W0  22.63 S 0.799 | tab g2 +0.00000 | static -0.26060 | real(0.001) +0.00002+-0.00105 sw 3.02/3.55 | real(0.01) -0.01970+-0.00136 sw 1.24/1.56 |
+    per-world (table | realised m=0.01): w0 -0.0003|-0.0114+-0.0023 w1 -0.0001|-0.0221+-0.0019 w2 +0.0007|-0.0185+-0.0014
+T35 ML tie (q2 vs q0)  W0  26.87 S 0.921 | tab g2 +0.01202 | static -0.01438 | real(0.001) +0.01153+-0.00083 sw 2.42/1.97 | real(0.01) +0.00925+-0.00101 sw 1.26/0.66 |
+    per-world (table | realised m=0.01): w0 +0.0266|+0.0403+-0.0019 w1 +0.0106|+0.0053+-0.0014 w2 +0.0033|-0.0058+-0.0009
+T40 HM tie             W0  21.33 S 0.687 | tab g1 -0.00000 | static -0.04748 | real(0.001) -0.00144+-0.00085 sw 2.97/3.13 | real(0.01) -0.00470+-0.00112 sw 1.02/0.96 |
+    per-world (table | realised m=0.01): w0 -0.0040|-0.0329+-0.0017 w1 +0.0004|-0.0011+-0.0016 w2 +0.0025|+0.0093+-0.0012
+T40 HM tie x1.03       W0  21.97 S 0.716 | tab g1 +0.00141 | static -0.03135 | real(0.001) +0.00044+-0.00085 sw 3.04/3.00 | real(0.01) -0.00215+-0.00111 sw 1.06/0.89 |
+    per-world (table | realised m=0.01): w0 -0.0024|-0.0290+-0.0017 w1 +0.0019|+0.0014+-0.0016 w2 +0.0033|+0.0107+-0.0011
+T40 HL tie (q2=q0)     W0  24.20 S 0.802 | tab g2 +0.00000 | static -0.27783 | real(0.001) -0.00102+-0.00102 sw 3.09/3.57 | real(0.01) -0.02566+-0.00139 sw 1.17/1.51 |
+    per-world (table | realised m=0.01): w0 -0.0009|-0.0149+-0.0023 w1 +0.0001|-0.0296+-0.0020 w2 +0.0007|-0.0208+-0.0014
+T40 ML tie (q2 vs q0)  W0  29.21 S 0.925 | tab g2 +0.01065 | static -0.01935 | real(0.001) +0.00874+-0.00080 sw 2.43/1.97 | real(0.01) +0.00763+-0.00099 sw 1.20/0.62 |
+    per-world (table | realised m=0.01): w0 +0.0244|+0.0426+-0.0019 w1 +0.0092|+0.0024+-0.0014 w2 +0.0027|-0.0064+-0.0009

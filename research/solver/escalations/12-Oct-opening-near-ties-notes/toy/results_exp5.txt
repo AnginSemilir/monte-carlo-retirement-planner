@@ -1,0 +1,51 @@
+TOY RESULTS - Exp 5: estate term (u(W_T)=1-exp(-W_T/10) if W_T>=1, weight beta) vs survival-only; fine grid;
+30 near-tie households; N=16000/world seed 555; realised under each beta's own tables/continuation (product: margin 1e-3)
+
+[product, rule=plain argmax, beta=0.01] opening differs from survival-only choice in 3/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T35-HM+0e+00     1   0 |   0.6803   0.6816 |  +0.00125+-0.00150 |  +0.00136+-0.00151 |  +0.00008 |  +0.00129
+   T35-ML+0e+00     2   1 |   0.9173   0.9191 |  +0.00177+-0.00121 |  +0.00197+-0.00121 |  +0.00010 |  +0.00058
+   T40-ML+0e+00     2   1 |   0.9234   0.9215 |  -0.00187+-0.00114 |  -0.00169+-0.00115 |  +0.00008 |  -0.00159
+   mean survival change +0.00038 (range -0.00187..+0.00177); mean score change +0.00055; survival lost >2SE in 0
+
+[product, rule=plain argmax, beta=0.02] opening differs from survival-only choice in 3/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T35-HM+0e+00     1   0 |   0.6799   0.6813 |  +0.00144+-0.00150 |  +0.00166+-0.00151 |  +0.00016 |  +0.00102
+   T35-ML+0e+00     2   1 |   0.9174   0.9186 |  +0.00117+-0.00121 |  +0.00156+-0.00122 |  +0.00019 |  +0.00008
+   T40-ML+0e+00     2   1 |   0.9236   0.9217 |  -0.00187+-0.00113 |  -0.00151+-0.00114 |  +0.00015 |  -0.00143
+   mean survival change +0.00024 (range -0.00187..+0.00144); mean score change +0.00057; survival lost >2SE in 0
+
+[product, rule=margin 1e-3 at year 0, beta=0.01] opening differs from survival-only choice in 4/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T30-HM+1e-03     1   0 |   0.6946   0.6917 |  -0.00282+-0.00157 |  -0.00271+-0.00158 |  -0.00089 |  -0.00295
+   T35-ML+0e+00     2   1 |   0.9173   0.9191 |  +0.00177+-0.00121 |  +0.00197+-0.00121 |  +0.00010 |  +0.00058
+   T40-HM+1e-03     1   0 |   0.7060   0.7035 |  -0.00252+-0.00148 |  -0.00243+-0.00148 |  -0.00094 |  -0.00268
+   T40-ML+0e+00     2   1 |   0.9234   0.9215 |  -0.00187+-0.00114 |  -0.00169+-0.00115 |  +0.00008 |  -0.00159
+   mean survival change -0.00136 (range -0.00282..+0.00177); mean score change -0.00122; survival lost >2SE in 0
+
+[product, rule=margin 1e-3 at year 0, beta=0.02] opening differs from survival-only choice in 4/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T30-HM+1e-03     1   0 |   0.6938   0.6922 |  -0.00162+-0.00157 |  -0.00140+-0.00158 |  -0.00079 |  -0.00248
+   T35-ML+0e+00     2   1 |   0.9174   0.9186 |  +0.00117+-0.00121 |  +0.00156+-0.00122 |  +0.00019 |  +0.00008
+   T40-HM+1e-03     1   0 |   0.7054   0.7030 |  -0.00236+-0.00146 |  -0.00219+-0.00147 |  -0.00088 |  -0.00315
+   T40-ML+0e+00     2   1 |   0.9236   0.9217 |  -0.00187+-0.00113 |  -0.00151+-0.00114 |  +0.00015 |  -0.00143
+   mean survival change -0.00117 (range -0.00236..+0.00117); mean score change -0.00089; survival lost >2SE in 0
+
+[candidate, rule=plain argmax, beta=0.01] opening differs from survival-only choice in 1/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T40-ML+0e+00     2   1 |   0.9225   0.9221 |  -0.00033+-0.00110 |  -0.00008+-0.00111 |  +0.00001 |  -0.00055
+   mean survival change -0.00033 (range -0.00033..-0.00033); mean score change -0.00008; survival lost >2SE in 0
+
+[candidate, rule=plain argmax, beta=0.02] opening differs from survival-only choice in 3/30 households
+   house           k0  kb |    S(k0)    S(kb) |    surv kb-k0 +-SE |   score kb-k0 +-SE |   tab gap |     cross
+   T30-ML+0e+00     2   1 |   0.9144   0.9141 |  -0.00032+-0.00122 |  +0.00011+-0.00123 |  +0.00031 |  -0.00021
+   T35-ML+0e+00     2   1 |   0.9187   0.9184 |  -0.00034+-0.00118 |  +0.00010+-0.00119 |  +0.00013 |  +0.00049
+   T40-ML+0e+00     2   1 |   0.9229   0.9221 |  -0.00083+-0.00111 |  -0.00041+-0.00112 |  +0.00021 |  -0.00062
+   mean survival change -0.00050 (range -0.00083..-0.00032); mean score change -0.00007; survival lost >2SE in 0
+
+S(k) = realised survival of opening k under the beta pipeline; surv/score kb-k0 = paired gap under the beta pipeline;
+tab gap = beta-pipeline year-0 table gap kb-k0 (whole score); cross = S_beta(kb) - S_0(k0) across pipelines, same shocks (no SE).
+[product beta=0.01] mean over households of S_beta(own choice) - S_0(own choice): -0.00009 (min -0.00159)
+[product beta=0.02] mean over households of S_beta(own choice) - S_0(own choice): -0.00015 (min -0.00143)
+[candidate beta=0.01] mean over households of S_beta(own choice) - S_0(own choice): +0.00013 (min -0.00125)
+[candidate beta=0.02] mean over households of S_beta(own choice) - S_0(own choice): +0.00002 (min -0.00089)

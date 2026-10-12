@@ -1,0 +1,11 @@
+TOY RESULTS - Exp 3d: source of the coarse gap bias (product, T=35, 10 households x 2 gaps); error = gap - fine gap
+variant                                        mean err  mean|err|
+fully coarse (30 pts)                         +6.62e-03   6.75e-03
+fine t=1 values sampled at coarse nodes (log-odds)  +7.29e-04   9.52e-04
+fine t=1 values sampled at coarse nodes (prob)  -6.50e-04   1.12e-03
+fine t>=2, coarse steps 1 (log-odds)          +7.29e-04   9.52e-04
+fine t>=3, coarse steps 2 (log-odds)          +1.00e-03   1.14e-03
+fine t>=6, coarse steps 5 (log-odds)          +1.75e-03   1.79e-03
+fine t>=11, coarse steps 10 (log-odds)        +2.95e-03   2.98e-03
+fine t>=21, coarse steps 20 (log-odds)        +4.90e-03   4.96e-03
+fine t>=35, coarse steps 34 (log-odds)        +6.62e-03   6.75e-03

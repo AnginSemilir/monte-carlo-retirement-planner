@@ -105,7 +105,22 @@ The decision table's rows decide; each item's own reading adds only this:
 - **Changed from the review's design (declared):** P's runs on 16,000 paths, D's on 4,000 (the review's 16,000 for both P and D: item 2 reads P, so D's extra paths would buy no item; budget); S364's three arms read as each one's fall from C's own 60-point, 6-share S364 rather than against NE-ROOT's 30-point tables (B2's question asked at 60 points, as the review set it); the items' thresholds declared above; the cause lines a registered map of the items' outcomes (the review's process flag).
 - **The derivation, after its first output (declared):** its first run set S224's 120-point table by both item 1's and item 2's stories at once, so item 1's power was wrong (a ratio of 0.8 read INCONCLUSIVE); fixed in code with the JUDGED block unchanged (d06a3d6), then re-derived. The 120-point budget is measured (results-negrid-c-measure.txt: S380's 120-point solve 5046 s, 1.47 times its 60-point; peak memory 1093980 kB).
 - **The build:** audit-negridc.mjs, reduce-negrid-c.mjs (137 planted checks, each of items 1-10 reaching all three outcomes from its own plants, checked by the planted run itself, EDGES, every boundary planted exactly), mutate-reduce-negrid-c.py (111 of 111 caught, results-reduce-negrid-c-mutations.txt), derive-negrid-c.mjs, batch-negrid-c.sh, preflight-negrid-c.sh (with the audit's floor and line plants), measure-negrid-120.sh, inert-negridc.mjs, floors-negridc.mjs.
-- **The preflight:** to be run through the launcher before launch and quoted here.
+- **The preflight:** the fourth, through the launcher on 6236c12's build (runs.log 12 Oct 12:00 UK; the third, on the build before the 10:33 fix, passed alike at 10:48), passed; its lines, the figures not read:
+
+```
+SMOKE PASSED
+A. planted (137): all read as they should
+B. GATE: passed - the twelve jobs once and done at the registered settings (40 paths a world, P at four times where registered, scale 30, seed 7002); every job's settings in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); no LOR read counted off the LOR job; every file the log's
+B. solve seconds by job: BASE/P120S6Q5 191;BASE/P120S6Q5 143;BASE/P60S6Q5L25 174;ORDER/P60S6Q5 420;BASE/P120S6Q5F0 141;BASE/P60S12Q5 881;BASE/P60S12Q5 685;LOR/P120S6Q5 209;BASE/P120S6Q5 151;BASE/P120S6Q5 180;BASE/P60S6Q15 367;BASE/P60S6Q5 175;
+C. the plant arm: refused (exit 3; audit-negridc: S364 ORDER/P60S6Q5: the job's settings did not take)
+C. the plant pair: refused (exit 3; audit-negridc: S364 ORDER/P60S6Q5: the forced pair is not the registered tiers at one level and tier base)
+C. the plant force: refused (exit 3; audit-negridc: S364 ORDER/P60S6Q5: forcing CAND's own opening did not reproduce its run)
+C. the plant floor: refused (exit 3; audit-negridc: S224 BASE/P120S6Q5F0: the job's settings did not take)
+C. the plant line: refused (exit 3; audit-negridc: S364 BASE/P60S6Q5L25: the job's settings did not take)
+preflight done 12:44 UK
+```
+
+  The small grids (every job at 4 wealth points) put 12 shares at 4.79 (S224, 685 s against 143) and 5.03 (S364, 881 against 175) times the 6-share solve, judged four; 15 return nodes at 2.57 times (367 against 143), judged three; and ORDER at 2.40 times BASE on S364 (420 against 175), judged the same. At those ratios the budget rises by about two and a half core-hours and no job nears its 10 hours, the longest (S364 at 12 shares) about 5 h: judged from the small grids, NOT CHECKED at the registered ones.
 - **Seen before registration (declared):** the external review's text; results-negridc-floors.txt and results-negridc-inert.txt; B1's results in full and its files; stage A's and NE-ROOT's; the deep review's figures and its scratch reads; the derivation's first output (item 1's power wrong, as above).
 
 ## Derivation script

@@ -11,16 +11,17 @@
   S224 BASE P world 1: 30 76.7930 60 73.7264 move -3.0666
   S224 BASE D world 0: 30 25.1197 60 25.7064 move 0.5866
   S224 BASE D world 1: 30 77.1119 60 73.7126 move -3.3994
+  S364 BASE at SS (P), 30 points, table less its runs (NE-ROOT): world 0 3.6185, world 1 2.9066
   S224 BASE at P, 60 points, table less its 4,000-path runs: world 0 -1.6173, world 1 -0.8986
 
 2. THE POWER (1000 draws a cell through reduce-negrid-c.mjs's items(); B1's records as they are)
   item 1, each cell's ratio about 0.25 (+-0.1): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
-  item 1, each cell's ratio about 0.35 (+-0.1): HELD 0.0010 INCONCLUSIVE 0.9990 FALSIFIED 0.0000
-  item 1, each cell's ratio about 0.5 (+-0.1): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 1, each cell's ratio about 0.35 (+-0.1): HELD 0.0060 INCONCLUSIVE 0.9940 FALSIFIED 0.0000
+  item 1, each cell's ratio about 0.5 (+-0.1): HELD 0.0000 INCONCLUSIVE 0.9950 FALSIFIED 0.0050
   item 1, each cell's ratio about 0.8 (+-0.1): HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-  item 2, S224's 120-point table 0 points off its 16,000-path runs: HELD 0.0000 INCONCLUSIVE 0.2870 FALSIFIED 0.7130
-  item 2, S224's 120-point table -1 points off its 16,000-path runs: HELD 0.3070 INCONCLUSIVE 0.6870 FALSIFIED 0.0060
-  item 2, S224's 120-point table -2 points off its 16,000-path runs: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 2, S224's 120-point table 0 points off its 16,000-path runs: HELD 0.0010 INCONCLUSIVE 0.2670 FALSIFIED 0.7320
+  item 2, S224's 120-point table -1 points off its 16,000-path runs: HELD 0.2970 INCONCLUSIVE 0.6990 FALSIFIED 0.0040
+  item 2, S224's 120-point table -2 points off its 16,000-path runs: HELD 0.9970 INCONCLUSIVE 0.0030 FALSIFIED 0.0000
   item 2, S224's 120-point table -3 points off its 16,000-path runs: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 3 and 4, a job carrying 0.1 of S224's 60-point under-read: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
   items 3 and 4, a job carrying 0.3 of S224's 60-point under-read: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
@@ -33,21 +34,21 @@
   items 5-7, an arm carrying 0.6 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 5-7, an arm carrying 0.8 of S364's 60-point over-read (counted): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   items 5-7, S364's 60-point over-read under half a point (not counted): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
-  item 8, bridge 4 kept: HELD 0.9300 INCONCLUSIVE 0.0700 FALSIFIED 0.0000
-  item 8, bridge 4 small: HELD 0.1500 INCONCLUSIVE 0.7570 FALSIFIED 0.0930
+  item 8, bridge 4 kept: HELD 0.9120 INCONCLUSIVE 0.0880 FALSIFIED 0.0000
+  item 8, bridge 4 small: HELD 0.1240 INCONCLUSIVE 0.7720 FALSIFIED 0.1040
   item 8, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
 
 3. THE CREDENCES (the receipt of 11 Oct 23:09 UK: RG-UNMASK=0.5; RG-WSLOW=0.15; RG-PATHS=0.15; RG-OTHER=0.2; S364-SHARE=0.3; S364-W=0.3; S364-COPY=0.15; S364-REF=0.07; S364-OTHER=0.18; the judged stories in this script's JUDGED; 40000 draws)
-CREDENCE item 1: point 0.4041 HELD 0.51 INCONCLUSIVE 0.43 FALSIFIED 0.06
-CREDENCE item 2: point -1.3390 HELD 0.55 INCONCLUSIVE 0.30 FALSIFIED 0.15
+CREDENCE item 1: point 0.4046 HELD 0.51 INCONCLUSIVE 0.43 FALSIFIED 0.06
+CREDENCE item 2: point -1.3373 HELD 0.55 INCONCLUSIVE 0.30 FALSIFIED 0.16
 CREDENCE item 3: point - HELD 0.24 INCONCLUSIVE 0.18 FALSIFIED 0.58
 CREDENCE item 4: point - HELD 0.24 INCONCLUSIVE 0.19 FALSIFIED 0.57
 CREDENCE item 5: point - HELD 0.29 INCONCLUSIVE 0.29 FALSIFIED 0.42
-CREDENCE item 6: point - HELD 0.28 INCONCLUSIVE 0.30 FALSIFIED 0.42
+CREDENCE item 6: point - HELD 0.29 INCONCLUSIVE 0.30 FALSIFIED 0.42
 CREDENCE item 7: point - HELD 0.13 INCONCLUSIVE 0.31 FALSIFIED 0.56
-CREDENCE item 8: point - HELD 0.85 INCONCLUSIVE 0.12 FALSIFIED 0.03
-  POINT item 1: 0.4041 (80% interval 0.2695 to 0.5779; the largest counted cell's |move 60 to 120| / |move 30 to 60|)
-  POINT item 2: -1.3390 (80% interval -2.7128 to 0.0101; S224's 120-point table less its 16,000-path runs, the lower world)
+CREDENCE item 8: point - HELD 0.83 INCONCLUSIVE 0.14 FALSIFIED 0.03
+  POINT item 1: 0.4046 (80% interval 0.2695 to 0.5783; the largest counted cell's |move 60 to 120| / |move 30 to 60|)
+  POINT item 2: -1.3373 (80% interval -2.7122 to 0.0114; S224's 120-point table less its 16,000-path runs, the lower world)
   DECISION ROWS: item 8 FALSIFIED 0.03; item 1 FALSIFIED 0.06; item 1 HELD, item 2 not HELD 0.20; items 1 and 2 HELD 0.29; else 0.42
 
 4. THE BUDGET (results-negrid-c-measure.txt: S380's 120-point solve 5046 s, peak memory 1093980 kB; B1's logs at 60 points; NE-ROOT's for S364, its 30-point solve doubled for 60)

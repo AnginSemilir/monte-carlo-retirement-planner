@@ -34,11 +34,19 @@ maintainer's words, which the maintainer may move.
   record has missed, methods and literature that bear on them, the root causes ranked with credences, the one decisive
   test with held / falsified / inconclusive lines and its cost, and, under trigger 3, what would leave the planned run
   wasted.
-- **The run.** By default automatic: a general-purpose agent spawned at the model and maximum effort the maintainer named.
-  No pushed file names the model, so when a trigger fires the session asks the maintainer which model to use, in one
-  question that also offers the manual route (the plan-auditor's MINOR 3 of 12 Oct 13:08 UK); the agent is
-  given the brief, the repository read-only (it writes no file) and web research allowed; its report comes back to the
-  session. Or manual: the maintainer runs the brief in a separate deep-research window and pastes the report back.
+- **The run: by default the maintainer's** (the maintainer, 12 Oct, the session: "give me an hour to respond and if not,
+  go ahead with fallback"). Only the maintainer's own run is sure of the model, the effort and a deep-research mode: the
+  agent tool takes a model family, not a version, and reports no serving model, and its web search is not the
+  deep-research mode. When a trigger fires, Claude commits the brief and asks the maintainer, in one message naming the
+  trigger and the brief, to run it in a separate window at the model, effort and deep-research mode the maintainer chose,
+  and to paste the report back; Claude schedules a check-in an hour later. Until the report or the fallback's is in,
+  other work goes on, but a run held by trigger 3 does not launch.
+- **The fallback, after an hour with no answer:** a general-purpose agent, at the model the maintainer named in the
+  session if the session has it, otherwise the session's own model (the agent's default), at maximum effort, given the
+  brief, the repository read-only (it writes no file) and web search; its report comes back to the session. Its record
+  is labelled FALLBACK with what ran: the model family asked for or the session's own model as get_session reports it,
+  maximum effort, web search rather than a deep-research mode (the serving model unconfirmed). The maintainer may still
+  run the brief later; a later report sits beside the fallback's.
 - **The record.** The report is saved verbatim beside its brief (`escalations/<D Mon>-<name>-report.md`) and a line added
   to the log below. It is outside evidence: grade C until a registered test repeats it, and each claim it rests a
   recommendation on is checked against the code and the records before it is acted on (the external review of 12 Oct

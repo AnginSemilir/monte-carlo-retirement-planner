@@ -1,0 +1,12 @@
+=== snapshot /tmp/solver-snap-1c3nGk   from e305907 + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+PART-YEAR: the shipping default (7u's SHIP, 30 points, lambda 0.0223606797749979, the estate weight 0.02) valued on 2026-01-01, 2026-07-01, 2026-10-01
+S194         2026-01-01: yf 1.0000 table 99.4341 gap 5.4317e-4 opening 0,2 years-1-on 2099ca4c8999a81a (840 arrays) SAME as 1 January; secs 550
+S194         2026-07-01: yf 0.5041 table 99.3911 gap 0 opening 0,0 years-1-on 2099ca4c8999a81a (840 arrays) SAME as 1 January; secs 557
+S194         2026-10-01: yf 0.2521 table 99.3575 gap 0 opening 0,0 years-1-on 2099ca4c8999a81a (840 arrays) SAME as 1 January; secs 543
+share 0.95   2026-01-01: yf 1.0000 table 0.0140 gap 1.6693e-5 opening 0,1 years-1-on 38f1c01665f3a033 (819 arrays) SAME as 1 January; secs 478
+share 0.95   2026-07-01: yf 0.5041 table 0.0186 gap 2.2598e-6 opening 0,1 years-1-on 38f1c01665f3a033 (819 arrays) SAME as 1 January; secs 491
+share 0.95   2026-10-01: yf 0.2521 table 0.0204 gap 2.3893e-5 opening 0,2 years-1-on 38f1c01665f3a033 (819 arrays) SAME as 1 January; secs 480
+planted: a flipped bit in a year-1 array reads DIFFERENT (as it must)
+identity: both 1 January units reproduce 7u's printed SHIP lines (table, gap, opening)
+=== snapshot kept at /tmp/solver-snap-1c3nGk for provenance; remove it when the results are written up

@@ -134,16 +134,17 @@ export function offOf(table, ok, n) { const [l, h] = clopperPearson(ok, n, 2 * a
 const read3 = (cells, hold, fals) => { const cc = cells.filter(c => c.counted); return cc.length && cc.every(hold) ? 'HELD' : cc.length && cc.every(fals) ? 'FALSIFIED' : 'INCONCLUSIVE'; };
 /* B1 = { S380: { BASE: { coarse, fine }, LOR: {...} }, S224: { BASE: {...} } } of tables by world { P, D }, and B1's S224 fine
    P runs ({ ok, n } by world) */
-export function items(J, B1, b1Runs224) {
+export function items(J, B1, b1Runs224, extra) {
   const out = {}, jt = (id, label) => J[key(id, label)];
-  // item 1: convergence, m2 against m1
-  const cells = [];
-  for (const [id, arm, label] of [['S380', 'BASE', 'BASE/P120S6Q5'], ['S380', 'LOR', 'LOR/P120S6Q5'], ['S224', 'BASE', 'BASE/P120S6Q5']]) for (const o of ['P', 'D']) for (const k of [0, 1]) {
+  // item 1: convergence, m2 against m1, on the candidate's read (BASE: the plan-auditor's MINOR 3 of 12 Oct 08:12 UK); LOR's
+  // cells computed alike and reported
+  const cells = [], lorCells = [];
+  for (const [id, arm, label] of [['S380', 'BASE', 'BASE/P120S6Q5'], ['S224', 'BASE', 'BASE/P120S6Q5'], ['S380', 'LOR', 'LOR/P120S6Q5']]) for (const o of ['P', 'D']) for (const k of [0, 1]) {
     const t30 = B1[id][arm].coarse[k][o], t60 = B1[id][arm].fine[k][o], t120 = jt(id, label).tables[k][o], m1 = t60 - t30, m2 = t120 - t60;
     const counted = q(Math.abs(m1)) >= GMIN;
-    cells.push({ id, arm, o, k, t30, t60, t120, m1, m2, counted, r: counted ? q(Math.abs(m2) / Math.abs(m1)) : null });
+    (arm === 'LOR' ? lorCells : cells).push({ id, arm, o, k, t30, t60, t120, m1, m2, counted, r: counted ? q(Math.abs(m2) / Math.abs(m1)) : null });
   }
-  out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.r >= FIRST), cells };
+  out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.r >= FIRST), cells, lorCells };
   // item 2: S224's table at P less its 16,000-path runs at 120 points, worlds 0 and 1
   const j2 = jt('S224', 'BASE/P120S6Q5'), u2 = [0, 1].map(k => { const s = j2.sims[`P${k}`]; return { k, ...offOf(j2.tables[k].P, s.ok, s.n) }; });
   out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD' : u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED' : 'INCONCLUSIVE', w: u2 };
@@ -151,25 +152,57 @@ export function items(J, B1, b1Runs224) {
   const under60 = [0, 1].map(k => { const s = b1Runs224[k]; return { k, u: B1.S224.BASE.fine[k].P - 100 * s.ok / s.n }; });
   const carry = label => { const j = jt('S224', label); const c = under60.map(x => { const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, counted = q(-x.u) >= GMIN; return { k: x.k, u: x.u, rise, counted, frac: counted ? q(rise / -x.u) : null }; }); return { outcome: read3(c, x => x.frac >= CARRY, x => x.frac < LITTLE), cells: c }; };
   out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P60S12Q5');
-  // item 4: what carries S364's 60-point over-read
+  // items 5-7: what carries S364's 60-point over-read
   const b4 = jt('S364', 'BASE/P60S6Q5'), over60 = [0, 1].map(k => { const s = b4.sims[`P${k}`]; return { k, o: b4.tables[k].P - 100 * s.ok / s.n }; });
   const fall = label => { const j = jt('S364', label); const c = over60.map(x => { const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted = q(x.o) >= GMIN; return { k: x.k, o: x.o, dropped, counted, frac: counted ? q(dropped / x.o) : null }; }); return { outcome: read3(c, x => x.frac >= CARRY, x => x.frac < LITTLE), cells: c }; };
   out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120S6Q5'); out['7'] = fall('ORDER/P60S6Q5');
-  // item 5: bridge 4 at 120 points, its own opening
+  // item 8: bridge 4 at 120 points, its own opening
   const j5 = jt('bridge 4', 'BASE/P120S6Q5'), o5 = j5.own.ai === j5.pair.P ? 'P' : j5.own.ai === j5.pair.D ? 'D' : 'OWN';
   const w5 = [0, 1, 2].map(k => { const s = j5.sims[`${o5}${k}`]; return { k, ...offOf(j5.tables[k][o5], s.ok, s.n) }; });
   out[8] = { outcome: w5.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD' : w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED' : 'INCONCLUSIVE', o: o5, w: w5 };
   // the causes, by the registered map
-  const b1Under = under60.some(x => q(-x.u) >= UNDER);
+  // RG-PATHS splits on the first 4,000 paths (B1's) against the 16,000: held when the 16,000 show no under-read (item 2
+  // FALSIFIED) and the first 4,000 do (the table under them by more than half a point in a world); S364-W's 'not' needs
+  // the 60-point over-read to keep at least half the 30-point one (NE-ROOT's) in every counted world, or the axis may have
+  // carried most of it between 30 and 60 (the plan-auditor's BLOCKING 2 of 12 Oct 08:12 UK)
+  const lucky = [0, 1].some(k => q(j2.tables[k].P - 100 * extra.first4k(k) / NPW) < -UNDER);
+  const keepsMost = over60.every((x, k) => !(q(x.o) >= GMIN) || q(x.o) >= q(0.5 * extra.over30[k]));
   out.causes = {
     'RG-WSLOW': out[1].outcome === 'FALSIFIED' ? 'held' : out[1].outcome === 'HELD' ? 'not' : 'open',
-    'RG-PATHS': out[2].outcome === 'FALSIFIED' && b1Under ? 'held' : out[2].outcome === 'HELD' ? 'not' : 'open',
+    'RG-PATHS': out[2].outcome === 'FALSIFIED' && lucky ? 'held' : out[2].outcome === 'HELD' ? 'not' : 'open',
     'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome === 'HELD' || out['4'].outcome === 'HELD') ? 'held' : out[2].outcome === 'FALSIFIED' ? 'not' : 'open',
     'S364-SHARE': { HELD: 'held', FALSIFIED: 'not' }[out['5'].outcome] || 'open',
-    'S364-W': { HELD: 'held', FALSIFIED: 'not' }[out['6'].outcome] || 'open',
+    'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].outcome === 'FALSIFIED' && keepsMost ? 'not' : 'open',
     'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outcome] || 'open',
   };
   return out;
+}
+
+/* THE READ, from the items to the OUTCOME line, as lines: the main prints them, and a planted check runs it end to end on a
+   synthetic set (the plan-auditor's BLOCKING 1 of 12 Oct 08:12 UK: a print path no check ran) */
+export function report(J, B1, runs224, extra, bitsOf, b1BitsOf) {
+  const L = [], f4 = x => (Number.isFinite(x) ? x.toFixed(4) : String(x)), it = items(J, B1, runs224, extra);
+  const cellsOf = cs => cs.map(c => `${c.id} ${c.arm} ${c.o} world ${c.k}: 30 ${f4(c.t30)}, 60 ${f4(c.t60)}, 120 ${f4(c.t120)}${c.counted ? ` ratio ${f4(c.r)}` : ' (not counted)'}`).join('; ');
+  L.push('', 'THE ITEMS (each read by its registered rule)');
+  L.push(`1. the wealth axis converges at second order under BASE (|m2| / |m1| at most 0.35): ${it[1].outcome}`, `     ${cellsOf(it[1].cells)}`, `     REPORTED, LOR: ${cellsOf(it[1].lorCells)}`);
+  L.push(`2. S224's under-read stays at 120 points on 16,000 paths a world: ${it[2].outcome}`, `     ${it[2].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
+  for (const [i, what] of [['3', '15 return nodes'], ['4', '12 shares']]) L.push(`${i}. ${what} carry S224's 60-point under-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: under-read ${f4(c.u)}, rise ${f4(c.rise)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
+  for (const [i, what] of [['5', '12 shares'], ['6', '120 points'], ['7', 'ORDER']]) L.push(`${i}. ${what} carry S364's 60-point over-read: ${it[i].outcome}`, `     ${it[i].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
+  L.push(`8. bridge 4 within 0.3 points at 120 points: ${it[8].outcome}`, `     at ${it[8].o}: ${it[8].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
+  L.push('', 'THE CAUSES (the registered map)');
+  for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
+  L.push('', 'REPORTED');
+  L.push(`  S364's over-read at 30 points (NE-ROOT, results-neroot.txt) by world: ${extra.over30.map(f4).join(', ')}`);
+  const sum = x => x.reduce((t, v) => t + v, 0);
+  for (const id of ['S224', 'S380']) { const j = J[key(id, 'BASE/P120S6Q5')]; L.push(`  ${id} BASE at 120 points, P: ${[0, 1, 2].map(k => { const b = bitsOf(j, `P${k}`), a = b.subarray(0, NPW), r = b.subarray(NPW); return `world ${k} the first 4,000 paths ${f4(100 * sum(a) / a.length)}, the other 12,000 ${f4(r.length ? 100 * sum(r) / r.length : NaN)}, table ${f4(j.tables[k].P)}`; }).join('; ')}`); }
+  for (const [id, label, arm] of [['S380', 'BASE/P120S6Q5', 'BASE'], ['S380', 'LOR/P120S6Q5', 'LOR'], ['S224', 'BASE/P120S6Q5', 'BASE'], ['bridge 4', 'BASE/P120S6Q5', 'BASE']]) {
+    const j = J[key(id, label)];
+    L.push(`  ${id} ${arm} at P, the 120-point policy against the 60-point one on B1's 4,000 paths: ${[0, 1, 2].map(k => { const a = b1BitsOf(id, arm, k), b = bitsOf(j, `P${k}`).subarray(0, NPW); let lost = 0, saved = 0; for (let i = 0; i < NPW; i++) { if (a[i] && !b[i]) lost++; else if (!a[i] && b[i]) saved++; } return `world ${k} ${saved} saved/${lost} lost (${f4(100 * (saved - lost) / NPW)})`; }).join('; ')}`);
+  }
+  L.push(`REALISED item 1: ${f4(Math.max(...it[1].cells.filter(c => c.counted).map(c => c.r)))}`);
+  L.push(`REALISED item 2: ${f4(Math.min(...it[2].w.map(x => x.d)))}`);
+  L.push(`OUTCOME: ${['1', '2', '3', '4', '5', '6', '7', '8'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  return L;
 }
 
 /* PLANTED: every boundary the items, the causes and the gate turn on, read as it should, each at a value the double holds
@@ -186,9 +219,10 @@ function planted() {
     // B1's records: S380 and S224 coarse 48 and fine 50 everywhere (m1 = 2); S224's fine runs at its table (no under-read)
     const g = () => ({ coarse: [0, 1, 2].map(() => ({ P: 48, D: 48 })), fine: [0, 1, 2].map(() => ({ P: 50, D: 50 })) });
     const B1 = { S380: { BASE: g(), LOR: g() }, S224: { BASE: g() } };
-    return { J, B1, runs: [0, 1, 2].map(() => ({ ok: 2000, n: N })) };
+    return { J, B1, runs: [0, 1, 2].map(() => ({ ok: 2000, n: N })), f4k: [2000, 2000, 2000], over30: [4, 4] };
   };
-  const run = mut => { const s = base(); mut(s); return items(s.J, s.B1, s.runs); };
+  const xOf = s => ({ first4k: k => s.f4k[k], over30: s.over30 });
+  const run = mut => { const s = base(); mut(s); return items(s.J, s.B1, s.runs, xOf(s)); };
   const jt = (s, id, label) => s.J[key(id, label)];
   const setP = (s, id, label, v, ks = [0, 1]) => { for (const k of ks) jt(s, id, label).tables[k].P = v; };
   // item 1: m1 = 2 everywhere; m2 sets the ratio
@@ -202,7 +236,8 @@ function planted() {
   cases.push(['world 2 not read (its move 2 of 2), the rest 0.25: 1 HELD', run(m2(0.5, s => { for (const [id, l] of [['S380', 'BASE/P120S6Q5'], ['S380', 'LOR/P120S6Q5']]) jt(s, id, l).tables[2].P = 52; }))[1].outcome, 'HELD']);
   cases.push(['no cell moved half a point from 30 to 60: 1 INCONCLUSIVE', run(s => { for (const id of ['S380', 'S224']) for (const arm of Object.keys(s.B1[id])) for (const k of [0, 1, 2]) { s.B1[id][arm].coarse[k].P = 49.75; s.B1[id][arm].coarse[k].D = 49.75; } })[1].outcome, 'INCONCLUSIVE']); EDGES.push('no cell counted');
   cases.push(['a 30-to-60 move exactly half a point is counted (and its 120 move a tenth of it): 1 HELD', run(s => { for (const id of ['S380', 'S224']) for (const arm of Object.keys(s.B1[id])) for (const k of [0, 1, 2]) { s.B1[id][arm].coarse[k].P = 49.5; s.B1[id][arm].coarse[k].D = 49.5; } m2(0.05)(s); })[1].outcome, 'HELD']); EDGES.push('a move exactly at half a point');
-  cases.push(['S380 LOR\'s cells read too (LOR slow alone): 1 INCONCLUSIVE', run(m2(0.5, s => { jt(s, 'S380', 'LOR/P120S6Q5').tables[0].P = 51.5; }))[1].outcome, 'INCONCLUSIVE']);
+  cases.push(['S380 LOR\'s cells reported, not read (LOR slow alone, BASE at 0.25): 1 HELD', run(m2(0.5, s => { jt(s, 'S380', 'LOR/P120S6Q5').tables[0].P = 51.5; }))[1].outcome, 'HELD']); EDGES.push('the other read slow, the candidate\'s converging');
+  cases.push(['S380 BASE\'s cells read (BASE slow in one cell): 1 INCONCLUSIVE', run(m2(0.5, s => { jt(s, 'S380', 'BASE/P120S6Q5').tables[0].P = 51.5; }))[1].outcome, 'INCONCLUSIVE']);
   // item 2: S224 at 120, P's runs on 16,000 paths at 8,000 (50); the table sets the under-read
   cases.push(['S224 at its runs: 2 FALSIFIED', run(s => {})[2].outcome, 'FALSIFIED']);
   cases.push(['S224 under its runs by exactly 0.5 at the point: 2 FALSIFIED', run(s => setP(s, 'S224', 'BASE/P120S6Q5', 49.5))[2].outcome, 'FALSIFIED']); EDGES.push('an under-read exactly at half a point');
@@ -241,9 +276,9 @@ function planted() {
   cases.push(['ORDER changes nothing: 7 FALSIFIED', run(o4)['7'].outcome, 'FALSIFIED']);
   cases.push(['an under-read at 60 points is not an over-read to carry (S364 2 under its runs): 5 INCONCLUSIVE', run(s => { for (const l of ['BASE/P60S6Q5', 'BASE/P60S12Q5', 'BASE/P120S6Q5', 'ORDER/P60S6Q5']) setP(s, 'S364', l, 48); setP(s, 'S364', 'BASE/P60S12Q5', 47); })['5'].outcome, 'INCONCLUSIVE']);
   cases.push(['no 60-point over-read (S364 at its runs): 7 INCONCLUSIVE', run(s => setP(s, 'S364', 'ORDER/P60S6Q5', 48))['7'].outcome, 'INCONCLUSIVE']); EDGES.push('no over-read to carry');
-  cases.push(['an over-read under half a point is not counted (0.4999): 8 INCONCLUSIVE', run(s => { setP(s, 'S364', 'BASE/P60S6Q5', 50.4999); setP(s, 'S364', 'BASE/P60S12Q5', 50); })['5'].outcome, 'INCONCLUSIVE']);
+  cases.push(['an over-read under half a point is not counted (0.4999): 5 INCONCLUSIVE', run(s => { setP(s, 'S364', 'BASE/P60S6Q5', 50.4999); setP(s, 'S364', 'BASE/P60S12Q5', 50); })['5'].outcome, 'INCONCLUSIVE']);
   cases.push(['6 reads the 120-point job, not ORDER (ORDER lowers it, 120 not): 6 FALSIFIED', run(lowered('ORDER/P60S6Q5', 50))['6'].outcome, 'FALSIFIED']);
-  // item 5: bridge 4 at 120 points, its own opening (P here), runs 3900 of 4000 (97.5)
+  // item 8: bridge 4 at 120 points, its own opening (P here), runs 3900 of 4000 (97.5)
   const b5 = (d, own = null) => s => { const j = jt(s, 'bridge 4', 'BASE/P120S6Q5'); j.sims.P0 = { ok: 3900, n: N }; j.tables[0].P = 97.5 + d; if (own !== null) { j.own.ai = own; j.sims.D0 = { ok: 3900, n: N }; j.tables[0].D = 97.5 + d; } };
   cases.push(['bridge 4 off by exactly 0.3: 8 HELD', run(b5(0.3))[8].outcome, 'HELD']); EDGES.push('a control point exactly at 0.3');
   cases.push(['bridge 4 off by 0.3000001: 8 INCONCLUSIVE', run(b5(0.3000001))[8].outcome, 'INCONCLUSIVE']);
@@ -257,17 +292,27 @@ function planted() {
   cases.push(['item 1 FALSIFIED: RG-WSLOW held', cz(m2(1), 'RG-WSLOW'), 'held']);
   cases.push(['item 1 HELD: RG-WSLOW not', cz(m2(0.5), 'RG-WSLOW'), 'not']);
   cases.push(['item 1 INCONCLUSIVE: RG-WSLOW open', cz(m2(0.8), 'RG-WSLOW'), 'open']);
-  cases.push(['item 2 FALSIFIED with B1\'s under-read of 2: RG-PATHS held', cz(u2, 'RG-PATHS'), 'held']);
-  cases.push(['item 2 FALSIFIED with no B1 under-read: RG-PATHS open', cz(s => {}, 'RG-PATHS'), 'open']); EDGES.push('a cause left open');
+  cases.push(['item 2 FALSIFIED, the table 2 under the first 4,000 paths\' runs: RG-PATHS held', cz(s => { s.f4k = [2080, 2080, 2000]; }, 'RG-PATHS'), 'held']);
+  cases.push(['item 2 FALSIFIED, the table 2 under the first 4,000\'s runs in world 1 only: RG-PATHS held', cz(s => { s.f4k = [2000, 2080, 2000]; }, 'RG-PATHS'), 'held']);
+  cases.push(['item 2 FALSIFIED, the table at the first 4,000 paths\' runs: RG-PATHS open', cz(s => {}, 'RG-PATHS'), 'open']); EDGES.push('a cause left open');
+  cases.push(['item 2 FALSIFIED, the table exactly 0.5 under the first 4,000\'s runs: RG-PATHS open', cz(s => { s.f4k = [2020, 2020, 2000]; }, 'RG-PATHS'), 'open']); EDGES.push('a path-luck gap exactly at half a point');
+  cases.push(['item 2 FALSIFIED, B1\'s 60-point under-read alone (the first 4,000 at the table): RG-PATHS open', cz(u2, 'RG-PATHS'), 'open']);
   cases.push(['item 2 HELD: RG-PATHS not', cz(s => setP(s, 'S224', 'BASE/P120S6Q5', 47), 'RG-PATHS'), 'not']);
   cases.push(['item 2 HELD and 4 HELD: RG-UNMASK held', cz(s => { u2(s); setP(s, 'S224', 'BASE/P120S6Q5', 47); setP(s, 'S224', 'BASE/P60S12Q5', 52); }, 'RG-UNMASK'), 'held']);
   cases.push(['item 2 HELD, 3 and 4 not: RG-UNMASK open', cz(s => { u2(s); setP(s, 'S224', 'BASE/P120S6Q5', 47); }, 'RG-UNMASK'), 'open']);
   cases.push(['item 2 FALSIFIED: RG-UNMASK not', cz(s => {}, 'RG-UNMASK'), 'not']);
   cases.push(['5 HELD: S364-SHARE held', cz(lowered('BASE/P60S12Q5', 50), 'S364-SHARE'), 'held']);
-  cases.push(['6 FALSIFIED: S364-W not', cz(o4, 'S364-W'), 'not']);
+  cases.push(['6 FALSIFIED, the 60-point over-read keeping at least half the 30-point one (4 of 4): S364-W not', cz(o4, 'S364-W'), 'not']);
+  cases.push(['6 FALSIFIED, the 60-point over-read under half the 30-point one (4 of 10): S364-W open', cz(s => { o4(s); s.over30 = [10, 10]; }, 'S364-W'), 'open']); EDGES.push('an axis that carried most of an over-read before 60 points');
+  cases.push(['6 FALSIFIED, the 60-point over-read exactly half the 30-point one (4 of 8): S364-W not', cz(s => { o4(s); s.over30 = [8, 8]; }, 'S364-W'), 'not']);
   cases.push(['6 HELD with 5 not: S364-W held', cz(lowered('BASE/P120S6Q5', 50), 'S364-W'), 'held']);
   cases.push(['7 FALSIFIED: S364-REF not', cz(o4, 'S364-REF'), 'not']);
   cases.push(['7 INCONCLUSIVE: S364-REF open', cz(lowered('ORDER/P60S6Q5', 52, [0]), 'S364-REF'), 'open']);
+  // the read end to end: report() on a synthetic set prints every item, every cause and the OUTCOME line
+  { const st = base(); const ones = (n, ok) => { const b = new Uint8Array(n); for (let i = 0; i < ok; i++) b[i] = 1; return b; };
+    let lines = [], err = null; try { lines = report(st.J, st.B1, st.runs, xOf(st), (j, nm) => ones(j.sims[nm].n, j.sims[nm].ok), () => ones(N, 2000)); } catch (e) { err = e.message; }
+    const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
+    cases.push(['the read prints every item\'s line, all six causes and an OUTCOME line of eight items, end to end', err || `${['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${oc.split(', ').length}`, 'true 6 8']); EDGES.push('the whole read printed'); }
   // the gate, on a synthetic log built as the audit prints
   const jobText = (jb, o = {}) => {
     const [id, arm, pts0, sh, qn, mult] = jb, L = jobLabel(jb), pad = ''.padEnd(16), pts = o.pts || Math.max(4, Math.round(pts0 / 30)), [P, D] = PAIRS[id], own = o.own !== undefined ? o.own : P, npw = 4;
@@ -375,23 +420,10 @@ if (isMain) {
     console.log(`\n${key(j.id, j.label)} (${j.pts} points): own ai ${j.own.ai} level ${j.own.level} tiers ${j.own.tiers}; reader tables ${j.reader.tables} unsupported ${j.reader.unsupported} copied ${j.reader.copied} copiedTop ${j.reader.copiedTop}; clamps n ${j.reader.clampN}`);
     for (const x of j.tables) { const sim = o => { const s = j.sims[`${o}${x.k}`]; return s ? ` sim ${f4(100 * s.ok / s.n)} (${s.ok}/${s.n})` : ''; }; console.log(`  world ${x.k} (weight ${x.weight}): P ${f4(x.P)}${sim('P')}; D ${f4(x.D)}${sim('D')}; OWN ${f4(x.OWN)}${sim('OWN')}`); }
   }
-  const it = items(J, B1, runs224);
-  console.log('\nTHE ITEMS (each read by its registered rule)');
-  console.log(`1. the wealth axis converges at second order (|m2| / |m1| at most 0.35): ${it[1].outcome}\n     ${it[1].cells.map(c => `${c.id} ${c.arm} ${c.o} world ${c.k}: 30 ${f4(c.t30)}, 60 ${f4(c.t60)}, 120 ${f4(c.t120)}${c.counted ? ` ratio ${f4(c.r)}` : ' (not counted)'}`).join('; ')}`);
-  console.log(`2. S224's under-read stays at 120 points on 16,000 paths a world: ${it[2].outcome}\n     ${it[2].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
-  for (const [i, what] of [['3', '15 return nodes'], ['4', '12 shares']]) console.log(`${i}. ${what} carry S224's 60-point under-read: ${it[i].outcome}\n     ${it[i].cells.map(c => `world ${c.k}: under-read ${f4(c.u)}, rise ${f4(c.rise)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
-  for (const [i, what] of [['5', '12 shares'], ['6', '120 points'], ['7', 'ORDER']]) console.log(`${i}. ${what} carry S364's 60-point over-read: ${it[i].outcome}\n     ${it[i].cells.map(c => `world ${c.k}: over-read ${f4(c.o)}, fall ${f4(c.dropped)}${c.counted ? ` share ${f4(c.frac)}` : ' (not counted)'}`).join('; ')}`);
-  console.log(`8. bridge 4 within 0.3 points at 120 points: ${it[8].outcome}\n     at ${it[5].o}: ${it[5].w.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`);
-  console.log('\nTHE CAUSES (the registered map)');
-  for (const [c, v] of Object.entries(it.causes)) console.log(`=> ${c} ${v}`);
-  console.log('\nREPORTED');
   const bitsOf = (j, nm) => Buffer.from(files[j.file].bits[nm], 'base64');
-  for (const id of ['S224', 'S380']) { const j = J[key(id, 'BASE/P120S6Q5')]; console.log(`  ${id} BASE at 120 points, P: ${[0, 1, 2].map(k => { const b = bitsOf(j, `P${k}`), a = b.subarray(0, NPW), r = b.subarray(NPW); const s = x => x.reduce((t, v) => t + v, 0); return `world ${k} the first 4,000 paths ${f4(100 * s(a) / a.length)}, the other 12,000 ${f4(100 * s(r) / r.length)}, table ${f4(j.tables[k].P)}`; }).join('; ')}`); }
-  for (const [id, label, arm] of [['S380', 'BASE/P120S6Q5', 'BASE'], ['S380', 'LOR/P120S6Q5', 'LOR'], ['S224', 'BASE/P120S6Q5', 'BASE'], ['bridge 4', 'BASE/P120S6Q5', 'BASE']]) {
-    const j = J[key(id, label)], b1 = b1Jobs.find(x => x.id === id && x.arm === arm && x.grid === 'fine'), b1b = k => Buffer.from(b1Files[b1.file].bits[`P${k}`], 'base64');
-    console.log(`  ${id} ${arm} at P, the 120-point policy against the 60-point one on B1's 4,000 paths: ${[0, 1, 2].map(k => { const a = b1b(k), b = bitsOf(j, `P${k}`).subarray(0, NPW); let lost = 0, saved = 0; for (let i = 0; i < NPW; i++) { if (a[i] && !b[i]) lost++; else if (!a[i] && b[i]) saved++; } const u = survivalChangeU(0, lost, saved, NPW - lost - saved, ALPHA); return `world ${k} ${saved} saved/${lost} lost (${f4(100 * (saved - lost) / NPW)})`; }).join('; ')}`);
-  }
-  console.log(`REALISED item 1: ${f4(Math.max(...it[1].cells.filter(c => c.counted).map(c => c.r)))}`);
-  console.log(`REALISED item 2: ${f4(Math.min(...it[2].w.map(x => x.d)))}`);
-  console.log(`OUTCOME: ${['1', '2', '3', '4', '5', '6', '7', '8'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  const b1BitsOf = (id, arm, k) => { const b1 = b1Jobs.find(x => x.id === id && x.arm === arm && x.grid === 'fine'); return Buffer.from(b1Files[b1.file].bits[`P${k}`], 'base64'); };
+  const j224 = J[key('S224', 'BASE/P120S6Q5')], nr = readFileSync(join(HERE, 'results-neroot.txt'), 'utf8'), blk = nr.slice(nr.indexOf('\nS364 BASE/W0.02:') + 1);
+  const over30 = [0, 1].map(k => { const m = new RegExp(`world ${k} .*?SS table (\\S+) sim \\S+ \\((\\d+)\\/(\\d+)\\)`).exec(blk); return Number(m[1]) - 100 * Number(m[2]) / Number(m[3]); });
+  const extra = { first4k: k => bitsOf(j224, `P${k}`).subarray(0, NPW).reduce((t, v) => t + v, 0), over30 };
+  for (const l of report(J, B1, runs224, extra, bitsOf, b1BitsOf)) console.log(l);
 }

@@ -38,36 +38,43 @@ caught: 37: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.
 caught: 38: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.
 caught: 39: r: counted ? q(Math.abs(m2) / Math.abs(m1)) : null
 caught: 40: const t30 = B1[id][arm].coarse[k][o], t60 = B1[id][arm].fine
-caught: 41: ['S380', 'LOR', 'LOR/P120S6Q5'], ['S224', 'BASE', 'BASE/P120
-caught: 42: return cc.length && cc.every(hold) ? 'HELD'
-caught: 43: return cc.length && cc.every(hold) ? 'HELD' : cc.length && c
-caught: 44: cc.length && cc.every(fals) ? 'FALSIFIED'
-caught: 45: out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD'
+caught: 41: ['S224', 'BASE', 'BASE/P120S6Q5'], ['S380', 'LOR', 'LOR/P120
+caught: 42: (arm === 'LOR' ? lorCells : cells).push(
+caught: 43: return cc.length && cc.every(hold) ? 'HELD'
+caught: 44: return cc.length && cc.every(hold) ? 'HELD' : cc.length && c
+caught: 45: cc.length && cc.every(fals) ? 'FALSIFIED'
 caught: 46: out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD'
-caught: 47: u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED'
+caught: 47: out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD'
 caught: 48: u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED'
-caught: 49: const j2 = jt('S224', 'BASE/P120S6Q5'), u2 = [0, 1].map(
-caught: 50: const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, cou
+caught: 49: u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED'
+caught: 50: const j2 = jt('S224', 'BASE/P120S6Q5'), u2 = [0, 1].map(
 caught: 51: const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, cou
-caught: 52: frac: counted ? q(rise / -x.u) : null }; }); return { outcom
+caught: 52: const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, cou
 caught: 53: frac: counted ? q(rise / -x.u) : null }; }); return { outcom
-caught: 54: out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P6
+caught: 54: frac: counted ? q(rise / -x.u) : null }; }); return { outcom
 caught: 55: out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P6
-caught: 56: const under60 = [0, 1].map(k => { const s = b1Runs224[k]; re
-caught: 57: const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted 
+caught: 56: out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P6
+caught: 57: const under60 = [0, 1].map(k => { const s = b1Runs224[k]; re
 caught: 58: const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted 
-caught: 59: frac: counted ? q(dropped / x.o) : null }; }); return { outc
-caught: 60: out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120
+caught: 59: const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted 
+caught: 60: frac: counted ? q(dropped / x.o) : null }; }); return { outc
 caught: 61: out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120
-caught: 62: w5.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'
-caught: 63: w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 62: out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120
+caught: 63: w5.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'
 caught: 64: w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
-caught: 65: o5 = j5.own.ai === j5.pair.P ? 'P' : j5.own.ai === j5.pair.D
-caught: 66: 'RG-WSLOW': out[1].outcome === 'FALSIFIED' ? 'held' : out[1]
-caught: 67: 'RG-PATHS': out[2].outcome === 'FALSIFIED' && b1Under ? 'hel
-caught: 68: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
-caught: 69: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
-caught: 70: 'S364-W': { HELD: 'held', FALSIFIED: 'not' }[out['6'].outcom
-caught: 71: 'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outc
-caught: 72: export const q = x => Math.round(x * 1e9) / 1e9;
-72 of 72 mutations caught
+caught: 65: w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 66: o5 = j5.own.ai === j5.pair.P ? 'P' : j5.own.ai === j5.pair.D
+caught: 67: 'RG-WSLOW': out[1].outcome === 'FALSIFIED' ? 'held' : out[1]
+caught: 68: 'RG-PATHS': out[2].outcome === 'FALSIFIED' && lucky ? 'held'
+caught: 69: q(j2.tables[k].P - 100 * extra.first4k(k) / NPW) < -UNDER
+caught: 70: const lucky = [0, 1].some(
+caught: 71: q(x.o) >= q(0.5 * extra.over30[k])
+caught: 72: 'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].ou
+caught: 73: 'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].ou
+caught: 74: at ${it[8].o}: ${it[8].w.map(
+caught: 75: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 76: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
+caught: 77: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
+caught: 78: 'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outc
+caught: 79: export const q = x => Math.round(x * 1e9) / 1e9;
+79 of 79 mutations caught

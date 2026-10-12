@@ -62,6 +62,8 @@ console.log('1. THE RECORDS (NE-GRID B1, seed 7002; results/diagnegrid behind B1
 const m1cells = [];
 for (const [id, arm] of [['S380', 'BASE'], ['S380', 'LOR'], ['S224', 'BASE']]) for (const o of ['P', 'D']) for (const k of [0, 1]) { const m1 = B1[id][arm].fine[k][o] - B1[id][arm].coarse[k][o]; m1cells.push({ id, arm, o, k, m1 }); console.log(`  ${id} ${arm} ${o} world ${k}: 30 ${f4(B1[id][arm].coarse[k][o])} 60 ${f4(B1[id][arm].fine[k][o])} move ${f4(m1)}${Math.abs(m1) >= 0.5 ? '' : ' (not counted)'}`); }
 const u60 = [0, 1].map(k => B1.S224.BASE.fine[k].P - 100 * runs224[k].ok / runs224[k].n);
+const jr364 = jNR.find(j => j.id === 'S364' && j.arm === 'BASE' && j.w === '0.02'), over30 = [0, 1].map(k => jr364.world[k].by.SS.table - 100 * jr364.world[k].by.SS.ok / jr364.world[k].by.SS.n);
+console.log(`  S364 BASE at SS (P), 30 points, table less its runs (NE-ROOT): world 0 ${f4(over30[0])}, world 1 ${f4(over30[1])}`);
 console.log(`  S224 BASE at P, 60 points, table less its 4,000-path runs: world 0 ${f4(u60[0])}, world 1 ${f4(u60[1])}`);
 
 // 2. THE POWER through items(): a synthetic C per draw from the stories, B1's records as they are
@@ -78,7 +80,8 @@ function setOf({ r = 0.25, u120 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counte
   // item 2: S224's 120-point P runs drawn on 16,000 paths about a truth, its table u120 off it
   // its table stays the convergence story's (item 1 reads it too); its runs' truth sits u120 under the table (fixed after the
   // derivation's first output, which set the table by both stories at once; the JUDGED block unchanged)
-  { const j = J[key('S224', 'BASE/P120S6Q5')]; for (let k = 0; k < 2; k++) { const q = Math.min(1, Math.max(0, (j.tables[k].P - u120) / 100)), ok = binom(4 * NPW, q); j.sims[`P${k}`] = { ok, n: 4 * NPW }; } }
+  const f4k = [0, 0, 0];
+  { const j = J[key('S224', 'BASE/P120S6Q5')]; for (let k = 0; k < 2; k++) { const q = Math.min(1, Math.max(0, (j.tables[k].P - u120) / 100)), ok = binom(4 * NPW, q); j.sims[`P${k}`] = { ok, n: 4 * NPW }; f4k[k] = binom(NPW, q); } }
   // items 3 and 4: the 60-point jobs raise S224's table at P by a share of B1's under-read
   for (const [label, c] of [['BASE/P60S6Q15', carry3], ['BASE/P60S12Q5', carry4]]) { const j = J[key('S224', label)]; for (let k = 0; k < 2; k++) j.tables[k].P = clamp(B1.S224.BASE.fine[k].P - c * u60[k]); }
   // items 5-7: S364's 60-point baseline over its runs (counted or not), each arm lowering it by its share
@@ -86,11 +89,11 @@ function setOf({ r = 0.25, u120 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counte
   // item 8: bridge 4 at 120 points, runs at 98.7 in world 0 (B1's), its table kept, half a point off, or 2 off
   { const j = J[key('bridge 4', 'BASE/P120S6Q5')], q0 = 0.987, ok = binom(NPW, q0); j.sims.P0 = { ok, n: NPW }; j.tables[0].P = clamp(100 * q0 + { kept: 0, small: 0.5, broken: 2 }[b4]); for (const k of [1, 2]) { j.sims[`P${k}`] = { ok: binom(NPW, 0.9999), n: NPW }; j.tables[k].P = 99.99; } }
   for (const j of Object.values(J)) for (const x of j.tables) for (const o of ['P', 'D', 'OWN']) if (!(x[o] >= 0 && x[o] <= 100)) throw new Error(`a story's table left 0 to 100: ${j.id} ${j.label} ${o}`);
-  return J;
+  return { J, extra: { first4k: k => f4k[k], over30 } };
 }
 const P = {}, cnt = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 });
 const tally = (k, fn) => { const c = cnt(); for (let d = 0; d < DRAWS; d++) c[fn()]++; P[k] = Object.fromEntries(Object.entries(c).map(([x, v]) => [x, v / DRAWS])); };
-const it = J => items(J, B1, runs224);
+const it = st => items(st.J, B1, runs224, st.extra);
 for (const r of [0.25, 0.35, 0.5, 0.8]) tally(`conv|${r}`, () => it(setOf({ r }))[1].outcome);
 for (const u of [0, -1, -2, -3]) tally(`under|${u}`, () => it(setOf({ u120: u }))[2].outcome);
 for (const c of [0.1, 0.3, 0.35, 0.5, 0.6, 0.8]) tally(`carry|${c}`, () => it(setOf({ carry3: c }))['3'].outcome);

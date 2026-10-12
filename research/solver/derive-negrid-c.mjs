@@ -76,7 +76,9 @@ function setOf({ r = 0.25, u120 = 0, carry3 = 0.1, carry4 = 0.1, s364 = { counte
     j.tables = tab3([0, 1, 2].map(k => clamp(B1[id][arm].fine[k].P + (k < 2 ? (r + (rnd() - 0.5) * 0.2) * (B1[id][arm].fine[k].P - B1[id][arm].coarse[k].P) : 0))), [0, 1, 2].map(k => clamp(B1[id][arm].fine[k].D + (k < 2 ? (r + (rnd() - 0.5) * 0.2) * (B1[id][arm].fine[k].D - B1[id][arm].coarse[k].D) : 0))));
   }
   // item 2: S224's 120-point P runs drawn on 16,000 paths about a truth, its table u120 off it
-  { const j = J[key('S224', 'BASE/P120S6Q5')]; for (let k = 0; k < 2; k++) { const q = runs224[k].ok / runs224[k].n, ok = binom(4 * NPW, q); j.sims[`P${k}`] = { ok, n: 4 * NPW }; j.tables[k].P = clamp(100 * q + u120); } }
+  // its table stays the convergence story's (item 1 reads it too); its runs' truth sits u120 under the table (fixed after the
+  // derivation's first output, which set the table by both stories at once; the JUDGED block unchanged)
+  { const j = J[key('S224', 'BASE/P120S6Q5')]; for (let k = 0; k < 2; k++) { const q = Math.min(1, Math.max(0, (j.tables[k].P - u120) / 100)), ok = binom(4 * NPW, q); j.sims[`P${k}`] = { ok, n: 4 * NPW }; } }
   // items 3 and 4: the 60-point jobs raise S224's table at P by a share of B1's under-read
   for (const [label, c] of [['BASE/P60S6Q15', carry3], ['BASE/P60S12Q5', carry4]]) { const j = J[key('S224', label)]; for (let k = 0; k < 2; k++) j.tables[k].P = clamp(B1.S224.BASE.fine[k].P - c * u60[k]); }
   // items 5-7: S364's 60-point baseline over its runs (counted or not), each arm lowering it by its share

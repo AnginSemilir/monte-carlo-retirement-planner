@@ -28,8 +28,10 @@
  *     interval at 2 x a3. HELD when every world's point is at most 0.5; FALSIFIED when any world's bottom is above 0.5;
  *     INCONCLUSIVE otherwise (the runs' interval near 95% survival is about a point wide, so HELD reads the point, as
  *     NE-EDGE's controls did). Reported: BASE's alike (O36's under-read), and whether BO's runs are BASE's (SAME/DIFFERENT).
- * THE CAUSES (the deep review after NE-REF's, deep-review-log.md 13 Oct 18:36 UK): O151-REF held on 1 HELD, not on 1
- *   FALSIFIED; O151-RS held on 1 FALSIFIED, not on 1 HELD; RR-MIXS held on 2 HELD, not on 2 FALSIFIED; open otherwise.
+ * THE CAUSES (the deep review after NE-REF's, deep-review-log.md 13 Oct 18:36 UK): O151-REF held on 1 HELD; O151-RS not on
+ *   1 HELD; on 1 FALSIFIED, O151-RS held and O151-REF not only when the ledger shows no gap beyond ORDER (GAP's bottom, a
+ *   finite figure, at most 0 in worlds 0 and 1), since RS under RSO scales away whatever shortfall ORDER leaves (the
+ *   auditor, review-log.md 13 Oct 19:56 UK), both open otherwise; RR-MIXS held on 2 HELD, not on 2 FALSIFIED; open otherwise.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -190,7 +192,9 @@ export function items(J, bitsOf) {
   out['3'] = { outcome: c3.every(x => x.bo.d <= OVER) ? 'HELD' : c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED' : 'INCONCLUSIVE', cells: c3,
     same: [0, 1, 2].every(k => jt('share 0.95', 'BO').sims[`OWN${k}`].bits === jt('share 0.95', 'BASE').sims[`OWN${k}`].bits) };
   const o1 = out['1'].outcome, o2 = out['2'].outcome;
-  out.causes = { 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open', 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1] || 'open', 'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' };
+  out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);
+  const o1c = o1 === 'FALSIFIED' && !out.clear ? 'INCONCLUSIVE' : o1;
+  out.causes = { 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open', 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1c] || 'open', 'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' };
   return out;
 }
 
@@ -203,7 +207,7 @@ export function report(J, bitsOf) {
   L.push(`     the 2 x 2 (own opening's table / runs, points): ${it.twoByTwo.map(x => `world ${x.k}: ${['BASE', 'RS', 'BO', 'RSO'].map(a => `${a} ${f4(x[a].t)}/${f4(x[a].r)}`).join(', ')}`).join('; ')}`);
   L.push(`2. at S360's states the state's own pots carry at least half of the gap beyond the order-drawn reference (RR-MIXS): ${it['2'].outcome}`, `     ${[0, 1].map(k => { const l = it.ledger[k]; return `world ${k}: MIXS ${f4(l.MIXS)} (${f4(l.MIXSlo)} to ${f4(l.MIXShi)}) against GAP ${f4(l.GAP)} (${f4(l.GAPlo)} to ${f4(l.GAPhi)})`; }).join('; ')}`);
   L.push(`3. ORDER does not over-read the 95% share household by more than half a point: ${it['3'].outcome}`, `     ${it['3'].cells.map(c => `world ${c.k}: BO ${f4(c.bo.d)} (${f4(c.bo.lo)} to ${f4(c.bo.hi)}), BASE ${f4(c.base.d)} (${f4(c.base.lo)} to ${f4(c.base.hi)})`).join('; ')}`, `     BO's runs are BASE's in every world: ${it['3'].same ? 'SAME' : 'DIFFERENT'}`);
-  L.push('', 'THE CAUSES (the registered map)');
+  L.push('', 'THE CAUSES (the registered map)', `   no gap shown beyond ORDER at S360's states (GAP's bottom at most 0 in worlds 0 and 1): ${it.clear ? 'YES' : 'NO'}`);
   for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
   L.push('', 'THE LEDGER AT S360\'S YEAR-1 STATES (reported; per world, weighted by the year-0 nodes)');
   for (const l of it.ledger) L.push(`  world ${l.k}: REF ${e4(l.REF)} FS ${e4(l.FS)} OW ${e4(l.OW)} OS ${e4(l.OS)} OSW ${e4(l.OSW)} FB ${e4(l.FB)} (order ${l.order}); FORM ${f4(l.FORM)} MIXO ${f4(l.MIXO)} MIXS ${f4(l.MIXS)} SWEEP ${f4(l.SWEEP)} REST ${f4(l.REST)} (GAP ${f4(l.GAP)} = MIXS + SWEEP + REST)`);
@@ -289,7 +293,18 @@ function planted() {
   // the causes
   const cz = (o, c) => run(o).causes[c];
   cases.push(['1 HELD: O151-REF held, O151-RS not', `${cz({}, 'O151-REF')} ${cz({}, 'O151-RS')}`, 'held not']);
-  cases.push(['1 FALSIFIED: O151-REF not, O151-RS held', `${cz({ rsoT: [38.5, 45, 60] }, 'O151-REF')} ${cz({ rsoT: [38.5, 45, 60] }, 'O151-RS')}`, 'not held']);
+  { const nogap = { 0: { fb: 0.2 }, 1: { fb: 0.2 } };
+    cases.push(['1 FALSIFIED, GAP shown in worlds 0 and 1: both open (ORDER\'s shortfall may be the deepening)', `${cz({ rsoT: [38.5, 45, 60] }, 'O151-REF')} ${cz({ rsoT: [38.5, 45, 60] }, 'O151-RS')}`, 'open open']);
+    cases.push(['1 FALSIFIED, no GAP shown (FB at OW) in worlds 0 and 1: O151-REF not, O151-RS held', `${cz({ rsoT: [38.5, 45, 60], L: nogap }, 'O151-REF')} ${cz({ rsoT: [38.5, 45, 60], L: nogap }, 'O151-RS')}`, 'not held']);
+    cases.push(['1 FALSIFIED, GAP shown in world 1 only: both open', `${cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0.2 } } }, 'O151-REF')} ${cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0.2 } } }, 'O151-RS')}`, 'open open']);
+    cases.push(['1 FALSIFIED, GAP shown in world 2 only: O151-RS held (worlds 0 and 1 decide)', cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0.2 }, 1: { fb: 0.2 } } }, 'O151-RS'), 'held']);
+    cases.push(['1 FALSIFIED, the engine paying no bridge (GAP\'s bottom not finite): both open', `${cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0 }, 1: { fb: 0 } } }, 'O151-REF')} ${cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0 }, 1: { fb: 0 } } }, 'O151-RS')}`, 'open open']); EDGES.push('a gap bound not finite');
+    cases.push(['1 HELD, GAP shown: O151-REF held, O151-RS not (the clearance reads FALSIFIED only)', `${cz({}, 'O151-REF')} ${cz({}, 'O151-RS')}`, 'held not']);
+    cases.push(['1 HELD, no GAP shown: O151-REF held, O151-RS not', `${cz({ L: nogap }, 'O151-REF')} ${cz({ L: nogap }, 'O151-RS')}`, 'held not']);
+    cases.push(['the clearance: no GAP shown reads YES, GAP shown NO', `${run({ L: nogap }).clear} ${run({}).clear}`, 'true false']);
+    cases.push(['1 FALSIFIED, GAP\'s point above 0 but its bottom under (FB 1% over OW): O151-RS held', cz({ rsoT: [38.5, 45, 60], L: { 0: { fb: 0.202 }, 1: { fb: 0.202 } } }, 'O151-RS'), 'held']); EDGES.push('a gap\'s point above 0, its bottom under');
+    { const rd = o => (report(base(o), bitsOf).find(l => l.includes('no gap shown beyond ORDER')) || '').trim().split(': ').pop();
+      cases.push(['the read prints the clearance: YES with no GAP shown, NO with it', `${rd({ L: nogap })} ${rd({})}`, 'YES NO']); } }
   cases.push(['1 INCONCLUSIVE: both open', `${cz({ rsoT: [39.2, 45, 60] }, 'O151-REF')} ${cz({ rsoT: [39.2, 45, 60] }, 'O151-RS')}`, 'open open']);
   cases.push(['2 HELD: RR-MIXS held', cz({}, 'RR-MIXS'), 'held']);
   cases.push(['2 FALSIFIED: RR-MIXS not', cz({ L: { 0: { os: 0.21 }, 1: { os: 0.21 } } }, 'RR-MIXS'), 'not']);

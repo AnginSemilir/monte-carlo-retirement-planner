@@ -58,12 +58,21 @@ caught: 57: c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'
 caught: 58: c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'
 caught: 59: export function offOf(table, ok, n, al) { const [l, h] = cp(
 caught: 60: same: [0, 1, 2].every(k => jt('share 0.95', 'BO').sims[`OWN$
-caught: 61: 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open'
-caught: 62: 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1] || 'open',
-caught: 63: 'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' 
-caught: 64: L.push(`3. ORDER does not over-read
-caught: 65: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
-caught: 66: L.push(`OUTCOME: ${['1', '2', '3'].map
-caught: 67: `     BO's runs are BASE's in every world: ${it['3'].same ? 
-caught: 68: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
-68 of 68 mutations caught
+caught: 61: 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open
+caught: 62: 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1c] || 'open'
+caught: 63: 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open
+caught: 64: 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1c] || 'open'
+caught: 65: const o1c = o1 === 'FALSIFIED' && !out.clear ? 'INCONCLUSIVE
+caught: 66: const o1c = o1 === 'FALSIFIED' && !out.clear ? 'INCONCLUSIVE
+caught: 67: out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) 
+caught: 68: out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) 
+caught: 69: out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) 
+caught: 70: out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) 
+caught: 71: ${it.clear ? 'YES' : 'NO'}
+caught: 72: 'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' 
+caught: 73: L.push(`3. ORDER does not over-read
+caught: 74: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 75: L.push(`OUTCOME: ${['1', '2', '3'].map
+caught: 76: `     BO's runs are BASE's in every world: ${it['3'].same ? 
+caught: 77: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+77 of 77 mutations caught

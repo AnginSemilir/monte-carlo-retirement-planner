@@ -3,33 +3,35 @@
 
 2. THE POWER (400 draws a cell through reduce-neref.mjs's items(); NE-EDGE's RS table, RSP's runs drawn about NE-EDGE's at 40,000 paths in worlds 1 and 2; the copied c at the review's)
   MIX carrying 0.1 of G (the engine the rest): item 1 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000; item 2 HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
-  MIX carrying 0.3 of G (the engine the rest): item 1 HELD 0.0000 INCONCLUSIVE 0.0075 FALSIFIED 0.9925; item 2 HELD 0.8425 INCONCLUSIVE 0.1575 FALSIFIED 0.0000
+  MIX carrying 0.3 of G (the engine the rest): item 1 HELD 0.0000 INCONCLUSIVE 0.0250 FALSIFIED 0.9750; item 2 HELD 0.8175 INCONCLUSIVE 0.1825 FALSIFIED 0.0000
   MIX carrying 0.5 of G (the engine the rest): item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
   MIX carrying 0.7 of G (the engine the rest): item 1 HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
   MIX carrying 0.9 of G (the engine the rest): item 1 HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-  item 3, the mix simulated at 0.95 of the closed form: HELD 0.5975 INCONCLUSIVE 0.4025 FALSIFIED 0.0000
-  item 3, the mix simulated at 1 of the closed form: HELD 0.0850 INCONCLUSIVE 0.9150 FALSIFIED 0.0000
+  item 3, the mix simulated at 0.95 of the closed form: HELD 0.6150 INCONCLUSIVE 0.3850 FALSIFIED 0.0000
+  item 3, the mix simulated at 1 of the closed form: HELD 0.0700 INCONCLUSIVE 0.9300 FALSIFIED 0.0000
   item 3, the mix simulated at 1.3 of the closed form: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
   item 3, the mix simulated at 1.6 of the closed form: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-  item 4, RSO removing 0 of world 2's under-read: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
-  item 4, RSO removing 0.25 of world 2's under-read: HELD 0.0000 INCONCLUSIVE 0.7725 FALSIFIED 0.2275
-  item 4, RSO removing 0.5 of world 2's under-read: HELD 0.5150 INCONCLUSIVE 0.4850 FALSIFIED 0.0000
-  item 4, RSO removing 0.75 of world 2's under-read: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
-  item 4, RSO removing 1 of world 2's under-read: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 4, RSO removing 0 of the under-read in every world: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 0.25 of the under-read in every world: HELD 0.0000 INCONCLUSIVE 0.7550 FALSIFIED 0.2450; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 0.5 of the under-read in every world: HELD 0.4950 INCONCLUSIVE 0.5050 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 0.75 of the under-read in every world: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 1 of the under-read in every world: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 1.25 of the under-read in every world: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 1.5 of the under-read in every world: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 1.0000
   item 5, RS deepening S360 by 0 points: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   item 5, RS deepening S360 by -0.3 points: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
   item 5, RS deepening S360 by -1 points: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
   item 5, RS deepening S360 by -2 points: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
 
 3. THE CREDENCES (the receipt of 13 Oct 11:00 UK: O150-REFMIX=0.5; O150-REFFLOW=0.25; O150-COPYC=0.04; O150-UR=0.03; O150-QUAD=0.03; O150-FORM=0.01; O150-OTHER=0.14; the judged stories in this script's JUDGED; 40000 draws)
-CREDENCE item 1: point 0.4677 HELD 0.35 INCONCLUSIVE 0.20 FALSIFIED 0.45
-CREDENCE item 2: point - HELD 0.42 INCONCLUSIVE 0.24 FALSIFIED 0.35
-CREDENCE item 3: point - HELD 0.49 INCONCLUSIVE 0.51 FALSIFIED 0.01
-CREDENCE item 4: point -0.7452 HELD 0.40 INCONCLUSIVE 0.33 FALSIFIED 0.27
+CREDENCE item 1: point 0.4702 HELD 0.35 INCONCLUSIVE 0.20 FALSIFIED 0.45
+CREDENCE item 2: point - HELD 0.41 INCONCLUSIVE 0.24 FALSIFIED 0.35
+CREDENCE item 3: point - HELD 0.50 INCONCLUSIVE 0.49 FALSIFIED 0.01
+CREDENCE item 4: point -0.5688 HELD 0.52 INCONCLUSIVE 0.26 FALSIFIED 0.23
 CREDENCE item 5: point - HELD 0.60 INCONCLUSIVE 0.00 FALSIFIED 0.40
-  POINT item 1: 0.4677 (80% interval 0.0995 to 0.8830; MIX's share of world 1's log gap)
-  POINT item 4: -0.7452 (80% interval -1.3258 to -0.0437; RSO's world-2 table less its runs at P, points)
-  DECISION ROWS: items 1 and 4 HELD, 5 not FALSIFIED 0.15; item 1 HELD otherwise 0.20; item 2 HELD (1 not) 0.42; item 5 FALSIFIED (none above) 0.10; else 0.14
+  POINT item 1: 0.4702 (80% interval 0.1005 to 0.8842; MIX's share of world 1's log gap)
+  POINT item 4: -0.5688 (80% interval -1.3019 to 0.2776; RSO's world-2 table less its runs at P, points)
+  DECISION ROWS: item 4 HELD with an OVER-CORRECTION 0.05; items 1 and 4 HELD, 5 not FALSIFIED 0.15; item 1 HELD otherwise 0.16; item 2 HELD (1 not) 0.40; item 5 FALSIFIED (none above) 0.09; else 0.14
 
 4. THE BUDGET (NE-EDGE's S364 RS/P60S6Q5 log: solve plus runs)
   S364 RSO, S360 BASE, S360 RS: about 1.55 h each (NE-EDGE's S364 RS: solve 3922 s, runs 1660 s; S360 judged alike); RSP about 2.61 h (0.0638 s a run); the ledger about 0.25 h

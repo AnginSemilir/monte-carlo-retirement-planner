@@ -10,7 +10,7 @@
 
 ## Question
 
-The deep review after NE-EDGE's decisive test. Under RZ and RS S364's 60-point tables at P read below its runs in every world (0.0016, 0.0255 and 0.2238 against 0.05, 0.30 and 1.55; results-needge-under.txt, O150), and with R zeroed or scaled the read cannot exceed the reference chance times the copied c, so the runs beat the reference 7 to 20 times (the review's arithmetic, grade C). Which part of the reference carries that gap - the closed form against its own mix (FORM), the mix held in proportion at the opening weights against the money drawn pot by pot at the state's own pots (MIX), or the engine and its policy beyond any fixed reference (the engine: FLOW, AFTER and POLICY)? Does RS with the order-drawn reference halve S364's world-2 under-read, and does RS deepen S360's under-read (O36)?
+The deep review after NE-EDGE's decisive test. Under RZ and RS S364's 60-point tables at P read below its runs in every world (0.0016, 0.0255 and 0.2238 against 0.05, 0.30 and 1.55; results-needge-under.txt, O150), with R zeroed the read cannot exceed the reference chance times the copied c (grade A for RZ, grid.js l.417-419; RS adds R x pr / pk at scaled corners, so for RS the bound holds only through its tables matching RZ's to the third place, grade C), and the runs beat the reference 7 to 20 times (the review's arithmetic, grade C). Which part of the reference carries that gap - the closed form against its own mix (FORM), the mix held in proportion at the opening weights against the money drawn pot by pot at the state's own pots (MIX), or the engine and its policy beyond any fixed reference (the engine: FLOW, AFTER and POLICY)? Does RS with the order-drawn reference halve S364's world-2 under-read, and does RS deepen S360's under-read (O36)?
 
 ## Derivation
 
@@ -42,9 +42,9 @@ A net or estate item names which of the mean, the capped mean or the median it r
 ## Prediction
 
 - **Item 1 FALSIFIED (0.45 against HELD 0.35):** MIX carries under half of S364's log gap in worlds 1 and 2.
-- **Item 2 HELD (0.42 against FALSIFIED 0.35):** the engine beyond the reference carries at least half of it.
-- **Item 3 INCONCLUSIVE, by a hair (0.51 against HELD 0.49):** the simulated mix's interval reaches past 1.1 times the closed form without showing it pessimistic.
-- **Item 4 HELD (0.40):** RS with the order-drawn reference at least halves S364's world-2 under-read.
+- **Item 2 HELD (0.41 against FALSIFIED 0.35):** the engine beyond the reference carries at least half of it.
+- **Item 3 HELD, by a hair (0.50 against INCONCLUSIVE 0.49; previewed, not scored):** the simulated mix stays within 1.1 times the closed form in worlds 1 and 2.
+- **Item 4 HELD (0.52):** RS with the order-drawn reference at least halves S364's world-2 under-read, without an over-read shown in world 1 or 2 (the over-correction row 0.05).
 - **Item 5 HELD (0.60):** RS does not deepen S360's under-read by more than half a point in any world.
 
 ## Falsified if
@@ -52,7 +52,7 @@ A net or estate item names which of the mean, the capped mean or the median it r
 - **Item 1 HELD:** MIX's interval bottom is at least half of G's interval top in worlds 1 and 2; FALSIFIED: its top under half of G's bottom in both (G's bottom above 0).
 - **Item 2 FALSIFIED:** the engine term's top is under half of G's bottom in worlds 1 and 2.
 - **Item 3 HELD:** FS's top at most 1.1 times the closed form in worlds 1 and 2; FALSIFIED: FS's bottom at least 1.5 times it in either.
-- **Item 4 FALSIFIED:** RSO's world-2 table less its runs has its interval top under half of RSP's world-2 under-read.
+- **Item 4 FALSIFIED:** RSO's world-2 table less its runs has its interval top under half of RSP's world-2 under-read. An over-read shown (RSO's interval bottom above 0 in world 1 or 2) is no falsifier: it is read for the cause and has its own row.
 - **Item 5 FALSIFIED:** in some world the interval top of RS's change in S360's table-less-runs against BASE's is under -0.5 points.
 
 ## Fair-test table
@@ -75,8 +75,8 @@ A net or estate item names which of the mean, the capped mean or the median it r
 - **The ledger (per world; the five reads weighted by the year-0 nodes):** T and r RSP's table and runs at P; REF the closed form; FS the mix simulated; OW and OS pot by pot at the opening weights and at the state's own pots, the better order a read; FB and FSV the engine under the better order's fixed move (by its bridge count). G = ln r - ln T. MIX = ln OS - ln FS, its interval from OS's bottom and FS's top (and the reverse); the engine term = ln r - ln OS, its interval from r's and OS's.
 - **Item 1 (primary; single look):** a world holds when MIX's bottom is at least half of G's top (G's top above 0); it falls when G's bottom is above 0 and MIX's top is under half of it. HELD when worlds 1 and 2 both hold; FALSIFIED when both fall; INCONCLUSIVE otherwise.
 - **Item 2 (primary; single look):** the engine term, read as item 1.
-- **Item 3 (single look):** a world holds when FS's top is at most 1.1 x REF; it falls when FS's bottom is at least 1.5 x REF. HELD when both worlds hold; FALSIFIED when either falls; INCONCLUSIVE otherwise.
-- **Item 4 (single look):** d, RSO's world-2 table less its P runs, its interval at ALPHA; d2, RSP's (on 40,000 paths). HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED when d's top is under d2 / 2; INCONCLUSIVE otherwise.
+- **Item 3 (single look; previewed, not scored - the plan-auditor's MINOR 4 of 13 Oct 13:35 UK: its ratio was seen at 200,000 draws before registration, so the OUTCOME line carries it after a '; ' note and the scorecard leaves it out):** a world holds when FS's top is at most 1.1 x REF; it falls when FS's bottom is at least 1.5 x REF. HELD when both worlds hold; FALSIFIED when either falls; INCONCLUSIVE otherwise.
+- **Item 4 (single look):** d, RSO's world-2 table less its P runs, its interval at ALPHA; d2, RSP's (on 40,000 paths). HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED when d's top is under d2 / 2; INCONCLUSIVE otherwise. THE OVER-CORRECTION (the plan-auditor's BLOCKING 1 of 13 Oct 13:35 UK): RSO's table less its runs is read in every world, and its interval's bottom above 0 in world 1 or 2 prints 'OVER-CORRECTION: YES', which decides the first row; world 0 is reported (its chances below orderChance's resolution).
 - **Item 5 (single look):** per world, (RS's own table - BASE's) less (RS's own runs - BASE's), the runs paired by path, the discordant paths' exact interval, in points. HELD when every world's bottom is at least -0.5; FALSIFIED when any world's top is under -0.5; INCONCLUSIVE otherwise.
 - **The causes, by the registered map (printed '=> <cause> held / not / open'):** O150-REFMIX held on item 1 HELD, not on item 1 FALSIFIED; O150-REFFLOW held on item 2 HELD, not on item 2 FALSIFIED; O150-FORM not on item 3 HELD, held on item 3 FALSIFIED; open otherwise. The ledger is a measurement at every state, so each term reaches its mechanism by construction (no reach line needed: no arm stands between the cause and its term).
 - **Reported, not items:** every term of the ledger by world (world 0 included), COPY (O150-COPYC), the year-0 quadrature's fine integral against the five nodes (O150-QUAD), FLOW and AFTER apart, the flow per order, RSO's and S360's tables and runs in every world, the bridge paid beside survival.
@@ -86,13 +86,14 @@ A net or estate item names which of the mean, the capped mean or the median it r
 
 | outcomes | action | credence |
 |---|---|---|
-| items 1 and 4 HELD, item 5 not FALSIFIED | the reference's proportional mix carries the gap and the order-drawn reference halves world 2: RSO replaces RS as the panel test's near-edge arm (rule 1: its own arm), and a reference drawn at the state's own pots is designed as the root-cause fix | 0.15 |
-| item 1 HELD otherwise | the mix carries it but the order-drawn reference at the opening weights does not fix it, or RS deepens S360: a reference drawn at the state's own pots is designed and unit-tested before the panel test; RS stays out of the panel until then | 0.20 |
-| item 2 HELD (item 1 not HELD) | the engine and its policy beyond any fixed reference carry the gap: no closed-form reference fix; the deep review after NE-REF designs an engine-calibrated near-edge read, and RS's near-dead tables stay uncalibrated (out of the panel as a calibrated read) | 0.42 |
-| item 5 FALSIFIED (none above) | RS deepens O36's under-read on S360: RS stays out of the panel; RS with the order-drawn reference on S360, or a fixed-move reference, decomposes it first | 0.10 |
+| item 4 HELD with OVER-CORRECTION: YES | the order-drawn reference lifts S364's read past its runs: RSO is not the panel's arm as built; its reading past the target is read for the cause (the reference's pessimism, carried and more), and the deep review after NE-REF sizes it before any reference fix | 0.05 |
+| items 1 and 4 HELD, item 5 not FALSIFIED (no over-correction) | the reference's proportional mix carries the gap and the order-drawn reference halves world 2: RSO replaces RS as the panel test's near-edge arm (rule 1: its own arm), and a reference drawn at the state's own pots is designed as the root-cause fix | 0.15 |
+| item 1 HELD otherwise | the mix carries it but the order-drawn reference at the opening weights does not fix it, or RS deepens S360: a reference drawn at the state's own pots is designed and unit-tested before the panel test; RS stays out of the panel until then | 0.16 |
+| item 2 HELD (item 1 not HELD) | the engine and its policy beyond any fixed reference carry the gap: no closed-form reference fix; the deep review after NE-REF designs an engine-calibrated near-edge read, and RS's near-dead tables stay uncalibrated (out of the panel as a calibrated read) | 0.40 |
+| item 5 FALSIFIED (none above) | RS deepens O36's under-read on S360: RS stays out of the panel; RS with the order-drawn reference on S360, or a fixed-move reference, decomposes it first | 0.09 |
 | else | NE-REF's unsettled items named; the deep review after NE-REF designs the next step | 0.14 |
 
-- **Waiver:** none needed: the chance the action changes is 0.58 (one less 0.42, the likeliest row), above a quarter
+- **Waiver:** none needed: the chance the action changes is 0.60 (one less 0.40, the likeliest row), above a quarter
 - **The escalation rule (escalation.md, trigger 3):** the run is over 2 hours' wall (about 2.61 h) and its 'else' row is 0.14, under the 0.6 bar: no escalation review first.
 
 ## Decision fed
@@ -101,8 +102,8 @@ The decision table's rows decide; each item's own reading adds only this:
 
 - **Item 1:** HELD shows the reference's proportional mix, against the money drawn pot by pot at the state's own pots, carries most of S364's gap (grade B, one household, one seed); FALSIFIED rules it out as the main carrier. The split between the draw order (MIXO) and the state's own pots (MIXS) is reported, grade C.
 - **Item 2:** HELD shows the gap lies beyond any fixed-mix reference, in the engine's flow and its policy (grade B); FLOW, AFTER and POLICY apart are reported, grade C (POLICY rests on r, FSV on 40,000 fixed-move paths).
-- **Item 3:** HELD shows the closed form is not the pessimism (the review's FORM at 0.01); FALSIFIED would put part of the gap in the form itself.
-- **Item 4:** HELD says the order-drawn reference halves S364's world-2 under-read under RS (grade B); it does not say RSO is calibrated elsewhere (worlds 0 and 1 printed, world 0's chances below orderChance's resolution).
+- **Item 3 (previewed, not scored):** HELD shows the closed form is not the pessimism (the review's FORM at 0.01), grade C for the preview; FALSIFIED would put part of the gap in the form itself.
+- **Item 4:** HELD says the order-drawn reference halves S364's world-2 under-read under RS (grade B); with OVER-CORRECTION: YES it says the reference lifts the read past the runs, read for the cause (row 1); world 0 is printed, its chances below orderChance's resolution.
 - **Item 5:** HELD says RS does not deepen S360's read by more than half a point; FALSIFIED says it does, and the deepening is not settled as RS's until a reference free of the error decomposes it (Unmasking).
 - **Inconclusive on any item:** it leaves its question open and names the world that kept it so; nothing rests on it, and the deep review after NE-REF reads it.
 - **In every branch:** no product change; the candidate's settings unchanged (CANDIDATE_OPTS sets no readerRef); 7u-F held; the panel test registers after NE-REF reads and its deep review.
@@ -113,17 +114,18 @@ The decision table's rows decide; each item's own reading adds only this:
 - **The build:** audit-neref.mjs, reduce-neref.mjs (93 planted checks, each of items 1-5 reaching all three outcomes, checked by the planted run itself, EDGES, boundaries planted exactly, the identity controls against NE-EDGE's probe and RS job), mutate-reduce-neref.py (80 of 80 caught, results-reduce-neref-mutations.txt), derive-neref.mjs, batch-neref.sh, preflight-neref.sh; the probe change inert (results-neref-inert.txt); the e3pcls pin re-taken on the changed code (27 passed).
 - **Changed from the review's design (declared):** (1) the ledger solves at 4 points, its states held to the 60-point read's by the gate; (2) RSP added - NE-EDGE's RS job re-solved, P on 40,000 paths in worlds 1 and 2 - because on NE-EDGE's 4,000 runs a world (12 and 62 survivors) items 1 and 2 were mostly INCONCLUSIVE (the derivation's first run, not committed); (3) item 2 reads REFFLOW as the review states it (the engine's payment beyond the best fixed order, the policy's choices and the flow's bills: FLOW + AFTER + POLICY), FLOW apart reported; (4) S360 read at its own opening's year-0 table against its runs (O36's own measure), not 7al's bridge-stage residual; (5) the form read as its own item (O150-FORM); (6) the year-0 quadrature's fine integral reported (O150-QUAD).
 - **Seen before registration (declared):** NE-EDGE's results in full and its files; the deep review's figures; a design exploration of 13 Oct (a scratch 4-point solve under RS, not committed): the fifteen states' accessible money and pots, their reference chances, the mix simulated at 200,000 draws at each - at world 1's and 2's dominant reads 0.95 and 0.99 of the closed form, a partial preview of item 3, which its judged story declares - and the year-0 fine integral's ratios (1.11, 0.96, 0.99); no order-drawn, own-pot or engine-flow figure was computed. The derivation's first run (not committed) before the redesign.
-- **The preflight:** to be run through the launcher before launch and quoted here.
+- **Amended before launch** on the plan-auditor's FAIL of 13 Oct 13:35 UK (review-log.md): RSO read against its runs in every world with an OVER-CORRECTION line and its own row, a planted crossing case, and the derivation's RSO story crossing the runs (BLOCKING 1); the RZ-only grade A (MINOR 2); the 'other' story's change declared in the JUDGED block (MINOR 3: it moved from { 0.1: 0.4, 0.3: 0.4, 0.5: 0.2 } to { 0.1: 0.3, 0.3: 0.4, 0.5: 0.3 } with the RSP redesign, after the first output); item 3 previewed and unscored (MINOR 4). The reducer: 100 planted checks, 86 of 86 mutants. The rows moved from 0.15/0.20/0.42/0.10/0.14 to 0.05/0.15/0.16/0.40/0.09/0.14.
+- **The preflight:** through the launcher (runs.log's 13 Oct 13:14 line, at 1de9ee7, before this amendment, which touches the reducer and the derivation only): SMOKE PASSED; planted all read; "B. GATE: passed - the five jobs once and done at the registered settings (40 paths a world, scale 30, seed 7002, ledger draws 10000, flow paths 400); every job's split and reference in its solve's meta; every self-check passed (armTook, mirrorTook, pairTook, forceIdentity); every file the log's"; solve seconds 205 to 465 a job at 4 wealth points; C. the plants arm, mirror and force each refused (exit 3). To be re-run on the amended reducer before launch.
 
 ## Derivation script
 
-- `derive: research/solver/derive-neref.mjs > research/solver/results-derive-neref.txt sha256 57d0545d6f9d90c7`
+- `derive: research/solver/derive-neref.mjs > research/solver/results-derive-neref.txt sha256 a43ff79b4fbe4f49`
   (NE-EDGE's S364 RS job behind NE-EDGE's gate, the power of items 1-5 through reduce-neref.mjs's own items(), the credences from the review's O150 cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from NE-EDGE's log)
 
 ## Point and interval
 
-- **Item 1:** 0.4677, MIX's share of world 1's log gap (results-derive-neref.txt section 3); 80% interval 0.0995 to 0.8830
-- **Item 4:** -0.7452, RSO's world-2 table less its runs at P, points; 80% interval -1.3258 to -0.0437
+- **Item 1:** 0.4702, MIX's share of world 1's log gap (results-derive-neref.txt section 3); 80% interval 0.1005 to 0.8842
+- **Item 4:** -0.5688, RSO's world-2 table less its runs at P, points; 80% interval -1.3019 to 0.2776
 - **Items 2, 3 and 5:** none: item 2 is item 1's complement less COPY and FORM; items 3 and 5 read by their rules
 
 ## Power
@@ -135,11 +137,12 @@ From results-derive-neref.txt section 2 (400 draws a cell through reduce-neref.m
   MIX carrying 0.5 of G (the engine the rest): item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
   MIX carrying 0.7 of G (the engine the rest): item 1 HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
   item 3, the mix simulated at 0.95 of the closed form: HELD 0.5975 INCONCLUSIVE 0.4025 FALSIFIED 0.0000
-  item 4, RSO removing 0.5 of world 2's under-read: HELD 0.5150 INCONCLUSIVE 0.4850 FALSIFIED 0.0000
+  item 4, RSO removing 0.5 of the under-read in every world: HELD 0.4950 INCONCLUSIVE 0.5050 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 0.0000
+  item 4, RSO removing 1.5 of the under-read in every world: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; HELD with an OVER-CORRECTION 1.0000
   item 5, RS deepening S360 by -1 points: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
 ```
 
-Items 1 and 2 read a share of 0.3 or under, or 0.7 or over, near certainly, and a share near half as INCONCLUSIVE in both; item 3 separates a form at 0.95 of the closed form from 1.6; item 4 reads a halving at the line as a coin and three quarters as HELD; item 5 separates no deepening from a point.
+Items 1 and 2 read a share of 0.3 or under, or 0.7 or over, near certainly, and a share near half as INCONCLUSIVE in both; item 3 separates a form at 0.95 of the closed form from 1.6; item 4 reads a halving at the line as a coin and three quarters as HELD, and a removal of 1.5 as HELD with the over-correction shown (1.25 not shown); item 5 separates no deepening from a point.
 
 ## Budget line
 
@@ -166,7 +169,7 @@ Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RA
 The derivation's priors begin there and state why they move from it; an item resting on a deep review's ranked cause or
 story starts from that record's rate, not the review's own probability.
 
-Items 1-3 rest on the review's ranked causes (O150-REFMIX 0.50, O150-REFFLOW 0.25, O150-FORM 0.01), so each starts from a deep review's cause rate, 0.29; the derivation mixes the receipt's O150 cause credences through the JUDGED stories and section 2's power, which puts item 1's HELD at 0.35 and item 2's at 0.42: the causes other than REFMIX (half the credence) all leave MIX a small share, so the engine term carries the gap in more stories than the mix does. Item 3 leans on the exploration's preview (declared). Item 4 starts from EFFECT's rate; item 5 from NOHARM's, moved down by the review's warning that RS should deepen O36.
+Items 1-3 rest on the review's ranked causes (O150-REFMIX 0.50, O150-REFFLOW 0.25, O150-FORM 0.01), so each starts from a deep review's cause rate, 0.29; the derivation mixes the receipt's O150 cause credences through the JUDGED stories and section 2's power, which puts item 1's HELD at 0.35 and item 2's at 0.41: the causes other than REFMIX (half the credence) all leave MIX a small share, so the engine term carries the gap in more stories than the mix does. Item 3 leans on the exploration's preview (declared). Item 4 starts from EFFECT's rate; item 5 from NOHARM's, moved down by the review's warning that RS should deepen O36.
 
 - **Base rate, item 1:** 0.29 (a deep review's cause: O150-REFMIX)
 - **Base rate, item 2:** 0.29 (a deep review's cause: O150-REFFLOW)
@@ -174,11 +177,11 @@ Items 1-3 rest on the review's ranked causes (O150-REFMIX 0.50, O150-REFFLOW 0.2
 - **Base rate, item 4:** 0.70 (EFFECT)
 - **Base rate, item 5:** 0.79 (NOHARM)
 - **Item 1:** HELD 0.35, INCONCLUSIVE 0.20, FALSIFIED 0.45 (derived, results-derive-neref.txt section 3)
-- **Item 2:** HELD 0.42, INCONCLUSIVE 0.24, FALSIFIED 0.35 (derived)
-- **Item 3:** HELD 0.49, INCONCLUSIVE 0.51, FALSIFIED 0.01 (derived)
-- **Item 4:** HELD 0.40, INCONCLUSIVE 0.33, FALSIFIED 0.27 (derived)
+- **Item 2:** HELD 0.41, INCONCLUSIVE 0.24, FALSIFIED 0.35 (derived)
+- **Item 3:** HELD 0.50, INCONCLUSIVE 0.49, FALSIFIED 0.01 (derived; previewed, not scored)
+- **Item 4:** HELD 0.52, INCONCLUSIVE 0.26, FALSIFIED 0.23 (derived)
 - **Item 5:** HELD 0.60, INCONCLUSIVE 0.00, FALSIFIED 0.40 (derived)
-- **Judged:** none (the judged inputs are derive-neref.mjs's JUDGED block, committed before its first output in 989d2cb and, changed and declared, before its second in 1de9ee7)
+- **Judged:** none (the judged inputs are derive-neref.mjs's JUDGED block, committed before its first output in 989d2cb and, changed and declared, before its second in 1de9ee7 and its third in 59cec47)
 - **Kinds:** 1 ATTRIB, 2 ATTRIB, 3 ATTRIB, 4 EFFECT, 5 NOHARM
 
 ## Changes after seeing results

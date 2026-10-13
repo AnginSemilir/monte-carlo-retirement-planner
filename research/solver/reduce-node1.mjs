@@ -126,11 +126,11 @@ export function shareOf(bn, bo, k) {
 export function items(J, ref2, bitsOf) {
   const out = {}, bn = J[key('S360', 'BN/P60S15Q5')], bo = J[key('S360', 'BO/P60S6Q5')];
   const c1 = [0, 1].map(k => shareOf(bn, bo, k));
-  out['1'] = { outcome: c1.every(x => x.shown && x.Slo >= SHARE_HELD) ? 'HELD' : c1.every(x => x.shown && x.Shi <= SHARE_FALS) ? 'FALSIFIED' : 'INCONCLUSIVE', cells: c1 };
+  out['1'] = { outcome: c1.every(x => x.Slo >= SHARE_HELD) ? 'HELD' : c1.every(x => x.Shi <= SHARE_FALS) ? 'FALSIFIED' : 'INCONCLUSIVE', cells: c1 };   // a gap not shown reads -Infinity to Infinity, so neither line
   out.off = [0, 1, 2].map(k => { const sb = bn.sims[`OWN${k}`], so = bo.sims[`OWN${k}`]; return { k, bn: offOf(bn.tables[k].OWN, sb.ok, sb.n, 2 * a1), bo: offOf(bo.tables[k].OWN, so.ok, so.n, 2 * a1) }; });
   out.over = out.off.some(x => x.bn.lo > OVER);
   const t2 = ref2 ? [0, 1, 2].map(k => !!ref2.tables[k] && bo.tables[k].OWN === ref2.tables[k].OWN) : [false, false, false];
-  const r2 = ref2 ? [0, 1, 2].map(k => { const a = bo.sims[`OWN${k}`], b = ref2.sims[`OWN${k}`]; return !!b && a.bits === b.bits && a.bitsB === b.bitsB && a.ok === b.ok; }) : [false, false, false];
+  const r2 = ref2 ? [0, 1, 2].map(k => { const a = bo.sims[`OWN${k}`], b = ref2.sims[`OWN${k}`]; return !!b && a.bits === b.bits && a.bitsB === b.bitsB; }) : [false, false, false];
   out['2'] = { outcome: !ref2 ? 'INCONCLUSIVE' : t2.some(x => !x) ? 'FALSIFIED' : r2.every(Boolean) ? 'HELD' : 'INCONCLUSIVE', tables: t2, runs: r2 };
   const o1 = out['1'].outcome, ok2 = out['2'].outcome === 'HELD';
   out.causes = { 'O152-NODE': ok2 ? ({ HELD: 'held', FALSIFIED: 'not' }[o1] || 'open') : 'open', 'O152-MODEL': ok2 ? ({ HELD: 'not', FALSIFIED: 'held' }[o1] || 'open') : 'open' };
@@ -194,6 +194,7 @@ function planted() {
   outc('2', {}, ref({ t: [BO_T[0], BO_T[1], 66.231601] }), 'FALSIFIED', 'BO\'s world 2 table a printed digit off REF-2\'s: 2 FALSIFIED');
   outc('2', {}, ref({ ok: [1145, 1946, 2790] }), 'INCONCLUSIVE', 'the tables alike, world 2\'s runs not: 2 INCONCLUSIVE');
   outc('2', {}, null, 'INCONCLUSIVE', 'REF-2\'s BO not read: 2 INCONCLUSIVE');
+  { const r = ref(); r.sims.OWN2 = { ...r.sims.OWN2, bitsB: 'zz' }; outc('2', {}, r, 'INCONCLUSIVE', 'the tables and survival bits alike, world 2\'s bridge bits not: 2 INCONCLUSIVE'); }
   // the causes
   const cz = (o, r, c) => run(o, r).causes[c];
   cases.push(['1 HELD, 2 HELD: O152-NODE held, O152-MODEL not', `${cz({}, ref(), 'O152-NODE')} ${cz({}, ref(), 'O152-MODEL')}`, 'held not']);
@@ -203,10 +204,15 @@ function planted() {
   cases.push(['1 FALSIFIED, 2 INCONCLUSIVE: both open', `${cz({ bnT: BO_T }, ref({ ok: [1145, 1946, 2790] }), 'O152-NODE')} ${cz({ bnT: BO_T }, ref({ ok: [1145, 1946, 2790] }), 'O152-MODEL')}`, 'open open']);
   // the paired runs and the reads
   { const it = run({ bnOk: [1150, 1946, 2791] }); cases.push(['the paired runs: 5 more survive under BN in world 0', `${it.paired[0].bnOnly} ${it.paired[0].boOnly}`, '5 0']); }
+  { const it = run({ bnOk: [1140, 1946, 2791] }); cases.push(['the paired runs: 5 more survive under BO in world 0', `${it.paired[0].bnOnly} ${it.paired[0].boOnly}`, '0 5']); }
+  { const c = run({ bnT: [BO_T[0] + 2.5, BO_T[1] + 2.5, 66] })['1'].cells[0]; cases.push(['the share\'s point is the move over the gap to BN\'s runs (2.5 of 4.9991)', c.S, q(2.5 / (100 * 1145 / NP - BO_T[0]))]); }
+  { const c = run({ bnT: [BO_T[0] - 1, BO_T[1] - 1, 66] })['1'].cells[0]; cases.push(['a falling table: the share\'s interval runs from the move over the gap\'s bottom to the move over its top', `${c.Slo} ${c.Shi}`, `${q(-1 / c.Glo)} ${q(-1 / c.Ghi)}`]); }
+  { const [l] = cp(1145, NP, 2 * a1), t0 = 100 * l; outc('1', { boT: [t0, BO_T[1], BO_T[2]], bnT: [t0 + 3, 48.5, 69.7] }, ref({ t: [t0, BO_T[1], BO_T[2]] }), 'INCONCLUSIVE', 'the gap\'s bottom exactly 0 in world 0 (not shown), the table moved 3 points: 1 INCONCLUSIVE'); EDGES.push('a gap\'s bottom exactly 0'); }
   { const it = items(base({}), ref(), bitsOf); cases.push(['the year-0 read mixed by the worlds\' weights', it.read[1].read, q(BO_T[0] / 6 + BO_T[1] * 2 / 3 + BO_T[2] / 6)]); }
   // the arm's reach (O153)
   cases.push(['BN\'s tables BO\'s in every world: reach 0', reach(base({ bnT: BO_T })), 0]);
   cases.push(['BN\'s tables moved in two worlds: reach 2', reach(base({ bnT: [28.5, 48.5, BO_T[2]] })), 2]); EDGES.push('an arm equal to its control everywhere');
+  cases.push(['BN\'s tables moved in world 2 only: reach 1', reach(base({ bnT: [BO_T[0], BO_T[1], 70] })), 1]);
   // the read end to end
   { let lines = [], err = null; try { lines = report(base(), ref(), bitsOf); } catch (e) { err = e.message; }
     const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
@@ -216,7 +222,7 @@ function planted() {
   const jobText = (jb, o = {}) => {
     const [id, arm, pts0, sh] = jb, L = jobLabel(jb), pts = o.pts || Math.max(4, Math.round(pts0 / 30));
     const ran = `bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef ${o.ref || 'order'} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${pts} grid ${o.grid || `total${pts}x${sh}x6`} shareNodes ${o.nodes || (arm === 'BN' ? NODES_A : 'none')} floor ${o.floor || 5000} line 0.5`;
-    const out = [`${id.padEnd(16)} case | job ${L} | points ${pts} | lambda 0.0223606797749979`];
+    const out = [`${id.padEnd(16)} case | job ${L} | points ${o.casePts || pts} | lambda 0.0223606797749979`];
     if (!o.dropSolve) out.push(`${pad} solve CAND ${L}: table 40.0000 secs 10`);
     out.push(`${pad} ran CAND ${L}: ${ran}`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`, `${pad} openings ${L}: OWN ai 12 level 0.8 tiers 0,0`);
     for (let k = 0; k < 3; k++) if (o.dropTable !== k) out.push(`${pad} tables ${L} ${k} z 0.000000 weight 0.333333: OWN 40.000000 READ 39.000000`);
@@ -252,6 +258,8 @@ function planted() {
   refuses('runs at another opening', all({ [KN]: { simAi: 13 } }));
   refuses('fewer paying the bridge than surviving', all({ [KB]: { bridge: 1 } }));
   refuses('forceIdentity one path short', all({ [KN]: { fi: 3 } }));
+  refuses('forceIdentity over fewer paths than registered', all({ [KN]: { fi: 3, fiN: 3 } }));
+  refuses('a case line at other points than its solve', all({ [KB]: { casePts: 5 } }));
   { const jobs = all(), files = {}, shOf = s => sha16(Buffer.from(s, 'base64'));
     for (const j of jobs) { const bits = {}; Object.keys(j.sims).forEach(nm => { bits[nm] = 'AAAA'; bits[`${nm}b`] = 'AQAA'; }); files[j.file] = { stamp: j.stamp, bits }; Object.values(j.sims).forEach(s => { s.bits = shOf('AAAA'); s.bitsB = shOf('AQAA'); }); }
     cases.push(['the gate passes files whose bits are the log\'s', gate(jobs, { ...G0, files }).length, 0]);

@@ -130,3 +130,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-13 18:27 UTC | reduce-ref2.mjs f4e5bf298655 | 68 of 68 caught | escaped: none
 2026-10-13 19:07 UTC | reduce-ref2.mjs dd3366adf6a4 | 75 of 77 caught | escaped: NOT CAUGHT: 70: out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) ; NOT CAUGHT: 71: ${it.clear ? 'YES' : 'NO'}
 2026-10-13 19:11 UTC | reduce-ref2.mjs 2d94333148b4 | 77 of 77 caught | escaped: none
+2026-10-13 23:52 UTC | reduce-node1.mjs 87b59814ce68 | 50 of 59 caught | escaped: NOT CAUGHT: 8: if (j.pts !== pts) bad.push(; NOT CAUGHT: 20: j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1; NOT CAUGHT: 24: return [0, 1, 2].filter(k => bn.tables[k].OWN !== bo.tables[; NOT CAUGHT: 28: const G = 100 * s.ok / s.n - bo.tables[k].OWN,; NOT CAUGHT: 29: const shown = q(Glo) > 0,; NOT CAUGHT: 33: Shi = shown ? (D >= 0 ? D / Glo : D / Ghi) : Infinity;; NOT CAUGHT: 37: c1.every(x => x.shown && x.Shi <= SHARE_FALS) ? 'FALSIFIED'; NOT CAUGHT: 45: return !!b && a.bits === b.bits && a.bitsB === b.bitsB && a.; NOT CAUGHT: 52: if (A[i] && !B[i]) a++; else if (!A[i] && B[i]) b++;
+2026-10-13 23:53 UTC | reduce-node1.mjs dd77fb90f9de | 57 of 58 caught | escaped: NOT CAUGHT: 29: const shown = q(Glo) > 0,
+2026-10-13 23:54 UTC | reduce-node1.mjs 36bf89184a2b | 58 of 58 caught | escaped: none

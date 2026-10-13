@@ -1,0 +1,59 @@
+caught: 1: n = (byKey[k] || []).length; if (n !== 1)
+caught: 2: n = (byKey[k] || []).length; if (n !== 1)
+caught: 3: if (!j.done) bad.push(
+caught: 4: ['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] 
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 8: if (j.pts !== pts) bad.push(
+caught: 9: grid: `total${pts}x${reg[3]}x6`, shareNodes:
+caught: 10: shareNodes: j.arm === 'BN' ? NODES_A : 'none' })
+caught: 11: readerRef: 'order', readerChance: 'null',
+caught: 12: e3pcls: 'true', switchMargin
+caught: 13: line: '0.5', mix: '3', floor: '5000' };
+caught: 14: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 15: if (!j.solve) bad.push(
+caught: 16: if (!j.tables[w] || !Number.isFinite(j.tables[w].OWN) || !Nu
+caught: 17: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
+caught: 18: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
+caught: 19: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
+caught: 20: j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1
+caught: 21: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 22: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
+caught: 23: if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(
+caught: 24: return [0, 1, 2].filter(k => bn.tables[k].OWN !== bo.tables[
+caught: 25: return [0, 1, 2].filter(k => bn.tables[k].OWN !== bo.tables[
+caught: 26: const s = bn.sims[`OWN${k}`], [l, h] = cp(s.ok, s.n, 2 * a1)
+caught: 27: const s = bn.sims[`OWN${k}`], [l, h] = cp(s.ok, s.n, 2 * a1)
+caught: 28: const G = 100 * s.ok / s.n - bo.tables[k].OWN,
+caught: 29: const shown = q(Glo) > 0,
+caught: 30: const shown = q(Glo) > 0,
+caught: 31: const Slo = shown ? (D >= 0 ? D / Ghi : D / Glo) : -Infinity
+caught: 32: Shi = shown ? (D >= 0 ? D / Glo : D / Ghi) : Infinity;
+caught: 33: Shi = shown ? (D >= 0 ? D / Glo : D / Ghi) : Infinity;
+caught: 34: c1.every(x => x.Slo >= SHARE_HELD) ? 'HELD'
+caught: 35: c1.every(x => x.Slo >= SHARE_HELD) ? 'HELD'
+caught: 36: c1.every(x => x.Shi <= SHARE_FALS) ? 'FALSIFIED'
+caught: 37: c1.every(x => x.Shi <= SHARE_FALS) ? 'FALSIFIED'
+caught: 38: const c1 = [0, 1].map(k => shareOf(bn, bo, k));
+caught: 39: out.over = out.off.some(x => x.bn.lo > OVER);
+caught: 40: out.over = out.off.some(x => x.bn.lo > OVER);
+caught: 41: out.over = out.off.some(x => x.bn.lo > OVER);
+caught: 42: export function offOf(table, ok, n, al) { const [l, h] = cp(
+caught: 43: const t2 = ref2 ? [0, 1, 2].map(k => !!ref2.tables[k] && bo.
+caught: 44: return !!b && a.bits === b.bits && a.bitsB === b.bitsB;
+caught: 45: return !!b && a.bits === b.bits && a.bitsB === b.bitsB;
+caught: 46: outcome: !ref2 ? 'INCONCLUSIVE' : t2.some(x => !x) ? 'FALSIF
+caught: 47: t2.some(x => !x) ? 'FALSIFIED' : r2.every(Boolean) ? 'HELD' 
+caught: 48: 'O152-NODE': ok2 ? ({ HELD: 'held', FALSIFIED: 'not' }[o1] |
+caught: 49: 'O152-MODEL': ok2 ? ({ HELD: 'not', FALSIFIED: 'held' }[o1] 
+caught: 50: const o1 = out['1'].outcome, ok2 = out['2'].outcome === 'HEL
+caught: 51: if (A[i] && !B[i]) a++; else if (!A[i] && B[i]) b++;
+caught: 52: const j = arm === 'BN' ? bn : bo, w = j.tables.map(t => t.w)
+caught: 53: L.push(`1. the explicit share nodes
+caught: 54: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 55: L.push(`OUTCOME: ${['1', '2'].map
+caught: 56: L.push(`REALISED item 1: ${f4(it['1'].cells[0].S)}`);
+caught: 57: L.push(`OVER-CORRECTION (BN's table above its runs by more t
+caught: 58: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+58 of 58 mutations caught

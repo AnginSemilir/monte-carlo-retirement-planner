@@ -1,0 +1,69 @@
+caught: 1: n = (byKey[k] || []).length; if (n !== 1)
+caught: 2: n = (byKey[k] || []).length; if (n !== 1)
+caught: 3: if (!j.done) bad.push(
+caught: 4: ['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] 
+caught: 5: j.head.npw !== npw || j.head.seed !== seed
+caught: 6: j.head.npw !== npw || j.head.seed !== seed
+caught: 7: || j.head.scale !== scale ||
+caught: 8: || j.head.draws !== draws ||
+caught: 9: || j.head.flow !== flow)
+caught: 10: if (j.pts !== pts) bad.push(
+caught: 11: ...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm
+caught: 12: ...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm
+caught: 13: floor: String(FLOORS[j.id]), pts: String(pts),
+caught: 14: switchCharge: '0.001', line: '0.5', mix: '3' };
+caught: 15: readerChance: 'null', jointWorlds: 'true', e3pcls: 'true',
+caught: 16: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 17: if (!(j.P >= 0) || o.length !== 2 || o.some(x => !x) || !o.s
+caught: 18: if (!(j.P >= 0) || o.length !== 2 || o.some(x => !x) || !o.s
+caught: 19: !(Math.abs(j.opening.isa + j.opening.gia + j.opening.cash - 
+caught: 20: !(j.checks.mirrorTook[1] > 0) || 
+caught: 21: || j.checks.mirrorTook[0] !== j.checks.mirrorTook[1]) bad.pu
+caught: 22: if (!j.quad[w]) bad.push(
+caught: 23: if (rows.length !== 5 || [0, 1, 2, 3, 4].some(i => !rows[i])
+caught: 24: || r.oswN !== draws ||
+caught: 25: fl[i].N !== flow || fl[i].N2 !== flow ||
+caught: 26: if (!j.tables[w] || !Number.isFinite(j.tables[w].OWN)) bad.p
+caught: 27: if (!s || s.n !== npw || s.bridge < s.ok) bad.push(
+caught: 28: if (!s || s.n !== npw || s.bridge < s.ok) bad.push(
+caught: 29: j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1
+caught: 30: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 31: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
+caught: 32: if (!b || sha16(Buffer.from(b, 'base64')) !== sh) bad.push(
+caught: 33: if (neref && st0 && neref.code !== st0.code)
+caught: 34: const best = arr => arr.reduce((b, x, i) => (x > arr[b] ? i 
+caught: 35: const lohi = get => [wsum(x => cp(get(x), N, 2 * a2)[0]), ws
+caught: 36: [fblo, fbhi] = cp(F.bridge, F.N, 2 * a2)
+caught: 37: GAP: ln(FB) - ln(OW), GAPlo: ln(fblo) - ln(OWhi), GAPhi: ln(
+caught: 38: MIXS: ln(OS) - ln(OW), MIXSlo: ln(OSlo) - ln(OWhi), MIXShi: 
+caught: 39: SWEEP: ln(OSW) - ln(OS), REST: ln(FB) - ln(OSW) };
+caught: 40: const fl = Lj.flow[k], bi = fl[0].bridge >= fl[1].bridge ? 0
+caught: 41: let b = 0, c = 0; for (let i = 0; i < N; i++) { if (B[i] && 
+caught: 42: const m = b + c, [lo, hi] = m ? cp(c, m, 2 * a3) : [0.5, 0.5
+caught: 43: return { k, b, c, N, D: q(dT - dr), lo: q(dT - drHi), hi: q(
+caught: 44: out['1'] = { outcome: c1.every(x => x.lo >= DEEP) ? 'HELD'
+caught: 45: c1[0].hi <= DEEPF ? 'FALSIFIED'
+caught: 46: c1[0].hi <= DEEPF ? 'FALSIFIED'
+caught: 47: const c1 = [0, 1, 2].map(k => paired(jt('S360', 'RSO'), jt('
+caught: 48: holds: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && Number.
+caught: 49: q(l.MIXSlo) >= q(HALF * l.GAPhi)
+caught: 50: q(l.MIXSlo) >= q(HALF * l.GAPhi)
+caught: 51: falls: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && q(l.MIX
+caught: 52: falls: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && q(l.MIX
+caught: 53: const w2 = [0, 1].map(k => {
+caught: 54: out['2'] = { outcome: w2.every(x => x.holds) ? 'HELD' : w2.e
+caught: 55: out['2'] = { outcome: w2.every(x => x.holds) ? 'HELD' : w2.e
+caught: 56: out['3'] = { outcome: c3.every(x => x.bo.d <= OVER) ? 'HELD'
+caught: 57: c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'
+caught: 58: c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'
+caught: 59: export function offOf(table, ok, n, al) { const [l, h] = cp(
+caught: 60: same: [0, 1, 2].every(k => jt('share 0.95', 'BO').sims[`OWN$
+caught: 61: 'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open'
+caught: 62: 'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1] || 'open',
+caught: 63: 'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' 
+caught: 64: L.push(`3. ORDER does not over-read
+caught: 65: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 66: L.push(`OUTCOME: ${['1', '2', '3'].map
+caught: 67: `     BO's runs are BASE's in every world: ${it['3'].same ? 
+caught: 68: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+68 of 68 mutations caught

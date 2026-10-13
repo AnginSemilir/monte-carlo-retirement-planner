@@ -1271,6 +1271,7 @@ export function solve(E, M, plan, opts = {}) {
   if (E3) meta.e3 = { copied: e3Copied };
   if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };
   if (E2) meta.e2 = { parts: E2.parts };
+  if (g.axes.a && g.axes.a.nodes) meta.shareNodes = Array.from(g.axes.a.pts);   // NODE-1's explicit pension-share nodes (research only; absent in every product path)
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {

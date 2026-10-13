@@ -1,0 +1,7 @@
+# NODE-1's option off against the code before it: node research/solver/node1-inert.mjs <root>, run on a worktree of 432244d (the commit before the option, its research/engine.mjs copied in) and on this tree (432244d plus the option, unset); S360 and S126 at 4 points, the candidate's options with e3pcls off (the pin stale until re-taken)
+BEFORE (432244d):
+S360: tables ea0665d0b1e89394
+S126: tables 1cb5861bc77d3859
+WITH THE OPTION, UNSET:
+S360: tables ea0665d0b1e89394
+S126: tables 1cb5861bc77d3859

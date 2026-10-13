@@ -59,7 +59,7 @@ function linAxis(n) {
   for (let i = 0; i < n; i++) pts[i] = i / (n - 1);
   return { pts, n, linear: true };
 }
-function locateLin(ax, v) {
+function locateLin(ax, v) { if (ax.nodes) return locateNodes(ax, v);   // NODE-1's explicit share nodes (research only; the file's end)
   const f = Math.max(0, Math.min(1, v)) * (ax.n - 1);
   const i = Math.min(ax.n - 2, Math.floor(f));
   return { i, w: f - i };
@@ -116,12 +116,12 @@ export function makeGrid(m, opts = {}) {
   const total = (opts.coords || 'total') === 'total';
   const n1 = total ? ((pts && pts.total) || opts.points || 40) : np;
   // COV-B (`coverage`, research only; items/COV.md): one more share slot, the edge node in step years (a copy of a = 1 elsewhere)
-  const COV = !!opts.coverage; if (COV && !total) throw new Error('coverage needs the total-wealth coordinates');
-  const n2 = total ? ((pts && pts.share) || opts.shares || 6) + (COV ? 1 : 0) : ni;
+  const COV = !!opts.coverage; if (COV && !total) throw new Error('coverage needs the total-wealth coordinates'); const SN = shareNodesOf(opts, total, COV);   // NODE-1 (research only; null in every product path)
+  const n2 = total ? (SN ? SN.length : ((pts && pts.share) || opts.shares || 6) + (COV ? 1 : 0)) : ni;
   const n3 = total ? ((pts && pts.share) || opts.shares || 6) : nt;
   if (total) {
     axes.W = logAxis(n1, spend * 0.1, spend * top(open.pen + open.isa + open.tax));
-    axes.a = linAxis(COV ? n2 - 1 : n2);
+    axes.a = linAxis(COV ? n2 - 1 : n2); if (SN) axes.a = nodesAxis(SN);
     axes.b = linAxis(n3);
   }
   const size = n1 * n2 * n3 * gain.length * pcls.length;
@@ -314,7 +314,7 @@ function locInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-function locLinInto(ax, v, k) {
+function locLinInto(ax, v, k) { if (ax.nodes) { const r = locateNodes(ax, v); LOC[k] = r.i; LOC[k + 1] = r.w; return; }   // NODE-1 (research only)
   const f = (v <= 0 ? 0 : v >= 1 ? 1 : v) * (ax.n - 1);
   const i = Math.min(ax.n - 2, Math.floor(f));
   LOC[k] = i; LOC[k + 1] = f - i;
@@ -686,4 +686,28 @@ function pclsOnSeg(g, pf) {
   if (!g.pclsSeg) return true;
   if (g.pcls.length !== 3) throw new Error(`grid: pclsSeg needs the three-bucket allowance axis, not ${g.pcls.length}`);
   return g.pclsSeg === 'lo' ? pf <= g.pcls[1] : pf >= g.pcls[1];
+}
+
+/*
+ * NODE-1's EXPLICIT PENSION-SHARE NODES (`shareNodes`, research only; PLAN.md NODE-1, O152; unset in every product path,
+ * where the a axis stays linear and these are never called). The a axis on a given ascending list from 0 to 1 (at least
+ * three nodes), b keeping its own count; located by search with locateLin's convention: a value at an inner node sits on
+ * that node with weight 0 on the next, and 1 sits at the top cell's end. Total-wealth coordinates only, never with COV-B.
+ */
+function shareNodesOf(opts, total, cov) {
+  const SN = opts.shareNodes || null;
+  if (!SN) return null;
+  if (!total || cov) throw new Error('shareNodes needs the total-wealth coordinates and no coverage');
+  if (!Array.isArray(SN) || SN.length < 3 || SN[0] !== 0 || SN[SN.length - 1] !== 1 || SN.some((x, i) => i > 0 && !(x > SN[i - 1]))) throw new Error(`shareNodes ${JSON.stringify(SN)}: an ascending list of at least three from 0 to 1`);
+  return SN;
+}
+export function nodesAxis(list) {
+  const pts = Float64Array.from(list);
+  return { pts, n: pts.length, linear: true, nodes: true };
+}
+export function locateNodes(ax, v) {
+  const x = v <= 0 ? 0 : v >= 1 ? 1 : v, p = ax.pts;
+  let i = 0;
+  while (i < ax.n - 2 && x >= p[i + 1]) i++;
+  return { i, w: (x - p[i]) / (p[i + 1] - p[i]) };
 }

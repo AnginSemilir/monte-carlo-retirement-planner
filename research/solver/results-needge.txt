@@ -1,0 +1,143 @@
+ok   RZ removes all of it: 1 HELD: "HELD"
+ok   RZ leaves exactly a fifth at its interval's top: 1 HELD: "HELD"
+ok   RZ leaves just over a fifth at its interval's top: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RZ removes nothing: 1 FALSIFIED: "FALSIFIED"
+ok   RZ removes exactly half at its interval's bottom: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RZ removes just under half at its interval's bottom: 1 FALSIFIED: "FALSIFIED"
+ok   RZ removes all in world 0, nothing in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   1 reads worlds 0 and 1, not 2 (world 2 unremoved): 1 HELD: "HELD"
+ok   BASE's over-read under half a point in both worlds: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BASE's over-read exactly half a point (counted), the arm removing all: 1 HELD: "HELD"
+ok   world 1 not counted, world 0 removed: 1 HELD: "HELD"
+ok   RS removes all of it: 2 HELD: "HELD"
+ok   RS leaves exactly a fifth at its interval's top: 2 HELD: "HELD"
+ok   RS leaves just over a fifth at its interval's top: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RS removes nothing: 2 FALSIFIED: "FALSIFIED"
+ok   RS removes exactly half at its interval's bottom: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RS removes just under half at its interval's bottom: 2 FALSIFIED: "FALSIFIED"
+ok   RS removes all in world 0, nothing in world 1: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   2 reads worlds 0 and 1, not 2 (world 2 unremoved): 2 HELD: "HELD"
+ok   BASE's over-read under half a point in both worlds: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BASE's over-read exactly half a point (counted), the arm removing all: 2 HELD: "HELD"
+ok   world 1 not counted, world 0 removed: 2 HELD: "HELD"
+ok   bridge 4 at its runs under both arms: 3 HELD: "HELD"
+ok   bridge 4 under RS exactly 0.3 over at the point: 3 HELD: "HELD"
+ok   bridge 4 under RZ 0.4 over in world 1, not shown: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 under RS 3 under in world 2: 3 FALSIFIED: "FALSIFIED"
+ok   3 reads the own opening at D where it is D (D runs at its table): 3 HELD: "HELD"
+ok   S380 at B1's tables: 4 HELD: "HELD"
+ok   S380 under RS 0.3 off at D in world 1: 4 HELD: "HELD"
+ok   S380 under RZ 0.45 off at P in world 0: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S380 under RS exactly 0.6 off at P in world 1: 4 FALSIFIED: "FALSIFIED"
+ok   S380 under RS 0.1 + 0.2 off (0.3 to the rounding): 4 HELD: "HELD"
+ok   4 reads worlds 0 and 1 only (world 2 off by 5): 4 HELD: "HELD"
+ok   RZ opens at P (0 of 0): 5 HELD: "HELD"
+ok   RZ's own opening loses 40 of 4,000 in world 2: 5 FALSIFIED: "FALSIFIED"
+ok   RZ's own opening loses 2 in world 1, inside the tenth margin: 5 HELD: "HELD"
+ok   RZ's own opening loses 4 in world 1, at the margin, not shown: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RZ's own opening gains 3 in each world: 5 HELD: "HELD"
+ok   RS opens at P (0 of 0): 6 HELD: "HELD"
+ok   RS's own opening loses 40 of 4,000 in world 2: 6 FALSIFIED: "FALSIFIED"
+ok   RS's own opening loses 2 in world 1, inside the tenth margin: 6 HELD: "HELD"
+ok   RS's own opening loses 4 in world 1, at the margin, not shown: 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RS's own opening gains 3 in each world: 6 HELD: "HELD"
+ok   RZ opens at P where P survives none in world 0 (0 of 0 at a zero margin): 5 HELD: "HELD"
+ok   RZ's own opening loses 5 in world 1, beyond the margin but not shown after Holm: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RS opens at P where P survives none in world 0 (0 of 0 at a zero margin): 6 HELD: "HELD"
+ok   RS's own opening loses 5 in world 1, beyond the margin but not shown after Holm: 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the BASE control is read from BASE's own job (unplanted: 0 of 0): true
+ok   1 HELD: R-CARRIES held: "held"
+ok   1 FALSIFIED: R-CARRIES not: "not"
+ok   1 INCONCLUSIVE: R-CARRIES open: "open"
+ok   2 HELD: S364-RUNSCALED held: "held"
+ok   2 FALSIFIED, 1 HELD, RS reaching 0.9: S364-RUNSCALED not: "not"
+ok   2 and 1 FALSIFIED, RS reaching exactly half: S364-RUNSCALED not: "not"
+ok   2 FALSIFIED, 1 HELD, RS reaching 0.4999: S364-RUNSCALED open: "open"
+ok   2 FALSIFIED, 1 HELD, no probe: S364-RUNSCALED open: "open"
+ok   2 FALSIFIED, 1 HELD, RS reaching world 0 only: S364-RUNSCALED open: "open"
+ok   2 FALSIFIED, 1 HELD, world 1 not counted, RS reaching world 0: S364-RUNSCALED not: "not"
+ok   2 FALSIFIED, 1 INCONCLUSIVE, RS reaching 0.9: S364-RUNSCALED open: "open"
+ok   2 INCONCLUSIVE: S364-RUNSCALED open: "open"
+ok   the read prints every item, both causes and an OUTCOME line of six items, end to end: "true 2 6"
+ok   the gate passes the seven jobs as registered: 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses a job solved at other points: true
+ok   the gate refuses a case line at other points than its ran line: true
+ok   the gate refuses a ran line at other points than its job: true
+ok   the gate refuses a job on another grid: true
+ok   the gate refuses a job on other worlds: true
+ok   the gate refuses armTook 0: true
+ok   the gate refuses RS whose solve carries RZ: true
+ok   the gate refuses RZ whose solve carries no split: true
+ok   the gate refuses BASE carrying a split: true
+ok   the gate refuses a job under the log-odds blend: true
+ok   the gate refuses the candidate without e3pcls: true
+ok   the gate refuses another minimum end pot: true
+ok   the gate refuses another support line: true
+ok   the gate refuses a probed job with no probe: true
+ok   the gate refuses a probe whose weights do not sum to 1: true
+ok   the gate refuses a probe breaking plain = deletion + residual: true
+ok   the gate refuses a probe whose RS reach is not a share: true
+ok   the gate refuses pairTook 0: true
+ok   the gate refuses a forced pair at other tiers: true
+ok   the gate refuses a forced pair at another action: true
+ok   the gate refuses a missing world table: true
+ok   the gate refuses a missing D run in world 2: true
+ok   the gate refuses runs on other paths than registered: true
+ok   the gate refuses an own opening that is neither P nor D, unrun: true
+ok   the gate refuses LOR reads counted: true
+ok   the gate refuses a forceIdentity one path short: true
+ok   the gate refuses a forceIdentity over too few paths: true
+ok   the gate passes S364 BASE as NE-GRID C's: 0
+ok   the gate refuses S364 BASE whose table is not C's by a printed digit: true
+ok   the gate refuses S364 BASE whose runs are not C's: true
+ok   the gate refuses S364 BASE whose bits are not C's: true
+ok   the gate passes files whose bits are the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file missing one run's bits: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+planted (105): all read as they should
+GATE: passed - the seven jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002); every job's split in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); every probe whole; every file the log's; S364 BASE reproduces NE-GRID C's job to the printed digits and bits
+
+NE-EDGE: the near-dead read, S364 under BASE, RZ and RS at 60 points, bridge 4 and S380 under RZ and RS, the tuning seed (predictions/diag-needge.md)
+
+THE ITEMS (each read by its registered rule)
+1. RZ removes S364's 60-point over-read: HELD
+     world 0: BASE's over-read 3.3712, the arm's -0.0484, removal 1.0144 (worst 1.0008, best 1.0597); world 1: BASE's over-read 2.5196, the arm's -0.2745, removal 1.1090 (worst 1.0455, best 1.2117)
+2. RS removes S364's 60-point over-read: HELD
+     world 0: BASE's over-read 3.3712, the arm's -0.0484, removal 1.0143 (worst 1.0008, best 1.0597); world 1: BASE's over-read 2.5196, the arm's -0.2745, removal 1.1090 (worst 1.0455, best 1.2117)
+     RS's reach on the residual (S364-RUNSCALED's 'not' needs at least 0.5 in every counted world): world 0 0.9999, world 1 1.0000
+3. bridge 4 within 0.3 at its own opening under RZ and RS: HELD
+     RZ world 0 at D: 0.1159 (-0.2035 to 0.5298); RZ world 1 at D: -0.0103 (-0.0103 to 0.0992); RZ world 2 at D: -0.0042 (-0.0042 to 0.1053); RS world 0 at D: 0.1160 (-0.2035 to 0.5298); RS world 1 at D: -0.0102 (-0.0102 to 0.0993); RS world 2 at D: -0.0042 (-0.0042 to 0.1053)
+4. S380's tables within 0.3 of B1's BASE under RZ and RS: HELD
+     RZ world 0 P: -0.0157; RZ world 0 D: -0.0150; RZ world 1 P: -0.0227; RZ world 1 D: -0.0205; RS world 0 P: -0.0030; RS world 0 D: -0.0025; RS world 1 P: -0.0054; RS world 1 D: -0.0046
+5. under RZ, S364's own opening does no material harm against P: HELD
+     world 0 own P: 0 saved/0 lost of 4000, no material harm (margin 0.0050, Holm p 1.0000); world 1 own P: 0 saved/0 lost of 4000, no material harm (margin 0.0300, Holm p 1.0000); world 2 own P: 0 saved/0 lost of 4000, no material harm (margin 0.1550, Holm p 1.0000)
+6. under RS, S364's own opening does no material harm against P: HELD
+     world 0 own P: 0 saved/0 lost of 4000, no material harm (margin 0.0050, Holm p 1.0000); world 1 own P: 0 saved/0 lost of 4000, no material harm (margin 0.0300, Holm p 1.0000); world 2 own P: 0 saved/0 lost of 4000, no material harm (margin 0.1550, Holm p 1.0000)
+
+THE CAUSES (the registered map)
+=> R-CARRIES held
+=> S364-RUNSCALED held
+
+REPORTED
+  BASE's own opening against P on S364 (the positive control): world 0 own OWN: 0 saved/2 lost of 4000, inconclusive (margin 0.0050, Holm p 0.2500); world 1 own OWN: 0 saved/12 lost of 4000, harm (margin 0.0300, Holm p 0.0005); world 2 own OWN: 0 saved/55 lost of 4000, harm (margin 0.1525, Holm p 0.0000)
+  probe S364 BASE/P60S6Q5 world 0 at P: plain 20.3186, deletion 18.4024, residual 1.9162; copy weight 0.7842 chance 0.0211 R 2.4434
+  probe S364 BASE/P60S6Q5 world 1 at P: plain 28.0050, deletion 25.8226, residual 2.1824; copy weight 0.7860 chance 0.0668 R 2.6503
+  probe S364 BASE/P60S6Q5 world 2 at P: plain 33.7899, deletion 32.0917, residual 1.6982; copy weight 0.6686 chance 0.0274 R 2.5046
+  probe S364 RZ/P60S6Q5 world 0 at P: plain 18.3723, deletion 18.3723, residual 0.0000; copy weight 0.7842 chance 0.0211 R 0.0000
+  probe S364 RZ/P60S6Q5 world 1 at P: plain 25.8159, deletion 25.8159, residual 0.0000; copy weight 0.7860 chance 0.0668 R 0.0000
+  probe S364 RZ/P60S6Q5 world 2 at P: plain 32.0042, deletion 32.0042, residual 0.0000; copy weight 0.6686 chance 0.0274 R 0.0000
+  probe S364 RS/P60S6Q5 world 0 at P: plain 19.0841, deletion 18.3932, residual 0.6909; copy weight 0.7842 chance 0.0211 R 0.8810
+  probe S364 RS/P60S6Q5 world 1 at P: plain 26.6300, deletion 25.8213, residual 0.8087; copy weight 0.7860 chance 0.0668 R 0.9060
+  probe S364 RS/P60S6Q5 world 2 at P: plain 32.6478, deletion 32.0612, residual 0.5866; copy weight 0.6686 chance 0.0274 R 0.8424
+REALISED item 1: 1.0144
+REALISED item 2: 1.0143
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD

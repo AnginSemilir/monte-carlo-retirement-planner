@@ -52,6 +52,8 @@ A cause map settles a cause 'not' only where the run shows its arm reached the m
 A convergence or resolution item reads each market world apart, and its derivation draws each world's story from that world's own earlier moves: the poor world's tables converge slower than the average world's (NE-GRID C, ratios 0.37 to 0.57 against 0.12 to 0.20).
 An arm that changes a read changes the policy: the stories for a paired outcome size the arm's own opening move from the records of the family's openings (a de-risked opening losing poor-world paths, O132), not only the correction the cause predicts.
 An item that reads a quantity built from simulated paths, or a bound the code gives, states its sampling interval and which side the bound sits on from the derivation's first draft, and its decision rule reads the interval's ends, not the point.
+Two arms nested by construction are drawn coupled in the derivation, the partial arm at most the whole (NE-EDGE's RS within RZ, the plan-auditor's FAIL of 13 Oct 02:54 UK).
+An arm that removes an error is read against the runs in every world, counted or not, and the derivation lets it cross the runs (removal past 1): NE-EDGE's arms removed S364's over-read and left an under-read of 1.3262 in world 2 that no item read (O150).
 An out-of-sample household is an item with its own falsifier, not a report, when the test's deciding household is the one where the mechanism was first found.
 A net or estate item names which of the mean, the capped mean or the median it reads, and why the score or the app reads that one; the others are reported beside it (above the bequest cap the score is flat, so an uncapped mean follows the unscored tail: DT-O97).
 

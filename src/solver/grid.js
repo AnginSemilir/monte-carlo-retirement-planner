@@ -405,14 +405,17 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
   }
   if (cap !== null && ls > cap) ls = cap;
   if (RD) {
-    let cc = 0, rr = 0;
-    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
     // `g.readerAcc` (research only, 7ak's attribution: unset in every product path): the accessible money the reader's
     // chance is read at, in place of this position's own ISA plus taxable pot
     // RTAX v2 (`readerTax`; items/RTAX.md): in a step year, inside the edge band, support is the flow's at this position
     const acc = g.readerAcc ? g.readerAcc(s) : s[1] + s[2], tx = g.reader.tax ? g.reader.tax[yr] : null;
     if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one');
     const pr = tx && tx.inBand(acc) ? (tx.payable(s) ? 1 : 0) : RD.chance(acc);
+    let cc = 0, rr = 0;
+    // NE-EDGE's RS arm (`readerSplit: 'rs'`, research only; false in every product path): each corner's residual scaled
+    // by min(1, the query's chance / the corner's), so a near-dead query does not carry the corner's whole R
+    if (g.reader.rs) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k], pk = RD.p[i]; cc += w * RD.c[i]; rr += w * RD.R[i] * (pk > pr ? pr / pk : 1); } }
+    else for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
     const v = pr * cc + rr; if (READER_PROBE.fn) READER_PROBE.fn(W, IDX, NC, RD, pr, yr);   // NE-GRID C's per-corner log (research only; null in every product path)
     if (g.reader.blend === 'logodds') { let lo = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const vi = pr * RD.c[IDX[k]] + RD.R[IDX[k]], ci = vi < CLAMP ? CLAMP : (vi > 1 - CLAMP ? 1 - CLAMP : vi); LOR_CLAMPS.n++; if (vi < CLAMP) LOR_CLAMPS.lo++; else if (vi > 1 - CLAMP) LOR_CLAMPS.hi++; lo += w * Math.log(ci / (1 - ci)); } out[0] = expit(lo); } else out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);   // NE-BLEND's LOR arm (`readerBlend: 'logodds'`, research only): each corner read at this position's chance, p x c_i + R_i, blended in log-odds
   } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }

@@ -57,6 +57,12 @@ ok(is(bash('node --check research/solver/experiment.mjs'), null), 'a syntax chec
 ok(is(bash('grep -n world research/solver/experiment.mjs'), null), 'reading an experiment script is not a launch');
 ok(is(bash("sed -i 's/a/b/' research/solver/check-plan.mjs"), 'deny'), 'planted: sed -i on the checker is refused while locked');
 ok(is(bash("sed -i 's/a/b/' research/solver/check-plan.mjs", true), null), 'and goes ahead once unlocked');
+// sed's script is not a file (13 Oct: a script ending in '/' was read as a folder and refused an ordinary file's edit)
+ok(is(bash("sed -i '40s/.*/x\\/y/' research/solver/audit-ref2.mjs"), null), 'sed -i whose script ends in a slash, on an ordinary file, goes ahead');
+ok(is(bash("sed -i '40s/.*/x\\/y/' research/solver/check-plan.mjs"), 'deny'), 'planted: the same script on the checker is still refused');
+ok(is(bash("sed -i -e 's/a/b/' research/solver/check-plan.mjs"), 'deny') && is(bash("sed -i -e 's/a/b/' -e 's/c/d/' research/solver/audit-ref2.mjs research/solver/check-plan.mjs"), 'deny'), 'planted: sed -i with -e scripts on the checker, alone or after an ordinary file, is refused');
+ok(is(bash("sed -ie 's/a/b/' research/solver/check-plan.mjs"), 'deny') && is(bash("sed --in-place --expression='s/a/b/' research/solver/check-plan.mjs"), 'deny'), 'planted: sed -ie and --expression= forms on the checker are refused');
+ok(is(bash("sed -i 's/a/b/' research/solver/notes.txt research/solver/check-plan.mjs"), 'deny'), 'planted: the checker as a second file after the script is refused');
 ok(is(bash('echo x > .claude/settings.json'), 'deny'), 'planted: a redirect into the hook settings is refused');
 ok(is(bash("python3 - <<'EOF'\nopen('research/solver/fair-gate.mjs','w').write('')\nEOF"), 'deny'), 'planted: an inline script that names the gate is refused');
 ok(is(bash('cat research/solver/check-plan.mjs'), null), 'reading the checker goes ahead');

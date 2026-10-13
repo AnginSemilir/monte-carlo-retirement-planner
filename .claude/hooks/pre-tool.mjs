@@ -138,6 +138,20 @@ export function writesProtected(raw, prot, lit = () => false) {
     const w = words(commandOf(part)), cmd = (w[0] || '').replace(/^.*\//, ''), args = w.slice(1), files = args.filter(a => !/^-/.test(a));
     if (cmd === 'sed' && !args.some(a => /^-[a-zA-Z]*i|^--in-place/.test(a))) continue;
     if (cmd === 'perl' && !args.some(a => /^-[a-zA-Z]*i/.test(a))) continue;
+    // sed's script is not a file (13 Oct: `sed -i '40s/.*/x\/y/' audit-ref2.mjs` was refused, its script ending in '/' read as
+    // a folder): an -e or -f value is the script (or its file, which sed reads, never writes); else the first non-option word
+    if (cmd === 'sed') {
+      const fl = []; let script = false;
+      for (let k = 0; k < args.length; k++) {
+        const a = args[k];
+        if (/^(-e|-f|--expression|--file)$/.test(a)) { script = true; k++; continue; }
+        if (/^(-[a-zA-Z]*[ef]|--expression=|--file=)/.test(a) && !/^-[a-zA-Z]*i/.test(a)) { script = true; continue; }
+        if (/^-/.test(a)) continue;
+        fl.push(a);
+      }
+      if ((script ? fl : fl.slice(1)).some(prot)) return true;
+      continue;
+    }
     if (ANY_ARG.test(cmd) && files.some(prot)) return true;
     if (DEST_ARG.test(cmd) && files.length && prot(files[files.length - 1])) return true;
     if (cmd === 'dd' && args.some(a => /^of=/.test(a) && prot(a.slice(3)))) return true;

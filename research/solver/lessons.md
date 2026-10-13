@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NE-GRID-C (closed 13 Oct 01:24)
+
+- [T:code] C's first read printed item 8 from item 5's result and would have crashed before the causes and the OUTCOME line (the plan-auditor's FAIL of 12 Oct 08:12 UK, BLOCKING 1) -> AUTOMATE: reduce-negrid-c.mjs runs its read end to end through report() in a planted check, and its planted run fails unless every item is planted to all three outcomes (12 Oct); later reducers copy both.
+- [T:decision-fed] twice the cause map settled 'not' where the arm could not show the cause: S364-W on an axis that may have carried the over-read between 30 and 60 points (08:12, BLOCKING 2), and S364-COPY on a support line that did not reach the copied corners (10:33, BLOCKING 1; the read printed a reach of 0 and 0.1294) -> REPLACE in new-prediction.mjs with: A cause map settles a cause 'not' only where the run shows its arm reached the mechanism.
+- [T:overclaim] B1's write-up called O142's S380 member a coarse-grid error, which the 60-point runs did not show (the FAIL of 11 Oct 23:00 UK, BLOCKING 1) -> DROP: caught and corrected before the row stood; the write-up rule that each claim names its file covers it.
+- [T:register] Claude put the hooks test's reading over its bound on load the record contradicted (an idle machine) and changed the test on that account under an unlock (the FAIL of 12 Oct 13:53 UK, BLOCKING 1; reverted, O148) -> AUTOMATE (proposed for the next unlock): the pre-commit hook prints the load average and running node processes beside a failed timing test, so the account comes from the record.
+- [T:other:calibration] Brier 0.096 over 10, but item 1 (HELD 0.51) read INCONCLUSIVE because the poor world converges slower than the average world (ratios 0.37 to 0.57 against 0.12 to 0.20), and item 9 (HELD 0.35, the outside review's end-pot cliff) read FALSIFIED -> REPLACE in new-prediction.mjs with: A convergence or resolution item reads each market world apart, its stories drawn from that world's own earlier moves.
+
 ## NE-GRID-B1 (closed 11 Oct 22:48)
 
 - [T:overclaim] NE-GRID's adoption row put the deep review's materiality answer to the maintainer without its qualifier - the candidate's own read kept more poor-world survival - so the line read as a possible 2.375-point cost of the defect (the plan-auditor's FAIL of 11 Oct 16:07 UK, BLOCKING 1); it was fixed before the line reached the maintainer -> AUTOMATE (proposed for the next unlock): the plan-update skill: a line put to the maintainer quotes the review's TO THE MAINTAINER verbatim beside any summary of it

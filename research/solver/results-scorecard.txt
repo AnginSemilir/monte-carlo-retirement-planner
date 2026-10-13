@@ -45,27 +45,28 @@ NE-SPLIT (S364's opening split by parts in the candidate's tables and forced, br
 NE-ROOT (the candidate's S364 survival plateau: the residual, the chance and the reader armed one at a time, bridge 4 the control): Brier 0.087 over 5 (1 0.37 -> not; 2 0.09 -> not; 3 0.03 -> not; 4 0.44 -> not; 5 0.69 -> held)
 NE-BLEND-A (the bridge reader's residual zeroed and its read in log-odds, on bridge 4 and S380): Brier 0.271 over 4 (1 0.53 -> held; 2 0.55 -> not; 3 0.21 -> not; 4 0.28 -> held)
 NE-GRID-B1 (the wealth axis doubled: the two bridge reads at 30 and 60 points against their runs on S380, bridge 4 and S224): Brier 0.466 over 4 (1 0.31 -> held; 2 0.11 -> held; 3 0.26 -> held; 4 0.78 -> held)
+NE-GRID-C (the wealth axis at 120 points; S224 under-read with and without its minimum end pot; S364 by shares, axis, reference and support line): Brier 0.096 over 10 (1 0.51 -> not; 10 0.19 -> not; 2 0.54 -> held; 3 0.24 -> not; 4 0.24 -> not; 5 0.29 -> not; 6 0.29 -> not; 7 0.13 -> not; 8 0.83 -> held; 9 0.35 -> not)
 
-CUMULATIVE: Brier 0.231 over 192 items
-INTERVALS, each registered 80% interval against its reducer's REALISED line: 8 of 17 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); NE-ROOT item 1 1.0799 (-0.0138 to 1.0215); NE-BLEND-A item 4 -2.375 (-0.1366 to 1.4348); NE-GRID-B1 item 1 0.3163 (0.4321 to 1.0716); 9 registered in 4 tests have no REALISED line (the reducers before 7u print none)
-INTERVAL FORMS over every prediction file: 47 write an 80% interval; 9 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-carry, diag-edge, diag-neblend-a, diag-negrid-b1, diag-neroot, diag-nesplit); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
+CUMULATIVE: Brier 0.225 over 202 items
+INTERVALS, each registered 80% interval against its reducer's REALISED line: 10 of 19 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); NE-ROOT item 1 1.0799 (-0.0138 to 1.0215); NE-BLEND-A item 4 -2.375 (-0.1366 to 1.4348); NE-GRID-B1 item 1 0.3163 (0.4321 to 1.0716); 10 registered in 5 tests have no REALISED line (the reducers before 7u print none)
+INTERVAL FORMS over every prediction file: 48 write an 80% interval; 10 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-carry, diag-edge, diag-neblend-a, diag-negrid-b1, diag-negrid-c, diag-neroot, diag-nesplit); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%     118   0.42   0.57
+  under 60%     127   0.41   0.54
   60-75%         31   0.65   0.55
-  75-90%         29   0.80   0.86
+  75-90%         30   0.80   0.87
   90% and over   14   0.95   0.93
 
-INFORMATION: base rate 0.635 held; always the base rate scores 0.232; over the distinct credences reliability 0.068, resolution 0.069, uncertainty 0.232; AUC 0.64 (0.5 is no discrimination)
+INFORMATION: base rate 0.614 held; always the base rate scores 0.237; over the distinct credences reliability 0.061, resolution 0.073, uncertainty 0.237; AUC 0.67 (0.5 is no discrimination)
 BY KIND (items, mean credence, share held, the author's Brier, the Brier of the kind's base rate from earlier tests):
   NOHARM     48   0.67   0.79   0.217   0.186
   EFFECT     25   0.59   0.72   0.215   0.226
-  ATTRIB     53   0.39   0.53   0.291   0.264
+  ATTRIB     62   0.38   0.47   0.263   0.265
   SIZE       45   0.56   0.53   0.216   0.277
-  CTRL       15   0.71   0.73   0.156   0.230
+  CTRL       16   0.72   0.75   0.148   0.221
   WHOLE       6   0.47   0.50   0.192   0.301
-THREE-OUTCOME ITEMS: ranked probability score 0.145 over 55, a uniform forecast 0.229
+THREE-OUTCOME ITEMS: ranked probability score 0.146 over 65, a uniform forecast 0.224
 LEGS, an item needing every household scored household by household: Brier 0.083 over 2
-DEEP-REVIEW CAUSES: 162 stated, 20 settled, Brier 0.089
-KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.70 (18 of 25), ATTRIB 0.53 (28 of 53), SIZE 0.53 (24 of 45), CTRL 0.71 (11 of 15), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.29 (7 of 26: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 6 of 7, review-causes.md)
+DEEP-REVIEW CAUSES: 171 stated, 20 settled, Brier 0.089
+KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.70 (18 of 25), ATTRIB 0.47 (29 of 62), SIZE 0.53 (24 of 45), CTRL 0.72 (12 of 16), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.29 (7 of 26: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 6 of 7, review-causes.md)
 DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.61, derived 0.63; resolution judged 0.117, derived 0.204 over 21
 JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged 0.228, derived 0.267 over 21; the decisive check (O29): ACCRUING - 21 of 30 items over 7 tests

@@ -46,6 +46,36 @@ Items as the review proposed: (1) the BASE-LOR gap at each forced opening shrink
 - **Amended before launch on an external review (the 12 Oct 09:22 row):** two jobs and a probe. (9) S224 at 120 points with no minimum end pot (minPotYears 0, the product's way to none): its table against its own 16,000-path runs, HELD when both worlds lie within half a point at the point. Read with item 2 HELD, this shows the under-read gone at the point with the floor removed (RG-FLOOR held); whether the cliff is the mechanism is a later test's (the plan-auditor's MINOR 2 of 12 Oct 10:33 UK). (10) S364 at 60 points with the reader's support line at 0.25 (the switch to copying a corner's chance, reader.js): its fall from C's own 60-point S364 against the over-read, as items 5-7. S364-COPY settles 'not' only where the line moved at least half the copied corners' weight at P (the probe; the plan-auditor's BLOCKING 1 of 12 Oct 10:33 UK). The third preflight's probe, at a thirtieth of the wealth points, put S364's corners at chance 0 or 1 with no copied weight moved, so S364-COPY is likely to stay open. The probe logs S364's two 60-point jobs and S380's 120-point year-0 reads at P, corner by corner: weight, chance, survival, c and R, by supported, clipped and copied, with plain = deletion + residual checked. Every household is solved with a minimum end pot, its plan's own or else one year's target spend: S380 52,500, bridge 4 29,000, S224 430,000 (6.14 years of spend), S364 205,000 (11.08 years) (results-negridc-floors.txt; O146). The review's 'none' for S380 and bridge 4 read the plan's own setting, as did NE-ROOT's and NE-BLEND's printed minPot (O147). The solver's two research options are inert by default (results-negridc-inert.txt).
 - **Declared departures:** D's runs on 4,000 paths (P's on 16,000); S364's arms against C's own 60-point S364; the derivation's coupled S224 story fixed after its first output, its JUDGED unchanged (d06a3d6).
 
+## C's read (the ledger's 13 Oct 01:24 row), item by item, from results-negrid-c.txt
+
+The gate passed: the twelve jobs once and done at the registered settings (four kept across the container restart of 12 Oct,
+their stamp the other eight's), every setting in its solve's meta, every self-check passed, every file the log's.
+
+- **1 INCONCLUSIVE (convergence).** World 1's counted cells move at second order (S380 P 0.1213, D 0.1842; S224 P 0.1989,
+  D 0.2043); world 0's do not (S380 P 0.4812, D 0.5745; S224 D 0.3710; S224 P world 0 not counted). LOR, reported: 0.1934
+  to 0.3566. The poor world's tables still move about half as much again from 60 to 120 points.
+- **2 HELD (S224's under-read at 120 points).** World 0 -1.9028 (-2.7611 to -1.0560), world 1 -1.1523 (-1.9764 to -0.3156).
+  RG-PATHS not: the first 4,000 paths 28.1250 against the other 12,000 27.9167 in world 0.
+- **3 FALSIFIED (15 return nodes):** shares -0.3044 and 0.1680. **4 INCONCLUSIVE (12 shares):** 0.3552 and 0.6083.
+- **5 INCONCLUSIVE (12 shares on S364):** 0.2121 and -0.2364. **6 FALSIFIED (120 points on S364):** -0.0441 and -0.0949,
+  the 60-point over-read (3.3712, 2.5196) keeping most of the 30-point one (3.6185, 2.9066): S364-W not. **7 INCONCLUSIVE
+  (ORDER):** 0.3782 and 0.5409.
+- **8 HELD (bridge 4):** at D, world 0 0.1110 (-0.2221 to 0.5504).
+- **9 FALSIFIED (S224 without its minimum end pot):** world 0 -1.5895 (-2.5175 to -0.6675), world 1 -0.8933: RG-FLOOR not.
+- **10 INCONCLUSIVE (the support line at 0.25):** 0.2803 and 0.0632; its reach on the copied corners 0 and 0.1294, so
+  S364-COPY stays open: the copied corners' mean chance at P is 0.0211 to 0.0668, far below 0.25.
+- **Causes:** RG-PATHS, S364-W and RG-FLOOR not; RG-WSLOW, RG-UNMASK, S364-SHARE, S364-REF and S364-COPY open.
+- **Reported (grade C).** The probe on S364 at P: 0.7842 of world 0's read weight on copied corners, their residual 1.9162
+  points of a plain blend whose table reads 3.4212 against 0.0500 simulated (world 1: 0.7860, 2.1824). S380 at 120 points
+  reads under its runs in worlds 0 and 1 (32.4280 against 33.3000; 77.2472 against 78.6500), where at 30 points it over-read
+  world 0 (O143). Each household's 120-point policy against its 60-point one on B1's paths: within a quarter point.
+
+**What it settles:** the wealth axis is not the remaining fault on S224 or S364 (grade B); S224's under-read is not paths,
+end pot or quadrature; the poor world converges slowly. **What it leaves:** S224's under-read (the shares a part, the rest
+open); S364's over-read (ORDER and the copied corners' residual the live parts); whether 60 points is enough in the poor
+world. The decision table's last row: the deep review after C designs the next step, with the outside reviews of the
+opening near-ties (escalations/) and results-partyear.txt before it.
+
 ## Leads for the deep review after C (the maintainer's outside review and its addendum, 12 Oct; grade D, untested here)
 
 Filed verbatim in drafts/external-review-12oct.md; the report's ranked list of five additions was not received.

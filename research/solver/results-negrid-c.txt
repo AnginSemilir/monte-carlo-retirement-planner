@@ -1,0 +1,256 @@
+ok   every move at 120 points 0.7 of 2 (ratio exactly 0.35): 1 HELD: "HELD"
+ok   every move 0.7000001 of 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   every move 1 of 2 (ratio exactly 0.5, first order): 1 FALSIFIED: "FALSIFIED"
+ok   every move 0.9999 of 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   every move back the other way at the same size (overshooting): 1 FALSIFIED: "FALSIFIED"
+ok   one cell slow (S224 LOR not read: S224 BASE world 1 D at 1 of 2), the rest 0.25: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2 not read (its move 2 of 2), the rest 0.25: 1 HELD: "HELD"
+ok   no cell moved half a point from 30 to 60: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a 30-to-60 move exactly half a point is counted (and its 120 move a tenth of it): 1 HELD: "HELD"
+ok   S380 LOR's cells reported, not read (LOR slow alone, BASE at 0.25): 1 HELD: "HELD"
+ok   S380 BASE's cells read (BASE slow in one cell): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 at its runs: 2 FALSIFIED: "FALSIFIED"
+ok   S224 under its runs by exactly 0.5 at the point: 2 FALSIFIED: "FALSIFIED"
+ok   S224 under by 0.5000001 (its interval reaching above -0.5): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 under by 1 at its point (its interval on 16,000 paths reaching above -0.5): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224's interval reaching exactly -0.5 (its table half a point under the runs' lower bound): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 under by 3 in world 1 alone: 2 HELD: "HELD"
+ok   S224 over by 3 (not an under-read): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 under by 3 in world 2 only (not read): 2 FALSIFIED: "FALSIFIED"
+ok   S224's under-read read on the 16,000-path runs (the first 4,000 not read alone): an under-read of 2 on 16,000 paths: 2 HELD: "HELD"
+ok   15 nodes raise S224 by exactly half its under-read (1 of 2): 3 HELD: "HELD"
+ok   15 nodes raise it by 0.9999: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   15 nodes raise it by under a fifth (0.39): 3 FALSIFIED: "FALSIFIED"
+ok   15 nodes raise it by exactly a fifth (0.4): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   15 nodes lower it (a fall is under a fifth): 3 FALSIFIED: "FALSIFIED"
+ok   12 shares raise it by all of it: 4 HELD: "HELD"
+ok   12 shares carry it in world 0 only: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   an over-read at 60 points is not an under-read to carry (runs 48 under the table 50): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   12 shares change nothing: 4 FALSIFIED: "FALSIFIED"
+ok   no 60-point under-read of half a point (runs at the table): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   an under-read exactly half a point is counted (runs 50.5, a rise of 0.5): 4 HELD: "HELD"
+ok   3 reads the 15-node job, not the 12-share one (12 shares raise it, 15 nodes not): 3 FALSIFIED: "FALSIFIED"
+ok   12 shares lower S364 by exactly half its over-read (54 to 52): 5 HELD: "HELD"
+ok   12 shares lower it by 1.9999: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   12 shares lower it by under a fifth (0.79): 5 FALSIFIED: "FALSIFIED"
+ok   120 points lower it by all of it: 6 HELD: "HELD"
+ok   120 points raise it (a rise is under a fifth of a fall): 6 FALSIFIED: "FALSIFIED"
+ok   ORDER lowers it by half in world 0 only: 7 INCONCLUSIVE: "INCONCLUSIVE"
+ok   ORDER lowers it by 3 of 4: 7 HELD: "HELD"
+ok   120 points lower it by a quarter (1 of 4): 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   ORDER changes nothing: 7 FALSIFIED: "FALSIFIED"
+ok   an under-read at 60 points is not an over-read to carry (S364 2 under its runs): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   no 60-point over-read (S364 at its runs): 7 INCONCLUSIVE: "INCONCLUSIVE"
+ok   an over-read under half a point is not counted (0.4999): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   6 reads the 120-point job, not ORDER (ORDER lowers it, 120 not): 6 FALSIFIED: "FALSIFIED"
+ok   S224 without its floor at its runs: 9 HELD: "HELD"
+ok   S224 without its floor under by exactly 0.5 at the point: 9 HELD: "HELD"
+ok   S224 without its floor under by 1 (not shown): 9 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 without its floor under by 3 in world 1: 9 FALSIFIED: "FALSIFIED"
+ok   S224 without its floor over by 1 (within half a point fails): 9 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S224 without its floor, its interval ending exactly at -0.5: 9 INCONCLUSIVE: "INCONCLUSIVE"
+ok   9 reads the floor-free job, not the floored one (the floored under by 3): 9 HELD: "HELD"
+ok   the line at 0.25 lowers S364 by exactly half its over-read: 10 HELD: "HELD"
+ok   the line at 0.25 lowers it by 1.9999: 10 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the line at 0.25 changes nothing: 10 FALSIFIED: "FALSIFIED"
+ok   10 reads the line job, not ORDER (ORDER lowers it, the line not): 10 FALSIFIED: "FALSIFIED"
+ok   bridge 4 off by exactly 0.3: 8 HELD: "HELD"
+ok   bridge 4 off by 0.3000001: 8 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 off by 0.8 (its interval at ALPHA / 6 reaching inside 0.3): 8 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 off by 2: 8 FALSIFIED: "FALSIFIED"
+ok   bridge 4 under by 2: 8 FALSIFIED: "FALSIFIED"
+ok   bridge 4 off by 0.3 computed as 0.30000000000000004 (1.3 against 1): 8 HELD: "HELD"
+ok   bridge 4's own opening D, its D off by 5: 8 FALSIFIED: "FALSIFIED"
+ok   item 1 FALSIFIED: RG-WSLOW held: "held"
+ok   item 1 HELD: RG-WSLOW not: "not"
+ok   item 1 INCONCLUSIVE: RG-WSLOW open: "open"
+ok   item 2 FALSIFIED, the table 2 under the first 4,000 paths' runs: RG-PATHS held: "held"
+ok   item 2 FALSIFIED, the table 2 under the first 4,000's runs in world 1 only: RG-PATHS held: "held"
+ok   item 2 FALSIFIED, the table at the first 4,000 paths' runs: RG-PATHS open: "open"
+ok   item 2 FALSIFIED, the table exactly 0.5 under the first 4,000's runs: RG-PATHS open: "open"
+ok   item 2 FALSIFIED, B1's 60-point under-read alone (the first 4,000 at the table): RG-PATHS open: "open"
+ok   item 2 HELD: RG-PATHS not: "not"
+ok   item 2 HELD and 4 HELD: RG-UNMASK held: "held"
+ok   item 2 HELD, 3 and 4 not: RG-UNMASK open: "open"
+ok   item 2 FALSIFIED: RG-UNMASK not: "not"
+ok   5 HELD: S364-SHARE held: "held"
+ok   6 FALSIFIED, the 60-point over-read keeping at least half the 30-point one (4 of 4): S364-W not: "not"
+ok   6 FALSIFIED, the 60-point over-read under half the 30-point one (4 of 10): S364-W open: "open"
+ok   6 FALSIFIED, the 60-point over-read exactly half the 30-point one (4 of 8): S364-W not: "not"
+ok   6 HELD with 5 not: S364-W held: "held"
+ok   7 FALSIFIED: S364-REF not: "not"
+ok   items 2 and 9 HELD: RG-FLOOR held: "held"
+ok   item 9 HELD, item 2 not: RG-FLOOR open: "open"
+ok   item 9 FALSIFIED: RG-FLOOR not: "not"
+ok   10 HELD: S364-COPY held: "held"
+ok   10 FALSIFIED, the line moving exactly half the copied weight in both worlds: S364-COPY not: "not"
+ok   10 FALSIFIED, the line moving 0.4999 of it: S364-COPY open: "open"
+ok   10 FALSIFIED with no probe: S364-COPY open: "open"
+ok   10 FALSIFIED, the line reaching world 0 only: S364-COPY open: "open"
+ok   10 FALSIFIED, the 0.5 job copying nothing: S364-COPY open: "open"
+ok   10 FALSIFIED, reaching world 0, world 1 not counted: S364-COPY not: "not"
+ok   10 HELD, the line reaching nothing: S364-COPY held: "held"
+ok   10 FALSIFIED, the line moving all the copied weight (a reach of 1): S364-COPY not: "not"
+ok   7 INCONCLUSIVE: S364-REF open: "open"
+ok   the read prints every item's line, all eight causes and an OUTCOME line of ten items, end to end: "true 8 10"
+ok   the gate passes ten good jobs: ""
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses a job solved at other points than registered: true
+ok   the gate refuses a ran line at other points than its job: true
+ok   the gate refuses a 12-share job solved on 6 shares: true
+ok   the gate refuses a job on other worlds: true
+ok   the gate refuses armTook 0: true
+ok   the gate refuses ORDER whose solve carries no order reference: true
+ok   the gate refuses BASE carrying the order reference: true
+ok   the gate refuses LOR whose solve carries no blend: true
+ok   the gate refuses the candidate without e3pcls: true
+ok   the gate refuses pairTook 0: true
+ok   the gate refuses a forced pair at other tiers: true
+ok   the gate refuses a forced pair at two levels: true
+ok   the gate refuses a forced pair at another action: true
+ok   the gate refuses a missing world table: true
+ok   the gate refuses S224's floor-free job solved with its floor: true
+ok   the gate refuses S224 solved without its floor where registered: true
+ok   the gate refuses the line job solved at the default line: true
+ok   the gate refuses a probed job with no probe lines: true
+ok   the gate refuses a probe that logged no reads in a world: true
+ok   the gate refuses a probe whose weights do not sum to 1: true
+ok   the gate refuses a probe breaking plain = deletion + residual: true
+ok   the gate refuses a LOR read counted off the LOR job: true
+ok   the gate refuses a missing D run in world 2: true
+ok   the gate refuses P's runs at the base paths where four times were registered: true
+ok   the gate refuses P's runs at four times the paths where the base was registered: true
+ok   the gate refuses an own opening that is neither P nor D, unrun: true
+ok   the gate refuses a forceIdentity one path short: true
+ok   the gate refuses a forceIdentity over too few paths: true
+ok   the gate refuses a forceIdentity over other paths than the first 1,000: true
+ok   the gate passes ten good jobs with their files: ""
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a file missing one run's bits: true
+ok   the gate refuses a file stamped by other code: true
+planted (137): all read as they should
+GATE: passed - the twelve jobs once and done at the registered settings (4000 paths a world, P at four times where registered, scale 1, seed 7002); every job's settings in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); no LOR read counted off the LOR job; every file the log's; NE-GRID B1's records behind its own gate
+
+NE-GRID C: the wealth axis at 120 points, S224 three ways, S364 at 60 points (B2), the tuning seed (predictions/diag-negrid-c.md)
+
+S380 BASE/P120S6Q5 (120 points): own ai 12 level 0.8 tiers 0,0; reader tables 72 unsupported 0 copied 456678 copiedTop 241866; clamps n 0
+  world 0 (weight 0.166667): P 32.4280 sim 33.1938 (5311/16000); D 31.3124 sim 32.6250 (1305/4000); OWN 32.4280
+  world 1 (weight 0.666667): P 77.2472 sim 78.3937 (12543/16000); D 77.4351 sim 79.2000 (3168/4000); OWN 77.2472
+  world 2 (weight 0.166667): P 96.3023 sim 96.5687 (15451/16000); D 96.6550 sim 97.1750 (3887/4000); OWN 96.3023
+
+S224 BASE/P120S6Q5 (120 points): own ai 0 level 1 tiers 0,0; reader tables 0 unsupported 0 copied 0 copiedTop 0; clamps n 0
+  world 0 (weight 0.166667): P 26.0660 sim 27.9688 (4475/16000); D 25.4887 sim 27.8500 (1114/4000); OWN 26.0660
+  world 1 (weight 0.666667): P 73.1164 sim 74.2687 (11883/16000); D 73.0179 sim 74.8500 (2994/4000); OWN 73.1164
+  world 2 (weight 0.166667): P 96.0696 sim 96.2500 (15400/16000); D 96.2728 sim 96.3750 (3855/4000); OWN 96.0696
+
+S364 BASE/P60S6Q5L25 (60 points): own ai 8 level 0.95 tiers 2,2; reader tables 72 unsupported 0 copied 226638 copiedTop 125550; clamps n 0
+  world 0 (weight 0.166667): P 2.4762 sim 0.0500 (2/4000); D 2.9655 sim 0.0000 (0/4000); OWN 2.9668 sim 0.0000 (0/4000)
+  world 1 (weight 0.666667): P 2.6603 sim 0.3000 (12/4000); D 2.9656 sim 0.1000 (4/4000); OWN 3.0737 sim 0.0000 (0/4000)
+  world 2 (weight 0.166667): P 1.3201 sim 1.5500 (62/4000); D 1.0722 sim 0.4750 (19/4000); OWN 1.1984 sim 0.1500 (6/4000)
+
+S364 ORDER/P60S6Q5 (60 points): own ai 12 level 0.8 tiers 0,0; reader tables 72 unsupported 0 copied 225828 copiedTop 124416; clamps n 0
+  world 0 (weight 0.166667): P 2.1463 sim 0.0500 (2/4000); D 2.4564 sim 0.0000 (0/4000); OWN 2.1463
+  world 1 (weight 0.666667): P 1.4567 sim 0.3000 (12/4000); D 1.1505 sim 0.1000 (4/4000); OWN 1.4567
+  world 2 (weight 0.166667): P 2.6566 sim 1.5500 (62/4000); D 1.9341 sim 0.4750 (19/4000); OWN 2.6566
+
+S224 BASE/P120S6Q5F0 (120 points): own ai 0 level 1 tiers 0,0; reader tables 0 unsupported 0 copied 0 copiedTop 0; clamps n 0
+  world 0 (weight 0.166667): P 37.1417 sim 38.7313 (6197/16000); D 36.1698 sim 37.9500 (1518/4000); OWN 37.1417
+  world 1 (weight 0.666667): P 81.0442 sim 81.9375 (13110/16000); D 81.4384 sim 82.6750 (3307/4000); OWN 81.0442
+  world 2 (weight 0.166667): P 97.6262 sim 97.7062 (15633/16000); D 97.8888 sim 98.0500 (3922/4000); OWN 97.6262
+
+S364 BASE/P60S12Q5 (60 points): own ai 12 level 0.8 tiers 0,0; reader tables 72 unsupported 0 copied 799632 copiedTop 247860; clamps n 0
+  world 0 (weight 0.166667): P 2.7061 sim 0.0500 (2/4000); D 2.8846 sim 0.0000 (0/4000); OWN 2.7061
+  world 1 (weight 0.666667): P 3.4151 sim 0.3000 (12/4000); D 3.4197 sim 0.0500 (2/4000); OWN 3.4151
+  world 2 (weight 0.166667): P 3.2441 sim 1.3250 (53/4000); D 3.0014 sim 0.3500 (14/4000); OWN 3.2441
+
+S224 BASE/P60S12Q5 (60 points): own ai 0 level 1 tiers 0,0; reader tables 0 unsupported 0 copied 0 copiedTop 0; clamps n 0
+  world 0 (weight 0.166667): P 27.0071 sim 27.9250 (1117/4000); D 26.2224 sim 27.5250 (1101/4000); OWN 27.0071
+  world 1 (weight 0.666667): P 74.2730 sim 74.8750 (2995/4000); D 74.2770 sim 75.0000 (3000/4000); OWN 74.2730
+  world 2 (weight 0.166667): P 96.4507 sim 96.4000 (3856/4000); D 96.7257 sim 96.5500 (3862/4000); OWN 96.4507
+
+S380 LOR/P120S6Q5 (120 points): own ai 12 level 0.8 tiers 0,0; reader tables 72 unsupported 0 copied 456678 copiedTop 241866; clamps n 13879671744
+  world 0 (weight 0.166667): P 32.2084 sim 33.0750 (1323/4000); D 30.9526 sim 32.6000 (1304/4000); OWN 32.2084
+  world 1 (weight 0.666667): P 77.6330 sim 78.6000 (3144/4000); D 77.9703 sim 79.1750 (3167/4000); OWN 77.6330
+  world 2 (weight 0.166667): P 96.6423 sim 96.7500 (3870/4000); D 97.0896 sim 97.1750 (3887/4000); OWN 96.6423
+
+bridge 4 BASE/P120S6Q5 (120 points): own ai 59 level 0.8 tiers 2,2; reader tables 36 unsupported 0 copied 242514 copiedTop 144180; clamps n 0
+  world 0 (weight 0.166667): P 98.9370 sim 98.7500 (3950/4000); D 99.1360 sim 99.0250 (3961/4000); OWN 99.1360
+  world 1 (weight 0.666667): P 99.9875 sim 100.0000 (4000/4000); D 99.9902 sim 99.9750 (3999/4000); OWN 99.9902
+  world 2 (weight 0.166667): P 99.9958 sim 100.0000 (4000/4000); D 99.9958 sim 100.0000 (4000/4000); OWN 99.9958
+
+S364 BASE/P120S6Q5 (120 points): own ai 11 level 0.9 tiers 2,2; reader tables 72 unsupported 0 copied 456516 copiedTop 250290; clamps n 0
+  world 0 (weight 0.166667): P 3.5697 sim 0.0500 (2/4000); D 3.9507 sim 0.0000 (0/4000); OWN 3.9958 sim 0.0000 (0/4000)
+  world 1 (weight 0.666667): P 3.0587 sim 0.2750 (11/4000); D 3.4892 sim 0.1000 (4/4000); OWN 3.5827 sim 0.0750 (3/4000)
+  world 2 (weight 0.166667): P 1.4093 sim 1.5000 (60/4000); D 1.2262 sim 0.4500 (18/4000); OWN 1.2802 sim 0.2250 (9/4000)
+
+S224 BASE/P60S6Q15 (60 points): own ai 0 level 1 tiers 0,0; reader tables 0 unsupported 0 copied 0 copiedTop 0; clamps n 0
+  world 0 (weight 0.166667): P 25.9404 sim 27.9500 (1118/4000); D 25.4055 sim 27.3250 (1093/4000); OWN 25.9404
+  world 1 (weight 0.666667): P 73.8774 sim 74.6500 (2986/4000); D 73.9374 sim 75.0750 (3003/4000); OWN 73.8774
+  world 2 (weight 0.166667): P 96.4823 sim 96.4000 (3856/4000); D 96.6522 sim 96.5500 (3862/4000); OWN 96.4823
+
+S364 BASE/P60S6Q5 (60 points): own ai 8 level 0.95 tiers 2,2; reader tables 72 unsupported 0 copied 224532 copiedTop 123930; clamps n 0
+  world 0 (weight 0.166667): P 3.4212 sim 0.0500 (2/4000); D 4.0826 sim 0.0000 (0/4000); OWN 4.0781 sim 0.0000 (0/4000)
+  world 1 (weight 0.666667): P 2.8196 sim 0.3000 (12/4000); D 3.1261 sim 0.1000 (4/4000); OWN 3.2209 sim 0.0000 (0/4000)
+  world 2 (weight 0.166667): P 1.3275 sim 1.5250 (61/4000); D 1.0817 sim 0.4750 (19/4000); OWN 1.2088 sim 0.1500 (6/4000)
+
+THE ITEMS (each read by its registered rule)
+1. the wealth axis converges at second order under BASE (|m2| / |m1| at most 0.35): INCONCLUSIVE
+     S380 BASE P world 0: 30 35.0977, 60 33.2954, 120 32.4280 ratio 0.4812; S380 BASE P world 1: 30 76.2609, 60 77.3833, 120 77.2472 ratio 0.1213; S380 BASE D world 0: 30 34.3882, 60 32.4347, 120 31.3124 ratio 0.5745; S380 BASE D world 1: 30 76.4294, 60 77.6621, 120 77.4351 ratio 0.1842; S224 BASE P world 0: 30 26.0358, 60 26.4327, 120 26.0660 (not counted); S224 BASE P world 1: 30 76.7930, 60 73.7264, 120 73.1164 ratio 0.1989; S224 BASE D world 0: 30 25.1197, 60 25.7064, 120 25.4887 ratio 0.3710; S224 BASE D world 1: 30 77.1119, 60 73.7126, 120 73.0179 ratio 0.2043
+     REPORTED, LOR: S380 LOR P world 0: 30 31.5924, 60 32.3720, 120 32.2084 ratio 0.2098; S380 LOR P world 1: 30 81.8530, 60 78.4549, 120 77.6330 ratio 0.2419; S380 LOR D world 0: 30 30.4985, 60 31.2043, 120 30.9526 ratio 0.3566; S380 LOR D world 1: 30 82.8315, 60 78.7582, 120 77.9703 ratio 0.1934
+2. S224's under-read stays at 120 points on 16,000 paths a world: HELD
+     world 0 -1.9028 (-2.7611 to -1.0560); world 1 -1.1523 (-1.9764 to -0.3156)
+3. 15 return nodes carry S224's 60-point under-read: FALSIFIED
+     world 0: under-read -1.6173, rise -0.4923 share -0.3044; world 1: under-read -0.8986, rise 0.1510 share 0.1680
+4. 12 shares carry S224's 60-point under-read: INCONCLUSIVE
+     world 0: under-read -1.6173, rise 0.5744 share 0.3552; world 1: under-read -0.8986, rise 0.5466 share 0.6083
+5. 12 shares carry S364's 60-point over-read: INCONCLUSIVE
+     world 0: over-read 3.3712, fall 0.7151 share 0.2121; world 1: over-read 2.5196, fall -0.5955 share -0.2364
+6. 120 points carry S364's 60-point over-read: FALSIFIED
+     world 0: over-read 3.3712, fall -0.1485 share -0.0441; world 1: over-read 2.5196, fall -0.2392 share -0.0949
+7. ORDER carry S364's 60-point over-read: INCONCLUSIVE
+     world 0: over-read 3.3712, fall 1.2749 share 0.3782; world 1: over-read 2.5196, fall 1.3629 share 0.5409
+9. S224 without its minimum end pot reads within half a point of its 16,000-path runs at 120 points: FALSIFIED
+     world 0 -1.5895 (-2.5175 to -0.6675); world 1 -0.8933 (-1.6161 to -0.1538)
+10. the support line at 0.25 carries S364's 60-point over-read: INCONCLUSIVE
+     world 0: over-read 3.3712, fall 0.9450 share 0.2803; world 1: over-read 2.5196, fall 0.1592 share 0.0632
+     the line's reach on the 0.5 job's copied-corner weight at P (S364-COPY's 'not' needs at least 0.5 in every counted world): world 0 0.0000, world 1 0.1294
+8. bridge 4 within 0.3 points at 120 points: HELD
+     at D: world 0 0.1110 (-0.2221 to 0.5504); world 1 0.0152 (-0.0096 to 0.1613); world 2 -0.0042 (-0.0042 to 0.1155)
+
+THE CAUSES (the registered map)
+=> RG-WSLOW open
+=> RG-PATHS not
+=> RG-UNMASK open
+=> S364-SHARE open
+=> S364-W not
+=> S364-REF open
+=> RG-FLOOR not
+=> S364-COPY open
+
+REPORTED
+  S364's over-read at 30 points (NE-ROOT, results-neroot.txt) by world: 3.6185, 2.9066
+  probe S364 BASE/P60S6Q5 world 0 at P: reads 5, mean query chance 2.809e-4; plain blend 20.3186, deletion 18.4024, residual 1.9162; sup weight 0.2158 p 0.8528 S 79.6217 c 0.9309 R 0.0000; clip weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000; copy weight 0.7842 p 0.0211 S 4.0018 c 0.5900 R 2.4434
+  probe S364 BASE/P60S6Q5 world 1 at P: reads 5, mean query chance 4.032e-3; plain blend 28.0050, deletion 25.8226, residual 2.1824; sup weight 0.1027 p 0.9997 S 99.9056 c 0.9993 R 0.0000; clip weight 0.1113 p 0.9329 S 94.1795 c 1.0000 R 0.8928; copy weight 0.7860 p 0.0668 S 9.2344 c 0.9264 R 2.6503
+  probe S364 BASE/P60S6Q5 world 2 at P: reads 5, mean query chance 2.754e-2; plain blend 33.7899, deletion 32.0917, residual 1.6982; sup weight 0.2051 p 0.8693 S 86.5354 c 0.9947 R 0.0000; clip weight 0.1263 p 0.9904 S 99.2290 c 1.0000 R 0.1878; copy weight 0.6686 p 0.0274 S 5.2439 c 0.9953 R 2.5046
+  probe S364 BASE/P60S6Q5L25 world 0 at P: reads 5, mean query chance 2.809e-4; plain blend 19.7414, deletion 18.4131, residual 1.3283; sup weight 0.2158 p 0.8528 S 79.6288 c 0.9310 R 0.0000; clip weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000; copy weight 0.7842 p 0.0211 S 3.2638 c 0.5994 R 1.6938
+  probe S364 BASE/P60S6Q5L25 world 1 at P: reads 5, mean query chance 4.032e-3; plain blend 28.0050, deletion 25.8823, residual 2.1227; sup weight 0.1027 p 0.9997 S 99.9056 c 0.9993 R 0.0000; clip weight 0.2130 p 0.7132 S 73.6936 c 1.0000 R 2.3706; copy weight 0.6843 p 0.0065 S 2.9896 c 0.9185 R 2.3642
+  probe S364 BASE/P60S6Q5L25 world 2 at P: reads 5, mean query chance 2.754e-2; plain blend 33.7770, deletion 32.0932, residual 1.6839; sup weight 0.2051 p 0.8693 S 86.5332 c 0.9947 R 0.0000; clip weight 0.1748 p 0.7996 S 81.7471 c 1.0000 R 1.7848; copy weight 0.6200 p 0.0059 S 2.7970 c 0.9951 R 2.2125
+  probe S380 BASE/P120S6Q5 world 0 at P: reads 5, mean query chance 9.999e-1; plain blend 35.9703, deletion 35.9703, residual 0.0000; sup weight 1.0000 p 0.9984 S 35.9703 c 0.3598 R 0.0000; clip weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000; copy weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000
+  probe S380 BASE/P120S6Q5 world 1 at P: reads 5, mean query chance 1.000e+0; plain blend 73.1367, deletion 73.1367, residual 0.0000; sup weight 1.0000 p 0.9998 S 73.1367 c 0.7315 R 0.0000; clip weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000; copy weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000
+  probe S380 BASE/P120S6Q5 world 2 at P: reads 5, mean query chance 1.000e+0; plain blend 92.9454, deletion 92.9454, residual 0.0000; sup weight 1.0000 p 1.0000 S 92.9454 c 0.9295 R 0.0000; clip weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000; copy weight 0.0000 p 0.0000 S 0.0000 c 0.0000 R 0.0000
+  S224 BASE at 120 points, P: world 0 the first 4,000 paths 28.1250, the other 12,000 27.9167, table 26.0660; world 1 the first 4,000 paths 74.6750, the other 12,000 74.1333, table 73.1164; world 2 the first 4,000 paths 96.3000, the other 12,000 96.2333, table 96.0696
+  S380 BASE at 120 points, P: world 0 the first 4,000 paths 33.3000, the other 12,000 33.1583, table 32.4280; world 1 the first 4,000 paths 78.6500, the other 12,000 78.3083, table 77.2472; world 2 the first 4,000 paths 96.7500, the other 12,000 96.5083, table 96.3023
+  S380 BASE at P, the 120-point policy against the 60-point one on B1's 4,000 paths: world 0 44 saved/38 lost (0.1500); world 1 20 saved/25 lost (-0.1250); world 2 3 saved/11 lost (-0.2000)
+  S380 LOR at P, the 120-point policy against the 60-point one on B1's 4,000 paths: world 0 38 saved/28 lost (0.2500); world 1 17 saved/20 lost (-0.0750); world 2 3 saved/10 lost (-0.1750)
+  S224 BASE at P, the 120-point policy against the 60-point one on B1's 4,000 paths: world 0 24 saved/21 lost (0.0750); world 1 22 saved/20 lost (0.0500); world 2 2 saved/5 lost (-0.0750)
+  bridge 4 BASE at P, the 120-point policy against the 60-point one on B1's 4,000 paths: world 0 3 saved/4 lost (-0.0250); world 1 0 saved/0 lost (0.0000); world 2 0 saved/0 lost (0.0000)
+REALISED item 1: 0.5745
+REALISED item 2: -1.9028
+OUTCOME: 1 INCONCLUSIVE, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 INCONCLUSIVE, 6 FALSIFIED, 7 INCONCLUSIVE, 8 HELD, 9 FALSIFIED, 10 INCONCLUSIVE

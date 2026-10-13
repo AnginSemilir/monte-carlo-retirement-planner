@@ -178,7 +178,7 @@ Items 1-3 rest on the review's ranked causes (O150-REFMIX 0.50, O150-REFFLOW 0.2
 - **Base rate, item 5:** 0.79 (NOHARM)
 - **Item 1:** HELD 0.35, INCONCLUSIVE 0.20, FALSIFIED 0.45 (derived, results-derive-neref.txt section 3)
 - **Item 2:** HELD 0.41, INCONCLUSIVE 0.24, FALSIFIED 0.35 (derived)
-- **Item 3:** previewed, not scored (derived: HELD 0.50, INCONCLUSIVE 0.49, FALSIFIED 0.01)
+- **Item 3:** HELD 0.50, INCONCLUSIVE 0.49, FALSIFIED 0.01 (derived; previewed, not scored)
 - **Item 4:** HELD 0.52, INCONCLUSIVE 0.26, FALSIFIED 0.23 (derived)
 - **Item 5:** HELD 0.60, INCONCLUSIVE 0.00, FALSIFIED 0.40 (derived)
 - **Judged:** none (the judged inputs are derive-neref.mjs's JUDGED block, committed before its first output in 989d2cb and, changed and declared, before its second in 1de9ee7 and its third in 59cec47)
@@ -186,4 +186,4 @@ Items 1-3 rest on the review's ranked causes (O150-REFMIX 0.50, O150-REFFLOW 0.2
 
 ## Changes after seeing results
 
-- 13 Oct, after the read (results-neref.txt): item 3's credence line reworded to '**Item 3:** previewed, not scored (derived: HELD 0.50, ...)' so that scorecard.mjs, which matches credence lines of the form '**Item N:**' against the OUTCOME line, leaves item 3 unscored as registered (the plan-auditor's MINOR 4 of 13 Oct 13:35 UK); the fix before launch moved item 3 off the OUTCOME line but left its credence line in the scored form, so the scorecard refused the test ('credence without outcome [3]'); the line keeps the '**Item 3:**' label check-prediction.mjs requires. No figure and no outcome changed; item 3 read HELD, as its line predicted.
+None.

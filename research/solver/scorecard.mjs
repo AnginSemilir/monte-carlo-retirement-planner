@@ -75,7 +75,7 @@ export const TESTS = [
   { name: 'NE-GRID-B1 (the wealth axis doubled: the two bridge reads at 30 and 60 points against their runs on S380, bridge 4 and S224)', prediction: 'predictions/diag-negrid-b1.md', results: 'results-negrid-b1.txt' },
   { name: 'NE-GRID-C (the wealth axis at 120 points; S224 under-read with and without its minimum end pot; S364 by shares, axis, reference and support line)', prediction: 'predictions/diag-negrid-c.md', results: 'results-negrid-c.txt' },
   { name: 'NE-EDGE (S364\'s near-dead read: the bridge reader\'s residual zeroed (RZ) and scaled by the query\'s chance (RS), bridge 4 and S380 the controls)', prediction: 'predictions/diag-needge.md', results: 'results-needge.txt' },
-  { name: 'NE-REF (S364\'s log gap under RS split into the reference\'s parts; RS with the order-drawn reference; RS on S360)', prediction: 'predictions/diag-neref.md', results: 'results-neref.txt' },
+  { name: 'NE-REF (S364\'s log gap under RS split into the reference\'s parts; RS with the order-drawn reference; RS on S360)', prediction: 'predictions/diag-neref.md', results: 'results-neref.txt', unscored: ['3'] },
 ];
 
 export function credences(predText) {
@@ -153,8 +153,12 @@ export function outcomes(resultsText) {
   return { items, overall: many ? (/\bHELD\b/.test(many[1]) ? 1 : 0) : v[1] === 'NOT FALSIFIED' || v[1] === 'HELD' ? 1 : 0 };
 }
 
-export function scoreTest(predText, resultsText) {
+/* `unscored` (a test's TESTS entry): items its prediction registered as read but not scored (NE-REF's item 3, previewed before
+   registration); their credences are dropped before matching, so the prediction stays as registered (the plan-auditor's
+   BLOCKING 1 of 13 Oct 18:18 UK: rewording the credence line after the read broke the fair-test gate's prediction hash) */
+export function scoreTest(predText, resultsText, { unscored = [] } = {}) {
   const c = credences(predText);
+  for (const k of unscored) for (const f of Object.keys(c)) if (c[f] && typeof c[f] === 'object' && !Array.isArray(c[f])) delete c[f][k];
   if (resultsText === null) return { status: 'PENDING', pairs: [] };
   const o = outcomes(resultsText);
   if (o.refused) return { status: 'REFUSED', why: o.refused, pairs: [] };
@@ -413,6 +417,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['7v: the two wholes scored from the attribution and the candidate list, and a numbered line with no NOT REPRODUCED still read as numbered', t(() => { const P7 = pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (FALSIFIED), 0.70. P named (alone or with C): about 0.35. At least one READER+J candidate by the whole score:\nabout 0.55.'); const r = scoreTest(P7, 'OUTCOME: 1 HELD, 2 FALSIFIED\n3. item 3 does not name P\nATTRIBUTION (x): HELD: N, table noise (item 4)\n  READER+J/0   survival CANDIDATE whole score CANDIDATE | x\n'); return `${r.status} ${r.pairs.map(x => `${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 0.6:1 0.7:1 0.35:0 0.55:1']);
   cases.push(['7al: one item named alone, "item 1 reads as predicted (HELD): 0.55"', t(() => { const r = scoreTest(pred('The author\'s probability that item 1 reads as predicted (HELD): 0.55. For: x.'), 'x\nOUTCOME: 1 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.55:1']);
   cases.push(['7ap: items separated by semicolons are each scored', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.45; 2 (INCONCLUSIVE), 0.45; 3 (HELD), 0.65.'), 'x\nOUTCOME: 1 HELD; 2 HELD; 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.45:1 2:0.45:0 3:0.65:1']);
+  { const P3 = pred('- **Item 1:** HELD 0.6, INCONCLUSIVE 0.3, FALSIFIED 0.1\n- **Item 2:** FALSIFIED 0.5, INCONCLUSIVE 0.3, HELD 0.2\n- **Item 3:** HELD 0.5, INCONCLUSIVE 0.4, FALSIFIED 0.1'), R3 = 'x\nOUTCOME: 1 HELD, 2 HELD; 3 (previewed, not scored) HELD\n';
+    cases.push(['an item registered unscored, its credence kept: scored without the TESTS entry\'s unscored list, the scorecard refuses', t(() => scoreTest(P3, R3).pairs.length), 'ERROR items do not match: credence without outcome [3], outcome without credence []']);
+    cases.push(['an item registered unscored, listed in the TESTS entry: the other two scored, item 3 left out', t(() => scoreTest(P3, R3, { unscored: ['3'] }).pairs.map(x => `${x.item}:${x.o}`).join(',')), '1:1,2:0']); }
   cases.push(['7ah: a numbered line with a trailing "; note" reads its items and leaves the note unscored', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (HELD), 0.30.'), 'x\nOUTCOME: 1 HELD, 2 FALSIFIED; 6 (the split): no opening flips\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.6:1 2:0.3:0']);
   cases.push(['7ah: a revised list after a bracket and colon ("...0.026): 1 (HELD), 0.35; ...") overrides the first list, item 1 included', t(() => { const c = credences(readFileSync(join(HERE, 'predictions/diag-7ah.md'), 'utf8')); return JSON.stringify(c.items); }), '{"1":0.35,"2":0.45,"3":0.3,"4":0.4,"5":0.5,"7":0.75,"8":0.7}']);
   // the 5 Oct extras (the maintainer's 'Go ahead' on the deep review's proposals)
@@ -477,7 +484,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const T of TESTS) {
     const p = read(T.prediction);
     if (p === null) { console.log(`${T.name}: ERROR - no prediction file ${T.prediction}`); process.exit(1); }
-    const s = scoreTest(p, read(T.results));
+    const s = scoreTest(p, read(T.results), { unscored: T.unscored || [] });
     if (s.status !== 'SCORED') { console.log(`${T.name}: ${s.status}${s.why ? ` (${s.why})` : ` (no ${T.results} yet)`}`); continue; }
     console.log(`${T.name}: Brier ${s.brier.toFixed(3)} over ${s.pairs.length} (${s.pairs.map(x => `${x.item} ${x.p} -> ${x.o ? 'held' : 'not'}`).join('; ')})`);
     all.push(...s.pairs);

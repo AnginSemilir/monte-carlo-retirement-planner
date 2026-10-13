@@ -65,6 +65,7 @@ The deep review after NE-GRID C's decisive test: S364's 60-point table at P over
 | items 1 and 2 FALSIFIED | the residual does not carry it: the deep review re-ranks S364's causes (S364-STORED, S364-REF) before any near-edge fix | 0.34 |
 | else | NE-EDGE's unsettled items named; the deep review after NE-EDGE designs the next step | 0.33 |
 
+- **Row 3's 0.00 is the coupling's, not a judged chance** (the plan-auditor's MINOR 1 of 13 Oct 03:41 UK): the derivation draws RS at most RZ by rank, so RZ's 0.9 never pairs with RS under 0.5; the route the reach line names (residual on corners at or below the query's chance, which RZ zeroes and RS leaves) can still produce it. Nothing rests on the figure: the else row and the waiver stand, and only item credences are scored.
 - **Waiver:** none needed: the chance the action changes is 0.66 (one less 0.34, the likeliest row), above a quarter
 - **The escalation rule (escalation.md, trigger 3):** the run is over 2 hours' wall (about 3.61 h) and its 'else' row is 0.33, under the 0.6 bar: no escalation review first.
 

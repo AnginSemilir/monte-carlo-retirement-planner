@@ -75,6 +75,7 @@ export const TESTS = [
   { name: 'NE-GRID-B1 (the wealth axis doubled: the two bridge reads at 30 and 60 points against their runs on S380, bridge 4 and S224)', prediction: 'predictions/diag-negrid-b1.md', results: 'results-negrid-b1.txt' },
   { name: 'NE-GRID-C (the wealth axis at 120 points; S224 under-read with and without its minimum end pot; S364 by shares, axis, reference and support line)', prediction: 'predictions/diag-negrid-c.md', results: 'results-negrid-c.txt' },
   { name: 'NE-EDGE (S364\'s near-dead read: the bridge reader\'s residual zeroed (RZ) and scaled by the query\'s chance (RS), bridge 4 and S380 the controls)', prediction: 'predictions/diag-needge.md', results: 'results-needge.txt' },
+  { name: 'NE-REF (S364\'s log gap under RS split into the reference\'s parts; RS with the order-drawn reference; RS on S360)', prediction: 'predictions/diag-neref.md', results: 'results-neref.txt' },
 ];
 
 export function credences(predText) {

@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NE-REF (closed 13 Oct 18:06)
+
+- [T:overclaim] NE-EDGE's close graded O150 B from a measurement made after the read (the plan-auditor's FAIL of 13 Oct 10:41 UK, BLOCKING 1) -> DROP: the rule stands (a figure no registered item reads is grade C) and was applied before the PASS.
+- [T:design] NE-REF's item 4 had no over-correction side and its derivation's RSO story stopped at the whole, hours after NE-EDGE's close wrote the rule that forbids both (the FAIL of 13 Oct 13:35 UK, BLOCKING 1) -> AUTOMATE (proposed for the maintainer's next unlock; check-prediction.mjs is locked): check-prediction.mjs refuses an item whose HELD reads a removal or a share as 'at least' a line unless the decision rule names an over-correction line and the decision table a row for it.
+- [T:other:calibration] Brier 0.295 over 4; item 1's share read 1.0581, above its 80% interval's top (0.8842), because the share stories stopped at 0.9 - NE-EDGE's miss again, for a share instead of a removal -> REPLACE in new-prediction.mjs with: A share or removal story reaches past the whole wherever the other terms can be negative.
+- [T:code] item 3's 'previewed, not scored' route was checked against the scorecard's OUTCOME parser alone; its credence line kept the scored form, and the scorecard refused the test after the read, so the line was reworded after the result (recorded in the prediction) -> REPLACE in new-prediction.mjs with: An unscored item keeps its credence label with no outcome word after it and stays off the OUTCOME line, and scorecard.mjs is run on the prediction before registration.
+
 ## NE-EDGE (closed 13 Oct 10:25)
 
 - [T:decision-fed] [T:relook] twice a registration or a close leaned on a premise the record did not show: NE-EDGE read S364-RUNSCALED 'not' with no reach line for RS, under a rule written hours before that asks for one (the plan-auditor's FAIL of 13 Oct 02:54 UK, BLOCKING 1), and C's close moved O139's gate on a reason the record did not bear (the FAIL of 13 Oct 01:43 UK, BLOCKING 4) -> DROP: both rules stand (new-prediction.mjs's reach rule; a moved gate names the file its reason rests on) and the auditor applied them; the reducer now reads RS's reach (0.9999 and 1.0000).

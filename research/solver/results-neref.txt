@@ -1,0 +1,136 @@
+ok   MIX carries 0.9 of G in both worlds: 1 HELD: "HELD"
+ok   MIX carries 0.1 of G in both worlds: 1 FALSIFIED: "FALSIFIED"
+ok   MIX carries 0.9 in world 2 and 0.1 in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIX carries nothing in world 0 only: 1 reads worlds 1 and 2, HELD: "HELD"
+ok   MIX's bottom exactly half of G's top in both worlds: 1 HELD: "HELD"
+ok   MIX's bottom just under half of G's top in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 1's runs at zero (no gap shown): 1 not FALSIFIED: "INCONCLUSIVE"
+ok   the mix and the pots pay nothing (zero counts): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the engine carries all of G in both worlds: 2 HELD: "HELD"
+ok   the engine carries a tenth of G in both worlds: 2 FALSIFIED: "FALSIFIED"
+ok   the engine carries all of G in world 1 only: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the mix simulated at 0.9 of the closed form: 3 HELD: "HELD"
+ok   the mix simulated at twice the closed form in world 1: 3 FALSIFIED: "FALSIFIED"
+ok   the mix simulated at 1.3 times the closed form in world 1: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   FS's top exactly 1.1 times the closed form: 3 HELD: "HELD"
+ok   RSO reads world 2 at its runs: 4 HELD: "HELD"
+ok   RSO reads world 2 as RS did: 4 FALSIFIED: "FALSIFIED"
+ok   RSO exactly halves world 2's under-read: 4 HELD: "HELD"
+ok   RSO removes four tenths of world 2's under-read: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RSO crossing its runs in world 2: 4 HELD, read for the cause: "HELD"
+ok   RSO crossing its runs in world 2: OVER-CORRECTION: true
+ok   RSO over-reading world 1 by two points, world 2 at its runs: OVER-CORRECTION: true
+ok   RSO over-reading world 0 only: reported, not an OVER-CORRECTION: false
+ok   RSO's world-2 interval bottom exactly at 0: not an OVER-CORRECTION: false
+ok   RSO at its runs everywhere: no OVER-CORRECTION: false
+ok   RS reads S360 as BASE: 5 HELD: "HELD"
+ok   RS a point lower in world 1, the runs alike: 5 FALSIFIED: "FALSIFIED"
+ok   RS exactly half a point lower in world 1, 0 of 0 discordant: 5 HELD: "HELD"
+ok   RS 0.3 lower in world 1 with 10 saved and 10 lost: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIX's point 0.55 of G's top on small counts, its bottom under half: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the better order the second in every read: 1 HELD: "HELD"
+ok   the tables above their runs' tops (G's top below 0): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   G's bottom below 0 and MIX negative: 1 not FALSIFIED: "INCONCLUSIVE"
+ok   MIX carries 0.48 of G in both worlds: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the engine's point just over half G's top, its bottom under: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   FS's top just over 1.1 times the closed form, its point under: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RSO halving world 2 on a wide interval reaching RS's: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   1 HELD: O150-REFMIX held: "held"
+ok   1 FALSIFIED: O150-REFMIX not: "not"
+ok   1 INCONCLUSIVE: O150-REFMIX open: "open"
+ok   2 HELD: O150-REFFLOW held: "held"
+ok   2 FALSIFIED: O150-REFFLOW not: "not"
+ok   3 HELD: O150-FORM not: "not"
+ok   3 FALSIFIED: O150-FORM held: "held"
+ok   the ledger's terms sum to G: true
+ok   the read prints every item, three causes, the over-correction line and an OUTCOME line of four scored items and item 3 noted, end to end: "true 3 true 4 true"
+ok   the read prints OVER-CORRECTION: YES where RSO crosses its runs in world 2: true
+ok   the gate passes the five jobs as registered: 0
+ok   the gate refuses RSP without its first paths' line in world 2: true
+ok   the gate refuses RSP's runs in world 1 not of the flow paths: true
+ok   the gate passes RSP at NE-EDGE's RS job: 0
+ok   the gate refuses RSP whose table is not NE-EDGE's by a printed digit: true
+ok   the gate refuses RSP whose first runs' bits are not NE-EDGE's: true
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses other ledger draws in the head: true
+ok   the gate refuses the ledger solved at 60 over the scale, not 4: true
+ok   the gate refuses a 60-point job at other points: true
+ok   the gate refuses a ran line at other points than its job: true
+ok   the gate refuses armTook 0: true
+ok   the gate refuses the ledger without its split: true
+ok   the gate refuses RSO without readerRef order: true
+ok   the gate refuses S360 BASE carrying a split: true
+ok   the gate refuses S360 RS carrying readerRef order: true
+ok   the gate refuses another minimum end pot: true
+ok   the gate refuses another support line: true
+ok   the gate refuses the candidate without e3pcls: true
+ok   the gate refuses mirrorTook short: true
+ok   the gate refuses mirrorTook over nothing: true
+ok   the gate refuses P not among the flow moves: true
+ok   the gate refuses opening weights not summing to 1: true
+ok   the gate refuses a ledger row missing: true
+ok   the gate refuses ledger counts out of other draws: true
+ok   the gate refuses a quadrature line missing: true
+ok   the gate refuses a flow line missing: true
+ok   the gate refuses flow counts out of other paths: true
+ok   the gate refuses other flow paths in the head: true
+ok   the gate refuses P in neither the orders nor the flow lines: true
+ok   the gate refuses a world of four ledger rows whose weights sum to 1: true
+ok   the gate refuses a case line at other points than its ran line: true
+ok   the gate refuses forceIdentity over fewer paths than registered: true
+ok   the gate refuses more survived than paid the bridge: true
+ok   the gate refuses pairTook 0: true
+ok   the gate refuses a forced pair at another D: true
+ok   the gate refuses a missing world table: true
+ok   the gate refuses a missing run in world 2: true
+ok   the gate refuses runs on other paths than registered: true
+ok   the gate refuses fewer paying the bridge than surviving: true
+ok   the gate refuses forceIdentity one path short: true
+ok   the gate passes the ledger at NE-EDGE's probe chances: 0
+ok   the gate refuses a ledger chance off NE-EDGE's probe by a printed digit: true
+ok   the gate passes files whose bits are the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+planted (100): all read as they should
+GATE: passed - the five jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002, ledger draws 1000000, flow paths 40000); every job's split and reference in its solve's meta; every self-check passed (armTook, mirrorTook, pairTook, forceIdentity); every file the log's; the ledger's chances NE-EDGE's probe's and RSP's tables and first runs NE-EDGE's RS job's, NE-EDGE behind its own gate
+
+NE-REF: S364's log gap under RS split into the reference's parts, S364 under RS with the order-drawn reference, S360 under BASE and RS (predictions/diag-neref.md)
+
+THE ITEMS (each read by its registered rule; worlds 1 and 2 decide items 1-3)
+1. MIX (the reference drawn pot by pot, at the state's own pots) carries at least half of S364's log gap: HELD
+     world 1: MIX 2.9332 (2.8611 to 2.9892) against G 2.7723 (2.5896 to 2.9462); world 2: MIX 2.1270 (2.0960 to 2.1565) against G 2.0418 (1.9555 to 2.1261)
+2. the engine beyond the reference (FLOW + AFTER + POLICY) carries at least half of the log gap: FALSIFIED
+     world 1: ENGINE -0.0575 (-0.2619 to 0.1377) against G 2.7723 (2.5896 to 2.9462); world 2: ENGINE -0.0264 (-0.1246 to 0.0697) against G 2.0418 (1.9555 to 2.1261)
+3. the closed form is not pessimistic against its own mix: HELD
+     world 1: FS 2.2973e-4 (2.2198e-4 to 2.4171e-4) against REF 2.5396e-4; world 2: FS 2.1111e-3 (2.0742e-3 to 2.1520e-3) against REF 2.2379e-3
+4. RS with readerRef 'order' halves S364's world-2 under-read at P: HELD
+     RSO world 2 at P: -0.2146 (-0.6473 to 0.1450) against RS's -1.5011; RSO's table less its runs by world: world 0 -0.0086 (-0.1391 to 0.0353); world 1 0.0117 (-0.2117 to 0.1566); world 2 -0.2146 (-0.6473 to 0.1450)
+OVER-CORRECTION (RSO's table shown above its runs in world 1 or 2): NO
+5. RS does not deepen S360's under-read by more than half a point: FALSIFIED
+     world 0: BASE table 16.4162 runs 29.0250, RS table 15.1576 runs 29.0250; D -1.2587 (-1.2587 to -1.2587), 0 saved/0 lost of 4000; world 1: BASE table 36.2707 runs 48.9000, RS table 35.9426 runs 48.9000; D -0.3281 (-0.3281 to -0.3281), 0 saved/0 lost of 4000; world 2: BASE table 62.4442 runs 69.6000, RS table 62.3907 runs 69.6000; D -0.0535 (-0.0535 to -0.0535), 0 saved/0 lost of 4000
+
+THE CAUSES (the registered map)
+=> O150-REFMIX held
+=> O150-REFFLOW not
+=> O150-FORM not
+
+THE LEDGER (per world: the log gap G = ln runs - ln table and its terms; reported, world 0 not deciding)
+  world 0: table 0.0016 runs 2/4000 REF 1.6308e-5 FS 1.2450e-5 OW 4.6919e-4 OS 8.1855e-4 FB 8.7500e-4 (order 0) FSV 8.2500e-4
+    G 3.4247 = COPY 0.0017 + FORM -0.2699 + MIXO 3.6293 + MIXS 0.5565 + FLOW 0.0667 + AFTER -0.0588 + POLICY -0.5008 (sum 3.4247)
+  world 1: table 0.0255 runs 163/40000 REF 2.5396e-4 FS 2.2973e-4 OW 2.8233e-3 OS 4.3162e-3 FB 3.6750e-3 (order 0) FSV 3.6750e-3
+    G 2.7723 = COPY -0.0032 + FORM -0.1003 + MIXO 2.5088 + MIXS 0.4245 + FLOW -0.1608 + AFTER 0.0000 + POLICY 0.1033 (sum 2.7723)
+  world 2: table 0.2239 runs 690/40000 REF 2.2379e-3 FS 2.1111e-3 OW 1.3037e-2 OS 1.7711e-2 FB 1.6475e-2 (order 0) FSV 1.6475e-2
+    G 2.0418 = COPY -0.0004 + FORM -0.0584 + MIXO 1.8206 + MIXS 0.3064 + FLOW -0.0724 + AFTER 0.0000 + POLICY 0.0460 (sum 2.0418)
+  quadrature world 0: five nodes 1.6308e-5, fine 1.8144e-5, ratio 1.1126
+  quadrature world 1: five nodes 2.5396e-4, fine 2.4274e-4, ratio 0.9558
+  quadrature world 2: five nodes 2.2379e-3, fine 2.2111e-3, ratio 0.9880
+REALISED item 1: 1.0581
+REALISED item 4: -0.2146
+OUTCOME: 1 HELD, 2 FALSIFIED, 4 HELD, 5 FALSIFIED; 3 (previewed, not scored) HELD

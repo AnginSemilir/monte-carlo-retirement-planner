@@ -21,15 +21,19 @@ const DRAWS = 400, N = 1000000, FN = 40000;
 
 // THE JUDGED INPUTS (written before this script's output)
 export const JUDGED = {
-  // the share of S364's log gap (worlds 1 and 2) the two measured terms carry, by the deep review's O150 cause.
-  // REFMIX (the proportional mix blind to the state's pots and the move's order): MIX carries most, FLOW little;
-  // REFFLOW (the engine's payment beyond the best fixed order): FLOW carries most; FORM (the closed form pessimistic):
-  // neither; COPYC, UR, QUAD, OTHER: neither carries half
+  // the share of S364's log gap (worlds 1 and 2) MIX carries, by the deep review's O150 cause; the engine beyond the
+  // reference (item 2) carries the rest less COPY and FORM, which are small in worlds 1 and 2 (the copied c 0.935 and 0.99),
+  // so items 1 and 2 read one story. Declared change of 13 Oct, before this block's second output: the first run (not
+  // committed) gave items 1 and 2 mostly INCONCLUSIVE on NE-EDGE's 4,000 runs and drew FLOW, the fixed-move engine, as
+  // REFFLOW's term; the design then added RSP's 40,000 runs and read REFFLOW as the review states it (the engine and
+  // policy beyond the reference), so FLOW's separate story was dropped.
+  // REFMIX (the proportional mix blind to the state's pots and the move's order): MIX carries most; REFFLOW (the engine's
+  // payment beyond the best fixed order): little; FORM: little; COPYC, UR, QUAD, OTHER: spread
   share: {
-    'O150-REFMIX': { MIX: { 0.9: 0.3, 0.7: 0.4, 0.5: 0.2, 0.3: 0.1 }, FLOW: { 0.1: 0.6, 0.3: 0.3, 0.5: 0.1 } },
-    'O150-REFFLOW': { MIX: { 0.1: 0.5, 0.3: 0.4, 0.5: 0.1 }, FLOW: { 0.9: 0.3, 0.7: 0.4, 0.5: 0.2, 0.3: 0.1 } },
-    'O150-FORM': { MIX: { 0.1: 0.5, 0.3: 0.5 }, FLOW: { 0.1: 0.5, 0.3: 0.5 } },
-    other: { MIX: { 0.1: 0.4, 0.3: 0.4, 0.5: 0.2 }, FLOW: { 0.1: 0.4, 0.3: 0.4, 0.5: 0.2 } },
+    'O150-REFMIX': { 0.9: 0.3, 0.7: 0.4, 0.5: 0.2, 0.3: 0.1 },
+    'O150-REFFLOW': { 0.1: 0.5, 0.3: 0.4, 0.5: 0.1 },
+    'O150-FORM': { 0.1: 0.5, 0.3: 0.5 },
+    other: { 0.1: 0.3, 0.3: 0.4, 0.5: 0.3 },
   },
   // item 3: the mix simulated over the closed form at the dominant reads. Declared: the design exploration of 13 Oct
   // printed the mix simulated at 200,000 draws at the fifteen states - 0.95 and 0.99 of the closed form at worlds 1 and
@@ -57,11 +61,12 @@ console.log(`  S364 RS at 60 points, P: table ${T.map(f4).join(', ')} against ru
 
 // 2. THE POWER through items(): a synthetic NE-REF set per draw, NE-EDGE's RS figures as the edge
 const ones = (n, ok) => { const b = new Uint8Array(n); for (let i = 0; i < ok; i++) b[i] = 1; return b; };
-function setOf({ mix = 0.9, flow = 0.1, form = 0.95, rso = 0.5, dS = 0 } = {}) {
+const tabsP = v => [0, 1, 2].map(k => ({ k, P: v[k], D: v[k], OWN: v[k] }));
+function setOf({ mix = 0.9, form = 0.95, rso = 0.5, dS = 0 } = {}) {
   const ledger = [], fl = [];
   for (let k = 0; k < 3; k++) {
     const t = T[k] / 100, ref = t / JUDGED.copyC[k], g = Math.log((R[k].ok / R[k].n) / ref);
-    const fs = ref * form, os = fs * Math.exp(mix * G[k]), fb = os * Math.exp(flow * G[k]);
+    const fs = ref * form, os = fs * Math.exp(mix * G[k]), fb = os;
     const c = p => binom(N, Math.min(1, p));
     ledger.push([0, 1, 2, 3, 4].map(() => ({ z: 0, w: 0.2, acc: 1, pr: ref, form: c(fs), N, ow: [c(fs), 0], owN: N, os: [c(os), 0], osN: N })));
     const nb = binom(FN, Math.min(1, fb)); fl.push([{ ai: 12, bridge: nb, N: FN, survived: nb, N2: FN }, { ai: 57, bridge: 0, N: FN, survived: 0, N2: FN }]);
@@ -69,25 +74,27 @@ function setOf({ mix = 0.9, flow = 0.1, form = 0.95, rso = 0.5, dS = 0 } = {}) {
   }
   const J = {};
   J[key('S364', 'L/P4S6Q5')] = { id: 'S364', arm: 'L', ledger, flow: fl, quad: [] };
+  // RSP: NE-EDGE's table, its runs drawn about NE-EDGE's on 4,000 paths in world 0 and 40,000 in worlds 1 and 2
+  J[key('S364', 'RSP/P60S6Q5')] = { id: 'S364', arm: 'RSP', tables: tabsP(T), sims: Object.fromEntries([0, 1, 2].map(k => { const n = k ? FN : NPW; return [`P${k}`, { ok: binom(n, R[k].ok / R[k].n), n }]; })), bits: {} };
   const truth2 = R[2].ok / R[2].n, ok2 = binom(NPW, truth2), d2 = T[2] - 100 * truth2;
   const tabs = (v) => [0, 1, 2].map(k => ({ k, P: v[k], D: v[k], OWN: v[k] }));
   J[key('S364', 'RSO/P60S6Q5')] = { id: 'S364', arm: 'RSO', own: { ai: 12 }, pair: { P: 12, D: 14 }, tables: tabs([T[0], T[1], 100 * ok2 / NPW + (1 - rso) * d2]), sims: { P2: { ok: ok2, n: NPW } }, bits: {} };
   const sB = [0.4, 0.45, 0.5].map(p => binom(NPW, p));
   J[key('S360', 'BASE/P60S6Q5')] = { id: 'S360', arm: 'BASE', tables: tabs([40, 45, 50]), sims: Object.fromEntries([0, 1, 2].map(k => [`OWN${k}`, { ok: sB[k], n: NPW }])), bits: {} };
   J[key('S360', 'RS/P60S6Q5')] = { id: 'S360', arm: 'RS', tables: tabs([40 + dS, 45 + dS, 50 + dS]), sims: Object.fromEntries([0, 1, 2].map(k => [`OWN${k}`, { ok: sB[k], n: NPW }])), bits: {} };
-  return { J, edge: { T, r: R }, bitsOf: (j, nm) => j.bits[nm] || ones(j.sims[nm].n, j.sims[nm].ok) };
+  return { J, bitsOf: (j, nm) => j.bits[nm] || ones(j.sims[nm].n, j.sims[nm].ok) };
 }
 const P = {}, cnt = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 });
 const tally = (k, fn) => { const c = cnt(); for (let d = 0; d < DRAWS; d++) c[fn()]++; P[k] = Object.fromEntries(Object.entries(c).map(([x, v]) => [x, v / DRAWS])); };
-const it = s => items(s.J, s.edge, s.bitsOf);
+const it = s => items(s.J, s.bitsOf);
 const SH = [0.1, 0.3, 0.5, 0.7, 0.9], FO = [0.95, 1.0, 1.3, 1.6], RO = [0, 0.25, 0.5, 0.75, 1], DS = [0, -0.3, -1, -2];
-for (const f of SH) { tally(`mix|${f}`, () => it(setOf({ mix: f }))['1'].outcome); tally(`flow|${f}`, () => it(setOf({ mix: 0.1, flow: f }))['2'].outcome); }
+for (const f of SH) { tally(`mix|${f}`, () => it(setOf({ mix: f }))['1'].outcome); tally(`eng|${f}`, () => it(setOf({ mix: f }))['2'].outcome); }
 for (const f of FO) tally(`form|${f}`, () => it(setOf({ form: f }))['3'].outcome);
 for (const f of RO) tally(`rso|${f}`, () => it(setOf({ rso: f }))['4'].outcome);
 for (const f of DS) tally(`s360|${f}`, () => it(setOf({ dS: f }))['5'].outcome);
 const row = k => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(x => `${x} ${f4(P[k][x])}`).join(' ');
-console.log(`\n2. THE POWER (${DRAWS} draws a cell through reduce-neref.mjs's items(); NE-EDGE's RS table and runs as the edge; the copied c at the review's)`);
-for (const f of SH) console.log(`  item 1, MIX carrying ${f} of G: ${row(`mix|${f}`)}; item 2, FLOW carrying ${f}: ${row(`flow|${f}`)}`);
+console.log(`\n2. THE POWER (${DRAWS} draws a cell through reduce-neref.mjs's items(); NE-EDGE's RS table, RSP's runs drawn about NE-EDGE's at 40,000 paths in worlds 1 and 2; the copied c at the review's)`);
+for (const f of SH) console.log(`  MIX carrying ${f} of G (the engine the rest): item 1 ${row(`mix|${f}`)}; item 2 ${row(`eng|${f}`)}`);
 for (const f of FO) console.log(`  item 3, the mix simulated at ${f} of the closed form: ${row(`form|${f}`)}`);
 for (const f of RO) console.log(`  item 4, RSO removing ${f} of world 2's under-read: ${row(`rso|${f}`)}`);
 for (const f of DS) console.log(`  item 5, RS deepening S360 by ${f} points: ${row(`s360|${f}`)}`);
@@ -104,9 +111,9 @@ const Cn = Object.fromEntries(['1', '2', '3', '4', '5'].map(i => [i, cnt()])), r
 const d2 = T[2] - 100 * R[2].ok / R[2].n;
 for (let d = 0; d < Mn; d++) {
   const c = pick(cc), sh = JUDGED.share[c] || JUDGED.share.other;
-  const mix = Number(pick(sh.MIX)), flow = Number(pick(sh.FLOW)), form = Number(pick(JUDGED.form[c] || JUDGED.form.other));
+  const mix = Number(pick(sh)), form = Number(pick(JUDGED.form[c] || JUDGED.form.other));
   const rso = Number(pick(JUDGED.rso[c] || JUDGED.rso.other)), dS = Number(pick(JUDGED.s360));
-  const o = { 1: outOf(P[`mix|${near(mix, SH)}`]), 2: outOf(P[`flow|${near(flow, SH)}`]), 3: outOf(P[`form|${near(form, FO)}`]), 4: outOf(P[`rso|${near(rso, RO)}`]), 5: outOf(P[`s360|${near(dS, DS)}`]) };
+  const o = { 1: outOf(P[`mix|${near(mix, SH)}`]), 2: outOf(P[`eng|${near(mix, SH)}`]), 3: outOf(P[`form|${near(form, FO)}`]), 4: outOf(P[`rso|${near(rso, RO)}`]), 5: outOf(P[`s360|${near(dS, DS)}`]) };
   for (const i of Object.keys(Cn)) Cn[i][o[i]]++;
   R1.push(mix + (rnd() - 0.5) * 0.1); R4.push((1 - rso) * d2 + (rnd() - 0.5) * 0.3);
   if (o[1] === 'HELD' && o[4] === 'HELD' && o[5] !== 'FALSIFIED') rows.A++;
@@ -128,7 +135,8 @@ console.log(`  DECISION ROWS: items 1 and 4 HELD, 5 not FALSIFIED ${f2(rows.A / 
 // simulations judged at a quarter hour; S360 at S364's (judged)
 const sec = re => { const x = logsE.find(t => /^S364\s+case \| job RS\/P60S6Q5 \|/m.test(t)); const m = re.exec(x); return m ? Number(m[1]) : NaN; };
 const solveS = sec(/solve CAND RS\/P60S6Q5: table \S+ secs (\d+)/), runS = sec(/forceIdentity \d+\/\d+ secs (\d+)/), job60 = solveS + runS;
-const ledger = solveS * (4 / 60) ** 2 + 900;
+// NE-EDGE's RS job ran P and D in three worlds on 4,000 paths and forceIdentity's 2 x 1,000: 26,000 runs in runS
+const perRun = runS / 26000, rsp = solveS + perRun * (NPW + 2 * FN + 2000), ledger = solveS * (4 / 60) ** 2 + 900;
 console.log('\n4. THE BUDGET (NE-EDGE\'s S364 RS/P60S6Q5 log: solve plus runs)');
-console.log(`  S364 RSO, S360 BASE, S360 RS: about ${f2(job60 / 3600)} h each (NE-EDGE's S364 RS: solve ${solveS} s, runs ${runS} s; S360 judged alike); the ledger about ${f2(ledger / 3600)} h`);
-console.log(`  total about ${f2((3 * job60 + ledger) / 3600)} core-hours; the four jobs at once, about ${f2(Math.max(job60, ledger) / 3600)} h wall`);
+console.log(`  S364 RSO, S360 BASE, S360 RS: about ${f2(job60 / 3600)} h each (NE-EDGE's S364 RS: solve ${solveS} s, runs ${runS} s; S360 judged alike); RSP about ${f2(rsp / 3600)} h (${f4(perRun)} s a run); the ledger about ${f2(ledger / 3600)} h`);
+console.log(`  total about ${f2((3 * job60 + rsp + ledger) / 3600)} core-hours; five jobs on four cores, the ledger first, about ${f2(Math.max(rsp, ledger + job60) / 3600)} h wall`);

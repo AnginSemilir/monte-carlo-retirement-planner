@@ -17,6 +17,9 @@
  *        those that survive.
  *        Self-check (mirrorTook): the ledger's simulators, at 12,000 draws and seed 7002, reproduce simChance's and
  *        orderChance's own tables at every grid point the running maximum leaves alone, on world 2's schedule.
+ *   RSP  S364 under RS at 60 points, NE-EDGE's job re-solved: P forced on `flow` paths a world in worlds 1 and 2 (the paths a
+ *        world in world 0), the runs the ledger's log gap is read against; its first `paths` a world printed apart, so the
+ *        reducer holds them, and its tables, to NE-EDGE's RS job (the identity control).
  *   RSO  S364 under RS with readerRef 'order' at 60 points: NE-EDGE's job (P and D forced, the own opening run, the
  *        tables at each, forceIdentity), its table against its runs in every world.
  *   BASE, RS   S360 at 60 points under BASE and RS: the own opening's table against its runs (and the paths that pay
@@ -41,10 +44,10 @@ import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
 
 // [household, arm, wealth points, shares, return nodes]
-export const JOBS = [['S364', 'L', 4, 6, 5], ['S364', 'RSO', 60, 6, 5], ['S360', 'BASE', 60, 6, 5], ['S360', 'RS', 60, 6, 5]];
-export const ARMS = Object.freeze({ L: { readerSplit: 'rs' }, RSO: { readerSplit: 'rs', readerRef: 'order' }, BASE: {}, RS: { readerSplit: 'rs' } });
-export const SPLIT = Object.freeze({ L: 'rs', RSO: 'rs', BASE: null, RS: 'rs' });
-export const REF = Object.freeze({ L: null, RSO: 'order', BASE: null, RS: null });
+export const JOBS = [['S364', 'L', 4, 6, 5], ['S364', 'RSP', 60, 6, 5], ['S364', 'RSO', 60, 6, 5], ['S360', 'BASE', 60, 6, 5], ['S360', 'RS', 60, 6, 5]];
+export const ARMS = Object.freeze({ L: { readerSplit: 'rs' }, RSP: { readerSplit: 'rs' }, RSO: { readerSplit: 'rs', readerRef: 'order' }, BASE: {}, RS: { readerSplit: 'rs' } });
+export const SPLIT = Object.freeze({ L: 'rs', RSP: 'rs', RSO: 'rs', BASE: null, RS: 'rs' });
+export const REF = Object.freeze({ L: null, RSP: null, RSO: 'order', BASE: null, RS: null });
 // S364's forced pair, NE-EDGE's (P the plan's tiers at the floor level, D two steps down); S360 runs its own opening only
 export const PAIRS = Object.freeze({ S364: [12, 14] });
 export const FLOORS = Object.freeze({ S364: 205000, S360: 5000 });
@@ -158,7 +161,7 @@ JOBS.forEach((job, ji) => {
   console.log(`${''.padEnd(16)} openings ${L}: OWN ai ${ownC} level ${cand.levelOf[ownC]} tiers ${acts[ownC].tierPen || 0},${acts[ownC].tierIsa || 0}`);
   const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n), SV = new Float64Array(n);
   const svOf = (tab, ai) => { scoreMoves(tab, s0, 0, SC, TX, BQ, H0(), { ai, act: tab.c.acts[ai], nr: tab.nodeRealOfAt[0][ai] }, SV); return SV[ai]; };
-  const f0 = Date.now(), wpaths = E.pathsForSeed(SEED, arm === 'L' ? FLOWN : NPW, T), bits = {};
+  const f0 = Date.now(), wpaths = E.pathsForSeed(SEED, arm === 'L' || arm === 'RSP' ? FLOWN : NPW, T), bits = {};
   const worldPath = (i, k) => { const cz = Float64Array.from(wpaths[i]); cz[cz.length - 1] = cand.mix.nodes[k]; return cz; };
 
   if (arm === 'L') {
@@ -230,17 +233,19 @@ JOBS.forEach((job, ji) => {
       console.log(`${''.padEnd(16)} checks ${L}: pairTook ${pairOk ? 1 : 0}/1`);
       if (!pairOk) { console.error(`audit-neref: ${id} ${L}: the forced pair is not the registered tiers at one level and tier base`); process.exit(3); }
     }
-    const opens = pair ? [['P', pair[0]], ['D', pair[1]], ...(ownC !== pair[0] && ownC !== pair[1] ? [['OWN', ownC]] : [])] : [['OWN', ownC]];
+    const opens = arm === 'RSP' ? [['P', pair[0]]] : pair ? [['P', pair[0]], ['D', pair[1]], ...(ownC !== pair[0] && ownC !== pair[1] ? [['OWN', ownC]] : [])] : [['OWN', ownC]];
+    const runsIn = k => (arm === 'RSP' && k > 0 ? FLOWN : NPW);
     for (let k = 0; k < K; k++) {
       const tab = cand.mix.tables[k];
       console.log(`${''.padEnd(16)} tables ${L} ${k} z ${cand.mix.nodes[k].toFixed(6)} weight ${cand.mix.weights[k].toFixed(6)}: ${opens.map(([nm, ai]) => `${nm} ${(100 * svOf(tab, ai)).toFixed(6)}`).join(' ')}`);
     }
     for (let k = 0; k < K; k++) {
       for (const [nm, ai] of opens) {
-        const b = new Uint8Array(NPW), bb = new Uint8Array(NPW);
-        for (let i = 0; i < NPW; i++) { const r = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: ai } }); b[i] = r.survived ? 1 : 0; bb[i] = r.survived || !r.preAccess ? 1 : 0; }
+        const np = runsIn(k), b = new Uint8Array(np), bb = new Uint8Array(np);
+        for (let i = 0; i < np; i++) { const r = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: ai } }); b[i] = r.survived ? 1 : 0; bb[i] = r.survived || !r.preAccess ? 1 : 0; }
         bits[`${nm}${k}`] = b; bits[`${nm}${k}b`] = bb;
-        console.log(`${''.padEnd(16)} sim ${L} ${k} ${nm} ai ${ai}: ${b.reduce((t, x) => t + x, 0)}/${NPW} bridge ${bb.reduce((t, x) => t + x, 0)} bits ${sha16(b)} ${sha16(bb)}`);
+        if (np > NPW) { const f = b.slice(0, NPW); console.log(`${''.padEnd(16)} first ${L} ${k} ${nm}: ${f.reduce((t, x) => t + x, 0)}/${NPW} bits ${sha16(f)}`); }
+        console.log(`${''.padEnd(16)} sim ${L} ${k} ${nm} ai ${ai}: ${b.reduce((t, x) => t + x, 0)}/${np} bridge ${bb.reduce((t, x) => t + x, 0)} bits ${sha16(b)} ${sha16(bb)}`);
       }
     }
     // forceIdentity on world 0's first FI paths: the own opening forced against its unforced run (the plant forces another)

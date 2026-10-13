@@ -2,19 +2,21 @@
  * NE-REF'S REDUCER (PLAN.md NE-REF; predictions/diag-neref.md; audit-neref.mjs).
  *   node research/solver/reduce-neref.mjs [dir=results/diagneref] [paths=4000] [scale=1] [draws=1000000] [flow=40000] [--preflight]
  *   node research/solver/reduce-neref.mjs --planted
- * THE GATE: the four jobs once and done, one stamp (code, audit, prediction) across the logs and in every file; each at the
+ * THE GATE: the five jobs once and done, one stamp (code, audit, prediction) across the logs and in every file; each at the
  *   registered settings (paths a world, scale, seed, ledger draws, flow paths; L at 4 wealth points, the others at 60 over
  *   the scale), the candidate's settings, the job's readerSplit and readerRef in its solve's meta (armTook and the ran line),
  *   the household's minimum end pot and the support line 0.5. L: the two draw orders with P (ai 12) among the flow moves,
  *   a schedule, five ledger rows, a quadrature line and one flow line an order in every world, counts out of the registered
- *   draws and flow paths, mirrorTook whole. RSO: the forced pair (pairTook), P, D and (where the own opening is neither) OWN
- *   tables and runs in every world. S360's two: OWN tables and runs in every world. Every non-ledger job: forceIdentity on
+ *   draws and flow paths, mirrorTook whole. RSP: the forced pair, P's tables, P's runs of the registered paths in world 0 and
+ *   of the flow paths in worlds 1 and 2, with their first paths' count and bits. RSO: the forced pair (pairTook), P, D and
+ *   (where the own opening is neither) OWN tables and runs in every world. S360's two: OWN tables and runs in every world. Every non-ledger job: forceIdentity on
  *   world 0's first min(paths, 1,000). Every file's bits the log's.
- *   THE IDENTITY CONTROL (not in --preflight): NE-EDGE's files pass NE-EDGE's own reducer gate, and L's mean reference
- *   chance in each world (its five reads) is NE-EDGE's RS probe line's to the printed digits, so the ledger's states are
- *   the 60-point read's (the states are the grid's flow, not its tables).
+ *   THE IDENTITY CONTROL (not in --preflight): NE-EDGE's files pass NE-EDGE's own reducer gate; L's mean reference chance
+ *   in each world (its five reads) is NE-EDGE's RS probe line's to the printed digits, so the ledger's states are the
+ *   60-point read's (the states are the grid's flow, not its tables); RSP's tables at P are NE-EDGE's RS job's to the
+ *   printed digits and its first paths' runs NE-EDGE's RS P runs, count and bits, in every world.
  * THE LEDGER (per world k, the five reads weighted by the year-0 nodes; a count's interval its exact one at 2 x a1, a1 =
- *   ALPHA / 4): T, RS's 60-point table at P (NE-EDGE); r, RS's runs at P (NE-EDGE); REF, the closed form; FS, the mix
+ *   ALPHA / 4): T, RS's 60-point table at P (RSP's, NE-EDGE's by the identity control); r, RSP's runs at P; REF, the closed form; FS, the mix
  *   simulated; OW and OS, pot by pot at the opening weights and at the state's own pots, the better order a read; FB and
  *   FSV, the engine under the better order's fixed move (by its bridge count), its bridge paid and its survival. The log
  *   gap G = ln r - ln T telescopes: COPY (ln REF - ln T) + FORM (ln FS - ln REF) + MIXO (ln OW - ln FS) + MIXS (ln OS -
@@ -23,12 +25,14 @@
  *   1 (O150-REFMIX): MIX carries at least half of G. A world holds when MIX's interval bottom is at least half G's top
  *     (G's top above 0); it falls when G's bottom is above 0 and MIX's top is under half of it. HELD when both worlds hold;
  *     FALSIFIED when both fall; INCONCLUSIVE otherwise.
- *   2 (O150-REFFLOW): FLOW carries at least half of G, read as item 1.
+ *   2 (O150-REFFLOW): the engine beyond the reference - FLOW + AFTER + POLICY, ln r - ln OS - carries at least half of G,
+ *     read as item 1 (the deep review's REFFLOW: the engine's payment beyond the best fixed order, the policy's yearly
+ *     choices and the flow's bills).
  *   3 (O150-FORM): the closed form is not pessimistic against its own mix. A world holds when FS's top is at most 1.1 x
  *     REF; it falls when FS's bottom is at least 1.5 x REF. HELD when both worlds hold; FALSIFIED when either falls;
  *     INCONCLUSIVE otherwise.
  *   4: RS with readerRef 'order' halves S364's world-2 under-read at P. d, RSO's world-2 table at P less its P runs (its
- *     exact interval at ALPHA), against NE-EDGE's RS d2. HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED
+ *     exact interval at ALPHA), against d2, RSP's (the same paths' first 4,000 as RSO's, its 40,000 for the point). HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED
  *     when d's top is under d2 / 2; INCONCLUSIVE otherwise.
  *   5: RS does not deepen S360's under-read. Per world, D = (RS's own table - BASE's) less (RS's own runs - BASE's), the
  *     runs paired by path (the discordant paths' exact interval at 2 x a5, a5 = ALPHA / 6), in points. HELD when every
@@ -51,9 +55,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-neref.md';
 export const SEED = '7002', NPW = 4000, DRAWS = 1000000, FLOWN = 40000, ALPHA = 0.05;
 export const HALF = 0.5, FORM_OK = 1.1, FORM_BAD = 1.5, DEEP = -0.5;
-export const JOBS = [['S364', 'L', 4], ['S364', 'RSO', 60], ['S360', 'BASE', 60], ['S360', 'RS', 60]];
-export const SPLIT = Object.freeze({ L: 'rs', RSO: 'rs', BASE: 'null', RS: 'rs' });
-export const REFOF = Object.freeze({ L: 'null', RSO: 'order', BASE: 'null', RS: 'null' });
+export const JOBS = [['S364', 'L', 4], ['S364', 'RSP', 60], ['S364', 'RSO', 60], ['S360', 'BASE', 60], ['S360', 'RS', 60]];
+export const SPLIT = Object.freeze({ L: 'rs', RSP: 'rs', RSO: 'rs', BASE: 'null', RS: 'rs' });
+export const REFOF = Object.freeze({ L: 'null', RSP: 'null', RSO: 'order', BASE: 'null', RS: 'null' });
 export const FLOORS = Object.freeze({ S364: 205000, S360: 5000 });
 export const PAIRS = Object.freeze({ S364: [12, 14] });
 export const WEIGHTS = [1 / 6, 2 / 3, 1 / 6];
@@ -62,7 +66,7 @@ export const key = (id, label) => `${id} ${label}`;
 export const q = x => (Number.isFinite(x) ? Math.round(x * 1e9) / 1e9 : x);
 export const sha16 = buf => createHash('sha256').update(buf).digest('hex').slice(0, 16);
 const a1 = ALPHA / 4, a5 = ALPHA / 6;
-const CASEL = /^(S364|S360)\s+case \| job ((L|RSO|BASE|RS)\/P(\d+)S6Q5) \| points (\d+) \| lambda (\S+)$/;
+const CASEL = /^(S364|S360)\s+case \| job ((L|RSP|RSO|BASE|RS)\/P(\d+)S6Q5) \| points (\d+) \| lambda (\S+)$/;
 const HEAD = /^NE-REF: .*, (\d+) paths a world, wealth points divided by (\d+(?:\.\d+)?) \(seed (\d+)\); ledger draws (\d+), flow paths (\d+);/;
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${esc(k)} (\\S+)`).exec(s); return m ? m[1] : null; };
@@ -77,7 +81,7 @@ export function parse(text) {
     if (c) {
       j = { id: c[1], label: c[2], arm: c[3], pts0: Number(c[4]), pts: Number(c[5]), stamp: st ? { code: st[1], audit: st[2], prediction: st[3], sha: st[4] } : null,
         head: hd ? { npw: Number(hd[1]), scale: Number(hd[2]), seed: hd[3], draws: Number(hd[4]), flow: Number(hd[5]) } : null,
-        checks: {}, tables: [], sims: {}, ledger: [[], [], []], schedule: [], quad: [], flow: [[], [], []], orders: null, opening: null, own: null, pair: null, done: false };
+        checks: {}, tables: [], sims: {}, first: {}, ledger: [[], [], []], schedule: [], quad: [], flow: [[], [], []], orders: null, opening: null, own: null, pair: null, done: false };
       jobs.push(j); continue;
     }
     if (!j) continue;
@@ -97,6 +101,7 @@ export function parse(text) {
     else if ((m = new RegExp(`^flow ${esc(L)} (\\d) (\\d) ai (\\d+): bridge (\\d+)\\/(\\d+) survived (\\d+)\\/(\\d+) bits (\\S+) (\\S+)$`).exec(l))) j.flow[Number(m[1])][Number(m[2])] = { ai: Number(m[3]), bridge: Number(m[4]), N: Number(m[5]), survived: Number(m[6]), N2: Number(m[7]), bitsB: m[8], bitsS: m[9] };
     else if ((m = new RegExp(`^tables ${esc(L)} (\\d) z (\\S+) weight (\\S+): (.*)$`).exec(l))) { const t = { k: Number(m[1]), weight: Number(m[3]) }; for (const x of m[4].matchAll(/(P|D|OWN) (\S+)/g)) { t[x[1]] = Number(x[2]); } j.tables[Number(m[1])] = t; }
     else if ((m = new RegExp(`^sim ${esc(L)} (\\d) (P|D|OWN) ai (\\d+): (\\d+)\\/(\\d+) bridge (\\d+) bits (\\S+) (\\S+)$`).exec(l))) j.sims[`${m[2]}${m[1]}`] = { ai: Number(m[3]), ok: Number(m[4]), n: Number(m[5]), bridge: Number(m[6]), bits: m[7], bitsB: m[8] };
+    else if ((m = new RegExp(`^first ${esc(L)} (\\d) (P|D|OWN): (\\d+)\\/(\\d+) bits (\\S+)$`).exec(l))) j.first[`${m[2]}${m[1]}`] = { ok: Number(m[3]), n: Number(m[4]), bits: m[5] };
     else if (l.startsWith(`file ${L}:`)) j.file = l.slice(`file ${L}:`.length).trim();
     else if (l === `done ${L}`) j.done = true;
   }
@@ -141,11 +146,13 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, draws = DRAWS, f
       const pair = PAIRS[j.id];
       if (pair && (!j.pair || j.pair.P !== pair[0] || j.pair.D !== pair[1] || !j.checks.pairTook || j.checks.pairTook[0] !== 1)) bad.push(`${k}: the forced pair is not the registered one`);
       const nm = j.own ? (pair && j.own.ai === pair[0] ? 'P' : pair && j.own.ai === pair[1] ? 'D' : 'OWN') : null;
-      const runs = pair ? ['P', 'D', ...(nm === 'OWN' ? ['OWN'] : [])] : ['OWN'];
+      const runs = j.arm === 'RSP' ? ['P'] : pair ? ['P', 'D', ...(nm === 'OWN' ? ['OWN'] : [])] : ['OWN'];
       for (let w = 0; w < 3; w++) {
         const t = j.tables[w];
         if (!t || runs.some(r => !Number.isFinite(t[r === 'OWN' && nm !== 'OWN' ? nm : r] ?? NaN))) bad.push(`${k}: world ${w}'s tables are missing`);
-        for (const r of runs) { const s = j.sims[`${r}${w}`]; if (!s || s.n !== npw || s.bridge < s.ok) bad.push(`${k}: no ${r} run of ${npw} paths in world ${w}`); }
+        const nw = j.arm === 'RSP' && w > 0 ? flow : npw;
+        for (const r of runs) { const s = j.sims[`${r}${w}`]; if (!s || s.n !== nw || s.bridge < s.ok) bad.push(`${k}: no ${r} run of ${nw} paths in world ${w}`); }
+        if (j.arm === 'RSP' && w > 0) { const f = j.first[`P${w}`]; if (!f || f.n !== npw || f.ok > j.sims[`P${w}`].ok) bad.push(`${k}: no first ${npw} paths' line in world ${w}`); }
       }
       if (!j.checks.forceIdentity || j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1] !== FI) bad.push(`${k}: forceIdentity did not pass on world 0's first ${FI} paths`);
     }
@@ -160,6 +167,12 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, draws = DRAWS, f
     }
   }
   if (edge) {
+    const P = jobs.find(j => j.arm === 'RSP');
+    if (P && edge.rs) for (let w = 0; w < 3; w++) {
+      if (!P.tables[w] || P.tables[w].P.toFixed(6) !== edge.rs.tables[w].P.toFixed(6)) bad.push(`RSP: world ${w}'s table at P is not NE-EDGE's RS job's`);
+      const mine = w > 0 ? P.first[`P${w}`] : P.sims[`P${w}`], theirs = edge.rs.sims[`P${w}`];
+      if (!mine || !theirs || mine.ok !== theirs.ok || mine.bits !== theirs.bits) bad.push(`RSP: world ${w}'s first runs are not NE-EDGE's RS P runs`);
+    }
     const Lj = jobs.find(j => j.arm === 'L');
     if (Lj) for (let w = 0; w < 3; w++) { const rows = Lj.ledger[w]; if (rows.length !== 5) continue; const mean = rows.reduce((t, r) => t + r.pr, 0) / 5; if (mean.toExponential(4) !== edge.pr[w]) bad.push(`L: world ${w}'s mean reference chance ${mean.toExponential(4)} is not NE-EDGE's RS probe's ${edge.pr[w]}`); }
   }
@@ -184,22 +197,24 @@ export function ledgerOf(Lj, k, T, r) {
   return { k, T, r, REF, FS, FSlo, FShi, OW, OS, OSlo, OShi, FB, fblo, fbhi, FSV, order: bi, G, Glo, Ghi, terms,
     MIX: ln(OS) - ln(FS), MIXlo: ln(OSlo) - ln(FShi), MIXhi: ln(OShi) - ln(FSlo),
     FL: ln(FB) - ln(OS), FLlo: ln(fblo) - ln(OShi), FLhi: ln(fbhi) - ln(OSlo),
+    EN: ln(rr) - ln(OS), ENlo: ln(rlo) - ln(OShi), ENhi: ln(rhi) - ln(OSlo),
     FORMlo: ln(FSlo) - ln(REF), FORMhi: ln(FShi) - ln(REF) };
 }
 const shareRead = (lo, hi, Glo, Ghi) => ({ holds: q(Ghi) > 0 && Number.isFinite(lo) && q(lo) >= q(HALF * Ghi), falls: Number.isFinite(Glo) && q(Glo) > 0 && q(hi) < q(HALF * Glo) });
 export function offOf(table, ok, n, al = ALPHA) { const [l, h] = cp(ok, n, al); return { d: q(table - 100 * ok / n), lo: q(table - 100 * h), hi: q(table - 100 * l) }; }
-/* J: this test's jobs by key; edge: NE-EDGE's S364 RS { T: [table at P by world, points], r: [{ ok, n } by world] }; bitsOf(j, run) */
-export function items(J, edge, bitsOf) {
-  const out = {}, Lj = J[key('S364', 'L/P4S6Q5')];
-  const led = [0, 1, 2].map(k => ledgerOf(Lj, k, edge.T[k], edge.r[k]));
+/* J: this test's jobs by key; bitsOf(j, run) */
+export function items(J, bitsOf) {
+  const out = {}, Lj = J[key('S364', 'L/P4S6Q5')], rsp = J[key('S364', 'RSP/P60S6Q5')];
+  const T = [0, 1, 2].map(k => rsp.tables[k].P), Rr = [0, 1, 2].map(k => ({ ok: rsp.sims[`P${k}`].ok, n: rsp.sims[`P${k}`].n }));
+  const led = [0, 1, 2].map(k => ledgerOf(Lj, k, T[k], Rr[k]));
   out.ledger = led;
   const shareItem = (lo, hi) => { const w = [1, 2].map(k => shareRead(led[k][lo], led[k][hi], led[k].Glo, led[k].Ghi)); return w.every(x => x.holds) ? 'HELD' : w.every(x => x.falls) ? 'FALSIFIED' : 'INCONCLUSIVE'; };
   out['1'] = { outcome: shareItem('MIXlo', 'MIXhi') };
-  out['2'] = { outcome: shareItem('FLlo', 'FLhi') };
+  out['2'] = { outcome: shareItem('ENlo', 'ENhi') };
   const f3 = [1, 2].map(k => ({ holds: q(led[k].FORMhi) <= q(Math.log(FORM_OK)), falls: Number.isFinite(led[k].FORMlo) && q(led[k].FORMlo) >= q(Math.log(FORM_BAD)) }));
   out['3'] = { outcome: f3.every(x => x.holds) ? 'HELD' : f3.some(x => x.falls) ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 4: RSO's world-2 under-read at P against RS's (NE-EDGE)
-  const rso = J[key('S364', 'RSO/P60S6Q5')], s2 = rso.sims.P2, o4 = offOf(rso.tables[2].P, s2.ok, s2.n), d2 = q(edge.T[2] - 100 * edge.r[2].ok / edge.r[2].n);
+  const rso = J[key('S364', 'RSO/P60S6Q5')], s2 = rso.sims.P2, o4 = offOf(rso.tables[2].P, s2.ok, s2.n), d2 = q(T[2] - 100 * Rr[2].ok / Rr[2].n);
   out['4'] = { outcome: o4.lo > d2 && o4.d >= q(d2 / 2) ? 'HELD' : o4.hi < q(d2 / 2) ? 'FALSIFIED' : 'INCONCLUSIVE', d: o4, d2 };
   // item 5: S360 under RS against BASE, each at its own opening, paired by path
   const jb = J[key('S360', 'BASE/P60S6Q5')], jr = J[key('S360', 'RS/P60S6Q5')];
@@ -222,12 +237,12 @@ export function items(J, edge, bitsOf) {
 
 const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : String(x)), e4 = x => (Number.isFinite(x) ? x.toExponential(4) : String(x));
 /* THE READ, from the items to the OUTCOME line, as lines: the main prints them, and a planted check runs it end to end */
-export function report(J, edge, bitsOf) {
-  const it = items(J, edge, bitsOf), L = [], Lj = J[key('S364', 'L/P4S6Q5')];
+export function report(J, bitsOf) {
+  const it = items(J, bitsOf), L = [], Lj = J[key('S364', 'L/P4S6Q5')];
   const sh = (x, l) => `${l.k ? '' : ''}${f4(x)} of G ${f4(l.G)} (${f4(l.Glo)} to ${f4(l.Ghi)})`;
   L.push('', 'THE ITEMS (each read by its registered rule; worlds 1 and 2 decide items 1-3)');
   L.push(`1. MIX (the reference drawn pot by pot, at the state's own pots) carries at least half of S364's log gap: ${it['1'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: MIX ${f4(l.MIX)} (${f4(l.MIXlo)} to ${f4(l.MIXhi)}) against ${sh(0, l).replace(/^0\.0000 of /, '')}`; }).join('; ')}`);
-  L.push(`2. FLOW (the engine under a fixed move beyond the fixed mix) carries at least half of the log gap: ${it['2'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: FLOW ${f4(l.FL)} (${f4(l.FLlo)} to ${f4(l.FLhi)}) against G ${f4(l.G)} (${f4(l.Glo)} to ${f4(l.Ghi)})`; }).join('; ')}`);
+  L.push(`2. the engine beyond the reference (FLOW + AFTER + POLICY) carries at least half of the log gap: ${it['2'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: ENGINE ${f4(l.EN)} (${f4(l.ENlo)} to ${f4(l.ENhi)}) against G ${f4(l.G)} (${f4(l.Glo)} to ${f4(l.Ghi)})`; }).join('; ')}`);
   L.push(`3. the closed form is not pessimistic against its own mix: ${it['3'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: FS ${e4(l.FS)} (${e4(l.FSlo)} to ${e4(l.FShi)}) against REF ${e4(l.REF)}`; }).join('; ')}`);
   L.push(`4. RS with readerRef 'order' halves S364's world-2 under-read at P: ${it['4'].outcome}`, `     RSO world 2 at P: ${f4(it['4'].d.d)} (${f4(it['4'].d.lo)} to ${f4(it['4'].d.hi)}) against RS's ${f4(it['4'].d2)}`);
   L.push(`5. RS does not deepen S360's under-read by more than half a point: ${it['5'].outcome}`, `     ${it['5'].cells.map(c => `world ${c.k}: BASE table ${f4(c.tB)} runs ${f4(c.sB)}, RS table ${f4(c.tR)} runs ${f4(c.sR)}; D ${f4(c.D)} (${f4(c.lo)} to ${f4(c.hi)}), ${c.c} saved/${c.b} lost of ${c.N}`).join('; ')}`);
@@ -252,7 +267,7 @@ function planted() {
   const N = 1000000, FN = 40000, NP = 4000;
   // a base world: NE-EDGE's RS figures; the ledger's reads all alike, REF at the table, FS at 0.9 of REF, OW at FS, OS at 0.9 of
   // the way to the runs in log terms, FB at OS, FSV at FB, so MIX carries 0.9 of G and FLOW nothing
-  const T = [0.0016, 0.0255, 0.2238], R = [{ ok: 2, n: NP }, { ok: 12, n: NP }, { ok: 62, n: NP }];
+  const T = [0.0016, 0.0255, 0.2238], R = [{ ok: 2, n: NP }, { ok: 120, n: FN }, { ok: 620, n: FN }];   // RSP's runs: 4,000 in world 0, 40,000 in worlds 1 and 2
   const mkL = (spec = {}) => {
     const ledger = [0, 1, 2].map(k => {
       const t = T[k] / 100, r = R[k].ok / R[k].n, G = Math.log(r / t), s = spec[k] || {};
@@ -270,12 +285,15 @@ function planted() {
     J[key('S364', 'RSO/P60S6Q5')] = mkO('S364', 'RSO', o.rsoT || [0.05, 0.3, 1.55], o.rsoOk || [2, 12, 62]);
     J[key('S360', 'BASE/P60S6Q5')] = mkO('S360', 'BASE', [40, 45, 50], [2000, 2000, 2000]);
     J[key('S360', 'RS/P60S6Q5')] = mkO('S360', 'RS', o.rsT || [40, 45, 50], [2000, 2000, 2000]);
+    J[key('S364', 'RSP/P60S6Q5')] = { id: 'S364', arm: 'RSP', label: 'RSP/P60S6Q5', own: { ai: 12 }, pair: { P: 12, D: 14 }, tables: T.map((t, k) => ({ k, P: t, D: t, OWN: t })), sims: Object.fromEntries([0, 1, 2].map(k => [`P${k}`, { ...R[k] }])), bits: {}, first: {} };
     if (o.mut) o.mut(J);
-    return { J, edge: { T, r: R } };
+    return { J };
   };
   const ones = (n, ok) => { const b = new Uint8Array(n); for (let i = 0; i < ok; i++) b[i] = 1; return b; };
   const bitsOf = (j, nm) => j.bits[nm] || ones(j.sims[nm].n, j.sims[nm].ok);
-  const run = (o = {}) => { const s = base(o); return items(s.J, s.edge, bitsOf); };
+  const run = (o = {}) => { const s = base(o); return items(s.J, bitsOf); };
+  // RSP's tables and runs (the ledger's T and r) set for one case
+  const withTR = (s, Tarr, Rarr) => { const j = s.J[key('S364', 'RSP/P60S6Q5')]; Tarr.forEach((t, k) => { j.tables[k].P = t; }); if (Rarr) Rarr.forEach((r, k) => { j.sims[`P${k}`] = { ...r }; }); return s.J; };
   const outc = (n, o, want, what) => { const got = run(o)[n].outcome; REACHED[n].add(got); cases.push([what, got, want]); };
   const G = k => Math.log((R[k].ok / R[k].n) / (T[k] / 100));
   const [r1hi, r2hi] = [1, 2].map(k => cp(R[k].ok, R[k].n, 2 * a1)[1]), [r1lo, r2lo] = [1, 2].map(k => cp(R[k].ok, R[k].n, 2 * a1)[0]);
@@ -288,28 +306,28 @@ function planted() {
     // MIX's bottom computed here from the counts' own exact intervals, apart from ledgerOf, so a fault there cannot move the edge
     const s = base(), Lj = s.J[key('S364', 'L/P4S6Q5')], mixLo = k => { const rows = Lj.ledger[k]; return Math.log(rows.reduce((t, x) => t + x.w * cp(Math.max(...x.os), x.N, 2 * a1)[0], 0)) - Math.log(rows.reduce((t, x) => t + x.w * cp(x.form, x.N, 2 * a1)[1], 0)); };
     const t1 = 100 * r1hi / Math.exp(2 * mixLo(1)), t2 = 100 * r2hi / Math.exp(2 * mixLo(2));
-    const e = { T: [T[0], t1, t2], r: R }, got = items(s.J, e, bitsOf)['1'].outcome; REACHED['1'].add(got);
+    const e = { T: [T[0], t1, t2], r: R }, got = items(withTR(s, e.T, e.r), bitsOf)['1'].outcome; REACHED['1'].add(got);
     cases.push(['MIX\'s bottom exactly half of G\'s top in both worlds: 1 HELD', got, 'HELD']); EDGES.push('a share exactly half at the interval\'s edge');
-    const e2 = { T: [T[0], t1 * 0.999, t2], r: R }; cases.push(['MIX\'s bottom just under half of G\'s top in world 1: 1 INCONCLUSIVE', items(s.J, e2, bitsOf)['1'].outcome, 'INCONCLUSIVE']);
+    const e2 = { T: [T[0], t1 * 0.999, t2], r: R }; cases.push(['MIX\'s bottom just under half of G\'s top in world 1: 1 INCONCLUSIVE', items(withTR(s, e2.T, e2.r), bitsOf)['1'].outcome, 'INCONCLUSIVE']);
   }
   { // no gap shown: runs at zero in a world, so G's bottom is not above 0 and the item cannot fall
     const s = base({ L: { 1: { os: (T[1] / 100) * Math.exp(0.1 * G(1)) }, 2: { os: (T[2] / 100) * Math.exp(0.1 * G(2)) } } }), e = { T, r: [R[0], { ok: 0, n: NP }, R[2]] };
-    cases.push(['world 1\'s runs at zero (no gap shown): 1 not FALSIFIED', items(s.J, e, bitsOf)['1'].outcome, 'INCONCLUSIVE']); EDGES.push('a world with no runs (zero)');
+    cases.push(['world 1\'s runs at zero (no gap shown): 1 not FALSIFIED', items(withTR(s, e.T, e.r), bitsOf)['1'].outcome, 'INCONCLUSIVE']); EDGES.push('a world with no runs (zero)');
   }
   outc('1', { L: { 1: { os: 0, fs: 0 }, 2: { os: 0, fs: 0 } } }, 'INCONCLUSIVE', 'the mix and the pots pay nothing (zero counts): 1 INCONCLUSIVE');
   EDGES.push('a ledger count at zero');
   // item 2 (FLOW's share): FB carried to the runs from OS at the table
   const flowShare = f => ({ L: { 1: { os: T[1] / 100, fb: (T[1] / 100) * Math.exp(f * G(1)) }, 2: { os: T[2] / 100, fb: (T[2] / 100) * Math.exp(f * G(2)) } } });
-  outc('2', flowShare(0.9), 'HELD', 'FLOW carries 0.9 of G in both worlds: 2 HELD');
-  outc('2', {}, 'FALSIFIED', 'FLOW carries nothing in both worlds: 2 FALSIFIED');
-  outc('2', { L: { 1: flowShare(0.9).L[1] } }, 'INCONCLUSIVE', 'FLOW carries 0.9 in world 1 only: 2 INCONCLUSIVE');
+  outc('2', flowShare(0.9), 'HELD', 'the engine carries all of G in both worlds: 2 HELD');
+  outc('2', {}, 'FALSIFIED', 'the engine carries a tenth of G in both worlds: 2 FALSIFIED');
+  outc('2', { L: { 1: flowShare(0.9).L[1] } }, 'INCONCLUSIVE', 'the engine carries all of G in world 1 only: 2 INCONCLUSIVE');
   // item 3 (the form)
   outc('3', {}, 'HELD', 'the mix simulated at 0.9 of the closed form: 3 HELD');
   outc('3', { L: { 1: { fs: 2 * T[1] / 100, os: 2 * T[1] / 100 } } }, 'FALSIFIED', 'the mix simulated at twice the closed form in world 1: 3 FALSIFIED');
   outc('3', { L: { 1: { fs: 1.3 * T[1] / 100, os: 1.3 * T[1] / 100 } } }, 'INCONCLUSIVE', 'the mix simulated at 1.3 times the closed form in world 1: 3 INCONCLUSIVE');
   { // the edge: FS's top exactly 1.1 x REF, by setting REF from FS's own interval
     const s = base(); for (const k of [1, 2]) { const Lj = s.J[key('S364', 'L/P4S6Q5')], rows = Lj.ledger[k], hi = cp(rows[0].form, N, 2 * a1)[1]; rows.forEach(x => { x.pr = hi / FORM_OK; }); }
-    const got = items(s.J, s.edge, bitsOf)['3'].outcome; REACHED['3'].add(got); cases.push(['FS\'s top exactly 1.1 times the closed form: 3 HELD', got, 'HELD']); EDGES.push('a form ratio exactly at 1.1');
+    const got = items(s.J, bitsOf)['3'].outcome; REACHED['3'].add(got); cases.push(['FS\'s top exactly 1.1 times the closed form: 3 HELD', got, 'HELD']); EDGES.push('a form ratio exactly at 1.1');
   }
   // item 4 (RSO)
   const d2 = q(T[2] - 100 * R[2].ok / R[2].n);
@@ -325,19 +343,23 @@ function planted() {
   { // discordant paths widen the interval past -0.5 without placing it below: INCONCLUSIVE
     const s = base({ rsT: [40, 44.7, 50] }), jr = s.J[key('S360', 'RS/P60S6Q5')], jb = s.J[key('S360', 'BASE/P60S6Q5')];
     const bB = ones(NP, 2000), bR = ones(NP, 2000); for (let i = 1990; i < 2000; i++) bR[i] = 0; for (let i = 2000; i < 2010; i++) bR[i] = 1; jb.bits.OWN1 = bB; jr.bits.OWN1 = bR;
-    const got = items(s.J, s.edge, bitsOf)['5'].outcome; REACHED['5'].add(got); cases.push(['RS 0.3 lower in world 1 with 10 saved and 10 lost: 5 INCONCLUSIVE', got, 'INCONCLUSIVE']);
+    const got = items(s.J, bitsOf)['5'].outcome; REACHED['5'].add(got); cases.push(['RS 0.3 lower in world 1 with 10 saved and 10 lost: 5 INCONCLUSIVE', got, 'INCONCLUSIVE']);
   }
   { // the intervals decide: MIX's point 0.55 of G's top in both worlds on small counts (FS at 2 in a million), its interval's bottom under half
     const L = {}; for (const k of [1, 2]) { const ghi = Math.log(cp(R[k].ok, R[k].n, 2 * a1)[1] / (T[k] / 100)); L[k] = { fs: 2e-6, os: 2e-6 * Math.exp(0.55 * ghi) }; }
     outc('1', { L }, 'INCONCLUSIVE', 'MIX\'s point 0.55 of G\'s top on small counts, its bottom under half: 1 INCONCLUSIVE'); }
   outc('1', { mut: J => { const Lj = J[key('S364', 'L/P4S6Q5')]; for (const k of [1, 2]) Lj.ledger[k].forEach(x => { x.os = [0, x.os[0]]; }); } }, 'HELD', 'the better order the second in every read: 1 HELD');
-  { const s = base(), e = { T: [T[0], 100 * r1hi * 2, 100 * r2hi * 2], r: R }, got = items(s.J, e, bitsOf)['1'].outcome; REACHED['1'].add(got); cases.push(['the tables above their runs\' tops (G\'s top below 0): 1 INCONCLUSIVE', got, 'INCONCLUSIVE']); EDGES.push('a log gap at or below zero'); }
+  { const s = base(), e = { T: [T[0], 100 * r1hi * 2, 100 * r2hi * 2], r: R }, got = items(withTR(s, e.T, e.r), bitsOf)['1'].outcome; REACHED['1'].add(got); cases.push(['the tables above their runs\' tops (G\'s top below 0): 1 INCONCLUSIVE', got, 'INCONCLUSIVE']); EDGES.push('a log gap at or below zero'); }
   { const s = base({ L: { 1: { os: 0.3 * 0.9 * 0.002 * 1.5 }, 2: { os: 0.3 * 0.9 * 0.0155 * 0.9 } } }), e = { T: [T[0], 100 * r1lo * 1.5, 100 * r2lo * 1.2], r: R };
     for (const k of [1, 2]) { const Lj = s.J[key('S364', 'L/P4S6Q5')], fsc = Math.round(0.9 * (e.T[k] / 100) * N); Lj.ledger[k].forEach(x => { x.form = fsc; x.ow = [fsc, 0]; x.os = [Math.round(0.3 * fsc), 0]; }); }
-    const got = items(s.J, e, bitsOf)['1'].outcome; REACHED['1'].add(got); cases.push(['G\'s bottom below 0 and MIX negative: 1 not FALSIFIED', got, 'INCONCLUSIVE']); }
-  outc('1', { L: { 1: { os: 0.9 * (T[1] / 100) * Math.exp(0.45 * G(1)) }, 2: { os: 0.9 * (T[2] / 100) * Math.exp(0.45 * G(2)) } } }, 'INCONCLUSIVE', 'MIX carries 0.45 of G in both worlds: 1 INCONCLUSIVE');
+    const got = items(withTR(s, e.T, e.r), bitsOf)['1'].outcome; REACHED['1'].add(got); cases.push(['G\'s bottom below 0 and MIX negative: 1 not FALSIFIED', got, 'INCONCLUSIVE']); }
+  // MIX at 0.48 of G on large counts (the reference a hundredfold, so MIX's interval is narrow): under half of G's top, not under half its bottom
+  outc('1', { L: Object.fromEntries([1, 2].map(k => { const ref = T[k], fs = 0.9 * ref; return [k, { ref, fs, os: fs * Math.exp(0.48 * G(k)) }]; })) }, 'INCONCLUSIVE', 'MIX carries 0.48 of G in both worlds: 1 INCONCLUSIVE');
+  { // the engine's point 0.05 above half G's top in both worlds, its interval's bottom (the runs' exact one) under it
+    const L = {}; for (const k of [1, 2]) { const ghi = Math.log(cp(R[k].ok, R[k].n, 2 * a1)[1] / (T[k] / 100)); L[k] = { os: (R[k].ok / R[k].n) / Math.exp(0.5 * ghi + 0.05) }; }
+    outc('2', { L }, 'INCONCLUSIVE', 'the engine\'s point just over half G\'s top, its bottom under: 2 INCONCLUSIVE'); }
   { const s = base(); for (const k of [1, 2]) { const Lj = s.J[key('S364', 'L/P4S6Q5')], rows = Lj.ledger[k], hi = cp(rows[0].form, N, 2 * a1)[1]; rows.forEach(x => { x.pr = hi / FORM_OK * 0.99; }); }
-    const got = items(s.J, s.edge, bitsOf)['3'].outcome; REACHED['3'].add(got); cases.push(['FS\'s top just over 1.1 times the closed form, its point under: 3 INCONCLUSIVE', got, 'INCONCLUSIVE']); }
+    const got = items(s.J, bitsOf)['3'].outcome; REACHED['3'].add(got); cases.push(['FS\'s top just over 1.1 times the closed form, its point under: 3 INCONCLUSIVE', got, 'INCONCLUSIVE']); }
   outc('4', { rsoOk: [2, 12, 1200], rsoT: [0.05, 0.3, 30 + d2 / 2] }, 'INCONCLUSIVE', 'RSO halving world 2 on a wide interval reaching RS\'s: 4 INCONCLUSIVE');
   // the causes
   const cz = (o, c) => run(o).causes[c];
@@ -351,7 +373,7 @@ function planted() {
   // the ledger telescopes: its terms sum to G in every world
   { const s = base({ L: { 1: { fs: 1.2 * T[1] / 100, os: 3 * T[1] / 100, fb: 5 * T[1] / 100, fsv: 4 * T[1] / 100 } } }); const l = ledgerOf(s.J[key('S364', 'L/P4S6Q5')], 1, T[1], R[1]); cases.push(['the ledger\'s terms sum to G', q(Object.values(l.terms).reduce((t, x) => t + x, 0)) === q(l.G), true]); }
   // the read end to end
-  { const st = base(); let lines = [], err = null; try { lines = report(st.J, st.edge, bitsOf); } catch (e) { err = e.message; }
+  { const st = base(); let lines = [], err = null; try { lines = report(st.J, bitsOf); } catch (e) { err = e.message; }
     const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
     cases.push(['the read prints every item, three causes and an OUTCOME line of five items, end to end', err || `${['1.', '2.', '3.', '4.', '5.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${oc.split(', ').length}`, 'true 3 5']); }
   // the gate, on synthetic logs built as the audit prints
@@ -374,9 +396,10 @@ function planted() {
     } else {
       const pair = PAIRS[id];
       if (pair) out.push(`${pad} pair ${L}: P ai 12 level 0.8 tiers 0,0; D ai ${o.D || 14} level 0.8 tiers 2,2`, `${pad} checks ${L}: pairTook ${o.pairTook !== undefined ? o.pairTook : 1}/1`);
-      const runs = pair ? ['P', 'D'] : ['OWN'];
+      const runs = arm === 'RSP' ? ['P'] : pair ? ['P', 'D'] : ['OWN'];
       for (let k = 0; k < 3; k++) if (!o.dropTable) out.push(`${pad} tables ${L} ${k} z 0 weight ${WEIGHTS[k].toFixed(6)}: ${runs.map(r => `${r} 3.000000`).join(' ')}`);
-      for (let k = 0; k < 3; k++) for (const r of runs) if (!(o.dropRun === `${r}${k}`)) out.push(`${pad} sim ${L} ${k} ${r} ai 12: 2/${o.runN || 4} bridge ${o.bridge !== undefined ? o.bridge : 3} bits ${o.bits || 'b'.repeat(16)} ${'c'.repeat(16)}`);
+      for (let k = 0; k < 3; k++) if (arm === 'RSP' && k > 0 && !(o.dropFirst === k)) out.push(`${pad} first ${L} ${k} P: 2/4 bits ${o.firstBits || 'f'.repeat(16)}`);
+      for (let k = 0; k < 3; k++) for (const r of runs) if (!(o.dropRun === `${r}${k}`)) out.push(`${pad} sim ${L} ${k} ${r} ai 12: 2/${o.runN || (arm === 'RSP' && k > 0 ? fn : 4)} bridge ${o.bridge !== undefined ? o.bridge : 3} bits ${o.bits || 'b'.repeat(16)} ${'c'.repeat(16)}`);
       out.push(`${pad} checks ${L}: forceIdentity ${o.fi !== undefined ? o.fi : 4}/${o.fiN || 4} secs 1`);
     }
     out.push(`${pad} file ${L}: f-${id}-${arm}`);
@@ -386,8 +409,14 @@ function planted() {
   const all = (mod = {}) => JOBS.map(jb => parse(jobText(jb, mod[key(jb[0], jobLabel(jb))] || {}))).flat();
   const G0 = { npw: 4, scale: 30, draws: 10000, flow: 400 };
   const refuses = (what, jobs, opts = {}) => cases.push([`the gate refuses ${what}`, gate(jobs, { ...G0, ...opts }).length > 0, true]);
-  const KL = key('S364', 'L/P4S6Q5'), KO = key('S364', 'RSO/P60S6Q5'), KB = key('S360', 'BASE/P60S6Q5'), KR = key('S360', 'RS/P60S6Q5');
-  cases.push(['the gate passes the four jobs as registered', gate(all(), G0).length, 0]);
+  const KL = key('S364', 'L/P4S6Q5'), KP = key('S364', 'RSP/P60S6Q5'), KO = key('S364', 'RSO/P60S6Q5'), KB = key('S360', 'BASE/P60S6Q5'), KR = key('S360', 'RS/P60S6Q5');
+  cases.push(['the gate passes the five jobs as registered', gate(all(), G0).length, 0]);
+  refuses('RSP without its first paths\' line in world 2', all({ [KP]: { dropFirst: 2 } }));
+  refuses('RSP\'s runs in world 1 not of the flow paths', all({ [KP]: { runN: 4 } }));
+  { const rs = { tables: [0, 1, 2].map(() => ({ P: 3 })), sims: Object.fromEntries([0, 1, 2].map(k => [`P${k}`, { ok: 2, bits: k ? 'f'.repeat(16) : 'b'.repeat(16) }])) }, pr = ['1.0000e-3', '1.0000e-3', '1.0000e-3'];
+    cases.push(['the gate passes RSP at NE-EDGE\'s RS job', gate(all(), { ...G0, edge: { pr, rs } }).length, 0]);
+    refuses('RSP whose table is not NE-EDGE\'s by a printed digit', all(), { edge: { pr, rs: { ...rs, tables: [{ P: 3 }, { P: 3.000001 }, { P: 3 }] } } });
+    refuses('RSP whose first runs\' bits are not NE-EDGE\'s', all({ [KP]: { firstBits: 'e'.repeat(16) } }), { edge: { pr, rs } }); EDGES.push('an identity off by one printed digit'); }
   refuses('a missing job', all().filter(j => j.label !== 'RS/P60S6Q5'));
   refuses('a job run twice', [...all(), ...all().filter(j => j.arm === 'RSO')]);
   refuses('a job with no done line', all({ [KO]: { dropDone: true } }));
@@ -465,7 +494,7 @@ if (isMain) {
   const jobs = Object.values(logs).flatMap(parse);
   const gz = d => Object.fromEntries(readdirSync(d).filter(f => f.endsWith('.json.gz')).map(f => [f, JSON.parse(gunzipSync(readFileSync(join(d, f))).toString())]));
   const files = gz(DIR), bad = [];
-  let edge = null, edgeRef = null;
+  let edge = null;
   if (!PRE) {
     // NE-EDGE's S364 RS job, behind NE-EDGE's own reducer gate (its main, over its folder)
     const DE = join(HERE, 'results', 'diagneedge'), red = spawnSync('node', [join(HERE, 'reduce-needge.mjs'), DE], { encoding: 'utf8', maxBuffer: 1 << 26 });
@@ -475,16 +504,16 @@ if (isMain) {
       const rs = txt.flatMap(NE.parse).find(j => j.id === 'S364' && j.label === 'RS/P60S6Q5');
       const pr = [0, 1, 2].map(k => { const t = txt.join('\n'), m = new RegExp(`probe RS\\/P60S6Q5 ${k} P: reads \\d+ pr (\\S+) `).exec(t); return m ? m[1] : null; });
       if (!rs || pr.some(x => !x)) bad.push('NE-EDGE\'s S364 RS job or its probe lines are missing');
-      else { edge = { pr }; edgeRef = { T: [0, 1, 2].map(k => rs.tables[k].P), r: [0, 1, 2].map(k => ({ ok: rs.sims[`P${k}`].ok, n: rs.sims[`P${k}`].n })) }; }
+      else edge = { pr, rs };
     }
   }
   bad.push(...gate(jobs, { npw: npwA, scale: scaleA, draws: drawsA, flow: flowA, files, edge }));
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   console.log(`planted (${np_}): all read as they should`);
-  console.log(`GATE: passed - the four jobs once and done at the registered settings (${npwA} paths a world, scale ${scaleA}, seed ${SEED}, ledger draws ${drawsA}, flow paths ${flowA}); every job's split and reference in its solve's meta; every self-check passed (armTook, mirrorTook, pairTook, forceIdentity); every file the log's${PRE ? '' : '; the ledger\'s chances NE-EDGE\'s probe\'s, NE-EDGE behind its own gate'}`);
+  console.log(`GATE: passed - the five jobs once and done at the registered settings (${npwA} paths a world, scale ${scaleA}, seed ${SEED}, ledger draws ${drawsA}, flow paths ${flowA}); every job's split and reference in its solve's meta; every self-check passed (armTook, mirrorTook, pairTook, forceIdentity); every file the log's${PRE ? '' : '; the ledger\'s chances NE-EDGE\'s probe\'s and RSP\'s tables and first runs NE-EDGE\'s RS job\'s, NE-EDGE behind its own gate'}`);
   if (PRE) { console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
   const J = Object.fromEntries(jobs.map(j => [key(j.id, j.label), j]));
   const bitsOf = (j, nm) => Buffer.from(files[j.file].bits[nm], 'base64');
   console.log('\nNE-REF: S364\'s log gap under RS split into the reference\'s parts, S364 under RS with the order-drawn reference, S360 under BASE and RS (predictions/diag-neref.md)');
-  for (const L of report(J, edgeRef, bitsOf)) console.log(L);
+  for (const L of report(J, bitsOf)) console.log(L);
 }

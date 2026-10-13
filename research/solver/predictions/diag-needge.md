@@ -20,7 +20,7 @@ The deep review after NE-GRID C's decisive test: S364's 60-point table at P over
 
 ## Prediction
 
-- **Item 1 HELD / FALSIFIED (tied, 0.38 each):** RZ removes S364's over-read, or removes under half of it; the derivation gives no lean.
+- **Item 1 HELD (by a hair: 0.39 against FALSIFIED 0.37):** RZ removes at least 0.8 of S364's over-read.
 - **Item 2 FALSIFIED:** RS removes under half of S364's over-read (0.43 against HELD 0.33).
 - **Item 3 HELD:** bridge 4 stays within 0.3 at its own opening under both arms.
 - **Item 4 HELD:** S380's tables stay within 0.3 of B1's under both arms.
@@ -51,7 +51,7 @@ The deep review after NE-GRID C's decisive test: S364's 60-point table at P over
 - **Item 3 (control; single look):** bridge 4 under RZ and RS, its own opening's table less its runs in each world: HELD when every point is within 0.3 under both arms; FALSIFIED when a world's interval lies wholly outside [-0.3, 0.3] under either; INCONCLUSIVE otherwise.
 - **Item 4 (control; deterministic):** S380 under RZ and RS against B1's 60-point BASE tables, worlds 0 and 1, P and D: HELD when every |difference| is at most 0.3; FALSIFIED when any is 0.6 or more; INCONCLUSIVE otherwise.
 - **Items 5 and 6 (single look):** S364's own opening under the arm against the arm's P on the same paths, worlds 0, 1 and 2, by the regimen's exact paired rule (stats.mjs outcome()) at the relative margin (PR13: the margin or a tenth of P's survival, the smaller), Holm across the three worlds; 0 of 0 discordant is no material harm. HELD when every world reads no material harm; FALSIFIED when any world reads harm; INCONCLUSIVE otherwise. Reported: BASE's own opening read alike (the positive control).
-- **The causes, by the registered map (printed '=> <cause> held / not / open'):** R-CARRIES (S364's over-read is the residual's) held on item 1 HELD, not on item 1 FALSIFIED; S364-RUNSCALED held on item 2 HELD, not on item 2 FALSIFIED with item 1 HELD or FALSIFIED; open otherwise. Both arms reach the mechanism by construction (RZ removes every corner's R; RS scales every corner whose chance exceeds the query's), so 'not' needs no reach line (new-prediction.mjs's rule of 13 Oct).
+- **The causes, by the registered map (printed '=> <cause> held / not / open'):** R-CARRIES (S364's over-read is the residual's) held on item 1 HELD, not on item 1 FALSIFIED; S364-RUNSCALED held on item 2 HELD, not on item 2 FALSIFIED with item 1 HELD or FALSIFIED; open otherwise. RZ reaches the mechanism by construction (it zeroes every corner's R, the read's only residual), so R-CARRIES needs no reach line; RS scales only the residual on corners whose chance is above the query's, so S364-RUNSCALED reads 'not' only where RS's reach - that share of the corners' absolute residual, printed by the RS job's probe - is at least 0.5 in every world item 2 counts (new-prediction.mjs's rule of 13 Oct; the plan-auditor's BLOCKING 1 of 13 Oct 02:54 UK).
 - **Reported, not items:** every job's tables, own opening, runs and reader counts; the probe on S364's three jobs; BASE's own opening against P.
 - **Declared choices, not derived:** 0.8 and 0.5 as the removal lines (the deep review's); half a point as the smallest over-read counted; 0.3 for the controls (NE-ROOT's), 0.6 as item 4's falsifier; PR13's tenth margin for items 5 and 6 (the maintainer's, 11 Oct 07:27 UK); 60 points, 6 shares and 5 return nodes (NE-GRID C's S364 job's).
 
@@ -60,13 +60,13 @@ The deep review after NE-GRID C's decisive test: S364's 60-point table at P over
 | outcomes | action | credence |
 |---|---|---|
 | item 3 or 4 FALSIFIED | an arm moves a household off the near-dead edge: no near-edge fix as built; the deep review weighs the control | 0.08 |
-| item 2 HELD, and item 5 or 6 HELD (3 and 4 not FALSIFIED) | the scaled residual carries S364's over-read and an arm ends its opening's loss: the near-edge fix goes into the panel test as its own arm (rule 1), RS where item 6 holds, else RZ | 0.24 |
-| item 1 HELD, item 2 FALSIFIED | the residual carries it but scaling does not remove it: RZ is the arm the deep review weighs for the panel, S364-RUNSCALED not | 0.06 |
-| items 1 and 2 FALSIFIED | the residual does not carry it: the deep review re-ranks S364's causes (S364-STORED, S364-REF) before any near-edge fix | 0.25 |
-| else | NE-EDGE's unsettled items named; the deep review after NE-EDGE designs the next step | 0.38 |
+| item 2 HELD, and item 5 or 6 HELD (3 and 4 not FALSIFIED) | the scaled residual carries S364's over-read and an arm ends its opening's loss: the near-edge fix goes into the panel test as its own arm (rule 1), RS where item 6 holds, else RZ | 0.25 |
+| item 1 HELD, item 2 FALSIFIED | the residual carries it but scaling does not remove it: RZ is the arm the deep review weighs for the panel, S364-RUNSCALED not where RS reached the residual | 0.00 |
+| items 1 and 2 FALSIFIED | the residual does not carry it: the deep review re-ranks S364's causes (S364-STORED, S364-REF) before any near-edge fix | 0.34 |
+| else | NE-EDGE's unsettled items named; the deep review after NE-EDGE designs the next step | 0.33 |
 
-- **Waiver:** none needed: the chance the action changes is 0.62 (one less 0.38, the likeliest row), above a quarter
-- **The escalation rule (escalation.md, trigger 3):** the run is over 2 hours' wall (about 3.61 h) and its 'else' row is 0.38, under the 0.6 bar: no escalation review first.
+- **Waiver:** none needed: the chance the action changes is 0.66 (one less 0.34, the likeliest row), above a quarter
+- **The escalation rule (escalation.md, trigger 3):** the run is over 2 hours' wall (about 3.61 h) and its 'else' row is 0.33, under the 0.6 bar: no escalation review first.
 
 ## Decision fed
 
@@ -75,27 +75,28 @@ The decision table's rows decide; each item's own reading adds only this:
 - **Item 1:** HELD shows S364's 60-point over-read is the residual's (grade B, one household); FALSIFIED rules the residual out as its carrier.
 - **Item 2:** HELD shows scaling R by the query's chance removes it, the mechanism the deep review ranked first (S364-RUNSCALED); FALSIFIED with item 1 HELD shows R carries it but not by that route.
 - **Items 3 and 4:** the controls; their FALSIFIED decides row 1. An arm that moves bridge 4 or S380 does not go into a panel as it stands.
-- **Items 5 and 6:** HELD says the arm ends S364's opening loss (grade B); FALSIFIED says the arm's read still lets S364 open into a loss, whatever item 1 or 2 shows; O132's loss then stays the opening's own.
+- **Items 5 and 6:** HELD says the arm ends S364's opening loss (grade B); FALSIFIED says the arm's read still lets S364 open into a loss, whatever item 1 or 2 shows. Attributing that loss to the opening's own read rather than to an error the arm unmasks (O66's after-access optimism) is grade C: no arm here separates the two (RULES.md section 9 rule 1; the plan-auditor's BLOCKING 4 of 13 Oct 02:54 UK).
 - **Inconclusive on any item:** it leaves its question open and names the world or arm that kept it so; nothing rests on it, and the deep review after NE-EDGE reads it.
 - **In every branch:** no product change; the candidate's settings unchanged; 7u-F held; the panel test registers after NE-EDGE reads (the deep review after C).
 
 ## Provenance
 
 - **The design:** the deep review after NE-GRID C (deep-review-log.md 13 Oct 02:17 UK), its decisive test, adopted under the maintainer's standing go-ahead of 4 Oct and the night's instruction (12 Oct, the session: launch overnight only under 2 hours or below the 0.6 escalation bar, with no product decision and 7u-F untouched).
-- **The build:** audit-needge.mjs, reduce-needge.mjs (100 planted checks, each of items 1-6 reaching all three outcomes, checked by the planted run itself, EDGES, every boundary planted exactly; the identity control against C's job), mutate-reduce-needge.py (72 of 72 caught, results-reduce-needge-mutations.txt), derive-needge.mjs, batch-needge.sh, preflight-needge.sh, inert-needge.mjs.
+- **The build:** audit-needge.mjs, reduce-needge.mjs (105 planted checks, each of items 1-6 reaching all three outcomes, checked by the planted run itself, EDGES, every boundary planted exactly; the identity control against C's job), mutate-reduce-needge.py (78 of 78 caught, results-reduce-needge-mutations.txt), derive-needge.mjs, batch-needge.sh, preflight-needge.sh, inert-needge.mjs.
+- **Amended before launch** on the plan-auditor's FAIL of 13 Oct 02:54 UK (review-log.md): RS's reach printed by the probe and read before S364-RUNSCALED's 'not' (BLOCKING 1); the derivation's two arms coupled by rank, RS at most RZ, a declared change to the JUDGED block committed before the re-derivation (BLOCKING 2; the rows moved from 0.08/0.24/0.06/0.25/0.38 to 0.08/0.25/0.00/0.34/0.33); PR18's grade C (BLOCKING 3); the opening loss's attribution graded C (BLOCKING 4). The reducer: 105 planted checks, 78 of 78 mutants.
 - **Changed from the review's design (declared):** item 1 of the review's ("RZ and RS each remove at least 0.8") split into items 1 and 2, and its harm read into items 5 and 6 per arm; the opening read against the arm's own P (a loss of the opening under the arm) rather than against BASE's own opening, so it reads the harm O132 names; the removal lines read with the runs' interval on the strict side.
 - **The preflight:** to be run through the launcher before launch and quoted here.
 - **Seen before registration (declared):** NE-GRID C's results in full and its files; the deep review's figures and its scratch reads of C's and B1's bits; results-partyear.txt; the outside reviews of the opening near-ties.
 
 ## Derivation script
 
-- `derive: research/solver/derive-needge.mjs > research/solver/results-derive-needge.txt sha256 992a0ab376fc5ed4`
+- `derive: research/solver/derive-needge.mjs > research/solver/results-derive-needge.txt sha256 3512c47d88a4fa7c`
   (NE-GRID C's S364 job behind C's gate, the power of items 1-6 through reduce-needge.mjs's own items(), the credences from the review's S364 cause credences and the JUDGED block, the decision table's rows, the points and 80% intervals, the budget from C's and B1's logs)
 
 ## Point and interval
 
-- **Item 1:** 0.5783, RZ's removal of S364's over-read in world 0 (results-derive-needge.txt section 3); 80% interval 0.1170 to 0.9251
-- **Item 2:** 0.5359, RS's removal in world 0; 80% interval 0.1021 to 0.9215
+- **Item 1:** 0.5806, RZ's removal of S364's over-read in world 0 (results-derive-needge.txt section 3); 80% interval 0.1173 to 0.9254
+- **Item 2:** 0.5367, RS's removal in world 0; 80% interval 0.1036 to 0.9221
 - **Items 3-6:** none: controls and paired harm reads, read by their rules
 
 ## Power
@@ -130,7 +131,7 @@ the judged lines first, then run the derivation script, whose section computes e
 priors over the Power section's stories through the decision bands. No cap taken from the scorecard.
 
 Start from the base rate of the item's kind (results-scorecard.txt, KIND BASE RATES, as of this file's writing: Laplace over every scored item of its kind): NOHARM 0.78 (38 of 48), EFFECT 0.70 (18 of 25), ATTRIB 0.47 (29 of 62), SIZE 0.53 (24 of 45), CTRL 0.72 (12 of 16), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.29 (7 of 26).
-Items 1 and 2 rest on the review's ranked cause (S364-RUNSCALED at 0.50), so each starts from 0.29; the derivation mixes the receipt's cause credences through the JUDGED stories and section 2's power, which puts item 1 at 0.38 and item 2 at 0.33 (RZ removes R whatever its route; RS only where the query's chance falls below the corner's). Items 3 and 4 start from CTRL's 0.72 and move to 0.72 and 0.90 (S380's corners all supported at P, R zero there). Items 5 and 6 start from NOHARM's 0.78 and fall to 0.33 and 0.31: an arm ends the opening's loss only where it removes most of the over-read and the opening then moves.
+Items 1 and 2 rest on the review's ranked cause (S364-RUNSCALED at 0.50), so each starts from 0.29; the derivation mixes the receipt's cause credences through the JUDGED stories and section 2's power, which puts item 1 at 0.39 and item 2 at 0.33 (RZ removes R whatever its route; RS only where the query's chance falls below the corner's). Items 3 and 4 start from CTRL's 0.72 and move to 0.72 and 0.90 (S380's corners all supported at P, R zero there). Items 5 and 6 start from NOHARM's 0.78 and fall to 0.33 and 0.31: an arm ends the opening's loss only where it removes most of the over-read and the opening then moves.
 
 - **Base rate, item 1:** 0.29 (a deep review's cause: S364-RUNSCALED, R-CARRIES)
 - **Base rate, item 2:** 0.29 (a deep review's cause: S364-RUNSCALED)
@@ -138,13 +139,13 @@ Items 1 and 2 rest on the review's ranked cause (S364-RUNSCALED at 0.50), so eac
 - **Base rate, item 4:** 0.72 (CTRL)
 - **Base rate, item 5:** 0.78 (NOHARM)
 - **Base rate, item 6:** 0.78 (NOHARM)
-- **Item 1:** HELD 0.38, INCONCLUSIVE 0.24, FALSIFIED 0.38 (derived, results-derive-needge.txt section 3)
-- **Item 2:** HELD 0.33, INCONCLUSIVE 0.24, FALSIFIED 0.43 (derived)
+- **Item 1:** HELD 0.39, INCONCLUSIVE 0.24, FALSIFIED 0.37 (derived, results-derive-needge.txt section 3)
+- **Item 2:** HELD 0.33, INCONCLUSIVE 0.25, FALSIFIED 0.43 (derived)
 - **Item 3:** HELD 0.72, INCONCLUSIVE 0.22, FALSIFIED 0.06 (derived)
 - **Item 4:** HELD 0.90, INCONCLUSIVE 0.08, FALSIFIED 0.02 (derived)
 - **Item 5:** HELD 0.33, INCONCLUSIVE 0.00, FALSIFIED 0.67 (derived)
 - **Item 6:** HELD 0.31, INCONCLUSIVE 0.00, FALSIFIED 0.69 (derived)
-- **Judged:** none (the judged inputs are derive-needge.mjs's JUDGED block, committed before its output in 87f778a)
+- **Judged:** none (the judged inputs are derive-needge.mjs's JUDGED block, committed before its output in 87f778a, its coupling before the re-derivation)
 - **Kinds:** 1 ATTRIB, 2 ATTRIB, 3 CTRL, 4 CTRL, 5 NOHARM, 6 NOHARM
 
 ## Changes after seeing results

@@ -11,6 +11,7 @@ tmp = tempfile.mkdtemp(prefix='mutate-ref-state.')
 os.makedirs(os.path.join(tmp, 'research/solver')); os.makedirs(os.path.join(tmp, 'research/tests'))
 os.symlink(os.path.join(ROOT, 'src'), os.path.join(tmp, 'src'))
 shutil.copy(os.path.join(ROOT, 'research/tests/ref-state.test.mjs'), os.path.join(tmp, 'research/tests/ref-state.test.mjs'))
+shutil.copy(os.path.join(ROOT, 'research/tests/refs-s364-fixture.json'), os.path.join(tmp, 'research/tests/refs-s364-fixture.json'))
 p = os.path.join(tmp, 'research/solver/ref-state.mjs')
 M = [
   ("if (j > 0) c *= 1 + rate[j - 1].cash[0];", "if (j > 0) c *= 1;"),

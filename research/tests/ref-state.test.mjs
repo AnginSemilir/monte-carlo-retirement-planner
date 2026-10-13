@@ -9,9 +9,12 @@
  * orders is never below either alone; it never falls as the money rises and stays in [0, 1].
  * Planted, each caught inside the tail: the state's cash taken at the opening weights (ORDER's split), the cash prefix
  * part-pays left off the invested pot, and the ISA share read as its complement.
+ * S364's fifteen year-1 states (added 13 Oct, after REF-2): the closed form refuses their schedules (the ISA and the GIA
+ * carry different rates), the simulator reproduces NE-REF's own-pots counts exactly, and the table reads within 4 se + 0.01.
  *   node research/tests/ref-state.test.mjs
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { orderChance, referenceChance } from '../../src/solver/reader.js';
 import { stateChance, closedChance, closedHolds, potsAt, simulatedCount, stateDraws } from '../solver/ref-state.mjs';
 
@@ -102,5 +105,22 @@ const tailOk = (x, y) => !(y < 0.05) || (y < 1e-4 ? Math.abs(x - y) < 1e-4 : x >
   ok(accs.every(x => shares.every(s => f(x, s) >= Math.max(fs(x, s), fc(x, s)) - 1e-12)), 'E  the better of the orders is never below either alone');
   ok(shares.every(s => accs.every((x, i) => i === 0 || f(x, s) >= f(accs[i - 1], s))), 'E  never falls as the money rises, at every share');
   ok(accs.every(x => shares.every(s => f(x, s) >= 0 && f(x, s) <= 1)), 'E  in [0, 1]'); }
+
+// F. S364's fifteen year-1 states against NE-REF's own-pots counts (research/tests/refs-s364-fixture.json, written by
+//    research/solver/fixture-refs-s364.mjs from S364's 4-point solve and results/diagneref/case0.txt's ledger)
+{ const fx = JSON.parse(readFileSync(new URL('./refs-s364-fixture.json', import.meta.url), 'utf8'));
+  let same = 0, tot = 0, near = 0;
+  for (const w of fx.worlds) {
+    const z = stateDraws(w.bills.length, 1000000, 7002), cashOf1 = tax => Math.min(tax, w.cash1), f = stateChance(w.bills, w.rate, w.orders, cashOf1);
+    for (const st of w.states) {
+      const pots = potsAt(st.acc, st.isa / st.acc, cashOf1), best = Math.max(...st.os) / st.draws;
+      w.orders.forEach((o, i) => { tot++; if (simulatedCount(pots, w.bills, w.rate, o, z) === st.os[i]) same++; });
+      if (within(f(st.acc, st.isa / st.acc), best)) near++;
+      console.log(`      S364 world ${w.k} state ${st.j}: acc ${st.acc}; NE-REF's own-pots counts ${st.os.join(',')} of ${st.draws}; REF-S's table ${f(st.acc, st.isa / st.acc).toExponential(3)}`);
+    }
+  }
+  ok(fx.worlds.every(w => !closedHolds(w.bills, w.rate)), 'F  S364\'s schedules refuse the closed form (the ISA and the GIA carry different rates), so both orders are simulated');
+  ok(tot === 30 && same === 30, `F  REF-S's simulator at 1,000,000 draws reproduces NE-REF's own-pots counts exactly at S364's fifteen states, both orders (${same} of ${tot})`);
+  ok(near === 15, `F  REF-S's table (12,000 draws) within 4 se + 0.01 of the better order's count at all fifteen states (${near} of 15)`); }
 
 console.log(`ref-state: ${n} checks passed`);

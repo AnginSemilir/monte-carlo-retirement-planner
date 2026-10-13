@@ -84,7 +84,7 @@ export function parse(text) {
   return jobs;
 }
 
-const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null', readerRef: 'plan', readerChance: 'null', jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001' };
+const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null', readerRef: 'null', readerChance: 'null', jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001' };
 /* refC: NE-GRID C's S364 BASE/P60S6Q5 job (parsed, behind C's gate), for the identity control; null in --preflight */
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null, refC = null } = {}) {
   const bad = [], byKey = {};
@@ -299,7 +299,7 @@ function planted() {
   // the gate, on a synthetic log built as the audit prints
   const jobText = (jb, o = {}) => {
     const [id, arm, pts0, sh, qn] = jb, L = jobLabel(jb), pad = ''.padEnd(16), pts = o.pts || Math.max(4, Math.round(pts0 / 30)), [P, D] = PAIRS[id], own = o.own !== undefined ? o.own : P, npw = 4;
-    const ran = o.ran || `bridgeRead reader bridgeStep exact readerSplit ${o.split || SPLIT[arm]} readerBlend ${o.blend || 'null'} readerRef plan readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix ${o.mix || 3} pts ${o.ranPts || pts} grid ${o.grid || `total${pts}x${sh}x${sh}`} floor ${o.floor !== undefined ? o.floor : FLOORS[id]} line ${o.line || 0.5}`;
+    const ran = o.ran || `bridgeRead reader bridgeStep exact readerSplit ${o.split || SPLIT[arm]} readerBlend ${o.blend || 'null'} readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix ${o.mix || 3} pts ${o.ranPts || pts} grid ${o.grid || `total${pts}x${sh}x${sh}`} floor ${o.floor !== undefined ? o.floor : FLOORS[id]} line ${o.line || 0.5}`;
     const out = [`${id.padEnd(16)} case | job ${L} | points ${pts} | lambda 0.0223606797749979`, `${pad} solve CAND ${L}: table 3.0 secs 1`, `${pad} ran CAND ${L}: ${ran}`,
       `${pad} reader ${L}: tables 1 unsupported 0 copied 0 copiedTop 0 nodes 1; clamps n ${o.clampN || 0} lo 0 hi 0`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`,
       `${pad} pair ${L}: P ai ${o.P !== undefined ? o.P : P} level 0.8 tiers 0,0; D ai ${D} level 0.8 tiers ${o.tD || '2,2'}`, `${pad} checks ${L}: pairTook ${o.pairTook !== undefined ? o.pairTook : 1}/1`, `${pad} openings ${L}: OWN ai ${own} level 0.8 tiers 0,0`];

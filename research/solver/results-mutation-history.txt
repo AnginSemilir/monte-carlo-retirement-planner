@@ -116,3 +116,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-13 01:32 UTC | reduce-needge.mjs 099a391bb214 | 72 of 72 caught | escaped: none
 2026-10-13 02:12 UTC | reduce-needge.mjs 99d7b0f091c1 | 77 of 78 caught | escaped: NOT CAUGHT: 66: o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') 
 2026-10-13 02:13 UTC | reduce-needge.mjs 09f1f000c283 | 78 of 78 caught | escaped: none
+2026-10-13 03:25 UTC | reduce-needge.mjs fce06c20395a | 78 of 78 caught | escaped: none

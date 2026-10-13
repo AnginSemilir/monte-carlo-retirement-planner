@@ -123,3 +123,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-13 12:03 UTC | reduce-neref.mjs 24341916e4a5 | 76 of 80 caught | escaped: NOT APPLIED (0 matches): 30: if (!s || s.n !== npw || s.bridge < s.ok) bad.push(; NOT APPLIED (0 matches): 31: if (!s || s.n !== npw || s.bridge < s.ok) bad.push(; NOT CAUGHT: 54: falls: Number.isFinite(Glo) && q(Glo) > 0 && q(hi) < q(HALF ; NOT CAUGHT: 60: EN: ln(rr) - ln(OS), ENlo: ln(rlo) - ln(OShi), ENhi: ln(rhi)
 2026-10-13 12:05 UTC | reduce-neref.mjs 1f57d377ed0f | 79 of 80 caught | escaped: NOT CAUGHT: 54: falls: Number.isFinite(Glo) && q(Glo) > 0 && q(hi) < q(HALF 
 2026-10-13 12:08 UTC | reduce-neref.mjs a52bbdc9bb3d | 80 of 80 caught | escaped: none
+2026-10-13 13:01 UTC | reduce-neref.mjs c4de963dc35c | 84 of 86 caught | escaped: NOT CAUGHT: 78: `OVER-CORRECTION (RSO's table shown above its runs in world ; NOT APPLIED (0 matches): 85: L.push(`OUTCOME: ${['1', '2', '3', '4', '5'].map
+2026-10-13 13:04 UTC | reduce-neref.mjs 017edd774f0f | 86 of 86 caught | escaped: none

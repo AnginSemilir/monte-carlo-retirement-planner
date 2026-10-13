@@ -28,7 +28,10 @@ export const JUDGED = {
   // REFFLOW's term; the design then added RSP's 40,000 runs and read REFFLOW as the review states it (the engine and
   // policy beyond the reference), so FLOW's separate story was dropped.
   // REFMIX (the proportional mix blind to the state's pots and the move's order): MIX carries most; REFFLOW (the engine's
-  // payment beyond the best fixed order): little; FORM: little; COPYC, UR, QUAD, OTHER: spread
+  // payment beyond the best fixed order): little; FORM: little; COPYC, UR, QUAD, OTHER: spread. Also changed in the same
+  // commit and declared late (the plan-auditor's MINOR 3 of 13 Oct 13:35 UK): 'other' moved from { 0.1: 0.4, 0.3: 0.4,
+  // 0.5: 0.2 } to { 0.1: 0.3, 0.3: 0.4, 0.5: 0.3 } (the auditor's re-derivation with the first: item 1 FALSIFIED 0.48
+  // against 0.45, row 3 0.44 against 0.42, else 0.13 against 0.14)
   share: {
     'O150-REFMIX': { 0.9: 0.3, 0.7: 0.4, 0.5: 0.2, 0.3: 0.1 },
     'O150-REFFLOW': { 0.1: 0.5, 0.3: 0.4, 0.5: 0.1 },
@@ -39,9 +42,11 @@ export const JUDGED = {
   // printed the mix simulated at 200,000 draws at the fifteen states - 0.95 and 0.99 of the closed form at worlds 1 and
   // 2's dominant reads - so this story leans on a partial preview; FORM itself would lift it
   form: { 'O150-FORM': { 1.6: 0.6, 1.3: 0.4 }, other: { 0.95: 0.8, 1.0: 0.15, 1.3: 0.05 } },
-  // item 4: the share of S364's world-2 under-read RS with readerRef 'order' removes (ORDER draws pot by pot at the
-  // opening weights, so it carries MIXO, not MIXS): under REFMIX much, else little
-  rso: { 'O150-REFMIX': { 1: 0.3, 0.75: 0.3, 0.5: 0.2, 0.25: 0.2 }, other: { 0.5: 0.2, 0.25: 0.4, 0: 0.4 } },
+  // item 4: the share of S364's under-read RS with readerRef 'order' removes, alike in every world (ORDER draws pot by pot
+  // at the opening weights, so it carries MIXO, not MIXS): under REFMIX much, and past the whole where the order-drawn
+  // chance beats the engine's own payment; else little. Changed and declared after the second output (the plan-auditor's
+  // BLOCKING 1 of 13 Oct 13:35 UK): the story now crosses the runs (1.25, 1.5), which the first stopped at 1
+  rso: { 'O150-REFMIX': { 1.5: 0.1, 1.25: 0.15, 1: 0.25, 0.75: 0.25, 0.5: 0.15, 0.25: 0.1 }, other: { 0.75: 0.1, 0.5: 0.2, 0.25: 0.35, 0: 0.35 } },
   // item 5: RS's deepening of S360's table under its runs, points (the review: RS should deepen O36's bridge-stage
   // pessimism; S360's tables are mid-range, where RS scales little)
   s360: { 0: 0.35, '-0.3': 0.25, '-1': 0.25, '-2': 0.15 },
@@ -76,9 +81,10 @@ function setOf({ mix = 0.9, form = 0.95, rso = 0.5, dS = 0 } = {}) {
   J[key('S364', 'L/P4S6Q5')] = { id: 'S364', arm: 'L', ledger, flow: fl, quad: [] };
   // RSP: NE-EDGE's table, its runs drawn about NE-EDGE's on 4,000 paths in world 0 and 40,000 in worlds 1 and 2
   J[key('S364', 'RSP/P60S6Q5')] = { id: 'S364', arm: 'RSP', tables: tabsP(T), sims: Object.fromEntries([0, 1, 2].map(k => { const n = k ? FN : NPW; return [`P${k}`, { ok: binom(n, R[k].ok / R[k].n), n }]; })), bits: {} };
-  const truth2 = R[2].ok / R[2].n, ok2 = binom(NPW, truth2), d2 = T[2] - 100 * truth2;
+  // RSO: its runs about RS's truth on 4,000 paths a world, its table removing `rso` of RS's under-read in every world
   const tabs = (v) => [0, 1, 2].map(k => ({ k, P: v[k], D: v[k], OWN: v[k] }));
-  J[key('S364', 'RSO/P60S6Q5')] = { id: 'S364', arm: 'RSO', own: { ai: 12 }, pair: { P: 12, D: 14 }, tables: tabs([T[0], T[1], 100 * ok2 / NPW + (1 - rso) * d2]), sims: { P2: { ok: ok2, n: NPW } }, bits: {} };
+  const okR = [0, 1, 2].map(k => binom(NPW, R[k].ok / R[k].n));
+  J[key('S364', 'RSO/P60S6Q5')] = { id: 'S364', arm: 'RSO', own: { ai: 12 }, pair: { P: 12, D: 14 }, tables: tabs([0, 1, 2].map(k => Math.max(0, 100 * okR[k] / NPW + (1 - rso) * (T[k] - 100 * R[k].ok / R[k].n)))), sims: Object.fromEntries([0, 1, 2].map(k => [`P${k}`, { ok: okR[k], n: NPW }])), bits: {} };
   const sB = [0.4, 0.45, 0.5].map(p => binom(NPW, p));
   J[key('S360', 'BASE/P60S6Q5')] = { id: 'S360', arm: 'BASE', tables: tabs([40, 45, 50]), sims: Object.fromEntries([0, 1, 2].map(k => [`OWN${k}`, { ok: sB[k], n: NPW }])), bits: {} };
   J[key('S360', 'RS/P60S6Q5')] = { id: 'S360', arm: 'RS', tables: tabs([40 + dS, 45 + dS, 50 + dS]), sims: Object.fromEntries([0, 1, 2].map(k => [`OWN${k}`, { ok: sB[k], n: NPW }])), bits: {} };
@@ -87,16 +93,17 @@ function setOf({ mix = 0.9, form = 0.95, rso = 0.5, dS = 0 } = {}) {
 const P = {}, cnt = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 });
 const tally = (k, fn) => { const c = cnt(); for (let d = 0; d < DRAWS; d++) c[fn()]++; P[k] = Object.fromEntries(Object.entries(c).map(([x, v]) => [x, v / DRAWS])); };
 const it = s => items(s.J, s.bitsOf);
-const SH = [0.1, 0.3, 0.5, 0.7, 0.9], FO = [0.95, 1.0, 1.3, 1.6], RO = [0, 0.25, 0.5, 0.75, 1], DS = [0, -0.3, -1, -2];
+const SH = [0.1, 0.3, 0.5, 0.7, 0.9], FO = [0.95, 1.0, 1.3, 1.6], RO = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5], DS = [0, -0.3, -1, -2];
+const OV = {};
 for (const f of SH) { tally(`mix|${f}`, () => it(setOf({ mix: f }))['1'].outcome); tally(`eng|${f}`, () => it(setOf({ mix: f }))['2'].outcome); }
 for (const f of FO) tally(`form|${f}`, () => it(setOf({ form: f }))['3'].outcome);
-for (const f of RO) tally(`rso|${f}`, () => it(setOf({ rso: f }))['4'].outcome);
+for (const f of RO) { let ov = 0; tally(`rso|${f}`, () => { const r = it(setOf({ rso: f }))['4']; if (r.outcome === 'HELD' && r.over) ov++; return r.outcome; }); OV[f] = ov / DRAWS; }
 for (const f of DS) tally(`s360|${f}`, () => it(setOf({ dS: f }))['5'].outcome);
 const row = k => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(x => `${x} ${f4(P[k][x])}`).join(' ');
 console.log(`\n2. THE POWER (${DRAWS} draws a cell through reduce-neref.mjs's items(); NE-EDGE's RS table, RSP's runs drawn about NE-EDGE's at 40,000 paths in worlds 1 and 2; the copied c at the review's)`);
 for (const f of SH) console.log(`  MIX carrying ${f} of G (the engine the rest): item 1 ${row(`mix|${f}`)}; item 2 ${row(`eng|${f}`)}`);
 for (const f of FO) console.log(`  item 3, the mix simulated at ${f} of the closed form: ${row(`form|${f}`)}`);
-for (const f of RO) console.log(`  item 4, RSO removing ${f} of world 2's under-read: ${row(`rso|${f}`)}`);
+for (const f of RO) console.log(`  item 4, RSO removing ${f} of the under-read in every world: ${row(`rso|${f}`)}; HELD with an OVER-CORRECTION ${f4(OV[f])}`);
 for (const f of DS) console.log(`  item 5, RS deepening S360 by ${f} points: ${row(`s360|${f}`)}`);
 
 // 3. THE CREDENCES: the receipt's O150 cause credences through the judged stories and section 2's power
@@ -107,16 +114,17 @@ if (Object.keys(cc).length !== 7 || Math.abs(sum(cc) - 1) > 0.02) { console.log(
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return k; } return Object.keys(dist).pop(); };
 const outOf = p => { const u = rnd(); return u < p.HELD ? 'HELD' : u < p.HELD + p.INCONCLUSIVE ? 'INCONCLUSIVE' : 'FALSIFIED'; };
 const near = (x, keys) => keys.reduce((b, k) => (Math.abs(k - x) < Math.abs(b - x) ? k : b), keys[0]);
-const Cn = Object.fromEntries(['1', '2', '3', '4', '5'].map(i => [i, cnt()])), rows = { A: 0, B: 0, C: 0, D: 0, E: 0 }, Mn = 40000, R1 = [], R4 = [];
-const d2 = T[2] - 100 * R[2].ok / R[2].n;
+const Cn = Object.fromEntries(['1', '2', '3', '4', '5'].map(i => [i, cnt()])), rows = { O: 0, A: 0, B: 0, C: 0, D: 0, E: 0 }, Mn = 40000, R1 = [], R4 = [];
 for (let d = 0; d < Mn; d++) {
   const c = pick(cc), sh = JUDGED.share[c] || JUDGED.share.other;
   const mix = Number(pick(sh)), form = Number(pick(JUDGED.form[c] || JUDGED.form.other));
   const rso = Number(pick(JUDGED.rso[c] || JUDGED.rso.other)), dS = Number(pick(JUDGED.s360));
-  const o = { 1: outOf(P[`mix|${near(mix, SH)}`]), 2: outOf(P[`eng|${near(mix, SH)}`]), 3: outOf(P[`form|${near(form, FO)}`]), 4: outOf(P[`rso|${near(rso, RO)}`]), 5: outOf(P[`s360|${near(dS, DS)}`]) };
+  const rk = near(rso, RO), o = { 1: outOf(P[`mix|${near(mix, SH)}`]), 2: outOf(P[`eng|${near(mix, SH)}`]), 3: outOf(P[`form|${near(form, FO)}`]), 4: outOf(P[`rso|${rk}`]), 5: outOf(P[`s360|${near(dS, DS)}`]) };
+  const over = o[4] === 'HELD' && rnd() < (P[`rso|${rk}`].HELD > 0 ? OV[rk] / P[`rso|${rk}`].HELD : 0);
   for (const i of Object.keys(Cn)) Cn[i][o[i]]++;
-  R1.push(mix + (rnd() - 0.5) * 0.1); R4.push((1 - rso) * d2 + (rnd() - 0.5) * 0.3);
-  if (o[1] === 'HELD' && o[4] === 'HELD' && o[5] !== 'FALSIFIED') rows.A++;
+  R1.push(mix + (rnd() - 0.5) * 0.1); R4.push((1 - rso) * (T[2] - 100 * R[2].ok / R[2].n) + (rnd() - 0.5) * 0.3);
+  if (over) rows.O++;
+  else if (o[1] === 'HELD' && o[4] === 'HELD' && o[5] !== 'FALSIFIED') rows.A++;
   else if (o[1] === 'HELD') rows.B++;
   else if (o[2] === 'HELD') rows.C++;
   else if (o[5] === 'FALSIFIED') rows.D++;
@@ -128,7 +136,7 @@ console.log(`\n3. THE CREDENCES (the receipt of 13 Oct 11:00 UK: ${Object.entrie
 for (const [i, c] of Object.entries(Cn)) console.log(`CREDENCE item ${i}: point ${i === '1' ? f4(mean(R1)) : i === '4' ? f4(mean(R4)) : '-'} HELD ${f2(c.HELD / Mn)} INCONCLUSIVE ${f2(c.INCONCLUSIVE / Mn)} FALSIFIED ${f2(c.FALSIFIED / Mn)}`);
 console.log(`  POINT item 1: ${f4(mean(R1))} (80% interval ${f4(pct(R1, 0.1))} to ${f4(pct(R1, 0.9))}; MIX's share of world 1's log gap)`);
 console.log(`  POINT item 4: ${f4(mean(R4))} (80% interval ${f4(pct(R4, 0.1))} to ${f4(pct(R4, 0.9))}; RSO's world-2 table less its runs at P, points)`);
-console.log(`  DECISION ROWS: items 1 and 4 HELD, 5 not FALSIFIED ${f2(rows.A / Mn)}; item 1 HELD otherwise ${f2(rows.B / Mn)}; item 2 HELD (1 not) ${f2(rows.C / Mn)}; item 5 FALSIFIED (none above) ${f2(rows.D / Mn)}; else ${f2(rows.E / Mn)}`);
+console.log(`  DECISION ROWS: item 4 HELD with an OVER-CORRECTION ${f2(rows.O / Mn)}; items 1 and 4 HELD, 5 not FALSIFIED ${f2(rows.A / Mn)}; item 1 HELD otherwise ${f2(rows.B / Mn)}; item 2 HELD (1 not) ${f2(rows.C / Mn)}; item 5 FALSIFIED (none above) ${f2(rows.D / Mn)}; else ${f2(rows.E / Mn)}`);
 
 // 4. THE BUDGET: NE-EDGE's S364 RS log (solve plus runs, the forceIdentity line's time); the ledger's solve at 4 points from
 // NE-EDGE's preflight is not on file, so it is NE-EDGE's 60-point solve over the points' ratio squared (judged), with its

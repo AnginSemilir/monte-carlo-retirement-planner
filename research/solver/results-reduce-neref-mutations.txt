@@ -71,11 +71,17 @@ caught: 70: const m = b + c, [lo, hi] = m ? cp(c, m, 2 * a5) : [0.5, 0.5
 caught: 71: return { k, b, c, N, dT: q(dT), D: q(dT - dr), lo: q(dT - dr
 caught: 72: out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' :
 caught: 73: out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' :
-caught: 74: 'O150-REFMIX': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'op
-caught: 75: 'O150-REFFLOW': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'o
-caught: 76: 'O150-FORM': { HELD: 'not', FALSIFIED: 'held' }[o3] || 'open
-caught: 77: L.push(`5. RS does not deepen S360's under-read
-caught: 78: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
-caught: 79: L.push(`OUTCOME: ${['1', '2', '3', '4', '5'].map
-caught: 80: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
-80 of 80 mutations caught
+caught: 74: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 75: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 76: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 77: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 78: `OVER-CORRECTION (RSO's table shown above its runs in world 
+caught: 79: L.push(`OUTCOME: ${['1', '2', '4', '5'].map
+caught: 80: 'O150-REFMIX': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'op
+caught: 81: 'O150-REFFLOW': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'o
+caught: 82: 'O150-FORM': { HELD: 'not', FALSIFIED: 'held' }[o3] || 'open
+caught: 83: L.push(`5. RS does not deepen S360's under-read
+caught: 84: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 85: L.push(`OUTCOME: ${['1', '2', '4', '5'].map
+caught: 86: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+86 of 86 mutations caught

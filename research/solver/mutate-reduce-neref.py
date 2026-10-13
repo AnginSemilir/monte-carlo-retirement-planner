@@ -83,6 +83,13 @@ M = [
   ("return { k, b, c, N, dT: q(dT), D: q(dT - dr), lo: q(dT - drHi), hi: q(dT - drLo),", "return { k, b, c, N, dT: q(dT), D: q(dT - dr), lo: q(dT - dr), hi: q(dT - dr),"),
   ("out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' : c5.some(x => x.hi < DEEP)", "out['5'] = { outcome: c5.every(x => x.lo > DEEP) ? 'HELD' : c5.some(x => x.hi < DEEP)"),
   ("out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' : c5.some(x => x.hi < DEEP)", "out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' : c5.every(x => x.hi < DEEP)"),
+  # the over-correction (the plan-auditor's BLOCKING 1 of 13 Oct 13:35 UK)
+  ("over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };", "over: rsoW.some(x => x.lo > 0) };"),
+  ("over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };", "over: rsoW.filter(x => x.k > 0).some(x => x.lo >= 0) };"),
+  ("over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };", "over: rsoW.filter(x => x.k > 0).some(x => x.d > 0) };"),
+  ("over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };", "over: rsoW.filter(x => x.k > 1).some(x => x.lo > 0) };"),
+  ("`OVER-CORRECTION (RSO's table shown above its runs in world 1 or 2): ${it['4'].over ? 'YES' : 'NO'}`", "`OVER-CORRECTION (RSO's table shown above its runs in world 1 or 2): NO`"),
+  ("L.push(`OUTCOME: ${['1', '2', '4', '5'].map", "L.push(`OUTCOME: ${['1', '2', '3', '4', '5'].map"),
   # the cause map
   ("'O150-REFMIX': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open',", "'O150-REFMIX': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open',"),
   ("'O150-REFFLOW': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open',", "'O150-REFFLOW': { HELD: 'held', FALSIFIED: 'open' }[o2] || 'open',"),
@@ -90,7 +97,7 @@ M = [
   # the read end to end
   ("L.push(`5. RS does not deepen S360's under-read", "L.push(`5 RS does not deepen S360's under-read"),
   ("for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);", "for (const [c, v] of Object.entries(it.causes).slice(1)) L.push(`=> ${c} ${v}`);"),
-  ("L.push(`OUTCOME: ${['1', '2', '3', '4', '5'].map", "L.push(`OUTCOME: ${['1', '2', '3', '4'].map"),
+  ("L.push(`OUTCOME: ${['1', '2', '4', '5'].map", "L.push(`OUTCOME: ${['1', '2', '4'].map"),
   # the rounding the boundaries are read on
   ("export const q = x => (Number.isFinite(x) ? Math.round(x * 1e9) / 1e9 : x);", "export const q = x => x;"),
 ]

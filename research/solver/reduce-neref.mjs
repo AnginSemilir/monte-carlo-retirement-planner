@@ -21,7 +21,9 @@
  *   FSV, the engine under the better order's fixed move (by its bridge count), its bridge paid and its survival. The log
  *   gap G = ln r - ln T telescopes: COPY (ln REF - ln T) + FORM (ln FS - ln REF) + MIXO (ln OW - ln FS) + MIXS (ln OS -
  *   ln OW) + FLOW (ln FB - ln OS) + AFTER (ln FSV - ln FB) + POLICY (ln r - ln FSV). MIX = MIXO + MIXS.
- * THE ITEMS (every threshold read on the figure rounded to 1e-9; worlds 1 and 2 decide items 1-3, world 0 reported):
+ * THE ITEMS (every threshold read on the figure rounded to 1e-9; worlds 1 and 2 decide items 1-3, world 0 reported). Item 3
+ *   is read and printed but not scored: its ratio was previewed at 200,000 draws before registration (the plan-auditor's
+ *   MINOR 4 of 13 Oct 13:35 UK); the OUTCOME line carries it after a '; ' note.
  *   1 (O150-REFMIX): MIX carries at least half of G. A world holds when MIX's interval bottom is at least half G's top
  *     (G's top above 0); it falls when G's bottom is above 0 and MIX's top is under half of it. HELD when both worlds hold;
  *     FALSIFIED when both fall; INCONCLUSIVE otherwise.
@@ -32,7 +34,11 @@
  *     REF; it falls when FS's bottom is at least 1.5 x REF. HELD when both worlds hold; FALSIFIED when either falls;
  *     INCONCLUSIVE otherwise.
  *   4: RS with readerRef 'order' halves S364's world-2 under-read at P. d, RSO's world-2 table at P less its P runs (its
- *     exact interval at ALPHA), against d2, RSP's (the same paths' first 4,000 as RSO's, its 40,000 for the point). HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED
+ *     exact interval at ALPHA), against d2, RSP's (the same paths' first 4,000 as RSO's, its 40,000 for the point).
+ *     THE OVER-CORRECTION (the plan-auditor's BLOCKING 1 of 13 Oct 13:35 UK; new-prediction.mjs's rules): RSO's table less
+ *     its runs is read in every world, and an over-read shown (the interval's bottom above 0) in world 1 or 2 is printed
+ *     'OVER-CORRECTION: YES', which has its own decision row; read for the cause, never against item 4. World 0 is
+ *     reported (its chances below orderChance's 12,000-draw resolution). HELD when d's bottom is above d2 and d is at least d2 / 2; FALSIFIED
  *     when d's top is under d2 / 2; INCONCLUSIVE otherwise.
  *   5: RS does not deepen S360's under-read. Per world, D = (RS's own table - BASE's) less (RS's own runs - BASE's), the
  *     runs paired by path (the discordant paths' exact interval at 2 x a5, a5 = ALPHA / 6), in points. HELD when every
@@ -215,7 +221,8 @@ export function items(J, bitsOf) {
   out['3'] = { outcome: f3.every(x => x.holds) ? 'HELD' : f3.some(x => x.falls) ? 'FALSIFIED' : 'INCONCLUSIVE' };
   // item 4: RSO's world-2 under-read at P against RS's (NE-EDGE)
   const rso = J[key('S364', 'RSO/P60S6Q5')], s2 = rso.sims.P2, o4 = offOf(rso.tables[2].P, s2.ok, s2.n), d2 = q(T[2] - 100 * Rr[2].ok / Rr[2].n);
-  out['4'] = { outcome: o4.lo > d2 && o4.d >= q(d2 / 2) ? 'HELD' : o4.hi < q(d2 / 2) ? 'FALSIFIED' : 'INCONCLUSIVE', d: o4, d2 };
+  const rsoW = [0, 1, 2].map(k => ({ k, ...offOf(rso.tables[k].P, rso.sims[`P${k}`].ok, rso.sims[`P${k}`].n) }));
+  out['4'] = { outcome: o4.lo > d2 && o4.d >= q(d2 / 2) ? 'HELD' : o4.hi < q(d2 / 2) ? 'FALSIFIED' : 'INCONCLUSIVE', d: o4, d2, worlds: rsoW, over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
   // item 5: S360 under RS against BASE, each at its own opening, paired by path
   const jb = J[key('S360', 'BASE/P60S6Q5')], jr = J[key('S360', 'RS/P60S6Q5')];
   const c5 = [0, 1, 2].map(k => {
@@ -244,7 +251,7 @@ export function report(J, bitsOf) {
   L.push(`1. MIX (the reference drawn pot by pot, at the state's own pots) carries at least half of S364's log gap: ${it['1'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: MIX ${f4(l.MIX)} (${f4(l.MIXlo)} to ${f4(l.MIXhi)}) against ${sh(0, l).replace(/^0\.0000 of /, '')}`; }).join('; ')}`);
   L.push(`2. the engine beyond the reference (FLOW + AFTER + POLICY) carries at least half of the log gap: ${it['2'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: ENGINE ${f4(l.EN)} (${f4(l.ENlo)} to ${f4(l.ENhi)}) against G ${f4(l.G)} (${f4(l.Glo)} to ${f4(l.Ghi)})`; }).join('; ')}`);
   L.push(`3. the closed form is not pessimistic against its own mix: ${it['3'].outcome}`, `     ${[1, 2].map(k => { const l = it.ledger[k]; return `world ${k}: FS ${e4(l.FS)} (${e4(l.FSlo)} to ${e4(l.FShi)}) against REF ${e4(l.REF)}`; }).join('; ')}`);
-  L.push(`4. RS with readerRef 'order' halves S364's world-2 under-read at P: ${it['4'].outcome}`, `     RSO world 2 at P: ${f4(it['4'].d.d)} (${f4(it['4'].d.lo)} to ${f4(it['4'].d.hi)}) against RS's ${f4(it['4'].d2)}`);
+  L.push(`4. RS with readerRef 'order' halves S364's world-2 under-read at P: ${it['4'].outcome}`, `     RSO world 2 at P: ${f4(it['4'].d.d)} (${f4(it['4'].d.lo)} to ${f4(it['4'].d.hi)}) against RS's ${f4(it['4'].d2)}; RSO's table less its runs by world: ${it['4'].worlds.map(x => `world ${x.k} ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)})`).join('; ')}`, `OVER-CORRECTION (RSO's table shown above its runs in world 1 or 2): ${it['4'].over ? 'YES' : 'NO'}`);
   L.push(`5. RS does not deepen S360's under-read by more than half a point: ${it['5'].outcome}`, `     ${it['5'].cells.map(c => `world ${c.k}: BASE table ${f4(c.tB)} runs ${f4(c.sB)}, RS table ${f4(c.tR)} runs ${f4(c.sR)}; D ${f4(c.D)} (${f4(c.lo)} to ${f4(c.hi)}), ${c.c} saved/${c.b} lost of ${c.N}`).join('; ')}`);
   L.push('', 'THE CAUSES (the registered map)');
   for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
@@ -256,7 +263,7 @@ export function report(J, bitsOf) {
   }
   for (let k = 0; k < 3; k++) { const qd = Lj.quad[k]; L.push(`  quadrature world ${k}: five nodes ${e4(qd.gh)}, fine ${e4(qd.fine)}, ratio ${f4(qd.fine / qd.gh)}`); }
   L.push(`REALISED item 1: ${f4(it.ledger[1].MIX / it.ledger[1].G)}`, `REALISED item 4: ${f4(it['4'].d.d)}`);
-  L.push(`OUTCOME: ${['1', '2', '3', '4', '5'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  L.push(`OUTCOME: ${['1', '2', '4', '5'].map(i => `${i} ${it[i].outcome}`).join(', ')}; 3 (previewed, not scored) ${it['3'].outcome}`);
   return L;
 }
 
@@ -335,6 +342,12 @@ function planted() {
   outc('4', { rsoT: [0.05, 0.3, 0.2238] }, 'FALSIFIED', 'RSO reads world 2 as RS did: 4 FALSIFIED');
   { const [, h] = cp(62, NP, ALPHA), t = 100 * 62 / NP + d2 / 2; outc('4', { rsoT: [0.05, 0.3, t] }, 'HELD', 'RSO exactly halves world 2\'s under-read: 4 HELD'); EDGES.push('an under-read exactly halved'); void h; }
   { const t = 100 * 62 / NP + d2 * 0.6; outc('4', { rsoT: [0.05, 0.3, t] }, 'INCONCLUSIVE', 'RSO removes four tenths of world 2\'s under-read: 4 INCONCLUSIVE'); }
+  { // the over-correction: RSO crossing its runs in world 2 (removal 2), and in world 1 alone with world 2 halved
+    const r2 = run({ rsoT: [0.05, 0.3, 100 * 62 / NP - d2] }); cases.push(['RSO crossing its runs in world 2: 4 HELD, read for the cause', r2['4'].outcome, 'HELD']); cases.push(['RSO crossing its runs in world 2: OVER-CORRECTION', r2['4'].over, true]);
+    const r1 = run({ rsoT: [0.05, 2.5, 1.55] }); cases.push(['RSO over-reading world 1 by two points, world 2 at its runs: OVER-CORRECTION', r1['4'].over, true]);
+    const r0 = run({ rsoT: [3, 0.3, 1.55] }); cases.push(['RSO over-reading world 0 only: reported, not an OVER-CORRECTION', r0['4'].over, false]);
+    const [, h] = cp(62, NP, ALPHA), te = 100 * h; const re = run({ rsoT: [0.05, 0.3, te] }); cases.push(['RSO\'s world-2 interval bottom exactly at 0: not an OVER-CORRECTION', re['4'].over, false]); EDGES.push('an over-read whose interval touches zero');
+    cases.push(['RSO at its runs everywhere: no OVER-CORRECTION', run({})['4'].over, false]); }
   // item 5 (S360)
   outc('5', {}, 'HELD', 'RS reads S360 as BASE: 5 HELD');
   outc('5', { rsT: [40, 44, 50] }, 'FALSIFIED', 'RS a point lower in world 1, the runs alike: 5 FALSIFIED');
@@ -375,7 +388,9 @@ function planted() {
   // the read end to end
   { const st = base(); let lines = [], err = null; try { lines = report(st.J, bitsOf); } catch (e) { err = e.message; }
     const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
-    cases.push(['the read prints every item, three causes and an OUTCOME line of five items, end to end', err || `${['1.', '2.', '3.', '4.', '5.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${oc.split(', ').length}`, 'true 3 5']); }
+    cases.push(['the read prints every item, three causes, the over-correction line and an OUTCOME line of four scored items and item 3 noted, end to end', err || `${['1.', '2.', '3.', '4.', '5.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${lines.some(l => /^OVER-CORRECTION .*: (YES|NO)$/.test(l))} ${oc.split(';')[0].split(', ').length} ${/; 3 \(previewed, not scored\) (HELD|INCONCLUSIVE|FALSIFIED)$/.test(oc)}`, 'true 3 true 4 true']); }
+  { const st = base({ rsoT: [0.05, 0.3, 100 * 62 / NP - d2] }); let lines = []; try { lines = report(st.J, bitsOf); } catch (e) { lines = [e.message]; }
+    cases.push(['the read prints OVER-CORRECTION: YES where RSO crosses its runs in world 2', lines.some(l => /^OVER-CORRECTION .*: YES$/.test(l)), true]); }
   // the gate, on synthetic logs built as the audit prints
   const pad = ''.padEnd(16);
   const jobText = (jb, o = {}) => {

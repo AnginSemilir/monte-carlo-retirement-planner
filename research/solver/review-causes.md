@@ -32,3 +32,9 @@ twice, a results file that does not exist, or a quote that is not a deciding lin
 - 11 Oct 10:33 UK | B4-COPY | held | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down
 - 11 Oct 10:33 UK | B4-R | not | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down
 - 11 Oct 10:33 UK | B4-OTHER | not | results-neblend-a.txt | OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 INCONCLUSIVE, 4 HELD; item 3 not over-corrected, item 4 direction down
+- 11 Oct 23:09 UK | RG-PATHS | not | results-negrid-c.txt | => RG-PATHS not
+- 11 Oct 23:09 UK | S364-W | not | results-negrid-c.txt | => S364-W not
+- 13 Oct 02:17 UK | S364-RUNSCALED | held | results-needge.txt | => S364-RUNSCALED held
+- 13 Oct 11:00 UK | O150-REFMIX | held | results-neref.txt | => O150-REFMIX held
+- 13 Oct 11:00 UK | O150-REFFLOW | not | results-neref.txt | => O150-REFFLOW not
+- 13 Oct 11:00 UK | O150-FORM | not | results-neref.txt | => O150-FORM not

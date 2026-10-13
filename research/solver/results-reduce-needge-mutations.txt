@@ -64,11 +64,17 @@ caught: 62: if (p[i] && !o[i]) b++; else if (!p[i] && o[i]) c++;
 caught: 63: out['5'] = opening('RZ'); out['6'] = opening('RS'); out.base
 caught: 64: out['5'] = opening('RZ'); out['6'] = opening('RS'); out.base
 caught: 65: 'R-CARRIES': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open
-caught: 66: 'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED
-caught: 67: 'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED
-caught: 68: L.push(`6. under RS, S364's own opening
-caught: 69: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
-caught: 70: L.push(`OUTCOME: ${['1', '2', '3', '4', '5', '6']
-caught: 71: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
-caught: 72: export const q = x => Math.round(x * 1e9) / 1e9;
-72 of 72 mutations caught
+caught: 66: o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') 
+caught: 67: 'S364-RUNSCALED': o2 === 'HELD' ? 'held'
+caught: 68: o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') 
+caught: 69: c2.every(c => reachS(c.k) !== null && reachS(c.k) >= REACH)
+caught: 70: c2.every(c => reachS(c.k) !== null && reachS(c.k) >= REACH)
+caught: 71: const pbS = (jt('S364', 'RS') || {}).probe, c2 = out['2'].ce
+caught: 72: if (!(x.reach >= 0 && x.reach <= 1)) bad.push(
+caught: 73: const pbS = (jt('S364', 'RS') || {}).probe
+caught: 74: L.push(`6. under RS, S364's own opening
+caught: 75: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 76: L.push(`OUTCOME: ${['1', '2', '3', '4', '5', '6']
+caught: 77: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
+caught: 78: export const q = x => Math.round(x * 1e9) / 1e9;
+78 of 78 mutations caught

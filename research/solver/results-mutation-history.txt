@@ -114,3 +114,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-13 01:30 UTC | reduce-needge.mjs 58b45051dd23 | 64 of 72 caught | escaped: NOT CAUGHT: 8: if (j.pts !== pts) bad.push(; NOT CAUGHT: 21: j.pair.P !== PAIRS[j.id][0] || j.pair.D; NOT CAUGHT: 27: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1; NOT CAUGHT: 30: typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[n; NOT CAUGHT: 35: const a1 = ALPHA / 4;; NOT CAUGHT: 57: x.read = x.b + x.c === 0 ? { d: 0, lo: 0, hi: 0, outcome: 'n; NOT CAUGHT: 59: x.pHolm = adj[i];; NOT CAUGHT: 72: export const q = x => Math.round(x * 1e9) / 1e9;
 2026-10-13 01:32 UTC | reduce-needge.mjs c23eed45295e | 71 of 72 caught | escaped: NOT CAUGHT: 8: if (j.pts !== pts) bad.push(
 2026-10-13 01:32 UTC | reduce-needge.mjs 099a391bb214 | 72 of 72 caught | escaped: none
+2026-10-13 02:12 UTC | reduce-needge.mjs 99d7b0f091c1 | 77 of 78 caught | escaped: NOT CAUGHT: 66: o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') 
+2026-10-13 02:13 UTC | reduce-needge.mjs 09f1f000c283 | 78 of 78 caught | escaped: none

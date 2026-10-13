@@ -78,8 +78,15 @@ M = [
   ("out['5'] = opening('RZ'); out['6'] = opening('RS'); out.baseOpening = opening('BASE');", "out['5'] = opening('RZ'); out['6'] = opening('RS'); out.baseOpening = opening('RZ');"),
   # the causes
   ("'R-CARRIES': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open',", "'R-CARRIES': { HELD: 'held' }[o1] || 'open',"),
-  ("'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') ? 'not' : 'open',", "'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED' ? 'not' : 'open',"),
-  ("'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') ? 'not' : 'open',", "'S364-RUNSCALED': o1 === 'HELD' ? 'held' : o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') ? 'not' : 'open',"),
+  ("o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') && reaches ? 'not' : 'open',", "o2 === 'FALSIFIED' && reaches ? 'not' : 'open',"),
+  ("'S364-RUNSCALED': o2 === 'HELD' ? 'held'", "'S364-RUNSCALED': o1 === 'HELD' ? 'held'"),
+  # RS's reach (the plan-auditor's BLOCKING 1 of 13 Oct 02:54 UK)
+  ("o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') && reaches ? 'not' : 'open',", "o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') ? 'not' : 'open',"),
+  ("c2.every(c => reachS(c.k) !== null && reachS(c.k) >= REACH)", "c2.every(c => reachS(c.k) !== null && reachS(c.k) > REACH)"),
+  ("c2.every(c => reachS(c.k) !== null && reachS(c.k) >= REACH)", "c2.some(c => reachS(c.k) !== null && reachS(c.k) >= REACH)"),
+  ("const pbS = (jt('S364', 'RS') || {}).probe, c2 = out['2'].cells.filter(c => c.counted);", "const pbS = (jt('S364', 'RS') || {}).probe, c2 = out['2'].cells;"),
+  ("if (!(x.reach >= 0 && x.reach <= 1)) bad.push(", "if (false) bad.push("),
+  ("const pbS = (jt('S364', 'RS') || {}).probe", "const pbS = (jt('S364', 'RZ') || {}).probe"),
   # the read end to end
   ("L.push(`6. under RS, S364's own opening", "L.push(`6 under RS, S364's own opening"),
   ("for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);", "for (const [c, v] of Object.entries(it.causes).slice(1)) L.push(`=> ${c} ${v}`);"),

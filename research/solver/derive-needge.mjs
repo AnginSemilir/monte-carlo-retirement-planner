@@ -32,6 +32,9 @@ export const JUDGED = {
     'S364-STORED': { RZ: { 0.9: 0.5, 0.6: 0.3, 0.3: 0.2 }, RS: { 0.9: 0.4, 0.6: 0.3, 0.3: 0.3 } },
     other: { RZ: { 0.6: 0.2, 0.3: 0.4, 0.1: 0.4 }, RS: { 0.6: 0.15, 0.3: 0.35, 0.1: 0.5 } },
   },
+  // the two arms' removals drawn together (the plan-auditor's BLOCKING 2 of 13 Oct 02:54 UK, a declared change to this
+  // block): one rank draw sets both, and RS removes at most what RZ does, since RS only scales R down where RZ zeroes it
+  coupling: 'rank, RS at most RZ',
   // item 3: bridge 4 under each arm at its own opening (RZ kept bridge 4 at 30 points, NE-BLEND stage A): kept, half a point
   // off, two points off - per arm, independent
   b4: { kept: 0.85, small: 0.12, broken: 0.03 },
@@ -102,12 +105,13 @@ const cc = Object.fromEntries([...(/CAUSE CREDENCES: ([^|]+)/.exec(rec || '') ||
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 if (Object.keys(cc).length !== 6 || Math.abs(sum(cc) - 1) > 0.02) { console.log(`the receipt's S364 CAUSE CREDENCES did not read (${JSON.stringify(cc)})`); process.exit(1); }
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return k; } return Object.keys(dist).pop(); };
+const pickAt = (dist, u) => { const ks = Object.keys(dist).sort((a, b) => Number(a) - Number(b)); let acc = 0; for (const k of ks) { acc += dist[k]; if (u < acc) return k; } return ks[ks.length - 1]; };
 const outOf = p => { const u = rnd(); return u < p.HELD ? 'HELD' : u < p.HELD + p.INCONCLUSIVE ? 'INCONCLUSIVE' : 'FALSIFIED'; };
 const near = (x, keys) => keys.reduce((b, k) => (Math.abs(k - x) < Math.abs(b - x) ? k : b), keys[0]);
 const Cn = Object.fromEntries(['1', '2', '3', '4', '5', '6'].map(i => [i, cnt()])), rows = { A: 0, B: 0, C: 0, D: 0, E: 0 }, Mn = 40000, R1 = [], R2 = [];
 for (let d = 0; d < Mn; d++) {
   const c = pick(cc), story = JUDGED.remove[c] || JUDGED.remove.other;
-  const fz = Number(pick(story.RZ)), fs = Number(pick(story.RS));
+  const u = rnd(), fz = Number(pickAt(story.RZ, u)), fs = Math.min(Number(pickAt(story.RS, u)), fz);
   const b4z = pick(JUDGED.b4), b4s = pick(JUDGED.b4), s380 = pick(JUDGED.s380);
   const safeZ = rnd() < (fz >= 0.8 ? JUDGED.openSafe.removed : JUDGED.openSafe.notRemoved), safeS = rnd() < (fs >= 0.8 ? JUDGED.openSafe.removed : JUDGED.openSafe.notRemoved);
   const worst3 = ['broken', 'small', 'kept'].find(x => x === b4z || x === b4s);

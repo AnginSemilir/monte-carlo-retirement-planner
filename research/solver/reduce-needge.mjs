@@ -26,8 +26,10 @@
  *     the three worlds; 0 of 0 discordant is no material harm. HELD when every world reads no material harm; FALSIFIED
  *     when any world reads harm; INCONCLUSIVE otherwise. Reported: BASE's own opening read alike (the positive control).
  * THE CAUSES (the deep review after NE-GRID C's): R-CARRIES (S364's over-read is the residual's) held on 1 HELD, not on 1
- *   FALSIFIED; S364-RUNSCALED (R added unscaled by the query's chance) held on 2 HELD, not on 2 FALSIFIED with 1 HELD or
- *   1 FALSIFIED; open otherwise.
+ *   FALSIFIED (RZ zeroes every corner's R, so it reaches the mechanism by construction); S364-RUNSCALED (R added unscaled by
+ *   the query's chance) held on 2 HELD, not on 2 FALSIFIED with 1 HELD or FALSIFIED only where RS's reach - the share of
+ *   the corners' absolute residual on corners whose chance is above the query's, the RS job's probe - is at least 0.5 in
+ *   every world item 2 counts; open otherwise.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -40,7 +42,7 @@ import { clopperPearson, mcnemarHarmP, holm, outcome as harmOutcome, marginRel }
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-needge.md';
 export const SEED = '7002', NPW = 4000, ALPHA = 0.05;
-export const GMIN = 0.5, REMOVE = 0.8, KEEP = 0.5, CTRL = 0.3, TBL = 0.3, TBLF = 0.6;
+export const GMIN = 0.5, REMOVE = 0.8, KEEP = 0.5, CTRL = 0.3, TBL = 0.3, TBLF = 0.6, REACH = 0.5;
 export const WEIGHTS = [1 / 6, 2 / 3, 1 / 6];
 export const PAIRS = Object.freeze({ S380: [12, 14], 'bridge 4': [57, 59], S364: [12, 14] });
 export const JOBS = [['S364', 'BASE', 60, 6, 5, 1], ['S364', 'RZ', 60, 6, 5, 1], ['S364', 'RS', 60, 6, 5, 1], ['bridge 4', 'RZ', 60, 6, 5, 1], ['bridge 4', 'RS', 60, 6, 5, 1],
@@ -75,7 +77,7 @@ export function parse(text) {
     else if ((m = /OWN ai (\d+) level (\S+) tiers (\S+)/.exec(l)) && l.startsWith(`openings ${L}:`)) j.own = { ai: Number(m[1]), level: m[2], tiers: m[3] };
     else if ((m = new RegExp(`^tables ${esc(L)} (\\d) z (\\S+) weight (\\S+): P (\\S+) D (\\S+) OWN (\\S+)$`).exec(l))) j.tables.push({ k: Number(m[1]), weight: Number(m[3]), P: Number(m[4]), D: Number(m[5]), OWN: Number(m[6]), raw: [m[4], m[5], m[6]] });
     else if ((m = new RegExp(`^sim ${esc(L)} (\\d) (P|D|OWN) ai (\\d+): (\\d+)/(\\d+) bits (\\S+)$`).exec(l))) j.sims[`${m[2]}${m[1]}`] = { ai: Number(m[3]), ok: Number(m[4]), n: Number(m[5]), bits: m[6] };
-    else if ((m = new RegExp(`^probe ${esc(L)} (\\d) P: reads (\\d+) pr (\\S+) plain (\\S+) deletion (\\S+) residual (\\S+) \\| sup w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| clip w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| copy w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+)$`).exec(l))) { const n = m.slice(2).map(Number); (j.probe = j.probe || [])[Number(m[1])] = { reads: n[0], pr: n[1], plain: n[2], del: n[3], res: n[4], sup: n.slice(5, 10), clip: n.slice(10, 15), copy: n.slice(15, 20) }; }
+    else if ((m = new RegExp(`^probe ${esc(L)} (\\d) P: reads (\\d+) pr (\\S+) plain (\\S+) deletion (\\S+) residual (\\S+) \\| sup w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| clip w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| copy w (\\S+) p (\\S+) S (\\S+) c (\\S+) R (\\S+) \\| rs reach (\\S+) rweight (\\S+)$`).exec(l))) { const n = m.slice(2).map(Number); (j.probe = j.probe || [])[Number(m[1])] = { reads: n[0], pr: n[1], plain: n[2], del: n[3], res: n[4], sup: n.slice(5, 10), clip: n.slice(10, 15), copy: n.slice(15, 20), reach: n[20], rweight: n[21] }; }
     else if (l.startsWith(`file ${L}:`)) j.file = l.slice(`file ${L}:`.length).trim();
     else if (l === `done ${L}`) j.done = true;
   }
@@ -106,7 +108,7 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null, re
     if (field(ran, 'mix') !== '3') bad.push(`${k}: not three worlds`);
     if (field(ran, 'floor') !== String(FLOORS[j.id])) bad.push(`${k}: its minimum end pot is ${field(ran, 'floor')}, not ${FLOORS[j.id]}`);
     if (field(ran, 'line') !== '0.5') bad.push(`${k}: its support line is ${field(ran, 'line')}, not 0.5`);
-    if (PROBED.has(k)) { const pb = j.probe || []; if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0))) bad.push(`${k}: the probe logged no reads in a world`); else for (const [w, x] of pb.entries()) { if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5) bad.push(`${k}: world ${w}'s probe weights do not sum to 1`); if (Math.abs(x.plain - x.del - x.res) > 1e-4) bad.push(`${k}: world ${w}'s probe breaks plain = deletion + residual`); } }
+    if (PROBED.has(k)) { const pb = j.probe || []; if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0))) bad.push(`${k}: the probe logged no reads in a world`); else for (const [w, x] of pb.entries()) { if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5) bad.push(`${k}: world ${w}'s probe weights do not sum to 1`); if (Math.abs(x.plain - x.del - x.res) > 1e-4) bad.push(`${k}: world ${w}'s probe breaks plain = deletion + residual`); if (!(x.reach >= 0 && x.reach <= 1)) bad.push(`${k}: world ${w}'s RS reach is not a share`); } }
     if (!j.pair || j.pair.P !== PAIRS[j.id][0] || j.pair.D !== PAIRS[j.id][1] || j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== j.pair.lD) bad.push(`${k}: the forced pair is not the registered one`);
     if (!j.own) bad.push(`${k}: the openings line is missing or unread`);
     if (!j.reader) bad.push(`${k}: the reader line is missing`);
@@ -172,9 +174,16 @@ export function items(J, B1S380, bitsOf) {
   };
   out['5'] = opening('RZ'); out['6'] = opening('RS'); out.baseOpening = opening('BASE');
   const o1 = out['1'].outcome, o2 = out['2'].outcome;
+  // RS's reach (the plan-auditor's BLOCKING 1 of 13 Oct 02:54 UK): RS scales only the residual on corners whose chance is
+  // above the query's; S364-RUNSCALED reads 'not' only where that share of the residual is at least REACH in every world
+  // item 2 counted (the RS job's probe)
+  const pbS = (jt('S364', 'RS') || {}).probe, c2 = out['2'].cells.filter(c => c.counted);
+  const reachS = k => (pbS && pbS[k] ? q(pbS[k].reach) : null);
+  const reaches = c2.length > 0 && c2.every(c => reachS(c.k) !== null && reachS(c.k) >= REACH);
+  out['2'].reach = [0, 1].map(reachS);
   out.causes = {
     'R-CARRIES': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open',
-    'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') ? 'not' : 'open',
+    'S364-RUNSCALED': o2 === 'HELD' ? 'held' : o2 === 'FALSIFIED' && (o1 === 'HELD' || o1 === 'FALSIFIED') && reaches ? 'not' : 'open',
   };
   return out;
 }
@@ -187,7 +196,7 @@ export function report(J, B1S380, bitsOf) {
   const opn = o => o.cells.map(c => `world ${c.k} own ${c.open}: ${c.c} saved/${c.b} lost of ${c.N}, ${c.read.outcome} (margin ${f4(c.margin)}, Holm p ${f4(c.pHolm)})`).join('; ');
   L.push('', 'THE ITEMS (each read by its registered rule)');
   L.push(`1. RZ removes S364's 60-point over-read: ${it['1'].outcome}`, `     ${rem('1')}`);
-  L.push(`2. RS removes S364's 60-point over-read: ${it['2'].outcome}`, `     ${rem('2')}`);
+  L.push(`2. RS removes S364's 60-point over-read: ${it['2'].outcome}`, `     ${rem('2')}`, `     RS's reach on the residual (S364-RUNSCALED's 'not' needs at least ${REACH} in every counted world): ${it['2'].reach.map((r, k) => `world ${k} ${r === null ? 'none' : f4(r)}`).join(', ')}`);
   L.push(`3. bridge 4 within 0.3 at its own opening under RZ and RS: ${it['3'].outcome}`, `     ${it['3'].cells.map(c => `${c.arm} world ${c.k} at ${c.open}: ${f4(c.d)} (${f4(c.lo)} to ${f4(c.hi)})`).join('; ')}`);
   L.push(`4. S380's tables within 0.3 of B1's BASE under RZ and RS: ${it['4'].outcome}`, `     ${it['4'].cells.map(c => `${c.arm} world ${c.k} ${c.o}: ${f4(c.d)}`).join('; ')}`);
   L.push(`5. under RZ, S364's own opening does no material harm against P: ${it['5'].outcome}`, `     ${opn(it['5'])}`);
@@ -274,9 +283,14 @@ function planted() {
   cases.push(['1 FALSIFIED: R-CARRIES not', cz(armOver('RZ', 3), 'R-CARRIES'), 'not']);
   cases.push(['1 INCONCLUSIVE: R-CARRIES open', cz(armOver('RZ', 3, [1]), 'R-CARRIES'), 'open']);
   cases.push(['2 HELD: S364-RUNSCALED held', cz(s => {}, 'S364-RUNSCALED'), 'held']);
-  cases.push(['2 FALSIFIED, 1 HELD: S364-RUNSCALED not', cz(armOver('RS', 3), 'S364-RUNSCALED'), 'not']);
-  cases.push(['2 and 1 FALSIFIED: S364-RUNSCALED not', cz(s => { armOver('RS', 3)(s); armOver('RZ', 3)(s); }, 'S364-RUNSCALED'), 'not']);
-  cases.push(['2 FALSIFIED, 1 INCONCLUSIVE: S364-RUNSCALED open', cz(s => { armOver('RS', 3)(s); armOver('RZ', 3, [1])(s); }, 'S364-RUNSCALED'), 'open']);
+  const reachRS = r => s => { jt(s, 'S364', 'RS').probe = [0, 1, 2].map(k => ({ reach: Array.isArray(r) ? r[k] : r })); };
+  cases.push(['2 FALSIFIED, 1 HELD, RS reaching 0.9: S364-RUNSCALED not', cz(s => { armOver('RS', 3)(s); reachRS(0.9)(s); }, 'S364-RUNSCALED'), 'not']);
+  cases.push(['2 and 1 FALSIFIED, RS reaching exactly half: S364-RUNSCALED not', cz(s => { armOver('RS', 3)(s); armOver('RZ', 3)(s); reachRS(0.5)(s); }, 'S364-RUNSCALED'), 'not']); EDGES.push('an RS reach exactly at half');
+  cases.push(['2 FALSIFIED, 1 HELD, RS reaching 0.4999: S364-RUNSCALED open', cz(s => { armOver('RS', 3)(s); reachRS(0.4999)(s); }, 'S364-RUNSCALED'), 'open']);
+  cases.push(['2 FALSIFIED, 1 HELD, no probe: S364-RUNSCALED open', cz(armOver('RS', 3), 'S364-RUNSCALED'), 'open']);
+  cases.push(['2 FALSIFIED, 1 HELD, RS reaching world 0 only: S364-RUNSCALED open', cz(s => { armOver('RS', 3)(s); reachRS([0.9, 0.1, 0.9])(s); }, 'S364-RUNSCALED'), 'open']);
+  cases.push(['2 FALSIFIED, 1 HELD, world 1 not counted, RS reaching world 0: S364-RUNSCALED not', cz(s => { armOver('RS', 3)(s); setT(s, 'S364', 'BASE', 'P', 0.3, [1]); setT(s, 'S364', 'RS', 'P', 0.3, [1]); reachRS([0.9, 0.1, 0.9])(s); }, 'S364-RUNSCALED'), 'not']);
+  cases.push(['2 FALSIFIED, 1 INCONCLUSIVE, RS reaching 0.9: S364-RUNSCALED open', cz(s => { armOver('RS', 3)(s); armOver('RZ', 3, [1])(s); reachRS(0.9)(s); }, 'S364-RUNSCALED'), 'open']);
   cases.push(['2 INCONCLUSIVE: S364-RUNSCALED open', cz(armOver('RS', 3, [1]), 'S364-RUNSCALED'), 'open']);
   // the read end to end
   { const st = base(); let lines = [], err = null; try { lines = report(st.J, st.B1, bitsOf); } catch (e) { err = e.message; }
@@ -290,7 +304,7 @@ function planted() {
       `${pad} reader ${L}: tables 1 unsupported 0 copied 0 copiedTop 0 nodes 1; clamps n ${o.clampN || 0} lo 0 hi 0`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`,
       `${pad} pair ${L}: P ai ${o.P !== undefined ? o.P : P} level 0.8 tiers 0,0; D ai ${D} level 0.8 tiers ${o.tD || '2,2'}`, `${pad} checks ${L}: pairTook ${o.pairTook !== undefined ? o.pairTook : 1}/1`, `${pad} openings ${L}: OWN ai ${own} level 0.8 tiers 0,0`];
     if (!o.dropTable) for (let k = 0; k < 3; k++) out.push(`${pad} tables ${L} ${k} z 0 weight ${WEIGHTS[k].toFixed(6)}: P ${o.tableP || '3.000000'} D 3.000000 OWN 3.000000`);
-    if (PROBED.has(key(id, L)) && !o.dropProbe) for (let k = 0; k < 3; k++) out.push(`${pad} probe ${L} ${k} P: reads 9 pr 1.0e-4 plain 3.000000 deletion ${o.probeDel || '1.000000'} residual 2.000000 | sup w 0.100000 p 0.6 S 0.7 c 1 R 0.1 | clip w 0.200000 p 0.6 S 0.9 c 1 R 0.3 | copy w ${o.copyW || '0.700000'} p 0.01 S 0.04 c 1 R 0.03`);
+    if (PROBED.has(key(id, L)) && !o.dropProbe) for (let k = 0; k < 3; k++) out.push(`${pad} probe ${L} ${k} P: reads 9 pr 1.0e-4 plain 3.000000 deletion ${o.probeDel || '1.000000'} residual 2.000000 | sup w 0.100000 p 0.6 S 0.7 c 1 R 0.1 | clip w 0.200000 p 0.6 S 0.9 c 1 R 0.3 | copy w ${o.copyW || '0.700000'} p 0.01 S 0.04 c 1 R 0.03 | rs reach ${o.reach || '0.900000'} rweight 2.000000`);
     for (let k = 0; k < 3; k++) for (const [nm, ai] of [['P', P], ['D', D], ...(own !== P && own !== D ? [['OWN', own]] : [])]) if (!(o.dropRun === `${nm}${k}`)) out.push(`${pad} sim ${L} ${k} ${nm} ai ${ai}: ${o.ok || 2}/${o.runN || npw} bits ${o.bits || 'b'.repeat(16)}`);
     out.push(`${pad} checks ${L}: forceIdentity ${o.fi !== undefined ? o.fi : 4}/${o.fiN || 4} secs 1`, `${pad} file ${L}: f-${id.replace(/ /g, '_')}-${arm}`);
     if (!o.dropDone) out.push(`${pad} done ${L}`);
@@ -323,6 +337,7 @@ function planted() {
   refuses('a probed job with no probe', all({ [K('S364', 'RZ/P60S6Q5')]: { dropProbe: true } }));
   refuses('a probe whose weights do not sum to 1', all({ [K('S364', 'RS/P60S6Q5')]: { copyW: '0.690000' } }));
   refuses('a probe breaking plain = deletion + residual', all({ [K('S364', 'BASE/P60S6Q5')]: { probeDel: '1.001000' } }));
+  refuses('a probe whose RS reach is not a share', all({ [K('S364', 'RS/P60S6Q5')]: { reach: '1.200000' } }));
   refuses('pairTook 0', all({ [K('S364', 'RS/P60S6Q5')]: { pairTook: 0 } }));
   refuses('a forced pair at other tiers', all({ [K('S364', 'RS/P60S6Q5')]: { tD: '1,1' } }));
   refuses('a forced pair at another action', all({ [K('S364', 'RS/P60S6Q5')]: { P: 11, own: 11 } }));

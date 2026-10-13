@@ -9,7 +9,9 @@
  * At the household's year-0 state, in every world table: the survival read at the forced pair (P tiers 0,0 and D 2,2 at
  * one level and tier base, PAIRS) and at the job's own opening; P and D forced in year 0 on the seed's first 4,000 paths a
  * world (B1's and C's paths), the job's own moves after; the own opening too where it is neither. The probe on S364's
- * three jobs: every read the year-0 score at P makes, corner by corner (as NE-GRID C's).
+ * three jobs: every read the year-0 score at P makes, corner by corner (as NE-GRID C's), and RS's reach: the share of the
+ * corners' absolute residual weight on corners whose chance is above the query's (the part RS scales; the plan-auditor's
+ * BLOCKING 1 of 13 Oct 02:54 UK).
  * Self-checks, each refusing the run: armTook (the job's readerSplit in the solve's meta, the candidate's others intact,
  * the floor and the support line the household's), pairTook, forceIdentity (as NE-GRID C's).
  * NEEDGE_PLANT=arm runs S364's RS job without its split (armTook must refuse); =pair takes D a tier step off there
@@ -133,14 +135,14 @@ JOBS.forEach((job, ji) => {
   if (PROBED.has(`${id} ${L}`)) {
     const line = 0.5;
     for (let k = 0; k < K; k++) {
-      const acc = { reads: 0, W: 0, pr: 0, plain: 0, del: 0, res: 0, sup: [0, 0, 0, 0, 0], clip: [0, 0, 0, 0, 0], copy: [0, 0, 0, 0, 0] };   // [weight, w p, w S, w c, w R]
+      const acc = { reads: 0, W: 0, pr: 0, rAbs: 0, rUp: 0, plain: 0, del: 0, res: 0, sup: [0, 0, 0, 0, 0], clip: [0, 0, 0, 0, 0], copy: [0, 0, 0, 0, 0] };   // [weight, w p, w S, w c, w R]
       READER_PROBE.fn = (Wt, IDX, NC, RD, pr) => {
         acc.reads++; acc.pr += pr;
-        for (let q = 0; q < NC; q++) { const w = Wt[q]; if (w === 0) continue; const i = IDX[q], pk = RD.p[i], ck = RD.c[i], rk = RD.R[i], sk = pk * ck + rk; const b = pk >= line ? (sk > pk ? acc.clip : acc.sup) : acc.copy; b[0] += w; b[1] += w * pk; b[2] += w * sk; b[3] += w * ck; b[4] += w * rk; acc.W += w; acc.plain += w * sk; acc.del += w * ck * pk; acc.res += w * rk; }
+        for (let q = 0; q < NC; q++) { const w = Wt[q]; if (w === 0) continue; const i = IDX[q], pk = RD.p[i], ck = RD.c[i], rk = RD.R[i], sk = pk * ck + rk; const b = pk >= line ? (sk > pk ? acc.clip : acc.sup) : acc.copy; b[0] += w; b[1] += w * pk; b[2] += w * sk; b[3] += w * ck; b[4] += w * rk; acc.W += w; acc.plain += w * sk; acc.del += w * ck * pk; acc.res += w * rk; acc.rAbs += w * Math.abs(rk); if (pk > pr) acc.rUp += w * Math.abs(rk); }
       };
       try { svOf(cand.mix.tables[k], P); } finally { READER_PROBE.fn = null; }
       const f = (b, nm) => `${nm} w ${(b[0] / (acc.W || 1)).toFixed(6)} p ${(b[0] ? b[1] / b[0] : 0).toFixed(6)} S ${(b[0] ? 100 * b[2] / b[0] : 0).toFixed(6)} c ${(b[0] ? b[3] / b[0] : 0).toFixed(6)} R ${(b[0] ? 100 * b[4] / b[0] : 0).toFixed(6)}`;
-      console.log(`${''.padEnd(16)} probe ${L} ${k} P: reads ${acc.reads} pr ${(acc.reads ? acc.pr / acc.reads : 0).toExponential(4)} plain ${(100 * acc.plain / (acc.W || 1)).toFixed(6)} deletion ${(100 * acc.del / (acc.W || 1)).toFixed(6)} residual ${(100 * acc.res / (acc.W || 1)).toFixed(6)} | ${f(acc.sup, 'sup')} | ${f(acc.clip, 'clip')} | ${f(acc.copy, 'copy')}`);
+      console.log(`${''.padEnd(16)} probe ${L} ${k} P: reads ${acc.reads} pr ${(acc.reads ? acc.pr / acc.reads : 0).toExponential(4)} plain ${(100 * acc.plain / (acc.W || 1)).toFixed(6)} deletion ${(100 * acc.del / (acc.W || 1)).toFixed(6)} residual ${(100 * acc.res / (acc.W || 1)).toFixed(6)} | ${f(acc.sup, 'sup')} | ${f(acc.clip, 'clip')} | ${f(acc.copy, 'copy')} | rs reach ${(acc.rAbs > 0 ? acc.rUp / acc.rAbs : 1).toFixed(6)} rweight ${(100 * acc.rAbs / (acc.W || 1)).toFixed(6)}`);
     }
   }
   const f0 = Date.now(), NP = NPW * pMult, wpaths = E.pathsForSeed(SEED, NP, T), bits = {};

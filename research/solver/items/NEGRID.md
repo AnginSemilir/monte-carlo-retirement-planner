@@ -57,7 +57,8 @@ their stamp the other eight's), every setting in its solve's meta, every self-ch
 - **2 HELD (S224's under-read at 120 points).** World 0 -1.9028 (-2.7611 to -1.0560), world 1 -1.1523 (-1.9764 to -0.3156).
   RG-PATHS not: the first 4,000 paths 28.1250 against the other 12,000 27.9167 in world 0.
 - **3 FALSIFIED (15 return nodes):** shares -0.3044 and 0.1680. **4 INCONCLUSIVE (12 shares):** 0.3552 and 0.6083.
-- **5 INCONCLUSIVE (12 shares on S364):** 0.2121 and -0.2364. **6 FALSIFIED (120 points on S364):** -0.0441 and -0.0949,
+- **5 INCONCLUSIVE (12 shares on S364):** 0.2121 and -0.2364 - not shown to carry any part: in world 1 the shares widen the
+  over-read (BLOCKING 2 of 01:43). **6 FALSIFIED (120 points on S364):** -0.0441 and -0.0949,
   the 60-point over-read (3.3712, 2.5196) keeping most of the 30-point one (3.6185, 2.9066): S364-W not. **7 INCONCLUSIVE
   (ORDER):** 0.3782 and 0.5409.
 - **8 HELD (bridge 4):** at D, world 0 0.1110 (-0.2221 to 0.5504).
@@ -67,12 +68,14 @@ their stamp the other eight's), every setting in its solve's meta, every self-ch
 - **Causes:** RG-PATHS, S364-W and RG-FLOOR not; RG-WSLOW, RG-UNMASK, S364-SHARE, S364-REF and S364-COPY open.
 - **Reported (grade C).** The probe on S364 at P: 0.7842 of world 0's read weight on copied corners, their residual 1.9162
   points of a plain blend whose table reads 3.4212 against 0.0500 simulated (world 1: 0.7860, 2.1824). S380 at 120 points
-  reads under its runs in worlds 0 and 1 (32.4280 against 33.3000; 77.2472 against 78.6500), where at 30 points it over-read
-  world 0 (O143). Each household's 120-point policy against its 60-point one on B1's paths: within a quarter point.
+  reads under its runs in worlds 0 and 1 (32.4280 against 33.3000 and 33.1583; 77.2472 against 78.6500 and 78.3083, the first
+  4,000 paths and the other 12,000), where at 30 points it over-read world 0 (O139, O143; reported, grade C). Each household's 120-point policy against its 60-point one on B1's paths: within a quarter point.
 
-**What it settles:** the wealth axis is not the remaining fault on S224 or S364 (grade B); S224's under-read is not paths,
-end pot or quadrature; the poor world converges slowly. **What it leaves:** S224's under-read (the shares a part, the rest
-open); S364's over-read (ORDER and the copied corners' residual the live parts); whether 60 points is enough in the poor
+**What it settles:** refining to 120 points does not close S224's under-read (item 2 HELD, shown in world 0), nor S364's
+over-read, which the axis does not carry (item 6, S364-W not; grade B); S224's under-read is not paths, end pot or
+quadrature. Whether a finer axis could close S224's in the poor world stays open with RG-WSLOW (item 1 INCONCLUSIVE; world 0's
+moves not shown to converge), any claim beyond 120 points grade C (the plan-auditor's BLOCKING 1 of 13 Oct 01:43 UK). **What it leaves:** S224's under-read (the shares a part, the rest
+open); S364's over-read (ORDER, which alone carries a part, and the copied corners' residual the live parts); whether 60 points is enough in the poor
 world. The decision table's last row: the deep review after C designs the next step, with the outside reviews of the
 opening near-ties (escalations/) and results-partyear.txt before it.
 

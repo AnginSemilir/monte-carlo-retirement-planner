@@ -1,0 +1,7 @@
+# REF-2's preflight (runs.log 13 Oct 19:53 UK), the 95% share household's own-opening tables by arm: grep 'tables' /tmp/ref2-preflight.31325/case3.txt case4.txt
+tables BASE/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 48.862144
+tables BASE/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 60.116786
+tables BASE/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 74.634878
+tables BO/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 48.862144
+tables BO/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 60.116786
+tables BO/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 74.634878

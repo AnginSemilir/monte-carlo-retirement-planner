@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## REF-2 (closed 13 Oct 23:01)
+
+- [T:design] [T:c-preflight] item 3 read the 95% share household's own-opening score, which ORDER does not move there: BO's tables equal BASE's to the last digit in every world (O153), and the preflight's files showed the same identity at a thirtieth of the points but were read for the gate alone (results-ref2-preflight-tables.txt) -> REPLACE in new-prediction.mjs with: The preflight prints each arm's statistic beside its control's on every household it is read on, and an arm equal to its control everywhere is a design fault before launch, not a null.
+- [T:decision-fed] item 1's cause map read FALSIFIED as RS's own form while ORDER leaves part of the reference's shortfall (the plan-auditor's FAIL of 13 Oct 19:56 UK, BLOCKING 1) -> REPLACE in new-prediction.mjs with: A cause map that blames an arm read against a second reference reads it so only where that reference is shown free of the error at the states the arm acts on (a printed clearance), and leaves both causes open otherwise.
+- [T:overclaim] the 18:36 row graded the review's cash mechanism B on S364 where no registered item tested it (the FAIL of 13 Oct 18:56 UK, BLOCKING 1) -> DROP: corrected to C before the PASS; the rule stands (a mechanism no item tested is grade C).
+- [T:c-gate] [T:figure] NE-REF's own close, after its read: the item-3 rewording that broke the fair-test gate's prediction hash (the FAIL of 13 Oct 18:18 UK) and PR23's ratio misstated -> DROP: both lessoned in NE-REF's entry, written after its row's time and named again here so the window is whole.
+- [T:other:calibration] Brier 0.289 over 3; item 1's derivation put HELD at 0.47 on O151-REF's stories mostly within half a point, and ORDER removed 0.2816 of the deepening in world 0 (results-ref2-reported.txt) -> DROP: the deep review after REF-2 reads it with O152.
+
 ## NE-REF (closed 13 Oct 18:06)
 
 - [T:overclaim] NE-EDGE's close graded O150 B from a measurement made after the read (the plan-auditor's FAIL of 13 Oct 10:41 UK, BLOCKING 1) -> DROP: the rule stands (a figure no registered item reads is grade C) and was applied before the PASS.

@@ -13,7 +13,7 @@
  */
 import assert from 'node:assert/strict';
 import { orderChance, referenceChance } from '../../src/solver/reader.js';
-import { stateChance, closedChance, closedHolds, potsAt } from '../solver/ref-state.mjs';
+import { stateChance, closedChance, closedHolds, potsAt, simulatedCount, stateDraws } from '../solver/ref-state.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
 const CASH_FIRST = ['cash', 'gia', 'isa'], ISA_FIRST = ['isa', 'cash', 'gia'], BOTH = [CASH_FIRST, ISA_FIRST];
@@ -62,12 +62,26 @@ const tailOk = (x, y) => !(y < 0.05) || (y < 1e-4 ? Math.abs(x - y) < 1e-4 : x >
   ok(truth.some(t => t.cf < 0.05 && t.cf > 0) , 'C  the points reach the tail (a cash-first chance under 0.05 above 0)'); }
 
 // D. the plants, each caught inside the tail
-{ const caught = (name, fn, key = 'cf') => { const miss = truth.filter(t => t[key] < 0.05 && t[key] >= 1e-4).some(t => !tailOk(fn(t), t[key]) || !within(fn(t), t[key])); ok(miss, `D  planted: ${name} is caught inside the tail`); };
+{ // a plant is caught where the unplanted read passes the same check (a point the clean read already misses proves nothing)
   const fs = stateChance(BILLS, RATE, [ISA_FIRST], cashOf, { closed: false });
+  const clean = { cf: t => closedChance(t.pots, BILLS, RATE), isa: t => fs(t.acc, t.a) };
+  const caught = (name, fn, key = 'cf') => { const pass = (x, y) => tailOk(x, y) && within(x, y), pts = truth.filter(t => t[key] < 0.05 && t[key] >= 1e-4 && pass(clean[key](t), t[key]));
+    ok(pts.length > 0 && pts.some(t => !pass(fn(t), t[key])), `D  planted: ${name} is caught inside the tail (${pts.length} tail point(s) the clean read passes)`); };
   caught('the state\'s cash at the opening weights (a third of the money)', t => closedChance({ isa: t.a * t.acc, gia: (1 - t.a) * t.acc - t.acc / 3, cash: t.acc / 3 }, BILLS, RATE));
   caught('the bill cash part-pays left off the invested pot', t => { const c = t.pots.cash, js = BILLS.findIndex((b, j) => BILLS.slice(0, j + 1).reduce((x, y) => x + y, 0) > c * 1.0000001);
     return js < 0 ? 1 : referenceChance(BILLS.map((b, j) => (j <= js ? 0 : b)), RATE.map(r => Math.log(1 + r.isa[0])), RATE.map(r => r.isa[1]))(t.pots.isa + t.pots.gia); });
   caught('the ISA share read as its complement (the ISA-first order, simulated: one invested rate makes the cash-first form blind to the split)', t => fs(t.acc, 1 - t.a), 'isa'); }
+
+// D1. the state's pots: cash the year's cash capped by the taxable pot, the GIA the rest
+{ const eq = (x, y) => ['isa', 'gia', 'cash'].every(k => Math.abs(x[k] - y[k]) < 1e-6);
+  ok(eq(potsAt(100000, 0.95, cashOf), { isa: 95000, gia: 0, cash: 5000 }) && eq(potsAt(100000, 0.5, cashOf), { isa: 50000, gia: 41000, cash: 9000 }), 'D1 the pots: cash at the buffer capped by the taxable pot (5,000 of it at a 0.95 share), the GIA the rest');
+  ok(eq(potsAt(100000, 0.95, () => 9000), { isa: 95000, gia: 0, cash: 5000 }), 'D1 the cap is the module\'s own: a cash function that does not cap still gives cash 5,000 of a 5,000 taxable pot'); }
+
+// D4. money arriving goes into cash and pays later bills (simulated; the closed form refuses such a schedule)
+{ const r = [0, 1].map(() => flat(0, 0, 0)), b3 = [20000, -15000, 25000], z0 = stateDraws(3, 50);
+  ok(simulatedCount({ isa: 20000, gia: 10000, cash: 0 }, b3, r, ISA_FIRST, z0) === 50 && simulatedCount({ isa: 20000, gia: 9000, cash: 0 }, b3, r, ISA_FIRST, z0) === 0, 'D4 15,000 arriving into cash pays the last 25,000 with 10,000 of GIA, and not with 9,000');
+  const f = stateChance(b3, r, [CASH_FIRST], tax => 0, { draws: 50, points: 40 });
+  ok(!closedHolds(b3, r) && f.table.how[0] === 'simulated' && f(32000, 0.625) === 1 && f(27000, 0.74) === 0, 'D4 the closed form refuses money arriving; the cash-first table, simulated, reads 1 and 0 either side (32,000 and 27,000)'); }
 
 // D2. the cash prefix's growth, by arithmetic: with no spread, 20,000 of cash at 3% pays 10,000 now and 10,290 next year
 //     (10,000 grown to 10,300) and no invested money is needed; ungrown it is 290 short
@@ -77,7 +91,9 @@ const tailOk = (x, y) => !(y < 0.05) || (y < 1e-4 ? Math.abs(x - y) < 1e-4 : x >
 
 // D3. the read between share levels is linear in the share
 { const f = stateChance(BILLS, RATE, [ISA_FIRST], cashOf, { draws: 2000, points: 60 });   // the ISA-first order: the cash-first form is blind to the split
-  ok([90000, 100000, 110000].every(x => Math.abs(f(x, 0.25) - (f(x, 0.2) + f(x, 0.3)) / 2) < 1e-12) && f(100000, 0.2) !== f(100000, 0.3), 'D3 midway between two share levels the read is their mean (and the levels differ there)'); }
+  ok([90000, 100000, 110000].every(x => Math.abs(f(x, 0.25) - (f(x, 0.2) + f(x, 0.3)) / 2) < 1e-12) && f(100000, 0.2) !== f(100000, 0.3), 'D3 midway between two share levels the read is their mean (and the levels differ there)');
+  const { grid, val } = f.table, gs = [10, 20, 30, 40];
+  ok(gs.every(g => f(grid[g], 0.2) === val[2][g] && f(grid[g], 0.8) === val[8][g]) && gs.some(g => val[2][g] !== val[8][g]), 'D3 at a share level the read is that level\'s row (0.2 reads row 2, 0.8 row 8, and the rows differ)'); }
 
 // E. the better order, monotone in the money, in [0, 1] (the table's running maximum is a guard: at a fixed share more
 //    money pays every path no worse, so it binds on no schedule built here)

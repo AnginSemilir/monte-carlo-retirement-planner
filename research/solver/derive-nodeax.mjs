@@ -93,11 +93,6 @@ const dBO = arrOf(fBO, 'GB', 0).map((x, i) => x - arrOf(fBN, 'GB', 0)[i]);
 // reach under a hundredth of a point), so the unpaired bound from the same files is used, the larger (added after the
 // first output, which used the paired spread; declared in the prediction)
 const Dun = Math.sqrt(sd(arrOf(fBN, 'GB', 0)) ** 2 + sd(arrOf(fBO, 'GB', 0)) ** 2);
-const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: Math.max(sd(dBO), Dun),
-  GD: avg(k => sd(arrOf(fBN, 'GD', k))), rDG: avg(k => corr(arrOf(fBN, 'GD', k), arrOf(fBN, 'GB', k))),
-  E: avg(k => sd(E01[k])), rEG: avg(k => corr(E01[k], arrOf(fBN, 'GB', k))) };
-// the de-risked layers' share of the bridge path-years by world (the preflight's, 4 points; grade C), read as the run's
-const sumA = a => a.reduce((t, x) => t + x, 0), SDw = [0, 1, 2].map(k => sumA(arrOf(fBN, 'ND', k)) / sumA(arrOf(fBN, 'NB', k)));
 // the year-matched excess per path at the preflight: E = GD - sum_t s_t Y_t, s_t from BN's bridge path records (the plan
 // layer from its derisk line)
 const plg0 = readdirSync(DP).filter(f => /^case\d+\.txt$/.test(f)).map(f => readFileSync(join(DP, f), 'utf8')), bnLog = plg0.find(t => /job BN\//.test(t));
@@ -110,6 +105,11 @@ const EOf = k => {
   return GD.map((g, i) => fBN.bridge.reduce((a, t) => a - (nt[t] ? (st[t] || 0) / nt[t] : 0) * arrOf(fBN, `Y${t}`, k)[i], g));
 };
 const E01 = [0, 1].map(EOf);
+const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: Math.max(sd(dBO), Dun),
+  GD: avg(k => sd(arrOf(fBN, 'GD', k))), rDG: avg(k => corr(arrOf(fBN, 'GD', k), arrOf(fBN, 'GB', k))),
+  E: avg(k => sd(E01[k])), rEG: avg(k => corr(E01[k], arrOf(fBN, 'GB', k))) };
+// the de-risked layers' share of the bridge path-years by world (the preflight's, 4 points; grade C), read as the run's
+const sumA = a => a.reduce((t, x) => t + x, 0), SDw = [0, 1, 2].map(k => sumA(arrOf(fBN, 'ND', k)) / sumA(arrOf(fBN, 'NB', k)));
 for (const x of Object.keys(SP)) if (!Number.isFinite(SP[x])) { console.log(`the preflight's spread ${x} did not read`); process.exit(1); }
 for (const k of [0, 1]) { const d = arrOf(fBN, 'GD', k), g = arrOf(fBN, 'GB', k); console.log(`  BN world ${k} at the preflight: GD mean ${f4(mean(d))} sd ${f4(sd(d))}, its share of GB ${f4(mean(d) / mean(g))}; the de-risked layers' share of the bridge path-years ${f4(SDw[k])}; QF mean ${f4(mean(arrOf(fBN, 'QF', k)))}`); }
 for (const k of [0, 1]) console.log(`  BN world ${k} at the preflight: the year-matched excess E over GB ${f4(mean(E01[k]) / mean(arrOf(fBN, 'GB', k)))} (plan layer ${li0w[k]})`);
@@ -190,7 +190,7 @@ for (const x of XS.filter(v => v !== 1)) console.log(`  SENSITIVITY, the spread 
 const secs = (re, txt) => { const m = re.exec(txt || ''); return m ? Number(m[1]) : NaN; };
 const lg = arm => n1logs.find(t => new RegExp(`job ${arm}/P60S\\d+Q5`).test(t));
 const plg = readdirSync(DP).filter(f => /^case\d+\.txt$/.test(f)).map(f => readFileSync(join(DP, f), 'utf8'));
-const pled = arm => secs(new RegExp(`checks ${arm}/P60S\\d+Q5: ownTook \\d+/\\d+ identity \\d+/\\d+ qfTook \\d+/\\d+ secs (\\d+)`), plg.find(t => new RegExp(`job ${arm}/`).test(t)));
+const pled = arm => secs(new RegExp(`checks ${arm}/P60S\\d+Q5: ownTook \\d+/\\d+ identity .* secs (\\d+)$`, 'm'), plg.find(t => new RegExp(`job ${arm}/`).test(t)));
 const job = arm => { const s = secs(new RegExp(`solve CAND ${arm}/P60S\\d+Q5: table \\S+ secs (\\d+)`), lg(arm)), r = JUDGED.ledgerCost * secs(/forceIdentity \d+\/\d+ secs (\d+)/, lg(arm)) * NPW / 4000, p = pled(arm) * NPW / 40; return { s, r, p, t: s + Math.max(r, p) }; };
 console.log('\n4. THE BUDGET (NODE-1\'s logs: solve, and its runs times the ledger\'s judged cost; the preflight\'s own ledger seconds at 40 paths scaled to these paths, at 4 points; the larger ledger taken)');
 for (const arm of ['BN', 'BO']) { const j = job(arm); console.log(`  ${arm}: solve ${j.s} s; ledger from NODE-1's runs ${Math.round(j.r)} s, from the preflight ${Math.round(j.p)} s; about ${f2(j.t / 3600)} h`); }

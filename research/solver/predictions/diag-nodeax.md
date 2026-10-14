@@ -107,7 +107,7 @@ A net or estate item names which of the mean, the capped mean or the median it r
 The decision table's rows decide; each item's own reading adds only this:
 
 - **Item 0:** HELD says the arms are NODE-1's, table and run, bit for bit; FALSIFIED voids items 1-3 until the code is found; INCONCLUSIVE (a run's bits differ) voids nothing but is named.
-- **Item 1:** HELD settles N2-GRID as held (grade B, one household, one seed) with items 0 and 3 HELD; FALSIFIED settles it as not (the remainder outside the bridge grid); inconclusive leaves it open and names the world.
+- **Item 1:** HELD settles N2-GRID as held (grade B, one household, one seed) with items 0 and 3 HELD; FALSIFIED settles it as not: the bridge grid's net residual is small (GB nets both signs); inconclusive leaves it open and names the world.
 - **Item 2:** HELD settles N2-LATE held (the late years carry at least half); FALSIFIED settles it not; inconclusive records the year profile, which R3 acts on.
 - **Item 3:** HELD shows the ledger reaches the mechanism (NODE-1's lift lands in the bridge grid); FALSIFIED or inconclusive leaves every cause open (the ledger may not see the lift).
 - **Item 4:** HELD settles N2-LAYER held (the de-risked layers carry the residual past their share) and sends R1-R3's action to the per-layer reference first; FALSIFIED settles it not; inconclusive leaves it open and the rows R1-R3 act as written.

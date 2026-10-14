@@ -4,14 +4,15 @@
  * cell's end, below 0 at 0 and above 1 at 1, as locateLin does; on the uniform list of six nodes every table of a solve is
  * the linear axis's to 1e-9 (the arithmetic differs by rounding only); with an explicit dense list the solve runs, the
  * grid holds the list's count of a nodes and six b nodes, and meta names the list (absent when unset); a list that is
- * short, unordered, not from 0 to 1, or set with coverage is refused.
+ * short, unordered, not from 0 to 1, or set with coverage is refused; the read path (readValues) locates a share on a dense
+ * list exactly (added 14 Oct, so a fault in its own locate shows: the uniform list hides one).
  *   node research/tests/share-nodes.test.mjs
  */
 import assert from 'node:assert/strict';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan } from '../../src/solver/solve.js';
-import { nodesAxis, locateNodes } from '../../src/solver/grid.js';
+import { nodesAxis, locateNodes, makeGrid, readValues, locateVec } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -36,6 +37,16 @@ ok(lin.meta.shareNodes === undefined && Array.isArray(uni.meta.shareNodes) && un
   ok(r.g.ni === 15 && r.g.nt === 6 && r.meta.shareNodes.join(',') === list.join(',') && r.meta.points === `total ${r.g.np} x 15 x 6`, `C  a dense list: ${r.meta.points}, meta's list the given one`);
   const s0 = M.initialState(r.m), v = r.worlds.map(w => w.value(s0, 0).survival);
   ok(v.every(x => x > 0 && x < 1), `C  the dense solve reads the initial state in (0, 1) in every world (${v.map(x => x.toFixed(4)).join(', ')})`); }
+
+// E. the read path (readValues, its own locate) on a dense list: a table equal to each node's share reads back the query's
+//    share exactly, between nodes of unequal width (a uniform locate would not)
+{ const list = [0, 0.2, 0.4, 0.6, 0.7, 0.75, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1], m = M.prepare(E, plan), g = makeGrid(m, { points: 4, shareNodes: list });
+  const ls = new Float64Array(g.size), b = new Float64Array(g.size), out = new Float64Array(4);
+  for (let i = 0; i < g.size; i++) b[i] = g.axes.a.pts[Math.floor(i / g.stride.isa) % g.ni];
+  const got = [0.86, 0.33, 0.72, 0.99, 0.8].map(a => { const W = 200000, st = Float64Array.from([a * W, 0.5 * (1 - a) * W, 0.5 * (1 - a) * W, 0.1, 0, 0, 0]); readValues(g, ls, b, st, out); return out[1]; });
+  ok(g.ni === 15 && got.every((x, i) => Math.abs(x - [0.86, 0.33, 0.72, 0.99, 0.8][i]) < 1e-12), `E  the read path locates the share on the dense list: ${got.map(x => x.toFixed(6)).join(', ')} for 0.86, 0.33, 0.72, 0.99, 0.8`);
+  const lv = [0.86, 0.33, 0.72].map(a => { const W = 200000, l = locateVec(g, Float64Array.from([a * W, 0.5 * (1 - a) * W, 0.5 * (1 - a) * W, 0.1, 0, 0])).i, r = locateNodes(g.axes.a, a); return l.i === r.i && Math.abs(l.w - r.w) < 1e-12 ? `${l.i}:${l.w.toFixed(4)}` : 'MISMATCH'; });
+  ok(!lv.includes('MISMATCH'), `E  the solver's position locate (locateVec) puts the share on the dense list's cells: ${lv.join(', ')}`); }
 
 // D. refusals
 for (const [bad, why] of [[[0, 1], 'two nodes'], [[0, 0.6, 0.5, 1], 'unordered'], [[0.1, 0.5, 1], 'not from 0'], [[0, 0.5, 0.9], 'not to 1']]) {

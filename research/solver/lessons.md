@@ -13,6 +13,13 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NODE-1 (closed 14 Oct 06:07)
+
+- [T:design] the review's decision lines (the table within 2.5 points of its runs, at least 3.75 under) could not reach FALSIFIED at 4,000 paths for a table that does not move; found only because the derivation printed them beside the replacement on the same draws (INCONCLUSIVE 0.73 against 0.32, results-derive-node1.txt) -> REPLACE in new-prediction.mjs with: A review's decision lines are run through the power model on the same draws as any replacement, both printed, before registration.
+- [T:c-falsify] the option's tests first caught no fault in either locate on a non-uniform list (a uniform list hides one; results-share-nodes-mutations.txt's first run left locateLin's dispatch alive) -> DROP: the read-path checks were added and the mutation run repeated before the read (10 of 10).
+- [T:overclaim] Step 0's unregistered figures graded B in the adoption (the plan-auditor's FAIL of 14 Oct 00:06 UK, BLOCKING 1) -> DROP: regraded C before the PASS; the rule stands (a measurement made after the reads is grade C).
+- [T:other:calibration] Brier 0.097 over 2; item 1's share 0.5784 sat inside its 80% interval (0.0102 to 1.1175), between the HELD and FALSIFIED stories: the JUDGED stories gave a partial lift little weight -> DROP: the deep review after NODE-1 reads it.
+
 ## REF-2 (closed 13 Oct 23:01)
 
 - [T:design] [T:c-preflight] item 3 read the 95% share household's own-opening score, which ORDER does not move there: BO's tables equal BASE's to the last digit in every world (O153), and the preflight's files showed the same identity at a thirtieth of the points but were read for the gate alone (results-ref2-preflight-tables.txt) -> REPLACE in new-prediction.mjs with: The preflight prints each arm's statistic beside its control's on every household it is read on, and an arm equal to its control everywhere is a design fault before launch, not a null.

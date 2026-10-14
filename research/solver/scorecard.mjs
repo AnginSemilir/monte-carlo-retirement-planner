@@ -77,6 +77,7 @@ export const TESTS = [
   { name: 'NE-EDGE (S364\'s near-dead read: the bridge reader\'s residual zeroed (RZ) and scaled by the query\'s chance (RS), bridge 4 and S380 the controls)', prediction: 'predictions/diag-needge.md', results: 'results-needge.txt' },
   { name: 'NE-REF (S364\'s log gap under RS split into the reference\'s parts; RS with the order-drawn reference; RS on S360)', prediction: 'predictions/diag-neref.md', results: 'results-neref.txt', unscored: ['3'] },
   { name: 'REF-2 (S360 under RS with and without the order-drawn reference; the state\'s own pots at S360\'s states; the order-drawn reference on the 95% share household)', prediction: 'predictions/diag-ref2.md', results: 'results-ref2.txt' },
+  { name: 'NODE-1 (S360 under ORDER with explicit pension-share nodes against six shares; the option inert off)', prediction: 'predictions/diag-node1.md', results: 'results-node1.txt' },
 ];
 
 export function credences(predText) {

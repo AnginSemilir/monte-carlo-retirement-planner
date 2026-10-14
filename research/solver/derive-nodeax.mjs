@@ -4,8 +4,9 @@
  * per-path spread of the re-cut ledger's terms from the re-cut preflight's kept files, behind reduce-nodeax.mjs's own
  * gate in --preflight mode, at a fifteenth of the points and 40 paths a world), the power of items 1-3 by simulation
  * through reduce-nodeax.mjs's own items() at the record's spread times 0.5, 1, 2 and 4, the credences from the deep
- * review after NODE-1's cause credences (deep-review-log.md 14 Oct 06:33 UK, read from the receipt, not typed) through the
- * judged stories below, the decision table's rows (R1-R4 and else), the point and 80% interval, and the budget.
+ * review after NODE-AX's registration (its receipt of 14 Oct 18:51 UK, read from the receipt, not typed; it added N2-LAYER and
+ * asked for item 4 and R5) through the judged stories below, the decision table's rows (R0-R5 and else), the point and
+ * 80% interval, and the budget.
  *   node research/solver/derive-nodeax.mjs > research/solver/results-derive-nodeax.txt
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -21,27 +22,36 @@ const f4 = x => x.toFixed(4), f2 = x => x.toFixed(2);
 let st = 7002; const rnd = () => { st |= 0; st = (st + 0x6D2B79F5) | 0; let t = Math.imul(st ^ (st >>> 15), 1 | st); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-12, rnd()))) * Math.cos(2 * Math.PI * rnd());
 
-// THE JUDGED INPUTS (committed before this script's output; grade D throughout)
+// THE JUDGED INPUTS (the second block, after the deep review of 14 Oct 18:51 UK; committed before this script's output on
+// the preflight it reads; grade D throughout)
 export const JUDGED = {
-  // the receipt's N2-SHARE split by where in the bridge the share axis errs: the late band (years 4-6, the cliff narrower
-  // than a dense cell) against the early split (years 1-3 and the de-risked layers), in the escalation review's ratio
-  // of its LATE-BAND (0.45) to its EARLY-SPLIT (0.12)
-  shareLate: 0.45 / (0.45 + 0.12),
+  // the receipt's N2-SHARE, now without the early split's de-risked-layer part (N2-LAYER, the review's), split by where
+  // the share axis errs: mostly the late band (years 4-6, the cliff narrower than a dense cell)
+  shareLate: 0.8,
   // gbs: BN's bridge-years grid residual GB as a share of its own-opening table less its runs (NODE-1's gap, by world),
-  // by story. The grid stories put most of the gap in GB (a share past 1 where T or GA offsets it); QUAD puts it in T
-  // (the one-step value and the table carry the same quadrature, so the runs see it, not the reads); MODEL after the
-  // bridge or in REST; NOISE a structural part smaller than the gap shown
+  // by story. The grid stories (LATE, EARLY, LAYER, W, B) put most of the gap in GB (a share past 1 where T or GA offsets
+  // it); QUAD puts it in T (the one-step value and the table carry the same quadrature, so the runs see it); MODEL after
+  // the bridge or in REST; NOISE a structural part smaller than the gap shown; GB nets both signs (the review), so a
+  // grid story keeps a share well under 1 at a fifth of its weight
   gbs: {
-    LATE: { 0.6: 0.2, 0.85: 0.5, 1.1: 0.3 }, EARLY: { 0.6: 0.2, 0.85: 0.5, 1.1: 0.3 },
-    W: { 0.5: 0.25, 0.85: 0.5, 1.1: 0.25 }, B: { 0.5: 0.3, 0.85: 0.5, 1.1: 0.2 },
+    LATE: { 0.45: 0.2, 0.85: 0.5, 1.1: 0.3 }, EARLY: { 0.45: 0.2, 0.85: 0.5, 1.1: 0.3 }, LAYER: { 0.45: 0.2, 0.85: 0.5, 1.1: 0.3 },
+    W: { 0.45: 0.25, 0.85: 0.5, 1.1: 0.25 }, B: { 0.45: 0.3, 0.85: 0.5, 1.1: 0.2 },
     MODEL: { 0: 0.4, 0.3: 0.35, 0.7: 0.25 }, QUAD: { 0: 0.5, 0.3: 0.3, 0.6: 0.2 },
-    NOISE: { 0.2: 0.3, 0.45: 0.4, 0.7: 0.3 }, OTHER: { 0.2: 0.3, 0.5: 0.35, 0.85: 0.35 },
+    NOISE: { 0.2: 0.3, 0.45: 0.4, 0.7: 0.3 }, OTHER: { 0.2: 0.3, 0.45: 0.35, 0.85: 0.35 },
   },
-  // F_L: years 4-6's part of GB, by story (three of the seven bridge years: about 0.43 if spread evenly)
+  // F_L: years 4-6's part of GB, by story (three of the seven bridge years: about 0.43 if spread evenly); LAYER spreads
+  // over the years (the de-risked layers are held early too)
   late: {
     LATE: { 0.4: 0.2, 0.6: 0.35, 0.8: 0.45 }, EARLY: { 0.1: 0.35, 0.25: 0.4, 0.4: 0.25 },
-    W: { 0.4: 0.3, 0.6: 0.4, 0.8: 0.3 }, B: { 0.25: 0.3, 0.43: 0.4, 0.6: 0.3 },
+    W: { 0.4: 0.3, 0.6: 0.4, 0.8: 0.3 }, B: { 0.25: 0.3, 0.43: 0.4, 0.6: 0.3 }, LAYER: { 0.25: 0.3, 0.43: 0.4, 0.6: 0.3 },
     other: { 0.2: 0.3, 0.43: 0.4, 0.7: 0.3 },
+  },
+  // item 4's excess: GD's share of GB less the de-risked layers' share of the bridge path-years, by story. LAYER puts the
+  // residual in those layers well past their share; LATE somewhat past it (late-bridge policies hold de-risked tiers
+  // where the cliff is sharpest); the others about proportional, either side
+  excess: {
+    LAYER: { 0.25: 0.2, 0.4: 0.4, 0.6: 0.4 }, LATE: { 0: 0.3, 0.15: 0.4, 0.3: 0.3 },
+    other: { '-0.1': 0.3, 0.05: 0.4, 0.2: 0.3 },
   },
   // item 3: BO's GB less BN's in world 0 (points). NODE-1 lifted BN's table 2.98 over BO's (B) through the share axis
   // alone, a bridge-years grid effect whatever carries the remainder; a part may land in T through the moves chosen
@@ -49,9 +59,9 @@ export const JUDGED = {
   // item 0: the solver code is unchanged since NODE-1 (code d297b820d217 in both), so its solves and runs repeat bit for
   // bit; a miss only through the environment
   repro: 0.97,
-  // the re-cut ledger's cost against NODE-1's runs (one table read and one move's one-step value a path-year, no
-  // projections): about the runs' own
-  ledgerCost: 1.0,
+  // the re-cut ledger's cost against NODE-1's runs (one table read and one move's one-step value a path-year, QF on a
+  // quarter of the paths): about the runs' own and a half
+  ledgerCost: 1.5,
 };
 
 // 1. THE RECORDS: NODE-1, behind its gate; the re-cut preflight's per-path spread, behind the re-cut reducer's gate
@@ -80,21 +90,27 @@ const dBO = arrOf(fBO, 'GB', 0).map((x, i) => x - arrOf(fBN, 'GB', 0)[i]);
 // reach under a hundredth of a point), so the unpaired bound from the same files is used, the larger (added after the
 // first output, which used the paired spread; declared in the prediction)
 const Dun = Math.sqrt(sd(arrOf(fBN, 'GB', 0)) ** 2 + sd(arrOf(fBO, 'GB', 0)) ** 2);
-const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: Math.max(sd(dBO), Dun) };
+const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: Math.max(sd(dBO), Dun),
+  GD: avg(k => sd(arrOf(fBN, 'GD', k))), rDG: avg(k => corr(arrOf(fBN, 'GD', k), arrOf(fBN, 'GB', k))) };
+// the de-risked layers' share of the bridge path-years by world (the preflight's, 4 points; grade C), read as the run's
+const sumA = a => a.reduce((t, x) => t + x, 0), SDw = [0, 1, 2].map(k => sumA(arrOf(fBN, 'ND', k)) / sumA(arrOf(fBN, 'NB', k)));
 for (const x of Object.keys(SP)) if (!Number.isFinite(SP[x])) { console.log(`the preflight's spread ${x} did not read`); process.exit(1); }
-console.log(`  the per-path spread used (points; worlds 0 and 1 averaged): GB ${f4(SP.GB)}, GL ${f4(SP.GL)}, corr(GL, GB) ${f4(SP.rLG)}; BO's GB less BN's, world 0: paired at the preflight mean ${f4(mean(dBO))} sd ${f4(sd(dBO))}, the unpaired bound ${f4(Dun)}, used ${f4(SP.D)}`);
+for (const k of [0, 1]) { const d = arrOf(fBN, 'GD', k), g = arrOf(fBN, 'GB', k); console.log(`  BN world ${k} at the preflight: GD mean ${f4(mean(d))} sd ${f4(sd(d))}, its share of GB ${f4(mean(d) / mean(g))}; the de-risked layers' share of the bridge path-years ${f4(SDw[k])}; QF mean ${f4(mean(arrOf(fBN, 'QF', k)))}`); }
+console.log(`  the per-path spread used (points; worlds 0 and 1 averaged): GB ${f4(SP.GB)}, GL ${f4(SP.GL)}, corr(GL, GB) ${f4(SP.rLG)}, GD ${f4(SP.GD)}, corr(GD, GB) ${f4(SP.rDG)}; BO's GB less BN's, world 0: paired at the preflight mean ${f4(mean(dBO))} sd ${f4(sd(dBO))}, the unpaired bound ${f4(Dun)}, used ${f4(SP.D)}`);
 
 // 2. THE POWER through items(): per-path arrays at a story's means and the record's spread (times x)
 const n = NPW;
-function setOf({ gbs, F, D }, x = 1) {
-  const P = {}, r = Math.max(-1, Math.min(1, SP.rLG));
+function setOf({ gbs, F, D, E = 0 }, x = 1) {
+  const P = {}, r = Math.max(-1, Math.min(1, SP.rLG)), rd = Math.max(-1, Math.min(1, SP.rDG));
   for (const k of [0, 1, 2]) {
-    const mG = gbs * gap[k], mL = F * mG, G = new Float64Array(n), L = new Float64Array(n), O = new Float64Array(n);
+    const mG = gbs * gap[k], mL = F * mG, mD = (SDw[k] + E) * mG, G = new Float64Array(n), L = new Float64Array(n), O = new Float64Array(n), Dd = new Float64Array(n);
     for (let i = 0; i < n; i++) {
-      const z1 = gauss(), z2 = gauss(), z3 = gauss();
+      const z1 = gauss(), z2 = gauss(), z3 = gauss(), z4 = gauss();
       G[i] = mG + x * SP.GB * z1; L[i] = mL + x * SP.GL * (r * z1 + Math.sqrt(1 - r * r) * z2); O[i] = G[i] + D + x * SP.D * z3;
+      Dd[i] = mD + x * SP.GD * (rd * z1 + Math.sqrt(1 - rd * rd) * z4);
     }
-    P[`BN GB ${k}`] = G; P[`BN GL ${k}`] = L; P[`BO GB ${k}`] = O;
+    P[`BN GB ${k}`] = G; P[`BN GL ${k}`] = L; P[`BO GB ${k}`] = O; P[`BN GD ${k}`] = Dd;
+    P[`BN NB ${k}`] = new Float64Array(n).fill(1); P[`BN ND ${k}`] = new Float64Array(n).fill(SDw[k]);
   }
   return (arm, x2, k) => P[`${arm} ${x2} ${k}`] || new Float64Array(n);
 }
@@ -102,45 +118,52 @@ const J = { [key('S360', 'BN/P60S15Q5')]: { tables: [0, 1, 2].map(() => ({ OWN: 
 const n1 = { BN: { tables: [0, 1, 2].map(() => ({ OWN: 1 })), runs: ['n0', 'n1', 'n2'] }, BO: { tables: [0, 1, 2].map(() => ({ OWN: 1 })), runs: ['o0', 'o1', 'o2'] } };
 const cnt = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }), DR = 40;
 // item 2 is read only when item 1 is HELD, so its cells count the draws in which item 1 is HELD (c2h)
-const cell = (story, x) => { const c = { 1: cnt(), 2: cnt(), 3: cnt(), c2h: cnt() }; for (let d = 0; d < DR; d++) { const it = items(setOf(story, x), J, n1); for (const i of [1, 2, 3]) c[i][it[i].outcome]++; if (it['1'].outcome === 'HELD') c.c2h[it['2'].outcome]++; } return c; };
+// item 4 likewise (c4h); R5's condition counted among item 1's INCONCLUSIVE draws (part)
+const cell = (story, x) => { const c = { 1: { ...cnt(), part: 0 }, 2: cnt(), 3: cnt(), c2h: cnt(), c4h: cnt() }; for (let d = 0; d < DR; d++) { const it = items(setOf(story, x), J, n1); for (const i of [1, 2, 3]) c[i][it[i].outcome]++; if (it['1'].partial) c[1].part++; if (it['1'].outcome === 'HELD') { c.c2h[it['2'].outcome]++; c.c4h[it['4'].outcome]++; } } return c; };
 const tot = c => c.HELD + c.INCONCLUSIVE + c.FALSIFIED;
 const row = c => (tot(c) ? ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] / tot(c))}`).join(' ') + (tot(c) < DR ? ` (of ${tot(c)} draws with item 1 HELD)` : '') : 'no draw with item 1 HELD');
-const XS = [0.5, 1, 2, 4], GBS = [0, 0.2, 0.3, 0.45, 0.6, 0.85, 1.1], G2 = [0.45, 0.6, 0.85, 1.1], FL = [0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.8], DS = [-3.5, -2.8, -2, -1.2, -0.5], PW = {};
+const XS = [0.5, 1, 2, 4], GBS = [0, 0.2, 0.3, 0.45, 0.6, 0.7, 0.85, 1.1], G2 = [0.45, 0.6, 0.85, 1.1], FL = [0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.8], DS = [-3.5, -2.8, -2, -1.2, -0.5], EX = [-0.1, 0, 0.05, 0.15, 0.2, 0.25, 0.3, 0.4, 0.6], PW = {};
 console.log(`\n2. THE POWER (${DR} draws a cell through reduce-nodeax.mjs's items(), ${n} paths a world; the record's spread times ${XS.join(', ')})`);
 for (const x of XS) {
-  for (const g of GBS) { const c = cell({ gbs: g, F: 0.6, D: -2.8 }, x); PW[`1|${g}|${x}`] = c[1]; console.log(`  x${x} item 1, GB ${g} of the gap (${f4(g * gap[0])}, ${f4(g * gap[1])}): ${row(c[1])}`); }
+  for (const g of GBS) { const c = cell({ gbs: g, F: 0.6, D: -2.8 }, x); PW[`1|${g}|${x}`] = c[1]; console.log(`  x${x} item 1, GB ${g} of the gap (${f4(g * gap[0])}, ${f4(g * gap[1])}): ${row(c[1])}; R5's condition ${f2(c[1].part / DR)}`); }
+  for (const g of G2) for (const e of EX) { const c = cell({ gbs: g, F: 0.6, D: -2.8, E: e }, x); PW[`4|${g}|${e}|${x}`] = c.c4h; console.log(`  x${x} item 4, GD ${e} past the path-years' share (GB ${g} of the gap): ${row(c.c4h)}`); }
   for (const g of G2) for (const F of FL) { const c = cell({ gbs: g, F, D: -2.8 }, x); PW[`2|${g}|${F}|${x}`] = c.c2h; console.log(`  x${x} item 2, years 4-6 ${F} of GB (GB ${g} of the gap): ${row(c.c2h)}`); }
   for (const D of DS) { const c = cell({ gbs: 0.85, F: 0.6, D }, x); PW[`3|${D}|${x}`] = c[3]; console.log(`  x${x} item 3, BO's GB ${D} past BN's: ${row(c[3])}`); }
 }
 
 // 3. THE CREDENCES: the receipt's N2 cause credences through the judged stories and section 2's power
-const rec = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 14 Oct 06:33 UK \|/.test(l));
+const rec = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 14 Oct 18:51 UK \|/.test(l));
 const all = Object.fromEntries([...(/CAUSE CREDENCES: (.*)$/.exec(rec || '') || ['', ''])[1].matchAll(/([A-Z0-9]+-[A-Z]+)=([0-9.]+)/g)].map(m => [m[1], Number(m[2])]));
 const cN2 = Object.fromEntries(Object.entries(all).filter(([k]) => k.startsWith('N2-'))), sum = o => Object.values(o).reduce((a, b) => a + b, 0);
-if (Object.keys(cN2).length !== 7 || Math.abs(sum(cN2) - 1) > 0.02) { console.log(`the receipt's N2 CAUSE CREDENCES did not read (${JSON.stringify(all)})`); process.exit(1); }
+if (Object.keys(cN2).length !== 8 || !('N2-LAYER' in cN2) || Math.abs(sum(cN2) - 1) > 0.02) { console.log(`the receipt's N2 CAUSE CREDENCES did not read (${JSON.stringify(all)})`); process.exit(1); }
 const story = { ...Object.fromEntries(Object.entries(cN2).filter(([k]) => k !== 'N2-SHARE').map(([k, v]) => [k.slice(3), v])), LATE: cN2['N2-SHARE'] * JUDGED.shareLate, EARLY: cN2['N2-SHARE'] * (1 - JUDGED.shareLate) };
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return k; } return Object.keys(dist).pop(); };
 const near = (v, keys) => keys.reduce((b, k) => (Math.abs(k - v) < Math.abs(b - v) ? k : b), keys[0]);
 const outOf = c => { if (!tot(c)) return 'INCONCLUSIVE'; const u = rnd() * tot(c); return u < c.HELD ? 'HELD' : u < c.HELD + c.INCONCLUSIVE ? 'INCONCLUSIVE' : 'FALSIFIED'; };
 const Mn = 40000;
 function credences(x) {
-  const C = { 0: cnt(), 1: cnt(), 2: cnt(), 3: cnt() }, rows = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, R1v = [];
+  const C = { 0: cnt(), 1: cnt(), 2: cnt(), 3: cnt(), 4: cnt() }, rows = { R0: 0, R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }, R1v = [];
   for (let d = 0; d < Mn; d++) {
-    const s = pick(story), gbs = Number(pick(JUDGED.gbs[s])), F = Number(pick(JUDGED.late[s] || JUDGED.late.other)), D = Number(pick(JUDGED.known));
-    const o0 = rnd() < JUDGED.repro ? 'HELD' : 'FALSIFIED', o1 = outOf(PW[`1|${near(gbs, GBS)}|${x}`]);
+    const s = pick(story), gbs = Number(pick(JUDGED.gbs[s])), F = Number(pick(JUDGED.late[s] || JUDGED.late.other)), D = Number(pick(JUDGED.known)), E = Number(pick(JUDGED.excess[s] || JUDGED.excess.other));
+    const p1 = PW[`1|${near(gbs, GBS)}|${x}`], o0 = rnd() < JUDGED.repro ? 'HELD' : 'FALSIFIED', o1 = outOf(p1);
+    const part = o1 === 'INCONCLUSIVE' && rnd() * p1.INCONCLUSIVE < p1.part;
     const o2 = o1 === 'HELD' ? outOf(PW[`2|${near(gbs, G2)}|${near(F, FL)}|${x}`]) : 'INCONCLUSIVE', o3 = outOf(PW[`3|${near(D, DS)}|${x}`]);
-    C[0][o0]++; C[1][o1]++; C[2][o2]++; C[3][o3]++; R1v.push(gbs * gap[0] + x * SP.GB / Math.sqrt(n) * gauss());
+    const o4 = o1 === 'HELD' ? outOf(PW[`4|${near(gbs, G2)}|${near(E, EX)}|${x}`]) : 'INCONCLUSIVE';
+    C[0][o0]++; C[1][o1]++; C[2][o2]++; C[3][o3]++; C[4][o4]++; R1v.push(gbs * gap[0] + x * SP.GB / Math.sqrt(n) * gauss());
     const ok = o0 === 'HELD' && o3 === 'HELD';
-    if (ok && o1 === 'HELD') rows[{ HELD: 'R1', FALSIFIED: 'R2', INCONCLUSIVE: 'R3' }[o2]]++; else if (ok && o1 === 'FALSIFIED') rows.R4++; else rows.else++;
+    if (ok && o1 === 'HELD' && o4 === 'HELD') rows.R0++;
+    else if (ok && o1 === 'HELD') rows[{ HELD: 'R1', FALSIFIED: 'R2', INCONCLUSIVE: 'R3' }[o2]]++;
+    else if (ok && part) rows.R5++;
+    else if (ok && o1 === 'FALSIFIED') rows.R4++; else rows.else++;
   }
   return { C, rows, R1v };
 }
 const pct = (xs, qq) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(qq * s.length))]; };
-console.log(`\n3. THE CREDENCES (the receipt of 14 Oct 06:33 UK: ${Object.entries(cN2).map(([k, v]) => `${k}=${v}`).join('; ')}; N2-SHARE split late ${f2(JUDGED.shareLate)} and early; the judged stories in this script's JUDGED; ${Mn} draws)`);
+console.log(`\n3. THE CREDENCES (the receipt of 14 Oct 18:51 UK: ${Object.entries(cN2).map(([k, v]) => `${k}=${v}`).join('; ')}; N2-SHARE split late ${f2(JUDGED.shareLate)} and early; the judged stories in this script's JUDGED; ${Mn} draws)`);
 const main = credences(1);
-for (const i of ['0', '1', '2', '3']) console.log(`CREDENCE item ${i}: point ${i === '1' ? f4(mean(main.R1v)) : '-'} HELD ${f2(main.C[i].HELD / Mn)} INCONCLUSIVE ${f2(main.C[i].INCONCLUSIVE / Mn)} FALSIFIED ${f2(main.C[i].FALSIFIED / Mn)}`);
+for (const i of ['0', '1', '2', '3', '4']) console.log(`CREDENCE item ${i}: point ${i === '1' ? f4(mean(main.R1v)) : '-'} HELD ${f2(main.C[i].HELD / Mn)} INCONCLUSIVE ${f2(main.C[i].INCONCLUSIVE / Mn)} FALSIFIED ${f2(main.C[i].FALSIFIED / Mn)}`);
 console.log(`  POINT item 1: ${f4(mean(main.R1v))} (80% interval ${f4(pct(main.R1v, 0.1))} to ${f4(pct(main.R1v, 0.9))}; BN's bridge-years grid residual in world 0, points)`);
-const rowsOf = r => `R1 (the bridge grid, late: 0, 1, 2, 3 HELD) ${f2(r.R1 / Mn)}; R2 (not late: 0, 1, 3 HELD, 2 FALSIFIED) ${f2(r.R2 / Mn)}; R3 (years mixed: 0, 1, 3 HELD, 2 INCONCLUSIVE) ${f2(r.R3 / Mn)}; R4 (not the bridge grid: 0, 3 HELD, 1 FALSIFIED) ${f2(r.R4 / Mn)}; else ${f2(r.else / Mn)}`;
+const rowsOf = r => `R0 (the de-risked layers: 0, 1, 3, 4 HELD) ${f2(r.R0 / Mn)}; R1 (the bridge grid, late: 0, 1, 2, 3 HELD, 4 not) ${f2(r.R1 / Mn)}; R2 (not years 4-6: 0, 1, 3 HELD, 2 FALSIFIED, 4 not) ${f2(r.R2 / Mn)}; R3 (years mixed: 0, 1, 3 HELD, 2 INCONCLUSIVE, 4 not) ${f2(r.R3 / Mn)}; R5 (a partial grid term: 0, 3 HELD, 1 INCONCLUSIVE with both tops at most -0.5) ${f2(r.R5 / Mn)}; R4 (the bridge grid's net residual small: 0, 3 HELD, 1 FALSIFIED) ${f2(r.R4 / Mn)}; else ${f2(r.else / Mn)}`;
 console.log(`  DECISION ROWS: ${rowsOf(main.rows)}`);
 for (const x of XS.filter(v => v !== 1)) console.log(`  SENSITIVITY, the spread x${x}: ${rowsOf(credences(x).rows)}`);
 

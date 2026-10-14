@@ -25,8 +25,9 @@
  * the stored tables is readValues' read to 1e-9).
  * Reported per bridge year (Step 0 of the review): the cliff of the plan-tier layer's reference in accessible money
  * (where its chance crosses 0.05 and 0.95) against the money one share cell and one wealth cell span at the median state.
- * Plants (NODEAX_PLANT, each must make the job refuse, exit 3): arm (BN without its nodes: armTook fails), cash (the
- * backups read with a sheltered cash of 0, not the year's typical value: nodeTook fails), read (the projection read without the reader's p at
+ * Plants (NODEAX_PLANT, each must make the job refuse, exit 3): arm (BN without its nodes: armTook fails), move (the
+ * backups take move 0, not the chooser's: nodeTook fails; a sheltered cash of 0 in place of the typical value left every
+ * node's backup unmoved in the preflight of 14 Oct, so it cannot be a plant here), read (the projection read without the reader's p at
  * the query: readTook fails).
  *   node research/solver/audit-nodeax.mjs [scale=1] [paths a world=2000] part k/n [seed=7002]
  */
@@ -64,7 +65,7 @@ if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-nodeax: bad part ${
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7002;
 if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-nodeax: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
 const PLANT = process.env.NODEAX_PLANT || '';
-if (PLANT && !['arm', 'cash', 'read'].includes(PLANT)) { console.error(`audit-nodeax: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT && !['arm', 'move', 'read'].includes(PLANT)) { console.error(`audit-nodeax: unknown plant ${PLANT}`); process.exit(2); }
 if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, CLAMP = 1e-6, TOL = 1e-9;
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-nodeax: the candidate does not carry e3pcls'); process.exit(2); }
@@ -121,7 +122,7 @@ JOBS.forEach((job, ji) => {
   for (let t = 1; t <= T; t++) if (g.reader && g.reader.years[t]) bridge.push(t);
   console.log(`${''.padEnd(16)} bridge ${L}: reader years ${bridge.join(',')}`);
   // the backup at a state with the cash read at the year's typical value, the chooser's own move there, world tab's value
-  const backup = (tab, s, t, held) => { const p = Float64Array.from(s); p[6] = PLANT === 'cash' ? 0 : -1; const ai = chooseAction(cand, p, t, { ...held }); return clampP(B(tab, p, t, ai, held)); };
+  const backup = (tab, s, t, held) => { const p = Float64Array.from(s); p[6] = -1; const ai = PLANT === 'move' ? 0 : chooseAction(cand, p, t, { ...held }); return clampP(B(tab, p, t, ai, held)); };
   // the reader's two-point read along one axis at query q: ends' backups S0, S1 at end states e0, e1, weight w on e1
   const read2 = (RD, q, e0, e1, S0, S1, w) => {
     const pq = RD.chance(q[1] + q[2]), p0 = RD.chance(e0[1] + e0[2]), p1 = RD.chance(e1[1] + e1[2]), line = g.reader.line;

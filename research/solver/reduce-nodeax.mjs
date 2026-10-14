@@ -70,7 +70,7 @@ export function parse(text) {
     else if (l.startsWith(`ran CAND ${L}:`)) j.ran = l.slice(`ran CAND ${L}:`.length);
     else if (l.startsWith(`checks ${L}:`)) { for (const x of l.matchAll(/(\w+) (\d+)\/(\d+)/g)) j.checks[x[1]] = [Number(x[2]), Number(x[3])]; }
     else if ((m = new RegExp(`^openings ${esc(L)}: OWN ai (\\d+) `).exec(l))) j.own = { ai: Number(m[1]) };
-    else if ((m = new RegExp(`^bridge ${esc(L)}: reader years (\\S*)$`).exec(l))) j.bridge = m[1] ? m[1].split(',').map(Number) : [];
+    else if ((m = new RegExp(`^bridge ${esc(L)}: reader years ?(\\S*)$`).exec(l))) j.bridge = m[1] ? m[1].split(',').map(Number) : [];
     else if ((m = new RegExp(`^tables ${esc(L)} (\\d) z (\\S+) weight (\\S+): OWN (\\S+) READ (\\S+)$`).exec(l))) j.tables[Number(m[1])] = { w: Number(m[3]), OWN: Number(m[4]), READ: Number(m[5]) };
     else if ((m = new RegExp(`^sim ${esc(L)} (\\d) OWN ai (\\d+): (\\d+)\\/(\\d+) bridge (\\d+) bits (\\S+) (\\S+)$`).exec(l))) j.sims[`OWN${m[1]}`] = { ai: Number(m[2]), ok: Number(m[3]), n: Number(m[4]), bridge: Number(m[5]), bits: m[6], bitsB: m[7] };
     else if ((m = new RegExp(`^ledger ${esc(L)} (\\d): (.*)$`).exec(l))) j.ledger[Number(m[1])] = Object.fromEntries([...m[2].matchAll(/(\w+) (\S+)/g)].map(x => [x[1], Number(x[2])]));
@@ -213,6 +213,8 @@ function planted() {
   outc('2', { BN: { AL: [-0.2, -0.2, 0] } }, {}, {}, 'FALSIFIED', 'years 3 to 6 0.13 of the share term: 2 FALSIFIED');
   outc('2', { BN: { AL: [-0.6, -0.6, 0] } }, {}, {}, 'INCONCLUSIVE', 'years 3 to 6 0.38 of the share term: 2 INCONCLUSIVE');
   outc('2', { BN: { AA: [-0.3, -0.3, 0], AL: [-0.3, -0.3, 0] } }, {}, {}, 'INCONCLUSIVE', 'the share term not shown half a point under: 2 INCONCLUSIVE');
+  outc('2', { BN: { AL: [-1.2, -0.6, 0] } }, {}, {}, 'INCONCLUSIVE', 'years 3 to 6 HELD in world 0 only: 2 INCONCLUSIVE');
+  outc('2', { BN: { AL: [-0.2, -0.6, 0] } }, {}, {}, 'INCONCLUSIVE', 'years 3 to 6 FALSIFIED in world 0 only: 2 INCONCLUSIVE');
   { const se = 2 * Math.sqrt(N / (N - 1)) / Math.sqrt(N); outc('2', { BN: { AA: [-0.5 - Z * se, -0.5 - Z * se, 0], AL: [-0.5 - Z * se, -0.5 - Z * se, 0] } }, {}, {}, 'HELD', 'the share term\'s top exactly half a point under, all in years 3 to 6: 2 HELD'); EDGES.push('a share term\'s top exactly half a point under'); }
   // item 3
   outc('3', {}, {}, {}, 'HELD', 'BO\'s share term 3.4 under BN\'s in world 0: 3 HELD');
@@ -221,6 +223,7 @@ function planted() {
   outc('3', { BO: { AA: [-4.1, -4.6, -3] }, sd: { BOAA: 1e-9, BNAA: 1e-9 } }, {}, {}, 'HELD', 'BO less BN exactly -2.5 with no spread: 3 HELD'); EDGES.push('a difference exactly at the known line');
   outc('3', { BO: { AA: [-2.6, -4.6, -3] }, sd: { BOAA: 1e-9, BNAA: 1e-9 } }, {}, {}, 'FALSIFIED', 'BO less BN exactly -1.0 with no spread: 3 FALSIFIED');
   outc('3', { BO: { AA: [-5, -1, -1] } }, {}, {}, 'HELD', 'worlds 1 and 2 alike: 3 reads world 0, HELD');
+  outc('3', { BO: { AA: [-4.3, -4.6, -3] }, sd: { BOAA: 4 } }, {}, {}, 'INCONCLUSIVE', 'BO less BN 2.7 at the point, its top over -2.5: 3 INCONCLUSIVE');
   // the causes
   const cz = (o, n1o, c) => run(o, {}, n1o)['causes'][c];
   cases.push(['1 and 2 HELD with 0 and 3: N2-SHARE held, LATE held', `${cz({}, {}, 'N2-SHARE')} ${cz({}, {}, 'LATE')}`, 'held held']);
@@ -234,7 +237,7 @@ function planted() {
   { const rd = o => (report(Pof(o), mkJ(), n1Of()).find(l => l.includes('the one-axis terms add')) || '').trim().split(': ').pop(); cases.push(['the read prints the clearance: YES, then NO with REST over half', `${rd({})} ${rd({ BN: { REST: [-2, -2, 0] } })}`, 'YES NO']); }
   // the ratio and the split
   { const r = ratioOf(Float64Array.from([1, 3, 1, 3]), Float64Array.from([2, 6, 2, 6])); cases.push(['a ratio of proportional paths: its point and a zero-width interval', `${r.F} ${r.lo} ${r.hi}`, '0.5 0.5 0.5']); }
-  { const it = run({ BN: { B0: [26.6, 47, 69], X: [28.8, 48.9, 69.9], T: [0, 0.1, 0.1], GB: [-2.2, -2.2, -1], GA: [0, 0, 0.0] } }); const s = it.split[0]; cases.push(['the split: OWN less runs, the closing, the largest term (A when CASH, W, B, REST are 0)', `${s.gap} ${s.closes} ${s.largest}`, `${q(26.6 - 28.8)} ${q(26.6 - 28.8 - 0 + 2.2)} A`]); }
+  { const it = run({ BN: { B0: [26.6, 47, 69], X: [28.8, 48.9, 69.9], T: [0, 0.1, 0.1], GB: [-2.2, -2.2, -1], GA: [-0.5, 0, 0.0], REST: [0, 0, 0] } }); const s = it.split[0]; cases.push(['the split: OWN less runs, the closing with GA, the largest term (A when CASH, W, B, REST are 0)', `${s.gap} ${s.closes} ${s.largest}`, `${q(26.6 - 28.8)} ${q(26.6 - 28.8 - 0 + 2.2 + 0.5)} A`]); }
   // the arm's reach (O153)
   cases.push(['BN\'s tables BO\'s in every world: reach 0', reach(mkJ({ bnT: [23.6, 43.7, 66.2] })), 0]);
   cases.push(['BN\'s tables moved in world 2 only: reach 1', reach(mkJ({ bnT: [23.6, 43.7, 69] })), 1]); EDGES.push('an arm equal to its control everywhere');
@@ -247,9 +250,9 @@ function planted() {
   const jobText = (jb, o = {}) => {
     const [id, arm, pts0, sh] = jb, L = jobLabel(jb), pts = o.pts || Math.max(4, Math.round(pts0 / 15));
     const ran = `bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef ${o.ref || 'order'} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls ${o.e3 || 'true'} switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${pts} grid ${o.grid || `total${pts}x${sh}x6`} shareNodes ${o.nodes || (arm === 'BN' ? NODES_A : 'none')} floor ${o.floor || 5000} line 0.5`;
-    const out = [`${id.padEnd(16)} case | job ${L} | points ${o.casePts || pts} | lambda 0.0223606797749979`, `${pad} solve CAND ${L}: table 40.0000 secs 10`, `${pad} ran CAND ${L}: ${ran}`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`, `${pad} openings ${L}: OWN ai 12 level 0.8 tiers 0,0`];
-    if (!o.noBridge) out.push(`${pad} bridge ${L}: reader years 1,2,3,4,5,6,7`);
-    out.push(`${pad} checks ${L}: nodeTook ${o.node || 30}/30 readTook ${o.read || 20}/${o.readN !== undefined ? o.readN : 20}`);
+    const out = [`${id.padEnd(16)} case | job ${L} | points ${o.casePts || pts} | lambda 0.0223606797749979`, ...(o.dropSolve ? [] : [`${pad} solve CAND ${L}: table 40.0000 secs 10`]), `${pad} ran CAND ${L}: ${ran}`, `${pad} checks ${L}: armTook ${o.armTook !== undefined ? o.armTook : 1}/1`, `${pad} openings ${L}: OWN ai 12 level 0.8 tiers 0,0`];
+    if (!o.noBridge) out.push(`${pad} bridge ${L}: reader years ${o.emptyBridge ? '' : '1,2,3,4,5,6,7'}`);
+    out.push(`${pad} checks ${L}: nodeTook ${o.node || 30}/30 readTook ${o.read !== undefined ? o.read : 20}/${o.readN !== undefined ? o.readN : 20}`);
     for (let k = 0; k < 3; k++) {
       if (o.dropTable !== k) out.push(`${pad} tables ${L} ${k} z 0.000000 weight 0.333333: OWN 40.000000 READ 39.000000`);
       if (o.dropLedger !== k) out.push(`${pad} ledger ${L} ${k}: ${KEYS.map(x => `${x} 0.100000`).join(' ')}`);
@@ -286,6 +289,8 @@ function planted() {
   refuses('the identity short', all({ [KB]: { ident: 11 } }));
   refuses('the identity over fewer paths than three worlds\'', all({ [KB]: { ident: 9, identN: 9 } }));
   refuses('no bridge years', all({ [KN]: { noBridge: true } }));
+  refuses('an empty bridge line', all({ [KN]: { emptyBridge: true } }));
+  refuses('no solve line', all({ [KB]: { dropSolve: true } }));
   refuses('a missing table in world 1', all({ [KN]: { dropTable: 1 } }));
   refuses('a missing ledger line in world 2', all({ [KB]: { dropLedger: 2 } }));
   refuses('a missing run in world 2', all({ [KB]: { dropRun: 2 } }));

@@ -30,7 +30,8 @@
  * (where its chance crosses 0.05 and 0.95) against the money one share cell and one wealth cell span at the median state.
  * Plants (NODEAX_PLANT, each must make the job refuse, exit 3): arm (BN without its nodes: armTook fails), layer (G read
  * in the layer of the move taken, T in the tiers held: identity fails), own (the ledger's first move not the opening:
- * ownTook fails), quad (the rebuilt node returns read next year's spread: qfTook fails).
+ * ownTook fails), quad (the rebuilt node returns from the central world's context, the world's shift missed: qfTook
+ * fails).
  *   node research/solver/audit-nodeax.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -101,8 +102,8 @@ const PhiInvA = u => {
   return z;
 };
 const ZF = Array.from({ length: NFINE }, (_, i) => PhiInvA((i + 0.5) / NFINE)), WF = new Array(NFINE).fill(1 / NFINE);
-// a move's rate at draw z, rebuilt as solve.js realAt builds the node rates (zPath 0); the plant `quad` reads next year's spread
-const realAtRep = (c, z, act, t) => { const R = act.real, Vv = act.volEffAt[PLANT === 'quad' ? t + 1 : t], S = act.sigma, out = new Float64Array(4); for (let q = 0; q < 4; q++) out[q] = Math.exp(Math.log(1 + R[q]) + S[q] * 0 + Vv[q] * z) - 1; return out; };
+// a move's rate at draw z, rebuilt as solve.js realAt builds the node rates (zPath 0)
+const realAtRep = (c, z, act, t) => { const R = act.real, Vv = act.volEffAt[t], S = act.sigma, out = new Float64Array(4); for (let q = 0; q < 4; q++) out[q] = Math.exp(Math.log(1 + R[q]) + S[q] * 0 + Vv[q] * z) - 1; return out; };
 
 console.log(`NODE-AX: the candidate's own unit, ${NPW} paths a world, wealth points divided by ${SCALE} (seed ${SEED}); ${JOBS.length} jobs; part ${part}`);
 JOBS.forEach((job, ji) => {
@@ -138,7 +139,9 @@ JOBS.forEach((job, ji) => {
   const nrCache = new Map();
   const Bq = (tab, s, t, ai, held, fine) => {
     const kk = `${fine ? 'f' : 'n'}/${t}/${ai}/${tab === cand.mix.tables[0] ? 0 : cand.mix.tables.indexOf(tab)}`;
-    let nr = nrCache.get(kk); if (!nr) { nr = (fine ? ZF : NODES).map(z => realAtRep(tab.c, z, tab.c.acts[ai], t)); nrCache.set(kk, nr); }
+    // the plant `quad` rebuilds them from the central world's context, missing the world's shift (the one place it lands)
+    const cc = PLANT === 'quad' ? cand.c : tab.c;
+    let nr = nrCache.get(kk); if (!nr) { nr = (fine ? ZF : NODES).map(z => realAtRep(cc, z, cc.acts[ai], t)); nrCache.set(kk, nr); }
     const r = fine ? { ...tab, stepExact: false, quadWeights: WF } : { ...tab, quadWeights: WEIGHTS };
     scoreMoves(r, s, t, SC, TX, BQ, { ...held }, { ai, act: tab.c.acts[ai], nr }, SV); return SV[ai];
   };

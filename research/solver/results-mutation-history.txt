@@ -141,3 +141,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-14 17:39 UTC | reduce-nodeax.mjs 598c97a9ac57 | 84 of 84 caught | escaped: none
 2026-10-14 18:08 UTC | reduce-nodeax.mjs 6f2c9a81a27c | 113 of 117 caught | escaped: NOT CAUGHT: 24: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns ; NOT APPLIED (0 matches): 43: for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.; NOT CAUGHT: 85: c4.every(x => x.hi <= D_FALS) ? 'FALSIFIED'; NOT CAUGHT: 89: F = ratioOf(P('BN', 'GD', k), P('BN', 'GB', k)); return { k,
 2026-10-14 18:10 UTC | reduce-nodeax.mjs a89b3b097f5c | 117 of 117 caught | escaped: none
+2026-10-14 18:49 UTC | reduce-nodeax.mjs d88c8f4c150b | 117 of 117 caught | escaped: none

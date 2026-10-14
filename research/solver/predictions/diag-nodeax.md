@@ -5,7 +5,7 @@
 - **Written:** 14 Oct, 18:16 UK, before the run
 - **Seeds:** 7002, the tuning seed (RULES.md section 8 item 9): its first 4,000 paths a world for both jobs (NODE-1's, so item 0 checks every run path for path); 7u's held-out seed refused by the audit
 - **Unmasking:** none: a ledger of NODE-1's two arms on NODE-1's paths; no arm removes an error NODE-1's did not (BN's dense share nodes against BO, whose unmasking predictions/diag-node1.md declared and whose split this reads); the ledger reads the tables along the runs and changes no policy (item 0 reads the runs as NODE-1's)
-- **Mechanism:** grid.js:124 "if (SN) axes.a = nodesAxis(SN);" (the dense share nodes); grid.js:419 "const v = pr * cc + rr;" (the reader's read: p at the query, c and R blended from the cell's corners); reader.js:97 "c[i] = Math.min(1, Math.max(0, S[i] / p[i]));" (c at a supported corner); research/solver/audit-nodeax.mjs:175 "Gj = Vj - Bv[j]" (the grid term: the table read in the layer held less the one-step value of the move chosen)
+- **Mechanism:** grid.js:124 "if (SN) axes.a = nodesAxis(SN);" (the dense share nodes); grid.js:419 "const v = pr * cc + rr;" (the reader's read: p at the query, c and R blended from the cell's corners); reader.js:97 "c[i] = Math.min(1, Math.max(0, S[i] / p[i]));" (c at a supported corner); research/solver/audit-nodeax.mjs:178 "Gj = Vj - Bv[j]" (the grid term: the table read in the layer held less the one-step value of the move chosen)
 - **Plan section:** PLAN.md "NODE-AX", O152, O151, O145; the deep review after NODE-1 (deep-review-log.md 14 Oct 06:33 UK); the escalation review's report (escalations/14-Oct-bridge-under-read-report.md)
 
 ## Question

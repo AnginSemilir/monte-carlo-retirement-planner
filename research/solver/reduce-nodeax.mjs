@@ -417,7 +417,7 @@ if (isMain) {
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   const J = Object.fromEntries(jobs.map(j => [key(j.id, j.label), j]));
   console.log(`planted (${np_}): all read as they should`);
-  console.log(`GATE: passed - the two jobs once and done at the registered settings (${npwA} paths a world, scale ${scaleA}, seed ${SEED}); each job's reference, nodes and grid in its solve's meta; every self-check passed in full (armTook, ownTook, identity on every path of three worlds); three worlds' ledger and tier-layer lines; every file the log's${PRE ? '' : '; NODE-1\'s files behind NODE-1\'s gate'}`);
+  console.log(`GATE: passed - the two jobs once and done at the registered settings (${npwA} paths a world, scale ${scaleA}, seed ${SEED}); each job's reference, nodes and grid in its solve's meta; every self-check passed in full (armTook, ownTook, identity on every path of three worlds, qfTook); three worlds' ledger, de-risk, QF and tier-layer lines; the bridge path records; every file the log's${PRE ? '' : '; NODE-1\'s files behind NODE-1\'s gate'}`);
   const rc = reach(J);
   console.log(`ARM'S REACH (O153): BN's own-opening tables differ from BO's in ${rc} of 3 worlds`);
   if (rc === 0) { console.log('REFUSED: the arm equals its control in every world, so it cannot reach the mechanism (O153)'); process.exit(1); }

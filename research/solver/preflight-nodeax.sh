@@ -8,7 +8,8 @@
 #   C. the audit's four plants, each of which must make it refuse (exit 3) on its own check: arm (BN without its nodes:
 #      armTook fails), layer (the grid term read in the layer of the move taken, not the tiers held: the identity fails,
 #      ownTook holds), own (the run starts at another opening than the table's: ownTook fails, the identity holds), quad
-#      (QF's rebuilt node returns read next year's spread: qfTook fails, the ledger closes).
+#      (QF's node returns rebuilt from the central world's context, the world's shift missed: qfTook fails, the ledger
+#      closes).
 set -u
 OUT=${TMPDIR:-/tmp}/nodeax-preflight.$$
 KEEP=research/solver/results/nodeax-preflight

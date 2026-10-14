@@ -1,0 +1,43 @@
+1. THE RECORDS (NODE-1, seed 7002, behind NODE-1's gate: passed; the preflight's kept files, 4 wealth points, 40 paths a world)
+  BN's own-opening table less its runs by world: -2.1707, -1.8647, -0.8732 points
+  the per-path spread at the preflight (points; worlds 0 and 1 averaged): GB 8.1143, AA 8.3546, AL 7.1675, BO's AA less BN's in world 0 12.4047; correlation AA with GB 0.5329, AL with AA 0.9421
+
+2. THE POWER (60 draws a cell through reduce-nodeax.mjs's items(); the record's spread times 1, 2 and 4)
+  item 1, the share term 0.1 of GB, spread x1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.43 INCONCLUSIVE 0.57 FALSIFIED 0.00
+  item 1, the share term 0.1 of GB, spread x2: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.07 INCONCLUSIVE 0.93 FALSIFIED 0.00
+  item 1, the share term 0.1 of GB, spread x4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.08 INCONCLUSIVE 0.92 FALSIFIED 0.00
+  item 1, the share term 0.25 of GB, spread x1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.30 INCONCLUSIVE 0.70 FALSIFIED 0.00
+  item 1, the share term 0.25 of GB, spread x2: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.07 INCONCLUSIVE 0.93 FALSIFIED 0.00
+  item 1, the share term 0.25 of GB, spread x4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.02 INCONCLUSIVE 0.98 FALSIFIED 0.00
+  item 1, the share term 0.45 of GB, spread x1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.27 INCONCLUSIVE 0.73 FALSIFIED 0.00
+  item 1, the share term 0.45 of GB, spread x2: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.08 INCONCLUSIVE 0.92 FALSIFIED 0.00
+  item 1, the share term 0.45 of GB, spread x4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  item 1, the share term 0.7 of GB, spread x1: HELD 0.12 INCONCLUSIVE 0.88 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.30 INCONCLUSIVE 0.70 FALSIFIED 0.00
+  item 1, the share term 0.7 of GB, spread x2: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  item 1, the share term 0.7 of GB, spread x4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  item 1, the share term 0.9 of GB, spread x1: HELD 0.83 INCONCLUSIVE 0.17 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.28 INCONCLUSIVE 0.72 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.27 INCONCLUSIVE 0.73 FALSIFIED 0.00
+  item 1, the share term 0.9 of GB, spread x2: HELD 0.08 INCONCLUSIVE 0.92 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.13 INCONCLUSIVE 0.87 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.10 INCONCLUSIVE 0.90 FALSIFIED 0.00
+  item 1, the share term 0.9 of GB, spread x4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  item 1, the share term 1.1 of GB, spread x1: HELD 0.77 INCONCLUSIVE 0.23 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.40 INCONCLUSIVE 0.60 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.37 INCONCLUSIVE 0.63 FALSIFIED 0.00
+  item 1, the share term 1.1 of GB, spread x2: HELD 0.08 INCONCLUSIVE 0.92 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.17 INCONCLUSIVE 0.83 FALSIFIED 0.00
+  item 1, the share term 1.1 of GB, spread x4: HELD 0.02 INCONCLUSIVE 0.98 FALSIFIED 0.00; item 2 (late 0.6): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; item 3 (BO 3 points past): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, years 3 to 6 0.2 of the share term: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, years 3 to 6 0.45 of the share term: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, years 3 to 6 0.8 of the share term: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, BO's share term 2 points past BN's: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, BO's share term 3 points past BN's: HELD 0.28 INCONCLUSIVE 0.72 FALSIFIED 0.00
+  item 3, BO's share term 4 points past BN's: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, GB only 0.2 of the gap (the residual outside the bridge's grid): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, GB only 0.35 of the gap (the residual outside the bridge's grid): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, GB only 0.5 of the gap (the residual outside the bridge's grid): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+
+3. THE CREDENCES (the receipt of 14 Oct 06:33 UK: N2-SHARE=0.42; N2-B=0.12; N2-MODEL=0.12; N2-W=0.1; N2-QUAD=0.07; N2-NOISE=0.05; N2-OTHER=0.12; the judged stories in this script's JUDGED; 40000 draws)
+CREDENCE item 0: point - HELD 0.97 INCONCLUSIVE 0.00 FALSIFIED 0.03
+CREDENCE item 1: point 0.5705 HELD 0.23 INCONCLUSIVE 0.77 FALSIFIED 0.00
+CREDENCE item 2: point - HELD 0.35 INCONCLUSIVE 0.65 FALSIFIED 0.00
+CREDENCE item 3: point - HELD 0.34 INCONCLUSIVE 0.66 FALSIFIED 0.00
+  POINT item 1: 0.5705 (80% interval 0.0605 to 1.0148; the pension share's part of BN's bridge residual in world 0)
+  DECISION ROWS: the late share cells (0, 1, 2, 3 HELD, clear) 0.02; the share cells across the bridge (0, 1, 3 HELD, clear, 2 not HELD) 0.03; not the share axis (0, 3 HELD, clear, 1 FALSIFIED) 0.00; else 0.95
+
+4. THE BUDGET (NODE-1's logs: solve, and its runs scaled to these paths and by the ledger's judged cost)
+  BN about 3.50 h; BO about 1.35 h; two jobs on two cores, about 3.50 h wall, 4.85 core-hours

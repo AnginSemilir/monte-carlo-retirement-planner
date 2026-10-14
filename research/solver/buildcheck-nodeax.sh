@@ -1,6 +1,6 @@
 #!/bin/bash
 # NODE-AX's build check (no figure read): the audit's BO job at a fifteenth of the points (4 wealth points) on 10 paths a
-# world, so its self-checks (armTook, nodeTook, readTook, ownTook, identity) are seen to pass before the reducer is built.
+# world, so its self-checks (armTook, ownTook, identity) are seen to pass before the reducer is built.
 set -u
 OUT=${TMPDIR:-/tmp}/nodeax-buildcheck.$$
 mkdir -p "$OUT"

@@ -5,9 +5,9 @@
 #   B. the audit's two jobs, both at once, through the reducer's gate in --preflight mode (NODE-1's records are not read
 #      at these settings), with THE ARM'S REACH (O153) and each job's solve and ledger seconds; the two jobs' logs and files
 #      kept in research/solver/results/nodeax-preflight/ (the derivation's record of the per-path spread);
-#   C. the audit's three plants, each of which must make it refuse (exit 3): arm (BN without its nodes: armTook fails),
-#      move (the backups take move 0: nodeTook fails), read (the projection read without the reader's p at
-#      the query: readTook fails).
+#   C. the audit's three plants, each of which must make it refuse (exit 3) on its own check: arm (BN without its nodes:
+#      armTook fails), layer (the grid term read in the layer of the move taken, not the tiers held: the identity fails,
+#      ownTook holds), own (the run starts at another opening than the table's: ownTook fails, the identity holds).
 set -u
 OUT=${TMPDIR:-/tmp}/nodeax-preflight.$$
 KEEP=research/solver/results/nodeax-preflight
@@ -18,12 +18,13 @@ echo "B. $(node research/solver/reduce-nodeax.mjs "$OUT" 40 15 --preflight | gre
 echo "B. solve seconds by job: $(grep -h 'solve CAND' $OUT/case*.txt | sed -E 's/.*solve CAND ([^:]+): .* secs ([0-9]+)/\1 \2/' | tr '\n' ';')"
 echo "B. ledger seconds by job: $(grep -h 'ownTook' $OUT/case*.txt | sed -E 's/.*checks ([^:]+): .* secs ([0-9]+)/\1 \2/' | tr '\n' ';')"
 for f in $OUT/case0.txt $OUT/case1.txt $OUT/*.json.gz; do cp "$f" "$KEEP/"; done
-printf '%s\n' arm:0 move:1 read:1 | xargs -P 3 -I{} sh -c 'pj={}; p=${pj%%:*}; DIAGNODEAX_OUT='"$OUT"'/plant-$p NODEAX_PLANT=$p node research/solver/audit-nodeax.mjs 15 40 part ${pj##*:}/2 7002 > '"$OUT"'/plant-$p.txt 2>&1; echo "$p $?" > '"$OUT"'/plant-$p.code'
+printf '%s\n' arm:0 layer:1 own:1 | xargs -P 3 -I{} sh -c 'pj={}; p=${pj%%:*}; DIAGNODEAX_OUT='"$OUT"'/plant-$p NODEAX_PLANT=$p node research/solver/audit-nodeax.mjs 15 40 part ${pj##*:}/2 7002 > '"$OUT"'/plant-$p.txt 2>&1; echo "$p $?" > '"$OUT"'/plant-$p.code'
 fail=0
-for p in arm move read; do
-  code=$(cut -d' ' -f2 "$OUT/plant-$p.code")
-  if [ "$code" = 3 ]; then echo "C. the plant $p: refused (exit 3; $(grep -E 'audit-nodeax:' "$OUT/plant-$p.txt" | head -1))"
-  else echo "C. the plant $p: NOT refused (exit $code)"; fail=1; fi
+want() { case $1 in arm) echo 'settings did not take';; layer) echo 'ownTook ([0-9]+)/\1 identity ([0-9]+)/[0-9]+\)';; own) echo 'ownTook [0-9]+/([0-9]+) identity \1/\1\)';; esac; }
+for p in arm layer own; do
+  code=$(cut -d' ' -f2 "$OUT/plant-$p.code"); msg=$(grep -E 'audit-nodeax:' "$OUT/plant-$p.txt" | head -1)
+  if [ "$code" = 3 ] && echo "$msg" | grep -qE "$(want $p)"; then echo "C. the plant $p: refused on its own check (exit 3; $msg)"
+  else echo "C. the plant $p: NOT refused on its own check (exit $code; $msg)"; fail=1; fi
 done
 echo "preflight done $(TZ=Europe/London date +%H:%M) UK"
 exit $fail

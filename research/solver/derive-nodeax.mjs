@@ -76,9 +76,13 @@ for (const k of [0, 1]) {
 }
 const W01 = [0, 1], avg = f => W01.reduce((t, k) => t + f(k), 0) / W01.length;
 const dBO = arrOf(fBO, 'GB', 0).map((x, i) => x - arrOf(fBN, 'GB', 0)[i]);
-const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: sd(dBO) };
+// item 3's spread: the paired spread at 4 points is no record of the 60-point one (the arms all but coincide there, the
+// reach under a hundredth of a point), so the unpaired bound from the same files is used, the larger (added after the
+// first output, which used the paired spread; declared in the prediction)
+const Dun = Math.sqrt(sd(arrOf(fBN, 'GB', 0)) ** 2 + sd(arrOf(fBO, 'GB', 0)) ** 2);
+const SP = { GB: avg(k => sd(arrOf(fBN, 'GB', k))), GL: avg(k => sd(arrOf(fBN, 'GL', k))), rLG: avg(k => corr(arrOf(fBN, 'GL', k), arrOf(fBN, 'GB', k))), D: Math.max(sd(dBO), Dun) };
 for (const x of Object.keys(SP)) if (!Number.isFinite(SP[x])) { console.log(`the preflight's spread ${x} did not read`); process.exit(1); }
-console.log(`  the per-path spread used (points; worlds 0 and 1 averaged): GB ${f4(SP.GB)}, GL ${f4(SP.GL)}, corr(GL, GB) ${f4(SP.rLG)}; BO's GB less BN's, world 0, paired: mean ${f4(mean(dBO))} sd ${f4(SP.D)}`);
+console.log(`  the per-path spread used (points; worlds 0 and 1 averaged): GB ${f4(SP.GB)}, GL ${f4(SP.GL)}, corr(GL, GB) ${f4(SP.rLG)}; BO's GB less BN's, world 0: paired at the preflight mean ${f4(mean(dBO))} sd ${f4(sd(dBO))}, the unpaired bound ${f4(Dun)}, used ${f4(SP.D)}`);
 
 // 2. THE POWER through items(): per-path arrays at a story's means and the record's spread (times x)
 const n = NPW;

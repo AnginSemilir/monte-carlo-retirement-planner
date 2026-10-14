@@ -24,14 +24,17 @@
  *   move, tiers held, state) of every world.
  * Self-checks (each must pass, or the job refuses, exit 3): ownTook (the ledger's B_0 is the printed own table);
  * identity (every path closes to 1e-9); qfTook (the fine rule's own machinery - a shallow copy of the table, the node
- * returns rebuilt from the move's rates - reproduces B_t bit for bit at the five nodes at every visit QF reads). The bridge years' survival tables of every world and layer are saved (log-odds,
+ * returns rebuilt from the move's rates - reproduces B_t bit for bit at the five nodes at every visit QF reads); layerTook
+ * (every bridge visit's G is filed under the layer of the tiers held). The bridge years' survival tables of every world and layer are saved (log-odds,
  * Float32) with the per-path arrays.
  * Reported per bridge year (Step 0 of the review): the cliff of the plan-tier layer's reference in accessible money
  * (where its chance crosses 0.05 and 0.95) against the money one share cell and one wealth cell span at the median state.
  * Plants (NODEAX_PLANT, each must make the job refuse, exit 3): arm (BN without its nodes: armTook fails), layer (G read
  * in the layer of the move taken, T in the tiers held: identity fails), own (the ledger's first move not the opening:
  * ownTook fails), quad (the rebuilt node returns from the central world's context, the world's shift missed: qfTook
- * fails).
+ * fails), held (a bridge visit's G filed under the layer of the move taken: layerTook - the layer filed is the tiers
+ * held - fails). Saved per bridge record (the deep review of 14 Oct 21:00 UK): G_t, B_t and QF_t (QF on the first 1,000
+ * paths, NaN after), Float32, beside the state and the tiers, so a state-matched read needs no re-solve.
  *   node research/solver/audit-nodeax.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -68,7 +71,7 @@ if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-nodeax: bad part ${
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7002;
 if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-nodeax: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
 const PLANT = process.env.NODEAX_PLANT || '';
-if (PLANT && !['arm', 'layer', 'own', 'quad'].includes(PLANT)) { console.error(`audit-nodeax: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT && !['arm', 'layer', 'own', 'quad', 'held'].includes(PLANT)) { console.error(`audit-nodeax: unknown plant ${PLANT}`); process.exit(2); }
 if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, CLAMP = 1e-6, TOL = 1e-9;
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-nodeax: the candidate does not carry e3pcls'); process.exit(2); }
@@ -88,7 +91,7 @@ const f6 = x => x.toFixed(6), f4 = x => x.toFixed(4);
 // T + GB + GA), GL the bridge's residual in years 4 to 6; and Y<t>, the residual in each bridge year t (added per job)
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 // QF on the first NQF paths a world, at NFINE equal-weight midpoints in u (the inverse normal by Acklam's rational
-// approximation, relative error under 1.2e-9, then one Newton step on Phi)
+// approximation, relative error under 1.2e-9; no refinement step)
 export const NQF = 1000, NFINE = 1024;
 const PhiInvA = u => {
   const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
@@ -153,9 +156,11 @@ JOBS.forEach((job, ji) => {
   console.log(`${''.padEnd(16)} bridge ${L}: reader years ${bridge.join(',')}`);
   const f0 = Date.now(), wpaths = E.pathsForSeed(SEED, NPW, T), bits = {}, per = {};
   const worldPath = (i, k) => { const cz = Float64Array.from(wpaths[i]); cz[cz.length - 1] = cand.mix.nodes[k]; return cz; };
-  let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0;
+  let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0, lyOk = 0, lyN = 0;
   const li0 = (() => { const t0b = cand.mix.tables[0]; return t0b.tsLayerOf ? t0b.tsLayerOf[t0b.tsLayerOf.findIndex((_, ai) => (acts[ai].tierPen || 0) === 0 && (acts[ai].tierIsa || 0) === 0)] : 0; })();
-  const NQ = Math.min(NPW, NQF), recS = [], recM = [];
+  const NQ = Math.min(NPW, NQF), recS = [], recM = [], recG = [], recB = [], recQ = [];
+  // each tier layer's pair (the tiers a move into it holds), for layerTook
+  const pairOf = (() => { const t0b = cand.mix.tables[0], m0 = {}; if (t0b.tsLayerOf) t0b.tsLayerOf.forEach((li, ai) => { if (!(li in m0)) m0[li] = [acts[ai].tierPen || 0, acts[ai].tierIsa || 0]; }); return m0; })();
   const YK = bridge.map(t => `Y${t}`), nL = cand.mix.tables[0].tsLayers ? cand.mix.tables[0].tsLayers.length : 1;
   for (let k = 0; k < K; k++) {
     const tab = cand.mix.tables[k];
@@ -180,10 +185,12 @@ JOBS.forEach((job, ji) => {
         const bi = bridge.indexOf(x.t);
         if (bi < 0) { GA += Gj; continue; }
         GB += Gj; A[`Y${x.t}`][i] += Gj; if (x.t >= 4 && x.t <= 6) GL += Gj;
-        const li = tab.tsLayerOf ? tab.tsLayerOf[rec[j - 1].ai] : 0; byL[li] += Gj; byLN[li]++;
+        // the layer the visit's G is filed under: the tiers held (the previous move's); the plant `held` files it under the move taken
+        const li = tab.tsLayerOf ? tab.tsLayerOf[PLANT === 'held' ? x.ai : rec[j - 1].ai] : 0; byL[li] += Gj; byLN[li]++;
+        lyN++; if (!tab.tsLayerOf || (pairOf[li] && pairOf[li][0] === (x.held.pen || 0) && pairOf[li][1] === (x.held.isa || 0))) lyOk++;
         NB++; if (li !== li0) { GD += Gj; ND++; }
-        recS.push(...x.s); recM.push(k, i, x.t, x.ai, x.held.pen || 0, x.held.isa || 0, li);
-        if (i < NQ) { const Bc = Bq(tab, x.s, x.t, x.ai, x.held, false); qfN++; if (Bc === Bv[j]) qfOk++; QFs += Bv[j] - Bq(tab, x.s, x.t, x.ai, x.held, true); }
+        recS.push(...x.s); recM.push(k, i, x.t, x.ai, x.held.pen || 0, x.held.isa || 0, li); recG.push(Gj); recB.push(Bv[j]);
+        if (i < NQ) { const Bc = Bq(tab, x.s, x.t, x.ai, x.held, false); qfN++; if (Bc === Bv[j]) qfOk++; const q1 = Bv[j] - Bq(tab, x.s, x.t, x.ai, x.held, true); QFs += q1; recQ.push(q1); } else recQ.push(NaN);
         const Wq = x.s[0] + x.s[1] + x.s[2]; stat[bi].W.push(Wq); stat[bi].a.push(Wq > 0 ? x.s[0] / Wq : 0);
       }
       const B0 = Bv[0], resid = B0 - X - Ts - Gs;
@@ -212,13 +219,14 @@ JOBS.forEach((job, ji) => {
       console.log(`${''.padEnd(16)} cliff ${L} ${k} ${t}: acc5 ${a5.toFixed(0)} acc95 ${a95.toFixed(0)} width ${(a95 - a5).toFixed(0)}; median W ${Number.isFinite(Wm) ? Wm.toFixed(0) : 'none'} share ${Number.isFinite(am) ? am.toFixed(4) : 'none'}; share cell ${Number.isFinite(aCell) ? aCell.toFixed(0) : 'none'} wealth cell ${Number.isFinite(wCell) ? wCell.toFixed(0) : 'none'} in accessible money`);
     });
   }
-  console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} secs ${Math.round((Date.now() - f0) / 1000)}`);
+  console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (ownOk !== idN || idOk !== idN) { console.error(`audit-nodeax: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
+  if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-nodeax: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }
   if (!(qfN > 0) || qfOk !== qfN) { console.error(`audit-nodeax: ${id} ${L}: the fine rule's machinery does not reproduce the one-step value (qfTook ${qfOk}/${qfN})`); process.exit(3); }
   // the bridge years' survival tables (log-odds, Float32) of every world and layer, so a later read needs no re-solve of the grid
   const tables = {};
   for (let k = 0; k < K; k++) { const tab = cand.mix.tables[k], Ls = tab.tsLayers || [tab]; Ls.forEach((Ly, li) => { for (const t of [...bridge, bridge[bridge.length - 1] + 1]) tables[`${k}/${li}/${t}`] = b64(Float32Array.from(Ly.lsurv[t])); }); }
-  writeFileSync(join(OUT, fileOfJob(job)), gzipSync(JSON.stringify({ id, job: L, stamp: STAMP, NPW, seed: SEED, own: ownC, bridge, nqf: NQ, nfine: NFINE, paths: { cols: 'world path year move tierPen tierIsa layer', meta: b64(Int32Array.from(recM)), dim: recS.length / (recM.length / 7), states: b64(Float32Array.from(recS)) }, bits: Object.fromEntries(Object.entries(bits).map(([x, v]) => [x, b64(v)])), per: Object.fromEntries(Object.entries(per).map(([x, v]) => [x, b64(v)])), tables })));
+  writeFileSync(join(OUT, fileOfJob(job)), gzipSync(JSON.stringify({ id, job: L, stamp: STAMP, NPW, seed: SEED, own: ownC, bridge, nqf: NQ, nfine: NFINE, paths: { cols: 'world path year move tierPen tierIsa layer', meta: b64(Int32Array.from(recM)), dim: recS.length / (recM.length / 7), states: b64(Float32Array.from(recS)), G: b64(Float32Array.from(recG)), B: b64(Float32Array.from(recB)), Q: b64(Float32Array.from(recQ)) }, bits: Object.fromEntries(Object.entries(bits).map(([x, v]) => [x, b64(v)])), per: Object.fromEntries(Object.entries(per).map(([x, v]) => [x, b64(v)])), tables })));
   console.log(`${''.padEnd(16)} file ${L}: ${fileOfJob(job)}`);
   console.log(`${''.padEnd(16)} done ${L}`);
 });

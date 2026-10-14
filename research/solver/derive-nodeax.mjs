@@ -171,7 +171,7 @@ for (const x of XS.filter(v => v !== 1)) console.log(`  SENSITIVITY, the spread 
 const secs = (re, txt) => { const m = re.exec(txt || ''); return m ? Number(m[1]) : NaN; };
 const lg = arm => n1logs.find(t => new RegExp(`job ${arm}/P60S\\d+Q5`).test(t));
 const plg = readdirSync(DP).filter(f => /^case\d+\.txt$/.test(f)).map(f => readFileSync(join(DP, f), 'utf8'));
-const pled = arm => secs(new RegExp(`checks ${arm}/P60S\\d+Q5: ownTook \\d+/\\d+ identity \\d+/\\d+ secs (\\d+)`), plg.find(t => new RegExp(`job ${arm}/`).test(t)));
+const pled = arm => secs(new RegExp(`checks ${arm}/P60S\\d+Q5: ownTook \\d+/\\d+ identity \\d+/\\d+ qfTook \\d+/\\d+ secs (\\d+)`), plg.find(t => new RegExp(`job ${arm}/`).test(t)));
 const job = arm => { const s = secs(new RegExp(`solve CAND ${arm}/P60S\\d+Q5: table \\S+ secs (\\d+)`), lg(arm)), r = JUDGED.ledgerCost * secs(/forceIdentity \d+\/\d+ secs (\d+)/, lg(arm)) * NPW / 4000, p = pled(arm) * NPW / 40; return { s, r, p, t: s + Math.max(r, p) }; };
 console.log('\n4. THE BUDGET (NODE-1\'s logs: solve, and its runs times the ledger\'s judged cost; the preflight\'s own ledger seconds at 40 paths scaled to these paths, at 4 points; the larger ledger taken)');
 for (const arm of ['BN', 'BO']) { const j = job(arm); console.log(`  ${arm}: solve ${j.s} s; ledger from NODE-1's runs ${Math.round(j.r)} s, from the preflight ${Math.round(j.p)} s; about ${f2(j.t / 3600)} h`); }

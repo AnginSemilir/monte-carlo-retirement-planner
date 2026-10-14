@@ -95,8 +95,8 @@ positive); a clearance that the one-axis terms add (the rest at most half).
 - **Why it fires trigger 3:** the only record of the per-path spread of these terms is the preflight at 4 wealth points,
   where cells are enormous: per-path standard deviation about 8 points for the bridge residual and the share term,
   12.4 for BO less BN (correlation of the share term with the residual 0.53). At that spread, 2,000 paths a world put the
-  'else' row at 0.95 (the share term's interval about +/-0.2, the known positive held 0.34); 8,000 paths, 0.78. The
-  60-point spread is likely far smaller, but no record of it exists without the 3.2-hour dense solve.
+  'else' row at 0.95 (the known positive held 0.34). The 60-point spread is likely far smaller, but no record of it
+  exists without the 3.2-hour dense solve.
 - **The cost:** BN about 3.50 h (the dense solve and the ledger), BO about 1.35 h, on two cores.
 
 ## 5. The code (file:line, quoted)

@@ -139,3 +139,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-14 16:29 UTC | reduce-nodeax.mjs 752649568331 | 79 of 84 caught | escaped: NOT CAUGHT: 17: if (!x || !(x[1] > 0) || x[0] !== x[1] ||; NOT CAUGHT: 59: F_HELD = 0.5, F_FALS = 0.25,; NOT CAUGHT: 64: D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };; NOT CAUGHT: 67: KNOWN = -1.5, KNOWN_F = -0.5;; NOT CAUGHT: 73: 'N2-LATE': ok03 && out['1'].outcome === 'HELD' ? ({
 2026-10-14 16:31 UTC | reduce-nodeax.mjs a91278b47118 | 84 of 84 caught | escaped: none
 2026-10-14 17:39 UTC | reduce-nodeax.mjs 598c97a9ac57 | 84 of 84 caught | escaped: none
+2026-10-14 18:08 UTC | reduce-nodeax.mjs 6f2c9a81a27c | 113 of 117 caught | escaped: NOT CAUGHT: 24: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns ; NOT APPLIED (0 matches): 43: for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.; NOT CAUGHT: 85: c4.every(x => x.hi <= D_FALS) ? 'FALSIFIED'; NOT CAUGHT: 89: F = ratioOf(P('BN', 'GD', k), P('BN', 'GB', k)); return { k,
+2026-10-14 18:10 UTC | reduce-nodeax.mjs a89b3b097f5c | 117 of 117 caught | escaped: none

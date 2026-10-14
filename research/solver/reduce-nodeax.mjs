@@ -3,9 +3,10 @@
  *   node research/solver/reduce-nodeax.mjs [dir=results/diagnodeax] [paths a world=2000] [scale=1] [--preflight] [--planted]
  * THE GATE (before any figure): the two jobs once each and done, every log stamped by one code, audit, prediction and
  *   sha, at the registered settings (paths a world, scale, seed 7002), each job's reference, nodes, grid, floor and
- *   support line in its solve's meta; armTook, ownTook and identity passed in full (the identity on every path of three
- *   worlds); the bridge's years printed; three worlds' tables, runs, ledger lines and tier-layer lines; every file the
- *   log's bits and every per-path array whole (the six sums and one per bridge year).
+ *   support line in its solve's meta; armTook, ownTook, identity and qfTook passed in full (the identity on every path of
+ *   three worlds, qfTook on some visit); the bridge's years printed; three worlds' tables, runs, ledger, de-risk, QF and
+ *   tier-layer lines; every file the log's bits, every per-path array whole (the seven sums, one per bridge year, the
+ *   path-year counts, QF on its paths) and its bridge path records.
  *   In --preflight: also THE ARM'S REACH (O153): BN's own-opening tables must differ from BO's in some world.
  * THE ITEMS (re-cut after the escalation review, escalations/14-Oct-bridge-under-read-report.md; per world, the per-path
  *   ledger in points; a mean's interval normal at z = the (1 - ALPHA / 4) quantile, a ratio's by the delta method on the
@@ -20,9 +21,16 @@
  *     most 0.25 in both; INCONCLUSIVE otherwise.
  *   3 (the known positive, exact): world 0, paired by path: BO's GB less BN's. HELD when its top is at most -1.5 (half of
  *     NODE-1's lift); FALSIFIED when its bottom is at least -0.5; INCONCLUSIVE otherwise.
+ *   4 (the de-risked layers; added before launch on the deep review of 14 Oct 18:51 UK): BN's GD (the bridge years' G in
+ *     the de-risked tier layers held) as a share of GB, less those layers' share of the bridge path-years (S_D = sum ND /
+ *     sum NB, read as a constant), worlds 0 and 1, read only when item 1 is HELD (otherwise INCONCLUSIVE, not read). HELD
+ *     when its bottom is at least 0.25 in both; FALSIFIED when its top is at most 0.05 in both; INCONCLUSIVE otherwise.
+ *   R5's condition (not an item): item 1 INCONCLUSIVE with GB's top at most -0.5 in worlds 0 and 1 (a partial grid term).
  * THE CAUSES: N2-GRID (the bridge grid carries BN's remainder) held on 1 HELD and not on 1 FALSIFIED, with 0 and 3 HELD;
- *   N2-LATE held on 2 HELD and not on 2 FALSIFIED, with 0, 1 and 3 HELD; open otherwise.
+ *   N2-LATE held on 2 HELD and not on 2 FALSIFIED, with 0, 1 and 3 HELD; N2-LAYER held on 4 HELD and not on 4 FALSIFIED,
+ *   with 0, 1 and 3 HELD; open otherwise.
  * REPORTED: per arm and world, OWN less runs = T + GB + GA (the identity of the means); the residual by bridge year with
+ *   its interval, year 7 (the step year) on its own line; QF (the bridge years' quadrature term, first 1,000 paths) with
  *   its interval; by tier layer held; the cliff lines.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -37,9 +45,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-nodeax.md';
 export const SEED = '7002', NPW = 4000, ALPHA = 0.05;
 export const Z = 2.241402727604947;   // the (1 - ALPHA / 4) normal quantile
-export const G_HELD = -1, G_FALS = -0.5, F_HELD = 0.5, F_FALS = 0.25, KNOWN = -1.5, KNOWN_F = -0.5;
+export const G_HELD = -1, G_FALS = -0.5, F_HELD = 0.5, F_FALS = 0.25, KNOWN = -1.5, KNOWN_F = -0.5, D_HELD = 0.25, D_FALS = 0.05, G_PART = -0.5, NQF = 1000;
 export const NODES_A = '0,0.2,0.4,0.6,0.7,0.75,0.8,0.825,0.85,0.875,0.9,0.925,0.95,0.975,1';
-export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL'];
+export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const JOBS = [['S360', 'BN', 60, 15], ['S360', 'BO', 60, 6]];
 export const jobLabel = ([, arm, pts, sh]) => `${arm}/P${pts}S${sh}Q5`;
 export const key = (id, label) => `${id} ${label}`;
@@ -59,7 +67,7 @@ export function parse(text) {
     const c = CASEL.exec(raw);
     if (c) {
       j = { id: c[1], label: c[2], arm: c[3], pts: Number(c[6]), stamp: st ? { code: st[1], audit: st[2], prediction: st[3], sha: st[4] } : null,
-        head: hd ? { npw: Number(hd[1]), scale: Number(hd[2]), seed: hd[3] } : null, checks: {}, tables: [], sims: {}, ledger: [], years: [[], [], []], cliff: [[], [], []], layers: [[], [], []], bridge: null, own: null, solve: null, done: false };
+        head: hd ? { npw: Number(hd[1]), scale: Number(hd[2]), seed: hd[3] } : null, checks: {}, tables: [], sims: {}, ledger: [], years: [[], [], []], cliff: [[], [], []], layers: [[], [], []], derisk: [], qf: [], bridge: null, own: null, solve: null, done: false };
       jobs.push(j); continue;
     }
     if (!j) continue;
@@ -76,6 +84,8 @@ export function parse(text) {
     else if ((m = new RegExp(`^year ${esc(L)} (\\d) (\\d+): paths (\\d+) (.*)$`).exec(l))) j.years[Number(m[1])].push({ t: Number(m[2]), ...Object.fromEntries([...m[4].matchAll(/(\w+) (\S+)/g)].map(x => [x[1], Number(x[2])])) });
     else if ((m = new RegExp(`^cliff ${esc(L)} (\\d) (\\d+): (.*)$`).exec(l))) j.cliff[Number(m[1])].push({ t: Number(m[2]), text: m[3] });
     else if ((m = new RegExp(`^layer ${esc(L)} (\\d) (\\d+): bridge path-years (\\S+) G (\\S+)$`).exec(l))) j.layers[Number(m[1])][Number(m[2])] = { n: Number(m[3]), G: Number(m[4]) };
+    else if ((m = new RegExp(`^derisk ${esc(L)} (\\d): plan layer (\\d+) bridge path-years (\\S+) de-risked (\\S+) GD (\\S+)$`).exec(l))) j.derisk[Number(m[1])] = { li0: Number(m[2]), NB: Number(m[3]), ND: Number(m[4]), GD: Number(m[5]) };
+    else if ((m = new RegExp(`^qf ${esc(L)} (\\d): paths (\\d+) QF (\\S+)$`).exec(l))) j.qf[Number(m[1])] = { n: Number(m[2]), QF: Number(m[3]) };
     else if (l.startsWith(`file ${L}:`)) j.file = l.slice(`file ${L}:`.length).trim();
     else if (l === `done ${L}`) j.done = true;
   }
@@ -98,7 +108,7 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
     if (j.pts !== pts) bad.push(`${k}: solved at ${j.pts} points, not ${pts}`);
     const ran = j.ran || '';
     for (const [f, v] of Object.entries({ ...COMMON, pts: String(pts), grid: `total${pts}x${reg[3]}x6`, shareNodes: j.arm === 'BN' ? NODES_A : 'none' })) if (field(ran, f) !== v) bad.push(`${k}: ${f} is ${field(ran, f)}, not ${v}`);
-    for (const c of ['armTook', 'ownTook', 'identity']) { const x = j.checks[c]; if (!x || !(x[1] > 0) || x[0] !== x[1] || (c === 'armTook' && x[1] !== 1)) bad.push(`${k}: ${c} did not pass in full`); }
+    for (const c of ['armTook', 'ownTook', 'identity', 'qfTook']) { const x = j.checks[c]; if (!x || !(x[1] > 0) || x[0] !== x[1] || (c === 'armTook' && x[1] !== 1)) bad.push(`${k}: ${c} did not pass in full`); }
     if (j.checks.identity && j.checks.identity[1] !== 3 * npw) bad.push(`${k}: the identity was not held on every path of three worlds`);
     if (!j.own) bad.push(`${k}: no openings line`);
     if (!j.solve) bad.push(`${k}: no solve line`);
@@ -109,6 +119,8 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
       const YK = (j.bridge || []).map(t => `Y${t}`);
       if (!j.ledger[w] || [...KEYS, ...YK].some(x => !Number.isFinite(j.ledger[w][x]))) bad.push(`${k}: world ${w}'s ledger line is missing or short`);
       if (j.layers[w].length !== 3 || [0, 1, 2].some(li => !j.layers[w][li])) bad.push(`${k}: world ${w}'s tier-layer lines are not three`);
+      if (!j.derisk[w] || !(j.derisk[w].NB > 0) || !Number.isFinite(j.derisk[w].ND)) bad.push(`${k}: world ${w}'s de-risk line is missing or over no path-year`);
+      if (!j.qf[w] || j.qf[w].n !== Math.min(npw, NQF) || !Number.isFinite(j.qf[w].QF)) bad.push(`${k}: world ${w}'s QF line is missing or not on ${Math.min(npw, NQF)} paths`);
     }
     if (files) {
       const f = j.file && files[j.file];
@@ -116,7 +128,10 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
       else {
         if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(x => f.stamp[x] !== (j.stamp || {})[x])) bad.push(`${k}: its file is stamped by other code`);
         for (const [nm, s] of Object.entries(j.sims)) for (const [b, sh] of [[nm, s.bits], [`${nm}b`, s.bitsB]]) { const x = f.bits && f.bits[b]; if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(`${k}: its file's ${b} bits are not the log's`); }
-        for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.bridge || []).map(t => `Y${t}`)]) { const a = f.per && f.per[`${x}${w}`]; if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.push(`${k}: its file's ${x}${w} paths are not ${npw}`); }
+        for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.bridge || []).map(t => `Y${t}`), 'NB', 'ND']) { const a = f.per && f.per[`${x}${w}`]; if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.push(`${k}: its file's ${x}${w} paths are not ${npw}`); }
+        for (let w = 0; w < 3; w++) { const a = f.per && f.per[`QF${w}`]; if (!a || Buffer.from(a, 'base64').length !== 8 * Math.min(npw, NQF)) bad.push(`${k}: its file's QF${w} paths are not ${Math.min(npw, NQF)}`); }
+        const pr = f.paths, nm = pr && pr.meta ? Buffer.from(pr.meta, 'base64').length / 4 : 0, ns = pr && pr.states ? Buffer.from(pr.states, 'base64').length / 4 : 0;
+        if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns !== pr.dim * nm / 7) bad.push(`${k}: its file's bridge path records are missing or not whole`);
       }
     }
   }
@@ -149,11 +164,18 @@ export function items(P, J, n1, years = [1, 2, 3, 4, 5, 6, 7]) {
   // item 3: BO's bridge residual less BN's, world 0, paired by path
   const go = P('BO', 'GB', 0), gn = P('BN', 'GB', 0), D = meanOf(go.map((x, i) => x - gn[i]));
   out['3'] = { outcome: D.hi <= KNOWN ? 'HELD' : D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };
+  // item 4: the de-risked layers' share of GB less their share of the bridge path-years, read only when item 1 is HELD
+  const sum = a => a.reduce((t, x) => t + x, 0);
+  const c4 = [0, 1].map(k => { const SD = sum(P('BN', 'ND', k)) / sum(P('BN', 'NB', k)), F = ratioOf(P('BN', 'GD', k), P('BN', 'GB', k)); return { k, SD: q(SD), F, lo: q(F.lo - SD), hi: q(F.hi - SD) }; });
+  out['4'] = { outcome: !read2 ? 'INCONCLUSIVE' : c4.every(x => x.lo >= D_HELD) ? 'HELD' : c4.every(x => x.hi <= D_FALS) ? 'FALSIFIED' : 'INCONCLUSIVE', cells: c4, read: read2 };
+  // R5's condition: a partial grid term
+  out['1'].partial = out['1'].outcome === 'INCONCLUSIVE' && c1.every(x => x.G.hi <= G_PART);
   const ok03 = out['0'].outcome === 'HELD' && out['3'].outcome === 'HELD';
-  out.causes = { 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1'].outcome] || 'open') : 'open', 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2'].outcome] || 'open') : 'open' };   // item 2 is read only when item 1 is HELD
+  out.causes = { 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1'].outcome] || 'open') : 'open', 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2'].outcome] || 'open') : 'open', 'N2-LAYER': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['4'].outcome] || 'open') : 'open' };   // item 2 is read only when item 1 is HELD
   // reported: the identity of the means, and the residual by bridge year
   out.split = ['BN', 'BO'].flatMap(arm => [0, 1, 2].map(k => { const m = x => meanOf(P(arm, x, k)); const r = Object.fromEntries(['B0', 'X', 'T', 'GB', 'GA', 'GL'].map(x => [x, m(x)]));
-    return { arm, k, ...r, gap: q(r.B0.m - r.X.m), closes: q(r.B0.m - r.X.m - r.T.m - r.GB.m - r.GA.m), years: (Array.isArray(years) ? years : years[arm]).map(t => ({ t, ...m(`Y${t}`) })) }; }));
+    const qf = meanOf(P(arm, 'QF', k));
+    return { arm, k, ...r, qf, gap: q(r.B0.m - r.X.m), closes: q(r.B0.m - r.X.m - r.T.m - r.GB.m - r.GA.m), years: (Array.isArray(years) ? years : years[arm]).map(t => ({ t, ...m(`Y${t}`) })) }; }));
   return out;
 }
 
@@ -165,17 +187,20 @@ export function report(P, J, n1, years = [1, 2, 3, 4, 5, 6, 7]) {
   L.push(`1. BN's bridge-years grid residual is at least a point under in worlds 0 and 1 (the bridge grid): ${it['1'].outcome}`, `     ${it['1'].cells.map(c => `world ${c.k}: GB ${iv(c.G)}`).join('; ')}`);
   L.push(`2. years 4 to 6 carry at least half of it, worlds 0 and 1 (the late years): ${it['2'].outcome}${it['2'].read ? '' : ' (not read: item 1 not HELD)'}`, `     ${it['2'].cells.map(c => `world ${c.k}: years 4 to 6 ${f4(c.F.F)} (${f4(c.F.lo)} to ${f4(c.F.hi)})`).join('; ')}`);
   L.push(`3. BO's bridge residual exceeds BN's by at least 1.5 points in world 0 (the known positive): ${it['3'].outcome}`, `     BO less BN ${iv(it['3'].D)}`);
+  L.push(`4. the de-risked layers carry at least a quarter of BN's bridge residual past their share of its path-years, worlds 0 and 1: ${it['4'].outcome}${it['4'].read ? '' : ' (not read: item 1 not HELD)'}`, `     ${it['4'].cells.map(c => `world ${c.k}: GD's share ${f4(c.F.F)} (${f4(c.F.lo)} to ${f4(c.F.hi)}) less the path-years' ${f4(c.SD)}: ${f4(c.lo)} to ${f4(c.hi)}`).join('; ')}`);
+  L.push(`R5 CONDITION (item 1 INCONCLUSIVE with GB's top at most -0.5 in worlds 0 and 1): ${it['1'].partial ? 'YES' : 'NO'}`);
   L.push('', 'THE CAUSES (the registered map)');
   for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);
   L.push('', 'REPORTED (points; OWN less runs = T + GB + GA, the means)');
+  for (const s of it.split) { const y7 = s.years.find(y => y.t === 7); L.push(`  ${s.arm} world ${s.k}: QF ${iv(s.qf)} (the bridge years' quadrature term, first ${Math.min(NQF, P(s.arm, 'QF', s.k).length)} paths); year 7 apart: ${y7 ? iv(y7) : 'not a bridge year'}`); }
   for (const s of it.split) L.push(`  ${s.arm} world ${s.k}: OWN less runs ${f4(s.gap)} = T ${iv(s.T)} + GB ${iv(s.GB)} + GA ${iv(s.GA)} (closes to ${f4(s.closes)}); by bridge year ${s.years.map(y => `${y.t} ${f4(y.m)}`).join(', ')}`);
   L.push(`REALISED item 1: ${f4(it['1'].cells[0].G.m)}`);
-  L.push(`OUTCOME: ${['0', '1', '2', '3'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  L.push(`OUTCOME: ${['0', '1', '2', '3', '4'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
   return L;
 }
 
 /* THE PLANTED CHECKS */
-const EDGES = [], ITEMS = ['0', '1', '2', '3'], REACHED = { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set() };
+const EDGES = [], ITEMS = ['0', '1', '2', '3', '4'], REACHED = { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
 function planted() {
   const cases = [], N = 400;
   // a path array of mean m (points) and spread sd: half the paths at m + sd, half at m - sd, so the mean is m exactly
@@ -184,7 +209,9 @@ function planted() {
     [key('S360', 'BO/P60S6Q5')]: { arm: 'BO', tables: [0, 1, 2].map(k => ({ OWN: (o.boT || [23.6, 43.7, 66.2])[k] })), sims: Object.fromEntries([0, 1, 2].map(k => [`OWN${k}`, { bits: `o${k}` }])) } });
   const n1Of = (o = {}) => ({ BN: { tables: [0, 1, 2].map(k => ({ OWN: (o.bnT || [26.6, 47.0, 69.0])[k] })), runs: o.bnRuns || ['n0', 'n1', 'n2'] }, BO: { tables: [0, 1, 2].map(k => ({ OWN: (o.boT || [23.6, 43.7, 66.2])[k] })), runs: ['o0', 'o1', 'o2'] } });
   // the per-path ledger: BN's GB -2.0 (GL -1.4, 0.7 of it), BO's GB -4.5
-  const base = { BN: { GB: [-2.0, -1.8, -0.8], GL: [-1.4, -1.26, -0.5] }, BO: { GB: [-4.5, -4.2, -3.0], GL: [-3, -3, -2] } };
+  // GD 0.8 and 0.667 of GB in worlds 0 and 1, on 2 of 7 bridge path-years a path (S_D = 2/7)
+  const base = { BN: { GB: [-2.0, -1.8, -0.8], GL: [-1.4, -1.26, -0.5], GD: [-1.6, -1.2, -0.3], NB: [7, 7, 7], ND: [2, 2, 2] }, BO: { GB: [-4.5, -4.2, -3.0], GL: [-3, -3, -2] } };
+  const SD = 2 / 7, gd = f => ({ BN: { GD: [-f * 2.0, -f * 1.8, -0.3] }, sd: { BNGD: 2 * f } });   // GD a share f of GB in worlds 0 and 1, no spread about it
   const Pof = (o = {}) => (arm, x, k) => { const v = (o[arm] && o[arm][x] && o[arm][x][k] !== undefined) ? o[arm][x][k] : (base[arm][x] ? base[arm][x][k] : 0); const sd = (o.sd && o.sd[`${arm}${x}`]) || 2; return pts(arr(v, sd)); };
   const run = (o = {}, jo = {}, n1o = {}, n1 = true) => items(Pof(o), mkJ(jo), n1 ? n1Of(n1o) : null);
   const outc = (i, o, jo, n1o, want, what, n1 = true) => { const got = run(o, jo, n1o, n1)[i].outcome; REACHED[i].add(got); cases.push([what, got, want]); };
@@ -228,6 +255,28 @@ function planted() {
   outc('3', { BO: { GB: [-3.6, -4.2, -3] }, sd: { BOGB: 4 } }, {}, {}, 'INCONCLUSIVE', 'BO less BN 1.6 at the point, its top over -1.5: 3 INCONCLUSIVE');
   outc('3', { BO: { GB: [-4.5, -1, -1] } }, {}, {}, 'HELD', 'worlds 1 and 2 alike: 3 reads world 0, HELD');
   // the causes
+  // item 4
+  outc('4', {}, {}, {}, 'HELD', 'GD 0.8 and 0.667 of GB on 2 of 7 path-years: 4 HELD');
+  outc('4', gd(SD), {}, {}, 'FALSIFIED', 'GD exactly the path-years\' share of GB: 4 FALSIFIED');
+  outc('4', gd(SD + 0.15), {}, {}, 'INCONCLUSIVE', 'GD 0.15 past the path-years\' share: 4 INCONCLUSIVE');
+  outc('4', gd(SD + 0.25), {}, {}, 'HELD', 'GD exactly 0.25 past: 4 HELD'); EDGES.push('a layer share exactly at the HELD line');
+  outc('4', gd(SD + 0.05), {}, {}, 'FALSIFIED', 'GD exactly 0.05 past: 4 FALSIFIED');
+  outc('4', gd(SD + 0.2499), {}, {}, 'INCONCLUSIVE', 'GD a whisker under 0.25 past: 4 INCONCLUSIVE');
+  outc('4', gd(SD + 0.0501), {}, {}, 'INCONCLUSIVE', 'GD a whisker over 0.05 past: 4 INCONCLUSIVE');
+  outc('4', { BN: { GD: [-1.6, -0.5143, -0.3] }, sd: { BNGD: 2 } }, {}, {}, 'INCONCLUSIVE', 'GD HELD in world 0 only: 4 INCONCLUSIVE');
+  outc('4', { BN: { GD: [-SD * 2.0, -(SD + 0.15) * 1.8, -0.3] }, sd: { BNGD: 2 * SD } }, {}, {}, 'INCONCLUSIVE', 'GD FALSIFIED in world 0 only: 4 INCONCLUSIVE');
+  outc('4', { BN: { GD: [-(SD + 0.27) * 2.0, -(SD + 0.27) * 1.8, -0.3] }, sd: { BNGD: 4 } }, {}, {}, 'INCONCLUSIVE', 'GD 0.27 past at the point, its bottom under 0.25 (a wide spread): 4 INCONCLUSIVE');
+  outc('4', { BN: { GB: [-0.8, -0.8, 0], GD: [-0.64, -0.64, 0] } }, {}, {}, 'INCONCLUSIVE', 'item 1 not HELD: 4 not read'); EDGES.push('a layer share not read');
+  outc('4', { BN: { ND: [4, 2, 2] } }, {}, {}, 'INCONCLUSIVE', 'world 0\'s de-risked path-years 4 of 7 (GD 0.8 of GB, about 0.21 past): 4 INCONCLUSIVE where 2 of 7 reads HELD, so S_D is read');
+  { const it = run({}); cases.push(['item 4 reads S_D from the path-year counts', `${it['4'].cells[0].SD} ${it['4'].cells[1].SD}`, `${q(SD)} ${q(SD)}`]); }
+  // R5's condition
+  const part = o => run(o)['1'].partial;
+  cases.push(['GB -0.8 in both worlds, tops -0.58: R5 YES', part({ BN: { GB: [-0.8, -0.8, 0] } }), true]);
+  cases.push(['GB -0.6 in world 0, its top -0.38: R5 NO', part({ BN: { GB: [-0.6, -0.8, 0] } }), false]);
+  cases.push(['GB\'s top exactly -0.5 in both: R5 YES', part({ BN: { GB: [-0.5 - Z * se, -0.5 - Z * se, 0] } }), true]); EDGES.push('a partial grid term exactly at its line');
+  cases.push(['GB\'s top a millionth over -0.5 in world 1: R5 NO', part({ BN: { GB: [-0.5 - Z * se, -0.5 - Z * se + 1e-6, 0] } }), false]);
+  cases.push(['item 1 HELD: R5 NO', part({}), false]);
+  cases.push(['item 1 FALSIFIED: R5 NO', part({ BN: { GB: [0, 0, 0] } }), false]);
   const cz = (o, n1o, c) => run(o, {}, n1o)['causes'][c];
   cases.push(['1 and 2 HELD with 0 and 3: N2-GRID held, N2-LATE held', `${cz({}, {}, 'N2-GRID')} ${cz({}, {}, 'N2-LATE')}`, 'held held']);
   cases.push(['1 FALSIFIED with 0 and 3: N2-GRID not, N2-LATE open', `${cz({ BN: { GB: [-0.1, 0.1, 0] } }, {}, 'N2-GRID')} ${cz({ BN: { GB: [-0.1, 0.1, 0] } }, {}, 'N2-LATE')}`, 'not open']);
@@ -235,6 +284,11 @@ function planted() {
   cases.push(['3 FALSIFIED: both open', `${cz({ BO: { GB: [-2.2, -4.2, -3] } }, {}, 'N2-GRID')} ${cz({ BO: { GB: [-2.2, -4.2, -3] } }, {}, 'N2-LATE')}`, 'open open']);
   cases.push(['0 FALSIFIED (not NODE-1\'s): both open', `${cz({}, { bnT: [26.6, 47.0, 69.000001] }, 'N2-GRID')} ${cz({}, { bnT: [26.6, 47.0, 69.000001] }, 'N2-LATE')}`, 'open open']);
   cases.push(['1 INCONCLUSIVE: N2-GRID open', cz({ BN: { GB: [-0.8, -0.8, 0] } }, {}, 'N2-GRID'), 'open']);
+  cases.push(['4 HELD with 0, 1 and 3: N2-LAYER held', cz({}, {}, 'N2-LAYER'), 'held']);
+  cases.push(['4 FALSIFIED with 0, 1 and 3: N2-LAYER not', cz(gd(SD), {}, 'N2-LAYER'), 'not']);
+  cases.push(['4 INCONCLUSIVE: N2-LAYER open', cz(gd(SD + 0.15), {}, 'N2-LAYER'), 'open']);
+  cases.push(['3 FALSIFIED: N2-LAYER open', cz({ BO: { GB: [-2.2, -4.2, -3] } }, {}, 'N2-LAYER'), 'open']);
+  cases.push(['0 FALSIFIED: N2-LAYER open', cz({}, { bnT: [26.6, 47.0, 69.000001] }, 'N2-LAYER'), 'open']);
   // the ratio and the split
   { const r = ratioOf(Float64Array.from([1, 3, 1, 3]), Float64Array.from([2, 6, 2, 6])); cases.push(['a ratio of proportional paths: its point and a zero-width interval', `${r.F} ${r.lo} ${r.hi}`, '0.5 0.5 0.5']); }
   { const it = run({ BN: { B0: [26.6, 47, 69], X: [28.8, 48.9, 69.9], T: [0, 0.1, 0.1], GB: [-2.2, -2.2, -1], GA: [-0.5, 0, 0.0], Y5: [-0.7, 0, 0] } }); const s = it.split[0]; cases.push(['the split: OWN less runs, the closing with GA, year 5\'s residual', `${s.gap} ${s.closes} ${s.years[4].t} ${s.years[4].m}`, `${q(26.6 - 28.8)} ${q(26.6 - 28.8 - 0 + 2.2 + 0.5)} 5 -0.7`]); }
@@ -244,7 +298,9 @@ function planted() {
   // the read end to end
   { let lines = [], err = null; try { lines = report(Pof({}), mkJ(), n1Of()); } catch (e) { err = e.message; }
     const oc = lines.find(l => l.startsWith('OUTCOME: ')) || '';
-    cases.push(['the read prints four items, two causes, six split lines, REALISED and an OUTCOME of four items, end to end', err || `${['0.', '1.', '2.', '3.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.filter(l => l.startsWith('=> ')).length} ${lines.filter(l => /^  B[NO] world \d: OWN less runs/.test(l)).length} ${lines.some(l => l.startsWith('REALISED item 1: '))} ${oc.split(', ').length}`, 'true 2 6 true 4']); }
+    cases.push(['the read prints five items, R5\'s condition, three causes, six split and six QF lines, REALISED and an OUTCOME of five items, end to end', err || `${['0.', '1.', '2.', '3.', '4.'].every(p => lines.some(l => l.startsWith(p)))} ${lines.some(l => /^R5 CONDITION .*: NO$/.test(l))} ${lines.filter(l => l.startsWith('=> ')).length} ${lines.filter(l => /^  B[NO] world \d: OWN less runs/.test(l)).length} ${lines.filter(l => /^  B[NO] world \d: QF .* year 7 apart: /.test(l)).length} ${lines.some(l => l.startsWith('REALISED item 1: '))} ${oc.split(', ').length}`, 'true true 3 6 6 true 5']); }
+  { const rd = lines => (lines.find(l => l.startsWith('4. ')) || ''); cases.push(['the read says item 4 was not read when item 1 is not HELD', / \(not read: item 1 not HELD\)$/.test(rd(report(Pof({ BN: { GB: [-0.8, -0.8, 0] } }), mkJ(), n1Of()))), true]); }
+  { const lines = report(Pof({ BN: { GB: [-0.8, -0.8, 0] } }), mkJ(), n1Of()); cases.push(['the read prints R5 YES on a partial grid term', lines.some(l => /^R5 CONDITION .*: YES$/.test(l)), true]); }
   { const rd = lines => (lines.find(l => l.startsWith('2. ')) || ''); cases.push(['the read says item 2 was not read when item 1 is not HELD', / \(not read: item 1 not HELD\)$/.test(rd(report(Pof({ BN: { GB: [-0.8, -0.8, 0] } }), mkJ(), n1Of()))), true]); }
   // the gate, on synthetic logs built as the audit prints
   const pad = ''.padEnd(16), G0 = { npw: 4, scale: 15 };
@@ -257,9 +313,11 @@ function planted() {
       if (o.dropTable !== k) out.push(`${pad} tables ${L} ${k} z 0.000000 weight 0.333333: OWN 40.000000 READ 39.000000`);
       if (o.dropLedger !== k) out.push(`${pad} ledger ${L} ${k}: ${[...KEYS, ...(o.emptyBridge ? [] : [1, 2, 3, 4, 5, 6, 7].map(t => `Y${t}`))].filter(x => x !== o.dropKey).map(x => `${x} 0.100000`).join(' ')}`);
       for (let li = 0; li < 3; li++) if (!(o.dropLayer === k && li === 2)) out.push(`${pad} layer ${L} ${k} ${li}: bridge path-years 10 G 0.100000`);
+      if (o.dropDerisk !== k) out.push(`${pad} derisk ${L} ${k}: plan layer 0 bridge path-years ${o.nb !== undefined ? o.nb : 28} de-risked 8 GD 0.050000`);
+      if (o.dropQf !== k) out.push(`${pad} qf ${L} ${k}: paths ${o.qfPaths || 4} QF 0.000000`);
       if (o.dropRun !== k) out.push(`${pad} sim ${L} ${k} OWN ai 12: 2/${o.runN || 4} bridge ${o.bridge || 2} bits aa bb`);
     }
-    out.push(`${pad} checks ${L}: ownTook ${o.own !== undefined ? o.own : 12}/${o.ownN !== undefined ? o.ownN : 12} identity ${o.ident || 12}/${o.identN || 12} secs 1`, `${pad} file ${L}: ${id}-${L.replace(/\//g, '-')}.json.gz`);
+    out.push(`${pad} checks ${L}: ownTook ${o.own !== undefined ? o.own : 12}/${o.ownN !== undefined ? o.ownN : 12} identity ${o.ident || 12}/${o.identN || 12} qfTook ${o.qf !== undefined ? o.qf : 9}/${o.qfN !== undefined ? o.qfN : 9} secs 1`, `${pad} file ${L}: ${id}-${L.replace(/\//g, '-')}.json.gz`);
     if (!o.noDone) out.push(`${pad} done ${L}`);
     return out.join('\n');
   };
@@ -285,6 +343,13 @@ function planted() {
   refuses('armTook failed', all({ [KN]: { armTook: 0 } }));
   refuses('ownTook short', all({ [KN]: { own: 11 } }));
   refuses('ownTook over no path', all({ [KB]: { own: 0, ownN: 0 } }));
+  refuses('qfTook short', all({ [KN]: { qf: 8 } }));
+  refuses('qfTook over no visit', all({ [KB]: { qf: 0, qfN: 0 } }));
+  refuses('a missing de-risk line in world 1', all({ [KN]: { dropDerisk: 1 } }));
+  refuses('a de-risk line over no path-year', all({ [KB]: { nb: 0 } }));
+  refuses('a missing QF line in world 2', all({ [KB]: { dropQf: 2 } }));
+  refuses('a QF line on other paths than registered', all({ [KN]: { qfPaths: 3 } }));
+  refuses('a ledger line short of GD', all({ [KN]: { dropKey: 'GD' } }));
   refuses('the identity short', all({ [KB]: { ident: 11 } }));
   refuses('the identity over fewer paths than three worlds\'', all({ [KB]: { ident: 9, identN: 9 } }));
   refuses('no bridge years', all({ [KN]: { noBridge: true } }));
@@ -298,14 +363,20 @@ function planted() {
   refuses('a missing run in world 2', all({ [KB]: { dropRun: 2 } }));
   refuses('runs on other paths than registered', all({ [KB]: { runN: 5 } }));
   refuses('fewer paying the bridge than surviving', all({ [KB]: { bridge: 1 } }));
-  { const jobs = all(), files = {}, shOf = s => sha16(Buffer.from(s, 'base64')), per = Object.fromEntries([0, 1, 2].flatMap(w => [...KEYS, ...[1, 2, 3, 4, 5, 6, 7].map(t => `Y${t}`)].map(x => [`${x}${w}`, Buffer.from(new Float64Array(4).buffer).toString('base64')])));
-    for (const j of jobs) { const bits = {}; Object.keys(j.sims).forEach(nm => { bits[nm] = 'AAAA'; bits[`${nm}b`] = 'AQAA'; }); files[j.file] = { stamp: j.stamp, bits, per }; Object.values(j.sims).forEach(s => { s.bits = shOf('AAAA'); s.bitsB = shOf('AQAA'); }); }
+  { const b64i = a => Buffer.from(a.buffer).toString('base64'), PR = { meta: b64i(new Int32Array(14)), dim: 7, states: b64i(new Float32Array(14)) };
+    const jobs = all(), files = {}, shOf = s => sha16(Buffer.from(s, 'base64')), per = Object.fromEntries([0, 1, 2].flatMap(w => [...KEYS, ...[1, 2, 3, 4, 5, 6, 7].map(t => `Y${t}`), 'NB', 'ND', 'QF'].map(x => [`${x}${w}`, Buffer.from(new Float64Array(4).buffer).toString('base64')])));
+    for (const j of jobs) { const bits = {}; Object.keys(j.sims).forEach(nm => { bits[nm] = 'AAAA'; bits[`${nm}b`] = 'AQAA'; }); files[j.file] = { stamp: j.stamp, bits, per, paths: PR }; Object.values(j.sims).forEach(s => { s.bits = shOf('AAAA'); s.bitsB = shOf('AQAA'); }); }
     cases.push(['the gate passes files whose bits and paths are the log\'s', gate(jobs, { ...G0, files }).length, 0]);
     refuses('a missing file', jobs, { files: { ...files, [jobs[1].file]: undefined } });
     refuses('a file stamped by other code', jobs, { files: { ...files, [jobs[0].file]: { ...files[jobs[0].file], stamp: { ...jobs[0].stamp, code: 'c9' } } } });
     refuses('a file whose bits are not the log\'s', jobs, { files: { ...files, [jobs[0].file]: { ...files[jobs[0].file], bits: { ...files[jobs[0].file].bits, OWN1b: 'AgAA' } } } });
     refuses('a file short of one path array', jobs, { files: { ...files, [jobs[0].file]: { ...files[jobs[0].file], per: { ...per, GB1: Buffer.from(new Float64Array(3).buffer).toString('base64') } } } });
-    refuses('a file without one bridge year\'s paths', jobs, { files: { ...files, [jobs[1].file]: { ...files[jobs[1].file], per: { ...per, Y42: undefined } } } }); }
+    refuses('a file without one bridge year\'s paths', jobs, { files: { ...files, [jobs[1].file]: { ...files[jobs[1].file], per: { ...per, Y42: undefined } } } });
+    refuses('a file short of QF\'s paths', jobs, { files: { ...files, [jobs[0].file]: { ...files[jobs[0].file], per: { ...per, QF1: Buffer.from(new Float64Array(3).buffer).toString('base64') } } } });
+    refuses('a file without ND', jobs, { files: { ...files, [jobs[1].file]: { ...files[jobs[1].file], per: { ...per, ND0: undefined } } } });
+    refuses('a file without its bridge path records', jobs, { files: { ...files, [jobs[0].file]: { ...files[jobs[0].file], paths: undefined } } });
+    refuses('bridge path records whose states are short', jobs, { files: { ...files, [jobs[1].file]: { ...files[jobs[1].file], paths: { ...PR, states: b64i(new Float32Array(13)) } } } });
+    refuses('bridge path records of a broken row', jobs, { files: { ...files, [jobs[1].file]: { ...files[jobs[1].file], paths: { ...PR, meta: b64i(new Int32Array(13)), states: b64i(new Float32Array(13)) } } } }); }
   const bad = cases.filter(([, got, want]) => got !== want);
   for (const [what, got, want] of cases) console.log(`${got === want ? 'ok  ' : 'BAD '} ${what}: ${JSON.stringify(got)}`);
   if (bad.length) { console.log(`PLANTED CHECK FAILED (${bad.length})`); process.exit(1); }

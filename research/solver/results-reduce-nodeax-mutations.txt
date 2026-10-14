@@ -11,75 +11,108 @@ caught: 10: shareNodes: j.arm === 'BN' ? NODES_A : 'none' })
 caught: 11: readerRef: 'order', readerChance: 'null',
 caught: 12: e3pcls: 'true', switchMargin
 caught: 13: line: '0.5', mix: '3', floor: '5000' };
-caught: 14: for (const c of ['armTook', 'ownTook', 'identity'])
-caught: 15: for (const c of ['armTook', 'ownTook', 'identity'])
-caught: 16: for (const c of ['armTook', 'ownTook', 'identity'])
-caught: 17: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
-caught: 18: if (j.checks.identity && j.checks.identity[1] !== 3 * npw) b
-caught: 19: if (!j.solve) bad.push(
-caught: 20: if (!j.bridge || !j.bridge.length) bad.push(
-caught: 21: if (!j.tables[w] || !Number.isFinite(j.tables[w].OWN) || !Nu
-caught: 22: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
-caught: 23: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
-caught: 24: if (!j.ledger[w] || [...KEYS, ...YK].some(x => !Number.isFin
-caught: 25: if (!j.ledger[w] || [...KEYS, ...YK].some(x => !Number.isFin
-caught: 26: export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL'];
-caught: 27: if (j.layers[w].length !== 3 || [0, 1, 2].some(li => !j.laye
-caught: 28: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
-caught: 29: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
-caught: 30: if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(
-caught: 31: if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.p
-caught: 32: for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.
-caught: 33: return [0, 1, 2].filter(k => bn.tables[k].OWN !== bo.tables[
-caught: 34: return { m: q(m), lo: q(m - Z * se), hi: q(m + Z * se), se }
-caught: 35: const r = num.map((x, i) => x - F * den[i])
-caught: 36: se = Math.sqrt(v / n) / Math.abs(md);
-caught: 37: [0, 1, 2].every(k => !!b.tables[k] && a.tables[k].OWN === b.
-caught: 38: [0, 1, 2].every(k => b.runs && b.runs[k] === a.sims[`OWN${k}
-caught: 39: outcome: !n1 ? 'INCONCLUSIVE' : !t0 ? 'FALSIFIED' : r0 ? 'HE
-caught: 40: outcome: !n1 ? 'INCONCLUSIVE' : !t0 ? 'FALSIFIED' : r0 ? 'HE
-caught: 41: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
-caught: 42: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
-caught: 43: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
-caught: 44: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
-caught: 45: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
-caught: 46: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
-caught: 47: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
-caught: 48: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
-caught: 49: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
-caught: 50: export const G_HELD = -1, G_FALS = -0.5,
-caught: 51: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
-caught: 52: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
-caught: 53: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
-caught: 54: c2.every(x => x.F.hi <= F_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
-caught: 55: c2.every(x => x.F.hi <= F_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
-caught: 56: const c2 = [0, 1].map(k => ({ k, F: ratioOf(P('BN', 'GL', k)
-caught: 57: const c2 = [0, 1].map(k => ({ k, F: ratioOf(P('BN', 'GL', k)
-caught: 58: read2 = out['1'].outcome === 'HELD';
-caught: 59: F_HELD = 0.5, F_FALS = 0.25,
-caught: 60: F_HELD = 0.5, F_FALS = 0.25,
-caught: 61: out['3'] = { outcome: D.hi <= KNOWN ? 'HELD'
-caught: 62: out['3'] = { outcome: D.hi <= KNOWN ? 'HELD'
-caught: 63: D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };
-caught: 64: D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };
-caught: 65: const go = P('BO', 'GB', 0), gn = P('BN', 'GB', 0)
-caught: 66: D = meanOf(go.map((x, i) => x - gn[i]));
-caught: 67: KNOWN = -1.5, KNOWN_F = -0.5;
-caught: 68: KNOWN = -1.5, KNOWN_F = -0.5;
-caught: 69: const ok03 = out['0'].outcome === 'HELD' && out['3'].outcome
-caught: 70: const ok03 = out['0'].outcome === 'HELD' && out['3'].outcome
-caught: 71: 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1
-caught: 72: 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1
-caught: 73: 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2
-caught: 74: 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2
-caught: 75: closes: q(r.B0.m - r.X.m - r.T.m - r.GB.m - r.GA.m)
-caught: 76: gap: q(r.B0.m - r.X.m),
-caught: 77: years: (Array.isArray(years) ? years : years[arm]).map(t => 
-caught: 78: L.push(`1. BN's bridge-years grid residual
-caught: 79: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
-caught: 80: L.push(`OUTCOME: ${['0', '1', '2', '3'].map
-caught: 81: L.push(`REALISED item 1: ${f4(it['1'].cells[0].G.m)}`);
-caught: 82: for (const s of it.split) L.push(
-caught: 83: ${it['2'].read ? '' : ' (not read: item 1 not HELD)'}
-caught: 84: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
-84 of 84 mutations caught
+caught: 14: for (const c of ['armTook', 'ownTook', 'identity', 'qfTook']
+caught: 15: for (const c of ['armTook', 'ownTook', 'identity', 'qfTook']
+caught: 16: for (const c of ['armTook', 'ownTook', 'identity', 'qfTook']
+caught: 17: for (const c of ['armTook', 'ownTook', 'identity', 'qfTook']
+caught: 18: if (!j.derisk[w] || !(j.derisk[w].NB > 0) || !Number.isFinit
+caught: 19: if (!j.derisk[w] || !(j.derisk[w].NB > 0) || !Number.isFinit
+caught: 20: if (!j.qf[w] || j.qf[w].n !== Math.min(npw, NQF) || !Number.
+caught: 21: if (!j.qf[w] || j.qf[w].n !== Math.min(npw, NQF) || !Number.
+caught: 22: ...(j.bridge || []).map(t => `Y${t}`), 'NB', 'ND']) { const 
+caught: 23: const a = f.per && f.per[`QF${w}`]; if (!a || Buffer.from(a,
+caught: 24: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns 
+caught: 25: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns 
+caught: 26: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns 
+caught: 27: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
+caught: 28: if (j.checks.identity && j.checks.identity[1] !== 3 * npw) b
+caught: 29: if (!j.solve) bad.push(
+caught: 30: if (!j.bridge || !j.bridge.length) bad.push(
+caught: 31: if (!j.tables[w] || !Number.isFinite(j.tables[w].OWN) || !Nu
+caught: 32: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
+caught: 33: if (!s || s.n !== npw || s.bridge < s.ok || (j.own && s.ai !
+caught: 34: if (!j.ledger[w] || [...KEYS, ...YK].some(x => !Number.isFin
+caught: 35: if (!j.ledger[w] || [...KEYS, ...YK].some(x => !Number.isFin
+caught: 36: export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD']
+caught: 37: export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD']
+caught: 38: if (j.layers[w].length !== 3 || [0, 1, 2].some(li => !j.laye
+caught: 39: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 40: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
+caught: 41: if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(
+caught: 42: if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.p
+caught: 43: for (let w = 0; w < 3; w++) for (const x of [...KEYS, ...(j.
+caught: 44: return [0, 1, 2].filter(k => bn.tables[k].OWN !== bo.tables[
+caught: 45: return { m: q(m), lo: q(m - Z * se), hi: q(m + Z * se), se }
+caught: 46: const r = num.map((x, i) => x - F * den[i])
+caught: 47: se = Math.sqrt(v / n) / Math.abs(md);
+caught: 48: [0, 1, 2].every(k => !!b.tables[k] && a.tables[k].OWN === b.
+caught: 49: [0, 1, 2].every(k => b.runs && b.runs[k] === a.sims[`OWN${k}
+caught: 50: outcome: !n1 ? 'INCONCLUSIVE' : !t0 ? 'FALSIFIED' : r0 ? 'HE
+caught: 51: outcome: !n1 ? 'INCONCLUSIVE' : !t0 ? 'FALSIFIED' : r0 ? 'HE
+caught: 52: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
+caught: 53: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
+caught: 54: out['1'] = { outcome: c1.every(x => x.G.hi <= G_HELD) ? 'HEL
+caught: 55: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
+caught: 56: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
+caught: 57: c1.every(x => x.G.lo >= G_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
+caught: 58: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
+caught: 59: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
+caught: 60: const c1 = [0, 1].map(k => ({ k, G: meanOf(P('BN', 'GB', k))
+caught: 61: export const G_HELD = -1, G_FALS = -0.5,
+caught: 62: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
+caught: 63: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
+caught: 64: out['2'] = { outcome: !read2 ? 'INCONCLUSIVE' : c2.every(x =
+caught: 65: c2.every(x => x.F.hi <= F_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
+caught: 66: c2.every(x => x.F.hi <= F_FALS) ? 'FALSIFIED' : 'INCONCLUSIV
+caught: 67: const c2 = [0, 1].map(k => ({ k, F: ratioOf(P('BN', 'GL', k)
+caught: 68: const c2 = [0, 1].map(k => ({ k, F: ratioOf(P('BN', 'GL', k)
+caught: 69: read2 = out['1'].outcome === 'HELD';
+caught: 70: F_HELD = 0.5, F_FALS = 0.25,
+caught: 71: F_HELD = 0.5, F_FALS = 0.25,
+caught: 72: out['3'] = { outcome: D.hi <= KNOWN ? 'HELD'
+caught: 73: out['3'] = { outcome: D.hi <= KNOWN ? 'HELD'
+caught: 74: D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };
+caught: 75: D.lo >= KNOWN_F ? 'FALSIFIED' : 'INCONCLUSIVE', D };
+caught: 76: const go = P('BO', 'GB', 0), gn = P('BN', 'GB', 0)
+caught: 77: D = meanOf(go.map((x, i) => x - gn[i]));
+caught: 78: KNOWN = -1.5, KNOWN_F = -0.5, D_HELD
+caught: 79: KNOWN = -1.5, KNOWN_F = -0.5, D_HELD
+caught: 80: D_HELD = 0.25, D_FALS = 0.05,
+caught: 81: D_HELD = 0.25, D_FALS = 0.05,
+caught: 82: c4.every(x => x.lo >= D_HELD) ? 'HELD'
+caught: 83: c4.every(x => x.lo >= D_HELD) ? 'HELD'
+caught: 84: c4.every(x => x.hi <= D_FALS) ? 'FALSIFIED'
+caught: 85: c4.every(x => x.hi <= D_FALS) ? 'FALSIFIED'
+caught: 86: out['4'] = { outcome: !read2 ? 'INCONCLUSIVE' :
+caught: 87: const SD = sum(P('BN', 'ND', k)) / sum(P('BN', 'NB', k)), F
+caught: 88: const SD = sum(P('BN', 'ND', k)) / sum(P('BN', 'NB', k)), F
+caught: 89: F = ratioOf(P('BN', 'GD', k), P('BN', 'GB', k)); return { k,
+caught: 90: const c4 = [0, 1].map(k =>
+caught: 91: out['1'].partial = out['1'].outcome === 'INCONCLUSIVE' && c1
+caught: 92: out['1'].partial = out['1'].outcome === 'INCONCLUSIVE' && c1
+caught: 93: out['1'].partial = out['1'].outcome === 'INCONCLUSIVE' && c1
+caught: 94: G_PART = -0.5, NQF
+caught: 95: 'N2-LAYER': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['
+caught: 96: 'N2-LAYER': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['
+caught: 97: 'N2-LAYER': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['
+caught: 98: const ok03 = out['0'].outcome === 'HELD' && out['3'].outcome
+caught: 99: const ok03 = out['0'].outcome === 'HELD' && out['3'].outcome
+caught: 100: 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1
+caught: 101: 'N2-GRID': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['1
+caught: 102: 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2
+caught: 103: 'N2-LATE': ok03 ? ({ HELD: 'held', FALSIFIED: 'not' }[out['2
+caught: 104: closes: q(r.B0.m - r.X.m - r.T.m - r.GB.m - r.GA.m)
+caught: 105: gap: q(r.B0.m - r.X.m),
+caught: 106: years: (Array.isArray(years) ? years : years[arm]).map(t => 
+caught: 107: L.push(`1. BN's bridge-years grid residual
+caught: 108: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 109: L.push(`OUTCOME: ${['0', '1', '2', '3', '4'].map
+caught: 110: L.push(`R5 CONDITION (item 1 INCONCLUSIVE with GB's top at m
+caught: 111: L.push(`R5 CONDITION (item 1 INCONCLUSIVE with GB's top at m
+caught: 112: ${it['4'].read ? '' : ' (not read: item 1 not HELD)'}
+caught: 113: for (const s of it.split) { const y7
+caught: 114: L.push(`REALISED item 1: ${f4(it['1'].cells[0].G.m)}`);
+caught: 115: for (const s of it.split) L.push(
+caught: 116: ${it['2'].read ? '' : ' (not read: item 1 not HELD)'}
+caught: 117: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+117 of 117 mutations caught

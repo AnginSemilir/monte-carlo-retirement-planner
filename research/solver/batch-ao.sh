@@ -1,6 +1,6 @@
 #!/bin/bash
 # AO (predictions/diag-ao.md): four jobs on four cores, seed 7002, 4,000 paths a world, into results/diagao: audit-ao.mjs's
-# three S364 jobs (AO, ARS, CO; parts 0-2 of 3; P on ten times the paths on AO and ARS) and audit-an.mjs's A6 (AN_JOB=A6:
+# three S364 jobs (AO, AOL on a finer reference lattice, CO; parts 0-2 of 3; P on ten times the paths on AO and AOL) and audit-an.mjs's A6 (AN_JOB=A6:
 # NODE-AX's BO with the adaptive reference), read by reduce-ao.mjs in the real tree into results-ao.txt against NODE-AX's
 # saved BO. Ten hours' timeout a job.
 set -u

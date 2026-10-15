@@ -2,11 +2,11 @@
  * AO'S DERIVATION (predictions/diag-ao.md; the deep review after AN, deep-review-log.md 15 Oct 21:05 UK): the records (NE-GRID
  * C's S364 ORDER and BASE at six shares and NE-EDGE's S364 RZ and RS, behind their gates: P's tables against its runs on the
  * same 4,000 paths; NODE-AX's BO and BN and AN's file, behind their gates: GB's per-path spread, BO's survival and the paths
- * a change of reference moved, AN against BN); the power of items 1-4 through reduce-ao.mjs's own items(); the credences
+ * a change of reference moved, AN against BN); the power of items 1-3 through reduce-ao.mjs's own items(); the credences
  * from the 21:05 receipt's CAUSE CREDENCES (read from the log, not typed) through the judged stories below; the decision
  * rows; the points and 80% intervals; the reported lines' known answers (reduce-ao.mjs's luck adjustment and QF by year on
  * AN's and BO's saved files, against the receipt's figures and the logs' totals); the budget (NE-GRID C's S364 ORDER log,
- * NODE-AX's BO log, AN's log, AO's preflight's tail check, results/ao-preflight).
+ * NODE-AX's BO log, AN's log, AO's preflight's AO and AOL jobs, results-ao-preflight-ao.txt).
  *   node research/solver/derive-ao.mjs > research/solver/results-derive-ao.txt
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -18,10 +18,11 @@ import { items, parse, lnRead, luckT, qfByYear, NPW } from './reduce-ao.mjs';
 import { pathsForSeed } from '../engine.mjs';
 
 // THE JUDGED INPUTS (committed before this script's output; grade D throughout). Each cause in the 21:05 receipt's map (its
-// CAUSE CREDENCES, read below) predicts AO's and ARS's ln(table / runs) at P in worlds 1 and 2, A6's GB in worlds 0 and 1
+// CAUSE CREDENCES, read below) predicts AO's ln(table / runs) at P in worlds 1 and 2, A6's GB in worlds 0 and 1
 // and A6's runs against BO's, as distributions over values. The records (section 1): under the order reference S364's P
 // reads at ln 1.58 and 0.54 in worlds 1 and 2 (NE-GRID C's ORDER); under the fixed-mix reference with the RS split at -2.47
-// and -1.94 (NE-EDGE's RS: the over-read removed, an under-read made); BO's GB -4.15 and -5.32, AN's (fifteen nodes) 0.03
+// and -1.94 (NE-EDGE's RS: the over-read removed, an under-read made); ARS (the receipt's item 4) was dropped at the
+// preflight, before any output here (R 0.00007 points of a 29-point year-1 read under the adaptive reference); BO's GB -4.15 and -5.32, AN's (fifteen nodes) 0.03
 // and -0.12.
 export const JUDGED = {
   // item 1, AO, per world [world 1, world 2] (ln). REF: the matched reference reads S364 within a factor near 1.5; COPY: the
@@ -34,16 +35,6 @@ export const JUDGED = {
     DENSITY: [{ 0.6: 0.3, 1.0: 0.4, 1.5: 0.3 }, { 0.2: 0.3, 0.5: 0.4, 0.8: 0.3 }],
     TAIL: [{ '-1.6': 0.3, '-1.1': 0.4, '-0.6': 0.3 }, { '-1.0': 0.3, '-0.6': 0.4, '-0.3': 0.3 }],
     MODEL: [{ '-1.4': 0.3, '-0.9': 0.4, '-0.5': 0.3 }, { '-0.9': 0.3, '-0.5': 0.4, '-0.2': 0.3 }],
-    OTHER: [{ '-1.2': 0.2, '-0.5': 0.2, 0: 0.2, 0.5: 0.2, 1.2: 0.2 }, 'same'],
-  },
-  // item 4, ARS: the RS split scales the copied corners' R down to the query's chance, so it removes COPY's over-read and
-  // lowers every story a little (NE-EDGE: under the fixed-mix reference it overshot to an under-read beyond ln 3)
-  ars: {
-    REF: [{ '-0.6': 0.25, '-0.3': 0.3, 0: 0.3, 0.3: 0.15 }, 'same'],
-    COPY: [{ '-0.6': 0.3, '-0.2': 0.4, 0.2: 0.3 }, 'same'],
-    DENSITY: [{ '-0.8': 0.3, '-0.3': 0.4, 0.2: 0.3 }, 'same'],
-    TAIL: [{ '-2.0': 0.3, '-1.4': 0.4, '-0.8': 0.3 }, { '-1.3': 0.3, '-0.8': 0.4, '-0.4': 0.3 }],
-    MODEL: [{ '-1.7': 0.3, '-1.2': 0.4, '-0.7': 0.3 }, { '-1.1': 0.3, '-0.7': 0.4, '-0.3': 0.3 }],
     OTHER: [{ '-1.2': 0.2, '-0.5': 0.2, 0: 0.2, 0.5: 0.2, 1.2: 0.2 }, 'same'],
   },
   // each world's own move about its story value, either way at random (ln)
@@ -98,13 +89,13 @@ const SD = [0, 1].map(k => sd(arrOf(fBO, 'GB', k)));
 const CH = [0, 1].map(k => { const a = bitsOf(fBN, k), b = bitsOf(fAN, k); let lost = 0, saved = 0; for (let i = 0; i < a.length; i++) { if (a[i] && !b[i]) lost++; else if (b[i] && !a[i]) saved++; } return { lost, saved }; });
 for (const k of [0, 1]) console.log(`  S360 world ${k}: BO's GB mean ${f4(mean(arrOf(fBO, 'GB', k)))} sd ${f4(SD[k])}, survival ${f4(mean(arrOf(fBO, 'X', k)))}; AN's GB ${f4(mean(arrOf(fAN, 'GB', k)))}; AN against BN on the same paths: lost ${CH[k].lost} saved ${CH[k].saved}`);
 
-// a synthetic read: AO's and ARS's tables at a story's ln and the runs at a rate; A6's per-path GB at the story's values
+// a synthetic read: AO's tables at a story's ln and the runs at a rate; A6's per-path GB at the story's values
 // and BO's spread times x; A6's runs moved from BO's
 const n = NPW, NP = 10 * NPW, BOb = [0, 1, 2].map(k => bitsOf(fBO, k)), RATE = [0, 1, 2].map(k => REC.ORDER[k].ok / REC.ORDER[k].n);
 const pois = m => { if (m <= 0) return 0; if (m > 50) return Math.max(0, Math.round(m + Math.sqrt(m) * gauss())); let L = Math.exp(-m), k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; };
-function setOf({ ao = [0, 0], ars = [0, 0], g0 = 0, g1 = 0, d0 = 0, d1 = 0, churn = 1, rate = 1 }, x = 1) {
-  const rd = { AO: [], ARS: [] };
-  for (const [arm, v] of [['AO', ao], ['ARS', ars]]) for (const k of [0, 1, 2]) { const r = RATE[k] * rate, c = pois(NP * r), lnv = k === 0 ? 0 : v[k - 1]; rd[arm][k] = [100 * r * Math.exp(lnv), c, NP]; }
+function setOf({ ao = [0, 0], g0 = 0, g1 = 0, d0 = 0, d1 = 0, churn = 1, rate = 1 }, x = 1) {
+  const rd = { AO: [] };
+  for (const [arm, v] of [['AO', ao]]) for (const k of [0, 1, 2]) { const r = RATE[k] * rate, c = pois(NP * r), lnv = k === 0 ? 0 : v[k - 1]; rd[arm][k] = [100 * r * Math.exp(lnv), c, NP]; }
   const P = {}; [[0, g0], [1, g1], [2, 0]].forEach(([k, m]) => { const a = new Float64Array(n), s = SD[Math.min(k, 1)]; for (let i = 0; i < n; i++) a[i] = m + x * s * gauss(); P[`GB${k}`] = a; });
   const S = [d0, d1, 0].map((d, k) => {
     const b = Uint8Array.from(BOb[k]), c = k < 2 ? churn * (CH[k].lost + CH[k].saved) : 0, net = d * n / 100;
@@ -120,7 +111,7 @@ const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] 
 // 2. THE POWER through items()
 const DR = 40;
 console.log(`\n2. THE POWER (${DR} draws a cell through reduce-ao.mjs's items(); P on ${NP} paths a world at the record's survival times 0.75, 1, 1.5; A6 on ${n} paths at BO's spread times 0.75, 1, 1.5)`);
-for (const rate of [0.75, 1, 1.5]) for (const v of [-1.4, -1.1, -0.9, -0.7, -0.5, 0, 0.5, 0.7, 0.9, 1.1, 1.4]) { const c = cnt(); for (let d = 0; d < DR; d++) c[items(...setOf({ ao: [v, v], rate }))['1'].outcome]++; console.log(`  rate x${rate} item 1 (and 4), ln ${v} in both worlds: ${row(c)}`); }
+for (const rate of [0.75, 1, 1.5]) for (const v of [-1.4, -1.1, -0.9, -0.7, -0.5, 0, 0.5, 0.7, 0.9, 1.1, 1.4]) { const c = cnt(); for (let d = 0; d < DR; d++) c[items(...setOf({ ao: [v, v], rate }))['1'].outcome]++; console.log(`  rate x${rate} item 1, ln ${v} in both worlds: ${row(c)}`); }
 for (const x of [0.75, 1, 1.5]) for (const g of [-1.8, -1.2, -1.0, -0.8, -0.5, -0.3, 0, 0.3, 0.5, 0.8, 1.0, 1.2]) { const c = cnt(); for (let d = 0; d < DR; d++) c[items(...setOf({ g0: g, g1: g }, x))['2'].outcome]++; console.log(`  x${x} item 2, GB ${g} in both worlds: ${row(c)}`); }
 for (const ch of [0.5, 1, 2]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = cnt(); for (let k = 0; k < DR; k++) c[items(...setOf({ d0: d, d1: d, churn: ch }))['3'].outcome]++; console.log(`  churn x${ch} item 3, the runs ${d} points in both worlds: ${row(c)}`); }
 
@@ -128,33 +119,33 @@ for (const ch of [0.5, 1, 2]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = 
 const logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 15 Oct 21:05 UK \|/.test(l));
 const cc = Object.fromEntries([...(/CAUSE CREDENCES: (.*)$/.exec(logT || '') || ['', ''])[1].matchAll(/AO-([A-Z]+)=([0-9.]+)/g)].map(m => [m[1], Number(m[2])]));
 const sum = Object.values(cc).reduce((a, b) => a + b, 0);
-if (Object.keys(cc).length !== 6 || Math.abs(sum - 1) > 0.02 || Object.keys(cc).some(c => !JUDGED.ao[c] || !JUDGED.ars[c] || !JUDGED.gb[c]) || cc.REF !== Math.max(...Object.values(cc))) { console.log(`the receipt's CAUSE CREDENCES did not read, or REF does not lead (${JSON.stringify(cc)})`); process.exit(1); }
+if (Object.keys(cc).length !== 6 || Math.abs(sum - 1) > 0.02 || Object.keys(cc).some(c => !JUDGED.ao[c] || !JUDGED.gb[c]) || cc.REF !== Math.max(...Object.values(cc))) { console.log(`the receipt's CAUSE CREDENCES did not read, or REF does not lead (${JSON.stringify(cc)})`); process.exit(1); }
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return Number(k); } return Number(Object.keys(dist).pop()); };
 const pickC = () => { let u = rnd() * sum, acc = 0; for (const [k, v] of Object.entries(cc)) { acc += v; if (u < acc) return k; } return Object.keys(cc).pop(); };
 const lnStory = ([w1, w2]) => { const a = pick(w1), j = () => (rnd() * 2 - 1) * JUDGED.lnJitter; return [a + j(), (w2 === 'same' ? a : pick(w2)) + j()]; };
-const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt(), 4: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [] };
+const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [] };
 for (let d = 0; d < ND; d++) {
   const c = pickC(), gd = typeof JUDGED.gb[c] === 'string' ? JUDGED.gb[JUDGED.gb[c]] : JUDGED.gb[c], g = pick(gd), j = () => (rnd() * 2 - 1) * JUDGED.worldJitter, dr = pick(JUDGED.runs);
-  const story = { ao: lnStory(JUDGED.ao[c]), ars: lnStory(JUDGED.ars[c]), g0: g + j(), g1: g + j(), d0: dr, d1: dr, churn: pick(JUDGED.churn), rate: pick(JUDGED.rate) };
+  const story = { ao: lnStory(JUDGED.ao[c]), g0: g + j(), g1: g + j(), d0: dr, d1: dr, churn: pick(JUDGED.churn), rate: pick(JUDGED.rate) };
   const it = items(...setOf(story, pick(JUDGED.spread)));
-  for (const i of ['1', '2', '3', '4']) I[i][it[i].outcome]++;
-  pt[1].push(it['1'].cells[0].m); pt[2].push(it['2'].cells[0].m); pt[3].push(it['3'].cells[0].d); pt[4].push(it['4'].cells[0].m);
+  for (const i of ['1', '2', '3']) I[i][it[i].outcome]++;
+  pt[1].push(it['1'].cells[0].m); pt[2].push(it['2'].cells[0].m); pt[3].push(it['3'].cells[0].d);
   const o = i => it[i].outcome;
   if (o('2') === 'FALSIFIED') R.R3++;
   else if (o('1') === 'FALSIFIED' && it['1'].side === 'under') R.R4++;
-  else if (o('1') === 'FALSIFIED' && it['1'].side === 'over' && o('4') === 'HELD') R.R2++;
-  else if (o('1') === 'HELD' && o('2') === 'HELD' && o('4') === 'HELD' && o('3') !== 'FALSIFIED') R.R1++;
+  else if (o('1') === 'FALSIFIED') R.R2++;
+  else if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') !== 'FALSIFIED') R.R1++;
   else R.else++;
 }
 console.log(`\n3. THE CREDENCES (the receipt of 15 Oct 21:05 UK: ${Object.entries(cc).map(([k, v]) => `AO-${k}=${v}`).join('; ')}, taken as stated; ${ND} draws through items())`);
-for (const i of ['1', '2', '3', '4']) console.log(`  item ${i}: ${row(I[i])}`);
+for (const i of ['1', '2', '3']) console.log(`  item ${i}: ${row(I[i])}`);
 console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
 console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
 console.log(`  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else ${f2(R.else / ND)}`);
 const qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
-const WHAT = { 1: 'AO\'s ln(table / runs) at P in world 1', 2: 'A6\'s GB in world 0, points', 3: 'A6\'s runs less BO\'s in world 0, points', 4: 'ARS\'s ln(table / runs) at P in world 1' };
-for (const i of ['1', '2', '3', '4']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
-for (const i of ['1', '2', '3', '4']) console.log(`CREDENCE item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
+const WHAT = { 1: 'AO\'s ln(table / runs) at P in world 1', 2: 'A6\'s GB in world 0, points', 3: 'A6\'s runs less BO\'s in world 0, points' };
+for (const i of ['1', '2', '3']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
+for (const i of ['1', '2', '3']) console.log(`CREDENCE item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
 
 // 4. THE REPORTED LINES' KNOWN ANSWERS: reduce-ao.mjs's luck adjustment and QF by year on AN's and BO's saved files
 const paths = pathsForSeed(7002, n, 60), qfLog = (d, f, L) => [0, 1, 2].map(k => Number((new RegExp(`qf ${L} ${k}: paths \\d+ QF (\\S+)`).exec(readFileSync(join(R_(d), f), 'utf8')) || [])[1]));
@@ -165,12 +156,13 @@ for (const [nm, f, d, lf, L] of [['AN', fAN, 'diagan', 'case0.txt', 'AN/P60S15Q5
 // 5. THE BUDGET
 const num = (re, t) => { const m = re.exec(t); return m ? Number(m[1]) : NaN; };
 const ng11 = logsOf(R_('diagnegridc')).find(t => /job ORDER\/P60S6Q5 /.test(t)), ax1 = readFileSync(join(R_('diagnodeax'), 'case1.txt'), 'utf8'), an0 = readFileSync(join(R_('diagan'), 'case0.txt'), 'utf8');
-const pre = readFileSync(join(R_('ao-preflight'), 'ao', 'case0.txt'), 'utf8');
+const pre = readFileSync(join(HERE, 'results-ao-preflight-ao.txt'), 'utf8');   // the preflight's four job logs, kept
 const sO = num(/solve CAND ORDER\/P60S6Q5: table \S+ secs (\d+)/, ng11), runO = num(/checks ORDER\/P60S6Q5: forceIdentity \d+\/\d+ secs (\d+)/, ng11);
 const sB = num(/solve CAND BO\/P60S6Q5: table \S+ secs (\d+)/, ax1), lB = num(/checks BO\/P60S6Q5: ownTook .* secs (\d+)/, ax1);
 const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, an0), refT = num(/refTook \d+\/\d+ \(.*, secs ([\d.]+)\)$/m, an0);
+const bAO = num(/adaptive AO\/P\d+S6Q5: .* secs (\S+)$/m, pre), bAOL = num(/adaptive AOL\/P\d+S6Q5: .* secs (\S+)$/m, pre), tailL = num(/refTail AOL\/P\d+S6Q5: .* secs (\d+)$/m, pre);
 const tailS = num(/refTail AO\/P\d+S6Q5: .* secs (\d+)$/m, pre), tailN = [...pre.matchAll(/tail AO\/P\d+S6Q5 \d \d: records \d+ states (\d+)/g)].reduce((t, m) => t + Number(m[1]), 0);
-if (![sO, runO, sB, lB, build, refT, tailS].every(Number.isFinite) || !(tailN > 0)) { console.log(`the budget's inputs did not read (${[sO, runO, sB, lB, build, refT, tailS, tailN].join(', ')})`); process.exit(1); }
+if (![sO, runO, sB, lB, build, refT, tailS, bAO, bAOL, tailL].every(Number.isFinite) || !(tailN > 0)) { console.log(`the budget's inputs did not read (${[sO, runO, sB, lB, build, refT, tailS, tailN].join(', ')})`); process.exit(1); }
 const perRun = runO / (6 * NPW + 1000), runsAO = 3 * (NP + 2 * NPW) + 1000, tailFull = tailS * 300 / tailN;
-const AO = sO + build + perRun * runsAO + tailFull, CO = sO + runO, A6 = sB + build + lB + refT;
-console.log(`\n5. THE BUDGET: NE-GRID C's S364 ORDER solve ${sO} s and its runs ${runO} s for ${6 * NPW + 1000} runs (${f4(perRun)} s a run, grade C); AO and ARS each: solve ${sO} s, the reference's build ${f2(build)} s (AN's), ${runsAO} runs (P ${NP} a world, D and an own opening ${NPW}, forceIdentity 1,000) ${Math.round(perRun * runsAO)} s, the tail check and engine run ${Math.round(tailFull)} s (the preflight's ${tailS} s over ${tailN} states, scaled to 300: grade C) - about ${f2(AO / 3600)} h; CO about ${f2(CO / 3600)} h; A6: BO's solve ${sB} s and ledger ${lB} s, the build and refTook ${f2(build + refT)} s - about ${f2(A6 / 3600)} h; on four cores the wall about ${f2(Math.max(AO, CO, A6) / 3600)} h (O120's drift can triple it)`);
+const AO = sO + build + perRun * runsAO + tailFull, AOL = AO + (bAOL - bAO) * build / bAO + (tailL - tailS) * 300 / tailN, CO = sO + runO, A6 = sB + build + lB + refT;
+console.log(`\n5. THE BUDGET: NE-GRID C's S364 ORDER solve ${sO} s and its runs ${runO} s for ${6 * NPW + 1000} runs (${f4(perRun)} s a run, grade C); AO: solve ${sO} s, the reference's build ${f2(build)} s (AN's), ${runsAO} runs (P ${NP} a world, D and an own opening ${NPW}, forceIdentity 1,000) ${Math.round(perRun * runsAO)} s, the tail check and engine run ${Math.round(tailFull)} s (the preflight's ${tailS} s over ${tailN} states, scaled to 300: grade C) - about ${f2(AO / 3600)} h; AOL the same with its reference's build ${f2(bAOL / bAO)} times AO's at the preflight (${f2(bAOL)} s against ${f2(bAO)} s) - about ${f2(AOL / 3600)} h; CO about ${f2(CO / 3600)} h; A6: BO's solve ${sB} s and ledger ${lB} s, the build and refTook ${f2(build + refT)} s - about ${f2(A6 / 3600)} h; on four cores the wall about ${f2(Math.max(AO, AOL, CO, A6) / 3600)} h (O120's drift can triple it)`);

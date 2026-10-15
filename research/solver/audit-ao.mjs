@@ -6,10 +6,12 @@
  * D and the own opening on the base paths; the seed's path i from seed + i x 7919, so the first 4,000 are NE-GRID C's. Three
  * jobs at 60 wealth points and six shares, the candidate's own unit, seed 7002:
  *   AO   the adaptive reference (`readerRef: 'adaptive'`, src/solver/adaptive.js), the default split;
- *   ARS  the adaptive reference with the RS split (`readerSplit: 'rs'`: the copied corners' residual scaled to the query);
+ *   AOL  AO with the reference's lattice finer (320 by 41 cells, 256 draws: the 21:05 receipt's premise 2, never swept),
+ *        in place of the RS split's ARS (the preflight: the residual R 0.00007 points of a 29-point read at S364's
+ *        year-1 reads under the adaptive reference, so ARS's tables equalled AO's to 6e-6 points); reported only;
  *   CO   the order reference (NE-GRID C's S364 ORDER job, its P and D runs on the first 4,000 paths to be its bits).
  * The probe on every job (each year-1 read the year-0 score at P makes, corner by corner, by status: supported, clipped,
- * copied). On AO and ARS, reported (none refuses the run), from P's bridge records in the years before the last (the
+ * copied). On AO and AOL, reported (none refuses the run), from P's bridge records in the years before the last (the
  * position, the move, the reference's p, the path's bridge outcome):
  *   - the tail check: per world and p-decade (1e-4 to 1e-3, 1e-3 to 1e-2, 1e-2 to 0.05, and the band 0.05 to 0.95), 25
  *     records drawn at random, their mean p against the reference's own rule run forward (adaptive.js simulate) at 100,000
@@ -20,7 +22,7 @@
  *     engine's model and in the reference's fixed context);
  *   - the tier slice (O158): the realised bridge outcome less p by world, year, the move's tiers and band (p in 0.05-0.95,
  *     below, above), with its standard error clustered by path.
- * Self-checks, each refusing the run: armTook, adaptTook (AO and ARS), pairTook and forceIdentity (as NE-GRID C's).
+ * Self-checks, each refusing the run: armTook, adaptTook (AO and AOL, each at its own lattice), pairTook and forceIdentity (as NE-GRID C's).
  * AO_PLANT=arm runs AO without its reference (armTook must refuse); pair takes D one tier step off on CO (pairTook must
  * refuse); force forces another opening as CAND's own on CO (forceIdentity must refuse); drift solves AO with the
  * reference's drift plant (every world grown at the centre's rates), a fault in p the tail check must flag.
@@ -43,15 +45,15 @@ import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
 
 // [household, arm, wealth points, shares, return nodes, P's paths a world as a multiple of the base]
-export const JOBS = [['S364', 'AO', 60, 6, 5, 10], ['S364', 'ARS', 60, 6, 5, 10], ['S364', 'CO', 60, 6, 5, 1]];
-export const ARMS = Object.freeze({ AO: { readerRef: 'adaptive' }, ARS: { readerRef: 'adaptive', readerSplit: 'rs' }, CO: { readerRef: 'order' } });
+export const JOBS = [['S364', 'AO', 60, 6, 5, 10], ['S364', 'AOL', 60, 6, 5, 10], ['S364', 'CO', 60, 6, 5, 1]];
+export const ARMS = Object.freeze({ AO: { readerRef: 'adaptive' }, AOL: { readerRef: 'adaptive' }, CO: { readerRef: 'order' } });
 export const PAIRS = Object.freeze({ S364: [12, 14] });
 export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
 export const FLOORS = Object.freeze({ S364: 205000 });
 export const TAIL = Object.freeze({ edges: [1e-4, 1e-3, 1e-2, 0.05, 0.95], per: 25, nsim: 100000, neng: 1000 });
-export const SPLIT = Object.freeze({ AO: null, ARS: 'rs', CO: null });
-// the reference's lattice (adaptive.js defaults, AN's)
-export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
+export const SPLIT = Object.freeze({ AO: null, AOL: null, CO: null });
+// the reference's lattice: AO's adaptive.js's defaults (AN's), AOL's twice as fine in the accessible money and the draws
+export const LATTICES = Object.freeze({ AO: Object.freeze({ na: 160, nb: 41, nz: 128 }), AOL: Object.freeze({ na: 320, nb: 41, nz: 256 }) });
 if (process.argv[2] === '--units') { console.log(JOBS.length); process.exit(0); }
 const STAMP = (() => {
   const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
@@ -86,7 +88,7 @@ JOBS.forEach((job, ji) => {
   const [id, arm, pts0, shares, quad, pMult] = job;
   const h = caseOf(id);
   if (!h) { console.error(`audit-ao: no case ${id}`); process.exit(2); }
-  const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job), planted = arm === 'CO', adaptive = arm === 'AO' || arm === 'ARS';
+  const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job), planted = arm === 'CO', adaptive = arm === 'AO' || arm === 'AOL', LATTICE = LATTICES[arm];
   console.log(`${id.padEnd(16)} case | job ${L} | points ${PTS} | lambda ${LAMBDA}`);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();

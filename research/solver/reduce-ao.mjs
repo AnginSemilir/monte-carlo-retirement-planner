@@ -1,14 +1,14 @@
 /*
  * AO'S REDUCER (PLAN.md AREF, its AO step; predictions/diag-ao.md; the deep review after AN, deep-review-log.md 15 Oct 21:05
- * UK). Four jobs at six shares, the candidate's own unit, seed 7002, into results/diagao: AO, ARS and CO on S364
- * (audit-ao.mjs: the adaptive reference with the default split, with the RS split, and the order reference) and A6 on S360
+ * UK). Four jobs at six shares, the candidate's own unit, seed 7002, into results/diagao: AO, AOL and CO on S364
+ * (audit-ao.mjs: the adaptive reference, the same on a finer lattice, and the order reference) and A6 on S360
  * (audit-an.mjs with AN_JOB=A6: NODE-AX's BO with its reference swapped), A6 read against NODE-AX's saved BO
  * (results/diagnodeax, behind NODE-AX's own gate) on the same 4,000 paths a world.
- * THE GATE: each job once and done at the registered settings (4,000 paths a world, P on ten times that on AO and ARS, 60
- *   points, seed 7002, the reference's lattice 160 by 41 with 128 draws), stamped as launched; its solve's meta reads the
+ * THE GATE: each job once and done at the registered settings (4,000 paths a world, P on ten times that on AO and AOL, 60
+ *   points, seed 7002, the reference's lattice 160 by 41 with 128 draws, AOL's 320 by 41 with 256), stamped as launched; its solve's meta reads the
  *   candidate's settings and the job's reference and split; every self-check in full (armTook, adaptTook, pairTook and
  *   forceIdentity on S364; armTook, adaptTook, refTook, ownTook, identity on 12,000 paths, qfTook and layerTook on A6); the
- *   registered pair (P ai 12, D ai 14); every run at its path count; the tail check's twelve cells printed on AO and ARS; the
+ *   registered pair (P ai 12, D ai 14); every run at its path count; the tail check's twelve cells printed on AO and AOL; the
  *   files whole and the logs'; NODE-AX's BO behind NODE-AX's gate, its file the one recorded (sha bc583b88e106e30a).
  * THE ITEMS:
  *   1 (primary): AO's read at P against its runs, ln(table / runs), in worlds 1 and 2: the table AO's P read at the year-0
@@ -19,8 +19,9 @@
  *     [-0.5, +0.5]; FALSIFIED when either world's interval lies wholly at or beyond one point either way; otherwise INCONCLUSIVE.
  *   3: no material harm to A6's runs against BO's on the same paths, worlds 0 and 1 (AN's item 2's rule: the exact conditional
  *     McNemar interval, the margin marginFor(BO's survival), Holm across the two worlds).
- *   4: ARS's read at P against its runs, worlds 1 and 2, as item 1.
- * REPORTED: every S364 job's tables and runs at P, D and its own opening by world, with ln(table / runs); CO against NE-GRID C's
+ * (Item 4, ARS's read under the RS split, was dropped at the preflight: under the adaptive reference the copied residual R
+ * is 0.00007 points of a 29-point year-1 read, so ARS's tables equalled AO's to 6e-6 points; AOL took its core.)
+ * REPORTED: AOL's read at P beside AO's (the lattice, the receipt's premise 2); every S364 job's tables and runs at P, D and its own opening by world, with ln(table / runs); CO against NE-GRID C's
  *   S364 ORDER (its bits and tables, behind NE-GRID C's gate) and NE-GRID C's S364 BASE at six shares beside; the probe's corner
  *   status and R's share at the year-1 reads; the tail check and the engine run by world and p-decade; the tier slice by year,
  *   tiers and band (O158); A6's ledger beside BO's, its luck-adjusted T (O160: a linear control variate on years 0 to 7's
@@ -39,18 +40,19 @@ import { pathsForSeed } from '../engine.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-ao.md';
-export const SEED = '7002', NPW = 4000, NQF = 1000, LATTICE = '160x41', NZ = 128, FIMAX = 1000;
-export const PMULT = Object.freeze({ AO: 10, ARS: 10, CO: 1 }), PAIR = Object.freeze([12, 14]);
+export const SEED = '7002', NPW = 4000, NQF = 1000, FIMAX = 1000;
+export const LATTICE = Object.freeze({ AO: ['160x41', 128], AOL: ['320x41', 256], A6: ['160x41', 128] });
+export const PMULT = Object.freeze({ AO: 10, AOL: 10, CO: 1 }), PAIR = Object.freeze([12, 14]);
 export const Z = 2.241402727604947, ALPHA1 = 0.05 / 2;   // Z: the 1 - 0.05 / 4 normal quantile (two worlds, two sides)
 export const IN1 = Math.log(2), OUT1 = Math.log(3), IN2 = 0.5, OUT2 = 1.0;
 export const NODEAX_BO_SHA = 'bc583b88e106e30a', BO_FILE = 'S360-BO-P60S6Q5.json.gz';
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
-export const S364 = ['AO', 'ARS', 'CO'], LABELS = Object.freeze({ AO: 'AO/P60S6Q5', ARS: 'ARS/P60S6Q5', CO: 'CO/P60S6Q5', A6: 'A6/P60S6Q5' });
+export const S364 = ['AO', 'AOL', 'CO'], LABELS = Object.freeze({ AO: 'AO/P60S6Q5', AOL: 'AOL/P60S6Q5', CO: 'CO/P60S6Q5', A6: 'A6/P60S6Q5' });
 export const q = x => (Number.isFinite(x) ? Math.round(x * 1e9) / 1e9 : x);
 export const sha16 = buf => createHash('sha256').update(buf).digest('hex').slice(0, 16);
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${esc(k)} (\\S+)`).exec(s); return m ? m[1] : null; };
-const CASEL = /^(S364|S360)\s+case \| job ((AO|ARS|CO|A6|ORDER|BASE)\/P(\d+)S(\d+)Q5) \| points (\d+) \| lambda (\S+)$/;
+const CASEL = /^(S364|S360)\s+case \| job ((AO|AOL|CO|A6|ORDER|BASE)\/P(\d+)S(\d+)Q5) \| points (\d+) \| lambda (\S+)$/;
 const HEAD = /^(AO|AN|NE-GRID C): .*?, (\d+) paths a world.*?, wealth points divided by (\d+(?:\.\d+)?) \(seed (\d+)\);/;
 
 export function parse(text) {
@@ -101,7 +103,7 @@ export function parse(text) {
 }
 
 const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null', readerChance: 'null', jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001', line: '0.5', mix: '3', shareNodes: 'none' };
-const ARMF = Object.freeze({ AO: { readerRef: 'adaptive', readerSplit: 'null', floor: '205000' }, ARS: { readerRef: 'adaptive', readerSplit: 'rs', floor: '205000' }, CO: { readerRef: 'order', readerSplit: 'null', floor: '205000' }, A6: { readerRef: 'adaptive', readerSplit: 'null', floor: '5000' } });
+const ARMF = Object.freeze({ AO: { readerRef: 'adaptive', readerSplit: 'null', floor: '205000' }, AOL: { readerRef: 'adaptive', readerSplit: 'null', floor: '205000' }, CO: { readerRef: 'order', readerSplit: 'null', floor: '205000' }, A6: { readerRef: 'adaptive', readerSplit: 'null', floor: '5000' } });
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } = {}) {
   const bad = [], pts = Math.max(4, Math.round(60 / scale)), fi = Math.min(npw, FIMAX);
   for (const x of jobs) if (!Object.values(LABELS).includes(x.label)) bad.push(`a job that is not AO's: ${x.label}`);
@@ -118,7 +120,7 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
     const need = arm === 'A6' ? ['armTook', 'adaptTook', 'refTook', 'ownTook', 'identity', 'qfTook', 'layerTook'] : ['armTook', 'pairTook', 'forceIdentity', ...(adaptive ? ['adaptTook'] : [])];
     for (const c of need) { const x = j.checks[c]; if (!x || !(x[1] > 0) || x[0] !== x[1] || (['armTook', 'adaptTook', 'pairTook'].includes(c) && x[1] !== 1)) bad.push(`${arm}: ${c} did not pass in full`); }
     if (arm !== 'A6' && j.checks.forceIdentity && j.checks.forceIdentity[1] !== fi) bad.push(`${arm}: forceIdentity not on ${fi} paths`);
-    if (adaptive && (!j.adaptive || j.adaptive.lattice !== LATTICE || j.adaptive.nz !== NZ || j.adaptive.nonMono !== 0 || !(j.adaptive.moves > 0))) bad.push(`${arm}: the reference was not built at the registered lattice (${LATTICE}, ${NZ} draws) with a monotone last year`);
+    if (adaptive && (!j.adaptive || j.adaptive.lattice !== LATTICE[arm][0] || j.adaptive.nz !== LATTICE[arm][1] || j.adaptive.nonMono !== 0 || !(j.adaptive.moves > 0))) bad.push(`${arm}: the reference was not built at the registered lattice (${LATTICE[arm][0]}, ${LATTICE[arm][1]} draws) with a monotone last year`);
     if (!j.own) bad.push(`${arm}: no openings line`);
     if (!j.solve) bad.push(`${arm}: no solve line`);
     if (arm === 'A6') {
@@ -196,7 +198,6 @@ export function items(R, P, S) {
   const ph = holm(pr.map(x => mcnemarHarmP(x.lost, x.saved)));
   const oc = pr.map((x, i) => ({ ...x, margin: marginFor(100 * x.bAlive / x.N), ...outcome({ b: x.lost, c: x.saved, N: x.N, margin: marginFor(100 * x.bAlive / x.N), pHolm: ph[i] }) }));
   out['3'] = { outcome: oc.some(x => x.outcome === 'harm') ? 'FALSIFIED' : oc.every(x => x.outcome === 'no material harm') ? 'HELD' : 'INCONCLUSIVE', cells: oc };
-  out['4'] = readItem([1, 2].map(k => ({ k, ...lnRead(...R('ARS', k)) })));
   return out;
 }
 
@@ -211,30 +212,28 @@ export function report(R, P, S) {
   L.push(`     ${it['2'].cells.map(x => `world ${x.k}: ${iv(x)}`).join('; ')}`);
   L.push(`3. no material harm to A6's runs against BO's on the same paths, worlds 0 and 1: ${it['3'].outcome}`);
   L.push(`     ${it['3'].cells.map(x => `world ${x.k}: lost ${x.lost} saved ${x.saved} of ${x.N}, change ${f4(x.d)} (${f4(x.lo)} to ${f4(x.hi)}) at margin ${x.margin}: ${x.outcome}`).join('; ')}`);
-  L.push(`4. ARS's read at P against its runs, as item 1: ${it['4'].outcome}${it['4'].side ? ` (${it['4'].side})` : ''}`);
-  L.push(`     ${it['4'].cells.map(lnLine).join('; ')}`);
-  L.push(`OUTCOME: ${['1', '2', '3', '4'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
-  for (const i of ['1', '2', '3', '4']) { const x = i === '1' || i === '4' ? it[i].cells[0].m : i === '2' ? it[i].cells[0].m : it[i].cells[0].d; L.push(`REALISED item ${i}: ${f4(x)}`); }
+  L.push(`OUTCOME: ${['1', '2', '3'].map(i => `${i} ${it[i].outcome}`).join(', ')}`);
+  for (const i of ['1', '2', '3']) { const x = i === '1' ? it[i].cells[0].m : i === '2' ? it[i].cells[0].m : it[i].cells[0].d; L.push(`REALISED item ${i}: ${f4(x)}`); }
   return L;
 }
 
 /* THE PLANTED CHECKS */
-const EDGES = [], ITEMS = ['1', '2', '3', '4'], REACHED = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
+const EDGES = [], ITEMS = ['1', '2', '3'], REACHED = { 1: new Set(), 2: new Set(), 3: new Set() };
 function planted() {
   const cases = [], N = 4000, NP = 40000;
   const arr = (m, s = 1) => Float64Array.from({ length: N }, (_, i) => (i % 2 ? m + s : m - s));
   const bitsOf = (alive, lose = 0, gain = 0) => { const b = new Uint8Array(N); for (let i = 0; i < alive; i++) b[i] = 1; for (let i = 0; i < lose; i++) b[i] = 0; for (let i = 0; i < gain; i++) b[alive + i] = 1; return b; };
-  // o.ao / o.ars: [table, runs] in worlds 1 and 2 (world 0 unread); o.gb: A6's GB by world; o.lose / o.gain: A6 against BO
+  // o.ao: [table, runs] by world (world 0 unread); o.gb: A6's GB by world; o.lose / o.gain: A6 against BO
   const mk = (o = {}) => {
     const per = { A6: {}, BO: {} };
     for (const arm of ['A6', 'BO']) for (const k of [0, 1, 2]) for (const x of KEYS) per[arm][`${x}${k}`] = arr(0);
     for (const k of [0, 1, 2]) per.A6[`GB${k}`] = arr(o.gb ? o.gb[k] : 0, o.s !== undefined ? o.s : 1);
     const bits = { BO: [0, 1, 2].map(() => bitsOf(2000)), A6: [0, 1, 2].map(k => bitsOf(2000, o.lose ? o.lose[k] : 0, o.gain ? o.gain[k] : 0)) };
-    const rd = { AO: o.ao || [[0.5, 200], [0.3, 120], [1.5, 600]], ARS: o.ars || [[0.5, 200], [0.3, 120], [1.5, 600]] };
+    const rd = { AO: o.ao || [[0.5, 200], [0.3, 120], [1.5, 600]] };
     return { R: (arm, k) => [rd[arm][k][0], rd[arm][k][1], NP], P: (arm, x, k) => per[arm][`${x}${k}`], S: (arm, k) => bits[arm][k] };
   };
   const outc = (i, o, want, what) => { const r = mk(o), got = items(r.R, r.P, r.S)[i].outcome; REACHED[i].add(got); cases.push([what, got, want]); };
-  // items 1 and 4: runs 120 of 40,000 (0.3 points) and 600 (1.5 points)
+  // item 1: runs 120 of 40,000 (0.3 points) and 600 (1.5 points)
   outc('1', {}, 'HELD', 'the tables at their runs in worlds 1 and 2: 1 HELD');
   outc('1', { ao: [[9, 200], [1.5, 120], [1.5, 600]] }, 'FALSIFIED', 'world 1 read at five times its runs: 1 FALSIFIED');
   outc('1', { ao: [[0.5, 200], [0.3, 120], [0.3, 600]] }, 'FALSIFIED', 'world 2 read at a fifth of its runs: 1 FALSIFIED');
@@ -254,10 +253,6 @@ function planted() {
     { const r = at(fOut), x = items(r.R, r.P, r.S)['1']; cases.push(['world 2\'s interval\'s foot just short of +ln 3: 1 INCONCLUSIVE', x.outcome, 'INCONCLUSIVE']); } }
   { const r = mk({ ao: [[0.5, 200], [9, 120], [0.1, 600]] }), x = items(r.R, r.P, r.S)['1']; cases.push(['over in world 1 and under in world 2: FALSIFIED, both sides named', `${x.outcome} ${x.side}`, 'FALSIFIED over and under']); }
   { const x = lnRead(1.5, 600, NP); cases.push(['ln(table / runs) at the table equal to the runs is 0, its interval about it', `${x.m} ${x.lo < 0 && x.hi > 0}`, '0 true']); }
-  outc('4', {}, 'HELD', 'ARS at its runs: 4 HELD');
-  outc('4', { ars: [[0.5, 200], [1.5, 120], [1.5, 600]] }, 'FALSIFIED', 'ARS world 1 at five times its runs: 4 FALSIFIED');
-  outc('4', { ars: [[0.5, 200], [0.3, 120], [2.8, 600]] }, 'INCONCLUSIVE', 'ARS world 2 at 1.9 times its runs: 4 INCONCLUSIVE');
-  outc('4', { ao: [[0.5, 200], [9, 120], [1.5, 600]] }, 'HELD', 'AO falsified, ARS at its runs (each item reads its own job): 4 HELD');
   // item 2 (se of a mean of 4,000 paths at spread 1: 1/sqrt(4000) = 0.0158)
   outc('2', {}, 'HELD', 'GB 0 in both worlds: 2 HELD');
   outc('2', { gb: [-1.5, 0, 0] }, 'FALSIFIED', 'GB -1.5 in world 0: 2 FALSIFIED (under)');
@@ -281,7 +276,7 @@ function planted() {
   { let st = 7; const rnd = () => { st = (st * 1103515245 + 12345) % 2147483648; return st / 2147483648; };
     const X = Array.from({ length: 2000 }, () => [rnd() * 2 - 0.8, rnd() * 2 - 1.2]), y = X.map(([a, b], i) => 2 + 0.5 * a - 0.3 * b + (i % 2 ? 1e-3 : -1e-3));
     const r = luckAdjusted(y, X); cases.push(['the luck adjustment recovers a known intercept (2) from shocks with a non-zero mean', f4(r.m), '2.0000']); }
-  { let L = [], err = null; const r = mk(); try { L = report(r.R, r.P, r.S); } catch (e) { err = e.message; } cases.push(['the read prints four items, an OUTCOME of four and four REALISED lines, end to end', err || `${['1.', '2.', '3.', '4.'].every(p => L.some(l => l.startsWith(p)))} ${(L.find(l => l.startsWith('OUTCOME: ')) || '').split(',').length} ${L.filter(l => l.startsWith('REALISED item ')).length}`, 'true 4 4']); }
+  { let L = [], err = null; const r = mk(); try { L = report(r.R, r.P, r.S); } catch (e) { err = e.message; } cases.push(['the read prints three items, an OUTCOME of three and three REALISED lines, end to end', err || `${['1.', '2.', '3.'].every(p => L.some(l => l.startsWith(p)))} ${(L.find(l => l.startsWith('OUTCOME: ')) || '').split(',').length} ${L.filter(l => l.startsWith('REALISED item ')).length}`, 'true 3 3']); }
   // the gate, on synthetic logs as the audits print them
   const pad = ''.padEnd(16);
   const ranOf = (arm, o) => `bridgeRead reader bridgeStep exact readerSplit ${o.split || ARMF[arm].readerSplit} readerBlend null readerRef ${o.ref || ARMF[arm].readerRef} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 60 grid total60x6x6 shareNodes ${o.nodes || 'none'} floor ${ARMF[arm].floor} line 0.5`;
@@ -289,7 +284,7 @@ function planted() {
     const Lb = LABELS[arm], npw = o.npw || NPW, ad = arm !== 'CO', bits = 'aaaaaaaaaaaaaaaa';
     const L = ['stamp: code c0 audit a0 prediction p0 sha s0', `AO: the candidate's own unit, ${o.headNpw || npw} paths a world (P ten times that where marked), wealth points divided by 1 (seed ${o.seed || 7002}); 3 jobs; part 0/3`];
     L.push(`S364             case | job ${Lb} | points 60 | lambda 0.0223606797749979`, `${pad} solve CAND ${Lb}: table 1.8 secs 3400`, `${pad} ran CAND ${Lb}: ${ranOf(arm, o)}`, `${pad} checks ${Lb}: armTook 1/1`);
-    if (ad) L.push(`${pad} adaptive ${Lb}: moves 24 nonMono ${o.nonMono || 0} lattice ${o.lattice || '160x41'}x3 nz 128 last year 7 secs 300.0`, `${pad} checks ${Lb}: adaptTook ${o.adapt !== undefined ? o.adapt : 1}/1`);
+    if (ad) L.push(`${pad} adaptive ${Lb}: moves 24 nonMono ${o.nonMono || 0} lattice ${o.lattice || LATTICE[arm][0]}x3 nz ${o.nz || LATTICE[arm][1]} last year 7 secs 300.0`, `${pad} checks ${Lb}: adaptTook ${o.adapt !== undefined ? o.adapt : 1}/1`);
     L.push(`${pad} pair ${Lb}: P ai ${o.p || 12} level 0.8 tiers 0,0; D ai 14 level 0.8 tiers 2,2`, `${pad} checks ${Lb}: pairTook ${o.pairTook !== undefined ? o.pairTook : 1}/1`, `${pad} openings ${Lb}: OWN ai 12 level 0.8 tiers 0,0`);
     for (let k = 0; k < 3; k++) L.push(`${pad} tables ${Lb} ${k} z 0 weight 0.3: P 1.5 D 1.1 OWN 1.5`, `${pad} probe ${Lb} ${k} P: reads 9 pr 1e-3 plain 1.5 deletion 0.1 residual 1.4 | sup w 0.1 p 0.6 S 60 c 1 R 0 | clip w 0 p 0 S 0 c 0 R 0 | copy w 0.9 p 0.01 S 1.5 c 1 R 1.4`);
     for (let k = 0; k < 3; k++) L.push(`${pad} sim ${Lb} ${k} P ai 12: 60/${(o.pn || npw * PMULT[arm])} bits ${bits}`, `${pad} sim ${Lb} ${k} D ai 14: 20/${npw} bits ${bits}`);
@@ -321,12 +316,15 @@ function planted() {
   refuses('pairTook failed on CO', { CO: { pairTook: 0 } });
   refuses('A6\'s identity held on another count of paths', { A6: { idN: 3 * 2000 } });
   refuses('AO run under the order reference (the arm plant)', { AO: { ref: 'order' } });
-  refuses('ARS without its RS split', { ARS: { split: 'null' } });
+  refuses('AOL under the RS split', { AOL: { split: 'rs' } });
+  refuses('AOL under the order reference', { AOL: { ref: 'order' } });
+  refuses('AOL\'s reference with AO\'s draws', { AOL: { nz: 128 } });
+  refuses('AOL\'s reference on AO\'s lattice', { AOL: { lattice: '160x41' } });
   refuses('CO under the adaptive reference', { CO: { ref: 'adaptive' } });
   refuses('A6 on share nodes', { A6: { nodes: '0,0.2,0.4,0.6,0.8,1' } });
   refuses('AO\'s reference on another lattice', { AO: { lattice: '40x11' } });
   refuses('AO\'s last year not monotone', { AO: { nonMono: 2 } });
-  refuses('adaptTook failed on ARS', { ARS: { adapt: 0 } });
+  refuses('adaptTook failed on AOL', { AOL: { adapt: 0 } });
   refuses('P on 4,000 paths on AO (not ten times)', { AO: { pn: NPW } });
   refuses('another forced pair on CO (the pair plant)', { CO: { p: 11 } });
   refuses('forceIdentity short on CO (the force plant)', { CO: { fi: 999 } });
@@ -398,14 +396,14 @@ if (isMain) {
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   const J = Object.fromEntries(Object.entries(LABELS).map(([a, l]) => [a, jobs.find(x => x.label === l)]));
   console.log(`planted (${np_}): all read as they should`);
-  console.log(`GATE: passed - AO, ARS, CO and A6 once and done at the registered settings (${npwA} paths a world, P at ten times on AO and ARS, scale ${scaleA}, seed ${SEED}); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai ${PAIR[0]}, D ai ${PAIR[1]}; the tail check's cells printed; the files the logs'${PRE ? '' : `; NODE-AX's BO behind NODE-AX's gate (${NODEAX_BO_SHA})`}`);
+  console.log(`GATE: passed - AO, AOL, CO and A6 once and done at the registered settings (${npwA} paths a world, P at ten times on AO and AOL, scale ${scaleA}, seed ${SEED}); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai ${PAIR[0]}, D ai ${PAIR[1]}; the tail check's cells printed; the files the logs'${PRE ? '' : `; NODE-AX's BO behind NODE-AX's gate (${NODEAX_BO_SHA})`}`);
   if (PRE) { console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
   const bitsOf = (f, nm) => Buffer.from(f.bits[nm], 'base64');
   const R = (arm, k) => { const j = J[arm], s = j.sims[`P${k}`]; return [j.tables[k].P, s.ok, s.n]; };
   const P = (arm, x, k) => dec((arm === 'A6' ? files[J.A6.file] : boFile).per[`${x}${k}`]);
   const S = (arm, k) => (arm === 'A6' ? bitsOf(files[J.A6.file], `OWN${k}`) : bitsOf(boFile, `OWN${k}`));
-  console.log('\nAO: the adaptive reference out of sample on S364 (AO, ARS; CO the order control) and at six shares on S360 (A6 against NODE-AX\'s BO) (predictions/diag-ao.md)');
-  for (const a of ['AO', 'ARS', 'A6']) { const x = J[a].adaptive; console.log(`  ${a}'s reference: ${x.moves} floor moves, lattice ${x.lattice} by ${x.ng} gain nodes, ${x.nz} draws, last bridge year ${x.TL}, built in ${x.secs} s; solve ${J[a].solve.secs} s`); }
+  console.log('\nAO: the adaptive reference out of sample on S364 (AO, AOL on a finer lattice; CO the order control) and at six shares on S360 (A6 against NODE-AX\'s BO) (predictions/diag-ao.md)');
+  for (const a of ['AO', 'AOL', 'A6']) { const x = J[a].adaptive; console.log(`  ${a}'s reference: ${x.moves} floor moves, lattice ${x.lattice} by ${x.ng} gain nodes, ${x.nz} draws, last bridge year ${x.TL}, built in ${x.secs} s; solve ${J[a].solve.secs} s`); }
   for (const L of report(R, P, S)) console.log(L);
   console.log('\nREPORTED');
   // S364's tables and runs (no survival item on S364: 7u-F's STOP)
@@ -428,12 +426,12 @@ if (isMain) {
   // the probe: corner status and R's share at the year-1 reads the year-0 score at P makes
   for (const a of S364) for (let k = 0; k < 3; k++) { const x = J[a].probe[k], st = nm => `${nm} ${f4(x[nm].w)} (p ${f4(x[nm].p)}, R ${f4(x[nm].R)})`; console.log(`  probe ${a} world ${k}: reads ${x.reads}; weight ${['sup', 'clip', 'copy'].map(st).join(', ')}; S ${f4(x.plain)} = deletion ${f4(x.deletion)} + residual ${f4(x.residual)} (R's share ${f4(x.plain > 0 ? x.residual / x.plain : NaN)})`); }
   // the tail check and the engine run
-  for (const a of ['AO', 'ARS']) {
+  for (const a of ['AO', 'AOL']) {
     const j = J[a]; console.log(`  tail ${a}: cells ${j.refTail.cells}, off ${j.refTail.off} simulated, ${j.refTail.engOff} in the engine (off: an interval wholly beyond ln 1.5)`);
     for (const x of j.tail) console.log(`    world ${x.k} p-decade ${x.bin}: records ${x.records} states ${x.states}${x.states ? ` years ${x.years} p ${x.p.toExponential(4)} | simulated ln ${f4(x.sim.ln)} (${f4(x.sim.lo)} to ${f4(x.sim.hi)})${x.sim.off ? ' off' : ''} | engine ln ${f4(x.eng.ln)} (${f4(x.eng.lo)} to ${f4(x.eng.hi)})${x.eng.off ? ' off' : ''}` : ''}`);
   }
   // the tier slice (O158): realised bridge outcome less p by year, the move's tiers and band
-  for (const a of ['AO', 'ARS']) for (const x of J[a].tier) console.log(`  tier ${a} world ${x.k} year ${x.t} tiers ${x.tiers} ${x.band}: records ${x.n} paths ${x.paths} realised less p ${f4(x.d)} (se ${f4(x.se)})`);
+  for (const a of ['AO', 'AOL']) for (const x of J[a].tier) console.log(`  tier ${a} world ${x.k} year ${x.t} tiers ${x.tiers} ${x.band}: records ${x.n} paths ${x.paths} realised less p ${f4(x.d)} (se ${f4(x.se)})`);
   // A6's ledger beside BO's, its luck-adjusted T and QF by year
   const fA6 = files[J.A6.file], paths = pathsForSeed(Number(SEED), npwA, 60);
   for (let k = 0; k < 3; k++) {

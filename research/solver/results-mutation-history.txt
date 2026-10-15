@@ -151,3 +151,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-15 21:14 UTC | reduce-ao.mjs f0771b543256 | 34 of 40 caught | escaped: NOT APPLIED (0 matches): 1: if (js.length !== 1) bad.push(; NOT CAUGHT: 4: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !; NOT CAUGHT: 11: ['armTook', 'pairTook', 'forceIdentity', ...(adaptive ? ['ad; NOT CAUGHT: 15: if (j.checks.identity && j.checks.identity[1] !== 3 * npw) b; NOT CAUGHT: 25: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>; NOT CAUGHT: 33: const inside = x => x.lo >= -IN2 && x.hi <= IN2, under = x =
 2026-10-15 21:14 UTC | reduce-ao.mjs 73c89eb37119 | 40 of 40 caught | escaped: none
 2026-10-15 21:17 UTC | reduce-ao.mjs 73c89eb37119 | 40 of 40 caught | escaped: none
+2026-10-15 22:11 UTC | reduce-ao.mjs 1652ec0b8eda | 39 of 41 caught | escaped: NOT CAUGHT: 7: AOL: { readerRef: 'adaptive', readerSplit: 'null', floor: '2; NOT CAUGHT: 18: j.adaptive.nz !== LATTICE[arm][1] || 
+2026-10-15 22:11 UTC | reduce-ao.mjs 54828374ea57 | 41 of 41 caught | escaped: none

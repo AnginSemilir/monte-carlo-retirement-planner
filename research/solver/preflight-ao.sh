@@ -1,7 +1,7 @@
 #!/bin/bash
 # AO's preflight (PREDICTION="none:..."; the test itself runs under predictions/diag-ao.md), at a fifteenth of the points and
-# 40 paths a world (P on 400 on AO and ARS), seed 7002: (A) BO-off - NODE-AX's BO preflight job rerun on this code against
-# the saved one, bit for bit (compare-preflight.mjs; AN's BN-off does not cover BO); (B) AO, ARS, CO and A6, read by
+# 40 paths a world (P on 400 on AO and AOL), seed 7002: (A) BO-off - NODE-AX's BO preflight job rerun on this code against
+# the saved one, bit for bit (compare-preflight.mjs; AN's BN-off does not cover BO); (B) AO, AOL, CO and A6, read by
 # reduce-ao.mjs --preflight (its gate and files; no figure read); (C) the plants, each of which must make its job refuse
 # (exit 3) on its own check: arm on AO (armTook), pair and force on CO (pairTook, forceIdentity), and on A6 arm (armTook),
 # drift, choice and step (refTook); (D) the drift plant on AO, a fault in p the reported tail check must flag in at least

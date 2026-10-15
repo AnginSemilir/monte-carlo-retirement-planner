@@ -1982,7 +1982,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
     built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}) });
-    g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL };
+    g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {
     chance(k, t, bills, ai0) {

@@ -20,6 +20,10 @@
  *     chance taken as 1 - Phi(z*) (the step split, as solve.js's stepExpect splits the final year); earlier years average
  *     the next year's table at `nz` equal-weight midpoints in u = Phi(z), as Step 0 did;
  *   - p is read by interpolation in log A, b and gf (zero below the A grid's foot, half of today's bill).
+ * `simulate` runs the reference's own rule forward from a state (the nearest lattice cell's joint move, the flow, the
+ * world's own returns at fresh draws), so an audit can check p against it (audit-an.mjs's refTook). `plant` (audits only):
+ * 'drift' grows every world at the centre world's rates, 'choice' values each world at its own best move, 'step' reads
+ * the last bridge year off the A lattice (Step 0's smear) - each a fault the simulation should see.
  * Off (any other readerRef), nothing here runs.
  */
 import * as F from './fast.js';
@@ -27,7 +31,7 @@ import { Phi } from './grid.js';
 
 const ZLO = -8, ZHI = 8;
 
-export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128 }) {
+export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '' }) {
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -67,16 +71,17 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   };
 
   // 2. THE EARLIER BRIDGE YEARS, backward: V[k][t] on a log-A by b by gf lattice
-  const AG = {}, V = Array.from({ length: K }, () => ({}));
+  const AG = {}, V = Array.from({ length: K }, () => ({})), MV = {}, centre = K >> 1;
   for (const t of bridge) {
-    if (t === TL) continue;
+    if (t === TL && plant !== 'step') continue;
     const bl = billsOf(t), d0 = bl[0], rem = bl.reduce((u, v) => u + Math.max(0, v), 0);
     const lo = Math.log(Math.max(100, 0.5 * d0)), hi = Math.log(3 * rem + d0);
     AG[t] = Float64Array.from({ length: na }, (_, i) => lo + (hi - lo) * i / (na - 1));
   }
   const readV = (k, t, A, b, gf) => {
     if (t > TL || !years[t]) return 1;
-    if (t === TL) return A >= astar(b, gf) ? 1 : 0;
+    if (t === TL && plant !== 'step') return A >= astar(b, gf) ? 1 : 0;
+    if (t === TL) { const ag = AG[TL], fa = Math.max(0, Math.min(na - 1 - 1e-9, (Math.log(Math.max(A, 1e-9)) - ag[0]) / (ag[1] - ag[0]))), ia = Math.floor(fa), wa = fa - ia, a0 = astar(b, gf); return (1 - wa) * (Math.exp(ag[ia]) >= a0 ? 1 : 0) + wa * (Math.exp(ag[ia + 1]) >= a0 ? 1 : 0); }
     const ag = AG[t], arr = V[k][t];
     if (!(A > 0)) return 0;
     const la = Math.log(A);
@@ -89,8 +94,8 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   };
   // the chance a post-flow state clears year TL's threshold after growing at the move's rates in world k
   const clearStep = (k, ai, t) => {
-    const ck = cs[k], act = ck.acts[ai];
-    const h = z => { grown.set(post); F.grow(ck, t, grown, realAt(ck, z, rr, act, t)); const A2 = grown[1] + grown[2]; return A2 - astar(A2 > 0 ? grown[1] / A2 : 0, grown[3]); };
+    const cg = cs[plant === 'drift' ? centre : k], ag2 = cg.acts[ai];
+    const h = z => { grown.set(post); F.grow(cg, t, grown, realAt(cg, z, rr, ag2, t)); const A2 = grown[1] + grown[2]; return A2 - astar(A2 > 0 ? grown[1] / A2 : 0, grown[3]); };
     if (h(ZLO) >= 0) return 1;
     if (h(ZHI) < 0) return 0;
     let lo = ZLO, hi = ZHI;
@@ -101,6 +106,7 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   for (let yi = bridge.length - 2; yi >= 0; yi--) {
     const t = bridge[yi], ag = AG[t], next = t + 1;
     for (let k = 0; k < K; k++) V[k][t] = new Float64Array(na * nb * NG);
+    MV[t] = new Int32Array(na * nb * NG);
     for (let ia = 0; ia < na; ia++) for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
       const A = Math.exp(ag[ia]), b = BG[jb], gf = gains[ig];
       setState(A, b, gf);
@@ -110,8 +116,8 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
         const keep = Float64Array.from(post);
         for (let k = 0; k < K; k++) {
           post.set(keep);
-          if (next === TL) { Q[mi][k] = clearStep(k, ai, t); continue; }
-          const ck = cs[k], act = ck.acts[ai];
+          if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
+          const ck = cs[plant === 'drift' ? centre : k], act = ck.acts[ai];
           let acc = 0;
           for (let zi = 0; zi < nz; zi++) { grown.set(keep); F.grow(ck, t, grown, realAt(ck, ZS[zi], rr, act, t)); const A2 = grown[1] + grown[2]; acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
           Q[mi][k] = acc / nz;
@@ -120,7 +126,12 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
       let best = 0, bestV = -1;
       for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v > bestV + 1e-15) { bestV = v; best = mi; } }
       const at = (ia * nb + jb) * NG + ig;
-      for (let k = 0; k < K; k++) V[k][t][at] = Q[best][k];
+      MV[t][at] = best;
+      for (let k = 0; k < K; k++) {
+        let bk = best;
+        if (plant === 'choice') { let bv = -1; for (let mi = 0; mi < NM; mi++) if (Q[mi][k] > bv + 1e-15) { bv = Q[mi][k]; bk = mi; } }
+        V[k][t][at] = Q[bk][k];
+      }
     }
   }
   // the chance at accessible money A and the position s (its ISA share, s[1] / A, and gain fraction, s[3]); a caller that
@@ -136,5 +147,30 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
     f.at = (s) => { held = s; };
     return f;
   };
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG } };
+  // THE RULE RUN FORWARD: from (A, b, gf) in bridge year t of world k, each year the nearest lattice cell's joint move (in the
+  // last bridge year, any floor move that pays), the flow, and growth at the world's own rates at a fresh draw (`gauss`);
+  // returns the share of `nsim` runs that pay every year to access
+  const nearest = (t, A, b, gf) => {
+    const ag = AG[t], ia = Math.max(0, Math.min(na - 1, Math.round((Math.log(Math.max(A, 1e-9)) - ag[0]) / (ag[1] - ag[0]))));
+    const jb = Math.max(0, Math.min(nb - 1, Math.round(Math.max(0, b) * (nb - 1))));
+    let ig = 0; for (let i = 1; i < NG; i++) if (Math.abs(gains[i] - gf) < Math.abs(gains[ig] - gf)) ig = i;
+    return MV[t][(ia * nb + jb) * NG + ig];
+  };
+  const simulate = (k, t, A0, b0, gf0, nsim, gauss) => {
+    let ok = 0;
+    for (let n = 0; n < nsim; n++) {
+      let A = A0, b = b0, gf = gf0, alive = true;
+      for (let y = t; y <= TL && alive; y++) {
+        setState(A, b, gf);
+        if (y === TL) { alive = false; for (const ai of moves) if (flowOk(TL, ai)) { alive = true; break; } break; }
+        const ai = moves[nearest(y, A, b, gf)];
+        if (!flowOk(y, ai)) { alive = false; break; }
+        const ck = cs[k]; grown.set(post); F.grow(ck, y, grown, realAt(ck, gauss(), rr, ck.acts[ai], y));
+        A = grown[1] + grown[2]; b = A > 0 ? grown[1] / A : 0; gf = grown[3];
+      }
+      if (alive) ok++;
+    }
+    return ok / nsim;
+  };
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG }, plant };
 }

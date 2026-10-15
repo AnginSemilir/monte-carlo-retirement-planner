@@ -8,8 +8,13 @@
  * tables), so its control is NODE-AX's saved BN (results/diagnodeax), behind NODE-AX's gate.
  * Self-checks as NODE-AX's (armTook, ownTook, identity, qfTook, layerTook), and adaptTook: the reference built, its last
  * bridge year's threshold monotone in the accessible money at every lattice point (nonMono 0), at the registered lattice.
- * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails), and
- * NODE-AX's layer, own, quad and held.
+ * refTook: in each p-bin of each world, the mean adaptive p at sampled in-band bridge records against the reference's own
+ * rule run forward from each (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws,
+ * seed 7002 + world), within 0.02 plus three standard errors (Step 0's dpTook); the bins where p sits above are counted (O157).
+ * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails), drift
+ * and choice (the reference's DP grows every world at the centre's rates, or values each world at its own best move:
+ * refTook fails), step (the last bridge year read off the lattice, Step 0's smear: printed, its refTook read), and NODE-AX's
+ * layer, own, quad and held.
  *   node research/solver/audit-an.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -49,7 +54,7 @@ if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-an: bad part ${part
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7002;
 if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-an: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
 const PLANT = process.env.AN_PLANT || '';
-if (PLANT && !['arm', 'layer', 'own', 'quad', 'held'].includes(PLANT)) { console.error(`audit-an: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT && !['arm', 'layer', 'own', 'quad', 'held', 'drift', 'choice', 'step'].includes(PLANT)) { console.error(`audit-an: unknown plant ${PLANT}`); process.exit(2); }
 if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, CLAMP = 1e-6, TOL = 1e-9;
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-an: the candidate does not carry e3pcls'); process.exit(2); }
@@ -96,7 +101,7 @@ JOBS.forEach((job, ji) => {
   console.log(`${id.padEnd(16)} case | job ${L} | points ${PTS} | lambda ${LAMBDA}`);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
-  const extra = { ...(PLANT === 'arm' ? { readerRef: 'order', shareNodes: NODES_A } : ARMS[arm]), adaptiveLattice: LAT, ...(quad !== 5 ? { quadNodes: quad } : {}) };
+  const extra = { ...(PLANT === 'arm' ? { readerRef: 'order', shareNodes: NODES_A } : ARMS[arm]), adaptiveLattice: { ...LAT, ...(['drift', 'choice', 'step'].includes(PLANT) ? { plant: PLANT } : {}) }, ...(quad !== 5 ? { quadNodes: quad } : {}) };
   const cand = solveCandidate(E, M, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W, ...extra });
   const mt = cand.meta;
   const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerBlend && !mt.readerSplit;
@@ -202,6 +207,33 @@ JOBS.forEach((job, ji) => {
       console.log(`${''.padEnd(16)} cliff ${L} ${k} ${t}: acc5 ${a5.toFixed(0)} acc95 ${a95.toFixed(0)} width ${(a95 - a5).toFixed(0)}; median W ${Number.isFinite(Wm) ? Wm.toFixed(0) : 'none'} share ${Number.isFinite(am) ? am.toFixed(4) : 'none'}; share cell ${Number.isFinite(aCell) ? aCell.toFixed(0) : 'none'} wealth cell ${Number.isFinite(wCell) ? wCell.toFixed(0) : 'none'} in accessible money`);
     });
   }
+  // refTook: the adaptive reference's p against its own rule run forward, by world and p-bin
+  { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = Math.max(10, Math.round(300 / SCALE)), NSIM = Math.max(100, Math.round(1000 / SCALE));
+    const DIM = recS.length / (recM.length / 7);
+    let rfOk = 0, rfN = 0, above = 0;
+    for (let k = 0; k < K; k++) {
+      let st = (7002 + k) >>> 0;
+      const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let x = st; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+      const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); while (v === 0) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+      const band = [];
+      for (let r = 0; r < recM.length / 7; r++) {
+        if (recM[7 * r] !== k) continue;
+        const t = recM[7 * r + 2], x = recS.slice(DIM * r, DIM * r + DIM), A = x[1] + x[2], b = A > 0 ? x[1] / A : 0, p = ref.readV(k, t, A, b, x[3]);
+        if (p >= BINS[0] && p <= BINS[5]) band.push({ t, A, b, gf: x[3], p });
+      }
+      const step = Math.max(1, Math.floor(band.length / PER)), pick = band.filter((_, j) => j % step === 0).slice(0, PER);
+      const bins = BINS.slice(0, -1).map(() => ({ n: 0, p: 0, mc: 0, v: 0 }));
+      for (const q of pick) { const mc = ref.simulate(k, q.t, q.A, q.b, q.gf, NSIM, gauss); let bi = BINS.findIndex((e, j) => q.p >= e && q.p < BINS[j + 1]); if (bi < 0) bi = 4; const x = bins[bi]; x.n++; x.p += q.p; x.mc += mc; x.v += mc * (1 - mc) / NSIM; }
+      bins.forEach((x, bi) => {
+        if (!x.n) return;
+        const mp = x.p / x.n, mm = x.mc / x.n, se = Math.sqrt(Math.max(x.v, 1e-12)) / x.n, ok = Math.abs(mp - mm) <= 0.02 + 3 * se;
+        rfN++; if (ok) rfOk++; if (mp > mm) above++;
+        console.log(`${''.padEnd(16)} refcheck ${L} ${k} ${bi}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`);
+      });
+    }
+    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins)`);
+    if (PLANT === 'step') console.log(`${''.padEnd(16)} step ${L}: refTook ${rfOk}/${rfN} with the last year read off the lattice (printed, not required to refuse)`);
+    else if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
   console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (ownOk !== idN || idOk !== idN) { console.error(`audit-an: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
   if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-an: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }

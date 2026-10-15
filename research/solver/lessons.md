@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## NODE-AX (closed 15 Oct 01:18)
+
+- [T:plant] the reducer's 84-of-84 mutation record stood on its blob before a last edit (the layer print's scale), so the committed reducer had no run (the plan-auditor's FAIL of 14 Oct 18:38 UK, BLOCKING 1) -> AUTOMATE (proposed for the maintainer's next unlock; run-from-snapshot.sh is locked): the launcher's outcome check refuses a reducer whose blob has no "N of N caught" entry in results-mutation-history.txt.
+- [T:design] [T:c-deep] item 4's first form read the de-risked layers' share of GB against their share of the path-years pooled across years, about half of it year composition (year 1 always the plan layer, the de-risked share growing into the late years); found by the narrow deep review before launch (deep-review-log.md 14 Oct 21:00 UK) -> REPLACE in new-prediction.mjs with: A share attributed to a subset of path-years is read against that subset's share year by year (year-matched), never pooled across years, and a cause read on it is held only with a state-matched read where the subset's states differ.
+- [T:c-preflight] the first quad plant (next year's spread) could not bite, a world's table holding one spread for every year; the preflight's rule that each plant is refused on its own named check caught it (runs.log 14 Oct, on 8fc933b) -> DROP: the rule worked as built; the plant was replaced (7490c38).
+- [T:enforce] escalation trigger 1 was declared hours after NODE-1's close, and the uncertainty index counted registration rows as settled results, forcing two extra deep reviews (the narrow review's receipt) -> AUTOMATE (proposed for the maintainer's next unlock; triggers.mjs and uncertainty.mjs are locked): triggers.mjs --due names trigger 1 when two consecutive deep-review-designed tests close with the primary item INCONCLUSIVE, and uncertainty.mjs counts a row as settled only when it names a prediction and its fair-test cell is not "n/a".
+- [T:other:calibration] Brier 0.068 over 5; every item at its likeliest outcome, item 1's point -1.5130 against the realised -1.7654, inside its 80% interval (-2.3828 to -0.4957) -> DROP: the deep review after NODE-AX reads the year profile.
+
 ## NODE-1 (closed 14 Oct 06:07)
 
 - [T:design] the review's decision lines (the table within 2.5 points of its runs, at least 3.75 under) could not reach FALSIFIED at 4,000 paths for a table that does not move; found only because the derivation printed them beside the replacement on the same draws (INCONCLUSIVE 0.73 against 0.32, results-derive-node1.txt) -> REPLACE in new-prediction.mjs with: A review's decision lines are run through the power model on the same draws as any replacement, both printed, before registration.

@@ -78,6 +78,7 @@ export const TESTS = [
   { name: 'NE-REF (S364\'s log gap under RS split into the reference\'s parts; RS with the order-drawn reference; RS on S360)', prediction: 'predictions/diag-neref.md', results: 'results-neref.txt', unscored: ['3'] },
   { name: 'REF-2 (S360 under RS with and without the order-drawn reference; the state\'s own pots at S360\'s states; the order-drawn reference on the 95% share household)', prediction: 'predictions/diag-ref2.md', results: 'results-ref2.txt' },
   { name: 'NODE-1 (S360 under ORDER with explicit pension-share nodes against six shares; the option inert off)', prediction: 'predictions/diag-node1.md', results: 'results-node1.txt' },
+  { name: 'NODE-AX (S360\'s remaining under-read with the dense share nodes split by bridge year and tier layer: the exact grid ledger)', prediction: 'predictions/diag-nodeax.md', results: 'results-nodeax.txt' },
 ];
 
 export function credences(predText) {

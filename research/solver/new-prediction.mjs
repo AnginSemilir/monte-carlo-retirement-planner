@@ -61,6 +61,7 @@ A review's decision lines are run through the power model on the same draws as a
 An unscored item is listed in its scorecard entry's unscored list, and scorecard.mjs is run on the prediction before registration; a registered line is never reworded after the read. Such an item (one previewed before registration, say) stays off the OUTCOME line, and the fair-test gate hashes the prediction (NE-REF's item 3, the plan-auditor's FAIL of 13 Oct 18:18 UK).
 An out-of-sample household is an item with its own falsifier, not a report, when the test's deciding household is the one where the mechanism was first found.
 A net or estate item names which of the mean, the capped mean or the median it reads, and why the score or the app reads that one; the others are reported beside it (above the bequest cap the score is flat, so an uncapped mean follows the unscored tail: DT-O97).
+A share attributed to a subset of path-years (a tier layer, a state band) is read against that subset's share year by year (year-matched), never pooled across years, and a cause read on it is held only with a state-matched read where the subset's states differ (NODE-AX's item 4: the de-risked layers' pooled excess was about half year composition, the narrow deep review of 14 Oct 21:00 UK).
 
 ## Prediction
 

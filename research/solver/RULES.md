@@ -225,6 +225,12 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 36. check-prediction's 0.05 tolerance accepts a credence below a derived 1.00 (cap dropped 10 Oct).
 37. check-plan's design-review rule reads a gate recorded met only on a line naming a research/tests file; one naming no
    test escapes it (the plan-auditor's MINOR 2 of 11 Oct 07:51 UK).
+38. check-plan's reported-line grade (reportedGradeProblems, 15 Oct) reads only figures of three decimals or more that the
+   row's own cited results print solely under a REPORTED block, each graded by its nearest grade mention. It misses a
+   measurement file with no REPORTED block (O150's results-needge-under.txt, 13 Oct; Step 0's results-policy-gap.txt,
+   14 Oct), counts and short figures, a figure whose nearest mention is C while the row grades it B elsewhere, a reported
+   figure whose digits also stand on an item line, and figures from a file another row cites (the plan-auditor's MINOR 1
+   of 15 Oct 10:11 UK). The review stays the check; the rule backs it.
 ---
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)

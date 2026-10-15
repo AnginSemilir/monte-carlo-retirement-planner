@@ -172,5 +172,5 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
     }
     return ok / nsim;
   };
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG }, plant };
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG }, plant };   // moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
 }

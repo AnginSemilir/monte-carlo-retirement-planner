@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
+import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET, reportedLines, reportedGradeProblems } from '../solver/check-plan.mjs';
 import { constantOutcomeProblems } from '../solver/check-prediction.mjs';
 import { mutationProblems, reducerSha, MUTATION_FROM } from '../solver/check-prediction.mjs';
 import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM, heldToJudged, exemptBy, judgedOrderProblems, baseRateProblems, CREDENCE_BOUNDARY, JUDGED_BOUNDARY } from '../solver/check-prediction.mjs';
@@ -42,6 +42,27 @@ const caught = (errs, tag, what) => ok(errs.some(e => e.startsWith(`[${tag}]`)),
   const t7 = read('predictions/diag-7t.md'), name = join(S, 'predictions/diag-7t.md');
   ok(checkPredictionText(t7, { name }).length === 0, 'diag-7t.md passes the checker on its own Unmasking field');
   ok(checkPredictionText(t7.replace(/^- \*\*Unmasking:\*\*.*\n/m, ''), { name }).some(e => /missing "- \*\*Unmasking/.test(e)), 'planted: diag-7t.md without its Unmasking field is refused (no exemption by name)');
+}
+
+// THE REPORTED-LINE GRADE (check-plan.mjs reportedGradeProblems): a grade A or B may not rest on figures the cited results
+// print only under REPORTED; each figure belongs to its nearest grade mention, unless NOT CHECKED stands between
+{
+  const RES = 'head\nREPORTED\n  world 0: 32.4280 against 33.3000\nOUTCOME: 1 HELD\nitem 1: 0.5784 (0.4 to 0.7)\n  REPORTED, the probe 0.7842\n    under it 1.9162\nlast 2.0000\n';
+  const rd = f => (f === 'results-zz.txt' ? RES : ''), ex = f => f === 'results-zz.txt';
+  const rl = reportedLines(RES);
+  ok([...rl].sort().join(',') === '1,2,5,6', 'reported lines: a REPORTED heading, the lines indented under it, an indented "REPORTED, ..." line and its own indented lines');
+  const g = (l) => reportedGradeProblems(l, rd, ex);
+  ok(g('| O9 | x (results-zz.txt; grade B): at 120 points 32.4280 against 33.3000 |').length === 1, 'planted: a grade B on figures printed only under REPORTED is flagged (O143, 13 Oct)');
+  ok(g('| O9 | x (results-zz.txt, reported, grade B): y |').some(e => /calls a line reported/.test(e)), 'planted: "reported, grade B" is flagged');
+  ok(g('| O9 | x (results-zz.txt; grade C, a reported line): 32.4280 against 33.3000 |').length === 0, 'a reported figure graded C passes');
+  ok(g('| O9 | x (results-zz.txt; grade B): item 1 0.5784, with 32.4280 beside it |').length === 0, 'a grade B resting on an item figure passes');
+  ok(g(`| O9 | x (grade C, a review's reading across records)${' and more words'.repeat(20)}; NE (results-zz.txt; grade B): 32.4280 against 33.3000 |`).length === 1, 'planted: a grade C elsewhere on the row does not cover a grade B clause on reported figures (O143 as written)');
+  ok(g('| O9 | x (results-zz.txt; grade B): item 1 HELD; whether it carries NOT CHECKED (the probe: 0.7842) |').length === 0, 'a figure marked NOT CHECKED after the grade is not graded by it (PR18)');
+  ok(g('| O9 | x (results-zz.txt; grade B): the probe 0.7842 and under it 1.9162 |').length === 1, 'planted: figures under an indented "REPORTED, ..." line are reported');
+  ok(g('| O9 | x (results-zz.txt; grade B): 2.0000 |').length === 0, 'a figure on a line after the REPORTED block ends is an item\'s');
+  // PR22 as it stood before 15 Oct, its opening's reported figures under the row's grade B (regraded C since)
+  const pr22 = (read('PLAN.md').split('\n').find(l => l.startsWith('| PR22 |')) || '').replace(' at its own opening, a reported line, grade C), its coarse over-read a resolution effect (items 1 and 2 HELD; grade B, one seed)', ' at its own opening), its coarse over-read a resolution effect (grade B, one seed)');
+  ok(/at its own opening\), its coarse/.test(pr22) && run({ added: [pr22] }).some(e => e.startsWith('[grade]')) && !run({}).some(e => e.startsWith('[grade]')), 'check-plan refuses an added row grading reported figures B (PR22 as it stood); the rows as they stand are not read');
 }
 
 // the real plan passes

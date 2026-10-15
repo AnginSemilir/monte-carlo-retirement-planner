@@ -154,6 +154,46 @@ const OUTCOME_WORD = /(?:\breads?|->|:)\s*CALIBRATED\b/g;
 // target ("in <path>") and its new text ("with: <text>"), and once a later close exists the target holds that text's first
 // 40 characters (spaces collapsed); the lines before it were written into the skill under the same unlock
 export const REPLACE_FROM = minuteKey('4 Oct 14:30 UK');
+// THE REPORTED-LINE GRADE (the lesson of 13 Oct, [T:overclaim]: O143's reported line graded B, the plan-auditor's FAIL of
+// 13 Oct 01:43 UK, and O156's of 15 Oct; built on the maintainer's go-ahead after the retirement pass of 15 Oct): an added
+// plan line may not grade A or B the figures its cited results files print only under REPORTED.
+// the lines of a results file a reducer prints under REPORTED: a line opening REPORTED (or "SECONDARY, REPORTED"), and the
+// lines indented under it
+export function reportedLines(text) {
+  const out = new Set(); let at = -1;
+  String(text).replace(/−/g, '-').split('\n').forEach((l, i) => {
+    const ind = l.length - l.trimStart().length, t = l.trim();
+    if (/^(SECONDARY, )?REPORTED\b/.test(t)) { at = ind; out.add(i); return; }
+    if (at >= 0 && t && ind > at) { out.add(i); return; }
+    if (t) at = -1;
+  });
+  return out;
+}
+// a grade A or B given to figures the cited results files print only under REPORTED: each figure (three decimals or more)
+// belongs to the grade mention nearest it on the line ("grade B", "C for ..."), unless NOT CHECKED stands between them;
+// returns the problems
+export function reportedGradeProblems(line, read, exists) {
+  const P = [], t = String(line).replace(/−/g, '-');
+  if (/\breported,? (?:and )?grade [AB]\b/i.test(t)) P.push('it calls a line reported and grades it A or B (a REPORTED line is grade C)');
+  const grades = [...t.matchAll(/\bgrade ([ABCD])\b|\b([ABCD]) for\b/g)].map(m => ({ g: m[1] || m[2], at: m.index }));
+  if (!grades.some(x => /[AB]/.test(x.g))) return P;
+  const files = [...new Set(t.match(/results-[\w.-]+\.txt/g) || [])].filter(exists);
+  if (!files.length) return P;
+  const L = files.flatMap(f => { const s = String(read(f)).replace(/−/g, '-'), rep = reportedLines(s); return s.split('\n').map((x, i) => ({ x, rep: rep.has(i) })); });
+  const by = new Map();
+  for (const m of t.matchAll(/[-+]?\d+\.\d{3,}/g)) {
+    const f = m[0].replace(/^\+/, ''), hit = L.filter(o => o.x.includes(f));
+    if (!hit.length) continue;
+    const near = grades.reduce((a, b) => (Math.abs(b.at - m.index) < Math.abs(a.at - m.index) ? b : a));
+    if (!/[AB]/.test(near.g)) continue;
+    if (/NOT CHECKED/.test(t.slice(Math.min(near.at, m.index), Math.max(near.at, m.index)))) continue;   // a figure marked unchecked is not graded
+    const e = by.get(near.at) || { g: near.g, item: 0, rep: [] }; by.set(near.at, e);
+    if (hit.some(o => !o.rep)) e.item++; else e.rep.push(f);
+  }
+  for (const e of by.values()) if (e.rep.length && !e.item) P.push(`its grade ${e.g} rests on figures the cited results print only under REPORTED (${e.rep.slice(0, 3).join(', ')}): a reported line is grade C`);
+  return P;
+}
+
 export function replaceProblems(L, readFile) {
   const P = [], norm = x => String(x).replace(/\s+/g, ' ').trim();
   // "the next close" is the next in time, not in the file (the second unlock of 5 Oct: HYB's close sits above COV-B-STEP's)
@@ -366,6 +406,7 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], ad
   const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));
   for (const raw of added) {
     const line = unquoted(raw, strikeAt(planLines, raw));
+    if (raw.startsWith('|')) for (const q of reportedGradeProblems(raw, readSolverFile, solverFileExists)) err('grade', `"${raw.trim().slice(0, 60)}...": ${q}`);
     if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
     else if (NO_EFFECT.test(line) && !/not checked/i.test(raw) && !GRADE_AB.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs evidence of grade A or B, named on the same line ("grade A" or "grade B"; RULES.md section 8)`);
     if (CLAIM.test(line.replace(NOT_A_CLAIM, ' ')) && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${CLAIM.exec(line.replace(NOT_A_CLAIM, ' ')).slice(1).find(Boolean)}" is a claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (RULES.md section 8)`);

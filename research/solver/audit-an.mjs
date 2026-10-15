@@ -11,8 +11,9 @@
  * refTook: the mean adaptive p at sampled in-band bridge records against the reference's own rule run forward from each
  * (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws, the tuning seed scaled,
  * 7002 x 1000 + world, so no registry seed is a state), in each p-bin of each world (300 states a world) and in each bridge
- * year of each world (100 a world-year: O157's gate), 1,000 runs a state at every scale, each cell within 0.02 plus three
- * standard errors (Step 0's dpTook); the cells where p sits above are counted (O157).
+ * year of each world (100 a world-year: O157's gate), 1,000 runs a state at every scale, each cell within 0.01 plus three
+ * standard errors (Step 0's 0.02 let the choice and step plants pass); the cells where p sits above are counted (O157); a
+ * refusal is raised after the file is written.
  * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails); drift,
  * choice and step (the reference's DP grows every world at the centre's rates; values each world at its own best move;
  * reads the last bridge year off the lattice, Step 0's smear): refTook fails; and NODE-AX's layer, own, quad and held.
@@ -98,7 +99,7 @@ JOBS.forEach((job, ji) => {
   const [id, arm, pts0, , quad] = job;
   const h = caseOf(id);
   if (!h) { console.error(`audit-an: no case ${id}`); process.exit(2); }
-  const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job);
+  const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job); let refBad = null;
   console.log(`${id.padEnd(16)} case | job ${L} | points ${PTS} | lambda ${LAMBDA}`);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -212,10 +213,13 @@ JOBS.forEach((job, ji) => {
   // in the band (O157's gate: the check read by year). The sample is the registered one at every scale (the plan-auditor's
   // FAIL of 15 Oct 15:37 UK: the preflight's scaled sample widened the tolerance to 0.06-0.09 and let the choice plant's
   // gap of 0.055 pass)
-  { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = 300, PERY = 100, NSIM = 1000;
+  // its floor 0.01, set on the fourth preflight (15 Oct 16:39 UK): at Step 0's 0.02 the choice and step plants' gaps (+0.020 to
+  // +0.028) passed, the clean run's largest being 0.015 in a cell of 3 states; a refusal is raised after the file is written
+  // (refBad), so a refused run keeps its files for the diagnosis while the gate still refuses its read
+  { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = 300, PERY = 100, NSIM = 1000, TOL0 = 0.01;
     const DIM = recS.length / (recM.length / 7);
     let rfOk = 0, rfN = 0, above = 0; const r0t = Date.now();
-    const judge = (x, tag) => { if (!x.n) return; const mp = x.p / x.n, mm = x.mc / x.n, se = Math.sqrt(Math.max(x.v, 1e-12)) / x.n, ok = Math.abs(mp - mm) <= 0.02 + 3 * se; rfN++; if (ok) rfOk++; if (mp > mm) above++; console.log(`${''.padEnd(16)} ${tag}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`); };
+    const judge = (x, tag) => { if (!x.n) return; const mp = x.p / x.n, mm = x.mc / x.n, se = Math.sqrt(Math.max(x.v, 1e-12)) / x.n, ok = Math.abs(mp - mm) <= TOL0 + 3 * se; rfN++; if (ok) rfOk++; if (mp > mm) above++; console.log(`${''.padEnd(16)} ${tag}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`); };
     for (let k = 0; k < K; k++) {
       let st = (7002 * 1000 + k) >>> 0;   // the tuning seed scaled, so no registry seed (7003 Phase 4, 7004 the second) is used as a state
       const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let x = st; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
@@ -235,7 +239,7 @@ JOBS.forEach((job, ji) => {
       for (const t of bridge) { const x = { n: 0, p: 0, mc: 0, v: 0 }; for (const q of thin(band.filter(r => r.t === t), PERY)) add(x, q); judge(x, `refyear ${L} ${k} ${t}`); }
     }
     console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} cells; by p-bin ${PER} states a world, by year ${PERY} a world-year, ${NSIM} runs a state, secs ${((Date.now() - r0t) / 1000).toFixed(1)})`);
-    if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
+    if (!(rfN > 0) || rfOk !== rfN) refBad = `audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`; }
   console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (ownOk !== idN || idOk !== idN) { console.error(`audit-an: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
   if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-an: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }
@@ -246,4 +250,5 @@ JOBS.forEach((job, ji) => {
   writeFileSync(join(OUT, fileOfJob(job)), gzipSync(JSON.stringify({ id, job: L, stamp: STAMP, NPW, seed: SEED, own: ownC, bridge, nqf: NQ, nfine: NFINE, paths: { cols: 'world path year move tierPen tierIsa layer', meta: b64(Int32Array.from(recM)), dim: recS.length / (recM.length / 7), states: b64(Float32Array.from(recS)), G: b64(Float32Array.from(recG)), B: b64(Float32Array.from(recB)), Q: b64(Float32Array.from(recQ)) }, bits: Object.fromEntries(Object.entries(bits).map(([x, v]) => [x, b64(v)])), per: Object.fromEntries(Object.entries(per).map(([x, v]) => [x, b64(v)])), tables })));
   console.log(`${''.padEnd(16)} file ${L}: ${fileOfJob(job)}`);
   console.log(`${''.padEnd(16)} done ${L}`);
+  if (refBad) { console.error(refBad); process.exit(3); }
 });

@@ -1,0 +1,45 @@
+stamp: code d297b820d217 audit 6734e5b73f54 prediction none sha -
+AREF0: the adaptive floor chance at NODE-AX's BN records and tables, DP grid scale 4, 200 simulations a checked state (seed 7002)
+S360             case | job BN/P60S15Q5 | points 60 | lambda 0.0223606797749979
+                 nodeax BN/P60S15Q5: file 769a2d449e7738d1 stamp d297b820d217 89aeb1b2bf3c records 79186
+                 solve CAND BN/P60S15Q5: points 4 secs 553
+                 menu BN/P60S15Q5: bridge years 1,2,3,4,5,6,7 floor 0.8 moves 24 worlds 3 weights 0.166667,0.666667,0.166667
+                 checks BN/P60S15Q5: gridTook 1/1 (4 points 3240 against 3240; 60 points 48600 against the saved 48600; tier state 0/0,1/1,2/2 against NODE-AX's 0/0,1/1,2/2)
+                 dp BN/P60S15Q5: grid 40 by 11, 32 draws, years 1 to 7, secs 1
+                 checks BN/P60S15Q5: recTook 79186/79186
+                 cal BN/P60S15Q5 0 0: records 3472 p 0.117507 realised 0.110887 today 0.101020
+                 cal BN/P60S15Q5 0 1: records 2816 p 0.295373 realised 0.298295 today 0.260385
+                 cal BN/P60S15Q5 0 2: records 1937 p 0.494967 realised 0.473929 today 0.441995
+                 cal BN/P60S15Q5 0 3: records 1581 p 0.699462 realised 0.694497 today 0.616117
+                 cal BN/P60S15Q5 0 4: records 1112 p 0.873891 realised 0.907374 today 0.833007
+                 cal BN/P60S15Q5 1 0: records 2392 p 0.118633 realised 0.097826 today 0.101294
+                 cal BN/P60S15Q5 1 1: records 2626 p 0.299494 realised 0.281417 today 0.265531
+                 cal BN/P60S15Q5 1 2: records 2489 p 0.500195 realised 0.494978 today 0.461467
+                 cal BN/P60S15Q5 1 3: records 2325 p 0.700065 realised 0.688602 today 0.652862
+                 cal BN/P60S15Q5 1 4: records 2257 p 0.885419 realised 0.910058 today 0.879686
+                 cal BN/P60S15Q5 2 0: records 1198 p 0.120725 realised 0.098497 today 0.101276
+                 cal BN/P60S15Q5 2 1: records 1576 p 0.304011 realised 0.284264 today 0.273558
+                 cal BN/P60S15Q5 2 2: records 2099 p 0.505157 realised 0.500715 today 0.480093
+                 cal BN/P60S15Q5 2 3: records 2671 p 0.706303 realised 0.708349 today 0.690859
+                 cal BN/P60S15Q5 2 4: records 2894 p 0.880817 realised 0.907049 today 0.914801
+                 dpcheck BN/P60S15Q5 0 0: states 27 p 0.121229 simulated 0.105556 se 0.004137 ok
+                 dpcheck BN/P60S15Q5 0 1: states 19 p 0.309073 simulated 0.285263 se 0.007263 ok
+                 dpcheck BN/P60S15Q5 0 2: states 16 p 0.477612 simulated 0.439062 se 0.008445 ok
+                 dpcheck BN/P60S15Q5 0 3: states 9 p 0.726892 simulated 0.728333 se 0.010327 ok
+                 dpcheck BN/P60S15Q5 0 4: states 4 p 0.871868 simulated 0.907500 se 0.010217 ok
+                 dpcheck BN/P60S15Q5 1 0: states 16 p 0.107972 simulated 0.088125 se 0.004971 ok
+                 dpcheck BN/P60S15Q5 1 1: states 13 p 0.319423 simulated 0.286154 se 0.008763 ok
+                 dpcheck BN/P60S15Q5 1 2: states 7 p 0.499926 simulated 0.499286 se 0.013279 ok
+                 dpcheck BN/P60S15Q5 1 3: states 17 p 0.697024 simulated 0.692353 se 0.007827 ok
+                 dpcheck BN/P60S15Q5 1 4: states 22 p 0.889055 simulated 0.916136 se 0.004144 ok
+                 dpcheck BN/P60S15Q5 2 0: states 13 p 0.111310 simulated 0.090769 se 0.005590 ok
+                 dpcheck BN/P60S15Q5 2 1: states 13 p 0.303218 simulated 0.274615 se 0.008646 ok
+                 dpcheck BN/P60S15Q5 2 2: states 16 p 0.491230 simulated 0.479063 se 0.008771 ok
+                 dpcheck BN/P60S15Q5 2 3: states 20 p 0.715394 simulated 0.719500 se 0.007039 ok
+                 dpcheck BN/P60S15Q5 2 4: states 13 p 0.873919 simulated 0.894615 se 0.005961 ok
+                 checks BN/P60S15Q5: dpTook 15/15
+                 flat BN/P60S15Q5 0: nodes 1020600 band 52041 supported 39108 c in [0.9, 1] 7572
+                 flat BN/P60S15Q5 1: nodes 1020600 band 49560 supported 36312 c in [0.9, 1] 7905
+                 flat BN/P60S15Q5 2: nodes 1020600 band 48045 supported 34977 c in [0.9, 1] 6906
+                 file BN/P60S15Q5: S360-BN-P60S15Q5.json.gz
+                 done BN/P60S15Q5

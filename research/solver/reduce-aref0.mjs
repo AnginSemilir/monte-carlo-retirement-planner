@@ -158,7 +158,9 @@ function planted() {
   outc('1', { dp: { 0: [0, 0, 0.04, 0, 0], 1: [0, 0, 0, 0, 0] } }, FL0, 'INCONCLUSIVE', 'p 0.04 over, 400 paths: its interval spans 0.03: 1 INCONCLUSIVE');
   // a bin under the minimum is not read: worlds' records only in bins 0 and 4 for world 1
   { const r = mk(); const keep = r.P.map((p, i) => !(r.world[i] === 1 && binOf(p) >= 1 && binOf(p) <= 3)); const f = (a) => a.filter((_, i) => keep[i]); const R2 = { P: f(r.P), X: f(r.X), RD: f(r.RD), world: f(r.world), path: f(r.path) };
-    const it = items(R2, FL0); cases.push(['world 1 with records in its end bins only: its middle bins are not read (n 0)', it['1'].cells[1].filter(x => x.n === 0).length, 3]); EDGES.push('a bin with no records'); }
+    const it = items(R2, FL0); cases.push(['world 1 with records in its end bins only: its middle bins are not read (n 0)', it['1'].cells[1].filter(x => x.n === 0).length, 3]); EDGES.push('a bin with no records');
+    const rb = mk({ copies: 25 }), kb = rb.P.map((p, i) => !(rb.world[i] === 1 && binOf(p) >= 1 && binOf(p) <= 3)), fb = a => a.filter((_, i) => kb[i]);
+    cases.push(['the same, 25 times the paths: the empty bins are left out, so 1 HELD', items({ P: fb(rb.P), X: fb(rb.X), RD: fb(rb.RD), world: fb(rb.world), path: fb(rb.path) }, FL0)['1'].outcome, 'HELD']); }
   { const it = run(); cases.push(['the bins hold 400 records of 400 paths each', `${it['1'].cells[0][2].n} ${it['1'].cells[0][2].clusters}`, '400 400']); }
   // the exact edge: the interval's top exactly 0.03
   { const r = mk(); const se2 = (() => { const it = items(r, FL0); const x = it['1'].cells[0][4]; return (x.hi - x.m) / Z_B; })(); cases.push(['the interval\'s half-width is Z_B times the clustered standard error', se2 > 0, true]); }

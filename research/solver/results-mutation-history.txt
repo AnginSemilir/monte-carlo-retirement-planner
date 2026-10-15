@@ -144,3 +144,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-14 18:49 UTC | reduce-nodeax.mjs d88c8f4c150b | 117 of 117 caught | escaped: none
 2026-10-14 20:17 UTC | reduce-nodeax.mjs c0796f025713 | 136 of 143 caught | escaped: NOT CAUGHT: 24: if (!pr || !(nm > 0) || nm % 7 !== 0 || !(pr.dim > 0) || ns ; NOT CAUGHT: 101: if (r.layer[x] !== r.li0) st[t] = (st[t] || 0) + 1;; NOT CAUGHT: 107: return { k, F, Sw: q(; NOT CAUGHT: 109: const r = R('BN', k), st = {}, nt = {};; NOT CAUGHT: 111: const ord = [...xs].sort((u, v) => r.B[u] - r.B[v]); NOT CAUGHT: 117: const d = D / wsum, se = Math.sqrt(V) / wsum;; NOT CAUGHT: 123: ${it.sm.yes ? 'YES' : 'NO'}
 2026-10-14 20:21 UTC | reduce-nodeax.mjs 5b74e7dec76b | 142 of 142 caught | escaped: none
+2026-10-15 07:26 UTC | reduce-aref0.mjs 07de59618931 | 36 of 37 caught | escaped: NOT APPLIED (0 matches): 13: if (!j.nodeax) bad.push('no NODE-AX line');
+2026-10-15 07:27 UTC | reduce-aref0.mjs 07de59618931 | 37 of 37 caught | escaped: none

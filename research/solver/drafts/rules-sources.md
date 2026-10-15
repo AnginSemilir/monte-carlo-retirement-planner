@@ -16,3 +16,31 @@
   regimen" (the claude.ai document the maintainer shared, 25 Sep 20:42 UK), with its sources (Appendix B there).
 - Compare runs by what differs; the commonest cause of unreproducible results is a silent default.
   https://launchdarkly.com/blog/ml-experiment-tracking/
+
+
+
+## Moved out of RULES.md by the retirement pass of 15 Oct (word for word)
+
+### Section 2 item 3: the errors of 24 Sep
+
+3. **Checked against my own error range.** I am a language model, and my errors are of known kinds. This
+   session alone made each of these:
+   - an arithmetic slip in a derivation (the M15 v2 rung table's first figures);
+   - a wrong assumption about the data (that S162 had no minimum pot of its own; that a tier above High exists);
+   - a mechanism that was right in part and missing a piece (the first M15 write-up missed the switch margin);
+   - text left stale after the facts moved (the mathematician's page).
+
+   So before a result changes the plan: recompute the derivation with a script, check every quoted figure
+   against the file it came from, and test the mechanism with a check that could have failed (the M15
+   diagnostic is the model). A result that has not been through this is marked "provisional" and changes
+   nothing downstream.
+
+### Section 9 rule 5: the carry rule as written (now the template's CARRY line)
+
+   The carry family's step, CARRY (read 8 Oct 09:06 UK, held out on 7aw; results-carry.txt), gives the carrying rule for
+   derivations: a per-household record carries to a test that differs in the estate weight alone (the only setting tested;
+   for any other, grade D) within its paired band, except where
+   a measured part is left out of the carry, where the setting moves a year-0 gap across the switch line (a flip), and on
+   a household whose smaller of saved and lost is 15 or more; each of those takes its own record. A whole score carried to
+   another weight is re-scored on the record's own traces with the policy held, beside each weight's own record (O123); each arm's own response to the weight is read apart, and with no record at the
+   new weight a derivation declares its interval wide, grade D (the deep review of 8 Oct 09:32 UK; family F-W).

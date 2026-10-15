@@ -229,12 +229,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 
 ## 1. The loop: maths it, test it, then re-maths the rest (maintainer, 24 Sep)
 
-The work runs as a loop: **derive -> predict -> run -> settle -> re-derive everything downstream -> predict again.**
-The first half (derive, and write the prediction before the run) is the rule in "Derive first, run to falsify"
-below. **The second half is this: after every run that proves or disproves something, that result becomes the
-basis for looking again at every later step in the plan, at the maths behind it, and at its prediction. They are
-adjusted before the next run starts, not after.** A plan that runs its schedule unchanged after a result that
-should have changed it is running on assumptions that have already been disproved.
+Derive -> predict -> run -> settle -> re-derive everything downstream -> predict again. The first half is the prediction
+(section 8); the second is the re-look (section 5), done before the next run starts: a plan that runs its schedule
+unchanged after a result that should have changed it is running on disproved assumptions.
 
 ## 2. When a result counts as settled
 
@@ -247,17 +244,11 @@ should have changed it is running on assumptions that have already been disprove
    smaller than the noise.
 2. **Produced by a script from the files, not read by eye.** Every figure that changes the plan comes from a
    reducer or a one-off script over saved results, and that script is kept.
-3. **Checked against my own error range.** I am a language model, and my errors are of known kinds. This
-   session alone made each of these:
-   - an arithmetic slip in a derivation (the M15 v2 rung table's first figures);
-   - a wrong assumption about the data (that S162 had no minimum pot of its own; that a tier above High exists);
-   - a mechanism that was right in part and missing a piece (the first M15 write-up missed the switch margin);
-   - text left stale after the facts moved (the mathematician's page).
-
-   So before a result changes the plan: recompute the derivation with a script, check every quoted figure
-   against the file it came from, and test the mechanism with a check that could have failed (the M15
-   diagnostic is the model). A result that has not been through this is marked "provisional" and changes
-   nothing downstream.
+3. **Checked against my own error range.** My errors are of known kinds (an arithmetic slip, a wrong assumption about
+   the data, a mechanism right in part, stale text; the 24 Sep cases are in drafts/rules-sources.md). So before a result
+   changes the plan: recompute the derivation with a script, check every quoted figure against the file it came from, and
+   test the mechanism with a check that could have failed. A result that has not been through this is marked
+   "provisional" and changes nothing downstream.
 4. **The prediction and its falsifier were written before the run.** A result read without one is a finding
    to be predicted and tested next, not a settled fact.
 5. **It was a fair test, checked twice: before it was planned and after it ran** (below). A result that fails
@@ -346,7 +337,7 @@ blob is stamped into every result file, so an edit after the run shows as PREDIC
 | **F** | **The code** | | |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | `code.hash`, `code.commit`; `solverVersion` is hand-set and was not bumped through the M17 fix or F1 | the flex-mix pilot split across solver versions (21 Sep), hence `run-from-snapshot.sh` |
 | **G** | **The measurement** | | |
-| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | the reducer | `audit-s126.mjs` subtracted the years above target twice; the V2 prediction read a simulated match as a table match |
+| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome; a net or estate item's mean, capped mean or median, and why the score or app reads that one) | the reducer | `audit-s126.mjs` subtracted the years above target twice; the V2 prediction read a simulated match as a table match; DT-O97 read the uncapped mean |
 | 30 | The reducer and its version | script name, commit | - |
 | 31 | Paired or not, and the standard error used | the reducer | - |
 | 32 | The table's number is never the result: survival is simulated | the reducer | M16: the table reads 3-5 points optimistic |
@@ -365,10 +356,10 @@ is enforced now.
 | 3 | **After any code edit, re-test every caller** before launching; no blind find-and-replace | the sed edit that commented out live code and killed a run; the M15 edit that broke the rival arms unnoticed for a day; old scripts that kept a 6-slot state after it grew to 7; solve.js edited three times during one run | `smoke.sh`, run by the launcher whenever the code or any script a batch runs changes (stamp keyed by `code-id.mjs --smoke`); it exercises only its own modes |
 | 4 | **A decision changes the code's default in the same commit**, pinned by a test | bare `solve()` still meant the old objective (M1); the code ran five bisection steps where eight were derived (M6); research runs overrode the code's own 0.95 level; `opts.headroom \|\| 6` read 0 as absent; the solver version tag never bumped; the PRODUCT_DEFAULTS comment still said "risk above only as an opt-in" after the default changed | the decided-defaults block in PLAN.md and `plan-defaults.test.mjs` |
 | 5 | **After any bug, sweep for the same pattern** and write "Same pattern searched:" with what was found | done by habit after the landing-sample bug and the byte-wide bug; needed the maintainer's instruction after S126 | `check-plan.mjs` (bugs) on every bug entry from 24 Sep |
-| 6 | **Chase odd results.** Every one goes in the register with an owner and a gate; none is "noted, not chased" | S126 read 7.5% against 96.8% simulated, logged 21-22 Sep and not chased: it was #106, steering decisions for 40 years; #106 confirmed, then deferred | the odd results register in PLAN.md; `check-plan.mjs` (register) |
-| 7 | **Anything chosen on one sample is reported from another**, and anything promised is verified on the sample it is judged on | the app's spend finder (12 of 12 fixtures below target); then the solver's floor landing, the same mistake | fair-test variable 6; the plan-auditor |
-| 8 | **Do not measure against a comparison point a queued change is about to replace**; reorder instead | E1 and E3 were nearly measured on a grid about to change size; M14's evidence predated the M17 fix | the re-look (section 5); the plan-auditor |
-| 9 | **Time estimates come from a measured cell under the same load**, revised when the first cells land | K5 4.5 h, then 8, then about 12; 6e 40 min, measured 2.3 h; M14b 40 min, then 2 h | the launcher writes the load beside every run in `runs.log`; the plan-auditor |
+| 6 | **Chase odd results.** Every one goes in the register with an owner and a gate; none is "noted, not chased"; one closes when its exact interval sits inside the margin | S126 read 7.5% against 96.8% simulated, logged 21-22 Sep and not chased: it was #106, steering decisions for 40 years; #106 confirmed, then deferred | the odd results register in PLAN.md; `check-plan.mjs` (register) |
+| 7 | **Anything chosen on one sample is reported from another**, and anything promised is verified on the sample it is judged on; where a test's deciding household is the one its mechanism was first found on, an out-of-sample household is an item with its own falsifier, not a report | the app's spend finder (12 of 12 fixtures below target); then the solver's floor landing, the same mistake; FORCE-X (O116) | fair-test variable 6; the plan-auditor |
+| 8 | Merged into section 5 (c) (15 Oct) | E1, E3; M14 | the re-look |
+| 9 | **Time estimates come from a measured cell under the same load**, revised when the first cells land; a timed change is read as a ratio against its bar from both arms alternating in one process, never an absolute time scaled by busy cores | K5 4.5 h, then 8, then about 12; 6e 40 min, measured 2.3 h; M14b 40 min, then 2 h; K5's 385 s median inflated by contention | the launcher writes the load beside every run in `runs.log`; the first side-by-side timing also times the same arms alone, and a gap above 0.05 between the ratios goes back to the maintainer (26 Sep 08:22 UK; 7e keeps its alone-on-the-machine bar); the plan-auditor |
 | 10 | **Start and stop runs safely**: never kill by pattern; check what is running before and after | a launch that started two batches at once; a cleanup `rm -rf` that destroyed the lock; a detached run lost when the container was reclaimed; `pkill -f` that matched its own command, twice | the PreToolUse hook (kill by pattern, removing the lock, the listed experiment scripts outside the launcher) |
 | 11 | **A test changed after any result is in is declared** ("Changes after seeing results" in its prediction file) or re-run from scratch | 6c's control clause changed with 8 of 12 results in; Phase 2's first draft chose households where the solver had already won | the prediction's git blob in every result file (fair-gate: PREDICTION EDITED) |
 | 12 | **One clock, and no out-of-date text** | the ledger mixed UTC and UK time (24 Sep); the 21:30 audit's stale statements; HOW-IT-WORKS.md; the mathematician's page | `check-plan.mjs` (clock); the plan-auditor for staleness |
@@ -382,9 +373,10 @@ is enforced now.
   sections.
 - (b) Re-derive the maths for each, from the files where possible, with no new run.
 - (c) Change the plan in place: a prediction re-derived, a stage made conditional or cancelled, a design
-  corrected, a question sent to the mathematician, or a decision put to the maintainer.
+  corrected, a measurement reordered so it is not taken against a comparison point a queued change will replace (E1 and
+  E3 near a grid change; M14 before M17), a question sent to the mathematician, or a decision put to the maintainer.
 - (d) Log it in the re-look ledger below (one row per result: what settled it, what it changed, where).
-- (e) Update the mathematician's page and any affected artifact the same day.
+- (e) Update any affected artifact the same day (the mathematician's page retired from this rule, 15 Oct: it is outside the repository and no check could see it).
 
 **Enforced by:** `check-plan.mjs` (ledger: every row carries its evidence - results files that exist, the fair-test
 outcome, the prediction - and every figure in the settled-result cell must appear in a cited results file) and the
@@ -428,19 +420,13 @@ checked by the plan-auditor by hand.
 3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
    next look, or report the bound). A real loss smaller than the margin is reported and does not block.
-4. **Multiplicity:** Holm across the households of one comparison, unadjusted p reported beside it. Panel-level: a
-   random-effects (DerSimonian-Laird) pooled mean with its 95% interval, beside the sign test. A floor over a registered
-   set of cases expected unchanged, where some are expected to gain, is read by a fixed-effect mean instead, random
-   effects reported beside it: a random-effects interval widens with any spread, gains included, and fired on one
-   case's gain alone (7e; the maintainer, 25 Sep 22:45 UK, confirmed 26 Sep 06:40 UK on the corrected simulation,
-   results-pooled-floor.txt). Its price: a small loss spread over three to six cases is caught 8 to 10 points less
-   often; the per-case tests catch a loss on one or two cases well only at about twice the margin
-   (at about the margin: 43 to 46%, the whole falsifier 48 to 60%), and only 28 to 53% of a small spread one.
-   Each test's prediction names which. **Superseded for new tests (the maintainer, 29 Sep 22:12 UK, O28):** a pooled floor
-   is read by the households' paired cells summed into one table and read by the unconditional interval (stats.mjs
-   pooledSummed): each household weighs by its paths, not its own counts, so one that lost fewer by chance does not weigh
-   more. At a true loss of 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time against 2.5%
-   (results-pooled-fixed.txt), where the fixed-effect pool held 7.1% at 7e's two looks (results-pooled-floor.txt; random effects 6.1%) and 13.0% to 65.9% at a fixed path count (results-pooled-fixed.txt) - the pooled gate of 7u and 8f.
+4. **Multiplicity:** Holm across the households of one comparison, unadjusted p reported beside it. A pooled floor over a
+   registered set of cases expected unchanged is read by the households' paired cells summed into one table and read by
+   the unconditional interval (stats.mjs pooledSummed; the maintainer, 29 Sep 22:12 UK, O28): each household weighs by its
+   paths. At a true loss of 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time against 2.5%
+   (results-pooled-fixed.txt), where the fixed-effect pool that read 7e held 7.1% and random effects 6.1%
+   (results-pooled-floor.txt); the earlier rules' history is in PLAN-HISTORY.md (O28; the 26 Sep 01:49 and 09:39 rows).
+   Each test's prediction names which.
 5. **One primary outcome per test;** everything else is descriptive.
 6. **Power before the run:** by simulation through the reducer's own items, from each setting's own records, by a
    committed script. N > 1.96^2 d / delta^2 (d the discordance rate) is only a floor: there a true 0 passes about half the time.
@@ -488,9 +474,8 @@ target below 0.20; it starts with 7e. Every recommendation to the maintainer quo
    the diff, checklist-driven. Tier 2 (a product default, a gate decision, Phase 4's prediction or verdict): full audit,
    the two-source rule, an outside review by a differently configured model, and red-team questions. The Stop hook's
    receipt stays required for every change to the plan; the tier sets the review's depth, not whether one runs.
-   Enforced by: NOT YET - the reviewer's instructions (.claude/agents/plan-auditor.md) are the assistant's own
-   configuration, and the session's permission classifier refused the change (25 Sep 21:56 UK); the draft waits for the
-   maintainer. Until then each review is asked for its tier in its brief.
+   Enforced by: NOT YET (the auditor's instructions carry no tiers; refused 25 Sep 21:56 UK, waiting for the maintainer);
+   each review's brief names its tier.
 3. **The two-source rule:** any figure a tier-2 decision rests on is produced twice by independent routes, and the
    ledger row names both.
 4. **A materiality gate for the register:** before opening a row, estimate the largest plausible effect on the headline
@@ -499,9 +484,7 @@ target below 0.20; it starts with 7e. Every recommendation to the maintainer quo
    of section 4's rule 6 the maintainer adopted). Enforced by: `check-plan.mjs` register rule (since 25 Sep 21:54 UK).
 5. **Decision records:** every recommendation carries the options, the recommendation, its evidence grade, the author's
    confidence in plain words, the most likely way it is wrong, the cost if it is, and a revisit trigger.
-6. **Stop rules:** grid and cliff work stops when the optimality-ceiling gap is below its target; an odd result closes
-   when its exact interval sits inside the margin; nothing is re-run to "resolve" noise without a new registered
-   prediction and a power statement.
+6. **Stop rules:** merged (15 Oct) into the accuracy targets and section 4 row 6.
 7. **A value-of-information screen before Phase 4:** an item runs before Phase 4 only if a plausible outcome would change
    Phase 4's arms, panel, decision rule or verdict.
 
@@ -509,42 +492,15 @@ target below 0.20; it starts with 7e. Every recommendation to the maintainer quo
 into grid, quadrature and information parts; policy optimality within 0.2 points of the ceiling on the panel mean and
 0.5 on any household; the edge's sign holds on every engine; external calibration reported. Before an accuracy task
 starts, its prediction names the budget line it reduces and by roughly how much, and the largest line goes first.
-
-**Timing checks** (the maintainer, 26 Sep 08:22 UK; 7e keeps its registered alone-on-the-machine time bar): a
-prediction that times a change reads it as a ratio against its bar, from the two arms of each case alternating in one
-process while the cases run in parallel, so both arms of a case share the same background load; the machine's load is
-logged (fair-test row 33). Absolute times are never scaled by the number of busy cores: contention is not linear (K5's
-median was inflated by it). A ratio measured side by side may still differ from one measured alone, since contention can
-slow two arms with different memory use unequally, so the first prediction to time side by side also times the same arms, cases, points and code alone on the machine; if the two ratios differ by more than 0.05 on any case (a quarter of a 20% bar; Claude's choice, open to the maintainer), the method goes back to the maintainer before it is relied on (the fifty-eighth review, MINOR 1: a comparison with check 6's quiet-box ratios tests the method only when it times that same pair on the same code). Enforced by: NOT YET - the plan-auditor,
-on each prediction that times a change.
+Grid and cliff work stops when the optimality-ceiling gap is below its target.
 
 ## 9. Fixes that unmask other errors: assigning responsibility in a coupled system (the maintainer, 26 Sep)
 
 The solver is a coupled system: its tables, its chooser, its bridge read, its tier menu and its objective each carry
 approximations, and a result is what they produce together. Fixing one part can expose an error another part was
 cancelling. The maintainer, 26 Sep: "you may fix one thing and it highlights another issue that wasn't otherwise known
-about. We need to take this into account when assigning responsibility." How it was missed (written 16:44 UK):
-
-- **The baseline was treated as right because it was the product.** Off misread S126's bridge by 44 points and, because
-  of that misread, held the pension two tiers down for all 40 years (7r's traces: 0.03 switches a path). Every fix that
-  read the bridge more accurately (F1 v2, the reader, F2 by design; the reader not at top-cell step reads, PLAN.md PR1) stopped that accidental de-risking and lost survival on the
-  same households. The fair-test table checked that the arms differed only in the bridge read - they did - but nothing
-  asked whether the baseline's better outcome came from the very error being fixed. Equal settings are not equal errors.
-- **The decision rule turned harm straight into blame.** 7e's registered consequence of harm on any case was "not carried
-  forward, F2 is built": responsibility went to the fix, and the next step was another fix of the same kind, which the
-  records suggest would have hit the same wall.
-- **Related anomalies were chased one at a time.** O9 (the tables turn optimistic with F1), O17 (F1 v2 loses where it
-  reads accurately, "not explained"), O18/O20 (M14b's tier-above bets lose on comfortable plans), O19 and 7h (the final
-  year's staircase priced a riskier tier at nothing; the rest of the cost stayed), C5 (the switch margin decides
-  near-ties) and O24 (the reader's tier scores below off by the solver's own objective) all point one way - the tables
-  value extra risk too highly - but each was diagnosed in its own frame and no step asked what they had in common.
-- **A design premise was never tested.** The mixture's comment says leaving out learning is harmless because twenty
-  years of returns barely reveal the world; the backward pass nevertheless lets each world plan as if it knew its world.
-  The premise argues the wrong way (slow learning makes the gap larger) and was never registered as a claim (7t tests it).
-- **The table was checked in aggregate.** The reader's table read its own survival within 0.3 points (99.6 against 99.3
-  on S126), so "the table is accurate" passed; a large error in the bad world and a small one elsewhere can net to that.
-- **A prior test was missed.** 7s's derivation did not cite 7h, which had already found finer return sampling leaves the
-  tier-above cost in place.
+about. We need to take this into account when assigning responsibility." How it was missed (16:44 UK) is section 4
+row 13 and, in full, drafts/unmasking-proposal.md; each rule below names the miss it answers.
 
 The rules this adds:
 
@@ -560,30 +516,31 @@ The rules this adds:
    same kind.
 3. **Right for the right reason.** A baseline used as the reference is examined for known errors in the dimension being
    compared (its register items, its table-against-simulation gap, what its traces show it doing). Where it has them,
-   the prediction names them and says how the comparison survives them.
+   the prediction names them and says how the comparison survives them (26 Sep: off's better survival on S126 came from
+   its 44-point bridge misread holding the pension two tiers down for life; equal settings are not equal errors).
 4. **The consistency invariant.** The tables must value the policy the forward chooser actually follows. A standing test
    checks it on the chooser's own rule (research/tests/solver-joint.test.mjs, check D - its known limit, 28 Sep: it runs with
    no tier held, so it cannot see a hold decided by the margin (O30), nor a switch rule applied per world (O41); the tier
    state's test checks the chooser on the three-world mixture, research/tests/solver-tierstate.test.mjs G), and every candidate default is
    calibrated table against simulation by slice - each world, each stage of the plan, each tier held - not only in
-   aggregate, since compensating errors cancel in the aggregate.
+   aggregate, since compensating errors cancel in the aggregate (26 Sep: the reader's table read its own survival within
+   0.3 points on S126 while erring in the bad world).
 5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
-   note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area.
+   note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area
+   (26 Sep: O9, O17, O18/O20, O19 and 7h, C5 and O24 all pointed one way, the tables valuing extra risk too highly, each
+   diagnosed in its own frame).
    The families and their steps so far are in deep-review-log.md and the register: the first two ("a sub-margin opening
    gap decides the tier held for life"; "the chooser keeps too much risk in the bad world"), merged on one signature after
    7w and rooted by 7w and 7x; "the reader at the bridge"; and "checks run where the fault cannot show" (O40), whose
    root-cause step stands: every reducer prints the paths whose actions differ between arms, and every consistency check
    runs on the mixture (gate: before the next reducer is written and before any check is cited as no-harm evidence).
-   The carry family's step, CARRY (read 8 Oct 09:06 UK, held out on 7aw; results-carry.txt), gives the carrying rule for
-   derivations: a per-household record carries to a test that differs in the estate weight alone (the only setting tested;
-   for any other, grade D) within its paired band, except where
-   a measured part is left out of the carry, where the setting moves a year-0 gap across the switch line (a flip), and on
-   a household whose smaller of saved and lost is 15 or more; each of those takes its own record. A whole score carried to
-   another weight is re-scored on the record's own traces with the policy held, beside each weight's own record (O123); each arm's own response to the weight is read apart, and with no record at the
-   new weight a derivation declares its interval wide, grade D (the deep review of 8 Oct 09:32 UK; family F-W).
+   The carry family's step, CARRY (read 8 Oct 09:06 UK, held out on 7aw; results-carry.txt; the deep review of 8 Oct
+   09:32 UK; family F-W), gives the carrying rule for derivations, which new-prediction.mjs writes into every prediction
+   (its CARRY line).
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
-   would cause if wrong, and is tested before a decision rests on it.
+   would cause if wrong, and is tested before a decision rests on it (the no-learning premise argues the wrong way: slow
+   learning makes the gap larger; 7t).
 7. **Sweep the records for prior tests of the same mechanism before writing a prediction**, and cite each with its
    verdict in the Derivation (7s missed 7h).
 

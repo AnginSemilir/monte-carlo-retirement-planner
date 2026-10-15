@@ -76,3 +76,27 @@ plan-auditor's receipt. `check-plan.mjs` prints the index beside its pass line. 
 deep review overnight when due (it needs the maintainer's say-so to create: it runs unattended).
 
 Why it does not weaken anything: it adds a gate and a reviewer; no existing check changes.
+
+
+## How it was missed (moved word for word from RULES.md section 9 by the retirement pass of 15 Oct)
+
+- **The baseline was treated as right because it was the product.** Off misread S126's bridge by 44 points and, because
+  of that misread, held the pension two tiers down for all 40 years (7r's traces: 0.03 switches a path). Every fix that
+  read the bridge more accurately (F1 v2, the reader, F2 by design; the reader not at top-cell step reads, PLAN.md PR1) stopped that accidental de-risking and lost survival on the
+  same households. The fair-test table checked that the arms differed only in the bridge read - they did - but nothing
+  asked whether the baseline's better outcome came from the very error being fixed. Equal settings are not equal errors.
+- **The decision rule turned harm straight into blame.** 7e's registered consequence of harm on any case was "not carried
+  forward, F2 is built": responsibility went to the fix, and the next step was another fix of the same kind, which the
+  records suggest would have hit the same wall.
+- **Related anomalies were chased one at a time.** O9 (the tables turn optimistic with F1), O17 (F1 v2 loses where it
+  reads accurately, "not explained"), O18/O20 (M14b's tier-above bets lose on comfortable plans), O19 and 7h (the final
+  year's staircase priced a riskier tier at nothing; the rest of the cost stayed), C5 (the switch margin decides
+  near-ties) and O24 (the reader's tier scores below off by the solver's own objective) all point one way - the tables
+  value extra risk too highly - but each was diagnosed in its own frame and no step asked what they had in common.
+- **A design premise was never tested.** The mixture's comment says leaving out learning is harmless because twenty
+  years of returns barely reveal the world; the backward pass nevertheless lets each world plan as if it knew its world.
+  The premise argues the wrong way (slow learning makes the gap larger) and was never registered as a claim (7t tests it).
+- **The table was checked in aggregate.** The reader's table read its own survival within 0.3 points (99.6 against 99.3
+  on S126), so "the table is accurate" passed; a large error in the bad world and a small one elsewhere can net to that.
+- **A prior test was missed.** 7s's derivation did not cite 7h, which had already found finer return sampling leaves the
+  tier-above cost in place.

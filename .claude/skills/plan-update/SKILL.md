@@ -70,7 +70,7 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    says 'clean control', 'ruled out' or 'can't happen', the evidence line rule applies: grade A or B, or NOT CHECKED
    (REPLACE of the 7ap close).
 2. The re-look: list every later step, prediction, gate and default the result touches; re-derive each; change them in
-   place; update the mathematician's page and any affected artifact.
+   place; update any affected artifact.
 3. Anything unexplained goes in the odd results register with an owner and a gate, or as "noted, below materiality"
    with its size estimate and evidence (under 0.1 points on the panel mean, no default resting on it). A bug entry says
    "Same pattern searched:" and what was found. A claim of no effect carries `evidence:` or NOT CHECKED.

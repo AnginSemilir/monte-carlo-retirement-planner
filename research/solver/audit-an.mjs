@@ -210,7 +210,7 @@ JOBS.forEach((job, ji) => {
   // refTook: the adaptive reference's p against its own rule run forward, by world and p-bin
   { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = Math.max(10, Math.round(300 / SCALE)), NSIM = Math.max(100, Math.round(1000 / SCALE));
     const DIM = recS.length / (recM.length / 7);
-    let rfOk = 0, rfN = 0, above = 0;
+    let rfOk = 0, rfN = 0, above = 0; const r0t = Date.now();
     for (let k = 0; k < K; k++) {
       let st = (7002 + k) >>> 0;
       const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let x = st; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
@@ -231,7 +231,7 @@ JOBS.forEach((job, ji) => {
         console.log(`${''.padEnd(16)} refcheck ${L} ${k} ${bi}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`);
       });
     }
-    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins)`);
+    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins; ${PER} states a world, ${NSIM} runs a state, secs ${Math.round((Date.now() - r0t) / 1000)})`);
     if (PLANT === 'step') console.log(`${''.padEnd(16)} step ${L}: refTook ${rfOk}/${rfN} with the last year read off the lattice (printed, not required to refuse)`);
     else if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
   console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);

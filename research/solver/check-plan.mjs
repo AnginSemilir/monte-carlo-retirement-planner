@@ -41,7 +41,7 @@ import { join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
 import { checkPredictionText } from './check-prediction.mjs';
-import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween, minuteKey } from './triggers.mjs';
+import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween, minuteKey, escalationOne, escalationTests, escalationLine } from './triggers.mjs';
 import { planMoves, cutoffOf, archiveOpts } from './archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -349,6 +349,17 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], ad
   }
 
   for (const w of stalePhrases({ plan, added, removed })) warnings.push(`stale? ${w}`);
+  // escalation trigger 1 (escalation.md; the maintainer's unlock of 15 Oct): warned at every check while it fires and
+  // escalation.md's log has no run dated on or after the second test's close
+  if (lessons) {
+    const rd = f => { try { return readSolverFile(f); } catch { return ''; } };
+    const e = escalationOne(escalationTests(lessonsOf(lessons).closes, rd));
+    if (e.fires) {
+      const last = e.tests[e.tests.length - 1];
+      const logged = [...String(rd('escalation.md')).matchAll(/^\| (\d{1,2} \w{3}) \| /gm)].some(m => minuteKey(`${m[1]} 23:59`) >= last.at);
+      if (!logged) warnings.push(`${escalationLine(e)}; escalation.md logs no run since ${last.name}'s close`);
+    }
+  }
   { const sh = shapeProblems({ added, removed, readSolverFile, solverFileExists, plan }); for (const p of sh.problems) err('shape', p); for (const w of sh.warnings) warnings.push(w); }
   // new lines
   const planLines = plan.split('\n');

@@ -9,7 +9,13 @@
  * after lessons.md's seed line (check-plan.mjs's retro check). The retirement pass is due when 5 closes have passed since
  * the last "retirement |" line in deep-review-log.md (written by record-deep-review.mjs --retirement, locked).
  *   node research/solver/triggers.mjs            the report (at most 40 lines)
- *   node research/solver/triggers.mjs --due      exit 0 printing RETIREMENT PASS DUE, else exit 1
+ *   node research/solver/triggers.mjs --due      exit 0 printing RETIREMENT PASS DUE, else exit 1; either way a line on
+ *                                                escalation trigger 1 (below)
+ * ESCALATION TRIGGER 1 (escalation.md; the maintainer's unlock of 15 Oct, after the trigger was declared hours after
+ * NODE-1's close): the last two closed tests whose prediction's Provenance names a deep review and whose Decision rule
+ * marks a primary item, both read INCONCLUSIVE on that item (their results file's OUTCOME line). The same question or
+ * family and the FALSIFIED-on-its-cause clause are read by hand; check-plan.mjs warns at a close while it fires and
+ * escalation.md logs no run dated on or after the second close.
  * Everything but the bottom is pure, for research/tests/triggers.test.mjs.
  */
 import { readFileSync, existsSync, statSync } from 'node:fs';
@@ -95,6 +101,30 @@ export function passDue(closes, passes, every = PASS_EVERY) {
   const since = closes.filter(c => last === null || c.at > last).length;
   return { due: since >= every, since };
 }
+/* escalation trigger 1 over closed tests in close order, [{ name, at, deep, primary }]: the last two designed by a deep
+   review with a primary item, both INCONCLUSIVE on it */
+export function escalationOne(tests) {
+  const last2 = [...tests].sort((x, y) => x.at - y.at).filter(t => t.deep && t.primary).slice(-2);   // lessons.md lists the newest first
+  return { fires: last2.length === 2 && last2.every(t => t.primary === 'INCONCLUSIVE'), tests: last2 };
+}
+/* the closed tests' design and primary outcome, from scorecard.mjs's TESTS (read as text), the predictions and results */
+export function escalationTests(closes, read) {
+  const list = [...String(read('scorecard.mjs')).matchAll(/\{ name: '((?:[^'\\]|\\.)*)', prediction: '([^']+)', results: '([^']+)'/g)].map(m => ({ key: m[1].split(' (')[0], pred: m[2], res: m[3] }));
+  return closes.map(c => {
+    const t = list.find(x => x.key === c.test);
+    if (!t) return { name: c.test, at: c.at, deep: false, primary: null };
+    const pred = String(read(t.pred) || ''), res = String(read(t.res) || '');
+    const pid = (/\*\*Item (\d+) \(primary/.exec(pred) || [])[1], prov = (/^## Provenance[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(pred) || [])[1] || '';
+    const oc = (/^OUTCOME: (.*)$/m.exec(res) || [])[1] || '';
+    const primary = pid ? (new RegExp(`(?:^|, )${pid} (HELD|INCONCLUSIVE|FALSIFIED)\\b`).exec(oc) || [])[1] || null : null;
+    return { name: c.test, at: c.at, deep: /\bdeep review\b/i.test(prov), primary };
+  });
+}
+export function escalationLine(e) {
+  return e.fires ? `ESCALATION TRIGGER 1: ${e.tests.map(t => t.name).join(' and ')}, each designed by a deep review, closed with the primary item INCONCLUSIVE (escalation.md: the same question or family? then a brief)`
+    : `escalation trigger 1 not met (the last two deep-review-designed closes: ${e.tests.map(t => `${t.name} ${t.primary}`).join(', ') || 'none'})`;
+}
+
 /* the success measure over the last n closes: everything after the close before the window */
 export function windowStats({ receipts, closes, launches, tagged, seedAt = null }, n) {
   const sorted = [...closes].sort((a, b) => a.at - b.at);
@@ -142,7 +172,7 @@ export function load() {
   for (const l of read('deep-review-log.md').split('\n')) { const t = tagsIn(l); if (t.tags.length || t.unknown.length) tagged.push({ at: minuteKey(l), ...t }); }
   for (const l of read('results-mutation-history.txt').split('\n')) { const t = tagsIn(l); if (t.tags.length || t.unknown.length) tagged.push({ at: minuteKey(l), ...t }); }
   for (const c of lessons.closes) for (const l of c.lines) tagged.push({ at: c.at, ...tagsIn(l) });
-  return { lessons, receipts, launches, tagged, closes: lessons.closes, seedAt: lessons.seed ? lessons.seed.at : null, passes: passesOf(read('deep-review-log.md')) };
+  return { lessons, receipts, launches, tagged, closes: lessons.closes, seedAt: lessons.seed ? lessons.seed.at : null, passes: passesOf(read('deep-review-log.md')), esc: escalationOne(escalationTests(lessons.closes, f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : ''))) };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -150,10 +180,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const due = passDue(d.closes, d.passes);
   if (process.argv.includes('--due')) {
     console.log(due.due ? `RETIREMENT PASS DUE: ${due.since} closes since the last pass (every ${PASS_EVERY})` : `retirement pass not due: ${due.since} of ${PASS_EVERY} closes since the last`);
+    console.log(escalationLine(d.esc));
     process.exit(due.due ? 0 : 1);
   }
   const sz = f => (existsSync(join(HERE, f)) ? statSync(join(HERE, f)).size : 0);
   const sizes = { 'PLAN.md': sz('PLAN.md'), 'RULES.md': sz('RULES.md'), 'CHECKLIST.md': sz('CHECKLIST.md'), 'CLAUDE.md': existsSync(join(HERE, '../../CLAUDE.md')) ? statSync(join(HERE, '../../CLAUDE.md')).size : 0 };
   for (const l of report(d, sizes)) console.log(l);
   console.log(due.due ? `RETIREMENT PASS DUE: ${due.since} closes since the last pass` : `retirement pass: ${due.since} of ${PASS_EVERY} closes since the last`);
+  console.log(escalationLine(d.esc));
 }

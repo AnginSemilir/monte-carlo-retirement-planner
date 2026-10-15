@@ -4,9 +4,11 @@
 //   node research/tests/triggers.test.mjs
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
-import { CODES, tagsIn, minuteKey, lessonsOf, findingsOf, receiptsOf, blockingCodesBetween, passesOf, passDue, windowStats, report } from '../solver/triggers.mjs';
+import { CODES, tagsIn, minuteKey, lessonsOf, findingsOf, receiptsOf, blockingCodesBetween, passesOf, passDue, windowStats, report, escalationOne, escalationTests } from '../solver/triggers.mjs';
+import { checkPlan } from '../solver/check-plan.mjs';
 import { tagProblems, movedProblems, startedBlob, liveReceipts } from '../solver/record-review.mjs';
 import { planMoves, applyMoves, cutoffOf, archiveOpts, LEDGER_KEEP, POINTER } from '../solver/archive-plan.mjs';
 
@@ -105,5 +107,33 @@ ok(cutoffOf(lessonsText(2)) === '28 Sep' && cutoffOf('Seed: after 7ai (30 Sep 17
   ok(movedProblems(plan, r.plan.replace('| O9 | x |', '| O9 | X |'), r.hist).length === 2, '--moved: a reworded live row is refused (removed and added)');
   ok(movedProblems(plan, r.plan, r.hist.replace('| O8 | x', '| O8 | q')).length === 1, '--moved: a row missing from the history is refused');
   ok(movedProblems(plan, plan, '').length === 1, '--moved: no change is not a move');
+}
+// escalation trigger 1 (the maintainer's unlock of 15 Oct): the last two deep-review-designed closes, primary INCONCLUSIVE
+{
+  const T = (name, at, deep, primary) => ({ name, at, deep, primary });
+  ok(escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('B', 2, true, 'INCONCLUSIVE')]).fires, 'trigger 1: two deep-review tests in a row, both primary INCONCLUSIVE, fire');
+  ok(!escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('B', 2, true, 'HELD')]).fires, 'trigger 1: the second HELD does not fire');
+  ok(escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('X', 2, false, 'HELD'), T('B', 3, true, 'INCONCLUSIVE')]).fires, 'trigger 1: a test no deep review designed between them is passed over');
+  ok(!escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('X', 2, true, null), T('B', 3, true, 'HELD')]).fires && escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('X', 2, true, null), T('B', 3, true, 'INCONCLUSIVE')]).fires, 'trigger 1: a test with no primary item is passed over');
+  ok(escalationOne([T('B', 3, true, 'INCONCLUSIVE'), T('C', 1, true, 'HELD'), T('A', 2, true, 'INCONCLUSIVE')]).fires && !escalationOne([T('B', 3, true, 'HELD'), T('A', 2, true, 'INCONCLUSIVE'), T('C', 1, true, 'INCONCLUSIVE')]).fires, 'trigger 1: read in close order, not the order given (lessons.md lists the newest first)');
+  ok(!escalationOne([T('B', 2, true, 'INCONCLUSIVE')]).fires, 'trigger 1: one test is not two');
+  ok(!escalationOne([T('A', 1, true, 'INCONCLUSIVE'), T('B', 2, true, 'FALSIFIED')]).fires, 'trigger 1: a FALSIFIED primary does not fire (a decisive answer)');
+  const files = {
+    'scorecard.mjs': "  { name: 'P1 (a test)', prediction: 'predictions/p1.md', results: 'results-p1.txt' },\n  { name: 'P2 (b test)', prediction: 'predictions/p2.md', results: 'results-p2.txt' },\n  { name: 'P3 (c)', prediction: 'predictions/p3.md', results: 'results-p3.txt' },",
+    'predictions/p1.md': '## Decision rule\n- **Item 1 (primary; single look):** x\n## Provenance\n- **The design:** the deep review after Z\n## Credence\n',
+    'predictions/p2.md': '## Decision rule\n- **Item 2 (primary; single look):** x\n## Provenance\n- **The design:** the deep review after P1\n',
+    'predictions/p3.md': '## Decision rule\n- **Item 1 (primary):** x, its margin from the deep review after P1\n## Provenance\n- **The design:** the maintainer\n',
+    'results-p1.txt': 'OUTCOME: 1 INCONCLUSIVE, 2 HELD\n', 'results-p2.txt': 'OUTCOME: 1 HELD, 2 INCONCLUSIVE\n', 'results-p3.txt': 'OUTCOME: 1 HELD\n' };
+  const rd = f => files[f] || '';
+  const ts = escalationTests([{ test: 'P2', at: 2 }, { test: 'P3', at: 3 }, { test: 'P1', at: 1 }, { test: 'P9', at: 4 }], rd);
+  ok(J(ts.map(t => [t.name, t.deep, t.primary])) === J([['P2', true, 'INCONCLUSIVE'], ['P3', false, 'HELD'], ['P1', true, 'INCONCLUSIVE'], ['P9', false, null]]), 'trigger 1: each close read for its design (Provenance names a deep review), its primary item and that item\'s outcome');
+  ok(escalationOne(ts).fires, 'trigger 1 fires on P1 and P2 (P3 no deep review, P9 unscored)');
+  // check-plan warns while it fires and escalation.md logs no run on or after the second close
+  const lessons = '## P2 (closed 14 Oct 06:07)\n- x\n## P1 (closed 13 Oct 23:01)\n- y\n';
+  const S = dirname(HERE) + '/solver/', live = p => readFileSync(S + p, 'utf8');
+  const base = { plan: live('PLAN.md'), rules: live('RULES.md'), checklist: live('CHECKLIST.md'), added: [], solverFileExists: p => existsSync(S + p), warnings: [] };
+  const warned = esc => { const w = []; checkPlan({ ...base, warnings: w, lessons, readSolverFile: f => (f === 'escalation.md' ? esc : files[f] !== undefined ? files[f] : live(f)) }); return w.some(x => /ESCALATION TRIGGER 1/.test(x)); };
+  ok(warned('| date | trigger |\n|---|---|\n| 12 Oct | 2 |\n'), 'check-plan warns of trigger 1 when escalation.md logs no run since the second close');
+  ok(!warned('| date | trigger |\n|---|---|\n| 14 Oct | 1 |\n'), 'check-plan does not warn once a run is logged on the second close\'s date');
 }
 console.log(`${n} passed`);

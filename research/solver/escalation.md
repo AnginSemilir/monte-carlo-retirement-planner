@@ -5,7 +5,9 @@ written here: no pushed file names a model, CLAUDE.md), "only in situations when
 tests fail repeatedly, to get out of very difficult situations, or when you're planning a >2 hour run with low
 confidence". This file is the rule in full; PLAN.md's method section points to it, and checklist item 11 carries the
 trigger (added on the maintainer's unlock of 12 Oct 13:37 UK; RULES.md is at its byte budget). The checklist is loaded
-at every start and restated after every compaction; no check or hook tests the triggers themselves. The thresholds below are Claude's rendering of the
+at every start and restated after every compaction. Trigger 1's first half (two deep-review-designed closes in a row, the primary item
+INCONCLUSIVE) is detected by `triggers.mjs --due` and warned by check-plan until a run is logged below (the maintainer's
+go-ahead after NODE-AX's close); its other halves and triggers 2 and 3 are tested by no check or hook. The thresholds below are Claude's rendering of the
 maintainer's words, which the maintainer may move.
 
 ## When (any one; outside these, never - a maximum-effort review is expensive)

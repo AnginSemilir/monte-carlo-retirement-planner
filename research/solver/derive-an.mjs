@@ -141,8 +141,8 @@ for (const i of ['1', '2', '3']) console.log(`CREDENCE item ${i}: point ${f4(pts
 const lg = readFileSync(join(AX, 'case0.txt'), 'utf8'), bc = readFileSync(join(HERE, 'results-an-preflight-an.txt'), 'utf8');   // AN's preflight job's log, kept
 const num = (re, t) => { const m = re.exec(t); return m ? Number(m[1]) : NaN; };
 const solve = num(/solve CAND BN\/P60S15Q5: table \S+ secs (\d+)/, lg), ledger = num(/checks BN\/P60S15Q5: ownTook .* secs (\d+)/, lg);
-const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, bc), refT = num(/refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs ([\d.]+)\)/, bc);
-const refM = /refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs ([\d.]+)\)/.exec(bc), refFull = refM ? Number(refM[3]) * (300 * 1000) / (Number(refM[1]) * Number(refM[2])) : NaN;
+const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, bc), refT = num(/checks AN\/P60S15Q5: refTook \d+\/\d+ \(.*, secs ([\d.]+)\)$/m, bc);
+const refFull = refT;   // refTook runs its registered sample at every scale (the plan-auditor's FAIL of 15 Oct 15:37 UK), so the preflight's time is the run's
 if (![solve, ledger, build, refFull].every(Number.isFinite)) { console.log(`the budget's inputs did not read (solve ${solve}, ledger ${ledger}, build ${build}, refTook ${refT})`); process.exit(1); }
 const total = solve + build + JUDGED.ledgerCost * ledger + refFull;
-console.log(`\n4. THE BUDGET: BN's solve ${solve} s and ledger ${ledger} s (NODE-AX's log, grade C); the reference's build ${f2(build)} s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook ${f2(refFull)} s (the preflight's, scaled to 300 states a world and 1,000 runs a state, grade C); AN about ${f2(total / 3600)} h on one core`);
+console.log(`\n4. THE BUDGET: BN's solve ${solve} s and ledger ${ledger} s (NODE-AX's log, grade C); the reference's build ${f2(build)} s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook ${f2(refFull)} s (the preflight's, at its registered sample, grade C: fewer records to sample there); AN about ${f2(total / 3600)} h on one core`);

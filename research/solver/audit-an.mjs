@@ -8,14 +8,14 @@
  * tables), so its control is NODE-AX's saved BN (results/diagnodeax), behind NODE-AX's gate.
  * Self-checks as NODE-AX's (armTook, ownTook, identity, qfTook, layerTook), and adaptTook: the reference built, its last
  * bridge year's threshold monotone in the accessible money at every lattice point (nonMono 0), at the registered lattice.
- * refTook: in each p-bin of each world, the mean adaptive p at sampled in-band bridge records against the reference's own
- * rule run forward from each (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws,
- * the tuning seed scaled, 7002 x 1000 + world, so no registry seed is a state), within 0.02 plus three standard errors (Step 0's dpTook); the bins where p sits above are counted (O157).
- * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails), drift
- * (the reference's DP grows every world at the centre's rates: refTook fails), and NODE-AX's layer, own, quad and held.
- * Printed, not required to refuse: choice (each world valued at its own best move; at the visited states its p matched its
- * own rule's simulation in the second preflight, the joint and the own move paying alike there) and step (the last bridge
- * year read off the lattice, Step 0's smear).
+ * refTook: the mean adaptive p at sampled in-band bridge records against the reference's own rule run forward from each
+ * (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws, the tuning seed scaled,
+ * 7002 x 1000 + world, so no registry seed is a state), in each p-bin of each world (300 states a world) and in each bridge
+ * year of each world (100 a world-year: O157's gate), 1,000 runs a state at every scale, each cell within 0.02 plus three
+ * standard errors (Step 0's dpTook); the cells where p sits above are counted (O157).
+ * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails); drift,
+ * choice and step (the reference's DP grows every world at the centre's rates; values each world at its own best move;
+ * reads the last bridge year off the lattice, Step 0's smear): refTook fails; and NODE-AX's layer, own, quad and held.
  *   node research/solver/audit-an.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -208,10 +208,14 @@ JOBS.forEach((job, ji) => {
       console.log(`${''.padEnd(16)} cliff ${L} ${k} ${t}: acc5 ${a5.toFixed(0)} acc95 ${a95.toFixed(0)} width ${(a95 - a5).toFixed(0)}; median W ${Number.isFinite(Wm) ? Wm.toFixed(0) : 'none'} share ${Number.isFinite(am) ? am.toFixed(4) : 'none'}; share cell ${Number.isFinite(aCell) ? aCell.toFixed(0) : 'none'} wealth cell ${Number.isFinite(wCell) ? wCell.toFixed(0) : 'none'} in accessible money`);
     });
   }
-  // refTook: the adaptive reference's p against its own rule run forward, by world and p-bin
-  { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = Math.max(10, Math.round(300 / SCALE)), NSIM = Math.max(100, Math.round(1000 / SCALE));
+  // refTook: the adaptive reference's p against its own rule run forward, by world and p-bin, and by world and bridge year
+  // in the band (O157's gate: the check read by year). The sample is the registered one at every scale (the plan-auditor's
+  // FAIL of 15 Oct 15:37 UK: the preflight's scaled sample widened the tolerance to 0.06-0.09 and let the choice plant's
+  // gap of 0.055 pass)
+  { const ref = cand.mix.tables[0].g.reader.adaptive.ref, BINS = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95], PER = 300, PERY = 100, NSIM = 1000;
     const DIM = recS.length / (recM.length / 7);
     let rfOk = 0, rfN = 0, above = 0; const r0t = Date.now();
+    const judge = (x, tag) => { if (!x.n) return; const mp = x.p / x.n, mm = x.mc / x.n, se = Math.sqrt(Math.max(x.v, 1e-12)) / x.n, ok = Math.abs(mp - mm) <= 0.02 + 3 * se; rfN++; if (ok) rfOk++; if (mp > mm) above++; console.log(`${''.padEnd(16)} ${tag}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`); };
     for (let k = 0; k < K; k++) {
       let st = (7002 * 1000 + k) >>> 0;   // the tuning seed scaled, so no registry seed (7003 Phase 4, 7004 the second) is used as a state
       const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let x = st; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
@@ -222,19 +226,16 @@ JOBS.forEach((job, ji) => {
         const t = recM[7 * r + 2], x = recS.slice(DIM * r, DIM * r + DIM), A = x[1] + x[2], b = A > 0 ? x[1] / A : 0, p = ref.readV(k, t, A, b, x[3]);
         if (p >= BINS[0] && p <= BINS[5]) band.push({ t, A, b, gf: x[3], p });
       }
-      const step = Math.max(1, Math.floor(band.length / PER)), pick = band.filter((_, j) => j % step === 0).slice(0, PER);
+      const thin = (arr, m) => { const stp = Math.max(1, Math.floor(arr.length / m)); return arr.filter((_, j) => j % stp === 0).slice(0, m); };
+      const sim = q => (q.mc === undefined ? (q.mc = ref.simulate(k, q.t, q.A, q.b, q.gf, NSIM, gauss)) : q.mc);
+      const add = (x, q) => { const mc = sim(q); x.n++; x.p += q.p; x.mc += mc; x.v += mc * (1 - mc) / NSIM; };
       const bins = BINS.slice(0, -1).map(() => ({ n: 0, p: 0, mc: 0, v: 0 }));
-      for (const q of pick) { const mc = ref.simulate(k, q.t, q.A, q.b, q.gf, NSIM, gauss); let bi = BINS.findIndex((e, j) => q.p >= e && q.p < BINS[j + 1]); if (bi < 0) bi = 4; const x = bins[bi]; x.n++; x.p += q.p; x.mc += mc; x.v += mc * (1 - mc) / NSIM; }
-      bins.forEach((x, bi) => {
-        if (!x.n) return;
-        const mp = x.p / x.n, mm = x.mc / x.n, se = Math.sqrt(Math.max(x.v, 1e-12)) / x.n, ok = Math.abs(mp - mm) <= 0.02 + 3 * se;
-        rfN++; if (ok) rfOk++; if (mp > mm) above++;
-        console.log(`${''.padEnd(16)} refcheck ${L} ${k} ${bi}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`);
-      });
+      for (const q of thin(band, PER)) { let bi = BINS.findIndex((e, j) => q.p >= e && q.p < BINS[j + 1]); if (bi < 0) bi = 4; add(bins[bi], q); }
+      bins.forEach((x, bi) => judge(x, `refcheck ${L} ${k} ${bi}`));
+      for (const t of bridge) { const x = { n: 0, p: 0, mc: 0, v: 0 }; for (const q of thin(band.filter(r => r.t === t), PERY)) add(x, q); judge(x, `refyear ${L} ${k} ${t}`); }
     }
-    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins; ${PER} states a world, ${NSIM} runs a state, secs ${((Date.now() - r0t) / 1000).toFixed(1)})`);
-    if (PLANT === 'step' || PLANT === 'choice') console.log(`${''.padEnd(16)} ${PLANT} ${L}: refTook ${rfOk}/${rfN} with the plant (printed, not required to refuse)`);
-    else if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
+    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} cells; by p-bin ${PER} states a world, by year ${PERY} a world-year, ${NSIM} runs a state, secs ${((Date.now() - r0t) / 1000).toFixed(1)})`);
+    if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
   console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (ownOk !== idN || idOk !== idN) { console.error(`audit-an: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
   if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-an: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }

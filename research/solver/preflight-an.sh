@@ -2,9 +2,8 @@
 # AN's preflight (PREDICTION="none:..."; the test itself runs under predictions/diag-an.md), at a fifteenth of the points and
 # 40 paths a world, seed 7002: (A) BN-off - NODE-AX's BN preflight job rerun on this code against the saved one, bit for bit
 # (compare-preflight.mjs); (B) AN, read by reduce-an.mjs --preflight (its gate and file; no figure read); (C) the plants, each
-# of which must make the job refuse (exit 3): arm (armTook), drift (refTook), and NODE-AX's layer, own, quad and held on the
-# copied ledger; choice and step are printed, not required to refuse (choice's p matched its own rule's simulation at the
-# visited states in the second preflight, 15 Oct: the joint and the own move pay alike there). PAR jobs at a time (default 4).
+# of which must make the job refuse (exit 3): arm (armTook), drift, choice and step (refTook, at its registered sample and
+# by year: the plan-auditor's FAIL of 15 Oct 15:37 UK), and NODE-AX's layer, own, quad and held on the copied ledger. PAR jobs at a time (default 4).
 set -u
 OUT=research/solver/results/an-preflight
 rm -rf "$OUT"; mkdir -p "$OUT/bn" "$OUT/an"
@@ -24,13 +23,12 @@ echo "B. $(node research/solver/reduce-an.mjs "$OUT/an" 40 15 --preflight | tail
 # the meta not naming the reference, and an exit-code check counted seven plants refused)
 bad=0
 [ "$(cat "$OUT/an/exit.txt")" = "an exit 0" ] || { echo "AN ITSELF DID NOT FINISH - the preflight fails"; bad=1; }
-want() { case $1 in arm) echo "the job's settings did not take";; drift|choice) echo "does not match its own rule run forward";; layer) echo "the ledger does not close on every path";;
+want() { case $1 in arm) echo "the job's settings did not take";; drift|choice|step) echo "does not match its own rule run forward";; layer) echo "the ledger does not close on every path";;
   own) echo "the ledger does not close on every path (ownTook";; quad) echo "the fine rule's machinery does not reproduce";; held) echo "is filed under a layer other than the tiers held";; esac; }
-for p in arm drift layer own quad held; do
+for p in arm drift choice step layer own quad held; do
   e=$(cat "$OUT/plant-$p/exit.txt"); m=$(grep -h 'audit-an:' "$OUT/plant-$p/case0.txt" | head -1); echo "C. $e: $(echo "$m" | cut -c1-170)"
   if [ "$e" != "plant $p exit 3" ] || ! echo "$m" | grep -qF "$(want $p)"; then echo "PLANT $p NOT REFUSED ON ITS OWN CHECK - the preflight fails"; bad=1; fi
 done
-for p in choice step; do echo "C. $(cat "$OUT/plant-$p/exit.txt") (printed only): $(grep -h "refTook\|$p AN" "$OUT/plant-$p/case0.txt" | head -2 | cut -c1-160 | tr '\n' ' ')"; done
-[ $bad -eq 0 ] && echo "the six plants refused, each on its own check (exit 3)"
+[ $bad -eq 0 ] && echo "the eight plants refused, each on its own check (exit 3)"
 echo "preflight done $(TZ=Europe/London date +%H:%M) UK"
 exit $bad

@@ -10,7 +10,7 @@
  * bridge year's threshold monotone in the accessible money at every lattice point (nonMono 0), at the registered lattice.
  * refTook: in each p-bin of each world, the mean adaptive p at sampled in-band bridge records against the reference's own
  * rule run forward from each (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws,
- * seed 7002 + world), within 0.02 plus three standard errors (Step 0's dpTook); the bins where p sits above are counted (O157).
+ * the tuning seed scaled, 7002 x 1000 + world, so no registry seed is a state), within 0.02 plus three standard errors (Step 0's dpTook); the bins where p sits above are counted (O157).
  * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails), drift
  * and choice (the reference's DP grows every world at the centre's rates, or values each world at its own best move:
  * refTook fails), step (the last bridge year read off the lattice, Step 0's smear: printed, its refTook read), and NODE-AX's
@@ -212,7 +212,7 @@ JOBS.forEach((job, ji) => {
     const DIM = recS.length / (recM.length / 7);
     let rfOk = 0, rfN = 0, above = 0; const r0t = Date.now();
     for (let k = 0; k < K; k++) {
-      let st = (7002 + k) >>> 0;
+      let st = (7002 * 1000 + k) >>> 0;   // the tuning seed scaled, so no registry seed (7003 Phase 4, 7004 the second) is used as a state
       const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let x = st; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
       const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); while (v === 0) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
       const band = [];

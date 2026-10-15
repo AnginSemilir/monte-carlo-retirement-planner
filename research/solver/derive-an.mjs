@@ -5,7 +5,7 @@
  * many runs AN's policy may move); the power of items 1-3 through reduce-an.mjs's own items() at the record's spread
  * (times 0.75, 1 and 1.5); the credences from the 10:13 receipt's CAUSE CREDENCES (read from the log, not typed) through the
  * judged stories below; the decision table's rows; the point and 80% interval; the budget (NODE-AX's BN solve and ledger
- * from its log, the reference's build and refTook from AN's build check, results-an-buildcheck.txt).
+ * from its log, the reference's build and refTook from AN's preflight job, results-an-preflight-an.txt).
  *   node research/solver/derive-an.mjs > research/solver/results-derive-an.txt
  */
 import { readFileSync } from 'node:fs';
@@ -68,6 +68,8 @@ const SD = { GB: [0, 1].map(k => sd(arrOf(fBN, 'GB', k))), Y1: sd(arrOf(fBN, 'Y1
 const CH = [0, 1].map(k => { const a = bitsOf(fBN, k), b = bitsOf(fBO, k); let lost = 0, saved = 0, alive = 0; for (let i = 0; i < a.length; i++) { if (a[i]) alive++; if (a[i] && !b[i]) lost++; else if (b[i] && !a[i]) saved++; } return { lost, saved, alive }; });
 for (const k of [0, 1]) console.log(`  BN world ${k}: GB mean ${f4(mean(arrOf(fBN, 'GB', k)))} sd ${f4(SD.GB[k])}; survival ${f4(100 * CH[k].alive / fBN.NPW)}; BO against BN on the same paths: lost ${CH[k].lost} saved ${CH[k].saved}`);
 console.log(`  BN world 2: Y1 mean ${f4(mean(arrOf(fBN, 'Y1', 2)))} sd ${f4(SD.Y1)}`);
+// the mechanism's incidence: the reference is read at every bridge path-year a path visits (NB, a count saved per path)
+for (const k of [0, 1, 2]) { const nb = arrOf(fBN, 'NB', k).map(v => v / 100); console.log(`  the incidence, world ${k}: the reference read at ${f2(mean(nb))} bridge path-years a path (BN's ledger), on ${nb.filter(v => v > 0).length} of ${nb.length} paths`); }
 
 // a synthetic read: AN's per-path arrays at a story's values and the record's spread times x, AN's runs moved from BN's
 const n = NPW, BNb = [0, 1, 2].map(k => bitsOf(fBN, k));
@@ -124,11 +126,11 @@ const s = [...pt].sort((a, b) => a - b), qq = p => s[Math.min(s.length - 1, Math
 console.log(`  item 1's point (AN's GB in world 0, the reducer's own mean): median ${f4(qq(0.5))}, 80% interval ${f4(qq(0.1))} to ${f4(qq(0.9))}`);
 
 // 4. THE BUDGET: NODE-AX's BN solve and ledger, the reference's build and refTook from AN's build check
-const lg = readFileSync(join(AX, 'case0.txt'), 'utf8'), bc = readFileSync(join(HERE, 'results-an-buildcheck.txt'), 'utf8');
+const lg = readFileSync(join(AX, 'case0.txt'), 'utf8'), bc = readFileSync(join(HERE, 'results-an-preflight-an.txt'), 'utf8');   // AN's preflight job's log, kept
 const num = (re, t) => { const m = re.exec(t); return m ? Number(m[1]) : NaN; };
 const solve = num(/solve CAND BN\/P60S15Q5: table \S+ secs (\d+)/, lg), ledger = num(/checks BN\/P60S15Q5: ownTook .* secs (\d+)/, lg);
 const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, bc), refT = num(/refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs (\d+)\)/, bc);
 const refM = /refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs (\d+)\)/.exec(bc), refFull = refM ? Number(refM[3]) * (300 * 1000) / (Number(refM[1]) * Number(refM[2])) : NaN;
 if (![solve, ledger, build, refFull].every(Number.isFinite)) { console.log(`the budget's inputs did not read (solve ${solve}, ledger ${ledger}, build ${build}, refTook ${refT})`); process.exit(1); }
 const total = solve + build + JUDGED.ledgerCost * ledger + refFull;
-console.log(`\n4. THE BUDGET: BN's solve ${solve} s and ledger ${ledger} s (NODE-AX's log, grade C); the reference's build ${f2(build)} s (AN's build check: its lattice does not depend on the grid's points, grade B); refTook ${f2(refFull)} s (the build check's, scaled to 300 states a world and 1,000 runs a state, grade C); AN about ${f2(total / 3600)} h on one core`);
+console.log(`\n4. THE BUDGET: BN's solve ${solve} s and ledger ${ledger} s (NODE-AX's log, grade C); the reference's build ${f2(build)} s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook ${f2(refFull)} s (the preflight's, scaled to 300 states a world and 1,000 runs a state, grade C); AN about ${f2(total / 3600)} h on one core`);

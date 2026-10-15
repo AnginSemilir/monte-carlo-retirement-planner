@@ -55,6 +55,11 @@ caught(run({ plan: ledgerRow('a result | a change | results: results-k5-targets.
 caught(run({ plan: ledgerRow('a result | a change | results: results-k5-targets.txt; fair-test: pass; prediction: none') }), 'ledger', 'prediction none without a reason');
 caught(run({ plan: ledgerRow('a result | a change | results: results-k5-targets.txt; fair-test: pass; prediction: predictions/nope.md') }), 'ledger', 'a cited prediction file that does not exist');
 ok(!run({ plan: ledgerRow('a decision | a change | decision: maintainer, 25 Sep') }).some(e => e.startsWith('[ledger]')), 'a maintainer decision row passes with "decision:"');
+caught(run({ plan: ledgerRow('**X READ: item 1 HELD** | a change | results: results-k5-targets.txt; fair-test: n/a (a registration); prediction: none (a measurement)') }), 'ledger', 'a READ title with fair-test n/a');
+caught(run({ plan: ledgerRow('**X: items 1 and 2 HELD** | a change | results: results-k5-targets.txt; fair-test: n/a (a registration); prediction: none (a measurement)') }), 'ledger', 'an items-HELD title with fair-test n/a');
+caught(run({ plan: ledgerRow('**X INCONCLUSIVE** | a change | results: results-k5-targets.txt; fair-test: n/a (a decision row); prediction: none (a measurement)') }), 'ledger', 'an INCONCLUSIVE title with fair-test n/a');
+ok(!run({ plan: ledgerRow('**X READ: item 1 HELD** | a change | results: results-k5-targets.txt; fair-test: pass; prediction: none (a measurement)') }).some(e => e.startsWith('[ledger]')), 'a READ title with fair-test pass passes');
+ok(!run({ plan: ledgerRow('**X re-cut and REGISTERED, HELD by the escalation rule** | a change | results: results-k5-targets.txt; fair-test: n/a (a registration); prediction: none (a measurement)') }).some(e => e.startsWith('[ledger]')), 'a registration title (a hold, not an item verdict) with fair-test n/a passes');
 
 // register
 const regRow = cells => base.plan.replace('|---|---|---|---|---|---|\n', `|---|---|---|---|---|---|\n| O99 | ${cells} |\n`);

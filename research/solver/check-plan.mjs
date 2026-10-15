@@ -252,6 +252,11 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], ad
         if (!/^(pass|fail|n\/a|accepted)/.test(v)) err('ledger', `${tag}: fair-test must be pass, fail, n/a or accepted (found "${ft[1].trim().slice(0, 20)}")`);
         else if (/^(n\/a|accepted)/.test(v) && v.replace(/^(n\/a|accepted)/, '').replace(/[\s:,()-]/g, '').length < 6) err('ledger', `${tag}: fair-test ${v.split(/\s/)[0]} needs a reason`);
         if (/^fail/.test(v) && !/(provisional|not settled)/i.test(cells.join(' '))) err('ledger', `${tag}: a failed fair test must be marked PROVISIONAL`);
+        // a row whose title reads a verdict settles a result, so its fair test is not n/a: the deep-review index counts a row
+        // naming a prediction as settled only when its fair-test cell is not n/a (the maintainer's unlock of 15 Oct; a
+        // registration row had made a review due twice in a night)
+        const title = (/\*\*([^*]*)\*\*/.exec(cells[1] || '') || [])[1] || '';
+        if (/^n\/a/.test(v) && /\b(READ|FALSIFIED|INCONCLUSIVE)\b|\bitems? [\d, and]+ HELD\b/.test(title)) err('ledger', `${tag}: its title reads a verdict, so its fair test cannot be n/a (the deep-review index would not count it as a settled result)`);
       }
       const pr = /prediction:\s*([^;|]*)/i.exec(ev);
       if (pr && !/predictions\/[\w.-]+\.md/.test(pr[1]) && pr[1].replace(/^\s*none\b/i, '').replace(/[\s:,()-]/g, '').length < 6) err('ledger', `${tag}: prediction "none" needs a reason`);

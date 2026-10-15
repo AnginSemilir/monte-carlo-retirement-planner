@@ -1,10 +1,10 @@
-stamp: code ed39e8b39981 audit f6073dcdde63 prediction none sha -
+stamp: code ed39e8b39981 audit f014ef0faad6 prediction none sha -
 AN: the candidate's own unit, 40 paths a world, wealth points divided by 15 (seed 7002); 1 jobs; part 0/1
 S360             case | job AN/P60S15Q5 | points 4 | lambda 0.0223606797749979
-                 solve CAND AN/P60S15Q5: table 49.1363 secs 678
+                 solve CAND AN/P60S15Q5: table 49.1363 secs 679
                  ran CAND AN/P60S15Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x15x6 shareNodes 0,0.2,0.4,0.6,0.7,0.75,0.8,0.825,0.85,0.875,0.9,0.925,0.95,0.975,1 floor 5000 line 0.5
                  checks AN/P60S15Q5: armTook 1/1
-                 adaptive AN/P60S15Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 255.7
+                 adaptive AN/P60S15Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 267.2
                  checks AN/P60S15Q5: adaptTook 1/1
                  openings AN/P60S15Q5: OWN ai 12 level 0.8 tiers 0,0
                  bridge AN/P60S15Q5: reader years 1,2,3,4,5,6,7
@@ -188,22 +188,40 @@ S360             case | job AN/P60S15Q5 | points 4 | lambda 0.0223606797749979
                  cliff AN/P60S15Q5 2 5: acc5 9782 acc95 12123 width 2341; median W 243920 share 0.9476; share cell 6098 wealth cell 55390 in accessible money
                  cliff AN/P60S15Q5 2 6: acc5 6971 acc95 8059 width 1088; median W 264744 share 0.9627; share cell 6619 wealth cell 39368 in accessible money
                  cliff AN/P60S15Q5 2 7: acc5 3999 acc95 3999 width 0; median W 294050 share 0.9758; share cell 7351 wealth cell 25610 in accessible money
-                 refcheck AN/P60S15Q5 0 0: states 2 p 0.140944 simulated 0.145000 se 0.024834 ok
-                 refcheck AN/P60S15Q5 0 1: states 8 p 0.254617 simulated 0.238750 se 0.014913 ok
-                 refcheck AN/P60S15Q5 0 2: states 6 p 0.470259 simulated 0.476667 se 0.020189 ok
-                 refcheck AN/P60S15Q5 0 3: states 2 p 0.730544 simulated 0.755000 se 0.030245 ok
-                 refcheck AN/P60S15Q5 0 4: states 2 p 0.901873 simulated 0.935000 se 0.017400 ok
-                 refcheck AN/P60S15Q5 1 0: states 4 p 0.117906 simulated 0.090000 se 0.014208 ok
-                 refcheck AN/P60S15Q5 1 1: states 6 p 0.260546 simulated 0.271667 se 0.017849 ok
-                 refcheck AN/P60S15Q5 1 2: states 4 p 0.522340 simulated 0.545000 se 0.024756 ok
-                 refcheck AN/P60S15Q5 1 3: states 2 p 0.726884 simulated 0.725000 se 0.031571 ok
-                 refcheck AN/P60S15Q5 1 4: states 4 p 0.861661 simulated 0.880000 se 0.016229 ok
-                 refcheck AN/P60S15Q5 2 0: states 2 p 0.085447 simulated 0.075000 se 0.018351 ok
-                 refcheck AN/P60S15Q5 2 1: states 4 p 0.288706 simulated 0.292500 se 0.022629 ok
-                 refcheck AN/P60S15Q5 2 2: states 2 p 0.505810 simulated 0.560000 se 0.035071 ok
-                 refcheck AN/P60S15Q5 2 3: states 5 p 0.711888 simulated 0.678000 se 0.020499 ok
-                 refcheck AN/P60S15Q5 2 4: states 7 p 0.888607 simulated 0.895714 se 0.011504 ok
-                 checks AN/P60S15Q5: refTook 15/15 (p above its simulation in 5 of 15 bins; 20 states a world, 100 runs a state, secs 0.1)
-                 checks AN/P60S15Q5: ownTook 120/120 identity 120/120 qfTook 796/796 layerTook 796/796 secs 15
+                 refcheck AN/P60S15Q5 0 0: states 20 p 0.120493 simulated 0.118400 se 0.002267 ok
+                 refcheck AN/P60S15Q5 0 1: states 28 p 0.263161 simulated 0.259071 se 0.002599 ok
+                 refcheck AN/P60S15Q5 0 2: states 32 p 0.500714 simulated 0.492938 se 0.002768 ok
+                 refcheck AN/P60S15Q5 0 3: states 23 p 0.714531 simulated 0.716087 se 0.002951 ok
+                 refcheck AN/P60S15Q5 0 4: states 8 p 0.886683 simulated 0.890875 se 0.003454 ok
+                 refyear AN/P60S15Q5 0 1: states 33 p 0.341369 simulated 0.339576 se 0.002288 ok
+                 refyear AN/P60S15Q5 0 2: states 24 p 0.393129 simulated 0.389292 se 0.002898 ok
+                 refyear AN/P60S15Q5 0 3: states 21 p 0.484956 simulated 0.482905 se 0.002940 ok
+                 refyear AN/P60S15Q5 0 4: states 15 p 0.467198 simulated 0.463133 se 0.003563 ok
+                 refyear AN/P60S15Q5 0 5: states 11 p 0.581865 simulated 0.577636 se 0.004313 ok
+                 refyear AN/P60S15Q5 0 6: states 7 p 0.719439 simulated 0.714571 se 0.004754 ok
+                 refcheck AN/P60S15Q5 1 0: states 28 p 0.123275 simulated 0.118821 se 0.001919 ok
+                 refcheck AN/P60S15Q5 1 1: states 19 p 0.290837 simulated 0.289105 se 0.003260 ok
+                 refcheck AN/P60S15Q5 1 2: states 28 p 0.499815 simulated 0.502964 se 0.002968 ok
+                 refcheck AN/P60S15Q5 1 3: states 16 p 0.708858 simulated 0.707750 se 0.003556 ok
+                 refcheck AN/P60S15Q5 1 4: states 27 p 0.878222 simulated 0.881222 se 0.001949 ok
+                 refyear AN/P60S15Q5 1 1: states 36 p 0.467291 simulated 0.465694 se 0.002240 ok
+                 refyear AN/P60S15Q5 1 2: states 33 p 0.506210 simulated 0.504485 se 0.002168 ok
+                 refyear AN/P60S15Q5 1 3: states 20 p 0.522506 simulated 0.525700 se 0.002834 ok
+                 refyear AN/P60S15Q5 1 4: states 17 p 0.475766 simulated 0.475882 se 0.003112 ok
+                 refyear AN/P60S15Q5 1 5: states 9 p 0.459602 simulated 0.459333 se 0.004239 ok
+                 refyear AN/P60S15Q5 1 6: states 3 p 0.608052 simulated 0.623000 se 0.007768 ok
+                 refcheck AN/P60S15Q5 2 0: states 8 p 0.123865 simulated 0.124750 se 0.003671 ok
+                 refcheck AN/P60S15Q5 2 1: states 20 p 0.321118 simulated 0.321300 se 0.003277 ok
+                 refcheck AN/P60S15Q5 2 2: states 13 p 0.487326 simulated 0.494846 se 0.004365 ok
+                 refcheck AN/P60S15Q5 2 3: states 18 p 0.699928 simulated 0.702389 se 0.003373 ok
+                 refcheck AN/P60S15Q5 2 4: states 33 p 0.884337 simulated 0.886545 se 0.001729 ok
+                 refyear AN/P60S15Q5 2 1: states 31 p 0.607672 simulated 0.607548 se 0.002449 ok
+                 refyear AN/P60S15Q5 2 2: states 24 p 0.544479 simulated 0.544083 se 0.002681 ok
+                 refyear AN/P60S15Q5 2 3: states 18 p 0.557580 simulated 0.565722 se 0.002930 ok
+                 refyear AN/P60S15Q5 2 4: states 11 p 0.683164 simulated 0.687455 se 0.003557 ok
+                 refyear AN/P60S15Q5 2 5: states 6 p 0.789927 simulated 0.798333 se 0.004726 ok
+                 refyear AN/P60S15Q5 2 6: states 2 p 0.667112 simulated 0.664500 se 0.008700 ok
+                 checks AN/P60S15Q5: refTook 33/33 (p above its simulation in 18 of 33 cells; by p-bin 300 states a world, by year 100 a world-year, 1000 runs a state, secs 1.5)
+                 checks AN/P60S15Q5: ownTook 120/120 identity 120/120 qfTook 796/796 layerTook 796/796 secs 14
                  file AN/P60S15Q5: S360-AN-P60S15Q5.json.gz
                  done AN/P60S15Q5

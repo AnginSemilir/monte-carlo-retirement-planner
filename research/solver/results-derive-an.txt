@@ -89,4 +89,4 @@ CREDENCE item 1: point -0.2721 HELD 0.23 INCONCLUSIVE 0.52 FALSIFIED 0.25
 CREDENCE item 2: point 0.0000 HELD 0.82 INCONCLUSIVE 0.14 FALSIFIED 0.04
 CREDENCE item 3: point -0.4929 HELD 0.37 INCONCLUSIVE 0.40 FALSIFIED 0.23
 
-4. THE BUDGET: BN's solve 8469 s and ledger 1173 s (NODE-AX's log, grade C); the reference's build 255.70 s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook 15.00 s (the preflight's, scaled to 300 states a world and 1,000 runs a state, grade C); AN about 2.75 h on one core
+4. THE BUDGET: BN's solve 8469 s and ledger 1173 s (NODE-AX's log, grade C); the reference's build 267.20 s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook 1.50 s (the preflight's, at its registered sample, grade C: fewer records to sample there); AN about 2.75 h on one core

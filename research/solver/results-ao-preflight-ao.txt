@@ -1,0 +1,460 @@
+# AO's second preflight (runs.log 15 Oct 23:34 UK, AOL in ARS's place, through the launcher on 07ed16a): the four jobs' logs at a fifteenth of the points, 40 paths a world (derive-ao.mjs's budget reads it)
+## case0
+stamp: code d2a982e80436 audit 42afd93866d7 prediction none sha -
+AO: the candidate's own unit, 40 paths a world (P ten times that where marked), wealth points divided by 15 (seed 7002); 3 jobs; part 0/3
+S364             case | job AO/P60S6Q5 | points 4 | lambda 0.0223606797749979
+                 solve CAND AO/P60S6Q5: table 0.5477 secs 300
+                 ran CAND AO/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x6x6 shareNodes none floor 205000 line 0.5
+                 reader AO/P60S6Q5: tables 72 unsupported 0 copied 12177 copiedTop 6237 nodes 37422; clamps n 0 lo 0 hi 0
+                 checks AO/P60S6Q5: armTook 1/1
+                 adaptive AO/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 202.7
+                 checks AO/P60S6Q5: adaptTook 1/1
+                 pair AO/P60S6Q5: P ai 12 level 0.8 tiers 0,0; D ai 14 level 0.8 tiers 2,2
+                 checks AO/P60S6Q5: pairTook 1/1
+                 openings AO/P60S6Q5: OWN ai 12 level 0.8 tiers 0,0
+                 tables AO/P60S6Q5 0 z -1.732051 weight 0.166667: P 0.070262 D 0.010099 OWN 0.070262
+                 tables AO/P60S6Q5 1 z 0.000000 weight 0.666667: P 0.396224 D 0.087272 OWN 0.396224
+                 tables AO/P60S6Q5 2 z 1.732051 weight 0.166667: P 1.683810 D 0.522601 OWN 1.683810
+                 probe AO/P60S6Q5 0 P: reads 5 pr 7.2586e-3 plain 28.774920 deletion 28.774850 residual 0.000070 | sup w 0.300861 p 1.000000 S 95.641700 c 0.956417 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.699139 p 0.000000 S 0.000100 c 0.956409 R 0.000100
+                 probe AO/P60S6Q5 1 P: reads 5 pr 2.7357e-2 plain 29.425912 deletion 29.425843 residual 0.000070 | sup w 0.304451 p 1.000000 S 96.652172 c 0.966522 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.695549 p 0.000000 S 0.000100 c 0.966511 R 0.000100
+                 probe AO/P60S6Q5 2 P: reads 5 pr 7.3738e-2 plain 30.003318 deletion 30.003249 residual 0.000069 | sup w 0.307965 p 1.000000 S 97.424145 c 0.974241 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.692035 p 0.000000 S 0.000100 c 0.974233 R 0.000100
+                 sim AO/P60S6Q5 0 P ai 12: 0/400 bits 7a12e561363385e9
+                 sim AO/P60S6Q5 0 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim AO/P60S6Q5 1 P ai 12: 0/400 bits 7a12e561363385e9
+                 sim AO/P60S6Q5 1 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim AO/P60S6Q5 2 P ai 12: 6/400 bits c643af053e8bcd84
+                 sim AO/P60S6Q5 2 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 runs AO/P60S6Q5: secs 53
+                 checks AO/P60S6Q5: forceIdentity 40/40 secs 3
+                 tail AO/P60S6Q5 0 0: records 103 states 25 years 1,2,3,4 p 4.5747e-4 | simulated 5.7480e-4 ln -0.2283 (-0.2800 to -0.1759) ok | engine 8.4000e-4 ln -0.6077 (-1.0318 to -0.1282) ok
+                 tail AO/P60S6Q5 0 1: records 63 states 25 years 1,2,3,4 p 3.6484e-3 | simulated 3.8904e-3 ln -0.0642 (-0.0841 to -0.0443) ok | engine 5.3600e-3 ln -0.3847 (-0.5534 to -0.2082) ok
+                 tail AO/P60S6Q5 0 2: records 6 states 6 years 1,2,3 p 1.3738e-2 | simulated 1.4238e-2 ln -0.0357 (-0.0568 to -0.0146) ok | engine 1.7500e-2 ln -0.2420 (-0.4312 to -0.0425) ok
+                 tail AO/P60S6Q5 0 3: records 0 states 0
+                 tail AO/P60S6Q5 1 0: records 164 states 25 years 1,2,3 p 4.1702e-4 | simulated 5.2520e-4 ln -0.2306 (-0.2847 to -0.1758) ok | engine 5.2000e-4 ln -0.2207 (-0.7570 to 0.4095) ok
+                 tail AO/P60S6Q5 1 1: records 153 states 25 years 1,2,3 p 3.3802e-3 | simulated 3.6652e-3 ln -0.0809 (-0.1014 to -0.0604) ok | engine 3.7600e-3 ln -0.1065 (-0.3080 to 0.1062) ok
+                 tail AO/P60S6Q5 1 2: records 63 states 25 years 1,2,3,4,5 p 2.2134e-2 | simulated 2.2396e-2 ln -0.0117 (-0.0199 to -0.0035) ok | engine 2.8320e-2 ln -0.2464 (-0.3190 to -0.1724) ok
+                 tail AO/P60S6Q5 1 3: records 20 states 20 years 1,2,3,4,5 p 1.0833e-1 | simulated 1.0790e-1 ln 0.0040 (-0.0000 to 0.0079) ok | engine 1.1040e-1 ln -0.0190 (-0.0583 to 0.0209) ok
+                 tail AO/P60S6Q5 2 0: records 165 states 25 years 1,2,3,4 p 4.7435e-4 | simulated 6.0480e-4 ln -0.2430 (-0.2934 to -0.1919) ok | engine 1.6000e-4 ln 1.0868 (0.1467 to 2.3870) ok
+                 tail AO/P60S6Q5 2 1: records 215 states 25 years 1,2,3,5 p 4.4099e-3 | simulated 4.6932e-3 ln -0.0623 (-0.0803 to -0.0441) ok | engine 2.1600e-3 ln 0.7138 (0.4480 to 0.9995) off
+                 tail AO/P60S6Q5 2 2: records 159 states 25 years 1,2,3,4 p 2.3160e-2 | simulated 2.3110e-2 ln 0.0022 (-0.0059 to 0.0102) ok | engine 1.9320e-2 ln 0.1813 (0.0930 to 0.2717) ok
+                 tail AO/P60S6Q5 2 3: records 102 states 25 years 1,2,3,4,5,6 p 1.8376e-1 | simulated 1.8321e-1 ln 0.0030 (0.0004 to 0.0056) ok | engine 1.7868e-1 ln 0.0281 (0.0015 to 0.0549) ok
+                 refTail AO/P60S6Q5: cells 11 off 0; engine off 1; 100000 runs a state simulated, 1000 in the engine, secs 69
+                 tier AO/P60S6Q5 0 1 0,0 low: records 400 paths 400 realised less p -0.0505 se 0.0081
+                 tier AO/P60S6Q5 0 2 0,0 low: records 400 paths 400 realised less p -0.0240 se 0.0070
+                 tier AO/P60S6Q5 0 3 0,0 low: records 400 paths 400 realised less p -0.0081 se 0.0040
+                 tier AO/P60S6Q5 0 4 0,0 low: records 358 paths 358 realised less p -0.0012 se 0.0008
+                 tier AO/P60S6Q5 0 5 0,0 low: records 119 paths 119 realised less p 0.0000 se 0.0000
+                 tier AO/P60S6Q5 0 6 0,0 low: records 14 paths 14 realised less p 0.0000 se 0.0000
+                 tier AO/P60S6Q5 1 1 0,0 band: records 2 paths 2 realised less p -6.5864 se 1.4439
+                 tier AO/P60S6Q5 1 1 0,0 low: records 398 paths 398 realised less p -0.3030 se 0.0336
+                 tier AO/P60S6Q5 1 2 0,0 band: records 6 paths 6 realised less p -7.8459 se 0.6761
+                 tier AO/P60S6Q5 1 2 0,0 low: records 394 paths 394 realised less p -0.1242 se 0.0262
+                 tier AO/P60S6Q5 1 3 0,0 band: records 6 paths 6 realised less p -10.1489 se 2.0499
+                 tier AO/P60S6Q5 1 3 0,0 low: records 394 paths 394 realised less p -0.0342 se 0.0148
+                 tier AO/P60S6Q5 1 4 0,0 band: records 4 paths 4 realised less p -19.3691 se 3.3027
+                 tier AO/P60S6Q5 1 4 0,0 low: records 378 paths 378 realised less p -0.0339 se 0.0167
+                 tier AO/P60S6Q5 1 5 0,0 band: records 2 paths 2 realised less p -9.0172 se 3.4560
+                 tier AO/P60S6Q5 1 5 0,0 low: records 177 paths 177 realised less p -0.0300 se 0.0232
+                 tier AO/P60S6Q5 1 6 0,0 low: records 33 paths 33 realised less p -0.0006 se 0.0006
+                 tier AO/P60S6Q5 2 1 0,0 band: records 37 paths 37 realised less p 1.8805 se 4.9481
+                 tier AO/P60S6Q5 2 1 0,0 low: records 363 paths 363 realised less p -0.2624 se 0.3854
+                 tier AO/P60S6Q5 2 2 0,0 band: records 27 paths 27 realised less p 3.1686 se 7.6298
+                 tier AO/P60S6Q5 2 2 0,0 low: records 373 paths 373 realised less p -0.0720 se 0.2605
+                 tier AO/P60S6Q5 2 3 0,0 band: records 18 paths 18 realised less p 2.3006 se 9.2935
+                 tier AO/P60S6Q5 2 3 0,0 low: records 382 paths 382 realised less p 0.1489 se 0.2552
+                 tier AO/P60S6Q5 2 4 0,0 band: records 8 paths 8 realised less p -14.3861 se 12.6349
+                 tier AO/P60S6Q5 2 4 0,0 low: records 382 paths 382 realised less p -0.0600 se 0.0237
+                 tier AO/P60S6Q5 2 4 2,2 band: records 2 paths 2 realised less p 13.8525 se 2.9969
+                 tier AO/P60S6Q5 2 4 2,2 high: records 2 paths 2 realised less p 3.5529 se 0.3040
+                 tier AO/P60S6Q5 2 5 0,0 band: records 6 paths 6 realised less p 2.9161 se 18.5913
+                 tier AO/P60S6Q5 2 5 0,0 low: records 247 paths 247 realised less p -0.0314 se 0.0207
+                 tier AO/P60S6Q5 2 5 2,2 band: records 2 paths 2 realised less p -39.2728 se 46.6325
+                 tier AO/P60S6Q5 2 5 2,2 high: records 3 paths 3 realised less p 0.7342 se 0.2209
+                 tier AO/P60S6Q5 2 6 0,0 band: records 2 paths 2 realised less p -6.5268 se 39.7626
+                 tier AO/P60S6Q5 2 6 0,0 high: records 1 paths 1 realised less p 0.0000 se NaN
+                 tier AO/P60S6Q5 2 6 0,0 low: records 74 paths 74 realised less p -0.0458 se 0.0447
+                 tier AO/P60S6Q5 2 6 2,2 high: records 4 paths 4 realised less p 0.0524 se 0.0495
+                 file AO/P60S6Q5: S364-AO-P60S6Q5.json.gz
+                 done AO/P60S6Q5
+## case1
+stamp: code d2a982e80436 audit 42afd93866d7 prediction none sha -
+AO: the candidate's own unit, 40 paths a world (P ten times that where marked), wealth points divided by 15 (seed 7002); 3 jobs; part 1/3
+S364             case | job AOL/P60S6Q5 | points 4 | lambda 0.0223606797749979
+                 solve CAND AOL/P60S6Q5: table 0.5520 secs 831
+                 ran CAND AOL/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x6x6 shareNodes none floor 205000 line 0.5
+                 reader AOL/P60S6Q5: tables 72 unsupported 0 copied 12042 copiedTop 6210 nodes 37260; clamps n 0 lo 0 hi 0
+                 checks AOL/P60S6Q5: armTook 1/1
+                 adaptive AOL/P60S6Q5: moves 24 nonMono 0 lattice 320x41x3 nz 256 last year 7 secs 733.4
+                 checks AOL/P60S6Q5: adaptTook 1/1
+                 pair AOL/P60S6Q5: P ai 12 level 0.8 tiers 0,0; D ai 14 level 0.8 tiers 2,2
+                 checks AOL/P60S6Q5: pairTook 1/1
+                 openings AOL/P60S6Q5: OWN ai 12 level 0.8 tiers 0,0
+                 tables AOL/P60S6Q5 0 z -1.732051 weight 0.166667: P 0.072661 D 0.011018 OWN 0.072661
+                 tables AOL/P60S6Q5 1 z 0.000000 weight 0.666667: P 0.397206 D 0.089634 OWN 0.397206
+                 tables AOL/P60S6Q5 2 z 1.732051 weight 0.166667: P 1.676879 D 0.525594 OWN 1.676879
+                 probe AOL/P60S6Q5 0 P: reads 5 pr 7.2950e-3 plain 28.894692 deletion 28.894622 residual 0.000070 | sup w 0.300861 p 1.000000 S 96.039799 c 0.960398 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.699139 p 0.000000 S 0.000100 c 0.960288 R 0.000100
+                 probe AOL/P60S6Q5 1 P: reads 5 pr 2.7243e-2 plain 29.426323 deletion 29.426253 residual 0.000070 | sup w 0.304451 p 1.000000 S 96.653520 c 0.966535 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.695549 p 0.000000 S 0.000100 c 0.966529 R 0.000100
+                 probe AOL/P60S6Q5 2 P: reads 5 pr 7.3508e-2 plain 30.003617 deletion 30.003548 residual 0.000069 | sup w 0.307965 p 1.000000 S 97.425115 c 0.974251 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.692035 p 0.000000 S 0.000100 c 0.974246 R 0.000100
+                 sim AOL/P60S6Q5 0 P ai 12: 0/400 bits 7a12e561363385e9
+                 sim AOL/P60S6Q5 0 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim AOL/P60S6Q5 1 P ai 12: 0/400 bits 7a12e561363385e9
+                 sim AOL/P60S6Q5 1 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim AOL/P60S6Q5 2 P ai 12: 6/400 bits c643af053e8bcd84
+                 sim AOL/P60S6Q5 2 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 runs AOL/P60S6Q5: secs 53
+                 checks AOL/P60S6Q5: forceIdentity 40/40 secs 3
+                 tail AOL/P60S6Q5 0 0: records 112 states 25 years 1,2,3,4 p 4.0541e-4 | simulated 4.9280e-4 ln -0.1952 (-0.2510 to -0.1386) ok | engine 5.6000e-4 ln -0.3230 (-0.8403 to 0.2807) ok
+                 tail AOL/P60S6Q5 0 1: records 64 states 25 years 1,2,3,4 p 2.9954e-3 | simulated 3.1760e-3 ln -0.0585 (-0.0805 to -0.0365) ok | engine 4.5200e-3 ln -0.4114 (-0.5952 to -0.2184) ok
+                 tail AOL/P60S6Q5 0 2: records 6 states 6 years 1,2,3 p 1.3775e-2 | simulated 1.3903e-2 ln -0.0093 (-0.0306 to 0.0121) ok | engine 1.7333e-2 ln -0.2298 (-0.4200 to -0.0293) ok
+                 tail AOL/P60S6Q5 0 3: records 0 states 0
+                 tail AOL/P60S6Q5 1 0: records 171 states 25 years 1,2,3 p 4.0493e-4 | simulated 4.7360e-4 ln -0.1566 (-0.2136 to -0.0989) ok | engine 5.2000e-4 ln -0.2501 (-0.7864 to 0.3800) ok
+                 tail AOL/P60S6Q5 1 1: records 155 states 25 years 1,2,3 p 3.8622e-3 | simulated 4.1232e-3 ln -0.0654 (-0.0847 to -0.0460) ok | engine 3.7600e-3 ln 0.0268 (-0.1747 to 0.2396) ok
+                 tail AOL/P60S6Q5 1 2: records 64 states 25 years 1,2,3,4,5 p 1.9623e-2 | simulated 1.9866e-2 ln -0.0123 (-0.0210 to -0.0036) ok | engine 2.4520e-2 ln -0.2228 (-0.3010 to -0.1430) ok
+                 tail AOL/P60S6Q5 1 3: records 20 states 20 years 1,2,3,4,5 p 1.0786e-1 | simulated 1.0787e-1 ln -0.0001 (-0.0040 to 0.0039) ok | engine 1.1030e-1 ln -0.0224 (-0.0617 to 0.0175) ok
+                 tail AOL/P60S6Q5 2 0: records 172 states 25 years 1,2,3 p 4.4865e-4 | simulated 5.5600e-4 ln -0.2145 (-0.2671 to -0.1613) ok | engine 1.2000e-4 ln 1.3187 (0.2464 to 2.8975) ok
+                 tail AOL/P60S6Q5 2 1: records 221 states 25 years 1,2,3,4 p 2.9247e-3 | simulated 3.0612e-3 ln -0.0456 (-0.0680 to -0.0231) ok | engine 1.6400e-3 ln 0.5785 (0.2738 to 0.9101) ok
+                 tail AOL/P60S6Q5 2 2: records 161 states 25 years 1,2,3,4 p 2.5742e-2 | simulated 2.5779e-2 ln -0.0014 (-0.0091 to 0.0062) ok | engine 2.3360e-2 ln 0.0971 (0.0170 to 0.1790) ok
+                 tail AOL/P60S6Q5 2 3: records 100 states 25 years 1,2,3,4,5 p 2.3652e-1 | simulated 2.3668e-1 ln -0.0007 (-0.0029 to 0.0015) ok | engine 2.3176e-1 ln 0.0203 (-0.0022 to 0.0431) ok
+                 refTail AOL/P60S6Q5: cells 11 off 0; engine off 0; 100000 runs a state simulated, 1000 in the engine, secs 70
+                 tier AOL/P60S6Q5 0 1 0,0 low: records 400 paths 400 realised less p -0.0521 se 0.0082
+                 tier AOL/P60S6Q5 0 2 0,0 low: records 400 paths 400 realised less p -0.0246 se 0.0071
+                 tier AOL/P60S6Q5 0 3 0,0 low: records 400 paths 400 realised less p -0.0083 se 0.0041
+                 tier AOL/P60S6Q5 0 4 0,0 low: records 358 paths 358 realised less p -0.0014 se 0.0008
+                 tier AOL/P60S6Q5 0 5 0,0 low: records 119 paths 119 realised less p -0.0000 se 0.0000
+                 tier AOL/P60S6Q5 0 6 0,0 low: records 14 paths 14 realised less p 0.0000 se 0.0000
+                 tier AOL/P60S6Q5 1 1 0,0 band: records 2 paths 2 realised less p -6.5483 se 1.4329
+                 tier AOL/P60S6Q5 1 1 0,0 low: records 398 paths 398 realised less p -0.3055 se 0.0335
+                 tier AOL/P60S6Q5 1 2 0,0 band: records 6 paths 6 realised less p -7.8288 se 0.6717
+                 tier AOL/P60S6Q5 1 2 0,0 low: records 394 paths 394 realised less p -0.1253 se 0.0261
+                 tier AOL/P60S6Q5 1 3 0,0 band: records 6 paths 6 realised less p -10.0857 se 2.0419
+                 tier AOL/P60S6Q5 1 3 0,0 low: records 394 paths 394 realised less p -0.0346 se 0.0148
+                 tier AOL/P60S6Q5 1 4 0,0 band: records 4 paths 4 realised less p -19.3055 se 3.2950
+                 tier AOL/P60S6Q5 1 4 0,0 low: records 378 paths 378 realised less p -0.0338 se 0.0166
+                 tier AOL/P60S6Q5 1 5 0,0 band: records 2 paths 2 realised less p -8.9572 se 3.4612
+                 tier AOL/P60S6Q5 1 5 0,0 low: records 177 paths 177 realised less p -0.0302 se 0.0233
+                 tier AOL/P60S6Q5 1 6 0,0 low: records 33 paths 33 realised less p -0.0005 se 0.0005
+                 tier AOL/P60S6Q5 2 1 0,0 band: records 36 paths 36 realised less p 2.1084 se 5.0847
+                 tier AOL/P60S6Q5 2 1 0,0 low: records 364 paths 364 realised less p -0.2763 se 0.3846
+                 tier AOL/P60S6Q5 2 2 0,0 band: records 27 paths 27 realised less p 3.2174 se 7.6302
+                 tier AOL/P60S6Q5 2 2 0,0 low: records 373 paths 373 realised less p -0.0731 se 0.2604
+                 tier AOL/P60S6Q5 2 3 0,0 band: records 18 paths 18 realised less p 2.3396 se 9.2930
+                 tier AOL/P60S6Q5 2 3 0,0 low: records 382 paths 382 realised less p 0.1484 se 0.2552
+                 tier AOL/P60S6Q5 2 4 0,0 band: records 8 paths 8 realised less p -14.3404 se 12.6307
+                 tier AOL/P60S6Q5 2 4 0,0 low: records 382 paths 382 realised less p -0.0597 se 0.0235
+                 tier AOL/P60S6Q5 2 4 2,2 band: records 2 paths 2 realised less p 13.6769 se 2.9868
+                 tier AOL/P60S6Q5 2 4 2,2 high: records 2 paths 2 realised less p 3.4973 se 0.3539
+                 tier AOL/P60S6Q5 2 5 0,0 band: records 5 paths 5 realised less p 4.5372 se 22.6975
+                 tier AOL/P60S6Q5 2 5 0,0 low: records 248 paths 248 realised less p -0.0515 se 0.0286
+                 tier AOL/P60S6Q5 2 5 2,2 band: records 2 paths 2 realised less p -39.3049 se 46.5580
+                 tier AOL/P60S6Q5 2 5 2,2 high: records 3 paths 3 realised less p 0.6955 se 0.1986
+                 tier AOL/P60S6Q5 2 6 0,0 band: records 2 paths 2 realised less p -5.8151 se 40.4691
+                 tier AOL/P60S6Q5 2 6 0,0 high: records 1 paths 1 realised less p 0.0000 se NaN
+                 tier AOL/P60S6Q5 2 6 0,0 low: records 74 paths 74 realised less p -0.0443 se 0.0434
+                 tier AOL/P60S6Q5 2 6 2,2 high: records 4 paths 4 realised less p 0.0512 se 0.0485
+                 file AOL/P60S6Q5: S364-AOL-P60S6Q5.json.gz
+                 done AOL/P60S6Q5
+## case2
+stamp: code d2a982e80436 audit 42afd93866d7 prediction none sha -
+AO: the candidate's own unit, 40 paths a world (P ten times that where marked), wealth points divided by 15 (seed 7002); 3 jobs; part 2/3
+S364             case | job CO/P60S6Q5 | points 4 | lambda 0.0223606797749979
+                 solve CAND CO/P60S6Q5: table 0.5841 secs 213
+                 ran CAND CO/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef order readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x6x6 shareNodes none floor 205000 line 0.5
+                 reader CO/P60S6Q5: tables 72 unsupported 0 copied 11826 copiedTop 6156 nodes 36936; clamps n 0 lo 0 hi 0
+                 checks CO/P60S6Q5: armTook 1/1
+                 pair CO/P60S6Q5: P ai 12 level 0.8 tiers 0,0; D ai 14 level 0.8 tiers 2,2
+                 checks CO/P60S6Q5: pairTook 1/1
+                 openings CO/P60S6Q5: OWN ai 12 level 0.8 tiers 0,0
+                 tables CO/P60S6Q5 0 z -1.732051 weight 0.166667: P 0.042808 D 0.005400 OWN 0.042808
+                 tables CO/P60S6Q5 1 z 0.000000 weight 0.666667: P 0.301129 D 0.066570 OWN 0.301129
+                 tables CO/P60S6Q5 2 z 1.732051 weight 0.166667: P 1.297758 D 0.440035 OWN 1.297758
+                 probe CO/P60S6Q5 0 P: reads 5 pr 4.5168e-3 plain 28.997947 deletion 28.997877 residual 0.000070 | sup w 0.300861 p 1.000000 S 96.382997 c 0.963830 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.699139 p 0.000000 S 0.000100 c 0.963818 R 0.000100
+                 probe CO/P60S6Q5 1 P: reads 5 pr 2.0317e-2 plain 29.426432 deletion 29.426363 residual 0.000070 | sup w 0.304451 p 1.000000 S 96.653880 c 0.966539 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.695549 p 0.000000 S 0.000100 c 0.966531 R 0.000100
+                 probe CO/P60S6Q5 2 P: reads 5 pr 6.1530e-2 plain 30.004595 deletion 30.004526 residual 0.000069 | sup w 0.307965 p 1.000000 S 97.428290 c 0.974283 R 0.000000 | clip w 0.000000 p 0.000000 S 0.000000 c 0.000000 R 0.000000 | copy w 0.692035 p 0.000000 S 0.000100 c 0.974277 R 0.000100
+                 sim CO/P60S6Q5 0 P ai 12: 0/40 bits 2c34ce1df23b838c
+                 sim CO/P60S6Q5 0 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim CO/P60S6Q5 1 P ai 12: 0/40 bits 2c34ce1df23b838c
+                 sim CO/P60S6Q5 1 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 sim CO/P60S6Q5 2 P ai 12: 0/40 bits 2c34ce1df23b838c
+                 sim CO/P60S6Q5 2 D ai 14: 0/40 bits 2c34ce1df23b838c
+                 runs CO/P60S6Q5: secs 7
+                 checks CO/P60S6Q5: forceIdentity 40/40 secs 2
+                 file CO/P60S6Q5: S364-CO-P60S6Q5.json.gz
+                 done CO/P60S6Q5
+## case3
+stamp: code d2a982e80436 audit 2a450a222a35 prediction none sha -
+AN: the candidate's own unit, 40 paths a world, wealth points divided by 15 (seed 7002); 1 jobs; part 0/1
+S360             case | job A6/P60S6Q5 | points 4 | lambda 0.0223606797749979
+                 solve CAND A6/P60S6Q5: table 49.1376 secs 329
+                 ran CAND A6/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x6x6 shareNodes none floor 5000 line 0.5
+                 checks A6/P60S6Q5: armTook 1/1
+                 adaptive A6/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 205.8
+                 checks A6/P60S6Q5: adaptTook 1/1
+                 openings A6/P60S6Q5: OWN ai 12 level 0.8 tiers 0,0
+                 bridge A6/P60S6Q5: reader years 1,2,3,4,5,6,7
+                 tables A6/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 27.811797 READ 27.699704
+                 sim A6/P60S6Q5 0 OWN ai 12: 9/40 bridge 9 bits 7f5fe180269ff2fd 7f5fe180269ff2fd
+                 ledger A6/P60S6Q5 0: X 22.500000 B0 27.811797 T 4.937966 GB 0.399942 GA -0.026111 GL -0.212264 GD -3.019166 Y1 3.713171 Y2 -0.309407 Y3 -0.415061 Y4 -0.039412 Y5 -0.059846 Y6 -0.113006 Y7 -2.376497
+                 year A6/P60S6Q5 0 1: paths 40 G 3.713171 T 1.643602
+                 year A6/P60S6Q5 0 2: paths 40 G -0.309407 T -1.412913
+                 year A6/P60S6Q5 0 3: paths 40 G -0.415061 T 5.151965
+                 year A6/P60S6Q5 0 4: paths 40 G -0.039412 T 1.249900
+                 year A6/P60S6Q5 0 5: paths 40 G -0.059846 T -5.646884
+                 year A6/P60S6Q5 0 6: paths 33 G -0.113006 T 4.394272
+                 year A6/P60S6Q5 0 7: paths 22 G -2.376497 T 0.001040
+                 year A6/P60S6Q5 0 8: paths 9 G -0.007773 T -0.002033
+                 year A6/P60S6Q5 0 9: paths 9 G -0.005260 T -0.000592
+                 year A6/P60S6Q5 0 10: paths 9 G -0.003654 T 0.000561
+                 year A6/P60S6Q5 0 11: paths 9 G -0.002850 T 0.000117
+                 year A6/P60S6Q5 0 12: paths 9 G -0.002325 T 0.000248
+                 year A6/P60S6Q5 0 13: paths 9 G -0.001786 T 0.000034
+                 year A6/P60S6Q5 0 14: paths 9 G -0.001178 T 0.000041
+                 year A6/P60S6Q5 0 15: paths 9 G -0.000803 T -0.000034
+                 year A6/P60S6Q5 0 16: paths 9 G -0.000460 T -0.000022
+                 year A6/P60S6Q5 0 17: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 18: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 19: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 20: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 21: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 22: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 23: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 24: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 25: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 26: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 27: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 28: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 29: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 30: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 31: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 32: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 33: paths 9 G 0.000000 T -0.000023
+                 year A6/P60S6Q5 0 34: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 35: paths 9 G 0.000000 T -0.000022
+                 year A6/P60S6Q5 0 36: paths 9 G -0.000000 T -0.000023
+                 year A6/P60S6Q5 0 37: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 38: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 39: paths 9 G -0.000000 T -0.000023
+                 year A6/P60S6Q5 0 40: paths 9 G -0.000001 T -0.000022
+                 year A6/P60S6Q5 0 41: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 42: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 43: paths 9 G -0.000000 T -0.000023
+                 year A6/P60S6Q5 0 44: paths 9 G -0.000000 T -0.000022
+                 year A6/P60S6Q5 0 45: paths 9 G -0.000023 T 0.000000
+                 derisk A6/P60S6Q5 0: plan layer 0 bridge path-years 255 de-risked 73 GD -3.019166
+                 qf A6/P60S6Q5 0: paths 40 QF -0.049542
+                 layer A6/P60S6Q5 0 0: bridge path-years 182 G 3.419108
+                 layer A6/P60S6Q5 0 1: bridge path-years 14 G -0.363749
+                 layer A6/P60S6Q5 0 2: bridge path-years 59 G -2.655417
+                 cliff A6/P60S6Q5 0 1: acc5 20835 acc95 31030 width 10195; median W 177718 share 0.8690; share cell 35544 wealth cell 138394 in accessible money
+                 cliff A6/P60S6Q5 0 2: acc5 18443 acc95 26449 width 8006; median W 186452 share 0.8899; share cell 37290 wealth cell 116368 in accessible money
+                 cliff A6/P60S6Q5 0 3: acc5 15867 acc95 21736 width 5869; median W 179427 share 0.9105; share cell 35885 wealth cell 94532 in accessible money
+                 cliff A6/P60S6Q5 0 4: acc5 13282 acc95 17214 width 3933; median W 176633 share 0.9303; share cell 35327 wealth cell 73656 in accessible money
+                 cliff A6/P60S6Q5 0 5: acc5 10327 acc95 12626 width 2300; median W 168987 share 0.9540; share cell 33797 wealth cell 48587 in accessible money
+                 cliff A6/P60S6Q5 0 6: acc5 7151 acc95 8297 width 1146; median W 216190 share 0.9717; share cell 43238 wealth cell 29894 in accessible money
+                 cliff A6/P60S6Q5 0 7: acc5 3999 acc95 3999 width 0; median W 224467 share 0.9824; share cell 44893 wealth cell 18637 in accessible money
+                 tables A6/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 49.306003 READ 49.187081
+                 sim A6/P60S6Q5 1 OWN ai 12: 20/40 bridge 20 bits 9b99822eca4f1112 9b99822eca4f1112
+                 ledger A6/P60S6Q5 1: X 50.000000 B0 49.306003 T -0.476271 GB -0.186133 GA -0.031594 GL -0.376518 GD -2.924565 Y1 3.237710 Y2 0.179896 Y3 -0.501219 Y4 -0.135564 Y5 -0.119752 Y6 -0.121202 Y7 -2.726002
+                 year A6/P60S6Q5 1 1: paths 40 G 3.237710 T 0.122550
+                 year A6/P60S6Q5 1 2: paths 40 G 0.179896 T -1.683997
+                 year A6/P60S6Q5 1 3: paths 40 G -0.501219 T 3.006170
+                 year A6/P60S6Q5 1 4: paths 40 G -0.135564 T 0.017207
+                 year A6/P60S6Q5 1 5: paths 40 G -0.119752 T -4.240939
+                 year A6/P60S6Q5 1 6: paths 37 G -0.121202 T 2.052786
+                 year A6/P60S6Q5 1 7: paths 30 G -2.726002 T -0.000908
+                 year A6/P60S6Q5 1 8: paths 20 G -0.009526 T -0.000859
+                 year A6/P60S6Q5 1 9: paths 20 G -0.006786 T -0.001260
+                 year A6/P60S6Q5 1 10: paths 20 G -0.004483 T 0.000750
+                 year A6/P60S6Q5 1 11: paths 20 G -0.003483 T -0.000240
+                 year A6/P60S6Q5 1 12: paths 20 G -0.002460 T 0.000020
+                 year A6/P60S6Q5 1 13: paths 20 G -0.001939 T -0.000063
+                 year A6/P60S6Q5 1 14: paths 20 G -0.001341 T -0.000057
+                 year A6/P60S6Q5 1 15: paths 20 G -0.000927 T -0.000062
+                 year A6/P60S6Q5 1 16: paths 20 G -0.000598 T -0.000050
+                 year A6/P60S6Q5 1 17: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 18: paths 20 G 0.000000 T -0.000050
+                 year A6/P60S6Q5 1 19: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 20: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 21: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 22: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 23: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 24: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 25: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 26: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 27: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 28: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 29: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 30: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 31: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 32: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 33: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 34: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 35: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 36: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 37: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 38: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 39: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 40: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 41: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 42: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 43: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 44: paths 20 G -0.000000 T -0.000050
+                 year A6/P60S6Q5 1 45: paths 20 G -0.000050 T 0.000000
+                 derisk A6/P60S6Q5 1: plan layer 0 bridge path-years 267 de-risked 102 GD -2.924565
+                 qf A6/P60S6Q5 1: paths 40 QF -0.117797
+                 layer A6/P60S6Q5 1 0: bridge path-years 165 G 2.738432
+                 layer A6/P60S6Q5 1 1: bridge path-years 5 G -0.055032
+                 layer A6/P60S6Q5 1 2: bridge path-years 97 G -2.869532
+                 cliff A6/P60S6Q5 1 1: acc5 19395 acc95 29066 width 9671; median W 184194 share 0.8701; share cell 36839 wealth cell 137224 in accessible money
+                 cliff A6/P60S6Q5 1 2: acc5 17329 acc95 25006 width 7677; median W 199424 share 0.8911; share cell 39885 wealth cell 115067 in accessible money
+                 cliff A6/P60S6Q5 1 3: acc5 15112 acc95 20791 width 5679; median W 203267 share 0.9109; share cell 40653 wealth cell 94202 in accessible money
+                 cliff A6/P60S6Q5 1 4: acc5 12790 acc95 16627 width 3837; median W 204811 share 0.9287; share cell 40962 wealth cell 75322 in accessible money
+                 cliff A6/P60S6Q5 1 5: acc5 10046 acc95 12360 width 2314; median W 207465 share 0.9496; share cell 41493 wealth cell 53223 in accessible money
+                 cliff A6/P60S6Q5 1 6: acc5 7064 acc95 8177 width 1114; median W 231741 share 0.9650; share cell 46348 wealth cell 37039 in accessible money
+                 cliff A6/P60S6Q5 1 7: acc5 3999 acc95 3999 width 0; median W 259456 share 0.9789; share cell 51891 wealth cell 22268 in accessible money
+                 tables A6/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 67.754023 READ 70.377307
+                 sim A6/P60S6Q5 2 OWN ai 12: 30/40 bridge 30 bits aac7abea882c6eb1 aac7abea882c6eb1
+                 ledger A6/P60S6Q5 2: X 75.000000 B0 67.754023 T -4.659257 GB -2.553262 GA -0.033458 GL -0.181225 GD -1.968495 Y1 -0.141646 Y2 -0.619433 Y3 0.329322 Y4 -0.072654 Y5 -0.019397 Y6 -0.089174 Y7 -1.940278
+                 year A6/P60S6Q5 2 1: paths 40 G -0.141646 T -0.618067
+                 year A6/P60S6Q5 2 2: paths 40 G -0.619433 T -0.040612
+                 year A6/P60S6Q5 2 3: paths 40 G 0.329322 T -1.039302
+                 year A6/P60S6Q5 2 4: paths 40 G -0.072654 T -0.707773
+                 year A6/P60S6Q5 2 5: paths 40 G -0.019397 T -1.590634
+                 year A6/P60S6Q5 2 6: paths 40 G -0.089174 T -1.581157
+                 year A6/P60S6Q5 2 7: paths 34 G -1.940278 T -0.000549
+                 year A6/P60S6Q5 2 8: paths 30 G -0.010143 T 0.000469
+                 year A6/P60S6Q5 2 9: paths 30 G -0.007430 T -0.000902
+                 year A6/P60S6Q5 2 10: paths 30 G -0.004918 T 0.000358
+                 year A6/P60S6Q5 2 11: paths 30 G -0.003594 T -0.000230
+                 year A6/P60S6Q5 2 12: paths 30 G -0.002509 T 0.000145
+                 year A6/P60S6Q5 2 13: paths 30 G -0.001916 T -0.000066
+                 year A6/P60S6Q5 2 14: paths 30 G -0.001341 T -0.000068
+                 year A6/P60S6Q5 2 15: paths 30 G -0.000923 T -0.000085
+                 year A6/P60S6Q5 2 16: paths 30 G -0.000610 T -0.000075
+                 year A6/P60S6Q5 2 17: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 18: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 19: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 20: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 21: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 22: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 23: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 24: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 25: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 26: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 27: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 28: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 29: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 30: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 31: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 32: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 33: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 34: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 35: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 36: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 37: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 38: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 39: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 40: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 41: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 42: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 43: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 44: paths 30 G -0.000000 T -0.000075
+                 year A6/P60S6Q5 2 45: paths 30 G -0.000075 T 0.000000
+                 derisk A6/P60S6Q5 2: plan layer 0 bridge path-years 274 de-risked 146 GD -1.968495
+                 qf A6/P60S6Q5 2: paths 40 QF -0.045713
+                 layer A6/P60S6Q5 2 0: bridge path-years 128 G -0.584767
+                 layer A6/P60S6Q5 2 1: bridge path-years 7 G -0.012175
+                 layer A6/P60S6Q5 2 2: bridge path-years 139 G -1.956320
+                 cliff A6/P60S6Q5 2 1: acc5 18085 acc95 27318 width 9233; median W 190908 share 0.8712; share cell 38182 wealth cell 136063 in accessible money
+                 cliff A6/P60S6Q5 2 2: acc5 16326 acc95 23696 width 7370; median W 212636 share 0.8922; share cell 42527 wealth cell 113932 in accessible money
+                 cliff A6/P60S6Q5 2 3: acc5 14424 acc95 19951 width 5527; median W 222575 share 0.9109; share cell 44515 wealth cell 94117 in accessible money
+                 cliff A6/P60S6Q5 2 4: acc5 12312 acc95 16087 width 3775; median W 227546 share 0.9280; share cell 45509 wealth cell 76081 in accessible money
+                 cliff A6/P60S6Q5 2 5: acc5 9782 acc95 12123 width 2341; median W 244228 share 0.9471; share cell 48846 wealth cell 55865 in accessible money
+                 cliff A6/P60S6Q5 2 6: acc5 6971 acc95 8059 width 1088; median W 265095 share 0.9627; share cell 53019 wealth cell 39368 in accessible money
+                 cliff A6/P60S6Q5 2 7: acc5 3999 acc95 3999 width 0; median W 295840 share 0.9755; share cell 59168 wealth cell 25937 in accessible money
+                 refcheck A6/P60S6Q5 0 0: states 20 p 0.120493 simulated 0.118400 se 0.002267 ok
+                 refcheck A6/P60S6Q5 0 1: states 28 p 0.263161 simulated 0.259071 se 0.002599 ok
+                 refcheck A6/P60S6Q5 0 2: states 32 p 0.500714 simulated 0.492938 se 0.002768 ok
+                 refcheck A6/P60S6Q5 0 3: states 23 p 0.714531 simulated 0.716087 se 0.002951 ok
+                 refcheck A6/P60S6Q5 0 4: states 8 p 0.886683 simulated 0.890875 se 0.003454 ok
+                 refyear A6/P60S6Q5 0 1: states 33 p 0.341369 simulated 0.339576 se 0.002288 ok
+                 refyear A6/P60S6Q5 0 2: states 24 p 0.393129 simulated 0.389292 se 0.002898 ok
+                 refyear A6/P60S6Q5 0 3: states 21 p 0.484956 simulated 0.482905 se 0.002940 ok
+                 refyear A6/P60S6Q5 0 4: states 15 p 0.467198 simulated 0.463133 se 0.003563 ok
+                 refyear A6/P60S6Q5 0 5: states 11 p 0.581865 simulated 0.577636 se 0.004313 ok
+                 refyear A6/P60S6Q5 0 6: states 7 p 0.719439 simulated 0.714571 se 0.004754 ok
+                 refcheck A6/P60S6Q5 1 0: states 28 p 0.123275 simulated 0.118821 se 0.001919 ok
+                 refcheck A6/P60S6Q5 1 1: states 19 p 0.290837 simulated 0.289105 se 0.003260 ok
+                 refcheck A6/P60S6Q5 1 2: states 28 p 0.499815 simulated 0.502964 se 0.002968 ok
+                 refcheck A6/P60S6Q5 1 3: states 16 p 0.708858 simulated 0.707750 se 0.003556 ok
+                 refcheck A6/P60S6Q5 1 4: states 27 p 0.878222 simulated 0.881222 se 0.001949 ok
+                 refyear A6/P60S6Q5 1 1: states 36 p 0.467291 simulated 0.465694 se 0.002240 ok
+                 refyear A6/P60S6Q5 1 2: states 33 p 0.506210 simulated 0.504485 se 0.002168 ok
+                 refyear A6/P60S6Q5 1 3: states 20 p 0.522506 simulated 0.525700 se 0.002834 ok
+                 refyear A6/P60S6Q5 1 4: states 17 p 0.475766 simulated 0.475882 se 0.003112 ok
+                 refyear A6/P60S6Q5 1 5: states 9 p 0.459602 simulated 0.459333 se 0.004239 ok
+                 refyear A6/P60S6Q5 1 6: states 3 p 0.608052 simulated 0.623000 se 0.007768 ok
+                 refcheck A6/P60S6Q5 2 0: states 8 p 0.123865 simulated 0.124750 se 0.003671 ok
+                 refcheck A6/P60S6Q5 2 1: states 20 p 0.321118 simulated 0.321300 se 0.003277 ok
+                 refcheck A6/P60S6Q5 2 2: states 13 p 0.487326 simulated 0.494846 se 0.004365 ok
+                 refcheck A6/P60S6Q5 2 3: states 18 p 0.699928 simulated 0.702389 se 0.003373 ok
+                 refcheck A6/P60S6Q5 2 4: states 33 p 0.884337 simulated 0.886545 se 0.001729 ok
+                 refyear A6/P60S6Q5 2 1: states 31 p 0.607672 simulated 0.607548 se 0.002449 ok
+                 refyear A6/P60S6Q5 2 2: states 24 p 0.544479 simulated 0.544083 se 0.002681 ok
+                 refyear A6/P60S6Q5 2 3: states 18 p 0.557580 simulated 0.565722 se 0.002930 ok
+                 refyear A6/P60S6Q5 2 4: states 11 p 0.683164 simulated 0.687455 se 0.003557 ok
+                 refyear A6/P60S6Q5 2 5: states 6 p 0.789927 simulated 0.798333 se 0.004726 ok
+                 refyear A6/P60S6Q5 2 6: states 2 p 0.667112 simulated 0.664500 se 0.008700 ok
+                 checks A6/P60S6Q5: refTook 33/33 (p above its simulation in 18 of 33 cells; by p-bin 300 states a world, by year 100 a world-year, 1000 runs a state, secs 1.4)
+                 checks A6/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 796/796 layerTook 796/796 secs 11
+                 file A6/P60S6Q5: S360-A6-P60S6Q5.json.gz
+                 done A6/P60S6Q5
+## the preflight's summary
+bo exit 0
+ao0 exit 0
+ao1 exit 0
+ao2 exit 0
+a6 exit 0
+A. bn-off: file identical (593570 bytes of JSON), log identical (191 lines)
+                 solve CAND AO/P60S6Q5: table 0.5477 secs 300
+                 ran CAND AO/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchChar
+                 checks AO/P60S6Q5: armTook 1/1
+                 adaptive AO/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 202.7
+                 checks AO/P60S6Q5: adaptTook 1/1
+                 checks AO/P60S6Q5: pairTook 1/1
+                 runs AO/P60S6Q5: secs 53
+                 checks AO/P60S6Q5: forceIdentity 40/40 secs 3
+                 refTail AO/P60S6Q5: cells 11 off 0; engine off 1; 100000 runs a state simulated, 1000 in the engine, secs 69
+                 solve CAND AOL/P60S6Q5: table 0.5520 secs 831
+                 ran CAND AOL/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCha
+                 checks AOL/P60S6Q5: armTook 1/1
+                 adaptive AOL/P60S6Q5: moves 24 nonMono 0 lattice 320x41x3 nz 256 last year 7 secs 733.4
+                 checks AOL/P60S6Q5: adaptTook 1/1
+                 checks AOL/P60S6Q5: pairTook 1/1
+                 runs AOL/P60S6Q5: secs 53
+                 checks AOL/P60S6Q5: forceIdentity 40/40 secs 3
+                 refTail AOL/P60S6Q5: cells 11 off 0; engine off 0; 100000 runs a state simulated, 1000 in the engine, secs 70
+                 solve CAND CO/P60S6Q5: table 0.5841 secs 213
+                 checks CO/P60S6Q5: armTook 1/1
+                 checks CO/P60S6Q5: pairTook 1/1
+                 runs CO/P60S6Q5: secs 7
+                 checks CO/P60S6Q5: forceIdentity 40/40 secs 2
+                 solve CAND A6/P60S6Q5: table 49.1376 secs 329
+                 ran CAND A6/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchChar
+                 checks A6/P60S6Q5: armTook 1/1
+                 adaptive A6/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 205.8
+                 checks A6/P60S6Q5: adaptTook 1/1
+                 checks A6/P60S6Q5: refTook 33/33 (p above its simulation in 18 of 33 cells; by p-bin 300 states a world, by year 100 a world-year, 1000 runs a state, secs 1.4)
+                 checks A6/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 796/796 layerTook 796/796 secs 11
+B. GATE: passed - AO, AOL, CO and A6 once and done at the registered settings (40 paths a world, P at ten times on AO and AOL, scale 15, seed 7002); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai 12, D ai 14; the tail check's cells printed; the files the logs' PREFLIGHT: the gate and the files read; no figure is read 
+C. plant arm exit 3: audit-ao: S364 AO/P60S6Q5: the job's settings did not take
+C. plant pair exit 3: audit-ao: S364 CO/P60S6Q5: the forced pair is not the registered tiers at one level and tier base
+C. plant force exit 3: audit-ao: S364 CO/P60S6Q5: forcing CAND's own opening did not reproduce its run
+C. plant a6-arm exit 3: audit-an: S360 A6/P60S6Q5: the job's settings did not take
+C. plant a6-drift exit 3: audit-an: S360 A6/P60S6Q5: the adaptive reference's p does not match its own rule run forward (refTook 11/33)
+C. plant a6-choice exit 3: audit-an: S360 A6/P60S6Q5: the adaptive reference's p does not match its own rule run forward (refTook 32/33)
+C. plant a6-step exit 3: audit-an: S360 A6/P60S6Q5: the adaptive reference's p does not match its own rule run forward (refTook 32/33)
+D. drift: plant drift exit 0:                  refTail AO/P60S6Q5: cells 12 off 7; engine off 5; 100000 runs a state simulated, 1000 in the engine, secs 79
+   unplanted:                  refTail AO/P60S6Q5: cells 11 off 0; engine off 1; 100000 runs a state simulated, 1000 in the engine, secs 69
+the seven plants refused, each on its own check (exit 3), and the tail check flagged the drift plant
+preflight done 23:56 UK
+=== snapshot kept at /tmp/solver-snap-CIxPgR for provenance; remove it when the results are written up

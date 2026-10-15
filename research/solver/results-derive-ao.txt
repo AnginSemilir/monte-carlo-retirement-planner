@@ -1,0 +1,114 @@
+AO'S DERIVATION (predictions/diag-ao.md)
+
+1. THE RECORDS (NE-GRID C, NE-EDGE, NODE-AX and AN, each behind its own gate)
+  S364 ORDER (six shares): world 0 P table 2.1463 runs 2/4000 ln 3.7595; world 1 P table 1.4567 runs 12/4000 ln 1.5801; world 2 P table 2.6566 runs 62/4000 ln 0.5388
+  S364 BASE (six shares): world 0 P table 3.4212 runs 2/4000 ln 4.2257; world 1 P table 2.8196 runs 12/4000 ln 2.2406; world 2 P table 1.3275 runs 61/4000 ln -0.1387
+  S364 RZ (six shares): world 0 P table 0.0016 runs 2/4000 ln -3.4308; world 1 P table 0.0255 runs 12/4000 ln -2.4671; world 2 P table 0.2238 runs 62/4000 ln -1.9353
+  S364 RS (six shares): world 0 P table 0.0016 runs 2/4000 ln -3.4247; world 1 P table 0.0255 runs 12/4000 ln -2.4660; world 2 P table 0.2239 runs 62/4000 ln -1.9349
+  P's runs carry the same bits under ORDER, BASE, RZ and RS: world 0 true, world 1 true, world 2 false
+  S360 world 0: BO's GB mean -4.1495 sd 8.0269, survival 28.6250; AN's GB 0.0307; AN against BN on the same paths: lost 22 saved 16
+  S360 world 1: BO's GB mean -5.3151 sd 5.3156, survival 48.6500; AN's GB -0.1235; AN against BN on the same paths: lost 9 saved 20
+
+2. THE POWER (40 draws a cell through reduce-ao.mjs's items(); P on 40000 paths a world at the record's survival times 0.75, 1, 1.5; A6 on 4000 paths at BO's spread times 0.75, 1, 1.5)
+  rate x0.75 item 1, ln -1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  rate x0.75 item 1, ln -1.1 in both worlds: HELD 0.00 INCONCLUSIVE 0.93 FALSIFIED 0.07
+  rate x0.75 item 1, ln -0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x0.75 item 1, ln -0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x0.75 item 1, ln -0.5 in both worlds: HELD 0.45 INCONCLUSIVE 0.55 FALSIFIED 0.00
+  rate x0.75 item 1, ln 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  rate x0.75 item 1, ln 0.5 in both worlds: HELD 0.33 INCONCLUSIVE 0.68 FALSIFIED 0.00
+  rate x0.75 item 1, ln 0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x0.75 item 1, ln 0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x0.75 item 1, ln 1.1 in both worlds: HELD 0.00 INCONCLUSIVE 0.95 FALSIFIED 0.05
+  rate x0.75 item 1, ln 1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  rate x1 item 1, ln -1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  rate x1 item 1, ln -1.1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln -0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln -0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln -0.5 in both worlds: HELD 0.53 INCONCLUSIVE 0.47 FALSIFIED 0.00
+  rate x1 item 1, ln 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  rate x1 item 1, ln 0.5 in both worlds: HELD 0.42 INCONCLUSIVE 0.57 FALSIFIED 0.00
+  rate x1 item 1, ln 0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln 0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln 1.1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1 item 1, ln 1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  rate x1.5 item 1, ln -1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  rate x1.5 item 1, ln -1.1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln -0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln -0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln -0.5 in both worlds: HELD 0.55 INCONCLUSIVE 0.45 FALSIFIED 0.00
+  rate x1.5 item 1, ln 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln 0.5 in both worlds: HELD 0.57 INCONCLUSIVE 0.42 FALSIFIED 0.00
+  rate x1.5 item 1, ln 0.7 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln 0.9 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln 1.1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  rate x1.5 item 1, ln 1.4 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x0.75 item 2, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x0.75 item 2, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.13 FALSIFIED 0.88
+  x0.75 item 2, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  x0.75 item 2, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 2, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 2, GB -0.3 in both worlds: HELD 0.40 INCONCLUSIVE 0.60 FALSIFIED 0.00
+  x0.75 item 2, GB 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x0.75 item 2, GB 0.3 in both worlds: HELD 0.42 INCONCLUSIVE 0.57 FALSIFIED 0.00
+  x0.75 item 2, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 2, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 2, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  x0.75 item 2, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.15 FALSIFIED 0.85
+  x1 item 2, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1 item 2, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.42 FALSIFIED 0.57
+  x1 item 2, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  x1 item 2, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 2, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 2, GB -0.3 in both worlds: HELD 0.30 INCONCLUSIVE 0.70 FALSIFIED 0.00
+  x1 item 2, GB 0 in both worlds: HELD 0.85 INCONCLUSIVE 0.15 FALSIFIED 0.00
+  x1 item 2, GB 0.3 in both worlds: HELD 0.17 INCONCLUSIVE 0.82 FALSIFIED 0.00
+  x1 item 2, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 2, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 2, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 0.95 FALSIFIED 0.05
+  x1 item 2, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.28 FALSIFIED 0.72
+  x1.5 item 2, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1.5 item 2, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.55 FALSIFIED 0.45
+  x1.5 item 2, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  x1.5 item 2, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 2, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 2, GB -0.3 in both worlds: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  x1.5 item 2, GB 0 in both worlds: HELD 0.38 INCONCLUSIVE 0.63 FALSIFIED 0.00
+  x1.5 item 2, GB 0.3 in both worlds: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  x1.5 item 2, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 2, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 2, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 2, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.78 FALSIFIED 0.23
+  churn x0.5 item 3, the runs -0.6 points in both worlds: HELD 0.28 INCONCLUSIVE 0.00 FALSIFIED 0.72
+  churn x0.5 item 3, the runs -0.3 points in both worlds: HELD 0.78 INCONCLUSIVE 0.07 FALSIFIED 0.15
+  churn x0.5 item 3, the runs 0 points in both worlds: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
+  churn x0.5 item 3, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1 item 3, the runs -0.6 points in both worlds: HELD 0.00 INCONCLUSIVE 0.07 FALSIFIED 0.93
+  churn x1 item 3, the runs -0.3 points in both worlds: HELD 0.17 INCONCLUSIVE 0.55 FALSIFIED 0.28
+  churn x1 item 3, the runs 0 points in both worlds: HELD 0.78 INCONCLUSIVE 0.23 FALSIFIED 0.00
+  churn x1 item 3, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x2 item 3, the runs -0.6 points in both worlds: HELD 0.00 INCONCLUSIVE 0.07 FALSIFIED 0.93
+  churn x2 item 3, the runs -0.3 points in both worlds: HELD 0.05 INCONCLUSIVE 0.65 FALSIFIED 0.30
+  churn x2 item 3, the runs 0 points in both worlds: HELD 0.50 INCONCLUSIVE 0.50 FALSIFIED 0.00
+  churn x2 item 3, the runs 0.3 points in both worlds: HELD 0.90 INCONCLUSIVE 0.10 FALSIFIED 0.00
+
+3. THE CREDENCES (the receipt of 15 Oct 21:05 UK: AO-REF=0.3; AO-COPY=0.25; AO-DENSITY=0.12; AO-TAIL=0.08; AO-MODEL=0.08; AO-OTHER=0.17, taken as stated; 2000 draws through items())
+  item 1: HELD 0.29 INCONCLUSIVE 0.40 FALSIFIED 0.31
+  item 2: HELD 0.28 INCONCLUSIVE 0.54 FALSIFIED 0.18
+  item 3: HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
+  decision rows: R1 0.08, R2 0.21, R3 0.18, R4 0.06, else 0.47
+  the chance the action changes (one less the likeliest row): 0.53
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.47
+  item 1's point (AO's ln(table / runs) at P in world 1): median 0.3909, 80% interval -1.0408 to 1.7001
+  item 2's point (A6's GB in world 0, points): median -0.1690, 80% interval -2.2013 to 0.4318
+  item 3's point (A6's runs less BO's in world 0, points): median 0.0250, 80% interval -0.3250 to 0.3750
+CREDENCE item 1: point 0.3909 HELD 0.29 INCONCLUSIVE 0.40 FALSIFIED 0.31
+CREDENCE item 2: point -0.1690 HELD 0.28 INCONCLUSIVE 0.54 FALSIFIED 0.18
+CREDENCE item 3: point 0.0250 HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
+
+4. THE REPORTED LINES' KNOWN ANSWERS (reduce-ao.mjs luckT and qfByYear on the saved files)
+  AN's T luck-adjusted (years 0 to 7's shocks): -0.7597 (se 0.4717), -0.1647 (se 0.4733), -0.6582 (se 0.4727); the receipt's -0.76, -0.16, -0.66 (se 0.47)
+  AN's QF by year summed: 0.0115, -0.1398, -0.0697; its log's QF 0.0115, -0.1398, -0.0697
+  BO's QF by year summed: 0.0328, -0.0001, -0.0548; its log's QF 0.0328, -0.0001, -0.0548
+
+5. THE BUDGET: NE-GRID C's S364 ORDER solve 3447 s and its runs 1375 s for 25000 runs (0.0550 s a run, grade C); AO: solve 3447 s, the reference's build 247.20 s (AN's), 145000 runs (P 40000 a world, D and an own opening 4000, forceIdentity 1,000) 7975 s, the tail check and engine run 82 s (the preflight's 69 s over 251 states, scaled to 300: grade C) - about 3.26 h; AOL the same with its reference's build 3.62 times AO's at the preflight (733.40 s against 202.70 s) - about 3.44 h; CO about 1.34 h; A6: BO's solve 3007 s and ledger 1143 s, the build and refTook 262.40 s - about 1.23 h; on four cores the wall about 3.44 h (O120's drift can triple it)

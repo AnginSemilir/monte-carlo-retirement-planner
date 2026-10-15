@@ -1,0 +1,209 @@
+stamp: code ed39e8b39981 audit f6073dcdde63 prediction none sha -
+AN: the candidate's own unit, 40 paths a world, wealth points divided by 15 (seed 7002); 1 jobs; part 0/1
+S360             case | job AN/P60S15Q5 | points 4 | lambda 0.0223606797749979
+                 solve CAND AN/P60S15Q5: table 49.1363 secs 678
+                 ran CAND AN/P60S15Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 4 grid total4x15x6 shareNodes 0,0.2,0.4,0.6,0.7,0.75,0.8,0.825,0.85,0.875,0.9,0.925,0.95,0.975,1 floor 5000 line 0.5
+                 checks AN/P60S15Q5: armTook 1/1
+                 adaptive AN/P60S15Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 255.7
+                 checks AN/P60S15Q5: adaptTook 1/1
+                 openings AN/P60S15Q5: OWN ai 12 level 0.8 tiers 0,0
+                 bridge AN/P60S15Q5: reader years 1,2,3,4,5,6,7
+                 tables AN/P60S15Q5 0 z -1.732051 weight 0.166667: OWN 27.807679 READ 27.698919
+                 sim AN/P60S15Q5 0 OWN ai 12: 9/40 bridge 9 bits 7f5fe180269ff2fd 7f5fe180269ff2fd
+                 ledger AN/P60S15Q5 0: X 22.500000 B0 27.807679 T 4.932434 GB 0.401276 GA -0.026031 GL -0.216695 GD -3.016910 Y1 3.712780 Y2 -0.307989 Y3 -0.415420 Y4 -0.041005 Y5 -0.068615 Y6 -0.107076 Y7 -2.371399
+                 year AN/P60S15Q5 0 1: paths 40 G 3.712780 T 1.643274
+                 year AN/P60S15Q5 0 2: paths 40 G -0.307989 T -1.412625
+                 year AN/P60S15Q5 0 3: paths 40 G -0.415420 T 5.150822
+                 year AN/P60S15Q5 0 4: paths 40 G -0.041005 T 1.247413
+                 year AN/P60S15Q5 0 5: paths 40 G -0.068615 T -5.649505
+                 year AN/P60S15Q5 0 6: paths 33 G -0.107076 T 4.394932
+                 year AN/P60S15Q5 0 7: paths 22 G -2.371399 T 0.001023
+                 year AN/P60S15Q5 0 8: paths 9 G -0.007817 T -0.002019
+                 year AN/P60S15Q5 0 9: paths 9 G -0.005285 T -0.000583
+                 year AN/P60S15Q5 0 10: paths 9 G -0.003626 T 0.000550
+                 year AN/P60S15Q5 0 11: paths 9 G -0.002715 T 0.000122
+                 year AN/P60S15Q5 0 12: paths 9 G -0.002346 T 0.000247
+                 year AN/P60S15Q5 0 13: paths 9 G -0.001773 T 0.000035
+                 year AN/P60S15Q5 0 14: paths 9 G -0.001175 T 0.000042
+                 year AN/P60S15Q5 0 15: paths 9 G -0.000811 T -0.000034
+                 year AN/P60S15Q5 0 16: paths 9 G -0.000461 T -0.000022
+                 year AN/P60S15Q5 0 17: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 18: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 19: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 20: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 21: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 22: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 23: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 24: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 25: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 26: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 27: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 28: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 29: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 30: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 31: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 32: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 33: paths 9 G 0.000000 T -0.000023
+                 year AN/P60S15Q5 0 34: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 35: paths 9 G 0.000000 T -0.000022
+                 year AN/P60S15Q5 0 36: paths 9 G -0.000000 T -0.000023
+                 year AN/P60S15Q5 0 37: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 38: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 39: paths 9 G -0.000000 T -0.000023
+                 year AN/P60S15Q5 0 40: paths 9 G -0.000001 T -0.000022
+                 year AN/P60S15Q5 0 41: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 42: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 43: paths 9 G -0.000000 T -0.000023
+                 year AN/P60S15Q5 0 44: paths 9 G -0.000000 T -0.000022
+                 year AN/P60S15Q5 0 45: paths 9 G -0.000023 T 0.000000
+                 derisk AN/P60S15Q5 0: plan layer 0 bridge path-years 255 de-risked 73 GD -3.016910
+                 qf AN/P60S15Q5 0: paths 40 QF -0.050337
+                 layer AN/P60S15Q5 0 0: bridge path-years 182 G 3.418186
+                 layer AN/P60S15Q5 0 1: bridge path-years 14 G -0.361541
+                 layer AN/P60S15Q5 0 2: bridge path-years 59 G -2.655369
+                 cliff AN/P60S15Q5 0 1: acc5 20835 acc95 31030 width 10195; median W 177718 share 0.8690; share cell 4443 wealth cell 138394 in accessible money
+                 cliff AN/P60S15Q5 0 2: acc5 18443 acc95 26449 width 8006; median W 186452 share 0.8899; share cell 4661 wealth cell 116368 in accessible money
+                 cliff AN/P60S15Q5 0 3: acc5 15867 acc95 21736 width 5869; median W 179427 share 0.9105; share cell 4486 wealth cell 94532 in accessible money
+                 cliff AN/P60S15Q5 0 4: acc5 13282 acc95 17214 width 3933; median W 176633 share 0.9303; share cell 4416 wealth cell 73656 in accessible money
+                 cliff AN/P60S15Q5 0 5: acc5 10327 acc95 12626 width 2300; median W 168987 share 0.9540; share cell 4225 wealth cell 48587 in accessible money
+                 cliff AN/P60S15Q5 0 6: acc5 7151 acc95 8297 width 1146; median W 216190 share 0.9717; share cell 5405 wealth cell 29894 in accessible money
+                 cliff AN/P60S15Q5 0 7: acc5 3999 acc95 3999 width 0; median W 224310 share 0.9818; share cell 5608 wealth cell 19205 in accessible money
+                 tables AN/P60S15Q5 1 z 0.000000 weight 0.666667: OWN 49.301926 READ 49.185615
+                 sim AN/P60S15Q5 1 OWN ai 12: 20/40 bridge 20 bits 9b99822eca4f1112 9b99822eca4f1112
+                 ledger AN/P60S15Q5 1: X 50.000000 B0 49.301926 T -0.476689 GB -0.189857 GA -0.031529 GL -0.383795 GD -2.927307 Y1 3.237072 Y2 0.181457 Y3 -0.501707 Y4 -0.137849 Y5 -0.127203 Y6 -0.118744 Y7 -2.722883
+                 year AN/P60S15Q5 1 1: paths 40 G 3.237072 T 0.122501
+                 year AN/P60S15Q5 1 2: paths 40 G 0.181457 T -1.683808
+                 year AN/P60S15Q5 1 3: paths 40 G -0.501707 T 3.005831
+                 year AN/P60S15Q5 1 4: paths 40 G -0.137849 T 0.016383
+                 year AN/P60S15Q5 1 5: paths 40 G -0.127203 T -4.240492
+                 year AN/P60S15Q5 1 6: paths 37 G -0.118744 T 2.052925
+                 year AN/P60S15Q5 1 7: paths 30 G -2.722883 T -0.000918
+                 year AN/P60S15Q5 1 8: paths 20 G -0.009540 T -0.000856
+                 year AN/P60S15Q5 1 9: paths 20 G -0.006816 T -0.001248
+                 year AN/P60S15Q5 1 10: paths 20 G -0.004459 T 0.000741
+                 year AN/P60S15Q5 1 11: paths 20 G -0.003387 T -0.000238
+                 year AN/P60S15Q5 1 12: paths 20 G -0.002463 T 0.000020
+                 year AN/P60S15Q5 1 13: paths 20 G -0.001940 T -0.000062
+                 year AN/P60S15Q5 1 14: paths 20 G -0.001344 T -0.000056
+                 year AN/P60S15Q5 1 15: paths 20 G -0.000931 T -0.000062
+                 year AN/P60S15Q5 1 16: paths 20 G -0.000600 T -0.000050
+                 year AN/P60S15Q5 1 17: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 18: paths 20 G 0.000000 T -0.000050
+                 year AN/P60S15Q5 1 19: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 20: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 21: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 22: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 23: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 24: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 25: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 26: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 27: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 28: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 29: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 30: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 31: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 32: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 33: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 34: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 35: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 36: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 37: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 38: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 39: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 40: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 41: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 42: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 43: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 44: paths 20 G -0.000000 T -0.000050
+                 year AN/P60S15Q5 1 45: paths 20 G -0.000050 T 0.000000
+                 derisk AN/P60S15Q5 1: plan layer 0 bridge path-years 267 de-risked 102 GD -2.927307
+                 qf AN/P60S15Q5 1: paths 40 QF -0.117929
+                 layer AN/P60S15Q5 1 0: bridge path-years 165 G 2.737451
+                 layer AN/P60S15Q5 1 1: bridge path-years 5 G -0.055148
+                 layer AN/P60S15Q5 1 2: bridge path-years 97 G -2.872159
+                 cliff AN/P60S15Q5 1 1: acc5 19395 acc95 29066 width 9671; median W 184194 share 0.8701; share cell 4605 wealth cell 137224 in accessible money
+                 cliff AN/P60S15Q5 1 2: acc5 17329 acc95 25006 width 7677; median W 199424 share 0.8911; share cell 4986 wealth cell 115067 in accessible money
+                 cliff AN/P60S15Q5 1 3: acc5 15112 acc95 20791 width 5679; median W 203267 share 0.9109; share cell 5082 wealth cell 94202 in accessible money
+                 cliff AN/P60S15Q5 1 4: acc5 12790 acc95 16627 width 3837; median W 204811 share 0.9287; share cell 5120 wealth cell 75322 in accessible money
+                 cliff AN/P60S15Q5 1 5: acc5 10046 acc95 12360 width 2314; median W 207465 share 0.9496; share cell 5187 wealth cell 53223 in accessible money
+                 cliff AN/P60S15Q5 1 6: acc5 7064 acc95 8177 width 1114; median W 231741 share 0.9650; share cell 5794 wealth cell 37039 in accessible money
+                 cliff AN/P60S15Q5 1 7: acc5 3999 acc95 3999 width 0; median W 259456 share 0.9789; share cell 6486 wealth cell 22268 in accessible money
+                 tables AN/P60S15Q5 2 z 1.732051 weight 0.166667: OWN 67.753010 READ 70.376661
+                 sim AN/P60S15Q5 2 OWN ai 12: 30/40 bridge 30 bits aac7abea882c6eb1 aac7abea882c6eb1
+                 ledger AN/P60S15Q5 2: X 75.000000 B0 67.753010 T -4.656451 GB -2.556994 GA -0.033545 GL -0.180191 GD -2.027966 Y1 -0.140135 Y2 -0.616811 Y3 0.327252 Y4 -0.072004 Y5 -0.019529 Y6 -0.088658 Y7 -1.947109
+                 year AN/P60S15Q5 2 1: paths 40 G -0.140135 T -0.618058
+                 year AN/P60S15Q5 2 2: paths 40 G -0.616811 T -0.040633
+                 year AN/P60S15Q5 2 3: paths 40 G 0.327252 T -1.039263
+                 year AN/P60S15Q5 2 4: paths 40 G -0.072004 T -0.707867
+                 year AN/P60S15Q5 2 5: paths 40 G -0.019529 T -1.583997
+                 year AN/P60S15Q5 2 6: paths 40 G -0.088658 T -1.584890
+                 year AN/P60S15Q5 2 7: paths 34 G -1.947109 T -0.000552
+                 year AN/P60S15Q5 2 8: paths 30 G -0.010181 T 0.000420
+                 year AN/P60S15Q5 2 9: paths 30 G -0.007443 T -0.000883
+                 year AN/P60S15Q5 2 10: paths 30 G -0.004944 T 0.000364
+                 year AN/P60S15Q5 2 11: paths 30 G -0.003579 T -0.000249
+                 year AN/P60S15Q5 2 12: paths 30 G -0.002524 T 0.000143
+                 year AN/P60S15Q5 2 13: paths 30 G -0.001912 T -0.000052
+                 year AN/P60S15Q5 2 14: paths 30 G -0.001351 T -0.000068
+                 year AN/P60S15Q5 2 15: paths 30 G -0.000925 T -0.000086
+                 year AN/P60S15Q5 2 16: paths 30 G -0.000611 T -0.000075
+                 year AN/P60S15Q5 2 17: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 18: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 19: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 20: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 21: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 22: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 23: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 24: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 25: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 26: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 27: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 28: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 29: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 30: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 31: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 32: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 33: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 34: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 35: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 36: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 37: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 38: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 39: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 40: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 41: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 42: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 43: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 44: paths 30 G -0.000000 T -0.000075
+                 year AN/P60S15Q5 2 45: paths 30 G -0.000075 T 0.000000
+                 derisk AN/P60S15Q5 2: plan layer 0 bridge path-years 274 de-risked 148 GD -2.027966
+                 qf AN/P60S15Q5 2: paths 40 QF -0.048062
+                 layer AN/P60S15Q5 2 0: bridge path-years 126 G -0.529027
+                 layer AN/P60S15Q5 2 1: bridge path-years 7 G -0.012213
+                 layer AN/P60S15Q5 2 2: bridge path-years 141 G -2.015754
+                 cliff AN/P60S15Q5 2 1: acc5 18085 acc95 27318 width 9233; median W 190908 share 0.8712; share cell 4773 wealth cell 136063 in accessible money
+                 cliff AN/P60S15Q5 2 2: acc5 16326 acc95 23696 width 7370; median W 212636 share 0.8922; share cell 5316 wealth cell 113932 in accessible money
+                 cliff AN/P60S15Q5 2 3: acc5 14424 acc95 19951 width 5527; median W 222575 share 0.9109; share cell 5564 wealth cell 94117 in accessible money
+                 cliff AN/P60S15Q5 2 4: acc5 12312 acc95 16087 width 3775; median W 227546 share 0.9282; share cell 5689 wealth cell 75926 in accessible money
+                 cliff AN/P60S15Q5 2 5: acc5 9782 acc95 12123 width 2341; median W 243920 share 0.9476; share cell 6098 wealth cell 55390 in accessible money
+                 cliff AN/P60S15Q5 2 6: acc5 6971 acc95 8059 width 1088; median W 264744 share 0.9627; share cell 6619 wealth cell 39368 in accessible money
+                 cliff AN/P60S15Q5 2 7: acc5 3999 acc95 3999 width 0; median W 294050 share 0.9758; share cell 7351 wealth cell 25610 in accessible money
+                 refcheck AN/P60S15Q5 0 0: states 2 p 0.140944 simulated 0.145000 se 0.024834 ok
+                 refcheck AN/P60S15Q5 0 1: states 8 p 0.254617 simulated 0.238750 se 0.014913 ok
+                 refcheck AN/P60S15Q5 0 2: states 6 p 0.470259 simulated 0.476667 se 0.020189 ok
+                 refcheck AN/P60S15Q5 0 3: states 2 p 0.730544 simulated 0.755000 se 0.030245 ok
+                 refcheck AN/P60S15Q5 0 4: states 2 p 0.901873 simulated 0.935000 se 0.017400 ok
+                 refcheck AN/P60S15Q5 1 0: states 4 p 0.117906 simulated 0.090000 se 0.014208 ok
+                 refcheck AN/P60S15Q5 1 1: states 6 p 0.260546 simulated 0.271667 se 0.017849 ok
+                 refcheck AN/P60S15Q5 1 2: states 4 p 0.522340 simulated 0.545000 se 0.024756 ok
+                 refcheck AN/P60S15Q5 1 3: states 2 p 0.726884 simulated 0.725000 se 0.031571 ok
+                 refcheck AN/P60S15Q5 1 4: states 4 p 0.861661 simulated 0.880000 se 0.016229 ok
+                 refcheck AN/P60S15Q5 2 0: states 2 p 0.085447 simulated 0.075000 se 0.018351 ok
+                 refcheck AN/P60S15Q5 2 1: states 4 p 0.288706 simulated 0.292500 se 0.022629 ok
+                 refcheck AN/P60S15Q5 2 2: states 2 p 0.505810 simulated 0.560000 se 0.035071 ok
+                 refcheck AN/P60S15Q5 2 3: states 5 p 0.711888 simulated 0.678000 se 0.020499 ok
+                 refcheck AN/P60S15Q5 2 4: states 7 p 0.888607 simulated 0.895714 se 0.011504 ok
+                 checks AN/P60S15Q5: refTook 15/15 (p above its simulation in 5 of 15 bins; 20 states a world, 100 runs a state, secs 0.1)
+                 checks AN/P60S15Q5: ownTook 120/120 identity 120/120 qfTook 796/796 layerTook 796/796 secs 15
+                 file AN/P60S15Q5: S360-AN-P60S15Q5.json.gz
+                 done AN/P60S15Q5

@@ -112,14 +112,14 @@ const rec = { ...cc };   // the receipt's, printed; cc below is shaded
 { const rest = sum - cc.REF; for (const k of Object.keys(cc)) cc[k] = k === 'REF' ? JUDGED.leadCause * sum : cc[k] * (1 - JUDGED.leadCause) * sum / rest; }
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return Number(k); } return Number(Object.keys(dist).pop()); };
 const pickC = () => { let u = rnd() * sum, acc = 0; for (const [k, v] of Object.entries(cc)) { acc += v; if (u < acc) return k; } return Object.keys(cc).pop(); };
-const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = [];
+const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = [], pt2 = [], pt3 = [];
 for (let d = 0; d < ND; d++) {
   const c = pickC(), g = pick(JUDGED.gb[c]), j = () => (rnd() * 2 - 1) * JUDGED.worldJitter;
   const story = { g0: g + j(), g1: g + j(), y1: pick(JUDGED.y1[c] || JUDGED.y1.other), churn: pick(JUDGED.churn) }, dr = pick(JUDGED.runs[c] || JUDGED.runs.other);
   story.d0 = dr; story.d1 = dr;
   const it = items(...Object.values(setOf(story, pick(JUDGED.spread))));
   for (const i of ['1', '2', '3']) I[i][it[i].outcome]++;
-  pt.push(it['1'].cells[0].m);
+  pt.push(it['1'].cells[0].m); pt2.push(it['2'].cells[0].d); pt3.push(it['3'].cell.m);
   const o1 = it['1'].outcome;
   if (o1 === 'HELD') R[it['2'].outcome === 'HELD' ? 'R1' : 'R2']++;
   else if (o1 === 'FALSIFIED') R[it['1'].side === 'under' ? 'R3' : 'R4']++;
@@ -131,13 +131,18 @@ console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v /
 console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
 const s = [...pt].sort((a, b) => a - b), qq = p => s[Math.min(s.length - 1, Math.floor(p * s.length))];
 console.log(`  item 1's point (AN's GB in world 0, the reducer's own mean): median ${f4(qq(0.5))}, 80% interval ${f4(qq(0.1))} to ${f4(qq(0.9))}`);
+const med = a => { const x = [...a].sort((p, q) => p - q); return x[Math.floor(x.length / 2)]; }, pts = { 1: qq(0.5), 2: med(pt2), 3: med(pt3) };
+{ const qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
+  console.log(`  item 2's point (AN's runs less BN's in world 0, points): median ${f4(qa(pt2, 0.5))}, 80% interval ${f4(qa(pt2, 0.1))} to ${f4(qa(pt2, 0.9))}`);
+  console.log(`  item 3's point (world 2's year-1 term under AN, points): median ${f4(qa(pt3, 0.5))}, 80% interval ${f4(qa(pt3, 0.1))} to ${f4(qa(pt3, 0.9))}`); }
+for (const i of ['1', '2', '3']) console.log(`CREDENCE item ${i}: point ${f4(pts[i])} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
 
 // 4. THE BUDGET: NODE-AX's BN solve and ledger, the reference's build and refTook from AN's build check
 const lg = readFileSync(join(AX, 'case0.txt'), 'utf8'), bc = readFileSync(join(HERE, 'results-an-preflight-an.txt'), 'utf8');   // AN's preflight job's log, kept
 const num = (re, t) => { const m = re.exec(t); return m ? Number(m[1]) : NaN; };
 const solve = num(/solve CAND BN\/P60S15Q5: table \S+ secs (\d+)/, lg), ledger = num(/checks BN\/P60S15Q5: ownTook .* secs (\d+)/, lg);
-const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, bc), refT = num(/refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs (\d+)\)/, bc);
-const refM = /refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs (\d+)\)/.exec(bc), refFull = refM ? Number(refM[3]) * (300 * 1000) / (Number(refM[1]) * Number(refM[2])) : NaN;
+const build = num(/adaptive AN\/P60S15Q5: .* secs (\S+)$/m, bc), refT = num(/refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs ([\d.]+)\)/, bc);
+const refM = /refTook \d+\/\d+ \(.*; (\d+) states a world, (\d+) runs a state, secs ([\d.]+)\)/.exec(bc), refFull = refM ? Number(refM[3]) * (300 * 1000) / (Number(refM[1]) * Number(refM[2])) : NaN;
 if (![solve, ledger, build, refFull].every(Number.isFinite)) { console.log(`the budget's inputs did not read (solve ${solve}, ledger ${ledger}, build ${build}, refTook ${refT})`); process.exit(1); }
 const total = solve + build + JUDGED.ledgerCost * ledger + refFull;
 console.log(`\n4. THE BUDGET: BN's solve ${solve} s and ledger ${ledger} s (NODE-AX's log, grade C); the reference's build ${f2(build)} s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook ${f2(refFull)} s (the preflight's, scaled to 300 states a world and 1,000 runs a state, grade C); AN about ${f2(total / 3600)} h on one core`);

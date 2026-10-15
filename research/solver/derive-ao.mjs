@@ -123,29 +123,45 @@ if (Object.keys(cc).length !== 6 || Math.abs(sum - 1) > 0.02 || Object.keys(cc).
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return Number(k); } return Number(Object.keys(dist).pop()); };
 const pickC = () => { let u = rnd() * sum, acc = 0; for (const [k, v] of Object.entries(cc)) { acc += v; if (u < acc) return k; } return Object.keys(cc).pop(); };
 const lnStory = ([w1, w2]) => { const a = pick(w1), j = () => (rnd() * 2 - 1) * JUDGED.lnJitter; return [a + j(), (w2 === 'same' ? a : pick(w2)) + j()]; };
-const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [] };
-for (let d = 0; d < ND; d++) {
-  const c = pickC(), gd = typeof JUDGED.gb[c] === 'string' ? JUDGED.gb[JUDGED.gb[c]] : JUDGED.gb[c], g = pick(gd), j = () => (rnd() * 2 - 1) * JUDGED.worldJitter, dr = pick(JUDGED.runs);
-  const story = { ao: lnStory(JUDGED.ao[c]), g0: g + j(), g1: g + j(), d0: dr, d1: dr, churn: pick(JUDGED.churn), rate: pick(JUDGED.rate) };
-  const it = items(...setOf(story, pick(JUDGED.spread)));
-  for (const i of ['1', '2', '3']) I[i][it[i].outcome]++;
-  pt[1].push(it['1'].cells[0].m); pt[2].push(it['2'].cells[0].m); pt[3].push(it['3'].cells[0].d);
-  const o = i => it[i].outcome;
-  if (o('2') === 'FALSIFIED') R.R3++;
-  else if (o('1') === 'FALSIFIED' && it['1'].side === 'under') R.R4++;
-  else if (o('1') === 'FALSIFIED') R.R2++;
-  else if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') !== 'FALSIFIED') R.R1++;
-  else R.else++;
+// the draws: a cause by the map's credences, its stories, read through items()
+function credences(cmap) {
+  const tot2 = Object.values(cmap).reduce((a, b) => a + b, 0), pickM = () => { let u = rnd() * tot2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
+  const I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [] };
+  for (let d = 0; d < ND; d++) {
+    const c = pickM(), gd = typeof JUDGED.gb[c] === 'string' ? JUDGED.gb[JUDGED.gb[c]] : JUDGED.gb[c], g = pick(gd), j = () => (rnd() * 2 - 1) * JUDGED.worldJitter, dr = pick(JUDGED.runs);
+    const story = { ao: lnStory(JUDGED.ao[c]), g0: g + j(), g1: g + j(), d0: dr, d1: dr, churn: pick(JUDGED.churn), rate: pick(JUDGED.rate) };
+    const it = items(...setOf(story, pick(JUDGED.spread)));
+    for (const i of ['1', '2', '3']) I[i][it[i].outcome]++;
+    pt[1].push(it['1'].cells[0].m); pt[2].push(it['2'].cells[0].m); pt[3].push(it['3'].cells[0].d);
+    const o = i => it[i].outcome;
+    if (o('2') === 'FALSIFIED') R.R3++;
+    else if (o('1') === 'FALSIFIED' && it['1'].side === 'under') R.R4++;
+    else if (o('1') === 'FALSIFIED') R.R2++;
+    else if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') !== 'FALSIFIED') R.R1++;
+    else R.else++;
+  }
+  return { I, R, pt };
 }
-console.log(`\n3. THE CREDENCES (the receipt of 15 Oct 21:05 UK: ${Object.entries(cc).map(([k, v]) => `AO-${k}=${v}`).join('; ')}, taken as stated; ${ND} draws through items())`);
-for (const i of ['1', '2', '3']) console.log(`  item ${i}: ${row(I[i])}`);
-console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
-console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
-console.log(`  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else ${f2(R.else / ND)}`);
-const qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
+const ND = 2000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const WHAT = { 1: 'AO\'s ln(table / runs) at P in world 1', 2: 'A6\'s GB in world 0, points', 3: 'A6\'s runs less BO\'s in world 0, points' };
-for (const i of ['1', '2', '3']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
-for (const i of ['1', '2', '3']) console.log(`CREDENCE item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
+const show = ({ I, R, pt }, tag) => {
+  for (const i of ['1', '2', '3']) console.log(`  item ${i}: ${row(I[i])}`);
+  console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
+  console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
+  console.log(`  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else ${f2(R.else / ND)}`);
+  for (const i of ['1', '2', '3']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
+  for (const i of ['1', '2', '3']) console.log(`${tag}item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
+};
+console.log(`\n3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 15 Oct 21:05 UK: ${Object.entries(cc).map(([k, v]) => `AO-${k}=${v}`).join('; ')}; ${ND} draws through items())`);
+show(credences(cc), '  as stated, ');
+// 3b. the leading cause at the record's rate (the rule: an item resting on a deep review's ranked cause starts from that
+// record's rate, not the review's own probability; the plan-auditor's FAIL of 16 Oct 00:22 UK), read from the scorecard
+// file, the other causes scaled to fill the rest in the receipt's proportions; these are the registered credences
+const sc = /an item leaning on a deep review's cause or story ([0-9.]+) \((\d+) of (\d+)/.exec(readFileSync(join(HERE, 'results-scorecard.txt'), 'utf8'));
+if (!sc) { console.log('the scorecard\'s lead rate did not read (results-scorecard.txt)'); process.exit(1); }
+const lead = Number(sc[1]), rest = sum - cc.REF, cr = Object.fromEntries(Object.entries(cc).map(([k, v]) => [k, k === 'REF' ? lead * sum : v * (1 - lead) * sum / rest]));
+console.log(`\n3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: ${sc[1]}, ${sc[2]} of ${sc[3]}; AO-REF at ${lead}, the rest scaled: ${Object.entries(cr).map(([k, v]) => `${k} ${f2(v)}`).join(', ')}; ${ND} draws through items())`);
+show(credences(cr), 'CREDENCE ');
 
 // 4. THE REPORTED LINES' KNOWN ANSWERS: reduce-ao.mjs's luck adjustment and QF by year on AN's and BO's saved files
 const paths = pathsForSeed(7002, n, 60), qfLog = (d, f, L) => [0, 1, 2].map(k => Number((new RegExp(`qf ${L} ${k}: paths \\d+ QF (\\S+)`).exec(readFileSync(join(R_(d), f), 'utf8')) || [])[1]));

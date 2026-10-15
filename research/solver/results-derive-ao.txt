@@ -92,7 +92,7 @@ AO'S DERIVATION (predictions/diag-ao.md)
   churn x2 item 3, the runs 0 points in both worlds: HELD 0.50 INCONCLUSIVE 0.50 FALSIFIED 0.00
   churn x2 item 3, the runs 0.3 points in both worlds: HELD 0.90 INCONCLUSIVE 0.10 FALSIFIED 0.00
 
-3. THE CREDENCES (the receipt of 15 Oct 21:05 UK: AO-REF=0.3; AO-COPY=0.25; AO-DENSITY=0.12; AO-TAIL=0.08; AO-MODEL=0.08; AO-OTHER=0.17, taken as stated; 2000 draws through items())
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 15 Oct 21:05 UK: AO-REF=0.3; AO-COPY=0.25; AO-DENSITY=0.12; AO-TAIL=0.08; AO-MODEL=0.08; AO-OTHER=0.17; 2000 draws through items())
   item 1: HELD 0.29 INCONCLUSIVE 0.40 FALSIFIED 0.31
   item 2: HELD 0.28 INCONCLUSIVE 0.54 FALSIFIED 0.18
   item 3: HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
@@ -102,9 +102,23 @@ AO'S DERIVATION (predictions/diag-ao.md)
   item 1's point (AO's ln(table / runs) at P in world 1): median 0.3909, 80% interval -1.0408 to 1.7001
   item 2's point (A6's GB in world 0, points): median -0.1690, 80% interval -2.2013 to 0.4318
   item 3's point (A6's runs less BO's in world 0, points): median 0.0250, 80% interval -0.3250 to 0.3750
-CREDENCE item 1: point 0.3909 HELD 0.29 INCONCLUSIVE 0.40 FALSIFIED 0.31
-CREDENCE item 2: point -0.1690 HELD 0.28 INCONCLUSIVE 0.54 FALSIFIED 0.18
-CREDENCE item 3: point 0.0250 HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
+  as stated, item 1: point 0.3909 HELD 0.29 INCONCLUSIVE 0.40 FALSIFIED 0.31
+  as stated, item 2: point -0.1690 HELD 0.28 INCONCLUSIVE 0.54 FALSIFIED 0.18
+  as stated, item 3: point 0.0250 HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
+
+3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.36, 11 of 31; AO-REF at 0.36, the rest scaled: REF 0.36, COPY 0.23, DENSITY 0.11, TAIL 0.07, MODEL 0.07, OTHER 0.16; 2000 draws through items())
+  item 1: HELD 0.33 INCONCLUSIVE 0.38 FALSIFIED 0.29
+  item 2: HELD 0.30 INCONCLUSIVE 0.55 FALSIFIED 0.15
+  item 3: HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
+  decision rows: R1 0.10, R2 0.20, R3 0.15, R4 0.05, else 0.50
+  the chance the action changes (one less the likeliest row): 0.50
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.50
+  item 1's point (AO's ln(table / runs) at P in world 1): median 0.2837, 80% interval -0.9824 to 1.7187
+  item 2's point (A6's GB in world 0, points): median -0.1069, 80% interval -1.9757 to 0.4280
+  item 3's point (A6's runs less BO's in world 0, points): median 0.0500, 80% interval -0.3000 to 0.3500
+CREDENCE item 1: point 0.2837 HELD 0.33 INCONCLUSIVE 0.38 FALSIFIED 0.29
+CREDENCE item 2: point -0.1069 HELD 0.30 INCONCLUSIVE 0.55 FALSIFIED 0.15
+CREDENCE item 3: point 0.0500 HELD 0.78 INCONCLUSIVE 0.19 FALSIFIED 0.03
 
 4. THE REPORTED LINES' KNOWN ANSWERS (reduce-ao.mjs luckT and qfByYear on the saved files)
   AN's T luck-adjusted (years 0 to 7's shocks): -0.7597 (se 0.4717), -0.1647 (se 0.4733), -0.6582 (se 0.4727); the receipt's -0.76, -0.16, -0.66 (se 0.47)

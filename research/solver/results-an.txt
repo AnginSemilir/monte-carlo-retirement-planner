@@ -1,0 +1,87 @@
+ok   GB 0 in both worlds: 1 HELD: "HELD"
+ok   GB -1.5 in world 0: 1 FALSIFIED (under): "FALSIFIED"
+ok   GB +1.5 in world 1: 1 FALSIFIED (over): "FALSIFIED"
+ok   GB +0.7 in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB -3 in world 2 only (not read): 1 HELD: "HELD"
+ok   the interval's top just inside +0.5: 1 HELD: "HELD"
+ok   the interval's top just past +0.5: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the interval's top just above -1.0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the interval's top just below -1.0: 1 FALSIFIED: "FALSIFIED"
+ok   GB +0.3 with no spread: its interval the point: 1 HELD: "HELD"
+ok   under in world 0 and over in world 1: FALSIFIED, the side named under first: "FALSIFIED under"
+ok   AN equal to BN on every path (0 of 0 discordant): 2 HELD: "HELD"
+ok   AN loses 400 paths of 4,000 in world 0: 2 FALSIFIED: "FALSIFIED"
+ok   AN loses 25 and saves 10 in world 1 (0.375 points, its interval past the margin): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN loses 15 and saves 3 in world 1 (its interval inside the margin): 2 HELD: "HELD"
+ok   AN loses 400 in world 2 only (not read): 2 HELD: "HELD"
+ok   AN saves 100 in both: 2 HELD: "HELD"
+ok   the paired counts: lost 3 saved 0 of 4,000, BN alive 2,000: "{\"lost\":3,\"saved\":0,\"both\":1997,\"N\":4000,\"bnAlive\":2000}"
+ok   Y1 0 in world 2: 3 HELD: "HELD"
+ok   Y1 at BN's -0.79 in world 2: 3 FALSIFIED: "FALSIFIED"
+ok   Y1 +0.9 in world 2: 3 FALSIFIED: "FALSIFIED"
+ok   Y1 -0.5 in world 2: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   Y1 +0.39 in world 2, its interval past +0.4: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the read prints three items, an OUTCOME of three and three REALISED lines, end to end: "true 3 3"
+ok   the gate passes the job as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses no done line: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count: true
+ok   the gate refuses another wealth grid: true
+ok   the gate refuses the order-drawn reference (the arm's plant): true
+ok   the gate refuses other share nodes: true
+ok   the gate refuses a reference built on another lattice: true
+ok   the gate refuses a reference with fewer draws: true
+ok   the gate refuses a last year that is not monotone: true
+ok   the gate refuses adaptTook failed: true
+ok   the gate refuses refTook short: true
+ok   the gate refuses refTook over no bin: true
+ok   the gate refuses a header naming another path count (the runs right): true
+ok   the gate refuses a case line at another point count (the meta right): true
+ok   the gate refuses the identity held on another count of paths: true
+ok   the gate refuses the identity short: true
+ok   the gate passes a file that is the log's: ""
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a file short of one world's GB: true
+planted (47): all read as they should
+GATE: passed - AN once and done at the registered settings (4000 paths a world, scale 1, seed 7002); readerRef 'adaptive' at the lattice 160x41 with 128 draws in its solve's meta, NODE-AX's settings otherwise; every self-check in full (armTook, adaptTook, refTook, ownTook, identity, qfTook, layerTook); its file the log's; NODE-AX's BN behind NODE-AX's gate, its file 769a2d449e7738d1
+
+AN: S360's bridge-years grid residual under the adaptive reference, against NODE-AX's BN (predictions/diag-an.md)
+  the reference: 24 floor moves, lattice 160x41 by 3 gain nodes, 128 draws, last bridge year 7, built in 247.2 s
+
+THE ITEMS (each read by its registered rule)
+1. AN's bridge-years grid residual GB within half a point in worlds 0 and 1 (FALSIFIED at a whole interval past one point either way): HELD
+     world 0: 0.0307 (-0.0066 to 0.0680); world 1: -0.1235 (-0.1579 to -0.0891)
+2. no material harm to the runs against BN's on the same paths, worlds 0 and 1: HELD
+     world 0: lost 22 saved 16 of 4000, change -0.1500 (-0.4501 to 0.1744) at margin 0.5: no material harm; world 1: lost 9 saved 20 of 4000, change 0.2750 (-0.0121 to 0.5034) at margin 0.5: no material harm
+3. O156's world-2 year-1 term under AN within 0.4 points (FALSIFIED at a whole interval past 0.6 either way): HELD
+     world 2: Y1 -0.1524 (-0.1604 to -0.1444)
+
+REPORTED
+  world 0: AN OWN less runs -0.5366 = T -0.5673 + GB 0.0307 + GA -0.0000; BN's GB -1.7654 (-1.9587 to -1.5721); AN less BN in GB 1.7961 (1.6061 to 1.9861); survival AN 28.6250 BN 28.7750
+  world 0 by year (AN; BN): 1: 0.1611; 0.0057 | 2: 0.0021; 0.1001 | 3: -0.0317; -1.3477 | 4: 0.0443; 0.0009 | 5: -0.1498; -0.5679 | 6: 0.0046; 0.0434 | 7: 0.0000; 0.0000
+  world 1: AN OWN less runs 0.0107 = T 0.1343 + GB -0.1235 + GA -0.0000; BN's GB -2.0679 (-2.2185 to -1.9173); AN less BN in GB 1.9444 (1.7995 to 2.0893); survival AN 49.1750 BN 48.9000
+  world 1 by year (AN; BN): 1: -0.0167; -0.0808 | 2: -0.1187; -0.7948 | 3: 0.0738; -0.4917 | 4: -0.0479; -0.5528 | 5: -0.0082; -0.1858 | 6: -0.0058; 0.0380 | 7: 0.0000; 0.0000
+  world 2: AN OWN less runs -0.4051 = T -0.3852 + GB -0.0198 + GA -0.0001; BN's GB -0.7616 (-0.8650 to -0.6583); AN less BN in GB 0.7418 (0.6412 to 0.8424); survival AN 70.4000 BN 69.8500
+  world 2 by year (AN; BN): 1: -0.1524; -0.7929 | 2: 0.0646; 0.0114 | 3: 0.0668; -0.0033 | 4: -0.0202; -0.1682 | 5: 0.0341; 0.0537 | 6: -0.0127; 0.1377 | 7: 0.0000; 0.0000
+OUTCOME: 1 HELD, 2 HELD, 3 HELD
+REALISED item 1: 0.0307
+REALISED item 2: -0.1500
+REALISED item 3: -0.1524
+  refcheck world 0 bin 0: states 80 p 0.121063 simulated 0.119062 se 0.001135 ok
+  refcheck world 0 bin 1: states 90 p 0.299815 simulated 0.298100 se 0.001512 ok
+  refcheck world 0 bin 2: states 55 p 0.485665 simulated 0.483473 se 0.002120 ok
+  refcheck world 0 bin 3: states 46 p 0.700734 simulated 0.699022 se 0.002119 ok
+  refcheck world 0 bin 4: states 29 p 0.879683 simulated 0.883310 se 0.001863 ok
+  refcheck world 1 bin 0: states 62 p 0.118616 simulated 0.117516 se 0.001282 ok
+  refcheck world 1 bin 1: states 77 p 0.295323 simulated 0.294844 se 0.001628 ok
+  refcheck world 1 bin 2: states 63 p 0.494261 simulated 0.491079 se 0.001979 ok
+  refcheck world 1 bin 3: states 40 p 0.700903 simulated 0.703150 se 0.002264 ok
+  refcheck world 1 bin 4: states 58 p 0.876423 simulated 0.878293 se 0.001344 ok
+  refcheck world 2 bin 0: states 36 p 0.132630 simulated 0.132528 se 0.001770 ok
+  refcheck world 2 bin 1: states 54 p 0.310636 simulated 0.309759 se 0.001975 ok
+  refcheck world 2 bin 2: states 75 p 0.505593 simulated 0.506627 se 0.001814 ok
+  refcheck world 2 bin 3: states 69 p 0.706305 simulated 0.708710 se 0.001717 ok
+  refcheck world 2 bin 4: states 66 p 0.876377 simulated 0.876970 se 0.001266 ok

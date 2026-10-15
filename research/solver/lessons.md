@@ -13,6 +13,14 @@ the deep reviewer's retirement pass reads these entries (`node research/solver/t
 
 Seed: after 7ai (30 Sep 17:53)
 
+## AN (closed 15 Oct 20:31)
+
+- [T:design] [T:c-deep] AREF Step 0's item 3 counted c over every supported node of the grid, most at states the policy never visits, and read NO GO; the deep review after it read the saved files at the corners the read weighs and redesigned the test as AN, which held on all three items -> REPLACE in research/solver/new-prediction.mjs with: SLICES: a statistic over a table's nodes is read only over the nodes the read weighs at the states the policy visits (the corners its records' reads use), never over every node of the grid
+- [T:overclaim] [T:figure] the reads of Step 0 outran their items: the 09:38 row wrote 'premise fails' and a minority reach from a node-wide count, and every figure inside its interval when one fell outside; the 10:13 row read the NO GO as item 3's slip alone with items 1 and 2 INCONCLUSIVE (the plan-auditor's FAILs of 15 Oct 09:55 and 10:35 UK) -> AUTOMATE: check-plan.mjs reportedGradeProblems (6e48b21) refuses a grade B on reported figures; a measurement's reducer prints REALISED lines so the interval index reads it (proposed)
+- [T:relook] [T:plant] AN's registration left O157's gate (its check read by year) unmet, refTook passed the choice and step plants at the preflight's scaled sample, and the first preflight counted every plant refused on an earlier check by its exit code (the plan-auditor's FAIL of 15 Oct 15:37 UK; O159) -> AUTOMATE: a check's sample fixed at every scale and each plant refused on its own message (preflight-an.sh's want(); O159 carries it to the other preflights)
+- [T:c-preflight] five preflights before launch caught the meta's readerRef, the exit-code plants and the scaled check, and BN-off showed the control bit for bit each time, so the 2.75-hour run ran once and read -> DROP: the preflight did its work.
+- [T:other:calibration] Brier 0.154 over 3; item 1 HELD at a credence of 0.23 (INCONCLUSIVE 0.52 named likeliest), item 3 HELD at 0.37; every realised figure inside its 80% interval -> DROP: the receipt's leading cause, shaded to 0.5 from the record's 0.32, was right; the scorecard's lead rate counts it.
+
 ## NODE-AX (closed 15 Oct 01:18)
 
 - [T:plant] the reducer's 84-of-84 mutation record stood on its blob before a last edit (the layer print's scale), so the committed reducer had no run (the plan-auditor's FAIL of 14 Oct 18:38 UK, BLOCKING 1) -> AUTOMATE (proposed for the maintainer's next unlock; run-from-snapshot.sh is locked): the launcher's outcome check refuses a reducer whose blob has no "N of N caught" entry in results-mutation-history.txt.

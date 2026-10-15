@@ -79,6 +79,7 @@ export const TESTS = [
   { name: 'REF-2 (S360 under RS with and without the order-drawn reference; the state\'s own pots at S360\'s states; the order-drawn reference on the 95% share household)', prediction: 'predictions/diag-ref2.md', results: 'results-ref2.txt' },
   { name: 'NODE-1 (S360 under ORDER with explicit pension-share nodes against six shares; the option inert off)', prediction: 'predictions/diag-node1.md', results: 'results-node1.txt' },
   { name: 'NODE-AX (S360\'s remaining under-read with the dense share nodes split by bridge year and tier layer: the exact grid ledger)', prediction: 'predictions/diag-nodeax.md', results: 'results-nodeax.txt' },
+  { name: 'AN (the adaptive reference on S360 against NODE-AX\'s BN: the bridge-years grid residual, the runs, world 2\'s year 1)', prediction: 'predictions/diag-an.md', results: 'results-an.txt' },
 ];
 
 export function credences(predText) {

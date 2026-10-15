@@ -8,6 +8,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
 import { constantOutcomeProblems } from '../solver/check-prediction.mjs';
+import { mutationProblems, reducerSha, MUTATION_FROM } from '../solver/check-prediction.mjs';
 import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM, heldToJudged, exemptBy, judgedOrderProblems, baseRateProblems, CREDENCE_BOUNDARY, JUDGED_BOUNDARY } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -20,6 +21,28 @@ const read = p => readFileSync(join(S, p), 'utf8');
 const base = { plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added: [], readSolverFile: read, solverFileExists: p => existsSync(join(S, p)) };
 const run = over => checkPlan({ ...base, ...over });
 const caught = (errs, tag, what) => ok(errs.some(e => e.startsWith(`[${tag}]`)), `planted fault caught (${tag}): ${what}`);
+
+// THE MUTATION RECORD (check-prediction.mjs --outcomes, which the launcher runs): a launch needs an all-caught mutation run
+// of the reducer as it stands; hashed as mutate_lib.py hashes it
+{
+  const H = '2026-10-14 20:17 UTC | reduce-x.mjs aaaaaaaaaaaa | 136 of 143 caught | escaped: NOT CAUGHT: 24\n2026-10-14 20:21 UTC | reduce-x.mjs bbbbbbbbbbbb | 142 of 142 caught | escaped: none\n2026-10-14 20:22 UTC | reduce-y.mjs cccccccccccc | 0 of 0 caught | escaped: none\n2026-10-14 20:23 UTC | reduce-x.mjs dddddddddddd | 0 of 9 caught | escaped: the true script fails its planted set\n';
+  ok(mutationProblems('reduce-x.mjs', 'bbbbbbbbbbbb', H).length === 0, 'mutation record: an all-caught run of the reducer as it stands passes');
+  ok(/catch fewer than all \(136 of 143\)/.test(mutationProblems('reduce-x.mjs', 'aaaaaaaaaaaa', H)[0] || ''), 'mutation record: refused when the runs of this blob catch fewer than all');
+  ok(/holds no mutation run/.test(mutationProblems('reduce-x.mjs', 'eeeeeeeeeeee', H)[0] || ''), 'mutation record: refused when the reducer changed after its last run (no line for its hash)');
+  ok(/holds no mutation run/.test(mutationProblems('reduce-z.mjs', 'bbbbbbbbbbbb', H)[0] || ''), 'mutation record: another reducer\'s run at the same hash does not count');
+  ok(mutationProblems('reduce-y.mjs', 'cccccccccccc', H).length === 1 && mutationProblems('reduce-x.mjs', 'dddddddddddd', H).length === 1, 'mutation record: 0 of 0 (a run on nothing) and a true script failing its plants are refused');
+  ok(mutationProblems('reduce-x.mjs', 'bbbbbbbbbbbb', '').length === 1, 'mutation record: an empty history is refused');
+  const py = execFileSync('python3', ['-c', 'import hashlib,sys;print(hashlib.sha256(open(sys.argv[1]).read().encode()).hexdigest()[:12])', join(S, 'reduce-nodeax.mjs')]).toString().trim();
+  ok(reducerSha(read('reduce-nodeax.mjs')) === py && mutationProblems('reduce-nodeax.mjs', py, read('results-mutation-history.txt')).length === 0, `mutation record: reducerSha matches mutate_lib.py's hash (${py}) and NODE-AX's reducer has its all-caught run`);
+  ok(MUTATION_FROM === Date.parse('2026-10-15T07:00:00+01:00'), 'mutation record: tests first committed from 15 Oct 07:00 UK on');
+}
+
+// diag-7t.md is no longer exempt from the Unmasking field (RULES.md known limit 16): it carries the field, and without it is refused
+{
+  const t7 = read('predictions/diag-7t.md'), name = join(S, 'predictions/diag-7t.md');
+  ok(checkPredictionText(t7, { name }).length === 0, 'diag-7t.md passes the checker on its own Unmasking field');
+  ok(checkPredictionText(t7.replace(/^- \*\*Unmasking:\*\*.*\n/m, ''), { name }).some(e => /missing "- \*\*Unmasking/.test(e)), 'planted: diag-7t.md without its Unmasking field is refused (no exemption by name)');
+}
 
 // the real plan passes
 const real = run({});
@@ -153,7 +176,8 @@ ok(withU('none:').some(e => /needs a reason/.test(e)) && withU('none').some(e =>
 ok(withU('the reader').some(e => /must name the known error/.test(e)), 'planted: a one-phrase Unmasking field is refused');
 ok(withU('none: a timing of the solver, no fix is tested').length === 0, 'Unmasking: "none: <why>" passes');
 ok(withU('the arm removes the bridge misread; off\'s misread pushes S126 onto a safer tier for life; the jointWorlds arm separates harm from unmasking').length === 0, 'a full Unmasking field passes');
-ok(checkPredictionText(reg, { name: 'diag-7t.md' }).every(e => !/Unmasking/.test(e)) && rErr(reg).every(e => !/Unmasking/.test(e)), 'predictions written before the Unmasking field pass without one (diag-7t.md, bridge-reader.md)');
+ok(checkPredictionText(reg, { name: 'diag-7s.md' }).every(e => !/Unmasking/.test(e)) && rErr(reg).every(e => !/Unmasking/.test(e)), 'predictions written before the Unmasking field pass without one (diag-7s.md, bridge-reader.md)');
+ok(checkPredictionText(reg, { name: 'diag-7t.md' }).some(e => /Unmasking/.test(e)), 'diag-7t.md is no longer exempt by name (RULES.md known limit 16, closed 15 Oct)');
 const L = o => seedLaunchProblems(o);
 ok(L({ name: 'bridge-reader.md', predText: reg, texts: [read('batch-7e.sh')] }).length === 0, '7e\'s batch launches under its prediction (seed 7011, owned)');
 ok(L({ name: null, texts: [read('batch-7e.sh')] }).some(e => /7011 is reserved.*measurement/.test(e)), 'planted: 7e\'s batch launched as a measurement is refused (7011 is reserved)');

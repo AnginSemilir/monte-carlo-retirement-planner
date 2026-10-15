@@ -15,8 +15,8 @@ remembers them, and every one looks at files, not at what was said about them. I
    and fair-gate.test.mjs fails if a stamped script imports a module the stamp leaves out; maintainer's unlock, 24 Sep
    13:44 UK); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
    experiment.mjs writes records the code (`code.hash`) and the prediction it ran under; audit-s126.mjs stamps every log
-   with the code, its own hash and the prediction since f6a152d (25 Sep), read by fair-gate.mjs's requireFairLogs (the
-   other audit scripts' outputs do not yet).
+   with the code, its own hash and the prediction since f6a152d (25 Sep), read by fair-gate.mjs's requireFairLogs, as
+   do the later audits (known limit 7 names the older ones that do not).
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
    git pre-commit hook (`.githooks/pre-commit`), and by Claude Code's Stop hook.
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
@@ -124,12 +124,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    itself.
 6. A review start (`record-review.mjs --start`) can be written without a review running. It lapses after 30 minutes,
    and every start sits in review-log.md beside its receipt, so a start with no receipt is visible.
-7. The smoke run exercises only its own modes; the audit scripts' outputs record no code, except audit-s126.mjs's
-   (stamped since f6a152d, 25 Sep).
-   Also (25 Sep 22:45 UK): local runs - the pre-commit hook, the Stop hook, a review - see gitignored build outputs
-   (research/engine.mjs, built from src/App.jsx) that CI's checkout lacks, so a test can pass locally and fail in CI; it
-   did, from 24 Sep 14:00 UK to 25 Sep 22:07 UK. CI builds the engine since fb9ca50; a CI question is settled in a fresh
-   clone.
+7. The smoke run exercises only its own modes. Ten older audit scripts record no code in their outputs (`grep -L codeId
+   research/solver/audit-*.mjs`, 15 Oct: bestof, calibration, converge-numerics, e1-persistence, gain, pcls, pol-overflow,
+   ranking, step2-paired, unimodal); a test that reads one is stamped first.
 8. The judgement rules rest on the reviewer, a second model, not proof.
    Also: fair-gate.mjs's row 8 line 'final-year integration' reads a file without the exact final year as "5 nodes", which is
    wrong when QUAD is not 5 (the final year then uses the arm's own points); fairness is unaffected, since the gate compares
@@ -145,10 +142,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    reduce-*.mjs (its l.74-76), so a script that reads result files under another name escapes it: read-o17.mjs, which prints
    figures from 7e's logs and relies on reduce-7e.mjs's gate over the same files, as its header says (the sixty-fifth review,
    MINOR 6, 26 Sep 11:48 UK). A test that looks for any script reading results/ is proposed with the next unlock.
-12. The pre-tool hook refuses a named audit or experiment script run outside the launcher, but not a script that imports
-   one: `node -e "import('.../audit-s126.mjs')"` ran audit-s126.mjs's default mode outside the launcher on 26 Sep (PLAN.md,
-   bugs of 26 Sep). A hook rule that also refuses node -e, node --eval and node -p naming those scripts is proposed with the
-   next unlock.
+12. Closed 15 Oct: the pre-tool hook refuses an experiment imported by a program fed to node (-e, --eval, -p, a
+   here-document; hooks.test.mjs). Still open: a script file written and then run (limit 5), and python running node.
 13. smoke.sh's diag7r line runs S126 at 4 points, where the reader changes no move, so 7r's swap arms swap nothing there:
    the swap itself is checked only by research/tests/solver-choose-hook.test.mjs (8 points), which neither the launcher,
    the pre-commit hook nor CI runs, and the smoke line does not grep the swap lines or the swap traces' stamps (the
@@ -159,12 +154,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 15. The prediction checker's Unmasking field takes new-prediction.mjs's own placeholder ("? (RULES.md section 9: ...)", over
    80 characters) as filled in (the seventy-seventh review, MINOR 2). Proposed with the next unlock: refuse a field that
    starts with "?", as the checker could for every field the template leaves as "?".
-16. diag-7t.md stays exempt from the Unmasking field by name (BEFORE_UNMASKING) after its re-registration of 26 Sep 17:50 UK;
-   it carries the field all the same, so nothing rests on the exemption. Proposed with the next unlock: remove it from the
-   list.
-17. The Stop hook's deep-review gate fails open: if uncertainty.mjs errors, or its planted checks fail, the hook reads "not
-   due" and the turn may end. Proposed with the next unlock: treat an error as due, with the error as the reason. Also
-   stale, locked: stop-check.mjs's header says "Two conditions"; there are three (the seventy-seventh review, MINOR 6).
+16. Closed 15 Oct: diag-7t.md's exemption from the Unmasking field is removed (plan-checker.test.mjs).
+17. Closed 15 Oct: the Stop hook counts an uncertainty.mjs error or timeout as a due review, with the error as the reason
+   (stop-check.mjs deepState; hooks.test.mjs).
 18. A measurement (PREDICTION=none) can run a test's own mode, settings and paths before that test is registered: the
    launcher checks neither the mode nor the paths against registered or planned tests. 7v's timing measurement did (27 Sep,
    runs.log 07:09 UK: S126 on 7v's own first 1,000 paths), and its lines were printed before registration (disclosed in
@@ -190,13 +182,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 20a. check-plan's figure check on register and schedule rows (4 Oct) reads decimals only: a whole number ("9999 s") is never
    checked, and a rule reference with a decimal ("rule 9.2c") is read as a figure and needs rewording (the plan-auditor's
    MINOR 3 of 4 Oct 15:14 UK). Its sources are a cited results file, prediction, runs.log or results/<dir>/<file>.
-21. uncertainty.mjs l.69 counts a "FALSIFIED or harm verdict" by a pattern that matches "FALSIFIED" or "harm" anywhere in a
-   ledger row's bold span, so a title that says "no material harm" counts as a harm verdict (7aa's row, 28 Sep: "1
-   FALSIFIED or harm verdicts" before the deep review after it, a false positive; the deep review after 7aa and the
-   plan-auditor's review of 3ba2744, MINOR 7). Same pattern searched: a pattern alternating FALSIFIED and harm over
-   research/solver, research/tests and .claude/hooks is found only there. FIXED 30 Sep on the maintainer's unlock (15:19
-   UK, the ledger): "no harm" and "no material harm" are removed from the bold span before the test, so a harm beside them
-   still counts; a planted case reads 1 on the fix and 3 on the old pattern (it recurred on 7ah's row before the fix). Still open: the match is on prose, so a bold result that uses the word harm without giving a verdict still counts
+21. uncertainty.mjs counts a "FALSIFIED or harm verdict" on the prose of a ledger row's bold span ("no harm" and "no
+   material harm" taken out first, 30 Sep), so a bold result that uses the word harm without giving a verdict still counts
    (the 30 Sep 15:19 row's "harm count"; the plan-auditor's MINOR 1, 30 Sep); a reviewer reading the index checks the row
    it counts.
 22. The launcher (run-from-snapshot.sh) re-runs a prediction's derivation script before it takes the lock and copies the
@@ -205,13 +192,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    diag7ab branch unchanged and committed as run (a7dc0d9; MINOR 2 on 57238f0). Until the launcher snapshots first: no
    edit to a file the snapshot copies while a launch is in its derivation step, and a warned snapshot is recorded with the
    file's commit.
-23. uncertainty.mjs l.51 counts a register family by a pattern that misses any register item whose family note is followed
-   by " (" - O37, O46 and O47 as written - so family 1 ("a sub-margin opening gap decides the tier held for life") reads 10
-   where 13 open register lines name it (the deep review after 7ac, deep-review-log.md 28 Sep 14:47 UK; the plan-auditor's
-   count, review-log.md 28 Sep 15:02 UK). Nothing rested on it: the index read HIGH and the family past three either way.
-   The same review adds to the family "checks run where the fault cannot show" the unchecked seed of read-7ac-beside.mjs
-   (the plan's bug list, fixed in fc12bea). Until the unlock fixes the pattern: a family count the index prints is checked
-   against the register by hand at each deep review.
+23. Closed 1 Oct: uncertainty.mjs reads a family note that runs on into a bracket, and a second family on one row.
 24. The launcher keeps no record of a smoke run that fails or never finishes: run-from-snapshot.sh exits (or dies with its
    machine) before its runs.log append, and smoke.sh's FAILED lines go only to the caller's output. So a refused launch
    (O64: 30 Sep 07:17 UK, its reason lost to a filtered output) and a launch lost mid-smoke (7ah's fourth, 30 Sep 07:40
@@ -219,16 +200,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    appending a runs.log line marked REFUSED, with smoke.sh's failing mode, before it exits): every launch keeps the
    launcher's whole output in a log file (7ah-launch4.log and 7ah-launch5.log do), and a refusal or loss goes in the
    register with that log (the plan-auditor, review-log.md 30 Sep 08:37 UK; added with the maintainer's agreement, 30 Sep).
-25. A withdrawn archive's receipt stays the review base: record-review.mjs --moved records a verified move as a PASS
-   receipt (review-log.md, locked), so a move then withdrawn (1 Oct 02:12 UK, O72: the locked plan-checker test failed on
-   the archived plan) leaves its line as the newest receipt, and record-review.mjs --status and --diff and relook.mjs
-   --since-review take the withdrawn blob as their base until the next receipt is recorded - each then shows more than the
-   real change and hides nothing (the plan-auditor's MINOR 2 of 1 Oct 02:17 UK). The Stop hook (keyed to the plan's blob)
-   and check-plan's retro check (BLOCKING codes only) are not misled. Until an unlock lets --moved be undone or the archive
-   run its own check first: the reviewer is told the real base (relook --base <commit>), as at 02:17 UK. **Closed by the maintainer's unlock, 1 Oct 06:45 UK:**
-   record-review.mjs --withdraw-move <blob> --reason records a WITHDRAWN line, and liveReceipts drops the withdrawn move
-   from every base lookup (research/tests/triggers.test.mjs, three cases, shown to fail with the filter removed); the
-   move of 1 Oct 02:12 UK is withdrawn so (review-log.md 06:50 UK).
+25. Closed 1 Oct 06:45 UK: record-review.mjs --withdraw-move drops a withdrawn move from every base lookup.
 26. Closed 3 Oct (O54).
 27. The stale-phrase report (check-plan.mjs stalePhrases, 3 Oct) sees only a clause of 40 characters or more copied word for
    word into another line: a stale phrase left in the same table line as the edit (the line is added again, carrying it),
@@ -489,7 +461,9 @@ checked by the plan-auditor by hand.
 
 Enforced by: `stats.mjs` (the arithmetic; `research/tests/stats.test.mjs` reproduces the review's worked figures and
 its planted outcomes); each reducer on the rule carries planted checks and a mutation script showing them able to fail
-(`reduce-7e.mjs`, `mutate-reduce-7e.sh`); the plan-auditor.
+(`reduce-7e.mjs`, `mutate-reduce-7e.sh`); for a test first committed from 15 Oct 07:00 UK the launcher refuses a reducer
+with no all-caught run, as it stands, in results-mutation-history.txt (check-prediction.mjs mutationProblems); the
+plan-auditor.
 
 **Predictions** (the review's section 15) gain these fields: Decision fed (what each outcome changes: held, falsified or
 inconclusive), Provenance (every input number with its source), Derivation script (the arithmetic in a committed

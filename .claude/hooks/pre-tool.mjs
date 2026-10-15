@@ -124,11 +124,11 @@ const ANY_ARG = /^(sed|perl|tee|rm|unlink|truncate|chmod|chown|touch|shred|patch
 const WRITE_CALL = /\bopen\s*\([^)]*,\s*(mode\s*=\s*)?['"]([wax]|r\+)|\.write_(text|bytes)\s*\(|\bshutil\.(copy\w*|move|rmtree)\s*\(|\bos\.(remove|unlink|rename|replace|truncate)\s*\(|\b(writeFileSync|appendFileSync|rmSync|unlinkSync|renameSync|copyFileSync|cpSync|truncateSync|writeFile|appendFile|createWriteStream)\s*\(/;
 // the words of a part, quotes kept together and taken off
 const words = part => [...part.matchAll(/'([^']*)'|"((?:\\.|[^"\\])*)"|(\S+)/g)].map(m => (m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[3]));
-// the bodies of here-documents fed to python or node, and their -c / -e programs
-export function inlinePrograms(raw) {
+// the bodies of here-documents fed to python or node, and their -c / -e programs (nodeOnly: those fed to node)
+export function inlinePrograms(raw, nodeOnly = false) {
   const out = [];
-  for (const h of heredocs(raw)) if (/(^|[\s;&|(])(\S*\/)?(python3?|node)(\s+-\S*)*\s*(-\s*)?$/.test(h.before)) out.push(h.body);
-  for (const m of raw.matchAll(/(?:^|[\s;&|(])(?:\S*\/)?(?:python3?\s+(?:-\w+\s+)*-c|node\s+(?:-\w+\s+)*(?:-e|--eval|-p|--print))\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g)) out.push(m[1] !== undefined ? m[1] : m[2]);
+  for (const h of heredocs(raw)) if ((nodeOnly ? /(^|[\s;&|(])(\S*\/)?node(\s+-\S*)*\s*(-\s*)?$/ : /(^|[\s;&|(])(\S*\/)?(python3?|node)(\s+-\S*)*\s*(-\s*)?$/).test(h.before)) out.push(h.body);
+  for (const m of raw.matchAll(/(?:^|[\s;&|(])(?:\S*\/)?(?:python3?\s+(?:-\w+\s+)*-c|node\s+(?:-\w+\s+)*(?:-e|--eval|-p|--print))\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g)) if (!nodeOnly || !/^(?:\S*\/)?python/.test(m[0].replace(/^[\s;&|(]/, ''))) out.push(m[1] !== undefined ? m[1] : m[2]);
   return out;
 }
 // does a command write an enforcement file? `prot` says whether a path (or a folder holding one) is protected
@@ -350,6 +350,13 @@ export function decide(input, { root = process.cwd(), cwd = root, names = locked
     const cheap = (script === 'experiment.mjs' && /^(select|reduce|reduceFlex)$/.test(arg)) || (/^audit-/.test(script) && arg === 'scan');
     if (!cheap) return deny(`${script} is an experiment: launch it through the launcher, which checks the registered prediction, runs the smoke test, takes the lock and logs the run:\n  PREDICTION=research/solver/predictions/<name>.md research/solver/run-from-snapshot.sh ${m[0].trim()} ...\n(or PREDICTION="none:<why this is a measurement>"; LANE=light for one single-process job beside a running batch).`);
   }
+
+  // an experiment imported by an inline program (node -e "import('.../audit-s126.mjs')", a here-document fed to node): it runs
+  // the script's default mode outside the launcher, as on 26 Sep (RULES.md known limit 12, closed on the maintainer's
+  // go-ahead after NODE-AX's close). Programs fed to node only: a python program that writes such text into a file runs nothing
+  const IMPORTED = new RegExp(`(?:\\bimport\\s*\\(?|\\brequire\\s*\\(|\\bfrom)\\s*['"\`][^'"\`]*?\\b(${SCRIPTS})['"\`]`);
+  // only a command naming node and an experiment is scanned (the scan is slow on a long run of brackets: the 280,000 '(' case)
+  if (/\bnode\b/.test(raw) && new RegExp(SCRIPTS).test(raw)) for (const p of inlinePrograms(raw, true)) { const m = IMPORTED.exec(p); if (m) return deny(`${m[1]} is an experiment, imported here by an inline program, which runs it outside the launcher: launch it through the launcher (PREDICTION=... research/solver/run-from-snapshot.sh ...), or import it from a committed test file`); }
 
   // an edit to the enforcement made through the shell
   // a target ends at a closing parenthesis too: `(cd .claude/hooks && echo x > pre-tool.mjs)` (the fuzz of 27 Sep)

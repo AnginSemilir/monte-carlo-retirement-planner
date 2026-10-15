@@ -47,6 +47,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VARIABLES } from './fair-variables.mjs';
@@ -69,7 +70,7 @@ export const SEED_OWNERS = Object.freeze({
 export const BEFORE_SEEDS = [...BEFORE_REGIMEN, 'bridge-reader.md'];
 // written before the Unmasking field existed (RULES.md section 9, the maintainer's unlock of 26 Sep 16:47 UK); diag-7t.md is the test built
 // around the question the field asks (its arms decompose the reader's harm)
-export const BEFORE_UNMASKING = [...BEFORE_SEEDS, 'diag-7r.md', 'diag-7s.md', 'diag-7t.md', 'o22-trace.md', 'k5-stage1.md', 'f1v2-test.md', 'f1-test.md', 'bridge-quad.md', 'm14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md'];
+export const BEFORE_UNMASKING = [...BEFORE_SEEDS, 'diag-7r.md', 'diag-7s.md', 'o22-trace.md', 'k5-stage1.md', 'f1v2-test.md', 'f1-test.md', 'bridge-quad.md', 'm14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md'];
 export const ownsSeed = (seed, name) => !!name && (SEED_OWNERS[seed] || []).some(o => typeof o === 'string' ? o === basename(name) : o.test(basename(name)));
 // the registered seeds a text names, comment lines left out
 export const seedsIn = text => [...new Set((String(text).split('\n').filter(l => !/^\s*#/.test(l)).join('\n').match(/\b\d{4}\b/g) || []).map(Number))].filter(n => n in SEED_REGISTRY).sort();
@@ -409,6 +410,19 @@ export function constantOutcomeProblems(source) {
   const bad = String(source).split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l) && l.includes('OUTCOMES REACHED') && /\b(HELD|FALSIFIED|INCONCLUSIVE|HARM)\b/.test(l.slice(l.indexOf('OUTCOMES REACHED'))));
   return bad.length ? [`the reducer writes its OUTCOMES REACHED line with the outcomes as text (${bad.length} line${bad.length > 1 ? 's' : ''}): build it from the plants that read as they should`] : [];
 }
+// THE MUTATION RECORD (the maintainer's go-ahead after NODE-AX's close, from the deep review's recommendation): a test first
+// committed from MUTATION_FROM on launches only when results-mutation-history.txt holds an "N of N caught" line (N > 0) for
+// its reducer as it stands, hashed as mutate_lib.py hashes it (sha256 of the text, 12 hex): plants never shown able to fail,
+// or shown so on an older reducer, are not the planted set the read rests on (RULES.md rule 2)
+export const MUTATION_FROM = Date.parse('2026-10-15T07:00:00+01:00');
+export const reducerSha = text => createHash('sha256').update(String(text)).digest('hex').slice(0, 12);
+export function mutationProblems(red, sha, historyText) {
+  const lines = String(historyText).split('\n').filter(l => l.includes(` | ${red} ${sha} | `));
+  const all = l => { const m = / \| (\d+) of (\d+) caught \|/.exec(l); return !!m && Number(m[2]) > 0 && m[1] === m[2]; };
+  if (lines.some(all)) return [];
+  return [lines.length ? `results-mutation-history.txt's runs of ${red} as it stands (${sha}) catch fewer than all (${lines.map(l => (/(\d+ of \d+) caught/.exec(l) || [])[1]).join('; ')}): fix the plants and rerun its mutate script`
+    : `results-mutation-history.txt holds no mutation run of ${red} as it stands (${sha}): run its mutate script (mutate_lib.py) to all caught, after the reducer's last edit`];
+}
 export const reducerOf = predText => (/^- \*\*Run:\*\*.*?\b(reduce-[\w-]+\.mjs)/m.exec(String(predText)) || [])[1] || null;
 
 export function checkPredictionFile(file) {
@@ -441,7 +455,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && pro
   const red = reducerOf(text);
   if (!red || !existsSync(`research/solver/${red}`)) { console.log(`outcome coverage refuses this launch: the Run line names no reducer (reduce-<name>.mjs) that exists${red ? ` (${red})` : ''}`); process.exit(1); }
   let out = ''; try { out = execFileSync('node', [`research/solver/${red}`, '--planted']).toString(); } catch (e) { console.log(`outcome coverage refuses this launch: ${red} --planted failed\n${String(e.stdout || '')}`); process.exit(1); }
-  const P = [...outcomeProblems(text, out), ...(first === null || Number.isNaN(first) || first >= EDGES_FROM ? edgeProblems(out) : []), ...(first === null || Number.isNaN(first) || first >= CONSTANT_FROM ? constantOutcomeProblems(readFileSync(`research/solver/${red}`, 'utf8')) : [])];
+  const P = [...outcomeProblems(text, out), ...(first === null || Number.isNaN(first) || first >= EDGES_FROM ? edgeProblems(out) : []), ...(first === null || Number.isNaN(first) || first >= CONSTANT_FROM ? constantOutcomeProblems(readFileSync(`research/solver/${red}`, 'utf8')) : []),
+    ...(first === null || Number.isNaN(first) || first >= MUTATION_FROM ? mutationProblems(red, reducerSha(readFileSync(`research/solver/${red}`, 'utf8')), existsSync('research/solver/results-mutation-history.txt') ? readFileSync('research/solver/results-mutation-history.txt', 'utf8') : '') : [])];
   if (P.length) { console.log(`outcome coverage refuses this launch (${red}):\n${P.map(e => `  - ${e}`).join('\n')}`); process.exit(1); }
   console.log(`outcomes: ${red} reaches every registered outcome (${out.split('\n').filter(l => l.startsWith('OUTCOMES REACHED')).join('; ')})`);
   process.exit(0);

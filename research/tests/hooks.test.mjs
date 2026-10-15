@@ -9,7 +9,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadavg, cpus } from 'node:os';
 import { decide as pre, shellCode, lastHumanText, UNLOCK, segments, unlockedFrom, shellHeredocs } from '../../.claude/hooks/pre-tool.mjs';
-import { decide as stop, MAX_REPEATS, PENDING_MINUTES, deepRunning } from '../../.claude/hooks/stop-check.mjs';
+import { decide as stop, MAX_REPEATS, PENDING_MINUTES, deepRunning, deepState } from '../../.claude/hooks/stop-check.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -55,6 +55,12 @@ ok(is(bash('node research/solver/audit-s126.mjs scan'), null), 'a census with no
 ok(is(bash('node research/solver/experiment.mjs reduceFlex flex-tiers'), null), 'reducing result files (reduceFlex) goes ahead');
 ok(is(bash('node --check research/solver/experiment.mjs'), null), 'a syntax check is not a launch');
 ok(is(bash('grep -n world research/solver/experiment.mjs'), null), 'reading an experiment script is not a launch');
+// RULES.md known limit 12: an experiment imported by an inline program fed to node runs outside the launcher
+ok(is(bash(`node -e "import('/home/user/x/research/solver/audit-s126.mjs')"`), 'deny'), 'planted: node -e importing an audit by an absolute path is refused (26 Sep)');
+ok(is(bash(`node --eval "import('./research/solver/audit-s126.mjs')"`), 'deny') && is(bash(`node -p "require('research/solver/experiment.mjs')"`), 'deny'), 'planted: node --eval and node -p importing an experiment are refused');
+ok(is(bash("node - <<'E'\nimport { x } from './research/solver/audit-ref2.mjs';\nE"), 'deny') && is(bash("cd /tmp && node <<'E'\nawait import('/r/research/solver/audit-ref2.mjs');\nE"), 'deny'), 'planted: a here-document fed to node importing an audit is refused');
+ok(is(bash(`node -e "import('./research/solver/reduce-nodeax.mjs')"`), null) && is(bash(`node -e "require('fs').readFileSync('research/solver/audit-s126.mjs')"`), null), 'an inline program importing a reducer, or reading an audit as text, goes ahead');
+ok(is(bash("python3 - <<'E'\nopen('t.mjs', 'w').write(\"node -e \\\"import('./audit-s126.mjs')\\\"\")\nE"), null), 'a python program writing such text into a file goes ahead (it runs nothing)');
 ok(is(bash("sed -i 's/a/b/' research/solver/check-plan.mjs"), 'deny'), 'planted: sed -i on the checker is refused while locked');
 ok(is(bash("sed -i 's/a/b/' research/solver/check-plan.mjs", true), null), 'and goes ahead once unlocked');
 // sed's script is not a file (13 Oct: a script ending in '/' was read as a folder and refused an ordinary file's edit)
@@ -319,6 +325,17 @@ ok(!deepRunning(`# log\n- started ${iso(PENDING_MINUTES + 1)}\n`, T0), `planted:
 ok(!deepRunning(`- started ${iso(5)}\n- 26 Sep 17:00 UK | covered 7t (x) | level HIGH | y\n`, T0), 'planted: a start followed by its receipt is not at work');
 ok(!deepRunning('# log\n- 26 Sep 17:00 UK | covered 7t (x) | level HIGH | y\n', T0) && !deepRunning('', T0), 'planted: no start line is not at work');
 ok(!deepRunning('- started garbage\n', T0) && !deepRunning(`- started ${iso(-5)}\n`, T0), 'planted: an unreadable or future start is not at work');
+// the deep-review gate on uncertainty.mjs's exit (tightening 17): an error that is not DEEP REVIEW DUE blocks, never passes
+{
+  const good = { checkOk: true, checkOutput: '', review: { receipt: { verdict: 'PASS' } }, repeats: 0, now: T0 };
+  ok(!stop({ ...good, deep: deepState(null) }).block, 'deep gate: uncertainty.mjs exiting 0 is not due');
+  const due = deepState({ stdout: 'DEEP REVIEW DUE: 2 settled results since the last' }, '', T0);
+  ok(due.due && !due.error && /deep-reviewer/.test(stop({ ...good, deep: due }).reason || ''), 'deep gate: DEEP REVIEW DUE blocks, naming the deep-reviewer');
+  ok(!stop({ ...good, deep: deepState({ stdout: 'DEEP REVIEW DUE: x' }, `- started ${iso(5)}\n`, T0) }).block, 'deep gate: a due review with a reviewer at work does not block');
+  const crash = deepState({ stdout: '', stderr: 'Error: Cannot find module x\n    at y', message: 'Command failed' }, `- started ${iso(5)}\n`, T0);
+  ok(crash.error && /uncertainty\.mjs --due failed.*Cannot find module/.test(stop({ ...good, deep: crash }).reason || ''), 'planted: uncertainty.mjs crashing blocks (it once read as not due), even with a reviewer at work');
+  ok(stop({ ...good, deep: deepState({ message: 'spawnSync node ETIMEDOUT' }) }).block, 'planted: uncertainty.mjs timing out blocks');
+}
 
 // the deep review's own planted checks run here, so CI and the pre-commit hook run them (rule 6)
 for (const f of ['uncertainty.mjs', 'record-deep-review.mjs']) ok(/all read as they should/.test(execFileSync('node', [join(ROOT, 'research/solver', f), '--planted']).toString()), `${f}'s planted checks read as they should`);

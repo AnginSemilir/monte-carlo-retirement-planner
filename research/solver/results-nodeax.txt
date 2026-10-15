@@ -1,0 +1,233 @@
+ok   tables and runs NODE-1's: 0 HELD: "HELD"
+ok   BN's world 2 table a printed digit off NODE-1's: 0 FALSIFIED: "FALSIFIED"
+ok   the tables alike, BN's world 2 runs not: 0 INCONCLUSIVE: "INCONCLUSIVE"
+ok   NODE-1 not read: 0 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB -2.0 and -1.8, tops under -1: 1 HELD: "HELD"
+ok   GB near zero in worlds 0 and 1: 1 FALSIFIED: "FALSIFIED"
+ok   GB -0.8: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB shown in world 0 only, near zero in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2 positive: 1 reads worlds 0 and 1, HELD: "HELD"
+ok   GB's top exactly -1: 1 HELD: "HELD"
+ok   GB's top a millionth over -1 in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB's bottom exactly -0.5: 1 FALSIFIED: "FALSIFIED"
+ok   GB's bottom a millionth under -0.5 in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB FALSIFIED in world 1 only: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   years 4 to 6 0.7 of GB: 2 HELD: "HELD"
+ok   years 4 to 6 0.1 of GB: 2 FALSIFIED: "FALSIFIED"
+ok   years 4 to 6 0.4 of GB: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   years 4 to 6 HELD in world 0 only: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   years 4 to 6 FALSIFIED in world 0 only: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 1 not HELD: 2 not read: "INCONCLUSIVE"
+ok   the late share exactly 0.5 with no spread: 2 HELD: "HELD"
+ok   the late share a whisker under 0.5 in world 0: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the late share exactly 0.25 with no spread: 2 FALSIFIED: "FALSIFIED"
+ok   the late share a whisker over 0.25 in world 0: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the late years past the whole (1.3 of GB): 2 HELD: "HELD"
+ok   BO's GB 2.5 under BN's in world 0: 3 HELD: "HELD"
+ok   BO's GB 0.2 under BN's: 3 FALSIFIED: "FALSIFIED"
+ok   BO's GB 1.0 under BN's: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BO less BN exactly -1.5 with no spread: 3 HELD: "HELD"
+ok   BO less BN exactly -0.5 with no spread: 3 FALSIFIED: "FALSIFIED"
+ok   BO less BN a whisker over -1.5 with no spread: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BO less BN 0.3 at the point, its bottom under -0.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BO less BN 1.6 at the point, its top over -1.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   worlds 1 and 2 alike: 3 reads world 0, HELD: "HELD"
+ok   GD 0.4 of GB past its year-matched share: 4 HELD: "HELD"
+ok   GD at its year-matched share, late-heavy years (the old statistic read 0.27 past the path-years' share): 4 FALSIFIED: "FALSIFIED"
+ok   the composition case: the old statistic past its HELD line, the year-matched excess 0: "true 0"
+ok   GD 0.15 past: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GD exactly 0.25 past: 4 HELD: "HELD"
+ok   GD exactly 0.05 past: 4 FALSIFIED: "FALSIFIED"
+ok   GD a whisker under 0.25 past in world 0: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GD a whisker over 0.05 past in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GD HELD in world 0 only: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GD FALSIFIED in world 0 only: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GD 0.27 past at the point, its bottom under 0.25 (a wide spread): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 1 not HELD: 4 not read: "INCONCLUSIVE"
+ok   world 0's records de-risked 0.2 more a year (GD as before): 4 INCONCLUSIVE where the base reads HELD, so s_t is read from the records: "INCONCLUSIVE"
+ok   item 4's year-matched share is the records' s_t over the year profile: "0.703 0.703"
+ok   de-risked G 2 points under the plan layer's in every matched cell: R0's condition YES: true
+ok   de-risked and plan G equal: R0's condition NO: false
+ok   under in world 0 only: R0's condition NO: false
+ok   G a function of B alone, the de-risked records at low B (nearer the cliff): R0's condition NO: false
+ok   the cliff case's matched difference is 0 over its cells: "0 true"
+ok   no cell holds two of each: R0's condition NO: false
+ok   no matched cell: none counted: 0
+ok   the base's matched difference: -2 points a path-year: -2
+ok   year 3's cells 4 under, the others 2, weighted by the de-risked records: -2.2: -2.2
+ok   the matched difference's top exactly 0: R0's condition NO: false
+ok   its top a whisker under 0: R0's condition YES: true
+ok   the plan layer numbered 2, the de-risked 0: 4 HELD as the base: "HELD"
+ok   the plan layer numbered 2: R0's condition YES as the base: true
+ok   the plan layer numbered 2, GD at its year-matched share: 4 FALSIFIED: "FALSIFIED"
+ok   world 1's records de-risked 0.2 more a year: 4 INCONCLUSIVE, each world read on its own records: "INCONCLUSIVE"
+ok   de-risked G a tenth of a point under, each record +-2 points: R0's condition NO (its interval crosses 0): false
+ok   the read prints R0's condition NO when de-risked and plan G are equal: true
+ok   GB -0.8 in both worlds, tops -0.58: R5 YES: true
+ok   GB -0.6 in world 0, its top -0.38: R5 NO: false
+ok   GB's top exactly -0.5 in both: R5 YES: true
+ok   GB's top a millionth over -0.5 in world 1: R5 NO: false
+ok   item 1 HELD: R5 NO: false
+ok   item 1 FALSIFIED: R5 NO: false
+ok   1 and 2 HELD with 0 and 3: N2-GRID held, N2-LATE held: "held held"
+ok   1 FALSIFIED with 0 and 3: N2-GRID not, N2-LATE open: "not open"
+ok   2 FALSIFIED with 0, 1 and 3: N2-GRID held, N2-LATE not: "held not"
+ok   3 FALSIFIED: both open: "open open"
+ok   0 FALSIFIED (not NODE-1's): both open: "open open"
+ok   1 INCONCLUSIVE: N2-GRID open: "open"
+ok   4 HELD and R0's condition YES, with 0, 1 and 3: N2-LAYER held: "held"
+ok   4 HELD and R0's condition NO: N2-LAYER open: "open"
+ok   4 FALSIFIED with 0, 1 and 3: N2-LAYER not: "not"
+ok   4 INCONCLUSIVE: N2-LAYER open: "open"
+ok   3 FALSIFIED: N2-LAYER open: "open"
+ok   0 FALSIFIED: N2-LAYER open: "open"
+ok   a ratio of proportional paths: its point and a zero-width interval: "0.5 0.5 0.5"
+ok   the split: OWN less runs, the closing with GA, year 5's residual: "-2.2 0.5 5 -0.7"
+ok   BN's tables BO's in every world: reach 0: 0
+ok   BN's tables moved in world 2 only: reach 1: 1
+ok   the read prints five items, R5's condition, three causes, six split and six QF lines, REALISED and an OUTCOME of five items, end to end: "true true 3 6 6 true 5"
+ok   the read says item 4 was not read when item 1 is not HELD: true
+ok   the read prints R5 YES on a partial grid term: true
+ok   the read says item 2 was not read when item 1 is not HELD: true
+ok   the gate passes the two jobs as registered: 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses a case line at other points than its solve: true
+ok   the gate refuses BN without its nodes in the meta: true
+ok   the gate refuses BO with nodes in the meta: true
+ok   the gate refuses BN on six shares: true
+ok   the gate refuses another reference: true
+ok   the gate refuses e3pcls off: true
+ok   the gate refuses another floor: true
+ok   the gate refuses armTook failed: true
+ok   the gate refuses ownTook short: true
+ok   the gate refuses ownTook over no path: true
+ok   the gate refuses qfTook short: true
+ok   the gate refuses layerTook short: true
+ok   the gate refuses qfTook over no visit: true
+ok   the gate refuses a missing de-risk line in world 1: true
+ok   the gate refuses a de-risk line over no path-year: true
+ok   the gate refuses a missing QF line in world 2: true
+ok   the gate refuses a QF line on other paths than registered: true
+ok   the gate refuses a ledger line short of GD: true
+ok   the gate refuses the identity short: true
+ok   the gate refuses the identity over fewer paths than three worlds': true
+ok   the gate refuses no bridge years: true
+ok   the gate refuses an empty bridge line: true
+ok   the gate refuses no solve line: true
+ok   the gate refuses a missing table in world 1: true
+ok   the gate refuses a missing ledger line in world 2: true
+ok   the gate refuses a ledger line short of one bridge year: true
+ok   the gate refuses a ledger line short of GL: true
+ok   the gate refuses a missing tier-layer line in world 1: true
+ok   the gate refuses a missing run in world 2: true
+ok   the gate refuses runs on other paths than registered: true
+ok   the gate refuses fewer paying the bridge than surviving: true
+ok   the gate passes files whose bits and paths are the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a file short of one path array: true
+ok   the gate refuses a file without one bridge year's paths: true
+ok   the gate refuses a file short of QF's paths: true
+ok   the gate refuses a file without ND: true
+ok   the gate refuses a file without its bridge path records: true
+ok   the gate refuses bridge path records whose states are short: true
+ok   the gate refuses bridge path records of a broken row: true
+ok   the gate refuses bridge path records without their G column: true
+ok   the gate refuses bridge path records whose B column is short: true
+ok   the gate refuses bridge path records without their QF column: true
+planted (144): all read as they should
+GATE: passed - the two jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002); each job's reference, nodes and grid in its solve's meta; every self-check passed in full (armTook, ownTook, identity on every path of three worlds, qfTook); three worlds' ledger, de-risk, QF and tier-layer lines; the bridge path records; every file the log's; NODE-1's files behind NODE-1's gate
+ARM'S REACH (O153): BN's own-opening tables differ from BO's in 3 of 3 worlds
+
+NODE-AX: S360's grid residual under the dense share nodes (BN) and six shares (BO), split by year and axis (predictions/diag-nodeax.md)
+
+THE ITEMS (each read by its registered rule)
+0. both arms reproduce NODE-1's tables and runs: HELD
+     tables SAME; runs SAME
+1. BN's bridge-years grid residual is at least a point under in worlds 0 and 1 (the bridge grid): HELD
+     world 0: GB -1.7654 (-1.9587 to -1.5721); world 1: GB -2.0679 (-2.2185 to -1.9173)
+2. years 4 to 6 carry at least half of it, worlds 0 and 1 (the late years): INCONCLUSIVE
+     world 0: years 4 to 6 0.2966 (0.2522 to 0.3409); world 1: years 4 to 6 0.3388 (0.3088 to 0.3687)
+3. BO's bridge residual exceeds BN's by at least 1.5 points in world 0 (the known positive): HELD
+     BO less BN -2.3841 (-2.5479 to -2.2203)
+4. the de-risked layers carry at least a quarter of BN's bridge residual past their year-matched share, worlds 0 and 1: INCONCLUSIVE
+     world 0: the year-matched excess 0.6832 (0.6369 to 0.7296) over GB, the year-matched share 0.2697; world 1: the year-matched excess 0.1927 (0.1601 to 0.2253) over GB, the year-matched share 0.3364
+R0 STATE-MATCHED CONDITION (de-risked less plan-layer G within year and B decile, points a path-year, top under 0 in worlds 0 and 1): NO
+     world 0: -0.1061 (-0.2113 to -0.0009) over 39 cells; world 1: -0.0253 (-0.0864 to 0.0357) over 44 cells
+R5 CONDITION (item 1 INCONCLUSIVE with GB's top at most -0.5 in worlds 0 and 1): NO
+
+THE CAUSES (the registered map)
+=> N2-GRID held
+=> N2-LATE open
+=> N2-LAYER open
+
+REPORTED (points; OWN less runs = T + GB + GA, the means)
+  BN world 0: QF 0.0410 (-0.0344 to 0.1165) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0000 (0.0000 to 0.0000)
+  BN world 1: QF 0.0657 (-0.0127 to 0.1441) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0000 (0.0000 to 0.0000)
+  BN world 2: QF -0.0973 (-0.1822 to -0.0124) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0000 (0.0000 to 0.0000)
+  BO world 0: QF 0.0328 (-0.0381 to 0.1038) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0000 (0.0000 to 0.0001)
+  BO world 1: QF -0.0001 (-0.0722 to 0.0721) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0001 (0.0001 to 0.0001)
+  BO world 2: QF -0.0548 (-0.1325 to 0.0228) (the bridge years' quadrature term, first 1000 paths); year 7 apart: 0.0001 (0.0001 to 0.0001)
+  BN world 0: OWN less runs -2.1707 = T -0.4053 (-1.9128 to 1.1023) + GB -1.7654 (-1.9587 to -1.5721) + GA -0.0000 (-0.0000 to -0.0000) (closes to 0.0000); by bridge year 1 0.0057, 2 0.1001, 3 -1.3477, 4 0.0009, 5 -0.5679, 6 0.0434, 7 0.0000
+  BN world 1: OWN less runs -1.8647 = T 0.2032 (-1.5299 to 1.9363) + GB -2.0679 (-2.2185 to -1.9173) + GA -0.0000 (-0.0001 to -0.0000) (closes to 0.0000); by bridge year 1 -0.0808, 2 -0.7948, 3 -0.4917, 4 -0.5528, 5 -0.1858, 6 0.0380, 7 0.0000
+  BN world 2: OWN less runs -0.8732 = T -0.1115 (-1.7607 to 1.5378) + GB -0.7616 (-0.8650 to -0.6583) + GA -0.0001 (-0.0001 to -0.0001) (closes to 0.0000); by bridge year 1 -0.7929, 2 0.0114, 3 -0.0033, 4 -0.1682, 5 0.0537, 6 0.1377, 7 0.0000
+  BO world 0: OWN less runs -4.9991 = T -0.8496 (-2.2975 to 0.5984) + GB -4.1495 (-4.4340 to -3.8650) + GA -0.0000 (-0.0000 to -0.0000) (closes to -0.0000); by bridge year 1 0.6882, 2 -1.2205, 3 -1.4866, 4 -1.2882, 5 -0.9312, 6 0.0888, 7 0.0000
+  BO world 1: OWN less runs -4.9116 = T 0.4035 (-1.3271 to 2.1342) + GB -5.3151 (-5.5035 to -5.1267) + GA -0.0000 (-0.0001 to -0.0000) (closes to 0.0000); by bridge year 1 -0.7371, 2 -1.6859, 3 -1.4214, 4 -0.9888, 5 -0.6663, 6 0.1843, 7 0.0001
+  BO world 2: OWN less runs -3.5434 = T -0.4598 (-2.1352 to 1.2155) + GB -3.0835 (-3.2127 to -2.9544) + GA -0.0001 (-0.0001 to -0.0001) (closes to 0.0000); by bridge year 1 -0.7572, 2 -1.0236, 3 -0.7965, 4 -0.4732, 5 -0.3178, 6 0.2847, 7 0.0001
+REALISED item 1: -1.7654
+OUTCOME: 0 HELD, 1 HELD, 2 INCONCLUSIVE, 3 HELD, 4 INCONCLUSIVE
+  layers BN world 0: 0 path-years 18734 G -0.0830; 1 path-years 704 G -0.1425; 2 path-years 5896 G -1.5398
+  layers BN world 1: 0 path-years 16541 G -0.9737; 1 path-years 800 G -0.2068; 2 path-years 9187 G -0.8874
+  layers BN world 2: 0 path-years 13673 G -1.1200; 1 path-years 964 G 0.0447; 2 path-years 12687 G 0.3137
+  layers BO world 0: 0 path-years 19110 G -1.4926; 1 path-years 570 G -0.3136; 2 path-years 5770 G -2.3434
+  layers BO world 1: 0 path-years 16859 G -3.6983; 1 path-years 665 G -0.2918; 2 path-years 9082 G -1.3250
+  layers BO world 2: 0 path-years 13835 G -2.8956; 1 path-years 752 G -0.0972; 2 path-years 12776 G -0.0907
+  cliff BN world 0 year 1: acc5 20802 acc95 32249 width 11447; median W 177358 share 0.8690; share cell 4434 wealth cell 3139 in accessible money
+  cliff BN world 0 year 2: acc5 18369 acc95 27333 width 8964; median W 176372 share 0.8894; share cell 4409 wealth cell 2650 in accessible money
+  cliff BN world 0 year 3: acc5 15769 acc95 22390 width 6621; median W 176798 share 0.9101; share cell 4420 wealth cell 2154 in accessible money
+  cliff BN world 0 year 4: acc5 12986 acc95 17552 width 4566; median W 176044 share 0.9314; share cell 4401 wealth cell 1643 in accessible money
+  cliff BN world 0 year 5: acc5 10141 acc95 12901 width 2760; median W 178433 share 0.9524; share cell 4461 wealth cell 1140 in accessible money
+  cliff BN world 0 year 6: acc5 7150 acc95 8274 width 1124; median W 194557 share 0.9705; share cell 4864 wealth cell 807 in accessible money
+  cliff BN world 0 year 7: acc5 3999 acc95 3999 width 0; median W 230555 share 0.9815; share cell 5764 wealth cell 578 in accessible money
+  cliff BN world 1 year 1: acc5 19297 acc95 29698 width 10400; median W 183821 share 0.8701; share cell 4596 wealth cell 3113 in accessible money
+  cliff BN world 1 year 2: acc5 17211 acc95 25486 width 8275; median W 190469 share 0.8907; share cell 4762 wealth cell 2619 in accessible money
+  cliff BN world 1 year 3: acc5 14973 acc95 21173 width 6199; median W 199095 share 0.9104; share cell 4977 wealth cell 2450 in accessible money
+  cliff BN world 1 year 4: acc5 12487 acc95 16831 width 4343; median W 206727 share 0.9303; share cell 5168 wealth cell 1906 in accessible money
+  cliff BN world 1 year 5: acc5 9883 acc95 12539 width 2656; median W 216760 share 0.9488; share cell 5419 wealth cell 1399 in accessible money
+  cliff BN world 1 year 6: acc5 7059 acc95 8159 width 1100; median W 230555 share 0.9650; share cell 5764 wealth cell 1094 in accessible money
+  cliff BN world 1 year 7: acc5 3999 acc95 3999 width 0; median W 255303 share 0.9784; share cell 6383 wealth cell 770 in accessible money
+  cliff BN world 2 year 1: acc5 17926 acc95 27412 width 9486; median W 190522 share 0.8712; share cell 4763 wealth cell 3087 in accessible money
+  cliff BN world 2 year 2: acc5 16172 acc95 23814 width 7642; median W 205073 share 0.8919; share cell 5127 wealth cell 2957 in accessible money
+  cliff BN world 2 year 3: acc5 14229 acc95 20062 width 5833; median W 220533 share 0.9108; share cell 5513 wealth cell 2440 in accessible money
+  cliff BN world 2 year 4: acc5 12018 acc95 16151 width 4133; median W 233527 share 0.9293; share cell 5838 wealth cell 2207 in accessible money
+  cliff BN world 2 year 5: acc5 9630 acc95 12194 width 2565; median W 248242 share 0.9462; share cell 6206 wealth cell 1681 in accessible money
+  cliff BN world 2 year 6: acc5 6970 acc95 8041 width 1071; median W 262313 share 0.9616; share cell 6558 wealth cell 1367 in accessible money
+  cliff BN world 2 year 7: acc5 3999 acc95 3999 width 0; median W 287267 share 0.9752; share cell 7182 wealth cell 882 in accessible money
+  cliff BO world 0 year 1: acc5 20802 acc95 32249 width 11447; median W 177358 share 0.8690; share cell 35472 wealth cell 3139 in accessible money
+  cliff BO world 0 year 2: acc5 18369 acc95 27333 width 8964; median W 176225 share 0.8893; share cell 35245 wealth cell 2652 in accessible money
+  cliff BO world 0 year 3: acc5 15769 acc95 22390 width 6621; median W 176589 share 0.9101; share cell 35318 wealth cell 2155 in accessible money
+  cliff BO world 0 year 4: acc5 12986 acc95 17552 width 4566; median W 175968 share 0.9315; share cell 35194 wealth cell 1642 in accessible money
+  cliff BO world 0 year 5: acc5 10141 acc95 12901 width 2760; median W 176916 share 0.9526; share cell 35383 wealth cell 1137 in accessible money
+  cliff BO world 0 year 6: acc5 7150 acc95 8274 width 1124; median W 192259 share 0.9709; share cell 38452 wealth cell 696 in accessible money
+  cliff BO world 0 year 7: acc5 3999 acc95 3999 width 0; median W 233534 share 0.9816; share cell 46707 wealth cell 575 in accessible money
+  cliff BO world 1 year 1: acc5 19297 acc95 29698 width 10400; median W 183821 share 0.8701; share cell 36764 wealth cell 3113 in accessible money
+  cliff BO world 1 year 2: acc5 17211 acc95 25486 width 8275; median W 190357 share 0.8907; share cell 38071 wealth cell 2619 in accessible money
+  cliff BO world 1 year 3: acc5 14973 acc95 21173 width 6199; median W 199028 share 0.9104; share cell 39806 wealth cell 2450 in accessible money
+  cliff BO world 1 year 4: acc5 12487 acc95 16831 width 4343; median W 206559 share 0.9303; share cell 41312 wealth cell 1905 in accessible money
+  cliff BO world 1 year 5: acc5 9883 acc95 12539 width 2656; median W 216401 share 0.9489; share cell 43280 wealth cell 1399 in accessible money
+  cliff BO world 1 year 6: acc5 7059 acc95 8159 width 1100; median W 229479 share 0.9653; share cell 45896 wealth cell 1083 in accessible money
+  cliff BO world 1 year 7: acc5 3999 acc95 3999 width 0; median W 257889 share 0.9785; share cell 51578 wealth cell 765 in accessible money
+  cliff BO world 2 year 1: acc5 17926 acc95 27412 width 9486; median W 190522 share 0.8712; share cell 38104 wealth cell 3087 in accessible money
+  cliff BO world 2 year 2: acc5 16172 acc95 23814 width 7642; median W 205050 share 0.8919; share cell 41010 wealth cell 2957 in accessible money
+  cliff BO world 2 year 3: acc5 14229 acc95 20062 width 5833; median W 220796 share 0.9108; share cell 44159 wealth cell 2786 in accessible money
+  cliff BO world 2 year 4: acc5 12018 acc95 16151 width 4133; median W 233843 share 0.9293; share cell 46769 wealth cell 2207 in accessible money
+  cliff BO world 2 year 5: acc5 9630 acc95 12194 width 2565; median W 248668 share 0.9461; share cell 49734 wealth cell 1682 in accessible money
+  cliff BO world 2 year 6: acc5 6970 acc95 8041 width 1071; median W 263336 share 0.9615; share cell 52667 wealth cell 1371 in accessible money
+  cliff BO world 2 year 7: acc5 3999 acc95 3999 width 0; median W 289469 share 0.9749; share cell 57894 wealth cell 1020 in accessible money

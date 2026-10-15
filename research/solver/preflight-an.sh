@@ -19,12 +19,17 @@ cat "$OUT/bn/exit.txt" "$OUT/an/exit.txt"
 echo "A. $(node research/solver/compare-preflight.mjs research/solver/results/nodeax-preflight "$OUT/bn" S360-BN-P60S15Q5.json.gz case0.txt | tail -1)"
 grep -hE "adaptive |checks " "$OUT/an/case0.txt" | cut -c1-220
 echo "B. $(node research/solver/reduce-an.mjs "$OUT/an" 40 15 --preflight | tail -2 | tr '\n' ' ')"
+# each plant must refuse on its own check, not on an earlier one (the first preflight, 15 Oct: every job stopped at armTook,
+# the meta not naming the reference, and an exit-code check counted seven plants refused)
 bad=0
+[ "$(cat "$OUT/an/exit.txt")" = "an exit 0" ] || { echo "AN ITSELF DID NOT FINISH - the preflight fails"; bad=1; }
+want() { case $1 in arm) echo "the job's settings did not take";; drift|choice) echo "does not match its own rule run forward";; layer) echo "the ledger does not close on every path";;
+  own) echo "the ledger does not close on every path (ownTook";; quad) echo "the fine rule's machinery does not reproduce";; held) echo "is filed under a layer other than the tiers held";; esac; }
 for p in arm drift choice layer own quad held; do
-  e=$(cat "$OUT/plant-$p/exit.txt"); echo "C. $e: $(grep -h 'audit-an:' "$OUT/plant-$p/case0.txt" | head -1 | cut -c1-170)"
-  [ "$e" = "plant $p exit 3" ] || { echo "PLANT $p NOT REFUSED - the preflight fails"; bad=1; }
+  e=$(cat "$OUT/plant-$p/exit.txt"); m=$(grep -h 'audit-an:' "$OUT/plant-$p/case0.txt" | head -1); echo "C. $e: $(echo "$m" | cut -c1-170)"
+  if [ "$e" != "plant $p exit 3" ] || ! echo "$m" | grep -qF "$(want $p)"; then echo "PLANT $p NOT REFUSED ON ITS OWN CHECK - the preflight fails"; bad=1; fi
 done
 echo "C. $(cat "$OUT/plant-step/exit.txt") (printed only): $(grep -h 'refTook\|step AN' "$OUT/plant-step/case0.txt" | head -2 | cut -c1-160 | tr '\n' ' ')"
-[ $bad -eq 0 ] && echo "the seven plants refused (exit 3)"
+[ $bad -eq 0 ] && echo "the seven plants refused, each on its own check (exit 3)"
 echo "preflight done $(TZ=Europe/London date +%H:%M) UK"
 exit $bad

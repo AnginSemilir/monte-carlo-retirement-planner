@@ -1,0 +1,82 @@
+ok   p exactly the realised share in every bin, 400 paths a bin: the intervals reach past 0.03 at the middle bins, so 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   p exactly the realised share, 25 times the paths: 1 HELD: "HELD"
+ok   p 0.1 over the realised share in world 0's middle bin, many paths: 1 FALSIFIED: "FALSIFIED"
+ok   p 0.1 under in world 1's second bin only: 1 FALSIFIED (either world): "FALSIFIED"
+ok   p 0.05 over in world 0's top bin (still in it): 1 FALSIFIED: "FALSIFIED"
+ok   p 0.2 over the realised share in a middle bin, 400 paths: 1 FALSIFIED: "FALSIFIED"
+ok   p 0.04 over, 400 paths: its interval spans 0.03: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 1 with records in its end bins only: its middle bins are not read (n 0): 3
+ok   the same, 25 times the paths: the empty bins are left out, so 1 HELD: "HELD"
+ok   the bins hold 400 records of 400 paths each: "400 400"
+ok   the interval's half-width is Z_B times the clustered standard error: true
+ok   today's reads 0.06 under, 10,000 paths: 2 HELD: "HELD"
+ok   today's reads on the realised share, 10,000 paths: 2 FALSIFIED: "FALSIFIED"
+ok   under 0.06 in world 0 and 0.02 in world 1: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   under 0.033 in world 0 (its bottom under 0.03): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   under 0.045 on 400 paths: its bottom under 0.03: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   c in [0.9, 1] at 0.9 of the supported nodes: 3 HELD: "HELD"
+ok   at 0.5: 3 FALSIFIED: "FALSIFIED"
+ok   at 0.7: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   exactly 0.8: 3 HELD: "HELD"
+ok   exactly 0.6: 3 FALSIFIED: "FALSIFIED"
+ok   HELD in world 0, FALSIFIED in world 1: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a node with p under 0.5 is not supported (one supported node, c 0.83): "1 0"
+ok   c past 1 is not in [0.9, 1]: "1"
+ok   GO on 1, 2 and 3 HELD: true
+ok   no GO when 3 is not HELD: false
+ok   two clusters of two: the mean 0.5, two clusters: "0.5 2"
+ok   the read prints three items, GO, world 2 and an OUTCOME of three, end to end: "true true true 3"
+ok   the gate passes the job as registered: 0
+ok   the gate refuses a job run twice: true
+ok   the gate refuses no done line: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another scale: true
+ok   the gate refuses another simulation count: true
+ok   the gate refuses gridTook failed: true
+ok   the gate refuses recTook short: true
+ok   the gate refuses dpTook short: true
+ok   the gate refuses dpTook over no bin: true
+ok   the gate refuses a missing calibration line: true
+ok   the gate refuses a missing flatness line: true
+ok   the gate refuses no NODE-AX line: true
+ok   the gate refuses another NODE-AX file than the one on disk: true
+ok   the gate passes a file that is the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file that read another NODE-AX file: true
+ok   the gate refuses a file short of one record array: true
+ok   the gate refuses a file whose records are not recTook's: true
+ok   the gate refuses a file whose world 1 band nodes are not the log's: true
+planted (49): all read as they should
+GATE: passed - the job once and done at the registered settings (scale 1, 1000 simulations, seed 7002); gridTook with the menu, recTook and dpTook in full; three worlds' calibration and flatness lines; its file the log's; the NODE-AX file it read the one on disk, behind NODE-AX's gate
+
+AREF STEP 0: the adaptive floor chance at NODE-AX's BN records and S / p over its tables (predictions/diag-aref0.md)
+
+THE ITEMS (each read by its registered rule)
+1. the adaptive chance is calibrated within 0.03 in every band bin of worlds 0 and 1: INCONCLUSIVE
+     world 0: bin 0 n 3387 paths 2258 realised less p 0.0093 (-0.0123 to 0.0309); bin 1 n 2739 paths 1865 realised less p 0.0225 (-0.0107 to 0.0557); bin 2 n 1839 paths 1239 realised less p -0.0007 (-0.0451 to 0.0437); bin 3 n 1312 paths 855 realised less p -0.0112 (-0.0609 to 0.0385); bin 4 n 1119 paths 772 realised less p 0.0086 (-0.0263 to 0.0435)
+     world 1: bin 0 n 2352 paths 1594 realised less p -0.0081 (-0.0314 to 0.0153); bin 1 n 2513 paths 1744 realised less p 0.0006 (-0.0329 to 0.0341); bin 2 n 2389 paths 1696 realised less p 0.0017 (-0.0359 to 0.0393); bin 3 n 1970 paths 1388 realised less p -0.0194 (-0.0584 to 0.0196); bin 4 n 1973 paths 1281 realised less p -0.0053 (-0.0337 to 0.0230)
+2. today's reads under-read the realised bridge by at least 0.03 in the band, worlds 0 and 1 (the known positive): INCONCLUSIVE
+     world 0: n 10762 realised less read 0.0378 (0.0161 to 0.0594); world 1: n 11492 realised less read 0.0234 (0.0028 to 0.0440)
+3. S / p is in [0.9, 1] at 0.8 or more of the supported band nodes, worlds 0 and 1: FALSIFIED
+     world 0: 9615 of 38325 (0.2509); world 1: 10530 of 36123 (0.2915)
+
+GO (items 1, 2 and 3 HELD): NO
+
+REPORTED, world 2: calibration bin 0 n 1170 -0.0023 (-0.0351 to 0.0304); bin 1 n 1551 -0.0066 (-0.0487 to 0.0355); bin 2 n 1969 0.0056 (-0.0358 to 0.0469); bin 3 n 2352 -0.0103 (-0.0453 to 0.0247); bin 4 n 2501 -0.0046 (-0.0287 to 0.0195); today's under-read 0.0103 (-0.0125 to 0.0332); flat 9582 of 34491
+OUTCOME: 1 INCONCLUSIVE, 2 INCONCLUSIVE, 3 FALSIFIED
+  dpcheck BN/P60S15Q5 0 0: states 101 p 0.116551 simulated 0.114713 se 0.000995 ok
+  dpcheck BN/P60S15Q5 0 1: states 83 p 0.278256 simulated 0.275133 se 0.001537 ok
+  dpcheck BN/P60S15Q5 0 2: states 50 p 0.485231 simulated 0.473280 se 0.002217 ok
+  dpcheck BN/P60S15Q5 0 3: states 46 p 0.690682 simulated 0.683783 se 0.002149 ok
+  dpcheck BN/P60S15Q5 0 4: states 20 p 0.890715 simulated 0.888000 se 0.002217 ok
+  dpcheck BN/P60S15Q5 1 0: states 78 p 0.121772 simulated 0.119179 se 0.001149 ok
+  dpcheck BN/P60S15Q5 1 1: states 63 p 0.295825 simulated 0.291286 se 0.001794 ok
+  dpcheck BN/P60S15Q5 1 2: states 64 p 0.493119 simulated 0.491703 se 0.001964 ok
+  dpcheck BN/P60S15Q5 1 3: states 44 p 0.703999 simulated 0.701091 se 0.002162 ok
+  dpcheck BN/P60S15Q5 1 4: states 51 p 0.891487 simulated 0.891353 se 0.001363 ok
+  dpcheck BN/P60S15Q5 2 0: states 38 p 0.115561 simulated 0.113684 se 0.001611 ok
+  dpcheck BN/P60S15Q5 2 1: states 41 p 0.311627 simulated 0.312000 se 0.002263 ok
+  dpcheck BN/P60S15Q5 2 2: states 65 p 0.506677 simulated 0.502769 se 0.001949 ok
+  dpcheck BN/P60S15Q5 2 3: states 76 p 0.710460 simulated 0.699658 se 0.001626 ok
+  dpcheck BN/P60S15Q5 2 4: states 80 p 0.887129 simulated 0.885137 se 0.001115 ok

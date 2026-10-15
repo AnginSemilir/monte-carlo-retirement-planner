@@ -49,6 +49,11 @@ export const JUDGED = {
   spread: { 0.75: 0.3, 1: 0.5, 1.5: 0.2 },
   // the budget: AN's ledger and runs as BN's (the same paths, the same ledger code)
   ledgerCost: 1,
+  // the receipt's leading cause (REF) is taken at this credence, not its own 0.62: an item resting on a deep review's ranked
+  // cause starts from the record's rate (results-scorecard.txt: 0.32, 9 of 29) and moves on stated grounds - the leading
+  // causes settled since the hand record held 8 of 10, and the review read the saved files at the corners the read weighs
+  // (grade C) - so half way; the other causes scaled to fill the rest in their receipt's proportions
+  leadCause: 0.5,
 };
 
 const HERE = dirname(fileURLToPath(import.meta.url)), AX = join(HERE, 'results', 'diagnodeax');
@@ -102,7 +107,9 @@ for (const ch of [0.5, 1, 2]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = 
 const logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 15 Oct 10:13 UK \|/.test(l));
 const cc = Object.fromEntries([...(/CAUSE CREDENCES: (.*)$/.exec(logT || '') || ['', ''])[1].matchAll(/N2-([A-Z]+)=([0-9.]+)/g)].map(m => [m[1], Number(m[2])]));
 const sum = Object.values(cc).reduce((a, b) => a + b, 0);
-if (Object.keys(cc).length !== 10 || Math.abs(sum - 1) > 0.02 || Object.keys(cc).some(c => !JUDGED.gb[c])) { console.log(`the receipt's CAUSE CREDENCES did not read (${JSON.stringify(cc)})`); process.exit(1); }
+if (Object.keys(cc).length !== 10 || Math.abs(sum - 1) > 0.02 || Object.keys(cc).some(c => !JUDGED.gb[c]) || cc.REF !== Math.max(...Object.values(cc))) { console.log(`the receipt's CAUSE CREDENCES did not read, or REF does not lead (${JSON.stringify(cc)})`); process.exit(1); }
+const rec = { ...cc };   // the receipt's, printed; cc below is shaded
+{ const rest = sum - cc.REF; for (const k of Object.keys(cc)) cc[k] = k === 'REF' ? JUDGED.leadCause * sum : cc[k] * (1 - JUDGED.leadCause) * sum / rest; }
 const pick = dist => { let u = rnd(), acc = 0; for (const [k, v] of Object.entries(dist)) { acc += v; if (u < acc) return Number(k); } return Number(Object.keys(dist).pop()); };
 const pickC = () => { let u = rnd() * sum, acc = 0; for (const [k, v] of Object.entries(cc)) { acc += v; if (u < acc) return k; } return Object.keys(cc).pop(); };
 const ND = 2000, I = { 1: cnt(), 2: cnt(), 3: cnt() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = [];
@@ -118,7 +125,7 @@ for (let d = 0; d < ND; d++) {
   else if (o1 === 'FALSIFIED') R[it['1'].side === 'under' ? 'R3' : 'R4']++;
   else R.else++;
 }
-console.log(`\n3. THE CREDENCES (the receipt of 15 Oct 10:13 UK: ${Object.entries(cc).map(([k, v]) => `N2-${k}=${v}`).join('; ')}; ${ND} draws through items())`);
+console.log(`\n3. THE CREDENCES (the receipt of 15 Oct 10:13 UK: ${Object.entries(rec).map(([k, v]) => `N2-${k}=${v}`).join('; ')}; REF taken at ${JUDGED.leadCause}, the rest scaled: ${Object.entries(cc).map(([k, v]) => `${k} ${f2(v)}`).join(', ')}; ${ND} draws through items())`);
 for (const i of ['1', '2', '3']) console.log(`  item ${i}: ${row(I[i])}`);
 console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
 console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);

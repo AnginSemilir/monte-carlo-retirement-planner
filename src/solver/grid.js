@@ -409,7 +409,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     // chance is read at, in place of this position's own ISA plus taxable pot
     // RTAX v2 (`readerTax`; items/RTAX.md): in a step year, inside the edge band, support is the flow's at this position
     const acc = g.readerAcc ? g.readerAcc(s) : s[1] + s[2], tx = g.reader.tax ? g.reader.tax[yr] : null;
-    if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one');
+    if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one'); if (RD.chance.at) RD.chance.at(s);   // the adaptive reference reads the position's share and gain fraction
     const pr = tx && tx.inBand(acc) ? (tx.payable(s) ? 1 : 0) : RD.chance(acc);
     let cc = 0, rr = 0;
     // NE-EDGE's RS arm (`readerSplit: 'rs'`, research only; false in every product path): each corner's residual scaled

@@ -36,7 +36,7 @@
  */
 import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi, shareNode, shareLocOf } from './grid.js';
 import { referenceChance, orderChance, buildReaderTable, simChance, r0Split } from './reader.js';
-import * as F from './fast.js';
+import * as F from './fast.js'; import { adaptiveReference } from './adaptive.js';
 
 /*
  * Five-point Gauss-Hermite quadrature against a standard normal: five representative years, weighted so
@@ -650,7 +650,7 @@ export function solve(E, M, plan, opts = {}) {
      * free one in its menu alone. `readerRef: 'held'` (research only) reads the bridge at the held tier instead - the
      * move's own tiers, the premise the deep review after 7w put in doubt - kept to size that premise, never the default.
      */
-    const refHeld = opts.holdTier && opts.readerRef === 'held';
+    const refHeld = opts.holdTier && opts.readerRef === 'held', adaptiveRef = opts.readerRef === 'adaptive' ? adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf, years, B, T, g }) : null;   // AN (adaptiveFor, the file's end)
     // the menu's draw orders over the accessible pots (buildActions' middle steps), for readerRef 'order'
     const orders = [...new Set(actions.map(a => a.steps.filter(x => x === 'isa' || x === 'cash' || x === 'other').map(x => (x === 'other' ? 'gia' : x)).join(',')))].map(x => x.split(','));
     const ai0 = opts.holdTier ? 0 : actions.findIndex(a => !(a.tierPen > 0) && !(a.tierIsa > 0));
@@ -668,7 +668,7 @@ export function solve(E, M, plan, opts = {}) {
         const gross = wi * (1 + act.real[1]) * Math.exp(vi * vi / 2) + wg * (1 + act.real[2]) * Math.exp(vg * vg / 2) + wc * (1 + act.real[3]) * Math.exp(vc * vc / 2);
         rho.push(Math.log(gross) - v * v / 2); vol.push(v);
       }
-      if (opts.readerRef === 'order') {
+      if (adaptiveRef) return adaptiveRef.chance(k, t, bills, ai0); if (opts.readerRef === 'order') {
         // the reference drawn pot by pot in the better of the menu's draw orders (reader.js orderChance; PLAN.md O36)
         const rate = [];
         for (let j = t; j < t + bills.length - 1; j++) rate.push({ isa: [act.real[1], act.volEffAt[j][1]], gia: [act.real[2], act.volEffAt[j][2]], cash: [act.real[3], act.volEffAt[j][3] || 0] });
@@ -1964,4 +1964,32 @@ export function solvePlan(E, M, plan, opts = {}) {
     tiers: riskConsent === false ? undefined : true
   };
   return solveMixture(E, M, p, o);
+}
+
+/*
+ * THE ADAPTIVE REFERENCE'S HOOK (`readerRef: 'adaptive'`, research only; src/solver/adaptive.js; PLAN.md AREF, its AN arm).
+ * Called once from solve()'s bridge reader; kept here at the file's end so no line a registered anchor cites moves. The
+ * reference is built on the first bridge-year split, for every world and bridge year, on its own compiled context (the
+ * flows never disturb the cell loop's scratch), and read at the position (grid.js readValues hands it over).
+ */
+function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf, years, B, T, g }) {
+  if (!JOINT || opts.readerTax || opts.readerChance || opts.holdTier) throw new Error("readerRef 'adaptive' needs jointWorlds and runs without readerTax, readerChance or holdTier");
+  let built = null;
+  const build = () => {
+    const z0 = shifts[centre], zLast = m.shiftZ;
+    if (z0 === undefined) delete m.shiftZ; else m.shiftZ = z0;
+    const cA = F.compile(m, actions);
+    if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
+    const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}) });
+    g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL };
+  };
+  return {
+    chance(k, t, bills, ai0) {
+      if (!built) build();
+      const f = built.at(k, t);
+      f.schedule = { bills, t, k, ai0, adaptive: true };
+      return f;
+    },
+  };
 }

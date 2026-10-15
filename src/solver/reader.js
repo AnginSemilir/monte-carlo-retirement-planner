@@ -93,7 +93,7 @@ export function buildReaderTable(g, S, chance, support = null, yr = -1) {
   for (let ic = 0; ic < NCL; ic++) for (let ig = 0; ig < NG; ig++) for (let it = 0; it < nt; it++) for (let ii = 0; ii < ni; ii++) for (let ip = 0; ip < np; ip++) {
     const i = g.index(ip, ii, it, ig, ic);
     toVec(g, ip, ii, it, ig, ic, v, yr);
-    p[i] = support ? support(v) : chance(v[1] + v[2]);   // `support` (RTAX v2, solve.js): the node's support decided by the flow inside the edge band
+    p[i] = support ? support(v) : chance(v[1] + v[2], v);   // the position too: the adaptive reference reads its share and gain fraction   // `support` (RTAX v2, solve.js): the node's support decided by the flow inside the edge band
     if (p[i] >= ((g.reader && g.reader.line) || 0.5)) { sup[i] = 1; c[i] = Math.min(1, Math.max(0, S[i] / p[i])); }   // the support line, 0.5 unless `readerSupportLine` (research only, NE-GRID C's copy-switch arm) sets it
   }
   const rowHas = new Uint8Array(np * nt * NG * NCL);

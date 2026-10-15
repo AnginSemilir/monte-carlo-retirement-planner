@@ -12,9 +12,10 @@
  * rule run forward from each (adaptive.js simulate: its nearest joint move, the flow, the world's returns at fresh draws,
  * the tuning seed scaled, 7002 x 1000 + world, so no registry seed is a state), within 0.02 plus three standard errors (Step 0's dpTook); the bins where p sits above are counted (O157).
  * Plants (AN_PLANT, each must make the job refuse, exit 3): arm (AN under the order-drawn reference: armTook fails), drift
- * and choice (the reference's DP grows every world at the centre's rates, or values each world at its own best move:
- * refTook fails), step (the last bridge year read off the lattice, Step 0's smear: printed, its refTook read), and NODE-AX's
- * layer, own, quad and held.
+ * (the reference's DP grows every world at the centre's rates: refTook fails), and NODE-AX's layer, own, quad and held.
+ * Printed, not required to refuse: choice (each world valued at its own best move; at the visited states its p matched its
+ * own rule's simulation in the second preflight, the joint and the own move paying alike there) and step (the last bridge
+ * year read off the lattice, Step 0's smear).
  *   node research/solver/audit-an.mjs [scale=1] [paths a world=4000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -231,8 +232,8 @@ JOBS.forEach((job, ji) => {
         console.log(`${''.padEnd(16)} refcheck ${L} ${k} ${bi}: states ${x.n} p ${f6(mp)} simulated ${f6(mm)} se ${f6(se)} ${ok ? 'ok' : 'OFF'}`);
       });
     }
-    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins; ${PER} states a world, ${NSIM} runs a state, secs ${Math.round((Date.now() - r0t) / 1000)})`);
-    if (PLANT === 'step') console.log(`${''.padEnd(16)} step ${L}: refTook ${rfOk}/${rfN} with the last year read off the lattice (printed, not required to refuse)`);
+    console.log(`${''.padEnd(16)} checks ${L}: refTook ${rfOk}/${rfN} (p above its simulation in ${above} of ${rfN} bins; ${PER} states a world, ${NSIM} runs a state, secs ${((Date.now() - r0t) / 1000).toFixed(1)})`);
+    if (PLANT === 'step' || PLANT === 'choice') console.log(`${''.padEnd(16)} ${PLANT} ${L}: refTook ${rfOk}/${rfN} with the plant (printed, not required to refuse)`);
     else if (!(rfN > 0) || rfOk !== rfN) { console.error(`audit-an: ${id} ${L}: the adaptive reference's p does not match its own rule run forward (refTook ${rfOk}/${rfN})`); process.exit(3); } }
   console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
   if (ownOk !== idN || idOk !== idN) { console.error(`audit-an: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }

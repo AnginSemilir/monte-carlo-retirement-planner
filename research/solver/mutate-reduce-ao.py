@@ -33,6 +33,11 @@ M = [
   ("if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(x => f.stamp[x] !== (j.stamp || {})[x])) bad.push(`${arm}: its file is stamped by other code`);", ""),
   ("if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(", "if (!x) bad.push("),
   ("if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.push(`A6: its file's", "if (!a) bad.push(`A6: its file's"),
+  # the stamps by audit
+  ("if (codes.size !== 1) bad.push(", "if (false) bad.push("),
+  ("if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.includes('S364')) bad.push(", "if (false) bad.push("),
+  ("if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.includes('S364')) bad.push(", "if (!kinds.includes('A6') || !kinds.includes('S364')) bad.push("),
+  ("if (!m) { bad.push(`${f}: no stamp`); continue; }", "if (!m) { continue; }"),
   # item 1
   ("const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x => x.lo >= OUT1, under = x => x.hi <= -OUT1;", "const inside = x => x.hi <= IN1, over = x => x.lo >= OUT1, under = x => x.hi <= -OUT1;"),
   ("const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x => x.lo >= OUT1, under = x => x.hi <= -OUT1;", "const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x => x.m >= OUT1, under = x => x.hi <= -OUT1;"),

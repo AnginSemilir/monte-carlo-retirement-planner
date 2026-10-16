@@ -161,6 +161,23 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
   return bad;
 }
 
+// THE STAMPS BY AUDIT (declared after the run, before any figure: predictions/diag-ao.md's Changes after seeing results):
+// fair-gate.mjs counts each audit script as a version of the code, and AO runs two by design (audit-ao.mjs for the S364
+// jobs, audit-an.mjs for A6), so the gate is called on each audit's logs; here, the logs fall into exactly two audits, one
+// holding only the S364 jobs and the other only A6, under one code
+export function stampGroups(logs) {
+  const bad = [], groups = {}, codes = new Set();
+  for (const [f, t] of Object.entries(logs)) {
+    const m = /^stamp: code (\S+) audit (\S+)/m.exec(t);
+    if (!m) { bad.push(`${f}: no stamp`); continue; }
+    codes.add(m[1]); (groups[m[2]] = groups[m[2]] || {})[f] = t;
+  }
+  if (codes.size !== 1) bad.push(`the logs carry ${codes.size} versions of the code`);
+  const kinds = Object.values(groups).map(g => { const ls = Object.values(g).flatMap(parse).map(j => j.label); return ls.length && ls.every(l => l === LABELS.A6) ? 'A6' : ls.length && ls.every(l => S364.some(a => LABELS[a] === l)) ? 'S364' : 'mixed'; });
+  if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.includes('S364')) bad.push(`the audits do not split the jobs as registered (${kinds.join(', ') || 'none'})`);
+  return { bad, groups: Object.values(groups) };
+}
+
 // a mean's interval at z, in points
 export function meanOf(a, z = Z) { const n = a.length, m = a.reduce((t, x) => t + x, 0) / n, v = n > 1 ? a.reduce((t, x) => t + (x - m) * (x - m), 0) / (n - 1) : 0; const se = Math.sqrt(v / n); return { m: q(m), lo: q(m - z * se), hi: q(m + z * se), se }; }
 // the paired change in survival of A against B on the same paths: lost (alive under B only), saved (under A only)
@@ -342,6 +359,15 @@ function planted() {
     cases.push(['the gate refuses a file stamped by other code', gate(fix, { files: { ...files, 'S364-CO-P60S6Q5.json.gz': { ...files['S364-CO-P60S6Q5.json.gz'], stamp: { code: 'c9' } } } }).length > 0, true]);
     cases.push(['the gate refuses a file whose bits are not the log\'s', gate(js, { files }).length > 0, true]);
     cases.push(['the gate refuses A6\'s file short of one world\'s GB', gate(fix, { files: { ...files, 'S360-A6-P60S6Q5.json.gz': { ...files['S360-A6-P60S6Q5.json.gz'], per: { ...per, GB1: b64(new Float64Array(5)) } } } }).length > 0, true]); }
+  // the stamps by audit
+  { const st = (code, audit) => `stamp: code ${code} audit ${audit} prediction p0 sha s0`;
+    const ao = a => aoLog(a).replace(/^stamp: .*$/m, st('c0', 'aa')), a6 = () => a6Log().replace(/^stamp: .*$/m, st('c0', 'bb'));
+    const two = { 'case0.txt': ao('AO'), 'case1.txt': ao('AOL'), 'case2.txt': ao('CO'), 'case3.txt': a6() };
+    cases.push(['the stamps by audit pass two audits split as registered under one code', `${stampGroups(two).bad.join('; ')} ${stampGroups(two).groups.length}`, ' 2']);
+    cases.push(['the stamps by audit refuse two versions of the code', stampGroups({ ...two, 'case3.txt': a6().replace('code c0', 'code c9') }).bad.length > 0, true]);
+    cases.push(['the stamps by audit refuse a third audit', stampGroups({ ...two, 'case2.txt': ao('CO').replace('audit aa', 'audit cc') }).bad.length > 0, true]);
+    cases.push(['the stamps by audit refuse A6 under the S364 jobs\' audit', stampGroups({ ...two, 'case3.txt': a6().replace('audit bb', 'audit aa') }).bad.length > 0, true]);
+    cases.push(['the stamps by audit refuse a log with no stamp', stampGroups({ ...two, 'case1.txt': ao('AOL').replace(/^stamp: .*$/m, '') }).bad.length > 0, true]); }
   const bad = cases.filter(([, got, want]) => got !== want);
   for (const [what, got, want] of cases) console.log(`${got === want ? 'ok  ' : 'BAD '} ${what}: ${JSON.stringify(got)}`);
   if (bad.length) { console.log(`PLANTED CHECK FAILED (${bad.length})`); process.exit(1); }
@@ -379,7 +405,7 @@ if (isMain) {
   const DIR = args[0] || join(HERE, 'results', 'diagao'), npwA = Number(args[1] || NPW), scaleA = Number(args[2] || 1);
   const logs = existsSync(DIR) ? Object.fromEntries(readdirSync(DIR).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => [f, readFileSync(join(DIR, f), 'utf8')])) : {};
   if (!Object.keys(logs).length) { console.log(`GATE FAILED: no logs in ${DIR}`); process.exit(1); }
-  if (!PRE) requireFairLogs(logs, PRED);
+  if (!PRE) { const sg = stampGroups(logs); if (sg.bad.length) { console.log(`FAIR-TEST GATE: FAILED (stamps by audit)\n  ${sg.bad.join('\n  ')}`); process.exit(1); } for (const g of sg.groups) requireFairLogs(g, PRED); }
   const jobs = Object.values(logs).flatMap(parse);
   const files = Object.fromEntries(readdirSync(DIR).filter(f => f.endsWith('.json.gz')).map(f => [f, JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString())]));
   const bad = gate(jobs, { npw: npwA, scale: scaleA, files });

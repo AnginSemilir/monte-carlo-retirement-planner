@@ -144,4 +144,4 @@ Items 1 and 2 rest on the deep review's ranked cause (AO-REF) and its share-inva
 
 ## Changes after seeing results
 
-None.
+- **reduce-ao.mjs corrected after the run, before any figure was read:** the fair-test gate (fair-gate.mjs requireFairLogs) counts each audit script as a version of the code, and AO runs two by design (audit-ao.mjs for the S364 jobs, audit-an.mjs for A6, as the Run line registers), so at the read the gate refused on "more than one version of the code across the logs" (code d2a982e80436 in all four logs) and printed no figure. The reducer now calls the gate on each audit's logs, and its new stampGroups requires exactly two audits, one holding only the S364 jobs and the other only A6, under one code (five planted cases; mutate-reduce-ao.py 45 of 45 caught). The preflight could not see it: the reducer's preflight mode skips the gate (O168). Nothing else in the reducer, the items or this file changed.

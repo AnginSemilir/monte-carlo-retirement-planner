@@ -153,3 +153,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-15 21:17 UTC | reduce-ao.mjs 73c89eb37119 | 40 of 40 caught | escaped: none
 2026-10-15 22:11 UTC | reduce-ao.mjs 1652ec0b8eda | 39 of 41 caught | escaped: NOT CAUGHT: 7: AOL: { readerRef: 'adaptive', readerSplit: 'null', floor: '2; NOT CAUGHT: 18: j.adaptive.nz !== LATTICE[arm][1] || 
 2026-10-15 22:11 UTC | reduce-ao.mjs 54828374ea57 | 41 of 41 caught | escaped: none
+2026-10-16 03:52 UTC | reduce-ao.mjs 81356f0a6e2c | 45 of 45 caught | escaped: none

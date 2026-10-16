@@ -24,19 +24,23 @@ caught: 23: if (!j.refTail) bad.push(`${arm}: no tail check summary`);
 caught: 24: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
 caught: 25: if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(
 caught: 26: if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.p
-caught: 27: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
-caught: 28: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
-caught: 29: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
-caught: 30: out['1'] = readItem([1, 2].map(k => ({ k, ...lnRead(...R('AO
-caught: 31: const [plo, phi] = clopperPearson(c, N, alpha), r = 100 * c 
-caught: 32: hi: plo > 0 ? q(Math.log(table / (100 * plo))) : Infinity
-caught: 33: IN1 = Math.log(2), OUT1 = Math.log(3),
-caught: 34: const inside = x => x.lo >= -IN2 && x.hi <= IN2, under = x =
-caught: 35: const g = [0, 1].map(k => ({ k, ...meanOf(P('A6', 'GB', k)) 
-caught: 36: Z = 2.241402727604947,
-caught: 37: if (b[i] && !a[i]) lost++; else if (a[i] && !b[i]) saved++;
-caught: 38: out['3'] = { outcome: oc.some(x => x.outcome === 'harm') ? '
-caught: 39: const pr = [0, 1].map(k => ({ k, ...paired(S('A6', k), S('BO
-caught: 40: const se = Math.sqrt(v / n);
-caught: 41: return { m: q(beta[0]), se:
-41 of 41 mutations caught
+caught: 27: if (codes.size !== 1) bad.push(
+caught: 28: if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.in
+caught: 29: if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.in
+caught: 30: if (!m) { bad.push(`${f}: no stamp`); continue; }
+caught: 31: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 32: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 33: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 34: out['1'] = readItem([1, 2].map(k => ({ k, ...lnRead(...R('AO
+caught: 35: const [plo, phi] = clopperPearson(c, N, alpha), r = 100 * c 
+caught: 36: hi: plo > 0 ? q(Math.log(table / (100 * plo))) : Infinity
+caught: 37: IN1 = Math.log(2), OUT1 = Math.log(3),
+caught: 38: const inside = x => x.lo >= -IN2 && x.hi <= IN2, under = x =
+caught: 39: const g = [0, 1].map(k => ({ k, ...meanOf(P('A6', 'GB', k)) 
+caught: 40: Z = 2.241402727604947,
+caught: 41: if (b[i] && !a[i]) lost++; else if (a[i] && !b[i]) saved++;
+caught: 42: out['3'] = { outcome: oc.some(x => x.outcome === 'harm') ? '
+caught: 43: const pr = [0, 1].map(k => ({ k, ...paired(S('A6', k), S('BO
+caught: 44: const se = Math.sqrt(v / n);
+caught: 45: return { m: q(beta[0]), se:
+45 of 45 mutations caught

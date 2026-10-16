@@ -1,0 +1,126 @@
+ok   the deletion term at its runs: 1 HELD: "HELD"
+ok   the deletion term at eleven times its runs: 1 FALSIFIED (over): "FALSIFIED"
+ok   the deletion term at a twentieth of its runs: 1 FALSIFIED (under): "FALSIFIED"
+ok   the deletion term at about twice its runs: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the deletion term at ln 0.55 over its runs, its 95% interval across ln 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a deletion term of zero: 1 FALSIFIED (under): "FALSIFIED"
+ok   item 1 names its side: "FALSIFIED over"
+ok   ARS world 0 at its runs (bits AO's): 2 HELD: "HELD"
+ok   ARS world 0 at eleven times its runs: 2 FALSIFIED (over): "FALSIFIED"
+ok   ARS world 0 at a twentieth of its runs: 2 FALSIFIED (under): "FALSIFIED"
+ok   ARS world 0 at twice its runs: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the runs: ARS's first bits AO's - AO's whole count: "2 5 true"
+ok   the runs: ARS's first bits not AO's - ARS's own count: "1 3 false"
+ok   a world whose first 4,000 differ by one path reads ARS's own 4,000: "4000 false"
+ok   ARS worlds 1 and 2 at their runs: 3 HELD: "HELD"
+ok   ARS world 1 at five times its runs: 3 FALSIFIED: "FALSIFIED"
+ok   ARS world 1 at about twice its runs: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   ARS world 0 far over (not item 3's): 3 HELD: "HELD"
+ok   A6RS equal to A6 on every path: 4 HELD: "HELD"
+ok   A6RS loses 400 paths in world 0: 4 FALSIFIED: "FALSIFIED"
+ok   A6RS loses 25 and saves 10 in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   A6RS loses 15 and saves 3 in world 1: 4 HELD: "HELD"
+ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4"
+ok   the gate passes the three jobs as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job of another test: true
+ok   the gate refuses a header naming another path count (the runs right): true
+ok   the gate refuses AOP with no done line: true
+ok   the gate refuses AOP at another path count: true
+ok   the gate refuses ARS without the RS split: true
+ok   the gate refuses AOP under the RS split: true
+ok   the gate refuses A6RS without the RS split: true
+ok   the gate refuses AOP under the order reference (the arm plant): true
+ok   the gate refuses a decomposition off in a world: true
+ok   the gate refuses a decomposition of four reads: true
+ok   the gate refuses decompTook short (the weights and rs plants): true
+ok   the gate refuses forceIdentity short (the force plant): true
+ok   the gate refuses AOP's tail check short of a p-decade: true
+ok   the gate refuses A6RS's refTook short: true
+ok   the gate passes AOP's tables equal to AO's: 0
+ok   the gate refuses AOP's tables a digit off AO's: true
+ok   the gate refuses AOP's P table alone a digit off AO's: true
+ok   the gate passes AOP's runs equal to AO's first 4,000: false
+ok   the gate refuses AOP's runs a path off AO's first 4,000: true
+ok   the stamps by audit pass two audits split as registered under one code: " 2"
+ok   the stamps by audit refuse two versions of the code: true
+ok   the stamps by audit refuse A6RS under the S364 jobs' audit: true
+ok   the stamps by audit refuse a third audit: true
+planted (48): all read as they should
+GATE: passed - AOP, ARS and A6RS once and done at the registered settings (4000 paths a world, scale 1, seed 7002); the fair-test gate on each audit's logs under one code; the adaptive reference and each job's split in its solve's meta; every self-check in full, the decomposition summing to the table in every world; AOP's tables AO's to the digit and its runs AO's first 4000 bit for bit; AO's files behind AO's gate (eac3b290764d8332, 334f25ede52dea67)
+
+AOR: the read at P decomposed (AOP), the RS split under the adaptive reference on S364 (ARS) and on S360 (A6RS against A6) (predictions/diag-aor.md)
+
+THE ITEMS (each read by its registered rule)
+1. the deletion term at P in world 0 against AO's runs, ln(deletion / runs) inside ln 2 (FALSIFIED at a whole interval past ln 3 either way): HELD
+     world 0: deletion 0.0661 runs 37/40000 (0.0925), ln -0.3354 (-0.6561 to 0.0153)
+2. ARS's read at P in world 0 against its runs, as item 1: HELD
+     world 0: table 0.0663 runs 37/40000 (0.0925) (AO's runs: the first 4,000 bit for bit), ln -0.3338 (-0.6545 to 0.0170)
+3. ARS's read at P in worlds 1 and 2 inside ln 2 (FALSIFIED at a whole interval past ln 3): HELD
+     world 1: table 0.4082 runs 164/40000 (0.4100) (AO's runs: the first 4,000 bit for bit), ln -0.0043 (-0.1777 to 0.1778); world 2: table 1.7282 runs 696/40000 (1.7400) (AO's runs: the first 4,000 bit for bit), ln -0.0068 (-0.0907 to 0.0792)
+4. no material harm to A6RS's runs against A6's on the same paths, worlds 0 and 1: HELD
+     world 0: lost 0 saved 0 of 4000, change 0.0000 (0.0000 to 0.0000) at margin 0.5: no material harm; world 1: lost 0 saved 0 of 4000, change 0.0000 (0.0000 to 0.0000) at margin 0.5: no material harm
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+REALISED item 1: -0.3354
+REALISED item 2: -0.3338
+REALISED item 3: -0.0043
+REALISED item 4: 0.0000
+
+REPORTED
+  AOP world 0: table 1.8395 = deletion 0.0661 + residual 1.7733 (R's part 0.9640); P runs 2/4000
+    reads: 0: q 0.011257 pr 0.000e+0 c 0.254793 R 0.853921 v 0.853921 | 1: q 0.222076 pr 3.395e-9 c 0.471034 R 1.798129 v 1.798129 | 2: q 0.533333 pr 1.739e-5 c 0.694142 R 2.558192 v 2.559399 | 3: q 0.222076 pr 1.500e-3 c 0.858232 R 0.000044 v 0.128748 | 4: q 0.011257 pr 3.478e-2 c 0.94299 R 0.000048 v 3.279392
+  AOP world 1: table 0.6617 = deletion 0.4082 + residual 0.2535 (R's part 0.3831); P runs 12/4000
+    reads: 0: q 0.011257 pr 1.385e-22 c 0.754159 R 0.833926 v 0.833926 | 1: q 0.222076 pr 1.493e-6 c 0.925869 R 0.924616 v 0.924755 | 2: q 0.533333 pr 3.683e-4 c 0.975279 R 0.072685 v 0.108609 | 3: q 0.222076 pr 1.122e-2 c 0.995883 R 0.000044 v 1.117691 | 4: q 0.011257 pr 1.252e-1 c 0.999167 R 0.000049 v 12.508822
+  AOP world 2: table 1.7768 = deletion 1.7280 + residual 0.0488 (R's part 0.0275); P runs 62/4000
+    reads: 0: q 0.011257 pr 6.670e-9 c 0.970281 R 0.200875 v 0.200875 | 1: q 0.222076 pr 6.473e-5 c 0.996917 R 0.162073 v 0.168526 | 2: q 0.533333 pr 3.801e-3 c 1 R 0.018909 v 0.398999 | 3: q 0.222076 pr 5.281e-2 c 0.999907 R 0.00213 v 5.28252 | 4: q 0.011257 pr 3.120e-1 c 0.999953 R 0.000049 v 31.200139
+  ARS world 0: table 0.0663 = deletion 0.0661 + residual 0.0001 (R's part 0.0015); P runs 2/4000, its first 4000 AO's bit for bit
+    reads: 0: q 0.011257 pr 0.000e+0 c 0.249267 R 0.000028 v 0.0001 | 1: q 0.222076 pr 3.395e-9 c 0.468485 R 0.000035 v 0.0001 | 2: q 0.533333 pr 1.739e-5 c 0.693791 R 0.000156 v 0.001362 | 3: q 0.222076 pr 1.500e-3 c 0.858031 R 0.000044 v 0.128718 | 4: q 0.011257 pr 3.478e-2 c 0.94299 R 0.000048 v 3.279392
+  ARS world 1: table 0.4082 = deletion 0.4082 + residual 0.0001 (R's part 0.0002); P runs 12/4000, its first 4000 AO's bit for bit
+    reads: 0: q 0.011257 pr 1.385e-22 c 0.750182 R 0.000029 v 0.0001 | 1: q 0.222076 pr 1.493e-6 c 0.924964 R 0.00004 v 0.000178 | 2: q 0.533333 pr 3.683e-4 c 0.973561 R 0.000091 v 0.035951 | 3: q 0.222076 pr 1.122e-2 c 0.995879 R 0.000044 v 1.117686 | 4: q 0.011257 pr 1.252e-1 c 0.999167 R 0.000049 v 12.508822
+  ARS world 2: table 1.7282 = deletion 1.7280 + residual 0.0002 (R's part 0.0001); P runs 62/4000, its first 4000 AO's bit for bit
+    reads: 0: q 0.011257 pr 6.670e-9 c 0.969169 R 0.000029 v 0.0001 | 1: q 0.222076 pr 6.473e-5 c 0.996801 R 0.000059 v 0.006511 | 2: q 0.533333 pr 3.801e-3 c 1 R 0.000279 v 0.380369 | 3: q 0.222076 pr 5.281e-2 c 0.999907 R 0.000156 v 5.280545 | 4: q 0.011257 pr 3.120e-1 c 0.999953 R 0.000049 v 31.200139
+  ARS against AOP world 0: P table 0.0663 against 1.8395; D 0.0088 against 1.8708
+  ARS against AOP world 1: P table 0.4082 against 0.6617; D 0.0894 against 0.2568
+  ARS against AOP world 2: P table 1.7282 against 1.7768; D 0.5372 against 0.6553
+  tail AOP: cells 12, off 0 simulated, 0 in the engine at the record's sheltered cash, 0 at the typical (off: an interval wholly beyond ln 1.5)
+    world 0 p-decade 0: records 1039 states 25 p 3.3827e-4 | simulated ln -0.2584 | engine ln -0.4300 (-0.9663 to 0.2002) | typical ln -0.4300 (-0.9663 to 0.2002)
+    world 0 p-decade 1: records 598 states 25 p 2.6490e-3 | simulated ln -0.0881 | engine ln -0.4319 (-0.6254 to -0.2282) | typical ln -0.4319 (-0.6254 to -0.2282)
+    world 0 p-decade 2: records 107 states 25 p 2.1194e-2 | simulated ln -0.0156 | engine ln -0.2554 (-0.3293 to -0.1800) | typical ln -0.2554 (-0.3293 to -0.1800)
+    world 0 p-decade 3: records 37 states 25 p 2.5288e-1 | simulated ln 0.0035 | engine ln -0.0236 (-0.0445 to -0.0024) | typical ln -0.0236 (-0.0445 to -0.0024)
+    world 1 p-decade 0: records 1592 states 25 p 4.3740e-4 | simulated ln -0.2334 | engine ln -0.0929 (-0.6505 to 0.5672) | typical ln -0.0929 (-0.6505 to 0.5672)
+    world 1 p-decade 1: records 1566 states 25 p 4.3447e-3 | simulated ln -0.0757 | engine ln -0.0997 (-0.2780 to 0.0874) | typical ln -0.0997 (-0.2780 to 0.0874)
+    world 1 p-decade 2: records 594 states 25 p 2.2861e-2 | simulated ln -0.0099 | engine ln -0.2434 (-0.3149 to -0.1705) | typical ln -0.2434 (-0.3149 to -0.1705)
+    world 1 p-decade 3: records 246 states 25 p 1.8769e-1 | simulated ln 0.0003 | engine ln -0.0298 (-0.0551 to -0.0042) | typical ln -0.0298 (-0.0551 to -0.0042)
+    world 2 p-decade 0: records 1668 states 25 p 4.8177e-4 | simulated ln -0.2347 | engine ln 1.1023 (0.1622 to 2.4025) | typical ln 1.1023 (0.1622 to 2.4025)
+    world 2 p-decade 1: records 2311 states 25 p 4.3750e-3 | simulated ln -0.0729 | engine ln 0.2175 (0.0092 to 0.4377) | typical ln 0.2175 (0.0092 to 0.4377)
+    world 2 p-decade 2: records 1551 states 25 p 1.9983e-2 | simulated ln -0.0006 | engine ln 0.1976 (0.1016 to 0.2961) | typical ln 0.1976 (0.1016 to 0.2961)
+    world 2 p-decade 3: records 1133 states 25 p 2.5430e-1 | simulated ln 0.0031 | engine ln 0.0200 (-0.0015 to 0.0417) | typical ln 0.0200 (-0.0015 to 0.0417)
+  A6RS world 0: OWN less runs -0.5345 = T -0.6339 + GB 0.0995 + GA -0.0000; A6's GB 0.0715 (0.0362 to 0.1068); A6RS less A6 in GB 0.0280 (0.0245 to 0.0315); survival A6RS 28.7000 A6 28.7000 BO 28.6250
+  A6RS world 0 by year (A6RS; A6): 1: -0.0041; -0.0332 | 2: -0.0183; -0.0259 | 3: 0.0520; 0.0583 | 4: 0.0395; 0.0418 | 5: 0.0233; 0.0234 | 6: 0.0070; 0.0070 | 7: 0.0000; 0.0000
+  A6RS world 0: T luck-adjusted -0.8339 (se 0.4734)
+  A6RS world 0 QF by year: 1: 0.0362 (0.0072) | 2: 0.0312 (0.0088) | 3: 0.0249 (0.0095) | 4: -0.0354 (0.0099) | 5: -0.0202 (0.0161) | 6: -0.0001 (0.0004) | 7: -0.0000 (0.0000)
+  A6RS against BO world 0: lost 26 saved 29 of 4000
+  A6RS world 1: OWN less runs 0.4942 = T 0.2136 + GB 0.2806 + GA -0.0000; A6's GB 0.2852 (0.2547 to 0.3158); A6RS less A6 in GB -0.0047 (-0.0053 to -0.0040); survival A6RS 49.1000 A6 49.1000 BO 48.6500
+  A6RS world 1 by year (A6RS; A6): 1: 0.0737; 0.0766 | 2: 0.0920; 0.0929 | 3: 0.0964; 0.0970 | 4: 0.0234; 0.0237 | 5: -0.0072; -0.0072 | 6: 0.0023; 0.0023 | 7: 0.0001; 0.0001
+  A6RS world 1: T luck-adjusted -0.0902 (se 0.4752)
+  A6RS world 1 QF by year: 1: -0.0271 (0.0070) | 2: -0.0626 (0.0105) | 3: -0.0671 (0.0112) | 4: -0.0056 (0.0068) | 5: 0.0237 (0.0126) | 6: -0.0005 (0.0004) | 7: -0.0000 (0.0000)
+  A6RS against BO world 1: lost 10 saved 28 of 4000
+  A6RS world 2: OWN less runs -0.3123 = T -0.4225 + GB 0.1103 + GA -0.0001; A6's GB 0.1162 (0.0877 to 0.1447); A6RS less A6 in GB -0.0059 (-0.0070 to -0.0048); survival A6RS 70.5250 A6 70.5250 BO 69.7750
+  A6RS world 2 by year (A6RS; A6): 1: 0.0281; 0.0329 | 2: 0.0477; 0.0488 | 3: 0.0039; 0.0039 | 4: 0.0074; 0.0074 | 5: 0.0197; 0.0197 | 6: 0.0034; 0.0034 | 7: 0.0001; 0.0001
+  A6RS world 2: T luck-adjusted -0.6968 (se 0.4716)
+  A6RS world 2 QF by year: 1: -0.0215 (0.0085) | 2: -0.0338 (0.0108) | 3: -0.0175 (0.0099) | 4: 0.0187 (0.0077) | 5: -0.0167 (0.0083) | 6: -0.0002 (0.0003) | 7: -0.0001 (0.0000)
+  A6RS refcheck world 0 bin 0: states 99 p 0.117737 simulated 0.115970 se 0.001008 ok
+  A6RS refcheck world 0 bin 1: states 77 p 0.295910 simulated 0.294935 se 0.001629 ok
+  A6RS refcheck world 0 bin 2: states 48 p 0.478289 simulated 0.475208 se 0.002265 ok
+  A6RS refcheck world 0 bin 3: states 44 p 0.701656 simulated 0.707341 se 0.002155 ok
+  A6RS refcheck world 0 bin 4: states 32 p 0.883869 simulated 0.887906 se 0.001749 ok
+  A6RS refcheck world 1 bin 0: states 62 p 0.110293 simulated 0.108032 se 0.001231 ok
+  A6RS refcheck world 1 bin 1: states 71 p 0.297160 simulated 0.296056 se 0.001701 ok
+  A6RS refcheck world 1 bin 2: states 65 p 0.496066 simulated 0.498646 se 0.001947 ok
+  A6RS refcheck world 1 bin 3: states 65 p 0.696258 simulated 0.695108 se 0.001787 ok
+  A6RS refcheck world 1 bin 4: states 37 p 0.889884 simulated 0.891270 se 0.001603 ok
+  A6RS refcheck world 2 bin 0: states 38 p 0.127580 simulated 0.127211 se 0.001693 ok
+  A6RS refcheck world 2 bin 1: states 48 p 0.298459 simulated 0.296396 se 0.002068 ok
+  A6RS refcheck world 2 bin 2: states 64 p 0.502393 simulated 0.501500 se 0.001961 ok
+  A6RS refcheck world 2 bin 3: states 74 p 0.698830 simulated 0.700851 se 0.001671 ok
+  A6RS refcheck world 2 bin 4: states 76 p 0.890596 simulated 0.892882 se 0.001110 ok

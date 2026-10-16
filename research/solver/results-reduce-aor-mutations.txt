@@ -1,0 +1,31 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 4: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 5: line: '0.5', mix: '3', shareNodes: 'none', readerRef: 'adapt
+caught: 6: AOP: { readerSplit: 'null', floor: '205000' }
+caught: 7: ARS: { readerSplit: 'rs', floor: '205000' }
+caught: 8: A6RS: { readerSplit: 'rs', floor: '5000' }
+caught: 9: ['armTook', 'adaptTook', 'pairTook', 'forceIdentity', 'decom
+caught: 10: ['armTook', 'adaptTook', 'pairTook', 'forceIdentity', 'decom
+caught: 11: ['armTook', 'adaptTook', 'refTook', 'ownTook', 'identity', '
+caught: 12: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
+caught: 13: if (!d || !d.ok || d.reads !== 5 || !r || r.filter(Boolean).
+caught: 14: if (!d || !d.ok || d.reads !== 5 || !r || r.filter(Boolean).
+caught: 15: for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (
+caught: 16: ['P', 'D', 'OWN'].some(x => ao.job.tables[w][x] !== j.tables
+caught: 17: !Buffer.from(a, 'base64').equals(Buffer.from(b, 'base64').su
+caught: 18: if (codes.size !== 1) bad.push(
+caught: 19: if (kinds.length !== 2 || !kinds.includes('A6RS') || !kinds.
+caught: 20: match = a.length <= b.length && a.equals(b.subarray(0, a.len
+caught: 21: const src = match ? b : a;
+caught: 22: const judge = c => (c.lo >= -IN && c.hi <= IN ? 'HELD' : c.l
+caught: 23: const judge = c => (c.lo >= -IN && c.hi <= IN ? 'HELD' : c.l
+caught: 24: const side = c => (c.lo >= OUT ? 'over' : c.hi <= -OUT ? 'un
+caught: 25: const c1 = { k: 0, ...one([D0, AO0.c, AO0.N], 0.05) };
+caught: 26: const r0 = RUN(0), c2 = { k: 0, match: r0.match, ...one([TAB
+caught: 27: out['3'] = readItem([1, 2].map(k =>
+caught: 28: const pr = [0, 1].map(k => ({ k, ...paired(S('A6RS', k), S('
+caught: 29: out['4'] = { outcome: oc.some(x => x.outcome === 'harm') ? '
+caught: 30: export const IN = Math.log(2), OUT = Math.log(3);
+30 of 30 mutations caught

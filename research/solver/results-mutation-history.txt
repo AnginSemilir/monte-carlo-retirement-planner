@@ -154,3 +154,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-15 22:11 UTC | reduce-ao.mjs 1652ec0b8eda | 39 of 41 caught | escaped: NOT CAUGHT: 7: AOL: { readerRef: 'adaptive', readerSplit: 'null', floor: '2; NOT CAUGHT: 18: j.adaptive.nz !== LATTICE[arm][1] || 
 2026-10-15 22:11 UTC | reduce-ao.mjs 54828374ea57 | 41 of 41 caught | escaped: none
 2026-10-16 03:52 UTC | reduce-ao.mjs 81356f0a6e2c | 45 of 45 caught | escaped: none
+2026-10-16 05:30 UTC | reduce-aor.mjs 7c984dae58a0 | 24 of 30 caught | escaped: NOT CAUGHT: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.; NOT CAUGHT: 4: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !; NOT CAUGHT: 16: ['P', 'D', 'OWN'].some(x => ao.job.tables[w][x] !== j.tables; NOT CAUGHT: 17: !Buffer.from(a, 'base64').equals(Buffer.from(b, 'base64').su; NOT CAUGHT: 25: const c1 = { k: 0, ...one([D0, AO0.c, AO0.N], 0.05) };; NOT CAUGHT: 30: export const IN = Math.log(2), OUT = Math.log(3);
+2026-10-16 05:31 UTC | reduce-aor.mjs eb452ea4fba1 | 30 of 30 caught | escaped: none

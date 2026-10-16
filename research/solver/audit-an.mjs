@@ -34,12 +34,12 @@ import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
 
 export const NODES_A = Object.freeze([0, 0.2, 0.4, 0.6, 0.7, 0.75, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1]);
-export const A6 = process.env.AN_JOB === 'A6', JOBS = A6 ? [['S360', 'A6', 60, 6, 5]] : [['S360', 'AN', 60, NODES_A.length, 5]];   // AN_JOB=A6: AO's AN-6 (predictions/diag-ao.md): NODE-AX's BO (six shares) with its reference swapped
-export const ARMS = Object.freeze({ AN: { readerRef: 'adaptive', shareNodes: NODES_A }, A6: { readerRef: 'adaptive' } }); if (process.env.AN_JOB && !A6) { console.error(`audit-an: unknown job ${process.env.AN_JOB}`); process.exit(2); }
+export const A6 = process.env.AN_JOB === 'A6' || process.env.AN_JOB === 'A6RS', JOBS = process.env.AN_JOB === 'A6RS' ? [['S360', 'A6RS', 60, 6, 5]] : A6 ? [['S360', 'A6', 60, 6, 5]] : [['S360', 'AN', 60, NODES_A.length, 5]];   // AN_JOB=A6: AO's AN-6 (predictions/diag-ao.md): NODE-AX's BO (six shares) with its reference swapped; A6RS: AOR's, A6 under the RS split (predictions/diag-aor.md)
+export const ARMS = Object.freeze({ AN: { readerRef: 'adaptive', shareNodes: NODES_A }, A6: { readerRef: 'adaptive' }, A6RS: { readerRef: 'adaptive', readerSplit: 'rs' } }); if (process.env.AN_JOB && !A6) { console.error(`audit-an: unknown job ${process.env.AN_JOB}`); process.exit(2); }
 // the reference's lattice (adaptive.js defaults); AN_LATTICE=na,nb,nz overrides it for a build check only, and the gate reads it
 export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
 const LAT = process.env.AN_LATTICE ? (([na, nb, nz]) => ({ na, nb, nz }))(process.env.AN_LATTICE.split(',').map(Number)) : LATTICE;
-export const GRIDA = Object.freeze({ AN: NODES_A.length, A6: 6 });
+export const GRIDA = Object.freeze({ AN: NODES_A.length, A6: 6, A6RS: 6 });
 export const FLOORS = Object.freeze({ S360: 5000 });
 export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
 if (process.argv[2] === '--units') { console.log(JOBS.length); process.exit(0); }
@@ -106,7 +106,7 @@ JOBS.forEach((job, ji) => {
   const extra = { ...(PLANT === 'arm' ? { readerRef: 'order', ...(arm === 'AN' ? { shareNodes: NODES_A } : {}) } : ARMS[arm]), adaptiveLattice: { ...LAT, ...(['drift', 'choice', 'step'].includes(PLANT) ? { plant: PLANT } : {}) }, ...(quad !== 5 ? { quadNodes: quad } : {}) };
   const cand = solveCandidate(E, M, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W, ...extra });
   const mt = cand.meta;
-  const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerBlend && !mt.readerSplit;
+  const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerBlend && (mt.readerSplit || null) === (arm === 'A6RS' ? 'rs' : null);
   const nodesOk = arm === 'AN' ? Array.isArray(mt.shareNodes) && mt.shareNodes.join(',') === NODES_A.join(',') : mt.shareNodes === undefined;
   const took = mt.readerRef === 'adaptive' && nodesOk && mt.points === `total ${PTS} x ${GRIDA[arm]} x 6` && cand.m.ctx.solvencyFloor === FLOORS[id] && mt.readerSupportLine === 0.5;
   const s0v = M.initialState(cand.m);

@@ -45,6 +45,7 @@ PREFLIGHT: it prints each arm's statistic beside its control's on every househol
 CARRY: a per-household record carries only to a test differing in the estate weight alone, within its paired band, except a part left out, a year-0 gap moved across the switch line, or a household with 15 or more saved or lost (each its own record); a whole score is re-scored on the record's traces with the policy held (O123); otherwise grade D, interval wide. Uncovered panel households carry from a record chosen by the same rule, never another panel's subset, else widened to the record's spread, grade D in the pre-mortem.
 PRIOR: an earlier measurement of the same mechanism sets the stories' starting size, scaled to the new case, before any shading toward a track record.
 STAMPS: a test run by more than one audit script registers the split, its reducer calls the fair-test gate on each audit's logs, and the preflight runs that split on its own logs (the reducer's preflight mode skips the gate).
+CORNERS: an arm is judged equal to its control at the preflight only where the preflight's corners are alive (p and S above the clamp) at the reads the mechanism uses.
 RATES: results-scorecard.txt is regenerated (scorecard.mjs) before a base rate or the lead rate is quoted, and a preflight's reported cells with intervals clear of zero are in the register before registration.
 
 ## Prediction

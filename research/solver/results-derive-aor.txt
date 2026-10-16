@@ -1,0 +1,76 @@
+AOR'S DERIVATION (predictions/diag-aor.md)
+
+1. THE RECORDS (AO's files behind AO's gate; NODE-AX's BO)
+  AO world 0: P table 1.8395 runs 37/40000 ln 2.9900
+  AO world 1: P table 0.6617 runs 164/40000 ln 0.4787
+  AO world 2: P table 1.7768 runs 696/40000 ln 0.0209
+  A6 world 0: survival 28.7000; against BO on the same paths lost 26 saved 29
+  A6 world 1: survival 49.1000; against BO on the same paths lost 10 saved 28
+
+2. THE POWER (40 draws a cell through reduce-aor.mjs's items(); the runs AO's, 40000 paths a world)
+  item 1, ln(deletion / runs) -1.2: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) -0.7: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) -0.4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) 0.4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) 0.7: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) 1.1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, ln(deletion / runs) 1.5: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, ln(deletion / runs) 2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, the deletion term at ln -0.5 and the kept share 0.05: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the deletion term at ln 0 and the kept share 0.05: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the deletion term at ln 0.5 and the kept share 0.05: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the deletion term at ln -0.5 and the kept share 0.15: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the deletion term at ln 0 and the kept share 0.15: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, the deletion term at ln 0.5 and the kept share 0.15: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, the deletion term at ln -0.5 and the kept share 0.3: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, the deletion term at ln 0 and the kept share 0.3: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, the deletion term at ln 0.5 and the kept share 0.3: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x0.2 item 4, the runs -0.6 points in both worlds: HELD 0.60 INCONCLUSIVE 0.00 FALSIFIED 0.40
+  churn x0.2 item 4, the runs -0.3 points in both worlds: HELD 0.97 INCONCLUSIVE 0.00 FALSIFIED 0.03
+  churn x0.2 item 4, the runs 0 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x0.2 item 4, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x0.5 item 4, the runs -0.6 points in both worlds: HELD 0.07 INCONCLUSIVE 0.10 FALSIFIED 0.82
+  churn x0.5 item 4, the runs -0.3 points in both worlds: HELD 0.38 INCONCLUSIVE 0.47 FALSIFIED 0.15
+  churn x0.5 item 4, the runs 0 points in both worlds: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  churn x0.5 item 4, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1 item 4, the runs -0.6 points in both worlds: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  churn x1 item 4, the runs -0.3 points in both worlds: HELD 0.07 INCONCLUSIVE 0.65 FALSIFIED 0.28
+  churn x1 item 4, the runs 0 points in both worlds: HELD 0.70 INCONCLUSIVE 0.28 FALSIFIED 0.03
+  churn x1 item 4, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 16 Oct 05:36 UK: O169-COPY=0.8; O169-CONT=0.1; O169-POST=0.04; O169-PTAIL=0.02; O169-QUAD=0.02; O169-OTHER=0.02; 2000 draws through items())
+  item 1: HELD 0.42 INCONCLUSIVE 0.44 FALSIFIED 0.15
+  item 2: HELD 0.05 INCONCLUSIVE 0.43 FALSIFIED 0.52
+  item 3: HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
+  item 4: HELD 0.87 INCONCLUSIVE 0.11 FALSIFIED 0.02
+  decision rows: R1 0.03, R2 0.38, R3 0.15, R4 0.02, else 0.43
+  the chance the action changes (one less the likeliest row): 0.57
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.43
+  item 1's point (ln(deletion / runs) in world 0): median 0.3000, 80% interval -0.7000 to 2.0000
+  item 2's point (ARS's ln(table / runs) in world 0): median 1.5061, 80% interval 0.3840 to 2.2731
+  item 3's point (ARS's ln(table / runs) in world 1): median 0.1897, 80% interval -0.1268 to 0.4103
+  item 4's point (A6RS's runs less A6's in world 0, points): median 0.0250, 80% interval -0.2750 to 0.3500
+  as stated, item 1: point 0.3000 HELD 0.42 INCONCLUSIVE 0.44 FALSIFIED 0.15
+  as stated, item 2: point 1.5061 HELD 0.05 INCONCLUSIVE 0.43 FALSIFIED 0.52
+  as stated, item 3: point 0.1897 HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
+  as stated, item 4: point 0.0250 HELD 0.87 INCONCLUSIVE 0.11 FALSIFIED 0.02
+
+3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.38, 12 of 32; O169-COPY at 0.38, the rest scaled: COPY 0.38, CONT 0.31, POST 0.12, PTAIL 0.06, QUAD 0.06, OTHER 0.06; 2000 draws through items())
+  item 1: HELD 0.22 INCONCLUSIVE 0.34 FALSIFIED 0.44
+  item 2: HELD 0.02 INCONCLUSIVE 0.29 FALSIFIED 0.69
+  item 3: HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
+  item 4: HELD 0.89 INCONCLUSIVE 0.09 FALSIFIED 0.02
+  decision rows: R1 0.01, R2 0.21, R3 0.43, R4 0.02, else 0.33
+  the chance the action changes (one less the likeliest row): 0.57
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.33
+  item 1's point (ln(deletion / runs) in world 0): median 1.4000, 80% interval -0.2000 to 2.3000
+  item 2's point (ARS's ln(table / runs) in world 0): median 1.8609, 80% interval 0.8181 to 2.4753
+  item 3's point (ARS's ln(table / runs) in world 1): median 0.1915, 80% interval -0.1266 to 0.4168
+  item 4's point (A6RS's runs less A6's in world 0, points): median 0.0250, 80% interval -0.2500 to 0.3500
+CREDENCE item 1: point 1.4000 HELD 0.22 INCONCLUSIVE 0.34 FALSIFIED 0.44
+CREDENCE item 2: point 1.8609 HELD 0.02 INCONCLUSIVE 0.29 FALSIFIED 0.69
+CREDENCE item 3: point 0.1915 HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
+CREDENCE item 4: point 0.0250 HELD 0.89 INCONCLUSIVE 0.09 FALSIFIED 0.02
+
+4. THE BUDGET: AO's solve 3002 s and build 298.70 s, its runs 7073 s for 132000 runs (0.0536 s a run), its tail check 121 s and forceIdentity 100 s (grade C); AOP: 24000 runs and the engine run twice - about 1.37 h; ARS about 1.30 h; A6RS as A6 (solve 3221 s, ledger 1245 s, build 265.80 s) about 1.31 h; on three cores the wall about 1.37 h

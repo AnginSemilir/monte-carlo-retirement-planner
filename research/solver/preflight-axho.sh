@@ -34,7 +34,7 @@ bad=0
 R=research/solver/reduce-axho.mjs
 cat "$OUT"/main/exit0 "$OUT"/main/exit1 "$OUT"/main/exit2 "$OUT"/main/exit3 "$OUT"/main/exit4 "$OUT/nudge/exit.txt" "$OUT/copy/exit.txt" "$OUT/p30/exit.txt"
 for k in 0 1 2 3 4; do grep -q " exit 0" "$OUT/main/exit$k" || { echo "JOB $k DID NOT FINISH - the preflight fails"; bad=1; }; done
-grep -hE "solve CAND|adaptive |checks |refTail|runs " "$OUT"/main/case*.txt | cut -c1-200
+grep -hE "solve CAND|adaptive |checks |refTail|runs " "$OUT"/main/case*.txt | cut -c1-200 | sed 's/^ */A: /' 
 echo "A. $(node $R "$OUT/main" 40 15 --preflight | tail -4 | tr '\n' ' ' | cut -c1-700)"
 node $R "$OUT/main" 40 15 --preflight > /dev/null || { echo "THE GATE REFUSED THE PREFLIGHT'S JOBS - the preflight fails"; bad=1; }
 want() { case $1 in arm|rs|p30-arm|p30-rs) echo "the job's settings did not take";; draws) echo "the engine leg's draws are not each state's own";; own|layer) echo "the ledger does not close on every path";; quad) echo "the fine rule's machinery does not reproduce";; held) echo "a bridge visit's G is filed under a layer other than the tiers held";; esac; }
@@ -55,7 +55,7 @@ grep -q " exit 0" "$OUT/copy/exit.txt" || { echo "J3 AT SEED 7002 DID NOT FINISH
 echo "D. $(node $R --copy "$AN3" "$OUT/copy/$F3")"; node $R --copy "$AN3" "$OUT/copy/$F3" > /dev/null || { echo "THE LEDGER IS NOT AN'S COPY - the preflight fails"; bad=1; }
 echo "D. against seed 7004's J3 (must differ): $(node $R --copy "$AN3" "$OUT/main/$F3")"; node $R --copy "$AN3" "$OUT/main/$F3" > /dev/null && { echo "THE COPY CHECK PASSED ANOTHER SEED - the preflight fails"; bad=1; }
 grep -q " exit 0" "$OUT/p30/exit.txt" || { echo "J1 AT 30 POINTS DID NOT FINISH - the preflight fails"; bad=1; }
-grep -hE "solve CAND|adaptive |reader |checks |runs |refTail" "$OUT/p30/case0.txt" | cut -c1-200
+grep -hE "solve CAND|adaptive |reader |openings |checks |runs |refTail" "$OUT/p30/case0.txt" | cut -c1-200 | sed 's/^ */E30: /' 
 echo "E. tables at 30 points: clean $(grep -h 'solve CAND' "$OUT/p30/case0.txt" | sed 's/.*table \([0-9.]*\).*/\1/'), rs plant $(grep -h 'solve CAND' "$OUT/p30-rs/case0.txt" | sed 's/.*table \([0-9.]*\).*/\1/'), arm plant $(grep -h 'solve CAND' "$OUT/p30-arm/case0.txt" | sed 's/.*table \([0-9.]*\).*/\1/')"
 [ $bad -eq 0 ] && echo "the nine plants refused, each on its own check (exit 3); the differing-moves count read the planted change; the ledger AN's to the bit"
 echo "preflight done $(TZ=Europe/London date +%H:%M) UK"

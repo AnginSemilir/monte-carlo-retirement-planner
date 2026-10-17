@@ -25,7 +25,7 @@ M = [
   ("if (S380F && (!j.pair || j.pair[0] !== 12 || j.pair[1] !== 14)) bad.push(", "if (S380F && (!j.pair || j.pair[0] !== 12)) bad.push("),
   ("if (!j.moves[w] || !(j.moves[w].py >= npw)) bad.push(", "if (!j.moves[w]) bad.push("),
   ("for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (!j.tail.some(", "for (let w = 0; w < 3; w++) for (let b = 0; b < 3; b++) if (!j.tail.some("),
-  ("if (!x || x.from !== npw || x.to !== 2 * npw - 1 || x.n !== npw ||", "if (!x || x.from !== npw || x.n !== npw ||"),
+  ("if (!x || x.from !== npw || x.to !== xs - 1 || x.n !== xs - npw ||", "if (!x || x.from !== npw || x.n !== xs - npw ||"),
   ("const o = j.sims.OWNO0; if (!o || o.n !== Math.min(npw, OVERLAP)) bad.push(", "const o = j.sims.OWNO0; if (false) bad.push("),
   ("if (!j1.own || !j.own || j1.own.ai !== j.own.ai) bad.push(", "if (!j1.own || !j.own) bad.push("),
   ("if (!j1.tables[w] || !j.tables[w] || j1.tables[w].text !== j.tables[w].text) bad.push(", "if (!j1.tables[w] || !j.tables[w] || j1.tables[w].OWN !== j.tables[w].OWN) bad.push("),

@@ -2,7 +2,7 @@
  * AX-HO'S REDUCER (PLAN.md AREF, its AX-HO step; predictions/diag-axho.md; the deep review after AOR, deep-review-log.md
  * 17 Oct 18:22 UK). Five jobs at 60 points and six shares, the candidate's own unit, seed 7004, into results/diagaxho
  * (audit-axho.mjs): J1 and J1X (S380 under the adaptive reference with the RS split, J1X J1 re-solved for its runs on
- * paths 8,000 to 15,999), J2 (S380 under the order reference), J3 (S360 under A6RS's settings) and J4 (S360 under BO's).
+ * paths 9,000 to 15,999), J2 (S380 under the order reference), J3 (S360 under A6RS's settings) and J4 (S360 under BO's).
  * THE GATE: each job once and done at the registered settings (4,000 paths a world, 60 points, seed 7004, the reference's
  *   lattice 160 by 41 with 128 draws), stamped as launched, the fair-test gate on the logs (one audit); its solve's meta
  *   reads the candidate's settings and the job's reference and split; every self-check in full (armTook; adaptTook on J1,
@@ -14,8 +14,8 @@
  *   1 (primary): no material harm to J1's runs against J2's on the same paths, S380 worlds 0 and 1: the exact conditional
  *     McNemar interval, the relative margin marginRel(J2's survival), Holm across the two worlds: HELD (no material harm
  *     in both), FALSIFIED (harm in either), otherwise INCONCLUSIVE; the differing moves and paths printed beside.
- *   2: J1's table at its own opening against its runs on 16,000 paths a world (J1's ledger paths and paths 4,000 to 7,999,
- *     J1X's 8,000 to 15,999), table less runs in points, each world's exact (Clopper-Pearson) interval at 1 - 0.05 / 3:
+ *   2: J1's table at its own opening against its runs on 16,000 paths a world (J1's ledger paths and paths 4,000 to 8,999,
+ *     J1X's 9,000 to 15,999), table less runs in points, each world's exact (Clopper-Pearson) interval at 1 - 0.05 / 3:
  *     HELD when every world's interval sits inside [-1.5, +1.5]; FALSIFIED when any lies wholly at or beyond +3 (over) or
  *     -3 (under), the side named; otherwise INCONCLUSIVE. J2's table against its 4,000 runs beside.
  *   3: J1's bridge-years grid residual GB in worlds 0 and 1 (AO's item 2's rule, Z for two worlds, two sides): HELD inside
@@ -43,6 +43,7 @@ import { meanOf, paired, lnRead, luckAdjusted, sha16, q } from './reduce-ao.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-axho.md';
+export const XSPLIT = 2.25;   // J1's own runs without the ledger on paths 4,000 to 8,999, J1X's on 9,000 to 15,999
 export const SEED = '7004', NPW = 4000, NQF = 1000, OVERLAP = 100, LATTICE = '160x41', NZ = 128, NOMOVE = 65535;
 export const Z2 = 2.241402727604947, Z3 = 2.393979714906444, ALPHA2 = 0.05 / 3;   // the 1 - 0.05 / 4 and 1 - 0.05 / 6 normal quantiles
 export const IN2 = 1.5, OUT2 = 3, IN3 = 0.5, OUT3 = 1.0;
@@ -106,7 +107,7 @@ const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null',
 const ARMF = Object.freeze({ J1: { readerRef: 'adaptive', readerSplit: 'rs', floor: '52500' }, J1X: { readerRef: 'adaptive', readerSplit: 'rs', floor: '52500' }, J2: { readerRef: 'order', readerSplit: 'null', floor: '52500' }, J3: { readerRef: 'adaptive', readerSplit: 'rs', floor: '5000' }, J4: { readerRef: 'order', readerSplit: 'null', floor: '5000' } });
 const NEED = Object.freeze({ J1: ['armTook', 'adaptTook', 'pairTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'engTook'], J1X: ['armTook', 'adaptTook', 'pairTook'], J2: ['armTook', 'ownTook', 'identity', 'qfTook', 'layerTook'], J3: ['armTook', 'adaptTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'engTook'], J4: ['armTook', 'ownTook', 'identity', 'qfTook', 'layerTook'] });
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } = {}) {
-  const bad = [], pts = Math.max(4, Math.round(60 / scale));
+  const bad = [], pts = Math.max(4, Math.round(60 / scale)), xs = Math.round(XSPLIT * npw);
   for (const x of jobs) if (!Object.values(LABELS).includes(x.label)) bad.push(`a job that is not AX-HO's: ${x.label}`);
   for (const [arm, label] of Object.entries(LABELS)) {
     const js = jobs.filter(x => x.label === label);
@@ -144,12 +145,12 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
       for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (!j.tail.some(x => x.k === w && x.bin === b)) bad.push(`${arm}: the engine leg's cell ${w} ${b} is missing`);
     }
     if (arm === 'J1') for (let w = 0; w < 3; w++) {
-      const x = j.sims[`OWNX${w}`]; if (!x || x.from !== npw || x.to !== 2 * npw - 1 || x.n !== npw || (j.own && x.ai !== j.own.ai)) bad.push(`J1: no own run on paths ${npw} to ${2 * npw - 1} in world ${w}`);
+      const x = j.sims[`OWNX${w}`]; if (!x || x.from !== npw || x.to !== xs - 1 || x.n !== xs - npw || (j.own && x.ai !== j.own.ai)) bad.push(`J1: no own run on paths ${npw} to ${xs - 1} in world ${w}`);
       const p = j.sims[`P${w}`]; if (!p || p.n !== npw || p.ai !== 12) bad.push(`J1: no P run of ${npw} paths in world ${w}`);
     }
     if (arm === 'J1X') {
       for (let w = 0; w < 3; w++) {
-        const x = j.sims[`OWNX${w}`]; if (!x || x.from !== 2 * npw || x.to !== 4 * npw - 1 || x.n !== 2 * npw || (j.own && x.ai !== j.own.ai)) bad.push(`J1X: no own run on paths ${2 * npw} to ${4 * npw - 1} in world ${w}`);
+        const x = j.sims[`OWNX${w}`]; if (!x || x.from !== xs || x.to !== 4 * npw - 1 || x.n !== 4 * npw - xs || (j.own && x.ai !== j.own.ai)) bad.push(`J1X: no own run on paths ${xs} to ${4 * npw - 1} in world ${w}`);
         const d = j.sims[`D${w}`]; if (!d || d.n !== npw || d.ai !== 14) bad.push(`J1X: no D run of ${npw} paths in world ${w}`);
       }
       const o = j.sims.OWNO0; if (!o || o.n !== Math.min(npw, OVERLAP)) bad.push(`J1X: no overlap run on world 0's first ${Math.min(npw, OVERLAP)} paths`);
@@ -298,8 +299,9 @@ function planted() {
       for (let k = 0; k < (o.worlds || 3); k++) L.push(`${pad} sim ${Lb} ${k} OWN ai ${o.own || 12}: 2000/${npw} bridge 2000 bits ${bits} ${bits}`, `${pad} moves ${Lb} ${k}: path-years ${o.py !== undefined ? o.py : 40000} sha ${bits}`, `${pad} ledger ${Lb} ${k}: ${[...KEYS, 'Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6', 'Y7'].map(x => `${x} 0.1`).join(' ')}`, `${pad} qf ${Lb} ${k}: paths 1000 QF 0.01`);
       L.push(`${pad} checks ${Lb}: ownTook ${3 * npw}/${3 * npw} identity ${o.idOk !== undefined ? o.idOk : 3 * npw}/${3 * npw} qfTook 9/9 layerTook 9/9 secs 100`);
     }
-    if (arm === 'J1') for (let k = 0; k < 3; k++) L.push(`${pad} simx ${Lb} ${k} OWN ai 12 paths ${npw} to ${o.xTo || 2 * npw - 1}: 2000/${npw} bits ${bits}`);
-    if (arm === 'J1X') { for (let k = 0; k < 3; k++) L.push(`${pad} simx ${Lb} ${k} OWN ai ${o.own || 12} paths ${2 * npw} to ${4 * npw - 1}: 4000/${2 * npw} bits ${bits}`); if (!o.noOverlap) L.push(`${pad} simo ${Lb} 0 OWN ai ${o.own || 12} paths 0 to 99: 50/100 bits ${bits}`); }
+    const xs = Math.round(XSPLIT * npw);
+    if (arm === 'J1') for (let k = 0; k < 3; k++) L.push(`${pad} simx ${Lb} ${k} OWN ai 12 paths ${npw} to ${o.xTo || xs - 1}: 2000/${xs - npw} bits ${bits}`);
+    if (arm === 'J1X') { for (let k = 0; k < 3; k++) L.push(`${pad} simx ${Lb} ${k} OWN ai ${o.own || 12} paths ${xs} to ${4 * npw - 1}: 4000/${4 * npw - xs} bits ${bits}`); if (!o.noOverlap) L.push(`${pad} simo ${Lb} 0 OWN ai ${o.own || 12} paths 0 to 99: 50/100 bits ${bits}`); }
     if (arm === 'J1') for (let k = 0; k < 3; k++) L.push(`${pad} sim ${Lb} ${k} P ai 12: 2000/${npw} bits ${bits}`);
     if (arm === 'J1X') for (let k = 0; k < 3; k++) L.push(`${pad} sim ${Lb} ${k} D ai ${o.dSim || 14}: 1900/${npw} bits ${bits}`);
     L.push(`${pad} runs ${Lb}: secs 100`);
@@ -328,7 +330,7 @@ function planted() {
   refuses('J3\'s engine leg short of a p-decade', { J3: { bins: 3 } });
   refuses('a ledger job with no moves recorded', { J2: { py: 0 } });
   refuses('a ledger job short of a world', { J4: { worlds: 2 } });
-  refuses('J1\'s own runs on the wrong paths', { J1: { xTo: 2 * NPW } });
+  refuses('J1\'s own runs on the wrong paths', { J1: { xTo: Math.round(XSPLIT * NPW) } });
   refuses('J1X with no overlap run', { J1X: { noOverlap: true } });
   refuses('J1X\'s tables a digit off J1\'s', { J1X: { tabOwn: '32.000001' } });
   refuses('J1X\'s D table alone a digit off J1\'s', { J1X: { tabD: '30.000001' } });

@@ -5,9 +5,10 @@
  * shares, the candidate's own unit:
  *   J1   S380 under the adaptive reference with the RS split (`readerRef: 'adaptive', readerSplit: 'rs'`): AN's ledger on
  *        the first 4,000 paths a world (B_t, V_t, G_t, T_t, the identity, GB, GL, GA, GD, Y<t>, QF), its own opening run on
- *        paths 4,000 to 7,999 more without the ledger, P forced on the first 4,000, and the engine leg below;
+ *        paths 4,000 to 8,999 more without the ledger, P forced on the first 4,000 (the ledger's own runs when P is its
+ *        opening: the same paths and first move, so the same run), and the engine leg below;
  *   J1X  J1 re-solved (its tables and opening J1's to the printed digit, the reducer checks), its own opening on paths
- *        8,000 to 15,999 and D forced on the first 4,000: with J1, 16,000 paths a world at J1's opening (item 2's power,
+ *        9,000 to 15,999 and D forced on the first 4,000: with J1, 16,000 paths a world at J1's opening (item 2's power,
  *        predictions/diag-axho.md: at 4,000 a world's interval is wider than the 1.5-point HELD band at S380's survival);
  *   J2   S380 under the order reference (BO's arm), the ledger on the first 4,000 paths a world;
  *   J3   S360 as J1 (A6RS's settings), the ledger and the engine leg;
@@ -46,10 +47,12 @@ import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
 
 // [household, arm, wealth points, shares, return nodes, the ledger, own-opening runs without it from and to (multiples of
-// the paths a world), the forced openings]
+// the paths a world), the forced openings]; XSPLIT balances J1's and J1X's runs (paths 4,000 to 8,999 on J1, 9,000 to
+// 15,999 on J1X: S380's 60-point solve 3,738 s and 0.159 s a run, NE-EDGE's RZ log)
+export const XSPLIT = 2.25;
 export const JOBS = [
-  ['S380', 'J1', 60, 6, 5, true, 1, 2, ['P']],
-  ['S380', 'J1X', 60, 6, 5, false, 2, 4, ['D']],
+  ['S380', 'J1', 60, 6, 5, true, 1, XSPLIT, ['P']],
+  ['S380', 'J1X', 60, 6, 5, false, XSPLIT, 4, ['D']],
   ['S380', 'J2', 60, 6, 5, true, 0, 0, []],
   ['S360', 'J3', 60, 6, 5, true, 0, 0, []],
   ['S360', 'J4', 60, 6, 5, true, 0, 0, []],
@@ -169,7 +172,7 @@ JOBS.forEach((job, ji) => {
   const g = cand.mix.tables[0].g, bridge = [];
   for (let t = 1; t <= T; t++) if (g.reader && g.reader.years[t]) bridge.push(t);
   console.log(`${''.padEnd(16)} bridge ${L}: reader years ${bridge.join(',')}`);
-  const NMAX = Math.max(NPW, x1 * NPW), wpaths = E.pathsForSeed(SEED, NMAX, T), bits = {}, per = {}, moves = {};
+  const NMAX = Math.max(NPW, Math.round(x1 * NPW)), wpaths = E.pathsForSeed(SEED, NMAX, T), bits = {}, per = {}, moves = {};
   const worldPath = (i, k) => { const cz = Float64Array.from(wpaths[i]); cz[cz.length - 1] = cand.mix.nodes[k]; return cz; };
   const TL = ref ? ref.TL : -1, inBridge = new Set(ref ? ref.bridge.filter(t => t >= 1 && t < TL) : []);
   const binOf = p => { const e = TAIL.edges; for (let j = 0; j < e.length - 1; j++) if (p >= e[j] && (p < e[j + 1] || (j === e.length - 2 && p <= e[j + 1]))) return j; return -1; };
@@ -260,7 +263,7 @@ JOBS.forEach((job, ji) => {
   // the own opening without the ledger on paths x0 to x1 times the paths a world; J1X's overlap on world 0's first paths
   const r1 = Date.now();
   if (x1 > x0) for (let k = 0; k < K; k++) {
-    const from = x0 * NPW, to = x1 * NPW, b = new Uint8Array(to - from);
+    const from = Math.round(x0 * NPW), to = Math.round(x1 * NPW), b = new Uint8Array(to - from);
     for (let i = from; i < to; i++) b[i - from] = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: ownC } }).survived ? 1 : 0;
     bits[`OWNX${k}`] = b;
     console.log(`${''.padEnd(16)} simx ${L} ${k} OWN ai ${ownC} paths ${from} to ${to - 1}: ${b.reduce((t, x) => t + x, 0)}/${to - from} bits ${sha16(b)}`);
@@ -271,12 +274,13 @@ JOBS.forEach((job, ji) => {
     bits.OWNO0 = b;
     console.log(`${''.padEnd(16)} simo ${L} 0 OWN ai ${ownC} paths 0 to ${no - 1}: ${b.reduce((t, x) => t + x, 0)}/${no} bits ${sha16(b)}`);
   }
-  // the forced openings on the first paths a world
+  // the forced openings on the first paths a world (where the opening is the job's own and the ledger ran, its runs are
+  // the ledger's: the same paths and the same first move)
   for (const nm of forced) {
     const ai = pair[nm === 'P' ? 0 : 1];
     for (let k = 0; k < K; k++) {
-      const b = new Uint8Array(NPW);
-      for (let i = 0; i < NPW; i++) b[i] = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: ai } }).survived ? 1 : 0;
+      const b = ledger && ai === ownC ? Uint8Array.from(bits[`OWN${k}`]) : new Uint8Array(NPW);
+      if (!(ledger && ai === ownC)) for (let i = 0; i < NPW; i++) b[i] = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: ai } }).survived ? 1 : 0;
       bits[`${nm}${k}`] = b;
       console.log(`${''.padEnd(16)} sim ${L} ${k} ${nm} ai ${ai}: ${b.reduce((t, x) => t + x, 0)}/${NPW} bits ${sha16(b)}`);
     }

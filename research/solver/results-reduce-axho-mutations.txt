@@ -16,7 +16,7 @@ caught: 15: j.adaptive.nz !== NZ || j.adaptive.nonMono !== 0 ||
 caught: 16: if (S380F && (!j.pair || j.pair[0] !== 12 || j.pair[1] !== 1
 caught: 17: if (!j.moves[w] || !(j.moves[w].py >= npw)) bad.push(
 caught: 18: for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (
-caught: 19: if (!x || x.from !== npw || x.to !== 2 * npw - 1 || x.n !== 
+caught: 19: if (!x || x.from !== npw || x.to !== xs - 1 || x.n !== xs - 
 caught: 20: const o = j.sims.OWNO0; if (!o || o.n !== Math.min(npw, OVER
 caught: 21: if (!j1.own || !j.own || j1.own.ai !== j.own.ai) bad.push(
 caught: 22: if (!j1.tables[w] || !j.tables[w] || j1.tables[w].text !== j

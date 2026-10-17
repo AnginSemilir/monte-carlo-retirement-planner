@@ -1,0 +1,62 @@
+=== a MEASUREMENT, not a test: AX-HO's preflight, the S366 step: J1 and J2 on S366 at 30 points, their checks and the moves differing between them (S366 in S380's place, the maintainer's choice of 17 Oct) (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== REFUSED: an experiment is already running (lock /tmp/solver-experiment.lock, pid 29419)
+=== bash research/solver/preflight-axho-s366.sh (pid 29419, started 2026-10-17T20:21:11Z)
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+j1 exit 0
+j2 exit 0
+S366: solve CAND J1/P60S6Q5: table 99.9580 secs 1446
+S366: ran CAND J1/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+S366: reader J1/P60S6Q5: tables 72 unsupported 0 copied 118107 copiedTop 76302 nodes 457812
+S366: checks J1/P60S6Q5: armTook 1/1
+S366: adaptive J1/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 256.8
+S366: checks J1/P60S6Q5: adaptTook 1/1
+S366: pair J1/P60S6Q5: P ai 12 level 0.8 tiers 0,0; D ai 14 level 0.8 tiers 2,2
+S366: checks J1/P60S6Q5: pairTook 1/1
+S366: openings J1/P60S6Q5: OWN ai 59 level 0.8 tiers 2,2
+S366: tables J1/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 99.846164 READ 99.750507 P 99.661669 D 99.849115
+S366: tables J1/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 99.999556 READ 99.999556 P 99.999541 D 99.999557
+S366: tables J1/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 99.999556 READ 99.999556 P 99.999556 D 99.999557
+S366: bridge J1/P60S6Q5: reader years 1,2,3,4,5,6,7
+S366: sim J1/P60S6Q5 0 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: sim J1/P60S6Q5 1 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: sim J1/P60S6Q5 2 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: checks J1/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 17
+S366: simx J1/P60S6Q5 0 OWN ai 59 paths 40 to 89: 48/50 bits 28ef7d9894147400
+S366: simx J1/P60S6Q5 1 OWN ai 59 paths 40 to 89: 50/50 bits 9df8bff0a706340d
+S366: simx J1/P60S6Q5 2 OWN ai 59 paths 40 to 89: 50/50 bits 9df8bff0a706340d
+S366: runs J1/P60S6Q5: secs 39
+S366: refTail J1/P60S6Q5: cells 0 off 0; engine off 0; 100000 runs a state simulated, 40 in the engine on its own draws, secs 0
+S366: checks J1/P60S6Q5: engTook 0/0
+S366: solve CAND J2/P60S6Q5: table 99.2089 secs 1196
+S366: ran CAND J2/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef order readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMa
+S366: reader J2/P60S6Q5: tables 72 unsupported 0 copied 103518 copiedTop 62208 nodes 460728
+S366: checks J2/P60S6Q5: armTook 1/1
+S366: openings J2/P60S6Q5: OWN ai 59 level 0.8 tiers 2,2
+S366: tables J2/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 96.145882 READ 95.821511
+S366: tables J2/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 99.890351 READ 99.860316
+S366: tables J2/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 99.992606 READ 99.990839
+S366: bridge J2/P60S6Q5: reader years 1,2,3,4,5,6,7
+S366: sim J2/P60S6Q5 0 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: sim J2/P60S6Q5 1 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: sim J2/P60S6Q5 2 OWN ai 59: 40/40 bridge 40 bits 2432dbb70926df29 2432dbb70926df29
+S366: checks J2/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 16
+S366: runs J2/P60S6Q5: secs 0
+S366 moves differing, J1 against J2: DIFFER world 0: paths 28 of 40 path-years 156 of 1840
+S366 moves differing, J1 against J2: DIFFER world 1: paths 22 of 40 path-years 107 of 1840
+S366 moves differing, J1 against J2: DIFFER world 2: paths 14 of 40 path-years 51 of 1840
+preflight step done 21:58 UK
+=== snapshot kept at /tmp/solver-snap-kYFRtb for provenance; remove it when the results are written up

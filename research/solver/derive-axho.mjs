@@ -47,10 +47,11 @@ export const JUDGED = {
   // J1's per-path spread of GB on S366 as a multiple of A6RS's on S360
   spread: { 0.5: 0.3, 1: 0.4, 1.5: 0.3 },
   // item 1: J1's runs less J2's on S366 (points, worlds 0 and 1), a misread reference a little likelier to cost runs; and
-  // the paths whose outcome the swap moves as a multiple of A6RS's against BO's on S360 (S366 loses a fiftieth of its
-  // paths where S360 loses half or more, so far fewer outcomes can move though moves differ)
+  // the paths whose outcome the swap moves in a world as a multiple of S366's record (7u: a reader change moved 14 of 8,000
+  // paths, so about 7 in 4,000): S366 loses a fiftieth of its paths or fewer, so few outcomes can move though moves differ
+  // (S360's 55 and 38 in 4,000 cannot occur where a world holds 6 deaths: the first draft's base, replaced before its output)
   runs1: { READ: { '-0.1': 0.2, 0: 0.6, 0.1: 0.2 }, OFF: { '-0.4': 0.15, '-0.15': 0.3, 0: 0.4, 0.1: 0.15 } },
-  churn1: { 0.05: 0.3, 0.15: 0.35, 0.4: 0.25, 1: 0.1 },
+  churn1: { 0.5: 0.3, 1: 0.35, 3: 0.25, 8: 0.1 },
   // item 4: J3's runs less J4's on S360 at seed 7004 (A6RS against BO on seed 7002: +0.075 and +0.45 points), the paths
   // moved as a multiple of A6RS's against BO's; J3's GB, A6RS's moved by a seed's draw (its standard error) and `gb4Shift`
   runs4: { '-0.3': 0.15, 0: 0.5, 0.3: 0.35 },
@@ -85,7 +86,7 @@ const own30 = num(/openings J1\/P60S6Q5: OWN ai (\d+)/, q366), led30 = num(/ownT
 if (![own30, led30, ledS, runS, build30, solve30, solve30o, ...mvd, ...[0, 1, 2].map(k => sv('J1', k)), ...[0, 1, 2].map(k => sv('J2', k))].every(Number.isFinite)) { console.log('the S366 step\'s lines did not read (results-axho-preflight-s366.txt)'); process.exit(1); }
 const n30 = led30 / 3, runs30 = 3 * (Math.round(XSPLIT * n30) - n30) + (own30 === 12 ? 0 : 3 * n30), ledgerFactor = Math.max(1, (ledS / led30) / (Math.max(1, runS) / runs30));
 console.log(`  AX-HO's S366 step at 30 points on ${n30} paths a world: J1 alive ${[0, 1, 2].map(k => sv('J1', k)).join(', ')} and J2 ${[0, 1, 2].map(k => sv('J2', k)).join(', ')} by world; the moves differing on ${mvd.join(', ')} paths; J1's own opening ai ${own30}${own30 === 12 ? ' (P: the forced P runs are the ledger\'s)' : ''}; solve ${solve30} s (J2 ${solve30o} s), the reference's build ${build30} s; the ledger ${ledS} s over ${led30} paths, the plain runs ${runS} s over ${runs30}: the ledger ${f2(ledgerFactor)} times a plain run (floored at 1; grade C, seconds' resolution)`);
-const SURVH = JUDGED.surv.map(x => x / 100);
+const SURVH = JUDGED.surv.map(x => x / 100), CH366 = (Number(h366[1]) + Number(h366[2])) * NPW / Number(h366[3]);   // S366's record: the paths a reader change moved in 4,000
 const ld = p => JSON.parse(gunzipSync(readFileSync(p)).toString()), fR = ld(join(R_('diagaor'), 'S360-A6RS-P60S6Q5.json.gz')), fB = ld(join(R_('diagnodeax'), 'S360-BO-P60S6Q5.json.gz'));
 const bits = (f, nm) => Buffer.from(f.bits[nm], 'base64'), dec = x => { const b = Buffer.from(x, 'base64'); return Array.from(new Float64Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length)), v => 100 * v); };
 const CH = [0, 1].map(k => { const a = bits(fR, `OWN${k}`), b = bits(fB, `OWN${k}`); let lost = 0, saved = 0; for (let i = 0; i < a.length; i++) { if (b[i] && !a[i]) lost++; else if (a[i] && !b[i]) saved++; } return { lost, saved }; });
@@ -98,10 +99,11 @@ for (const k of [0, 1, 2]) console.log(`  A6RS's GB world ${k}: ${f4(GBM[k])} (s
 // read and the 16,000-path one stand on the same draws); GB per path at the story's mean and A6RS's spread; J4 BO's bits,
 // J3 moved from them
 const N = NPW, N16 = 4 * NPW;
-const moved = (base, churn, d) => { const b = Uint8Array.from(base), n = b.length, net = d * n / 100; let lost = pois(Math.max(0, (churn - net) / 2)), saved = pois(Math.max(0, (churn + net) / 2)); for (let g = 0; g < 50 * n && (lost > 0 || saved > 0); g++) { const j = Math.floor(rnd() * n); if (b[j] && lost > 0) { b[j] = 0; lost--; } else if (!b[j] && saved > 0) { b[j] = 1; saved--; } } return b; };
+// the churn is capped at twice the control's dead paths in that world, so a change of zero can save as many as it loses
+const moved = (base, churn0, d) => { const b = Uint8Array.from(base), n = b.length, net = d * n / 100, dead = n - b.reduce((t, x) => t + x, 0), churn = Math.min(churn0, 2 * dead + Math.abs(net)); let lost = pois(Math.max(0, (churn - net) / 2)), saved = pois(Math.max(0, (churn + net) / 2)); for (let g = 0; g < 50 * n && (lost > 0 || saved > 0); g++) { const j = Math.floor(rnd() * n); if (b[j] && lost > 0) { b[j] = 0; lost--; } else if (!b[j] && saved > 0) { b[j] = 1; saved--; } } return b; };
 function setOf({ gap, gb, spread = 1, d1 = [0, 0], c1 = 1, d4 = [0, 0], c4 = 1, gb4 = [0, 0, 0] }, n2 = N16) {
   const J2 = [0, 1].map(k => { const b = new Uint8Array(N); for (let i = 0; i < N; i++) b[i] = rnd() < SURVH[k] ? 1 : 0; return b; });
-  const J1 = [0, 1].map(k => moved(J2[k], c1 * (CH[k].lost + CH[k].saved), d1[k])), J3 = [0, 1].map(k => moved(BOB[k], c4 * (CH[k].lost + CH[k].saved), d4[k]));
+  const J1 = [0, 1].map(k => moved(J2[k], c1 * CH366, d1[k])), J3 = [0, 1].map(k => moved(BOB[k], c4 * (CH[k].lost + CH[k].saved), d4[k]));
   const r4 = [0, 1, 2].map(k => binom(N, SURVH[k])), r12 = [0, 1, 2].map(k => binom(N16 - N, SURVH[k])), tab = [0, 1, 2].map(k => 100 * SURVH[k] + gap[k]);
   const runs = r4.map((c, k) => (n2 === N ? c : c + r12[k]));
   const sdS = GBS[1] * spread, G1 = [0, 1].map(k => Array.from({ length: N }, () => gb[k] + sdS * gauss())), G3 = [0, 1, 2].map(k => Array.from({ length: N }, () => gb4[k] + GBS[k] * gauss()));
@@ -113,8 +115,8 @@ const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] 
 
 // 2. THE POWER through items()
 const DR = 40, base = { gap: [0, 0, 0], gb: [0, 0], gb4: GBM };
-console.log(`\n2. THE POWER (${DR} draws a cell through reduce-axho.mjs's items(); S366 at the judged survival ${SURVH.map(x => f4(100 * x)).join(', ')} by world, J1's runs on ${N16} paths a world; S360 at BO's bits with A6RS's GB and spread; the paths moved as multiples of A6RS's against BO's)`);
-for (const c1 of [1, 2, 4]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, d1: [d, d], c1 }))['1'].outcome]++; console.log(`  churn x${c1} item 1, J1's runs ${d} points in worlds 0 and 1: ${row(c)}`); }
+console.log(`\n2. THE POWER (${DR} draws a cell through reduce-axho.mjs's items(); S366 at the judged survival ${SURVH.map(x => f4(100 * x)).join(', ')} by world, J1's runs on ${N16} paths a world; S360 at BO's bits with A6RS's GB and spread; S366's paths moved as multiples of its record (${f2(CH366)} in ${NPW}), S360's of A6RS's against BO's)`);
+for (const c1 of [1, 3, 8]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, d1: [d, d], c1 }))['1'].outcome]++; console.log(`  churn x${c1} item 1, J1's runs ${d} points in worlds 0 and 1: ${row(c)}`); }
 // item 2 as the review set it (4,000 paths a world) and as registered (16,000), on the same draws
 for (const g of [-3.5, -2, -1, -0.6, -0.3, 0, 0.3, 0.6, 1, 2, 3.5]) { const c = cnt(), c4 = cnt(); for (let q = 0; q < DR; q++) { const s0 = st, a = items(...setOf({ ...base, gap: [g, g, g] }))['2'].outcome; st = s0; const b = items(...setOf({ ...base, gap: [g, g, g] }, N))['2'].outcome; c[a]++; c4[b]++; } console.log(`  item 2, table less runs ${g} points in every world: on ${N16} paths ${row(c)}; on ${N} (the review's) ${row(c4)}`); }
 for (const g of [-0.3, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, gap: [g, 0, 2 * g] }))['2'].outcome]++; console.log(`  item 2, table less runs ${g}, 0 and ${2 * g} by world: ${row(c)}`); }
@@ -171,7 +173,7 @@ const boLog = readdirSync(R_('diagnodeax')).filter(f => /^case\d+\.txt$/.test(f)
 const sA = num(/solve CAND A6RS\/P60S6Q5: table \S+ secs (\d+)/, a6), lA = num(/ownTook .* secs (\d+)/, a6), bA = num(/adaptive A6RS\/P60S6Q5: .* secs (\S+)$/m, a6), tl = num(/refTail AOP\/P60S6Q5: .* secs (\d+)$/m, aop);
 const sB = num(/solve CAND BO\/P60S6Q5: table \S+ secs (\d+)/, boLog), lB = num(/ownTook .* secs (\d+)/, boLog);
 if (![sA, lA, bA, tl, sB, lB].every(Number.isFinite)) { console.log('the budget\'s inputs did not read'); process.exit(1); }
-const sO = 2 * solve30o, sA6 = 2 * (solve30 - build30) + build30, perRun = run7u / n7u, xs = Math.round(XSPLIT * NPW), eng = 2 * tl;
+const sO = 2 * solve30o, sA6 = Math.round(2 * (solve30 - build30) + build30), perRun = run7u / n7u, xs = Math.round(XSPLIT * NPW), eng = 2 * tl;
 const J1 = sA6 + 3 * NPW * perRun * ledgerFactor + 3 * (xs - NPW) * perRun + (own30 === 12 ? 0 : 3 * NPW * perRun) + eng;
 const J1X = sA6 + 3 * (4 * NPW - xs) * perRun + 3 * NPW * perRun + 100 * perRun;
 const J2 = sO + 3 * NPW * perRun * ledgerFactor, J3 = sA + bA + lA + eng, J4 = sB + lB;

@@ -1,0 +1,28 @@
+=== a MEASUREMENT, not a test: AX-HO's preflight, third step: the differing-moves count on the nudge plant as fixed (f5603d5), J4 clean and nudged at a fifteenth of the points (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-cCRDlO   from f5603d5 + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code d2a982e80436 (smoke stamp 5991c9e5f800): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+clean exit 0
+nudge exit 0
+C. nudged against clean: DIFFER world 0: paths 4 of 40 path-years 6 of 794;DIFFER world 1: paths 0 of 40 path-years 0 of 1185;DIFFER world 2: paths 0 of 40 path-years 0 of 1493;
+C. clean against itself: DIFFER world 0: paths 0 of 40 path-years 0 of 795;DIFFER world 1: paths 0 of 40 path-years 0 of 1185;DIFFER world 2: paths 0 of 40 path-years 0 of 1493;
+the differing-moves count read the planted change in world 0 alone, and none on the clean job against itself
+preflight step done 21:20 UK
+=== snapshot kept at /tmp/solver-snap-cCRDlO for provenance; remove it when the results are written up

@@ -120,7 +120,13 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
     if (j.pts !== pts) bad.push(`${arm}: solved at ${j.pts} points, not ${pts}`);
     const ran = j.ran || '';
     for (const [f, v] of Object.entries({ ...COMMON, ...ARMF[arm], pts: String(pts), grid: `total${pts}x6x6` })) if (field(ran, f) !== v) bad.push(`${arm}: ${f} is ${field(ran, f)}, not ${v}`);
-    for (const c of NEED[arm]) { const x = j.checks[c]; if (!x || !(x[1] > 0) || x[0] !== x[1] || (['armTook', 'adaptTook', 'pairTook'].includes(c) && x[1] !== 1)) bad.push(`${arm}: ${c} did not pass in full`); }
+    for (const c of NEED[arm]) {
+      const x = j.checks[c];
+      // engTook at 0/0: the engine leg ran on no state (no bridge record in the band), allowed only where every cell printed 0
+      // states; the report says so, never a pass
+      if (c === 'engTook' && x && x[1] === 0 && x[0] === 0 && j.refTail && j.refTail.cells === 0 && j.tail.length && j.tail.every(t => t.states === 0)) continue;
+      if (!x || !(x[1] > 0) || x[0] !== x[1] || (['armTook', 'adaptTook', 'pairTook'].includes(c) && x[1] !== 1)) bad.push(`${arm}: ${c} did not pass in full`);
+    }
     if (ADAPT[arm] && (!j.adaptive || j.adaptive.lattice !== LATTICE || j.adaptive.nz !== NZ || j.adaptive.nonMono !== 0 || !(j.adaptive.moves > 0))) bad.push(`${arm}: the reference was not built at the registered lattice (${LATTICE}, ${NZ} draws) with a monotone last year`);
     if (!j.own) bad.push(`${arm}: no openings line`);
     if (!j.solve) bad.push(`${arm}: no solve line`);
@@ -305,7 +311,7 @@ function planted() {
     if (arm === 'J1') for (let k = 0; k < 3; k++) L.push(`${pad} sim ${Lb} ${k} P ai 12: 2000/${npw} bits ${bits}`);
     if (arm === 'J1X') for (let k = 0; k < 3; k++) L.push(`${pad} sim ${Lb} ${k} D ai ${o.dSim || 14}: 1900/${npw} bits ${bits}`);
     L.push(`${pad} runs ${Lb}: secs 100`);
-    if (arm === 'J1' || arm === 'J3') { for (let k = 0; k < 3; k++) for (let b = 0; b < (o.bins || 4); b++) L.push(`${pad} tail ${Lb} ${k} ${b}: records 90 states 25 years 1,2 p 1.0e-3 | simulated 1.0e-3 ln 0.0 (-0.1 to 0.1) ok | engine 1.0e-3 ln 0.0 (-0.3 to 0.3) ok`); L.push(`${pad} refTail ${Lb}: cells 12 off 0; engine off 0; 100000 runs a state simulated, 4000 in the engine on its own draws, secs 200`, `${pad} checks ${Lb}: engTook ${o.eng !== undefined ? o.eng : 300}/300`); }
+    if (arm === 'J1' || arm === 'J3') { for (let k = 0; k < 3; k++) for (let b = 0; b < (o.bins || 4); b++) L.push(o.empty ? `${pad} tail ${Lb} ${k} ${b}: records 0 states 0` : `${pad} tail ${Lb} ${k} ${b}: records 90 states 25 years 1,2 p 1.0e-3 | simulated 1.0e-3 ln 0.0 (-0.1 to 0.1) ok | engine 1.0e-3 ln 0.0 (-0.3 to 0.3) ok`); L.push(`${pad} refTail ${Lb}: cells ${o.empty ? 0 : 12} off 0; engine off 0; 100000 runs a state simulated, 4000 in the engine on its own draws, secs 200`, `${pad} checks ${Lb}: engTook ${o.eng !== undefined ? o.eng : 300}/${o.engN !== undefined ? o.engN : 300}`); }
     L.push(`${pad} file ${Lb}: ${HOUSE[arm]}-${arm}-P60S6Q5.json.gz`, ...(o.noDone ? [] : [`${pad} done ${Lb}`]));
     return L.join('\n');
   };
@@ -328,6 +334,8 @@ function planted() {
   refuses('an identity short on J4 (the own, layer plants)', { J4: { idOk: 11999 } });
   refuses('engTook short on J1 (the draws plant)', { J1: { eng: 299 } });
   refuses('J3\'s engine leg short of a p-decade', { J3: { bins: 3 } });
+  cases.push(['the gate passes an engine leg on no state (0/0, every cell empty)', gate(allJ({ J1: { eng: 0, engN: 0, empty: true } })).join('; '), '']); EDGES.push('an engine leg on no state');
+  refuses('engTook 0/0 with a cell holding states', { J1: { eng: 0, engN: 0 } });
   refuses('a ledger job with no moves recorded', { J2: { py: 0 } });
   refuses('a ledger job short of a world', { J4: { worlds: 2 } });
   refuses('J1\'s own runs on the wrong paths', { J1: { xTo: Math.round(XSPLIT * NPW) } });
@@ -439,7 +447,7 @@ if (isMain) {
     console.log(`  ${a} world ${k}: OWN less runs ${f4(m('B0').m - m('X').m)} = T ${f4(m('T').m)} + GB ${iv(m('GB'))} + GA ${f4(m('GA').m)}; by year ${J[a].bridge.map(t => `${t}: ${f4(m(`Y${t}`).m)}`).join(' | ')}`);
   }
   for (const a of ['J1', 'J3']) {
-    const j = J[a]; console.log(`  engine leg ${a}: cells ${j.refTail.cells}, off ${j.refTail.off} simulated, ${j.refTail.engOff} in the engine (off: an interval wholly beyond ln 1.5), ${j.refTail.secs} s`);
+    const j = J[a]; console.log(`  engine leg ${a}: ${j.refTail.cells ? `cells ${j.refTail.cells}, off ${j.refTail.off} simulated, ${j.refTail.engOff} in the engine (off: an interval wholly beyond ln 1.5), ${j.refTail.secs} s` : 'NOT RUN: no bridge record in the band (p 0.0001 to 0.95) on this household, so no engine cell and no engTook (a check on nothing, not a pass)'}`);
     for (const x of j.tail) console.log(`    world ${x.k} p-decade ${x.bin}: records ${x.records} states ${x.states}${x.states ? ` years ${x.years} p ${x.p.toExponential(4)} | simulated ln ${f4(x.sim.ln)} (${f4(x.sim.lo)} to ${f4(x.sim.hi)})${x.sim.off ? ' off' : ''} | engine ln ${f4(x.eng.ln)} (${f4(x.eng.lo)} to ${f4(x.eng.hi)})${x.eng.off ? ' off' : ''}` : ''}`);
   }
   // O160: S360 world 0's luck-adjusted T, seed 7004 (J3, J4) and seed 7002 (A6RS, BO), pooled by inverse variance

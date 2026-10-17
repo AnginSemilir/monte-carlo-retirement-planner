@@ -159,3 +159,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-17 18:20 UTC | reduce-axho.mjs da00599d6ffc | 36 of 42 caught | escaped: NOT CAUGHT: 21: if (!j1.own || !j.own || j1.own.ai !== j.own.ai) bad.push(; NOT CAUGHT: 23: const d = j.sims[`D${w}`]; if (!d || d.n !== npw || d.ai !==; NOT CAUGHT: 27: (?: P (\\S+) D (\\S+))?$`).exec(l))) j.tables[Number(m[1])]; NOT CAUGHT: 31: const margin = marginRel(100 * x.bAlive / x.N);; NOT CAUGHT: 40: export const IN2 = 1.5, OUT2 = 3, IN3 = 0.5, OUT3 = 1.0;; NOT CAUGHT: 42: const w = xs.map(x => 1 / (x.se * x.se))
 2026-10-17 18:20 UTC | reduce-axho.mjs 0b205dd0991f | 42 of 42 caught | escaped: none
 2026-10-17 18:28 UTC | reduce-axho.mjs 931c11c5be07 | 42 of 42 caught | escaped: none
+2026-10-17 19:02 UTC | reduce-axho.mjs 490a88c74daf | 42 of 42 caught | escaped: none

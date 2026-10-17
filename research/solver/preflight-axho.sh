@@ -3,8 +3,9 @@
 # (default 4), the 30-point jobs first:
 # (A) the five jobs at a fifteenth of the points and 40 paths a world, seed 7004, read by reduce-axho.mjs --preflight (its
 #     gate and files, the moves differing between each pair's arms printed; no figure read);
-# (B) the plants, each of which must make its job refuse (exit 3) on its own check: arm and rs on J1 (armTook), draws on J1
-#     (engTook), own and layer on J4 (identity), quad on J4 (qfTook), held on J4 (layerTook);
+# (B) the plants, each of which must make its job refuse (exit 3) on its own check: arm and rs on J1 (armTook), draws on J3
+#     (engTook; S360's records fill the band, where at 4 points S380's sit past it), own and layer on J4 (identity), quad
+#     on J4 (qfTook), held on J4 (layerTook);
 # (C) the planted change for the differing-moves count: J4 with the nudge plant (its own move's sibling at the first bridge
 #     year on every tenth path of world 0) against the clean J4, which must read moves differing in world 0 and none in
 #     worlds 1 and 2; the clean J4 against itself none;
@@ -27,7 +28,8 @@ printf '%s\n' p30 p30-arm p30-rs m0 m1 m2 m3 m4 nudge copy $PL | xargs -P "${PAR
     m0|m1|m2|m3|m4) k=$(echo {} | cut -c2); DIAGAXHO_OUT=$O/main node research/solver/audit-axho.mjs $A part $k/5 7004 > $O/main/case$k.txt 2>&1; echo "{} exit $?" > $O/main/exit$k ;;
     nudge) AXHO_PLANT=nudge DIAGAXHO_OUT=$O/nudge node research/solver/audit-axho.mjs $A part 4/5 7004 > $O/nudge/case4.txt 2>&1; echo "nudge exit $?" > $O/nudge/exit.txt ;;
     copy) DIAGAXHO_OUT=$O/copy node research/solver/audit-axho.mjs $A part 3/5 7002 > $O/copy/case3.txt 2>&1; echo "copy exit $?" > $O/copy/exit.txt ;;
-    arm|rs|draws) AXHO_PLANT={} DIAGAXHO_OUT=$O/plant-{} node research/solver/audit-axho.mjs $A part 0/5 7004 > $O/plant-{}/case0.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
+    arm|rs) AXHO_PLANT={} DIAGAXHO_OUT=$O/plant-{} node research/solver/audit-axho.mjs $A part 0/5 7004 > $O/plant-{}/case0.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
+    draws) AXHO_PLANT={} DIAGAXHO_OUT=$O/plant-{} node research/solver/audit-axho.mjs $A part 3/5 7004 > $O/plant-{}/case3.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
     own|layer|quad|held) AXHO_PLANT={} DIAGAXHO_OUT=$O/plant-{} node research/solver/audit-axho.mjs $A part 4/5 7004 > $O/plant-{}/case4.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
   esac'
 bad=0

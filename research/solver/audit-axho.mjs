@@ -25,7 +25,7 @@
  * Self-checks, each refusing the job (exit 3): armTook, adaptTook (the adaptive arms), pairTook (S380's forced jobs),
  * ownTook, identity, qfTook and layerTook (the ledger, AN's), engTook (the engine leg).
  * AXHO_PLANT (each must make its job refuse on its own check): arm (J1 under the order reference: armTook), rs (J1 without
- * the split: armTook), draws (every engine state on one stream: engTook), and AN's own, layer, quad and held (the ledger's
+ * the split: armTook), draws (every engine state on one stream: engTook; run on J3, whose S360 records fill the band), and AN's own, layer, quad and held (the ledger's
  * checks); nudge refuses nothing: it changes the own move at the first bridge year on every tenth ledger path of world 0,
  * the preflight's planted change for the differing-moves count.
  *   node research/solver/audit-axho.mjs [scale=1] [paths a world=4000] part k/n [seed]
@@ -320,7 +320,9 @@ JOBS.forEach((job, ji) => {
     }
     console.log(`${''.padEnd(16)} refTail ${L}: cells ${cellsN} off ${offS}; engine off ${offE}; ${TAIL.nsim} runs a state simulated, ${NENG} in the engine on its own draws, secs ${Math.round((Date.now() - t1) / 1000)}`);
     console.log(`${''.padEnd(16)} checks ${L}: engTook ${eN - eDup}/${eN}`);
-    if (!(eN > 0) || eDup !== 0) { console.error(`audit-axho: ${id} ${L}: the engine leg's draws are not each state's own (engTook ${eN - eDup}/${eN})`); process.exit(3); }
+    // a household with no bridge record in the band runs the leg on nothing: printed as such (0/0), never a pass (the reducer
+    // says so); the refusal is for shared draws (the preflight's J1 at 4 points: S380's records all past the band)
+    if (eDup !== 0) { console.error(`audit-axho: ${id} ${L}: the engine leg's draws are not each state's own (engTook ${eN - eDup}/${eN})`); process.exit(3); }
   }
   // the bridge years' survival tables (log-odds, Float32) of every world and layer, on the ledger's jobs (AN's)
   const tables = {};

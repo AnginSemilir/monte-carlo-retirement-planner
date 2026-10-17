@@ -49,7 +49,8 @@ export const JUDGED = {
   // item 1: J1's runs less J2's on S366 (points, worlds 0 and 1), a misread reference a little likelier to cost runs; and
   // the paths whose outcome the swap moves in a world as a multiple of S366's record (7u: a reader change moved 14 of 8,000
   // paths, so about 7 in 4,000): S366 loses a fiftieth of its paths or fewer, so few outcomes can move though moves differ
-  // (S360's 55 and 38 in 4,000 cannot occur where a world holds 6 deaths: the first draft's base, replaced before its output)
+  // (S360's 55 and 38 in 4,000 cannot occur where a world holds 6 deaths: the first draft's base, committed in a7c740b, whose
+  // output was seen before this change - derive-axho-a7c740b.mjs, results-derive-axho-a7c740b.txt)
   runs1: { READ: { '-0.1': 0.2, 0: 0.6, 0.1: 0.2 }, OFF: { '-0.4': 0.15, '-0.15': 0.3, 0: 0.4, 0.1: 0.15 } },
   churn1: { 0.5: 0.3, 1: 0.35, 3: 0.25, 8: 0.1 },
   // item 4: J3's runs less J4's on S360 at seed 7004 (A6RS against BO on seed 7002: +0.075 and +0.45 points), the paths

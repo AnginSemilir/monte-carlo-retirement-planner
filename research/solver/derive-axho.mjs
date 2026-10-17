@@ -90,17 +90,20 @@ if (![own30, led30, ledS, runS, build30, solve30].every(Number.isFinite)) { cons
 const n30 = led30 / 3, runs30 = 3 * (Math.round(XSPLIT * n30) - n30) + (own30 === 12 ? 0 : 3 * n30), ledgerFactor = Math.max(1, (ledS / led30) / (Math.max(1, runS) / runs30));
 console.log(`  AX-HO's preflight, J1 at 30 points on ${n30} paths a world: its own opening ai ${own30}${own30 === 12 ? ' (P: the forced P runs are the ledger\'s)' : ''}; solve ${solve30} s, the reference's build ${build30} s; the ledger ${ledS} s over ${led30} paths, the plain runs ${runS} s over ${runs30}: the ledger ${f2(ledgerFactor)} times a plain run (floored at 1; grade C, seconds' resolution)`);
 
-// a synthetic read at a story's values: J2's bits at S380's survival, J1's moved from them; J1's table its 16,000 runs plus
-// the gap; GB per path at the story's mean and A6RS's spread; J4 BO's bits, J3 moved from them
+// a synthetic read at a story's values: J2's bits at S380's survival, J1's moved from them; J1's table S380's survival plus
+// the gap and its runs drawn about that survival (the first 4,000 and the next 12,000 apart, so the review's 4,000-path
+// read and the 16,000-path one stand on the same draws); GB per path at the story's mean and A6RS's spread; J4 BO's bits,
+// J3 moved from them
 const N = NPW, N16 = 4 * NPW;
 const moved = (base, churn, d) => { const b = Uint8Array.from(base), n = b.length, net = d * n / 100; let lost = pois(Math.max(0, (churn - net) / 2)), saved = pois(Math.max(0, (churn + net) / 2)); for (let g = 0; g < 50 * n && (lost > 0 || saved > 0); g++) { const j = Math.floor(rnd() * n); if (b[j] && lost > 0) { b[j] = 0; lost--; } else if (!b[j] && saved > 0) { b[j] = 1; saved--; } } return b; };
-function setOf({ gap, gb, spread = 1, d1 = [0, 0], c1 = 1, d4 = [0, 0], c4 = 1, gb4 = [0, 0, 0] }) {
+function setOf({ gap, gb, spread = 1, d1 = [0, 0], c1 = 1, d4 = [0, 0], c4 = 1, gb4 = [0, 0, 0] }, n2 = N16) {
   const J2 = [0, 1].map(k => { const b = new Uint8Array(N); for (let i = 0; i < N; i++) b[i] = rnd() < SURV380[k] ? 1 : 0; return b; });
   const J1 = [0, 1].map(k => moved(J2[k], c1 * (CH[k].lost + CH[k].saved), d1[k])), J3 = [0, 1].map(k => moved(BOB[k], c4 * (CH[k].lost + CH[k].saved), d4[k]));
-  const runs = [0, 1, 2].map(k => binom(N16, SURV380[k])), tab = runs.map((c, k) => 100 * c / N16 + gap[k]);
+  const r4 = [0, 1, 2].map(k => binom(N, SURV380[k])), r12 = [0, 1, 2].map(k => binom(N16 - N, SURV380[k])), tab = [0, 1, 2].map(k => 100 * SURV380[k] + gap[k]);
+  const runs = r4.map((c, k) => (n2 === N ? c : c + r12[k]));
   const sdS = GBS[1] * spread, G1 = [0, 1].map(k => Array.from({ length: N }, () => gb[k] + sdS * gauss())), G3 = [0, 1, 2].map(k => Array.from({ length: N }, () => gb4[k] + GBS[k] * gauss()));
   const S = (arm, k) => (arm === 'J1' ? J1[k] : arm === 'J2' ? J2[k] : arm === 'J3' ? J3[k] : BOB[k]);
-  return [k => tab[k], k => ({ c: runs[k], N: N16 }), S, (arm, k) => (arm === 'J1' ? G1[k] : G3[k])];
+  return [k => tab[k], k => ({ c: runs[k], N: n2 }), S, (arm, k) => (arm === 'J1' ? G1[k] : G3[k])];
 }
 const cnt = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }), tot = c => c.HELD + c.INCONCLUSIVE + c.FALSIFIED;
 const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] / tot(c))}`).join(' ');
@@ -109,7 +112,8 @@ const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] 
 const DR = 40, base = { gap: [0, 0, 0], gb: [0, 0], gb4: GBM };
 console.log(`\n2. THE POWER (${DR} draws a cell through reduce-axho.mjs's items(); S380 at NE-EDGE's survival ${SURV380.map(x => f4(100 * x)).join(', ')} by world, J1's runs on ${N16} paths a world; S360 at BO's bits with A6RS's GB and spread; the paths moved as multiples of A6RS's against BO's)`);
 for (const c1 of [1, 2, 4]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, d1: [d, d], c1 }))['1'].outcome]++; console.log(`  churn x${c1} item 1, J1's runs ${d} points in worlds 0 and 1: ${row(c)}`); }
-for (const g of [-3.5, -2, -1, -0.6, -0.3, 0, 0.3, 0.6, 1, 2, 3.5]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, gap: [g, g, g] }))['2'].outcome]++; console.log(`  item 2, table less runs ${g} points in every world: ${row(c)}`); }
+// item 2 as the review set it (4,000 paths a world) and as registered (16,000), on the same draws
+for (const g of [-3.5, -2, -1, -0.6, -0.3, 0, 0.3, 0.6, 1, 2, 3.5]) { const c = cnt(), c4 = cnt(); for (let q = 0; q < DR; q++) { const s0 = st, a = items(...setOf({ ...base, gap: [g, g, g] }))['2'].outcome; st = s0; const b = items(...setOf({ ...base, gap: [g, g, g] }, N))['2'].outcome; c[a]++; c4[b]++; } console.log(`  item 2, table less runs ${g} points in every world: on ${N16} paths ${row(c)}; on ${N} (the review's) ${row(c4)}`); }
 for (const g of [-0.3, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, gap: [g, 0, 2 * g] }))['2'].outcome]++; console.log(`  item 2, table less runs ${g}, 0 and ${2 * g} by world: ${row(c)}`); }
 for (const s of [1, 1.5]) for (const g of [-1.3, -0.6, -0.3, 0, 0.3, 0.45, 0.6, 1.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, gb: [g, g], spread: s }))['3'].outcome]++; console.log(`  spread x${s} item 3, J1's GB ${g} in worlds 0 and 1: ${row(c)}`); }
 for (const c4 of [0.75, 1.5]) for (const d of [-0.6, -0.3, 0, 0.3]) { const c = cnt(); for (let q = 0; q < DR; q++) c[items(...setOf({ ...base, d4: [d, d], c4 }))['4'].outcome]++; console.log(`  churn x${c4} item 4, J3's runs ${d} points in worlds 0 and 1, its GB A6RS's: ${row(c)}`); }

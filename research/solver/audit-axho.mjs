@@ -1,16 +1,19 @@
 /*
  * AX-HO (PLAN.md AREF, its AX-HO step; predictions/diag-axho.md; the deep review after AOR, deep-review-log.md 17 Oct 18:22
- * UK): the adaptive reference with the RS split held out - a third household (S380) and S360 on a fresh registry seed (the
- * second seed, 7004), each against the order reference (BO's) on the same paths. Five jobs at 60 wealth points and six
- * shares, the candidate's own unit:
- *   J1   S380 under the adaptive reference with the RS split (`readerRef: 'adaptive', readerSplit: 'rs'`): AN's ledger on
+ * UK): the adaptive reference with the RS split held out - a third household (S366) and S360 on a fresh registry seed (the
+ * second seed, 7004), each against the order reference (BO's) on the same paths. S366 replaces the receipt's S380 (the
+ * maintainer's choice, 17 Oct): at 4 and 30 points S380's two arms moved alike on every path-year, its accessible money
+ * covering its bridge's floor bills 2.1 times; S366 is the household, other than S360 and S364, whose accessible money sits
+ * nearest the bridge's floor bills (0.77 of them; an input rule, predictions/diag-axho.md). Five jobs at 60 wealth points and
+ * six shares, the candidate's own unit:
+ *   J1   S366 under the adaptive reference with the RS split (`readerRef: 'adaptive', readerSplit: 'rs'`): AN's ledger on
  *        the first 4,000 paths a world (B_t, V_t, G_t, T_t, the identity, GB, GL, GA, GD, Y<t>, QF), its own opening run on
  *        paths 4,000 to 8,999 more without the ledger, P forced on the first 4,000 (the ledger's own runs when P is its
  *        opening: the same paths and first move, so the same run), and the engine leg below;
  *   J1X  J1 re-solved (its tables and opening J1's to the printed digit, the reducer checks), its own opening on paths
  *        9,000 to 15,999 and D forced on the first 4,000: with J1, 16,000 paths a world at J1's opening (item 2's power,
- *        predictions/diag-axho.md: at 4,000 a world's interval is wider than the 1.5-point HELD band at S380's survival);
- *   J2   S380 under the order reference (BO's arm), the ledger on the first 4,000 paths a world;
+ *        predictions/diag-axho.md: at 4,000 a world's interval can be wider than the 1.5-point HELD band);
+ *   J2   S366 under the order reference (BO's arm), the ledger on the first 4,000 paths a world;
  *   J3   S360 as J1 (A6RS's settings), the ledger and the engine leg;
  *   J4   S360 under the order reference (BO's settings), the ledger.
  * Every job's own move in every year of every ledger path is saved (the reducer counts the moves and paths that differ
@@ -22,7 +25,7 @@
  * ledger's paths (indices under 16,000); the reference's own rule run forward beside (adaptive.js simulate, 100,000 runs a
  * state); each against p in log terms with its exact interval. engTook refuses the job unless every engine path's first
  * draw is distinct from every other's and from every main path's.
- * Self-checks, each refusing the job (exit 3): armTook, adaptTook (the adaptive arms), pairTook (S380's forced jobs),
+ * Self-checks, each refusing the job (exit 3): armTook, adaptTook (the adaptive arms), pairTook (S366's forced jobs),
  * ownTook, identity, qfTook and layerTook (the ledger, AN's), engTook (the engine leg).
  * AXHO_PLANT (each must make its job refuse on its own check): arm (J1 under the order reference: armTook), rs (J1 without
  * the split: armTook), draws (every engine state on one stream: engTook; run on J3, whose S360 records fill the band), and AN's own, layer, quad and held (the ledger's
@@ -48,19 +51,19 @@ import { codeId } from './code-id.mjs';
 
 // [household, arm, wealth points, shares, return nodes, the ledger, own-opening runs without it from and to (multiples of
 // the paths a world), the forced openings]; XSPLIT balances J1's and J1X's runs (paths 4,000 to 8,999 on J1, 9,000 to
-// 15,999 on J1X: S380's 60-point solve 3,738 s and 0.159 s a run, NE-EDGE's RZ log)
+// 15,999 on J1X)
 export const XSPLIT = 2.25;
 export const JOBS = [
-  ['S380', 'J1', 60, 6, 5, true, 1, XSPLIT, ['P']],
-  ['S380', 'J1X', 60, 6, 5, false, XSPLIT, 4, ['D']],
-  ['S380', 'J2', 60, 6, 5, true, 0, 0, []],
+  ['S366', 'J1', 60, 6, 5, true, 1, XSPLIT, ['P']],
+  ['S366', 'J1X', 60, 6, 5, false, XSPLIT, 4, ['D']],
+  ['S366', 'J2', 60, 6, 5, true, 0, 0, []],
   ['S360', 'J3', 60, 6, 5, true, 0, 0, []],
   ['S360', 'J4', 60, 6, 5, true, 0, 0, []],
 ];
 export const ARMS = Object.freeze({ J1: { readerRef: 'adaptive', readerSplit: 'rs' }, J1X: { readerRef: 'adaptive', readerSplit: 'rs' }, J2: { readerRef: 'order' }, J3: { readerRef: 'adaptive', readerSplit: 'rs' }, J4: { readerRef: 'order' } });
 export const ADAPTIVE = Object.freeze({ J1: true, J1X: true, J2: false, J3: true, J4: false });
-export const PAIRS = Object.freeze({ S380: [12, 14] });
-export const FLOORS = Object.freeze({ S380: 52500, S360: 5000 });
+export const PAIRS = Object.freeze({ S366: [12, 14] });
+export const FLOORS = Object.freeze({ S366: 29000, S360: 5000 });
 export const TAIL = Object.freeze({ edges: [1e-4, 1e-3, 1e-2, 0.05, 0.95], per: 25, nsim: 100000 });
 // the reference's lattice (adaptive.js's defaults, AN's, AO's and AOR's)
 export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
@@ -322,7 +325,7 @@ JOBS.forEach((job, ji) => {
     console.log(`${''.padEnd(16)} refTail ${L}: cells ${cellsN} off ${offS}; engine off ${offE}; ${TAIL.nsim} runs a state simulated, ${NENG} in the engine on its own draws, secs ${Math.round((Date.now() - t1) / 1000)}`);
     console.log(`${''.padEnd(16)} checks ${L}: engTook ${eN - eDup}/${eN}`);
     // a household with no bridge record in the band runs the leg on nothing: printed as such (0/0), never a pass (the reducer
-    // says so); the refusal is for shared draws (the preflight's J1 at 4 points: S380's records all past the band)
+    // says so); the refusal is for shared draws (the first preflight's J1 on S380 at 4 points: every record past the band)
     if (eDup !== 0) { console.error(`audit-axho: ${id} ${L}: the engine leg's draws are not each state's own (engTook ${eN - eDup}/${eN})`); process.exit(3); }
   }
   // the bridge years' survival tables (log-odds, Float32) of every world and layer, on the ledger's jobs (AN's)

@@ -1,0 +1,223 @@
+=== a MEASUREMENT, not a test: AX-HO's preflight, second launch (predictions/diag-axho.md, to be registered): the five jobs at a fifteenth of the points, the nine plants, the planted change for the differing-moves count, the ledger's copy against AOR's A6RS, and J1 at 30 points timed; the first launch stopped after J1 refused on an engine leg with no state (the fix: refuse on shared draws only) (its results cannot settle a test)
+seeds: 7002 (tuning), 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-bKrNVO   from 7fa4206 + 5 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code d2a982e80436 (smoke stamp 1da23df68239): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+m0 exit 0
+m1 exit 0
+m2 exit 0
+m3 exit 0
+m4 exit 0
+nudge exit 0
+copy exit 0
+p30 exit 0
+A: solve CAND J1/P60S6Q5: table 97.6408 secs 351
+A: ran CAND J1/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+A: checks J1/P60S6Q5: armTook 1/1
+A: adaptive J1/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 228.3
+A: checks J1/P60S6Q5: adaptTook 1/1
+A: checks J1/P60S6Q5: pairTook 1/1
+A: checks J1/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 12
+A: runs J1/P60S6Q5: secs 27
+A: refTail J1/P60S6Q5: cells 0 off 0; engine off 0; 100000 runs a state simulated, 40 in the engine on its own draws, secs 0
+A: checks J1/P60S6Q5: engTook 0/0
+A: solve CAND J1X/P60S6Q5: table 97.6408 secs 397
+A: ran CAND J1X/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+A: checks J1X/P60S6Q5: armTook 1/1
+A: adaptive J1X/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 266.3
+A: checks J1X/P60S6Q5: adaptTook 1/1
+A: checks J1X/P60S6Q5: pairTook 1/1
+A: runs J1X/P60S6Q5: secs 34
+A: solve CAND J2/P60S6Q5: table 97.6413 secs 342
+A: checks J2/P60S6Q5: armTook 1/1
+A: checks J2/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 17
+A: runs J2/P60S6Q5: secs 0
+A: solve CAND J3/P60S6Q5: table 49.1376 secs 448
+A: ran CAND J3/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+A: checks J3/P60S6Q5: armTook 1/1
+A: adaptive J3/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 257.8
+A: checks J3/P60S6Q5: adaptTook 1/1
+A: checks J3/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 807/807 layerTook 807/807 secs 13
+A: runs J3/P60S6Q5: secs 0
+A: refTail J3/P60S6Q5: cells 12 off 0; engine off 0; 100000 runs a state simulated, 40 in the engine on its own draws, secs 86
+A: checks J3/P60S6Q5: engTook 5600/5600
+A: solve CAND J4/P60S6Q5: table 42.7744 secs 312
+A: checks J4/P60S6Q5: armTook 1/1
+A: checks J4/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 807/807 layerTook 807/807 secs 11
+A: runs J4/P60S6Q5: secs 0
+A. GATE: passed - J1, J1X, J2, J3 and J4 once and done at the registered settings (40 paths a world, scale 15, seed 7004); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai 12, D ai 14; J1X J1's tables and opening to the digit, its overlap runs J1's bit for bit; the engine leg's cells printed on J1 and J3; the files and their moves the logs' PREFLIGHT moves differing (S380): world 0 0 paths 0 of 1237 path-years; world 1 0 paths 0 of 1629 path-years; world 2 0 paths 0 of 1801 path-years PREFLIGHT moves differing (S360): world 0 14 paths 66 of 795 path-years; world 1 13 paths 32 of 1185 path-years; world 2 8 paths 24 of
+B. plant arm exit 3: audit-axho: S380 J1/P60S6Q5: the job's settings did not take
+B. plant rs exit 3: audit-axho: S380 J1/P60S6Q5: the job's settings did not take
+B. plant draws exit 3: audit-axho: S360 J3/P60S6Q5: the engine leg's draws are not each state's own (engTook 40/5600)
+B. plant own exit 3: audit-axho: S360 J4/P60S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+B. plant layer exit 3: audit-axho: S360 J4/P60S6Q5: the ledger does not close on every path (ownTook 120/120 identity 45/120)
+B. plant quad exit 3: audit-axho: S360 J4/P60S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 456/807)
+B. plant held exit 3: audit-axho: S360 J4/P60S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 695/807)
+B. plant p30-arm exit 3: audit-axho: S380 J1/P60S6Q5: the job's settings did not take
+B. plant p30-rs exit 3: audit-axho: S380 J1/P60S6Q5: the job's settings did not take
+C. nudged against clean: ok   J1 equal to J2 on every path: 1 HELD: "HELD";ok   J1 loses 400 paths in world 0: 1 FALSIFIED: "FALSIFIED";ok   J1 loses 25 and saves 10 in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE";ok   J1 loses 15 and saves 3 in world 0: 1 HELD: "HELD";ok   J1 saves 400 paths in world 1: 1 HELD: "HELD";ok   J2 alive on 1% in world 0 and J1 losing 8 of its 40 paths (0.2 points, past the relative margin 0.1): 1 FALSIFIED: "FALSIFIED";ok   item 1 reads its margin from J2's survival (relative: 0.5 at 32%): 0.5;ok   the relative margin at 1% survival is a tenth of it: "0.5,0.5 0.1000";ok   J1's table at its runs in every world: 2 HELD: "HELD";ok   world 0's table 4 points over its runs: 2 FALSIFIED (over): "FALSIFIED";ok   world 1's table 5 points under its runs: 2 FALSIFIED (under): "FALSIFIED";ok   world 0's table a point over its runs, its interval reaching 1.88, across 1.5: 2 INCONCLUSIVE: "INCONCLUSIVE";ok   world 2's table 2.7 points over, short of FALSIFIED: 2 INCONCLUSIVE: "INCONCLUSIVE";ok   world 2 every run alive and the table at 100: 2 HELD: "HELD";ok   item 2 names its side: "FALSIFIED over";ok   item 2's interval is exact at 1 - 0.05 / 3 (half-width about 0.88 at 32% on 16,000): "0.0000 true";ok   J1's GB at 0.1 in both worlds: 3 HELD: "HELD";ok   J1's GB at 1.4 in world 0: 3 FALSIFIED (over): "FALSIFIED";ok   J1's GB at -1.4 in world 1: 3 FALSIFIED (under): "FALSIFIED";ok   J1's GB at 0.49 in world 0, its interval across 0.5: 3 INCONCLUSIVE: "INCONCLUSIVE";ok   J1's GB far off in world 2 (not item 3's): 3 HELD: "HELD";ok   J3 equal to J4 and its GB at 0.1 everywhere: 4 HELD: "HELD";ok   J3 loses 400 paths in world 0: 4 FALSIFIED: "FALSIFIED";ok   J3's GB at 1.4 in world 2: 4 FALSIFIED: "FALSIFIED";ok   J3's GB at 0.49 in world 1, its interval across 0.5: 4 INCONCLUSIVE: "INCONCLUSIVE";ok   J3 loses 25 and saves 10 in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE";ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4";ok   the differing moves read zero on equal moves: "0 0 7";ok   the differing moves read a planted change of one year: "1 1 7";ok   the differing moves skip a year one run did not reach: "0 0 7";ok   the gate passes the five jobs as registered: "";ok   the gate refuses a job run twice: true;ok   the gate refuses a job of another test: true;ok   the gate refuses a job missing: true;ok   the gate refuses J4 with no done line: true;ok   the gate refuses a header naming another path count (the runs right): true;ok   the gate refuses another seed: true;ok   the gate refuses J1 under the order reference (the arm plant): true;ok   the gate refuses J1 without the RS split (the rs plant): true;ok   the gate refuses J3 without the RS split: true;ok   the gate refuses J2 under the RS split: true;ok   the gate refuses J4 under the adaptive reference: true;ok   the gate refuses J2 on S360's floor: true;ok   the gate refuses J3 run on S380: true;ok   the gate refuses an identity short on J4 (the own, layer plants): true;ok   the gate refuses engTook short on J1 (the draws plant): true;ok   the gate refuses J3's engine leg short of a p-decade: true;ok   the gate passes an engine leg on no state (0/0, every cell empty): "";ok   the gate refuses engTook 0/0 with a cell holding states: true;ok   the gate refuses a ledger job with no moves recorded: true;ok   the gate refuses a ledger job short of a world: true;ok   the gate refuses J1's own runs on the wrong paths: true;ok   the gate refuses J1X with no overlap run: true;ok   the gate refuses J1X's tables a digit off J1's: true;ok   the gate refuses J1X's D table alone a digit off J1's: true;ok   the gate refuses J1X at another opening: true;ok   the gate refuses the forced pair not the registered one: true;ok   the gate refuses J1X's D runs at another move than the pair's: true;ok   the gate refuses a reference not monotone: true;ok   the gate passes the files as the logs name them: "";ok   the gate refuses J1X's overlap runs a path off J1's: true;ok   the gate refuses a file whose moves are not the log's: true;ok   the gate refuses a missing file: true;ok   the luck adjustment recovers a known intercept: "2.0000";ok   the pooled luck-adjusted T weighs by inverse variance: "1.6000 0.8944";DIFFER world 0: paths 0 of 40 path-years 0 of 795;DIFFER world 1: paths 0 of 40 path-years 0 of 1185;DIFFER world 2: paths 0 of 40 path-years 0 of 1493;
+C. clean against itself: ok   J1 equal to J2 on every path: 1 HELD: "HELD";ok   J1 loses 400 paths in world 0: 1 FALSIFIED: "FALSIFIED";ok   J1 loses 25 and saves 10 in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE";ok   J1 loses 15 and saves 3 in world 0: 1 HELD: "HELD";ok   J1 saves 400 paths in world 1: 1 HELD: "HELD";ok   J2 alive on 1% in world 0 and J1 losing 8 of its 40 paths (0.2 points, past the relative margin 0.1): 1 FALSIFIED: "FALSIFIED";ok   item 1 reads its margin from J2's survival (relative: 0.5 at 32%): 0.5;ok   the relative margin at 1% survival is a tenth of it: "0.5,0.5 0.1000";ok   J1's table at its runs in every world: 2 HELD: "HELD";ok   world 0's table 4 points over its runs: 2 FALSIFIED (over): "FALSIFIED";ok   world 1's table 5 points under its runs: 2 FALSIFIED (under): "FALSIFIED";ok   world 0's table a point over its runs, its interval reaching 1.88, across 1.5: 2 INCONCLUSIVE: "INCONCLUSIVE";ok   world 2's table 2.7 points over, short of FALSIFIED: 2 INCONCLUSIVE: "INCONCLUSIVE";ok   world 2 every run alive and the table at 100: 2 HELD: "HELD";ok   item 2 names its side: "FALSIFIED over";ok   item 2's interval is exact at 1 - 0.05 / 3 (half-width about 0.88 at 32% on 16,000): "0.0000 true";ok   J1's GB at 0.1 in both worlds: 3 HELD: "HELD";ok   J1's GB at 1.4 in world 0: 3 FALSIFIED (over): "FALSIFIED";ok   J1's GB at -1.4 in world 1: 3 FALSIFIED (under): "FALSIFIED";ok   J1's GB at 0.49 in world 0, its interval across 0.5: 3 INCONCLUSIVE: "INCONCLUSIVE";ok   J1's GB far off in world 2 (not item 3's): 3 HELD: "HELD";ok   J3 equal to J4 and its GB at 0.1 everywhere: 4 HELD: "HELD";ok   J3 loses 400 paths in world 0: 4 FALSIFIED: "FALSIFIED";ok   J3's GB at 1.4 in world 2: 4 FALSIFIED: "FALSIFIED";ok   J3's GB at 0.49 in world 1, its interval across 0.5: 4 INCONCLUSIVE: "INCONCLUSIVE";ok   J3 loses 25 and saves 10 in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE";ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4";ok   the differing moves read zero on equal moves: "0 0 7";ok   the differing moves read a planted change of one year: "1 1 7";ok   the differing moves skip a year one run did not reach: "0 0 7";ok   the gate passes the five jobs as registered: "";ok   the gate refuses a job run twice: true;ok   the gate refuses a job of another test: true;ok   the gate refuses a job missing: true;ok   the gate refuses J4 with no done line: true;ok   the gate refuses a header naming another path count (the runs right): true;ok   the gate refuses another seed: true;ok   the gate refuses J1 under the order reference (the arm plant): true;ok   the gate refuses J1 without the RS split (the rs plant): true;ok   the gate refuses J3 without the RS split: true;ok   the gate refuses J2 under the RS split: true;ok   the gate refuses J4 under the adaptive reference: true;ok   the gate refuses J2 on S360's floor: true;ok   the gate refuses J3 run on S380: true;ok   the gate refuses an identity short on J4 (the own, layer plants): true;ok   the gate refuses engTook short on J1 (the draws plant): true;ok   the gate refuses J3's engine leg short of a p-decade: true;ok   the gate passes an engine leg on no state (0/0, every cell empty): "";ok   the gate refuses engTook 0/0 with a cell holding states: true;ok   the gate refuses a ledger job with no moves recorded: true;ok   the gate refuses a ledger job short of a world: true;ok   the gate refuses J1's own runs on the wrong paths: true;ok   the gate refuses J1X with no overlap run: true;ok   the gate refuses J1X's tables a digit off J1's: true;ok   the gate refuses J1X's D table alone a digit off J1's: true;ok   the gate refuses J1X at another opening: true;ok   the gate refuses the forced pair not the registered one: true;ok   the gate refuses J1X's D runs at another move than the pair's: true;ok   the gate refuses a reference not monotone: true;ok   the gate passes the files as the logs name them: "";ok   the gate refuses J1X's overlap runs a path off J1's: true;ok   the gate refuses a file whose moves are not the log's: true;ok   the gate refuses a missing file: true;ok   the luck adjustment recovers a known intercept: "2.0000";ok   the pooled luck-adjusted T weighs by inverse variance: "1.6000 0.8944";DIFFER world 0: paths 0 of 40 path-years 0 of 795;DIFFER world 1: paths 0 of 40 path-years 0 of 1185;DIFFER world 2: paths 0 of 40 path-years 0 of 1493;
+THE DIFFERING-MOVES COUNT DID NOT READ THE PLANTED CHANGE (world 0 0, worlds 1-2 0, clean 0) - the preflight fails
+D. ok   J1 equal to J2 on every path: 1 HELD: "HELD"
+ok   J1 loses 400 paths in world 0: 1 FALSIFIED: "FALSIFIED"
+ok   J1 loses 25 and saves 10 in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1 loses 15 and saves 3 in world 0: 1 HELD: "HELD"
+ok   J1 saves 400 paths in world 1: 1 HELD: "HELD"
+ok   J2 alive on 1% in world 0 and J1 losing 8 of its 40 paths (0.2 points, past the relative margin 0.1): 1 FALSIFIED: "FALSIFIED"
+ok   item 1 reads its margin from J2's survival (relative: 0.5 at 32%): 0.5
+ok   the relative margin at 1% survival is a tenth of it: "0.5,0.5 0.1000"
+ok   J1's table at its runs in every world: 2 HELD: "HELD"
+ok   world 0's table 4 points over its runs: 2 FALSIFIED (over): "FALSIFIED"
+ok   world 1's table 5 points under its runs: 2 FALSIFIED (under): "FALSIFIED"
+ok   world 0's table a point over its runs, its interval reaching 1.88, across 1.5: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2's table 2.7 points over, short of FALSIFIED: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2 every run alive and the table at 100: 2 HELD: "HELD"
+ok   item 2 names its side: "FALSIFIED over"
+ok   item 2's interval is exact at 1 - 0.05 / 3 (half-width about 0.88 at 32% on 16,000): "0.0000 true"
+ok   J1's GB at 0.1 in both worlds: 3 HELD: "HELD"
+ok   J1's GB at 1.4 in world 0: 3 FALSIFIED (over): "FALSIFIED"
+ok   J1's GB at -1.4 in world 1: 3 FALSIFIED (under): "FALSIFIED"
+ok   J1's GB at 0.49 in world 0, its interval across 0.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1's GB far off in world 2 (not item 3's): 3 HELD: "HELD"
+ok   J3 equal to J4 and its GB at 0.1 everywhere: 4 HELD: "HELD"
+ok   J3 loses 400 paths in world 0: 4 FALSIFIED: "FALSIFIED"
+ok   J3's GB at 1.4 in world 2: 4 FALSIFIED: "FALSIFIED"
+ok   J3's GB at 0.49 in world 1, its interval across 0.5: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J3 loses 25 and saves 10 in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4"
+ok   the differing moves read zero on equal moves: "0 0 7"
+ok   the differing moves read a planted change of one year: "1 1 7"
+ok   the differing moves skip a year one run did not reach: "0 0 7"
+ok   the gate passes the five jobs as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job of another test: true
+ok   the gate refuses a job missing: true
+ok   the gate refuses J4 with no done line: true
+ok   the gate refuses a header naming another path count (the runs right): true
+ok   the gate refuses another seed: true
+ok   the gate refuses J1 under the order reference (the arm plant): true
+ok   the gate refuses J1 without the RS split (the rs plant): true
+ok   the gate refuses J3 without the RS split: true
+ok   the gate refuses J2 under the RS split: true
+ok   the gate refuses J4 under the adaptive reference: true
+ok   the gate refuses J2 on S360's floor: true
+ok   the gate refuses J3 run on S380: true
+ok   the gate refuses an identity short on J4 (the own, layer plants): true
+ok   the gate refuses engTook short on J1 (the draws plant): true
+ok   the gate refuses J3's engine leg short of a p-decade: true
+ok   the gate passes an engine leg on no state (0/0, every cell empty): ""
+ok   the gate refuses engTook 0/0 with a cell holding states: true
+ok   the gate refuses a ledger job with no moves recorded: true
+ok   the gate refuses a ledger job short of a world: true
+ok   the gate refuses J1's own runs on the wrong paths: true
+ok   the gate refuses J1X with no overlap run: true
+ok   the gate refuses J1X's tables a digit off J1's: true
+ok   the gate refuses J1X's D table alone a digit off J1's: true
+ok   the gate refuses J1X at another opening: true
+ok   the gate refuses the forced pair not the registered one: true
+ok   the gate refuses J1X's D runs at another move than the pair's: true
+ok   the gate refuses a reference not monotone: true
+ok   the gate passes the files as the logs name them: ""
+ok   the gate refuses J1X's overlap runs a path off J1's: true
+ok   the gate refuses a file whose moves are not the log's: true
+ok   the gate refuses a missing file: true
+ok   the luck adjustment recovers a known intercept: "2.0000"
+ok   the pooled luck-adjusted T weighs by inverse variance: "1.6000 0.8944"
+COPY: identical (51 per-path arrays, 6 bit sets, 72 tables)
+D. against seed 7004's J3 (must differ): ok   J1 equal to J2 on every path: 1 HELD: "HELD"
+ok   J1 loses 400 paths in world 0: 1 FALSIFIED: "FALSIFIED"
+ok   J1 loses 25 and saves 10 in world 1: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1 loses 15 and saves 3 in world 0: 1 HELD: "HELD"
+ok   J1 saves 400 paths in world 1: 1 HELD: "HELD"
+ok   J2 alive on 1% in world 0 and J1 losing 8 of its 40 paths (0.2 points, past the relative margin 0.1): 1 FALSIFIED: "FALSIFIED"
+ok   item 1 reads its margin from J2's survival (relative: 0.5 at 32%): 0.5
+ok   the relative margin at 1% survival is a tenth of it: "0.5,0.5 0.1000"
+ok   J1's table at its runs in every world: 2 HELD: "HELD"
+ok   world 0's table 4 points over its runs: 2 FALSIFIED (over): "FALSIFIED"
+ok   world 1's table 5 points under its runs: 2 FALSIFIED (under): "FALSIFIED"
+ok   world 0's table a point over its runs, its interval reaching 1.88, across 1.5: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2's table 2.7 points over, short of FALSIFIED: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2 every run alive and the table at 100: 2 HELD: "HELD"
+ok   item 2 names its side: "FALSIFIED over"
+ok   item 2's interval is exact at 1 - 0.05 / 3 (half-width about 0.88 at 32% on 16,000): "0.0000 true"
+ok   J1's GB at 0.1 in both worlds: 3 HELD: "HELD"
+ok   J1's GB at 1.4 in world 0: 3 FALSIFIED (over): "FALSIFIED"
+ok   J1's GB at -1.4 in world 1: 3 FALSIFIED (under): "FALSIFIED"
+ok   J1's GB at 0.49 in world 0, its interval across 0.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1's GB far off in world 2 (not item 3's): 3 HELD: "HELD"
+ok   J3 equal to J4 and its GB at 0.1 everywhere: 4 HELD: "HELD"
+ok   J3 loses 400 paths in world 0: 4 FALSIFIED: "FALSIFIED"
+ok   J3's GB at 1.4 in world 2: 4 FALSIFIED: "FALSIFIED"
+ok   J3's GB at 0.49 in world 1, its interval across 0.5: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J3 loses 25 and saves 10 in world 1: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4"
+ok   the differing moves read zero on equal moves: "0 0 7"
+ok   the differing moves read a planted change of one year: "1 1 7"
+ok   the differing moves skip a year one run did not reach: "0 0 7"
+ok   the gate passes the five jobs as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job of another test: true
+ok   the gate refuses a job missing: true
+ok   the gate refuses J4 with no done line: true
+ok   the gate refuses a header naming another path count (the runs right): true
+ok   the gate refuses another seed: true
+ok   the gate refuses J1 under the order reference (the arm plant): true
+ok   the gate refuses J1 without the RS split (the rs plant): true
+ok   the gate refuses J3 without the RS split: true
+ok   the gate refuses J2 under the RS split: true
+ok   the gate refuses J4 under the adaptive reference: true
+ok   the gate refuses J2 on S360's floor: true
+ok   the gate refuses J3 run on S380: true
+ok   the gate refuses an identity short on J4 (the own, layer plants): true
+ok   the gate refuses engTook short on J1 (the draws plant): true
+ok   the gate refuses J3's engine leg short of a p-decade: true
+ok   the gate passes an engine leg on no state (0/0, every cell empty): ""
+ok   the gate refuses engTook 0/0 with a cell holding states: true
+ok   the gate refuses a ledger job with no moves recorded: true
+ok   the gate refuses a ledger job short of a world: true
+ok   the gate refuses J1's own runs on the wrong paths: true
+ok   the gate refuses J1X with no overlap run: true
+ok   the gate refuses J1X's tables a digit off J1's: true
+ok   the gate refuses J1X's D table alone a digit off J1's: true
+ok   the gate refuses J1X at another opening: true
+ok   the gate refuses the forced pair not the registered one: true
+ok   the gate refuses J1X's D runs at another move than the pair's: true
+ok   the gate refuses a reference not monotone: true
+ok   the gate passes the files as the logs name them: ""
+ok   the gate refuses J1X's overlap runs a path off J1's: true
+ok   the gate refuses a file whose moves are not the log's: true
+ok   the gate refuses a missing file: true
+ok   the luck adjustment recovers a known intercept: "2.0000"
+ok   the pooled luck-adjusted T weighs by inverse variance: "1.6000 0.8944"
+COPY: DIFFERS (55 of 129: seed, per X0, per T0, per GB0, per GA0, per GL0)
+E30: solve CAND J1/P60S6Q5: table 72.3334 secs 1496
+E30: ran CAND J1/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+E30: reader J1/P60S6Q5: tables 72 unsupported 0 copied 109251 copiedTop 58824 nodes 352944
+E30: checks J1/P60S6Q5: armTook 1/1
+E30: adaptive J1/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 285.2
+E30: checks J1/P60S6Q5: adaptTook 1/1
+E30: checks J1/P60S6Q5: pairTook 1/1
+E30: openings J1/P60S6Q5: OWN ai 12 level 0.8 tiers 0,0
+E30: bridge J1/P60S6Q5: reader years 1,2,3,4,5,6,7
+E30: checks J1/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 14
+E30: runs J1/P60S6Q5: secs 18
+E30: refTail J1/P60S6Q5: cells 0 off 0; engine off 0; 100000 runs a state simulated, 40 in the engine on its own draws, secs 0
+E30: checks J1/P60S6Q5: engTook 0/0
+E. tables at 30 points: clean 72.3334, rs plant 72.3424, arm plant 72.3884
+preflight done 21:02 UK

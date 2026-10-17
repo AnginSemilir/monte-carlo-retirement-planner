@@ -1,8 +1,11 @@
 /*
  * AX-HO'S REDUCER (PLAN.md AREF, its AX-HO step; predictions/diag-axho.md; the deep review after AOR, deep-review-log.md
  * 17 Oct 18:22 UK). Five jobs at 60 points and six shares, the candidate's own unit, seed 7004, into results/diagaxho
- * (audit-axho.mjs): J1 and J1X (S380 under the adaptive reference with the RS split, J1X J1 re-solved for its runs on
- * paths 9,000 to 15,999), J2 (S380 under the order reference), J3 (S360 under A6RS's settings) and J4 (S360 under BO's).
+ * (audit-axho.mjs): J1 and J1X (S366 under the adaptive reference with the RS split, J1X J1 re-solved for its runs on
+ * paths 9,000 to 15,999), J2 (S366 under the order reference), J3 (S360 under A6RS's settings) and J4 (S360 under BO's).
+ * S366 stands in the receipt's S380's place (the maintainer's choice, 17 Oct): S380's two arms moved alike on every path-year
+ * at 4 and 30 points (its accessible money covers its bridge's floor bills 2.1 times); S366's accessible money sits nearest
+ * those bills (0.77) among the households the reference was neither designed nor tested on.
  * THE GATE: each job once and done at the registered settings (4,000 paths a world, 60 points, seed 7004, the reference's
  *   lattice 160 by 41 with 128 draws), stamped as launched, the fair-test gate on the logs (one audit); its solve's meta
  *   reads the candidate's settings and the job's reference and split; every self-check in full (armTook; adaptTook on J1,
@@ -11,7 +14,7 @@
  *   printed digit and its own runs on world 0's first 100 paths J1's bit for bit; the engine leg's twelve cells printed on
  *   J1 and J3; the files whole and the logs', their moves the logs'.
  * THE ITEMS:
- *   1 (primary): no material harm to J1's runs against J2's on the same paths, S380 worlds 0 and 1: the exact conditional
+ *   1 (primary): no material harm to J1's runs against J2's on the same paths, S366 worlds 0 and 1: the exact conditional
  *     McNemar interval, the relative margin marginRel(J2's survival), Holm across the two worlds: HELD (no material harm
  *     in both), FALSIFIED (harm in either), otherwise INCONCLUSIVE; the differing moves and paths printed beside.
  *   2: J1's table at its own opening against its runs on 16,000 paths a world (J1's ledger paths and paths 4,000 to 8,999,
@@ -49,14 +52,14 @@ export const Z2 = 2.241402727604947, Z3 = 2.393979714906444, ALPHA2 = 0.05 / 3; 
 export const IN2 = 1.5, OUT2 = 3, IN3 = 0.5, OUT3 = 1.0;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const ARMS = ['J1', 'J1X', 'J2', 'J3', 'J4'], LABELS = Object.freeze(Object.fromEntries(ARMS.map(a => [a, `${a}/P60S6Q5`])));
-export const HOUSE = Object.freeze({ J1: 'S380', J1X: 'S380', J2: 'S380', J3: 'S360', J4: 'S360' });
+export const HOUSE = Object.freeze({ J1: 'S366', J1X: 'S366', J2: 'S366', J3: 'S360', J4: 'S360' });
 export const LEDGER = Object.freeze({ J1: true, J1X: false, J2: true, J3: true, J4: true });
 export const ADAPT = Object.freeze({ J1: true, J1X: true, J2: false, J3: true, J4: false });
 // the old files O160's pooled line reads (seed 7002): A6RS behind AOR's gate, BO behind NODE-AX's
 export const A6RS_FILE = 'S360-A6RS-P60S6Q5.json.gz', A6RS_SHA = '518c25610c33f8c3', BO_FILE = 'S360-BO-P60S6Q5.json.gz', BO_SHA = 'bc583b88e106e30a';
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${esc(k)} (\\S+)`).exec(s); return m ? m[1] : null; };
-const CASEL = /^(S380|S360)\s+case \| job ((J1|J1X|J2|J3|J4)\/P(\d+)S(\d+)Q5) \| points (\d+) \| lambda (\S+)$/;
+const CASEL = /^(S366|S360)\s+case \| job ((J1|J1X|J2|J3|J4)\/P(\d+)S(\d+)Q5) \| points (\d+) \| lambda (\S+)$/;
 const HEAD = /^AX-HO: .*?, (\d+) paths a world.*?, wealth points divided by (\d+(?:\.\d+)?) \(seed (\d+)\);/;
 
 export function parse(text) {
@@ -104,7 +107,7 @@ export function parse(text) {
 }
 
 const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null', readerChance: 'null', jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001', line: '0.5', mix: '3', shareNodes: 'none' };
-const ARMF = Object.freeze({ J1: { readerRef: 'adaptive', readerSplit: 'rs', floor: '52500' }, J1X: { readerRef: 'adaptive', readerSplit: 'rs', floor: '52500' }, J2: { readerRef: 'order', readerSplit: 'null', floor: '52500' }, J3: { readerRef: 'adaptive', readerSplit: 'rs', floor: '5000' }, J4: { readerRef: 'order', readerSplit: 'null', floor: '5000' } });
+const ARMF = Object.freeze({ J1: { readerRef: 'adaptive', readerSplit: 'rs', floor: '29000' }, J1X: { readerRef: 'adaptive', readerSplit: 'rs', floor: '29000' }, J2: { readerRef: 'order', readerSplit: 'null', floor: '29000' }, J3: { readerRef: 'adaptive', readerSplit: 'rs', floor: '5000' }, J4: { readerRef: 'order', readerSplit: 'null', floor: '5000' } });
 const NEED = Object.freeze({ J1: ['armTook', 'adaptTook', 'pairTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'engTook'], J1X: ['armTook', 'adaptTook', 'pairTook'], J2: ['armTook', 'ownTook', 'identity', 'qfTook', 'layerTook'], J3: ['armTook', 'adaptTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'engTook'], J4: ['armTook', 'ownTook', 'identity', 'qfTook', 'layerTook'] });
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } = {}) {
   const bad = [], pts = Math.max(4, Math.round(60 / scale)), xs = Math.round(XSPLIT * npw);
@@ -130,11 +133,11 @@ export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } =
     if (ADAPT[arm] && (!j.adaptive || j.adaptive.lattice !== LATTICE || j.adaptive.nz !== NZ || j.adaptive.nonMono !== 0 || !(j.adaptive.moves > 0))) bad.push(`${arm}: the reference was not built at the registered lattice (${LATTICE}, ${NZ} draws) with a monotone last year`);
     if (!j.own) bad.push(`${arm}: no openings line`);
     if (!j.solve) bad.push(`${arm}: no solve line`);
-    const S380F = arm === 'J1' || arm === 'J1X';
-    if (S380F && (!j.pair || j.pair[0] !== 12 || j.pair[1] !== 14)) bad.push(`${arm}: the pair is not the registered one (P ai 12, D ai 14)`);
+    const S366F = arm === 'J1' || arm === 'J1X';
+    if (S366F && (!j.pair || j.pair[0] !== 12 || j.pair[1] !== 14)) bad.push(`${arm}: the pair is not the registered one (P ai 12, D ai 14)`);
     for (let w = 0; w < 3; w++) {
       const t = j.tables[w];
-      if (!t || !Number.isFinite(t.OWN) || !Number.isFinite(t.READ) || (S380F && !(Number.isFinite(t.P) && Number.isFinite(t.D)))) bad.push(`${arm}: world ${w}'s tables are missing`);
+      if (!t || !Number.isFinite(t.OWN) || !Number.isFinite(t.READ) || (S366F && !(Number.isFinite(t.P) && Number.isFinite(t.D)))) bad.push(`${arm}: world ${w}'s tables are missing`);
     }
     if (LEDGER[arm]) {
       if (j.checks.identity && j.checks.identity[1] !== 3 * npw) bad.push(`${arm}: the identity was not held on every path of three worlds`);
@@ -225,8 +228,8 @@ export function report(TAB, RUNS, S, G, DIF = () => null) {
   const it = items(TAB, RUNS, S, G), L = [];
   const difLine = (pr, ks) => ks.map(k => { const d = DIF(pr, k); return d ? `world ${k}: ${d.paths} of ${d.n} paths and ${d.py} of ${d.both} path-years with a move differing` : `world ${k}: no moves`; }).join('; ');
   L.push('', 'THE ITEMS (each read by its registered rule)');
-  L.push(`1. no material harm to J1's runs against J2's on S380 on the same paths, worlds 0 and 1: ${it['1'].outcome}`);
-  L.push(`     ${it['1'].cells.map(harmLine).join('; ')}`, `     moves differing, J1 against J2: ${difLine('S380', [0, 1, 2])}`);
+  L.push(`1. no material harm to J1's runs against J2's on S366 on the same paths, worlds 0 and 1: ${it['1'].outcome}`);
+  L.push(`     ${it['1'].cells.map(harmLine).join('; ')}`, `     moves differing, J1 against J2: ${difLine('S366', [0, 1, 2])}`);
   L.push(`2. J1's table at its own opening against its runs on ${it['2'].cells[0].N} paths a world, inside 1.5 points in every world (FALSIFIED at a whole interval past 3 points either way): ${it['2'].outcome}${it['2'].side ? ` (${it['2'].side})` : ''}`);
   L.push(`     ${it['2'].cells.map(x => `world ${x.k}: table ${f4(x.table)} runs ${x.c}/${x.N} (${f4(x.runs)}), table less runs ${iv(x)}`).join('; ')}`);
   L.push(`3. J1's bridge-years grid residual GB within half a point in worlds 0 and 1 (FALSIFIED at a whole interval past one point either way): ${it['3'].outcome}${it['3'].side ? ` (${it['3'].side})` : ''}`);
@@ -243,7 +246,7 @@ const EDGES = [], ITEMS = ['1', '2', '3', '4'], REACHED = { 1: new Set(), 2: new
 function planted() {
   const cases = [], N = 4000;
   const bitsOf = (alive, n = N, lose = 0, gain = 0) => { const b = Buffer.alloc(n); for (let i = 0; i < alive; i++) b[i] = 1; for (let i = 0; i < lose; i++) b[i] = 0; for (let i = 0; i < gain; i++) b[alive + i] = 1; return b; };
-  // S380 at about 32% and 77% in worlds 0 and 1 (J2's survival), S360 at half; J1's runs 16,000 a world at the table unless o.runs
+  // the first household at about 32% and 77% in worlds 0 and 1 (J2's survival), S360 at half; J1's runs 16,000 a world at the table unless o.runs
   const mk = (o = {}) => {
     const alive = { J2: o.aliveJ2 || [1280, 3080], J4: [2000, 2000] }, tab = o.tab || [32, 77, 96], runs = o.runs || [32, 77, 96];
     const S = (arm, k) => (arm === 'J1' ? bitsOf(alive.J2[k], N, o.lose1 ? o.lose1[k] : 0, o.gain1 ? o.gain1[k] : 0) : arm === 'J2' ? bitsOf(alive.J2[k]) : arm === 'J3' ? bitsOf(alive.J4[k], N, o.lose3 ? o.lose3[k] : 0, o.gain3 ? o.gain3[k] : 0) : bitsOf(alive.J4[k]));
@@ -330,7 +333,7 @@ function planted() {
   refuses('J2 under the RS split', { J2: { split: 'rs' } });
   refuses('J4 under the adaptive reference', { J4: { ref: 'adaptive' } });
   refuses('J2 on S360\'s floor', { J2: { floor: '5000' } });
-  refuses('J3 run on S380', { J3: { house: 'S380' } });
+  refuses('J3 run on S366', { J3: { house: 'S366' } });
   refuses('an identity short on J4 (the own, layer plants)', { J4: { idOk: 11999 } });
   refuses('engTook short on J1 (the draws plant)', { J1: { eng: 299 } });
   refuses('J3\'s engine leg short of a p-decade', { J3: { bins: 3 } });
@@ -357,7 +360,7 @@ function planted() {
     const F0 = filesOf({});
     cases.push(['the gate passes the files as the logs name them', gate(js, { files: F0 }).join('; '), '']);
     cases.push(['the gate refuses J1X\'s overlap runs a path off J1\'s', gate(js, { files: filesOf({ oneOff: true }) }).some(x => /not J1's bit for bit/.test(x)), true]);
-    const F2 = filesOf({}); F2['S380-J2-P60S6Q5.json.gz'].moves.MV1 = z(18);
+    const F2 = filesOf({}); F2['S366-J2-P60S6Q5.json.gz'].moves.MV1 = z(18);
     cases.push(['the gate refuses a file whose moves are not the log\'s', gate(js, { files: F2 }).some(x => /moves are not the log's/.test(x)), true]);
     const F3 = filesOf({}); delete F3['S360-J4-P60S6Q5.json.gz'];
     cases.push(['the gate refuses a missing file', gate(js, { files: F3 }).some(x => /file .* is missing/.test(x)), true]); }
@@ -425,14 +428,14 @@ if (isMain) {
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
   const J = Object.fromEntries(Object.entries(LABELS).map(([a, l]) => [a, jobs.find(x => x.label === l)])), FJ = a => files[J[a].file];
   // the STAMPS line's preflight duty: the moves differing between each pair's arms, printed here too (no figure is read)
-  const DIF = (pr, k) => { const [a, b] = pr === 'S380' ? ['J1', 'J2'] : ['J3', 'J4']; return differ(decMoves(FJ(a).moves[`MV${k}`]), decMoves(FJ(b).moves[`MV${k}`]), FJ(a).years); };
+  const DIF = (pr, k) => { const [a, b] = pr === 'S366' ? ['J1', 'J2'] : ['J3', 'J4']; return differ(decMoves(FJ(a).moves[`MV${k}`]), decMoves(FJ(b).moves[`MV${k}`]), FJ(a).years); };
   console.log(`planted (${np_}): all read as they should`);
   console.log(`GATE: passed - J1, J1X, J2, J3 and J4 once and done at the registered settings (${npwA} paths a world, scale ${scaleA}, seed ${SEED}); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai 12, D ai 14; J1X J1's tables and opening to the digit, its overlap runs J1's bit for bit; the engine leg's cells printed on J1 and J3; the files and their moves the logs'${PRE ? '' : `; AOR's A6RS (${A6RS_SHA}) and NODE-AX's BO (${BO_SHA}) behind their gates`}`);
-  if (PRE) { for (const pr of ['S380', 'S360']) console.log(`PREFLIGHT moves differing (${pr}): ${[0, 1, 2].map(k => { const d = DIF(pr, k); return `world ${k} ${d.paths} paths ${d.py} of ${d.both} path-years`; }).join('; ')}`); console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
+  if (PRE) { for (const pr of ['S366', 'S360']) console.log(`PREFLIGHT moves differing (${pr}): ${[0, 1, 2].map(k => { const d = DIF(pr, k); return `world ${k} ${d.paths} paths ${d.py} of ${d.both} path-years`; }).join('; ')}`); console.log('PREFLIGHT: the gate and the files read; no figure is read'); process.exit(0); }
   const bitsF = (f, nm) => Buffer.from(f.bits[nm], 'base64'), cnt = b => { let c = 0; for (const x of b) c += x; return c; };
   const RUNS = k => { const b = [bitsF(FJ('J1'), `OWN${k}`), bitsF(FJ('J1'), `OWNX${k}`), bitsF(FJ('J1X'), `OWNX${k}`)]; return { c: b.reduce((t, x) => t + cnt(x), 0), N: b.reduce((t, x) => t + x.length, 0) }; };
   const TAB = k => J.J1.tables[k].OWN, S = (arm, k) => bitsF(FJ(arm), `OWN${k}`), G = (arm, k) => dec(FJ(arm).per[`GB${k}`]);
-  console.log('\nAX-HO: the adaptive reference with the RS split held out - S380 (J1, J1X against J2) and S360 on seed 7004 (J3 against J4), each against the order reference on the same paths (predictions/diag-axho.md)');
+  console.log('\nAX-HO: the adaptive reference with the RS split held out - S366 (J1, J1X against J2) and S360 on seed 7004 (J3 against J4), each against the order reference on the same paths (predictions/diag-axho.md)');
   for (const L of report(TAB, RUNS, S, G, DIF)) console.log(L);
   console.log('\nREPORTED');
   for (const a of ['J1', 'J3']) { const x = J[a].adaptive; console.log(`  ${a}'s reference: ${x.moves} floor moves, lattice ${x.lattice} by ${x.ng} gain nodes, ${x.nz} draws, last bridge year ${x.TL}, built in ${x.secs} s; solve ${J[a].solve.secs} s (gate 5)`); }

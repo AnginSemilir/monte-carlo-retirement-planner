@@ -380,12 +380,6 @@ const decMoves = x => { const b = Buffer.from(x, 'base64'); return new Uint16Arr
 const luckOf = (f, k, paths) => { const T = dec(f.per[`T${k}`]), yrs = [0, ...f.bridge]; return luckAdjusted(T, T.map((_, i) => yrs.map(t => paths[i][t]))); };
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
-  const np_ = planted();
-  if (process.argv.includes('--planted')) {
-    console.log(`planted (${np_}): all read as they should\nEDGES: ${EDGES.join(', ')}`);
-    for (const i of Object.keys(REACHED)) console.log(`OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`);
-    process.exit(0);
-  }
   if (process.argv[2] === '--differ') {
     const ld = p => JSON.parse(gunzipSync(readFileSync(p)).toString()), a = ld(process.argv[3]), b = ld(process.argv[4]);
     for (let k = 0; k < 3; k++) { const d = differ(decMoves(a.moves[`MV${k}`]), decMoves(b.moves[`MV${k}`]), a.years); console.log(`DIFFER world ${k}: paths ${d.paths} of ${d.n} path-years ${d.py} of ${d.both}`); }
@@ -402,6 +396,12 @@ if (isMain) {
     const n = per.length + bt.length + tb.length;
     console.log(off.length || !(per.length > 0) ? `COPY: DIFFERS (${off.length} of ${n}: ${off.slice(0, 6).join(', ')})` : `COPY: identical (${per.length} per-path arrays, ${bt.length} bit sets, ${tb.length} tables)`);
     process.exit(off.length || !(per.length > 0) ? 1 : 0);
+  }
+  const np_ = planted();
+  if (process.argv.includes('--planted')) {
+    console.log(`planted (${np_}): all read as they should\nEDGES: ${EDGES.join(', ')}`);
+    for (const i of Object.keys(REACHED)) console.log(`OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`);
+    process.exit(0);
   }
   const args = process.argv.slice(2).filter(a => !a.startsWith('--')), PRE = process.argv.includes('--preflight');
   const DIR = args[0] || join(HERE, 'results', 'diagaxho'), npwA = Number(args[1] || NPW), scaleA = Number(args[2] || 1);

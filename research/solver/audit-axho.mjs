@@ -199,9 +199,10 @@ JOBS.forEach((job, ji) => {
     // each tier layer's pair (the tiers a move into it holds), for layerTook
     const pairOf = (() => { const t0b = cand.mix.tables[0], m0 = {}; if (t0b.tsLayerOf) t0b.tsLayerOf.forEach((li, ai) => { if (!(li in m0)) m0[li] = [acts[ai].tierPen || 0, acts[ai].tierIsa || 0]; }); return m0; })();
     const YK = bridge.map(t => `Y${t}`), nL = cand.mix.tables[0].tsLayers ? cand.mix.tables[0].tsLayers.length : 1;
-    // the plant `nudge`: the own move's sibling (the same tiers and tier base, another level) at the first bridge year on
-    // every tenth path of world 0
-    const sib = ai => { for (let a = 0; a < n; a++) if (a !== ai && (acts[a].tierPen || 0) === (acts[ai].tierPen || 0) && (acts[a].tierIsa || 0) === (acts[ai].tierIsa || 0) && acts[a].tierBase === acts[ai].tierBase && cand.levelOf[a] !== cand.levelOf[ai]) return a; return ai; };
+    // the plant `nudge`: another move holding the same tiers (else any other) in place of the own move at the first bridge
+    // year on every tenth path of world 0 (the first preflight's sibling at the same tier base and another level did not
+    // exist in this menu, so that plant changed no move)
+    const sib = ai => { for (let a = 0; a < n; a++) if (a !== ai && (acts[a].tierPen || 0) === (acts[ai].tierPen || 0) && (acts[a].tierIsa || 0) === (acts[ai].tierIsa || 0)) return a; for (let a = 0; a < n; a++) if (a !== ai) return a; return ai; };
     for (let k = 0; k < K; k++) {
       const tab = cand.mix.tables[k], rs = rngOf(SEED * 1000 + 50 + k), cells = Array.from({ length: TAIL.edges.length - 1 }, () => ({ seen: 0, keep: [] }));
       const A = Object.fromEntries([...KEYS, ...YK, 'NB', 'ND'].map(x => [x, new Float64Array(NPW)])), b = new Uint8Array(NPW), bb = new Uint8Array(NPW), QF = new Float64Array(NQ);

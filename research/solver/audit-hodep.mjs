@@ -19,7 +19,8 @@
  * (a live path's final wealth its terminal wealth; the cut term lambda times its shortfall within the trace's 1% rounding where
  * runPolicy reports one); a household with a pension death charge is refused (the estate would need the pension share); the
  * floor level and the spending years read from the solve, not typed.
- * HODEP_PLANT (each must make its job refuse on its own check): arm (K1F without the fix: footTook), guard (A without the fix,
+ * HODEP_PLANT (each must make its job refuse on its own check): arm (K1F without the fix, declared unfixed so R1's guard passes
+ * it: footTook), guard (A without the fix,
  * undeclared: armTook), own, layer, quad, held (the ledger's), score (the estate counted on a failed path: scoreTook's
  * scorePaths leg), trace (the trace sized T, a year short: scoreTook's counters leg).
  *   node research/solver/audit-hodep.mjs [scale=1] [paths a world=4000] part k/n [seed]
@@ -131,14 +132,17 @@ JOBS.forEach((job, ji) => {
   const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerBlend && (mt.readerSplit || null) === (want.readerSplit || null);
   const took = mt.readerRef === want.readerRef && mt.shareNodes === undefined && mt.points === `total ${PTS} x ${shares} x 6` && cand.m.ctx.solvencyFloor === floorOf(h) && mt.readerSupportLine === 0.5;
   // R1's guard: the fix in the reference's own record on every adaptive job but a declared unfixed control
-  const adr = cand.mix.tables[0].g.reader && cand.mix.tables[0].g.reader.adaptive, fixOn = !!(adr && adr.lattice && adr.lattice.foot), guardOk = mt.readerRef !== 'adaptive' || UNFIXED.includes(arm) || fixOn;
+  const adr = cand.mix.tables[0].g.reader && cand.mix.tables[0].g.reader.adaptive, fixOn = !!(adr && adr.lattice && adr.lattice.foot);
+  // the arm plant declares K1F unfixed, so R1's guard lets it through and footTook must catch it (the first preflight's arm
+  // plant was refused by the guard here, so footTook was never shown failing on a fault)
+  const unfixed = UNFIXED.includes(arm) || (PLANT === 'arm' && arm === 'K1F'), guardOk = mt.readerRef !== 'adaptive' || unfixed || fixOn;
   const s0v = M.initialState(cand.m);
   const table = 100 * cand.worlds.reduce((t, wd, k) => t + cand.mix.weights[k] * wd.value(s0v, 0).survival, 0);
   const rdm = mt.reader || {};
   console.log(`${''.padEnd(16)} solve CAND ${L}: table ${table.toFixed(4)} secs ${Math.round((Date.now() - t0) / 1000)}`);
   console.log(`${''.padEnd(16)} ran CAND ${L}: bridgeRead ${mt.bridgeRead} bridgeStep ${mt.bridgeStep} readerSplit ${mt.readerSplit} readerBlend ${mt.readerBlend} readerRef ${mt.readerRef || null} readerChance ${mt.readerChance} tierState ${mt.tierState} jointWorlds ${!!mt.jointWorlds} e3pcls ${!!mt.e3pcls} switchMargin ${cand.switchMargin} switchCharge ${cand.switchCharge} bequestWeight ${mt.bequestWeight} mix ${cand.mix.nodes.length} pts ${PTS} grid ${String(mt.points).replace(/ /g, '')} shareNodes ${mt.shareNodes ? mt.shareNodes.join(',') : 'none'} floor ${cand.m.ctx.solvencyFloor} line ${mt.readerSupportLine}`);
   console.log(`${''.padEnd(16)} reader ${L}: tables ${rdm.tables} unsupported ${rdm.unsupported} copied ${rdm.copied} copiedTop ${rdm.copiedTop} nodes ${rdm.nodes}`);
-  console.log(`${''.padEnd(16)} guard ${L}: readerRef ${mt.readerRef} fix ${fixOn} declared unfixed ${UNFIXED.includes(arm)} floor ${cand.m.ctx.solvencyFloor} (the product's rule ${floorOf(h)})`);
+  console.log(`${''.padEnd(16)} guard ${L}: readerRef ${mt.readerRef} fix ${fixOn} declared unfixed ${unfixed} floor ${cand.m.ctx.solvencyFloor} (the product's rule ${floorOf(h)})`);
   console.log(`${''.padEnd(16)} checks ${L}: armTook ${took && common && guardOk ? 1 : 0}/1`);
   if (!(took && common && guardOk)) { console.error(`audit-hodep: ${id} ${L}: the job's settings did not take`); process.exit(3); }
   const ad = cand.mix.tables[0].g.reader && cand.mix.tables[0].g.reader.adaptive, ref = ad ? ad.ref : null, lt = ad && ad.lattice;

@@ -23,8 +23,8 @@
  *      table less runs is under a point.
  * THE ROWS: R2 item 3 FALSIFIED (SN harms); R1 item 1 HELD (S370-COPY); R3 item 1 FALSIFIED and item 2 HELD (S370-GRID); R4
  *   items 1 and 2 FALSIFIED (neither); else.
- * REPORTED: every arm's tables against its runs by world; GB, GA, T and Y by year by world; the step reads' top-cell weight
- *   (copiedTop); the solves' seconds.
+ * REPORTED: every arm's tables against its runs by world; GB, GA, T and Y by year by world; the reader's copied nodes and
+ *   copied top nodes (copiedTop: a count of nodes, not the step reads' weight on the top node); the solves' seconds.
  *   node research/solver/reduce-steps370.mjs [dir] [paths a world] [scale] [--preflight] [--planted]
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';

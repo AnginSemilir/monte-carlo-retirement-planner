@@ -1,0 +1,68 @@
+=== a MEASUREMENT, not a test:  STEP-S370's preflight (items/STEP-S370.md): the three jobs (C, SN, W60 on S370) at a fifteenth of the points, 40 paths a world, seed 7002, through the reducer's gate; the share-nodes test on this code; the seven plants each refused on its own check (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-6IhTqZ   from a997f5e
+=== smoke run on code 01abacb478e9 (smoke stamp 29d22340e785): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+m0 exit 0
+m1 exit 0
+m2 exit 0
+A: solve CAND C/P30S6Q5: table 54.0639 secs 175
+A: ran CAND C/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.
+A: reader C/P30S6Q5: tables 72 unsupported 0 copied 14418 copiedTop 6804 nodes 52488
+A: nodes C/P30S6Q5: the uniform six floor 104000 (the product's rule 104000)
+A: checks C/P30S6Q5: armTook 1/1
+A: bridge C/P30S6Q5: reader years 1,2,3,4,5,6,7
+A: whole C/P30S6Q5 0: mean 27.728116 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole C/P30S6Q5 1: mean 75.071418 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole C/P30S6Q5 2: mean 103.118084 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks C/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 828/828 layerTook 828/828 scoreTook 120/120 secs 26
+A: score legs C/P30S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND SN/P30S6Q5: table 54.0206 secs 247
+A: ran CAND SN/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0
+A: reader SN/P30S6Q5: tables 72 unsupported 0 copied 21222 copiedTop 6804 nodes 69984
+A: nodes SN/P30S6Q5: 0,0.2,0.4,0.6,0.8,0.9,0.95,1 floor 104000 (the product's rule 104000)
+A: checks SN/P30S6Q5: armTook 1/1
+A: bridge SN/P30S6Q5: reader years 1,2,3,4,5,6,7
+A: whole SN/P30S6Q5 0: mean 30.268801 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole SN/P30S6Q5 1: mean 72.666426 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole SN/P30S6Q5 2: mean 103.132367 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks SN/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 828/828 layerTook 828/828 scoreTook 120/120 secs 23
+A: score legs SN/P30S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND W60/P60S6Q5: table 54.0639 secs 182
+A: ran CAND W60/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 
+A: reader W60/P60S6Q5: tables 72 unsupported 0 copied 14418 copiedTop 6804 nodes 52488
+A: nodes W60/P60S6Q5: the uniform six floor 104000 (the product's rule 104000)
+A: checks W60/P60S6Q5: armTook 1/1
+A: bridge W60/P60S6Q5: reader years 1,2,3,4,5,6,7
+A: whole W60/P60S6Q5 0: mean 27.728116 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole W60/P60S6Q5 1: mean 75.071418 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole W60/P60S6Q5 2: mean 103.118084 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks W60/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 828/828 layerTook 828/828 scoreTook 120/120 secs 25
+A: score legs W60/P60S6Q5: scorePaths 120/120 counters 120/120
+A. GATE: passed - C, SN and W60 once and done at the registered settings (40 paths a world, scale 15, seed 7002; S370; C and SN at 30 points, W60 at 60); the candidate's settings with no readerRef, SN's nodes and no others, every self-check in full PREFLIGHT C: world-0 step-year residual 41.3181 points, copiedTop 6804, world-0 whole score 27.7281 PREFLIGHT SN: world-0 step-year residual 40.5505 points, copiedTop 6804, world-0 whole score 30.2688 PREFLIGHT W60: world-0 step-year residual 41.3181 points, copiedTop 6804, world-0 whole score 27.7281 PREFLIGHT: the gate and the files read; no figure read 
+B. share-nodes exit 0: 12 PASS, 0 FAIL
+C. plant nodes exit 3: audit-steps370: S370 SN/P30S6Q5: the job's settings did not take
+C. plant own exit 3: audit-steps370: S370 C/P30S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-steps370: S370 C/P30S6Q5: the ledger does not close on every path (ownTook 120/120 identity 2/120)
+C. plant quad exit 3: audit-steps370: S370 C/P30S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 364/828)
+C. plant held exit 3: audit-steps370: S370 C/P30S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 702/828)
+C. plant score exit 3: audit-steps370: S370 C/P30S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 79/120)
+C. plant trace exit 3: audit-steps370: S370 C/P30S6Q5: the trace disagrees with runPolicy's own counters (counters 41/120)
+the gate passed the three jobs on S370; SN's nodes solve with the candidate's settings; the share-nodes test passed on this code; the seven plants refused, each on its own check
+preflight done 19:40 UK
+=== snapshot kept at /tmp/solver-snap-6IhTqZ for provenance; remove it when the results are written up

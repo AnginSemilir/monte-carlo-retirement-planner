@@ -25,7 +25,8 @@ S370 at the product's 30 points under the candidate as it stands (the plan refer
 ## The items (the review's; the registration sets the rules)
 
 1. SN removes at least half of C's world-0 step-year residual (Y3 + Y7, path by path): HELD; under a quarter: FALSIFIED
-   (S370-COPY not).
+   (SN does not remove it; S370-COPY left open, since the run does not print that SN cut the step reads' weight on the
+   unsupported top node: the plan-auditor's BLOCKING 1 of 18 Oct 19:46 UK).
 2. W60's removal of the same, three outcomes (S370-GRID).
 3. SN against C: no material harm, survival and whole score, read by RULES.md section 8's rule as written for a policy
    change (the exact conditional McNemar per world with the guarded unconditional interval, Holm across worlds): the mixture
@@ -34,7 +35,7 @@ S370 at the product's 30 points under the candidate as it stands (the plan refer
 4. SN's world-0 table less runs against C's, by world.
 
 Reported: GA and T by world in all three arms (the wealth axis's share of O180 and of O133's after-access lines), the step
-reads' top-cell weight, the solve times (SN's eight share nodes against six). About 1.6 h wall on four cores (the review's
+reads' copied top nodes (copiedTop, a count of nodes, not a weight), the solve times (SN's eight share nodes against six). About 1.6 h wall on four cores (the review's
 estimate, grade D). If S370-COPY holds, the fix's breadth test follows on PMAP's other step households and the gap households
 before 7u-F.
 

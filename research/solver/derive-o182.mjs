@@ -55,6 +55,16 @@ export const JUDGED = {
   wx4: { '-0.1': 0.2, 0: 0.6, 0.1: 0.2 },
   // the change in world 0's table less runs beyond the Y1 + Y5 SNR removes (the other years and the after-access part; points)
   gapEps: { '-1': 0.25, 0: 0.5, 1: 0.25 },
+  // ADDED AFTER THE FIRST OUTPUT WAS SEEN (2b5b198, declared in the prediction): the share of the Y1 + Y5 SNR removes that
+  // reappears elsewhere in world 0's table less runs (the over-read moved, not removed: STEP-S370's item 4 and its WHOLE
+  // lesson, on record before that output; the first draw tied the gap to the slice one for one, so R2 could not be drawn)
+  move: {
+    RESID: { 0: 0.45, 0.4: 0.35, 0.8: 0.2 },
+    YB: { 0: 0.6, 0.5: 0.4 },
+    TOP: { 0: 0.6, 0.5: 0.4 },
+    GRID: { 0: 0.6, 0.5: 0.4 },
+    OTHER: { 0: 0.5, 0.5: 0.3, 1: 0.2 },
+  },
 };
 
 const HERE = dirname(fileURLToPath(import.meta.url)), R_ = d => join(HERE, 'results', d);
@@ -96,7 +106,7 @@ console.log(`  the PRIOR (the receipt of ${RECEIPT}, grade C: judged year-1 stat
 
 // a synthetic read at a story's values, in reduce-o182.mjs items()'s shape (SN's residual and C's runs as recorded)
 const cellsFrom = (cCtrl, lost, saved) => ({ a: cCtrl - lost, b: lost, c: saved, d: N - cCtrl - saved });
-function setOf({ sRC, rSNR, d4, noise, disc4, wx4, gapEps }) {
+function setOf({ sRC, rSNR, d4, noise, disc4, wx4, gapEps, move = 0 }) {
   const rc = ySN.map(v => sRC * v + noise * sY * gauss()), ySNR = ySN.map(v => (1 - rSNR) * v + noise * sY * gauss());
   const cells = [], ws = [];
   for (let k = 0; k < 3; k++) {
@@ -105,13 +115,14 @@ function setOf({ sRC, rSNR, d4, noise, disc4, wx4, gapEps }) {
     let lost = pois(Math.max(0, (n - net) / 2)), saved = pois(Math.max(0, (n + net) / 2)); lost = Math.min(lost, cC); saved = Math.min(saved, N - cC);
     cells.push(cellsFrom(cC, lost, saved)); const dd = (saved - lost) / N; ws.push({ d: 100 * dd + wx4, se: Math.sqrt(Math.max(1e-12, ((lost + saved) / N - dd * dd) * 1e4 + 0.09) / N) });
   }
-  // SNR's world-0 table less runs: SN's, less the Y1 + Y5 it removes, plus the other years' change; its table set from its runs
-  const gapSNR = gapS - rSNR * mY + gapEps, c0 = cells[0], runsSNR = 100 * (c0.a + c0.c) / N;
+  // SNR's world-0 table less runs: SN's, less the Y1 + Y5 it removes and does not move elsewhere, plus the other years' change;
+  // its table set from its runs
+  const gapSNR = gapS - rSNR * mY * (1 - move) + gapEps, c0 = cells[0], runsSNR = 100 * (c0.a + c0.c) / N;
   return { y: { SN: ySN, SNR: ySNR }, rc, cells, ws, tab: { C: tC[0], SNR: runsSNR + gapSNR } };
 }
 const cnt3 = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }), tot = c => c.HELD + c.INCONCLUSIVE + c.FALSIFIED;
 const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(y => `${y} ${f2(c[y] / tot(c))}`).join(' ');
-const BASE = { sRC: 0.8, rSNR: 0.75, d4: 0, noise: 0.5, disc4: 0.03, wx4: 0, gapEps: 0 };
+const BASE = { sRC: 0.8, rSNR: 0.75, d4: 0, noise: 0.5, disc4: 0.03, wx4: 0, gapEps: 0, move: 0 };
 
 // 2. THE POWER through items()
 const DR = 40;
@@ -120,6 +131,7 @@ for (const s of [0.1, 0.25, 0.4, 0.5, 0.6, 0.8]) { const c = cnt3(); for (let q 
 for (const nz of [0.25, 1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, noise: nz, sRC: 0.6 }))['1'].outcome]++; console.log(`  item 1, a share of 0.6, noise x${nz}: ${row(c)}`); }
 for (const r of [0, 0.25, 0.4, 0.5, 0.75]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, rSNR: r }))['2'].outcome]++; console.log(`  item 2, SNR removes ${r} of SN's Y1 + Y5: ${row(c)}`); }
 for (const r of [0.25, 0.5, 0.75, 0.95]) for (const e of [-1, 0, 1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, rSNR: r, gapEps: e }))['3'].outcome]++; console.log(`  item 3, SNR removes ${r}, the other years ${e >= 0 ? '+' : ''}${e} point: ${row(c)}`); }
+for (const r of [0.75, 0.95]) for (const mv of [0.4, 0.8]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, rSNR: r, move: mv }))['3'].outcome]++; console.log(`  item 3, SNR removes ${r} and ${mv} of it reappears elsewhere: ${row(c)}`); }
 for (const v of [-0.6, -0.25, 0, 0.25]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, d4: v }))['4'].outcome]++; console.log(`  item 4, SNR's survival change ${v} a world (discordance 0.03 of 4p(1 - p)): ${row(c)}`); }
 
 // 3. THE CREDENCES: the receipt's O182 set through the judged stories, each draw read through items()
@@ -131,7 +143,7 @@ const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for
 function credences(cmap) {
   const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [] };
   for (let q = 0; q < ND; q++) {
-    const c = pickC(cmap), story = { sRC: pick(JUDGED.sRC[c]), rSNR: pick(JUDGED.rSNR[c]), d4: pick(JUDGED.d4[c]), noise: pick(JUDGED.noise), disc4: pick(JUDGED.disc4), wx4: pick(JUDGED.wx4), gapEps: pick(JUDGED.gapEps) };
+    const c = pickC(cmap), story = { sRC: pick(JUDGED.sRC[c]), rSNR: pick(JUDGED.rSNR[c]), d4: pick(JUDGED.d4[c]), noise: pick(JUDGED.noise), disc4: pick(JUDGED.disc4), wx4: pick(JUDGED.wx4), gapEps: pick(JUDGED.gapEps), move: pick(JUDGED.move[c]) };
     const it = items(setOf(story));
     for (const i of ['1', '2', '3', '4']) I[i][it[i].outcome]++;
     R[rowOf(it)]++;

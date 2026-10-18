@@ -53,7 +53,7 @@ export const HOUSE = Object.freeze({ K1F: 'S362', K2: 'S362', A: HOUSE2, O: HOUS
 export const REF = Object.freeze({ K1F: 'adaptive', K2: 'order', A: 'adaptive', O: 'order' });
 export const SPLIT = Object.freeze({ K1F: 'rs', K2: 'null', A: 'rs', O: 'null' });
 export const FOOT = Object.freeze({ K1F: true, K2: false, A: true, O: false });
-export const FOOT_K1F = 'S362-K1F-P30S6Q5.json.gz', FOOT_K1F_SHA = 'FOOT_K1F_SHA_UNSET';
+export const FOOT_K1F = 'S362-K1F-P30S6Q5.json.gz', FOOT_K1F_SHA = '222b731b04d0ae54';
 const esc = s => s.replace(/[/+.-]/g, m => `\\${m}`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${esc(k)} (\\S+)`).exec(s); return m ? m[1] : null; };
 const CASEL = /^(S\d+)\s+case \| job ((K1F|K2|A|O)\/P(\d+)S(\d+)Q5) \| points (\d+) \| lambda (\S+)$/;

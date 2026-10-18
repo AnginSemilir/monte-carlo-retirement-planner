@@ -77,3 +77,15 @@ case), with the plants foot (in A0), drift (in CLIFF or Y4) and top (in Y4) each
 
 A reference default; 7u-F with the adaptive reference; more S366 jobs for the reference question; a copy or split change aimed
 at S362's GB; a single-world harm read of a reference change; FOOT-S366's item 4 cited as no-harm where the references differ.
+
+The STOP list stands after HO-DEP's read until the deep review after it is adopted (the decision table's 'else' row).
+
+## READ 18 Oct 18:17 (PLAN.md's 18 Oct 18:17 row; results-hodep.txt; Brier 0.118 over 3, results-scorecard-hodep.txt)
+
+Items 1 and 2 HELD, item 3 INCONCLUSIVE: the decision table's 'else'. The fixed adaptive reference loses no material survival or
+whole score against the order reference by the mixture on S370 (survival -0.0292, -0.1406 to 0.0819) or S362 (-0.1208,
+-0.3442 to 0.1167); on S362 K1F's table less runs at the mixture is -0.7947 against K2's -1.7831, the fixed about a point
+truer (0.9883) but K2's interval not wholly beyond a point. Reported: S362's world lines repeat O179's trade against the order
+reference; K2's GB on S362 swings by year (world 0's year 3 -7.2840, year 4 3.5368); S370's world-0 over-read under both
+references holds at 4,000 paths (O180). Next: the deep review reads the unsettled item and the reported lines; nothing built;
+no default.

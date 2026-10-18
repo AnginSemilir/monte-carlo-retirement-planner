@@ -1,0 +1,103 @@
+ok   A at O on HOUSE2, no loss: 1 HELD: "HELD"
+ok   A loses 60 paths in every world on HOUSE2: 1 FALSIFIED: "FALSIFIED"
+ok   a survival trade at the margin on HOUSE2 (bad -1.7, middle -0.5, good +0.7): 1 FALSIFIED: "FALSIFIED"
+ok   A trades the bad world for the good one, net zero by the mixture (FOOT-S366's S362): 1 HELD: "HELD"
+ok   A's whole score 1.2 points down by the mixture, survival level: 1 FALSIFIED: "FALSIFIED"
+ok   A's whole score 2.4 points down in the bad world alone (the mixture weighs it a sixth): 1 HELD: "HELD"
+ok   A's whole score across the margin (lower end past it): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   K1F at K2 on S362: 2 HELD: "HELD"
+ok   K1F loses 60 paths in every world on S362: 2 FALSIFIED: "FALSIFIED"
+ok   K1F's survival across the margin on S362: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   K2 under-reads S362 by 3 points, K1F at its runs: 3 HELD: "HELD"
+ok   K1F and K2 within 0.2 points on S362: 3 FALSIFIED: "FALSIFIED"
+ok   K1F and K2 exactly 0.5 apart in every world on S362, neither truer: 3 FALSIFIED: "FALSIFIED"
+ok   K1F off by 4 on S362 where K2 reads true (the fixed reads worse): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   K2 off by 3 on S362 and K1F off by 2 there (K1F not within a point): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the tables a point apart in world 0 alone on S362, K2 otherwise K1F's: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   K2 7 points under its runs in world 0 alone, K1F at its runs (the mixture weighs it a sixth): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the tables 0.7 apart on S362 with no gain: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   both references over-read HOUSE2 by 13 points in world 0 (S370's, reported): S362 decides: 3 HELD: "HELD"
+ok   the tables alike on HOUSE2, the fixed truer on S362 (HOUSE2 not read): 3 HELD: "HELD"
+ok   item 3's realised gain: K2 3 points under its runs, K1F at them, reads +3: "3.00"
+ok   item 3's realised gain: K1F 4 over, K2 at its runs, reads -4: "-4.00"
+ok   the rows: all three HELD reads R1: "R1"
+ok   the rows: a harm reads R2: "R2"
+ok   the rows: no accuracy gain on S362 reads R3: "R3"
+ok   the rows: the fixed reading worse on S362 reads R4: "R4"
+ok   the rows: a harm with the fixed reading worse reads R2: "R2"
+ok   the rows: HOUSE2 misread by both references, the rest HELD, reads R1: "R1"
+ok   the rows: a harm on S362 alone reads R2: "R2"
+ok   the rows: S362 unsettled, the rest HELD, reads else: "else"
+ok   the gate passes the four jobs as registered: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside the four: "true"
+ok   the gate refuses a case line at another point count alone: "true"
+ok   the gate refuses a solve meta naming the adaptive reference for O, its guard line the order: "true"
+ok   the gate refuses K1F's own fix line off, its guard line on: "true"
+ok   the gate refuses K2's own fix line on, its guard line off: "true"
+ok   the gate refuses a world's tables line missing: "true"
+ok   the gate refuses a file without its whole scores: "true"
+ok   the gate refuses K2 with no done line: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses a header naming another path count: "true"
+ok   the gate refuses A at 60 points: "true"
+ok   the gate refuses A on S366: "true"
+ok   the gate refuses K1F without the fix (the arm plant): "true"
+ok   the gate refuses A declared unfixed (R1's guard): "true"
+ok   the gate refuses a fixed job with no node alive: "true"
+ok   the gate refuses O under the adaptive reference: "true"
+ok   the gate refuses A without the RS split: "true"
+ok   the gate refuses a floor other than the product rule's: "true"
+ok   the gate refuses adaptTook short: "true"
+ok   the gate refuses scoreTook short (the score and trace plants): "true"
+ok   the gate refuses a job short of a world: "true"
+ok   the gate refuses a file whose whole scores are not the log's: "true"
+ok   the gate refuses an unset HOUSE2: "true"
+ok   the inert comparison reads equal files equal on the arrays both carry: 0
+ok   the inert comparison reads a changed array: "per GB0"
+ok   the inert comparison compares nothing between files sharing nothing: 0
+K1F reproduces FOOT-S366's K1F on the 132 arrays both carry
+planted (58): all read as they should
+GATE: passed - K1F, K2, A and O once and done at the registered settings (4000 paths a world, scale 1, seed 7004; S362 and S370 at 30 points); each job's reference and split in its solve's meta, its floor the product's rule's, R1's guard; the fix on K1F and A with an A = 0 node alive and off on K2 and O; every self-check in full, scoreTook among them; the files, their moves and whole scores the logs'
+
+HO-DEP: the fixed adaptive reference against the order reference on two deposit households, S370 (A against O) and S362 (K1F against K2), at 30 points, read by the mixture (predictions/diag-hodep.md)
+
+THE ITEMS (each read by its registered rule)
+1. no material harm, A against O on S370, by the mixture (survival and whole score): HELD
+     S370: survival by the mixture -0.0292 (-0.1406 to 0.0819) at margin 0.5000: no material harm; whole score by the mixture -0.0288 (-0.1218 to 0.0642): no material harm
+2. no material harm, K1F against K2 on S362, by the mixture (survival and whole score): HELD
+     S362: survival by the mixture -0.1208 (-0.3442 to 0.1167) at margin 0.5000: no material harm; whole score by the mixture -0.1278 (-0.3792 to 0.1235): no material harm
+3. the accuracy contrast on S362, K1F against K2, at the mixture: INCONCLUSIVE
+     S362: the fixed reference's table less runs -0.7947 (-1.8896 to 0.3000), the order reference's -1.7831 (-2.8783 to -0.6879); the pattern: neither
+     (reported, not read)      S370: the fixed reference's table less runs 4.7734 (4.0051 to 5.5744), the order reference's 4.3045 (3.5366 to 5.1050); the pattern: neither
+OUTCOME: 1 HELD, 2 HELD, 3 INCONCLUSIVE
+ROW: else
+REALISED item 1: -0.0292
+REALISED item 2: -0.1208
+REALISED item 3: 0.9883
+
+REPORTED
+  S370 world 0: survival change -0.0750 (-0.1798 to 0.0427); whole score change -0.0759 (se 0.0440)
+  S370 world 1: survival change -0.0250 (-0.1867 to 0.1356); whole score change -0.0242 (se 0.0590)
+  S370 world 2: survival change 0.0000 (-0.1324 to 0.1324); whole score change 0.0000 (se 0.0002)
+  S362 world 0: survival change -0.4000 (-0.7814 to -0.0015); whole score change -0.4359 (se 0.1786)
+  S362 world 1: survival change -0.1750 (-0.4879 to 0.1597); whole score change -0.1910 (se 0.1519)
+  S362 world 2: survival change 0.3750 (0.0843 to 0.6585); whole score change 0.4328 (se 0.1378)
+  K1F (S362) world 0: table at its own opening 30.5208 runs 1167/4000, table less runs 1.3458 (-0.0902 to 2.7514); GB 0.5258; by year 1: 0.1067 | 2: 0.0740 | 3: 0.2203 | 4: 0.1362 | 5: -0.0100 | 6: 0.0028 | 7: -0.0042
+  K1F (S362) world 1: table at its own opening 48.5742 runs 1996/4000, table less runs -1.3258 (-2.8874 to 0.2356); GB 0.5404; by year 1: -0.0473 | 2: 0.0205 | 3: 0.3719 | 4: 0.2704 | 5: -0.0536 | 6: -0.0215 | 7: -0.0000
+  K1F (S362) world 2: table at its own opening 67.3889 runs 2728/4000, table less runs -0.8111 (-2.2530 to 0.6575); GB 0.1543; by year 1: -0.0680 | 2: -0.0683 | 3: 0.7579 | 4: -0.4182 | 5: -0.0349 | 6: -0.0142 | 7: 0.0001
+  K2 (S362) world 0: table at its own opening 27.0647 runs 1183/4000, table less runs -2.5103 (-3.9516 to -1.0988); GB -3.0378; by year 1: -1.7671 | 2: 1.4299 | 3: -7.2840 | 4: 3.5368 | 5: -0.1962 | 6: 1.2471 | 7: -0.0044
+  K2 (S362) world 1: table at its own opening 48.3303 runs 2003/4000, table less runs -1.7447 (-3.3061 to -0.1831); GB 0.2917; by year 1: -2.7304 | 2: 0.0779 | 3: 8.3929 | 4: -6.1203 | 5: -0.0718 | 6: 0.7434 | 7: -0.0000
+  K2 (S362) world 2: table at its own opening 66.6155 runs 2713/4000, table less runs -1.2095 (-2.6562 to 0.2633); GB -0.4808; by year 1: -2.0220 | 2: 1.0411 | 3: 5.5955 | 4: -5.3360 | 5: -0.0269 | 6: 0.2676 | 7: 0.0001
+  A (S370) world 0: table at its own opening 51.3448 runs 1574/4000, table less runs 11.9948 (10.4611 to 13.5130); GB 10.5142; by year 1: -0.2136 | 2: -0.2052 | 3: 4.2008 | 4: 0.1260 | 5: 0.0605 | 6: 0.0409 | 7: 6.5047
+  A (S370) world 1: table at its own opening 89.5148 runs 3411/4000, table less runs 4.2398 (3.1552 to 5.3762); GB 1.4547; by year 1: -0.4080 | 2: -0.4216 | 3: 1.4783 | 4: -0.5439 | 5: -0.5533 | 6: -0.5506 | 7: 2.4539
+  A (S370) world 2: table at its own opening 98.6865 runs 3960/4000, table less runs -0.3135 (-0.5982 to 0.0457); GB -0.4090; by year 1: -0.1443 | 2: -0.1315 | 3: 0.1227 | 4: -0.1297 | 5: -0.1545 | 6: -0.1318 | 7: 0.1601
+  O (S370) world 0: table at its own opening 50.3079 runs 1577/4000, table less runs 10.8829 (9.3486 to 12.4016); GB 9.5479; by year 1: -1.0880 | 2: -0.2317 | 3: 4.1214 | 4: 0.1265 | 5: 0.0621 | 6: 0.0433 | 7: 6.5145
+  O (S370) world 1: table at its own opening 89.1297 runs 3412/4000, table less runs 3.8297 (2.7460 to 4.9654); GB 1.0247; by year 1: -0.7441 | 2: -0.4787 | 3: 1.4397 | 4: -0.5437 | 5: -0.5536 | 6: -0.5508 | 7: 2.4560
+  O (S370) world 2: table at its own opening 98.6252 runs 3960/4000, table less runs -0.3748 (-0.6595 to -0.0156); GB -0.4933; by year 1: -0.1947 | 2: -0.1182 | 3: 0.0761 | 4: -0.1299 | 5: -0.1546 | 6: -0.1320 | 7: 0.1600
+  K1F: the fix on, 369 A = 0 nodes alive; the reference built in 426.5 s; solve 2385 s
+  K2: the fix off; solve 2080 s
+  A: the fix on, 369 A = 0 nodes alive; the reference built in 437.4 s; solve 2098 s
+  O: the fix off; solve 1735 s
+  the reach step's A tables against the batch's: identical (72 tables)
+  the reach step's O tables against the batch's: identical (72 tables)

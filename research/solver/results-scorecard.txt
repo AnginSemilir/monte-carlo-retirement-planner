@@ -56,27 +56,28 @@ AO (the adaptive reference out of sample on S364 in log terms, and at six shares
 AOR (the read at P decomposed on S364, the RS split under the adaptive reference on S364 and S360): Brier 0.172 over 4 (1 0.44 -> not; 2 0.69 -> not; 3 0.93 -> held; 4 0.89 -> held)
 AX-HO (the adaptive reference with the RS split held out: S366 against the order reference, and S360 on a fresh seed): Brier 0.214 over 4 (1 0.74 -> held; 2 0.6 -> not; 3 0.58 -> not; 4 0.7 -> held)
 FOOT-S366 (the adaptive reference's floor at no accessible money fixed: S366 against AX-HO's J1 and J2, S362 reported): Brier 0.124 over 4 (1 0.45 -> held; 2 0.63 -> held; 3 0.79 -> held; 4 0.89 -> held)
+HO-DEP (the fixed adaptive reference against the order reference on S362 and S370, the deposit households at bridge risk, by the mixture): Brier 0.118 over 3 (1 0.88 -> held; 2 0.52 -> held; 3 0.33 -> not)
 
-CUMULATIVE: Brier 0.220 over 240 items
-INTERVALS, each registered 80% interval against its reducer's REALISED line: 29 of 45 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); NE-ROOT item 1 1.0799 (-0.0138 to 1.0215); NE-BLEND-A item 4 -2.375 (-0.1366 to 1.4348); NE-GRID-B1 item 1 0.3163 (0.4321 to 1.0716); NE-EDGE item 1 1.0144 (0.1173 to 0.9254); NE-EDGE item 2 1.0143 (0.1036 to 0.9221); NE-REF item 1 1.0581 (0.1005 to 0.8842); AOR item 1 -0.3354 (-0.2 to 2.3); AOR item 2 -0.3338 (0.8181 to 2.4753); AX-HO item 2 2.0889 (-1.6563 to 1.7188); AX-HO item 3 2.1124 (-0.7835 to 0.7851); 10 registered in 5 tests have no REALISED line (the reducers before 7u print none)
+CUMULATIVE: Brier 0.219 over 243 items
+INTERVALS, each registered 80% interval against its reducer's REALISED line: 32 of 48 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); NE-ROOT item 1 1.0799 (-0.0138 to 1.0215); NE-BLEND-A item 4 -2.375 (-0.1366 to 1.4348); NE-GRID-B1 item 1 0.3163 (0.4321 to 1.0716); NE-EDGE item 1 1.0144 (0.1173 to 0.9254); NE-EDGE item 2 1.0143 (0.1036 to 0.9221); NE-REF item 1 1.0581 (0.1005 to 0.8842); AOR item 1 -0.3354 (-0.2 to 2.3); AOR item 2 -0.3338 (0.8181 to 2.4753); AX-HO item 2 2.0889 (-1.6563 to 1.7188); AX-HO item 3 2.1124 (-0.7835 to 0.7851); 10 registered in 5 tests have no REALISED line (the reducers before 7u print none)
 INTERVAL FORMS over every prediction file: 60 write an 80% interval; 21 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-an, diag-ao, diag-aor, diag-axho, diag-carry, diag-edge, diag-foot, diag-hodep, diag-neblend-a, diag-needge, diag-negrid-b1, diag-negrid-c, diag-neref, diag-neroot, diag-nesplit, diag-node1, diag-nodeax, diag-ref2); 39 only in other forms, which the index cannot read (RULES.md known limit 35)
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%     146   0.42   0.53
+  under 60%     148   0.42   0.53
   60-75%         39   0.65   0.56
-  75-90%         36   0.80   0.89
+  75-90%         37   0.80   0.89
   90% and over   19   0.94   0.95
 
-INFORMATION: base rate 0.621 held; always the base rate scores 0.235; over the distinct credences reliability 0.060, resolution 0.075, uncertainty 0.235; AUC 0.68 (0.5 is no discrimination)
+INFORMATION: base rate 0.621 held; always the base rate scores 0.235; over the distinct credences reliability 0.058, resolution 0.075, uncertainty 0.235; AUC 0.68 (0.5 is no discrimination)
 BY KIND (items, mean credence, share held, the author's Brier, the Brier of the kind's base rate from earlier tests):
-  NOHARM     58   0.67   0.79   0.211   0.182
+  NOHARM     60   0.67   0.80   0.208   0.177
   EFFECT     26   0.58   0.73   0.215   0.221
-  ATTRIB     83   0.41   0.47   0.260   0.263
+  ATTRIB     84   0.41   0.46   0.258   0.262
   SIZE       45   0.56   0.53   0.216   0.277
   CTRL       22   0.76   0.82   0.114   0.178
   WHOLE       6   0.47   0.50   0.192   0.301
-THREE-OUTCOME ITEMS: ranked probability score 0.157 over 103, a uniform forecast 0.232
+THREE-OUTCOME ITEMS: ranked probability score 0.154 over 106, a uniform forecast 0.232
 LEGS, an item needing every household scored household by household: Brier 0.083 over 2
-DEEP-REVIEW CAUSES: 417 stated, 31 settled, Brier 0.112
-KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.78 (46 of 58), EFFECT 0.71 (19 of 26), ATTRIB 0.47 (39 of 83), SIZE 0.53 (24 of 45), CTRL 0.79 (18 of 22), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.42 (14 of 34: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 13 of 15, review-causes.md)
+DEEP-REVIEW CAUSES: 417 stated, 32 settled, Brier 0.108
+KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.79 (48 of 60), EFFECT 0.71 (19 of 26), ATTRIB 0.47 (39 of 84), SIZE 0.53 (24 of 45), CTRL 0.79 (18 of 22), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.42 (14 of 34: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 13 of 15, review-causes.md)
 DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.61, derived 0.63; resolution judged 0.117, derived 0.204 over 21
 JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged 0.228, derived 0.267 over 21; the decisive check (O29): ACCRUING - 21 of 30 items over 7 tests

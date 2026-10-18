@@ -48,7 +48,8 @@ STAMPS: a test run by more than one audit script registers the split, its reduce
 CORNERS: an arm is judged equal to its control at the preflight only where the preflight's corners are alive (p and S above the clamp) at the reads the mechanism uses.
 RATES: results-scorecard.txt is regenerated (scorecard.mjs) before a base rate or the lead rate is quoted, and a preflight's reported cells with intervals clear of zero are in the register before registration.
 FIXTURES: an audit's household constants (floors, bills, inflow years) are computed from the scenario library by the product's own rule, never typed, and after any edit under src/solver the e3pcls pin is re-taken (node research/tests/solver-e3pcls.test.mjs 4 --pin) before a preflight.
-PLANTS: a plant names the states where it changes a value, and the preflight shows its check reads one of them; a plant that can change only a value already at its floor or clamp at every read is inert by construction.
+PLANTS: a plant names the states where it changes a value, and the preflight shows its check reads one of them; a plant that can change only a value already at its floor or clamp at every read is inert by construction. A guard added ahead of a plant's own check is passed by the plant on purpose (declared, as HO-DEP's arm plant declares K1F unfixed), so each check is still shown failing on its own fault.
+REACH: a screen that chooses households for a reference or reader change keeps only households where the mechanism can act (for the bridge reader, a bridge failure under the control) before it applies a survival band, and the reach step counts the moves the change makes.
 
 ## Prediction
 

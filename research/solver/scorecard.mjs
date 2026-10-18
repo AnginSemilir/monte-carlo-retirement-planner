@@ -83,7 +83,8 @@ export const TESTS = [
   { name: 'AO (the adaptive reference out of sample on S364 in log terms, and at six shares on S360 against NODE-AX\'s BO)', prediction: 'predictions/diag-ao.md', results: 'results-ao.txt' },
   { name: 'AOR (the read at P decomposed on S364, the RS split under the adaptive reference on S364 and S360)', prediction: 'predictions/diag-aor.md', results: 'results-aor.txt' },
   { name: 'AX-HO (the adaptive reference with the RS split held out: S366 against the order reference, and S360 on a fresh seed)', prediction: 'predictions/diag-axho.md', results: 'results-axho.txt' },
-  { name: 'FOOT-S366 (the adaptive reference\'s floor at no accessible money fixed: S366 against AX-HO\'s J1 and J2, S362 reported)', prediction: 'predictions/diag-foot.md', results: 'results-foot.txt' }
+  { name: 'FOOT-S366 (the adaptive reference\'s floor at no accessible money fixed: S366 against AX-HO\'s J1 and J2, S362 reported)', prediction: 'predictions/diag-foot.md', results: 'results-foot.txt' },
+  { name: 'HO-DEP (the fixed adaptive reference against the order reference on S362 and S370, the deposit households at bridge risk, by the mixture)', prediction: 'predictions/diag-hodep.md', results: 'results-hodep.txt' }
 ];
 
 export function credences(predText) {

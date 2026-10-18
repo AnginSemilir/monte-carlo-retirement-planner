@@ -11,7 +11,7 @@ NJ=$(HODEP_REACH="$REACH" node research/solver/audit-hodep.mjs --units | tail -1
 export REACH
 seq 0 7 | xargs -P 4 -I{} sh -c '
   O=research/solver/results/hodep-reach
-  HODEP_REACH="$REACH" DIAGHODEP_OUT=$O node research/solver/audit-hodep.mjs 2 400 part {}/8 7004 > $O/case{}.txt 2>&1; echo "case{} exit $?" > $O/exit{}'
+  HODEP_REACH="$REACH" DIAGHODEP_OUT=$O node research/solver/audit-hodep.mjs 1 400 part {}/8 7004 > $O/case{}.txt 2>&1; echo "case{} exit $?" > $O/exit{}'
 bad=0; for f in "$OUT"/exit*; do grep -q " exit 0" "$f" || { echo "A REACH JOB DID NOT FINISH: $(cat $f)"; bad=1; }; done
 grep -h "audit-hodep:" "$OUT"/case*.txt | head -3
 grep -hE "solve CAND|foot |checks " "$OUT"/case*.txt | cut -c1-160

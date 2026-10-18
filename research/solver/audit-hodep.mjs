@@ -4,19 +4,24 @@
  * The candidate's own unit, seed 7004, AN's ledger (audit-foot.mjs's, copied) on the first 4,000 paths a world, every year's own
  * move saved, and here each path's whole score (survival, the capped estate net of the pension death charge at the run's estate
  * weight, the dislike of cuts, the raise credit: reduce-7t.mjs's arithmetic) from the run's own yearly trace:
- *   K1   S362 at 30 points under the adaptive reference with the RS split, without the fix (FOOT-S366's unfixed control, declared)
- *   K1F  K1 with the fix (it reproduces FOOT-S366's saved K1F on the arrays both carry)
+ *   K1F  S362 at 30 points under the adaptive reference with the RS split and the fix (it reproduces FOOT-S366's saved K1F on the
+ *        arrays both carry)
  *   K2   S362 at 30 points under the order reference (O179's control)
- *   A    HOUSE2 at 60 points under the adaptive reference with the RS split and the fix
- *   O    HOUSE2 at 60 points under the order reference
- * HODEP_SCREEN=1 runs the screen instead: the deposit-mid candidates under the order reference (world-0 survival read from its
- * runs); HODEP_REACH=<four ids> runs the reach step: A and O on each of four candidates at 30 points (the moves differing).
+ *   A    HOUSE2 at 30 points under the adaptive reference with the RS split and the fix
+ *   O    HOUSE2 at 30 points under the order reference
+ * (the slim design: the deep-reviewer's consult of 18 Oct 11:27 UK; both households at the product's 30 points)
+ * HODEP_SCREEN=1 runs the screen instead: the deposit-mid candidates under the order reference at 15 points (world-0 survival
+ * read from its runs); HODEP_REACH=<four ids> runs the reach step: A and O on each of four candidates at 30 points.
  * Self-checks, each refusing the job (exit 3): armTook (the reference, the split, the household's floor by the product's own
  * rule over the scenario library; R1's guard: an adaptive job without the fix is refused unless UNFIXED names it), adaptTook,
- * footTook, ownTook, identity, qfTook, layerTook (AN's ledger) and scoreTook (each path's whole score equal to reduce-7t.mjs
- * scorePaths over the same trace where no death charge applies, and a failed path never above zero).
+ * footTook, ownTook, identity, qfTook, layerTook (AN's ledger) and scoreTook: each path's whole score equal to reduce-7t.mjs
+ * scorePaths over the run's trace (sized T + 1, the years runPolicy runs), and the trace itself held to runPolicy's own counters
+ * (a live path's final wealth its terminal wealth; the cut term lambda times its shortfall within the trace's 1% rounding where
+ * runPolicy reports one); a household with a pension death charge is refused (the estate would need the pension share); the
+ * floor level and the spending years read from the solve, not typed.
  * HODEP_PLANT (each must make its job refuse on its own check): arm (K1F without the fix: footTook), guard (A without the fix,
- * undeclared: armTook), own, layer, quad, held (the ledger's), score (the estate counted on a failed path: scoreTook).
+ * undeclared: armTook), own, layer, quad, held (the ledger's), score (the estate counted on a failed path: scoreTook's
+ * scorePaths leg), trace (the trace sized T, a year short: scoreTook's counters leg).
  *   node research/solver/audit-hodep.mjs [scale=1] [paths a world=4000] part k/n [seed]
  */
 import * as E from '../engine.mjs';
@@ -39,21 +44,22 @@ import { codeId } from './code-id.mjs';
 // the second household, chosen before registration by the reach step (items/HO-DEP.md); unset, only the screen and reach run
 export const HOUSE2 = '';
 // [household, arm, wealth points, shares, return nodes]
-export const MAIN = [['S362', 'K1', 30, 6, 5], ['S362', 'K1F', 30, 6, 5], ['S362', 'K2', 30, 6, 5], [HOUSE2, 'A', 60, 6, 5], [HOUSE2, 'O', 60, 6, 5]];
+export const MAIN = [['S362', 'K1F', 30, 6, 5], ['S362', 'K2', 30, 6, 5], [HOUSE2, 'A', 30, 6, 5], [HOUSE2, 'O', 30, 6, 5]];
 // the deposit-mid households (the deep review after AX-HO's reach of O177): an inflow pays its own bridge year
 export const DEPOSIT = Object.freeze(Array.from({ length: 15 }, (_, i) => `S${362 + 4 * i}`));
 export const CANDIDATES = Object.freeze(DEPOSIT.filter(x => x !== 'S362' && x !== 'S366'));
 const REACH = (process.env.HODEP_REACH || '').split(',').filter(Boolean);
-export const JOBS = process.env.HODEP_SCREEN === '1' ? CANDIDATES.map(id => [id, 'O', 60, 6, 5]) : REACH.length ? REACH.flatMap(id => [[id, 'A', 30, 6, 5], [id, 'O', 30, 6, 5]]) : MAIN;
-export const ARMS = Object.freeze({ K1: { readerRef: 'adaptive', readerSplit: 'rs' }, K1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, K2: { readerRef: 'order' }, A: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, O: { readerRef: 'order' } });
+export const JOBS = process.env.HODEP_SCREEN === '1' ? CANDIDATES.map(id => [id, 'O', 15, 6, 5]) : REACH.length ? REACH.flatMap(id => [[id, 'A', 30, 6, 5], [id, 'O', 30, 6, 5]]) : MAIN;
+export const ARMS = Object.freeze({ K1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, K2: { readerRef: 'order' }, A: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, O: { readerRef: 'order' } });
 // R1's guard (the plan-auditor's MINOR 3 of FOOT-S366's read): an adaptive arm runs with the fix unless named here
-export const UNFIXED = Object.freeze(['K1']);
+export const UNFIXED = Object.freeze([]);
 // the household's solvency floor by the product's own rule (solve.js solvePlan: its own floor, else minPotYears of target)
 export const floorOf = h => { const own = Math.max(0, E.num(h.plan.config && h.plan.config.solvencyFloor, 0)); return own > 0 ? own : Math.round(PRODUCT_DEFAULTS.minPotYears * E.num(h.plan.spending && h.plan.spending.targetSpend, 0)); };
 // the reference's lattice (adaptive.js's defaults)
 export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
-// the whole score's floor level (the audit's plan sets the floor spend at 0.8 of target)
-export const FLOOR_LEVEL = 0.8;
+// the audit's plan sets the floor spend at 0.8 of target; the whole score reads the floor level from the solve's own menu and
+// refuses a mismatch
+export const FLOOR_PLAN = 0.8;
 export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
 if (process.argv[2] === '--units') { console.log(JOBS.length); process.exit(0); }
 const STAMP = (() => {
@@ -69,7 +75,7 @@ if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-hodep: bad part ${p
 const SEED = process.argv[6] ? Number(process.argv[6]) : 7004;
 if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-hodep: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
 const PLANT = process.env.HODEP_PLANT || '';
-if (PLANT && !['arm', 'guard', 'own', 'layer', 'quad', 'held', 'score'].includes(PLANT)) { console.error(`audit-hodep: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT && !['arm', 'guard', 'own', 'layer', 'quad', 'held', 'score', 'trace'].includes(PLANT)) { console.error(`audit-hodep: unknown plant ${PLANT}`); process.exit(2); }
 if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, TOL = 1e-9;
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-hodep: the candidate does not carry e3pcls'); process.exit(2); }
@@ -175,7 +181,9 @@ JOBS.forEach((job, ji) => {
     const layerOf = (tab, ai) => (tab.tsLayers ? tab.tsLayers[tab.tsLayerOf[ai]] : tab);
     const V = (tab, Ly, s, t) => { readValues(tab.g, Ly.lsurv[t], Ly.beq[t], s, rd, Ly.lresil[t], Ly.short[t], t); return rd[0]; };
     let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0, lyOk = 0, lyN = 0, scOk = 0, scN = 0;
-    const SCALE_W = Math.round(Math.max(1, m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), CAP = Math.round(cand.meta.bequestCap), DEATH = m.ctx.pensionDeathTaxRate;
+    const SCALE_W = Math.round(Math.max(1, m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), CAP = Math.round(cand.meta.bequestCap), DEATH = m.ctx.pensionDeathTaxRate, FLOOR_LEVEL = Math.min(...cand.levelOf);
+    if (DEATH !== 0) { console.error(`audit-hodep: ${id} ${L}: a pension death charge of ${DEATH}: the whole score's estate would need the pension share`); process.exit(3); }
+    if (Math.abs(FLOOR_LEVEL - FLOOR_PLAN) > 1e-9) { console.error(`audit-hodep: ${id} ${L}: the solve's floor level ${FLOOR_LEVEL} is not the plan's ${FLOOR_PLAN}`); process.exit(3); }
     const li0 = (() => { const t0b = cand.mix.tables[0]; return t0b.tsLayerOf ? t0b.tsLayerOf[t0b.tsLayerOf.findIndex((_, ai) => (acts[ai].tierPen || 0) === 0 && (acts[ai].tierIsa || 0) === 0)] : 0; })();
     const NQ = Math.min(NPW, NQF);
     // each tier layer's pair (the tiers a move into it holds), for layerTook
@@ -187,12 +195,12 @@ JOBS.forEach((job, ji) => {
       const MV = new Uint16Array(NPW * (T + 1)).fill(NOMOVE);
       const yr = { G: new Float64Array(T + 2), T: new Float64Array(T + 2) }, yrN = new Float64Array(T + 2), byL = new Float64Array(nL), byLN = new Float64Array(nL);
       const other = (() => { for (let ai = 0; ai < n; ai++) if (ai !== ownC && cand.levelOf[ai] !== cand.levelOf[ownC]) return ai; return ownC; })();
-      const tr = makeTrace(NPW, T), tnet = new Float64Array(NPW);
+      const Y = PLANT === 'trace' ? T : T + 1, tr = makeTrace(NPW, Y), tnet = new Float64Array(NPW), term = new Float64Array(NPW), sfall = new Float64Array(NPW).fill(NaN);
       for (let i = 0; i < NPW; i++) {
         const rec = [];
         tr.row = i;
         const r = runPolicy(cand, worldPath(i, k), { trace: tr, start: { t: 0, s: s0, held: H0(), firstAi: PLANT === 'own' ? other : ownC }, visit: (t, s, held, ai) => rec.push({ t, s: Float64Array.from(s), held: { ...held }, ai }) });
-        tnet[i] = r.survived ? r.terminalNet : 0;
+        tnet[i] = r.survived ? r.terminalNet : 0; term[i] = r.survived ? r.terminal : 0; if (Number.isFinite(r.shortfall)) sfall[i] = r.shortfall;
         b[i] = r.survived ? 1 : 0; bb[i] = r.survived || !r.preAccess ? 1 : 0;
         for (const x of rec) MV[i * (T + 1) + x.t] = x.ai;
         const X = b[i], Bv = rec.map(x => B(tab, x.s, x.t, x.ai, x.held)), Vv = rec.map((x, j) => (j === 0 ? NaN : V(tab, layerOf(tab, rec[j - 1].ai), x.s, x.t)));
@@ -222,19 +230,28 @@ JOBS.forEach((job, ji) => {
       // THE WHOLE SCORE per path (reduce-7t.mjs's arithmetic, the estate net of the pension death charge): its spending years the
       // years any path spent in; scoreTook: equal to scorePaths over the same trace where no death charge applies, and a failed
       // path never above zero (the plant 'score' counts the estate on a failed path)
-      const spendYears = Array.from({ length: T }, (_, t) => { for (let i = 0; i < NPW; i++) if (tr.level[i * T + t] > 0) return true; return false; });
+      tr.survived = b;
+      const spendYears = Array.from({ length: Y }, (_, t) => cand.c.yr.spend[t] > 0);
       const WS = new Float64Array(NPW);
       for (let i = 0; i < NPW; i++) {
         let cut = 0, raise = 0;
-        for (let t = 0; t < T; t++) { const l = tr.level[i * T + t] / 100; if (l > 0 && l < 1) cut += LAMBDA * (1 - l) ** 2; else if (l > 1) raise += MU * Math.sqrt(Math.min(0.2, l - 1)); }
-        if (tr.failYear[i] >= 0) for (let t = tr.failYear[i]; t < T; t++) if (spendYears[t]) cut += LAMBDA * (1 - FLOOR_LEVEL) ** 2;
-        const alive = b[i] === 1, est = alive ? Math.min(tnet[i], CAP) : PLANT === 'score' ? Math.min(Math.max(0, tr.wealth[i * T + T - 1]), CAP) + SCALE_W : 0;
+        for (let t = 0; t < Y; t++) { const l = tr.level[i * Y + t] / 100; if (l > 0 && l < 1) cut += LAMBDA * (1 - l) ** 2; else if (l > 1) raise += MU * Math.sqrt(Math.min(0.2, l - 1)); }
+        if (tr.failYear[i] >= 0) for (let t = tr.failYear[i]; t < Y; t++) if (spendYears[t]) cut += LAMBDA * (1 - FLOOR_LEVEL) ** 2;
+        const alive = b[i] === 1, est = alive ? Math.min(tnet[i], CAP) : PLANT === 'score' ? Math.min(Math.max(0, tr.wealth[i * Y + Y - 1]), CAP) + SCALE_W : 0;
         WS[i] = 100 * ((alive ? 1 : 0) + WB * est / SCALE_W - cut + (alive ? raise : 0));
       }
-      { const ref7t = DEATH === 0 ? scorePaths(tr, { lambda: LAMBDA, floor: FLOOR_LEVEL, scale: SCALE_W, cap: CAP, spendYears }) : null;
-        for (let i = 0; i < NPW; i++) { scN++; if ((!ref7t || Math.abs(ref7t[i] - WS[i]) <= 1e-9) && (b[i] === 1 || WS[i] <= 0)) scOk++; } }
+      // scoreTook's two legs: the score equal to scorePaths over the trace; the trace held to runPolicy's own counters
+      { const ref7t = scorePaths(tr, { lambda: LAMBDA, floor: FLOOR_LEVEL, scale: SCALE_W, cap: CAP, spendYears });
+        for (let i = 0; i < NPW; i++) {
+          scN++;
+          // scorePaths reads the estate from the trace's 32-bit wealth, the score from runPolicy's own: 1e-4 points covers the rounding
+          let ok = Math.abs(ref7t[i] - WS[i]) <= 1e-4;
+          if (b[i] === 1 && !(Math.abs(tr.wealth[i * Y + Y - 1] - term[i]) <= 1 + 1e-6 * Math.abs(term[i]))) ok = false;
+          if (Number.isFinite(sfall[i])) { let ct = 0, ny = 0; for (let t = 0; t < Y; t++) { const l = tr.level[i * Y + t] / 100; if (spendYears[t] && l > 0) { ny++; if (l < 1) ct += (1 - l) ** 2; } } if (!(Math.abs(ct - sfall[i]) <= 0.01 * ny + 1e-9)) ok = false; }
+          if (ok) scOk++;
+        } }
       per[`WS${k}`] = WS;
-      console.log(`${''.padEnd(16)} whole ${L} ${k}: mean ${f6(WS.reduce((t, x) => t + x, 0) / NPW)} spending years ${spendYears.filter(Boolean).length} of ${T} scale ${SCALE_W} cap ${CAP} death charge ${DEATH}`);
+      console.log(`${''.padEnd(16)} whole ${L} ${k}: mean ${f6(WS.reduce((t, x) => t + x, 0) / NPW)} spending years ${spendYears.filter(Boolean).length} of ${Y} floor level ${FLOOR_LEVEL} scale ${SCALE_W} cap ${CAP} death charge ${DEATH}`);
       bits[`OWN${k}`] = b; bits[`OWN${k}b`] = bb; moves[`MV${k}`] = MV;
       for (const x of [...KEYS, ...YK, 'NB', 'ND']) per[`${x}${k}`] = A[x];
       per[`QF${k}`] = QF;
@@ -249,7 +266,7 @@ JOBS.forEach((job, ji) => {
       for (let li = 0; li < nL; li++) console.log(`${''.padEnd(16)} layer ${L} ${k} ${li}: bridge path-years ${byLN[li]} G ${f6(100 * byL[li] / NPW)}`);
     }
     console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} scoreTook ${scOk}/${scN} secs ${Math.round((Date.now() - f0) / 1000)}`);
-    if (!(scN > 0) || scOk !== scN) { console.error(`audit-hodep: ${id} ${L}: the whole score does not reproduce reduce-7t.mjs's over the trace, or a failed path scores above zero (scoreTook ${scOk}/${scN})`); process.exit(3); }
+    if (!(scN > 0) || scOk !== scN) { console.error(`audit-hodep: ${id} ${L}: the whole score does not reproduce reduce-7t.mjs's over the trace, or the trace disagrees with runPolicy's own counters (scoreTook ${scOk}/${scN})`); process.exit(3); }
     if (ownOk !== idN || idOk !== idN) { console.error(`audit-hodep: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
     if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-hodep: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }
     if (!(qfN > 0) || qfOk !== qfN) { console.error(`audit-hodep: ${id} ${L}: the fine rule's machinery does not reproduce the one-step value (qfTook ${qfOk}/${qfN})`); process.exit(3); }

@@ -1,0 +1,56 @@
+blob 12f8d78e97dd at afeec2c, started 18 Oct 12:19 UK
+ADAPTIVE CORNER TEST (S362 under HO-DEP's K1F settings; 20000 runs a cell; a cell's tolerance 4 se + 0.05)
+  base: built in 565 s; bridge years 0,1,2,3,4,5,6,7, last 7; fix true; live A = 0 nodes 369; gain nodes 0.050,0.250,0.550; year 4's bills -21600,7200,7200,7200
+  base: cells A0 18, CLIFF 162, SMOOTH 18, Y4 162, INCELL 81; 0 off
+PASS  base: every cell of every bound slice within its tolerance (0 off)
+  top: built in 590 s; bridge years 0,1,2,3,4,5,6,7, last 7; fix true; live A = 0 nodes 369; gain nodes 0.050,0.250,0.550; year 4's bills -189200,7200,7200,7200
+PASS  top fixture reaches O178's case: year 4's bill -189200 below zero, 3 rem + d0 = -124400 under the floor 100; the bridge years 0,1,2,3,4,5,6,7 as the base's; year 4 the only inflow year among 1 to 4
+  top: cells A0 18, CLIFF 162, SMOOTH 18, Y4 108, INCELL 81; 0 off
+PASS  top: every cell within its tolerance and p finite everywhere, the top guarded (0 off)
+  plant foot: built in 587 s; bridge years 0,1,2,3,4,5,6,7, last 7; fix true; live A = 0 nodes 2583; gain nodes 0.050,0.250,0.550; year 4's bills -21600,7200,7200,7200
+  plant foot: cells A0 18, CLIFF 162, SMOOTH 18, Y4 162, INCELL 81; 180 off
+    off A0 world 0 year 1 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 0 year 1 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 0 year 2 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 0 year 2 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 0 year 3 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 0 year 3 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 1 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 1 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 2 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 2 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 3 A 0 b 0 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+    off A0 world 1 year 3 A 0 b 1 gain 0.250: p 1.0000 sim 0.0000 gap 1.0000 over 0.0502
+PASS  plant foot caught in A0: its largest gap there 1.0000, 19.92 times its cell's tolerance
+  plant drift: built in 604 s; bridge years 0,1,2,3,4,5,6,7, last 7; fix true; live A = 0 nodes 369; gain nodes 0.050,0.250,0.550; year 4's bills -21600,7200,7200,7200
+  plant drift: cells A0 18, CLIFF 162, SMOOTH 18, Y4 162, INCELL 81; 84 off
+    off CLIFF world 0 year 1 A 20040 b 0 gain 0.050: p 0.1249 sim 0.0355 gap 0.0894 over 0.0552
+    off CLIFF world 0 year 1 A 20040 b 0 gain 0.250: p 0.1249 sim 0.0370 gap 0.0878 over 0.0553
+    off CLIFF world 0 year 1 A 20040 b 0 gain 0.550: p 0.1249 sim 0.0367 gap 0.0881 over 0.0553
+    off CLIFF world 0 year 2 A 14569 b 0 gain 0.050: p 0.7259 sim 0.4242 gap 0.3018 over 0.0640
+    off CLIFF world 0 year 2 A 14569 b 0 gain 0.250: p 0.7259 sim 0.4347 gap 0.2912 over 0.0640
+    off CLIFF world 0 year 2 A 14569 b 0 gain 0.550: p 0.7259 sim 0.4280 gap 0.2979 over 0.0640
+    off CLIFF world 0 year 3 A 7669 b 0 gain 0.050: p 0.8165 sim 0.6529 gap 0.1636 over 0.0635
+    off CLIFF world 0 year 3 A 7669 b 0 gain 0.250: p 0.8165 sim 0.6437 gap 0.1728 over 0.0635
+    off CLIFF world 0 year 3 A 7669 b 0 gain 0.550: p 0.8165 sim 0.6472 gap 0.1692 over 0.0635
+    off CLIFF world 0 year 3 A 7669 b 0.5 gain 0.050: p 0.8232 sim 0.6516 gap 0.1716 over 0.0635
+    off CLIFF world 0 year 3 A 7669 b 0.5 gain 0.250: p 0.8232 sim 0.6568 gap 0.1664 over 0.0634
+    off CLIFF world 0 year 3 A 7669 b 0.5 gain 0.550: p 0.8232 sim 0.6523 gap 0.1709 over 0.0635
+PASS  plant drift caught in CLIFF or Y4, worlds 0 and 2: its largest gap there 0.3018, 4.72 times its cell's tolerance
+  plant top: built in 609 s; bridge years 0,1,2,3,4,5,6,7, last 7; fix false; live A = 0 nodes -1; gain nodes 0.050,0.250,0.550; year 4's bills -189200,7200,7200,7200
+PASS  plant top caught in Y4 at A 500 or more: 54 of 54 year-4 cells at A 500 or more with a non-finite p
+
+THE GATE, by bound slice (the base's largest gap as a share of its own cell's tolerance; at most one half):
+  A0: cells 18, the base's largest gap 0.0000, at most 0.000 of its cell's tolerance
+PASS  A0: every base cell's gap at most half its own tolerance
+  CLIFF: cells 162, the base's largest gap 0.0176, at most 0.294 of its cell's tolerance
+PASS  CLIFF: every base cell's gap at most half its own tolerance
+  Y4: cells 162, the base's largest gap 0.0090, at most 0.144 of its cell's tolerance
+PASS  Y4: every base cell's gap at most half its own tolerance
+  SMOOTH (reported, not bound): cells 18, the base's largest gap 0.0192, at most 0.299 of its cell's tolerance
+  INCELL (reported, not bound): the base's largest gap inside the cliff's step cell 0.4445 over 81 cells
+  plants: foot 19.92 times its cell's tolerance in A0; drift 4.72 times in CLIFF and Y4, worlds 0 and 2; top 54 of 54 year-4 cells at A 500 or more with a non-finite p
+
+adaptive-corner: all passed
+exit 0
+ended 18 Oct 13:09 UK

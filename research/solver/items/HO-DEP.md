@@ -78,7 +78,14 @@ case), with the plants foot (in A0), drift (in CLIFF or Y4) and top (in Y4) each
 A reference default; 7u-F with the adaptive reference; more S366 jobs for the reference question; a copy or split change aimed
 at S362's GB; a single-world harm read of a reference change; FOOT-S366's item 4 cited as no-harm where the references differ.
 
-The STOP list stands after HO-DEP's read until the deep review after it is adopted (the decision table's 'else' row).
+The STOP list stood after HO-DEP's read until the deep review after it was adopted (PLAN.md's 18 Oct 18:42 row). At that
+adoption (the plan-auditor's MINOR 1 of 18:48 UK): 'a reference default' passes to STEP-S370's STOP list and to the two needs
+AREF now names (the plan reference in the comparison, PR24; the build's cost against a lazy build); '7u-F with the adaptive
+reference' passes to the 17:19 rule (7u-F after the material gaps); 'more S366 jobs for the reference question' and 'a copy or
+split change aimed at S362's GB' lapse (S366 is reference-inert after the fix; S362's GB is small under K1F, O181 carrying the
+order reference's swings); 'a single-world harm read of a reference change' is now RULES.md section 8 item 1's own text.
+STANDING: FOOT-S366's item 4 is not cited as no-harm where the references differ (S366 is reference-inert after the fix; the
+deep review's FLAG 3 of 18 Oct 09:43 UK).
 
 ## READ 18 Oct 18:17 (PLAN.md's 18 Oct 18:17 row; results-hodep.txt; Brier 0.118 over 3, results-scorecard-hodep.txt)
 

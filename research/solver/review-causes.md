@@ -42,3 +42,4 @@ twice, a results file that does not exist, or a quote that is not a deciding lin
 - 15 Oct 01:48 UK | N2-REF | held | results-an.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD
 - 15 Oct 21:05 UK | AO-REF | held | results-ao.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD
 - 16 Oct 05:36 UK | O169-COPY | held | results-aor.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+- 18 Oct 01:41 UK | O177-FOOT | held | results-foot.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD

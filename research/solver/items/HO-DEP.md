@@ -28,18 +28,24 @@ order reference. On S362, FOOT-S366's reported lines show the fix trading runs a
   tables are the batch's, the solve not depending on the paths), names the household where the two move differently on the
   most MIX3-weighted path-years among those whose O world-0 survival stays in the band at 30 points.
 
-## The items (the registration sets the rules and margins)
+## The items (as registered, predictions/diag-hodep.md; HOUSE2 is S370, the reach's choice)
 
-1. No material harm, A against O on HOUSE2, by the mixture (survival and whole score), each world's line reported.
+1. No material harm, A against O on S370, by the mixture (survival and whole score), each world's line reported.
 2. No material harm, K1F against K2 on S362, by the mixture (survival and whole score), K1F's GB by year and world beside
    K2's (O179's control).
-3. A's table at its own opening against its runs on HOUSE2, by world and at the MIX3 weights: within 1.5 points HELD; any
-   world or the mixture wholly 3 points or more away FALSIFIED.
-4. The accuracy contrast (the consult's Q5a): DEP-ADVCAL's row when O's table-less-runs lies wholly beyond 1 point and A's
-   within 1 on a household and the reverse on none; DEP-NONE's when the two tables are within 0.5 of each other in every world
-   on both households and neither is ahead.
+3. The accuracy contrast on S362 (the consult of 11:27 UK, Q5a, read on S362 alone by the consult of 15:09 UK): HELD when K2's
+   table-less-runs lies wholly beyond 1 point at the mixture and K1F's within 1 (DEP-ADVCAL); FALSIFIED when the two tables lie
+   within 0.5 of each other in every world and the fixed does not read truer (DEP-NONE); the pattern 'worse' its own row
+   (DEP-WORSE). S370's contrast reported: there the tables sit 1.04 apart in world 0 with neither within a point of its runs.
 
-HO-DEP settles the DEP causes and O179-FIXOWN (with the corner test at S362's cells); O179-TRADE and O179-SECOND stay open.
+The first draft's item 3 (A's table within 1.5 points of its runs on HOUSE2) was dropped by the consult of 15:09 UK: the reach's
+records decided it (both references over-read S370's world 0 by about 13 points on runs that agree but for a few paths, O180;
+results-hodep-s370.txt), and its row blamed the adaptive reference for an error the order reference shares.
+
+HO-DEP settles the DEP causes on S362 and O179-FIXOWN (with the corner test at S362's cells); O179-TRADE, O179-SECOND and O180
+stay open. Its finding is scoped to deposit households whose bridge is at risk: on S394, S382 and S406 the two references are
+identical to the bit in every world (results-hodep-reach.txt), and the screen's other candidates bridge every path under the
+order reference at 15 points (results-hodep-screen.txt and its case logs; whether A equals O on them NOT CHECKED).
 
 ## The rule's steps before HO-DEP relies on it (the plan-auditor's MINOR 2 of its FAIL on the 09:43 row)
 

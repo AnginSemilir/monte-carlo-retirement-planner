@@ -15,17 +15,16 @@
  *   1: no material harm, A against O on HOUSE2, by the mixture: HELD when the survival and the whole score both read no
  *      material harm; FALSIFIED when either reads harm; otherwise INCONCLUSIVE.
  *   2: the same, K1F against K2 on S362 (O179's control).
- *   3: A's table at its own opening against its runs on HOUSE2 (the exact interval on each world's count, the mixture's by variance
- *      estimates recovery): HELD when the mixture's interval at 95% lies inside [-1.5, +1.5] and no world's at 1 - 0.05 / 3 lies
- *      wholly at or beyond 3 points; FALSIFIED when the mixture's or any world's lies wholly at or beyond 3 points either way;
- *      otherwise INCONCLUSIVE. (At 4,000 runs a world near 50% survival a world's interval spans about +-1.8 points, so the
- *      HELD line is read at the mixture, what the user sees, and each world for a gross misread: the planted set showed a
- *      per-world HELD line out of reach.)
- *   4: the accuracy contrast, both households, at the mixture: on a household the fixed reference reads truer when O's interval
- *      lies wholly beyond 1 point either way and A's point lies within 1 point, worse when A's interval lies wholly beyond 1
- *      point and O's point within 1; HELD when it reads truer on at least one household and worse on neither; FALSIFIED (it adds
- *      no accuracy) when on both households A's and O's tables lie within 0.5 points of each other in every world and it reads
- *      truer on neither; otherwise INCONCLUSIVE.
+ *   3: the accuracy contrast on S362, K1F against K2, at the mixture (the exact interval on each world's count, the mixture's
+ *      by variance estimates recovery): the fixed reference reads truer when K2's interval lies wholly beyond 1 point either way
+ *      and K1F's point lies within 1 point, worse when K1F's interval lies wholly beyond 1 point and K2's point within 1; HELD
+ *      when it reads truer; FALSIFIED (it adds no accuracy, DEP-NONE) when the two tables lie within 0.5 points of each other in
+ *      every world and it does not read truer; otherwise INCONCLUSIVE, the pattern 'worse' (DEP-WORSE) its own row.
+ *   (The deep-reviewer's consult of 18 Oct 15:09 UK: the first draft's item 3, A's table against its runs on HOUSE2, was decided
+ *   by the reach's records, both references over-reading S370's world 0 by about 13.6 points on runs that agree but for a few
+ *   paths, and its row blamed the adaptive reference for an error the order reference shares; it is dropped, both references'
+ *   tables against their runs on HOUSE2 reported. The contrast reads S362 alone: on S370 the tables sit 1.04 apart in world 0
+ *   with neither within a point of its runs, so S370 could never read truer, worse or alike; S370's contrast is reported.)
  * REPORTED: every world's survival and whole-score change beside the mixture's; every job's tables against its runs by world;
  *   K1F's and K2's bridge residual GB by world and year (O179-SECOND); the moves differing; the fix's live nodes; the solves.
  *   node research/solver/reduce-hodep.mjs [dir] [paths a world] [scale] [--preflight] [--planted]
@@ -44,7 +43,7 @@ export const PRED = 'research/solver/predictions/diag-hodep.md';
 // the household the reach step chose (select-hodep.mjs's CHOSEN line), set at registration
 export const HOUSE2 = 'S370';
 export const SEED = '7004', NPW = 4000, NQF = 1000, LATTICE = '160x41', NZ = 128, ALPHA3 = 0.05, ALPHA3W = 0.05 / 3;
-export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
+export const ADV3 = 1, SAME3 = 0.5;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const ARMS = ['K1F', 'K2', 'A', 'O'];
 export const PTS = Object.freeze({ K1F: 30, K2: 30, A: 30, O: 30 });
@@ -174,7 +173,7 @@ export const wsMix = (per, margin, w = MIX3W, level = MIX_LEVEL) => {
 // a table against its runs (points): one world's exact interval on the count; the mixture's by variance estimates recovery
 export const accOf = (table, c, N, alpha = ALPHA3) => { const [lo, hi] = clopperPearson(c, N, alpha), r = 100 * c / N; return { m: table - r, lo: table - 100 * hi, hi: table - 100 * lo }; };
 export const accMix = (rows, alpha = ALPHA3, w = MIX3W) => { const per = rows.map(x => accOf(x.table, x.c, x.N, alpha)), m = per.reduce((t, x, k) => t + w[k] * x.m, 0); return { m, lo: m - Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.m - x.lo)) ** 2, 0)), hi: m + Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.hi - x.m)) ** 2, 0)), per }; };
-const inside = (x, b) => x.lo >= -b && x.hi <= b, beyond = (x, b) => x.lo >= b || x.hi <= -b;
+const beyond = (x, b) => x.lo >= b || x.hi <= -b;
 
 // a pair's harm item: survival and whole score by the mixture
 export function harmItem(cells, ws) {
@@ -186,27 +185,27 @@ export function items(P) {
   const out = {};
   out['1'] = harmItem(P.h2.cells, P.h2.ws);
   out['2'] = harmItem(P.s362.cells, P.s362.ws);
-  const a3 = [0, 1, 2].map(k => accOf(P.acc.h2.A[k].table, P.acc.h2.A[k].c, P.acc.h2.A[k].N, ALPHA3W)), m3 = accMix(P.acc.h2.A, ALPHA3);
-  out['3'] = { outcome: [...a3, m3].some(x => beyond(x, OUT3)) ? 'FALSIFIED' : inside(m3, IN3) ? 'HELD' : 'INCONCLUSIVE', per: a3, mix: m3 };
-  const hh = ['h2', 's362'].map(h => { const A = accMix(P.acc[h].A, ALPHA3), O = accMix(P.acc[h].O, ALPHA3), adv = beyond(O, ADV4) && Math.abs(A.m) <= ADV4, worse = beyond(A, ADV4) && Math.abs(O.m) <= ADV4, sameT = [0, 1, 2].every(k => Math.abs(P.acc[h].A[k].table - P.acc[h].O[k].table) <= SAME4); return { h, A, O, adv, worse, sameT }; });
-  out['4'] = { outcome: hh.some(x => x.adv) && !hh.some(x => x.worse) ? 'HELD' : hh.every(x => x.sameT) && !hh.some(x => x.adv) ? 'FALSIFIED' : 'INCONCLUSIVE', hh };
+  // the contrast on each household; item 3 reads S362's alone (HOUSE2's reported)
+  const hh = ['s362', 'h2'].map(h => { const A = accMix(P.acc[h].A, ALPHA3), O = accMix(P.acc[h].O, ALPHA3), adv = beyond(O, ADV3) && Math.abs(A.m) <= ADV3, worse = beyond(A, ADV3) && Math.abs(O.m) <= ADV3, sameT = [0, 1, 2].every(k => Math.abs(P.acc[h].A[k].table - P.acc[h].O[k].table) <= SAME3); return { h, A, O, adv, worse, sameT }; });
+  const c3 = hh[0];
+  out['3'] = { outcome: c3.adv ? 'HELD' : c3.sameT ? 'FALSIFIED' : 'INCONCLUSIVE', worse: c3.worse, gain: Math.abs(c3.O.m) - Math.abs(c3.A.m), hh };
   return out;
 }
 export function rowOf(it) {
   const o = i => it[i].outcome;
   if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return 'R2';
-  if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HELD' && o('4') === 'HELD') return 'R1';
-  if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HELD' && o('4') === 'FALSIFIED') return 'R3';
-  if (o('3') === 'FALSIFIED') return 'R4';
+  if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HELD') return 'R1';
+  if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'FALSIFIED') return 'R3';
+  if (it['3'].worse) return 'R4';
   return 'else';
 }
 
 // THE PLANTED CHECKS: each item to each outcome on a case built for it, the gate's refusals, the inert comparison, the EDGES
-export const EDGES = [], REACHED = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
+export const EDGES = [], REACHED = { 1: new Set(), 2: new Set(), 3: new Set() };
 const N0 = 4000;
 const cellsAt = (s, lost, saved) => { const al = Math.round(s / 100 * N0); return { a: al - lost, b: lost, c: saved, d: N0 - al - saved }; };
 const P0 = () => ({ h2: { cells: [cellsAt(30, 10, 10), cellsAt(50, 10, 10), cellsAt(70, 10, 10)], ws: [{ d: 0, se: 0.05 }, { d: 0, se: 0.05 }, { d: 0, se: 0.05 }] }, s362: { cells: [cellsAt(30, 10, 10), cellsAt(50, 10, 10), cellsAt(68, 10, 10)], ws: [{ d: 0, se: 0.05 }, { d: 0, se: 0.05 }, { d: 0, se: 0.05 }] },
-  acc: { h2: { A: [{ table: 30, c: 1200, N: N0 }, { table: 50, c: 2000, N: N0 }, { table: 70, c: 2800, N: N0 }], O: [{ table: 27, c: 1200, N: N0 }, { table: 47, c: 2000, N: N0 }, { table: 67, c: 2800, N: N0 }] }, s362: { A: [{ table: 30, c: 1200, N: N0 }, { table: 50, c: 2000, N: N0 }, { table: 68, c: 2720, N: N0 }], O: [{ table: 29.8, c: 1200, N: N0 }, { table: 49.8, c: 2000, N: N0 }, { table: 67.8, c: 2720, N: N0 }] } } });
+  acc: { h2: { A: [{ table: 30, c: 1200, N: N0 }, { table: 50, c: 2000, N: N0 }, { table: 70, c: 2800, N: N0 }], O: [{ table: 27, c: 1200, N: N0 }, { table: 47, c: 2000, N: N0 }, { table: 67, c: 2800, N: N0 }] }, s362: { A: [{ table: 30, c: 1200, N: N0 }, { table: 50, c: 2000, N: N0 }, { table: 68, c: 2720, N: N0 }], O: [{ table: 27, c: 1200, N: N0 }, { table: 47, c: 2000, N: N0 }, { table: 65, c: 2720, N: N0 }] } } });
 function planted() {
   const cases = [], put = (what, got, want) => cases.push([what, got, want]);
   const run = (what, edit, i, want, edge) => { const P = P0(); edit(P); const it = items(P); REACHED[i].add(it[i].outcome); put(`${what}: ${i} ${want}`, it[i].outcome, want); if (edge) EDGES.push(edge); };
@@ -220,22 +219,25 @@ function planted() {
   run('K1F at K2 on S362', () => {}, '2', 'HELD');
   run('K1F loses 60 paths in every world on S362', P => { P.s362.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(68, 70, 10)]; }, '2', 'FALSIFIED');
   run('K1F\'s survival across the margin on S362', P => { P.s362.cells = [cellsAt(30, 28, 10), cellsAt(50, 28, 10), cellsAt(68, 28, 10)]; }, '2', 'INCONCLUSIVE');
-  run('A\'s table at its runs on HOUSE2', () => {}, '3', 'HELD');
-  run('A\'s table 5 points over its runs in world 0 alone (a world read for a gross misread)', P => { P.acc.h2.A[0].table = 35; }, '3', 'FALSIFIED', 'one world wholly past the FALSIFIED line while the mixture is not');
-  run('A\'s table 2 points under its runs in every world', P => { P.acc.h2.A.forEach(x => { x.table -= 2; }); }, '3', 'INCONCLUSIVE');
-  run('A\'s table exactly at 1.5 points in the middle world, its interval across the line', P => { P.acc.h2.A[1].table = 51.5; }, '3', 'INCONCLUSIVE', 'a table at the HELD line with its interval across it');
-  run('O under-reads HOUSE2 by 3 points, A at its runs', () => {}, '4', 'HELD');
-  run('A and O within 0.2 points on both households', P => { P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); }, '4', 'FALSIFIED');
-  run('O off by 3 on HOUSE2 but A off by 4 on S362 where O reads true', P => { P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); }, '4', 'INCONCLUSIVE');
-  run('O off by 3 on HOUSE2 and A off by 2 there (A not within a point)', P => { P.acc.h2.A.forEach(x => { x.table += 2; }); P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 5 })); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.7 })); }, '4', 'INCONCLUSIVE');
-  run('the tables a point apart in world 0 alone on both households, O otherwise A\'s', P => { P.acc.h2.O = P.acc.h2.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 1 : 0) })); P.acc.s362.O = P.acc.s362.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 1 : 0) })); }, '4', 'INCONCLUSIVE');
-  run('the tables alike on HOUSE2 alone, 0.7 apart on S362 with no gain', P => { P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.7 })); }, '4', 'INCONCLUSIVE');
-  run('A\'s table 2 points over in world 0 alone (the mixture weighs it a sixth)', P => { P.acc.h2.A[0].table = 32; }, '3', 'HELD');
+  run('K2 under-reads S362 by 3 points, K1F at its runs', () => {}, '3', 'HELD');
+  run('K1F and K2 within 0.2 points on S362', P => { P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.2 })); }, '3', 'FALSIFIED');
+  run('K1F and K2 exactly 0.5 apart in every world on S362, neither truer', P => { P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.5 })); }, '3', 'FALSIFIED', 'the tables exactly 0.5 apart in every world (the line itself reads alike)');
+  run('K1F off by 4 on S362 where K2 reads true (the fixed reads worse)', P => { P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); }, '3', 'INCONCLUSIVE');
+  run('K2 off by 3 on S362 and K1F off by 2 there (K1F not within a point)', P => { P.acc.s362.A.forEach(x => { x.table += 2; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 5 })); }, '3', 'INCONCLUSIVE');
+  run('the tables a point apart in world 0 alone on S362, K2 otherwise K1F\'s', P => { P.acc.s362.O = P.acc.s362.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 1 : 0) })); }, '3', 'INCONCLUSIVE');
+  run('K2 7 points under its runs in world 0 alone, K1F at its runs (the mixture weighs it a sixth)', P => { P.acc.s362.O = P.acc.s362.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 7 : 0) })); }, '3', 'INCONCLUSIVE');
+  run('the tables 0.7 apart on S362 with no gain',P => { P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.7 })); }, '3', 'INCONCLUSIVE');
+  run('both references over-read HOUSE2 by 13 points in world 0 (S370\'s, reported): S362 decides', P => { P.acc.h2.A[0].table = 43.5; P.acc.h2.O[0].table = 42.5; }, '3', 'HELD');
+  run('the tables alike on HOUSE2, the fixed truer on S362 (HOUSE2 not read)', P => { P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x })); }, '3', 'HELD');
   // the decision rows
-  { const P = P0(); put('the rows: all four HELD reads R1', rowOf(items(P)), 'R1'); }
+  { const P = P0(); put('item 3\'s realised gain: K2 3 points under its runs, K1F at them, reads +3', items(P)['3'].gain.toFixed(2), '3.00'); }
+  { const P = P0(); P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); put('item 3\'s realised gain: K1F 4 over, K2 at its runs, reads -4', items(P)['3'].gain.toFixed(2), '-4.00'); }
+  { const P = P0(); put('the rows: all three HELD reads R1', rowOf(items(P)), 'R1'); }
   { const P = P0(); P.h2.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(70, 70, 10)]; put('the rows: a harm reads R2', rowOf(items(P)), 'R2'); }
-  { const P = P0(); P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); put('the rows: no accuracy gain reads R3', rowOf(items(P)), 'R3'); }
-  { const P = P0(); P.acc.h2.A[0].table = 35; put('the rows: A misreading HOUSE2 reads R4', rowOf(items(P)), 'R4'); }
+  { const P = P0(); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.2 })); put('the rows: no accuracy gain on S362 reads R3', rowOf(items(P)), 'R3'); }
+  { const P = P0(); P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); put('the rows: the fixed reading worse on S362 reads R4', rowOf(items(P)), 'R4'); }
+  { const P = P0(); P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); P.s362.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(68, 70, 10)]; put('the rows: a harm with the fixed reading worse reads R2', rowOf(items(P)), 'R2'); }
+  { const P = P0(); P.acc.h2.A[0].table = 43.5; P.acc.h2.O[0].table = 42.5; put('the rows: HOUSE2 misread by both references, the rest HELD, reads R1', rowOf(items(P)), 'R1'); }
   { const P = P0(); P.s362.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(68, 70, 10)]; put('the rows: a harm on S362 alone reads R2', rowOf(items(P)), 'R2'); }
   { const P = P0(); P.s362.cells = [cellsAt(30, 28, 10), cellsAt(50, 28, 10), cellsAt(68, 28, 10)]; put('the rows: S362 unsettled, the rest HELD, reads else', rowOf(items(P)), 'else'); }
   // the gate and the inert comparison (on synthetic logs and files)
@@ -343,13 +345,11 @@ if (isMain) {
   const harmLine = (x, nm) => `     ${nm}: survival by the mixture ${iv(x.s)} at margin ${f4(x.s.margin)}: ${x.s.outcome}; whole score by the mixture ${iv(x.w)}: ${x.w.outcome}`;
   console.log(`1. no material harm, A against O on ${HOUSE2}, by the mixture (survival and whole score): ${it['1'].outcome}`); console.log(harmLine(it['1'], HOUSE2));
   console.log(`2. no material harm, K1F against K2 on S362, by the mixture (survival and whole score): ${it['2'].outcome}`); console.log(harmLine(it['2'], 'S362'));
-  console.log(`3. A's table at its own opening against its runs on ${HOUSE2} within 1.5 points in every world and at the mixture (FALSIFIED at a whole interval past 3): ${it['3'].outcome}`);
-  console.log(`     ${it['3'].per.map((x, k) => `world ${k}: ${iv(x)}`).join('; ')}; the mixture ${iv(it['3'].mix)}`);
-  console.log(`4. the accuracy contrast, both households, at the mixture: ${it['4'].outcome}`);
-  for (const x of it['4'].hh) console.log(`     ${x.h === 'h2' ? HOUSE2 : 'S362'}: the fixed reference's table less runs ${iv(x.A)}, the order reference's ${iv(x.O)}; the pattern: ${x.adv ? 'the fixed reads truer' : x.worse ? 'the fixed reads worse' : 'neither'}${x.sameT ? '; the two tables within 0.5 points in every world' : ''}`);
-  console.log(`OUTCOME: 1 ${it['1'].outcome}, 2 ${it['2'].outcome}, 3 ${it['3'].outcome}, 4 ${it['4'].outcome}`);
+  console.log(`3. the accuracy contrast on S362, K1F against K2, at the mixture: ${it['3'].outcome}${it['3'].worse ? ' (the fixed reads worse: DEP-WORSE)' : ''}`);
+  for (const x of it['3'].hh) console.log(`${x.h === 'h2' ? '     (reported, not read) ' : ''}`+`     ${x.h === 'h2' ? HOUSE2 : 'S362'}: the fixed reference's table less runs ${iv(x.A)}, the order reference's ${iv(x.O)}; the pattern: ${x.adv ? 'the fixed reads truer' : x.worse ? 'the fixed reads worse' : 'neither'}${x.sameT ? '; the two tables within 0.5 points in every world' : ''}`);
+  console.log(`OUTCOME: 1 ${it['1'].outcome}, 2 ${it['2'].outcome}, 3 ${it['3'].outcome}`);
   console.log(`ROW: ${rowOf(it)}`);
-  console.log(`REALISED item 1: ${f4(it['1'].s.d)}`); console.log(`REALISED item 2: ${f4(it['2'].s.d)}`); console.log(`REALISED item 3: ${f4(it['3'].mix.m)}`); console.log(`REALISED item 4: ${f4(it['4'].hh[0].O.m - it['4'].hh[0].A.m)}`);
+  console.log(`REALISED item 1: ${f4(it['1'].s.d)}`); console.log(`REALISED item 2: ${f4(it['2'].s.d)}`); console.log(`REALISED item 3: ${f4(it['3'].gain)}`);
   console.log('\nREPORTED');
   for (const [nm, x] of [[HOUSE2, it['1']], ['S362', it['2']]]) x.s.per.forEach((p, k) => console.log(`  ${nm} world ${k}: survival change ${f4(p.d)} (${f4(p.lo)} to ${f4(p.hi)}); whole score change ${f4((nm === 'S362' ? P.s362 : P.h2).ws[k].d)} (se ${f4((nm === 'S362' ? P.s362 : P.h2).ws[k].se)})`));
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const s = J[a].sims[`OWN${k}`], x = accOf(J[a].tables[k].OWN, s.ok, s.n); console.log(`  ${a} (${J[a].id}) world ${k}: table at its own opening ${f4(J[a].tables[k].OWN)} runs ${s.ok}/${s.n}, table less runs ${iv(x)}; GB ${f4(J[a].ledger[k].GB)}; by year ${(J[a].bridge || []).map(t => `${t}: ${f4(J[a].ledger[k][`Y${t}`])}`).join(' | ')}`); }

@@ -169,3 +169,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-18 11:07 UTC | reduce-hodep.mjs e46c63f4974c | 39 of 41 caught | escaped: NOT CAUGHT: 15: if (!j.foot || j.foot.on !== FOOT[arm] || (FOOT[arm] && !(j.; NOT CAUGHT: 33: const z = zFor(level), d = per.reduce((t, x, k) => t + w[k] 
 2026-10-18 11:08 UTC | reduce-hodep.mjs 3b84a00d4bd4 | 41 of 41 caught | escaped: none
 2026-10-18 14:01 UTC | reduce-hodep.mjs 0bd1c96efb8f | 41 of 41 caught | escaped: none
+2026-10-18 14:17 UTC | reduce-hodep.mjs 0e8c8f3dbbe4 | 42 of 43 caught | escaped: NOT CAUGHT: 33: export const accMix = (rows, alpha = ALPHA3, w = MIX3W) => {
+2026-10-18 14:17 UTC | reduce-hodep.mjs 9cad1a154072 | 43 of 43 caught | escaped: none

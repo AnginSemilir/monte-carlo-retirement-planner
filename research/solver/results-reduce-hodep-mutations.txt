@@ -22,21 +22,23 @@ caught: 21: if (shared && (!(x in A) || !(x in B))) continue; n++;
 caught: 22: return { outcome: s.outcome === 'harm' || wm.outcome === 'ha
 caught: 23: s.outcome === 'no material harm' && wm.outcome === 'no mater
 caught: 24: const s = mixtureOutcome(mixtureChange(cells)), wm = wsMix(w
-caught: 25: out['3'] = { outcome: [...a3, m3].some(x => beyond(x, OUT3))
-caught: 26: 'FALSIFIED' : inside(m3, IN3) ? 'HELD' : 'INCONCLUSIVE', per
-caught: 27: adv = beyond(O, ADV4) && Math.abs(A.m) <= ADV4,
-caught: 28: worse = beyond(A, ADV4) && Math.abs(O.m) <= ADV4,
-caught: 29: sameT = [0, 1, 2].every(k => Math.abs(P.acc[h].A[k].table - 
-caught: 30: out['4'] = { outcome: hh.some(x => x.adv) && !hh.some(x => x
-caught: 31: hh.every(x => x.sameT) && !hh.some(x => x.adv) ? 'FALSIFIED'
-caught: 32: export const accMix = (rows, alpha = ALPHA3, w = MIX3W) => {
-caught: 33: const z = zFor(level), d = per.reduce((t, x, k) => t + w[k] 
-caught: 34: outcome: lo > -margin ? 'no material harm' : hi < 0 && -d >=
-caught: 35: if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return
-caught: 36: if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HE
-caught: 37: if (o('3') === 'FALSIFIED') return 'R4';
-caught: 38: export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
-caught: 39: export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
-caught: 40: export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
-caught: 41: export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
-41 of 41 mutations caught
+caught: 25: adv = beyond(O, ADV3) && Math.abs(A.m) <= ADV3,
+caught: 26: worse = beyond(A, ADV3) && Math.abs(O.m) <= ADV3,
+caught: 27: sameT = [0, 1, 2].every(k => Math.abs(P.acc[h].A[k].table - 
+caught: 28: <= SAME3);
+caught: 29: const c3 = hh[0];
+caught: 30: out['3'] = { outcome: c3.adv ? 'HELD' : c3.sameT ? 'FALSIFIE
+caught: 31: out['3'] = { outcome: c3.adv ? 'HELD' : c3.sameT ? 'FALSIFIE
+caught: 32: gain: Math.abs(c3.O.m) - Math.abs(c3.A.m)
+caught: 33: export const accMix = (rows, alpha = ALPHA3, w = MIX3W) => {
+caught: 34: const z = zFor(level), d = per.reduce((t, x, k) => t + w[k] 
+caught: 35: outcome: lo > -margin ? 'no material harm' : hi < 0 && -d >=
+caught: 36: if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return
+caught: 37: if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return
+caught: 38: if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HE
+caught: 39: if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'FA
+caught: 40: if (it['3'].worse) return 'R4';
+caught: 41: export const ADV3 = 1, SAME3 = 0.5;
+caught: 42: export const ADV3 = 1, SAME3 = 0.5;
+caught: 43: export const ADV3 = 1, SAME3 = 0.5;
+43 of 43 mutations caught

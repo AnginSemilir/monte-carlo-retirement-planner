@@ -114,10 +114,13 @@ function setOf({ d1, wx1, gapO2, d2, wx2, ratio, churn2, wsd }) {
   }
   const s3c = [], s3w = [], accK1F = [], accK2 = [];
   for (let k = 0; k < 3; k++) {
-    const pK2 = Math.max(0, Math.min(1, runK1F[k] / N - d2 / 100)), cK2 = binom(N, pK2), n = churn2 * disc1[k], net = runK1F[k] - cK2;
-    const lost = Math.max(0, Math.round((n - net) / 2)), saved = lost + net;
-    s3c.push(saved >= 0 && lost <= cK2 ? cellsFrom(cK2, lost, saved) : cellsFrom(cK2, Math.max(0, -net), Math.max(0, net)));
-    const dd = (runK1F[k] - cK2) / N; s3w.push({ d: 100 * dd + wx2, se: Math.sqrt(Math.max(1e-12, (n / N - dd * dd) * 1e4 + wsd * wsd) / N) });
+    // paired, as item 1's: K1F's runs are FOOT-S366's (seen), K2's follow from the lost and saved paths drawn around the story's
+    // net change (the deep-reviewer's consult of 18 Oct 15:09 UK, Q4a: the first draft drew K2's count apart, an unpaired noise)
+    const n = churn2 * disc1[k], net = d2 / 100 * N;
+    let lost = pois(Math.max(0, (n - net) / 2)), saved = pois(Math.max(0, (n + net) / 2)); lost = Math.min(lost, runK1F[k]); saved = Math.min(saved, N - runK1F[k]);
+    const cK2 = runK1F[k] - saved + lost;
+    s3c.push(cellsFrom(cK2, lost, saved));
+    const dd = (saved - lost) / N; s3w.push({ d: 100 * dd + wx2, se: Math.sqrt(Math.max(1e-12, ((lost + saved) / N - dd * dd) * 1e4 + wsd * wsd) / N) });
     accK1F.push({ table: tK1F[k], c: runK1F[k], N }); accK2.push({ table: 100 * cK2 / N + gapO2, c: cK2, N });
   }
   return { h2: { cells: h2c, ws: h2w }, s362: { cells: s3c, ws: s3w }, acc: { h2: { A: accA, O: accO }, s362: { A: accK1F, O: accK2 } } };
@@ -133,11 +136,10 @@ for (const v of [-0.7, -0.5, -0.3, 0, 0.15, 0.4]) { const c = cnt3(); for (let q
 for (const r of [0.03, 0.12]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, ratio: r }))['1'].outcome]++; console.log(`  item 1 at no change, discordance ${r} a differing path: ${row(c)}`); }
 for (const v of [-0.5, -0.3, 0, 0.1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, d2: v }))['2'].outcome]++; console.log(`  item 2, K1F's survival less K2's by the mixture ${v}: ${row(c)}`); }
 for (const w of [-0.4, -0.2]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, wx2: w }))['2'].outcome]++; console.log(`  item 2 at no survival change, the whole score ${w} beside: ${row(c)}`); }
-{ const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf(BASE))['3'].outcome]++; console.log(`  item 3, A's tables as the reach found them against runs drawn at the reach's survival: ${row(c)}`); }
-for (const g of [-5, -3.5, -2, -0.8, 1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, gapO2: g }))['4'].outcome]++; console.log(`  item 4, K2's table less runs on S362 ${g} (${HOUSE2}'s tables as the reach found them): ${row(c)}`); }
+for (const g of [-5, -3.5, -2, -0.8, -0.3, 1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, gapO2: g }))['3'].outcome]++; console.log(`  item 3, K2's table less runs on S362 ${g} (K1F's as FOOT-S366 read it): ${row(c)}`); }
 
 // 3. THE CREDENCES: the receipt's two sets through the judged stories, each draw read through items()
-const logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => /^- 18 Oct 09:43 UK \|/.test(l)) || '';
+const RECEIPT = '18 Oct 15:09 UK', logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => l.startsWith(`- ${RECEIPT} |`)) || '';
 const credLine = (/CAUSE CREDENCES: (.*)$/.exec(logT) || ['', ''])[1];
 const setFrom = pre => Object.fromEntries([...credLine.matchAll(new RegExp(`${pre}-([A-Z]+)=([0-9.]+)`, 'g'))].map(m => [m[1], Number(m[2])]));
 const cO179 = setFrom('O179'), cDEP = setFrom('DEP'), sumOf = c => Object.values(c).reduce((a, b) => a + b, 0);
@@ -145,27 +147,27 @@ if (Object.keys(cO179).length !== 5 || Object.keys(cDEP).length !== 4 || Math.ab
 const ND = 2000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
 function credences(cD, cO) {
-  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [] };
+  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [] };
   for (let q = 0; q < ND; q++) {
     const dc = pickC(cD), oc = pickC(cO);
     const story = { d1: pick(JUDGED.d1[dc]), wx1: pick(JUDGED.wx1[dc]), gapO2: pick(JUDGED.gapO2[dc]), d2: pick(JUDGED.d2[oc]), wx2: pick(JUDGED.wx2[oc]), ratio: pick(JUDGED.ratio), churn2: pick(JUDGED.churn2), wsd: pick(JUDGED.wsd) };
     const it = items(setOf(story));
-    for (const i of ['1', '2', '3', '4']) I[i][it[i].outcome]++;
+    for (const i of ['1', '2', '3']) I[i][it[i].outcome]++;
     R[rowOf(it)]++;
-    pt[1].push(it['1'].s.d); pt[2].push(it['2'].s.d); pt[3].push(it['3'].mix.m); pt[4].push(it['4'].hh[0].O.m - it['4'].hh[0].A.m);
+    pt[1].push(it['1'].s.d); pt[2].push(it['2'].s.d); pt[3].push(it['3'].gain);
   }
   return { I, R, pt };
 }
-const WHAT = { 1: `A's survival less O's on ${HOUSE2} by the mixture, points`, 2: 'K1F\'s survival less K2\'s on S362 by the mixture, points', 3: `A's table less its runs on ${HOUSE2} by the mixture, points`, 4: `O's table less runs less A's on ${HOUSE2} by the mixture, points` };
+const WHAT = { 1: `A's survival less O's on ${HOUSE2} by the mixture, points`, 2: 'K1F\'s survival less K2\'s on S362 by the mixture, points', 3: 'K2\'s table error less K1F\'s on S362 by the mixture, each in absolute points (above zero: the fixed reads truer)' };
 const show = ({ I, R, pt }, tag) => {
-  for (const i of ['1', '2', '3', '4']) console.log(`  item ${i}: ${row(I[i])}`);
+  for (const i of ['1', '2', '3']) console.log(`  item ${i}: ${row(I[i])}`);
   console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
   console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
   console.log(`  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else ${f2(R.else / ND)}`);
-  for (const i of ['1', '2', '3', '4']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
-  for (const i of ['1', '2', '3', '4']) console.log(`${tag}item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
+  for (const i of ['1', '2', '3']) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))}`);
+  for (const i of ['1', '2', '3']) console.log(`${tag}item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`);
 };
-console.log(`\n3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 18 Oct 09:43 UK: ${Object.entries(cO179).map(([k, v]) => `O179-${k}=${v}`).join('; ')}; ${Object.entries(cDEP).map(([k, v]) => `DEP-${k}=${v}`).join('; ')}; ${ND} draws through items())`);
+console.log(`\n3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of ${RECEIPT}: ${Object.entries(cO179).map(([k, v]) => `O179-${k}=${v}`).join('; ')}; ${Object.entries(cDEP).map(([k, v]) => `DEP-${k}=${v}`).join('; ')}; ${ND} draws through items())`);
 show(credences(cDEP, cO179), '  as stated, ');
 const sc = /an item leaning on a deep review's cause or story ([0-9.]+) \((\d+) of (\d+)/.exec(readFileSync(join(HERE, 'results-scorecard.txt'), 'utf8'));
 if (!sc) { console.log('the scorecard\'s lead rate did not read (results-scorecard.txt)'); process.exit(1); }

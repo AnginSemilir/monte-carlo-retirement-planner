@@ -1,6 +1,7 @@
 /*
  * THE ADAPTIVE REFERENCE AT THE READER'S CORNERS (HO-DEP's gate: items/HO-DEP.md; the deep review after FOOT-S366, deep-review-log.md
- * 18 Oct 09:43 UK, its design consult of 11:27 UK and its design reviews of this test's drafts, 11:52 and 12:01 UK; RULES.md section 4
+ * 18 Oct 09:43 UK, its design consult of 11:27 UK and its design reviews of this test's drafts, 11:52, 12:01 and 12:04 UK; RULES.md
+ * section 4
  * row 14: design-reviewed before it counts). The faults it guards: F1, the fix's own values (the A = 0 node, the read below the
  * lattice's foot, the top's move in the inflow year, and what they feed back into the year before); F2, a NaN or under-floor top
  * (O178).
@@ -31,8 +32,8 @@
  *   plant foot   the reference's own plant 'foot' (an A = 0 node of 0 valued as sure to pay): caught in A0
  *   plant drift  the reference's own plant 'drift' (worlds 0 and 2 grown at the centre world's rates in the backward step, while
  *                simulate grows each at its own): caught in CLIFF or Y4, world 0 or 2
- *   plant top    the top fixture with the fix off: caught in Y4 at A 500 or more (a non-finite p), or its build refused with a
- *                message naming the top, NaN or the lattice as words
+ *   plant top    the top fixture with the fix off: caught in Y4 at A 500 or more by p alone (a non-finite p; no simulate in this
+ *                run), or its build refused with a message naming the top, NaN or the lattice as words
  * WHAT IT CANNOT SEE (the design review, 11:52 UK): faults p and simulate share - setState's fixed context (no pension, the
  * sheltered cash it assumes), the flow and growth code (O165's question: p against the engine), the candidate's runs, and a
  * wrong move choice; and the reader's copy and split rules (O179-SECOND lives there, read by HO-DEP's reported GB by corner).
@@ -127,7 +128,9 @@ const rd = run('plant drift', build('plant drift', { plant: 'drift' }), 4), inD 
 verdict(effD >= 2, `plant drift caught in CLIFF or Y4, worlds 0 and 2: its largest gap there ${worst(inD).toFixed(4)}, ${effD.toFixed(2)} times its cell's tolerance`);
 let topCaught = false, topWhat = '', RT = null;
 try { RT = build('plant top', { inflow: 200000, foot: false }); } catch (e) { topCaught = /\btop\b|\bNaN\b|\blattice\b/i.test(e.message); topWhat = `the build refused: ${e.message.split('\n')[0]}`; }
-if (RT) { const rp = run('plant top', RT, 5), above = rp.out.Y4.filter(r => r.A >= 500); topCaught = above.some(r => !Number.isFinite(r.p)); topWhat = `${above.filter(r => !Number.isFinite(r.p)).length} of ${above.length} year-4 cells at A 500 or more with a non-finite p`; }
+// judged by p alone at its slice (no simulate: with the fix off, readV returns 0 at A = 0 before the NaN lattice, and simulate's
+// nearest cell there indexes it; the design review of 12:04 UK)
+if (RT) { const above = cellsOf(RT).S.Y4.filter(c => c.A >= 500), nonF = above.filter(c => !Number.isFinite(RT.ref.readV(c.k, c.t, c.A, c.b, c.gf))); topCaught = nonF.length > 0; topWhat = `${nonF.length} of ${above.length} year-4 cells at A 500 or more with a non-finite p`; }
 verdict(topCaught, `plant top caught in Y4 at A 500 or more: ${topWhat}`);
 // THE GATE'S PRINTED FORM: per slice, the base's largest clean gap, the tolerance, the plants' effects in their slices
 console.log('\nTHE GATE, by bound slice (the base\'s largest gap as a share of its own cell\'s tolerance; at most one half):');

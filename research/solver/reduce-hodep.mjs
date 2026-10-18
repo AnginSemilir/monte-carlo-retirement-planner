@@ -215,6 +215,7 @@ function planted() {
   run('a survival trade at the margin on HOUSE2 (bad -1.7, middle -0.5, good +0.7)', P => { P.h2.cells = [cellsAt(30, 72, 4), cellsAt(50, 22, 2), cellsAt(70, 2, 30)]; }, '1', 'FALSIFIED', 'a trade across worlds read by the mixture, not by any one world');
   run('A trades the bad world for the good one, net zero by the mixture (FOOT-S366\'s S362)', P => { P.h2.cells = [cellsAt(29.75, 27, 4), cellsAt(49.875, 11, 12), cellsAt(67.65, 3, 25)]; }, '1', 'HELD', 'a bad-world loss the mixture reads as no material harm');
   run('A\'s whole score 1.2 points down by the mixture, survival level', P => { P.h2.ws = [{ d: -1.2, se: 0.05 }, { d: -1.2, se: 0.05 }, { d: -1.2, se: 0.05 }]; }, '1', 'FALSIFIED');
+  run('A\'s whole score 2.4 points down in the bad world alone (the mixture weighs it a sixth)', P => { P.h2.ws = [{ d: -2.4, se: 0.05 }, { d: 0, se: 0.05 }, { d: 0, se: 0.05 }]; }, '1', 'HELD');
   run('A\'s whole score across the margin (lower end past it)', P => { P.h2.ws = [{ d: -0.45, se: 0.1 }, { d: -0.45, se: 0.1 }, { d: -0.45, se: 0.1 }]; }, '1', 'INCONCLUSIVE', 'an interval across the margin');
   run('K1F at K2 on S362', () => {}, '2', 'HELD');
   run('K1F loses 60 paths in every world on S362', P => { P.s362.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(68, 70, 10)]; }, '2', 'FALSIFIED');
@@ -226,29 +227,35 @@ function planted() {
   run('O under-reads HOUSE2 by 3 points, A at its runs', () => {}, '4', 'HELD');
   run('A and O within 0.2 points on both households', P => { P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); }, '4', 'FALSIFIED');
   run('O off by 3 on HOUSE2 but A off by 4 on S362 where O reads true', P => { P.acc.s362.A.forEach(x => { x.table += 4; }); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 4 })); }, '4', 'INCONCLUSIVE');
+  run('O off by 3 on HOUSE2 and A off by 2 there (A not within a point)', P => { P.acc.h2.A.forEach(x => { x.table += 2; }); P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 5 })); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.7 })); }, '4', 'INCONCLUSIVE');
+  run('the tables a point apart in world 0 alone on both households, O otherwise A\'s', P => { P.acc.h2.O = P.acc.h2.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 1 : 0) })); P.acc.s362.O = P.acc.s362.A.map((x, k) => ({ ...x, table: x.table - (k === 0 ? 1 : 0) })); }, '4', 'INCONCLUSIVE');
+  run('the tables alike on HOUSE2 alone, 0.7 apart on S362 with no gain', P => { P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); P.acc.s362.O = P.acc.s362.A.map(x => ({ ...x, table: x.table - 0.7 })); }, '4', 'INCONCLUSIVE');
+  run('A\'s table 2 points over in world 0 alone (the mixture weighs it a sixth)', P => { P.acc.h2.A[0].table = 32; }, '3', 'HELD');
   // the decision rows
   { const P = P0(); put('the rows: all four HELD reads R1', rowOf(items(P)), 'R1'); }
   { const P = P0(); P.h2.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(70, 70, 10)]; put('the rows: a harm reads R2', rowOf(items(P)), 'R2'); }
   { const P = P0(); P.acc.h2.O = P.acc.h2.A.map(x => ({ ...x, table: x.table - 0.2 })); put('the rows: no accuracy gain reads R3', rowOf(items(P)), 'R3'); }
   { const P = P0(); P.acc.h2.A[0].table = 35; put('the rows: A misreading HOUSE2 reads R4', rowOf(items(P)), 'R4'); }
+  { const P = P0(); P.s362.cells = [cellsAt(30, 70, 10), cellsAt(50, 70, 10), cellsAt(68, 70, 10)]; put('the rows: a harm on S362 alone reads R2', rowOf(items(P)), 'R2'); }
+  { const P = P0(); P.s362.cells = [cellsAt(30, 28, 10), cellsAt(50, 28, 10), cellsAt(68, 28, 10)]; put('the rows: S362 unsettled, the rest HELD, reads else', rowOf(items(P)), 'else'); }
   // the gate and the inert comparison (on synthetic logs and files)
   const enc = a => Buffer.from(Float64Array.from(a).buffer).toString('base64'), enc8 = a => Buffer.from(Uint8Array.from(a)).toString('base64'), enc16 = a => Buffer.from(Uint16Array.from(a).buffer).toString('base64');
   const npw = 4, house2 = 'S374';
   const mk = (arm, over = {}) => {
-    const id = over.id || (arm === 'K1F' || arm === 'K2' ? 'S362' : house2), L = `${arm}/P${over.pts || 30}S6Q5`, ref = REF[arm], fix = over.fix ?? FOOT[arm], floor = over.floor ?? 35000, rule = over.rule ?? floor;
+    const id = over.id || (arm === 'K1F' || arm === 'K2' ? 'S362' : house2), L = `${arm}/P${over.pts || 30}S6Q5`, ref = REF[arm], fix = over.fix ?? FOOT[arm], floor = over.floor ?? 35000, rule = over.rule ?? floor, footOn = over.footOn ?? fix;
     const bitsW = [1, 1, 0, 1], mv = [1, 2, 65535, 1, 2, 3, 4, 65535], ws = [100, 99.5, -2, 100];
-    const lines = [`stamp: code c1 audit a1 prediction ${PRED} sha s1`, `HO-DEP: the candidate's own unit, ${over.npw || npw} paths a world, wealth points divided by 1 (seed ${over.seed || SEED}); 4 jobs; part 0/1`, `${id.padEnd(16)} case | job ${L} | points ${over.pts || 30} | lambda 0.0223606797749979`,
-      `solve CAND ${L}: table 50.0000 secs 10`, `ran CAND ${L}: bridgeRead reader bridgeStep exact readerSplit ${over.split || SPLIT[arm]} readerBlend null readerRef ${over.ref || ref} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${over.pts || 30} grid total${over.pts || 30}x6x6 shareNodes none floor ${floor} line 0.5`,
+    const lines = [`stamp: code c1 audit a1 prediction ${PRED} sha s1`, `HO-DEP: the candidate's own unit, ${over.npw || npw} paths a world, wealth points divided by 1 (seed ${over.seed || SEED}); 4 jobs; part 0/1`, `${id.padEnd(16)} case | job ${L} | points ${over.casePts || over.pts || 30} | lambda 0.0223606797749979`,
+      `solve CAND ${L}: table 50.0000 secs 10`, `ran CAND ${L}: bridgeRead reader bridgeStep exact readerSplit ${over.split || SPLIT[arm]} readerBlend null readerRef ${over.ranRef || over.ref || ref} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${over.pts || 30} grid total${over.pts || 30}x6x6 shareNodes none floor ${floor} line 0.5`,
       `guard ${L}: readerRef ${over.ref || ref} fix ${fix} declared unfixed ${!!over.unfixed} floor ${floor} (the product's rule ${rule})`, `checks ${L}: armTook 1/1`];
     if (ref === 'adaptive') lines.push(`adaptive ${L}: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 300.0`, `checks ${L}: adaptTook ${over.adapt ?? 1}/1`);
-    lines.push(`foot ${L}: ${fix ? 'on' : 'off'} live nodes ${fix ? (over.live ?? 10) : -1}`, `checks ${L}: footTook 1/1`, `openings ${L}: OWN ai 5 level 1 tiers 0,0`);
-    for (let w = 0; w < 3; w++) lines.push(`tables ${L} ${w} z 0 weight 0.333333: OWN 50.000000 READ 50.000000`);
+    lines.push(`foot ${L}: ${footOn ? 'on' : 'off'} live nodes ${footOn ? (over.live ?? 10) : -1}`, `checks ${L}: footTook 1/1`, `openings ${L}: OWN ai 5 level 1 tiers 0,0`);
+    for (let w = 0; w < 3; w++) if (!(over.noTables && w === 1)) lines.push(`tables ${L} ${w} z 0 weight 0.333333: OWN 50.000000 READ 50.000000`);
     lines.push(`bridge ${L}: reader years 1,2,3,4`);
     const per = {}, bits = {}, moves = {};
     for (let w = 0; w < (over.worlds ?? 3); w++) {
       lines.push(`sim ${L} ${w} OWN ai 5: 3/${npw} bridge 3 bits ${sha16(Buffer.from(Uint8Array.from(bitsW)))} ${sha16(Buffer.from(Uint8Array.from(bitsW)))}`, `moves ${L} ${w}: path-years ${over.py ?? 6} sha ${sha16(Buffer.from(Uint16Array.from(mv).buffer))}`, `ledger ${L} ${w}: X 75 B0 75 T 0 GB 0 GA 0 GL 0 GD 0 Y1 0 Y2 0 Y3 0 Y4 0`, `qf ${L} ${w}: paths ${Math.min(npw, NQF)} QF 0`, `whole ${L} ${w}: mean ${(ws.reduce((t, x) => t + x, 0) / npw).toFixed(6)} spending years 30 of 41 floor level 0.8 scale 1 cap 1 death charge 0`);
       for (const x of KEYS) per[`${x}${w}`] = enc([0, 0, 0, 0]);
-      per[`WS${w}`] = enc(over.wsFile && w === 0 ? [0, 0, 0, 0] : ws); bits[`OWN${w}`] = enc8(bitsW); bits[`OWN${w}b`] = enc8(bitsW); moves[`MV${w}`] = enc16(mv);
+      if (!over.noWsFile) per[`WS${w}`] = enc(over.wsFile && w === 0 ? [0, 0, 0, 0] : ws); bits[`OWN${w}`] = enc8(bitsW); bits[`OWN${w}b`] = enc8(bitsW); moves[`MV${w}`] = enc16(mv);
     }
     lines.push(`checks ${L}: ownTook 12/12 identity ${3 * npw}/${3 * npw} qfTook 9/9 layerTook 9/9 scoreTook ${over.score ?? 3 * npw}/${3 * npw} secs 1`, `file ${L}: ${id}-${arm}.json.gz`);
     if (!over.notDone) lines.push(`done ${L}`);
@@ -258,6 +265,13 @@ function planted() {
   put('the gate passes the four jobs as registered', gateOf().join('; '), '');
   const refuses = (what, overs, extra = []) => put(`the gate refuses ${what}`, String(gateOf(overs, extra).length > 0), 'true');
   refuses('a job run twice', {}, [mk('A')]);
+  refuses('a job of another test beside the four', {}, [mk('A', { pts: 60 })]);
+  refuses('a case line at another point count alone', { K2: { casePts: 4 } });
+  refuses('a solve meta naming the adaptive reference for O, its guard line the order', { O: { ranRef: 'adaptive' } });
+  refuses('K1F\'s own fix line off, its guard line on', { K1F: { footOn: false } });
+  refuses('K2\'s own fix line on, its guard line off', { K2: { footOn: true } });
+  refuses('a world\'s tables line missing', { A: { noTables: true } });
+  refuses('a file without its whole scores', { O: { noWsFile: true } });
   refuses('K2 with no done line', { K2: { notDone: true } });
   refuses('another seed', { O: { seed: '7002' } });
   refuses('a header naming another path count', { A: { npw: 8 } });

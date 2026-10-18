@@ -15,8 +15,8 @@
  * record where asked, absent where not, and on a fixed job in an inflow household at least one A = 0 node alive), adaptTook,
  * ownTook, identity, qfTook and layerTook (the ledger, AN's).
  * FOOT_PLANT (each must make its job refuse on its own check, or the inert pair differ): arm (J1F without the fix:
- * footTook), split (J1D under the RS split: armTook), foot (the reference's plant 'foot', a node of 0 interpolated below
- * the foot: the inert pair must differ), and AN's own, layer, quad and held (the ledger's checks).
+ * footTook), split (J1D under the RS split: armTook), foot (the reference's plant 'foot', an A = 0 node of 0 valued as
+ * sure to pay: the inert pair must differ), and AN's own, layer, quad and held (the ledger's checks).
  *   node research/solver/audit-foot.mjs [scale=1] [paths a world=4000] part k/n [seed]
  */
 import * as E from '../engine.mjs';

@@ -156,7 +156,7 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
         let best = 0, bestV = -1;
         for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v > bestV + 1e-15) { bestV = v; best = mi; } }
         MV0[t][jb * NG + ig] = best;
-        for (let k = 0; k < K; k++) { V0[k][t][jb * NG + ig] = Q[best][k]; if (Q[best][k] > 0) footLive++; }
+        for (let k = 0; k < K; k++) { V0[k][t][jb * NG + ig] = plant === 'foot' && !(Q[best][k] > 0) ? 1 : Q[best][k]; if (V0[k][t][jb * NG + ig] > 0) footLive++; }
       }
     }
   }
@@ -167,15 +167,15 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   // A = 0 and interpolates in A between it and the grid's first point below the foot, and the grid's top is taken at
   // log(3 rem + max(d0, 0)) (O178: log(3 rem + d0) is NaN or under the foot when an inflow exceeds its year's bill plus three
   // times the later bills). Where no move pays a year at A = 0 the node is 0 and every read is as without it (inert). The
-  // plant 'foot' interpolates below the foot from a node of 0 too, breaking that (a fault the bit-for-bit check should see).
+  // plant 'foot' values a node of 0 as sure to pay, breaking that (a fault the bit-for-bit check should see).
   // footLive counts the A = 0 nodes (world by year by b by gain node) whose value is not 0, for an audit's footTook.
   function footRead(k, t, A, b, gf) {
     const ag = AG[t], arr = V[k][t], z0 = V0[k][t], [ib, wb] = bPos(b), [ig, wg] = gPos(gf), g2 = Math.min(NG - 1, ig + 1);
     const bg = (f) => (1 - wb) * ((1 - wg) * f(ib, ig) + wg * f(ib, g2)) + wb * ((1 - wg) * f(ib + 1, ig) + wg * f(ib + 1, g2));
     const v0 = bg((j, g) => z0[j * NG + g]);
     if (!(A > 0)) return v0;
-    // a node of 0 reads 0 below the foot as without `foot` (the plant 'foot' interpolates from it all the same)
-    return v0 > 0 || plant === 'foot' ? v0 + (A / Math.exp(ag[0])) * (bg((j, g) => arr[j * NG + g]) - v0) : 0;
+    // a node of 0 reads 0 below the foot as without `foot`
+    return v0 > 0 ? v0 + (A / Math.exp(ag[0])) * (bg((j, g) => arr[j * NG + g]) - v0) : 0;
   }
   // the chance at accessible money A and the position s (its ISA share, s[1] / A, and gain fraction, s[3]); a caller that
   // passes A alone hands the position over first with f.at(s) (grid.js readValues, whose cited call line passes A only),

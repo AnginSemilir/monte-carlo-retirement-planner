@@ -81,7 +81,8 @@ export const TESTS = [
   { name: 'NODE-AX (S360\'s remaining under-read with the dense share nodes split by bridge year and tier layer: the exact grid ledger)', prediction: 'predictions/diag-nodeax.md', results: 'results-nodeax.txt' },
   { name: 'AN (the adaptive reference on S360 against NODE-AX\'s BN: the bridge-years grid residual, the runs, world 2\'s year 1)', prediction: 'predictions/diag-an.md', results: 'results-an.txt' },
   { name: 'AO (the adaptive reference out of sample on S364 in log terms, and at six shares on S360 against NODE-AX\'s BO)', prediction: 'predictions/diag-ao.md', results: 'results-ao.txt' },
-  { name: 'AOR (the read at P decomposed on S364, the RS split under the adaptive reference on S364 and S360)', prediction: 'predictions/diag-aor.md', results: 'results-aor.txt' }
+  { name: 'AOR (the read at P decomposed on S364, the RS split under the adaptive reference on S364 and S360)', prediction: 'predictions/diag-aor.md', results: 'results-aor.txt' },
+  { name: 'AX-HO (the adaptive reference with the RS split held out: S366 against the order reference, and S360 on a fresh seed)', prediction: 'predictions/diag-axho.md', results: 'results-axho.txt' }
 ];
 
 export function credences(predText) {

@@ -15,7 +15,7 @@ M = [
   ("if (j.pts !== pts) bad.push(", "if (false) bad.push("),
   ("J1F: { readerSplit: 'rs', floor: '29000' }", "J1F: { floor: '29000' }"),
   ("J1D: { readerSplit: 'null', floor: '29000' }", "J1D: { floor: '29000' }"),
-  ("K1: { readerSplit: 'rs', floor: '9000' }", "K1: { readerSplit: 'rs' }"),
+  ("K1: { readerSplit: 'rs', floor: '35000' }", "K1: { readerSplit: 'rs' }"),
   ("shareNodes: 'none', readerRef: 'adaptive' };", "shareNodes: 'none' };"),
   ("const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook', 'identity', 'qfTook', 'layerTook'];", "const NEED = ['armTook', 'adaptTook', 'ownTook', 'identity', 'qfTook', 'layerTook'];"),
   ("const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook', 'identity', 'qfTook', 'layerTook'];", "const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook', 'qfTook', 'layerTook'];"),

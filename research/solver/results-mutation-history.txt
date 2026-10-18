@@ -164,3 +164,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-17 20:09 UTC | reduce-axho.mjs 615604f09f12 | 42 of 42 caught | escaped: none
 2026-10-18 01:09 UTC | reduce-foot.mjs 09da399d7923 | 30 of 35 caught | escaped: NOT CAUGHT: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.; NOT CAUGHT: 7: if (j.pts !== pts) bad.push(; NOT CAUGHT: 23: const c1 = { k: 0, ...meanOf(Y('J1F', 0, 4), Z1) };; NOT CAUGHT: 27: const c2 = [0, 1, 2].map(k =>; NOT CAUGHT: 34: export const IN1 = 0.5, OUT1 = 1.0, IN2 = 1.5, OUT2 = 3, IN3
 2026-10-18 01:09 UTC | reduce-foot.mjs 7da75ebad8b6 | 35 of 35 caught | escaped: none
+2026-10-18 03:03 UTC | reduce-foot.mjs 403ea1670e5f | 35 of 35 caught | escaped: none

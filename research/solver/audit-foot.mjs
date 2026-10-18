@@ -40,7 +40,7 @@ export const JOBS = process.env.FOOT_INERT === '1' ? INERT : MAIN;
 export const ARMS = Object.freeze({ J1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, J1D: { readerRef: 'adaptive' }, K1: { readerRef: 'adaptive', readerSplit: 'rs' }, K1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, I0: { readerRef: 'adaptive', readerSplit: 'rs' }, I1: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, I2: { readerRef: 'adaptive', readerSplit: 'rs' }, I3: { readerRef: 'adaptive', readerSplit: 'rs', foot: true } });
 // a fixed job in a household whose inflow pays its own year must show the fix alive (an A = 0 node not 0)
 export const INFLOW = Object.freeze({ S366: true, S362: true, S360: false, S364: false });
-export const FLOORS = Object.freeze({ S366: 29000, S362: 9000, S360: 5000, S364: 205000 });
+export const FLOORS = Object.freeze({ S366: 29000, S362: 35000, S360: 5000, S364: 205000 });
 // the reference's lattice (adaptive.js's defaults)
 export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
 export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;

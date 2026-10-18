@@ -88,7 +88,7 @@ export function parse(text) {
 }
 
 const COMMON = { bridgeRead: 'reader', bridgeStep: 'exact', readerBlend: 'null', readerChance: 'null', jointWorlds: 'true', e3pcls: 'true', switchMargin: '0', switchCharge: '0.001', line: '0.5', mix: '3', shareNodes: 'none', readerRef: 'adaptive' };
-const ARMF = Object.freeze({ J1F: { readerSplit: 'rs', floor: '29000' }, J1D: { readerSplit: 'null', floor: '29000' }, K1: { readerSplit: 'rs', floor: '9000' }, K1F: { readerSplit: 'rs', floor: '9000' } });
+const ARMF = Object.freeze({ J1F: { readerSplit: 'rs', floor: '29000' }, J1D: { readerSplit: 'null', floor: '29000' }, K1: { readerSplit: 'rs', floor: '35000' }, K1F: { readerSplit: 'rs', floor: '35000' } });
 const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook', 'identity', 'qfTook', 'layerTook'];
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } = {}) {
   const bad = [];

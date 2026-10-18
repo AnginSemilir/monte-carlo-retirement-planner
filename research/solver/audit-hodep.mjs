@@ -49,6 +49,8 @@ export const MAIN = [['S362', 'K1F', 30, 6, 5], ['S362', 'K2', 30, 6, 5], [HOUSE
 export const DEPOSIT = Object.freeze(Array.from({ length: 15 }, (_, i) => `S${362 + 4 * i}`));
 export const CANDIDATES = Object.freeze(DEPOSIT.filter(x => x !== 'S362' && x !== 'S366'));
 const REACH = (process.env.HODEP_REACH || '').split(',').filter(Boolean);
+// the reach step's paths start past the batch's 4,000 (HODEP_PATH0=4000), so it previews none of the batch's runs
+const PATH0 = Number(process.env.HODEP_PATH0 || 0);
 export const JOBS = process.env.HODEP_SCREEN === '1' ? CANDIDATES.map(id => [id, 'O', 15, 6, 5]) : REACH.length ? REACH.flatMap(id => [[id, 'A', 30, 6, 5], [id, 'O', 30, 6, 5]]) : MAIN;
 export const ARMS = Object.freeze({ K1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, K2: { readerRef: 'order' }, A: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, O: { readerRef: 'order' } });
 // R1's guard (the plan-auditor's MINOR 3 of FOOT-S366's read): an adaptive arm runs with the fix unless named here
@@ -80,6 +82,7 @@ if (PLANT) console.log(`plant: ${PLANT}`);
 const LAMBDA = 0.0223606797749979, W = 0.02, TOL = 1e-9;
 if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-hodep: the candidate does not carry e3pcls'); process.exit(2); }
 const OUT = process.env.DIAGHODEP_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diaghodep');
+if (PATH0 && !REACH.length) { console.error('audit-hodep: HODEP_PATH0 is for the reach step alone'); process.exit(2); }
 if (!JOBS.every(j => j[0])) { console.error('audit-hodep: HOUSE2 is not set (the reach step chooses it before registration)'); process.exit(2); }
 mkdirSync(OUT, { recursive: true });
 
@@ -110,7 +113,7 @@ const ZF = Array.from({ length: NFINE }, (_, i) => PhiInvA((i + 0.5) / NFINE)), 
 // a move's rate at draw z, rebuilt as solve.js realAt builds the node rates (zPath 0)
 const realAtRep = (c, z, act, t) => { const R = act.real, Vv = act.volEffAt[t], S = act.sigma, out = new Float64Array(4); for (let q = 0; q < 4; q++) out[q] = Math.exp(Math.log(1 + R[q]) + S[q] * 0 + Vv[q] * z) - 1; return out; };
 
-console.log(`HO-DEP: the candidate's own unit, ${NPW} paths a world, wealth points divided by ${SCALE} (seed ${SEED}); ${JOBS.length} jobs; part ${part}`);
+console.log(`HO-DEP: the candidate's own unit, ${NPW} paths a world${PATH0 ? ` from path ${PATH0}` : ''}, wealth points divided by ${SCALE} (seed ${SEED}); ${JOBS.length} jobs; part ${part}`);
 JOBS.forEach((job, ji) => {
   if (ji % pn !== pk) return;
   const [id, arm, pts0, shares, quad] = job;
@@ -162,7 +165,7 @@ JOBS.forEach((job, ji) => {
   const g = cand.mix.tables[0].g, bridge = [];
   for (let t = 1; t <= T; t++) if (g.reader && g.reader.years[t]) bridge.push(t);
   console.log(`${''.padEnd(16)} bridge ${L}: reader years ${bridge.join(',')}`);
-  const wpaths = E.pathsForSeed(SEED, NPW, T), bits = {}, per = {}, moves = {};
+  const wpaths = E.pathsForSeed(SEED, NPW + PATH0, T).slice(PATH0), bits = {}, per = {}, moves = {};
   const worldPath = (i, k) => { const cz = Float64Array.from(wpaths[i]); cz[cz.length - 1] = cand.mix.nodes[k]; return cz; };
   const f0 = Date.now();
   {

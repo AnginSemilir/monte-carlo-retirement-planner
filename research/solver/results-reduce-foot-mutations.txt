@@ -1,0 +1,36 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== HOUSE[arm]) bad.push(
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: J1F: { readerSplit: 'rs', floor: '29000' }
+caught: 9: J1D: { readerSplit: 'null', floor: '29000' }
+caught: 10: K1: { readerSplit: 'rs', floor: '9000' }
+caught: 11: shareNodes: 'none', readerRef: 'adaptive' };
+caught: 12: const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook',
+caught: 13: const NEED = ['armTook', 'adaptTook', 'footTook', 'ownTook',
+caught: 14: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
+caught: 15: if (!j.foot || j.foot.on !== FOOT[arm] || (FOOT[arm] && !(j.
+caught: 16: if (!j.foot || j.foot.on !== FOOT[arm] || (FOOT[arm] && !(j.
+caught: 17: if (!j.bridge || !j.bridge.includes(4)) bad.push(
+caught: 18: if (!j.moves[w] || !(j.moves[w].py >= npw)) bad.push(
+caught: 19: const mv = f.moves && f.moves[`MV${w}`]; if (!mv || !j.moves
+caught: 20: if (!f) { bad.push(`${arm}: its file ${j.file} is missing`);
+caught: 21: for (const x of new Set([...Object.keys(A), ...Object.keys(B
+caught: 22: for (const nm of ['per', 'bits', 'moves', 'tables'])
+caught: 23: const c1 = { k: 0, ...meanOf(Y('J1F', 0, 4), Z1) };
+caught: 24: const band = (x, IN, OUT) => (x.lo >= -IN && x.hi <= IN ? 'H
+caught: 25: const band = (x, IN, OUT) => (x.lo >= -IN && x.hi <= IN ? 'H
+caught: 26: const sideOf = (x, OUT) => (x.lo >= OUT ? 'over' : x.hi <= -
+caught: 27: const c2 = [0, 1, 2].map(k =>
+caught: 28: const over2 = x => x.lo >= OUT2, under2 = x => x.hi <= -OUT2
+caught: 29: const yd = Y('J1D', 0, 4), y1 = Y('J1', 0, 4), c3 = { k: 0, 
+caught: 30: out['4'] = harmItem([0, 1].map(k => ({ k, ...paired(S('J1F',
+caught: 31: const margin = marginRel(100 * x.bAlive / x.N);
+caught: 32: return { outcome: oc.some(x => x.outcome === 'harm') ? 'FALS
+caught: 33: export const IN1 = 0.5, OUT1 = 1.0, IN2 = 1.5, OUT2 = 3, IN3
+caught: 34: export const IN1 = 0.5, OUT1 = 1.0, IN2 = 1.5, OUT2 = 3, IN3
+caught: 35: export const IN1 = 0.5, OUT1 = 1.0, IN2 = 1.5, OUT2 = 3, IN3
+35 of 35 mutations caught

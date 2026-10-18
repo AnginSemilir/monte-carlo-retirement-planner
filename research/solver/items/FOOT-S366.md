@@ -45,7 +45,7 @@ Cost: AX-HO's 60-point ledger jobs ran 64 to 70 minutes; the review's estimate a
 
 ## After it reads, before a default goes to the maintainer (the review's list)
 
-- A held-out deposit household outside the fix (S362, or another of the 14).
+- A held-out deposit household outside the fix: another of the 14, not S362, which FOOT-S366 itself runs (the plan-auditor's MINOR 2 of 18 Oct 02:01 UK).
 - Gate 5: each E2 part builds its own reference (solve.js:605-607), so the build is serial wall time (NOT CHECKED by a run).
 - A design-reviewed test file: p against simulate() at the reader's own grid corners, including A = 0 in an inflow year, the
   NaN top planted.

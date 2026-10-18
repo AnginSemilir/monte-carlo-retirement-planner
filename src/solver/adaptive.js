@@ -19,7 +19,7 @@
  *     as the chance the grown money clears the threshold, the shock z* where it just does found by bisection in z and the
  *     chance taken as 1 - Phi(z*) (the step split, as solve.js's stepExpect splits the final year); earlier years average
  *     the next year's table at `nz` equal-weight midpoints in u = Phi(z), as Step 0 did;
- *   - p is read by interpolation in log A, b and gf (zero below the A grid's foot, half of today's bill).
+ *   - p is read by interpolation in log A, b and gf (zero below the A grid's foot, half of today's bill; `foot`: below).
  * `simulate` runs the reference's own rule forward from a state (the nearest lattice cell's joint move, the flow, the
  * world's own returns at fresh draws), so an audit can check p against it (audit-an.mjs's refTook). `plant` (audits only):
  * 'drift' grows every world at the centre world's rates, 'choice' values each world at its own best move, 'step' reads
@@ -31,7 +31,7 @@ import { Phi } from './grid.js';
 
 const ZLO = -8, ZHI = 8;
 
-export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '' }) {
+export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false }) {
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -71,11 +71,11 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   };
 
   // 2. THE EARLIER BRIDGE YEARS, backward: V[k][t] on a log-A by b by gf lattice
-  const AG = {}, V = Array.from({ length: K }, () => ({})), MV = {}, centre = K >> 1;
+  const AG = {}, V = Array.from({ length: K }, () => ({})), MV = {}, centre = K >> 1, V0 = Array.from({ length: K }, () => ({})), MV0 = {}; let footLive = 0;
   for (const t of bridge) {
     if (t === TL && plant !== 'step') continue;
     const bl = billsOf(t), d0 = bl[0], rem = bl.reduce((u, v) => u + Math.max(0, v), 0);
-    const lo = Math.log(Math.max(100, 0.5 * d0)), hi = Math.log(3 * rem + d0);
+    const lo = Math.log(Math.max(100, 0.5 * d0)), hi0 = Math.log(3 * rem + (foot ? Math.max(d0, 0) : d0)), hi = foot && !(hi0 > lo + Math.LN2) ? lo + Math.LN2 : hi0;
     AG[t] = Float64Array.from({ length: na }, (_, i) => lo + (hi - lo) * i / (na - 1));
   }
   const readV = (k, t, A, b, gf) => {
@@ -83,7 +83,7 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
     if (t === TL && plant !== 'step') return A >= astar(b, gf) ? 1 : 0;
     if (t === TL) { const ag = AG[TL], fa = Math.max(0, Math.min(na - 1 - 1e-9, (Math.log(Math.max(A, 1e-9)) - ag[0]) / (ag[1] - ag[0]))), ia = Math.floor(fa), wa = fa - ia, a0 = astar(b, gf); return (1 - wa) * (Math.exp(ag[ia]) >= a0 ? 1 : 0) + wa * (Math.exp(ag[ia + 1]) >= a0 ? 1 : 0); }
     const ag = AG[t], arr = V[k][t];
-    if (!(A > 0)) return 0;
+    if (foot) { if (!(A > 0) || Math.log(A) < ag[0]) return footRead(k, t, A, b, gf); } else if (!(A > 0)) return 0;
     const la = Math.log(A);
     if (la < ag[0]) return 0;
     const fa = Math.min(na - 1 - 1e-9, (la - ag[0]) / (ag[1] - ag[0])), ia = Math.floor(fa), wa = fa - ia;
@@ -133,6 +133,49 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
         V[k][t][at] = Q[bk][k];
       }
     }
+    // `foot`: the A = 0 node of year t, by the same backward step (the flow, then the next year's read at each draw)
+    if (foot) {
+      for (let k = 0; k < K; k++) V0[k][t] = new Float64Array(nb * NG);
+      MV0[t] = new Int32Array(nb * NG);
+      for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
+        const b = BG[jb], gf = gains[ig];
+        setState(0, b, gf);
+        for (let mi = 0; mi < NM; mi++) {
+          const ai = moves[mi];
+          if (!flowOk(t, ai)) { Q[mi].fill(0); continue; }
+          const keep = Float64Array.from(post);
+          for (let k = 0; k < K; k++) {
+            post.set(keep);
+            if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
+            const ck = cs[plant === 'drift' ? centre : k], act = ck.acts[ai];
+            let acc = 0;
+            for (let zi = 0; zi < nz; zi++) { grown.set(keep); F.grow(ck, t, grown, realAt(ck, ZS[zi], rr, act, t)); const A2 = grown[1] + grown[2]; acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
+            Q[mi][k] = acc / nz;
+          }
+        }
+        let best = 0, bestV = -1;
+        for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v > bestV + 1e-15) { bestV = v; best = mi; } }
+        MV0[t][jb * NG + ig] = best;
+        for (let k = 0; k < K; k++) { V0[k][t][jb * NG + ig] = Q[best][k]; if (Q[best][k] > 0) footLive++; }
+      }
+    }
+  }
+  // `foot` (research only, default off; PLAN.md AREF, FOOT-S366, items/FOOT-S366.md; the deep review after AX-HO, deep-review-log.md
+  // 18 Oct 01:41 UK, O177): in a year whose inflow covers its own bill (a negative bill: S366's inheritance year) the
+  // reference's p at no accessible money is not 0, yet readV returned 0 there and below the A grid's foot. With `foot`, each
+  // bridge year before the last carries an A = 0 node valued by the same backward step through the flow, readV reads it at
+  // A = 0 and interpolates in A between it and the grid's first point below the foot, and the grid's top is taken at
+  // log(3 rem + max(d0, 0)) (O178: log(3 rem + d0) is NaN or under the foot when an inflow exceeds its year's bill plus three
+  // times the later bills). Where no move pays a year at A = 0 the node is 0 and every read is as without it (inert). The
+  // plant 'foot' interpolates below the foot from a node of 0 too, breaking that (a fault the bit-for-bit check should see).
+  // footLive counts the A = 0 nodes (world by year by b by gain node) whose value is not 0, for an audit's footTook.
+  function footRead(k, t, A, b, gf) {
+    const ag = AG[t], arr = V[k][t], z0 = V0[k][t], [ib, wb] = bPos(b), [ig, wg] = gPos(gf), g2 = Math.min(NG - 1, ig + 1);
+    const bg = (f) => (1 - wb) * ((1 - wg) * f(ib, ig) + wg * f(ib, g2)) + wb * ((1 - wg) * f(ib + 1, ig) + wg * f(ib + 1, g2));
+    const v0 = bg((j, g) => z0[j * NG + g]);
+    if (!(A > 0)) return v0;
+    // a node of 0 reads 0 below the foot as without `foot` (the plant 'foot' interpolates from it all the same)
+    return v0 > 0 || plant === 'foot' ? v0 + (A / Math.exp(ag[0])) * (bg((j, g) => arr[j * NG + g]) - v0) : 0;
   }
   // the chance at accessible money A and the position s (its ISA share, s[1] / A, and gain fraction, s[3]); a caller that
   // passes A alone hands the position over first with f.at(s) (grid.js readValues, whose cited call line passes A only),
@@ -151,6 +194,7 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
   // last bridge year, any floor move that pays), the flow, and growth at the world's own rates at a fresh draw (`gauss`);
   // returns the share of `nsim` runs that pay every year to access
   const nearest = (t, A, b, gf) => {
+    if (foot && !(A > 0) && MV0[t]) { const jb0 = Math.max(0, Math.min(nb - 1, Math.round(Math.max(0, b) * (nb - 1)))); let ig0 = 0; for (let i = 1; i < NG; i++) if (Math.abs(gains[i] - gf) < Math.abs(gains[ig0] - gf)) ig0 = i; return MV0[t][jb0 * NG + ig0]; }
     const ag = AG[t], ia = Math.max(0, Math.min(na - 1, Math.round((Math.log(Math.max(A, 1e-9)) - ag[0]) / (ag[1] - ag[0]))));
     const jb = Math.max(0, Math.min(nb - 1, Math.round(Math.max(0, b) * (nb - 1))));
     let ig = 0; for (let i = 1; i < NG; i++) if (Math.abs(gains[i] - gf) < Math.abs(gains[ig] - gf)) ig = i;
@@ -172,5 +216,5 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
     }
     return ok / nsim;
   };
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG }, plant };   // moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}) }, plant, ...(foot ? { footLive } : {}) };   // moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
 }

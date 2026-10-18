@@ -1,0 +1,4 @@
+FOOT-S366: S362, K1F against K1 by the harm rule (post hoc, grade C; results-foot.txt)
+  world 0: K1's survival 29.75, lost 27 saved 4 of 4000, change -0.5750 (-0.7187 to -0.3126) at margin 0.5000 (Holm across worlds 0 and 1): harm
+  world 1: K1's survival 49.875, lost 11 saved 12 of 4000, change 0.0250 (-0.2232 to 0.2666) at margin 0.5000 (Holm across worlds 0 and 1): no material harm
+  world 2: K1's survival 67.65, lost 3 saved 25 of 4000, change 0.5500 (0.3048 to 0.6683) at margin 0.5000 (unadjusted): no material harm

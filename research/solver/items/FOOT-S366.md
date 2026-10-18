@@ -51,6 +51,10 @@ Cost: AX-HO's 60-point ledger jobs ran 64 to 70 minutes; the review's estimate a
   NaN top planted.
 - The 7u-F panel with deposit households and a read item by world: adopted by the maintainer (PLAN.md's 18 Oct 07:50 row); the households and bands set at 7u-F's registration; the hold of 11 Oct 11:03 stands.
 
+## Read (PLAN.md's 18 Oct 09:15 row; results-foot.txt)
+
+Items 1 to 4 HELD, the decision table's R1: J1F's world-0 year-4 residual -0.0506 against J1's 2.1823; its table within half a point of its runs in every world; J1D at J1's residual on every path; J1F making J2's every move. S362's reported lines (results-foot-s362.txt, post hoc): the fix's world-0 loss against K1 and its GB, in O179. The STOP list below is lifted but for a reference default and for its line on refTook, the simulated column and the engine leg, which sample path records only (the plan-auditor's MINOR 1 of the read's PASS).
+
 ## STOP until FOOT-S366 reads
 
 A reference default put to the maintainer; R3's decomposition run alone; adaptive-reference tests on S360 or S364 only

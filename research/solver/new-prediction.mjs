@@ -47,6 +47,8 @@ PRIOR: an earlier measurement of the same mechanism sets the stories' starting s
 STAMPS: a test run by more than one audit script registers the split, its reducer calls the fair-test gate on each audit's logs, and the preflight runs that split on its own logs (the reducer's preflight mode skips the gate).
 CORNERS: an arm is judged equal to its control at the preflight only where the preflight's corners are alive (p and S above the clamp) at the reads the mechanism uses.
 RATES: results-scorecard.txt is regenerated (scorecard.mjs) before a base rate or the lead rate is quoted, and a preflight's reported cells with intervals clear of zero are in the register before registration.
+FIXTURES: an audit's household constants (floors, bills, inflow years) are computed from the scenario library by the product's own rule, never typed, and after any edit under src/solver the e3pcls pin is re-taken (node research/tests/solver-e3pcls.test.mjs 4 --pin) before a preflight.
+PLANTS: a plant names the states where it changes a value, and the preflight shows its check reads one of them; a plant that can change only a value already at its floor or clamp at every read is inert by construction.
 
 ## Prediction
 

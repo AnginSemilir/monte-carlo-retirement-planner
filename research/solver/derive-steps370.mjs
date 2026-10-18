@@ -85,7 +85,9 @@ function setOf({ rSN, rW60, d3, noise, disc3, wx3, tabRatio }) {
   const arm = r => C.map(v => (1 - r) * v + noise * sY * gauss());
   const cells = [], ws = [];
   for (let k = 0; k < 3; k++) {
-    const cC = Math.max(0, Math.min(N, Math.round(runO[k] + Math.sqrt(runO[k] * (1 - runO[k] / N)) * gauss()))), n = disc3 * N, net = d3 / 100 * N;
+    // the discordance scales with the paths that can flip, 4p(1 - p) at C's survival p (the first output held it at the judged
+    // share in every world, so at world 2's 99% the saved paths capped under the lost ones and a no-change story read harm)
+    const cC = Math.max(0, Math.min(N, Math.round(runO[k] + Math.sqrt(runO[k] * (1 - runO[k] / N)) * gauss()))), pC = cC / N, n = disc3 * N * 4 * pC * (1 - pC), net = d3 / 100 * N;
     let lost = pois(Math.max(0, (n - net) / 2)), saved = pois(Math.max(0, (n + net) / 2)); lost = Math.min(lost, cC); saved = Math.min(saved, N - cC);
     cells.push(cellsFrom(cC, lost, saved)); const dd = (saved - lost) / N; ws.push({ d: 100 * dd + wx3, se: Math.sqrt(Math.max(1e-12, ((lost + saved) / N - dd * dd) * 1e4 + 0.09) / N) });
   }

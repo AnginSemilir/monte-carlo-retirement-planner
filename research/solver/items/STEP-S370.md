@@ -43,3 +43,24 @@ before 7u-F.
 
 A reference default; any fix aimed at PR19's clip; new wealth-axis work on O139 or O133 (W60 reads the axis's share first);
 citing O180 as the reference's error; 7u-F (held by the 17:19 rule).
+
+## READ 18 Oct 22:12 (PLAN.md's 18 Oct 22:12 row; results-steps370.txt; Brier 0.165 over 4, results-scorecard-steps370.txt)
+
+Item 1 HELD, item 2 FALSIFIED, item 3 INCONCLUSIVE, item 4 FALSIFIED: the decision table's R1. SN removes 0.9663 (0.9636 to
+0.9690) of C's world-0 step-year residual (mean 10.5633 points); W60 removes none (-0.0107): the step read's copy across the
+unsupported top node carries the residual at years 3 and 7 (item 1's comparative credit to S370-COPY over GRID and CLIP,
+grade B for S370; S370-COPY stays open for the over-read until the deep review reads O182 with a decomposition: the
+plan-auditor's BLOCKING 1 of 18 Oct 22:17 UK). But the world-0 table's over-read does not
+fall (9.0487 under C, 10.3428 under SN): SN moves the residual to years 1 and 5 (O182). W60 cuts the after-access part GA in
+worlds 0 and 1, but raises world 1's GB (-0.0706 to 2.9273) and its table less runs (1.1402 to 2.5104). Next: the deep review reads the displacement (RULES.md section 9) before R1's breadth test is built (holding the breadth
+test is a departure from R1's registered action, which section 9 requires); the STOP
+list above stands until it reads.
+
+## Backlog: SN's node count (the plan-auditor's BACKLOG 2 on PLAN.md b199018bea, 18 Oct)
+
+The array governs: NODES_SN = [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1] (audit-steps370.mjs, reduce-steps370.mjs), the uniform
+six with two nodes (0.9 and 0.95) added in the top cell, as the deep review of 18 Oct 18:40 UK set it and the fair-test gate
+checks it. The comments that say "three more" in the top cell are wrong: predictions/diag-steps370.md line 56,
+audit-steps370.mjs lines 9 and 38, reduce-steps370.mjs line 5. They are frozen (the registered prediction; the reducer's
+blob fd53b17c081a as launched) and are not edited; nothing rests on them. Owner: Claude. Gate: before NODES_SN or the
+steps370 scripts are reused or quoted in a new row, the new file states the count from the array.

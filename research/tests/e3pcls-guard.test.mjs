@@ -74,8 +74,14 @@ ok(fingerprintOf({ a: 'xy', b: 'z' }) !== fingerprintOf({ a: 'x', b: 'yz' }), 'E
 
 // the pinning flag's scope, and new scripts that solve directly
 { const SOL = join(HERE, '../solver'), files = [...readdirSync(SOL).filter(f => f.endsWith('.mjs')).map(f => join(SOL, f)), ...readdirSync(HERE).filter(f => f.endsWith('.mjs') && f !== 'e3pcls-guard.test.mjs').map(f => join(HERE, f))];
-  const flagged = files.filter(f => !/(solver-e3pcls\.test|e3pcls-pin|candidate|e2)\.mjs$/.test(f) && readFileSync(f, 'utf8').includes('e3pclsPinning'));
-  ok(flagged.length === 0, `the pinning flag appears only in the identity test and the guard's own code (${flagged.length} other files)`);
+  // a destructure that strips the flag off before a direct solve names it without using it (audit-aref0.mjs: `const {
+  // e3pclsPinFile, e3pclsPinning, ...candOpts } = ...`; the guard failed on it from 15 Oct 06:19 UK, the maintainer's unlock of
+  // 18 Oct); any other mention, a destructure that keeps the flag included, is flagged
+  const usesFlag = text => /e3pclsPinning/.test(text.replace(/\{[^{}=]*\be3pclsPinning\b[^{}=]*\.\.\.\w+\s*\}\s*=/g, ''));
+  ok(usesFlag('solveCandidate(E, M, plan, { e3pclsPinning: true });') && !usesFlag('const { e3pclsPinFile, e3pclsPinning, ...candOpts } = { ...CANDIDATE_OPTS, ...extra };'), 'planted: a script passing the pinning flag is caught, a destructure that strips it off is not');
+  ok(usesFlag('const { e3pclsPinning } = opts; solvePlan(E, M, plan, { ...opts, e3pclsPinning });') && usesFlag('const { e3pclsPinning, ...o } = opts; solvePlan(E, M, plan, { ...o, e3pclsPinning });'), 'planted: a destructure that keeps the flag, or strips it and passes it on, is caught');
+  const flagged = files.filter(f => !/(solver-e3pcls\.test|e3pcls-pin|candidate|e2)\.mjs$/.test(f) && usesFlag(readFileSync(f, 'utf8')));
+  ok(flagged.length === 0, `the pinning flag appears only in the identity test and the guard's own code (${flagged.length} other files${flagged.length ? `: ${flagged.map(f => f.split('/').pop()).join(', ')}` : ''})`);
   const unguarded = text => /solvePlan\(/.test(text) && /\b(CANDIDATE_OPTS|RESEARCH_OPTS)\b/.test(text) && !/checkE3pclsPin/.test(text) && !/e3pcls: false/.test(text);
   ok(unguarded("import { CANDIDATE_OPTS } from './candidate.mjs';\nconst r = solvePlan(E, M, plan, { ...CANDIDATE_OPTS });"), 'planted: a script calling solvePlan with CANDIDATE_OPTS and no checkE3pclsPin is caught');
   ok(!unguarded("const o = { ...CANDIDATE_OPTS }; checkE3pclsPin(o); solvePlan(E, M, plan, o);"), 'EDGE: the same script with the check passes');

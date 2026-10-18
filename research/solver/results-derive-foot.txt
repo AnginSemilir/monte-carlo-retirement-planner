@@ -1,0 +1,79 @@
+FOOT-S366'S DERIVATION (predictions/diag-foot.md)
+
+1. THE RECORDS (AX-HO's saved S366 jobs behind AX-HO's gate)
+  AX-HO's J1 on S366: world 0's year-4 residual 2.1823 (per-path sd 2.3148); its own opening alive on 97.7750, 99.9250, 100.0000 of 4,000 by world; J2 alive on 97.8500, 99.9250, 100.0000; J1 against J2 moved 5 and 0 paths in worlds 0 and 1
+
+2. THE POWER (40 draws a cell through reduce-foot.mjs's items(); J1F's runs at J2's survival, 4000 paths a world)
+  spread x0.25 item 1, J1F's year-4 residual -1.2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x0.25 item 1, J1F's year-4 residual -0.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x0.25 item 1, J1F's year-4 residual 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x0.25 item 1, J1F's year-4 residual 0.3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x0.25 item 1, J1F's year-4 residual 0.45: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x0.25 item 1, J1F's year-4 residual 0.6: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x0.25 item 1, J1F's year-4 residual 1.2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x0.25 item 1, J1F's year-4 residual 2.1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1 item 1, J1F's year-4 residual -1.2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1 item 1, J1F's year-4 residual -0.5: HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  spread x1 item 1, J1F's year-4 residual 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 1, J1F's year-4 residual 0.3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 1, J1F's year-4 residual 0.45: HELD 0.07 INCONCLUSIVE 0.93 FALSIFIED 0.00
+  spread x1 item 1, J1F's year-4 residual 0.6: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x1 item 1, J1F's year-4 residual 1.2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1 item 1, J1F's year-4 residual 2.1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, world 0's table less runs -3.5: HELD 0.00 INCONCLUSIVE 0.68 FALSIFIED 0.33
+  item 2, world 0's table less runs -1.2: HELD 0.23 INCONCLUSIVE 0.78 FALSIFIED 0.00
+  item 2, world 0's table less runs 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, world 0's table less runs 1.2: HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  item 2, world 0's table less runs 2.1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, world 0's table less runs 3.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, J1D less J1 -2: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3, J1D less J1 -1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, J1D less J1 -0.45: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, J1D less J1 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, J1D less J1 0.45: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, J1D less J1 1: HELD 0.00 INCONCLUSIVE 0.93 FALSIFIED 0.07
+  churn x1 item 4, J1F's runs -0.3 points in worlds 0 and 1: HELD 0.63 INCONCLUSIVE 0.00 FALSIFIED 0.38
+  churn x1 item 4, J1F's runs 0 points in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1 item 4, J1F's runs 0.1 points in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x3 item 4, J1F's runs -0.3 points in worlds 0 and 1: HELD 0.13 INCONCLUSIVE 0.13 FALSIFIED 0.75
+  churn x3 item 4, J1F's runs 0 points in worlds 0 and 1: HELD 0.80 INCONCLUSIVE 0.20 FALSIFIED 0.00
+  churn x3 item 4, J1F's runs 0.1 points in worlds 0 and 1: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  churn x8 item 4, J1F's runs -0.3 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.35 FALSIFIED 0.65
+  churn x8 item 4, J1F's runs 0 points in worlds 0 and 1: HELD 0.45 INCONCLUSIVE 0.55 FALSIFIED 0.00
+  churn x8 item 4, J1F's runs 0.1 points in worlds 0 and 1: HELD 0.75 INCONCLUSIVE 0.25 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 18 Oct 01:41 UK: O177-FOOT=0.82; O177-COPYAMP=0.08; O177-SPLIT=0.02; O177-LAYER=0.01; O177-OTHER=0.07; 2000 draws through items())
+  item 1: HELD 0.83 INCONCLUSIVE 0.10 FALSIFIED 0.07
+  item 2: HELD 0.87 INCONCLUSIVE 0.13 FALSIFIED 0.00
+  item 3: HELD 0.96 INCONCLUSIVE 0.03 FALSIFIED 0.01
+  item 4: HELD 0.88 INCONCLUSIVE 0.11 FALSIFIED 0.01
+  decision rows: R1 0.70, R2 0.01, R3 0.07, R4 0.00, else 0.22
+  the chance the action changes (one less the likeliest row): 0.30
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.22
+  item 1's point (J1F's world-0 year-4 residual, points): median 0.1739, 80% interval -0.1983 to 0.9855
+  item 2's point (J1F's table less its runs in world 0, points): median 0.1750, 80% interval -0.4500 to 1.0250
+  item 3's point (J1D less J1 in world 0's year-4 residual, points): median -0.0001, 80% interval -0.1005 to 0.1001
+  item 4's point (J1F's runs less J2's in world 0, points): median 0.0000, 80% interval -0.1250 to 0.1250
+  as stated, item 1: point 0.1739 HELD 0.83 INCONCLUSIVE 0.10 FALSIFIED 0.07
+  as stated, item 2: point 0.1750 HELD 0.87 INCONCLUSIVE 0.13 FALSIFIED 0.00
+  as stated, item 3: point -0.0001 HELD 0.96 INCONCLUSIVE 0.03 FALSIFIED 0.01
+  as stated, item 4: point 0.0000 HELD 0.88 INCONCLUSIVE 0.11 FALSIFIED 0.01
+
+3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.40, 13 of 33; O177-FOOT at 0.4, the rest scaled: FOOT 0.40, COPYAMP 0.27, SPLIT 0.07, LAYER 0.03, OTHER 0.23; 2000 draws through items())
+  item 1: HELD 0.45 INCONCLUSIVE 0.30 FALSIFIED 0.25
+  item 2: HELD 0.63 INCONCLUSIVE 0.37 FALSIFIED 0.00
+  item 3: HELD 0.79 INCONCLUSIVE 0.14 FALSIFIED 0.07
+  item 4: HELD 0.89 INCONCLUSIVE 0.11 FALSIFIED 0.01
+  decision rows: R1 0.35, R2 0.01, R3 0.25, R4 0.00, else 0.39
+  the chance the action changes (one less the likeliest row): 0.61
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.39
+  item 1's point (J1F's world-0 year-4 residual, points): median 0.4140, 80% interval -0.2015 to 1.9965
+  item 2's point (J1F's table less its runs in world 0, points): median 0.5250, 80% interval -0.3500 to 1.8500
+  item 3's point (J1D less J1 in world 0's year-4 residual, points): median -0.0002, 80% interval -1.0000 to 0.1009
+  item 4's point (J1F's runs less J2's in world 0, points): median 0.0000, 80% interval -0.1250 to 0.1250
+CREDENCE item 1: point 0.4140 HELD 0.45 INCONCLUSIVE 0.30 FALSIFIED 0.25
+CREDENCE item 2: point 0.5250 HELD 0.63 INCONCLUSIVE 0.37 FALSIFIED 0.00
+CREDENCE item 3: point -0.0002 HELD 0.79 INCONCLUSIVE 0.14 FALSIFIED 0.07
+CREDENCE item 4: point 0.0000 HELD 0.89 INCONCLUSIVE 0.11 FALSIFIED 0.01
+
+4. THE BUDGET (grade C): AX-HO's J1 on S366 at 60 points, solve 2701 s and its ledger on 12,000 paths 1550 s - J1F and J1D about 1.18 h each (the fix's A = 0 nodes a small part of the build); S366's 30-point solve 1446 s (AX-HO's S366 step) with the same ledger for S362's K1 and K1F - about 0.83 h each; on four cores the wall about 1.18 h

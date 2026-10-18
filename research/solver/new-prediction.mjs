@@ -50,6 +50,9 @@ RATES: results-scorecard.txt is regenerated (scorecard.mjs) before a base rate o
 FIXTURES: an audit's household constants (floors, bills, inflow years) are computed from the scenario library by the product's own rule, never typed, and after any edit under src/solver the e3pcls pin is re-taken (node research/tests/solver-e3pcls.test.mjs 4 --pin) before a preflight.
 PLANTS: a plant names the states where it changes a value, and the preflight shows its check reads one of them; a plant that can change only a value already at its floor or clamp at every read is inert by construction. A guard added ahead of a plant's own check is passed by the plant on purpose (declared, as HO-DEP's arm plant declares K1F unfixed), so each check is still shown failing on its own fault.
 REACH: a screen that chooses households for a reference or reader change keeps only households where the mechanism can act (for the bridge reader, a bridge failure under the control) before it applies a survival band, and the reach step counts the moves the change makes.
+PREVIEW: a preflight at a fraction of the points is not read for the direction or size of an effect that depends on the grid's resolution; its bearing is declared as such.
+WHOLE: a fix aimed at one slice of a residual (a year, a layer, a cell) reads the whole residual beside the slice (the table less runs and the residual by year), so a residual that moves shows as moved, not removed.
+DISCORD: a power model's paired discordance in each world scales with the paths that can flip there (4p(1 - p) at the control's survival), never one share fixed across worlds.
 
 ## Prediction
 

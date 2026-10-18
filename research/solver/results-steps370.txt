@@ -1,0 +1,92 @@
+ok   SN removes seven tenths of C's step-year residual: 1 HELD: "HELD"
+ok   SN removes a tenth: 1 FALSIFIED: "FALSIFIED"
+ok   SN removes four tenths: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN removes exactly half with no spread (the line itself): 1 HELD: "HELD"
+ok   C's residual under a point (nothing to remove): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN makes the residual worse (a negative removal): 1 FALSIFIED: "FALSIFIED"
+ok   SN removes 0.55 with spread, its interval below a half: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN removes 0.2 with spread, its interval reaching a quarter: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   W60 removes a tenth: 2 FALSIFIED: "FALSIFIED"
+ok   W60 removes seven tenths: 2 HELD: "HELD"
+ok   W60 removes four tenths: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN at C in every world: 3 HELD: "HELD"
+ok   SN loses 60 paths in world 0: 3 FALSIFIED: "FALSIFIED"
+ok   SN loses 15 paths net in world 1 (its interval across the margin, its loss under it): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN's whole score 1 point down in world 2 alone: 3 FALSIFIED: "FALSIFIED"
+ok   SN's whole score across the margin in world 0: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN loses 4 and saves none in world 1 (the guard holds the interval out): 3 HELD: "HELD"
+ok   SN loses 4 and saves none in world 2 (the exact rule and the unguarded interval read no material harm, the guarded interval does not): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN loses 70 and saves 50 in world 0 (unadjusted p under 0.05, Holm over it): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN's table drops 10 points on runs at C's: 4 HELD: "HELD"
+ok   SN's table drops 1 point: 4 FALSIFIED: "FALSIFIED"
+ok   SN's table drops 5 points (C's gap 13): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   C's table half a point over its runs (nothing to remove), SN's 1.5 points lower: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN's table drops 3 points on discordant runs (its interval reaching a quarter of C's gap): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SN's runs fall by as much as its table (no drop, paired by path): 4 FALSIFIED: "FALSIFIED"
+ok   the rows: SN removes most, no harm, reads R1: "R1"
+ok   the rows: SN harms, reads R2 over R1: "R2"
+ok   the rows: W60 removes it, SN not, reads R3: "R3"
+ok   the rows: neither removes it, reads R4: "R4"
+ok   the rows: SN partly, reads else: "else"
+ok   the rows: SN partly and W60 most, reads else (R3 needs item 1 FALSIFIED): "else"
+ok   the removal of a half on three paths reads 0.5 with no spread: "0.500 0.500 0.500"
+ok   the gate passes the three jobs as registered: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside the three: "true"
+ok   the gate refuses SN without its nodes (the nodes plant): "true"
+ok   the gate refuses C with SN's nodes: "true"
+ok   the gate refuses SN with other nodes: "true"
+ok   the gate refuses a grid line of another size: "true"
+ok   the gate refuses SN's solve meta naming other nodes of the same count, its nodes line right: "true"
+ok   the gate refuses SN's nodes line naming other nodes, its solve meta right: "true"
+ok   the gate refuses a run line on another path count: "true"
+ok   the gate refuses a reader reference set: "true"
+ok   the gate refuses W60 at 30 points: "true"
+ok   the gate refuses a case line at another point count alone: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses another household: "true"
+ok   the gate refuses a header naming another path count: "true"
+ok   the gate refuses a floor other than the product rule's: "true"
+ok   the gate refuses a world's tables line missing: "true"
+ok   the gate refuses a file without year 7's residual: "true"
+ok   the gate refuses bridge years without year 7: "true"
+ok   the gate refuses scoreTook short (the score and trace plants): "true"
+ok   the gate refuses C with no done line: "true"
+ok   the gate refuses a job short of a world: "true"
+ok   the gate refuses a file whose whole scores are not the log's: "true"
+planted (56): all read as they should
+GATE: passed - C, SN and W60 once and done at the registered settings (4000 paths a world, scale 1, seed 7002; S370; C and SN at 30 points, W60 at 60); the candidate's settings with no readerRef, SN's nodes and no others, every self-check in full
+
+STEP-S370: the step read's copy across the unsupported top share node at S370's step years 3 and 7, the candidate as it stands (predictions/diag-steps370.md)
+
+THE ITEMS (each read by its registered rule)
+1. SN removes at least half of C's world-0 step-year residual (Y3 + Y7, path by path): HELD
+     the removal 0.9663 (0.9636 to 0.9690) of C's mean 10.5633 points
+2. W60 removes at least half of the same: FALSIFIED
+     the removal -0.0107 (-0.0139 to -0.0075)
+3. no material harm, SN against C, by RULES.md section 8's rule as written (survival by both, whole score beside), per world: INCONCLUSIVE
+     world 0: survival 0.0750 exact (-0.3336 to 0.4764) no material harm, guarded unconditional (-0.3142 to 0.4642), whole score 0.0805 (-0.3100 to 0.4710), margin 0.5000: no material harm
+     world 1: survival -0.0750 exact (-0.3516 to 0.2165) no material harm, guarded unconditional (-0.3573 to 0.2060), whole score -0.0638 (-0.3381 to 0.2105), margin 0.5000: no material harm
+     world 2: survival -0.1000 exact (-0.1487 to 0.0424) no material harm, guarded unconditional (-0.2607 to 0.0434), whole score -0.0822 (-0.2058 to 0.0415), margin 0.2500: inconclusive
+4. SN's world-0 table less runs falls by at least half of C's: FALSIFIED
+     C's table less runs 9.0487, SN's 10.3428, the drop -1.2941 (-1.6833 to -0.9049)
+OUTCOME: 1 HELD, 2 FALSIFIED, 3 INCONCLUSIVE, 4 FALSIFIED
+ROW: R1
+REALISED item 1: 0.9663
+REALISED item 2: -0.0107
+REALISED item 3: 0.0750
+REALISED item 4: -1.2941
+
+REPORTED
+  C world 0: table 49.0987 runs 1602/4000 (40.0500), table less runs 9.0487; GB 8.1473 GA 1.7213 T -0.8199; by year 1: -1.8579 | 2: -0.8274 | 3: 4.1047 | 4: 0.1508 | 5: 0.0645 | 6: 0.0539 | 7: 6.4586
+  C world 1: table 87.9402 runs 3472/4000 (86.8000), table less runs 1.1402; GB -0.0706 GA 1.5874 T -0.3767; by year 1: -1.5681 | 2: -0.8230 | 3: 1.4581 | 4: -0.5445 | 5: -0.5527 | 6: -0.5573 | 7: 2.5169
+  C world 2: table 98.2445 runs 3959/4000 (98.9750), table less runs -0.7305; GB -0.9000 GA 0.0888 T 0.0808; by year 1: -0.5090 | 2: -0.2104 | 3: 0.0750 | 4: -0.1312 | 5: -0.1540 | 6: -0.1331 | 7: 0.1627
+  SN world 0: table 50.4678 runs 1605/4000 (40.1250), table less runs 10.3428; GB 8.8630 GA 2.0465 T -0.5668; by year 1: 5.6309 | 2: 0.5652 | 3: 0.1444 | 4: -0.0323 | 5: 2.0813 | 6: 0.2618 | 7: 0.2117
+  SN world 1: table 91.2675 runs 3469/4000 (86.7250), table less runs 4.5425; GB 2.9196 GA 1.7613 T -0.1383; by year 1: 4.6685 | 2: 0.6578 | 3: -0.3661 | 4: -0.7083 | 5: 0.1317 | 6: -0.6652 | 7: -0.7989
+  SN world 2: table 99.1311 runs 3955/4000 (98.8750), table less runs 0.2561; GB 0.0604 GA 0.0993 T 0.0965; by year 1: 1.2039 | 2: 0.8029 | 3: -0.2092 | 4: -0.6652 | 5: -0.6972 | 6: -0.2080 | 7: -0.1668
+  W60 world 0: table 49.3766 runs 1641/4000 (41.0250), table less runs 8.3516; GB 8.1491 GA 0.9115 T -0.7090; by year 1: -1.8450 | 2: -0.8164 | 3: 4.2698 | 4: 0.1217 | 5: 0.0312 | 6: -0.0185 | 7: 6.4064
+  W60 world 1: table 89.4104 runs 3476/4000 (86.9000), table less runs 2.5104; GB 2.9273 GA 0.0571 T -0.4740; by year 1: -1.2718 | 2: -0.4889 | 3: 1.7518 | 4: -0.1501 | 5: -0.0881 | 6: -0.0907 | 7: 3.2652
+  W60 world 2: table 98.8307 runs 3954/4000 (98.8500), table less runs -0.0193; GB -0.1509 GA -0.0354 T 0.1670; by year 1: -0.3987 | 2: -0.1033 | 3: 0.1286 | 4: -0.0280 | 5: -0.0362 | 6: -0.0301 | 7: 0.3168
+  C: copied 100116 copiedTop 59778 of 446148 nodes; solve 1240 s
+  SN: copied 167670 copiedTop 59778 of 594864 nodes; solve 1798 s
+  W60: copied 212868 copiedTop 123606 of 916596 nodes; solve 2532 s

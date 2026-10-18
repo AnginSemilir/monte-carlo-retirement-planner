@@ -175,3 +175,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-18 18:05 UTC | reduce-steps370.mjs d5186ca0dd81 | 41 of 42 caught | escaped: NOT CAUGHT: 30: const u = guarded(survivalChangeU(x.a, x.b, x.c, x.d, level)
 2026-10-18 18:05 UTC | reduce-steps370.mjs 0d5c31caeafb | 42 of 42 caught | escaped: none
 2026-10-18 18:47 UTC | reduce-steps370.mjs fd53b17c081a | 42 of 42 caught | escaped: none
+2026-10-18 22:47 UTC | reduce-o182.mjs 42be346823f2 | 43 of 52 caught | escaped: NOT CAUGHT: 7: if (j.pts !== pts) bad.push(; NOT CAUGHT: 10: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode; NOT CAUGHT: 15: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', ; NOT CAUGHT: 16: if (!j.recount || !j.reader || j.recount.copied !== j.reader; NOT CAUGHT: 21: if (ws && j.whole[w] && Math.abs(decRaw(ws).reduce((t, x) =>; NOT CAUGHT: 32: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'; NOT CAUGHT: 38: dr.lo >= HALF * dr.gapC ? 'HELD' : dr.hi < QUARTER * dr.gapC; NOT CAUGHT: 48: if (o('2') === 'HELD' && o('3') === 'FALSIFIED') return 'R2'; NOT CAUGHT: 49: if (o('1') === 'FALSIFIED') return 'R3';
+2026-10-18 22:49 UTC | reduce-o182.mjs 154c0bbc661e | 52 of 52 caught | escaped: none
+2026-10-18 22:54 UTC | reduce-o182.mjs 154c0bbc661e | 52 of 52 caught | escaped: none

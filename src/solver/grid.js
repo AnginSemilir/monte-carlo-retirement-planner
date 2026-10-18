@@ -35,7 +35,7 @@
 
 // survival probabilities are held off 0 and 1 so the log-odds stay finite; the clamp and the choice of
 // log-odds against plain probability are overridable from the environment for the smear experiments
-const CLAMP = process.env.SOLVER_CLAMP ? Number(process.env.SOLVER_CLAMP) : 1e-6; export const LOR_CLAMPS = { n: 0, lo: 0, hi: 0 }; export const READER_PROBE = { fn: null };   // NE-GRID's count of LOR corners read past the clamp (research only; counts nothing off the LOR arm)
+const CLAMP = process.env.SOLVER_CLAMP ? Number(process.env.SOLVER_CLAMP) : 1e-6; export const LOR_CLAMPS = { n: 0, lo: 0, hi: 0 }; export const READER_PROBE = { fn: null }; export const ruScale = (pq, pk) => (pq > pk ? (1 - pq) / (1 - pk) : 1);   // NE-GRID's count of LOR corners read past the clamp (research only; counts nothing off the LOR arm); ruScale, STEP-O182's SNR arm (`readerSplit: 'ru'`, research only): the factor on a corner's residual R where the query's chance pq exceeds the corner's pk, so a near-certain query does not carry a copied corner's whole R; 1 elsewhere (RS's mirror; items/STEP-O182.md, PR25)
 const LINEAR = process.env.SOLVER_INTERP === 'linear';
 const logit = LINEAR ? (p) => p : (p) => { const q = p < CLAMP ? CLAMP : (p > 1 - CLAMP ? 1 - CLAMP : p); return Math.log(q / (1 - q)); };
 const expit = LINEAR ? (x) => x : (x) => 1 / (1 + Math.exp(-x));
@@ -414,7 +414,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     let cc = 0, rr = 0;
     // NE-EDGE's RS arm (`readerSplit: 'rs'`, research only; false in every product path): each corner's residual scaled
     // by min(1, the query's chance / the corner's), so a near-dead query does not carry the corner's whole R
-    if (g.reader.rs) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k], pk = RD.p[i]; cc += w * RD.c[i]; rr += w * RD.R[i] * (pk > pr ? pr / pk : 1); } }
+    if (g.reader.rs) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k], pk = RD.p[i]; cc += w * RD.c[i]; rr += w * RD.R[i] * (pk > pr ? pr / pk : 1); } } else if (g.reader.ru) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; cc += w * RD.c[i]; rr += w * RD.R[i] * ruScale(pr, RD.p[i]); } }   // STEP-O182's SNR arm (`readerSplit: 'ru'`, research only; false in every product path): RS's mirror, each corner's R scaled by ruScale
     else for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
     const v = pr * cc + rr; if (READER_PROBE.fn) READER_PROBE.fn(W, IDX, NC, RD, pr, yr, acc, s);   // NE-GRID C's per-corner log, and NE-REF's read money and state (research only; null in every product path)
     if (g.reader.blend === 'logodds') { let lo = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const vi = pr * RD.c[IDX[k]] + RD.R[IDX[k]], ci = vi < CLAMP ? CLAMP : (vi > 1 - CLAMP ? 1 - CLAMP : vi); LOR_CLAMPS.n++; if (vi < CLAMP) LOR_CLAMPS.lo++; else if (vi > 1 - CLAMP) LOR_CLAMPS.hi++; lo += w * Math.log(ci / (1 - ci)); } out[0] = expit(lo); } else out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);   // NE-BLEND's LOR arm (`readerBlend: 'logodds'`, research only): each corner read at this position's chance, p x c_i + R_i, blended in log-odds

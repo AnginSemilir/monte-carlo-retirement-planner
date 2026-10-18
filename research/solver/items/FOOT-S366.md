@@ -46,10 +46,10 @@ Cost: AX-HO's 60-point ledger jobs ran 64 to 70 minutes; the review's estimate a
 ## After it reads, before a default goes to the maintainer (the review's list)
 
 - A held-out deposit household outside the fix: another of the 14, not S362, which FOOT-S366 itself runs (the plan-auditor's MINOR 2 of 18 Oct 02:01 UK).
-- Gate 5: each E2 part builds its own reference (solve.js:605-607), so the build is serial wall time (NOT CHECKED by a run).
+- Gate 5: each E2 part builds its own reference (solve.js:605-607), so the build is serial wall time (NOT CHECKED by a run). Deferred by the maintainer (PLAN.md's 18 Oct 07:50 row): estimated in its place (results-gate5-estimate.txt, grade C), about 16% to 21% more a one-process solve and about 49% more at 4 parts.
 - A design-reviewed test file: p against simulate() at the reader's own grid corners, including A = 0 in an inflow year, the
   NaN top planted.
-- The 7u-F panel with deposit households and a read item by world.
+- The 7u-F panel with deposit households and a read item by world: adopted by the maintainer (PLAN.md's 18 Oct 07:50 row); the households and bands set at 7u-F's registration; the hold of 11 Oct 11:03 stands.
 
 ## STOP until FOOT-S366 reads
 

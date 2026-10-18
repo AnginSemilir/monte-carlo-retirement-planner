@@ -189,3 +189,42 @@ export function signTest(ds) {
 }
 /* the paths needed so the interval's half-width fits the margin at discordance d (both as fractions) */
 export const pathsNeeded = (d, delta) => Math.ceil(1.96 * 1.96 * d / (delta * delta));
+/*
+ * A REFERENCE CHANGE'S HARM, READ BY THE MIXTURE (the maintainer, 18 Oct, PLAN.md's 18 Oct 09:43 row: "Yes, mixture only"; the
+ * deep review after FOOT-S366's premise 1). The chooser is world-blind and weighs its worlds by solve.js's MIX3 (1/6, 2/3,
+ * 1/6), so a reference change is judged by the paired survival change weighted the same way, each world's line reported and
+ * not binding. Each world's change and its interval read by both (the unconditional interval, survivalChangeU, held at least
+ * as far out as the exact conditional bound, survivalChange: the maintainer's rule of 29 Sep) are combined by
+ * the method of variance estimates recovery for a weighted sum (Zou and Donner 2008): the point is the weighted sum, each
+ * end the point less (or plus) the root of the weighted squared distances to that world's own end. Not exact: at 95% it read
+ * "no material harm" 3.67% to 4.21% of the time at a true weighted loss at the margin on S362-like cells, so the rule reads
+ * the interval at 98% (MIX_LEVEL), which holds 1.78% to 2.27% there and 0.03% to 0.39% at high survival (sim-mixture.mjs,
+ * results-sim-mixture.txt).
+ * `cells` [{ a, b, c, d }] per world (a both survive, b lost, c saved, d both fail), `w` the world weights (summing to 1).
+ */
+export const MIX3W = Object.freeze([1 / 6, 2 / 3, 1 / 6]), MIX_LEVEL = 0.02;
+export function mixtureChange(cells, w = MIX3W, level = MIX_LEVEL) {
+  if (cells.length !== w.length) throw new Error('mixtureChange: one weight a world');
+  // each world's interval read by both (the maintainer, 29 Sep 22:12 UK, section 8): the unconditional interval held at least as
+  // far out as the exact conditional bound at each end
+  const per = cells.map(x => { const u = survivalChangeU(x.a, x.b, x.c, x.d, level), e = survivalChange(x.b, x.c, x.a + x.b + x.c + x.d, level); return { d: u.d, lo: Math.min(u.lo, e.lo), hi: Math.max(u.hi, e.hi), u, e }; });
+  const d = per.reduce((t, x, k) => t + w[k] * x.d, 0);
+  const lo = d - Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.d - x.lo)) ** 2, 0)), hi = d + Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.hi - x.d)) ** 2, 0));
+  const ctrl = cells.reduce((t, x, k) => t + w[k] * 100 * (x.a + x.b) / (x.a + x.b + x.c + x.d), 0);
+  return { d, lo, hi, ctrl, per };
+}
+/* the mixture's three outcomes, as section 8 item 3 reads one household: no material harm (lower end above minus the margin);
+   harm (the whole interval below zero and a point loss of at least the margin); inconclusive (neither). The margin is
+   marginRel at the control's mixture survival. */
+export function mixtureOutcome(m, margin = marginRel(m.ctrl)) {
+  if (m.lo > -margin) return { ...m, margin, outcome: 'no material harm' };
+  if (m.hi < 0 && -m.d >= margin) return { ...m, margin, outcome: 'harm' };
+  return { ...m, margin, outcome: 'inconclusive' };
+}
+/* a paired per-path quantity (the whole score, points) weighted the same way: each world's paired mean difference B - A and
+   its normal standard error, combined at the weights; `pairs` [{ A: Float64Array, B: Float64Array }] per world */
+export function mixtureMean(pairs, w = MIX3W, level = MIX_LEVEL) {
+  const z = zFor(level), per = pairs.map(({ A, B }) => { const n = A.length; let s = 0; for (let i = 0; i < n; i++) s += B[i] - A[i]; const m = s / n; let v = 0; for (let i = 0; i < n; i++) v += (B[i] - A[i] - m) ** 2; return { d: m, se: Math.sqrt(v / (n - 1) / n), n }; });
+  const d = per.reduce((t, x, k) => t + w[k] * x.d, 0), se = Math.sqrt(per.reduce((t, x, k) => t + (w[k] * x.se) ** 2, 0));
+  return { d, lo: d - z * se, hi: d + z * se, se, per };
+}

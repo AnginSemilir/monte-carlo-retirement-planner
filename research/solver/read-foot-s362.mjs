@@ -3,7 +3,8 @@
  * K1F against K1 (the fix alone, the same reference, split, code and paths) in each world, from results-foot.txt's reported
  * "K1F against K1 world k: ... runs lost b saved c of N" lines and K1's survival there, through stats.mjs's exact conditional
  * McNemar outcome at the relative margin marginRel(K1's survival), Holm across worlds 0 and 1 as the registered item 4 reads
- * S366 (world 2 unadjusted, beside).
+ * S366 (world 2 unadjusted, beside); and the paired change weighted at the chooser's own world weights (solve.js MIX3: 1/6, 2/3,
+ * 1/6), each arm's survival so weighted (the maintainer's decision of 18 Oct: a reference change's harm read by the mixture).
  *   node research/solver/read-foot-s362.mjs > research/solver/results-foot-s362.txt
  */
 import { readFileSync } from 'node:fs';
@@ -20,3 +21,6 @@ if (cells.some(c => !c)) { console.log('results-foot.txt did not read'); process
 const ph = holm(cells.slice(0, 2).map(c => mcnemarHarmP(c.b, c.c)));
 console.log('FOOT-S366: S362, K1F against K1 by the harm rule (post hoc, grade C; results-foot.txt)');
 cells.forEach((c, i) => { const m = marginRel(c.surv), o = outcome({ b: c.b, c: c.c, N: c.N, margin: m, pHolm: i < 2 ? ph[i] : mcnemarHarmP(c.b, c.c) }); console.log(`  world ${c.k}: K1's survival ${c.surv}, lost ${c.b} saved ${c.c} of ${c.N}, change ${o.d.toFixed(4)} (${o.lo.toFixed(4)} to ${o.hi.toFixed(4)}) at margin ${m.toFixed(4)}${i < 2 ? ' (Holm across worlds 0 and 1)' : ' (unadjusted)'}: ${o.outcome}`); });
+const W3 = [1 / 6, 2 / 3, 1 / 6], k1f = c => 100 * (c.surv / 100 * c.N - c.b + c.c) / c.N;
+const m1 = W3.reduce((t, w, i) => t + w * cells[i].surv, 0), m2 = W3.reduce((t, w, i) => t + w * k1f(cells[i]), 0), net = W3.reduce((t, w, i) => t + w * 100 * (cells[i].c - cells[i].b) / cells[i].N, 0);
+console.log(`  weighted at the chooser's weights (1/6, 2/3, 1/6): K1 ${m1.toFixed(4)}, K1F ${m2.toFixed(4)}, change ${net >= 0 ? '+' : ''}${net.toFixed(4)} (net runs by world ${cells.map(c => (c.c - c.b >= 0 ? '+' : '') + (c.c - c.b)).join(', ')})`);

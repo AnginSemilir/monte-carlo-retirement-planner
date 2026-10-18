@@ -1,0 +1,37 @@
+=== a MEASUREMENT, not a test:  HO-DEP's screen (items/HO-DEP.md): the 13 deposit-mid candidates under the order reference at 15 points, 400 paths a world from path 0, seed 7004, their world-0 survival read to name four for the reach step; a selection measurement, no test (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-qC9g2P   from afeec2c + 8 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code 01abacb478e9 (smoke stamp 78c1eb59f2a9): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+  S370: world-0 survival under the order reference 39.75 on 400 paths
+  S374: world-0 survival under the order reference 95.75 on 400 paths (outside the band)
+  S378: world-0 survival under the order reference 99.50 on 400 paths (outside the band)
+  S382: world-0 survival under the order reference 57.25 on 400 paths
+  S386: world-0 survival under the order reference 100.00 on 400 paths (outside the band)
+  S390: world-0 survival under the order reference 99.50 on 400 paths (outside the band)
+  S394: world-0 survival under the order reference 43.50 on 400 paths
+  S398: world-0 survival under the order reference 100.00 on 400 paths (outside the band)
+  S402: world-0 survival under the order reference 93.50 on 400 paths (outside the band)
+  S406: world-0 survival under the order reference 59.00 on 400 paths
+  S410: world-0 survival under the order reference 100.00 on 400 paths (outside the band)
+  S414: world-0 survival under the order reference 83.00 on 400 paths (outside the band)
+  S418: world-0 survival under the order reference 62.75 on 400 paths
+REACH: S394,S382,S406,S370
+HO-DEP screen done 13:51 UK
+=== snapshot kept at /tmp/solver-snap-qC9g2P for provenance; remove it when the results are written up

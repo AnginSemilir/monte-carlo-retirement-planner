@@ -1,0 +1,62 @@
+STEP-S370'S DERIVATION (predictions/diag-steps370.md)
+
+1. THE RECORDS
+  S370, HO-DEP's O (the order reference; seed 7004, 4000 paths a world, behind HO-DEP's gate): tables 50.3079, 89.1297, 98.6252; runs 1577, 3412, 3960 of 4000; world 0's step-year residual Y3 + Y7 per path: mean 10.6358 points, sd 2.9814
+  HO-DEP's A against O on S370: discordant runs 3, 5, 0 of 4000 by world (the scale for SN's discordance)
+  stated (grade C): the candidate's plan reference reads S370's step years as the same 0/1 step as O, so O's per-path residual and tables stand for C's
+
+2. THE POWER (40 draws a cell through reduce-steps370.mjs's items(); C's world-0 residual resampled from HO-DEP's O, 4000 paths a world)
+  item 1, SN removes 0 of the residual (noise x0.5): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, SN removes 0.25 of the residual (noise x0.5): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, SN removes 0.4 of the residual (noise x0.5): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, SN removes 0.5 of the residual (noise x0.5): HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  item 1, SN removes 0.6 of the residual (noise x0.5): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SN removes 0.75 of the residual (noise x0.5): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SN removes 0.6, noise x0.25: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SN removes 0.6, noise x1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, W60 removes 0.1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, W60 removes 0.4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, W60 removes 0.7: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, SN's survival change -0.6 a world (discordance 3%): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3, SN's survival change -0.25 a world (discordance 3%): HELD 0.00 INCONCLUSIVE 0.28 FALSIFIED 0.72
+  item 3, SN's survival change 0 a world (discordance 3%): HELD 0.00 INCONCLUSIVE 0.53 FALSIFIED 0.47
+  item 3, SN's survival change 0.25 a world (discordance 3%): HELD 0.00 INCONCLUSIVE 0.70 FALSIFIED 0.30
+  item 4, SN removes 0.2 with its table falling as much: HELD 0.00 INCONCLUSIVE 0.45 FALSIFIED 0.55
+  item 4, SN removes 0.5 with its table falling as much: HELD 0.07 INCONCLUSIVE 0.93 FALSIFIED 0.00
+  item 4, SN removes 0.75 with its table falling as much: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 18 Oct 18:40 UK: S370-COPY=0.55; S370-GRID=0.22; S370-CLIP=0.05; S370-OTHER=0.18; 2000 draws through items())
+  item 1: HELD 0.55 INCONCLUSIVE 0.13 FALSIFIED 0.33
+  item 2: HELD 0.16 INCONCLUSIVE 0.18 FALSIFIED 0.67
+  item 3: HELD 0.09 INCONCLUSIVE 0.40 FALSIFIED 0.51
+  item 4: HELD 0.45 INCONCLUSIVE 0.23 FALSIFIED 0.32
+  decision rows: R1 0.28, R2 0.51, R3 0.08, R4 0.03, else 0.10
+  the chance the action changes (one less the likeliest row): 0.49
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.10
+  item 1's point (the share of C's world-0 step-year residual SN removes): median 0.5989, 80% interval 0.0007 to 0.8994
+  item 2's point (the share W60 removes): median 0.1960, 80% interval -0.0003 to 0.7003
+  item 3's point (SN's survival change against C in world 0, points): median 0.0250, 80% interval -0.4000 to 0.4250
+  item 4's point (the drop in world 0's table less runs, SN against C, points): median 5.5565, 80% interval 0.1000 to 9.6973
+  as stated, item 1: point 0.5989 HELD 0.55 INCONCLUSIVE 0.13 FALSIFIED 0.33
+  as stated, item 2: point 0.1960 HELD 0.16 INCONCLUSIVE 0.18 FALSIFIED 0.67
+  as stated, item 3: point 0.0250 HELD 0.09 INCONCLUSIVE 0.40 FALSIFIED 0.51
+  as stated, item 4: point 5.5565 HELD 0.45 INCONCLUSIVE 0.23 FALSIFIED 0.32
+
+3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.42, 14 of 34; S370-COPY 0.42, S370-GRID 0.28, S370-CLIP 0.06, S370-OTHER 0.23; 2000 draws through items())
+  item 1: HELD 0.42 INCONCLUSIVE 0.17 FALSIFIED 0.41
+  item 2: HELD 0.20 INCONCLUSIVE 0.25 FALSIFIED 0.55
+  item 3: HELD 0.10 INCONCLUSIVE 0.42 FALSIFIED 0.48
+  item 4: HELD 0.34 INCONCLUSIVE 0.25 FALSIFIED 0.40
+  decision rows: R1 0.22, R2 0.48, R3 0.10, R4 0.04, else 0.15
+  the chance the action changes (one less the likeliest row): 0.52
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.15
+  item 1's point (the share of C's world-0 step-year residual SN removes): median 0.2549, 80% interval 0.0002 to 0.8982
+  item 2's point (the share W60 removes): median 0.2006, 80% interval -0.0003 to 0.7024
+  item 3's point (SN's survival change against C in world 0, points): median 0.0000, 80% interval -0.4500 to 0.4250
+  item 4's point (the drop in world 0's table less runs, SN against C, points): median 3.4158, 80% interval 0.0250 to 9.4973
+CREDENCE item 1: point 0.2549 HELD 0.42 INCONCLUSIVE 0.17 FALSIFIED 0.41
+CREDENCE item 2: point 0.2006 HELD 0.20 INCONCLUSIVE 0.25 FALSIFIED 0.55
+CREDENCE item 3: point 0.0000 HELD 0.10 INCONCLUSIVE 0.42 FALSIFIED 0.48
+CREDENCE item 4: point 3.4158 HELD 0.34 INCONCLUSIVE 0.25 FALSIFIED 0.40
+
+4. THE BUDGET (grade C: HO-DEP's O on S370 at 30 points, solve 1735 s and its ledger on 12,000 paths 1977 s): C and SN about 1.03 h each; W60 about 1.79 h (twice the solve, half again the ledger, judged); three jobs on three cores, the wall about 1.79 h

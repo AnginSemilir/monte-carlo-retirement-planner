@@ -33,43 +33,47 @@ STEP-O182'S DERIVATION (predictions/diag-o182.md)
   item 3, SNR removes 0.95, the other years -1 point: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 3, SNR removes 0.95, the other years +0 point: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 3, SNR removes 0.95, the other years +1 point: HELD 0.25 INCONCLUSIVE 0.75 FALSIFIED 0.00
-  item 4, SNR's survival change -0.6 a world (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
-  item 4, SNR's survival change -0.25 a world (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.53 FALSIFIED 0.47
-  item 4, SNR's survival change 0 a world (discordance 0.03 of 4p(1 - p)): HELD 0.20 INCONCLUSIVE 0.80 FALSIFIED 0.00
-  item 4, SNR's survival change 0.25 a world (discordance 0.03 of 4p(1 - p)): HELD 0.85 INCONCLUSIVE 0.15 FALSIFIED 0.00
+  item 3, SNR removes 0.75 and 0.4 of it reappears elsewhere: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, SNR removes 0.75 and 0.8 of it reappears elsewhere: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3, SNR removes 0.95 and 0.4 of it reappears elsewhere: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, SNR removes 0.95 and 0.8 of it reappears elsewhere: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, SNR's survival change -0.6 a world (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, SNR's survival change -0.25 a world (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.55 FALSIFIED 0.45
+  item 4, SNR's survival change 0 a world (discordance 0.03 of 4p(1 - p)): HELD 0.30 INCONCLUSIVE 0.70 FALSIFIED 0.00
+  item 4, SNR's survival change 0.25 a world (discordance 0.03 of 4p(1 - p)): HELD 0.70 INCONCLUSIVE 0.30 FALSIFIED 0.00
 
 3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 18 Oct 22:45 UK: O182-RESID=0.8; O182-YB=0.04; O182-TOP=0.02; O182-GRID=0.04; O182-OTHER=0.1; 2000 draws through items())
-  item 1: HELD 0.81 INCONCLUSIVE 0.09 FALSIFIED 0.10
-  item 2: HELD 0.61 INCONCLUSIVE 0.23 FALSIFIED 0.16
-  item 3: HELD 0.33 INCONCLUSIVE 0.46 FALSIFIED 0.21
+  item 1: HELD 0.80 INCONCLUSIVE 0.10 FALSIFIED 0.10
+  item 2: HELD 0.60 INCONCLUSIVE 0.25 FALSIFIED 0.15
+  item 3: HELD 0.16 INCONCLUSIVE 0.40 FALSIFIED 0.44
   item 4: HELD 0.34 INCONCLUSIVE 0.54 FALSIFIED 0.12
-  decision rows: R1 0.30, R2 0.00, R3 0.09, R4 0.12, else 0.49
-  the chance the action changes (one less the likeliest row): 0.51
-  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.49
-  item 1's point (the share of SN's world-0 Y1 + Y5 the copied corners' I[R] carries): median 0.7981, 80% interval 0.2415 to 0.9505
-  item 2's point (the share of SN's world-0 Y1 + Y5 SNR removes): median 0.7487, 80% interval 0.1028 to 0.9509
-  item 3's point (the drop in world 0's table less runs, SNR against C, points): median 4.4901, 80% interval -0.2941 to 6.0325
+  decision rows: R1 0.14, R2 0.13, R3 0.09, R4 0.12, else 0.52
+  the chance the action changes (one less the likeliest row): 0.48
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.52
+  item 1's point (the share of SN's world-0 Y1 + Y5 the copied corners' I[R] carries): median 0.7979, 80% interval 0.2432 to 0.9507
+  item 2's point (the share of SN's world-0 Y1 + Y5 SNR removes): median 0.7485, 80% interval 0.1030 to 0.9512
+  item 3's point (the drop in world 0's table less runs, SNR against C, points): median 2.1764, 80% interval -1.1373 to 6.0325
   item 4's point (SNR's survival change against C in world 0, points): median 0.0000, 80% interval -0.4250 to 0.4250
-  as stated, item 1: point 0.7981 HELD 0.81 INCONCLUSIVE 0.09 FALSIFIED 0.10
-  as stated, item 2: point 0.7487 HELD 0.61 INCONCLUSIVE 0.23 FALSIFIED 0.16
-  as stated, item 3: point 4.4901 HELD 0.33 INCONCLUSIVE 0.46 FALSIFIED 0.21
+  as stated, item 1: point 0.7979 HELD 0.80 INCONCLUSIVE 0.10 FALSIFIED 0.10
+  as stated, item 2: point 0.7485 HELD 0.60 INCONCLUSIVE 0.25 FALSIFIED 0.15
+  as stated, item 3: point 2.1764 HELD 0.16 INCONCLUSIVE 0.40 FALSIFIED 0.44
   as stated, item 4: point 0.0000 HELD 0.34 INCONCLUSIVE 0.54 FALSIFIED 0.12
 
 3b. THE CREDENCES WITH THE LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.42, 14 of 34; O182-RESID 0.42, O182-YB 0.12, O182-TOP 0.06, O182-GRID 0.12, O182-OTHER 0.29; 2000 draws through items())
   item 1: HELD 0.42 INCONCLUSIVE 0.29 FALSIFIED 0.29
-  item 2: HELD 0.32 INCONCLUSIVE 0.21 FALSIFIED 0.47
-  item 3: HELD 0.17 INCONCLUSIVE 0.30 FALSIFIED 0.54
-  item 4: HELD 0.32 INCONCLUSIVE 0.55 FALSIFIED 0.12
-  decision rows: R1 0.15, R2 0.00, R3 0.26, R4 0.12, else 0.46
-  the chance the action changes (one less the likeliest row): 0.54
-  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.46
-  item 1's point (the share of SN's world-0 Y1 + Y5 the copied corners' I[R] carries): median 0.4966, 80% interval 0.0020 to 0.9478
-  item 2's point (the share of SN's world-0 Y1 + Y5 SNR removes): median 0.3958, 80% interval -0.0003 to 0.9488
-  item 3's point (the drop in world 0's table less runs, SNR against C, points): median 1.2484, 80% interval -1.2941 to 6.0325
-  item 4's point (SNR's survival change against C in world 0, points): median -0.0250, 80% interval -0.4750 to 0.4250
-CREDENCE item 1: point 0.4966 HELD 0.42 INCONCLUSIVE 0.29 FALSIFIED 0.29
-CREDENCE item 2: point 0.3958 HELD 0.32 INCONCLUSIVE 0.21 FALSIFIED 0.47
-CREDENCE item 3: point 1.2484 HELD 0.17 INCONCLUSIVE 0.30 FALSIFIED 0.54
-CREDENCE item 4: point -0.0250 HELD 0.32 INCONCLUSIVE 0.55 FALSIFIED 0.12
+  item 2: HELD 0.33 INCONCLUSIVE 0.20 FALSIFIED 0.47
+  item 3: HELD 0.08 INCONCLUSIVE 0.24 FALSIFIED 0.67
+  item 4: HELD 0.34 INCONCLUSIVE 0.55 FALSIFIED 0.11
+  decision rows: R1 0.08, R2 0.07, R3 0.26, R4 0.11, else 0.48
+  the chance the action changes (one less the likeliest row): 0.52
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.48
+  item 1's point (the share of SN's world-0 Y1 + Y5 the copied corners' I[R] carries): median 0.4975, 80% interval 0.0008 to 0.9484
+  item 2's point (the share of SN's world-0 Y1 + Y5 SNR removes): median 0.3941, 80% interval -0.0006 to 0.9487
+  item 3's point (the drop in world 0's table less runs, SNR against C, points): median 0.1712, 80% interval -1.5229 to 4.4901
+  item 4's point (SNR's survival change against C in world 0, points): median 0.0000, 80% interval -0.4500 to 0.4250
+CREDENCE item 1: point 0.4975 HELD 0.42 INCONCLUSIVE 0.29 FALSIFIED 0.29
+CREDENCE item 2: point 0.3941 HELD 0.33 INCONCLUSIVE 0.20 FALSIFIED 0.47
+CREDENCE item 3: point 0.1712 HELD 0.08 INCONCLUSIVE 0.24 FALSIFIED 0.67
+CREDENCE item 4: point 0.0000 HELD 0.34 INCONCLUSIVE 0.55 FALSIFIED 0.11
 
 4. THE BUDGET (grade C: STEP-S370's C, solve 1240 s and ledger 1819 s, and SN, solve 1798 s and ledger 1850 s, on 12,000 paths): C about 0.90 h, SN and SNR about 1.06 h each (the split a tenth on the ledger, judged); three jobs on three cores, the wall about 1.06 h

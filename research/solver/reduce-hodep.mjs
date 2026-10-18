@@ -354,4 +354,12 @@ if (isMain) {
   for (const [nm, x] of [[HOUSE2, it['1']], ['S362', it['2']]]) x.s.per.forEach((p, k) => console.log(`  ${nm} world ${k}: survival change ${f4(p.d)} (${f4(p.lo)} to ${f4(p.hi)}); whole score change ${f4((nm === 'S362' ? P.s362 : P.h2).ws[k].d)} (se ${f4((nm === 'S362' ? P.s362 : P.h2).ws[k].se)})`));
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const s = J[a].sims[`OWN${k}`], x = accOf(J[a].tables[k].OWN, s.ok, s.n); console.log(`  ${a} (${J[a].id}) world ${k}: table at its own opening ${f4(J[a].tables[k].OWN)} runs ${s.ok}/${s.n}, table less runs ${iv(x)}; GB ${f4(J[a].ledger[k].GB)}; by year ${(J[a].bridge || []).map(t => `${t}: ${f4(J[a].ledger[k][`Y${t}`])}`).join(' | ')}`); }
   for (const a of ARMS) console.log(`  ${a}: ${J[a].foot.on ? `the fix on, ${J[a].foot.live} A = 0 nodes alive` : 'the fix off'}; ${J[a].adaptive ? `the reference built in ${J[a].adaptive.secs} s; ` : ''}solve ${J[a].solve.secs} s`);
+  // the reach step's tables against the batch's: the derivation read the reach's, the solve not depending on the paths
+  for (const a of ['A', 'O']) {
+    const rp = join(HERE, 'results', 'hodep-reach', J[a].file);
+    if (!existsSync(rp)) { console.log(`  the reach step's ${a} tables: no file (NOT CHECKED)`); continue; }
+    const T1 = FJ(a).tables || {}, T2 = JSON.parse(gunzipSync(readFileSync(rp)).toString()).tables || {}, ks = Object.keys(T1);
+    const off = ks.filter(x => T1[x] !== T2[x]).length + Object.keys(T2).filter(x => !(x in T1)).length;
+    console.log(`  the reach step's ${a} tables against the batch's: ${off || !ks.length ? `DIFFER (${off} of ${ks.length})` : `identical (${ks.length} tables)`}`);
+  }
 }

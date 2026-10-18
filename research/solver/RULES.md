@@ -419,6 +419,18 @@ checked by the plan-auditor by hand.
    true loss at the margin (sim-survival-rule.mjs, results-sim-survival-rule.txt): the rule passes it 1.72% to 2.67% of the time
    against 2.5% stated, at survival 46% to 99.8% and 8,000 or 16,000 paths - about nominal; the exact rule alone passes it
    47% to 48%.
+   **Amended for a reference change (the maintainer, 18 Oct; PLAN.md's 18 Oct 09:43 row; first used by HO-DEP):** where
+   the arms differ only in the research reference, a household's harm is read by the mixture, not by each world alone: the
+   change's paired survival and its paired whole score (spending cuts included), each world weighted at the chooser's own
+   weights (solve.js MIX3, stats.mjs MIX3W: 1/6, 2/3, 1/6), each world's line reported and none binding. Survival:
+   stats.mjs mixtureChange combines the worlds' guarded unconditional intervals (each held at least as far out as the exact
+   conditional bound at each end, so the 29 Sep rule above reads within every world before the worlds are combined) and
+   mixtureOutcome reads the three outcomes of item 3 at the margin marginRel(the control's mixture survival). The whole
+   score: stats.mjs mixtureMean, a normal interval on each world's paired mean combined at the same weights, at the same
+   margin in points. Both at the level MIX_LEVEL (98%), set by simulation at a true weighted loss at the margin
+   (sim-mixture.mjs, results-sim-mixture.txt): survival passes it 1.78% to 2.27% of the time on S362-like cells, 0.95% to
+   0.98% at mid survival and 0.03% to 0.39% at high survival, the whole score 1.80% to 2.02%, against 2.5% stated (at 95%
+   the survival read passed it 3.67% to 4.21%). A policy change other than a reference change is read as above.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean; from 11 Oct a tenth of the arm's survival where smaller, a household identical arms could not clear
    reported only, harm still read (stats.mjs; PR13). Gate 4's 1-point condition stays at the product level. The decided-defaults block

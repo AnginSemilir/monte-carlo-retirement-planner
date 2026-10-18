@@ -183,7 +183,7 @@ JOBS.forEach((job, ji) => {
     };
     const layerOf = (tab, ai) => (tab.tsLayers ? tab.tsLayers[tab.tsLayerOf[ai]] : tab);
     const V = (tab, Ly, s, t) => { readValues(tab.g, Ly.lsurv[t], Ly.beq[t], s, rd, Ly.lresil[t], Ly.short[t], t); return rd[0]; };
-    let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0, lyOk = 0, lyN = 0, scOk = 0, scN = 0;
+    let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0, lyOk = 0, lyN = 0, scOk = 0, scN = 0, spOk = 0, ctOk = 0;
     const SCALE_W = Math.round(Math.max(1, m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), CAP = Math.round(cand.meta.bequestCap), DEATH = m.ctx.pensionDeathTaxRate, FLOOR_LEVEL = Math.min(...cand.levelOf);
     if (DEATH !== 0) { console.error(`audit-hodep: ${id} ${L}: a pension death charge of ${DEATH}: the whole score's estate would need the pension share`); process.exit(3); }
     if (Math.abs(FLOOR_LEVEL - FLOOR_PLAN) > 1e-9) { console.error(`audit-hodep: ${id} ${L}: the solve's floor level ${FLOOR_LEVEL} is not the plan's ${FLOOR_PLAN}`); process.exit(3); }
@@ -248,10 +248,11 @@ JOBS.forEach((job, ji) => {
         for (let i = 0; i < NPW; i++) {
           scN++;
           // scorePaths reads the estate from the trace's 32-bit wealth, the score from runPolicy's own: 1e-4 points covers the rounding
-          let ok = Math.abs(ref7t[i] - WS[i]) <= 1e-4;
-          if (b[i] === 1 && !(Math.abs(tr.wealth[i * Y + Y - 1] - term[i]) <= 1 + 1e-6 * Math.abs(term[i]))) ok = false;
-          if (Number.isFinite(sfall[i])) { let ct = 0, ny = 0; for (let t = 0; t < Y; t++) { const l = tr.level[i * Y + t] / 100; if (spendYears[t] && l > 0) { ny++; if (l < 1) ct += (1 - l) ** 2; } } if (!(Math.abs(ct - sfall[i]) <= 0.01 * ny + 1e-9)) ok = false; }
-          if (ok) scOk++;
+          const okp = Math.abs(ref7t[i] - WS[i]) <= 1e-4;
+          let okc = true;
+          if (b[i] === 1 && !(Math.abs(tr.wealth[i * Y + Y - 1] - term[i]) <= 1 + 1e-6 * Math.abs(term[i]))) okc = false;
+          if (Number.isFinite(sfall[i])) { let ct = 0, ny = 0; for (let t = 0; t < Y; t++) { const l = tr.level[i * Y + t] / 100; if (spendYears[t] && l > 0) { ny++; if (l < 1) ct += (1 - l) ** 2; } } if (!(Math.abs(ct - sfall[i]) <= 0.01 * ny + 1e-9)) okc = false; }
+          if (okp) spOk++; if (okc) ctOk++; if (okp && okc) scOk++;
         } }
       per[`WS${k}`] = WS;
       console.log(`${''.padEnd(16)} whole ${L} ${k}: mean ${f6(WS.reduce((t, x) => t + x, 0) / NPW)} spending years ${spendYears.filter(Boolean).length} of ${Y} floor level ${FLOOR_LEVEL} scale ${SCALE_W} cap ${CAP} death charge ${DEATH}`);
@@ -269,7 +270,10 @@ JOBS.forEach((job, ji) => {
       for (let li = 0; li < nL; li++) console.log(`${''.padEnd(16)} layer ${L} ${k} ${li}: bridge path-years ${byLN[li]} G ${f6(100 * byL[li] / NPW)}`);
     }
     console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} scoreTook ${scOk}/${scN} secs ${Math.round((Date.now() - f0) / 1000)}`);
-    if (!(scN > 0) || scOk !== scN) { console.error(`audit-hodep: ${id} ${L}: the whole score does not reproduce reduce-7t.mjs's over the trace, or the trace disagrees with runPolicy's own counters (scoreTook ${scOk}/${scN})`); process.exit(3); }
+    // the counters leg first: a trace a year short fails both legs, a score fault the scorePaths leg alone
+    console.log(`${''.padEnd(16)} score legs ${L}: scorePaths ${spOk}/${scN} counters ${ctOk}/${scN}`);
+    if (!(scN > 0) || ctOk !== scN) { console.error(`audit-hodep: ${id} ${L}: the trace disagrees with runPolicy's own counters (counters ${ctOk}/${scN})`); process.exit(3); }
+    if (spOk !== scN) { console.error(`audit-hodep: ${id} ${L}: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths ${spOk}/${scN})`); process.exit(3); }
     if (ownOk !== idN || idOk !== idN) { console.error(`audit-hodep: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
     if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-hodep: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }
     if (!(qfN > 0) || qfOk !== qfN) { console.error(`audit-hodep: ${id} ${L}: the fine rule's machinery does not reproduce the one-step value (qfTook ${qfOk}/${qfN})`); process.exit(3); }

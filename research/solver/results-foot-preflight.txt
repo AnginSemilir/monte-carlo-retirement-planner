@@ -1,0 +1,95 @@
+=== a MEASUREMENT, not a test:  FOOT-S366's preflight: the four jobs at a fifteenth of the points through the reducer's gate; the fix inert to the bit on S360 and S364 and the plant 'foot' seen; AX-HO's S366 step reproduced to the bit with the fix off; the six plants refused; J1F at 30 points (seen after derive-foot.mjs's JUDGED block was committed and run); the fifth launch, after the plant 'foot' was made able to act (b795f03, the pin f71525c; the fourth, 04:24 UK, passed all but that plant) (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-Qp74G8   from f71525c
+=== smoke run on code 01abacb478e9 (smoke stamp e7227a9cd33f): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+m0 exit 0
+m1 exit 0
+m2 exit 0
+m3 exit 0
+i0 exit 0
+i1 exit 0
+i2 exit 0
+i3 exit 0
+ip exit 0
+off0 exit 0
+off2 exit 0
+p30 exit 0
+A: solve CAND J1F/P60S6Q5: table 61.5726 secs 539
+A: ran CAND J1F/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+A: checks J1F/P60S6Q5: armTook 1/1
+A: adaptive J1F/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 370.1
+A: checks J1F/P60S6Q5: adaptTook 1/1
+A: foot J1F/P60S6Q5: on live nodes 369
+A: checks J1F/P60S6Q5: footTook 1/1
+A: checks J1F/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 18
+A: solve CAND J1D/P60S6Q5: table 63.3098 secs 425
+A: ran CAND J1D/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true swit
+A: checks J1D/P60S6Q5: armTook 1/1
+A: adaptive J1D/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 292.0
+A: checks J1D/P60S6Q5: adaptTook 1/1
+A: foot J1D/P60S6Q5: off live nodes -1
+A: checks J1D/P60S6Q5: footTook 1/1
+A: checks J1D/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 840/840 layerTook 840/840 secs 17
+A: solve CAND K1/P30S6Q5: table 28.1739 secs 455
+A: ran CAND K1/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+A: checks K1/P30S6Q5: armTook 1/1
+A: adaptive K1/P30S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 294.8
+A: checks K1/P30S6Q5: adaptTook 1/1
+A: foot K1/P30S6Q5: off live nodes -1
+A: checks K1/P30S6Q5: footTook 1/1
+A: checks K1/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 640/640 layerTook 640/640 secs 15
+A: solve CAND K1F/P30S6Q5: table 28.5207 secs 460
+A: ran CAND K1F/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+A: checks K1F/P30S6Q5: armTook 1/1
+A: adaptive K1F/P30S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 297.9
+A: checks K1F/P30S6Q5: adaptTook 1/1
+A: foot K1F/P30S6Q5: on live nodes 369
+A: checks K1F/P30S6Q5: footTook 1/1
+A: checks K1F/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 640/640 layerTook 640/640 secs 15
+A. GATE: passed - J1F, J1D, K1 and K1F once and done at the registered settings (40 paths a world, scale 15, seed 7004); the adaptive reference and each job's split in its solve's meta, the fix on J1F and K1F with an A = 0 node alive and off on J1D and K1; every self-check in full; the files and their moves the logs' PREFLIGHT J1F: foot on, live nodes 369, world 0 year-4 residual 4.9965 PREFLIGHT J1D: foot off, live nodes -1, world 0 year-4 residual 42.8989 PREFLIGHT K1: foot off, live nodes -1, world 0 year-4 residual 16.6996 PREFLIGHT K1F: foot on, live nodes 369, world 0 year-4 residual 1.6252 PREFLIGHT: the gate and the files read; no figure is read 
+B: foot I0/P60S6Q5: off live nodes -1
+B: foot I1/P60S6Q5: on live nodes 0
+B: foot I2/P60S6Q5: off live nodes -1
+B: foot I3/P60S6Q5: on live nodes 0
+B: foot I1/P60S6Q5: on live nodes 2583
+B. S360-I0-P60S6Q5 against S360-I1-P60S6Q5: SAME: identical (132 arrays, bit sets, move sets and tables)
+B. S364-I2-P60S6Q5 against S364-I3-P60S6Q5: SAME: identical (132 arrays, bit sets, move sets and tables)
+B. I0 against I1 with the plant 'foot' (must differ): SAME: DIFFERS (102 of 132: per B00, per T0, per GB0, per GA0, per GL0, per GD0)
+C. AX-HO's J1 at 30 points against this code's: SAME: identical (138 arrays, bit sets, move sets and tables)
+C. AX-HO's J2 at 30 points against this code's: SAME: identical (132 arrays, bit sets, move sets and tables)
+D. plant arm exit 3: audit-foot: S366 J1F/P60S6Q5: the fix is not as asked in the reference's own record, or acted nowhere in an inflow household
+D. plant split exit 3: audit-foot: S366 J1D/P60S6Q5: the job's settings did not take
+D. plant own exit 3: audit-foot: S362 K1/P30S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+D. plant layer exit 3: audit-foot: S362 K1/P30S6Q5: the ledger does not close on every path (ownTook 120/120 identity 50/120)
+D. plant quad exit 3: audit-foot: S362 K1/P30S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 428/640)
+D. plant held exit 3: audit-foot: S362 K1/P30S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 462/640)
+E30: solve CAND J1F/P60S6Q5: table 99.2089 secs 1717
+E30: ran CAND J1F/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+E30: reader J1F/P60S6Q5: tables 72 unsupported 0 copied 103887 copiedTop 62208 nodes 460728
+E30: adaptive J1F/P60S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 298.2
+E30: foot J1F/P60S6Q5: on live nodes 369
+E30: tables J1F/P60S6Q5 0 z -1.732051 weight 0.166667: OWN 96.145898 READ 95.821541
+E30: tables J1F/P60S6Q5 1 z 0.000000 weight 0.666667: OWN 99.890353 READ 99.860322
+E30: tables J1F/P60S6Q5 2 z 1.732051 weight 0.166667: OWN 99.992606 READ 99.990839
+E30: ledger J1F/P60S6Q5 0: X 100.000000 B0 96.145898 T -2.370516 GB -1.441219 GA -0.042368 GL -0.714040 GD -1.441219 Y1 -0.214099 Y2 -0.251806 Y3 -0.070105 Y4 -0.246708 Y5 -0.244506 Y6 -0.
+E30: ledger J1F/P60S6Q5 1: X 100.000000 B0 99.890353 T -0.040261 GB -0.060773 GA -0.008614 GL -0.022166 GD -0.060773 Y1 -0.015987 Y2 -0.014440 Y3 -0.006005 Y4 -0.010774 Y5 -0.006583 Y6 -0.
+E30: ledger J1F/P60S6Q5 2: X 100.000000 B0 99.992606 T -0.005231 GB -0.001922 GA -0.000241 GL -0.000398 GD -0.001922 Y1 -0.000817 Y2 -0.000514 Y3 -0.000188 Y4 -0.000168 Y5 -0.000170 Y6 -0.
+the fix inert on S360 and S364 to the bit and the plant seen; AX-HO's S366 step reproduced with the fix off; the six plants refused, each on its own check
+preflight done 07:03 UK
+=== snapshot kept at /tmp/solver-snap-Qp74G8 for provenance; remove it when the results are written up

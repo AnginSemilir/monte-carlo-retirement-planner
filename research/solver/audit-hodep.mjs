@@ -42,7 +42,7 @@ import { scorePaths, WB, MU } from './reduce-7t.mjs';
 import { codeId } from './code-id.mjs';
 
 // the second household, chosen before registration by the reach step (items/HO-DEP.md); unset, only the screen and reach run
-export const HOUSE2 = '';
+export const HOUSE2 = 'S370';
 // [household, arm, wealth points, shares, return nodes]
 export const MAIN = [['S362', 'K1F', 30, 6, 5], ['S362', 'K2', 30, 6, 5], [HOUSE2, 'A', 30, 6, 5], [HOUSE2, 'O', 30, 6, 5]];
 // the deposit-mid households (the deep review after AX-HO's reach of O177): an inflow pays its own bridge year

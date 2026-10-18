@@ -1,0 +1,55 @@
+=== a MEASUREMENT, not a test:  HO-DEP's reach step (items/HO-DEP.md): A (the adaptive reference, the RS split, the fix) and O (the order reference) at 30 points on the screen's four (S394, S382, S406, S370), 400 paths a world from path 4,000, seed 7004, disjoint from the batch's first 4,000; select-hodep.mjs --reach names HOUSE2; a selection measurement, no test (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-0MLRfS   from a5f9288 + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+                 solve CAND A/P30S6Q5: table 83.0791 secs 1848
+                 checks A/P30S6Q5: armTook 1/1
+                 checks A/P30S6Q5: adaptTook 1/1
+                 foot A/P30S6Q5: on live nodes 369
+                 checks A/P30S6Q5: footTook 1/1
+                 checks A/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 190
+                 solve CAND O/P30S6Q5: table 83.0791 secs 1500
+                 checks O/P30S6Q5: armTook 1/1
+                 foot O/P30S6Q5: off live nodes -1
+                 checks O/P30S6Q5: footTook 1/1
+                 checks O/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 168
+                 solve CAND A/P30S6Q5: table 89.0746 secs 1868
+                 checks A/P30S6Q5: armTook 1/1
+                 checks A/P30S6Q5: adaptTook 1/1
+                 foot A/P30S6Q5: on live nodes 369
+                 checks A/P30S6Q5: footTook 1/1
+                 checks A/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 188
+                 solve CAND O/P30S6Q5: table 89.0746 secs 1494
+                 checks O/P30S6Q5: armTook 1/1
+                 foot O/P30S6Q5: off live nodes -1
+                 checks O/P30S6Q5: footTook 1/1
+                 checks O/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 156
+                 solve CAND A/P30S6Q5: table 88.5319 secs 1739
+                 checks A/P30S6Q5: armTook 1/1
+                 checks A/P30S6Q5: adaptTook 1/1
+                 foot A/P30S6Q5: on live nodes 369
+                 checks A/P30S6Q5: footTook 1/1
+                 checks A/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 173
+                 solve CAND O/P30S6Q5: table 88.5318 secs 1430
+                 checks O/P30S6Q5: armTook 1/1
+                 foot O/P30S6Q5: off live nodes -1
+                 checks O/P30S6Q5: footTook 1/1
+                 checks O/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8400/8400 layerTook 8400/8400 scoreTook 1200/1200 secs 161
+                 solve CAND A/P30S6Q5: table 84.3857 secs 1793
+                 checks A/P30S6Q5: armTook 1/1
+                 checks A/P30S6Q5: adaptTook 1/1
+                 foot A/P30S6Q5: on live nodes 369
+                 checks A/P30S6Q5: footTook 1/1
+                 checks A/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8320/8320 layerTook 8320/8320 scoreTook 1200/1200 secs 233
+                 solve CAND O/P30S6Q5: table 83.3831 secs 1441
+                 checks O/P30S6Q5: armTook 1/1
+                 foot O/P30S6Q5: off live nodes -1
+                 checks O/P30S6Q5: footTook 1/1
+                 checks O/P30S6Q5: ownTook 1200/1200 identity 1200/1200 qfTook 8320/8320 layerTook 8320/8320 scoreTook 1200/1200 secs 209
+  S370: moves differing, A against O at 30 points: 42 paths and 148 path-years over 3 worlds, weighted 47.67; O's world-0 survival 37.75
+  S382: moves differing, A against O at 30 points: 0 paths and 0 path-years over 3 worlds, weighted 0.00; O's world-0 survival 56.00
+  S394: moves differing, A against O at 30 points: 0 paths and 0 path-years over 3 worlds, weighted 0.00; O's world-0 survival 43.50
+  S406: moves differing, A against O at 30 points: 0 paths and 0 path-years over 3 worlds, weighted 0.00; O's world-0 survival 59.25
+CHOSEN: S370
+HO-DEP reach done 14:59 UK
+=== snapshot kept at /tmp/solver-snap-0MLRfS for provenance; remove it when the results are written up

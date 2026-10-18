@@ -42,7 +42,7 @@ import { sha16 } from './reduce-ao.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-hodep.md';
 // the household the reach step chose (select-hodep.mjs's CHOSEN line), set at registration
-export const HOUSE2 = '';
+export const HOUSE2 = 'S370';
 export const SEED = '7004', NPW = 4000, NQF = 1000, LATTICE = '160x41', NZ = 128, ALPHA3 = 0.05, ALPHA3W = 0.05 / 3;
 export const IN3 = 1.5, OUT3 = 3, ADV4 = 1, SAME4 = 0.5;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];

@@ -33,41 +33,45 @@ caught: 32: if ((cw.bridge || []).join(',') !== (b.bridge || []).join(',
 caught: 33: if (!cw || !b) { bad.push(
 caught: 34: const read = cells.filter(x => Math.abs(mean(x.c)) >= min)
 caught: 35: const read = cells.filter(x => Math.abs(mean(x.c)) >= min)
-caught: 36: r.lo >= HALF ? 'removed' : r.hi < QUARTER ? 'kept'
-caught: 37: r.lo >= HALF ? 'removed' : r.hi < QUARTER ? 'kept'
-caught: 38: return { outcome: per.length ? allOf(per, 'removed', 'kept')
-caught: 39: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 40: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 41: ({ h, k, c: H[h].gb.C[k], a: H[h].gb.CX[k] })
-caught: 42: ({ h, k, c: H[h].ga.C[k], a: H[h].ga.CW[k] })
-caught: 43: out['3'] = removalItem(WH.flatMap(
-caught: 44: ({ h: 'S370', k, c: P.s370.ga60[k], a: P.s370.ga120[k] })
-caught: 45: const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? '
-caught: 46: const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? '
-caught: 47: out['2'] = { outcome: allOf(per, 'additive', 'interacting'),
-caught: 48: const partRead = c => (c.lo >= -PART && c.hi <= PART ? 'in' 
-caught: 49: read: rb === 'out' || ra === 'out' ? 'open' : rb === 'in' &&
-caught: 50: read: rb === 'out' || ra === 'out' ? 'open' : rb === 'in' &&
-caught: 51: const a = FACT.includes(h) ? 'CXW' : 'CW'; return K.map(k =>
-caught: 52: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
-caught: 53: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
-caught: 54: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
-caught: 55: out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
-caught: 56: K.map(k => cellsOf(H[h].bits[ctl][k], H[h].bits[arm][k]))
-caught: 57: K.map(k => wsOf(H[h].ws[ctl][k], H[h].ws[arm][k]))
-caught: 58: if (o('5') === 'FALSIFIED') return 'R5';
-caught: 59: if (o('4') === 'HELD') return 'R1';
-caught: 60: if (o('1') === 'FALSIFIED') return 'R3';
-caught: 61: if (o('3') === 'FALSIFIED') return 'R4';
-caught: 62: if (done('1') && done('3')) return 'R2';
-caught: 63: const o = i => it[i].outcome, done = i => o(i) === 'HELD' ||
-caught: 64: gb: of((a, k) => perP(h, a, k, 'GB')), ga: of((a, k) => perP
-caught: 65: return { house, s370: { ga60: K.map(k => s370P('60', k, 'GA'
-caught: 66: const arms = FACT.includes(h) ? ['C', 'CX', 'CW', 'CXW'] : [
-caught: 67: return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3;
-caught: 68: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
-caught: 69: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
-caught: 70: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
+caught: 36: r.lo >= line ? 'removed' : r.hi < QUARTER ? 'kept'
+caught: 37: r.lo >= line ? 'removed' : r.hi < QUARTER ? 'kept'
+caught: 38: a: H[h].gb.CX[k] }))), MINRES, HALF);
+caught: 39: a: H[h].ga.CW[k] }))), MINGA, THREEQ);
+caught: 40: a: P.s370.ga120[k] })), MINGA, THREEQ);
+caught: 41: return { outcome: per.length ? allOf(per, 'removed', 'kept')
+caught: 42: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 43: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 44: ({ h, k, c: H[h].gb.C[k], a: H[h].gb.CX[k] })
+caught: 45: ({ h, k, c: H[h].ga.C[k], a: H[h].ga.CW[k] })
+caught: 46: out['3'] = removalItem(WH.flatMap(
+caught: 47: ({ h: 'S370', k, c: P.s370.ga60[k], a: P.s370.ga120[k] })
+caught: 48: const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? '
+caught: 49: const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? '
+caught: 50: out['2'] = { outcome: allOf(per, 'additive', 'interacting'),
+caught: 51: const partRead = c => (c.lo >= -PART && c.hi <= PART ? 'in' 
+caught: 52: read: rb === 'out' || ra === 'out' ? 'open' : rb === 'in' &&
+caught: 53: read: rb === 'out' || ra === 'out' ? 'open' : rb === 'in' &&
+caught: 54: const a = FACT.includes(h) ? 'CXW' : 'CW'; return K.map(k =>
+caught: 55: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
+caught: 56: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
+caught: 57: export const LEGS = Object.freeze([['CX', 'C', FACT], ['CW',
+caught: 58: out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
+caught: 59: K.map(k => cellsOf(H[h].bits[ctl][k], H[h].bits[arm][k]))
+caught: 60: K.map(k => wsOf(H[h].ws[ctl][k], H[h].ws[arm][k]))
+caught: 61: if (o('5') === 'FALSIFIED') return 'R5';
+caught: 62: if (o('4') === 'HELD') return 'R1';
+caught: 63: if (o('1') === 'FALSIFIED') return 'R3';
+caught: 64: if (o('3') === 'FALSIFIED') return 'R4';
+caught: 65: if (done('1') && done('3')) return 'R2';
+caught: 66: const o = i => it[i].outcome, done = i => o(i) === 'HELD' ||
+caught: 67: gb: of((a, k) => perP(h, a, k, 'GB')), ga: of((a, k) => perP
+caught: 68: return { house, s370: { ga60: K.map(k => s370P('60', k, 'GA'
+caught: 69: const arms = FACT.includes(h) ? ['C', 'CX', 'CW', 'CXW'] : [
+caught: 70: return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3;
 caught: 71: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
 caught: 72: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
-72 of 72 mutations caught
+caught: 73: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
+caught: 74: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
+caught: 75: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
+caught: 76: export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINR
+76 of 76 mutations caught

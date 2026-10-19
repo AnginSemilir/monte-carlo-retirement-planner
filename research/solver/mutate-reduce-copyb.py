@@ -43,8 +43,11 @@ M = [
   # items 1, 3 and 6 (the removal)
   ("const read = cells.filter(x => Math.abs(mean(x.c)) >= min)", "const read = cells.filter(x => mean(x.c) >= min)"),
   ("const read = cells.filter(x => Math.abs(mean(x.c)) >= min)", "const read = cells.filter(x => Math.abs(mean(x.c)) > min)"),
-  ("r.lo >= HALF ? 'removed' : r.hi < QUARTER ? 'kept'", "r.R >= HALF ? 'removed' : r.hi < QUARTER ? 'kept'"),
-  ("r.lo >= HALF ? 'removed' : r.hi < QUARTER ? 'kept'", "r.lo >= HALF ? 'removed' : r.R < QUARTER ? 'kept'"),
+  ("r.lo >= line ? 'removed' : r.hi < QUARTER ? 'kept'", "r.R >= line ? 'removed' : r.hi < QUARTER ? 'kept'"),
+  ("r.lo >= line ? 'removed' : r.hi < QUARTER ? 'kept'", "r.lo >= line ? 'removed' : r.R < QUARTER ? 'kept'"),
+  ("a: H[h].gb.CX[k] }))), MINRES, HALF);", "a: H[h].gb.CX[k] }))), MINRES, THREEQ);"),
+  ("a: H[h].ga.CW[k] }))), MINGA, THREEQ);", "a: H[h].ga.CW[k] }))), MINGA, HALF);"),
+  ("a: P.s370.ga120[k] })), MINGA, THREEQ);", "a: P.s370.ga120[k] })), MINGA, HALF);"),
   ("return { outcome: per.length ? allOf(per, 'removed', 'kept') : 'INCONCLUSIVE'", "return { outcome: per.length ? allOf(per, 'removed', 'kept') : 'HELD'"),
   ("const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'", "const allOf = (per, yes, no) => (per.every(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'"),
   ("const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'", "const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.some(x => x.read === yes) ? 'HELD'"),
@@ -85,6 +88,7 @@ M = [
   ("export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.4, PART = 0.5, INTER = 0.5;"),
   ("export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.6, INTER = 0.5;"),
   ("export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 1;"),
+  ("export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, THREEQ = 0.7, MINRES = 1, MINGA = 0.5, PART = 0.5, INTER = 0.5;"),
 ]
 M = [m for m in M if m[0] != m[1]]
 run('reduce-copyb.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

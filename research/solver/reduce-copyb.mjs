@@ -16,9 +16,11 @@
  *      removed, FALSIFIED when any reads kept, otherwise INCONCLUSIVE; INCONCLUSIVE with nothing to remove when no cell is read.
  *   2: the interaction (CXW - CW) - (CX - C) in table less runs per factorial household and world, against half a point (stage
  *      A's item 4 across households): HELD when every cell reads additive, FALSIFIED when any interacts, otherwise INCONCLUSIVE.
- *   3: the wealth fix, the after-access part: in each household (the factorial's and S128) and world where C's GA is half a
- *      point or more in size, CW removes at least half of it, path by path, read as item 1 (the removal against three quarters,
- *      the second-order expectation of doubling the points, reported beside).
+ *   3: the wealth fix read as an order, the after-access part (the deep review after COPY-W's design, items/COPY-W.md's re-cut):
+ *      in each household (the factorial's and S128) and world where C's GA is half a point or more in size, CW's removal of it,
+ *      path by path; a cell reads removed when its interval lies at or above three quarters (the second-order expectation of
+ *      doubling the points), kept when below a quarter; otherwise as item 1 (the removal against one half, the first-order
+ *      expectation, reported beside).
  *   4: closure by part: the better cell (CXW on the factorial, CW on S128) in each household and world, GB and GA each within
  *      half a point in size (their means' intervals); a cell reads closed when both lie within, open when either lies wholly
  *      outside; HELD when every cell reads closed, FALSIFIED when any reads open, otherwise INCONCLUSIVE. The net G = GB + GA and
@@ -29,15 +31,18 @@
  *      each leg at 0.05 over its households; HELD when every leg reads no material harm in every world, FALSIFIED when any
  *      reads harm, otherwise INCONCLUSIVE.
  *   6: the after-access part's order on S370: in each world where COPY-W's CW at 60 points carries GA of half a point or more
- *      in size, CW at 120 points removes at least half of it, path by path, read as item 3 (CXG0's after-access part: the
- *      wealth axis predicts HELD; a cause apart from the axis, FALSIFIED: 120 points reaches the axis by construction).
+ *      in size, CW at 120 points' removal of it, path by path, read as item 3 against three quarters and a quarter (CXG0's
+ *      after-access part: the wealth axis at second order predicts HELD; a cause apart from the axis, FALSIFIED: 120 points
+ *      reaches the axis by construction).
  * THE ROWS: R5 item 5 FALSIFIED (a fix harms a household); R1 item 4 HELD (the pair closes every household by part); R3 item 1
  *   FALSIFIED (the copy rule leaves a household's bridge part); R4 item 3 FALSIFIED (60 points leaves a household's after-access
  *   part); R2 item 1 HELD or nothing to remove, with item 3 HELD or nothing to remove (each fix does its part where it has one,
  *   a remainder left); else.
  * REPORTED: every arm's tables against its runs by world; GB, GA, T, G and the residual by bridge year; the sum of absolute
  *   residuals by bridge year (the cancellation guard); G by year band (the bridge, the five years after it, the rest) from the
- *   year lines; the copied weight at the visited bridge reads (QC + RC); bridge failures by world; each leg's saved and lost
+ *   year lines, and GA's two bands under each wealth arm against its control with a band's rise marked (band means: the
+ *   ledger saves GA per path in total, not by band); S362's years-4-6 residual's removal by CW and CXW (against C and CX),
+ *   with its interval, against three quarters and a quarter; the copied weight at the visited bridge reads (QC + RC); bridge failures by world; each leg's saved and lost
  *   paths by the band of the year their moves first differ; the copied nodes; the reads at the clamp; the solves' seconds.
  *   node research/solver/reduce-copyb.mjs [dir] [paths a world] [scale] [COPY-W dir] [COPY-X dir] [STEP-S370 dir] [--preflight] [--planted]
  */
@@ -193,12 +198,13 @@ export function reuseGate(wJobs, bJobs, wOk) {
 }
 
 const mean = a => { let s = 0; for (const x of a) s += x; return s / a.length; };
-const cellRead = r => (!Number.isFinite(r.R) ? 'unclear' : r.lo >= HALF ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear');
+const cellRead = (r, line) => (!Number.isFinite(r.R) ? 'unclear' : r.lo >= line ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear');
 const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD' : 'INCONCLUSIVE');
 // a removal item over cells: the control's per-path part, the arm's, read where the control's mean is at least `min` in size
-function removalItem(cells, min) {
+// line: the removal a cell must reach to read removed (one half for the copy rule, three quarters for the wealth axis's order)
+function removalItem(cells, min, line) {
   const read = cells.filter(x => Math.abs(mean(x.c)) >= min), z = zFor(0.05 / Math.max(1, read.length));
-  const per = read.map(x => { const r = removal(x.c, x.a, z); return { h: x.h, k: x.k, r, read: cellRead(r) }; });
+  const per = read.map(x => { const r = removal(x.c, x.a, z); return { h: x.h, k: x.k, r, read: cellRead(r, line) }; });
   return { outcome: per.length ? allOf(per, 'removed', 'kept') : 'INCONCLUSIVE', per, nothing: !per.length, skipped: cells.length - read.length };
 }
 const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER || x.lo > INTER ? 'interacting' : 'unclear');
@@ -207,18 +213,18 @@ const partRead = c => (c.lo >= -PART && c.hi <= PART ? 'in' : c.hi < -PART || c.
    s370: { ga60: [3], ga120: [3] } } */
 export function items(P) {
   const out = {}, K = [0, 1, 2], H = P.house;
-  out['1'] = removalItem(FACT.flatMap(h => K.map(k => ({ h, k, c: H[h].gb.C[k], a: H[h].gb.CX[k] }))), MINRES);
+  out['1'] = removalItem(FACT.flatMap(h => K.map(k => ({ h, k, c: H[h].gb.C[k], a: H[h].gb.CX[k] }))), MINRES, HALF);
   { const z = zFor(0.05 / (FACT.length * 3));
     const per = FACT.flatMap(h => K.map(k => { const x = interOf(Object.fromEntries(['C', 'CX', 'CW', 'CXW'].map(a => [a, H[h].tab[a][k]])), Object.fromEntries(['C', 'CX', 'CW', 'CXW'].map(a => [a, H[h].bits[a][k]])), z); return { h, k, ...x, read: interWorld(x) }; }));
     out['2'] = { outcome: allOf(per, 'additive', 'interacting'), per }; }
-  out['3'] = removalItem(WH.flatMap(h => K.map(k => ({ h, k, c: H[h].ga.C[k], a: H[h].ga.CW[k] }))), MINGA);
+  out['3'] = removalItem(WH.flatMap(h => K.map(k => ({ h, k, c: H[h].ga.C[k], a: H[h].ga.CW[k] }))), MINGA, THREEQ);
   { const z = zFor(0.05 / (WH.length * 3 * 2));
     const per = WH.flatMap(h => { const a = FACT.includes(h) ? 'CXW' : 'CW'; return K.map(k => { const gb = meanOf(H[h].gb[a][k], z), ga = meanOf(H[h].ga[a][k], z), rb = partRead(gb), ra = partRead(ga); return { h, k, arm: a, gb, ga, read: rb === 'out' || ra === 'out' ? 'open' : rb === 'in' && ra === 'in' ? 'closed' : 'unclear' }; }); });
     out['4'] = { outcome: allOf(per, 'closed', 'open'), per }; }
   { const legs = LEGS.map(([arm, ctl, hs]) => { const level = 0.05 / hs.length; return { arm, ctl, per: hs.map(h => ({ h, ...harmWorlds(K.map(k => cellsOf(H[h].bits[ctl][k], H[h].bits[arm][k])), K.map(k => wsOf(H[h].ws[ctl][k], H[h].ws[arm][k])), level) })) }; });
     const all = legs.flatMap(l => l.per);
     out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED') ? 'FALSIFIED' : all.every(x => x.outcome === 'HELD') ? 'HELD' : 'INCONCLUSIVE', legs }; }
-  out['6'] = removalItem(K.map(k => ({ h: 'S370', k, c: P.s370.ga60[k], a: P.s370.ga120[k] })), MINGA);
+  out['6'] = removalItem(K.map(k => ({ h: 'S370', k, c: P.s370.ga60[k], a: P.s370.ga120[k] })), MINGA, THREEQ);
   return out;
 }
 export function rowOf(it) {
@@ -259,7 +265,7 @@ const houseOf = (gbC, gaC, seed, fact = true) => {
   return { gb, ga, tab, bits: Object.fromEntries(arms.map(a => [a, K.map(k => bitsAt(RUNS[k]))])), ws: Object.fromEntries(arms.map(a => [a, K.map(() => new Float64Array(N0).fill(50))])) };
 };
 const P0 = () => ({ house: { S130: houseOf([2, 0.3, 0], [1, 0.6, 0.1], 11), S126: houseOf([0.2, 0.1, 0], [0.3, 0.2, 0], 31), S362: houseOf([3, 1.5, 0.4], [2, 1, 0.2], 51), S128: houseOf([0.3, 0.1, 0], [3, 1.2, 0.2], 71, false) },
-  s370: { ga60: [ys(0.9, 2, N0, 91), ys(0.6, 2, N0, 92), ys(0.1, 1, N0, 93)], ga120: [ys(0.2, 2, N0, 94), ys(0.15, 2, N0, 95), ys(0.03, 1, N0, 96)] } });
+  s370: (() => { const ga60 = [ys(0.9, 2, N0, 91), ys(0.6, 2, N0, 92), ys(0.1, 1, N0, 93)]; return { ga60, ga120: ga60.map(a => a.map(v => 0.15 * v)) }; })() });
 // a world's paths that disagree: the arm loses `lost` of the control's survivors and saves `saved` of its failures
 const pairBits = (ok, lost, saved) => [bitsAt(ok), Uint8Array.from({ length: N0 }, (_, i) => ((i < ok && i >= lost) || (i >= ok && i < ok + saved) ? 1 : 0))];
 function planted() {
@@ -272,6 +278,7 @@ function planted() {
   run('CX deepens an under-read on S362 world 1 (C -1.5, CX -2)', P => { const h = P.house.S362; h.gb.C[1] = ys(-1.5, 2, N0, 52); h.gb.CX[1] = h.gb.C[1].map(v => 1.33 * v); }, '1', 'FALSIFIED');
   run('no household\'s GB a point in size (nothing to remove)', P => { for (const h of FACT) for (const k of [0, 1, 2]) { P.house[h].gb.C[k] = ys(0.3, 2, N0, 3 + k); P.house[h].gb.CX[k] = P.house[h].gb.C[k].map(v => 0.2 * v); } }, '1', 'INCONCLUSIVE', 'no household with C\'s GB a point in size: item 1 reads nothing to remove');
   run('C\'s GB at exactly a point with CX removing exactly half, no spread (the lines themselves)', P => { for (const h of FACT) for (const k of [0, 1, 2]) { P.house[h].gb.C[k] = new Float64Array(N0).fill(h === 'S130' && k === 0 ? 1 : 0.3); P.house[h].gb.CX[k] = new Float64Array(N0).fill(h === 'S130' && k === 0 ? 0.5 : 0.3); } }, '1', 'HELD', 'C\'s GB exactly a point and a removal exactly one half read HELD');
+  run('a removal of exactly 0.45 with no spread on S130 world 0 (just short of one half)', P => { for (const h of FACT) for (const k of [0, 1, 2]) { P.house[h].gb.C[k] = new Float64Array(N0).fill(h === 'S130' && k === 0 ? 2 : 0.3); P.house[h].gb.CX[k] = new Float64Array(N0).fill(h === 'S130' && k === 0 ? 1.1 : 0.3); } }, '1', 'INCONCLUSIVE');
   run('a removal of 0.55 with wide spread on S362 world 0 (its interval below a half)', P => { const h = P.house.S362, e = ys(0, 60, N0, 99), me = mean(e); h.gb.CX[0] = h.gb.C[0].map((v, i) => 0.45 * v + e[i] - me); }, '1', 'INCONCLUSIVE');
   run('a removal of 0.2 with wide spread on S362 world 0 (its interval reaching past a quarter)', P => { const h = P.house.S362, e = ys(0, 60, N0, 98), me = mean(e); h.gb.CX[0] = h.gb.C[0].map((v, i) => 0.8 * v + e[i] - me); }, '1', 'INCONCLUSIVE');
   // item 2: the interaction per factorial household and world
@@ -283,6 +290,9 @@ function planted() {
   run('CW removes eight tenths of C\'s GA where it is over half a point', () => {}, '3', 'HELD');
   run('CW removes a tenth of S128\'s world-0 GA', P => { const h = P.house.S128; h.ga.CW[0] = h.ga.C[0].map(v => 0.9 * v); }, '3', 'FALSIFIED');
   run('CW removes four tenths of S362\'s world-0 GA', P => { const h = P.house.S362; h.ga.CW[0] = h.ga.C[0].map(v => 0.6 * v); }, '3', 'INCONCLUSIVE');
+  run('CW removes exactly 0.6 of S130\'s world-0 GA, no spread (past one half, short of three quarters)', P => { const h = P.house.S130; h.ga.CW[0] = h.ga.C[0].map(v => 0.4 * v); }, '3', 'INCONCLUSIVE', 'a removal of 0.6 with no spread, past one half and short of three quarters, reads unclear on the order');
+  run('CW removes exactly 0.72 everywhere, no spread (just short of three quarters)', P => { for (const h of WH) for (const k of [0, 1, 2]) { P.house[h].ga.C[k] = new Float64Array(N0).fill(2); P.house[h].ga.CW[k] = new Float64Array(N0).fill(0.56); } }, '3', 'INCONCLUSIVE');
+  run('CW removes exactly three quarters everywhere, no spread (the line itself)', P => { for (const h of WH) for (const k of [0, 1, 2]) { P.house[h].ga.C[k] = new Float64Array(N0).fill(2); P.house[h].ga.CW[k] = new Float64Array(N0).fill(0.5); } }, '3', 'HELD', 'a removal exactly at three quarters with no spread reads removed on the order');
   run('C\'s GA at 0.49 everywhere (under half a point: nothing to remove)', P => { for (const h of WH) for (const k of [0, 1, 2]) P.house[h].ga.C[k] = new Float64Array(N0).fill(0.49); }, '3', 'INCONCLUSIVE', 'C\'s GA at 0.49 in size everywhere: item 3 reads nothing to remove');
   // item 4: closure by part
   const closeAll = P => { for (const h of WH) { const a = FACT.includes(h) ? 'CXW' : 'CW'; for (const k of [0, 1, 2]) { P.house[h].gb[a][k] = ys(0.05, 1, N0, 200 + k); P.house[h].ga[a][k] = ys(-0.05, 1, N0, 210 + k); } } };
@@ -303,6 +313,7 @@ function planted() {
   run('CW at 120 removes eight tenths of CW at 60\'s GA in worlds 0 and 1', () => {}, '6', 'HELD');
   run('CW at 120 removes a tenth of world 0\'s', P => { P.s370.ga120[0] = P.s370.ga60[0].map(v => 0.9 * v); }, '6', 'FALSIFIED');
   run('CW at 120 removes four tenths of world 0\'s', P => { P.s370.ga120[0] = P.s370.ga60[0].map(v => 0.6 * v); }, '6', 'INCONCLUSIVE');
+  run('CW at 120 removes 0.6 of world 0\'s, no spread (past one half, short of three quarters)', P => { P.s370.ga120[0] = P.s370.ga60[0].map(v => 0.4 * v); }, '6', 'INCONCLUSIVE');
   run('CW at 60\'s GA under half a point in every world (nothing to remove)', P => { P.s370.ga60 = P.s370.ga60.map((a, k) => ys(0.2, 2, N0, 300 + k)); }, '6', 'INCONCLUSIVE');
   // the rows
   const rowAt = edit => { const P = P0(); edit(P); return rowOf(items(P)); };
@@ -455,7 +466,7 @@ if (isMain) {
   const s370P = (w, k, x) => Float64Array.from(decRaw((w === '60' ? cwF : FB('S370', 'CW')).per[`${x}${k}`]), v => 100 * v);
   const P = pOf(perP, bitsF, wsF, tabs, s370P), it = items(P), iv = x => `${f4(x.d ?? x.R)} (${f4(x.lo)} to ${f4(x.hi)})`;
   const hw = x => `world ${x.k}: survival ${f4(x.ex.d)} exact (${f4(x.ex.lo)} to ${f4(x.ex.hi)}) ${x.ex.outcome}, guarded unconditional (${f4(x.u.lo)} to ${f4(x.u.hi)}), whole score ${iv(x.w)}, margin ${f4(x.margin)}: ${x.harm ? 'harm' : x.ok ? 'no material harm' : 'inconclusive'}`;
-  const rem = (it2, what) => { for (const x of it2.per) console.log(`     ${x.h} world ${x.k}: ${what} ${f4(x.r.mc)} points, removed ${iv(x.r)}: ${x.read}${it2 === it['3'] || it2 === it['6'] ? ` (against the second-order three quarters: ${x.r.lo > THREEQ ? 'above' : x.r.hi < THREEQ ? 'below' : 'consistent'})` : ''}`); if (it2.nothing) console.log('     nothing to remove: no cell at the line'); else if (it2.skipped) console.log(`     ${it2.skipped} cells under the line, not read`); };
+  const rem = (it2, what) => { for (const x of it2.per) console.log(`     ${x.h} world ${x.k}: ${what} ${f4(x.r.mc)} points, removed ${iv(x.r)}: ${x.read}${it2 === it['3'] || it2 === it['6'] ? ` (against one half, the first-order expectation: ${x.r.lo >= HALF ? 'above' : x.r.hi < HALF ? 'below' : 'across'})` : ''}`); if (it2.nothing) console.log('     nothing to remove: no cell at the line'); else if (it2.skipped) console.log(`     ${it2.skipped} cells under the line, not read`); };
   console.log('\nCOPY-B: COPY-W\'s stage B, the copy x wealth factorial across the step households at the frozen candidate (predictions/diag-copyb.md)');
   console.log('\nTHE ITEMS (each read by its registered rule)');
   console.log(`1. the copy rule removes at least half of C's bridge part GB where it is a point or more (the factorial's households): ${it['1'].outcome}`); rem(it['1'], 'C\'s GB');
@@ -474,6 +485,13 @@ if (isMain) {
     const j = J(h, a), s = j.sims[`OWN${k}`], L = j.ledger[k], t = j.tables[k].OWN, by = j.bridge, nb = by.length, yr = j.years[k], band = (lo, hi) => { let g = 0; for (let y = lo; y <= hi && y < yr.length; y++) if (yr[y]) g += yr[y].G; return g; }, S = j.split[k];
     console.log(`  ${h} ${a} world ${k}: table ${f4(t)} runs ${s.ok}/${s.n} (${f4(100 * s.ok / s.n)}), table less runs ${f4(t - 100 * s.ok / s.n)}; GB ${f4(L.GB)} GA ${f4(L.GA)} T ${f4(L.T)} G ${f4(L.GB + L.GA)}; by bridge year ${by.map(y => `${y}: ${f4(L[`Y${y}`])}`).join(' | ')}; the sum of absolute residuals by year ${f4(by.reduce((t2, y) => t2 + Math.abs(L[`Y${y}`]), 0))}; G by band: the bridge ${f4(band(1, nb))}, the five years after ${f4(band(nb + 1, nb + 5))}, the rest ${f4(band(nb + 6, 999))}; copied weight at the bridge reads (QC + RC) ${f4(by.reduce((t2, y) => t2 + S[`QC${y}`] + S[`RC${y}`], 0))}; bridge failures ${s.n - s.bridge}`);
   }
+  const bandsOf = (yr, nb) => { const b = (lo, hi) => { let g = 0; for (let y = lo; y <= hi && y < yr.length; y++) if (yr[y]) g += yr[y].G; return g; }; return [b(nb + 1, nb + 5), b(nb + 6, 999)]; };
+  const bandLine = (what, yc, ya, nb) => { const c = bandsOf(yc, nb), a = bandsOf(ya, nb); return `  ${what}: GA by band (the five years after the bridge, the rest) ${c.map(f4).join(', ')} under the control, ${a.map(f4).join(', ')} under the arm; ${['the five years after', 'the rest'].map((n, i) => `${n} ${Math.abs(a[i]) > Math.abs(c[i]) ? 'RISES' : `removed ${f4(c[i] !== 0 ? (c[i] - a[i]) / c[i] : NaN)}`}`).join(', ')}`; };
+  for (const h of WH) for (const [a, c] of FACT.includes(h) ? [['CW', 'C'], ['CXW', 'CX']] : [['CW', 'C']]) for (let k = 0; k < 3; k++) console.log(bandLine(`${h} ${a} against ${c} world ${k}`, J(h, c).years[k], J(h, a).years[k], J(h, a).bridge.length));
+  { const yW = k => { const m = new RegExp(`^\\s+year ${LABELS_W.CW.replace(/[/]/g, '\\/')} ${k} (\\d+): paths \\S+ G (\\S+) T`, 'gm'), out = []; for (const t of wLogs) for (const x of t.matchAll(m)) out[Number(x[1])] = { G: Number(x[2]) }; return out; };
+    for (let k = 0; k < 3; k++) console.log(bandLine(`S370 CW at 120 against COPY-W's CW at 60 world ${k}`, yW(k), J('S370', 'CW').years[k], J('S370', 'CW').bridge.length)); }
+  { const y456 = (a, k) => { const y4 = perP('S362', a, k, 'Y4'), y5 = perP('S362', a, k, 'Y5'), y6 = perP('S362', a, k, 'Y6'); return Float64Array.from(y4, (v, i) => v + y5[i] + y6[i]); };
+    for (const [a, c] of [['CW', 'C'], ['CXW', 'CX']]) for (let k = 0; k < 3; k++) { const r = removal(y456(c, k), y456(a, k)); console.log(`  S362 ${a} against ${c} world ${k}: the years-4-6 residual ${f4(r.mc)} points under the control, removed ${iv(r)} (against three quarters and a quarter: ${!(Math.abs(r.mc) >= MINGA) ? 'under half a point, not read' : r.lo >= THREEQ ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear'})`); } }
   for (const [arm, ctl, hs] of LEGS) for (const h of hs) for (let k = 0; k < 3; k++) {
     const fa = FB(h, arm), fc = FB(h, ctl), ma = dec16(fa.moves[`MV${k}`]), mc = dec16(fc.moves[`MV${k}`]), ba = bitsF(h, arm, k), bc = bitsF(h, ctl, k), yrs = fa.years, nb = fa.bridge.length, sv = [0, 0, 0, 0], ls = [0, 0, 0, 0];
     for (let i = 0; i < ba.length; i++) { if (ba[i] === bc[i]) continue; const b = firstBand(ma, mc, yrs, nb, i); if (b < 0) continue; if (ba[i]) sv[b]++; else ls[b]++; }

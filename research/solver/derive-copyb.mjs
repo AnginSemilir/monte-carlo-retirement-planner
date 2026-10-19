@@ -61,7 +61,8 @@ export const JUDGED = {
   // each fix's net share of its discordant paths by world, (saved - lost) / (saved + lost): the copy rule nil (S370's 10 and 8,
   // 5 and 5, 1 and 1); 60 points its world-0 gain after access (S370's 75 against 36, 0.35, grade B), world 1 nil or S370's
   // (34 against 30), world 2 nil or paid there (O179's pattern: S370's 1 against 6 on 7 paths, the deep review after COPY-W's
-  // reading (4), grade C)
+  // reading (4), grade C); this input and its weights were added after the first output (632b1b7) was seen: declared in the
+  // prediction, and section 3d prints the credences with world 2's -0.7 weighted at nil
   net: { CX: [{ 0: 1 }, { 0: 1 }, { 0: 1 }], CW: [{ 0.35: 1 }, { 0: 0.5, 0.06: 0.5 }, { 0: 0.65, '-0.7': 0.35 }] },
 };
 
@@ -123,10 +124,10 @@ function setOf(s) {
   const house = Object.fromEntries(WH.map(h => [h, houseSet(h, s)]));
   return { house, s370: { ga60: GA60, ga120: K.map(k => Float64Array.from(GA60[k], v => (1 - s.r6) * v + 0.5 * SD60[k] * gauss())) } };
 }
-const drawOf = (cb, cw, c6, cn) => {
+const drawOf = (cb, cw, c6, cn, nil2 = false) => {
   const g = {}, a = {}, w = {};
   for (const h of WH) { g[h] = K.map(k => pickN(JUDGED.gb[h][k])); a[h] = K.map(k => pickN(JUDGED.ga[h][k])); w[h] = K.map(() => pickN(JUDGED.wgb)); }
-  return { gb: g, ga: a, wgb: w, rc: pickN(JUDGED.bc[cb]), rw: pickN(JUDGED.bw[cw]), r6: pickN(JUDGED.ga0[c6]), ci: pickN(JUDGED.ci[cn]), flips: pickN(JUDGED.flips), net: { CX: K.map(k => pickN(JUDGED.net.CX[k])), CW: K.map(k => pickN(JUDGED.net.CW[k])) } };
+  return { gb: g, ga: a, wgb: w, rc: pickN(JUDGED.bc[cb]), rw: pickN(JUDGED.bw[cw]), r6: pickN(JUDGED.ga0[c6]), ci: pickN(JUDGED.ci[cn]), flips: pickN(JUDGED.flips), net: { CX: K.map(k => pickN(JUDGED.net.CX[k])), CW: K.map(k => (nil2 && k === 2 ? 0 : pickN(JUDGED.net.CW[k]))) } };
 };
 const cnt3 = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }), tot = c => c.HELD + c.INCONCLUSIVE + c.FALSIFIED;
 const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(x => `${x} ${f2(c[x] / tot(c))}`).join(' ');
@@ -153,11 +154,11 @@ const ND = 1000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
 const POINT = { 1: it => (it['1'].per.length ? Math.min(...it['1'].per.map(x => x.r.R)) : NaN), 2: it => Math.max(...it['2'].per.map(x => Math.abs(x.d))), 3: it => (it['3'].per.length ? Math.min(...it['3'].per.map(x => x.r.R)) : NaN), 4: it => Math.max(...it['4'].per.map(x => Math.max(Math.abs(x.gb.d), Math.abs(x.ga.d)))), 5: it => Math.min(...it['5'].legs.flatMap(l => l.per.flatMap(x => x.per.map(y => y.ex.d)))), 6: it => (it['6'].per.length ? it['6'].per[0].r.R : NaN) };
 const WHAT = { 1: 'the least share of C\'s GB CX removes across the cells read', 2: 'the largest interaction in size across the cells, points', 3: 'the least share of C\'s GA 60 points removes across the cells read', 4: 'the largest part in size across the better cells, points', 5: 'the least survival change of any leg and world, points', 6: 'the share of S370\'s world-0 GA at 60 that 120 points removes' };
-function credences(mb, mw, m6, mn) {
+function credences(mb, mw, m6, mn, nil2 = false) {
   const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []]));
   let nothing1 = 0, nothing3 = 0;
   for (let q = 0; q < ND; q++) {
-    const it = items(setOf(drawOf(pickC(mb), pickC(mw), pickC(m6), pickC(mn))));
+    const it = items(setOf(drawOf(pickC(mb), pickC(mw), pickC(m6), pickC(mn), nil2)));
     for (const i of IT) { I[i][it[i].outcome]++; const v = POINT[i](it); if (Number.isFinite(v)) pt[i].push(v); }
     if (it['1'].nothing) nothing1++; if (it['3'].nothing) nothing3++;
     R[rowOf(it)]++;
@@ -181,6 +182,9 @@ console.log(`\n3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE LEAD 
 show(credences(atRate(JUDGED.bcCred, LEAD.bc, lower), atRate(JUDGED.bwCred, LEAD.bw, lower), atRate(c6, LEAD.ga0, lower), atRate(cn, LEAD.ci, lower)), 'CREDENCE ');
 console.log(`\n3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: ${lp[1]} of ${lp[2]}, Laplace ${lp[3]}; printed beside)`);
 show(credences(atRate(JUDGED.bcCred, LEAD.bc, since), atRate(JUDGED.bwCred, LEAD.bw, since), atRate(c6, LEAD.ga0, since), atRate(cn, LEAD.ci, since)), '');
+
+console.log(`\n3d. AS 3b WITH 60 POINTS' WORLD-2 NET SHARE AT NIL (the net input's -0.7 weight, added after the first output, set to nil; printed beside, not registered)`);
+show(credences(atRate(JUDGED.bcCred, LEAD.bc, lower), atRate(JUDGED.bwCred, LEAD.bw, lower), atRate(c6, LEAD.ga0, lower), atRate(cn, LEAD.ci, lower), true), '');
 
 // 4. THE BUDGET (grade C: the records' timings, each household's solve and ledger seconds under a four-job load; a household
 // with no record of its own at 60 or 120 points takes its 30-point solve times the ratio S370's records show)

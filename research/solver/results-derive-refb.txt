@@ -1,0 +1,98 @@
+REF-B'S DERIVATION (predictions/diag-refb.md)
+
+1. THE RECORDS
+  seed 7002, 4000 paths a world: S362's C and CX and S130's C behind COPY-B's gate, S370's C and CX behind COPY-X's; HO-DEP's K1F and K2 on S362 and A and O on S370 (seed 7004, the adaptive reference with RS and the order reference) behind HO-DEP's
+  S362 world 0: C's survival 29.6750, table 24.3656; GB -3.2777 (sd 11.4790); the read error from years 1, 2 and 3 on -3.2269, 0.1162, 7.9168; Y1 + Y2 -11.1437 (sd 8.8444); CX against C: G -0.0008, 0 lost, 0 saved, table 24.3649; HO-DEP (7004): the adaptive arm's GB 0.5258, its read error from years 1, 2 and 3 on 0.5706, 0.4638, 0.3899, Y1 + Y2 0.1807 (sd 1.4840), the order arm's survival 29.5750, the adaptive against the order 29 lost, 13 saved; the whole score's alive less dead 110.3809
+  S362 world 1: C's survival 48.8750, table 43.5799; GB -5.2346 (sd 8.0557); the read error from years 1, 2 and 3 on -5.2295, -1.2205, 4.3715; Y1 + Y2 -9.6010 (sd 5.6935); CX against C: G 0.0001, 0 lost, 0 saved, table 43.5798; HO-DEP (7004): the adaptive arm's GB 0.5404, its read error from years 1, 2 and 3 on 0.5402, 0.5875, 0.5670, Y1 + Y2 -0.0268 (sd 0.6086), the order arm's survival 50.0750, the adaptive against the order 18 lost, 11 saved; the whole score's alive less dead 113.8913
+  S362 world 2: C's survival 66.6000, table 63.8506; GB -4.8926 (sd 6.7781); the read error from years 1, 2 and 3 on -4.8927, -1.7851, 1.4981; Y1 + Y2 -6.3907 (sd 6.1342); CX against C: G -0.0005, 0 lost, 0 saved, table 63.8505; HO-DEP (7004): the adaptive arm's GB 0.1543, its read error from years 1, 2 and 3 on 0.1543, 0.2223, 0.2906, Y1 + Y2 -0.1363 (sd 1.1490), the order arm's survival 67.8250, the adaptive against the order 4 lost, 19 saved; the whole score's alive less dead 115.0873
+  S370 world 0: C's survival 40.0500, table 49.0987; GB 8.1473 (sd 4.5023); the read error from years 1, 2 and 3 on 9.8686, 11.7264, 12.5538; Y1 + Y2 -2.6852 (sd 2.4713); CX against C: G -6.4371, 8 lost, 10 saved, table 42.6301; HO-DEP (7004): the adaptive arm's GB 10.5142, its read error from years 1, 2 and 3 on 12.1800, 12.3935, 12.5987, Y1 + Y2 -0.4187 (sd 1.0856), the order arm's survival 39.4250, the adaptive against the order 3 lost, 0 saved; the whole score's alive less dead 103.8029
+  S370 world 1: C's survival 86.8000, table 87.9402; GB -0.0706 (sd 3.1820); the read error from years 1, 2 and 3 on 1.5168, 3.0850, 3.9079; Y1 + Y2 -2.3911 (sd 2.9260); CX against C: G -2.9932, 5 lost, 5 saved, table 84.9729; HO-DEP (7004): the adaptive arm's GB 1.4547, its read error from years 1, 2 and 3 on 2.9318, 3.3398, 3.7614, Y1 + Y2 -0.8296 (sd 0.7327), the order arm's survival 85.3000, the adaptive against the order 3 lost, 2 saved; the whole score's alive less dead 107.8715
+  S370 world 2: C's survival 98.9750, table 98.2445; GB -0.9000 (sd 1.4295); the read error from years 1, 2 and 3 on -0.8112, -0.3022, -0.0918; Y1 + Y2 -0.7194 (sd 1.3657); CX against C: G -0.4817, 1 lost, 1 saved, table 97.7726; HO-DEP (7004): the adaptive arm's GB -0.4090, its read error from years 1, 2 and 3 on -0.2919, -0.1476, -0.0161, Y1 + Y2 -0.2758 (sd 0.3729), the order arm's survival 99.0000, the adaptive against the order 0 lost, 0 saved; the whole score's alive less dead 112.6229
+  S130 world 0: C's survival 59.9000, table 65.6321; GB 4.7106 (sd 0.4845); the whole score's alive less dead 103.5313
+  S130 world 1: C's survival 94.2000, table 96.4021; GB 0.8020 (sd 0.3195); the whole score's alive less dead 107.5496
+  S130 world 2: C's survival 99.7500, table 99.8380; GB 0.0296 (sd 0.0262); the whole score's alive less dead 111.9873
+  item 1 reads S362's worlds where C's GB is a point or more in size: 0, 1, 2; item 2 reads S370's where C's Y1 + Y2 is: 0, 1
+
+2. THE POWER (40 draws a cell through reduce-refb.mjs's items() and pOf(); C and CX as the files hold them, every other input drawn from the JUDGED stories at O188-REF and Y12R-REF)
+  item 1, AN removes 0 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 0.10 FALSIFIED 0.90
+  item 1, AN removes 0.2 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 0.93 FALSIFIED 0.07
+  item 1, AN removes 0.5 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 0.7 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 0.8 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 0.9 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 1 of C's residual at every bridge year: HELD 0.65 INCONCLUSIVE 0.35 FALSIFIED 0.00
+  item 1, AN removes 1.1 of C's residual at every bridge year: HELD 0.17 INCONCLUSIVE 0.82 FALSIFIED 0.00
+  item 1, AN removes 1 at years 1 and 2 and 0 from year 3 on: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 1 at years 1 and 2 and 0.6 from year 3 on: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN removes 0.6 at years 1 and 2 and 1 from year 3 on: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, AN removes 0 at years 1 and 2 and 1 from year 3 on: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, AN removes 0 of S370's Y1 + Y2 in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, AN removes 0.2 of S370's Y1 + Y2 in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, AN removes 0.5 of S370's Y1 + Y2 in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN removes 0.7 of S370's Y1 + Y2 in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN removes 0.8 of S370's Y1 + Y2 in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, AN removes 0.9 of S370's Y1 + Y2 in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, the copy rule's move on S370 under AR 1.00 times its move under C, nil on S362: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, the copy rule's move on S370 under AR 1.03 times its move under C, nil on S362: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, the copy rule's move on S370 under AR 1.08 times its move under C, nil on S362: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3, the copy rule's move on S370 under AR 1.15 times its move under C, nil on S362: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, AR moves S130's GB by 0 in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4, AR moves S130's GB by 0.15 in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4, AR moves S130's GB by 0.3 in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, AR moves S130's GB by 0.6 in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 5, AN's discordance 0.75 times the record's on S362 and S370 with its net share: HELD 0.03 INCONCLUSIVE 0.80 FALSIFIED 0.17
+  item 5, AN's discordance 1.25 times the record's on S362 and S370 with its net share: HELD 0.00 INCONCLUSIVE 0.20 FALSIFIED 0.80
+  item 5, AN's discordance 2 times the record's on S362 and S370 with its net share: HELD 0.00 INCONCLUSIVE 0.10 FALSIFIED 0.90
+  item 5, AN's discordance 4 times the record's on S362 and S370 with its net share: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+
+3. THE CREDENCES AS STATED (the receipt of 19 Oct 20:19 UK: O188-REF=0.72; O188-PART=0.18; O188-NOTREF=0.05; O188-COPY=0.01; O188-CLAMP=0.01; O188-OTHER=0.03; Y12R-REF=0.45; Y12R-PART=0.4; Y12R-NOT=0.07; Y12R-OTHER=0.08; 1000 draws through items())
+  item 1: HELD 0.34 INCONCLUSIVE 0.50 FALSIFIED 0.16
+  item 2: HELD 0.45 INCONCLUSIVE 0.47 FALSIFIED 0.08
+  item 3: HELD 0.43 INCONCLUSIVE 0.00 FALSIFIED 0.57
+  item 4: HELD 0.52 INCONCLUSIVE 0.00 FALSIFIED 0.48
+  item 5: HELD 0.01 INCONCLUSIVE 0.49 FALSIFIED 0.50
+  decision rows: R1 0.09, R2 0.04, R3 0.24, R5 0.50, else 0.12
+  the chance the action changes (one less the likeliest row): 0.50
+  item 1's point (the least share of S362's GB under C that AN removes across the worlds read): median 1.0322, 80% interval -0.1887 to 1.1777 (1000 of 1000 draws read)
+  item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.6077, 80% interval 0.2951 to 0.9006 (1000 of 1000 draws read)
+  item 3's point (the largest interaction in size across households and worlds, points): median 0.5000, 80% interval 0.0000 to 1.9556 (1000 of 1000 draws read)
+  item 4's point (the largest move of S130's GB in size across the worlds, points): median 0.1015, 80% interval 0.0012 to 0.6002 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.5000, 80% interval -0.9000 to -0.2750 (1000 of 1000 draws read)
+
+3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 20 of 40, Laplace 0.50; the registered ones; 1000 draws through items())
+  item 1: HELD 0.24 INCONCLUSIVE 0.45 FALSIFIED 0.32
+  item 2: HELD 0.51 INCONCLUSIVE 0.42 FALSIFIED 0.07
+  item 3: HELD 0.46 INCONCLUSIVE 0.00 FALSIFIED 0.54
+  item 4: HELD 0.53 INCONCLUSIVE 0.00 FALSIFIED 0.47
+  item 5: HELD 0.01 INCONCLUSIVE 0.40 FALSIFIED 0.59
+  decision rows: R1 0.05, R2 0.07, R3 0.20, R5 0.59, else 0.09
+  the chance the action changes (one less the likeliest row): 0.41
+  item 1's point (the least share of S362's GB under C that AN removes across the worlds read): median 0.8284, 80% interval -0.6779 to 1.1640 (1000 of 1000 draws read)
+  item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.7907, 80% interval 0.2996 to 0.9021 (1000 of 1000 draws read)
+  item 3's point (the largest interaction in size across households and worlds, points): median 0.5000, 80% interval 0.0000 to 1.5000 (1000 of 1000 draws read)
+  item 4's point (the largest move of S130's GB in size across the worlds, points): median 0.1012, 80% interval 0.0010 to 0.6002 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.5500, 80% interval -0.9500 to -0.3000 (1000 of 1000 draws read)
+CREDENCE item 1: point 0.8284 HELD 0.24 INCONCLUSIVE 0.45 FALSIFIED 0.32
+CREDENCE item 2: point 0.7907 HELD 0.51 INCONCLUSIVE 0.42 FALSIFIED 0.07
+CREDENCE item 3: point 0.5000 HELD 0.46 INCONCLUSIVE 0.00 FALSIFIED 0.54
+CREDENCE item 4: point 0.1012 HELD 0.53 INCONCLUSIVE 0.00 FALSIFIED 0.47
+CREDENCE item 5: point -0.5500 HELD 0.01 INCONCLUSIVE 0.40 FALSIFIED 0.59
+CREDENCE else 0.09
+
+3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: 20 of 22, Laplace 0.88; printed beside)
+  item 1: HELD 0.43 INCONCLUSIVE 0.49 FALSIFIED 0.08
+  item 2: HELD 0.88 INCONCLUSIVE 0.11 FALSIFIED 0.02
+  item 3: HELD 0.43 INCONCLUSIVE 0.00 FALSIFIED 0.57
+  item 4: HELD 0.52 INCONCLUSIVE 0.00 FALSIFIED 0.48
+  item 5: HELD 0.01 INCONCLUSIVE 0.45 FALSIFIED 0.54
+  decision rows: R1 0.10, R2 0.02, R3 0.22, R5 0.54, else 0.12
+  the chance the action changes (one less the likeliest row): 0.46
+  item 1's point (the least share of S362's GB under C that AN removes across the worlds read): median 1.0460, 80% interval 0.6001 to 1.1868 (1000 of 1000 draws read)
+  item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.8042, 80% interval 0.5981 to 0.9078 (1000 of 1000 draws read)
+  item 3's point (the largest interaction in size across households and worlds, points): median 0.5000, 80% interval 0.0000 to 1.5000 (1000 of 1000 draws read)
+  item 4's point (the largest move of S130's GB in size across the worlds, points): median 0.1015, 80% interval 0.0012 to 0.6001 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.5250, 80% interval -0.9250 to -0.2750 (1000 of 1000 draws read)
+
+4. THE BUDGET (grade C: HO-DEP's K1F on S362 solve 2385 s and ledger 1530 s, A on S370 2098 s and 2084 s; S130's C 645 s and 976 s, its AR's solve scaled by K1F's against S362's C (1209 s))
+  the jobs in the batch's order: S370 AR 1.16 h; S370 ARX 1.16 h; S370 AN 1.16 h; S362 AR 1.09 h; S362 ARX 1.09 h; S362 AN 1.09 h; S130 AR 0.62 h
+  7.37 job-hours; four at a time in that order, the wall about 2.25 h

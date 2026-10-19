@@ -3,7 +3,8 @@
  * PLAN.md's 19 Oct 20:30 row): the records (the plan reference's C and CX on S362 and S130, COPY-B's, behind COPY-B's gate; on
  * S370, COPY-X's, behind COPY-X's; HO-DEP's adaptive and order references on S362 and S370 at seed 7004, behind HO-DEP's, the
  * cross-seed priors); the judged stories below for the three new arms (grade D); the power of items 1 to 5 through
- * reduce-refb.mjs's own items() and pOf(), with C and CX as the files hold them and AN, AR and ARX drawn from them path by path;
+ * reduce-refb.mjs's own items() and pOf(), with C and CX as the files hold them and AN, AR and ARX drawn from them path by path,
+ * item 1 read on S362's years-1-2 increments with the review's own line on the net GB (item1Review) beside it on the same draws;
  * the credences from the receipt's O188 and Y12R CAUSE CREDENCES as stated (section 3), at the lead rate's lower bound
  * (section 3b, the registered ones) and at the settled-since rate (section 3c), read from results-scorecard.txt's LEAD RATE BY
  * POPULATION; the decision rows; the points and 80% intervals; the budget, from the records' timings.
@@ -21,7 +22,11 @@
  *   - C and CX reused from COPY-B and COPY-X behind their gates: the reducer's reuse gate (CHECKLIST item 3);
  *   - S130 AR the control, "predicted to move GB under 0.25 in every world": item 4, its line a quarter of a point;
  *   - S362's GB removed at least three quarters in every world with years 1 to 3's tail sums each within a point (O188-REF),
- *     under a quarter (NOTREF): item 1, by AN;
+ *     under a quarter (NOTREF): item 1, by AN. DEPARTURE, declared after the first output (the prediction's order of events):
+ *     item 1's removal reads S362's years-1-2 increments Y1 + Y2, where the receipt places the under-read, not the net GB,
+ *     which nets them against year 3's over-read (-11.14 against +7.86 in world 0 under C), so a reference removing most of
+ *     both read kept on GB (section 2's first output: six tenths at years 1-2 and all from year 3 on, FALSIFIED 1.00); the
+ *     review's GB line is printed beside on the same draws (section 2 and each credence section), not registered;
  *   - S370's G_1 + G_2 (Y12R): item 2, by AN, in the worlds where C's Y1 + Y2 is a point or more (C's records: worlds 0 and 1);
  *   - the interaction with QC's change printed (O190's reach): item 3 and a reported line (QC's change by bridge year under
  *     each reference);
@@ -40,7 +45,7 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { items, rowOf, pOf, POINT, EXPECT, NPW } from './reduce-refb.mjs';
+import { items, item1Review, rowOf, pOf, POINT, EXPECT, NPW } from './reduce-refb.mjs';
 
 // THE JUDGED INPUTS (committed before this script's output and before any REF-B run; grade D throughout).
 export const JUDGED = {
@@ -145,7 +150,7 @@ for (const h of HS) {
     REC[h][k] = r;
   }
 }
-console.log(`  item 1 reads S362's worlds where C's GB is a point or more in size: ${K.filter(k => Math.abs(REC.S362[k].gb) >= 1).join(', ') || 'none'}; item 2 reads S370's where C's Y1 + Y2 is: ${K.filter(k => Math.abs(REC.S370[k].y12) >= 1).join(', ') || 'none'}`);
+console.log(`  item 1 reads S362's worlds where C's Y1 + Y2 is a point or more in size: ${K.filter(k => Math.abs(REC.S362[k].y12) >= 1).join(', ') || 'none'} (the review's GB line: ${K.filter(k => Math.abs(REC.S362[k].gb) >= 1).join(', ') || 'none'}); item 2 reads S370's where C's Y1 + Y2 is: ${K.filter(k => Math.abs(REC.S370[k].y12) >= 1).join(', ') || 'none'}`);
 if (process.argv.includes('--records')) process.exit(0);
 
 // a synthetic draw of the three arms from C and CX path by path, in reduce-refb.mjs pOf()'s shape
@@ -202,9 +207,11 @@ const IT = ['1', '2', '3', '4', '5'];
 
 // 2. THE POWER through items(): one input moved, the rest drawn from the JUDGED stories at each question's leading cause
 const DR = 40, at = over => { const d = { ...drawOf('REF', 'REF'), ...over }; return items(drawSet(d)); };
+const at1 = over => { const P = drawSet({ ...drawOf('REF', 'REF'), ...over }); return [items(P)['1'].outcome, item1Review(P).outcome]; };
+const both = (lab, over) => { const c = cnt3(), v = cnt3(); for (let q = 0; q < DR; q++) { const [a, b] = at1(over); c[a]++; v[b]++; } console.log(`  item 1, ${lab}: ${row(c)}; the review's GB line on the same draws: ${row(v)}`); };
 console.log(`\n2. THE POWER (${DR} draws a cell through reduce-refb.mjs's items() and pOf(); C and CX as the files hold them, every other input drawn from the JUDGED stories at O188-REF and Y12R-REF)`);
-for (const r of [0, 0.2, 0.5, 0.7, 0.8, 0.9, 1, 1.1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[at({ r12: r, r3: r })['1'].outcome]++; console.log(`  item 1, AN removes ${r} of C's residual at every bridge year: ${row(c)}`); }
-for (const [r12, r3] of [[1, 0], [1, 0.6], [0.6, 1], [0, 1]]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[at({ r12, r3 })['1'].outcome]++; console.log(`  item 1, AN removes ${r12} at years 1 and 2 and ${r3} from year 3 on: ${row(c)}`); }
+for (const r of [0, 0.2, 0.5, 0.7, 0.8, 0.9, 1, 1.1]) both(`AN removes ${r} of C's residual at every bridge year`, { r12: r, r3: r });
+for (const [r12, r3] of [[1, 0], [1, 0.6], [0.6, 1], [0.4, 1], [0, 1]]) both(`AN removes ${r12} at years 1 and 2 and ${r3} from year 3 on`, { r12, r3 });
 for (const r of [0, 0.2, 0.5, 0.7, 0.8, 0.9]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[at({ r370: [r, r, r] })['2'].outcome]++; console.log(`  item 2, AN removes ${r} of S370's Y1 + Y2 in every world: ${row(c)}`); }
 for (const m of [0, 0.03, 0.08, 0.15]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[at({ ci370: m, ci362: 0 })['3'].outcome]++; console.log(`  item 3, the copy rule's move on S370 under AR ${f2(1 + m)} times its move under C, nil on S362: ${row(c)}`); }
 for (const m of [0, 0.15, 0.3, 0.6]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[at({ s130: [m, m, m] })['4'].outcome]++; console.log(`  item 4, AR moves S130's GB by ${m} in every world: ${row(c)}`); }
@@ -219,19 +226,20 @@ if (Object.keys(c188).length !== 6 || Object.keys(cy).length !== 4 || Math.abs(s
 const LEAD = { o188: 'REF', y12r: 'REF' };
 const ND = 1000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
-const WHAT = { 1: 'the least share of S362\'s GB under C that AN removes across the worlds read', 2: 'the least share of S370\'s Y1 + Y2 under C that AN removes across the worlds read', 3: 'the largest interaction in size across households and worlds, points', 4: 'the largest move of S130\'s GB in size across the worlds, points', 5: 'the least survival change of any leg and world, points' };
+const WHAT = { 1: 'the least share of S362\'s Y1 + Y2 under C that AN removes across the worlds read', 2: 'the least share of S370\'s Y1 + Y2 under C that AN removes across the worlds read', 3: 'the largest interaction in size across households and worlds, points', 4: 'the largest move of S130\'s GB in size across the worlds, points', 5: 'the least survival change of any leg and world, points' };
 function credences(m188, my) {
-  const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []]));
+  const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []])), V = cnt3(), RV = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 };
   for (let q = 0; q < ND; q++) {
-    const it = items(drawSet(drawOf(pickC(m188), pickC(my))));
+    const P = drawSet(drawOf(pickC(m188), pickC(my))), it = items(P), rv = item1Review(P);
     for (const i of IT) { I[i][it[i].outcome]++; const v = POINT[i](it); if (Number.isFinite(v)) pt[i].push(v); }
-    R[rowOf(it)]++;
+    R[rowOf(it)]++; V[rv.outcome]++; RV[rowOf({ ...it, 1: rv })]++;
   }
-  return { I, R, pt };
+  return { I, R, pt, V, RV };
 }
-const show = ({ I, R, pt }, tag) => {
+const show = ({ I, R, pt, V, RV }, tag) => {
   for (const i of IT) console.log(`  item ${i}: ${row(I[i])}`);
   console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
+  console.log(`  the review's GB line in item 1's place, on the same draws (printed, not registered): item 1 ${row(V)}; rows ${Object.entries(RV).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
   console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
   for (const i of IT) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))} (${pt[i].length} of ${ND} draws read)`);
   if (tag) { for (const i of IT) console.log(`${tag}item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`); console.log(`${tag}else ${f2(R.else / ND)}`); }

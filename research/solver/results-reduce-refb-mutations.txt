@@ -28,47 +28,50 @@ caught: 27: const v = f === 'readerRef' ? 'null' : COMMON[f];
 caught: 28: field(j.ran || '', 'readerCopy') !== (a === 'CX' ? 'extrap' 
 caught: 29: if (!peer || (j.bridge || []).join(',') !== peer.bridge.join
 caught: 30: if (!j) { bad.push(`the reused ${h} ${a} not found`); contin
-caught: 31: const read = K.filter(k => Math.abs(mean(P.S362.gb.C[k])) >=
-caught: 32: read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? '
-caught: 33: read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? '
-caught: 34: read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? '
-caught: 35: read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? '
-caught: 36: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
-caught: 37: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
-caught: 38: out['1'] = { outcome: per.length ? allOf(per, 'removed', 'ke
-caught: 39: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 40: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 41: const read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >
-caught: 42: return { k, r, read: r.lo >= THREEQ ? 'removed' : r.hi < QUA
-caught: 43: const r = removal(P.S370.y12.C[k], P.S370.y12.AN[k], z);
-caught: 44: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
-caught: 45: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
-caught: 46: CW: I.tab.AR[k], CXW: I.tab.ARX[k] }
-caught: 47: per = ['S362', 'S370'].flatMap(h =>
-caught: 48: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 49: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 50: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
-caught: 51: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 31: const read = K.filter(k => Math.abs(mean(P.S362.y12.C[k])) >
+caught: 32: const per = read.map(k => { const r = removal(P.S362.y12.C[k
+caught: 33: const per = read.map(k => { const r = removal(P.S362.gb.C[k]
+caught: 34: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 35: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 36: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 37: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 38: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
+caught: 39: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
+caught: 40: out['1'] = { outcome: per.length ? allOf(per, 'removed', 'ke
+caught: 41: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 42: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 43: const read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >
+caught: 44: return { k, r, read: r.lo >= THREEQ ? 'removed' : r.hi < QUA
+caught: 45: const r = removal(P.S370.y12.C[k], P.S370.y12.AN[k], z);
+caught: 46: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
+caught: 47: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
+caught: 48: CW: I.tab.AR[k], CXW: I.tab.ARX[k] }
+caught: 49: per = ['S362', 'S370'].flatMap(h =>
+caught: 50: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 51: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
 caught: 52: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
-caught: 53: out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
-caught: 54: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
-caught: 55: if (o('5') === 'FALSIFIED') return 'R5';
-caught: 56: if (o('4') === 'FALSIFIED') return 'R3';
-caught: 57: if (o('1') === 'HELD') return 'R1';
-caught: 58: if (o('1') === 'FALSIFIED') return 'R2';
-caught: 59: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
-caught: 60: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
-caught: 61: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
-caught: 62: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
-caught: 63: return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
-caught: 64: gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k
-caught: 65: s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR:
-caught: 66: return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3;
-caught: 67: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
-caught: 68: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
-caught: 69: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 53: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 54: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 55: out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
+caught: 56: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
+caught: 57: if (o('5') === 'FALSIFIED') return 'R5';
+caught: 58: if (o('4') === 'FALSIFIED') return 'R3';
+caught: 59: if (o('1') === 'HELD') return 'R1';
+caught: 60: if (o('1') === 'FALSIFIED') return 'R2';
+caught: 61: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
+caught: 62: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
+caught: 63: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
+caught: 64: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
+caught: 65: return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
+caught: 66: gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k
+caught: 67: y12: { C: K.map(k => y12('S362', 'C', k)), AN: K.map(k => y1
+caught: 68: s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR:
+caught: 69: return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3;
 caught: 70: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
 caught: 71: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
 caught: 72: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
-caught: 73: export const LATTICE_LINE = '160x41 nz 128';
-73 of 73 mutations caught
+caught: 73: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 74: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 75: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 76: export const LATTICE_LINE = '160x41 nz 128';
+76 of 76 mutations caught

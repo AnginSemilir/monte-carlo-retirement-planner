@@ -10,12 +10,15 @@
  * THE REUSE (a new test of old files, CHECKLIST item 3): COPY-B's and COPY-X's reducers pass their gates over their files, and
  * the reused cells share REF-B's code, seed, paths, bridge years and settings but the reference.
  * THE ITEMS, each with three outcomes; an item's cells read with Bonferroni intervals (0.05 over the cells it reads):
- *   1: the plan reference carries S362's bridge under-read (O188-REF): in each world where C's GB is a point or more in size,
- *      AN removes it, path by path (sum(GB_C - GB_AN) / sum(GB_C), its interval by the delta method), and AN's read error
- *      from each of years 1, 2 and 3 (the tail sum: the residual at that bridge year and every later one, with GA) lies
- *      within a point; a cell reads removed when the removal's interval lies at or above three quarters and the three tail
- *      sums' intervals within [-1, 1], kept when the removal's interval lies below a quarter; HELD when every cell read reads
- *      removed, FALSIFIED when any reads kept, otherwise INCONCLUSIVE.
+ *   1: the plan reference carries S362's bridge under-read (O188-REF): in each world where C's years-1-2 increments Y1 + Y2
+ *      (where the receipt places the under-read: the year-1 read's own, and year 2's) are a point or more in size, AN removes
+ *      them, path by path (sum(Y12_C - Y12_AN) / sum(Y12_C), its interval by the delta method), and AN's read error from each
+ *      of years 1, 2 and 3 (the tail sum: the residual at that bridge year and every later one, with GA) lies within a point;
+ *      a cell reads removed when the removal's interval lies at or above three quarters and the three tail sums' intervals
+ *      within [-1, 1], kept when the removal's interval lies below a quarter; HELD when every cell read reads removed,
+ *      FALSIFIED when any reads kept, otherwise INCONCLUSIVE. The review's own line on the net bridge part GB (item1Review)
+ *      is printed beside, not read: GB nets years 1-2's under-read against year 3's over-read (-11.14 against +7.86 in world
+ *      0 under C), so a reference removing most of both can read kept on GB (the departure, declared in the prediction).
  *   2: the plan reference carries S370's first two years' increments (Y12R): in each world where C's Y1 + Y2 is a point or
  *      more in size, AN removes it, path by path, read as item 1's removal alone (three quarters and a quarter).
  *   3: the copy rule and the adaptive package add: (ARX - AR) - (CX - C) in table less runs per household (S362, S370) and
@@ -193,13 +196,13 @@ const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : pe
 // the read error from bridge year t on, per path: the residual at t and every later bridge year, with GA (the backlog row of
 // 19 Oct 20:19 UK: a year's G is an increment; its tail sum is the read's error against the truth)
 export const tailOf = (y, ga, bridge, t) => Float64Array.from(ga, (g, i) => { let s = g; for (const u of bridge) if (u >= t) s += y[u][i]; return s; });
-/* P: { S362: { gb: { C, AN }: [3] per path, tails: { AN }: [3] [3 years] per path }, S370: { y12: { C, AN }: [3] per path },
+/* P: { S362: { y12: { C, AN }: [3] per path (Y1 + Y2), gb: { C, AN }: [3] per path (the review's line), tails: { AN }: [3] [3 years] per path }, S370: { y12: { C, AN }: [3] per path },
    inter: { S362, S370 }: { tab: { C, CX, AR, ARX }: [3], bits: { ... }: [3] }, s130: { gb: { C, AR }: [3] },
    legs: { [arm] : { [h]: { cells: [3], ws: [3] } } } } */
 export function items(P) {
   const out = {}, K = [0, 1, 2];
-  { const read = K.filter(k => Math.abs(mean(P.S362.gb.C[k])) >= MINRES), zr = zFor(0.05 / Math.max(1, read.length)), zt = zFor(0.05 / Math.max(1, 3 * read.length));
-    const per = read.map(k => { const r = removal(P.S362.gb.C[k], P.S362.gb.AN[k], zr), tails = P.S362.tails.AN[k].map(a => meanOf(a, zt)), tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL);
+  { const read = K.filter(k => Math.abs(mean(P.S362.y12.C[k])) >= MINRES), zr = zFor(0.05 / Math.max(1, read.length)), zt = zFor(0.05 / Math.max(1, 3 * read.length));
+    const per = read.map(k => { const r = removal(P.S362.y12.C[k], P.S362.y12.AN[k], zr), tails = P.S362.tails.AN[k].map(a => meanOf(a, zt)), tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL);
       return { k, r, tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear' }; });
     out['1'] = { outcome: per.length ? allOf(per, 'removed', 'kept') : 'INCONCLUSIVE', per, nothing: !per.length }; }
   { const read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >= MINRES), z = zFor(0.05 / Math.max(1, read.length));
@@ -213,6 +216,14 @@ export function items(P) {
   { const legs = LEGS.map(([arm, ctl, hs]) => ({ arm, ctl, per: hs.map(h => ({ h, ...harmWorlds(P.legs[arm][h].cells, P.legs[arm][h].ws, 0.05 / hs.length) })) })), all = legs.flatMap(l => l.per);
     out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED') ? 'FALSIFIED' : all.every(x => x.outcome === 'HELD') ? 'HELD' : 'INCONCLUSIVE', legs }; }
   return out;
+}
+// the review's line as it set it (deep-review-log.md 19 Oct 20:19 UK, answer 5): item 1's rule on S362's net bridge part GB in
+// place of Y1 + Y2; printed beside item 1, not an item
+export function item1Review(P) {
+  const K = [0, 1, 2], read = K.filter(k => Math.abs(mean(P.S362.gb.C[k])) >= MINRES), zr = zFor(0.05 / Math.max(1, read.length)), zt = zFor(0.05 / Math.max(1, 3 * read.length));
+  const per = read.map(k => { const r = removal(P.S362.gb.C[k], P.S362.gb.AN[k], zr), tin = P.S362.tails.AN[k].map(a => meanOf(a, zt)).every(c => c.lo >= -TAIL && c.hi <= TAIL);
+    return { k, r, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear' }; });
+  return { outcome: per.length ? allOf(per, 'removed', 'kept') : 'INCONCLUSIVE', per };
 }
 export function rowOf(it) {
   const o = i => it[i].outcome;
@@ -228,11 +239,11 @@ export const POINT = { 1: it => (it['1'].per.length ? Math.min(...it['1'].per.ma
 // bridge[h] the household's bridge years
 export function pOf(perP, bitsF, wsF, tabs, bridge) {
   const K = [0, 1, 2], ys = (h, a, k) => Object.fromEntries(bridge[h].map(t => [t, perP(h, a, k, `Y${t}`)]));
-  const y12 = (a, k) => { const y = ys('S370', a, k); return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
+  const y12 = (h, a, k) => { const y = ys(h, a, k); return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
   const inter = h => ({ tab: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => tabs[h][a][k])])), bits: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => bitsF(h, a, k))])) });
   const legs = Object.fromEntries(LEGS.map(([arm, ctl, hs]) => [arm, Object.fromEntries(hs.map(h => [h, { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), ws: K.map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))) }]))]));
-  return { S362: { gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k => perP('S362', 'AN', k, 'GB')) }, tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362', 'AN', k), perP('S362', 'AN', k, 'GA'), bridge.S362, t))) } },
-    S370: { y12: { C: K.map(k => y12('C', k)), AN: K.map(k => y12('AN', k)) } }, inter: { S362: inter('S362'), S370: inter('S370') }, s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR: K.map(k => perP('S130', 'AR', k, 'GB')) } }, legs };
+  return { S362: { y12: { C: K.map(k => y12('S362', 'C', k)), AN: K.map(k => y12('S362', 'AN', k)) }, gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k => perP('S362', 'AN', k, 'GB')) }, tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362', 'AN', k), perP('S362', 'AN', k, 'GA'), bridge.S362, t))) } },
+    S370: { y12: { C: K.map(k => y12('S370', 'C', k)), AN: K.map(k => y12('S370', 'AN', k)) } }, inter: { S362: inter('S362'), S370: inter('S370') }, s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR: K.map(k => perP('S130', 'AR', k, 'GB')) } }, legs };
 }
 // the band of the year two arms' moves first differ on a path: 0 the opening, 1 the bridge, 2 the five years after it, 3 the rest
 export function firstBand(mvA, mvB, years, nb, i) { for (let t = 0; t < years; t++) { const a = mvA[i * years + t], b = mvB[i * years + t]; if (a !== b) return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3; } return -1; }
@@ -251,7 +262,8 @@ const P0 = () => {
   const legsOf = () => Object.fromEntries(LEGS.map(([arm, , hs]) => [arm, Object.fromEntries(hs.map(h => [h, { cells: K.map(k => cellsOf(bitsAt(RUNS[h][k]), bitsAt(RUNS[h][k]))), ws: K.map(k => wsOf(ws0(bitsAt(RUNS[h][k])), ws0(bitsAt(RUNS[h][k])))) }]))]));
   const interOfH = h => ({ tab: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => 100 * RUNS[h][k] / N0)])), bits: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => bitsAt(RUNS[h][k]))])) });
   const y12C = [ys(-2.7, 3, N0, 21), ys(-2.4, 3, N0, 22), ys(-0.7, 1, N0, 23)];
-  return { S362: { gb: { C: gbC, AN: gbC.map(a => a.map(v => 0.1 * v)) }, tails: { AN: K.map(k => [1, 2, 3].map(t => ys(0.1 * (4 - t), 2, N0, 30 + 3 * k + t))) } },
+  const y12C362 = [ys(-11.1, 6, N0, 14), ys(-9.6, 5, N0, 15), ys(-6.4, 5, N0, 16)];
+  return { S362: { y12: { C: y12C362, AN: y12C362.map(a => a.map(v => 0.1 * v)) }, gb: { C: gbC, AN: gbC.map(a => a.map(v => 0.1 * v)) }, tails: { AN: K.map(k => [1, 2, 3].map(t => ys(0.1 * (4 - t), 2, N0, 30 + 3 * k + t))) } },
     S370: { y12: { C: y12C, AN: y12C.map(a => a.map(v => 0.1 * v)) } }, inter: { S362: interOfH('S362'), S370: interOfH('S370') },
     s130: { gb: { C: [ys(4.7, 3, N0, 41), ys(0.8, 2, N0, 42), ys(0.03, 1, N0, 43)], AR: null } }, legs: legsOf() };
 };
@@ -261,20 +273,25 @@ function planted() {
   const base = () => withS130(P0());
   const run = (what, edit, i, want, edge) => { const P = base(); edit(P); const it = items(P); REACHED[i].add(it[i].outcome); put(`${what}: ${i} ${want}`, it[i].outcome, want); if (edge) EDGES.push(edge); return it; };
   // item 1
-  run('AN removes nine tenths of S362\'s GB in every world, its tails within a point', () => {}, '1', 'HELD');
-  run('AN removes a tenth in world 1', P => { P.S362.gb.AN[1] = P.S362.gb.C[1].map(v => 0.9 * v); }, '1', 'FALSIFIED');
-  run('AN removes six tenths in world 0', P => { P.S362.gb.AN[0] = P.S362.gb.C[0].map(v => 0.4 * v); }, '1', 'INCONCLUSIVE');
-  run('AN removes nine tenths but world 2\'s year-2 tail stays 1.25 under', P => { P.S362.tails.AN[2][1] = ys(-1.25, 2, N0, 99); }, '1', 'INCONCLUSIVE', 'GB removed while a year\'s tail sum stays past a point reads unclear, not removed');
-  run('AN deepens world 0\'s under-read (a negative removal)', P => { P.S362.gb.AN[0] = P.S362.gb.C[0].map(v => 1.3 * v); }, '1', 'FALSIFIED');
-  run('AN removes exactly three quarters, no spread, tails exactly a point (the lines)', P => { for (const k of [0, 1, 2]) { P.S362.gb.C[k] = new Float64Array(N0).fill(-4); P.S362.gb.AN[k] = new Float64Array(N0).fill(-1); P.S362.tails.AN[k] = [1, 2, 3].map(() => new Float64Array(N0).fill(-1)); } }, '1', 'HELD', 'a removal of exactly three quarters with tails exactly at a point reads removed');
-  run('C\'s GB under a point in every world (nothing to read)', P => { for (const k of [0, 1, 2]) { P.S362.gb.C[k] = new Float64Array(N0).fill(0.5); P.S362.gb.AN[k] = new Float64Array(N0).fill(0); } }, '1', 'INCONCLUSIVE', 'no world with S362\'s GB a point in size: item 1 reads nothing');
-  run('AN removes exactly 0.72, no spread (short of three quarters)', P => { for (const k of [0, 1, 2]) { P.S362.gb.C[k] = new Float64Array(N0).fill(-4); P.S362.gb.AN[k] = new Float64Array(N0).fill(-1.12); } }, '1', 'INCONCLUSIVE');
+  run('AN removes nine tenths of S362\'s Y1 + Y2 in every world, its tails within a point', () => {}, '1', 'HELD');
+  run('AN removes a tenth in world 1', P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); }, '1', 'FALSIFIED');
+  run('AN removes six tenths in world 0', P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.4 * v); }, '1', 'INCONCLUSIVE');
+  run('AN removes nine tenths but world 2\'s year-2 tail stays 1.25 under', P => { P.S362.tails.AN[2][1] = ys(-1.25, 2, N0, 99); }, '1', 'INCONCLUSIVE', 'Y1 + Y2 removed while a year\'s tail sum stays past a point reads unclear, not removed');
+  run('AN deepens world 0\'s under-read (a negative removal)', P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 1.3 * v); }, '1', 'FALSIFIED');
+  run('AN removes exactly three quarters, no spread, tails exactly a point (the lines)', P => { for (const k of [0, 1, 2]) { P.S362.y12.C[k] = new Float64Array(N0).fill(-4); P.S362.y12.AN[k] = new Float64Array(N0).fill(-1); P.S362.tails.AN[k] = [1, 2, 3].map(() => new Float64Array(N0).fill(-1)); } }, '1', 'HELD', 'a removal of exactly three quarters with tails exactly at a point reads removed');
+  run('C\'s Y1 + Y2 under a point in every world (nothing to read)', P => { for (const k of [0, 1, 2]) { P.S362.y12.C[k] = new Float64Array(N0).fill(0.5); P.S362.y12.AN[k] = new Float64Array(N0).fill(0); } }, '1', 'INCONCLUSIVE', 'no world with S362\'s Y1 + Y2 a point in size: item 1 reads nothing');
+  run('AN removes exactly 0.72, no spread (short of three quarters)', P => { for (const k of [0, 1, 2]) { P.S362.y12.C[k] = new Float64Array(N0).fill(-4); P.S362.y12.AN[k] = new Float64Array(N0).fill(-1.12); } }, '1', 'INCONCLUSIVE');
   const alt = (m, e) => Float64Array.from({ length: N0 }, (_, i) => m + (i % 2 ? e : -e));
-  run('AN removes 0.78 in world 1 with an interval reaching under three quarters', P => { const e = alt(0, 8); P.S362.gb.C[1] = new Float64Array(N0).fill(-5.2); P.S362.gb.AN[1] = Float64Array.from(e, (v, i) => 0.22 * -5.2 + v); }, '1', 'INCONCLUSIVE');
-  run('AN removes 0.22 in world 1 with an interval reaching over a quarter', P => { const e = alt(0, 8); P.S362.gb.C[1] = new Float64Array(N0).fill(-5.2); P.S362.gb.AN[1] = Float64Array.from(e, (v, i) => 0.78 * -5.2 + v); }, '1', 'INCONCLUSIVE');
+  run('AN removes 0.78 in world 1 with an interval reaching under three quarters', P => { const e = alt(0, 8); P.S362.y12.C[1] = new Float64Array(N0).fill(-5.2); P.S362.y12.AN[1] = Float64Array.from(e, (v, i) => 0.22 * -5.2 + v); }, '1', 'INCONCLUSIVE');
+  run('AN removes 0.22 in world 1 with an interval reaching over a quarter', P => { const e = alt(0, 8); P.S362.y12.C[1] = new Float64Array(N0).fill(-5.2); P.S362.y12.AN[1] = Float64Array.from(e, (v, i) => 0.78 * -5.2 + v); }, '1', 'INCONCLUSIVE');
   run('AN\'s world-0 year-1 tail at -0.95 with an interval reaching past a point', P => { P.S362.tails.AN[0][0] = alt(-0.95, 3); }, '1', 'INCONCLUSIVE');
-  run('C\'s world-2 GB at 1.2 points, a tenth removed (read: a point in size)', P => { P.S362.gb.C[2] = new Float64Array(N0).fill(-1.2); P.S362.gb.AN[2] = new Float64Array(N0).fill(-1.08); }, '1', 'FALSIFIED');
-  run('AN removes exactly 0.3, no spread (over a quarter)', P => { P.S362.gb.AN[0] = P.S362.gb.C[0].map(v => 0.7 * v); }, '1', 'INCONCLUSIVE');
+  run('C\'s world-2 Y1 + Y2 at 1.2 points, a tenth removed (read: a point in size)', P => { P.S362.y12.C[2] = new Float64Array(N0).fill(-1.2); P.S362.y12.AN[2] = new Float64Array(N0).fill(-1.08); }, '1', 'FALSIFIED');
+  run('AN removes exactly 0.3, no spread (over a quarter)', P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.7 * v); }, '1', 'INCONCLUSIVE');
+  // the review's line beside item 1: a reference removing six tenths of years 1-2's under-read and all of year 3's over-read
+  { const P = base(), K3 = [0, 1, 2]; for (const k of K3) { P.S362.y12.C[k] = new Float64Array(N0).fill(-11); P.S362.y12.AN[k] = new Float64Array(N0).fill(-4.4); P.S362.gb.C[k] = new Float64Array(N0).fill(-3.3); P.S362.gb.AN[k] = new Float64Array(N0).fill(-4.4); }
+    put('the review\'s GB line reads a part removed from both errors as kept', item1Review(P).outcome, 'FALSIFIED');
+    put('item 1 reads the same case on Y1 + Y2: six tenths, unclear', items(P)['1'].outcome, 'INCONCLUSIVE');
+    EDGES.push('six tenths of years 1-2 and all of year 3 removed: kept on the net GB, unclear on Y1 + Y2'); }
   // item 2
   run('AN removes nine tenths of S370\'s years 1-2 increments', () => {}, '2', 'HELD');
   run('AN removes a tenth of world 0\'s', P => { P.S370.y12.AN[0] = P.S370.y12.C[0].map(v => 0.9 * v); }, '2', 'FALSIFIED');
@@ -296,10 +313,10 @@ function planted() {
   // the rows
   const rowAt = edit => { const P = base(); edit(P); return rowOf(items(P)); };
   put('the rows: the default reads R1', rowAt(() => {}), 'R1');
-  put('the rows: AN removes a tenth reads R2', rowAt(P => { P.S362.gb.AN[1] = P.S362.gb.C[1].map(v => 0.9 * v); }), 'R2');
+  put('the rows: AN removes a tenth reads R2', rowAt(P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); }), 'R2');
   put('the rows: the control moved reads R3 over R1', rowAt(P => { P.s130.gb.AR[0] = P.s130.gb.C[0].map(v => v + 1); }), 'R3');
   put('the rows: harm reads R5 over R3', rowAt(P => { P.s130.gb.AR[0] = P.s130.gb.C[0].map(v => v + 1); const [c, a] = pairBits(RUNS.S362[0], 80, 10); P.legs.AN.S362.cells[0] = cellsOf(c, a); P.legs.AN.S362.ws[0] = wsOf(ws0(c), ws0(a)); }), 'R5');
-  put('the rows: item 1 unclear reads else', rowAt(P => { P.S362.gb.AN[0] = P.S362.gb.C[0].map(v => 0.4 * v); }), 'else');
+  put('the rows: item 1 unclear reads else', rowAt(P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.4 * v); }), 'else');
   put('the rows: item 2 does not decide a row (item 2 kept, item 1 held)', rowAt(P => { P.S370.y12.AN[0] = P.S370.y12.C[0].map(v => 0.9 * v); }), 'R1');
   // tailOf and firstBand
   { const y = { 1: Float64Array.from([1, 2]), 2: Float64Array.from([10, 20]), 3: Float64Array.from([100, 200]) }, ga = Float64Array.from([1000, 2000]);
@@ -315,6 +332,7 @@ function planted() {
     const tabs = Object.fromEntries(['S362', 'S370', 'S130'].map(h => [h, Object.fromEntries(['C', 'CX', 'AR', 'ARX', 'AN'].map(a => [a, [10, 20, 30]]))]));
     const P = pOf(perP, bitsF, wsF, tabs, bridge);
     put('pOf: S362\'s AN GB in world 2 is its own', P.S362.gb.AN[2][0].toFixed(1), (1 + 400 + 1000 + 0.2).toFixed(1));
+    put('pOf: S362\'s Y1 + Y2 in world 1 are AN\'s Y1 + Y2', P.S362.y12.AN[1][0].toFixed(1), ((10 + 400 + 1000 + 0.1) + (20 + 400 + 1000 + 0.1)).toFixed(1));
     put('pOf: S362\'s AN tail from year 2 is years 2 and 3 with GA', P.S362.tails.AN[0][1][0].toFixed(1), ((20 + 400 + 1000) + (30 + 400 + 1000) + (2 + 400 + 1000)).toFixed(1));
     put('pOf: S370\'s years 1-2 are Y1 + Y2', P.S370.y12.C[1][0].toFixed(1), ((10 + 2000 + 0.1) + (20 + 2000 + 0.1)).toFixed(1));
     put('pOf: S130\'s AR GB is its own', P.s130.gb.AR[0][0].toFixed(1), (1 + 200 + 3000).toFixed(1));
@@ -440,9 +458,10 @@ if (isMain) {
   const hw = x => `world ${x.k}: survival ${f4(x.ex.d)} exact (${f4(x.ex.lo)} to ${f4(x.ex.hi)}) ${x.ex.outcome}, guarded unconditional (${f4(x.u.lo)} to ${f4(x.u.hi)}), whole score ${iv(x.w)}, margin ${f4(x.margin)}: ${x.harm ? 'harm' : x.ok ? 'no material harm' : 'inconclusive'}`;
   console.log('\nREF-B: the adaptive reference against the plan reference, crossed with the copy rule, on S362 and S370, S130 the control (predictions/diag-refb.md)');
   console.log('\nTHE ITEMS (each read by its registered rule)');
-  console.log(`1. the adaptive reference alone (AN) removes at least three quarters of S362's bridge part GB with its read error from years 1, 2 and 3 each within a point: ${it['1'].outcome}`);
-  for (const x of it['1'].per) console.log(`     world ${x.k}: C's GB ${f4(x.r.mc)} points, removed ${iv(x.r)}; AN's read error from years 1, 2, 3: ${x.tails.map(iv).join('; ')}: ${x.read}`);
-  if (it['1'].nothing) console.log('     nothing to read: no world with C\'s GB a point in size');
+  console.log(`1. the adaptive reference alone (AN) removes at least three quarters of S362's years-1-2 increments (Y1 + Y2) with its read error from years 1, 2 and 3 each within a point: ${it['1'].outcome}`);
+  for (const x of it['1'].per) console.log(`     world ${x.k}: C's Y1 + Y2 ${f4(x.r.mc)} points, removed ${iv(x.r)}; AN's read error from years 1, 2, 3: ${x.tails.map(iv).join('; ')}: ${x.read}`);
+  if (it['1'].nothing) console.log('     nothing to read: no world with C\'s Y1 + Y2 a point in size');
+  { const rv = item1Review(P); console.log(`   the review's line (S362's net GB in place of Y1 + Y2; reported, not read): ${rv.outcome}; ${rv.per.map(x => `world ${x.k}: C's GB ${f4(x.r.mc)}, removed ${iv(x.r)}: ${x.read}`).join('; ')}`); }
   console.log(`2. AN removes at least three quarters of S370's first two years' increments (Y1 + Y2) where they are a point or more: ${it['2'].outcome}`);
   for (const x of it['2'].per) console.log(`     world ${x.k}: C's Y1 + Y2 ${f4(x.r.mc)} points, removed ${iv(x.r)}: ${x.read}`);
   console.log(`3. the copy rule and the adaptive package add, (ARX - AR) - (CX - C) in table less runs within half a point on S362 and S370: ${it['3'].outcome}`);

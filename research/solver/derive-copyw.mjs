@@ -82,6 +82,7 @@ console.log(`  S370, seed ${F.C.seed}, ${N} paths a world: COPY-X's C and CX beh
 for (const a of ['C', 'CX', 'CW']) console.log(`  ${a}: tables ${TAB[a].map(f4).join(', ')}; runs ${b[a].map(cnt).join(', ')} of ${N}; grid residual GB + GA by world ${g[a].map(x => f4(mean(x))).join(', ')}; world-1 years 4-6 ${f4(mean(y[a]))}`);
 // CW's leg of item 5, known from the records
 const hCW = harmWorlds(K.map(k => cellsOf(b.C[k], b.CW[k])), K.map(k => wsOf(w.C[k], w.CW[k])));
+console.log(`  CW against C by world, lost and saved: ${K.map(k => { let l = 0, s2 = 0; for (let j = 0; j < N; j++) { if (b.C[k][j] && !b.CW[k][j]) l++; else if (!b.C[k][j] && b.CW[k][j]) s2++; } return `${l} lost, ${s2} saved`; }).join('; ')}; the guarded unconditional survival interval by world ${hCW.per.map(x => `(${f4(x.u.lo)} to ${f4(x.u.hi)})`).join(', ')}`);
 console.log(`  CW against C (reported, not an item: CW is W60, so this leg is known before the run): ${hCW.outcome}; ${hCW.per.map(x => `world ${x.k} survival ${f4(x.ex.d)} (${f4(x.ex.lo)} to ${f4(x.ex.hi)}) ${x.ex.outcome}, whole score ${f4(x.w.d)} (${f4(x.w.lo)} to ${f4(x.w.hi)}), margin ${f4(x.margin)}: ${x.harm ? 'harm' : x.ok ? 'no material harm' : 'inconclusive'}`).join('; ')}`);
 // the additive prediction for CXW, path by path: CX plus W60's change on C
 const gAdd = K.map(k => Float64Array.from(g.CX[k], (v, i) => v + g.CW[k][i] - g.C[k][i])), yAdd = Float64Array.from(y.CX, (v, i) => v + y.CW[i] - y.C[i]);
@@ -97,7 +98,10 @@ if (process.argv.includes('--records')) process.exit(0);
 const pickIdx = (bits, want, m) => { const ix = []; for (let i = 0; i < N; i++) if (bits[i] === want) ix.push(i); m = Math.min(m, ix.length); for (let j = 0; j < m; j++) { const r = j + Math.floor(rnd() * (ix.length - j)); [ix[j], ix[r]] = [ix[r], ix[j]]; } return ix.slice(0, m); };
 function setOf({ r1, i, form0, noise, flips }) {
   const y456CXW = Float64Array.from(y.CX, (v, j) => (1 - r1) * v + noise * sdY * gauss());
-  const gCXW = K.map(k => Float64Array.from(gAdd[k], (v, j) => v + i[k] + (k === 0 ? form0 : 0) + noise * sdW[k] * gauss()));
+  // the slice is part of world 1's whole (the plan-auditor's BLOCKING 1 of 19 Oct 11:20 UK): CXW's years 4-6 apart from the
+  // additive prediction carry into world 1's grid residual path by path and into its table
+  const dY = Float64Array.from(y456CXW, (v, j) => v - yAdd[j]), mdY = mean(dY);
+  const gCXW = K.map(k => Float64Array.from(gAdd[k], (v, j) => v + i[k] + (k === 0 ? form0 : 0) + (k === 1 ? dY[j] : 0) + noise * sdW[k] * gauss()));
   const bCXW = [], wCXW = [];
   for (const k of K) {
     const bb = Uint8Array.from(b.CW[k]), ww = Float64Array.from(w.CW[k], v => v + 0.3 * gauss());
@@ -107,7 +111,7 @@ function setOf({ r1, i, form0, noise, flips }) {
   }
   // CXW's tables: additive, plus the story's interaction in table less runs (i), plus the runs' own interaction, so that
   // item 4 reads the story's interaction with the runs' noise of its paired paths
-  const tCXW = K.map(k => { const m = (cnt(bCXW[k]) - cnt(b.CW[k]) - cnt(b.CX[k]) + cnt(b.C[k])) / N; return TAB.CX[k] + TAB.CW[k] - TAB.C[k] + i[k] + (k === 0 ? form0 : 0) + 100 * m; });
+  const tCXW = K.map(k => { const m = (cnt(bCXW[k]) - cnt(b.CW[k]) - cnt(b.CX[k]) + cnt(b.C[k])) / N; return TAB.CX[k] + TAB.CW[k] - TAB.C[k] + i[k] + (k === 0 ? form0 : 0) + (k === 1 ? mdY : 0) + 100 * m; });
   return { y456: { CX: y.CX, CXW: y456CXW }, g: { CXW: gCXW }, tab: { C: TAB.C, CX: TAB.CX, CW: TAB.CW, CXW: tCXW }, bits: { C: b.C, CX: b.CX, CW: b.CW, CXW: bCXW },
     cells: { CW: K.map(k => cellsOf(b.C[k], b.CW[k])), CXW: K.map(k => cellsOf(b.CX[k], bCXW[k])) }, ws: { CW: K.map(k => wsOf(w.C[k], w.CW[k])), CXW: K.map(k => wsOf(w.CX[k], wCXW[k])) } };
 }
@@ -118,7 +122,8 @@ const BASE = { r1: rAdd.R, i: [0, 0, 0], form0: 0, noise: 1, flips: 1 };
 // 2. THE POWER through items()
 const DR = 40;
 console.log(`\n2. THE POWER (${DR} draws a cell through reduce-copyw.mjs's items(); C, CX and CW as recorded, ${N} paths a world)`);
-for (const r of [0, 0.25, 0.4, 0.6, 0.8]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, r1: r }))['1'].outcome]++; console.log(`  item 1, CXW removes ${r} of CX's world-1 years-4-6 residual: ${row(c)}`); }
+for (const r of [0, 0.25, 0.4, 0.6, 0.8, 1.3, 2]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, r1: r }))['1'].outcome]++; console.log(`  item 1, CXW removes ${r} of CX's world-1 years-4-6 residual (world 1's whole moving with it): ${row(c)}`); }
+{ const R = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }; for (const r of [1.3, 2]) for (let q = 0; q < DR; q++) R[rowOf(items(setOf({ ...BASE, r1: r })))]++; console.log(`  the rows at removals of 1.3 and 2 (an over-correction past the whole; no JUDGED story reaches it, the largest 0.868): ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / (2 * DR))}`).join(', ')}`); }
 for (const d of [-1.5, -0.6, 0, 0.6]) { const c2 = cnt3(), c3 = cnt3(); for (let q = 0; q < DR; q++) { const it = items(setOf({ ...BASE, i: [d, d, 0] })); c2[it['2'].outcome]++; c3[it['3'].outcome]++; } console.log(`  items 2 and 3, the interaction ${d} in worlds 0 and 1 on the additive prediction: item 2 ${row(c2)} | item 3 ${row(c3)}`); }
 for (const d of [-1, -0.5, -0.25, 0, 0.3]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, i: [d, 0, 0] }))['4'].outcome]++; console.log(`  item 4, the interaction ${d} in world 0 (nil in worlds 1 and 2): ${row(c)}`); }
 for (const fl of [0.75, 1, 1.5]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, flips: fl }))['5'].outcome]++; console.log(`  item 5, CXW's flips against CW ${fl} times CX's against C: ${row(c)}`); }
@@ -133,7 +138,7 @@ const LEAD = { 1: 'AXIS', 0: 'WAXIS' };
 const ND = 2000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
 function credences(m1, m0) {
-  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3(), 5: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3(), 5: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [], 5: [] };
   for (let q = 0; q < ND; q++) {
     const k1 = pickC(m1), k0 = pickC(m0), r1s = pick(JUDGED.r1[k1]);
     const r1 = r1s.startsWith('x') ? rAdd.R * Number(r1s.slice(1)) : Number(r1s);

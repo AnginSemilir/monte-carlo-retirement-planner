@@ -67,12 +67,15 @@ M = [
   ("if (o('5') === 'FALSIFIED') return 'R5';", ""),
   ("if (o('2') === 'HELD' && o('3') === 'HELD') return 'R1';", "if (o('2') === 'HELD') return 'R1';"),
   ("if (o('1') === 'HELD') return 'R2';", "if (o('1') !== 'FALSIFIED') return 'R2';"),
+  ("if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].r.lo > OVER)) return 'R4';", ""),
+  ("if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].r.lo > OVER)) return 'R4';", "if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R4';"),
+  ("if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].r.lo > OVER)) return 'R4';", "if (o('1') === 'HELD' && (o('2') !== 'HELD' || it['1'].r.lo > OVER)) return 'R4';"),
   ("if (o('1') === 'FALSIFIED') return 'R3';", ""),
   # the bands
-  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;", "export const HALF = 0.4, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;"),
-  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1.5, INTER = 0.5;"),
-  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 1;"),
-  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 0, CLOSE = 1, INTER = 0.5;"),
+  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5, OVER = 1.5;", "export const HALF = 0.4, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;"),
+  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5, OVER = 1.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1.5, INTER = 0.5;"),
+  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5, OVER = 1.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 1;"),
+  ("export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5, OVER = 1.5;", "export const HALF = 0.5, QUARTER = 0.25, MINRES = 0, CLOSE = 1, INTER = 0.5;"),
 ]
 M = [m for m in M if m[0] != m[1]]
 run('reduce-copyw.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

@@ -52,9 +52,12 @@ caught: 51: out['5'] = { outcome: hx.outcome, hw, hx };
 caught: 52: if (o('5') === 'FALSIFIED') return 'R5';
 caught: 53: if (o('2') === 'HELD' && o('3') === 'HELD') return 'R1';
 caught: 54: if (o('1') === 'HELD') return 'R2';
-caught: 55: if (o('1') === 'FALSIFIED') return 'R3';
-caught: 56: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
-caught: 57: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
-caught: 58: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 55: if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].
+caught: 56: if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].
+caught: 57: if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].
+caught: 58: if (o('1') === 'FALSIFIED') return 'R3';
 caught: 59: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
-59 of 59 mutations caught
+caught: 60: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 61: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 62: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+62 of 62 mutations caught

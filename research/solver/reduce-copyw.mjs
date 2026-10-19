@@ -26,9 +26,13 @@
  *      guarded unconditional interval, the whole score's normal interval); HELD when it reads no material harm in every world,
  *      FALSIFIED when it reads harm in any world, otherwise INCONCLUSIVE. CW against C is reported, not an item: CW is
  *      STEP-S370's W60 bit for bit, so that leg is known from the records before the run (derive-copyw.mjs section 1).
- * THE ROWS: R5 item 5 FALSIFIED (the wealth fix harms the copy rule's arm); R1 items 2 and 3 HELD (the two fixes together close S370 within a point in
- *   worlds 0 and 1); R2 item 1 HELD, items 2 and 3 not both HELD (the wealth axis carries world 1's years 4 to 6, the rest
- *   stays); R3 item 1 FALSIFIED (the wealth axis does not carry it); else.
+ * THE ROWS (the plan-auditor's BLOCKING 2 of 19 Oct 11:20 UK): R5 item 5 FALSIFIED (the wealth fix harms the copy rule's arm);
+ *   R1 items 2 and 3 HELD (the two fixes together close S370 within a point in worlds 0 and 1); R4 item 1 HELD with item 2
+ *   FALSIFIED, or item 1's removal wholly above OVER (one and a half): the fall at years 4 to 6 moved or over-corrected (WHOLE),
+ *   not removed; R2 item 1 HELD with item 2 not FALSIFIED (the wealth axis carries world 1's years 4 to 6 under the copy rule,
+ *   world 1's whole with it); R3 item 1 FALSIFIED: the copy rule and 60 points interact at world 1's years 4 to 6 (CW's own
+ *   removal of C's there is known from the records, 0.80, so this row reads the interaction, never 'the axis does not carry
+ *   it'); else.
  * REPORTED: every arm's tables against its runs by world; GB, GA, T and the residual by year by world; the sum of absolute
  *   residuals by year (the cancellation guard); the four-way split by year; the copied nodes; the reads at the clamp; each
  *   world's interaction in runs; the solves' seconds.
@@ -49,7 +53,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-copyw.md';
 export const HOUSE = 'S370', SEED = '7002', NPW = 4000, NQF = 1000;
 export const NODES_SN = Object.freeze([0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1]);
-export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5;
+export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE = 1, INTER = 0.5, OVER = 1.5;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const ARMS = ['CW', 'CXW'];
 export const PTS = Object.freeze({ CW: 60, CXW: 60 });
@@ -231,6 +235,7 @@ export function rowOf(it) {
   const o = i => it[i].outcome;
   if (o('5') === 'FALSIFIED') return 'R5';
   if (o('2') === 'HELD' && o('3') === 'HELD') return 'R1';
+  if (o('1') === 'HELD' && (o('2') === 'FALSIFIED' || it['1'].r.lo > OVER)) return 'R4';
   if (o('1') === 'HELD') return 'R2';
   if (o('1') === 'FALSIFIED') return 'R3';
   return 'else';
@@ -302,6 +307,10 @@ function planted() {
   { const P = P0(); P.y456.CXW = P.y456.CX.map(v => 0.9 * v); P.g.CXW[1] = ys(-2, 3, N0, 23); put('the rows: the axis carries none of it, reads R3', rowOf(items(P)), 'R3'); }
   { const P = P0(); P.y456.CXW = P.y456.CX.map(v => 0.6 * v); P.g.CXW[1] = ys(-2, 3, N0, 23); put('the rows: item 1 inconclusive, world 1 still out, reads else', rowOf(items(P)), 'else'); }
   { const P = P0(); P.g.CXW[0] = ys(0.2, 4.5, N0, 21); P.y456.CXW = P.y456.CX.map(v => 0.9 * v); put('the rows: closure though years 4-6 stay (R1 over R3)', rowOf(items(P)), 'R1'); }
+  { const P = P0(); P.g.CXW[1] = ys(-2, 3, N0, 23); put('the rows: years 4-6 removed while world 1\'s whole goes out of band, reads R4 (moved)', rowOf(items(P)), 'R4'); }
+  { const P = P0(); P.y456.CXW = P.y456.CX.map(v => -v); put('the rows: years 4-6 over-corrected to an over-read of the same size (removal 2), reads R4', rowOf(items(P)), 'R4'); }
+  { const P = P0(); P.y456.CXW = P.y456.CX.map(v => -0.4 * v); put('the rows: a removal of 1.4 (its interval not wholly above one and a half) reads R2', rowOf(items(P)), 'R2'); }
+  { const P = P0(); P.g.CXW[1] = ys(-1, 3, N0, 23); put('the rows: years 4-6 removed, world 1\'s whole inconclusive, reads R2 (R4 needs item 2 falsified)', rowOf(items(P)), 'R2'); }
   // the arithmetic on cases worked by hand
   { const c = closeOf(50, 2, 4); put('closeOf: table 50 over runs of 2 of 4 reads 0', c.d.toFixed(4), '0.0000'); }
   { const x = interOf({ C: 40, CX: 33, CW: 38, CXW: 31 }, { C: Uint8Array.from([1, 1, 0, 0]), CX: Uint8Array.from([1, 1, 0, 0]), CW: Uint8Array.from([1, 1, 0, 0]), CXW: Uint8Array.from([1, 1, 0, 0]) }); put('interOf: the tables 40, 33, 38 and 31 on equal runs read 0 interaction', `${x.d.toFixed(4)} ${x.lo.toFixed(4)} ${x.hi.toFixed(4)}`, '0.0000 0.0000 0.0000'); }

@@ -51,7 +51,7 @@ import { parse as parseB, keyOf as keyOfB } from './reduce-copyb.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-refb.md';
 export const SEED = '7002', NPW = 4000, NQF = 1000;
-export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL = 1, STILL = 0.25, INTER = 0.5;
+export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL = 1, STILL = 0.25, INTER = 0.5, MOVE = 0.5;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const PARTS = Object.freeze(['QS', 'QC', 'RS', 'RC']);
 // the jobs as registered: [household, arm, wealth points] (audit-refb.mjs's JOBS, in its order)
@@ -196,7 +196,7 @@ const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : pe
 // the read error from bridge year t on, per path: the residual at t and every later bridge year, with GA (the backlog row of
 // 19 Oct 20:19 UK: a year's G is an increment; its tail sum is the read's error against the truth)
 export const tailOf = (y, ga, bridge, t) => Float64Array.from(ga, (g, i) => { let s = g; for (const u of bridge) if (u >= t) s += y[u][i]; return s; });
-/* P: { S362: { y12: { C, AN }: [3] per path (Y1 + Y2), gb: { C, AN }: [3] per path (the review's line), tails: { AN }: [3] [3 years] per path }, S370: { y12: { C, AN }: [3] per path },
+/* P: { S362: { y12: { C, AN, AR }: [3] per path (Y1 + Y2), gb: { C, AN }: [3] per path (the review's line), tails: { AN }: [3] [3 years] per path }, S370: { y12: { C, AN, AR }: [3] per path, tail3: { C, AN }: [3] per path (the read error from year 3 on) },
    inter: { S362, S370 }: { tab: { C, CX, AR, ARX }: [3], bits: { ... }: [3] }, s130: { gb: { C, AR }: [3] },
    legs: { [arm] : { [h]: { cells: [3], ws: [3] } } } } */
 export function items(P) {
@@ -225,6 +225,31 @@ export function item1Review(P) {
     return { k, r, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear' }; });
   return { outcome: per.length ? allOf(per, 'removed', 'kept') : 'INCONCLUSIVE', per };
 }
+// KNOWN-LEG (the plan-auditor's BLOCKING 1 of 20 Oct 00:05 UK): the records show the adaptive reference with RS reaching both
+// households' years-1-2 reads (HO-DEP's K1F on S362 and A on S370, seed 7004), so items 1 and 2's FALSIFIED is read by AR's own
+// removal of the same Y1 + Y2 in the item's worlds, with the item's interval and lines (three quarters, a quarter)
+export function splitOf(P) {
+  const K = [0, 1, 2], one = (C, A) => { const read = K.filter(k => Math.abs(mean(C[k])) >= MINRES), z = zFor(0.05 / Math.max(1, read.length));
+    return read.map(k => { const r = removal(C[k], A[k], z); return { k, r, read: r.lo >= THREEQ ? 'removed' : r.hi < QUARTER ? 'kept' : 'unclear' }; }); };
+  return { 1: one(P.S362.y12.C, P.S362.y12.AR), 2: one(P.S370.y12.C, P.S370.y12.AR) };
+}
+// item 2's whole (KNOWN-LEG's HELD clause): S370's read error from year 3 on, AN less C, in item 2's worlds: within half a point
+// reads still (the increments removed, not moved into later years), wholly outside moved, otherwise unclear
+export function wholeOf(P) {
+  const K = [0, 1, 2], read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >= MINRES), z = zFor(0.05 / Math.max(1, read.length));
+  return read.map(k => { const c = meanOf(Float64Array.from(P.S370.tail3.AN[k], (v, i) => v - P.S370.tail3.C[k][i]), z); return { k, c, read: c.lo >= -MOVE && c.hi <= MOVE ? 'still' : c.hi < -MOVE || c.lo > MOVE ? 'moved' : 'unclear' }; });
+}
+// the causes as items 1 and 2 bear on them (the registered reading): a HELD credits the reference's cause (item 2's with its
+// whole still in every world); a FALSIFIED reads, in the worlds AN keeps, RS's part with the reference where AR removes it and
+// the cause's 'not' at seed 7002 where AR keeps it too; otherwise open
+export function causeOf(it, sp, wh) {
+  const o = i => it[i].outcome;
+  const byAR = (i, not) => { const kept = it[i].per.filter(x => x.read === 'kept').map(x => x.k), ar = sp[i].filter(x => kept.includes(x.k));
+    return ar.some(x => x.read === 'removed') ? 'RS with the reference (AR removes what AN keeps: the interaction)' : ar.length && ar.every(x => x.read === 'kept') ? `${not} at seed 7002 (AR keeps it too)` : 'open (AR unclear where AN keeps it)'; };
+  const c1 = o('1') === 'HELD' ? 'O188-REF' : o('1') === 'FALSIFIED' ? byAR('1', 'O188-NOTREF') : 'open';
+  const c2 = o('2') === 'HELD' ? (wh.every(x => x.read === 'still') ? 'Y12R-REF' : wh.some(x => x.read === 'moved') ? 'Y12R-REF not credited: the increments moved into later years (WHOLE)' : 'Y12R-REF not credited: its whole unclear') : o('2') === 'FALSIFIED' ? byAR('2', 'Y12R-NOT') : 'open';
+  return { 1: c1, 2: c2 };
+}
 export function rowOf(it) {
   const o = i => it[i].outcome;
   if (o('5') === 'FALSIFIED') return 'R5';
@@ -242,8 +267,9 @@ export function pOf(perP, bitsF, wsF, tabs, bridge) {
   const y12 = (h, a, k) => { const y = ys(h, a, k); return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
   const inter = h => ({ tab: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => tabs[h][a][k])])), bits: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => bitsF(h, a, k))])) });
   const legs = Object.fromEntries(LEGS.map(([arm, ctl, hs]) => [arm, Object.fromEntries(hs.map(h => [h, { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), ws: K.map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))) }]))]));
-  return { S362: { y12: { C: K.map(k => y12('S362', 'C', k)), AN: K.map(k => y12('S362', 'AN', k)) }, gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k => perP('S362', 'AN', k, 'GB')) }, tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362', 'AN', k), perP('S362', 'AN', k, 'GA'), bridge.S362, t))) } },
-    S370: { y12: { C: K.map(k => y12('S370', 'C', k)), AN: K.map(k => y12('S370', 'AN', k)) } }, inter: { S362: inter('S362'), S370: inter('S370') }, s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR: K.map(k => perP('S130', 'AR', k, 'GB')) } }, legs };
+  const t3 = (h, a, k) => tailOf(ys(h, a, k), perP(h, a, k, 'GA'), bridge[h], 3);
+  return { S362: { y12: { C: K.map(k => y12('S362', 'C', k)), AN: K.map(k => y12('S362', 'AN', k)), AR: K.map(k => y12('S362', 'AR', k)) }, gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k => perP('S362', 'AN', k, 'GB')) }, tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362', 'AN', k), perP('S362', 'AN', k, 'GA'), bridge.S362, t))) } },
+    S370: { y12: { C: K.map(k => y12('S370', 'C', k)), AN: K.map(k => y12('S370', 'AN', k)), AR: K.map(k => y12('S370', 'AR', k)) }, tail3: { C: K.map(k => t3('S370', 'C', k)), AN: K.map(k => t3('S370', 'AN', k)) } }, inter: { S362: inter('S362'), S370: inter('S370') }, s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR: K.map(k => perP('S130', 'AR', k, 'GB')) } }, legs };
 }
 // the band of the year two arms' moves first differ on a path: 0 the opening, 1 the bridge, 2 the five years after it, 3 the rest
 export function firstBand(mvA, mvB, years, nb, i) { for (let t = 0; t < years; t++) { const a = mvA[i * years + t], b = mvB[i * years + t]; if (a !== b) return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3; } return -1; }
@@ -263,8 +289,9 @@ const P0 = () => {
   const interOfH = h => ({ tab: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => 100 * RUNS[h][k] / N0)])), bits: Object.fromEntries(['C', 'CX', 'AR', 'ARX'].map(a => [a, K.map(k => bitsAt(RUNS[h][k]))])) });
   const y12C = [ys(-2.7, 3, N0, 21), ys(-2.4, 3, N0, 22), ys(-0.7, 1, N0, 23)];
   const y12C362 = [ys(-11.1, 6, N0, 14), ys(-9.6, 5, N0, 15), ys(-6.4, 5, N0, 16)];
-  return { S362: { y12: { C: y12C362, AN: y12C362.map(a => a.map(v => 0.1 * v)) }, gb: { C: gbC, AN: gbC.map(a => a.map(v => 0.1 * v)) }, tails: { AN: K.map(k => [1, 2, 3].map(t => ys(0.1 * (4 - t), 2, N0, 30 + 3 * k + t))) } },
-    S370: { y12: { C: y12C, AN: y12C.map(a => a.map(v => 0.1 * v)) } }, inter: { S362: interOfH('S362'), S370: interOfH('S370') },
+  const t3C = [ys(12.5, 7, N0, 51), ys(3.9, 5, N0, 52), ys(-0.1, 1, N0, 53)];
+  return { S362: { y12: { C: y12C362, AN: y12C362.map(a => a.map(v => 0.1 * v)), AR: y12C362.map(a => a.map(v => 0.1 * v)) }, gb: { C: gbC, AN: gbC.map(a => a.map(v => 0.1 * v)) }, tails: { AN: K.map(k => [1, 2, 3].map(t => ys(0.1 * (4 - t), 2, N0, 30 + 3 * k + t))) } },
+    S370: { y12: { C: y12C, AN: y12C.map(a => a.map(v => 0.1 * v)), AR: y12C.map(a => a.map(v => 0.1 * v)) }, tail3: { C: t3C, AN: t3C.map(a => Float64Array.from(a)) } }, inter: { S362: interOfH('S362'), S370: interOfH('S370') },
     s130: { gb: { C: [ys(4.7, 3, N0, 41), ys(0.8, 2, N0, 42), ys(0.03, 1, N0, 43)], AR: null } }, legs: legsOf() };
 };
 const withS130 = P => { P.s130.gb.AR = P.s130.gb.C.map(a => a.map(v => v + 0.05)); return P; };
@@ -318,6 +345,27 @@ function planted() {
   put('the rows: harm reads R5 over R3', rowAt(P => { P.s130.gb.AR[0] = P.s130.gb.C[0].map(v => v + 1); const [c, a] = pairBits(RUNS.S362[0], 80, 10); P.legs.AN.S362.cells[0] = cellsOf(c, a); P.legs.AN.S362.ws[0] = wsOf(ws0(c), ws0(a)); }), 'R5');
   put('the rows: item 1 unclear reads else', rowAt(P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.4 * v); }), 'else');
   put('the rows: item 2 does not decide a row (item 2 kept, item 1 held)', rowAt(P => { P.S370.y12.AN[0] = P.S370.y12.C[0].map(v => 0.9 * v); }), 'R1');
+  // KNOWN-LEG: AR's split and item 2's whole, and the cause reading
+  { const cz = edit => { const P = base(); edit(P); const it = items(P); return causeOf(it, splitOf(P), wholeOf(P)); };
+    put('the cause: item 1 HELD credits O188-REF', cz(() => {})['1'], 'O188-REF');
+    put('the cause: item 1 FALSIFIED with AR removing what AN keeps reads RS with the reference', cz(P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); })['1'], 'RS with the reference (AR removes what AN keeps: the interaction)');
+    put('the cause: item 1 FALSIFIED with AR keeping it too reads O188-NOTREF', cz(P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); P.S362.y12.AR[1] = P.S362.y12.C[1].map(v => 0.95 * v); })['1'], 'O188-NOTREF at seed 7002 (AR keeps it too)');
+    put('the cause: item 1 FALSIFIED with AR unclear reads open', cz(P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); P.S362.y12.AR[1] = P.S362.y12.C[1].map(v => 0.5 * v); })['1'], 'open (AR unclear where AN keeps it)');
+    put('the cause: AR read only in the worlds AN keeps (AR keeps world 0, AN removes it there)', cz(P => { P.S362.y12.AN[1] = P.S362.y12.C[1].map(v => 0.9 * v); P.S362.y12.AR[1] = P.S362.y12.C[1].map(v => 0.95 * v); P.S362.y12.AR[0] = P.S362.y12.C[0].map(v => 0.95 * v); })['1'], 'O188-NOTREF at seed 7002 (AR keeps it too)');
+    put('the cause: item 2 HELD with its whole still credits Y12R-REF', cz(() => {})['2'], 'Y12R-REF');
+    put('the cause: item 2 HELD with the whole moved a point is not credited', cz(P => { P.S370.tail3.AN[0] = P.S370.tail3.C[0].map(v => v + 1); })['2'], 'Y12R-REF not credited: the increments moved into later years (WHOLE)');
+    put('the cause: item 2 HELD with the whole at half a point, its interval across the line, is not credited', cz(P => { const e = alt(0.5, 3); P.S370.tail3.AN[1] = P.S370.tail3.C[1].map((v, i) => v + e[i]); })['2'], 'Y12R-REF not credited: its whole unclear');
+    put('the cause: item 2 FALSIFIED with AR keeping it too reads Y12R-NOT', cz(P => { P.S370.y12.AN[0] = P.S370.y12.C[0].map(v => 0.9 * v); P.S370.y12.AR[0] = P.S370.y12.C[0].map(v => 0.9 * v); })['2'], 'Y12R-NOT at seed 7002 (AR keeps it too)');
+    put('the cause: item 2 FALSIFIED with AR removing it reads RS with the reference', cz(P => { P.S370.y12.AN[0] = P.S370.y12.C[0].map(v => 0.9 * v); })['2'], 'RS with the reference (AR removes what AN keeps: the interaction)');
+    const kept1 = P => { P.S362.y12.C[1] = new Float64Array(N0).fill(-5.2); P.S362.y12.AN[1] = new Float64Array(N0).fill(-5.2 * 0.9); };
+    put('the cause: AR\'s removal at 0.78 with its interval under three quarters reads open, not RS', cz(P => { kept1(P); const e = alt(0, 8); P.S362.y12.AR[1] = Float64Array.from(e, v => 0.22 * -5.2 + v); })['1'], 'open (AR unclear where AN keeps it)');
+    put('the cause: AR\'s removal at 0.22 with its interval over a quarter reads open, not the not', cz(P => { kept1(P); const e = alt(0, 8); P.S362.y12.AR[1] = Float64Array.from(e, v => 0.78 * -5.2 + v); })['1'], 'open (AR unclear where AN keeps it)');
+    put('the cause: AN keeps two worlds, AR removes one and keeps the other: RS with the reference', cz(P => { kept1(P); P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.9 * v); P.S362.y12.AR[1] = new Float64Array(N0).fill(-5.2 * 0.95); })['1'], 'RS with the reference (AR removes what AN keeps: the interaction)');
+    put('the cause: AN keeps two worlds, AR keeps one and is unclear in the other: open', cz(P => { kept1(P); P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.9 * v); P.S362.y12.AR[1] = new Float64Array(N0).fill(-5.2 * 0.95); P.S362.y12.AR[0] = P.S362.y12.C[0].map(v => 0.5 * v); })['1'], 'open (AR unclear where AN keeps it)');
+    put('the cause: item 1 INCONCLUSIVE reads open', cz(P => { P.S362.y12.AN[0] = P.S362.y12.C[0].map(v => 0.4 * v); })['1'], 'open');
+    { const P = base(); put('the split reads AR on its own Y1 + Y2 (world 2 of S370 under a point: not read)', splitOf(P)['2'].map(x => `${x.k}:${x.read}`).join(','), '0:removed,1:removed'); }
+    { const P = base(); P.S370.tail3.AN[1] = P.S370.tail3.C[1].map(v => v - 1); put('the whole reads a fall of a point as moved', wholeOf(P).map(x => x.read).join(','), 'still,moved'); }
+    EDGES.push('item 2 HELD with its whole moved into later years: Y12R-REF not credited'); }
   // tailOf and firstBand
   { const y = { 1: Float64Array.from([1, 2]), 2: Float64Array.from([10, 20]), 3: Float64Array.from([100, 200]) }, ga = Float64Array.from([1000, 2000]);
     put('tailOf: from year 2, the residual at years 2 and 3 with GA', Array.from(tailOf(y, ga, [1, 2, 3], 2)).join(','), '1110,2220');
@@ -332,6 +380,8 @@ function planted() {
     const tabs = Object.fromEntries(['S362', 'S370', 'S130'].map(h => [h, Object.fromEntries(['C', 'CX', 'AR', 'ARX', 'AN'].map(a => [a, [10, 20, 30]]))]));
     const P = pOf(perP, bitsF, wsF, tabs, bridge);
     put('pOf: S362\'s AN GB in world 2 is its own', P.S362.gb.AN[2][0].toFixed(1), (1 + 400 + 1000 + 0.2).toFixed(1));
+    put('pOf: S370\'s AR Y1 + Y2 are AR\'s', P.S370.y12.AR[0][0].toFixed(1), ((10 + 200 + 2000) + (20 + 200 + 2000)).toFixed(1));
+    put('pOf: S370\'s read error from year 3 on is years 3 on with GA', P.S370.tail3.AN[2][0].toFixed(1), ((30 + 400 + 2000 + 0.2) + (2 + 400 + 2000 + 0.2)).toFixed(1));
     put('pOf: S362\'s Y1 + Y2 in world 1 are AN\'s Y1 + Y2', P.S362.y12.AN[1][0].toFixed(1), ((10 + 400 + 1000 + 0.1) + (20 + 400 + 1000 + 0.1)).toFixed(1));
     put('pOf: S362\'s AN tail from year 2 is years 2 and 3 with GA', P.S362.tails.AN[0][1][0].toFixed(1), ((20 + 400 + 1000) + (30 + 400 + 1000) + (2 + 400 + 1000)).toFixed(1));
     put('pOf: S370\'s years 1-2 are Y1 + Y2', P.S370.y12.C[1][0].toFixed(1), ((10 + 2000 + 0.1) + (20 + 2000 + 0.1)).toFixed(1));
@@ -464,6 +514,9 @@ if (isMain) {
   { const rv = item1Review(P); console.log(`   the review's line (S362's net GB in place of Y1 + Y2; reported, not read): ${rv.outcome}; ${rv.per.map(x => `world ${x.k}: C's GB ${f4(x.r.mc)}, removed ${iv(x.r)}: ${x.read}`).join('; ')}`); }
   console.log(`2. AN removes at least three quarters of S370's first two years' increments (Y1 + Y2) where they are a point or more: ${it['2'].outcome}`);
   for (const x of it['2'].per) console.log(`     world ${x.k}: C's Y1 + Y2 ${f4(x.r.mc)} points, removed ${iv(x.r)}: ${x.read}`);
+  const sp = splitOf(P), wh = wholeOf(P), cz = causeOf(it, sp, wh);
+  console.log(`   KNOWN-LEG, AR's own removal of the same Y1 + Y2 (read where AN keeps it; the registered line): S362 ${sp['1'].map(x => `world ${x.k} ${iv(x.r)} ${x.read}`).join('; ')}; S370 ${sp['2'].map(x => `world ${x.k} ${iv(x.r)} ${x.read}`).join('; ')}`);
+  console.log(`   item 2's whole, S370's read error from year 3 on, AN less C: ${wh.map(x => `world ${x.k} ${iv(x.c)} ${x.read}`).join('; ')}`);
   console.log(`3. the copy rule and the adaptive package add, (ARX - AR) - (CX - C) in table less runs within half a point on S362 and S370: ${it['3'].outcome}`);
   for (const x of it['3'].per) console.log(`     ${x.h} world ${x.k}: ${iv(x)} (tables ${f4(x.tab)}, runs ${f4(x.runs)}): ${x.read}`);
   console.log(`4. the control: AR moves S130's GB by under a quarter of a point in every world: ${it['4'].outcome}`);
@@ -472,6 +525,8 @@ if (isMain) {
   for (const l of it['5'].legs) for (const x of l.per) for (const w of x.per) console.log(`     ${l.arm} against ${l.ctl} on ${x.h} ${hw(w)}`);
   console.log(`OUTCOME: ${Object.keys(it).map(i => `${i} ${it[i].outcome}`).join(', ')}`);
   console.log(`ROW: ${rowOf(it)}`);
+  console.log(`CAUSE item 1: ${cz['1']}`);
+  console.log(`CAUSE item 2: ${cz['2']}`);
   for (const i of Object.keys(POINT)) console.log(`REALISED item ${i}: ${f4(POINT[i](it))}`);
   console.log('\nREPORTED');
   for (const [h, as] of Object.entries(ARMS_H)) for (const a of as) for (let k = 0; k < 3; k++) {
@@ -481,6 +536,9 @@ if (isMain) {
   }
   for (const h of ['S362', 'S370']) for (let k = 0; k < 3; k++) { const d = a => JA(h, a).split[k], by = J(h, 'AR').bridge; console.log(`  ${h} world ${k}: the copied part QC's change, CX less C ${by.map(y => f4(d('CX')[`QC${y}`] - d('C')[`QC${y}`])).join(', ')}; ARX less AR ${by.map(y => f4(d('ARX')[`QC${y}`] - d('AR')[`QC${y}`])).join(', ')} (O190's reach by bridge year)`); }
   for (const h of ['S362', 'S370']) for (let k = 0; k < 3; k++) { const L = a => JA(h, a).ledger[k]; console.log(`  ${h} world ${k}: AR less AN (the RS split's own part): GB ${f4(L('AR').GB - L('AN').GB)} GA ${f4(L('AR').GA - L('AN').GA)}`); }
+  // each package arm against its own control (CONTROL; the plan-auditor's MINOR 4 of 20 Oct 00:05 UK): AR against AN (RS) and ARX
+  // against AR (the copy rule), reported beside item 5's package legs against the frozen candidate
+  for (const [arm, ctl] of [['AR', 'AN'], ['ARX', 'AR']]) for (const h of ['S362', 'S370']) { const hw0 = harmWorlds([0, 1, 2].map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), [0, 1, 2].map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))), 0.05 / 2); for (const w of hw0.per) console.log(`  ${arm} against its own control ${ctl} on ${h} (reported) ${hw(w)}`); }
   const dec16 = x => { const b = Buffer.from(x, 'base64'); return new Uint16Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length)); };
   for (const [arm, ctl, hs] of LEGS) for (const h of hs) for (let k = 0; k < 3; k++) {
     const fa = FA(h, arm), fc = FA(h, ctl), ma = dec16(fa.moves[`MV${k}`]), mc = dec16(fc.moves[`MV${k}`]), ba = bitsF(h, arm, k), bc = bitsF(h, ctl, k), yrs = fa.years, nb = fa.bridge.length, sv = [0, 0, 0, 0], ls = [0, 0, 0, 0];

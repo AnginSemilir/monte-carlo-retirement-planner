@@ -45,7 +45,7 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { items, item1Review, rowOf, pOf, POINT, EXPECT, NPW } from './reduce-refb.mjs';
+import { items, item1Review, splitOf, wholeOf, causeOf, rowOf, pOf, POINT, EXPECT, NPW } from './reduce-refb.mjs';
 
 // THE JUDGED INPUTS (committed before this script's output and before any REF-B run; grade D throughout).
 export const JUDGED = {
@@ -151,6 +151,8 @@ for (const h of HS) {
   }
 }
 console.log(`  item 1 reads S362's worlds where C's Y1 + Y2 is a point or more in size: ${K.filter(k => Math.abs(REC.S362[k].y12) >= 1).join(', ') || 'none'} (the review's GB line: ${K.filter(k => Math.abs(REC.S362[k].gb) >= 1).join(', ') || 'none'}); item 2 reads S370's where C's Y1 + Y2 is: ${K.filter(k => Math.abs(REC.S370[k].y12) >= 1).join(', ') || 'none'}`);
+{ const rm = h => K.map(k => { const c = mean(y12Of(F[h].C, k)), a = mean(y12Of(HD[h].ADP, k)); return Math.abs(c) >= 1 ? `world ${k} ${f4((c - a) / c)}` : `world ${k} not read (C's ${f4(c)})`; }).join(', ');
+  console.log(`  KNOWN-LEG: the records show the adaptive reference with RS reaching both households' years-1-2 reads (HO-DEP's adaptive arm at seed 7004 against C at 7002, the removal of C's Y1 + Y2 cross-seed): S362 ${rm('S362')}; S370 ${rm('S370')}; so items 1 and 2's FALSIFIED is read by AR's own removal (reduce-refb.mjs splitOf), and item 2's HELD with its whole (wholeOf)`); }
 if (process.argv.includes('--records')) process.exit(0);
 
 // a synthetic draw of the three arms from C and CX path by path, in reduce-refb.mjs pOf()'s shape
@@ -228,18 +230,20 @@ const ND = 1000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
 const WHAT = { 1: 'the least share of S362\'s Y1 + Y2 under C that AN removes across the worlds read', 2: 'the least share of S370\'s Y1 + Y2 under C that AN removes across the worlds read', 3: 'the largest interaction in size across households and worlds, points', 4: 'the largest move of S130\'s GB in size across the worlds, points', 5: 'the least survival change of any leg and world, points' };
 function credences(m188, my) {
-  const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []])), V = cnt3(), RV = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 };
+  const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []])), V = cnt3(), RV = { R1: 0, R2: 0, R3: 0, R5: 0, else: 0 }, CZ = { 1: {}, 2: {} };
   for (let q = 0; q < ND; q++) {
     const P = drawSet(drawOf(pickC(m188), pickC(my))), it = items(P), rv = item1Review(P);
     for (const i of IT) { I[i][it[i].outcome]++; const v = POINT[i](it); if (Number.isFinite(v)) pt[i].push(v); }
     R[rowOf(it)]++; V[rv.outcome]++; RV[rowOf({ ...it, 1: rv })]++;
+    const cz = causeOf(it, splitOf(P), wholeOf(P)); for (const i of ['1', '2']) CZ[i][cz[i]] = (CZ[i][cz[i]] || 0) + 1;
   }
-  return { I, R, pt, V, RV };
+  return { I, R, pt, V, RV, CZ };
 }
-const show = ({ I, R, pt, V, RV }, tag) => {
+const show = ({ I, R, pt, V, RV, CZ }, tag) => {
   for (const i of IT) console.log(`  item ${i}: ${row(I[i])}`);
   console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
   console.log(`  the review's GB line in item 1's place, on the same draws (printed, not registered): item 1 ${row(V)}; rows ${Object.entries(RV).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
+  for (const i of ['1', '2']) console.log(`  item ${i}'s cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): ${Object.entries(CZ[i]).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${f2(v / ND)}`).join('; ')}`);
   console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
   for (const i of IT) console.log(`  item ${i}'s point (${WHAT[i]}): median ${f4(qa(pt[i], 0.5))}, 80% interval ${f4(qa(pt[i], 0.1))} to ${f4(qa(pt[i], 0.9))} (${pt[i].length} of ${ND} draws read)`);
   if (tag) { for (const i of IT) console.log(`${tag}item ${i}: point ${f4(qa(pt[i], 0.5))} HELD ${f2(I[i].HELD / ND)} INCONCLUSIVE ${f2(I[i].INCONCLUSIVE / ND)} FALSIFIED ${f2(I[i].FALSIFIED / ND)}`); console.log(`${tag}else ${f2(R.else / ND)}`); }

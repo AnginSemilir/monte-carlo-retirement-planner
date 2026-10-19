@@ -41,7 +41,7 @@ caught: 40: out['1'] = { outcome: per.length ? allOf(per, 'removed', 'ke
 caught: 41: const allOf = (per, yes, no) => (per.some(x => x.read === no
 caught: 42: const allOf = (per, yes, no) => (per.some(x => x.read === no
 caught: 43: const read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >
-caught: 44: return { k, r, read: r.lo >= THREEQ ? 'removed' : r.hi < QUA
+caught: 44: P.S370.y12.AN[k], z); return { k, r, read: r.lo >= THREEQ ? 
 caught: 45: const r = removal(P.S370.y12.C[k], P.S370.y12.AN[k], z);
 caught: 46: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
 caught: 47: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
@@ -74,4 +74,21 @@ caught: 73: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
 caught: 74: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
 caught: 75: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
 caught: 76: export const LATTICE_LINE = '160x41 nz 128';
-76 of 76 mutations caught
+caught: 77: return { 1: one(P.S362.y12.C, P.S362.y12.AR), 2: one(P.S370.
+caught: 78: return { 1: one(P.S362.y12.C, P.S362.y12.AR), 2: one(P.S370.
+caught: 79: return read.map(k => { const r = removal(C[k], A[k], z); ret
+caught: 80: const r = removal(C[k], A[k], z); return { k, r, read: r.lo 
+caught: 81: read: c.lo >= -MOVE && c.hi <= MOVE ? 'still'
+caught: 82: c.hi < -MOVE || c.lo > MOVE ? 'moved'
+caught: 83: MOVE = 0.5;
+caught: 84: Float64Array.from(P.S370.tail3.AN[k], (v, i) => v - P.S370.t
+caught: 85: return ar.some(x => x.read === 'removed') ? 'RS with the ref
+caught: 86: ar = sp[i].filter(x => kept.includes(x.k));
+caught: 87: ar.length && ar.every(x => x.read === 'kept') ? `${not} at s
+caught: 88: (wh.every(x => x.read === 'still') ? 'Y12R-REF'
+caught: 89: wh.some(x => x.read === 'moved') ? 'Y12R-REF not credited: t
+caught: 90: const c1 = o('1') === 'HELD' ? 'O188-REF' : o('1') === 'FALS
+caught: 91: AR: K.map(k => y12('S370', 'AR', k)) }, tail3
+caught: 92: tail3: { C: K.map(k => t3('S370', 'C', k)), AN: K.map(k => t
+caught: 93: const t3 = (h, a, k) => tailOf(ys(h, a, k), perP(h, a, k, 'G
+93 of 93 mutations caught

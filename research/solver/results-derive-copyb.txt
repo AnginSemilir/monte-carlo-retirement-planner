@@ -8,86 +8,89 @@ COPY-B'S DERIVATION, COPY-W'S STAGE B (predictions/diag-copyb.md)
   item 6 reads S370's worlds where CW at 60's GA is half a point or more in size: 0
 
 2. THE POWER (40 draws a cell through reduce-copyb.mjs's items(); every other input drawn from the JUDGED stories, 4000 paths a world)
-  item 1, CX removes 0 of C's GB: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 1, CX removes 0.2 of C's GB: HELD 0.00 INCONCLUSIVE 0.25 FALSIFIED 0.75
+  item 1, CX removes 0 of C's GB: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  item 1, CX removes 0.2 of C's GB: HELD 0.00 INCONCLUSIVE 0.13 FALSIFIED 0.88
   item 1, CX removes 0.4 of C's GB: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
-  item 1, CX removes 0.6 of C's GB: HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
-  item 1, CX removes 0.8 of C's GB: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
-  item 1, CX removes 1 of C's GB: HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00
+  item 1, CX removes 0.6 of C's GB: HELD 0.72 INCONCLUSIVE 0.28 FALSIFIED 0.00
+  item 1, CX removes 0.8 of C's GB: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, CX removes 1 of C's GB: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
   item 3, 60 points removes 0 of C's GA: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 3, 60 points removes 0.2 of C's GA: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  item 3, 60 points removes 0.2 of C's GA: HELD 0.00 INCONCLUSIVE 0.17 FALSIFIED 0.82
   item 3, 60 points removes 0.4 of C's GA: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 3, 60 points removes 0.55 of C's GA: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
-  item 3, 60 points removes 0.75 of C's GA: HELD 0.55 INCONCLUSIVE 0.45 FALSIFIED 0.00
-  item 3, 60 points removes 0.96 of C's GA: HELD 0.78 INCONCLUSIVE 0.23 FALSIFIED 0.00
+  item 3, 60 points removes 0.75 of C's GA: HELD 0.38 INCONCLUSIVE 0.63 FALSIFIED 0.00
+  item 3, 60 points removes 0.96 of C's GA: HELD 0.82 INCONCLUSIVE 0.17 FALSIFIED 0.00
   item 2, the interaction 0 of the copy rule's move on the table: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 2, the interaction 0.06 of the copy rule's move on the table: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
-  item 2, the interaction 0.12 of the copy rule's move on the table: HELD 0.78 INCONCLUSIVE 0.03 FALSIFIED 0.20
-  item 2, the interaction 0.2 of the copy rule's move on the table: HELD 0.60 INCONCLUSIVE 0.07 FALSIFIED 0.33
+  item 2, the interaction 0.06 of the copy rule's move on the table: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, the interaction 0.12 of the copy rule's move on the table: HELD 0.70 INCONCLUSIVE 0.00 FALSIFIED 0.30
+  item 2, the interaction 0.2 of the copy rule's move on the table: HELD 0.65 INCONCLUSIVE 0.03 FALSIFIED 0.33
   item 6, 120 points removes 0 of S370's world-0 GA at 60: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 6, 120 points removes 0.2 of S370's world-0 GA at 60: HELD 0.00 INCONCLUSIVE 0.57 FALSIFIED 0.42
+  item 6, 120 points removes 0.2 of S370's world-0 GA at 60: HELD 0.00 INCONCLUSIVE 0.50 FALSIFIED 0.50
   item 6, 120 points removes 0.375 of S370's world-0 GA at 60: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 6, 120 points removes 0.5 of S370's world-0 GA at 60: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
   item 6, 120 points removes 0.75 of S370's world-0 GA at 60: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 5, each fix's flips 0.5 times S370's: HELD 0.00 INCONCLUSIVE 0.78 FALSIFIED 0.23
-  item 5, each fix's flips 1 times S370's: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
-  item 5, each fix's flips 1.5 times S370's: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 4, at the strongest stories (CX removes all of GB, 60 points 0.96 of GA): HELD 0.00 INCONCLUSIVE 0.35 FALSIFIED 0.65
+  item 5, each fix's discordance 0.5 times S370's, 60 points' world-2 net share 0: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  item 5, each fix's discordance 0.5 times S370's, 60 points' world-2 net share -0.7: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 5, each fix's discordance 1 times S370's, 60 points' world-2 net share 0: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 5, each fix's discordance 1 times S370's, 60 points' world-2 net share -0.7: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 5, each fix's discordance 1.5 times S370's, 60 points' world-2 net share 0: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  item 5, each fix's discordance 1.5 times S370's, 60 points' world-2 net share -0.7: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, at the strongest stories (CX removes all of GB, 60 points 0.96 of GA): HELD 0.00 INCONCLUSIVE 0.25 FALSIFIED 0.75
 
 3. THE CREDENCES AS STATED (the judged BC GEN=0.6, LOCAL=0.4 and BW AXIS=0.4, MIX=0.35, AFTER=0.25; the receipt of 19 Oct 13:32 UK: GA0-AXIS=0.35; GA0-AFTER=0.65; CXINT-NODES=0.8; CXINT-READ=0.12; CXINT-POLICY=0.03; CXINT-OTHER=0.05; 1000 draws through items())
-  item 1: HELD 0.55 INCONCLUSIVE 0.09 FALSIFIED 0.36 (nothing to remove 0.03)
-  item 2: HELD 0.87 INCONCLUSIVE 0.01 FALSIFIED 0.12
-  item 3: HELD 0.27 INCONCLUSIVE 0.50 FALSIFIED 0.23 (nothing to remove 0.00)
-  item 4: HELD 0.00 INCONCLUSIVE 0.04 FALSIFIED 0.96
-  item 5: HELD 0.00 INCONCLUSIVE 0.31 FALSIFIED 0.69
-  item 6: HELD 0.19 INCONCLUSIVE 0.35 FALSIFIED 0.47
-  decision rows: R1 0.00, R2 0.06, R3 0.11, R4 0.04, R5 0.69, else 0.10
-  the chance the action changes (one less the likeliest row): 0.31
-  item 1's point (the least share of C's GB CX removes across the cells read): median 0.5925, 80% interval -0.0096 to 0.9905 (971 of 1000 draws read)
-  item 2's point (the largest interaction in size across the cells, points): median 0.1080, 80% interval 0.0000 to 0.6000 (1000 of 1000 draws read)
-  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.4995, 80% interval -0.0284 to 0.9155 (1000 of 1000 draws read)
-  item 4's point (the largest part in size across the better cells, points): median 3.0000, 80% interval 0.9764 to 7.2259 (1000 of 1000 draws read)
-  item 5's point (the least survival change of any leg and world, points): median -0.5750, 80% interval -0.9750 to -0.2750 (1000 of 1000 draws read)
-  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.2062, 80% interval -0.0123 to 0.7474 (1000 of 1000 draws read)
+  item 1: HELD 0.57 INCONCLUSIVE 0.09 FALSIFIED 0.34 (nothing to remove 0.04)
+  item 2: HELD 0.87 INCONCLUSIVE 0.02 FALSIFIED 0.12
+  item 3: HELD 0.28 INCONCLUSIVE 0.49 FALSIFIED 0.22 (nothing to remove 0.00)
+  item 4: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  item 5: HELD 0.01 INCONCLUSIVE 0.63 FALSIFIED 0.36
+  item 6: HELD 0.17 INCONCLUSIVE 0.34 FALSIFIED 0.50
+  decision rows: R1 0.00, R2 0.11, R3 0.21, R4 0.10, R5 0.36, else 0.22
+  the chance the action changes (one less the likeliest row): 0.64
+  item 1's point (the least share of C's GB CX removes across the cells read): median 0.5981, 80% interval -0.0066 to 0.9867 (964 of 1000 draws read)
+  item 2's point (the largest interaction in size across the cells, points): median 0.1080, 80% interval 0.0000 to 0.5760 (1000 of 1000 draws read)
+  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.4990, 80% interval -0.0127 to 0.9222 (1000 of 1000 draws read)
+  item 4's point (the largest part in size across the better cells, points): median 3.0336, 80% interval 0.9370 to 7.1341 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.4000, 80% interval -3.3000 to -0.1250 (1000 of 1000 draws read)
+  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.2008, 80% interval -0.0169 to 0.7369 (1000 of 1000 draws read)
 
 3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 20 of 40, Laplace 0.50; the registered ones; 1000 draws through items())
-  item 1: HELD 0.46 INCONCLUSIVE 0.08 FALSIFIED 0.45 (nothing to remove 0.04)
-  item 2: HELD 0.93 INCONCLUSIVE 0.01 FALSIFIED 0.06
-  item 3: HELD 0.34 INCONCLUSIVE 0.46 FALSIFIED 0.20 (nothing to remove 0.00)
+  item 1: HELD 0.46 INCONCLUSIVE 0.09 FALSIFIED 0.45 (nothing to remove 0.05)
+  item 2: HELD 0.96 INCONCLUSIVE 0.01 FALSIFIED 0.04
+  item 3: HELD 0.32 INCONCLUSIVE 0.48 FALSIFIED 0.20 (nothing to remove 0.00)
   item 4: HELD 0.00 INCONCLUSIVE 0.04 FALSIFIED 0.96
-  item 5: HELD 0.00 INCONCLUSIVE 0.29 FALSIFIED 0.71
-  item 6: HELD 0.26 INCONCLUSIVE 0.39 FALSIFIED 0.34
-  decision rows: R1 0.00, R2 0.06, R3 0.13, R4 0.03, R5 0.71, else 0.07
-  the chance the action changes (one less the likeliest row): 0.29
-  item 1's point (the least share of C's GB CX removes across the cells read): median 0.5559, 80% interval -0.0140 to 0.9877 (962 of 1000 draws read)
-  item 2's point (the largest interaction in size across the cells, points): median 0.0000, 80% interval 0.0000 to 0.3600 (1000 of 1000 draws read)
-  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.5513, 80% interval 0.0017 to 0.9237 (1000 of 1000 draws read)
-  item 4's point (the largest part in size across the better cells, points): median 2.9010, 80% interval 0.9410 to 7.2567 (1000 of 1000 draws read)
-  item 5's point (the least survival change of any leg and world, points): median -0.6000, 80% interval -1.0000 to -0.2750 (1000 of 1000 draws read)
-  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.4702, 80% interval -0.0035 to 0.7569 (1000 of 1000 draws read)
-CREDENCE item 1: point 0.5559 HELD 0.46 INCONCLUSIVE 0.08 FALSIFIED 0.45
-CREDENCE item 2: point 0.0000 HELD 0.93 INCONCLUSIVE 0.01 FALSIFIED 0.06
-CREDENCE item 3: point 0.5513 HELD 0.34 INCONCLUSIVE 0.46 FALSIFIED 0.20
-CREDENCE item 4: point 2.9010 HELD 0.00 INCONCLUSIVE 0.04 FALSIFIED 0.96
-CREDENCE item 5: point -0.6000 HELD 0.00 INCONCLUSIVE 0.29 FALSIFIED 0.71
-CREDENCE item 6: point 0.4702 HELD 0.26 INCONCLUSIVE 0.39 FALSIFIED 0.34
-CREDENCE else 0.07
+  item 5: HELD 0.00 INCONCLUSIVE 0.64 FALSIFIED 0.36
+  item 6: HELD 0.26 INCONCLUSIVE 0.35 FALSIFIED 0.39
+  decision rows: R1 0.00, R2 0.10, R3 0.29, R4 0.06, R5 0.36, else 0.18
+  the chance the action changes (one less the likeliest row): 0.64
+  item 1's point (the least share of C's GB CX removes across the cells read): median 0.5386, 80% interval -0.0148 to 0.9822 (952 of 1000 draws read)
+  item 2's point (the largest interaction in size across the cells, points): median 0.0000, 80% interval 0.0000 to 0.3200 (1000 of 1000 draws read)
+  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.5316, 80% interval -0.0156 to 0.9208 (1000 of 1000 draws read)
+  item 4's point (the largest part in size across the better cells, points): median 3.0206, 80% interval 0.9660 to 7.2483 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.4250, 80% interval -3.5000 to -0.1250 (1000 of 1000 draws read)
+  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.2420, 80% interval -0.0049 to 0.7553 (1000 of 1000 draws read)
+CREDENCE item 1: point 0.5386 HELD 0.46 INCONCLUSIVE 0.09 FALSIFIED 0.45
+CREDENCE item 2: point 0.0000 HELD 0.96 INCONCLUSIVE 0.01 FALSIFIED 0.04
+CREDENCE item 3: point 0.5316 HELD 0.32 INCONCLUSIVE 0.48 FALSIFIED 0.20
+CREDENCE item 4: point 3.0206 HELD 0.00 INCONCLUSIVE 0.04 FALSIFIED 0.96
+CREDENCE item 5: point -0.4250 HELD 0.00 INCONCLUSIVE 0.64 FALSIFIED 0.36
+CREDENCE item 6: point 0.2420 HELD 0.26 INCONCLUSIVE 0.35 FALSIFIED 0.39
+CREDENCE else 0.18
 
 3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: 20 of 22, Laplace 0.88; printed beside)
-  item 1: HELD 0.81 INCONCLUSIVE 0.07 FALSIFIED 0.12 (nothing to remove 0.04)
-  item 2: HELD 0.79 INCONCLUSIVE 0.03 FALSIFIED 0.18
-  item 3: HELD 0.60 INCONCLUSIVE 0.35 FALSIFIED 0.04 (nothing to remove 0.00)
-  item 4: HELD 0.00 INCONCLUSIVE 0.12 FALSIFIED 0.88
-  item 5: HELD 0.00 INCONCLUSIVE 0.31 FALSIFIED 0.69
-  item 6: HELD 0.06 INCONCLUSIVE 0.30 FALSIFIED 0.64
-  decision rows: R1 0.00, R2 0.17, R3 0.04, R4 0.01, R5 0.69, else 0.09
-  the chance the action changes (one less the likeliest row): 0.31
-  item 1's point (the least share of C's GB CX removes across the cells read): median 0.7811, 80% interval 0.1959 to 0.9968 (964 of 1000 draws read)
-  item 2's point (the largest interaction in size across the cells, points): median 0.2160, 80% interval 0.0000 to 0.7680 (1000 of 1000 draws read)
-  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.7818, 80% interval 0.4843 to 0.9360 (1000 of 1000 draws read)
-  item 4's point (the largest part in size across the better cells, points): median 1.4619, 80% interval 0.6068 to 3.7550 (1000 of 1000 draws read)
-  item 5's point (the least survival change of any leg and world, points): median -0.6000, 80% interval -0.9750 to -0.2750 (1000 of 1000 draws read)
-  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.1738, 80% interval -0.0188 to 0.4889 (1000 of 1000 draws read)
+  item 1: HELD 0.79 INCONCLUSIVE 0.08 FALSIFIED 0.12 (nothing to remove 0.04)
+  item 2: HELD 0.83 INCONCLUSIVE 0.03 FALSIFIED 0.14
+  item 3: HELD 0.58 INCONCLUSIVE 0.38 FALSIFIED 0.04 (nothing to remove 0.00)
+  item 4: HELD 0.00 INCONCLUSIVE 0.14 FALSIFIED 0.86
+  item 5: HELD 0.00 INCONCLUSIVE 0.61 FALSIFIED 0.39
+  item 6: HELD 0.06 INCONCLUSIVE 0.29 FALSIFIED 0.65
+  decision rows: R1 0.00, R2 0.30, R3 0.07, R4 0.03, R5 0.39, else 0.22
+  the chance the action changes (one less the likeliest row): 0.61
+  item 1's point (the least share of C's GB CX removes across the cells read): median 0.7811, 80% interval 0.1903 to 0.9951 (961 of 1000 draws read)
+  item 2's point (the largest interaction in size across the cells, points): median 0.1920, 80% interval 0.0000 to 0.6000 (1000 of 1000 draws read)
+  item 3's point (the least share of C's GA 60 points removes across the cells read): median 0.7440, 80% interval 0.4814 to 0.9345 (1000 of 1000 draws read)
+  item 4's point (the largest part in size across the better cells, points): median 1.4460, 80% interval 0.5750 to 3.5822 (1000 of 1000 draws read)
+  item 5's point (the least survival change of any leg and world, points): median -0.4500, 80% interval -3.2250 to -0.1500 (1000 of 1000 draws read)
+  item 6's point (the share of S370's world-0 GA at 60 that 120 points removes): median 0.1744, 80% interval -0.0206 to 0.4918 (1000 of 1000 draws read)
 
 4. THE BUDGET (grade C: S370's C solve 938 s and ledger 1543 s, CW at 60 1794 s and 1322 s (the ratio 1.91); S362's K1F (HO-DEP) 2385 s and 1530 s; 7u's candidate solves S130 886, S126 934, S128 866 against S370's 1202 s; 120 points taken as twice 60's)
   the jobs in the batch's order: S362 CW/60 1.69 h; S362 CXW/60 1.69 h; S370 CW/120 1.39 h; S362 C/30 1.09 h; S362 CX/30 1.09 h; S130 CW/60 0.77 h; S130 CXW/60 0.77 h; S126 CW/60 0.79 h; S126 CXW/60 0.79 h; S128 CW/60 0.76 h; S130 C/30 0.59 h; S130 CX/30 0.59 h; S126 C/30 0.60 h; S126 CX/30 0.60 h; S128 C/30 0.59 h

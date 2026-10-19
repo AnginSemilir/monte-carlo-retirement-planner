@@ -50,6 +50,10 @@ deferred to the blend's own test (O185; predictions/diag-copyx.md, "Reported, no
 
 ## Breadth afterwards (the review's)
 
+Replaced: the deep review after COPY-X (deep-review-log.md 19 Oct 09:44 UK; PLAN.md's 19 Oct 10:08 row) replaced the
+CX-alone breadth test below with COPY-W (items/COPY-W.md): a copy x wealth factorial on S370 first, then its breadth, the
+world-1 guard being the wealth arm. Kept below as the review set it.
+
 On whichever arm holds (CX alone if item 2 holds, having fewer parts), on PMAP's step households and the gap households, each
 world's table less runs and residual by year printed beside the mixture, a no-harm item per world. The world-1 guard, as the
 review set it: a world's table less runs more than a point below C's is read beside the log-odds-wealth read; the part that

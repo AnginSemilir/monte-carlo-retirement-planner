@@ -1,0 +1,68 @@
+COPY-X: WHERE THE COPY RULE MOVES THE BRIDGE RESIDUAL (results/diagcopyx; reported lines, grade C, one household, one seed)
+GATE: passed (reduce-copyx.mjs over /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyx)
+
+CX less C, world 0, by bridge year (points, path by path, 95%):
+  year 1: C -1.8579, CX -1.4689, change 0.3889 (0.3815 to 0.3964)
+  year 2: C -0.8274, CX -0.4420, change 0.3854 (0.3734 to 0.3974)
+  year 3: C 4.1047, CX 0.9649, change -3.1398 (-3.1652 to -3.1144)
+  year 4: C 0.1508, CX 0.3367, change 0.1859 (0.1804 to 0.1913)
+  year 5: C 0.0645, CX 0.2348, change 0.1703 (0.1648 to 0.1758)
+  year 6: C 0.0539, CX 0.3075, change 0.2536 (0.2462 to 0.2610)
+  year 7: C 6.4586, CX 1.7834, change -4.6752 (-4.7326 to -4.6178)
+  SUM CX world 0, the step years 3 and 7: C 10.5633, CX 2.7483, change -7.8150 (-7.8870 to -7.7430)
+  SUM CX world 0, the other bridge years 1, 2 and 4 to 6: C -2.4160, CX -1.0318, change 1.3842 (1.3665 to 1.4019)
+
+CX less C, world 1, by bridge year (points, path by path, 95%):
+  year 1: C -1.5681, CX -1.5918, change -0.0237 (-0.0262 to -0.0212)
+  year 2: C -0.8230, CX -0.8079, change 0.0150 (0.0064 to 0.0236)
+  year 3: C 1.4581, CX 0.3223, change -1.1358 (-1.1536 to -1.1179)
+  year 4: C -0.5445, CX -0.5707, change -0.0262 (-0.0286 to -0.0238)
+  year 5: C -0.5527, CX -0.5974, change -0.0447 (-0.0480 to -0.0414)
+  year 6: C -0.5573, CX -0.5881, change -0.0308 (-0.0352 to -0.0264)
+  year 7: C 2.5169, CX 0.7691, change -1.7478 (-1.7946 to -1.7010)
+  SUM CX world 1, the step years 3 and 7: C 3.9750, CX 1.0914, change -2.8836 (-2.9419 to -2.8252)
+  SUM CX world 1, the other bridge years 1, 2 and 4 to 6: C -4.0456, CX -4.1560, change -0.1104 (-0.1236 to -0.0972)
+
+CX less C, world 2, by bridge year (points, path by path, 95%):
+  year 1: C -0.5090, CX -0.5724, change -0.0633 (-0.0665 to -0.0601)
+  year 2: C -0.2104, CX -0.2538, change -0.0434 (-0.0511 to -0.0358)
+  year 3: C 0.0750, CX -0.0714, change -0.1465 (-0.1504 to -0.1425)
+  year 4: C -0.1312, CX -0.1597, change -0.0285 (-0.0294 to -0.0276)
+  year 5: C -0.1540, CX -0.1892, change -0.0353 (-0.0368 to -0.0337)
+  year 6: C -0.1331, CX -0.1642, change -0.0311 (-0.0329 to -0.0293)
+  year 7: C 0.1627, CX 0.0297, change -0.1330 (-0.1434 to -0.1226)
+  SUM CX world 2, the step years 3 and 7: C 0.2377, CX -0.0417, change -0.2794 (-0.2920 to -0.2668)
+  SUM CX world 2, the other bridge years 1, 2 and 4 to 6: C -1.1377, CX -1.3393, change -0.2016 (-0.2112 to -0.1919)
+
+SNRX less SNR, world 0, by bridge year (points, path by path, 95%):
+  year 1: SNR 1.1527, SNRX -0.5125, change -1.6652 (-1.6786 to -1.6517)
+  year 2: SNR 0.0986, SNRX -0.3289, change -0.4274 (-0.4336 to -0.4213)
+  year 3: SNR 0.1566, SNRX 0.2390, change 0.0824 (0.0781 to 0.0866)
+  year 4: SNR 0.1272, SNRX 0.2314, change 0.1042 (0.0992 to 0.1091)
+  year 5: SNR 1.7015, SNRX 0.3808, change -1.3207 (-1.3409 to -1.3004)
+  year 6: SNR 0.2610, SNRX 0.2398, change -0.0212 (-0.0265 to -0.0160)
+  year 7: SNR 0.2109, SNRX 0.2099, change -0.0009 (-0.0049 to 0.0030)
+  SUM SNRX world 0, the step years 3 and 7: SNR 0.3675, SNRX 0.4489, change 0.0814 (0.0753 to 0.0875)
+  SUM SNRX world 0, the other bridge years 1, 2 and 4 to 6: SNR 3.3410, SNRX 0.0106, change -3.3303 (-3.3574 to -3.3033)
+
+SNRX less SNR, world 1, by bridge year (points, path by path, 95%):
+  year 1: SNR -0.1982, SNRX -0.9915, change -0.7933 (-0.7989 to -0.7877)
+  year 2: SNR -0.4912, SNRX -0.6885, change -0.1974 (-0.1994 to -0.1954)
+  year 3: SNR -0.3511, SNRX -0.3889, change -0.0378 (-0.0401 to -0.0355)
+  year 4: SNR -0.5417, SNRX -0.5041, change 0.0375 (0.0343 to 0.0408)
+  year 5: SNR 0.4300, SNRX -0.3279, change -0.7580 (-0.7751 to -0.7408)
+  year 6: SNR -0.6608, SNRX -0.6863, change -0.0255 (-0.0296 to -0.0214)
+  year 7: SNR -0.7974, SNRX -0.7969, change 0.0005 (-0.0034 to 0.0044)
+  SUM SNRX world 1, the step years 3 and 7: SNR -1.1485, SNRX -1.1858, change -0.0373 (-0.0418 to -0.0328)
+  SUM SNRX world 1, the other bridge years 1, 2 and 4 to 6: SNR -1.4619, SNRX -3.1985, change -1.7366 (-1.7556 to -1.7176)
+
+SNRX less SNR, world 2, by bridge year (points, path by path, 95%):
+  year 1: SNR 0.7039, SNRX 0.7404, change 0.0365 (0.0333 to 0.0397)
+  year 2: SNR -0.1166, SNRX -0.1947, change -0.0781 (-0.0840 to -0.0723)
+  year 3: SNR -0.1875, SNRX -0.1822, change 0.0053 (0.0043 to 0.0064)
+  year 4: SNR -0.2722, SNRX -0.2774, change -0.0052 (-0.0060 to -0.0043)
+  year 5: SNR -0.3064, SNRX -0.3566, change -0.0501 (-0.0531 to -0.0471)
+  year 6: SNR -0.2036, SNRX -0.2118, change -0.0082 (-0.0106 to -0.0057)
+  year 7: SNR -0.1668, SNRX -0.1660, change 0.0008 (-0.0007 to 0.0023)
+  SUM SNRX world 2, the step years 3 and 7: SNR -0.3543, SNRX -0.3482, change 0.0061 (0.0044 to 0.0078)
+  SUM SNRX world 2, the other bridge years 1, 2 and 4 to 6: SNR -0.1949, SNRX -0.3000, change -0.1051 (-0.1140 to -0.0962)

@@ -86,7 +86,8 @@ export const TESTS = [
   { name: 'FOOT-S366 (the adaptive reference\'s floor at no accessible money fixed: S366 against AX-HO\'s J1 and J2, S362 reported)', prediction: 'predictions/diag-foot.md', results: 'results-foot.txt' },
   { name: 'HO-DEP (the fixed adaptive reference against the order reference on S362 and S370, the deposit households at bridge risk, by the mixture)', prediction: 'predictions/diag-hodep.md', results: 'results-hodep.txt' },
   { name: 'STEP-S370 (top-cell share nodes and 60 wealth points against S370\'s world-0 step-year over-read, the candidate as it stands)', prediction: 'predictions/diag-steps370.md', results: 'results-steps370.txt' },
-  { name: 'STEP-O182 (the copied corners\' residual R scaled where the query\'s chance is the higher, against SN\'s over-read at S370\'s years 1 and 5)', prediction: 'predictions/diag-o182.md', results: 'results-o182.txt' }
+  { name: 'STEP-O182 (the copied corners\' residual R scaled where the query\'s chance is the higher, against SN\'s over-read at S370\'s years 1 and 5)', prediction: 'predictions/diag-o182.md', results: 'results-o182.txt' },
+  { name: 'COPY-X (the copied corners\' flat-copied c extrapolated from the two supported nodes below, against S370\'s bridge over-read: CX and SNRX)', prediction: 'predictions/diag-copyx.md', results: 'results-copyx.txt' }
 ];
 
 export function credences(predText) {

@@ -45,3 +45,8 @@ twice, a results file that does not exist, or a quote that is not a deciding lin
 - 18 Oct 01:41 UK | O177-FOOT | held | results-foot.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
 - 18 Oct 09:43 UK | O179-FIXOWN | not | results-hodep.txt | OUTCOME: 1 HELD, 2 HELD, 3 INCONCLUSIVE
 - 18 Oct 22:45 UK | O182-RESID | held | results-o182.txt | OUTCOME: 1 HELD, 2 HELD, 3 INCONCLUSIVE, 4 INCONCLUSIVE
+- 19 Oct 03:55 UK | O186-CFLAT | held | results-copyx.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+- 18 Oct 15:09 UK | S370-COPY | held | results-copyx.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+- 18 Oct 18:40 UK | S370-COPY | held | results-copyx.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+- 18 Oct 22:45 UK | S370-COPY | held | results-copyx.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+- 19 Oct 03:55 UK | S370-COPY | held | results-copyx.txt | OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD

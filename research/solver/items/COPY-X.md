@@ -51,9 +51,16 @@ deferred to the blend's own test (O185; predictions/diag-copyx.md, "Reported, no
 ## Breadth afterwards (the review's)
 
 On whichever arm holds (CX alone if item 2 holds, having fewer parts), on PMAP's step households and the gap households, each
-world's table less runs and residual by year printed beside the mixture, a no-harm item per world. The world-1 guard: a
-world's table less runs more than a point below C's is read beside the log-odds-wealth read; the part that read explains is
-the blend unmasked (O183, PR17), not the fix's harm.
+world's table less runs and residual by year printed beside the mixture, a no-harm item per world. The world-1 guard, as the
+review set it: a world's table less runs more than a point below C's is read beside the log-odds-wealth read; the part that
+read explains is the blend unmasked (O183, PR17), not the fix's harm.
+
+Restated after COPY-X read (the plan-auditor's BLOCKING 1 of 19 Oct 09:46 UK): the log-odds-wealth read is not built, and by
+the 03:55 receipt's own figures it explains about a quarter of SNR's world-1 under-read and none of year 1's, so it cannot
+carry the guard. The guard is the rule's own change by year, as results-copyx-years.txt reads it (read-copyx-years.mjs): a
+world that falls more than a point below C is charged to the rule only where the rule's own change, path by path on the same
+paths, is at those years; an under-read the control already had is exposed, not made (O81 pre-registered it for any
+step-read fix; its carrier open between O185-UNMASK and O81). A log-odds read sits beside it only if it is built first.
 
 ## STOP until COPY-X reads
 

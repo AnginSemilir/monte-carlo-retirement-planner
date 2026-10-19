@@ -53,6 +53,7 @@ REACH: a screen that chooses households for a reference or reader change keeps o
 PREVIEW: a preflight at a fraction of the points is not read for the direction or size of an effect that depends on the grid's resolution; its bearing is declared as such.
 WHOLE: a fix aimed at one slice of a residual (a year, a layer, a cell) reads the whole residual beside the slice (the table less runs and the residual by year), so a residual that moves shows as moved, not removed; its power model draws the residual moving as well as falling (a share of the removed part reappearing elsewhere), so the row that reads a move can be drawn.
 DISCORD: a power model's paired discordance in each world scales with the paths that can flip there (4p(1 - p) at the control's survival), never one share fixed across worlds.
+CONTROL: a harm item reads each arm against its own control, the arm less the one thing tested; a leg against another arm carries every difference between them and is reported, and a power model draws an arm's paths from its control's saved paths where they exist.
 
 ## Prediction
 

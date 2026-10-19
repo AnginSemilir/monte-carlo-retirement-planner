@@ -115,7 +115,8 @@ const decRaw = x => { const b = Buffer.from(x, 'base64'); return new Float64Arra
 const dec8 = x => new Uint8Array(Buffer.from(x, 'base64'));
 const dec16 = x => { const b = Buffer.from(x, 'base64'); return new Uint16Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length)); };
 export function gate(jobs, { npw = NPW, seed = SEED, scale = 1, files = null } = {}) {
-  const bad = [], want = EXPECT.map(([id, arm, pts]) => ({ id, arm, pts: ptsAt(pts, scale), key: keyOf(id, arm, ptsAt(pts, scale)) }));
+  // a job's label carries its registered points, its case line the points it solved at (the scaled ones at the preflight)
+  const bad = [], want = EXPECT.map(([id, arm, pts]) => ({ id, arm, pts: ptsAt(pts, scale), key: keyOf(id, arm, pts) }));
   for (const x of jobs) if (!want.some(w => w.key === x.key)) bad.push(`a job that is not COPY-B's: ${x.key}`);
   const codes = new Set(jobs.map(j => j.stamp && j.stamp.code));
   if (codes.size !== 1 || codes.has(undefined) || codes.has(null)) bad.push(`the jobs are not on one code (${[...codes].join(', ')})`);
@@ -337,10 +338,10 @@ function planted() {
   const enc = a => Buffer.from(Float64Array.from(a).buffer).toString('base64'), enc8 = a => Buffer.from(Uint8Array.from(a)).toString('base64'), enc16 = a => Buffer.from(Uint16Array.from(a).buffer).toString('base64');
   const npw = 4, DIM = 2, BR = [1, 2, 3];
   const mk = ([id, arm, pts0], over = {}) => {
-    const pts = over.pts || pts0, L = `${arm}/P${pts}S6Q5`, floor = over.floor ?? 104000, rule = over.rule ?? floor, copy = over.copy ?? COPY[arm], br = over.bridge || BR;
+    const pts = over.pts || pts0, at = over.at ?? pts, L = `${arm}/P${pts}S6Q5`, floor = over.floor ?? 104000, rule = over.rule ?? floor, copy = over.copy ?? COPY[arm], br = over.bridge || BR;
     const bitsW = [1, 1, 0, 1], mv = [1, 2, 65535, 1, 2, 3, 4, 65535], ws = [100, 99.5, -2, 100];
-    const lines = [`stamp: code ${over.code || 'c1'} audit a1 prediction ${PRED} sha s1`, `COPY-B: the candidate's own unit, ${over.npw || npw} paths a world, wealth points divided by 1 (seed ${over.seed || SEED}); 15 jobs; part 0/1`, `${(over.id || id).padEnd(16)} case | job ${L} | points ${pts} | lambda 0.0223606797749979`,
-      `solve CAND ${L}: table 50.0000 secs 10`, `ran CAND ${L}: bridgeRead reader bridgeStep exact readerSplit ${over.split || 'null'} readerCopy ${copy} readerBlend null readerRef ${over.ref || 'null'} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${pts} grid total${pts}x6x6 shareNodes ${over.nodes || 'none'} floor ${floor} line 0.5`,
+    const lines = [`stamp: code ${over.code || 'c1'} audit a1 prediction ${PRED} sha s1`, `COPY-B: the candidate's own unit, ${over.npw || npw} paths a world, wealth points divided by ${over.scale || 1} (seed ${over.seed || SEED}); 15 jobs; part 0/1`, `${(over.id || id).padEnd(16)} case | job ${L} | points ${at} | lambda 0.0223606797749979`,
+      `solve CAND ${L}: table 50.0000 secs 10`, `ran CAND ${L}: bridgeRead reader bridgeStep exact readerSplit ${over.split || 'null'} readerCopy ${copy} readerBlend null readerRef ${over.ref || 'null'} readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts ${at} grid total${at}x6x6 shareNodes ${over.nodes || 'none'} floor ${floor} line 0.5`,
       `reader ${L}: tables 72 unsupported 0 copied 10 copiedTop 5 nodes 100`, `nodes ${L}: the uniform six floor ${floor} (the product's rule ${rule})`, `checks ${L}: armTook 1/1`];
     if (!over.noRecount) lines.push(`recount ${L}: tables 72 copied ${over.recount ?? 10} (the solve's 72 and 10) line ${over.recLine ?? 0.5}`, `checks ${L}: copyTook ${over.copyTook ?? 1}/1`);
     lines.push(`openings ${L}: OWN ai 14 level 1 tiers 2,2`);
@@ -393,6 +394,8 @@ function planted() {
   refuses('a file of another household', { [at('S126', 'CW')]: { fileId: 'S128' } });
   refuses('a job with no done line', { [at('S362', 'CXW')]: { notDone: true } });
   { const all = EXPECT.map(x => mk(x, x[0] === 'S126' ? { bridge: [], fileBridge: [] } : {})), jobs = all.flatMap(x => parse(x.text)); put('the gate refuses a household with no bridge year on the logs alone', String(gate(jobs, { npw }).length > 0), 'true'); }
+  { const all = EXPECT.map(x => mk(x, { at: ptsAt(x[2], 15), scale: 15 })), jobs = all.flatMap(x => parse(x.text)), files = Object.fromEntries(all.map(x => x.file)); put('the gate passes the preflight\'s jobs at a fifteenth of the points (labels at the registered points, the case lines at the scaled)', gate(jobs, { npw, scale: 15, files }).join('; '), ''); }
+  { const all = EXPECT.map(x => mk(x, { scale: 15 })), jobs = all.flatMap(x => parse(x.text)), files = Object.fromEntries(all.map(x => x.file)); put('the gate refuses jobs at the registered points read as a fifteenth\'s', String(gate(jobs, { npw, scale: 15, files }).length > 0), 'true'); }
   { const all = EXPECT.slice(1).map(x => mk(x)), jobs = all.flatMap(x => parse(x.text)), files = Object.fromEntries(all.map(x => x.file)); put('the gate refuses a missing job', String(gate(jobs, { npw, files }).length > 0), 'true'); }
   // the reuse: COPY-W's CW against COPY-B's S370 job (synthetic COPY-W logs in COPY-W's own format)
   const mkW = (over = {}) => parseW(mk(['S370', 'CW', 60], over).text.replace(/^COPY-B:/m, 'COPY-W:'));
@@ -430,7 +433,7 @@ if (isMain) {
   const files = Object.fromEntries(readdirSync(DIR).filter(f => f.endsWith('.json.gz')).map(f => [f, JSON.parse(gunzipSync(readFileSync(join(DIR, f))).toString())]));
   const bad = gate(jobs, { npw: npwA, scale: scaleA, files });
   if (bad.length) { console.log(`GATE FAILED (${bad.length}):\n  ${bad.join('\n  ')}`); process.exit(1); }
-  const J = (h, a) => { const e = EXPECT.find(x => x[0] === h && x[1] === a); return jobs.find(x => x.key === keyOf(h, a, ptsAt(e[2], scaleA))); }, FB = (h, a) => files[J(h, a).file];
+  const J = (h, a) => { const e = EXPECT.find(x => x[0] === h && x[1] === a); return jobs.find(x => x.key === keyOf(h, a, e[2])); }, FB = (h, a) => files[J(h, a).file];
   const perP = (h, a, k, x) => Float64Array.from(decRaw(FB(h, a).per[`${x}${k}`]), v => 100 * v);
   if (PRE) {
     console.log(`planted (${np_}): all read as they should`);

@@ -53,9 +53,16 @@ export const JUDGED = {
   // extrapolation amplifying the axis's node errors (S370's world 0: -0.7611 against the copy rule's -6.47, about 0.12);
   // READ, POLICY and OTHER: nil
   ci: { NODES: { 0.06: 0.3, 0.12: 0.4, 0.2: 0.3 }, READ: { 0: 1 }, POLICY: { 0: 1 }, OTHER: { 0: 1 } },
-  // each fix's flips against C, lost and saved alike and apart, as a multiple of S370's (CX's for CX, CW's for CW), scaled by
-  // the household's p(1 - p) against S370's in the world
+  // each fix's discordant paths against C, as a multiple of S370's (CX's for CX, CW's for CW) in the world, scaled by the
+  // household's 4p(1 - p) against S370's (DISCORD; the first output scaled by its square root and took S370's lost and saved
+  // apart as their expectations, so S370's world-2 record under 60 points, 6 lost and 1 saved on 7 paths, read as a sure harm
+  // wherever more paths can flip: fixed after the first output, declared)
   flips: { 0.5: 0.3, 1: 0.4, 1.5: 0.3 },
+  // each fix's net share of its discordant paths by world, (saved - lost) / (saved + lost): the copy rule nil (S370's 10 and 8,
+  // 5 and 5, 1 and 1); 60 points its world-0 gain after access (S370's 75 against 36, 0.35, grade B), world 1 nil or S370's
+  // (34 against 30), world 2 nil or paid there (O179's pattern: S370's 1 against 6 on 7 paths, the deep review after COPY-W's
+  // reading (4), grade C)
+  net: { CX: [{ 0: 1 }, { 0: 1 }, { 0: 1 }], CW: [{ 0.35: 1 }, { 0: 0.5, 0.06: 0.5 }, { 0: 0.65, '-0.7': 0.35 }] },
 };
 
 const HERE = dirname(fileURLToPath(import.meta.url)), R_ = d => join(HERE, 'results', d);
@@ -103,7 +110,8 @@ function houseSet(h, s) {
     gb.C[k] = gC; ga.C[k] = aC; gb.CW[k] = Float64Array.from(gC, v => v + dW); ga.CW[k] = aW;
     if (fact) { gb.CX[k] = gX; ga.CX[k] = aC; gb.CXW[k] = Float64Array.from(gX, v => v + dW + inter); ga.CXW[k] = aW; }
     const ok = Math.round(JUDGED.surv[h][k] * N), bC = Uint8Array.from({ length: N }, (_, i) => (i < ok ? 1 : 0));
-    const flip = a => { const lost = pickIdx(bC, 1, pois(s.flips * FL[a][k].lost * sc)), saved = pickIdx(bC, 0, pois(s.flips * FL[a][k].saved * sc)); return { lost, saved }; };
+    const rf = Math.max(1e-4, JUDGED.surv[h][k] * (1 - JUDGED.surv[h][k])) / Math.max(1e-4, P370[k] * (1 - P370[k]));
+    const flip = a => { const D = s.flips * (FL[a][k].lost + FL[a][k].saved) * rf, e = s.net[a][k]; return { lost: pickIdx(bC, 1, pois(D * (1 - e) / 2)), saved: pickIdx(bC, 0, pois(D * (1 + e) / 2)) }; };
     const fX = flip('CX'), fW = flip('CW'), apply = fs => { const b = Uint8Array.from(bC); for (const f of fs) { for (const j of f.lost) b[j] = 0; for (const j of f.saved) b[j] = 1; } return b; };
     bits.C[k] = bC; bits.CW[k] = apply([fW]); if (fact) { bits.CX[k] = apply([fX]); bits.CXW[k] = apply([fX, fW]); }
     const base = Float64Array.from({ length: N }, () => 0.3 * gauss());
@@ -118,7 +126,7 @@ function setOf(s) {
 const drawOf = (cb, cw, c6, cn) => {
   const g = {}, a = {}, w = {};
   for (const h of WH) { g[h] = K.map(k => pickN(JUDGED.gb[h][k])); a[h] = K.map(k => pickN(JUDGED.ga[h][k])); w[h] = K.map(() => pickN(JUDGED.wgb)); }
-  return { gb: g, ga: a, wgb: w, rc: pickN(JUDGED.bc[cb]), rw: pickN(JUDGED.bw[cw]), r6: pickN(JUDGED.ga0[c6]), ci: pickN(JUDGED.ci[cn]), flips: pickN(JUDGED.flips) };
+  return { gb: g, ga: a, wgb: w, rc: pickN(JUDGED.bc[cb]), rw: pickN(JUDGED.bw[cw]), r6: pickN(JUDGED.ga0[c6]), ci: pickN(JUDGED.ci[cn]), flips: pickN(JUDGED.flips), net: { CX: K.map(k => pickN(JUDGED.net.CX[k])), CW: K.map(k => pickN(JUDGED.net.CW[k])) } };
 };
 const cnt3 = () => ({ HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 }), tot = c => c.HELD + c.INCONCLUSIVE + c.FALSIFIED;
 const row = c => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(x => `${x} ${f2(c[x] / tot(c))}`).join(' ');
@@ -131,7 +139,7 @@ for (const r of [0, 0.2, 0.4, 0.6, 0.8, 1]) { const c = cnt3(); for (let q = 0; 
 for (const r of [0, 0.2, 0.4, 0.55, 0.75, 0.96]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...drawOf('GEN', 'AXIS', 'AXIS', 'NODES'), rw: r }))['3'].outcome]++; console.log(`  item 3, 60 points removes ${r} of C's GA: ${row(c)}`); }
 for (const ci of [0, 0.06, 0.12, 0.2]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...drawOf('GEN', 'AXIS', 'AXIS', 'NODES'), ci }))['2'].outcome]++; console.log(`  item 2, the interaction ${ci} of the copy rule's move on the table: ${row(c)}`); }
 for (const r of [0, 0.2, 0.375, 0.5, 0.75]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...drawOf('GEN', 'AXIS', 'AXIS', 'NODES'), r6: r }))['6'].outcome]++; console.log(`  item 6, 120 points removes ${r} of S370's world-0 GA at 60: ${row(c)}`); }
-for (const fl of [0.5, 1, 1.5]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...drawOf('GEN', 'AXIS', 'AXIS', 'NODES'), flips: fl }))['5'].outcome]++; console.log(`  item 5, each fix's flips ${fl} times S370's: ${row(c)}`); }
+for (const fl of [0.5, 1, 1.5]) for (const e2 of [0, -0.7]) { const c = cnt3(); for (let q = 0; q < DR; q++) { const d = drawOf('GEN', 'AXIS', 'AXIS', 'NODES'); c[items(setOf({ ...d, flips: fl, net: { CX: [0, 0, 0], CW: [0.35, 0, e2] } }))['5'].outcome]++; } console.log(`  item 5, each fix's discordance ${fl} times S370's, 60 points' world-2 net share ${e2}: ${row(c)}`); }
 { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...drawOf('GEN', 'AXIS', 'AXIS', 'NODES'), rc: 1, rw: 0.96 }))['4'].outcome]++; console.log(`  item 4, at the strongest stories (CX removes all of GB, 60 points 0.96 of GA): ${row(c)}`); }
 
 // 3. THE CREDENCES

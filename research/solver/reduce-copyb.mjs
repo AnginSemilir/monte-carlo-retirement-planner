@@ -472,12 +472,12 @@ if (isMain) {
   console.log(`1. the copy rule removes at least half of C's bridge part GB where it is a point or more (the factorial's households): ${it['1'].outcome}`); rem(it['1'], 'C\'s GB');
   console.log(`2. the interaction (CXW - CW) - (CX - C) in table less runs within half a point in every factorial household and world: ${it['2'].outcome}`);
   for (const x of it['2'].per) console.log(`     ${x.h} world ${x.k}: ${iv(x)} (tables ${f4(x.tab)}, runs ${f4(x.runs)}): ${x.read}`);
-  console.log(`3. 60 points removes at least half of C's after-access part GA where it is half a point or more (the factorial's households and S128): ${it['3'].outcome}`); rem(it['3'], 'C\'s GA');
+  console.log(`3. 60 points removes at least three quarters of C's after-access part GA where it is half a point or more, the wealth axis read as an order (the factorial's households and S128): ${it['3'].outcome}`); rem(it['3'], 'C\'s GA');
   console.log(`4. closure by part: the better cell's GB and GA each within half a point in every household and world: ${it['4'].outcome}`);
   for (const x of it['4'].per) { const s = J(x.h, x.arm).sims[`OWN${x.k}`]; console.log(`     ${x.h} ${x.arm} world ${x.k}: GB ${iv(x.gb)}, GA ${iv(x.ga)}: ${x.read}; reported beside: G ${f4(x.gb.d + x.ga.d)}, table less runs ${iv(closeOf(J(x.h, x.arm).tables[x.k].OWN, s.ok, s.n))}`); }
   console.log(`5. no material harm per world, each fix against the frozen candidate, by RULES.md section 8's rule as written: ${it['5'].outcome}`);
   for (const l of it['5'].legs) for (const x of l.per) for (const w of x.per) console.log(`     ${l.arm} against ${l.ctl} on ${x.h} ${hw(w)}`);
-  console.log(`6. on S370, 120 points removes at least half of 60 points' after-access part GA where it is half a point or more: ${it['6'].outcome}`); rem(it['6'], 'CW at 60\'s GA');
+  console.log(`6. on S370, 120 points removes at least three quarters of 60 points' after-access part GA where it is half a point or more: ${it['6'].outcome}`); rem(it['6'], 'CW at 60\'s GA');
   console.log(`OUTCOME: ${Object.keys(it).map(i => `${i} ${it[i].outcome}`).join(', ')}`);
   console.log(`ROW: ${rowOf(it)}`);
   console.log('\nREPORTED');

@@ -64,9 +64,10 @@ Stage A read R2 (results-copyw.txt): item 4 INCONCLUSIVE keeps CXW in the factor
   bridge); bridge 4 only if its 30-point gap is over a point; every household screened by reach at the preflight (REACH).
 - C and CW on S128 (O133's after-access part).
 - CW at 120 points on S370, to read the after-access part's order of convergence.
-- S380 (O139) and S224 (O145) reused from NE-GRID B1's and C's records behind a reuse fair test that meets O184's gate
-  (their tables re-compared with the pin checked or e3pcls off) or shows the reuse does not rest on inert-negridc; CX on
-  either only where the copied corners' weight shows at its visited bridge reads.
+- S380 (O139) and S224 (O145) cited from NE-GRID B1's and C's records in COPY-B's prediction, not run or read by its
+  reducer: those saved files hold survival bits only, no per-path ledger, so the items' parts cannot be read from them;
+  their split by part is AA-UR's, and no result rests on the records (O184's gate). Bridge 4 out: its 30-point gap is 0.0969 in world 0
+  (results-neroot.txt). Registered as COPY-B (predictions/diag-copyb.md), its departures from this re-cut declared there.
 - Items, three outcomes, Holm across households: the copy rule read by year (the step years against years 1 and 2, the
   cancellation guard: the sum of absolute residuals by year); the interaction per world; the wealth fix read as an order,
   the share of GA and of the years-4-6 residual it removes against lines of 0.75 and 0.25; closure by part (the grid

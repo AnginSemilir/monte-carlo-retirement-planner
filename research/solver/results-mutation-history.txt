@@ -181,3 +181,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-19 03:43 UTC | reduce-copyx.mjs 0bbe01611c75 | 52 of 57 caught | escaped: NOT CAUGHT: 24: if (!j.stamp || ['code', 'audit', 'prediction', 'sha'].some(; NOT CAUGHT: 33: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'; NOT CAUGHT: 40: dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025); NOT CAUGHT: 45: const ok = ex.outcome === 'no material harm' && u.lo > -marg; NOT CAUGHT: 52: if (o('3') === 'HELD') return 'R1';
 2026-10-19 03:44 UTC | reduce-copyx.mjs 6ee5d4eb49a7 | 54 of 56 caught | escaped: NOT CAUGHT: 32: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'; NOT CAUGHT: 44: const ok = ex.outcome === 'no material harm' && u.lo > -marg
 2026-10-19 03:45 UTC | reduce-copyx.mjs 82c60b060ca9 | 56 of 56 caught | escaped: none
+2026-10-19 03:57 UTC | reduce-copyx.mjs 14c0844b8705 | 54 of 55 caught | escaped: NOT CAUGHT: 40: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
+2026-10-19 03:58 UTC | reduce-copyx.mjs d03ce68bbb15 | 55 of 55 caught | escaped: none

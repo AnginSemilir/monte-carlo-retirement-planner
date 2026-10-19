@@ -16,11 +16,13 @@
  *      too when SNR's mean Y5 is under a point (nothing to remove).
  *   2: CX's removal of C's bridge residual GB, path by path, the same three outcomes; INCONCLUSIVE when C's mean GB is under a
  *      point.
- *   3: the better arm's world-0 table less runs at most half of C's: for CX and SNRX each the drop (C's table less runs) -
- *      (the arm's), the tables fixed and the runs paired (the guarded unconditional interval at 97.5%, two arms); the better arm
- *      the one with the larger drop; HELD when its interval lies at or above half of C's table less runs; FALSIFIED when both
- *      arms' intervals lie below a quarter of it; otherwise INCONCLUSIVE; INCONCLUSIVE too when C's table less runs is under a
- *      point.
+ *   3: CX's world-0 table less runs at most half of C's (the over-read itself, without new nodes: S370-COPY's question): the
+ *      drop (C's table less runs) - (CX's), the tables fixed and the runs paired (the guarded unconditional interval at 95%):
+ *      HELD when its interval lies at or above half of C's table less runs; FALSIFIED when it lies below a quarter of it;
+ *      otherwise INCONCLUSIVE; INCONCLUSIVE too when C's table less runs is under a point. (A departure from the review's "the
+ *      better arm's", declared in the prediction: SNRX starts from SNR's gap, near the bar already, so that reading could not
+ *      fall and would credit SN and the scaling; item3Review below keeps it for the derivation's comparison, and SNRX's drops
+ *      against C and against SNR are reported.)
  *   4: no material harm against C, CX and SNRX each, by RULES.md section 8's rule as written for a policy change: per world the
  *      exact conditional McNemar at the relative margin marginRel(C's survival) with Holm across the three worlds within each
  *      arm, AND the guarded unconditional interval's lower end above minus the margin; the whole score per world by its normal
@@ -213,11 +215,16 @@ export function items(P) {
   const out = {};
   out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));
   out['2'] = ratioItem(removal(P.gb.C, P.gb.CX));
-  const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025), ds = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0], 0.025), best = ds.d > dx.d ? 'SNRX' : 'CX', db = best === 'SNRX' ? ds : dx;
-  out['3'] = { outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE' : db.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC && ds.hi < QUARTER * dx.gapC ? 'FALSIFIED' : 'INCONCLUSIVE', dr: db, dx, ds, best, nothing: !(dx.gapC >= MINRES) };
+  const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0]);
+  out['3'] = { outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE' : dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC ? 'FALSIFIED' : 'INCONCLUSIVE', dr: dx, nothing: !(dx.gapC >= MINRES) };
   const hx = harmWorlds(P.cells.CX, P.ws.CX), hs = harmWorlds(P.cells.SNRX, P.ws.SNRX);
   out['4'] = { outcome: hx.outcome === 'FALSIFIED' || hs.outcome === 'FALSIFIED' ? 'FALSIFIED' : hx.outcome === 'HELD' && hs.outcome === 'HELD' ? 'HELD' : 'INCONCLUSIVE', hx, hs };
   return out;
+}
+// the review's item 3 as it set it (the better arm's drop, 97.5% intervals for two arms), for the derivation's comparison only
+export function item3Review(P) {
+  const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025), ds = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0], 0.025), db = ds.d > dx.d ? ds : dx;
+  return !(dx.gapC >= MINRES) ? 'INCONCLUSIVE' : db.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC && ds.hi < QUARTER * dx.gapC ? 'FALSIFIED' : 'INCONCLUSIVE';
 }
 export function rowOf(it) {
   const o = i => it[i].outcome;
@@ -253,12 +260,14 @@ function planted() {
   run('CX over-corrects (removes 1.4 of it)', P => { P.gb.CX = P.gb.C.map(v => -0.4 * v); }, '2', 'HELD');
   run('C\'s bridge residual under a point (nothing to remove)', P => { P.gb.C = P.gb.C.map(v => 0.05 * v); P.gb.CX = P.gb.C.map(() => 0); }, '2', 'INCONCLUSIVE');
   run('CX 6 points under C\'s table on runs at C\'s (C\'s gap 9)', () => {}, '3', 'HELD');
-  run('both arms 1 point under C\'s', P => { P.tab.CX = 48; P.tab.SNRX = 48; }, '3', 'FALSIFIED');
-  run('CX 1 point under and SNRX 3 under (the better arm inconclusive)', P => { P.tab.CX = 48; P.tab.SNRX = 46; }, '3', 'INCONCLUSIVE');
-  run('CX 1 point under, SNRX 6 under (SNRX the better arm)', P => { P.tab.CX = 48; P.tab.SNRX = 43; }, '3', 'HELD', 'the better arm is the other arm');
+  run('CX 1 point under C\'s', P => { P.tab.CX = 48; }, '3', 'FALSIFIED');
+  run('CX 3 points under (C\'s gap 9)', P => { P.tab.CX = 46; }, '3', 'INCONCLUSIVE');
+  run('CX 1 point under while SNRX is 6 under (SNRX does not decide item 3)', P => { P.tab.CX = 48; P.tab.SNRX = 43; }, '3', 'FALSIFIED', 'SNRX\'s drop does not decide item 3');
   run('C\'s table half a point over its runs (nothing to remove)', P => { P.tab.C = 40.5; P.tab.CX = 39; P.tab.SNRX = 39; }, '3', 'INCONCLUSIVE', 'C\'s table less runs under a point: nothing to remove');
-  run('CX\'s runs fall by as much as its table, SNRX 1 under (no drop)', P => { P.cells.CX[0] = cellsAt(40, 250, 10); P.tab.CX = 43; P.tab.SNRX = 48; }, '3', 'FALSIFIED', 'a table that falls with its runs reads no drop');
-  run('CX 4.9 under on discordant runs: at half by the 80% interval, under it by the 97.5% interval', P => { P.tab.CX = 44.1; P.tab.SNRX = 48; P.cells.CX[0] = cellsAt(40, 60, 60); }, '3', 'INCONCLUSIVE');
+  run('CX\'s runs fall by as much as its table (no drop, paired by path)', P => { P.cells.CX[0] = cellsAt(40, 250, 10); P.tab.CX = 43; }, '3', 'FALSIFIED', 'a table that falls with its runs reads no drop');
+  run('CX 4.7 under on discordant runs (its interval reaching under half)', P => { P.tab.CX = 44.3; P.cells.CX[0] = cellsAt(40, 60, 60); }, '3', 'INCONCLUSIVE');
+  run('CX\'s table above C\'s (the gap grows)', P => { P.tab.CX = 52; }, '3', 'FALSIFIED');
+  run('CX 2 points under on discordant runs (under a quarter by the point, its interval reaching above)', P => { P.tab.CX = 47; P.cells.CX[0] = cellsAt(40, 60, 60); }, '3', 'INCONCLUSIVE');
   run('both arms at C in every world', () => {}, '4', 'HELD');
   run('CX loses 60 paths in world 0', P => { P.cells.CX[0] = cellsAt(40, 70, 10); }, '4', 'FALSIFIED');
   run('SNRX\'s whole score 1 point down in world 2 alone', P => { P.ws.SNRX[2] = { d: -1, se: 0.05 }; }, '4', 'FALSIFIED');
@@ -269,12 +278,12 @@ function planted() {
   // the decision rows
   { const P = P0(); put('the rows: the gap halves, reads R1', rowOf(items(P)), 'R1'); }
   { const P = P0(); P.cells.CX[0] = cellsAt(40, 70, 10); put('the rows: CX harms, reads R4 over R1', rowOf(items(P)), 'R4'); }
-  { const P = P0(); P.tab.CX = 48; P.tab.SNRX = 48; put('the rows: both slices removed, the gap stays, reads R2', rowOf(items(P)), 'R2'); }
-  { const P = P0(); P.tab.CX = 48; P.tab.SNRX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); P.gb.CX = P.gb.C.map(v => 0.9 * v); put('the rows: neither slice removed, reads R3', rowOf(items(P)), 'R3'); }
-  { const P = P0(); P.tab.CX = 48; P.tab.SNRX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); put('the rows: CX removes C\'s slice, SNRX not SNR\'s, reads else (R2 needs both)', rowOf(items(P)), 'else'); }
-  { const P = P0(); P.tab.CX = 48; P.tab.SNRX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.6 * v); P.gb.CX = P.gb.C.map(v => 0.9 * v); put('the rows: item 1 inconclusive and item 2 falsified, reads else (R3 needs both falsified)', rowOf(items(P)), 'else'); }
+  { const P = P0(); P.tab.CX = 48; put('the rows: both slices removed, the gap stays, reads R2', rowOf(items(P)), 'R2'); }
+  { const P = P0(); P.tab.CX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); P.gb.CX = P.gb.C.map(v => 0.9 * v); put('the rows: neither slice removed, reads R3', rowOf(items(P)), 'R3'); }
+  { const P = P0(); P.tab.CX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); put('the rows: CX removes C\'s slice, SNRX not SNR\'s, reads else (R2 needs both)', rowOf(items(P)), 'else'); }
+  { const P = P0(); P.tab.CX = 48; P.y5.SNRX = P.y5.SNR.map(v => 0.6 * v); P.gb.CX = P.gb.C.map(v => 0.9 * v); put('the rows: item 1 inconclusive and item 2 falsified, reads else (R3 needs both falsified)', rowOf(items(P)), 'else'); }
   { const P = P0(); P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); P.gb.CX = P.gb.C.map(v => 0.9 * v); put('the rows: the gap halves though neither slice moves, reads R1 (the whole over the slices)', rowOf(items(P)), 'R1'); }
-  { const P = P0(); P.tab.CX = 46; P.tab.SNRX = 48; put('the rows: both slices removed, the gap partly (item 3 inconclusive), reads R2 not R1', rowOf(items(P)), 'R2'); }
+  { const P = P0(); P.tab.CX = 46; put('the rows: both slices removed, the gap partly (item 3 inconclusive), reads R2 not R1', rowOf(items(P)), 'R2'); }
   // the removal's arithmetic on a case worked by hand
   { const r = removal(Float64Array.from([2, 4, 6]), Float64Array.from([1, 2, 3])); put('the removal of a half on three paths reads 0.5 with no spread', `${r.R.toFixed(3)} ${r.lo.toFixed(3)} ${r.hi.toFixed(3)}`, '0.500 0.500 0.500'); }
   // the gate on synthetic logs and files
@@ -386,8 +395,8 @@ if (isMain) {
   console.log(`     the removal ${iv(it['1'].r)} of SNR's mean ${f4(it['1'].r.mc)} points${it['1'].nothing ? ' (nothing to remove)' : ''}`);
   console.log(`2. CX removes at least half of C's world-0 bridge residual GB (path by path): ${it['2'].outcome}`);
   console.log(`     the removal ${iv(it['2'].r)} of C's mean ${f4(it['2'].r.mc)} points${it['2'].nothing ? ' (nothing to remove)' : ''}`);
-  console.log(`3. the better arm's world-0 table less runs at most half of C's: ${it['3'].outcome} (the better arm ${it['3'].best})`);
-  console.log(`     C's table less runs ${f4(it['3'].dx.gapC)}; CX's ${f4(it['3'].dx.gapX)}, the drop ${iv(it['3'].dx)}; SNRX's ${f4(it['3'].ds.gapX)}, the drop ${iv(it['3'].ds)} (97.5% intervals)`);
+  console.log(`3. CX's world-0 table less runs at most half of C's: ${it['3'].outcome}`);
+  console.log(`     C's table less runs ${f4(it['3'].dr.gapC)}, CX's ${f4(it['3'].dr.gapX)}, the drop ${iv(it['3'].dr)}`);
   console.log(`4. no material harm against C, CX and SNRX each, by RULES.md section 8's rule as written, per world: ${it['4'].outcome}`);
   for (const [a, h] of [['CX', it['4'].hx], ['SNRX', it['4'].hs]]) for (const x of h.per) console.log(`     ${a} ${hw(h, x)}`);
   console.log(`OUTCOME: 1 ${it['1'].outcome}, 2 ${it['2'].outcome}, 3 ${it['3'].outcome}, 4 ${it['4'].outcome}`);
@@ -396,6 +405,7 @@ if (isMain) {
   console.log('\nREPORTED');
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const s = J[a].sims[`OWN${k}`], L = J[a].ledger[k], t = J[a].tables[k].OWN; console.log(`  ${a} world ${k}: table ${f4(t)} runs ${s.ok}/${s.n} (${f4(100 * s.ok / s.n)}), table less runs ${f4(t - 100 * s.ok / s.n)}; GB ${f4(L.GB)} GA ${f4(L.GA)} T ${f4(L.T)}; by year ${(J[a].bridge || []).map(y => `${y}: ${f4(L[`Y${y}`])}`).join(' | ')}`); }
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const S = J[a].split[k]; console.log(`  ${a} world ${k} split by year (QS, QC, RS, RC): ${(J[a].bridge || []).map(y => `${y}: ${PARTS.map(p => f4(S[`${p}${y}`])).join(', ')}`).join(' | ')}`); }
+  { const ds = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0]), dn = dropOf(J.SNR.tables[0].OWN, P.tab.SNRX, cellsOf(bitsF('SNR', 0), bitsF('SNRX', 0))); console.log(`  SNRX's world-0 table less runs ${f4(ds.gapX)}: the drop against C ${iv(ds)}, against SNR (${f4(dn.gapC)}) ${iv(dn)}; the review's item 3 (the better arm's, 97.5%): ${item3Review(P)}`); }
   { const h = harmWorlds([0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNRX', k))), [0, 1, 2].map(k => wsOf(wsF('SNR', k), wsF('SNRX', k)))); for (const x of h.per) console.log(`  SNRX against SNR (the split of any harm) ${hw(h, x)}`); }
   for (const a of ARMS) console.log(`  ${a}: copied ${J[a].reader.copied} copiedTop ${J[a].reader.copiedTop} of ${J[a].reader.nodes} nodes; reads at the clamp ${J[a].clamped.n} of ${J[a].clamped.of}; solve ${J[a].solve.secs} s`);
 }

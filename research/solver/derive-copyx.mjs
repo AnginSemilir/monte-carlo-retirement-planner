@@ -14,7 +14,7 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { items, rowOf, NPW } from './reduce-copyx.mjs';
+import { items, rowOf, item3Review, NPW } from './reduce-copyx.mjs';
 
 // THE JUDGED INPUTS (committed before this script's output and before any COPY-X run; grade D throughout). Item 1 by the
 // receipt's O186 causes (CFLAT: the copied corners' flat c; BLEND: the reader's probability blend along wealth; CHOOSER;
@@ -120,7 +120,8 @@ console.log(`\n2. THE POWER (${DR} draws a cell through reduce-copyx.mjs's items
 for (const r of [0, 0.25, 0.4, 0.55, 0.75]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, r1: r }))['1'].outcome]++; console.log(`  item 1, SNRX removes ${r} of SNR's Y5 (noise x0.5): ${row(c)}`); }
 for (const nz of [0.25, 1]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, noise: nz, r1: 0.6 }))['1'].outcome]++; console.log(`  item 1, a removal of 0.6, noise x${nz}: ${row(c)}`); }
 for (const r of [0, 0.25, 0.4, 0.6, 0.9]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, r2: r }))['2'].outcome]++; console.log(`  item 2, CX removes ${r} of C's GB: ${row(c)}`); }
-for (const [r2, r1, mv] of [[0.3, 0.2, 0], [0.5, 0.3, 0], [0.9, 0.55, 0], [0.9, 0.55, 0.4], [0.9, 0.55, 0.8], [0, 0.55, 0]]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, r1, r2, moveX: mv, moveS: mv }))['3'].outcome]++; console.log(`  item 3, CX removes ${r2} of GB and SNRX ${r1} of Y5, ${mv} of each moving elsewhere: ${row(c)}`); }
+// item 3 as registered (CX against C) beside the review's reading (the better arm's), on the same draws
+for (const [r2, r1, mv] of [[0.3, 0.2, 0], [0.5, 0.3, 0], [0.9, 0.55, 0], [0.9, 0.55, 0.4], [0.9, 0.55, 0.8], [0, 0.55, 0]]) { const c = cnt3(), cr = cnt3(); for (let q = 0; q < DR; q++) { const P = setOf({ ...BASE, r1, r2, moveX: mv, moveS: mv }); c[items(P)['3'].outcome]++; cr[item3Review(P)]++; } console.log(`  item 3, CX removes ${r2} of GB and SNRX ${r1} of Y5, ${mv} of each moving elsewhere: ${row(c)} | the review's reading: ${row(cr)}`); }
 for (const v of [-0.6, -0.25, 0, 0.25]) { const c = cnt3(); for (let q = 0; q < DR; q++) c[items(setOf({ ...BASE, d4X: v, d4S: v }))['4'].outcome]++; console.log(`  item 4, both arms' survival change ${v} a world (discordance 0.03 of 4p(1 - p)): ${row(c)}`); }
 
 // 3. THE CREDENCES: the receipt's O186 and S370 sets through the judged stories, each draw read through items()
@@ -131,20 +132,22 @@ for (const [c, J] of [[c1, JUDGED.r1], [c2, JUDGED.r2]]) if (Object.keys(c).leng
 const ND = 2000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
 function credences(m1, m2) {
-  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3() }, R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [] };
+  const I = { 1: cnt3(), 2: cnt3(), 3: cnt3(), 4: cnt3() }, I3r = cnt3(), R = { R1: 0, R2: 0, R3: 0, R4: 0, else: 0 }, pt = { 1: [], 2: [], 3: [], 4: [] };
   for (let q = 0; q < ND; q++) {
     const k1 = pickC(m1), k2 = pickC(m2), l1 = k1 === LEAD[1] ? 'lead' : 'rest', l2 = k2 === LEAD[2] ? 'lead' : 'rest';
     const story = { r1: pick(JUDGED.r1[k1]), r2: pick(JUDGED.r2[k2]), moveS: pick(JUDGED.move[l1]), moveX: pick(JUDGED.move[l2]), d4S: pick(JUDGED.d4[l1]), d4X: pick(JUDGED.d4[l2]), noise: pick(JUDGED.noise), disc4: pick(JUDGED.disc4), wx4: pick(JUDGED.wx4), epsX: pick(JUDGED.gapEps), epsS: pick(JUDGED.gapEps) };
-    const it = items(setOf(story));
+    const P = setOf(story), it = items(P);
     for (const i of ['1', '2', '3', '4']) I[i][it[i].outcome]++;
+    I3r[item3Review(P)]++;
     R[rowOf(it)]++;
     pt[1].push(it['1'].r.R); pt[2].push(it['2'].r.R); pt[3].push(it['3'].dr.d); pt[4].push(it['4'].hx.per[0].ex.d);
   }
-  return { I, R, pt };
+  return { I, I3r, R, pt };
 }
-const WHAT = { 1: 'the share of SNR\'s world-0 Y5 SNRX removes', 2: 'the share of C\'s world-0 GB CX removes', 3: 'the better arm\'s drop in world 0\'s table less runs against C, points', 4: 'CX\'s survival change against C in world 0, points' };
-const show = ({ I, R, pt }, tag) => {
+const WHAT = { 1: 'the share of SNR\'s world-0 Y5 SNRX removes', 2: 'the share of C\'s world-0 GB CX removes', 3: 'CX\'s drop in world 0\'s table less runs against C, points', 4: 'CX\'s survival change against C in world 0, points' };
+const show = ({ I, I3r, R, pt }, tag) => {
   for (const i of ['1', '2', '3', '4']) console.log(`  item ${i}: ${row(I[i])}`);
+  console.log(`  item 3 as the review set it (the better arm's, 97.5% intervals), on the same draws: ${row(I3r)}`);
   console.log(`  decision rows: ${Object.entries(R).map(([k, v]) => `${k} ${f2(v / ND)}`).join(', ')}`);
   console.log(`  the chance the action changes (one less the likeliest row): ${f2(1 - Math.max(...Object.values(R)) / ND)}`);
   console.log(`  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else ${f2(R.else / ND)}`);

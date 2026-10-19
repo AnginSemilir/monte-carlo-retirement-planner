@@ -35,23 +35,22 @@ caught: 34: outcome: !(r.mc >= MINRES) || !Number.isFinite(r.R) ? 'INCON
 caught: 35: out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));
 caught: 36: out['2'] = ratioItem(removal(P.gb.C, P.gb.CX));
 caught: 37: return { gapC, gapX, d: (tabC - tabX) + u.d, lo: (tabC - tab
-caught: 38: best = ds.d > dx.d ? 'SNRX' : 'CX'
-caught: 39: dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025)
-caught: 40: db.lo >= HALF * dx.gapC ? 'HELD'
-caught: 41: dx.hi < QUARTER * dx.gapC && ds.hi < QUARTER * dx.gapC ? 'FA
-caught: 42: outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE'
+caught: 38: const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0]);
+caught: 39: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
+caught: 40: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
+caught: 41: outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE'
+caught: 42: const ok = ex.outcome === 'no material harm' && u.lo > -marg
 caught: 43: const ok = ex.outcome === 'no material harm' && u.lo > -marg
-caught: 44: const ok = ex.outcome === 'no material harm' && u.lo > -marg
-caught: 45: harm = ex.outcome === 'harm' || w.hi < -margin;
-caught: 46: const N = x.a + x.b + x.c + x.d, margin = marginRel(100 * (x
-caught: 47: const u = guarded(survivalChangeU(x.a, x.b, x.c, x.d, level)
-caught: 48: outcome: hx.outcome === 'FALSIFIED' || hs.outcome === 'FALSI
-caught: 49: hx.outcome === 'HELD' && hs.outcome === 'HELD' ? 'HELD'
-caught: 50: if (o('4') === 'FALSIFIED') return 'R4';
-caught: 51: if (o('3') === 'HELD') return 'R1';
-caught: 52: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R2';
-caught: 53: if (o('1') === 'FALSIFIED' && o('2') === 'FALSIFIED') return
+caught: 44: harm = ex.outcome === 'harm' || w.hi < -margin;
+caught: 45: const N = x.a + x.b + x.c + x.d, margin = marginRel(100 * (x
+caught: 46: const u = guarded(survivalChangeU(x.a, x.b, x.c, x.d, level)
+caught: 47: outcome: hx.outcome === 'FALSIFIED' || hs.outcome === 'FALSI
+caught: 48: hx.outcome === 'HELD' && hs.outcome === 'HELD' ? 'HELD'
+caught: 49: if (o('4') === 'FALSIFIED') return 'R4';
+caught: 50: if (o('3') === 'HELD') return 'R1';
+caught: 51: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R2';
+caught: 52: if (o('1') === 'FALSIFIED' && o('2') === 'FALSIFIED') return
+caught: 53: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
 caught: 54: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
 caught: 55: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
-caught: 56: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
-56 of 56 mutations caught
+55 of 55 mutations caught

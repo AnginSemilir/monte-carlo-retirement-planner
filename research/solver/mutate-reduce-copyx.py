@@ -44,12 +44,11 @@ M = [
   ("outcome: !(r.mc >= MINRES) || !Number.isFinite(r.R) ? 'INCONCLUSIVE'", "outcome: !Number.isFinite(r.R) ? 'INCONCLUSIVE'"),
   ("out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));", "out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNR.map(v => 0.4 * v)));"),
   ("out['2'] = ratioItem(removal(P.gb.C, P.gb.CX));", "out['2'] = ratioItem(removal(P.gb.C, P.gb.C.map(v => 0.4 * v)));"),
-  # the drop and the better arm
+  # the drop
   ("return { gapC, gapX, d: (tabC - tabX) + u.d, lo: (tabC - tabX) + u.lo, hi: (tabC - tabX) + u.hi };", "return { gapC, gapX, d: (tabC - tabX), lo: (tabC - tabX), hi: (tabC - tabX) };"),
-  ("best = ds.d > dx.d ? 'SNRX' : 'CX'", "best = 'CX'"),
-  ("dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025)", "dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.2)"),
-  ("db.lo >= HALF * dx.gapC ? 'HELD'", "db.d >= HALF * dx.gapC ? 'HELD'"),
-  ("dx.hi < QUARTER * dx.gapC && ds.hi < QUARTER * dx.gapC ? 'FALSIFIED'", "dx.hi < QUARTER * dx.gapC ? 'FALSIFIED'"),
+  ("const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0]);", "const dx = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0]);"),
+  ("dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC ? 'FALSIFIED'", "dx.d >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC ? 'FALSIFIED'"),
+  ("dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC ? 'FALSIFIED'", "dx.lo >= HALF * dx.gapC ? 'HELD' : dx.d < QUARTER * dx.gapC ? 'FALSIFIED'"),
   ("outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE'", "outcome: false ? 'INCONCLUSIVE'"),
   # the harm item
   ("const ok = ex.outcome === 'no material harm' && u.lo > -margin && w.lo > -margin,", "const ok = ex.outcome === 'no material harm' && w.lo > -margin,"),

@@ -7,9 +7,10 @@
 #     read given back by its four parts; the reach screen (each household's bridge years, bridge failures by world, the copied
 #     nodes) printed for the registration;
 # (B) the rule itself: research/tests/reader-copy.test.mjs on this code, every verdict PASS;
-# (C) the plants, each refusing its job (exit 3) on its own check: cxw on S130's CXW (armTook), own and layer on S130's CW
+# (C) the plants, each refusing its job (exit 3) on its own check: cxw on S362's CXW (armTook), own and layer on S362's CW
 #     (identity), quad (qfTook), held (layerTook), score (scoreTook's scorePaths leg), trace (scoreTook's counters leg), split
-#     (splitTook), class (copyTook), each on S130's CW.
+#     (splitTook), class (copyTook), each on S362's CW: S362 has seven bridge years, where a move taken can differ from the
+#     tiers held (the first run put them on S130's CW, one bridge year, where the held plant is inert by construction: PLANTS).
 set -u
 OUT=research/solver/results/copyb-preflight
 rm -rf "$OUT"; mkdir -p "$OUT/main"
@@ -22,8 +23,8 @@ NJ=$(node research/solver/audit-copyb.mjs --units | tail -1)
   case {} in
     m*) k=$(echo {} | cut -c2-); DIAGCOPYB_OUT=$O/main node research/solver/audit-copyb.mjs $A part $k/15 7002 > $O/main/case$k.txt 2>&1; echo "{} exit $?" > $O/main/exit$k ;;
     rct) node research/tests/reader-copy.test.mjs > $O/reader-copy.txt 2>&1; echo "reader-copy exit $?" > $O/reader-copy-exit.txt ;;
-    cxw) COPYB_PLANT=cxw DIAGCOPYB_OUT=$O/plant-cxw node research/solver/audit-copyb.mjs $A part 6/15 7002 > $O/plant-cxw/case6.txt 2>&1; echo "plant cxw exit $?" > $O/plant-cxw/exit.txt ;;
-    *) COPYB_PLANT={} DIAGCOPYB_OUT=$O/plant-{} node research/solver/audit-copyb.mjs $A part 5/15 7002 > $O/plant-{}/case5.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
+    cxw) COPYB_PLANT=cxw DIAGCOPYB_OUT=$O/plant-cxw node research/solver/audit-copyb.mjs $A part 1/15 7002 > $O/plant-cxw/case1.txt 2>&1; echo "plant cxw exit $?" > $O/plant-cxw/exit.txt ;;
+    *) COPYB_PLANT={} DIAGCOPYB_OUT=$O/plant-{} node research/solver/audit-copyb.mjs $A part 0/15 7002 > $O/plant-{}/case0.txt 2>&1; echo "plant {} exit $?" > $O/plant-{}/exit.txt ;;
   esac'
 bad=0; R=research/solver/reduce-copyb.mjs
 for f in "$OUT"/main/exit*; do grep -q " exit 0" "$f" || { echo "$(cat $f): A JOB DID NOT FINISH ($f) - the preflight fails"; grep -h "audit-copyb:" "$OUT"/main/case*.txt | head -3; bad=1; }; done

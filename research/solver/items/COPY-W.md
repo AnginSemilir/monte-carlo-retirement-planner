@@ -2,7 +2,7 @@
 
 Proposed by the deep review after COPY-X (deep-review-log.md 19 Oct 09:44 UK) as the decisive next test; adopted under the
 maintainer's standing go-ahead, the hand-over of 18 Oct, the decision of 18 Oct 17:19 (7u-F after the material gaps, each
-fix with its own development test on the tuning seeds first) and the decision of 19 Oct 10:07 (each fix against the frozen
+fix with its own development test on the tuning seeds first) and the decision of 19 Oct 09:26 (each fix against the frozen
 candidate, a factorial where fixes interact). It is the root-cause step of family W (O187) and the next step of family A
 (the reader at the bridge).
 
@@ -68,7 +68,9 @@ the item totals (G by world) do not depend on it.
 Items per fix and household, three outcomes, Holm across households: the copy rule removes at least half of C's GB where it
 is over a point and the sum of absolute residuals by year does not grow; the wealth arm removes at least half of GA and of
 the years-4-6 residual where over half a point; closure, the better cell's table less runs within a point in every world (a
-17:19 gap is fixed when that holds, out of a fix's scope where its reach print is nil); no material harm per world.
+17:19 gap is fixed when that holds; a nil reach print puts a gap out of that fix's scope only, not out of the candidate's,
+so it still holds 7u-F under the 17:19 rule's condition 4 until another fix or a test shows it outside the candidate's scope);
+no material harm per world. Closure is read on the grid residual GB + GA (stage A's form), the table less runs beside it.
 
 ## The maintainer's choice afterwards
 

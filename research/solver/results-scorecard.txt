@@ -82,7 +82,7 @@ BY KIND (items, mean credence, share held, the author's Brier, the Brier of the 
   WHOLE       6   0.47   0.50   0.192   0.301
 THREE-OUTCOME ITEMS: ranked probability score 0.158 over 129, a uniform forecast 0.231
 LEGS, an item needing every household scored household by household: Brier 0.083 over 2
-DEEP-REVIEW CAUSES: 474 stated, 39 settled, Brier 0.114
+DEEP-REVIEW CAUSES: 495 stated, 39 settled, Brier 0.114
 KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.75 (49 of 65), EFFECT 0.69 (23 of 33), ATTRIB 0.48 (45 of 93), SIZE 0.51 (24 of 47), CTRL 0.79 (18 of 22), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.51 (21 of 41: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 20 of 22, review-causes.md)
 LEAD RATE BY POPULATION: the hand record 1 of 19 (Laplace 0.10); the leading causes settled since 20 of 22 (Laplace 0.88); two-sided Fisher exact p 1.7e-8 (two populations: a derivation does not take the pooled rate); the lower bound, every leading cause stated since the hand record whose question a test has read and which is not settled (the latest receipt's excepted) counted not held, 20 of 40 (Laplace 0.50)
 DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.61, derived 0.63; resolution judged 0.117, derived 0.204 over 21

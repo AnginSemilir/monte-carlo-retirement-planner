@@ -11,14 +11,14 @@
  * the reused cells share REF-B's code, seed, paths, bridge years and settings but the reference.
  * THE ITEMS, each with three outcomes; an item's cells read with Bonferroni intervals (0.05 over the cells it reads):
  *   1: the plan reference carries S362's bridge under-read (O188-REF): in each world where C's years-1-2 increments Y1 + Y2
- *      (where the receipt places the under-read: the year-1 read's own, and year 2's) are a point or more in size, AN removes
+ *      (the year-1 read error less the year-3 read error) are a point or more in size, AN removes
  *      them, path by path (sum(Y12_C - Y12_AN) / sum(Y12_C), its interval by the delta method), and AN's read error from each
  *      of years 1, 2 and 3 (the tail sum: the residual at that bridge year and every later one, with GA) lies within a point;
  *      a cell reads removed when the removal's interval lies at or above three quarters and the three tail sums' intervals
  *      within [-1, 1], kept when the removal's interval lies below a quarter; HELD when every cell read reads removed,
  *      FALSIFIED when any reads kept, otherwise INCONCLUSIVE. The review's own line on the net bridge part GB (item1Review)
- *      is printed beside, not read: GB nets years 1-2's under-read against year 3's over-read (-11.14 against +7.86 in world
- *      0 under C), so a reference removing most of both can read kept on GB (the departure, declared in the prediction).
+ *      is printed beside, not read: GB is (within 0.051) the year-1 read error itself, so a reference removing most of the
+ *      years-1-2 increments and all of year 3's over-read can read kept on GB (the departure, declared in the prediction).
  *   2: the plan reference carries S370's first two years' increments (Y12R): in each world where C's Y1 + Y2 is a point or
  *      more in size, AN removes it, path by path, read as item 1's removal alone (three quarters and a quarter).
  *   3: the copy rule and the adaptive package add: (ARX - AR) - (CX - C) in table less runs per household (S362, S370) and
@@ -29,7 +29,8 @@
  *      on S362 and S370 and AR against C on S130, each leg at 0.05 over its households; HELD when every leg reads no material
  *      harm in every world, FALSIFIED when any reads harm, otherwise INCONCLUSIVE.
  * THE ROWS: R5 item 5 FALSIFIED; R3 item 4 FALSIFIED (the control moved: the comparison's premise fails on a one-bridge-year
- *   household); R1 item 1 HELD (O188-REF credited); R2 item 1 FALSIFIED (O188-NOTREF); else.
+ *   household); R1 item 1 HELD (O188-REF credited); R2 item 1 FALSIFIED (read by AR's split, causeOf: RS with the reference or
+ *   O188-NOTREF at seed 7002); else.
  * REPORTED: every arm's tables against its runs by world; GB, GA, T, G; the residual by bridge year and the read error from
  *   each bridge year on (the tail sum: the backlog row of 19 Oct 20:19 UK); the four-way split by bridge year; AR against AN
  *   (the RS split's own part); the copied nodes; the adaptive reference's record; the reads at the clamp; each leg's saved and

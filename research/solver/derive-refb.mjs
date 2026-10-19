@@ -23,9 +23,9 @@
  *   - S130 AR the control, "predicted to move GB under 0.25 in every world": item 4, its line a quarter of a point;
  *   - S362's GB removed at least three quarters in every world with years 1 to 3's tail sums each within a point (O188-REF),
  *     under a quarter (NOTREF): item 1, by AN. DEPARTURE, declared after the first output (the prediction's order of events):
- *     item 1's removal reads S362's years-1-2 increments Y1 + Y2, where the receipt places the under-read, not the net GB,
- *     which nets them against year 3's over-read (-11.14 against +7.86 in world 0 under C), so a reference removing most of
- *     both read kept on GB (section 2's first output: six tenths at years 1-2 and all from year 3 on, FALSIFIED 1.00); the
+ *     item 1's removal reads S362's years-1-2 increments Y1 + Y2 (the year-1 read error less the year-3 one), not the net GB
+ *     (the year-1 read error itself, within 0.051), so a reference removing most of the increments and all of year 3's
+ *     over-read read kept on GB (section 2's first output: six tenths at years 1-2 and all from year 3 on, FALSIFIED 1.00); the
  *     review's GB line is printed beside on the same draws (section 2 and each credence section), not registered;
  *   - S370's G_1 + G_2 (Y12R): item 2, by AN, in the worlds where C's Y1 + Y2 is a point or more (C's records: worlds 0 and 1);
  *   - the interaction with QC's change printed (O190's reach): item 3 and a reported line (QC's change by bridge year under

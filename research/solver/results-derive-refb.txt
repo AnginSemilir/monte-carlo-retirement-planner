@@ -12,6 +12,7 @@ REF-B'S DERIVATION (predictions/diag-refb.md)
   S130 world 1: C's survival 94.2000, table 96.4021; GB 0.8020 (sd 0.3195); the whole score's alive less dead 107.5496
   S130 world 2: C's survival 99.7500, table 99.8380; GB 0.0296 (sd 0.0262); the whole score's alive less dead 111.9873
   item 1 reads S362's worlds where C's Y1 + Y2 is a point or more in size: 0, 1, 2 (the review's GB line: 0, 1, 2); item 2 reads S370's where C's Y1 + Y2 is: 0, 1
+  KNOWN-LEG: the records show the adaptive reference with RS reaching both households' years-1-2 reads (HO-DEP's adaptive arm at seed 7004 against C at 7002, the removal of C's Y1 + Y2 cross-seed): S362 world 0 1.0162, world 1 0.9972, world 2 0.9787; S370 world 0 0.8441, world 1 0.6530, world 2 not read (C's -0.7194); so items 1 and 2's FALSIFIED is read by AR's own removal (reduce-refb.mjs splitOf), and item 2's HELD with its whole (wholeOf)
 
 2. THE POWER (40 draws a cell through reduce-refb.mjs's items() and pOf(); C and CX as the files hold them, every other input drawn from the JUDGED stories at O188-REF and Y12R-REF)
   item 1, AN removes 0 of C's residual at every bridge year: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00; the review's GB line on the same draws: HELD 0.00 INCONCLUSIVE 0.10 FALSIFIED 0.90
@@ -54,6 +55,8 @@ REF-B'S DERIVATION (predictions/diag-refb.md)
   item 5: HELD 0.02 INCONCLUSIVE 0.44 FALSIFIED 0.54
   decision rows: R1 0.09, R2 0.02, R3 0.23, R5 0.54, else 0.12
   the review's GB line in item 1's place, on the same draws (printed, not registered): item 1 HELD 0.31 INCONCLUSIVE 0.50 FALSIFIED 0.19; rows R1 0.08, R2 0.05, R3 0.23, R5 0.54, else 0.10
+  item 1's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): open 0.58; O188-REF 0.33; O188-NOTREF at seed 7002 (AR keeps it too) 0.09
+  item 2's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): open 0.48; Y12R-REF 0.44; Y12R-NOT at seed 7002 (AR keeps it too) 0.07
   the chance the action changes (one less the likeliest row): 0.46
   item 1's point (the least share of S362's Y1 + Y2 under C that AN removes across the worlds read): median 0.9540, 80% interval 0.3534 to 1.0451 (1000 of 1000 draws read)
   item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.6060, 80% interval 0.2980 to 0.8999 (1000 of 1000 draws read)
@@ -69,6 +72,8 @@ REF-B'S DERIVATION (predictions/diag-refb.md)
   item 5: HELD 0.01 INCONCLUSIVE 0.46 FALSIFIED 0.53
   decision rows: R1 0.06, R2 0.04, R3 0.22, R5 0.53, else 0.15
   the review's GB line in item 1's place, on the same draws (printed, not registered): item 1 HELD 0.22 INCONCLUSIVE 0.48 FALSIFIED 0.31; rows R1 0.06, R2 0.08, R3 0.22, R5 0.53, else 0.11
+  item 1's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): open 0.60; O188-REF 0.22; O188-NOTREF at seed 7002 (AR keeps it too) 0.17
+  item 2's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): Y12R-REF 0.50; open 0.44; Y12R-NOT at seed 7002 (AR keeps it too) 0.06
   the chance the action changes (one less the likeliest row): 0.47
   item 1's point (the least share of S362's Y1 + Y2 under C that AN removes across the worlds read): median 0.7205, 80% interval 0.1299 to 1.0278 (1000 of 1000 draws read)
   item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.7887, 80% interval 0.2999 to 0.9028 (1000 of 1000 draws read)
@@ -90,6 +95,8 @@ CREDENCE else 0.15
   item 5: HELD 0.01 INCONCLUSIVE 0.48 FALSIFIED 0.51
   decision rows: R1 0.10, R2 0.00, R3 0.27, R5 0.51, else 0.12
   the review's GB line in item 1's place, on the same draws (printed, not registered): item 1 HELD 0.42 INCONCLUSIVE 0.51 FALSIFIED 0.07; rows R1 0.09, R2 0.01, R3 0.27, R5 0.51, else 0.12
+  item 1's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): open 0.53; O188-REF 0.43; O188-NOTREF at seed 7002 (AR keeps it too) 0.04
+  item 2's cause reading (reduce-refb.mjs causeOf: AR's split and item 2's whole): Y12R-REF 0.89; open 0.09; Y12R-NOT at seed 7002 (AR keeps it too) 0.02
   the chance the action changes (one less the likeliest row): 0.49
   item 1's point (the least share of S362's Y1 + Y2 under C that AN removes across the worlds read): median 0.9785, 80% interval 0.6786 to 1.0328 (1000 of 1000 draws read)
   item 2's point (the least share of S370's Y1 + Y2 under C that AN removes across the worlds read): median 0.8047, 80% interval 0.5991 to 0.9055 (1000 of 1000 draws read)

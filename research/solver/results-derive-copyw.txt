@@ -5,18 +5,22 @@ COPY-W'S DERIVATION, STAGE A (predictions/diag-copyw.md)
   C: tables 49.0987, 87.9402, 98.2445; runs 1602, 3472, 3959 of 4000; grid residual GB + GA by world 9.8686, 1.5168, -0.8112; world-1 years 4-6 -1.6545
   CX: tables 42.6301, 84.9729, 97.7726; runs 1604, 3472, 3959 of 4000; grid residual GB + GA by world 3.4315, -1.4764, -1.2929; world-1 years 4-6 -1.7563
   CW: tables 49.3766, 89.4104, 98.8307; runs 1641, 3476, 3954 of 4000; grid residual GB + GA by world 9.0606, 2.9844, -0.1863; world-1 years 4-6 -0.3290
+  CW against C by world, lost and saved: 36 lost, 75 saved; 30 lost, 34 saved; 6 lost, 1 saved; the guarded unconditional survival interval by world (0.4596 to 1.4905), (-0.2976 to 0.4987), (-0.2948 to 0.0244)
   CW against C (reported, not an item: CW is W60, so this leg is known before the run): INCONCLUSIVE; world 0 survival 0.9750 (0.4454 to 1.4511) no material harm, whole score 1.0068 (0.4894 to 1.5242), margin 0.5000: no material harm; world 1 survival 0.1000 (-0.3126 to 0.5031) no material harm, whole score 0.1617 (-0.2333 to 0.5567), margin 0.5000: no material harm; world 2 survival -0.1250 (-0.1737 to 0.0276) no material harm, whole score -0.1452 (-0.2765 to -0.0140), margin 0.2500: inconclusive
   the PRIOR (records, grade B for S370): W60 removes 0.8012 (0.7974 to 0.8049) of C's world-1 years-4-6 residual (-1.6545 points); carried to CX additively it removes 0.7548 of CX's (-1.7563)
   the additive prediction for CXW's grid residual GB + GA by world: 2.6235, -0.0088, -0.6680 (CX's plus W60's change on C, path by path); the per-path sd of W60's change on C 4.8198, 3.6516, 1.1431, at years 4-6 in world 1 0.7373
   CX against C, lost and saved by world: 8 lost, 10 saved; 5 lost, 5 saved; 1 lost, 1 saved
 
 2. THE POWER (40 draws a cell through reduce-copyw.mjs's items(); C, CX and CW as recorded, 4000 paths a world)
-  item 1, CXW removes 0 of CX's world-1 years-4-6 residual: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 1, CXW removes 0.25 of CX's world-1 years-4-6 residual: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
-  item 1, CXW removes 0.4 of CX's world-1 years-4-6 residual: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
-  item 1, CXW removes 0.6 of CX's world-1 years-4-6 residual: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 1, CXW removes 0.8 of CX's world-1 years-4-6 residual: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  items 2 and 3, the interaction -1.5 in worlds 0 and 1 on the additive prediction: item 2 HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | item 3 HELD 0.00 INCONCLUSIVE 0.88 FALSIFIED 0.13
+  item 1, CXW removes 0 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, CXW removes 0.25 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  item 1, CXW removes 0.4 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, CXW removes 0.6 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, CXW removes 0.8 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, CXW removes 1.3 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, CXW removes 2 of CX's world-1 years-4-6 residual (world 1's whole moving with it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  the rows at removals of 1.3 and 2 (an over-correction past the whole; no JUDGED story reaches it, the largest 0.868): R1 0.00, R2 0.50, R3 0.00, R4 0.50, R5 0.00, else 0.00
+  items 2 and 3, the interaction -1.5 in worlds 0 and 1 on the additive prediction: item 2 HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | item 3 HELD 0.00 INCONCLUSIVE 0.95 FALSIFIED 0.05
   items 2 and 3, the interaction -0.6 in worlds 0 and 1 on the additive prediction: item 2 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00 | item 3 HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
   items 2 and 3, the interaction 0 in worlds 0 and 1 on the additive prediction: item 2 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00 | item 3 HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
   items 2 and 3, the interaction 0.6 in worlds 0 and 1 on the additive prediction: item 2 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00 | item 3 HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
@@ -26,53 +30,53 @@ COPY-W'S DERIVATION, STAGE A (predictions/diag-copyw.md)
   item 4, the interaction 0 in world 0 (nil in worlds 1 and 2): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4, the interaction 0.3 in world 0 (nil in worlds 1 and 2): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 5, CXW's flips against CW 0.75 times CX's against C: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
-  item 5, CXW's flips against CW 1 times CX's against C: HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
+  item 5, CXW's flips against CW 1 times CX's against C: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
   item 5, CXW's flips against CW 1.5 times CX's against C: HELD 0.05 INCONCLUSIVE 0.95 FALSIFIED 0.00
 
 3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 19 Oct 09:44 UK: CXW1-AXIS=0.72; CXW1-SPACE=0.06; CXW1-COPY=0.04; CXW1-OTHER=0.18; CXG0-WAXIS=0.5; CXG0-FORM=0.3; CXG0-OTHER=0.2; 2000 draws through items())
   item 1: HELD 0.78 INCONCLUSIVE 0.07 FALSIFIED 0.15
-  item 2: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2: HELD 0.84 INCONCLUSIVE 0.07 FALSIFIED 0.09
   item 3: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
-  item 4: HELD 0.13 INCONCLUSIVE 0.41 FALSIFIED 0.46
+  item 4: HELD 0.07 INCONCLUSIVE 0.37 FALSIFIED 0.56
   item 5: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
-  decision rows: R1 0.00, R2 0.77, R3 0.15, R5 0.00, else 0.07
-  the chance the action changes (one less the likeliest row): 0.23
-  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.7487, 80% interval 0.0147 to 0.8675
-  item 2's point (CXW's world-1 grid residual GB + GA, points): median 0.0789, 80% interval -0.0523 to 0.1960
-  item 3's point (CXW's world-0 grid residual GB + GA, points): median 2.1191, 80% interval 1.2787 to 3.3530
-  item 4's point (the interaction in world 0's table less runs, points): median -0.5000, 80% interval -1.4000 to 0.7000
-  item 5's point (CXW's survival change against CX in world 0, points): median 0.9750, 80% interval 0.8250 to 1.1000
-
-3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 19 of 39, Laplace 0.49; the registered ones; 2000 draws through items())
-  item 1: HELD 0.57 INCONCLUSIVE 0.14 FALSIFIED 0.29
-  item 2: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 3: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
-  item 4: HELD 0.13 INCONCLUSIVE 0.41 FALSIFIED 0.46
-  item 5: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
-  decision rows: R1 0.00, R2 0.57, R3 0.29, R5 0.00, else 0.14
-  the chance the action changes (one less the likeliest row): 0.43
-  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.5669, 80% interval 0.0003 to 0.8434
-  item 2's point (CXW's world-1 grid residual GB + GA, points): median 0.0763, 80% interval -0.0522 to 0.1941
-  item 3's point (CXW's world-0 grid residual GB + GA, points): median 2.1479, 80% interval 1.2942 to 3.3590
+  decision rows: R1 0.00, R2 0.78, R3 0.15, R4 0.00, R5 0.00, else 0.07
+  the chance the action changes (one less the likeliest row): 0.22
+  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.7484, 80% interval 0.0088 to 0.8682
+  item 2's point (CXW's world-1 grid residual GB + GA, points): median -0.0256, 80% interval -1.1259 to 0.2750
+  item 3's point (CXW's world-0 grid residual GB + GA, points): median 2.1375, 80% interval 1.2854 to 3.3651
   item 4's point (the interaction in world 0's table less runs, points): median -0.5000, 80% interval -1.4000 to 0.7000
   item 5's point (CXW's survival change against CX in world 0, points): median 0.9750, 80% interval 0.8500 to 1.1250
-CREDENCE item 1: point 0.5669 HELD 0.57 INCONCLUSIVE 0.14 FALSIFIED 0.29
-CREDENCE item 2: point 0.0763 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-CREDENCE item 3: point 2.1479 HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
-CREDENCE item 4: point -0.5000 HELD 0.13 INCONCLUSIVE 0.41 FALSIFIED 0.46
+
+3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 19 of 39, Laplace 0.49; the registered ones; 2000 draws through items())
+  item 1: HELD 0.59 INCONCLUSIVE 0.13 FALSIFIED 0.28
+  item 2: HELD 0.71 INCONCLUSIVE 0.13 FALSIFIED 0.16
+  item 3: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  item 4: HELD 0.06 INCONCLUSIVE 0.30 FALSIFIED 0.64
+  item 5: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  decision rows: R1 0.00, R2 0.59, R3 0.28, R4 0.00, R5 0.00, else 0.13
+  the chance the action changes (one less the likeliest row): 0.41
+  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.5693, 80% interval 0.0008 to 0.8629
+  item 2's point (CXW's world-1 grid residual GB + GA, points): median -0.2583, 80% interval -1.2649 to 0.2165
+  item 3's point (CXW's world-0 grid residual GB + GA, points): median 2.1542, 80% interval 1.2814 to 3.3670
+  item 4's point (the interaction in world 0's table less runs, points): median -0.5000, 80% interval -1.4000 to 0.7000
+  item 5's point (CXW's survival change against CX in world 0, points): median 0.9750, 80% interval 0.8500 to 1.1250
+CREDENCE item 1: point 0.5693 HELD 0.59 INCONCLUSIVE 0.13 FALSIFIED 0.28
+CREDENCE item 2: point -0.2583 HELD 0.71 INCONCLUSIVE 0.13 FALSIFIED 0.16
+CREDENCE item 3: point 2.1542 HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+CREDENCE item 4: point -0.5000 HELD 0.06 INCONCLUSIVE 0.30 FALSIFIED 0.64
 CREDENCE item 5: point 0.9750 HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
 
 3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: 19 of 21, Laplace 0.87; printed beside)
-  item 1: HELD 0.89 INCONCLUSIVE 0.03 FALSIFIED 0.07
-  item 2: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
-  item 3: HELD 0.00 INCONCLUSIVE 0.08 FALSIFIED 0.92
-  item 4: HELD 0.03 INCONCLUSIVE 0.29 FALSIFIED 0.68
+  item 1: HELD 0.89 INCONCLUSIVE 0.03 FALSIFIED 0.08
+  item 2: HELD 0.92 INCONCLUSIVE 0.04 FALSIFIED 0.04
+  item 3: HELD 0.00 INCONCLUSIVE 0.09 FALSIFIED 0.91
+  item 4: HELD 0.02 INCONCLUSIVE 0.27 FALSIFIED 0.71
   item 5: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
-  decision rows: R1 0.00, R2 0.89, R3 0.07, R5 0.00, else 0.03
+  decision rows: R1 0.00, R2 0.89, R3 0.08, R4 0.00, R5 0.00, else 0.03
   the chance the action changes (one less the likeliest row): 0.11
-  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.7531, 80% interval 0.3070 to 0.8688
-  item 2's point (CXW's world-1 grid residual GB + GA, points): median 0.0700, 80% interval -0.0534 to 0.1905
-  item 3's point (CXW's world-0 grid residual GB + GA, points): median 1.7057, 80% interval 1.2179 to 2.7135
+  item 1's point (the share of CX's world-1 years-4-6 residual CXW removes): median 0.7525, 80% interval 0.3040 to 0.8679
+  item 2's point (CXW's world-1 grid residual GB + GA, points): median 0.0084, 80% interval -0.6578 to 0.2940
+  item 3's point (CXW's world-0 grid residual GB + GA, points): median 1.7002, 80% interval 1.2131 to 2.6381
   item 4's point (the interaction in world 0's table less runs, points): median -0.9400, 80% interval -1.4000 to 0.0000
   item 5's point (CXW's survival change against CX in world 0, points): median 0.9750, 80% interval 0.8500 to 1.1250
 

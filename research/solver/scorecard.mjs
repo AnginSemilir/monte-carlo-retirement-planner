@@ -87,7 +87,8 @@ export const TESTS = [
   { name: 'HO-DEP (the fixed adaptive reference against the order reference on S362 and S370, the deposit households at bridge risk, by the mixture)', prediction: 'predictions/diag-hodep.md', results: 'results-hodep.txt' },
   { name: 'STEP-S370 (top-cell share nodes and 60 wealth points against S370\'s world-0 step-year over-read, the candidate as it stands)', prediction: 'predictions/diag-steps370.md', results: 'results-steps370.txt' },
   { name: 'STEP-O182 (the copied corners\' residual R scaled where the query\'s chance is the higher, against SN\'s over-read at S370\'s years 1 and 5)', prediction: 'predictions/diag-o182.md', results: 'results-o182.txt' },
-  { name: 'COPY-X (the copied corners\' flat-copied c extrapolated from the two supported nodes below, against S370\'s bridge over-read: CX and SNRX)', prediction: 'predictions/diag-copyx.md', results: 'results-copyx.txt' }
+  { name: 'COPY-X (the copied corners\' flat-copied c extrapolated from the two supported nodes below, against S370\'s bridge over-read: CX and SNRX)', prediction: 'predictions/diag-copyx.md', results: 'results-copyx.txt' },
+  { name: 'COPY-W (stage A: the copy rule x 60 wealth points on S370, the frozen candidate; C and CX reused, CW and CXW new)', prediction: 'predictions/diag-copyw.md', results: 'results-copyw.txt' }
 ];
 
 export function credences(predText) {

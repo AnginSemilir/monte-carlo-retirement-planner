@@ -183,3 +183,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-19 03:45 UTC | reduce-copyx.mjs 82c60b060ca9 | 56 of 56 caught | escaped: none
 2026-10-19 03:57 UTC | reduce-copyx.mjs 14c0844b8705 | 54 of 55 caught | escaped: NOT CAUGHT: 40: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
 2026-10-19 03:58 UTC | reduce-copyx.mjs d03ce68bbb15 | 55 of 55 caught | escaped: none
+2026-10-19 04:56 UTC | reduce-copyx.mjs 1ba757f3b92f | 55 of 55 caught | escaped: none
+2026-10-19 05:00 UTC | reduce-copyx.mjs 0258bca29576 | 59 of 59 caught | escaped: none

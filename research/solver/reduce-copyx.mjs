@@ -23,16 +23,19 @@
  *      better arm's", declared in the prediction: SNRX starts from SNR's gap, near the bar already, so that reading could not
  *      fall and would credit SN and the scaling; item3Review below keeps it for the derivation's comparison, and SNRX's drops
  *      against C and against SNR are reported.)
- *   4: no material harm against C, CX and SNRX each, by RULES.md section 8's rule as written for a policy change: per world the
- *      exact conditional McNemar at the relative margin marginRel(C's survival) with Holm across the three worlds within each
- *      arm, AND the guarded unconditional interval's lower end above minus the margin; the whole score per world by its normal
- *      interval at 95%. HELD when both arms read no material harm in every world; FALSIFIED when either arm reads harm in any
- *      world; otherwise INCONCLUSIVE.
+ *   4: no material harm from the copy rule, each arm against its own control (CX against C, SNRX against SNR), by RULES.md
+ *      section 8's rule as written for a policy change: per world the exact conditional McNemar at the relative margin
+ *      marginRel(the control's survival) with Holm across the three worlds within each pair, AND the guarded unconditional
+ *      interval's lower end above minus the margin; the whole score per world by its normal interval at 95%. HELD when both
+ *      pairs read no material harm in every world; FALSIFIED when either reads harm in any world; otherwise INCONCLUSIVE. (A
+ *      departure from the review's "against C, SNRX against SNR splitting any harm", declared in the prediction: SNRX against C
+ *      carries SN's nodes and the scaling, whose world-2 losses against C STEP-O182 already read, so that leg could not read no
+ *      harm and a harm there would not be the rule's; SNRX against C is reported.)
  * THE ROWS: R4 item 4 FALSIFIED (a copy rule harms); R1 item 3 HELD (the copy rule removes the over-read); R2 items 1 and 2
  *   HELD, item 3 not HELD (the copy's c carries both slices, the gap stays); R3 items 1 and 2 FALSIFIED (O186-CFLAT and the
  *   copy's c at the step years not the carriers); else.
  * REPORTED: every arm's tables against its runs by world; GB, GA, T and Y by year by world; the four-way split by year by
- *   world; SNRX against SNR's harm read by world (the split of any harm); the copied nodes; the reads at the clamp; the solves'
+ *   world; SNRX against C's harm read by world (the review's leg); the copied nodes; the reads at the clamp; the solves'
  *   seconds.
  *   node research/solver/reduce-copyx.mjs [dir] [paths a world] [scale] [saved dir] [--preflight] [--planted]
  */
@@ -210,7 +213,11 @@ export function dropOf(tabC, tabX, cell, level = 0.05) {
   return { gapC, gapX, d: (tabC - tabX) + u.d, lo: (tabC - tabX) + u.lo, hi: (tabC - tabX) + u.hi };
 }
 /* P: { y5: { SNR, SNRX }: world 0's Y5 per path in points; gb: { C, CX }: world 0's GB per path in points; cells: { CX, SNRX }: [3]
-   C against the arm; ws: { CX, SNRX }: [3] the arm less C; tab: { C, CX, SNRX } world 0's tables } */
+   the arm's control (C for CX, SNR for SNRX) against the arm; ws: { CX, SNRX }: [3] the arm less its control; tab: { C, CX,
+   SNRX } world 0's tables (item 3 reads C's and CX's); vsC: { cells, ws }: [3] C against SNRX (the review's legs, reported) } */
+// the items' input from the arms' files (perP(arm, world, key) in points, bitsF(arm, world), wsF(arm, world)): each copy-rule
+// arm against its own control, CX against C and SNRX against SNR, and C against SNRX beside (the review's legs, reported)
+export const pOf = (perP, bitsF, wsF, tab) => ({ y5: { SNR: perP('SNR', 0, 'Y5'), SNRX: perP('SNRX', 0, 'Y5') }, gb: { C: perP('C', 0, 'GB'), CX: perP('CX', 0, 'GB') }, cells: { CX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('CX', k))), SNRX: [0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNRX', k))) }, ws: { CX: [0, 1, 2].map(k => wsOf(wsF('C', k), wsF('CX', k))), SNRX: [0, 1, 2].map(k => wsOf(wsF('SNR', k), wsF('SNRX', k))) }, tab, vsC: { cells: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('SNRX', k))), ws: [0, 1, 2].map(k => wsOf(wsF('C', k), wsF('SNRX', k))) } });
 export function items(P) {
   const out = {};
   out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));
@@ -223,7 +230,7 @@ export function items(P) {
 }
 // the review's item 3 as it set it (the better arm's drop, 97.5% intervals for two arms), for the derivation's comparison only
 export function item3Review(P) {
-  const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025), ds = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0], 0.025), db = ds.d > dx.d ? ds : dx;
+  const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0], 0.025), ds = dropOf(P.tab.C, P.tab.SNRX, P.vsC.cells[0], 0.025), db = ds.d > dx.d ? ds : dx;
   return !(dx.gapC >= MINRES) ? 'INCONCLUSIVE' : db.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC && ds.hi < QUARTER * dx.gapC ? 'FALSIFIED' : 'INCONCLUSIVE';
 }
 export function rowOf(it) {
@@ -247,6 +254,18 @@ function planted() {
   const cases = [], put = (what, got, want) => cases.push([what, got, want]);
   const run = (what, edit, i, want, edge) => { const P = P0(); edit(P); const it = items(P); REACHED[i].add(it[i].outcome); put(`${what}: ${i} ${want}`, it[i].outcome, want); if (edge) EDGES.push(edge); };
   run('SNRX removes seven tenths of SNR\'s year-5 residual', () => {}, '1', 'HELD');
+  { // each copy-rule arm against its own control: SNRX copying SNR exactly, SNR losing 60 of C's 3,440 paths in world 2 and a
+    // point of C's whole score there; CX copying C
+    const alive = { 0: 1600, 1: 3440, 2: 3440 }, bit = (k, lost) => Uint8Array.from({ length: N0 }, (_, i) => (i < alive[k] - lost ? 1 : 0));
+    const bitsF = (a, k) => bit(k, (a === 'SNR' || a === 'SNRX') && k === 2 ? 60 : 0), wsF = (a, k) => new Float64Array(N0).fill((a === 'SNR' || a === 'SNRX') && k === 2 ? -0.01 : 0);
+    const perP = (a, k, x) => (x === 'Y5' ? ys(2, 8) : ys(8, 10, N0, 11)), P = pOf(perP, bitsF, wsF, { C: 49, CX: 49, SNRX: 46 }), it = items(P);
+    put('pOf: SNRX\'s cells are against SNR (none discordant when SNRX copies SNR)', String(P.cells.SNRX.every(x => x.b === 0 && x.c === 0)), 'true');
+    put('pOf: CX\'s cells are against C (none discordant when CX copies C)', String(P.cells.CX.every(x => x.b === 0 && x.c === 0)), 'true');
+    put('pOf: C against SNRX kept beside (the review\'s leg: 60 lost in world 2)', `${P.vsC.cells[2].b} ${P.vsC.cells[2].c} ${P.vsC.cells[0].b}`, '60 0 0');
+    put('pOf: SNRX\'s whole score against SNR, and against C beside', `${P.ws.SNRX[2].d} ${P.vsC.ws[2].d.toFixed(2)}`, '0 -0.01');
+    put('SNR\'s own world-2 loss against C is not the copy rule\'s harm: item 4 reads no harm on the SNRX leg', it['4'].hs.outcome, 'HELD');
+    put('the review\'s leg on the same files reads SNR\'s loss as harm', harmWorlds(P.vsC.cells, P.vsC.ws).outcome, 'FALSIFIED');
+  }
   run('SNRX removes a tenth', P => { P.y5.SNRX = P.y5.SNR.map(v => 0.9 * v); }, '1', 'FALSIFIED');
   run('SNRX removes four tenths', P => { P.y5.SNRX = P.y5.SNR.map(v => 0.6 * v); }, '1', 'INCONCLUSIVE');
   run('SNRX removes exactly half with no spread (the line itself)', P => { P.y5.SNR = new Float64Array(N0).fill(2); P.y5.SNRX = new Float64Array(N0).fill(1); }, '1', 'HELD', 'a removal exactly at one half with no spread reads HELD');
@@ -386,7 +405,7 @@ if (isMain) {
   const mean = a => a.reduce((t, x) => t + x, 0) / a.length;
   if (PRE) { for (const a of ARMS) console.log(`PREFLIGHT ${a}: world-0 Y5 ${f4(mean(perP(a, 0, 'Y5')))} points, GB ${f4(mean(perP(a, 0, 'GB')))}, the copied corners' p x c at year 5 ${f4(mean(perP(a, 0, 'QC5')))}, copied ${J[a].reader.copied}, clamped ${J[a].clamped.n} of ${J[a].clamped.of}, world-0 whole score ${f4(J[a].whole[0].mean)}`); console.log('PREFLIGHT: the gate and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW)'); process.exit(0); }
   const bitsF = (a, k) => dec8(FJ(a).bits[`OWN${k}`]), wsF = (a, k) => decRaw(FJ(a).per[`WS${k}`]);
-  const P = { y5: { SNR: perP('SNR', 0, 'Y5'), SNRX: perP('SNRX', 0, 'Y5') }, gb: { C: perP('C', 0, 'GB'), CX: perP('CX', 0, 'GB') }, cells: { CX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('CX', k))), SNRX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('SNRX', k))) }, ws: { CX: [0, 1, 2].map(k => wsOf(wsF('C', k), wsF('CX', k))), SNRX: [0, 1, 2].map(k => wsOf(wsF('C', k), wsF('SNRX', k))) }, tab: { C: J.C.tables[0].OWN, CX: J.CX.tables[0].OWN, SNRX: J.SNRX.tables[0].OWN } };
+  const P = pOf(perP, bitsF, wsF, { C: J.C.tables[0].OWN, CX: J.CX.tables[0].OWN, SNRX: J.SNRX.tables[0].OWN });
   const it = items(P), iv = x => `${f4(x.d ?? x.R)} (${f4(x.lo)} to ${f4(x.hi)})`;
   const hw = (h, x) => `world ${x.k}: survival ${f4(x.ex.d)} exact (${f4(x.ex.lo)} to ${f4(x.ex.hi)}) ${x.ex.outcome}, guarded unconditional (${f4(x.u.lo)} to ${f4(x.u.hi)}), whole score ${iv(x.w)}, margin ${f4(x.margin)}: ${x.harm ? 'harm' : x.ok ? 'no material harm' : 'inconclusive'}`;
   console.log('\nCOPY-X: the copied corner\'s flat-copied c against S370\'s bridge over-read, the candidate as it stands (predictions/diag-copyx.md)');
@@ -397,15 +416,15 @@ if (isMain) {
   console.log(`     the removal ${iv(it['2'].r)} of C's mean ${f4(it['2'].r.mc)} points${it['2'].nothing ? ' (nothing to remove)' : ''}`);
   console.log(`3. CX's world-0 table less runs at most half of C's: ${it['3'].outcome}`);
   console.log(`     C's table less runs ${f4(it['3'].dr.gapC)}, CX's ${f4(it['3'].dr.gapX)}, the drop ${iv(it['3'].dr)}`);
-  console.log(`4. no material harm against C, CX and SNRX each, by RULES.md section 8's rule as written, per world: ${it['4'].outcome}`);
-  for (const [a, h] of [['CX', it['4'].hx], ['SNRX', it['4'].hs]]) for (const x of h.per) console.log(`     ${a} ${hw(h, x)}`);
+  console.log(`4. no material harm from the copy rule (CX against C, SNRX against SNR), by RULES.md section 8's rule as written, per world: ${it['4'].outcome}`);
+  for (const [a, h] of [['CX against C', it['4'].hx], ['SNRX against SNR', it['4'].hs]]) for (const x of h.per) console.log(`     ${a} ${hw(h, x)}`);
   console.log(`OUTCOME: 1 ${it['1'].outcome}, 2 ${it['2'].outcome}, 3 ${it['3'].outcome}, 4 ${it['4'].outcome}`);
   console.log(`ROW: ${rowOf(it)}`);
   console.log(`REALISED item 1: ${f4(it['1'].r.R)}`); console.log(`REALISED item 2: ${f4(it['2'].r.R)}`); console.log(`REALISED item 3: ${f4(it['3'].dr.d)}`); console.log(`REALISED item 4: ${f4(it['4'].hx.per[0].ex.d)}`);
   console.log('\nREPORTED');
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const s = J[a].sims[`OWN${k}`], L = J[a].ledger[k], t = J[a].tables[k].OWN; console.log(`  ${a} world ${k}: table ${f4(t)} runs ${s.ok}/${s.n} (${f4(100 * s.ok / s.n)}), table less runs ${f4(t - 100 * s.ok / s.n)}; GB ${f4(L.GB)} GA ${f4(L.GA)} T ${f4(L.T)}; by year ${(J[a].bridge || []).map(y => `${y}: ${f4(L[`Y${y}`])}`).join(' | ')}`); }
   for (const a of ARMS) for (let k = 0; k < 3; k++) { const S = J[a].split[k]; console.log(`  ${a} world ${k} split by year (QS, QC, RS, RC): ${(J[a].bridge || []).map(y => `${y}: ${PARTS.map(p => f4(S[`${p}${y}`])).join(', ')}`).join(' | ')}`); }
-  { const ds = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0]), dn = dropOf(J.SNR.tables[0].OWN, P.tab.SNRX, cellsOf(bitsF('SNR', 0), bitsF('SNRX', 0))); console.log(`  SNRX's world-0 table less runs ${f4(ds.gapX)}: the drop against C ${iv(ds)}, against SNR (${f4(dn.gapC)}) ${iv(dn)}; the review's item 3 (the better arm's, 97.5%): ${item3Review(P)}`); }
-  { const h = harmWorlds([0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNRX', k))), [0, 1, 2].map(k => wsOf(wsF('SNR', k), wsF('SNRX', k)))); for (const x of h.per) console.log(`  SNRX against SNR (the split of any harm) ${hw(h, x)}`); }
+  { const ds = dropOf(P.tab.C, P.tab.SNRX, P.vsC.cells[0]), dn = dropOf(J.SNR.tables[0].OWN, P.tab.SNRX, cellsOf(bitsF('SNR', 0), bitsF('SNRX', 0))); console.log(`  SNRX's world-0 table less runs ${f4(ds.gapX)}: the drop against C ${iv(ds)}, against SNR (${f4(dn.gapC)}) ${iv(dn)}; the review's item 3 (the better arm's, 97.5%): ${item3Review(P)}`); }
+  { const h = harmWorlds(P.vsC.cells, P.vsC.ws); for (const x of h.per) console.log(`  SNRX against C (the review's leg, reported) ${hw(h, x)}`); }
   for (const a of ARMS) console.log(`  ${a}: copied ${J[a].reader.copied} copiedTop ${J[a].reader.copiedTop} of ${J[a].reader.nodes} nodes; reads at the clamp ${J[a].clamped.n} of ${J[a].clamped.of}; solve ${J[a].solve.secs} s`);
 }

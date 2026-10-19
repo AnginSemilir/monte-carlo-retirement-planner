@@ -44,6 +44,11 @@ M = [
   ("outcome: !(r.mc >= MINRES) || !Number.isFinite(r.R) ? 'INCONCLUSIVE'", "outcome: !Number.isFinite(r.R) ? 'INCONCLUSIVE'"),
   ("out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));", "out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNR.map(v => 0.4 * v)));"),
   ("out['2'] = ratioItem(removal(P.gb.C, P.gb.CX));", "out['2'] = ratioItem(removal(P.gb.C, P.gb.C.map(v => 0.4 * v)));"),
+  # each copy-rule arm against its own control (pOf)
+  ("SNRX: [0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNRX', k))) }", "SNRX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('SNRX', k))) }"),
+  ("SNRX: [0, 1, 2].map(k => wsOf(wsF('SNR', k), wsF('SNRX', k))) }", "SNRX: [0, 1, 2].map(k => wsOf(wsF('C', k), wsF('SNRX', k))) }"),
+  ("CX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('CX', k))), SNRX:", "CX: [0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('CX', k))), SNRX:"),
+  ("vsC: { cells: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('SNRX', k)))", "vsC: { cells: [0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNRX', k)))"),
   # the drop
   ("return { gapC, gapX, d: (tabC - tabX) + u.d, lo: (tabC - tabX) + u.lo, hi: (tabC - tabX) + u.hi };", "return { gapC, gapX, d: (tabC - tabX), lo: (tabC - tabX), hi: (tabC - tabX) };"),
   ("const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0]);", "const dx = dropOf(P.tab.C, P.tab.SNRX, P.cells.SNRX[0]);"),

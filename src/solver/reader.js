@@ -101,7 +101,7 @@ export function buildReaderTable(g, S, chance, support = null, yr = -1) {
   // anywhere, so 7e printed 0 while every bridge year's top share node was copied): `copied` counts the nodes that take c
   // from a supported neighbour along their share row, `copiedTop` those at the top share node (a = 1, no accessible money,
   // so unsupported in every year with a bill), and `nodes` the nodes in rows that have support. Counted only; no value changes.
-  let copied = 0, copiedTop = 0, nodes = 0;
+  let copied = 0, copiedTop = 0, nodes = 0; const XC = !!(g.reader && g.reader.copy === 'extrap') && !g.cov;   // COPY-X's copy rule (`readerCopy: 'extrap'`, research only): extrapC below
   for (let ic = 0; ic < NCL; ic++) for (let ig = 0; ig < NG; ig++) for (let it = 0; it < nt; it++) for (let ip = 0; ip < np; ip++) {
     let any = false;
     for (let ii = 0; ii < ni; ii++) if (sup[g.index(ip, ii, it, ig, ic)]) { any = true; break; }
@@ -113,7 +113,7 @@ export function buildReaderTable(g, S, chance, support = null, yr = -1) {
       copied++; if (ii === ni - 1) copiedTop++;
       for (let d = 1; d < ni; d++) {
         const lo = ii - d, hi = ii + d;
-        if (lo >= 0 && sup[g.index(ip, lo, it, ig, ic)]) { c[i] = c[g.index(ip, lo, it, ig, ic)]; break; }
+        if (lo >= 0 && sup[g.index(ip, lo, it, ig, ic)]) { c[i] = c[g.index(ip, lo, it, ig, ic)]; if (XC) c[i] = extrapC(g, c, sup, ip, ii, lo, it, ig, ic); break; }
         if (hi < ni && sup[g.index(ip, hi, it, ig, ic)]) { c[i] = c[g.index(ip, hi, it, ig, ic)]; break; }
       }
     }
@@ -255,4 +255,16 @@ export function r0Split(S, p) {
     else { c[i] = 0; R[i] = S[i]; zeroP++; }
   }
   return { c, R, zeroP };
+}
+
+/* COPY-X's copy rule (`readerCopy: 'extrap'`, research only; unset in every product path; items/COPY-X.md, PR1): an
+ * unsupported node whose nearest supported neighbour along its share row lies below it takes c extrapolated linearly from that
+ * node and the next supported node below it, clipped to [0, the source's c] (so it only ever lowers the flat copy); with no
+ * second supported node below, the flat copy stands. R = S - p c then follows from the c it takes (buildReaderTable). */
+export function extrapC(g, c, sup, ip, ii, lo, it, ig, ic) {
+  const src = c[g.index(ip, lo, it, ig, ic)];
+  let lo2 = -1; for (let k = lo - 1; k >= 0; k--) if (sup[g.index(ip, k, it, ig, ic)]) { lo2 = k; break; }
+  if (lo2 < 0) return src;
+  const A = g.axes.a.pts, c2 = c[g.index(ip, lo2, it, ig, ic)], x = src + (src - c2) * (A[ii] - A[lo]) / (A[lo] - A[lo2]);
+  return x < 0 ? 0 : x > src ? src : x;
 }

@@ -39,8 +39,14 @@ p x c, the supported corners' I[R] and the copied corners' I[R]), the visited st
 4. No material harm against C, per world, by RULES.md section 8's rule as written (a policy change), SNRX against SNR
    splitting any harm.
 
-Reported: the residual by year in every world and arm (WHOLE), the four-way split, GA and T, and world 1's years beside a
-log-odds-wealth read of the same states (the blend unmasked, O185).
+Registered with two declared departures (predictions/diag-copyx.md, Departures): item 3 reads CX against C (SNRX starts from
+SNR's gap, near the bar already, so the better arm's reading could not fall), and item 4 reads each arm against its own
+control, CX against C and SNRX against SNR (SNRX against C carries SN's world-2 losses, which STEP-O182 read, so that leg
+could not read no harm, and a harm there would not be the copy rule's). The review's readings are reported beside.
+
+Reported: the residual by year in every world and arm (WHOLE), the four-way split, GA and T. The review's log-odds-wealth
+read of world 1's years is not built (its form needs the read's per-axis weights, which the probe does not hand over):
+deferred to the blend's own test (O185; predictions/diag-copyx.md, "Reported, not items").
 
 ## Breadth afterwards (the review's)
 

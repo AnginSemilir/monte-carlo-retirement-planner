@@ -51,3 +51,17 @@ first. Item 3 FALSIFIED with item 2 HELD: the over-read has a further carrier; a
 The SN-alone breadth test; more share points or a share-node default as a fix; a separate fix for the year-before copy; a
 reference default (an adaptive reference is a rival remedy for R, untested); scoring S370-COPY from STEP-S370; 7u-F (held by
 the 17:19 rule).
+
+## READ 19 Oct 03:33 (PLAN.md's 19 Oct 03:33 row; results-o182.txt; Brier 0.227 over 4, results-scorecard-o182.txt)
+
+Items 1 and 2 HELD, items 3 and 4 INCONCLUSIVE: the decision table's 'else'. The gate passed, C and SN reproducing
+STEP-S370's saved runs bit for bit (the option inert off). Under SN the copied corners' residual R carries 0.6959 (0.6919 to
+0.6998) of world 0's over-read at years 1 and 5, and scaling it (SNR) removes 0.6299 (0.6272 to 0.6326) of that: year 1's part
+(5.6309 to 1.1527), not year 5's (2.0813 to 1.7015, where the copied corners' R carries 0.3503; O186). The world-0 gap falls from
+C's 9.0487 to 4.8436, short of half (the drop 4.2051, 3.8222 to 4.5881). No harm in worlds 0 and 1; world 2's guarded
+interval reaches -0.2948 past its 0.2500 margin. In world 1 the fix under-reads (table less runs -1.0530 against C's 1.1402) at years 3 to 7,
+under SN too, where C's step-year over-read is gone, while the scaling acts mainly at years 1 and 2 and leaves SNR at or above SN at years 3 to 7:
+an unmasking candidate, NOT CHECKED (O185). The split's overshoot at the clamp is nil in worlds 0 and 1 at years 1 to 3 (results-o182-clamp.txt). O182-RESID is not
+settled at this close: item 1 answered its question for the slice HELD, but year 5's carrier is open (O186), and the deep review
+after STEP-O182 settles it; S370-COPY stays open. Next ('else'): the deep review reads
+the unsettled items with the split and the reported lines; the STOP list above stands until it reads.

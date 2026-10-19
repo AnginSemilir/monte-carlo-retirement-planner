@@ -56,7 +56,32 @@ under-read in the year before (CX's world 1: year 7 +0.7691 beside year 6 -0.588
 the cancellation guard and the world-1 guard read the ledger by year, so each is read beside the neighbouring years' change;
 the item totals (G by world) do not depend on it.
 
-## Stage B (the breadth; registered after A reads, its arms set by A's item 4; over 2 hours, so the escalation review first)
+## Stage B, re-cut (the deep review after COPY-W, deep-review-log.md 19 Oct 13:32 UK; PLAN.md's 19 Oct 13:38 row)
+
+Stage A read R2 (results-copyw.txt): item 4 INCONCLUSIVE keeps CXW in the factorial. The re-cut, set at registration:
+
+- The full factorial C, CX, CW and CXW on S130, S126 and S362 (S362 no longer optional: its world-0 paths die in the
+  bridge); bridge 4 only if its 30-point gap is over a point; every household screened by reach at the preflight (REACH).
+- C and CW on S128 (O133's after-access part).
+- CW at 120 points on S370, to read the after-access part's order of convergence.
+- S380 (O139) and S224 (O145) reused from NE-GRID B1's and C's records behind a reuse fair test that meets O184's gate
+  (their tables re-compared with the pin checked or e3pcls off) or shows the reuse does not rest on inert-negridc; CX on
+  either only where the copied corners' weight shows at its visited bridge reads.
+- Items, three outcomes, Holm across households: the copy rule read by year (the step years against years 1 and 2, the
+  cancellation guard: the sum of absolute residuals by year); the interaction per world; the wealth fix read as an order,
+  the share of GA and of the years-4-6 residual it removes against lines of 0.75 and 0.25; closure by part (the grid
+  residual's bridge and after-access parts each, not their net); no material harm per world; decisions read by the year
+  band where the arms' moves first differ.
+- About 15 jobs, about 12 job-hours, about 3.2 to 3.5 hours' wall (the review's estimate, grade D): over 2 hours, so
+  escalation trigger 3 is checked on its derivation's 'else' row before registration, and the escalation review runs if it
+  fires (escalation.md; a departure from the 13:32 receipt's unconditional 'escalation review first', declared in the
+  13:38 row).
+- CXG0 (world 0's remainder: WAXIS, FORM, OTHER) stays open: stage A's item 3 was FALSIFIED under every CXG0 story and item
+  4, its registered item, read INCONCLUSIVE (the plan-auditor's BLOCKING 1 of 19 Oct 13:49 UK). The registration maps it
+  to an item naming each cause's outcome (the 120-point arm).
+- Beside it, designed and not run: AA-UR (PLAN.md's schedule), the after-access and under-the-axis root-cause step.
+
+## Stage B as first designed (the deep review after COPY-X; superseded by the re-cut above)
 
 - PMAP's step households S130, bridge 4 and S126: the factorial C, CX, CW, CXW.
 - S380 (O139): C, CX, CW, the copied corners' weight at its visited bridge reads printed (the copy rule's reach).
@@ -74,10 +99,12 @@ no material harm per world. Closure is read on the grid residual GB + GA (stage 
 
 ## The maintainer's choice afterwards
 
-The 60-point grid roughly doubles the solve; a cubic read at 30 points is the cheaper fix, tested once stage A shows the
-mechanism. Neither is a default until the maintainer decides.
+The 60-point grid roughly doubles the solve. A cubic read at 30 points is not cheaper by the code (the deep review after
+COPY-W: four wealth corners a read against two, doubling every read in the solve, the forward reads and the ledger, where
+60 points doubles the solve's nodes only); its cost is NOT CHECKED, and it gets a timed development test against CW after
+stage B. Neither is a default until the maintainer decides, and the choice waits for that test.
 
-## STOP until stage A reads
+## STOP until stage B reads (the 19 Oct 13:38 row)
 
-The CX-alone breadth test; the log-odds-wealth guard and any log-odds fix; any wealth, copy or node default; settling
-O185-UNMASK's mechanism; SN or SNRX breadth; 7u-F.
+The PR26 extrapolation variants (a form fix alone unmasks O81); the cubic read as a default; SNRX breadth; any after-access
+fix; any wealth, copy or node default; settling CXG0; 7u-F.

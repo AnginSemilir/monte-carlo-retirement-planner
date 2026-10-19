@@ -1,0 +1,11 @@
+STEP-O182: the split's mean sum against the mean read by bridge year (points; the difference is the clamp's overshoot)
+
+C world 0: 1: V 48.8057 split 48.8057 overshoot 0.0000 (RC 0.0000) | 2: V 50.7710 split 50.7710 overshoot -0.0000 (RC 0.0001) | 3: V 51.4951 split 51.4951 overshoot -0.0000 (RC 0.0001) | 4: not every path reached it
+C world 1: 1: V 87.6932 split 87.6932 overshoot 0.0000 (RC 0.0000) | 2: V 89.3104 split 89.3104 overshoot 0.0000 (RC 0.0001) | 3: V 90.1793 split 90.1793 overshoot 0.0000 (RC 0.0001) | 4: not every path reached it
+C world 2: 1: V 98.1903 split 98.1903 overshoot 0.0000 (RC 0.0000) | 2: V 98.6724 split 98.6724 overshoot 0.0000 (RC 0.0001) | 3: V 98.8695 split 98.8695 overshoot 0.0000 (RC 0.0001) | 4: not every path reached it
+SN world 0: 1: V 49.8663 split 49.8663 overshoot 0.0000 (RC 5.0163) | 2: V 44.3301 split 44.3301 overshoot 0.0000 (RC 0.4634) | 3: V 43.6423 split 43.6423 overshoot -0.0000 (RC 0.0000) | 4: not every path reached it
+SN world 1: 1: V 90.9285 split 90.9285 overshoot 0.0000 (RC 5.0871) | 2: V 86.3081 split 86.3085 overshoot 0.0004 (RC 0.9270) | 3: V 85.6605 split 85.6605 overshoot 0.0000 (RC 0.0000) | 4: not every path reached it
+SN world 2: 1: V 99.1613 split 99.7728 overshoot 0.6115 (RC 0.0261) | 2: V 97.9418 split 98.6812 overshoot 0.7394 (RC 1.4086) | 3: V 97.1213 split 97.1213 overshoot 0.0000 (RC 0.0000) | 4: not every path reached it
+SNR world 0: 1: V 44.7261 split 44.7261 overshoot -0.0000 (RC 0.3554) | 2: V 43.6628 split 43.6628 overshoot 0.0000 (RC 0.0014) | 3: V 43.4407 split 43.4407 overshoot -0.0000 (RC 0.0000) | 4: not every path reached it
+SNR world 1: 1: V 85.4222 split 85.4222 overshoot 0.0000 (RC 0.1257) | 2: V 85.6648 split 85.6648 overshoot 0.0000 (RC 0.0021) | 3: V 86.1654 split 86.1654 overshoot 0.0000 (RC 0.0000) | 4: not every path reached it
+SNR world 2: 1: V 98.5561 split 98.5561 overshoot -0.0000 (RC 0.0011) | 2: V 97.8350 split 97.8350 overshoot -0.0000 (RC 0.0010) | 3: V 97.9368 split 97.9368 overshoot -0.0000 (RC 0.0000) | 4: not every path reached it

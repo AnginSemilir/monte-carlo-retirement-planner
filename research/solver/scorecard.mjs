@@ -88,7 +88,8 @@ export const TESTS = [
   { name: 'STEP-S370 (top-cell share nodes and 60 wealth points against S370\'s world-0 step-year over-read, the candidate as it stands)', prediction: 'predictions/diag-steps370.md', results: 'results-steps370.txt' },
   { name: 'STEP-O182 (the copied corners\' residual R scaled where the query\'s chance is the higher, against SN\'s over-read at S370\'s years 1 and 5)', prediction: 'predictions/diag-o182.md', results: 'results-o182.txt' },
   { name: 'COPY-X (the copied corners\' flat-copied c extrapolated from the two supported nodes below, against S370\'s bridge over-read: CX and SNRX)', prediction: 'predictions/diag-copyx.md', results: 'results-copyx.txt' },
-  { name: 'COPY-W (stage A: the copy rule x 60 wealth points on S370, the frozen candidate; C and CX reused, CW and CXW new)', prediction: 'predictions/diag-copyw.md', results: 'results-copyw.txt' }
+  { name: 'COPY-W (stage A: the copy rule x 60 wealth points on S370, the frozen candidate; C and CX reused, CW and CXW new)', prediction: 'predictions/diag-copyw.md', results: 'results-copyw.txt' },
+  { name: 'COPY-B (COPY-W\'s stage B: the copy rule x 60 wealth points across the step households S130, S126 and S362, C and CW on S128, 120 points on S370)', prediction: 'predictions/diag-copyb.md', results: 'results-copyb.txt' }
 ];
 
 export function credences(predText) {

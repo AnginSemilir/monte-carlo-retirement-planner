@@ -56,6 +56,9 @@ DISCORD: a power model's paired discordance in each world scales with the paths 
 CONTROL: a harm item reads each arm against its own control, the arm less the one thing tested; a leg against another arm carries every difference between them and is reported, and a power model draws an arm's paths from its control's saved paths where they exist.
 UNMASK-REG: a fix's prediction names every open register row whose gate or status pre-registers an unmasking by that kind of fix (search the register for 'fix will expose', 'before any' and the fix's kind), and its Unmasking field says how each is read.
 NESTED: a power model draws a slice and every whole it is part of from one draw, the slice's change carried into each whole path by path and into its table, never a slice and its whole drawn apart.
+ORDER: a JUDGED input added or changed after any derivation output was seen is declared in the Derivation with each earlier output's time, credences and rows, the input's weights and their source named, and the derivation prints the credences without it beside the registered ones.
+DESIGN-MAP: before the derivation's first output, every line, arm and condition of the adopted design is mapped to the item that reads it, a reported line, or a declared departure whose reason is checked against the design's own numbers (a conditional arm, 'only if', is decided at the preflight and written down).
+REALISED: the reducer prints "REALISED item k: <value>" for each item's point in the derivation's own definition, so the scorecard scores every registered 80% interval.
 KNOWN-LEG: before a row settles a cause on an item, the derivation prints whether the records already show the arm reaching the mechanism; where they do, a failure reads the interaction, not the cause's 'not', and a HELD credits the cause only with the whole it is part of in band; the Decision fed reads each item by the rows.
 
 ## Prediction

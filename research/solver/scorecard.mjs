@@ -306,6 +306,39 @@ export function leadRate(log, settled) {
   return { h, n, H, N, rate, text: `an item leaning on a deep review's cause or story ${rate.toFixed(2)} (${H} of ${N}: ${rec ? `the hand record's ${rec[1]} of ${rec[2]}, deep-review-log.md, and ` : 'no hand record; '}the leading causes settled since, ${h} of ${n}, review-causes.md)` };
 }
 
+// THE LEAD RATE BY POPULATION (the deep review after COPY-X, deep-review-log.md 19 Oct 09:44 UK, weighing COPY-X's AUTOMATE
+// in lessons.md): the pooled rate mixes the hand record with the leading causes settled since, so it prints them apart with the
+// two-sided Fisher exact test between them, and a lower bound: every leading cause stated in a receipt after the hand record
+// whose question a test has read (some cause of that question settled in review-causes.md) and which is itself not settled,
+// the latest receipt's excepted (its test not yet run), counted as not held. Derivations print their credences at the
+// settled-since rate and at the lower bound
+export function fisherTwoSided(a, b, c, d) {
+  const n = a + b + c + d, r1 = a + b, c1 = a + c, lf = k => { let x = 0; for (let i = 2; i <= k; i++) x += Math.log(i); return x; };
+  const p = x => Math.exp(lf(r1) + lf(n - r1) + lf(c1) + lf(n - c1) - lf(n) - lf(x) - lf(r1 - x) - lf(c1 - x) - lf(n - r1 - c1 + x));
+  const lo = Math.max(0, c1 - (n - r1)), hi = Math.min(r1, c1), p0 = p(a); let t = 0;
+  for (let x = lo; x <= hi; x++) { const q = p(x); if (q <= p0 * (1 + 1e-9)) t += q; }
+  return Math.min(1, t);
+}
+export function leadPopulations(log, settled) {
+  const L = leadRate(log, settled), lines = String(log).split('\n'), recAt = lines.findIndex(l => /read as the review said \d+ of \d+/.test(l));
+  const rec = recAt >= 0 ? /read as the review said (\d+) of (\d+)/.exec(lines[recAt]) : null, stated = statedCauses(log), at = new Map();
+  lines.forEach((l, i) => { const m = /^- (\d{1,2} \w{3} \d{2}:\d{2}) UK \| covered /.exec(l); if (m && !at.has(m[1])) at.set(m[1], i); });
+  const after = [...at.entries()].filter(([, i]) => i > recAt).map(([t]) => t), latest = after.length ? after.reduce((a, t) => (at.get(t) > at.get(a) ? t : a)) : null;
+  const sm = [...String(settled).matchAll(/^- ([^|\n]+?) \| ([\w+-]+) \| (?:held|not) \| /gm)];
+  const settledIds = new Set(sm.map(m => `${m[1].replace(/ UK$/, '')}|${m[2]}`)), tested = new Set(sm.map(m => m[2].split('-')[0]));
+  let open = 0;
+  for (const t of after) {
+    if (t === latest) continue;
+    const byQ = new Map();
+    for (const [k, p] of stated) { const [kt, id] = k.split('|'); if (kt !== t) continue; const q = id.split('-')[0]; byQ.set(q, Math.max(byQ.get(q) ?? -Infinity, p)); }
+    for (const [k, p] of stated) { const [kt, id] = k.split('|'), q = id.split('-')[0]; if (kt === t && tested.has(q) && p >= byQ.get(q) && !settledIds.has(`${t}|${id}`)) open++; }
+  }
+  const hr = rec ? +rec[1] : 0, nr = rec ? +rec[2] : 0, p = fisherTwoSided(hr, nr - hr, L.h, L.n - L.h), lap = (h, n) => (h + 1) / (n + 2);
+  const lbH = L.h, lbN = L.n + open;
+  return { hr, nr, h: L.h, n: L.n, p, open, lbH, lbN, since: lap(L.h, L.n), lower: lap(lbH, lbN), record: lap(hr, nr),
+    text: `LEAD RATE BY POPULATION: the hand record ${hr} of ${nr} (Laplace ${lap(hr, nr).toFixed(2)}); the leading causes settled since ${L.h} of ${L.n} (Laplace ${lap(L.h, L.n).toFixed(2)}); two-sided Fisher exact p ${p.toExponential(1)}${p < 0.01 ? ' (two populations: a derivation does not take the pooled rate)' : ''}; the lower bound, every leading cause stated since the hand record whose question a test has read and which is not settled (the latest receipt's excepted) counted not held, ${lbH} of ${lbN} (Laplace ${lap(lbH, lbN).toFixed(2)})` };
+}
+
 // THE DECISIVE CHECK (O29; the 5 Oct 10:29 row; its rule written before the first pair is read, the plan-auditor's
 // BLOCKING 1 of 5 Oct 10:38 UK, and its looks fixed before the first read, its MINORs 1 and 2 of 5 Oct 10:45 UK): over
 // items carrying both a judged and a derived full distribution, d = RPS(judged) - RPS(derived) per item, averaged within
@@ -468,6 +501,11 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     cases.push(['the lead rate: a settled lead held after the record counts, and a settled cause that did not lead does not', lr('- 6 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | c-y | not | r.txt | OUTCOME: 1 HELD\n'), '2/20 0.1364']);
     cases.push(['planted: a lead settled from a receipt the hand record already covers is not counted twice', lr('- 5 Oct 09:00 | a-x | held | r.txt | OUTCOME: 1 HELD\n'), '1/19 0.0952']);
     cases.push(['EDGE: tied leads both lead, each question its own (c- and d- in one receipt), a lead not held counts in n only', lr('- 6 Oct 01:00 | d-x | held | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | d-y | not | r.txt | OUTCOME: 1 HELD\n- 6 Oct 01:00 | c-x | not | r.txt | OUTCOME: 1 HELD\n'), '2/22 0.1250']);
+    cases.push(['the lead populations: the hand record apart from one lead held since; question d never read, so its unsettled leads stay out of the lower bound', (() => { const r = leadPopulations(LL + '- 7 Oct 01:00 UK | covered D | level HIGH | CAUSE CREDENCES: e-x=0.9\n', '- 6 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n'); return `${r.hr}/${r.nr} ${r.h}/${r.n} ${r.lbH}/${r.lbN}`; })(), '1/19 1/1 1/1']);
+    cases.push(['the lead populations: a question read once (c, settled on a later receipt) leaves an earlier receipt\'s unsettled lead on it counted not held', (() => { const r = leadPopulations(LL + '- 7 Oct 01:00 UK | covered D | level HIGH | CAUSE CREDENCES: c-x=0.7; c-z=0.3\n- 8 Oct 01:00 UK | covered E | level HIGH | CAUSE CREDENCES: f-x=0.9\n', '- 7 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n'); return `${r.h}/${r.n} ${r.lbH}/${r.lbN}`; })(), '1/1 1/2']);
+    cases.push(['EDGE: the latest receipt\'s leads are not counted in the lower bound (its test not yet run)', (() => { const r = leadPopulations(LL, ''); return `${r.open} ${r.lbN}`; })(), '0 0']);
+    cases.push(['fisherTwoSided: 1 of 19 against 14 of 16 reads 7.1e-7 (the deep review after COPY-X)', fisherTwoSided(1, 18, 14, 2).toExponential(1), '7.1e-7']);
+    cases.push(['EDGE: fisherTwoSided on two equal populations reads 1', fisherTwoSided(5, 5, 5, 5).toFixed(4), '1.0000']);
     cases.push(['EDGE: no hand record reads the settled leads alone', (() => { const r = leadRate(LL.replace('read as the review said 1 of 19. ', ''), '- 6 Oct 01:00 | c-x | held | r.txt | OUTCOME: 1 HELD\n'); return `${r.H}/${r.N} ${r.rate.toFixed(4)}`; })(), '1/1 0.6667']); }
   cases.push(['the kind\'s base rate: 3 held of 4 ATTRIB items reads (3 + 1) / (4 + 2), and an unseen kind is absent', (() => { const r = kindRates([1, 1, 1, 0].map(o => ({ kind: 'ATTRIB', o }))); return `${r.ATTRIB.rate.toFixed(4)} ${r.ATTRIB.n} ${'NOHARM' in r}`; })(), '0.6667 4 false']);
   cases.push(['discrimination: a judged set that ranks perfectly and a derived set that ranks backwards', (() => { const d = discrimination([{ judged: 0.9, derived: 0.2, o: 1 }, { judged: 0.1, derived: 0.8, o: 0 }]); return `${d.aucJ} ${d.aucD} ${d.both}`; })(), '1 0 true']);
@@ -529,7 +567,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (ao) { console.log(`ERROR - ${ao}`); process.exit(1); }
     const C = causeScores(read('deep-review-log.md') || '', read('review-causes.md') || '', f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : null)); if (C.errs.length) { console.log(`ERROR - review-causes.md: ${C.errs.join('; ')}`); process.exit(1); } console.log(C.line); }
   { const R = kindRates(tagged), LR = leadRate(read('deep-review-log.md') || '', read('review-causes.md') || '');
-    console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}; ${LR.text}`); }
+    console.log(`KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): ${KINDS.filter(k => R[k]).concat(Object.keys(R).filter(k => !KINDS.includes(k))).map(k => `${k} ${R[k].rate.toFixed(2)} (${R[k].held} of ${R[k].n})`).join(', ')}; ${LR.text}`);
+    console.log(leadPopulations(read('deep-review-log.md') || '', read('review-causes.md') || '').text); }
   if (judgedAll.length) { const D = discrimination(judgedAll); console.log(`DISCRIMINATION, judged against derived (the same items and events): ${D.both ? `AUC judged ${D.aucJ.toFixed(2)}, derived ${D.aucD.toFixed(2)}; resolution judged ${D.resJ.toFixed(3)}, derived ${D.resD.toFixed(3)}` : 'accruing - the items so far all of one outcome'} over ${D.n}`); }
   if (judgedAll.length) { const J = judgedCheck(judgedAll); console.log(`JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged ${(judgedAll.reduce((a, x) => a + (x.judged - x.o) ** 2, 0) / judgedAll.length).toFixed(3)}, derived ${(judgedAll.reduce((a, x) => a + (x.derived - x.o) ** 2, 0) / judgedAll.length).toFixed(3)} over ${judgedAll.length}; the decisive check (O29): ${J.line}`); }
 }

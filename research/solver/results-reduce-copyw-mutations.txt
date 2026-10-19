@@ -1,0 +1,60 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== HOUSE) bad.push(`${arm}: run on
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: ...COMMON, readerSplit: SPLIT[arm], readerCopy: COPY[arm], p
+caught: 9: ...COMMON, readerSplit: SPLIT[arm], readerCopy: COPY[arm], p
+caught: 10: export const COPY = Object.freeze({ CW: 'null', CXW: 'extrap
+caught: 11: export const COPY = Object.freeze({ CW: 'null', CXW: 'extrap
+caught: 12: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode
+caught: 13: readerBlend: 'null', readerRef: 'null', readerChance: 'null'
+caught: 14: if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran,
+caught: 15: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 16: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 17: if (!j.recount || !j.reader || j.recount.copied !== j.reader
+caught: 18: if (!j.bridge || YEARS.some(t => !j.bridge.includes(t)))
+caught: 19: if (!j.split[w] || (j.bridge || []).some(
+caught: 20: const st = f.states && f.states[`S${w}`]; if (!st ||
+caught: 21: if (ws && j.whole[w] && Math.abs(decRaw(ws).reduce((t, x) =>
+caught: 22: if (saved && INERT[arm]) { const d = inertOf(f, saved[INERT[
+caught: 23: for (const x of INERT_PER) { const a = f.per && f.per[`${x}$
+caught: 24: for (const x of [`OWN${w}`, `OWN${w}b`]) { const a = f.bits 
+caught: 25: const a = f.moves && f.moves[`MV${w}`], b = s.moves && s.mov
+caught: 26: if (!s) return ['no saved STEP-S370 file to compare'];
+caught: 27: if (!xOk) bad.push(
+caught: 28: if (codes.size !== 1 || codes.has(undefined) || codes.has(nu
+caught: 29: if (!j.head || j.head.seed !== SEED) bad.push(`${j.label}: n
+caught: 30: if (xs.some(j => !j)) { bad.push(
+caught: 31:     if (j.id !== HOUSE) bad.push(`${j.label}: on ${j.id}, no
+caught: 32: for (const f of Object.keys(COMMON)) if (field(j.ran || '', 
+caught: 33: const nothing = !(Math.abs(r.mc) >= MINRES);
+caught: 34: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 35: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 36: out['1'] = ratioItem(share(P.y456.CX, Float64Array.from(P.y4
+caught: 37: const y456 = a => { const y4 = perP(a, 1, 'Y4'), y5 = perP(a
+caught: 38: return Float64Array.from(y4, (v, i) => v + y5[i] + y6[i]); }
+caught: 39: outcome: c.lo >= -CLOSE && c.hi <= CLOSE ? 'HELD' : c.hi < -
+caught: 40: outcome: c.lo >= -CLOSE && c.hi <= CLOSE ? 'HELD' : c.hi < -
+caught: 41: out['2'] = closeItem(meanOf(P.g.CXW[1])); out['3'] = closeIt
+caught: 42: const se = Math.sqrt(v / Math.max(1, n - 1) / n); return { d
+caught: 43: return Float64Array.from(gb, (v, i) => v + ga[i]); });
+caught: 44: v[i] = b.CXW[i] - b.CW[i] - b.CX[i] + b.C[i];
+caught: 45: const se = 100 * Math.sqrt(q / Math.max(1, n - 1) / n), tab 
+caught: 46: const interWorld = x => (x.lo >= -INTER && x.hi <= INTER ? '
+caught: 47: out['4'] = { outcome: per.some(x => x.read === 'interacting'
+caught: 48: cells: { CW: K.map(k => cellsOf(bitsF('C', k), bitsF('CW', k
+caught: 49: ws: { CW: K.map(k => wsOf(wsF('C', k), wsF('CW', k))), CXW: 
+caught: 50: out['5'] = { outcome: hx.outcome, hw, hx };
+caught: 51: out['5'] = { outcome: hx.outcome, hw, hx };
+caught: 52: if (o('5') === 'FALSIFIED') return 'R5';
+caught: 53: if (o('2') === 'HELD' && o('3') === 'HELD') return 'R1';
+caught: 54: if (o('1') === 'HELD') return 'R2';
+caught: 55: if (o('1') === 'FALSIFIED') return 'R3';
+caught: 56: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 57: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 58: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+caught: 59: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1, CLOSE =
+59 of 59 mutations caught

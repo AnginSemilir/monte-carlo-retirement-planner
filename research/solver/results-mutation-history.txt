@@ -185,3 +185,7 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-19 03:58 UTC | reduce-copyx.mjs d03ce68bbb15 | 55 of 55 caught | escaped: none
 2026-10-19 04:56 UTC | reduce-copyx.mjs 1ba757f3b92f | 55 of 55 caught | escaped: none
 2026-10-19 05:00 UTC | reduce-copyx.mjs 0258bca29576 | 59 of 59 caught | escaped: none
+2026-10-19 09:18 UTC | reduce-copyw.mjs 518f8cf3f46c | 54 of 59 caught | escaped: NOT APPLIED (2 matches): 3: if (j.id !== HOUSE) bad.push(; NOT CAUGHT: 12: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode; NOT CAUGHT: 16: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', ; NOT CAUGHT: 17: if (!j.recount || !j.reader || j.recount.copied !== j.reader; NOT CAUGHT: 35: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+2026-10-19 09:19 UTC | reduce-copyw.mjs fab014882744 | 58 of 59 caught | escaped: NOT APPLIED (2 matches): 3: if (j.id !== HOUSE) bad.push(
+2026-10-19 09:19 UTC | reduce-copyw.mjs fab014882744 | 59 of 59 caught | escaped: none
+2026-10-19 09:27 UTC | reduce-copyw.mjs 2e2f967ff8b8 | 59 of 59 caught | escaped: none

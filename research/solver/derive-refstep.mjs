@@ -138,9 +138,10 @@ console.log(`  seed 7002, ${N} paths a world: S362's C behind COPY-B's gate and 
 for (const h of HS) for (const k of K) {
   const C = F[h].C, A = F[h].AN, bc = C.bits[`OWN${k}`], ba = A.bits[`OWN${k}`], r = { pC: cnt(bc) / N, pA: cnt(ba) / N, fl: flipsOf(bc, ba) };
   r.tails = [1, 2, 3].map(t => mean(tailOfF(A, k, t))); r.tailsC = [1, 2, 3].map(t => mean(tailOfF(C, k, t)));
+  { const t3 = tailOfF(A, k, 3), m3 = mean(t3); r.sd3 = Math.sqrt(t3.reduce((u, v) => u + (v - m3) ** 2, 0) / (N - 1)); }
   r.dyA = dyingShare(A.mv[`MV${k}`], A.years, ba, A.per[`Y3${k}`], 3); r.dyC = dyingShare(C.mv[`MV${k}`], C.years, bc, C.per[`Y3${k}`], 3);
   const ws = A.per[`WS${k}`]; let wa = 0, na = 0, wd = 0, nd = 0; for (let i = 0; i < N; i++) { if (ba[i]) { wa += ws[i]; na++; } else { wd += ws[i]; nd++; } } r.gap = (na ? wa / na : 0) - (nd ? wd / nd : 0);
-  let line = `  ${h} world ${k}: survival C ${f4(100 * r.pC)}, AN ${f4(100 * r.pA)}; AN against C ${r.fl.lost} lost, ${r.fl.saved} saved; the read error from years 1, 2 and 3 on, AN ${r.tails.map(f4).join(', ')}, C ${r.tailsC.map(f4).join(', ')}; the year-3 dying paths' share of the world's year-3 residual, AN ${f4(r.dyA.share)} (${r.dyA.n} paths), C ${f4(r.dyC.share)} (${r.dyC.n})`;
+  let line = `  ${h} world ${k}: survival C ${f4(100 * r.pC)}, AN ${f4(100 * r.pA)}; AN against C ${r.fl.lost} lost, ${r.fl.saved} saved; the read error from years 1, 2 and 3 on, AN ${r.tails.map(f4).join(', ')}, C ${r.tailsC.map(f4).join(', ')} (AN's per-path spread from year 3, sd ${f4(r.sd3)}); the year-3 dying paths' share of the world's year-3 residual, AN ${f4(r.dyA.share)} (${r.dyA.n} paths), C ${f4(r.dyC.share)} (${r.dyC.n})`;
   if (h === 'S362') { const cp = cellPaths(k); let cl = 0, cs = 0; for (let i = 0; i < N; i++) if (cp[i]) { if (bc[i] && !ba[i]) cl++; else if (!bc[i] && ba[i]) cs++; } r.cell = { n: O191.cell[k].n, lost: cl, saved: cs }; line += `; O191's year-1 cell (C taxable-first, AN ISA-first) ${r.cell.n} paths, ${cl} of AN's lost and ${cs} of its saved in it`; }
   console.log(`${line}; the whole score's alive less dead under AN ${f4(r.gap)}`);
   REC[h][k] = r;
@@ -216,6 +217,8 @@ for (const w of [0, 0.2, 0.4, 0.5, 0.6, 0.75, 0.9, 1]) cell(`AN3's cell ${w} of 
 for (const fl of [0.75, 1.5, 3]) cell(`AN3's flips ${fl} times AN's outside the cell, the cell's own at its draw`, { flips: fl }, '3');
 for (const r of [1, 0.75, 0.5, 0.3]) cell(`AR3 removes ${r} of C's read error on S360 and S364`, { r4: { S360: r, S364: r }, d4: { S360: 0, S364: 0 } }, '4');
 for (const live of [0, 0.25, 0.5]) cell(`AN3's live-side over-read ${live} on S370 too, all of the smear removed`, { f: 1, live, j370: [0, 0, 0] }, '5');
+{ const L = {}; for (let q = 0; q < DR; q++) for (const l of at({})['3'].legs) for (const x of l.per) { const key = `${l.arm} on ${x.h}`; L[key] = L[key] || cnt3(); L[key][x.outcome]++; }
+  console.log(`  item 3 by leg at the stories (each leg's own reading; S364's margin marginRel at 0.05 to 1.55 percent survival): ${Object.entries(L).map(([k, c]) => `${k}: ${row(c)}`).join('; ')}`); }
 
 // 3. THE CREDENCES
 const RECEIPT = '20 Oct 02:53 UK', logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => l.startsWith(`- ${RECEIPT} |`)) || '';

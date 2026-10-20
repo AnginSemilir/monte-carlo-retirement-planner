@@ -1,0 +1,9 @@
+PR31 INERTNESS (S362, 4 points, e3pcls off): the tables' hash, the code before the fix and after it
+  C: 8bd77ab7af960aa5 8bd77ab7af960aa5 identical
+  AN: bc9ede7924cfdc9f bc9ede7924cfdc9f identical
+  AN3: fb07b599274f0114 5cf37fe30a0a14d7 differ
+AN3, the survival tables by world and year (before against after):
+  world 0: year 0 max 4.05e-13 on 351 of 1296 nodes, moves differ on 0; year 1 max 1.11e-12 on 351 of 1296 nodes, moves differ on 0; year 2 max 1.95e-12 on 349 of 1296 nodes, moves differ on 0; year 3 max 2.08e-13 on 320 of 1296 nodes, moves differ on 0; year 4 max 2.83e-13 on 476 of 1296 nodes, moves differ on 0; year 5 max 3.94e-13 on 166 of 1296 nodes, moves differ on 0; year 6 max 6.96e-13 on 72 of 1296 nodes, moves differ on 0
+  world 1: year 0 max 9.82e-13 on 351 of 1296 nodes, moves differ on 0; year 1 max 2.74e-12 on 351 of 1296 nodes, moves differ on 0; year 2 max 4.68e-12 on 349 of 1296 nodes, moves differ on 0; year 3 max 5.26e-13 on 323 of 1296 nodes, moves differ on 0; year 4 max 7.02e-13 on 440 of 1296 nodes, moves differ on 0; year 5 max 9.77e-13 on 171 of 1296 nodes, moves differ on 0; year 6 max 1.68e-12 on 72 of 1296 nodes, moves differ on 0
+  world 2: year 0 max 2.22e-12 on 318 of 1296 nodes, moves differ on 0; year 1 max 6.34e-12 on 315 of 1296 nodes, moves differ on 0; year 2 max 1.05e-11 on 337 of 1296 nodes, moves differ on 0; year 3 max 1.55e-12 on 327 of 1296 nodes, moves differ on 0; year 4 max 1.98e-12 on 306 of 1296 nodes, moves differ on 0; year 5 max 3.07e-12 on 148 of 1296 nodes, moves differ on 0; year 6 max 5.15e-12 on 54 of 1296 nodes, moves differ on 0
+VERDICT: C identical, AN identical; AN3's largest survival change 1.05e-11, stored moves differing 0

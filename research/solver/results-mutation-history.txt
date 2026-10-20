@@ -213,3 +213,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-20 02:47 UTC | reduce-refstep.mjs e470414afec3 | 93 of 93 caught | escaped: none
 2026-10-20 02:54 UTC | reduce-refstep.mjs 02f2edd5a970 | 91 of 94 caught | escaped: NOT CAUGHT: 51: vr = n => n * (1 - n / c.N); NOT CAUGHT: 55: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l; NOT CAUGHT: 56: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
 2026-10-20 02:57 UTC | reduce-refstep.mjs 90d2f90ca235 | 93 of 93 caught | escaped: none
+2026-10-20 03:35 UTC | reduce-refstep.mjs 65a718b2255d | 100 of 103 caught | escaped: NOT CAUGHT: 47: off = q[2].hi < QOUT;; NOT CAUGHT: 53: const z = zFor(0.05 / 9), per = K.map(k => { const D = P.S36; NOT CAUGHT: 96: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+2026-10-20 03:42 UTC | reduce-refstep.mjs c485d2e8e66d | 101 of 103 caught | escaped: NOT CAUGHT: 47: off = q[2].hi < QOUT;; NOT CAUGHT: 96: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+2026-10-20 03:48 UTC | reduce-refstep.mjs 2e53abb2d6b2 | 103 of 103 caught | escaped: none

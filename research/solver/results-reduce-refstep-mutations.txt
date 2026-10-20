@@ -37,58 +37,68 @@ caught: 36: if ((c.oldFile.bridge || []).join(',') !== (c.file.bridge ||
 caught: 37: for (const x of Object.keys(c.file[g] || {})) if (!(x in o))
 caught: 38: if (!c || !c.old || !c.oldFile || !c.job || !c.file) { bad.p
 caught: 39: export const REPRO = Object.freeze([['S362', 'AN', 'REF-B'],
-caught: 40: const zt = zFor(0.05 / 9), per = K.map(k => { const tails = 
-caught: 41: inb = tails.every(c => c.lo >= -BAND && c.hi <= BAND)
-caught: 42: off = tails.some(c => c.lo > OUT || c.hi < -OUT);
-caught: 43: off = tails.some(c => c.lo > OUT || c.hi < -OUT);
-caught: 44: off = tails.some(c => c.lo > OUT || c.hi < -OUT);
-caught: 45: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 46: const allOf = (per, yes, no) => (per.some(x => x.read === no
-caught: 47: num = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0)
-caught: 48: den = K.reduce((s, k) => s + WMIX[k] * c.nAN[k], 0);
-caught: 49: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
-caught: 50: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
-caught: 51: vr = n => n * (1 - n / c.N)
-caught: 52: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
-caught: 53: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
-caught: 54: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
-caught: 55: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
-caught: 56: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
-caught: 57: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
-caught: 58: out['3'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
-caught: 59: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
-caught: 60: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 61: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 62: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 63: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
-caught: 64: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
-caught: 65: const c = meanOf(P.br[h].AR3[k], z);
-caught: 66: out['4'] = { outcome: per.length ? allOf(per, 'closed', 'ope
-caught: 67: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 68: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 69: Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.
-caught: 70: if (o('3') === 'FALSIFIED') return 'R3';
-caught: 71: if (o('1') === 'FALSIFIED') return 'R5';
-caught: 72: if (o('4') === 'FALSIFIED') return 'R4';
-caught: 73: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';
-caught: 74: if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2'
-caught: 75: if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :
-caught: 76: if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR n
-caught: 77: const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, 
-caught: 78: tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN
-caught: 79: tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN
-caught: 80: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
-caught: 81: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
-caught: 82: { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h,
-caught: 83: AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => t
-caught: 84: const at = mv[i * years + t] !== 65535, next = t + 1 < years
-caught: 85: const at = mv[i * years + t] !== 65535, next = t + 1 < years
-caught: 86: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 87: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 88: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 89: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 90: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 91: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 92: export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.
-caught: 93: export const LATTICE_LINE = '160x41 nz 128';
-93 of 93 mutations caught
+caught: 40: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 41: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 42: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 43: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 44: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 45: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 46: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 47: off = q[2].hi < QOUT;
+caught: 48: off = q[2].hi < QOUT;
+caught: 49: off = q[2].hi < QOUT;
+caught: 50: return { k, q, tails, read: off ? 'kept' : inb ? 'removed' :
+caught: 51: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 52: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 53: const z = zFor(0.05 / 9), per = K.map(k => { const D = P.S36
+caught: 54: num = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0)
+caught: 55: den = K.reduce((s, k) => s + WMIX[k] * c.nAN[k], 0);
+caught: 56: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
+caught: 57: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
+caught: 58: vr = n => n * (1 - n / c.N)
+caught: 59: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 60: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 61: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 62: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 63: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
+caught: 64: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
+caught: 65: out['3'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
+caught: 66: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
+caught: 67: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 68: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 69: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 70: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 71: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 72: const c = meanOf(P.br[h].AR3[k], z);
+caught: 73: out['4'] = { outcome: per.length ? allOf(per, 'closed', 'ope
+caught: 74: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 75: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 76: Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.
+caught: 77: if (o('3') === 'FALSIFIED') return 'R3';
+caught: 78: if (o('1') === 'FALSIFIED') return 'R5';
+caught: 79: if (o('4') === 'FALSIFIED') return 'R4';
+caught: 80: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';
+caught: 81: if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2'
+caught: 82: if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :
+caught: 83: if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR n
+caught: 84: const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, 
+caught: 85: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 86: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 87: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 88: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 89: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 90: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 91: { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h,
+caught: 92: AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => t
+caught: 93: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 94: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 95: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 96: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 97: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 98: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 99: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 100: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 101: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 102: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 103: export const LATTICE_LINE = '160x41 nz 128';
+103 of 103 mutations caught

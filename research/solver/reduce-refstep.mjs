@@ -13,10 +13,13 @@
  * S370 (results/diagcopyx), every path's ledger, split, whole score, survival bits, moves and visit states and every world's
  * tables, behind each source's own reducer's gate over its files.
  * THE ITEMS, each with three outcomes; an item's cells read with Bonferroni intervals (0.05 over the cells it reads):
- *   1: the smear removed (PR29): on S362 AN3's read error from each of bridge years 1, 2 and 3 (the tail sum: the residual at
- *      that year and every later one, with GA) lies within a quarter of a point in every world: a world reads in band when its
- *      three intervals lie within [-0.25, 0.25] and out when any lies wholly outside [-0.5, 0.5]; HELD when every world reads in
- *      band, FALSIFIED when any reads out, otherwise INCONCLUSIVE (AN's: 0.56, 0.46, 0.37; 0.50, 0.56, 0.55; 0.38, 0.46, 0.51).
+ *   1: the smear removed, from the whole (PR29; WHOLE, NETS): on S362, the smear is AN's year-3 residual on the paths that die at
+ *      year 3 (D: 0.4916, 0.4328 and 0.5623 points of each world's mean, the receipt's signature, one sign); q_t is the share of
+ *      it that leaves AN's read error from bridge year t (the tail sum: the residual at that year and every later one, with GA),
+ *      path by path: q_t = sum(tail_t,AN - tail_t,AN3) / sum(D), its interval by the delta method (reduce-copyx.mjs removal over
+ *      D and D less the change); a world reads removed when q_1, q_2 and q_3 each lie within [0.75, 1.25] (the smear gone from
+ *      every year's read error, not moved into another), kept when q_3 lies wholly under a quarter; HELD when every world reads
+ *      removed, FALSIFIED when any reads kept, otherwise INCONCLUSIVE. AN3's read error from each year is printed beside.
  *   2: O191's switch (O191-SMEAR against its rivals): on S362, the paths whose moves first differ at year 1 from C's
  *      taxable-first move to the arm's ISA-first one (read-o191.mjs's cell), AN3's count against AN's on the mixture weights
  *      (1/6, 2/3, 1/6), rho = sum W_k n_AN3,k / sum W_k n_AN,k, its interval by the delta method with each count binomial over
@@ -53,7 +56,7 @@ import { spawnSync } from 'node:child_process';
 import { requireFairLogs } from './fair-gate.mjs';
 import { zFor } from './stats.mjs';
 import { sha16 } from './reduce-ao.mjs';
-import { cellsOf, wsOf, harmWorlds, parse as parseX, LABELS as LABELS_X } from './reduce-copyx.mjs';
+import { cellsOf, wsOf, removal, harmWorlds, parse as parseX, LABELS as LABELS_X } from './reduce-copyx.mjs';
 import { meanOf } from './reduce-copyw.mjs';
 import { parse as parseB, keyOf as keyOfB } from './reduce-copyb.mjs';
 import { parse as parseRB, keyOf as keyOfRB, tailOf, firstBand } from './reduce-refb.mjs';
@@ -62,7 +65,7 @@ import { read as readO191, W as WMIX } from './read-o191.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-refstep.md';
 export const SEED = '7002', NPW = 4000, NQF = 1000;
-export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;
+export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;
 export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
 export const PARTS = Object.freeze(['QS', 'QC', 'RS', 'RC']);
 // the jobs as registered: [household, arm, wealth points] (audit-refstep.mjs's JOBS, in its order)
@@ -213,14 +216,15 @@ export function reproGate(cells, ok) {
 const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : String(x));
 const mean = a => { let s = 0; for (const x of a) s += x; return s / a.length; };
 const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD' : 'INCONCLUSIVE');
-/* P: { S362: { tails: { AN3 }: [3] [3 years] per path }, cell: { n: [3] AN3's cell paths by world, nAN: [3] AN's, N: paths a
+/* P: { S362: { tails: { AN3, AN }: [3] [3 years] per path, dying: [3] AN's year-3 residual on its year-3 dying paths, per path }, cell: { n: [3] AN3's cell paths by world, nAN: [3] AN's, N: paths a
    world, m, se: AN3's own-move read error there on the mixture }, legs: { [arm]: { [h]: { cells: [3], ws: [3] } } }, br: { [h]: { C: [3], AR3: [3] } }
    the read error from bridge year 1 per path, S370: { tail3: { AN3, AN }: [3] per path } } */
 export function items(P) {
   const out = {}, K = [0, 1, 2];
-  { const zt = zFor(0.05 / 9), per = K.map(k => { const tails = P.S362.tails.AN3[k].map(a => meanOf(a, zt)), inb = tails.every(c => c.lo >= -BAND && c.hi <= BAND), off = tails.some(c => c.lo > OUT || c.hi < -OUT);
-      return { k, tails, read: off ? 'out' : inb ? 'in band' : 'unclear' }; });
-    out['1'] = { outcome: allOf(per, 'in band', 'out'), per }; }
+  { const z = zFor(0.05 / 9), per = K.map(k => { const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D, Float64Array.from(D, (v, i) => v + P.S362.tails.AN3[k][j][i] - P.S362.tails.AN[k][j][i]), z));
+      const tails = P.S362.tails.AN3[k].map(a => meanOf(a, z)), inb = q.every(r => r.lo >= QLO && r.hi <= QHI), off = q[2].hi < QOUT;
+      return { k, q, tails, read: off ? 'kept' : inb ? 'removed' : 'unclear' }; });
+    out['1'] = { outcome: allOf(per, 'removed', 'kept'), per }; }
   { const c = P.cell, z = zFor(0.05), vr = n => n * (1 - n / c.N), num = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0), den = K.reduce((s, k) => s + WMIX[k] * c.nAN[k], 0);
     const vn = K.reduce((s, k) => s + WMIX[k] ** 2 * vr(c.n[k]), 0), vd = K.reduce((s, k) => s + WMIX[k] ** 2 * vr(c.nAN[k]), 0);
     const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.sqrt(vn / den ** 2 + num ** 2 * vd / den ** 4) : NaN, iv = Number.isFinite(rho) ? { d: rho, lo: rho - z * se, hi: rho + z * se } : null;
@@ -251,20 +255,23 @@ export function rowOf(it) {
   return 'else';
 }
 // each item's point in the derivation's own definition (REALISED lines)
-export const POINT = { 1: it => Math.max(...it['1'].per.flatMap(x => x.tails.map(c => Math.abs(c.d)))), 2: it => (it['2'].iv ? it['2'].iv.d : NaN), 3: it => Math.min(...it['3'].legs.flatMap(l => l.per.flatMap(x => x.per.map(y => y.ex.d)))), 4: it => (it['4'].per.length ? Math.max(...it['4'].per.map(x => Math.abs(x.c.d))) : NaN), 5: it => Math.max(...it['5'].per.map(x => Math.abs(x.c.d))) };
+export const POINT = { 1: it => Math.min(...it['1'].per.flatMap(x => x.q.map(r => r.R))), 2: it => (it['2'].iv ? it['2'].iv.d : NaN), 3: it => Math.min(...it['3'].legs.flatMap(l => l.per.flatMap(x => x.per.map(y => y.ex.d)))), 4: it => (it['4'].per.length ? Math.max(...it['4'].per.map(x => Math.abs(x.c.d))) : NaN), 5: it => Math.max(...it['5'].per.map(x => Math.abs(x.c.d))) };
 // the items' input from the files: perP(h, arm, world, key) in points, bitsF(h, arm, world), wsF(h, arm, world), bridge[h] the
-// household's bridge years, o191 = { AN3, AN }: read-o191.mjs's read of C against each on S362
-export function pOf(perP, bitsF, wsF, bridge, o191) {
+// household's bridge years, o191 = { AN3, AN }: read-o191.mjs's read of C against each on S362, dyingF(h, a, k) the arm's year-3
+// residual on its year-3 dying paths, per path, in points
+export function pOf(perP, bitsF, wsF, bridge, o191, dyingF) {
   const K = [0, 1, 2], ys = (h, a, k) => Object.fromEntries(bridge[h].map(t => [t, perP(h, a, k, `Y${t}`)]));
   const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, k, 'GA'), bridge[h], t);
   const legs = Object.fromEntries(LEGS.map(([arm, ctl, hs]) => [arm, Object.fromEntries(hs.map(h => [h, { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), ws: K.map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))) }]))]));
   const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.cell.map(x => x.n), N: o191.N, m: o191.AN3.mix.cell.eB, se: o191.AN3.mix.cell.seB };
-  return { S362: { tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t))) } }, cell, legs,
+  return { S362: { tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t))), AN: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN', k, t))) }, dying: K.map(k => dyingF('S362', 'AN', k)) }, cell, legs,
     br: Object.fromEntries(['S364', 'S360'].map(h => [h, { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h, 'AR3', k, 1)) }])), S370: { tail3: { AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => tail('S370', 'AN', k, 3)) } } };
 }
 // the smear's signature (the receipt's fate read): the paths that reach bridge year t and die there (no visit after t, not
-// alive), their residual at t as a share of the world's mean, points; mv the moves (years per path), y the residual at t
-export function dyingShare(mv, years, bits, y, t) { let s = 0, n = 0; for (let i = 0; i < bits.length; i++) { const at = mv[i * years + t] !== 65535, next = t + 1 < years ? mv[i * years + t + 1] !== 65535 : false; if (at && !next && !bits[i]) { s += y[i]; n++; } } return { share: 100 * s / bits.length, n }; }
+// alive), their residual at t (dyingOf: per path, 0 elsewhere) and its share of the world's mean (dyingShare: points when y is
+// the saved fraction); mv the moves (years per path), y the residual at t
+export const dyingOf = (mv, years, bits, y, t) => Float64Array.from(y, (v, i) => { const at = mv[i * years + t] !== 65535, next = t + 1 < years ? mv[i * years + t + 1] !== 65535 : false; return at && !next && !bits[i] ? v : 0; });
+export function dyingShare(mv, years, bits, y, t) { const d = dyingOf(mv, years, bits, y, t); let s = 0, n = 0; for (let i = 0; i < d.length; i++) if (d[i] !== 0 || (mv[i * years + t] !== 65535 && !(t + 1 < years && mv[i * years + t + 1] !== 65535) && !bits[i])) { s += d[i]; n++; } return { share: 100 * s / bits.length, n }; }
 
 // THE PLANTED CHECKS: each item to each outcome on a case built for it, the rows, the cause, the gate's refusals, the
 // reproduction's, the EDGES
@@ -279,7 +286,8 @@ const P0 = () => {
   const K = [0, 1, 2];
   const legsOf = () => Object.fromEntries(LEGS.map(([arm, , hs]) => [arm, Object.fromEntries(hs.map(h => [h, { cells: K.map(k => cellsOf(bitsAt(RUNS[h][k]), bitsAt(RUNS[h][k]))), ws: K.map(k => wsOf(ws0(bitsAt(RUNS[h][k])), ws0(bitsAt(RUNS[h][k])))) }]))]));
   const t3 = [ys(12.7, 2, N0, 51), ys(3.9, 2, N0, 52), ys(-0.1, 1, N0, 53)];
-  return { S362: { tails: { AN3: K.map(k => [1, 2, 3].map(t => ys(0.02 * (4 - t), 1, N0, 30 + 3 * k + t))) } }, cell: { n: [40, 50, 60], nAN: [234, 269, 271], N: N0, m: 0.05, se: 0.2 }, legs: legsOf(),
+  const dyingP = K.map(k => Float64Array.from(ys(0, 1, N0, 20 + k), (v, i) => (i % 5 === 0 ? 2.5 + 0.5 * v : 0))), anT = K.map(k => [1, 2, 3].map(t => ys(0.5, 4, N0, 30 + 3 * k + t)));
+  return { S362: { tails: { AN: anT, AN3: anT.map((a, k) => a.map(x => Float64Array.from(x, (v, i) => v - dyingP[k][i]))) }, dying: dyingP }, cell: { n: [40, 50, 60], nAN: [234, 269, 271], N: N0, m: 0.05, se: 0.2 }, legs: legsOf(),
     br: { S364: { C: [ys(3, 4, N0, 61), ys(1.5, 3, N0, 62), ys(0.2, 1, N0, 63)], AR3: [ys(0.2, 2, N0, 64), ys(0.1, 2, N0, 65), ys(0, 1, N0, 66)] }, S360: { C: [ys(-2.5, 4, N0, 71), ys(-1.2, 3, N0, 72), ys(-0.1, 1, N0, 73)], AR3: [ys(-0.2, 2, N0, 74), ys(0.1, 2, N0, 75), ys(0, 1, N0, 76)] } },
     S370: { tail3: { AN: t3, AN3: t3.map(a => a.map(v => v - 0.05)) } } };
 };
@@ -288,16 +296,26 @@ function planted() {
   const run = (what, edit, i, want, edge) => { const P = P0(); edit(P); const it = items(P); REACHED[i].add(it[i].outcome); put(`${what}: ${i} ${want}`, it[i].outcome, want); if (edge) EDGES.push(edge); return it; };
   const alt = (m, e) => Float64Array.from({ length: N0 }, (_, i) => m + (i % 2 ? e : -e));
   const fill = v => new Float64Array(N0).fill(v);
-  // item 1
-  run('AN3\'s tails from years 1 to 3 near nil in every world', () => {}, '1', 'HELD');
-  run('AN3 leaves world 1\'s tail from year 3 at 0.6 (AN\'s 0.55 and more)', P => { P.S362.tails.AN3[1][2] = ys(0.6, 1, N0, 91); }, '1', 'FALSIFIED');
-  run('AN3 leaves world 0\'s tail from year 1 at 0.35 (between the lines)', P => { P.S362.tails.AN3[0][0] = ys(0.35, 1, N0, 92); }, '1', 'INCONCLUSIVE');
-  run('AN3 over-corrects world 2\'s tail from year 3 to -0.7', P => { P.S362.tails.AN3[2][2] = ys(-0.7, 1, N0, 93); }, '1', 'FALSIFIED');
-  run('tails exactly a quarter of a point, no spread (the line)', P => { for (const k of [0, 1, 2]) P.S362.tails.AN3[k] = [1, 2, 3].map(() => fill(0.25)); }, '1', 'HELD', 'tails exactly at a quarter of a point with no spread read in band');
-  run('a tail at 0.27, no spread (past a quarter)', P => { P.S362.tails.AN3[2][0] = fill(0.27); }, '1', 'INCONCLUSIVE');
-  run('a tail exactly half a point, no spread (not wholly outside)', P => { P.S362.tails.AN3[1][0] = fill(0.5); }, '1', 'INCONCLUSIVE', 'a tail exactly at half a point reads unclear, not out');
-  run('a tail at 0.2 with an interval reaching past a quarter', P => { P.S362.tails.AN3[2][1] = alt(0.2, 3); }, '1', 'INCONCLUSIVE');
-  run('a tail at 0.6 with an interval reaching under half a point', P => { P.S362.tails.AN3[0][2] = alt(0.6, 5); }, '1', 'INCONCLUSIVE');
+  // item 1 (AN3 = AN less the dying paths' residual, path by path, in P0: every q exactly 1)
+  const smear = (P, k, f, add = 0, years = [0, 1, 2]) => { for (const j of years) P.S362.tails.AN3[k][j] = Float64Array.from(P.S362.tails.AN[k][j], (v, i) => v - f * P.S362.dying[k][i] + add); };
+  const exact = P => { for (const k of [0, 1, 2]) { P.S362.dying[k] = Float64Array.from({ length: N0 }, (_, i) => (i % 5 === 0 ? 4 : 0)); P.S362.tails.AN[k] = [0, 1, 2].map(() => new Float64Array(N0)); } };
+  run('AN3 removes the dying paths\' residual exactly from every year\'s read error', () => {}, '1', 'HELD');
+  run('AN3 removes none of it in world 1', P => smear(P, 1, 0), '1', 'FALSIFIED');
+  run('AN3 removes half of it in world 0', P => smear(P, 0, 0.5), '1', 'INCONCLUSIVE');
+  run('AN3 removes all of it with a live-side over-read of a quarter of the smear in world 2', P => smear(P, 2, 1, 0.125), '1', 'INCONCLUSIVE');
+  run('AN3 removes it from year 3 on but years 1 and 2 gain it back (moved, not removed)', P => { smear(P, 0, 1); smear(P, 0, 0, 0, [0, 1]); }, '1', 'INCONCLUSIVE', 'the smear removed from year 3 but not from years 1 and 2 reads unclear (moved), not removed');
+  run('AN3 removes twice the smear in world 1 (over-correction past 1.25)', P => smear(P, 1, 2), '1', 'INCONCLUSIVE');
+  run('AN3 removes exactly three quarters, no spread (the line)', P => { exact(P); for (const k of [0, 1, 2]) smear(P, k, 0.75); }, '1', 'HELD', 'q exactly three quarters with no spread reads removed');
+  run('AN3 removes exactly 1.25, no spread (the upper line)', P => { exact(P); for (const k of [0, 1, 2]) smear(P, k, 1.25); }, '1', 'HELD');
+  run('AN3 removes 0.2 in world 2 (under a quarter)', P => smear(P, 2, 0.2), '1', 'FALSIFIED');
+  run('AN3 removes exactly a quarter in world 2, no spread (not wholly under)', P => { exact(P); for (const k of [0, 1]) smear(P, k, 1); smear(P, 2, 0.25); }, '1', 'INCONCLUSIVE', 'q exactly a quarter reads unclear, not kept');
+  run('AN3 removes 0.2 from years 1 and 2 only, all from year 3 (q_3 decides kept)', P => { smear(P, 1, 1); smear(P, 1, 0.2, 0, [0, 1]); }, '1', 'INCONCLUSIVE');
+  run('AN3 removes 0.8 with a per-path spread putting q\'s interval under three quarters', P => { const e = ys(0, 6, N0, 97); for (const j of [0, 1, 2]) P.S362.tails.AN3[0][j] = Float64Array.from(P.S362.tails.AN[0][j], (v, i) => v - 0.8 * P.S362.dying[0][i] + e[i]); }, '1', 'INCONCLUSIVE');
+  run('AN3 removes it from years 1 and 2 but not from year 3 (q_3 under a quarter: kept)', P => { smear(P, 1, 0); smear(P, 1, 1, 0, [0, 1]); }, '1', 'FALSIFIED');
+  run('AN3 removes exactly 0.72, no spread (under three quarters)', P => { exact(P); for (const k of [0, 1, 2]) smear(P, k, 0.72); }, '1', 'INCONCLUSIVE');
+  run('AN3 removes exactly 1.28, no spread (over 1.25)', P => { exact(P); for (const k of [0, 1, 2]) smear(P, k, 1.28); }, '1', 'INCONCLUSIVE');
+  run('AN3 removes 0.2 in world 2 with a spread whose interval reaches over a quarter', P => { exact(P); for (const k of [0, 1]) smear(P, k, 1); const e = Float64Array.from({ length: N0 }, (_, i) => (i % 2 ? 1.5 : -1.5)); for (const j of [0, 1, 2]) P.S362.tails.AN3[2][j] = Float64Array.from(P.S362.dying[2], (v, i) => -0.2 * v + e[i]); }, '1', 'INCONCLUSIVE');
+  run('AN3 removes 0.8 with a spread whose 95% interval clears three quarters but whose Bonferroni interval over nine does not', P => { exact(P); for (const k of [0, 1, 2]) smear(P, k, 1); const e = Float64Array.from({ length: N0 }, (_, i) => (i % 2 ? 1.1 : -1.1)); for (const j of [0, 1, 2]) P.S362.tails.AN3[0][j] = Float64Array.from(P.S362.dying[0], (v, i) => -0.8 * v + e[i]); }, '1', 'INCONCLUSIVE');
   // item 2
   run('AN3\'s cell about a fifth of AN\'s in every world (the switch largely gone)', () => {}, '2', 'HELD');
   run('the cell stays at AN\'s size', P => { P.cell.n = [234, 269, 271]; }, '2', 'FALSIFIED');
@@ -335,20 +353,20 @@ function planted() {
   const stay = P => { P.cell.n = [234, 269, 271]; };
   put('the rows: the default reads R1', rowAt(() => {}), 'R1');
   put('the rows: the switch over-valued with item 1 held reads R2', rowAt(stay), 'R2');
-  put('the rows: harm reads R3 over item 1 FALSIFIED', rowAt(P => { harm(P); P.S362.tails.AN3[1][2] = ys(0.6, 1, N0, 91); }), 'R3');
-  put('the rows: item 1 FALSIFIED reads R5 over item 4 FALSIFIED', rowAt(P => { P.S362.tails.AN3[1][2] = ys(0.6, 1, N0, 91); P.br.S360.AR3[0] = ys(-2.4, 2, N0, 81); }), 'R5');
+  put('the rows: harm reads R3 over item 1 FALSIFIED', rowAt(P => { harm(P); smear(P, 1, 0); }), 'R3');
+  put('the rows: item 1 FALSIFIED reads R5 over item 4 FALSIFIED', rowAt(P => { smear(P, 1, 0); P.br.S360.AR3[0] = ys(-2.4, 2, N0, 81); }), 'R5');
   put('the rows: item 4 FALSIFIED reads R4 over R1', rowAt(P => { P.br.S360.AR3[0] = ys(-2.4, 2, N0, 81); }), 'R4');
-  put('the rows: the switch over-valued with item 1 unclear reads else, not R2', rowAt(P => { stay(P); P.S362.tails.AN3[0][0] = ys(0.35, 1, N0, 92); }), 'else');
-  put('the rows: item 1 unclear reads else', rowAt(P => { P.S362.tails.AN3[0][0] = ys(0.35, 1, N0, 92); }), 'else');
+  put('the rows: the switch staying with item 1 unclear reads else, not R2', rowAt(P => { stay(P); smear(P, 0, 0.5); }), 'else');
+  put('the rows: item 1 unclear reads else', rowAt(P => smear(P, 0, 0.5)), 'else');
   put('the rows: item 2 unclear with item 1 held reads else', rowAt(P => { P.cell.n = [140, 161, 163]; }), 'else');
   put('the rows: item 5 does not decide a row (moved, R1 stands)', rowAt(P => { P.S370.tail3.AN3[0] = P.S370.tail3.AN[0].map(v => v - 0.6); }), 'R1');
   // the cause
   { const cz = edit => { const P = P0(); edit(P); return causeOf(items(P)); };
     put('the cause: items 1 and 2 HELD credit O191-SMEAR', cz(() => {}), 'O191-SMEAR');
-    put('the cause: item 2 HELD with item 1 unclear is not credited', cz(P => { P.S362.tails.AN3[0][0] = ys(0.35, 1, N0, 92); }), 'O191-SMEAR not credited: AN3\'s read error from years 1 to 3 not in band (its whole)');
+    put('the cause: item 2 HELD with item 1 unclear is not credited', cz(P => smear(P, 0, 0.5)), 'O191-SMEAR not credited: AN3\'s read error from years 1 to 3 not in band (its whole)');
     put('the cause: item 2 FALSIFIED with item 1 HELD reads the not', cz(stay), 'O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X');
-    put('the cause: item 2 FALSIFIED with item 1 out reads open', cz(P => { stay(P); P.S362.tails.AN3[1][2] = ys(0.6, 1, N0, 91); }), 'open (AN3\'s whole not in band: the interaction)');
-    put('the cause: item 2 FALSIFIED with item 1 unclear reads open', cz(P => { stay(P); P.S362.tails.AN3[0][0] = ys(0.35, 1, N0, 92); }), 'open (AN3\'s whole not in band: the interaction)');
+    put('the cause: item 2 FALSIFIED with item 1 kept reads open', cz(P => { stay(P); smear(P, 1, 0); }), 'open (AN3\'s whole not in band: the interaction)');
+    put('the cause: item 2 FALSIFIED with item 1 unclear reads open', cz(P => { stay(P); smear(P, 0, 0.5); }), 'open (AN3\'s whole not in band: the interaction)');
     put('the cause: item 2 INCONCLUSIVE reads open', cz(P => { P.cell.n = [140, 161, 163]; }), 'open');
     EDGES.push('item 2 FALSIFIED with item 1 not held: the cause stays open (KNOWN-LEG)'); }
   // tailOf (REF-B's, imported), dyingShare and firstBand
@@ -356,6 +374,7 @@ function planted() {
     put('tailOf: from year 3, the residual at year 3 with GA', Array.from(tailOf(y, ga, [1, 2, 3], 3)).join(','), '1100,2200'); }
   { const Y = 5, mv = Uint16Array.from([1, 1, 1, 1, 65535, 1, 1, 1, 65535, 65535, 1, 1, 1, 1, 1, 1, 1, 65535, 65535, 65535]), bits = Uint8Array.from([0, 0, 1, 0]), y = Float64Array.from([0.5, 0.25, 0.75, 1]);
     const d = dyingShare(mv, Y, bits, y, 3); put('dyingShare: the path dying at year 3 alone (not the one dying at 2, nor the survivor)', `${d.n} ${d.share}`, `1 ${100 * 0.5 / 4}`);
+    put('dyingOf: the year-3 dying path\'s residual alone, per path', Array.from(dyingOf(mv, Y, bits, y, 3)).join(','), '0.5,0,0,0');
     const d4 = dyingShare(mv, Y, bits, y, 4); put('dyingShare: at the last year the survivor is not counted', `${d4.n}`, '0');
     const d2 = dyingShare(mv, Y, bits, y, 2); put('dyingShare: the path dying at year 2 alone (not the one dying at year 1, nor the survivor)', `${d2.n} ${d2.share}`, `1 ${100 * 0.25 / 4}`); }
   { const mvA = Uint16Array.from([1, 2, 3, 4]), mvB = Uint16Array.from([1, 2, 3, 5]); put('firstBand: differing first at year 3 with a two-year bridge reads the five years after', String(firstBand(mvA, mvB, 4, 2, 0)), '2'); }
@@ -364,7 +383,9 @@ function planted() {
     const perP = (h, a, k, x) => new Float64Array(N0).fill(({ GB: 1, GA: 2, Y1: 10, Y2: 20, Y3: 30 })[x] + ({ C: 0, AN: 100, AN3: 200, AR3: 300 })[a] + ({ S362: 1000, S370: 2000, S364: 3000, S360: 4000 })[h] + 0.1 * k);
     const bitsF = (h, a, k) => bitsAt(RUNS[h][k] - (a === 'AN3' ? 1 : a === 'AR3' ? 2 : 0)), wsF = (h, a, k) => ws0(bitsF(h, a, k));
     const o = (n, m, se) => ({ cell: [0, 1, 2].map(k => ({ n: n + k })), mix: { cell: { eB: m, seB: se } } });
-    const P = pOf(perP, bitsF, wsF, bridge, { AN3: o(5, 0.3, 0.1), AN: o(200, 0.97, 0.25), N: 4000 });
+    const P = pOf(perP, bitsF, wsF, bridge, { AN3: o(5, 0.3, 0.1), AN: o(200, 0.97, 0.25), N: 4000 }, (h, a, k) => new Float64Array(N0).fill(({ S362: 7, S370: 8 })[h] + ({ AN: 0.1, AN3: 0.2, C: 0.3 })[a] + 0.01 * k));
+    put('pOf: S362\'s dying residual is AN\'s, world by world', P.S362.dying.map(a => a[0].toFixed(2)).join(','), '7.10,7.11,7.12');
+    put('pOf: S362\'s AN tail from year 1 is AN\'s years 1 to 3 with GA', P.S362.tails.AN[1][0][0].toFixed(1), ((10 + 100 + 1000 + 0.1) + (20 + 100 + 1000 + 0.1) + (30 + 100 + 1000 + 0.1) + (2 + 100 + 1000 + 0.1)).toFixed(1));
     put('pOf: S362\'s AN3 tail from year 2 is years 2 and 3 with GA', P.S362.tails.AN3[0][1][0].toFixed(1), ((20 + 200 + 1000) + (30 + 200 + 1000) + (2 + 200 + 1000)).toFixed(1));
     put('pOf: S370\'s AN tail from year 3 is year 3 with GA', P.S370.tail3.AN[2][0].toFixed(1), ((30 + 100 + 2000 + 0.2) + (2 + 100 + 2000 + 0.2)).toFixed(1));
     put('pOf: S370\'s AN3 tail from year 3 is AN3\'s', P.S370.tail3.AN3[0][0].toFixed(1), ((30 + 200 + 2000) + (2 + 200 + 2000)).toFixed(1));
@@ -512,12 +533,13 @@ if (isMain) {
   const bridge = Object.fromEntries(['S362', 'S370', 'S364', 'S360'].map(h => [h, J(h, 'C').bridge]));
   const ld = (h, a) => { const f = FR(h, a), per = Object.fromEntries(Object.entries(f.per).map(([x, v]) => [x, decRaw(v)])), bits = Object.fromEntries(Object.entries(f.bits).map(([x, v]) => [x, dec8(v)])), mv = Object.fromEntries(Object.entries(f.moves).map(([x, v]) => [x, dec16(v)])); return { ...f, per, bits, mv }; };
   const F362 = { C: ld('S362', 'C'), AN: ld('S362', 'AN'), AN3: ld('S362', 'AN3') }, o191 = { AN: readO191(F362.C, F362.AN), AN3: readO191(F362.C, F362.AN3), N: F362.C.NPW };
-  const P = pOf(perP, bitsF, wsF, bridge, o191), it = items(P), iv = x => `${f4(x.d ?? x.R)} (${f4(x.lo)} to ${f4(x.hi)})`;
+  const dyingF = (h, a, k) => { const f = ld(h, a); return Float64Array.from(dyingOf(f.mv[`MV${k}`], f.years, f.bits[`OWN${k}`], f.per[`Y3${k}`], 3), v => 100 * v); };
+  const P = pOf(perP, bitsF, wsF, bridge, o191, dyingF), it = items(P), iv = x => `${f4(x.d ?? x.R)} (${f4(x.lo)} to ${f4(x.hi)})`;
   const hw = x => `world ${x.k}: survival ${f4(x.ex.d)} exact (${f4(x.ex.lo)} to ${f4(x.ex.hi)}) ${x.ex.outcome}, guarded unconditional (${f4(x.u.lo)} to ${f4(x.u.hi)}), whole score ${iv(x.w)}, margin ${f4(x.margin)}: ${x.harm ? 'harm' : x.ok ? 'no material harm' : 'inconclusive'}`;
   console.log('\nREF-STEP: the adaptive reference with every bridge year\'s step read exactly (AN3, AR3) against AN and the plan reference, on S362 and S370, with S364 and S360 (predictions/diag-refstep.md)');
   console.log('\nTHE ITEMS (each read by its registered rule)');
-  console.log(`1. the smear removed: AN3's read error from each of bridge years 1, 2 and 3 on S362 within a quarter of a point in every world: ${it['1'].outcome}`);
-  for (const x of it['1'].per) console.log(`     world ${x.k}: AN3's read error from years 1, 2, 3: ${x.tails.map(iv).join('; ')}: ${x.read}`);
+  console.log(`1. the smear removed from the whole: on S362 the share of AN's year-3 dying paths' residual leaving AN's read error from each of bridge years 1, 2 and 3 under AN3, within [0.75, 1.25] in every world: ${it['1'].outcome}`);
+  for (const x of it['1'].per) console.log(`     world ${x.k}: AN's smear ${f4(x.q[0].mc)} points; the share leaving the read error from years 1, 2, 3: ${x.q.map(iv).join('; ')}; AN3's read error from years 1, 2, 3: ${x.tails.map(iv).join('; ')}: ${x.read}`);
   console.log(`2. O191's switch: AN3's year-1 cell (C taxable-first to the arm's ISA-first) under half of AN's on the mixture: ${it['2'].outcome}`);
   console.log(`     the cell's paths by world: AN3 ${it['2'].n.join(', ')} against AN's ${it['2'].nAN.join(', ')}; rho ${it['2'].iv ? iv(it['2'].iv) : 'none (AN\'s cell empty)'}; AN3's own-move read error there on the mixture ${f4(it['2'].m)} (se ${f4(it['2'].se)}; printed, not read)`);
   console.log(`3. no material harm per world, AN3 against C on S362 and S370 and AR3 against C on S364 and S360, by RULES.md section 8's rule as written: ${it['3'].outcome}`);

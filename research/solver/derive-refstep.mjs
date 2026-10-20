@@ -39,6 +39,11 @@
  *     cause reading); TOP-CELL's flag (S370's world-0 rise under the adaptive reference with the copy rule) does not apply: no
  *     arm here carries the copy rule or the top-cell work (the prediction's Unmasking field);
  *   - "about two and a half hours' wall" (the review's): ten jobs, the budget below (section 4).
+ * AFTER THE FIRST OUTPUT (results-derive-refstep.txt sha256 138485588dec5763, 20 Oct 04:30 UK; declared in the prediction's
+ * ORDER): its power section showed item 1, read on AN3's level, unable to tell no removal from a partial one (the read error's
+ * per-path spread of 4 to 5 points), so item 1 was moved in the reducer onto the share of AN's smear (its year-3 dying paths'
+ * residual) that leaves the read error from each of years 1 to 3, path by path (WHOLE, NETS); this script passes that residual
+ * to pOf. No JUDGED input changed.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -190,7 +195,7 @@ function drawSet(s) {
   const wsF = (h, a, k) => { if (!HS.includes(h)) return ws[h][a][k]; const w = F[h].C.per[`WS${k}`]; if (a === 'C') return w; const b = bitsF(h, a, k), c = F[h].C.bits[`OWN${k}`], g = REC[h][k].gap; return Float64Array.from(w, (v, i) => v + (b[i] - c[i]) * g); };
   const nAN = O191.cell.map(x => x.n), n3 = K.map(k => Math.max(0, Math.round(s.cellW[k] * nAN[k] + Math.sqrt(Math.max(1, s.cellW[k] * nAN[k]) * (1 - Math.min(0.99, s.cellW[k] * nAN[k] / N))) * gauss())));
   const o191 = { AN: { cell: nAN.map(n => ({ n })) }, AN3: { cell: n3.map(n => ({ n })), mix: { cell: { eB: NaN, seB: NaN } } }, N };
-  return pOf(perP, bitsF, wsF, bridge, o191);
+  return pOf(perP, bitsF, wsF, bridge, o191, (h, a, k) => DY[h][k]);
 }
 const drawOf = c191 => {
   const cw = pickN(JUDGED.cell[c191]);
@@ -220,7 +225,7 @@ if (Object.keys(c191).length !== 6 || Math.abs(sumOf(c191) - 1) > 0.02 || Object
 const LEAD = 'SMEAR';
 const ND = 1000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
-const WHAT = { 1: 'the largest read error from bridge years 1 to 3 in size across S362\'s worlds under AN3, points', 2: 'AN3\'s year-1 cell as a share of AN\'s on the mixture', 3: 'the least survival change of any leg and world, points', 4: 'the largest read error from year 1 in size under AR3 across S364\'s and S360\'s worlds read, points', 5: 'the largest move of S370\'s read error from year 3 on, AN3 less AN, in size across the worlds, points' };
+const WHAT = { 1: 'the least share of AN\'s smear leaving S362\'s read error from bridge years 1 to 3 under AN3, across the worlds', 2: 'AN3\'s year-1 cell as a share of AN\'s on the mixture', 3: 'the least survival change of any leg and world, points', 4: 'the largest read error from year 1 in size under AR3 across S364\'s and S360\'s worlds read, points', 5: 'the largest move of S370\'s read error from year 3 on, AN3 less AN, in size across the worlds, points' };
 function credences(m191) {
   const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []])), CZ = {};
   for (let q = 0; q < ND; q++) {

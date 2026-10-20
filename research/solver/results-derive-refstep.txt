@@ -36,9 +36,9 @@ REF-STEP'S DERIVATION (predictions/diag-refstep.md)
   item 2, AN3's cell 0.75 of AN's in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 2, AN3's cell 0.9 of AN's in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
   item 2, AN3's cell 1 of AN's in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 3, AN3's flips 0.75 times AN's outside the cell, the cell's own at its draw: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
-  item 3, AN3's flips 1.5 times AN's outside the cell, the cell's own at its draw: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
-  item 3, AN3's flips 3 times AN's outside the cell, the cell's own at its draw: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  item 3, AN3's flips 0.75 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, AN3's flips 1.5 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, AN3's flips 3 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4, AR3 removes 1 of C's read error on S360 and S364: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4, AR3 removes 0.75 of C's read error on S360 and S364: HELD 0.40 INCONCLUSIVE 0.45 FALSIFIED 0.15
   item 4, AR3 removes 0.5 of C's read error on S360 and S364: HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
@@ -46,56 +46,56 @@ REF-STEP'S DERIVATION (predictions/diag-refstep.md)
   item 5, AN3's live-side over-read 0 on S370 too, all of the smear removed: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 5, AN3's live-side over-read 0.25 on S370 too, all of the smear removed: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
   item 5, AN3's live-side over-read 0.5 on S370 too, all of the smear removed: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
-  item 3 by leg at the stories (each leg's own reading; S364's margin marginRel at 0.05 to 1.55 percent survival): AN3 on S362: HELD 0.93 INCONCLUSIVE 0.07 FALSIFIED 0.00; AN3 on S370: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; AR3 on S364: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; AR3 on S360: HELD 0.78 INCONCLUSIVE 0.23 FALSIFIED 0.00
+  item 3 by household at the stories (each household by the mixture; one identical arms cannot clear reported only, harm still read): AN3 on S362: no material harm 1.00; AN3 on S370: no material harm 1.00; AR3 on S364: reported only 1.00; AR3 on S360: no material harm 1.00
 
 3. THE CREDENCES AS STATED (the receipt of 20 Oct 02:53 UK: O191-SMEAR=0.45; O191-TIE=0.2; O191-TRADE=0.08; O191-CLUCK=0.07; O191-REFOTHER=0.08; O191-OTHER=0.12; 1000 draws through items())
   item 1: HELD 0.19 INCONCLUSIVE 0.79 FALSIFIED 0.02
   item 2: HELD 0.41 INCONCLUSIVE 0.33 FALSIFIED 0.26
-  item 3: HELD 0.00 INCONCLUSIVE 0.95 FALSIFIED 0.05
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4: HELD 0.62 INCONCLUSIVE 0.04 FALSIFIED 0.34
   item 5: HELD 0.66 INCONCLUSIVE 0.23 FALSIFIED 0.11
-  decision rows: R1 0.05, R2 0.02, R3 0.05, R4 0.32, R5 0.02, else 0.54
+  decision rows: R1 0.05, R2 0.02, R3 0.00, R4 0.34, R5 0.02, else 0.56
   item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): open 0.33; O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.32; open (AN3's whole not in band: the interaction) 0.22; O191-SMEAR 0.08; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.04
-  the chance the action changes (one less the likeliest row): 0.46
+  the chance the action changes (one less the likeliest row): 0.44
   item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6518, 80% interval 0.0511 to 0.9848 (1000 of 1000 draws read)
   item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.5408, 80% interval 0.1347 to 1.0247 (1000 of 1000 draws read)
-  item 3's point (the least survival change of any leg and world, points): median -0.1750, 80% interval -0.4000 to -0.0500 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0125, 80% interval -0.0583 to 0.0208 (1000 of 1000 draws read)
   item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5964, 80% interval 0.2015 to 2.4524 (1000 of 1000 draws read)
   item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1427, 80% interval 0.0717 to 0.3523 (1000 of 1000 draws read)
 
 3b. THE CREDENCES WITH O191'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 21 of 41, Laplace 0.51; the registered ones; 1000 draws through items())
   item 1: HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.02
   item 2: HELD 0.45 INCONCLUSIVE 0.31 FALSIFIED 0.23
-  item 3: HELD 0.00 INCONCLUSIVE 0.96 FALSIFIED 0.04
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4: HELD 0.65 INCONCLUSIVE 0.03 FALSIFIED 0.32
   item 5: HELD 0.64 INCONCLUSIVE 0.26 FALSIFIED 0.10
-  decision rows: R1 0.06, R2 0.01, R3 0.04, R4 0.30, R5 0.02, else 0.56
+  decision rows: R1 0.06, R2 0.02, R3 0.00, R4 0.31, R5 0.02, else 0.59
   item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.37; open 0.31; open (AN3's whole not in band: the interaction) 0.20; O191-SMEAR 0.09; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.04
-  the chance the action changes (one less the likeliest row): 0.44
+  the chance the action changes (one less the likeliest row): 0.41
   item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6595, 80% interval 0.0684 to 0.9869 (1000 of 1000 draws read)
   item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.4953, 80% interval 0.1132 to 1.0063 (1000 of 1000 draws read)
-  item 3's point (the least survival change of any leg and world, points): median -0.1750, 80% interval -0.4000 to -0.0500 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0125, 80% interval -0.0500 to 0.0208 (1000 of 1000 draws read)
   item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5593, 80% interval 0.2040 to 2.4230 (1000 of 1000 draws read)
   item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1466, 80% interval 0.0727 to 0.2847 (1000 of 1000 draws read)
 CREDENCE item 1: point 0.6595 HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.02
 CREDENCE item 2: point 0.4953 HELD 0.45 INCONCLUSIVE 0.31 FALSIFIED 0.23
-CREDENCE item 3: point -0.1750 HELD 0.00 INCONCLUSIVE 0.96 FALSIFIED 0.04
+CREDENCE item 3: point -0.0125 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
 CREDENCE item 4: point 0.5593 HELD 0.65 INCONCLUSIVE 0.03 FALSIFIED 0.32
 CREDENCE item 5: point 0.1466 HELD 0.64 INCONCLUSIVE 0.26 FALSIFIED 0.10
-CREDENCE else 0.56
+CREDENCE else 0.59
 
 3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: 21 of 23, Laplace 0.88; printed beside)
   item 1: HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.01
   item 2: HELD 0.70 INCONCLUSIVE 0.24 FALSIFIED 0.06
-  item 3: HELD 0.00 INCONCLUSIVE 0.99 FALSIFIED 0.01
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
   item 4: HELD 0.63 INCONCLUSIVE 0.03 FALSIFIED 0.35
   item 5: HELD 0.68 INCONCLUSIVE 0.22 FALSIFIED 0.09
-  decision rows: R1 0.08, R2 0.01, R3 0.01, R4 0.34, R5 0.01, else 0.55
+  decision rows: R1 0.08, R2 0.01, R3 0.00, R4 0.34, R5 0.01, else 0.56
   item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.58; open 0.24; O191-SMEAR 0.12; open (AN3's whole not in band: the interaction) 0.04; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.01
-  the chance the action changes (one less the likeliest row): 0.45
+  the chance the action changes (one less the likeliest row): 0.44
   item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6635, 80% interval 0.0851 to 0.9881 (1000 of 1000 draws read)
   item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.3049, 80% interval 0.0601 to 0.6648 (1000 of 1000 draws read)
-  item 3's point (the least survival change of any leg and world, points): median -0.1500, 80% interval -0.3000 to -0.0500 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0083, 80% interval -0.0500 to 0.0208 (1000 of 1000 draws read)
   item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5942, 80% interval 0.2562 to 2.3941 (1000 of 1000 draws read)
   item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1386, 80% interval 0.0692 to 0.2780 (1000 of 1000 draws read)
 

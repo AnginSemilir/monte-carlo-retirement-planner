@@ -26,9 +26,13 @@
  *      the world's paths: wholly under a half (the switch largely gone with the smear: SMEAR's outcome) HELD; at or over three
  *      quarters (the switch stays: TIE's, TRADE's, CLUCK's or REFOTHER's) FALSIFIED; otherwise INCONCLUSIVE, and when AN's cell
  *      is empty. AN3's own-move read error in the cell (AN's 0.97, se 0.25, results-o191.txt) is printed beside, not read.
- *   3: no material harm per world by RULES.md section 8's rule as written (COPY-X's harmWorlds), AN3 against C on S362 and S370
- *      and AR3 against C on S364 and S360, each leg at 0.05 over its households; HELD when every leg reads no material harm in
- *      every world, FALSIFIED when any reads harm, otherwise INCONCLUSIVE.
+ *   3: no material harm by the mixture (RULES.md section 8 item 1 as amended for a reference change: the maintainer, 18 Oct, the
+ *      18 Oct 09:43 row; HO-DEP's harmItem): AN3 against C on S362 and S370 and AR3 against C on S364 and S360, each household's
+ *      paired survival by stats.mjs mixtureChange and mixtureOutcome and its paired whole score by wsMix at MIX_LEVEL, at the
+ *      margin marginRel(the control's mixture survival), each world's line reported and none binding; a household identical
+ *      arms could not clear by the mixture is reported only, harm still read (item 2's floor; the decided default
+ *      marginRelFloor 'report-only'; PR13); HELD when every household read reads no material harm on both, FALSIFIED when any
+ *      household reads harm on either, otherwise INCONCLUSIVE (and when every household is reported only).
  *   4: PR24's breadth: on S364 and S360, in each world where C's read error from bridge year 1 (G: GB with GA) is a point or more
  *      in size, AR3's lies within a point (its interval within [-1, 1]: closed; wholly outside: open); HELD when every world read
  *      reads closed, FALSIFIED when any reads open, otherwise INCONCLUSIVE or when no world is read.
@@ -54,13 +58,14 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { requireFairLogs } from './fair-gate.mjs';
-import { zFor } from './stats.mjs';
+import { zFor, mixtureChange, mixtureOutcome } from './stats.mjs';
 import { sha16 } from './reduce-ao.mjs';
 import { cellsOf, wsOf, removal, harmWorlds, parse as parseX, LABELS as LABELS_X } from './reduce-copyx.mjs';
 import { meanOf } from './reduce-copyw.mjs';
 import { parse as parseB, keyOf as keyOfB } from './reduce-copyb.mjs';
 import { parse as parseRB, keyOf as keyOfRB, tailOf, firstBand } from './reduce-refb.mjs';
 import { read as readO191, W as WMIX } from './read-o191.mjs';
+import { wsMix } from './reduce-hodep.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-refstep.md';
@@ -229,14 +234,21 @@ export function items(P) {
     const vn = K.reduce((s, k) => s + WMIX[k] ** 2 * vr(c.n[k]), 0), vd = K.reduce((s, k) => s + WMIX[k] ** 2 * vr(c.nAN[k]), 0);
     const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.sqrt(vn / den ** 2 + num ** 2 * vd / den ** 4) : NaN, iv = Number.isFinite(rho) ? { d: rho, lo: rho - z * se, hi: rho + z * se } : null;
     out['2'] = { outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE', iv, n: c.n, nAN: c.nAN, m: c.m, se: c.se, nothing: !iv }; }
-  { const legs = LEGS.map(([arm, ctl, hs]) => ({ arm, ctl, per: hs.map(h => ({ h, ...harmWorlds(P.legs[arm][h].cells, P.legs[arm][h].ws, 0.05 / hs.length) })) })), all = legs.flatMap(l => l.per);
-    out['3'] = { outcome: all.some(x => x.outcome === 'FALSIFIED') ? 'FALSIFIED' : all.every(x => x.outcome === 'HELD') ? 'HELD' : 'INCONCLUSIVE', legs }; }
+  { const legs = LEGS.map(([arm, ctl, hs]) => ({ arm, ctl, per: hs.map(h => ({ h, ...harmMix(P.legs[arm][h].cells, P.legs[arm][h].ws) })) })), all = legs.flatMap(l => l.per), read = all.filter(x => !x.floor);
+    out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : read.length && read.every(x => x.ok) ? 'HELD' : 'INCONCLUSIVE', legs, nothing: !read.length }; }
   { const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Math.abs(mean(P.br[h].C[k])) >= MINRES).map(k => ({ h, k }))), z = zFor(0.05 / Math.max(1, cand.length));
     const per = cand.map(({ h, k }) => { const c = meanOf(P.br[h].AR3[k], z); return { h, k, mc: mean(P.br[h].C[k]), c, read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP || c.hi < -GAP ? 'open' : 'unclear' }; });
     out['4'] = { outcome: per.length ? allOf(per, 'closed', 'open') : 'INCONCLUSIVE', per, nothing: !per.length }; }
   { const z = zFor(0.05 / 3), per = K.map(k => { const c = meanOf(Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.tail3.AN[k][i]), z); return { k, c, read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -STILL || c.lo > STILL ? 'moved' : 'unclear' }; });
     out['5'] = { outcome: allOf(per, 'still', 'moved'), per }; }
   return out;
+}
+// a household that identical arms could not clear by the mixture: its control's own cells with nothing lost or saved
+export const floorOf = cells => mixtureOutcome(mixtureChange(cells.map(x => ({ a: x.a + x.b, b: 0, c: 0, d: x.c + x.d })))).outcome !== 'no material harm';
+// one household's harm by the mixture (HO-DEP's harmItem with the floor): survival and whole score at the survival's margin
+export function harmMix(cells, ws) {
+  const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws, s.margin), floor = floorOf(cells), harm = s.outcome === 'harm' || w.outcome === 'harm', ok = s.outcome === 'no material harm' && w.outcome === 'no material harm';
+  return { s, w, floor, harm, ok, read: harm ? 'harm' : floor ? 'reported only' : ok ? 'no material harm' : 'inconclusive' };
 }
 // the cause as items 1 and 2 bear on it (KNOWN-LEG, the registered reading)
 export function causeOf(it) {
@@ -255,7 +267,7 @@ export function rowOf(it) {
   return 'else';
 }
 // each item's point in the derivation's own definition (REALISED lines)
-export const POINT = { 1: it => Math.min(...it['1'].per.flatMap(x => x.q.map(r => r.R))), 2: it => (it['2'].iv ? it['2'].iv.d : NaN), 3: it => Math.min(...it['3'].legs.flatMap(l => l.per.flatMap(x => x.per.map(y => y.ex.d)))), 4: it => (it['4'].per.length ? Math.max(...it['4'].per.map(x => Math.abs(x.c.d))) : NaN), 5: it => Math.max(...it['5'].per.map(x => Math.abs(x.c.d))) };
+export const POINT = { 1: it => Math.min(...it['1'].per.flatMap(x => x.q.map(r => r.R))), 2: it => (it['2'].iv ? it['2'].iv.d : NaN), 3: it => Math.min(...it['3'].legs.flatMap(l => l.per.map(x => x.s.d))), 4: it => (it['4'].per.length ? Math.max(...it['4'].per.map(x => Math.abs(x.c.d))) : NaN), 5: it => Math.max(...it['5'].per.map(x => Math.abs(x.c.d))) };
 // the items' input from the files: perP(h, arm, world, key) in points, bitsF(h, arm, world), wsF(h, arm, world), bridge[h] the
 // household's bridge years, o191 = { AN3, AN }: read-o191.mjs's read of C against each on S362, dyingF(h, a, k) the arm's year-3
 // residual on its year-3 dying paths, per path, in points
@@ -332,10 +344,24 @@ function planted() {
   run('rho exactly a half with no variance (worlds 0 and 2 at every path under AN, world 0 alone under AN3)', P => { P.cell.N = 4000; P.cell.nAN = [4000, 0, 4000]; P.cell.n = [4000, 0, 0]; }, '2', 'INCONCLUSIVE', 'rho exactly a half with no variance reads unclear, not gone');
   run('300 paths a world, the cell at 0.8 of AN\'s (the binomial variance\'s own term puts it over three quarters)', P => { P.cell.N = 300; P.cell.nAN = [250, 280, 290]; P.cell.n = [200, 224, 232]; }, '2', 'FALSIFIED');
   run('the read error 0.97 does not decide (the cell a fifth of AN\'s)', P => { P.cell.m = 0.97; P.cell.se = 0.1; }, '2', 'HELD');
-  // item 3
+  // item 3 (by the mixture; P0's households all clearable)
+  const lose = (P, arm, h, k, lost, saved) => { const [c, a] = pairBits(RUNS[h][k], lost, saved); P.legs[arm][h].cells[k] = cellsOf(c, a); P.legs[arm][h].ws[k] = wsOf(ws0(c), ws0(a)); };
+  const tiny = (P, h) => { for (const k of [0, 1, 2]) { const c = bitsAt([2, 12, 62][k]); P.legs.AR3[h].cells[k] = cellsOf(c, c); P.legs.AR3[h].ws[k] = wsOf(ws0(c), ws0(c)); } };
   run('every leg at its control', () => {}, '3', 'HELD');
-  run('AN3 loses 70 paths on S362 world 0', P => { const [c, a] = pairBits(RUNS.S362[0], 80, 10); P.legs.AN3.S362.cells[0] = cellsOf(c, a); P.legs.AN3.S362.ws[0] = wsOf(ws0(c), ws0(a)); }, '3', 'FALSIFIED');
-  run('AR3 loses 15 net on S364 world 1 (across the margin)', P => { const [c, a] = pairBits(RUNS.S364[1], 25, 10); P.legs.AR3.S364.cells[1] = cellsOf(c, a); P.legs.AR3.S364.ws[1] = wsOf(ws0(c), ws0(a)); }, '3', 'INCONCLUSIVE');
+  run('AN3 loses 70 paths on S362 world 1 (the mixture weighs it two thirds)', P => lose(P, 'AN3', 'S362', 1, 80, 10), '3', 'FALSIFIED');
+  run('AN3 loses 70 paths on S362 world 0 alone (a sixth of the weight: a world line, not binding)', P => lose(P, 'AN3', 'S362', 0, 80, 10), '3', 'HELD', 'a loss past the margin in world 0 alone reads no material harm on the mixture (the world line reported, not binding)');
+  run('AR3 loses 25 net on S360 world 1 (the mixture\'s interval across the margin)', P => lose(P, 'AR3', 'S360', 1, 35, 10), '3', 'INCONCLUSIVE');
+  run('S364 at near-nil survival, AR3 at its control: reported only, the rest no harm', P => tiny(P, 'S364'), '3', 'HELD', 'a household identical arms cannot clear is reported only and blocks no other');
+  run('S364 at near-nil survival, AR3 losing every surviving path: harm still read there', P => { tiny(P, 'S364'); for (const k of [0, 1, 2]) { const c = bitsAt([2, 12, 62][k]), a = new Uint8Array(N0); P.legs.AR3.S364.cells[k] = cellsOf(c, a); P.legs.AR3.S364.ws[k] = wsOf(ws0(c), ws0(a)); } }, '3', 'FALSIFIED');
+  run('every household reported only (nothing read)', P => { for (const [arm, , hs] of LEGS) for (const h of hs) for (const k of [0, 1, 2]) { const c = bitsAt(1); P.legs[arm][h].cells[k] = cellsOf(c, c); P.legs[arm][h].ws[k] = wsOf(ws0(c), ws0(c)); } }, '3', 'INCONCLUSIVE');
+  run('the whole score alone harms (survival unmoved, S370 world 1 two points less on every path)', P => { const c = bitsAt(RUNS.S370[1]); P.legs.AN3.S370.ws[1] = wsOf(ws0(c), Float64Array.from(ws0(c), v => v - 2)); }, '3', 'FALSIFIED');
+  const alt3 = (base, e) => Float64Array.from(base, (v, i) => v + (i % 2 ? e : -e));
+  run('AN3 loses 70 paths on S362 world 1 with the whole score unmoved (survival alone harms)', P => { lose(P, 'AN3', 'S362', 1, 80, 10); const c = bitsAt(RUNS.S362[1]); P.legs.AN3.S362.ws[1] = wsOf(ws0(c), ws0(c)); }, '3', 'FALSIFIED');
+  run('the whole score unclear on S370 (a spread of 50 points a path), survival unmoved', P => { const c = ws0(bitsAt(RUNS.S370[1])); P.legs.AN3.S370.ws[1] = wsOf(c, alt3(c, 50)); }, '3', 'INCONCLUSIVE');
+  run('AR3 saves 70 paths on S360 world 1', P => lose(P, 'AR3', 'S360', 1, 0, 70), '3', 'HELD');
+  run('S364 reported only, its whole score 0.45 under on every path (harm at its own margin, still read)', P => { tiny(P, 'S364'); for (const k of [0, 1, 2]) { const c = ws0(bitsAt([2, 12, 62][k])); P.legs.AR3.S364.ws[k] = wsOf(c, Float64Array.from(c, v => v - 0.45)); } }, '3', 'FALSIFIED', 'a household reported only still reads harm at its own margin');
+  run('S364\'s control near nil, AR3 saving 50 a world with an unclear whole score: reported only by the control, not the arm', P => { tiny(P, 'S364'); for (const k of [0, 1, 2]) { const c = bitsAt([2, 12, 62][k]), x = bitsAt([52, 62, 112][k]); P.legs.AR3.S364.cells[k] = cellsOf(c, x); P.legs.AR3.S364.ws[k] = wsOf(ws0(c), alt3(ws0(c), 50)); } }, '3', 'HELD');
+  { const c = bitsAt(3), z = bitsAt(1000); put('floorOf: 3 of 4,000 surviving cannot be cleared; 1,000 can', `${floorOf([0, 1, 2].map(() => cellsOf(c, c)))} ${floorOf([0, 1, 2].map(() => cellsOf(z, z)))}`, 'true false'); }
   // item 4
   run('AR3 closes S364\'s and S360\'s worlds 0 and 1', () => {}, '4', 'HELD');
   run('AR3 leaves S360\'s world 0 at -2.4', P => { P.br.S360.AR3[0] = ys(-2.4, 2, N0, 81); }, '4', 'FALSIFIED');
@@ -349,7 +375,7 @@ function planted() {
   run('AN3 moves world 1 by 0.25 with spread (across the line)', P => { const e = ys(0, 3, N0, 83); P.S370.tail3.AN3[1] = P.S370.tail3.AN[1].map((v, i) => v + 0.25 + e[i]); }, '5', 'INCONCLUSIVE', 'a control move whose interval straddles a quarter of a point reads unclear');
   // the rows
   const rowAt = edit => { const P = P0(); edit(P); return rowOf(items(P)); };
-  const harm = P => { const [c, a] = pairBits(RUNS.S362[0], 80, 10); P.legs.AN3.S362.cells[0] = cellsOf(c, a); P.legs.AN3.S362.ws[0] = wsOf(ws0(c), ws0(a)); };
+  const harm = P => lose(P, 'AN3', 'S362', 1, 80, 10);
   const stay = P => { P.cell.n = [234, 269, 271]; };
   put('the rows: the default reads R1', rowAt(() => {}), 'R1');
   put('the rows: the switch over-valued with item 1 held reads R2', rowAt(stay), 'R2');
@@ -542,8 +568,9 @@ if (isMain) {
   for (const x of it['1'].per) console.log(`     world ${x.k}: AN's smear ${f4(x.q[0].mc)} points; the share leaving the read error from years 1, 2, 3: ${x.q.map(iv).join('; ')}; AN3's read error from years 1, 2, 3: ${x.tails.map(iv).join('; ')}: ${x.read}`);
   console.log(`2. O191's switch: AN3's year-1 cell (C taxable-first to the arm's ISA-first) under half of AN's on the mixture: ${it['2'].outcome}`);
   console.log(`     the cell's paths by world: AN3 ${it['2'].n.join(', ')} against AN's ${it['2'].nAN.join(', ')}; rho ${it['2'].iv ? iv(it['2'].iv) : 'none (AN\'s cell empty)'}; AN3's own-move read error there on the mixture ${f4(it['2'].m)} (se ${f4(it['2'].se)}; printed, not read)`);
-  console.log(`3. no material harm per world, AN3 against C on S362 and S370 and AR3 against C on S364 and S360, by RULES.md section 8's rule as written: ${it['3'].outcome}`);
-  for (const l of it['3'].legs) for (const x of l.per) for (const w of x.per) console.log(`     ${l.arm} against ${l.ctl} on ${x.h} ${hw(w)}`);
+  console.log(`3. no material harm by the mixture (RULES.md section 8 item 1 for a reference change), AN3 against C on S362 and S370 and AR3 against C on S364 and S360, a household identical arms cannot clear reported only: ${it['3'].outcome}`);
+  for (const l of it['3'].legs) for (const x of l.per) { console.log(`     ${l.arm} against ${l.ctl} on ${x.h}: survival by the mixture ${f4(x.s.d)} (${f4(x.s.lo)} to ${f4(x.s.hi)}) ${x.s.outcome}, whole score ${iv(x.w)} ${x.w.outcome}, margin ${f4(x.s.margin)} (the control's mixture survival ${f4(x.s.ctrl)})${x.floor ? ', identical arms could not clear it: reported only' : ''}: ${x.read}`);
+    const hw0 = harmWorlds(P.legs[l.arm][x.h].cells, P.legs[l.arm][x.h].ws, 0.05); for (const w of hw0.per) console.log(`       its world line (reported, not binding) ${hw(w)}`); }
   console.log(`4. PR24's breadth: AR3's read error from bridge year 1 on S364 and S360 within a point in every world where C's is a point or more: ${it['4'].outcome}`);
   for (const x of it['4'].per) console.log(`     ${x.h} world ${x.k}: C's ${f4(x.mc)}, AR3's ${iv(x.c)}: ${x.read}`);
   if (it['4'].nothing) console.log('     nothing to read: no world with C\'s read error from year 1 a point in size');
@@ -569,7 +596,7 @@ if (isMain) {
     for (const w of o.worlds) console.log(`    world ${w.k}: every first difference at a bridge year n ${w.all.n}, alive C ${w.all.aliveA} ${a} ${w.all.aliveB}, own-move read error C ${f4(w.all.eA.m)} (${f4(w.all.eA.se)}), ${a} ${f4(w.all.eB.m)} (${f4(w.all.eB.se)})`);
   }
   // each arm against its own control (CONTROL): AN3 against AN (stepAll alone); and REF-B's leg, AN against C
-  for (const [arm, ctl] of [['AN3', 'AN'], ['AN', 'C']]) for (const h of ['S362', 'S370']) { const hw0 = harmWorlds([0, 1, 2].map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), [0, 1, 2].map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))), 0.05 / 2); for (const w of hw0.per) console.log(`  ${arm} against ${ctl} on ${h} (reported) ${hw(w)}`); }
+  for (const [arm, ctl] of [['AN3', 'AN'], ['AN', 'C']]) for (const h of ['S362', 'S370']) { const hm = harmMix([0, 1, 2].map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), [0, 1, 2].map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k)))); console.log(`  ${arm} against ${ctl} on ${h} (reported) by the mixture: survival ${f4(hm.s.d)} (${f4(hm.s.lo)} to ${f4(hm.s.hi)}), whole score ${iv(hm.w)}: ${hm.read}`); const hw0 = harmWorlds([0, 1, 2].map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k))), [0, 1, 2].map(k => wsOf(wsF(h, ctl, k), wsF(h, arm, k))), 0.05 / 2); for (const w of hw0.per) console.log(`  ${arm} against ${ctl} on ${h} (reported) ${hw(w)}`); }
   for (const [arm, ctl, hs] of [...LEGS, ['AN3', 'AN', ['S362', 'S370']]]) for (const h of hs) for (let k = 0; k < 3; k++) {
     const fa = FR(h, arm), fc = FR(h, ctl), ma = dec16(fa.moves[`MV${k}`]), mc = dec16(fc.moves[`MV${k}`]), ba = bitsF(h, arm, k), bc = bitsF(h, ctl, k), yrs = fa.years, nb = fa.bridge.length, sv = [0, 0, 0, 0], ls = [0, 0, 0, 0];
     let diff = 0;

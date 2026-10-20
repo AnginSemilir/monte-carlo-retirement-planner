@@ -62,43 +62,53 @@ caught: 61: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
 caught: 62: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
 caught: 63: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
 caught: 64: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
-caught: 65: out['3'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
-caught: 66: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
-caught: 67: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 68: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 69: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
-caught: 70: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
-caught: 71: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
-caught: 72: const c = meanOf(P.br[h].AR3[k], z);
-caught: 73: out['4'] = { outcome: per.length ? allOf(per, 'closed', 'ope
-caught: 74: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 75: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
-caught: 76: Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.
-caught: 77: if (o('3') === 'FALSIFIED') return 'R3';
-caught: 78: if (o('1') === 'FALSIFIED') return 'R5';
-caught: 79: if (o('4') === 'FALSIFIED') return 'R4';
-caught: 80: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';
-caught: 81: if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2'
-caught: 82: if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :
-caught: 83: if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR n
-caught: 84: const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, 
-caught: 85: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
-caught: 86: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
-caught: 87: dying: K.map(k => dyingF('S362', 'AN', k)) }
-caught: 88: dying: K.map(k => dyingF('S362', 'AN', k)) }
-caught: 89: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
-caught: 90: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
-caught: 91: { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h,
-caught: 92: AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => t
-caught: 93: const at = mv[i * years + t] !== 65535, next = t + 1 < years
-caught: 94: const at = mv[i * years + t] !== 65535, next = t + 1 < years
-caught: 95: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 96: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 97: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 98: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 99: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 100: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 101: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 102: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
-caught: 103: export const LATTICE_LINE = '160x41 nz 128';
-103 of 103 mutations caught
+caught: 65: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 66: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 67: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 68: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 69: export const floorOf = cells => mixtureOutcome(mixtureChange
+caught: 70: export const floorOf = cells => mixtureOutcome(mixtureChange
+caught: 71: harm = s.outcome === 'harm' || w.outcome === 'harm', ok
+caught: 72: harm = s.outcome === 'harm' || w.outcome === 'harm', ok
+caught: 73: ok = s.outcome === 'no material harm' && w.outcome === 'no m
+caught: 74: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws
+caught: 75: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws
+caught: 76: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
+caught: 77: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 78: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 79: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 80: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 81: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 82: const c = meanOf(P.br[h].AR3[k], z);
+caught: 83: out['4'] = { outcome: per.length ? allOf(per, 'closed', 'ope
+caught: 84: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 85: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 86: Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.
+caught: 87: if (o('3') === 'FALSIFIED') return 'R3';
+caught: 88: if (o('1') === 'FALSIFIED') return 'R5';
+caught: 89: if (o('4') === 'FALSIFIED') return 'R4';
+caught: 90: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';
+caught: 91: if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2'
+caught: 92: if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :
+caught: 93: if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR n
+caught: 94: const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, 
+caught: 95: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 96: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 97: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 98: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 99: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 100: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 101: { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h,
+caught: 102: AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => t
+caught: 103: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 104: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 105: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 106: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 107: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 108: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 109: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 110: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 111: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 112: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 113: export const LATTICE_LINE = '160x41 nz 128';
+113 of 113 mutations caught

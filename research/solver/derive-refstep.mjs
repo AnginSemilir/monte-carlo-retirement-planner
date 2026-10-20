@@ -44,6 +44,10 @@
  * per-path spread of 4 to 5 points), so item 1 was moved in the reducer onto the share of AN's smear (its year-3 dying paths'
  * residual) that leaves the read error from each of years 1 to 3, path by path (WHOLE, NETS); this script passes that residual
  * to pOf. No JUDGED input changed.
+ * AFTER THE SECOND OUTPUT (sha256 53364964245b6d38, 20 Oct 05:07 UK; the plan-auditor's FAIL of 20 Oct 06:08 UK, BLOCKINGs 2 and
+ * 3): item 3 reads harm by the mixture, RULES.md section 8 item 1 as amended for a reference change (the maintainer, 18 Oct),
+ * with a household identical arms cannot clear reported only, harm still read (the decided default marginRelFloor); this
+ * script prints item 3 by household. No JUDGED input changed.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -217,8 +221,8 @@ for (const w of [0, 0.2, 0.4, 0.5, 0.6, 0.75, 0.9, 1]) cell(`AN3's cell ${w} of 
 for (const fl of [0.75, 1.5, 3]) cell(`AN3's flips ${fl} times AN's outside the cell, the cell's own at its draw`, { flips: fl }, '3');
 for (const r of [1, 0.75, 0.5, 0.3]) cell(`AR3 removes ${r} of C's read error on S360 and S364`, { r4: { S360: r, S364: r }, d4: { S360: 0, S364: 0 } }, '4');
 for (const live of [0, 0.25, 0.5]) cell(`AN3's live-side over-read ${live} on S370 too, all of the smear removed`, { f: 1, live, j370: [0, 0, 0] }, '5');
-{ const L = {}; for (let q = 0; q < DR; q++) for (const l of at({})['3'].legs) for (const x of l.per) { const key = `${l.arm} on ${x.h}`; L[key] = L[key] || cnt3(); L[key][x.outcome]++; }
-  console.log(`  item 3 by leg at the stories (each leg's own reading; S364's margin marginRel at 0.05 to 1.55 percent survival): ${Object.entries(L).map(([k, c]) => `${k}: ${row(c)}`).join('; ')}`); }
+{ const L = {}; for (let q = 0; q < DR; q++) for (const l of at({})['3'].legs) for (const x of l.per) { const key = `${l.arm} on ${x.h}`; L[key] = L[key] || {}; L[key][x.read] = (L[key][x.read] || 0) + 1; }
+  console.log(`  item 3 by household at the stories (each household by the mixture; one identical arms cannot clear reported only, harm still read): ${Object.entries(L).map(([k, c]) => `${k}: ${Object.entries(c).map(([r, n]) => `${r} ${f2(n / DR)}`).join(', ')}`).join('; ')}`); }
 
 // 3. THE CREDENCES
 const RECEIPT = '20 Oct 02:53 UK', logT = readFileSync(join(HERE, 'deep-review-log.md'), 'utf8').split('\n').find(l => l.startsWith(`- ${RECEIPT} |`)) || '';
@@ -228,7 +232,7 @@ if (Object.keys(c191).length !== 6 || Math.abs(sumOf(c191) - 1) > 0.02 || Object
 const LEAD = 'SMEAR';
 const ND = 1000, qa = (a, p) => { const x = [...a].sort((u, v) => u - v); return x[Math.min(x.length - 1, Math.floor(p * x.length))]; };
 const pickC = cmap => { const t2 = sumOf(cmap); let u = rnd() * t2, acc = 0; for (const [k, v] of Object.entries(cmap)) { acc += v; if (u < acc) return k; } return Object.keys(cmap).pop(); };
-const WHAT = { 1: 'the least share of AN\'s smear leaving S362\'s read error from bridge years 1 to 3 under AN3, across the worlds', 2: 'AN3\'s year-1 cell as a share of AN\'s on the mixture', 3: 'the least survival change of any leg and world, points', 4: 'the largest read error from year 1 in size under AR3 across S364\'s and S360\'s worlds read, points', 5: 'the largest move of S370\'s read error from year 3 on, AN3 less AN, in size across the worlds, points' };
+const WHAT = { 1: 'the least share of AN\'s smear leaving S362\'s read error from bridge years 1 to 3 under AN3, across the worlds', 2: 'AN3\'s year-1 cell as a share of AN\'s on the mixture', 3: 'the least survival change by the mixture of any household read, points', 4: 'the largest read error from year 1 in size under AR3 across S364\'s and S360\'s worlds read, points', 5: 'the largest move of S370\'s read error from year 3 on, AN3 less AN, in size across the worlds, points' };
 function credences(m191) {
   const I = Object.fromEntries(IT.map(i => [i, cnt3()])), R = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, else: 0 }, pt = Object.fromEntries(IT.map(i => [i, []])), CZ = {};
   for (let q = 0; q < ND; q++) {

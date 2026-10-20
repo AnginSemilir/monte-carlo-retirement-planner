@@ -1,0 +1,6 @@
+RSU INERTNESS (S370, 4 points, e3pcls off): the tables' hash, the code before 'rsu' and after it
+  C: 9269cf81d9730b85 9269cf81d9730b85 identical
+  RS: ad0f4df14506e618 ad0f4df14506e618 identical
+  SNR: 7f819e9013e6906f 7f819e9013e6906f identical
+  PKG: a000c597e4f8faf0 a000c597e4f8faf0 identical
+VERDICT: every arm identical

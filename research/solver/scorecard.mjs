@@ -90,7 +90,8 @@ export const TESTS = [
   { name: 'COPY-X (the copied corners\' flat-copied c extrapolated from the two supported nodes below, against S370\'s bridge over-read: CX and SNRX)', prediction: 'predictions/diag-copyx.md', results: 'results-copyx.txt' },
   { name: 'COPY-W (stage A: the copy rule x 60 wealth points on S370, the frozen candidate; C and CX reused, CW and CXW new)', prediction: 'predictions/diag-copyw.md', results: 'results-copyw.txt' },
   { name: 'COPY-B (COPY-W\'s stage B: the copy rule x 60 wealth points across the step households S130, S126 and S362, C and CW on S128, 120 points on S370)', prediction: 'predictions/diag-copyb.md', results: 'results-copyb.txt' },
-  { name: 'REF-B (the adaptive reference against the plan reference, crossed with the copy rule, on S362 and S370; S130 the control)', prediction: 'predictions/diag-refb.md', results: 'results-refb.txt' }
+  { name: 'REF-B (the adaptive reference against the plan reference, crossed with the copy rule, on S362 and S370; S130 the control)', prediction: 'predictions/diag-refb.md', results: 'results-refb.txt' },
+  { name: 'REF-STEP (the adaptive reference with every bridge year\'s step read exactly against AN and the plan reference on S362 and S370; the package against the plan reference on S364 and S360)', prediction: 'predictions/diag-refstep.md', results: 'results-refstep.txt' }
 ];
 
 export function credences(predText) {

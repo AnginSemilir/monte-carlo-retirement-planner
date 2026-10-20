@@ -590,7 +590,7 @@ if (isMain) {
   // the smear's signature (the mechanism reached: KNOWN-LEG): the year-3 dying paths' share of each world's year-3 residual
   for (const h of ['S362', 'S370']) for (const a of ARMS_H[h]) { const f = ld(h, a); console.log(`  ${h} ${a}: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean ${[0, 1, 2].map(k => { const d = dyingShare(f.mv[`MV${k}`], f.years, f.bits[`OWN${k}`], f.per[`Y3${k}`], 3); return `world ${k} ${f4(d.share)} (${d.n} paths)`; }).join('; ')}`); }
   // O191's read (read-o191.mjs) for C against AN (it reproduces results-o191.txt's on these files) and C against AN3
-  for (const [a, o] of Object.entries(o191)) {
+  for (const a of ["AN", "AN3"]) { const o = o191[a];
     console.log(`  O191's read, C against ${a} on S362: the year-1 cell's mixture survival change ${f4(o.mix.cell.d)} (se ${f4(o.mix.cell.se)}), own-move read error C ${f4(o.mix.cell.eA)} (${f4(o.mix.cell.seA)}), ${a} ${f4(o.mix.cell.eB)} (${f4(o.mix.cell.seB)}); all paths on the mixture survival ${f4(o.mix.all.s)} (${f4(o.mix.all.se)}), whole score ${f4(o.mix.all.w)} (${f4(o.mix.all.seW)})`);
     for (const c of o.cell) console.log(`    world ${c.k}: the cell n ${c.n}, survival ${a} less C ${f4(c.d.m)} (se ${f4(c.d.se)}), own-move read error C ${f4(c.ea.m)} (${f4(c.ea.se)}), ${a} ${f4(c.eb.m)} (${f4(c.eb.se)})`);
     for (const w of o.worlds) console.log(`    world ${w.k}: every first difference at a bridge year n ${w.all.n}, alive C ${w.all.aliveA} ${a} ${w.all.aliveB}, own-move read error C ${f4(w.all.eA.m)} (${f4(w.all.eA.se)}), ${a} ${f4(w.all.eB.m)} (${f4(w.all.eB.se)})`);

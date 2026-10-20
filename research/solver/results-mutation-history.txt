@@ -218,3 +218,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-20 03:48 UTC | reduce-refstep.mjs 2e53abb2d6b2 | 103 of 103 caught | escaped: none
 2026-10-20 05:19 UTC | reduce-refstep.mjs 7d9117efcd02 | 108 of 113 caught | escaped: NOT CAUGHT: 69: export const floorOf = cells => mixtureOutcome(mixtureChange; NOT CAUGHT: 72: harm = s.outcome === 'harm' || w.outcome === 'harm', ok; NOT CAUGHT: 73: ok = s.outcome === 'no material harm' && w.outcome === 'no m; NOT CAUGHT: 74: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws; NOT CAUGHT: 75: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws
 2026-10-20 05:27 UTC | reduce-refstep.mjs c1dd2f0ce2ff | 113 of 113 caught | escaped: none
+2026-10-20 09:06 UTC | reduce-refstep.mjs 6b2ab0a05b4e | 113 of 113 caught | escaped: none

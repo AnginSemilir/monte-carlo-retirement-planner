@@ -242,10 +242,10 @@ export function finalYearExact(c, t, post, act, terminal, grown, rbuf, out) {
 function stepExpect(c, g, t, post, act, stepAt, grown, rbuf, rd, sN, bN, rN, hN, out) {
   const n = Math.min(post.length, grown.length);
   const accAt = z => { for (let q = 0; q < n; q++) grown[q] = post[q]; F.grow(c, t, grown, realAt(c, z, rbuf, act, t)); return grown[1] + grown[2]; };
-  const ZL = -9, ZH = 9;
-  if (accAt(ZL) >= stepAt || accAt(ZH) < stepAt) return false;
+  const ZL = -9, ZH = 9, thr = typeof stepAt === 'function' ? stepAt : null, clr = z => (thr ? accAt(z) >= thr(grown) : accAt(z) >= stepAt);   // thr: PR31's threshold at the grown state (stepThrOf, the file's end)
+  if (thr ? clr(ZL) || !clr(ZH) : accAt(ZL) >= stepAt || accAt(ZH) < stepAt) return false;
   let lo = ZL, hi = ZH;
-  while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (accAt(m) >= stepAt) hi = m; else lo = m; }
+  while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (clr(m)) hi = m; else lo = m; }
   const uS = Phi(hi);
   out[0] = 0; out[1] = 0; out[2] = 0; out[3] = 0;
   for (const [u0, u1] of [[0, uS], [uS, 1]]) {
@@ -262,7 +262,7 @@ function stepExpect(c, g, t, post, act, stepAt, grown, rbuf, rd, sN, bN, rN, hN,
 /* Where next year's reader step lies for the table `L` (next year's survival, log-odds), or null: no reader year next. */
 function stepAtOf(g, t, L) {
   if (!g.reader || !g.reader.years[t + 1] || !L) return null;
-  const RD = g.reader.of.get(L), sch = RD && RD.chance && RD.chance.schedule;
+  const RD = g.reader.of.get(L), sch = RD && RD.chance && RD.chance.schedule; if (sch && sch.adaptive && g.reader.adaptive && g.reader.adaptive.lattice.stepAll) return stepThrOf(g.reader.adaptive.ref, t + 1);   // PR31 (the file's end)
   return sch && sch.bills.length ? sch.bills[0] - 1 : null;
 }
 
@@ -1992,4 +1992,18 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
       return f;
     },
   };
+}
+/*
+ * PR31, THE CHOOSER'S SPLIT UNDER THE ADAPTIVE REFERENCE'S EXACT STEPS (`adaptiveLattice.stepAll`, research only; PLAN.md
+ * PR31; the deep review after REF-STEP, deep-review-log.md 20 Oct 10:31 UK). stepAtOf put next year's step at the plan
+ * reference's untaxed bill less 1, a fixed amount of accessible money; under the adaptive reference with `stepAll` the
+ * read is 0 below the reference's own threshold A*_{t+1}(b, gf), which moves with the ISA share and the taxable account's
+ * gain fraction (REF-STEP's print: on S370 at b 0 it rises with the gain node, 84039 and 85696 against the split's 83199).
+ * Here the step is that threshold at the grown state, as adaptive.js's expectSplit finds the shock that clears it;
+ * stepExpect bisects on it in z (the grown money and its share move together under one shock). A year with no step
+ * (astarAt 0) clears at every z, so stepExpect keeps its points. Without `stepAll`, and under any other reference, the
+ * split is as before.
+ */
+function stepThrOf(ref, tn) {
+  return grown => { const A2 = grown[1] + grown[2]; return ref.astarAt(tn, A2 > 0 ? grown[1] / A2 : 0, grown[3]); };
 }

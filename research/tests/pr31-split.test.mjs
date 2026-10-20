@@ -31,11 +31,15 @@
  *      score within TOL of the same score over 4,000 equal-probability returns (solver-q-tsj.test.mjs's dense view), on
  *      GRID and on NEAR; where it does not act, the scores equal the points' to the bit (in a year whose next year has no
  *      step, year 3 here, the fix keeps its points)
- *   X  THE PLACEMENT, exactly (no clean error): where the split acts, the move scored alone with every reader read logged
- *      (grid.js READER_PROBE): its 24 reads of next year, the first 12 (the lower segment) below A*_{t+1} at each read's own
- *      grown state and the last 12 at or above it
- *   P  four planted placement faults, each caught by X (a read on the wrong side), by a miss over 2 TOL where the split
- *      acts, or, where the fix keeps its points, by a score that is not the points' (each prints its counts):
+ *   X  THE PLACEMENT, exactly (no clean error): where the split acts and lies within z = +-7, the move scored alone with
+ *      every reader read logged (grid.js READER_PROBE): its 24 reads of next year, the first 12 (the lower segment) below
+ *      A*_{t+1} at each read's own grown state and the last 12 at or above it. A split past +-7 is left out and counted: past
+ *      about 8.3 Phi rounds to 1 and the upper segment vanishes (12 reads), and below about -7.9 stepExpect clamps the lower
+ *      segment's nodes to u = 1e-15, above the split, for a segment of weight under 1e-15 (the second run's 4,680 short and
+ *      most of its wrong-side reads, all at such splits; scratch debug, 20 Oct)
+ *   P  four planted placement faults, each caught by X (a read on the wrong side, where the fix's split and the plant's own
+ *      both lie within +-7), by a miss over 2 TOL where the split acts, or, where the fix keeps its points, by a score that
+ *      is not the points' (each prints its counts):
  *        OLD   the untaxed bill less 1 (a view whose stepAll is off for stepAtOf alone)
  *        YEAR  year t's threshold for year t + 1 (astarAt wrapped on a copy of the reference; the reads are its own)
  *        SWAP  b and the gain fraction swapped
@@ -118,12 +122,20 @@ const placed = reads => { if (reads.length !== 24) return { n: reads.length, wro
 let Tread = 0;
 const postOf = (w, ai, s, t) => { const post = Float64Array.from(s); F.flow(w.c, t, ai, post); F.chargeSwitch(w.c, post, HELD0, w.c.acts[ai], t); return post; };
 const clears = (w, ai, s, t, z) => { const post = postOf(w, ai, s, t); F.grow(w.c, t, post, rateAt(w.c.acts[ai], t, z)); const A2 = post[1] + post[2]; return A2 >= astar(t + 1, A2 > 0 ? post[1] / A2 : 0, post[3]); };
+// the shock where the grown money clears a threshold (a function of the grown state), as stepExpect bisects; null outside +-9
+const splitZ = (w, ai, s, t, thr) => {
+  const post = postOf(w, ai, s, t), at = z => { const x = Float64Array.from(post); F.grow(w.c, t, x, rateAt(w.c.acts[ai], t, z)); return x[1] + x[2] >= thr(x); };
+  if (at(-9) || !at(9)) return null;
+  let lo = -9, hi = 9; while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (at(m)) hi = m; else lo = m; }
+  return hi;
+};
+const bOf = x => { const A = x[1] + x[2]; return A > 0 ? x[1] / A : 0; }, ZX = 7;
 
 console.log('=========== C, X, P, M. THE CHOOSER AT THE ISA-LESS STATES, HOLDING THE PLAN\'S TIERS ===========');
 const XS = Array.from({ length: 25 }, (_, i) => -0.3 + 0.025 * i), PL = ['OLD', 'YEAR', 'SWAP', 'PRE'];
 const R = {}, P = {}, nearBy = {};
-for (const sl of ['GRID', 'NEAR']) R[sl] = { acts: 0, idle: 0, worst: 0, where: '', idleOff: 0, xRead: 0, xWrong: 0, xShort: 0 };
-for (const p of PL) P[p] = { acts: 0, differ: 0, worst: 0, where: '', wrong: 0, idleDiffer: 0 };
+for (const sl of ['GRID', 'NEAR']) R[sl] = { acts: 0, idle: 0, worst: 0, where: '', idleOff: 0, xRead: 0, xWrong: 0, xShort: 0, xOut: 0 };
+for (const p of PL) P[p] = { acts: 0, differ: 0, worst: 0, where: '', wrong: 0, xRead: 0, xOut: 0, idleDiffer: 0 };
 const t1 = Date.now();
 for (const t of years) {
   Tread = t;
@@ -148,13 +160,17 @@ for (const t of years) {
         Rs.acts++;
         const e = Math.abs(sFix[ai] - sD[ai]);
         if (e > Rs.worst) { Rs.worst = e; Rs.where = here; }
-        const fx = placed(one(w, ai, s, t).reads); Rs.xRead++; if (fx.wrong < 0) Rs.xShort++; else Rs.xWrong += fx.wrong;
+        const zFix = splitZ(w, ai, s, t, x => astar(t + 1, bOf(x), x[3])), inside = zFix !== null && Math.abs(zFix) <= ZX;
+        if (inside) { const fx = placed(one(w, ai, s, t).reads); Rs.xRead++; if (fx.wrong < 0) Rs.xShort++; else Rs.xWrong += fx.wrong; } else Rs.xOut++;
+        const bPre = A1 > 0 ? post[1] / A1 : 0, thrOf = { OLD: () => oldSplit(w.lsurv[t + 1]), YEAR: x => astar(t, bOf(x), x[3]), SWAP: x => astar(t + 1, x[3], bOf(x)), PRE: () => astar(t + 1, bPre, post[3]) };
         for (const p of PL) {
           const Pp = P[p]; Pp.acts++;
           if (all[p] !== sFix[ai]) Pp.differ++;
           const ep = Math.abs(all[p] - sD[ai]); if (ep > Pp.worst) { Pp.worst = ep; Pp.where = here; }
-          const gp = p === 'PRE' ? gPre(A1 > 0 ? post[1] / A1 : 0, post[3]) : G[p], px = placed(one(view(w, gp), ai, s, t).reads);
-          if (px.wrong > 0) Pp.wrong += px.wrong;
+          const zP = splitZ(w, ai, s, t, thrOf[p]);
+          if (!inside || zP === null || Math.abs(zP) > ZX) { Pp.xOut++; continue; }
+          const gp = p === 'PRE' ? gPre(bPre, post[3]) : G[p], px = placed(one(view(w, gp), ai, s, t).reads);
+          Pp.xRead++; if (px.wrong > 0) Pp.wrong += px.wrong;
         }
       } else {
         Rs.idle++; if (!(sFix[ai] === sFive[ai])) Rs.idleOff++;
@@ -168,12 +184,12 @@ for (const [sl, Rs] of Object.entries(R)) {
   console.log(`  ${sl}: the split acts on ${Rs.acts} move-states, hands back on ${Rs.idle}`);
   ok(`C  ${sl}: where the split acts, every move's score within TOL of the 4,000-return score`, Rs.acts > 0 && Rs.worst <= TOL, `${Rs.acts} move-states, the worst ${Rs.worst.toExponential(3)} (${Rs.where})`);
   ok(`C  ${sl}: where it does not act, the scores are the points' to the bit`, Rs.idle > 0 && Rs.idleOff === 0, `${Rs.idle} move-states, ${Rs.idleOff} differ`);
-  ok(`X  ${sl}: where the split acts, every one of its 24 reads on its side of the reference's threshold at its own grown state`, Rs.xRead > 0 && Rs.xShort === 0 && Rs.xWrong === 0, `${Rs.xRead} move-states read, ${Rs.xWrong} reads on the wrong side, ${Rs.xShort} without 24 reads`);
+  ok(`X  ${sl}: where the split acts within +-${ZX}, every one of its 24 reads on its side of the reference's threshold at its own grown state`, Rs.xRead > 0 && Rs.xShort === 0 && Rs.xWrong === 0, `${Rs.xRead} move-states read, ${Rs.xWrong} reads on the wrong side, ${Rs.xShort} without 24 reads; ${Rs.xOut} with the split past +-${ZX} left out`);
   ok(`M  ${sl}: TOL over the fix's worst miss at least 2`, Rs.worst > 0 && TOL / Rs.worst >= 2, `${(TOL / Math.max(Rs.worst, 1e-12)).toFixed(2)}`);
 }
 for (const p of PL) {
   const Pp = P[p], caught = Pp.wrong > 0 || Pp.worst > 2 * TOL || Pp.idleDiffer > 0;
-  ok(`P  planted ${p}: caught`, caught, `where the split acts: ${Pp.acts} move-states, the plant's score differs from the fix's on ${Pp.differ}, ${Pp.wrong} reads on the wrong side (X), the worst miss ${Pp.worst.toExponential(3)} = ${(Pp.worst / TOL).toFixed(2)} TOL (${Pp.where}); where the fix keeps its points, ${Pp.idleDiffer} plant scores not the points'`);
+  ok(`P  planted ${p}: caught`, caught, `where the split acts: ${Pp.acts} move-states, the plant's score differs from the fix's on ${Pp.differ}, ${Pp.wrong} reads on the wrong side (X, on ${Pp.xRead} move-states with both splits within +-${ZX}; ${Pp.xOut} left out), the worst miss ${Pp.worst.toExponential(3)} = ${(Pp.worst / TOL).toFixed(2)} TOL (${Pp.where}); where the fix keeps its points, ${Pp.idleDiffer} plant scores not the points'`);
 }
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

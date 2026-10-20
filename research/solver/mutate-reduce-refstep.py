@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# REF-STEP'S REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6; every mutant caught before launch): each mutation breaks one part
+# of reduce-refstep.mjs's gate, reproduction, items, rows, cause or wiring in a scratch copy, runs the planted set on the copy and
+# must see PLANTED CHECK FAILED (mutate_lib.py, which logs the run to results-mutation-history.txt).
+#   python3 research/solver/mutate-reduce-refstep.py > research/solver/results-reduce-refstep-mutations.txt
+from mutate_lib import run
+M = [
+  # the gate
+  ("if (js.length !== 1) { bad.push(", "if (js.length < 1) { bad.push("),
+  ("for (const x of jobs) if (!want.some(w => w.key === x.key)) bad.push(", "for (const x of jobs) if (false) bad.push("),
+  ("if (codes.size !== 1 || codes.has(undefined) || codes.has(null)) bad.push(`the jobs are not on one code", "if (false) bad.push(`the jobs are not on one code"),
+  ("if (!j.done) bad.push(`${K}: no done line`);", "if (false) bad.push(`${K}: no done line`);"),
+  ("j.head.npw !== npw || j.head.seed !== seed || j.head.scale !== scale", "j.head.npw !== npw || j.head.scale !== scale"),
+  ("j.head.npw !== npw || j.head.seed !== seed || j.head.scale !== scale", "j.head.seed !== seed || j.head.npw !== npw"),
+  ("['S362', 'AN3', 30], ['S362', 'AN', 30]", "['S362', 'AN3', 30]"),
+  ("...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm], pts:", "...COMMON, readerSplit: SPLIT[w.arm], pts:"),
+  ("...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm], pts:", "...COMMON, readerRef: REF[w.arm], pts:"),
+  ("readerBlend: 'null', readerCopy: 'null', readerChance: 'null'", "readerBlend: 'null', readerChance: 'null'"),
+  ("export const SPLIT = Object.freeze({ AN3: 'null', AN: 'null', C: 'null', AR3: 'rs' });", "export const SPLIT = Object.freeze({ AN3: 'null', AN: 'null', C: 'null', AR3: 'null' });"),
+  ("export const SPLIT = Object.freeze({ AN3: 'null', AN: 'null', C: 'null', AR3: 'rs' });", "export const SPLIT = Object.freeze({ AN3: 'rs', AN: 'null', C: 'null', AR3: 'rs' });"),
+  ("export const STEPS = Object.freeze({ AN3: true, AN: false, C: false, AR3: true });", "export const STEPS = Object.freeze({ AN3: true, AN: true, C: false, AR3: true });"),
+  ("export const STEPS = Object.freeze({ AN3: true, AN: false, C: false, AR3: true });", "export const STEPS = Object.freeze({ AN3: false, AN: false, C: false, AR3: true });"),
+  ("export const REF = Object.freeze({ AN3: 'adaptive', AN: 'adaptive', C: 'null', AR3: 'adaptive' });", "export const REF = Object.freeze({ AN3: 'adaptive', AN: 'adaptive', C: 'adaptive', AR3: 'adaptive' });"),
+  ("!A.fix || A.stepAll !== STEPS[w.arm] || ", "!A.fix || "),
+  ("A.ref !== 'adaptive' || !A.fix || ", "A.ref !== 'adaptive' || "),
+  ("!(A.moves > 0) || A.nonMono !== 0 || ", "A.nonMono !== 0 || "),
+  ("!(A.moves > 0) || A.nonMono !== 0 || ", "!(A.moves > 0) || "),
+  ("if (!ad && (!A || A.ref !== 'null' || A.fix || A.stepAll || A.lattice !== 'none')) bad.push(", "if (false) bad.push("),
+  ("for (const c of [...NEED, ...(STEPS[w.arm] ? ['stepTook'] : [])])", "for (const c of NEED)"),
+  ("if (!STEPS[w.arm] && j.checks.stepTook) bad.push(", "if (false) bad.push("),
+  ("if (STEPS[w.arm] && !j.steps.length) bad.push(", "if (false) bad.push("),
+  ("if (ad && !j.pr31.length) bad.push(", "if (false) bad.push("),
+  ("if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran, 'floor') !== String(j.nodes.floor))", "if (!j.nodes)"),
+  ("const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'scoreTook', 'splitTook'];", "const NEED = ['copyTook', 'ownTook', 'identity', 'qfTook', 'layerTook', 'scoreTook', 'splitTook'];"),
+  ("if (j.bridge && peers.some(x => x.bridge.join(',') !== j.bridge.join(','))) bad.push(", "if (false) bad.push("),
+  # the reproduction
+  ("for (const s of ['REF-B', 'COPY-B', 'COPY-X']) if (!ok[s]) bad.push(", "for (const s of ['REF-B', 'COPY-B']) if (!ok[s]) bad.push("),
+  ("for (const s of ['REF-B', 'COPY-B', 'COPY-X']) if (!ok[s]) bad.push(", "for (const s of ['COPY-B', 'COPY-X']) if (!ok[s]) bad.push("),
+  ("if (!c.file[g] || c.file[g][x] !== v) bad.push(", "if (!c.file[g]) bad.push("),
+  ("const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {}, moves: c.oldFile.moves || {}, states: c.oldFile.states || {} };", "const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {}, moves: c.oldFile.moves || {} };"),
+  ("const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {}, moves: c.oldFile.moves || {}, states: c.oldFile.states || {} };", "const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {}, states: c.oldFile.states || {} };"),
+  ("c.old.tables[k].OWN !== c.job.tables[k].OWN || ", ""),
+  ("if (c.src !== src) bad.push(", "if (false) bad.push("),
+  ("if (!c.old.head || c.old.head.seed !== SEED || c.old.head.npw !== c.job.head.npw) bad.push(", "if (false) bad.push("),
+  ("if ((c.oldFile.bridge || []).join(',') !== (c.file.bridge || []).join(',')) bad.push(", "if (false) bad.push("),
+  ("for (const x of Object.keys(c.file[g] || {})) if (!(x in o)) bad.push(", "for (const x of Object.keys(c.file[g] || {})) if (false) bad.push("),
+  ("if (!c || !c.old || !c.oldFile || !c.job || !c.file) { bad.push(", "if (!c || !c.old || !c.job || !c.file) { bad.push("),
+  ("export const REPRO = Object.freeze([['S362', 'AN', 'REF-B'], ['S370', 'AN', 'REF-B'], ['S362', 'C', 'COPY-B'], ['S370', 'C', 'COPY-X']]);", "export const REPRO = Object.freeze([['S362', 'AN', 'REF-B'], ['S370', 'AN', 'REF-B'], ['S362', 'C', 'COPY-B']]);"),
+  # item 1 (read order: in band and out cannot both hold, within a quarter and wholly outside a half: not mutated)
+  ("const zt = zFor(0.05 / 9), per = K.map(k => { const tails = P.S362.tails.AN3[k].map(a => meanOf(a, zt)), inb = tails.every(c => c.lo >= -BAND && c.hi <= BAND)", "const zt = zFor(0.05 / 9), per = K.map(k => { const tails = P.S362.tails.AN3[k].map(a => meanOf(a, zt)), inb = tails.every(c => c.d >= -BAND && c.d <= BAND)"),
+  ("inb = tails.every(c => c.lo >= -BAND && c.hi <= BAND)", "inb = tails.slice(0, 2).every(c => c.lo >= -BAND && c.hi <= BAND)"),
+  ("off = tails.some(c => c.lo > OUT || c.hi < -OUT);", "off = tails.some(c => c.lo > OUT);"),
+  ("off = tails.some(c => c.lo > OUT || c.hi < -OUT);", "off = tails.some(c => c.d > OUT || c.d < -OUT);"),
+  ("off = tails.some(c => c.lo > OUT || c.hi < -OUT);", "off = tails.some(c => c.lo >= OUT || c.hi <= -OUT);"),
+  ("const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'", "const allOf = (per, yes, no) => (per.every(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'"),
+  ("const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.every(x => x.read === yes) ? 'HELD'", "const allOf = (per, yes, no) => (per.some(x => x.read === no) ? 'FALSIFIED' : per.some(x => x.read === yes) ? 'HELD'"),
+  # item 2 (the three-quarter line's boundary, at or over, is not reachable at zero variance with the mixture's weights: not
+  # mutated there)
+  ("num = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0)", "num = K.reduce((s, k) => s + c.n[k] / 3, 0)"),
+  ("den = K.reduce((s, k) => s + WMIX[k] * c.nAN[k], 0);", "den = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0);"),
+  ("const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.sqrt(vn / den ** 2 + num ** 2 * vd / den ** 4) : NaN", "const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.sqrt(vn / den ** 2) : NaN"),
+  ("const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.sqrt(vn / den ** 2 + num ** 2 * vd / den ** 4) : NaN", "const rho = den > 0 ? num / den : NaN, se = den > 0 ? 0 : NaN"),
+  ("vr = n => n * (1 - n / c.N)", "vr = n => n"),
+  ("outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'", "outcome: !iv ? 'INCONCLUSIVE' : iv.d < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'"),
+  ("outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'", "outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.d >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'"),
+  ("outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'", "outcome: !iv ? 'HELD' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'"),
+  ("outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'", "outcome: !iv ? 'INCONCLUSIVE' : iv.hi <= HALF ? 'HELD' : iv.lo >= THREEQ ? 'FALSIFIED' : 'INCONCLUSIVE'"),
+  # item 3
+  ("export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S370']], ['AR3', 'C', ['S364', 'S360']]]);", "export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S370']], ['AR3', 'C', ['S360']]]);"),
+  ("export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S370']], ['AR3', 'C', ['S364', 'S360']]]);", "export const LEGS = Object.freeze([['AN3', 'C', ['S370']], ['AR3', 'C', ['S364', 'S360']]]);"),
+  ("out['3'] = { outcome: all.some(x => x.outcome === 'FALSIFIED') ? 'FALSIFIED'", "out['3'] = { outcome: all.every(x => x.outcome === 'FALSIFIED') ? 'FALSIFIED'"),
+  ("{ cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, k)))", "{ cells: K.map(k => cellsOf(bitsF(h, arm, k), bitsF(h, ctl, k)))"),
+  # item 4
+  ("const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Math.abs(mean(P.br[h].C[k])) >= MINRES)", "const cand = ['S364', 'S360'].flatMap(h => K.filter(k => mean(P.br[h].C[k]) >= MINRES)"),
+  ("const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Math.abs(mean(P.br[h].C[k])) >= MINRES)", "const cand = ['S364'].flatMap(h => K.filter(k => Math.abs(mean(P.br[h].C[k])) >= MINRES)"),
+  ("const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Math.abs(mean(P.br[h].C[k])) >= MINRES)", "const cand = ['S364', 'S360'].flatMap(h => K.filter(k => true)"),
+  ("read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP || c.hi < -GAP ? 'open' : 'unclear' }; });", "read: c.d >= -GAP && c.d <= GAP ? 'closed' : c.lo > GAP || c.hi < -GAP ? 'open' : 'unclear' }; });"),
+  ("read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP || c.hi < -GAP ? 'open' : 'unclear' }; });", "read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ? 'open' : 'unclear' }; });"),
+  ("const c = meanOf(P.br[h].AR3[k], z);", "const c = meanOf(P.br[h].C[k], z);"),
+  ("out['4'] = { outcome: per.length ? allOf(per, 'closed', 'open') : 'INCONCLUSIVE', per, nothing: !per.length }; }", "out['4'] = { outcome: per.length ? allOf(per, 'closed', 'open') : 'HELD', per, nothing: !per.length }; }"),
+  # item 5
+  ("read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -STILL || c.lo > STILL ? 'moved' : 'unclear' }; });", "read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.lo > STILL ? 'moved' : 'unclear' }; });"),
+  ("read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -STILL || c.lo > STILL ? 'moved' : 'unclear' }; });", "read: c.d >= -STILL && c.d <= STILL ? 'still' : c.hi < -STILL || c.lo > STILL ? 'moved' : 'unclear' }; });"),
+  ("Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.tail3.AN[k][i])", "Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.tail3.AN3[k][i])"),
+  # the rows
+  ("if (o('3') === 'FALSIFIED') return 'R3';", ""),
+  ("if (o('1') === 'FALSIFIED') return 'R5';", ""),
+  ("if (o('4') === 'FALSIFIED') return 'R4';", ""),
+  ("if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';", "if (o('2') === 'HELD') return 'R1';"),
+  ("if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2';", "if (o('2') === 'FALSIFIED') return 'R2';"),
+  # the cause
+  ("if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :", "if (o2 === 'HELD') return o1 !== 'FALSIFIED' ? 'O191-SMEAR' :"),
+  ("if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR not", "if (o2 === 'FALSIFIED') return o1 !== 'FALSIFIED' ? 'O191-SMEAR not"),
+  # the wiring
+  ("const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, k, 'GA'), bridge[h], t);", "const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, k, 'GB'), bridge[h], t);"),
+  ("tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t))) }", "tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN', k, t))) }"),
+  ("tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t))) }", "tails: { AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, 1))) }"),
+  ("const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.cell.map(x => x.n), N: o191.N,", "const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN3.cell.map(x => x.n), N: o191.N,"),
+  ("const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.cell.map(x => x.n), N: o191.N,", "const cell = { n: o191.AN.cell.map(x => x.n), nAN: o191.AN.cell.map(x => x.n), N: o191.N,"),
+  ("{ C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h, 'AR3', k, 1)) }", "{ C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h, 'AR3', k, 2)) }"),
+  ("AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => tail('S370', 'AN', k, 3))", "AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => tail('S370', 'C', k, 3))"),
+  ("const at = mv[i * years + t] !== 65535, next = t + 1 < years ? mv[i * years + t + 1] !== 65535 : false; if (at && !next && !bits[i])", "const at = mv[i * years + t] !== 65535, next = false; if (at && !next && !bits[i])"),
+  ("const at = mv[i * years + t] !== 65535, next = t + 1 < years ? mv[i * years + t + 1] !== 65535 : false; if (at && !next && !bits[i])", "const at = mv[i * years + t] !== 65535, next = t + 1 < years ? mv[i * years + t + 1] !== 65535 : false; if (at && !next)"),
+  # the lines
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.3, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.6, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.5, HALF = 0.6, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.7, GAP = 1, MINRES = 1, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1.5, MINRES = 1, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 0.5, STILL = 0.25;"),
+  ("export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.25;", "export const BAND = 0.25, OUT = 0.5, HALF = 0.5, THREEQ = 0.75, GAP = 1, MINRES = 1, STILL = 0.5;"),
+  ("export const LATTICE_LINE = '160x41 nz 128';", "export const LATTICE_LINE = '160x41 nz 64';"),
+]
+M = [m for m in M if m[0] != m[1]]
+run('reduce-refstep.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

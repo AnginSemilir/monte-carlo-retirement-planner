@@ -58,4 +58,8 @@ research/tests suites and small read-only scripts over saved traces are allowed.
    plant's effect over the tolerance and the tolerance over the clean error each printed and each at least 2; a plant caught
    only outside its slice is a vacuous pass. Name in the findings the test file and its blob as reviewed
    (`<file>.test.mjs blob <the first 12 hex of git hash-object>`): check-plan.mjs accepts the gate as met only on a receipt
-   naming the file at the blob it has when the gate is recorded, so a test edited after the review needs a new one.
+   naming the file at the blob it has when the gate is recorded, so a test edited after the review needs a new one. State
+   the verdict once, as the findings' first `VERDICT:` and unquoted: `VERDICT: GATE-READY - <why>` when the test can meet
+   the gate, otherwise `VERDICT: NOT GATE-READY AT THIS BLOB - <why>`. check-plan.mjs reads that first verdict and accepts
+   only GATE-READY (or the older "... MAY BE RECORDED MET ..."), with no NOT or CANNOT in it (the maintainer's unlock of
+   20 Oct); quote any other verdict text you need, so it is not read as yours.

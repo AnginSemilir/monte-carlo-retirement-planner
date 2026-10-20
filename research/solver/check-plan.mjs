@@ -433,15 +433,30 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], ad
     if (!dr) { err('gate tests', `${head} records a gate met by ${tests.join(', ')} with no "design review: <D Mon HH:MM> UK" (RULES.md section 4 row 14)`); continue; }
     const receipt = drLog.split('\n').find(x => x.startsWith(`- ${dr[1]} UK |`));
     if (!receipt) { err('gate tests', `${head}: no deep-review-log.md receipt at ${dr[1]} UK`); continue; }
+    let named = true;
     for (const t of tests) {
       const rel = `../tests/${t}`;
-      if (!solverFileExists(rel)) { err('gate tests', `${head}: research/tests/${t} does not exist`); continue; }
+      if (!solverFileExists(rel)) { named = false; err('gate tests', `${head}: research/tests/${t} does not exist`); continue; }
       const blob = blobOf(readSolverFile(rel)).slice(0, 12);
-      if (!receipt.includes(t)) err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}`);
-      else if (!receipt.includes(`blob ${blob}`)) err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}'s blob as it stands (blob ${blob}): the test changed after its review, or the receipt names no blob`);
+      if (!receipt.includes(t)) { named = false; err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}`); }
+      else if (!receipt.includes(`blob ${blob}`)) { named = false; err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}'s blob as it stands (blob ${blob}): the test changed after its review, or the receipt names no blob`); }
     }
+    // the verdict (the maintainer's unlock of 20 Oct; the design review of 20 Oct 13:40 UK, its enforcement flag): a receipt
+    // naming the test and its blob counts only if its own verdict passes the test, not whatever it says
+    const v = receiptVerdict(receipt);
+    if (named && !v.ok) err('gate tests', `${head}: the design review of ${dr[1]} UK does not read GATE-READY (its verdict: ${v.text ? `"${v.text.slice(0, 60)}"` : 'none'})`);
   }
   return E;
+}
+// a design review's verdict: the receipt's first unquoted "VERDICT:" (so a verdict quoted later, inside a proposal, does
+// not count), read up to its sentence's end; it passes a test only as GATE-READY or "... MAY BE RECORDED MET ...", and never
+// with NOT or CANNOT in it (the receipt of 7 Oct 19:01 UK reads 'VERDICT: O55's gate MAY BE RECORDED MET on blob ...';
+// those of 20 Oct 13:40 and 18 Oct 11:52 UK 'NOT GATE-READY' and 'NOT READY')
+export function receiptVerdict(receipt) {
+  const m = /(?<!['"\u2018\u201c])\bVERDICT:\s*([^.;]*)/.exec(String(receipt || ''));
+  if (!m) return { ok: false, text: '' };
+  const text = m[1].trim();
+  return { ok: (/^GATE-READY\b/.test(text) || /\bMAY BE RECORDED MET\b/.test(text)) && !/\b(?:NOT|CANNOT)\b/.test(text), text };
 }
 // a gate or condition recorded met, passed, cleared or left (not "not met"), and the research/tests files a line cites:
 // a results file reads as its test

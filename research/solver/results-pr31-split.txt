@@ -1,14 +1,20 @@
-S370 without its ISAs (ISA left 0) under the package at 4 points: solved in 566 s
-PASS  S  the package built with stepAll, b's first node 0, step years present, and A* at b 0 not the old split somewhere  -- stepAll true, reader years 0, 1, 2, 3, 4, 5, 6, 7, step years 0, 1, 2, 4, 5, 6, gain nodes 3, 12 year-gain cells differ (year 1 gain 0.250: A* 84039 against the old split 83199)
-=========== C, P, M. THE CHOOSER AT THE GRID'S ISA-LESS STATES, HOLDING THE PLAN'S TIERS ===========
-  GRID: 196920 move-states read: the split acts on 5904, hands back on 191016
+S370 without its ISAs (ISA left 0) under the package at 4 points: solved in 569 s
+PASS  S  the package built with stepAll, b's first node 0, and A* at b 0 not the old split somewhere  -- stepAll true, reader years 0, 1, 2, 3, 4, 5, 6, 7, years scored 0, 1, 2, 3, 4, 5, 6 (with a step next year: 0, 1, 2, 4, 5, 6), gain nodes 3, 12 year-gain cells differ (year 1 gain 0.250: A* 84039 against the old split 83199)
+=========== C, X, P, M. THE CHOOSER AT THE ISA-LESS STATES, HOLDING THE PLAN'S TIERS ===========
+  read in 3115 s; NEAR states by year: year 0 50, year 1 50, year 2 50, year 5 50, year 6 50
+  GRID: the split acts on 5904 move-states, hands back on 216984
 PASS  C  GRID: where the split acts, every move's score within TOL of the 4,000-return score  -- 5904 move-states, the worst 2.754e-4 (year 2 node 2/2 gain 0, world 2, taxable before ISA, spend 110%, pension 1 tier down, ISA 1 tier down)
-PASS  C  GRID: where it does not act, the scores are the points' to the bit  -- 191016 move-states, the largest difference 0
-  NEAR: 264072 move-states read: the split acts on 141336, hands back on 122736
-PASS  C  NEAR: where the split acts, every move's score within TOL of the 4,000-return score  -- 141336 move-states, the worst 9.120e-4 (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%)
-PASS  C  NEAR: where it does not act, the scores are the points' to the bit  -- 122736 move-states, the largest difference 0
-  read in 2686 s
-PASS  P  planted, on NEAR: the old split misses the 4,000-return score by more than 2 TOL where the split acts  -- the worst 8.103e-3 (year 2 gain 2 x -0.025, world 2, taxable before ISA, spend 80%, pension 1 tier down, ISA 1 tier down); on GRID 2.754e-4
-M  the margins (printed): TOL over the fix's worst miss, GRID 3.6, NEAR 1.1; the plant's worst on NEAR over TOL 8.1
+PASS  C  GRID: where it does not act, the scores are the points' to the bit  -- 216984 move-states, 0 differ
+PASS  X  GRID: where the split acts within +-7, every one of its 24 reads on its side of the reference's threshold at its own grown state  -- 2784 move-states read, 0 reads on the wrong side, 0 without 24 reads; 3120 with the split past +-7 left out
+PASS  M  GRID: TOL over the fix's worst miss at least 2  -- 7.26
+  NEAR: the split acts on 109368 move-states, hands back on 100920
+PASS  C  NEAR: where the split acts, every move's score within TOL of the 4,000-return score  -- 109368 move-states, the worst 9.120e-4 (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%)
+PASS  C  NEAR: where it does not act, the scores are the points' to the bit  -- 100920 move-states, 0 differ
+PASS  X  NEAR: where the split acts within +-7, every one of its 24 reads on its side of the reference's threshold at its own grown state  -- 95976 move-states read, 0 reads on the wrong side, 0 without 24 reads; 13392 with the split past +-7 left out
+PASS  M  NEAR: TOL over the fix's worst miss at least 2  -- 2.19
+PASS  P  planted OLD: caught  -- where the split acts: 115272 move-states, the plant's score differs from the fix's on 100848, 539856 reads on the wrong side (X, on 98400 move-states with both splits within +-7; 16872 left out), the worst miss 8.103e-3 = 4.05 TOL (year 2 gain 2 x -0.025, world 2, taxable before ISA, spend 80%, pension 1 tier down, ISA 1 tier down); where the fix keeps its points, 2952 plant scores not the points'
+PASS  P  planted YEAR: caught  -- where the split acts: 115272 move-states, the plant's score differs from the fix's on 9648, 3816 reads on the wrong side (X, on 98688 move-states with both splits within +-7; 16584 left out), the worst miss 9.120e-4 = 0.46 TOL (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%); where the fix keeps its points, 1272 plant scores not the points'
+PASS  P  planted SWAP: caught  -- where the split acts: 115272 move-states, the plant's score differs from the fix's on 98760, 539856 reads on the wrong side (X, on 98400 move-states with both splits within +-7; 16872 left out), the worst miss 8.103e-3 = 4.05 TOL (year 2 gain 2 x -0.025, world 2, taxable before ISA, spend 80%, pension 1 tier down, ISA 1 tier down); where the fix keeps its points, 2952 plant scores not the points'
+PASS  P  planted PRE: caught  -- where the split acts: 115272 move-states, the plant's score differs from the fix's on 78720, 454992 reads on the wrong side (X, on 98760 move-states with both splits within +-7; 16512 left out), the worst miss 1.443e-3 = 0.72 TOL (year 2 gain 1 x 0.150, world 2, taxable before ISA, spend 95%); where the fix keeps its points, 1872 plant scores not the points'
 
-6 passed, 0 failed
+13 passed, 0 failed

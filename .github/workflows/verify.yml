@@ -26,6 +26,10 @@ jobs:
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the whole history: e3pcls-guard.test.mjs dates each script by its first commit (git log --diff-filter=A), and
+          # a one-commit clone makes every script new (it failed on 29b9cf5 and 650ceb3 so; reproduced on a --depth 1 clone)
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

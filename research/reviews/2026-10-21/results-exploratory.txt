@@ -1,0 +1,130 @@
+THE REVIEW'S EXPLORATORY RESULTS (21 Oct 2026). Not registered; seeds 99001 (policies) and 99002 (opening moves), outside the registry.
+Settings unless stated: PRODUCT_BASELINE through solveMixture, withdrawal moves only (spendLevels [1], raiseWeight 0, lambda 0, no tier
+moves), guardrails and lookahead off, minimum end pot one year of target spending; 30 wealth points; 4,000 paths; paired = same paths.
+"as is" = the repository at 3771bb2; "clamped" = the same code with solve.js:222 PhiInv(u) clamped to [1e-15, 1 - 1e-15] as line 255 is.
+
+1. O200: CELLS WITH NO MOVE CHOSEN, AND WHAT CLAMPING LINE 222 DOES TO THE POLICY
+household  cells with no move (as is, all worlds)  table forecast as is / clamped  simulated as is -> clamped  paired change
+S008           56376                               57.67% /  61.82%            60.32% -> 62.55%       +2.23 (se 0.24; 89 saved, 0 lost)
+S070           71733                               70.46% /  70.46%            64.10% -> 64.22%       +0.13 (se 0.07; 6 saved, 1 lost)
+S126          103584                                9.34% /  17.61%            94.10% -> 96.17%       +2.08 (se 0.23; 83 saved, 0 lost)
+S130           80767                                1.07% /   1.07%            58.73% -> 58.88%       +0.15 (se 0.06; 6 saved, 0 lost)
+S172          240000                               61.85% /  87.81%            84.38% -> 88.02%       +3.65 (se 0.30; 146 saved, 0 lost)
+S194          437148                                0.00% /  85.10%            82.93% -> 84.67%       +1.75 (se 0.21; 70 saved, 0 lost)
+S224          468900                                0.00% /  42.76%            41.85% -> 44.70%       +2.85 (se 0.27; 114 saved, 0 lost)
+S330          956238                                0.00% /  72.54%            68.67% -> 71.08%       +2.40 (se 0.24; 96 saved, 0 lost)
+S360             324                                0.18% /   0.18%            6.48% -> 6.48%       +0.00 (se 0.00; 0 saved, 0 lost)
+S364          421998                                0.00% /   0.01%            0.00% -> 0.00%       +0.00 (se 0.00; 0 saved, 0 lost)
+S370          100185                                0.01% /   0.01%            15.32% -> 15.38%       +0.05 (se 0.04; 2 saved, 0 lost)
+S380               0                               33.50% /  33.50%            43.10% -> 43.10%       +0.00 (se 0.00; 0 saved, 0 lost)
+mean paired change over 12 households: 1.27 points
+
+   The same census at 60 wealth points (tables only, as is; nan-probe.mjs): S070 629,784 cells, every world opening at the 1e-6 clamp or within
+   0.003 points of it; S224 1,097,472 cells, every world at the clamp; S380 211,398 cells, the poor world at the clamp, the other two clean.
+   Clamped, S070 at 60 points has none and opens at 31.43 / 74.47 / 96.22 by world.
+   Through the product entry point solvePlan (spend levels, tier moves with consent, raise cap 1.1, lambda 0.3, tier-above rule off), S224:
+     default levers                                 144 moves, cells with no move    3330 of 1195560; forecast 49.86% / 49.86%; simulated 47.90% -> 47.90% on 2000 paths: +0.00 (se 0.00; 0 saved, 0 lost)
+     raises blocked (raiseCap 1)                     72 moves, cells with no move   13239 of 1195560; forecast 50.25% / 50.25%; simulated 47.45% -> 47.45% on 2000 paths: +0.00 (se 0.00; 0 saved, 0 lost)
+     raises blocked and no consent to change risk    24 moves, cells with no move  468900 of 1195560; forecast 0.00% / 42.76%; simulated 41.30% -> 44.20% on 2000 paths: +2.90 (se 0.38; 58 saved, 0 lost)
+     S224 at 60 points, default levers, as is: cells with no move 0 of 2391120
+     S380 at 60 points, default levers, as is: cells with no move 0 of 2682720
+
+2. THE INTERPOLATION TRANSFORM (clamped code): table forecast against the policy's simulated survival, and the policies compared on the same paths
+S070 30 pts: logit table 70.46 sim 64.22 | probit table 70.11 sim 64.28 | linear table 68.81 sim 64.88
+            probit policy vs log-odds policy +0.05 (se 0.06; 4 saved, 2 lost)
+            linear policy vs log-odds policy +0.65 (se 0.15; 30 saved, 4 lost)
+S070 60 pts: logit table 70.92 sim 64.28 | probit table 70.69 sim 64.28 | linear table 69.79 sim 64.65
+            probit policy vs log-odds policy +0.00 (se 0.04; 1 saved, 1 lost)
+            linear policy vs log-odds policy +0.38 (se 0.11; 18 saved, 3 lost)
+            log-odds policy, 60 points vs 30: +0.05 (se 0.06; 4 saved, 2 lost)
+S172 30 pts: logit table 87.81 sim 88.02 | probit table 86.76 sim 88.05 | linear table 82.53 sim 87.45
+            probit policy vs log-odds policy +0.03 (se 0.03; 1 saved, 0 lost)
+            linear policy vs log-odds policy -0.57 (se 0.12; 0 saved, 23 lost)
+S194 30 pts: logit table 85.10 sim 84.67 | probit table 84.21 sim 84.63 | linear table 80.71 sim 84.25
+            probit policy vs log-odds policy -0.05 (se 0.04; 0 saved, 2 lost)
+            linear policy vs log-odds policy -0.42 (se 0.10; 0 saved, 17 lost)
+S224 30 pts: logit table 42.76 sim 44.70 | probit table 43.25 sim 44.65 | linear table 45.08 sim 44.52
+            probit policy vs log-odds policy -0.05 (se 0.04; 0 saved, 2 lost)
+            linear policy vs log-odds policy -0.17 (se 0.07; 1 saved, 8 lost)
+S224 60 pts: logit table 43.84 sim 44.65 | probit table 43.93 sim 44.63 | linear table 44.30 sim 44.63
+            probit policy vs log-odds policy -0.03 (se 0.03; 0 saved, 1 lost)
+            linear policy vs log-odds policy -0.03 (se 0.04; 1 saved, 2 lost)
+            log-odds policy, 60 points vs 30: -0.05 (se 0.04; 0 saved, 2 lost)
+S380 30 pts: logit table 33.50 sim 43.10 | probit table 36.82 sim 43.10 | linear table 41.55 sim 42.83
+            probit policy vs log-odds policy +0.00 (se 0.05; 2 saved, 2 lost)
+            linear policy vs log-odds policy -0.28 (se 0.09; 1 saved, 12 lost)
+S380 60 pts: logit table 35.08 sim 43.10 | probit table 37.83 sim 43.10 | linear table 40.72 sim 43.05
+            probit policy vs log-odds policy +0.00 (se 0.00; 0 saved, 0 lost)
+            linear policy vs log-odds policy -0.05 (se 0.06; 2 saved, 4 lost)
+            log-odds policy, 60 points vs 30: +0.00 (se 0.06; 3 saved, 3 lost)
+
+3. OTHER SOLVER SETTINGS AGAINST THE BASELINE POLICY (clamped code, log-odds, 30 points)
+S008 {"pclsInterp":true}                    table 59.58 (baseline 61.82)  sim 63.00 (baseline 62.55)  policy vs baseline +0.45 (se 0.13; 23 saved, 5 lost)
+S070 {"gainInterp":true}                    table 70.45 (baseline 70.46)  sim 64.20 (baseline 64.22)  policy vs baseline -0.03 (se 0.04; 1 saved, 2 lost)
+S070 {"jointWorlds":true}                   table 70.44 (baseline 70.46)  sim 64.22 (baseline 64.22)  policy vs baseline +0.00 (se 0.00; 0 saved, 0 lost)
+S070 {"mix":5}                              table 70.37 (baseline 70.46)  sim 64.20 (baseline 64.22)  policy vs baseline -0.03 (se 0.03; 0 saved, 1 lost)
+S070 {"pclsInterp":true}                    table 65.10 (baseline 70.46)  sim 67.92 (baseline 64.22)  policy vs baseline +3.70 (se 0.30; 148 saved, 0 lost)
+S070 {"pclsInterp":true,"gainInterp":true}  table 65.08 (baseline 70.46)  sim 67.97 (baseline 64.22)  policy vs baseline +3.75 (se 0.31; 150 saved, 0 lost)
+S070 {"quadNodes":9}                        table 70.70 (baseline 70.46)  sim 64.22 (baseline 64.22)  policy vs baseline +0.00 (se 0.04; 1 saved, 1 lost)
+S070 {"shares":10}                          table 70.90 (baseline 70.46)  sim 64.18 (baseline 64.22)  policy vs baseline -0.05 (se 0.06; 2 saved, 4 lost)
+S172 {"pclsInterp":true}                    table 87.79 (baseline 87.81)  sim 88.02 (baseline 88.02)  policy vs baseline +0.00 (se 0.00; 0 saved, 0 lost)
+S194 {"pclsInterp":true}                    table 85.10 (baseline 85.10)  sim 84.67 (baseline 84.67)  policy vs baseline +0.00 (se 0.00; 0 saved, 0 lost)
+S224 {"pclsInterp":true}                    table 41.50 (baseline 42.76)  sim 45.30 (baseline 44.70)  policy vs baseline +0.60 (se 0.12; 24 saved, 0 lost)
+
+4. THE OPENING-MOVE CHECK (opening-q.mjs; S070, log-odds, 30 points, 3,000 paths of seed 99002; the repository's code as is, before the clamp)
+policy's opening move: [18] penPA+penBasic+penAny first, taxable before ISA
+simulated survival across the 24 moves: 64.73% to 65.17%; the table's survival for them: 69.95% to 70.48%
+best other move [2] taxable before ISA, harvest to the basic-rate limit: 0.13 points against the policy's move (se 0.07, z 2.0); worst [0]: -0.30 (z -3.0)
+verdict: no move beats the policy's opening move beyond noise (a one-sided 5% Bonferroni line over 23 comparisons is z 2.85)
+
+5. WHERE S070'S TABLE OPTIMISM SITS (world-probe.mjs; clamped code, log-odds, 30 points, 4,000 paths, each path's persistent shift held at the world's node)
+world 0 (shift -1.732, weight 1/6): table 29.72%, policy simulated in that world 23.82% (table - sim +5.89)
+world 1 (shift 0, weight 2/3): table 74.18%, simulated 67.07% (+7.10)
+world 2 (shift +1.732, weight 1/6): table 96.36%, simulated 94.40% (+1.96)
+the three simulated worlds at the mixture's weights: 64.42%; simulated with the shift drawn from its prior: 64.22%; mixture forecast 70.46%
+reading: the optimism is within each world, not in the three-world weighting; section 3 shows the snapped allowance axis carries most of it
+
+6. ROLLOUT AT DISAGREEMENT STATES (rollout-demo.mjs; S070, clamped code, 30 points): of 6,607 states the log-odds policy visited on 200 paths, the linear
+policy chose differently at 1,584 (24.0%). At 60 of them, the linear move then the log-odds policy, minus the log-odds move then the log-odds policy, on 300
+common continuations: mean -0.03 points (se across states 0.06); significantly better at 0 states, worse at 1. A one-step check at sampled states could not
+see the +0.65-point difference between the two whole policies (section 2), which accumulates over many small decisions.
+
+7. THE ENGINE AGAINST THE SOLVER'S MODEL (engine-vs-fast.mjs; clamped code, log-odds, 30 points, 2,000 paths of seed 99001): the same solved
+   policy executed by the engine (bridge.js withTable, runTrial path by path) and by the solver's forward model (runPolicy), paired
+household  taxable account  solver's model  engine   difference (se)  paths surviving only in the solver's model / only in the engine
+S330            427500          70.95%      69.40%    +1.55 (0.28)     31 / 0
+S092            427500          53.15%      52.45%    +0.70 (0.19)     14 / 0
+S224             95000          44.20%      43.85%    +0.35 (0.13)      7 / 0
+S070             48000          64.00%      63.70%    +0.30 (0.12)      6 / 0
+S032            427500          67.85%      67.55%    +0.30 (0.12)      6 / 0
+S008             19000          63.35%      63.40%    -0.05 (0.05)      0 / 1
+S172             22500          88.50%      88.50%    +0.00 (0.00)      0 / 0
+S194              9000          85.25%      85.25%    +0.00 (0.00)      0 / 0
+S028            202500          99.55%      99.55%    +0.00 (0.00)      0 / 0
+   time on S092 (36 years): solve 25.1 s; runPolicy 10.4 s for 2,000 paths; the engine 11.6 s for the same 2,000
+
+8. ENGINE CHECKS (engine-checks/; the repository's code as is)
+carry.mjs (one single household, £400k taxable account with £240k of gain, the same move every year with the sweep on, expected returns):
+   t 0: CGT engine 1080  fast 1080  model.js 1080 | wealth engine 711505  fast 711505  model.js 711505
+   t 1: CGT engine 2838  fast 1102  model.js 1218 | wealth engine 706186  fast 707987  model.js 707866
+   t 2: CGT engine 1823  fast 0  model.js 0 | wealth engine 713672  fast 717426  model.js 717301
+   t 29: CGT engine 2612  fast 0  model.js 0 | wealth engine 1169096  fast 1277652  model.js 1277335
+   lifetime CGT: engine 66559  fast flow 2182  model.js 2298
+carry2.mjs (the same household, 3,000 paths of seed 515151, same paths in both):
+   spend 42000: survival engine 62.93  fast flow 66.27  diff 3.33
+   spend 46000: survival engine 52.13  fast flow 55.80  diff 3.67
+fee.mjs (the plan's own rules, 3,000 paths of seed 424242, the charge taken off every tier's real return):
+   S080 just-retired/isa-heavy/comfortable/heavy  survival at 0 / 0.5% / 1.0% a year: 55.9 / 49.8 / 44.3
+   S036 in-drawdown/balanced/lean/light           survival at 0 / 0.5% / 1.0% a year: 100.0 / 100.0 / 100.0
+tax.mjs:
+   savings tax, non-savings 30000, interest 5000: rUK 800.00  Scotland (engine) 840.00
+   savings tax, non-savings 45000, interest 5000: rUK 800.00  Scotland (engine) 1680.00
+   savings tax, non-savings 60000, interest 3000: rUK 1000.00  Scotland (engine) 1050.00
+   dividend tax, other income 20000, dividends 4000: engine 306.25  at 2026/27 rates (10.75 / 35.75) 376.25
+   dividend tax, other income 60000, dividends 20000: engine 6581.25  at 2026/27 rates 6971.25
+   year fraction of a 2026-01-01 valuation: 1 under Europe/London and UTC; 0.01 under America/New_York
+prng.mjs (stream starts of seeds 7001-7014, 7101, 9102 and 12345, up to 16,000 paths each, mapped by seed number alone; draws generated
+   only for the tuning seeds 7001 and 7002, 16,000 paths of 40 years):
+   closest pair of path streams on mulberry32's 2^32 cycle: 462 draws apart (seed 7008 and seed 9102); a path of 60 years uses 124
+   corr(path i, path i+1), seed 7001: -0.00113 (n 655,959; 1/sqrt(n) 0.00123); corr(seed 7001 path i, seed 7002 path i): 0.00081; lag-1 within a path: -0.00243
+   annual draws: mean -0.00157, variance 0.99821, kurtosis 2.9930, largest |z| 4.916; the held shift: mean 0.0070, variance 1.0230 (n 16,000)

@@ -24,8 +24,8 @@
  *
  * THE STATE is six numbers in a Float64Array: pension, ISA, taxable pot (GIA and cash together, split
  * by the sweep's rule), the GIA's unrealised-gain fraction, the tax-free cash used so far, and whether
- * the whole lump sum has been taken. Gains carried into next year's CGT tally are the one thing the
- * grid does not hold, so they are computed within the year and dropped, exactly as `toState` does.
+ * the whole lump sum has been taken. Gains booked after the year's CGT bill (a sale to pay it, the sweep's top-up) are next
+ * year's: a forward run carries them in slot 11 as the engine does; a grid cell, with no slot, is charged them in the year.
  */
 
 export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 5 };
@@ -358,7 +358,7 @@ export function flow(c, t, ai, s) {
   // the sheltered part of the cash: carried in the seventh slot by a forward run, the year's typical value for a
   // grid cell (-1), and none at all for a six-slot vector built by hand, which is what the model assumes too
   let cashIsa = s.length > 6 ? Math.min(cash, s[6] >= 0 ? s[6] : yr.cashIsaTypical[t]) : 0;
-  let realised = 0;                  // gains booked this year (the grid carries none in)
+  let realised = s.length > 11 ? s[11] : 0, booked = 0;   // gains booked this year, from a forward run's carry (slot 11) on
   let taxable = yr.taxable0[t];
   let taxPaid = 0, cgtPaid = 0, unmet = 0, drawdown = 0, harvested = 0;
   const cgtOn = P.cgtEnabled;
@@ -403,7 +403,7 @@ export function flow(c, t, ai, s) {
   // 4. guaranteed income, less the tax on this year's savings interest (taxable cash only) and GIA dividends (engine 4a, 4b)
   const interest = c.cashNominal > 0 && cash > cashIsa ? (cash - cashIsa) * c.cashNominal * frac : 0;
   const savingsTax = interest > 0 ? P.savingsTax(taxable, interest) : 0;
-  const dividendTax = P.giaDividendYield > 0 && gia > 0 ? P.dividendTax(taxable, interest, gia * P.giaDividendYield * frac) : 0;
+  const dividendTax = P.giaDividendYield > 0 && gia > 0 ? P.dividendTax(taxable, interest, gia * P.giaDividendYield * frac) : 0; if (cgtOn && P.giaDividendYield > 0 && gia > 0) basis += gia * P.giaDividendYield * frac;   // reinvested at cost (F0a)
   const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - savingsTax - dividendTax;
 
   /* Draw `need` net from the pension without taking taxable income past `ceiling`. */
@@ -548,6 +548,7 @@ export function flow(c, t, ai, s) {
     }
   }
   // 7c. capital gains on the year's disposals, settled cash -> GIA -> ISA -> pension
+  booked = realised;   // the tally the bill is worked on; a gain booked after it is next year's (engine 7c, 7d)
   if (cgtOn) {
     const taxableGain = Math.max(0, realised - yr.cgtExempt[t]);
     if (taxableGain > 0) {
@@ -559,7 +560,7 @@ export function flow(c, t, ai, s) {
         cgtPaid += bill;
         let rem = bill;
         const pull = Math.min(cash, rem); cash -= pull; rem -= pull;
-        if (rem > 0) rem -= sellGia(rem);       // the gain this books is next year's, and the grid drops it
+        if (rem > 0) rem -= sellGia(rem);       // the gain this books is next year's (below)
         if (rem > 0) { const p2 = Math.min(isa, rem); isa -= p2; rem -= p2; }
         if (rem > 0) rem -= drawPension(rem, Infinity);
         unmet += Math.max(0, rem);
@@ -571,6 +572,28 @@ export function flow(c, t, ai, s) {
     const bufferEach = yr.buffer[t];
     if (cash > bufferEach) { addGia(cash - bufferEach); cash = bufferEach; }
     else if (cash < bufferEach) { const got = sellGia(bufferEach - cash); cash += got; }
+  }
+  /*
+   * 7d'. THE GAINS BOOKED AFTER THE BILL (the external review of 21 Oct, F0): a sale made to pay it and the sweep's top-up.
+   * The engine taxes them next year (cgtCarry, App.jsx 7c and 7d); a forward run carries them to next year in slot 11
+   * (realised starts from it, above), so it pays what the engine pays, when it pays it. A grid cell has no slot, so it
+   * is charged them now, on what is left of this year's exemption and basic band, settled as the bill is (a gain the
+   * second sale books is dropped). Before, both dropped them: the solver's model never taxed the sweep's gain.
+   */
+  const late = cgtOn ? Math.max(0, realised - booked) : 0;
+  if (s.length <= 11 && late > 0) {
+    const exemptLeft = Math.max(0, yr.cgtExempt[t] - booked), taxableIncome = Math.max(0, taxable - P.paAt(taxable));
+    const basicLeft = Math.max(0, P.cgtBandWidth - taxableIncome - Math.max(0, booked - yr.cgtExempt[t]));
+    const g2 = Math.max(0, late - exemptLeft), at2 = Math.min(g2, basicLeft), bill = at2 * P.cgtBasicRate + (g2 - at2) * P.cgtHigherRate;
+    if (bill > 0) {
+      cgtPaid += bill;
+      let rem = bill;
+      const pull = Math.min(cash, rem); cash -= pull; rem -= pull;
+      if (rem > 0) rem -= sellGia(rem);
+      if (rem > 0) { const p2 = Math.min(isa, rem); isa -= p2; rem -= p2; }
+      if (rem > 0) rem -= drawPension(rem, Infinity);
+      unmet += Math.max(0, rem);
+    }
   }
   // 7e. the cash ISA: taxable cash was drawn first, then the leftover allowance shelters more (engine 7e)
   cashIsa = Math.min(cashIsa, cash);
@@ -584,7 +607,7 @@ export function flow(c, t, ai, s) {
 
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(0, Math.min(1, (gia - basis) / gia)) : 0;
-  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa;
+  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa; if (s.length > 11) s[11] = late;
   // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
   const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };

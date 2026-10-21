@@ -284,7 +284,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
     const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
     savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
-    if (P.giaDividendYield > 0) dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac));
+    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
   });
   const netGuaranteed = {};
   owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
@@ -510,9 +510,12 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
         pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
         addBasis(o.key, excess);                      // moved at cost, so no gain is created
       } else if (cash < bufferEach) {
-        // topping the buffer back up is a sale, so it books its gain like any other disposal
+        // topping the buffer back up is a sale, so it books its gain like any other disposal - into next year's tally,
+        // since this year's bill is settled (the engine's 7d; before 21 Oct it was booked here and never taxed, F0)
+        const before = realisedGains[o.key];
         const got = sellGia(o.ids.other, bufferEach - cash);
         pots[o.ids.cash] = cash + got;
+        state.cgtCarry[o.key] += realisedGains[o.key] - before;
       }
     });
   }

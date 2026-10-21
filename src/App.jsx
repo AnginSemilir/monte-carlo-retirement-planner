@@ -450,12 +450,12 @@ const DEFAULT_CONFIG = {
   // Where you are tax resident. Income tax bands are devolved; National Insurance, capital gains tax,
   // the personal allowance and its taper are not, and do not follow this setting.
   taxRegion: 'ruk',                  // 'ruk' | 'scotland' | 'wales'
-  // Scottish bands (2025/26). Six of them, and a higher rate that starts £6,608 earlier than rUK.
+  // Scottish bands (2026/27). Six of them, and a higher rate that starts £6,608 earlier than rUK.
   // Each limit is the income at which the *next* band starts, matching basicBandLimit's convention.
   scotStarterRate: 19,
-  scotStarterLimit: 15397,
+  scotStarterLimit: 16537,
   scotBasicRate: 20,
-  scotBasicLimit: 27491,
+  scotBasicLimit: 29526,
   scotIntermediateRate: 21,
   scotIntermediateLimit: 43662,
   scotHigherRate: 42,
@@ -511,8 +511,8 @@ const DEFAULT_CONFIG = {
   // allowance at the dividend rates of the band they fall in, and the tax is a cost the year funds.
   giaDividendYield: 2.0,             // % of the GIA's value a year, an approximation across the tiers
   dividendAllowance: 500,
-  dividendBasicRate: 8.75,
-  dividendHigherRate: 33.75,
+  dividendBasicRate: 10.75,          // 2026/27: the ordinary and upper rates rose two points from 6 April 2026
+  dividendHigherRate: 35.75,
   dividendAdditionalRate: 39.35,
   // Behavioural / modelling assumptions
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
@@ -988,11 +988,15 @@ const DECUMULATION_POLICIES = {
  */
 const GUARDRAILS = Object.freeze({ band: 0.20, cut: 0.10, raise: 0.10, freezeYears: 15 });
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+// today's date where the user is, as YYYY-MM-DD (toISOString gives the UTC date, a day out either side of midnight)
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 // Fraction of the calendar year remaining after the valuation date (0.01..1).
 const calculateYearFraction = (dateStr) => {
-  const d = dateStr ? new Date(dateStr) : new Date();
+  // a YYYY-MM-DD date is read as a local date, as the year's bounds below are: `new Date('2026-01-01')` is UTC midnight,
+  // which west of Greenwich falls in the year before and gave a 1 January plan a 1% first year (F0a, 21 Oct)
+  const ymd = typeof dateStr === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr) : null;
+  const d = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : dateStr ? new Date(dateStr) : new Date();
   if (isNaN(d.getTime())) return calculateYearFraction('');
   const year = d.getFullYear();
   const start = new Date(year, 0, 1).getTime();
@@ -1280,12 +1284,20 @@ function taxParams(cfgIn) {
     for (const [a, b, r] of bands) { const w = Math.min(th, b) - Math.max(tl, a); if (w > 0) tax += w * r; }
     return tax;
   };
+  // Savings interest is taxed at the UK rates and bands whatever the region (they are not devolved), as dividends are:
+  // a Scottish taxpayer's interest was charged on the Scottish ladder before 21 Oct (42% where the UK charges 20%).
+  const ukParams = region === 'scotland' ? { ...params, ladder: [[basicLimit, basicRate], [higherLimit, higherRate], [Infinity, addRate]].reduce((acc, [l, r]) => {
+    const top = Number.isFinite(l) ? Math.max(acc.running, l - paAt(l)) : Infinity;
+    if (Number.isFinite(top)) acc.running = top;
+    acc.list.push({ top, rate: r });
+    return acc;
+  }, { running: 0, list: [] }).list } : params;
   params.savingsTax = (nonSavings, interest) => {
     if (!cashInterestTaxed || !(interest > 0)) return 0;
     const ns = Math.max(0, nonSavings), i = interest;
     const starting = Math.max(0, Math.min(srBand, pa + srBand - ns));
     const exempt = Math.min(i, starting + psaAt(ns + i));
-    return Math.max(0, incomeTax(ns + i, params) - incomeTax(ns + exempt, params));
+    return Math.max(0, incomeTax(ns + i, ukParams) - incomeTax(ns + exempt, ukParams));
   };
   return params;
 }
@@ -1853,6 +1865,12 @@ function buildContext(rawPlan) {
    * also names its tier, and a name that disagrees with this list throws (tierOf, below).
    */
   const tableOverride = ov && ov.kind === 'table' && typeof ov.choose === 'function' ? ov : null;
+  // A solved table chooses the year's spend level and draw itself: guardrails would overwrite its level and the cost
+  // lookahead would set aside money it never planned for, so the combination is refused (the external review of 21 Oct,
+  // F0a). src/solver/bridge.js withTable switches both off.
+  if (tableOverride && (c.guardrails || clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15) > 0)) {
+    throw new Error('a solved table runs with guardrails and the cost lookahead off: attach it with withTable (src/solver/bridge.js), which switches both off');
+  }
   const TIER_ORDER = Object.keys(RISK_EQUITY_WEIGHTS);
   const tierProfiles = {};
   accounts.forEach(a => {
@@ -2093,6 +2111,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   if (P.giaDividendYield > 0) owners.forEach(o => {
     giaDividends[o.key] = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac);
     dividendTax[o.key] = P.dividendTax(taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
+    // the dividends are reinvested (the GIA's total return includes them), so they buy units at cost (F0a, 21 Oct)
+    if (cgtOn && giaDividends[o.key] > 0) giaAddBasis(state, o.key, giaDividends[o.key]);
   });
   const netGuaranteed = {};
   /*

@@ -48,6 +48,8 @@ export function tablePolicy(r) {
   };
 }
 
+/* With guardrails and the cost lookahead off: the table chooses the spend level and the draw, and the engine refuses a
+   table with either on (the external review of 21 Oct, F0a). */
 export function withTable(plan, r) {
-  return { ...plan, spending: { ...plan.spending, policyOverride: tablePolicy(r) } };
+  return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: tablePolicy(r) } };
 }

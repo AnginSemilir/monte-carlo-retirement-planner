@@ -1,0 +1,9 @@
+STEP 2'S RE-CHECK: CAND against SHIP at the estate weight 0.02, /home/user/vitejs-vite-kdvuf9qw/research/solver/results/recheck7u; paired on each household's paths, beside 7u's item 1
+  S150           seed 7002, code 4635d91b2285: CAND 99.90% SHIP 99.79%; 9 saved/0 lost of 8000: change +0.113 (exact 0.037 to 0.113; unconditional 0.041 to 0.213) | 7u: +0.087 (exact 0.004 to 0.112); OUTSIDE 7u's interval
+  S212           seed 7002, code 4635d91b2285: CAND 75.28% SHIP 75.39%; 32 saved/41 lost of 8000: change -0.113 (exact -0.324 to 0.109; unconditional -0.323 to 0.098) | 7u: +0.037 (exact -0.201 to 0.274); inside 7u's interval
+  S214           seed 7002, code 4635d91b2285: CAND 86.94% SHIP 86.97%; 25 saved/28 lost of 8000: change -0.037 (exact -0.221 to 0.151; unconditional -0.219 to 0.144) | 7u: +0.025 (exact -0.154 to 0.201); inside 7u's interval
+  S224           seed 7002, code 4635d91b2285: CAND 69.36% SHIP 69.56%; 91 saved/107 lost of 8000: change -0.200 (exact -0.551 to 0.157; unconditional -0.545 to 0.145) | 7u: -0.362 (exact -0.717 to 0.002); inside 7u's interval
+  S364           seed 7002, code 4635d91b2285: CAND 0.07% SHIP 0.39%; 1 saved/26 lost of 8000: change -0.313 (exact -0.337 to -0.209; unconditional -0.464 to -0.196) | 7u: -0.388 (exact -0.388 to -0.301); inside 7u's interval
+  S380           seed 7002, code 4635d91b2285: CAND 72.80% SHIP 72.55%; 155 saved/135 lost of 8000: change +0.250 (exact -0.179 to 0.674; unconditional -0.168 to 0.668) | 7u: -0.163 (exact -0.605 to 0.283); inside 7u's interval
+  S394           seed 7002, code 4635d91b2285: CAND 85.64% SHIP 85.63%; 32 saved/31 lost of 8000: change +0.013 (exact -0.191 to 0.215; unconditional -0.185 to 0.210) | 7u: +0.037 (exact -0.179 to 0.251); inside 7u's interval
+VERDICT: 7 households read; 1 moved outside 7u's interval

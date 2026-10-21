@@ -177,6 +177,9 @@ slot 12 (`solver-cash.test.mjs`, its plant the old split); V1 and V2 run again o
 path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 
 <!-- printed:step4 -->
+- V1 on the assembled candidate: ALL PASS (7 of 7 households) (`results-v-candidate.txt`).
+- V2 on the assembled candidate: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate.txt`).
+- 7u-F's budget: 112.4 core-hours, about 28.1 hours on 4 cores (`results-budget-7uf.txt`).
 - 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`).
 - 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
 - 7u-F's power at W0.02 (from 7u's records on 14 of the 18 floor households): P1's se by path about 0.0237 at 16000 paths, its half-width about 0.046: a true pooled change above -0.054 reads HELD.
@@ -186,18 +189,16 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 
 ## 5. Running now
 
-- Step 2 (`batch-recheck.sh`, launched through the launcher on 650ceb3 as a measurement on the tuning seed; its units in
-  `results/recheck7u`), read by `recheck-7u.mjs` when it ends.
-- The e3pcls pin on the assembled candidate's code (`solver-e3pcls.test.mjs 4 --pin`).
-- Step 1's reach count: the code before the fix stopped at 19 of the 55 households (all with no cell lost). It resumes
-  after 7u-F reads (it gates nothing before it), from a worktree of the commit before Step 1 (its own pin), with
-  `REACH_SKIP=<its output>`; the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
+- Nothing. Step 1's reach count waits for 7u-F to read (it gates nothing before it): the code before the fix stopped at
+  19 of the 55 households (none with a cell lost); it resumes from a worktree of the commit before Step 1 (its own pin)
+  with `REACH_SKIP=<its output>`, and the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
 
 ## 6. The next three actions
 
-1. Step 2 read; the assembly committed with its pin; V1 and V2 on the assembled candidate (`v-candidate.mjs`) and
-   7u-F's preflight on the tuning seed (`preflight-7uf.sh`, read by `reduce-7uf.mjs --preflight`), its unit times the
-   budget.
-2. 7u-F's registration (`registrations/fresh-7uf.md`), the reviewer's design review, then the launch:
-   `PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`.
-3. While it runs: Step 5's V3 to V5 built (they run after 7u-F reads), and the full suite (`run-all.mjs all`).
+1. The reviewer's design review of `registrations/fresh-7uf.md` and the code it runs (`panel-7uf.mjs`, `audit-7uf.mjs`,
+   `reduce-7uf.mjs`, `batch-7uf.sh`), its verdict in `research/solver/reviews/`; a FAIL's findings fixed first.
+2. On a PASS: the review named in the registration, committed and pushed, then the launch:
+   `PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`
+   (its time box in the registration), read once by `reduce-7uf.mjs`.
+3. While it runs: Step 5's V3, V4 and the purpose test are built (`v3-convergence.mjs`, `v4-ensemble.mjs`,
+   `audit-bestof-cand.mjs`) and run after 7u-F reads; then the full suite (`run-all.mjs all`) and the reach count.

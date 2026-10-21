@@ -1,0 +1,3 @@
+7U-F'S BUDGET: 106 units; seconds a path-year (the preflight, under load): the engine 2.834e-3, runPolicy 2.718e-3, a world's engine run 2.912e-3; solves from 7u's units (CAND x 1.25)
+  by arm, core-hours: CAND 47.0, DECOMP 37.5, SHIP 28.0
+BUDGET: 112.4 core-hours, about 28.1 hours on 4 cores

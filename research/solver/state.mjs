@@ -98,6 +98,9 @@ const BLOCKS = {
     const R = 'research/solver/results-reread-7u-item4.txt', t = read(R);
     if (t === null) return [`- pending: ${R}`];
     const out = [];
+    // V1 and V2 on the assembled candidate (v-candidate.mjs), and 7u-F's budget (budget-7uf.mjs)
+    for (const re of [/^V1 on the assembled candidate: .*$/m, /^V2 on the assembled candidate: .*$/m]) out.push(`- ${pick('research/solver/results-v-candidate.txt', re)} (\`results-v-candidate.txt\`).`);
+    out.push(`- 7u-F's ${pick('research/solver/results-budget-7uf.txt', /^BUDGET: .*$/m).replace(/^BUDGET/, 'budget')} (\`results-budget-7uf.txt\`).`);
     for (const [w, item] of [['0.02', 4], ['0.01', 8]]) {
       const re = new RegExp(`^weight ${w.replace('.', '\\.')}: (\\d+) households[\\s\\S]*?the point: (-?[\\d.]+)[\\s\\S]*?7u's interval \\(pooled cells, pairs independent\\): (-?[\\d.]+) to (-?[\\d.]+)\\n  BY PATH \\(per-path means, paths independent\\): (-?[\\d.]+) to (-?[\\d.]+); se [\\d.]+, ([\\d.]+) times 7u's\\n  item 4's rule \\(lower end above -0\\.1\\): (\\w+) by path`, 'm');
       out.push(pick(R, re, m => `- 7u's item ${item} (the pooled floor at W${w}, ${m[1]} households) re-read by path: ${m[2]} points, by path ${m[5]} to ${m[6]} (7u's pooled cells ${m[3]} to ${m[4]}; ${m[7]} times as wide): ${m[8]} (\`${R.split('/').pop()}\`).`));

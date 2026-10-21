@@ -24,7 +24,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 const K = Number(process.argv[2]), LAMBDA = Number(process.argv[3]);
 const NPOS = Number(process.argv[4] || 40), NP = Number(process.argv[5] || 500);
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(new URL('./fixtures/band-70-98-7001.json', import.meta.url), 'utf8'));
 const sc = singles[band[K].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
@@ -69,5 +69,5 @@ for (const [name, lo, hi] of buckets) {
   const mean = (a) => a.reduce((p, q) => p + q, 0) / a.length;
   console.log(`  ${name.padEnd(28)} ${String(xs.length).padStart(3)} positions | first choice survives at least as well in ${(100 * (xs.length - wrong.length) / xs.length).toFixed(0)}% | when not: mean loss ${wrong.length ? mean(wrong).toFixed(2) : '-'} pts, worst ${wrong.length ? Math.max(...wrong).toFixed(2) : '-'} | beyond noise (2 se): ${wrongSig.length}, of which also no better on spending: ${dominated.length} | spending, first minus second ${(mean(xs.map(o => o.levelFirst - o.levelSecond)) * 100).toFixed(2)}%`);
 }
-mkdirSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/ranking', { recursive: true });
-writeFileSync(`/home/user/vitejs-vite-kdvuf9qw/research/solver/results/ranking/${sc.id}.json`, JSON.stringify({ id: sc.id, lambda: LAMBDA, paths: NP, positions: out }, null, 1));
+mkdirSync(new URL('./results/ranking', import.meta.url), { recursive: true });
+writeFileSync(new URL(`./results/ranking/${sc.id}.json`, import.meta.url), JSON.stringify({ id: sc.id, lambda: LAMBDA, paths: NP, positions: out }, null, 1));

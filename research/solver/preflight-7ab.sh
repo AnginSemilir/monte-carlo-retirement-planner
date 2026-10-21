@@ -13,7 +13,7 @@ for k in $(seq 0 9); do
 done
 node research/solver/preflight-parse-7ab.mjs "$OUT" research/solver/results/diag7aa-preflight
 # the band guard, on a dummy band no run reads (band-1-2-3.json), never the real one
-B=research/solver/results/band-1-2-3.json
+B=research/solver/fixtures/band-1-2-3.json
 if [ -e "$B" ]; then echo "BAND GUARD CHECK FAILED: $B exists already; not touched"; exit 1; fi
 echo '[{"i":0,"id":"DUMMY","name":"a dummy band for the guard check","s":1}]' > "$B"
 M0=$(md5sum "$B" | cut -c1-32)

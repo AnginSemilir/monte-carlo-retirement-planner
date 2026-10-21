@@ -1,5 +1,5 @@
 /*
- * THE DECIDED DEFAULTS AND THE CODE MOVE TOGETHER (RULES.md rule 4). PLAN.md's <!-- decided-defaults --> block is what
+ * THE DECIDED DEFAULTS AND THE CODE MOVE TOGETHER (RULES.md rule 4). STATE.md's <!-- decided-defaults --> block (PLAN.md's until 21 Oct) is what
  * the maintainer decided; solve.js is what runs. A decision recorded in one and not the other fails here - as bare
  * solve() carrying the old objective did (M1), and the defaults comment saying "opt-in" after risk above went on.
  * The regimen's margins (RULES.md section 8, the maintainer 25 Sep 20:47 UK) are pinned the same way: the block's
@@ -14,10 +14,10 @@ import { MARGINS, marginFor, marginRel, relClearable, survivalChangeU } from '..
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
-const plan = readFileSync(join(HERE, '../solver/PLAN.md'), 'utf8');
+const plan = readFileSync(join(HERE, '../solver/STATE.md'), 'utf8');
 const src = readFileSync(join(HERE, '../../src/solver/solve.js'), 'utf8');
 const m = /<!-- decided-defaults([\s\S]*?)-->/.exec(plan);
-ok(!!m, 'PLAN.md carries the decided-defaults block');
+ok(!!m, 'STATE.md carries the decided-defaults block (moved from PLAN.md on 21 Oct; the plan is archived)');
 const D = JSON.parse(m[1]);
 
 for (const k of ['raiseCap', 'minPotYears', 'estateWeightMin', 'thinSurvival', 'thinPaths', 'thinSeed']) ok(D[k] === PRODUCT_DEFAULTS[k], `${k}: decided ${D[k]}, code ${PRODUCT_DEFAULTS[k]}`);

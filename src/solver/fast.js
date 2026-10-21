@@ -606,7 +606,7 @@ export function flow(c, t, ai, s) {
   const preNmpaInsolvent = unmet > 1 && !access;      // the engine's test, with one owner
 
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
-  s[3] = gia > 0 ? Math.max(0, Math.min(1, (gia - basis) / gia)) : 0;
+  s[3] = gia > 0 ? Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia - basis) / gia)) : 0;   // a forward run keeps an unrealised loss (basis above value), as the engine's basis does
   s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa; if (s.length > 11) s[11] = late;
   // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
   const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
@@ -668,6 +668,6 @@ export function grow(c, t, s, real) {
   if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
   if (s.length > 10) { const before = s[0] + s[1] + tax; s[9] = (s[0] * (1 + real[0] * frac) + s[1] * (1 + real[1] * frac) + gia2 + cash2) < before ? 1 : 0; }
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
-  if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(0, Math.min(1, (gia2 - basis) / gia2)); }
+  if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia2 - basis) / gia2)); }
   s[2] = gia2 + cash2;
 }

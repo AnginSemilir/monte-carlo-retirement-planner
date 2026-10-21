@@ -23,7 +23,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
-const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(SOLVER, 'PLAN.md'), 'utf8'))[1]);
+const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(SOLVER, 'STATE.md'), 'utf8'))[1]);
 
 // 1. the product keeps e3 off
 const product = (decided, code) => 'e3' in decided && decided.e3 === false && code.e3 === false;

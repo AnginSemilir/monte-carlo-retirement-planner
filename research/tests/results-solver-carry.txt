@@ -2,12 +2,17 @@
 PASS  vecOf's state carries the gains into next year in slot 11 (length 12)
 PASS  every year of 30: the forward run's and model.js's capital gains tax within £1 of the engine's (worst £0.00, £0.00), wealth within £1 (worst £0.00); lifetime engine £40685, forward £40685, model.js £40685
 PASS  a grid cell (no carry) pays the year's bill plus at most the higher rate on the late gain in every year, and more than the bill alone in 30 of 30 (outside the bounds: 0)
+PASS  bad years on a taxable account bought at today's value: the engine carries an unrealised loss in 18 years, and the forward run's pots and gain share follow it every year (worst gap 0.000: pounds, or millionths of the share)
+PASS  planted: a forward run that clamps the gain share at zero (the fault before the fix) parts from the engine (worst gap 569620)
 PASS  planted: with the carry dropped each year the forward run pays £2023 against the engine's £40685, and check 1 would see it
-ALL PASS: 4 checks
+ALL PASS: 6 checks
 
 # the same test in a worktree at 9d4176d (the solver models before the fix): it must fail
 FAIL  vecOf's state carries the gains into next year in slot 11 (length 7)
 FAIL  every year of 30: the forward run's and model.js's capital gains tax within £1 of the engine's (worst £2611.82, £2611.82), wealth within £1 (worst £108556.65); lifetime engine £66559, forward £2182, model.js £2298
 FAIL  a grid cell (no carry) pays the year's bill plus at most the higher rate on the late gain in every year, and more than the bill alone in 0 of 30 (outside the bounds: 30)
+FAIL  bad years on a taxable account bought at today's value: the engine carries an unrealised loss in 0 years, and the forward run's pots and gain share follow it every year (worst gap 780978.708: pounds, or millionths of the share)
+PASS  planted: a forward run that clamps the gain share at zero (the fault before the fix) parts from the engine (worst gap 780979)
 PASS  planted: with the carry dropped each year the forward run pays £2182 against the engine's £66559, and check 1 would see it
-FAILED: 3 of 4 checks
+FAILED: 4 of 6 checks
+AssertionError [ERR_ASSERTION]: 4 carry checks failed

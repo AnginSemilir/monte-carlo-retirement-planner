@@ -16,6 +16,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { CANDIDATE_OPTS, candidatePlan } from './candidate.mjs';
 import { PANEL } from './panel-7u.mjs';
 import { codeFiles, fingerprintOf, readPin, ROOT } from './e3pcls-pin.mjs';
+// e3pcls guard: it runs a given copy of src/solver, so it checks the pin against that copy's own fingerprint (fingerprintOf, below), not the repository's
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const dir = resolve(process.argv[2] || join(HERE, '../../src/solver'));
@@ -58,8 +59,10 @@ const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['br
 const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1]() : all.find(s => s.id === id); };
 if (PANEL.some(id => !byId(id))) { console.error('reach-census: a 7u household has no builder'); process.exit(2); }
 console.log(`REACH CENSUS: ${dir}, fingerprint ${fp} (pinned), the candidate at ${POINTS} points, lambda ${LAMBDA}, estate weight ${W}; ${PANEL.length} households; part ${pk}/${pn}`);
+// REACH_SKIP=<file>: a census's earlier output; the households it already counted are left out (to resume a stopped run)
+const skip = new Set(process.env.REACH_SKIP ? readFileSync(process.env.REACH_SKIP, 'utf8').split('\n').filter(l => / cells \d+ /.test(l)).map(l => l.slice(0, 16).trim()) : []);
 PANEL.forEach((id, i) => {
-  if (i % pn !== pk) return;
+  if (i % pn !== pk || skip.has(id)) return;
   const h = byId(id);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();

@@ -1,14 +1,8 @@
-# The checklist: every run, every result, every plan update (in full, with the evidence: research/solver/RULES.md)
-
-1. Before a run: write `predictions/<name>.md` (prediction, falsifier, every fair-test row that is not SAME (the rest in one line: "All other rows: SAME"), and the regimen's fields: decision rule, power, credence, pre-mortem, unmasking), commit and push it, and launch only through `run-from-snapshot.sh` with `PREDICTION=`.
-2. Before reading a result: the reducer's fair-test gate must pass, then read it by its registered decision rule (exact tests against a margin, Holm, three outcomes), never "beyond two se". Anything that differs other than the thing tested means the result is not settled. A fix of a known error that makes a result worse is not the fix's fault until a decomposition splits the blame (RULES.md section 9).
-3. Reusing old result files for a new question is a new test: fair-test those files first.
-4. Every figure in the plan comes from a script's output over the files; cite the results file and the evidence grade (A-D) in the ledger's evidence cell.
-5. "No effect", "unaffected", "can't happen": add `evidence: <file or proof>` of grade A or B on the same line, or write NOT CHECKED.
-6. Trust a check only after it has failed on a planted fault. A check that ran on nothing is an error, not a pass. A test used to meet a gate is design-reviewed first (the deep-reviewer: could it pass with the fault present?), and the gate is recorded met with `design review: <D Mon HH:MM> UK`, a receipt naming the test's blob.
-7. After any code edit, the launcher's smoke run must pass on that code before a batch; re-test every caller.
-8. A decision changes the code default in the same commit, and the decided-defaults block; a test pins the two together.
-9. After a bug, search for the same pattern elsewhere and write "Same pattern searched:" with what was found.
-10. Log every odd result in the register with an owner and a gate, or as "noted, below materiality" with its size estimate. Never note it and move on.
-11. After a settled result: re-derive everything downstream, add a ledger row with its evidence, run the plan-auditor at the change's tier, and the deep-reviewer when `uncertainty.mjs` says it is due; when it is scored, write its lessons (lessons.md) and archive (`archive-plan.mjs`). When the deep review's tests fail repeatedly, in a very difficult situation, or before registering a run over 2 hours planned with low confidence: the escalation review (`escalation.md`).
-12. Times in UK time, taken from the records (commits, runs.log, receipts), never typed; prose gives a time only where the order of events matters. Report evidence (the command and its output), not claims.
+1. Exploratory runs need no registration. Label them EXPLORATORY. They cannot change a default, a gate or the candidate.
+2. A confirmatory run (7u-F, Phase 4, any change of default) has a one-page registration committed before launch (`registrations/`: question, arms (configuration hashes), households, held-out seed, paths, primary metric, decision rule, what each outcome decides). It is launched through `run-from-snapshot.sh` and read once, by that rule.
+3. Every comparison is paired on the same paths and passes the fair-test diff of the settings each run recorded.
+4. After any edit to src/solver, the fast verification suite (`node research/tests/run-all.mjs fast`: V1, V2 and the unit tests) passes before any batch.
+5. A new check is shown failing on a planted fault once, in its own test.
+6. Figures in documents are printed by scripts from results files (STATE.md's by `research/solver/state.mjs`).
+7. A bug is fixed together with a test that catches its class; running that test over the code is the pattern search.
+8. Every task has an acceptance test and a time box. When the box runs out, stop and report to the maintainer.

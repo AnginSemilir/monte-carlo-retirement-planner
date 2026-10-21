@@ -31,6 +31,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
+// e3pcls guard: CAND solves through solveCandidate (the pin checked there); solvePlan here is SHIP's, the product's settings
 
 const STAMP = (() => {
   const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();

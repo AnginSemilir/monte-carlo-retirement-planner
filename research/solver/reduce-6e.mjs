@@ -21,7 +21,7 @@
  * not "by how much is the solver better".
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver/results';
+const HERE = new URL('./results', import.meta.url).pathname;
 const ARMS = [['cur', 'current'], ['resp', 're-spaced 0.10/0.45/0.80'], ['gint', 'gain interpolated'], ['pcls', 'lump flag from state']];
 const THRESH = 2.0;   // per cent, from the plan
 

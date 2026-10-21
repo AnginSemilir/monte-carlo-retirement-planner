@@ -35,7 +35,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const K = Number(process.argv[2]), LAMBDA = Number(process.argv[3]);
 const NP = Number(process.argv[4] || 3000), SEED = Number(process.argv[5] || 7002);
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync(join(HERE, 'results/band-70-98-7001.json'), 'utf8'));
+const band = JSON.parse(readFileSync(join(HERE, 'fixtures/band-70-98-7001.json'), 'utf8'));
 const sc = singles[band[K].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);

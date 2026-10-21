@@ -1,0 +1,14 @@
+# node research/tests/known-answer.test.mjs (V2's cases with an independently known answer)
+PASS  the oracle against its own million paths: 58.562% against 58.481% (se 0.049)
+PASS  the solver's policy, simulated on 20000 paths: 58.230% against the oracle's 58.562% (4 se 1.393 points)
+PASS  the solver's table converges: at 90 points it reads 58.500% against the oracle's 58.562% (within half a point)
+REPORTED  the table at the shipped 30 points reads 55.263%, -3.298 points from the oracle, against the review's half-point bar: OUTSIDE (the wealth axis's resolution; STATE.md's open items)
+PASS  planted: an oracle a tenth of a point a year richer (60.311%) is told apart from the policy
+PASS  split invariance, the opening at 1:5, 1:1 and 5:1: 43.592%, 43.592%, 43.592% (spread 0.000 points, under half a point)
+PASS  split invariance, the draw order: 12 pairs of moves with the ISA and the taxable account swapped tie within a tenth of a point (worst 0.0000 points)
+PASS  planted: with dividend tax and CGT on the taxable account again the split matters (spread 5.054 points, worst pair 0.3096)
+PASS  a guaranteed income above the spending: the table reads 99.997% and every one of 2000 paths survives (100.00%)
+PASS  higher spending never raises survival: 0 of 5000 paths survive at a fifth more spending and fail at the plan's; the opening reads 25.637% against 55.263%
+PASS  planted: the comparison the other way round (the plan's spending against a fifth more) finds paths (1365), so the check reads the runs
+PASS  more opening wealth never lowers survival: 0 of 870 neighbouring wealth nodes where it falls by more than a millionth
+ALL PASS: 11 checks

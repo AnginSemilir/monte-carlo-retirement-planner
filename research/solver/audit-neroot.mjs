@@ -42,6 +42,7 @@ import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
+// e3pcls guard: CAND solves through solveCandidate (the pin checked there); solvePlan here is SHIP's, the product's settings
 
 export const JOBS = [['S364', '0.02', 'BASE'], ['S364', '0.02', 'R0'], ['S364', '0.02', 'SIMP'], ['S364', '0.02', 'READEROFF'],
   ['bridge 4', '0.02', 'BASE'], ['bridge 4', '0.02', 'R0'], ['bridge 4', '0.02', 'SIMP'], ['bridge 4', '0.02', 'READEROFF'],

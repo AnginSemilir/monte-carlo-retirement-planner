@@ -232,7 +232,7 @@ if (mode === 'select') {
   const seedSearch = Number(process.argv[5] || 7001);
   // never over an existing band: runs pick households from it by index (ONLY=k), and select re-scores with today's code.
   // 27 Sep a parse check that imported this script ran this mode, its default, and rewrote the band (PLAN.md, bugs, 28 Sep)
-  const bandOut = join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`);
+  const bandOut = join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`);
   if (existsSync(bandOut)) { console.error(`experiment.mjs select: refused - ${bandOut} exists; the runs that read it by index would change households. Move it away first to rebuild it.`); process.exit(2); }
   console.log(`single-person households whose same-menu fixed arm scores ${lo}..${hi} survival on ${SEARCH_PATHS} search paths (seed ${seedSearch})`);
   const chosen = [];
@@ -255,7 +255,7 @@ if (mode === 'run') {
   const POINTS = Number(process.argv[4] || 20), HELD = Number(process.argv[5] || 3000);
   const seedSearch = Number(process.argv[6] || 7001), seedHeld = Number(process.argv[7] || 7002);
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const bandFile = join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`);
+  const bandFile = join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`);
   if (!existsSync(bandFile)) { console.error(`run select first: ${bandFile} is missing`); process.exit(2); }
   const band = JSON.parse(readFileSync(bandFile, 'utf8'));
   const k = Number(process.env.ONLY);
@@ -321,7 +321,7 @@ if (mode === 'perturb') {
   const POINTS = Number(process.argv[5] || 40), HELD = Number(process.argv[6] || 3000);
   const seedSearch = Number(process.argv[7] || 7001), seedHeld = Number(process.argv[8] || 7002);
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const band = JSON.parse(readFileSync(join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
   const k = Number(process.env.ONLY);
   if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
   const sc = singles[band[k].i];
@@ -380,7 +380,7 @@ if (mode === 'flex') {
   const CONF_REL = CONF_RAW.startsWith('+') ? Number(CONF_RAW.slice(1)) : null;
   let CONF = CONF_REL === null && CONF_RAW !== 'gkFloor' ? Number(CONF_RAW) : 0.9;
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const band = JSON.parse(readFileSync(join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
   const k = Number(process.env.ONLY);
   if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
   const sc = singles[band[k].i];

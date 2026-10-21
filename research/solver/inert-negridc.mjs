@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import * as E from '../engine.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { CANDIDATE_OPTS, candidatePlan } from './candidate.mjs';
+// e3pcls guard: it compares two copies of the solver run with the same options, bit for bit; e3pcls is on in both, so its exactness is not what it measures
 
 const [oldDir, rev] = process.argv.slice(2);
 if (!oldDir || !rev) { console.error('usage: inert-negridc.mjs <dir holding the old src/solver> <its rev>'); process.exit(2); }

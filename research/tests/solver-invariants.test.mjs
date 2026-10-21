@@ -76,6 +76,12 @@ for (const [id, points] of [['S070', 30], ['S224', 30], ['S070', 60], ['S224', 6
   try { r = S.solveMixture(E, M, planOf(id), { ...OPTS, points }); } catch (e) { err = e; }
   if (err) { ok(false, `${id} at ${points} points solves (it threw: ${err.message.split('\n')[0]})`); continue; }
   const cz = census(r);
+  // V1's report, not a failure (a tax kink can make it legitimate; the count is information): survival falling as wealth
+  // rises, at fixed shares, gain and allowance nodes, by more than a millionth
+  { const g = r.g, ax = g.axes.W ? [g.axes.W, g.axes.a, g.axes.b] : [g.axes.pen, g.axes.isa, g.axes.tax], [n1, n2, n3] = ax.map(x => x.pts.length), ng = g.gain.length, nc = g.pcls.length;
+    let falls = 0, pairs = 0;
+    r.mix.tables.forEach(tab => { for (let t = 0; t <= r.m.ctx.totalYears; t++) for (let i2 = 0; i2 < n2; i2++) for (let i3 = 0; i3 < n3; i3++) for (let ig = 0; ig < ng; ig++) for (let ic = 0; ic < nc; ic++) for (let i1 = 1; i1 < n1; i1++) { pairs++; if (tab.surv[t][g.index(i1, i2, i3, ig, ic)] < tab.surv[t][g.index(i1 - 1, i2, i3, ig, ic)] - 1e-6) falls++; } });
+    console.log(`REPORTED  ${id} at ${points} points: survival falls as wealth rises (beyond a millionth) at ${falls} of ${pairs} neighbouring wealth nodes (${(100 * falls / pairs).toFixed(3)}%)`); }
   ok(cz.nonFinite === 0 && cz.survOut === 0 && cz.resilOut === 0 && cz.unchosen === 0,
     `${id} at ${points} points, ${r.mix.tables.length} worlds, ${cz.cells} cells: non-finite ${cz.nonFinite}, survival outside [0, 1] ${cz.survOut}, resilience outside [0, 1] ${cz.resilOut}, no move chosen ${cz.unchosen}${cz.first ? ` (first: ${cz.first})` : ''}`);
   if (id === 'S224' && points === 30) {

@@ -28,14 +28,14 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(new URL('./fixtures/band-70-98-7001.json', import.meta.url), 'utf8'));
 const sc = singles[band[Number(process.argv[2] || 32)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
 /* the household's OWN flex-tiers configuration: its landed lambda, raises on (without a raise weight the
  * solver drops the levels above 1, which silently left three levels and 216 actions on the first run),
  * joint tiers, 30 points. Single table, not the three-world mixture: these probes read r.pol directly. */
-const FT = (() => { try { return JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/flex-tiers/' + sc.id + '.json', 'utf8')); } catch { return null; } })();
+const FT = (() => { try { return JSON.parse(readFileSync(new URL('./results/flex-tiers/' + sc.id + '.json', import.meta.url), 'utf8')); } catch { return null; } })();
 const LAMBDA = FT ? FT.solver.lambda : 0.5;
 const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum });
 if (r.actions.length !== 360) { console.log(`REFUSED: ${r.actions.length} actions, expected 360 (5 levels x 24 cores x 3 tiers) - the probe would not measure the real menu`); process.exit(2); }

@@ -28,12 +28,12 @@ import { readFileSync } from 'node:fs';
 
 const K = Number(process.argv[2] || 32), HELD = Number(process.argv[3] || 1000);
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(new URL('./fixtures/band-70-98-7001.json', import.meta.url), 'utf8'));
 const sc = singles[band[K].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
 const T = m.ctx.totalYears;
-const FT = JSON.parse(readFileSync(`/home/user/vitejs-vite-kdvuf9qw/research/solver/results/flex-tiers/${sc.id}.json`, 'utf8'));
+const FT = JSON.parse(readFileSync(new URL(`./results/flex-tiers/${sc.id}.json`, import.meta.url), 'utf8'));
 const LAMBDA = FT.solver.lambda;
 const LEVELS = [1.2, 1.1, 1, 0.95, 0.9, 0.8];
 const base = { lambda: LAMBDA, raiseWeight: 0.003, spendLevels: LEVELS, tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0 };

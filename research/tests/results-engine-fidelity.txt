@@ -1,0 +1,9 @@
+# node research/tests/engine-fidelity.test.mjs (V2: the solver's model against the engine, the sweep on; 380 s on a loaded machine)
+controls (small taxable accounts): S008 0 / 0, S194 0 / 0; the bar 1
+PASS  S330: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (at most 1)
+PASS  S028: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (at most 1)
+PASS  S224: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (at most 1)
+PASS  S070: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (at most 1)
+PASS  CARRY: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (at most 1)
+PASS  planted: dropping the carried gains each year, the carry household shows 5 / 0 (above 1)
+ALL PASS: 6 checks

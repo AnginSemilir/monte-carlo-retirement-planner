@@ -18,7 +18,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
-const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(HERE, '../solver/PLAN.md'), 'utf8'))[1]);
+const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'))[1]);
 const agrees = (decided, code) => 'bridgeRead' in decided && decided.bridgeRead === code.bridgeRead;
 ok(agrees(D, PRODUCT_BASELINE) && D.bridgeRead === false, `the bridge read: decided ${D.bridgeRead}, code ${PRODUCT_BASELINE.bridgeRead}`);
 ok(!agrees({ ...D, bridgeRead: 2 }, PRODUCT_BASELINE), 'planted: a decided v2 against the code\'s off fails the same comparison');

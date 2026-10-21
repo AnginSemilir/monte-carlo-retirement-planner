@@ -25,7 +25,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
-const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(SOLVER, 'PLAN.md'), 'utf8'))[1]);
+const D = JSON.parse(/<!-- decided-defaults([\s\S]*?)-->/.exec(readFileSync(join(SOLVER, 'STATE.md'), 'utf8'))[1]);
 
 // 1. the block's candidate is the code's, key for key (the tier set under "tiers")
 const codeCand = { ...CANDIDATE_OPTS, tiers: CANDIDATE_TIERS };

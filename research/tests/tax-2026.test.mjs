@@ -30,6 +30,19 @@ ok(near(d1, d1want) && near(d2, d2want), `dividends: £4,000 on £20,000 pays £
 const sc = E.incomeTax(30000, PS), scWant = (16537 - 12570) * 0.19 + (29526 - 16537) * 0.20 + (30000 - 29526) * 0.21;
 ok(near(sc, scWant), `Scotland 2026/27: income tax on £30,000 is £${sc.toFixed(2)} (published bands: £${scWant.toFixed(2)})`);
 
+// 2b. V2's worked examples (Part B Step 5): one income in each band of each region, worked from the published 2026/27
+// bands (the allowance £12,570, tapered away from £100,000 to £125,140; rUK 20/40/45 to £50,270 and £125,140; Scotland
+// 19/20/21/42/45/48 to £16,537, £29,526, £43,662, £75,000 and £125,140), and a Scottish taxpayer's dividends at the UK bands
+{
+  const PA = 12570, rukW = [[30000, 17430 * 0.20], [80000, 37700 * 0.20 + 29730 * 0.40], [150000, 37700 * 0.20 + 87440 * 0.40 + 24860 * 0.45]];
+  const scotBands = (g, pa) => { const tops = [16537, 29526, 43662, 75000, 125140].map(l => l - Math.min(PA, l <= 100000 ? PA : Math.max(0, PA - (l - 100000) / 2))), rates = [0.19, 0.20, 0.21, 0.42, 0.45, 0.48], x = g - pa; let tax = 0, prev = 0; tops.concat([Infinity]).forEach((top, i) => { const w = Math.min(x, top) - prev; if (w > 0) tax += w * rates[i]; prev = Math.max(prev, Math.min(x, top)); }); return tax; };
+  const sc = [[14000, PA], [25000, PA], [40000, PA], [60000, PA], [100000, PA], [150000, 0]].map(([g, pa]) => [g, scotBands(g, pa)]);
+  const worst = [...rukW.map(([g, want]) => Math.abs(E.incomeTax(g, P) - want)), ...sc.map(([g, want]) => Math.abs(E.incomeTax(g, PS) - want))];
+  ok(worst.every(d => d < 0.01), `income tax in every band: rUK at ${rukW.map(([g]) => g).join(', ')} and Scotland at ${sc.map(([g]) => g).join(', ')}, each within a penny of the published bands (worst ${Math.max(...worst).toFixed(4)})`);
+  const dB = PS.dividendTax(40000, 0, 10000), dH = PS.dividendTax(60000, 0, 10000);
+  ok(near(dB, 9500 * 0.1075) && near(dH, 9500 * 0.3575), `a Scottish taxpayer's dividends at the UK bands: £10,000 on £40,000 pays £${dB.toFixed(2)} (£${(9500 * 0.1075).toFixed(2)}), on £60,000 £${dH.toFixed(2)} (£${(9500 * 0.3575).toFixed(2)})`);
+}
+
 // 3. savings: £5,000 of interest on £45,000 (a basic-rate taxpayer by total income £50,000: £1,000 allowance, then 20%)
 const sv = PS.savingsTax(45000, 5000), svR = P.savingsTax(45000, 5000);
 ok(near(sv, 800) && near(svR, 800), `savings interest at the UK bands: £5,000 on £45,000 pays £${sv.toFixed(2)} in Scotland and £${svR.toFixed(2)} in rUK (published: £800.00)`);

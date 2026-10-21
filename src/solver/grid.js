@@ -591,7 +591,7 @@ export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out
 export function vecOf(m, st) {
   const o = m.ctx.owners[0];
   const gia = st.pots[o.ids.other] || 0;
-  const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
+  const gf = gia > 0 ? Math.min(1, (gia - (st.basis.self || 0)) / gia) : 0;   // below 0 when the basis is above the value (an unrealised loss): the forward run carries it, a table reads it at its lowest gain bucket
   const base = [st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0, st.cashIsa ? (st.cashIsa.self || 0) : 0];
   // a state that carries the guardrails' memory hands it to the forward run in four more slots (withRuleSlots's
   // starting values when it has none), then the gains carried into next year's CGT tally in slot 11 (fast.js flow, F0)

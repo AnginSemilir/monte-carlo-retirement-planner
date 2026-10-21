@@ -9,15 +9,19 @@
  *   2. a grid cell's flow (seven slots, no carry) is charged the late gain in its own year: from the forward run's position
  *      each year with nothing carried in, it pays that flow's bill plus between nothing and the higher rate on the gain the
  *      flow carries out, and more than the bill alone in some years;
- *   3. planted: a forward run whose carry slot is dropped each year pays less than the engine (the fault the fix closed).
+ *   3. planted: a forward run whose carry slot is dropped each year pays less than the engine (the fault the fix closed);
+ *   4. after bad years on a taxable account bought at today's value, the engine carries an unrealised loss (its basis above
+ *      the value): a forward run follows its pots and gain share every year; planted, a run that clamps the share at
+ *      zero, as before the fix, parts from it.
  *   node research/tests/solver-carry.test.mjs
  */
 import assert from 'node:assert/strict';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
-import { buildActions } from '../../src/solver/solve.js';
+import { buildActions, solveMixture, runPolicy, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
+import { modelStateOf as modelStateOfEngine } from '../../src/solver/bridge.js';
 
 let n = 0, failed = 0;
 const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
@@ -57,6 +61,33 @@ for (let t = 0; t <= T; t++) {
 }
 ok(worstF < 1 && worstM < 1 && worstW < 1, `every year of ${T + 1}: the forward run's and model.js's capital gains tax within £1 of the engine's (worst £${worstF.toFixed(2)}, £${worstM.toFixed(2)}), wealth within £1 (worst £${worstW.toFixed(2)}); lifetime engine £${lifeE.toFixed(0)}, forward £${lifeF.toFixed(0)}, model.js £${lifeM.toFixed(0)}`);
 ok(outside === 0 && charged > 0, `a grid cell (no carry) pays the year's bill plus at most the higher rate on the late gain in every year, and more than the bill alone in ${charged} of ${T + 1} (outside the bounds: ${outside})`);
+
+// 4. an unrealised loss, made by bad years on the same household with its taxable account bought at today's value (no
+// gain, so one bad year puts it under water): the engine's basis stays above the value and later gains are offset against
+// it; a forward run keeps the loss as a negative gain share (before, it was clamped at zero and forgotten)
+{
+  const planL = E.resolveMpaa(E.normalizePlan({ ...base, accounts: base.accounts.map(a => (a.id === 'other_self' ? { ...a, unrealisedGain: 0 } : a)) }));
+  const mL = M.prepare(E, planL);
+  // the mixture's tables grow each path with its own shift, as the engine does (a plain solve folds it into the yearly spread)
+  const r = solveMixture(E, M, planL, { ...PRODUCT_BASELINE, points: 4, spendLevels: [1], raiseWeight: 0, lambda: 0 });
+  const fixedAi = r.actions.findIndex(x => x.steps[0] === 'cash' && !x.harvest && x.spendLevel === 1 && !x.tierPen && !x.tierIsa);
+  const TL = mL.ctx.totalYears, zs = Float64Array.from({ length: TL + 2 }, (_, t) => (t > TL ? 0 : t === 1 || t === 2 ? -2.5 : 0.3));   // the last entry: the path's shift, 0
+  const ctx2 = E.buildContext({ ...planL, spending: { ...planL.spending, policyOverride: { kind: 'table', choose, switchCost: 0 } } }), st2 = E.freshState(ctx2), engineStates = [];
+  for (let t = 0; t <= TL; t++) { engineStates[t] = vecOf(mL, modelStateOfEngine(st2)); E.stepYear(ctx2, st2, t, { z: zs[t], zPath: 0 }); }
+  const compare = (plantClamp) => {
+    let worst = 0, losses = 0;
+    runPolicy(r, zs, { choose: () => fixedAi, visit: (t, s) => {
+      const e = engineStates[t];
+      if (e[3] < -1e-9) losses++;
+      worst = Math.max(worst, Math.abs(s[3] - e[3]) * 1e6, Math.abs(s[0] - e[0]), Math.abs(s[1] - e[1]), Math.abs(s[2] - e[2]));
+      if (plantClamp) s[3] = Math.max(0, s[3]);
+    } });
+    return { worst, losses };
+  };
+  const real = compare(false), planted = compare(true);
+  ok(real.losses > 0 && real.worst < 1, `bad years on a taxable account bought at today's value: the engine carries an unrealised loss in ${real.losses} years, and the forward run's pots and gain share follow it every year (worst gap ${real.worst.toFixed(3)}: pounds, or millionths of the share)`);
+  ok(planted.worst > 1, `planted: a forward run that clamps the gain share at zero (the fault before the fix) parts from the engine (worst gap ${planted.worst.toFixed(0)})`);
+}
 
 // 3. planted: the carry slot dropped every year (the fault before the fix): the forward run pays less than the engine
 {

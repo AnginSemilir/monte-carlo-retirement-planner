@@ -11,7 +11,7 @@
 # reach a run already going. Results are symlinked back to the real tree, so output still lands in the
 # repository while the code that produced it stays frozen.
 #
-#   PREDICTION=research/solver/predictions/<name>.md research/solver/run-from-snapshot.sh bash research/solver/batch-x.sh
+#   PREDICTION=research/solver/registrations/<name>.md research/solver/run-from-snapshot.sh bash research/solver/batch-x.sh
 #   PREDICTION="none:<why this is a measurement, not a test>" research/solver/run-from-snapshot.sh <command...>
 #   LANE=light ...   one single-process job beside the main batch (its own lock; it costs the batch about a core)
 #
@@ -22,13 +22,15 @@
 set -euo pipefail
 REAL="$(cd "$(dirname "$0")/../.." && pwd)"
 #
-# THE PREDICTION GATE (RULES.md, maintainer 24 Sep: "maths it, test it" with the prediction written first).
+# THE REGISTRATION GATE (CHECKLIST.md item 2; the external review of 21 Oct, Part B Step 3, which replaced the regimen's
+# prediction with a one-page registration and kept this launcher's snapshot, code hash, smoke run, lock and seed check).
 #
-# Nothing runs without a registered prediction. PREDICTION names a file that passes check-prediction.mjs (its
-# falsifier and the full fair-test table filled in), is committed with no local edits, and has been PUSHED: the
-# commit that last touched it must be on origin/<branch>, because a pushed commit cannot be quietly backdated and a
-# local one can. PREDICTION=none:<reason> runs a measurement (a target, a timing, a census); the reason is stamped in
-# every result file, and fair-gate.mjs refuses those files as evidence for a test unless the reason is accepted.
+# A confirmatory run is launched under its registration: PREDICTION names a file in research/solver/registrations/ that
+# passes check-prediction.mjs (every field, a configuration hash for each arm, a held-out seed, the design review's PASS),
+# is committed with no local edits, and has been PUSHED: the commit that last touched it must be on origin/<branch>,
+# because a pushed commit cannot be quietly backdated and a local one can. PREDICTION=none:<reason> runs a measurement or
+# an exploratory run; the reason is stamped in every result file, and fair-gate.mjs refuses those files as evidence for
+# a confirmatory read unless the reason is accepted.
 #
 PRED="${PREDICTION:-}"
 if [ -z "$PRED" ]; then
@@ -45,7 +47,7 @@ else
   case "$PRED" in /*) PRED="$(realpath --relative-to="$REAL" "$PRED")";; esac
   cd "$REAL"
   [ -f "$PRED" ] || { echo "=== REFUSED: no prediction file $PRED" >&2; exit 1; }
-  node research/solver/check-prediction.mjs "$PRED" >&2 || { echo "=== REFUSED: the prediction file is not complete" >&2; exit 1; }
+  node research/solver/check-prediction.mjs "$PRED" >&2 || { echo "=== REFUSED: the registration is not complete" >&2; exit 1; }
   git ls-files --error-unmatch "$PRED" >/dev/null 2>&1 || { echo "=== REFUSED: $PRED is not committed" >&2; exit 1; }
   git diff --quiet HEAD -- "$PRED" || { echo "=== REFUSED: $PRED has uncommitted edits" >&2; exit 1; }
   BR="$(git rev-parse --abbrev-ref HEAD)"
@@ -61,8 +63,6 @@ else
     node "$DS" | cmp -s - "$DO" || { echo "=== REFUSED: $DS no longer prints $DO: the derivation moved after the prediction recorded it" >&2; exit 1; }
     echo "=== derivation $DS reproduced (sha256 $DH)"
   done < <(sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*`\{0,1\}derive: \([^ ]*\) > \([^ ]*\) sha256 \([0-9a-f]\{16\}\)`\{0,1\}.*$/\1 \2 \3/p' "$PRED")
-  # OUTCOME COVERAGE (RULES.md section 10; the maintainer's unlock of 30 Sep): the reducer's plants reach every outcome
-  node research/solver/check-prediction.mjs --outcomes "$PRED" >&2 || { echo "=== REFUSED: outcome coverage (check-prediction.mjs --outcomes)" >&2; exit 1; }
   export PREDICTION_FILE="$PRED" PREDICTION_SHA="$(git hash-object "$PRED")"
   echo "=== prediction $PRED, registered in $(git log -1 --format='%h' -- "$PRED") at $(TZ=Europe/London git log -1 --format='%cd' --date=format-local:'%d %b %H:%M UK' -- "$PRED")"
 fi

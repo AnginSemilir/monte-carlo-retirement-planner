@@ -21,7 +21,7 @@
  * +0.05, which is a promise held by luck rather than by design and would fail on a different seed.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver/results';
+const HERE = new URL('./results', import.meta.url).pathname;
 const COUNTS = [600, 1200, 2400, 5400];
 const MARGIN_SLACK = 0.3;
 

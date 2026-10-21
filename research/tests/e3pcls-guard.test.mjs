@@ -82,9 +82,13 @@ ok(fingerprintOf({ a: 'xy', b: 'z' }) !== fingerprintOf({ a: 'x', b: 'yz' }), 'E
   ok(usesFlag('const { e3pclsPinning } = opts; solvePlan(E, M, plan, { ...opts, e3pclsPinning });') && usesFlag('const { e3pclsPinning, ...o } = opts; solvePlan(E, M, plan, { ...o, e3pclsPinning });'), 'planted: a destructure that keeps the flag, or strips it and passes it on, is caught');
   const flagged = files.filter(f => !/(solver-e3pcls\.test|e3pcls-pin|candidate|e2)\.mjs$/.test(f) && usesFlag(readFileSync(f, 'utf8')));
   ok(flagged.length === 0, `the pinning flag appears only in the identity test and the guard's own code (${flagged.length} other files${flagged.length ? `: ${flagged.map(f => f.split('/').pop()).join(', ')}` : ''})`);
-  const unguarded = text => /solvePlan\(/.test(text) && /\b(CANDIDATE_OPTS|RESEARCH_OPTS)\b/.test(text) && !/checkE3pclsPin/.test(text) && !/e3pcls: false/.test(text);
+  // a script whose solvePlan call is not the candidate's (SHIP's arm beside solveCandidate) or that checks the pin its own
+  // way names why on a line "// e3pcls guard: <why>", as e3-default.test.mjs's "// e3 off: <why>" (21 Oct, the fast suite
+  // first ran this scan on every commit and found six such scripts)
+  const unguarded = text => /solvePlan\(/.test(text) && /\b(CANDIDATE_OPTS|RESEARCH_OPTS)\b/.test(text) && !/checkE3pclsPin/.test(text) && !/e3pcls: false/.test(text) && !/^\s*\/\/ e3pcls guard: \S.{10,}$/m.test(text);
   ok(unguarded("import { CANDIDATE_OPTS } from './candidate.mjs';\nconst r = solvePlan(E, M, plan, { ...CANDIDATE_OPTS });"), 'planted: a script calling solvePlan with CANDIDATE_OPTS and no checkE3pclsPin is caught');
   ok(!unguarded("const o = { ...CANDIDATE_OPTS }; checkE3pclsPin(o); solvePlan(E, M, plan, o);"), 'EDGE: the same script with the check passes');
+  ok(!unguarded("// e3pcls guard: SHIP's solve, the product's settings; CAND solves through solveCandidate\nconst r = solvePlan(E, M, plan, {}); CANDIDATE_OPTS;") && unguarded("// e3pcls guard:\nconst r = solvePlan(E, M, plan, { ...CANDIDATE_OPTS });"), 'planted: the marker with its reason passes; the marker with no reason is caught');
   // when each research/solver and research/tests script was first committed, from one git call (an uncommitted script
   // counts as new); both folders, since the three known direct callers are tests (the plan-auditor, 8 Oct, MINOR 2)
   const since = Date.parse(E3PCLS_FROM), addedAt = new Map();
@@ -104,7 +108,7 @@ const defaultsProblems = (D, research, product) => [
   (product.e3pcls === true) !== (D.e3pcls === true) && `PRODUCT_BASELINE.e3pcls ${product.e3pcls} against the block's e3pcls ${D.e3pcls}`,
   typeof D.e3pcls !== 'boolean' && "the block has no product key e3pcls"
 ].filter(Boolean);
-{ const plan = readFileSync(join(HERE, '../solver/PLAN.md'), 'utf8'), m = /<!-- decided-defaults([\s\S]*?)-->/.exec(plan), D = JSON.parse(m[1]);
+{ const plan = readFileSync(join(HERE, '../solver/STATE.md'), 'utf8'), m = /<!-- decided-defaults([\s\S]*?)-->/.exec(plan), D = JSON.parse(m[1]);
   const got = defaultsProblems(D, RESEARCH_OPTS, PRODUCT_BASELINE);
   ok(got.length === 0, `RESEARCH_OPTS (e3pcls ${RESEARCH_OPTS.e3pcls}) and PRODUCT_BASELINE (e3pcls ${PRODUCT_BASELINE.e3pcls}) agree with the decided-defaults block (e3pclsResearch ${D.e3pclsResearch}, e3pcls ${D.e3pcls})${got.length ? `: ${got.join('; ')}` : ''}`);
   ok(defaultsProblems({ ...D, e3pclsResearch: false }, { ...RESEARCH_OPTS, e3pcls: false }, PRODUCT_BASELINE).length > 0, 'planted: the block and RESEARCH_OPTS both off fails (the decision is on)');

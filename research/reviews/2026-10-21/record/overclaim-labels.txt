@@ -1,0 +1,31 @@
+My reading of the 47 [T:overclaim] BLOCKING findings (blocking.py --show over review-log.md), for the claim
+"about 19 of the 47 blocking overclaims are disputes over the regime's own evidence-grade labels".
+22 of the 47 name a grade in their first 700 characters. Of those:
+
+PURE GRADE-LABEL DISPUTES (the finding is that the grade letter is wrong: B for an unregistered/reported line, A without replication) - 10
+  6 Oct 09:54 B2   O97 buffer check labelled B, should be C
+  6 Oct 21:59 B2   'grade A for the identity and the timings' - timings not reproduced, B
+  8 Oct 05:50 B1   7aw row 'grade A' - one run, B
+  13 Oct 01:43 B3  O143 grades a reported line B
+  13 Oct 02:54 B3  PR18 'grade B' on probe lines - C
+  13 Oct 10:41 B1  O150 graded B on an unregistered script's figures
+  13 Oct 18:56 B1  the review's cash mechanism graded B on S364
+  14 Oct 00:06 B1  Step 0's figures carry grade B - C
+  15 Oct 01:32 B1  O156 grades REPORTED figures B
+  15 Oct 02:04 B1  'structural (grade A ...)' - only part is code
+
+RELATED REGIME-LABEL DISPUTES (no-effect wording needing A/B; PROVISIONAL; NOT CHECKED / section 9 grade C) - 4
+  5 Oct 09:27 B2   a PROVISIONAL read cited as settled (grade B)
+  15 Oct 21:18 B1  'No new material error unmasked' on grade C reads (checklist 5)
+  16 Oct 05:56 B1  'Errors unmasked by the fix: none beyond O169' on grade C (checklist 5)
+  19 Oct 03:54 B1  unmasking stated as established; O185 is NOT CHECKED, grade C
+
+AMBIGUOUS (scope or settledness of a claim that also carries a grade) - 2
+  1 Oct 10:06 B1   '(b) ruled out for the bridge stage (grade A)' - evidence covers only the direct read
+  13 Oct 01:43 B1  'not the remaining fault on S224 or S364 (grade B)' - S224 half not settled
+
+CONTENT DISPUTES THAT MERELY MENTION A GRADE - 6
+  30 Sep 20:27 B2 (attribution), 6 Oct 14:01 B1 (verdict misreported), 11 Oct 16:07 B1 (qualifier dropped),
+  11 Oct 23:00 B1 (what the phenomenon is), 20 Oct 02:44 B1 (statement mapped wrongly), 20 Oct 18:48 B1 (one-bridge claim)
+
+Total label-related: 10 strict, 14 with the related labels, 16 with the ambiguous ones. 19 not reproduced.

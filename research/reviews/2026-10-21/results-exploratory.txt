@@ -1,4 +1,4 @@
-THE REVIEW'S EXPLORATORY RESULTS (21 Oct 2026). Not registered; seeds 99001 (policies) and 99002 (opening moves), outside the registry.
+THE REVIEW'S EXPLORATORY RESULTS (21 Oct 2026). Not registered; seeds 99001 (policies), 99002 (opening moves), 99004 and 99005 (rollout), 424242 and 515151 (engine checks), outside the registry; the random-number check draws from the tuning seeds 7001 and 7002.
 Settings unless stated: PRODUCT_BASELINE through solveMixture, withdrawal moves only (spendLevels [1], raiseWeight 0, lambda 0, no tier
 moves), guardrails and lookahead off, minimum end pot one year of target spending; 30 wealth points; 4,000 paths; paired = same paths.
 "as is" = the repository at 3771bb2; "clamped" = the same code with solve.js:222 PhiInv(u) clamped to [1e-15, 1 - 1e-15] as line 255 is.
@@ -70,6 +70,8 @@ S070 {"shares":10}                          table 70.90 (baseline 70.46)  sim 64
 S172 {"pclsInterp":true}                    table 87.79 (baseline 87.81)  sim 88.02 (baseline 88.02)  policy vs baseline +0.00 (se 0.00; 0 saved, 0 lost)
 S194 {"pclsInterp":true}                    table 85.10 (baseline 85.10)  sim 84.67 (baseline 84.67)  policy vs baseline +0.00 (se 0.00; 0 saved, 0 lost)
 S224 {"pclsInterp":true}                    table 41.50 (baseline 42.76)  sim 45.30 (baseline 44.70)  policy vs baseline +0.60 (se 0.12; 24 saved, 0 lost)
+S070 {"pclsInterp":true}, interpolation in probability (SOLVER_INTERP=linear) against log-odds, both with pclsInterp:
+                                            table 63.55 (log-odds 65.10)  sim 67.20 (log-odds 67.92)  policy vs log-odds -0.72 (se 0.14; 2 saved, 31 lost)
 
 4. THE OPENING-MOVE CHECK (opening-q.mjs; S070, log-odds, 30 points, 3,000 paths of seed 99002; the repository's code as is, before the clamp)
 policy's opening move: [18] penPA+penBasic+penAny first, taxable before ISA
@@ -128,3 +130,7 @@ prng.mjs (stream starts of seeds 7001-7014, 7101, 9102 and 12345, up to 16,000 p
    closest pair of path streams on mulberry32's 2^32 cycle: 462 draws apart (seed 7008 and seed 9102); a path of 60 years uses 124
    corr(path i, path i+1), seed 7001: -0.00113 (n 655,959; 1/sqrt(n) 0.00123); corr(seed 7001 path i, seed 7002 path i): 0.00081; lag-1 within a path: -0.00243
    annual draws: mean -0.00157, variance 0.99821, kurtosis 2.9930, largest |z| 4.916; the held shift: mean 0.0070, variance 1.0230 (n 16,000)
+
+9. SOLVE TIMES (clamped code, this machine: two cores, little else running)
+S224 through solvePlan, default levers (144 moves), 30 points: solve 103.7 s (wall 109 s for the script with 200 paths); forecast 49.86%
+S092, product baseline, withdrawal moves only (24 moves), 30 points: solve 25.1 s (section 7)

@@ -39,8 +39,10 @@ second copy of B, for the second module instance):
 | 1, through `solvePlan` | `PRODUCT=1 policy-probe.mjs S224 30 2000 <out> A` and B, with `EXTRA_OPTS` `{}`, `{"raiseCap":1}` and `{"raiseCap":1,"riskConsent":false}`; at 60 points, `PRODUCT=1 policy-probe.mjs <S224 or S380> 60 <paths> <out> A` and its `unchosen` field |
 | 2, interpolation | `SOLVER_INTERP=logit`, `probit` and `linear` `policy-probe.mjs <id> <30 or 60> 4000 <out> B`, then the paired comparison |
 | 3, other settings | `EXTRA_OPTS=<json> policy-probe.mjs <id> 30 4000 <out> B` against the same with no options |
+| 3, the last row | `SOLVER_INTERP=linear EXTRA_OPTS='{"pclsInterp":true}' policy-probe.mjs S070 30 4000 <out> B` against the same with `SOLVER_INTERP=logit` |
 | 4, opening move | `opening-move-check.mjs S070 30 3000 99002 A` |
 | 5, worlds | `world-probe.mjs S070 30 4000 B` |
 | 6, rollout | `rollout-demo.mjs S070 30 200 60 300 B L` |
 | 7, engine against the solver's model | `engine-vs-fast.mjs <id> 30 2000 B` |
 | 8, engine checks | each script in `engine-checks/` with no arguments; `tax.mjs` also under `TZ=America/New_York` and `TZ=UTC` |
+| 9, solve times | `PRODUCT=1 policy-probe.mjs S224 30 200 <out> B` (its `solveMs`, with nothing else running); S092's from section 7's run |

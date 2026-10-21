@@ -190,13 +190,13 @@ function gaussLegendre(n) {
   return { x, w };
 }
 const GL12 = gaussLegendre(12);
-// the inverse of Phi (Acklam's rational approximation, relative error under 1.2e-9)
-function PhiInv(u) {
+// the inverse of Phi (Acklam's rational approximation, relative error under 1.2e-9); u clamped, so z stays within +/-7.94 (O199, O200)
+export function PhiInv(u) {
   const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
   const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
   const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
   const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
-  if (u <= 0) return -Infinity; if (u >= 1) return Infinity;
+  u = Math.min(1 - 1e-15, Math.max(1e-15, u));   // beyond z of about 7.7, Phi(z) rounds to 1: unclamped, Infinity and then NaN
   if (u < 0.02425) { const q = Math.sqrt(-2 * Math.log(u)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
   if (u > 1 - 0.02425) { const q = Math.sqrt(-2 * Math.log(1 - u)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
   const q = u - 0.5, r = q * q;
@@ -1017,7 +1017,7 @@ export function solve(E, M, plan, opts = {}) {
                     else h += shortOfAction[ai];
                     if (raiseSurv) h += raiseOfAction[ai] * s;
                     stampScore[ai] = key; scS[ai] = s; scB[ai] = b; scR[ai] = rs; scH[ai] = h;
-                    return (scV[ai] = s + wR * rs + wB * b - h);
+                    const v = s + wR * rs + wB * b - h; if (v - v !== 0) nonFiniteScore('the backward pass (ternary)', t, idx, k, ai, s, b, rs, h); return (scV[ai] = v);
                   };
                   for (const G of groups) {
                     let lo = 0, hi = G.length - 1;
@@ -1108,7 +1108,7 @@ export function solve(E, M, plan, opts = {}) {
                       else h += shortOfAction[ai];
                       if (raiseSurv) h += raiseOfAction[ai] * s;
                       if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
-                      const score = s + wR * rs + wB * b - h;
+                      const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state)', t, idx, k, ai, s, b, rs, h);
                       if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
                       if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                       if (lj === j && (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && b > stayB))) { stayScore = score; stayS = s; stayB = b; stayR = rs; stayH = h; stayA = ai; }
@@ -1170,7 +1170,7 @@ export function solve(E, M, plan, opts = {}) {
                     if (failShort && fail) h = failCostAt[t];
                     else h += shortOfAction[ai];
                     if (raiseSurv) h += raiseOfAction[ai] * s;
-                    jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = s + wR * rs + wB * b - h;
+                    jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = s + wR * rs + wB * b - h; if (jV[k][ai] - jV[k][ai] !== 0) nonFiniteScore('the backward pass (joint worlds)', t, idx, k, ai, s, b, rs, h);
                   }
                 }
                 let bestV = -Infinity, bestWB = -Infinity, bestA = 0;
@@ -1227,7 +1227,7 @@ export function solve(E, M, plan, opts = {}) {
                   if (failShort && fail) h = failCostAt[t];
                   else h += thisShort;
                   if (raiseSurv) h += raiseOfAction[ai] * s;
-                  const score = s + wR * rs + wB * b - h;
+                  const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass', t, idx, k, ai, s, b, rs, h);
                   if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                 }
                 survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
@@ -1499,7 +1499,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
         bq += QW[zi] * (alive ? beqOf(net) : 0);
       }
       if (rz) h += rz * sv;
-      SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+      SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
       if (SV) SV[ai] = sv;
       continue;
     }
@@ -1519,7 +1519,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
       h += QW[zi] * rd[3];
     }
     if (rz) h += rz * sv;
-    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
     if (SV) SV[ai] = sv;
   }
 }
@@ -2006,4 +2006,17 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
  */
 function stepThrOf(ref, tn) {
   return grown => { const A2 = grown[1] + grown[2]; return ref.astarAt(tn, A2 > 0 ? grown[1] / A2 : 0, grown[3]); };
+}
+
+/*
+ * FAIL LOUDLY (the external review of 21 Oct, Part B Step 1). In the backward pass a move that cannot pay this year still
+ * scores a finite penalty and a move that can pay reads finite tables, so a non-finite score there is always a bug; in
+ * the chooser (scoreMoves), so is one for a move that can pay (a move that cannot keeps its -Infinity). O200's NaN went
+ * unseen: a NaN score never wins, a cell where every move was NaN kept survival -1 and estate -Infinity, and that spread
+ * backwards (468,900 of S224's cells; PhiInv now clamps). Throws, naming the year, the cell, the world, the move and the
+ * first non-finite part. Every argmax loop of solve() and both returns of scoreMoves call it.
+ */
+function nonFiniteScore(where, t, cell, k, ai, s, b, rs, h) {
+  const part = !Number.isFinite(s) ? `survival ${s}` : !Number.isFinite(b) ? `estate ${b}` : !Number.isFinite(rs) ? `resilience ${rs}` : !Number.isFinite(h) ? `cost ${h}` : 'the weighted score';
+  throw new Error(`solver: non-finite score in ${where}, year ${t}, cell ${cell}, world ${k}, move ${ai}: ${part}`);
 }

@@ -1845,8 +1845,12 @@ function buildContext(rawPlan) {
    * the year's choice to a solved table: at the top of every year `choose(state, t, tiersHeld)` returns the
    * move (draw order, cost order, harvesting, the lump sum, the spend level and the tier each wrapper holds)
    * and the engine executes it through its own machinery, so tax, MPAA, CGT, the audit row and everything
-   * else keep happening exactly; the table only chooses. Each account's tiers are the one set on Plan
-   * Inputs and up to two below it, never above, with the plan's own assumptions for each.
+   * else keep happening exactly; the table only chooses. Each account's tiers are the solver's list in the
+   * solver's order (src/solver/fast.js tiersFor): the one set on Plan Inputs, up to two below it, then - only
+   * when both below exist - the tiers above it, with the plan's own assumptions for each. A table's tier index
+   * then means the same tier on both sides: before, the list stopped below the plan's tier, so the solver's
+   * "one above" (index 3) was clamped to the lowest tier here (the external review of 21 Oct, F2a). The table
+   * also names its tier, and a name that disagrees with this list throws (tierOf, below).
    */
   const tableOverride = ov && ov.kind === 'table' && typeof ov.choose === 'function' ? ov : null;
   const TIER_ORDER = Object.keys(RISK_EQUITY_WEIGHTS);
@@ -1854,10 +1858,9 @@ function buildContext(rawPlan) {
   accounts.forEach(a => {
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
-    for (let d = 1; d <= 2 && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
-      const name = TIER_ORDER[k0 + d]; const prof = riskOf(name);
-      list.push({ name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' });
-    }
+    const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
+    for (let d = 1; d <= 2 && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) list.push(tierAt(TIER_ORDER[k0 + d]));
+    if (list.length === 3) for (let d = 1; k0 - d >= 0; d++) list.push(tierAt(TIER_ORDER[k0 - d]));
     tierProfiles[a.id] = list;
   });
   const ctx = {
@@ -2480,7 +2483,10 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   const tierOf = (a) => {
     if (!chosen || a.owner !== 'self' || (a.cat !== 'pen' && a.cat !== 'isa')) return a;
     const profs = ctx.tierProfiles[a.id]; if (!profs) return a;
-    return profs[Math.min(a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), profs.length - 1)];
+    const k = a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), name = a.cat === 'pen' ? chosen.tierPenName : chosen.tierIsaName;
+    const p = profs[Math.min(k, profs.length - 1)];
+    if (name != null && p.name !== name) throw new Error(`table move: tier ${k} of ${a.id} is ${p.name} in the engine but ${name} in the table`);
+    return p;
   };
   if (chosen && state.tierHeld) {
     const o = ownerByKey.self, held = state.tierHeld.self, rate = table.switchCost || 0;
@@ -2498,8 +2504,10 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   // 8. compounding (year 0 pro-rated)
   // The guardrail's inflation rule asks one thing of this step: did the portfolio lose money this year.
   const potBeforeGrowth = ctx.guardrails ? ctx.accounts.reduce((s2, a) => s2 + (pots[a.id] || 0), 0) : 0;
+  const grownAt = { pen: null, isa: null };   // under a table: the tier each of the person's wrappers grew at this year
   ctx.accounts.forEach(a => {
     const p = tierOf(a);
+    if (chosen && a.owner === 'self' && (a.cat === 'pen' || a.cat === 'isa')) grownAt[a.cat] = p.name;
     let g = p.real;
     if (isHistorical) g = (histPoint && !p.isCash) ? (p.equityWeight * histPoint.s + (1 - p.equityWeight) * histPoint.b) / 100 : p.real;
     else if (typeof market === 'object' && market !== null && market.z !== undefined) {
@@ -2552,7 +2560,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     oneOffCost: cost,
     // under a solved table: what it chose this year, the tiers held, and what a tier change cost
     action: chosen ? (chosen.code || null) : null, spendLevel: chosen && chosen.spendLevel !== undefined ? chosen.spendLevel : 1,
-    tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid
+    tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid,
+    tierPenName: grownAt.pen, tierIsaName: grownAt.isa
   };
 }
 

@@ -38,7 +38,9 @@ export function tablePolicy(r) {
       return {
         steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa',
         lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1,
-        tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca)
+        tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca),
+        // the tiers by name too: the engine checks its own list's tier at each index against them (F2a, 21 Oct)
+        tierPenName: c.tiers.pen[ca.tierPen || 0].name, tierIsaName: c.tiers.isa[ca.tierIsa || 0].name
       };
     },
     switchCost: c.switchCost || 0,

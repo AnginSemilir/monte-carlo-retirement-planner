@@ -81,6 +81,11 @@ export function decide(input, { root = process.cwd(), unlocked = false, extra = 
     for (const m of part.matchAll(/(?:^|[^<>&\d])>{1,2}\s*([^\s;&|<>]+)/g)) { const f = rel(m[1].replace(/^['"]|['"]$/g, '')); if (isProtected(f, extra)) return deny(LOCKED(f)); }
     if (WRITES.test(part)) for (const p of named) if (part.includes(p.replace(/\/$/, ''))) return deny(LOCKED(p));
   }
+  // a script handed to an interpreter (a heredoc, -c or -e) writes where its text says, across its lines: there the whole
+  // command is one part (21 Oct: a python heredoc named a protected test on one line and wrote it on the next, past the
+  // per-part check above; hooks.test.mjs)
+  if (/(^|[\s;&|(])(python3?|node|perl|ruby)\b[^\n]*(<<|\s-[ce]\s)/.test(cmd) && (WRITES.test(cmd) || /\.write_text\(|\bwriteFile\(|\.write\(/.test(cmd)))
+    for (const p of named) if (cmd.includes(p.replace(/\/$/, ''))) return deny(LOCKED(p));
   return null;
 }
 

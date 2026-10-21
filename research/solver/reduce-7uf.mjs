@@ -159,6 +159,7 @@ async function read(dir, pre = false) {
     const u = units[id][w], S = u.SHIP, C = u.CAND, est = pairedMean(S.estateA, C.estateA), un = pairedMean(S.unmetA, C.unmetA), sp = pairedMean(S.spendA, C.spendA), ct = pairedMean(S.cutA, C.cutA);
     const NB = Math.min(S.NB, C.NB), wsS = wholeScore(S.bs, Number(w), S.Y), wsC = wholeScore(C.bs, Number(w), C.Y), ws = pairedMean(wsS.subarray(0, NB), wsC.subarray(0, NB));
     console.log(`  ${id.padEnd(6)} W${w}: estate ${sgn(est.d)} (se ${f3(est.se)}), unmet ${sgn(un.d)}, realised spend ${sgn(sp.d)}, years cut ${sgn(ct.d)}; whole score ${sgn(ws.d)} (se ${f4(ws.se)}) on ${NB} paths${S.bs.death || C.bs.death ? ' (a pension death charge: the whole score omits it)' : ''}`);
+    console.log(`    the reader: ${C.readerYears || 0} bridge years read; the adaptive reference ${C.adaptive ? 'consulted' : 'not consulted (CAND is DECOMP here by construction)'}`);
     for (const [a, U] of [['SHIP', S], ['CAND', C], ...(u.DECOMP ? [['DECOMP', u.DECOMP]] : [])]) { const nb = U.NB; let eo = 0, po = 0; for (let i = 0; i < nb; i++) { if (U.bits[i] && !U.bs.survived[i]) eo++; if (U.bs.survived[i] && !U.bits[i]) po++; } const p = twoSidedExact(eo, po);
       console.log(`    fidelity ${a}: the engine alone ${eo}, runPolicy alone ${po} of ${nb} (two-sided exact p ${p.toFixed(4)})${p < 0.05 ? ' FIDELITY GAP' : ''}`); }
     if (u.DECOMP) {

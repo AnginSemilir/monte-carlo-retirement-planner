@@ -87,14 +87,19 @@ UNITS.forEach(([id, arm, w], i) => {
   const got = gotOf(r);
   for (const [k, v] of Object.entries(WANT[arm])) if (got[k] !== v) { console.error(`audit-7uf: ${id} ${L} ran ${k} ${got[k]}, not ${v}`); process.exit(3); }
   if (!(Math.abs(r.meta.bequestWeight - W) < 1e-12)) { console.error(`audit-7uf: ${id} ${L} ran the estate weight ${r.meta.bequestWeight}`); process.exit(3); }
-  if (arm === 'CAND') { const la = r.mix.tables[0].g.reader && r.mix.tables[0].g.reader.adaptive && r.mix.tables[0].g.reader.adaptive.lattice; const want = CANDIDATE_OPTS.adaptiveLattice;
-    if (bridgeYears(E, plan) > 0 && (!la || Object.keys(want).some(k => la[k] !== want[k]))) { console.error(`audit-7uf: ${id} ${L} built no adaptive lattice as the candidate's (${JSON.stringify(la)})`); process.exit(3); } }
+  // the adaptive reference is built when the reader first asks it (a bridge year with a need: solve.js chanceOf), so a
+  // household whose bridge needs are met reads none and CAND is DECOMP there; a lattice built is held to the candidate's
+  const rd = r.mix.tables[0].g.reader, readerYears = rd ? Array.from(rd.years).reduce((a, x) => a + x, 0) : 0, la = rd && rd.adaptive ? rd.adaptive.lattice : null;
+  if (arm === 'CAND') { const want = CANDIDATE_OPTS.adaptiveLattice;
+    if (la && Object.keys(want).some(k => la[k] !== want[k])) { console.error(`audit-7uf: ${id} ${L} built an adaptive lattice not the candidate's (${JSON.stringify(la)})`); process.exit(3); }
+    if (!la && readerYears > 0) { console.error(`audit-7uf: ${id} ${L}: the reader reads ${readerYears} bridge years but the adaptive reference was never built`); process.exit(3); } }
   const m = r.m, T = m.ctx.totalYears, s0 = M.initialState(m);
   const tiers = Object.entries(E.normalizePlan(candidatePlan(E, plan)).riskProfiles).filter(([k]) => / Risk$/.test(k)).map(([k, p]) => `${k.replace(/ /g, '_')}:${p.real}`).join(',');
   const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} beside ${NB} world ${NWP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead} readerRef ${got.readerRef} readerSplit ${got.readerSplit} switchMargin ${r.switchMargin} switchCharge ${r.switchCharge || 0} e3 ${got.e3} e3pcls ${got.e3pcls} pclsInterp ${got.pclsInterp} tiers ${tiers}`;
   const table = 100 * r.worlds.reduce((t, wd, k) => t + r.mix.weights[k] * wd.value(s0, 0).survival, 0);
   console.log(`${''.padEnd(8)} solve ${L}: table ${table.toFixed(4)} secs ${Math.round(secs)}`);
   console.log(`${''.padEnd(8)} ran ${L}: ${ran}`);
+  console.log(`${''.padEnd(8)} reader ${L}: ${readerYears} bridge years read; the adaptive reference ${la ? `built (${JSON.stringify(la)})` : 'not built'}`);
   // the engine on the plan the solver solved
   const ctx = E.buildContext(withTable(m.ctx.plan, r));
   if (ctxKey(ctx) !== ctxKey(m.ctx)) { const k = Object.keys(m.ctx).find(k => !SKIP.has(k) && JSON.stringify(ctx[k]) !== JSON.stringify(m.ctx[k])); console.error(`audit-7uf: ${id} ${L}: the engine's context differs from the solver's (first: ${k})`); process.exit(3); }
@@ -122,7 +127,7 @@ UNITS.forEach(([id, arm, w], i) => {
     });
     console.log(`${''.padEnd(8)} worlds ${L}: secs ${Math.round((Date.now() - w0) / 1000)}`);
   }
-  writeFileSync(join(OUT, fileOf(id, arm, w)), gzipSync(JSON.stringify({ id, arm, w, stamp: STAMP, ran, N: NP, NB, NW: NWP, Y: tr.Y, seed: SEED, table,
+  writeFileSync(join(OUT, fileOf(id, arm, w)), gzipSync(JSON.stringify({ id, arm, w, stamp: STAMP, ran, readerYears, adaptive: la, N: NP, NB, NW: NWP, Y: tr.Y, seed: SEED, table,
     survived: b64(surv), estate: b64(estate), unmet: b64(unmet), spend: b64(spend), cut: b64(cut), cap,
     // the whole score's inputs, as HO-DEP read them from the solve (audit-hodep.mjs l.191 and l.241)
     beside: { survived: b64(pol), level: b64(tr.level), wealth: b64(tr.wealth), failYear: b64(tr.failYear), lambda: LAMBDA, floor: Math.min(...r.levelOf), scale: Math.round(Math.max(1, m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), capR: Math.round(cap), death: m.ctx.pensionDeathTaxRate, spendYears: Array.from({ length: tr.Y }, (_, t) => (r.c.yr.spend[t] > 0 ? 1 : 0)) },

@@ -598,6 +598,10 @@ export function vecOf(m, st) {
   if (st.guard && m.ctx.guardrails) base.push(st.guard.rate0 === null ? -1 : st.guard.rate0, st.guard.mult, st.guard.lostLastYear ? 1 : 0, st.guard.lastBaseDraw);
   else base.push(-1, 1, 0, 0);
   base.push(st.cgtCarry ? (st.cgtCarry.self || 0) : 0);
+  // and the cash itself in slot 12: the grid merges it with the GIA and splits them by the buffer rule (fast.js
+  // cashSplit), which grows last year's buffer at the cash tier's own rate; the engine grows it at the path's (its long-run
+  // shift included), so a forward run carries the engine's cash (V2 on the assembled candidate, 21 Oct: S224's paths)
+  base.push(st.pots[o.ids.cash] || 0);
   return Float64Array.from(base);
 }
 

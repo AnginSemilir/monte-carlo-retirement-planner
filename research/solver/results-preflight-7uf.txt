@@ -1,0 +1,5 @@
+=== THE PREFLIGHT: the tuning seed, not 7u-F's read ===
+7U-F READ: research/solver/results/preflight-7uf; 2 households; seed 7002, 400 paths; stamp {"code":"4635d91b2285","audit":"e32111bf6f7d","candidate":"e65e5e99ba49","prediction":"none","sha":"-"}
+THE GATE: NOT FAIR (1)
+  S224 W0.02: no CAND unit
+No figure is read.

@@ -349,7 +349,8 @@ export function flow(c, t, ai, s) {
 
   let pen = s[0], isa = s[1];
   let tax = s[2];
-  let cash = cashSplit(c, t, tax);
+  // a forward run carries its cash in slot 12 (grid.js vecOf); a grid cell splits the merged pot by the buffer rule
+  let cash = s.length > 12 && s[12] >= 0 ? Math.min(tax, s[12]) : cashSplit(c, t, tax);
   let gia = tax - cash;
   let gainFrac = s[3];
   let cumPcls = s[4];
@@ -607,7 +608,7 @@ export function flow(c, t, ai, s) {
 
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia - basis) / gia)) : 0;   // a forward run keeps an unrealised loss (basis above value), as the engine's basis does
-  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa; if (s.length > 11) s[11] = late;
+  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa; if (s.length > 11) s[11] = late; if (s.length > 12) s[12] = cash;
   // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
   const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
@@ -658,14 +659,16 @@ function grossForNet(c, need, T0, fully, headroom, ceiling) {
 export function grow(c, t, s, real) {
   const frac = c.yr.frac[t];
   const tax = s[2];
-  // the sweep has just left cash at this year's buffer (or all of a smaller pot), and growth acts on that
-  const cash = Math.min(tax, c.yr.buffer[t]);
+  // the sweep has just left cash at this year's buffer (or all of a smaller pot), and growth acts on that; a forward run
+  // knows the cash the year's flow left (slot 12) and keeps it grown, as the engine's cash pot is
+  const cash = s.length > 12 && s[12] >= 0 ? Math.min(tax, s[12]) : Math.min(tax, c.yr.buffer[t]);
   const gia = tax - cash;
   s[0] = Math.max(0, s[0] * (1 + real[0] * frac));
   s[1] = Math.max(0, s[1] * (1 + real[1] * frac));
   const gia2 = Math.max(0, gia * (1 + real[2] * frac));
   const cash2 = Math.max(0, cash * (1 + real[3] * frac));
   if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
+  if (s.length > 12) s[12] = cash2;
   if (s.length > 10) { const before = s[0] + s[1] + tax; s[9] = (s[0] * (1 + real[0] * frac) + s[1] * (1 + real[1] * frac) + gia2 + cash2) < before ? 1 : 0; }
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia2 - basis) / gia2)); }

@@ -20,11 +20,12 @@
  */
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
+export const isFileAt = p => existsSync(p) && statSync(p).isFile();
 
 export function codeFiles(root = ROOT) {
   return ['research/engine.mjs', 'research/solver/experiment.mjs', 'research/solver/record.mjs', 'research/policy-study/scenarios.mjs',
@@ -60,6 +61,11 @@ export function smokeFiles(root = ROOT) {
     if (!existsSync(p)) continue;
     for (const m of readFileSync(p, 'utf8').matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
       if (!m[1].startsWith('.')) continue;
+      // a new URL is followed to a module (a worker's file, missing or not) or to a file that exists (a fixture, hashed); one
+      // naming a folder or a missing data path (results/, gitignored, D17) is a read, not an import (21 Oct: the absolute
+      // paths made relative named results/flex-tiers and results/ranking this way, and the stamp failed on every tree
+      // without them; hygiene.test.mjs check 4)
+      if (/^new\s/.test(m[0]) && !/\.m?js$/.test(m[1]) && !isFileAt(join(root, dirname(f), m[1]))) continue;
       const rel = relative(root, join(root, dirname(f), m[1]));
       if (rel.startsWith('..') || seen.has(rel)) continue;
       seen.add(rel); extra.push(rel);

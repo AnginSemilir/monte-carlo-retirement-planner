@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareData, parseAccept, formatReport, checkLogStamps } from '../solver/fair-gate.mjs';
-import { codeFiles, smokeFiles, ROOT } from '../solver/code-id.mjs';
+import { codeFiles, smokeFiles, ROOT, isFileAt } from '../solver/code-id.mjs';
 
 const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -125,6 +125,8 @@ function unstampedImports(SF, root = ROOT) {
     for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
       const spec = m[1];
       if (spec.startsWith('node:') || !(spec.startsWith('.') || spec.startsWith('/'))) continue;
+      // code-id.mjs's rule: a new URL naming a folder or a missing data path is a read, not an import
+      if (/^new\s/.test(m[0]) && !/\.m?js$/.test(spec) && !isFileAt(spec.startsWith('/') ? spec : join(root, dirname(f), spec))) continue;
       const abs = spec.startsWith('/') ? spec : join(root, dirname(f), spec);
       const rel = relative(root, abs);
       if (!rel.startsWith('..') && !SF.includes(rel)) out.add(`${rel} (imported by ${f})`);

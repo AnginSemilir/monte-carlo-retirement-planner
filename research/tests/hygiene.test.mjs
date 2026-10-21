@@ -44,5 +44,25 @@ ok(bandFromResults("readFileSync(join(HERE, 'results/band-70-98-7001.json'))") &
 const missing = FAST.filter(f => !existsSync(join(ROOT, 'research/tests', f)));
 ok(FAST.length > 0 && missing.length === 0, `every one of FAST's ${FAST.length} files exists${missing.length ? ` (missing: ${missing.join(', ')})` : ''}`);
 
+// 4. the launcher's smoke stamp hashes: every file it lists exists as a file (a script reading a results folder by new URL
+// put that folder in the list, and the launcher refused every batch on a tree without it: 21 Oct, Step 2's first launch)
+{ const C = await import('../solver/code-id.mjs'), { mkdtempSync, mkdirSync, writeFileSync, cpSync, rmSync } = await import('node:fs'), { tmpdir } = await import('node:os');
+  const listed = C.smokeFiles(ROOT), notFile = listed.filter(f => !existsSync(join(ROOT, f)) || !statSync(join(ROOT, f)).isFile());
+  ok(C.smokeId(ROOT) !== null && notFile.length === 0, `the smoke stamp hashes ${listed.length} files, every one a file${notFile.length ? ` (not: ${notFile.join(', ')})` : ''}`);
+  // planted: a copy of the stamp's own inputs with one audit reading a missing results folder by new URL, and one starting a
+  // missing worker: the first must still hash, the second must not
+  const tmp = mkdtempSync(join(tmpdir(), 'hygiene-smoke-'));
+  try {
+    for (const d of ['src', 'research']) mkdirSync(join(tmp, d), { recursive: true });
+    cpSync(join(ROOT, 'src/solver'), join(tmp, 'src/solver'), { recursive: true });
+    for (const f of ['research/engine.mjs', 'research/solver/experiment.mjs', 'research/solver/record.mjs', 'research/policy-study/scenarios.mjs', 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])
+      if (existsSync(join(ROOT, f))) { mkdirSync(join(tmp, f, '..'), { recursive: true }); cpSync(join(ROOT, f), join(tmp, f)); }
+    writeFileSync(join(tmp, 'research/solver/audit-plant.mjs'), "const x = readFileSync(new URL('./results/no-such-folder/' + id + '.json', import.meta.url));\n");
+    const readsData = C.smokeId(tmp) !== null;
+    writeFileSync(join(tmp, 'research/solver/audit-plant.mjs'), "const w = new Worker(new URL('./no-such-worker.mjs', import.meta.url));\n");
+    const missingWorker = C.smokeId(tmp) === null;
+    ok(readsData && missingWorker, `planted: an audit reading a missing results folder by new URL still hashes (${readsData}); one starting a missing worker does not (${missingWorker})`);
+  } finally { rmSync(tmp, { recursive: true, force: true }); } }
+
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
 assert.equal(failed, 0, `${failed} hygiene checks failed`);

@@ -33,7 +33,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const ROOT = join(HERE, '../..');
 export const PIN_FILE = join(HERE, 'e3pcls-pin.json');
 // the research files that decide what the candidate solves (its options and plan) and how a solve is split across cores
-export const RESEARCH_CODE = ['research/solver/candidate.mjs', 'research/solver/research-opts.mjs', 'research/solver/e2.mjs', 'research/solver/e2-worker.mjs'];
+export const RESEARCH_CODE = ['research/solver/candidate.mjs', 'research/solver/candidate.json', 'research/solver/research-opts.mjs', 'research/solver/e2.mjs', 'research/solver/e2-worker.mjs'];
 const walk = (root, rel) => readdirSync(join(root, rel)).flatMap(n => { const r = `${rel}/${n}`; return statSync(join(root, r)).isDirectory() ? walk(root, r) : [r]; });
 /* every file the fingerprint covers, sorted: all of src/solver, and RESEARCH_CODE */
 export const codeFiles = (root = ROOT) => [...walk(root, 'src/solver'), ...RESEARCH_CODE].sort();

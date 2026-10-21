@@ -28,10 +28,19 @@
  *   Not in it, and not settings: O97 (PCLSI's lucky-tail net loss at a pension death tax of 0, under test as DT-O97) and
  *     the death tax itself, a household input the library sets to 0 (PR5); the end pot's valuation (PR7) is undecided.
  *
+ * THE ASSEMBLY FOR 7U-F (the external review of 21 Oct, Part B Step 4.2; STATE.md D5, the maintainer's 20 Oct 14:30 ruling):
+ * the options live in candidate.json, committed with their hash (CANDIDATE_HASH, printed by state.mjs): the candidate above
+ * (FROZEN_OPTS, its hash a61dba4ee1f5 as recorded before the assembly) with the adaptive package, readerRef 'adaptive', its
+ * lattice (na 160, nb 41, nz 128, foot, stepAll: PR31's split at the reference's own step) and the RS split, readerSplit 'rs'.
+ * Nothing else the triage did not pass. From here until 7u-F reads, the candidate does not change. A development test built
+ * on the candidate before the assembly (an arm adds or removes the package itself) spreads FROZEN_OPTS, so it means what it
+ * meant; 7u's audit solves FROZEN_OPTS as 7u's CAND.
+ *
  * Use solveCandidate, or spread CANDIDATE_OPTS first and a test's own arm options after it, never before it
  * (an arm's pclsInterp false before the spread is silently overwritten: research/tests/candidate.test.mjs scans for it).
  */
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { solvePlan } from '../../src/solver/solve.js';
@@ -39,14 +48,16 @@ import { RESEARCH_OPTS } from './research-opts.mjs';
 import { checkE3pclsPin } from './e3pcls-pin.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const CANDIDATE_OPTS = Object.freeze({
-  bridgeRead: 'reader', tierState: true, jointWorlds: true, bequestWeight: 0.02,
-  bridgeStep: 'exact',
-  switchCharge: 0.001, switchMargin: 0,
-  ...RESEARCH_OPTS,
-});
+const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v === 'object') deepFreeze(v); }); return Object.freeze(o); };
+export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
+if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
+/* the adaptive package's keys (D5), and the candidate before the assembly: candidate.json less them */
+export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
+export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
 /* the tier set the candidate's plan carries: O60's blend medians (candidatePlan) */
 export const CANDIDATE_TIERS = 'o60-blend';
+/* a configuration's hash: its options, the tier set and the tiers' reals (state.mjs prints the same) */
+export const hashOf = opts => createHash('sha256').update(JSON.stringify({ opts, tiers: CANDIDATE_TIERS, reals: blendReals() })).digest('hex').slice(0, 12);
 export const TIERS = Object.freeze(['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk']);
 /* O60's blend medians, read from results-o60.txt as audit-7ai.mjs reads them; a missing row is an error, not a default */
 export function blendReals(text = readFileSync(join(HERE, 'results-o60.txt'), 'utf8')) {
@@ -64,10 +75,13 @@ export function candidatePlan(E, plan, reals = blendReals()) {
   for (const [k, p] of Object.entries(base.riskProfiles)) rp[k] = TIERS.includes(k) ? { ...p, real: reals[k] } : { ...p };
   return { ...plan, riskProfiles: rp, riskSource: '' };
 }
-/* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top */
-export function solveCandidate(E, M, plan, extra = {}) {
+/* the assembled candidate's hash and the frozen one's (a61dba4ee1f5 before the assembly; candidate.test.mjs pins both) */
+export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS);
+/* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
+   FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
+export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
   // e3pcls is exact only on the code its identity test last passed on (e3pcls-pin.mjs): refuse before any solve otherwise
-  const { e3pclsPinFile, e3pclsPinning, ...opts } = { ...CANDIDATE_OPTS, ...extra };
+  const { e3pclsPinFile, e3pclsPinning, ...opts } = { ...base, ...extra };
   checkE3pclsPin({ ...opts, e3pclsPinFile, e3pclsPinning });
   return solvePlan(E, M, candidatePlan(E, plan), opts);
 }

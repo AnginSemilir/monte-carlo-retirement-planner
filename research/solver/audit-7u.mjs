@@ -26,7 +26,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, runPolicy, chooseAction, scoreMoves } from '../../src/solver/solve.js';
-import { solveCandidate, candidatePlan, CANDIDATE_OPTS, CANDIDATE_TIERS } from './candidate.mjs';
+import { solveCandidate, candidatePlan, FROZEN_OPTS as CANDIDATE_OPTS, CANDIDATE_TIERS } from './candidate.mjs';   // 7u's CAND: the candidate before 7u-F's assembly
 // imported here as well as by candidate.mjs, so the research defaults are in the run's stamp by name too
 import { RESEARCH_OPTS } from './research-opts.mjs';
 import { PANEL25, UNITS, STAGE6, SEED as SEED_7U } from './panel-7u.mjs';
@@ -123,11 +123,12 @@ UNITS.forEach(([id, arm, label, w], i) => {
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const base = { lambda: LAMBDA, points: POINTS, bequestWeight: W };
   const t0 = Date.now();
-  const r = arm === 'CAND' ? solveCandidate(E, M, plan, base) : solvePlan(E, M, candidatePlan(E, plan), base);
+  const r = arm === 'CAND' ? solveCandidate(E, M, plan, base, CANDIDATE_OPTS) : solvePlan(E, M, candidatePlan(E, plan), base);
   const secs = (Date.now() - t0) / 1000;
   const m = r.m, s0 = M.initialState(m);
   const isC = arm === 'CAND', want = isC ? { bridgeRead: 'reader', tierState: true, jointWorlds: true, bridgeStep: 'exact', switchMargin: 0, switchCharge: 0.001, e3: true, e3pcls: true, pclsInterp: true }
     : { bridgeRead: false, tierState: false, jointWorlds: false, bridgeStep: null, switchMargin: 0.001, switchCharge: 0, e3: false, e3pcls: false, pclsInterp: false };
+  if (r.meta.readerRef === 'adaptive' || r.meta.readerSplit) { console.error(`audit-7u: ${id} ${L} ran the adaptive package; 7u's arms are the candidate before 7u-F's assembly`); process.exit(2); }
   const got = { bridgeRead: r.meta.bridgeRead, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bridgeStep: r.meta.bridgeStep || null, switchMargin: r.switchMargin, switchCharge: r.switchCharge || 0, e3: !!r.meta.e3, e3pcls: !!r.meta.e3pcls, pclsInterp: !!r.g.pclsInterp };
   for (const [k, v] of Object.entries(want)) if (got[k] !== v) { console.error(`audit-7u: ${id} ${L} ran ${k} ${got[k]}, not ${v}`); process.exit(2); }
   if (!(Math.abs(r.meta.bequestWeight - W) < 1e-12)) { console.error(`audit-7u: ${id} ${L} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }

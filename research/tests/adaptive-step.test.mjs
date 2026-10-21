@@ -18,7 +18,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { bridgeTable } from '../../src/solver/grid.js';
-import { solveCandidate } from '../solver/candidate.mjs';
+import { solveCandidate, FROZEN_OPTS } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const NSIM = Number(process.argv[2] || 20000), TOL = 0.05, LAMBDA = 0.0223606797749979, W = 0.02, STEP = 0.08;
@@ -29,7 +29,7 @@ const gaussOf = seed => { let s = seed >>> 0, spare = null; const u = () => { s 
 const plan = () => { const h = JSON.parse(JSON.stringify(base.plan)); return E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } })); };
 function build(label, plant = '') {
   const t0 = Date.now();
-  const cand = solveCandidate(E, M, plan(), { lambda: LAMBDA, points: 4, bequestWeight: W, e3pcls: false, readerRef: 'adaptive', adaptiveLattice: { ...LATTICE, ...(plant ? { plant } : {}) } });
+  const cand = solveCandidate(E, M, plan(), { lambda: LAMBDA, points: 4, bequestWeight: W, e3pcls: false, readerRef: 'adaptive', adaptiveLattice: { ...LATTICE, ...(plant ? { plant } : {}) } }, FROZEN_OPTS);   // the candidate before 7u-F's assembly
   const ad = cand.mix.tables[0].g.reader && cand.mix.tables[0].g.reader.adaptive;
   if (!ad || !ad.ref || !ad.lattice || !ad.lattice.stepAll) throw new Error(`${label}: the adaptive reference did not build with stepAll`);
   const B = bridgeTable(E, cand.m, cand.c, Math.min(...cand.levelOf), 2), T = cand.m.ctx.totalYears;

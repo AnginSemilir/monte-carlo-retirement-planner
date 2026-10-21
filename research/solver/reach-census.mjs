@@ -13,7 +13,9 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as E from '../engine.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
-import { CANDIDATE_OPTS, candidatePlan } from './candidate.mjs';
+import * as C from './candidate.mjs';
+// 7u's CAND, the candidate before 7u-F's assembly (FROZEN_OPTS; a tree from before the assembly has only CANDIDATE_OPTS)
+const CANDIDATE_OPTS = C.FROZEN_OPTS || C.CANDIDATE_OPTS, { candidatePlan } = C;
 import { PANEL } from './panel-7u.mjs';
 import { codeFiles, fingerprintOf, readPin, ROOT } from './e3pcls-pin.mjs';
 // e3pcls guard: it runs a given copy of src/solver, so it checks the pin against that copy's own fingerprint (fingerprintOf, below), not the repository's

@@ -20,7 +20,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from '../solver/research-opts.mjs';
-import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
@@ -37,6 +37,13 @@ const { bridgeStep: _b, ...lessOne } = D.candidate;
 ok(!same(lessOne, codeCand), 'planted: a key missing from the block fails it');
 ok(!same(undefined, codeCand), 'planted: a block without "candidate" fails it');
 ok(Object.isFrozen(CANDIDATE_OPTS) && Object.isFrozen(RESEARCH_OPTS), 'CANDIDATE_OPTS and RESEARCH_OPTS are frozen');
+// 1b. 7u-F's assembly (D5): the candidate before it is candidate.json less the package's keys, and hashes as recorded then
+// (a61dba4ee1f5, STATE.md before the assembly); the package is D5's
+ok(FROZEN_HASH === 'a61dba4ee1f5' && hashOf(FROZEN_OPTS) === FROZEN_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(FROZEN_OPTS).length + PACKAGE_KEYS.length,
+  `the candidate before the assembly reproduces its recorded hash a61dba4ee1f5 (${FROZEN_HASH}); the assembled candidate ${CANDIDATE_HASH} adds ${PACKAGE_KEYS.join(', ')}`);
+ok(hashOf({ ...FROZEN_OPTS, switchCharge: 0.002 }) !== FROZEN_HASH && hashOf({ ...FROZEN_OPTS, readerSplit: 'rs' }) !== FROZEN_HASH, 'planted: a changed value or an extra key moves the hash');
+ok(CANDIDATE_OPTS.readerRef === 'adaptive' && CANDIDATE_OPTS.readerSplit === 'rs' && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }) && Object.isFrozen(CANDIDATE_OPTS.adaptiveLattice),
+  "the package is D5's: readerRef 'adaptive', the lattice na 160, nb 41, nz 128 with foot and stepAll (frozen too), readerSplit 'rs'");
 
 // 2. the product stays snapped; the research default is the interpolated axis
 const product = (decided, code) => 'pclsInterp' in decided && decided.pclsInterp === false && !code.pclsInterp;
@@ -63,7 +70,7 @@ ok(tierDiff(lin, { ...bl, 'Cash Equivalents': { ...bl['Cash Equivalents'], real:
 const def = solvePlan(E, M, plan, { lambda: 0.5, points: 3 });
 ok(def.g.pclsInterp === false, `solvePlan with nothing passed solves on the snapped axis (g.pclsInterp ${def.g.pclsInterp})`);
 const r = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 });
-const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp };
+const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp, readerRef: r.meta.readerRef, readerSplit: r.meta.readerSplit };
 ok(Object.entries(ran).every(([k, v]) => v === CANDIDATE_OPTS[k]), `solveCandidate ran the candidate (${JSON.stringify(ran)})`);
 ok(!Object.entries({ ...ran, bridgeStep: undefined }).every(([k, v]) => v === CANDIDATE_OPTS[k]), 'planted: a solve that dropped a setting (bridgeStep) fails the same check');
 const arm = solveCandidate(E, M, plan, { lambda: 0.5, points: 3, pclsInterp: false });

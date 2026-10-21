@@ -1,0 +1,45 @@
+7U ITEM 4 BY PATH: /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diag7u; seed 7013, 8000 paths a household; 95% intervals (z 1.9600)
+weight 0.02: 47 households, stamp 6dfa9cfea59a/aebb6703dd22; 1937 saved/854 lost
+  the point: 0.2880 (pooledSummed 0.2880, results-7u.txt REALISED item 4 0.2880: the same)
+  7u's interval (pooled cells, pairs independent): 0.261 to 0.316
+  BY PATH (per-path means, paths independent): 0.259 to 0.317; se 0.0150, 1.07 times 7u's
+  item 4's rule (lower end above -0.1): HELD by path
+weight 0.01: 47 households, stamp 6dfa9cfea59a/aebb6703dd22; 2006 saved/803 lost
+  the point: 0.3199 (pooledSummed 0.3199, results-7u.txt REALISED item 8 0.3199: the same)
+  7u's interval (pooled cells, pairs independent): 0.292 to 0.348
+  BY PATH (per-path means, paths independent): 0.289 to 0.350; se 0.0156, 1.10 times 7u's
+  item 4's rule (lower end above -0.1): HELD by path
+
+7U-F'S POWER from 7u's records (seed 7013, 8000 paths), scaled to 16000 paths; P2's threshold z 3.008 (0.05 over 38, Holm's first step)
+P1 at W0.02: 14 of the 18 floor households have records; se by path 0.0335 at 8000, about 0.0237 at 16000: the interval's half-width about 0.046 points, so a true pooled change above -0.054 reads HELD
+  S224   W0.02: SHIP 68.76%, discordant 2.59% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S380   W0.02: SHIP 72.67%, discordant 3.91% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S364   W0.02: SHIP 0.42%, discordant 0.39% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S370   W0.02: SHIP 73.75%, discordant 9.04% of paths; power for a true 1-point loss at 16000 paths 0.885
+  S394   W0.02: SHIP 85.59%, discordant 0.89% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S366   W0.02: SHIP 99.47%, discordant 0.17% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S002   W0.02: SHIP 99.99%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S018   W0.02: SHIP 100.00%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S044   W0.02: SHIP 84.89%, discordant 0.64% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S078   W0.02: SHIP 99.80%, discordant 0.10% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S144   W0.02: SHIP 99.99%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S176   W0.02: SHIP 80.92%, discordant 0.91% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S214   W0.02: SHIP 86.60%, discordant 0.60% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S248   W0.02: SHIP 49.67%, discordant 4.10% of paths; power for a true 1-point loss at 16000 paths 0.999
+  S284   W0.02: SHIP 59.14%, discordant 3.35% of paths; power for a true 1-point loss at 16000 paths 1.000
+P1 at W0.01: 14 of the 18 floor households have records; se by path 0.0337 at 8000, about 0.0238 at 16000: the interval's half-width about 0.047 points, so a true pooled change above -0.053 reads HELD
+  S224   W0.01: SHIP 68.50%, discordant 2.38% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S380   W0.01: SHIP 72.51%, discordant 3.89% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S364   W0.01: SHIP 0.39%, discordant 0.35% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S370   W0.01: SHIP 73.67%, discordant 9.01% of paths; power for a true 1-point loss at 16000 paths 0.886
+  S394   W0.01: SHIP 85.40%, discordant 0.75% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S366   W0.01: SHIP 99.44%, discordant 0.21% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S002   W0.01: SHIP 100.00%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S018   W0.01: SHIP 100.00%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S044   W0.01: SHIP 84.80%, discordant 0.65% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S078   W0.01: SHIP 99.84%, discordant 0.07% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S144   W0.01: SHIP 99.99%, discordant 0.00% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S176   W0.01: SHIP 80.92%, discordant 0.88% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S214   W0.01: SHIP 86.54%, discordant 0.61% of paths; power for a true 1-point loss at 16000 paths 1.000
+  S248   W0.01: SHIP 49.66%, discordant 4.22% of paths; power for a true 1-point loss at 16000 paths 0.999
+  S284   W0.01: SHIP 58.89%, discordant 3.70% of paths; power for a true 1-point loss at 16000 paths 1.000

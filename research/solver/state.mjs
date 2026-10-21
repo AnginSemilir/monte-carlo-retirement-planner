@@ -34,7 +34,7 @@ const BLOCKS = {
     const cand = { opts: C.CANDIDATE_OPTS, tiers: C.CANDIDATE_TIERS, reals: C.blendReals() };
     const opts = Object.entries(C.CANDIDATE_OPTS).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ');
     return [
-      `- The candidate (\`research/solver/candidate.mjs\`, frozen until 7u-F's assembly): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${sha(cand)}.`,
+      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
       `- The product baseline (\`PRODUCT_BASELINE\`, src/solver/solve.js): ${Object.entries(S.PRODUCT_BASELINE).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ')}. Hash ${sha(S.PRODUCT_BASELINE)}.`,
       `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
     ];
@@ -66,6 +66,7 @@ const BLOCKS = {
       `| O191 | the adaptive reference against the plan reference, S362's bad world | ${pick(`${S}results-refb.txt`, /^ +AN against C on S362 world 0: survival ([+-][\d.]+) exact \(([+-]?[\d.]+) to ([+-]?[\d.]+)\)/m, m => `${m[1]} points (exact ${m[2]} to ${m[3]})`)} (\`results-refb.txt\`) | reported in 7u-F's by-world item; below the 1-point gate | open, not a gate |`,
       `| O179 | the fixed reference against the unfixed on S362's bad world | ${pick(`${S}results-foot-s362.txt`, /world 0: .*?lost (\d+) saved (\d+) of (\d+), change ([+-][\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+)\)/, m => `${m[4]} points (${m[5]} to ${m[6]}; ${m[2]} saved, ${m[1]} lost of ${m[3]})`)} (\`results-foot-s362.txt\`) | as O191 | open, not a gate |`,
       '| O195 | S366 unread at the frozen candidate | none yet: a missing read | 7u-F\'s panel reads it | open |',
+      '| O194 | the bridge reader\'s reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |',
       `| PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): ${pick(`${S}results-pr31-split.txt`, /NEAR: where the split acts.*?the worst ([\d.e-]+) \(([^)]*)\)/, m => `${m[1]} (${m[2]})`)} (\`results-pr31-split.txt\`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |`,
       '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes, and 7u-F\'s decomposing arm reads the reference\'s part | 7u-F | not gates |',
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
@@ -90,6 +91,23 @@ const BLOCKS = {
     const t = read(`${S}results-recheck-7u.txt`);
     if (t === null) return [`- pending: ${S}results-recheck-7u.txt`];
     return t.split('\n').filter(l => /^  \S|^VERDICT/.test(l)).map(l => `- ${l.trim()}`);
+  },
+  // Step 4: 7u's item 4 re-read by path, and 7u-F's power from 7u's records (reread-7u-item4.mjs)
+  step4() {
+    const R = 'research/solver/results-reread-7u-item4.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const out = [];
+    for (const [w, item] of [['0.02', 4], ['0.01', 8]]) {
+      const re = new RegExp(`^weight ${w.replace('.', '\\.')}: (\\d+) households[\\s\\S]*?the point: (-?[\\d.]+)[\\s\\S]*?7u's interval \\(pooled cells, pairs independent\\): (-?[\\d.]+) to (-?[\\d.]+)\\n  BY PATH \\(per-path means, paths independent\\): (-?[\\d.]+) to (-?[\\d.]+); se [\\d.]+, ([\\d.]+) times 7u's\\n  item 4's rule \\(lower end above -0\\.1\\): (\\w+) by path`, 'm');
+      out.push(pick(R, re, m => `- 7u's item ${item} (the pooled floor at W${w}, ${m[1]} households) re-read by path: ${m[2]} points, by path ${m[5]} to ${m[6]} (7u's pooled cells ${m[3]} to ${m[4]}; ${m[7]} times as wide): ${m[8]} (\`${R.split('/').pop()}\`).`));
+    }
+    for (const w of ['0.02', '0.01']) out.push(pick(R, new RegExp(`^P1 at W${w.replace('.', '\\.')}: (\\d+) of the (\\d+) floor households have records; se by path [\\d.]+ at \\d+, about ([\\d.]+) at (\\d+): the interval's half-width about ([\\d.]+) points, so a true pooled change above (-?[\\d.]+) reads HELD`, 'm'),
+      m => `- 7u-F's power at W${w} (from 7u's records on ${m[1]} of the ${m[2]} floor households): P1's se by path about ${m[3]} at ${m[4]} paths, its half-width about ${m[5]}: a true pooled change above ${m[6]} reads HELD.`));
+    const pw = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP ([\d.]+)%, discordant ([\d.]+)% of paths; power for a true 1-point loss at \d+ paths ([\d.]+)$/gm)].filter(m => +m[3] >= 5 && +m[3] <= 99.5);
+    if (!pw.length) throw new Error(`state.mjs: ${R} has no power lines`);
+    const least = pw.reduce((a, m) => (+m[5] < +a[5] ? m : a));
+    out.push(`- 7u-F's power under P2 (households in the band that 7u ran, both weights): the least ${least[5]} (${least[1]} at W${least[2]}, ${least[4]}% of paths discordant) for a true 1-point loss.`);
+    return out;
   }
 };
 

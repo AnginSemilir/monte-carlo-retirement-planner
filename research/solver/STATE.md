@@ -17,9 +17,9 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 ## 2. The candidate and the product baseline
 
 <!-- printed:candidate -->
-- The candidate (`research/solver/candidate.mjs`, frozen until 7u-F's assembly): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash a61dba4ee1f5.
+- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: 69f8fb564378efe9 (21 Oct, 17:41 UK); the code now: 69f8fb564378efe9.
+- The solver code the e3pcls pin last passed on: 4a21078c941effba (21 Oct, 19:04 UK); the code now: 4a21078c941effba.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -28,7 +28,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 <!-- decided-defaults
 {"raiseCap": 1.1, "minPotYears": 1, "estateWeightMin": 0.01, "thinSurvival": 0.85, "thinPaths": 1000, "thinSeed": 7101,
  "raiseSurvival": true, "failureShortfall": true, "finalIntegral": true, "riskAboveDefault": "auto", "giaTiers": "refused", "bridgeRead": false, "e3": false, "e3Research": true, "pclsInterp": false, "pclsInterpResearch": true, "e3pcls": false, "e3pclsResearch": true,
- "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true, "tiers": "o60-blend"},
+ "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true,
+   "readerRef": "adaptive", "adaptiveLattice": {"na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiers": "o60-blend"},
  "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only"}
 -->
 
@@ -104,6 +105,7 @@ dropped, not carried; Step 4's triage settles each below.
 | O191 | the adaptive reference against the plan reference, S362's bad world | -0.3250 points (exact -0.5782 to 0.0089) (`results-refb.txt`) | reported in 7u-F's by-world item; below the 1-point gate | open, not a gate |
 | O179 | the fixed reference against the unfixed on S362's bad world | -0.5750 points (-0.7187 to -0.3126; 4 saved, 27 lost of 4000) (`results-foot-s362.txt`) | as O191 | open, not a gate |
 | O195 | S366 unread at the frozen candidate | none yet: a missing read | 7u-F's panel reads it | open |
+| O194 | the bridge reader's reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |
 | PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): 9.120e-4 (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%) (`results-pr31-split.txt`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |
 | PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate's, the adaptive reference's exact steps, the chooser's split at the reference's own step | carried by D5: the adaptive package, with PR31's split, is the reference the assembled candidate takes, and 7u-F's decomposing arm reads the reference's part | 7u-F | not gates |
 | T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F's by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |
@@ -155,15 +157,34 @@ fixed, and V1 runs on the assembled candidate (Step 4).
 - pending: research/solver/results-recheck-7u.txt
 <!-- end printed:step2 -->
 
+### Step 4: 7u-F (the triage above, the assembly, the registration)
+
+The triage is section 4's tables: only Step 1's bugs were fixed before 7u-F; the rest are reported in it or closed. The
+assembled candidate is section 2's (`candidate.json`; `FROZEN_OPTS` is the candidate before it, 7u's CAND, and keeps its
+recorded hash). 7u's pooled item read by path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
+
+<!-- printed:step4 -->
+- 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`).
+- 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
+- 7u-F's power at W0.02 (from 7u's records on 14 of the 18 floor households): P1's se by path about 0.0237 at 16000 paths, its half-width about 0.046: a true pooled change above -0.054 reads HELD.
+- 7u-F's power at W0.01 (from 7u's records on 14 of the 18 floor households): P1's se by path about 0.0238 at 16000 paths, its half-width about 0.047: a true pooled change above -0.053 reads HELD.
+- 7u-F's power under P2 (households in the band that 7u ran, both weights): the least 0.885 (S370 at W0.02, 9.04% of paths discordant) for a true 1-point loss.
+<!-- end printed:step4 -->
+
 ## 5. Running now
 
-- Nothing. The reach count on the code before the fix stopped at 19 of the 55 households (all with no cell lost) to free
-  the cores for Step 2; it resumes with `REACH_SKIP=<its output> node research/solver/reach-census.mjs <the old code>`.
+- Step 2 (`batch-recheck.sh`, launched through the launcher on 650ceb3 as a measurement on the tuning seed; its units in
+  `results/recheck7u`), read by `recheck-7u.mjs` when it ends.
+- The e3pcls pin on the assembled candidate's code (`solver-e3pcls.test.mjs 4 --pin`).
+- Step 1's reach count: the code before the fix stopped at 19 of the 55 households (all with no cell lost). It resumes
+  after 7u-F reads (it gates nothing before it), from a worktree of the commit before Step 1 (its own pin), with
+  `REACH_SKIP=<its output>`; the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
 
 ## 6. The next three actions
 
-1. Step 2: `batch-recheck.sh` through the launcher as a measurement, read by `recheck-7u.mjs`.
-2. Step 1's reach table, both columns, into `results-reach-census.txt` (the count before the fix resumed; after it, on
-   the pinned code); the full suite, `node research/tests/run-all.mjs all`, on the final code.
-3. Step 4: the candidate assembled with the package (`candidate.json`), V1 and V2 run on it, and 7u-F's one-page
-   registration, reviewed before launch.
+1. Step 2 read; the assembly committed with its pin; V1 and V2 on the assembled candidate (`v-candidate.mjs`) and
+   7u-F's preflight on the tuning seed (`preflight-7uf.sh`, read by `reduce-7uf.mjs --preflight`), its unit times the
+   budget.
+2. 7u-F's registration (`registrations/fresh-7uf.md`), the reviewer's design review, then the launch:
+   `PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`.
+3. While it runs: Step 5's V3 to V5 built (they run after 7u-F reads), and the full suite (`run-all.mjs all`).

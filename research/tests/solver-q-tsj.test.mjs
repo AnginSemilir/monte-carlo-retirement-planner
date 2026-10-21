@@ -39,7 +39,7 @@ import * as M from '../../src/solver/model.js';
 import { solvePlan, scoreMoves, chooseAction } from '../../src/solver/solve.js';
 import { vecOf, toVec } from '../../src/solver/grid.js';
 import * as F from '../../src/solver/fast.js';
-import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
+import { FROZEN_OPTS, candidatePlan } from '../solver/candidate.mjs';   // Q's unit test with TS+J, on the candidate it was written for (before 7u-F's assembly)
 import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -59,7 +59,7 @@ const household = () => {
   return p;
 };
 const plan = candidatePlan(E, prep(household()));
-const o = { ...CANDIDATE_OPTS, lambda: LAMBDA, points: PTS };
+const o = { ...FROZEN_OPTS, lambda: LAMBDA, points: PTS };
 checkE3pclsPin(o);   // the candidate carries e3pcls (8 Oct): solved directly here, so checked here
 const t0 = Date.now();
 const on = solvePlan(E, M, plan, o), off = solvePlan(E, M, plan, { ...o, bridgeStep: undefined });

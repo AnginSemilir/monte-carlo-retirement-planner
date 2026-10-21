@@ -9,13 +9,13 @@ import assert from 'node:assert/strict';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan } from '../../src/solver/solve.js';
-import { candidatePlan, CANDIDATE_OPTS } from '../solver/candidate.mjs';
+import { candidatePlan, FROZEN_OPTS } from '../solver/candidate.mjs';   // the candidate before 7u-F's assembly: this test's arms add the package themselves
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
 const all = buildScenarios();
 const planOf = id => { const h = all.find(s => s.id === id); return E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } })); };
-const solve = (id, extra) => solvePlan(E, M, candidatePlan(E, planOf(id)), { ...CANDIDATE_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, ...extra });
+const solve = (id, extra) => solvePlan(E, M, candidatePlan(E, planOf(id)), { ...FROZEN_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, ...extra });
 const surv = r => { const s0 = M.initialState(r.m); return r.worlds.map(wd => wd.value(s0, 0).survival); };
 const same = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 for (const id of ['S224', 'S380']) {

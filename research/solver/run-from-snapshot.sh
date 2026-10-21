@@ -34,8 +34,8 @@ REAL="$(cd "$(dirname "$0")/../.." && pwd)"
 #
 PRED="${PREDICTION:-}"
 if [ -z "$PRED" ]; then
-  echo "=== REFUSED: no prediction. Set PREDICTION=research/solver/predictions/<name>.md (a registered test)" >&2
-  echo "=== or PREDICTION=\"none:<why this is a measurement, not a test>\". See research/solver/RULES.md." >&2
+  echo "=== REFUSED: no registration. Set PREDICTION=research/solver/registrations/<name>.md (a confirmatory run)" >&2
+  echo "=== or PREDICTION=\"none:<why this is a measurement or an exploratory run>\". See research/solver/CHECKLIST.md." >&2
   exit 1
 fi
 if [ "${PRED#none:}" != "$PRED" ]; then

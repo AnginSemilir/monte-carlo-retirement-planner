@@ -24,7 +24,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, runPolicy, chooseAction } from '../../src/solver/solve.js';
 import { readValues, READER_PROBE, ruScale, toVec } from '../../src/solver/grid.js';
-import { candidatePlan, CANDIDATE_OPTS } from '../solver/candidate.mjs';
+import { candidatePlan, FROZEN_OPTS } from '../solver/candidate.mjs';   // the candidate before 7u-F's assembly: this test's arms add the package themselves
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -37,7 +37,7 @@ ok(ruScale(0.5, 0.9) === 1 && ruScale(0.7, 0.7) === 1 && ruScale(0, 0) === 1, 'r
 
 const h = buildScenarios().find(s => s.id === 'S370');
 const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
-const solve = extra => solvePlan(E, M, candidatePlan(E, plan), { ...CANDIDATE_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, shareNodes: NODES_SN, ...extra });
+const solve = extra => solvePlan(E, M, candidatePlan(E, plan), { ...FROZEN_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, shareNodes: NODES_SN, ...extra });
 
 // every bridge-year read at the visited states of PATHS paths, in every world: the read's value and three formulas over the
 // corners the probe hands over (the option off, 'ru', and 'ru' turned the other way)
@@ -112,7 +112,7 @@ ok(pGapU > 0, `planted fault caught under the package on S370: both flags with r
 // RS's half: S364 under the package with 'rsu' (no share nodes), where RS acts; RU alone planted against it
 const h364 = buildScenarios().find(x => x.id === 'S364');
 const plan364 = E.resolveMpaa(E.normalizePlan({ ...h364.plan, config: { ...h364.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h364.plan.spending, floorSpend: Math.round(0.8 * E.num(h364.plan.spending.targetSpend, 0)) } }));
-const P364 = solvePlan(E, M, candidatePlan(E, plan364), { ...CANDIDATE_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, readerRef: 'adaptive', adaptiveLattice: { na: 160, nb: 41, nz: 128, foot: true, stepAll: true }, readerSplit: 'rsu' });
+const P364 = solvePlan(E, M, candidatePlan(E, plan364), { ...FROZEN_OPTS, e3pcls: false, lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, readerRef: 'adaptive', adaptiveLattice: { na: 160, nb: 41, nz: 128, foot: true, stepAll: true }, readerSplit: 'rsu' });
 const r364All = reads(P364, null, true), r364 = r364All.filter(x => x.fin), sS = r364.filter(x => x.actsS).length, sU = r364.filter(x => x.acts).length;
 console.log(`NOTE  on S364 under the package, ${r364All.length - r364.length} of ${r364All.length} reads touch a non-finite corner or chance (O199), excluded from the formula checks`);
 ok(P364.meta.readerSplit === 'rsu' && r364.length > 100 && sS > 0, `S364 under the package with 'rsu', at the visited and grid states: ${r364.length} reads; RS's side acts on ${sS}, RU's on ${sU}`);

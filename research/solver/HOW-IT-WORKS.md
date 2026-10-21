@@ -94,28 +94,35 @@ is the most important design decision, because every extra thing multiplies the 
 
 A move is "how much to pay into or draw from each pot". In principle that is a continuous choice, and a
 table cannot hold infinitely many options. The escape is that UK tax is made of straight lines with
-corners, and the corners are the only places a best move can sit.
+corners, so the corners are the natural places for a move to stop.
 
 Think about drawing from a pension in retirement. The first £12,570 of income is free. The next
 £37,700 costs 20p in the pound. Beyond that 40p, then 45p. If it is worth drawing a pound at 20p, it is
-worth drawing the next pound at 20p too, because nothing changes between them. So you either stop at
-the start of the band or go to the end of it. Stopping halfway is never better than one of the two
-ends. That means the pension move each year is one of about five: draw nothing, draw up to the
-allowance, draw to the basic-rate limit, draw to the higher-rate limit, or draw whatever the year needs.
-The same reasoning gives two choices for the GIA (sell up to the capital gains exemption or not), two
-for re-wrapping surplus into the ISA (do it or not), and in working years four for pension
-contributions (none, up to basic relief, up to higher relief, up to the annual allowance), with the ISA
-taking the rest. Paying into the GIA while there is ISA room left is always worse, so it is never
-offered.
+worth drawing the next pound at 20p too, because the tax does not change between them. So the solver
+offers the ends of the bands, not the points between them.
 
-There is one honest caveat. The tax is straight lines, but the value of money in a pot is not quite:
-having a little more in the ISA is worth slightly more or less depending on how full it is. So a point
-halfway along a band can occasionally beat both ends. The plan adds one midpoint per band to catch
-this. That takes the pension move to about nine choices instead of five, still tiny.
+This is the menu the code offers each year (`buildActions` in src/solver/solve.js), and nothing else:
 
-Put together, a retired person has roughly twenty possible moves a year and a working person about
-eighty. Compare that with the evolver, which had to search a space of millions of rule combinations,
-and you can see why an exact answer becomes affordable.
+- the pension: draw none of it first, draw it first up to the personal allowance, first up to the
+  basic-rate limit, or first for whatever the year needs (four choices);
+- the order of the other pots: the ISA before the taxable account, or the taxable account (with cash)
+  before the ISA (two choices);
+- re-wrapping: none, or draw the pension beyond the year's need up to the allowance, or up to the
+  basic-rate limit, and put the surplus into the ISA, then the taxable account (three choices).
+
+That is 24 withdrawal moves. Each is offered at every spend level the plan allows (the plan as written, a
+raise to 110% (120% only if the user lifts the default cap), trims to 95% and 90%, and the floor, never
+below the floor), and, where the
+household may change risk, at each risk tier on offer (the plan's own, the two below it, and one above
+it where the plan is thin and the household consents).
+
+Two honest caveats. First, the menu is smaller than this page once described: there is no higher-rate
+ceiling, no point in the middle of a band, no choice to sell the taxable account up to the capital gains
+exemption, and no choice of pension contribution in working years (contributions follow the plan as
+entered). Second, the corner argument holds for the tax, not for what the money is worth later, which
+is curved, so the best move can sit inside a band. "Close to the best possible" therefore means the best
+within this menu; a richer menu is a test still to run (the external review of 21 Oct, Part B, N4),
+and a move joins only where it beats this one by more than the measurement's noise.
 
 ## 5. Handling uncertainty without thousands of paths
 

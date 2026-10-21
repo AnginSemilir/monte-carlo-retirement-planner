@@ -9,21 +9,32 @@
  *   node research/solver/check-prediction.mjs --seeds <registration.md | none> --text "<command>" [script ...]
  */
 import { readFileSync, existsSync } from 'node:fs';
-import { basename } from 'node:path';
+import { basename, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // a registration's fields, each a list item "- **<Field>:** <text>" with something after the colon
 export const FIELDS = ['Question', 'Arms', 'Households', 'Seed', 'Paths', 'Primary metric', 'Decision rule', 'Outcomes', 'Design review'];
-const field = (text, name) => { const m = new RegExp(`^-\\s+\\*\\*${name.replace(/ /g, '\\s+')}:\\*\\*\\s*(.*)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
-export function registrationProblems(text) {
+// the field's text on its own line ([ \t]*, not \s*: an empty field must not read the next line as its value)
+const field = (text, name) => { const m = new RegExp(`^-[ \\t]+\\*\\*${name.replace(/ /g, '[ \\t]+')}:\\*\\*[ \\t]*(.*)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
+// the review's verdict, a line "Verdict: PASS" or "Verdict: FAIL" (the reviewer agent writes it; markdown emphasis allowed)
+export const verdictOf = text => { const m = /^[*_\s]*verdict[*_\s]*:[*_\s]*(PASS|FAIL)\b/im.exec(String(text)); return m ? m[1].toUpperCase() : null; };
+export function registrationProblems(text, { root = ROOT, exists = existsSync, read = f => readFileSync(f, 'utf8') } = {}) {
   const P = [];
-  for (const f of FIELDS) { const v = field(text, f); if (v === null) P.push(`no "- **${f}:**" line`); else if (!v) P.push(`"${f}" is empty`); }
+  for (const f of FIELDS) { const v = field(text, f); if (v === null) P.push(`no "- **${f}:**" line`); else if (!v) P.push(`"${f}" is empty`); else if (/<[^>\n]*>/.test(v)) P.push(`"${f}" still holds a placeholder (${/<[^>\n]*>/.exec(v)[0]})`); }
   const arms = field(text, 'Arms');
   if (arms && !/\b[0-9a-f]{12}\b/.test(arms)) P.push('"Arms" names no configuration hash (12 hex characters, as state.mjs prints them)');
   const seed = field(text, 'Seed');
   if (seed && !seedsIn(seed).some(s => s in SEED_OWNERS)) P.push('"Seed" names no held-out seed from the registry');
   const rev = field(text, 'Design review');
-  if (rev && !/\bPASS\b/.test(rev)) P.push('"Design review" does not record a PASS (the reviewer, before launch: could it pass with the fault present, does it measure what it claims, is it fair)');
+  // the review is a file the reviewer wrote, its verdict PASS: the word PASS in the field is not enough (21 Oct: a
+  // placeholder "<PASS, ...>" read as complete; research/tests/check-prediction.test.mjs)
+  if (rev) {
+    const m = /\bresearch\/solver\/reviews\/[\w.-]+\.md\b/.exec(rev);
+    if (!m) P.push('"Design review" names no review file (research/solver/reviews/<date>-<name>.md, the reviewer\'s)');
+    else if (!exists(join(root, m[0]))) P.push(`"Design review": ${m[0]} does not exist`);
+    else if (verdictOf(read(join(root, m[0]))) !== 'PASS') P.push(`"Design review": ${m[0]} records no "Verdict: PASS" (${verdictOf(read(join(root, m[0]))) || 'no verdict line'})`);
+  }
   return P;
 }
 

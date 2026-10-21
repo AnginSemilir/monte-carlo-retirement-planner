@@ -31,6 +31,7 @@ interval; "caused by" needs a decomposition). A fix that makes a result worse is
 two, changed in one commit; the evidence a confirmatory read, not an exploratory one.
 
 Write your verdict to `research/solver/reviews/<YYYY-MM-DD>-<subject>.md`: the subject, what you read (files and git
-blobs), PASS or FAIL, and numbered findings, each BLOCKING (the run must not launch, the claim must not stand) or MINOR,
+blobs), the verdict on a line of its own, `Verdict: PASS` or `Verdict: FAIL` (check-prediction.mjs reads that line before a
+launch; a PASS with a BLOCKING finding is a FAIL), and numbered findings, each BLOCKING (the run must not launch, the claim must not stand) or MINOR,
 each with the evidence (file and line, or the command and its output). A registration's "Design review" line names
 your PASS file. Do not review prose for style; do not ask for labels, grades or credences.

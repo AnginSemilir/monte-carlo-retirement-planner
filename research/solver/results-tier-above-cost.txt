@@ -1,0 +1,7 @@
+THE TIER-ABOVE MISMATCH, ENGINE BEFORE AND AFTER THE FIX: pension and ISA held at Medium Risk; solvePlan defaults at 30 points, lambda 0.3; 4000 paths of seed 7002, paired
+S070: auto rule "on: thin, and no worse on the same paths"; pension tiers Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk; solve 298 s
+   survival before the fix 55.23%, after 66.45%: +11.22 points (se 0.53; 451 saved, 2 lost); the tier above held in 2379 of 18000 path-years (first 500 paths, after)
+S224: auto rule "on: thin, and no worse on the same paths"; pension tiers Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk; solve 337 s
+   survival before the fix 9.13%, after 42.05%: +32.92 points (se 0.91; 1317 saved, 0 lost); the tier above held in 8653 of 20500 path-years (first 500 paths, after)
+S380: auto rule "on: thin, and no worse on the same paths"; pension tiers Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk; solve 335 s
+   survival before the fix 6.72%, after 43.05%: +36.33 points (se 0.95; 1453 saved, 0 lost); the tier above held in 7560 of 23000 path-years (first 500 paths, after)

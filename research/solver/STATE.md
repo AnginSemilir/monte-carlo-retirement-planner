@@ -182,9 +182,13 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 - 7u-F's budget: 112.4 core-hours, about 28.1 hours on 4 cores (`results-budget-7uf.txt`).
 - 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`).
 - 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
-- 7u-F's power at W0.02 (from 7u's records on 14 of the 18 floor households): P1's se by path about 0.0237 at 16000 paths, its half-width about 0.046: a true pooled change above -0.054 reads HELD.
-- 7u-F's power at W0.01 (from 7u's records on 14 of the 18 floor households): P1's se by path about 0.0238 at 16000 paths, its half-width about 0.047: a true pooled change above -0.053 reads HELD.
-- 7u-F's power under P2 (households in the band that 7u ran, both weights): the least 0.885 (S370 at W0.02, 9.04% of paths discordant) for a true 1-point loss.
+- 7u-F's power under P1 at W0.02 (from 7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path about 0.0237 at 16000 paths; HELD with chance 0.988 at no true change, and 80% of the time at a true pooled change of -0.034 points or more.
+- 7u-F's power under P1 at W0.01 (from 7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path about 0.0238 at 16000 paths; HELD with chance 0.987 at no true change, and 80% of the time at a true pooled change of -0.033 points or more.
+- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance 0.500 on every household; 90% of the time from a true loss of 1.30 points on the household with the most discordant paths (S370 at W0.02, 9.04%), less elsewhere.
+- check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 9.0%, a true loss of 1.0 points: harm read 0.515; the approximation 0.500.
+- check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 9.0%, a true loss of 1.2 points: harm read 0.805; the approximation 0.801.
+- check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 2.6%, a true loss of 1.0 points: harm read 0.540; the approximation 0.500.
+- check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 2.6%, a true loss of 1.1 points: harm read 0.782; the approximation 0.784.
 <!-- end printed:step4 -->
 
 ## 5. Running now

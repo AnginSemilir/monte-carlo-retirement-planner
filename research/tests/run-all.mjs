@@ -21,7 +21,7 @@ export const FAST = [
   'final-integral.test.mjs', 'check-state.test.mjs', 'hooks.test.mjs', 'fair-gate.test.mjs', 'plan-defaults.test.mjs',
   'e3pcls-guard.test.mjs', 'scottax.test.mjs', 'savings-tax.test.mjs', 'bridge.test.mjs', 'cf.test.mjs', 'diff.test.mjs',
   'entrants.test.mjs', 'guardrails.test.mjs', 'inheritance.test.mjs', 'lookahead.test.mjs', 'pctband.test.mjs',
-  'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs'
+  'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs', 'audit-7uf-checks.test.mjs'
 ];
 
 // run only as the script, never on import (hygiene.test.mjs imports FAST: unguarded, the import ran the suite, which ran

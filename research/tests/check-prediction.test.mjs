@@ -40,6 +40,7 @@ ok(S(null, '', 'node audit-7uf.mjs 16000 part 0/1 7014').some(p => /reserved/.te
 ok(S('research/solver/registrations/phase-4.md', reg({ Seed: '7003' }), 'node x.mjs 7014').some(p => /reserved/.test(p)), 'planted: 7014 under Phase 4\'s registration is refused');
 ok(S('research/solver/registrations/fresh-7uf.md', reg(), 'node audit-7uf.mjs 16000 part 0/1 7014').length === 0, 'its owner (fresh-7uf*.md) may use 7014');
 ok(S('research/solver/registrations/fresh-7uf.md', reg(), 'node audit-7uf.mjs 7014; node other.mjs 7002').some(p => /does not declare/.test(p)), 'planted: a seed the run uses that the Seed field does not declare is refused');
+ok(S('research/solver/registrations/fresh-7uf.md', reg(), 'node x.mjs 7018').some(p => /reserved/.test(p)) && S('research/solver/registrations/phase-4-replication.md', reg({ Seed: '7018' }), 'node x.mjs 7018').length === 0, 'Phase 4\'s replication seed 7018 is reserved: refused under 7u-F, its owner (phase-4*.md) may use it');
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
 assert.equal(failed, 0, `${failed} registration checks failed`);

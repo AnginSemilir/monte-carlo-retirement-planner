@@ -8,11 +8,9 @@
  * arithmetic; the script checks it against results-7u.txt's REALISED line), only the interval differs. Also printed: the
  * bound the review gives (every household's discordant paths coinciding).
  * Reads 7u's raw per-path survival (results/diag7u, seed 7013) after checking each file's seed, path count and stamp.
- * Then 7U-F'S POWER from the same records (registrations/fresh-7uf.md's Paths field): over the 7u-F floor households 7u ran,
- * P1's standard error by path at 8,000 paths and, scaled by the root of the path counts, at 7u-F's 16,000; and for each 7u-F
- * household 7u ran, its discordant share and the chance a true loss of exactly 1 point reads as harm under P2 at 16,000
- * paths (one-sided, at the Holm threshold for every household and weight of the panel: 0.05 over 38), by the normal
- * approximation to the exact test.
+ * Then 7U-F'S POWER from the same records (registrations/fresh-7uf.md's Paths field): P1's standard error by path over the
+ * 7u-F floor households 7u ran, scaled to 7u-F's 16,000 paths, and its chance of reading HELD; P2's chance of reading harm,
+ * which needs both the Holm-adjusted p and an observed loss of at least 1 point (below).
  *   node research/solver/reread-7u-item4.mjs [diagDir]
  */
 import { readFileSync } from 'node:fs';
@@ -63,20 +61,51 @@ WEIGHTS.forEach((w, wi) => {
   if (!same) process.exitCode = 1;
 });
 
-// 7U-F'S POWER from 7u's records
+// 7U-F'S POWER from 7u's records. P1 reads HELD when its lower end is above -0.1: at a true pooled change delta that is
+// Phi((delta + 0.1 - 1.96 se) / se). P2 reads harm when BOTH the Holm-adjusted one-sided McNemar p is below 0.05 AND the
+// observed loss is at least 1 point (reduce-7uf.mjs perHousehold): the loss in paths D = lost - saved must reach both
+// z_H sqrt(n) (n the discordant paths; z_H at Holm's first step over the in-band pairs) and 0.01 N, so at a true loss of
+// exactly 1 point it reads harm half the time whatever the paths (the design review of 21 Oct, BLOCKING 1). Printed: the
+// chance at a true loss of 1 point, and the true loss read as harm 80% and 90% of the time, by the normal approximation
+// D ~ N(L N, N (d - L^2)); and the approximation checked by simulation through the reducer's own perHousehold.
 {
-  const ran = new Set(PANEL_7U), scale = Math.sqrt(N / N_F), m = 2 * PANEL_F.length, zH = (() => { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const x = (lo + hi) / 2; if (normUpper(x) > 0.05 / m) lo = x; else hi = x; } return (lo + hi) / 2; })();
-  console.log(`\n7U-F'S POWER from 7u's records (seed 7013, ${N} paths), scaled to ${N_F} paths; P2's threshold z ${zH.toFixed(3)} (0.05 over ${m}, Holm's first step)`);
+  const { perHousehold } = await import('./reduce-7uf.mjs');
+  const { BAND } = await import('./reduce-7uf.mjs');
+  const ran = new Set(PANEL_7U), scale = Math.sqrt(N / N_F), zOf = q => { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const x = (lo + hi) / 2; if (normUpper(x) > q) lo = x; else hi = x; } return (lo + hi) / 2; };
+  // the in-band pairs: the panel's households 7u ran, in the band by 7u's SHIP at each weight, and the four 7u did not run
+  // (S362, S382, S406, S418, the screen's band households) counted in
+  const shipOf = (id, w) => { const s = load(id, 'SHIP', w); let k = 0; for (let i = 0; i < N; i++) k += s.bits[i]; return 100 * k / N; };
+  const inBand = W_F.flatMap(w => PANEL_F.filter(id => !ran.has(id) || (x => x >= BAND[0] && x <= BAND[1])(shipOf(id, w))));
+  const m = inBand.length, zH = zOf(0.05 / m), NF = N_F;
+  const pHarm = (L, d) => { const n = d * NF, thr = Math.max(zH * Math.sqrt(n), 0.01 * NF), sd = Math.sqrt(NF * Math.max(1e-12, d - L * L)); return 1 - normUpper((L * NF - thr) / sd); };
+  const lossAt = (q, d) => { let lo = 0.01, hi = 0.05; for (let i = 0; i < 60; i++) { const x = (lo + hi) / 2; if (pHarm(x, d) < q) lo = x; else hi = x; } return 100 * hi; };
+  console.log(`\n7U-F'S POWER from 7u's records (seed 7013, ${N} paths), scaled to ${NF} paths; P2: ${m} household-weight pairs in the band, Holm's first step z ${zH.toFixed(3)} (0.05 over ${m}); harm needs that p AND an observed loss of at least 1 point`);
   for (const w of W_F) {
     const ids = floorOfF(w).filter(id => ran.has(id)), mm = new Float64Array(N);
     for (const id of ids) { const c = load(id, 'CAND', w), s = load(id, 'SHIP', w); for (let i = 0; i < N; i++) mm[i] += (c.bits[i] - s.bits[i]) / ids.length; }
     let mu = 0; for (let i = 0; i < N; i++) mu += mm[i]; mu /= N; let v = 0; for (let i = 0; i < N; i++) v += (mm[i] - mu) ** 2;
-    const se = 100 * Math.sqrt(v / (N - 1) / N);
-    console.log(`P1 at W${w}: ${ids.length} of the ${floorOfF(w).length} floor households have records; se by path ${se.toFixed(4)} at ${N}, about ${(se * scale).toFixed(4)} at ${N_F}: the interval's half-width about ${(1.96 * se * scale).toFixed(3)} points, so a true pooled change above ${(-0.1 + 1.96 * se * scale).toFixed(3)} reads HELD`);
+    const se = 100 * Math.sqrt(v / (N - 1) / N) * scale, held = delta => 1 - normUpper((delta + 0.1 - 1.96 * se) / se), at80 = -0.1 + (1.96 + zOf(0.2)) * se;
+    console.log(`P1 at W${w}: ${ids.length} of the ${floorOfF(w).length} floor households have records (${floorOfF(w).filter(id => !ran.has(id)).join(', ')} none); se by path about ${se.toFixed(4)} at ${NF} paths: HELD with chance ${held(0).toFixed(3)} at no true change, ${held(-0.054).toFixed(3)} at -0.054, and 80% of the time at a true change of ${at80.toFixed(3)} points or more`);
     for (const id of PANEL_F.filter(x => ran.has(x))) {
       const c = load(id, 'CAND', w), s = load(id, 'SHIP', w); let disc = 0, sv = 0; for (let i = 0; i < N; i++) { if (c.bits[i] !== s.bits[i]) disc++; sv += s.bits[i]; }
-      const nD = Math.max(disc * N_F / N, 160), pw = normUpper(zH - 160 / Math.sqrt(nD));
-      console.log(`  ${id.padEnd(6)} W${w}: SHIP ${(100 * sv / N).toFixed(2)}%, discordant ${(100 * disc / N).toFixed(2)}% of paths; power for a true 1-point loss at ${N_F} paths ${pw.toFixed(3)}`);
+      const d = Math.max(disc / N, 0.0001), band = 100 * sv / N >= BAND[0] && 100 * sv / N <= BAND[1];
+      console.log(`  ${id.padEnd(6)} W${w}: SHIP ${(100 * sv / N).toFixed(2)}%${band ? '' : ' (outside the band: not gated)'}, discordant ${(100 * disc / N).toFixed(2)}% of paths; P2 reads harm at a true loss of 1 point with chance ${pHarm(0.01, d).toFixed(3)}; 80% of the time at a true loss of ${lossAt(0.8, d).toFixed(2)} points, 90% at ${lossAt(0.9, d).toFixed(2)}`);
     }
+  }
+  // the approximation against the reducer's own rule, by simulation: a household at a true loss (discordance d, SHIP 70%),
+  // m - 1 households with no change beside it (Holm), 400 replicates of 16,000 paired paths
+  // mulberry32 (Math.imul: a 32-bit product in plain doubles loses its low bits past 2^53)
+  let seed = 7002; const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+  for (const [d, L] of [[0.09, 0.01], [0.09, 0.012], [0.026, 0.01], [0.026, 0.011]]) {
+    let hits = 0; const R = 400;
+    for (let rep = 0; rep < R; rep++) {
+      const ship = new Uint8Array(NF), cand = new Uint8Array(NF), pl = (d + L) / 2;
+      for (let i = 0; i < NF; i++) { const u = rnd(); if (u < pl) { ship[i] = 1; cand[i] = 0; } else if (u < d) { ship[i] = 0; cand[i] = 1; } else { const b = rnd() < 0.7 ? 1 : 0; ship[i] = b; cand[i] = b; } }
+      const nul = new Uint8Array(NF).fill(1), rows = [{ id: 'X', w: '0.02', ship, cand }, ...Array.from({ length: m - 1 }, (_, k) => ({ id: `Z${k}`, w: '0.02', ship: nul, cand: nul }))];
+      // a no-change household's p is 1; it never reads harm, and Holm's first step for X is m x p as in the approximation
+      const out = perHousehold(rows.map(r => r.id === 'X' ? r : { ...r, ship: Uint8Array.from(ship, (_, i) => i % 2), cand: Uint8Array.from(ship, (_, i) => i % 2) }));
+      if (out.find(x => x.id === 'X').harm) hits++;
+    }
+    console.log(`  check by simulation (the reducer's perHousehold, ${R} replicates, Holm over ${m}): discordance ${(100 * d).toFixed(1)}%, a true loss of ${(100 * L).toFixed(1)} points: harm read ${(hits / R).toFixed(3)}; the approximation ${pHarm(L, d).toFixed(3)}`);
   }
 }

@@ -38,8 +38,9 @@ export const REGISTRATION = 'research/solver/registrations/fresh-7uf.md';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const BAND = [5, 99.5], HARM_P = 0.05, HARM_LOSS = 1, POOLED = 0.1, LEVEL = 0.05, MARGINS = [0.25, 0.5];
-const CAND_KEYS = ['bridgeRead', 'bridgeStep', 'tierState', 'readerRef', 'readerSplit', 'switchMargin', 'switchCharge', 'e3', 'e3pcls', 'pclsInterp', 'tiersAbove'];
-export const ALLOWED = { 'CAND:SHIP': new Set(CAND_KEYS), 'CAND:DECOMP': new Set(['readerRef']) };
+const CAND_KEYS = ['bridgeRead', 'bridgeStep', 'tierState', 'readerRef', 'readerSplit', 'switchMargin', 'switchCharge', 'e3', 'e3pcls', 'pclsInterp', 'tiersAbove', 'joint', 'lattice'];
+// CAND against DECOMP: the reference, its lattice, and the 'auto' rule's tier above, which each arm's own solve decides
+export const ALLOWED = { 'CAND:SHIP': new Set(CAND_KEYS), 'CAND:DECOMP': new Set(['readerRef', 'lattice', 'tiersAbove']) };
 
 // a `ran` line as key-value pairs (audit-7uf.mjs's order: each key followed by its value)
 export const ranPairs = ran => { const t = ran.trim().split(/\s+/), o = {}; for (let i = 0; i + 1 < t.length; i += 2) o[t[i]] = t[i + 1]; return o; };
@@ -47,20 +48,43 @@ const bitsOf = s => { const b = Buffer.from(s, 'base64'); return new Uint8Array(
 const f32Of = s => { const b = Buffer.from(s, 'base64'); return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
 const i16Of = s => { const b = Buffer.from(s, 'base64'); return new Int16Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
 
-/* THE GATE: units { [id]: { [w]: { CAND, DECOMP?, SHIP } } }, each unit { seed, N, stamp, ran }; returns the problems */
-export function gate(units, panel, weights, needsDecomp) {
+/* THE GATE: units { [id]: { [w]: { CAND, DECOMP?, SHIP } } }, each unit { seed, N, stamp, ran }. gate() returns the
+   primary's problems (CAND or SHIP missing, or differing in anything but the candidate's own settings): any refuses the
+   read. decompGate() returns DECOMP's, by household: a DECOMP that is missing or differs is reported and its lines left
+   out, P1 and P2 read regardless (the design review of 21 Oct, MINOR 7: DECOMP only reports) */
+function pairProblems(id, w, a, x, y) {
+  const out = [];
+  for (const k of ['seed', 'N']) if (x[k] !== y[k]) out.push(`${id} W${w}: CAND and ${a} differ in ${k} (${x[k]} against ${y[k]})`);
+  for (const k of ['code', 'audit', 'candidate', 'prediction', 'sha']) if (x.stamp[k] !== y.stamp[k]) out.push(`${id} W${w}: CAND and ${a} differ in the stamp's ${k} (${x.stamp[k]} against ${y.stamp[k]})`);
+  const px = ranPairs(x.ran), py = ranPairs(y.ran), ok = ALLOWED[`CAND:${a}`];
+  for (const k of new Set([...Object.keys(px), ...Object.keys(py)])) if (px[k] !== py[k] && !ok.has(k)) out.push(`${id} W${w}: CAND and ${a} differ in ${k} (${px[k]} against ${py[k]}), not one of the arm's own settings`);
+  return out;
+}
+export function gate(units, panel, weights) {
   const out = [];
   for (const id of panel) for (const w of weights) {
-    const u = (units[id] || {})[w] || {}, arms = ['CAND', 'SHIP', ...(needsDecomp(id) ? ['DECOMP'] : [])];
-    const miss = arms.filter(a => !u[a]);
+    const u = (units[id] || {})[w] || {}, miss = ['CAND', 'SHIP'].filter(a => !u[a]);
     if (miss.length) { out.push(`${id} W${w}: no ${miss.join(', ')} unit`); continue; }
-    for (const a of arms.slice(1)) {
-      const x = u.CAND, y = u[a];
-      for (const k of ['seed', 'N']) if (x[k] !== y[k]) out.push(`${id} W${w}: CAND and ${a} differ in ${k} (${x[k]} against ${y[k]})`);
-      for (const k of ['code', 'audit', 'candidate', 'prediction', 'sha']) if (x.stamp[k] !== y.stamp[k]) out.push(`${id} W${w}: CAND and ${a} differ in the stamp's ${k} (${x.stamp[k]} against ${y.stamp[k]})`);
-      const px = ranPairs(x.ran), py = ranPairs(y.ran), ok = ALLOWED[`CAND:${a}`];
-      for (const k of new Set([...Object.keys(px), ...Object.keys(py)])) if (px[k] !== py[k] && !ok.has(k)) out.push(`${id} W${w}: CAND and ${a} differ in ${k} (${px[k]} against ${py[k]}), not one of the arm's own settings`);
-    }
+    out.push(...pairProblems(id, w, 'SHIP', u.CAND, u.SHIP));
+  }
+  return out;
+}
+export function decompGate(units, panel, weights, needsDecomp) {
+  const out = {};
+  for (const id of panel.filter(needsDecomp)) for (const w of weights) {
+    const u = (units[id] || {})[w] || {}, p = !u.CAND ? [] : !u.DECOMP ? [`${id} W${w}: no DECOMP unit`] : pairProblems(id, w, 'DECOMP', u.CAND, u.DECOMP);
+    if (p.length) out[`${id}/${w}`] = p;
+  }
+  return out;
+}
+/* every unit's own provenance against the registration (MINOR 5): its seed and path count, and its stamp's registration
+   and that registration's blob as the launcher recorded it (the logs are checked the same way by requireFairLogs) */
+export function provenanceProblems(units, { seed, N, prediction, sha }) {
+  const out = [];
+  for (const [id, byW] of Object.entries(units)) for (const [w, arms] of Object.entries(byW)) for (const [a, u] of Object.entries(arms)) {
+    if (u.seed !== seed || u.N !== N) out.push(`${id} W${w} ${a}: seed ${u.seed}, ${u.N} paths, not ${seed} and ${N}`);
+    if (u.stamp.prediction !== prediction) out.push(`${id} W${w} ${a}: launched under ${u.stamp.prediction}, not ${prediction}`);
+    else if (u.stamp.sha !== sha) out.push(`${id} W${w} ${a}: the registration's blob at launch ${u.stamp.sha}, now ${sha}`);
   }
   return out;
 }
@@ -91,11 +115,14 @@ export function perHousehold(rows) {
 }
 
 /* THE OUTCOME from P1 at each weight and P2 */
-export function decide(pooled, rows) {
+export function decide(pooled, rows, floorIds = null) {
   const harmed = rows.filter(x => x.harm);
   if (harmed.length) return { outcome: 'HARM', decides: `the harmed households (${harmed.map(x => `${x.id} W${x.w}`).join(', ')}) go to V4's measures (D4); no new reader or reference variant opened on them; no Phase 4 until they read` };
   const fals = Object.entries(pooled).filter(([, p]) => p.outcome === 'FALSIFIED').map(([w]) => w), inc = Object.entries(pooled).filter(([, p]) => p.outcome === 'INCONCLUSIVE').map(([w]) => w);
-  if (fals.length) return { outcome: 'POOLED FALSIFIED', decides: `not to Phase 4: the pooled change is below -${POOLED} at W${fals.join(', W')}; V4's measures on the floor households that lose most` };
+  // "the floor households that lose most" (MINOR 8): those with a loss whose unadjusted one-sided McNemar p is below 0.05,
+  // the five largest losses first
+  const losers = rows.filter(x => x.change < 0 && x.p < HARM_P && (!floorIds || floorIds.includes(x.id))).sort((a, b) => a.change - b.change).slice(0, 5).map(x => `${x.id} W${x.w}`);
+  if (fals.length) return { outcome: 'POOLED FALSIFIED', decides: `not to Phase 4: the pooled change is below -${POOLED} at W${fals.join(', W')}; V4's measures on the floor households that lose most (a loss with an unadjusted one-sided p below ${HARM_P}, the five largest: ${losers.join(', ') || 'none such'})` };
   if (inc.length) return { outcome: 'POOLED INCONCLUSIVE', decides: `not a pass: the pooled interval straddles -${POOLED} at W${inc.join(', W')}; to the maintainer with the figures, no re-run on seed 7014` };
   return { outcome: 'PASS', decides: 'the candidate goes to Phase 4' };
 }
@@ -133,19 +160,22 @@ async function read(dir, pre = false) {
   const units = {};
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json.gz'))) { const j = load(dir, f); ((units[j.id] = units[j.id] || {})[j.w] = units[j.id][j.w] || {})[j.arm] = j; }
   const PANEL = pre ? P.PANEL.filter(id => units[id]) : P.PANEL, WEIGHTS = pre ? P.WEIGHTS.filter(w => PANEL.some(id => units[id][w])) : P.WEIGHTS;
-  const problems = gate(units, PANEL, WEIGHTS, id => needsDecomp(id) || (pre && WEIGHTS.every(w => units[id][w] && units[id][w].DECOMP)));
+  const problems = gate(units, PANEL, WEIGHTS);
+  if (!pre) { const { execSync } = await import('node:child_process'); const sha = execSync(`git hash-object ${REGISTRATION}`, { cwd: join(HERE, '../..') }).toString().trim();
+    problems.push(...provenanceProblems(units, { seed: P.SEED, N: P.N, prediction: REGISTRATION, sha })); }
+  const dGate = decompGate(units, PANEL, WEIGHTS, id => needsDecomp(id) || (pre && WEIGHTS.every(w => units[id][w] && units[id][w].DECOMP)));
   const any = Object.values(units).flatMap(x => Object.values(x)).flatMap(x => Object.values(x))[0];
   console.log(`7U-F READ: ${dir}; ${Object.keys(units).length} households; seed ${any ? any.seed : '-'}, ${any ? any.N : '-'} paths; stamp ${any ? JSON.stringify(any.stamp) : '-'}`);
   if (problems.length) { console.log(`THE GATE: NOT FAIR (${problems.length})`); problems.forEach(p => console.log(`  ${p}`)); console.log('No figure is read.'); process.exit(1); }
-  if (!pre && (any.seed !== P.SEED || any.N !== P.N)) { console.log(`THE GATE: the files are seed ${any.seed}, ${any.N} paths, not the registration's ${P.SEED} and ${P.N}: not 7u-F's read`); process.exit(1); }
-  console.log('THE GATE: fair (every unit present; each household\'s arms on the same seed, paths, stamps; settings differing only in the arm\'s own)');
+  console.log(`THE GATE: fair (every CAND and SHIP unit present; each household's arms on the same seed, paths and stamps${pre ? '' : ', every unit launched under the registration as it stands'}; settings differing only in the arm's own)`);
+  for (const [k, p] of Object.entries(dGate)) console.log(`  DECOMP not read for ${k} (reported, not a gate): ${p.join('; ')}`);
   const f2 = x => x.toFixed(2), f3 = x => x.toFixed(3), f4 = x => x.toFixed(4), sgn = x => (x >= 0 ? '+' : '') + f3(x);
   // P1
   const pooled = {};
   for (const w of WEIGHTS) { const fl = P.floorOf(w).filter(id => PANEL.includes(id)); pooled[w] = pooledByPath(fl.map(id => ({ ship: units[id][w].SHIP.bits, cand: units[id][w].CAND.bits }))); }
   // P2
   const rows = perHousehold(PANEL.flatMap(id => WEIGHTS.map(w => ({ id, w, ship: units[id][w].SHIP.bits, cand: units[id][w].CAND.bits }))));
-  const res = decide(pooled, rows);
+  const res = decide(pooled, rows, [...new Set(WEIGHTS.flatMap(w => P.floorOf(w)))]);
   console.log('');
   for (const w of WEIGHTS) { const p = pooled[w]; console.log(`P1 at W${w}: the pooled change over the ${p.k} floor households ${sgn(p.d)} points (by path ${f3(p.lo)} to ${f3(p.hi)}, se ${f4(p.se)}): ${p.outcome}`); }
   console.log(`P2: ${rows.filter(x => x.inBand).length} household-weight pairs in the band [${BAND.join(', ')}], Holm over them; harmed: ${rows.filter(x => x.harm).map(x => `${x.id} W${x.w}`).join(', ') || 'none'}`);
@@ -160,13 +190,13 @@ async function read(dir, pre = false) {
     const NB = Math.min(S.NB, C.NB), wsS = wholeScore(S.bs, Number(w), S.Y), wsC = wholeScore(C.bs, Number(w), C.Y), ws = pairedMean(wsS.subarray(0, NB), wsC.subarray(0, NB));
     console.log(`  ${id.padEnd(6)} W${w}: estate ${sgn(est.d)} (se ${f3(est.se)}), unmet ${sgn(un.d)}, realised spend ${sgn(sp.d)}, years cut ${sgn(ct.d)}; whole score ${sgn(ws.d)} (se ${f4(ws.se)}) on ${NB} paths${S.bs.death || C.bs.death ? ' (a pension death charge: the whole score omits it)' : ''}`);
     console.log(`    the reader: ${C.readerYears || 0} bridge years read; the adaptive reference ${C.adaptive ? 'consulted' : 'not consulted (CAND is DECOMP here by construction)'}`);
-    for (const [a, U] of [['SHIP', S], ['CAND', C], ...(u.DECOMP ? [['DECOMP', u.DECOMP]] : [])]) { const nb = U.NB; let eo = 0, po = 0; for (let i = 0; i < nb; i++) { if (U.bits[i] && !U.bs.survived[i]) eo++; if (U.bs.survived[i] && !U.bits[i]) po++; } const p = twoSidedExact(eo, po);
-      console.log(`    fidelity ${a}: the engine alone ${eo}, runPolicy alone ${po} of ${nb} (two-sided exact p ${p.toFixed(4)})${p < 0.05 ? ' FIDELITY GAP' : ''}`); }
-    if (u.DECOMP) {
+    for (const [a, U] of [['SHIP', S], ['CAND', C], ...(u.DECOMP && !dGate[`${id}/${w}`] ? [['DECOMP', u.DECOMP]] : [])]) { const nb = U.NB; let eo = 0, po = 0; for (let i = 0; i < nb; i++) { if (U.bits[i] && !U.bs.survived[i]) eo++; if (U.bs.survived[i] && !U.bits[i]) po++; } const p = twoSidedExact(eo, po);
+      console.log(`    fidelity ${a}: the engine alone ${eo}, runPolicy alone ${po} of ${nb} (two-sided exact p ${p.toFixed(4)})${p < 0.05 ? ' FIDELITY GAP (logged; the household stays in P1 and P2, which the engine scores)' : eo + po > 0 ? ' (apart on some paths: listed, below the gap\'s test)' : ''}`); }
+    if (u.DECOMP && !dGate[`${id}/${w}`]) {
       const D = u.DECOMP, cs = C.worlds.map((x, k) => cells(D.worlds[k].bitsA, x.bitsA)), mx = mixtureChange(cs, MIX3W), seedC = cells(D.bits, C.bits), iv = survivalChangeU(seedC.a, seedC.b, seedC.c, seedC.d, LEVEL);
       console.log(`    the reference's part (CAND less DECOMP): by the mixture ${sgn(mx.d)} (${f3(mx.lo)} to ${f3(mx.hi)}; by world ${mx.per.map(x => sgn(x.d)).join(', ')}); on the seed's paths ${sgn(iv.d)} (${f3(iv.lo)} to ${f3(iv.hi)}; ${seedC.c} saved, ${seedC.b} lost)`);
     }
-    for (const [a, U] of [['CAND', C], ...(u.DECOMP ? [['DECOMP', u.DECOMP]] : [])]) console.log(`    by world ${a}: ${U.worlds.map((x, k) => { const n = x.bitsA.length, s = x.bitsA.reduce((t, v) => t + v, 0), [lo, hi] = wilson(s, n, zFor(LEVEL)); return `${k} table ${f2(x.table)} less the engine ${f2(x.sim)} = ${sgn(x.table - x.sim)} (the runs ${f2(100 * lo)} to ${f2(100 * hi)})`; }).join('; ')}`);
+    for (const [a, U] of [['CAND', C], ...(u.DECOMP && !dGate[`${id}/${w}`] ? [['DECOMP', u.DECOMP]] : [])]) console.log(`    by world ${a}: ${U.worlds.map((x, k) => { const n = x.bitsA.length, s = x.bitsA.reduce((t, v) => t + v, 0), [lo, hi] = wilson(s, n, zFor(LEVEL)); return `${k} table ${f2(x.table)} less the engine ${f2(x.sim)} = ${sgn(x.table - x.sim)} (the runs ${f2(100 * lo)} to ${f2(100 * hi)})`; }).join('; ')}`);
   }
 }
 
@@ -194,18 +224,23 @@ export function planted() {
   cases.push(['OUTCOME: P1 HELD at both, no harm: PASS', decide(held, [{ harm: false }]).outcome, 'PASS']);
   cases.push(['OUTCOME: harm wins over a held pool: HARM', decide(held, [{ id: 'A', w: '0.02', harm: true }]).outcome, 'HARM']);
   cases.push(['OUTCOME: P1 FALSIFIED at one weight: POOLED FALSIFIED', decide({ ...held, '0.01': { outcome: 'FALSIFIED' } }, []).outcome, 'POOLED FALSIFIED']);
+  cases.push(['OUTCOME EDGE: POOLED FALSIFIED names the floor households losing at p below 0.05, the largest first', /the five largest: B W0\.01, A W0\.02$/.test(decide({ ...held, '0.01': { outcome: 'FALSIFIED' } }, [{ id: 'A', w: '0.02', change: -0.4, p: 0.01 }, { id: 'B', w: '0.01', change: -0.6, p: 0.001 }, { id: 'C', w: '0.02', change: -0.9, p: 0.2 }, { id: 'D', w: '0.02', change: 0.3, p: 1 }]).decides.replace(/\)$/, '')), true]);
   cases.push(['OUTCOME: P1 INCONCLUSIVE at one weight: not a pass', decide({ ...held, '0.02': { outcome: 'INCONCLUSIVE' } }, []).outcome, 'POOLED INCONCLUSIVE']);
   // the gate
   const stamp = { code: 'c', audit: 'a', candidate: 'h', prediction: 'p', sha: 's' };
   const ran = (o = {}) => Object.entries({ mix: 3, pts: 30, seed: 7014, paths: 16000, bequestWeight: 0.02, bridgeRead: 'reader', readerRef: 'adaptive', readerSplit: 'rs', e3: true, ...o }).map(([k, v]) => `${k} ${v}`).join(' ');
   const U = (o = {}, r = {}) => ({ seed: 7014, N: 16000, stamp: { ...stamp, ...(o.stamp || {}) }, ran: ran(r), ...o, ...(o.stamp ? { stamp: { ...stamp, ...o.stamp } } : {}) });
-  const g = (cand, dec, shp) => gate({ X: { '0.02': { CAND: cand, DECOMP: dec, SHIP: shp } } }, ['X'], ['0.02'], () => true).length;
+  const g = (cand, dec, shp) => gate({ X: { '0.02': { CAND: cand, DECOMP: dec, SHIP: shp } } }, ['X'], ['0.02']).length + Object.keys(decompGate({ X: { '0.02': { CAND: cand, DECOMP: dec, SHIP: shp } } }, ['X'], ['0.02'], () => true)).length;
+  const gP = (cand, dec, shp) => gate({ X: { '0.02': { CAND: cand, DECOMP: dec, SHIP: shp } } }, ['X'], ['0.02']).length;
   cases.push(['GATE: the three arms as registered: fair', g(U(), U({}, { readerRef: 'null' }), U({}, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })), 0]);
-  cases.push(['GATE: DECOMP on another seed: refused', g(U(), U({ seed: 7002 }, { readerRef: 'null' }), U({}, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0, true]);
+  cases.push(['GATE: DECOMP on another seed: DECOMP not read, the primary reads', `${g(U(), U({ seed: 7002 }, { readerRef: 'null' }), U({}, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0} ${gP(U(), U({ seed: 7002 }, { readerRef: 'null' }), U({}, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false }))}`, 'true 0']);
   cases.push(['GATE: SHIP at another grid (pts 20): refused', g(U(), U({}, { readerRef: 'null' }), U({}, { pts: 20, bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0, true]);
   cases.push(['GATE: DECOMP differing in e3 as well as readerRef: refused', g(U(), U({}, { readerRef: 'null', e3: false }), U({}, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0, true]);
   cases.push(['GATE: SHIP from another candidate hash: refused', g(U(), U({}, { readerRef: 'null' }), U({ stamp: { candidate: 'other' } }, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0, true]);
-  cases.push(['GATE EDGE: a missing DECOMP unit: refused', gate({ X: { '0.02': { CAND: U(), SHIP: U() } } }, ['X'], ['0.02'], () => true).length > 0, true]);
+  cases.push(['GATE EDGE: a missing DECOMP unit: reported, the primary reads', `${Object.keys(decompGate({ X: { '0.02': { CAND: U(), SHIP: U() } } }, ['X'], ['0.02'], () => true)).length} ${gate({ X: { '0.02': { CAND: U(), SHIP: U() } } }, ['X'], ['0.02']).length}`, '1 0']);
+  cases.push(['GATE EDGE: a missing SHIP unit: refused', gate({ X: { '0.02': { CAND: U() } } }, ['X'], ['0.02']).length > 0, true]);
+  const pv = o => provenanceProblems({ X: { '0.02': { CAND: U(), SHIP: U(o) } } }, { seed: 7014, N: 16000, prediction: 'p', sha: 's' }).length;
+  cases.push(['PROVENANCE: every unit launched under the registration as it stands passes; another seed, another registration, an edited registration each refused', `${pv({})} ${pv({ seed: 7002 })} ${pv({ stamp: { prediction: 'none' } })} ${pv({ stamp: { sha: 'edited' } })}`, '0 1 1 1']);
   return cases;
 }
 
@@ -213,7 +248,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (process.argv[2] === '--planted') {
     const cases = planted(); let bad = 0;
     for (const [what, got, want] of cases) { const okc = String(got) === String(want); if (!okc) bad++; console.log(`${okc ? 'ok  ' : 'FAIL'} ${what}: ${got}`); }
-    console.log('EDGES: P1 no change (the interval a point), P2 at the band\'s top and inside it, P2 Holm over twenty, a missing unit');
+    console.log('EDGES: P1 no change (the interval a point), P2 at the band\'s top and inside it, P2 Holm over twenty, a missing DECOMP unit, a missing SHIP unit, provenance');
     console.log(bad ? `PLANTED FAILED: ${bad} of ${cases.length}` : `PLANTED: all ${cases.length} cases read as written`);
     process.exit(bad ? 1 : 0);
   }

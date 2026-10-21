@@ -33,6 +33,8 @@ import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
+import { WANT, gotOf, armProblems, latticeProblem, ctxProblem, planHash } from './audit-7uf-checks.mjs';
+// e3pcls guard: CAND and DECOMP solve through solveCandidate (the pin checked there); solvePlan here is SHIP's, the product's settings
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
@@ -66,15 +68,7 @@ const DECOMP_OPTS = (() => { const { readerRef, adaptiveLattice, ...rest } = CAN
 if (CANDIDATE_OPTS.readerRef !== 'adaptive' || !CANDIDATE_OPTS.adaptiveLattice || CANDIDATE_OPTS.readerSplit !== 'rs') { console.error('audit-7uf: the candidate does not carry the adaptive package'); process.exit(2); }
 const solveArm = (arm, plan, base) => arm === 'SHIP' ? solvePlan(E, M, candidatePlan(E, plan), base)
   : solveCandidate(E, M, plan, arm === 'CAND' ? base : { ...base, readerRef: undefined, adaptiveLattice: undefined });
-const WANT = {
-  CAND: { bridgeRead: 'reader', tierState: true, jointWorlds: true, bridgeStep: 'exact', switchMargin: 0, switchCharge: 0.001, e3: true, e3pcls: true, pclsInterp: true, readerRef: 'adaptive', readerSplit: 'rs' },
-  DECOMP: { bridgeRead: 'reader', tierState: true, jointWorlds: true, bridgeStep: 'exact', switchMargin: 0, switchCharge: 0.001, e3: true, e3pcls: true, pclsInterp: true, readerRef: null, readerSplit: 'rs' },
-  SHIP: { bridgeRead: false, tierState: false, jointWorlds: false, bridgeStep: null, switchMargin: 0.001, switchCharge: 0, e3: false, e3pcls: false, pclsInterp: false, readerRef: null, readerSplit: null }
-};
-const gotOf = r => ({ bridgeRead: r.meta.bridgeRead, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bridgeStep: r.meta.bridgeStep || null, switchMargin: r.switchMargin, switchCharge: r.switchCharge || 0, e3: !!r.meta.e3, e3pcls: !!r.meta.e3pcls, pclsInterp: !!r.g.pclsInterp, readerRef: r.meta.readerRef || null, readerSplit: r.meta.readerSplit || null });
-// the engine's context against the solver's: every field but the policy's own and the plan object
-const SKIP = new Set(['plan', 'warnings', 'policyOverride', 'policyKey']);
-const ctxKey = ctx => JSON.stringify(Object.keys(ctx).filter(k => !SKIP.has(k)).sort().map(k => [k, ctx[k]]));
+// the arms' checks (WANT, the lattice, the engine's context) are in audit-7uf-checks.mjs, planted there
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
 const fileOf = (id, arm, w) => `${id}-${arm.toLowerCase()}-w${w}.json.gz`;
 
@@ -84,25 +78,22 @@ UNITS.forEach(([id, arm, w], i) => {
   const W = Number(w), L = `${arm}/W${w}`, plan = prep(byId(id));
   console.log(`${id.padEnd(8)} case | unit ${L} | bridge years ${bridgeYears(E, plan)}`);
   const t0 = Date.now(), r = solveArm(arm, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W }), secs = (Date.now() - t0) / 1000;
-  const got = gotOf(r);
-  for (const [k, v] of Object.entries(WANT[arm])) if (got[k] !== v) { console.error(`audit-7uf: ${id} ${L} ran ${k} ${got[k]}, not ${v}`); process.exit(3); }
-  if (!(Math.abs(r.meta.bequestWeight - W) < 1e-12)) { console.error(`audit-7uf: ${id} ${L} ran the estate weight ${r.meta.bequestWeight}`); process.exit(3); }
+  const got = gotOf(r), bad = armProblems(arm, got, r.meta.bequestWeight, W);
+  if (bad.length) { console.error(`audit-7uf: ${id} ${L} ${bad.join('; ')}`); process.exit(3); }
   // the adaptive reference is built when the reader first asks it (a bridge year with a need: solve.js chanceOf), so a
   // household whose bridge needs are met reads none and CAND is DECOMP there; a lattice built is held to the candidate's
   const rd = r.mix.tables[0].g.reader, readerYears = rd ? Array.from(rd.years).reduce((a, x) => a + x, 0) : 0, la = rd && rd.adaptive ? rd.adaptive.lattice : null;
-  if (arm === 'CAND') { const want = CANDIDATE_OPTS.adaptiveLattice;
-    if (la && Object.keys(want).some(k => la[k] !== want[k])) { console.error(`audit-7uf: ${id} ${L} built an adaptive lattice not the candidate's (${JSON.stringify(la)})`); process.exit(3); }
-    if (!la && readerYears > 0) { console.error(`audit-7uf: ${id} ${L}: the reader reads ${readerYears} bridge years but the adaptive reference was never built`); process.exit(3); } }
+  { const lp = latticeProblem(arm, CANDIDATE_OPTS.adaptiveLattice, la, readerYears); if (lp) { console.error(`audit-7uf: ${id} ${L}: ${lp}`); process.exit(3); } }
   const m = r.m, T = m.ctx.totalYears, s0 = M.initialState(m);
-  const tiers = Object.entries(E.normalizePlan(candidatePlan(E, plan)).riskProfiles).filter(([k]) => / Risk$/.test(k)).map(([k, p]) => `${k.replace(/ /g, '_')}:${p.real}`).join(',');
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} beside ${NB} world ${NWP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead} readerRef ${got.readerRef} readerSplit ${got.readerSplit} switchMargin ${r.switchMargin} switchCharge ${r.switchCharge || 0} e3 ${got.e3} e3pcls ${got.e3pcls} pclsInterp ${got.pclsInterp} tiers ${tiers}`;
+  const tiers = Object.entries(m.ctx.plan.riskProfiles || {}).filter(([k]) => / Risk$/.test(k)).map(([k, p]) => `${k.replace(/ /g, '_')}:${p.real}`).join(',');   // the plan the solver solved (the design review's MINOR 3)
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} beside ${NB} world ${NWP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead} readerRef ${got.readerRef} readerSplit ${got.readerSplit} switchMargin ${r.switchMargin} switchCharge ${r.switchCharge || 0} e3 ${got.e3} e3pcls ${got.e3pcls} pclsInterp ${got.pclsInterp} joint ${got.jointWorlds} shape ${r.meta.bequestShape || '-'} raiseW ${r.meta.raiseWeight} resilW ${r.meta.wR !== undefined ? r.meta.wR : '-'} finalExact ${!!r.finalExact} lattice ${la ? JSON.stringify(la) : '-'} plan ${planHash(m.ctx)} tiers ${tiers}`;
   const table = 100 * r.worlds.reduce((t, wd, k) => t + r.mix.weights[k] * wd.value(s0, 0).survival, 0);
   console.log(`${''.padEnd(8)} solve ${L}: table ${table.toFixed(4)} secs ${Math.round(secs)}`);
   console.log(`${''.padEnd(8)} ran ${L}: ${ran}`);
   console.log(`${''.padEnd(8)} reader ${L}: ${readerYears} bridge years read; the adaptive reference ${la ? `built (${JSON.stringify(la)})` : 'not built'}`);
   // the engine on the plan the solver solved
   const ctx = E.buildContext(withTable(m.ctx.plan, r));
-  if (ctxKey(ctx) !== ctxKey(m.ctx)) { const k = Object.keys(m.ctx).find(k => !SKIP.has(k) && JSON.stringify(ctx[k]) !== JSON.stringify(m.ctx[k])); console.error(`audit-7uf: ${id} ${L}: the engine's context differs from the solver's (first: ${k})`); process.exit(3); }
+  { const cp = ctxProblem(ctx, m.ctx); if (cp) { console.error(`audit-7uf: ${id} ${L}: ${cp}`); process.exit(3); } }
   const paths = E.pathsForSeed(SEED, NP, T);
   const f0 = Date.now(), surv = new Uint8Array(NP), estate = new Float32Array(NP), unmet = new Float32Array(NP), spend = new Float32Array(NP), cut = new Uint8Array(NP), cap = r.meta.bequestCap;
   let ok = 0;

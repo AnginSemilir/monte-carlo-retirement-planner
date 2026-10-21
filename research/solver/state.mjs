@@ -105,12 +105,14 @@ const BLOCKS = {
       const re = new RegExp(`^weight ${w.replace('.', '\\.')}: (\\d+) households[\\s\\S]*?the point: (-?[\\d.]+)[\\s\\S]*?7u's interval \\(pooled cells, pairs independent\\): (-?[\\d.]+) to (-?[\\d.]+)\\n  BY PATH \\(per-path means, paths independent\\): (-?[\\d.]+) to (-?[\\d.]+); se [\\d.]+, ([\\d.]+) times 7u's\\n  item 4's rule \\(lower end above -0\\.1\\): (\\w+) by path`, 'm');
       out.push(pick(R, re, m => `- 7u's item ${item} (the pooled floor at W${w}, ${m[1]} households) re-read by path: ${m[2]} points, by path ${m[5]} to ${m[6]} (7u's pooled cells ${m[3]} to ${m[4]}; ${m[7]} times as wide): ${m[8]} (\`${R.split('/').pop()}\`).`));
     }
-    for (const w of ['0.02', '0.01']) out.push(pick(R, new RegExp(`^P1 at W${w.replace('.', '\\.')}: (\\d+) of the (\\d+) floor households have records; se by path [\\d.]+ at \\d+, about ([\\d.]+) at (\\d+): the interval's half-width about ([\\d.]+) points, so a true pooled change above (-?[\\d.]+) reads HELD`, 'm'),
-      m => `- 7u-F's power at W${w} (from 7u's records on ${m[1]} of the ${m[2]} floor households): P1's se by path about ${m[3]} at ${m[4]} paths, its half-width about ${m[5]}: a true pooled change above ${m[6]} reads HELD.`));
-    const pw = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP ([\d.]+)%, discordant ([\d.]+)% of paths; power for a true 1-point loss at \d+ paths ([\d.]+)$/gm)].filter(m => +m[3] >= 5 && +m[3] <= 99.5);
-    if (!pw.length) throw new Error(`state.mjs: ${R} has no power lines`);
-    const least = pw.reduce((a, m) => (+m[5] < +a[5] ? m : a));
-    out.push(`- 7u-F's power under P2 (households in the band that 7u ran, both weights): the least ${least[5]} (${least[1]} at W${least[2]}, ${least[4]}% of paths discordant) for a true 1-point loss.`);
+    for (const w of ['0.02', '0.01']) out.push(pick(R, new RegExp(`^P1 at W${w.replace('.', '\\.')}: (\\d+) of the (\\d+) floor households have records \\(([^)]*) none\\); se by path about ([\\d.]+) at (\\d+) paths: HELD with chance ([\\d.]+) at no true change, [\\d.]+ at -0\\.054, and 80% of the time at a true change of (-?[\\d.]+) points or more`, 'm'),
+      m => `- 7u-F's power under P1 at W${w} (from 7u's records on ${m[1]} of the ${m[2]} floor households; ${m[3]} have none): its se by path about ${m[4]} at ${m[5]} paths; HELD with chance ${m[6]} at no true change, and 80% of the time at a true pooled change of ${m[7]} points or more.`));
+    const pw = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP ([\d.]+)%, discordant ([\d.]+)% of paths; P2 reads harm at a true loss of 1 point with chance ([\d.]+); 80% of the time at a true loss of ([\d.]+) points, 90% at ([\d.]+)$/gm)];
+    if (!pw.length) throw new Error(`state.mjs: ${R} has no P2 power lines`);
+    const worst = pw.reduce((a, m) => (+m[7] > +a[7] ? m : a));
+    out.push(`- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance ${pw[0][5]} on every household; 90% of the time from a true loss of ${worst[7]} points on the household with the most discordant paths (${worst[1]} at W${worst[2]}, ${worst[4]}%), less elsewhere.`);
+    const sim = [...t.matchAll(/^  check by simulation .*$/gm)].map(m => m[0].trim());
+    sim.forEach(l => out.push(`- ${l}.`));
     return out;
   }
 };

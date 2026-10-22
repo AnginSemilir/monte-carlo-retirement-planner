@@ -43,7 +43,8 @@ lapsed; they stay in the archive.
   is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
 - D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated
   outcomes, not on gaps between a table and simulation.
-- D3. 21 Oct, maintainer: 7u-F's decision rule is Part B Step 4's recommendation. Scored by the engine (`runPolicy`'s
+- D3. 21 Oct, maintainer (kept as written 22 Oct 05:16 UK, after the design review showed a true loss of exactly `1`
+  point reads as harm half the time): 7u-F's decision rule is Part B Step 4's recommendation. Scored by the engine (`runPolicy`'s
   outcome beside it; a household where the two differ beyond noise is a fidelity gap, not a result). Primary, pooled:
   7u's item 4 as it was, the paired survival change summed over the households outside the gain set, its interval taken
   by path, passing when its lower end is above minus `0.1` points. Primary, per household: harm is a Holm-adjusted
@@ -179,7 +180,7 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 <!-- printed:step4 -->
 - V1 on the assembled candidate: ALL PASS (7 of 7 households) (`results-v-candidate.txt`).
 - V2 on the assembled candidate: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate.txt`).
-- 7u-F's budget: 112.4 core-hours, about 28.1 hours on 4 cores (`results-budget-7uf.txt`).
+- 7u-F's budget: 97.8 core-hours, about 24.4 hours on 4 cores (`results-budget-7uf.txt`).
 - 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`).
 - 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
 - 7u-F's power under P1 at W0.02 (from 7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path about 0.0237 at 16000 paths; HELD with chance 0.988 at no true change, and 80% of the time at a true pooled change of -0.034 points or more.

@@ -34,7 +34,7 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   household; it reads harm 80% of the time from a true loss of `1.03` to `1.20` points and 90% from `1.04` to `1.30`,
   the widest on S370 (`9.04%` of its paths discordant in 7u); a simulation through the reducer's own rule agrees with
   the approximation (`0.515` against `0.500`, `0.805` against `0.801`). More paths do not change the half at exactly
-  `1` point; the maintainer keeps D3 knowing this, or amends it, before the launch.
+  `1` point; the maintainer kept D3 as written knowing this (22 Oct, 05:16 UK).
 - **Primary metric:** survival scored by the engine (bridge.js `withTable` on the plan the solver solved, then
   `runTrial` path by path), paired path by path across the arms; runPolicy's figure beside it, and a household where
   the two differ beyond noise (two-sided exact p below `0.05` on the paths one survives and the other does not) is a
@@ -59,11 +59,12 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   interval at the `0.25` and `0.5` margins; estate, unmet spending, realised spend and years cut (the engine); the
   whole score (runPolicy's trace); the fidelity check; the reference's part (CAND less DECOMP, by the mixture over the
   worlds' runs and on the seed's paths); the by-world item (each world's table at its opening less the engine's runs).
-- **Preflight:** `preflight-7uf.sh` through the launcher on the tuning seed (S224 and S002, estate weight 0.02, 400
-  paths, every arm, DECOMP on both), read by `reduce-7uf.mjs --preflight` (`results-preflight-7uf.txt`): the gate fair,
-  every figure printed, the engine and runPolicy apart on no path of any unit, DECOMP equal to CAND path for path on S002
-  (no bridge years); S224 reads no bridge year, so the reference is not consulted there and the read says so.
-- **Budget:** `112.4` core-hours, about `28.1` hours on four cores (`budget-7uf.mjs`, `results-budget-7uf.txt`: 7u's
+- **Preflight:** `preflight-7uf.sh` through the launcher on the tuning seed (S224, S002 and S362, estate weight 0.02,
+  400 paths, every arm, DECOMP on each), read by `reduce-7uf.mjs --preflight` (`results-preflight-7uf.txt`): the gate
+  fair, every figure printed, the engine and runPolicy apart on no path of any unit, DECOMP equal to CAND path for path on
+  S002 (no bridge years); S224 reads no bridge year, so the reference is not consulted there and the read says so; S362's
+  reader reads 8 bridge years, the adaptive reference built and consulted, and the reference's part is printed.
+- **Budget:** `97.8` core-hours, about `24.4` hours on four cores (`budget-7uf.mjs`, `results-budget-7uf.txt`: 7u's
   measured solves, the candidate's times `1.25` for the package, and the preflight's seconds a path-year, both taken under
   load). The time box: `36` hours from the launch; past it, stop and report to the maintainer. The seed is spent at the
   launch: a stop keeps the units finished, the maintainer decides whether the rest run on the same snapshot, and the read

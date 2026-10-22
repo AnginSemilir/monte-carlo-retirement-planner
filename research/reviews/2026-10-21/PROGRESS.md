@@ -1,5 +1,8 @@
 # Progress against Part B, and questions for the reviewer (22 Oct 2026)
 
+Answered by the follow-up review of 22 Oct (`research/reviews/2026-10-22/FOLLOW-UP.md` on the branch
+review/external-2026-10-21), whose answers and order of work the maintainer adopted: STATE.md's D20 and section 6.
+
 The external review of 21 Oct (`EXTERNAL-REVIEW.md`, this folder) was adopted by the maintainer that day, Part B as the
 plan, worked in order. This page says what has been done, where the work departed from Part B, what it found that the
 review did not expect, and the questions it leaves for the reviewer. The work is on the branch

@@ -1,0 +1,22 @@
+# node research/solver/reach-census.mjs <the solver before Step 1> part k/3 (Part B Step 1, item 4), joined; the count stopped here
+REACH CENSUS: a copy of src/solver at the commit before Step 1, fingerprint 634e93a6ed514103 (pinned), the candidate at 30 points, lambda 0.0223606797749979, estate weight 0.02; 55 households; part 0/3
+S120             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2992 s
+S122             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2841 s
+S124             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 1238 s
+S126             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2546 s
+S128             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 973 s
+S130             cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 959 s
+S194             cells 3586680 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2276 s
+S360             cells 4024080 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 3822 s
+bridge 0         cells 3324240 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 945 s
+bridge 1         cells 3411720 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2098 s
+bridge 4         cells 3674160 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2888 s
+bridge 6         cells 3849120 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2705 s
+share 0.50       cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 960 s
+share 0.70       cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 958 s
+share 0.78       cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 952 s
+share 0.90       cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 1011 s
+share 0.95       cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 1045 s
+wealth x0.5      cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2319 s
+wealth x2        cells 3499200 no move chosen 0 non-finite 0 | worlds 3 layers 3 | solve 2336 s
+VERDICT: on the code before the fix, 19 of 7u's 55 households counted, cells with no move chosen 0, non-finite 0; the count then dropped (the follow-up review of 22 Oct, answer 3: 7u-F re-solves every household on the fixed code, whose guards throw on a cell with no move)

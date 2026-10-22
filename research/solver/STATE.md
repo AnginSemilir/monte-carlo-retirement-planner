@@ -39,6 +39,21 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, on the branch
+  review/external-2026-10-21, not merged) is adopted, its ten answers to PROGRESS.md's questions and its Next section.
+  The answers: (1) the one-pot oracle's table gap is a diagnostic, kept REPORTED; V3 accepts a resolution by the
+  policy's convergence, prints the one-pot error at each resolution beside it, and fails if that error stops shrinking
+  as points are added; (2) D3 stands for 7u-F; Phase 4's harm rule is registered by its error rates at the margin (the
+  maintainer's call); (3) the reach count is dropped, its 19 households recorded in one line; (4) V2 gains a state
+  check after 7u-F: the engine and a forward run in step, the engine's state mapped into the solver's vector compared
+  slot by slot to a pound, and an inventory test of every engine state field as carried, derived or inert under a
+  table; (5) the pre-tool hook's interpreter-script check is reverted under the maintainer's unlock, CI printing the
+  protected files each push changed and the session start the same for the last day; (6) the argmax loops in
+  `adaptive.js` and `couple.js` are guarded right after 7u-F, each with a planted NaN; (7) the decomposing arm stays as
+  built; (8) V3 adds S330 (seven households, or in place of S002); V4 drops probit and counts V3's finest setting as a
+  variant; (9) V5's interval after 7u-F, the maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 is
+  a standalone page built from `src/solver` that the maintainer runs on a laptop and a phone.
+
 - D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement
   is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
 - D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated
@@ -119,7 +134,6 @@ simulated outcomes. A table gap is a lead, not a verdict; none gates 7u-F (D2).
 <!-- printed:limitations -->
 - O133, year-0 tables above simulation on the broad households below 95: SHIP broad households below 95 17; table above the simulation on 16 (from 0.29 on S394 to 10.61 on S248); not above: S364 -0.39; CAND broad households below 95 17; table above the simulation on 15 (from 0.9 on S214 to 4.82 on S364); not above: S380 -0.1, S394 -2.55 (`results-o133-scan.txt`).
 - O139, S380's world 0 under the candidate: table 35.0977 against 30.8500 simulated (`results-neroot.txt`).
-- O145, the under-read left when the wealth axis is refined (S224, S380): a deep review's extrapolation, in no results file (archive/deep-review-log.md, 11 Oct).
 - O180, S370's bad world: table 51.3448 against 38.0000 run (152 of 400), 13.3448 points over (`results-hodep-s370.txt`).
 - O189, S128's bridge part: world 0 GB 2.6233, world 1 GB 2.1200 points (`results-copyb.txt`).
 - O198, the top-cell fix's year-1 residual under the plan reference, world 0: -0.5125 points (`results-copyx.txt`).
@@ -150,7 +164,7 @@ fixed, and V1 runs on the assembled candidate (Step 4).
 - F0, S008, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before -0.05 (0 / 1), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - F0, S172, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - F0, S194, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
-- O200's reach on the frozen candidate, 7u's 55 households: pending: research/solver/results-reach-census.txt (`results-reach-census.txt`).
+- O200's reach (item 4), counted and then dropped: on the code before the fix, 19 of 7u's 55 households counted, cells with no move chosen 0, non-finite 0; the count then dropped (the follow-up review of 22 Oct, answer 3: 7u-F re-solves every household on the fixed code, whose guards throw on a cell with no move) (`results-reach-census.txt`).
 <!-- end printed:step1 -->
 
 ### Step 2: what the fixes could have changed (EXPLORATORY, the tuning seed)
@@ -202,19 +216,20 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
   `research/solver/results/diag7uf`. 106 units, about 24 hours on four cores; the harness stops a tracked task at 12
   hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
   and audit) until every unit is in. Time box: 23 Oct 19:14 UK. Read once, by `reduce-7uf.mjs`, when every unit is in.
-- Step 1's reach count waits for 7u-F to read (it gates nothing before it): the code before the fix stopped at 19 of the
-  55 households (none with a cell lost); it resumes from a worktree of the commit before Step 1 (its own pin) with
-  `REACH_SKIP=<its output>`, and the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
 
 ## 6. The next three actions
 
-1. While 7u-F runs: relaunch it with `RESUME=1` at each stop
-   (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`);
-   nothing else on the cores, and no edit to the files the code id or the audit's stamp hashes (`src/solver`,
-   `src/App.jsx`, `code-id.mjs`'s list, `audit-7uf.mjs`, `panel-7uf.mjs`): a relaunch keeps only units on the same code.
-   Waiting for that: `fast.js` l.672's guardrail "lost" flag, read from pots grown twice (inert under a table), fixed
-   with its test after the last unit.
+The order is the follow-up review's Next section (D20); each step has its test and a time box.
+
+1. While 7u-F runs, nothing but its relaunches: `RESUME=1` at each stop
+   (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`),
+   and no edit to the files the code id or the audit's stamp hashes (`src/solver`, `src/App.jsx`, `code-id.mjs`'s list,
+   `audit-7uf.mjs`, `panel-7uf.mjs`): a relaunch keeps only units on the same code.
 2. When every unit is in: the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`, saved as
-   `results-7uf.txt`), by D3 as registered; the reviewer on the read's claims, then the deep-reviewer.
-3. Then Step 5: V3, V4 and the purpose test (`v3-convergence.mjs`, `v4-ensemble.mjs`, `audit-bestof-cand.mjs`), the full
-   suite (`run-all.mjs all`) and the reach count; on harm, V4's measures on the harmed households first (D3, D4).
+   `results-7uf.txt`), by D3 as registered; the reviewer on the read's claims, then the deep reviewer.
+3. Then one commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
+   l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test. After it: V2's
+   state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs), and the hook change of D20 (5)
+   under the maintainer's unlock; then Step 6 as written. On harm in 7u-F, V4's measures on the harmed households first
+   (D3, D4). Open for the maintainer: Phase 4's harm rule (D20 (2)), V5's interval (D20 (9)), the charges default (N6)
+   and the timing page's run on their own devices (D20 (10)).

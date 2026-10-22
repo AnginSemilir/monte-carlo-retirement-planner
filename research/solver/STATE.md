@@ -196,16 +196,22 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 
 ## 5. Running now
 
-- Nothing. Step 1's reach count waits for 7u-F to read (it gates nothing before it): the code before the fix stopped at
-  19 of the 55 households (none with a cell lost); it resumes from a worktree of the commit before Step 1 (its own pin)
-  with `REACH_SKIP=<its output>`, and the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
+- 7u-F, the confirmatory run (`registrations/fresh-7uf.md`; the design reviews `reviews/2026-10-21-fresh-7uf.md` FAIL,
+  `2026-10-22-fresh-7uf.md` PASS, `2026-10-22-fresh-7uf-minors.md` PASS): launched 22 Oct 07:14 UK from 2a008b0
+  through the launcher, a tracked task; its log `research/solver/results/7uf-launch1.log`, the units in
+  `research/solver/results/diag7uf`. 106 units, about 24 hours on four cores; the harness stops a tracked task at 12
+  hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
+  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. Read once, by `reduce-7uf.mjs`, when every unit is in.
+- Step 1's reach count waits for 7u-F to read (it gates nothing before it): the code before the fix stopped at 19 of the
+  55 households (none with a cell lost); it resumes from a worktree of the commit before Step 1 (its own pin) with
+  `REACH_SKIP=<its output>`, and the count after the fix runs on 7u's candidate (`FROZEN_OPTS`).
 
 ## 6. The next three actions
 
-1. The reviewer's design review of `registrations/fresh-7uf.md` and the code it runs (`panel-7uf.mjs`, `audit-7uf.mjs`,
-   `reduce-7uf.mjs`, `batch-7uf.sh`), its verdict in `research/solver/reviews/`; a FAIL's findings fixed first.
-2. On a PASS: the review named in the registration, committed and pushed, then the launch:
-   `PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`
-   (its time box in the registration), read once by `reduce-7uf.mjs`.
-3. While it runs: Step 5's V3, V4 and the purpose test are built (`v3-convergence.mjs`, `v4-ensemble.mjs`,
-   `audit-bestof-cand.mjs`) and run after 7u-F reads; then the full suite (`run-all.mjs all`) and the reach count.
+1. While 7u-F runs: relaunch it with `RESUME=1` at each stop
+   (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`);
+   nothing else on the cores.
+2. When every unit is in: the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`, saved as
+   `results-7uf.txt`), by D3 as registered; the reviewer on the read's claims, then the deep-reviewer.
+3. Then Step 5: V3, V4 and the purpose test (`v3-convergence.mjs`, `v4-ensemble.mjs`, `audit-bestof-cand.mjs`), the full
+   suite (`run-all.mjs all`) and the reach count; on harm, V4's measures on the harmed households first (D3, D4).

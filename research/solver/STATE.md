@@ -221,9 +221,11 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
   through the launcher, a tracked task; its log `research/solver/results/7uf-launch1.log`, the units in
   `research/solver/results/diag7uf`. 106 units, about 24 hours on four cores; the harness stops a tracked task at 12
   hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
-  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. From the relaunch the remaining CAND and SHIP units run
-  first and DECOMP's last (D21): at the measured rates every CAND and SHIP unit is in around 23 Oct 14:00 UK, inside the
-  box, and P1 and P2 are read then, once; DECOMP runs on or stops by D21.
+  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. A container restart stopped it at 22 Oct 18:08 UK with
+  20 units done and kept (4 cut short); relaunched at once with `RESUME=1` from 09fb223, a tracked task, its log
+  `research/solver/results/7uf-launch2.log`. From the relaunch the remaining CAND and SHIP units run first and DECOMP's
+  last (D21): at the measured rates every CAND and SHIP unit is in around 23 Oct 14:00 UK, inside the box, and P1 and
+  P2 are read then, once; DECOMP runs on or stops by D21.
 
 ## 6. The next three actions
 

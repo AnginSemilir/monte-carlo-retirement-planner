@@ -72,10 +72,12 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   reader reads 8 bridge years, the adaptive reference built and consulted, and the reference's part is printed.
 - **Budget:** `97.8` core-hours, about `24.4` hours on four cores (`budget-7uf.mjs`, `results-budget-7uf.txt`: 7u's
   measured solves, the candidate's times `1.25` for the package, and the preflight's seconds a path-year, both taken under
-  load). The time box: `36` hours from the launch; past it, stop and report to the maintainer. The seed is spent at the
-  launch: a stop keeps the units finished, and the maintainer decides whether the rest run on the same code
-  (`RESUME=1` through the launcher runs only the units whose log has no done line; a launch without it refuses a folder
-  that is not empty; the read refuses any unit file whose code or audit stamp is not the logs' one version). The read is
-  made once, when every unit is in.
+  load). The time box: `36` hours from the launch;
+  past it, stop and report to the maintainer. The seed is spent at the launch. The harness stops a tracked task at 12
+  hours and a container restart stops it too, so the batch is relaunched through the launcher under this registration
+  with `RESUME=1` until every unit is in: a relaunch keeps a unit only when its log's stamp names the same code and audit
+  and holds the unit's done line, and runs every other unit from the start (7u's rule; a launch without `RESUME=1`
+  refuses a folder that is not empty). Past the time box a relaunch is the maintainer's call. The read refuses any unit
+  file whose code or audit stamp is not the logs' one version, and is made once, when every unit is in.
 - **Design review:** PASS, research/solver/reviews/2026-10-22-fresh-7uf.md (its four MINORs fixed in ac5723d and confirmed
   PASS in research/solver/reviews/2026-10-22-fresh-7uf-minors.md; the first review, 2026-10-21-fresh-7uf.md, FAIL).

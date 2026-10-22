@@ -7,13 +7,19 @@
 # and read once by research/solver/reduce-7uf.mjs.
 set -u
 OUT=research/solver/results/diag7uf
-# A launch needs an empty folder. RESUME=1 is the registration's stop at the time box, run only on the maintainer's word:
-# it runs the units whose log has no "done" line (the audit writes a unit's file just before it), and the read refuses any
-# unit file whose code or audit stamp is not the logs' one version (the re-review of 22 Oct, finding 3).
+# A launch needs an empty folder. The harness stops a tracked task at 12 hours (BASH_MAX_TIMEOUT_MS) and a container
+# restart stops it too, and 7u-F needs about 24: RESUME=1 relaunches it under the same registration (7u's rule, batch-7u.sh)
+# and keeps a unit only when its log's stamp names this code and this audit and the log holds the unit's done line (the
+# audit writes the unit's file just before it), re-running every other unit from the start. Past the registration's time
+# box, only on the maintainer's word. The read refuses any unit file whose code or audit stamp is not the logs' one version
+# (the re-review of 22 Oct, finding 3).
 mkdir -p "$OUT"
-if [ -n "$(ls -A "$OUT")" ] && [ "${RESUME:-0}" != 1 ]; then echo "batch-7uf: $OUT is not empty; a launch needs an empty folder (RESUME=1 runs the units not done)"; exit 2; fi
+if [ -n "$(ls -A "$OUT")" ] && [ "${RESUME:-0}" != 1 ]; then echo "batch-7uf: $OUT is not empty; a launch needs an empty folder (RESUME=1 keeps the units done on this code)"; exit 2; fi
+CODE=$(node research/solver/code-id.mjs)
+AUDIT=$(cat research/solver/audit-7uf.mjs research/solver/panel-7uf.mjs | sha256sum | cut -c1-12)   # audit-7uf.mjs's own stamp
 NU=$(node research/solver/audit-7uf.mjs --units | tail -1)
-echo "7u-F: $NU units on seed 7014, from $(TZ=Europe/London date '+%d %b %H:%M') UK${RESUME:+ (resume: the units with no done line)}"
-seq 0 $((NU - 1)) | while read -r k; do grep -qE '^ +done ' "$OUT/case$k.txt" 2>/dev/null || echo "$k"; done | xargs -P 4 -I{} sh -c \
+TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && grep -qE '^ +done ' "$f"; } || echo "$k"; done)
+echo "7u-F: $NU units on seed 7014 (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
+printf '%s\n' $TODO | grep . | xargs -P 4 -I{} sh -c \
   "DIAG7UF_OUT=$OUT node research/solver/audit-7uf.mjs 16000 part {}/$NU 7014 > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""
 echo "7u-F runs done $(TZ=Europe/London date '+%d %b %H:%M') UK"

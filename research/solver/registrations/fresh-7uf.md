@@ -26,15 +26,20 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   7018, owned by `phase-4*.md`, never read by any file.
 - **Paths:** 16,000 a household and arm (agreed), executed by the engine; runPolicy beside it on the first 4,000; on
   CAND and DECOMP each world's runs on 2,000 paths (the by-world item and the reference's part). Power, from 7u's own
-  per-path records (`reread-7u-item4.mjs`, `results-reread-7u-item4.txt`, printed in STATE.md's Step 4 block; the design
-  review of 21 Oct corrected the first statement of P2's): P1 reads HELD with chance about `0.99` at no true change, and
-  80% of the time at a true pooled change of about minus `0.034` points or better (its se from 14 of the 18 floor
-  households; S382, S406, S418 and S362 have no record). P2, as D3 words it, needs the Holm-adjusted p and an observed
-  loss of at least `1` point together, so a true loss of exactly `1` point reads as harm half the time on every
-  household; it reads harm 80% of the time from a true loss of `1.03` to `1.20` points and 90% from `1.04` to `1.30`,
-  the widest on S370 (`9.04%` of its paths discordant in 7u); a simulation through the reducer's own rule agrees with
-  the approximation (`0.515` against `0.500`, `0.805` against `0.801`). More paths do not change the half at exactly
-  `1` point; the maintainer kept D3 as written knowing this (22 Oct, 05:16 UK).
+  per-path records on the code before Step 1 (`reread-7u-item4.mjs`, `results-reread-7u-item4.txt`, printed in STATE.md's
+  Step 4 block; the design reviews of 21 and 22 Oct corrected its first statements): P1 averages all 18 floor
+  households, and 7u has no record of four (S382, S406, S418, S362), so its se is a range: about `0.0184` with those four
+  unchanged to `0.0317` with each as spread as S370 and independent (the recorded households' changes correlate pairwise
+  within `-0.06` to `0.10`); HELD with chance `1.000` to `0.883` at no true change, and 80% of the time at a true pooled
+  change of `-0.048` to `-0.011` points or better. P2, as D3 words it, needs the Holm-adjusted p and an observed loss of
+  at least `1` point together, so a true loss of exactly `1` point reads as harm half the time on every household; on
+  the in-band households 7u ran it reads harm 80% of the time from a true loss of `1.07` to `1.20` points and 90% from
+  `1.11` to `1.30` (the widest S370, `9.04%` of its paths discordant), and on the four without a record, at `5%` to
+  `15%` discordant, 90% from `1.23` to `1.39`; a simulation through the reducer's own rule agrees with the approximation
+  (`0.515` against `0.500`, `0.805` against `0.801`, `0.902` against `0.887`). More paths do not change the half at
+  exactly `1` point; the maintainer kept D3 as written knowing this (22 Oct, 05:16 UK). S366 sits at the band's top
+  (SHIP `99.47%` and `99.44%` in 7u): on 16,000 paths it lands in the band with chance about `0.67` at W0.02 and `0.85`
+  at W0.01, and outside it its change is reported, not gated.
 - **Primary metric:** survival scored by the engine (bridge.js `withTable` on the plan the solver solved, then
   `runTrial` path by path), paired path by path across the arms; runPolicy's figure beside it, and a household where
   the two differ beyond noise (two-sided exact p below `0.05` on the paths one survives and the other does not) is a
@@ -47,7 +52,8 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   INCONCLUSIVE. P2, per household: where SHIP survives between `5%` and `99.5%`, the one-sided exact McNemar p of the
   loss, Holm-adjusted over every in-band household and weight; harm is an adjusted p below `0.05` with a loss of at
   least `1` point. Outside the band the change is reported, not gated. A household whose engine and runPolicy figures
-  differ (two-sided exact p below `0.05` on the paths one survives and the other does not; any such path is listed) is
+  differ (two-sided exact p below `0.05` on the paths one survives and the other does not; every path apart, on any
+  household, is listed by its index) is
   logged as a fidelity gap and stays in P1 and P2, which the engine scores. DECOMP only reports: a DECOMP unit missing or
   differing in its settings is reported for its household and never stops the read of P1 and P2.
 - **Outcomes:** PASS (P1 HELD at both weights, no harm): the candidate goes to Phase 4. HARM (any household): the harmed
@@ -67,6 +73,8 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
 - **Budget:** `97.8` core-hours, about `24.4` hours on four cores (`budget-7uf.mjs`, `results-budget-7uf.txt`: 7u's
   measured solves, the candidate's times `1.25` for the package, and the preflight's seconds a path-year, both taken under
   load). The time box: `36` hours from the launch; past it, stop and report to the maintainer. The seed is spent at the
-  launch: a stop keeps the units finished, the maintainer decides whether the rest run on the same snapshot, and the read
-  is made once, when every unit is in.
+  launch: a stop keeps the units finished, and the maintainer decides whether the rest run on the same code
+  (`RESUME=1` through the launcher runs only the units whose log has no done line; a launch without it refuses a folder
+  that is not empty; the read refuses any unit file whose code or audit stamp is not the logs' one version). The read is
+  made once, when every unit is in.
 - **Design review:** <PASS, research/solver/reviews/<date>-fresh-7uf.md>

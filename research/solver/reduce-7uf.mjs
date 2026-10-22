@@ -77,12 +77,15 @@ export function decompGate(units, panel, weights, needsDecomp) {
   }
   return out;
 }
-/* every unit's own provenance against the registration (MINOR 5): its seed and path count, and its stamp's registration
-   and that registration's blob as the launcher recorded it (the logs are checked the same way by requireFairLogs) */
-export function provenanceProblems(units, { seed, N, prediction, sha }) {
+/* every unit's own provenance against the registration (MINOR 5): its seed and path count, its stamp's registration and
+   that registration's blob as the launcher recorded it (the logs are checked the same way by requireFairLogs), and its
+   code and audit stamps against the logs' one version (the re-review of 22 Oct, finding 3: after a resume on changed code,
+   a unit file left from the first launch would otherwise be read beside the new logs) */
+export function provenanceProblems(units, { seed, N, prediction, sha, version }) {
   const out = [];
   for (const [id, byW] of Object.entries(units)) for (const [w, arms] of Object.entries(byW)) for (const [a, u] of Object.entries(arms)) {
     if (u.seed !== seed || u.N !== N) out.push(`${id} W${w} ${a}: seed ${u.seed}, ${u.N} paths, not ${seed} and ${N}`);
+    if (version && (u.stamp.code !== version.code || u.stamp.audit !== version.audit)) out.push(`${id} W${w} ${a}: code ${u.stamp.code} audit ${u.stamp.audit}, not the logs' code ${version.code} audit ${version.audit}`);
     if (u.stamp.prediction !== prediction) out.push(`${id} W${w} ${a}: launched under ${u.stamp.prediction}, not ${prediction}`);
     else if (u.stamp.sha !== sha) out.push(`${id} W${w} ${a}: the registration's blob at launch ${u.stamp.sha}, now ${sha}`);
   }
@@ -156,13 +159,17 @@ async function read(dir, pre = false) {
   const needsDecomp = id => P.bridgeYears(E, prep(id)) > 0;
   // the launch's provenance first (fair-gate.mjs): every unit's log stamped by the launcher under the registration, the
   // registration unedited since, one code version across the logs
-  if (!pre) requireFairLogs(Object.fromEntries(readdirSync(dir).filter(f => /^case\d+\.txt$/.test(f)).map(f => [f, readFileSync(join(dir, f), 'utf8')])), REGISTRATION);
+  const logs = Object.fromEntries(readdirSync(dir).filter(f => /^case\d+\.txt$/.test(f)).map(f => [f, readFileSync(join(dir, f), 'utf8')]));
+  if (!pre) requireFairLogs(logs, REGISTRATION);
+  // the logs' one version (requireFairLogs refuses more than one), which every unit file's stamp must carry
+  const lv = Object.values(logs).map(t => /^stamp: code (\S+) audit (\S+) /m.exec(t)).find(Boolean), version = lv ? { code: lv[1], audit: lv[2] } : null;
   const units = {};
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json.gz'))) { const j = load(dir, f); ((units[j.id] = units[j.id] || {})[j.w] = units[j.id][j.w] || {})[j.arm] = j; }
   const PANEL = pre ? P.PANEL.filter(id => units[id]) : P.PANEL, WEIGHTS = pre ? P.WEIGHTS.filter(w => PANEL.some(id => units[id][w])) : P.WEIGHTS;
   const problems = gate(units, PANEL, WEIGHTS);
   if (!pre) { const { execSync } = await import('node:child_process'); const sha = execSync(`git hash-object ${REGISTRATION}`, { cwd: join(HERE, '../..') }).toString().trim();
-    problems.push(...provenanceProblems(units, { seed: P.SEED, N: P.N, prediction: REGISTRATION, sha })); }
+    problems.push(...provenanceProblems(units, { seed: P.SEED, N: P.N, prediction: REGISTRATION, sha, version }));
+    if (!version) problems.push('no unit log carries a stamp line'); }
   const dGate = decompGate(units, PANEL, WEIGHTS, id => needsDecomp(id) || (pre && WEIGHTS.every(w => units[id][w] && units[id][w].DECOMP)));
   const any = Object.values(units).flatMap(x => Object.values(x)).flatMap(x => Object.values(x))[0];
   console.log(`7U-F READ: ${dir}; ${Object.keys(units).length} households; seed ${any ? any.seed : '-'}, ${any ? any.N : '-'} paths; stamp ${any ? JSON.stringify(any.stamp) : '-'}`);
@@ -191,7 +198,9 @@ async function read(dir, pre = false) {
     console.log(`  ${id.padEnd(6)} W${w}: estate ${sgn(est.d)} (se ${f3(est.se)}), unmet ${sgn(un.d)}, realised spend ${sgn(sp.d)}, years cut ${sgn(ct.d)}; whole score ${sgn(ws.d)} (se ${f4(ws.se)}) on ${NB} paths${S.bs.death || C.bs.death ? ' (a pension death charge: the whole score omits it)' : ''}`);
     console.log(`    the reader: ${C.readerYears || 0} bridge years read; the adaptive reference ${C.adaptive ? 'consulted' : 'not consulted (CAND is DECOMP here by construction)'}`);
     for (const [a, U] of [['SHIP', S], ['CAND', C], ...(u.DECOMP && !dGate[`${id}/${w}`] ? [['DECOMP', u.DECOMP]] : [])]) { const nb = U.NB; let eo = 0, po = 0; for (let i = 0; i < nb; i++) { if (U.bits[i] && !U.bs.survived[i]) eo++; if (U.bs.survived[i] && !U.bits[i]) po++; } const p = twoSidedExact(eo, po);
-      console.log(`    fidelity ${a}: the engine alone ${eo}, runPolicy alone ${po} of ${nb} (two-sided exact p ${p.toFixed(4)})${p < 0.05 ? ' FIDELITY GAP (logged; the household stays in P1 and P2, which the engine scores)' : eo + po > 0 ? ' (apart on some paths: listed, below the gap\'s test)' : ''}`); }
+      console.log(`    fidelity ${a}: the engine alone ${eo}, runPolicy alone ${po} of ${nb} (two-sided exact p ${p.toFixed(4)})${p < 0.05 ? ' FIDELITY GAP (logged; the household stays in P1 and P2, which the engine scores)' : eo + po > 0 ? ' (apart on some paths, below the gap\'s test)' : ''}`);
+      if (eo + po > 0) { const at = f => { const x = []; for (let i = 0; i < nb; i++) if (f(i)) x.push(i); return x.join(' '); };
+        console.log(`      the paths apart (index from 0): the engine alone ${at(i => U.bits[i] && !U.bs.survived[i]) || '-'}; runPolicy alone ${at(i => U.bs.survived[i] && !U.bits[i]) || '-'}`); } }
     if (u.DECOMP && !dGate[`${id}/${w}`]) {
       const D = u.DECOMP, cs = C.worlds.map((x, k) => cells(D.worlds[k].bitsA, x.bitsA)), mx = mixtureChange(cs, MIX3W), seedC = cells(D.bits, C.bits), iv = survivalChangeU(seedC.a, seedC.b, seedC.c, seedC.d, LEVEL);
       console.log(`    the reference's part (CAND less DECOMP): by the mixture ${sgn(mx.d)} (${f3(mx.lo)} to ${f3(mx.hi)}; by world ${mx.per.map(x => sgn(x.d)).join(', ')}); on the seed's paths ${sgn(iv.d)} (${f3(iv.lo)} to ${f3(iv.hi)}; ${seedC.c} saved, ${seedC.b} lost)`);
@@ -241,8 +250,8 @@ export function planted() {
   cases.push(['GATE: SHIP from another candidate hash: refused', g(U(), U({}, { readerRef: 'null' }), U({ stamp: { candidate: 'other' } }, { bridgeRead: 'false', readerRef: 'null', readerSplit: 'null', e3: false })) > 0, true]);
   cases.push(['GATE EDGE: a missing DECOMP unit: reported, the primary reads', `${Object.keys(decompGate({ X: { '0.02': { CAND: U(), SHIP: U() } } }, ['X'], ['0.02'], () => true)).length} ${gate({ X: { '0.02': { CAND: U(), SHIP: U() } } }, ['X'], ['0.02']).length}`, '1 0']);
   cases.push(['GATE EDGE: a missing SHIP unit: refused', gate({ X: { '0.02': { CAND: U() } } }, ['X'], ['0.02']).length > 0, true]);
-  const pv = o => provenanceProblems({ X: { '0.02': { CAND: U(), SHIP: U(o) } } }, { seed: 7014, N: 16000, prediction: 'p', sha: 's' }).length;
-  cases.push(['PROVENANCE: every unit launched under the registration as it stands passes; another seed, another registration, an edited registration each refused', `${pv({})} ${pv({ seed: 7002 })} ${pv({ stamp: { prediction: 'none' } })} ${pv({ stamp: { sha: 'edited' } })}`, '0 1 1 1']);
+  const pv = o => provenanceProblems({ X: { '0.02': { CAND: U(), SHIP: U(o) } } }, { seed: 7014, N: 16000, prediction: 'p', sha: 's', version: { code: 'c', audit: 'a' } }).length;
+  cases.push(['PROVENANCE: every unit launched under the registration as it stands passes; another seed, another registration, an edited registration, a unit file from another code or audit than the logs\' (a resume on changed code) each refused', `${pv({})} ${pv({ seed: 7002 })} ${pv({ stamp: { prediction: 'none' } })} ${pv({ stamp: { sha: 'edited' } })} ${pv({ stamp: { code: 'old' } })} ${pv({ stamp: { audit: 'old' } })}`, '0 1 1 1 1 1']);
   return cases;
 }
 

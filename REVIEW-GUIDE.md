@@ -15,7 +15,10 @@ The repository holds two things:
    their measured effects, and the next actions. Short, and every figure in it is printed from a results file.
 2. `research/solver/CHECKLIST.md`: the eight rules.
 3. `research/reviews/2026-10-21/EXTERNAL-REVIEW.md`: the external review of 21 Oct; its Part B is the plan.
-4. `src/solver/`: the solver. Its research settings, the candidate, are `CANDIDATE_OPTS` in `research/solver/candidate.mjs`.
+4. `research/reviews/2026-10-21/PROGRESS.md`: what has been done against Part B, where the work departed from it, and
+   the questions for the reviewer.
+5. `src/solver/`: the solver. Its research settings, the candidate, are `research/solver/candidate.json`, read by
+   `research/solver/candidate.mjs` (`CANDIDATE_OPTS`).
 
 ## Map
 
@@ -37,7 +40,7 @@ The repository holds two things:
 ```sh
 npm install
 python3 research/build-engine.py           # generates research/engine.mjs
-node research/tests/run-all.mjs fast -j 2  # the verification suite (about four minutes)
+node research/tests/run-all.mjs fast -j 2  # the verification suite (about eleven minutes)
 node research/tests/run-all.mjs all -j 2   # every test (slow: some take half an hour)
 node research/solver/check-state.mjs       # STATE.md's own check
 ```

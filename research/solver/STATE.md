@@ -210,7 +210,10 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 
 1. While 7u-F runs: relaunch it with `RESUME=1` at each stop
    (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`);
-   nothing else on the cores.
+   nothing else on the cores, and no edit to the files the code id or the audit's stamp hashes (`src/solver`,
+   `src/App.jsx`, `code-id.mjs`'s list, `audit-7uf.mjs`, `panel-7uf.mjs`): a relaunch keeps only units on the same code.
+   Waiting for that: `fast.js` l.672's guardrail "lost" flag, read from pots grown twice (inert under a table), fixed
+   with its test after the last unit.
 2. When every unit is in: the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`, saved as
    `results-7uf.txt`), by D3 as registered; the reviewer on the read's claims, then the deep-reviewer.
 3. Then Step 5: V3, V4 and the purpose test (`v3-convergence.mjs`, `v4-ensemble.mjs`, `audit-bestof-cand.mjs`), the full

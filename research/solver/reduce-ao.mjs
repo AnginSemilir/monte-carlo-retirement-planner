@@ -290,7 +290,7 @@ function planted() {
   outc('3', { lose: [0, 0, 400] }, 'HELD', 'A6 loses 400 in world 2 only (not read): 3 HELD');
   { const r = mk({ lose: [3, 0, 0] }); cases.push(['the paired counts: lost 3 saved 0 of 4,000, BO alive 2,000', JSON.stringify(paired(r.S('A6', 0), r.S('BO', 0))), JSON.stringify({ lost: 3, saved: 0, both: 1997, N: 4000, bAlive: 2000 })]); }
   // the luck adjustment: y = 2 + 0.5 z0 - 0.3 z1 + a small spread, on shocks of mean not 0: the intercept 2 recovered
-  { let st = 7; const rnd = () => { st = (st * 1103515245 + 12345) % 2147483648; return st / 2147483648; };
+  { let st = 7; const rnd = () => { st = (Math.imul(st, 1103515245) + 12345) & 0x7fffffff; return st / 2147483648; };
     const X = Array.from({ length: 2000 }, () => [rnd() * 2 - 0.8, rnd() * 2 - 1.2]), y = X.map(([a, b], i) => 2 + 0.5 * a - 0.3 * b + (i % 2 ? 1e-3 : -1e-3));
     const r = luckAdjusted(y, X); cases.push(['the luck adjustment recovers a known intercept (2) from shocks with a non-zero mean', f4(r.m), '2.0000']); }
   { let L = [], err = null; const r = mk(); try { L = report(r.R, r.P, r.S); } catch (e) { err = e.message; } cases.push(['the read prints three items, an OUTCOME of three and three REALISED lines, end to end', err || `${['1.', '2.', '3.'].every(p => L.some(l => l.startsWith(p)))} ${(L.find(l => l.startsWith('OUTCOME: ')) || '').split(',').length} ${L.filter(l => l.startsWith('REALISED item ')).length}`, 'true 3 3']); }

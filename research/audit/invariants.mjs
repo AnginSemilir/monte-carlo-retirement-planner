@@ -24,7 +24,7 @@ const f = (x) => '£' + Math.round(x).toLocaleString();
 
 // a small deterministic generator, so case 137 is always case 137
 let seed = 20260913;
-const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
 const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
 const money = (lo, hi) => Math.round((lo + rnd() * (hi - lo)) / 1000) * 1000;
 const GIA = E.CATEGORY_LABEL.other;

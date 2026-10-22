@@ -139,7 +139,7 @@ const off = solve(s130), on = solve(s130, { readerTax: true });
 // 4. the band's bound: a read's support agrees with the flow around the edge; tauBar 0 misreads (planted)
 {
   const pays = judge(on), g = on.g, lsa = g.m.P.lsa;
-  let seed = 4242; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  let seed = 4242; const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 2147483648; };
   let mis = 0, misZero = 0, n4 = 0;
   for (const t of stepYears(on)) {
     const tx = g.reader.tax[t], RD = tablesOf(on).find(x => x.t === t), d0 = tx.d0;
@@ -203,7 +203,7 @@ function earningsVariant() {
     const r = solve(plan, { readerTax: true }), pays = judge(r), g = r.g, v = new Float64Array(7), lsa = g.m.P.lsa;
     const ts = stepYears(r); assert.ok(ts.length >= 1, `${id} has a step year under readerTax`);
     let checked = 0, bad = 0, today = 0, n6 = 0, mis = 0, misZero = 0;
-    let seed = 777; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    let seed = 777; const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 2147483648; };
     for (const t of ts) {
       const tx = g.reader.tax[t], RD = tablesOf(r).find(x => x.t === t), A0 = tx.d0 - tx.tol / 2, d0 = tx.d0;
       for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ip = 0; ip < g.np; ip++) {
@@ -261,7 +261,7 @@ function earningsVariant() {
   const ref = on, lsa = ref.g.m.P.lsa;
   const same = (a, b) => {
     const ta = stepYears(a), tb = stepYears(b); if (ta.join() !== tb.join()) return false;
-    let seed = 99; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    let seed = 99; const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 2147483648; };
     for (const t of ta) {
       const x = a.g.reader.tax[t], y = b.g.reader.tax[t];
       if (x.d0 !== y.d0 || x.tauBar !== y.tauBar) return false;

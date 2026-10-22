@@ -25,7 +25,7 @@ for (let t = 0; t <= T; t++) for (let i = 0; i < off.g.size; i++) if (off.lsurv[
 ok(same, 'the option leaves every table and stored move bit-identical: it changes only the final-year read');
 
 // random positions in the final year, from near-empty to comfortable
-let seed = 11; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+let seed = 11; const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
 const s0 = vecOf(off.m, M.initialState(off.m));
 const states = [];
 for (let k = 0; k < 300; k++) {

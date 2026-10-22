@@ -203,7 +203,7 @@ const stepYears = r => r.g.cov.years.map((x, t) => (x ? t : -1)).filter(t => t >
     }
     return sum;
   };
-  let rnd = 12345; const U = () => { rnd = (rnd * 1103515245 + 12345) % 2147483648; return rnd / 2147483648; };
+  let rnd = 12345; const U = () => { rnd = (Math.imul(rnd, 1103515245) + 12345) & 0x7fffffff; return rnd / 2147483648; };
   let worst = 0, layoutDiff = 0, n32 = 0;
   for (let q = 0; q < 400; q++) {
     const Wx = W.pts[1] * 0.5 + U() * (W.pts[W.n - 2] - W.pts[1] * 0.5), a = U(), b = U() * 0.999, gx = g.gain[0] + U() * (g.gain[g.gain.length - 1] - g.gain[0]), pf = g.pcls[0] + U() * (g.pcls[g.pcls.length - 1] - g.pcls[0]);

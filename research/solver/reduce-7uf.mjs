@@ -202,7 +202,9 @@ async function read(dir, pre = false) {
 
 /* PLANTED: the rule on synthetic units, each case the outcome it must read */
 export function planted() {
-  const mk = (N, surv, seed) => { const b = new Uint8Array(N); let s = seed; for (let i = 0; i < N; i++) { s = (s * 1103515245 + 12345) >>> 0; b[i] = (s / 4294967296) < surv ? 1 : 0; } return b; };
+  // a control with exactly round(N surv) survivors, placed by a shuffle: the band's edges sit where they are planted (with
+  // survival drawn path by path, 99.4% on 16,000 paths read 99.51%, outside the band, once the generator was sound)
+  const mk = (N, surv, seed) => { const b = new Uint8Array(N).fill(1, 0, Math.round(N * surv)); let s = seed >>> 0; for (let i = N - 1; i > 0; i--) { s = (Math.imul(s, 1103515245) + 12345) >>> 0; const j = Math.floor(s / 4294967296 * (i + 1)), t = b[i]; b[i] = b[j]; b[j] = t; } return b; };
   // an arm from a control: flip `lose` of its survivors to failure and `save` of its failures to survival
   const arm = (ctrl, lose, save) => { const b = Uint8Array.from(ctrl); let l = 0, s = 0; for (let i = 0; i < b.length; i++) { if (b[i] && l < lose) { b[i] = 0; l++; } else if (!b[i] && s < save) { b[i] = 1; s++; } } return b; };
   const N = 16000, cases = [];

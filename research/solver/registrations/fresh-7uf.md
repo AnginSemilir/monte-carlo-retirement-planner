@@ -77,4 +77,5 @@ in STATE.md (D3 the rule, D5 the package and the decomposing arm, D7 the panel's
   (`RESUME=1` through the launcher runs only the units whose log has no done line; a launch without it refuses a folder
   that is not empty; the read refuses any unit file whose code or audit stamp is not the logs' one version). The read is
   made once, when every unit is in.
-- **Design review:** <PASS, research/solver/reviews/<date>-fresh-7uf.md>
+- **Design review:** PASS, research/solver/reviews/2026-10-22-fresh-7uf.md (its four MINORs fixed in ac5723d and confirmed
+  PASS in research/solver/reviews/2026-10-22-fresh-7uf-minors.md; the first review, 2026-10-21-fresh-7uf.md, FAIL).

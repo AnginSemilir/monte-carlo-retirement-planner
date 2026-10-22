@@ -1,0 +1,43 @@
+THE FOLLOW-UP REVIEW'S CHECKS (22 Oct 2026), on claude/project-access-i58m0x at 1e36ce5, research/engine.mjs rebuilt with
+research/build-engine.py. Run from the repository root; nothing registered, no held-out seed.
+
+1. THE REVIEW'S OWN SCRIPTS (research/reviews/2026-10-21/scripts/), src/solver as it stands
+   commands: table-census.mjs S224 30 | tail -3; engine-checks/carry.mjs | tail -3; engine-checks/tax.mjs, and again
+   under TZ=America/New_York | tail -1; engine-vs-fast.mjs S330 30 2000; engine-vs-fast.mjs S092 30 2000
+== census S224 30
+  world 1 (weight 0.667): opening survival 41.17%, cells with no move chosen 0 of 398520, non-finite cells 0
+  world 2 (weight 0.167): opening survival 84.39%, cells with no move chosen 0 of 398520, non-finite cells 0
+CLEAN: every cell has a chosen move
+== carry
+t 3: CGT engine 1533  fast 1533  model.js 1533 | wealth engine 722039  fast 722039  model.js 722039
+t 29: CGT engine 1138  fast 1138  model.js 1138 | wealth engine 1204069  fast 1204069  model.js 1204069
+lifetime CGT: engine 40685  fast flow 40685  model.js 40685
+== tax
+savings tax, non-savings 30000, interest 5000: rUK 800.00  Scotland (engine) 800.00
+savings tax, non-savings 45000, interest 5000: rUK 800.00  Scotland (engine) 800.00
+savings tax, non-savings 60000, interest 3000: rUK 1000.00  Scotland (engine) 1000.00
+incomeTax rUK 110000: 33432.00  Scotland 110000: 37482.05
+dividend tax ns 20000 div 4000: engine default 376.25  at 2026/27 rates (10.75/35.75) 376.25
+dividend tax ns 60000 div 20000: engine default 6971.25  at 2026/27 rates (10.75/35.75) 6971.25
+yf(2026-01-01) in this TZ Europe/London = 1
+== tax NY
+yf(2026-01-01) in this TZ America/New_York = 1
+== evf S330
+{"id":"S330","points":30,"N":2000,"gia":427500,"fast":71.65,"engine":71.65,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+== evf S092
+{"id":"S092","points":30,"N":2000,"gia":427500,"fast":53.15,"engine":53.15,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+
+   for comparison, the same scripts on 3771bb2 (results-exploratory.txt sections 1, 7 and 8): S224 468,900 cells with no
+   move chosen in solveMixture's withdrawal-only tables; lifetime CGT engine 66559, fast flow 2182, model.js 2298; Scottish
+   savings tax 1680 at 45000 + 5000; dividend tax 306.25; New York year fraction 0.01; S330 +1.55 (31 / 0); S092 +0.70 (14 / 0)
+
+2. THE AGENT'S STEP 1 AND V2 TESTS (research/tests/), each run alone: node research/tests/<name>.test.mjs
+solver-invariants exit 0 in 171 s; 14 PASS, 0 FAIL
+solver-carry exit 0 in 2 s; 6 PASS, 0 FAIL
+tax-2026 exit 0 in 1 s; 9 PASS, 0 FAIL
+table-guards exit 0 in 5 s; 4 PASS, 0 FAIL
+tier-above exit 0 in 45 s; 7 PASS, 0 FAIL
+solver-cash exit 0 in 12 s; 4 PASS, 0 FAIL
+engine-fidelity exit 0 in 428 s; 6 PASS, 0 FAIL
+known-answer exit 0 in 148 s; 11 PASS, 0 FAIL
+hygiene exit 0 in 1 s; 10 PASS, 0 FAIL

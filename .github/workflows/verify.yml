@@ -33,6 +33,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: The protected files this push changed, for the maintainer's review
+        # the follow-up review of 22 Oct, answer 5: the session's pre-tool hook refuses a write by exact path only, so the
+        # list of changes to the hooks, CI, the checklist, the launcher, the fair-test gate, the suite and the archive is
+        # printed here, in the run's log and summary, whatever wrote them
+        if: github.event_name == 'push'
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then RANGE="$BEFORE..${{ github.sha }}"; else RANGE="-1"; fi
+          node .claude/hooks/protected-changes.mjs $RANGE | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build the engine from src/App.jsx
         run: python3 research/build-engine.py
       - name: STATE.md's check

@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decide, unlockedFrom, suiteFiles } from '../../.claude/hooks/pre-tool.mjs';
+import { decide, unlockedFrom, suiteFiles, protectedAmong } from '../../.claude/hooks/pre-tool.mjs';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 let n = 0, failed = 0;
@@ -37,11 +37,15 @@ ok(suite.length > 0 && suite.every(f => denied(edit(join(ROOT, f)))), `every tes
 ok(denied(bash('echo x > CLAUDE.md')) && denied(bash('cat a >> research/tests/run-all.mjs')), 'a redirect into a protected file is refused');
 ok(denied(bash('sed -i s/a/b/ research/solver/CHECKLIST.md')) && denied(bash('rm -rf research/solver/archive/items')) && denied(bash('git mv .githooks/pre-commit x')), 'a writing command naming a protected path is refused');
 ok(!denied(bash('cat CLAUDE.md && node research/tests/hooks.test.mjs > /tmp/out.txt 2>&1')) && !denied(bash('grep -n x research/solver/archive/PLAN.md')), 'reading a protected file, or running a test into /tmp, goes ahead');
-// planted (21 Oct): the path named on one line of a python heredoc and written on the next, which the per-part check passed
-{ const heredoc = "python3 - <<'EOF'\np='research/tests/run-all.mjs'; s=open(p).read()\ns=s.replace('a','b')\nopen(p,'w').write(s)\nEOF";
-  ok(denied(bash(heredoc)) && !denied(bash(heredoc, true)), 'a python heredoc naming a protected file on one line and writing it on another is refused, and goes ahead unlocked');
-  ok(denied(bash("node -e \"const f='CLAUDE.md';\nrequire('fs').writeFileSync(f, 'x')\"")) && denied(bash("python3 -c \"from pathlib import Path; Path('.githooks/pre-commit').write_text('x')\"")), 'node -e and python3 -c writing a protected path are refused');
-  ok(!denied(bash("python3 - <<'EOF'\np='research/solver/STATE.md'; s=open(p).read()\nopen(p,'w').write(s)\nEOF")) && !denied(bash("python3 - <<'EOF'\nprint(open('research/tests/run-all.mjs').read())\nEOF")), 'EDGE: a heredoc writing an unprotected file, or only reading a protected one, goes ahead'); }
+// a script handed to an interpreter is not parsed across its lines (the follow-up review of 22 Oct, answer 5: the check
+// added on 21 Oct refused a harmless python script that quoted the launcher's command line while writing STATE.md, and was
+// reverted). The outside check is the list of protected files a change touched, printed by CI and the session start.
+ok(!denied(bash("python3 - <<'EOF'\np='research/solver/STATE.md'; s=open(p).read()\ns += 'run-from-snapshot.sh'\nopen(p,'w').write(s)\nEOF")), 'EDGE: the 22 Oct false refusal: a heredoc writing STATE.md that names the launcher goes ahead');
+ok(denied(bash("python3 -c \"open('CLAUDE.md','w').write('x')\"")), 'a one-line interpreter command writing a protected path is still refused by the per-part check');
+{ const files = ['research/tests/run-all.mjs', 'research/solver/STATE.md', '.githooks/pre-commit', suite[0], 'src/solver/solve.js', 'research/solver/archive/PLAN.md'];
+  const listed = protectedAmong(files, ROOT), want = ['research/tests/run-all.mjs', '.githooks/pre-commit', suite[0], 'research/solver/archive/PLAN.md'];
+  ok(listed.join(',') === want.join(','), `the protected files among a change are listed for the maintainer, a FAST test and the archive among them, nothing else (${listed.join(', ')})`);
+  ok(protectedAmong(['research/solver/STATE.md', 'src/App.jsx'], ROOT).length === 0, 'planted: a change to no protected file lists none'); }
 ok(!denied(edit(join(ROOT, 'CLAUDE.md'), true)) && !denied(bash('echo x > CLAUDE.md', true)), 'unlocked, a protected file may be written');
 ok(denied(bash('git commit --no-verify -m x', true)), 'unlocked or not, --no-verify is refused');
 

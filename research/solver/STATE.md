@@ -238,7 +238,9 @@ The order is the follow-up review's Next section (D20); each step has its test a
    reviewer on the read's claims, then the deep reviewer.
 3. Then one commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
    l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test. After it: V2's
-   state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs), and the hook change of D20 (5)
-   under the maintainer's unlock; then Step 6 as written. On harm in 7u-F, V4's measures on the harmed households first
+   state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs); then Step 6 as written. (D20
+   (5), the hook change, was made on 22 Oct under the maintainer's unlock: `.claude/hooks/protected-changes.mjs` lists
+   the protected files a change touched, printed by CI each push and the session start each day.) On harm in 7u-F,
+   V4's measures on the harmed households first
    (D3, D4). Open for the maintainer: Phase 4's harm rule (D20 (2)), V5's interval (D20 (9)), the charges default (N6)
    and the timing page's run on their own devices (D20 (10)).

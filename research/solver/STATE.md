@@ -39,6 +39,12 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D21. 22 Oct, maintainer: 7u-F runs well past its budget (its first units took longer than `budget-7uf.mjs`'s
+  estimates for both the solve and the simulation, projecting past the time box), so from the 12-hour relaunch its
+  remaining CAND and SHIP units run before DECOMP's (`batch-7uf.sh`; the order moves no figure). The read of P1 and P2
+  is made once, when every CAND and SHIP unit is in. On a clean PASS (P1 HELD at both weights, no harm), DECOMP stops
+  and the units it finished are reported; on harm, or P1 not HELD at a weight, DECOMP finishes and its report follows.
+  Phase 4's budget is measured on this machine, with nothing else running, before it is registered.
 - D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, on the branch
   review/external-2026-10-21, not merged) is adopted, its ten answers to PROGRESS.md's questions and its Next section.
   The answers: (1) the one-pot oracle's table gap is a diagnostic, kept REPORTED; V3 accepts a resolution by the
@@ -215,7 +221,9 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
   through the launcher, a tracked task; its log `research/solver/results/7uf-launch1.log`, the units in
   `research/solver/results/diag7uf`. 106 units, about 24 hours on four cores; the harness stops a tracked task at 12
   hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
-  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. Read once, by `reduce-7uf.mjs`, when every unit is in.
+  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. From the relaunch the remaining CAND and SHIP units run
+  first and DECOMP's last (D21): at the measured rates every CAND and SHIP unit is in around 23 Oct 14:00 UK, inside the
+  box, and P1 and P2 are read then, once; DECOMP runs on or stops by D21.
 
 ## 6. The next three actions
 
@@ -225,8 +233,9 @@ The order is the follow-up review's Next section (D20); each step has its test a
    (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`),
    and no edit to the files the code id or the audit's stamp hashes (`src/solver`, `src/App.jsx`, `code-id.mjs`'s list,
    `audit-7uf.mjs`, `panel-7uf.mjs`): a relaunch keeps only units on the same code.
-2. When every unit is in: the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`, saved as
-   `results-7uf.txt`), by D3 as registered; the reviewer on the read's claims, then the deep reviewer.
+2. When every CAND and SHIP unit is in (D21): the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`,
+   saved as `results-7uf.txt`), by D3 as registered; then DECOMP stops on a clean PASS or finishes otherwise (D21); the
+   reviewer on the read's claims, then the deep reviewer.
 3. Then one commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
    l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test. After it: V2's
    state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs), and the hook change of D20 (5)

@@ -67,6 +67,13 @@ const BLOCKS = {
     out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs --full\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}. ${pick(V, /^(?:PASS|FAIL) {2}1\. where the engine's own pick differs from the forward run's \((\d+) of (\d+) years\)[^:]*: the largest gap (\S+).*?, its tie tolerance (\S+)/m, m => `On the fixed code the engine's own pick differs from the forward run's in ${m[1]} of ${m[2]} years, the largest score gap ${m[3]} against the chooser's tie tolerance ${m[4]}: ties`)}.`);
     return out;
   },
+  // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
+  speed() {
+    const T = 'research/tests/', S = `${T}results-solver-scratch.txt`;
+    return [
+      `- Finding 1, the chooser's scratch sized to the state it scores: \`solver-scratch.test.mjs\` ${verdict(S)} on the fixed code, ${failedBefore(S)} on the code before it, where ${pick(S, /must fail[\s\S]*?^FAIL {2}SHIP: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} SHIP positions`)} and ${pick(S, /must fail[\s\S]*?^FAIL {2}CAND: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} CAND positions`)} scored differently once the table had run forward paths (\`results-solver-scratch.txt\`).`
+    ];
+  },
   // the open items' measured effects on simulated outcomes
   items() {
     const S = 'research/solver/';

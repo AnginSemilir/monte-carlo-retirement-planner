@@ -1463,8 +1463,12 @@ function giaHoldCheck(r, s, t, held, ai) {
 export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
   const nodeRealOf = nodeRealOfAt[t];
-  const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
-  const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
+  // the scratch at the length of the state given (the speed review of 23 Oct, finding 1): kept at the first call's length,
+  // a seven-slot grid position scored after forward runs (14 slots) ran as a forward state, its flow reading the last
+  // flow's slots 11 to 13 and its growth taking its cash from slot 12; the other way round it threw
+  let post = r._post, grown = r._grown;
+  if (!post || post.length !== s.length) post = r._post = new Float64Array(s.length);
+  if (!grown || grown.length !== s.length) grown = r._grown = new Float64Array(s.length);
   const rd = r._rd || (r._rd = new Float64Array(4));
   const spendYear = c.yr.spend[t] > 0;
   // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)

@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: 645a4c82b1506c8a (23 Oct, 14:02 UK); the code now: 645a4c82b1506c8a.
+- The solver code the e3pcls pin last passed on: 354d6dbfe909142f (23 Oct, 19:25 UK); the code now: 354d6dbfe909142f.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -249,6 +249,11 @@ finished.
 - DECOMP not read for 30 household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: 0.
 <!-- end printed:sevenuf -->
 
+### The speed review's port (D24)
+
+<!-- printed:speed -->
+- Finding 1, the chooser's scratch sized to the state it scores: `solver-scratch.test.mjs` ALL PASS: 6 checks on the fixed code, FAILED: 4 of 6 checks on the code before it, where 26 of 125 SHIP positions and 22 of 75 CAND positions scored differently once the table had run forward paths (`results-solver-scratch.txt`).
+<!-- end printed:speed -->
 ## 5. Running now
 
 - Nothing. 7u-F ran 22 Oct 07:14 UK to 23 Oct 08:40 UK through the launcher (logs `research/solver/results/7uf-launch1.log`
@@ -266,12 +271,10 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, its quick form, the taxable household
-   and S370 at 10 paths, in the fast suite; its full form, `state-check-full.test.mjs`, about 15 minutes, in the nightly
-   full suite). `solver-carry.test.mjs` takes the forward run's vector at 14 slots. Both on the maintainer's unlock of 23 Oct.
-2. The speed review's port (D24), each step its own commit with its test, then the fast suite and the e3pcls pin:
+1. The speed review's port (D24), each step its own commit with its test, then the fast suite and the e3pcls pin:
    finding 1's fix (the chooser's scratch sized to the state), S1, S3, S2; then the re-time, reported to the maintainer.
-3. V3 and V4 on the ported code (D23, D24): D20 (8)'s scope (about a day of runs, less after the port), EXPLORATORY on
+   Done so far: the block "The speed review's port" above.
+2. V3 and V4 on the ported code (D23, D24): D20 (8)'s scope (about a day of runs, less after the port), EXPLORATORY on
    the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
    O179) and one deposit household (S370, the speed review names it); V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90

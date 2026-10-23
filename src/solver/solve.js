@@ -1442,8 +1442,19 @@ export function chooseAction(r, s, t, held = null) {
     // the mixture: the weighted average of every table's score for each move; a move that fails in any table fails
     SC.fill(0); TX.fill(0); BQ.fill(0);
     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
+    // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
+    // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
+    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
     r.mix.tables.forEach((tab, k) => {
-      scoreMoves(tab, s, t, S2, T2, B2, held);
+      if (D) {
+        scoreMovesShared(tab, s, t, S2, T2, B2, D);
+        if (CHOOSER.check) {
+          const S3 = new Float64Array(n), T3 = new Float64Array(n), B3 = new Float64Array(n);
+          scoreMoves(tab, s, t, S3, T3, B3, held);
+          for (let ai = 0; ai < n; ai++) if (!Object.is(S2[ai], S3[ai]) || !Object.is(T2[ai], T3[ai]) || !Object.is(B2[ai], B3[ai])) throw new Error(`share check: year ${t}, world ${k}, move ${ai}: ${S2[ai]} ${S3[ai]} | ${T2[ai]} ${T3[ai]} | ${B2[ai]} ${B3[ai]}`);
+          SHARE_CHECKED.n += n;
+        }
+      } else scoreMoves(tab, s, t, S2, T2, B2, held);
       const w = r.mix.weights[k];
       for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
     });
@@ -1604,6 +1615,155 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
     if (rz) h += rz * sv;
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
     if (SV) SV[ai] = sv;
+  }
+}
+
+/*
+ * THE CHOOSER'S SHARED YEAR (S2 of the speed review of 23 Oct; STATE.md D24). scoreMoves scores every move in every world
+ * from scratch: the year's flow once a move a world (the flow reads no world field, and a tier variant's flow is its base
+ * move's) and the expectation once a move, even where two moves leave the same position. Here the flows and the switch
+ * charge are computed once a decision and shared; within a world, moves with the same charged position, growth class and
+ * layer share one expectation. A move's own terms are applied in the original order (h's node terms kept and added one by
+ * one: floating-point addition does not reassociate), so every score is the same bit for bit (chooser-share.test.mjs). On
+ * by default in the product's path and the research runs (the maintainer, 23 Oct). The switch is this object, not the
+ * environment (one process.env read a move made the prototype's chooser 2.5 times slower): `share`; `check` (tests: every
+ * score recomputed by scoreMoves, a difference thrown); `plant` (research only: 'nocharge', a tier variant's switch charge
+ * skipped; 'nocls', the growth class left out of the key). The old path stays for a single table, a taxable-account tier,
+ * a state under seven slots, Richardson's second table, a reader probe and the log-odds blend (both count every read), and
+ * scoreMoves stays the reference that probes and rankActions use.
+ */
+export const CHOOSER = { share: true, check: false, plant: '' };
+export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0 };
+function decisionFlows(r, s, t, held) {
+  const c = r.c, actions = r.actions, n = actions.length, L = s.length;
+  let D = r._dec;
+  if (!D || D.L !== L) {
+    D = r._dec = { L, post: new Float64Array(n * L), cpost: new Float64Array(n * L), fail: new Uint8Array(n), tx: new Float64Array(n),
+      base: Int32Array.from(actions, (a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai)) };
+    D.cU = new Uint32Array(D.cpost.buffer);
+  }
+  const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant;
+  for (let ai = 0; ai < n; ai++) {
+    const o = ai * L, b = base[ai];
+    if (b === ai) {
+      const p = post.subarray(o, o + L); p.set(s);
+      const unmet = F.flow(c, t, ai, p);
+      tx[ai] = c.last.taxPaid + c.last.cgtPaid;
+      fail[ai] = unmet > 1 || c.last.preNmpaInsolvent ? 1 : 0;
+    } else { post.copyWithin(o, b * L, b * L + L); tx[ai] = tx[b]; fail[ai] = fail[b]; }
+    for (let q = 0; q < L; q++) cpost[o + q] = post[o + q];
+    if (held && !fail[ai] && !(plant === 'nocharge' && b !== ai)) F.chargeSwitch(c, cpost.subarray(o, o + L), held, c.acts[ai], t);
+  }
+  return D;
+}
+const clsBitsF = new Float64Array(1), clsBitsU = new Uint32Array(clsBitsF.buffer);
+const clsBits = v => Array.from(v, x => { clsBitsF[0] = x; return clsBitsU[0].toString(36) + '.' + clsBitsU[1].toString(36); }).join(',');
+function classesOf(r, t) {
+  const cache = r._clsAt || (r._clsAt = []);
+  if (cache[t]) return cache[t];
+  const n = r.actions.length, out = new Int32Array(n), ids = new Map(), nro = r.nodeRealOfAt[t], acts = r.c.acts;
+  for (let ai = 0; ai < n; ai++) {
+    const a = acts[ai];
+    const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${clsBits(a.real)}|${clsBits(a.sigma)}|${clsBits(a.volEffAt[t])}|${nro[ai].map(clsBits).join(';')}`;
+    let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
+    out[ai] = id;
+  }
+  return (cache[t] = out);
+}
+function makeMemo(cap, words, NQ) {
+  const size = 1 << Math.ceil(Math.log2(2 * cap + 2)), mask = size - 1, KW = words + 2;
+  const slotStamp = new Int32Array(size).fill(-1), slotEnt = new Int32Array(size), key = new Uint32Array(cap * KW);
+  const M = { words, NQ, val: new Float64Array(cap * 3), hv: new Float64Array(cap * NQ), mode: new Uint8Array(cap), stamp: 0, n: 0 };
+  M.reset = () => { M.stamp++; M.n = 0; };
+  M.find = (U, w0, cls, lay) => {
+    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
+    for (let w = 0; w < words; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
+    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
+    let slot = h & mask;
+    for (;;) {
+      if (slotStamp[slot] !== M.stamp) return ~slot;
+      const e = slotEnt[slot], kb = e * KW;
+      if (key[kb + words] === cls && key[kb + words + 1] === lay) { let w = 0; while (w < words && key[kb + w] === U[w0 + w]) w++; if (w === words) return e; }
+      slot = (slot + 1) & mask;
+    }
+  };
+  M.put = (slot, U, w0, cls, lay) => {
+    const e = M.n++, kb = e * KW;
+    for (let w = 0; w < words; w++) key[kb + w] = U[w0 + w];
+    key[kb + words] = cls; key[kb + words + 1] = lay;
+    slotStamp[slot] = M.stamp; slotEnt[slot] = e;
+    return e;
+  };
+  return M;
+}
+function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
+  const nodeRealOf = nodeRealOfAt[t], n = actions.length, L = D.L;
+  const grown = r._grownS && r._grownS.length === Math.max(7, s.length) ? r._grownS : (r._grownS = new Float64Array(Math.max(7, s.length)));   // its own scratch: scoreMoves' is left as it was
+  const rd = r._rd || (r._rd = new Float64Array(4));
+  const spendYear = c.yr.spend[t] > 0;
+  const QW = r.quadWeights || WEIGHTS, NQ = QW.length;
+  const final = t >= r.m.ctx.totalYears;
+  const stepAt = !final && r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
+  const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
+  const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
+  const cls = classesOf(r, t), plant = CHOOSER.plant;
+  let M = r._cm;
+  if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
+  M.reset();
+  const { val, hv, mode } = M, cU = D.cU;
+  for (let ai = 0; ai < n; ai++) {
+    TX[ai] = D.tx[ai];
+    if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+    const o = ai * L, post = D.cpost.subarray(o, o + L);
+    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const rz = r.raiseSurvival && cst < 0 ? cst : 0;
+    let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+    const lj = !final && r.tsLayers ? r.tsLayerOf[ai] + 1 : 0, cl = plant === 'nocls' ? 0 : cls[ai];
+    const f = M.find(cU, o * 2, cl, lj);
+    if (f >= 0) {
+      SHARE_CHECKED.hits++;
+      const vb = f * 3, hb = f * NQ; sv = val[vb]; bq = val[vb + 1]; rs = val[vb + 2];
+      if (mode[f] === 1) h += hv[hb]; else if (mode[f] === 2) for (let zi = 0; zi < NQ; zi++) h += hv[hb + zi];
+    } else {
+      SHARE_CHECKED.miss++;
+      const e = M.put(~f, cU, o * 2, cl, lj), vb = e * 3, hb = e * NQ;
+      const nr = nodeRealOf[ai];
+      if (final) {
+        const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
+        if (r.finalIntegral) { finalYearExact(c, t, post, c.acts[ai], r.terminal, grown, fxR, fx); sv = fx[0]; bq = fx[1]; rs = fx[2]; }
+        else for (let zi = 0; zi < QW.length; zi++) {
+          grown.set(post);
+          F.grow(c, t, grown, nr[zi]);
+          const total = grown[0] + grown[1] + grown[2];
+          const alive = !(floor > 0 && total < floor);
+          const net = Math.max(0, total - grown[0] * deathTax);
+          sv += QW[zi] * (alive ? 1 : 0);
+          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+          bq += QW[zi] * (alive ? beqOf(net) : 0);
+        }
+        mode[e] = 0;
+      } else {
+        const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
+        const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
+        if (stepAt !== null && stepExpect(c, g, t, post, c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; hv[hb] = sx[3]; mode[e] = 1; }
+        else {
+          for (let zi = 0; zi < NQ; zi++) {
+            grown.set(post);
+            F.grow(c, t, grown, nr[zi]);
+            readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+            sv += QW[zi] * rd[0];
+            bq += QW[zi] * rd[1];
+            rs += QW[zi] * rd[2];
+            const term = QW[zi] * rd[3]; h += term; hv[hb + zi] = term;
+          }
+          mode[e] = 2;
+        }
+      }
+      val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
+    }
+    if (rz) h += rz * sv;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
   }
 }
 

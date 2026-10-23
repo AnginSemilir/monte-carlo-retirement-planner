@@ -1,0 +1,26 @@
+# node research/tests/chooser-share-full.test.mjs, i.e. chooser-share.test.mjs --full (on this commit's code; wall 371 s)
+PASS  S224 SHIP: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (885600 scores checked; expectations shared 589338, computed 197118)
+PASS  S224 SHIP: the engine's outcomes on 200 paths with the sharing off and on, f19cbba743ac86b6 / f19cbba743ac86b6 (survives 136); 72.4 ms a path off, 21.6 on
+PASS  S224 CAND: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (885600 scores checked; expectations shared 598842, computed 178326)
+PASS  S224 CAND: the engine's outcomes on 200 paths with the sharing off and on, 66a0b9cb1c1ebe71 / 66a0b9cb1c1ebe71 (survives 127); 77.7 ms a path off, 24.3 on
+PASS  S362 SHIP: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (993600 scores checked; expectations shared 789741, computed 177291)
+PASS  S362 SHIP: the engine's outcomes on 200 paths with the sharing off and on, f488c340ad5d7da4 / f488c340ad5d7da4 (survives 107); 99.3 ms a path off, 26.1 on
+PASS  S362 CAND: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (993600 scores checked; expectations shared 795879, computed 173313)
+PASS  S362 CAND: the engine's outcomes on 200 paths with the sharing off and on, 9f3e84c829be0b9a / 9f3e84c829be0b9a (survives 110); 180.8 ms a path off, 34.8 on
+PASS  S370 SHIP: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (993600 scores checked; expectations shared 764370, computed 104382)
+PASS  S370 SHIP: the engine's outcomes on 200 paths with the sharing off and on, a6b02e3ae19f3e30 / a6b02e3ae19f3e30 (survives 152); 92.8 ms a path off, 21.5 on
+PASS  S370 CAND: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (993600 scores checked; expectations shared 762687, computed 92889)
+PASS  S370 CAND: the engine's outcomes on 200 paths with the sharing off and on, 0d578b0757e12def / 0d578b0757e12def (survives 150); 148.7 ms a path off, 28.0 on
+PASS  planted, S224 CAND: a tier variant's switch charge skipped: the check throws (share check: year 0, world 0, move 1: 0.047730825650502774 0)
+PASS  planted, S224 SHIP: the growth class left out of the key: the check throws (share check: year 3, world 0, move 2: 0.5777397850808794 0.5)
+ALL PASS: 14 checks
+# node research/tests/chooser-share.test.mjs, the quick form (the fast suite; wall 181 s)
+PASS  S224 SHIP: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (885600 scores checked; expectations shared 589338, computed 197118)
+PASS  S224 SHIP: the engine's outcomes on 200 paths with the sharing off and on, f19cbba743ac86b6 / f19cbba743ac86b6 (survives 136); 70.7 ms a path off, 20.7 on
+PASS  S224 CAND: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (885600 scores checked; expectations shared 598842, computed 178326)
+PASS  S224 CAND: the engine's outcomes on 200 paths with the sharing off and on, 66a0b9cb1c1ebe71 / 66a0b9cb1c1ebe71 (survives 127); 79.9 ms a path off, 23.4 on
+PASS  S370 CAND: every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (993600 scores checked; expectations shared 762687, computed 92889)
+PASS  S370 CAND: the engine's outcomes on 200 paths with the sharing off and on, 0d578b0757e12def / 0d578b0757e12def (survives 150); 148.7 ms a path off, 26.9 on
+PASS  planted, S224 CAND: a tier variant's switch charge skipped: the check throws (share check: year 0, world 0, move 1: 0.047730825650502774 0)
+PASS  planted, S224 SHIP: the growth class left out of the key: the check throws (share check: year 3, world 0, move 2: 0.5777397850808794 0.5)
+ALL PASS: 8 checks

@@ -249,8 +249,7 @@ every seed so far, is an improvable decision whose leading cause is a near-tie i
 wealth axis decides inside its own error; the order below stands).
 
 1. V2's state check, D20 (4) (a day). (The one `src/solver` commit before it, D20 (6) and the guardrail flag, is done:
-   the Step 1 block above; `solver-guards.test.mjs` runs in the nightly full suite, and joins the fast suite's list,
-   a protected file, on the maintainer's unlock.)
+   the Step 1 block above; `solver-guards.test.mjs` is in the fast suite, added on the maintainer's unlock of 23 Oct.)
 2. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
    O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90

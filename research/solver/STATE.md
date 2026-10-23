@@ -256,6 +256,7 @@ finished.
 - S1, the cell's expectation memo: `solver-memo.test.mjs --full` ALL PASS: 17 checks: 15 household-arms (S224, S362, S370 under SHIP, CAND, FROZEN, DECOMP, JOINT) the same bit for bit, their tables and every layer, with the memo off and on; the memo answered 77.8% of the expectations (1035593532 of 1331197632); their solves at 6 points took 1917 s off and 685 s on; each plant (the growth class, the world left out of the key) changes a hash (`results-solver-memo.txt`).
 - S3, the adaptive reference's duplicate moves: `adaptive-dup.test.mjs --full` ALL PASS: 5 checks: S362, S366, S370 at the candidate's lattice (na 160 x nb 41 x nz 128), the reference's arrays the same bit for bit with the duplicates off and on, S362 75.6% of its moves duplicates, built in 303.1 s off and 74.6 s on; S366 75.6% of its moves duplicates, built in 326.7 s off and 82.7 s on; S370 75.6% of its moves duplicates, built in 332.4 s off and 81.4 s on; the plant (the growth class left out of the match) changes the reference, and S362's solve gives the same tables with S3 off and on (`results-adaptive-dup.txt`).
 - S2, the chooser's shared year: `chooser-share.test.mjs --full` ALL PASS: 14 checks: on 6 household-arms (S224 SHIP, S224 CAND, S362 SHIP, S362 CAND, S370 SHIP, S370 CAND) every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (5745600 scores), and the engine's outcomes on 200 paths the same with the sharing off and on, its path 3.4, 3.2, 3.8, 5.2, 4.3, 5.3 times as fast; both plants (a tier variant's charge skipped, the growth class left out of the key) throw under the check (`results-chooser-share.txt`).
+- The re-time (instruction 5), BASE (the code before the port) beside PORT, one process a core, nothing else running: S224 SHIP at 30 points, the solve 299 s to 120 s (2.49 times), the engine 77.3 to 25.1 ms a path (3.08 times), every hash the same; S224 CAND at 30 points, the solve 740 s to 297 s (2.49 times), the engine 86.3 to 31.1 ms a path (2.77 times), every hash the same; S362 SHIP at 30 points, the solve 393 s to 129 s (3.04 times), the engine 106.0 to 33.4 ms a path (3.17 times), every hash the same; S362 CAND at 30 points, the solve 1491 s to 372 s (4.01 times), the engine 172.7 to 36.1 ms a path (4.78 times), every hash the same. Against the review's pass mark (every hash identical, the solve and the engine each at least twice as fast): PASS (`results-retime-port.txt`, read by `retime-port.mjs`).
 <!-- end printed:speed -->
 ## 5. Running now
 
@@ -274,9 +275,9 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. The speed review's port (D24), each step its own commit with its test, then the fast suite and the e3pcls pin:
-   finding 1's fix (the chooser's scratch sized to the state), S1, S3, S2; then the re-time, reported to the maintainer.
-   Done so far: the block "The speed review's port" above.
+1. The speed review's port (D24): done, the block "The speed review's port" above (finding 1's fix, S1, S3 and S2, each
+   its own commit with its identity test in the fast suite; the re-time passes the review's mark). Its instruction 6 (the
+   reference's build split across E2's parts) waits for gate 5, after N4 (D24 (3)); its instruction 7 is the next action.
 2. V3 and V4 on the ported code (D23, D24): D20 (8)'s scope (about a day of runs, less after the port), EXPLORATORY on
    the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and

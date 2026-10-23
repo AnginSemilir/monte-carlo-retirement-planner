@@ -223,7 +223,9 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
   hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
   and audit) until every unit is in. Time box: 23 Oct 19:14 UK. A container restart stopped it at 22 Oct 18:08 UK with
   20 units done and kept (4 cut short); relaunched at once with `RESUME=1` from 09fb223, a tracked task, its log
-  `research/solver/results/7uf-launch2.log`. From the relaunch the remaining CAND and SHIP units run first and DECOMP's
+  `research/solver/results/7uf-launch2.log`. The machine rebooted at 23 Oct 04:44 UK with 51 units done and kept (every
+  CAND unit and 13 of SHIP's; 4 cut short); relaunched at 04:47 UK with `RESUME=1` from 7669120, its log
+  `research/solver/results/7uf-launch3.log`. From the relaunch the remaining CAND and SHIP units run first and DECOMP's
   last (D21): at the measured rates every CAND and SHIP unit is in around 23 Oct 14:00 UK, inside the box, and P1 and
   P2 are read then, once; DECOMP runs on or stops by D21.
 

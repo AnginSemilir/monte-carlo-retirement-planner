@@ -58,18 +58,20 @@ const BLOCKS = {
   items() {
     const S = 'research/solver/';
     const u7 = id => pick(`${S}results-7u.txt`, new RegExp(`^ {5}${id}\\s+(\\d+) saved/(\\d+) lost of (\\d+).*?change ([+-]?[\\d.]+) \\(exact ([+-]?[\\d.]+) to ([+-]?[\\d.]+);`, 'm'), m => `${m[4]} points (exact ${m[5]} to ${m[6]}; ${m[1]} saved, ${m[2]} lost of ${m[3]})`);
+    // 7u-F's reading of a household at both weights (results-7uf.txt's P2 rows; the engine's figures, 16,000 paths)
+    const uf = id => ['0.02', '0.01'].map(w => pick(`${S}results-7uf.txt`, new RegExp(`^  ${id}\\s+W${w.replace('.', '\\.')}: SHIP [\\d.]+ CAND [\\d.]+ change ([+-][\\d.]+) \\(([+-]?[\\d.]+) to ([+-]?[\\d.]+); (\\d+) saved, (\\d+) lost\\)`, 'm'), m => `W${w} ${m[1]} (${m[2]} to ${m[3]}; ${m[4]} saved, ${m[5]} lost)`)).join(', ');
     return [
       '| id | the item | measured effect on simulated outcomes (results file) | what closes it | status |',
       '|---|---|---|---|---|',
-      `| U-S224 | 7u: CAND against SHIP on S224 at estate weight 0.02, inconclusive | ${u7('S224')} (\`results-7u.txt\` item 1) | 7u-F | open |`,
-      `| U-S380 | the same on S380, inconclusive | ${u7('S380')} (\`results-7u.txt\` item 1) | 7u-F | open |`,
-      `| U-S364 / O132 | the same on S364, a plan that survives under half a percent under either arm | ${u7('S364')} (\`results-7u.txt\` item 1) | reported in 7u-F, not gated (SHIP below 5%) | open |`,
-      `| O191 | the adaptive reference against the plan reference, S362's bad world | ${pick(`${S}results-refb.txt`, /^ +AN against C on S362 world 0: survival ([+-][\d.]+) exact \(([+-]?[\d.]+) to ([+-]?[\d.]+)\)/m, m => `${m[1]} points (exact ${m[2]} to ${m[3]})`)} (\`results-refb.txt\`) | reported in 7u-F's by-world item; below the 1-point gate | open, not a gate |`,
+      `| U-S224 | 7u: CAND against SHIP on S224 at estate weight 0.02, inconclusive | 7u ${u7('S224')} (\`results-7u.txt\` item 1); 7u-F ${uf('S224')} (\`results-7uf.txt\`) | 7u-F | closed by 7u-F: no harm by D3 |`,
+      `| U-S380 | the same on S380, inconclusive | 7u ${u7('S380')} (\`results-7u.txt\` item 1); 7u-F ${uf('S380')} (\`results-7uf.txt\`) | 7u-F | closed by 7u-F: no harm by D3 |`,
+      `| U-S364 / O132 | the same on S364, a plan that survives under half a percent under either arm | 7u ${u7('S364')} (\`results-7u.txt\` item 1); 7u-F ${uf('S364')} (\`results-7uf.txt\`) | reported in 7u-F, not gated (SHIP below 5%) | closed by 7u-F: reported |`,
+      `| O191 | the adaptive reference against the plan reference, S362's bad world | ${pick(`${S}results-refb.txt`, /^ +AN against C on S362 world 0: survival ([+-][\d.]+) exact \(([+-]?[\d.]+) to ([+-]?[\d.]+)\)/m, m => `${m[1]} points (exact ${m[2]} to ${m[3]})`)} (\`results-refb.txt\`) | 7u-F's decomposing arm stopped unread on the PASS (D21); V4's ensemble carries the candidate on the plan reference (D20 (8)) | open, not a gate |`,
       `| O179 | the fixed reference against the unfixed on S362's bad world | ${pick(`${S}results-foot-s362.txt`, /world 0: .*?lost (\d+) saved (\d+) of (\d+), change ([+-][\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+)\)/, m => `${m[4]} points (${m[5]} to ${m[6]}; ${m[2]} saved, ${m[1]} lost of ${m[3]})`)} (\`results-foot-s362.txt\`) | as O191 | open, not a gate |`,
-      '| O195 | S366 unread at the frozen candidate | none yet: a missing read | 7u-F\'s panel reads it | open |',
+      `| O195 | S366 unread at the frozen candidate | 7u-F ${uf('S366')} (\`results-7uf.txt\`) | 7u-F's panel reads it | closed by 7u-F |`,
       '| O194 | the bridge reader\'s reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |',
       `| PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): ${pick(`${S}results-pr31-split.txt`, /NEAR: where the split acts.*?the worst ([\d.e-]+) \(([^)]*)\)/, m => `${m[1]} (${m[2]})`)} (\`results-pr31-split.txt\`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |`,
-      '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes, and 7u-F\'s decomposing arm reads the reference\'s part | 7u-F | not gates |',
+      '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F\'s PASS on the candidate as assembled |',
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
     ];
   },
@@ -115,6 +117,20 @@ const BLOCKS = {
     out.push(`- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance ${pw[0][6]} on every household; on the in-band households 7u ran, 80% of the time from a true loss of ${lo(7)[7]} to ${hi(7)[7]} points and 90% from ${lo(8)[8]} to ${hi(8)[8]} (the widest ${hi(8)[1]} at W${hi(8)[2]}, ${hi(8)[5]}% discordant); the four without a record (${four[1]}), at ${four[2]} to ${four[3]} discordant, 80% from ${four[4]} to ${four[5]} and 90% from ${four[6]} to ${four[7]}.${edge.length ? ` Near the band's top, in the band on 16,000 paths only by chance: ${edge.join(', ')}; outside it the change is reported, not gated.` : ''}`);
     const sim = [...t.matchAll(/^  check by simulation .*$/gm)].map(m => m[0].trim());
     sim.forEach(l => out.push(`- ${l}.`));
+    return out;
+  },
+  // 7u-F's read, once (reduce-7uf.mjs, results-7uf.txt): the gate, P1, P2, the outcome; the in-band losses at an unadjusted
+  // one-sided p below 0.05 (the registration's "floor households that lose most"); DECOMP as D21 left it
+  sevenuf() {
+    const R = 'research/solver/results-7uf.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const out = [`- ${pick(R, /^THE GATE: (fair|NOT FAIR)[^(]*/m, m => `the gate: ${m[1]}`).trim()}; ${pick(R, /^7U-F READ: .*?; (\d+) households; seed (\d+), (\d+) paths/m, m => `${m[1]} households, seed ${m[2]}, ${m[3]} paths a unit, scored by the engine`)} (\`results-7uf.txt\`).`];
+    for (const w of ['0.02', '0.01']) out.push(`- ${pick(R, new RegExp(`^P1 at W${w.replace('.', '\\.')}: .*$`, 'm'))}.`);
+    out.push(`- ${pick(R, /^P2: .*$/m)}.`, `- ${pick(R, /^OUTCOME: .*$/m)}.`);
+    const lose = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP [\d.]+ CAND [\d.]+ change (-[\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+); (\d+) saved, (\d+) lost\) p ([\d.e+-]+) Holm ([\d.e+-]+)/gm)].filter(m => +m[8] < 0.05);
+    out.push(`- In the band with a loss at an unadjusted one-sided p below 0.05: ${lose.length ? lose.map(m => `${m[1]} W${m[2]} ${m[3]} (${m[4]} to ${m[5]}; ${m[6]} saved, ${m[7]} lost; p ${m[8]}, Holm ${m[9]})`).join('; ') : 'none'}.`);
+    const dn = (t.match(/^  DECOMP not read for /gm) || []).length, fid = (t.match(/FIDELITY GAP/g) || []).length;
+    out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);
     return out;
   }
 };

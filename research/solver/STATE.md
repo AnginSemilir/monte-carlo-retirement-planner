@@ -122,15 +122,15 @@ dropped, not carried; Step 4's triage settles each below.
 <!-- printed:items -->
 | id | the item | measured effect on simulated outcomes (results file) | what closes it | status |
 |---|---|---|---|---|
-| U-S224 | 7u: CAND against SHIP on S224 at estate weight 0.02, inconclusive | -0.362 points (exact -0.717 to 0.002; 89 saved, 118 lost of 8000) (`results-7u.txt` item 1) | 7u-F | open |
-| U-S380 | the same on S380, inconclusive | -0.163 points (exact -0.605 to 0.283; 150 saved, 163 lost of 8000) (`results-7u.txt` item 1) | 7u-F | open |
-| U-S364 / O132 | the same on S364, a plan that survives under half a percent under either arm | -0.388 points (exact -0.388 to -0.301; 0 saved, 31 lost of 8000) (`results-7u.txt` item 1) | reported in 7u-F, not gated (SHIP below 5%) | open |
-| O191 | the adaptive reference against the plan reference, S362's bad world | -0.3250 points (exact -0.5782 to 0.0089) (`results-refb.txt`) | reported in 7u-F's by-world item; below the 1-point gate | open, not a gate |
+| U-S224 | 7u: CAND against SHIP on S224 at estate weight 0.02, inconclusive | 7u -0.362 points (exact -0.717 to 0.002; 89 saved, 118 lost of 8000) (`results-7u.txt` item 1); 7u-F W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost), W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost) (`results-7uf.txt`) | 7u-F | closed by 7u-F: no harm by D3 |
+| U-S380 | the same on S380, inconclusive | 7u -0.163 points (exact -0.605 to 0.283; 150 saved, 163 lost of 8000) (`results-7u.txt` item 1); 7u-F W0.02 +0.081 (-0.210 to 0.373; 289 saved, 276 lost), W0.01 +0.206 (-0.085 to 0.497; 298 saved, 265 lost) (`results-7uf.txt`) | 7u-F | closed by 7u-F: no harm by D3 |
+| U-S364 / O132 | the same on S364, a plan that survives under half a percent under either arm | 7u -0.388 points (exact -0.388 to -0.301; 0 saved, 31 lost of 8000) (`results-7u.txt` item 1); 7u-F W0.02 +0.056 (0.016 to 0.103; 9 saved, 0 lost), W0.01 +0.156 (0.097 to 0.228; 25 saved, 0 lost) (`results-7uf.txt`) | reported in 7u-F, not gated (SHIP below 5%) | closed by 7u-F: reported |
+| O191 | the adaptive reference against the plan reference, S362's bad world | -0.3250 points (exact -0.5782 to 0.0089) (`results-refb.txt`) | 7u-F's decomposing arm stopped unread on the PASS (D21); V4's ensemble carries the candidate on the plan reference (D20 (8)) | open, not a gate |
 | O179 | the fixed reference against the unfixed on S362's bad world | -0.5750 points (-0.7187 to -0.3126; 4 saved, 27 lost of 4000) (`results-foot-s362.txt`) | as O191 | open, not a gate |
-| O195 | S366 unread at the frozen candidate | none yet: a missing read | 7u-F's panel reads it | open |
+| O195 | S366 unread at the frozen candidate | 7u-F W0.02 +0.106 (0.055 to 0.167; 17 saved, 0 lost), W0.01 +0.125 (0.068 to 0.192; 21 saved, 1 lost) (`results-7uf.txt`) | 7u-F's panel reads it | closed by 7u-F |
 | O194 | the bridge reader's reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |
 | PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): 9.120e-4 (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%) (`results-pr31-split.txt`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |
-| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate's, the adaptive reference's exact steps, the chooser's split at the reference's own step | carried by D5: the adaptive package, with PR31's split, is the reference the assembled candidate takes, and 7u-F's decomposing arm reads the reference's part | 7u-F | not gates |
+| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate's, the adaptive reference's exact steps, the chooser's split at the reference's own step | carried by D5: the adaptive package, with PR31's split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F's PASS on the candidate as assembled |
 | T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F's by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |
 <!-- end printed:items -->
 
@@ -213,41 +213,41 @@ path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 - check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 1.07%, a true loss of 1.07 points: harm read 0.795; the approximation 0.805.
 - check by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 1.10%, a true loss of 1.10 points: harm read 0.902; the approximation 0.887.
 <!-- end printed:step4 -->
+### 7u-F's read (23 Oct, once, by D3 as registered)
+
+`registrations/fresh-7uf.md`, read by `reduce-7uf.mjs` when every CAND and SHIP unit was in (D21), its output whole in
+`results-7uf.txt`. By D3 the PASS sends the candidate to Phase 4; by D21 DECOMP stopped on it, none of its units
+finished.
+
+<!-- printed:sevenuf -->
+- the gate: fair; 19 households, seed 7014, 16000 paths a unit, scored by the engine (`results-7uf.txt`).
+- P1 at W0.02: the pooled change over the 18 floor households +0.660 points (by path 0.616 to 0.705, se 0.0226): HELD.
+- P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD.
+- P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none.
+- OUTCOME: PASS: the candidate goes to Phase 4.
+- In the band with a loss at an unadjusted one-sided p below 0.05: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0).
+- DECOMP not read for 30 household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: 0.
+<!-- end printed:sevenuf -->
 
 ## 5. Running now
 
-- 7u-F, the confirmatory run (`registrations/fresh-7uf.md`; the design reviews `reviews/2026-10-21-fresh-7uf.md` FAIL,
-  `2026-10-22-fresh-7uf.md` PASS, `2026-10-22-fresh-7uf-minors.md` PASS): launched 22 Oct 07:14 UK from 2a008b0
-  through the launcher, a tracked task; its log `research/solver/results/7uf-launch1.log`, the units in
-  `research/solver/results/diag7uf`. 106 units, about 24 hours on four cores; the harness stops a tracked task at 12
-  hours, and the batch is relaunched under the registration with `RESUME=1` (it keeps the units done on the same code
-  and audit) until every unit is in. Time box: 23 Oct 19:14 UK. A container restart stopped it at 22 Oct 18:08 UK with
-  20 units done and kept (4 cut short); relaunched at once with `RESUME=1` from 09fb223, a tracked task, its log
-  `research/solver/results/7uf-launch2.log`. The machine rebooted at 23 Oct 04:44 UK with 51 units done and kept (every
-  CAND unit and 13 of SHIP's; 4 cut short); relaunched at 04:47 UK with `RESUME=1` from 7669120, its log
-  `research/solver/results/7uf-launch3.log`. It rebooted again at 05:13 UK with 53 kept (15 of SHIP's); relaunched at
-  05:15 UK from 8974368, its log `research/solver/results/7uf-launch4.log`. Each stop came after the session sat idle
-  for 24 to 32 minutes (O65's pattern in the archive; memory is not the cause, the units using about 200 MB of 16 GB),
-  so the session checks the run every 15 minutes until the read. From the relaunch the remaining CAND and SHIP units run first and DECOMP's
-  last (D21): at the measured rates every CAND and SHIP unit is in around 23 Oct 14:00 UK, inside the box, and P1 and
-  P2 are read then, once; DECOMP runs on or stops by D21.
+- Nothing. 7u-F ran 22 Oct 07:14 UK to 23 Oct 08:40 UK through the launcher (logs `research/solver/results/7uf-launch1.log`
+  to `7uf-launch4.log`, the units in `research/solver/results/diag7uf`): a container restart (22 Oct 18:08 UK) and two
+  reboots (23 Oct 04:44 and 05:13 UK) stopped it, each after the session sat idle for 24 to 32 minutes (O65's pattern in
+  the archive; memory was not the cause); each time the disk survived and the batch was relaunched with `RESUME=1`,
+  keeping every finished unit. A long run is checked every 15 minutes while it runs.
 
 ## 6. The next three actions
 
 The order is the follow-up review's Next section (D20); each step has its test and a time box.
 
-1. While 7u-F runs, nothing but its relaunches: `RESUME=1` at each stop
-   (`RESUME=1 PREDICTION=research/solver/registrations/fresh-7uf.md research/solver/run-from-snapshot.sh bash research/solver/batch-7uf.sh`),
-   and no edit to the files the code id or the audit's stamp hashes (`src/solver`, `src/App.jsx`, `code-id.mjs`'s list,
-   `audit-7uf.mjs`, `panel-7uf.mjs`): a relaunch keeps only units on the same code.
-2. When every CAND and SHIP unit is in (D21): the read, once (`node research/solver/reduce-7uf.mjs research/solver/results/diag7uf`,
-   saved as `results-7uf.txt`), by D3 as registered; then DECOMP stops on a clean PASS or finishes otherwise (D21); the
-   reviewer on the read's claims, then the deep reviewer.
-3. Then one commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
-   l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test. After it: V2's
-   state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs); then Step 6 as written. (D20
-   (5), the hook change, was made on 22 Oct under the maintainer's unlock: `.claude/hooks/protected-changes.mjs` lists
-   the protected files a change touched, printed by CI each push and the session start each day.) On harm in 7u-F,
-   V4's measures on the harmed households first
-   (D3, D4). Open for the maintainer: Phase 4's harm rule (D20 (2)), V5's interval (D20 (9)), the charges default (N6)
-   and the timing page's run on their own devices (D20 (10)).
+1. The reviewer on the read's claims (this section's block and the commit that records it, against `results-7uf.txt`
+   and the code), then the deep reviewer after the confirmatory read; their verdicts in `research/solver/reviews/`.
+2. One commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
+   l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test; the fast suite
+   and the e3pcls pin re-taken on it.
+3. Then V2's state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs), S224 among V4's
+   households (its in-band losses in the block above); then Step 6 as written. Phase 4 registers after
+   the maintainer's calls: its harm rule (D20 (2)) and its budget measured on this machine with nothing else running
+   (D21). Open for the maintainer as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on
+   their own devices (D20 (10)). (D20 (5), the hook change, was made on 22 Oct under the maintainer's unlock.)

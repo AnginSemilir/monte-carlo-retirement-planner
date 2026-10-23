@@ -31,7 +31,19 @@ import { Phi } from './grid.js';
 
 const ZLO = -8, ZHI = 8;
 
-export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false }) {
+/*
+ * FAIL LOUDLY (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6). A move that cannot pay scores 0
+ * and every read is finite, so a non-finite value in an argmax loop is always a bug: a NaN never beats bestV, and the loop
+ * would keep move 0 in silence (O199's pattern). Throws, naming the loop, the year, the cell, the move and the first world
+ * whose value is not finite.
+ */
+function nonFiniteQ(where, t, cell, Qm, mi) {
+  const k = Qm.findIndex(q => !Number.isFinite(q));
+  throw new Error(`adaptive reference: non-finite value in ${where}, year ${t}, cell ${cell}, move ${mi}, world ${k}: ${k >= 0 ? Qm[k] : 'the weighted value'}`);
+}
+
+export function adaptiveReference(input) {
+  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false } = input;
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -126,8 +138,9 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
           Q[mi][k] = acc / nz;
         }
       }
+      if (plant === 'nanQ' && ia === 0 && jb === 0 && ig === 0) Q[0][0] = NaN;   // planted (solver-guards.test.mjs): the guard below must throw
       let best = 0, bestV = -1;
-      for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v > bestV + 1e-15) { bestV = v; best = mi; } }
+      for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v - v !== 0) nonFiniteQ('the backward step', t, `a ${ia}, b ${jb}, gain ${ig}`, Q[mi], mi); if (v > bestV + 1e-15) { bestV = v; best = mi; } }
       const at = (ia * nb + jb) * NG + ig;
       MV[t][at] = best;
       for (let k = 0; k < K; k++) {
@@ -157,8 +170,9 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
             Q[mi][k] = acc / nz;
           }
         }
+        if (plant === 'nanQfoot' && jb === 0 && ig === 0) Q[0][0] = NaN;   // planted (solver-guards.test.mjs): the guard below must throw
         let best = 0, bestV = -1;
-        for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v > bestV + 1e-15) { bestV = v; best = mi; } }
+        for (let mi = 0; mi < NM; mi++) { let v = 0; for (let k = 0; k < K; k++) v += weights[k] * Q[mi][k]; if (v - v !== 0) nonFiniteQ('the foot node', t, `b ${jb}, gain ${ig}`, Q[mi], mi); if (v > bestV + 1e-15) { bestV = v; best = mi; } }
         MV0[t][jb * NG + ig] = best;
         for (let k = 0; k < K; k++) { V0[k][t][jb * NG + ig] = plant === 'foot' && !(Q[best][k] > 0) ? 1 : Q[best][k]; if (V0[k][t][jb * NG + ig] > 0) footLive++; }
       }
@@ -274,5 +288,5 @@ export function adaptiveReference({ cs, flowCtx, actions, levelOf, weights, year
     for (let zi = 0; zi < nz; zi++) { const A2 = at2(uLo > 0 ? PhiInv(uLo + (1 - uLo) * (zi + 0.5) / nz) : ZS[zi]); acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
     return (1 - uLo) * acc / nz;
   }
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}) };   // moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, ...over }) };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
 }

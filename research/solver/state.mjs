@@ -52,6 +52,9 @@ const BLOCKS = {
       out.push(`- F0, ${id}, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before ${before}, after ${after} (\`results-engine-vs-fast.txt\`).`);
     }
     out.push(`- O200's reach (item 4), counted and then dropped: ${pick(`${S}results-reach-census.txt`, /^VERDICT: (.*)$/m, m => m[1])} (\`results-reach-census.txt\`).`);
+    // after 7u-F (D20 (6) and the guardrail flag): the adaptive reference's and the couple's argmax loops, fast.js's lost year
+    const G = `${T}results-solver-guards.txt`;
+    out.push(`- After 7u-F, the argmax loops left (\`adaptive.js\`, \`couple.js\`) and \`fast.js\`'s lost-year flag: \`solver-guards.test.mjs\` ${verdict(G)} on the fixed code, ${pick(G, /must fail[\s\S]*?^(FAILED: \d+ of \d+ checks)/m, m => m[1])} with the guards out and the old flag line back (\`results-solver-guards.txt\`).`);
     return out;
   },
   // the open items' measured effects on simulated outcomes

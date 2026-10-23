@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: f53619ccd673e7b0 (21 Oct, 22:08 UK); the code now: f53619ccd673e7b0.
+- The solver code the e3pcls pin last passed on: ef2557384487d628 (23 Oct, 10:43 UK); the code now: ef2557384487d628.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -151,9 +151,10 @@ simulated outcomes. A table gap is a lead, not a verdict; none gates 7u-F (D2).
 O200 (the final year's NaN), O199 (the same in the adaptive reference), F0 (the sweep's gain untaxed in the solver's
 models), F2a (the engine's tier above), F0a (the 2026/27 rules, guardrails and the lookahead under a table). Checking F0
 against the engine found one more: the solver's forward runs clamped the taxable account's gain share at zero and so
-forgot an unrealised loss the engine keeps in its basis; they now carry it (`solver-carry.test.mjs`, check 4). The same
-silent-NaN choice remains in `adaptive.js` (its two argmax loops) and `couple.js` (research only); their known source is
-fixed, and V1 runs on the assembled candidate (Step 4).
+forgot an unrealised loss the engine keeps in its basis; they now carry it (`solver-carry.test.mjs`, check 4). After
+7u-F (D20 (6)) the same silent-NaN choice in `adaptive.js` (its two argmax loops) and `couple.js` (the joint move) throws
+too, and `fast.js`'s guardrail "lost money last year" flag compares the pots after growth with those before it, as the
+engine does (it grew the pension and ISA a second time; inert under a table, which runs with guardrails off).
 
 <!-- printed:step1 -->
 - O199, O200 and the guards (items 1 to 3): `solver-invariants.test.mjs` ALL PASS: 14 checks on the fixed code, FAILED: 11 of 14 checks before it (`results-solver-invariants.txt`).
@@ -171,6 +172,7 @@ fixed, and V1 runs on the assembled candidate (Step 4).
 - F0, S172, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - F0, S194, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - O200's reach (item 4), counted and then dropped: on the code before the fix, 19 of 7u's 55 households counted, cells with no move chosen 0, non-finite 0; the count then dropped (the follow-up review of 22 Oct, answer 3: 7u-F re-solves every household on the fixed code, whose guards throw on a cell with no move) (`results-reach-census.txt`).
+- After 7u-F, the argmax loops left (`adaptive.js`, `couple.js`) and `fast.js`'s lost-year flag: `solver-guards.test.mjs` ALL PASS: 9 checks on the fixed code, FAILED: 4 of 9 checks with the guards out and the old flag line back (`results-solver-guards.txt`).
 <!-- end printed:step1 -->
 
 ### Step 2: what the fixes could have changed (EXPLORATORY, the tuning seed)
@@ -246,11 +248,10 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. One commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
-   l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test; the fast suite
-   and the e3pcls pin re-taken on it.
-2. Then V2's state check, D20 (4) (a day).
-3. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
+1. V2's state check, D20 (4) (a day). (The one `src/solver` commit before it, D20 (6) and the guardrail flag, is done:
+   the Step 1 block above; `solver-guards.test.mjs` runs in the nightly full suite, and joins the fast suite's list,
+   a protected file, on the maintainer's unlock.)
+2. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
    O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
    wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test

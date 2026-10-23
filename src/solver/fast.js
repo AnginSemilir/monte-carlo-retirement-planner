@@ -663,13 +663,16 @@ export function grow(c, t, s, real) {
   // knows the cash the year's flow left (slot 12) and keeps it grown, as the engine's cash pot is
   const cash = s.length > 12 && s[12] >= 0 ? Math.min(tax, s[12]) : Math.min(tax, c.yr.buffer[t]);
   const gia = tax - cash;
+  const before = s[0] + s[1] + tax;   // the pots before growth, as the engine's potBeforeGrowth (App.jsx l.2526)
   s[0] = Math.max(0, s[0] * (1 + real[0] * frac));
   s[1] = Math.max(0, s[1] * (1 + real[1] * frac));
   const gia2 = Math.max(0, gia * (1 + real[2] * frac));
   const cash2 = Math.max(0, cash * (1 + real[3] * frac));
   if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
   if (s.length > 12) s[12] = cash2;
-  if (s.length > 10) { const before = s[0] + s[1] + tax; s[9] = (s[0] * (1 + real[0] * frac) + s[1] * (1 + real[1] * frac) + gia2 + cash2) < before ? 1 : 0; }
+  // the guardrails' "lost money last year": the pots after growth against those before it, as App.jsx l.2541 (until 23 Oct
+  // the pension and ISA were grown a second time here, so a year that lost a little read as one that did not)
+  if (s.length > 10) s[9] = (s[0] + s[1] + gia2 + cash2) < before ? 1 : 0;
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia2 - basis) / gia2)); }
   s[2] = gia2 + cash2;

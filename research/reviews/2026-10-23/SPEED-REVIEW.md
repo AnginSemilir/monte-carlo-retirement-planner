@@ -19,9 +19,9 @@ score and every simulated outcome the same bit for bit. On one core at 30 points
 times faster, the candidate's 4.1 times (S362), and the engine's run of a table 2.5 and 4.0 times (2.3 to 3.4 on the
 small grids). Port it before V3 and V4, which are mostly solves and simulations. The speed-ups that change numbers (fewer
 points or nodes, a smaller reference lattice, the ternary level search) wait for V3 and V4, the instruments that can
-judge them. Two calls are the maintainer's: whether the product's path takes the changes (D12), and whether D23's "the
-code it leaves" means the ported code. Gate 5 is not measured here, but on S362 its bound shows the cause of the
-trouble: every E2 part builds the whole adaptive reference itself.
+judge them. The maintainer has made the two calls this review raised (23 Oct): the product's path takes the changes
+too, and D23's "the code it leaves" is the ported code. Gate 5 is not measured here, but on S362 its bound shows the
+cause of the trouble: every E2 part builds the whole adaptive reference itself.
 
 ## Where the time goes (one core, 30 points, today's code)
 
@@ -96,12 +96,12 @@ rest. On S362, a bridge household but not one of the four:
 |---|---|---|
 | CAND on one core (its reference build) | 1,454.2 s (263.7 s) | 353.3 s (62.3 s) |
 | CAND on four cores at best: the build, then a quarter of the rest | 561.3 s | 135.1 s |
-| SHIP on one core | 363.8 s | 119.7 s (if the product takes S1 and S2) |
+| SHIP on one core | 363.8 s | 119.7 s (the product takes S1 and S2) |
 | the bound's ratio (the gate: 1.25 at most) | 1.54 | 1.13 against a ported product; 0.37 against today's |
 
 On today's code no split of the rest brings S362 under the bar. With S1 to S3 the bound clears it by about 10%, inside
-this machine's timing noise and before E2's barriers and uneven parts. Which product the gate compares against is the
-maintainer's call (D12, below). The gate itself waits where STATE.md puts it, before Phase 4 registers, since N4's richer
+this machine's timing noise and before E2's barriers and uneven parts. The gate compares against the ported product,
+the maintainer's call. The gate itself waits where STATE.md puts it, before Phase 4 registers, since N4's richer
 menu (D22) changes every solve time; splitting the build across E2's parts (instruction 6) is the fix if it then fails.
 
 ## Smaller exact wins, not prototyped
@@ -151,30 +151,51 @@ After each of 1 to 4: the fast suite (CHECKLIST 4) and the e3pcls pin (D9). Addi
 about 3 CPU-minutes a household and arm with the reference lattice cut down (exactness does not depend on its size; S362
 CAND at 4 points: 148 s with the memo off, 40 s on, part D).
 
+How to port, for every step:
+
+- **The defaults go in the code, not in the settings.** Make each switch default on inside the solver (`opts.expMemo !==
+  false`, and the same for S2's and S3's), and add nothing to `PRODUCT_BASELINE`, `candidate.json` or
+  `research-opts.mjs`. Then no configuration hash moves (the product's 07c069b6e330, the candidate's e65e5e99ba49, the
+  frozen a61dba4ee1f5), no pinned default or registration changes, and "on in the product too" needs no edit to the
+  decided defaults. The code's fingerprint does move, so the e3pcls pin is re-run after each step.
+- **One commit per step, and identity is all or nothing.** The fix, S1, S3 and S2 go in separate commits, each with its
+  test, so a fault can be traced to its step. One differing bit in an identity test is a bug in the port, not a
+  tolerance: stop, fix or revert that step, and report; never loosen a test to make it pass.
+- **Instruction 5's pass mark.** Every hash identical, and on S224 and S362 at 30 points, both arms, the solve and the
+  engine each at least twice as fast as BASE run beside them. A ratio short of that is reported with a profile
+  (`scripts/profile-run.mjs`), not tuned until it passes.
+- **Old runs and the fair-test gate.** Every results file from before the port carries another code hash, and the gate
+  wants one code for every file of a comparison (`fair-variables.mjs`, row 28). Run both arms on the ported code; never
+  mix pre-port and post-port units, and never override the gate. Results already read (7u-F) stay as read: the port
+  changes no number, so it gives no reason to reopen them.
+- **The deposit household is S370**: it has a bridge and the adaptive reference, it pays money back into an emptied
+  taxable account (the case V2's state check found, slot 13), and it is one of gate 5's four. If V3's own deposit
+  household (D20 (8)) is another, test that one too.
+
 1. **Fix finding 1 first** (an hour): `scoreMoves`' scratch sized to the state it is given, with `stale-check.mjs`
    extended to `chooseAction` and `rankActions` as its test, its plant the old sizing. The test primes the scratch
    itself with a forward-length state, as stale-check.mjs does, so it still sees the bug once S2 stops using it.
 2. **Port S1** (half a day), with an option `expMemo` and no environment reads; off while a probe is attached or the
-   log-odds blend is set. On by default for the research runs; for the product's path the maintainer decides (D12: the
-   app's defaults do not move until after Phase 4; E3, also exact, became a research default only). Test
-   (`solver-memo.test.mjs`): `layerHash` and `tableHash`, the memo off against on, at 6 points, on S224 (PASS 2 under
-   SHIP, the tier state under CAND, joint worlds without the tier state), S362 (the reader, the adaptive reference, the
-   step split) and a deposit household, for SHIP, CAND, `FROZEN_OPTS`, DECOMP and joint worlds alone; its plants (the key
-   without the growth class; without the world) each shown failing once.
+   log-odds blend is set. On by default in the research runs and the product's path alike (the maintainer, 23 Oct; it
+   changes no number, so D12's decided defaults are not edited: the first rule above). Test (`solver-memo.test.mjs`):
+   `layerHash` and `tableHash`, the memo off against on, at 6 points, on S224 (PASS 2 under SHIP, the tier state under
+   CAND, joint worlds without the tier state), S362 (the reader, the adaptive reference, the step split) and S370, for
+   SHIP, CAND, `FROZEN_OPTS`, DECOMP and joint worlds alone; its plants (the key without the growth class; without the
+   world) each shown failing once.
 3. **Port S3** (two hours), its switch an option, not adaptive.js's environment read. Test: the reference's arrays bit
    for bit off and on, on S362, S366 (the foot) and S370 at the candidate's lattice; its plant (the class left out)
    caught.
 4. **Port S2** (half a day), with its own scratch and its switch an exported object, not the environment: one
    `process.env` read per move made the prototype's chooser 2.5 times slower (61 ms a path against 25 without it).
    `scoreMoves` stays as the reference that probes and `rankActions` use. Test: every move's score bit for bit against
-   `scoreMoves` at every decision of 20 paths on S224, S362 (reader years) and the deposit household, both arms, both
-   plants caught, and the engine's outcomes the same on 200 paths.
+   `scoreMoves` at every decision of 20 paths on S224, S362 (reader years) and S370, both arms, both plants caught, and
+   the engine's outcomes the same on 200 paths.
 5. **Re-time** (two hours on the agent's four-core machine, nothing else running): `speed-timing.mjs`, BASE beside the
    ported code, on S224 and S362 at 30 points, both arms; compare the ratios with this table, not the absolute times.
 6. **Gate 5, when STATE.md calls for it** (before Phase 4 registers, after N4): as E2X measured it, SIZE's four
    households. If it fails, split the reference's build across E2's parts (a day): exact by the cell loop's own scheme,
    each lattice state claimed by one part, the arrays shared through the pool, a barrier at each bridge year, with
    `e2.test.mjs`'s identity check extended to the reference's arrays.
-7. Then V3 and V4 as D20 orders them, on the ported code (if the maintainer reads D23 so). Both their solves and their
+7. Then V3 and V4 as D20 orders them, on the ported code (D23, as the maintainer reads it). Both their solves and their
    simulations shrink by more than half, so the S224 ladder's estimate (about 11 core-hours, the deep review's one test
    within V3) should too.

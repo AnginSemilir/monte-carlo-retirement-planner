@@ -1,0 +1,12 @@
+# node research/tests/adaptive-dup-full.test.mjs, i.e. adaptive-dup.test.mjs --full (on this commit's code; wall 1426 s); S362's reference at the candidate's lattice hashes 6a6d738258739dc1, the arefHash the speed review gives for it (SPEED-REVIEW.md, 'Smaller exact wins')
+PASS  S362 at na 160 x nb 41 x nz 128, the foot, every step: the reference's arrays with the duplicates off and on, 6a6d738258739dc1 / 6a6d738258739dc1; the duplicates taken 2041191 of 2701080 (off: 0); built in 303.1 s off, 74.6 s on
+PASS  S366 at na 160 x nb 41 x nz 128, the foot, every step: the reference's arrays with the duplicates off and on, 706dc52337737ef5 / 706dc52337737ef5; the duplicates taken 2040891 of 2700696 (off: 0); built in 326.7 s off, 82.7 s on
+PASS  S370 at na 160 x nb 41 x nz 128, the foot, every step: the reference's arrays with the duplicates off and on, 31ac294d467ddf16 / 31ac294d467ddf16; the duplicates taken 2039529 of 2698920 (off: 0); built in 332.4 s off, 81.4 s on
+PASS  planted: the growth class left out of the match changes S362's reference (6a6d738258739dc1 to b19de9192c31b9e4)
+PASS  S362, the candidate at 4 points on the small lattice: its tables with S3 off and on, 6600d655b23e851a / 6600d655b23e851a
+ALL PASS: 5 checks
+# node research/tests/adaptive-dup.test.mjs, the quick form (the fast suite; wall 100 s)
+PASS  S362 at na 48 x nb 9 x nz 32, the foot, every step: the reference's arrays with the duplicates off and on, fee1a25911683a5e / fee1a25911683a5e; the duplicates taken 138231 of 178200 (off: 0); built in 6.8 s off, 1.4 s on
+PASS  S370 at na 48 x nb 9 x nz 32, the foot, every step: the reference's arrays with the duplicates off and on, 166cb70216df4485 / 166cb70216df4485; the duplicates taken 137958 of 177864 (off: 0); built in 6.6 s off, 2.1 s on
+PASS  planted: the growth class left out of the match changes S362's reference (fee1a25911683a5e to 51d9f852ac9b1e4c)
+ALL PASS: 3 checks

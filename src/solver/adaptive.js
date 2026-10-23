@@ -43,7 +43,7 @@ function nonFiniteQ(where, t, cell, Qm, mi) {
 }
 
 export function adaptiveReference(input) {
-  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false } = input;
+  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true } = input;
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -117,17 +117,34 @@ export function adaptiveReference(input) {
     return 1 - Phi(hi);
   };
   const Q = Array.from({ length: NM }, () => new Float64Array(K));
+  /*
+   * A MOVE THAT DUPLICATES AN EARLIER ONE (S3 of the speed review of 23 Oct; STATE.md D24). At a lattice state, a floor move
+   * whose post-flow state (bit for bit) and growth class (its rates, their spread and the year's volatility in every world)
+   * match an earlier move's takes that move's values: before access the pension cannot be drawn, so draw orders that differ
+   * only in where the pension sits pay the year the same (76% of the work on S362). No number moves (adaptive-dup.test.mjs).
+   * On by default (solve's `arefDupMoves: false` turns it off); planted (research only), 'dupnocls' leaves the class out.
+   */
+  const memoOn = dupMoves;
+  const keepAll = new Float64Array(NM * 7), keepU = new Uint32Array(keepAll.buffer), clsM = new Int32Array(NM), dupOf = new Int32Array(NM);
+  const bF = new Float64Array(1), bU = new Uint32Array(bF.buffer), bl = v => Array.from(v, x => { bF[0] = x; return bU[0].toString(36) + '.' + bU[1].toString(36); }).join(',');
+  const classesAt = t => { const ids = new Map(); for (let mi = 0; mi < NM; mi++) { const ai = moves[mi]; let key = ''; for (let k = 0; k < K; k++) { const a = cs[plant === 'drift' ? centre : k].acts[ai]; key += bl(a.real) + '|' + bl(a.sigma) + '|' + bl(a.volEffAt[t]) + '#'; } let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); } clsM[mi] = id; } };
+  const dupFind = mi => { const b0 = mi * 14; for (let mj = 0; mj < mi; mj++) { if (dupOf[mj] === -2 || (plant !== 'dupnocls' && clsM[mj] !== clsM[mi])) continue; const a0 = mj * 14; let w = 0; while (w < 14 && keepU[a0 + w] === keepU[b0 + w]) w++; if (w === 14) return mj; } return -1; };
+  let qHits = 0, qMiss = 0;
   for (let yi = bridge.length - 2; yi >= 0; yi--) {
     const t = bridge[yi], ag = AG[t], next = t + 1;
     for (let k = 0; k < K; k++) V[k][t] = new Float64Array(na * nb * NG);
     MV[t] = new Int32Array(na * nb * NG);
+    if (memoOn) classesAt(t);
     for (let ia = 0; ia < na; ia++) for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
       const A = Math.exp(ag[ia]), b = BG[jb], gf = gains[ig];
       setState(A, b, gf);
       for (let mi = 0; mi < NM; mi++) {
         const ai = moves[mi];
-        if (!flowOk(t, ai)) { Q[mi].fill(0); continue; }
-        const keep = Float64Array.from(post);
+        if (!flowOk(t, ai)) { Q[mi].fill(0); dupOf[mi] = -2; continue; }
+        keepAll.set(post, mi * 7);
+        if (memoOn) { const d = dupFind(mi); if (d >= 0) { for (let k = 0; k < K; k++) Q[mi][k] = Q[d][k]; dupOf[mi] = d; qHits++; continue; } }
+        dupOf[mi] = -1; qMiss++;
+        const keep = keepAll.subarray(mi * 7, mi * 7 + 7);
         for (let k = 0; k < K; k++) {
           post.set(keep);
           if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
@@ -158,8 +175,11 @@ export function adaptiveReference(input) {
         setState(0, b, gf);
         for (let mi = 0; mi < NM; mi++) {
           const ai = moves[mi];
-          if (!flowOk(t, ai)) { Q[mi].fill(0); continue; }
-          const keep = Float64Array.from(post);
+          if (!flowOk(t, ai)) { Q[mi].fill(0); dupOf[mi] = -2; continue; }
+          keepAll.set(post, mi * 7);
+          if (memoOn) { const d = dupFind(mi); if (d >= 0) { for (let k = 0; k < K; k++) Q[mi][k] = Q[d][k]; dupOf[mi] = d; qHits++; continue; } }
+          dupOf[mi] = -1; qMiss++;
+          const keep = keepAll.subarray(mi * 7, mi * 7 + 7);
           for (let k = 0; k < K; k++) {
             post.set(keep);
             if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
@@ -288,5 +308,5 @@ export function adaptiveReference(input) {
     for (let zi = 0; zi < nz; zi++) { const A2 = at2(uLo > 0 ? PhiInv(uLo + (1 - uLo) * (zi + 0.5) / nz) : ZS[zi]); acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
     return (1 - uLo) * acc / nz;
   }
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, ...over }) };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, ...over }), arrays: () => ({ V, MV, V0, MV0, AST, ASTY }), dupStats: { hits: qHits, misses: qMiss } };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); arrays and dupStats: the reference's own arrays and S3's counts (adaptive-dup.test.mjs); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
 }

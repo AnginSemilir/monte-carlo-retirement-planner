@@ -602,6 +602,10 @@ export function vecOf(m, st) {
   // cashSplit), which grows last year's buffer at the cash tier's own rate; the engine grows it at the path's (its long-run
   // shift included), so a forward run carries the engine's cash (V2 on the assembled candidate, 21 Oct: S224's paths)
   base.push(st.pots[o.ids.cash] || 0);
+  // and the basis left on an emptied taxable account in slot 13: the engine never realises a loss (giaDispose), so an
+  // account sold out below its cost keeps that basis, and money paid in later joins it; slot 3, a share of the value,
+  // cannot hold it (V2's state check, 23 Oct: S370)
+  base.push(gia > 0 ? 0 : (st.basis.self || 0));
   return Float64Array.from(base);
 }
 

@@ -43,7 +43,8 @@ const actM = { steps: a.steps, costSteps: a.steps, harvest: false, harvestCeil: 
 
 // 1 and 2. the forward run, model.js and, from the forward run's state each year, a grid cell's flow
 const s = vecOf(m, M.initialState(m)), st = M.initialState(m);
-ok(s.length === 13 && s[11] === 0 && s[12] === (st.pots[m.ctx.owners[0].ids.cash] || 0), `vecOf's state carries the gains into next year in slot 11 and the cash in slot 12 (length ${s.length}, cash ${s[12]})`);
+// slot 13, the basis left on an emptied taxable account (V2's state check, 23 Oct), is nothing at the start: this account holds £400k
+ok(s.length === 14 && s[11] === 0 && s[12] === (st.pots[m.ctx.owners[0].ids.cash] || 0) && s[13] === 0, `vecOf's state carries the gains into next year in slot 11, the cash in slot 12 and an emptied account's basis in slot 13 (length ${s.length}, cash ${s[12]}, slot 13 ${s[13]})`);
 let worstF = 0, worstM = 0, worstW = 0, outside = 0, charged = 0, lifeE = 0, lifeF = 0, lifeM = 0;
 for (let t = 0; t <= T; t++) {
   // the grid cell: the same position with nothing carried in, seven slots; against the forward flow from it with slot 11 at 0

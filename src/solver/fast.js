@@ -355,7 +355,7 @@ export function flow(c, t, ai, s) {
   let gainFrac = s[3];
   let cumPcls = s[4];
   let lumpTaken = s[5] > 0.5;
-  let basis = gia * (1 - gainFrac);
+  let basis = gia > 0 ? gia * (1 - gainFrac) : (s.length > 13 ? s[13] : 0);   // an emptied account's basis: a forward run's slot 13
   // the sheltered part of the cash: carried in the seventh slot by a forward run, the year's typical value for a
   // grid cell (-1), and none at all for a six-slot vector built by hand, which is what the model assumes too
   let cashIsa = s.length > 6 ? Math.min(cash, s[6] >= 0 ? s[6] : yr.cashIsaTypical[t]) : 0;
@@ -609,6 +609,7 @@ export function flow(c, t, ai, s) {
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia - basis) / gia)) : 0;   // a forward run keeps an unrealised loss (basis above value), as the engine's basis does
   s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa; if (s.length > 11) s[11] = late; if (s.length > 12) s[12] = cash;
+  if (s.length > 13) s[13] = gia > 0 ? 0 : basis;   // the engine keeps the basis of an account sold out below its cost (grid.js vecOf)
   // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
   const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
@@ -675,5 +676,6 @@ export function grow(c, t, s, real) {
   if (s.length > 10) s[9] = (s[0] + s[1] + gia2 + cash2) < before ? 1 : 0;
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(s.length > 11 ? -Infinity : 0, Math.min(1, (gia2 - basis) / gia2)); }
+  else if (gia > 0 && s.length > 13) { s[13] = gia * (1 - s[3]); s[3] = 0; }   // grown to nothing: its basis kept, as the flow keeps it
   s[2] = gia2 + cash2;
 }

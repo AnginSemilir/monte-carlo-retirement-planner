@@ -55,6 +55,16 @@ const BLOCKS = {
     // after 7u-F (D20 (6) and the guardrail flag): the adaptive reference's and the couple's argmax loops, fast.js's lost year
     const G = `${T}results-solver-guards.txt`;
     out.push(`- After 7u-F, the argmax loops left (\`adaptive.js\`, \`couple.js\`) and \`fast.js\`'s lost-year flag: \`solver-guards.test.mjs\` ${verdict(G)} on the fixed code, ${pick(G, /must fail[\s\S]*?^(FAILED: \d+ of \d+ checks)/m, m => m[1])} with the guards out and the old flag line back (\`results-solver-guards.txt\`).`);
+    // V2's state check (D20 (4)): the engine and a forward run in step, and the inventory of the engine's state
+    const V = `${T}results-state-check.txt`;
+    const lockstep = (rel, before) => pick(rel, new RegExp(`${before ? 'must fail[\\s\\S]*?' : ''}^(?:PASS|FAIL) {2}1\\. lockstep, (\\d+) household-years:.*?worst gaps: (.*)$`, 'm'), m => {
+      // each gap as the test prints it: '£x' from a thousandth of a pound up, a bare exponent below it, 'differs' if not finite
+      const gaps = m[2].split('; ').map(x => { const v = /differs/.test(x) ? Infinity : /£([\d.]+)/.exec(x) || / (\d[\d.]*e[-+]\d+)/.exec(x); return { x, v: v === Infinity ? v : v ? +v[1] : NaN }; });
+      if (gaps.some(g => Number.isNaN(g.v))) throw new Error(`state.mjs: ${rel}: a lockstep gap it cannot read (${gaps.filter(g => Number.isNaN(g.v)).map(g => g.x).join('; ')})`);
+      const over = gaps.filter(g => g.v > 1), top = gaps.reduce((a, g) => (g.v > a.v ? g : a));
+      return `over ${m[1]} household-years, ${over.length ? `the gaps above a pound: ${over.map(g => g.x).join('; ')}` : `every gap within a pound (the largest ${top.v < 1e-3 ? top.v.toExponential(1) : top.v.toFixed(4)} pounds, ${top.x.replace(/ [^ ]+ \(.*$/, '')})`}`;
+    });
+    out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}.`);
     return out;
   },
   // the open items' measured effects on simulated outcomes

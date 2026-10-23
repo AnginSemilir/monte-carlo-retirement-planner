@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: ef2557384487d628 (23 Oct, 10:43 UK); the code now: ef2557384487d628.
+- The solver code the e3pcls pin last passed on: 645a4c82b1506c8a (23 Oct, 14:02 UK); the code now: 645a4c82b1506c8a.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -156,7 +156,10 @@ against the engine found one more: the solver's forward runs clamped the taxable
 forgot an unrealised loss the engine keeps in its basis; they now carry it (`solver-carry.test.mjs`, check 4). After
 7u-F (D20 (6)) the same silent-NaN choice in `adaptive.js` (its two argmax loops) and `couple.js` (the joint move) throws
 too, and `fast.js`'s guardrail "lost money last year" flag compares the pots after growth with those before it, as the
-engine does (it grew the pension and ISA a second time; inert under a table, which runs with guardrails off).
+engine does (it grew the pension and ISA a second time; inert under a table, which runs with guardrails off). V2's
+state check (D20 (4)) then found one more of F0's kind: the engine never realises a loss, so a taxable account sold out
+below its cost keeps that basis and money paid in later joins it, where a forward run's gain share (of a value of
+nothing) dropped it; a forward run now carries it in slot 13 (S370 the household that refills; no table reads the slot).
 
 <!-- printed:step1 -->
 - O199, O200 and the guards (items 1 to 3): `solver-invariants.test.mjs` ALL PASS: 14 checks on the fixed code, FAILED: 11 of 14 checks before it (`results-solver-invariants.txt`).
@@ -175,6 +178,7 @@ engine does (it grew the pension and ISA a second time; inert under a table, whi
 - F0, S194, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - O200's reach (item 4), counted and then dropped: on the code before the fix, 19 of 7u's 55 households counted, cells with no move chosen 0, non-finite 0; the count then dropped (the follow-up review of 22 Oct, answer 3: 7u-F re-solves every household on the fixed code, whose guards throw on a cell with no move) (`results-reach-census.txt`).
 - After 7u-F, the argmax loops left (`adaptive.js`, `couple.js`) and `fast.js`'s lost-year flag: `solver-guards.test.mjs` ALL PASS: 9 checks on the fixed code, FAILED: 4 of 9 checks with the guards out and the old flag line back (`results-solver-guards.txt`).
+- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: `state-check.test.mjs` ALL PASS: 12 checks on the fixed code, FAILED: 1 of 12 checks on the code before it (`results-state-check.txt`). Before, over 6948 household-years, the gaps above a pound: pension £20215.3898 (S370 path 33 year 45); ISA £1437.3052 (S370 path 33 year 19); taxable and cash £1158.9166 (S370 path 33 year 13); tax-free cash taken £640.1828 (S370 path 33 year 21); cash ISA £1158.9166 (S370 path 33 year 13); gains carried £1005.4959 (S370 path 20 year 7); cash £1158.9166 (S370 path 33 year 13); gain held £6231.3869 (S370 path 20 year 5); wealth at the end £17242.3713 (S370 path 33); after, over 6948 household-years, every gap within a pound (the largest 1.1e-8 pounds, pension). The engine's taxable account empty with a basis left on it, in some year: 90 of 200 paths (the largest £68218, S370 path 15).
 <!-- end printed:step1 -->
 
 ### Step 2: what the fixes could have changed (EXPLORATORY, the tuning seed)
@@ -250,8 +254,9 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. V2's state check, D20 (4) (a day). (The one `src/solver` commit before it, D20 (6) and the guardrail flag, is done:
-   the Step 1 block above; `solver-guards.test.mjs` is in the fast suite, added on the maintainer's unlock of 23 Oct.)
+1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, about 15 minutes: the nightly full
+   suite; a quick form joins the fast suite on the maintainer's call). `solver-carry.test.mjs` (protected) checks the
+   forward run's vector at 14 slots, slot 13 at nothing at the start, changed on the maintainer's unlock of 23 Oct.
 2. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
    O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90

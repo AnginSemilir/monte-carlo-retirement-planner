@@ -225,7 +225,7 @@ finished.
 - P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD.
 - P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none.
 - OUTCOME: PASS: the candidate goes to Phase 4.
-- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1; the 0.25 margin not clear, the 0.5 margin clear; whole score -0.264 (se 0.1841)); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1; the 0.25 margin not clear, the 0.5 margin not clear; whole score -0.840 (se 0.2588)); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0; the 0.25 margin not clear, the 0.5 margin clear; whole score +0.107 (se 0.1317)).
+- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1; the 0.25 margin not clear, the 0.5 margin clear; whole score -0.264 (se 0.1841) on the first 4000 paths only); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1; the 0.25 margin not clear, the 0.5 margin not clear; whole score -0.840 (se 0.2588) on the first 4000 paths only); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0; the 0.25 margin not clear, the 0.5 margin clear; whole score +0.107 (se 0.1317) on the first 4000 paths only).
 - DECOMP not read for 30 household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: 0.
 <!-- end printed:sevenuf -->
 
@@ -241,16 +241,24 @@ finished.
 
 The order is the follow-up review's Next section (D20); each step has its test and a time box.
 
-1. The deep reviewer after the confirmatory read, its verdict in `research/solver/reviews/`. (The reviewer on the read's
-   claims: `reviews/2026-10-23-read-7uf.md`, PASS, P1 and P2 recomputed independently; its four MINORs folded in or
-   carried below.)
-2. One commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
+The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P1 and P2 recomputed independently) and
+`reviews/2026-10-23-deep-7uf.md` (the deep reviewer: the pooled gain comes from five households; S224's small loss, on
+every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
+wealth axis decides inside its own error; the order below stands).
+
+1. One commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
    l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test; the fast suite
    and the e3pcls pin re-taken on it.
-3. Then V2's state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs): `v3-convergence.mjs`'s
-   household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s, with S362 (O191
-   and O179) and S224 (its in-band losses and whole score in the block above); then Step 6 as written. Phase 4
-   registers after the maintainer's calls: its harm rule (D20 (2), with S224's figures above before it) and its budget
-   measured on this machine with nothing else running (D21); its unit stamp records the Node version, held equal across
-   arms (7u-F's units ran on two hosts, its CAND units on one and 25 of SHIP's on the other; the pairing held). Open for the maintainer as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on
-   their own devices (D20 (10)). (D20 (5), the hook change, was made on 22 Oct under the maintainer's unlock.)
+2. Then V2's state check, D20 (4) (a day).
+3. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
+   household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
+   O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
+   wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test
+   of S224's loss (about 11 core-hours); `v4-ensemble.mjs` drops probit and adds V3's finest setting as a variant. Then
+   Step 6 as written. Phase 4 registers after the maintainer's calls (its harm rule, D20 (2), set by error rates with
+   S224's loss at the lower weight as its worked case; its budget measured on this machine with nothing else running, D21) and after gate
+   5 (D11) is measured on the assembled candidate, its solve time against the product's (7u-F's solve lines, taken
+   under load, put it at several times SHIP's: a lead to measure, not a figure). It carries its own no-harm item against
+   SHIP if the candidate changes after 7u-F, a spending item over all years, the whole score on every path, and the Node
+   version in the unit stamp, equal across arms (7u-F's arms ran on two hosts; the pairing held). Open for the maintainer
+   as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on their own devices (D20 (10)).

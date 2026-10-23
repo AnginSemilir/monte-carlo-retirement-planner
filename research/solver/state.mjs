@@ -129,7 +129,9 @@ const BLOCKS = {
     out.push(`- ${pick(R, /^P2: .*$/m)}.`, `- ${pick(R, /^OUTCOME: .*$/m)}.`);
     const lose = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP [\d.]+ CAND [\d.]+ change (-[\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+); (\d+) saved, (\d+) lost\) p ([\d.e+-]+) Holm ([\d.e+-]+); at the margins 0\.25 (clear|not clear), 0\.5 (clear|not clear)/gm)].filter(m => +m[8] < 0.05);
     // each one's whole score (the solver's own objective, runPolicy's trace) from the reported part (the read's review, MINOR 1)
-    const whole = (id, w) => pick(R, new RegExp(`^  ${id}\\s+W${w.replace('.', '\\.')}: estate .*?whole score ([+-][\\d.]+) \\(se ([\\d.]+)\\)`, 'm'), m => `whole score ${m[1]} (se ${m[2]})`);
+    // the whole score is read on runPolicy's first paths only (the beside set), so its path count is printed with it (the
+    // deep review after 7u-F: on those paths S224's survival part alone differs from the 16,000-path figure)
+    const whole = (id, w) => pick(R, new RegExp(`^  ${id}\\s+W${w.replace('.', '\\.')}: estate .*?whole score ([+-][\\d.]+) \\(se ([\\d.]+)\\) on (\\d+) paths`, 'm'), m => `whole score ${m[1]} (se ${m[2]}) on the first ${m[3]} paths only`);
     out.push(`- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: ${lose.length ? lose.map(m => `${m[1]} W${m[2]} ${m[3]} (${m[4]} to ${m[5]}; ${m[6]} saved, ${m[7]} lost; p ${m[8]}, Holm ${m[9]}; the 0.25 margin ${m[10]}, the 0.5 margin ${m[11]}; ${whole(m[1], m[2])})`).join('; ') : 'none'}.`);
     const dn = (t.match(/^  DECOMP not read for /gm) || []).length, fid = (t.match(/FIDELITY GAP/g) || []).length;
     out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);

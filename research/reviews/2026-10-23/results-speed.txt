@@ -1,0 +1,377 @@
+SPEED REVIEW (EXPLORATORY), 23 Oct 2026: every figure in SPEED-REVIEW.md, with the command that printed it.
+BASE is the agent's code at the commit named; PROTO is BASE with speed-prototype.diff applied (solve.js and adaptive.js
+are the same at 2d7cce3 and 0b403ac, so the diff applies to both). Two runs at a time on a two-core machine, one each;
+a BASE run and its PROTO run side by side. Hashes must match between BASE and PROTO; times are wall-clock on one core.
+speed-timing.mjs's "memo" field reads true on any code run without MEMO=0: memoStats (null on BASE) says what ran.
+
+==================================================================================================================
+PART A. On 0b403ac (the branch's head when this was written): scripts/run-speed.sh, its output whole (run after the
+independent check; speed-timing.mjs's layerHash covers every layer of the tier state, which tableHash does not)
+$ BASE=<0b403ac> PROTO=<0b403ac + the diff> bash scripts/run-speed.sh
+
+SPEED REVIEW, 23 Oct 16:30 BST; node v22.22.0; 2 cores
+
+== 1. Identity and speed on small grids: the product's settings, the candidate's, joint worlds without the tier state
+$ env PTS=10 PATHS=200 CHECKPATHS=20 node speed-timing.mjs S224 SHIP    # BASE, then PROTO, side by side
+{"id":"S224","arm":"SHIP","w":0.02,"points":10,"memo":true,"moves":360,"years":41,"solveS":90.89,"engineS":14.29,"engineMsPerPath":71.465,"survival":72.5,"tableHash":"3c04313c72874ae3","layerHash":"242d0f4f7e1e5893","layerArrays":615,"runHash":"530f2e6f6bfff201","arrays":876,"cells":2789700,"memoStats":null,"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+{"id":"S224","arm":"SHIP","w":0.02,"points":10,"memo":true,"moves":360,"years":41,"solveS":41.13,"engineS":5.27,"engineMsPerPath":26.328,"survival":72.5,"tableHash":"3c04313c72874ae3","layerHash":"242d0f4f7e1e5893","layerArrays":615,"runHash":"530f2e6f6bfff201","engineMsPerPathShareOff":71.559,"runHashShareOff":"530f2e6f6bfff201","scoresChecked":885600,"chooserMemo":{"hits":5906826,"miss":2111310,"fails":837864},"arrays":876,"cells":2789700,"memoStats":{"hits":71612766,"miss":20797218},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=8 PATHS=200 CHECKPATHS=20 node speed-timing.mjs S224 CAND    # BASE, then PROTO, side by side
+{"id":"S224","arm":"CAND","w":0.02,"points":8,"memo":true,"moves":360,"years":41,"solveS":168.19,"engineS":14.99,"engineMsPerPath":74.938,"survival":71.5,"tableHash":"a758ddfedb7e596f","layerHash":"d78cee1e7db62473","layerArrays":2583,"runHash":"5b2e766ba2619252","arrays":879,"cells":2232852,"memoStats":null,"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+{"id":"S224","arm":"CAND","w":0.02,"points":8,"memo":true,"moves":360,"years":41,"solveS":69.69,"engineS":6.29,"engineMsPerPath":31.44,"survival":71.5,"tableHash":"a758ddfedb7e596f","layerHash":"d78cee1e7db62473","layerArrays":2583,"runHash":"5b2e766ba2619252","engineMsPerPathShareOff":81.733,"runHashShareOff":"5b2e766ba2619252","scoresChecked":885600,"chooserMemo":{"hits":5917644,"miss":2170044,"fails":768312},"arrays":879,"cells":2232852,"memoStats":{"hits":117078087,"miss":37490649},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=6 PATHS=50 node speed-timing.mjs S224 JOINT    # BASE, then PROTO, side by side
+{"id":"S224","arm":"JOINT","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":41.83,"engineS":4.67,"engineMsPerPath":93.333,"survival":72,"tableHash":"75dddb61b341a6e2","layerHash":"850ef536ef11763d","layerArrays":615,"runHash":"9fac3c865e51d26c","arrays":876,"cells":1673844,"memoStats":null,"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+{"id":"S224","arm":"JOINT","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":20.23,"engineS":2.02,"engineMsPerPath":40.46,"survival":72,"tableHash":"75dddb61b341a6e2","layerHash":"850ef536ef11763d","layerArrays":615,"runHash":"9fac3c865e51d26c","engineMsPerPathShareOff":97.061,"runHashShareOff":"9fac3c865e51d26c","chooserMemo":{"hits":1479645,"miss":523107,"fails":211248},"arrays":876,"cells":1673844,"memoStats":{"hits":24900237,"miss":9819603},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=6 PATHS=50 CHECKPATHS=10 node speed-timing.mjs S362 CAND    # BASE, then PROTO, side by side
+{"id":"S362","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":46,"solveS":446.17,"engineS":7.8,"engineMsPerPath":156.073,"survival":58,"tableHash":"55586cc28d73e5e9","layerHash":"5c224f2f306a59ef","layerArrays":2898,"runHash":"f662a2ad947190df","arrays":984,"cells":1879044,"memoStats":null,"arefSecs":250.267,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+{"id":"S362","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":46,"solveS":120.63,"engineS":2.3,"engineMsPerPath":45.9,"survival":58,"tableHash":"55586cc28d73e5e9","layerHash":"5c224f2f306a59ef","layerArrays":2898,"runHash":"f662a2ad947190df","engineMsPerPathShareOff":151.586,"runHashShareOff":"f662a2ad947190df","scoresChecked":496800,"chooserMemo":{"hits":2016207,"miss":414657,"fails":53136},"arrays":984,"cells":1879044,"memoStats":{"hits":120400734,"miss":22423650},"arefSecs":64.444,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":2041191,"miss":659889,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+== 2. Planted faults: each must change a hash (tableHash, layerHash or arefHash) or make the score check throw
+$ env MEMO=0 PTS=6 PATHS=0 node speed-timing.mjs S224 SHIP    # PROTO
+{"id":"S224","arm":"SHIP","w":0.02,"points":6,"memo":false,"moves":360,"years":41,"solveS":42.84,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"f3d751fa4a423812","layerHash":"c2283d49137e140e","layerArrays":615,"runHash":"","arrays":876,"cells":1673844,"memoStats":{"hits":0,"miss":0},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=6 PATHS=0 node speed-timing.mjs S224 SHIP    # PROTO
+{"id":"S224","arm":"SHIP","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":20.57,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"f3d751fa4a423812","layerHash":"c2283d49137e140e","layerArrays":615,"runHash":"","arrays":876,"cells":1673844,"memoStats":{"hits":37304001,"miss":10984959},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env MEMOPLANT=nocls PTS=6 PATHS=0 node speed-timing.mjs S224 SHIP    # PROTO
+{"id":"S224","arm":"SHIP","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":14.49,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"239e2e269cdac5f9","layerHash":"f21b67df2765e14c","layerArrays":615,"runHash":"","arrays":876,"cells":1673844,"memoStats":{"hits":44627307,"miss":3661653},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env MEMO=0 PTS=6 PATHS=0 node speed-timing.mjs S224 CAND    # PROTO
+{"id":"S224","arm":"CAND","w":0.02,"points":6,"memo":false,"moves":360,"years":41,"solveS":110.48,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"7e83e2f8d9e988f5","layerHash":"ee301027e4601e63","layerArrays":2583,"runHash":"","arrays":879,"cells":1674924,"memoStats":{"hits":0,"miss":0},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=6 PATHS=0 node speed-timing.mjs S224 CAND    # PROTO
+{"id":"S224","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":49.33,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"7e83e2f8d9e988f5","layerHash":"ee301027e4601e63","layerArrays":2583,"runHash":"","arrays":879,"cells":1674924,"memoStats":{"hits":78043554,"miss":26115966},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env MEMOPLANT=noworld PTS=6 PATHS=0 node speed-timing.mjs S224 CAND    # PROTO
+{"id":"S224","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":41,"solveS":32.75,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"95639f8902cee057","layerHash":"43fb202b769862b6","layerArrays":2583,"runHash":"","arrays":879,"cells":1674924,"memoStats":{"hits":95454198,"miss":8705322},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env MEMOPLANT=arefnocls PTS=6 PATHS=0 node speed-timing.mjs S362 CAND    # PROTO
+{"id":"S362","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":46,"solveS":77.93,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"57e87346c613fc86","layerHash":"52836d4c9f5a9550","layerArrays":2898,"runHash":"","arrays":984,"cells":1879044,"memoStats":{"hits":120400734,"miss":22423650},"arefSecs":24.258,"arefHash":"b19de9192c31b9e4","arefMemo":{"hits":2481117,"miss":219963,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+$ env CHOOSERPLANT=nocharge PTS=6 PATHS=20 CHECKPATHS=5 node speed-timing.mjs S224 SHIP    # PROTO
+Error: share check: year 0, world 0, move 1: 0.15950105704969492 0.15925405297930878 | 0 0 | 1092118.8026361826 1091876.448234818
+
+$ env CHOOSERPLANT=nocls PTS=6 PATHS=20 CHECKPATHS=5 node speed-timing.mjs S224 SHIP    # PROTO
+Error: share check: year 3, world 0, move 2: 0.5777397850808794 0.5846010761813998 | 0 0 | 1471184.9443317496 1474319.6971645001
+
+== 3. Finding 1, a used table's scratch: BASE, then PROTO (whose chooser must leave scoreMoves' scratch alone)
+$ node stale-check.mjs S224 6    # BASE
+{"id":"S224","points":6,"positions":8,"moves":360,"scoresDiffering":360,"positionsDiffering":1,"bestMoveDiffering":1,"worstAbsDiff":0.00005800587730614426}
+
+$ node stale-check.mjs S224 6    # PROTO
+{"id":"S224","points":6,"positions":8,"moves":360,"scoresDiffering":0,"positionsDiffering":0,"bestMoveDiffering":0,"worstAbsDiff":0}
+
+== 3, again: stale-check.mjs after the independent check's second look (it now primes the scratch itself)
+$ node stale-check.mjs S224 6    # BASE
+{"id":"S224","points":6,"forwardSlots":14,"positions":8,"moves":360,"scoresDiffering":360,"positionsDiffering":1,"bestMoveDiffering":1,"worstAbsDiff":0.00005800587730614426}
+
+$ node stale-check.mjs S224 6    # PROTO
+{"id":"S224","points":6,"forwardSlots":14,"positions":8,"moves":360,"scoresDiffering":360,"positionsDiffering":1,"bestMoveDiffering":1,"worstAbsDiff":0.00005800587730614426}
+
+==================================================================================================================
+PART B. On 2d7cce3 (the head when the measurements began): the long runs (run-speed.sh's LONG=1 sections; S362 SHIP's
+BASE ran with PATHS=0, and the second chain's runs ran one after another beside S362 CAND's BASE run). These ran the
+prototype before two later edits (the shared chooser's own scratch, and two planted faults), neither of which changes what
+these runs compute, and speed-timing.mjs before its layerHash and JOINT arm were added (so these lines lack layerHash).
+
+$ node stale-check.mjs S224 6    # BASE (2d7cce3)
+{"id":"S224","points":6,"positions":8,"moves":360,"scoresDiffering":360,"positionsDiffering":1,"bestMoveDiffering":1,"worstAbsDiff":0.00005800587730614426}
+
+$ env PTS=8 PATHS=0 node speed-timing.mjs S362 CAND    # BASE
+{"id":"S362","arm":"CAND","w":0.02,"points":8,"memo":true,"moves":360,"years":46,"solveS":546.02,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"9a724f7a6757338d","runHash":"","arrays":984,"cells":2505012,"memoStats":null,"arefSecs":260.762,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PTS=8 PATHS=0 node speed-timing.mjs S362 CAND    # PROTO, beside it
+{"id":"S362","arm":"CAND","w":0.02,"points":8,"memo":true,"moves":360,"years":46,"solveS":146.2,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"9a724f7a6757338d","runHash":"","arrays":984,"cells":2505012,"memoStats":{"hits":172509678,"miss":32144274},"arefSecs":71.947,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":2041191,"miss":659889,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+$ env MEMO=0 PTS=8 PATHS=0 node speed-timing.mjs S362 CAND    # PROTO, the memos off
+{"id":"S362","arm":"CAND","w":0.02,"points":8,"memo":false,"moves":360,"years":46,"solveS":559.87,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"9a724f7a6757338d","runHash":"","arrays":984,"cells":2505012,"memoStats":{"hits":0,"miss":0},"arefSecs":264.328,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":0,"miss":2701080,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=200 node speed-timing.mjs S224 SHIP    # BASE
+{"id":"S224","arm":"SHIP","w":0.02,"points":30,"memo":true,"moves":360,"years":41,"solveS":268.48,"engineS":13.06,"engineMsPerPath":65.286,"survival":72,"tableHash":"2be5a0f89222e167","runHash":"8a7a927f5060e3b5","arrays":876,"cells":8368980,"memoStats":null,"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=200 node speed-timing.mjs S224 SHIP    # PROTO, beside it (its engine figures were taken with a per-move environment read, PART D; the next line replaces them)
+{"id":"S224","arm":"SHIP","w":0.02,"points":30,"memo":true,"moves":360,"years":41,"solveS":111.83,"engineS":13.15,"engineMsPerPath":65.744,"survival":72,"tableHash":"2be5a0f89222e167","runHash":"8a7a927f5060e3b5","engineMsPerPathShareOff":75.846,"runHashShareOff":"8a7a927f5060e3b5","arrays":876,"cells":8368980,"memoStats":{"hits":228514059,"miss":67453461},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=200 node speed-timing.mjs S224 SHIP    # PROTO again, beside S362 CAND's BASE
+{"id":"S224","arm":"SHIP","w":0.02,"points":30,"memo":true,"moves":360,"years":41,"solveS":115.33,"engineS":5.23,"engineMsPerPath":26.136,"survival":72,"tableHash":"2be5a0f89222e167","runHash":"8a7a927f5060e3b5","engineMsPerPathShareOff":66.657,"runHashShareOff":"8a7a927f5060e3b5","chooserMemo":{"hits":5909097,"miss":2099319,"fails":847584},"arrays":876,"cells":8368980,"memoStats":{"hits":228514059,"miss":67453461},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=100 node speed-timing.mjs S362 CAND    # BASE
+{"id":"S362","arm":"CAND","w":0.02,"points":30,"memo":true,"moves":360,"years":46,"solveS":1454.23,"engineS":17.38,"engineMsPerPath":173.782,"survival":59,"tableHash":"f4a0f0fb6d584a8c","runHash":"483a5f6c4c9d32a8","arrays":984,"cells":9390660,"memoStats":null,"arefSecs":263.675,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=100 node speed-timing.mjs S362 CAND    # PROTO, beside it
+{"id":"S362","arm":"CAND","w":0.02,"points":30,"memo":true,"moves":360,"years":46,"solveS":353.3,"engineS":4.29,"engineMsPerPath":42.91,"survival":59,"tableHash":"f4a0f0fb6d584a8c","runHash":"483a5f6c4c9d32a8","engineMsPerPathShareOff":157.011,"runHashShareOff":"483a5f6c4c9d32a8","chooserMemo":{"hits":4111740,"miss":748908,"fails":107352},"arrays":984,"cells":9390660,"memoStats":{"hits":706565727,"miss":134084673},"arefSecs":62.342,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":2041191,"miss":659889,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=0 node speed-timing.mjs S362 SHIP    # BASE, beside S362 CAND's BASE
+{"id":"S362","arm":"SHIP","w":0.02,"points":30,"memo":true,"moves":360,"years":46,"solveS":363.83,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"579094b0dceb50b4","runHash":"","arrays":981,"cells":9389580,"memoStats":null,"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+$ env PATHS=100 node speed-timing.mjs S362 SHIP    # PROTO, beside S362 CAND's BASE
+{"id":"S362","arm":"SHIP","w":0.02,"points":30,"memo":true,"moves":360,"years":46,"solveS":119.74,"engineS":3.27,"engineMsPerPath":32.705,"survival":55,"tableHash":"579094b0dceb50b4","runHash":"485c6c05f0e92e57","engineMsPerPathShareOff":107.044,"runHashShareOff":"485c6c05f0e92e57","chooserMemo":{"hits":4045431,"miss":817809,"fails":104760},"arrays":981,"cells":9389580,"memoStats":{"hits":334067949,"miss":61971507},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+
+==================================================================================================================
+PART C. Where the time goes: profiles of the unchanged code (2d7cce3, each beside other runs), then of PROTO on 0b403ac
+after S1, and the adaptive reference at both estate weights
+(profile-run.mjs is the timing.mjs these ran, its header changed; speed-timing.mjs was timing2.mjs: the call frames name them so)
+$ node --cpu-prof --cpu-prof-interval 2000 profile-run.mjs S224 SHIP 200; node profsum.mjs <profile> 30
+{"id":"S224","arm":"SHIP","w":0.02,"moves":360,"years":41,"solveS":299.46,"engineS":14.99,"engineMsPerPath":74.93,"survival":72,"adaptive":false,"tableHash":"2be5a0f89222e167","arrays":876,"cells":8368980}
+total sampled 315.3 s
+SELF
+ 33.9% readValues solver/grid.js:322
+ 14.9% solve solver/solve.js:316
+ 13.3% expit solver/grid.js:41
+  8.2% grow solver/fast.js:659
+  7.4% locInto solver/grid.js:309
+  6.2% realAt solver/solve.js:160
+  5.2% flow solver/fast.js:343
+  3.8% grossForNet solver/fast.js:626
+  1.3% drawPension solver/fast.js:411
+  1.3% finalYearExact solver/solve.js:205
+  1.2% (garbage collector) :0
+  0.6% params.dividendTax research/engine.mjs:1241
+  0.6% PhiInv solver/solve.js:194
+  0.5% scoreMoves solver/solve.js:1463
+  0.4% (anon) solver/fast.js:645
+  0.2% drawStep solver/fast.js:426
+  0.1% (anon) solver/solve.js:1366
+  0.1% solveMixture solver/solve.js:278
+  0.1% stepYear research/engine.mjs:1926
+  0.1% addGia solver/fast.js:374
+  0.1% chargeSwitch solver/fast.js:142
+  0.1% Phi solver/grid.js:473
+  0.0% simulateDeterministic research/engine.mjs:2555
+  0.0% sellGia solver/fast.js:367
+  0.0% vecOf solver/grid.js:591
+  0.0% chooseAction solver/solve.js:1343
+  0.0% grossPensionNeededForNet research/engine.mjs:1414
+  0.0% update crypto/hash:132
+  0.0% f64 solver/solve.js:610
+  0.0% incomeTax research/engine.mjs:1281
+INCLUSIVE
+100.0% (root) :0
+ 98.8% (anon) speed/timing.mjs:1
+ 94.0% solvePlan solver/solve.js:1945
+ 94.0% solvePlanAuto solver/solve.js:1929
+ 94.0% solveMixture solver/solve.js:278
+ 93.0% solve solver/solve.js:316
+ 54.6% readValues solver/grid.js:322
+ 13.3% expit solver/grid.js:41
+ 11.6% flow solver/fast.js:343
+  8.7% finalYearExact solver/solve.js:205
+  8.2% grow solver/fast.js:659
+  7.4% locInto solver/grid.js:309
+  6.8% totalAt solver/solve.js:208
+  6.2% realAt solver/solve.js:160
+  5.6% drawPension solver/fast.js:411
+  5.5% drawStep solver/fast.js:426
+  4.7% stepYear research/engine.mjs:1926
+  4.6% runTrial research/engine.mjs:2612
+  4.5% choose solver/bridge.js:34
+  4.4% chooseAction solver/solve.js:1343
+  4.4% (anon) solver/solve.js:1366
+  4.3% grossForNet solver/fast.js:626
+  4.3% scoreMoves solver/solve.js:1463
+  1.2% (garbage collector) :0
+  0.6% params.dividendTax research/engine.mjs:1241
+  0.6% PhiInv solver/solve.js:194
+  0.4% (anon) solver/fast.js:645
+  0.2% buildScenarios policy-study/scenarios.mjs:193
+  0.2% build policy-study/scenarios.mjs:110
+  0.2% simulateDeterministic research/engine.mjs:2555
+
+$ node profsum.mjs <the same profile> 16 chooseAction    # the samples under the chooser only
+total sampled 14.0 s
+INCLUSIVE
+100.0% chooseAction solver/solve.js:1343
+100.0% stepYear research/engine.mjs:1926
+100.0% runTrial research/engine.mjs:2612
+100.0% (anon) speed/timing.mjs:1
+100.0% (root) :0
+100.0% choose solver/bridge.js:34
+ 99.5% (anon) solver/solve.js:1366
+ 95.6% scoreMoves solver/solve.js:1463
+ 38.1% flow solver/fast.js:343
+ 36.5% readValues solver/grid.js:322
+ 16.6% drawPension solver/fast.js:411
+ 16.6% drawStep solver/fast.js:426
+ 12.6% grossForNet solver/fast.js:626
+  8.7% expit solver/grid.js:41
+  5.4% locInto solver/grid.js:309
+  5.2% finalYearExact solver/solve.js:205
+
+$ node --cpu-prof --cpu-prof-interval 2000 profile-run.mjs S362 CAND 200; node profsum.mjs <profile> 45
+{"id":"S362","arm":"CAND","w":0.02,"moves":360,"years":46,"solveS":1534.02,"engineS":35.46,"engineMsPerPath":177.316,"survival":57,"adaptive":true,"tableHash":"f4a0f0fb6d584a8c","arrays":984,"cells":9390660}
+total sampled 1570.6 s
+SELF
+ 29.0% readValues solver/grid.js:322
+ 10.7% readV solver/adaptive.js:94
+ 10.2% solve solver/solve.js:316
+  9.8% realAt solver/solve.js:160
+  8.9% locInto solver/grid.js:309
+  6.6% expit solver/grid.js:41
+  5.7% grow solver/fast.js:659
+  4.7% astarAt solver/adaptive.js:268
+  2.4% (garbage collector) :0
+  2.2% expectSplit solver/adaptive.js:276
+  2.0% stepExpect solver/solve.js:242
+  1.4% chargeSwitch solver/fast.js:142
+  1.1% grossForNet solver/fast.js:626
+  1.1% flow solver/fast.js:343
+  1.0% PhiInv solver/solve.js:194
+  0.5% accAt solver/solve.js:244
+  0.5% finalYearExact solver/solve.js:205
+  0.4% at2 solver/adaptive.js:278
+  0.4% astar solver/adaptive.js:79
+  0.2% (anon) solver/fast.js:645
+  0.2% scoreMoves solver/solve.js:1463
+  0.1% adaptiveReference solver/adaptive.js:45
+  0.1% solveMixture solver/solve.js:278
+  0.1% drawPension solver/fast.js:411
+  0.1% h solver/adaptive.js:279
+  0.1% params.dividendTax research/engine.mjs:1241
+  0.1% Phi solver/grid.js:473
+  0.0% at solver/adaptive.js:106
+  0.0% h solver/adaptive.js:112
+  0.0% bracket solver/grid.js:193
+  0.0% f solver/adaptive.js:203
+  0.0% (anon) solver/solve.js:1366
+  0.0% flowOk solver/adaptive.js:59
+  0.0% addGia solver/fast.js:374
+  0.0% sellGia solver/fast.js:367
+  0.0% stepYear research/engine.mjs:1926
+  0.0% clearStep solver/adaptive.js:110
+  0.0% (anon) solver/solve.js:2008
+  0.0% f64 solver/solve.js:610
+  0.0% chooseAction solver/solve.js:1343
+  0.0% footRead solver/adaptive.js:190
+  0.0% vecOf solver/grid.js:591
+  0.0% gPos solver/adaptive.js:61
+  0.0% netOf solver/fast.js:45
+  0.0% buildReaderTable solver/reader.js:87
+INCLUSIVE
+100.0% (root) :0
+ 97.6% (anon) speed/timing.mjs:1
+ 95.4% solveCandidate solver/candidate.mjs:82
+ 95.4% solvePlan solver/solve.js:1945
+ 95.4% solvePlanAuto solver/solve.js:1929
+ 95.4% solveMixture solver/solve.js:278
+ 94.5% solve solver/solve.js:316
+ 51.1% readValues solver/grid.js:322
+ 16.2% build solver/solve.js:1978
+ 16.2% chance solver/solve.js:1988
+ 16.2% chanceOf solver/solve.js:658
+ 16.2% adaptiveReference solver/adaptive.js:45
+ 15.6% expectSplit solver/adaptive.js:276
+ 14.7% readV solver/adaptive.js:94
+ 10.9% stepExpect solver/solve.js:242
+  9.9% realAt solver/solve.js:160
+  8.9% locInto solver/grid.js:309
+  6.8% f solver/adaptive.js:203
+  6.7% expit solver/grid.js:41
+  5.7% grow solver/fast.js:659
+  5.2% at2 solver/adaptive.js:278
+  4.8% astarAt solver/adaptive.js:268
+  4.1% accAt solver/solve.js:244
+  3.6% finalYearExact solver/solve.js:205
+  3.4% clr solver/solve.js:245
+  2.8% totalAt solver/solve.js:208
+  2.6% flow solver/fast.js:343
+  2.4% (garbage collector) :0
+  2.2% stepYear research/engine.mjs:1926
+  2.2% runTrial research/engine.mjs:2612
+  2.1% choose solver/bridge.js:34
+  2.1% chooseAction solver/solve.js:1343
+  2.1% (anon) solver/solve.js:1366
+  2.1% scoreMoves solver/solve.js:1463
+  1.4% drawPension solver/fast.js:411
+  1.4% chargeSwitch solver/fast.js:142
+  1.3% grossForNet solver/fast.js:626
+  1.3% drawStep solver/fast.js:426
+  1.0% PhiInv solver/solve.js:194
+  0.9% (anon) solver/solve.js:2008
+  0.6% h solver/adaptive.js:279
+  0.4% astar solver/adaptive.js:79
+  0.2% (anon) solver/fast.js:645
+  0.2% flowOk solver/adaptive.js:59
+  0.2% clearStep solver/adaptive.js:110
+
+$ (PROTO on 0b403ac) env PTS=10 PATHS=0 node --cpu-prof --cpu-prof-interval 2000 speed-timing.mjs S224 SHIP; node profsum.mjs <profile> 16    # after S1
+{"id":"S224","arm":"SHIP","w":0.02,"points":10,"memo":true,"moves":360,"years":41,"solveS":38.96,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"3c04313c72874ae3","runHash":"","arrays":876,"cells":2789700,"memoStats":{"hits":71612766,"miss":20797218},"arefSecs":null,"arefHash":null,"arefMemo":null,"riskAbove":"off: no tier above the plan"}
+total sampled 39.9 s
+INCLUSIVE
+100.0% (root) :0
+ 97.2% (anon) speed/timing2.mjs:1
+ 95.4% solvePlan solver/solve.js:2171
+ 95.4% solvePlanAuto solver/solve.js:2155
+ 95.4% solveMixture solver/solve.js:278
+ 93.5% solve solver/solve.js:316
+ 30.0% readValues solver/grid.js:322
+ 23.2% flow solver/fast.js:343
+ 10.8% drawPension solver/fast.js:411
+ 10.7% drawStep solver/fast.js:426
+  8.1% grossForNet solver/fast.js:627
+  7.2% expit solver/grid.js:41
+  5.9% finalYearExact solver/solve.js:205
+  4.9% grow solver/fast.js:660
+  4.0% totalAt solver/solve.js:208
+  3.8% locInto solver/grid.js:309
+
+$ (PROTO on 0b403ac) env PTS=6 PATHS=0 node speed-timing.mjs S362 CAND 0.02, then 0.01    # the reference at both estate weights (6 points)
+{"id":"S362","arm":"CAND","w":0.02,"points":6,"memo":true,"moves":360,"years":46,"solveS":129.97,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"55586cc28d73e5e9","runHash":"","arrays":984,"cells":1879044,"memoStats":{"hits":120400734,"miss":22423650},"arefSecs":70.686,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":2041191,"miss":659889,"NM":24},"riskAbove":"off: no tier above the plan"}
+{"id":"S362","arm":"CAND","w":0.01,"points":6,"memo":true,"moves":360,"years":46,"solveS":132.38,"engineS":0,"engineMsPerPath":null,"survival":null,"tableHash":"1286a767128c2281","runHash":"","arrays":984,"cells":1879044,"memoStats":{"hits":120400734,"miss":22423650},"arefSecs":72.168,"arefHash":"6a6d738258739dc1","arefMemo":{"hits":2041191,"miss":659889,"NM":24},"riskAbove":"off: no tier above the plan"}
+
+==================================================================================================================
+PART D. Recorded during the review (2d7cce3)
+$ node dupes.mjs S224 10    # distinct post-decision states among the base moves that do not fail, every cell
+{"id":"S224","points":10,"years":41,"moves":360,"baseMoves":120,"cells":132840,"expectationsNow":30803328,"expectationsDistinct":6932406,"saved":0.775}
+
+$ env PTS=10 PATHS=200 node speed-timing.mjs S224 SHIP    # PROTO alone, with the planted-fault switch read from process.env once per move
+{'points': 10, 'solveS': 34.6, 'engineMsPerPath': 61.039, 'engineMsPerPathShareOff': 65.718, 'runHash': '80e10a3b6d877f4a', 'runHashShareOff': '80e10a3b6d877f4a', 'chooserMemo': {'hits': 5906835, 'miss': 2111301, 'fails': 837864}}
+$ the same, the switch read once at load (the diff as shipped)
+{'points': 10, 'solveS': 35.2, 'engineMsPerPath': 24.831, 'engineMsPerPathShareOff': 68.907, 'runHash': '80e10a3b6d877f4a', 'runHashShareOff': '80e10a3b6d877f4a', 'chooserMemo': {'hits': 5906835, 'miss': 2111301, 'fails': 837864}}
+(both printed through: | tail -1 | python3 -c "import json,sys; d=json.loads(sys.stdin.read()); print({k:d[k] for k in ['points','solveS','engineMsPerPath','engineMsPerPathShareOff','runHash','runHashShareOff','chooserMemo']})")
+
+Recorded by the independent check (its scripts layers.mjs and grown.mjs, on 0b403ac; the first prototype of S2 for grown and
+the PROTO stale-check, before S2 kept its own scratch and before stale-check primed it)
+$ node grown.mjs    # BASE: the chooser's scratch after engine paths, a seven-slot chooseAction, then rankActions
+prototype chooser: false
+1. after 3 engine paths, _post/_grown by world: 14/14 14/14 14/14
+2. chooseAction at a 7-slot grid position: move 2 ; _post/_grown: 14/14 14/14 14/14
+3. rankActions at the 14-slot opening state, year 1: top moves 0,3,6
+
+$ node grown.mjs    # PROTO (the first prototype)
+prototype chooser: true
+1. after 3 engine paths, _post/_grown by world: -/14 -/14 -/14
+2. chooseAction at a 7-slot grid position: move 2 ; _post/_grown: -/7 -/7 -/7
+3. rankActions at the 14-slot opening state THREW: RangeError: offset is out of bounds
+
+$ node stale-check.mjs S224 6    # PROTO (the first prototype, the check before it primed the scratch)
+{"id":"S224","points":6,"positions":8,"moves":360,"scoresDiffering":2880,"positionsDiffering":8,"bestMoveDiffering":0,"worstAbsDiff":0.0007686929955333377}
+
+$ node layers.mjs S224 6 off; on    # every layer of every world hashed, the memo off and on
+{"id":"S224","points":6,"memo":"off","small":false,"secs":120.676,"walkArrays":879,"walkHash":"7e83e2f8d9e988f5","layers":3,"layerArrays":2583,"ofWhichPlanLayer":861,"allLayersHash":"fa4a4b6dc4274a69","memoStats":{"hits":0,"miss":0}}
+{"id":"S224","points":6,"memo":"on","small":false,"secs":52.377,"walkArrays":879,"walkHash":"7e83e2f8d9e988f5","layers":3,"layerArrays":2583,"ofWhichPlanLayer":861,"allLayersHash":"fa4a4b6dc4274a69","memoStats":{"hits":78043554,"miss":26115966}}
+
+$ node layers.mjs S362 4 off small; on small    # the same at 4 points with the reference lattice cut down (S1 and S3 off, then on)
+{"id":"S362","points":4,"memo":"off","small":true,"secs":147.852,"walkArrays":984,"walkHash":"6362df4912715015","layers":3,"layerArrays":2898,"ofWhichPlanLayer":966,"allLayersHash":"f743ba457f1027d3","memoStats":{"hits":0,"miss":0}}
+{"id":"S362","points":4,"memo":"on","small":true,"secs":39.884,"walkArrays":984,"walkHash":"6362df4912715015","layers":3,"layerArrays":2898,"ofWhichPlanLayer":966,"allLayersHash":"f743ba457f1027d3","memoStats":{"hits":74030397,"miss":13662147}}
+
+==================================================================================================================
+PART E. The ratios SPEED-REVIEW.md quotes, printed from the lines above
+$ node scripts/speed-figures.mjs results-speed.txt
+pair (commit, household, arm, points, weight)      solve: BASE  PROTO  times | engine ms: BASE  PROTO(on)  times | PROTO off  on  times | memo dup  aref dup
+0b403ac S224 SHIP 10pt w0.02                           90.9   41.1 2.21 |   71.5   26.3 2.71 |   71.6  26.3 2.72 | 77.5% 
+0b403ac S224 CAND 8pt w0.02                           168.2   69.7 2.41 |   74.9   31.4 2.38 |   81.7  31.4 2.60 | 75.7% 
+0b403ac S224 JOINT 6pt w0.02                           41.8   20.2 2.07 |   93.3   40.5 2.31 |   97.1  40.5 2.40 | 71.7% 
+0b403ac S362 CAND 6pt w0.02                           446.2  120.6 3.70 |  156.1   45.9 3.40 |  151.6  45.9 3.30 | 84.3% 75.6%
+                                                   the reference's build: 250.3 s and 64.4 s, 3.88 times
+0b403ac S224 SHIP 6pt w0.02                               -   20.6 - |      -      - - |      -     - - | 77.3% 
+0b403ac S224 CAND 6pt w0.02                               -   49.3 - |      -      - - |      -     - - | 74.9% 
+2d7cce3 S362 CAND 8pt w0.02                           546.0  146.2 3.73 |      -      - - |      -     - - | 84.3% 75.6%
+                                                   the reference's build: 260.8 s and 71.9 s, 3.62 times
+2d7cce3 S224 SHIP 30pt w0.02                          268.5  111.8 2.40 |   65.3   26.1 2.50 |   66.7  26.1 2.55 | 77.2% 
+2d7cce3 S362 CAND 30pt w0.02                         1454.2  353.3 4.12 |  173.8   42.9 4.05 |  157.0  42.9 3.66 | 84.0% 75.6%
+                                                   the reference's build: 263.7 s and 62.3 s, 4.23 times
+2d7cce3 S362 SHIP 30pt w0.02                          363.8  119.7 3.04 |      -   32.7 - |  107.0  32.7 3.27 | 84.4% 
+scores checked bit for bit: S224 SHIP 10pt 885600; S224 CAND 8pt 885600; S362 CAND 6pt 496800
+gate 5 on S362 at 30 points: today 561.3 s / 363.8 s = 1.54; with S1 to S3 135.1 s / 119.7 s = 1.13, against today's SHIP 0.37

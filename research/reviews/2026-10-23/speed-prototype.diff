@@ -1,0 +1,385 @@
+--- a/src/solver/adaptive.js
++++ b/src/solver/adaptive.js
+@@ -117,17 +117,30 @@
+     return 1 - Phi(hi);
+   };
+   const Q = Array.from({ length: NM }, () => new Float64Array(K));
++  // SPEED PROTOTYPE (exact): at a lattice state, a move whose post-flow state and growth (in every world) match an earlier
++  // move's has that move's Q, bit for bit; MEMO=0 turns it off
++  const memoOn = !(typeof process !== 'undefined' && process.env && process.env.MEMO === '0');
++  const keepAll = new Float64Array(NM * 7), keepU = new Uint32Array(keepAll.buffer), clsM = new Int32Array(NM), dupOf = new Int32Array(NM);
++  const bF = new Float64Array(1), bU = new Uint32Array(bF.buffer), bl = v => Array.from(v, x => { bF[0] = x; return bU[0].toString(36) + '.' + bU[1].toString(36); }).join(',');
++  const classesAt = t => { const ids = new Map(); for (let mi = 0; mi < NM; mi++) { const ai = moves[mi]; let key = ''; for (let k = 0; k < K; k++) { const a = cs[plant === 'drift' ? centre : k].acts[ai]; key += bl(a.real) + '|' + bl(a.sigma) + '|' + bl(a.volEffAt[t]) + '#'; } let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); } clsM[mi] = id; } };
++  const APLANT = typeof process !== 'undefined' && process.env ? process.env.MEMOPLANT || '' : '';   // 'arefnocls' (prototype only): the growth class left out
++  const dupFind = mi => { const b0 = mi * 14; for (let mj = 0; mj < mi; mj++) { if (dupOf[mj] === -2 || (APLANT !== 'arefnocls' && clsM[mj] !== clsM[mi])) continue; const a0 = mj * 14; let w = 0; while (w < 14 && keepU[a0 + w] === keepU[b0 + w]) w++; if (w === 14) return mj; } return -1; };
++  let qHits = 0, qMiss = 0;
+   for (let yi = bridge.length - 2; yi >= 0; yi--) {
+     const t = bridge[yi], ag = AG[t], next = t + 1;
+     for (let k = 0; k < K; k++) V[k][t] = new Float64Array(na * nb * NG);
+     MV[t] = new Int32Array(na * nb * NG);
++    if (memoOn) classesAt(t);
+     for (let ia = 0; ia < na; ia++) for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
+       const A = Math.exp(ag[ia]), b = BG[jb], gf = gains[ig];
+       setState(A, b, gf);
+       for (let mi = 0; mi < NM; mi++) {
+         const ai = moves[mi];
+-        if (!flowOk(t, ai)) { Q[mi].fill(0); continue; }
+-        const keep = Float64Array.from(post);
++        if (!flowOk(t, ai)) { Q[mi].fill(0); dupOf[mi] = -2; continue; }
++        keepAll.set(post, mi * 7);
++        if (memoOn) { const d = dupFind(mi); if (d >= 0) { for (let k = 0; k < K; k++) Q[mi][k] = Q[d][k]; dupOf[mi] = d; qHits++; continue; } }
++        dupOf[mi] = -1; qMiss++;
++        const keep = keepAll.subarray(mi * 7, mi * 7 + 7);
+         for (let k = 0; k < K; k++) {
+           post.set(keep);
+           if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
+@@ -158,8 +171,11 @@
+         setState(0, b, gf);
+         for (let mi = 0; mi < NM; mi++) {
+           const ai = moves[mi];
+-          if (!flowOk(t, ai)) { Q[mi].fill(0); continue; }
+-          const keep = Float64Array.from(post);
++          if (!flowOk(t, ai)) { Q[mi].fill(0); dupOf[mi] = -2; continue; }
++          keepAll.set(post, mi * 7);
++          if (memoOn) { const d = dupFind(mi); if (d >= 0) { for (let k = 0; k < K; k++) Q[mi][k] = Q[d][k]; dupOf[mi] = d; qHits++; continue; } }
++          dupOf[mi] = -1; qMiss++;
++          const keep = keepAll.subarray(mi * 7, mi * 7 + 7);
+           for (let k = 0; k < K; k++) {
+             post.set(keep);
+             if (next === TL && plant !== 'step') { Q[mi][k] = clearStep(k, ai, t); continue; }
+@@ -288,5 +304,6 @@
+     for (let zi = 0; zi < nz; zi++) { const A2 = at2(uLo > 0 ? PhiInv(uLo + (1 - uLo) * (zi + 0.5) / nz) : ZS[zi]); acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
+     return (1 - uLo) * acc / nz;
+   }
++  globalThis.__aref = { V, MV, V0, MV0, AST, ASTY, qHits, qMiss, NM };
+   return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, ...over }) };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
+ }
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -810,6 +810,50 @@
+   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
+   const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
+   const failBuf = new Uint8Array(A);
++  /*
++   * SPEED PROTOTYPE (exact): THE CELL'S EXPECTATION MEMO. Many moves leave a cell in the same post-decision state bit for
++   * bit, and a move's expectation (its growth at its tiers' rates and the read of next year's tables) is a pure function of
++   * that state, the move's growth class and the layer read. Each distinct key is integrated once a cell and a world; the
++   * move's own terms are added after, as before. `expMemo: false` turns it off.
++   */
++  const MEMO = opts.expMemo !== false;
++  const memoCap = A * (TS ? tsPairs.length * K : 1) + 1;
++  const MSIZE = 1 << Math.ceil(Math.log2(2 * memoCap)), MMASK = MSIZE - 1;
++  const mSlotStamp = new Int32Array(MSIZE).fill(-1), mSlotEnt = new Int32Array(MSIZE);
++  const mKey = new Uint32Array(memoCap * 16), mVal = new Float64Array(memoCap * 4);
++  let mStamp = 0, mN = 0, memoHits = 0, memoMiss = 0;
++  const postU = new Uint32Array(postBuf.buffer), tsPostU = new Uint32Array(tsPost.buffer);
++  const memoReset = () => { mStamp++; mN = 0; };
++  const PLANT = typeof process !== 'undefined' && process.env ? process.env.MEMOPLANT || '' : '';
++  const memoFind = (U, w0, cls, lay) => {
++    if (PLANT === 'nocls') cls = 0; if (PLANT === 'nolayer') lay = 0;
++    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
++    for (let w = 0; w < 14; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
++    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
++    let slot = h & MMASK;
++    for (;;) {
++      if (mSlotStamp[slot] !== mStamp) return ~slot;
++      const e = mSlotEnt[slot], kb = e * 16;
++      if (mKey[kb + 14] === cls && mKey[kb + 15] === lay) {
++        let w = 0;
++        while (w < 14 && mKey[kb + w] === U[w0 + w]) w++;
++        if (w === 14) return e;
++      }
++      slot = (slot + 1) & MMASK;
++    }
++  };
++  const memoPut = (slot, U, w0, cls, lay, s, b, rs, h) => {
++    if (PLANT === 'nocls') cls = 0; if (PLANT === 'nolayer') lay = 0;
++    const e = mN++, kb = e * 16, vb = e * 4;
++    for (let w = 0; w < 14; w++) mKey[kb + w] = U[w0 + w];
++    mKey[kb + 14] = cls; mKey[kb + 15] = lay;
++    mSlotStamp[slot] = mStamp; mSlotEnt[slot] = e;
++    mVal[vb] = s; mVal[vb + 1] = b; mVal[vb + 2] = rs; mVal[vb + 3] = h;
++  };
++  const clsW = cs.map(() => new Int32Array(A));
++  const bitsF = new Float64Array(1), bitsU = new Uint32Array(bitsF.buffer);
++  const bitsOf = x => { bitsF[0] = x; return bitsU[0].toString(36) + '.' + bitsU[1].toString(36); };
++  const bitsList = v => Array.from(v, bitsOf).join(',');
+   let evaluated = 0, e3Copied = 0, covCopied = 0;
+   const profT0 = PROF ? now() : 0;
+   const shortOfAction = new Float64Array(A);
+@@ -918,6 +962,16 @@
+   for (let t = T; t >= 0; t--) {
+     const spendYear = c.yr.spend[t] > 0;
+     const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
++    // the memo's growth classes this year: a move's tiers and every rate its growth reads, bit for bit
++    if (MEMO) for (let k = 0; k < K; k++) {
++      const ids = new Map(), ck = cs[k], nro = nodeRealOfAtW[k][t];
++      for (let ai = 0; ai < A; ai++) {
++        const a = ck.acts[ai];
++        const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${bitsList(a.real)}|${bitsList(a.sigma)}|${bitsList(a.volEffAt[t])}|${nro[ai].map(bitsList).join(';')}`;
++        let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
++        clsW[k][ai] = id;
++      }
++    }
+     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
+     // outer one and this would otherwise be evaluated K times for the same answer
+     for (let ai = 0; ai < A; ai++) {
+@@ -1067,6 +1121,7 @@
+                 // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
+                 // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
+                 // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
++                if (MEMO) memoReset();   // one memo a cell: the world and the layer read are in its key
+                 for (let j = 0; j < tsPairs.length; j++) {
+                 for (let k = 0; k < K; k++) {
+                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
+@@ -1081,7 +1136,10 @@
+                       let src = postBuf, o = ai * 7;
+                       if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                       let s = 0, b = 0, rs = 0, h = 0;
+-                      if (!fail) {
++                      let mf = -1;
++                      const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;
++                      if (!fail && MEMO) { mf = memoFind(mU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
++                      if (!fail && mf < 0) {
+                         const nr = nodeRealOf[ai];
+                         if (t === T && FINT) { finalYearExact(ck, t, src.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                         else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, src.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+@@ -1103,6 +1161,7 @@
+                             h += QW[zi] * rd[3];
+                           }
+                         }
++                        if (MEMO) { memoPut(~mf, mU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
+                       }
+                       if (failShort && fail) h = failCostAt[t];
+                       else h += shortOfAction[ai];
+@@ -1144,10 +1203,14 @@
+                   const nodeRealOf = nodeRealOfAtW[k][t];
+                   const sNext = t < T ? lsurvW[k][t + 1] : null, bNext = t < T ? beqW[k][t + 1] : null;
+                   const rNext = t < T ? lresilW[k][t + 1] : null, hNext = t < T ? shortW[k][t + 1] : null;
++                  if (MEMO) memoReset();
++                  const clsK = clsW[k];
+                   for (let ai = 0; ai < A; ai++) {
+                     const o = ai * 7, fail = failBuf[ai] === 1;
+                     let s = 0, b = 0, rs = 0, h = 0;
+-                    if (!fail) {
++                    let mf = -1;
++                    if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
++                    if (!fail && mf < 0) {
+                       const nr = nodeRealOf[ai];
+                       if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                       else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+@@ -1166,6 +1229,7 @@
+                           s += QW[zi] * rd[0]; b += QW[zi] * rd[1]; rs += QW[zi] * rd[2]; h += QW[zi] * rd[3];
+                         }
+                       }
++                      if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
+                     }
+                     if (failShort && fail) h = failCostAt[t];
+                     else h += shortOfAction[ai];
+@@ -1194,12 +1258,16 @@
+                 const rNext = t < T ? lresilW[k][t + 1] : null;
+                 const hNext = t < T ? shortW[k][t + 1] : null;
+                 let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
++                if (MEMO) memoReset();
++                const clsK = clsW[k];
+                 for (let ai = 0; ai < A; ai++) {
+                   const o = ai * 7;
+                   const fail = failBuf[ai] === 1;
+                   let s = 0, b = 0, rs = 0, h = 0;
+                   const thisShort = shortOfAction[ai];
+-                  if (!fail) {
++                  let mf = -1;
++                  if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
++                  if (!fail && mf < 0) {
+                     const tn = PROF ? now() : 0;
+                     const nr = nodeRealOf[ai];
+                     if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+@@ -1223,6 +1291,7 @@
+                       }
+                     }
+                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
++                    if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
+                   }
+                   if (failShort && fail) h = failCostAt[t];
+                   else h += thisShort;
+@@ -1266,6 +1335,7 @@
+   }
+ 
+   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
++  globalThis.__memoStats = { hits: (globalThis.__memoStats ? globalThis.__memoStats.hits : 0) + memoHits, miss: (globalThis.__memoStats ? globalThis.__memoStats.miss : 0) + memoMiss };
+   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
+   if (switchCharge > 0) meta.switchCharge = switchCharge;
+   if (E3) meta.e3 = { copied: e3Copied };
+@@ -1363,8 +1433,18 @@
+     // the mixture: the weighted average of every table's score for each move; a move that fails in any table fails
+     SC.fill(0); TX.fill(0); BQ.fill(0);
+     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
++    // SPEED PROTOTYPE (exact): the year's flows once a decision, shared by every world and every tier variant of a move
++    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 ? decisionFlows(r, s, t, held) : null;
+     r.mix.tables.forEach((tab, k) => {
+-      scoreMoves(tab, s, t, S2, T2, B2, held);
++      if (D) {
++        scoreMovesShared(tab, s, t, S2, T2, B2, D);
++        if (CHOOSER.check) {
++          const S3 = new Float64Array(n), T3 = new Float64Array(n), B3 = new Float64Array(n);
++          scoreMoves(tab, s, t, S3, T3, B3, held);
++          for (let ai = 0; ai < n; ai++) if (!Object.is(S2[ai], S3[ai]) || !Object.is(T2[ai], T3[ai]) || !Object.is(B2[ai], B3[ai])) throw new Error(`share check: year ${t}, world ${k}, move ${ai}: ${S2[ai]} ${S3[ai]} | ${T2[ai]} ${T3[ai]} | ${B2[ai]} ${B3[ai]}`);
++          SHARE_CHECKED.n += n;
++        }
++      } else scoreMoves(tab, s, t, S2, T2, B2, held);
+       const w = r.mix.weights[k];
+       for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
+     });
+@@ -1524,6 +1604,152 @@
+   }
+ }
+ 
++/*
++ * SPEED PROTOTYPE (exact). The chooser scored every move in every world from scratch: the year's flow once per move per
++ * world (the flow reads no world field, and a tier variant's flow is its base move's), and the expectation once per move
++ * even where two moves leave the same position. Here the flows (and the switch charge) are computed once a decision and
++ * shared; within a world, moves with the same charged position, growth class and layer share one expectation. The move's
++ * own terms are applied in the original order (h's node terms are kept and added one by one), so every score is the same
++ * bit for bit. Env (prototype only): FLOWSHARE=0 turns it off; SHARECHECK=1 recomputes every score the old way and throws
++ * on any difference.
++ */
++const ENV = typeof process !== 'undefined' && process.env ? process.env : {};
++export const CHOOSER = { share: ENV.FLOWSHARE !== '0', check: ENV.SHARECHECK === '1' };
++const CPLANT = ENV.CHOOSERPLANT || '';   // read once: a process.env read is a call into the runtime
++export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0 };
++function decisionFlows(r, s, t, held) {
++  const c = r.c, actions = r.actions, n = actions.length, L = s.length;
++  let D = r._dec;
++  if (!D || D.L !== L) {
++    D = r._dec = { L, post: new Float64Array(n * L), cpost: new Float64Array(n * L), fail: new Uint8Array(n), tx: new Float64Array(n),
++      base: Int32Array.from(actions, (a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai)) };
++    D.cU = new Uint32Array(D.cpost.buffer);
++  }
++  const { post, cpost, fail, tx, base } = D;
++  for (let ai = 0; ai < n; ai++) {
++    const o = ai * L, b = base[ai];
++    if (b === ai) {
++      const p = post.subarray(o, o + L); p.set(s);
++      const unmet = F.flow(c, t, ai, p);
++      tx[ai] = c.last.taxPaid + c.last.cgtPaid;
++      fail[ai] = unmet > 1 || c.last.preNmpaInsolvent ? 1 : 0;
++    } else { post.copyWithin(o, b * L, b * L + L); tx[ai] = tx[b]; fail[ai] = fail[b]; }
++    for (let q = 0; q < L; q++) cpost[o + q] = post[o + q];
++    if (held && !fail[ai] && !(CPLANT === 'nocharge' && b !== ai)) F.chargeSwitch(c, cpost.subarray(o, o + L), held, c.acts[ai], t);
++  }
++  return D;
++}
++const clsBitsF = new Float64Array(1), clsBitsU = new Uint32Array(clsBitsF.buffer);
++const clsBits = v => Array.from(v, x => { clsBitsF[0] = x; return clsBitsU[0].toString(36) + '.' + clsBitsU[1].toString(36); }).join(',');
++function classesOf(r, t) {
++  const cache = r._clsAt || (r._clsAt = []);
++  if (cache[t]) return cache[t];
++  const n = r.actions.length, out = new Int32Array(n), ids = new Map(), nro = r.nodeRealOfAt[t], acts = r.c.acts;
++  for (let ai = 0; ai < n; ai++) {
++    const a = acts[ai];
++    const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${clsBits(a.real)}|${clsBits(a.sigma)}|${clsBits(a.volEffAt[t])}|${nro[ai].map(clsBits).join(';')}`;
++    let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
++    out[ai] = id;
++  }
++  return (cache[t] = out);
++}
++function makeMemo(cap, words, NQ) {
++  const size = 1 << Math.ceil(Math.log2(2 * cap + 2)), mask = size - 1, KW = words + 2;
++  const slotStamp = new Int32Array(size).fill(-1), slotEnt = new Int32Array(size), key = new Uint32Array(cap * KW);
++  const M = { words, NQ, val: new Float64Array(cap * 3), hv: new Float64Array(cap * NQ), mode: new Uint8Array(cap), stamp: 0, n: 0 };
++  M.reset = () => { M.stamp++; M.n = 0; };
++  M.find = (U, w0, cls, lay) => {
++    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
++    for (let w = 0; w < words; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
++    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
++    let slot = h & mask;
++    for (;;) {
++      if (slotStamp[slot] !== M.stamp) return ~slot;
++      const e = slotEnt[slot], kb = e * KW;
++      if (key[kb + words] === cls && key[kb + words + 1] === lay) { let w = 0; while (w < words && key[kb + w] === U[w0 + w]) w++; if (w === words) return e; }
++      slot = (slot + 1) & mask;
++    }
++  };
++  M.put = (slot, U, w0, cls, lay) => {
++    const e = M.n++, kb = e * KW;
++    for (let w = 0; w < words; w++) key[kb + w] = U[w0 + w];
++    key[kb + words] = cls; key[kb + words + 1] = lay;
++    slotStamp[slot] = M.stamp; slotEnt[slot] = e;
++    return e;
++  };
++  return M;
++}
++function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
++  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
++  const nodeRealOf = nodeRealOfAt[t], n = actions.length, L = D.L;
++  const grown = r._grownS && r._grownS.length === Math.max(7, s.length) ? r._grownS : (r._grownS = new Float64Array(Math.max(7, s.length)));   // its own scratch: scoreMoves' is left as it was
++  const rd = r._rd || (r._rd = new Float64Array(4));
++  const spendYear = c.yr.spend[t] > 0;
++  const QW = r.quadWeights || WEIGHTS, NQ = QW.length;
++  const final = t >= r.m.ctx.totalYears;
++  const stepAt = !final && r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
++  const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
++  const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
++  const cls = classesOf(r, t);
++  let M = r._cm;
++  if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
++  M.reset();
++  const { val, hv, mode } = M, cU = D.cU;
++  for (let ai = 0; ai < n; ai++) {
++    TX[ai] = D.tx[ai];
++    if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
++    const o = ai * L, post = D.cpost.subarray(o, o + L);
++    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
++    const rz = r.raiseSurvival && cst < 0 ? cst : 0;
++    let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
++    const lj = !final && r.tsLayers ? r.tsLayerOf[ai] + 1 : 0, cl = CPLANT === 'nocls' ? 0 : cls[ai];
++    const f = M.find(cU, o * 2, cl, lj);
++    if (f >= 0) {
++      SHARE_CHECKED.hits++;
++      const vb = f * 3, hb = f * NQ; sv = val[vb]; bq = val[vb + 1]; rs = val[vb + 2];
++      if (mode[f] === 1) h += hv[hb]; else if (mode[f] === 2) for (let zi = 0; zi < NQ; zi++) h += hv[hb + zi];
++    } else {
++      SHARE_CHECKED.miss++;
++      const e = M.put(~f, cU, o * 2, cl, lj), vb = e * 3, hb = e * NQ;
++      const nr = nodeRealOf[ai];
++      if (final) {
++        const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
++        if (r.finalIntegral) { finalYearExact(c, t, post, c.acts[ai], r.terminal, grown, fxR, fx); sv = fx[0]; bq = fx[1]; rs = fx[2]; }
++        else for (let zi = 0; zi < QW.length; zi++) {
++          grown.set(post);
++          F.grow(c, t, grown, nr[zi]);
++          const total = grown[0] + grown[1] + grown[2];
++          const alive = !(floor > 0 && total < floor);
++          const net = Math.max(0, total - grown[0] * deathTax);
++          sv += QW[zi] * (alive ? 1 : 0);
++          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
++          bq += QW[zi] * (alive ? beqOf(net) : 0);
++        }
++        mode[e] = 0;
++      } else {
++        const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
++        const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
++        if (stepAt !== null && stepExpect(c, g, t, post, c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; hv[hb] = sx[3]; mode[e] = 1; }
++        else {
++          for (let zi = 0; zi < NQ; zi++) {
++            grown.set(post);
++            F.grow(c, t, grown, nr[zi]);
++            readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
++            sv += QW[zi] * rd[0];
++            bq += QW[zi] * rd[1];
++            rs += QW[zi] * rd[2];
++            const term = QW[zi] * rd[3]; h += term; hv[hb + zi] = term;
++          }
++          mode[e] = 2;
++        }
++      }
++      val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
++    }
++    if (rz) h += rz * sv;
++    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
++  }
++}
++
+ /* The K best moves at a position, by the same score chooseAction uses (a couple's rollout builds its candidates from these). */
+ export function rankActions(r, s, t, held = null, K = 3) {
+   const n = r.actions.length;

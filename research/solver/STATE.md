@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: 354d6dbfe909142f (23 Oct, 19:25 UK); the code now: 354d6dbfe909142f.
+- The solver code the e3pcls pin last passed on: ba5c2bf97c3fabe7 (23 Oct, 20:01 UK); the code now: ba5c2bf97c3fabe7.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -253,6 +253,7 @@ finished.
 
 <!-- printed:speed -->
 - Finding 1, the chooser's scratch sized to the state it scores: `solver-scratch.test.mjs` ALL PASS: 6 checks on the fixed code, FAILED: 4 of 6 checks on the code before it, where 26 of 125 SHIP positions and 22 of 75 CAND positions scored differently once the table had run forward paths (`results-solver-scratch.txt`).
+- S1, the cell's expectation memo: `solver-memo.test.mjs --full` ALL PASS: 17 checks: 15 household-arms (S224, S362, S370 under SHIP, CAND, FROZEN, DECOMP, JOINT) the same bit for bit, their tables and every layer, with the memo off and on; the memo answered 77.8% of the expectations (1035593532 of 1331197632); their solves at 6 points took 1917 s off and 685 s on; each plant (the growth class, the world left out of the key) changes a hash (`results-solver-memo.txt`).
 <!-- end printed:speed -->
 ## 5. Running now
 

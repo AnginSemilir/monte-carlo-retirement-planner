@@ -69,9 +69,12 @@ const BLOCKS = {
   },
   // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
   speed() {
-    const T = 'research/tests/', S = `${T}results-solver-scratch.txt`;
+    const T = 'research/tests/', S = `${T}results-solver-scratch.txt`, S1 = `${T}results-solver-memo.txt`;
+    // S1: each household-arm's line, the memo off and on
+    const memo = (() => { const t = read(S1); if (t === null) return `pending: ${S1}`; const rows = [...t.matchAll(/^PASS {2}(\S+) (\S+): the memo off and on, .*?the memo's hits (\d+), integrations (\d+) \(off: 0, 0\); (\d+) s off, (\d+) s on$/gm)]; if (!rows.length) throw new Error(`state.mjs: ${S1} has no household-arm line`); const sum = i => rows.reduce((a, m) => a + Number(m[i]), 0), h = sum(3), m = sum(4); return `${rows.length} household-arms (${[...new Set(rows.map(r => r[1]))].join(', ')} under ${[...new Set(rows.map(r => r[2]))].join(', ')}) the same bit for bit, their tables and every layer, with the memo off and on; the memo answered ${(100 * h / (h + m)).toFixed(1)}% of the expectations (${h} of ${h + m}); their solves at 6 points took ${sum(5)} s off and ${sum(6)} s on`; })();
     return [
-      `- Finding 1, the chooser's scratch sized to the state it scores: \`solver-scratch.test.mjs\` ${verdict(S)} on the fixed code, ${failedBefore(S)} on the code before it, where ${pick(S, /must fail[\s\S]*?^FAIL {2}SHIP: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} SHIP positions`)} and ${pick(S, /must fail[\s\S]*?^FAIL {2}CAND: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} CAND positions`)} scored differently once the table had run forward paths (\`results-solver-scratch.txt\`).`
+      `- Finding 1, the chooser's scratch sized to the state it scores: \`solver-scratch.test.mjs\` ${verdict(S)} on the fixed code, ${failedBefore(S)} on the code before it, where ${pick(S, /must fail[\s\S]*?^FAIL {2}SHIP: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} SHIP positions`)} and ${pick(S, /must fail[\s\S]*?^FAIL {2}CAND: chooseAction, the move and every mixture score the same bit for bit at (\d+) of (\d+) positions/m, m => `${m[2] - m[1]} of ${m[2]} CAND positions`)} scored differently once the table had run forward paths (\`results-solver-scratch.txt\`).`,
+      `- S1, the cell's expectation memo: \`solver-memo.test.mjs --full\` ${verdict(S1)}: ${memo}; ${pick(S1, /^PASS {2}planted: the key without the growth class changes (\S+) (\S+)'s tables/m, () => 'each plant (the growth class, the world left out of the key) changes a hash')} (\`results-solver-memo.txt\`).`
     ];
   },
   // the open items' measured effects on simulated outcomes

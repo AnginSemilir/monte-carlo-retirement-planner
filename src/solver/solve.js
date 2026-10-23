@@ -34,7 +34,7 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi, shareNode, shareLocOf } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi, shareNode, shareLocOf, READER_PROBE } from './grid.js';
 import { referenceChance, orderChance, buildReaderTable, simChance, r0Split } from './reader.js';
 import * as F from './fast.js'; import { adaptiveReference } from './adaptive.js';
 
@@ -52,6 +52,9 @@ import * as F from './fast.js'; import { adaptiveReference } from './adaptive.js
  * landing can move. Experiments run from a snapshot of the tree; this catches it when one does not.
  */
 export const SOLVER_VERSION = '2026-09-21.single-stage-landing';
+// S1's memo (solve below): its hits and integrations over every solve in this process, for the tests and the timings; on
+// no returned object, so no table's hash moves with it
+export const EXP_MEMO_STATS = { hits: 0, misses: 0 };
 
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
@@ -810,6 +813,55 @@ export function solve(E, M, plan, opts = {}) {
   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
   const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
   const failBuf = new Uint8Array(A);
+  /*
+   * THE CELL'S EXPECTATION MEMO (S1 of the speed review of 23 Oct; STATE.md D24). Many moves leave a cell in the same
+   * post-decision state bit for bit, and a move's expectation (its growth at its tiers' rates and the read of next year's
+   * tables) is a function of that state, the move's growth class (clsW below) and the layer and world read, nothing else:
+   * each key is integrated once a cell (and world), and every move then adds its own terms after it, as before, so no
+   * number moves (solver-memo.test.mjs). The key is the state's bits, confirmed word by word on a hash hit, so -0 and a
+   * NaN never merge. On by default in the product's path and the research runs alike (the maintainer, 23 Oct);
+   * `expMemo: false` turns it off, and so does a reader probe or the log-odds blend, which count every read.
+   * `expMemoPlant` (research only): 'nocls' drops the growth class from the key, 'noworld' the world.
+   */
+  const MEMO = opts.expMemo !== false && !READER_PROBE.fn && opts.readerBlend !== 'logodds';
+  const PLANT = opts.expMemoPlant || '';
+  const memoCap = A * (TS ? tsPairs.length * K : 1) + 1;
+  const MSIZE = 1 << Math.ceil(Math.log2(2 * memoCap)), MMASK = MSIZE - 1;
+  const mSlotStamp = new Int32Array(MSIZE).fill(-1), mSlotEnt = new Int32Array(MSIZE);
+  const mKey = new Uint32Array(memoCap * 16), mVal = new Float64Array(memoCap * 4);
+  let mStamp = 0, mN = 0, memoHits = 0, memoMiss = 0;
+  const postU = new Uint32Array(postBuf.buffer), tsPostU = new Uint32Array(tsPost.buffer);
+  // a new memo by a new stamp; the stamps start again before they would wrap (a 90-point grid nears 2^31 resets)
+  const memoReset = () => { mN = 0; if (++mStamp === 0x7fffffff) { mSlotStamp.fill(-1); mStamp = 0; } };
+  const memoFind = (U, w0, cls, lay) => {
+    if (PLANT === 'nocls') cls = 0;
+    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
+    for (let w = 0; w < 14; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
+    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
+    let slot = h & MMASK;
+    for (;;) {
+      if (mSlotStamp[slot] !== mStamp) return ~slot;
+      const e = mSlotEnt[slot], kb = e * 16;
+      if (mKey[kb + 14] === cls && mKey[kb + 15] === lay) {
+        let w = 0;
+        while (w < 14 && mKey[kb + w] === U[w0 + w]) w++;
+        if (w === 14) return e;
+      }
+      slot = (slot + 1) & MMASK;
+    }
+  };
+  const memoPut = (slot, U, w0, cls, lay, s, b, rs, h) => {
+    if (PLANT === 'nocls') cls = 0;
+    const e = mN++, kb = e * 16, vb = e * 4;
+    for (let w = 0; w < 14; w++) mKey[kb + w] = U[w0 + w];
+    mKey[kb + 14] = cls; mKey[kb + 15] = lay;
+    mSlotStamp[slot] = mStamp; mSlotEnt[slot] = e;
+    mVal[vb] = s; mVal[vb + 1] = b; mVal[vb + 2] = rs; mVal[vb + 3] = h;
+  };
+  const clsW = cs.map(() => new Int32Array(A));
+  const bitsF = new Float64Array(1), bitsU = new Uint32Array(bitsF.buffer);
+  const bitsOf = x => { bitsF[0] = x; return bitsU[0].toString(36) + '.' + bitsU[1].toString(36); };   // a double's bits, for the growth class's key
+  const bitsList = v => Array.from(v, bitsOf).join(',');
   let evaluated = 0, e3Copied = 0, covCopied = 0;
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
@@ -918,6 +970,17 @@ export function solve(E, M, plan, opts = {}) {
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
     const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
+    // the memo's growth classes this year: a move's tiers and every rate its growth reads (its rates, their spread, the year's
+    // volatility and the quadrature nodes' rates), bit for bit; moves of one class grow a state alike
+    if (MEMO) for (let k = 0; k < K; k++) {
+      const ids = new Map(), ck = cs[k], nro = nodeRealOfAtW[k][t];
+      for (let ai = 0; ai < A; ai++) {
+        const a = ck.acts[ai];
+        const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${bitsList(a.real)}|${bitsList(a.sigma)}|${bitsList(a.volEffAt[t])}|${nro[ai].map(bitsList).join(';')}`;
+        let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
+        clsW[k][ai] = id;
+      }
+    }
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
     for (let ai = 0; ai < A; ai++) {
@@ -1067,6 +1130,7 @@ export function solve(E, M, plan, opts = {}) {
                 // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
                 // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
                 // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
+                if (MEMO) memoReset();   // one memo a cell: the world and the layer read are in its key
                 for (let j = 0; j < tsPairs.length; j++) {
                 for (let k = 0; k < K; k++) {
                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
@@ -1081,7 +1145,10 @@ export function solve(E, M, plan, opts = {}) {
                       let src = postBuf, o = ai * 7;
                       if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
                       let s = 0, b = 0, rs = 0, h = 0;
-                      if (!fail) {
+                      let mf = -1;
+                      const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
+                      if (!fail && MEMO) { mf = memoFind(mU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                      if (!fail && mf < 0) {
                         const nr = nodeRealOf[ai];
                         if (t === T && FINT) { finalYearExact(ck, t, src.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
                         else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, src.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
@@ -1103,6 +1170,7 @@ export function solve(E, M, plan, opts = {}) {
                             h += QW[zi] * rd[3];
                           }
                         }
+                        if (MEMO) { memoPut(~mf, mU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
                       }
                       if (failShort && fail) h = failCostAt[t];
                       else h += shortOfAction[ai];
@@ -1144,10 +1212,14 @@ export function solve(E, M, plan, opts = {}) {
                   const nodeRealOf = nodeRealOfAtW[k][t];
                   const sNext = t < T ? lsurvW[k][t + 1] : null, bNext = t < T ? beqW[k][t + 1] : null;
                   const rNext = t < T ? lresilW[k][t + 1] : null, hNext = t < T ? shortW[k][t + 1] : null;
+                  if (MEMO) memoReset();
+                  const clsK = clsW[k];
                   for (let ai = 0; ai < A; ai++) {
                     const o = ai * 7, fail = failBuf[ai] === 1;
                     let s = 0, b = 0, rs = 0, h = 0;
-                    if (!fail) {
+                    let mf = -1;
+                    if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                    if (!fail && mf < 0) {
                       const nr = nodeRealOf[ai];
                       if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
                       else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
@@ -1166,6 +1238,7 @@ export function solve(E, M, plan, opts = {}) {
                           s += QW[zi] * rd[0]; b += QW[zi] * rd[1]; rs += QW[zi] * rd[2]; h += QW[zi] * rd[3];
                         }
                       }
+                      if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
                     }
                     if (failShort && fail) h = failCostAt[t];
                     else h += shortOfAction[ai];
@@ -1194,12 +1267,16 @@ export function solve(E, M, plan, opts = {}) {
                 const rNext = t < T ? lresilW[k][t + 1] : null;
                 const hNext = t < T ? shortW[k][t + 1] : null;
                 let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                if (MEMO) memoReset();
+                const clsK = clsW[k];
                 for (let ai = 0; ai < A; ai++) {
                   const o = ai * 7;
                   const fail = failBuf[ai] === 1;
                   let s = 0, b = 0, rs = 0, h = 0;
                   const thisShort = shortOfAction[ai];
-                  if (!fail) {
+                  let mf = -1;
+                  if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                  if (!fail && mf < 0) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];
                     if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
@@ -1223,6 +1300,7 @@ export function solve(E, M, plan, opts = {}) {
                       }
                     }
                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
+                    if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
                   }
                   if (failShort && fail) h = failCostAt[t];
                   else h += thisShort;
@@ -1266,6 +1344,7 @@ export function solve(E, M, plan, opts = {}) {
   }
 
   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
+  EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };

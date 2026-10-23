@@ -39,6 +39,16 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, on the branch
+  review/external-2026-10-21 at cff3d86, not merged) is carried out in its order, by its "How to port" rules. (1) The
+  speed-ups go forward everywhere: S1 and S2 on by default in the product's path and the research runs, S3 in the
+  candidate's; the defaults go in the solver's code, not in `PRODUCT_BASELINE` or `candidate.json`; they change no number,
+  so D12's decided defaults are not edited; one differing bit in an identity test stops the port and goes to the
+  maintainer. (2) D23 as read: V3 and V4 run once, on the ported code. (3) Gate 5 compares the candidate against the
+  ported product, measured where section 6 has it (after N4, before Phase 4 registers); if it fails, the review's
+  instruction 6 (the reference's build split across E2's parts). The new identity tests join the fast suite on the
+  maintainer's unlock of 23 Oct, for that purpose only. The review's time boxes hold; after its instruction 5 the re-timed
+  figures go to the maintainer against its pass mark.
 - D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then
   run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
 - D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage
@@ -259,15 +269,17 @@ wealth axis decides inside its own error; the order below stands).
 1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, its quick form, the taxable household
    and S370 at 10 paths, in the fast suite; its full form, `state-check-full.test.mjs`, about 15 minutes, in the nightly
    full suite). `solver-carry.test.mjs` takes the forward run's vector at 14 slots. Both on the maintainer's unlock of 23 Oct.
-2. V3 and V4 wait for the external speed review (D23) and run once, on the code it leaves: D20 (8)'s scope (about a day
-   of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
+2. The speed review's port (D24), each step its own commit with its test, then the fast suite and the e3pcls pin:
+   finding 1's fix (the chooser's scratch sized to the state), S1, S3, S2; then the re-time, reported to the maintainer.
+3. V3 and V4 on the ported code (D23, D24): D20 (8)'s scope (about a day of runs, less after the port), EXPLORATORY on
+   the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
-   O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
+   O179) and one deposit household (S370, the speed review names it); V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
    wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test
    of S224's loss (about 11 core-hours); `v4-ensemble.mjs` drops probit and adds V3's finest setting as a variant. Then
    Step 6, N4 before N1 (D22). Phase 4 registers after N4 has read (D22), after the maintainer's calls (its harm rule, D20 (2), set by error rates with
    S224's loss at the lower weight as its worked case; its budget measured on this machine with nothing else running, D21) and after gate
-   5 (D11) is measured on the assembled candidate, its solve time against the product's (7u-F's solve lines, taken
+   5 (D11) is measured on the assembled candidate, its solve time against the ported product's (D24) (7u-F's solve lines, taken
    under load, put it at several times SHIP's: a lead to measure, not a figure). It carries its own no-harm item against
    SHIP if the candidate changes after 7u-F, a spending item over all years, the whole score on every path, and the Node
    version in the unit stamp, equal across arms (7u-F's arms ran on two hosts; the pairing held). Open for the maintainer

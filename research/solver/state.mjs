@@ -71,7 +71,7 @@ const BLOCKS = {
       `| O195 | S366 unread at the frozen candidate | 7u-F ${uf('S366')} (\`results-7uf.txt\`) | 7u-F's panel reads it | closed by 7u-F |`,
       '| O194 | the bridge reader\'s reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |',
       `| PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): ${pick(`${S}results-pr31-split.txt`, /NEAR: where the split acts.*?the worst ([\d.e-]+) \(([^)]*)\)/, m => `${m[1]} (${m[2]})`)} (\`results-pr31-split.txt\`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |`,
-      '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F\'s PASS on the candidate as assembled |',
+      '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F\'s PASS on the candidate as assembled, not by a measurement: the decomposing arm\'s read was waived by D21, and PR29\'s and PR31\'s premises stay untested (no decision rests on them) |',
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
     ];
   },
@@ -127,8 +127,10 @@ const BLOCKS = {
     const out = [`- ${pick(R, /^THE GATE: (fair|NOT FAIR)[^(]*/m, m => `the gate: ${m[1]}`).trim()}; ${pick(R, /^7U-F READ: .*?; (\d+) households; seed (\d+), (\d+) paths/m, m => `${m[1]} households, seed ${m[2]}, ${m[3]} paths a unit, scored by the engine`)} (\`results-7uf.txt\`).`];
     for (const w of ['0.02', '0.01']) out.push(`- ${pick(R, new RegExp(`^P1 at W${w.replace('.', '\\.')}: .*$`, 'm'))}.`);
     out.push(`- ${pick(R, /^P2: .*$/m)}.`, `- ${pick(R, /^OUTCOME: .*$/m)}.`);
-    const lose = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP [\d.]+ CAND [\d.]+ change (-[\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+); (\d+) saved, (\d+) lost\) p ([\d.e+-]+) Holm ([\d.e+-]+)/gm)].filter(m => +m[8] < 0.05);
-    out.push(`- In the band with a loss at an unadjusted one-sided p below 0.05: ${lose.length ? lose.map(m => `${m[1]} W${m[2]} ${m[3]} (${m[4]} to ${m[5]}; ${m[6]} saved, ${m[7]} lost; p ${m[8]}, Holm ${m[9]})`).join('; ') : 'none'}.`);
+    const lose = [...t.matchAll(/^  (\S+)\s+W([\d.]+): SHIP [\d.]+ CAND [\d.]+ change (-[\d.]+) \(([+-]?[\d.]+) to ([+-]?[\d.]+); (\d+) saved, (\d+) lost\) p ([\d.e+-]+) Holm ([\d.e+-]+); at the margins 0\.25 (clear|not clear), 0\.5 (clear|not clear)/gm)].filter(m => +m[8] < 0.05);
+    // each one's whole score (the solver's own objective, runPolicy's trace) from the reported part (the read's review, MINOR 1)
+    const whole = (id, w) => pick(R, new RegExp(`^  ${id}\\s+W${w.replace('.', '\\.')}: estate .*?whole score ([+-][\\d.]+) \\(se ([\\d.]+)\\)`, 'm'), m => `whole score ${m[1]} (se ${m[2]})`);
+    out.push(`- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: ${lose.length ? lose.map(m => `${m[1]} W${m[2]} ${m[3]} (${m[4]} to ${m[5]}; ${m[6]} saved, ${m[7]} lost; p ${m[8]}, Holm ${m[9]}; the 0.25 margin ${m[10]}, the 0.5 margin ${m[11]}; ${whole(m[1], m[2])})`).join('; ') : 'none'}.`);
     const dn = (t.match(/^  DECOMP not read for /gm) || []).length, fid = (t.match(/FIDELITY GAP/g) || []).length;
     out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);
     return out;

@@ -130,7 +130,7 @@ dropped, not carried; Step 4's triage settles each below.
 | O195 | S366 unread at the frozen candidate | 7u-F W0.02 +0.106 (0.055 to 0.167; 17 saved, 0 lost), W0.01 +0.125 (0.068 to 0.192; 21 saved, 1 lost) (`results-7uf.txt`) | 7u-F's panel reads it | closed by 7u-F |
 | O194 | the bridge reader's reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |
 | PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): 9.120e-4 (year 2 gain 2 x 0.225, world 0, taxable before ISA, spend 90%) (`results-pr31-split.txt`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |
-| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate's, the adaptive reference's exact steps, the chooser's split at the reference's own step | carried by D5: the adaptive package, with PR31's split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F's PASS on the candidate as assembled |
+| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate's, the adaptive reference's exact steps, the chooser's split at the reference's own step | carried by D5: the adaptive package, with PR31's split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F's PASS on the candidate as assembled, not by a measurement: the decomposing arm's read was waived by D21, and PR29's and PR31's premises stay untested (no decision rests on them) |
 | T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F's by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |
 <!-- end printed:items -->
 
@@ -225,7 +225,7 @@ finished.
 - P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD.
 - P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none.
 - OUTCOME: PASS: the candidate goes to Phase 4.
-- In the band with a loss at an unadjusted one-sided p below 0.05: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0).
+- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1; the 0.25 margin not clear, the 0.5 margin clear; whole score -0.264 (se 0.1841)); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1; the 0.25 margin not clear, the 0.5 margin not clear; whole score -0.840 (se 0.2588)); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0; the 0.25 margin not clear, the 0.5 margin clear; whole score +0.107 (se 0.1317)).
 - DECOMP not read for 30 household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: 0.
 <!-- end printed:sevenuf -->
 
@@ -241,13 +241,16 @@ finished.
 
 The order is the follow-up review's Next section (D20); each step has its test and a time box.
 
-1. The reviewer on the read's claims (this section's block and the commit that records it, against `results-7uf.txt`
-   and the code), then the deep reviewer after the confirmatory read; their verdicts in `research/solver/reviews/`.
+1. The deep reviewer after the confirmatory read, its verdict in `research/solver/reviews/`. (The reviewer on the read's
+   claims: `reviews/2026-10-23-read-7uf.md`, PASS, P1 and P2 recomputed independently; its four MINORs folded in or
+   carried below.)
 2. One commit to `src/solver` (half a day): the guards of D20 (6) in `adaptive.js` and `couple.js`, and `fast.js`
    l.672's guardrail "lost" flag (read from pots grown twice; inert under a table), each with its test; the fast suite
    and the e3pcls pin re-taken on it.
-3. Then V2's state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs), S224 among V4's
-   households (its in-band losses in the block above); then Step 6 as written. Phase 4 registers after
-   the maintainer's calls: its harm rule (D20 (2)) and its budget measured on this machine with nothing else running
-   (D21). Open for the maintainer as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on
+3. Then V2's state check, D20 (4) (a day); V3 and V4 with D20 (8)'s scope (about a day of runs): `v3-convergence.mjs`'s
+   household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s, with S362 (O191
+   and O179) and S224 (its in-band losses and whole score in the block above); then Step 6 as written. Phase 4
+   registers after the maintainer's calls: its harm rule (D20 (2), with S224's figures above before it) and its budget
+   measured on this machine with nothing else running (D21); its unit stamp records the Node version, held equal across
+   arms (7u-F's units ran on two hosts, its CAND units on one and 25 of SHIP's on the other; the pairing held). Open for the maintainer as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on
    their own devices (D20 (10)). (D20 (5), the hook change, was made on 22 Oct under the maintainer's unlock.)

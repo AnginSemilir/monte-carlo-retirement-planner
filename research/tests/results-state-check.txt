@@ -1,15 +1,16 @@
-# node research/tests/state-check.test.mjs --paths 40 (on this commit's code; about 15 minutes, nine of them the five solves)
+# node research/tests/state-check-full.test.mjs, i.e. state-check.test.mjs --full (on this commit's code; about 15 minutes, nine of them the five solves)
 the light candidate on 5 households, 40 paths each of seed 99001
   carry (30 years, solve 87 s): the forward run survives 40 of 40; its worst gap 1.6e-9
-  S224 (41 years, solve 104 s): the forward run survives 26 of 40; its worst gap 3.7e-9
-  S370 (46 years, solve 184 s): the forward run survives 27 of 40; its worst gap 1.1e-8
-  S008 (28 years, solve 71 s): the forward run survives 35 of 40; its worst gap 0.0e+0
-  S380 (46 years, solve 160 s): the forward run survives 24 of 40; its worst gap 0.0e+0
+  S224 (41 years, solve 98 s): the forward run survives 26 of 40; its worst gap 3.7e-9
+  S370 (46 years, solve 163 s): the forward run survives 27 of 40; its worst gap 1.1e-8
+  S008 (28 years, solve 67 s): the forward run survives 35 of 40; its worst gap 0.0e+0
+  S380 (46 years, solve 150 s): the forward run survives 24 of 40; its worst gap 0.0e+0
 PASS  1. lockstep, 6948 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension 1.1e-8 (S370 path 18 year 43); ISA 1.9e-9 (S224 path 30 year 38); taxable and cash 1.6e-9 (carry path 23 year 28); tax-free cash taken 8.7e-11 (S224 path 11 year 28); cash ISA 1.1e-10 (carry path 15 year 20); gains carried 4.5e-11 (carry path 19 year 21); cash 1.1e-10 (carry path 15 year 20); basis of an emptied account 1.2e-10 (S224 path 17 year 8); gain held 1.3e-9 (carry path 23 year 29); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end 7.5e-9 (S370 path 18)
   the engine's taxable account empty with a basis left on it, in some year: 90 of 200 paths (the largest £68218, S370 path 15)
-  the engine's own pick differs from the forward run's in 127 of 9798 years (a near-tie at most: the state is the same); the move handed over matches tablePolicy's in every year both picked it (mismatches 0)
+PASS  1. where the engine's own pick differs from the forward run's (5 of 6948 years), the two moves score alike to the engine's chooser: the largest gap 6.9e-18 (S370 path 25 year 8, moves 42 and 132), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
 PASS  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 0)
 PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £68218; gains carried £1005)
+PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 3.2e-4)
 PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £15739; pension £12718, taxable and cash £251170)
 PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
 PASS  3. the constants are at nothing in every year of every run
@@ -19,19 +20,20 @@ PASS  3. no run writes to the engine's context (households whose context changed
 PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
 PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
 PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 191 of 191; first carry year 0)
-ALL PASS: 12 checks
-# the same test on the code before the fix (src/solver at 2d7cce3: no slot 13, so a forward run forgets the basis left on an emptied taxable account): it must fail
+ALL PASS: 14 checks
+# the same test (--full) on the code before the fix (src/solver at 2d7cce3: no slot 13, so a forward run forgets the basis left on an emptied taxable account): it must fail
 the light candidate on 5 households, 40 paths each of seed 99001
-  carry (30 years, solve 77 s): the forward run survives 40 of 40; its worst gap 1.6e-9
+  carry (30 years, solve 84 s): the forward run survives 40 of 40; its worst gap 1.6e-9
   S224 (41 years, solve 96 s): the forward run survives 26 of 40; its worst gap 3.7e-9
-  S370 (46 years, solve 163 s): the forward run survives 27 of 40; its worst gap 20215.3898
-  S008 (28 years, solve 77 s): the forward run survives 35 of 40; its worst gap 0.0e+0
+  S370 (46 years, solve 161 s): the forward run survives 27 of 40; its worst gap 20215.3898
+  S008 (28 years, solve 68 s): the forward run survives 35 of 40; its worst gap 0.0e+0
   S380 (46 years, solve 150 s): the forward run survives 24 of 40; its worst gap 0.0e+0
 FAIL  1. lockstep, 6948 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension £20215.3898 (S370 path 33 year 45); ISA £1437.3052 (S370 path 33 year 19); taxable and cash £1158.9166 (S370 path 33 year 13); tax-free cash taken £640.1828 (S370 path 33 year 21); cash ISA £1158.9166 (S370 path 33 year 13); gains carried £1005.4959 (S370 path 20 year 7); cash £1158.9166 (S370 path 33 year 13); basis of an emptied account 0.0e+0; gain held £6231.3869 (S370 path 20 year 5); lump sum taken 0.0e+0; tiers held 0.0e+0; wealth at the end £17242.3713 (S370 path 33)
   the engine's taxable account empty with a basis left on it, in some year: 90 of 200 paths (the largest £68218, S370 path 15)
-  the engine's own pick differs from the forward run's in 131 of 9798 years (a near-tie at most: the state is the same); the move handed over matches tablePolicy's in every year both picked it (mismatches 0)
+FAIL  1. where the engine's own pick differs from the forward run's (9 of 6948 years), the two moves score alike to the engine's chooser: the largest gap 1.2e-6 (S370 path 26 year 43, moves 5 and 11), its tie tolerance 1.0e-12 (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)
 PASS  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 0)
 PASS  2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £6231; basis of an emptied account £0; gains carried £1005)
+PASS  2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap 3.2e-4)
 PASS  2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £15739; pension £12718, taxable and cash £251170)
 PASS  3. inventory: 22 fields of the engine's state seen over every year of every run, each listed: 4 pots carried (pots.pen_self, pots.isa_self, pots.other_self, pots.cash_self), 7 more carried (giaBasis.self as slot 3, the gain share of slot 2 less slot 12, and slot 13 when that is empty; cgtCarry.self as slot 11; cumPcls.self as slot 4; lumpSumTaken.self as slot 5; cashIsa.self as slot 6; tierHeld.self.pen as the tiers held; tierHeld.self.isa as the tiers held), 7 constant for a single (giaBasis.part, cgtCarry.part, cumPcls.part, lumpSumTaken.part, cashIsa.part, tierHeld.part.pen, tierHeld.part.isa), 4 inert under a table (guard.rate0, guard.mult, guard.lostLastYear, guard.lastBaseDraw)
 PASS  3. the constants are at nothing in every year of every run
@@ -41,4 +43,4 @@ PASS  3. no run writes to the engine's context (households whose context changed
 PASS  4. planted: a field added to the state fails the inventory (not listed: extra.flag)
 PASS  4. planted: a partner's carried gains of 1,200 fail the constants (off: cgtCarry.part)
 PASS  4. planted: the carried gains listed as inert fail the perturbation (the year moved in 191 of 191; first carry year 0)
-FAILED: 1 of 12 checks
+FAILED: 2 of 14 checks

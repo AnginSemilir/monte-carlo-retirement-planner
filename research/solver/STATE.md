@@ -180,7 +180,7 @@ nothing) dropped it; a forward run now carries it in slot 13 (S370 the household
 - F0, S194, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before +0.00 (0 / 0), after 0 (0 / 0) (`results-engine-vs-fast.txt`).
 - O200's reach (item 4), counted and then dropped: on the code before the fix, 19 of 7u's 55 households counted, cells with no move chosen 0, non-finite 0; the count then dropped (the follow-up review of 22 Oct, answer 3: 7u-F re-solves every household on the fixed code, whose guards throw on a cell with no move) (`results-reach-census.txt`).
 - After 7u-F, the argmax loops left (`adaptive.js`, `couple.js`) and `fast.js`'s lost-year flag: `solver-guards.test.mjs` ALL PASS: 9 checks on the fixed code, FAILED: 4 of 9 checks with the guards out and the old flag line back (`results-solver-guards.txt`).
-- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: `state-check.test.mjs` ALL PASS: 12 checks on the fixed code, FAILED: 1 of 12 checks on the code before it (`results-state-check.txt`). Before, over 6948 household-years, the gaps above a pound: pension £20215.3898 (S370 path 33 year 45); ISA £1437.3052 (S370 path 33 year 19); taxable and cash £1158.9166 (S370 path 33 year 13); tax-free cash taken £640.1828 (S370 path 33 year 21); cash ISA £1158.9166 (S370 path 33 year 13); gains carried £1005.4959 (S370 path 20 year 7); cash £1158.9166 (S370 path 33 year 13); gain held £6231.3869 (S370 path 20 year 5); wealth at the end £17242.3713 (S370 path 33); after, over 6948 household-years, every gap within a pound (the largest 1.1e-8 pounds, pension). The engine's taxable account empty with a basis left on it, in some year: 90 of 200 paths (the largest £68218, S370 path 15).
+- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: `state-check.test.mjs --full` ALL PASS: 14 checks on the fixed code, FAILED: 2 of 14 checks on the code before it (`results-state-check.txt`). Before, over 6948 household-years, the gaps above a pound: pension £20215.3898 (S370 path 33 year 45); ISA £1437.3052 (S370 path 33 year 19); taxable and cash £1158.9166 (S370 path 33 year 13); tax-free cash taken £640.1828 (S370 path 33 year 21); cash ISA £1158.9166 (S370 path 33 year 13); gains carried £1005.4959 (S370 path 20 year 7); cash £1158.9166 (S370 path 33 year 13); gain held £6231.3869 (S370 path 20 year 5); wealth at the end £17242.3713 (S370 path 33); after, over 6948 household-years, every gap within a pound (the largest 1.1e-8 pounds, pension). The engine's taxable account empty with a basis left on it, in some year: 90 of 200 paths (the largest £68218, S370 path 15). On the fixed code the engine's own pick differs from the forward run's in 5 of 6948 years, the largest score gap 6.9e-18 against the chooser's tie tolerance 1.0e-12: ties.
 <!-- end printed:step1 -->
 
 ### Step 2: what the fixes could have changed (EXPLORATORY, the tuning seed)
@@ -256,9 +256,9 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, about 15 minutes, in the nightly full
-   suite; its quick form, `state-check-quick.test.mjs`, the taxable household and S370 at 10 paths, in the fast suite).
-   `solver-carry.test.mjs` takes the forward run's vector at 14 slots. Both on the maintainer's unlock of 23 Oct.
+1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, its quick form, the taxable household
+   and S370 at 10 paths, in the fast suite; its full form, `state-check-full.test.mjs`, about 15 minutes, in the nightly
+   full suite). `solver-carry.test.mjs` takes the forward run's vector at 14 slots. Both on the maintainer's unlock of 23 Oct.
 2. V3 and V4 wait for the external speed review (D23) and run once, on the code it leaves: D20 (8)'s scope (about a day
    of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and

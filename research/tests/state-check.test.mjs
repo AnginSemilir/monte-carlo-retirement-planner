@@ -12,7 +12,7 @@
  *      candidate's settings with 4 wealth points and a small lattice: its moves, tiers, switch charge and lump sums, its
  *      table crude, which only widens the moves taken) on five single households: the taxable household of
  *      solver-carry.test.mjs (£400k holding £240k of gain), S224, S370 (a bridge, half its cash in an ISA), S008 and S380;
- *      40 paths each of seed 99001;
+ *      40 paths each of seed 99001 (--full; the quick form takes the first and S370 at 10 paths);
  *   2. planted: a forward run that drops its carried gains (slot 11) each year parts from the engine; so does one that
  *      forgets the basis left on an emptied taxable account (slot 13), the fault check 1 found on S370 (23 Oct);
  *   3. inventory: every field of the engine's state, gathered at every year of every run, is listed as carried (its slot)
@@ -23,9 +23,10 @@
  *      hides there;
  *   4. planted: a field added to the state fails the inventory, and the carried gains listed as inert fail the
  *      perturbation.
- * Singles only: a couple's forward run is couple.js's own (7u-F's panel is all singles). The quick form (--quick, the fast
- * suite's state-check-quick.test.mjs): the taxable household and S370 at 10 paths each, both planted faults kept.
- *   node research/tests/state-check.test.mjs [--quick] [--paths N]
+ * Singles only: a couple's forward run is couple.js's own (7u-F's panel is all singles). Two forms: by default the quick
+ * one, in the fast suite (so this file is protected): the taxable household and S370 at 10 paths each, so both planted
+ * faults still fire; with --full (state-check-full.test.mjs, in the nightly full suite) all five households, 40 paths.
+ *   node research/tests/state-check.test.mjs [--full] [--paths N]
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -37,7 +38,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0, failed = 0;
 const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
-const QUICK = process.argv.includes('--quick'), argAt = process.argv.indexOf('--paths'), NP = argAt > 0 ? Number(process.argv[argAt + 1]) : QUICK ? 10 : 40, SEED = 99001;
+const QUICK = !process.argv.includes('--full'), argAt = process.argv.indexOf('--paths'), NP = argAt > 0 ? Number(process.argv[argAt + 1]) : QUICK ? 10 : 40, SEED = 99001;
 const LIGHT = { lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
 
 const acc = (id, owner, category, balance, risk, extra = {}) => ({ id, owner, category, balance, contrib: 0, growth: 0, risk, ...extra });
@@ -100,7 +101,8 @@ const rowKey = row => JSON.stringify(row, (k, v) => (typeof v === 'number' ? Mat
 
 const worst = {}, worstAt = {}, planted = {}, planted13 = {}, seen = new Map(), perHH = [], offConst = {};
 const emptied = { paths: 0, of: 0, largest: 0, at: '' };   // the engine's taxable account empty with a basis left on it
-let picksDiffer = 0, pickYears = 0, mapMismatch = 0, years = 0, ctxWrites = 0;
+let picksDiffer = 0, pickYears = 0, mapMismatch = 0, years = 0, ctxWrites = 0, pickStored = 0;
+const pickGap = { v: -Infinity, at: '', tol: 0 }, plantedPick = { v: -Infinity };   // the largest score gap between the engine's own pick and the forward run's
 const inertMoved = {}, plantInertMoved = { n: 0, of: 0, first: '' }, guardMoved = { n: 0, of: 0, first: '' };
 let inertTried = 0;
 
@@ -116,7 +118,16 @@ for (const [id, p] of HH) {
     if (!rec) return want;   // after the forward run stopped (it failed): the engine goes on, nothing to compare
     const forced = moveOf(r, rec.ai, want.index === rec.ai ? want.code : 'forced');
     if (cur.sink) {
-      pickYears++; if (want.index !== rec.ai) picksDiffer++;
+      // the picks are compared on the lockstep's runs only: in a planted run the forward run's state is wrong on purpose
+      if (cur.sink === worst) pickYears++;
+      if (cur.sink === worst && want.index !== rec.ai) {
+        // the engine's chooser scored every move in r._sc (chooseAction): how far the forward run's pick sits below its own
+        picksDiffer++;
+        if (t >= r.m.ctx.totalYears && !r.finalExact) pickStored++;
+        else { const gap = r._sc[want.index] - r._sc[rec.ai]; if (!(gap <= pickGap.v)) { pickGap.v = gap; pickGap.at = `${id} path ${cur.i} year ${t}, moves ${want.index} and ${rec.ai}`; } pickGap.tol = Math.max(r.eps || 0, r.tieMargin || 0); }
+      }
+      // planted: with the carried gains dropped the forward run's picks part from the engine's by more than a tie
+      if (cur.sink === planted && want.index !== rec.ai && !(t >= r.m.ctx.totalYears && !r.finalExact)) plantedPick.v = Math.max(plantedPick.v, r._sc[want.index] - r._sc[rec.ai]);
       if (want.index === rec.ai && JSON.stringify(forced) !== JSON.stringify(want)) mapMismatch++;
       if (cur.sink === worst) years++;
       const g = gaps(vecOf(r.m, modelStateOf(st)), rec.s, held, rec.held);
@@ -207,9 +218,10 @@ const keys = [...MONEY, 'gain', 5, 'held', 'end'];
 ok(keys.every(k => worst[k] <= (k === 5 || k === 'held' ? 0 : 1)) && years > 0,
   `1. lockstep, ${years} household-years: the engine's state in the solver's slots against the forward run's, worst gaps: ${keys.map(fmt).join('; ')}`);
 console.log(`  the engine's taxable account empty with a basis left on it, in some year: ${emptied.paths} of ${emptied.of} paths (the largest £${emptied.largest.toFixed(0)}${emptied.at ? `, ${emptied.at}` : ''})`);
-console.log(`  the engine's own pick differs from the forward run's in ${picksDiffer} of ${pickYears} years (a near-tie at most: the state is the same); the move handed over matches tablePolicy's in every year both picked it (mismatches ${mapMismatch})`);
+ok(picksDiffer === pickStored || pickGap.v <= pickGap.tol + 1e-9, `1. where the engine's own pick differs from the forward run's (${picksDiffer} of ${pickYears} years${pickStored ? `, ${pickStored} of them read from the stored final-year policy` : ''}), the two moves score alike to the engine's chooser: the largest gap ${picksDiffer > pickStored ? `${pickGap.v.toExponential(1)} (${pickGap.at})` : 'none'}, its tie tolerance ${pickGap.tol.toExponential(1)} (a near-tie, broken by noise in the last digits; a larger gap means the chooser reads something the state does not carry)`);
 ok(mapMismatch === 0, `the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches ${mapMismatch})`);
 ok(planted13.gain > 1, `2. planted: a forward run that forgets an emptied account's basis each year (slot 13 at nothing, the code before 23 Oct) parts from the engine on S370 (gain held, worst £${(planted13.gain || 0).toFixed(0)}; basis of an emptied account £${(planted13[13] || 0).toFixed(0)}; gains carried £${(planted13[11] || 0).toFixed(0)})`);
+ok(plantedPick.v > Math.max(pickGap.tol, 1e-9), `2. planted: with the carried gains dropped, the forward run's picks part from the engine chooser's by more than a tie (the largest gap ${plantedPick.v === -Infinity ? 'none' : plantedPick.v.toExponential(1)})`);
 ok(planted[11] > 1, `2. planted: a forward run that drops its carried gains each year parts from the engine (gains carried, worst £${(planted[11] || 0).toFixed(0)}; pension £${(planted[0] || 0).toFixed(0)}, taxable and cash £${(planted[2] || 0).toFixed(0)})`);
 
 const unlisted = [...seen.keys()].filter(f => !classify(ctxOf, f)), gone = [...Object.keys(CARRIED), ...CONSTANT, ...Object.keys(INERT)].filter(f => !seen.has(f));

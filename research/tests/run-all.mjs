@@ -15,13 +15,13 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // the verification suite: V1 and V2 (Part B Step 5), the product-path defects' tests (Step 1), the checks' own tests and
-// the engine's quick unit tests; about four minutes on four cores, most of it solver-invariants
+// the engine's quick unit tests; about eight minutes on four cores (23 Oct), most of it solver-invariants and V2's state check
 export const FAST = [
   'solver-invariants.test.mjs', 'known-answer.test.mjs', 'engine-fidelity.test.mjs', 'solver-carry.test.mjs', 'tier-above.test.mjs', 'tax-2026.test.mjs', 'table-guards.test.mjs',
   'final-integral.test.mjs', 'check-state.test.mjs', 'hooks.test.mjs', 'fair-gate.test.mjs', 'plan-defaults.test.mjs',
   'e3pcls-guard.test.mjs', 'scottax.test.mjs', 'savings-tax.test.mjs', 'bridge.test.mjs', 'cf.test.mjs', 'diff.test.mjs',
   'entrants.test.mjs', 'guardrails.test.mjs', 'inheritance.test.mjs', 'lookahead.test.mjs', 'pctband.test.mjs',
-  'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs', 'audit-7uf-checks.test.mjs', 'solver-guards.test.mjs'
+  'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs', 'audit-7uf-checks.test.mjs', 'solver-guards.test.mjs', 'state-check-quick.test.mjs'
 ];
 
 // run only as the script, never on import (hygiene.test.mjs imports FAST: unguarded, the import ran the suite, which ran

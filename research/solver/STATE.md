@@ -39,6 +39,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then
+  run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
 - D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage
   coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
 - D21. 22 Oct, maintainer: 7u-F runs well past its budget (its first units took longer than `budget-7uf.mjs`'s
@@ -254,10 +256,11 @@ The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P
 every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
 wealth axis decides inside its own error; the order below stands).
 
-1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, about 15 minutes: the nightly full
-   suite; a quick form joins the fast suite on the maintainer's call). `solver-carry.test.mjs` (protected) checks the
-   forward run's vector at 14 slots, slot 13 at nothing at the start, changed on the maintainer's unlock of 23 Oct.
-2. Then V3 and V4 with D20 (8)'s scope (about a day of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
+1. V2's state check, D20 (4): done, the Step 1 block above (`state-check.test.mjs`, about 15 minutes, in the nightly full
+   suite; its quick form, `state-check-quick.test.mjs`, the taxable household and S370 at 10 paths, in the fast suite).
+   `solver-carry.test.mjs` takes the forward run's vector at 14 slots. Both on the maintainer's unlock of 23 Oct.
+2. V3 and V4 wait for the external speed review (D23) and run once, on the code it leaves: D20 (8)'s scope (about a day
+   of runs), EXPLORATORY on the tuning seed. `v3-convergence.mjs`'s
    household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
    O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
    wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test

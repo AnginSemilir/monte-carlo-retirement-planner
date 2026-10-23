@@ -23,8 +23,9 @@
  *      hides there;
  *   4. planted: a field added to the state fails the inventory, and the carried gains listed as inert fail the
  *      perturbation.
- * Singles only: a couple's forward run is couple.js's own (7u-F's panel is all singles).
- *   node research/tests/state-check.test.mjs [--paths N]
+ * Singles only: a couple's forward run is couple.js's own (7u-F's panel is all singles). The quick form (--quick, the fast
+ * suite's state-check-quick.test.mjs): the taxable household and S370 at 10 paths each, both planted faults kept.
+ *   node research/tests/state-check.test.mjs [--quick] [--paths N]
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -36,7 +37,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0, failed = 0;
 const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
-const argAt = process.argv.indexOf('--paths'), NP = argAt > 0 ? Number(process.argv[argAt + 1]) : 40, SEED = 99001;
+const QUICK = process.argv.includes('--quick'), argAt = process.argv.indexOf('--paths'), NP = argAt > 0 ? Number(process.argv[argAt + 1]) : QUICK ? 10 : 40, SEED = 99001;
 const LIGHT = { lambda: 0.0223606797749979, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
 
 const acc = (id, owner, category, balance, risk, extra = {}) => ({ id, owner, category, balance, contrib: 0, growth: 0, risk, ...extra });
@@ -48,7 +49,7 @@ const CARRY = {
   config: { valuationDate: '2026-01-01' }
 };
 const all = buildScenarios();
-const HH = [['carry', CARRY], ...['S224', 'S370', 'S008', 'S380'].map(id => [id, all.find(s => s.id === id).plan])];
+const HH = [['carry', CARRY], ...(QUICK ? ['S370'] : ['S224', 'S370', 'S008', 'S380']).map(id => [id, all.find(s => s.id === id).plan])];
 const planOf = p => { const h = JSON.parse(JSON.stringify(p)); return E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } })); };
 
 // the move a table hands the engine for index ai, as tablePolicy builds it (checked against it whenever both pick the same)

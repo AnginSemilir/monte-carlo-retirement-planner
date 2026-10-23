@@ -39,6 +39,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage
+  coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
 - D21. 22 Oct, maintainer: 7u-F runs well past its budget (its first units took longer than `budget-7uf.mjs`'s
   estimates for both the solve and the simulation, projecting past the time box), so from the 12-hour relaunch its
   remaining CAND and SHIP units run before DECOMP's (`batch-7uf.sh`; the order moves no figure). The read of P1 and P2
@@ -255,7 +257,7 @@ wealth axis decides inside its own error; the order below stands).
    O179) and one deposit household; V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
    wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test
    of S224's loss (about 11 core-hours); `v4-ensemble.mjs` drops probit and adds V3's finest setting as a variant. Then
-   Step 6 as written. Phase 4 registers after the maintainer's calls (its harm rule, D20 (2), set by error rates with
+   Step 6, N4 before N1 (D22). Phase 4 registers after N4 has read (D22), after the maintainer's calls (its harm rule, D20 (2), set by error rates with
    S224's loss at the lower weight as its worked case; its budget measured on this machine with nothing else running, D21) and after gate
    5 (D11) is measured on the assembled candidate, its solve time against the product's (7u-F's solve lines, taken
    under load, put it at several times SHIP's: a lead to measure, not a figure). It carries its own no-harm item against

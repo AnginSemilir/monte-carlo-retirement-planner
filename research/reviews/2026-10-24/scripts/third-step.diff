@@ -1,0 +1,21 @@
+--- a/src/solver/fast.js	2026-10-24 21:04:15.000000000 +0100
++++ b/src/solver/fast.js	2026-10-24 22:59:45.895807959 +0100
+@@ -86,7 +86,7 @@
+  * The tiers a wrapper may hold under the solver (phase 6): the one set on Plan Inputs first, then up to
+  * `below` tiers under it, each with the plan's own return assumptions for that tier. Never above.
+  */
+-export function tiersFor(m, below = 2) {
++export function tiersFor(m, below = m.tiersBelow || 2) {   // tiersBelow: EXPLORATORY (the external review, 24 Oct), a third step down
+   const profiles = (m.plan && m.plan.riskProfiles) || m.E.DEFAULT_RISK_PROFILES;
+   const o = m.ctx.owners[0];
+   const out = {};
+--- a/src/solver/solve.js	2026-10-24 21:04:15.000000000 +0100
++++ b/src/solver/solve.js	2026-10-24 22:59:45.896500518 +0100
+@@ -335,6 +335,7 @@
+   const m = M.prepare(E, plan);
+   if (opts.shiftZ !== undefined) m.shiftZ = opts.shiftZ;   // the scenario mixture: this table's held shift
+   if (opts.tiersAbove) m.tiersAbove = opts.tiersAbove;   // M14, research only: tiers above the plan's (see tiersFor)
++  if (opts.tiersBelow) m.tiersBelow = opts.tiersBelow;   // EXPLORATORY (the external review, 24 Oct): more steps below the plan's tier
+   if (opts.giaTiers) m.giaTiers = true;   // M15, research only: the taxable account takes the joint tier step (see tiersFor)
+   // one table per person; a couple needs two and a funding split, which is phase 5
+   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');

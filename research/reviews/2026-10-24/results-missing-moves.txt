@@ -1,0 +1,171 @@
+MISSING MOVES (EXPLORATORY), 24 Oct 2026: every figure in MISSING-MOVES.md, with the command that printed it.
+The code: the agent's branch at eb8709d (solver fingerprint de451be3d9903e65, the e3pcls pin's), a copy with the engine built;
+third-step.mjs on a second copy with scripts/third-step.diff applied. Seed 7002 (the tuning seed), 45 wealth points, estate
+weight 0.02. Two runs at a time on a two-core machine. Each menu-gap run throws unless its checks 1 to 3 pass.
+
+==================================================================================================================
+PART A. The finer menu: menu-gap.mjs <household> 0.02 1000 3000 on each household, then the read
+$ OUT=S224.json node menu-gap.mjs S224 0.02 1000 3000    # its log's check and summary lines
+20:30:37 S224 W0.02: solved in 500 s, 45 points, 360 moves, levels 1 1.1 0.95 0.9 0.8, tier pairs 0/0,1/1,2/2, switch charge 0.001, riskAbove off: no tier above the plan
+20:30:37 N4's ceilings here: 6285, 28116, 100000; the corners 12570, 43662
+20:32:01 the candidate's run: 3000 paths in 84 s, 37356 decisions recorded on the first 1000; survival 69.933%, whole score 72.0520
+20:32:03 check 3, this file's chooser over the menu on 20 paths: the same bit for bit
+20:39:08 check 1, the menu's pick against the candidate's chooser: 0 of 37356 decisions differ; check 2, menu moves reached by the search: 846815, 0 scored differently
+20:39:08 the gap over 37356 decisions in 426 s (17143351 finer moves scored): per decision, in points of the whole score, median 0.00e+0, 95th 1.63e-2, 99th 5.35e-2, the largest 5.26e-1; decisions with a gap above 0.001 points 11169, above 0.01 3288
+20:39:08 the table's estimate of one step of improvement, points of the whole score a path (mean, se): all dimensions 0.1273, 0.0047, of which N4's ceilings at the menu's levels 0.0777, 0.0032 and beyond them 0.0496, 0.0018; the level alone 0.0080, 0.0003; the draw-first ceiling alone 0.0976, 0.0047; the re-wrap alone 0.0628, 0.0020
+20:39:08 where the finer best differs from the menu's (decisions with a gap above 1e-6 score units; L level, C draw-first ceiling, H re-wrap, base another start move): {"H":2171,"CH":2609,"C":5568,"L":1424,"LC":1199,"LH":242,"LCH":405,"CHbase":1,"Hbase":3}; their points a path {"H":0.01201,"CH":0.02519,"C":0.07761,"L":0.00407,"LC":0.00429,"LH":0.00144,"LCH":0.00258,"CHbase":0.00001,"Hbase":0.00003}
+20:40:27 check 4, the planted hole on 200 paths (7533 decisions): the hole costs 0.5633 points a path in the tables; the search finds 0.6709; at the 2632 decisions where the hole costs over 0.001 points, it finds half or more at 2632: CAUGHT
+21:07:20 the finer menu's greedy policy less the candidate: whole score -0.0212 (se 0.0584), survival -0.0333 points (se 0.0577; 1 saved, 2 lost) on 3000 paths
+21:07:20 N4's menu's greedy policy less the candidate: whole score -0.0620 (se 0.0478), survival -0.0667 points (se 0.0471; 0 saved, 2 lost) on 3000 paths
+21:07:20 the finer menu's greedy policy less N4's: whole score +0.0408 (se 0.0337), survival +0.0333 points (se 0.0333; 1 saved, 0 lost) on 3000 paths
+
+$ OUT=S370.json node menu-gap.mjs S370 0.02 1000 3000    # its log's check and summary lines
+20:33:14 S370 W0.02: solved in 658 s, 45 points, 360 moves, levels 1 1.1 0.95 0.9 0.8, tier pairs 0/0,1/1,2/2, switch charge 0.001, riskAbove off: no tier above the plan
+20:33:14 N4's ceilings here: 6285, 31420, 100000; the corners 12570, 50270
+20:34:56 the candidate's run: 3000 paths in 101 s, 43375 decisions recorded on the first 1000; survival 80.500%, whole score 83.5337
+20:34:59 check 3, this file's chooser over the menu on 20 paths: the same bit for bit
+20:44:06 check 1, the menu's pick against the candidate's chooser: 0 of 43375 decisions differ; check 2, menu moves reached by the search: 965056, 0 scored differently
+20:44:06 the gap over 43375 decisions in 547 s (17239541 finer moves scored): per decision, in points of the whole score, median 0.00e+0, 95th 2.02e-1, 99th 5.17e-1, the largest 7.86e+0; decisions with a gap above 0.001 points 17226, above 0.01 14582
+20:44:06 the table's estimate of one step of improvement, points of the whole score a path (mean, se): all dimensions 1.9824, 0.1006, of which N4's ceilings at the menu's levels 1.7710, 0.0920 and beyond them 0.2114, 0.0253; the level alone 0.0092, 0.0003; the draw-first ceiling alone 1.0230, 0.0800; the re-wrap alone 1.4413, 0.0635
+20:44:06 where the finer best differs from the menu's (decisions with a gap above 1e-6 score units; L level, C draw-first ceiling, H re-wrap, base another start move): {"CH":2868,"LCH":888,"LH":573,"C":5027,"H":6575,"LC":883,"L":1064,"CHbase":15,"Hbase":4,"Cbase":5,"LCbase":3,"LCHbase":6}; their points a path {"CH":0.3277,"LCH":0.01284,"LH":0.0063,"C":0.84862,"H":0.76388,"LC":0.01322,"L":0.00337,"CHbase":0.00588,"Hbase":0.00035,"Cbase":0.00005,"LCbase":0.00004,"LCHbase":0.00009}
+20:45:59 check 4, the planted hole on 200 paths (8736 decisions): the hole costs 0.2154 points a path in the tables; the search finds 2.1028; at the 1035 decisions where the hole costs over 0.001 points, it finds half or more at 1033: CAUGHT
+21:22:30 the finer menu's greedy policy less the candidate: whole score +1.9439 (se 0.2477), survival +1.8000 points (se 0.2473; 55 saved, 1 lost) on 3000 paths
+21:22:30 N4's menu's greedy policy less the candidate: whole score +2.0338 (se 0.2540), survival +1.9000 points (se 0.2537; 58 saved, 1 lost) on 3000 paths
+21:22:30 the finer menu's greedy policy less N4's: whole score -0.0899 (se 0.0883), survival -0.1000 points (se 0.0882; 2 saved, 5 lost) on 3000 paths
+
+$ OUT=S248.json node menu-gap.mjs S248 0.02 1000 3000    # its log's check and summary lines
+21:16:14 S248 W0.02: solved in 520 s, 45 points, 360 moves, levels 1 1.1 0.95 0.9 0.8, tier pairs 0/0,1/1,2/2, switch charge 0.001, riskAbove off: no tier above the plan
+21:16:14 N4's ceilings here: 6285, 28116, 100000; the corners 12570, 43662
+21:17:31 the candidate's run: 3000 paths in 77 s, 42315 decisions recorded on the first 1000; survival 52.833%, whole score 54.7488
+21:17:33 check 3, this file's chooser over the menu on 20 paths: the same bit for bit
+21:23:21 check 1, the menu's pick against the candidate's chooser: 0 of 42315 decisions differ; check 2, menu moves reached by the search: 681128, 0 scored differently
+21:23:21 the gap over 42315 decisions in 348 s (14031133 finer moves scored): per decision, in points of the whole score, median 0.00e+0, 95th 1.76e-1, 99th 3.94e-1, the largest 5.38e+0; decisions with a gap above 0.001 points 16524, above 0.01 10202
+21:23:21 the table's estimate of one step of improvement, points of the whole score a path (mean, se): all dimensions 1.2929, 0.0730, of which N4's ceilings at the menu's levels 1.1464, 0.0715 and beyond them 0.1464, 0.0056; the level alone 0.0105, 0.0004; the draw-first ceiling alone 1.1184, 0.0637; the re-wrap alone 0.6339, 0.0450
+21:23:21 where the finer best differs from the menu's (decisions with a gap above 1e-6 score units; L level, C draw-first ceiling, H re-wrap, base another start move): {"CH":2231,"C":10861,"L":1956,"LC":2234,"H":704,"LH":321,"LCH":182,"CHbase":2,"LCbase":1}; their points a path {"CH":0.21986,"C":0.8781,"L":0.00557,"LC":0.0256,"H":0.15841,"LH":0.00141,"LCH":0.00383,"CHbase":0.00008,"LCbase":0.00002}
+21:24:34 check 4, the planted hole on 200 paths (8581 decisions): the hole costs 0.7217 points a path in the tables; the search finds 2.1393; at the 1457 decisions where the hole costs over 0.001 points, it finds half or more at 1451: CAUGHT
+21:47:49 the finer menu's greedy policy less the candidate: whole score +0.8477 (se 0.1638), survival +0.6667 points (se 0.1629; 22 saved, 2 lost) on 3000 paths
+21:47:49 N4's menu's greedy policy less the candidate: whole score +0.8239 (se 0.1570), survival +0.6667 points (se 0.1559; 21 saved, 1 lost) on 3000 paths
+21:47:49 the finer menu's greedy policy less N4's: whole score +0.0238 (se 0.1060), survival +0.0000 points (se 0.1054; 5 saved, 5 lost) on 3000 paths
+
+$ OUT=S330.json node menu-gap.mjs S330 0.02 1000 3000    # its log's check and summary lines
+21:32:05 S330 W0.02: solved in 551 s, 45 points, 360 moves, levels 1 1.1 0.95 0.9 0.8, tier pairs 0/0,1/1,2/2, switch charge 0.001, riskAbove off: no tier above the plan
+21:32:05 N4's ceilings here: 6285, 31420, 100000; the corners 12570, 50270
+21:34:06 the candidate's run: 3000 paths in 121 s, 60023 decisions recorded on the first 1000; survival 89.967%, whole score 97.1968
+21:34:09 check 3, this file's chooser over the menu on 20 paths: the same bit for bit
+21:42:33 check 1, the menu's pick against the candidate's chooser: 0 of 60023 decisions differ; check 2, menu moves reached by the search: 880114, 0 scored differently
+21:42:33 the gap over 60023 decisions in 504 s (19235035 finer moves scored): per decision, in points of the whole score, median 0.00e+0, 95th 1.18e-2, 99th 4.54e-2, the largest 1.83e+0; decisions with a gap above 0.001 points 9930, above 0.01 3500
+21:42:33 the table's estimate of one step of improvement, points of the whole score a path (mean, se): all dimensions 0.1422, 0.0072, of which N4's ceilings at the menu's levels 0.1038, 0.0055 and beyond them 0.0384, 0.0023; the level alone 0.0067, 0.0003; the draw-first ceiling alone 0.0477, 0.0050; the re-wrap alone 0.1053, 0.0048
+21:42:33 where the finer best differs from the menu's (decisions with a gap above 1e-6 score units; L level, C draw-first ceiling, H re-wrap, base another start move): {"H":3869,"CH":5714,"C":1964,"LCH":861,"LH":384,"LC":855,"L":1080,"Hbase":6,"LCbase":5,"Cbase":1,"CHbase":6,"LCHbase":1}; their points a path {"H":0.07382,"CH":0.02309,"C":0.02867,"LCH":0.0067,"LH":0.00268,"LC":0.0047,"L":0.00229,"Hbase":0.00008,"LCbase":0.00002,"Cbase":0,"CHbase":0.00001,"LCHbase":0}
+21:44:09 check 4, the planted hole on 200 paths (12007 decisions): the hole costs 0.6859 points a path in the tables; the search finds 0.8296; at the 2622 decisions where the hole costs over 0.001 points, it finds half or more at 2619: CAUGHT
+22:18:29 the finer menu's greedy policy less the candidate: whole score +0.2053 (se 0.0819), survival +0.2000 points (se 0.0816; 6 saved, 0 lost) on 3000 paths
+22:18:29 N4's menu's greedy policy less the candidate: whole score +0.0342 (se 0.0579), survival +0.0333 points (se 0.0577; 2 saved, 1 lost) on 3000 paths
+22:18:29 the finer menu's greedy policy less N4's: whole score +0.1710 (se 0.0748), survival +0.1667 points (se 0.0745; 5 saved, 0 lost) on 3000 paths
+
+$ node menu-gap-read.mjs S224.json S370.json S248.json S330.json
+S224 at estate weight 0.02, 45 wealth points, seed 7002 (the tuning seed): the candidate survives 69.93%, whole score 72.052; solve 500 s
+  N4's ceilings for this household: 6285, 28116, 100000; the menu's corners 12570, 43662
+  1. the tables' gap, 37356 decisions on the first 1000 paths, summed along each path (points of the whole score a path, mean and se):
+     the finer menu 0.1273 (se 0.0047): N4's ceilings at the menu's levels 0.0777 (se 0.0032), beyond them 0.0496 (se 0.0018)
+     one dimension at a time from the 3 best menu moves: the level 0.0080, the draw-first ceiling 0.0976, the re-wrap 0.0628
+     a decision's gap: median 0.0e+0, 95th percentile 1.6e-2, 99th 5.4e-2, the largest 0.526 points; above 0.001 points at 11169 decisions, above 0.01 at 3288
+     where the finer best differs (L level, C draw-first ceiling, H re-wrap, base another menu move), points a path: C 0.0776 (5568 decisions); CH 0.0252 (2609 decisions); H 0.0120 (2171 decisions); LC 0.0043 (1199 decisions); L 0.0041 (1424 decisions); LCH 0.0026 (405 decisions); LH 0.0014 (242 decisions); Hbase 0.0000 (3 decisions); CHbase 0.0000 (1 decisions)
+  2. the planted hole (the basic-rate corner out of the menu), 7533 decisions on 200 paths: it costs 0.5633 points a path in the tables, the search finds 0.6709; of the 2632 decisions where it costs over 0.001 points, half or more found at 2632: CAUGHT
+  3. simulated, paired on the first 3000 paths (the same paths as the candidate's run; points, se):
+     the finer menu's greedy policy less the candidate: whole score -0.021 (se 0.058), survival -0.033 (se 0.058; 1 saved, 2 lost); 44022 of 111241 decisions off the menu
+     N4's menu's greedy policy less the candidate: whole score -0.062 (se 0.048), survival -0.067 (se 0.047; 0 saved, 2 lost); 21039 of 111254 decisions off the menu
+     the finer menu's less N4's: whole score +0.041 (se 0.034), survival +0.033 (se 0.033; 1 saved, 0 lost)
+  the largest single gaps:
+     path 3, age 90, 0.289 points (wealth 488965, pension 368367): the menu's no pension first, taxable next, re-wrap to 12570, spend 80%, tiers 0/0; the finer pension first to 22500, taxable next, re-wrap to 12570, spend 80%, tiers 0/0
+     path 30, age 92, 0.211 points (wealth 500341, pension 395345): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 37500, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 20, age 87, 0.129 points (wealth 408324, pension 298927): the menu's no pension first, taxable next, re-wrap to 12570, spend 80%, tiers 0/0; the finer pension first to 20000, taxable next, re-wrap to 12570, spend 80%, tiers 0/0
+     path 6, age 90, 0.117 points (wealth 407052, pension 313053): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 32500, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 20, age 86, 0.112 points (wealth 398580, pension 295215): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 25000, taxable next, no re-wrap, spend 80%, tiers 0/0
+S370 at estate weight 0.02, 45 wealth points, seed 7002 (the tuning seed): the candidate survives 80.50%, whole score 83.534; solve 658 s
+  N4's ceilings for this household: 6285, 31420, 100000; the menu's corners 12570, 50270
+  1. the tables' gap, 43375 decisions on the first 1000 paths, summed along each path (points of the whole score a path, mean and se):
+     the finer menu 1.9824 (se 0.1006): N4's ceilings at the menu's levels 1.7710 (se 0.0920), beyond them 0.2114 (se 0.0253)
+     one dimension at a time from the 3 best menu moves: the level 0.0092, the draw-first ceiling 1.0230, the re-wrap 1.4413
+     a decision's gap: median 0.0e+0, 95th percentile 2.0e-1, 99th 5.2e-1, the largest 7.860 points; above 0.001 points at 17226 decisions, above 0.01 at 14582
+     where the finer best differs (L level, C draw-first ceiling, H re-wrap, base another menu move), points a path: C 0.8486 (5027 decisions); H 0.7639 (6575 decisions); CH 0.3277 (2868 decisions); LC 0.0132 (883 decisions); LCH 0.0128 (888 decisions); LH 0.0063 (573 decisions); CHbase 0.0059 (15 decisions); L 0.0034 (1064 decisions); Hbase 0.0003 (4 decisions); LCHbase 0.0001 (6 decisions); Cbase 0.0001 (5 decisions); LCbase 0.0000 (3 decisions)
+  2. the planted hole (the basic-rate corner out of the menu), 8736 decisions on 200 paths: it costs 0.2154 points a path in the tables, the search finds 2.1028; of the 1035 decisions where it costs over 0.001 points, half or more found at 1033: CAUGHT
+  3. simulated, paired on the first 3000 paths (the same paths as the candidate's run; points, se):
+     the finer menu's greedy policy less the candidate: whole score +1.944 (se 0.248) BEYOND N4'S HOUSEHOLD BAR, survival +1.800 (se 0.247; 55 saved, 1 lost) BEYOND N4'S HOUSEHOLD BAR; 61386 of 129978 decisions off the menu
+     N4's menu's greedy policy less the candidate: whole score +2.034 (se 0.254) BEYOND N4'S HOUSEHOLD BAR, survival +1.900 (se 0.254; 58 saved, 1 lost) BEYOND N4'S HOUSEHOLD BAR; 57555 of 129972 decisions off the menu
+     the finer menu's less N4's: whole score -0.090 (se 0.088), survival -0.100 (se 0.088; 2 saved, 5 lost)
+  the largest single gaps:
+     path 14, age 87, 0.862 points (wealth 929606, pension 804660): the menu's pension first, all, taxable next, no re-wrap, spend 80%, tiers 2/2; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 2/2
+     path 14, age 86, 0.835 points (wealth 906342, pension 748997): the menu's pension first to 12570, ISA next, re-wrap to 50270, spend 80%, tiers 2/2; the finer pension first to 50000, ISA next, re-wrap to 100000, spend 80%, tiers 2/2
+     path 14, age 79, 0.500 points (wealth 1394086, pension 1250167): the menu's pension first, all, taxable next, no re-wrap, spend 80%, tiers 2/2; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 2/2
+     path 6, age 78, 0.493 points (wealth 1464695, pension 1413834): the menu's pension first, all, taxable next, no re-wrap, spend 80%, tiers 1/1; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 1/1
+     path 6, age 72, 0.490 points (wealth 1696131, pension 1615397): the menu's pension first to 50270, taxable next, no re-wrap, spend 80%, tiers 1/1; the finer pension first to 67500, taxable next, re-wrap to 100000, spend 80%, tiers 1/1
+S248 at estate weight 0.02, 45 wealth points, seed 7002 (the tuning seed): the candidate survives 52.83%, whole score 54.749; solve 520 s
+  N4's ceilings for this household: 6285, 28116, 100000; the menu's corners 12570, 43662
+  1. the tables' gap, 42315 decisions on the first 1000 paths, summed along each path (points of the whole score a path, mean and se):
+     the finer menu 1.2929 (se 0.0730): N4's ceilings at the menu's levels 1.1464 (se 0.0715), beyond them 0.1464 (se 0.0056)
+     one dimension at a time from the 3 best menu moves: the level 0.0105, the draw-first ceiling 1.1184, the re-wrap 0.6339
+     a decision's gap: median 0.0e+0, 95th percentile 1.8e-1, 99th 3.9e-1, the largest 5.383 points; above 0.001 points at 16524 decisions, above 0.01 at 10202
+     where the finer best differs (L level, C draw-first ceiling, H re-wrap, base another menu move), points a path: C 0.8781 (10861 decisions); CH 0.2199 (2231 decisions); H 0.1584 (704 decisions); LC 0.0256 (2234 decisions); L 0.0056 (1956 decisions); LCH 0.0038 (182 decisions); LH 0.0014 (321 decisions); CHbase 0.0001 (2 decisions); LCbase 0.0000 (1 decisions)
+  2. the planted hole (the basic-rate corner out of the menu), 8581 decisions on 200 paths: it costs 0.7217 points a path in the tables, the search finds 2.1393; of the 1457 decisions where it costs over 0.001 points, half or more found at 1451: CAUGHT
+  3. simulated, paired on the first 3000 paths (the same paths as the candidate's run; points, se):
+     the finer menu's greedy policy less the candidate: whole score +0.848 (se 0.164) BEYOND N4'S HOUSEHOLD BAR, survival +0.667 (se 0.163; 22 saved, 2 lost) BEYOND N4'S HOUSEHOLD BAR; 55117 of 126719 decisions off the menu
+     N4's menu's greedy policy less the candidate: whole score +0.824 (se 0.157) BEYOND N4'S HOUSEHOLD BAR, survival +0.667 (se 0.156; 21 saved, 1 lost) BEYOND N4'S HOUSEHOLD BAR; 44805 of 126692 decisions off the menu
+     the finer menu's less N4's: whole score +0.024 (se 0.106), survival +0.000 (se 0.105; 5 saved, 5 lost)
+  the largest single gaps:
+     path 12, age 83, 0.686 points (wealth 1425045, pension 1147097): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 12, age 84, 0.538 points (wealth 1174128, pension 980626): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 12, age 82, 0.536 points (wealth 1490584, pension 1229778): the menu's pension first, all, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 2, age 77, 0.460 points (wealth 1606078, pension 1296818): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 12, age 80, 0.454 points (wealth 1627707, pension 1248823): the menu's pension first to 43662, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 100000, taxable next, no re-wrap, spend 80%, tiers 0/0
+S330 at estate weight 0.02, 45 wealth points, seed 7002 (the tuning seed): the candidate survives 89.97%, whole score 97.197; solve 551 s
+  N4's ceilings for this household: 6285, 31420, 100000; the menu's corners 12570, 50270
+  1. the tables' gap, 60023 decisions on the first 1000 paths, summed along each path (points of the whole score a path, mean and se):
+     the finer menu 0.1422 (se 0.0072): N4's ceilings at the menu's levels 0.1038 (se 0.0055), beyond them 0.0384 (se 0.0023)
+     one dimension at a time from the 3 best menu moves: the level 0.0067, the draw-first ceiling 0.0477, the re-wrap 0.1053
+     a decision's gap: median 0.0e+0, 95th percentile 1.2e-2, 99th 4.5e-2, the largest 1.828 points; above 0.001 points at 9930 decisions, above 0.01 at 3500
+     where the finer best differs (L level, C draw-first ceiling, H re-wrap, base another menu move), points a path: H 0.0738 (3869 decisions); C 0.0287 (1964 decisions); CH 0.0231 (5714 decisions); LCH 0.0067 (861 decisions); LC 0.0047 (855 decisions); LH 0.0027 (384 decisions); L 0.0023 (1080 decisions); Hbase 0.0001 (6 decisions); LCbase 0.0000 (5 decisions); CHbase 0.0000 (6 decisions); Cbase 0.0000 (1 decisions); LCHbase 0.0000 (1 decisions)
+  2. the planted hole (the basic-rate corner out of the menu), 12007 decisions on 200 paths: it costs 0.6859 points a path in the tables, the search finds 0.8296; of the 2622 decisions where it costs over 0.001 points, half or more found at 2619: CAUGHT
+  3. simulated, paired on the first 3000 paths (the same paths as the candidate's run; points, se):
+     the finer menu's greedy policy less the candidate: whole score +0.205 (se 0.082) (above nothing beyond noise), survival +0.200 (se 0.082; 6 saved, 0 lost) (above nothing beyond noise); 61802 of 179719 decisions off the menu
+     N4's menu's greedy policy less the candidate: whole score +0.034 (se 0.058), survival +0.033 (se 0.058; 2 saved, 1 lost); 42982 of 179721 decisions off the menu
+     the finer menu's less N4's: whole score +0.171 (se 0.075) (above nothing beyond noise), survival +0.167 (se 0.074; 5 saved, 0 lost) (above nothing beyond noise)
+  the largest single gaps:
+     path 11, age 93, 0.115 points (wealth 571932, pension 199470): the menu's no pension first, ISA next, re-wrap to 12570, spend 80%, tiers 2/2; the finer pension first to 20000, ISA next, re-wrap to 12570, spend 80%, tiers 2/2
+     path 7, age 70, 0.110 points (wealth 1226676, pension 474373): the menu's no pension first, taxable next, re-wrap to 12570, spend 80%, tiers 0/0; the finer no pension first, taxable next, re-wrap to 30000, spend 80%, tiers 0/0
+     path 19, age 85, 0.109 points (wealth 749528, pension 277799): the menu's pension first to 50270, taxable next, no re-wrap, spend 80%, tiers 0/0; the finer pension first to 30000, taxable next, no re-wrap, spend 80%, tiers 0/0
+     path 11, age 69, 0.106 points (wealth 1641369, pension 639149): the menu's no pension first, taxable next, re-wrap to 50270, spend 80%, tiers 0/0; the finer no pension first, taxable next, re-wrap to 30000, spend 80%, tiers 0/0
+     path 17, age 72, 0.094 points (wealth 1600157, pension 610222): the menu's no pension first, taxable next, re-wrap to 50270, spend 80%, tiers 0/0; the finer no pension first, taxable next, re-wrap to 30000, spend 80%, tiers 0/0
+
+==================================================================================================================
+PART B. A third joint step down: the copy's identity, then third-step.mjs (its base arm the menu-gap run's own)
+$ node twin.mjs S370 6 '{}'    # the unedited code, e3pcls on
+{"id":"S370","pts":"6","extra":{},"moves":360,"pairs":"0/0,1/1,2/2","survived":81,"runHash":"c6a733138a8f6271","tableHash":"cacaabb8a3d9b27b"}
+$ node twin.mjs S370 6 '{"e3pcls":false}'    # the copy with third-step.diff, the option unset, e3pcls off
+{"id":"S370","pts":"6","extra":{"e3pcls":false},"moves":360,"pairs":"0/0,1/1,2/2","survived":81,"runHash":"c6a733138a8f6271","tableHash":"cacaabb8a3d9b27b"}
+
+$ BASEJSON=S370.json node third-step.mjs S370 0.02 3000 3
+22:09:12 S370 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+22:09:12 BASE (the candidate, from the menu-gap run): survival 80.500%, whole score 83.5337 on 3000 paths
+22:31:35 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1343 s; survival 82.700%, whole score 84.5207 on 3000 paths
+22:31:35   the tier pair chosen in a spending year: 0/0 17.5%, 1/1 1.2%, 2/2 15.6%, 3/3 65.7%
+22:31:35 THIRD less BASE, paired: whole score +0.987 (se 0.357), survival +2.200 points (se 0.351; 89 saved, 23 lost)
+22:31:35 done
+
+$ BASEJSON=S224.json node third-step.mjs S224 0.02 3000 3
+22:20:22 S224 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+22:20:22 BASE (the candidate, from the menu-gap run): survival 69.933%, whole score 72.0520 on 3000 paths
+22:38:36 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1094 s; survival 70.233%, whole score 72.1979 on 3000 paths
+22:38:36   the tier pair chosen in a spending year: 0/0 27.0%, 1/1 2.5%, 2/2 50.1%, 3/3 20.4%
+22:38:36 THIRD less BASE, paired: whole score +0.146 (se 0.226), survival +0.300 points (se 0.224; 27 saved, 18 lost)
+22:38:36 done
+
+==================================================================================================================
+PART C. Where the panel's inherited deposits land, under the plan's policy and under 'Windfall to ISA'
+$ node routing.mjs S370 S330 S362 S002
+S370 under Bracket Fill Basic: deposits 2030: pen_self 3600, other_self 428400; later transfers none
+S370 under Windfall to ISA: deposits 2030: isa_self 20000, other_self 412000; later transfers none
+S330 under Bracket Fill Basic: deposits 2044: pen_self 53710, other_self 117290; later transfers none
+S330 under Windfall to ISA: deposits 2044: isa_self 13105, other_self 157895; later transfers none
+S362 under Bracket Fill Basic: deposits 2030: pen_self 3600, other_self 28800; later transfers none
+S362 under Windfall to ISA: deposits 2030: isa_self 20000, other_self 12400; later transfers none
+S002 under Bracket Fill Basic: deposits 2030: pen_self 3600, other_self 28800; later transfers none
+S002 under Windfall to ISA: deposits 2030: isa_self 20000, other_self 12400; later transfers none

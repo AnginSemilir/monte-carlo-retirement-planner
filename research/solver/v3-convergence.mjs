@@ -129,6 +129,7 @@ function read(dir) {
   const bad = all.filter(x => x.unchosen || x.nonFinite);
   console.log(`V1 on every unit: ${bad.length ? `FAILED (${bad.map(x => `${x.id} ${x.name} W${x.w}: ${x.unchosen} unchosen, ${x.nonFinite} non-finite`).join('; ')})` : 'no cell without a move, none non-finite'}`);
   let allOk = !bad.length && !missing.length;
+  const moved = [];
   for (const w of WEIGHTS) {
     console.log(`\nAT ESTATE WEIGHT ${w}`);
     for (const id of HOUSEHOLDS) if (U[w] && U[w][id]) console.log(`  ${id}: ${Object.entries(U[w][id]).map(([s, x]) => `${s} ${x.sim.toFixed(2)} (opening ${x.opening.map(v => v.toFixed(1)).join('/')}; ${Math.round(x.secs)} s)`).join(' | ')}`);
@@ -138,11 +139,22 @@ function read(dir) {
       if (rows.length < HOUSEHOLDS.length) { console.log(`  ${dirName}: incomplete (${rows.length} of ${HOUSEHOLDS.length})`); allOk = false; continue; }
       const mS = rows.reduce((t, x) => t + x.s, 0) / rows.length, mW = rows.reduce((t, x) => t + x.w, 0) / rows.length;
       const ok = Math.abs(mS) < MEAN_TOL && Math.abs(mW) < MEAN_TOL && rows.every(x => Math.abs(x.s) < HH_TOL && Math.abs(x.w) < HH_TOL);
-      if (!ok) allOk = false;
+      if (!ok) { allOk = false; moved.push(`${dirName} at W${w} (${sg(mS)}${mS.toFixed(3)} survival on the panel mean, ${sg(mW)}${mW.toFixed(3)} score; ${b === 'ship' ? 'towards' : 'away from'} the shipped setting)`); }
       console.log(`  ${dirName} (${a} -> ${b}): panel mean survival ${sg(mS)}${mS.toFixed(3)}, whole score ${sg(mW)}${mW.toFixed(3)}; ${rows.map(x => `${x.id} ${sg(x.s)}${x.s.toFixed(2)} (se ${x.se.toFixed(2)}) / ${sg(x.w)}${x.w.toFixed(2)}`).join(', ')}: ${ok ? 'the shipped setting stands' : 'MOVES BEYOND THE TARGETS'}`);
     }
     // the wealth points' whole ladder against the finest, reported
     for (const id of HOUSEHOLDS) if (U[w] && U[w][id] && U[w][id].p90) console.log(`  ${id} against 90 points: ${['p20', 'ship', 'p45', 'p60'].filter(s => U[w][id][s]).map(s => { const p = pair(U[w][id].p90, U[w][id][s]); return `${s} ${sg(p.s)}${p.s.toFixed(2)} / ${sg(p.w)}${p.w.toFixed(2)}`; }).join(', ')}`);
+    // the same acceptance at every rung of the wealth ladder, each against the next finer (reported: the verdict above is the shipped setting's)
+    const RUNGS = ['p20', 'ship', 'p45', 'p60', 'p90'], POINTS = { p20: 20, ship: 30, p45: 45, p60: 60, p90: 90 }, steps = [];
+    for (let k = 0; k + 1 < RUNGS.length; k++) {
+      const [a, b] = [RUNGS[k], RUNGS[k + 1]], rows = HOUSEHOLDS.filter(id => U[w] && U[w][id] && U[w][id][a] && U[w][id][b]).map(id => ({ id, ...pair(U[w][id][a], U[w][id][b]) }));
+      if (rows.length < HOUSEHOLDS.length) continue;
+      const mS = rows.reduce((t, x) => t + x.s, 0) / rows.length, mW = rows.reduce((t, x) => t + x.w, 0) / rows.length;
+      const big = rows.reduce((m, x) => (Math.max(Math.abs(x.s), Math.abs(x.w)) > Math.max(Math.abs(m.s), Math.abs(m.w)) ? x : m));
+      steps.push({ a, ok: Math.abs(mS) < MEAN_TOL && Math.abs(mW) < MEAN_TOL && rows.every(x => Math.abs(x.s) < HH_TOL && Math.abs(x.w) < HH_TOL), text: `${POINTS[a]} -> ${POINTS[b]} points: panel mean ${sg(mS)}${mS.toFixed(3)} / ${sg(mW)}${mW.toFixed(3)}, the largest on a household ${big.id} ${sg(big.s)}${big.s.toFixed(2)} / ${sg(big.w)}${big.w.toFixed(2)}` });
+    }
+    const first = steps.findIndex((x, i) => steps.slice(i).every(y => y.ok));
+    console.log(`  the wealth ladder at W${w}, each rung against the next finer by the same targets: ${steps.map(x => `${x.text} (${x.ok ? 'within' : 'BEYOND'})`).join('; ')}; the coarsest rung within the targets of every finer step: ${first >= 0 ? `${POINTS[steps[first].a]} points` : 'none'}`);
   }
   // the one-pot oracle at each resolution (answer 1): the table's opening error must shrink as points are added
   if (op) {
@@ -158,7 +170,7 @@ function read(dir) {
     const d = pair(s, c);
     console.log(`  W${w} ${p} points: CAND ${c.sim.toFixed(2)}% SHIP ${s.sim.toFixed(2)}%; the change ${sg(d.s)}${d.s.toFixed(3)} (se ${d.se.toFixed(3)}), whole score ${sg(d.w)}${d.w.toFixed(3)} (se ${d.sew.toFixed(3)})`);
   }
-  console.log(`\nV3: ${allOk ? 'every direction within the targets at both weights, the one-pot error shrinking' : 'NOT every direction within the targets (or units missing, or the one-pot error not shrinking)'}`);
+  console.log(`\nV3: ${allOk ? 'every direction within the targets at both weights, the one-pot error shrinking' : 'NOT every direction within the targets (or units missing, or the one-pot error not shrinking)'}${moved.length ? `; beyond the targets: ${moved.join('; ')}` : ''}`);
   process.exit(allOk ? 0 : 1);
 }
 

@@ -67,6 +67,30 @@ const BLOCKS = {
     out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs --full\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}. ${pick(V, /^(?:PASS|FAIL) {2}1\. where the engine's own pick differs from the forward run's \((\d+) of (\d+) years\)[^:]*: the largest gap (\S+).*?, its tie tolerance (\S+)/m, m => `On the fixed code the engine's own pick differs from the forward run's in ${m[1]} of ${m[2]} years, the largest score gap ${m[3]} against the chooser's tie tolerance ${m[4]}: ties`)}.`);
     return out;
   },
+  // V3 and V4 on the ported code (EXPLORATORY, the tuning seed): each read's verdicts, from its results file
+  v34() {
+    const V3 = 'research/solver/results-v3.txt', V4 = 'research/solver/results-v4.txt', out = [];
+    const t3 = read(V3), t4 = read(V4);
+    if (t3 === null || t4 === null) return [`- pending: ${t3 === null ? V3 : V4}`];
+    out.push(`- ${pick(V3, /^the gate: (.*)$/m, m => `V3's gate: ${m[1]}`)}; ${pick(V3, /^V1 on every unit: (.*)$/m, m => `V1 on every unit: ${m[1]}`)}.`);
+    for (const w of ['0.02', '0.01']) {
+      const sec = t3.split(`THE ACCEPTANCE AT W${w}:`)[1];
+      if (!sec) throw new Error(`state.mjs: ${V3} has no acceptance at W${w}`);
+      const rows = [...sec.split('\n\n')[0].matchAll(/^ {2}(.+?) \((\w+) -> (\w+)\): panel mean survival ([+-][\d.]+), whole score ([+-][\d.]+);.*: (the shipped setting stands|MOVES BEYOND THE TARGETS)$/gm)];
+      const lad = pick(V3, new RegExp(`^ {2}the wealth ladder at W${w.replace('.', '\\.')}, each rung against the next finer by the same targets: (.*); the coarsest rung within the targets of every finer step: (.*)$`, 'm'), m => `the wealth ladder, each rung against the next finer (panel mean survival / whole score, then the largest household): ${m[1]}; the coarsest rung within the targets of every finer step: ${m[2]}`);
+      out.push(`- V3 at estate weight ${w}, the next finer setting against the shipped one on the panel (survival points / whole score): ${rows.map(m => `${m[1]} ${m[4]} / ${m[5]}${m[6] === 'the shipped setting stands' ? '' : ' (BEYOND the targets)'}`).join('; ')}: ${rows.every(m => m[6] === 'the shipped setting stands') ? 'the shipped setting stands in every direction' : 'NOT in every direction'}. ${lad[0].toUpperCase()}${lad.slice(1)}.`);
+    }
+    out.push(`- ${pick(V3, /^THE ONE-POT ORACLE \(([\d.]+)%\), the table's opening at each wealth resolution: (.*)$/m, m => `The one-pot oracle (${m[1]}%), the table's opening error at 20, 30, 45, 60 and 90 wealth points: ${m[2]}`)}.`);
+    const rungs = [...t3.matchAll(/^ {2}W(0\.0\d) (\d+) points: CAND ([\d.]+)% SHIP ([\d.]+)%; the change ([+-][\d.]+) \(se ([\d.]+)\), whole score ([+-][\d.]+) \(se ([\d.]+)\)$/gm)];
+    out.push(`- S224's rungs, the candidate against SHIP on 32000 paths (the deep review's one test): ${rungs.map(m => `W${m[1]} ${m[2]} points ${m[5]} (se ${m[6]}), whole score ${m[7]} (se ${m[8]})`).join('; ')}.`);
+    const v4 = ['0.02', '0.01'].map(w => {
+      const best = [...t4.matchAll(new RegExp(`^ {2}(S\\d+) W${w.replace('.', '\\.')}: best (\\S+);`, 'gm'))], by = {};
+      for (const m of best) (by[m[2]] = by[m[2]] || []).push(m[1]);
+      return pick(V4, new RegExp(`^V4 at W${w.replace('.', '\\.')}: (.*)$`, 'm'), m => `at estate weight ${w} ${m[1]}, the best variant ${Object.entries(by).map(([v, ids]) => `${v} on ${ids.length} of ${best.length} households`).join(', ')}`);
+    });
+    out.push(`- V4: ${v4.join('; ')}. ${pick(V4, /^V4 ensemble: (.*)$/m, m => `Its verdict: ${m[1]}`)} (\`results-v3.txt\`, \`results-v4.txt\`).`);
+    return out;
+  },
   // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
   speed() {
     const T = 'research/tests/', S = `${T}results-solver-scratch.txt`, S1 = `${T}results-solver-memo.txt`, S3 = `${T}results-adaptive-dup.txt`, S2 = `${T}results-chooser-share.txt`, RT = 'research/solver/results-retime-port.txt';

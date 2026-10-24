@@ -258,37 +258,42 @@ finished.
 - S2, the chooser's shared year: `chooser-share.test.mjs --full` ALL PASS: 14 checks: on 6 household-arms (S224 SHIP, S224 CAND, S362 SHIP, S362 CAND, S370 SHIP, S370 CAND) every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (5745600 scores), and the engine's outcomes on 200 paths the same with the sharing off and on, its path 3.4, 3.2, 3.8, 5.2, 4.3, 5.3 times as fast; both plants (a tier variant's charge skipped, the growth class left out of the key) throw under the check (`results-chooser-share.txt`).
 - The re-time (instruction 5), BASE (the code before the port) beside PORT, one process a core, nothing else running: S224 SHIP at 30 points, the solve 299 s to 120 s (2.49 times), the engine 77.3 to 25.1 ms a path (3.08 times), every hash the same; S224 CAND at 30 points, the solve 740 s to 297 s (2.49 times), the engine 86.3 to 31.1 ms a path (2.77 times), every hash the same; S362 SHIP at 30 points, the solve 393 s to 129 s (3.04 times), the engine 106.0 to 33.4 ms a path (3.17 times), every hash the same; S362 CAND at 30 points, the solve 1491 s to 372 s (4.01 times), the engine 172.7 to 36.1 ms a path (4.78 times), every hash the same. Against the review's pass mark (every hash identical, the solve and the engine each at least twice as fast): PASS (`results-retime-port.txt`, read by `retime-port.mjs`).
 <!-- end printed:speed -->
+### V3 and V4 on the ported code (24 Oct, EXPLORATORY, the tuning seed)
+
+Every unit of `batch-v34.sh` in, one code and seed, V4's CAND the same as V3's shipped setting bit for bit. The wealth
+axis at the candidate's 30 points is not converged by V3's targets and 45 is; V4's best is the candidate at 90 on every
+household, so its gap is the same resolution effect. The allowance-axis line moves towards the candidate's own setting
+(D10) and faults nothing. S224's loss is inside its noise at 60 and 90 points, as the deep review's cause predicts.
+
+<!-- printed:v34 -->
+- V3's gate: one code (210f058370ce), the candidate e65e5e99ba49, seed 7002; V1 on every unit: no cell without a move, none non-finite.
+- V3 at estate weight 0.02, the next finer setting against the shipped one on the panel (survival points / whole score): wealth points +0.212 / +0.267 (BEYOND the targets); share points -0.016 / -0.033; quadrature nodes -0.070 / -0.078; the gain axis -0.011 / -0.009; the allowance axis (snapped against the candidate's interpolated) +0.593 / +0.631 (BEYOND the targets); worlds -0.045 / -0.049: NOT in every direction. The wealth ladder, each rung against the next finer (panel mean survival / whole score, then the largest household): 20 -> 30 points: panel mean +0.364 / +0.398, the largest on a household S224 +0.78 / +0.98 (BEYOND); 30 -> 45 points: panel mean +0.212 / +0.267, the largest on a household S224 +0.31 / +0.44 (BEYOND); 45 -> 60 points: panel mean +0.054 / +0.077, the largest on a household S370 +0.19 / +0.21 (within); 60 -> 90 points: panel mean -0.027 / -0.015, the largest on a household S380 -0.09 / -0.08 (within); the coarsest rung within the targets of every finer step: 45 points.
+- V3 at estate weight 0.01, the next finer setting against the shipped one on the panel (survival points / whole score): wealth points +0.271 / +0.324 (BEYOND the targets); share points -0.014 / -0.012; quadrature nodes -0.052 / -0.042; the gain axis +0.007 / +0.008; the allowance axis (snapped against the candidate's interpolated) +0.589 / +0.605 (BEYOND the targets); worlds +0.027 / +0.041: NOT in every direction. The wealth ladder, each rung against the next finer (panel mean survival / whole score, then the largest household): 20 -> 30 points: panel mean +0.336 / +0.335, the largest on a household S224 +1.01 / +1.10 (BEYOND); 30 -> 45 points: panel mean +0.271 / +0.324, the largest on a household S380 +0.47 / +0.53 (BEYOND); 45 -> 60 points: panel mean +0.039 / +0.046, the largest on a household S370 +0.25 / +0.26 (within); 60 -> 90 points: panel mean -0.011 / +0.008, the largest on a household S224 +0.06 / +0.08 (within); the coarsest rung within the targets of every finer step: 45 points.
+- The one-pot oracle (58.562%), the table's opening error at 20, 30, 45, 60 and 90 wealth points: 20 points -6.756, 30 points -3.298, 45 points -0.955, 60 points -0.819, 90 points -0.061: the error shrinks at every step.
+- S224's rungs, the candidate against SHIP on 32000 paths (the deep review's one test): W0.02 30 points -0.106 (se 0.067), whole score -0.088 (se 0.068); W0.02 60 points -0.034 (se 0.068), whole score +0.015 (se 0.069); W0.02 90 points -0.063 (se 0.064), whole score +0.007 (se 0.065); W0.01 30 points -0.181 (se 0.088), whole score -0.260 (se 0.088); W0.01 60 points -0.031 (se 0.068), whole score -0.040 (se 0.069); W0.01 90 points -0.056 (se 0.065), whole score -0.051 (se 0.065).
+- V4: at estate weight 0.02 the candidate's gap to the best variant, panel mean 0.329 score and 0.239 survival points; largest 0.533 and 0.487: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households; at estate weight 0.01 the candidate's gap to the best variant, panel mean 0.377 score and 0.300 survival points; largest 0.679 and 0.662: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households. Its verdict: NOT within the targets (or units missing) (a lower bound: it can show the policy improvable, never that it is near the best) (`results-v3.txt`, `results-v4.txt`).
+<!-- end printed:v34 -->
 ## 5. Running now
 
-- V3 and V4 on the ported code (EXPLORATORY, the tuning seed 7002; D20 (8), D23, D24), launched 24 Oct 08:31 UK through
-  the launcher as a tracked task: `batch-v34.sh` (commit 0a75732), 237 units four at a time, a canary of each kind first;
-  the launch log `research/solver/results/v34-launch1.log`, a log a unit in `results/v34-logs`, the units in
-  `results/v3` and `results/v4`; about 11 hours on four cores by the port's timings. After a stop, the same command
-  with `RESUME=1` runs only what is left. A long run is checked every 15 minutes while it runs. (7u-F's launch logs
-  and units stay in `results/7uf-launch*.log` and `results/diag7uf`.)
+- Nothing. V3 and V4 ran 24 Oct 08:31 to 19:03 UK through the launcher (`batch-v34.sh`, commit 0a75732; the launch log
+  `research/solver/results/v34-launch1.log`, a log a unit in `results/v34-logs`, the units in `results/v3` and
+  `results/v4`), 237 units, none failed. A long run is checked every 15 minutes while it runs.
 
 ## 6. The next three actions
 
-The order is the follow-up review's Next section (D20); each step has its test and a time box.
+The order is the follow-up review's Next section (D20); each step has its test and a time box. 7u-F's reviews:
+`reviews/2026-10-23-read-7uf.md` (PASS) and `reviews/2026-10-23-deep-7uf.md` (S224's loss decided by the 30-point axis).
 
-The reviews of the read: `reviews/2026-10-23-read-7uf.md` (the reviewer, PASS, P1 and P2 recomputed independently) and
-`reviews/2026-10-23-deep-7uf.md` (the deep reviewer: the pooled gain comes from five households; S224's small loss, on
-every seed so far, is an improvable decision whose leading cause is a near-tie in the opening years that the 30-point
-wealth axis decides inside its own error; the order below stands).
-
-1. The speed review's port (D24): done, the block "The speed review's port" above (finding 1's fix, S1, S3 and S2, each
-   its own commit with its identity test in the fast suite; the re-time passes the review's mark). Its instruction 6 (the
-   reference's build split across E2's parts) waits for gate 5, after N4 (D24 (3)); its instruction 7 is the next action.
-2. V3 and V4 on the ported code (D23, D24): D20 (8)'s scope (about a day of runs, less after the port), EXPLORATORY on
-   the tuning seed. `v3-convergence.mjs`'s
-   household list, which `v4-ensemble.mjs` takes, still holds the earlier six and becomes D20 (8)'s with S362 (O191 and
-   O179) and one deposit household (S370, the speed review names it); V3 runs both estate weights, not only the higher one, and its S224 rungs (30, 60 and 90
-   wealth points) carry SHIP beside them on 32,000 paths with the whole score on every path, the deep review's one test
-   of S224's loss (about 11 core-hours); `v4-ensemble.mjs` drops probit and adds V3's finest setting as a variant. Then
-   Step 6, N4 before N1 (D22). Phase 4 registers after N4 has read (D22), after the maintainer's calls (its harm rule, D20 (2), set by error rates with
-   S224's loss at the lower weight as its worked case; its budget measured on this machine with nothing else running, D21) and after gate
-   5 (D11) is measured on the assembled candidate, its solve time against the ported product's (D24) (7u-F's solve lines, taken
-   under load, put it at several times SHIP's: a lead to measure, not a figure). It carries its own no-harm item against
-   SHIP if the candidate changes after 7u-F, a spending item over all years, the whole score on every path, and the Node
-   version in the unit stamp, equal across arms (7u-F's arms ran on two hosts; the pairing held). Open for the maintainer
-   as well: V5's interval (D20 (9)), the charges default (N6) and the timing page's run on their own devices (D20 (10)).
+1. N4 (Step 6, D22: before N1), EXPLORATORY on the tuning seed, as `n4-design.md` sets out: a ceiling at the taper
+   threshold, the allowance's and the basic band's midpoints, and the sale of the taxable account up to the capital gains
+   exemption, each behind `menuPlus` (off by default); its test `n4-menu.test.mjs`; `batch-n4.sh`, 56 units at V4's 30
+   points, its CAND checked bit for bit against V4's. A kind that passes N4's bar goes to the maintainer; it does not join
+   the candidate on its own read. Time box: the build by 25 Oct 18:00 UK, the run and its read that evening.
+2. For the maintainer: the candidate's wealth axis (V3 accepts 45 points, V4's best is 90; a move changes the candidate
+   after 7u-F, so Phase 4 carries a no-harm item against SHIP, and its solve time, gate 5 and N7); whether N1 runs before
+   Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing page on their devices (D20 (10)).
+3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2), S224's loss at
+   the lower weight its worked case; its budget measured with nothing else running, D21) and gate 5 measured against the
+   ported product (D11, D24 (3); if it fails, the speed review's instruction 6). It carries a no-harm item against SHIP if
+   the candidate changes, a spending item over all years, the whole score on every path, a fresh held-out seed, and the
+   Node version in the unit stamp, equal across arms.

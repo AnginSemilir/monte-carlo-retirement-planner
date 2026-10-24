@@ -39,6 +39,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D26. 24 Oct, maintainer: the candidate is measured at 45 wealth points for gate 5 and registered at 45 for Phase 4 (a
+  run setting, as 7u-F's 30 was; `candidate.json` and its hash unchanged); the product's 30 stays until after Phase 4 (D12).
 - D25. 24 Oct, maintainer, after V3's ladder: N4 runs at 45 wealth points (the coarsest V3 accepts), its CAND checked against
   V3's 45-point units; the speed review's instruction 6 (the adaptive reference's build split across E2's parts, exact,
   `e2.test.mjs` extended to the reference's arrays) is done whatever gate 5 shows, and gate 5 is measured after both N4
@@ -281,18 +283,16 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 
 ## 6. The next three actions
 
-The order is the follow-up review's Next section (D20); each step has its test and a time box. 7u-F's reviews:
-`reviews/2026-10-23-read-7uf.md` (PASS) and `reviews/2026-10-23-deep-7uf.md` (S224's loss decided by the 30-point axis).
+Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
 1. N4 (Step 6, D22: before N1), EXPLORATORY on the tuning seed, as `n4-design.md` sets out: a ceiling at the taper
    threshold, the allowance's and the basic band's midpoints, and the sale of the taxable account up to the capital gains
    exemption, each behind `menuPlus` (off by default); `batch-n4.sh`, 56 units at 45 wealth points (D25), its CAND
    checked bit for bit against V3's. A kind that passes N4's bar goes to the maintainer; it does not join the candidate on
    its own read. Time box: the run and its read by 25 Oct 06:00 UK.
-2. The speed review's instruction 6 (D25): done, the block above (the reference's build split across E2's parts,
-   `e2.test.mjs` extended to its arrays). Gate 5 comes after N4 reads. For the maintainer: the candidate's grid for gate 5
-   and Phase 4; whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing
-   page on their devices (D20 (10)).
+2. The speed review's instruction 6 (D25): done, the block above. Gate 5 after N4 reads, the candidate at 45 points
+   (D26). For the maintainer: whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default
+   (N6), the timing page on their devices (D20 (10)).
 3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget
    measured with nothing else running, D21) and gate 5 against the ported product after instruction 6 (D11, D25). It
    carries a no-harm item against SHIP if the candidate changes, a spending item over all years, the whole score on every

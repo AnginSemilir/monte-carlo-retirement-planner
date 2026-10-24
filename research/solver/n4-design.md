@@ -43,21 +43,30 @@ Each place carries a kind the same way, so V2's state check holds on it:
   - The CGT sale is a new step between 7b and 7c.
   - A new token reaches the engine only through a research table. The product's menu and its own policies are
     unchanged.
-- **The solver's model (`model.js`, couples):** the same changes as the engine.
+- **Couples:** none. `solvePlan` refuses a couple, and the couple's solver builds its moves from the product's menu, so no
+  new token reaches `model.js`. All seven V3 households are single.
 - **The forward run (`fast.js`):**
   - Step codes 6 and up for the new tokens, in `drawStep`'s switch.
   - The re-wrap ceiling's values.
   - The CGT sale.
 - **The menu (`solve.js` `buildActions(opts.menuPlus)`):**
   - S1's memo keys the post-state, so it is unaffected.
-  - S2's shared year keys moves by their flows. It stays on under `menuPlus` only if `chooser-share.test.mjs`'s
-    check passes on each new menu; otherwise it is off there.
-- **The labels:** `bridge.js`'s short names, the move's label, and the instruction sheet's vocabulary (App.jsx) where a
-  token can reach it.
+  - S2's shared year computes each move's own flow (only a move's tier variants share one). It stays on under
+    `menuPlus` because its check mode passes on each new menu (`CHOOSER.check`, every shared score against
+    `scoreMoves'`, check 5 of the test).
+- **The table's hand-over (`bridge.js` `tablePolicy`):** it carries `cgtSale` to the engine, and its audit code marks the
+  new ceilings and the sale. The level search's group key (off by default) carries the sale too.
+- **The adaptive reference (`adaptive.js`, the candidate's bridge reference):** unchanged. It takes the menu's moves by
+  their draw order and tiers at the floor level, so a re-wrap (the product's or N4's) and the sale never enter it, as the
+  product's re-wraps never have. A new ceiling enters as a draw order, and in the bridge years, before the pension can be
+  drawn, its flow is a duplicate that S3 skips. The chooser still scores every move, the sale included.
+- **A guard:** `fast.compile` now refuses an unknown draw token, which before read silently as the allowance's ceiling
+  (code 0).
 
 ## Tests
 
-Each test is shown failing on a plant (CHECKLIST 5).
+`research/tests/n4-menu.test.mjs`, with a quick form and `--full`. Each check is shown failing on a plant (CHECKLIST 5);
+the plants sit in `fast.js`'s `N4.plant`, the forward run only.
 
 - **Identity, with `menuPlus` off:**
   - `solver-memo`'s and `chooser-share`'s table hashes are unchanged.
@@ -68,7 +77,10 @@ Each test is shown failing on a plant (CHECKLIST 5).
   - a `penHR` draw through the basic band into the higher;
   - a midpoint draw and a midpoint re-wrap;
   - a CGT sale with the ISA's room part used, and one with no gain to take.
-- **V2's state check on each new menu.** The engine and a forward run stay in step, every slot within a pound.
+- **V2's state check on each new menu.** The engine and a forward run take the same seeded random move each year, and
+  stay in step, every slot within a pound. Each kind's own part is counted changing the year (against the same move without
+  it), so the check is not vacuous.
+- **S2 on the new menus.** Its check mode over every decision of the solver's own runs, which pick the new moves.
 - **The plants:**
   - HR's ceiling read as the higher band's top in `fast.js` only.
   - The CGT sale's rise in basis left out in `fast.js` only.
@@ -78,12 +90,17 @@ Each test is shown failing on a plant (CHECKLIST 5).
 
 ## The run and its read
 
-- **The run.** V4's harness (`v4-ensemble.mjs`) gets three variants: CAND+HR, CAND+MID and CAND+CGT. Each runs on V3's
-  seven households at both weights, on V4's seed and path count, so it is paired with V4's CAND unit on the same paths.
+- **The run.** `n4-menu.mjs`, V4's unit on V4's seed, paths and wealth points, with four arms: CAND on the N4 code, and
+  CAND+HR, CAND+MID and CAND+CGT. Each runs on V3's seven households at both weights (56 units, `batch-n4.sh`). CAND is
+  checked bit for bit against V4's CAND unit, from the code before N4: the product's menu unchanged at full scale. Each kind
+  is paired with CAND from its own code.
 - **Cost.** The solve grows with the menu (40, 60 and 48 moves against 24), so about 7 core-hours, two hours on four
   cores.
 - **The read.** By D4's targets, against CAND:
-  - A kind joins only where it beats the current menu by more than the targets. Otherwise it is recorded and dropped.
+  - A kind passes where, at some weight, it beats the current menu by more than a target (0.2 points on the panel mean,
+    0.5 on a household, in the whole score or survival) beyond noise (its paired 95% interval above nothing), and at
+    neither weight loses more than 0.5 on a household beyond noise. Otherwise it is recorded and dropped.
+  - The run is exploratory, so a kind that passes goes to the maintainer; it does not join the candidate on this read.
   - If two kinds both pass, they are tested together as a factorial (D6) before either joins.
   - A kind that joins changes the candidate after 7u-F, so Phase 4 carries its no-harm item against SHIP (section 6).
 - **HOW-IT-WORKS.** Section 4 already states the menu the code offers (e80fa96), which is N4's "either way" item. It

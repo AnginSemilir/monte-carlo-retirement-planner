@@ -28,7 +28,11 @@
  * year's: a forward run carries them in slot 11 as the engine does; a grid cell, with no slot, is charged them in the year.
  */
 
-export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 5 };
+export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 5, penHR: 6, penPAm: 7, penBm: 8 };   // 6 to 8: N4's research ceilings (the engine's N4_PEN)
+const N4_TOKENS = ['penHR', 'penPAm', 'penBm'];
+// N4's plants, for its test only (research/tests/n4-menu.test.mjs): 'hrtop' the taper ceiling read as the higher band's top,
+// 'midband' the basic band's midpoint read as the higher band's, 'nobasis' the CGT sale's buy-back left at no cost; '' none
+export const N4 = { plant: '' };
 const CATS = ['pen', 'isa', 'other', 'cash'];
 
 /* Net income of a gross figure, as segments between the engine's own breakpoints. */
@@ -272,15 +276,37 @@ export function compile(m, actions) {
     const k = Math.max(tp, ti), n = tiers.gia.length;
     return k < n ? k : (k <= 2 ? n - 1 : 0);
   };
+  /*
+   * N4 (research only, research/solver/n4-design.md): the gross income each research ceiling stops at, from the engine's own
+   * map so the two cannot differ; a move naming one under an engine without the map is refused, as is any unknown token
+   * (it would otherwise read as the allowance's ceiling, code 0).
+   */
+  const n4cap = Float64Array.from(N4_TOKENS, k => (E.N4_PEN ? E.N4_PEN[k](P) : NaN));
+  const n4plant = { hrtop: ['hr', 0, P.higherLimit], midband: ['bm', 2, (P.higherRateStartsAt + P.thr) / 2] }[N4.plant];
+  if (n4plant) n4cap[n4plant[1]] = n4plant[2];
+  const codeOf = s => {
+    const k = STEP[s];
+    if (k === undefined) throw new Error(`fast.compile: unknown draw step ${s}`);
+    if (k >= 6 && !E.N4_PEN) throw new Error(`fast.compile: ${s} needs the engine's N4_PEN`);
+    return k;
+  };
+  const harvestCeilOf = h => {
+    if (h === 'basic') return P.higherRateStartsAt;
+    if (h === 'hr' || h === 'pam' || h === 'bm') {
+      if (!E.N4_HARVEST) throw new Error(`fast.compile: harvest ceiling ${h} needs the engine's N4_HARVEST`);
+      return n4plant && n4plant[0] === h ? n4plant[2] : E.N4_HARVEST[h](P);
+    }
+    return P.pa;
+  };
   const acts = actions.map(a => {
     // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
     const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
     const tg = giaTierOf(tp, ti);
     const { real, volEff, sigma, volEffAt } = ratesFor(tp, ti, tg);
     return {
-      steps: Int8Array.from(a.steps.map(s => STEP[s])),
-      costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
-      harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
+      steps: Int8Array.from(a.steps.map(codeOf)),
+      costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
+      harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
       lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
@@ -297,7 +323,7 @@ export function compile(m, actions) {
     return variants.get(key);
   };
   return {
-    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
+    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, n4cap, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, raiseCapFrac: ctx.raiseCapFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
@@ -431,6 +457,7 @@ export function flow(c, t, ai, s) {
       case 2: return drawPension(need, Infinity);
       case 3: { const pull = Math.min(cash, need); cash -= pull; return pull; }
       case 4: return sellGia(need);
+      case 6: case 7: case 8: return drawPension(need, c.n4cap[step - 6]);
       default: { const pull = Math.min(isa, need); isa -= pull; return pull; }
     }
   };
@@ -546,6 +573,16 @@ export function flow(c, t, ai, s) {
       const toIsa = Math.min(net, room);
       isa += toIsa; isaContrib += toIsa; addGia(net - toIsa);
       c.forced = gross;
+    }
+  }
+  // 7b''. N4's CGT move (research only; engine 7b''): sell the GIA so the year's gains reach the exemption, the ISA's room first, the rest bought back at cost
+  if (a.cgtSale && cgtOn) {
+    const room = yr.cgtExempt[t] - realised;
+    if (room > 0 && gia > basis) {
+      const sold = sellGia(Math.min(gia, room * gia / (gia - basis)));
+      const toIsa = Math.min(sold, Math.max(0, P.isaAllowance - isaContrib));
+      isa += toIsa; isaContrib += toIsa;
+      if (N4.plant === 'nobasis') gia += sold - toIsa; else addGia(sold - toIsa);
     }
   }
   // 7c. capital gains on the year's disposals, settled cash -> GIA -> ISA -> pension

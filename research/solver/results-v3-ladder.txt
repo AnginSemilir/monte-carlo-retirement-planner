@@ -1,0 +1,30 @@
+V3'S WEALTH LADDER, EVERY PAIR OF RUNGS (EXPLORATORY, the tuning seed 7002): /home/user/vitejs-vite-kdvuf9qw/research/solver/results/v3; 7 households, 8000 paths each, paired
+survival points, the finer rung less the coarser: the panel mean [its 95% interval]; the households from smallest to largest; the largest change (its se); the whole score's panel mean
+
+AT ESTATE WEIGHT 0.02
+  each rung's survival, the panel mean: 20 points 72.93%, 30 points 73.29%, 45 points 73.51%, 60 points 73.56%, 90 points 73.53%
+  20 -> 30 points: +0.36 [+0.26 to +0.47]; households +0.00 (S362) to +0.97 (S380); the largest S380 +0.97 (se 0.20); whole score +0.40
+  20 -> 45 points: +0.58 [+0.46 to +0.69]; households +0.00 (S362) to +1.34 (S380); the largest S380 +1.34 (se 0.21); whole score +0.67
+  20 -> 60 points: +0.63 [+0.51 to +0.75]; households +0.00 (S362) to +1.47 (S380); the largest S380 +1.47 (se 0.21); whole score +0.74
+  20 -> 90 points: +0.60 [+0.48 to +0.73]; households +0.00 (S362) to +1.39 (S380); the largest S380 +1.39 (se 0.21); whole score +0.73
+  30 -> 45 points: +0.21 [+0.12 to +0.30]; households +0.00 (S362) to +0.36 (S380); the largest S380 +0.36 (se 0.17); whole score +0.27
+  30 -> 60 points: +0.27 [+0.17 to +0.36]; households +0.00 (S362) to +0.50 (S370); the largest S370 +0.50 (se 0.14); whole score +0.34
+  30 -> 90 points: +0.24 [+0.14 to +0.34]; households +0.00 (S362) to +0.49 (S370); the largest S370 +0.49 (se 0.13); whole score +0.33
+  45 -> 60 points: +0.05 [-0.02 to +0.12]; households -0.05 (S224) to +0.19 (S370); the largest S370 +0.19 (se 0.11); whole score +0.08
+  45 -> 90 points: +0.03 [-0.05 to +0.10]; households -0.10 (S248) to +0.18 (S370); the largest S370 +0.18 (se 0.10); whole score +0.06
+  60 -> 90 points: -0.03 [-0.09 to +0.03]; households -0.09 (S380) to +0.00 (S362); the largest S380 -0.09 (se 0.11); whole score -0.01
+
+AT ESTATE WEIGHT 0.01
+  each rung's survival, the panel mean: 20 points 72.89%, 30 points 73.22%, 45 points 73.49%, 60 points 73.53%, 90 points 73.52%
+  20 -> 30 points: +0.34 [+0.23 to +0.44]; households -0.03 (S370) to +1.01 (S224); the largest S224 +1.01 (se 0.22); whole score +0.33
+  20 -> 45 points: +0.61 [+0.49 to +0.72]; households -0.01 (S362) to +1.38 (S224); the largest S224 +1.38 (se 0.24); whole score +0.66
+  20 -> 60 points: +0.65 [+0.52 to +0.77]; households -0.01 (S362) to +1.45 (S380); the largest S380 +1.45 (se 0.23); whole score +0.70
+  20 -> 90 points: +0.64 [+0.51 to +0.76]; households -0.01 (S362) to +1.41 (S224); the largest S224 +1.41 (se 0.26); whole score +0.71
+  30 -> 45 points: +0.27 [+0.18 to +0.37]; households +0.00 (S362) to +0.49 (S370); the largest S370 +0.49 (se 0.13); whole score +0.32
+  30 -> 60 points: +0.31 [+0.20 to +0.42]; households +0.00 (S362) to +0.74 (S370); the largest S370 +0.74 (se 0.14); whole score +0.37
+  30 -> 90 points: +0.30 [+0.19 to +0.41]; households +0.00 (S362) to +0.66 (S370); the largest S370 +0.66 (se 0.14); whole score +0.38
+  45 -> 60 points: +0.04 [-0.04 to +0.12]; households -0.15 (S248) to +0.25 (S370); the largest S370 +0.25 (se 0.10); whole score +0.05
+  45 -> 90 points: +0.03 [-0.05 to +0.11]; households -0.14 (S248) to +0.18 (S370); the largest S370 +0.18 (se 0.11); whole score +0.05
+  60 -> 90 points: -0.01 [-0.08 to +0.06]; households -0.07 (S370) to +0.06 (S224); the largest S370 -0.07 (se 0.10); whole score +0.01
+
+the gate: one code (210f058370ce)

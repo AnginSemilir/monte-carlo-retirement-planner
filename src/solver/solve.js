@@ -113,8 +113,20 @@ export function gaussHermite(n) {
  * split. Everything else varies.
  */
 export function buildActions(opts = {}) {
-  const PREFIX = [[], ['penPA'], ['penPA', 'penBasic'], ['penPA', 'penBasic', 'penAny']];
-  const PEN = ['penPA', 'penBasic', 'penAny'];
+  /*
+   * N4 (research only, research/solver/n4-design.md): `menuPlus` adds move kinds the product's menu lacks - 'hr' a ceiling
+   * at the taper threshold, 'mid' the allowance's and the basic band's midpoints, each as a draw-first and a re-wrap
+   * ceiling, and 'cgt' selling the taxable account up to the exemption. The pension ceilings form a ladder, lowest first;
+   * the draw-first prefixes are its leading runs. Absent, the ladder and the menu are the product's, move for move.
+   */
+  const plus = new Set(opts.menuPlus || []);
+  for (const k of plus) if (k !== 'hr' && k !== 'mid' && k !== 'cgt') throw new Error(`menuPlus: unknown kind ${k}`);
+  const mid = plus.has('mid');
+  const PEN = [...(mid ? ['penPAm'] : []), 'penPA', ...(mid ? ['penBm'] : []), 'penBasic', ...(plus.has('hr') ? ['penHR'] : []), 'penAny'];
+  const PREFIX = PEN.map((_, i) => PEN.slice(0, i)).concat([PEN]);
+  const HARVEST = [null, 'pa', 'basic', ...(mid ? ['pam', 'bm'] : []), ...(plus.has('hr') ? ['hr'] : [])];
+  const SALES = plus.has('cgt') ? [false, true] : [false];
+  const HARVEST_LABEL = { pa: 'the allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the allowance', bm: 'the middle of the basic band' };
   // flexible spending (Part D): each withdrawal move at each spend level, 1 meaning the plan as written
   // the plan as written comes first at every level list, so a tie in the score goes to it and not to a trim or a raise
   const given = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
@@ -128,17 +140,19 @@ export function buildActions(opts = {}) {
     for (const isaFirst of [false, true]) {
       const mid = isaFirst ? ['isa', 'cash', 'other'] : ['cash', 'other', 'isa'];
       const steps = [...prefix, ...mid, ...rest];
-      for (const harvest of [null, 'pa', 'basic']) {
-        for (const level of levels) {
-          const base = out.length;
-          for (const [tp, ti] of tiers) {
-            out.push({
-              steps, costSteps: steps,
-              harvest: harvest !== null, harvestCeil: harvest || 'pa',
-              sweepCash: true, lump: false, contrib: null, spendLevel: level,
-              tierPen: tp, tierIsa: ti, tierBase: base,
-              label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
-            });
+      for (const harvest of HARVEST) {
+        for (const sale of SALES) {
+          for (const level of levels) {
+            const base = out.length;
+            for (const [tp, ti] of tiers) {
+              out.push({
+                steps, costSteps: steps,
+                harvest: harvest !== null, harvestCeil: harvest || 'pa',
+                sweepCash: true, lump: false, contrib: null, spendLevel: level,
+                tierPen: tp, tierIsa: ti, tierBase: base, ...(sale ? { cgtSale: true } : {}),
+                label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${HARVEST_LABEL[harvest]}` : ''}${sale ? ', sell the taxable account up to the CGT exemption' : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
+              });
+            }
           }
         }
       }
@@ -342,7 +356,7 @@ export function solve(E, M, plan, opts = {}) {
     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
     tierList = [[hp, hi]];
   }
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList })).map(a => ({ ...a, lump: !!opts.lump }));
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus })).map(a => ({ ...a, lump: !!opts.lump }));
   /*
    * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
    * side by side; absent, it is the single-world list `[opts.shiftZ]` and K is 1, which must stay
@@ -907,7 +921,7 @@ export function solve(E, M, plan, opts = {}) {
   let groups = null, stampFlow = null, stampScore = null, scS = null, scB = null, scR = null, scH = null, scV = null, cellStamp = 0;
   if (TERN) {
     const byKey = new Map();
-    actions.forEach((a, ai) => { const key = `${(a.steps || []).join('>')}|${a.harvest ? a.harvestCeil : '-'}|${a.tierPen || 0}/${a.tierIsa || 0}`; if (!byKey.has(key)) byKey.set(key, []); byKey.get(key).push(ai); });
+    actions.forEach((a, ai) => { const key = `${(a.steps || []).join('>')}|${a.harvest ? a.harvestCeil : '-'}${a.cgtSale ? 'g' : ''}|${a.tierPen || 0}/${a.tierIsa || 0}`; if (!byKey.has(key)) byKey.set(key, []); byKey.get(key).push(ai); });
     groups = [...byKey.values()].map(list => list.sort((x, y) => levelOf[x] - levelOf[y]));
     stampFlow = new Int32Array(A).fill(-1); stampScore = new Float64Array(A).fill(-1);
     scS = new Float64Array(A); scB = new Float64Array(A); scR = new Float64Array(A); scH = new Float64Array(A); scV = new Float64Array(A);

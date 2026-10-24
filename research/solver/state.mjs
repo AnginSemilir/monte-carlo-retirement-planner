@@ -45,12 +45,13 @@ const BLOCKS = {
     const T = 'research/tests/', S = 'research/solver/';
     const tests = [['solver-invariants', 'O199, O200 and the guards (items 1 to 3)'], ['tier-above', 'F2a (item 5)'], ['solver-carry', 'F0 (item 6)'], ['tax-2026', 'F0a (item 7)'], ['table-guards', 'F0a under a table (item 8)']];
     const out = tests.map(([t, what]) => `- ${what}: \`${t}.test.mjs\` ${verdict(`${T}results-${t}.txt`)} on the fixed code, ${failedBefore(`${T}results-${t}.txt`)} before it (\`results-${t}.txt\`).`);
-    for (const id of ['S070', 'S224', 'S380']) out.push(`- F2a's cost, ${id} held at Medium Risk, the engine before and after (\`results-tier-above-cost.txt\`): ${pick(`${S}results-tier-above-cost.txt`, new RegExp(`^${id}:[\\s\\S]*?before the fix ([\\d.]+)%, after ([\\d.]+)%: ([+-][\\d.]+) points \\(se ([\\d.]+); (\\d+) saved, (\\d+) lost\\)`, 'm'), m => `${m[1]}% to ${m[2]}%, ${m[3]} points (se ${m[4]}; ${m[5]} saved, ${m[6]} lost)`)}.`);
-    for (const id of ['S330', 'S224', 'S070', 'S008', 'S172', 'S194']) {
+    out.push(`- F2a's cost, each household held at Medium Risk, the engine before and after (\`results-tier-above-cost.txt\`): ${['S070', 'S224', 'S380'].map(id => `${id} ${pick(`${S}results-tier-above-cost.txt`, new RegExp(`^${id}:[\\s\\S]*?before the fix ([\\d.]+)%, after ([\\d.]+)%: ([+-][\\d.]+) points \\(se ([\\d.]+); (\\d+) saved, (\\d+) lost\\)`, 'm'), m => `${m[1]}% to ${m[2]}%, ${m[3]} points (se ${m[4]}; ${m[5]} saved, ${m[6]} lost)`)}`).join('; ')}.`);
+    const f0 = ['S330', 'S224', 'S070', 'S008', 'S172', 'S194'].map(id => {
       const before = pick('research/reviews/2026-10-21/results-exploratory.txt', new RegExp(`^${id}\\s+\\d+\\s+([\\d.]+)%\\s+([\\d.]+)%\\s+([+-]?[\\d.]+) \\(([\\d.]+)\\)\\s+(\\d+) / (\\d+)`, 'm'), m => `${m[3]} (${m[5]} / ${m[6]})`);
       const after = pick(`${S}results-engine-vs-fast.txt`, new RegExp(`"id":"${id}"[^}]*"fastMinusEngine":([+-]?[\\d.]+)[^}]*"fastOnly":(\\d+),"engineOnly":(\\d+)`), m => `${m[1]} (${m[2]} / ${m[3]})`);
-      out.push(`- F0, ${id}, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: before ${before}, after ${after} (\`results-engine-vs-fast.txt\`).`);
-    }
+      return `${id} before ${before}, after ${after}`;
+    });
+    out.push(`- F0, the solver's model less the engine in survival points (paths surviving only in the model / only in the engine), 2,000 paths: ${f0.join('; ')} (\`results-engine-vs-fast.txt\`).`);
     out.push(`- O200's reach (item 4), counted and then dropped: ${pick(`${S}results-reach-census.txt`, /^VERDICT: (.*)$/m, m => m[1])} (\`results-reach-census.txt\`).`);
     // after 7u-F (D20 (6) and the guardrail flag): the adaptive reference's and the couple's argmax loops, fast.js's lost year
     const G = `${T}results-solver-guards.txt`;
@@ -90,6 +91,16 @@ const BLOCKS = {
     });
     out.push(`- V4: ${v4.join('; ')}. ${pick(V4, /^V4 ensemble: (.*)$/m, m => `Its verdict: ${m[1]}`)} (\`results-v3.txt\`, \`results-v4.txt\`).`);
     return out;
+  },
+  // N4's build (Step 6, n4-design.md): its test in the full form, and the product's path unchanged
+  n4build() {
+    const T = 'research/tests/results-n4-menu.txt', I = 'research/solver/results-n4-identity.txt', t = read(T);
+    if (t === null || read(I) === null) return [`- pending: ${t === null ? T : I}`];
+    const lock = [...t.matchAll(/^(?:PASS|FAIL) {2}3 {2}lockstep on menu (\S+): (\d+) households x (\d+) paths, (\d+) household-years, the largest gap £(\S+) \(/gm)].map(m => `${m[1]} ${m[4]} household-years, the largest gap £${m[5]}`);
+    const plants = [...t.matchAll(/^(?:PASS|FAIL) {2}4 {2}planted '(\w+)' .*? by £([\d.]+) on menu/gm)].map(m => `'${m[1]}' £${m[2]}`);
+    const s2 = [...t.matchAll(/^(?:PASS|FAIL) {2}5 {2}S2's shared scores equal scoreMoves' on \S+ under menu \S+: (\d+) scores checked/gm)].reduce((a, m) => a + Number(m[1]), 0);
+    return [`- N4's build: \`n4-menu.test.mjs --full\` ${verdict(T)} (\`results-n4-menu.txt\`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (${lock.join('; ')}); each plant parts them (${plants.join(', ')}); S2's shared scores the same as scoreMoves' under the new menus (${s2} checked).`,
+      `- N4's identity on the product's path: ${pick(I, /^VERDICT: (.*)$/m, m => m[1])} (\`results-n4-identity.txt\`).`];
   },
   // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
   speed() {
@@ -165,8 +176,8 @@ const BLOCKS = {
     const four = pick(R, /^  the 4 without a record \(([^)]*)\): at a discordance of ([^,]+), [^,]+, ([^,]+), P2 reads harm 80% of the time at a true loss of ([\d.]+), [\d.]+, ([\d.]+) points, 90% at ([\d.]+), [\d.]+, ([\d.]+)$/m, m => m);
     const edge = pw.filter(m => +m[4] < 0.99).map(m => `${m[1]} at W${m[2]} (SHIP ${m[3]}%) with chance ${m[4]}`);
     out.push(`- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance ${pw[0][6]} on every household; on the in-band households 7u ran, 80% of the time from a true loss of ${lo(7)[7]} to ${hi(7)[7]} points and 90% from ${lo(8)[8]} to ${hi(8)[8]} (the widest ${hi(8)[1]} at W${hi(8)[2]}, ${hi(8)[5]}% discordant); the four without a record (${four[1]}), at ${four[2]} to ${four[3]} discordant, 80% from ${four[4]} to ${four[5]} and 90% from ${four[6]} to ${four[7]}.${edge.length ? ` Near the band's top, in the band on 16,000 paths only by chance: ${edge.join(', ')}; outside it the change is reported, not gated.` : ''}`);
-    const sim = [...t.matchAll(/^  check by simulation .*$/gm)].map(m => m[0].trim());
-    sim.forEach(l => out.push(`- ${l}.`));
+    const sim = [...t.matchAll(/^  check by simulation \(([^)]*)\): (.*)$/gm)];
+    if (sim.length) out.push(`- P2's approximation checked by simulation (${sim[0][1]}): ${sim.map(m => m[2]).join(' | ')}.`);
     return out;
   },
   // 7u-F's read, once (reduce-7uf.mjs, results-7uf.txt): the gate, P1, P2, the outcome; the in-band losses at an unadjusted

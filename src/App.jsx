@@ -1944,6 +1944,15 @@ const freshState = (ctx) => {
 // Money paid into the GIA is added at cost, so it creates no gain.
 const giaAddBasis = (state, ownerKey, amount) => { if (amount > 0) state.giaBasis[ownerKey] += amount; };
 
+/*
+ * N4 (research only, research/solver/n4-design.md): the extra ceilings a research table's moves may name, each the gross
+ * income its pension draw stops at. The taper threshold is the schedule's last rising corner (40% to 60%); the midpoints
+ * sit inside the bands the product's menu stops at. Draw tokens first, re-wrap ceilings second; the product's own menu and
+ * policies never name one, so nothing here runs outside a research table.
+ */
+const N4_PEN = { penHR: P => P.thr, penPAm: P => P.pa / 2, penBm: P => (P.pa + P.higherRateStartsAt) / 2 };
+const N4_HARVEST = { hr: N4_PEN.penHR, pam: N4_PEN.penPAm, bm: N4_PEN.penBm };
+
 // A disposal realises gain pro-rata against the whole holding and reduces basis by the cost portion.
 const giaDispose = (state, balanceBefore, ownerKey, amount) => {
   if (amount <= 0 || balanceBefore <= 0) return 0;
@@ -1967,7 +1976,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   const ctx = chosen ? {
     ...ctxBase,
     policySteps: chosen.steps || ctxBase.policySteps, costSteps: chosen.costSteps || ctxBase.costSteps,
-    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : 'pa',
+    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : N4_HARVEST[chosen.harvestCeil] ? chosen.harvestCeil : 'pa',
     fullLumpSum: !!chosen.lump
   } : ctxBase;
   const { P, owners, acc } = ctx;
@@ -2201,6 +2210,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (step === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
       else if (step === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
       else if (step === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[step], rem); } }
     }
     unmetCost = Math.max(0, rem);
@@ -2321,6 +2331,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (step === 'penPA') pensionTier(() => P.pa);
       else if (step === 'penBasic') pensionTier(() => P.higherRateStartsAt);
       else if (step === 'penAny') pensionTier(() => Infinity);
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); pensionTier(() => cap); }
       else tier(step);
     }
   }
@@ -2401,7 +2412,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    * where leaving tens of thousands a year in cash would understate the strategy by its own drag.
    */
   if (ctx.harvestPA && anyRetired) {
-    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : P.pa;
+    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : N4_HARVEST[ctx.harvestCeiling] ? N4_HARVEST[ctx.harvestCeiling](P) : P.pa;
     owners.forEach(o => {
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
@@ -2416,6 +2427,25 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
         if (cgtOn && toGia > 0) giaAddBasis(state, o.key, toGia);   // deposited at cost: no gain created
         harvested += net;
       }
+    });
+  }
+
+  /*
+   * 7b''. N4's CGT move (research only, research/solver/n4-design.md): under a research table's move, sell the GIA so the
+   * year's realised gains reach the exempt amount; the proceeds fill the ISA's room left this year and the rest is bought
+   * back at cost, so the basis rises by the gain taken. The product's menu never sets it.
+   */
+  if (chosen && chosen.cgtSale && cgtOn) {
+    owners.forEach(o => {
+      const id = o.ids.other, before = pots[id] || 0, basis = state.giaBasis[o.key] || 0;
+      const room = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0)) - realisedGains[o.key];
+      if (!(room > 0) || !(before > basis)) return;
+      const sold = sellGia(id, Math.min(before, room * before / (before - basis)));
+      const toIsa = Math.min(sold, Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+      pots[o.ids.isa] = (pots[o.ids.isa] || 0) + toIsa;
+      isaContribThisYear[o.key] += toIsa;
+      pots[id] = (pots[id] || 0) + (sold - toIsa);
+      giaAddBasis(state, o.key, sold - toIsa);
     });
   }
 
@@ -6725,7 +6755,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST };
 
 
 /*

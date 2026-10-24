@@ -1,0 +1,7 @@
+N4'S IDENTITY ON THE PRODUCT'S PATH (EXPLORATORY): speed-timing.mjs <household> SHIP at 30 points, PATHS=100, on the code before N4 (BASE, b90d996) and with N4 (the build committed with this file, its solver code f07477eb6dfb63d6), 24 Oct UK
+columns: household arm tree tableHash layerHash runHash (each world's tables; every layer of every world; each engine path's outcome)
+S224 SHIP BASE 2be5a0f89222e167 3c3bc28e157504a0 3b8c52feda47152a
+S224 SHIP N4   2be5a0f89222e167 3c3bc28e157504a0 3b8c52feda47152a
+S370 SHIP BASE 55cbd5c76b4449e1 b54ec26cddb4680c 2006cdfa67f094c7
+S370 SHIP N4   55cbd5c76b4449e1 b54ec26cddb4680c 2006cdfa67f094c7
+VERDICT: every hash the same on S224 and S370 under SHIP (the candidate's identity is read at full scale by n4-menu.mjs: CAND on the N4 code against V4's CAND unit)

@@ -10,6 +10,9 @@
  * wall-clock times. On S126 a planted split (a part that claims cells and never writes them, at 4 points) must break
  * identity, or the check proves nothing.
  *   node research/solver/audit-e2x.mjs [points=30] part k/n
+ * Gate 5 after N4 (STATE.md D24 (3), D25, D26): PRODUCT_POINTS sets the product's own grid apart from the candidate's (the
+ * candidate at 45 points against the product as it ships, at 30); unset, both take `points`, as E2X ran. It prints a line
+ * `product points N` after each case line (reduce-gate5.mjs reads it; reduce-e2x.mjs passes it by).
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -34,8 +37,8 @@ console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.p
 export const PANEL = ['bridge 4', 'S126', 'S370', 'share 0.50'];   // SIZE's four (size-probe.mjs)
 export const PARTS = 4, PLANT_PTS = 4;
 if (process.argv[2] === '--units') { console.log(PANEL.length); process.exit(0); }
-const POINTS = Number(process.argv[2] || 30);
-if (!(POINTS >= 4)) { console.error(`audit-e2x: bad grid size ${process.argv[2]}`); process.exit(2); }
+const POINTS = Number(process.argv[2] || 30), PPOINTS = Number(process.env.PRODUCT_POINTS || POINTS);
+if (!(POINTS >= 4) || !(PPOINTS >= 4)) { console.error(`audit-e2x: bad grid size ${process.argv[2]} or PRODUCT_POINTS ${process.env.PRODUCT_POINTS}`); process.exit(2); }
 const part = process.argv[3] === 'part' ? process.argv[4] : '0/1';
 const [pk, pn] = part.split('/').map(Number);
 if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-e2x: bad part ${part}`); process.exit(2); }
@@ -79,9 +82,10 @@ for (const [i, id] of PANEL.entries()) {
   if (!h) { console.error(`audit-e2x: no case ${id}`); process.exit(2); }
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   console.log(`${id.padEnd(16)} case | points ${POINTS} | lambda ${LAMBDA} | parts ${PARTS}`);
+  console.log(`${''.padEnd(16)} product points ${PPOINTS}`);
   const base = { lambda: LAMBDA, points: POINTS };
   let t0 = Date.now(), l0 = load();
-  const prod = solvePlan(E, M, plan, base);
+  const prod = solvePlan(E, M, plan, { ...base, points: PPOINTS });
   const tP = secs(t0);
   if (prod.meta.bridgeRead || prod.meta.tierState || prod.g.pclsInterp) { console.error(`audit-e2x: ${id} PRODUCT ran a research setting`); process.exit(2); }
   console.log(`${''.padEnd(16)} time PRODUCT: secs ${tP} load ${l0}`);

@@ -276,10 +276,10 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 <!-- end printed:n4build -->
 ## 5. Running now
 
-- N4 at 45 wealth points (EXPLORATORY, D22, D25), launched 24 Oct about 20:20 UK through the launcher, a tracked task:
-  `batch-n4.sh` (snapshot of 6f9ee41), 56 units four at a time; the log `research/solver/results/n4-launch1.log`, a log a
-  unit in `results/n4-logs`, the units in `results/n4`; about four and a half hours; after a stop, `RESUME=1`. Checked
-  every 15 minutes. (V3 and V4's logs and units stay in `results/v34-launch1.log`, `results/v3` and `results/v4`.)
+- N4 at 45 wealth points (EXPLORATORY, D22, D25): `batch-n4.sh` on 6f9ee41's code (44b967169a3c), 56 units four at a
+  time, through the launcher; launched 24 Oct about 20:20 UK (`results/n4-launch1.log`), stopped by a container restart at
+  21:05 with 10 units in, relaunched 21:11 with `RESUME=1` from a worktree at 6f9ee41, so every unit carries one code
+  (`results/n4-launch2.log`); a log a unit in `results/n4-logs`, the units in `results/n4`. Checked every 15 minutes.
 
 ## 6. The next three actions
 

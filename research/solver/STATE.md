@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: f07477eb6dfb63d6 (24 Oct, 19:24 UK); the code now: f07477eb6dfb63d6.
+- The solver code the e3pcls pin last passed on: de451be3d9903e65 (24 Oct, 20:31 UK); the code now: de451be3d9903e65.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -249,6 +249,7 @@ finished.
 - S3, the adaptive reference's duplicate moves: `adaptive-dup.test.mjs --full` ALL PASS: 5 checks: S362, S366, S370 at the candidate's lattice (na 160 x nb 41 x nz 128), the reference's arrays the same bit for bit with the duplicates off and on, S362 75.6% of its moves duplicates, built in 303.1 s off and 74.6 s on; S366 75.6% of its moves duplicates, built in 326.7 s off and 82.7 s on; S370 75.6% of its moves duplicates, built in 332.4 s off and 81.4 s on; the plant (the growth class left out of the match) changes the reference, and S362's solve gives the same tables with S3 off and on (`results-adaptive-dup.txt`).
 - S2, the chooser's shared year: `chooser-share.test.mjs --full` ALL PASS: 14 checks: on 6 household-arms (S224 SHIP, S224 CAND, S362 SHIP, S362 CAND, S370 SHIP, S370 CAND) every move's score, tax and estate at every decision of 20 paths the same bit for bit as scoreMoves's (5745600 scores), and the engine's outcomes on 200 paths the same with the sharing off and on, its path 3.4, 3.2, 3.8, 5.2, 4.3, 5.3 times as fast; both plants (a tier variant's charge skipped, the growth class left out of the key) throw under the check (`results-chooser-share.txt`).
 - The re-time (instruction 5), BASE (the code before the port) beside PORT, one process a core, nothing else running: S224 SHIP at 30 points, the solve 299 s to 120 s (2.49 times), the engine 77.3 to 25.1 ms a path (3.08 times), every hash the same; S224 CAND at 30 points, the solve 740 s to 297 s (2.49 times), the engine 86.3 to 31.1 ms a path (2.77 times), every hash the same; S362 SHIP at 30 points, the solve 393 s to 129 s (3.04 times), the engine 106.0 to 33.4 ms a path (3.17 times), every hash the same; S362 CAND at 30 points, the solve 1491 s to 372 s (4.01 times), the engine 172.7 to 36.1 ms a path (4.78 times), every hash the same. Against the review's pass mark (every hash identical, the solve and the engine each at least twice as fast): PASS (`results-retime-port.txt`, read by `retime-port.mjs`).
+- Instruction 6 (D25), the adaptive reference's build split across E2's parts: `e2.test.mjs` ALL PASS: 15 checks: the reference's arrays bit for bit the same split and unsplit on S126 (at its own lattice, 79458 values, its 20049 cells each written once, part 0 writing 5877), S362 (lattice 48 x 9 x 32, 37260 values, its 9477 cells each written once, part 0 writing 4236), S370 (lattice 48 x 9 x 32, 37260 values, its 9477 cells each written once, part 0 writing 4061); every table the same as before; the plant (a part that claims the reference's cells and drops them) caught: 21145 values differ; 2166 of 9477 cells written (`results-e2-test.txt`).
 <!-- end printed:speed -->
 ### V3 and V4 on the ported code (24 Oct, EXPLORATORY, the tuning seed)
 
@@ -288,11 +289,10 @@ The order is the follow-up review's Next section (D20); each step has its test a
    exemption, each behind `menuPlus` (off by default); `batch-n4.sh`, 56 units at 45 wealth points (D25), its CAND
    checked bit for bit against V3's. A kind that passes N4's bar goes to the maintainer; it does not join the candidate on
    its own read. Time box: the run and its read by 25 Oct 06:00 UK.
-2. The speed review's instruction 6 (D25), beside N4's run: the adaptive reference's build split across E2's parts, each
-   lattice state claimed by one part, the arrays shared through the pool, a barrier at each bridge year; `e2.test.mjs`'s
-   identity check extended to the reference's arrays, with a plant. Time box: a day. For the maintainer: the candidate's
-   grid for gate 5 and Phase 4; whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default
-   (N6), the timing page on their devices (D20 (10)).
+2. The speed review's instruction 6 (D25): done, the block above (the reference's build split across E2's parts,
+   `e2.test.mjs` extended to its arrays). Gate 5 comes after N4 reads. For the maintainer: the candidate's grid for gate 5
+   and Phase 4; whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing
+   page on their devices (D20 (10)).
 3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget
    measured with nothing else running, D21) and gate 5 against the ported product after instruction 6 (D11, D25). It
    carries a no-harm item against SHIP if the candidate changes, a spending item over all years, the whole score on every

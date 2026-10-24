@@ -43,11 +43,31 @@ function nonFiniteQ(where, t, cell, Qm, mi) {
 }
 
 export function adaptiveReference(input) {
-  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true } = input;
+  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true, e2 = null } = input;
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
   if (!bridge.length) return null;
+  /*
+   * THE BUILD SPLIT ACROSS E2'S PARTS (the speed review of 23 Oct, instruction 6; STATE.md D25). Under E2 (solve.js's opts.e2,
+   * research/solver/e2.mjs) every part builds this reference, at the same point of its solve (the first bridge year's
+   * reader table, after that year's barrier). Split, each phase's cells - the last year's thresholds, each earlier year's
+   * steps, then each earlier bridge year's lattice states and its foot - go to the first part to claim them, as the cell
+   * loop's do; the arrays are E2's shared memory, made in the same order in every part, and a barrier closes each phase, so
+   * no part reads a year before every part has written it. A cell reads only the phase before it, so the arrays are the
+   * same bit for bit split and unsplit (e2.test.mjs). The counts are summed across the parts. Planted (tests only),
+   * 'arefdrop': part 1 claims cells and never writes them.
+   */
+  const E2 = e2 && e2.parts > 1 ? e2 : null;
+  const f64 = n => (E2 ? E2.f64(n) : new Float64Array(n)), i32 = n => (E2 ? E2.i32(n) : new Int32Array(n));
+  let mine = 0, cellsAll = 0;
+  const phase = n => {
+    cellsAll += n;
+    if (!E2) return () => { mine++; return true; };
+    const claim = E2.i32(n); let no = 0;
+    return () => { if (Atomics.compareExchange(claim, no++, 0, 1) !== 0) return false; if (E2.planted === 'arefdrop' && E2.part === 1) return false; mine++; return true; };
+  };
+  const close = () => { if (E2) E2.barrier(); };
   const TL = bridge[bridge.length - 1];
   const floor = Math.min(...levelOf), moves = [], seen = new Set();
   actions.forEach((a, ai) => { if (levelOf[ai] !== floor) return; const key = `${a.steps.join(',')}|${a.tierPen || 0}|${a.tierIsa || 0}|${a.tierGia || 0}`; if (!seen.has(key)) { seen.add(key); moves.push(ai); } });
@@ -62,10 +82,12 @@ export function adaptiveReference(input) {
   const bPos = b => { const f = Math.min(nb - 1 - 1e-12, Math.max(0, b) * (nb - 1)), i = Math.floor(f); return [i, f - i]; };
 
   // 1. THE LAST BRIDGE YEAR: A*(b, gf), the least accessible money from which some floor move pays it
-  const BIG = 1e12, AST = new Float64Array(nb * NG);
+  const BIG = 1e12, AST = f64(nb * NG);
   const anyPays = (A, b, gf) => { setState(A, b, gf); for (const ai of moves) if (flowOk(TL, ai)) return true; return false; };
   let nonMono = 0;
+  const takeL = phase(nb * NG);
   for (let ig = 0; ig < NG; ig++) for (let jb = 0; jb < nb; jb++) {
+    if (!takeL()) continue;
     const b = BG[jb], gf = gains[ig];
     if (anyPays(0, b, gf)) { AST[jb * NG + ig] = 0; continue; }
     let hi = Math.max(1000, 4 * Math.max(0, billsOf(TL)[0]));
@@ -76,6 +98,7 @@ export function adaptiveReference(input) {
     AST[jb * NG + ig] = hi;
     if (!anyPays(hi * 1.5, b, gf)) nonMono++;   // a move that pays at A* but not above it: the threshold's premise broken
   }
+  close();
   const astar = (b, gf) => {
     const [ib, wb] = bPos(b), [ig, wg] = gPos(gf), g2 = Math.min(NG - 1, ig + 1);
     const v = (j, i) => AST[j * NG + i];
@@ -132,10 +155,12 @@ export function adaptiveReference(input) {
   let qHits = 0, qMiss = 0;
   for (let yi = bridge.length - 2; yi >= 0; yi--) {
     const t = bridge[yi], ag = AG[t], next = t + 1;
-    for (let k = 0; k < K; k++) V[k][t] = new Float64Array(na * nb * NG);
-    MV[t] = new Int32Array(na * nb * NG);
+    for (let k = 0; k < K; k++) V[k][t] = f64(na * nb * NG);
+    MV[t] = i32(na * nb * NG);
     if (memoOn) classesAt(t);
+    const takeY = phase(na * nb * NG);
     for (let ia = 0; ia < na; ia++) for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
+      if (!takeY()) continue;
       const A = Math.exp(ag[ia]), b = BG[jb], gf = gains[ig];
       setState(A, b, gf);
       for (let mi = 0; mi < NM; mi++) {
@@ -168,9 +193,11 @@ export function adaptiveReference(input) {
     }
     // `foot`: the A = 0 node of year t, by the same backward step (the flow, then the next year's read at each draw)
     if (foot) {
-      for (let k = 0; k < K; k++) V0[k][t] = new Float64Array(nb * NG);
-      MV0[t] = new Int32Array(nb * NG);
+      for (let k = 0; k < K; k++) V0[k][t] = f64(nb * NG);
+      MV0[t] = i32(nb * NG);
+      const takeF = phase(nb * NG);
       for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {
+        if (!takeF()) continue;
         const b = BG[jb], gf = gains[ig];
         setState(0, b, gf);
         for (let mi = 0; mi < NM; mi++) {
@@ -197,7 +224,11 @@ export function adaptiveReference(input) {
         for (let k = 0; k < K; k++) { V0[k][t][jb * NG + ig] = plant === 'foot' && !(Q[best][k] > 0) ? 1 : Q[best][k]; if (V0[k][t][jb * NG + ig] > 0) footLive++; }
       }
     }
+    close();   // the year's lattice and foot written by every part before the year before reads them
   }
+  // the counts summed across E2's parts (each part counted its own cells); unsplit, each is already the whole
+  let split = null;
+  if (E2) { const own = mine; nonMono = E2.sum(nonMono); qHits = E2.sum(qHits); qMiss = E2.sum(qMiss); footLive = E2.sum(footLive); split = { parts: E2.parts, cells: cellsAll, written: E2.sum(own), mine: own }; }
   // `foot` (research only, default off; PLAN.md AREF, FOOT-S366, items/FOOT-S366.md; the deep review after AX-HO, deep-review-log.md
   // 18 Oct 01:41 UK, O177): in a year whose inflow covers its own bill (a negative bill: S366's inheritance year) the
   // reference's p at no accessible money is not 0, yet readV returned 0 there and below the A grid's foot. With `foot`, each
@@ -268,8 +299,10 @@ export function adaptiveReference(input) {
     const out = {};
     for (const t of bridge) {
       if (t === TL) continue;
-      const arr = new Float64Array(nb * NG), pays = (A, b, gf) => { setState(A, b, gf); for (const ai of moves) if (flowOk(t, ai)) return true; return false; };
+      const arr = f64(nb * NG), pays = (A, b, gf) => { setState(A, b, gf); for (const ai of moves) if (flowOk(t, ai)) return true; return false; };
+      const takeS = phase(nb * NG);
       for (let ig = 0; ig < NG; ig++) for (let jb = 0; jb < nb; jb++) {
+        if (!takeS()) continue;
         const b = BG[jb], gf = gains[ig];
         if (pays(0, b, gf)) { arr[jb * NG + ig] = 0; continue; }
         let hi = Math.max(1000, 4 * Math.max(0, billsOf(t)[0]));
@@ -282,6 +315,7 @@ export function adaptiveReference(input) {
       }
       out[t] = arr;
     }
+    close();
     return out;
   }
   // year t's threshold at (b, gf), interpolated on the b and gain nodes as astar is (the last year's is astar's own)
@@ -308,5 +342,5 @@ export function adaptiveReference(input) {
     for (let zi = 0; zi < nz; zi++) { const A2 = at2(uLo > 0 ? PhiInv(uLo + (1 - uLo) * (zi + 0.5) / nz) : ZS[zi]); acc += readV(k, next, A2, A2 > 0 ? grown[1] / A2 : 0, grown[3]); }
     return (1 - uLo) * acc / nz;
   }
-  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, ...over }), arrays: () => ({ V, MV, V0, MV0, AST, ASTY }), dupStats: { hits: qHits, misses: qMiss } };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); arrays and dupStats: the reference's own arrays and S3's counts (adaptive-dup.test.mjs); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
+  return { at, bridge, TL, moves: NM, nonMono, astar, readV, simulate, moveAt: (t, A, b, gf) => moves[nearest(t, A, b, gf)], moveList: moves.slice(), secs: (Date.now() - t0) / 1000, lattice: { na, nb, nz, ng: NG, ...(foot ? { foot: true } : {}), ...(stepAll ? { stepAll: true } : {}) }, plant, astarAt, ...(foot ? { footLive } : {}), rebuild: over => adaptiveReference({ ...input, e2: null, ...over }), arrays: () => ({ V, MV, V0, MV0, AST, ASTY }), dupStats: { hits: qHits, misses: qMiss }, ...(split ? { split } : {}) };   // rebuild: the same inputs, some changed (solver-guards.test.mjs's plants); arrays and dupStats: the reference's own arrays and S3's counts (adaptive-dup.test.mjs); moveAt, moveList: the rule's own move and floor moves, for an audit's engine run (audit-ao.mjs)
 }

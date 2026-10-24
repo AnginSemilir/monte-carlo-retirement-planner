@@ -2238,7 +2238,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     const cA = F.compile(m, actions);
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
-    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
     g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {

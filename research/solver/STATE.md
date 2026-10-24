@@ -260,11 +260,12 @@ finished.
 <!-- end printed:speed -->
 ## 5. Running now
 
-- Nothing. 7u-F ran 22 Oct 07:14 UK to 23 Oct 08:40 UK through the launcher (logs `research/solver/results/7uf-launch1.log`
-  to `7uf-launch4.log`, the units in `research/solver/results/diag7uf`): a container restart (22 Oct 18:08 UK) and two
-  reboots (23 Oct 04:44 and 05:13 UK) stopped it, each after the session sat idle for 24 to 32 minutes (O65's pattern in
-  the archive; memory was not the cause); each time the disk survived and the batch was relaunched with `RESUME=1`,
-  keeping every finished unit. A long run is checked every 15 minutes while it runs.
+- V3 and V4 on the ported code (EXPLORATORY, the tuning seed 7002; D20 (8), D23, D24), launched 24 Oct 08:31 UK through
+  the launcher as a tracked task: `batch-v34.sh` (commit 0a75732), 237 units four at a time, a canary of each kind first;
+  the launch log `research/solver/results/v34-launch1.log`, a log a unit in `results/v34-logs`, the units in
+  `results/v3` and `results/v4`; about 11 hours on four cores by the port's timings. After a stop, the same command
+  with `RESUME=1` runs only what is left. A long run is checked every 15 minutes while it runs. (7u-F's launch logs
+  and units stay in `results/7uf-launch*.log` and `results/diag7uf`.)
 
 ## 6. The next three actions
 

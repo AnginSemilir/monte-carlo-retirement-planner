@@ -41,4 +41,13 @@ for (const w of WEIGHTS) {
     console.log(`  ${String(pa).padStart(2)} -> ${String(pb).padStart(2)} points: ${f2(m)} [${f2(m - 1.96 * se)} to ${f2(m + 1.96 * se)}]; households ${f2(lo.s)} (${lo.id}) to ${f2(hi.s)} (${hi.id}); the largest ${big.id} ${f2(big.s)} (se ${big.se.toFixed(2)}); whole score ${f2(mw)}`);
   }
 }
+// the solve's own time each unit recorded (the solve alone, not the 8,000 paths after it), under the batch's load: four
+// units at a time on four cores, so the ratios are a guide and gate 5 measures with nothing else running
+console.log(`\nTHE SOLVE'S TIME (seconds, as each unit recorded it under the batch's load of four units at a time; both weights)`);
+const T = {};
+for (const id of HOUSEHOLDS) for (const [r] of RUNGS) T[`${id} ${r}`] = WEIGHTS.map(w => load(join(DIR, `${id}-${r}-w${w}.json.gz`)).secs);
+const avg = a => a.reduce((t, x) => t + x, 0) / a.length;
+for (const id of HOUSEHOLDS) console.log(`  ${id}: ${RUNGS.map(([r, p]) => `${p} points ${T[`${id} ${r}`].map(x => Math.round(x)).join(' and ')}`).join(', ')}; 45 points less 30 ${Math.round(avg(T[`${id} p45`]) - avg(T[`${id} ship`]))} s (${(avg(T[`${id} p45`]) / avg(T[`${id} ship`])).toFixed(2)} times)`);
+const all = r => avg(HOUSEHOLDS.flatMap(id => T[`${id} ${r}`]));
+console.log(`  the mean over the households and weights: ${RUNGS.map(([r, p]) => `${p} points ${Math.round(all(r))} s (${(all(r) / all('ship')).toFixed(2)} times 30's)`).join(', ')}; 45 points less 30 ${Math.round(all('p45') - all('ship'))} s`);
 console.log(`\nthe gate: ${codes.size === 1 ? `one code (${[...codes][0]})` : `NOT ONE CODE (${[...codes].join(' ')})`}`);

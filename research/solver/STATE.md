@@ -261,6 +261,12 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 - S224's rungs, the candidate against SHIP on 32000 paths (the deep review's one test): W0.02 30 points -0.106 (se 0.067), whole score -0.088 (se 0.068); W0.02 60 points -0.034 (se 0.068), whole score +0.015 (se 0.069); W0.02 90 points -0.063 (se 0.064), whole score +0.007 (se 0.065); W0.01 30 points -0.181 (se 0.088), whole score -0.260 (se 0.088); W0.01 60 points -0.031 (se 0.068), whole score -0.040 (se 0.069); W0.01 90 points -0.056 (se 0.065), whole score -0.051 (se 0.065).
 - V4: at estate weight 0.02 the candidate's gap to the best variant, panel mean 0.329 score and 0.239 survival points; largest 0.533 and 0.487: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households; at estate weight 0.01 the candidate's gap to the best variant, panel mean 0.377 score and 0.300 survival points; largest 0.679 and 0.662: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households. Its verdict: NOT within the targets (or units missing) (a lower bound: it can show the policy improvable, never that it is near the best) (`results-v3.txt`, `results-v4.txt`).
 <!-- end printed:v34 -->
+### N4 (Step 6): the build (`n4-design.md`; its run waits on the maintainer's choice of wealth grid)
+
+<!-- printed:n4build -->
+- N4's build: `n4-menu.test.mjs --full` ALL PASS: 27 checks (`results-n4-menu.txt`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (hr 3153 household-years, the largest gap £1.12e-8; mid 3171 household-years, the largest gap £7.45e-9; cgt 3311 household-years, the largest gap £1.49e-8; hr+mid+cgt 3128 household-years, the largest gap £1.30e-8); each plant parts them ('hrtop' £783357.46, 'midband' £695833.40, 'nobasis' £2579102.56); S2's shared scores the same as scoreMoves' under the new menus (12807180 checked).
+- N4's identity on the product's path: every hash the same on S224 and S370 under SHIP (the candidate's identity is read at full scale by n4-menu.mjs: CAND on the N4 code against V4's CAND unit) (`results-n4-identity.txt`).
+<!-- end printed:n4build -->
 ## 5. Running now
 
 - Nothing. V3 and V4 ran 24 Oct 08:31 to 19:03 UK through the launcher (`batch-v34.sh`, commit 0a75732; the launch log

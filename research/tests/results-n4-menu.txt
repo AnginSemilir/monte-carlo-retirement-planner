@@ -1,0 +1,28 @@
+PASS  1  without menuPlus (and with it empty) the menu is the product's, move for move: {} 24 moves, f900315db7a08e08
+PASS  1  without menuPlus (and with it empty) the menu is the product's, move for move: {"spendLevels":[1,0.95,0.9,0.8]} 96 moves, 22790f87bd819b2c
+PASS  1  without menuPlus (and with it empty) the menu is the product's, move for move: {"spendLevels":[0.9,1,1.1],"tiers":[[0,0],[1,0],[2,2],[3,3]]} 288 moves, 89dbe7502f7973b8
+PASS  1  the new menus have 40, 60 and 48 moves (40, 60, 48), and an unknown kind is refused
+PASS  2  a draw first up to the taper threshold stops at it (gross income £100000.00 in the forward run, £100000.00 in the engine; £100000), and the rest of the need comes from the other pots
+PASS  2  the product's basic-rate ceiling, beside it, stops at £50270.00 (£50270)
+PASS  2  a draw first up to penPAm stops at its midpoint (£6285.00 and £6285.00; £6285)
+PASS  2  a draw first up to penBm stops at its midpoint (£31420.00 and £31420.00; £31420)
+PASS  2  a re-wrap to the basic band's midpoint draws £41893.33 gross (forward run £41893.33, engine £41893.33), gross income ending at £31420
+PASS  2  its net £38123.33 fills the ISA's £20000 (up £20000.00 on the same move without it) and the rest, £18123.33, goes to the taxable account at cost (its basis up £18123.33, the engine's £18123.33)
+PASS  2  the sale realises the exempt £3000 and no more (the engine's gains £3000.00, £0.00 without it; tax £0.00, the forward run's £0.00)
+PASS  2  with the ISA's room whole the £5000.00 sold goes to the ISA (up £5000.00) and the basis falls by its cost, £2000.00 (forward run £2000.00, engine £2000.00)
+PASS  2  with £16760.00 of the room used by a re-wrap, £3240.00 of the sale fills the ISA and £1760.00 is bought back at cost: the basis ends £-240.00 from the same year without the sale (engine £-240.00; by hand £-240.00)
+PASS  2  with no gain to take, and with the exemption already used by the year's sales, the sale does nothing (both years the same bit for bit as without it)
+PASS  3  lockstep on menu hr: 5 households x 20 paths, 3153 household-years, the largest gap £1.12e-8 (S330 year 58 gain held); hr held by 3153 moves taken, changing the year in 443; tablePolicy's move = moveOf's where both pick it (0 differ)
+PASS  3  lockstep on menu mid: 5 households x 20 paths, 3171 household-years, the largest gap £7.45e-9 (S370 year 25 slot 0); mid held by 3171 moves taken, changing the year in 450; tablePolicy's move = moveOf's where both pick it (0 differ)
+PASS  3  lockstep on menu cgt: 5 households x 20 paths, 3311 household-years, the largest gap £1.49e-8 (S330 year 57 slot 2); cgt held by 2452 moves taken, changing the year in 737; tablePolicy's move = moveOf's where both pick it (0 differ)
+PASS  3  lockstep on menu hr+mid+cgt: 5 households x 20 paths, 3128 household-years, the largest gap £1.30e-8 (S330 year 59 slot 2); hr held by 3128 moves taken, changing the year in 309; mid held by 3128 moves taken, changing the year in 362; cgt held by 1540 moves taken, changing the year in 502; tablePolicy's move = moveOf's where both pick it (0 differ)
+PASS  4  planted 'hrtop' (the forward run only): the forward run parts from the engine by £783357.46 on menu hr
+PASS  4  planted 'midband' (the forward run only): the forward run parts from the engine by £695833.40 on menu mid
+PASS  4  planted 'nobasis' (the forward run only): the forward run parts from the engine by £2579102.56 on menu cgt
+PASS  5  S2's shared scores equal scoreMoves' on S224 under menu hr: 1332000 scores checked, the solver picking a move whose new kind acts first 13 times
+PASS  5  S2's shared scores equal scoreMoves' on S224 under menu mid: 1998000 scores checked, the solver picking a move whose new kind acts first 235 times
+PASS  5  S2's shared scores equal scoreMoves' on S224 under menu cgt: 1598400 scores checked, the solver picking a move whose new kind acts first 47 times
+PASS  5  S2's shared scores equal scoreMoves' on S330 under menu hr: 2129400 scores checked, the solver picking a move whose new kind acts first 57 times
+PASS  5  S2's shared scores equal scoreMoves' on S330 under menu mid: 3194100 scores checked, the solver picking a move whose new kind acts first 332 times
+PASS  5  S2's shared scores equal scoreMoves' on S330 under menu cgt: 2555280 scores checked, the solver picking a move whose new kind acts first 346 times
+ALL PASS: 27 checks

@@ -41,7 +41,8 @@ lapsed; they stay in the archive.
 
 - D25. 24 Oct, maintainer, after V3's ladder: N4 runs at 45 wealth points (the coarsest V3 accepts), its CAND checked against
   V3's 45-point units; the speed review's instruction 6 (the adaptive reference's build split across E2's parts, exact,
-  `e2.test.mjs` extended to the reference's arrays) is done whatever gate 5 shows; gate 5 is still measured after N4.
+  `e2.test.mjs` extended to the reference's arrays) is done whatever gate 5 shows, and gate 5 is measured after both N4
+  and instruction 6. On the unlock of 24 Oct, `n4-menu.test.mjs` joins the fast suite.
 - D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, on the branch
   review/external-2026-10-21 at cff3d86, not merged) is carried out in its order, by its "How to port" rules. (1) The
   speed-ups go forward everywhere: S1 and S2 on by default in the product's path and the research runs, S3 in the
@@ -272,9 +273,10 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 <!-- end printed:n4build -->
 ## 5. Running now
 
-- Nothing. V3 and V4 ran 24 Oct 08:31 to 19:03 UK through the launcher (`batch-v34.sh`, commit 0a75732; the launch log
-  `research/solver/results/v34-launch1.log`, a log a unit in `results/v34-logs`, the units in `results/v3` and
-  `results/v4`), 237 units, none failed. A long run is checked every 15 minutes while it runs.
+- N4 at 45 wealth points (EXPLORATORY, D22, D25), launched 24 Oct about 20:20 UK through the launcher, a tracked task:
+  `batch-n4.sh` (snapshot of 6f9ee41), 56 units four at a time; the log `research/solver/results/n4-launch1.log`, a log a
+  unit in `results/n4-logs`, the units in `results/n4`; about four and a half hours; after a stop, `RESUME=1`. Checked
+  every 15 minutes. (V3 and V4's logs and units stay in `results/v34-launch1.log`, `results/v3` and `results/v4`.)
 
 ## 6. The next three actions
 
@@ -291,8 +293,7 @@ The order is the follow-up review's Next section (D20); each step has its test a
    identity check extended to the reference's arrays, with a plant. Time box: a day. For the maintainer: the candidate's
    grid for gate 5 and Phase 4; whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default
    (N6), the timing page on their devices (D20 (10)).
-3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2), S224's loss at
-   the lower weight its worked case; its budget measured with nothing else running, D21) and gate 5 measured against the
-   ported product (D11, D24 (3); if it fails, the speed review's instruction 6). It carries a no-harm item against SHIP if
-   the candidate changes, a spending item over all years, the whole score on every path, a fresh held-out seed, and the
-   Node version in the unit stamp, equal across arms.
+3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget
+   measured with nothing else running, D21) and gate 5 against the ported product after instruction 6 (D11, D25). It
+   carries a no-harm item against SHIP if the candidate changes, a spending item over all years, the whole score on every
+   path, a fresh held-out seed, and the Node version in the unit stamp, equal across arms.

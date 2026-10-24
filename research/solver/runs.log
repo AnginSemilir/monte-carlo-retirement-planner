@@ -317,3 +317,4 @@
 22 Oct 18:08 UK | main | research/solver/registrations/fresh-7uf.md | code 524aae79f9a0 | 09fb223 | load 2.34 3.62 3.86 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-7uf.sh
 23 Oct 04:47 UK | main | research/solver/registrations/fresh-7uf.md | code 524aae79f9a0 | 7669120 | load 0.95 0.46 0.19 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-7uf.sh
 23 Oct 05:15 UK | main | research/solver/registrations/fresh-7uf.md | code 524aae79f9a0 | 8974368 | load 0.99 0.40 0.15 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-7uf.sh
+24 Oct 08:38 UK | main | none: V3 and V4 on the ported code, exploratory, the tuning seed 7002 (D20 (8), D23, D24) | code 210f058370ce | 96af294 | load 1.11 1.30 1.03 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-v34.sh

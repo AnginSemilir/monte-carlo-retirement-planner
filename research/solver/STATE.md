@@ -195,13 +195,7 @@ nothing) dropped it; a forward run now carries it in slot 13 (S370 the household
 ### Step 2: what the fixes could have changed (EXPLORATORY, the tuning seed)
 
 <!-- printed:step2 -->
-- S150           seed 7002, code 4635d91b2285: CAND 99.90% SHIP 99.79%; 9 saved/0 lost of 8000: change +0.113 (exact 0.037 to 0.113; unconditional 0.041 to 0.213) | 7u: +0.087 (exact 0.004 to 0.112); OUTSIDE 7u's interval
-- S212           seed 7002, code 4635d91b2285: CAND 75.28% SHIP 75.39%; 32 saved/41 lost of 8000: change -0.113 (exact -0.324 to 0.109; unconditional -0.323 to 0.098) | 7u: +0.037 (exact -0.201 to 0.274); inside 7u's interval
-- S214           seed 7002, code 4635d91b2285: CAND 86.94% SHIP 86.97%; 25 saved/28 lost of 8000: change -0.037 (exact -0.221 to 0.151; unconditional -0.219 to 0.144) | 7u: +0.025 (exact -0.154 to 0.201); inside 7u's interval
-- S224           seed 7002, code 4635d91b2285: CAND 69.36% SHIP 69.56%; 91 saved/107 lost of 8000: change -0.200 (exact -0.551 to 0.157; unconditional -0.545 to 0.145) | 7u: -0.362 (exact -0.717 to 0.002); inside 7u's interval
-- S364           seed 7002, code 4635d91b2285: CAND 0.07% SHIP 0.39%; 1 saved/26 lost of 8000: change -0.313 (exact -0.337 to -0.209; unconditional -0.464 to -0.196) | 7u: -0.388 (exact -0.388 to -0.301); inside 7u's interval
-- S380           seed 7002, code 4635d91b2285: CAND 72.80% SHIP 72.55%; 155 saved/135 lost of 8000: change +0.250 (exact -0.179 to 0.674; unconditional -0.168 to 0.668) | 7u: -0.163 (exact -0.605 to 0.283); inside 7u's interval
-- S394           seed 7002, code 4635d91b2285: CAND 85.64% SHIP 85.63%; 32 saved/31 lost of 8000: change +0.013 (exact -0.191 to 0.215; unconditional -0.185 to 0.210) | 7u: +0.037 (exact -0.179 to 0.251); inside 7u's interval
+- S150 seed 7002, code 4635d91b2285: CAND 99.90% SHIP 99.79%; 9 saved/0 lost of 8000: change +0.113 (exact 0.037 to 0.113; unconditional 0.041 to 0.213) | 7u: +0.087 (exact 0.004 to 0.112); OUTSIDE 7u's interval || S212 seed 7002, code 4635d91b2285: CAND 75.28% SHIP 75.39%; 32 saved/41 lost of 8000: change -0.113 (exact -0.324 to 0.109; unconditional -0.323 to 0.098) | 7u: +0.037 (exact -0.201 to 0.274); inside 7u's interval || S214 seed 7002, code 4635d91b2285: CAND 86.94% SHIP 86.97%; 25 saved/28 lost of 8000: change -0.037 (exact -0.221 to 0.151; unconditional -0.219 to 0.144) | 7u: +0.025 (exact -0.154 to 0.201); inside 7u's interval || S224 seed 7002, code 4635d91b2285: CAND 69.36% SHIP 69.56%; 91 saved/107 lost of 8000: change -0.200 (exact -0.551 to 0.157; unconditional -0.545 to 0.145) | 7u: -0.362 (exact -0.717 to 0.002); inside 7u's interval || S364 seed 7002, code 4635d91b2285: CAND 0.07% SHIP 0.39%; 1 saved/26 lost of 8000: change -0.313 (exact -0.337 to -0.209; unconditional -0.464 to -0.196) | 7u: -0.388 (exact -0.388 to -0.301); inside 7u's interval || S380 seed 7002, code 4635d91b2285: CAND 72.80% SHIP 72.55%; 155 saved/135 lost of 8000: change +0.250 (exact -0.179 to 0.674; unconditional -0.168 to 0.668) | 7u: -0.163 (exact -0.605 to 0.283); inside 7u's interval || S394 seed 7002, code 4635d91b2285: CAND 85.64% SHIP 85.63%; 32 saved/31 lost of 8000: change +0.013 (exact -0.191 to 0.215; unconditional -0.185 to 0.210) | 7u: +0.037 (exact -0.179 to 0.251); inside 7u's interval (`results-recheck-7u.txt`).
 - VERDICT: 7 households read; 1 moved outside 7u's interval
 <!-- end printed:step2 -->
 
@@ -268,7 +262,17 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 - S224's rungs, the candidate against SHIP on 32000 paths (the deep review's one test): W0.02 30 points -0.106 (se 0.067), whole score -0.088 (se 0.068); W0.02 60 points -0.034 (se 0.068), whole score +0.015 (se 0.069); W0.02 90 points -0.063 (se 0.064), whole score +0.007 (se 0.065); W0.01 30 points -0.181 (se 0.088), whole score -0.260 (se 0.088); W0.01 60 points -0.031 (se 0.068), whole score -0.040 (se 0.069); W0.01 90 points -0.056 (se 0.065), whole score -0.051 (se 0.065).
 - V4: at estate weight 0.02 the candidate's gap to the best variant, panel mean 0.329 score and 0.239 survival points; largest 0.533 and 0.487: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households; at estate weight 0.01 the candidate's gap to the best variant, panel mean 0.377 score and 0.300 survival points; largest 0.679 and 0.662: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households. Its verdict: NOT within the targets (or units missing) (a lower bound: it can show the policy improvable, never that it is near the best) (`results-v3.txt`, `results-v4.txt`).
 <!-- end printed:v34 -->
-### N4 (Step 6): the build (`n4-design.md`; its run at 45 wealth points, D25)
+### N4 (Step 6, EXPLORATORY): the build and the read (`n4-design.md`; at 45 wealth points, D25)
+
+The ceiling at the taper threshold (HR) passes N4's bar, on the two pension-heavy households; the midpoints move nothing,
+and the sale up to the capital gains exemption gains a little, under the targets. HR goes to the maintainer.
+
+<!-- printed:n4read -->
+- N4's gate: one code (44b967169a3c), seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; the product's menu at full scale: CAND on this code the same as V3's 45-point unit bit for bit on 14 of 14 household-weights (`results-n4.txt`).
+- CAND+HR: PASSES N4's bar (beyond the targets on S370, S248, panel mean); a household loss beyond 0.5 nowhere; at W0.02 the panel mean +0.364 survival (se 0.030) / +0.395 score, a household from +0.000 to +1.712 survival; at W0.01 the panel mean +0.373 survival (se 0.030) / +0.400 score, a household from +0.000 to +1.688 survival.
+- CAND+MID: does not pass N4's bar; a household loss beyond 0.5 nowhere; at W0.02 the panel mean +0.007 survival (se 0.016) / +0.011 score, a household from -0.063 to +0.037 survival; at W0.01 the panel mean -0.009 survival (se 0.017) / -0.006 score, a household from -0.037 to +0.013 survival.
+- CAND+CGT: does not pass N4's bar; a household loss beyond 0.5 nowhere; at W0.02 the panel mean +0.084 survival (se 0.023) / +0.091 score, a household from +0.000 to +0.300 survival; at W0.01 the panel mean +0.089 survival (se 0.023) / +0.094 score, a household from -0.075 to +0.350 survival.
+<!-- end printed:n4read -->
 
 <!-- printed:n4build -->
 - N4's build: `n4-menu.test.mjs --full` ALL PASS: 27 checks (`results-n4-menu.txt`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (hr 3153 household-years, the largest gap £1.12e-8; mid 3171 household-years, the largest gap £7.45e-9; cgt 3311 household-years, the largest gap £1.49e-8; hr+mid+cgt 3128 household-years, the largest gap £1.30e-8); each plant parts them ('hrtop' £783357.46, 'midband' £695833.40, 'nobasis' £2579102.56); S2's shared scores the same as scoreMoves' under the new menus (12807180 checked).
@@ -276,23 +280,19 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 <!-- end printed:n4build -->
 ## 5. Running now
 
-- N4 at 45 wealth points (EXPLORATORY, D22, D25): `batch-n4.sh` on 6f9ee41's code (44b967169a3c), 56 units four at a
-  time, through the launcher; launched 24 Oct about 20:20 UK (`results/n4-launch1.log`), stopped by a container restart at
-  21:05 with 10 units in, relaunched 21:11 with `RESUME=1` from a worktree at 6f9ee41, so every unit carries one code
-  (`results/n4-launch2.log`); a log a unit in `results/n4-logs`, the units in `results/n4`. Checked every 15 minutes.
+- Nothing. N4 ran 24 Oct 20:20 UK to 25 Oct 00:25 UK on 6f9ee41's code, relaunched once after a container restart
+  (`results/n4-launch1.log`, `n4-launch2.log`; the units in `results/n4`), 56 units, none failed.
 
 ## 6. The next three actions
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. N4 (Step 6, D22: before N1), EXPLORATORY on the tuning seed, as `n4-design.md` sets out: a ceiling at the taper
-   threshold, the allowance's and the basic band's midpoints, and the sale of the taxable account up to the capital gains
-   exemption, each behind `menuPlus` (off by default); `batch-n4.sh`, 56 units at 45 wealth points (D25), its CAND
-   checked bit for bit against V3's. A kind that passes N4's bar goes to the maintainer; it does not join the candidate on
-   its own read. Time box: the run and its read by 25 Oct 06:00 UK.
-2. The speed review's instruction 6 (D25): done, the block above. Gate 5 after N4 reads, the candidate at 45 points
-   (D26). For the maintainer: whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default
-   (N6), the timing page on their devices (D20 (10)).
+1. For the maintainer, from N4: whether HR (the pension ceiling at the taper threshold, a draw-first and a re-wrap ceiling)
+   joins the candidate. It would change the candidate after 7u-F: the reviewer reviews the change, `HOW-IT-WORKS.md`
+   section 4 states the new menu, Phase 4 carries a no-harm item against SHIP, and its menu (40 moves for 24) enters gate 5.
+   Also open: whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing page.
+2. Gate 5 (D11, D25, D26), on the candidate as the maintainer settles it, at 45 points: `batch-gate5.sh` through the
+   launcher with nothing else running, `reduce-gate5.mjs` reading it (about an hour).
 3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget
    measured with nothing else running, D21) and gate 5 against the ported product after instruction 6 (D11, D25). It
    carries a no-harm item against SHIP if the candidate changes, a spending item over all years, the whole score on every

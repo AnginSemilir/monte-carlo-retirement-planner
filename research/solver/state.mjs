@@ -102,6 +102,19 @@ const BLOCKS = {
     return [`- N4's build: \`n4-menu.test.mjs --full\` ${verdict(T)} (\`results-n4-menu.txt\`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (${lock.join('; ')}); each plant parts them (${plants.join(', ')}); S2's shared scores the same as scoreMoves' under the new menus (${s2} checked).`,
       `- N4's identity on the product's path: ${pick(I, /^VERDICT: (.*)$/m, m => m[1])} (\`results-n4-identity.txt\`).`];
   },
+  // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
+  n4read() {
+    const R = 'research/solver/results-n4.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const out = [`- ${pick(R, /^the gate: (.*)$/m, m => `N4's gate: ${m[1]}`)}; ${pick(R, /^the product's menu at full scale: (.*)$/m, m => `the product's menu at full scale: ${m[1]}`)} (\`results-n4.txt\`).`];
+    for (const k of ['CAND+HR', 'CAND+MID', 'CAND+CGT']) {
+      const esc = k.replace('+', '\\+');
+      const mean = ['0.02', '0.01'].map(w => pick(R, new RegExp(`^ {2}${esc} at W${w.replace('.', '\\.')}: the panel mean gain ([+-][\\d.]+) score \\(se ([\\d.]+)\\) and ([+-][\\d.]+) survival \\(se ([\\d.]+)\\); the largest on a household ([+-][\\d.]+) and ([+-][\\d.]+), the smallest ([+-][\\d.]+) and ([+-][\\d.]+)$`, 'm'), m => `at W${w} the panel mean ${m[3]} survival (se ${m[4]}) / ${m[1]} score, a household from ${m[8]} to ${m[6]} survival`));
+      const v = pick(R, new RegExp(`^${esc}: (PASSES N4's bar|does not pass N4's bar): beyond the targets (.*?); a household loss beyond 0\\.5 (.*)$`, 'm'), m => `${m[1]}${m[2] === 'nowhere' ? '' : ` (beyond the targets on ${[...new Set([...m[2].matchAll(/(S\d+|panel mean) W/g)].map(x => x[1]))].join(', ')})`}; a household loss beyond 0.5 ${m[3]}`);
+      out.push(`- ${k}: ${v}; ${mean.join('; ')}.`);
+    }
+    return out;
+  },
   // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
   speed() {
     const T = 'research/tests/', S = `${T}results-solver-scratch.txt`, S1 = `${T}results-solver-memo.txt`, S3 = `${T}results-adaptive-dup.txt`, S2 = `${T}results-chooser-share.txt`, RT = 'research/solver/results-retime-port.txt';
@@ -154,7 +167,9 @@ const BLOCKS = {
     const S = 'research/solver/';
     const t = read(`${S}results-recheck-7u.txt`);
     if (t === null) return [`- pending: ${S}results-recheck-7u.txt`];
-    return t.split('\n').filter(l => /^  \S|^VERDICT/.test(l)).map(l => `- ${l.trim()}`);
+    // the households in one line, each as the recheck prints it, then its verdict (results-recheck-7u.txt)
+    const rows = t.split('\n').filter(l => /^  \S/.test(l)).map(l => l.trim().replace(/\s{2,}/, ' ')), v = t.split('\n').find(l => /^VERDICT/.test(l));
+    return [`- ${rows.join(' || ')} (\`results-recheck-7u.txt\`).`, `- ${v}`];
   },
   // Step 4: 7u's item 4 re-read by path, and 7u-F's power from 7u's records (reread-7u-item4.mjs)
   step4() {

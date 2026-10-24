@@ -90,12 +90,12 @@ the plants sit in `fast.js`'s `N4.plant`, the forward run only.
 
 ## The run and its read
 
-- **The run.** `n4-menu.mjs`, V4's unit on V4's seed, paths and wealth points, with four arms: CAND on the N4 code, and
-  CAND+HR, CAND+MID and CAND+CGT. Each runs on V3's seven households at both weights (56 units, `batch-n4.sh`). CAND is
-  checked bit for bit against V4's CAND unit, from the code before N4: the product's menu unchanged at full scale. Each kind
-  is paired with CAND from its own code.
-- **Cost.** The solve grows with the menu (40, 60 and 48 moves against 24), so about 7 core-hours, two hours on four
-  cores.
+- **The run.** `n4-menu.mjs`, V4's unit on V4's seed and paths at 45 wealth points (the coarsest V3 accepts; the
+  maintainer, 24 Oct, D25), with four arms: CAND on the N4 code, and CAND+HR, CAND+MID and CAND+CGT. Each runs on V3's
+  seven households at both weights (56 units, `batch-n4.sh`). CAND is checked bit for bit against V3's 45-point unit, from
+  the code before N4: the product's menu unchanged at full scale. Each kind is paired with CAND from its own code.
+- **Cost.** The solve grows with the menu (40, 60 and 48 moves against 24) and with the 45-point grid, so about 18
+  core-hours, four and a half hours on four cores.
 - **The read.** By D4's targets, against CAND:
   - A kind passes where, at some weight, it beats the current menu by more than a target (0.2 points on the panel mean,
     0.5 on a household, in the whole score or survival) beyond noise (its paired 95% interval above nothing), and at

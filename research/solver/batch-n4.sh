@@ -1,5 +1,5 @@
 #!/bin/bash
-# N4 THROUGH V4'S ENSEMBLE (EXPLORATORY, the tuning seed 7002; STATE.md D22; research/solver/n4-design.md). Every unit of
+# N4 THROUGH V4'S ENSEMBLE AT 45 WEALTH POINTS (EXPLORATORY, the tuning seed 7002; STATE.md D22, D25; n4-design.md). Every unit of
 # n4-menu.mjs, four at a time: first a canary of each kind on S002 (the cheapest household), so a fault in any kind shows
 # within minutes; then the costliest first (the largest menu first), so the tail is short. A unit whose output exists from
 # this code is kept, so after a stop the same command relaunches with RESUME=1 and runs only what is left. Through the

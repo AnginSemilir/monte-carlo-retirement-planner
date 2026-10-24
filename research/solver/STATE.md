@@ -39,6 +39,9 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D25. 24 Oct, maintainer, after V3's ladder: N4 runs at 45 wealth points (the coarsest V3 accepts), its CAND checked against
+  V3's 45-point units; the speed review's instruction 6 (the adaptive reference's build split across E2's parts, exact,
+  `e2.test.mjs` extended to the reference's arrays) is done whatever gate 5 shows; gate 5 is still measured after N4.
 - D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, on the branch
   review/external-2026-10-21 at cff3d86, not merged) is carried out in its order, by its "How to port" rules. (1) The
   speed-ups go forward everywhere: S1 and S2 on by default in the product's path and the research runs, S3 in the
@@ -261,7 +264,7 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 - S224's rungs, the candidate against SHIP on 32000 paths (the deep review's one test): W0.02 30 points -0.106 (se 0.067), whole score -0.088 (se 0.068); W0.02 60 points -0.034 (se 0.068), whole score +0.015 (se 0.069); W0.02 90 points -0.063 (se 0.064), whole score +0.007 (se 0.065); W0.01 30 points -0.181 (se 0.088), whole score -0.260 (se 0.088); W0.01 60 points -0.031 (se 0.068), whole score -0.040 (se 0.069); W0.01 90 points -0.056 (se 0.065), whole score -0.051 (se 0.065).
 - V4: at estate weight 0.02 the candidate's gap to the best variant, panel mean 0.329 score and 0.239 survival points; largest 0.533 and 0.487: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households; at estate weight 0.01 the candidate's gap to the best variant, panel mean 0.377 score and 0.300 survival points; largest 0.679 and 0.662: BEYOND D4's targets, the best variant CAND-fine on 7 of 7 households. Its verdict: NOT within the targets (or units missing) (a lower bound: it can show the policy improvable, never that it is near the best) (`results-v3.txt`, `results-v4.txt`).
 <!-- end printed:v34 -->
-### N4 (Step 6): the build (`n4-design.md`; its run waits on the maintainer's choice of wealth grid)
+### N4 (Step 6): the build (`n4-design.md`; its run at 45 wealth points, D25)
 
 <!-- printed:n4build -->
 - N4's build: `n4-menu.test.mjs --full` ALL PASS: 27 checks (`results-n4-menu.txt`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (hr 3153 household-years, the largest gap £1.12e-8; mid 3171 household-years, the largest gap £7.45e-9; cgt 3311 household-years, the largest gap £1.49e-8; hr+mid+cgt 3128 household-years, the largest gap £1.30e-8); each plant parts them ('hrtop' £783357.46, 'midband' £695833.40, 'nobasis' £2579102.56); S2's shared scores the same as scoreMoves' under the new menus (12807180 checked).
@@ -280,12 +283,14 @@ The order is the follow-up review's Next section (D20); each step has its test a
 
 1. N4 (Step 6, D22: before N1), EXPLORATORY on the tuning seed, as `n4-design.md` sets out: a ceiling at the taper
    threshold, the allowance's and the basic band's midpoints, and the sale of the taxable account up to the capital gains
-   exemption, each behind `menuPlus` (off by default); its test `n4-menu.test.mjs`; `batch-n4.sh`, 56 units at V4's 30
-   points, its CAND checked bit for bit against V4's. A kind that passes N4's bar goes to the maintainer; it does not join
-   the candidate on its own read. Time box: the build by 25 Oct 18:00 UK, the run and its read that evening.
-2. For the maintainer: the candidate's wealth axis (V3 accepts 45 points, V4's best is 90; a move changes the candidate
-   after 7u-F, so Phase 4 carries a no-harm item against SHIP, and its solve time, gate 5 and N7); whether N1 runs before
-   Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing page on their devices (D20 (10)).
+   exemption, each behind `menuPlus` (off by default); `batch-n4.sh`, 56 units at 45 wealth points (D25), its CAND
+   checked bit for bit against V3's. A kind that passes N4's bar goes to the maintainer; it does not join the candidate on
+   its own read. Time box: the run and its read by 25 Oct 06:00 UK.
+2. The speed review's instruction 6 (D25), beside N4's run: the adaptive reference's build split across E2's parts, each
+   lattice state claimed by one part, the arrays shared through the pool, a barrier at each bridge year; `e2.test.mjs`'s
+   identity check extended to the reference's arrays, with a plant. Time box: a day. For the maintainer: the candidate's
+   grid for gate 5 and Phase 4; whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default
+   (N6), the timing page on their devices (D20 (10)).
 3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2), S224's loss at
    the lower weight its worked case; its budget measured with nothing else running, D21) and gate 5 measured against the
    ported product (D11, D24 (3); if it fails, the speed review's instruction 6). It carries a no-harm item against SHIP if

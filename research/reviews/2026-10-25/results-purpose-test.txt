@@ -15,6 +15,9 @@ OVER THE PANEL (100 positions, 50 on the cliff):
   whole score: the rival best on A ahead on B by -0.061 on the mean (se 0.052), beyond 2 se at 4/100 (4.0%): WITHIN D4's 5%
     the advantages beyond 2 se, largest first: +0.085, +0.054, +0.005, +0.002
   whole score, the plant: ahead by +0.207 on the mean (se 0.067), beyond 2 se at 16/100 (16.0%): the measure SEES a pick as bad as the last distinct rival
+  THE SURVIVAL FLAG S330 position 19 (year 0, on the cliff): the pick 89.75% on A and 89.75% on B; the rival best on A (the chooser's distinct move number 2, 1.63e-4 below the pick by the chooser's own score) 90.00% and 90.75%: +1.00 (se 0.498)
+    the same start drawn again as position 9, on its own paths: the rival best on A less the pick +0.00 (se 0.000)
+    the same start drawn again as position 17, on its own paths: the rival best on A less the pick -0.25 (se 0.250)
 VERDICT (exploratory: one weight, the latest candidate on the agent's code): by D4's measure, survival PASS, the whole score PASS; the plant is seen: the measure has power against a pick as bad as the last distinct rival
 
 == THE RUN LOG: S248-w0.02.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)

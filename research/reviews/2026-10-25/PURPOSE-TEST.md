@@ -51,9 +51,9 @@ were dropped at the maintainer's call (25 Oct 18:31) to start the speed work, an
   - the whole score beyond 2 se at 4 (4%), by +0.085, +0.054, +0.005 and +0.002 points;
   - both within D4's 5%.
 - **The one survival flag** is S330 at the plan's start: the chooser's second choice ahead by +1.00 point on its 400
-  paths, at 2 se exactly, where the chooser's own scores put the two 0.00016 apart. The same starting position was also
-  drawn as another of the 20, on other paths, and there the best rival was 0.25 points behind the pick: noise at a
-  near-tie.
+  paths (se 0.498, just over 2 se), where the chooser's own scores put the two 1.63e-4 apart. The same start was drawn
+  twice more, on other paths: there the best rival was level with the pick (+0.00) and 0.25 points behind it. Noise
+  at a near-tie.
 - **The plant:**
   - the whole score sees it, at 16 positions (16%);
   - survival barely does, at 3. The top six distinct moves are usually within a point of each other in survival, so

@@ -56,5 +56,11 @@ const read = (key, label) => {
 };
 console.log(`OVER THE PANEL (${N} positions, ${all.filter(x => x.cliff).length} on the cliff):`);
 const s = read('surv', 'survival'), o = read('obj', 'whole score');
+// each survival flag in detail, with every other draw of the same household at the plan's start (one state: each its own paths)
+for (const u of units) for (const x of u.positions.filter(y => beyond(y.dSurv, y.seSurv))) {
+  const r0 = x.rows[0], rb = x.rows[x.bestSurv];
+  console.log(`  THE SURVIVAL FLAG ${u.id} position ${x.pi} (year ${x.t}${x.cliff ? ', on the cliff' : ''}): the pick ${r0.survA.toFixed(2)}% on A and ${r0.survB.toFixed(2)}% on B; the rival best on A (the chooser's distinct move number ${x.bestSurv + 1}, ${rb.scoreGap.toExponential(2)} below the pick by the chooser's own score) ${rb.survA.toFixed(2)}% and ${rb.survB.toFixed(2)}%: ${f(x.dSurv)} (se ${x.seSurv.toFixed(3)})`);
+  if (x.t === 0) for (const y of u.positions.filter(z => z.t === 0 && z.pi !== x.pi)) console.log(`    the same start drawn again as position ${y.pi}, on its own paths: the rival best on A less the pick ${f(y.dSurv)} (se ${y.seSurv.toFixed(3)})`);
+}
 const ok = k => 100 * k / N <= BAR, sees = 100 * s.kp / N > BAR || 100 * o.kp / N > BAR;
 console.log(`VERDICT (exploratory: one weight, the latest candidate on the agent's code): by D4's measure, survival ${ok(s.k) ? 'PASS' : 'FAIL'}, the whole score ${ok(o.k) ? 'PASS' : 'FAIL'}; the plant ${sees ? 'is seen: the measure has power against a pick as bad as the last distinct rival' : 'is NOT seen: a pass says little'}`);

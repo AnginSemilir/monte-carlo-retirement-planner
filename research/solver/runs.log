@@ -322,3 +322,4 @@
 24 Oct 21:11 UK | main | none: N4 at 45 wealth points, exploratory, the tuning seed 7002 (D22, D25); relaunched after a container restart, RESUME=1, on 6f9ee41's code | code 44b967169a3c | 6f9ee41 | load 0.92 3.00 4.11 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4.sh
 25 Oct 08:33 UK | main | none: HR decomposed, exploratory, the tuning seed 7002 (D27) | code 19e277fb8f7f | 35d3fb0 | load 1.07 1.14 1.20 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4hr.sh
 25 Oct 11:17 UK | main | none: the third tier step's factorial, exploratory (D28) | code ae49ee6bcedd | e768b9e | load 1.05 1.18 1.75 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4t3.sh
+25 Oct 23:25 UK | main | none: the table without the dealing cost, checked, exploratory (D30) | code 099f3d87698d | 2eee631 | load 2.04 2.37 2.82 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4nd.sh

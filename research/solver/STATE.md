@@ -286,7 +286,8 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:speedport -->
 ## 5. Running now
 
-- Nothing. The factorial ran 25 Oct 11:13 to 16:09 UK (`results/n4t3-launch1.log`, 56 units, none failed).
+- D30's check, launched 25 Oct 23:20 UK through the launcher: `batch-n4nd.sh` (2eee631), the log `results/n4nd-launch1.log`,
+  the units in `results/n4nd` and `results/n4nd-id`; after a stop, `RESUME=1`. Read: `n4-menu.mjs --read-nd`.
 
 ## 6. The next three actions
 

@@ -120,11 +120,13 @@ export function buildActions(opts = {}) {
    * the draw-first prefixes are its leading runs. Absent, the ladder and the menu are the product's, move for move.
    */
   const plus = new Set(opts.menuPlus || []);
-  for (const k of plus) if (k !== 'hr' && k !== 'mid' && k !== 'cgt') throw new Error(`menuPlus: unknown kind ${k}`);
-  const mid = plus.has('mid');
-  const PEN = [...(mid ? ['penPAm'] : []), 'penPA', ...(mid ? ['penBm'] : []), 'penBasic', ...(plus.has('hr') ? ['penHR'] : []), 'penAny'];
+  for (const k of plus) if (!['hr', 'mid', 'cgt', 'hrdraw', 'hrwrap'].includes(k)) throw new Error(`menuPlus: unknown kind ${k}`);
+  // 'hrdraw' and 'hrwrap' (the maintainer, 25 Oct, D27): HR's two halves alone - the taper threshold as a draw-first ceiling
+  // only, or as a re-wrap ceiling only; 'hr' is both
+  const mid = plus.has('mid'), hrDraw = plus.has('hr') || plus.has('hrdraw'), hrWrap = plus.has('hr') || plus.has('hrwrap');
+  const PEN = [...(mid ? ['penPAm'] : []), 'penPA', ...(mid ? ['penBm'] : []), 'penBasic', ...(hrDraw ? ['penHR'] : []), 'penAny'];
   const PREFIX = PEN.map((_, i) => PEN.slice(0, i)).concat([PEN]);
-  const HARVEST = [null, 'pa', 'basic', ...(mid ? ['pam', 'bm'] : []), ...(plus.has('hr') ? ['hr'] : [])];
+  const HARVEST = [null, 'pa', 'basic', ...(mid ? ['pam', 'bm'] : []), ...(hrWrap ? ['hr'] : [])];
   const SALES = plus.has('cgt') ? [false, true] : [false];
   const HARVEST_LABEL = { pa: 'the allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the allowance', bm: 'the middle of the basic band' };
   // flexible spending (Part D): each withdrawal move at each spend level, 1 meaning the plan as written

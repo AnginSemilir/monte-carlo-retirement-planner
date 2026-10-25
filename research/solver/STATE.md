@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: de451be3d9903e65 (24 Oct, 20:31 UK); the code now: de451be3d9903e65.
+- The solver code the e3pcls pin last passed on: c32ec815b3e859af (25 Oct, 08:09 UK); the code now: c32ec815b3e859af.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -39,12 +39,12 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D27. 25 Oct, maintainer, after N4: before HR joins the candidate, its gain on S370 and S248 is split into its draw-first
+  ceiling (`hrdraw`) and its re-wrap ceiling (`hrwrap`), both weights, 45 points (`batch-n4hr.sh`); then the call on HR.
 - D26. 24 Oct, maintainer: the candidate is measured at 45 wealth points for gate 5 and registered at 45 for Phase 4 (a
   run setting, as 7u-F's 30 was; `candidate.json` and its hash unchanged); the product's 30 stays until after Phase 4 (D12).
-- D25. 24 Oct, maintainer, after V3's ladder: N4 runs at 45 wealth points (the coarsest V3 accepts), its CAND checked against
-  V3's 45-point units; the speed review's instruction 6 (the adaptive reference's build split across E2's parts, exact,
-  `e2.test.mjs` extended to the reference's arrays) is done whatever gate 5 shows, and gate 5 is measured after both N4
-  and instruction 6. On the unlock of 24 Oct, `n4-menu.test.mjs` joins the fast suite.
+- D25. 24 Oct, maintainer, after V3's ladder: N4 at 45 wealth points (the coarsest V3 accepts); the speed review's instruction
+  6 done whatever gate 5 shows; gate 5 measured after both. On the unlock of 24 Oct, `n4-menu.test.mjs` joins the fast suite.
 - D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, on the branch
   review/external-2026-10-21 at cff3d86, not merged) is carried out in its order, by its "How to port" rules. (1) The
   speed-ups go forward everywhere: S1 and S2 on by default in the product's path and the research runs, S3 in the
@@ -287,10 +287,10 @@ and the sale up to the capital gains exemption gains a little, under the targets
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. For the maintainer, from N4: whether HR (the pension ceiling at the taper threshold, a draw-first and a re-wrap ceiling)
-   joins the candidate. It would change the candidate after 7u-F: the reviewer reviews the change, `HOW-IT-WORKS.md`
-   section 4 states the new menu, Phase 4 carries a no-harm item against SHIP, and its menu (40 moves for 24) enters gate 5.
-   Also open: whether N1 runs before Phase 4 registers; V5's interval (D20 (9)), the charges default (N6), the timing page.
+1. HR decomposed (D27), EXPLORATORY: `n4-menu.mjs --hr` on S370 and S248, CAND, HR, HRDRAW, HRWRAP at both weights
+   (16 units, about two hours), CAND and HR checked bit for bit against N4's units; read by `--read-hr`. Then the
+   maintainer's call on HR (if it joins: the reviewer, HOW-IT-WORKS section 4, Phase 4's no-harm item, gate 5 on its
+   menu). Open as well: N1 before or after Phase 4 registers; V5's interval (D20 (9)), N6's charge, the timing page.
 2. Gate 5 (D11, D25, D26), on the candidate as the maintainer settles it, at 45 points: `batch-gate5.sh` through the
    launcher with nothing else running, `reduce-gate5.mjs` reading it (about an hour).
 3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget

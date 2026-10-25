@@ -18,6 +18,14 @@
  *   node research/solver/n4-menu.mjs <household> <variant> <weight>   one unit, to results/n4 (N4_OUT)
  *   node research/solver/n4-menu.mjs --units                          the units, one a line
  *   node research/solver/n4-menu.mjs --read [dir] [v3 dir]
+ * HR DECOMPOSED (the maintainer, 25 Oct, D27: before HR joins the candidate, which of its halves earns its gain): on the two
+ * households where it passed (S370, S248), at both weights, the candidate with HR, with its draw-first ceiling alone
+ * (HRDRAW), with its re-wrap ceiling alone (HRWRAP), and without it, on the same paths and grid; CAND and CAND+HR checked
+ * bit for bit against N4's own units (the code moved since: instruction 6 and the two kinds); each half's gain against
+ * CAND and their interaction (HR less HRDRAW less HRWRAP plus CAND), paired by path.
+ *   node research/solver/n4-menu.mjs --hr <household> <variant> <weight>   one unit, to results/n4hr (N4HR_OUT)
+ *   node research/solver/n4-menu.mjs --units-hr                            its units
+ *   node research/solver/n4-menu.mjs --read-hr [dir] [n4 dir]
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -28,13 +36,16 @@ import { HOUSEHOLDS } from './v3-convergence.mjs';
 import { WEIGHTS, SEED, NPATHS, LAMBDA, MEAN_TOL, HH_TOL } from './v4-ensemble.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'] }, PTS = 45;
-const OUT = process.env.N4_OUT || join(HERE, 'results', 'n4'), V3_DIR = process.env.V3_OUT || join(HERE, 'results', 'v3');
+export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'], 'CAND+HRDRAW': ['hrdraw'], 'CAND+HRWRAP': ['hrwrap'] }, PTS = 45;
+const N4_ARMS = ['CAND', 'CAND+HR', 'CAND+MID', 'CAND+CGT'], HR_ARMS = ['CAND', 'CAND+HR', 'CAND+HRDRAW', 'CAND+HRWRAP'], HR_HH = ['S370', 'S248'];
+const OUT = process.env.N4_OUT || join(HERE, 'results', 'n4'), V3_DIR = process.env.V3_OUT || join(HERE, 'results', 'v3'), OUT_HR = process.env.N4HR_OUT || join(HERE, 'results', 'n4hr');
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
-export const UNITS = HOUSEHOLDS.flatMap(id => Object.keys(VARIANTS).flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
+export const UNITS = HOUSEHOLDS.flatMap(id => N4_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
 export const unitFile = u => { const [id, v, w] = u.split(' '); return join(OUT, `${id}-${v}-w${w}.json.gz`); };
+export const HR_UNITS = HR_HH.flatMap(id => HR_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
+export const hrUnitFile = u => { const [id, v, w] = u.split(' '); return join(OUT_HR, `${id}-${v}-w${w}.json.gz`); };
 
-async function unit(id, v, w) {
+async function unit(id, v, w, out = OUT) {
   if (!VARIANTS[v] || !WEIGHTS.includes(w)) { console.error(`n4: no variant ${v} or weight ${w}`); process.exit(2); }
   if (process.env.SOLVER_INTERP && process.env.SOLVER_INTERP !== 'logodds') { console.error('n4: runs with SOLVER_INTERP unset (the candidate\'s log-odds)'); process.exit(2); }
   const E = await import('../engine.mjs'), M = await import('../../src/solver/model.js'), S = await import('../../src/solver/solve.js');
@@ -50,8 +61,8 @@ async function unit(id, v, w) {
   const bs = { survived: surv, level: tr.level, wealth: tr.wealth, failYear: tr.failYear, lambda: LAMBDA, floor: Math.min(...r.levelOf), scale: Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), capR: Math.round(r.meta.bequestCap), spendYears: Array.from({ length: tr.Y }, (_, t) => (r.c.yr.spend[t] > 0 ? 1 : 0)) };
   const ws = Float32Array.from(wholeScore(bs, Number(w), tr.Y)), sim = 100 * surv.reduce((a, x) => a + x, 0) / NPATHS;
   console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
-  mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, moves: r.actions.length, points: PTS, candidate: C.CANDIDATE_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
+  mkdirSync(out, { recursive: true });
+  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, moves: r.actions.length, points: PTS, candidate: C.CANDIDATE_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
 }
 
 /* the paired change b - a over the paths, in the whole score and in survival points, each with its se */
@@ -68,16 +79,16 @@ function read(dir, v3dir) {
   const sameBits = (a, b) => a.bits.length === b.bits.length && a.bits.every((x, i) => x === b.bits[i]) && a.ws.every((x, i) => Object.is(x, b.ws[i]));
   const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3);
   console.log(`N4 READ (EXPLORATORY, the tuning seed, ${PTS} wealth points): ${dir}, V3's ${PTS}-point units from ${v3dir}`);
-  const loaded = [], kinds = Object.keys(VARIANTS).filter(v => v !== 'CAND');
+  const loaded = [], kinds = N4_ARMS.filter(v => v !== 'CAND');
   let complete = true, identical = 0, compared = 0;
   const verdict = Object.fromEntries(kinds.map(k => [k, { beats: [], loses: [] }]));
   for (const w of WEIGHTS) {
     console.log(`AT W${w}:`);
     const per = Object.fromEntries(kinds.map(k => [k, []]));
     for (const id of HOUSEHOLDS) {
-      const U = Object.fromEntries(Object.keys(VARIANTS).map(v => [v, join(dir, `${id}-${v}-w${w}.json.gz`)]).filter(([, f]) => existsSync(f)).map(([v, f]) => [v, load(f)]));
+      const U = Object.fromEntries(N4_ARMS.map(v => [v, join(dir, `${id}-${v}-w${w}.json.gz`)]).filter(([, f]) => existsSync(f)).map(([v, f]) => [v, load(f)]));
       Object.values(U).forEach(x => loaded.push(x));
-      const missing = Object.keys(VARIANTS).filter(v => !U[v]);
+      const missing = N4_ARMS.filter(v => !U[v]);
       if (missing.length) { console.log(`  ${id}: missing ${missing.join(', ')}`); complete = false; }
       if (!U.CAND) continue;
       const v3 = join(v3dir, `${id}-p${PTS}-w${w}.json.gz`);
@@ -118,8 +129,46 @@ function read(dir, v3dir) {
   process.exit(ok ? 0 : 1);
 }
 
+/* HR decomposed (D27): each half's gain against CAND, and their interaction, on S370 and S248 at both weights */
+function readHr(dir, n4dir) {
+  const load = f => { const j = JSON.parse(gunzipSync(readFileSync(f)).toString()); const b = Buffer.from(j.survived, 'base64'), x = Buffer.from(j.whole, 'base64'); return { ...j, bits: new Uint8Array(b.buffer, b.byteOffset, b.byteLength), ws: new Float32Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)) }; };
+  const sameBits = (a, b) => a.bits.length === b.bits.length && a.bits.every((x, i) => x === b.bits[i]) && a.ws.every((x, i) => Object.is(x, b.ws[i]));
+  const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3);
+  console.log(`N4'S HR DECOMPOSED (EXPLORATORY, the tuning seed, ${PTS} wealth points; D27): ${dir}, N4's units from ${n4dir}`);
+  const loaded = [];
+  let complete = true, identical = 0, compared = 0;
+  for (const w of WEIGHTS) {
+    console.log(`AT W${w}:`);
+    for (const id of HR_HH) {
+      const U = Object.fromEntries(HR_ARMS.map(v => [v, join(dir, `${id}-${v}-w${w}.json.gz`)]).filter(([, f]) => existsSync(f)).map(([v, f]) => [v, load(f)]));
+      Object.values(U).forEach(x => loaded.push(x));
+      const missing = HR_ARMS.filter(v => !U[v]);
+      if (missing.length) { console.log(`  ${id}: missing ${missing.join(', ')}`); complete = false; continue; }
+      // CAND and CAND+HR on this code against N4's own units (the code before instruction 6 and the two kinds)
+      for (const v of ['CAND', 'CAND+HR']) { const f = join(n4dir, `${id}-${v}-w${w}.json.gz`); if (!existsSync(f)) { complete = false; continue; } compared++; if (sameBits(U[v], load(f))) identical++; else console.log(`  ${id}: ${v} on this code and N4's ${v} DIFFER`); }
+      const C = U.CAND, n = C.ws.length, part = v => paired(C, U[v]);
+      // the interaction, path by path: HR - HRDRAW - HRWRAP + CAND
+      let s = 0, s2 = 0, q = 0, q2 = 0;
+      for (let i = 0; i < n; i++) { const x = U['CAND+HR'].ws[i] - U['CAND+HRDRAW'].ws[i] - U['CAND+HRWRAP'].ws[i] + C.ws[i], y = 100 * (U['CAND+HR'].bits[i] - U['CAND+HRDRAW'].bits[i] - U['CAND+HRWRAP'].bits[i] + C.bits[i]); s += x; s2 += x * x; q += y; q2 += y * y; }
+      const mi = s / n, mq = q / n, sei = Math.sqrt(Math.max(0, s2 / n - mi * mi) / (n - 1)), seq = Math.sqrt(Math.max(0, q2 / n - mq * mq) / (n - 1));
+      const hr = part('CAND+HR'), dr = part('CAND+HRDRAW'), wr = part('CAND+HRWRAP');
+      console.log(`  ${id}: CAND ${C.sim.toFixed(2)}%; against it, survival (se) / whole score (se): HR ${f3(hr.s)} (${hr.sse.toFixed(3)}) / ${f3(hr.w)} (${hr.wse.toFixed(3)}) | HRDRAW ${f3(dr.s)} (${dr.sse.toFixed(3)}) / ${f3(dr.w)} (${dr.wse.toFixed(3)}) | HRWRAP ${f3(wr.s)} (${wr.sse.toFixed(3)}) / ${f3(wr.w)} (${wr.wse.toFixed(3)}) | the interaction ${f3(mq)} (${seq.toFixed(3)}) / ${f3(mi)} (${sei.toFixed(3)}); HR's survival gain ${hr.s !== 0 ? `${(100 * dr.s / hr.s).toFixed(0)}% in HRDRAW alone, ${(100 * wr.s / hr.s).toFixed(0)}% in HRWRAP alone` : 'nothing to share'}`);
+    }
+  }
+  const codes = new Set(loaded.map(x => x.code)), seeds = new Set(loaded.map(x => `${x.seed}/${x.N}`)), pts = new Set(loaded.map(x => x.points));
+  const fair = codes.size === 1 && seeds.size === 1 && pts.size === 1 && pts.has(PTS);
+  console.log(fair ? `the gate: one code (${[...codes][0]}), seed and paths ${[...seeds][0]}, ${PTS} points` : `NOT FAIR: the units differ in code (${[...codes].join(' ')}), seed and paths (${[...seeds].join(' ')}) or points (${[...pts].join(' ')})`);
+  console.log(`N4's units reproduced on this code: CAND and CAND+HR the same bit for bit on ${identical} of ${compared} household-weight-arms`);
+  const ok = fair && complete && identical === compared && compared === HR_HH.length * WEIGHTS.length * 2;
+  console.log(`HR DECOMPOSED: ${ok ? 'read complete' : 'NOT COMPLETE OR NOT FAIR (see above)'}; exploratory, for the maintainer's call on HR (D27)`);
+  process.exit(ok ? 0 : 1);
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (process.argv[2] === '--units') UNITS.forEach(u => console.log(u));
+  else if (process.argv[2] === '--units-hr') HR_UNITS.forEach(u => console.log(u));
+  else if (process.argv[2] === '--read-hr') readHr(process.argv[3] || OUT_HR, process.argv[4] || OUT);
+  else if (process.argv[2] === '--hr') await unit(process.argv[3], process.argv[4], process.argv[5], OUT_HR);
   else if (process.argv[2] === '--read') read(process.argv[3] || OUT, process.argv[4] || V3_DIR);
   else await unit(process.argv[2], process.argv[3], process.argv[4]);
 }

@@ -102,6 +102,18 @@ const BLOCKS = {
     return [`- N4's build: \`n4-menu.test.mjs --full\` ${verdict(T)} (\`results-n4-menu.txt\`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (${lock.join('; ')}); each plant parts them (${plants.join(', ')}); S2's shared scores the same as scoreMoves' under the new menus (${s2} checked).`,
       `- N4's identity on the product's path: ${pick(I, /^VERDICT: (.*)$/m, m => m[1])} (\`results-n4-identity.txt\`).`];
   },
+  // the third tier step's build (D28, THIRD-STEP.md step 2): its test in the full form, and the identity with the option unset
+  tiersteps() {
+    const T = 'research/tests/results-tier-steps.txt', I = 'research/solver/results-tier-steps-identity.txt', t = read(T);
+    if (t === null || read(I) === null) return [`- pending: ${t === null ? T : I}`];
+    const lists = pick(T, /^(?:PASS|FAIL) {2}1 {2}the option unset, every single household's tier lists the same as before \((\d+) households;/m, m => m[1]);
+    const lock = [...t.matchAll(/^(?:PASS|FAIL) {2}3 {2}(S\d+) with tiersBelow 3 \(.*?\): the engine and a forward run in step over (\d+) years of (\d+) paths, the largest gap £(\S+) \(.*?\); years at the new rung (\d+)$/gm)].map(m => `${m[1]} ${m[2]} years of ${m[3]} paths, the largest gap £${m[4]}, ${m[5]} years at the new rung`);
+    const thr = pick(T, /^(?:PASS|FAIL) {2}4 {2}planted: the engine's list built with two below while the table has three: (it throws|.*)/m, m => m[1]);
+    const rung = pick(T, /^(?:PASS|FAIL) {2}4 {2}planted: the new rung grown at the second's rates in fast\.js only: the state parts by £([\d.]+)/m, m => `£${m[1]}`);
+    const cash = /^PASS {2}4 {2}planted: the Cash Equivalents stop removed, the ladder check fails/m.test(t) ? 'fails the ladder check' : 'NOT CAUGHT';
+    return [`- The third step's build: \`tier-steps.test.mjs --full\` ${verdict(T)} (\`results-tier-steps.txt\`): the option unset, the tier lists of ${lists} single households the same as before; with it, the ladder as THIRD-STEP.md gives it, a wrapper that cannot take the step keeping today's (D28); the engine and a forward run in step (${lock.join('; ')}); the plants: the engine's list two below while the table has three ${thr}, the new rung at the second's rates parts the state by ${rung}, the cash stop removed ${cash}.`,
+      `- Its identity, the option unset: ${pick(I, /^VERDICT: (.*)$/m, m => m[1])} (\`results-tier-steps-identity.txt\`).`];
+  },
   // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
   n4read() {
     const R = 'research/solver/results-n4.txt', t = read(R);

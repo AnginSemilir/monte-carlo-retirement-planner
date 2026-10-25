@@ -1858,11 +1858,12 @@ function buildContext(rawPlan) {
    * move (draw order, cost order, harvesting, the lump sum, the spend level and the tier each wrapper holds)
    * and the engine executes it through its own machinery, so tax, MPAA, CGT, the audit row and everything
    * else keep happening exactly; the table only chooses. Each account's tiers are the solver's list in the
-   * solver's order (src/solver/fast.js tiersFor): the one set on Plan Inputs, up to two below it, then - only
-   * when both below exist - the tiers above it, with the plan's own assumptions for each. A table's tier index
-   * then means the same tier on both sides: before, the list stopped below the plan's tier, so the solver's
-   * "one above" (index 3) was clamped to the lowest tier here (the external review of 21 Oct, F2a). The table
-   * also names its tier, and a name that disagrees with this list throws (tierOf, below).
+   * solver's order (src/solver/fast.js tiersFor): the one set on Plan Inputs, up to two below it (three under a table
+   * solved with `tiersBelow: 3`, D28, where both the person's pension and ISA can take the third step without stepping into
+   * Cash Equivalents; otherwise two), then - only when all of those below exist - the tiers above it, with the plan's own
+   * assumptions for each. A table's tier index then means the same tier on both sides: before, the list stopped below
+   * the plan's tier, so the solver's "one above" (index 3) was clamped to the lowest tier here (the external review of
+   * 21 Oct, F2a). The table also names its tier, and a name that disagrees with this list throws (tierOf, below).
    */
   const tableOverride = ov && ov.kind === 'table' && typeof ov.choose === 'function' ? ov : null;
   // A solved table chooses the year's spend level and draw itself: guardrails would overwrite its level and the cost
@@ -1873,12 +1874,17 @@ function buildContext(rawPlan) {
   }
   const TIER_ORDER = Object.keys(RISK_EQUITY_WEIGHTS);
   const tierProfiles = {};
+  // the table's steps below (D28: 3 under `tiersBelow: 3`), the household's own: two where the person's pension or ISA cannot
+  // take the third step, a step beyond the second never stepping into Cash Equivalents (fast.js tiersFor, the same rule)
+  const stepOk = (k0, d) => k0 >= 0 && k0 + d < TIER_ORDER.length && !(d > 2 && TIER_ORDER[k0 + d] === 'Cash Equivalents');
+  let below = tableOverride && tableOverride.tiersBelow === 3 ? 3 : 2;
+  if (below > 2 && accounts.some(a => a.owner === 'self' && (a.cat === 'pen' || a.cat === 'isa') && !stepOk(TIER_ORDER.indexOf(a.risk), below))) below = 2;
   accounts.forEach(a => {
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
     const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
-    for (let d = 1; d <= 2 && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) list.push(tierAt(TIER_ORDER[k0 + d]));
-    if (list.length === 3) for (let d = 1; k0 - d >= 0; d++) list.push(tierAt(TIER_ORDER[k0 - d]));
+    for (let d = 1; d <= below && stepOk(k0, d); d++) list.push(tierAt(TIER_ORDER[k0 + d]));
+    if (list.length === 1 + below) for (let d = 1; k0 - d >= 0; d++) list.push(tierAt(TIER_ORDER[k0 - d]));
     tierProfiles[a.id] = list;
   });
   const ctx = {

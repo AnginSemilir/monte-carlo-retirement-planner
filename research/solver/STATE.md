@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: c32ec815b3e859af (25 Oct, 08:09 UK); the code now: c32ec815b3e859af.
+- The solver code the e3pcls pin last passed on: 3a61076914b615b6 (25 Oct, 10:33 UK); the code now: 3a61076914b615b6.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -48,26 +48,19 @@ lapsed; they stay in the archive.
   run setting, as 7u-F's 30 was; `candidate.json` and its hash unchanged); the product's 30 stays until after Phase 4 (D12).
 - D25. 24 Oct, maintainer, after V3's ladder: N4 at 45 wealth points (the coarsest V3 accepts); the speed review's instruction
   6 done whatever gate 5 shows; gate 5 measured after both. On the unlock of 24 Oct, `n4-menu.test.mjs` joins the fast suite.
-- D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, on the branch
-  review/external-2026-10-21 at cff3d86, not merged) is carried out in its order, by its "How to port" rules. (1) The
-  speed-ups go forward everywhere: S1 and S2 on by default in the product's path and the research runs, S3 in the
-  candidate's; the defaults go in the solver's code, not in `PRODUCT_BASELINE` or `candidate.json`; they change no number,
-  so D12's decided defaults are not edited; one differing bit in an identity test stops the port and goes to the
-  maintainer. (2) D23 as read: V3 and V4 run once, on the ported code. (3) Gate 5 compares the candidate against the
-  ported product, measured where section 6 has it (after N4, before Phase 4 registers); if it fails, the review's
-  instruction 6 (the reference's build split across E2's parts). The new identity tests join the fast suite on the
-  maintainer's unlock of 23 Oct, for that purpose only. The review's time boxes hold; after its instruction 5 the re-timed
-  figures go to the maintainer against its pass mark.
+- D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, review/external-2026-10-21 at
+  cff3d86, not merged) is carried out in its order, by its "How to port" rules: (1) S1 and S2 on by default in the
+  product's path and the research runs, S3 in the candidate's, the defaults in the solver's code (not `PRODUCT_BASELINE` or
+  `candidate.json`: they change no number, so D12's decided defaults stand); one differing bit in an identity test stops
+  the port; (2) V3 and V4 run once, on the ported code; (3) gate 5 compares the candidate against the ported product. Its
+  identity tests join the fast suite on the unlock of 23 Oct; its time boxes hold.
 - D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then
   run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
 - D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage
   coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
-- D21. 22 Oct, maintainer: 7u-F runs well past its budget (its first units took longer than `budget-7uf.mjs`'s
-  estimates for both the solve and the simulation, projecting past the time box), so from the 12-hour relaunch its
-  remaining CAND and SHIP units run before DECOMP's (`batch-7uf.sh`; the order moves no figure). The read of P1 and P2
-  is made once, when every CAND and SHIP unit is in. On a clean PASS (P1 HELD at both weights, no harm), DECOMP stops
-  and the units it finished are reported; on harm, or P1 not HELD at a weight, DECOMP finishes and its report follows.
-  Phase 4's budget is measured on this machine, with nothing else running, before it is registered.
+- D21. 22 Oct, maintainer: 7u-F, past its budget, ran its CAND and SHIP units before DECOMP's and was read once when they
+  were in; on a clean PASS DECOMP stopped (it did). Phase 4's budget is measured on this machine, with nothing else running,
+  before it is registered.
 - D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, on the branch
   review/external-2026-10-21, not merged) is adopted, its ten answers to PROGRESS.md's questions and its Next section.
   The answers: (1) the one-pot oracle's table gap is a diagnostic, kept REPORTED; V3 accepts a resolution by the
@@ -82,7 +75,6 @@ lapsed; they stay in the archive.
   built; (8) V3 adds S330 (seven households, or in place of S002); V4 drops probit and counts V3's finest setting as a
   variant; (9) V5's interval after 7u-F, the maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 is
   a standalone page built from `src/solver` that the maintainer runs on a laptop and a phone.
-
 - D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement
   is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
 - D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated
@@ -283,17 +275,23 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 - N4's build: `n4-menu.test.mjs --full` ALL PASS: 27 checks (`results-n4-menu.txt`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (hr 3153 household-years, the largest gap £1.12e-8; mid 3171 household-years, the largest gap £7.45e-9; cgt 3311 household-years, the largest gap £1.49e-8; hr+mid+cgt 3128 household-years, the largest gap £1.30e-8); each plant parts them ('hrtop' £783357.46, 'midband' £695833.40, 'nobasis' £2579102.56); S2's shared scores the same as scoreMoves' under the new menus (12807180 checked).
 - N4's identity on the product's path: every hash the same on S224 and S370 under SHIP (the candidate's identity is read at full scale by n4-menu.mjs: CAND on the N4 code against V4's CAND unit) (`results-n4-identity.txt`).
 <!-- end printed:n4build -->
+### The third tier step (D28; THIRD-STEP.md at ed20ac9): the build (steps 1 and 2)
+
+`tiersBelow` (2 when unset) through `fast.js` `tiersFor`, `solve.js` (refuses all but 2 or 3; in `meta`), `bridge.js` and
+`App.jsx` `buildContext`. A step beyond the second never enters Cash Equivalents.
+<!-- printed:tiersteps -->
+- pending: research/solver/results-tier-steps-identity.txt
+<!-- end printed:tiersteps -->
 ## 5. Running now
 
-- HR decomposed (D27), launched 25 Oct 08:20 UK through the launcher: `batch-n4hr.sh` (58da8b6), 16 units, the log
-  `results/n4hr-launch1.log`, the units in `results/n4hr`; after a stop, `RESUME=1`. (N4's logs: `results/n4-launch*.log`.)
+- Nothing. HR decomposed ran 25 Oct 08:20 to 09:47 UK (`results/n4hr-launch1.log`); N4's logs: `results/n4-launch*.log`.
 
 ## 6. The next three actions
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. The third tier step (D28), THIRD-STEP.md's steps 1 to 4 in order: the option `tiersBelow` (off at 2) and its tests
-   (`tier-steps.test.mjs`, four hours); then the factorial CAND, +HR, +T3, +HR+T3 (EXPLORATORY, its rule committed first).
+1. The third tier step (D28): the factorial CAND, +HR, +T3, +HR+T3 (EXPLORATORY; `batch-n4t3.sh`, its rule in `n4-menu.mjs`,
+   committed before launch); on a pass, THIRD-STEP.md step 4 (the candidate, the reviewer, HOW-IT-WORKS); stop before gate 5.
 2. Gate 5 (D11, D25, D26) on the candidate as settled, at 45 points (`batch-gate5.sh`), after the maintainer's review on
    time saving. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
    if the candidate changes, a spending item over all years, the whole score on every path and the Node version stamped.

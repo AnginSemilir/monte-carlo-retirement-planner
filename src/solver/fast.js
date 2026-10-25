@@ -81,15 +81,26 @@ export const FOLD_K = Number(process.env.SOLVER_FOLD_K || 0.75);
 
 /* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
 export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+export const TIER_STEPS = { plant: '' };   // the third step's plants, for tier-steps.test.mjs only (tiersFor)
 
 /*
  * The tiers a wrapper may hold under the solver (phase 6): the one set on Plan Inputs first, then up to
  * `below` tiers under it, each with the plan's own return assumptions for that tier. Never above.
  */
-export function tiersFor(m, below = 2) {
+export function tiersFor(m, below = m.tiersBelow || 2) {
   const profiles = (m.plan && m.plan.riskProfiles) || m.E.DEFAULT_RISK_PROFILES;
   const o = m.ctx.owners[0];
   const out = {};
+  /*
+   * THE THIRD STEP DOWN (`tiersBelow: 3`, research only; STATE.md D28, THIRD-STEP.md). A step beyond the second never steps
+   * into Cash Equivalents; the joint step needs both wrappers to have the rung, so where the pension or the ISA cannot take
+   * the third step the household keeps today's ladder exactly - two below, then the tiers above (the maintainer, 25 Oct).
+   * The engine builds its list by the same rule (App.jsx buildContext). Unset, `below` is 2 and nothing here changes.
+   * TIER_STEPS.plant (tier-steps.test.mjs only): 'rung3' grows the third step at the second's rates; 'nocashstop' lets it step
+   * into Cash Equivalents.
+   */
+  const stepOk = (k0, d) => k0 >= 0 && k0 + d < TIER_ORDER.length && !(d > 2 && TIER_ORDER[k0 + d] === 'Cash Equivalents' && TIER_STEPS.plant !== 'nocashstop');
+  if (below > 2) for (const cat of ['pen', 'isa']) { const a = m.acc[o.ids[cat]]; if (a && !stepOk(TIER_ORDER.indexOf(a.risk), below)) below = 2; }
   /*
    * THE TAXABLE ACCOUNT'S TIERS (`giaTiers`, PLAN.md finding M15) - research only. The GIA gets the same list as the
    * other two, and the move's GIA tier follows the joint step (see compile), so the menu and the tables are
@@ -100,12 +111,14 @@ export function tiersFor(m, below = 2) {
     if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equity: a.equityWeight }];
-    for (let d = 1; d <= below && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
+    for (let d = 1; d <= below && stepOk(k0, d); d++) {
       const name = TIER_ORDER[k0 + d];
       const prof = profiles[name] || m.E.DEFAULT_RISK_PROFILES[name];
       if (!prof) break;
       const equity = m.E.RISK_EQUITY_WEIGHTS && m.E.RISK_EQUITY_WEIGHTS[name] !== undefined ? m.E.RISK_EQUITY_WEIGHTS[name] : 0.9;
-      list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100, equity });
+      const rung = { name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100, equity };
+      if (d === 3 && TIER_STEPS.plant === 'rung3') Object.assign(rung, { real: list[2].real, vol: list[2].vol, sigmaParam: list[2].sigmaParam });
+      list.push(rung);
     }
     /*
      * RISK ABOVE THE PLAN'S TIER (`tiersAbove`, PLAN.md finding M14) - research only, never the product without

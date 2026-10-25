@@ -26,6 +26,22 @@
  *   node research/solver/n4-menu.mjs --hr <household> <variant> <weight>   one unit, to results/n4hr (N4HR_OUT)
  *   node research/solver/n4-menu.mjs --units-hr                            its units
  *   node research/solver/n4-menu.mjs --read-hr [dir] [n4 dir]
+ * THE THIRD TIER STEP'S FACTORIAL (STATE.md D28; THIRD-STEP.md step 3; D6: HR and the step both help S370, so they are tested
+ * together before either joins): V3's seven households, both weights, 45 points, V4's 8,000 paths of seed 7002 (56 units):
+ *   CAND, CAND+HR    as N4's, on this code: checked bit for bit against N4's own units (the identity at full scale)
+ *   CAND+T3          the candidate with the third joint tier step down (`tiersBelow: 3`, fast.js tiersFor)
+ *   CAND+HR+T3       both; HR is HR whole, as the maintainer settled D27
+ * The read (N4's bar, `bar` below): each arm against CAND; CAND+HR+T3 against CAND+HR (the step's own gain, HR in); the
+ * interaction (HR+T3 less HR less T3 plus CAND), paired by path. THE DECISION RULE, committed before launch in the form
+ * THIRD-STEP.md gives it: the step joins if CAND+HR+T3 beats CAND+HR beyond N4's bar at some weight - beyond noise (its
+ * paired 95% interval above nothing), by more than 0.2 on the panel mean or 0.5 on a household, in survival or the whole
+ * score - and loses more than 0.5 beyond noise on no household at either weight. If HR does not join, CAND+T3 against
+ * CAND is read the same way. The read prints both verdicts; which one decides is the maintainer's call on HR. Exploratory
+ * (CHECKLIST 1): a pass goes to the candidate only by D28, through the reviewer (THIRD-STEP.md step 4).
+ *   node research/solver/n4-menu.mjs --t3 <household> <variant> <weight>   one unit, to results/n4t3 (N4T3_OUT)
+ *   node research/solver/n4-menu.mjs --units-t3                            its units
+ *   node research/solver/n4-menu.mjs --read-t3 [dir] [n4 dir]
+ *   node research/solver/n4-menu.mjs --planted                             the bar's planted checks alone
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -36,14 +52,17 @@ import { HOUSEHOLDS } from './v3-convergence.mjs';
 import { WEIGHTS, SEED, NPATHS, LAMBDA, MEAN_TOL, HH_TOL } from './v4-ensemble.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'], 'CAND+HRDRAW': ['hrdraw'], 'CAND+HRWRAP': ['hrwrap'] }, PTS = 45;
-const N4_ARMS = ['CAND', 'CAND+HR', 'CAND+MID', 'CAND+CGT'], HR_ARMS = ['CAND', 'CAND+HR', 'CAND+HRDRAW', 'CAND+HRWRAP'], HR_HH = ['S370', 'S248'];
-const OUT = process.env.N4_OUT || join(HERE, 'results', 'n4'), V3_DIR = process.env.V3_OUT || join(HERE, 'results', 'v3'), OUT_HR = process.env.N4HR_OUT || join(HERE, 'results', 'n4hr');
+export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'], 'CAND+HRDRAW': ['hrdraw'], 'CAND+HRWRAP': ['hrwrap'], 'CAND+T3': [], 'CAND+HR+T3': ['hr'] }, PTS = 45;
+export const BELOW = { 'CAND+T3': 3, 'CAND+HR+T3': 3 };   // D28's factorial: the arms with the third tier step (tiersBelow)
+const N4_ARMS = ['CAND', 'CAND+HR', 'CAND+MID', 'CAND+CGT'], HR_ARMS = ['CAND', 'CAND+HR', 'CAND+HRDRAW', 'CAND+HRWRAP'], HR_HH = ['S370', 'S248'], T3_ARMS = ['CAND', 'CAND+HR', 'CAND+T3', 'CAND+HR+T3'];
+const OUT = process.env.N4_OUT || join(HERE, 'results', 'n4'), V3_DIR = process.env.V3_OUT || join(HERE, 'results', 'v3'), OUT_HR = process.env.N4HR_OUT || join(HERE, 'results', 'n4hr'), OUT_T3 = process.env.N4T3_OUT || join(HERE, 'results', 'n4t3');
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
 export const UNITS = HOUSEHOLDS.flatMap(id => N4_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
 export const unitFile = u => { const [id, v, w] = u.split(' '); return join(OUT, `${id}-${v}-w${w}.json.gz`); };
 export const HR_UNITS = HR_HH.flatMap(id => HR_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
 export const hrUnitFile = u => { const [id, v, w] = u.split(' '); return join(OUT_HR, `${id}-${v}-w${w}.json.gz`); };
+export const T3_UNITS = HOUSEHOLDS.flatMap(id => T3_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
+export const t3UnitFile = u => { const [id, v, w] = u.split(' '); return join(OUT_T3, `${id}-${v}-w${w}.json.gz`); };
 
 async function unit(id, v, w, out = OUT) {
   if (!VARIANTS[v] || !WEIGHTS.includes(w)) { console.error(`n4: no variant ${v} or weight ${w}`); process.exit(2); }
@@ -52,7 +71,7 @@ async function unit(id, v, w, out = OUT) {
   const C = await import('./candidate.mjs'), { buildScenarios } = await import('../policy-study/scenarios.mjs'), { makeTrace } = await import('./record.mjs'), { wholeScore } = await import('./reduce-7uf.mjs');
   const h = buildScenarios().find(s => s.id === id), code = execFileSync(process.execPath, [join(HERE, 'code-id.mjs')], { encoding: 'utf8' }).trim();
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
-  const menuPlus = VARIANTS[v], base = { lambda: LAMBDA, points: PTS, bequestWeight: Number(w), ...(menuPlus.length ? { menuPlus } : {}) };
+  const menuPlus = VARIANTS[v], base = { lambda: LAMBDA, points: PTS, bequestWeight: Number(w), ...(menuPlus.length ? { menuPlus } : {}), ...(BELOW[v] ? { tiersBelow: BELOW[v] } : {}) };
   const t0 = Date.now();
   const r = C.solveCandidate(E, M, plan, base);   // e3pcls guard: solveCandidate checks the pin itself
   const secs = (Date.now() - t0) / 1000, T = r.m.ctx.totalYears;
@@ -60,9 +79,9 @@ async function unit(id, v, w, out = OUT) {
   paths.forEach((zs, k) => { tr.row = k; if (S.runPolicy(r, Float64Array.from(zs), { trace: tr }).survived) surv[k] = 1; });
   const bs = { survived: surv, level: tr.level, wealth: tr.wealth, failYear: tr.failYear, lambda: LAMBDA, floor: Math.min(...r.levelOf), scale: Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), capR: Math.round(r.meta.bequestCap), spendYears: Array.from({ length: tr.Y }, (_, t) => (r.c.yr.spend[t] > 0 ? 1 : 0)) };
   const ws = Float32Array.from(wholeScore(bs, Number(w), tr.Y)), sim = 100 * surv.reduce((a, x) => a + x, 0) / NPATHS;
-  console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
+  console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, tiersBelow ${r.meta.tiersBelow}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, moves: r.actions.length, points: PTS, candidate: C.CANDIDATE_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
+  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, tiersBelow: r.meta.tiersBelow, moves: r.actions.length, points: PTS, candidate: C.CANDIDATE_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
 }
 
 /* the paired change b - a over the paths, in the whole score and in survival points, each with its se */
@@ -164,11 +183,110 @@ function readHr(dir, n4dir) {
   process.exit(ok ? 0 : 1);
 }
 
+/*
+ * N4'S BAR on one contrast (the factorial's read; the same tests as read() above): `per` maps each weight to its households'
+ * paired changes { id, w, wse, s, sse } (score and survival points, each with its se). It beats where, at some weight, a
+ * household gains more than HH_TOL, or the panel mean (every household present; its se from the households' independent se)
+ * more than MEAN_TOL, with the paired 95% interval above nothing, in either measure; it loses where a household loses more
+ * than HH_TOL with the interval below nothing. It passes when it beats somewhere and loses nowhere. A gain or loss of exactly
+ * the target is not more than it. (`meanTol` is a parameter only so the planted edge can sit exactly on a target binary
+ * floating point holds: 0.2 is not one.)
+ */
+export function bar(per, nHouseholds = HOUSEHOLDS.length, meanTol = MEAN_TOL) {
+  const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), beats = [], loses = [], means = {};
+  for (const [w, L] of Object.entries(per)) {
+    for (const d of L) for (const [x, se, what] of [[d.w, d.wse, 'score'], [d.s, d.sse, 'survival']]) {
+      if (x > HH_TOL && x - 1.96 * se > 0) beats.push(`${d.id} W${w} ${what} ${f3(x)}`);
+      if (x < -HH_TOL && x + 1.96 * se < 0) loses.push(`${d.id} W${w} ${what} ${f3(x)}`);
+    }
+    if (L.length < nHouseholds) continue;
+    const mw = L.reduce((t, x) => t + x.w, 0) / L.length, ms = L.reduce((t, x) => t + x.s, 0) / L.length;
+    const sw = Math.sqrt(L.reduce((t, x) => t + x.wse * x.wse, 0)) / L.length, ss = Math.sqrt(L.reduce((t, x) => t + x.sse * x.sse, 0)) / L.length;
+    means[w] = { w: mw, wse: sw, s: ms, sse: ss, hiW: Math.max(...L.map(x => x.w)), hiS: Math.max(...L.map(x => x.s)), loW: Math.min(...L.map(x => x.w)), loS: Math.min(...L.map(x => x.s)) };
+    for (const [x, se, what] of [[mw, sw, 'score'], [ms, ss, 'survival']]) if (x > meanTol && x - 1.96 * se > 0) beats.push(`panel mean W${w} ${what} ${f3(x)}`);
+  }
+  return { beats, loses, means, pass: beats.length > 0 && loses.length === 0 };
+}
+
+/* the factorial (D28): each arm against CAND, CAND+HR+T3 against CAND+HR, the interaction; both decision readings */
+const T3_CONTRASTS = [['CAND+HR', 'CAND'], ['CAND+T3', 'CAND'], ['CAND+HR+T3', 'CAND'], ['CAND+HR+T3', 'CAND+HR']];
+function readT3(dir, n4dir) {
+  const load = f => { const j = JSON.parse(gunzipSync(readFileSync(f)).toString()); const b = Buffer.from(j.survived, 'base64'), x = Buffer.from(j.whole, 'base64'); return { ...j, bits: new Uint8Array(b.buffer, b.byteOffset, b.byteLength), ws: new Float32Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)) }; };
+  const sameBits = (a, b) => a.bits.length === b.bits.length && a.bits.every((x, i) => x === b.bits[i]) && a.ws.every((x, i) => Object.is(x, b.ws[i]));
+  const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), nm = ([b, a]) => `${b.replace('CAND+', '')} - ${a.replace('CAND+', '')}`;
+  console.log(`THE THIRD TIER STEP'S FACTORIAL (EXPLORATORY, the tuning seed, ${PTS} wealth points; D28, THIRD-STEP.md step 3): ${dir}, N4's units from ${n4dir}`);
+  const loaded = [], per = Object.fromEntries(T3_CONTRASTS.map(c => [nm(c), Object.fromEntries(WEIGHTS.map(w => [w, []]))])), inter = Object.fromEntries(WEIGHTS.map(w => [w, []]));
+  let complete = true, identical = 0, compared = 0;
+  for (const w of WEIGHTS) {
+    console.log(`AT W${w} (survival points (se) / whole score (se), paired by path):`);
+    for (const id of HOUSEHOLDS) {
+      const U = Object.fromEntries(T3_ARMS.map(v => [v, join(dir, `${id}-${v}-w${w}.json.gz`)]).filter(([, f]) => existsSync(f)).map(([v, f]) => [v, load(f)]));
+      Object.values(U).forEach(x => loaded.push(x));
+      const missing = T3_ARMS.filter(v => !U[v]);
+      if (missing.length) { console.log(`  ${id}: missing ${missing.join(', ')}`); complete = false; continue; }
+      // CAND and CAND+HR on this code against N4's own units (the code before the third step): the identity at full scale
+      for (const v of ['CAND', 'CAND+HR']) { const f = join(n4dir, `${id}-${v}-w${w}.json.gz`); if (!existsSync(f)) { console.log(`  ${id}: no N4 unit for ${v}`); complete = false; continue; } compared++; if (sameBits(U[v], load(f))) identical++; else console.log(`  ${id}: ${v} on this code and N4's ${v} DIFFER`); }
+      const row = [];
+      for (const c of T3_CONTRASTS) { const d = paired(U[c[1]], U[c[0]]); per[nm(c)][w].push({ id, ...d }); row.push(`${nm(c)} ${f3(d.s)} (${d.sse.toFixed(3)}) / ${f3(d.w)} (${d.wse.toFixed(3)})`); }
+      // the interaction, path by path: HR+T3 - HR - T3 + CAND
+      const C = U.CAND, n = C.ws.length; let a = 0, a2 = 0, q = 0, q2 = 0;
+      for (let i = 0; i < n; i++) { const x = U['CAND+HR+T3'].ws[i] - U['CAND+HR'].ws[i] - U['CAND+T3'].ws[i] + C.ws[i], y = 100 * (U['CAND+HR+T3'].bits[i] - U['CAND+HR'].bits[i] - U['CAND+T3'].bits[i] + C.bits[i]); a += x; a2 += x * x; q += y; q2 += y * y; }
+      const mi = a / n, mq = q / n, sei = Math.sqrt(Math.max(0, a2 / n - mi * mi) / (n - 1)), seq = Math.sqrt(Math.max(0, q2 / n - mq * mq) / (n - 1));
+      inter[w].push({ id, w: mi, wse: sei, s: mq, sse: seq });
+      console.log(`  ${id}: CAND ${C.sim.toFixed(2)}% (${C.moves} moves), HR ${U['CAND+HR'].moves}, T3 ${U['CAND+T3'].moves}, HR+T3 ${U['CAND+HR+T3'].moves} moves (tiersBelow ${U['CAND+T3'].tiersBelow}); solve ${Math.round(C.secs)} / ${Math.round(U['CAND+HR'].secs)} / ${Math.round(U['CAND+T3'].secs)} / ${Math.round(U['CAND+HR+T3'].secs)} s`);
+      console.log(`    ${row.join(' | ')} | the interaction ${f3(mq)} (${seq.toFixed(3)}) / ${f3(mi)} (${sei.toFixed(3)})`);
+    }
+  }
+  const verdicts = {};
+  console.log('THE PANEL (the mean over the seven households, its se from theirs; the largest and smallest on a household):');
+  for (const c of [...T3_CONTRASTS.map(nm), 'interaction']) {
+    const v = c === 'interaction' ? bar(inter) : bar(per[c]); verdicts[c] = v;
+    for (const w of WEIGHTS) { const m = v.means[w]; if (m) console.log(`  ${c.padEnd(10)} W${w}: survival ${f3(m.s)} (se ${m.sse.toFixed(3)}) / score ${f3(m.w)} (se ${m.wse.toFixed(3)}); on a household survival ${f3(m.loS)} to ${f3(m.hiS)}, score ${f3(m.loW)} to ${f3(m.hiW)}`); }
+  }
+  const codes = new Set(loaded.map(x => x.code)), seeds = new Set(loaded.map(x => `${x.seed}/${x.N}`)), cands = new Set(loaded.map(x => x.candidate)), pts = new Set(loaded.map(x => x.points));
+  const belowOk = loaded.every(x => x.tiersBelow === (BELOW[x.v] || 2));
+  const fair = codes.size === 1 && seeds.size === 1 && cands.size === 1 && pts.size === 1 && pts.has(PTS) && belowOk;
+  console.log(fair ? `the gate: one code (${[...codes][0]}), seed and paths ${[...seeds][0]}, candidate ${[...cands][0]}, ${PTS} points; tiersBelow 3 on the T3 arms and 2 on the others, as each unit recorded` : `NOT FAIR: the units differ in code (${[...codes].join(' ')}), seed and paths (${[...seeds].join(' ')}), candidate (${[...cands].join(' ')}) or points (${[...pts].join(' ')}), or a unit's tiersBelow is not its arm's (${belowOk ? 'all as they should be' : 'some not'})`);
+  console.log(`N4's units reproduced on this code: CAND and CAND+HR the same bit for bit on ${identical} of ${compared} household-weight-arms`);
+  for (const c of T3_CONTRASTS.map(nm)) { const v = verdicts[c]; console.log(`${c}: ${v.pass ? 'PASSES N4\'s bar' : 'does not pass N4\'s bar'}: beyond the targets ${v.beats.length ? v.beats.join('; ') : 'nowhere'}; a household loss beyond 0.5 ${v.loses.length ? v.loses.join('; ') : 'nowhere'}`); }
+  const ok = fair && complete && identical === compared && compared === HOUSEHOLDS.length * WEIGHTS.length * 2;
+  if (!ok) { console.log('THE FACTORIAL: NOT COMPLETE OR NOT FAIR (see above); not read'); process.exit(1); }
+  const withHr = verdicts['HR+T3 - HR'], alone = verdicts['T3 - CAND'];
+  console.log(`DECISION (D28, the rule committed before launch): with HR in the candidate, CAND+HR+T3 against CAND+HR ${withHr.pass ? 'PASSES: the third step joins' : 'does not pass: the third step goes back to the maintainer'}; without HR, CAND+T3 against CAND ${alone.pass ? 'PASSES: the third step joins' : 'does not pass: the third step goes back to the maintainer'}. Which reading decides is the maintainer's call on HR (D27)`);
+  process.exit(0);
+}
+
+/* the bar's planted checks: built households with one fault each (CHECKLIST 5) */
+function planted() {
+  const hh = (o = {}) => HOUSEHOLDS.map(id => ({ id, w: 0, wse: 0.05, s: 0, sse: 0.05, ...(o[id] || {}) })), both = o => Object.fromEntries(WEIGHTS.map(w => [w, hh(o)]));
+  const one = (o, w = WEIGHTS[0]) => ({ ...Object.fromEntries(WEIGHTS.map(x => [x, hh()])), [w]: hh(o) });
+  const cases = [
+    ['nothing anywhere: does not pass', bar(both()).pass, false],
+    ['a household +0.6 survival beyond noise: passes', bar(one({ S370: { s: 0.6, sse: 0.1 } })).pass, true],
+    ['a household +0.6 inside noise (se 0.4): does not pass', bar(one({ S370: { s: 0.6, sse: 0.4 } })).pass, false],
+    ['a household at exactly +0.5: not more than the target', bar(one({ S370: { s: 0.5, sse: 0.01 } })).pass, false],
+    ['the panel mean +0.25 score beyond noise: passes', bar(one(Object.fromEntries(HOUSEHOLDS.map(id => [id, { w: 0.25, wse: 0.05 }])))).pass, true],
+    ['the panel mean +0.25 inside noise (its se 0.38): does not pass', bar(one(Object.fromEntries(HOUSEHOLDS.map(id => [id, { w: 0.25, wse: 1 }])))).pass, false],
+    ['the panel mean exactly at its target (0.25 here, exact in floating point): not more than it', bar(one(Object.fromEntries(HOUSEHOLDS.map(id => [id, { w: 0.25, wse: 0.001 }]))), HOUSEHOLDS.length, 0.25).pass, false],
+    ['a gain at one weight, a household -0.6 beyond noise at the other: does not pass', bar({ [WEIGHTS[0]]: hh({ S370: { s: 0.9, sse: 0.1 } }), [WEIGHTS[1]]: hh({ S224: { w: -0.6, wse: 0.05 } }) }).pass, false],
+    ['a household -0.6 inside noise (se 0.4) beside a gain: passes (not a loss beyond noise)', bar({ [WEIGHTS[0]]: hh({ S370: { s: 0.9, sse: 0.1 } }), [WEIGHTS[1]]: hh({ S224: { s: -0.6, sse: 0.4 } }) }).pass, true],
+    ['a household at exactly -0.5 beside a gain: passes (not a loss beyond the target)', bar({ [WEIGHTS[0]]: hh({ S370: { s: 0.9, sse: 0.1 } }), [WEIGHTS[1]]: hh({ S224: { s: -0.5, sse: 0.01 } }) }).pass, true],
+    ['a household missing: the panel mean not read', bar({ [WEIGHTS[0]]: hh(Object.fromEntries(HOUSEHOLDS.map(id => [id, { w: 0.4, wse: 0.05 }]))).slice(1), [WEIGHTS[1]]: hh() }).beats.some(b => b.startsWith('panel')), false]
+  ];
+  const fails = cases.filter(([, got, want]) => got !== want);
+  if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([n, got, want]) => `${n}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
+  return cases.length;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (process.argv[2] === '--units') UNITS.forEach(u => console.log(u));
   else if (process.argv[2] === '--units-hr') HR_UNITS.forEach(u => console.log(u));
   else if (process.argv[2] === '--read-hr') readHr(process.argv[3] || OUT_HR, process.argv[4] || OUT);
   else if (process.argv[2] === '--hr') await unit(process.argv[3], process.argv[4], process.argv[5], OUT_HR);
   else if (process.argv[2] === '--read') read(process.argv[3] || OUT, process.argv[4] || V3_DIR);
+  else if (process.argv[2] === '--units-t3') T3_UNITS.forEach(u => console.log(u));
+  else if (process.argv[2] === '--t3') await unit(process.argv[3], process.argv[4], process.argv[5], OUT_T3);
+  else if (process.argv[2] === '--planted') console.log(`planted (${planted()}): the bar reads each as it should\nEDGES: a gain of exactly 0.5 on a household, the panel mean exactly at its target, a loss of exactly 0.5, a household missing from the panel`);
+  else if (process.argv[2] === '--read-t3') { const np = planted(); console.log(`(the bar's ${np} planted checks pass)`); readT3(process.argv[3] || OUT_T3, process.argv[4] || OUT); }
   else await unit(process.argv[2], process.argv[3], process.argv[4]);
 }

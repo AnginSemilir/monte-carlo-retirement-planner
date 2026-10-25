@@ -2,7 +2,8 @@
 // scripts/speed-timing.mjs on the branch review/external-2026-10-21 at cff3d86, copied here so the re-time can be
 // reproduced, with three changes and its hashes and timings untouched: S1's counts read from solve.js's EXP_MEMO_STATS
 // and the reference's arrays from its arrays() where the code has them (the port exposes no globalThis), and the e3pcls pin
-// checked before the candidate's solve (e3pcls-guard.test.mjs; each copy checks its own code against its own pin).
+// checked before the candidate's solve (e3pcls-guard.test.mjs; each copy checks its own code against its own pin); and
+// one hash added for D28 (tableHashNoBelow, below), the others untouched.
 // One household and arm, solved as 7u-F's audit solves it (guardrails and the lookahead off, the floor at 0.8 of the
 // target); times the solve and the engine's run of the solved table, and prints hashes two code versions must share:
 //   tableHash  the typed arrays within three levels of each world's view (each world's own tables)
@@ -46,6 +47,17 @@ const walk = (o, depth, seen) => {
 };
 r.mix.tables.forEach(tab => walk(tab, 0, new Set()));
 const tableHash = hsh.digest('hex').slice(0, 16);
+// tableHashNoBelow (D28's identity, tier-steps-identity.mjs): the same walk with meta's key `tiersBelow` skipped, which the
+// code before the third step does not have, so a table that is the same bit for bit gives the same hash on both
+const hsh2 = createHash('sha256');
+const walk2 = (o, depth, seen) => {
+  if (!o || typeof o !== 'object' || seen.has(o) || depth > 3) return; seen.add(o);
+  if (ArrayBuffer.isView(o)) { hsh2.update(Buffer.from(o.buffer, o.byteOffset, o.byteLength)); return; }
+  if (Array.isArray(o)) { o.forEach(x => walk2(x, depth + 1, seen)); return; }
+  for (const k of Object.keys(o).sort()) { if (k === 'g' || k === 'm' || k === 'c' || k === 'tiersBelow') continue; hsh2.update(k); walk2(o[k], depth + 1, seen); }
+};
+r.mix.tables.forEach(tab => walk2(tab, 0, new Set()));
+const tableHashNoBelow = hsh2.digest('hex').slice(0, 16);
 // layerHash: every typed array of the solve's own tables at any depth - each world's, and under the tier state every layer
 // of every world (tablesW.layW), which tableHash's walk (three levels from each world's view) does not reach
 const lh = createHash('sha256'); let layerArrays = 0;
@@ -84,4 +96,4 @@ if (N > 0) {
 }
 const engMs = eng ? eng.ms : 0, ok = eng ? eng.ok : 0, choices = eng ? eng.hash : '';
 console.log(JSON.stringify({ id, arm, w: Number(wArg), points: PTS, memo: process.env.MEMO !== '0', moves: r.actions.length, years: T + 1, solveS: +(solveMs / 1000).toFixed(2), engineS: +(engMs / 1000).toFixed(2), engineMsPerPath: N ? +(engMs / N).toFixed(3) : null, survival: N ? +(100 * ok / N).toFixed(2) : null,
-  tableHash, layerHash, layerArrays, runHash: choices, ...(engOff ? { engineMsPerPathShareOff: +(engOff.ms / N).toFixed(3), runHashShareOff: engOff.hash } : {}), ...(checked !== null ? { scoresChecked: checked } : {}), ...(chooserMemo ? { chooserMemo } : {}), arrays, cells, memoStats: S.EXP_MEMO_STATS ? { hits: S.EXP_MEMO_STATS.hits, miss: S.EXP_MEMO_STATS.misses } : globalThis.__memoStats || null, arefSecs: r.g && r.g.reader && r.g.reader.adaptive ? r.g.reader.adaptive.secs : null, arefHash: arefHash(), arefMemo: r.g && r.g.reader && r.g.reader.adaptive && r.g.reader.adaptive.ref && r.g.reader.adaptive.ref.dupStats ? { hits: r.g.reader.adaptive.ref.dupStats.hits, miss: r.g.reader.adaptive.ref.dupStats.misses } : globalThis.__aref ? { hits: globalThis.__aref.qHits, miss: globalThis.__aref.qMiss, NM: globalThis.__aref.NM } : null, riskAbove: r.meta.riskAbove ? r.meta.riskAbove.decision : null }));
+  tableHash, tableHashNoBelow, layerHash, layerArrays, runHash: choices, ...(engOff ? { engineMsPerPathShareOff: +(engOff.ms / N).toFixed(3), runHashShareOff: engOff.hash } : {}), ...(checked !== null ? { scoresChecked: checked } : {}), ...(chooserMemo ? { chooserMemo } : {}), arrays, cells, memoStats: S.EXP_MEMO_STATS ? { hits: S.EXP_MEMO_STATS.hits, miss: S.EXP_MEMO_STATS.misses } : globalThis.__memoStats || null, arefSecs: r.g && r.g.reader && r.g.reader.adaptive ? r.g.reader.adaptive.secs : null, arefHash: arefHash(), arefMemo: r.g && r.g.reader && r.g.reader.adaptive && r.g.reader.adaptive.ref && r.g.reader.adaptive.ref.dupStats ? { hits: r.g.reader.adaptive.ref.dupStats.hits, miss: r.g.reader.adaptive.ref.dupStats.misses } : globalThis.__aref ? { hits: globalThis.__aref.qHits, miss: globalThis.__aref.qMiss, NM: globalThis.__aref.NM } : null, riskAbove: r.meta.riskAbove ? r.meta.riskAbove.decision : null }));

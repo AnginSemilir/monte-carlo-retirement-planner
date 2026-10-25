@@ -45,6 +45,7 @@ export function tablePolicy(r) {
       };
     },
     switchCost: c.switchCost || 0,
+    tiersBelow: r.m.tiersBelow || 2,   // D28: the engine builds its tier list to the table's (App.jsx buildContext)
     meta: r.meta
   };
 }

@@ -175,10 +175,22 @@ export function spendLevelsFor(floorFrac) {
   return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
 }
 
-/* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
+/*
+ * The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. log(1 + R) is kept with the rate vector it was
+ * taken of (the speed port, SPEED-PORT.md; the 23 Oct review's idea): the same double, taken once a vector rather than on
+ * every call. A rate vector is built once (fast.js ratesFor) and never written after, so a WeakMap keyed by it is exact.
+ * REALAT (speed-port.test.mjs only): cache false takes the logs on every call, as before; plant 'wrongkey' keys every
+ * move's rates on the plan's own vector, which must part the tables.
+ */
+export const REALAT = { cache: true, plant: '' };
+const LOG1P_OF = new WeakMap();
 function realAt(c, z, out, act = null, t = 0, zPath = 0) {
   const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t], S = act ? act.sigma : c.sigma;
-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1;
+  if (!REALAT.cache) { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1; return out; }
+  const key = REALAT.plant === 'wrongkey' ? c.real : R;
+  let LR = LOG1P_OF.get(key);
+  if (LR === undefined) { LR = new Float64Array(4); for (let i = 0; i < 4; i++) LR[i] = Math.log(1 + key[i]); LOG1P_OF.set(key, LR); }
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(LR[i] + S[i] * zPath + V[i] * z) - 1;
   return out;
 }
 
@@ -341,6 +353,10 @@ export function solve(E, M, plan, opts = {}) {
     if (opts.tiersBelow !== 2 && opts.tiersBelow !== 3) throw new Error(`tiersBelow ${opts.tiersBelow}: only 2 or 3`);
     m.tiersBelow = opts.tiersBelow;
   }
+  // the speed port (SPEED-PORT.md, research only): `tableDealing: false` solves the tier state's table without a switch's
+  // dealing cost; it needs the tier state, whose table is the only one that charges it
+  if (opts.tableDealing !== undefined && opts.tableDealing !== true && opts.tableDealing !== false) throw new Error(`tableDealing ${opts.tableDealing}: only true or false`);
+  if (opts.tableDealing === false && !opts.tierState) throw new Error('tableDealing: false needs the tier state');
   if (opts.giaTiers) m.giaTiers = true;   // M15, research only: the taxable account takes the joint tier step (see tiersFor)
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
@@ -412,6 +428,19 @@ export function solve(E, M, plan, opts = {}) {
    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
    */
   const TS = !!opts.tierState;
+  /*
+   * THE TABLE WITHOUT THE DEALING COST (`tableDealing: false`; the speed port, SPEED-PORT.md; research only, off by default):
+   * the tier state's backward pass no longer charges a switch's dealing cost (F.chargeSwitch) on the move's position. The
+   * chooser (scoreMoves, scoreMovesShared), the forward run and the engine still charge it when a move is taken, as now,
+   * and the switch charge (switchCharge, in score units) stays in the table. It changes the tables.
+   * E5 (exact given it): without the dealing cost a move's position, and so its expectation and terms, no longer depend on
+   * the layer held, so the joint tier state's loop computes them once a cell and world and scores each layer by adding the
+   * switch charge alone - the same arithmetic in the same order as the layer loop, so the same tables bit for bit.
+   * `tsOnce: false` keeps the layer loop (speed-port.test.mjs); `tsOncePlant: 'nocharge'` (tests only) drops the switch
+   * charge, which must part the tables. Without jointWorlds the layer loop stays, still correct, only slower.
+   */
+  const NODEAL = opts.tableDealing === false;
+  const E5 = NODEAL && TS && JOINT && opts.tsOnce !== false, E5PLANT = opts.tsOncePlant || '';
   /*
    * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
    * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
@@ -943,6 +972,8 @@ export function solve(E, M, plan, opts = {}) {
   if (opts.readerChance || opts.readerSplit || opts.readerBlend || opts.readerCopy !== undefined || opts.readerSupportLine !== undefined) { if (opts.bridgeRead !== 'reader') throw new Error('readerChance, readerSplit, readerBlend, readerCopy and readerSupportLine need the bridge reader'); if (opts.readerCopy !== undefined && opts.readerCopy !== 'extrap') throw new Error(`readerCopy ${opts.readerCopy}: only 'extrap'`); if (opts.readerCopy && opts.readerSplit === 'r0') throw new Error("readerCopy 'extrap' sets the copied nodes' c, which readerSplit 'r0' replaces; set one"); if (opts.readerSupportLine !== undefined && !(opts.readerSupportLine > 0 && opts.readerSupportLine < 1)) throw new Error(`readerSupportLine ${opts.readerSupportLine}: a chance strictly between 0 and 1`); if (opts.readerBlend && opts.readerBlend !== 'logodds') throw new Error(`readerBlend ${opts.readerBlend}: only 'logodds'`); if (opts.readerChance && opts.readerChance !== 'sim') throw new Error(`readerChance ${opts.readerChance}: only 'sim'`); if (opts.readerSplit && opts.readerSplit !== 'r0' && opts.readerSplit !== 'rz' && opts.readerSplit !== 'rs' && opts.readerSplit !== 'ru' && opts.readerSplit !== 'rsu') throw new Error(`readerSplit ${opts.readerSplit}: only 'r0', 'rz', 'rs', 'ru' or 'rsu'`); if ((opts.readerSplit === 'rs' || opts.readerSplit === 'ru' || opts.readerSplit === 'rsu') && opts.readerBlend) throw new Error(`readerSplit '${opts.readerSplit}' scales the probability blend's residual; it is not defined for readerBlend`); if (opts.readerChance && opts.readerRef === 'order') throw new Error("readerChance 'sim' and readerRef 'order' are two references; set one"); }   // NE-ROOT's arms (research only)
   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
+  // E5: each world's terms for every move at a cell, once (the layer held adds only the switch charge)
+  const e5S = E5 ? shifts.map(() => new Float64Array(A)) : null, e5B = E5 ? shifts.map(() => new Float64Array(A)) : null, e5R = E5 ? shifts.map(() => new Float64Array(A)) : null, e5H = E5 ? shifts.map(() => new Float64Array(A)) : null;
   const isE3Copy = (ii, it, ig) => E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1);
   if (E3P && (g.mode !== 'total' || g.cov)) throw new Error('e3pcls needs total coordinates and no coverage axis');
   // the last year index in which money can enter a pension: a year an owner works, or a dated deposit or staged transfer into one
@@ -1151,6 +1182,72 @@ export function solve(E, M, plan, opts = {}) {
                 // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
                 // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
                 if (MEMO) memoReset();   // one memo a cell: the world and the layer read are in its key
+                if (E5) {
+                  // E5, PHASE A: each world's terms for every move, once a cell, as the layer loop below takes them for its first layer
+                  for (let k = 0; k < K; k++) {
+                    const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k];
+                    for (let ai = 0; ai < A; ai++) {
+                      const lj = tsLayerOf[ai], Ln = layW[k][lj];
+                      const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
+                      const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                      const fail = failBuf[ai] === 1, o = ai * 7;
+                      let s = 0, b = 0, rs = 0, h = 0;
+                      let mf = -1;
+                      const mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
+                      if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                      if (!fail && mf < 0) {
+                        const nr = nodeRealOf[ai];
+                        if (t === T && FINT) { finalYearExact(ck, t, postBuf.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                        else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, postBuf.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                        else for (let zi = 0; zi < NQ; zi++) {
+                          for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                          F.grow(ck, t, grown, nr[zi]);
+                          if (t === T) {
+                            const total = grown[0] + grown[1] + grown[2];
+                            const alive = !(floor > 0 && total < floor);
+                            const net = Math.max(0, total - grown[0] * deathTax);
+                            s += QW[zi] * (alive ? 1 : 0);
+                            rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                            b += QW[zi] * (alive ? beqOf(net) : 0);
+                          } else {
+                            readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                            s += QW[zi] * rd[0];
+                            b += QW[zi] * rd[1];
+                            rs += QW[zi] * rd[2];
+                            h += QW[zi] * rd[3];
+                          }
+                        }
+                        if (MEMO) { memoPut(~mf, postU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
+                      }
+                      if (failShort && fail) h = failCostAt[t];
+                      else h += shortOfAction[ai];
+                      if (raiseSurv) h += raiseOfAction[ai] * s;
+                      eS[ai] = s; eB[ai] = b; eR[ai] = rs; eH[ai] = h;
+                    }
+                  }
+                  // E5, PHASE B: for each layer held, the switch charge alone, then the chooser's full rule on the mixture, as below
+                  for (let j = 0; j < tsPairs.length; j++) {
+                    let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
+                    for (let ai = 0; ai < A; ai++) {
+                      const sw = switchCharge > 0 && tsLayerOf[ai] !== j && E5PLANT !== 'nocharge';
+                      let v = 0, wb = 0;
+                      for (let k = 0; k < K; k++) {
+                        let h = e5H[k][ai];
+                        if (sw) h += switchCharge;
+                        const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai];
+                        const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state, E5)', t, idx, k, ai, s, b, rs, h);
+                        v += JW[k] * score; wb += JW[k] * b;
+                      }
+                      if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                      if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
+                    }
+                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                    const swB = switchCharge > 0 && tsLayerOf[bestA] !== j && E5PLANT !== 'nocharge';
+                    for (let k = 0; k < K; k++) { let h = e5H[k][bestA]; if (swB) h += switchCharge; const Lj = layW[k][j]; Lj.surv[t][idx] = e5S[k][bestA]; Lj.beq[t][idx] = e5B[k][bestA]; Lj.resil[t][idx] = e5R[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = h; }
+                  }
+                  if (PROF) PROF.cells++;
+                  continue;
+                }
                 for (let j = 0; j < tsPairs.length; j++) {
                 for (let k = 0; k < K; k++) {
                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
@@ -1163,7 +1260,7 @@ export function solve(E, M, plan, opts = {}) {
                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
                       const fail = failBuf[ai] === 1;
                       let src = postBuf, o = ai * 7;
-                      if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                      if (!fail && lj !== j && ck.switchCost > 0 && !NODEAL) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
                       let s = 0, b = 0, rs = 0, h = 0;
                       let mf = -1;
                       const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
@@ -1365,7 +1462,7 @@ export function solve(E, M, plan, opts = {}) {
 
   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };
   if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };

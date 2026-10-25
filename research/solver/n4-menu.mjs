@@ -42,6 +42,19 @@
  *   node research/solver/n4-menu.mjs --units-t3                            its units
  *   node research/solver/n4-menu.mjs --read-t3 [dir] [n4 dir]
  *   node research/solver/n4-menu.mjs --planted                             the bar's planted checks alone
+ * THE TABLE WITHOUT THE DEALING COST, CHECKED (STATE.md D30; SPEED-PORT.md step 3; EXPLORATORY, D6): CAND+HR+T3 (the
+ * candidate as D29 left it: the factorial's units, which stand as the first arm once the port reproduces them bit for bit -
+ * step 2.1, two of them re-run on the ported code into results/n4nd-id) against CAND+HR+T3+ND, the same with
+ * `tableDealing: false` (E5 on), on V3's seven households, both weights, 45 points, V4's 8,000 paths of seed 7002 (14 units).
+ * THE DECISION RULE, committed before launch in the form SPEED-PORT.md gives it (ndRule below): the option joins if, at
+ * both weights, no household loses more than 0.5 points beyond noise (its paired 95% interval below nothing) in survival or
+ * the whole score, and the panel mean's paired 95% interval has its lower end above -0.2 in both. Otherwise it goes back to
+ * the maintainer. The prediction: every household within noise; the panel mean within 0.1 either way; the solve about a
+ * third of the first arm's. Exploratory: a pass changes the candidate only by D30, through the reviewer (step 4).
+ *   node research/solver/n4-menu.mjs --nd <household> <weight>               one ND unit, to results/n4nd (N4ND_OUT)
+ *   node research/solver/n4-menu.mjs --nd-id <household> <weight>            CAND+HR+T3 on this code, to results/n4nd-id
+ *   node research/solver/n4-menu.mjs --units-nd                              the ND units
+ *   node research/solver/n4-menu.mjs --read-nd [dir] [factorial dir] [identity dir]
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -52,9 +65,11 @@ import { HOUSEHOLDS } from './v3-convergence.mjs';
 import { WEIGHTS, SEED, NPATHS, LAMBDA, MEAN_TOL, HH_TOL } from './v4-ensemble.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'], 'CAND+HRDRAW': ['hrdraw'], 'CAND+HRWRAP': ['hrwrap'], 'CAND+T3': [], 'CAND+HR+T3': ['hr'] }, PTS = 45;
-export const BELOW = { 'CAND+T3': 3, 'CAND+HR+T3': 3 };   // D28's factorial: the arms with the third tier step (tiersBelow)
+export const VARIANTS = { CAND: [], 'CAND+HR': ['hr'], 'CAND+MID': ['mid'], 'CAND+CGT': ['cgt'], 'CAND+HRDRAW': ['hrdraw'], 'CAND+HRWRAP': ['hrwrap'], 'CAND+T3': [], 'CAND+HR+T3': ['hr'], 'CAND+HR+T3+ND': ['hr'] }, PTS = 45;
+export const BELOW = { 'CAND+T3': 3, 'CAND+HR+T3': 3, 'CAND+HR+T3+ND': 3 };   // D28's factorial: the arms with the third tier step (tiersBelow)
+export const EXTRA = { 'CAND+HR+T3+ND': { tableDealing: false } };   // D30's check: the table without the dealing cost
 const N4_ARMS = ['CAND', 'CAND+HR', 'CAND+MID', 'CAND+CGT'], HR_ARMS = ['CAND', 'CAND+HR', 'CAND+HRDRAW', 'CAND+HRWRAP'], HR_HH = ['S370', 'S248'], T3_ARMS = ['CAND', 'CAND+HR', 'CAND+T3', 'CAND+HR+T3'];
+const OUT_ND = process.env.N4ND_OUT || join(HERE, 'results', 'n4nd'), OUT_NDID = process.env.N4NDID_OUT || join(HERE, 'results', 'n4nd-id'), ND_ID = [['S370', '0.02'], ['S224', '0.01']];
 const OUT = process.env.N4_OUT || join(HERE, 'results', 'n4'), V3_DIR = process.env.V3_OUT || join(HERE, 'results', 'v3'), OUT_HR = process.env.N4HR_OUT || join(HERE, 'results', 'n4hr'), OUT_T3 = process.env.N4T3_OUT || join(HERE, 'results', 'n4t3');
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
 export const UNITS = HOUSEHOLDS.flatMap(id => N4_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
@@ -63,6 +78,8 @@ export const HR_UNITS = HR_HH.flatMap(id => HR_ARMS.flatMap(v => WEIGHTS.map(w =
 export const hrUnitFile = u => { const [id, v, w] = u.split(' '); return join(OUT_HR, `${id}-${v}-w${w}.json.gz`); };
 export const T3_UNITS = HOUSEHOLDS.flatMap(id => T3_ARMS.flatMap(v => WEIGHTS.map(w => `${id} ${v} ${w}`)));
 export const t3UnitFile = u => { const [id, v, w] = u.split(' '); return join(OUT_T3, `${id}-${v}-w${w}.json.gz`); };
+export const ND_UNITS = HOUSEHOLDS.flatMap(id => WEIGHTS.map(w => `${id} ${w}`));
+export const ndUnitFile = u => { const [id, w] = u.split(' '); return join(OUT_ND, `${id}-CAND+HR+T3+ND-w${w}.json.gz`); };
 
 async function unit(id, v, w, out = OUT) {
   if (!VARIANTS[v] || !WEIGHTS.includes(w)) { console.error(`n4: no variant ${v} or weight ${w}`); process.exit(2); }
@@ -71,7 +88,7 @@ async function unit(id, v, w, out = OUT) {
   const C = await import('./candidate.mjs'), { buildScenarios } = await import('../policy-study/scenarios.mjs'), { makeTrace } = await import('./record.mjs'), { wholeScore } = await import('./reduce-7uf.mjs');
   const h = buildScenarios().find(s => s.id === id), code = execFileSync(process.execPath, [join(HERE, 'code-id.mjs')], { encoding: 'utf8' }).trim();
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
-  const menuPlus = VARIANTS[v], base = { lambda: LAMBDA, points: PTS, bequestWeight: Number(w), ...(menuPlus.length ? { menuPlus } : {}), ...(BELOW[v] ? { tiersBelow: BELOW[v] } : {}) };
+  const menuPlus = VARIANTS[v], base = { lambda: LAMBDA, points: PTS, bequestWeight: Number(w), ...(menuPlus.length ? { menuPlus } : {}), ...(BELOW[v] ? { tiersBelow: BELOW[v] } : {}), ...(EXTRA[v] || {}) };
   const t0 = Date.now();
   // 7u-F's candidate (ASSEMBLED_OPTS: candidate.json less the menu keys D28 and D29 added), so CAND and each arm mean what
   // they meant when N4, HR decomposed and the factorial ran; e3pcls guard: solveCandidate checks the pin itself
@@ -81,9 +98,9 @@ async function unit(id, v, w, out = OUT) {
   paths.forEach((zs, k) => { tr.row = k; if (S.runPolicy(r, Float64Array.from(zs), { trace: tr }).survived) surv[k] = 1; });
   const bs = { survived: surv, level: tr.level, wealth: tr.wealth, failYear: tr.failYear, lambda: LAMBDA, floor: Math.min(...r.levelOf), scale: Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0))), capR: Math.round(r.meta.bequestCap), spendYears: Array.from({ length: tr.Y }, (_, t) => (r.c.yr.spend[t] > 0 ? 1 : 0)) };
   const ws = Float32Array.from(wholeScore(bs, Number(w), tr.Y)), sim = 100 * surv.reduce((a, x) => a + x, 0) / NPATHS;
-  console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, tiersBelow ${r.meta.tiersBelow}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
+  console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, tiersBelow ${r.meta.tiersBelow}, tableDealing ${r.meta.tableDealing}, tsOnce ${r.meta.tsOnce}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, tiersBelow: r.meta.tiersBelow, moves: r.actions.length, points: PTS, candidate: C.ASSEMBLED_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
+  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, tiersBelow: r.meta.tiersBelow, tableDealing: r.meta.tableDealing, tsOnce: r.meta.tsOnce, moves: r.actions.length, points: PTS, candidate: C.ASSEMBLED_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
 }
 
 /* the paired change b - a over the paths, in the whole score and in survival points, each with its se */
@@ -284,6 +301,89 @@ function planted() {
   return cases.length;
 }
 
+/*
+ * D30'S RULE (SPEED-PORT.md step 3) on the paired changes ND less HR+T3: `per` maps each weight to its households' { id, w,
+ * wse, s, sse } (score and survival points, each with its se). Harm: a household losing more than HH_TOL with its paired 95%
+ * interval below nothing, in either measure at either weight. The panel: at each weight and in each measure, the mean's
+ * paired 95% interval (its se from the households' independent se) has its lower end above -floor. It joins when there is
+ * no harm and every panel lower end clears; a loss of exactly the target is not more than it, a lower end exactly at the
+ * floor does not clear it. (`floor` is a parameter only so the planted edge can sit exactly on a target floating point
+ * holds: 0.2 is not one.)
+ */
+export function ndRule(per, nHouseholds = HOUSEHOLDS.length, floor = MEAN_TOL) {
+  const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3), harm = [], panel = [];
+  let complete = true;
+  for (const [w, L] of Object.entries(per)) {
+    for (const d of L) for (const [x, se, what] of [[d.w, d.wse, 'score'], [d.s, d.sse, 'survival']]) if (x < -HH_TOL && x + 1.96 * se < 0) harm.push(`${d.id} W${w} ${what} ${f3(x)} (se ${se.toFixed(3)})`);
+    if (L.length < nHouseholds) { complete = false; continue; }
+    const mw = L.reduce((t, x) => t + x.w, 0) / L.length, ms = L.reduce((t, x) => t + x.s, 0) / L.length;
+    const sw = Math.sqrt(L.reduce((t, x) => t + x.wse * x.wse, 0)) / L.length, ss = Math.sqrt(L.reduce((t, x) => t + x.sse * x.sse, 0)) / L.length;
+    for (const [x, se, what] of [[ms, ss, 'survival'], [mw, sw, 'score']]) panel.push({ w, what, mean: x, se, lo: x - 1.96 * se, clears: x - 1.96 * se > -floor });
+  }
+  const panelOk = complete && panel.length === 2 * Object.keys(per).length && panel.every(p => p.clears);
+  return { harm, panel, joins: harm.length === 0 && panelOk, complete };
+}
+
+/* the check (D30): each household's ND against the factorial's HR+T3, paired by path; the identity units first */
+function readNd(dir, t3dir, iddir) {
+  const load = f => { const j = JSON.parse(gunzipSync(readFileSync(f)).toString()); const b = Buffer.from(j.survived, 'base64'), x = Buffer.from(j.whole, 'base64'); return { ...j, bits: new Uint8Array(b.buffer, b.byteOffset, b.byteLength), ws: new Float32Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)) }; };
+  const sameBits = (a, b) => a.bits.length === b.bits.length && a.bits.every((x, i) => x === b.bits[i]) && a.ws.every((x, i) => Object.is(x, b.ws[i]));
+  const f3 = x => (x >= 0 ? '+' : '') + x.toFixed(3);
+  console.log(`THE TABLE WITHOUT THE DEALING COST, CHECKED (EXPLORATORY, the tuning seed, ${PTS} wealth points; D30, SPEED-PORT.md step 3): ND units ${dir}, the factorial's HR+T3 units ${t3dir}, the identity units ${iddir}`);
+  let complete = true, identical = 0, compared = 0;
+  const ids = [];
+  for (const [id, w] of ND_ID) {
+    const f = join(iddir, `${id}-CAND+HR+T3-w${w}.json.gz`), g = join(t3dir, `${id}-CAND+HR+T3-w${w}.json.gz`);
+    if (!existsSync(f) || !existsSync(g)) { console.log(`  identity ${id} W${w}: missing`); complete = false; continue; }
+    const a = load(f), b = load(g); ids.push(a); compared++;
+    if (sameBits(a, b)) identical++; else console.log(`  identity ${id} W${w}: CAND+HR+T3 on this code and the factorial's DIFFER`);
+  }
+  console.log(`THE IDENTITY (step 2.1): CAND+HR+T3 on the ported code the same as the factorial's units bit for bit on ${identical} of ${compared} (${ND_ID.map(([i, w]) => `${i} W${w}`).join(', ')}), so the factorial's units stand as the first arm`);
+  const per = Object.fromEntries(WEIGHTS.map(w => [w, []])), nds = [], ratios = [];
+  for (const w of WEIGHTS) {
+    console.log(`AT W${w} (ND less HR+T3: survival points (se) / whole score (se), paired by path):`);
+    for (const id of HOUSEHOLDS) {
+      const f = join(dir, `${id}-CAND+HR+T3+ND-w${w}.json.gz`), g = join(t3dir, `${id}-CAND+HR+T3-w${w}.json.gz`);
+      if (!existsSync(f) || !existsSync(g)) { console.log(`  ${id}: missing ${existsSync(f) ? 'the factorial\'s unit' : 'the ND unit'}`); complete = false; continue; }
+      const nd = load(f), t3 = load(g); nds.push(nd);
+      const d = paired(t3, nd); per[w].push({ id, ...d }); ratios.push(nd.secs / t3.secs);
+      console.log(`  ${id}: HR+T3 ${t3.sim.toFixed(2)}%, ND ${nd.sim.toFixed(2)}% (${nd.moves} moves): survival ${f3(d.s)} (${d.sse.toFixed(3)}) / score ${f3(d.w)} (${d.wse.toFixed(3)}); solve ${Math.round(t3.secs)} s against ${Math.round(nd.secs)} s`);
+    }
+  }
+  const codes = new Set([...nds, ...ids].map(x => x.code)), seeds = new Set(nds.map(x => `${x.seed}/${x.N}`)), cands = new Set(nds.map(x => x.candidate)), pts = new Set(nds.map(x => x.points));
+  const flags = nds.every(x => x.tableDealing === false && x.tsOnce === true && x.tiersBelow === 3 && JSON.stringify(x.menuPlus) === '["hr"]') && ids.every(x => x.tableDealing === true && x.tiersBelow === 3);
+  const fair = codes.size === 1 && seeds.size === 1 && cands.size === 1 && pts.size === 1 && pts.has(PTS) && flags;
+  console.log(fair ? `the gate: the ND and identity units from one code (${[...codes][0]}), seed and paths ${[...seeds][0]}, candidate ${[...cands][0]}, ${PTS} points; ND tableDealing false with E5, HR and the third step; the identity units tableDealing true` : `NOT FAIR: codes (${[...codes].join(' ')}), seeds (${[...seeds].join(' ')}), candidates (${[...cands].join(' ')}), points (${[...pts].join(' ')}), flags ${flags ? 'as they should be' : 'not as they should be'}`);
+  const med = a => { const q = [...a].sort((x, y) => x - y); return q.length % 2 ? q[q.length >> 1] : (q[q.length / 2 - 1] + q[q.length / 2]) / 2; };
+  if (ratios.length) console.log(`THE SOLVE, ND against HR+T3 (four units at a time; the factorial's under its own load): the median x${med(ratios).toFixed(2)} (x${Math.min(...ratios).toFixed(2)} to x${Math.max(...ratios).toFixed(2)}) over ${ratios.length} household-weights`);
+  const v = ndRule(per);
+  for (const p of v.panel) console.log(`  the panel W${p.w} ${p.what}: ${f3(p.mean)} (se ${p.se.toFixed(3)}), its 95% interval's lower end ${f3(p.lo)}: ${p.clears ? 'clears' : 'does not clear'} -0.2`);
+  console.log(`  a household losing more than 0.5 beyond noise: ${v.harm.length ? v.harm.join('; ') : 'none'}`);
+  const ok = fair && complete && identical === compared && compared === ND_ID.length && v.complete;
+  if (!ok) { console.log('THE CHECK: NOT COMPLETE, NOT FAIR, OR THE IDENTITY FAILED (see above); not read'); process.exit(1); }
+  console.log(`DECISION (D30, the rule committed before launch): tableDealing false ${v.joins ? 'JOINS the candidate' : 'does NOT join: it goes back to the maintainer'}`);
+  process.exit(0);
+}
+
+/* the rule's planted checks: built households with one fault each (CHECKLIST 5) */
+function plantedNd() {
+  const hh = (o = {}) => HOUSEHOLDS.map(id => ({ id, w: 0, wse: 0.05, s: 0, sse: 0.05, ...(o[id] || {}) })), both = (o = {}) => Object.fromEntries(WEIGHTS.map(w => [w, hh(o)]));
+  const at = (w, o) => ({ ...both(), [w]: hh(o) }), all7 = v => Object.fromEntries(HOUSEHOLDS.map(id => [id, v]));
+  const cases = [
+    ['nothing anywhere: joins', ndRule(both()).joins, true],
+    ['a household -0.6 survival beyond noise at one weight: does not join', ndRule(at(WEIGHTS[1], { S370: { s: -0.6, sse: 0.1 } })).joins, false],
+    ['a household -0.6 score inside noise (se 0.32; the panel clears): joins', ndRule(at(WEIGHTS[0], { S370: { w: -0.6, wse: 0.32 } })).joins, true],
+    ['a household at exactly -0.5: joins (not more than the target)', ndRule(at(WEIGHTS[0], { S370: { s: -0.5, sse: 0.01 } })).joins, true],
+    ['the panel mean -0.3 survival: its lower end below -0.2, does not join', ndRule(at(WEIGHTS[0], all7({ s: -0.3, sse: 0.01 }))).joins, false],
+    ['the panel mean -0.1 score with a wide se (lower end -0.35): does not join', ndRule(at(WEIGHTS[1], all7({ w: -0.1, wse: 0.338 }))).joins, false],
+    ['the panel lower end exactly at the floor (0.25 here, exact in floating point): does not join', ndRule(at(WEIGHTS[0], all7({ s: -0.25, sse: 0 })), HOUSEHOLDS.length, 0.25).joins, false],
+    ['a household missing at one weight: not complete, does not join', ndRule({ ...both(), [WEIGHTS[0]]: hh().slice(1) }).joins, false]
+  ];
+  const fails = cases.filter(([, got, want]) => got !== want);
+  if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
+  return cases.length;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (process.argv[2] === '--units') UNITS.forEach(u => console.log(u));
   else if (process.argv[2] === '--units-hr') HR_UNITS.forEach(u => console.log(u));
@@ -291,6 +391,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   else if (process.argv[2] === '--hr') await unit(process.argv[3], process.argv[4], process.argv[5], OUT_HR);
   else if (process.argv[2] === '--read') read(process.argv[3] || OUT, process.argv[4] || V3_DIR);
   else if (process.argv[2] === '--units-t3') T3_UNITS.forEach(u => console.log(u));
+  else if (process.argv[2] === '--units-nd') ND_UNITS.forEach(u => console.log(u));
+  else if (process.argv[2] === '--nd') await unit(process.argv[3], 'CAND+HR+T3+ND', process.argv[4], OUT_ND);
+  else if (process.argv[2] === '--nd-id') await unit(process.argv[3], 'CAND+HR+T3', process.argv[4], OUT_NDID);
+  else if (process.argv[2] === '--planted-nd') console.log(`planted (${plantedNd()}): the rule reads each as it should\nEDGES: a loss of exactly 0.5 on a household, the panel's lower end exactly at the floor, a household missing at one weight`);
+  else if (process.argv[2] === '--read-nd') { const np = plantedNd(); console.log(`(the rule's ${np} planted checks pass)`); readNd(process.argv[3] || OUT_ND, process.argv[4] || OUT_T3, process.argv[5] || OUT_NDID); }
   else if (process.argv[2] === '--t3') await unit(process.argv[3], process.argv[4], process.argv[5], OUT_T3);
   else if (process.argv[2] === '--planted') console.log(`planted (${planted()}): the bar reads each as it should\nEDGES: a gain of exactly 0.5 on a household, the panel mean exactly at its target, a loss of exactly 0.5, a household missing from the panel`);
   else if (process.argv[2] === '--read-t3') { const np = planted(); console.log(`(the bar's ${np} planted checks pass)`); readT3(process.argv[3] || OUT_T3, process.argv[4] || OUT); }

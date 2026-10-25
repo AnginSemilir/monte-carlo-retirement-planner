@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"]; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash 2af03eddad28; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: 7c5d2d82a14e16c8 (25 Oct, 16:53 UK); the code now: 7c5d2d82a14e16c8.
+- The solver code the e3pcls pin last passed on: 95d7bb950ebdaccd (25 Oct, 22:45 UK); the code now: 95d7bb950ebdaccd.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -39,6 +39,9 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D30. 25 Oct, maintainer: "port the speed work (SPEED-PORT.md)" (review/external-2026-10-21 at 775bfc3): the `realAt` cache
+  and E5 as exact speed-ups; the table without the dealing cost (`tableDealing: false`) a research option that joins the
+  candidate only if step 3's check passes, and if it does not, it comes back to the maintainer; gate 5 is measured after.
 - D29. 25 Oct, maintainer, after the factorial (the third step passes with HR in and without it): HR whole joins the
   candidate beside the third step (`candidate.json`: `menuPlus` ["hr"], `tiersBelow` 3), THIRD-STEP.md step 4; stop before gate 5.
 - D28. 25 Oct, maintainer (THIRD-STEP.md, review/external-2026-10-21 at ed20ac9): the third joint tier step down
@@ -194,14 +197,9 @@ nothing) dropped it; a forward run now carries it in slot 13 (S370 the household
 
 ### Step 4: 7u-F (the triage above, the assembly, the registration)
 
-The triage is section 4's tables: only Step 1's bugs were fixed before 7u-F; the rest are reported in it or closed. The
-assembled candidate is section 2's (`candidate.json`; `FROZEN_OPTS` is the candidate before it, 7u's CAND, and keeps its
-recorded hash). V1 and V2 on the assembled candidate (`v-candidate.mjs`): V2 found the solver's forward run and the
-engine apart on a few of S224's paths. The cause: a forward run rebuilt its cash each year from the buffer rule at the
-cash tier's own rate (and the buffer, not the opening cash, in year 0), where the engine grows its cash at the path's
-rate, so the year's sales and the gains carried into next year's CGT differed. A forward run now carries its cash in
-slot 12 (`solver-cash.test.mjs`, its plant the old split); V1 and V2 run again on that code. 7u's pooled item read by
-path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
+Only Step 1's bugs were fixed before 7u-F. V2 on the assembled candidate found a forward run rebuilding its cash from the
+buffer rule where the engine grows it at the path's rate; a forward run now carries its cash in slot 12
+(`solver-cash.test.mjs`). V1 and V2 again, 7u's pooled item read by path, and the power of 7u-F's rule:
 
 <!-- printed:step4 -->
 - V1 on the assembled candidate: ALL PASS (7 of 7 households) (`results-v-candidate.txt`). V2 on the assembled candidate: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate.txt`). 7u-F's budget: 97.8 core-hours, about 24.4 hours on 4 cores (`results-budget-7uf.txt`).
@@ -235,10 +233,8 @@ finished.
 <!-- end printed:speed -->
 ### V3 and V4 on the ported code (24 Oct, EXPLORATORY, the tuning seed)
 
-Every unit of `batch-v34.sh` in, one code and seed, V4's CAND the same as V3's shipped setting bit for bit. The wealth
-axis at the candidate's 30 points is not converged by V3's targets and 45 is; V4's best is the candidate at 90 on every
-household, so its gap is the same resolution effect. The allowance-axis line moves towards the candidate's own setting
-(D10) and faults nothing. S224's loss is inside its noise at 60 and 90 points, as the deep review's cause predicts.
+The wealth axis is converged at 45 points, not 30; V4's gap is the same resolution effect; the allowance-axis line
+moves towards the candidate's own setting (D10); S224's loss is inside its noise at 60 and 90 points.
 
 <!-- printed:v34 -->
 - V3's gate: one code (210f058370ce), the candidate e65e5e99ba49, seed 7002; V1 on every unit: no cell without a move, none non-finite.
@@ -284,6 +280,10 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- printed:cand29 -->
 - `candidate.test.mjs` 48 passed, 0 failed (`results-candidate.txt`): the candidate 2af03eddad28 the same as the decided defaults key for key, 7u-F's e65e5e99ba49 and the frozen a61dba4ee1f5 reproduced, its smoke solve running the third step and HR whole. V1 on the candidate 2af03eddad28: ALL PASS (7 of 7 households); V2 on the candidate 2af03eddad28: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate-d29.txt`).
 <!-- end printed:cand29 -->
+### The speed port (D30; SPEED-PORT.md at 775bfc3): the build (steps 1 and 2)
+<!-- printed:speedport -->
+- pending: research/tests/results-speed-port.txt
+<!-- end printed:speedport -->
 ## 5. Running now
 
 - Nothing. The factorial ran 25 Oct 11:13 to 16:09 UK (`results/n4t3-launch1.log`, 56 units, none failed).
@@ -292,7 +292,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. The maintainer's review on time saving; then gate 5 on the candidate as D29 left it, at 45 points against the product at
-   30 (`batch-gate5.sh`), its logs first stamped with the candidate each timed (the reviewer of 25 Oct, finding 2).
+1. D30: the check of the table without the dealing cost (`batch-n4nd.sh`, its rule in `n4-menu.mjs`), SPEED-PORT.md step 4 if
+   it joins, then gate 5 on the candidate so settled, its logs stamped with the candidate each timed (`batch-gate5.sh`).
 2. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
    (the candidate changed after 7u-F, D29), a spending item over all years, the whole score on every path and the Node version stamped.

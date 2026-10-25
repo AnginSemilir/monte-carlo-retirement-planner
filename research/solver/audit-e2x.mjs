@@ -12,12 +12,15 @@
  *   node research/solver/audit-e2x.mjs [points=30] part k/n
  * Gate 5 after N4 (STATE.md D24 (3), D25, D26): PRODUCT_POINTS sets the product's own grid apart from the candidate's (the
  * candidate at 45 points against the product as it ships, at 30); unset, both take `points`, as E2X ran. It prints a line
- * `product points N` after each case line (reduce-gate5.mjs reads it; reduce-e2x.mjs passes it by).
+ * `product points N` after each case line (reduce-gate5.mjs reads it; reduce-e2x.mjs passes it by). The candidate each case
+ * timed is stamped after it (`candidate HASH`, candidate.mjs's CANDIDATE_HASH: the code hash does not cover candidate.json),
+ * with each arm's menu (`menu CAND|SPLIT: tiersBelow tableDealing tsOnce moves`); reduce-gate5.mjs refuses a log whose
+ * candidate is not the one it reads against (the reviewer of 25 Oct, finding 2).
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan } from '../../src/solver/solve.js';
-import { solveCandidate, candidatePlan, CANDIDATE_OPTS } from './candidate.mjs';
+import { solveCandidate, candidatePlan, CANDIDATE_OPTS, CANDIDATE_HASH } from './candidate.mjs';
 // imported here as well as by candidate.mjs, so the research defaults are in the run's stamp by name too
 import { RESEARCH_OPTS } from './research-opts.mjs';
 import { solveSplit } from './e2.mjs';
@@ -83,6 +86,7 @@ for (const [i, id] of PANEL.entries()) {
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   console.log(`${id.padEnd(16)} case | points ${POINTS} | lambda ${LAMBDA} | parts ${PARTS}`);
   console.log(`${''.padEnd(16)} product points ${PPOINTS}`);
+  console.log(`${''.padEnd(16)} candidate ${CANDIDATE_HASH}`);
   const base = { lambda: LAMBDA, points: POINTS };
   let t0 = Date.now(), l0 = load();
   const prod = solvePlan(E, M, plan, { ...base, points: PPOINTS });
@@ -100,6 +104,9 @@ for (const [i, id] of PANEL.entries()) {
   const ran = r => `bridgeRead ${r.meta.bridgeRead} tierState ${!!r.meta.tierState} jointWorlds ${!!r.meta.jointWorlds} e3 ${!!r.meta.e3} pclsInterp ${r.g.pclsInterp} switchCharge ${r.meta.switchCharge} parts ${r.meta.e2 ? r.meta.e2.parts : 1}`;
   console.log(`${''.padEnd(16)} ran CAND: ${ran(one)}`);
   console.log(`${''.padEnd(16)} ran SPLIT: ${ran(split)}`);
+  const menu = r => `tiersBelow ${r.meta.tiersBelow} tableDealing ${r.meta.tableDealing} tsOnce ${r.meta.tsOnce} moves ${r.actions.length}`;
+  console.log(`${''.padEnd(16)} menu CAND: ${menu(one)}`);
+  console.log(`${''.padEnd(16)} menu SPLIT: ${menu(split)}`);
   const A = arrays(one), B = arrays(split);
   console.log(`${''.padEnd(16)} e2x: arrays ${A.length} values ${values(A)} differ ${differ(A, B)} evaluated ${one.meta.evaluated} ${split.meta.evaluated} e3copied ${one.meta.e3 ? one.meta.e3.copied : 0} ${split.meta.e3 ? split.meta.e3.copied : 0}`);
   if (id === 'S126') {

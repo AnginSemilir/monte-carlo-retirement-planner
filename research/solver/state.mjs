@@ -132,6 +132,16 @@ const BLOCKS = {
     const h = pick(T, /^PASS {2}7u-F's candidate reproduces its registered hash (\w+) \((\w+)\); the candidate (\w+) adds/m, m => ({ reg: m[1], got: m[2], cand: m[3] })), fz = pick(T, /^PASS {2}the candidate before the assembly reproduces its recorded hash (\w+) \((\w+)\)/m, m => m[2]);
     return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${h.cand} the same as the decided defaults key for key, 7u-F's ${h.got} and the frozen ${fz} reproduced, its smoke solve running the third step and HR whole. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d29.txt\`).`];
   },
+  // the speed port's build (D30, SPEED-PORT.md step 2): its test in the full form
+  speedport() {
+    const T = 'research/tests/results-speed-port.txt', t = read(T);
+    if (t === null || !/^(ALL PASS|FAILED)/m.test(t)) return [`- pending: ${T}`];   // the full form still running
+    const ids = [...t.matchAll(/^PASS {2}1 {2}(S\d+ \w+) at \d+ points, the option unset: the same as before the port/gm)].map(m => m[1]);
+    const e5 = [...t.matchAll(/^PASS {2}3 {2}(S\d+) at (\d+) points, tableDealing false: every table and layer the same bit for bit with E5 \(\S+; (\d+) s\) and the layer loop \(\S+; (\d+) s\)/gm)].map(m => `${m[1]} at ${m[2]} points (E5 ${m[3]} s, the loop ${m[4]} s)`);
+    const lock = pick(T, /^PASS {2}4 {2}S370 with tableDealing false: the engine and a forward run in step over (\d+) years of (\d+) paths, the largest gap £(\S+) \(.*?\); years with a switch (\d+)/m, m => `${m[1]} years of ${m[2]} paths, the largest gap £${m[3]}, ${m[4]} with a switch`);
+    const plants = [[/^PASS {2}2 {2}planted: the cache keyed on the plan's own vector parts them/m, 'the cache keyed on the wrong vector'], [/^PASS {2}3 {2}planted: E5 with the switch charge dropped parts them/m, 'the switch charge dropped from E5'], [/^PASS {2}4 {2}planted: the engine's policy without the dealing cost parts them by £([\d.]+)/m, 'the engine without the dealing cost']].map(([re, nm]) => { const m = re.exec(t); return `${nm} ${m ? (m[1] ? `(£${m[1]})` : 'caught') : 'NOT CAUGHT'}`; });
+    return [`- The port's build: \`speed-port.test.mjs --full\` ${verdict(T)} (\`results-speed-port.txt\`): the option unset, ${ids.join(', ')} the same as before the port (tables, layers, S370's reference, the engine's outcomes); the \`realAt\` cache the same on and off; with tableDealing false, E5 the same as the layer loop bit for bit on ${e5.join(', ')}; the engine and a forward run in step under it (${lock}); the plants: ${plants.join(', ')}.`];
+  },
   // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
   n4read() {
     const R = 'research/solver/results-n4.txt', t = read(R);

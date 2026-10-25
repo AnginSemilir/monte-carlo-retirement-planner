@@ -237,6 +237,10 @@ function readT3(dir, n4dir) {
       console.log(`    ${row.join(' | ')} | the interaction ${f3(mq)} (${seq.toFixed(3)}) / ${f3(mi)} (${sei.toFixed(3)})`);
     }
   }
+  // the solve's cost against CAND's, unit by unit (four units ran at a time, so a guide for gate 5, not its measurement)
+  const secs = Object.fromEntries(T3_ARMS.map(v => [v, loaded.filter(x => x.v === v)])), med = a => { const q = [...a].sort((x, y) => x - y); return q.length % 2 ? q[q.length >> 1] : (q[q.length / 2 - 1] + q[q.length / 2]) / 2; };
+  const ratio = v => secs[v].map(x => x.secs / secs.CAND.find(c => c.id === x.id && c.w === x.w).secs);
+  if (complete) console.log(`THE SOLVE against CAND's (four units at a time on four cores: a guide for gate 5, not its measurement), the median over the ${secs.CAND.length} household-weights and the range: ${T3_ARMS.slice(1).map(v => { const r = ratio(v); return `${v.replace('CAND+', '')} x${med(r).toFixed(2)} (x${Math.min(...r).toFixed(2)} to x${Math.max(...r).toFixed(2)})`; }).join(', ')}`);
   const verdicts = {};
   console.log('THE PANEL (the mean over the seven households, its se from theirs; the largest and smallest on a household):');
   for (const c of [...T3_CONTRASTS.map(nm), 'interaction']) {

@@ -121,7 +121,7 @@ const BLOCKS = {
     const esc = c => c.replace(/[+]/g, '\\+'), C = ['T3 - CAND', 'HR+T3 - HR', 'HR - CAND', 'HR+T3 - CAND', 'interaction'];
     const panel = C.map(c => `${c} ${['0.02', '0.01'].map(w => pick(R, new RegExp(`^ {2}${esc(c)}\\s+W${w.replace('.', '\\.')}: survival (\\S+) \\(se (\\S+)\\) / score (\\S+) \\(se \\S+\\); on a household survival (\\S+) to (\\S+),`, 'm'), m => `W${w} ${m[1]} (se ${m[2]}) / ${m[3]}, a household ${m[4]} to ${m[5]}`)).join(', ')}`);
     const bars = C.slice(0, 4).map(c => pick(R, new RegExp(`^${esc(c)}: (.*)$`, 'm'), m => `${c}: ${m[1]}`));
-    return [`- The factorial's gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced: ${m[1]}`)} (\`results-n4t3.txt\`).`,
+    return [`- The factorial's gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced: ${m[1]}`)}; ${pick(R, /^THE SOLVE against CAND's \([^)]*\), (.*)$/m, m => `the solve against CAND's (four units at a time: a guide for gate 5), ${m[1]}`)} (\`results-n4t3.txt\`).`,
       `- The panel, survival points (se) / whole score, against the arm named second: ${panel.join('; ')}.`,
       `- ${bars.join('; ')}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`];
   },

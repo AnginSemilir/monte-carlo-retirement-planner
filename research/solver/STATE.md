@@ -278,19 +278,20 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:tiersteps -->
 ### The third tier step's factorial (D28, THIRD-STEP.md step 3; EXPLORATORY, the tuning seed, 45 points; its rule in 42e26f0)
 <!-- printed:n4t3 -->
-- pending: research/solver/results-n4t3.txt
+- The factorial's gate: one code (ae49ee6bcedd), seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; tiersBelow 3 on the T3 arms and 2 on the others, as each unit recorded; N4's units reproduced: CAND and CAND+HR the same bit for bit on 28 of 28 household-weight-arms; the solve against CAND's (four units at a time: a guide for gate 5), the median over the 14 household-weights and the range: HR x1.53 (x1.32 to x1.74), T3 x1.69 (x1.52 to x1.78), HR+T3 x2.63 (x1.92 to x2.86) (`results-n4t3.txt`).
+- The panel, survival points (se) / whole score, against the arm named second: T3 - CAND W0.02 +0.554 (se 0.050) / +0.267, a household -0.025 to +2.225, W0.01 +0.563 (se 0.049) / +0.346, a household +0.000 to +2.038; HR+T3 - HR W0.02 +0.525 (se 0.050) / +0.232, a household -0.025 to +1.900, W0.01 +0.518 (se 0.049) / +0.290, a household +0.000 to +1.775; HR - CAND W0.02 +0.364 (se 0.030) / +0.395, a household +0.000 to +1.712, W0.01 +0.373 (se 0.030) / +0.400, a household +0.000 to +1.688; HR+T3 - CAND W0.02 +0.889 (se 0.052) / +0.626, a household -0.025 to +3.612, W0.01 +0.891 (se 0.052) / +0.690, a household +0.000 to +3.462; interaction W0.02 -0.029 (se 0.041) / -0.035, a household -0.325 to +0.163, W0.01 -0.045 (se 0.041) / -0.056, a household -0.263 to +0.000.
+- T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.015; S370 W0.02 survival +2.225; S224 W0.02 survival +0.650; S248 W0.02 survival +0.600; panel mean W0.02 score +0.267; panel mean W0.02 survival +0.554; S370 W0.01 score +1.237; S370 W0.01 survival +2.038; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.346; panel mean W0.01 survival +0.563; a household loss beyond 0.5 nowhere; HR+T3 - HR: PASSES N4's bar: beyond the targets S370 W0.02 score +0.705; S370 W0.02 survival +1.900; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 survival +0.762; panel mean W0.02 score +0.232; panel mean W0.02 survival +0.525; S370 W0.01 score +0.944; S370 W0.01 survival +1.775; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.290; panel mean W0.01 survival +0.518; a household loss beyond 0.5 nowhere; HR - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.837; S370 W0.02 survival +1.712; S248 W0.02 score +0.893; S248 W0.02 survival +0.800; panel mean W0.02 score +0.395; panel mean W0.02 survival +0.364; S370 W0.01 score +1.815; S370 W0.01 survival +1.688; S248 W0.01 score +0.978; S248 W0.01 survival +0.912; panel mean W0.01 score +0.400; panel mean W0.01 survival +0.373; a household loss beyond 0.5 nowhere; HR+T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +2.542; S370 W0.02 survival +3.612; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 score +1.204; S248 W0.02 survival +1.563; panel mean W0.02 score +0.626; panel mean W0.02 survival +0.889; S370 W0.01 score +2.758; S370 W0.01 survival +3.462; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; S248 W0.01 score +1.104; S248 W0.01 survival +1.387; panel mean W0.01 score +0.690; panel mean W0.01 survival +0.891; a household loss beyond 0.5 nowhere. DECISION (D28, the rule committed before launch): with HR in the candidate, CAND+HR+T3 against CAND+HR PASSES: the third step joins; without HR, CAND+T3 against CAND PASSES: the third step joins. Which reading decides is the maintainer's call on HR (D27).
 <!-- end printed:n4t3 -->
 ## 5. Running now
 
-- The third tier step's factorial (D28), launched 25 Oct 11:13 UK through the launcher: `batch-n4t3.sh` (e768b9e), 56 units,
-  the log `results/n4t3-launch1.log`, the units in `results/n4t3`; after a stop, `RESUME=1`. Read: `n4-menu.mjs --read-t3`.
+- Nothing. The factorial ran 25 Oct 11:13 to 16:09 UK (`results/n4t3-launch1.log`, 56 units, none failed).
 
 ## 6. The next three actions
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. The third tier step (D28): the factorial CAND, +HR, +T3, +HR+T3 (EXPLORATORY; `batch-n4t3.sh`, its rule in `n4-menu.mjs`,
-   committed before launch); on a pass, THIRD-STEP.md step 4 (the candidate, the reviewer, HOW-IT-WORKS); stop before gate 5.
+1. For the maintainer: whether HR joins the candidate (the factorial confirms the third step under either reading, D28).
+   Then THIRD-STEP.md step 4 once, on the candidate so settled: `candidate.json`, `CANDIDATE_HASH`, the reviewer, HOW-IT-WORKS.
 2. Gate 5 (D11, D25, D26) on the candidate as settled, at 45 points (`batch-gate5.sh`), after the maintainer's review on
    time saving. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
    if the candidate changes, a spending item over all years, the whole score on every path and the Node version stamped.

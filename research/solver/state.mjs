@@ -115,6 +115,18 @@ const BLOCKS = {
     }
     return out;
   },
+  // HR decomposed (D27; n4-menu.mjs --read-hr): each half alone against the candidate, and their interaction
+  n4hr() {
+    const R = 'research/solver/results-n4hr.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const rows = [];
+    for (const w of ['0.02', '0.01']) {
+      const sec = t.split(`AT W${w}:`)[1] || '';
+      for (const m of sec.split('\nAT W')[0].matchAll(/^ {2}(S\d+): CAND ([\d.]+)%; against it, survival \(se\) \/ whole score \(se\): HR (\S+) \((\S+)\) \/ (\S+) \(\S+\) \| HRDRAW (\S+) \((\S+)\) \/ \S+ \(\S+\) \| HRWRAP (\S+) \((\S+)\) \/ \S+ \(\S+\) \| the interaction (\S+) \((\S+)\)/gm))
+        rows.push(`${m[1]} W${w}: HR ${m[3]} (se ${m[4]}), the draw-first ceiling alone ${m[6]} (se ${m[7]}), the re-wrap alone ${m[8]} (se ${m[9]}), the interaction ${m[10]} (se ${m[11]})`);
+    }
+    return [`- HR decomposed (D27), survival points against the candidate: ${rows.join('; ')}. ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced on this code: ${m[1]}`)} (\`results-n4hr.txt\`).`];
+  },
   // the speed review's port (D24): each step's test on the ported code, and on the code before it or with its plant
   speed() {
     const T = 'research/tests/', S = `${T}results-solver-scratch.txt`, S1 = `${T}results-solver-memo.txt`, S3 = `${T}results-adaptive-dup.txt`, S2 = `${T}results-chooser-share.txt`, RT = 'research/solver/results-retime-port.txt';

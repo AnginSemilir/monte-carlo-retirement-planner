@@ -39,8 +39,11 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
-- D27. 25 Oct, maintainer, after N4: before HR joins the candidate, its gain on S370 and S248 is split into its draw-first
-  ceiling (`hrdraw`) and its re-wrap ceiling (`hrwrap`), both weights, 45 points (`batch-n4hr.sh`); then the call on HR.
+- D28. 25 Oct, maintainer (THIRD-STEP.md, review/external-2026-10-21 at ed20ac9): the third joint tier step down
+  (`tiersBelow: 3`) joins the candidate, beside HR if HR joins (D27 as settled), once the factorial confirms it; if it does
+  not, it comes back to the maintainer. Where a wrapper cannot take the third step, the household keeps today's ladder.
+- D27. 25 Oct, maintainer, after N4: HR's gain on S370 and S248 split into its draw-first and re-wrap halves before the
+  call on HR (`batch-n4hr.sh`); settled after the read: HR whole is the factorial's HR, and the candidate's if it joins.
 - D26. 24 Oct, maintainer: the candidate is measured at 45 wealth points for gate 5 and registered at 45 for Phase 4 (a
   run setting, as 7u-F's 30 was; `candidate.json` and its hash unchanged); the product's 30 stays until after Phase 4 (D12).
 - D25. 24 Oct, maintainer, after V3's ladder: N4 at 45 wealth points (the coarsest V3 accepts); the speed review's instruction
@@ -264,8 +267,7 @@ household, so its gap is the same resolution effect. The allowance-axis line mov
 <!-- end printed:v34 -->
 ### N4 (Step 6, EXPLORATORY): the build and the read (`n4-design.md`; at 45 wealth points, D25)
 
-The ceiling at the taper threshold (HR) passes N4's bar, on the two pension-heavy households; the midpoints move nothing,
-and the sale up to the capital gains exemption gains a little, under the targets. HR goes to the maintainer.
+HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy households; MID and CGT do not.
 
 <!-- printed:n4read -->
 - N4's gate: one code (44b967169a3c), seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; the product's menu at full scale: CAND on this code the same as V3's 45-point unit bit for bit on 14 of 14 household-weights (`results-n4.txt`).
@@ -273,6 +275,9 @@ and the sale up to the capital gains exemption gains a little, under the targets
 - CAND+MID: does not pass N4's bar; a household loss beyond 0.5 nowhere; at W0.02 the panel mean +0.007 survival (se 0.016) / +0.011 score, a household from -0.063 to +0.037 survival; at W0.01 the panel mean -0.009 survival (se 0.017) / -0.006 score, a household from -0.037 to +0.013 survival.
 - CAND+CGT: does not pass N4's bar; a household loss beyond 0.5 nowhere; at W0.02 the panel mean +0.084 survival (se 0.023) / +0.091 score, a household from +0.000 to +0.300 survival; at W0.01 the panel mean +0.089 survival (se 0.023) / +0.094 score, a household from -0.075 to +0.350 survival.
 <!-- end printed:n4read -->
+<!-- printed:n4hr -->
+- HR decomposed (D27), survival points against the candidate: S370 W0.02: HR +1.712 (se 0.163), the draw-first ceiling alone +0.850 (se 0.127), the re-wrap alone +1.637 (se 0.161), the interaction -0.775 (se 0.140); S248 W0.02: HR +0.800 (se 0.126), the draw-first ceiling alone +0.700 (se 0.114), the re-wrap alone +0.637 (se 0.114), the interaction -0.537 (se 0.129); S370 W0.01: HR +1.688 (se 0.160), the draw-first ceiling alone +0.762 (se 0.112), the re-wrap alone +1.563 (se 0.157), the interaction -0.637 (se 0.132); S248 W0.01: HR +0.912 (se 0.129), the draw-first ceiling alone +0.700 (se 0.112), the re-wrap alone +0.637 (se 0.114), the interaction -0.425 (se 0.122). N4's units reproduced on this code: CAND and CAND+HR the same bit for bit on 8 of 8 household-weight-arms (`results-n4hr.txt`).
+<!-- end printed:n4hr -->
 
 <!-- printed:n4build -->
 - N4's build: `n4-menu.test.mjs --full` ALL PASS: 27 checks (`results-n4-menu.txt`): the product's menu unchanged move for move; each new move against a hand calculation in the engine and the forward run; the two in step on each new menu (hr 3153 household-years, the largest gap £1.12e-8; mid 3171 household-years, the largest gap £7.45e-9; cgt 3311 household-years, the largest gap £1.49e-8; hr+mid+cgt 3128 household-years, the largest gap £1.30e-8); each plant parts them ('hrtop' £783357.46, 'midband' £695833.40, 'nobasis' £2579102.56); S2's shared scores the same as scoreMoves' under the new menus (12807180 checked).
@@ -287,13 +292,8 @@ and the sale up to the capital gains exemption gains a little, under the targets
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. HR decomposed (D27), EXPLORATORY: `n4-menu.mjs --hr` on S370 and S248, CAND, HR, HRDRAW, HRWRAP at both weights
-   (16 units, about two hours), CAND and HR checked bit for bit against N4's units; read by `--read-hr`. Then the
-   maintainer's call on HR (if it joins: the reviewer, HOW-IT-WORKS section 4, Phase 4's no-harm item, gate 5 on its
-   menu). Open as well: N1 before or after Phase 4 registers; V5's interval (D20 (9)), N6's charge, the timing page.
-2. Gate 5 (D11, D25, D26), on the candidate as the maintainer settles it, at 45 points: `batch-gate5.sh` through the
-   launcher with nothing else running, `reduce-gate5.mjs` reading it (about an hour).
-3. Phase 4 registers after N4 reads (D22), the maintainer's calls (its harm rule by error rates, D20 (2); its budget
-   measured with nothing else running, D21) and gate 5 against the ported product after instruction 6 (D11, D25). It
-   carries a no-harm item against SHIP if the candidate changes, a spending item over all years, the whole score on every
-   path, a fresh held-out seed, and the Node version in the unit stamp, equal across arms.
+1. The third tier step (D28), THIRD-STEP.md's steps 1 to 4 in order: the option `tiersBelow` (off at 2) and its tests
+   (`tier-steps.test.mjs`, four hours); then the factorial CAND, +HR, +T3, +HR+T3 (EXPLORATORY, its rule committed first).
+2. Gate 5 (D11, D25, D26) on the candidate as settled, at 45 points (`batch-gate5.sh`), after the maintainer's review on
+   time saving. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
+   if the candidate changes, a spending item over all years, the whole score on every path and the Node version stamped.

@@ -66,6 +66,9 @@ mkdirSync(OUT, { recursive: true });
 // the arms' solves and the settings each must have run (the package by its meta, the rest as 7u's want lists)
 const DECOMP_OPTS = (() => { const { readerRef, adaptiveLattice, ...rest } = CANDIDATE_OPTS; return rest; })();
 if (CANDIDATE_OPTS.readerRef !== 'adaptive' || !CANDIDATE_OPTS.adaptiveLattice || CANDIDATE_OPTS.readerSplit !== 'rs') { console.error('audit-7uf: the candidate does not carry the adaptive package'); process.exit(2); }
+// 7u-F's arms as registered (registrations/fresh-7uf.md: CAND e65e5e99ba49): since D29 the candidate carries the third tier
+// step and HR (candidate.json), so a run here would be neither registered arm; it refuses rather than run 7u-F's name on them
+if (CANDIDATE_HASH !== 'e65e5e99ba49') { console.error(`audit-7uf: the candidate is ${CANDIDATE_HASH}, not 7u-F's registered e65e5e99ba49 (D29 changed it): this audit runs 7u-F's arms only`); process.exit(2); }
 const solveArm = (arm, plan, base) => arm === 'SHIP' ? solvePlan(E, M, candidatePlan(E, plan), base)
   : solveCandidate(E, M, plan, arm === 'CAND' ? base : { ...base, readerRef: undefined, adaptiveLattice: undefined });
 // the arms' checks (WANT, the lattice, the engine's context) are in audit-7uf-checks.mjs, planted there

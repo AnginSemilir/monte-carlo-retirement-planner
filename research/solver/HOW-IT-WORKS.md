@@ -116,13 +116,27 @@ below the floor), and, where the
 household may change risk, at each risk tier on offer (the plan's own, the two below it, and one above
 it where the plan is thin and the household consents).
 
-Two honest caveats. First, the menu is smaller than this page once described: there is no higher-rate
-ceiling, no point in the middle of a band, no choice to sell the taxable account up to the capital gains
-exemption, and no choice of pension contribution in working years (contributions follow the plan as
-entered). Second, the corner argument holds for the tax, not for what the money is worth later, which
-is curved, so the best move can sit inside a band. "Close to the best possible" therefore means the best
-within this menu; a richer menu is a test still to run (the external review of 21 Oct, Part B, N4),
-and a move joins only where it beats this one by more than the measurement's noise.
+The research candidate's menu is larger by two things, each measured before it joined (the maintainer, 25
+Oct, after N4 and the factorial that tested them together; STATE.md D28 and D29). Neither is the app's
+until Phase 4.
+
+- One more corner, the taper threshold: £100,000 of income, where the personal allowance starts to be
+  withdrawn and each further pound costs 60p. The pension may be drawn first up to it, and the pension
+  beyond the year's need may be re-wrapped up to it. That is 40 withdrawal moves in place of 24.
+- A third tier step down: the pension and the ISA may move together one, two or three tiers below the
+  plan's own, but never into Cash Equivalents past the second step. A household whose pension or ISA
+  sits too low to take the third step keeps the two-step ladder, the tier above included.
+
+Two honest caveats. First, the menu is smaller than this page once described: there is no ceiling in the
+higher-rate band (the candidate's taper threshold apart), no point in the middle of a band, no choice to
+sell the taxable account up to the capital gains exemption, and no choice of pension contribution in
+working years (contributions follow the plan as entered). N4 tried the midpoints and the sale, and
+neither cleared its bar, which asks a new move to beat this menu beyond the measurement's noise and by
+more than 0.2 points on the panel's average or 0.5 on one household, in survival or in the whole score:
+the midpoints moved nothing beyond noise, and the sale gained a little beyond noise, but less than the
+bar asks (STATE.md, N4's read). Second, the corner argument holds for the tax, not for what the money is
+worth later, which is curved, so the best move can sit inside a band. "Close to the best possible"
+therefore means the best within this menu, and a move joins only where it clears that bar.
 
 ## 5. Handling uncertainty without thousands of paths
 

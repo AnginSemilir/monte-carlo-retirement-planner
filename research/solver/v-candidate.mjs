@@ -12,7 +12,9 @@
  *      under the adaptive reference) are held to the same bar.
  *   node research/solver/v-candidate.mjs <id>          one household's lines
  *   node research/solver/v-candidate.mjs --read <dir>  the verdict over the households' outputs (<dir>/<id>.txt)
- * Exploratory (no seed of the registry): a check of the candidate's code before 7u-F registers, not a test of a default.
+ * Exploratory (no seed of the registry): a check of the candidate's code before 7u-F registers, not a test of a default;
+ * run again on the candidate as D29 left it (the third tier step and HR whole; results-v-candidate-d29.txt), the read
+ * naming the candidate each household's solve ran.
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -33,8 +35,10 @@ if (process.argv[2] === '--read') {
   const bar = Math.max(...CONTROLS.map(id => rows[id].d)) + 1;
   for (const id of HOUSEHOLDS) rows[id].text.forEach(l => console.log(`${id.padEnd(5)} ${l}`));
   const v1ok = HOUSEHOLDS.every(id => rows[id].v1 === 'PASS'), v2ok = [...LARGE, ...BRIDGE].every(id => rows[id].d <= bar);
-  console.log(`V1 on the assembled candidate: ${v1ok ? 'ALL PASS' : 'FAILED'} (${HOUSEHOLDS.filter(id => rows[id].v1 === 'PASS').length} of ${HOUSEHOLDS.length} households)`);
-  console.log(`V2 on the assembled candidate: the controls' bar ${bar}; ${[...LARGE, ...BRIDGE].map(id => `${id} ${rows[id].mo} / ${rows[id].eo}`).join(', ')}: ${v2ok ? 'ALL PASS' : 'FAILED'}`);
+  const cands = [...new Set(HOUSEHOLDS.flatMap(id => rows[id].text.map(l => (/the candidate (\w+)/.exec(l) || [])[1]).filter(Boolean)))], on = cands.length === 1 && cands[0] !== 'e65e5e99ba49' ? `the candidate ${cands[0]}` : 'the assembled candidate';
+  if (cands.length > 1) { console.log(`NOT ONE CANDIDATE: the households solved ${cands.join(', ')}`); process.exit(1); }
+  console.log(`V1 on ${on}: ${v1ok ? 'ALL PASS' : 'FAILED'} (${HOUSEHOLDS.filter(id => rows[id].v1 === 'PASS').length} of ${HOUSEHOLDS.length} households)`);
+  console.log(`V2 on ${on}: the controls' bar ${bar}; ${[...LARGE, ...BRIDGE].map(id => `${id} ${rows[id].mo} / ${rows[id].eo}`).join(', ')}: ${v2ok ? 'ALL PASS' : 'FAILED'}`);
   process.exit(v1ok && v2ok ? 0 : 1);
 }
 

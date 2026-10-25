@@ -17,10 +17,10 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 ## 2. The candidate and the product baseline
 
 <!-- printed:candidate -->
-- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, and frozen until 7u-F reads): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs"; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash e65e5e99ba49; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
+- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"]; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash 2af03eddad28; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: 3a61076914b615b6 (25 Oct, 10:33 UK); the code now: 3a61076914b615b6.
+- The solver code the e3pcls pin last passed on: 7c5d2d82a14e16c8 (25 Oct, 16:53 UK); the code now: 7c5d2d82a14e16c8.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -30,7 +30,7 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 {"raiseCap": 1.1, "minPotYears": 1, "estateWeightMin": 0.01, "thinSurvival": 0.85, "thinPaths": 1000, "thinSeed": 7101,
  "raiseSurvival": true, "failureShortfall": true, "finalIntegral": true, "riskAboveDefault": "auto", "giaTiers": "refused", "bridgeRead": false, "e3": false, "e3Research": true, "pclsInterp": false, "pclsInterpResearch": true, "e3pcls": false, "e3pclsResearch": true,
  "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true,
-   "readerRef": "adaptive", "adaptiveLattice": {"na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiers": "o60-blend"},
+   "readerRef": "adaptive", "adaptiveLattice": {"na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tiers": "o60-blend"},
  "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only"}
 -->
 
@@ -39,6 +39,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D29. 25 Oct, maintainer, after the factorial (the third step passes with HR in and without it): HR whole joins the
+  candidate beside the third step (`candidate.json`: `menuPlus` ["hr"], `tiersBelow` 3), THIRD-STEP.md step 4; stop before gate 5.
 - D28. 25 Oct, maintainer (THIRD-STEP.md, review/external-2026-10-21 at ed20ac9): the third joint tier step down
   (`tiersBelow: 3`) joins the candidate, beside HR if HR joins (D27 as settled), once the factorial confirms it; if it does
   not, it comes back to the maintainer. Where a wrapper cannot take the third step, the household keeps today's ladder.
@@ -61,20 +63,16 @@ lapsed; they stay in the archive.
 - D21. 22 Oct, maintainer: 7u-F, past its budget, ran its CAND and SHIP units before DECOMP's and was read once when they
   were in; on a clean PASS DECOMP stopped (it did). Phase 4's budget is measured on this machine, with nothing else running,
   before it is registered.
-- D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, on the branch
-  review/external-2026-10-21, not merged) is adopted, its ten answers to PROGRESS.md's questions and its Next section.
-  The answers: (1) the one-pot oracle's table gap is a diagnostic, kept REPORTED; V3 accepts a resolution by the
-  policy's convergence, prints the one-pot error at each resolution beside it, and fails if that error stops shrinking
-  as points are added; (2) D3 stands for 7u-F; Phase 4's harm rule is registered by its error rates at the margin (the
-  maintainer's call); (3) the reach count is dropped, its 19 households recorded in one line; (4) V2 gains a state
-  check after 7u-F: the engine and a forward run in step, the engine's state mapped into the solver's vector compared
-  slot by slot to a pound, and an inventory test of every engine state field as carried, derived or inert under a
-  table; (5) the pre-tool hook's interpreter-script check is reverted under the maintainer's unlock, CI printing the
-  protected files each push changed and the session start the same for the last day; (6) the argmax loops in
-  `adaptive.js` and `couple.js` are guarded right after 7u-F, each with a planted NaN; (7) the decomposing arm stays as
-  built; (8) V3 adds S330 (seven households, or in place of S002); V4 drops probit and counts V3's finest setting as a
-  variant; (9) V5's interval after 7u-F, the maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 is
-  a standalone page built from `src/solver` that the maintainer runs on a laptop and a phone.
+- D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, review/external-2026-10-21,
+  not merged) is adopted, its ten answers and its Next section: (1) the one-pot oracle's table gap a REPORTED diagnostic; V3
+  accepts a resolution by the policy's convergence, printing the one-pot error beside it and failing if it stops shrinking;
+  (2) D3 stands for 7u-F; Phase 4's harm rule is registered by its error rates at the margin (the maintainer's call); (3) the
+  reach count dropped; (4) V2 gains a state check after 7u-F (the engine's state mapped into the solver's vector, slot by slot
+  to a pound, and an inventory of every engine state field); (5) the hook's interpreter-script check reverted, CI and the
+  session start printing the protected files changed; (6) the argmax loops in `adaptive.js` and `couple.js` guarded after
+  7u-F; (7) the decomposing arm as built; (8) V3 adds S330; V4 drops probit and counts V3's finest setting as a variant;
+  (9) V5's interval after 7u-F, the maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 a standalone
+  page built from `src/solver`, run by the maintainer on a laptop and a phone.
 - D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement
   is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
 - D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated
@@ -282,6 +280,10 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 - The panel, survival points (se) / whole score, against the arm named second: T3 - CAND W0.02 +0.554 (se 0.050) / +0.267, a household -0.025 to +2.225, W0.01 +0.563 (se 0.049) / +0.346, a household +0.000 to +2.038; HR+T3 - HR W0.02 +0.525 (se 0.050) / +0.232, a household -0.025 to +1.900, W0.01 +0.518 (se 0.049) / +0.290, a household +0.000 to +1.775; HR - CAND W0.02 +0.364 (se 0.030) / +0.395, a household +0.000 to +1.712, W0.01 +0.373 (se 0.030) / +0.400, a household +0.000 to +1.688; HR+T3 - CAND W0.02 +0.889 (se 0.052) / +0.626, a household -0.025 to +3.612, W0.01 +0.891 (se 0.052) / +0.690, a household +0.000 to +3.462; interaction W0.02 -0.029 (se 0.041) / -0.035, a household -0.325 to +0.163, W0.01 -0.045 (se 0.041) / -0.056, a household -0.263 to +0.000.
 - T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.015; S370 W0.02 survival +2.225; S224 W0.02 survival +0.650; S248 W0.02 survival +0.600; panel mean W0.02 score +0.267; panel mean W0.02 survival +0.554; S370 W0.01 score +1.237; S370 W0.01 survival +2.038; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.346; panel mean W0.01 survival +0.563; a household loss beyond 0.5 nowhere; HR+T3 - HR: PASSES N4's bar: beyond the targets S370 W0.02 score +0.705; S370 W0.02 survival +1.900; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 survival +0.762; panel mean W0.02 score +0.232; panel mean W0.02 survival +0.525; S370 W0.01 score +0.944; S370 W0.01 survival +1.775; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.290; panel mean W0.01 survival +0.518; a household loss beyond 0.5 nowhere; HR - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.837; S370 W0.02 survival +1.712; S248 W0.02 score +0.893; S248 W0.02 survival +0.800; panel mean W0.02 score +0.395; panel mean W0.02 survival +0.364; S370 W0.01 score +1.815; S370 W0.01 survival +1.688; S248 W0.01 score +0.978; S248 W0.01 survival +0.912; panel mean W0.01 score +0.400; panel mean W0.01 survival +0.373; a household loss beyond 0.5 nowhere; HR+T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +2.542; S370 W0.02 survival +3.612; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 score +1.204; S248 W0.02 survival +1.563; panel mean W0.02 score +0.626; panel mean W0.02 survival +0.889; S370 W0.01 score +2.758; S370 W0.01 survival +3.462; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; S248 W0.01 score +1.104; S248 W0.01 survival +1.387; panel mean W0.01 score +0.690; panel mean W0.01 survival +0.891; a household loss beyond 0.5 nowhere. DECISION (D28, the rule committed before launch): with HR in the candidate, CAND+HR+T3 against CAND+HR PASSES: the third step joins; without HR, CAND+T3 against CAND PASSES: the third step joins. Which reading decides is the maintainer's call on HR (D27).
 <!-- end printed:n4t3 -->
+### The candidate after the factorial (D29; THIRD-STEP.md step 4): the third tier step and HR whole join
+<!-- printed:cand29 -->
+- `candidate.test.mjs` 48 passed, 0 failed (`results-candidate.txt`): the candidate 2af03eddad28 the same as the decided defaults key for key, 7u-F's e65e5e99ba49 and the frozen a61dba4ee1f5 reproduced, its smoke solve running the third step and HR whole. V1 on the candidate 2af03eddad28: ALL PASS (7 of 7 households); V2 on the candidate 2af03eddad28: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate-d29.txt`).
+<!-- end printed:cand29 -->
 ## 5. Running now
 
 - Nothing. The factorial ran 25 Oct 11:13 to 16:09 UK (`results/n4t3-launch1.log`, 56 units, none failed).
@@ -290,8 +292,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. For the maintainer: whether HR joins the candidate (the factorial confirms the third step under either reading, D28).
-   Then THIRD-STEP.md step 4 once, on the candidate so settled: `candidate.json`, `CANDIDATE_HASH`, the reviewer, HOW-IT-WORKS.
-2. Gate 5 (D11, D25, D26) on the candidate as settled, at 45 points (`batch-gate5.sh`), after the maintainer's review on
-   time saving. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
-   if the candidate changes, a spending item over all years, the whole score on every path and the Node version stamped.
+1. The maintainer's review on time saving; then gate 5 on the candidate as D29 left it, at 45 points against the product at
+   30 (`batch-gate5.sh`), its logs first stamped with the candidate each timed (the reviewer of 25 Oct, finding 2).
+2. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
+   (the candidate changed after 7u-F, D29), a spending item over all years, the whole score on every path and the Node version stamped.

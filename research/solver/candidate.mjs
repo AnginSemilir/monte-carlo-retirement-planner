@@ -36,6 +36,12 @@
  * on the candidate before the assembly (an arm adds or removes the package itself) spreads FROZEN_OPTS, so it means what it
  * meant; 7u's audit solves FROZEN_OPTS as 7u's CAND.
  *
+ * AFTER 7U-F (STATE.md D28, D29; the maintainer, 25 Oct, after the factorial, results-n4t3.txt): the third joint tier step
+ * down, tiersBelow 3 (fast.js tiersFor; a household whose pension or ISA cannot take it keeps today's ladder), and HR whole,
+ * menuPlus ['hr'] (N4's pension ceiling at the taper threshold, as a draw-first and a re-wrap ceiling; n4-design.md). 7u-F's
+ * candidate is candidate.json less these keys (ASSEMBLED_OPTS, its hash e65e5e99ba49 as 7u-F registered it); a script whose
+ * arms add a menu key to the candidate (n4-menu.mjs) spreads ASSEMBLED_OPTS, so it means what it meant.
+ *
  * Use solveCandidate, or spread CANDIDATE_OPTS first and a test's own arm options after it, never before it
  * (an arm's pclsInterp false before the spread is silently overwritten: research/tests/candidate.test.mjs scans for it).
  */
@@ -51,9 +57,12 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v === 'object') deepFreeze(v); }); return Object.freeze(o); };
 export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
 if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
-/* the adaptive package's keys (D5), and the candidate before the assembly: candidate.json less them */
+/* the menu's keys joined after 7u-F (D28, D29), and 7u-F's candidate: candidate.json less them */
+export const MENU_KEYS = Object.freeze(['tiersBelow', 'menuPlus']);
+export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !MENU_KEYS.includes(k))));
+/* the adaptive package's keys (D5), and the candidate before the assembly: 7u-F's less them */
 export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
-export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
+export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(ASSEMBLED_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
 /* the tier set the candidate's plan carries: O60's blend medians (candidatePlan) */
 export const CANDIDATE_TIERS = 'o60-blend';
 /* a configuration's hash: its options, the tier set and the tiers' reals (state.mjs prints the same) */
@@ -75,8 +84,8 @@ export function candidatePlan(E, plan, reals = blendReals()) {
   for (const [k, p] of Object.entries(base.riskProfiles)) rp[k] = TIERS.includes(k) ? { ...p, real: reals[k] } : { ...p };
   return { ...plan, riskProfiles: rp, riskSource: '' };
 }
-/* the assembled candidate's hash and the frozen one's (a61dba4ee1f5 before the assembly; candidate.test.mjs pins both) */
-export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS);
+/* the candidate's hash, 7u-F's (e65e5e99ba49) and the frozen one's (a61dba4ee1f5 before the assembly; candidate.test.mjs pins them) */
+export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS);
 /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
    FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
 export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {

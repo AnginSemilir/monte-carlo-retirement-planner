@@ -73,7 +73,9 @@ async function unit(id, v, w, out = OUT) {
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const menuPlus = VARIANTS[v], base = { lambda: LAMBDA, points: PTS, bequestWeight: Number(w), ...(menuPlus.length ? { menuPlus } : {}), ...(BELOW[v] ? { tiersBelow: BELOW[v] } : {}) };
   const t0 = Date.now();
-  const r = C.solveCandidate(E, M, plan, base);   // e3pcls guard: solveCandidate checks the pin itself
+  // 7u-F's candidate (ASSEMBLED_OPTS: candidate.json less the menu keys D28 and D29 added), so CAND and each arm mean what
+  // they meant when N4, HR decomposed and the factorial ran; e3pcls guard: solveCandidate checks the pin itself
+  const r = C.solveCandidate(E, M, plan, base, C.ASSEMBLED_OPTS);
   const secs = (Date.now() - t0) / 1000, T = r.m.ctx.totalYears;
   const paths = E.pathsForSeed(SEED, NPATHS, T), tr = makeTrace(NPATHS, T + 1), surv = new Uint8Array(NPATHS);
   paths.forEach((zs, k) => { tr.row = k; if (S.runPolicy(r, Float64Array.from(zs), { trace: tr }).survived) surv[k] = 1; });
@@ -81,7 +83,7 @@ async function unit(id, v, w, out = OUT) {
   const ws = Float32Array.from(wholeScore(bs, Number(w), tr.Y)), sim = 100 * surv.reduce((a, x) => a + x, 0) / NPATHS;
   console.log(`n4 ${id} ${v} W${w}: menuPlus ${menuPlus.join('+') || '-'}, tiersBelow ${r.meta.tiersBelow}, ${r.actions.length} moves, ${PTS} points; code ${code}; survival ${sim.toFixed(4)}, whole score ${(ws.reduce((a, x) => a + x, 0) / NPATHS).toFixed(4)} on ${NPATHS} (seed ${SEED}); solve ${Math.round(secs)} s`);
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, tiersBelow: r.meta.tiersBelow, moves: r.actions.length, points: PTS, candidate: C.CANDIDATE_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
+  writeFileSync(join(out, `${id}-${v}-w${w}.json.gz`), gzipSync(JSON.stringify({ id, v, w, menuPlus, tiersBelow: r.meta.tiersBelow, moves: r.actions.length, points: PTS, candidate: C.ASSEMBLED_HASH, code, seed: SEED, N: NPATHS, sim, secs, survived: b64(surv), whole: b64(ws) })));
 }
 
 /* the paired change b - a over the paths, in the whole score and in survival points, each with its se */

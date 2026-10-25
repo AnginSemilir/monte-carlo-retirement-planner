@@ -11,5 +11,7 @@
   "e3pcls": true,
   "readerRef": "adaptive",
   "adaptiveLattice": { "na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true },
-  "readerSplit": "rs"
+  "readerSplit": "rs",
+  "tiersBelow": 3,
+  "menuPlus": ["hr"]
 }

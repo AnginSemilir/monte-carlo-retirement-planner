@@ -76,7 +76,7 @@ the dealing cost) and the `realAt` cache.
 
 - **E5 is exact.** Its tables are the same as the prototype loop's, bit for bit:
   - S370 at 4 points: 0 of 3,576,960 values differ; the plant (the switch charge dropped) parts 1,724,934;
-  - S224 at 6 points: running;
+  - S224 at 6 points: 0 of 4,782,240 values differ; the plant parts 2,566,024;
   - S370 at 45 points: the same hash (662f328764a48d2e), E5 in 629.4 s against the loop's 881.4 s.
 - **The `realAt` cache is exact.** S248 at 6 points: the same hash with the cache and without, for the candidate as it
   stands and for E5.

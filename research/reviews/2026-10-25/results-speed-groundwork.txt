@@ -1,5 +1,5 @@
 THE SPEED GROUNDWORK FOR GATE 5 (EXPLORATORY; the external review, 25 Oct): SPEED-GROUNDWORK.md.
-This machine, one core each, two jobs sharing two cores. The agent's code at 52b0b6c (src/solver the same at c28e729); the prototype is scripts/speed/n1.patch on it.
+This machine, one core each, two jobs sharing two cores. The agent's code at 52b0b6c (src/solver the same at c28e729); the prototype is scripts/speed/n1.patch on it, the second cut scripts/speed/e5.patch.
 
 == GATE 5'S GAP: node scripts/speed/speed-read.mjs time/ purpose/logs/ n1-S370.log n1-S248.log
 THE CANDIDATE, AS IT STANDS: household | the product, 30 points (s) | the candidate, 45 points (s) | one core | over four cores (E2 at 4.3 to 3.7)
@@ -12,6 +12,10 @@ THE PROTOTYPE (the table without the dealing cost): household | the prototype (s
   S126 | 670.5 (alone) | no clean solve of the candidate to set it against | 1.02 to 1.18
   S248 | 786 (one process with the candidate's 1528) | 1.94 times | 1.21 to 1.40
   S370 | 872 (one process with the candidate's 1688) | 1.94 times | 1.38 to 1.61
+THE PROTOTYPE WITH E5 (each move once a cell, and realAt cached; the same tables as the prototype): household | the solve (s) | against the candidate on one core | its ratio over four cores | its tables, against the prototype loop's on this code
+  S126 | 525.4 | no clean solve of the candidate | 0.80 to 0.93 | not run
+  S248 | 500.3 | 3.05 times | 0.77 to 0.89 | not run
+  S370 | 629.4 | 2.68 times | 1.00 to 1.16 | the same (hash 662f328764a48d2e; the loop 881.4 s)
 gate 5: at most 1.25 on each household
 
 == THE COUNT: node scripts/speed/count.mjs S370 6 [n1], on scripts/speed/n1-count.patch with SPEED_COUNT=1
@@ -194,3 +198,29 @@ by file:
 21:01:55 S248 HRT3, the table without the dealing cost: solved in 786 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)
 21:01:55 the tables at the plan's own tier pair: the policy differs at 7459 of 758160 cells (0.98%); the survival table's largest change 1.167e-2; the solve 1.94 times as fast
 21:05:47 on 2000 paths of seed 7002: survival 55.00% then 54.85%; the table without the dealing cost less as it stands, paired: survival -0.150 points (se 0.180; 5 saved, 8 lost), whole score -0.140 (se 0.181)
+
+== E5'S IDENTITY: node scripts/speed/e5-identity.mjs (on e5.patch) (e5-identity-S370-4)
+S370 at 4 points, the candidate as it stands: 188 s, 2760 arrays, 3576960 values, hash a02ab3e6a734aae7
+S370 at 4 points, the prototype, its layer loop: 153 s, 2760 arrays, 3576960 values, hash 64f1556b5e47840c
+S370 at 4 points, the prototype with E5: 125 s, 2760 arrays, 3576960 values, hash 64f1556b5e47840c
+S370 at 4 points, E5 planted (the switch charge dropped): 129 s, 2760 arrays, 3576960 values, hash 36c1f37a1439c1a2
+S370: E5 against the loop: 0 of 3576960 values differ: THE SAME BIT FOR BIT; the plant against the loop: 1724934 differ: CAUGHT; E5 1.22 times as fast as the loop
+
+== E5'S IDENTITY: node scripts/speed/e5-identity.mjs (on e5.patch) (e5-identity-S224-6)
+S224 at 6 points, the candidate as it stands: 142 s, 2460 arrays, 4782240 values, hash f2035ad05276e6b2
+S224 at 6 points, the prototype, its layer loop: 71 s, 2460 arrays, 4782240 values, hash 23e6cd0dc33c1fb8
+S224 at 6 points, the prototype with E5: 53 s, 2460 arrays, 4782240 values, hash 23e6cd0dc33c1fb8
+S224 at 6 points, E5 planted (the switch charge dropped): 51 s, 2460 arrays, 4782240 values, hash 71e7b1a33e50b2da
+S224: E5 against the loop: 0 of 4782240 values differ: THE SAME BIT FOR BIT; the plant against the loop: 2566024 differ: CAUGHT; E5 1.34 times as fast as the loop
+
+== E5 AT 45 POINTS AND THE LOOP, S370 (time-e5.mjs; the tables hashed)
+{"who":"S370","arm":"HRT3-E5","points":45,"secs":629.437,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"662f328764a48d2e","realAt":"cached"}
+{"who":"S370","arm":"HRT3-N1LOOP","points":45,"secs":881.443,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"662f328764a48d2e","realAt":"cached"}
+
+== THE realAt CACHE: time-e5.mjs S248 6 CAND and E5, with REALAT_NOCACHE=1 and without
+== S248-6-CAND-nocache: {"who":"S248","arm":"HRT3-CAND","points":6,"secs":186.323,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"583780ad104ff04e","realAt":"uncached"}
+== S248-6-E5-nocache: {"who":"S248","arm":"HRT3-E5","points":6,"secs":59.881,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"d6e3e053cddef561","realAt":"uncached"}
+== S248-6-CAND: {"who":"S248","arm":"HRT3-CAND","points":6,"secs":169.276,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"583780ad104ff04e","realAt":"cached"}
+== S248-6-E5: {"who":"S248","arm":"HRT3-E5","points":6,"secs":58.62,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"d6e3e053cddef561","realAt":"cached"}
+S248 at 6 points, CAND: realAt uncached 583780ad104ff04e, cached 583780ad104ff04e: THE SAME
+S248 at 6 points, E5: realAt uncached d6e3e053cddef561, cached d6e3e053cddef561: THE SAME

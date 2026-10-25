@@ -280,8 +280,8 @@ and the sale up to the capital gains exemption gains a little, under the targets
 <!-- end printed:n4build -->
 ## 5. Running now
 
-- Nothing. N4 ran 24 Oct 20:20 UK to 25 Oct 00:25 UK on 6f9ee41's code, relaunched once after a container restart
-  (`results/n4-launch1.log`, `n4-launch2.log`; the units in `results/n4`), 56 units, none failed.
+- HR decomposed (D27), launched 25 Oct 08:20 UK through the launcher: `batch-n4hr.sh` (58da8b6), 16 units, the log
+  `results/n4hr-launch1.log`, the units in `results/n4hr`; after a stop, `RESUME=1`. (N4's logs: `results/n4-launch*.log`.)
 
 ## 6. The next three actions
 

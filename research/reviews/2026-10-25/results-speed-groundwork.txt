@@ -1,0 +1,193 @@
+THE SPEED GROUNDWORK FOR GATE 5 (EXPLORATORY; the external review, 25 Oct): SPEED-GROUNDWORK.md.
+This machine, one core each, two jobs sharing two cores. The agent's code at 52b0b6c (src/solver the same at c28e729); the prototype is scripts/speed/n1.patch on it.
+
+== GATE 5'S GAP: node scripts/speed/speed-read.mjs time/ purpose/logs/ n1-S370.log n1-S248.log
+THE CANDIDATE, AS IT STANDS: household | the product, 30 points (s) | the candidate, 45 points (s) | one core | over four cores (E2 at 4.3 to 3.7)
+  S224 | 139.8 | 1403 | 10.03 | 2.33 to 2.71
+  S248 | 151.3 | 1514 | 10.01 | 2.33 to 2.70
+  S330 | 144.9 | 1650 | 11.39 | 2.65 to 3.08
+  S370 | 146.7 | 1671 | 11.39 | 2.65 to 3.08
+  S380 | 143.1 | 1676 | 11.71 | 2.72 to 3.16
+THE PROTOTYPE (the table without the dealing cost): household | the prototype (s) | its speed-up on one core | its ratio over four cores
+  S126 | 670.5 (alone) | no clean solve of the candidate to set it against | 1.02 to 1.18
+  S248 | 796.0 (alone) | 1.90 times, against the purpose test's solve | 1.22 to 1.42
+  S370 | 872 (one process with the candidate's 1688) | 1.94 times | 1.38 to 1.61
+gate 5: at most 1.25 on each household
+
+== THE COUNT: node scripts/speed/count.mjs S370 6 [n1], on scripts/speed/n1-count.patch with SPEED_COUNT=1
+S370 at 6 points, the latest candidate (e3pcls as the candidate has it), 286 s: the tier state's loop looked up 304588800 expectations and skipped 248332800 failing moves; computed 80334426 (26.4% of lookups): at a switch's charged position 57384756 (71.4% of those computed), uncharged 22949670; the memo answered 224254374
+S370 at 6 points, the latest candidate with the table without the dealing cost (e3pcls as the candidate has it), 194 s: the tier state's loop looked up 304588800 expectations and skipped 248332800 failing moves; computed 22994220 (7.5% of lookups): at a switch's charged position 0 (0.0% of those computed), uncharged 22994220; the memo answered 281594580
+
+== THE PROFILE S126-PRODUCT: node --cpu-prof (SOLVER_PROFILE=1) scripts/speed/prof-arm.mjs or time-n1.mjs, read by cpu-top.mjs
+{"who":"S126","arm":"PRODUCT","points":30,"secs":182.61,"moves":360,"tierState":null,"cells":9720,"evaluated":46656000,"profile":{"totalMs":182279,"flowMs":46393,"nodesMs":73383,"otherMs":40881,"flows":46656000,"skipped":93312000,"cells":388800},"memo":{"hits":221743773,"misses":78451947},"tsCount":null}
+total 183.6 s sampled
+ 21.7%     39.9 s  solve solver/solve.js:335
+ 18.1%     33.3 s  readValues solver/grid.js:322
+  9.7%     17.8 s  grossForNet solver/fast.js:677
+  8.3%     15.3 s  flow solver/fast.js:382
+  7.7%     14.2 s  expit solver/grid.js:41
+  7.1%     13.1 s  now :0
+  5.4%      9.9 s  grow solver/fast.js:710
+  4.3%      7.9 s  locInto solver/grid.js:309
+  2.8%      5.2 s  now solver/solve.js:814
+  2.0%      3.7 s  drawPension solver/fast.js:450
+  2.0%      3.7 s  realAt solver/solve.js:179
+  1.7%      3.1 s  (garbage collector) :0
+  1.4%      2.6 s  memoPut solver/solve.js:873
+  1.4%      2.5 s  (anon) solver/fast.js:696
+  0.9%      1.7 s  params.dividendTax research/engine.mjs:1241
+  0.9%      1.7 s  finalYearExact solver/solve.js:224
+by file:
+ 30.7%  solver/solve.js
+ 30.2%  solver/grid.js
+ 27.3%  solver/fast.js
+  8.8%  
+  1.3%  research/engine.mjs
+  1.0%  node
+  0.6%  perf/performance
+  0.0%  policy-study/scenarios.mjs
+  0.0%  esm/utils
+  0.0%  bootstrap/realm
+  0.0%  esm/resolve
+  0.0%  streams/writable
+
+== THE PROFILE S126-HRT3: node --cpu-prof (SOLVER_PROFILE=1) scripts/speed/prof-arm.mjs or time-n1.mjs, read by cpu-top.mjs
+{"who":"S126","arm":"HRT3","points":45,"secs":1667.181,"moves":800,"tierState":"0/0,1/1,2/2,3/3","cells":14580,"evaluated":81820000,"profile":{"totalMs":1666629,"flowMs":114247,"nodesMs":0,"otherMs":1535873,"flows":81820000,"skipped":245460000,"cells":409100},"memo":{"hits":2255140566,"misses":640797354},"tsCount":null}
+total 1668.3 s sampled
+ 33.5%    559.0 s  solve solver/solve.js:335
+ 26.4%    440.5 s  readValues solver/grid.js:322
+  8.8%    147.1 s  locInto solver/grid.js:309
+  7.5%    125.6 s  expit solver/grid.js:41
+  5.2%     86.3 s  chargeSwitch solver/fast.js:159
+  4.9%     81.5 s  grow solver/fast.js:710
+  2.6%     43.4 s  grossForNet solver/fast.js:677
+  2.2%     36.6 s  flow solver/fast.js:382
+  1.7%     29.0 s  realAt solver/solve.js:179
+  1.3%     21.8 s  memoFind solver/solve.js:856
+  1.3%     21.0 s  (garbage collector) :0
+  0.7%     12.2 s  finalYearExact solver/solve.js:224
+  0.7%     11.1 s  now :0
+  0.5%      7.9 s  drawPension solver/fast.js:450
+  0.4%      6.2 s  solveMixture solver/solve.js:297
+  0.4%      5.9 s  now solver/solve.js:814
+by file:
+ 42.8%  solver/grid.js
+ 38.7%  solver/solve.js
+ 16.0%  solver/fast.js
+  1.9%  
+  0.3%  research/engine.mjs
+  0.2%  solver/adaptive.js
+  0.1%  node
+  0.0%  perf/performance
+  0.0%  solver/reader.js
+  0.0%  policy-study/scenarios.mjs
+  0.0%  esm/utils
+  0.0%  bootstrap/realm
+
+== THE PROFILE S370-PRODUCT: node --cpu-prof (SOLVER_PROFILE=1) scripts/speed/prof-arm.mjs or time-n1.mjs, read by cpu-top.mjs
+{"who":"S370","arm":"PRODUCT","points":30,"secs":173.712,"moves":360,"tierState":null,"cells":9720,"evaluated":53654400,"profile":{"totalMs":173408,"flowMs":42254,"nodesMs":70680,"otherMs":40506,"flows":53654400,"skipped":107308800,"cells":447120},"memo":{"hits":231340941,"misses":76081923},"tsCount":null}
+total 174.6 s sampled
+ 23.4%     40.8 s  solve solver/solve.js:335
+ 18.0%     31.3 s  readValues solver/grid.js:322
+ 10.0%     17.4 s  flow solver/fast.js:382
+  7.8%     13.5 s  expit solver/grid.js:41
+  7.6%     13.4 s  now :0
+  6.1%     10.7 s  grossForNet solver/fast.js:677
+  5.0%      8.8 s  grow solver/fast.js:710
+  4.4%      7.8 s  locInto solver/grid.js:309
+  3.4%      5.9 s  now solver/solve.js:814
+  2.6%      4.6 s  drawPension solver/fast.js:450
+  2.1%      3.7 s  realAt solver/solve.js:179
+  1.7%      2.9 s  (garbage collector) :0
+  1.2%      2.1 s  params.dividendTax research/engine.mjs:1241
+  1.0%      1.7 s  finalYearExact solver/solve.js:224
+  0.7%      1.2 s  (anon) solver/fast.js:696
+  0.6%      1.1 s  memoFind solver/solve.js:856
+by file:
+ 32.2%  solver/solve.js
+ 30.2%  solver/grid.js
+ 25.4%  solver/fast.js
+  9.3%  
+  1.6%  research/engine.mjs
+  1.1%  node
+  0.1%  perf/performance
+  0.0%  policy-study/scenarios.mjs
+  0.0%  esm/utils
+  0.0%  bootstrap/realm
+  0.0%  esm/loader
+  0.0%  esm/load
+
+== THE PROFILE S370-HRT3: node --cpu-prof (SOLVER_PROFILE=1) scripts/speed/prof-arm.mjs or time-n1.mjs, read by cpu-top.mjs
+{"who":"S370","arm":"HRT3","points":45,"secs":1991.648,"moves":800,"tierState":"0/0,1/1,2/2,3/3","cells":14580,"evaluated":93856000,"profile":{"totalMs":1990996,"flowMs":104940,"nodesMs":0,"otherMs":1869349,"flows":93856000,"skipped":281568000,"cells":469280},"memo":{"hits":2242781736,"misses":743501784},"tsCount":null}
+total 1992.7 s sampled
+ 30.5%    608.6 s  solve solver/solve.js:335
+ 26.3%    524.4 s  readValues solver/grid.js:322
+  8.7%    172.9 s  locInto solver/grid.js:309
+  7.1%    140.9 s  expit solver/grid.js:41
+  4.8%     96.3 s  grow solver/fast.js:710
+  4.0%     80.6 s  chargeSwitch solver/fast.js:159
+  3.4%     66.8 s  realAt solver/solve.js:179
+  2.8%     55.0 s  readV solver/adaptive.js:117
+  2.2%     44.8 s  flow solver/fast.js:382
+  1.4%     27.0 s  (garbage collector) :0
+  1.2%     23.2 s  grossForNet solver/fast.js:677
+  1.1%     21.3 s  astarAt solver/adaptive.js:322
+  1.0%     19.8 s  memoFind solver/solve.js:856
+  0.7%     14.0 s  finalYearExact solver/solve.js:224
+  0.7%     13.5 s  now :0
+  0.6%     12.1 s  expectSplit solver/adaptive.js:330
+by file:
+ 42.1%  solver/grid.js
+ 37.3%  solver/solve.js
+ 13.3%  solver/fast.js
+  4.8%  solver/adaptive.js
+  2.0%  
+  0.3%  research/engine.mjs
+  0.1%  node
+  0.0%  solver/reader.js
+  0.0%  perf/performance
+  0.0%  esm/utils
+  0.0%  policy-study/scenarios.mjs
+  0.0%  bootstrap/realm
+
+== THE PROFILE S370-HRT3-N1: node --cpu-prof (SOLVER_PROFILE=1) scripts/speed/prof-arm.mjs or time-n1.mjs, read by cpu-top.mjs
+{"who":"S370","arm":"HRT3-N1","points":45,"secs":911.896,"moves":800,"tierState":"0/0,1/1,2/2,3/3"}
+total 912.6 s sampled
+ 44.3%    404.2 s  solve solver/solve.js:335
+ 15.1%    137.9 s  readValues solver/grid.js:322
+  4.8%     43.7 s  locInto solver/grid.js:309
+  4.6%     41.6 s  readV solver/adaptive.js:117
+  4.3%     38.9 s  flow solver/fast.js:382
+  4.1%     37.6 s  realAt solver/solve.js:179
+  3.9%     36.0 s  expit solver/grid.js:41
+  3.1%     28.0 s  grow solver/fast.js:710
+  2.2%     20.3 s  grossForNet solver/fast.js:677
+  1.9%     17.4 s  memoFind solver/solve.js:860
+  1.6%     14.3 s  astarAt solver/adaptive.js:322
+  1.4%     12.5 s  (garbage collector) :0
+  1.3%     11.4 s  now :0
+  1.2%     11.4 s  expectSplit solver/adaptive.js:330
+  1.0%      8.7 s  drawPension solver/fast.js:450
+  0.6%      5.3 s  solveMixture solver/solve.js:297
+by file:
+ 53.0%  solver/solve.js
+ 23.9%  solver/grid.js
+ 11.5%  solver/fast.js
+  8.1%  solver/adaptive.js
+  2.6%  
+  0.6%  research/engine.mjs
+  0.2%  node
+  0.1%  perf/performance
+  0.0%  solver/reader.js
+  0.0%  policy-study/scenarios.mjs
+  0.0%  esm/utils
+  0.0%  bootstrap/realm
+
+== THE PROTOTYPE AGAINST THE CANDIDATE AS IT STANDS, S370: node scripts/speed/n1-compare.mjs S370 45 2000
+20:02:20 S370 HRT3: solved in 1688 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)
+20:16:52 S370 HRT3, the table without the dealing cost: solved in 872 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)
+20:16:52 the tables at the plan's own tier pair: the policy differs at 6642 of 670680 cells (0.99%); the survival table's largest change 1.154e-2; the solve 1.93 times as fast
+20:21:47 on 2000 paths of seed 7002: survival 83.95% then 83.90%; the table without the dealing cost less as it stands, paired: survival -0.050 points (se 0.087; 1 saved, 2 lost), whole score -0.062 (se 0.087)
+
+== THE PROTOTYPE AGAINST THE CANDIDATE AS IT STANDS, S248: node scripts/speed/n1-compare.mjs S248 45 2000
+20:48:49 S248 HRT3: solved in 1528 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)

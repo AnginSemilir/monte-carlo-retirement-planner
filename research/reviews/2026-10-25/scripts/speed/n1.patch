@@ -1,0 +1,24 @@
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index e007ed8..e49b55a 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -412,6 +412,10 @@ export function solve(E, M, plan, opts = {}) {
+    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
+    */
+   const TS = !!opts.tierState;
++  // SPEED PROTOTYPE (the external review, 25 Oct; local, not committed): `tableDealing: false` solves the tier state's table
++  // without the dealing cost of a switch (the chooser still pays it at decision time, as before the tier state); the
++  // switch charge in score units stays. Off (the default), nothing changes.
++  const NODEAL = opts.tableDealing === false;
+   /*
+    * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
+    * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
+@@ -1163,7 +1167,7 @@ export function solve(E, M, plan, opts = {}) {
+                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                       const fail = failBuf[ai] === 1;
+                       let src = postBuf, o = ai * 7;
+-                      if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
++                      if (!fail && lj !== j && ck.switchCost > 0 && !NODEAL) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                       let s = 0, b = 0, rs = 0, h = 0;
+                       let mf = -1;
+                       const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world

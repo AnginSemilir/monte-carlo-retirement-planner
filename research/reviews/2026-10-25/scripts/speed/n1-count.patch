@@ -1,0 +1,37 @@
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index e007ed8..49a791f 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -412,6 +412,10 @@ export function solve(E, M, plan, opts = {}) {
+    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
+    */
+   const TS = !!opts.tierState;
++  // SPEED PROTOTYPE (the external review, 25 Oct; local, not committed): `tableDealing: false` solves the tier state's table
++  // without the dealing cost of a switch (the chooser still pays it at decision time, as before the tier state); the
++  // switch charge in score units stays. Off (the default), nothing changes.
++  const NODEAL = opts.tableDealing === false;
+   /*
+    * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
+    * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
+@@ -811,6 +815,7 @@ export function solve(E, M, plan, opts = {}) {
+    * the overhead is real and is reported alongside, not hidden: compare `prof.total` against `ms`.
+    */
+   const PROF = typeof process !== 'undefined' && process.env && process.env.SOLVER_PROFILE ? { flow: 0, nodes: 0, cells: 0, flows: 0, nodeCalls: 0, skipped: 0 } : null;
++  const CNT = typeof process !== 'undefined' && process.env && process.env.SPEED_COUNT ? (globalThis.__SPEED_CNT = globalThis.__SPEED_CNT || { charged: 0, uncharged: 0, hitsTS: 0, failTS: 0 }) : null;   // SPEED WORK (local, not committed): the tier state's expectations by kind
+   const now = PROF ? () => performance.now() : null;
+   // the timers are not free: about 4 million pairs a solve, so calibrate one call and subtract the
+   // clock's own cost from each phase rather than reporting shares that flatter whichever phase is
+@@ -1163,11 +1168,12 @@ export function solve(E, M, plan, opts = {}) {
+                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                       const fail = failBuf[ai] === 1;
+                       let src = postBuf, o = ai * 7;
+-                      if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
++                      if (!fail && lj !== j && ck.switchCost > 0 && !NODEAL) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                       let s = 0, b = 0, rs = 0, h = 0;
+                       let mf = -1;
+                       const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
+                       if (!fail && MEMO) { mf = memoFind(mU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
++                      if (CNT) { if (fail) CNT.failTS++; else if (mf >= 0) CNT.hitsTS++; else if (src === tsPost) CNT.charged++; else CNT.uncharged++; }
+                       if (!fail && mf < 0) {
+                         const nr = nodeRealOf[ai];
+                         if (t === T && FINT) { finalYearExact(ck, t, src.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }

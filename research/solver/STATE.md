@@ -280,7 +280,8 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 `tiersBelow` (2 when unset) through `fast.js` `tiersFor`, `solve.js` (refuses all but 2 or 3; in `meta`), `bridge.js` and
 `App.jsx` `buildContext`. A step beyond the second never enters Cash Equivalents.
 <!-- printed:tiersteps -->
-- pending: research/solver/results-tier-steps-identity.txt
+- The third step's build: `tier-steps.test.mjs --full` ALL PASS: 13 checks (`results-tier-steps.txt`): the option unset, the tier lists of 210 single households the same as before; with it, the ladder as THIRD-STEP.md gives it, a wrapper that cannot take the step keeping today's (D28); the engine and a forward run in step (S370 191 years of 20 paths, the largest gap £1.16e-10, 53 years at the new rung; S248 720 years of 20 paths, the largest gap £6.40e-10, 181 years at the new rung); the plants: the engine's list two below while the table has three (it throws), the new rung at the second's rates (the state parts by £656703.09), the cash stop removed (fails the ladder check).
+- Its identity, the option unset: every hash the same on S224 and S370 under SHIP and CAND (tables, layers, S370's adaptive reference, the engine's paths), and N4's CAND+HR unit the same bit for bit (`results-tier-steps-identity.txt`).
 <!-- end printed:tiersteps -->
 ## 5. Running now
 

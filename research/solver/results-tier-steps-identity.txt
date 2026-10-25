@@ -1,0 +1,12 @@
+THE THIRD TIER STEP'S IDENTITY, THE OPTION UNSET (EXPLORATORY; D28, THIRD-STEP.md step 2.1): speed-timing.mjs at 30 points, PATHS=100, weight 0.02, on the code before the step (BASE) and with it (NEW); /home/user/vitejs-vite-kdvuf9qw/research/solver/results/t3-identity
+columns: household arm tree tableHash layerHash runHash arefHash (each world's tables, meta.tiersBelow skipped; every layer of every world; each engine path's outcome; the adaptive reference)
+S224 SHIP BASE 2be5a0f89222e167 3c3bc28e157504a0 3b8c52feda47152a -
+S224 SHIP NEW  2be5a0f89222e167 3c3bc28e157504a0 3b8c52feda47152a -  (tableHash with the key: a2143d316d16a507)
+S370 SHIP BASE 55cbd5c76b4449e1 b54ec26cddb4680c 2006cdfa67f094c7 -
+S370 SHIP NEW  55cbd5c76b4449e1 b54ec26cddb4680c 2006cdfa67f094c7 -  (tableHash with the key: 3186842a1b6df724)
+S224 CAND BASE ef7ce01059bceddd 1d0eea1bd8b2b08e b6f895a3c2867783 -
+S224 CAND NEW  ef7ce01059bceddd 1d0eea1bd8b2b08e b6f895a3c2867783 -  (tableHash with the key: 14fe8fc554e4dd42)
+S370 CAND BASE be29cd9ab282ba24 e4674491d3677906 7dff0e703e7ab5ac 31ac294d467ddf16
+S370 CAND NEW  be29cd9ab282ba24 e4674491d3677906 7dff0e703e7ab5ac 31ac294d467ddf16  (tableHash with the key: 694eb1874b7be098)
+N4's CAND+HR on NEW: S002 CAND+HR W0.02: N4's unit (code 44b967169a3c) 100.0000% against NEW's (code ae49ee6bcedd, tiersBelow 2) 100.0000%, 600 and 600 moves: every path's survival and whole score the same bit for bit
+VERDICT: every hash the same on S224 and S370 under SHIP and CAND (tables, layers, S370's adaptive reference, the engine's paths), and N4's CAND+HR unit the same bit for bit

@@ -37,13 +37,15 @@ The candidate needs to be about 1.9 to 2.5 times faster.
 - **What:** the tier state's table solved as tables were before the tier state: a switch's dealing cost is charged
   only when a move is taken, by the chooser, the forward run and the engine, as now. The switch charge (0.001 in the
   score) stays in the table. One flag, `tableDealing: false` (`scripts/speed/n1.patch`); off, nothing changes.
-- **Speed, one core:** S370 1.93 times (1688 s to 872 s, in one process), S248 1.90 times, S126 670 s (no clean
-  solve of the candidate to set it against).
-- **Results on S370:**
-  - the policy differs at 0.99% of the table's cells;
-  - on 2,000 paths of the tuning seed: survival -0.050 points (se 0.087; 1 saved, 2 lost), the whole score -0.062
-    (se 0.087).
-- **Gate 5 with it:** S126 1.02 to 1.18, S248 1.22 to 1.42, S370 1.38 to 1.61. Not enough on S370 alone.
+- **Speed, one core:** S370 1.93 times (1688 s to 872 s) and S248 1.94 times (1528 s to 786 s), each in one process;
+  S126 670 s (no clean solve of the candidate to set it against).
+- **Results**, on 2,000 paths of the tuning seed, paired:
+  - S370: the policy differs at 0.99% of the table's cells; survival -0.050 points (se 0.087; 1 saved, 2 lost), the
+    whole score -0.062 (se 0.087);
+  - S248: the policy differs at 0.98%; survival -0.150 points (se 0.180; 5 saved, 8 lost), the whole score -0.140
+    (se 0.181);
+  - both within noise, both a shade down: the panel check below settles it.
+- **Gate 5 with it:** S126 1.02 to 1.18, S248 1.21 to 1.40, S370 1.38 to 1.61. Not enough on S370 alone.
 - **It is not exact.** It changes the tables, so it changes the candidate: it needs a paired check and the
   maintainer's decision.
 

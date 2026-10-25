@@ -10,7 +10,7 @@ THE CANDIDATE, AS IT STANDS: household | the product, 30 points (s) | the candid
   S380 | 143.1 | 1676 | 11.71 | 2.72 to 3.16
 THE PROTOTYPE (the table without the dealing cost): household | the prototype (s) | its speed-up on one core | its ratio over four cores
   S126 | 670.5 (alone) | no clean solve of the candidate to set it against | 1.02 to 1.18
-  S248 | 796.0 (alone) | 1.90 times, against the purpose test's solve | 1.22 to 1.42
+  S248 | 786 (one process with the candidate's 1528) | 1.94 times | 1.21 to 1.40
   S370 | 872 (one process with the candidate's 1688) | 1.94 times | 1.38 to 1.61
 gate 5: at most 1.25 on each household
 
@@ -191,3 +191,6 @@ by file:
 
 == THE PROTOTYPE AGAINST THE CANDIDATE AS IT STANDS, S248: node scripts/speed/n1-compare.mjs S248 45 2000
 20:48:49 S248 HRT3: solved in 1528 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)
+21:01:55 S248 HRT3, the table without the dealing cost: solved in 786 s (800 moves, tier pairs 0/0,1/1,2/2,3/3, 45 points)
+21:01:55 the tables at the plan's own tier pair: the policy differs at 7459 of 758160 cells (0.98%); the survival table's largest change 1.167e-2; the solve 1.94 times as fast
+21:05:47 on 2000 paths of seed 7002: survival 55.00% then 54.85%; the table without the dealing cost less as it stands, paired: survival -0.150 points (se 0.180; 5 saved, 8 lost), whole score -0.140 (se 0.181)

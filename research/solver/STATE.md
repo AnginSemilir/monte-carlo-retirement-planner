@@ -206,15 +206,10 @@ slot 12 (`solver-cash.test.mjs`, its plant the old split); V1 and V2 run again o
 path, as Step 4 asks, and the power of 7u-F's rule from 7u's own records:
 
 <!-- printed:step4 -->
-- V1 on the assembled candidate: ALL PASS (7 of 7 households) (`results-v-candidate.txt`).
-- V2 on the assembled candidate: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate.txt`).
-- 7u-F's budget: 97.8 core-hours, about 24.4 hours on 4 cores (`results-budget-7uf.txt`).
-- 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`).
-- 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
-- 7u-F's power under P1 at W0.02 (7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path at 16000 paths about 0.0184 (those four unchanged) to 0.0317 (each with S370's spread, 9.04% discordant, independent; the recorded households correlate pairwise within -0.06 to 0.05); HELD with chance 1.000 to 0.883 at no true change, and 80% of the time at a true pooled change of -0.048 to -0.011 points or more.
-- 7u-F's power under P1 at W0.01 (7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path at 16000 paths about 0.0185 (those four unchanged) to 0.0317 (each with S370's spread, 9.01% discordant, independent; the recorded households correlate pairwise within -0.03 to 0.10); HELD with chance 1.000 to 0.883 at no true change, and 80% of the time at a true pooled change of -0.048 to -0.011 points or more.
-- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance 0.500 on every household; on the in-band households 7u ran, 80% of the time from a true loss of 1.07 to 1.20 points and 90% from 1.11 to 1.30 (the widest S370 at W0.02, 9.04% discordant); the four without a record (S382, S406, S418, S362), at 5% to 15% discordant, 80% from 1.15 to 1.26 and 90% from 1.23 to 1.39. Near the band's top, in the band on 16,000 paths only by chance: S366 at W0.02 (SHIP 99.47%) with chance 0.67, S366 at W0.01 (SHIP 99.44%) with chance 0.85; outside it the change is reported, not gated.
-- P2's approximation checked by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 9.00%, a true loss of 1.00 points: harm read 0.515; the approximation 0.500 | discordance 9.00%, a true loss of 1.20 points: harm read 0.805; the approximation 0.801 | discordance 2.60%, a true loss of 1.00 points: harm read 0.540; the approximation 0.500 | discordance 2.60%, a true loss of 1.10 points: harm read 0.782; the approximation 0.784 | discordance 1.07%, a true loss of 1.07 points: harm read 0.795; the approximation 0.805 | discordance 1.10%, a true loss of 1.10 points: harm read 0.902; the approximation 0.887.
+- V1 on the assembled candidate: ALL PASS (7 of 7 households) (`results-v-candidate.txt`). V2 on the assembled candidate: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate.txt`). 7u-F's budget: 97.8 core-hours, about 24.4 hours on 4 cores (`results-budget-7uf.txt`).
+- 7u's item 4 (the pooled floor at W0.02, 47 households) re-read by path: 0.2880 points, by path 0.259 to 0.317 (7u's pooled cells 0.261 to 0.316; 1.07 times as wide): HELD (`results-reread-7u-item4.txt`). 7u's item 8 (the pooled floor at W0.01, 47 households) re-read by path: 0.3199 points, by path 0.289 to 0.350 (7u's pooled cells 0.292 to 0.348; 1.10 times as wide): HELD (`results-reread-7u-item4.txt`).
+- 7u-F's power under P1 at W0.02 (7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path at 16000 paths about 0.0184 (those four unchanged) to 0.0317 (each with S370's spread, 9.04% discordant, independent; the recorded households correlate pairwise within -0.06 to 0.05); HELD with chance 1.000 to 0.883 at no true change, and 80% of the time at a true pooled change of -0.048 to -0.011 points or more. 7u-F's power under P1 at W0.01 (7u's records on 14 of the 18 floor households; S382, S406, S418, S362 have none): its se by path at 16000 paths about 0.0185 (those four unchanged) to 0.0317 (each with S370's spread, 9.01% discordant, independent; the recorded households correlate pairwise within -0.03 to 0.10); HELD with chance 1.000 to 0.883 at no true change, and 80% of the time at a true pooled change of -0.048 to -0.011 points or more.
+- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance 0.500 on every household; on the in-band households 7u ran, 80% of the time from a true loss of 1.07 to 1.20 points and 90% from 1.11 to 1.30 (the widest S370 at W0.02, 9.04% discordant); the four without a record (S382, S406, S418, S362), at 5% to 15% discordant, 80% from 1.15 to 1.26 and 90% from 1.23 to 1.39. Near the band's top, in the band on 16,000 paths only by chance: S366 at W0.02 (SHIP 99.47%) with chance 0.67, S366 at W0.01 (SHIP 99.44%) with chance 0.85; outside it the change is reported, not gated. P2's approximation checked by simulation (the reducer's perHousehold, 400 replicates, Holm over 28): discordance 9.00%, a true loss of 1.00 points: harm read 0.515; the approximation 0.500 | discordance 9.00%, a true loss of 1.20 points: harm read 0.805; the approximation 0.801 | discordance 2.60%, a true loss of 1.00 points: harm read 0.540; the approximation 0.500 | discordance 2.60%, a true loss of 1.10 points: harm read 0.782; the approximation 0.784 | discordance 1.07%, a true loss of 1.07 points: harm read 0.795; the approximation 0.805 | discordance 1.10%, a true loss of 1.10 points: harm read 0.902; the approximation 0.887.
 <!-- end printed:step4 -->
 ### 7u-F's read (23 Oct, once, by D3 as registered)
 
@@ -224,10 +219,8 @@ finished.
 
 <!-- printed:sevenuf -->
 - the gate: fair; 19 households, seed 7014, 16000 paths a unit, scored by the engine (`results-7uf.txt`).
-- P1 at W0.02: the pooled change over the 18 floor households +0.660 points (by path 0.616 to 0.705, se 0.0226): HELD.
-- P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD.
-- P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none.
-- OUTCOME: PASS: the candidate goes to Phase 4.
+- P1 at W0.02: the pooled change over the 18 floor households +0.660 points (by path 0.616 to 0.705, se 0.0226): HELD. P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD.
+- P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none. OUTCOME: PASS: the candidate goes to Phase 4.
 - In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: S224 W0.02 -0.181 (-0.359 to -0.004; 90 saved, 119 lost; p 2.63e-2, Holm 7.09e-1; the 0.25 margin not clear, the 0.5 margin clear; whole score -0.264 (se 0.1841) on the first 4000 paths only); S224 W0.01 -0.281 (-0.534 to -0.029; 190 saved, 235 lost; p 1.63e-2, Holm 4.58e-1; the 0.25 margin not clear, the 0.5 margin not clear; whole score -0.840 (se 0.2588) on the first 4000 paths only); S394 W0.02 -0.125 (-0.265 to 0.014; 54 saved, 74 lost; p 4.63e-2, Holm 1.00e+0; the 0.25 margin not clear, the 0.5 margin clear; whole score +0.107 (se 0.1317) on the first 4000 paths only).
 - DECOMP not read for 30 household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: 0.
 <!-- end printed:sevenuf -->
@@ -283,9 +276,14 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 - The third step's build: `tier-steps.test.mjs --full` ALL PASS: 13 checks (`results-tier-steps.txt`): the option unset, the tier lists of 210 single households the same as before; with it, the ladder as THIRD-STEP.md gives it, a wrapper that cannot take the step keeping today's (D28); the engine and a forward run in step (S370 191 years of 20 paths, the largest gap £1.16e-10, 53 years at the new rung; S248 720 years of 20 paths, the largest gap £6.40e-10, 181 years at the new rung); the plants: the engine's list two below while the table has three (it throws), the new rung at the second's rates (the state parts by £656703.09), the cash stop removed (fails the ladder check).
 - Its identity, the option unset: every hash the same on S224 and S370 under SHIP and CAND (tables, layers, S370's adaptive reference, the engine's paths), and N4's CAND+HR unit the same bit for bit (`results-tier-steps-identity.txt`).
 <!-- end printed:tiersteps -->
+### The third tier step's factorial (D28, THIRD-STEP.md step 3; EXPLORATORY, the tuning seed, 45 points; its rule in 42e26f0)
+<!-- printed:n4t3 -->
+- pending: research/solver/results-n4t3.txt
+<!-- end printed:n4t3 -->
 ## 5. Running now
 
-- Nothing. HR decomposed ran 25 Oct 08:20 to 09:47 UK (`results/n4hr-launch1.log`); N4's logs: `results/n4-launch*.log`.
+- The third tier step's factorial (D28), launched 25 Oct 11:13 UK through the launcher: `batch-n4t3.sh` (e768b9e), 56 units,
+  the log `results/n4t3-launch1.log`, the units in `results/n4t3`; after a stop, `RESUME=1`. Read: `n4-menu.mjs --read-t3`.
 
 ## 6. The next three actions
 

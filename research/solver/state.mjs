@@ -114,6 +114,17 @@ const BLOCKS = {
     return [`- The third step's build: \`tier-steps.test.mjs --full\` ${verdict(T)} (\`results-tier-steps.txt\`): the option unset, the tier lists of ${lists} single households the same as before; with it, the ladder as THIRD-STEP.md gives it, a wrapper that cannot take the step keeping today's (D28); the engine and a forward run in step (${lock.join('; ')}); the plants: the engine's list two below while the table has three (${thr}), the new rung at the second's rates (the state parts by ${rung}), the cash stop removed (${cash}).`,
       `- Its identity, the option unset: ${pick(I, /^VERDICT: (.*)$/m, m => m[1])} (\`results-tier-steps-identity.txt\`).`];
   },
+  // the third tier step's factorial (D28; EXPLORATORY; n4-menu.mjs --read-t3): the gate, each contrast on the panel, the decision
+  n4t3() {
+    const R = 'research/solver/results-n4t3.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const esc = c => c.replace(/[+]/g, '\\+'), C = ['T3 - CAND', 'HR+T3 - HR', 'HR - CAND', 'HR+T3 - CAND', 'interaction'];
+    const panel = C.map(c => `${c} ${['0.02', '0.01'].map(w => pick(R, new RegExp(`^ {2}${esc(c)}\\s+W${w.replace('.', '\\.')}: survival (\\S+) \\(se (\\S+)\\) / score (\\S+) \\(se \\S+\\); on a household survival (\\S+) to (\\S+),`, 'm'), m => `W${w} ${m[1]} (se ${m[2]}) / ${m[3]}, a household ${m[4]} to ${m[5]}`)).join(', ')}`);
+    const bars = C.slice(0, 4).map(c => pick(R, new RegExp(`^${esc(c)}: (.*)$`, 'm'), m => `${c}: ${m[1]}`));
+    return [`- The factorial's gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced: ${m[1]}`)} (\`results-n4t3.txt\`).`,
+      `- The panel, survival points (se) / whole score, against the arm named second: ${panel.join('; ')}.`,
+      `- ${bars.join('; ')}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`];
+  },
   // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
   n4read() {
     const R = 'research/solver/results-n4.txt', t = read(R);
@@ -218,7 +229,9 @@ const BLOCKS = {
     out.push(`- 7u-F's power under P2 (D3: harm needs the Holm-adjusted p AND an observed loss of at least 1 point): a true loss of exactly 1 point reads as harm with chance ${pw[0][6]} on every household; on the in-band households 7u ran, 80% of the time from a true loss of ${lo(7)[7]} to ${hi(7)[7]} points and 90% from ${lo(8)[8]} to ${hi(8)[8]} (the widest ${hi(8)[1]} at W${hi(8)[2]}, ${hi(8)[5]}% discordant); the four without a record (${four[1]}), at ${four[2]} to ${four[3]} discordant, 80% from ${four[4]} to ${four[5]} and 90% from ${four[6]} to ${four[7]}.${edge.length ? ` Near the band's top, in the band on 16,000 paths only by chance: ${edge.join(', ')}; outside it the change is reported, not gated.` : ''}`);
     const sim = [...t.matchAll(/^  check by simulation \(([^)]*)\): (.*)$/gm)];
     if (sim.length) out.push(`- P2's approximation checked by simulation (${sim[0][1]}): ${sim.map(m => m[2]).join(' | ')}.`);
-    return out;
+    // folded into four lines to keep STATE.md under its 300 (the figures unchanged): V1, V2 and the budget; the two
+    // re-reads; P1's power at both weights; P2's power and its check by simulation
+    return [[0, 3], [3, 5], [5, 7], [7, out.length]].map(([a, b]) => out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')).filter(Boolean);
   },
   // 7u-F's read, once (reduce-7uf.mjs, results-7uf.txt): the gate, P1, P2, the outcome; the in-band losses at an unadjusted
   // one-sided p below 0.05 (the registration's "floor households that lose most"); DECOMP as D21 left it
@@ -236,7 +249,8 @@ const BLOCKS = {
     out.push(`- In the band with a loss at an unadjusted one-sided p below 0.05, none harm by D3: ${lose.length ? lose.map(m => `${m[1]} W${m[2]} ${m[3]} (${m[4]} to ${m[5]}; ${m[6]} saved, ${m[7]} lost; p ${m[8]}, Holm ${m[9]}; the 0.25 margin ${m[10]}, the 0.5 margin ${m[11]}; ${whole(m[1], m[2])})`).join('; ') : 'none'}.`);
     const dn = (t.match(/^  DECOMP not read for /gm) || []).length, fid = (t.match(/FIDELITY GAP/g) || []).length;
     out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);
-    return out;
+    // P1 at both weights on one line, and P2 with the outcome, to keep STATE.md under its 300 lines (the figures unchanged)
+    return [[0, 1], [1, 3], [3, 5], [5, out.length]].flatMap(([a, b]) => (a === 5 ? out.slice(a, b) : [out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')]));
   }
 };
 

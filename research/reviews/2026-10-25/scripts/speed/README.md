@@ -14,3 +14,10 @@ Each runs from the root of the agent's code at 52b0b6c (`src/solver` the same at
   solve's time, how far the tables moved, then both on the same paths of the tuning seed, paired.
 - `count.mjs <household> <points> [n1]`: the loop's expectations by kind, on `n1-count.patch` with `SPEED_COUNT=1`.
 - `speed-read.mjs <timings> <purpose-test logs>`: gate 5's gap by household, with the prototype's beside it.
+- `e5.patch`: the second cut on top of the prototype, the whole diff to the agent's code: with `tableDealing: false`
+  the joint tier state's loop computes each move's terms once a cell and world and scores each layer with the switch
+  charge alone (`tsOnce`, on with it; `tsOncePlant: 'nocharge'` for the test), and `realAt` keeps each rate vector's
+  logs (`REALAT_NOCACHE=1` for the old path).
+- `e5-identity.mjs <household> <points>`: the candidate, the prototype's loop, E5 and E5 planted in one process; E5
+  must give the loop's tables bit for bit and the plant must part them. Run it with `REALAT_NOCACHE=1` too.
+- `time-e5.mjs <household> <points> <N1LOOP | E5 | CAND>`: one solve timed, its tables hashed (`timeq-e5.sh`).

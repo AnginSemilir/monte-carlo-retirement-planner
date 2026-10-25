@@ -1,17 +1,34 @@
 /*
  * The purpose test's read on the latest candidate (EXPLORATORY; the external review, 25 Oct): audit-bestof-latest.mjs's
- * JSON files, one a household. It throws unless every file has the same settings (the candidate's hash, points, menuPlus,
- * tiersBelow, the tier pairs, lambda, weight, paths and K). Then, by household and over the panel, D4's measure: the move
+ * JSON files, a household whole or in chunks of its positions (POS_FROM, POS_TO). It throws unless every file has the
+ * same settings (the candidate's hash, points, menuPlus, tiersBelow, the tier pairs, lambda, weight, paths and K), and
+ * unless a household's chunks are disjoint; a household missing positions is named. Then, by household and over the
+ * panel, D4's measure: the move
  * best on half A ahead of the chooser's pick on half B beyond 2 paired se (the script's own rule), at no more than 5% of
  * positions, in survival and in the whole score. The plant reads the same simulations with the last distinct rival
  * standing in for the pick: if the measure cannot see that, a pass says little.
  * usage: node purpose-read.mjs <file.json> ...
  */
 import { readFileSync } from 'fs';
-const BAR = 5, units = process.argv.slice(2).map(f => JSON.parse(readFileSync(f, 'utf8')));
-if (!units.length) throw new Error('no files');
+const BAR = 5, files = process.argv.slice(2).map(f => JSON.parse(readFileSync(f, 'utf8')));
+if (!files.length) throw new Error('no files');
 const SAME = ['candidate', 'points', 'menuPlus', 'tiersBelow', 'tierState', 'lambda', 'weight', 'paths', 'K'];
-for (const u of units) for (const k of SAME) if (JSON.stringify(u[k]) !== JSON.stringify(units[0][k])) throw new Error(`${u.id}: ${k} is ${JSON.stringify(u[k])}, not ${JSON.stringify(units[0][k])}: not one test`);
+for (const u of files) for (const k of SAME) if (JSON.stringify(u[k]) !== JSON.stringify(files[0][k])) throw new Error(`${u.id}: ${k} is ${JSON.stringify(u[k])}, not ${JSON.stringify(files[0][k])}: not one test`);
+// a household's chunks merged; a whole run's file (no chunk) has its positions in order, 0 up
+const byId = new Map();
+for (const u of files) {
+  const P = u.positions.map((x, i) => ({ ...x, pi: x.pi !== undefined ? x.pi : i }));
+  if (!byId.has(u.id)) byId.set(u.id, { ...u, positions: [] });
+  const h = byId.get(u.id), seen = new Set(h.positions.map(x => x.pi));
+  for (const x of P) { if (seen.has(x.pi)) throw new Error(`${u.id}: position ${x.pi} in two files`); h.positions.push(x); }
+}
+const units = [...byId.values()];
+for (const u of units) {
+  u.positions.sort((a, b) => a.pi - b.pi);
+  const want = u.positionsOf || 20, have = new Set(u.positions.map(x => x.pi));
+  const missing = Array.from({ length: want }, (_, i) => i).filter(i => !have.has(i));
+  if (missing.length) console.log(`NOTE ${u.id}: positions ${missing.join(',')} not in these files (or skipped by the script, a single distinct move)`);
+}
 const beyond = (x, se) => se > 0 && x > 2 * se;
 const mean = a => a.reduce((p, q) => p + q, 0) / a.length, sem = a => { const m = mean(a); return Math.sqrt(a.reduce((p, x) => p + (x - m) ** 2, 0) / (a.length * (a.length - 1))); };
 const f = (x, d = 2) => (x >= 0 ? '+' : '') + x.toFixed(d), pc = (k, n) => `${k}/${n} (${(100 * k / n).toFixed(1)}%)`;

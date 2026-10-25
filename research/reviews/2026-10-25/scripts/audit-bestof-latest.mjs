@@ -34,6 +34,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const [who, lamArg, wArg] = process.argv.slice(2, 5);
 const PTS = Number(process.env.PTS || 45), OUTD = process.env.OUTDIR || null;   // the external review, 25 Oct: the latest candidate's settings
+// POS_FROM, POS_TO: one chunk of the positions, so a unit fits a two-hour run; the same positions, moves and paths as a whole run
+const PFROM = Number(process.env.POS_FROM || 0), PTO = Number(process.env.POS_TO || 1e9), CHUNK = !!(process.env.POS_FROM || process.env.POS_TO);
 const EXTRA = { ...(process.env.MENUPLUS ? { menuPlus: process.env.MENUPLUS.split(',') } : {}), ...(process.env.TIERS_BELOW ? { tiersBelow: Number(process.env.TIERS_BELOW) } : {}) };
 const LAMBDA = Number(lamArg), W = Number(wArg), NPOS = Number(process.argv[5] || 20), NP = Number(process.argv[6] || 800), KC = Number(process.argv[7] || 6);
 if (!who || !(LAMBDA >= 0) || !(W > 0)) { console.error('usage: audit-bestof-cand.mjs <household | band:K> <lambda> <weight> [positions] [paths] [K]'); process.exit(2); }
@@ -85,6 +87,7 @@ const mean = a => a.reduce((p, q) => p + q, 0) / a.length;
 const pairedSe = (a, b) => { const d = a.map((x, i) => x - b[i]); const m_ = mean(d); return Math.sqrt(d.reduce((p, x) => p + (x - m_) ** 2, 0) / (d.length * (d.length - 1))); };
 const out = [];
 for (let pi = 0; pi < picks.length; pi++) {
+  if (pi < PFROM || pi >= PTO) continue;
   const v = picks[pi], cands = candidates(v);
   if (cands.length < 2) continue;
   const paths = E.pathsForSeed(20000 + pi, NP, T), half = NP >> 1, sims = cands.map(c => simulate(v, c.ai, paths));
@@ -97,7 +100,7 @@ for (let pi = 0; pi < picks.length; pi++) {
   // on the same simulations. A measure that cannot see a pick that bad would pass whatever the chooser did.
   const L = cands.length - 1, plant = { dObj: rows[bestObj].objB - rows[L].objB, seObj: bestObj !== L ? pairedSe(B(sims[bestObj].obj), B(sims[L].obj)) : 0,
     dSurv: rows[bestSurv].survB - rows[L].survB, seSurv: bestSurv !== L ? 100 * pairedSe(B(sims[bestSurv].ok), B(sims[L].ok)) : 0 };
-  out.push({ t: v.t, cliff: v.cliff, rows, bestObj, bestSurv, dObj, seObj, dSurv, seSurv, plant });
+  out.push({ pi, t: v.t, cliff: v.cliff, rows, bestObj, bestSurv, dObj, seObj, dSurv, seSurv, plant });
 }
 const beyond = (x, se) => se > 0 && x > 2 * se, f = (x, d = 2) => (x >= 0 ? '+' : '') + x.toFixed(d), N = out.length;
 const bS = out.filter(x => beyond(x.dSurv, x.seSurv)).length, bO = out.filter(x => beyond(x.dObj, x.seObj)).length;
@@ -106,4 +109,4 @@ console.log(`SUMMARY ${sc.id} W${W} lambda ${LAMBDA}: ${N} positions (${out.filt
 console.log(`PLANT ${sc.id} W${W}: the last distinct rival standing in for the pick, on the same simulations: survival ahead ${f(mean(out.map(x => x.plant.dSurv)))} points, beyond 2 se at ${pS}/${N}; whole score ahead ${f(mean(out.map(x => x.plant.dObj)), 3)}, beyond 2 se at ${pO}/${N}`);
 const DIR = OUTD || join(HERE, 'results/bestof-cand');
 mkdirSync(DIR, { recursive: true });
-writeFileSync(join(DIR, `${sc.id}-w${W}.json`), JSON.stringify({ id: sc.id, who, lambda: LAMBDA, weight: W, candidate: CANDIDATE_HASH, points: PTS, menuPlus: EXTRA.menuPlus || [], tiersBelow: r.meta.tiersBelow, tierState: r.meta.tierState, moves: n, paths: NP, K: KC, positions: out }));
+writeFileSync(join(DIR, `${sc.id}-w${W}${CHUNK ? `-p${PFROM}-${Math.min(PTO, NPOS)}` : ''}.json`), JSON.stringify({ id: sc.id, who, lambda: LAMBDA, weight: W, candidate: CANDIDATE_HASH, positionsOf: NPOS, chunk: [PFROM, Math.min(PTO, NPOS)], points: PTS, menuPlus: EXTRA.menuPlus || [], tiersBelow: r.meta.tiersBelow, tierState: r.meta.tierState, moves: n, paths: NP, K: KC, positions: out }));

@@ -8,4 +8,7 @@
 
 - `ptq.sh "<household> <weight>" ...`: runs the units one after another on one core, skipping any already done. It stops
   before a unit it could not finish inside two hours, and a rerun carries on.
-- `purpose-read.mjs <file.json> ...`: D4's measure by household and over the panel, with the plant beside it.
+- `ptq2.sh "<household> <weight> <from> <to>" ...`: the same in chunks of a unit's positions (`POS_FROM`, `POS_TO`), so
+  each fits a two-hour run. A chunk re-solves, and has the same positions, moves and paths as a whole run.
+- `purpose-read.mjs <file.json> ...`: D4's measure by household and over the panel, with the plant beside it. It merges
+  a household's chunks.

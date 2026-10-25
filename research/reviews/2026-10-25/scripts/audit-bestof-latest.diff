@@ -1,27 +1,31 @@
-35a36,37
+35a36,39
 > const PTS = Number(process.env.PTS || 45), OUTD = process.env.OUTDIR || null;   // the external review, 25 Oct: the latest candidate's settings
+> // POS_FROM, POS_TO: one chunk of the positions, so a unit fits a two-hour run; the same positions, moves and paths as a whole run
+> const PFROM = Number(process.env.POS_FROM || 0), PTO = Number(process.env.POS_TO || 1e9), CHUNK = !!(process.env.POS_FROM || process.env.POS_TO);
 > const EXTRA = { ...(process.env.MENUPLUS ? { menuPlus: process.env.MENUPLUS.split(',') } : {}), ...(process.env.TIERS_BELOW ? { tiersBelow: Number(process.env.TIERS_BELOW) } : {}) };
-42,43c44,45
+42,43c46,47
 < const t0 = Date.now(), r = solveCandidate(E, M, plan, { lambda: LAMBDA, points: 30, bequestWeight: W }), T = r.m.ctx.totalYears, n = r.actions.length;
 < console.log(`${sc.id} (${who}): the candidate ${CANDIDATE_HASH}, lambda ${LAMBDA}, estate weight ${W}, solved in ${Math.round((Date.now() - t0) / 1000)} s; ${NPOS} positions, the top ${KC} distinct moves, ${NP} paths (${NP / 2} to pick, ${NP / 2} to measure)`);
 ---
 > const t0 = Date.now(), r = solveCandidate(E, M, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W, ...EXTRA }), T = r.m.ctx.totalYears, n = r.actions.length;
 > console.log(`${sc.id} (${who}): the candidate ${CANDIDATE_HASH} at ${PTS} points, ${n} moves, tier pairs ${r.meta.tierState}, tiersBelow ${r.meta.tiersBelow}, menuPlus ${(EXTRA.menuPlus || []).join('+') || 'none'}, lambda ${LAMBDA}, estate weight ${W}, solved in ${Math.round((Date.now() - t0) / 1000)} s; ${NPOS} positions, the top ${KC} distinct moves, ${NP} paths (${NP / 2} to pick, ${NP / 2} to measure)`);
-94c96,100
+85a90
+>   if (pi < PFROM || pi >= PTO) continue;
+94c99,103
 <   out.push({ t: v.t, cliff: v.cliff, rows, bestObj, bestSurv, dObj, seObj, dSurv, seSurv });
 ---
 >   // THE PLANT (the external review, 25 Oct): the same read with the last distinct rival standing in for the chooser's pick,
 >   // on the same simulations. A measure that cannot see a pick that bad would pass whatever the chooser did.
 >   const L = cands.length - 1, plant = { dObj: rows[bestObj].objB - rows[L].objB, seObj: bestObj !== L ? pairedSe(B(sims[bestObj].obj), B(sims[L].obj)) : 0,
 >     dSurv: rows[bestSurv].survB - rows[L].survB, seSurv: bestSurv !== L ? 100 * pairedSe(B(sims[bestSurv].ok), B(sims[L].ok)) : 0 };
->   out.push({ t: v.t, cliff: v.cliff, rows, bestObj, bestSurv, dObj, seObj, dSurv, seSurv, plant });
-97a104
+>   out.push({ pi, t: v.t, cliff: v.cliff, rows, bestObj, bestSurv, dObj, seObj, dSurv, seSurv, plant });
+97a107
 > const pS = out.filter(x => beyond(x.plant.dSurv, x.plant.seSurv)).length, pO = out.filter(x => beyond(x.plant.dObj, x.plant.seObj)).length;
-99,100c106,109
+99,100c109,112
 < mkdirSync(join(HERE, 'results/bestof-cand'), { recursive: true });
 < writeFileSync(join(HERE, `results/bestof-cand/${sc.id}-w${W}.json`), JSON.stringify({ id: sc.id, who, lambda: LAMBDA, weight: W, candidate: CANDIDATE_HASH, paths: NP, K: KC, positions: out }));
 ---
 > console.log(`PLANT ${sc.id} W${W}: the last distinct rival standing in for the pick, on the same simulations: survival ahead ${f(mean(out.map(x => x.plant.dSurv)))} points, beyond 2 se at ${pS}/${N}; whole score ahead ${f(mean(out.map(x => x.plant.dObj)), 3)}, beyond 2 se at ${pO}/${N}`);
 > const DIR = OUTD || join(HERE, 'results/bestof-cand');
 > mkdirSync(DIR, { recursive: true });
-> writeFileSync(join(DIR, `${sc.id}-w${W}.json`), JSON.stringify({ id: sc.id, who, lambda: LAMBDA, weight: W, candidate: CANDIDATE_HASH, points: PTS, menuPlus: EXTRA.menuPlus || [], tiersBelow: r.meta.tiersBelow, tierState: r.meta.tierState, moves: n, paths: NP, K: KC, positions: out }));
+> writeFileSync(join(DIR, `${sc.id}-w${W}${CHUNK ? `-p${PFROM}-${Math.min(PTO, NPOS)}` : ''}.json`), JSON.stringify({ id: sc.id, who, lambda: LAMBDA, weight: W, candidate: CANDIDATE_HASH, positionsOf: NPOS, chunk: [PFROM, Math.min(PTO, NPOS)], points: PTS, menuPlus: EXTRA.menuPlus || [], tiersBelow: r.meta.tiersBelow, tierState: r.meta.tierState, moves: n, paths: NP, K: KC, positions: out }));

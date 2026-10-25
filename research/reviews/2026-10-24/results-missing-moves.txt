@@ -1,4 +1,4 @@
-MISSING MOVES (EXPLORATORY), 24 Oct 2026: every figure in MISSING-MOVES.md, with the command that printed it.
+MISSING MOVES (EXPLORATORY), 24 and 25 Oct 2026: every figure in MISSING-MOVES.md, with the command that printed it.
 The code: the agent's branch at eb8709d (solver fingerprint de451be3d9903e65, the e3pcls pin's), a copy with the engine built;
 third-step.mjs on a second copy with scripts/third-step.diff applied. Seed 7002 (the tuning seed), 45 wealth points, estate
 weight 0.02. Two runs at a time on a two-core machine. Each menu-gap run throws unless its checks 1 to 3 pass.
@@ -136,13 +136,13 @@ S330 at estate weight 0.02, 45 wealth points, seed 7002 (the tuning seed): the c
      path 17, age 72, 0.094 points (wealth 1600157, pension 610222): the menu's no pension first, taxable next, re-wrap to 50270, spend 80%, tiers 0/0; the finer no pension first, taxable next, re-wrap to 30000, spend 80%, tiers 0/0
 
 ==================================================================================================================
-PART B. A third joint step down: the copy's identity, then third-step.mjs (its base arm the menu-gap run's own)
+PART B. The tier steps: the copy's identity, each household's third-step.mjs log, then the read
 $ node twin.mjs S370 6 '{}'    # the unedited code, e3pcls on
 {"id":"S370","pts":"6","extra":{},"moves":360,"pairs":"0/0,1/1,2/2","survived":81,"runHash":"c6a733138a8f6271","tableHash":"cacaabb8a3d9b27b"}
 $ node twin.mjs S370 6 '{"e3pcls":false}'    # the copy with third-step.diff, the option unset, e3pcls off
 {"id":"S370","pts":"6","extra":{"e3pcls":false},"moves":360,"pairs":"0/0,1/1,2/2","survived":81,"runHash":"c6a733138a8f6271","tableHash":"cacaabb8a3d9b27b"}
 
-$ BASEJSON=S370.json node third-step.mjs S370 0.02 3000 3
+$ BASEJSON=S370.json OUT=third-S370.json node third-step.mjs S370 0.02 3000 3
 22:09:12 S370 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
 22:09:12 BASE (the candidate, from the menu-gap run): survival 80.500%, whole score 83.5337 on 3000 paths
 22:31:35 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1343 s; survival 82.700%, whole score 84.5207 on 3000 paths
@@ -150,13 +150,81 @@ $ BASEJSON=S370.json node third-step.mjs S370 0.02 3000 3
 22:31:35 THIRD less BASE, paired: whole score +0.987 (se 0.357), survival +2.200 points (se 0.351; 89 saved, 23 lost)
 22:31:35 done
 
-$ BASEJSON=S224.json node third-step.mjs S224 0.02 3000 3
+$ BASEJSON=S224.json OUT=third-S224.json node third-step.mjs S224 0.02 3000 3
 22:20:22 S224 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
 22:20:22 BASE (the candidate, from the menu-gap run): survival 69.933%, whole score 72.0520 on 3000 paths
 22:38:36 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1094 s; survival 70.233%, whole score 72.1979 on 3000 paths
 22:38:36   the tier pair chosen in a spending year: 0/0 27.0%, 1/1 2.5%, 2/2 50.1%, 3/3 20.4%
 22:38:36 THIRD less BASE, paired: whole score +0.146 (se 0.226), survival +0.300 points (se 0.224; 27 saved, 18 lost)
 22:38:36 done
+
+$ BASEJSON=S248.json OUT=step3-S248.json node third-step.mjs S248 0.02 3000 3
+07:56:40 S248 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+07:56:40 BASE (the candidate, from the menu-gap run): survival 52.833%, whole score 54.7488 on 3000 paths
+08:13:46 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1026 s; survival 53.367%, whole score 54.8884 on 3000 paths
+08:13:46   the tier pair chosen in a spending year: 0/0 32.4%, 1/1 2.4%, 2/2 11.6%, 3/3 53.6%
+08:13:46 THIRD less BASE, paired: whole score +0.140 (se 0.234), survival +0.533 points (se 0.231; 32 saved, 16 lost)
+08:13:46 done
+
+$ BASEJSON=S330.json OUT=step3-S330.json node third-step.mjs S330 0.02 3000 3
+08:28:04 S330 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+08:28:04 BASE (the candidate, from the menu-gap run): survival 89.967%, whole score 97.1968 on 3000 paths
+08:46:57 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1133 s; survival 90.500%, whole score 97.5124 on 3000 paths
+08:46:57   the tier pair chosen in a spending year: 0/0 11.8%, 1/1 1.2%, 2/2 16.1%, 3/3 70.9%
+08:46:57 THIRD less BASE, paired: whole score +0.316 (se 0.178), survival +0.533 points (se 0.176; 22 saved, 6 lost)
+08:46:57 done
+
+$ OUT=step3-S380.json node third-step.mjs S380 0.02 3000 3
+08:13:47 S380 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+08:26:45 BASE (the candidate, e3pcls off): 360 moves, tier pairs 0/0,1/1,2/2 (the pension's tiers High Risk, Medium/High Risk, Medium Risk), solved and run in 778 s; survival 73.367%, whole score 75.0305 on 3000 paths
+08:26:45   the tier pair chosen in a spending year: 0/0 32.8%, 1/1 4.3%, 2/2 62.9%
+08:46:56 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1212 s; survival 73.500%, whole score 75.1377 on 3000 paths
+08:46:56   the tier pair chosen in a spending year: 0/0 31.4%, 1/1 4.1%, 2/2 50.9%, 3/3 13.5%
+08:46:56 THIRD less BASE, paired: whole score +0.107 (se 0.189), survival +0.133 points (se 0.189; 18 saved, 14 lost)
+08:46:56 done
+
+$ OUT=step3-S362.json node third-step.mjs S362 0.02 3000 3
+08:46:57 S362 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+08:58:37 BASE (the candidate, e3pcls off): 360 moves, tier pairs 0/0,1/1,2/2 (the pension's tiers High Risk, Medium/High Risk, Medium Risk), solved and run in 700 s; survival 48.800%, whole score 51.4021 on 3000 paths
+08:58:37   the tier pair chosen in a spending year: 0/0 22.5%, 1/1 0.1%, 2/2 77.5%
+09:17:56 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 1159 s; survival 48.933%, whole score 51.5342 on 3000 paths
+09:17:56   the tier pair chosen in a spending year: 0/0 23.6%, 1/1 0.2%, 2/2 39.1%, 3/3 37.2%
+09:17:56 THIRD less BASE, paired: whole score +0.132 (se 0.183), survival +0.133 points (se 0.163; 14 saved, 10 lost)
+09:17:56 done
+
+$ OUT=step3-S002.json node third-step.mjs S002 0.02 3000 3
+08:46:57 S002 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 3 below the plan's tier
+08:53:59 BASE (the candidate, e3pcls off): 360 moves, tier pairs 0/0,1/1,2/2 (the pension's tiers High Risk, Medium/High Risk, Medium Risk), solved and run in 421 s; survival 100.000%, whole score 108.7531 on 3000 paths
+08:53:59   the tier pair chosen in a spending year: 0/0 60.9%, 2/2 39.1%
+09:05:27 THIRD (tiersBelow 3, e3pcls off): 480 moves, tier pairs 0/0,1/1,2/2,3/3 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk), solved and run in 688 s; survival 100.000%, whole score 108.7725 on 3000 paths
+09:05:27   the tier pair chosen in a spending year: 0/0 62.5%, 1/1 0.0%, 2/2 23.9%, 3/3 13.6%
+09:05:27 THIRD less BASE, paired: whole score +0.019 (se 0.004), survival +0.000 points (se 0.000; 0 saved, 0 lost)
+09:05:27 done
+
+$ BASEJSON=S370.json OUT=step4-S370.json node third-step.mjs S370 0.02 3000 4
+07:56:40 S370 W0.02: 45 points, 3000 paths of seed 7002, the joint step's lowest rung moved from 2 to 4 below the plan's tier
+07:56:40 BASE (the candidate, from the menu-gap run): survival 80.500%, whole score 83.5337 on 3000 paths
+08:28:03 THIRD (tiersBelow 4, e3pcls off): 600 moves, tier pairs 0/0,1/1,2/2,3/3,4/4 (the pension's tiers High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk, Low Risk), solved and run in 1883 s; survival 82.300%, whole score 84.0744 on 3000 paths
+08:28:03   the tier pair chosen in a spending year: 0/0 17.2%, 1/1 1.3%, 2/2 15.9%, 3/3 61.5%, 4/4 4.1%
+08:28:03 THIRD less BASE, paired: whole score +0.541 (se 0.363), survival +1.800 points (se 0.358; 85 saved, 31 lost)
+08:28:03 done
+
+$ node third-step-read.mjs third-S370.json third-S224.json step3-S248.json step3-S330.json step3-S380.json step3-S362.json step3-S002.json step4-S370.json
+THE JOINT STEP'S LOWEST RUNG 3 BELOW THE PLAN'S TIER (2 today): 7 households, estate weight 0.02, 45 wealth points, 3000 paths each, paired against the candidate
+  S370: the candidate 80.50%, with the step 82.70%: survival +2.200 (se 0.351; 89 saved, 23 lost), whole score +0.987 (se 0.357); the new bottom rung in 65.7% of spending years
+  S224: the candidate 69.93%, with the step 70.23%: survival +0.300 (se 0.224; 27 saved, 18 lost), whole score +0.146 (se 0.226); the new bottom rung in 20.4% of spending years
+  S248: the candidate 52.83%, with the step 53.37%: survival +0.533 (se 0.231; 32 saved, 16 lost), whole score +0.140 (se 0.234); the new bottom rung in 53.6% of spending years
+  S330: the candidate 89.97%, with the step 90.50%: survival +0.533 (se 0.176; 22 saved, 6 lost), whole score +0.316 (se 0.178); the new bottom rung in 70.9% of spending years
+  S380: the candidate 73.37%, with the step 73.50%: survival +0.133 (se 0.189; 18 saved, 14 lost), whole score +0.107 (se 0.189); the new bottom rung in 13.5% of spending years
+  S362: the candidate 48.80%, with the step 48.93%: survival +0.133 (se 0.163; 14 saved, 10 lost), whole score +0.132 (se 0.183); the new bottom rung in 37.2% of spending years
+  S002: the candidate 100.00%, with the step 100.00%: survival +0.000 (se 0.000; 0 saved, 0 lost), whole score +0.019 (se 0.004); the new bottom rung in 13.6% of spending years
+  the panel mean, survival: +0.548 (se 0.081; its 95% interval +0.389 to +0.706)
+  the panel mean, whole score: +0.264 (se 0.083; its 95% interval +0.102 to +0.426)
+  by N4's bar: beyond the targets S370 survival +2.200; S370 whole score +0.987; S248 survival +0.533; S330 survival +0.533; panel mean survival +0.548; panel mean whole score +0.264; a household loss beyond 0.5 nowhere: WOULD PASS (exploratory, one weight, 3000 paths: not N4's read)
+THE JOINT STEP'S LOWEST RUNG 4 BELOW THE PLAN'S TIER (2 today): 1 households, estate weight 0.02, 45 wealth points, 3000 paths each, paired against the candidate
+  S370: the candidate 80.50%, with the step 82.30%: survival +1.800 (se 0.358; 85 saved, 31 lost), whole score +0.541 (se 0.363); the new bottom rung in 4.1% of spending years
+  one household: no panel mean
+  by N4's bar: beyond the targets S370 survival +1.800; a household loss beyond 0.5 nowhere: WOULD PASS (exploratory, one weight, 3000 paths: not N4's read)
 
 ==================================================================================================================
 PART C. Where the panel's inherited deposits land, under the plan's policy and under 'Windfall to ISA'

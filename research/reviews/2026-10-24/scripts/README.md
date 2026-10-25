@@ -15,10 +15,12 @@ step code 6), with the engine built (`python3 research/build-engine.py`).
   - runs on a copy with `third-step.diff` applied (a two-line option, `tiersBelow`), with e3pcls off, since the pin is
     stale on an edited copy;
   - `BASEJSON=<menu-gap summary>` takes the candidate's run from that summary instead of solving it again.
+- `third-step-read.mjs <summary.json> ...`: the tier steps by household and on the panel mean, against N4's bar.
 - `twin.mjs <household> <points> '<options>'`: the candidate's tables and its run on 100 paths, each hashed. It shows the
   copy with the option unset is the candidate.
 - `routing.mjs <household> ...`: where a deposit left to the policy lands, under the plan's policy and under the app's
   'Windfall to ISA'.
 
 The code in `menu-gap.mjs` is the code that ran; only its header comment changed afterwards. On one core,
-`menu-gap.mjs` took about 45 minutes a household (1,000 and 3,000 paths) and `third-step.mjs` about 20.
+`menu-gap.mjs` took about 45 minutes a household (1,000 and 3,000 paths) and `third-step.mjs` about 20 with `BASEJSON`, 35
+without.

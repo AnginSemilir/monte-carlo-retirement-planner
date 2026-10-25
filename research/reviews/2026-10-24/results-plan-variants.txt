@@ -1,0 +1,96 @@
+PLAN VARIANTS (EXPLORATORY, the tuning seed 7002; the external review, 25 Oct): MISSING-MOVES.md section 4.
+The candidate with HR (menuPlus hr) and the third tier step (tiersBelow 3, scripts/third-step.diff on the agent's code at eb8709d), 45 wealth points, e3pcls off, weight 0.02, 3,000 paths.
+
+== THE READ: node scripts/plan-variants-read.mjs pv/*.json
+S330 gia W0.02: 45 wealth points, 3000 paths of seed 7002 (hash 752b0c4884475c95), tiersBelow 3, menuPlus hr; every variant on the same settings and paths
+  the GIA at its plan tier (State Pension 11976 from 68; GIA Medium Risk 427500; solved and run in 1961 s): survival to 97 90.50%; no shortfall by 85 95.83%, by 90 93.47%; whole score 97.509; median wealth at the end GBP 4381635
+  the GIA held at Medium/Low (State Pension 11976 from 68; GIA Medium/Low Risk 427500; solved and run in 1891 s): survival to 97 90.37%; no shortfall by 85 95.97%, by 90 93.83%; whole score 97.194; median wealth at the end GBP 4322370
+    less the plan as it stands, paired: survival -0.133 (se 0.200; 16 saved, 20 lost): within noise; whole score -0.315 (se 0.202): within noise
+  the GIA held at Low (State Pension 11976 from 68; GIA Low Risk 427500; solved and run in 1842 s): survival to 97 88.33%; no shortfall by 85 94.83%, by 90 92.40%; whole score 94.787; median wealth at the end GBP 4017243
+    less the plan as it stands, paired: survival -2.167 (se 0.290; 6 saved, 71 lost): a LOSS beyond 0.5 and beyond noise; whole score -2.722 (se 0.291): a LOSS beyond 0.5 and beyond noise
+S224 spdefer W0.02: 45 wealth points, 3000 paths of seed 7002 (hash 1c061d62f8002ba6), tiersBelow 3, menuPlus hr; every variant on the same settings and paths
+  the State Pension as planned (State Pension 11976 from 68; GIA Medium Risk 95000; solved and run in 1678 s): survival to 95 70.23%; no shortfall by 85 80.57%, by 90 76.60%; whole score 72.198; median wealth at the end GBP 732233
+  deferred 2 years (State Pension 13360 from 70; GIA Medium Risk 95000; solved and run in 1480 s): survival to 95 70.23%; no shortfall by 85 80.60%, by 90 76.63%; whole score 72.181; median wealth at the end GBP 726449
+    less the plan as it stands, paired: survival +0.000 (se 0.156; 11 saved, 11 lost): within noise; whole score -0.017 (se 0.158): within noise
+  deferred 4 years (State Pension 14745 from 72; GIA Medium Risk 95000; solved and run in 1470 s): survival to 95 69.97%; no shortfall by 85 80.30%, by 90 76.30%; whole score 71.909; median wealth at the end GBP 724754
+    less the plan as it stands, paired: survival -0.267 (se 0.183; 11 saved, 19 lost): within noise; whole score -0.289 (se 0.184): within noise
+S248 spdefer W0.02: 45 wealth points, 3000 paths of seed 7002 (hash 0310b4090e9eacbc), tiersBelow 3, menuPlus hr; every variant on the same settings and paths
+  the State Pension as planned (State Pension 11976 from 68; GIA Medium Risk 19000; solved and run in 1826 s): survival to 96 54.17%; no shortfall by 85 60.27%, by 90 57.73%; whole score 55.723; median wealth at the end GBP 276742
+  deferred 2 years (State Pension 13360 from 70; GIA Medium Risk 19000; solved and run in 1506 s): survival to 96 54.13%; no shortfall by 85 60.07%, by 90 57.63%; whole score 55.684; median wealth at the end GBP 269757
+    less the plan as it stands, paired: survival -0.033 (se 0.153; 10 saved, 11 lost): within noise; whole score -0.039 (se 0.154): within noise
+  deferred 4 years (State Pension 14745 from 72; GIA Medium Risk 19000; solved and run in 1489 s): survival to 96 54.13%; no shortfall by 85 60.10%, by 90 57.63%; whole score 55.675; median wealth at the end GBP 263890
+    less the plan as it stands, paired: survival -0.033 (se 0.167; 12 saved, 13 lost): within noise; whole score -0.048 (se 0.168): within noise
+S362 spdefer W0.02: 45 wealth points, 3000 paths of seed 7002 (hash 72c6c1e01c403211), tiersBelow 3, menuPlus hr; every variant on the same settings and paths
+  the State Pension as planned (State Pension 8200 from 68; GIA Medium Risk 3600; solved and run in 1555 s): survival to 95 48.93%; no shortfall by 85 48.97%, by 90 48.97%; whole score 51.534; median wealth at the end GBP 0
+  deferred 2 years (State Pension 9148 from 70; GIA Medium Risk 3600; solved and run in 1475 s): survival to 95 48.97%; no shortfall by 85 48.97%, by 90 48.97%; whole score 51.579; median wealth at the end GBP 0
+    less the plan as it stands, paired: survival +0.033 (se 0.033; 1 saved, 0 lost): within noise; whole score +0.045 (se 0.035): within noise
+  deferred 4 years (State Pension 10096 from 72; GIA Medium Risk 3600; solved and run in 1413 s): survival to 95 48.97%; no shortfall by 85 48.97%, by 90 48.97%; whole score 51.562; median wealth at the end GBP 0
+    less the plan as it stands, paired: survival +0.033 (se 0.033; 1 saved, 0 lost): within noise; whole score +0.027 (se 0.035): within noise
+
+== THE RUN LOG: pv-gia-S330.log (plan-variants.mjs, one variant a process, OUTDIR=pv ONLY=<i>)
+10:29:58 S330 W0.02: gia, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 0 only
+11:02:39 the GIA at its plan tier (State Pension 11976 from 68; GIA Medium Risk 427500; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 752b0c4884475c95; 1961 s): survival to 97 90.50%, no shortfall by 85 95.83% and by 90 93.47%; whole score 97.509; median wealth at the end GBP 4381635
+11:02:39 done
+11:02:40 S330 W0.02: gia, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 2 only
+11:02:40 the GIA at its plan tier: read from pv/pv-gia-S330-w0.02-0.json
+11:33:22 the GIA held at Low (State Pension 11976 from 68; GIA Low Risk 427500; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 752b0c4884475c95; 1842 s): survival to 97 88.33%, no shortfall by 85 94.83% and by 90 92.40%; whole score 94.787; median wealth at the end GBP 4017243
+11:33:22   the GIA held at Low less the plan as it stands, paired: survival -2.167 points (se 0.290; 6 saved, 71 lost), whole score -2.722 (se 0.291)
+11:33:22 done
+11:33:23 S330 W0.02: gia, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 1 only
+11:33:23 the GIA at its plan tier: read from pv/pv-gia-S330-w0.02-0.json
+12:04:54 the GIA held at Medium/Low (State Pension 11976 from 68; GIA Medium/Low Risk 427500; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 752b0c4884475c95; 1891 s): survival to 97 90.37%, no shortfall by 85 95.97% and by 90 93.83%; whole score 97.194; median wealth at the end GBP 4322370
+12:04:54 the GIA held at Low: read from pv/pv-gia-S330-w0.02-2.json
+12:04:54   the GIA held at Medium/Low less the plan as it stands, paired: survival -0.133 points (se 0.200; 16 saved, 20 lost), whole score -0.315 (se 0.202)
+12:04:54   the GIA held at Low less the plan as it stands, paired: survival -2.167 points (se 0.290; 6 saved, 71 lost), whole score -2.722 (se 0.291)
+12:04:54 done
+
+== THE RUN LOG: pv-spdefer-S224.log (plan-variants.mjs, one variant a process, OUTDIR=pv ONLY=<i>)
+12:05:36 S224 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 0 only
+12:33:34 the State Pension as planned (State Pension 11976 from 68; GIA Medium Risk 95000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 1c061d62f8002ba6; 1678 s): survival to 95 70.23%, no shortfall by 85 80.57% and by 90 76.60%; whole score 72.198; median wealth at the end GBP 732233
+12:33:34 done
+12:33:35 S224 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 2 only
+12:33:35 the State Pension as planned: read from pv/pv-spdefer-S224-w0.02-0.json
+12:58:05 deferred 4 years (State Pension 14745 from 72; GIA Medium Risk 95000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 1c061d62f8002ba6; 1470 s): survival to 95 69.97%, no shortfall by 85 80.30% and by 90 76.30%; whole score 71.909; median wealth at the end GBP 724754
+12:58:05   deferred 4 years less the plan as it stands, paired: survival -0.267 points (se 0.183; 11 saved, 19 lost), whole score -0.289 (se 0.184)
+12:58:05 done
+12:58:06 S224 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 1 only
+12:58:06 the State Pension as planned: read from pv/pv-spdefer-S224-w0.02-0.json
+13:22:46 deferred 2 years (State Pension 13360 from 70; GIA Medium Risk 95000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 1c061d62f8002ba6; 1480 s): survival to 95 70.23%, no shortfall by 85 80.60% and by 90 76.63%; whole score 72.181; median wealth at the end GBP 726449
+13:22:46 deferred 4 years: read from pv/pv-spdefer-S224-w0.02-2.json
+13:22:46   deferred 2 years less the plan as it stands, paired: survival +0.000 points (se 0.156; 11 saved, 11 lost), whole score -0.017 (se 0.158)
+13:22:46   deferred 4 years less the plan as it stands, paired: survival -0.267 points (se 0.183; 11 saved, 19 lost), whole score -0.289 (se 0.184)
+13:22:46 done
+
+== THE RUN LOG: pv-spdefer-S248.log (plan-variants.mjs, one variant a process, OUTDIR=pv ONLY=<i>)
+10:25:19 S248 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 0 only
+10:55:45 the State Pension as planned (State Pension 11976 from 68; GIA Medium Risk 19000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 0310b4090e9eacbc; 1826 s): survival to 96 54.17%, no shortfall by 85 60.27% and by 90 57.73%; whole score 55.723; median wealth at the end GBP 276742
+10:55:45 done
+10:55:46 S248 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 2 only
+10:55:46 the State Pension as planned: read from pv/pv-spdefer-S248-w0.02-0.json
+11:20:35 deferred 4 years (State Pension 14745 from 72; GIA Medium Risk 19000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 0310b4090e9eacbc; 1489 s): survival to 96 54.13%, no shortfall by 85 60.10% and by 90 57.63%; whole score 55.675; median wealth at the end GBP 263890
+11:20:35   deferred 4 years less the plan as it stands, paired: survival -0.033 points (se 0.167; 12 saved, 13 lost), whole score -0.048 (se 0.168)
+11:20:35 done
+11:20:36 S248 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 1 only
+11:20:36 the State Pension as planned: read from pv/pv-spdefer-S248-w0.02-0.json
+11:45:42 deferred 2 years (State Pension 13360 from 70; GIA Medium Risk 19000; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 0310b4090e9eacbc; 1506 s): survival to 96 54.13%, no shortfall by 85 60.07% and by 90 57.63%; whole score 55.684; median wealth at the end GBP 269757
+11:45:42 deferred 4 years: read from pv/pv-spdefer-S248-w0.02-2.json
+11:45:42   deferred 2 years less the plan as it stands, paired: survival -0.033 points (se 0.153; 10 saved, 11 lost), whole score -0.039 (se 0.154)
+11:45:42   deferred 4 years less the plan as it stands, paired: survival -0.033 points (se 0.167; 12 saved, 13 lost), whole score -0.048 (se 0.168)
+11:45:42 done
+
+== THE RUN LOG: pv-spdefer-S362.log (plan-variants.mjs, one variant a process, OUTDIR=pv ONLY=<i>)
+11:45:53 S362 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 0 only
+12:11:48 the State Pension as planned (State Pension 8200 from 68; GIA Medium Risk 3600; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 72c6c1e01c403211; 1555 s): survival to 95 48.93%, no shortfall by 85 48.97% and by 90 48.97%; whole score 51.534; median wealth at the end GBP 0
+12:11:48 done
+12:11:49 S362 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 2 only
+12:11:49 the State Pension as planned: read from pv/pv-spdefer-S362-w0.02-0.json
+12:35:22 deferred 4 years (State Pension 10096 from 72; GIA Medium Risk 3600; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 72c6c1e01c403211; 1413 s): survival to 95 48.97%, no shortfall by 85 48.97% and by 90 48.97%; whole score 51.562; median wealth at the end GBP 0
+12:35:22   deferred 4 years less the plan as it stands, paired: survival +0.033 points (se 0.033; 1 saved, 0 lost), whole score +0.027 (se 0.035)
+12:35:22 done
+12:35:23 S362 W0.02: spdefer, 45 points, 3000 paths of seed 7002, menuPlus hr, tiersBelow 3 (e3pcls off); variant 1 only
+12:35:23 the State Pension as planned: read from pv/pv-spdefer-S362-w0.02-0.json
+12:59:58 deferred 2 years (State Pension 9148 from 70; GIA Medium Risk 3600; 800 moves, tier pairs 0/0,1/1,2/2,3/3; paths 72c6c1e01c403211; 1475 s): survival to 95 48.97%, no shortfall by 85 48.97% and by 90 48.97%; whole score 51.579; median wealth at the end GBP 0
+12:59:58 deferred 4 years: read from pv/pv-spdefer-S362-w0.02-2.json
+12:59:58   deferred 2 years less the plan as it stands, paired: survival +0.033 points (se 0.033; 1 saved, 0 lost), whole score +0.045 (se 0.035)
+12:59:58   deferred 4 years less the plan as it stands, paired: survival +0.033 points (se 0.033; 1 saved, 0 lost), whole score +0.027 (se 0.035)
+12:59:58 done

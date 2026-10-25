@@ -6,8 +6,8 @@ The maintainer's questions, while N4 was running:
 - Which commonly recommended moves do the tests cover?
 
 Section 2's panel ran on 25 Oct, after N4's read. These checks use the candidate's own tables and the solver's own forward run, at 45 wealth points, estate weight 0.02,
-on seed 7002 (the tuning seed). They ran on a separate machine from N4. Every figure is printed in
-`results-missing-moves.txt` by the scripts in `scripts/`.
+on seed 7002 (the tuning seed). They ran on a separate machine from N4. Every figure is printed by the scripts in
+`scripts/`: in `results-missing-moves.txt`, and section 4's in `results-plan-variants.txt`.
 
 ## The answers
 
@@ -33,6 +33,9 @@ on seed 7002 (the tuning seed). They ran on a separate machine from N4. Every fi
    inheritance to the ISA first ("Windfall to ISA"). For a fair head-to-head, Phase 4 should run the solver on the plan
    variant the app's search picks.
 4. **Several common moves are not modelled at all** (the table in section 3).
+5. **Two of them do not pay when tried as plan inputs on the latest candidate** (with HR and the third step; section 4):
+   - holding S330's GIA at a safer tier for the whole plan (at Low, -2.17 survival points);
+   - deferring the State Pension two or four years on S224, S248 and S362 (no change beyond noise).
 
 ## 1. Finer moves: one step of policy improvement with the solver's own tables
 
@@ -172,17 +175,17 @@ Annuities are left out, at the maintainer's request.
 | phased tax-free cash | yes, every draw takes its 25% |
 | de-risk in retirement | two steps down only; the bottom binds (section 2) |
 | asset location (equities in the ISA, bonds in the pension) | no: the joint step; separate tiers tested only in the tables, in September |
-| de-risk the GIA | no: M15 failed and M15 v2 never ran |
+| de-risk the GIA | no: M15 failed and M15 v2 never ran; held safer for the whole plan, it does not help S330 (section 4) |
 | Bed & ISA (move the GIA into the ISA, GBP 20k a year) | partly: N4's CGT sale moves its proceeds into the ISA, but only as much as the exemption allows; the app stages it only for a deposit given an ISA target |
 | take the full 25% tax-free lump sum at once | not a solver choice (the plan's setting); the app's search tries both |
 | route an inheritance to the ISA first | not a solver choice; the app's search has "Windfall to ISA". On the panel's four inherited deposits it changes only the first year's placement: S370 GBP 3,600 to the pension becomes GBP 20,000 to the ISA, S330 GBP 53,710 to the pension becomes GBP 13,105 to the ISA, and no later transfers either way (`scripts/routing.mjs`) |
 | pension contributions after retirement (GBP 3,600 gross a year, to 75) | no: contributions only while working; worth most to low spenders whose draws are tax-free (S362, S002) |
-| defer the State Pension (5.8% more a year deferred) | no |
+| defer the State Pension (5.8% more a year deferred) | no, and not needed: two or four years change nothing beyond noise on S224, S248 or S362 (section 4) |
 | realise losses against gains | no: the engine never realises a loss |
 | a cash bucket that is not refilled after a fall | no: the buffer is refilled every year |
 | pensions in the estate from April 2027 | an input (the library's death-tax rate is 0), not a move |
 
-## 4. Choices made once: a safer GIA, and deferring the State Pension (25 Oct, running)
+## 4. Choices made once: a safer GIA, and deferring the State Pension (25 Oct)
 
 Two choices a household makes once, outside the solver's yearly menu. Each is tested by solving the candidate on the
 plan so changed:
@@ -212,6 +215,39 @@ survival points, se 1.4):
 - **What would change the plan:** a gain beyond 0.5 points and beyond noise on a household. For the GIA, that means
   building M15 v2. For deferral, a deferral dial like the retirement-age dial (D18).
 
+### The results
+
+Printed by `scripts/plan-variants-read.mjs` in `results-plan-variants.txt`. Its check passed on every household: each
+variant ran on the plan's settings and paths.
+
+| household | variant | survival: the plan as it stands, then the variant | the variant less the plan: survival (saved / lost), whole score |
+|---|---|---|---|
+| S330 | the GIA at Medium/Low | 90.50%, 90.37% | -0.133 (se 0.200; 16 / 20), -0.315 (se 0.202) |
+| S330 | the GIA at Low | 90.50%, 88.33% | **-2.167** (se 0.290; 6 / 71), **-2.722** (se 0.291) |
+| S224 | deferred 2 years | 70.23%, 70.23% | +0.000 (se 0.156; 11 / 11), -0.017 (se 0.158) |
+| S224 | deferred 4 years | 70.23%, 69.97% | -0.267 (se 0.183; 11 / 19), -0.289 (se 0.184) |
+| S248 | deferred 2 years | 54.17%, 54.13% | -0.033 (se 0.153; 10 / 11), -0.039 (se 0.154) |
+| S248 | deferred 4 years | 54.17%, 54.13% | -0.033 (se 0.167; 12 / 13), -0.048 (se 0.168) |
+| S362 | deferred 2 years | 48.93%, 48.97% | +0.033 (se 0.033; 1 / 0), +0.045 (se 0.035) |
+| S362 | deferred 4 years | 48.93%, 48.97% | +0.033 (se 0.033; 1 / 0), +0.027 (se 0.035) |
+
+- **Nothing gains.** The only change beyond noise is the GIA at Low, and it is a loss.
+- **Against the predictions:**
+  - S330 and S248: as predicted.
+  - S362: no change, where I predicted a small loss. No path is lost to the four extra years drawn from its pots, and
+    almost none of its shortfalls comes after 85 (no shortfall by 85: 48.97% under every variant), so the higher
+    pension has little to save.
+  - S224: wrong. I predicted a gain of 0 to 2 points at four years; it is -0.27, within noise. Its paths with no
+    shortfall by 85 fall by as much (80.57% to 80.30%). The likely reason: drawing harder at 68 to 71 brings some
+    shortfalls forward, and the higher pension from 72 does not win them back by 95.
+- **The GIA:** a safer fixed tier does not pay. This one-sided test can say no more. A GIA that can move (M15 v2) stays
+  untested. The case for testing it: S330 holds the third step's bottom rung in 71% of its spending years (section 2),
+  so it may want more calm than the pension and ISA alone can give. It needs a build: the GIA in the tier state, and
+  capital gains tax on each switch. The variants here change the GIA's tier with no tax, which flatters them.
+- **Deferral:** not worth a dial on this evidence. A plan that runs to a fixed age leaves out a long life beyond it,
+  where deferral pays most.
+- **Not run:** the weight 0.01.
+
 ## 5. What to do
 
 1. **N4:** reads as planned. No finer-ceiling or finer-level test is needed after it.
@@ -229,10 +265,12 @@ survival points, se 1.4):
 3. **Phase 4's fairness:** run the solver on the plan variant the app's strategy search picks for each household (its
    lump-sum choice and its deposit policy). Otherwise the app has moves the solver cannot make.
 4. **Later builds, each its own test:**
-   - the GIA ladder (M15 v2);
+   - the GIA ladder (M15 v2): a GIA held safer for the whole plan does not help S330 (section 4), so only a GIA that
+     moves is left to test;
    - pension contributions after retirement;
-   - State Pension deferral;
    - loss harvesting.
+   State Pension deferral is dropped: deferring two or four years changes survival by under 0.3 points on each of
+   S224, S248 and S362, all within noise (section 4).
 
 ## How to rerun
 

@@ -282,7 +282,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:cand29 -->
 ### The speed port (D30; SPEED-PORT.md at 775bfc3): the build (steps 1 and 2)
 <!-- printed:speedport -->
-- pending: research/tests/results-speed-port.txt
+- The port's build: `speed-port.test.mjs --full` ALL PASS: 16 checks (`results-speed-port.txt`): the option unset, S224 SHIP, S370 SHIP, S224 CAND, S370 CAND the same as before the port (tables, layers, S370's reference, the engine's outcomes); the `realAt` cache the same on and off; with tableDealing false, E5 the same as the layer loop bit for bit on S370 at 6 points (E5 164 s, the loop 190 s), S248 at 6 points (E5 56 s, the loop 81 s), S224 at 6 points (E5 44 s, the loop 67 s), S370 at 45 points (E5 566 s, the loop 782 s); the engine and a forward run in step under it (398 years of 20 paths, the largest gap £9.31e-10, 285 with a switch); the plants: the cache keyed on the wrong vector caught, the switch charge dropped from E5 caught, the engine without the dealing cost (£1061834.90).
 <!-- end printed:speedport -->
 ## 5. Running now
 

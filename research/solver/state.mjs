@@ -142,6 +142,16 @@ const BLOCKS = {
     const plants = [[/^PASS {2}2 {2}planted: the cache keyed on the plan's own vector parts them/m, 'the cache keyed on the wrong vector'], [/^PASS {2}3 {2}planted: E5 with the switch charge dropped parts them/m, 'the switch charge dropped from E5'], [/^PASS {2}4 {2}planted: the engine's policy without the dealing cost parts them by £([\d.]+)/m, 'the engine without the dealing cost']].map(([re, nm]) => { const m = re.exec(t); return `${nm} ${m ? (m[1] ? `(£${m[1]})` : 'caught') : 'NOT CAUGHT'}`; });
     return [`- The port's build: \`speed-port.test.mjs --full\` ${verdict(T)} (\`results-speed-port.txt\`): the option unset, ${ids.join(', ')} the same as before the port (tables, layers, S370's reference, the engine's outcomes); the \`realAt\` cache the same on and off; with tableDealing false, E5 the same as the layer loop bit for bit on ${e5.join(', ')}; the engine and a forward run in step under it (${lock}); the plants: ${plants.join(', ')}.`];
   },
+  // D30's check (EXPLORATORY; n4-menu.mjs --read-nd): the identity, the gate and the solve; each household; the panel and the decision
+  n4nd() {
+    const R = 'research/solver/results-n4nd.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const hh = ['0.02', '0.01'].map(w => { const sec = (t.split(`AT W${w} `)[1] || '').split('\nAT W')[0].split('\nthe gate')[0]; return `W${w} ${[...sec.matchAll(/^ {2}(S\d+): HR\+T3 [\d.]+%, ND [\d.]+% \(\d+ moves\): survival (\S+) \((\S+)\) \/ score (\S+) \(\S+\)/gm)].map(m => `${m[1]} ${m[2]} (${m[3]}) / ${m[4]}`).join(', ')}`; });
+    const panel = [...t.matchAll(/^ {2}the panel W(0\.0\d) (survival|score): (\S+) \(se (\S+)\), its 95% interval's lower end (\S+): (clears|does not clear)/gm)].map(m => `W${m[1]} ${m[2]} ${m[3]} (se ${m[4]}; lower end ${m[5]}, ${m[6]})`);
+    return [`- ${pick(R, /^THE IDENTITY \(step 2\.1\): (.*?), so the factorial's units stand as the first arm$/m, m => `The identity (step 2.1): ${m[1]}`)}; the gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^THE SOLVE, (.*)$/m, m => `the solve, ${m[1]}`)} (\`results-n4nd.txt\`).`,
+      `- ND less HR+T3, survival points (se) / whole score: ${hh.join('; ')}.`,
+      `- The panel: ${panel.join('; ')}; a household losing more than 0.5 beyond noise: ${pick(R, /^ {2}a household losing more than 0\.5 beyond noise: (.*)$/m, m => m[1])}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`];
+  },
   // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
   n4read() {
     const R = 'research/solver/results-n4.txt', t = read(R);

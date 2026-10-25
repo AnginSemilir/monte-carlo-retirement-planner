@@ -20,6 +20,13 @@ step code 6), with the engine built (`python3 research/build-engine.py`).
   copy with the option unset is the candidate.
 - `routing.mjs <household> ...`: where a deposit left to the policy lands, under the plan's policy and under the app's
   'Windfall to ISA'.
+- `plan-variants.mjs <household> <weight> <paths> <gia|spdefer>`:
+  - solves the candidate on the plan as it stands and on each variant of it (a safer GIA; the State Pension deferred),
+    and runs each on the same paths;
+  - `PTS`, `TIERS_BELOW` (3 needs `third-step.diff`) and `MENUPLUS` set the solver; `OUTDIR` keeps one file a variant,
+    with its paths' outcomes, and a variant whose file is there is read, not run again; `ONLY` runs some variants.
+- `plan-variants-read.mjs <file> ...`: each variant paired against the plan as it stands, after checking they ran on the
+  same settings and paths.
 
 The code in `menu-gap.mjs` is the code that ran; only its header comment changed afterwards. On one core,
 `menu-gap.mjs` took about 45 minutes a household (1,000 and 3,000 paths) and `third-step.mjs` about 20 with `BASEJSON`, 35

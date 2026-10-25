@@ -182,7 +182,37 @@ Annuities are left out, at the maintainer's request.
 | a cash bucket that is not refilled after a fall | no: the buffer is refilled every year |
 | pensions in the estate from April 2027 | an input (the library's death-tax rate is 0), not a move |
 
-## 4. What to do
+## 4. Choices made once: a safer GIA, and deferring the State Pension (25 Oct, running)
+
+Two choices a household makes once, outside the solver's yearly menu. Each is tested by solving the candidate on the
+plan so changed:
+- **The solver:** the candidate with N4's HR (both parts) and the third tier step, at 45 wealth points. e3pcls is off,
+  because the pin is stale on the edited copy.
+- **The run:** 3,000 paths of the tuning seed at weight 0.02, paired against the plan as it stands
+  (`scripts/plan-variants.mjs`). `scripts/plan-variants-read.mjs` reads it, and throws unless every variant ran on the
+  same settings and paths.
+
+The two choices:
+- **A safer GIA, on S330** (its GIA is 45% of its wealth): held at Medium/Low, then at Low, for the whole plan.
+  - The test is one-sided. A gain means a GIA that can move (M15 v2) is worth building.
+  - A loss does not rule it out: a tier fixed from 37 also gives up 28 years of growth before S330 retires.
+- **The State Pension deferred two and four years, on S224, S248 and S362:** 5.78% more for each year deferred (1% for
+  every nine weeks, the new State Pension's rule), then level in real terms, as the plan holds it.
+
+**Predictions, written before the results** (after a 6-point plumbing run of 100 paths on S330, where Low lost 2.0
+survival points, se 1.4):
+- **S330:** Medium/Low within 0.5 survival points either way, with the whole score down by up to 1; Low down 0.5 to 3.
+- **Deferral** earns back what it gives up in about 17 years of the higher pension (1 / 0.0578). It should help where
+  shortfalls come late and the pots are well funded at the State Pension age, and hurt where they are thin then:
+  - S224 (70% survival; the State Pension is 17% of its GBP 70,000 spending): up, by 0 to 2 points at four years and
+    about half that at two;
+  - S248 (53%; 9% of its GBP 128,500): within 0.5 either way;
+  - S362 (49%; deferred four years, the State Pension covers all of its GBP 9,000 spending from 72, but the four years
+    before must come from a thin pot): down, by 0 to 1 point at four years.
+- **What would change the plan:** a gain beyond 0.5 points and beyond noise on a household. For the GIA, that means
+  building M15 v2. For deferral, a deferral dial like the retirement-age dial (D18).
+
+## 5. What to do
 
 1. **N4:** reads as planned. No finer-ceiling or finer-level test is needed after it.
 2. **The tier menu, before Phase 4 registers:**
@@ -206,14 +236,16 @@ Annuities are left out, at the maintainer's request.
 
 ## How to rerun
 
-From the root of a copy of the code at eb8709d with the engine built. `third-step.mjs` runs on a copy with
-`scripts/third-step.diff` applied.
+From the root of a copy of the code at eb8709d with the engine built. `third-step.mjs`, and `plan-variants.mjs` with
+`TIERS_BELOW`, run on a copy with `scripts/third-step.diff` applied.
 
     OUT=S370.json node <review>/scripts/menu-gap.mjs S370 0.02 1000 3000
     node <review>/scripts/menu-gap-read.mjs S370.json
     BASEJSON=S370.json OUT=step3-S370.json node <review>/scripts/third-step.mjs S370 0.02 3000 3
     node <review>/scripts/third-step-read.mjs step3-*.json
     node <review>/scripts/routing.mjs S370 S330 S362 S002
+    mkdir -p pv && PTS=45 TIERS_BELOW=3 MENUPLUS=hr OUTDIR=pv node <review>/scripts/plan-variants.mjs S330 0.02 3000 gia
+    node <review>/scripts/plan-variants-read.mjs pv/*.json
 
 On one core:
 - `menu-gap.mjs`: about 45 minutes a household;

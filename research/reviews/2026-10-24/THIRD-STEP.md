@@ -34,9 +34,11 @@ What the exploratory runs measured (`MISSING-MOVES.md` section 2; `results-missi
    - read `below` from `m.tiersBelow`, default 2;
    - for a step beyond the second, never step into Cash Equivalents (stop the list at Low Risk). Today's first two
      steps keep their current list, so the default menu is unchanged for plans already at Medium/Low or Low;
-   - the tiers-above condition is already `list.length === 1 + below` here; it needs no change.
-   - The joint step needs both wrappers to have the rung. A household whose ISA (or pension) sits at Medium Risk or below
-     therefore gets no third step at all, as today's second step works. The panel's households all have one.
+   - the third step applies only where both wrappers can take it. Where either cannot (it sits at Medium Risk or below,
+     so the stop above cuts its list short), the household's ladder is exactly today's, two below and then the tiers
+     above. It must not lose its tiers above, which a list one short of `1 + below` would do. The agent raised this on
+     25 Oct, and the maintainer chose this reading. Test it on a household at Medium Risk under `tiersAbove`. The panel's
+     households can all take the step.
 2. **`src/solver/solve.js`:**
    - beside `tiersAbove`: `if (opts.tiersBelow) m.tiersBelow = opts.tiersBelow`;
    - refuse anything but 2 or 3;
@@ -69,14 +71,16 @@ N4's did. Each check is shown failing on its plant (CHECKLIST 5).
 2. **The ladder, with `tiersBelow: 3`:**
    - a High Risk pension reads High, Medium/High, Medium, Medium/Low;
    - a Medium/High ISA reads Medium/High, Medium, Medium/Low, Low;
-   - a wrapper at Medium Risk gets no third step (no Cash Equivalents);
+   - a wrapper at Medium Risk gets no third step (no Cash Equivalents), and its household keeps today's ladder, tiers
+     above included (under `tiersAbove`);
    - the engine's `tierProfiles` names match the table's at every index.
 3. **The engine and the forward run in step** (V2's state check) on S370 with `tiersBelow: 3`: every slot within a
    pound. Count the years at the new rung, which must be above zero, so the check is not vacuous.
 4. **Plants:**
    - the engine's list built with two below while the table has three: must throw or part the state check;
    - the new rung grown at the second rung's rates in `fast.js` only: must part the state check;
-   - the Cash Equivalents stop removed, on a Medium Risk wrapper: the ladder check fails.
+   - the Cash Equivalents stop removed, on a Medium Risk wrapper: the ladder check fails;
+   - the short list left without its tiers above, on that household under `tiersAbove`: the ladder check fails.
 5. **The fast suite passes** before any batch (CHECKLIST 4).
 
 **Acceptance:** all of the above. **Time box:** the build and its tests in four hours.

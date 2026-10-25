@@ -69,6 +69,27 @@ The candidate needs to be about 1.9 to 2.5 times faster.
   only if the tables never value a little less money more, which their log-odds reads in share coordinates do not
   guarantee.
 
+## The second cut, built and measured (the maintainer, 25 Oct: "continue the test here")
+
+`scripts/speed/e5.patch`, on the speed checkout: E5 (each move's terms once a cell and world, with the table without
+the dealing cost) and the `realAt` cache.
+
+- **E5 is exact.** Its tables are the same as the prototype loop's, bit for bit:
+  - S370 at 4 points: 0 of 3,576,960 values differ; the plant (the switch charge dropped) parts 1,724,934;
+  - S224 at 6 points: running;
+  - S370 at 45 points: the same hash (662f328764a48d2e), E5 in 629.4 s against the loop's 881.4 s.
+- **The `realAt` cache is exact.** S248 at 6 points: the same hash with the cache and without, for the candidate as it
+  stands and for E5.
+- **Speed and gate 5,** on one core, against the candidate as it stands:
+
+| household | with E5 (s) | against the candidate | gate 5 over four cores |
+|---|---|---|---|
+| S126 | 525.4 | (no clean solve to set against) | 0.80 to 0.93 |
+| S248 | 500.3 | 3.05 times | 0.77 to 0.89 |
+| S370 | 629.4 | 2.68 times | 1.00 to 1.16 |
+
+All three are inside 1.25, S370 by the least.
+
 ## For the maintainer
 
 1. **Whether the table may drop the dealing cost.** The check: the latest candidate against the same with
@@ -78,3 +99,5 @@ The candidate needs to be about 1.9 to 2.5 times faster.
 2. **Then the exact cuts:** the loop computed once per move, and the cached `realAt`. Each comes with its identity test,
    by the 23 Oct review's rules.
 3. **Then gate 5,** measured on the candidate so settled.
+
+`SPEED-PORT.md` turns these into the agent's instructions.

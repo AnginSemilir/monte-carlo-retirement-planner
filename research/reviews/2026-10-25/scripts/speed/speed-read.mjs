@@ -20,8 +20,8 @@ for (const f of readdirSync(tdir)) {
   const j = JSON.parse(last);
   if (j.arm === 'PRODUCT') prod[j.who] = j.secs;
   if (j.arm === 'HRT3-N1') { proto[j.who] = j.secs; src[j.who] = 'alone'; }
-  if (j.arm === 'HRT3-E5' && !j.realAt?.startsWith('un')) e5[j.who] = j;
-  if (j.arm === 'HRT3-N1LOOP' && !j.realAt?.startsWith('un')) loop[j.who] = j;
+  if (j.arm === 'HRT3-E5' && j.points === 45 && !j.realAt?.startsWith('un')) e5[j.who] = j;   // the 45-point solves only (the 6-point ones are the cache's identity)
+  if (j.arm === 'HRT3-N1LOOP' && j.points === 45 && !j.realAt?.startsWith('un')) loop[j.who] = j;
 }
 for (const f of readdirSync(ldir)) {
   const m = /^(S\d+) \(S\d+\): .* at 45 points, 800 moves.* solved in (\d+) s/m.exec(readFileSync(join(ldir, f), 'utf8'));

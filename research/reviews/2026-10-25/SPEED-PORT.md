@@ -30,8 +30,10 @@ What was measured (`results-speed-groundwork.txt`; this machine, two jobs on two
 - the 71% of expectations at a switch's charged position;
 - the prototype's results within noise on S370 and S248 (2,000 paths each);
 - E5's tables the same as the prototype loop's bit for bit, and its plant caught;
-- with all three, the solve 2.7 to 3.0 times as fast as the candidate's, and gate 5 read at about 0.8 to 1.2 on
-  S126, S248 and S370.
+- the `realAt` cache's tables the same with it and without;
+- with all three, the solve 2.68 times as fast as the candidate's on S370 and 3.05 times on S248;
+- gate 5 read at 0.80 to 0.93 on S126, 0.77 to 0.89 on S248 and 1.00 to 1.16 on S370. These are inside 1.25, but S370
+  only just, and on two shared cores: gate 5's own measurement on a quiet machine decides.
 
 ## Step 1. The port
 

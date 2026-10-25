@@ -1,0 +1,48 @@
+THE PURPOSE TEST ON THE LATEST CANDIDATE (EXPLORATORY; the external review, 25 Oct): PURPOSE-TEST.md.
+The agent's code at 52b0b6c with scripts/audit-bestof-latest.diff applied; S362 and S002 dropped at the maintainer's call (25 Oct 18:31) to start the speed work.
+
+== THE READ: node scripts/purpose-read.mjs out/*.json
+THE PURPOSE TEST ON THE LATEST CANDIDATE: 5 households; the candidate e65e5e99ba49 with menuPlus hr, tiersBelow 3 (tier pairs 0/0,1/1,2/2,3/3), 45 wealth points, lambda 0.0223606797749979, weight 0.02; at each position the top 6 distinct moves on 800 paths (half to pick, half to measure); every file on these settings
+  S224: 20 positions (10 on the cliff), 800 moves; the rival best on A ahead on B: survival -0.04 points, beyond 2 se at 0; whole score -0.003, beyond 2 se at 2; the pick itself best on A at 7 (whole score) | the plant: survival beyond 2 se at 1, whole score at 4
+  S248: 20 positions (10 on the cliff), 800 moves; the rival best on A ahead on B: survival -0.05 points, beyond 2 se at 0; whole score -0.034, beyond 2 se at 1; the pick itself best on A at 9 (whole score) | the plant: survival beyond 2 se at 2, whole score at 5
+  S330: 20 positions (10 on the cliff), 800 moves; the rival best on A ahead on B: survival +0.10 points, beyond 2 se at 1; whole score +0.108, beyond 2 se at 0; the pick itself best on A at 11 (whole score) | the plant: survival beyond 2 se at 0, whole score at 3
+  S370: 20 positions (10 on the cliff), 800 moves; the rival best on A ahead on B: survival -0.14 points, beyond 2 se at 0; whole score -0.235, beyond 2 se at 1; the pick itself best on A at 5 (whole score) | the plant: survival beyond 2 se at 0, whole score at 2
+  S380: 20 positions (10 on the cliff), 800 moves; the rival best on A ahead on B: survival -0.06 points, beyond 2 se at 0; whole score -0.140, beyond 2 se at 0; the pick itself best on A at 6 (whole score) | the plant: survival beyond 2 se at 0, whole score at 2
+OVER THE PANEL (100 positions, 50 on the cliff):
+  survival: the rival best on A ahead on B by -0.037 on the mean (se 0.042), beyond 2 se at 1/100 (1.0%): WITHIN D4's 5%
+    the advantages beyond 2 se, largest first: +1.000
+  survival, the plant: ahead by +0.198 on the mean (se 0.070), beyond 2 se at 3/100 (3.0%): the measure does NOT see a pick as bad as the last distinct rival
+  whole score: the rival best on A ahead on B by -0.061 on the mean (se 0.052), beyond 2 se at 4/100 (4.0%): WITHIN D4's 5%
+    the advantages beyond 2 se, largest first: +0.085, +0.054, +0.005, +0.002
+  whole score, the plant: ahead by +0.207 on the mean (se 0.067), beyond 2 se at 16/100 (16.0%): the measure SEES a pick as bad as the last distinct rival
+VERDICT (exploratory: one weight, the latest candidate on the agent's code): by D4's measure, survival PASS, the whole score PASS; the plant is seen: the measure has power against a pick as bad as the last distinct rival
+
+== THE RUN LOG: S248-w0.02.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S248 (S248): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1514 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S248 W0.02 lambda 0.0223606797749979: 20 positions (10 on the cliff); survival: best-on-A ahead on B -0.05 points, beyond 2 se at 0/20; whole score: ahead -0.034 points, beyond 2 se at 1/20; the candidate's own pick best on A (whole score) at 9/20
+PLANT S248 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead +0.78 points, beyond 2 se at 2/20; whole score ahead +0.871, beyond 2 se at 5/20
+
+== THE RUN LOG: S370-w0.02.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S370 (S370): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1671 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S370 W0.02 lambda 0.0223606797749979: 20 positions (10 on the cliff); survival: best-on-A ahead on B -0.14 points, beyond 2 se at 0/20; whole score: ahead -0.235 points, beyond 2 se at 1/20; the candidate's own pick best on A (whole score) at 5/20
+PLANT S370 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead +0.25 points, beyond 2 se at 0/20; whole score ahead +0.146, beyond 2 se at 2/20
+
+== THE RUN LOG: S380-w0.02.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S380 (S380): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1676 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S380 W0.02 lambda 0.0223606797749979: 20 positions (10 on the cliff); survival: best-on-A ahead on B -0.06 points, beyond 2 se at 0/20; whole score: ahead -0.140 points, beyond 2 se at 0/20; the candidate's own pick best on A (whole score) at 6/20
+PLANT S380 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead +0.09 points, beyond 2 se at 0/20; whole score ahead +0.033, beyond 2 se at 2/20
+
+== THE RUN LOG: S224-w0.02.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S224 (S224): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1403 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S224 W0.02 lambda 0.0223606797749979: 20 positions (10 on the cliff); survival: best-on-A ahead on B -0.04 points, beyond 2 se at 0/20; whole score: ahead -0.003 points, beyond 2 se at 2/20; the candidate's own pick best on A (whole score) at 7/20
+PLANT S224 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead -0.06 points, beyond 2 se at 1/20; whole score ahead +0.012, beyond 2 se at 4/20
+
+== THE RUN LOG: S330-w0.02-p0-10.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S330 (S330): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1650 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S330 W0.02 lambda 0.0223606797749979: 10 positions (5 on the cliff); survival: best-on-A ahead on B -0.05 points, beyond 2 se at 0/10; whole score: ahead -0.044 points, beyond 2 se at 0/10; the candidate's own pick best on A (whole score) at 7/10
+PLANT S330 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead -0.20 points, beyond 2 se at 0/10; whole score ahead -0.145, beyond 2 se at 2/10
+
+== THE RUN LOG: S330-w0.02-p10-20.log (audit-bestof-latest.mjs; ptq.sh, or ptq2.sh for a chunk)
+S330 (S330): the candidate e65e5e99ba49 at 45 points, 800 moves, tier pairs 0/0,1/1,2/2,3/3, tiersBelow 3, menuPlus hr, lambda 0.0223606797749979, estate weight 0.02, solved in 1643 s; 20 positions, the top 6 distinct moves, 800 paths (400 to pick, 400 to measure)
+SUMMARY S330 W0.02 lambda 0.0223606797749979: 10 positions (5 on the cliff); survival: best-on-A ahead on B +0.25 points, beyond 2 se at 1/10; whole score: ahead +0.260 points, beyond 2 se at 0/10; the candidate's own pick best on A (whole score) at 4/10
+PLANT S330 W0.02: the last distinct rival standing in for the pick, on the same simulations: survival ahead +0.07 points, beyond 2 se at 0/10; whole score ahead +0.089, beyond 2 se at 1/10

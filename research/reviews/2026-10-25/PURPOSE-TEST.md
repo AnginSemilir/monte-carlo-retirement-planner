@@ -32,3 +32,37 @@ check (`../2026-10-24/MISSING-MOVES.md`) asked about moves the menu lacks. This 
   pick from a sixth-best one, and a pass says little.
 - **What would matter:** survival beyond 2 se at over 5% of positions, or whole-score advantages above 0.2 points (the
   tables' own error) at more than a few. Either would mean the chooser leaves gains on the table among its own moves.
+
+## The results
+
+Printed by `scripts/purpose-read.mjs` in `results-purpose-test.txt`. Five of the seven households ran: S362 and S002
+were dropped at the maintainer's call (25 Oct 18:31) to start the speed work, and S330 ran in two halves.
+
+| household | positions (on the cliff) | the best rival less the pick on the measuring half: survival, whole score (means) | beyond 2 se: survival, whole score | the plant beyond 2 se: survival, whole score |
+|---|---|---|---|---|
+| S224 | 20 (10) | -0.04, -0.003 | 0, 2 | 1, 4 |
+| S248 | 20 (10) | -0.05, -0.034 | 0, 1 | 2, 5 |
+| S330 | 20 (10) | +0.10, +0.108 | 1, 0 | 0, 3 |
+| S370 | 20 (10) | -0.14, -0.235 | 0, 1 | 0, 2 |
+| S380 | 20 (10) | -0.06, -0.140 | 0, 0 | 0, 2 |
+
+- **Over the 100 positions:**
+  - survival beyond 2 se at 1 (1%), the mean advantage -0.037 points (se 0.042);
+  - the whole score beyond 2 se at 4 (4%), by +0.085, +0.054, +0.005 and +0.002 points;
+  - both within D4's 5%.
+- **The one survival flag** is S330 at the plan's start: the chooser's second choice ahead by +1.00 point on its 400
+  paths, at 2 se exactly, where the chooser's own scores put the two 0.00016 apart. The same starting position was also
+  drawn as another of the 20, on other paths, and there the best rival was 0.25 points behind the pick: noise at a
+  near-tie.
+- **The plant:**
+  - the whole score sees it, at 16 positions (16%);
+  - survival barely does, at 3. The top six distinct moves are usually within a point of each other in survival, so
+    on 400 paths a half the test cannot tell them apart.
+- **Against the prediction:** all three held. Survival at 1% (predicted no more than 3%); the whole score at 4%, every
+  flag under 0.1 points (predicted 3% to 10%, nearly all under 0.1); the plant seen at 16% in the whole score (predicted
+  over 10% in one yardstick).
+- **What it means:**
+  - Among its own moves, the chooser picks the best or one indistinguishable from it, at every position tested.
+  - Where its choices differ, they differ by less than this test can see in survival, about a point at a position, so
+    which of its top moves it takes matters little.
+- **Not run:** S362, S002 and the weight 0.01.

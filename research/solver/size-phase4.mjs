@@ -65,10 +65,28 @@ export function sizeFor(ds) {
 }
 export const normalCheck = (d, N) => { const se = 100 * Math.sqrt(d / N); return { se, t: FP_LOSS + 1.645 * se, nNeeded: Math.ceil(d * 152000) }; };
 
-/* the pilot's discordances: per household, per weight, per comparison (the pilot's units as audit-phase4.mjs writes them) */
-function discordances(dir) {
+/* the pilot's units, by household and arm/weight */
+function unitsIn(dir) {
   const U = {};
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json.gz'))) { const j = JSON.parse(gunzipSync(readFileSync(join(dir, f))).toString()); ((U[j.id] ||= {})[`${j.arm}/${j.w}`] = j); }
+  return U;
+}
+export const RUN = { repl: 4000, rob: 2000, fixbr: 8000, worlds: 3, hist: 68 };   // audit-phase4.mjs's counts for the registered run
+/* the run's core-seconds from the pilot's units: see the budget's note above */
+export function budgetOf(U, panel, paths, R = RUN) {
+  const B = { total: 0, solve: 0, engine: 0, arm: {}, longest: { secs: 0, unit: '-' } };
+  for (const h of panel) for (const [k, u] of Object.entries(U[h.id] || {})) {
+    const ms = u.engineSecs / u.N, robust = k === 'APP/-' || k === 'CAND/0.02';
+    const n = paths[h.id] + R.repl + (k === 'CAND/0.02' && u.bridge > 0 ? Math.min(paths[h.id], R.fixbr) : 0) + (robust ? R.worlds * R.rob + R.hist : 0);
+    const secs = u.solveSecs + ms * n + (u.secs - u.solveSecs - u.engineSecs);   // the rest of the unit (arm A's pick) as the pilot timed it
+    B.total += secs; B.solve += u.solveSecs; B.engine += ms * n; B.arm[u.arm] = (B.arm[u.arm] || 0) + secs;
+    if (secs > B.longest.secs) B.longest = { secs, unit: `${h.id} ${k}` };
+  }
+  return B;
+}
+/* the pilot's discordances: per household, per weight, per comparison (the pilot's units as audit-phase4.mjs writes them) */
+function discordances(dir) {
+  const U = unitsIn(dir);
   const bits = j => Buffer.from(j.main.survived, 'base64');
   const disc = (a, b) => { const x = bits(a), y = bits(b), n = Math.min(x.length, y.length); let k = 0; for (let i = 0; i < n; i++) if (x[i] !== y[i]) k++; return { k, n }; };
   return Object.fromEntries(Object.entries(U).map(([id, u]) => [id, Object.fromEntries(['0.02', '0.01'].flatMap(w => [[`APP/${w}`, u[`CAND/${w}`] && u['APP/-'] ? disc(u[`CAND/${w}`], u['APP/-']) : null], [`SHIP/${w}`, u[`CAND/${w}`] && u[`SHIP/${w}`] ? disc(u[`CAND/${w}`], u[`SHIP/${w}`]) : null]]))]));
@@ -134,4 +152,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   console.log(`TOTAL: ${panel.length} households, ${total} paths a unit summed (${(total / panel.length).toFixed(0)} on average); households above 16,000: ${Object.values(out.paths).filter(n => n > 16000).length}`);
   writeFileSync(join(HERE, 'phase4-paths.json'), JSON.stringify(out, null, 1) + '\n');
+  // THE BUDGET (D21, D34 (4)): from the pilot's own units on this machine, four at a time as the run will be: each unit's
+  // solve as the pilot timed it, and its engine's time a path (the pilot's, its first 200 paths run twice as the run's are)
+  // times the paths the run gives it: the household's paths and the replication's on every unit, FIXBR's on CAND/0.02 where
+  // the household has retired years before access, the three worlds and history on APP and CAND/0.02
+  // the registration's table (D34 (4)): every household's paths, and per comparison its threshold and the rates at a
+  // quarter-point and a 1-point loss
+  const K = ['APP/0.02', 'APP/0.01', 'SHIP/0.02', 'SHIP/0.01'];
+  console.log(`\nTHE REGISTRATION'S TABLE (points; t, then the chance of a harm reading at a true 0.25 and 1-point loss)\n| household | paths | ${K.map(k => `vs ${k.replace('/', ' at ')}`).join(' | ')} |\n|---|---|${K.map(() => '---').join('|')}|`);
+  for (const h of panel) console.log(`| ${h.id} | ${out.paths[h.id]} | ${K.map(k => { const x = out.thresholds[h.id][k]; return `${x.t.toFixed(3)} (${x.fp.toFixed(3)}, ${x.tp.toFixed(3)})`; }).join(' | ')} |`);
+  const U = unitsIn(dir), B = budgetOf(U, panel, out.paths);
+  console.log(`THE BUDGET (D21), from the pilot's units: ${(B.total / 3600).toFixed(1)} core-hours, about ${(B.total / 3600 / 4).toFixed(1)} hours on 4 cores (the solves ${(B.solve / 3600).toFixed(1)}, the engine ${(B.engine / 3600).toFixed(1)}); by arm: ${Object.entries(B.arm).map(([a, x]) => `${a} ${(x / 3600).toFixed(1)}`).join(', ')}; the longest unit ${(B.longest.secs / 3600).toFixed(2)} hours (${B.longest.unit})`);
 }

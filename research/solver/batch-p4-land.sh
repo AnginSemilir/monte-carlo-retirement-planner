@@ -6,6 +6,7 @@ set -u
 cd "$(dirname "$0")/../.."
 LOG=research/solver/results/p4-land-log.txt
 mkdir -p research/solver/results
+[ -f research/solver/phase4-orders.json ] || node research/solver/phase4-panel.mjs freeze >> "$LOG" 2>&1   # the scan and the orders, once
 jobs=()
 for k in $(seq 0 19); do jobs+=("lib $k" "fire $k"); done
 printf '%s\n' "${jobs[@]}" | xargs -P 4 -L 1 sh -c 'node research/solver/phase4-panel.mjs land $0 $1' >> "$LOG" 2>&1

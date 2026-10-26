@@ -2,8 +2,9 @@
  * PHASE 4'S PANEL (STATE.md D35, on the maintainer's design of 24 Sep: the archived plan's Phase 4 and its P4-LAND row).
  * 40 single households no earlier run touched, 20 from the library and 20 retiring at 52, each landed so the app's rules
  * (arm A) survive about 85%, where the two arms can differ.
- *   - touched: scan-touched.mjs's MEANT rule (O129), taken when the panel is built: an id in the name or the plain text of
- *     any file under results/ (the band selection's p4-select and this panel's own p4-land left out), a gzipped file's own
+ *   - touched: scan-touched.mjs's MEANT rule (O129), taken once and frozen in phase4-orders.json (freeze), which every
+ *     later step reads: an id in the name or the plain text of any file under results/ (the band selection's p4-select and
+ *     Phase 4's own outputs left out: p4-land, its log, the pilot, the run; OWN), a gzipped file's own
  *     id field, and every results-*.txt file in the tree but results-p4-select.txt (the band selection's candidate list).
  *     An id with an F is its library id: a household retiring at 52 counts as touched when its library household is;
  *   - the library cohort: untouched single households older than 44, 20 taken evenly in library order (select-7u-broad.mjs
@@ -21,7 +22,8 @@
  *     that does not land within 16 steps is passed over for the next in its cohort's order;
  *   - the panel: the first 20 landed in each cohort's order; written to phase4-panel.json (committed) with the scan's
  *     count and hash, so the audit never scans again.
- *   node research/solver/phase4-panel.mjs list               the two cohorts' orders and the scan
+ *   node research/solver/phase4-panel.mjs freeze             the scan and the two orders, taken once, to phase4-orders.json
+ *   node research/solver/phase4-panel.mjs list               the two cohorts' orders (from phase4-orders.json)
  *   node research/solver/phase4-panel.mjs land <lib|fire> <k>  land candidate k of that order (results/p4-land/<id>.json)
  *   node research/solver/phase4-panel.mjs combine            phase4-panel.json from the landings so far
  *   node research/solver/phase4-panel.mjs --planted          the checks on planted inputs
@@ -43,7 +45,9 @@ import { execSync } from 'node:child_process';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RESULTS = join(HERE, 'results'), OUT = process.env.P4_LAND_OUT || join(RESULTS, 'p4-land');
 // P4_PANEL and P4_LAND_OUT point a smoke test elsewhere; the registered audit refuses P4_PANEL
-export const PANEL_FILE = process.env.P4_PANEL || join(HERE, 'phase4-panel.json');
+export const PANEL_FILE = process.env.P4_PANEL || join(HERE, 'phase4-panel.json'), ORDERS_FILE = join(HERE, 'phase4-orders.json');
+// left out of the scan: the band selection's p4-select, and Phase 4's own outputs (p4-land, its log, the pilot, the run)
+export const OWN = /^(p4-|diagp4)/;
 export const PER_COHORT = 20, MAX_FIRE_AGE = 44, FIRE_RETIRE = 52, AIM = 85, TOL = 1, LAND_SEED = 7005, LAND_PATHS = 1000, MAX_STEPS = 16;
 
 /* every library id an earlier run touched (MEANT), from the tree as it stands */
@@ -53,7 +57,8 @@ export function touched(root = HERE) {
   const walk = d => {
     for (const f of readdirSync(d)) {
       const p = join(d, f), st = statSync(p);
-      if (st.isDirectory()) { if (f !== 'p4-select' && f !== 'p4-land') walk(p); continue; }
+      if (OWN.test(f)) continue;
+      if (st.isDirectory()) { walk(p); continue; }
       add(f);
       const buf = readFileSync(p);
       if (f.endsWith('.gz')) { let j = null; try { j = JSON.parse(gunzipSync(buf).toString('latin1')); } catch { j = null; } if (j && !Array.isArray(j) && j.id != null) add(j.id); }
@@ -126,6 +131,7 @@ function planted() {
     cases.push(['the candidate\'s returns on every arm (High Risk at the blend median)', `${p.riskProfiles['High Risk'].real}`, '4.97']);
     const a = appPlan(p); cases.push(['arm A: guardrails on, lookahead 5, raises capped at 110%', `${a.config.guardrails} ${a.config.lookaheadYears} ${a.config.raiseCap}`, 'true 5 1.1']); }
   { cases.push(['an id with an F is its library id', idsIn('S302F-land.json').join(','), 'S302']); }
+  cases.push(['the scan leaves out Phase 4\'s own outputs and the band selection, not earlier runs', ['p4-land', 'p4-land-log.txt', 'p4-pilot', 'diagp4', 'p4-select', 'diag7uf', 'results-7uf.txt'].map(f => (OWN.test(f) ? 'out' : 'in')).join(','), 'out,out,out,out,out,in,in']);
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -140,11 +146,23 @@ export function readPanel() {
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const mode = process.argv[2] || 'list';
   if (mode === '--planted') process.exit(planted() ? 1 : 0);
-  const all = singlesOf();
-  const orders = () => { const used = touched(); return { used, ...cohorts(all, used) }; };
+  const all = singlesOf(), byId = Object.fromEntries(all.map(h => [h.id, h]));
+  // the scan and the orders are taken once (freeze) and read from phase4-orders.json after: a scan re-taken while the
+  // landings write their own files moved the orders under them (the first landing, 26 Oct, discarded)
+  const orders = () => {
+    if (!existsSync(ORDERS_FILE)) { console.error('phase4-panel: no phase4-orders.json; run freeze first'); process.exit(2); }
+    const o = JSON.parse(readFileSync(ORDERS_FILE, 'utf8'));
+    return { used: new Set(o.touched.ids), touchedHash: o.touched.hash, lib: o.lib.map(id => byId[id]), fire: o.fire.map(id => byId[id]), libPool: o.libPool };
+  };
+  if (mode === 'freeze') {
+    if (existsSync(ORDERS_FILE)) { console.error('phase4-panel: phase4-orders.json exists; the orders are taken once'); process.exit(2); }
+    const used = touched(), c = cohorts(all, used), ids = [...used].sort(), hash = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 12);
+    writeFileSync(ORDERS_FILE, JSON.stringify({ built: new Date().toISOString(), touched: { count: ids.length, hash, ids }, libPool: c.libPool, lib: c.lib.map(h => h.id), fire: c.fire.map(h => h.id) }, null, 1) + '\n');
+    console.log(`frozen: touched ${ids.length} ids (hash ${hash}); the library order ${c.lib.length} (pool ${c.libPool}), the FIRE order ${c.fire.length}`);
+  }
   if (mode === 'list') {
     const { used, lib, fire, libPool } = orders();
-    console.log(`touched (MEANT, now): ${[...used].filter(id => all.some(s => s.id === id)).length} of the library's ${all.length} single households; library pool ${libPool} (older than ${MAX_FIRE_AGE}), FIRE pool ${fire.length}`);
+    console.log(`touched (MEANT, frozen in phase4-orders.json): ${[...used].filter(id => all.some(s => s.id === id)).length} of the library's ${all.length} single households; library pool ${libPool} (older than ${MAX_FIRE_AGE}), FIRE pool ${fire.length}`);
     lib.forEach((h, k) => console.log(`  lib  ${String(k).padStart(3)}  ${h.id} ${h.name}${k < PER_COHORT ? '' : '  (reserve)'}`));
     fire.forEach((h, k) => console.log(`  fire ${String(k).padStart(3)}  ${h.id}F ${h.name.replace(/^[a-z-]+\//, 'fire/')}${k < PER_COHORT ? '' : '  (reserve)'}`));
   }
@@ -163,14 +181,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(`${cohort.padEnd(4)} ${String(k).padStart(3)} ${id.padEnd(6)} target ${r.target} (library ${E.num(h.plan.spending.targetSpend, 0)}) arm A ${r.survival.toFixed(1)} ${r.landed ? 'LANDED' : 'NOT LANDED'} in ${r.steps.length} steps, ${label}; ${Math.round((Date.now() - t0) / 1000)} s`);
   }
   if (mode === 'combine') {
-    const { used, lib, fire } = orders();
-    const walk = (list, cohort, want = PER_COHORT) => { const picked = []; let gap = null, passed = 0; for (const h of list) { if (picked.length === want) break; const f = join(OUT, `${idOf(h, cohort)}.json`); if (!existsSync(f)) { gap = idOf(h, cohort); break; } const r = JSON.parse(readFileSync(f, 'utf8')); if (r.landed) picked.push(r); else passed++; } return { picked, gap, passed }; };
+    const { used, touchedHash, lib, fire } = orders();
+    const walk =(list, cohort, want = PER_COHORT) => { const picked = []; let gap = null, passed = 0; for (const h of list) { if (picked.length === want) break; const f = join(OUT, `${idOf(h, cohort)}.json`); if (!existsSync(f)) { gap = idOf(h, cohort); break; } const r = JSON.parse(readFileSync(f, 'utf8')); if (r.landed) picked.push(r); else passed++; } return { picked, gap, passed }; };
     // the FIRE cohort first; if it runs out with every candidate tried, the library fills the panel to 40 (the archived rule)
     const F = walk(fire, 'fire'), short = F.gap ? 0 : PER_COHORT - F.picked.length, L = walk(lib, 'lib', PER_COHORT + short);
     for (const [n, w] of [['library', L], ['FIRE', F]]) console.log(`${n}: ${w.picked.length} landed${w.passed ? `, ${w.passed} passed over (not landed)` : ''}${w.gap ? `; stopped at the first not yet landed, ${w.gap}` : ''}`);
     if (L.picked.length + F.picked.length < 2 * PER_COHORT) { console.log('panel: INCOMPLETE, land more candidates'); process.exit(1); }
     if (short) console.log(`the FIRE cohort ran out: ${short} more from the library`);
-    const ids = [...used].sort(), hash = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 12);
+    const ids = [...used].sort(), hash = touchedHash;
     const panel = [...L.picked, ...F.picked].map(r => ({ id: r.id, base: r.base, cohort: r.cohort, target: r.target, libraryTarget: r.libraryTarget, armA: r.survival, label: r.label, steps: r.steps.length, code: r.code, head: r.head }));
     if (new Set(panel.map(r => r.code)).size !== 1) { console.log(`panel: the landings ran on more than one code (${[...new Set(panel.map(r => r.code))].join(', ')})`); process.exit(1); }
     writeFileSync(PANEL_FILE, JSON.stringify({ built: new Date().toISOString(), touched: { count: ids.length, hash }, aim: AIM, tol: TOL, seed: LAND_SEED, paths: LAND_PATHS, panel }, null, 1) + '\n');

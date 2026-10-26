@@ -1,0 +1,13 @@
+GATE: passed - 4 households, each once and done, the candidate fcd8096217b7 (each case's stamp) at 45 points and the product at 30, PRODUCT, CAND and SPLIT timed, CAND and SPLIT the candidate on 1 and 4 parts, every comparison on its arrays, the plant on S126, one code
+GATE 5 AFTER N4 AND INSTRUCTION 6 (a measurement; D11, D24 (3), D25, D26): bridge 4, S126, S370, share 0.50, one at a time, code fbf09b414864; the product as it ships at 30 points on one core (PRODUCT), the candidate at 45 points on one core (CAND) and split across 4 cores (SPLIT); every table of CAND and SPLIT compared bit for bit
+  household        differ/values         PRODUCT s  CAND s  SPLIT s  CAND/PRODUCT  SPLIT/PRODUCT  speed-up
+  bridge 4         0/36741600                153.7   477.5    141.7         3.107          0.922      3.37
+  S126             0/34992000                150.3   428.8    113.6         2.853          0.756      3.77
+  S370             0/40240800                148.1   569.2    160.5         3.843          1.084      3.55
+  share 0.50       0/34992000                155.6   438.5    123.1         2.818          0.791      3.56
+  median: CAND/PRODUCT x2.980, SPLIT/PRODUCT x0.857, the split's speed-up x3.55
+  load (1-minute average) at each timing's start: bridge 4 1.06/1.01/1.00; S126 4.31/1.27/1.15; S370 2.63/1.13/1.00; share 0.50 3.58/1.19/1.05
+PLANTED: a dropping part on S126 differs in 2094504 values
+
+VERDICT E2: EXACT
+VERDICT GATE 5 (the split candidate at 45 points at most x1.25 the product's solve at 30, on each household): MET

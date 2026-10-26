@@ -1,0 +1,2 @@
+S330 at 6 points, the ladder unset: hash 93376125769ebdb6, 800 moves, layers 0/0,1/1,2/2,3/3, 74 s
+S224 at 6 points, the ladder unset: hash 23e6cd0dc33c1fb8, 800 moves, layers 0/0,1/1,2/2,3/3, 60 s

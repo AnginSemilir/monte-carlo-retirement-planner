@@ -113,6 +113,9 @@ opening pots only, so it misses a GIA filled later: a dated deposit, a staged tr
 The probe is unchanged, since its households hold their GIA from the start. A build gates on the largest share the GIA
 reaches in the plan's own projection, or not at all.
 
-**The code the probe runs:** the prototype with the plant hooks (`gia/gia-ladder.patch`), every plant empty in every arm;
-each arm records its code's hash, and the read's fair test compares them. Its off tables and the other tests are rerun on
-it before the probe starts.
+**The code the probe runs:** the prototype with the plant hooks (`gia/gia-ladder.patch`), every plant empty in every arm.
+Each arm records its code's hash, and the read's fair test compares them. On it, before the probe started: the off tables
+are the latest candidate's bit for bit on S330 and S224 at 6 points (`hash-off-final.txt`, the same hashes as
+`hash-off.txt`), and every test passes (`gia-test-all3.txt`, the superset printed as a measurement). The probe's arms are
+split by arm across the two cores (CAND on one, LADDER on the other), so each pair's solve times are taken under the same
+load.

@@ -24,6 +24,8 @@ function pick(rel, re, fmt = m => m[0]) {
   if (!m) throw new Error(`state.mjs: ${rel} has no line matching ${re}`);
   return fmt(m);
 }
+// lines folded into fewer (each group's first keeps its "- "), to keep STATE.md under its 300 lines; the figures unchanged
+const fold = (out, groups) => groups.map(([a, b]) => out.slice(a, b === undefined ? out.length : b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')).filter(Boolean);
 const verdict = rel => pick(rel, /^(ALL PASS: \d+ checks|FAILED: \d+ of \d+ checks)/m, m => m[1]);
 const failedBefore = rel => pick(rel, /must fail[\s\S]*?^(FAILED: \d+ of \d+ checks)/m, m => m[1]);
 
@@ -66,7 +68,7 @@ const BLOCKS = {
       return `over ${m[1]} household-years, ${over.length ? `the gaps above a pound: ${over.map(g => g.x).join('; ')}` : `every gap within a pound (the largest ${top.v < 1e-3 ? top.v.toExponential(1) : top.v.toFixed(4)} pounds, ${top.x.replace(/ [^ ]+ \(.*$/, '')})`}`;
     });
     out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs --full\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}. ${pick(V, /^(?:PASS|FAIL) {2}1\. where the engine's own pick differs from the forward run's \((\d+) of (\d+) years\)[^:]*: the largest gap (\S+).*?, its tie tolerance (\S+)/m, m => `On the fixed code the engine's own pick differs from the forward run's in ${m[1]} of ${m[2]} years, the largest score gap ${m[3]} against the chooser's tie tolerance ${m[4]}: ties`)}.`);
-    return out;
+    return fold(out, [[0, 3], [3, 5], [5, 7], [7, 9], [9]]);
   },
   // V3 and V4 on the ported code (EXPLORATORY, the tuning seed): each read's verdicts, from its results file
   v34() {
@@ -90,7 +92,7 @@ const BLOCKS = {
       return pick(V4, new RegExp(`^V4 at W${w.replace('.', '\\.')}: (.*)$`, 'm'), m => `at estate weight ${w} ${m[1]}, the best variant ${Object.entries(by).map(([v, ids]) => `${v} on ${ids.length} of ${best.length} households`).join(', ')}`);
     });
     out.push(`- V4: ${v4.join('; ')}. ${pick(V4, /^V4 ensemble: (.*)$/m, m => `Its verdict: ${m[1]}`)} (\`results-v3.txt\`, \`results-v4.txt\`).`);
-    return out;
+    return fold(out, [[0, 1], [1, 3], [3, 5], [5]]);
   },
   // N4's build (Step 6, n4-design.md): its test in the full form, and the product's path unchanged
   n4build() {
@@ -163,7 +165,7 @@ const BLOCKS = {
       const v = pick(R, new RegExp(`^${esc}: (PASSES N4's bar|does not pass N4's bar): beyond the targets (.*?); a household loss beyond 0\\.5 (.*)$`, 'm'), m => `${m[1]}${m[2] === 'nowhere' ? '' : ` (beyond the targets on ${[...new Set([...m[2].matchAll(/(S\d+|panel mean) W/g)].map(x => x[1]))].join(', ')})`}; a household loss beyond 0.5 ${m[3]}`);
       out.push(`- ${k}: ${v}; ${mean.join('; ')}.`);
     }
-    return out;
+    return fold(out, [[0, 1], [1, 2], [2]]);
   },
   // HR decomposed (D27; n4-menu.mjs --read-hr): each half alone against the candidate, and their interaction
   n4hr() {
@@ -231,7 +233,7 @@ const BLOCKS = {
     if (t === null) return [`- pending: ${S}results-recheck-7u.txt`];
     // the households in one line, each as the recheck prints it, then its verdict (results-recheck-7u.txt)
     const rows = t.split('\n').filter(l => /^  \S/.test(l)).map(l => l.trim().replace(/\s{2,}/, ' ')), v = t.split('\n').find(l => /^VERDICT/.test(l));
-    return [`- ${rows.join(' || ')} (\`results-recheck-7u.txt\`).`, `- ${v}`];
+    return [`- ${rows.join(' || ')} (\`results-recheck-7u.txt\`). ${v}`];
   },
   // Step 4: 7u's item 4 re-read by path, and 7u-F's power from 7u's records (reread-7u-item4.mjs)
   step4() {

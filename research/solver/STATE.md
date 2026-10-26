@@ -39,10 +39,28 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D35. 26 Oct, maintainer, Phase 4's design: 7q is folded into Phase 4, an arm on its bridge households (the candidate
+  following the app's fixed policy before pension access, its own table after), reported, not gated (D15 so amended);
+  robustness is reported, not gated: the perturbed worlds in the code (returns a point lower, volatility up a quarter, a
+  fatter left tail) and the historical sequences, with D20 (9)'s sensitivity to the returns; the panel: 40 held-out
+  households, 20 from the library and 20 retiring at 52, none used before, each landed so the app's rules survive about
+  `85%`; seed 7003, 7018 the replication.
+- D34. 26 Oct, maintainer: Phase 4's harm rule (D20 (2)), in the maintainer's words. (1) Per household and estate weight,
+  call harm when the observed survival loss passes that household's threshold. Set the threshold and the paths so that a
+  true 1-point loss is read as harm at least `90%` of the time, and a true quarter-point loss at most `5%` of the time.
+  (2) Size each household's paths and threshold from your power simulation, using the discordance Phase 4 will actually
+  see (the no-harm item against SHIP, and any item against the rules). Where a household has no record, use 7u-F's
+  records or a short pilot. Cross-check with the normal approximation: the threshold is `0.25 + 1.645 x se`, both rates
+  hold when se is at most `0.256` points, so paths >= discordance x 152,000. On 7u-F's figures, 16,000 paths are enough
+  up to `10.5%` discordance; S370 (`9.2%`) needs about 14,000. Give the households above `10.5%` more paths, as the
+  simulation sizes them. (3) A harm flag sends that household to investigation, as in 7u-F. On its own it does not block
+  the release, so there is no correction across households. (4) Put in the registration, for every household: its
+  paths, its threshold, and the simulated rates at a 1-point and a quarter-point loss. Then give the total budget,
+  measured on this machine with nothing else running (D21), before launch.
+- D33. 26 Oct, maintainer: "Go ahead with phase 4. Don't run n1": Phase 4 registers on the candidate as it stands (fcd8096217b7); N1 is not run.
 - D32. 26 Oct, maintainer, on E10's estimate: "leave it for now". E10 stays out of the product's path; gate 5 stands.
 - D31. 26 Oct, maintainer: "port E7, E8, E9 and E11 into E5's path ... leave E6 and E10 out" (SPEED-PORT-2.md at dcf5cbf):
-  the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve
-  more than the candidate's). Gate 5 is measured after.
+  the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve more than the candidate's). Gate 5 is measured after.
 - D30. 25 Oct, maintainer: "port the speed work (SPEED-PORT.md)" (review/external-2026-10-21 at 775bfc3): the `realAt` cache
   and E5 as exact speed-ups; the table without the dealing cost (`tableDealing: false`) a research option that joins the
   candidate only if step 3's check passes, and if it does not, it comes back to the maintainer; gate 5 is measured after.
@@ -63,13 +81,10 @@ lapsed; they stay in the archive.
   `candidate.json`: they change no number, so D12's decided defaults stand); one differing bit in an identity test stops
   the port; (2) V3 and V4 run once, on the ported code; (3) gate 5 compares the candidate against the ported product. Its
   identity tests join the fast suite on the unlock of 23 Oct; its time boxes hold.
-- D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then
-  run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
-- D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage
-  coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
+- D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
+- D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
 - D21. 22 Oct, maintainer: 7u-F, past its budget, ran its CAND and SHIP units before DECOMP's and was read once when they
-  were in; on a clean PASS DECOMP stopped (it did). Phase 4's budget is measured on this machine, with nothing else running,
-  before it is registered.
+  were in; on a clean PASS DECOMP stopped (it did). Phase 4's budget is measured on this machine, with nothing else running, before it is registered.
 - D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, review/external-2026-10-21,
   not merged) is adopted, its ten answers and its Next section: (1) the one-pot oracle's table gap a REPORTED diagnostic; V3
   accepts a resolution by the policy's convergence, printing the one-pot error beside it and failing if it stops shrinking;
@@ -80,10 +95,8 @@ lapsed; they stay in the archive.
   7u-F; (7) the decomposing arm as built; (8) V3 adds S330; V4 drops probit and counts V3's finest setting as a variant;
   (9) V5's interval after 7u-F, the maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 a standalone
   page built from `src/solver`, run by the maintainer on a laptop and a phone.
-- D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement
-  is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
-- D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated
-  outcomes, not on gaps between a table and simulation.
+- D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
+- D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated outcomes, not on gaps between a table and simulation.
 - D3. 21 Oct, maintainer (kept as written 22 Oct 05:16 UK, after the design review showed a true loss of exactly `1`
   point reads as harm half the time): 7u-F's decision rule is Part B Step 4's recommendation. Scored by the engine (`runPolicy`'s
   outcome beside it; a household where the two differ beyond noise is a fidelity gap, not a result). Primary, pooled:
@@ -91,48 +104,34 @@ lapsed; they stay in the archive.
   by path, passing when its lower end is above minus `0.1` points. Primary, per household: harm is a Holm-adjusted
   one-sided exact McNemar p below `0.05` together with a loss of at least `1` point, counted where SHIP survives between
   `5%` and `99.5%`; outside that band the change is reported, not gated. `16,000` paths, seed 7014 used once, both
-  estate weights. Pass on both: the candidate goes to Phase 4. Harm on a household: it goes to V4's measures, and no new
-  reader or reference variant is opened on it.
+  estate weights. Pass on both: the candidate goes to Phase 4. Harm on a household: it goes to V4's measures, and no new reader or reference variant is opened on it.
 - D4. 21 Oct, maintainer: until a ceiling exists, V4's two measures are the stopping rule for the grid and cliff work:
   the policy ensemble's gap under `0.2` points on the panel mean and `0.5` on every household, and the purpose test
-  beyond noise at no more than `5%` of positions, at both estate weights. Step 8h's ceiling stays the certificate, built
-  when the maintainer wants it or when the two measures disagree.
+  beyond noise at no more than `5%` of positions, at both estate weights. Step 8h's ceiling stays the certificate, built when the maintainer wants it or when the two measures disagree.
 - D5. 20 Oct 14:30, maintainer: the adaptive package (readerRef 'adaptive', its lattice with foot and stepAll, the 'rs'
   split) is the reference the assembled candidate takes, entering CANDIDATE_OPTS only at 7u-F's assembly; 7u-F carries
   a decomposing arm (the final candidate on the plan reference) that splits the reference's part out.
-- D6. 19 Oct 09:26, maintainer: each fix is tested against the frozen candidate, not one updated with recent fixes;
-  fixes that interact are tested as a factorial.
+- D6. 19 Oct 09:26, maintainer: each fix is tested against the frozen candidate, not one updated with recent fixes; fixes that interact are tested as a factorial.
 - D7. 18 Oct 07:50 and 17:19 (as amended by D2), maintainer: 7u-F runs once, widened to the deposit households whose
   bridge is at risk, a broad slice and a by-world item; gate 5 (solve time) waits for an estimate of its impact.
-- D8. 11 Oct, maintainer (PR13): where SHIP survives below the margin, a relative no-harm margin of a tenth; a household
-  too near-dead to certify is reported, never certified.
-- D9. 7 Oct 22:50, maintainer: e3pcls is a research default, guarded by the pin (`solver-e3pcls.test.mjs 4 --pin` after
-  every solver change; `solveCandidate` refuses a stale pin).
-- D10. 6 Oct 11:08 and 12:08, maintainer: the research candidate is one settings object (`candidate.mjs`); the
-  interpolated allowance axis is its default, not the app's.
-- D11. 29 Sep 08:45 and 6 Oct 12:51, maintainer: gate 5, at most a quarter more solve time than today's product, E2
-  counted.
-- D12. 1 Oct 06:45, maintainer: the app's defaults (`PRODUCT_BASELINE`, the decided defaults) do not change until after
-  Phase 4.
-- D13. 30 Sep 18:50, maintainer: O60 (each tier's return at the median of its blend) and Q's year-1 fix join the
-  candidate before 7u.
-- D14. 29 Sep 07:49, maintainer: the bundle: the bridge reader with the tier state and joint worlds at estate weight
-  `0.02`.
-- D15. 26 Sep 10:23, maintainer: 7q, the winning bridge fix against a fixed policy through the bridge, runs before Phase 4.
-- D16. 25 Sep 09:36 and 06:31, maintainer: the exact final year is the product default; risk above the user's tier
-  defaults to 'auto' at `85%` simulated survival.
+- D8. 11 Oct, maintainer (PR13): where SHIP survives below the margin, a relative no-harm margin of a tenth; a household too near-dead to certify is reported, never certified.
+- D9. 7 Oct 22:50, maintainer: e3pcls is a research default, guarded by the pin (`solver-e3pcls.test.mjs 4 --pin` after every solver change; `solveCandidate` refuses a stale pin).
+- D10. 6 Oct 11:08 and 12:08, maintainer: the research candidate is one settings object (`candidate.mjs`); the interpolated allowance axis is its default, not the app's.
+- D11. 29 Sep 08:45 and 6 Oct 12:51, maintainer: gate 5, at most a quarter more solve time than today's product, E2 counted.
+- D12. 1 Oct 06:45, maintainer: the app's defaults (`PRODUCT_BASELINE`, the decided defaults) do not change until after Phase 4.
+- D13. 30 Sep 18:50, maintainer: O60 (each tier's return at the median of its blend) and Q's year-1 fix join the candidate before 7u.
+- D14. 29 Sep 07:49, maintainer: the bundle: the bridge reader with the tier state and joint worlds at estate weight `0.02`.
+- D15. 26 Sep 10:23, maintainer: 7q, the winning bridge fix against a fixed policy through the bridge, runs before Phase 4; amended by D35: folded into Phase 4 as a reported arm.
+- D16. 25 Sep 09:36 and 06:31, maintainer: the exact final year is the product default; risk above the user's tier defaults to 'auto' at `85%` simulated survival.
 - D17. 24 Sep 18:30, maintainer: raw results stay outside git (`research/solver/results/`); the read-outs are committed.
 - D18. Standing design choices (the archived plan's list): Part C's baseline is the plan as entered with the plain draw
   order; the bridge safety margin stays as a lock; the retirement-age dial pre-solves three years either way; old
-  exports import as the baseline; habit is left out; the cash buffer is sized on the planned target; a couples reserve
-  is model-predictive control; E3 follows Phase 4 for the product.
+  exports import as the baseline; habit is left out; the cash buffer is sized on the planned target; a couples reserve is model-predictive control; E3 follows Phase 4 for the product.
 - D19. Standing (CLAUDE.md): the maintainer's own household is never a fixture; no model identifier in a commit, a code
-  comment or a pushed file; merge to `main` only after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED
-  GREEN; background runs are harness-tracked tasks.
+  comment or a pushed file; merge to `main` only after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED GREEN; background runs are harness-tracked tasks.
 - Lapsed with Step 3 (21 Oct): the receipt after every plan edit and the Stop hook; the deep review after every result,
   `uncertainty.mjs` and the escalation trigger; credences, derived credences, the scorecard, decision tables, mechanism
-  anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg
-  hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
+  anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
 
 ## 4. Open items
 
@@ -293,7 +292,8 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. For the maintainer, after gate 5 (MET; E10 left out, D32): the CHECKLIST 1 wording the reviewers proposed, and
-   Phase 4's registration on the candidate as it stands (fcd8096217b7).
-2. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
-   (the candidate changed after 7u-F, D29 and D30), a spending item over all years, the whole score on every path and the Node version stamped.
+1. Phase 4 (D33 to D35), on fcd8096217b7: the landed panel, the audit and the reducer with their planted cases; each
+   household's paths and threshold sized by D34; the budget measured (D21); the registration, with a no-harm item against
+   SHIP, a spending item over all years, the whole score on every path and the Node version stamped; the reviewer's
+   design review; the launch on seed 7003.
+2. For the maintainer: the CHECKLIST 1 wording the reviewers proposed (a protected file: "unlock enforcement").

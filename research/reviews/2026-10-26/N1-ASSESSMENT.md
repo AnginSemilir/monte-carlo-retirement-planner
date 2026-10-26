@@ -62,3 +62,41 @@ Most of each loss comes from failures before the pension opens. S380 is within n
   if a measured failure of the package on simulated outcomes appears.
 - **Anything else:** the package's value is marginal, and deleting it is the maintainer's call (simplicity and time
   against a fraction of a point).
+
+## The result
+
+Read by the rule above (`n1/results-n1-reader.txt`, printed by `reader-read.mjs` over `n1/probe/`). Every arm ran on one
+code (d1f4a045aec5), 45 points, W0.02, the same 8,000 paths of seed 7002. The differences are NOREADER less CAND.
+
+| Household | Survival, CAND to NOREADER | Change (95%) | Paths saved / lost | Failures before the pension opens | Solve |
+|---|---|---|---|---|---|
+| S362 | 49.13% to 36.55% | **-12.58** (-13.31 to -11.84) | 5 / 1,011 | 4,069 to 5,075 | x0.80 |
+| S370 | 83.94% to 77.05% | **-6.89** (-7.60 to -6.17) | 168 / 719 | 44 to 874 | x0.80 |
+| S366 | 99.81% to 99.74% | -0.08 (-0.14 to -0.02) | 0 / 6 | 0 to 0 | x0.76 |
+| S380 | 73.15% to 73.15% | 0.00 (-0.40 to +0.40) | 133 / 133 | 0 to 0 | x0.82 |
+| S368 | 0% to 0% | none: no path survives either way | 0 / 0 | 8,000 to 8,000 | x0.78 |
+
+**Verdict, by the rule: the reader does real work.** Without the package the candidate loses 12.6 points of survival on
+S362 and 6.9 on S370, almost all of it to failures before the pension opens. N1 could at best match it, so it is not
+built now.
+
+**Against the prediction:** the losses on the two tight panel bridges were far larger than guessed (-2 and -1.5). S366
+lost less than guessed (-0.08 against -1), though beyond noise. S380 was within noise, as predicted. The package costs 18
+to 24% of the solve, against the 15% guessed.
+
+**Noted:** S368 carries no signal. It fails before the pension opens on every path under both arms, so it should have
+been left out with S364 (an error in the choice of households, not in the test). On S370, failures after the pension
+opens fell without the package (1,241 to 962), because more of the paths that would fail later fail in the bridge
+instead.
+
+## The recommendation
+
+- **N1: do not build.** The package is a fine-grained bridge solver and is worth 7 to 13 points of survival on the tight
+  bridges. A coverage axis of 8 to 12 nodes in the main grid would have to match a 160-point lattice just to break even.
+- **The better route to N1's goals, a simpler and faster solve:** keep the reader but make it cheaper. The package's
+  cost here is 87 to 133 s a solve, and the adaptive reference's build accounts for about 75 to 83 s of it. In V4 the
+  plan reference (DECOMP) was within 0.16 points of the adaptive one on every panel household, and the RS split changed
+  nothing. Those reads were on 7u-F's candidate, before HR, the third step and the table without the dealing cost, so
+  check them on the latest candidate before deciding: CAND against the candidate on the plan reference without the RS
+  split, on S370, S362, S366 and S380, by the D30 kind of rule.
+- **Either way, N5:** delete the reader variants that lost or are unused, so the product path carries one bridge reader.

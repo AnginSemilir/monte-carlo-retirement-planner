@@ -1,0 +1,14 @@
+N1'S ASSESSMENT (EXPLORATORY): the bridge reader package on the latest candidate, NOREADER less CAND, paired on the same 8,000 paths of the tuning seed, 45 points, W0.02, the solver's forward run
+  the code: d1f4a045aec5 (one value: every arm on the same code)
+  S362: survival 49.125% (CAND) to 36.550% (NOREADER): -12.575 points (se 0.373; 95% -13.306 to -11.844; 5 saved, 1011 lost); whole score -14.207 (se 0.422)
+    failures before the pension opens 4069 to 5075, after 1 to 1; the solve 445 s to 358 s (x0.80)
+  S366: survival 99.813% (CAND) to 99.737% (NOREADER): -0.075 points (se 0.031; 95% -0.135 to -0.015; 0 saved, 6 lost); whole score -0.086 (se 0.032)
+    failures before the pension opens 0 to 0, after 15 to 21; the solve 554 s to 421 s (x0.76)
+  S368: survival 0.000% (CAND) to 0.000% (NOREADER): +0.000 points (se 0.000; 95% +0.000 to +0.000; 0 saved, 0 lost); whole score -0.024 (se 0.000)
+    failures before the pension opens 8000 to 8000, after 0 to 0; the solve 565 s to 443 s (x0.78)
+  S370: survival 83.938% (CAND) to 77.050% (NOREADER): -6.888 points (se 0.364; 95% -7.601 to -6.174; 168 saved, 719 lost); whole score -6.453 (se 0.380)
+    failures before the pension opens 44 to 874, after 1241 to 962; the solve 560 s to 449 s (x0.80)
+  S380: survival 73.150% (CAND) to 73.150% (NOREADER): +0.000 points (se 0.204; 95% -0.400 to +0.400; 133 saved, 133 lost); whole score -0.209 (se 0.205)
+    failures before the pension opens 0 to 0, after 2148 to 2148; the solve 544 s to 447 s (x0.82)
+RULE: NOREADER within 0.25 and within noise of CAND everywhere: no; a loss beyond noise of at least 0.5 anywhere: YES
+VERDICT: THE READER DOES REAL WORK: N1 could at best match it; do not build N1 now, simplify by N5 and keep the package

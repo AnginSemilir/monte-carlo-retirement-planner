@@ -71,3 +71,45 @@ full panel, and gate 5. Otherwise M15 closes: the GIA keeps the plan's tier, and
 
 **Not run:** the estate weight 0.01. The maintainer's own plan is not a fixture (CLAUDE.md); its GIA also starts empty,
 under the gate.
+
+## Amendment: after the tests, before any probe result
+
+The probe was started alongside the last superset check, before it had passed, and stopped when it failed (test 3: "A
+failure is a bug and stops the probe"); no arm had finished. The test's premise was wrong, not the code. Outputs:
+`gia/` beside this file.
+
+**The superset failed.** On S330 at 6 points, 49,068 of 474,336 values at today's four layers fell below today's (the
+largest 1.64e-2, layer 3, year 43), none in the final year (`gia-test-all2.txt`). With survival read linearly, 877 fell
+(the largest 2.27e-5, year 44), and the same 877 with the raise credit's survival weight off as well
+(`superset-linear-S330.txt`, `superset-linear-noraise-S330.txt`).
+
+**Why the premise was wrong.** "A larger menu can only raise every value" holds when each world's table takes its own
+best move. The candidate takes one move for all three worlds by their weighted score and stores each world's own value of
+it (`jointWorlds`). The year before reads each world's values where that world's returns land, so a new move that wins on
+the weighted score while lowering one world's value can lower the weighted score a year earlier. The log-odds read of
+survival adds departures of its own. The evidence, all with a linear read and the raise weight off: with each world
+choosing its own move (and the plan's own reference for the bridge reader, since the adaptive one needs joint worlds), none
+of the 474,336 values falls (`superset-linear-nojw-S330.txt`); with the joint choice kept and the plan's reference, the
+same 877 fall as with the adaptive one (`superset-linear-planref-S330.txt`). So the joint choice is the cause.
+So on the candidate a larger menu can lower the table's own values. The probe's forward run measures what that
+does to the household, and that is what the rule reads.
+
+**Its replacement: an exact test, with a planted fault.** With the rungs made inert ('samerate': each rung move a copy of
+the bottom joint step's, entered at the same switch charge), today's four layers come out bit for bit in all three worlds:
+1,423,008 (layer, year, cell) entries, every value and every stored move (`inert-S330.txt`). The planted wrong-layer read
+('readlayer0': a rung move's backward read takes next year's layer 0) parts them: 3,279,141 values and 9,534 stored moves
+(`inert-plant-S330.txt`).
+
+**Same pattern searched** (`superset`, `larger menu`, `can only raise`, `never lower` in the tests and the solver
+research): two tests rest on the same premise, "more moves never lower the opening value" (`solver-tiers.test.mjs` C1)
+and "more money never lowers the score" (`solver.test.mjs` B). Both run the single-world solve, where it holds; neither
+runs on the candidate.
+
+**The gate.** The maintainer asked: "what if one of deposit comes in later to add more to that pot?" The gate reads the
+opening pots only, so it misses a GIA filled later: a dated deposit, a staged transfer, or a tax-free lump sum parked there.
+The probe is unchanged, since its households hold their GIA from the start. A build gates on the largest share the GIA
+reaches in the plan's own projection, or not at all.
+
+**The code the probe runs:** the prototype with the plant hooks (`gia/gia-ladder.patch`), every plant empty in every arm;
+each arm records its code's hash, and the read's fair test compares them. Its off tables and the other tests are rerun on
+it before the probe starts.

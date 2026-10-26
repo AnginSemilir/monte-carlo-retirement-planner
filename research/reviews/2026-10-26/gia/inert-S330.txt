@@ -1,0 +1,3 @@
+inert rungs on S330 at 6 points (plants: samerate): 1200 moves against 800, layers 0/0/0,1/1/0,2/2/0,3/3/0,3/3/1,3/3/2; today's four layers in 3 worlds, 1423008 (layer, year, cell) entries: 0 values not bit for bit (largest 0.00e+0), 0 stored moves not the same (0 of them a rung)
+PASS  inert rungs leave today's four layers bit for bit, every value and every stored move
+ALL PASS

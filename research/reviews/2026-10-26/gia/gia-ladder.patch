@@ -1,0 +1,201 @@
+diff --git a/src/solver/fast.js b/src/solver/fast.js
+index 82f986c..380f929 100644
+--- a/src/solver/fast.js
++++ b/src/solver/fast.js
+@@ -82,6 +82,9 @@ export const FOLD_K = Number(process.env.SOLVER_FOLD_K || 0.75);
+ /* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
+ export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+ export const TIER_STEPS = { plant: '' };   // the third step's plants, for tier-steps.test.mjs only (tiersFor)
++// M15 v3's plants, tests only, any of them in one string: 'samerate' (the rungs grow at the plan's GIA rates), 'nocgt' (a GIA
++// switch pays no tax), 'readlayer0' (solve.js: a rung move's backward read takes next year's layer 0, not its own)
++export const GIA_LADDER = { plant: '' };
+ 
+ /*
+  * The tiers a wrapper may hold under the solver (phase 6): the one set on Plan Inputs first, then up to
+@@ -106,7 +109,7 @@ export function tiersFor(m, below = m.tiersBelow || 2) {
+    * other two, and the move's GIA tier follows the joint step (see compile), so the menu and the tables are
+    * unchanged in size. Off, there is no `gia` list and nothing below reads one.
+    */
+-  for (const cat of m.giaTiers ? ['pen', 'isa', 'gia'] : ['pen', 'isa']) {
++  for (const cat of m.giaTiers || m.giaLadder ? ['pen', 'isa', 'gia'] : ['pen', 'isa']) {   // M15 v3 (`giaLadder`, research only): the GIA's own rungs (solve.js)
+     const a = m.acc[o.ids[cat === 'gia' ? 'other' : cat]];
+     if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
+     const k0 = TIER_ORDER.indexOf(a.risk);
+@@ -173,7 +176,7 @@ export function chargeSwitch(c, s, held, act, t) {
+     if (gia > 0 && d > 0) {
+       const slice = gia * d;
+       let x = slice * c.switchCost;
+-      if (c.P.cgtEnabled) {
++      if (c.P.cgtEnabled && !GIA_LADDER.plant.includes('nocgt')) {
+         const gain = Math.max(0, slice * s[3] - (c.last.cgtExemptLeft || 0));
+         const atBasic = Math.min(gain, c.last.cgtBasicLeft || 0);
+         x += atBasic * c.P.cgtBasicRate + (gain - atBasic) * c.P.cgtHigherRate;
+@@ -314,8 +317,10 @@ export function compile(m, actions) {
+   const acts = actions.map(a => {
+     // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
+     const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
+-    const tg = giaTierOf(tp, ti);
+-    const { real, volEff, sigma, volEffAt } = ratesFor(tp, ti, tg);
++    // M15 v3 (`giaLadder`): the move names the GIA's rung itself; v1 (`giaTiers`) made it follow the joint step
++    const tg = m.giaLadder ? Math.min(a.tierGia || 0, tiers.gia.length - 1) : giaTierOf(tp, ti);
++    // GIA_LADDER.plant 'samerate' (tests only): a rung move grows the GIA at the plan's own tier
++    const { real, volEff, sigma, volEffAt } = ratesFor(tp, ti, m.giaLadder && GIA_LADDER.plant.includes('samerate') ? 0 : tg);
+     return {
+       steps: Int8Array.from(a.steps.map(codeOf)),
+       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index 83a3d33..01a2b77 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -146,12 +146,12 @@ export function buildActions(opts = {}) {
+         for (const sale of SALES) {
+           for (const level of levels) {
+             const base = out.length;
+-            for (const [tp, ti] of tiers) {
++            for (const [tp, ti, tg] of tiers) {
+               out.push({
+                 steps, costSteps: steps,
+                 harvest: harvest !== null, harvestCeil: harvest || 'pa',
+                 sweepCash: true, lump: false, contrib: null, spendLevel: level,
+-                tierPen: tp, tierIsa: ti, tierBase: base, ...(sale ? { cgtSale: true } : {}),
++                tierPen: tp, tierIsa: ti, ...(tg !== undefined ? { tierGia: tg } : {}), tierBase: base, ...(sale ? { cgtSale: true } : {}),
+                 label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${HARVEST_LABEL[harvest]}` : ''}${sale ? ', sell the taxable account up to the CGT exemption' : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
+               });
+             }
+@@ -358,6 +358,23 @@ export function solve(E, M, plan, opts = {}) {
+   if (opts.tableDealing !== undefined && opts.tableDealing !== true && opts.tableDealing !== false) throw new Error(`tableDealing ${opts.tableDealing}: only true or false`);
+   if (opts.tableDealing === false && !opts.tierState) throw new Error('tableDealing: false needs the tier state');
+   if (opts.giaTiers) m.giaTiers = true;   // M15, research only: the taxable account takes the joint tier step (see tiersFor)
++  /*
++   * M15 v3 (`giaLadder`, research only; the external review, research/reviews/2026-10-26/GIA-LADDER.md): the GIA's own
++   * rungs, after the bottom joint step, the pension and ISA held there and the GIA one and then two steps below its own
++   * tier. Only where the GIA holds at least 10% of the opening pots (`giaLadderGate` to change it, tests only); elsewhere the
++   * menu is today's. Needs the tier state, whose layers carry the rung; the table solves a GIA switch untaxed (the dealing
++   * cost is out of the table already), the chooser and the forward run charge it and its capital gains tax (chargeSwitch).
++   */
++  let giaLadder = null;
++  if (opts.giaLadder) {
++    if (opts.giaTiers) throw new Error('giaLadder and giaTiers: set one');
++    if (!opts.tierState) throw new Error('giaLadder needs the tier state');
++    const o = m.ctx.owners[0], bal = k => (o.ids[k] && m.acc[o.ids[k]] ? m.acc[o.ids[k]].balance : 0);
++    const pots = ['pen', 'isa', 'other', 'cash'].map(bal), tot = pots.reduce((x, y) => x + y, 0);
++    const share = tot > 0 ? pots[2] / tot : 0, gate = opts.giaLadderGate !== undefined ? opts.giaLadderGate : 0.10;
++    giaLadder = { share: Math.round(share * 1e4) / 1e4, gate, on: share >= gate };
++    if (giaLadder.on) m.giaLadder = true;
++  }
+   // one table per person; a couple needs two and a funding split, which is phase 5
+   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
+   const g = makeGrid(m, opts);
+@@ -378,6 +395,12 @@ export function solve(E, M, plan, opts = {}) {
+     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
+     tierList = [[hp, hi]];
+   }
++  if (m.giaLadder) {
++    if (!tierList || opts.holdTier) throw new Error('giaLadder needs the tier menu and no held tier');
++    const tl = F.tiersFor(m), bottom = tierList[tierList.length - 1], nG = Math.min(2, tl.gia.length - 1);
++    tierList = [...tierList, ...Array.from({ length: nG }, (_, g) => [bottom[0], bottom[1], g + 1])];
++    giaLadder.rungs = nG;
++  }
+   const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus })).map(a => ({ ...a, lump: !!opts.lump }));
+   /*
+    * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
+@@ -408,7 +431,7 @@ export function solve(E, M, plan, opts = {}) {
+   const c = cs[centre];
+   // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
+   const switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
+-  for (const cc of cs) cc.switchCost = switchCost;
++  for (const cc of cs) { cc.switchCost = switchCost; if (m.giaLadder) cc.giaLadder = true; }
+   // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
+   const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
+   /*
+@@ -482,13 +505,18 @@ export function solve(E, M, plan, opts = {}) {
+     // with jointWorlds (TS+J, research only; the deep review after 7z, O41): one move for every world at each cell and layer,
+     // chosen by the chooser's full rule on the mixture-weighted score, each world's layer storing its own value of that move
+     if (opts.giaTiers) throw new Error('tierState: the taxable account\'s tier is not supported');
+-    tsPairs = [...new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`))].map(x => x.split('/').map(Number));
++    // M15 v3: with the GIA's rungs a layer is a (pension, ISA, GIA) triple; without them, today's pairs exactly
++    const tsKey = a => (m.giaLadder ? `${a.tierPen || 0}/${a.tierIsa || 0}/${a.tierGia || 0}` : `${a.tierPen || 0}/${a.tierIsa || 0}`);
++    const tsKeys = [...new Set(actions.map(tsKey))];
++    tsPairs = tsKeys.map(x => x.split('/').map(Number));
+     if (tsPairs.length < 2) throw new Error('tierState needs a tier menu of two pairs or more');
+-    tsLayerOf = Uint8Array.from(actions, a => tsPairs.findIndex(([p, i]) => p === (a.tierPen || 0) && i === (a.tierIsa || 0)));
+-    tsHeld = tsPairs.map(([pen, isa]) => ({ pen, isa, gia: 0 }));
+-    tsJ0 = tsPairs.findIndex(([p, i]) => p === 0 && i === 0);
++    tsLayerOf = Uint8Array.from(actions, a => tsKeys.indexOf(tsKey(a)));
++    tsHeld = tsPairs.map(([pen, isa, gia]) => ({ pen, isa, gia: gia || 0 }));
++    tsJ0 = tsPairs.findIndex(([p, i, gg]) => p === 0 && i === 0 && !gg);
+     if (tsJ0 < 0) throw new Error('tierState: the menu has no move at the plan\'s own tiers');
+   }
++  // M15 v3's plant 'readlayer0' (tests only, fast.js GIA_LADDER): a rung move's backward read takes next year's layer 0
++  const READ0 = !!(TS && m.giaLadder && F.GIA_LADDER.plant.includes('readlayer0'));
+   const T0 = m.ctx.totalYears;
+   // the quadrature rates by year (the folded spread depends on the years left) for each move's tier
+   // combination, shared between moves that hold the same tiers
+@@ -1187,7 +1215,7 @@ export function solve(E, M, plan, opts = {}) {
+                   for (let k = 0; k < K; k++) {
+                     const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k];
+                     for (let ai = 0; ai < A; ai++) {
+-                      const lj = tsLayerOf[ai], Ln = layW[k][lj];
++                      const lj = READ0 && actions[ai].tierGia > 0 ? 0 : tsLayerOf[ai], Ln = layW[k][lj];
+                       const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
+                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                       const fail = failBuf[ai] === 1, o = ai * 7;
+@@ -1255,7 +1283,7 @@ export function solve(E, M, plan, opts = {}) {
+                     let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                     let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
+                     for (let ai = 0; ai < A; ai++) {
+-                      const lj = tsLayerOf[ai], Ln = layW[k][lj];
++                      const lj = READ0 && actions[ai].tierGia > 0 ? 0 : tsLayerOf[ai], Ln = layW[k][lj];
+                       const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
+                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                       const fail = failBuf[ai] === 1;
+@@ -1464,6 +1492,7 @@ export function solve(E, M, plan, opts = {}) {
+   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
+   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
+   if (switchCharge > 0) meta.switchCharge = switchCharge;
++  if (giaLadder) meta.giaLadder = giaLadder;   // M15 v3: the GIA's share of the opening pots, the gate, whether the rungs were added and how many
+   if (E3) meta.e3 = { copied: e3Copied };
+   if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };
+   if (E2) meta.e2 = { parts: E2.parts };
+@@ -1561,7 +1590,7 @@ export function chooseAction(r, s, t, held = null) {
+     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
+     // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
+     // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
+-    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
++    const D = CHOOSER.share && !(r.c.tiers.gia && !r.c.giaLadder) && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
+     r.mix.tables.forEach((tab, k) => {
+       if (D) {
+         scoreMovesShared(tab, s, t, S2, T2, B2, D);
+@@ -1602,17 +1631,17 @@ export function chooseAction(r, s, t, held = null) {
+   const sc = r.switchCharge || 0;
+   if (held && sc > 0) {
+     const acts = r.c.acts;
+-    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa)) SC[ai] -= sc;
++    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa || (r.c.giaLadder && acts[ai].tierGia !== (held.gia || 0)))) SC[ai] -= sc;
+     bestScore = -Infinity; bestB = -Infinity; best = 0;
+     for (let ai = 0; ai < n; ai++) { const score = SC[ai]; if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; } }
+   }
+   const sm = r.switchMargin || 0;
+   if (held && sm > 0) {
+     const acts = r.c.acts;
+-    if (acts[best].tierPen !== held.pen || acts[best].tierIsa !== held.isa) {
++    if (acts[best].tierPen !== held.pen || acts[best].tierIsa !== held.isa || (r.c.giaLadder && acts[best].tierGia !== (held.gia || 0))) {
+       let stay = -1, stayScore = -Infinity, stayB = -Infinity;
+       for (let ai = 0; ai < n; ai++) {
+-        if (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa) continue;
++        if (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa || (r.c.giaLadder && acts[ai].tierGia !== (held.gia || 0))) continue;
+         const score = SC[ai];
+         if (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && BQ[ai] > stayB)) { stayScore = score; stayB = BQ[ai]; stay = ai; }
+       }
+@@ -1631,9 +1660,9 @@ export function chooseAction(r, s, t, held = null) {
+       if (SC[ai] < bestScore - tie) continue;
+       if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
+     }
+-    return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, pick) : pick;
++    return r.c.tiers.gia && !r.c.giaLadder ? giaHoldCheck(r, s, t, held, pick) : pick;
+   }
+-  return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, best) : best;
++  return r.c.tiers.gia && !r.c.giaLadder ? giaHoldCheck(r, s, t, held, best) : best;
+ }
+ 
+ /*

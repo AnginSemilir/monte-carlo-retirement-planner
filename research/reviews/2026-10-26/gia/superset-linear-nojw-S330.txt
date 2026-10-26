@@ -1,0 +1,3 @@
+the superset on S330 at 6 points, survival read LINEARLY (SOLVER_INTERP=linear), with {"jointWorlds":false,"readerRef":null,"raiseSurvival":false}: 0 of 474336 (layer, year, cell) values below today's by more than 1e-9 (0 in the final year); the largest gap 0.00e+0 (-)
+PASS  with a linear read and the raise credit not weighted by survival, a move's score is linear in the corners' scores, so the larger menu can only raise every value: none below
+ALL PASS

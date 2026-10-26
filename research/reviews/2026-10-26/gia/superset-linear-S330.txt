@@ -1,0 +1,3 @@
+the superset on S330 at 6 points, survival read LINEARLY (SOLVER_INTERP=linear): 877 of 474336 (layer, year, cell) values below today's by more than 1e-9 (0 in the final year); the largest gap 2.27e-5 (layer 3, year 44, cell 1612)
+FAIL  with a linear read the score is linear in each corner, so the larger menu can only raise it: none below
+FAILED: 1

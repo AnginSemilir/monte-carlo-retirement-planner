@@ -1,0 +1,10 @@
+PASS  the gate: S248 (the GIA 2.0% of the pots) with the ladder on: the same tables bit for bit (d6e3e053cddef561), the same 800 moves, the rungs not added
+S330: the GIA 45.0% of the pots; rungs added 2; the GIA's list Medium Risk, Medium/Low Risk, Low Risk; layers off 0/0,1/1,2/2,3/3, on 0/0/0,1/1/0,2/2/0,3/3/0,3/3/1,3/3/2; moves 800 and 1200
+PASS  the ladder on S330: two rungs after the bottom joint step (3/3/1, 3/3/2), six layers, the menu half as large again
+the superset: 49068 of 474336 (layer, year, cell) values below today's (0 in the final year); the largest gap 1.64e-2 (layer 3, year 43, cell 844)
+FAIL  the superset: no value below today's in the final year, where the read is exact, and any gap before it under 1e-4 (the log-odds read of survival is not linear in the score, so it is not exact there)
+PASS  the rungs' rates: the GIA at 4.18%, 3.55%, 2.76% (real), the pension and ISA held at their bottom step's
+PASS  the plant 'samerate' (the rungs grown at the plan's GIA rates): the rates check would fail on it, and its tables differ (4d70e5f042a6337e against f57b6239d713bf8a)
+FAIL  the decision-time tax: a GIA switch (a slice of £55715 at a 40% gain) pays £5220 (dealing £139 and the tax), the gain share falls to 0.304; the plant 'nocgt' pays £139, the dealing alone: caught
+PASS  the shared chooser with the ladder: 4219200 scores checked against scoreMoves on 20 paths, every one the same; GIA rungs held in 344 path-years
+FAILED: 2

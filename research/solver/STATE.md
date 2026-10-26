@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, and the table without the dealing cost after D30's check): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: f11d0f02d79b7be2 (26 Oct, 01:14 UK); the code now: f11d0f02d79b7be2.
+- The solver code the e3pcls pin last passed on: b46aa298a192f5f6 (26 Oct, 08:10 UK); the code now: b46aa298a192f5f6.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -39,6 +39,9 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D31. 26 Oct, maintainer: "port E7, E8, E9 and E11 into E5's path ... leave E6 and E10 out" (SPEED-PORT-2.md at dcf5cbf):
+  the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve
+  more than the candidate's). Gate 5 is measured after.
 - D30. 25 Oct, maintainer: "port the speed work (SPEED-PORT.md)" (review/external-2026-10-21 at 775bfc3): the `realAt` cache
   and E5 as exact speed-ups; the table without the dealing cost (`tableDealing: false`) a research option that joins the
   candidate only if step 3's check passes, and if it does not, it comes back to the maintainer; gate 5 is measured after.
@@ -271,9 +274,9 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- printed:cand29 -->
 - `candidate.test.mjs` 48 passed, 0 failed (`results-candidate.txt`): the candidate fcd8096217b7 the same as the decided defaults key for key, 7u-F's e65e5e99ba49 and the frozen a61dba4ee1f5 reproduced, its smoke solve running the third step, HR whole and the table without the dealing cost (E5). V1 on the candidate fcd8096217b7: ALL PASS (7 of 7 households); V2 on the candidate fcd8096217b7: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS (`results-v-candidate-d30.txt`; on D29's candidate alone, `results-v-candidate-d29.txt`).
 <!-- end printed:cand29 -->
-### The speed port (D30; SPEED-PORT.md at 775bfc3): the build (steps 1 and 2)
+### The speed port (D30, D31; SPEED-PORT.md at 775bfc3, SPEED-PORT-2.md at dcf5cbf): the builds (steps 1 and 2)
 <!-- printed:speedport -->
-- The port's build: `speed-port.test.mjs --full` ALL PASS: 16 checks (`results-speed-port.txt`): the option unset, S224 SHIP, S370 SHIP, S224 CAND, S370 CAND the same as before the port (tables, layers, S370's reference, the engine's outcomes); the `realAt` cache the same on and off; with tableDealing false, E5 the same as the layer loop bit for bit on S370 at 6 points (E5 164 s, the loop 190 s), S248 at 6 points (E5 56 s, the loop 81 s), S224 at 6 points (E5 44 s, the loop 67 s), S370 at 45 points (E5 566 s, the loop 782 s); the engine and a forward run in step under it (398 years of 20 paths, the largest gap £9.31e-10, 285 with a switch); the plants: the cache keyed on the wrong vector caught, the switch charge dropped from E5 caught, the engine without the dealing cost (£1061834.90).
+- The port's build: `speed-port.test.mjs --full` ALL PASS: 26 checks (`results-speed-port.txt`); the smaller cuts (D31): with tableDealing false, the four on against off, S224 at 6 points 0 of 1116696 values (51 s with them, 62 s without), S370 at 6 points 0 of 1252776 values (175 s with them, 190 s without), S370 at 45 points 0 of 9390360 values (629 s with them, 729 s without) differ; the plants on top of the other three: E7 754263 of 1252776, E8 541415 of 1252776, E9 522444 of 1252776, E11 70658 of 1252776 values differ; the memo's world plant: S224 at 6 points 521844 in / 521844 out; S370 at 4 points 348663 in / 348663 out; the split with the four on: 0 of 835464 values differ on 2 parts. The port: the option unset, S224 SHIP, S370 SHIP, S224 CAND, S370 CAND the same as before the port (tables, layers, S370's reference, the engine's outcomes); the `realAt` cache the same on and off; with tableDealing false, E5 the same as the layer loop bit for bit on S370 at 6 points (E5 181 s, the loop 212 s), S248 at 6 points (E5 54 s, the loop 111 s), S224 at 6 points (E5 49 s, the loop 87 s), S370 at 45 points (E5 648 s, the loop 984 s); the engine and a forward run in step under it (398 years of 20 paths, the largest gap £9.31e-10, 285 with a switch); the plants: the cache keyed on the wrong vector caught, the switch charge dropped from E5 caught, the engine without the dealing cost (£1061834.90).
 <!-- end printed:speedport -->
 ### D30's check: the table without the dealing cost (SPEED-PORT.md step 3; EXPLORATORY, the tuning seed; its rule in 2eee631)
 <!-- printed:n4nd -->
@@ -289,7 +292,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. SPEED-PORT.md step 4 (the check passed): `tableDealing: false` into `candidate.json`, the reviewer, HOW-IT-WORKS; then gate 5
-   on the candidate so settled, at 45 points against the product at 30, its logs stamped with the candidate (`batch-gate5.sh`).
+1. Gate 5 on the candidate as D30 left it (fcd8096217b7) with D31's cuts, at 45 points against the product at 30, its logs
+   stamped with the candidate (`batch-gate5.sh`, through the launcher, nothing else running).
 2. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
    (the candidate changed after 7u-F, D29 and D30), a spending item over all years, the whole score on every path and the Node version stamped.

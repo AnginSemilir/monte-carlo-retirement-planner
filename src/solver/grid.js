@@ -319,7 +319,7 @@ function locLinInto(ax, v, k) { if (ax.nodes) { const r = locateNodes(ax, v); LO
   const i = Math.min(ax.n - 2, Math.floor(f));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1) {
+export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1, rdGiven = false, rdIn = null) {   // rdGiven: the bridge reader's split found by the caller (E11, SPEED-PORT-2.md), what the line below would find
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
     locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
@@ -388,7 +388,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
    * probability. It replaces F1 and the #106 options there (neither runs with it); every other year, and the bequest,
    * resilience and shortfall reads, are unchanged.
    */
-  const RD = g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;
+  const RD = rdGiven ? rdIn : g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;
   // F1 in a retired bridge year (yr is the year of the table read); otherwise the #106 options, if set
   const cap = !RD && g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
   const linearRead = !RD && cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;

@@ -14,6 +14,11 @@
  *      the forward run's states the same as under the default table, so the charge is paid as before; the plant (the engine's
  *      policy without the dealing cost) parts them
  *   5. refusals: tableDealing false without the tier state, and a value neither true nor false
+ *   6. the smaller cuts (STATE.md D31; SPEED-PORT-2.md step 2), E7, E8, E9 and E11 in E5's path, value by value: with
+ *      tableDealing false every table the same with the four on and off (tsLean false; quick S370 at 4 points, --full S224
+ *      and S370 at 6 and S370 at 45); each plant, on top of the other three, parts them (on S370: E11's needs the bridge
+ *      reader's table); the memo's world plant ('noworld') parts them with the four in and out; the split across two parts
+ *      the same as unsplit with the four on (S370 at 4 points)
  * CAND with HR and the third step at full scale, the same as the factorial's units bit for bit, is read by n4-menu.mjs
  * (step 3's first arm), not here.
  *   node research/tests/speed-port.test.mjs [--full] [--record]
@@ -155,6 +160,36 @@ const lockstep = (r, r0, plant = '') => {
   const refuses = (extra, re) => { try { S.solvePlan(E, M, planOf('S224'), { lambda: LAMBDA, points: 3, riskAbove: false, ...extra }); return false; } catch (e) { return re.test(e.message); } };
   ok(refuses({ tableDealing: false }, /tableDealing: false needs the tier state/), '5  tableDealing false without the tier state is refused');
   ok(refuses({ tierState: true, tableDealing: 'no' }, /tableDealing no: only true or false/), '5  tableDealing neither true nor false is refused');
+}
+
+// 6. THE SMALLER CUTS (STATE.md D31; SPEED-PORT-2.md step 2): E7, E8, E9 and E11 in E5's path, every table compared value by value
+const valuesOf = r => { const out = [], seen = new Set(); const walk = (o, d, dm) => { if (!o || typeof o !== 'object' || seen.has(o) || d > dm) return; seen.add(o); if (ArrayBuffer.isView(o)) { out.push(o); return; } if (Array.isArray(o)) { o.forEach(x => walk(x, d + 1, dm)); return; } for (const k of Object.keys(o).sort()) { if (k === 'g' || k === 'm' || k === 'c') continue; walk(o[k], d + 1, dm); } }; r.mix.tables.forEach(t => walk(t, 0, 3)); walk(r.tablesW, 0, 99); return out; };
+const differ = (r1, r2) => { const A = valuesOf(r1), B = valuesOf(r2); let n = 0, d = A.length === B.length ? 0 : Infinity; for (let i = 0; i < Math.min(A.length, B.length); i++) { const a = A[i], b = B[i]; n += a.length; if (a.length !== b.length) { d = Infinity; continue; } for (let q = 0; q < a.length; q++) if (!Object.is(a[q], b[q])) d++; } return { n, d }; };
+const ND = { tableDealing: false };
+{
+  // 6.1 identity: tsLean on (the default under E5) and off, every value; the candidate as D29 left it is check 1's
+  let lean4 = null, off4 = null;
+  for (const [id, pts] of FULL ? [['S224', 6], ['S370', 6], ['S370', 45]] : [['S370', 4]]) {
+    const t0 = Date.now(), on = solve(id, 'CAND', ND, pts), s0 = (Date.now() - t0) / 1000, t1 = Date.now(), off = solve(id, 'CAND', { ...ND, tsLean: false }, pts), s1 = (Date.now() - t1) / 1000, x = differ(on, off);
+    ok(x.d === 0 && off.meta.tsLean === false && on.meta.tsLean === undefined, `6  ${id} at ${pts} points, tableDealing false: every table the same with the four cuts (${Math.round(s0)} s) and without (${Math.round(s1)} s): ${x.d} of ${x.n} values differ (tables ${tablesOnly(on)}); meta tsLean ${off.meta.tsLean} when set`);
+    if (id === 'S370' && pts === PTS) { lean4 = on; off4 = off; }
+  }
+  if (!lean4) { lean4 = solve('S370', 'CAND', ND); off4 = solve('S370', 'CAND', { ...ND, tsLean: false }); }
+  // 6.2 the plants, each on top of the other three (E11's on S370: S224's bridge reader builds no table)
+  for (const [nm, o] of [['E7, the switching sum taken for staying', { mixOncePlant: 'swap' }], ['E8, the ids from the pension\'s two words alone', { postIdsPlant: 'pen' }], ['E9, every lookup at layer 0', { hoistNextPlant: 'layer0' }], ['E11, every world handed world 0\'s split', { readerDirectPlant: 'world0' }]]) {
+    const x = differ(lean4, solve('S370', 'CAND', { ...ND, ...o }));
+    ok(x.d > 0, `6  planted on S370 at ${PTS} points, ${nm}: ${x.d} of ${x.n} values differ`);
+  }
+  // 6.3 the memo's world plant under E5, with the four in and out (not 'nocls': under E5 the layer read fixes the tiers)
+  for (const [id, pts] of FULL ? [['S224', 6], ['S370', 4]] : [['S370', 4]]) {
+    const base = pts === PTS && id === 'S370' ? [lean4, off4] : [solve(id, 'CAND', ND, pts), solve(id, 'CAND', { ...ND, tsLean: false }, pts)];
+    const xin = differ(base[0], solve(id, 'CAND', { ...ND, expMemoPlant: 'noworld' }, pts)), xout = differ(base[1], solve(id, 'CAND', { ...ND, tsLean: false, expMemoPlant: 'noworld' }, pts));
+    ok(xin.d > 0 && xout.d > 0, `6  planted on ${id} at ${pts} points, the memo's world left out of its key: ${xin.d} of ${xin.n} values differ with the four in, ${xout.d} of ${xout.n} with them out`);
+  }
+  // 6.4 the split, with the four on: two parts the same as unsplit (S370 at 4 points)
+  const { solveSplit } = await import('../solver/e2.mjs'), sOpts = { ...D29_OPTS, ...LIGHT, lambda: LAMBDA, points: 4, bequestWeight: 0.02, ...ND };
+  const one = S.solvePlan(E, M, candidatePlan(E, planOf('S370')), sOpts), two = await solveSplit(E, M, candidatePlan(E, planOf('S370')), sOpts, 2), xs = differ(one, two);
+  ok(xs.d === 0 && two.meta.e2 && two.meta.e2.parts === 2, `6  S370 at 4 points, the four on: split across ${two.meta.e2 ? two.meta.e2.parts : '?'} parts, ${xs.d} of ${xs.n} values differ from the unsplit solve`);
 }
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);

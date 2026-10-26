@@ -4,14 +4,24 @@ PASS  1  S224 CAND at 6 points, the option unset: the same as before the port (t
 PASS  1  S370 CAND at 6 points, the option unset: the same as before the port (table a0b1792426a29d6e, layer 68e88a44a93db1eb, reference 35b72dc2dc22750d, engine ab382b36ee46175d)
 PASS  2  S370's candidate: every table, layer, the reference and the engine's outcomes the same with the realAt cache and without (a0b1792426a29d6e, a0b1792426a29d6e)
 PASS  2  planted: the cache keyed on the plan's own vector parts them (table 8d9eeef94d7c269c, layer e2e648daf96b28d2), and fails check 1
-PASS  3  S370 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (8421de5007e39000/c84a8ff95b92806c; 164 s) and the layer loop (8421de5007e39000/c84a8ff95b92806c; 190 s); meta tableDealing false, tsOnce true and false
+PASS  3  S370 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (8421de5007e39000/c84a8ff95b92806c; 181 s) and the layer loop (8421de5007e39000/c84a8ff95b92806c; 212 s); meta tableDealing false, tsOnce true and false
 PASS  3  planted: E5 with the switch charge dropped parts them (c04a4d68d4694fc7/90793c751a5686f9)
 PASS  3  tableDealing false changes the tables (8421de5007e39000/c84a8ff95b92806c against the default's a0b1792426a29d6e/68e88a44a93db1eb): the option is not inert
-PASS  3  S248 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (89fcf00bdfc0bd01/5f034b70a94f5f5b; 56 s) and the layer loop (89fcf00bdfc0bd01/5f034b70a94f5f5b; 81 s); meta tableDealing false, tsOnce true and false
-PASS  3  S224 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (d21829ab238949c1/64423130b653e5c6; 44 s) and the layer loop (d21829ab238949c1/64423130b653e5c6; 67 s); meta tableDealing false, tsOnce true and false
-PASS  3  S370 at 45 points, tableDealing false: every table and layer the same bit for bit with E5 (2b81e4955f404f73/e5d92de3e35cf7ef; 566 s) and the layer loop (2b81e4955f404f73/e5d92de3e35cf7ef; 782 s); meta tableDealing false, tsOnce true and false
+PASS  3  S248 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (89fcf00bdfc0bd01/5f034b70a94f5f5b; 54 s) and the layer loop (89fcf00bdfc0bd01/5f034b70a94f5f5b; 111 s); meta tableDealing false, tsOnce true and false
+PASS  3  S224 at 6 points, tableDealing false: every table and layer the same bit for bit with E5 (d21829ab238949c1/64423130b653e5c6; 49 s) and the layer loop (d21829ab238949c1/64423130b653e5c6; 87 s); meta tableDealing false, tsOnce true and false
+PASS  3  S370 at 45 points, tableDealing false: every table and layer the same bit for bit with E5 (2b81e4955f404f73/e5d92de3e35cf7ef; 648 s) and the layer loop (2b81e4955f404f73/e5d92de3e35cf7ef; 984 s); meta tableDealing false, tsOnce true and false
 PASS  4  S370 with tableDealing false: the engine and a forward run in step over 398 years of 20 paths, the largest gap £9.31e-10 (S370 year 19 slot 0); years with a switch 285; the forward run's states the same as under the default table: true
 PASS  4  planted: the engine's policy without the dealing cost parts them by £1061834.90 (S370 year 45 slot 0)
 PASS  5  tableDealing false without the tier state is refused
 PASS  5  tableDealing neither true nor false is refused
-ALL PASS: 16 checks
+PASS  6  S224 at 6 points, tableDealing false: every table the same with the four cuts (51 s) and without (62 s): 0 of 1116696 values differ (tables d21829ab238949c1/64423130b653e5c6); meta tsLean false when set
+PASS  6  S370 at 6 points, tableDealing false: every table the same with the four cuts (175 s) and without (190 s): 0 of 1252776 values differ (tables 8421de5007e39000/c84a8ff95b92806c); meta tsLean false when set
+PASS  6  S370 at 45 points, tableDealing false: every table the same with the four cuts (629 s) and without (729 s): 0 of 9390360 values differ (tables 2b81e4955f404f73/e5d92de3e35cf7ef); meta tsLean false when set
+PASS  6  planted on S370 at 6 points, E7, the switching sum taken for staying: 754263 of 1252776 values differ
+PASS  6  planted on S370 at 6 points, E8, the ids from the pension's two words alone: 541415 of 1252776 values differ
+PASS  6  planted on S370 at 6 points, E9, every lookup at layer 0: 522444 of 1252776 values differ
+PASS  6  planted on S370 at 6 points, E11, every world handed world 0's split: 70658 of 1252776 values differ
+PASS  6  planted on S224 at 6 points, the memo's world left out of its key: 521844 of 1116696 values differ with the four in, 521844 of 1116696 with them out
+PASS  6  planted on S370 at 4 points, the memo's world left out of its key: 348663 of 835464 values differ with the four in, 348663 of 835464 with them out
+PASS  6  S370 at 4 points, the four on: split across 2 parts, 0 of 835464 values differ from the unsplit solve
+ALL PASS: 26 checks

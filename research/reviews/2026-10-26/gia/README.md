@@ -18,6 +18,7 @@ the scratch folder they ran from (`G=` in `probeq.sh`); point it at this folder 
   - `inert-S330.txt`, `inert-plant-S330.txt`: its replacement and the planted fault.
   - `hash-off-final.txt`, `gia-test-all3.txt`: the same tests on the final code, the one the probe runs.
   - `smoke/`: S206 at 4 points, both arms, before the probe.
-  - `probe/`: the ten arms (one JSON each, with every path's survival and whole score, and its log).
+  - `probe/`: the ten arms, one JSON each, with every path's survival and whole score. Their one-line logs are
+    gitignored (`*.log`) and say nothing the JSON does not.
   - `results-gia-ladder.txt`: the read by the rule (`node gia-read.mjs probe`). The read gives no verdict until all five
     registered pairs are in and fair, a guard added while the first pairs came in.

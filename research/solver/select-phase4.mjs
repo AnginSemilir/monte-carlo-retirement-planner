@@ -35,7 +35,8 @@ const RESULTS = join(HERE, 'results');
 const OUT = join(RESULTS, 'p4-select');
 const SEARCH_SEED = 7001, BAND_SEED = 7005, BAND_PATHS = 1000, TP = 300, TT = 400;
 const LO = 75, HI = 95, PER_COHORT = 20;
-const mode = process.argv[2] || 'list';
+const MAIN = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+const mode = MAIN ? (process.argv[2] || 'list') : null;   // imported (phase4-panel.mjs takes armA), it runs nothing
 
 /* every id any earlier run has touched: file names under results/, at any depth, plus the band files */
 function usedIds() {
@@ -64,7 +65,7 @@ function lists() {
 }
 
 /* the household's plan as arm A runs it: guardrails on, the floor at 80% of target, the lookahead at 5 years */
-function armAPlan(raw) {
+export function armAPlan(raw) {
   const p = JSON.parse(JSON.stringify(raw));
   const target = E.num(p.spending.targetSpend, 0);
   p.config = { ...p.config, guardrails: true, lookaheadYears: 5 };
@@ -73,7 +74,7 @@ function armAPlan(raw) {
 }
 
 /* the app's own pipeline: policy search, then the tournament under that policy (versus.mjs arm A) */
-function armA(plan) {
+export function armA(plan) {
   let used = 0;
   const cands = E.buildPolicyCandidates(plan).map(c => {
     const stats = E.monteCarlo(E.buildContext(E.resolveMpaa(c.planState)), { trials: TP, seed: SEARCH_SEED }); used += TP;

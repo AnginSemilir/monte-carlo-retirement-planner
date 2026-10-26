@@ -1,0 +1,213 @@
+THE THIRD SWEEP (the external review's speed work, 25 Oct; EXPLORATORY): the speed checkout, the agent's code at 52b0b6c with e11.patch
+
+== WHERE THE SWEEP STARTED: the profile with E5, S370 at 45 points (prof-e5.sh: SOLVER_PROFILE=1 node --cpu-prof time-e5.mjs S370 45 E5, on e5.patch's code), read by cpu-top.mjs and share-lines.mjs (the line spans of e5.patch's solve.js)
+total 606.2 s sampled
+ 27.3%    165.5 s  solve solver/solve.js:341
+ 20.5%    124.2 s  readValues solver/grid.js:322
+  7.0%     42.7 s  locInto solver/grid.js:309
+  6.3%     38.5 s  readV solver/adaptive.js:117
+  5.9%     35.7 s  expit solver/grid.js:41
+  5.9%     35.5 s  flow solver/fast.js:382
+  5.1%     30.7 s  grow solver/fast.js:710
+  3.0%     18.4 s  grossForNet solver/fast.js:677
+  2.8%     17.0 s  realAt solver/solve.js:180
+  2.1%     12.9 s  astarAt solver/adaptive.js:322
+  1.8%     11.0 s  now :0
+  1.7%     10.4 s  expectSplit solver/adaptive.js:330
+by file:
+ 33.9%  solver/solve.js
+ 33.5%  solver/grid.js
+ 16.7%  solver/fast.js
+ 11.1%  solver/adaptive.js
+  3.5%  
+  0.9%  research/engine.mjs
+  0.3%  node
+  0.0%  crypto/hash
+  0.0%  solver/reader.js
+  0.0%  policy-study/scenarios.mjs
+  0.0%  perf/performance
+  0.0%  esm/utils
+  8.82%  scoring each layer (E5's phase B) (solver/solve.js lines 1214-1232)
+  6.08%  the memo's hashing and probing (memoFind, memoPut) (solver/solve.js lines 871-895)
+  3.33%  each move's lookups of next year's tables (solver/solve.js lines 1175-1177)
+
+== IDENTITY: bundle-identity.mjs, each household in one process (the reference E5; each cut alone; all five; each plant on top of all five)
+-- bundle-identity2-S224-6.txt
+S224 at 6 points, the reference (E5): 52 s, hash 23e6cd0dc33c1fb8
+S224: the reference's meta: bridgeRead reader, giaTiers false, tierState 0/0,1/1,2/2,3/3, tiersBelow 3
+S224 at 6 points, E7 alone: 47 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, E8 alone: 48 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, E9 alone: 51 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, E10 alone: 51 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, E11 alone: 51 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, all five: 39 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, the plant, E7 swapped: 48 s, hash d6670935167898ba
+S224 at 6 points, the plant, E8 ids from the pension alone: 32 s, hash 3e8d288089aa9594
+S224 at 6 points, the plant, E9 at layer 0: 85 s, hash ccbaca0543ba2e42
+S224 at 6 points, the plant, E11 world 0 for every world: 50 s, hash 23e6cd0dc33c1fb8
+S224 at 6 points, the memo's own plant (the growth class dropped), reported: 44 s, hash 23e6cd0dc33c1fb8
+S224: E7 alone: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: E8 alone: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: E9 alone: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: E10 alone: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: E11 alone: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: all five: 0 of 4782240 values differ: THE SAME BIT FOR BIT
+S224: the plant, E7 swapped: 3265573 of 4782240 values differ: CAUGHT
+S224: the plant, E8 ids from the pension alone: 2140403 of 4782240 values differ: CAUGHT
+S224: the plant, E9 at layer 0: 2194588 of 4782240 values differ: CAUGHT
+S224: the plant, E11 world 0 for every world: 0 of 4782240 values differ: NOT CAUGHT
+S224: the memo's own plant (the growth class dropped), reported: 0 of 4782240 values differ: reported
+S224: E10 call by call: 0 of 200000 answers differ: THE SAME BIT FOR BIT; its plant: 52370 of 200000 differ: CAUGHT
+-- bundle-identity2-S370-4.txt
+S370 at 4 points, the reference (E5): 124 s, hash 64f1556b5e47840c
+S370: the reference's meta: bridgeRead reader, giaTiers false, tierState 0/0,1/1,2/2,3/3, tiersBelow 3
+S370 at 4 points, E7 alone: 128 s, hash 64f1556b5e47840c
+S370 at 4 points, E8 alone: 142 s, hash 64f1556b5e47840c
+S370 at 4 points, E9 alone: 203 s, hash 64f1556b5e47840c
+S370 at 4 points, E10 alone: 142 s, hash 64f1556b5e47840c
+S370 at 4 points, E11 alone: 141 s, hash 64f1556b5e47840c
+S370 at 4 points, all five: 137 s, hash 64f1556b5e47840c
+S370 at 4 points, the plant, E7 swapped: 135 s, hash 43c297eb9867f69c
+S370 at 4 points, the plant, E8 ids from the pension alone: 123 s, hash 65ecea0a9896427c
+S370 at 4 points, the plant, E9 at layer 0: 133 s, hash b42f300b3ec8895b
+S370 at 4 points, the plant, E11 world 0 for every world: 135 s, hash d1d0e87da0cce6cc
+S370 at 4 points, the memo's own plant (the growth class dropped), reported: 137 s, hash 64f1556b5e47840c
+S370: E7 alone: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: E8 alone: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: E9 alone: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: E10 alone: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: E11 alone: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: all five: 0 of 3576960 values differ: THE SAME BIT FOR BIT
+S370: the plant, E7 swapped: 2302149 of 3576960 values differ: CAUGHT
+S370: the plant, E8 ids from the pension alone: 1494962 of 3576960 values differ: CAUGHT
+S370: the plant, E9 at layer 0: 1511618 of 3576960 values differ: CAUGHT
+S370: the plant, E11 world 0 for every world: 128106 of 3576960 values differ: CAUGHT
+S370: the memo's own plant (the growth class dropped), reported: 0 of 3576960 values differ: reported
+S370: E10 call by call: 0 of 200000 answers differ: THE SAME BIT FOR BIT; its plant: 54149 of 200000 differ: CAUGHT
+
+== THE MEMO'S OWN PLANTS UNDER E5 (memo-plant.mjs): which a test of the memo can use there
+S224 at 6 points, E5 alone, the memo's plant 'noworld': 1956322 of 4782240 values differ: IT BITES
+S224 at 6 points, E5 alone, the memo's plant 'nocls': 0 of 4782240 values differ: IT DOES NOT BITE
+S224 at 6 points, E5 with the four, the memo's plant 'noworld': 1956322 of 4782240 values differ: IT BITES
+S224 at 6 points, E5 with the four, the memo's plant 'nocls': 0 of 4782240 values differ: IT DOES NOT BITE
+S370 at 4 points, E5 alone, the memo's plant 'noworld': 1437011 of 3576960 values differ: IT BITES
+S370 at 4 points, E5 alone, the memo's plant 'nocls': 0 of 3576960 values differ: IT DOES NOT BITE
+S370 at 4 points, E5 with the four, the memo's plant 'noworld': 1437011 of 3576960 values differ: IT BITES
+S370 at 4 points, E5 with the four, the memo's plant 'nocls': 0 of 3576960 values differ: IT DOES NOT BITE
+
+== WHERE THE BRIDGE READER READS (reader-years.mjs, 4 points): E11's plant can bite only in those years
+S224: the reader reads in years none; tables built 0
+S370: the reader reads in years 0, 1, 2, 3, 4, 5, 6, 7; tables built 96
+
+== TIMINGS (sweep-read.mjs over time7/ and time6/; each solve one process a core, two at a time on this machine's two cores)
+1. THE PACKED READS (E6) AGAINST E5, 45 points, one process a core, side by side: household | E5 (s) | E6 (s) | E6 against E5 | the tables
+  S126 | 424.7 | 435.9 | +2.7% | the same (hash 039bb6b9634a15dd)
+  S370 | 563.5 | 569.1 | +1.0% | the same (hash 662f328764a48d2e)
+2. THE FIVE SMALLER CUTS (E7 to E11) TOGETHER AGAINST E5, 45 points: household | E5 (s) | all five (s) | the solve cut by | the tables
+  S126 | 438.7 | 362.8 | 17.3% | the same (hash 039bb6b9634a15dd)
+  S248 | 485.7 | 402.2 | 17.2% | the same (hash 85690c650d04bfcd)
+  S370 | 577.5 | 507.6 and 512.2 | 11.7% (their mean) | the same (hash 662f328764a48d2e)
+   each cut's share on S370, all five then that one left out (all five 509.9 s, the mean of 2 solves; E5 alone 577.5 s): cut | without it (s) | what it saves, of E5's solve | the tables
+  E7 | 543.1 | 5.7% | the same
+  E8 | 520.7 | 1.9% | the same
+  E9 | 534.9 | 4.3% | the same
+  E10 | 517.0 | 1.2% | the same
+  E11 | 541.8 | 5.5% | the same
+2b. THE FOUR IN E5'S PATH (E7, E8, E9 and E11: all but E10) AGAINST E5, 45 points: household | E5 (s) | the four (s) | the solve cut by | the tables
+  S126 | 438.7 | 390.1 | 11.1% | the same (hash 039bb6b9634a15dd)
+  S248 | 485.7 | 409.9 | 15.6% | the same (hash 85690c650d04bfcd)
+  S370 | 577.5 | 517.0 | 10.5% | the same (hash 662f328764a48d2e)
+3. THE PRODUCT ON THIS CODE (solvePlan, 30 points, the realAt cache in): household | as it stands (s) | with E10 (s) | the tables
+  S126 | 150.1 (the mean of 149.0 and 151.1) | 131.9 (the mean of 127.6 and 136.2) | the same (hash c85fc926e09310d9)
+  S248 | 145.5 (the mean of 147.9 and 143.0) | 127.4 (the mean of 126.1 and 128.7) | the same (hash 8ad2c83fe4f1b3bf)
+  S370 | 146.2 (the mean of 142.6 and 149.9) | 134.7 (the mean of 131.7 and 133.0 and 139.6) | the same (hash 1506dfed81f04f61)
+   E10 on the product, the pairs alone (the two arms started together, one on each core): household | as it stands (s) | with E10 (s) | E10 cuts its solve by
+  S126 | 151.1 | 136.2 | 9.8%
+  S248 | 143.0 | 128.7 | 10.0%
+  S370 | 149.9 | 139.6 | 6.9%
+4. GATE 5 AFTER THE FIRST PORT ALONE (E5 and the cache), against the product as it stands on this code (each timing the mean of its solves): household | E5 (s) | the product (s) | one core | over four cores (E2 at 4.3 to 3.7) | at the four-way split the two-way check implies
+  S126 | 438.7 | 150.1 | 2.92 | 0.68 to 0.79 | 3.81 (S370's): 0.77
+  S248 | 485.7 | 145.5 | 3.34 | 0.78 to 0.90 | 3.81 (S370's): 0.88
+  S370 | 577.5 | 146.2 | 3.95 | 0.92 to 1.07 | 3.81: 1.04
+4a. GATE 5 FOR THE PORT PROPOSED (the four, E10 left out), against the product as it stands on this code (each timing the mean of its solves): household | the four (s) | the product (s) | one core | over four cores (E2 at 4.3 to 3.7) | at the four-way split the two-way check implies
+  S126 | 390.1 | 150.1 | 2.60 | 0.60 to 0.70 | 3.81 (S370's): 0.68
+  S248 | 409.9 | 145.5 | 2.82 | 0.66 to 0.76 | 3.81 (S370's): 0.74
+  S370 | 517.0 | 146.2 | 3.54 | 0.82 to 0.96 | 3.81: 0.93
+4b. GATE 5 WITH ALL FIVE (each timing the mean of its solves): household | the candidate with all five (s) | the product with E10 / without (s) | one core, against each | over four cores (E2 at 4.3 to 3.7), against each | at the four-way split the two-way check implies
+  S126 | 362.8 | 131.9 / 150.1 | 2.75 / 2.42 | 0.64 to 0.74 / 0.56 to 0.65 | 3.81 (S370's): 0.72 / 0.63
+  S248 | 402.2 | 127.4 / 145.5 | 3.16 / 2.76 | 0.73 to 0.85 / 0.64 to 0.75 | 3.81 (S370's): 0.83 / 0.73
+  S370 | 509.9 | 134.7 / 146.2 | 3.78 / 3.49 | 0.88 to 1.02 / 0.81 to 0.94 | 3.81: 0.99 / 0.92
+gate 5: at most 1.25 on each household
+5. THE SPLIT'S CHECK (split-time.mjs, alone on the machine; e3pcls off in both arms, declared): household | arm | one core (s) | two parts (s) | the speed-up | the serial share it implies | the four-way speed-up it implies | the tables
+  S370 | ALL-E10 | 524.5 | 266.6 | 1.97 | 1.7% | 3.81 | the same (hash 662f328764a48d2e)
+   E2X (6 Oct, a quiet four-core machine, the candidate then at 30 points): the four-way speed-up 3.69 to 4.29
+
+== THE SPLIT (split-time.mjs, alone on the machine: one core, then the split across both; e3pcls off in both, declared)
+{"who":"S370","arm":"SPLIT-ALL-E10","parts":1,"points":45,"secs":524.542,"hash":"662f328764a48d2e","e3pcls":false}
+{"who":"S370","arm":"SPLIT-ALL-E10","parts":2,"points":45,"secs":266.61,"hash":"662f328764a48d2e","e3pcls":false}
+
+== THE CANDIDATE AS IT STANDS, UNCHANGED ON THIS CODE: time-e5.mjs S248 6 CAND (the hash before the cuts: 583780ad104ff04e, time/S248-6-CAND.json)
+{"who":"S248","arm":"HRT3-CAND","points":6,"secs":178.906,"moves":800,"tierState":"0/0,1/1,2/2,3/3","hash":"583780ad104ff04e","realAt":"cached"}
+
+== WHAT IS LEFT: the profile with all five, S370 at 45 points (node --cpu-prof time-e5.mjs S370 45 ALL; one process a core, two at a time; no SOLVER_PROFILE), read by cpu-top.mjs and cpu-lines.mjs
+total 562.0 s sampled
+ 24.4%    137.4 s  readValues solver/grid.js:322
+ 23.0%    129.4 s  solve solver/solve.js:341
+  7.7%     43.4 s  locInto solver/grid.js:309
+  7.6%     42.5 s  readV solver/adaptive.js:117
+  6.5%     36.6 s  flow solver/fast.js:382
+  6.5%     36.4 s  expit solver/grid.js:41
+  5.7%     32.1 s  grow solver/fast.js:747
+  3.1%     17.6 s  realAt solver/solve.js:180
+  2.6%     14.5 s  astarAt solver/adaptive.js:322
+  2.0%     11.1 s  expectSplit solver/adaptive.js:330
+  1.9%     10.9 s  (garbage collector) :0
+  1.5%      8.7 s  drawPension solver/fast.js:450
+  1.2%      6.5 s  grossForNetFast solver/fast.js:717
+  0.9%      5.2 s  params.dividendTax research/engine.mjs:1241
+  0.8%      4.7 s  solveMixture solver/solve.js:303
+  0.7%      3.8 s  netOf solver/fast.js:49
+  0.6%      3.6 s  PhiInv solver/solve.js:219
+  0.4%      2.5 s  finalYearExact solver/solve.js:230
+  0.4%      2.4 s  at2 solver/adaptive.js:332
+  0.2%      1.3 s  stepExpect solver/solve.js:267
+  0.2%      1.3 s  drawStep solver/fast.js:465
+  0.2%      1.1 s  adaptiveReference solver/adaptive.js:45
+by file:
+ 38.7%  solver/grid.js
+ 28.8%  solver/solve.js
+ 16.1%  solver/fast.js
+ 13.2%  solver/adaptive.js
+  2.0%  
+  1.1%  research/engine.mjs
+  0.0%  crypto/hash
+  0.0%  solver/reader.js
+  0.0%  policy-study/scenarios.mjs
+  0.0%  esm/utils
+  0.0%  node
+  0.0%  speed/time-e5.mjs
+-- the hottest lines (function:line on e11.patch's code)
+ 12.71%  readValues:399
+  6.57%  expit:41
+  5.44%  locInto:313
+  2.06%  solve:1266
+  1.85%  readV:130
+  1.76%  grow:759
+  1.58%  readValues:41
+  1.55%  solve:1254
+  1.47%  readV:128
+  1.45%  readValues:382
+  1.42%  solve:1196
+  1.19%  locInto:314
+  1.18%  readV:123
+  1.16%  solve:1246
+-- spans (share-lines.mjs, the line spans of e11.patch's grid.js and solve.js)
+ 12.83%  the corner sums (solver/grid.js lines 398-399)
+  8.15%  the log-odds (expit) (solver/grid.js lines 41)
+  5.44%  the axis's log (locInto) (solver/grid.js lines 313)
+  1.20%  E8's ids, once a cell (solver/solve.js lines 1213-1233)
+  3.44%  E8's memo, probe and put (solver/solve.js lines 1247-1259+1283)
+  1.01%  each move's lookups of next year's tables (E9) (solver/solve.js lines 1238-1241)
+  2.06%  copying a position before it grows (solver/solve.js lines 1266)
+  2.73%  E7's mixture, once a cell (solver/solve.js lines 1292-1303)
+  2.52%  scoring each layer (phase B, with E7) (solver/solve.js lines 1304-1326)

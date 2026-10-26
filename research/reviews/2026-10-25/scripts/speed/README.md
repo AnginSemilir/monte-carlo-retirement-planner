@@ -21,3 +21,29 @@ Each runs from the root of the agent's code at 52b0b6c (`src/solver` the same at
 - `e5-identity.mjs <household> <points>`: the candidate, the prototype's loop, E5 and E5 planted in one process; E5
   must give the loop's tables bit for bit and the plant must part them. Run it with `REALAT_NOCACHE=1` too.
 - `time-e5.mjs <household> <points> <N1LOOP | E5 | CAND>`: one solve timed, its tables hashed (`timeq-e5.sh`).
+
+The third sweep (the smaller cuts, E6 to E11), on the speed checkout with `e11.patch` applied:
+
+- `e11.patch`: the whole diff to the agent's code at 52b0b6c: E5 and the `realAt` cache as in `e5.patch`, then, each
+  opt-in and each with a test-only plant: E6 (`packedReads: true`, the four next-year tables packed side by side; measured
+  no faster, not to be ported), E7 (`mixOnce`, each move's mixture sums once a cell, staying and switching; plant
+  `mixOncePlant: 'swap'`), E8 (`postIds`, each base move's position hashed once a cell to an id, the memo keyed by the id;
+  plant `postIdsPlant: 'pen'`), E9 (`hoistNext`, next year's four tables of each world and layer looked up once a year;
+  plant `hoistNextPlant: 'layer0'`), E10 (`gfnFast`, the gross-up without its per-call list, sort and closures; its plant
+  `_grossForNetPair.planted`, a sort that never fills the first place) and E11 (`readerDirect`, the bridge reader's split
+  found once a year and handed to the read; plant `readerDirectPlant: 'world0'`).
+- `bundle-identity.mjs <household> <points>`: the reference (E5), each of E7 to E11 alone, all five, then each plant on
+  top of all five, in one process; every table compared value by value; E10 also call by call on 200,000 inputs.
+- `reader-years.mjs <household> [points]`: the years the bridge reader reads in, so a plant in E11 can bite only there.
+- `memo-plant.mjs <household> <points>`: the memo's own plants ('noworld', 'nocls') under E5, alone and with the four
+  cuts in E5's path: which of them a test of the memo can use there.
+- `share-lines.mjs <file.cpuprofile> <file> "<label>=<from>-<to>[+...]" ...`: a profile's share in named spans of lines.
+- `time-e5.mjs` takes arms `ALL` (E5 with the five) and `ALL-E<n>` (all but one); `prod-time.mjs <household> <PRODUCT |
+  PRODUCTGFN>` times the product on this code (the cache in every path; `PRODUCTGFN` with E10 as well);
+  `timeq-sweep.sh` queues both, deadline-aware; `pairq.sh <household ...>` times the product with and without E10 started
+  together, one on each core; `split-time.mjs <household> <parts> <ALL | ALL-E<n> | E5> [points]` times the split
+  (`research/solver/e2.mjs`, e3pcls off in both arms, declared).
+- `sweep-read.mjs <time7> [time6] [split] [pair]`: the packed reads against E5, the five against E5, each cut's share on
+  S370, the product on this code and E10's effect on it, the split's check, and gate 5 read from them.
+  `assemble-sweep.sh` prints `results-speed-sweep.txt` from all of these.
+- `cpu-lines.mjs <file.cpuprofile> <fn,fn> [top]`: a profile's hot lines in the named functions.

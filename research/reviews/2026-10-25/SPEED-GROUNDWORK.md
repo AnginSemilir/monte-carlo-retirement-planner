@@ -90,6 +90,95 @@ the dealing cost) and the `realAt` cache.
 
 All three are inside 1.25, S370 by the least.
 
+## The third sweep: the smaller cuts (the maintainer, 25 Oct: "do another sweep", "test all the best candidates")
+
+Every figure here is printed in `results-speed-sweep.txt` by `scripts/speed/assemble-sweep.sh`, except the second cut's
+own (its solve of 629.4 s, the product's 146.7 s and its reading of 1.00 to 1.16), which are in
+`results-speed-groundwork.txt`.
+
+With E5 and the cache in, the profile (S370, 45 points) left the reads at 34%, the tier state's loop at 27%, the flows at 17%
+and the bridge reader's reference at 11%. Inside the loop: scoring each of the four layers took 9%, the memo's hashing and
+probing 6%, and each move's lookups of next year's tables 3%. Six cuts, each the same arithmetic in the same order, each
+behind its own switch with a planted fault (`scripts/speed/e11.patch`):
+
+- **E6:** the four next-year tables packed side by side for the read.
+- **E7:** each move's score across the worlds taken once a cell, for staying and for switching, not once for each layer.
+- **E8:** each move's position hashed to an id once a cell, not once a world, and the memo keyed by the id.
+- **E9:** next year's tables of each world and layer looked up once a year, not once a move.
+- **E10:** the tax gross-up without the list, sort and closures it built on every call.
+- **E11:** the bridge reader's split found once a year, not on every read.
+
+### All exact
+
+`bundle-identity.mjs` compares every table value with E5's, for each cut alone and for all five, then for each cut's
+plant on top of all five:
+
+| | S224, 6 points (4,782,240 values) | S370, 4 points (3,576,960 values) |
+|---|---|---|
+| each cut alone, and all five | 0 differ | 0 differ |
+| E7's plant (the switching sum taken for staying) | 3,265,573 differ | 2,302,149 |
+| E8's plant (ids from the pension alone) | 2,140,403 | 1,494,962 |
+| E9's plant (every lookup at layer 0) | 2,194,588 | 1,511,618 |
+| E11's plant (world 0's split for every world) | 0: S224's reader builds no table | 128,106 |
+| E10, call by call on 200,000 inputs | 0 differ; its plant 52,370 | 0; its plant 54,149 |
+
+- At full size the hashes agree too. E6's tables are E5's at 45 points (S126 and S370), and so are those of every timed
+  solve below. E10's product tables are the same at 30 points (S126, S248 and S370). The split with the four in (S370, two
+  parts, 45 points) gives the unsplit tables.
+- The candidate as it stands is unchanged on this code: S248 at 6 points gives the same hash as before the cuts.
+- The memo's own plant (the growth class dropped) changes nothing on either household. Under the tier state the layer
+  read fixes the tiers, and neither household has tiers on its GIA. So a test of the memo under E5 needs its world plant,
+  which bites: 1,956,322 values on S224 and 1,437,011 on S370, with the four cuts in or out (`memo-plant.mjs`).
+
+### Speed
+
+At 45 points, one process a core, two at a time:
+
+| household | E5 (s) | the four in E5's path: E7, E8, E9, E11 (s) | all five (s) |
+|---|---|---|---|
+| S126 | 438.7 | 390.1 (11.1% less) | 362.8 (17.3% less) |
+| S248 | 485.7 | 409.9 (15.6% less) | 402.2 (17.2% less) |
+| S370 | 577.5 | 517.0 (10.5% less) | 509.9 (11.7% less; two solves) |
+
+- **E6 is no faster:** 2.7% slower than E5 on S126 and 1.0% on S370. Dropped.
+- **Each cut's share on S370** (all five, then each left out; as a share of E5's solve): E7 5.7%, E11 5.5%, E9 4.3%, E8
+  1.9%, E10 1.2%. They overlap, and this machine's noise is a few seconds (the two solves of all five took 507.6 s and
+  512.2 s), so read them as a ranking.
+- **E10 speeds the product more than the candidate.** The product with and without it, started together on the two
+  cores, ran 9.8% faster on S126, 10.0% on S248 and 6.9% on S370, with the same tables. In the candidate it saves about
+  1%. So E10 is a gain for the app, but it makes gate 5's ratio worse.
+
+### Gate 5
+
+Each arm is set against the product timed on the same code in the same session. The first port puts the cache on the
+product's path too. Over four cores, at E2X's 4.3 to 3.7:
+
+| household | the first port alone (E5 and the cache) | with the four (E10 left out) | with all five, against the product with E10 |
+|---|---|---|---|
+| S126 | 0.68 to 0.79 | 0.60 to 0.70 | 0.64 to 0.74 |
+| S248 | 0.78 to 0.90 | 0.66 to 0.76 | 0.73 to 0.85 |
+| S370 | 0.92 to 1.07 | 0.82 to 0.96 | 0.88 to 1.02 |
+
+- **The first port alone reads lower here than the second cut's estimate did** (S370 1.00 to 1.16). That estimate rested
+  on one E5 solve of 629.4 s. E5's two later solves took 563.5 s and 577.5 s, while the product's timings agree (146.7 s
+  then, 142.6 s and 149.9 s now). So that estimate was about 8% pessimistic.
+- **The split keeps its speed-up.** S370 with the four, alone on the machine (e3pcls off in both arms, declared): one
+  core 524.5 s, two parts 266.6 s, 1.97 times, with the same tables. If the serial share that implies (1.7%) holds at four
+  parts, the four-way speed-up is 3.81, inside E2X's 3.69 to 4.29; at 3.81 S370 reads 0.93 with the four. A two-part check
+  of a four-part split is a guide only: gate 5's own measurement decides.
+
+### What is left
+
+The profile with all five (S370, 45 points):
+- the reads, 39%: the corner sums 13%, the log-odds 8%, the axis's log 5%;
+- the bridge reader's reference, 13% (E2 splits it);
+- the flows and growth, 16%;
+- the loop, 23%: what the cuts left of their parts takes 1% to 3.4% each (the memo's probe 3.4%, E7's sums 2.7%, the
+  layer scoring 2.5%), and copying a position before it grows 2.1%.
+
+No cut of size that keeps the tables bit for bit is left. A further cut would change the numbers: fewer moves or
+quadrature nodes, or a coarser grid.
+
 ## For the maintainer
 
 1. **Whether the table may drop the dealing cost.** The check: the latest candidate against the same with
@@ -98,6 +187,10 @@ All three are inside 1.25, S370 by the least.
    than 0.5 points beyond noise, in survival or the whole score.
 2. **Then the exact cuts:** the loop computed once per move, and the cached `realAt`. Each comes with its identity test,
    by the 23 Oct review's rules.
-3. **Then gate 5,** measured on the candidate so settled.
+3. **Then the smaller cuts,** if wanted: E7, E8, E9 and E11, in E5's path only. They take 10.5% to 15.6% off the solve
+   (S370 the least) and put S370's gate 5 at 0.82 to 0.96. E10 is a separate call: it is exact and makes the app's own
+   solve 7% to 10% faster, but it speeds the product more than the candidate. With all five, S370's gate 5 reads 0.88 to
+   1.02 against the faster product.
+4. **Then gate 5,** measured on the candidate so settled.
 
-`SPEED-PORT.md` turns these into the agent's instructions.
+`SPEED-PORT.md` turns items 1 and 2 into the agent's instructions, and `SPEED-PORT-2.md` item 3.

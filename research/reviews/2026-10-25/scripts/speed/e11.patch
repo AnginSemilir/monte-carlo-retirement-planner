@@ -1,0 +1,316 @@
+diff --git a/src/solver/fast.js b/src/solver/fast.js
+index 82f986c..ae45247 100644
+--- a/src/solver/fast.js
++++ b/src/solver/fast.js
+@@ -452,7 +452,7 @@ export function flow(c, t, ai, s) {
+     const fully = a.lump && lumpTaken;
+     const headroom = fully ? 0 : Math.max(0, P.lsa - cumPcls);
+     if (taxable >= ceiling) return 0;
+-    const gross = Math.min(pen, grossForNet(c, need, taxable, fully, headroom, ceiling));
++    const gross = Math.min(pen, (c.gfnFast ? grossForNetFast : grossForNet)(c, need, taxable, fully, headroom, ceiling));
+     if (gross <= 0) return 0;
+     pen -= gross; drawdown += gross;
+     const taxFree = fully ? 0 : Math.min(gross * P.pclsProp, headroom);
+@@ -706,6 +706,43 @@ function grossForNet(c, need, T0, fully, headroom, ceiling) {
+   return sl > 0 ? last + (need - f(last)) / sl : last;
+ }
+ 
++/*
++ * SPEED PROTOTYPE E10 (the external review, 25 Oct; local): grossForNet without the list it builds, sorts and closes over
++ * on every call. The same candidates in the same ascending order (an insertion sort, stable, as the array sort is), the
++ * same arithmetic in the same order, so the same doubles; `gfnFast` on the compiled context turns it on.
++ */
++const GFN_CAND = new Float64Array(256);
++function gfnGmax(prop, Gh, headroom, x) { if (prop >= 1) return Gh + x; const g1 = x / (1 - prop); return g1 <= Gh ? g1 : headroom + x; }
++function gfnF(tb, T0, prop, headroom, netBase, G) { const tf = Math.min(prop * G, headroom); return tf + netOf(tb, T0 + (G - Math.min(prop * G, headroom))) - netBase; }
++function grossForNetFast(c, need, T0, fully, headroom, ceiling, plant = 0) {   // plant (the unit check only): 1 never sorts into the first place
++  const { P, tb } = c;
++  if (need <= 0) return 0;
++  const prop = fully ? 0 : P.pclsProp;
++  const room = Math.max(0, ceiling - T0);
++  if (!(room > 0) && (prop <= 0 || headroom <= 0)) return 0;
++  const Gh = prop > 0 ? headroom / prop : Infinity;
++  const netBase = netOf(tb, T0);
++  const Gmax = Number.isFinite(room) ? gfnGmax(prop, Gh, headroom, room) : Infinity;
++  if (Number.isFinite(Gmax) && gfnF(tb, T0, prop, headroom, netBase, Gmax) <= need) return Gmax;
++  if (tb.n + 2 > GFN_CAND.length) return grossForNet(c, need, T0, fully, headroom, ceiling);
++  const cand = GFN_CAND; let n = 0;
++  if (Number.isFinite(Gh)) cand[n++] = Gh;
++  for (let i = 1; i < tb.n; i++) { const B = tb.xs[i]; if (B > T0) cand[n++] = gfnGmax(prop, Gh, headroom, B - T0); }
++  cand[n++] = Number.isFinite(Gmax) ? Gmax : Math.max(need * 4, 1000);
++  for (let i = 1; i < n; i++) { const x = cand[i]; let j = i - 1; while (j >= plant && cand[j] - x > 0) { cand[j + 1] = cand[j]; j--; } cand[j + 1] = x; }
++  let lo = 0, flo = 0;
++  for (let i = 0; i < n; i++) {
++    const hi = cand[i]; if (hi <= lo) continue;
++    const fhi = gfnF(tb, T0, prop, headroom, netBase, hi);
++    if (fhi >= need) { const sl = (fhi - flo) / (hi - lo); return sl > 0 ? lo + (need - flo) / sl : hi; }
++    lo = hi; flo = fhi;
++  }
++  const last = cand[n - 1];
++  const sl = (gfnF(tb, T0, prop, headroom, netBase, last * 2) - gfnF(tb, T0, prop, headroom, netBase, last)) / last;
++  return sl > 0 ? last + (need - gfnF(tb, T0, prop, headroom, netBase, last)) / sl : last;
++}
++export const _grossForNetPair = { slow: grossForNet, fast: grossForNetFast, planted: (c, need, T0, fully, headroom, ceiling) => grossForNetFast(c, need, T0, fully, headroom, ceiling, 1) };   // the speed prototype's unit check only
++
+ /* Growth for one year from a post-decision state, at the given real rates in CATS order. */
+ export function grow(c, t, s, real) {
+   const frac = c.yr.frac[t];
+diff --git a/src/solver/grid.js b/src/solver/grid.js
+index e7a1a34..33408b2 100644
+--- a/src/solver/grid.js
++++ b/src/solver/grid.js
+@@ -319,7 +319,7 @@ function locLinInto(ax, v, k) { if (ax.nodes) { const r = locateNodes(ax, v); LO
+   const i = Math.min(ax.n - 2, Math.floor(f));
+   LOC[k] = i; LOC[k + 1] = f - i;
+ }
+-export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1) {
++export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1, pk = null, rdGiven = false, rdIn = null) {   // pk: the speed prototype's packed tables (E6), the same four values side by side
+   if (g.mode === 'total') {
+     const W = s[0] + s[1] + s[2], rest = W - s[0];
+     locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
+@@ -388,14 +388,15 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
+    * probability. It replaces F1 and the #106 options there (neither runs with it); every other year, and the bequest,
+    * resilience and shortfall reads, are unchanged.
+    */
+-  const RD = g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;
++  const RD = rdGiven ? rdIn : g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;   // rdGiven: the speed prototype's E11, what this line would find
+   // F1 in a retired bridge year (yr is the year of the table read); otherwise the #106 options, if set
+   const cap = !RD && g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
+   const linearRead = !RD && cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
+   let ls = 0, b = 0, lr = 0, sh = 0;
+   if (lrArr && shArr) {
+     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
+-    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
++    if (pk) for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const q = IDX[k] * 4; ls += w * pk[q]; b += w * pk[q + 1]; lr += w * pk[q + 2]; sh += w * pk[q + 3]; }
++    else for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
+     out[2] = g.linearResil ? lr : expit(lr); out[3] = sh;
+   } else if (lrArr) {
+     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index e007ed8..8dd6260 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -176,9 +176,15 @@ export function spendLevelsFor(floorFrac) {
+ }
+ 
+ /* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
++const REALAT_NOCACHE = typeof process !== 'undefined' && process.env && !!process.env.REALAT_NOCACHE;
+ function realAt(c, z, out, act = null, t = 0, zPath = 0) {
+   const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t], S = act ? act.sigma : c.sigma;
+-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1;
++  // SPEED PROTOTYPE (the external review, 25 Oct; local): log(1 + R) kept with the rate vector it was taken of
++  if (REALAT_NOCACHE) { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1; return out; }   // the old path, for the identity test
++  const o = act || c;
++  if (o._lrOf !== R) { o._lr = Float64Array.from({ length: 4 }, (_, i) => Math.log(1 + R[i])); o._lrOf = R; }
++  const LR = o._lr;
++  for (let i = 0; i < 4; i++) out[i] = Math.exp(LR[i] + S[i] * zPath + V[i] * z) - 1;
+   return out;
+ }
+ 
+@@ -412,6 +418,33 @@ export function solve(E, M, plan, opts = {}) {
+    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
+    */
+   const TS = !!opts.tierState;
++  // SPEED PROTOTYPE (the external review, 25 Oct; local, not committed): `tableDealing: false` solves the tier state's table
++  // without the dealing cost of a switch (the chooser still pays it at decision time, as before the tier state); the
++  // switch charge in score units stays. Off (the default), nothing changes.
++  const NODEAL = opts.tableDealing === false;
++  // SPEED PROTOTYPE E5 (local): without the dealing cost, a move's terms do not depend on the layer held, so the joint tier
++  // state's loop computes them once a cell and world and scores each layer with the switch charge alone - the same
++  // arithmetic in the same order as the loop below. `tsOnce: false` keeps the loop; `tsOncePlant: 'nocharge'` (tests
++  // only) drops the switch charge, which must part the tables.
++  const E5 = NODEAL && !!opts.jointWorlds && opts.tsOnce !== false, E5PLANT = opts.tsOncePlant || '';
++  // SPEED PROTOTYPE E6 (local): with E5, next year's four tables of each world and layer packed side by side once a year,
++  // so a read takes each corner's four values from one place; the same values summed in the same order. `packedReads:
++  // false` reads the four tables; `packedPlant: 'swap'` (tests only) packs two of them the wrong way round.
++  const E6 = E5 && opts.packedReads === true, E6PLANT = opts.packedPlant || '';   // opt-in: measured no faster (S126 and S370 at 45 points)
++  // SPEED PROTOTYPE E7 (local): with E5, each move's mixture-weighted score is taken once a cell for staying and once for
++  // switching (the switch charge added as the loop adds it), so each layer only picks one of the two; the same sums in the
++  // same order. `mixOnce: false` keeps E5's per-layer sums.
++  const E7 = E5 && opts.mixOnce === true, E7PLANT = opts.mixOncePlant || '';   // opt-in while it is tested; 'swap' (tests only) takes the switching sum for staying
++  // SPEED PROTOTYPES E8 to E11 (local; each opt-in while it is tested, each the same tables bit for bit):
++  //   E8 (postIds): each base move's position hashed once a cell to an id, and the memo keyed by (id, class, layer read);
++  //   E9 (hoistNext): next year's four tables of each world and layer looked up once a year, not once a move;
++  //   E10 (gfnFast, in fast.js): the tax gross-up without its per-call list, sort and closures;
++  //   E11 (readerDirect): the bridge reader's split handed to the read, not found in its map on every read.
++  const E8 = E5 && opts.postIds === true, E9 = E5 && opts.hoistNext === true, E11 = E5 && opts.readerDirect === true;
++  // the plants (tests only): E8's ids from the pension's two words alone ('pen'); E9's lookups all at layer 0 ('layer0');
++  // E11 handing every world world 0's split ('world0')
++  const NW8 = opts.postIdsPlant === 'pen' ? 2 : 14, E9L0 = opts.hoistNextPlant === 'layer0', E11W0 = opts.readerDirectPlant === 'world0';
++  if (opts.gfnFast === true) for (const cc of cs) cc.gfnFast = true;
+   /*
+    * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
+    * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
+@@ -943,6 +976,19 @@ export function solve(E, M, plan, opts = {}) {
+   if (opts.readerChance || opts.readerSplit || opts.readerBlend || opts.readerCopy !== undefined || opts.readerSupportLine !== undefined) { if (opts.bridgeRead !== 'reader') throw new Error('readerChance, readerSplit, readerBlend, readerCopy and readerSupportLine need the bridge reader'); if (opts.readerCopy !== undefined && opts.readerCopy !== 'extrap') throw new Error(`readerCopy ${opts.readerCopy}: only 'extrap'`); if (opts.readerCopy && opts.readerSplit === 'r0') throw new Error("readerCopy 'extrap' sets the copied nodes' c, which readerSplit 'r0' replaces; set one"); if (opts.readerSupportLine !== undefined && !(opts.readerSupportLine > 0 && opts.readerSupportLine < 1)) throw new Error(`readerSupportLine ${opts.readerSupportLine}: a chance strictly between 0 and 1`); if (opts.readerBlend && opts.readerBlend !== 'logodds') throw new Error(`readerBlend ${opts.readerBlend}: only 'logodds'`); if (opts.readerChance && opts.readerChance !== 'sim') throw new Error(`readerChance ${opts.readerChance}: only 'sim'`); if (opts.readerSplit && opts.readerSplit !== 'r0' && opts.readerSplit !== 'rz' && opts.readerSplit !== 'rs' && opts.readerSplit !== 'ru' && opts.readerSplit !== 'rsu') throw new Error(`readerSplit ${opts.readerSplit}: only 'r0', 'rz', 'rs', 'ru' or 'rsu'`); if ((opts.readerSplit === 'rs' || opts.readerSplit === 'ru' || opts.readerSplit === 'rsu') && opts.readerBlend) throw new Error(`readerSplit '${opts.readerSplit}' scales the probability blend's residual; it is not defined for readerBlend`); if (opts.readerChance && opts.readerRef === 'order') throw new Error("readerChance 'sim' and readerRef 'order' are two references; set one"); }   // NE-ROOT's arms (research only)
+   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
+   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
++  const e5S = E5 ? shifts.map(() => new Float64Array(A)) : null, e5B = E5 ? shifts.map(() => new Float64Array(A)) : null, e5R = E5 ? shifts.map(() => new Float64Array(A)) : null, e5H = E5 ? shifts.map(() => new Float64Array(A)) : null;
++  const e6P = E6 ? shifts.map(() => tsPairs.map(() => new Float64Array(4 * g.size))) : null;
++  const e7Vs = E7 ? new Float64Array(A) : null, e7Vw = E7 ? new Float64Array(A) : null, e7Wb = E7 ? new Float64Array(A) : null;
++  const NL9 = TS ? tsPairs.length : 0;
++  const e9S = E9 ? new Array(K * NL9).fill(null) : null, e9B = E9 ? new Array(K * NL9).fill(null) : null, e9R = E9 ? new Array(K * NL9).fill(null) : null, e9H = E9 ? new Array(K * NL9).fill(null) : null;
++  const e11RD = E11 ? new Array(K * NL9).fill(null) : null;
++  // E8: the base moves' positions to ids, once a cell; and a memo keyed by (id, class, layer read)
++  const pid8 = E8 ? new Int32Array(A) : null, P8SIZE = E8 ? 1 << Math.ceil(Math.log2(2 * A + 2)) : 1, P8MASK = P8SIZE - 1;
++  const p8Stamp = E8 ? new Int32Array(P8SIZE).fill(-1) : null, p8Ai = E8 ? new Int32Array(P8SIZE) : null, p8Id = E8 ? new Int32Array(P8SIZE) : null;
++  let p8Cur = 0;
++  const m8Cap = E8 ? A * NL9 * K + 1 : 1, M8SIZE = E8 ? 1 << Math.ceil(Math.log2(2 * m8Cap)) : 1, M8MASK = M8SIZE - 1;
++  const m8Stamp = E8 ? new Int32Array(M8SIZE).fill(-1) : null, m8Ent = E8 ? new Int32Array(M8SIZE) : null, m8Key = E8 ? new Int32Array(m8Cap * 3) : null, m8Val = E8 ? new Float64Array(m8Cap * 4) : null;
++  let m8Cur = 0, m8N = 0;
+   const isE3Copy = (ii, it, ig) => E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1);
+   if (E3P && (g.mode !== 'total' || g.cov)) throw new Error('e3pcls needs total coordinates and no coverage axis');
+   // the last year index in which money can enter a pension: a year an owner works, or a dated deposit or staged transfer into one
+@@ -990,6 +1036,18 @@ export function solve(E, M, plan, opts = {}) {
+   for (let t = T; t >= 0; t--) {
+     const spendYear = c.yr.spend[t] > 0;
+     const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
++    if (E6 && t < T) for (let k = 0; k < K; k++) for (let lj = 0; lj < tsPairs.length; lj++) {
++      const P = e6P[k][lj], L = layW[k][lj], ls = L.lsurv[t + 1], bq = L.beq[t + 1], lr = L.lresil[t + 1], sh = L.short[t + 1];
++      if (P.length !== 4 * ls.length) throw new Error(`E6: a packed table of ${P.length} for ${ls.length} cells`);
++      if (E6PLANT === 'swap') for (let i = 0, n = ls.length; i < n; i++) { const q = i * 4; P[q] = ls[i]; P[q + 1] = bq[i]; P[q + 2] = sh[i]; P[q + 3] = lr[i]; }
++      else for (let i = 0, n = ls.length; i < n; i++) { const q = i * 4; P[q] = ls[i]; P[q + 1] = bq[i]; P[q + 2] = lr[i]; P[q + 3] = sh[i]; }
++    }
++    if (E9 || E11) for (let k = 0; k < K; k++) for (let lj = 0; lj < NL9; lj++) {
++      const L = layW[k][lj], q9 = k * NL9 + lj;
++      if (E9) { e9S[q9] = t < T ? L.lsurv[t + 1] : null; e9B[q9] = t < T ? L.beq[t + 1] : null; e9R[q9] = t < T ? L.lresil[t + 1] : null; e9H[q9] = t < T ? L.short[t + 1] : null; }
++      // E11: what readValues itself would find for this year's read (yr = t + 1), the same object
++      if (E11) { const yr = t + 1, ls = t < T ? L.lsurv[t + 1] : null; e11RD[q9] = g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(ls) : null; }
++    }
+     // the memo's growth classes this year: a move's tiers and every rate its growth reads (its rates, their spread, the year's
+     // volatility and the quadrature nodes' rates), bit for bit; moves of one class grow a state alike
+     if (MEMO) for (let k = 0; k < K; k++) {
+@@ -1151,6 +1209,124 @@ export function solve(E, M, plan, opts = {}) {
+                 // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
+                 // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
+                 if (MEMO) memoReset();   // one memo a cell: the world and the layer read are in its key
++                if (E5 && TS) {
++                  // E8: each base move's position (its flow's, bit for bit) to an id, once a cell; a tier variant takes its base's
++                  if (E8) {
++                    if (++p8Cur === 0x7fffffff) { p8Stamp.fill(-1); p8Cur = 0; }
++                    if (++m8Cur === 0x7fffffff) { m8Stamp.fill(-1); m8Cur = 0; }
++                    m8N = 0;
++                    let nId = 0;
++                    for (let ai = 0; ai < A; ai++) {
++                      if (tierBase[ai] !== ai) { pid8[ai] = pid8[tierBase[ai]]; continue; }
++                      const w0 = ai * 14; let hh = 0x811C9DC5;
++                      for (let w = 0; w < NW8; w++) hh = Math.imul(hh ^ postU[w0 + w], 0x01000193);
++                      hh ^= hh >>> 15; hh = Math.imul(hh, 0x2C1B3C6D); hh ^= hh >>> 12;
++                      let slot = hh & P8MASK;
++                      for (;;) {
++                        if (p8Stamp[slot] !== p8Cur) { p8Stamp[slot] = p8Cur; p8Ai[slot] = ai; p8Id[slot] = nId; pid8[ai] = nId++; break; }
++                        const wj = p8Ai[slot] * 14; let w = 0;
++                        while (w < NW8 && postU[wj + w] === postU[w0 + w]) w++;
++                        if (w === NW8) { pid8[ai] = p8Id[slot]; break; }
++                        slot = (slot + 1) & P8MASK;
++                      }
++                    }
++                  }
++                  // E5, PHASE A: each world's terms for every move, once a cell, in the order the layer loop's first layer takes them
++                  for (let k = 0; k < K; k++) {
++                    const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k];
++                    for (let ai = 0; ai < A; ai++) {
++                      const lj = tsLayerOf[ai], q9 = k * NL9 + lj;
++                      let sNext, bNext, rNext, hNext;
++                      if (E9) { const q = E9L0 ? k * NL9 : q9; sNext = e9S[q]; bNext = e9B[q]; rNext = e9R[q]; hNext = e9H[q]; }
++                      else { const Ln = layW[k][lj]; sNext = t < T ? Ln.lsurv[t + 1] : null; bNext = t < T ? Ln.beq[t + 1] : null; rNext = t < T ? Ln.lresil[t + 1] : null; hNext = t < T ? Ln.short[t + 1] : null; }
++                      const fail = failBuf[ai] === 1, o = ai * 7;
++                      let s = 0, b = 0, rs = 0, h = 0;
++                      let mf = -1;
++                      const mLay = PLANT === 'noworld' ? lj : lj * K + k;
++                      const cls8 = PLANT === 'nocls' ? 0 : clsW[k][ai];
++                      if (!fail && MEMO && E8) {
++                        // E8's memo: the key is (the position's id, the growth class, the layer and world read), three integers
++                        const pv = pid8[ai];
++                        let hh = Math.imul(pv + 1, 0x9E3779B1) ^ Math.imul(cls8 + 1, 0x85EBCA77) ^ Math.imul(mLay + 1, 0xC2B2AE3D);
++                        hh ^= hh >>> 15; hh = Math.imul(hh, 0x2C1B3C6D); hh ^= hh >>> 12;
++                        let slot = hh & M8MASK;
++                        for (;;) {
++                          if (m8Stamp[slot] !== m8Cur) { mf = ~slot; break; }
++                          const en = m8Ent[slot], kb = en * 3;
++                          if (m8Key[kb] === pv && m8Key[kb + 1] === cls8 && m8Key[kb + 2] === mLay) { mf = en; break; }
++                          slot = (slot + 1) & M8MASK;
++                        }
++                        if (mf >= 0) { const vb = mf * 4; s = m8Val[vb]; b = m8Val[vb + 1]; rs = m8Val[vb + 2]; h = m8Val[vb + 3]; memoHits++; }
++                      } else if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
++                      if (!fail && mf < 0) {
++                        const nr = nodeRealOf[ai];
++                        if (t === T && FINT) { finalYearExact(ck, t, postBuf.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
++                        else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, postBuf.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
++                        else for (let zi = 0; zi < NQ; zi++) {
++                          for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
++                          F.grow(ck, t, grown, nr[zi]);
++                          if (t === T) {
++                            const total = grown[0] + grown[1] + grown[2];
++                            const alive = !(floor > 0 && total < floor);
++                            const net = Math.max(0, total - grown[0] * deathTax);
++                            s += QW[zi] * (alive ? 1 : 0);
++                            rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
++                            b += QW[zi] * (alive ? beqOf(net) : 0);
++                          } else {
++                            readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1, E6 ? e6P[k][lj] : null, E11, E11 ? e11RD[E11W0 ? lj : q9] : null);
++                            s += QW[zi] * rd[0];
++                            b += QW[zi] * rd[1];
++                            rs += QW[zi] * rd[2];
++                            h += QW[zi] * rd[3];
++                          }
++                        }
++                        if (MEMO && E8) { const slot = ~mf, en = m8N++, kb = en * 3, vb = en * 4; m8Key[kb] = pid8[ai]; m8Key[kb + 1] = cls8; m8Key[kb + 2] = mLay; m8Stamp[slot] = m8Cur; m8Ent[slot] = en; m8Val[vb] = s; m8Val[vb + 1] = b; m8Val[vb + 2] = rs; m8Val[vb + 3] = h; memoMiss++; }
++                        else if (MEMO) { memoPut(~mf, postU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
++                      }
++                      if (failShort && fail) h = failCostAt[t];
++                      else h += shortOfAction[ai];
++                      if (raiseSurv) h += raiseOfAction[ai] * s;
++                      eS[ai] = s; eB[ai] = b; eR[ai] = rs; eH[ai] = h;
++                    }
++                  }
++                  // E7: each move's mixture sums once a cell, staying (no charge) and switching (the charge added as below)
++                  if (E7) for (let ai = 0; ai < A; ai++) {
++                    let vs = 0, vw = 0, wb = 0;
++                    for (let k = 0; k < K; k++) {
++                      const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai], h0 = e5H[k][ai];
++                      let h1 = h0; if (switchCharge > 0 && E5PLANT !== 'nocharge') h1 += switchCharge;
++                      const sc0 = s + wR * rs + wB * b - h0; if (sc0 - sc0 !== 0) nonFiniteScore('the backward pass (tier state, E7)', t, idx, k, ai, s, b, rs, h0);
++                      const sc1 = s + wR * rs + wB * b - h1; if (sc1 - sc1 !== 0) nonFiniteScore('the backward pass (tier state, E7)', t, idx, k, ai, s, b, rs, h1);
++                      vs += JW[k] * sc0; vw += JW[k] * sc1; wb += JW[k] * b;
++                    }
++                    e7Vs[ai] = vs; e7Vw[ai] = vw; e7Wb[ai] = wb;
++                  }
++                  // E5, PHASE B: each layer held, the switch charge alone, then the chooser's full rule on the mixture, as below
++                  for (let j = 0; j < tsPairs.length; j++) {
++                    let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
++                    for (let ai = 0; ai < A; ai++) {
++                      let v = 0, wb = 0;
++                      if (E7) { v = (tsLayerOf[ai] === j) !== (E7PLANT === 'swap') ? e7Vs[ai] : e7Vw[ai]; wb = e7Wb[ai]; }
++                      else {
++                      const sw = switchCharge > 0 && tsLayerOf[ai] !== j && E5PLANT !== 'nocharge';
++                      for (let k = 0; k < K; k++) {
++                        let h = e5H[k][ai];
++                        if (sw) h += switchCharge;
++                        const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai];
++                        const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state, E5)', t, idx, k, ai, s, b, rs, h);
++                        v += JW[k] * score; wb += JW[k] * b;
++                      }
++                      }
++                      if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
++                      if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
++                    }
++                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
++                    const swB = switchCharge > 0 && tsLayerOf[bestA] !== j && E5PLANT !== 'nocharge';
++                    for (let k = 0; k < K; k++) { let h = e5H[k][bestA]; if (swB) h += switchCharge; const Lj = layW[k][j]; Lj.surv[t][idx] = e5S[k][bestA]; Lj.beq[t][idx] = e5B[k][bestA]; Lj.resil[t][idx] = e5R[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = h; }
++                  }
++                  if (PROF) PROF.cells++;
++                  continue;
++                }
+                 for (let j = 0; j < tsPairs.length; j++) {
+                 for (let k = 0; k < K; k++) {
+                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
+@@ -1163,7 +1339,7 @@ export function solve(E, M, plan, opts = {}) {
+                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                       const fail = failBuf[ai] === 1;
+                       let src = postBuf, o = ai * 7;
+-                      if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
++                      if (!fail && lj !== j && ck.switchCost > 0 && !NODEAL) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                       let s = 0, b = 0, rs = 0, h = 0;
+                       let mf = -1;
+                       const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world

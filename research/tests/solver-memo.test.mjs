@@ -38,7 +38,8 @@ const ARMS = {
   CAND: (plan, x) => solveCandidate(E, M, plan, base({ adaptiveLattice: SMALL, ...x })),
   FROZEN: (plan, x) => solveCandidate(E, M, plan, base(x), FROZEN_OPTS),
   DECOMP: (plan, x) => solveCandidate(E, M, plan, base({ readerRef: undefined, adaptiveLattice: undefined, ...x })),
-  JOINT: (plan, x) => solveCandidate(E, M, plan, base({ adaptiveLattice: SMALL, tierState: false, switchCharge: 0, ...x }))
+  // the tier state goes, so the charge and the table without the dealing cost go with it (both need it; D30, the reviewer of 26 Oct)
+  JOINT: (plan, x) => solveCandidate(E, M, plan, base({ adaptiveLattice: SMALL, tierState: false, switchCharge: 0, tableDealing: undefined, ...x }))
 };
 // the speed review's two hashes (speed-timing.mjs), as written there
 function hashes(r) {

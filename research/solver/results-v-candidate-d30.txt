@@ -1,0 +1,30 @@
+S008  solve S008: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 192 s
+S008  V1 S008 PASS: 3265920 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S008  REPORTED S008: survival falls as wealth rises (beyond a millionth) at 2096 of 3157056 neighbouring wealth nodes (0.066%)
+S008  V2 S008 model-only 0 engine-only 0 of 2000 (runPolicy 95.50%, the engine 95.50%; seed 99001)
+S194  solve S194: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 234 s
+S194  V1 S194 PASS: 4782240 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S194  REPORTED S194: survival falls as wealth rises (beyond a millionth) at 5023 of 4622832 neighbouring wealth nodes (0.109%)
+S194  V2 S194 model-only 0 engine-only 0 of 2000 (runPolicy 99.25%, the engine 99.25%; seed 99001)
+S330  solve S330: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 320 s
+S330  V1 S330 PASS: 7115040 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S330  REPORTED S330: survival falls as wealth rises (beyond a millionth) at 2597 of 6877872 neighbouring wealth nodes (0.038%)
+S330  V2 S330 model-only 0 engine-only 0 of 2000 (runPolicy 89.65%, the engine 89.65%; seed 99001)
+S224  solve S224: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 275 s
+S224  V1 S224 PASS: 4782240 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S224  REPORTED S224: survival falls as wealth rises (beyond a millionth) at 2491 of 4622832 neighbouring wealth nodes (0.054%)
+S224  V2 S224 model-only 0 engine-only 0 of 2000 (runPolicy 70.00%, the engine 70.00%; seed 99001)
+S070  solve S070: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 254 s
+S070  V1 S070 PASS: 4199040 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S070  REPORTED S070: survival falls as wealth rises (beyond a millionth) at 1457 of 4059072 neighbouring wealth nodes (0.036%)
+S070  V2 S070 model-only 0 engine-only 0 of 2000 (runPolicy 95.65%, the engine 95.65%; seed 99001)
+S370  solve S370: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 398 s
+S370  V1 S370 PASS: 5365440 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S370  REPORTED S370: survival falls as wealth rises (beyond a millionth) at 1771 of 5186592 neighbouring wealth nodes (0.034%)
+S370  V2 S370 model-only 0 engine-only 0 of 2000 (runPolicy 82.50%, the engine 82.50%; seed 99001)
+S380  solve S380: the candidate fcd8096217b7, 30 points, readerRef adaptive readerSplit rs, 3 worlds, 380 s
+S380  V1 S380 PASS: 5365440 cells over 3 worlds and their layers: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+S380  REPORTED S380: survival falls as wealth rises (beyond a millionth) at 2339 of 5186592 neighbouring wealth nodes (0.045%)
+S380  V2 S380 model-only 0 engine-only 0 of 2000 (runPolicy 72.85%, the engine 72.85%; seed 99001)
+V1 on the candidate fcd8096217b7: ALL PASS (7 of 7 households)
+V2 on the candidate fcd8096217b7: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS

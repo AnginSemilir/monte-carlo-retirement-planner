@@ -373,7 +373,14 @@ most of its retirement and its survival rises several points; a comfortable one 
 no longer needs the return. A tier change is not free: the slice that moves is sold and bought, so
 a quarter of a percent of that slice (about a tenth of a percent each way for the spread and dealing,
 and a day or two out of the market) is charged to the wrapper the year it changes. That cut the
-flipping by a third; a realistic cost is too small to do more. So a change is also made only when it
+flipping by a third; a realistic cost is too small to do more. In the research candidate (STATE.md
+D30) that cost is charged when a move is taken - by the chooser, the forward run and the engine - and
+not inside the table, which keeps the switch's charge in its score; a move's expectation then no longer
+depends on the tier held, so the solve computes it once rather than once a tier. It joined by the rule
+committed before its (exploratory) check: no household losing more than half a point beyond noise and the panel's
+average no worse than a fifth of a point at the lower end of its interval. It is not free of effect:
+one household lost a fifth of a point beyond noise and another gained about as much (STATE.md, D30's
+check). So a change is also made only when it
 is worth noticing: the table's gain from switching has to beat a tenth of a survival point, or the
 household stays where it is. With both, the household changes tier about twice in a retirement and
 pays about £3k to do it, and the survival gain is intact (+4.9 points against +5.0 with free

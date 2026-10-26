@@ -38,9 +38,11 @@
  *
  * AFTER 7U-F (STATE.md D28, D29; the maintainer, 25 Oct, after the factorial, results-n4t3.txt): the third joint tier step
  * down, tiersBelow 3 (fast.js tiersFor; a household whose pension or ISA cannot take it keeps today's ladder), and HR whole,
- * menuPlus ['hr'] (N4's pension ceiling at the taper threshold, as a draw-first and a re-wrap ceiling; n4-design.md). 7u-F's
- * candidate is candidate.json less these keys (ASSEMBLED_OPTS, its hash e65e5e99ba49 as 7u-F registered it); a script whose
- * arms add a menu key to the candidate (n4-menu.mjs) spreads ASSEMBLED_OPTS, so it means what it meant.
+ * menuPlus ['hr'] (N4's pension ceiling at the taper threshold, as a draw-first and a re-wrap ceiling; n4-design.md); and
+ * after D30's check (results-n4nd.txt), tableDealing false (the tier state's table solved without a switch's dealing cost,
+ * which the chooser, the forward run and the engine still charge when a move is taken; E5 on with it). 7u-F's candidate is
+ * candidate.json less these keys (ASSEMBLED_OPTS, its hash e65e5e99ba49 as 7u-F registered it); a script whose arms add one
+ * of them to the candidate (n4-menu.mjs) spreads ASSEMBLED_OPTS, so it means what it meant.
  *
  * Use solveCandidate, or spread CANDIDATE_OPTS first and a test's own arm options after it, never before it
  * (an arm's pclsInterp false before the spread is silently overwritten: research/tests/candidate.test.mjs scans for it).
@@ -57,9 +59,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v === 'object') deepFreeze(v); }); return Object.freeze(o); };
 export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
 if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
-/* the menu's keys joined after 7u-F (D28, D29), and 7u-F's candidate: candidate.json less them */
-export const MENU_KEYS = Object.freeze(['tiersBelow', 'menuPlus']);
-export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !MENU_KEYS.includes(k))));
+/* the keys joined after 7u-F (D28, D29, D30), and 7u-F's candidate: candidate.json less them */
+export const LATER_KEYS = Object.freeze(['tiersBelow', 'menuPlus', 'tableDealing']);
+export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
 /* the adaptive package's keys (D5), and the candidate before the assembly: 7u-F's less them */
 export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
 export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(ASSEMBLED_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));

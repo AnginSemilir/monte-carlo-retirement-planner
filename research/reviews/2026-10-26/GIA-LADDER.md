@@ -119,3 +119,54 @@ are the latest candidate's bit for bit on S330 and S224 at 6 points (`hash-off-f
 `hash-off.txt`), and every test passes (`gia-test-all3.txt`, the superset printed as a measurement). The probe's arms are
 split by arm across the two cores (CAND on one, LADDER on the other), so each pair's solve times are taken under the same
 load.
+
+## The result
+
+Five pairs, read by the rule above (`gia/results-gia-ladder.txt`, printed by `gia-read.mjs` over `gia/probe/`; the
+differences recomputed independently from the per-path results, the same to the last digit). Every arm ran on one code
+(e10ec78fa581), 45 points, estate weight 0.02, the same 8,000 paths of seed 7002. Differences are LADDER less CAND, in
+points, with their 95% intervals.
+
+| Household | Survival, CAND to LADDER | Survival | Whole score | A GIA rung held | GIA switches a path | Switch costs a path (CAND) | Solve |
+|---|---|---|---|---|---|---|---|
+| S330 | 90.225% to 90.750% | **+0.525** (+0.303 to +0.747) | +0.356 (+0.132 to +0.579) | 74.7% of spending years | 1.63 | £18,995 (£3,044) | x1.53 |
+| S330, 40% gain | 90.237% to 90.275% | +0.037 (-0.211 to +0.286) | **-0.371** (-0.623 to -0.120) | 71.1% | 3.76 | £42,756 (£3,101) | x1.67 |
+| S206 | 99.787% to 99.775% | -0.013 (-0.067 to +0.042) | -0.013 (-0.069 to +0.042) | 1.6% | 0.06 | £309 (£297) | x1.45 |
+| S390 | 99.750% to 99.750% | +0.000 (-0.049 to +0.049) | -0.002 (-0.052 to +0.048) | 1.8% | 0.09 | £1,701 (£1,348) | x1.44 |
+| S224 (GIA 10%) | 70.362% to 70.313% | -0.050 (-0.175 to +0.075) | -0.060 (-0.186 to +0.067) | 20.7% | 0.83 | £2,917 (£2,753) | x1.68 |
+
+**Verdict, by the rule: PASSES.** S330 gains +0.525 points of survival, beyond noise and over 0.5. No household loses more
+than 0.5 beyond noise: S330 at a 40% gain loses 0.371 of the whole score beyond noise, under the 0.5 bar. Every solve is
+within 1.7 times today's. The rule sends the ladder to a proper build: the engine following the GIA's tier and taxing
+its switches, the full panel, and gate 5.
+
+**The pass is narrow.** It rests on one household with no gain in its GIA. Its estimate only just clears the bar (+0.525
+against 0.5), on the tuning seed. The same household with a 40% gain gets no survival from the ladder and loses
+whole score.
+
+**Against the prediction:**
+
+| Predicted | Result |
+|---|---|
+| Off and under the gate: bit for bit | Held |
+| The superset holds | Failed; the premise was wrong (the amendment) |
+| S330: +0.0 to +1.0 points (point guess +0.3) | +0.525, inside |
+| S330: a GIA rung in 10% to 40% of spending years | 74.7%: missed |
+| S330 at a 40% gain: less use, a smaller gain, never a loss beyond noise | Use 71.1% (a little less) and gain +0.04 (smaller) held; the whole score lost 0.371 beyond noise, so "never a loss" **failed** |
+| S206, S390, S224: within noise | Held |
+| Cost: 1.3 to 1.6 times | 1.44 to 1.53 on three households; 1.67 and 1.68 on two, outside |
+
+**Odd results, each with an owner and a gate:**
+
+1. **At a 40% gain, the ladder switches more and pays for it.** It makes 3.76 GIA switches a path against 1.63 with no
+   gain, at £42,756 a path against £18,995, and the whole score falls. The leading hypothesis is design point 4: the table
+   solves a GIA switch untaxed, so its values assume every later switch is free of tax, and the chooser pays a tax the
+   table never priced. *Owner:* the build. *Gate:* before the panel, the table prices the switch's tax (or a test shows
+   the hypothesis wrong), and S330 is rerun at 0% and 40%. Most real GIAs carry gains, so this comes first.
+2. **Lifetime tax falls in both S330 LADDER arms**, by £160,935 and £252,332 a path (19% and 29%; `taxPerPath` in the
+   arms' files). Not explained here. It fits less wealth held at safer tiers, but that is not checked. *Owner:* the build.
+   *Gate:* the engine's confirmatory read splits the tax.
+3. **S330 holds a rung in 75% of its spending years**, far above the prediction. It sits on the bottom joint step most of
+   the time (MISSING-MOVES.md section 2) and takes the GIA down with it. Noted; not a defect.
+4. **Two solves took 1.67 and 1.68 times today's,** each a single run under two-core load, against the 1.7 bar. Gate 5 is
+   timed on the build itself.

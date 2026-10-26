@@ -32,5 +32,9 @@ for (const [k, g] of Object.entries(groups).sort()) {
   console.log(`    survival ${a.survival.toFixed(3)}% to ${b.survival.toFixed(3)}%: ${f(dS)} points (se ${seS.toFixed(3)}; 95% ${f(dS - 1.96 * seS)} to ${f(dS + 1.96 * seS)}; ${saved} saved, ${lost} lost); the whole score ${f(dW)} (se ${seW.toFixed(3)}; 95% ${f(dW - 1.96 * seW)} to ${f(dW + 1.96 * seW)})`);
   console.log(`    a GIA rung in ${(100 * b.rungShare).toFixed(1)}% of spending years; ${b.giaChangesPerPath.toFixed(2)} GIA switches a path; switches paid £${Math.round(b.switchPaidPerPath)} a path (CAND £${Math.round(a.switchPaidPerPath)}); the solve ${a.solveSecs.toFixed(0)} s to ${b.solveSecs.toFixed(0)} s (x${ratio.toFixed(2)}), ${a.moves} to ${b.moves} moves`);
 }
+// the registered pairs (GIA-LADDER.md, the probe): no verdict until every one is in and fair
+const EXPECTED = ['S206', 'S224', 'S330', 'S330 at a 40% gain', 'S390'];
+const fair = EXPECTED.filter(k => groups[k] && groups[k].CAND && groups[k].LADDER && ['paths', 'seed', 'points', 'w', 'T', 'gain', 'codeHash'].every(x => groups[k].CAND[x] === groups[k].LADDER[x]));
+if (fair.length < EXPECTED.length) { console.log(`INCOMPLETE: ${fair.length} of ${EXPECTED.length} registered pairs in and fair (missing ${EXPECTED.filter(k => !fair.includes(k)).join(', ')}): no verdict yet`); process.exit(0); }
 console.log(`RULE: a gain beyond noise of at least 0.5 (survival or the whole score) on one household or more: ${pass ? 'YES' : 'no'}; a loss beyond noise of more than 0.5 on any: ${harm ? 'YES' : 'no'}; the solve within 1.7x on every qualifying household: ${cost ? 'yes' : 'NO'}`);
 console.log(`VERDICT: ${pass && !harm && cost ? 'PASSES: the ladder goes to a proper build (the engine, the full panel, gate 5)' : 'DOES NOT PASS: M15 closes, the GIA keeps the plan\'s tier'}`);

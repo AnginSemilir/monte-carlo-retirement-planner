@@ -39,6 +39,7 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D32. 26 Oct, maintainer, on E10's estimate: "leave it for now". E10 stays out of the product's path; gate 5 stands.
 - D31. 26 Oct, maintainer: "port E7, E8, E9 and E11 into E5's path ... leave E6 and E10 out" (SPEED-PORT-2.md at dcf5cbf):
   the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve
   more than the candidate's). Gate 5 is measured after.
@@ -292,7 +293,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. For the maintainer, after gate 5 (MET): E10 (SPEED-PORT-2.md), the CHECKLIST 1 wording the reviewers proposed, and
+1. For the maintainer, after gate 5 (MET; E10 left out, D32): the CHECKLIST 1 wording the reviewers proposed, and
    Phase 4's registration on the candidate as it stands (fcd8096217b7).
 2. Then Phase 4 registers (harm rule, D20 (2); budget, D21; a fresh seed), with a no-harm item against SHIP
    (the candidate changed after 7u-F, D29 and D30), a spending item over all years, the whole score on every path and the Node version stamped.

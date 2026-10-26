@@ -17,7 +17,7 @@ AT W0.01 (ND less HR+T3: survival points (se) / whole score (se), paired by path
   S248: HR+T3 53.71%, ND 53.66% (800 moves): survival -0.050 (0.075) / score -0.048 (0.075); solve 1426 s against 424 s
   S002: HR+T3 100.00%, ND 100.00% (800 moves): survival +0.000 (0.000) / score -0.000 (0.000); solve 711 s against 218 s
   S330: HR+T3 90.40%, ND 90.36% (800 moves): survival -0.037 (0.063) / score -0.027 (0.063); solve 1439 s against 421 s
-the gate: the ND and identity units from one code (099f3d87698d), seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; ND tableDealing false with E5, HR and the third step; the identity units tableDealing true
+the gate: the ND and identity units from one code (099f3d87698d); every unit, the factorial's too, seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; ND tableDealing false with E5, HR and the third step; the identity units tableDealing true
 THE SOLVE, ND against HR+T3 (four units at a time; the factorial's under its own load): the median x0.31 (x0.19 to x0.87) over 14 household-weights
   the panel W0.02 survival: -0.029 (se 0.026), its 95% interval's lower end -0.080: clears -0.2
   the panel W0.02 score: -0.025 (se 0.027), its 95% interval's lower end -0.077: clears -0.2

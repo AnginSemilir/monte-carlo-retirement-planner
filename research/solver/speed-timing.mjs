@@ -35,7 +35,7 @@ const t0 = process.hrtime.bigint();
 // JOINT: the candidate without the tier state (joint worlds alone; the charge needs the tier state, so it goes too), the
 // one configuration that reaches solve()'s joint-worlds block
 const r = arm === 'SHIP' ? S.solvePlan(E, M, C.candidatePlan(E, plan), base)
-  : arm === 'JOINT' ? S.solvePlan(E, M, C.candidatePlan(E, plan), { ...C.CANDIDATE_OPTS, tierState: false, switchCharge: 0, ...base })
+  : arm === 'JOINT' ? S.solvePlan(E, M, C.candidatePlan(E, plan), { ...C.CANDIDATE_OPTS, tierState: false, switchCharge: 0, tableDealing: undefined, ...base })
   : S.solvePlan(E, M, C.candidatePlan(E, plan), { ...C.CANDIDATE_OPTS, ...base });
 const solveMs = Number(process.hrtime.bigint() - t0) / 1e6;
 const hsh = createHash('sha256'); let arrays = 0, cells = 0;

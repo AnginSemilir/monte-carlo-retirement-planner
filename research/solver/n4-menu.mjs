@@ -339,21 +339,23 @@ function readNd(dir, t3dir, iddir) {
     if (sameBits(a, b)) identical++; else console.log(`  identity ${id} W${w}: CAND+HR+T3 on this code and the factorial's DIFFER`);
   }
   console.log(`THE IDENTITY (step 2.1): CAND+HR+T3 on the ported code the same as the factorial's units bit for bit on ${identical} of ${compared} (${ND_ID.map(([i, w]) => `${i} W${w}`).join(', ')}), so the factorial's units stand as the first arm`);
-  const per = Object.fromEntries(WEIGHTS.map(w => [w, []])), nds = [], ratios = [];
+  const per = Object.fromEntries(WEIGHTS.map(w => [w, []])), nds = [], t3s = [], ratios = [];
   for (const w of WEIGHTS) {
     console.log(`AT W${w} (ND less HR+T3: survival points (se) / whole score (se), paired by path):`);
     for (const id of HOUSEHOLDS) {
       const f = join(dir, `${id}-CAND+HR+T3+ND-w${w}.json.gz`), g = join(t3dir, `${id}-CAND+HR+T3-w${w}.json.gz`);
       if (!existsSync(f) || !existsSync(g)) { console.log(`  ${id}: missing ${existsSync(f) ? 'the factorial\'s unit' : 'the ND unit'}`); complete = false; continue; }
-      const nd = load(f), t3 = load(g); nds.push(nd);
+      const nd = load(f), t3 = load(g); nds.push(nd); t3s.push(t3);
       const d = paired(t3, nd); per[w].push({ id, ...d }); ratios.push(nd.secs / t3.secs);
       console.log(`  ${id}: HR+T3 ${t3.sim.toFixed(2)}%, ND ${nd.sim.toFixed(2)}% (${nd.moves} moves): survival ${f3(d.s)} (${d.sse.toFixed(3)}) / score ${f3(d.w)} (${d.wse.toFixed(3)}); solve ${Math.round(t3.secs)} s against ${Math.round(nd.secs)} s`);
     }
   }
-  const codes = new Set([...nds, ...ids].map(x => x.code)), seeds = new Set(nds.map(x => `${x.seed}/${x.N}`)), cands = new Set(nds.map(x => x.candidate)), pts = new Set(nds.map(x => x.points));
+  // the factorial's units (the first arm) share the seed, paths, points and candidate; their code is the factorial's, the
+  // identity units standing for it on this code (the reviewer of 26 Oct, finding 4)
+  const codes = new Set([...nds, ...ids].map(x => x.code)), seeds = new Set([...nds, ...t3s, ...ids].map(x => `${x.seed}/${x.N}`)), cands = new Set([...nds, ...t3s, ...ids].map(x => x.candidate)), pts = new Set([...nds, ...t3s, ...ids].map(x => x.points));
   const flags = nds.every(x => x.tableDealing === false && x.tsOnce === true && x.tiersBelow === 3 && JSON.stringify(x.menuPlus) === '["hr"]') && ids.every(x => x.tableDealing === true && x.tiersBelow === 3);
   const fair = codes.size === 1 && seeds.size === 1 && cands.size === 1 && pts.size === 1 && pts.has(PTS) && flags;
-  console.log(fair ? `the gate: the ND and identity units from one code (${[...codes][0]}), seed and paths ${[...seeds][0]}, candidate ${[...cands][0]}, ${PTS} points; ND tableDealing false with E5, HR and the third step; the identity units tableDealing true` : `NOT FAIR: codes (${[...codes].join(' ')}), seeds (${[...seeds].join(' ')}), candidates (${[...cands].join(' ')}), points (${[...pts].join(' ')}), flags ${flags ? 'as they should be' : 'not as they should be'}`);
+  console.log(fair ? `the gate: the ND and identity units from one code (${[...codes][0]}); every unit, the factorial's too, seed and paths ${[...seeds][0]}, candidate ${[...cands][0]}, ${PTS} points; ND tableDealing false with E5, HR and the third step; the identity units tableDealing true` : `NOT FAIR: codes (${[...codes].join(' ')}), seeds (${[...seeds].join(' ')}), candidates (${[...cands].join(' ')}), points (${[...pts].join(' ')}), flags ${flags ? 'as they should be' : 'not as they should be'}`);
   const med = a => { const q = [...a].sort((x, y) => x - y); return q.length % 2 ? q[q.length >> 1] : (q[q.length / 2 - 1] + q[q.length / 2]) / 2; };
   if (ratios.length) console.log(`THE SOLVE, ND against HR+T3 (four units at a time; the factorial's under its own load): the median x${med(ratios).toFixed(2)} (x${Math.min(...ratios).toFixed(2)} to x${Math.max(...ratios).toFixed(2)}) over ${ratios.length} household-weights`);
   const v = ndRule(per);

@@ -37,9 +37,12 @@ const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { fai
 const all = buildScenarios();
 const planOf = id => { const h = all.find(s => s.id === id); return E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } })); };
 checkE3pclsPin({ ...CANDIDATE_OPTS });   // e3pcls guard: the candidate's solves below
+// CAND is the candidate as D29 left it, the option unset (candidate.json less tableDealing since D30), so check 1 compares
+// what the code before the port solved, and checks 3 and 4 set the option themselves (the reviewer of 26 Oct, finding 2)
+const { tableDealing: _td, ...D29_OPTS } = CANDIDATE_OPTS;
 const solve = (id, arm, extra = {}, pts = PTS) => {
   const base = { lambda: LAMBDA, points: pts, bequestWeight: 0.02 };
-  return arm === 'SHIP' ? S.solvePlan(E, M, candidatePlan(E, planOf(id)), base) : S.solvePlan(E, M, candidatePlan(E, planOf(id)), { ...CANDIDATE_OPTS, ...(pts === 45 ? {} : LIGHT), ...base, ...extra });
+  return arm === 'SHIP' ? S.solvePlan(E, M, candidatePlan(E, planOf(id)), base) : S.solvePlan(E, M, candidatePlan(E, planOf(id)), { ...D29_OPTS, ...(pts === 45 ? {} : LIGHT), ...base, ...extra });
 };
 
 /* the hashes two code versions must share: the typed arrays alone (a key added to meta moves none), in key order */

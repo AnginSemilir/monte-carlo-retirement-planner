@@ -286,7 +286,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Nothing. Gate 5 ran 26 Oct 11:05 to 12:05 UK through the launcher (`results/gate5-launch1.log`, `results/diaggate5`).
+- Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths, 200 units; D34's sizing, D21's budget), from 26 Oct 22:56 UK: task bbraqqu65, `results/p4-pilot-log.txt`.
 
 ## 6. The next three actions
 

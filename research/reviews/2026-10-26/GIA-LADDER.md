@@ -90,8 +90,11 @@ the weighted score while lowering one world's value can lower the weighted score
 survival adds departures of its own. The evidence, all with a linear read and the raise weight off: with each world
 choosing its own move (and the plan's own reference for the bridge reader, since the adaptive one needs joint worlds), none
 of the 474,336 values falls (`superset-linear-nojw-S330.txt`); with the joint choice kept and the plan's reference, the
-same 877 fall as with the adaptive one (`superset-linear-planref-S330.txt`). So the joint choice is the cause.
-So on the candidate a larger menu can lower the table's own values. The probe's forward run measures what that
+same 877 fall as with the adaptive one (`superset-linear-planref-S330.txt`). So the joint choice is the cause. Year by
+year, in the same linear read (`diagnose-linear-S330.txt`, S330's years 0 to 60), the order is the one this predicts: one
+world's own value first falls at year 58 (70 cells, the weighted value higher at every one), and the weighted values first
+fall a year earlier, at 57. Over all years, a world's own value falls at 83,567 cells, 82,690 of them with the weighted
+value not below. So on the candidate a larger menu can lower the table's own values. The probe's forward run measures what that
 does to the household, and that is what the rule reads.
 
 **Its replacement: an exact test, with a planted fault.** With the rungs made inert ('samerate': each rung move a copy of

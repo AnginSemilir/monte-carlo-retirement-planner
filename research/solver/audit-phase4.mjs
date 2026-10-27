@@ -63,8 +63,14 @@ export const WEIGHTS = ['0.02', '0.01'], REPL_PATHS = 4000, ROB_PATHS = 2000, FI
 export const WORLDS = ['return-1', 'vol+25', 'left-tail'], CANDIDATE = 'fcd8096217b7';
 export const PATHS_FILE = join(HERE, 'phase4-paths.json'), REGISTRATION = 'research/solver/registrations/phase-4.md', BESIDE = 2000;
 /* the files the audit's stamp hashes, in this order (batch-phase4.sh's AUDIT hashes the same list): this file, the panel and
-   arm A's code, the candidate, the context check, the sizing the reducer reads, the frozen orders, the panel, the paths */
-export const STAMP_FILES = ['audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'audit-7uf-checks.mjs', 'size-phase4.mjs', 'phase4-orders.json', 'phase4-panel.json', 'phase4-paths.json'];
+   arm A's code, the candidate, the context check, the sizing the reducer reads, the frozen orders, the panel, the paths, and the
+   read itself (the review of 27 Oct, 2: the read refuses units stamped on any other version of these files) */
+export const STAMP_FILES = ['audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'audit-7uf-checks.mjs', 'size-phase4.mjs', 'phase4-orders.json', 'phase4-panel.json', 'phase4-paths.json', 'reduce-phase4.mjs'];
+export function stampFilesHash() {
+  const h = createHash('sha256');
+  for (const f of STAMP_FILES) { const p = f === 'phase4-panel.json' ? PANEL_FILE : join(HERE, f); if (existsSync(p)) h.update(readFileSync(p)); }
+  return h.digest('hex').slice(0, 12);
+}
 /* what a household's arms must share (D36): each arm's engine context, but for the policy's own fields (the draw order,
    the harvest, the lump sum, the deposit order, the guardrails, the lookahead and the raise cap): the accounts, their
    balances, contributions and returns, the people, the target, the floor, the minimum pot and the dated flows */
@@ -156,10 +162,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   mkdirSync(OUT, { recursive: true });
 
   const STAMP = (() => {
-    const h = createHash('sha256');
-    for (const f of STAMP_FILES) { const p = f === 'phase4-panel.json' ? PANEL_FILE : join(HERE, f); if (existsSync(p)) h.update(readFileSync(p)); }
     const cid = codeId();
-    return { code: cid ? cid.hash : 'unknown', audit: h.digest('hex').slice(0, 12), candidate: CANDIDATE_HASH, prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
+    return { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), candidate: CANDIDATE_HASH, prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   })();
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   console.log(`candidate: ${STAMP.candidate} node ${STAMP.node}`);

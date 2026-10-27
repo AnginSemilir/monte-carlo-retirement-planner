@@ -9,7 +9,8 @@
  *     Phase 4's, and the household's target (the engine's), minimum pot and horizon the same in every arm;
  *   - the plan (D36): a household's five units on one inputs hash (each engine context but the policy's own fields), so the
  *     arms differ in the decumulation rule alone;
- *   - each unit's stamp under the registration, its code, audit and registration blob the logs' own;
+ *   - each unit's stamp under the registration, its code, audit and registration blob the logs' own, and its audit hash that of
+ *     the files this read takes (audit-phase4.mjs stampFilesHash: the audit's files, the panel, the paths and this reducer);
  *   - the fair-test diff of the settings each run recorded (CHECKLIST 3): a weight's CAND and SHIP share the plan, the inputs,
  *     the minimum pot, the levels, the mixture, the cost weight, the raise weight, the final year and the estate weight; an
  *     arm's two weights differ in the estate weight alone; APP's minimum pot the solver's;
@@ -31,7 +32,8 @@
  *     blocking: the maintainer's call of 27 Oct, D37).
  * REPORTED (no survival figure without the spending delivered beside it): the whole score on every path (the solver's
  *   objective at the weight, the app's rules scored the same way); spending delivered CAND less SHIP, pooled and per
- *   household; S1 over the library cohort, over the households whose reader reads no bridge year, and the count of
+ *   household; A1 and A2 apart where arm A takes the full lump sum; S1 over the library cohort, over the households whose reader
+ *   reads no bridge year (spending beside each), and the count of
  *   households with an observed loss against SHIP; the estate, unmet spending, tax, the years below target, the end
  *   wealth's median and unlucky tenth; FIXBR less CAND (7q, D35); the three worlds and history (D35; the return a point
  *   lower carries D20 (9)'s sensitivity to the returns); the replication on 7018 (A1, A2 and S1 again); each household's
@@ -70,7 +72,7 @@ export function loadDir(dir) {
 }
 
 /* the gate over the units: every problem, so a refusal names them all */
-export function gate(U, panel, paths, logs = null) {
+export function gate(U, panel, paths, logs = null, files = null) {
   const P = [], stamps = new Set();
   for (const h of panel) {
     const u = U[h.id] || {};
@@ -86,6 +88,7 @@ export function gate(U, panel, paths, logs = null) {
       if (x.target !== h.target) P.push(`${h.id} ${k}: target ${x.target}, the panel's ${h.target}`);
       if (x.stamp.candidate !== CANDIDATE) P.push(`${h.id} ${k}: candidate ${x.stamp.candidate}`);
       if (x.stamp.prediction !== REGISTRATION) P.push(`${h.id} ${k}: stamped under ${x.stamp.prediction}, not ${REGISTRATION}`);
+      if (files && x.stamp.audit !== files) P.push(`${h.id} ${k}: launched on files hashing ${x.stamp.audit}; the files this read takes (the audit's STAMP_FILES, the panel, the paths and this reducer) hash ${files}`);
       if (logs && ['code', 'audit', 'sha'].some(f => x.stamp[f] !== logs[f])) P.push(`${h.id} ${k}: its stamp (code ${x.stamp.code} audit ${x.stamp.audit} sha ${x.stamp.sha}) not the logs' (code ${logs.code} audit ${logs.audit} sha ${logs.sha})`);
       if (!x.inputs) P.push(`${h.id} ${k}: no inputs hash`);
       if (x.arm !== 'APP' && (!x.beside || x.beside.N !== Math.min(x.N, BESIDE_N))) P.push(`${h.id} ${k}: runPolicy beside ${x.beside ? `on ${x.beside.N} paths` : 'missing'}, not on ${Math.min(x.N, BESIDE_N)}`);
@@ -124,11 +127,14 @@ export const spendingItem = (pairs, n) => byPath(pairs.map(([c, o]) => { const m
 /* a household's paired loss over all its paths, and its flag against a threshold */
 export function lossOf(c, o) { let lost = 0, saved = 0; const n = c.survived.length; for (let i = 0; i < n; i++) { if (o.survived[i] && !c.survived[i]) lost++; else if (c.survived[i] && !o.survived[i]) saved++; } return { lost, saved, n, loss: 100 * (lost - saved) / n, disc: (lost + saved) / n }; }
 export const harmFlag = (L, t) => L.loss > t + 1e-12;
+/* the households where arm A's pick takes the full lump sum (its label, as the landing wrote it), and the rest */
+export const lumpGroups = panel => [['takes the lump sum', panel.filter(h => /lump sum/.test(h.label || ''))], ['does not', panel.filter(h => !/lump sum/.test(h.label || ''))]];
 /* S1 beside its parts (the review of 27 Oct, finding 7): over the library cohort, over the households whose reader reads no
    bridge year, and the households with an observed loss against SHIP over all their paths */
 export function s1Parts(U, panel, w, n) {
   const pairs = hs => hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), lib = panel.filter(h => h.cohort === 'lib'), none = panel.filter(h => U[h.id][`CAND/${w}`].readerYears === 0);
-  return { library: lib.length ? survivalItem(pairs(lib), n) : null, nLibrary: lib.length, noReader: none.length ? survivalItem(pairs(none), n) : null, nNoReader: none.length,
+  return { library: lib.length ? survivalItem(pairs(lib), n) : null, libSpend: lib.length ? spendingItem(pairs(lib), n) : null, nLibrary: lib.length,
+    noReader: none.length ? survivalItem(pairs(none), n) : null, noReaderSpend: none.length ? spendingItem(pairs(none), n) : null, nNoReader: none.length,
     losers: panel.filter(h => lossOf(U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main).loss > 0).map(h => h.id) };
 }
 
@@ -174,7 +180,8 @@ async function read(dir) {
   const ls = [...Object.values(logs).join('\n').matchAll(LOG_STAMP)].map(([, code, audit, , sha]) => ({ code, audit, sha })), logStamp = ls[0] || null;
   if (new Set(ls.map(x => JSON.stringify(x))).size > 1) { console.log('THE GATE: REFUSED (the logs carry more than one stamp)'); process.exit(1); }
   const panel = JSON.parse(readFileSync(join(HERE, 'phase4-panel.json'), 'utf8')).panel, reg = JSON.parse(readFileSync(join(HERE, 'phase4-paths.json'), 'utf8'));
-  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp);
+  const { stampFilesHash } = await import('./audit-phase4.mjs');
+  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, stampFilesHash());
   const any = Object.values(U).flatMap(Object.values)[0];
   console.log(`PHASE 4 READ: ${dir}; ${Object.keys(U).length} households; stamp ${any ? JSON.stringify(any.stamp) : '-'}`);
   if (problems.length) { console.log(`THE GATE: REFUSED (${problems.length})\n  ${problems.join('\n  ')}`); process.exit(1); }
@@ -183,7 +190,7 @@ async function read(dir) {
   for (const w of WEIGHTS) {
     const C = h => U[h.id][`CAND/${w}`], A = h => U[h.id]['APP/-'], S = h => U[h.id][`SHIP/${w}`];
     items[w] = { A1: survivalItem(panel.map(h => [C(h).main, A(h).main]), POOL), A2: spendingItem(panel.map(h => [C(h).main, A(h).main]), POOL), S1: survivalItem(panel.map(h => [C(h).main, S(h).main]), POOL) };
-    replItems[w] = { A1: survivalItem(panel.map(h => [C(h).replA, A(h).replA]), REPL.N), A2: spendingItem(panel.map(h => [C(h).replA, A(h).replA]), REPL.N), S1: survivalItem(panel.map(h => [C(h).replA, S(h).replA]), REPL.N) };
+    replItems[w] = { A1: survivalItem(panel.map(h => [C(h).replA, A(h).replA]), REPL.N), A2: spendingItem(panel.map(h => [C(h).replA, A(h).replA]), REPL.N), S1: survivalItem(panel.map(h => [C(h).replA, S(h).replA]), REPL.N), S1spend: spendingItem(panel.map(h => [C(h).replA, S(h).replA]), REPL.N) };
     console.log(`W${w}: A1 survival CAND less APP ${iv(items[w].A1)} points: ${items[w].A1.lo > A1_BAR ? 'PASSES' : 'FAILS'}; A2 spending delivered ${iv(items[w].A2)}%: ${items[w].A2.lo > A2_BAR ? 'PASSES' : 'FAILS'}; S1 survival CAND less SHIP ${iv(items[w].S1)} points: ${items[w].S1.lo > S1_BAR ? 'PASSES' : 'FAILS'}`);
   }
   const out = decide(items);
@@ -206,12 +213,15 @@ async function read(dir) {
   // reported
   console.log('\nREPORTED, NOT GATED');
   for (const w of WEIGHTS) {
-    console.log(`  W${w} the replication on ${REPL.N} paths of ${REPL.seed} from its path ${REPL.skip}: A1 ${iv(replItems[w].A1)}, A2 ${iv(replItems[w].A2)}%, S1 ${iv(replItems[w].S1)}; ${['A1', 'A2', 'S1'].every(k => (replItems[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k]) === (items[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k])) ? 'each reads as on 7003' : 'NOT each as on 7003'}`);
+    console.log(`  W${w} the replication on ${REPL.N} paths of ${REPL.seed} from its path ${REPL.skip}: A1 ${iv(replItems[w].A1)}, A2 ${iv(replItems[w].A2)}%, S1 ${iv(replItems[w].S1)} (spending delivered CAND less SHIP ${iv(replItems[w].S1spend)}%); ${['A1', 'A2', 'S1'].every(k => (replItems[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k]) === (items[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k])) ? 'each reads as on 7003' : 'NOT each as on 7003'}`);
     const ws = panel.map(h => { const c = U[h.id][`CAND/${w}`], s = { ...c.score }; return [wholeScore(c.main, c.Y, Number(w), s), wholeScore(U[h.id]['APP/-'].main, c.Y, Number(w), { ...s, floor: 0.8 }), wholeScore(U[h.id][`SHIP/${w}`].main, c.Y, Number(w), { ...s, floor: U[h.id][`SHIP/${w}`].score.floor })]; });
     console.log(`  W${w} the whole score: CAND less APP ${iv(byPath(ws.map(([c, a]) => i => c[i] - a[i]), POOL))}; CAND less SHIP ${iv(byPath(ws.map(([c, , s]) => i => c[i] - s[i]), POOL))}`);
     console.log(`  W${w} spending delivered over every year, CAND less SHIP: ${iv(spendingItem(panel.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), POOL))}% (beside S1 ${iv(items[w].S1)} points)`);
     const sp = s1Parts(U, panel, w, POOL);
-    console.log(`  W${w} S1's parts: the library cohort (${sp.nLibrary}) ${sp.library ? iv(sp.library) : '-'}; the households whose reader reads no bridge year (${sp.nNoReader}) ${sp.noReader ? iv(sp.noReader) : '-'}; an observed loss against SHIP over all their paths on ${sp.losers.length} of ${panel.length}${sp.losers.length ? ` (${sp.losers.join(', ')})` : ''}`);
+    // the review of 27 Oct (2, minor 1): arm A's search may take the full 25% lump sum, which the solver arms take from the plan
+    // (every panel plan phased): A1 and A2 apart for the households where arm A takes it
+    for (const [nm, hs] of lumpGroups(panel)) if (hs.length) console.log(`  W${w} A1 and A2 where arm A ${nm} (${hs.length}): survival ${iv(survivalItem(hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id]['APP/-'].main]), POOL))} points, spending delivered ${iv(spendingItem(hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id]['APP/-'].main]), POOL))}%`);
+    console.log(`  W${w} S1's parts, survival (spending delivered CAND less SHIP beside): the library cohort (${sp.nLibrary}) ${sp.library ? `${iv(sp.library)} (${iv(sp.libSpend)}%)` : '-'}; the households whose reader reads no bridge year (${sp.nNoReader}) ${sp.noReader ? `${iv(sp.noReader)} (${iv(sp.noReaderSpend)}%)` : '-'}; an observed loss against SHIP over all their paths on ${sp.losers.length} of ${panel.length}${sp.losers.length ? ` (${sp.losers.join(', ')})` : ''}`);
   }
   console.log('  per household (W0.02 | W0.01): survival APP, SHIP, CAND; spending delivered CAND against APP and against SHIP; the estate CAND against APP; years below target; tax; end wealth median and unlucky tenth');
   for (const h of panel) {
@@ -274,6 +284,8 @@ function planted() {
   { const U = full(); U.H1['APP/-'].ran = U.H1['APP/-'].ran.replace('minPot 0', 'minPot 5'); cases.push(["APP's minimum pot other than the solver's is refused", `${gate(U, panel, paths, logs).some(p => /APP's minimum pot 5/.test(p))}`, 'true']); }
   { const U = full(); U.H1['SHIP/0.02'].beside = null; cases.push(['a solver unit without runPolicy beside is refused', `${gate(U, panel, paths, logs).some(p => /runPolicy beside missing/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.02'].worldsD['vol+25'] = null; cases.push(["a world's spending missing is refused", `${gate(U, panel, paths, logs).some(p => /their spending\) missing/.test(p))}`, 'true']); }
+  { const U = full(); cases.push(["units launched on other files than the read takes (the stamp's audit hash) are refused", `${gate(U, panel, paths, logs, 'zz').some(p => /launched on files hashing a; the files this read takes/.test(p))} ${gate(U, panel, paths, logs, 'a').length}`, 'true 0']); }
+  { const g = lumpGroups([{ id: 'A', label: 'ISA First, lump sum' }, { id: 'B', label: 'Bracket Fill Basic' }, { id: 'C' }]); cases.push(['the lump-sum split: by arm A\'s label, every household in one group', `${g[0][1].map(h => h.id)} ${g[1][1].map(h => h.id).join('')}`, 'A BC']); }
   // S1's parts (finding 7): gains on a FIRE household with bridge years masking a loss on a library household the reader never reads
   { const U = { ...full('L1'), ...full('F1') }, pn = [{ id: 'L1', cohort: 'lib' }, { id: 'F1', cohort: 'fire' }];
     U.L1['CAND/0.02'].main = mk(ones.map((_, i) => (i < 4 ? 0 : 1)));

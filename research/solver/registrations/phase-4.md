@@ -1,6 +1,7 @@
 # Registration: Phase 4, the candidate against the app's rules (CHECKLIST.md item 2; STATE.md D33 to D37)
 
-Read once, by `research/solver/reduce-phase4.mjs`, after its gate. Launched only as
+Read once, by `research/solver/reduce-phase4.mjs`, after its gate (which refuses a unit stamped on any other version of the
+files it reads: the audit's, the panel, the paths and the reducer itself). Launched only as
 `PREDICTION=research/solver/registrations/phase-4.md research/solver/run-from-snapshot.sh bash research/solver/batch-phase4.sh`.
 
 - **Question:** Does the research candidate, its tables executed by the app's own engine, keep more held-out households solvent
@@ -16,17 +17,22 @@ Read once, by `research/solver/reduce-phase4.mjs`, after its gate. Launched only
   which reaches a solve only through the routed deposit, `results-phase4-routing.txt`); the gate holds a household's five units
   to one inputs hash (each engine context but the policy's own fields). The arms differ in the decumulation rule alone: arm A's
   search also picks the drawdown strategy (the lump sum) and the harvest, where the solver arms take the plan's drawdown strategy
-  and choose their own draws, harvest and spending each year, as in 7u-F. Reported beside them, not deciding: FIXBR (7q, D35), the
+  and choose their own draws, harvest and spending each year, as in 7u-F (every panel plan is phased; arm A takes the full lump
+  sum on 16 of 40, so A1 and A2 are also reported apart for those 16, the design re-review's minor 1). Reported beside them, not deciding: FIXBR (7q, D35), the
   candidate's table with arm A's withdrawal policy at the household's own tiers in each retired year before pension access.
 - **Households:** the 40 of `phase4-panel.json` (D35, D36), named before seed 7003 is read: single households no earlier run,
   document or test had touched (`phase4-panel.mjs` touched(): every id under results/ and in the results files, in the old
   results' manifest, in research/solver/archive/ and in research/tests/, taken once into `phase4-orders.json` before landing), 20
-  from the library older than 44 (taken evenly in library order, a household that does not land passed over for the next
-  reserve) and 20 aged 44 or under retiring at 52; each landed so arm A survives 85 +/- 1% on 1,000 paths of seed 7005.
-  The library: S026, S030, S040, S050, S062, S074, S090, S096, S108, S132, S164, S188, S204, S228, S244, S260, S272, S290, S368, S384 (every one landed; 17 reserves unused). Retiring at 52: S304F, S306F, S308F, S310F, S314F, S316F, S320F, S322F, S326F, S328F, S332F, S334F, S338F, S340F, S344F, S346F, S350F, S352F, S356F, S358F. Landed 27 Oct 07:06 UK: arm A from 84.1% to 86.0%. Used before on the app's side only (not by the solver research; it could only favour arm A): S030, S062 and S074 in research/policy-study/confirmed-results.json; the library plans behind S306F and S358F there too, and behind S308F in policy-study/lookahead-study.mjs; and every panel id in results-p4-select.txt, the old selection's arm A band (arm A alone, which the scan leaves out by design).
+  from the library older than 44 (taken evenly in library order over the re-frozen pool, a household that does not land passed
+  over for the next reserve) and 20 aged 44 or under retiring at 52; each landed so arm A survives 85 +/- 1% on 1,000 paths of seed 7005.
+  The library: S026, S030, S040, S050, S062, S074, S090, S096, S108, S132, S164, S188, S204, S228, S244, S260, S272, S290, S368, S384 (every one landed; 17 reserves unused). Retiring at 52: S304F, S306F, S308F, S310F, S314F, S316F, S320F, S322F, S326F, S328F, S332F, S334F, S338F, S340F, S344F, S346F, S350F, S352F, S356F, S358F. Landed 27 Oct 07:06 UK: arm A from 84.1% to 86.0%. The library 20 were re-spaced over the re-frozen pool rather than topped up:
+  beyond the four the wider scan found touched (S140, S226 and S280, and S024, which D36's Bed & SIPP test now uses), six untouched
+  households of the first panel became reserves (S080, S098, S110, S170, S200, S298); the rule is mechanical, fixed before any
+  result on this panel, and the maintainer kept it so (27 Oct, D37); the reviewer read the discarded first pilot (seed 7002) to
+  check it and found the six no worse for the candidate there. Used before on the app's side only (not by the solver research; it could only favour arm A): S030, S062 and S074 in research/policy-study/confirmed-results.json; the library plans behind S306F and S358F there too, and behind S308F in policy-study/lookahead-study.mjs; and every panel id in results-p4-select.txt, the old selection's arm A band (arm A alone, which the scan leaves out by design).
 - **Seed:** 7003, reserved for Phase 4 and never read before, used once; 7018 (Phase 4's replication, registered with 7u-F) on
-  4,000 paths a unit, its paths 200 to 4,199. A smoke run of the audit (26 Oct, 20:39 to 20:43 UK, before 864b0f3; 8 wealth
-  points, arm A with the tournament) scored 7018's first 200 paths on S024 (APP and SHIP) and S304F (all five units); the
+  4,000 paths a unit, its paths 200 to 4,199. A smoke run of the audit (26 Oct, about 20:43 to 21:08 UK, before 864b0f3; 8
+  wealth points, arm A with the tournament) scored 7018's first 200 paths on all ten units of S024 and S304F; the
   replication leaves those paths out, and every run but the registered one now stands in for 7018 on 99001. The landing read
   7001 and 7005, the pilot 7002; none shares a path with 7003 or 7018 (path i of a seed draws from seed + 7919 i, and no two of
   these seeds differ by a multiple of 7919).
@@ -54,6 +60,7 @@ Read once, by `research/solver/reduce-phase4.mjs`, after its gate. Launched only
   Part C's switch. NOT PASSED: the app's defaults stay (D12), the write-up names each failed item and by how much, and nothing
   is tuned until it passes. A harm or spending flag sends that household to investigation by V4's measures, as in 7u-F, whatever
   the outcome; on its own it does not block the release (D34 (3), D37). Reported, not deciding: the whole score on every path;
+  A1 and A2 apart where arm A takes the full lump sum;
   spending delivered CAND less SHIP, pooled and per household; S1 over the library cohort, over the households whose reader
   reads no bridge year, and the count of households with an observed loss against SHIP; the estate, unmet spending, tax, the
   years below target, the end wealth's median and unlucky tenth; FIXBR less CAND (7q), survival and spending; the three
@@ -64,7 +71,8 @@ Read once, by `research/solver/reduce-phase4.mjs`, after its gate. Launched only
   measured (D21) from the pilot's own units on this machine (Intel(R) Xeon(R) Processor @ 2.80GHz), nothing else running, four at a time; with the harness's 12-hour
   limit on a task, two relaunches under `RESUME=1`. Approved by the maintainer on 27 Oct (D37), at 112.0 core-hours before the
   three re-routed households were re-piloted.
-- **Design review:** research/solver/reviews/REVIEW_FILE, PASS (after the FAIL of `reviews/2026-10-27-phase4-design.md`, D36).
+- **Design review:** research/solver/reviews/2026-10-27-phase4-design-2.md, PASS (after the FAIL of `reviews/2026-10-27-phase4-design.md`,
+  D36); its five minor findings folded in before launch (`results-phase4-audit-test.txt` for its minor 4).
 
 ## The sizing (D34 (4))
 

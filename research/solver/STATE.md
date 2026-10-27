@@ -286,7 +286,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths, 200 units; D34's sizing, D21's budget), from 26 Oct 22:56 UK: task bbraqqu65, `results/p4-pilot-log.txt`.
+- Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths, 200 units; D34's sizing, D21's budget): from 26 Oct 22:56 UK, a container restart at 40 units, resumed 27 Oct 01:17 UK as task bpsyw8bsx, `results/p4-pilot-log.txt`.
 
 ## 6. The next three actions
 

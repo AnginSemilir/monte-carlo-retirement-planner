@@ -154,6 +154,63 @@ A loss is reported beside it: it shows the setting matters, though the plan's ow
 
 **The fair test:** the read refuses to pair units that differ in code, candidate, seed, paths, points or weight.
 
+### Part B's result (27 Oct, 19:44 to 23:02 UK; `gaps/results-plan-probes.txt`, printed by `read-probes.mjs` over `gaps/probe/`)
+
+**The fair test:** every unit on one code (06d51a8111ed), candidate fcd8096217b7, seed 7002, 8,000 paths, 45 points,
+W0.02.
+
+**What ran: 19 of the 27 units.**
+- A container restart at 20:44 stopped two units in progress; both were rerun.
+- At 20:52 the maintainer asked, "Is it worth running them?" The lump sum and the cash ISA went first. The rest of the
+  split was held back, then put back once S330F's ISA arm had read (22:20).
+- The eight buffer units were not run, so BUF0 and BUF24 have no verdict.
+
+**The savings split. MOREPEN: worth a solver choice** (S330F, S342F). **MOREISA: not worth it now.** Survival points against
+BASE, with the paired 95% interval, then the whole score:
+
+| Household | BASE | MOREISA | MOREPEN |
+|---|---|---|---|
+| S302F (pension-heavy, lean) | 98.08% | -0.05 (-0.23 to +0.13); -0.12 | **-44.99** (-46.08 to -43.90); -49.84. Failures before the pension opens: 7 to 3,753 |
+| S330F (GIA-heavy, comfortable) | 95.28% | -0.29 (-0.43 to -0.14); -0.42 | **+0.70** (+0.50 to +0.90); +0.76. Lifetime tax £668,024 to £537,617 |
+| S342F (balanced, comfortable) | 96.69% | -0.24 (-0.37 to -0.10); -0.34 | +0.39 (+0.23 to +0.54); **+0.51** (+0.35 to +0.66). Lifetime tax £454,387 to £237,138 |
+
+**What it means.** No fixed split suits all three households:
+- S330F and S342F are higher-rate earners whose taxable money covers the bridge. Saving the ISA's money in the pension
+  gains, because the relief comes in at 40% and the money goes out at lower rates.
+- S302F is a basic-rate earner with little outside the pension. The same move leaves it nothing to live on from 52 to 58.
+
+The plan's fixed 12% and 6% is beaten on S330F and S342F, and the move that beats it there is ruinous on S302F. So the
+choice needs the household's own position, which a solver move gives. It is worth giving the solver as a move in the working
+years, priced at net cost (`model.js` already has the slot, `action.contrib`), beside D37's windfall item: both decide where
+money goes in.
+
+**The probe's limits:**
+- It treats the whole contribution as the employee's, priced as salary sacrifice. A real split keeps any employer match in
+  the pension.
+- The FIRE households sit at 95% to 98% under the candidate (landed at the rules' 85%), near the top. A tighter target
+  would leave more room for both gains and losses.
+
+**The lump sum: not worth it now.** S370 -0.01 (-0.25 to +0.23), S380 **-0.54** (-0.77 to -0.31), S224 **-0.29** (-0.55 to
+-0.02), S362 +0.00 (no path changes). The whole score moved alike: +0.08, -0.55, -0.29, -0.02.
+- It cuts lifetime tax on every household, by £3,715 (S380) to £71,548 (S370), but that does not turn into survival.
+- **For Phase 4:** solving the 16 households as phased is no handicap to the solver arms on this evidence. Solving them
+  under arm A's lump sum could cost them, as it does on S380.
+
+**The cash ISA moved out of the sweep's reach: not worth it now.** S224 +0.17 (-0.04 to +0.39), whole score +0.21. S380 +0.19
+(-0.01 to +0.38), whole score +0.21 (+0.01 to +0.41).
+- Both gains are positive and just under the rule's 0.25. It is an upper guide to the shelter's worth, since the money
+  moved also takes the ISA's tier.
+- Sending the sweep's sheltered excess to the stocks and shares ISA rather than the GIA is cheap housekeeping, not a
+  priority.
+
+**Against the prediction:**
+- MOREISA was predicted to gain a point or more on S302F. It lost 0.05, though its failures before the pension opens fell
+  from 7 to 0.
+- MOREPEN was predicted to lose on S302F. It lost far more than imagined: 45 points.
+- Both arms were predicted to stay within half a point on S330F and S342F. MOREPEN gained 0.70 and 0.39 there.
+- LUMP was predicted to stay within half a point everywhere. It did, but for S380 at -0.54.
+- ISA2ISA was predicted at +0.2 to +0.8. It came in at +0.17 and +0.19.
+
 ## Declared: the two runs made before writing
 
 - The sweep's timing smoke: `control S370` on 4 paths. PASS, a solve of 38 s, every gap within 1.3e-10 pounds, the plant

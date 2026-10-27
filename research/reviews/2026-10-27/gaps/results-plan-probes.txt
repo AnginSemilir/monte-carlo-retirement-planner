@@ -1,0 +1,39 @@
+THE PLAN-VARIANT PROBES (EXPLORATORY): 19 units; fair: one code (06d51a8111ed), candidate fcd8096217b7, seed 7002, 8000 paths, 45 points, W0.02
+
+BUF0: the cash buffer at 0 months
+  S370: not in yet
+  S380: not in yet
+  S224: not in yet
+  S362: not in yet
+  VERDICT: none yet (4 of 4 pairs missing)
+
+BUF24: the cash buffer at 24 months
+  S370: not in yet
+  S380: not in yet
+  S224: not in yet
+  S362: not in yet
+  VERDICT: none yet (4 of 4 pairs missing)
+
+LUMP: the full 25% lump sum
+  S370: survival 83.94% to 83.93%, -0.01 points (95% -0.25 to +0.23; 48 saved, 49 lost); whole score +0.08 (-0.16 to +0.32); failures before the pension opens 44 to 45, after 1241 to 1241; lifetime tax £1250800 to £1179252; solve 525 s to 510 s; the full 25% lump sum
+  S380: survival 73.15% to 72.61%, -0.54 points (95% -0.77 to -0.31; 22 saved, 65 lost); whole score -0.55 (-0.78 to -0.32); failures before the pension opens 0 to 0, after 2148 to 2191; lifetime tax £42859 to £39144; solve 521 s to 509 s; the full 25% lump sum
+  S224: survival 70.36% to 70.08%, -0.29 points (95% -0.55 to -0.02; 47 saved, 70 lost); whole score -0.29 (-0.55 to -0.02); failures before the pension opens 0 to 0, after 2371 to 2394; lifetime tax £132667 to £123762; solve 382 s to 375 s; the full 25% lump sum
+  S362: survival 49.13% to 49.13%, +0.00 points (95% +0.00 to +0.00; 0 saved, 0 lost); whole score -0.02 (-0.03 to -0.01); failures before the pension opens 4069 to 4069, after 1 to 1; lifetime tax £10816 to £6012; solve 414 s to 404 s; the full 25% lump sum
+  VERDICT: NOT WORTH IT NOW: within 0.25 of the plan or below it on every household
+
+ISA2ISA: the cash ISA moved to the stocks and shares ISA
+  S224: survival 70.36% to 70.54%, +0.17 points (95% -0.04 to +0.39; 46 saved, 32 lost); whole score +0.21 (-0.00 to +0.43); failures before the pension opens 0 to 0, after 2371 to 2357; lifetime tax £132667 to £126844; solve 382 s to 373 s; £60000 of the cash ISA moved to the stocks and shares ISA (the year-0 buffer £35000, taxable cash £0)
+  S380: survival 73.15% to 73.34%, +0.19 points (95% -0.01 to +0.38; 40 saved, 25 lost); whole score +0.21 (+0.01 to +0.41); failures before the pension opens 0 to 0, after 2148 to 2133; lifetime tax £42859 to £42522; solve 521 s to 492 s; £68750 of the cash ISA moved to the stocks and shares ISA (the year-0 buffer £26250, taxable cash £0)
+  VERDICT: NOT WORTH IT NOW: within 0.25 of the plan or below it on every household
+
+MOREISA: half the pension cost saved in the ISA
+  S302F: survival 98.08% to 98.02%, -0.05 points (95% -0.23 to +0.13; 26 saved, 30 lost); whole score -0.12 (-0.31 to +0.07); failures before the pension opens 7 to 0, after 147 to 158; lifetime tax £30216 to £25458; solve 520 s to 528 s; half the pension cost to the ISA over 15 working years: pension gross £32920, ISA £56623, GIA £0
+  S330F: survival 95.28% to 94.99%, -0.29 points (95% -0.43 to -0.14; 6 saved, 29 lost); whole score -0.42 (-0.57 to -0.28); failures before the pension opens 0 to 0, after 378 to 401; lifetime tax £668024 to £644431; solve 515 s to 519 s; half the pension cost to the ISA over 15 working years: pension gross £75326, ISA £119014, GIA £0
+  S342F: survival 96.69% to 96.45%, -0.24 points (95% -0.37 to -0.10; 6 saved, 25 lost); whole score -0.34 (-0.48 to -0.20); failures before the pension opens 0 to 0, after 265 to 284; lifetime tax £454387 to £398428; solve 570 s to 534 s; half the pension cost to the ISA over 15 working years: pension gross £75326, ISA £119014, GIA £0
+  VERDICT: NOT WORTH IT NOW: within 0.25 of the plan or below it on every household
+
+MOREPEN: the ISA money saved in the pension
+  S302F: survival 98.08% to 53.09%, -44.99 points (95% -46.08 to -43.90; 0 saved, 3599 lost); whole score -49.84 (-51.05 to -48.63); failures before the pension opens 7 to 3753, after 147 to 0; lifetime tax £30216 to £30795; solve 520 s to 571 s; the ISA money to the pension over 15 working years: pension gross £111562, ISA £0, GIA £0
+  S330F: survival 95.28% to 95.97%, +0.70 points (95% +0.50 to +0.90; 62 saved, 6 lost); whole score +0.76 (+0.56 to +0.96); failures before the pension opens 0 to 0, after 378 to 322; lifetime tax £668024 to £537617; solve 515 s to 562 s; the ISA money to the pension over 15 working years: pension gross £275050, ISA £0, GIA £0
+  S342F: survival 96.69% to 97.08%, +0.39 points (95% +0.23 to +0.54; 35 saved, 4 lost); whole score +0.51 (+0.35 to +0.66); failures before the pension opens 0 to 0, after 265 to 234; lifetime tax £454387 to £237138; solve 570 s to 539 s; the ISA money to the pension over 15 working years: pension gross £275050, ISA £0, GIA £0
+  VERDICT: WORTH A SOLVER CHOICE: beats the plan's fixed setting beyond noise by 0.5 or more on S330F, S342F

@@ -1,0 +1,7 @@
+the cash ISA a table's sweep moves into the GIA in year 0, over 153 single households of the library (Phase 4's 57 left out)
+  households with any: 94; over £10,000: 88; over £50,000: 52; over £250,000: 11
+  the amount: median £13750, 90th centile £120000, largest £540000 (S058); as a share of wealth: median 3.6%, 90th centile 22.5%
+  S224: £60000 of £95000 sheltered (the year-0 buffer £35000)
+  S380: £68750 of £95000 sheltered (the year-0 buffer £26250)
+  S370: £60000 of £60000 sheltered (the year-0 buffer £52000)
+  S362: £4500 of £9000 sheltered (the year-0 buffer £4500)

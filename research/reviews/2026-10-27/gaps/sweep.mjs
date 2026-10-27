@@ -68,7 +68,9 @@ add('policy Windfall to ISA, an Auto deposit while working', 'S224', p => { p.sp
 add('deposit into the ISA, the surplus staged into it', 'S380', p => { p.oneOffContributions = [dep('dI', 2, 'S&S ISAs', 100000)]; }, 'drip', 'drip');
 add('deposit into the ISA, staged, taxable household', 'carry', p => { p.oneOffContributions = [dep('dI', 1, 'S&S ISAs', 90000)]; }, 'drip', 'drip');
 add('deposit into the pension while working, the surplus staged into it', 'S224', p => { p.oneOffContributions = [dep('dP', 1, 'Pensions', 150000)]; }, 'drip', 'drip');
-add('deposit into the pension after retiring, staged at the no-earnings limit', 'S380', p => { p.oneOffContributions = [dep('dP', 2, 'Pensions', 20000)]; }, 'drip', 'drip');
+// (first run, 27 Oct: on S380 the GIA was spent before the tranches fell due, so they moved nothing and the plant could not
+// part the two; now on the taxable household, its tranches counted live only when the GIA holds money to move)
+add('deposit into the pension after retiring, staged at the no-earnings limit', 'carry', p => { p.oneOffContributions = [dep('dP', 1, 'Pensions', 20000)]; }, 'dripEff', 'drip');
 add('deposit into cash', 'S380', p => { p.oneOffContributions = [dep('dC', 2, 'Cash Savings', 60000)]; }, 'deposit', 'dep');
 add('deposit into the GIA', 'S370', p => { p.oneOffContributions = [dep('dG', 3, GIA, 80000)]; }, 'deposit', 'dep');
 add('Bed and ISA: the GIA into the ISA, three years', 'carry', p => { p.oneOffContributions = [0, 1, 2].map(k => dep(`bI${k}`, k + 1, 'S&S ISAs', 20000, { transferredFrom: GIA })); }, 'deduction', 'ded');
@@ -88,7 +90,9 @@ for (const b of ['S370', 'S380', 'carry']) add(`the full 25% lump sum (${b})`, b
 for (const b of ['S370', 'S224', 'carry']) add(`a part first year: valued on 27 October (${b})`, b, p => { p.config.valuationDate = '2026-10-27'; }, 'year0', 'frac');
 add('CGT gains already used this tax year, with a sale in year 0', 'carry', p => { p.demographics.cgtGainsUsedSelf = 2500; p.oneOffContributions = [dep('bI', 0, 'S&S ISAs', 20000, { transferredFrom: GIA })]; }, 'gain0', 'cgt0');
 add('carry-forward of the annual allowance, with a pension deposit', 'S224', p => { p.demographics.cfBroughtForwardSelf = 60000; p.oneOffContributions = [dep('dP', 0, 'Pensions', 120000)]; }, 'deposit', 'dep');
-add('a cash ISA paid into while working', 'S224', p => { const a = p.accounts.find(x => x.id === 'cashIsa_self'); a.contrib = 4000; }, 'cashisa', 'cashisa');
+// (first run, 27 Oct: S224 holds all its cash in the cash ISA, so the subscription had no unsheltered cash to shelter and the
+// plant could not part the two; now with that cash taxable, live in the working years with unsheltered cash)
+add('a cash ISA paid into while working', 'S224', p => { const a = p.accounts.find(x => x.id === 'cashIsa_self'), c = p.accounts.find(x => x.id === 'cash_self'); c.balance = E.num(c.balance, 0) + E.num(a.balance, 0); a.balance = 0; a.contrib = 4000; }, 'cashisaEff', 'cashisa');
 add('a contribution schedule (contribByYear)', 'S224', p => { const a = p.accounts.find(x => x.id === 'pen_self'); a.contribByYear = [3000, 6000, 20000, 9000, 40000]; }, 'working', 'con');
 add('salary growth, self-employed, with a pension deposit', 'S224', p => { p.demographics.salaryGrowthSelf = 3; p.demographics.employmentSelf = 'self-employed'; p.oneOffContributions = [dep('dP', 2, 'Pensions', 60000)]; }, 'deposit', 'dep');
 add('FIRE: contributions while working, then a bridge', 'S330F', () => {}, 'working', 'con');
@@ -139,7 +143,11 @@ const LIVE = {
   year0: (ctx, row) => row.t === 0,
   gain0: (ctx, row) => row.t === 0 && row.realisedGains > 0,
   cashisa: (ctx, row) => row.workingSelf === 1,
-  working: (ctx, row) => row.workingSelf === 1
+  working: (ctx, row) => row.workingSelf === 1,
+  // the effective forms: a tranche counted only when the GIA holds money at the top of its year; a cash-ISA subscription only
+  // in a working year with unsheltered cash at its top
+  dripEff: (ctx, row, pre) => ctx.stagedTransfers.has(row.year) && pre.gia > 0,
+  cashisaEff: (ctx, row, pre) => row.workingSelf === 1 && pre.unsheltered > 0
 };
 
 // ---------------------------------------------------------------- the lockstep (the state check's, one household)
@@ -193,10 +201,10 @@ function runCase(cs) {
       const st = E.freshState(ctx);
       let row = null, prev = null;
       for (let t = 0; t <= T; t++) {
-        const lumpBefore = st.lumpSumTaken.self;
+        const o = ctx.owners[0].ids, pre = { lumpTaken: st.lumpSumTaken.self, gia: st.pots[o.other] || 0, unsheltered: (st.pots[o.cash] || 0) - st.cashIsa.self };
         cur = { recs, i, sink };
         row = E.stepYear(ctx, st, t, { z: paths[i][t], zPath: zPathOf(paths[i]) });
-        if (recs[t] && LIVE[cs.live](ctx, row, { lumpTaken: lumpBefore }, st)) sink.live++;
+        if (recs[t] && LIVE[cs.live](ctx, row, pre, st)) sink.live++;
       }
       if (out.survived) {
         sink.survived++;

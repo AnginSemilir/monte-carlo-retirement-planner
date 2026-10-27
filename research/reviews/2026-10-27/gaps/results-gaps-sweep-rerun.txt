@@ -1,0 +1,4 @@
+PASS  deposit into the pension after retiring, staged at the no-earnings limit [carry, 30 years, solve 45 s]: 600 household-years in step, the change live in 100; worst gap £9.3e-10 (wealth at the end), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (drip): parts by £219020.78; the forward run survives 20 of 20
+SWEEP: ALL 1 cases PASS
+FAIL  a cash ISA paid into while working [S224, 41 years, solve 54 s]: 734 household-years in step, the change live in 60; worst gap £1.9e-9 (pension), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (cashisa): parts by £1.9e-9; the forward run survives 14 of 20
+SWEEP: 1 of 1 cases FAIL

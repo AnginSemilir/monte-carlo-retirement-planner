@@ -80,6 +80,34 @@ staged deposit.
 fidelity gap. It is reported with its first year and slot, and its class is searched (CHECKLIST 7) before anything else is
 read. A case with no live years, or whose plant does not part, is a failed check: fixed and rerun, not counted.
 
+### Part A's result (27 Oct, 19:44 to 20:20 UK; `gaps/results-gaps-sweep.txt`, code 06d51a8111ed)
+
+**55 of the 58 cases pass.** On each, every slot is within a pound, and almost all within a millionth of one. The lump-sum
+flag and the tiers are exact, every pick that differs is a tie, and each case's plant parts the two.
+
+**One parts, inert in outcomes: the GIA's cost basis with CGT off.** On *CGT off and cash interest untaxed* (carry), the
+gain held differs by up to £1,187.70 (path 8, year 29).
+- **The cause:** the engine's sweep (App.jsx l.2505, engine.mjs l.2471, step 7d: `giaAddBasis(state, o.key, excess)`)
+  adds the swept cash to the basis even with CGT off. Every other basis add is guarded by the CGT switch: the engine's six
+  others, `model.js`'s and `fast.js`'s.
+- **Inert:** with CGT off nothing reads the basis, and no pick differed.
+- **The fix:** `if (cgtOn)` before it. In a separate worktree, with only that changed, the case passes (worst gap
+  £4.7e-10), and carry's control (CGT on) is unchanged to the penny (£5.8e-10, its plant £250,683.65 as before).
+- **Same pattern searched:** the engine's seven basis adds (engine.mjs l.2006, 2017, 2028, 2096, 2399, 2420 inside a CGT
+  block, 2471), `model.js`'s six (`addBasis`, guarded), `fast.js`'s (`addGia` and the dividends, guarded). Only 7d is
+  unguarded.
+
+**Two failed their own checks, as the guards are meant to show:**
+- *Deposit into the pension after retiring* (S380). The GIA was spent before the tranches fell due, so they moved nothing
+  and the plant could not part the two. Rerun on the taxable household, its live years counted only when the GIA holds
+  money: **PASS**, the plant parting by £219,020.78 (`gaps/results-gaps-sweep-rerun.txt`).
+- *A cash ISA paid into while working* (S224). Still no parting, even with the household's cash made taxable. The
+  subscription is **inert for a single by construction**: the year-end shelter (step 7e) shelters the same amount, and a
+  single's interest while working falls inside the starting rate for savings (the salary is not in the year's taxable
+  income), so no tax moves. The lockstep cannot test it, and it is not a gap.
+
+**Against the prediction:** all 58 were predicted to pass. One parted, and not in either of the two places named likeliest.
+
 ## Part B. Four probes: what a setting the solver cannot choose is worth (the first kind)
 
 **What.** `gaps/plan-probe.mjs` solves the candidate (candidate.json as it stands, fcd8096217b7) on the plan as it is (BASE)

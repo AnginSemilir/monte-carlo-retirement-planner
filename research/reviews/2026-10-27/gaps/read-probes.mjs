@@ -44,7 +44,7 @@ for (const [arm, hhs] of Object.entries(UNITS)) {
     if (r.missing) { console.log(`  ${r.id}: not in yet`); continue; }
     const { b, a, p } = r;
     console.log(`  ${r.id}: survival ${b.survival.toFixed(2)}% to ${a.survival.toFixed(2)}%, ${f2(p.ch)} points (95% ${f2(p.lo)} to ${f2(p.hi)}; ${p.saved} saved, ${p.lost} lost); whole score ${f2(p.mw)} (${f2(p.wlo)} to ${f2(p.whi)}); ` +
-      `failures before the pension opens ${b.bridgeFails} to ${a.bridgeFails}, after ${b.laterFails} to ${a.laterFails}; lifetime tax £${Math.round(b.meanLifetimeTax)} to £${Math.round(a.meanLifetimeTax)}; solve ${b.solveSecs.toFixed(0)} s to ${a.solveSecs.toFixed(0)} s; ${a.note}`);
+      `failures before the pension opens ${b.bridgeFails} to ${a.bridgeFails}, after ${b.laterFails} to ${a.laterFails}; lifetime tax £${Math.round(b.meanLifetimeTax)} to £${Math.round(a.meanLifetimeTax)} (a change of £${Math.round(a.meanLifetimeTax) - Math.round(b.meanLifetimeTax)}); solve ${b.solveSecs.toFixed(0)} s to ${a.solveSecs.toFixed(0)} s; ${a.note}`);
   }
   if (rows.some(r => r.missing)) { console.log(`  VERDICT: none yet (${rows.filter(r => r.missing).length} of ${rows.length} pairs missing)`); continue; }
   // the rule (GAPS-SWEEP.md, committed before launch)

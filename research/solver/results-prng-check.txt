@@ -1,0 +1,10 @@
+THE GENERATORS (EXPLORATORY)
+1. one stream of 3.2e8 draws: d 10.5% N 16000 t 0.66875 at a true loss of 0.25, the exact rate 0.04980 (se 0.00154 at 20000 replicates)
+  mulberry32    0.05545 (3.67 se)
+  xoshiro128**  0.04980 (0.00 se)
+  Math.random   0.05265 (1.85 se)
+2. the engine's path draws against N(0, 1), in se (16,000 paths of 61 years a seed)
+  seed 7001: 976000 draws; mean -0.88, variance -0.05, below -1.645 0.26, below -2.326 -0.76
+  seed 7002: 976000 draws; mean 2.01, variance 0.23, below -1.645 -1.76, below -2.326 0.11
+  seed 7005: 976000 draws; mean -0.09, variance 0.73, below -1.645 0.83, below -2.326 -0.56
+  seed 99001: 976000 draws; mean 1.89, variance -0.68, below -1.645 -1.09, below -2.326 -1.04

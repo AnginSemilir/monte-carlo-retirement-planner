@@ -287,13 +287,13 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths) ran 07:52 to 15:48 UK; its 12 solver units on S290, S314F and S358F re-run with arm A's windfall routing (D37) from 27 Oct 17:22 UK as task bv7b3milh, `results/p4-pilot-log.txt` (the old ones in `results/p4-pilot-rerouted-old`).
+- Nothing long. Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths) ran 07:52 to 15:48 UK; its 12 solver units on S290, S314F and S358F re-ran with arm A's windfall routing (D37), 17:22 UK to 18:03 UK (`results/p4-pilot-log.txt`; the old ones in `results/p4-pilot-rerouted-old`).
 
 ## 6. The next three actions
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. Phase 4 (D33 to D37), on fcd8096217b7: the three re-routed households' 12 solver units re-piloted and re-sized; `phase4-routing.mjs` run; the
-   registration; the reviewer's re-review; the launch on seed 7003 at D37's budget (two relaunches under `RESUME=1` at the harness's 12 hours).
+1. Phase 4 (D33 to D37), on fcd8096217b7, sized (`results-phase4-sizing.txt`): the registration; the reviewer's re-review; the launch on seed 7003
+   at D37's budget (two relaunches under `RESUME=1` at the harness's 12 hours).
 2. For the maintainer (protected files, "unlock enforcement"): the CHECKLIST 1 wording the reviewers proposed; `bed-sipp.test.mjs` into the fast suite.
 3. After Phase 4's read (the reviewer at the read, then the deep review): D37's windfall item sized, its build and a factorial on the panel.

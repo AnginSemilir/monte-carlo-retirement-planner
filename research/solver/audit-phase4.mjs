@@ -11,7 +11,8 @@
  *            each of those years the engine takes arm A's withdrawal policy at the household's own tiers and its target;
  *   SHIP/W   the product's settings (PRODUCT_BASELINE) at 30 points and the weight W, executed by the engine.
  * The plan each solver arm solves is the household's with guardrails and the lookahead off (a table chooses the spend and the
- * draw itself); the engine runs every arm on the plan its solver solved, or arm A's own. Each is run on:
+ * draw itself), its windfalls routed as arm A's policy routes them (solverPlanOf, D37); the engine runs every arm on the plan
+ * its solver solved, or arm A's own. Each is run on:
  *   - N paths of the seed (the household's registered paths, phase4-paths.json; the pilot's own count): every path's survival,
  *     estate (net, as the engine nets it), wealth at the end, spending delivered over every year (what was spent less what
  *     could not be met), unmet spending, lifetime tax, the year it failed, and each year's spend as a share of the year's
@@ -123,6 +124,15 @@ export function fixedBridgePolicy(r, fixedCtx) {
     sweepCash: false, spendLevel: 1, tierPen: 0, tierIsa: 0, index: -1, code: 'fixed', tierPenName: c.tiers.pen[0].name, tierIsaName: c.tiers.isa[0].name };
   return { policy: { ...base, choose: (s, t, held) => (years.has(t) ? fixed : base.choose(s, t, held)) }, years: [...years] };
 }
+/* D37: every arm routes a windfall as arm A's policy does. Where arm A's pick carries a deposit order of its own (Windfall to
+   ISA: Bracket Fill Basic's draws and harvest, unassigned deposits filling the ISA first), the solver arms solve the plan under
+   that policy's name; the name reaches a solve only through the routed deposits (the engine routes them by the plan's named
+   policy under a table, as the solver does), and a table chooses every draw */
+export function solverPlanOf(base, aPol) {
+  const pol = E.DECUMULATION_POLICIES[aPol.decumulationPolicy], own = E.DECUMULATION_POLICIES[base.spending.decumulationPolicy] || E.DECUMULATION_POLICIES['Bracket Fill Basic'];
+  const order = p => JSON.stringify((p && p.depositOrder) || null);
+  return order(pol) === order(own) ? base : { ...base, spending: { ...base.spending, decumulationPolicy: aPol.decumulationPolicy } };
+}
 export const retiredBridgeYears = ctx => { const self = ctx.owners.find(o => o.key === 'self'); let n = 0; for (let t = 0; t <= ctx.totalYears; t++) { const a = ctx.ageSelf0 + t; if (a >= self.retireAge && a < ctx.nmpa) n++; } return n; };
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -193,7 +203,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       if (!ctx.guardrails || ctx.raiseCapFrac !== 1.1 || ctx.solvencyFloor !== E.num(base.config.solvencyFloor, 0)) { console.error(`audit-phase4: ${id} APP: guardrails ${ctx.guardrails}, raise cap ${ctx.raiseCapFrac}, minimum pot ${ctx.solvencyFloor}`); process.exit(3); }
       ran = `arm A ${a.label.replace(/ /g, '_')} guardrails ${!!ctx.guardrails} lookahead ${ctx.lookaheadYears} raiseCap ${ctx.raiseCapFrac} minPot ${ctx.solvencyFloor} target ${ctx.targetSpend} floor ${base.spending.floorSpend}`;
     } else {
-      const W = Number(w), plan = prep(base), opts = { lambda: LAMBDA, points: Number(process.env.P4_PTS) || (arm === 'CAND' ? CAND_PTS : SHIP_PTS), bequestWeight: W };
+      const W = Number(w), plan = prep(solverPlanOf(base, aPol)), opts = { lambda: LAMBDA, points: Number(process.env.P4_PTS) || (arm === 'CAND' ? CAND_PTS : SHIP_PTS), bequestWeight: W };
       r = arm === 'CAND' ? solveCandidate(E, M, plan, opts) : solvePlan(E, M, candidatePlan(E, plan), opts);
       solveSecs = (Date.now() - t0) / 1000;
       ran = settingsOf(r);

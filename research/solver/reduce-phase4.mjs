@@ -27,7 +27,8 @@
  * FLAGS, for investigation by V4's measures whatever the outcome; none blocks the release on its own (D34 (3)):
  *   - harm against the app's rules and against SHIP, per household and weight: the observed loss over the household's
  *     paths above its registered threshold (phase4-paths.json, by D34);
- *   - spending: a household delivering more than 5% less over every year than under the app's rules.
+ *   - spending: a household delivering more than 5% less over every year than under the app's rules (reported, not
+ *     blocking: the maintainer's call of 27 Oct, D37).
  * REPORTED (no survival figure without the spending delivered beside it): the whole score on every path (the solver's
  *   objective at the weight, the app's rules scored the same way); spending delivered CAND less SHIP, pooled and per
  *   household; S1 over the library cohort, over the households whose reader reads no bridge year, and the count of
@@ -47,6 +48,7 @@ import { LOG_STAMP } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const REGISTRATION = 'research/solver/registrations/phase-4.md';
+export const COHORTS = ['lib', 'fire'];   // phase4-panel.mjs's labels: S1's library part reads 'lib'
 export const WEIGHTS = ['0.02', '0.01'], ARMS = ['APP/-', 'CAND/0.02', 'CAND/0.01', 'SHIP/0.02', 'SHIP/0.01'];
 export const POOL = 16000, A1_BAR = 0, A2_BAR = -1, S1_BAR = -0.1, SPEND_FLAG = -5, MU = 0.003, Z = 1.959963984540054;
 export const SEED = 7003, REPL = { seed: 7018, skip: 200, N: 4000 }, ROB_N = 2000, FIXBR_N = 8000, BESIDE_N = 2000, CANDIDATE = 'fcd8096217b7', WORLDS = ['return-1', 'vol+25', 'left-tail'];
@@ -72,6 +74,7 @@ export function gate(U, panel, paths, logs = null) {
   const P = [], stamps = new Set();
   for (const h of panel) {
     const u = U[h.id] || {};
+    if (!COHORTS.includes(h.cohort)) P.push(`${h.id}: cohort ${h.cohort}, not one of ${COHORTS.join(', ')}`);
     for (const k of ARMS) if (!u[k]) P.push(`${h.id}: no ${k} unit`);
     const got = ARMS.map(k => u[k]).filter(Boolean);
     for (const x of got) {
@@ -124,7 +127,7 @@ export const harmFlag = (L, t) => L.loss > t + 1e-12;
 /* S1 beside its parts (the review of 27 Oct, finding 7): over the library cohort, over the households whose reader reads no
    bridge year, and the households with an observed loss against SHIP over all their paths */
 export function s1Parts(U, panel, w, n) {
-  const pairs = hs => hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), lib = panel.filter(h => h.cohort === 'library'), none = panel.filter(h => U[h.id][`CAND/${w}`].readerYears === 0);
+  const pairs = hs => hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), lib = panel.filter(h => h.cohort === 'lib'), none = panel.filter(h => U[h.id][`CAND/${w}`].readerYears === 0);
   return { library: lib.length ? survivalItem(pairs(lib), n) : null, nLibrary: lib.length, noReader: none.length ? survivalItem(pairs(none), n) : null, nNoReader: none.length,
     losers: panel.filter(h => lossOf(U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main).loss > 0).map(h => h.id) };
 }
@@ -252,7 +255,7 @@ function planted() {
       hist: robust ? { first: 1928 } : null, histA: robust ? new Uint8Array(1) : null, histD: robust ? new Float32Array(1) : null,
       ran: arm === 'CAND' ? `pts 45 grid total45 bridgeRead reader readerRef adaptive tiersBelow 3 tableDealing false actions 800 ${shared(w)} readerYears 0` : arm === 'SHIP' ? `pts 30 grid total30 bridgeRead false tiersBelow 2 tableDealing true actions 360 ${shared(w)} readerYears 0` : 'arm A x guardrails true lookahead 5 raiseCap 1.1 minPot 0 target 1000 floor 800 inputs i1', ...extra }; };
   const full = (id = 'H1') => ({ [id]: Object.fromEntries(ARMS.map(k => { const [a, w] = k.split('/'); return [k, unit(id, a, w)]; })) });
-  const panel = [{ id: 'H1', target: 1000 }], paths = { H1: n };
+  const panel = [{ id: 'H1', target: 1000, cohort: 'lib' }], paths = { H1: n };
   cases.push(['a complete synthetic panel passes the gate', `${gate(full(), panel, paths, logs).length}`, '0']);
   { const U = full(); delete U.H1['SHIP/0.01']; cases.push(['a missing unit is refused', `${gate(U, panel, paths).some(p => /no SHIP\/0.01/.test(p))}`, 'true']); }
   { const U = full(); U.H1['APP/-'].repl = { ...U.H1['APP/-'].repl, skip: 0 }; cases.push(["a replication on 7018's first paths (a smoke run scored them) is refused", `${gate(U, panel, paths, logs).some(p => /from its path 0/.test(p))}`, 'true']); }
@@ -260,6 +263,7 @@ function planted() {
   { const U = full(); U.H1['APP/-'].stamp = { ...stamp, code: 'other' }; cases.push(['two codes are refused', `${gate(U, panel, paths).some(p => /2 stamps/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.02'].bridge = 3; U.H1['APP/-'].bridge = 3; cases.push(['FIXBR missing on a household with bridge years is refused', `${gate(U, panel, paths).some(p => /FIXBR missing/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.01'].ran = U.H1['CAND/0.01'].ran.replace('tiersBelow 3', 'tiersBelow 2'); cases.push(['a candidate unit run without the third step is refused', `${gate(U, panel, paths).some(p => /tiersBelow 3/.test(p))}`, 'true']); }
+  cases.push(["a panel whose cohort label is not phase4-panel.mjs's ('library' for 'lib') is refused", `${gate(full(), [{ ...panel[0], cohort: 'library' }], paths, logs).some(p => /cohort library/.test(p))}`, 'true']);
   // the review of 27 Oct (findings 1, 4, 9): the plan, the target, the stamps, the settings diff, runPolicy beside
   { const U = full(); U.H1['APP/-'].inputs = 'i2'; cases.push(["APP's inputs (balances, contributions) other than CAND's are refused", `${gate(U, panel, paths, logs).some(p => /the arms' inputs differ/.test(p))}`, 'true']); }
   { const U = full(); U.H1['SHIP/0.02'].target = 990; cases.push(["a unit whose engine ran another target than the panel's is refused", `${gate(U, panel, paths, logs).some(p => /target 990/.test(p))}`, 'true']); }
@@ -271,7 +275,7 @@ function planted() {
   { const U = full(); U.H1['SHIP/0.02'].beside = null; cases.push(['a solver unit without runPolicy beside is refused', `${gate(U, panel, paths, logs).some(p => /runPolicy beside missing/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.02'].worldsD['vol+25'] = null; cases.push(["a world's spending missing is refused", `${gate(U, panel, paths, logs).some(p => /their spending\) missing/.test(p))}`, 'true']); }
   // S1's parts (finding 7): gains on a FIRE household with bridge years masking a loss on a library household the reader never reads
-  { const U = { ...full('L1'), ...full('F1') }, pn = [{ id: 'L1', cohort: 'library' }, { id: 'F1', cohort: 'fire' }];
+  { const U = { ...full('L1'), ...full('F1') }, pn = [{ id: 'L1', cohort: 'lib' }, { id: 'F1', cohort: 'fire' }];
     U.L1['CAND/0.02'].main = mk(ones.map((_, i) => (i < 4 ? 0 : 1)));
     U.F1['SHIP/0.02'].main = mk(ones.map((_, i) => (i < 40 ? 0 : 1))); U.F1['CAND/0.02'].readerYears = 6;
     const all = survivalItem(pn.map(h => [U[h.id]['CAND/0.02'].main, U[h.id]['SHIP/0.02'].main]), n), sp = s1Parts(U, pn, '0.02', n);

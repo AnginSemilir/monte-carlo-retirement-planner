@@ -1,0 +1,266 @@
+ok   D34's normal cross-check: 10.5% needs 15,960 paths, 9.2% needs 13,984: 15960 13984
+ok   at 9% and 16,000 paths: false alarms at most 5%, the threshold within 0.02 of the normal one, a 1-point loss caught at least 90%: true true true
+ok   at 20% the paths grow past 16,000 (about 30,400 by the normal check): true true
+ok   no discordance: sized at the 1.01% a 1-point loss needs, 16,000 paths: 16000 0.0101
+ok   the binomial sums agree with a direct convolution to 1e-9 (four cases): true
+ok   a 1-point loss is impossible below 1% discordance: true
+ok   a household is sized by its widest comparison: true
+ok   a threshold sits on the lattice of losses (a whole number of paths): true
+ok   a discordance it cannot price is refused, not read as no harm: threw
+ok   end to end through the pilot's units: the discordances read (APP 180 of 2,000, SHIP 40), sized at their upper bounds: 0.1034 16000
+EDGES: no discordance, below the 1% a 1-point loss needs, a household above 10.5%, the threshold on the lattice, an unpriceable discordance
+planted (11): all read as they should
+the exact rates checked by simulation (--check):
+  d 5.0% N 16000 t 0.5437 true loss 0.25: exact 0.0466, simulated 0.0498 (5000 replicates, xoshiro128**, se 0.0030; 1.09 se)
+  d 5.0% N 16000 t 0.5437 true loss 1: exact 0.9949, simulated 0.9952 (5000 replicates, xoshiro128**, se 0.0010; 0.27 se)
+  d 10.5% N 16000 t 0.6687 true loss 0.25: exact 0.0498, simulated 0.0522 (5000 replicates, xoshiro128**, se 0.0031; 0.78 se)
+  d 10.5% N 16000 t 0.6687 true loss 1: exact 0.9000, simulated 0.9038 (5000 replicates, xoshiro128**, se 0.0042; 0.89 se)
+  d 20.0% N 32000 t 0.6625 true loss 0.25: exact 0.0488, simulated 0.0424 (5000 replicates, xoshiro128**, se 0.0030; -2.11 se)
+  d 20.0% N 32000 t 0.6625 true loss 1: exact 0.9105, simulated 0.9058 (5000 replicates, xoshiro128**, se 0.0040; -1.18 se)
+PHASE 4'S PATHS AND THRESHOLDS (D34), from the pilot in /home/user/vitejs-vite-kdvuf9qw/research/solver/results/p4-pilot: per household and estate weight, the candidate against the app's rules (APP) and against the shipping solver (SHIP); d the pilot's discordance (k of n), d+ its upper 95% bound (the sizing's); t the threshold (harm when the observed loss is above it); the rates at a true quarter-point and 1-point loss, exact; D34's normal check beside
+S026   lib  paths 20000
+  APP/0.02  d 10.80% (216 of 2000) d+ 12.24%: t 0.6550, false alarm at 0.25 0.0498, caught at 1 0.9170 | normal: se 0.2474, t 0.6570, paths for d+ 18610
+  SHIP/0.02 d 0.75% (15 of 2000) d+ 1.23%: t 0.3800, false alarm at 0.25 0.0461, caught at 1 1.0000 | normal: se 0.0785, t 0.3792, paths for d+ 1876
+  APP/0.01  d 11.10% (222 of 2000) d+ 12.56%: t 0.6600, false alarm at 0.25 0.0499, caught at 1 0.9111 | normal: se 0.2506, t 0.6622, paths for d+ 19090
+  SHIP/0.01 d 0.70% (14 of 2000) d+ 1.17%: t 0.3750, false alarm at 0.25 0.0482, caught at 1 1.0000 | normal: se 0.0765, t 0.3759, paths for d+ 1781
+S030   lib  paths 16000
+  APP/0.02  d 8.25% (165 of 2000) d+ 9.54%: t 0.6500, false alarm at 0.25 0.0494, caught at 1 0.9224 | normal: se 0.2442, t 0.6517, paths for d+ 14506
+  SHIP/0.02 d 1.40% (28 of 2000) d+ 2.02%: t 0.4375, false alarm at 0.25 0.0449, caught at 1 1.0000 | normal: se 0.1123, t 0.4347, paths for d+ 3066
+  APP/0.01  d 8.10% (162 of 2000) d+ 9.38%: t 0.6500, false alarm at 0.25 0.0480, caught at 1 0.9242 | normal: se 0.2422, t 0.6484, paths for d+ 14263
+  SHIP/0.01 d 1.30% (26 of 2000) d+ 1.90%: t 0.4313, false alarm at 0.25 0.0454, caught at 1 1.0000 | normal: se 0.1089, t 0.4292, paths for d+ 2887
+S040   lib  paths 20000
+  APP/0.02  d 11.45% (229 of 2000) d+ 12.93%: t 0.6700, false alarm at 0.25 0.0483, caught at 1 0.9013 | normal: se 0.2542, t 0.6682, paths for d+ 19650
+  SHIP/0.02 d 1.45% (29 of 2000) d+ 2.08%: t 0.4200, false alarm at 0.25 0.0453, caught at 1 1.0000 | normal: se 0.1019, t 0.4176, paths for d+ 3156
+  APP/0.01  d 11.40% (228 of 2000) d+ 12.87%: t 0.6650, false alarm at 0.25 0.0499, caught at 1 0.9051 | normal: se 0.2537, t 0.6674, paths for d+ 19570
+  SHIP/0.01 d 1.35% (27 of 2000) d+ 1.96%: t 0.4150, false alarm at 0.25 0.0454, caught at 1 1.0000 | normal: se 0.0989, t 0.4128, paths for d+ 2977
+S050   lib  paths 25000
+  APP/0.02  d 14.55% (291 of 2000) d+ 16.17%: t 0.6680, false alarm at 0.25 0.0493, caught at 1 0.9028 | normal: se 0.2543, t 0.6684, paths for d+ 24582
+  SHIP/0.02 d 0.60% (12 of 2000) d+ 1.05%: t 0.3560, false alarm at 0.25 0.0478, caught at 1 1.0000 | normal: se 0.0647, t 0.3564, paths for d+ 1590
+  APP/0.01  d 14.60% (292 of 2000) d+ 16.22%: t 0.6680, false alarm at 0.25 0.0496, caught at 1 0.9025 | normal: se 0.2547, t 0.6691, paths for d+ 24661
+  SHIP/0.01 d 0.45% (9 of 2000) d+ 0.85%: t 0.3560, false alarm at 0.25 0.0450, caught at 1 1.0000 | normal: se 0.0636, t 0.3546, paths for d+ 1536
+S062   lib  paths 22000
+  APP/0.02  d 12.35% (247 of 2000) d+ 13.87%: t 0.6636, false alarm at 0.25 0.0488, caught at 1 0.9084 | normal: se 0.2511, t 0.6631, paths for d+ 21086
+  SHIP/0.02 d 0.70% (14 of 2000) d+ 1.17%: t 0.3682, false alarm at 0.25 0.0497, caught at 1 1.0000 | normal: se 0.0730, t 0.3700, paths for d+ 1781
+  APP/0.01  d 12.30% (246 of 2000) d+ 13.82%: t 0.6636, false alarm at 0.25 0.0485, caught at 1 0.9088 | normal: se 0.2506, t 0.6623, paths for d+ 21007
+  SHIP/0.01 d 0.65% (13 of 2000) d+ 1.11%: t 0.3682, false alarm at 0.25 0.0452, caught at 1 1.0000 | normal: se 0.0710, t 0.3668, paths for d+ 1686
+S074   lib  paths 22000
+  APP/0.02  d 12.15% (243 of 2000) d+ 13.66%: t 0.6591, false alarm at 0.25 0.0494, caught at 1 0.9130 | normal: se 0.2492, t 0.6599, paths for d+ 20768
+  SHIP/0.02 d 0.40% (8 of 2000) d+ 0.79%: t 0.3636, false alarm at 0.25 0.0440, caught at 1 1.0000 | normal: se 0.0678, t 0.3615, paths for d+ 1536
+  APP/0.01  d 12.25% (245 of 2000) d+ 13.77%: t 0.6636, false alarm at 0.25 0.0482, caught at 1 0.9092 | normal: se 0.2502, t 0.6615, paths for d+ 20927
+  SHIP/0.01 d 0.45% (9 of 2000) d+ 0.85%: t 0.3636, false alarm at 0.25 0.0440, caught at 1 1.0000 | normal: se 0.0678, t 0.3615, paths for d+ 1536
+S090   lib  paths 16000
+  APP/0.02  d 7.75% (155 of 2000) d+ 9.01%: t 0.6375, false alarm at 0.25 0.0499, caught at 1 0.9352 | normal: se 0.2373, t 0.6404, paths for d+ 13695
+  SHIP/0.02 d 0.90% (18 of 2000) d+ 1.42%: t 0.4063, false alarm at 0.25 0.0455, caught at 1 1.0000 | normal: se 0.0942, t 0.4049, paths for d+ 2157
+  APP/0.01  d 7.70% (154 of 2000) d+ 8.96%: t 0.6375, false alarm at 0.25 0.0494, caught at 1 0.9358 | normal: se 0.2366, t 0.6392, paths for d+ 13614
+  SHIP/0.01 d 1.05% (21 of 2000) d+ 1.60%: t 0.4125, false alarm at 0.25 0.0491, caught at 1 1.0000 | normal: se 0.1000, t 0.4145, paths for d+ 2433
+S096   lib  paths 24000
+  APP/0.02  d 13.55% (271 of 2000) d+ 15.13%: t 0.6625, false alarm at 0.25 0.0493, caught at 1 0.9093 | normal: se 0.2511, t 0.6630, paths for d+ 22996
+  SHIP/0.02 d 1.30% (26 of 2000) d+ 1.90%: t 0.3958, false alarm at 0.25 0.0483, caught at 1 1.0000 | normal: se 0.0890, t 0.3963, paths for d+ 2887
+  APP/0.01  d 13.65% (273 of 2000) d+ 15.23%: t 0.6625, false alarm at 0.25 0.0499, caught at 1 0.9086 | normal: se 0.2519, t 0.6644, paths for d+ 23155
+  SHIP/0.01 d 1.35% (27 of 2000) d+ 1.96%: t 0.4000, false alarm at 0.25 0.0462, caught at 1 1.0000 | normal: se 0.0903, t 0.3986, paths for d+ 2977
+S108   lib  paths 22000
+  APP/0.02  d 12.45% (249 of 2000) d+ 13.98%: t 0.6636, false alarm at 0.25 0.0495, caught at 1 0.9076 | normal: se 0.2521, t 0.6646, paths for d+ 21246
+  SHIP/0.02 d 1.10% (22 of 2000) d+ 1.66%: t 0.3909, false alarm at 0.25 0.0498, caught at 1 1.0000 | normal: se 0.0869, t 0.3929, paths for d+ 2525
+  APP/0.01  d 12.50% (250 of 2000) d+ 14.03%: t 0.6636, false alarm at 0.25 0.0498, caught at 1 0.9072 | normal: se 0.2525, t 0.6654, paths for d+ 21325
+  SHIP/0.01 d 1.00% (20 of 2000) d+ 1.54%: t 0.3864, false alarm at 0.25 0.0490, caught at 1 1.0000 | normal: se 0.0837, t 0.3876, paths for d+ 2342
+S132   lib  paths 21000
+  APP/0.02  d 11.95% (239 of 2000) d+ 13.45%: t 0.6667, false alarm at 0.25 0.0489, caught at 1 0.9046 | normal: se 0.2531, t 0.6664, paths for d+ 20449
+  SHIP/0.02 d 0.20% (4 of 2000) d+ 0.51%: t 0.3667, false alarm at 0.25 0.0434, caught at 1 1.0000 | normal: se 0.0694, t 0.3641, paths for d+ 1536
+  APP/0.01  d 11.95% (239 of 2000) d+ 13.45%: t 0.6667, false alarm at 0.25 0.0489, caught at 1 0.9046 | normal: se 0.2531, t 0.6664, paths for d+ 20449
+  SHIP/0.01 d 0.25% (5 of 2000) d+ 0.58%: t 0.3667, false alarm at 0.25 0.0434, caught at 1 1.0000 | normal: se 0.0694, t 0.3641, paths for d+ 1536
+S164   lib  paths 18000
+  APP/0.02  d 9.60% (192 of 2000) d+ 10.98%: t 0.6556, false alarm at 0.25 0.0491, caught at 1 0.9169 | normal: se 0.2469, t 0.6562, paths for d+ 16684
+  SHIP/0.02 d 1.20% (24 of 2000) d+ 1.78%: t 0.4111, false alarm at 0.25 0.0498, caught at 1 1.0000 | normal: se 0.0995, t 0.4136, paths for d+ 2707
+  APP/0.01  d 9.85% (197 of 2000) d+ 11.24%: t 0.6611, false alarm at 0.25 0.0488, caught at 1 0.9108 | normal: se 0.2499, t 0.6611, paths for d+ 17086
+  SHIP/0.01 d 1.55% (31 of 2000) d+ 2.19%: t 0.4333, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.1104, t 0.4316, paths for d+ 3334
+S188   lib  paths 25000
+  APP/0.02  d 14.10% (282 of 2000) d+ 15.70%: t 0.6640, false alarm at 0.25 0.0485, caught at 1 0.9088 | normal: se 0.2506, t 0.6623, paths for d+ 23869
+  SHIP/0.02 d 1.10% (22 of 2000) d+ 1.66%: t 0.3840, false alarm at 0.25 0.0477, caught at 1 1.0000 | normal: se 0.0815, t 0.3841, paths for d+ 2525
+  APP/0.01  d 14.05% (281 of 2000) d+ 15.65%: t 0.6600, false alarm at 0.25 0.0498, caught at 1 0.9117 | normal: se 0.2502, t 0.6616, paths for d+ 23790
+  SHIP/0.01 d 1.20% (24 of 2000) d+ 1.78%: t 0.3880, false alarm at 0.25 0.0487, caught at 1 1.0000 | normal: se 0.0844, t 0.3888, paths for d+ 2707
+S204   lib  paths 21000
+  APP/0.02  d 11.70% (234 of 2000) d+ 13.19%: t 0.6619, false alarm at 0.25 0.0492, caught at 1 0.9099 | normal: se 0.2506, t 0.6623, paths for d+ 20049
+  SHIP/0.02 d 0.65% (13 of 2000) d+ 1.11%: t 0.3714, false alarm at 0.25 0.0446, caught at 1 1.0000 | normal: se 0.0727, t 0.3695, paths for d+ 1686
+  APP/0.01  d 11.75% (235 of 2000) d+ 13.24%: t 0.6619, false alarm at 0.25 0.0495, caught at 1 0.9095 | normal: se 0.2511, t 0.6631, paths for d+ 20129
+  SHIP/0.01 d 0.45% (9 of 2000) d+ 0.85%: t 0.3667, false alarm at 0.25 0.0434, caught at 1 1.0000 | normal: se 0.0694, t 0.3641, paths for d+ 1536
+S228   lib  paths 21000
+  APP/0.02  d 11.65% (233 of 2000) d+ 13.14%: t 0.6619, false alarm at 0.25 0.0488, caught at 1 0.9103 | normal: se 0.2501, t 0.6614, paths for d+ 19970
+  SHIP/0.02 d 0.55% (11 of 2000) d+ 0.98%: t 0.3667, false alarm at 0.25 0.0434, caught at 1 1.0000 | normal: se 0.0694, t 0.3641, paths for d+ 1536
+  APP/0.01  d 11.85% (237 of 2000) d+ 13.35%: t 0.6667, false alarm at 0.25 0.0482, caught at 1 0.9055 | normal: se 0.2521, t 0.6647, paths for d+ 20289
+  SHIP/0.01 d 0.35% (7 of 2000) d+ 0.72%: t 0.3667, false alarm at 0.25 0.0434, caught at 1 1.0000 | normal: se 0.0694, t 0.3641, paths for d+ 1536
+S244   lib  paths 19000
+  APP/0.02  d 10.65% (213 of 2000) d+ 12.09%: t 0.6632, false alarm at 0.25 0.0496, caught at 1 0.9076 | normal: se 0.2522, t 0.6649, paths for d+ 18370
+  SHIP/0.02 d 1.10% (22 of 2000) d+ 1.66%: t 0.4053, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0935, t 0.4038, paths for d+ 2525
+  APP/0.01  d 10.70% (214 of 2000) d+ 12.14%: t 0.6632, false alarm at 0.25 0.0500, caught at 1 0.9071 | normal: se 0.2528, t 0.6658, paths for d+ 18450
+  SHIP/0.01 d 1.25% (25 of 2000) d+ 1.84%: t 0.4105, false alarm at 0.25 0.0488, caught at 1 1.0000 | normal: se 0.0984, t 0.4119, paths for d+ 2797
+S260   lib  paths 16000
+  APP/0.02  d 8.85% (177 of 2000) d+ 10.18%: t 0.6625, false alarm at 0.25 0.0497, caught at 1 0.9077 | normal: se 0.2523, t 0.6650, paths for d+ 15475
+  SHIP/0.02 d 0.55% (11 of 2000) d+ 0.98%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+  APP/0.01  d 9.00% (180 of 2000) d+ 10.34%: t 0.6687, false alarm at 0.25 0.0485, caught at 1 0.9018 | normal: se 0.2542, t 0.6682, paths for d+ 15717
+  SHIP/0.01 d 0.50% (10 of 2000) d+ 0.92%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+S272   lib  paths 16000
+  APP/0.02  d 7.95% (159 of 2000) d+ 9.22%: t 0.6438, false alarm at 0.25 0.0492, caught at 1 0.9295 | normal: se 0.2401, t 0.6450, paths for d+ 14020
+  SHIP/0.02 d 1.15% (23 of 2000) d+ 1.72%: t 0.4188, false alarm at 0.25 0.0489, caught at 1 1.0000 | normal: se 0.1037, t 0.4206, paths for d+ 2616
+  APP/0.01  d 8.20% (164 of 2000) d+ 9.49%: t 0.6500, false alarm at 0.25 0.0489, caught at 1 0.9230 | normal: se 0.2435, t 0.6506, paths for d+ 14425
+  SHIP/0.01 d 1.20% (24 of 2000) d+ 1.78%: t 0.4250, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.1055, t 0.4235, paths for d+ 2707
+S290   lib  paths 19000
+  APP/0.02  d 10.55% (211 of 2000) d+ 11.98%: t 0.6632, false alarm at 0.25 0.0489, caught at 1 0.9085 | normal: se 0.2511, t 0.6631, paths for d+ 18210
+  SHIP/0.02 d 0.75% (15 of 2000) d+ 1.23%: t 0.3842, false alarm at 0.25 0.0451, caught at 1 1.0000 | normal: se 0.0806, t 0.3826, paths for d+ 1876
+  APP/0.01  d 10.65% (213 of 2000) d+ 12.09%: t 0.6632, false alarm at 0.25 0.0496, caught at 1 0.9076 | normal: se 0.2522, t 0.6649, paths for d+ 18370
+  SHIP/0.01 d 1.00% (20 of 2000) d+ 1.54%: t 0.4000, false alarm at 0.25 0.0452, caught at 1 1.0000 | normal: se 0.0900, t 0.3981, paths for d+ 2342
+S368   lib  paths 26000
+  APP/0.02  d 15.10% (302 of 2000) d+ 16.75%: t 0.6692, false alarm at 0.25 0.0485, caught at 1 0.9026 | normal: se 0.2538, t 0.6675, paths for d+ 25453
+  SHIP/0.02 d 0.75% (15 of 2000) d+ 1.23%: t 0.3654, false alarm at 0.25 0.0446, caught at 1 1.0000 | normal: se 0.0689, t 0.3633, paths for d+ 1876
+  APP/0.01  d 15.10% (302 of 2000) d+ 16.75%: t 0.6692, false alarm at 0.25 0.0485, caught at 1 0.9026 | normal: se 0.2538, t 0.6675, paths for d+ 25453
+  SHIP/0.01 d 0.75% (15 of 2000) d+ 1.23%: t 0.3654, false alarm at 0.25 0.0446, caught at 1 1.0000 | normal: se 0.0689, t 0.3633, paths for d+ 1876
+S384   lib  paths 23000
+  APP/0.02  d 12.60% (252 of 2000) d+ 14.13%: t 0.6565, false alarm at 0.25 0.0496, caught at 1 0.9158 | normal: se 0.2479, t 0.6578, paths for d+ 21485
+  SHIP/0.02 d 0.35% (7 of 2000) d+ 0.72%: t 0.3609, false alarm at 0.25 0.0444, caught at 1 1.0000 | normal: se 0.0663, t 0.3590, paths for d+ 1536
+  APP/0.01  d 13.00% (260 of 2000) d+ 14.55%: t 0.6652, false alarm at 0.25 0.0485, caught at 1 0.9071 | normal: se 0.2515, t 0.6638, paths for d+ 22121
+  SHIP/0.01 d 0.45% (9 of 2000) d+ 0.85%: t 0.3609, false alarm at 0.25 0.0444, caught at 1 1.0000 | normal: se 0.0663, t 0.3590, paths for d+ 1536
+S304F  fire paths 19000
+  APP/0.02  d 10.30% (206 of 2000) d+ 11.72%: t 0.6579, false alarm at 0.25 0.0491, caught at 1 0.9143 | normal: se 0.2483, t 0.6585, paths for d+ 17809
+  SHIP/0.02 d 3.25% (65 of 2000) d+ 4.12%: t 0.4947, false alarm at 0.25 0.0466, caught at 1 0.9997 | normal: se 0.1473, t 0.4923, paths for d+ 6269
+  APP/0.01  d 10.25% (205 of 2000) d+ 11.66%: t 0.6579, false alarm at 0.25 0.0488, caught at 1 0.9148 | normal: se 0.2478, t 0.6576, paths for d+ 17728
+  SHIP/0.01 d 3.20% (64 of 2000) d+ 4.07%: t 0.4895, false alarm at 0.25 0.0490, caught at 1 0.9998 | normal: se 0.1463, t 0.4907, paths for d+ 6184
+S306F  fire paths 16000
+  APP/0.02  d 8.65% (173 of 2000) d+ 9.97%: t 0.6625, false alarm at 0.25 0.0479, caught at 1 0.9100 | normal: se 0.2496, t 0.6606, paths for d+ 15153
+  SHIP/0.02 d 2.35% (47 of 2000) d+ 3.11%: t 0.4813, false alarm at 0.25 0.0465, caught at 1 0.9999 | normal: se 0.1395, t 0.4794, paths for d+ 4732
+  APP/0.01  d 8.35% (167 of 2000) d+ 9.65%: t 0.6563, false alarm at 0.25 0.0478, caught at 1 0.9174 | normal: se 0.2456, t 0.6540, paths for d+ 14668
+  SHIP/0.01 d 2.25% (45 of 2000) d+ 3.00%: t 0.4750, false alarm at 0.25 0.0479, caught at 1 0.9999 | normal: se 0.1369, t 0.4752, paths for d+ 4559
+S308F  fire paths 20000
+  APP/0.02  d 11.30% (226 of 2000) d+ 12.77%: t 0.6650, false alarm at 0.25 0.0492, caught at 1 0.9060 | normal: se 0.2527, t 0.6657, paths for d+ 19410
+  SHIP/0.02 d 3.10% (62 of 2000) d+ 3.96%: t 0.4800, false alarm at 0.25 0.0492, caught at 1 0.9999 | normal: se 0.1407, t 0.4814, paths for d+ 6015
+  APP/0.01  d 11.15% (223 of 2000) d+ 12.61%: t 0.6650, false alarm at 0.25 0.0482, caught at 1 0.9074 | normal: se 0.2511, t 0.6631, paths for d+ 19170
+  SHIP/0.01 d 2.95% (59 of 2000) d+ 3.79%: t 0.4750, false alarm at 0.25 0.0492, caught at 1 0.9999 | normal: se 0.1376, t 0.4764, paths for d+ 5760
+S310F  fire paths 17000
+  APP/0.02  d 9.50% (190 of 2000) d+ 10.87%: t 0.6647, false alarm at 0.25 0.0493, caught at 1 0.9058 | normal: se 0.2529, t 0.6660, paths for d+ 16523
+  SHIP/0.02 d 2.20% (44 of 2000) d+ 2.94%: t 0.4647, false alarm at 0.25 0.0491, caught at 1 1.0000 | normal: se 0.1316, t 0.4664, paths for d+ 4473
+  APP/0.01  d 9.65% (193 of 2000) d+ 11.03%: t 0.6706, false alarm at 0.25 0.0482, caught at 1 0.9002 | normal: se 0.2547, t 0.6690, paths for d+ 16764
+  SHIP/0.01 d 2.25% (45 of 2000) d+ 3.00%: t 0.4706, false alarm at 0.25 0.0463, caught at 1 1.0000 | normal: se 0.1328, t 0.4685, paths for d+ 4559
+S314F  fire paths 17000
+  APP/0.02  d 9.40% (188 of 2000) d+ 10.76%: t 0.6647, false alarm at 0.25 0.0485, caught at 1 0.9069 | normal: se 0.2516, t 0.6639, paths for d+ 16362
+  SHIP/0.02 d 0.65% (13 of 2000) d+ 1.11%: t 0.3824, false alarm at 0.25 0.0473, caught at 1 1.0000 | normal: se 0.0808, t 0.3829, paths for d+ 1686
+  APP/0.01  d 9.25% (185 of 2000) d+ 10.61%: t 0.6588, false alarm at 0.25 0.0496, caught at 1 0.9123 | normal: se 0.2498, t 0.6609, paths for d+ 16120
+  SHIP/0.01 d 0.65% (13 of 2000) d+ 1.11%: t 0.3824, false alarm at 0.25 0.0473, caught at 1 1.0000 | normal: se 0.0808, t 0.3829, paths for d+ 1686
+S316F  fire paths 16000
+  APP/0.02  d 8.80% (176 of 2000) d+ 10.13%: t 0.6625, false alarm at 0.25 0.0493, caught at 1 0.9082 | normal: se 0.2516, t 0.6639, paths for d+ 15395
+  SHIP/0.02 d 0.55% (11 of 2000) d+ 0.98%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+  APP/0.01  d 8.70% (174 of 2000) d+ 10.02%: t 0.6625, false alarm at 0.25 0.0484, caught at 1 0.9094 | normal: se 0.2503, t 0.6617, paths for d+ 15233
+  SHIP/0.01 d 0.50% (10 of 2000) d+ 0.92%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+S320F  fire paths 16000
+  APP/0.02  d 8.65% (173 of 2000) d+ 9.97%: t 0.6625, false alarm at 0.25 0.0479, caught at 1 0.9100 | normal: se 0.2496, t 0.6606, paths for d+ 15153
+  SHIP/0.02 d 0.50% (10 of 2000) d+ 0.92%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+  APP/0.01  d 8.70% (174 of 2000) d+ 10.02%: t 0.6625, false alarm at 0.25 0.0484, caught at 1 0.9094 | normal: se 0.2503, t 0.6617, paths for d+ 15233
+  SHIP/0.01 d 0.65% (13 of 2000) d+ 1.11%: t 0.3875, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.0833, t 0.3870, paths for d+ 1686
+S322F  fire paths 16000
+  APP/0.02  d 8.60% (172 of 2000) d+ 9.92%: t 0.6625, false alarm at 0.25 0.0475, caught at 1 0.9106 | normal: se 0.2489, t 0.6595, paths for d+ 15072
+  SHIP/0.02 d 0.45% (9 of 2000) d+ 0.85%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+  APP/0.01  d 8.50% (170 of 2000) d+ 9.81%: t 0.6563, false alarm at 0.25 0.0491, caught at 1 0.9157 | normal: se 0.2476, t 0.6573, paths for d+ 14910
+  SHIP/0.01 d 0.45% (9 of 2000) d+ 0.85%: t 0.3812, false alarm at 0.25 0.0458, caught at 1 1.0000 | normal: se 0.0795, t 0.3807, paths for d+ 1536
+S326F  fire paths 16000
+  APP/0.02  d 7.95% (159 of 2000) d+ 9.22%: t 0.6438, false alarm at 0.25 0.0492, caught at 1 0.9295 | normal: se 0.2401, t 0.6450, paths for d+ 14020
+  SHIP/0.02 d 1.05% (21 of 2000) d+ 1.60%: t 0.4125, false alarm at 0.25 0.0491, caught at 1 1.0000 | normal: se 0.1000, t 0.4145, paths for d+ 2433
+  APP/0.01  d 8.05% (161 of 2000) d+ 9.33%: t 0.6500, false alarm at 0.25 0.0475, caught at 1 0.9247 | normal: se 0.2415, t 0.6472, paths for d+ 14182
+  SHIP/0.01 d 1.30% (26 of 2000) d+ 1.90%: t 0.4313, false alarm at 0.25 0.0454, caught at 1 1.0000 | normal: se 0.1089, t 0.4292, paths for d+ 2887
+S328F  fire paths 16000
+  APP/0.02  d 7.90% (158 of 2000) d+ 9.17%: t 0.6438, false alarm at 0.25 0.0487, caught at 1 0.9301 | normal: se 0.2394, t 0.6438, paths for d+ 13939
+  SHIP/0.02 d 0.75% (15 of 2000) d+ 1.23%: t 0.3937, false alarm at 0.25 0.0475, caught at 1 1.0000 | normal: se 0.0878, t 0.3945, paths for d+ 1876
+  APP/0.01  d 8.10% (162 of 2000) d+ 9.38%: t 0.6500, false alarm at 0.25 0.0480, caught at 1 0.9242 | normal: se 0.2422, t 0.6484, paths for d+ 14263
+  SHIP/0.01 d 1.10% (22 of 2000) d+ 1.66%: t 0.4188, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.1019, t 0.4176, paths for d+ 2525
+S332F  fire paths 16000
+  APP/0.02  d 7.15% (143 of 2000) d+ 8.37%: t 0.6250, false alarm at 0.25 0.0491, caught at 1 0.9482 | normal: se 0.2287, t 0.6262, paths for d+ 12720
+  SHIP/0.02 d 1.10% (22 of 2000) d+ 1.66%: t 0.4188, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.1019, t 0.4176, paths for d+ 2525
+  APP/0.01  d 7.20% (144 of 2000) d+ 8.42%: t 0.6250, false alarm at 0.25 0.0497, caught at 1 0.9477 | normal: se 0.2294, t 0.6274, paths for d+ 12802
+  SHIP/0.01 d 1.15% (23 of 2000) d+ 1.72%: t 0.4188, false alarm at 0.25 0.0489, caught at 1 1.0000 | normal: se 0.1037, t 0.4206, paths for d+ 2616
+S334F  fire paths 16000
+  APP/0.02  d 8.10% (162 of 2000) d+ 9.38%: t 0.6500, false alarm at 0.25 0.0480, caught at 1 0.9242 | normal: se 0.2422, t 0.6484, paths for d+ 14263
+  SHIP/0.02 d 1.00% (20 of 2000) d+ 1.54%: t 0.4125, false alarm at 0.25 0.0459, caught at 1 1.0000 | normal: se 0.0981, t 0.4114, paths for d+ 2342
+  APP/0.01  d 8.15% (163 of 2000) d+ 9.44%: t 0.6500, false alarm at 0.25 0.0485, caught at 1 0.9236 | normal: se 0.2429, t 0.6495, paths for d+ 14344
+  SHIP/0.01 d 1.05% (21 of 2000) d+ 1.60%: t 0.4125, false alarm at 0.25 0.0491, caught at 1 1.0000 | normal: se 0.1000, t 0.4145, paths for d+ 2433
+S338F  fire paths 19000
+  APP/0.02  d 10.30% (206 of 2000) d+ 11.72%: t 0.6579, false alarm at 0.25 0.0491, caught at 1 0.9143 | normal: se 0.2483, t 0.6585, paths for d+ 17809
+  SHIP/0.02 d 1.25% (25 of 2000) d+ 1.84%: t 0.4105, false alarm at 0.25 0.0488, caught at 1 1.0000 | normal: se 0.0984, t 0.4119, paths for d+ 2797
+  APP/0.01  d 10.20% (204 of 2000) d+ 11.61%: t 0.6579, false alarm at 0.25 0.0484, caught at 1 0.9153 | normal: se 0.2472, t 0.6566, paths for d+ 17648
+  SHIP/0.01 d 1.25% (25 of 2000) d+ 1.84%: t 0.4105, false alarm at 0.25 0.0488, caught at 1 1.0000 | normal: se 0.0984, t 0.4119, paths for d+ 2797
+S340F  fire paths 17000
+  APP/0.02  d 9.20% (184 of 2000) d+ 10.55%: t 0.6588, false alarm at 0.25 0.0492, caught at 1 0.9128 | normal: se 0.2491, t 0.6598, paths for d+ 16040
+  SHIP/0.02 d 0.55% (11 of 2000) d+ 0.98%: t 0.3765, false alarm at 0.25 0.0470, caught at 1 1.0000 | normal: se 0.0771, t 0.3768, paths for d+ 1536
+  APP/0.01  d 9.60% (192 of 2000) d+ 10.98%: t 0.6706, false alarm at 0.25 0.0478, caught at 1 0.9007 | normal: se 0.2541, t 0.6680, paths for d+ 16684
+  SHIP/0.01 d 0.90% (18 of 2000) d+ 1.42%: t 0.4000, false alarm at 0.25 0.0473, caught at 1 1.0000 | normal: se 0.0914, t 0.4003, paths for d+ 2157
+S344F  fire paths 16000
+  APP/0.02  d 8.70% (174 of 2000) d+ 10.02%: t 0.6625, false alarm at 0.25 0.0484, caught at 1 0.9094 | normal: se 0.2503, t 0.6617, paths for d+ 15233
+  SHIP/0.02 d 0.65% (13 of 2000) d+ 1.11%: t 0.3875, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.0833, t 0.3870, paths for d+ 1686
+  APP/0.01  d 8.95% (179 of 2000) d+ 10.29%: t 0.6687, false alarm at 0.25 0.0481, caught at 1 0.9023 | normal: se 0.2536, t 0.6671, paths for d+ 15637
+  SHIP/0.01 d 0.80% (16 of 2000) d+ 1.30%: t 0.4000, false alarm at 0.25 0.0447, caught at 1 1.0000 | normal: se 0.0900, t 0.3980, paths for d+ 1970
+S346F  fire paths 17000
+  APP/0.02  d 9.35% (187 of 2000) d+ 10.71%: t 0.6647, false alarm at 0.25 0.0481, caught at 1 0.9074 | normal: se 0.2510, t 0.6629, paths for d+ 16282
+  SHIP/0.02 d 1.30% (26 of 2000) d+ 1.90%: t 0.4235, false alarm at 0.25 0.0476, caught at 1 1.0000 | normal: se 0.1057, t 0.4239, paths for d+ 2887
+  APP/0.01  d 9.50% (190 of 2000) d+ 10.87%: t 0.6647, false alarm at 0.25 0.0493, caught at 1 0.9058 | normal: se 0.2529, t 0.6660, paths for d+ 16523
+  SHIP/0.01 d 1.65% (33 of 2000) d+ 2.31%: t 0.4412, false alarm at 0.25 0.0480, caught at 1 1.0000 | normal: se 0.1166, t 0.4417, paths for d+ 3511
+S350F  fire paths 18000
+  APP/0.02  d 9.40% (188 of 2000) d+ 10.76%: t 0.6500, false alarm at 0.25 0.0498, caught at 1 0.9223 | normal: se 0.2445, t 0.6523, paths for d+ 16362
+  SHIP/0.02 d 0.90% (18 of 2000) d+ 1.42%: t 0.3944, false alarm at 0.25 0.0489, caught at 1 1.0000 | normal: se 0.0888, t 0.3960, paths for d+ 2157
+  APP/0.01  d 9.70% (194 of 2000) d+ 11.08%: t 0.6556, false alarm at 0.25 0.0499, caught at 1 0.9159 | normal: se 0.2481, t 0.6582, paths for d+ 16845
+  SHIP/0.01 d 1.00% (20 of 2000) d+ 1.54%: t 0.4000, false alarm at 0.25 0.0495, caught at 1 1.0000 | normal: se 0.0925, t 0.4022, paths for d+ 2342
+S352F  fire paths 18000
+  APP/0.02  d 9.45% (189 of 2000) d+ 10.82%: t 0.6556, false alarm at 0.25 0.0479, caught at 1 0.9184 | normal: se 0.2451, t 0.6533, paths for d+ 16443
+  SHIP/0.02 d 0.85% (17 of 2000) d+ 1.36%: t 0.3944, false alarm at 0.25 0.0453, caught at 1 1.0000 | normal: se 0.0868, t 0.3929, paths for d+ 2064
+  APP/0.01  d 9.90% (198 of 2000) d+ 11.29%: t 0.6611, false alarm at 0.25 0.0492, caught at 1 0.9103 | normal: se 0.2505, t 0.6620, paths for d+ 17166
+  SHIP/0.01 d 1.35% (27 of 2000) d+ 1.96%: t 0.4222, false alarm at 0.25 0.0468, caught at 1 1.0000 | normal: se 0.1043, t 0.4216, paths for d+ 2977
+S356F  fire paths 17000
+  APP/0.02  d 9.10% (182 of 2000) d+ 10.45%: t 0.6588, false alarm at 0.25 0.0483, caught at 1 0.9139 | normal: se 0.2479, t 0.6578, paths for d+ 15879
+  SHIP/0.02 d 0.85% (17 of 2000) d+ 1.36%: t 0.4000, false alarm at 0.25 0.0438, caught at 1 1.0000 | normal: se 0.0894, t 0.3970, paths for d+ 2064
+  APP/0.01  d 9.60% (192 of 2000) d+ 10.98%: t 0.6706, false alarm at 0.25 0.0478, caught at 1 0.9007 | normal: se 0.2541, t 0.6680, paths for d+ 16684
+  SHIP/0.01 d 1.00% (20 of 2000) d+ 1.54%: t 0.4059, false alarm at 0.25 0.0478, caught at 1 1.0000 | normal: se 0.0952, t 0.4066, paths for d+ 2342
+S358F  fire paths 18000
+  APP/0.02  d 9.70% (194 of 2000) d+ 11.08%: t 0.6556, false alarm at 0.25 0.0499, caught at 1 0.9159 | normal: se 0.2481, t 0.6582, paths for d+ 16845
+  SHIP/0.02 d 1.55% (31 of 2000) d+ 2.19%: t 0.4333, false alarm at 0.25 0.0460, caught at 1 1.0000 | normal: se 0.1104, t 0.4316, paths for d+ 3334
+  APP/0.01  d 9.95% (199 of 2000) d+ 11.35%: t 0.6611, false alarm at 0.25 0.0496, caught at 1 0.9098 | normal: se 0.2511, t 0.6630, paths for d+ 17247
+  SHIP/0.01 d 1.80% (36 of 2000) d+ 2.48%: t 0.4444, false alarm at 0.25 0.0467, caught at 1 1.0000 | normal: se 0.1175, t 0.4432, paths for d+ 3775
+TOTAL: 40 households, 753000 paths a unit summed (18825 on average); households above 16,000: 27
+
+THE REGISTRATION'S TABLE (points; t, then the chance of a harm reading at a true 0.25 and 1-point loss)
+| household | paths | vs APP at 0.02 | vs APP at 0.01 | vs SHIP at 0.02 | vs SHIP at 0.01 |
+|---|---|---|---|---|---|
+| S026 | 20000 | 0.655 (0.050, 0.917) | 0.660 (0.050, 0.911) | 0.380 (0.046, 1.000) | 0.375 (0.048, 1.000) |
+| S030 | 16000 | 0.650 (0.049, 0.922) | 0.650 (0.048, 0.924) | 0.438 (0.045, 1.000) | 0.431 (0.045, 1.000) |
+| S040 | 20000 | 0.670 (0.048, 0.901) | 0.665 (0.050, 0.905) | 0.420 (0.045, 1.000) | 0.415 (0.045, 1.000) |
+| S050 | 25000 | 0.668 (0.049, 0.903) | 0.668 (0.050, 0.902) | 0.356 (0.048, 1.000) | 0.356 (0.045, 1.000) |
+| S062 | 22000 | 0.664 (0.049, 0.908) | 0.664 (0.049, 0.909) | 0.368 (0.050, 1.000) | 0.368 (0.045, 1.000) |
+| S074 | 22000 | 0.659 (0.049, 0.913) | 0.664 (0.048, 0.909) | 0.364 (0.044, 1.000) | 0.364 (0.044, 1.000) |
+| S090 | 16000 | 0.637 (0.050, 0.935) | 0.637 (0.049, 0.936) | 0.406 (0.045, 1.000) | 0.412 (0.049, 1.000) |
+| S096 | 24000 | 0.662 (0.049, 0.909) | 0.662 (0.050, 0.909) | 0.396 (0.048, 1.000) | 0.400 (0.046, 1.000) |
+| S108 | 22000 | 0.664 (0.050, 0.908) | 0.664 (0.050, 0.907) | 0.391 (0.050, 1.000) | 0.386 (0.049, 1.000) |
+| S132 | 21000 | 0.667 (0.049, 0.905) | 0.667 (0.049, 0.905) | 0.367 (0.043, 1.000) | 0.367 (0.043, 1.000) |
+| S164 | 18000 | 0.656 (0.049, 0.917) | 0.661 (0.049, 0.911) | 0.411 (0.050, 1.000) | 0.433 (0.046, 1.000) |
+| S188 | 25000 | 0.664 (0.049, 0.909) | 0.660 (0.050, 0.912) | 0.384 (0.048, 1.000) | 0.388 (0.049, 1.000) |
+| S204 | 21000 | 0.662 (0.049, 0.910) | 0.662 (0.050, 0.909) | 0.371 (0.045, 1.000) | 0.367 (0.043, 1.000) |
+| S228 | 21000 | 0.662 (0.049, 0.910) | 0.667 (0.048, 0.905) | 0.367 (0.043, 1.000) | 0.367 (0.043, 1.000) |
+| S244 | 19000 | 0.663 (0.050, 0.908) | 0.663 (0.050, 0.907) | 0.405 (0.046, 1.000) | 0.411 (0.049, 1.000) |
+| S260 | 16000 | 0.662 (0.050, 0.908) | 0.669 (0.049, 0.902) | 0.381 (0.046, 1.000) | 0.381 (0.046, 1.000) |
+| S272 | 16000 | 0.644 (0.049, 0.929) | 0.650 (0.049, 0.923) | 0.419 (0.049, 1.000) | 0.425 (0.046, 1.000) |
+| S290 | 19000 | 0.663 (0.049, 0.908) | 0.663 (0.050, 0.908) | 0.384 (0.045, 1.000) | 0.400 (0.045, 1.000) |
+| S368 | 26000 | 0.669 (0.049, 0.903) | 0.669 (0.049, 0.903) | 0.365 (0.045, 1.000) | 0.365 (0.045, 1.000) |
+| S384 | 23000 | 0.657 (0.050, 0.916) | 0.665 (0.049, 0.907) | 0.361 (0.044, 1.000) | 0.361 (0.044, 1.000) |
+| S304F | 19000 | 0.658 (0.049, 0.914) | 0.658 (0.049, 0.915) | 0.495 (0.047, 1.000) | 0.489 (0.049, 1.000) |
+| S306F | 16000 | 0.662 (0.048, 0.910) | 0.656 (0.048, 0.917) | 0.481 (0.046, 1.000) | 0.475 (0.048, 1.000) |
+| S308F | 20000 | 0.665 (0.049, 0.906) | 0.665 (0.048, 0.907) | 0.480 (0.049, 1.000) | 0.475 (0.049, 1.000) |
+| S310F | 17000 | 0.665 (0.049, 0.906) | 0.671 (0.048, 0.900) | 0.465 (0.049, 1.000) | 0.471 (0.046, 1.000) |
+| S314F | 17000 | 0.665 (0.049, 0.907) | 0.659 (0.050, 0.912) | 0.382 (0.047, 1.000) | 0.382 (0.047, 1.000) |
+| S316F | 16000 | 0.662 (0.049, 0.908) | 0.662 (0.048, 0.909) | 0.381 (0.046, 1.000) | 0.381 (0.046, 1.000) |
+| S320F | 16000 | 0.662 (0.048, 0.910) | 0.662 (0.048, 0.909) | 0.381 (0.046, 1.000) | 0.388 (0.046, 1.000) |
+| S322F | 16000 | 0.662 (0.048, 0.911) | 0.656 (0.049, 0.916) | 0.381 (0.046, 1.000) | 0.381 (0.046, 1.000) |
+| S326F | 16000 | 0.644 (0.049, 0.929) | 0.650 (0.048, 0.925) | 0.412 (0.049, 1.000) | 0.431 (0.045, 1.000) |
+| S328F | 16000 | 0.644 (0.049, 0.930) | 0.650 (0.048, 0.924) | 0.394 (0.048, 1.000) | 0.419 (0.046, 1.000) |
+| S332F | 16000 | 0.625 (0.049, 0.948) | 0.625 (0.050, 0.948) | 0.419 (0.046, 1.000) | 0.419 (0.049, 1.000) |
+| S334F | 16000 | 0.650 (0.048, 0.924) | 0.650 (0.049, 0.924) | 0.412 (0.046, 1.000) | 0.412 (0.049, 1.000) |
+| S338F | 19000 | 0.658 (0.049, 0.914) | 0.658 (0.048, 0.915) | 0.411 (0.049, 1.000) | 0.411 (0.049, 1.000) |
+| S340F | 17000 | 0.659 (0.049, 0.913) | 0.671 (0.048, 0.901) | 0.376 (0.047, 1.000) | 0.400 (0.047, 1.000) |
+| S344F | 16000 | 0.662 (0.048, 0.909) | 0.669 (0.048, 0.902) | 0.388 (0.046, 1.000) | 0.400 (0.045, 1.000) |
+| S346F | 17000 | 0.665 (0.048, 0.907) | 0.665 (0.049, 0.906) | 0.424 (0.048, 1.000) | 0.441 (0.048, 1.000) |
+| S350F | 18000 | 0.650 (0.050, 0.922) | 0.656 (0.050, 0.916) | 0.394 (0.049, 1.000) | 0.400 (0.050, 1.000) |
+| S352F | 18000 | 0.656 (0.048, 0.918) | 0.661 (0.049, 0.910) | 0.394 (0.045, 1.000) | 0.422 (0.047, 1.000) |
+| S356F | 17000 | 0.659 (0.048, 0.914) | 0.671 (0.048, 0.901) | 0.400 (0.044, 1.000) | 0.406 (0.048, 1.000) |
+| S358F | 18000 | 0.656 (0.050, 0.916) | 0.661 (0.050, 0.910) | 0.433 (0.046, 1.000) | 0.444 (0.047, 1.000) |
+THE BUDGET (D21), from the pilot's units on one host (Intel(R) Xeon(R) Processor @ 2.80GHz): 111.4 core-hours, about 27.9 hours on 4 cores (the solves 17.5, the engine 88.1); by arm: APP 0.1, CAND 83.4, SHIP 27.9; the longest unit 1.72 hours (S356F CAND/0.02)

@@ -141,20 +141,44 @@ function planted() {
     cases.push(['end to end through the pilot\'s units: the discordances read (APP 180 of 2,000, SHIP 40), sized at their upper bounds', `${S.out ? S.out.thresholds.H1['APP/0.02'].d.toFixed(4) : '-'} ${S.out ? S.out.paths.H1 : '-'}`, `${clopperPearson(180, n)[1].toFixed(4)} ${want.N}`]); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
+  // the check's generator (27 Oct): the old one, mulberry32, reads the false-alarm rate 3.7 se high at d 10.5%, N 16,000,
+  // 20,000 replicates; xoshiro128** within 3 se
+  { const t = thresholdFor(0.105, 16000), ex = harmRate(0.105, 16000, t, FP_LOSS), se = Math.sqrt(ex * (1 - ex) / 20000);
+    const zOld = (simulateRate(mulberry(12345), 0.105, 16000, t, FP_LOSS, 20000) - ex) / se, zNew = (simulateRate(xoshiro(12345), 0.105, 16000, t, FP_LOSS, 20000) - ex) / se;
+    cases.push(['the check\'s generator: mulberry32 caught off uniform (beyond 3 se), xoshiro128** within 3 se', `${Math.abs(zOld) > 3} ${Math.abs(zNew) < 3}`, 'true true']); }
   console.log('EDGES: no discordance, below the 1% a 1-point loss needs, a household above 10.5%, the threshold on the lattice, an unpriceable discordance');
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
   return bad;
 }
 
 /* the exact rates checked by simulation: R replicates of N paired paths */
+/* the check's generator: xoshiro128** seeded through splitmix32. The check used mulberry32 until 27 Oct, which over a stream
+   of 10^8 draws or more runs measurably off uniform here (d 10.5%, N 16,000, 20,000 replicates: the mean loss 41.15 paths
+   against 40, a false-alarm rate of 0.0555 against the exact 0.0498, where Math.random reads 0.0503); the exact sums agree with
+   a brute-force sum to five places. The planted case below shows the old generator caught and this one not */
+export function xoshiro(seed) {
+  let z = seed >>> 0; const sm = () => { z = (z + 0x9E3779B9) >>> 0; let x = z; x = Math.imul(x ^ (x >>> 16), 0x85EBCA6B) >>> 0; x = Math.imul(x ^ (x >>> 13), 0xC2B2AE35) >>> 0; return (x ^ (x >>> 16)) >>> 0; };
+  let a = sm(), b = sm(), c = sm(), d = sm();
+  return () => {
+    const r = Math.imul(((Math.imul(b, 5) << 7) | (Math.imul(b, 5) >>> 25)), 9) >>> 0, t = (b << 9) >>> 0;
+    c ^= a; d ^= b; b ^= c; a ^= d; c ^= t; d = ((d << 11) | (d >>> 21)) >>> 0; a >>>= 0; b >>>= 0; c >>>= 0;
+    return r / 4294967296;
+  };
+}
+export function mulberry(seed) { let x0 = seed | 0; return () => { x0 = (x0 + 0x6D2B79F5) | 0; let x = Math.imul(x0 ^ (x0 >>> 15), 1 | x0); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; }
+/* the share of R replicates (N paths, discordance d, a true loss D) whose observed loss is above t, drawn with rnd */
+export function simulateRate(rnd, d, N, t, D, R) {
+  const pl = d / 2 + D / 200, j = Math.round(t * N / 100); let hits = 0;
+  for (let r = 0; r < R; r++) { let s = 0; for (let i = 0; i < N; i++) { const u = rnd(); if (u < pl) s++; else if (u < d) s--; } if (s > j) hits++; }
+  return hits / R;
+}
 function check() {
-  let seed = 7002; const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+  const rnd = xoshiro(7002);
   for (const [d, N] of [[0.05, 16000], [0.105, 16000], [0.2, 32000]]) {
-    const t = thresholdFor(d, N), R = 2000;
+    const t = thresholdFor(d, N), R = 5000;
     for (const D of [FP_LOSS, TP_LOSS]) {
-      const pl = d / 2 + D / 200; let hits = 0;
-      for (let r = 0; r < R; r++) { let s = 0; for (let i = 0; i < N; i++) { const u = rnd(); if (u < pl) s++; else if (u < d) s--; } if (100 * s / N > t) hits++; }
-      console.log(`  d ${(100 * d).toFixed(1)}% N ${N} t ${t.toFixed(4)} true loss ${D}: exact ${harmRate(d, N, t, D).toFixed(4)}, simulated ${(hits / R).toFixed(4)} (${R} replicates, se ${Math.sqrt(harmRate(d, N, t, D) * (1 - harmRate(d, N, t, D)) / R).toFixed(4)})`);
+      const ex = harmRate(d, N, t, D), sim = simulateRate(rnd, d, N, t, D, R), se = Math.sqrt(ex * (1 - ex) / R);
+      console.log(`  d ${(100 * d).toFixed(1)}% N ${N} t ${t.toFixed(4)} true loss ${D}: exact ${ex.toFixed(4)}, simulated ${sim.toFixed(4)} (${R} replicates, xoshiro128**, se ${se.toFixed(4)}; ${((sim - ex) / se).toFixed(2)} se)`);
     }
   }
 }

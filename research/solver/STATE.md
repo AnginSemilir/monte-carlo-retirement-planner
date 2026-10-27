@@ -287,7 +287,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Nothing. Phase 4's panel was landed afresh (D36) on 27 Oct, 07:03 to 07:06 UK, every household at the first pass (`results/p4-land-log.txt`); the fresh pilot starts after this commit. Set aside unread under D36: the first pilot (`results/p4-pilot-discarded`) and the landing before (`results/p4-land-discarded/with-tournament`).
+- Phase 4's fresh pilot (EXPLORATORY, seed 7002, 2,000 paths, every unit of the new panel; D34's sizing, D21's budget): from 27 Oct 07:52 UK as task bq7cumk1q, `results/p4-pilot-log.txt`. The panel was landed afresh (D36) 07:03 to 07:06 UK, every household at the first pass; set aside unread under D36: the first pilot (`results/p4-pilot-discarded`) and the landing before (`results/p4-land-discarded/with-tournament`).
 
 ## 6. The next three actions
 

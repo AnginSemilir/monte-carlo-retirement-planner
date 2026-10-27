@@ -324,3 +324,4 @@
 25 Oct 11:17 UK | main | none: the third tier step's factorial, exploratory (D28) | code ae49ee6bcedd | e768b9e | load 1.05 1.18 1.75 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4t3.sh
 25 Oct 23:25 UK | main | none: the table without the dealing cost, checked, exploratory (D30) | code 099f3d87698d | 2eee631 | load 2.04 2.37 2.82 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-n4nd.sh
 26 Oct 11:13 UK | main | none: gate 5, a measurement (D11, D25, D26; the candidate as D30 and D31 left it) | code fbf09b414864 | d843d3c | load 1.06 1.07 1.23 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-gate5.sh
+27 Oct 20:17 UK | main | research/solver/registrations/phase-4.md | code 1d9d47c96f47 | 5acd43d | load 1.03 1.09 1.20 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-phase4.sh

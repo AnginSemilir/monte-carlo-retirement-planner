@@ -295,5 +295,5 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. Phase 4 (D33 to D37), on fcd8096217b7, registered (`registrations/phase-4.md`, the re-review's PASS): the launch on seed 7003 at D37's budget
    (two relaunches under `RESUME=1` at the harness's 12 hours), then the read by `reduce-phase4.mjs`, once.
-2. For the maintainer (protected files, "unlock enforcement"): the CHECKLIST 1 wording the reviewers proposed; `bed-sipp.test.mjs` into the fast suite.
+2. The maintainer's unlock of 27 Oct (20:30 UK): CHECKLIST 1 amended (done); `bed-sipp.test.mjs` and `phase4-audit.test.mjs` join FAST once Phase 4's units are in.
 3. After Phase 4's read (the reviewer, then the deep review): D37's windfall item and the solver's own lump-sum choice (`solveBoth`; re-review minor 1) sized.

@@ -1,4 +1,4 @@
-1. Exploratory runs need no registration. Label them EXPLORATORY. They cannot change a default, a gate or the candidate.
+1. Exploratory runs need no registration. Label them EXPLORATORY. They cannot change a default, a gate or the candidate, except by a maintainer's ruling naming the run.
 2. A confirmatory run (7u-F, Phase 4, any change of default) has a one-page registration committed before launch (`registrations/`: question, arms (configuration hashes), households, held-out seed, paths, primary metric, decision rule, what each outcome decides). It is launched through `run-from-snapshot.sh` and read once, by that rule.
 3. Every comparison is paired on the same paths and passes the fair-test diff of the settings each run recorded.
 4. After any edit to src/solver, the fast verification suite (`node research/tests/run-all.mjs fast`: V1, V2 and the unit tests) passes before any batch.

@@ -1,0 +1,17 @@
+{
+ "S302F": {
+  "target": 15100,
+  "survival": 83.2,
+  "steps": 8
+ },
+ "S330F": {
+  "target": 57200,
+  "survival": 85.8,
+  "steps": 6
+ },
+ "S342F": {
+  "target": 50900,
+  "survival": 86,
+  "steps": 3
+ }
+}

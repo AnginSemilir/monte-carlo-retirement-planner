@@ -14,7 +14,7 @@ OUT=research/solver/results/diagp4
 mkdir -p "$OUT"
 if [ -n "$(ls -A "$OUT")" ] && [ "${RESUME:-0}" != 1 ]; then echo "batch-phase4: $OUT is not empty; a launch needs an empty folder (RESUME=1 keeps the units done on this code)"; exit 2; fi
 CODE=$(node research/solver/code-id.mjs)
-AUDIT=$(cat research/solver/audit-phase4.mjs research/solver/phase4-panel.mjs research/solver/phase4-panel.json research/solver/phase4-paths.json | sha256sum | cut -c1-12)   # audit-phase4.mjs's own stamp
+AUDIT=$(cd research/solver && cat audit-phase4.mjs phase4-panel.mjs select-phase4.mjs candidate.mjs audit-7uf-checks.mjs size-phase4.mjs phase4-orders.json phase4-panel.json phase4-paths.json | sha256sum | cut -c1-12)   # audit-phase4.mjs's own stamp (its STAMP_FILES, in order)
 NU=$(node research/solver/audit-phase4.mjs --units | tail -1)
 TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && grep -qE '^ +done ' "$f"; } || echo "$k"; done)
 echo "Phase 4: $NU units on seed 7003 (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, from $(TZ=Europe/London date '+%d %b %H:%M') UK"

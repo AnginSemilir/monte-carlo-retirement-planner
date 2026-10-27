@@ -3514,11 +3514,16 @@ function bedAndSippFor(ctx, alloc, spare, scope) {
   if (scope !== 'full' || !(spare > 0)) return null;
   const o = owners[0];
   const isaSelfBal = acc[o.ids.isa] ? acc[o.ids.isa].balance : 0;
-  const aaRoom = Math.max(0, Math.min(P.aaAt(o.salary), o.salary > 0 ? o.salary : P.pensionAllowance) - alloc.penByOwner[0]);
+  // relief is due on contributions up to the person's relevant UK earnings, or the no-earnings limit where they have less
+  // (wrapperHeadroomAtYear's rule; a blank salary while still working leaves it unconstrained); a non-earner gets the
+  // basic rate at source and nothing to reclaim (it gave £60,000 relieved at the higher rate, the review of 27 Oct)
+  const earnings = relevantEarningsAtYear(ctx, o, 0), retired = o.age0 >= o.retireAge;
+  const cap = (!retired && o.salary <= 0 && earnings <= 0) ? P.aaAt(earnings) : Math.min(P.aaAt(earnings), Math.max(P.pensionNoEarningsLimit, earnings));
+  const aaRoom = Math.max(0, cap - alloc.penByOwner[0]);
   const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
   if (!(gross > 250)) return null;
   const net = gross * (1 - P.reliefAtSource);
-  const reliefTotal = o.salary > 0 ? incomeTax(o.salary, P) - incomeTax(Math.max(0, o.salary - gross), P) : gross * P.higherRate;
+  const reliefTotal = earnings > 0 ? incomeTax(earnings, P) - incomeTax(Math.max(0, earnings - gross), P) : gross * P.reliefAtSource;
   const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
   return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
 }

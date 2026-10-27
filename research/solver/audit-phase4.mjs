@@ -3,8 +3,9 @@
  * (registrations/phase-4.md; phase4-panel.mjs, phase4-panel.json; STATE.md D33 to D35, D34 the harm rule).
  * Per household of the panel, its plan (phase4-panel.mjs planOf: the landed target, the floor at 80%, the minimum pot written
  * in, the candidate's return assumptions on every arm), and per unit:
- *   APP      arm A, the app's rules: its policy search then its tournament (searched on seed 7001), guardrails on, the
- *            lookahead at 5 years, raises capped at 110% (phase4-panel.mjs appPlan, select-phase4.mjs armA);
+ *   APP      arm A, the app's rules: its withdrawal-policy search on the household's own plan (searched on seed 7001; no
+ *            tournament, D36), guardrails on, the lookahead at 5 years, raises capped at 110% (phase4-panel.mjs appPlan,
+ *            select-phase4.mjs armA);
  *   CAND/W   the candidate (fcd8096217b7) at 45 wealth points (D26) and the estate weight W, its table executed by the engine;
  *            at W 0.02, on a household with retired years before pension access, also FIXBR (7q, D35): the same table, but in
  *            each of those years the engine takes arm A's withdrawal policy at the household's own tiers and its target;
@@ -15,13 +16,19 @@
  *     estate (net, as the engine nets it), wealth at the end, spending delivered over every year (what was spent less what
  *     could not be met), unmet spending, lifetime tax, the year it failed, and each year's spend as a share of the year's
  *     target (the whole score's inputs);
- *   - REPL paths of seed 7018 (the replication, D35), the same arrays; FIXBR on the first FIXBR_PATHS paths of the seed;
+ *   - REPL paths of seed 7018 (the replication, D35), from its path REPL_SKIP on, the same arrays (any other run stands in on
+ *     STANDIN_REPL); FIXBR on the first FIXBR_PATHS paths of the seed;
  *   - on APP and CAND/0.02: the three perturbed worlds on the first ROB paths of the seed (returns a point lower on every
  *     tier; each year's shock a quarter larger; a negative shock 30% larger: experiment.mjs worldOf's three), and every
- *     historical start year from 1928 to 1995 (the engine's real returns, its expected return after 2025): survival only.
+ *     historical start year from 1928 to 1995 (the engine's real returns, its expected return after 2025): survival and the
+ *     spending delivered.
  * Every path is the engine's own stepYear, year by year (runPath), held to E.runTrial on the first CHECK paths of every run
- * (survival, net estate, unmet spending and tax the same). Each unit's arrays go to results/diagp4 (P4_OUT), stamped with the
- * code, this file, the panel, the paths file, the registration and the Node version.
+ * (survival, net estate, unmet spending and tax the same); on the solver arms, runPolicy beside the engine on the first
+ * BESIDE paths (7u-F's fidelity check). Every unit records its engine context's inputs hash (inputsHash: every field but the
+ * policy's own, so a household's five units can be held to one plan), the target the engine ran and, on the solver arms,
+ * the bridge years the reader read. Each unit's arrays go to results/diagp4 (P4_OUT), stamped with the code, the files in
+ * STAMP_FILES, the registration and the Node version; the host's CPU in each unit. The registered run refuses to start
+ * but under registrations/phase-4.md through the launcher; any other run refuses seeds 7003 and 7018.
  *   node research/solver/audit-phase4.mjs registered part k/n         the registered run (seed 7003, each household's paths)
  *   node research/solver/audit-phase4.mjs <paths> part k/n <seed>     the pilot (P4_PILOT=1: no replication, worlds or history)
  *   node research/solver/audit-phase4.mjs --units                     the unit count
@@ -31,7 +38,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solvePlan } from '../../src/solver/solve.js';
+import { solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { withTable, tablePolicy } from '../../src/solver/bridge.js';
 import { solveCandidate, candidatePlan, CANDIDATE_HASH } from './candidate.mjs';
 import { readPanel, appPlan, PANEL_FILE } from './phase4-panel.mjs';
@@ -40,6 +47,7 @@ import { ctxProblem, planHash } from './audit-7uf-checks.mjs';
 import { codeId } from './code-id.mjs';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { cpus } from 'node:os';
 import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,9 +55,25 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const SEED = 7003, REPL_SEED = 7018, PILOT_SEED = 7002, CAND_PTS = 45, SHIP_PTS = 30, LAMBDA = 0.0223606797749979;
+/* the replication skips 7018's first REPL_SKIP paths, which a smoke run of 26 Oct scored (S024's APP and SHIP units, S304F's
+   five); a run other than the registered one never reads 7018: its replication stands in on STANDIN_REPL (an exploratory seed) */
+export const REPL_SKIP = 200, STANDIN_REPL = 99001;
 export const WEIGHTS = ['0.02', '0.01'], REPL_PATHS = 4000, ROB_PATHS = 2000, FIXBR_PATHS = 8000, CHECK = 200, HIST = [1928, 1995];
 export const WORLDS = ['return-1', 'vol+25', 'left-tail'], CANDIDATE = 'fcd8096217b7';
-export const PATHS_FILE = join(HERE, 'phase4-paths.json');
+export const PATHS_FILE = join(HERE, 'phase4-paths.json'), REGISTRATION = 'research/solver/registrations/phase-4.md', BESIDE = 2000;
+/* the files the audit's stamp hashes, in this order (batch-phase4.sh's AUDIT hashes the same list): this file, the panel and
+   arm A's code, the candidate, the context check, the sizing the reducer reads, the frozen orders, the panel, the paths */
+export const STAMP_FILES = ['audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'audit-7uf-checks.mjs', 'size-phase4.mjs', 'phase4-orders.json', 'phase4-panel.json', 'phase4-paths.json'];
+/* what a household's arms must share (D36): each arm's engine context, but for the policy's own fields (the draw order,
+   the harvest, the lump sum, the deposit order, the guardrails, the lookahead and the raise cap): the accounts, their
+   balances, contributions and returns, the people, the target, the floor, the minimum pot and the dated flows */
+const INPUT_KEYS = ['isCouple', 'ageSelf0', 'agePart0', 'terminalAge', 'totalYears', 'nmpa', 'spa', 'targetSpend', 'spendBands', 'pensionDeathTaxRate', 'cashBufferYears', 'solvencyFloor', 'floorSpend', 'floorFrac', 'floorConfidence', 'inflation', 'baseYear', 'valuationDate', 'otherIncomes', 'oneOffContribs', 'oneOffCosts', 'oneOffDeductions', 'stagedTransfers', 'oneOffStaging'];
+export function inputsHash(ctx) {
+  const rep = (k, v) => (v instanceof Map ? { Map: [...v.entries()] } : v instanceof Set ? { Set: [...v] } : v);
+  const acc = ctx.accounts.map(a => [a.id, a.cat, a.owner, a.balance, a.unrealisedGain, a.contrib, a.growth, a.contribByYear, a.risk, a.real, a.vol, a.sigmaParam, a.equityWeight, a.isCash]);
+  const own = ctx.owners.map(o => [o.key, o.age0, o.retireAge, o.salary, o.salaryGrowth, o.selfEmployed, o.cgtGainsUsed, o.cfBroughtForward, o.mpaaAge, o.statePension, o.cashIsa0, o.cashIsaContrib]);
+  return createHash('sha256').update(JSON.stringify([acc, own, INPUT_KEYS.map(k => [k, ctx[k]]), ctx.P.region], rep)).digest('hex').slice(0, 12);
+}
 /* the units, the longest first: CAND at both weights, then SHIP, then APP */
 export const unitsOf = ids => [...ids.flatMap(id => WEIGHTS.map(w => [id, 'CAND', w])), ...ids.flatMap(id => WEIGHTS.map(w => [id, 'SHIP', w])), ...ids.map(id => [id, 'APP', '-'])];
 export const fileOf = (id, arm, w) => `${id}-${arm.toLowerCase()}-w${w}.json.gz`;
@@ -72,13 +96,16 @@ export function runPath(ctx, zs, keep = true) {
   const estate = Math.max(0, wealth - Math.max(0, last.pensions) * ctx.pensionDeathTaxRate);
   return { survived: !failed, failYear, wealth, estate, unmet, tax, delivered, level };
 }
-/* survival on a historical sequence (E.simulateHistorical, the same failure rule) */
-export function historicalSurvives(ctx, startYear) {
+/* survival and the spending delivered on a historical sequence (E.simulateHistorical, the same failure rule and sum as runPath) */
+export function historicalRun(ctx, startYear) {
   const rows = E.simulateHistorical(ctx, startYear);
-  let failed = false;
-  for (const row of rows) if (row.unmetDemand > E.FAIL_TOLERANCE || row.preNmpaInsolvent) { failed = true; break; }
+  let failed = false, delivered = 0;
+  for (const row of rows) {
+    if (row.targetSpend > 0) delivered += Math.max(0, row.targetSpend - Math.max(0, row.unmetDemand || 0));
+    if (row.unmetDemand > E.FAIL_TOLERANCE || row.preNmpaInsolvent) failed = true;
+  }
   const last = rows[rows.length - 1];
-  return !failed && !(ctx.solvencyFloor > 0 && Math.max(0, last.totalCombined) < ctx.solvencyFloor);
+  return { survived: !failed && !(ctx.solvencyFloor > 0 && Math.max(0, last.totalCombined) < ctx.solvencyFloor), delivered };
 }
 /* the perturbed worlds: the plan's returns a point lower, or each year's shock transformed (the path's own shift kept) */
 export const perturbPlan = (plan, world) => (world !== 'return-1' ? plan : { ...plan, riskProfiles: Object.fromEntries(Object.entries(plan.riskProfiles).map(([k, p]) => [k, { ...p, real: E.num(p.real, 0) - 1 }])) });
@@ -107,25 +134,26 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const part = process.argv[3] === 'part' ? process.argv[4] : '0/1', [pk, pn] = part.split('/').map(Number);
   const SEED_RUN = REGISTERED ? SEED : Number(process.argv[5] || PILOT_SEED);
   if (REGISTERED && (PILOT || ONLY || ONLY_W || ONLY_ARMS || process.env.P4_PANEL || process.env.P4_PTS)) { console.error('audit-phase4: the registered run takes no P4_PILOT, P4_ONLY, P4_W, P4_ARMS, P4_PANEL or P4_PTS'); process.exit(2); }
-  if (!REGISTERED && SEED_RUN === SEED) { console.error('audit-phase4: seed 7003 runs only as the registered run'); process.exit(2); }
+  if (!REGISTERED && (SEED_RUN === SEED || SEED_RUN === REPL_SEED)) { console.error('audit-phase4: seeds 7003 and 7018 run only as the registered run'); process.exit(2); }
+  if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-phase4: the registered run runs only under its registration through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
   const PATHS = REGISTERED ? JSON.parse(readFileSync(PATHS_FILE, 'utf8')).paths : null;
   const nOf = id => (REGISTERED ? PATHS[id] : Number(process.argv[2]));
   if (!(pn >= 1 && pk >= 0 && pk < pn) || UNITS.some(([id]) => !(nOf(id) >= 1))) { console.error(`audit-phase4: bad paths or part (${process.argv.slice(2, 6).join(' ')})`); process.exit(2); }
   if (CANDIDATE_HASH !== CANDIDATE) { console.error(`audit-phase4: the candidate is ${CANDIDATE_HASH}, not Phase 4's ${CANDIDATE}`); process.exit(2); }
   const small = k => (REGISTERED || process.env[k] === undefined ? null : Number(process.env[k]));   // a smoke test's counts (P4_REPL, P4_ROB)
-  const NR = PILOT ? 0 : small('P4_REPL') ?? REPL_PATHS, NROB = PILOT ? 0 : small('P4_ROB') ?? ROB_PATHS, HISTY = PILOT ? [] : Array.from({ length: HIST[1] - HIST[0] + 1 }, (_, i) => HIST[0] + i);
+  const NR = PILOT ? 0 : small('P4_REPL') ?? REPL_PATHS, RSEED = REGISTERED ? REPL_SEED : STANDIN_REPL, RSKIP = REGISTERED ? REPL_SKIP : 0, NROB = PILOT ? 0 : small('P4_ROB') ?? ROB_PATHS, HISTY = PILOT ? [] : Array.from({ length: HIST[1] - HIST[0] + 1 }, (_, i) => HIST[0] + i);
   const OUT = process.env.P4_OUT || join(HERE, 'results', REGISTERED ? 'diagp4' : 'p4-pilot');
   mkdirSync(OUT, { recursive: true });
 
   const STAMP = (() => {
-    const h = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).update(readFileSync(join(HERE, 'phase4-panel.mjs'))).update(readFileSync(PANEL_FILE));
-    if (existsSync(PATHS_FILE)) h.update(readFileSync(PATHS_FILE));
+    const h = createHash('sha256');
+    for (const f of STAMP_FILES) { const p = f === 'phase4-panel.json' ? PANEL_FILE : join(HERE, f); if (existsSync(p)) h.update(readFileSync(p)); }
     const cid = codeId();
     return { code: cid ? cid.hash : 'unknown', audit: h.digest('hex').slice(0, 12), candidate: CANDIDATE_HASH, prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   })();
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
   console.log(`candidate: ${STAMP.candidate} node ${STAMP.node}`);
-  console.log(`PHASE 4${REGISTERED ? '' : PILOT ? ' (THE PILOT)' : ' (A PREFLIGHT)'}: APP (the app's rules), CAND (${CANDIDATE_HASH}, ${CAND_PTS} points) and SHIP (the product's settings, ${SHIP_PTS} points) at the estate weights ${WEIGHTS.join(' and ')}, FIXBR beside CAND/0.02; seed ${SEED_RUN}${NR ? `, the replication ${NR} paths of ${REPL_SEED}` : ''}${NROB ? `, the worlds on ${NROB}, history ${HIST.join(' to ')}` : ''}; ${UNITS.length} units; part ${part}`);
+  console.log(`PHASE 4${REGISTERED ? '' : PILOT ? ' (THE PILOT)' : ' (A PREFLIGHT)'}: APP (the app's rules), CAND (${CANDIDATE_HASH}, ${CAND_PTS} points) and SHIP (the product's settings, ${SHIP_PTS} points) at the estate weights ${WEIGHTS.join(' and ')}, FIXBR beside CAND/0.02; seed ${SEED_RUN}${NR ? `, the replication ${NR} paths of ${RSEED} from its path ${RSKIP}` : ''}${NROB ? `, the worlds on ${NROB}, history ${HIST.join(' to ')}` : ''}; ${UNITS.length} units; part ${part}`);
 
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
@@ -155,9 +183,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const h = byId[id], N = nOf(id), L = `${arm}${w === '-' ? '' : `/W${w}`}`, base = h.plan, t0 = Date.now();
     console.log(`${id.padEnd(8)} case | unit ${L} | cohort ${h.cohort} target ${h.target} paths ${N}`);
     // arm A runs on every unit: APP's own plan, and FIXBR's policy on CAND/0.02 (deterministic: its search seed is fixed)
-    const a = armA(appPlan(base)), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy, harvest: !!a.planState.config.harvestPersonalAllowance };
+    const a = armA(appPlan(base), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy, harvest: !!a.planState.config.harvestPersonalAllowance };
     if (a.label !== h.label) { console.error(`audit-phase4: ${id}: arm A's pick ${a.label} differs from the landing's ${h.label}`); process.exit(3); }
-    let ctx, r = null, solveSecs = 0, ran;
+    let ctx, r = null, solveSecs = 0, ran, readerYears = null;
     if (arm === 'APP') {
       ctx = E.buildContext(E.resolveMpaa(a.planState));
       const reals = ctx.accounts.map(x => `${x.risk}:${(100 * x.real).toFixed(4)}`).join(','), want = ctx.accounts.map(x => `${x.risk}:${E.num(base.riskProfiles[x.risk].real, 0).toFixed(4)}`).join(',');
@@ -180,12 +208,25 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       { const strip = x => { const { tierProfiles, ...rest } = x; return rest; }, cp = ctxProblem(strip(ctx), strip(r.m.ctx));
         const tp = ['pen', 'isa'].filter(k => r.c.tiers[k] && ctx.tierProfiles[`${k}_self`] && r.c.tiers[k].some((p, j) => !ctx.tierProfiles[`${k}_self`][j] || ctx.tierProfiles[`${k}_self`][j].name !== p.name));
         if (cp || tp.length) { console.error(`audit-phase4: ${id} ${L}: ${cp || `the engine's ${tp.join(' and ')} tiers do not begin with the table's`}`); process.exit(3); } }
+      const rd = (r.mix ? r.mix.tables[0].g : r.g).reader;
+      readerYears = rd ? Array.from(rd.years).reduce((s, x) => s + x, 0) : 0;
     }
-    const T = ctx.totalYears, Y = T + 1, bridge = retiredBridgeYears(ctx);
+    const T = ctx.totalYears, Y = T + 1, bridge = retiredBridgeYears(ctx), inputs = inputsHash(ctx);
+    ran += ` inputs ${inputs}${readerYears !== null ? ` readerYears ${readerYears}` : ''}`;
     console.log(`${''.padEnd(8)} ran ${L}: ${ran}${solveSecs ? ` | solve secs ${Math.round(solveSecs)}` : ''}`);
     const e0 = Date.now(), main = runAll(ctx, E.pathsForSeed(SEED_RUN, N, T), Y, `${id} ${L}`), eSecs = (Date.now() - e0) / 1000;
-    const repl = NR ? runAll(ctx, E.pathsForSeed(REPL_SEED, NR, T), Y, `${id} ${L} replication`) : null;
+    const repl = NR ? runAll(ctx, E.pathsForSeed(RSEED, RSKIP + NR, T).slice(RSKIP), Y, `${id} ${L} replication`) : null;
     console.log(`${''.padEnd(8)} run ${L}: engine ${surv(main).toFixed(4)} on ${N}${repl ? `, replication ${surv(repl).toFixed(4)} on ${NR}` : ''}; engine secs ${Math.round(eSecs)} (${(1000 * eSecs / N).toFixed(1)} ms a path)`);
+    // runPolicy beside the engine on the first BESIDE paths of each solver arm (7u-F's fidelity check; the review of 27 Oct,
+    // finding 9): a path one survives and the other does not is a fidelity gap, reported
+    let beside = null;
+    if (r) {
+      const NB = Math.min(N, BESIDE), bp = E.pathsForSeed(SEED_RUN, NB, T), pb = new Uint8Array(NB);
+      let engineOnly = 0, policyOnly = 0;
+      bp.forEach((zs, k) => { pb[k] = runPolicy(r, Float64Array.from(zs)).survived ? 1 : 0; if (main.survived[k] && !pb[k]) engineOnly++; if (pb[k] && !main.survived[k]) policyOnly++; });
+      beside = { N: NB, survived: b64(pb), engineOnly, policyOnly };
+      console.log(`${''.padEnd(8)} beside ${L}: runPolicy ${(100 * pb.reduce((x, y) => x + y, 0) / NB).toFixed(4)} on ${NB}; the engine alone ${engineOnly}, runPolicy alone ${policyOnly}`);
+    }
     // FIXBR beside CAND/0.02 on a household with retired years before access
     let fixbr = null;
     if (arm === 'CAND' && w === '0.02' && bridge > 0) {
@@ -201,20 +242,22 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       const planOf = world => (arm === 'APP' ? E.resolveMpaa(perturbPlan(a.planState, world)) : withTable(perturbPlan(r.m.ctx.plan, world), r));
       const rp = E.pathsForSeed(SEED_RUN, NROB, T);
       for (const world of WORLDS) {
-        const wctx = E.buildContext(planOf(world)), bits = new Uint8Array(NROB);
-        rp.forEach((zs, k) => { bits[k] = runPath(wctx, perturbPath(Float64Array.from(zs), Y, world), false).survived ? 1 : 0; });
-        worlds[world] = b64(bits);
+        const wctx = E.buildContext(planOf(world)), bits = new Uint8Array(NROB), spend = new Float32Array(NROB);
+        rp.forEach((zs, k) => { const o = runPath(wctx, perturbPath(Float64Array.from(zs), Y, world), false); bits[k] = o.survived ? 1 : 0; spend[k] = o.delivered; });
+        worlds[world] = b64(bits); worlds[`${world}:delivered`] = b64(spend);
         console.log(`${''.padEnd(8)} world ${L} ${world}: engine ${(100 * bits.reduce((x, y) => x + y, 0) / NROB).toFixed(4)} on ${NROB}`);
       }
-      const hb = new Uint8Array(HISTY.length); HISTY.forEach((y, k) => { hb[k] = historicalSurvives(ctx, y) ? 1 : 0; });
-      hist.first = HISTY[0]; hist.bits = b64(hb);
+      const hb = new Uint8Array(HISTY.length), hd = new Float32Array(HISTY.length); HISTY.forEach((y, k) => { const o = historicalRun(ctx, y); hb[k] = o.survived ? 1 : 0; hd[k] = o.delivered; });
+      hist.first = HISTY[0]; hist.bits = b64(hb); hist.delivered = b64(hd);
       console.log(`${''.padEnd(8)} history ${L}: ${hb.reduce((x, y) => x + y, 0)} of ${HISTY.length} start years survive`);
     }
     const scale = Math.round(Math.max(1, (r ? r.m.ctx.accounts : ctx.accounts).reduce((t, x) => t + x.balance, 0)));
-    writeFileSync(join(OUT, fileOf(id, arm, w)), gzipSync(JSON.stringify({ id, arm, w, cohort: h.cohort, target: h.target, stamp: STAMP, ran, seed: SEED_RUN, N, Y, bridge,
-      solveSecs, engineSecs: eSecs, secs: (Date.now() - t0) / 1000, label: a.label,
+    // the target the engine ran (its context's, not the panel's), the inputs' hash, and the host (kept out of the stamp, which
+    // must be one across the run; the budget names the hosts)
+    writeFileSync(join(OUT, fileOf(id, arm, w)), gzipSync(JSON.stringify({ id, arm, w, cohort: h.cohort, target: ctx.targetSpend, inputs, readerYears, stamp: STAMP, ran, seed: SEED_RUN, N, Y, bridge,
+      solveSecs, engineSecs: eSecs, secs: (Date.now() - t0) / 1000, label: a.label, cpu: cpus()[0].model, beside,
       score: { lambda: LAMBDA, floor: r ? Math.min(...r.levelOf) : 0.8, scale, cap: r ? r.meta.bequestCap : null, death: ctx.pensionDeathTaxRate },
-      main: pack(main), repl: repl ? { seed: REPL_SEED, N: NR, ...pack(repl) } : null, fixbr, worlds: Object.keys(worlds).length ? { N: NROB, ...worlds } : null, hist: hist.bits ? hist : null })));
+      main: pack(main), repl: repl ? { seed: RSEED, skip: RSKIP, N: NR, ...pack(repl) } : null, fixbr, worlds: Object.keys(worlds).length ? { N: NROB, ...worlds } : null, hist: hist.bits ? hist : null })));
     console.log(`${''.padEnd(8)} done ${L} secs ${Math.round((Date.now() - t0) / 1000)}`);
   });
 }

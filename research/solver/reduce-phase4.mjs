@@ -4,9 +4,16 @@
  *     registration unedited since, one code across the logs;
  *   - the units: every household of phase4-panel.json in every arm (APP; CAND and SHIP at 0.02 and 0.01), one code, one
  *     audit, the candidate fcd8096217b7 and one Node version on every unit, seed 7003 on each household's registered paths
- *     (phase4-paths.json), the replication on 4,000 paths of 7018, the three worlds on 2,000 paths and history on APP and
+ *     (phase4-paths.json), the replication on 4,000 paths of 7018 from its path 200 (a smoke run scored the first 200), the three worlds on 2,000 paths and history on APP and
  *     CAND/0.02, FIXBR on CAND/0.02 (the first 8,000 paths) exactly where the household has retired years before access, each arm's settings as
- *     Phase 4's, and the household's target, minimum pot and horizon the same in every arm.
+ *     Phase 4's, and the household's target (the engine's), minimum pot and horizon the same in every arm;
+ *   - the plan (D36): a household's five units on one inputs hash (each engine context but the policy's own fields), so the
+ *     arms differ in the decumulation rule alone;
+ *   - each unit's stamp under the registration, its code, audit and registration blob the logs' own;
+ *   - the fair-test diff of the settings each run recorded (CHECKLIST 3): a weight's CAND and SHIP share the plan, the inputs,
+ *     the minimum pot, the levels, the mixture, the cost weight, the raise weight, the final year and the estate weight; an
+ *     arm's two weights differ in the estate weight alone; APP's minimum pot the solver's;
+ *   - runPolicy beside the engine on the first 2,000 paths of each solver unit (the fidelity gaps are reported).
  * THE DECISION, at each estate weight (both must pass), on the first 16,000 paths of every household, each path's change
  * averaged over the 40 households and the 95% interval taken from the spread across paths (path i draws the same shocks
  * for every household):
@@ -21,10 +28,13 @@
  *   - harm against the app's rules and against SHIP, per household and weight: the observed loss over the household's
  *     paths above its registered threshold (phase4-paths.json, by D34);
  *   - spending: a household delivering more than 5% less over every year than under the app's rules.
- * REPORTED: the whole score on every path (the solver's objective at the weight, the app's rules scored the same way),
- *   the estate, unmet spending, tax, the years below target, the end wealth's median and unlucky tenth; FIXBR less CAND
- *   (7q, D35); the three worlds and history (D35); the replication on 7018 (A1, A2 and S1 again); each household's
- *   discordance as realised and D34's rates at it; the solve times (under the run's load).
+ * REPORTED (no survival figure without the spending delivered beside it): the whole score on every path (the solver's
+ *   objective at the weight, the app's rules scored the same way); spending delivered CAND less SHIP, pooled and per
+ *   household; S1 over the library cohort, over the households whose reader reads no bridge year, and the count of
+ *   households with an observed loss against SHIP; the estate, unmet spending, tax, the years below target, the end
+ *   wealth's median and unlucky tenth; FIXBR less CAND (7q, D35); the three worlds and history (D35; the return a point
+ *   lower carries D20 (9)'s sensitivity to the returns); the replication on 7018 (A1, A2 and S1 again); each household's
+ *   discordance as realised and D34's rates at it; the fidelity gaps (runPolicy beside); the solve times and the hosts.
  *   node research/solver/reduce-phase4.mjs [dir] > research/solver/results-phase4.txt
  *   node research/solver/reduce-phase4.mjs --planted
  */
@@ -33,12 +43,16 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { harmRate } from './size-phase4.mjs';
+import { LOG_STAMP } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const REGISTRATION = 'research/solver/registrations/phase-4.md';
 export const WEIGHTS = ['0.02', '0.01'], ARMS = ['APP/-', 'CAND/0.02', 'CAND/0.01', 'SHIP/0.02', 'SHIP/0.01'];
 export const POOL = 16000, A1_BAR = 0, A2_BAR = -1, S1_BAR = -0.1, SPEND_FLAG = -5, MU = 0.003, Z = 1.959963984540054;
-export const SEED = 7003, REPL = { seed: 7018, N: 4000 }, ROB_N = 2000, FIXBR_N = 8000, CANDIDATE = 'fcd8096217b7', WORLDS = ['return-1', 'vol+25', 'left-tail'];
+export const SEED = 7003, REPL = { seed: 7018, skip: 200, N: 4000 }, ROB_N = 2000, FIXBR_N = 8000, BESIDE_N = 2000, CANDIDATE = 'fcd8096217b7', WORLDS = ['return-1', 'vol+25', 'left-tail'];
+/* the settings a weight's CAND and SHIP share (CHECKLIST 3); the rest are the arm's own */
+export const SHARED = ['mix', 'lambda', 'bequestWeight', 'levels', 'finalIntegral', 'raiseW', 'minPot', 'plan', 'inputs'];
+export const kvOf = ran => Object.fromEntries((` ${ran}`.match(/ \S+ \S+/g) || []).map(x => x.trim().split(' ')));
 
 const dec = (s, T) => { const b = Buffer.from(s, 'base64'); const c = new Uint8Array(b.length); c.set(b); return new T(c.buffer); };
 const arraysOf = x => x && { survived: dec(x.survived, Uint8Array), estate: dec(x.estate, Float32Array), wealth: dec(x.wealth, Float32Array), delivered: dec(x.delivered, Float32Array), unmet: dec(x.unmet, Float32Array), tax: dec(x.tax, Float32Array), failYear: dec(x.failYear, Int16Array), level: dec(x.level, Uint8Array) };
@@ -47,13 +61,14 @@ export function loadDir(dir) {
   for (const f of readdirSync(dir).filter(f => f.endsWith('.json.gz'))) {
     const j = JSON.parse(gunzipSync(readFileSync(join(dir, f))).toString());
     (U[j.id] ||= {})[`${j.arm}/${j.w}`] = { ...j, main: arraysOf(j.main), replA: arraysOf(j.repl), fixbrA: arraysOf(j.fixbr),
-      worldsA: j.worlds ? Object.fromEntries(WORLDS.map(w => [w, j.worlds[w] ? dec(j.worlds[w], Uint8Array) : null])) : null, histA: j.hist && j.hist.bits ? dec(j.hist.bits, Uint8Array) : null };
+      worldsA: j.worlds ? Object.fromEntries(WORLDS.map(w => [w, j.worlds[w] ? dec(j.worlds[w], Uint8Array) : null])) : null, histA: j.hist && j.hist.bits ? dec(j.hist.bits, Uint8Array) : null,
+      worldsD: j.worlds ? Object.fromEntries(WORLDS.map(w => [w, j.worlds[`${w}:delivered`] ? dec(j.worlds[`${w}:delivered`], Float32Array) : null])) : null, histD: j.hist && j.hist.delivered ? dec(j.hist.delivered, Float32Array) : null };
   }
   return U;
 }
 
 /* the gate over the units: every problem, so a refusal names them all */
-export function gate(U, panel, paths) {
+export function gate(U, panel, paths, logs = null) {
   const P = [], stamps = new Set();
   for (const h of panel) {
     const u = U[h.id] || {};
@@ -64,11 +79,16 @@ export function gate(U, panel, paths) {
       stamps.add(JSON.stringify(x.stamp));
       if (x.seed !== SEED) P.push(`${h.id} ${k}: seed ${x.seed}`);
       if (x.N !== paths[h.id] || x.main.survived.length !== x.N) P.push(`${h.id} ${k}: ${x.N} paths, registered ${paths[h.id]}`);
-      if (!x.repl || x.repl.seed !== REPL.seed || x.repl.N !== REPL.N) P.push(`${h.id} ${k}: the replication ${x.repl ? `${x.repl.N} paths of ${x.repl.seed}` : 'missing'}`);
+      if (!x.repl || x.repl.seed !== REPL.seed || x.repl.skip !== REPL.skip || x.repl.N !== REPL.N) P.push(`${h.id} ${k}: the replication ${x.repl ? `${x.repl.N} paths of ${x.repl.seed} from its path ${x.repl.skip}` : 'missing'}`);
       if (x.target !== h.target) P.push(`${h.id} ${k}: target ${x.target}, the panel's ${h.target}`);
       if (x.stamp.candidate !== CANDIDATE) P.push(`${h.id} ${k}: candidate ${x.stamp.candidate}`);
+      if (x.stamp.prediction !== REGISTRATION) P.push(`${h.id} ${k}: stamped under ${x.stamp.prediction}, not ${REGISTRATION}`);
+      if (logs && ['code', 'audit', 'sha'].some(f => x.stamp[f] !== logs[f])) P.push(`${h.id} ${k}: its stamp (code ${x.stamp.code} audit ${x.stamp.audit} sha ${x.stamp.sha}) not the logs' (code ${logs.code} audit ${logs.audit} sha ${logs.sha})`);
+      if (!x.inputs) P.push(`${h.id} ${k}: no inputs hash`);
+      if (x.arm !== 'APP' && (!x.beside || x.beside.N !== Math.min(x.N, BESIDE_N))) P.push(`${h.id} ${k}: runPolicy beside ${x.beside ? `on ${x.beside.N} paths` : 'missing'}, not on ${Math.min(x.N, BESIDE_N)}`);
+      if (x.arm !== 'APP' && !(x.readerYears >= 0)) P.push(`${h.id} ${k}: no reader years`);
       const robust = k === 'APP/-' || k === 'CAND/0.02';
-      if (robust && (!x.worlds || x.worlds.N !== ROB_N || WORLDS.some(w => !x.worldsA[w]) || !x.histA)) P.push(`${h.id} ${k}: the worlds or history missing`);
+      if (robust && (!x.worlds || x.worlds.N !== ROB_N || WORLDS.some(w => !x.worldsA[w] || !x.worldsD[w]) || !x.histA || !x.histD)) P.push(`${h.id} ${k}: the worlds or history (or their spending) missing`);
       if (!robust && (x.worlds || x.hist)) P.push(`${h.id} ${k}: worlds or history where none belong`);
       if (k === 'CAND/0.02' && (x.bridge > 0) !== !!x.fixbr) P.push(`${h.id} ${k}: FIXBR ${x.fixbr ? 'present' : 'missing'} with ${x.bridge} retired years before access`);
       if (x.fixbr && x.fixbr.N !== Math.min(x.N, FIXBR_N)) P.push(`${h.id} ${k}: FIXBR on ${x.fixbr.N} paths, not ${Math.min(x.N, FIXBR_N)}`);
@@ -77,6 +97,10 @@ export function gate(U, panel, paths) {
       for (const s of want) if (!` ${x.ran} `.includes(` ${s} `)) P.push(`${h.id} ${k}: ran without "${s}"`);
     }
     if (got.length && new Set(got.map(x => `${x.Y} ${x.bridge}`)).size > 1) P.push(`${h.id}: the arms' horizons or bridges differ`);
+    if (got.length && new Set(got.map(x => x.inputs)).size > 1) P.push(`${h.id}: the arms' inputs differ (${got.map(x => `${x.arm}/${x.w} ${x.inputs}`).join(', ')})`);
+    for (const w of WEIGHTS) { const c = u[`CAND/${w}`], s = u[`SHIP/${w}`]; if (!c || !s) continue; const a = kvOf(c.ran), b = kvOf(s.ran); for (const f of SHARED) if (a[f] === undefined || a[f] !== b[f]) P.push(`${h.id} W${w}: CAND's ${f} ${a[f]}, SHIP's ${b[f]}`); }
+    for (const arm of ['CAND', 'SHIP']) { const a = u[`${arm}/0.02`], b = u[`${arm}/0.01`]; if (!a || !b) continue; const x = kvOf(a.ran), y = kvOf(b.ran); for (const f of new Set([...Object.keys(x), ...Object.keys(y)])) if (f !== 'bequestWeight' && x[f] !== y[f]) P.push(`${h.id} ${arm}: W0.02's ${f} ${x[f]}, W0.01's ${y[f]}`); }
+    if (u['APP/-'] && u['CAND/0.02']) { const m = / minPot (\S+)/.exec(u['APP/-'].ran), c = kvOf(u['CAND/0.02'].ran).minPot; if (!m || m[1] !== c) P.push(`${h.id}: APP's minimum pot ${m ? m[1] : '-'}, CAND's ${c}`); }
   }
   if (stamps.size > 1) P.push(`${stamps.size} stamps across the units (one code, audit, candidate, registration and Node version wanted)`);
   return P;
@@ -97,6 +121,13 @@ export const spendingItem = (pairs, n) => byPath(pairs.map(([c, o]) => { const m
 /* a household's paired loss over all its paths, and its flag against a threshold */
 export function lossOf(c, o) { let lost = 0, saved = 0; const n = c.survived.length; for (let i = 0; i < n; i++) { if (o.survived[i] && !c.survived[i]) lost++; else if (c.survived[i] && !o.survived[i]) saved++; } return { lost, saved, n, loss: 100 * (lost - saved) / n, disc: (lost + saved) / n }; }
 export const harmFlag = (L, t) => L.loss > t + 1e-12;
+/* S1 beside its parts (the review of 27 Oct, finding 7): over the library cohort, over the households whose reader reads no
+   bridge year, and the households with an observed loss against SHIP over all their paths */
+export function s1Parts(U, panel, w, n) {
+  const pairs = hs => hs.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), lib = panel.filter(h => h.cohort === 'library'), none = panel.filter(h => U[h.id][`CAND/${w}`].readerYears === 0);
+  return { library: lib.length ? survivalItem(pairs(lib), n) : null, nLibrary: lib.length, noReader: none.length ? survivalItem(pairs(none), n) : null, nNoReader: none.length,
+    losers: panel.filter(h => lossOf(U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main).loss > 0).map(h => h.id) };
+}
 
 /* the whole score per path (reduce-7uf.mjs wholeScore's arithmetic, from the engine's own years): survival, the estate at the
    weight (capped, on the household's scale), less the cost of each year below target, plus the raise credit in futures that
@@ -137,12 +168,14 @@ async function read(dir) {
   const { requireFairLogs } = await import('./fair-gate.mjs');
   const logs = Object.fromEntries(readdirSync(dir).filter(f => /^case\d+\.txt$/.test(f)).map(f => [f, readFileSync(join(dir, f), 'utf8')]));
   requireFairLogs(logs, REGISTRATION);
+  const ls = [...Object.values(logs).join('\n').matchAll(LOG_STAMP)].map(([, code, audit, , sha]) => ({ code, audit, sha })), logStamp = ls[0] || null;
+  if (new Set(ls.map(x => JSON.stringify(x))).size > 1) { console.log('THE GATE: REFUSED (the logs carry more than one stamp)'); process.exit(1); }
   const panel = JSON.parse(readFileSync(join(HERE, 'phase4-panel.json'), 'utf8')).panel, reg = JSON.parse(readFileSync(join(HERE, 'phase4-paths.json'), 'utf8'));
-  const U = loadDir(dir), problems = gate(U, panel, reg.paths);
+  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp);
   const any = Object.values(U).flatMap(Object.values)[0];
   console.log(`PHASE 4 READ: ${dir}; ${Object.keys(U).length} households; stamp ${any ? JSON.stringify(any.stamp) : '-'}`);
   if (problems.length) { console.log(`THE GATE: REFUSED (${problems.length})\n  ${problems.join('\n  ')}`); process.exit(1); }
-  console.log(`the gate: fair - ${panel.length} households in every arm, seed ${SEED} on their registered paths (${Math.min(...Object.values(reg.paths))} to ${Math.max(...Object.values(reg.paths))}), the replication ${REPL.N} paths of ${REPL.seed}, one stamp`);
+  console.log(`the gate: fair - ${panel.length} households in every arm, seed ${SEED} on their registered paths (${Math.min(...Object.values(reg.paths))} to ${Math.max(...Object.values(reg.paths))}), the replication ${REPL.N} paths of ${REPL.seed} from its path ${REPL.skip}, one stamp`);
   const items = {}, replItems = {};
   for (const w of WEIGHTS) {
     const C = h => U[h.id][`CAND/${w}`], A = h => U[h.id]['APP/-'], S = h => U[h.id][`SHIP/${w}`];
@@ -170,47 +203,79 @@ async function read(dir) {
   // reported
   console.log('\nREPORTED, NOT GATED');
   for (const w of WEIGHTS) {
-    console.log(`  W${w} the replication on ${REPL.N} paths of ${REPL.seed}: A1 ${iv(replItems[w].A1)}, A2 ${iv(replItems[w].A2)}%, S1 ${iv(replItems[w].S1)}; ${['A1', 'A2', 'S1'].every(k => (replItems[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k]) === (items[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k])) ? 'each reads as on 7003' : 'NOT each as on 7003'}`);
+    console.log(`  W${w} the replication on ${REPL.N} paths of ${REPL.seed} from its path ${REPL.skip}: A1 ${iv(replItems[w].A1)}, A2 ${iv(replItems[w].A2)}%, S1 ${iv(replItems[w].S1)}; ${['A1', 'A2', 'S1'].every(k => (replItems[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k]) === (items[w][k].lo > { A1: A1_BAR, A2: A2_BAR, S1: S1_BAR }[k])) ? 'each reads as on 7003' : 'NOT each as on 7003'}`);
     const ws = panel.map(h => { const c = U[h.id][`CAND/${w}`], s = { ...c.score }; return [wholeScore(c.main, c.Y, Number(w), s), wholeScore(U[h.id]['APP/-'].main, c.Y, Number(w), { ...s, floor: 0.8 }), wholeScore(U[h.id][`SHIP/${w}`].main, c.Y, Number(w), { ...s, floor: U[h.id][`SHIP/${w}`].score.floor })]; });
     console.log(`  W${w} the whole score: CAND less APP ${iv(byPath(ws.map(([c, a]) => i => c[i] - a[i]), POOL))}; CAND less SHIP ${iv(byPath(ws.map(([c, , s]) => i => c[i] - s[i]), POOL))}`);
+    console.log(`  W${w} spending delivered over every year, CAND less SHIP: ${iv(spendingItem(panel.map(h => [U[h.id][`CAND/${w}`].main, U[h.id][`SHIP/${w}`].main]), POOL))}% (beside S1 ${iv(items[w].S1)} points)`);
+    const sp = s1Parts(U, panel, w, POOL);
+    console.log(`  W${w} S1's parts: the library cohort (${sp.nLibrary}) ${sp.library ? iv(sp.library) : '-'}; the households whose reader reads no bridge year (${sp.nNoReader}) ${sp.noReader ? iv(sp.noReader) : '-'}; an observed loss against SHIP over all their paths on ${sp.losers.length} of ${panel.length}${sp.losers.length ? ` (${sp.losers.join(', ')})` : ''}`);
   }
-  console.log('  per household (W0.02 | W0.01): survival APP, SHIP, CAND; spending delivered and the estate CAND against APP; years below target; tax; end wealth median and unlucky tenth');
+  console.log('  per household (W0.02 | W0.01): survival APP, SHIP, CAND; spending delivered CAND against APP and against SHIP; the estate CAND against APP; years below target; tax; end wealth median and unlucky tenth');
   for (const h of panel) {
-    const a = U[h.id]['APP/-'], parts = WEIGHTS.map(w => { const c = U[h.id][`CAND/${w}`], s = U[h.id][`SHIP/${w}`]; return `SHIP ${(100 * meanOf(s.main.survived)).toFixed(2)} CAND ${(100 * meanOf(c.main.survived)).toFixed(2)} spend ${sgn(100 * (meanOf(c.main.delivered) / meanOf(a.main.delivered) - 1))}% estate ${Math.round(meanOf(c.main.estate) - meanOf(a.main.estate))} below ${yearsBelow(c.main, c.Y).toFixed(2)} tax ${Math.round(meanOf(c.main.tax) - meanOf(a.main.tax))} end ${Math.round(quant(c.main.wealth, 0.5))}/${Math.round(quant(c.main.wealth, 0.1))}`; });
+    const a = U[h.id]['APP/-'], parts = WEIGHTS.map(w => { const c = U[h.id][`CAND/${w}`], s = U[h.id][`SHIP/${w}`]; return `SHIP ${(100 * meanOf(s.main.survived)).toFixed(2)} CAND ${(100 * meanOf(c.main.survived)).toFixed(2)} spend ${sgn(100 * (meanOf(c.main.delivered) / meanOf(a.main.delivered) - 1))}% vs SHIP ${sgn(100 * (meanOf(c.main.delivered) / meanOf(s.main.delivered) - 1))}% estate ${Math.round(meanOf(c.main.estate) - meanOf(a.main.estate))} below ${yearsBelow(c.main, c.Y).toFixed(2)} tax ${Math.round(meanOf(c.main.tax) - meanOf(a.main.tax))} end ${Math.round(quant(c.main.wealth, 0.5))}/${Math.round(quant(c.main.wealth, 0.1))}`; });
     console.log(`  ${h.id.padEnd(6)} ${h.cohort.padEnd(4)} APP ${(100 * meanOf(a.main.survived)).toFixed(2)} below ${yearsBelow(a.main, a.Y).toFixed(2)} end ${Math.round(quant(a.main.wealth, 0.5))}/${Math.round(quant(a.main.wealth, 0.1))} | ${parts.join(' | ')}`);
   }
   // FIXBR (7q)
   const fb = panel.filter(h => U[h.id]['CAND/0.02'].fixbrA);
   if (fb.length) {
-    console.log(`  FIXBR (7q, D35): the candidate following arm A's policy in the retired years before access, less the candidate, on ${fb.length} households, the first ${FIXBR_N} paths: ${iv(survivalItem(fb.map(h => [U[h.id]['CAND/0.02'].fixbrA, U[h.id]['CAND/0.02'].main]), FIXBR_N))} points`);
-    for (const h of fb) { const L = lossOf(U[h.id]['CAND/0.02'].fixbrA, U[h.id]['CAND/0.02'].main); console.log(`    ${h.id.padEnd(6)} ${U[h.id]['CAND/0.02'].fixbr.years.length} fixed years: ${sgn(-L.loss)} (${L.saved} saved, ${L.lost} lost of ${L.n})`); }
+    const nf = Math.min(...fb.map(h => U[h.id]['CAND/0.02'].fixbr.N)), fp = fb.map(h => [U[h.id]['CAND/0.02'].fixbrA, U[h.id]['CAND/0.02'].main]);
+    console.log(`  FIXBR (7q, D35): the candidate following arm A's policy in the retired years before access, less the candidate, on ${fb.length} households, the first ${nf} paths: survival ${iv(survivalItem(fp, nf))} points, spending delivered ${iv(spendingItem(fp, nf))}%`);
+    for (const h of fb) { const u = U[h.id]['CAND/0.02'], m = u.fixbr.N, cut = { survived: u.main.survived.subarray(0, m) }, L = lossOf(u.fixbrA, cut); console.log(`    ${h.id.padEnd(6)} ${u.fixbr.years.length} fixed years: ${sgn(-L.loss)} (${L.saved} saved, ${L.lost} lost of ${L.n}); spending ${sgn(100 * (meanOf(u.fixbrA.delivered) / meanOf(u.main.delivered, m) - 1))}%`); }
   }
   // the worlds and history (D35)
-  for (const world of WORLDS) console.log(`  the world ${world}: CAND/0.02 less APP ${iv(byPath(panel.map(h => i => 100 * (U[h.id]['CAND/0.02'].worldsA[world][i] - U[h.id]['APP/-'].worldsA[world][i])), ROB_N))} points on ${ROB_N} paths`);
+  for (const world of WORLDS) {
+    const ws = panel.map(h => [{ survived: U[h.id]['CAND/0.02'].worldsA[world], delivered: U[h.id]['CAND/0.02'].worldsD[world] }, { survived: U[h.id]['APP/-'].worldsA[world], delivered: U[h.id]['APP/-'].worldsD[world] }]);
+    console.log(`  the world ${world}${world === 'return-1' ? ' (D20 (9): the sensitivity to the returns)' : ''}: CAND/0.02 less APP, survival ${iv(survivalItem(ws, ROB_N))} points, spending delivered ${iv(spendingItem(ws, ROB_N))}% on ${ROB_N} paths`);
+  }
   { const rows = panel.map(h => [U[h.id]['CAND/0.02'].histA, U[h.id]['APP/-'].histA]), n = rows[0][0].length;
-    console.log(`  history (${n} start years from ${U[panel[0].id]['APP/-'].hist.first}): survival CAND/0.02 ${(100 * meanOf(rows.map(([c]) => meanOf(c)))).toFixed(2)}%, APP ${(100 * meanOf(rows.map(([, a]) => meanOf(a)))).toFixed(2)}%; a household better under CAND ${rows.filter(([c, a]) => meanOf(c) > meanOf(a)).length}, worse ${rows.filter(([c, a]) => meanOf(c) < meanOf(a)).length}`); }
+    const hs = 100 * meanOf(panel.map(h => meanOf(U[h.id]['CAND/0.02'].histD) / (meanOf(U[h.id]['APP/-'].histD) || 1) - 1));
+    console.log(`  history (${n} start years from ${U[panel[0].id]['APP/-'].hist.first}): survival CAND/0.02 ${(100 * meanOf(rows.map(([c]) => meanOf(c)))).toFixed(2)}%, APP ${(100 * meanOf(rows.map(([, a]) => meanOf(a)))).toFixed(2)}%; a household better under CAND ${rows.filter(([c, a]) => meanOf(c) > meanOf(a)).length}, worse ${rows.filter(([c, a]) => meanOf(c) < meanOf(a)).length}; spending delivered CAND against APP, the households' mean ${sgn(hs)}%`); }
+  // the fidelity gaps: runPolicy beside the engine (7u-F's check)
+  { const sol = panel.flatMap(h => ARMS.filter(k => k !== 'APP/-').map(k => [h.id, k, U[h.id][k].beside])), gaps = sol.filter(([, , b]) => b.engineOnly + b.policyOnly > 0);
+    console.log(`  runPolicy beside the engine on the first ${BESIDE_N} paths of the ${sol.length} solver units: paths on which the two differ ${gaps.reduce((t, [, , b]) => t + b.engineOnly + b.policyOnly, 0)}${gaps.length ? ` (${gaps.map(([id, k, b]) => `${id} ${k} engine alone ${b.engineOnly}, runPolicy alone ${b.policyOnly}`).join('; ')})` : ''}`); }
   // the solve times
   const ratio = panel.map(h => U[h.id]['CAND/0.02'].solveSecs / U[h.id]['SHIP/0.02'].solveSecs).sort((x, y) => x - y);
-  console.log(`  the solve, CAND/0.02 against SHIP/0.02 on one core under the run's load: the median x${ratio[Math.floor(ratio.length / 2)].toFixed(2)} (x${ratio[0].toFixed(2)} to x${ratio[ratio.length - 1].toFixed(2)}); gate 5 is MET on the split candidate (results-gate5.txt)`);
+  const hosts = [...new Set(Object.values(U).flatMap(Object.values).map(x => x.cpu || 'unrecorded'))];
+  console.log(`  the solve, CAND/0.02 against SHIP/0.02 on one core under the run's load: the median x${ratio[Math.floor(ratio.length / 2)].toFixed(2)} (x${ratio[0].toFixed(2)} to x${ratio[ratio.length - 1].toFixed(2)}); gate 5 is MET on the split candidate (results-gate5.txt); the hosts: ${hosts.join('; ')}`);
 }
 
 /* planted cases: synthetic units, the gate's refusals, the items' and flags' edges, the outcome */
 function planted() {
   const cases = [], n = 400, Y = 3;
   const mk = (bits, deliv = 100) => ({ survived: Uint8Array.from(bits), delivered: Float32Array.from(bits, () => deliv), estate: new Float32Array(bits.length), wealth: new Float32Array(bits.length), unmet: new Float32Array(bits.length), tax: new Float32Array(bits.length), failYear: new Int16Array(bits.length).fill(-1), level: new Uint8Array(bits.length * Y).fill(100) });
-  const ones = Array(n).fill(1), stamp = { code: 'c', audit: 'a', candidate: CANDIDATE, node: 'v22', prediction: REGISTRATION, sha: 's' };
+  const ones = Array(n).fill(1), stamp = { code: 'c', audit: 'a', candidate: CANDIDATE, node: 'v22', prediction: REGISTRATION, sha: 's' }, logs = { code: 'c', audit: 'a', sha: 's' };
+  const shared = w => `mix 3 lambda 0.02 bequestWeight ${w} levels 1,0.8 finalIntegral true raiseW 0.003 minPot 0 plan p1 inputs i1`;
   const unit = (id, arm, w, extra = {}) => { const robust = `${arm}/${w}` === 'APP/-' || `${arm}/${w}` === 'CAND/0.02';
-    return { id, arm, w, seed: SEED, N: n, Y, bridge: 0, target: 1000, stamp, main: mk(ones), repl: { seed: REPL.seed, N: REPL.N }, replA: mk(ones), fixbr: null,
-      worlds: robust ? { N: ROB_N } : null, worldsA: robust ? Object.fromEntries(WORLDS.map(x => [x, new Uint8Array(1)])) : null, hist: robust ? { first: 1928 } : null, histA: robust ? new Uint8Array(1) : null,
-      ran: arm === 'CAND' ? `pts 45 bridgeRead reader readerRef adaptive tiersBelow 3 tableDealing false bequestWeight ${w}` : arm === 'SHIP' ? `pts 30 bridgeRead false tiersBelow 2 tableDealing true bequestWeight ${w}` : 'arm A x guardrails true lookahead 5 raiseCap 1.1', ...extra }; };
-  const full = () => ({ H1: Object.fromEntries(ARMS.map(k => { const [a, w] = k.split('/'); return [k, unit('H1', a, w)]; })) });
+    return { id, arm, w, seed: SEED, N: n, Y, bridge: 0, target: 1000, inputs: 'i1', readerYears: arm === 'APP' ? null : 0, stamp, main: mk(ones), repl: { seed: REPL.seed, skip: REPL.skip, N: REPL.N }, replA: mk(ones), fixbr: null,
+      beside: arm === 'APP' ? null : { N: Math.min(n, BESIDE_N), engineOnly: 0, policyOnly: 0 },
+      worlds: robust ? { N: ROB_N } : null, worldsA: robust ? Object.fromEntries(WORLDS.map(x => [x, new Uint8Array(1)])) : null, worldsD: robust ? Object.fromEntries(WORLDS.map(x => [x, new Float32Array(1)])) : null,
+      hist: robust ? { first: 1928 } : null, histA: robust ? new Uint8Array(1) : null, histD: robust ? new Float32Array(1) : null,
+      ran: arm === 'CAND' ? `pts 45 grid total45 bridgeRead reader readerRef adaptive tiersBelow 3 tableDealing false actions 800 ${shared(w)} readerYears 0` : arm === 'SHIP' ? `pts 30 grid total30 bridgeRead false tiersBelow 2 tableDealing true actions 360 ${shared(w)} readerYears 0` : 'arm A x guardrails true lookahead 5 raiseCap 1.1 minPot 0 target 1000 floor 800 inputs i1', ...extra }; };
+  const full = (id = 'H1') => ({ [id]: Object.fromEntries(ARMS.map(k => { const [a, w] = k.split('/'); return [k, unit(id, a, w)]; })) });
   const panel = [{ id: 'H1', target: 1000 }], paths = { H1: n };
-  cases.push(['a complete synthetic panel passes the gate', `${gate(full(), panel, paths).length}`, '0']);
+  cases.push(['a complete synthetic panel passes the gate', `${gate(full(), panel, paths, logs).length}`, '0']);
   { const U = full(); delete U.H1['SHIP/0.01']; cases.push(['a missing unit is refused', `${gate(U, panel, paths).some(p => /no SHIP\/0.01/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['APP/-'].repl = { ...U.H1['APP/-'].repl, skip: 0 }; cases.push(["a replication on 7018's first paths (a smoke run scored them) is refused", `${gate(U, panel, paths, logs).some(p => /from its path 0/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.01'].N = 300; cases.push(['paths other than registered are refused', `${gate(U, panel, paths).some(p => /300 paths/.test(p))}`, 'true']); }
   { const U = full(); U.H1['APP/-'].stamp = { ...stamp, code: 'other' }; cases.push(['two codes are refused', `${gate(U, panel, paths).some(p => /2 stamps/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.02'].bridge = 3; U.H1['APP/-'].bridge = 3; cases.push(['FIXBR missing on a household with bridge years is refused', `${gate(U, panel, paths).some(p => /FIXBR missing/.test(p))}`, 'true']); }
   { const U = full(); U.H1['CAND/0.01'].ran = U.H1['CAND/0.01'].ran.replace('tiersBelow 3', 'tiersBelow 2'); cases.push(['a candidate unit run without the third step is refused', `${gate(U, panel, paths).some(p => /tiersBelow 3/.test(p))}`, 'true']); }
+  // the review of 27 Oct (findings 1, 4, 9): the plan, the target, the stamps, the settings diff, runPolicy beside
+  { const U = full(); U.H1['APP/-'].inputs = 'i2'; cases.push(["APP's inputs (balances, contributions) other than CAND's are refused", `${gate(U, panel, paths, logs).some(p => /the arms' inputs differ/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['SHIP/0.02'].target = 990; cases.push(["a unit whose engine ran another target than the panel's is refused", `${gate(U, panel, paths, logs).some(p => /target 990/.test(p))}`, 'true']); }
+  { const U = full(); for (const k of ARMS) U.H1[k].stamp = { ...stamp, prediction: 'NOT-LAUNCHED' }; cases.push(['units stamped outside the registration are refused (one stamp across them)', `${gate(U, panel, paths, logs).some(p => /stamped under NOT-LAUNCHED/.test(p))}`, 'true']); }
+  { const U = full(); for (const k of ARMS) U.H1[k].stamp = { ...stamp, sha: 'other' }; cases.push(["units whose registration blob is not the logs' are refused", `${gate(U, panel, paths, logs).some(p => /not the logs'/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['SHIP/0.01'].ran = U.H1['SHIP/0.01'].ran.replace('plan p1', 'plan p2'); cases.push(["CAND and SHIP on different plans at a weight are refused", `${gate(U, panel, paths, logs).some(p => /W0.01: CAND's plan p1, SHIP's p2/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['CAND/0.01'].ran = U.H1['CAND/0.01'].ran.replace('actions 800', 'actions 720'); cases.push(["the candidate's two weights differing in more than the weight are refused", `${gate(U, panel, paths, logs).some(p => /CAND: W0.02's actions 800, W0.01's 720/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['APP/-'].ran = U.H1['APP/-'].ran.replace('minPot 0', 'minPot 5'); cases.push(["APP's minimum pot other than the solver's is refused", `${gate(U, panel, paths, logs).some(p => /APP's minimum pot 5/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['SHIP/0.02'].beside = null; cases.push(['a solver unit without runPolicy beside is refused', `${gate(U, panel, paths, logs).some(p => /runPolicy beside missing/.test(p))}`, 'true']); }
+  { const U = full(); U.H1['CAND/0.02'].worldsD['vol+25'] = null; cases.push(["a world's spending missing is refused", `${gate(U, panel, paths, logs).some(p => /their spending\) missing/.test(p))}`, 'true']); }
+  // S1's parts (finding 7): gains on a FIRE household with bridge years masking a loss on a library household the reader never reads
+  { const U = { ...full('L1'), ...full('F1') }, pn = [{ id: 'L1', cohort: 'library' }, { id: 'F1', cohort: 'fire' }];
+    U.L1['CAND/0.02'].main = mk(ones.map((_, i) => (i < 4 ? 0 : 1)));
+    U.F1['SHIP/0.02'].main = mk(ones.map((_, i) => (i < 40 ? 0 : 1))); U.F1['CAND/0.02'].readerYears = 6;
+    const all = survivalItem(pn.map(h => [U[h.id]['CAND/0.02'].main, U[h.id]['SHIP/0.02'].main]), n), sp = s1Parts(U, pn, '0.02', n);
+    cases.push(["S1's parts: pooled +4.5 passes, the library cohort and the households the reader never reads -1.0 each, one household with an observed loss; a panel with no library household has no library part", `${all.d.toFixed(1)} ${sp.library.d.toFixed(1)} ${sp.nNoReader} ${sp.noReader.d.toFixed(1)} ${sp.losers.join(',')} ${s1Parts(U, [pn[1]], '0.02', n).library}`, '4.5 -1.0 1 -1.0 L1 null']); }
   // the items' edges: a survival change of exactly 0 everywhere has lower end 0, which does not pass A1 (it must be above)
   { const z = survivalItem([[mk(ones), mk(ones)]], n); cases.push(['no change: A1\'s lower end 0 does not pass', `${z.lo > A1_BAR}`, 'false']); }
   { const c = ones.map((_, i) => (i % 10 === 0 ? 1 : 1)), o = ones.map((_, i) => (i % 10 === 0 ? 0 : 1)); const r = survivalItem([[mk(c), mk(o)]], n); cases.push(['10% saved and none lost: A1 passes', `${r.lo > A1_BAR} ${r.d.toFixed(1)}`, 'true 10.0']); }
@@ -226,7 +291,7 @@ function planted() {
     cases.push(['the whole score: a path failed in year 1 pays the floor\'s cost for years 1 and 2; one alive scores 100 plus its estate', `${s[0].toFixed(4)} ${s[1].toFixed(4)}`, `${(-100 * 2 * 0.1 * 0.04).toFixed(4)} 100.0000`]); }
   let bad = 0;
   for (const [nm, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${nm}: ${got}${ok ? '' : ` (want ${want})`}`); }
-  console.log('EDGES: a lower end of exactly 0 (A1) and exactly -0.1 (S1), spending 0.9% and 1.1% lower (A2), a loss exactly at the threshold, a missing unit, a failed path\'s years');
+  console.log('EDGES: a lower end of exactly 0 (A1) and exactly -0.1 (S1), spending 0.9% and 1.1% lower (A2), a loss exactly at the threshold, a missing unit, a failed path\'s years, a missing world\'s spending, an empty cohort part');
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
   return bad;
 }

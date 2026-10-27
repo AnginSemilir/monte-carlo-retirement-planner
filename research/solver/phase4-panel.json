@@ -1,8 +1,8 @@
 {
- "built": "2026-10-26T22:13:09.105Z",
+ "built": "2026-10-27T07:06:03.955Z",
  "touched": {
-  "count": 168,
-  "hash": "cb3220e133f6"
+  "count": 177,
+  "hash": "12aee8a47ec0"
  },
  "aim": 85,
  "tol": 1,
@@ -10,52 +10,52 @@
  "paths": 1000,
  "panel": [
   {
-   "id": "S024",
-   "base": "S024",
+   "id": "S026",
+   "base": "S026",
    "cohort": "lib",
-   "target": 15400,
-   "libraryTarget": 5000,
-   "armA": 85,
-   "label": "Bridge-Sized Relief + Bracket Fill, lump sum",
-   "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "target": 18400,
+   "libraryTarget": 9000,
+   "armA": 85.2,
+   "label": "ISA First",
+   "steps": 11,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S030",
    "base": "S030",
    "cohort": "lib",
-   "target": 63500,
+   "target": 62600,
    "libraryTarget": 29000,
    "armA": 85,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "label": "Bracket Fill Basic, lump sum",
+   "steps": 9,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S040",
    "base": "S040",
    "cohort": "lib",
-   "target": 31600,
+   "target": 31000,
    "libraryTarget": 18500,
-   "armA": 84.1,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 85.1,
+   "label": "Bracket Fill Basic, lump sum",
    "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S050",
    "base": "S050",
    "cohort": "lib",
-   "target": 18300,
+   "target": 18000,
    "libraryTarget": 9000,
-   "armA": 85.6,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 9,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 84.2,
+   "label": "ISA First",
+   "steps": 2,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S062",
@@ -64,94 +64,94 @@
    "target": 14400,
    "libraryTarget": 8500,
    "armA": 84.5,
-   "label": "Current Plan + ISA First",
+   "label": "ISA First",
    "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
-   "id": "S080",
-   "base": "S080",
+   "id": "S074",
+   "base": "S074",
    "cohort": "lib",
-   "target": 47700,
-   "libraryTarget": 52500,
-   "armA": 84.1,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic, lump sum",
+   "target": 13400,
+   "libraryTarget": 8500,
+   "armA": 85,
+   "label": "Bracket Fill Basic, lump sum",
    "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S090",
    "base": "S090",
    "cohort": "lib",
-   "target": 54400,
+   "target": 53500,
    "libraryTarget": 28500,
-   "armA": 85,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
-  },
-  {
-   "id": "S098",
-   "base": "S098",
-   "cohort": "lib",
-   "target": 16100,
-   "libraryTarget": 8500,
-   "armA": 85.9,
-   "label": "Bridge-Sized Relief + Bracket Fill, lump sum",
-   "steps": 9,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
-  },
-  {
-   "id": "S110",
-   "base": "S110",
-   "cohort": "lib",
-   "target": 15800,
-   "libraryTarget": 8500,
-   "armA": 84.2,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
-  },
-  {
-   "id": "S140",
-   "base": "S140",
-   "cohort": "lib",
-   "target": 42700,
-   "libraryTarget": 52500,
-   "armA": 85.6,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 85.5,
+   "label": "Bracket Fill Basic",
    "steps": 5,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
-   "id": "S170",
-   "base": "S170",
+   "id": "S096",
+   "base": "S096",
    "cohort": "lib",
-   "target": 13800,
-   "libraryTarget": 8500,
-   "armA": 85.3,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic (harvest off)",
-   "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "target": 14100,
+   "libraryTarget": 4500,
+   "armA": 84.3,
+   "label": "Bracket Fill, lump sum",
+   "steps": 7,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
-   "id": "S200",
-   "base": "S200",
+   "id": "S108",
+   "base": "S108",
    "cohort": "lib",
-   "target": 52200,
-   "libraryTarget": 69500,
-   "armA": 84.7,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 3,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "target": 14100,
+   "libraryTarget": 4500,
+   "armA": 84.2,
+   "label": "Bracket Fill Basic",
+   "steps": 7,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
+  },
+  {
+   "id": "S132",
+   "base": "S132",
+   "cohort": "lib",
+   "target": 11300,
+   "libraryTarget": 4500,
+   "armA": 85.39999999999999,
+   "label": "Bracket Fill Basic, lump sum",
+   "steps": 5,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
+  },
+  {
+   "id": "S164",
+   "base": "S164",
+   "cohort": "lib",
+   "target": 32900,
+   "libraryTarget": 52500,
+   "armA": 85,
+   "label": "Bracket Fill Basic, lump sum",
+   "steps": 4,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
+  },
+  {
+   "id": "S188",
+   "base": "S188",
+   "cohort": "lib",
+   "target": 44800,
+   "libraryTarget": 71500,
+   "armA": 84.1,
+   "label": "Bracket Fill Basic, lump sum",
+   "steps": 4,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S204",
@@ -159,23 +159,23 @@
    "cohort": "lib",
    "target": 14000,
    "libraryTarget": 7000,
-   "armA": 85.7,
-   "label": "Bridge-Sized Relief + Bracket Fill, lump sum",
+   "armA": 84.1,
+   "label": "Bracket Fill, lump sum",
    "steps": 2,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
-   "id": "S226",
-   "base": "S226",
+   "id": "S228",
+   "base": "S228",
    "cohort": "lib",
-   "target": 121500,
-   "libraryTarget": 134000,
-   "armA": 85,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic, lump sum",
-   "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "target": 15100,
+   "libraryTarget": 6500,
+   "armA": 85.39999999999999,
+   "label": "Bracket Fill Basic (harvest off)",
+   "steps": 8,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S244",
@@ -184,82 +184,82 @@
    "target": 31800,
    "libraryTarget": 49500,
    "armA": 84.8,
-   "label": "Survival Maximizer + Bracket Fill, lump sum",
+   "label": "Bracket Fill, lump sum",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S260",
    "base": "S260",
    "cohort": "lib",
-   "target": 70000,
+   "target": 68100,
    "libraryTarget": 121000,
-   "armA": 84.89999999999999,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
-   "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 84.7,
+   "label": "Bracket Fill Basic",
+   "steps": 5,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S272",
    "base": "S272",
    "cohort": "lib",
-   "target": 68300,
+   "target": 66400,
    "libraryTarget": 118000,
-   "armA": 85,
-   "label": "Relief-First, Bridge-Last + Bracket Fill Basic, lump sum",
-   "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
-  },
-  {
-   "id": "S280",
-   "base": "S280",
-   "cohort": "lib",
-   "target": 37200,
-   "libraryTarget": 47500,
-   "armA": 84.89999999999999,
-   "label": "Survival Maximizer + Bracket Fill Basic, lump sum",
-   "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
-  },
-  {
-   "id": "S298",
-   "base": "S298",
-   "cohort": "lib",
-   "target": 149900,
-   "libraryTarget": 218000,
-   "armA": 85.6,
-   "label": "Relief-First, Bridge-Last + Windfall to ISA",
+   "armA": 85.39999999999999,
+   "label": "Bracket Fill Basic",
    "steps": 5,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
-   "id": "S026",
-   "base": "S026",
+   "id": "S290",
+   "base": "S290",
+   "cohort": "lib",
+   "target": 22000,
+   "libraryTarget": 27000,
+   "armA": 84.3,
+   "label": "Windfall to ISA",
+   "steps": 5,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
+  },
+  {
+   "id": "S368",
+   "base": "S368",
    "cohort": "lib",
    "target": 18900,
-   "libraryTarget": 9000,
-   "armA": 85.1,
-   "label": "Bridge-Sized Relief + ISA First",
+   "libraryTarget": 53000,
+   "armA": 84.7,
+   "label": "ISA First",
    "steps": 9,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
+  },
+  {
+   "id": "S384",
+   "base": "S384",
+   "cohort": "lib",
+   "target": 9000,
+   "libraryTarget": 4500,
+   "armA": 84.7,
+   "label": "Bracket Fill Basic",
+   "steps": 2,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S304F",
    "base": "S304",
    "cohort": "fire",
-   "target": 24500,
+   "target": 21500,
    "libraryTarget": 98000,
-   "armA": 85.2,
-   "label": "Survival Maximizer + Sequential (harvest off), lump sum",
-   "steps": 3,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 85.5,
+   "label": "Bracket Fill Basic",
+   "steps": 6,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S306F",
@@ -267,23 +267,23 @@
    "cohort": "fire",
    "target": 51500,
    "libraryTarget": 143000,
-   "armA": 85.8,
-   "label": "Survival Maximizer + Bracket Fill Basic",
+   "armA": 86,
+   "label": "Bracket Fill Basic",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S308F",
    "base": "S308",
    "cohort": "fire",
-   "target": 46500,
+   "target": 40800,
    "libraryTarget": 247500,
-   "armA": 84.8,
-   "label": "Bracket-Smoothed Sizing + Bracket Fill Basic",
-   "steps": 5,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 84.7,
+   "label": "Bracket Fill Basic",
+   "steps": 8,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S310F",
@@ -291,11 +291,11 @@
    "cohort": "fire",
    "target": 100900,
    "libraryTarget": 478000,
-   "armA": 85.5,
-   "label": "Survival Maximizer + Bracket Fill Basic, lump sum",
+   "armA": 85.6,
+   "label": "Bracket Fill Basic, lump sum",
    "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S314F",
@@ -303,11 +303,11 @@
    "cohort": "fire",
    "target": 16400,
    "libraryTarget": 58000,
-   "armA": 85.9,
-   "label": "Bridge-Sized Relief + Windfall to ISA",
+   "armA": 85.39999999999999,
+   "label": "Windfall to ISA",
    "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S316F",
@@ -316,10 +316,10 @@
    "target": 30800,
    "libraryTarget": 89500,
    "armA": 85.7,
-   "label": "Survival Maximizer + Bracket Fill",
+   "label": "Bracket Fill",
    "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S320F",
@@ -327,35 +327,35 @@
    "cohort": "fire",
    "target": 56200,
    "libraryTarget": 224500,
-   "armA": 85.5,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic, lump sum",
+   "armA": 85,
+   "label": "Bracket Fill Basic, lump sum",
    "steps": 3,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S322F",
    "base": "S322",
    "cohort": "fire",
-   "target": 135400,
+   "target": 128700,
    "libraryTarget": 433000,
-   "armA": 84,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic, lump sum",
-   "steps": 5,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 85.2,
+   "label": "Bracket Fill Basic",
+   "steps": 7,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S326F",
    "base": "S326",
    "cohort": "fire",
-   "target": 18300,
+   "target": 17800,
    "libraryTarget": 56500,
-   "armA": 84.89999999999999,
-   "label": "Survival Maximizer + ISA First, lump sum",
-   "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 86,
+   "label": "ISA First, lump sum",
+   "steps": 5,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S328F",
@@ -364,10 +364,10 @@
    "target": 32500,
    "libraryTarget": 86500,
    "armA": 84.39999999999999,
-   "label": "Survival Maximizer + Bracket Fill, lump sum",
+   "label": "Bracket Fill, lump sum",
    "steps": 4,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S332F",
@@ -376,10 +376,10 @@
    "target": 53900,
    "libraryTarget": 215500,
    "armA": 85.9,
-   "label": "Bridge-Sized Relief + ISA First, lump sum",
+   "label": "ISA First, lump sum",
    "steps": 3,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S334F",
@@ -387,11 +387,11 @@
    "cohort": "fire",
    "target": 122100,
    "libraryTarget": 411000,
-   "armA": 85,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 84.8,
+   "label": "Bracket Fill Basic",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S338F",
@@ -399,11 +399,11 @@
    "cohort": "fire",
    "target": 17600,
    "libraryTarget": 59000,
-   "armA": 84.5,
-   "label": "Survival Maximizer + ISA First, lump sum",
+   "armA": 84.3,
+   "label": "ISA First, lump sum",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S340F",
@@ -412,10 +412,10 @@
    "target": 30200,
    "libraryTarget": 91500,
    "armA": 84.8,
-   "label": "Current Plan + Bracket Fill Basic",
+   "label": "Bracket Fill Basic",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S344F",
@@ -423,11 +423,11 @@
    "cohort": "fire",
    "target": 46900,
    "libraryTarget": 230500,
-   "armA": 85.39999999999999,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 84.6,
+   "label": "Bracket Fill Basic",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S346F",
@@ -435,11 +435,11 @@
    "cohort": "fire",
    "target": 124900,
    "libraryTarget": 444000,
-   "armA": 84,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 84.39999999999999,
+   "label": "Bracket Fill Basic",
    "steps": 6,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S350F",
@@ -447,23 +447,23 @@
    "cohort": "fire",
    "target": 17000,
    "libraryTarget": 51500,
-   "armA": 85.8,
-   "label": "Bridge-Sized Relief + Bracket Fill",
+   "armA": 85.5,
+   "label": "Bracket Fill",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S352F",
    "base": "S352",
    "cohort": "fire",
-   "target": 28900,
+   "target": 28300,
    "libraryTarget": 77000,
-   "armA": 84.3,
-   "label": "Survival Maximizer + Bracket Fill, lump sum",
-   "steps": 4,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "armA": 85.39999999999999,
+   "label": "Bracket Fill, lump sum",
+   "steps": 8,
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S356F",
@@ -471,11 +471,11 @@
    "cohort": "fire",
    "target": 50800,
    "libraryTarget": 191000,
-   "armA": 85.6,
-   "label": "Bridge-Sized Relief + Bracket Fill Basic",
+   "armA": 85.39999999999999,
+   "label": "Bracket Fill Basic",
    "steps": 7,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   },
   {
    "id": "S358F",
@@ -483,11 +483,11 @@
    "cohort": "fire",
    "target": 123100,
    "libraryTarget": 366000,
-   "armA": 84.5,
-   "label": "Relief-First, Bridge-Last + Windfall to ISA",
+   "armA": 84.89999999999999,
+   "label": "Windfall to ISA",
    "steps": 8,
-   "code": "fbf09b414864",
-   "head": "864b0f34130b"
+   "code": "1d9d47c96f47",
+   "head": "e2f0c2fca61b"
   }
  ]
 }

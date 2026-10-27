@@ -5,7 +5,9 @@
  *   - touched: scan-touched.mjs's MEANT rule (O129), taken once and frozen in phase4-orders.json (freeze), which every
  *     later step reads: an id in the name or the plain text of any file under results/ (the band selection's p4-select and
  *     Phase 4's own outputs left out: p4-land, its log, the pilot, the run; OWN), a gzipped file's own
- *     id field, and every results-*.txt file in the tree but results-p4-select.txt (the band selection's candidate list).
+ *     id field, and every results-*.txt file in the tree but results-p4-select.txt (the band selection's candidate list);
+ *     and, since the design review of 27 Oct (finding 2, D36), every id in the archived results' manifest
+ *     (results-archive/MANIFEST-solver-results.sha256, its p4-select lines left out), in archive/ and in research/tests/.
  *     An id with an F is its library id: a household retiring at 52 counts as touched when its library household is;
  *   - the library cohort: untouched single households older than 44, 20 taken evenly in library order (select-7u-broad.mjs
  *     pick), the rest of the pool after them in library order as reserves;
@@ -15,8 +17,9 @@
  *     it, the minimum pot written in (the household's own, or one year's target where it has none: solvePlan's rule, so
  *     every arm's engine counts survival alike), and the candidate's return assumptions (candidatePlan: O60's blend
  *     medians), on which every arm runs;
- *   - arm A (appPlan, select-phase4.mjs armA): the app's policy search then its tournament, searched on seed 7001, with
- *     guardrails on, the lookahead at 5 years and raises capped at 110% (the solver's own cap);
+ *   - arm A (appPlan, select-phase4.mjs armA with { tournament: false }, D36): the app's withdrawal-policy search on the
+ *     household's own plan, searched on seed 7001, with guardrails on, the lookahead at 5 years and raises capped at 110%
+ *     (the solver's own cap); no tournament, so every arm runs on the same accounts and contributions;
  *   - landing: the target set by bisection (whole hundreds of pounds) until arm A, searched anew at each target,
  *     survives 85 +/- 1% on 1,000 paths of seed 7005 (the selection seed, used for nothing else in Phase 4); a household
  *     that does not land within 16 steps is passed over for the next in its cohort's order;
@@ -67,6 +70,13 @@ export function touched(root = HERE) {
   };
   if (existsSync(join(root, 'results'))) walk(join(root, 'results'));
   for (const f of readdirSync(root).filter(f => /^results-.*\.txt$/.test(f) && f !== 'results-p4-select.txt')) add(f + '\n' + readFileSync(join(root, f), 'latin1'));
+  // and what moved out of results/ (D36, the design review of 27 Oct, finding 2): the archived results' manifest (its
+  // band-selection lines left out, as p4-select is above), the archive, and the tests' fixtures
+  const manifest = join(root, 'results-archive', 'MANIFEST-solver-results.sha256');
+  if (existsSync(manifest)) add(readFileSync(manifest, 'latin1').split('\n').filter(l => !/p4-select/.test(l)).join('\n'));
+  const walkAll = d => { if (!existsSync(d)) return; for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walkAll(p); else { add(f); add(readFileSync(p, 'latin1')); } } };
+  walkAll(join(root, 'archive'));
+  walkAll(join(root, '..', 'tests'));
   return S;
 }
 
@@ -131,6 +141,7 @@ function planted() {
     cases.push(['the candidate\'s returns on every arm (High Risk at the blend median)', `${p.riskProfiles['High Risk'].real}`, '4.97']);
     const a = appPlan(p); cases.push(['arm A: guardrails on, lookahead 5, raises capped at 110%', `${a.config.guardrails} ${a.config.lookaheadYears} ${a.config.raiseCap}`, 'true 5 1.1']); }
   { cases.push(['an id with an F is its library id', idsIn('S302F-land.json').join(','), 'S302']); }
+  { const T = touched(); cases.push(['the scan reads the archive, the archived manifest and the tests (the review\'s three of 27 Oct: S140, S226, S280)', ['S140', 'S226', 'S280'].map(id => (T.has(id) ? 'in' : 'out')).join(','), 'in,in,in']); }
   cases.push(['the scan leaves out Phase 4\'s own outputs and the band selection, not earlier runs', ['p4-land', 'p4-land-log.txt', 'p4-pilot', 'diagp4', 'p4-select', 'diag7uf', 'results-7uf.txt'].map(f => (OWN.test(f) ? 'out' : 'in')).join(','), 'out,out,out,out,out,in,in']);
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
@@ -171,7 +182,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     if (!(k >= 0 && k < list.length)) { console.error(`phase4-panel: k must be 0..${list.length - 1}`); process.exit(2); }
     const h = list[k], cohort = which === 'fire' ? 'fire' : 'lib', id = idOf(h, cohort), t0 = Date.now();
     let label = null;
-    const survivalAt = T => { const a = armA(appPlan(planOf(h, cohort, T))); label = a.label; return E.monteCarlo(E.buildContext(E.resolveMpaa(a.planState)), { trials: LAND_PATHS, seed: LAND_SEED }).successRate; };
+    const survivalAt = T => { const a = armA(appPlan(planOf(h, cohort, T)), { tournament: false }); label = a.label; return E.monteCarlo(E.buildContext(E.resolveMpaa(a.planState)), { trials: LAND_PATHS, seed: LAND_SEED }).successRate; };
     const r = landTarget(survivalAt, E.num(h.plan.spending.targetSpend, 0));
     const last = r.steps[r.steps.length - 1];
     if (last.target !== r.target) survivalAt(r.target);   // arm A's label at the target taken

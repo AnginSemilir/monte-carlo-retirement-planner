@@ -39,6 +39,9 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D36. 27 Oct, maintainer, after the design review's FAIL (`reviews/2026-10-27-phase4-design.md`): arm A is the app's withdrawal-policy search on
+  the household's own plan, without the tournament, so every arm runs on the same accounts and contributions (a fresh landing and pilot); the held-out
+  scan reads the archive, the old results' manifest and the tests too, a household it adds replaced by the frozen order's next reserve; the engine's Bed & SIPP relief (a non-earner relieved on the full allowance at the higher rate) fixed now, with its test.
 - D35. 26 Oct, maintainer, Phase 4's design: 7q is folded into Phase 4, an arm on its bridge households (the candidate
   following the app's fixed policy before pension access, its own table after), reported, not gated (D15 so amended);
   robustness is reported, not gated: the perturbed worlds in the code (returns a point lower, volatility up a quarter, a
@@ -75,11 +78,10 @@ lapsed; they stay in the archive.
   run setting, as 7u-F's 30 was; `candidate.json` and its hash unchanged); the product's 30 stays until after Phase 4 (D12).
 - D25. 24 Oct, maintainer, after V3's ladder: N4 at 45 wealth points (the coarsest V3 accepts); the speed review's instruction
   6 done whatever gate 5 shows; gate 5 measured after both. On the unlock of 24 Oct, `n4-menu.test.mjs` joins the fast suite.
-- D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, review/external-2026-10-21 at
-  cff3d86, not merged) is carried out in its order, by its "How to port" rules: (1) S1 and S2 on by default in the
-  product's path and the research runs, S3 in the candidate's, the defaults in the solver's code (not `PRODUCT_BASELINE` or
-  `candidate.json`: they change no number, so D12's decided defaults stand); one differing bit in an identity test stops
-  the port; (2) V3 and V4 run once, on the ported code; (3) gate 5 compares the candidate against the ported product. Its
+- D24. 23 Oct, maintainer: the speed review (`research/reviews/2026-10-23/SPEED-REVIEW.md`, review/external-2026-10-21 at cff3d86, not merged) is
+  carried out in its order, by its "How to port" rules: (1) S1 and S2 on by default in the product's path and the research runs, S3 in the candidate's,
+  the defaults in the solver's code (not `PRODUCT_BASELINE` or `candidate.json`: they change no number, so D12's decided defaults stand); one differing
+  bit in an identity test stops the port; (2) V3 and V4 run once, on the ported code; (3) gate 5 compares the candidate against the ported product. Its
   identity tests join the fast suite on the unlock of 23 Oct; its time boxes hold.
 - D23. 23 Oct, maintainer: an external speed review is starting; V3 and V4 are not launched until it reports, and then run once, on the code it leaves; no change to `src/solver` meant to speed it up until it reports.
 - D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
@@ -129,9 +131,8 @@ lapsed; they stay in the archive.
   exports import as the baseline; habit is left out; the cash buffer is sized on the planned target; a couples reserve is model-predictive control; E3 follows Phase 4 for the product.
 - D19. Standing (CLAUDE.md): the maintainer's own household is never a fixture; no model identifier in a commit, a code
   comment or a pushed file; merge to `main` only after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED GREEN; background runs are harness-tracked tasks.
-- Lapsed with Step 3 (21 Oct): the receipt after every plan edit and the Stop hook; the deep review after every result,
-  `uncertainty.mjs` and the escalation trigger; credences, derived credences, the scorecard, decision tables, mechanism
-  anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
+- Lapsed with Step 3 (21 Oct): the receipt after every plan edit and the Stop hook; the deep review after every result, `uncertainty.mjs` and the
+  escalation trigger; credences, derived credences, the scorecard, decision tables, mechanism anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
 
 ## 4. Open items
 
@@ -286,14 +287,13 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths, 200 units; D34's sizing, D21's budget): from 26 Oct 22:56 UK, a container restart at 40 units, resumed 27 Oct 01:17 UK as task bpsyw8bsx, `results/p4-pilot-log.txt`.
+- Nothing. Phase 4's panel was landed afresh (D36) on 27 Oct, 07:03 to 07:06 UK, every household at the first pass (`results/p4-land-log.txt`); the fresh pilot starts after this commit. Set aside unread under D36: the first pilot (`results/p4-pilot-discarded`) and the landing before (`results/p4-land-discarded/with-tournament`).
 
 ## 6. The next three actions
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. Phase 4 (D33 to D35), on fcd8096217b7: the landed panel, the audit and the reducer with their planted cases; each
-   household's paths and threshold sized by D34; the budget measured (D21); the registration, with a no-harm item against
-   SHIP, a spending item over all years, the whole score on every path and the Node version stamped; the reviewer's
-   design review; the launch on seed 7003.
-2. For the maintainer: the CHECKLIST 1 wording the reviewers proposed (a protected file: "unlock enforcement").
+1. Phase 4 (D33 to D36), on fcd8096217b7: the panel landed afresh; a fresh pilot on seed 7002; each household's paths and threshold sized by D34 and
+   the budget measured (D21); the registration with the design review's fixes in it; the reviewer's re-review; the maintainer's word on the budget
+   and on the spending flag (the review's finding 14); the launch on seed 7003.
+2. For the maintainer (protected files, "unlock enforcement"): the CHECKLIST 1 wording the reviewers proposed; `bed-sipp.test.mjs` into the fast suite.

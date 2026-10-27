@@ -73,8 +73,10 @@ export function armAPlan(raw) {
   return E.normalizePlan(p);
 }
 
-/* the app's own pipeline: policy search, then the tournament under that policy (versus.mjs arm A) */
-export function armA(plan) {
+/* the app's own pipeline: policy search, then the tournament under that policy (versus.mjs arm A). Phase 4 (STATE.md D36)
+   takes the policy search alone ({ tournament: false }): the household's own plan with the withdrawal policy, the drawdown
+   strategy and the harvest the search picks, so every arm runs on the same accounts and contributions */
+export function armA(plan, { tournament = true } = {}) {
   let used = 0;
   const cands = E.buildPolicyCandidates(plan).map(c => {
     const stats = E.monteCarlo(E.buildContext(E.resolveMpaa(c.planState)), { trials: TP, seed: SEARCH_SEED }); used += TP;
@@ -85,13 +87,15 @@ export function armA(plan) {
   withPolicy.spending.decumulationPolicy = pol.decumulationPolicy;
   withPolicy.spending.drawdownStrategy = pol.drawdownStrategy;
   withPolicy.config.harvestPersonalAllowance = pol.harvestPersonalAllowance;
+  const policyLabel = `${pol.decumulationPolicy}${pol.harvestPersonalAllowance ? '' : ' (harvest off)'}${pol.drawdownStrategy === 'Full 25% Lump Sum' ? ', lump sum' : ''}`;
+  if (!tournament) return { planState: withPolicy, used, label: policyLabel };
   const t = E.buildTournament(withPolicy, { scope: 'full' });
   const players = t.strategies.filter(s => !s.isEntrant && !s.evolve).map(s => {
     if (s.candidates) { used += s.candidates.length * TT; return E.resolveSearchPlayer(s, { trials: TT, seed: SEARCH_SEED, priorities: E.DEFAULT_PRIORITIES }); }
     return s;
   }).map(p => { const stats = p.stats || E.monteCarlo(p.planState, { trials: TT, seed: SEARCH_SEED }); if (!p.stats) used += TT; return { ...p, stats }; });
   const won = E.explainPick(players, { priorities: E.DEFAULT_PRIORITIES }).winner;
-  return { planState: won.planState, used, label: `${won.name} + ${pol.decumulationPolicy}${pol.harvestPersonalAllowance ? '' : ' (harvest off)'}${pol.drawdownStrategy === 'Full 25% Lump Sum' ? ', lump sum' : ''}` };
+  return { planState: won.planState, used, label: `${won.name} + ${policyLabel}` };
 }
 
 if (mode === 'list') {

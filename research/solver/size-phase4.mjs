@@ -16,8 +16,9 @@
  *   node research/solver/size-phase4.mjs [pilot dir] > research/solver/results-phase4-sizing.txt   (writes phase4-paths.json)
  *   node research/solver/size-phase4.mjs --planted | --check
  */
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
-import { gunzipSync } from 'node:zlib';
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { gunzipSync, gzipSync } from 'node:zlib';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { betaInc, clopperPearson } from './stats.mjs';
@@ -35,6 +36,7 @@ const upperTail = (m, n, q) => (m <= 0 ? 1 : m > n ? 0 : q <= 0 ? 0 : q >= 1 ? 1
 /* P(L > t) at a discordance d, N paths and a true loss D (points): the sum over K discordant paths of Bin(K; N, d) times
    P(lost > (K + tN/100) / 2 | K), lost ~ Bin(K, 1/2 + D / (200 d)); K over d N +/- 9 sd (the rest below 1e-18) */
 export function harmRate(d, N, t, D) {
+  if (!(d > 0 && d < 1) || !(N >= 1) || !Number.isFinite(t)) throw new Error(`size-phase4: harmRate at discordance ${d}, ${N} paths, threshold ${t}`);
   const q = 0.5 + D / (200 * d);
   if (q > 1) return NaN;   // a true loss of D needs a discordance of at least D / 100
   const mu = N * d, sd = Math.sqrt(N * d * (1 - d)), lo = Math.max(0, Math.floor(mu - 9 * sd - 5)), hi = Math.min(N, Math.ceil(mu + 9 * sd + 5));
@@ -78,11 +80,27 @@ export function budgetOf(U, panel, paths, R = RUN) {
   for (const h of panel) for (const [k, u] of Object.entries(U[h.id] || {})) {
     const ms = u.engineSecs / u.N, robust = k === 'APP/-' || k === 'CAND/0.02';
     const n = paths[h.id] + R.repl + (k === 'CAND/0.02' && u.bridge > 0 ? Math.min(paths[h.id], R.fixbr) : 0) + (robust ? R.worlds * R.rob + R.hist : 0);
-    const secs = u.solveSecs + ms * n + (u.secs - u.solveSecs - u.engineSecs);   // the rest of the unit (arm A's pick) as the pilot timed it
+    const rest = u.secs - u.solveSecs - u.engineSecs - (u.fixbr ? ms * u.fixbr.N : 0);   // the rest of the unit as the pilot timed it (arm A's pick; on a solver unit runPolicy beside on 2,000 paths, as the run), less its own FIXBR
+    const secs = u.solveSecs + ms * n + Math.max(0, rest);
     B.total += secs; B.solve += u.solveSecs; B.engine += ms * n; B.arm[u.arm] = (B.arm[u.arm] || 0) + secs;
     if (secs > B.longest.secs) B.longest = { secs, unit: `${h.id} ${k}` };
   }
   return B;
+}
+/* the panel's paths and thresholds from the pilot's units: each comparison's discordance, its Clopper-Pearson upper bound
+   (stats.mjs returns [lo, hi]), and sizeFor over the household's comparisons */
+export function sizePanel(dir, panel) {
+  const D = discordances(dir);
+  const missing = panel.flatMap(h => (D[h.id] ? Object.entries(D[h.id]).filter(([, v]) => !v).map(([k]) => `${h.id} ${k}`) : [`${h.id} (no units)`]));
+  if (missing.length) return { missing };
+  const out = { paths: {}, thresholds: {} }, rows = {};
+  for (const h of panel) {
+    const comps = Object.entries(D[h.id]).map(([cmp, v]) => ({ cmp, k: v.k, n: v.n, dHat: v.k / v.n, dUp: clopperPearson(v.k, v.n)[1] }));
+    const r = sizeFor(comps.map(c => c.dUp));
+    out.paths[h.id] = r.N; rows[h.id] = { comps, r };
+    out.thresholds[h.id] = Object.fromEntries(comps.map((c, i) => [c.cmp, { d: +r.rows[i].d.toFixed(6), t: +r.rows[i].t.toFixed(6), fp: +r.rows[i].fp.toFixed(4), tp: +r.rows[i].tp.toFixed(4) }]));
+  }
+  return { out, rows };
 }
 /* the pilot's discordances: per household, per weight, per comparison (the pilot's units as audit-phase4.mjs writes them) */
 function discordances(dir) {
@@ -112,9 +130,18 @@ function planted() {
   cases.push(['a 1-point loss is impossible below 1% discordance', `${Number.isNaN(harmRate(0.005, 16000, 0.3, 1))}`, 'true']);
   { const r = sizeFor([0.03, 0.12]); cases.push(['a household is sized by its widest comparison', `${r.N === sizeFor([0.12]).N}`, 'true']); }
   { const t = thresholdFor(0.05, 20000); cases.push(['a threshold sits on the lattice of losses (a whole number of paths)', `${Math.abs(t * 200 - Math.round(t * 200)) < 1e-9}`, 'true']); }
+  { let threw = 'no'; try { harmRate(NaN, 16000, 0.5, 0.25); } catch { threw = 'threw'; } cases.push(['a discordance it cannot price is refused, not read as no harm', threw, 'threw']); }
+  // end to end: synthetic pilot units (2,000 paths; CAND survives every path; APP loses 180 of them, SHIP 40), through
+  // discordances() and sizePanel, against the bound and the sizing computed directly
+  { const dir = mkdtempSync(join(tmpdir(), 'p4size-')), n = 2000, bits = lost => Buffer.from(Uint8Array.from({ length: n }, (_, i) => (i < lost ? 0 : 1))).toString('base64');
+    const unit = (arm, w, lost) => writeFileSync(join(dir, `H1-${arm}-w${w}.json.gz`), gzipSync(JSON.stringify({ id: 'H1', arm, w, N: n, main: { survived: bits(lost) } })));
+    unit('APP', '-', 180); unit('CAND', '0.02', 0); unit('CAND', '0.01', 0); unit('SHIP', '0.02', 40); unit('SHIP', '0.01', 40);
+    const S = sizePanel(dir, [{ id: 'H1' }]), want = sizeFor([clopperPearson(180, n)[1], clopperPearson(40, n)[1], clopperPearson(180, n)[1], clopperPearson(40, n)[1]]);
+    rmSync(dir, { recursive: true, force: true });
+    cases.push(['end to end through the pilot\'s units: the discordances read (APP 180 of 2,000, SHIP 40), sized at their upper bounds', `${S.out ? S.out.thresholds.H1['APP/0.02'].d.toFixed(4) : '-'} ${S.out ? S.out.paths.H1 : '-'}`, `${clopperPearson(180, n)[1].toFixed(4)} ${want.N}`]); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
-  console.log('EDGES: no discordance, below the 1% a 1-point loss needs, a household above 10.5%, the threshold on the lattice');
+  console.log('EDGES: no discordance, below the 1% a 1-point loss needs, a household above 10.5%, the threshold on the lattice, an unpriceable discordance');
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
   return bad;
 }
@@ -136,17 +163,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (process.argv[2] === '--planted') process.exit(planted() ? 1 : 0);
   if (process.argv[2] === '--check') { check(); process.exit(0); }
   if (planted()) process.exit(1);
-  const dir = process.argv[2] || join(HERE, 'results', 'p4-pilot'), D = discordances(dir), panel = JSON.parse(readFileSync(join(HERE, 'phase4-panel.json'), 'utf8')).panel;
-  const missing = panel.flatMap(h => Object.entries(D[h.id] || {}).filter(([, v]) => !v).map(([k]) => `${h.id} ${k}`).concat(D[h.id] ? [] : [`${h.id} (no units)`]));
-  if (missing.length) { console.log(`SIZING REFUSED: the pilot lacks ${missing.join(', ')}`); process.exit(1); }
+  console.log('the exact rates checked by simulation (--check):'); check();
+  const dir = process.argv[2] || join(HERE, 'results', 'p4-pilot'), panel = JSON.parse(readFileSync(join(HERE, 'phase4-panel.json'), 'utf8')).panel;
+  const S = sizePanel(dir, panel);
+  if (S.missing) { console.log(`SIZING REFUSED: the pilot lacks ${S.missing.join(', ')}`); process.exit(1); }
+  const { out, rows } = S;
   console.log(`PHASE 4'S PATHS AND THRESHOLDS (D34), from the pilot in ${dir}: per household and estate weight, the candidate against the app's rules (APP) and against the shipping solver (SHIP); d the pilot's discordance (k of n), d+ its upper 95% bound (the sizing's); t the threshold (harm when the observed loss is above it); the rates at a true quarter-point and 1-point loss, exact; D34's normal check beside`);
-  const out = { paths: {}, thresholds: {} };
   let total = 0;
   for (const h of panel) {
-    const comps = Object.entries(D[h.id]).map(([cmp, v]) => ({ cmp, k: v.k, n: v.n, dHat: v.k / v.n, dUp: clopperPearson(v.k, v.n).hi }));
-    const r = sizeFor(comps.map(c => c.dUp));
-    out.paths[h.id] = r.N; total += r.N;
-    out.thresholds[h.id] = Object.fromEntries(comps.map((c, i) => [c.cmp, { d: +r.rows[i].d.toFixed(6), t: +r.rows[i].t.toFixed(6), fp: +r.rows[i].fp.toFixed(4), tp: +r.rows[i].tp.toFixed(4) }]));
+    const { comps, r } = rows[h.id]; total += r.N;
     console.log(`${h.id.padEnd(6)} ${h.cohort.padEnd(4)} paths ${r.N}`);
     comps.forEach((c, i) => { const x = r.rows[i], n = normalCheck(x.d, r.N); console.log(`  ${c.cmp.padEnd(9)} d ${(100 * c.dHat).toFixed(2)}% (${c.k} of ${c.n}) d+ ${(100 * c.dUp).toFixed(2)}%: t ${x.t.toFixed(4)}, false alarm at 0.25 ${x.fp.toFixed(4)}, caught at 1 ${x.tp.toFixed(4)} | normal: se ${n.se.toFixed(4)}, t ${n.t.toFixed(4)}, paths for d+ ${n.nNeeded}`); });
   }
@@ -162,5 +187,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`\nTHE REGISTRATION'S TABLE (points; t, then the chance of a harm reading at a true 0.25 and 1-point loss)\n| household | paths | ${K.map(k => `vs ${k.replace('/', ' at ')}`).join(' | ')} |\n|---|---|${K.map(() => '---').join('|')}|`);
   for (const h of panel) console.log(`| ${h.id} | ${out.paths[h.id]} | ${K.map(k => { const x = out.thresholds[h.id][k]; return `${x.t.toFixed(3)} (${x.fp.toFixed(3)}, ${x.tp.toFixed(3)})`; }).join(' | ')} |`);
   const U = unitsIn(dir), B = budgetOf(U, panel, out.paths);
-  console.log(`THE BUDGET (D21), from the pilot's units: ${(B.total / 3600).toFixed(1)} core-hours, about ${(B.total / 3600 / 4).toFixed(1)} hours on 4 cores (the solves ${(B.solve / 3600).toFixed(1)}, the engine ${(B.engine / 3600).toFixed(1)}); by arm: ${Object.entries(B.arm).map(([a, x]) => `${a} ${(x / 3600).toFixed(1)}`).join(', ')}; the longest unit ${(B.longest.secs / 3600).toFixed(2)} hours (${B.longest.unit})`);
+  const hosts = [...new Set(Object.values(U).flatMap(Object.values).map(u => u.cpu || 'unrecorded'))];
+  console.log(`THE BUDGET (D21), from the pilot's units on ${hosts.length === 1 ? 'one host' : `${hosts.length} hosts`} (${hosts.join('; ')}): ${(B.total / 3600).toFixed(1)} core-hours, about ${(B.total / 3600 / 4).toFixed(1)} hours on 4 cores (the solves ${(B.solve / 3600).toFixed(1)}, the engine ${(B.engine / 3600).toFixed(1)}); by arm: ${Object.entries(B.arm).map(([a, x]) => `${a} ${(x / 3600).toFixed(1)}`).join(', ')}; the longest unit ${(B.longest.secs / 3600).toFixed(2)} hours (${B.longest.unit})`);
 }

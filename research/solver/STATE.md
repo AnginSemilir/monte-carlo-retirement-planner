@@ -287,7 +287,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Nothing. Phase 4's pilot (EXPLORATORY, seed 7002, 2,000 paths) ran 07:52 to 15:48 UK, its three re-routed households' solver units 17:22 to 18:03 UK (D37); the design re-review PASSED (`reviews/2026-10-27-phase4-design-2.md`, five minors folded in); the registration is complete.
+- Phase 4 (registered, `registrations/phase-4.md` at 5acd43d), seed 7003: launched 27 Oct 20:17 UK through `run-from-snapshot.sh` as task baslvp15e (code 1d9d47c96f47, audit 0e8b11f6330e), `results/phase4-launch-log.txt`, units in `results/diagp4`; the harness stops it at 12 hours, relaunched then with `RESUME=1` under the same registration.
 
 ## 6. The next three actions
 

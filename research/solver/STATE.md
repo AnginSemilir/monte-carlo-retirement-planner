@@ -285,7 +285,7 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 <!-- end printed:phase4 -->
 ## 5. Running now
 
-- The tier test (D39, EXPLORATORY, seed 7002): 200 units, launched 28 Oct 21:18 UK on code 53ea905f8e07 (audit c3901259b8c1) as task b9n0hvy62 (`results/tiers-launch-log.txt`, `results/tiers`); read by `reduce-tiers.mjs` when every unit is in. Phase 4's units: `results/diagp4`.
+- The tier test (D39, EXPLORATORY, seed 7002): 200 units, launched 28 Oct 21:18 UK on code 53ea905f8e07 (audit c3901259b8c1); relaunched with `RESUME=1` after a container restart (23:29 UK, 30 units kept) as task bz4yyjaxz (`results/tiers-launch-log.txt`, `results/tiers`); read by `reduce-tiers.mjs` when every unit is in. Phase 4's units: `results/diagp4`.
 
 ## 6. The next three actions
 

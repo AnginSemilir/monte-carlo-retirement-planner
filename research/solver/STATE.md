@@ -285,7 +285,7 @@ HR (the ceiling at the taper threshold) passes N4's bar on the two pension-heavy
 <!-- end printed:gate5 -->
 ## 5. Running now
 
-- Phase 4 (registered, `registrations/phase-4.md` at 5acd43d), seed 7003: launched 27 Oct 20:17 UK (code 1d9d47c96f47, audit 0e8b11f6330e); a container restart at about 23:33 UK stopped it with 19 of 200 units done; relaunched with `RESUME=1` at 23:36 UK as task bezwcnf2d, the 19 kept (`results/phase4-launch-log.txt`, `results/diagp4`); the harness stops it at 12 hours, relaunched the same way.
+- Phase 4 (registered, `registrations/phase-4.md` at 5acd43d), seed 7003: launched 27 Oct 20:17 UK (code 1d9d47c96f47, audit 0e8b11f6330e); relaunched with `RESUME=1` after a container restart (27 Oct 23:36 UK, 19 units kept) and at the harness's 12-hour stop (28 Oct 11:35 UK, 78 kept) as task bqnsjxy3d (`results/phase4-launch-log.txt`, `results/diagp4`).
 
 ## 6. The next three actions
 

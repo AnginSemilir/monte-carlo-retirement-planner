@@ -285,7 +285,7 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 <!-- end printed:phase4 -->
 ## 5. Running now
 
-- Nothing. Phase 4's 200 units finished on 28 Oct at 17:38 UK (task biefc7e4d, `results/phase4-launch-log.txt`, `results/diagp4`); its read is above.
+- The tier test (D39, EXPLORATORY, seed 7002): 200 units, launched 28 Oct 21:18 UK on code 53ea905f8e07 (audit c3901259b8c1) as task b9n0hvy62 (`results/tiers-launch-log.txt`, `results/tiers`); read by `reduce-tiers.mjs` when every unit is in. Phase 4's units: `results/diagp4`.
 
 ## 6. The next three actions
 

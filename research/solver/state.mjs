@@ -68,7 +68,8 @@ const BLOCKS = {
       return `over ${m[1]} household-years, ${over.length ? `the gaps above a pound: ${over.map(g => g.x).join('; ')}` : `every gap within a pound (the largest ${top.v < 1e-3 ? top.v.toExponential(1) : top.v.toFixed(4)} pounds, ${top.x.replace(/ [^ ]+ \(.*$/, '')})`}`;
     });
     out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs --full\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}. ${pick(V, /^(?:PASS|FAIL) {2}1\. where the engine's own pick differs from the forward run's \((\d+) of (\d+) years\)[^:]*: the largest gap (\S+).*?, its tie tolerance (\S+)/m, m => `On the fixed code the engine's own pick differs from the forward run's in ${m[1]} of ${m[2]} years, the largest score gap ${m[3]} against the chooser's tie tolerance ${m[4]}: ties`)}.`);
-    return fold(out, [[0, 3], [3, 5], [5, 7], [7, 9], [9]]);
+    // folded again for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0, 5], [5, 9], [9]]);
   },
   // V3 and V4 on the ported code (EXPLORATORY, the tuning seed): each read's verdicts, from its results file
   v34() {
@@ -92,7 +93,8 @@ const BLOCKS = {
       return pick(V4, new RegExp(`^V4 at W${w.replace('.', '\\.')}: (.*)$`, 'm'), m => `at estate weight ${w} ${m[1]}, the best variant ${Object.entries(by).map(([v, ids]) => `${v} on ${ids.length} of ${best.length} households`).join(', ')}`);
     });
     out.push(`- V4: ${v4.join('; ')}. ${pick(V4, /^V4 ensemble: (.*)$/m, m => `Its verdict: ${m[1]}`)} (\`results-v3.txt\`, \`results-v4.txt\`).`);
-    return fold(out, [[0, 1], [1, 3], [3, 5], [5]]);
+    // folded again for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0, 3], [3]]);
   },
   // N4's build (Step 6, n4-design.md): its test in the full form, and the product's path unchanged
   n4build() {
@@ -229,14 +231,15 @@ const BLOCKS = {
   // the known limitations: gaps between a table's forecast and simulation, with their sizes (Step 4's triage)
   limitations() {
     const S = 'research/solver/';
-    return [
+    return fold([
       `- O133, year-0 tables above simulation on the broad households below 95: ${pick(`${S}results-o133-scan.txt`, /^SHIP: (.*)$/m, m => `SHIP ${m[1]}`)}; ${pick(`${S}results-o133-scan.txt`, /^CAND: (.*)$/m, m => `CAND ${m[1]}`)} (\`results-o133-scan.txt\`).`,
       `- O139, S380's world 0 under the candidate: ${pick(`${S}results-neroot.txt`, /world 0 \(z -1\.732051, weight [\d.]+\): OWN table ([\d.]+) sim ([\d.]+)/, m => `table ${m[1]} against ${m[2]} simulated`)} (\`results-neroot.txt\`).`,
       `- O180, S370's bad world: ${pick(`${S}results-hodep-s370.txt`, /world 0: table ([\d.]+) runs (\d+)\/(\d+) \(([\d.]+)\), table less runs ([\d.]+)/, m => `table ${m[1]} against ${m[4]} run (${m[2]} of ${m[3]}), ${m[5]} points over`)} (\`results-hodep-s370.txt\`).`,
       `- O189, S128's bridge part: ${pick(`${S}results-copyb.txt`, /S128 CW world 0: GB ([\d.]+)/, m => `world 0 GB ${m[1]}`)}, ${pick(`${S}results-copyb.txt`, /S128 CW world 1: GB ([\d.]+)/, m => `world 1 GB ${m[1]}`)} points (\`results-copyb.txt\`).`,
       `- O198, the top-cell fix's year-1 residual under the plan reference, world 0: ${pick(`${S}results-copyx.txt`, /SNRX world 0: .*?by year 1: ([+-]?[\d.]+)/, m => m[1])} points (\`results-copyx.txt\`).`,
       '- TOP-CELL, AA-UR and FD-X: diagnostics of table reads, not run; dropped as gates (D2).'
-    ];
+    // folded for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
+    ], [[0, 2], [2, 4], [4]]);
   },
   // Step 2's re-check, when it has run
   step2() {
@@ -292,6 +295,26 @@ const BLOCKS = {
     out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);
     // P1 at both weights on one line, and P2 with the outcome, to keep STATE.md under its 300 lines (the figures unchanged)
     return [[0, 1], [1, 3], [3, 5], [5, out.length]].flatMap(([a, b]) => (a === 5 ? out.slice(a, b) : [out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')]));
+  },
+  // Phase 4's read, once (reduce-phase4.mjs, results-phase4.txt): the gate, A1, A2 and S1 at both weights, the outcome; the
+  // flags (D34); reported beside them: the replication, the whole score, spending against SHIP, the lump-sum split (D38 (2)),
+  // S1's parts, FIXBR (7q), the worlds, history, runPolicy beside the engine and the solve
+  phase4() {
+    const R = 'research/solver/results-phase4.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const at = re => pick(R, re, m => m[1]), W = ['0.02', '0.01'], cap = x => (/^[a-z]+[A-Z]/.test(x) ? x : x[0].toUpperCase() + x.slice(1)), esc = w => w.replace('.', '\\.');
+    const stamp = JSON.parse(at(/^PHASE 4 READ: .*? stamp (\{.*\})$/m));
+    const compared = (t.match(/^ {2}S\d+F?\s+W[\d.]+ vs (?:APP |SHIP): /gm) || []).length;
+    const out = [`- ${cap(at(/^(the gate: .*)$/m))}; code ${stamp.code}, audit ${stamp.audit}, candidate ${stamp.candidate} (\`results-phase4.txt\`).`];
+    for (const w of W) out.push(`- ${pick(R, new RegExp(`^W${esc(w)}: A1 .*$`, 'm'))}.`);
+    out.push(`- ${at(/^(OUTCOME: .*)$/m)}.`);
+    out.push(`- The flags (D34: for investigation, none blocking on its own), harm against APP and against SHIP on ${compared} household-weight comparisons, and the spending flag: ${at(/^FLAGGED: (.*)$/m)}.`);
+    for (const w of W) out.push(`- W${w} ${at(new RegExp(`^ {2}W${esc(w)} (the replication .*)$`, 'm'))}.`);
+    for (const w of W) for (const re of ['the whole score: .*', 'spending delivered over every year, CAND less SHIP: .*', 'A1 and A2 where arm A takes the lump sum .*', 'A1 and A2 where arm A does not .*', "S1's parts, .*"]) out.push(`- W${w} ${at(new RegExp(`^ {2}W${esc(w)} (${re})$`, 'm'))}.`);
+    for (const re of [/^ {2}(FIXBR \(7q, D35\): .*)$/m, /^ {2}(the world return-1 .*)$/m, /^ {2}(the world vol\+25: .*)$/m, /^ {2}(the world left-tail: .*)$/m, /^ {2}(history \(.*)$/m, /^ {2}(runPolicy beside the engine .*)$/m, /^ {2}(the solve, .*)$/m]) out.push(`- ${cap(at(re))}.`);
+    // three lines (STATE.md's 300): the gate and the decision; the flags, the replication and what is reported at each
+    // weight; FIXBR, the worlds, history, runPolicy and the solve
+    return fold(out, [[0, 4], [4, 17], [17]]);
   }
 };
 

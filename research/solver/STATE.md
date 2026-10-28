@@ -293,7 +293,7 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. Phase 4's read (above, PASS): the reviewer at the read (PASS), then the deep review; then the candidate goes to the maintainer, who decides whether
    it ships behind Part C's switch (D12 holds until then).
-2. `bed-sipp.test.mjs` and `phase4-audit.test.mjs` join FAST: the pre-tool hook refused the edit (the unlock of 27 Oct lapsed with the maintainer's next message); it needs "unlock enforcement".
+2. `bed-sipp.test.mjs` and `phase4-audit.test.mjs` joined FAST on the maintainer's unlock of 28 Oct (about 19:15 UK; done).
 3. After Phase 4's read (the reviewer, then the deep review), D37's and D38's items: before any later panel the scan reads the review branch's research/reviews/
    (a planted case); the engine's GIA basis add under CGT off guarded (`gaps/cgt-basis.patch`; a CGT-off household in `state-check --full`, failing before); sized:
    the windfall, the solver's own lump sum (`solveBoth`) and the savings split while working (`action.contrib`); the cash ISA under a table a known limitation; the sweep for the nightly check weighed.

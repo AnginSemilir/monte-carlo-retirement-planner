@@ -39,6 +39,9 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D38. 28 Oct, maintainer, on the review's gaps sweep (`research/reviews/2026-10-27/GAPS-SWEEP.md`, review/external-2026-10-21 at bba2fef, EXPLORATORY, not
+  for merging): Phase 4 runs on as registered. At its read: S368 recorded as used before (the review's N1 assessment, 26 Oct, which touched() cannot see; S132, S164 and S384 are named in its bridge scan, by plan inputs only),
+  for the reviewer at the read to weigh; the lump-sum count (16 of 40) beside the results, with the probe's finding. After the read: section 6's item 3.
 - D37. 27 Oct, maintainer, at Phase 4's checkpoint: the budget measured from the fresh pilot approved (`results-phase4-sizing.txt`); the spending flag
   reported, not blocking, as D34 (3)'s are; where arm A's policy routes a windfall (Windfall to ISA: S290, S314F, S358F) every arm routes it alike, the
   solver arms solving the plan under arm A's policy name (`audit-phase4.mjs` solverPlanOf). After Phase 4's read, sized then: the solver chooses where a
@@ -64,8 +67,7 @@ lapsed; they stay in the archive.
   nothing else running (D21), before launch.
 - D33. 26 Oct, maintainer: "Go ahead with phase 4. Don't run n1": Phase 4 registers on the candidate as it stands (fcd8096217b7); N1 is not run.
 - D32. 26 Oct, maintainer, on E10's estimate: "leave it for now". E10 stays out of the product's path; gate 5 stands.
-- D31. 26 Oct, maintainer: "port E7, E8, E9 and E11 into E5's path ... leave E6 and E10 out" (SPEED-PORT-2.md at dcf5cbf):
-  the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve more than the candidate's). Gate 5 is measured after.
+- D31. 26 Oct, maintainer: "port E7, E8, E9 and E11 into E5's path ... leave E6 and E10 out" (SPEED-PORT-2.md at dcf5cbf): the smaller cuts, E7, E8, E9 and E11, as exact speed-ups in E5's path. E10 is not ported now (it speeds the product's solve more than the candidate's). Gate 5 is measured after.
 - D30. 25 Oct, maintainer: "port the speed work (SPEED-PORT.md)" (review/external-2026-10-21 at 775bfc3): the `realAt` cache and E5 as exact
   speed-ups; the table without the dealing cost (`tableDealing: false`) a research option that joins the candidate only if step 3's check passes, and
   if it does not, it comes back to the maintainer; gate 5 is measured after.
@@ -89,15 +91,14 @@ lapsed; they stay in the archive.
 - D22. 23 Oct, maintainer: within Step 6, N4 (the richer move menu through V4's ensemble) runs before N1 (the coverage coordinate); Phase 4 is not registered until N4 has read, so Phase 4 tests the final move menu.
 - D21. 22 Oct, maintainer: 7u-F, past its budget, ran its CAND and SHIP units before DECOMP's and was read once when they were in; on a clean PASS
   DECOMP stopped (it did). Phase 4's budget is measured on this machine, with nothing else running, before it is registered.
-- D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, review/external-2026-10-21, not merged) is adopted, its
-  ten answers and its Next section: (1) the one-pot oracle's table gap a REPORTED diagnostic; V3 accepts a resolution by the policy's convergence,
-  printing the one-pot error beside it and failing if it stops shrinking; (2) D3 stands for 7u-F; Phase 4's harm rule is registered by its error rates
-  at the margin (the maintainer's call); (3) the reach count dropped; (4) V2 gains a state check after 7u-F (the engine's state mapped into the
-  solver's vector, slot by slot to a pound, and an inventory of every engine state field); (5) the hook's interpreter-script check reverted, CI and
-  the session start printing the protected files changed; (6) the argmax loops in `adaptive.js` and `couple.js` guarded after 7u-F; (7) the
-  decomposing arm as built; (8) V3 adds S330; V4 drops probit and counts V3's finest setting as a variant; (9) V5's interval after 7u-F, the
-  maintainer's call; the sensitivity to the returns with Phase 4; (10) N7 a standalone page built from `src/solver`, run by the maintainer on a laptop
-  and a phone.
+- D20. 22 Oct, maintainer: the follow-up review (`research/reviews/2026-10-22/FOLLOW-UP.md`, review/external-2026-10-21, not merged) is adopted, its ten
+  answers and its Next section: (1) the one-pot oracle's table gap a REPORTED diagnostic; V3 accepts a resolution by the policy's convergence, printing
+  the one-pot error beside it and failing if it stops shrinking; (2) D3 stands for 7u-F; Phase 4's harm rule is registered by its error rates at the
+  margin (the maintainer's call); (3) the reach count dropped; (4) V2 gains a state check after 7u-F (the engine's state mapped into the solver's
+  vector, slot by slot to a pound, and an inventory of every engine state field); (5) the hook's interpreter-script check reverted, CI and the session
+  start printing the protected files changed; (6) the argmax loops in `adaptive.js` and `couple.js` guarded after 7u-F; (7) the decomposing arm as
+  built; (8) V3 adds S330; V4 drops probit and counts V3's finest setting as a variant; (9) V5's interval after 7u-F, the maintainer's call; the
+  sensitivity to the returns with Phase 4; (10) N7 a standalone page built from `src/solver`, run by the maintainer on a laptop and a phone.
 - D1. 21 Oct, maintainer: the external review is adopted; Part B is the plan, worked in order, Step 1 first; enforcement is unlocked for the rework as needed; follow-up questions go to the maintainer at its end.
 - D2. 21 Oct, maintainer: the 18 Oct 17:19 ruling is amended: 7u-F is released on measured differences in simulated outcomes, not on gaps between a table and simulation.
 - D3. 21 Oct, maintainer (kept as written 22 Oct 05:16 UK, after the design review showed a true loss of exactly `1` point reads as harm half the
@@ -129,10 +130,8 @@ lapsed; they stay in the archive.
 - D18. Standing design choices (the archived plan's list): Part C's baseline is the plan as entered with the plain draw order; the bridge safety
   margin stays as a lock; the retirement-age dial pre-solves three years either way; old exports import as the baseline; habit is left out; the cash
   buffer is sized on the planned target; a couples reserve is model-predictive control; E3 follows Phase 4 for the product.
-- D19. Standing (CLAUDE.md): the maintainer's own household is never a fixture; no model identifier in a commit, a code
-  comment or a pushed file; merge to `main` only after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED GREEN; background runs are harness-tracked tasks.
-- Lapsed with Step 3 (21 Oct): the receipt after every plan edit and the Stop hook; the deep review after every result, `uncertainty.mjs` and the
-  escalation trigger; credences, derived credences, the scorecard, decision tables, mechanism anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
+- D19. Standing (CLAUDE.md): the maintainer's own household is never a fixture; no model identifier in a commit, a code comment or a pushed file; merge to `main` only after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED GREEN; background runs are harness-tracked tasks.
+- Lapsed with Step 3 (21 Oct): the receipt after every plan edit and the Stop hook; the deep review after every result, `uncertainty.mjs` and the escalation trigger; credences, derived credences, the scorecard, decision tables, mechanism anchors and the CARRY rule; per-reducer mutation scripts for exploratory reducers; `relook.mjs` and the commit-msg hook; `check-plan.mjs`'s prose rules; the per-close lessons and trigger codes.
 
 ## 4. Open items
 
@@ -154,8 +153,7 @@ dropped, not carried; Step 4's triage settles each below.
 | T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F's by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |
 <!-- end printed:items -->
 
-Known limitations (Step 4's triage): gaps between a table's own forecast and simulation, with no measured effect on
-simulated outcomes. A table gap is a lead, not a verdict; none gates 7u-F (D2).
+Known limitations (Step 4's triage): gaps between a table's own forecast and simulation, with no measured effect on simulated outcomes. A table gap is a lead, not a verdict; none gates 7u-F (D2).
 
 <!-- printed:limitations -->
 - O133, year-0 tables above simulation on the broad households below 95: SHIP broad households below 95 17; table above the simulation on 16 (from 0.29 on S394 to 10.61 on S248); not above: S364 -0.39; CAND broad households below 95 17; table above the simulation on 15 (from 0.9 on S214 to 4.82 on S364); not above: S380 -0.1, S394 -2.55 (`results-o133-scan.txt`).
@@ -296,4 +294,6 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 1. Phase 4 (D33 to D37), on fcd8096217b7, registered (`registrations/phase-4.md`, the re-review's PASS): the launch on seed 7003 at D37's budget
    (two relaunches under `RESUME=1` at the harness's 12 hours), then the read by `reduce-phase4.mjs`, once.
 2. The maintainer's unlock of 27 Oct (about 22:30 UK): CHECKLIST 1 amended (done); `bed-sipp.test.mjs` and `phase4-audit.test.mjs` join FAST once Phase 4's units are in.
-3. After Phase 4's read (the reviewer, then the deep review): D37's windfall item and the solver's own lump-sum choice (`solveBoth`; re-review minor 1) sized.
+3. After Phase 4's read (the reviewer, then the deep review), D37's and D38's items: before any later panel the scan reads the review branch's research/reviews/
+   (a planted case); the engine's GIA basis add under CGT off guarded (`gaps/cgt-basis.patch`; a CGT-off household in `state-check --full`, failing before); sized:
+   the windfall, the solver's own lump sum (`solveBoth`) and the savings split while working (`action.contrib`); the cash ISA under a table a known limitation; the sweep for the nightly check weighed.

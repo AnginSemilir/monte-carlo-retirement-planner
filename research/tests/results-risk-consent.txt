@@ -1,0 +1,20 @@
+# node research/tests/risk-consent.test.mjs (on this commit's code)
+PASS  1. S224, the candidate, consent withdrawn: solved (80 moves, tier state off); no tier move offered: true; the engine under its table: 21 of 50 paths survive
+PASS  2. S224 with its pension and ISAs in Cash Equivalents, the candidate, consent given: solved (80 moves, tier state off)
+PASS  3. S224, the candidate, consent given: solved (320 moves, tier state 0/0,1/1,2/2,3/3); switch charge 0.001
+PASS  4. S224, consent withdrawn, the tier above on: the candidate solved (80 moves, tier state off); the product's settings solved (48 moves, tier state off)
+PASS  4. S224, consent withdrawn, the tier above off: the candidate solved (80 moves, tier state off); the product's settings solved (48 moves, tier state off)
+PASS  4. S224, consent withdrawn, no minimum pot: the candidate solved (80 moves, tier state off); the product's settings solved (48 moves, tier state off)
+PASS  4. S224, consent withdrawn, the lowest estate weight: the candidate solved (80 moves, tier state off); the product's settings solved (48 moves, tier state off)
+PASS  4. S224, consent withdrawn, raises blocked: the candidate solved (40 moves, tier state off); the product's settings solved (24 moves, tier state off)
+ALL PASS: 8 checks
+# the same test on the code before the fix (1d9d47c96f47: solve.js without ONE_PAIR): it must fail
+FAIL  1. S224, the candidate, consent withdrawn: threw: tierState needs a tier menu of two pairs or more
+FAIL  2. S224 with its pension and ISAs in Cash Equivalents, the candidate, consent given: threw: tierState needs a tier menu of two pairs or more
+PASS  3. S224, the candidate, consent given: solved (320 moves, tier state 0/0,1/1,2/2,3/3); switch charge 0.001
+FAIL  4. S224, consent withdrawn, the tier above on: the candidate threw: tierState needs a tier menu of two pairs or more; the product's settings solved (48 moves, tier state off)
+FAIL  4. S224, consent withdrawn, the tier above off: the candidate threw: tierState needs a tier menu of two pairs or more; the product's settings solved (48 moves, tier state off)
+FAIL  4. S224, consent withdrawn, no minimum pot: the candidate threw: tierState needs a tier menu of two pairs or more; the product's settings solved (48 moves, tier state off)
+FAIL  4. S224, consent withdrawn, the lowest estate weight: the candidate threw: tierState needs a tier menu of two pairs or more; the product's settings solved (48 moves, tier state off)
+FAIL  4. S224, consent withdrawn, raises blocked: the candidate threw: tierState needs a tier menu of two pairs or more; the product's settings solved (24 moves, tier state off)
+FAILED: 7 of 8 checks

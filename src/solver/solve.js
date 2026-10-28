@@ -380,6 +380,14 @@ export function solve(E, M, plan, opts = {}) {
   }
   const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus })).map(a => ({ ...a, lump: !!opts.lump }));
   /*
+   * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
+   * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
+   * with two pairs or more on the menu. With one - the user's consent to change risk withdrawn (`tiers` off), or a pension
+   * and ISA held in Cash Equivalents, which have no step down - no move can switch, and the solve runs without them, as
+   * the product's settings do (it threw before). A held tier asks for one pair on purpose: its refusal below stands.
+   */
+  const ONE_PAIR = !!opts.tierState && !opts.holdTier && new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`)).size < 2;
+  /*
    * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
    * side by side; absent, it is the single-world list `[opts.shiftZ]` and K is 1, which must stay
    * bit-identical to the solve that came before this change (gate E0 condition 1). Nothing calls this
@@ -427,7 +435,7 @@ export function solve(E, M, plan, opts = {}) {
    * With jointWorlds as well (TS+J; research only; O41, the deep review after 7z): the chooser's FULL rule - one move for every
    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
    */
-  const TS = !!opts.tierState;
+  const TS = !!opts.tierState && !ONE_PAIR;
   /*
    * THE TABLE WITHOUT THE DEALING COST (`tableDealing: false`; the speed port, SPEED-PORT.md; research only, off by default):
    * the tier state's backward pass no longer charges a switch's dealing cost (F.chargeSwitch) on the move's position. The
@@ -489,8 +497,9 @@ export function solve(E, M, plan, opts = {}) {
    * move that leaves the held tier pair pays the charge in its score: in the tier state's backward pass (in h, so the stored
    * values carry every later switch's charge) and in the forward chooser at the true state. Needs the tier state.
    */
-  const switchCharge = opts.switchCharge !== undefined ? opts.switchCharge : 0;
-  if (!(switchCharge >= 0) || !Number.isFinite(switchCharge)) throw new Error(`switchCharge must be a finite number of 0 or more, not ${opts.switchCharge}`);
+  const switchAsked = opts.switchCharge !== undefined ? opts.switchCharge : 0;
+  if (!(switchAsked >= 0) || !Number.isFinite(switchAsked)) throw new Error(`switchCharge must be a finite number of 0 or more, not ${opts.switchCharge}`);
+  const switchCharge = ONE_PAIR ? 0 : switchAsked;   // one tier pair: no switch to charge
   if (switchCharge > 0 && !TS) throw new Error('switchCharge needs the tier state (tierState: true): only its tables know the tier held');
   let tsPairs = null, tsLayerOf = null, tsHeld = null, tsJ0 = 0;
   if (TS) {
@@ -1554,6 +1563,7 @@ export function solve(E, M, plan, opts = {}) {
   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
+  if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
   if (opts.tsLean !== undefined) meta.tsLean = opts.tsLean;   // SPEED-PORT-2.md's test switch, recorded when set
   if (E3) meta.e3 = { copied: e3Copied };
   if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };

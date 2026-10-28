@@ -1,0 +1,283 @@
+ok   a complete synthetic panel passes the gate: 0
+ok   a missing unit is refused: true
+ok   a replication on 7018's first paths (a smoke run scored them) is refused: true
+ok   paths other than registered are refused: true
+ok   two codes are refused: true
+ok   FIXBR missing on a household with bridge years is refused: true
+ok   a candidate unit run without the third step is refused: true
+ok   a panel whose cohort label is not phase4-panel.mjs's ('library' for 'lib') is refused: true
+ok   APP's inputs (balances, contributions) other than CAND's are refused: true
+ok   a unit whose engine ran another target than the panel's is refused: true
+ok   units stamped outside the registration are refused (one stamp across them): true
+ok   units whose registration blob is not the logs' are refused: true
+ok   CAND and SHIP on different plans at a weight are refused: true
+ok   the candidate's two weights differing in more than the weight are refused: true
+ok   APP's minimum pot other than the solver's is refused: true
+ok   a solver unit without runPolicy beside is refused: true
+ok   a world's spending missing is refused: true
+ok   units launched on other files than the read takes (the stamp's audit hash) are refused: true 0
+ok   the lump-sum split: by arm A's label, every household in one group: A BC
+ok   S1's parts: pooled +4.5 passes, the library cohort and the households the reader never reads -1.0 each, one household with an observed loss; a panel with no library household has no library part: 4.5 -1.0 1 -1.0 L1 null
+ok   no change: A1's lower end 0 does not pass: false
+ok   10% saved and none lost: A1 passes: true 10.0
+ok   spending 1.1% lower on every path: A2 fails (lower end below -1): false
+ok   spending 0.9% lower on every path: A2 passes: true
+ok   a loss exactly at the threshold is not harm; one path more is: false true
+ok   all three at both weights: PASS; S1 at exactly -0.1 at one weight: NOT PASSED: PASS | NOT PASSED
+ok   the whole score: a path failed in year 1 pays the floor's cost for years 1 and 2; one alive scores 100 plus its estate: -0.8000 100.0000
+EDGES: a lower end of exactly 0 (A1) and exactly -0.1 (S1), spending 0.9% and 1.1% lower (A2), a loss exactly at the threshold, a missing unit, a failed path's years, a missing world's spending, an empty cohort part
+planted (27): all read as they should
+PHASE 4 READ: /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagp4; 40 households; stamp {"code":"1d9d47c96f47","audit":"0e8b11f6330e","candidate":"fcd8096217b7","prediction":"research/solver/registrations/phase-4.md","sha":"7447dda5ee73a0814e1afcc718781ee745245ce8","node":"v22.22.0"}
+the gate: fair - 40 households in every arm, seed 7003 on their registered paths (16000 to 26000), the replication 4000 paths of 7018 from its path 200, one stamp
+W0.02: A1 survival CAND less APP +10.710 (10.438 to 10.982, se 0.1387) points: PASSES; A2 spending delivered +6.549 (6.494 to 6.604, se 0.0280)%: PASSES; S1 survival CAND less SHIP +0.830 (0.784 to 0.877, se 0.0235) points: PASSES
+W0.01: A1 survival CAND less APP +10.787 (10.513 to 11.062, se 0.1400) points: PASSES; A2 spending delivered +7.464 (7.407 to 7.521, se 0.0291)%: PASSES; S1 survival CAND less SHIP +0.973 (0.922 to 1.023, se 0.0259) points: PASSES
+OUTCOME: PASS: the candidate goes to the maintainer, who decides whether it ships behind Part C's switch
+
+FLAGS (D34: for investigation, none blocking on its own)
+  S026   W0.02 vs APP : loss -11.640 (1 lost, 2329 saved of 20000); threshold 0.6550: no harm; discordance 11.65% (sized at 12.24%), the rule's rates at it: 0.046 at 0.25, 0.922 at 1
+  S026   W0.02 vs SHIP: loss -0.260 (22 lost, 74 saved of 20000); threshold 0.3800: no harm; discordance 0.48% (sized at 1.23%), the rule's rates at it: 0.032 at 0.25, 1.000 at 1
+  S026   W0.01 vs APP : loss -11.655 (1 lost, 2332 saved of 20000); threshold 0.6600: no harm; discordance 11.67% (sized at 12.56%), the rule's rates at it: 0.044 at 0.25, 0.919 at 1
+  S026   W0.01 vs SHIP: loss -0.355 (5 lost, 76 saved of 20000); threshold 0.3750: no harm; discordance 0.40% (sized at 1.17%), the rule's rates at it: 0.037 at 0.25, 1.000 at 1
+  S030   W0.02 vs APP : loss -9.456 (4 lost, 1517 saved of 16000); threshold 0.6500: no harm; discordance 9.51% (sized at 9.54%), the rule's rates at it: 0.049 at 0.25, 0.923 at 1
+  S030   W0.02 vs SHIP: loss -1.181 (9 lost, 198 saved of 16000); threshold 0.4375: no harm; discordance 1.29% (sized at 2.02%), the rule's rates at it: 0.017 at 0.25, 1.000 at 1
+  S030   W0.01 vs APP : loss -9.394 (0 lost, 1503 saved of 16000); threshold 0.6500: no harm; discordance 9.39% (sized at 9.38%), the rule's rates at it: 0.048 at 0.25, 0.924 at 1
+  S030   W0.01 vs SHIP: loss -1.200 (4 lost, 196 saved of 16000); threshold 0.4313: no harm; discordance 1.25% (sized at 1.90%), the rule's rates at it: 0.019 at 0.25, 1.000 at 1
+  S040   W0.02 vs APP : loss -11.870 (2 lost, 2376 saved of 20000); threshold 0.6700: no harm; discordance 11.89% (sized at 12.93%), the rule's rates at it: 0.042 at 0.25, 0.911 at 1
+  S040   W0.02 vs SHIP: loss -1.215 (10 lost, 253 saved of 20000); threshold 0.4200: no harm; discordance 1.31% (sized at 2.08%), the rule's rates at it: 0.017 at 0.25, 1.000 at 1
+  S040   W0.01 vs APP : loss -11.880 (0 lost, 2376 saved of 20000); threshold 0.6650: no harm; discordance 11.88% (sized at 12.87%), the rule's rates at it: 0.043 at 0.25, 0.914 at 1
+  S040   W0.01 vs SHIP: loss -1.320 (0 lost, 264 saved of 20000); threshold 0.4150: no harm; discordance 1.32% (sized at 1.96%), the rule's rates at it: 0.020 at 0.25, 1.000 at 1
+  S050   W0.02 vs APP : loss -14.372 (0 lost, 3593 saved of 25000); threshold 0.6680: no harm; discordance 14.37% (sized at 16.17%), the rule's rates at it: 0.040 at 0.25, 0.916 at 1
+  S050   W0.02 vs SHIP: loss -0.252 (23 lost, 86 saved of 25000); threshold 0.3560: no harm; discordance 0.44% (sized at 1.05%), the rule's rates at it: 0.045 at 0.25, 1.000 at 1
+  S050   W0.01 vs APP : loss -14.364 (0 lost, 3591 saved of 25000); threshold 0.6680: no harm; discordance 14.36% (sized at 16.22%), the rule's rates at it: 0.040 at 0.25, 0.916 at 1
+  S050   W0.01 vs SHIP: loss -0.324 (9 lost, 90 saved of 25000); threshold 0.3560: no harm; discordance 0.40% (sized at 1.01%), the rule's rates at it: 0.045 at 0.25, 1.000 at 1
+  S062   W0.02 vs APP : loss -12.573 (1 lost, 2767 saved of 22000); threshold 0.6636: no harm; discordance 12.58% (sized at 13.87%), the rule's rates at it: 0.043 at 0.25, 0.922 at 1
+  S062   W0.02 vs SHIP: loss -0.505 (24 lost, 135 saved of 22000); threshold 0.3682: no harm; discordance 0.72% (sized at 1.17%), the rule's rates at it: 0.038 at 0.25, 1.000 at 1
+  S062   W0.01 vs APP : loss -12.609 (2 lost, 2776 saved of 22000); threshold 0.6636: no harm; discordance 12.63% (sized at 13.82%), the rule's rates at it: 0.043 at 0.25, 0.921 at 1
+  S062   W0.01 vs SHIP: loss -0.605 (3 lost, 136 saved of 22000); threshold 0.3682: no harm; discordance 0.63% (sized at 1.11%), the rule's rates at it: 0.038 at 0.25, 1.000 at 1
+  S074   W0.02 vs APP : loss -13.155 (3 lost, 2897 saved of 22000); threshold 0.6591: no harm; discordance 13.18% (sized at 13.66%), the rule's rates at it: 0.046 at 0.25, 0.917 at 1
+  S074   W0.02 vs SHIP: loss +0.041 (35 lost, 26 saved of 22000); threshold 0.3636: no harm; discordance 0.28% (sized at 1.01%), the rule's rates at it: 0.051 at 0.25, 1.000 at 1
+  S074   W0.01 vs APP : loss -13.250 (2 lost, 2917 saved of 22000); threshold 0.6636: no harm; discordance 13.27% (sized at 13.77%), the rule's rates at it: 0.047 at 0.25, 0.916 at 1
+  S074   W0.01 vs SHIP: loss -0.155 (13 lost, 47 saved of 22000); threshold 0.3636: no harm; discordance 0.27% (sized at 1.01%), the rule's rates at it: 0.051 at 0.25, 1.000 at 1
+  S090   W0.02 vs APP : loss -8.762 (3 lost, 1405 saved of 16000); threshold 0.6375: no harm; discordance 8.80% (sized at 9.01%), the rule's rates at it: 0.048 at 0.25, 0.937 at 1
+  S090   W0.02 vs SHIP: loss -0.556 (30 lost, 119 saved of 16000); threshold 0.4063: no harm; discordance 0.93% (sized at 1.42%), the rule's rates at it: 0.023 at 0.25, 1.000 at 1
+  S090   W0.01 vs APP : loss -8.725 (1 lost, 1397 saved of 16000); threshold 0.6375: no harm; discordance 8.74% (sized at 8.96%), the rule's rates at it: 0.047 at 0.25, 0.938 at 1
+  S090   W0.01 vs SHIP: loss -0.625 (28 lost, 128 saved of 16000); threshold 0.4125: no harm; discordance 0.97% (sized at 1.60%), the rule's rates at it: 0.019 at 0.25, 1.000 at 1
+  S096   W0.02 vs APP : loss -13.492 (1 lost, 3239 saved of 24000); threshold 0.6625: no harm; discordance 13.50% (sized at 15.13%), the rule's rates at it: 0.040 at 0.25, 0.921 at 1
+  S096   W0.02 vs SHIP: loss -0.679 (27 lost, 190 saved of 24000); threshold 0.3958: no harm; discordance 0.90% (sized at 1.90%), the rule's rates at it: 0.014 at 0.25, 1.000 at 1
+  S096   W0.01 vs APP : loss -13.546 (1 lost, 3252 saved of 24000); threshold 0.6625: no harm; discordance 13.55% (sized at 15.23%), the rule's rates at it: 0.041 at 0.25, 0.921 at 1
+  S096   W0.01 vs SHIP: loss -0.696 (12 lost, 179 saved of 24000); threshold 0.4000: no harm; discordance 0.80% (sized at 1.96%), the rule's rates at it: 0.010 at 0.25, 1.000 at 1
+  S108   W0.02 vs APP : loss -13.427 (0 lost, 2954 saved of 22000); threshold 0.6636: no harm; discordance 13.43% (sized at 13.98%), the rule's rates at it: 0.048 at 0.25, 0.915 at 1
+  S108   W0.02 vs SHIP: loss -0.709 (21 lost, 177 saved of 22000); threshold 0.3909: no harm; discordance 0.90% (sized at 1.66%), the rule's rates at it: 0.021 at 0.25, 1.000 at 1
+  S108   W0.01 vs APP : loss -13.491 (0 lost, 2968 saved of 22000); threshold 0.6636: no harm; discordance 13.49% (sized at 14.03%), the rule's rates at it: 0.048 at 0.25, 0.914 at 1
+  S108   W0.01 vs SHIP: loss -0.732 (8 lost, 169 saved of 22000); threshold 0.3864: no harm; discordance 0.80% (sized at 1.54%), the rule's rates at it: 0.021 at 0.25, 1.000 at 1
+  S132   W0.02 vs APP : loss -12.705 (0 lost, 2668 saved of 21000); threshold 0.6667: no harm; discordance 12.70% (sized at 13.45%), the rule's rates at it: 0.044 at 0.25, 0.911 at 1
+  S132   W0.02 vs SHIP: loss +0.038 (28 lost, 20 saved of 21000); threshold 0.3667: no harm; discordance 0.23% (sized at 1.01%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S132   W0.01 vs APP : loss -12.771 (0 lost, 2682 saved of 21000); threshold 0.6667: no harm; discordance 12.77% (sized at 13.45%), the rule's rates at it: 0.045 at 0.25, 0.910 at 1
+  S132   W0.01 vs SHIP: loss -0.090 (8 lost, 27 saved of 21000); threshold 0.3667: no harm; discordance 0.17% (sized at 1.01%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S164   W0.02 vs APP : loss -10.133 (0 lost, 1824 saved of 18000); threshold 0.6556: no harm; discordance 10.13% (sized at 10.98%), the rule's rates at it: 0.043 at 0.25, 0.925 at 1
+  S164   W0.02 vs SHIP: loss -0.756 (12 lost, 148 saved of 18000); threshold 0.4111: no harm; discordance 0.89% (sized at 1.78%), the rule's rates at it: 0.018 at 0.25, 1.000 at 1
+  S164   W0.01 vs APP : loss -10.583 (1 lost, 1906 saved of 18000); threshold 0.6611: no harm; discordance 10.59% (sized at 11.24%), the rule's rates at it: 0.046 at 0.25, 0.921 at 1
+  S164   W0.01 vs SHIP: loss -1.406 (15 lost, 268 saved of 18000); threshold 0.4333: no harm; discordance 1.57% (sized at 2.19%), the rule's rates at it: 0.027 at 0.25, 1.000 at 1
+  S188   W0.02 vs APP : loss -13.356 (5 lost, 3344 saved of 25000); threshold 0.6640: no harm; discordance 13.40% (sized at 15.70%), the rule's rates at it: 0.036 at 0.25, 0.926 at 1
+  S188   W0.02 vs SHIP: loss -1.520 (15 lost, 395 saved of 25000); threshold 0.3840: no harm; discordance 1.64% (sized at 1.66%), the rule's rates at it: 0.047 at 0.25, 1.000 at 1
+  S188   W0.01 vs APP : loss -13.296 (3 lost, 3327 saved of 25000); threshold 0.6600: no harm; discordance 13.32% (sized at 15.65%), the rule's rates at it: 0.037 at 0.25, 0.929 at 1
+  S188   W0.01 vs SHIP: loss -1.664 (6 lost, 422 saved of 25000); threshold 0.3880: no harm; discordance 1.71% (sized at 1.78%), the rule's rates at it: 0.045 at 0.25, 1.000 at 1
+  S204   W0.02 vs APP : loss -11.300 (1 lost, 2374 saved of 21000); threshold 0.6619: no harm; discordance 11.31% (sized at 13.19%), the rule's rates at it: 0.037 at 0.25, 0.926 at 1
+  S204   W0.02 vs SHIP: loss -0.376 (51 lost, 130 saved of 21000); threshold 0.3714: no harm; discordance 0.86% (sized at 1.11%), the rule's rates at it: 0.038 at 0.25, 1.000 at 1
+  S204   W0.01 vs APP : loss -11.286 (3 lost, 2373 saved of 21000); threshold 0.6619: no harm; discordance 11.31% (sized at 13.24%), the rule's rates at it: 0.037 at 0.25, 0.926 at 1
+  S204   W0.01 vs SHIP: loss -0.486 (30 lost, 132 saved of 21000); threshold 0.3667: no harm; discordance 0.77% (sized at 1.01%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S228   W0.02 vs APP : loss -11.562 (1 lost, 2429 saved of 21000); threshold 0.6619: no harm; discordance 11.57% (sized at 13.14%), the rule's rates at it: 0.039 at 0.25, 0.924 at 1
+  S228   W0.02 vs SHIP: loss -0.562 (23 lost, 141 saved of 21000); threshold 0.3667: no harm; discordance 0.78% (sized at 1.01%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S228   W0.01 vs APP : loss -11.576 (0 lost, 2431 saved of 21000); threshold 0.6667: no harm; discordance 11.58% (sized at 13.35%), the rule's rates at it: 0.037 at 0.25, 0.921 at 1
+  S228   W0.01 vs SHIP: loss -0.586 (16 lost, 139 saved of 21000); threshold 0.3667: no harm; discordance 0.74% (sized at 1.01%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S244   W0.02 vs APP : loss -11.305 (0 lost, 2148 saved of 19000); threshold 0.6632: no harm; discordance 11.31% (sized at 12.09%), the rule's rates at it: 0.044 at 0.25, 0.915 at 1
+  S244   W0.02 vs SHIP: loss -1.479 (8 lost, 289 saved of 19000); threshold 0.4053: no harm; discordance 1.56% (sized at 1.66%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S244   W0.01 vs APP : loss -11.253 (0 lost, 2138 saved of 19000); threshold 0.6632: no harm; discordance 11.25% (sized at 12.14%), the rule's rates at it: 0.044 at 0.25, 0.915 at 1
+  S244   W0.01 vs SHIP: loss -1.526 (7 lost, 297 saved of 19000); threshold 0.4105: no harm; discordance 1.60% (sized at 1.84%), the rule's rates at it: 0.043 at 0.25, 1.000 at 1
+  S260   W0.02 vs APP : loss -9.100 (2 lost, 1458 saved of 16000); threshold 0.6625: no harm; discordance 9.13% (sized at 10.18%), the rule's rates at it: 0.041 at 0.25, 0.919 at 1
+  S260   W0.02 vs SHIP: loss -0.313 (32 lost, 82 saved of 16000); threshold 0.3812: no harm; discordance 0.71% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S260   W0.01 vs APP : loss -9.119 (0 lost, 1459 saved of 16000); threshold 0.6687: no harm; discordance 9.12% (sized at 10.34%), the rule's rates at it: 0.039 at 0.25, 0.916 at 1
+  S260   W0.01 vs SHIP: loss -0.456 (23 lost, 96 saved of 16000); threshold 0.3812: no harm; discordance 0.74% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S272   W0.02 vs APP : loss -7.706 (2 lost, 1235 saved of 16000); threshold 0.6438: no harm; discordance 7.73% (sized at 9.22%), the rule's rates at it: 0.036 at 0.25, 0.946 at 1
+  S272   W0.02 vs SHIP: loss -0.762 (43 lost, 165 saved of 16000); threshold 0.4188: no harm; discordance 1.30% (sized at 1.72%), the rule's rates at it: 0.029 at 0.25, 1.000 at 1
+  S272   W0.01 vs APP : loss -8.019 (2 lost, 1285 saved of 16000); threshold 0.6500: no harm; discordance 8.04% (sized at 9.49%), the rule's rates at it: 0.036 at 0.25, 0.939 at 1
+  S272   W0.01 vs SHIP: loss -1.031 (28 lost, 193 saved of 16000); threshold 0.4250: no harm; discordance 1.38% (sized at 1.78%), the rule's rates at it: 0.028 at 0.25, 1.000 at 1
+  S290   W0.02 vs APP : loss -10.747 (1 lost, 2043 saved of 19000); threshold 0.6632: no harm; discordance 10.76% (sized at 11.98%), the rule's rates at it: 0.040 at 0.25, 0.920 at 1
+  S290   W0.02 vs SHIP: loss -0.705 (42 lost, 176 saved of 19000); threshold 0.3842: no harm; discordance 1.15% (sized at 1.23%), the rule's rates at it: 0.039 at 0.25, 1.000 at 1
+  S290   W0.01 vs APP : loss -10.911 (1 lost, 2074 saved of 19000); threshold 0.6632: no harm; discordance 10.92% (sized at 12.09%), the rule's rates at it: 0.041 at 0.25, 0.918 at 1
+  S290   W0.01 vs SHIP: loss -0.900 (33 lost, 204 saved of 19000); threshold 0.4000: no harm; discordance 1.25% (sized at 1.54%), the rule's rates at it: 0.030 at 0.25, 1.000 at 1
+  S368   W0.02 vs APP : loss -14.235 (0 lost, 3701 saved of 26000); threshold 0.6692: no harm; discordance 14.23% (sized at 16.75%), the rule's rates at it: 0.036 at 0.25, 0.920 at 1
+  S368   W0.02 vs SHIP: loss -0.869 (6 lost, 232 saved of 26000); threshold 0.3654: no harm; discordance 0.92% (sized at 1.23%), the rule's rates at it: 0.030 at 0.25, 1.000 at 1
+  S368   W0.01 vs APP : loss -14.242 (0 lost, 3703 saved of 26000); threshold 0.6692: no harm; discordance 14.24% (sized at 16.75%), the rule's rates at it: 0.036 at 0.25, 0.920 at 1
+  S368   W0.01 vs SHIP: loss -0.877 (5 lost, 233 saved of 26000); threshold 0.3654: no harm; discordance 0.92% (sized at 1.23%), the rule's rates at it: 0.030 at 0.25, 1.000 at 1
+  S384   W0.02 vs APP : loss -12.100 (2 lost, 2785 saved of 23000); threshold 0.6565: no harm; discordance 12.12% (sized at 14.13%), the rule's rates at it: 0.037 at 0.25, 0.932 at 1
+  S384   W0.02 vs SHIP: loss -0.161 (13 lost, 50 saved of 23000); threshold 0.3609: no harm; discordance 0.27% (sized at 1.01%), the rule's rates at it: 0.044 at 0.25, 1.000 at 1
+  S384   W0.01 vs APP : loss -12.370 (2 lost, 2847 saved of 23000); threshold 0.6652: no harm; discordance 12.39% (sized at 14.55%), the rule's rates at it: 0.038 at 0.25, 0.927 at 1
+  S384   W0.01 vs SHIP: loss -0.496 (12 lost, 126 saved of 23000); threshold 0.3609: no harm; discordance 0.60% (sized at 1.01%), the rule's rates at it: 0.044 at 0.25, 1.000 at 1
+  S304F  W0.02 vs APP : loss -12.126 (1 lost, 2305 saved of 19000); threshold 0.6579: no harm; discordance 12.14% (sized at 11.72%), the rule's rates at it: 0.052 at 0.25, 0.911 at 1
+  S304F  W0.02 vs SHIP: loss -3.600 (7 lost, 691 saved of 19000); threshold 0.4947: no harm; discordance 3.67% (sized at 4.12%), the rule's rates at it: 0.038 at 0.25, 1.000 at 1
+  S304F  W0.01 vs APP : loss -12.095 (0 lost, 2298 saved of 19000); threshold 0.6579: no harm; discordance 12.09% (sized at 11.66%), the rule's rates at it: 0.052 at 0.25, 0.911 at 1
+  S304F  W0.01 vs SHIP: loss -3.537 (3 lost, 675 saved of 19000); threshold 0.4895: no harm; discordance 3.57% (sized at 4.07%), the rule's rates at it: 0.039 at 0.25, 1.000 at 1
+  S306F  W0.02 vs APP : loss -9.325 (1 lost, 1493 saved of 16000); threshold 0.6625: no harm; discordance 9.34% (sized at 9.97%), the rule's rates at it: 0.043 at 0.25, 0.917 at 1
+  S306F  W0.02 vs SHIP: loss -1.575 (83 lost, 335 saved of 16000); threshold 0.4813: no harm; discordance 2.61% (sized at 3.11%), the rule's rates at it: 0.033 at 0.25, 1.000 at 1
+  S306F  W0.01 vs APP : loss -9.219 (0 lost, 1475 saved of 16000); threshold 0.6563: no harm; discordance 9.22% (sized at 9.65%), the rule's rates at it: 0.044 at 0.25, 0.922 at 1
+  S306F  W0.01 vs SHIP: loss -1.456 (95 lost, 328 saved of 16000); threshold 0.4750: no harm; discordance 2.64% (sized at 3.00%), the rule's rates at it: 0.038 at 0.25, 1.000 at 1
+  S308F  W0.02 vs APP : loss -12.505 (0 lost, 2501 saved of 20000); threshold 0.6650: no harm; discordance 12.50% (sized at 12.77%), the rule's rates at it: 0.047 at 0.25, 0.908 at 1
+  S308F  W0.02 vs SHIP: loss -3.450 (6 lost, 696 saved of 20000); threshold 0.4800: no harm; discordance 3.51% (sized at 3.96%), the rule's rates at it: 0.040 at 0.25, 1.000 at 1
+  S308F  W0.01 vs APP : loss -11.870 (1 lost, 2375 saved of 20000); threshold 0.6650: no harm; discordance 11.88% (sized at 12.61%), the rule's rates at it: 0.043 at 0.25, 0.914 at 1
+  S308F  W0.01 vs SHIP: loss -2.830 (24 lost, 590 saved of 20000); threshold 0.4750: no harm; discordance 3.07% (sized at 3.79%), the rule's rates at it: 0.033 at 0.25, 1.000 at 1
+  S310F  W0.02 vs APP : loss -9.906 (0 lost, 1684 saved of 17000); threshold 0.6647: no harm; discordance 9.91% (sized at 10.87%), the rule's rates at it: 0.042 at 0.25, 0.916 at 1
+  S310F  W0.02 vs SHIP: loss -1.712 (68 lost, 359 saved of 17000); threshold 0.4647: no harm; discordance 2.51% (sized at 2.94%), the rule's rates at it: 0.037 at 0.25, 1.000 at 1
+  S310F  W0.01 vs APP : loss -9.594 (0 lost, 1631 saved of 17000); threshold 0.6706: no harm; discordance 9.59% (sized at 11.03%), the rule's rates at it: 0.039 at 0.25, 0.919 at 1
+  S310F  W0.01 vs SHIP: loss -1.382 (93 lost, 328 saved of 17000); threshold 0.4706: no harm; discordance 2.48% (sized at 3.00%), the rule's rates at it: 0.036 at 0.25, 1.000 at 1
+  S314F  W0.02 vs APP : loss -9.947 (0 lost, 1691 saved of 17000); threshold 0.6647: no harm; discordance 9.95% (sized at 10.76%), the rule's rates at it: 0.042 at 0.25, 0.915 at 1
+  S314F  W0.02 vs SHIP: loss -0.482 (44 lost, 126 saved of 17000); threshold 0.3824: no harm; discordance 1.00% (sized at 1.11%), the rule's rates at it: 0.040 at 0.25, 1.000 at 1
+  S314F  W0.01 vs APP : loss -9.959 (1 lost, 1694 saved of 17000); threshold 0.6588: no harm; discordance 9.97% (sized at 10.61%), the rule's rates at it: 0.045 at 0.25, 0.919 at 1
+  S314F  W0.01 vs SHIP: loss -0.541 (33 lost, 125 saved of 17000); threshold 0.3824: no harm; discordance 0.93% (sized at 1.11%), the rule's rates at it: 0.040 at 0.25, 1.000 at 1
+  S316F  W0.02 vs APP : loss -9.125 (0 lost, 1460 saved of 16000); threshold 0.6625: no harm; discordance 9.13% (sized at 10.13%), the rule's rates at it: 0.041 at 0.25, 0.919 at 1
+  S316F  W0.02 vs SHIP: loss -0.181 (20 lost, 49 saved of 16000); threshold 0.3812: no harm; discordance 0.43% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S316F  W0.01 vs APP : loss -9.031 (0 lost, 1445 saved of 16000); threshold 0.6625: no harm; discordance 9.03% (sized at 10.02%), the rule's rates at it: 0.040 at 0.25, 0.921 at 1
+  S316F  W0.01 vs SHIP: loss -0.169 (20 lost, 47 saved of 16000); threshold 0.3812: no harm; discordance 0.42% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S320F  W0.02 vs APP : loss -9.100 (0 lost, 1456 saved of 16000); threshold 0.6625: no harm; discordance 9.10% (sized at 9.97%), the rule's rates at it: 0.041 at 0.25, 0.920 at 1
+  S320F  W0.02 vs SHIP: loss -0.188 (30 lost, 60 saved of 16000); threshold 0.3812: no harm; discordance 0.56% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S320F  W0.01 vs APP : loss -9.100 (0 lost, 1456 saved of 16000); threshold 0.6625: no harm; discordance 9.10% (sized at 10.02%), the rule's rates at it: 0.041 at 0.25, 0.920 at 1
+  S320F  W0.01 vs SHIP: loss -0.269 (29 lost, 72 saved of 16000); threshold 0.3875: no harm; discordance 0.63% (sized at 1.11%), the rule's rates at it: 0.039 at 0.25, 1.000 at 1
+  S322F  W0.02 vs APP : loss -9.069 (0 lost, 1451 saved of 16000); threshold 0.6625: no harm; discordance 9.07% (sized at 9.92%), the rule's rates at it: 0.040 at 0.25, 0.920 at 1
+  S322F  W0.02 vs SHIP: loss -0.487 (21 lost, 99 saved of 16000); threshold 0.3812: no harm; discordance 0.75% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S322F  W0.01 vs APP : loss -8.969 (0 lost, 1435 saved of 16000); threshold 0.6563: no harm; discordance 8.97% (sized at 9.81%), the rule's rates at it: 0.042 at 0.25, 0.925 at 1
+  S322F  W0.01 vs SHIP: loss -0.469 (24 lost, 99 saved of 16000); threshold 0.3812: no harm; discordance 0.77% (sized at 1.01%), the rule's rates at it: 0.046 at 0.25, 1.000 at 1
+  S326F  W0.02 vs APP : loss -8.563 (2 lost, 1372 saved of 16000); threshold 0.6438: no harm; discordance 8.59% (sized at 9.22%), the rule's rates at it: 0.043 at 0.25, 0.936 at 1
+  S326F  W0.02 vs SHIP: loss -0.650 (29 lost, 133 saved of 16000); threshold 0.4125: no harm; discordance 1.01% (sized at 1.60%), the rule's rates at it: 0.019 at 0.25, 1.000 at 1
+  S326F  W0.01 vs APP : loss -8.813 (1 lost, 1411 saved of 16000); threshold 0.6500: no harm; discordance 8.82% (sized at 9.33%), the rule's rates at it: 0.043 at 0.25, 0.930 at 1
+  S326F  W0.01 vs SHIP: loss -0.969 (16 lost, 171 saved of 16000); threshold 0.4313: no harm; discordance 1.17% (sized at 1.90%), the rule's rates at it: 0.016 at 0.25, 1.000 at 1
+  S328F  W0.02 vs APP : loss -8.344 (0 lost, 1335 saved of 16000); threshold 0.6438: no harm; discordance 8.34% (sized at 9.17%), the rule's rates at it: 0.041 at 0.25, 0.939 at 1
+  S328F  W0.02 vs SHIP: loss -0.581 (55 lost, 148 saved of 16000); threshold 0.3937: no harm; discordance 1.27% (sized at 1.23%), the rule's rates at it: 0.050 at 0.25, 1.000 at 1
+  S328F  W0.01 vs APP : loss -8.531 (0 lost, 1365 saved of 16000); threshold 0.6500: no harm; discordance 8.53% (sized at 9.38%), the rule's rates at it: 0.040 at 0.25, 0.934 at 1
+  S328F  W0.01 vs SHIP: loss -0.850 (46 lost, 182 saved of 16000); threshold 0.4188: no harm; discordance 1.43% (sized at 1.66%), the rule's rates at it: 0.035 at 0.25, 1.000 at 1
+  S332F  W0.02 vs APP : loss -7.688 (0 lost, 1230 saved of 16000); threshold 0.6250: no harm; discordance 7.69% (sized at 8.37%), the rule's rates at it: 0.042 at 0.25, 0.955 at 1
+  S332F  W0.02 vs SHIP: loss -0.681 (34 lost, 143 saved of 16000); threshold 0.4188: no harm; discordance 1.11% (sized at 1.66%), the rule's rates at it: 0.020 at 0.25, 1.000 at 1
+  S332F  W0.01 vs APP : loss -7.931 (1 lost, 1270 saved of 16000); threshold 0.6250: no harm; discordance 7.94% (sized at 8.42%), the rule's rates at it: 0.045 at 0.25, 0.953 at 1
+  S332F  W0.01 vs SHIP: loss -1.006 (24 lost, 185 saved of 16000); threshold 0.4188: no harm; discordance 1.31% (sized at 1.72%), the rule's rates at it: 0.029 at 0.25, 1.000 at 1
+  S334F  W0.02 vs APP : loss -8.025 (1 lost, 1285 saved of 16000); threshold 0.6500: no harm; discordance 8.04% (sized at 9.38%), the rule's rates at it: 0.036 at 0.25, 0.939 at 1
+  S334F  W0.02 vs SHIP: loss -0.938 (31 lost, 181 saved of 16000); threshold 0.4125: no harm; discordance 1.32% (sized at 1.54%), the rule's rates at it: 0.035 at 0.25, 1.000 at 1
+  S334F  W0.01 vs APP : loss -8.294 (0 lost, 1327 saved of 16000); threshold 0.6500: no harm; discordance 8.29% (sized at 9.44%), the rule's rates at it: 0.038 at 0.25, 0.936 at 1
+  S334F  W0.01 vs SHIP: loss -1.256 (17 lost, 218 saved of 16000); threshold 0.4125: no harm; discordance 1.47% (sized at 1.60%), the rule's rates at it: 0.042 at 0.25, 1.000 at 1
+  S338F  W0.02 vs APP : loss -10.974 (3 lost, 2088 saved of 19000); threshold 0.6579: no harm; discordance 11.01% (sized at 11.72%), the rule's rates at it: 0.044 at 0.25, 0.921 at 1
+  S338F  W0.02 vs SHIP: loss -0.568 (43 lost, 151 saved of 19000); threshold 0.4105: no harm; discordance 1.02% (sized at 1.84%), the rule's rates at it: 0.016 at 0.25, 1.000 at 1
+  S338F  W0.01 vs APP : loss -11.158 (1 lost, 2121 saved of 19000); threshold 0.6579: no harm; discordance 11.17% (sized at 11.61%), the rule's rates at it: 0.045 at 0.25, 0.919 at 1
+  S338F  W0.01 vs SHIP: loss -0.779 (26 lost, 174 saved of 19000); threshold 0.4105: no harm; discordance 1.05% (sized at 1.84%), the rule's rates at it: 0.017 at 0.25, 1.000 at 1
+  S340F  W0.02 vs APP : loss -9.806 (0 lost, 1667 saved of 17000); threshold 0.6588: no harm; discordance 9.81% (sized at 10.55%), the rule's rates at it: 0.043 at 0.25, 0.921 at 1
+  S340F  W0.02 vs SHIP: loss -0.200 (40 lost, 74 saved of 17000); threshold 0.3765: no harm; discordance 0.67% (sized at 1.01%), the rule's rates at it: 0.047 at 0.25, 1.000 at 1
+  S340F  W0.01 vs APP : loss -10.024 (0 lost, 1704 saved of 17000); threshold 0.6706: no harm; discordance 10.02% (sized at 10.98%), the rule's rates at it: 0.043 at 0.25, 0.915 at 1
+  S340F  W0.01 vs SHIP: loss -0.435 (34 lost, 108 saved of 17000); threshold 0.4000: no harm; discordance 0.84% (sized at 1.42%), the rule's rates at it: 0.024 at 0.25, 1.000 at 1
+  S344F  W0.02 vs APP : loss -9.613 (1 lost, 1539 saved of 16000); threshold 0.6625: no harm; discordance 9.63% (sized at 10.02%), the rule's rates at it: 0.045 at 0.25, 0.914 at 1
+  S344F  W0.02 vs SHIP: loss -0.388 (22 lost, 84 saved of 16000); threshold 0.3875: no harm; discordance 0.66% (sized at 1.11%), the rule's rates at it: 0.039 at 0.25, 1.000 at 1
+  S344F  W0.01 vs APP : loss -9.863 (0 lost, 1578 saved of 16000); threshold 0.6687: no harm; discordance 9.86% (sized at 10.29%), the rule's rates at it: 0.045 at 0.25, 0.907 at 1
+  S344F  W0.01 vs SHIP: loss -0.719 (14 lost, 129 saved of 16000); threshold 0.4000: no harm; discordance 0.89% (sized at 1.30%), the rule's rates at it: 0.027 at 0.25, 1.000 at 1
+  S346F  W0.02 vs APP : loss -9.553 (0 lost, 1624 saved of 17000); threshold 0.6647: no harm; discordance 9.55% (sized at 10.71%), the rule's rates at it: 0.039 at 0.25, 0.920 at 1
+  S346F  W0.02 vs SHIP: loss -1.735 (5 lost, 300 saved of 17000); threshold 0.4235: no harm; discordance 1.79% (sized at 1.90%), the rule's rates at it: 0.049 at 0.25, 1.000 at 1
+  S346F  W0.01 vs APP : loss -9.600 (0 lost, 1632 saved of 17000); threshold 0.6647: no harm; discordance 9.60% (sized at 10.87%), the rule's rates at it: 0.039 at 0.25, 0.919 at 1
+  S346F  W0.01 vs SHIP: loss -2.024 (11 lost, 355 saved of 17000); threshold 0.4412: no harm; discordance 2.15% (sized at 2.31%), the rule's rates at it: 0.047 at 0.25, 1.000 at 1
+  S350F  W0.02 vs APP : loss -10.400 (2 lost, 1874 saved of 18000); threshold 0.6500: no harm; discordance 10.42% (sized at 10.76%), the rule's rates at it: 0.047 at 0.25, 0.926 at 1
+  S350F  W0.02 vs SHIP: loss -0.517 (36 lost, 129 saved of 18000); threshold 0.3944: no harm; discordance 0.92% (sized at 1.42%), the rule's rates at it: 0.030 at 0.25, 1.000 at 1
+  S350F  W0.01 vs APP : loss -10.617 (0 lost, 1911 saved of 18000); threshold 0.6556: no harm; discordance 10.62% (sized at 11.08%), the rule's rates at it: 0.046 at 0.25, 0.920 at 1
+  S350F  W0.01 vs SHIP: loss -0.767 (26 lost, 164 saved of 18000); threshold 0.4000: no harm; discordance 1.06% (sized at 1.54%), the rule's rates at it: 0.023 at 0.25, 1.000 at 1
+  S352F  W0.02 vs APP : loss -9.600 (0 lost, 1728 saved of 18000); threshold 0.6556: no harm; discordance 9.60% (sized at 10.82%), the rule's rates at it: 0.039 at 0.25, 0.931 at 1
+  S352F  W0.02 vs SHIP: loss -0.478 (28 lost, 114 saved of 18000); threshold 0.3944: no harm; discordance 0.79% (sized at 1.36%), the rule's rates at it: 0.030 at 0.25, 1.000 at 1
+  S352F  W0.01 vs APP : loss -10.078 (0 lost, 1814 saved of 18000); threshold 0.6611: no harm; discordance 10.08% (sized at 11.29%), the rule's rates at it: 0.042 at 0.25, 0.926 at 1
+  S352F  W0.01 vs SHIP: loss -0.967 (18 lost, 192 saved of 18000); threshold 0.4222: no harm; discordance 1.17% (sized at 1.96%), the rule's rates at it: 0.018 at 0.25, 1.000 at 1
+  S356F  W0.02 vs APP : loss -9.671 (0 lost, 1644 saved of 17000); threshold 0.6588: no harm; discordance 9.67% (sized at 10.45%), the rule's rates at it: 0.042 at 0.25, 0.922 at 1
+  S356F  W0.02 vs SHIP: loss -0.382 (32 lost, 97 saved of 17000); threshold 0.4000: no harm; discordance 0.76% (sized at 1.36%), the rule's rates at it: 0.024 at 0.25, 1.000 at 1
+  S356F  W0.01 vs APP : loss -10.129 (0 lost, 1722 saved of 17000); threshold 0.6706: no harm; discordance 10.13% (sized at 10.98%), the rule's rates at it: 0.044 at 0.25, 0.913 at 1
+  S356F  W0.01 vs SHIP: loss -0.882 (14 lost, 164 saved of 17000); threshold 0.4059: no harm; discordance 1.05% (sized at 1.54%), the rule's rates at it: 0.026 at 0.25, 1.000 at 1
+  S358F  W0.02 vs APP : loss -9.922 (1 lost, 1787 saved of 18000); threshold 0.6556: no harm; discordance 9.93% (sized at 11.08%), the rule's rates at it: 0.041 at 0.25, 0.927 at 1
+  S358F  W0.02 vs SHIP: loss -1.439 (12 lost, 271 saved of 18000); threshold 0.4333: no harm; discordance 1.57% (sized at 2.19%), the rule's rates at it: 0.027 at 0.25, 1.000 at 1
+  S358F  W0.01 vs APP : loss -10.094 (1 lost, 1818 saved of 18000); threshold 0.6611: no harm; discordance 10.11% (sized at 11.35%), the rule's rates at it: 0.042 at 0.25, 0.925 at 1
+  S358F  W0.01 vs SHIP: loss -1.867 (9 lost, 345 saved of 18000); threshold 0.4444: no harm; discordance 1.97% (sized at 2.48%), the rule's rates at it: 0.034 at 0.25, 1.000 at 1
+FLAGGED: none
+
+REPORTED, NOT GATED
+  W0.02 the replication on 4000 paths of 7018 from its path 200: A1 +10.727 (10.177 to 11.278, se 0.2808), A2 +6.592 (6.479 to 6.704, se 0.0574)%, S1 +0.829 (0.736 to 0.921, se 0.0472) (spending delivered CAND less SHIP -0.450 (-0.476 to -0.424, se 0.0131)%); each reads as on 7003
+  W0.02 the whole score: CAND less APP +12.222 (11.949 to 12.494, se 0.1392); CAND less SHIP +0.972 (0.925 to 1.019, se 0.0240)
+  W0.02 spending delivered over every year, CAND less SHIP: -0.468 (-0.481 to -0.456, se 0.0063)% (beside S1 +0.830 (0.784 to 0.877, se 0.0235) points)
+  W0.02 A1 and A2 where arm A takes the lump sum (16): survival +10.735 (10.458 to 11.011, se 0.1411) points, spending delivered +6.533 (6.486 to 6.580, se 0.0241)%
+  W0.02 A1 and A2 where arm A does not (24): survival +10.694 (10.416 to 10.972, se 0.1419) points, spending delivered +6.560 (6.498 to 6.622, se 0.0317)%
+  W0.02 S1's parts, survival (spending delivered CAND less SHIP beside): the library cohort (20) +0.644 (0.600 to 0.688, se 0.0223) (-0.929 (-0.942 to -0.916, se 0.0067)%); the households whose reader reads no bridge year (16) +0.690 (0.639 to 0.740, se 0.0257) (-1.063 (-1.079 to -1.047, se 0.0082)%); an observed loss against SHIP over all their paths on 2 of 40 (S074, S132)
+  W0.01 the replication on 4000 paths of 7018 from its path 200: A1 +10.787 (10.233 to 11.342, se 0.2830), A2 +7.495 (7.378 to 7.612, se 0.0595)%, S1 +0.942 (0.844 to 1.040, se 0.0499) (spending delivered CAND less SHIP -0.102 (-0.126 to -0.079, se 0.0120)%); each reads as on 7003
+  W0.01 the whole score: CAND less APP +12.283 (12.008 to 12.558, se 0.1402); CAND less SHIP +0.932 (0.881 to 0.984, se 0.0264)
+  W0.01 spending delivered over every year, CAND less SHIP: -0.113 (-0.125 to -0.102, se 0.0058)% (beside S1 +0.973 (0.922 to 1.023, se 0.0259) points)
+  W0.01 A1 and A2 where arm A takes the lump sum (16): survival +10.828 (10.548 to 11.108, se 0.1427) points, spending delivered +7.454 (7.405 to 7.503, se 0.0250)%
+  W0.01 A1 and A2 where arm A does not (24): survival +10.760 (10.480 to 11.040, se 0.1429) points, spending delivered +7.470 (7.406 to 7.535, se 0.0329)%
+  W0.01 S1's parts, survival (spending delivered CAND less SHIP beside): the library cohort (20) +0.773 (0.727 to 0.819, se 0.0236) (-0.384 (-0.393 to -0.375, se 0.0048)%); the households whose reader reads no bridge year (16) +0.783 (0.732 to 0.834, se 0.0259) (-0.406 (-0.417 to -0.396, se 0.0054)%); an observed loss against SHIP over all their paths on 0 of 40
+  per household (W0.02 | W0.01): survival APP, SHIP, CAND; spending delivered CAND against APP and against SHIP; the estate CAND against APP; years below target; tax; end wealth median and unlucky tenth
+  S026   lib  APP 86.52 below 14.60 end 125038/7452 | SHIP 97.89 CAND 98.16 spend -0.946% vs SHIP -2.022% estate 43264 below 13.68 tax -889 end 139602/21689 | SHIP 97.81 CAND 98.17 spend +1.875% vs SHIP -0.591% estate -38220 below 11.01 tax -473 end 65958/21116
+  S030   lib  APP 86.42 below 17.32 end 715633/0 | SHIP 94.70 CAND 95.88 spend +3.817% vs SHIP -0.412% estate -8263 below 12.29 tax -61252 end 485684/80172 | SHIP 94.62 CAND 95.82 spend +4.934% vs SHIP -0.075% estate -153759 below 11.21 tax -58275 end 360755/77997
+  S040   lib  APP 85.93 below 17.92 end 323313/0 | SHIP 96.59 CAND 97.80 spend +4.373% vs SHIP -1.067% estate -21057 below 12.78 tax -18159 end 201754/39195 | SHIP 96.50 CAND 97.81 spend +6.323% vs SHIP -0.246% estate -176348 below 11.04 tax -11277 end 121524/37759
+  S050   lib  APP 84.36 below 18.00 end 81013/7580 | SHIP 98.48 CAND 98.73 spend +1.544% vs SHIP -2.144% estate 125409 below 12.81 tax 1747 end 156447/21706 | SHIP 98.40 CAND 98.72 spend +4.724% vs SHIP -0.568% estate 34171 below 9.89 tax 1863 end 70877/21183
+  S062   lib  APP 86.05 below 19.01 end 212249/18749 | SHIP 98.11 CAND 98.62 spend +0.784% vs SHIP -1.545% estate -354289 below 15.94 tax 3110 end 199653/44440 | SHIP 98.05 CAND 98.65 spend +2.946% vs SHIP -0.585% estate -467766 below 13.57 tax 1085 end 93686/42701
+  S074   lib  APP 84.49 below 17.17 end 313774/52259 | SHIP 97.69 CAND 97.65 spend -1.416% vs SHIP -0.408% estate -267857 below 15.69 tax 1434 end 249071/98046 | SHIP 97.59 CAND 97.74 spend -0.313% vs SHIP -0.348% estate -322004 below 14.37 tax 573 end 195599/96906
+  S090   lib  APP 85.86 below 22.22 end 1003108/0 | SHIP 94.06 CAND 94.62 spend +4.551% vs SHIP -1.060% estate -358091 below 15.67 tax -82547 end 710835/66710 | SHIP 93.96 CAND 94.58 spend +5.590% vs SHIP -0.667% estate -582472 below 14.40 tax -80927 end 471225/65201
+  S096   lib  APP 84.59 below 22.20 end 144255/0 | SHIP 97.40 CAND 98.08 spend +1.152% vs SHIP -2.089% estate -62745 below 18.10 tax 491 end 122063/17433 | SHIP 97.44 CAND 98.14 spend +3.610% vs SHIP -0.843% estate -171031 below 15.64 tax 826 end 42031/16816
+  S108   lib  APP 84.34 below 25.58 end 111233/0 | SHIP 97.05 CAND 97.76 spend +3.377% vs SHIP -2.016% estate 66352 below 17.91 tax 884 end 123554/16905 | SHIP 97.10 CAND 97.83 spend +5.969% vs SHIP -0.620% estate -53598 below 15.28 tax 688 end 39074/16094
+  S132   lib  APP 86.38 below 19.76 end 295991/19002 | SHIP 99.12 CAND 99.09 spend +2.310% vs SHIP -1.280% estate -317455 below 13.97 tax 3102 end 237543/43832 | SHIP 99.06 CAND 99.15 spend +4.246% vs SHIP -0.332% estate -428818 below 11.40 tax 2121 end 130382/43866
+  S164   lib  APP 85.68 below 18.69 end 1960051/278394 | SHIP 95.06 CAND 95.82 spend +3.353% vs SHIP +0.198% estate -1745281 below 12.65 tax -110221 end 2050838/543706 | SHIP 94.86 CAND 96.27 spend +3.135% vs SHIP -0.565% estate -2574900 below 13.12 tax -117841 end 1250283/542397
+  S188   lib  APP 84.34 below 18.02 end 1817208/0 | SHIP 96.18 CAND 97.70 spend +10.105% vs SHIP -0.291% estate -6429157 below 8.47 tax -4928 end 1445865/60015 | SHIP 95.97 CAND 97.64 spend +11.228% vs SHIP +0.238% estate -6969580 below 7.01 tax 10755 end 1084971/58556
+  S204   lib  APP 85.00 below 23.07 end 433583/45251 | SHIP 95.92 CAND 96.30 spend +4.164% vs SHIP -1.365% estate -439526 below 13.24 tax -1457 end 332526/97189 | SHIP 95.80 CAND 96.29 spend +5.326% vs SHIP -1.028% estate -505030 below 11.87 tax -4151 end 240522/96437
+  S228   lib  APP 86.18 below 22.37 end 238512/0 | SHIP 97.18 CAND 97.74 spend +6.959% vs SHIP -1.729% estate -242106 below 11.84 tax 5409 end 278447/19111 | SHIP 97.17 CAND 97.76 spend +9.133% vs SHIP -0.594% estate -354282 below 9.36 tax 1505 end 145177/17708
+  S244   lib  APP 85.14 below 13.61 end 4029928/0 | SHIP 94.96 CAND 96.44 spend +6.280% vs SHIP -0.166% estate -17144899 below 7.57 tax 87235 end 1708595/282814 | SHIP 94.86 CAND 96.39 spend +6.803% vs SHIP -0.031% estate -17216078 below 6.87 tax 87849 end 1592090/282356
+  S260   lib  APP 84.74 below 14.93 end 5353498/0 | SHIP 93.53 CAND 93.84 spend +8.200% vs SHIP -0.306% estate -18404346 below 7.80 tax 21200 end 3500518/90189 | SHIP 93.41 CAND 93.86 spend +8.726% vs SHIP -0.248% estate -18548821 below 7.14 tax 24597 end 3196010/87992
+  S272   lib  APP 85.02 below 25.03 end 4698638/0 | SHIP 91.96 CAND 92.73 spend +14.419% vs SHIP -0.074% estate -13587508 below 8.14 tax -177577 end 3773139/239809 | SHIP 92.01 CAND 93.04 spend +14.925% vs SHIP -0.009% estate -15093575 below 7.71 tax -254831 end 3069809/236974
+  S290   lib  APP 84.69 below 17.80 end 852275/0 | SHIP 94.74 CAND 95.44 spend +8.717% vs SHIP -0.309% estate -2979202 below 8.15 tax 33008 end 759926/29877 | SHIP 94.71 CAND 95.61 spend +9.378% vs SHIP -0.292% estate -3051906 below 7.38 tax 30341 end 673921/28680
+  S368   lib  APP 85.56 below 13.64 end 6010322/649732 | SHIP 98.92 CAND 99.79 spend +3.014% vs SHIP -0.024% estate -15790417 below 7.15 tax 14134 end 4200849/785633 | SHIP 98.92 CAND 99.80 spend +3.245% vs SHIP +0.197% estate -16560181 below 7.07 tax 7328 end 3881050/763994
+  S384   lib  APP 85.80 below 18.88 end 501599/46533 | SHIP 97.74 CAND 97.90 spend +2.899% vs SHIP -0.452% estate -679168 below 13.24 tax 6519 end 368193/99345 | SHIP 97.67 CAND 98.17 spend +3.392% vs SHIP -0.487% estate -771742 below 12.52 tax 1349 end 286132/97703
+  S304F  fire APP 85.99 below 14.19 end 7093385/191920 | SHIP 94.52 CAND 98.12 spend +4.615% vs SHIP +1.290% estate -44443703 below 7.74 tax 26098 end 2732341/363232 | SHIP 94.55 CAND 98.08 spend +4.951% vs SHIP +1.461% estate -44420273 below 7.30 tax 28616 end 2691281/373755
+  S306F  fire APP 86.22 below 14.07 end 12157436/0 | SHIP 93.97 CAND 95.55 spend +4.972% vs SHIP +0.170% estate -85299878 below 10.38 tax 163414 end 5277996/78467 | SHIP 93.99 CAND 95.44 spend +5.509% vs SHIP +0.483% estate -85270906 below 9.60 tax 171749 end 5051921/76266
+  S308F  fire APP 85.38 below 14.28 end 13426615/33298 | SHIP 94.43 CAND 97.88 spend +6.379% vs SHIP +1.303% estate -89119391 below 7.54 tax 71864 end 5316695/180486 | SHIP 94.42 CAND 97.25 spend +6.741% vs SHIP +1.477% estate -88103712 below 6.87 tax 68197 end 5503266/162964
+  S310F  fire APP 86.02 below 13.14 end 33654520/0 | SHIP 94.21 CAND 95.92 spend +5.011% vs SHIP +0.286% estate -216399629 below 9.95 tax 771348 end 14087183/213517 | SHIP 94.23 CAND 95.61 spend +5.807% vs SHIP +0.872% estate -216599727 below 8.77 tax 798730 end 13140029/186065
+  S314F  fire APP 85.82 below 15.30 end 2050981/0 | SHIP 95.29 CAND 95.77 spend +5.189% vs SHIP -0.344% estate -10326541 below 9.04 tax 36284 end 952256/107841 | SHIP 95.24 CAND 95.78 spend +5.677% vs SHIP -0.200% estate -10357458 below 8.27 tax 32964 end 895832/104338
+  S316F  fire APP 86.14 below 15.59 end 4712228/0 | SHIP 95.08 CAND 95.26 spend +7.442% vs SHIP -0.249% estate -23887707 below 7.87 tax 180302 end 2149886/42743 | SHIP 95.00 CAND 95.17 spend +7.790% vs SHIP -0.193% estate -23920806 below 7.30 tax 181320 end 2097189/41213
+  S320F  fire APP 85.07 below 16.07 end 8109772/0 | SHIP 93.98 CAND 94.17 spend +7.853% vs SHIP -0.322% estate -42557666 below 8.55 tax 109517 end 4467803/75424 | SHIP 93.90 CAND 94.17 spend +8.230% vs SHIP -0.268% estate -42714348 below 7.99 tax 111339 end 4208325/73480
+  S322F  fire APP 85.74 below 14.39 end 24354936/0 | SHIP 94.32 CAND 94.81 spend +6.570% vs SHIP -0.269% estate -113505055 below 8.24 tax 596793 end 12217205/709732 | SHIP 94.24 CAND 94.71 spend +6.865% vs SHIP -0.220% estate -113687143 below 7.79 tax 598766 end 11922049/700506
+  S326F  fire APP 86.33 below 29.02 end 1426833/0 | SHIP 94.24 CAND 94.89 spend +12.704% vs SHIP -0.571% estate -6539360 below 9.60 tax 8599 end 896991/23640 | SHIP 94.17 CAND 95.14 spend +13.457% vs SHIP -0.266% estate -6812602 below 8.67 tax -37906 end 777288/22598
+  S328F  fire APP 84.80 below 23.60 end 3953425/0 | SHIP 92.56 CAND 93.14 spend +10.691% vs SHIP -0.223% estate -17971856 below 9.29 tax 123518 end 2187082/41449 | SHIP 92.48 CAND 93.33 spend +11.092% vs SHIP -0.161% estate -18441750 below 8.83 tax 62949 end 1909255/39301
+  S332F  fire APP 85.88 below 33.52 end 8089700/0 | SHIP 92.89 CAND 93.57 spend +17.816% vs SHIP -0.056% estate -32561830 below 8.50 tax -220167 end 5047149/256772 | SHIP 92.81 CAND 93.81 spend +18.129% vs SHIP -0.041% estate -33168996 below 8.20 tax -232051 end 4369285/252433
+  S334F  fire APP 85.38 below 36.58 end 22408378/0 | SHIP 92.46 CAND 93.40 spend +19.751% vs SHIP +0.097% estate -89054373 below 9.02 tax -528993 end 13869406/1404137 | SHIP 92.41 CAND 93.67 spend +20.156% vs SHIP +0.218% estate -92652503 below 8.56 tax -594086 end 11466501/1421797
+  S338F  fire APP 84.43 below 18.63 end 1481981/0 | SHIP 94.84 CAND 95.41 spend +8.191% vs SHIP -0.487% estate -10283501 below 9.72 tax 87881 end 935098/24280 | SHIP 94.81 CAND 95.59 spend +9.000% vs SHIP -0.126% estate -10362183 below 8.56 tax 76465 end 831662/23122
+  S340F  fire APP 85.17 below 15.99 end 4547797/0 | SHIP 94.78 CAND 94.98 spend +7.763% vs SHIP -0.270% estate -28397096 below 8.40 tax 203977 end 2466868/41678 | SHIP 94.76 CAND 95.19 spend +8.376% vs SHIP -0.023% estate -28559454 below 7.52 tax 193066 end 2049964/39983
+  S344F  fire APP 85.31 below 16.00 end 10456952/0 | SHIP 94.53 CAND 94.92 spend +7.121% vs SHIP +0.022% estate -57588346 below 7.77 tax 182009 end 5642890/602533 | SHIP 94.45 CAND 95.17 spend +7.573% vs SHIP +0.233% estate -60060335 below 7.17 tax 25787 end 4580195/598579
+  S346F  fire APP 85.16 below 14.48 end 26880672/0 | SHIP 92.98 CAND 94.71 spend +7.253% vs SHIP -0.012% estate -145331475 below 8.04 tax 968949 end 13587075/196707 | SHIP 92.74 CAND 94.76 spend +7.575% vs SHIP +0.100% estate -145616702 below 7.59 tax 1000300 end 13066765/184035
+  S350F  fire APP 85.74 below 16.86 end 1574697/0 | SHIP 95.63 CAND 96.14 spend +7.355% vs SHIP -0.478% estate -9475997 below 8.15 tax 63032 end 947736/24108 | SHIP 95.59 CAND 96.36 spend +8.048% vs SHIP -0.161% estate -9694127 below 7.21 tax 25135 end 821329/22079
+  S352F  fire APP 86.04 below 17.12 end 3789256/0 | SHIP 95.17 CAND 95.64 spend +8.076% vs SHIP -0.013% estate -18203453 below 6.78 tax 303604 end 2601861/135429 | SHIP 95.16 CAND 96.12 spend +8.182% vs SHIP -0.138% estate -19986639 below 7.01 tax 114414 end 1981507/127041
+  S356F  fire APP 85.69 below 18.22 end 6080913/0 | SHIP 94.98 CAND 95.36 spend +9.820% vs SHIP -0.127% estate -34869350 below 6.49 tax 310644 end 5416893/85218 | SHIP 94.94 CAND 95.82 spend +10.087% vs SHIP -0.106% estate -38995927 below 6.49 tax 159324 end 4103688/74837
+  S358F  fire APP 85.12 below 18.41 end 18702490/0 | SHIP 93.60 CAND 95.04 spend +9.584% vs SHIP +0.095% estate -93381475 below 6.99 tax 879592 end 13536986/219763 | SHIP 93.34 CAND 95.21 spend +9.865% vs SHIP +0.177% estate -94182353 below 6.68 tax 881922 end 12238909/188478
+  FIXBR (7q, D35): the candidate following arm A's policy in the retired years before access, less the candidate, on 24 households, the first 8000 paths: survival -4.294 (-4.524 to -4.064, se 0.1174) points, spending delivered -0.503 (-0.563 to -0.442, se 0.0310)%
+    S132   2 fixed years: -1.313 (5 saved, 110 lost of 8000); spending +0.342%
+    S164   2 fixed years: -1.075 (23 saved, 109 lost of 8000); spending +0.472%
+    S368   8 fixed years: -36.987 (0 saved, 2959 lost of 8000); spending +1.975%
+    S384   8 fixed years: -4.175 (3 saved, 337 lost of 8000); spending +0.018%
+    S304F  6 fixed years: -8.887 (3 saved, 714 lost of 8000); spending +0.713%
+    S306F  6 fixed years: -2.638 (12 saved, 223 lost of 8000); spending +0.612%
+    S308F  6 fixed years: -10.175 (0 saved, 814 lost of 8000); spending +0.475%
+    S310F  6 fixed years: -2.225 (15 saved, 193 lost of 8000); spending +0.533%
+    S314F  6 fixed years: -2.750 (12 saved, 232 lost of 8000); spending -0.985%
+    S316F  6 fixed years: -2.913 (10 saved, 243 lost of 8000); spending -1.326%
+    S320F  6 fixed years: -2.587 (13 saved, 220 lost of 8000); spending -1.265%
+    S322F  6 fixed years: -2.075 (18 saved, 184 lost of 8000); spending -1.067%
+    S326F  6 fixed years: -2.650 (10 saved, 222 lost of 8000); spending -0.923%
+    S328F  6 fixed years: -2.487 (13 saved, 212 lost of 8000); spending -1.005%
+    S332F  6 fixed years: -1.938 (14 saved, 169 lost of 8000); spending -0.948%
+    S334F  6 fixed years: -1.050 (32 saved, 116 lost of 8000); spending -0.693%
+    S338F  6 fixed years: -3.150 (13 saved, 265 lost of 8000); spending -0.991%
+    S340F  6 fixed years: -2.825 (13 saved, 239 lost of 8000); spending -1.319%
+    S344F  6 fixed years: -2.013 (23 saved, 184 lost of 8000); spending -1.125%
+    S346F  6 fixed years: -2.013 (14 saved, 175 lost of 8000); spending -1.159%
+    S350F  6 fixed years: -2.550 (9 saved, 213 lost of 8000); spending -1.117%
+    S352F  6 fixed years: -1.762 (6 saved, 147 lost of 8000); spending -1.106%
+    S356F  6 fixed years: -1.525 (14 saved, 136 lost of 8000); spending -1.166%
+    S358F  6 fixed years: -1.288 (15 saved, 118 lost of 8000); spending -1.008%
+  the world return-1 (D20 (9): the sensitivity to the returns): CAND/0.02 less APP, survival +13.290 (12.537 to 14.043, se 0.3840) points, spending delivered +5.440 (5.293 to 5.588, se 0.0753)% on 2000 paths
+  the world vol+25: CAND/0.02 less APP, survival +12.616 (11.760 to 13.472, se 0.4367) points, spending delivered +7.220 (7.052 to 7.389, se 0.0860)% on 2000 paths
+  the world left-tail: CAND/0.02 less APP, survival +18.992 (18.038 to 19.947, se 0.4872) points, spending delivered +8.458 (8.269 to 8.647, se 0.0962)% on 2000 paths
+  history (68 start years from 1928): survival CAND/0.02 99.78%, APP 99.34%; a household better under CAND 4, worse 2; spending delivered CAND against APP, the households' mean +2.701%
+  runPolicy beside the engine on the first 2000 paths of the 160 solver units: paths on which the two differ 0
+  the solve, CAND/0.02 against SHIP/0.02 on one core under the run's load: the median x3.22 (x2.21 to x4.14); gate 5 is MET on the split candidate (results-gate5.txt); the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz; Intel(R) Xeon(R) Processor @ 2.80GHz

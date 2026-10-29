@@ -285,7 +285,7 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 <!-- end printed:tiers -->
 ## 5. Running now
 
-- Nothing. The tier test's 200 units finished on 29 Oct at 03:47 UK (task bz4yyjaxz, `results/tiers-launch-log.txt`, `results/tiers`); its read is above. Phase 4's units: `results/diagp4`.
+- N7 (EXPLORATORY): the page (`research/solver/n7/`) published for the maintainer's laptop and phone, each solve saved to its record (`reduce.mjs` reads it); its full-scale run in this container's Chromium (task bn1xchou0, `results-n7-check.txt`). Raw units: `results/diagp4`, `results/tiers`, `results/n7`.
 
 ## 6. The next three actions
 

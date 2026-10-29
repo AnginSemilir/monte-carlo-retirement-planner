@@ -38,6 +38,19 @@ L.push(unfair.length || inputsOff.length ? `NOT FAIR: the units differ in ${unfa
 if (unfair.length || inputsOff.length) { console.log(L.join('\n')); process.exit(1); }
 const beside = all.filter(u => u.beside), bOff = beside.reduce((a, u) => a + u.beside.engineOnly + u.beside.policyOnly, 0);
 L.push(`runPolicy beside the engine: paths that differ ${bOff} of ${beside.reduce((a, u) => a + u.beside.N, 0)} (${beside.length} solver units)`);
+// what each arm ran, from its units' records (every household's the same but the estate weight, which scales with the
+// household under the spending utility)
+L.push('What each arm ran (from the units; a year at the floor priced at the first year, and the same on every household unless said):');
+for (const a of ARMS.filter(x => IDS.some(id => U[id] && U[id][x]))) {
+  const us = IDS.map(id => U[id] && U[id][a]).filter(Boolean), r0 = us[0].ran;
+  if (a === 'APP') { L.push(`  APP     the app's rules, guardrails ${r0.guardrails ? 'on' : 'off'}`); continue; }
+  const strip = r => JSON.stringify({ ...r, bequestWeight: r.spendUtility ? 0 : r.bequestWeight, minPot: 0, pts: 0, actions: 0, tierState: 0 });
+  const same = us.every(u => strip(u.ran) === strip(r0));
+  const su = r0.spendUtility, fl = Math.min(...r0.levels);
+  const uOf = l => (Math.abs(su ? su.gamma - 1 : 1) < 1e-12 ? Math.log(l) : (Math.pow(l, 1 - (su ? su.gamma : 2)) - 1) / (1 - (su ? su.gamma : 2)));
+  const floorCost = su ? su.kappa * (uOf(1) - uOf(fl)) : r0.lambda * (1 - fl) ** 2;
+  L.push(`  ${a.padEnd(7)} menu ${r0.levels.join(', ')}; ${su ? `spending utility gamma ${su.gamma}, kappa ${+su.kappa.toPrecision(6)}, mortality ${su.mortality ? `${su.mortality.mode}/${su.mortality.disp}` : 'none'}` : `lambda ${+r0.lambda.toPrecision(6)}, raise weight ${r0.raiseWeight}${r0.raiseSurvival ? ' (times survival)' : ''}`}; ${su ? `a year of ruin lived on the guaranteed income (at least ${su.ruinMin} of target)` : `a year of ruin priced as ${r0.failureShortfall === 'zero' ? 'a cut to nothing' : 'a year at the floor'}`}${r0.failDelivered ? ', the failure year at what it can pay' : ''}; switch charge ${+r0.switchCharge.toPrecision(6)}; a year at the floor ${su && su.kappa === 1 ? `${floorCost.toFixed(4)} in its own units (spending the currency)` : `${(100 * floorCost).toFixed(3)} points of survival`}; estate weight ${su ? 'by household' : r0.bequestWeight}${same ? '' : '; NOT THE SAME ON EVERY HOUSEHOLD'}`);
+}
 
 const BUCKETS = [[0, 5], [5, 10], [10, 20], [20, 999]];
 function perUnit(u) {

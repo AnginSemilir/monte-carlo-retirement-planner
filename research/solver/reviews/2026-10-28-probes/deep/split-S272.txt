@@ -1,0 +1,1 @@
+S272 (lib) on 1000 paths of 7002: APP 85.5% | SHIP 94.3% (less APP 8.8; 88 saved, 0 lost) | SHIP-NC 88.7% (less APP 3.2; 32 saved, 0 lost)

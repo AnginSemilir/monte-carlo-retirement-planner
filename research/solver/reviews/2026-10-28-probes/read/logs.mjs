@@ -1,0 +1,36 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+import { join } from 'node:path';
+const D = process.argv[2];
+const W = [['L1', '2026-10-27T20:17:00Z', '2026-10-27T23:36:00Z'], ['L2', '2026-10-27T23:36:00Z', '2026-10-28T11:35:00Z'], ['L3', '2026-10-28T11:35:00Z', '2026-10-28T12:30:00Z'], ['L4', '2026-10-28T12:30:00Z', '2026-10-28T17:39:00Z']].map(([n, a, b]) => [n, Date.parse(a), Date.parse(b)]);
+const win = t => (W.find(([, a, b]) => t >= a && t < b) || ['??'])[0];
+const rows = [], issues = [];
+const stamps = new Set(), fstamps = new Set();
+for (let k = 0; k < 200; k++) {
+  const f = join(D, `case${k}.txt`), buf = readFileSync(f), t = buf.toString('latin1');
+  const nul = buf.includes(0);
+  const nStamp = (t.match(/^stamp: /gm) || []).length, nDone = (t.match(/^ +done /gm) || []).length, nCase = (t.match(/ case \| unit /g) || []).length;
+  const st = t.split('\n')[0]; stamps.add(st);
+  const m = /^(\S+)\s+case \| unit (\S+) \| cohort (\S+) target (\d+) paths (\d+)/m.exec(t);
+  const [id, L] = [m[1], m[2]]; const [arm, w0] = L.split('/'); const w = w0 ? w0.slice(1) : '-';
+  const done = /done \S+ secs (\d+)/.exec(t), solve = /solve secs (\d+)/.exec(t), eng = /engine secs (\d+)/.exec(t);
+  const uf = join(D, `${id}-${arm.toLowerCase()}-w${w}.json.gz`), j = JSON.parse(gunzipSync(readFileSync(uf)).toString());
+  fstamps.add(JSON.stringify(j.stamp));
+  const lm = statSync(f).mtimeMs, um = statSync(uf).mtimeMs;
+  const part = /part (\d+)\/200/.exec(t)[1];
+  rows.push({ k, id, L, logWin: win(lm), fileWin: win(um), lag: (lm - um) / 1000, doneSecs: done ? +done[1] : null, fileSecs: Math.round(j.secs), solveLog: solve ? +solve[1] : null, solveFile: Math.round(j.solveSecs), engLog: +eng[1], engFile: Math.round(j.engineSecs), cpu: j.cpu, startFromMtime: new Date(um - j.secs * 1000).toISOString().slice(5, 19) });
+  if (nul || nStamp !== 1 || nDone !== 1 || nCase !== 1 || +part !== k) issues.push(`case${k}: nul ${nul} stamps ${nStamp} done ${nDone} cases ${nCase} part ${part}`);
+  if (!done || Math.abs(+done[1] - j.secs) > 1.01) issues.push(`case${k} ${id} ${L}: log done secs ${done && done[1]} file secs ${j.secs}`);
+  if (solve && Math.abs(+solve[1] - j.solveSecs) > 0.51) issues.push(`case${k} ${id} ${L}: solve secs log ${solve[1]} file ${j.solveSecs}`);
+  if (Math.abs(+eng[1] - j.engineSecs) > 0.51) issues.push(`case${k} ${id} ${L}: engine secs log ${eng[1]} file ${j.engineSecs}`);
+  if (win(lm) !== win(um)) issues.push(`case${k} ${id} ${L}: log in ${win(lm)}, file in ${win(um)}`);
+  if (lm < um || lm - um > 5000) issues.push(`case${k} ${id} ${L}: log mtime - file mtime ${(lm - um) / 1000} s`);
+  if (j.id !== id || j.arm !== arm || j.w !== w) issues.push(`case${k}: file ${j.id} ${j.arm} ${j.w} vs log ${id} ${L}`);
+}
+console.log('log stamp lines:', [...stamps]);
+console.log('file stamps:', [...fstamps]);
+const byWin = {}; for (const r of rows) (byWin[r.fileWin] ||= []).push(r);
+for (const [n, rs] of Object.entries(byWin)) console.log(n, rs.length, 'units; cpus', [...new Set(rs.map(r => r.cpu))].join(' | '));
+console.log('cumulative kept at relaunch: after L1', (byWin.L1 || []).length, 'after L2', (byWin.L1 || []).length + (byWin.L2 || []).length, 'after L3', (byWin.L1 || []).length + (byWin.L2 || []).length + (byWin.L3 || []).length);
+console.log('ISSUES', issues.length); for (const x of issues) console.log(' ', x);
+if (process.argv[3]) for (const r of rows.filter(r => r.fileWin === process.argv[3])) console.log(JSON.stringify(r));

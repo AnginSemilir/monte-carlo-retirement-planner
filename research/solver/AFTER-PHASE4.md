@@ -34,41 +34,41 @@ about 0.3 core-hours a household at 8,000 paths), about 3 hours on four cores.
 
 **Size.** The second largest of the three, after the savings split; about a day's build with its tests, then the run.
 
-## 2. The lump sum: already almost a solver choice
+## 2. The lump sum: most of the plumbing is there, but the table's state is not
 
 **What.** The solver chooses whether, and when, to take the 25% lump sum, where today it reads the plan's choice.
 
-**Where the code stands** (corrected 29 Oct, after the maintainer's question): nearly everything is in place. Every move
-carries a `lump` flag; the forward run takes the whole lump on a move that asks for it, in any year after access once the
-owner has retired, while it has not been taken (`fast.js`); the engine does the same under a table (`App.jsx`:
-`fullLumpSum: !!chosen.lump`; `bridge.js` hands the move's flag over); the table's state carries the allowance used and
-the lump-taken flag (`grid.js`). What stops the solver choosing is one line: `solve()` stamps every move with the plan's
-own choice (`.map(a => ({ ...a, lump: !!opts.lump }))`), so in one solve every move takes the lump or every move phases.
-`solveBoth` (solve both ways, keep the better) is not needed for it.
+**Where the code stands** (re-checked 29 Oct while starting the build). Much is in place: every move carries a `lump` flag;
+the forward run takes the whole lump on a move that asks for it, in any year after access once the owner has retired,
+while it has not been taken (`fast.js` step 3); the engine does the same under a table (`App.jsx` step 3, `fullLumpSum:
+!!chosen.lump`); `solve()` stamps every move with the plan's own choice (`.map(a => ({ ...a, lump: !!opts.lump }))`).
 
-**The build.** Offer both versions of each move (the lump and phased) in the years the lump is still open: from pension
-access, retired, not yet taken. Small: the menu, a check that the engine and the forward run take the lump in the same
-year (a household in `state-check.test.mjs` whose table takes it), and a planted case.
+**What stops a per-move choice.** Two things, found while starting the build:
+1. Whether later draws are taxed as after a full lump depends on the year's move, not only on the state: the engine's
+   `fully = ctx.fullLumpSum && state.lumpSumTaken` and the forward run's `fully = a.lump && lumpTaken`. With one flag for
+   every move that is consistent; with a choice, a later move without the flag would treat the crystallised pension as
+   uncrystallised again. Fixable (make `fully` the state's alone), and bit for bit the same for today's solves.
+2. The table cannot tell "took the lump" from "used part of the allowance by phased draws": `grid.js` derives the
+   lump-taken flag from the allowance bucket (`out[5] = pcls[ic] > 0`). Under a fixed setting that never matters; under a
+   choice, a phased household that has used half its allowance would be valued as one whose pension is now fully
+   taxable. A real choice needs the flag in the table's state: a "taken" bucket on the allowance axis (taken cells read no
+   allowance), through `grid.js`, both forward models, the bridge reader, the adaptive reference and E3's lump-sum copy.
 
-**What it would cost.** The menu grows in the years after access. Where the lump is already taken the two versions are the
-same move, which the solver's memo (S1) should mostly absorb; the solve time against gate 5 (D11) is to be measured, not
-assumed.
-
-**The caveat.** The table reads the lump-taken flag from the allowance bucket (`grid.js`, Phase 6e arm 4): a household that
-has used a little of its allowance is valued as one that may still take the whole lump. Stated in the code; the choice
-inherits it.
+**The two routes.**
+- **In the table**: the "taken" bucket, so one solve chooses whether and when. About two to three days with its tests (the
+  allowance axis is under several of the candidate's exact speed-ups, each with an identity test to keep).
+- **Two solves** (`solveBoth`): solve with the lump and without, keep the better at the household's opening position. Exact
+  for a choice made once, and small to build (about half a day), but a second solve per household: gate 5's split
+  candidate at a median of 0.857 times the product's solve becomes about 1.7 times, over the gate's 1.25 (D11), unless the
+  two solves run side by side on the worker's cores and the gate is read on wall-clock time.
 
 **What it would gain.** Small on present evidence: the review's probe (EXPLORATORY, seed 7002, `gaps/results-plan-probes.txt`
 on the review branch) found the full lump sum against phased, fixed for the whole plan, changed survival by -0.54 to 0.00
 points on its four households, never for the better; Phase 4 found no difference between the households where arm A took
-the lump sum and the rest. A choice can only match or beat both fixed settings in the model, so the risk is the solve's
-time, not the outcomes.
+the lump sum and the rest.
 
-**The test.** The candidate with the choice and without, on the panel's households with a pension before access or at it,
-seed 7002, 8,000 paths, EXPLORATORY, with the solve's time beside it. Sized when the build is: a few core-hours.
-
-**Recommendation.** Build it: about half a day with its tests, cheaper than either other choice here. Part C's lump-sum lock
-(`lumpSum: 'free' | 'never' | 'now'`) then becomes a restriction on a choice the solver makes, as the other locks are.
+**Recommendation.** The maintainer's call between the routes; the evidence so far says the gain is small, which favours
+the cheaper route or Part C's lump-sum lock alone (`lumpSum: 'free' | 'never' | 'now'`).
 
 ## 3. The savings split while working (`action.contrib`, D38 (4))
 

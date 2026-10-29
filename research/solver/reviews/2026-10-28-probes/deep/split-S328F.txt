@@ -1,0 +1,1 @@
+S328F (fire) on 1000 paths of 7002: APP 85.6% | SHIP 93.7% (less APP 8.1; 81 saved, 0 lost) | SHIP-NC 89.6% (less APP 4.0; 40 saved, 0 lost)

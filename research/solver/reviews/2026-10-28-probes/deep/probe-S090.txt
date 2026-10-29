@@ -1,0 +1,13 @@
+S090 W0.02 45 points: solved in 299 s; T 35; 800 moves; levels 1,1.1,0.95,0.9,0.8; target 53500; lambda 0.0223606797749979
+year 0: the pick 39 at 0.8 (taxable before ISA, harvest to the allowance, spend 80%, pension 3 tiers down, ISA 3 tiers down); score 0.982631
+  best at 1.1: move 27, score 0.978563 (pick - it 0.004068), the chooser's expected survival 94.800%
+  best at 1: move 23, score 0.979661 (pick - it 0.002970), the chooser's expected survival 94.939%
+  best at 0.95: move 31, score 0.980589 (pick - it 0.002042), the chooser's expected survival 95.007%
+  best at 0.9: move 35, score 0.981394 (pick - it 0.001238), the chooser's expected survival 95.074%
+  best at 0.8: move 39, score 0.982631 (pick - it 0.000000), the chooser's expected survival 95.205%
+  the cut's charge a year at the floor: lambda x 0.2^2 = 0.000894 score units
+runPolicy on 2000 paths of 7002: survival 94.85%
+failures before the last year 82; with 110% the year before 23
+at those 110% years: the chooser's expected survival for its pick median 0.0001% (90th 0.0001%), for its best floor move median 0.0001% (90th 0.0001%, max 0.0001%); the pick's score above the floor move's median 8.831e-4; wealth in years of target median 1.19 (10th 1.00, 90th 1.27); ages 83 to 93
+floor in place of the pick at 23 such positions, 200 paths of 99002 each (4600 pairs): saved 0, lost 0; years from the position to the failure (or the end) 1.00 under the pick, 1.14 under the floor; the levels summed over the years with money 2.100 against 1.918 years of target
+year 0 at 100% in place of the pick (0.8), the candidate after, 2000 paths of 7002: saved 3, lost 8 (survival change -0.250 points); levels summed over the years with money 34.860 under the pick, 34.933 at 100%; the cut charge's sum of (1-level)^2 0.5618 against 0.5375

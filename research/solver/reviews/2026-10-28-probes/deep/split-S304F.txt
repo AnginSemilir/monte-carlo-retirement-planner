@@ -1,0 +1,1 @@
+S304F (fire) on 1000 paths of 7002: APP 88.3% | SHIP 95.8% (less APP 7.5; 75 saved, 0 lost) | SHIP-NC 92.9% (less APP 4.6; 46 saved, 0 lost)

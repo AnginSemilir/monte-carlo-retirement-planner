@@ -1,6 +1,15 @@
+PASS  0. the code under test (solve.js bd108fbd5b2b600b) is not the base it is compared with (bf333f9, solve.js 5665a899b7ce8c40)
 PASS  1. S090 CAND: with failDelivered unset the 3024 tables hash 9519c7c96bcb5634, as before (9519c7c96bcb5634)
 PASS  2. S090 CAND: with it the tables hash 9ff9791aeb3c8d3a, not 9519c7c96bcb5634
 PASS  3. S090 CAND: with the unmet ignored (planted) 30b136ab611c3621, not 9ff9791aeb3c8d3a
 PASS  1. S090 HYB: with failDelivered unset the 3024 tables hash 33d301f4d942efdd, as before (33d301f4d942efdd)
 PASS  2. S090 HYB: with it the tables hash 5ddc81be119a107b, not 33d301f4d942efdd
 PASS  3. S090 HYB: with the unmet ignored (planted) 28ff25a9dc0d3364, not 5ddc81be119a107b
+PASS  1. S304F CAND: with failDelivered unset the 5124 tables hash 96c6947f7e0744cf, as before (96c6947f7e0744cf)
+PASS  2. S304F CAND: with it the tables hash f21d80fe39568937, not 96c6947f7e0744cf
+PASS  3. S304F CAND: with the unmet ignored (planted) 776c590e940d5936, not f21d80fe39568937
+PASS  1. S304F HYB: with failDelivered unset the 5124 tables hash 03717127ed662726, as before (03717127ed662726)
+PASS  2. S304F HYB: with it the tables hash 8355c7ea5825fcb6, not 03717127ed662726
+PASS  3. S304F HYB: with the unmet ignored (planted) 615d299fd011a8a4, not 8355c7ea5825fcb6
+PASS  1. planted: lambda x (1 + 1e-9) hashes 22ccd2baf369cee3, not 9519c7c96bcb5634
+ALL PASS: 14 checks

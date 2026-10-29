@@ -1,0 +1,13 @@
+PASS  1. S090 at gamma 3: every weight, cost and ruin price as the formula gives (the largest gap 1.5e-15 of its size); meta records gamma 3, failDelivered true
+PASS  1. S090 at gamma 3: all 3919104 table values finite (0 not)
+PASS  1. planted: the same checks at gamma 2 and 4 fail (the smaller largest gap 8.5e-1)
+PASS  1. S090: the tables at gamma 3 differ from gamma 2's
+PASS  1. S090 at gamma 5: every weight, cost and ruin price as the formula gives (the largest gap 8.0e-16 of its size); meta records gamma 5, failDelivered true
+PASS  1. S090 at gamma 5: all 3919104 table values finite (0 not)
+PASS  1. planted: the same checks at gamma 4 and 6 fail (the smaller largest gap 8.8e-1)
+PASS  1. S090: the tables at gamma 5 differ from gamma 2's
+PASS  2. S090 HYB10D (6 points, 60 paths): curve-audit3.mjs's unit is curve-audit2.mjs's in every field but the timings and the machine (code 6ef708fc14ca)
+PASS  2. planted: with path 1's survival flipped the comparison fails (main)
+PASS  3. S090 UTIL3D (6 points, 60 paths): gamma 3, kappa 1, mortality 90/9, failDelivered true, switch charge 0.314447 (want 0.314447); survival 91.7% on 60
+PASS  3. S090 UTIL5D (6 points, 60 paths): gamma 5, kappa 1, mortality 90/9, failDelivered true, switch charge 0.402885 (want 0.402885); survival 90.0% on 60
+ALL PASS: 12 checks

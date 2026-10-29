@@ -151,7 +151,9 @@ function pathVals(id, a) {
   const key = `${id} ${a}`;
   if (PV[key]) return PV[key];
   const u = U[id][a], { N, Y, retireT } = u, m = u.m, floorLv = Math.round(100 * (u.ran.levels ? Math.min(...u.ran.levels) : 0.8));
-  const surv = new Float64Array(N), deliv = new Float64Array(N), first = new Float64Array(N).fill(NaN), floor = new Float64Array(N), raise = new Float64Array(N);
+  const surv = new Float64Array(N), deliv = new Float64Array(N), first = new Float64Array(N).fill(NaN), floor = new Float64Array(N), raise = new Float64Array(N), wdeliv = new Float64Array(N);
+  // the chance of being alive t years on (the Gompertz the utility arms use: mode 90, dispersion 9, from the plan's start)
+  const Sx = t => Math.exp(-Math.exp((u.ageSelf0 - 90) / 9) * (Math.exp(t / 9) - 1));
   for (let k = 0; k < N; k++) {
     surv[k] = 100 * m.survived[k]; deliv[k] = m.delivered[k];
     const fy = m.failYear[k], lv = m.level.subarray(k * Y, (k + 1) * Y);
@@ -162,15 +164,20 @@ function pathVals(id, a) {
       if (lv[t] >= 110) raise[k]++;
       if (t === retireT) first[k] = lv[t];
     }
+    // spending while alive: each retired year's spending (its level; in the years from the failure on, less the path's unmet
+    // spread evenly over them, as the unit keeps only its total) weighted by the chance of being alive, in years of target
+    let w = 0, wr = 0, nr = 0;
+    for (let t = retireT; t < Y; t++) { if (lv[t] === 0) continue; if (fy >= 0 && t >= fy) { wr += Sx(t); nr++; } w += Sx(t) * lv[t] / 100; }
+    wdeliv[k] = w - (nr ? (m.unmet[k] / u.target) * wr / nr : 0);
   }
-  return (PV[key] = { surv, deliv, first, floor, raise });
+  return (PV[key] = { surv, deliv, first, floor, raise, wdeliv });
 }
 // a linear combination of arms' per-path values, paired by path within each household, averaged over households
-function lin(field, terms, ids = IDS, normArm = null) {
+function lin(field, terms, ids = IDS, normArm = null, normField = 'deliv') {
   let mu = 0, v = 0;
   for (const id of ids) {
     const vals = terms.map(([a]) => pathVals(id, a)[field]), N = vals[0].length;
-    const s = normArm ? 100 / (pathVals(id, normArm).deliv.reduce((p, x) => p + x, 0) / N) : 1;
+    const s = normArm ? 100 / (pathVals(id, normArm)[normField].reduce((p, x) => p + x, 0) / N) : 1;
     let s1 = 0, s2 = 0, n = 0;
     for (let k = 0; k < N; k++) {
       let d = 0, okk = true;
@@ -264,4 +271,12 @@ pred('HYB10D', [
   [`retired at the start (${RETIRED.join(', ')}): the first retired year at 90% or more (%)`, fY('HYB10D', RETIRED), '>=', 90],
   ['  a third fewer years at the floor than HYB (HYB10D - 2/3 HYB, years)', flR('HYB10D', 'HYB', 2 / 3, RETIRED), '<=', 0, ['HYB']],
   ['  survival 0.5 to 2 points below HYB\'s (points)', dS('HYB10D', 'HYB', RETIRED), 'in', [-2, -0.5], ['HYB']]]);
+L.push('');
+L.push('Spending while alive (descriptive, not in the rules): each retired year\'s spending weighted by the chance of being alive (the');
+L.push('Gompertz at mode 90, dispersion 9; every household here is single), paired by path, in % of the base\'s; beside it, the');
+L.push('lifetime total as above. In the years from a failure on, the unit keeps only the path\'s total unmet, spread evenly over them:');
+for (const b of ['CAND', 'HYB', 'APP'].filter(H)) {
+  L.push(`  against ${b}:`);
+  for (const a of have) { if (a === b) continue; const w = lin('wdeliv', [[a, 1], [b, -1]], IDS, b, 'wdeliv'), d = lin('deliv', [[a, 1], [b, -1]], IDS, b); L.push(`    ${a.padEnd(7)} while alive ${sg(w.est, 3)}% (se ${w.se.toFixed(3)});  lifetime ${sg(d.est, 3)}% (se ${d.se.toFixed(3)})`); }
+}
 console.log(L.join('\n'));

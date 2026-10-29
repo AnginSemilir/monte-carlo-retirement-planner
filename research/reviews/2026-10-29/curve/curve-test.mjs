@@ -1,7 +1,9 @@
 /*
  * THE SPENDING-UTILITY OPTION'S TESTS (EXPLORATORY; research/reviews/2026-10-29/SPENDING-CURVE.md). Run from the root of the
  * code under test, the patched solve.js beside a copy of the original as src/solver/_orig_solve.js (written by this script
- * from git's HEAD and removed after).
+ * from git's HEAD and removed after). HEAD must be the code before the option: it was ae20199 when results-curve-test.txt
+ * was written (the patch uncommitted); once the patch is committed (curve-wt's bf333f9) the identity would compare the code
+ * with itself, so rerun it only on ae20199 with the patch applied uncommitted (curve-test2.mjs names its base instead).
  *   1. identity: with `spendUtility` unset, every table (each world's survival, bequest, resilience, policy and shortfall
  *      tables and the tier layers) the same bit for bit as the original code's, on S090 and S328F at the light settings and
  *      S090 at the candidate's own at 6 wealth points; planted: the original solved at lambda times (1 + 1e-9) must differ;

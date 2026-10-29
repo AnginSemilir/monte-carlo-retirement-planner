@@ -1,6 +1,8 @@
 /*
  * THE FAILURE-YEAR OPTION'S TESTS (EXPLORATORY; SPENDING-CURVE.md, the amendment). Run from the root of the code under test,
- * its solve.js beside a copy of the one before the option (git's HEAD, the spending-utility prototype) as src/solver/_orig_solve.js.
+ * its solve.js beside a copy of the one before the option as src/solver/_orig_solve.js: commit BASE (bf333f9, the
+ * spending-utility prototype, the registered code's solve.js), not HEAD, which holds the option once it is committed. The
+ * script checks the two differ, so the identity below cannot pass by comparing the code with itself.
  *   1. identity: with `failDelivered` unset, every table the same bit for bit as before, under the candidate and under HYB's
  *      spending utility, on S090 and S304F at the light settings; planted: lambda x (1 + 1e-9) must differ;
  *   2. the option reaches the solve: the tables with it differ from those without, under the candidate and HYB;
@@ -10,18 +12,20 @@
  */
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { createHash } from 'crypto';
 const imp = p => import(pathToFileURL(resolve(process.cwd(), p)).href);
 const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js');
 const C = await imp('research/solver/candidate.mjs');
 const { readPanel } = await imp('research/solver/phase4-panel.mjs');
-writeFileSync('src/solver/_orig_solve.js', execSync('git show HEAD:src/solver/solve.js'));
+const BASE = 'bf333f9', base = execSync(`git show ${BASE}:src/solver/solve.js`), sha = b => createHash('sha256').update(b).digest('hex').slice(0, 16);
+writeFileSync('src/solver/_orig_solve.js', base);
 let O;
 try { O = await imp('src/solver/_orig_solve.js'); } finally { unlinkSync('src/solver/_orig_solve.js'); }
 let n = 0, failed = 0;
 const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
+{ const cur = sha(readFileSync('src/solver/solve.js')); ok(cur !== sha(base), `0. the code under test (solve.js ${cur}) is not the base it is compared with (${BASE}, solve.js ${sha(base)})`); }
 const LAMBDA = 0.0223606797749979, LIGHT = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true } };
 const P = Object.fromEntries(readPanel().map(h => [h.id, h]));
 const planOf = id => E.resolveMpaa(E.normalizePlan({ ...P[id].plan, config: { ...P[id].plan.config, guardrails: false, lookaheadYears: 0 } }));

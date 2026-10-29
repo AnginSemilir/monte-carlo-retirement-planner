@@ -20,7 +20,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from '../solver/research-opts.mjs';
-import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
@@ -38,14 +38,18 @@ ok(!same(lessOne, codeCand), 'planted: a key missing from the block fails it');
 ok(!same(undefined, codeCand), 'planted: a block without "candidate" fails it');
 ok(Object.isFrozen(CANDIDATE_OPTS) && Object.isFrozen(RESEARCH_OPTS), 'CANDIDATE_OPTS and RESEARCH_OPTS are frozen');
 // 1b. 7u-F's assembly (D5): the candidate before it is 7u-F's less the package's keys, and hashes as recorded then
-// (a61dba4ee1f5, STATE.md before the assembly); the package is D5's. 7u-F's candidate is candidate.json less the menu keys
-// added after it (D28, D29, D30), and hashes as 7u-F registered it (e65e5e99ba49)
+// (a61dba4ee1f5, STATE.md before the assembly); the package is D5's. 7u-F's candidate is candidate.json less the keys
+// added after it (D28, D29, D30, D43), and hashes as 7u-F registered it (e65e5e99ba49); Phase 4's is candidate.json less the
+// key added after Phase 4 (failDelivered, D43), and hashes as Phase 4 registered it (fcd8096217b7)
 ok(ASSEMBLED_HASH === 'e65e5e99ba49' && hashOf(ASSEMBLED_OPTS) === ASSEMBLED_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(ASSEMBLED_OPTS).length + LATER_KEYS.length,
   `7u-F's candidate reproduces its registered hash e65e5e99ba49 (${ASSEMBLED_HASH}); the candidate ${CANDIDATE_HASH} adds ${LATER_KEYS.join(', ')}`);
 ok(FROZEN_HASH === 'a61dba4ee1f5' && hashOf(FROZEN_OPTS) === FROZEN_HASH && Object.keys(ASSEMBLED_OPTS).length === Object.keys(FROZEN_OPTS).length + PACKAGE_KEYS.length,
   `the candidate before the assembly reproduces its recorded hash a61dba4ee1f5 (${FROZEN_HASH}); 7u-F's adds ${PACKAGE_KEYS.join(', ')}`);
-ok(CANDIDATE_OPTS.tiersBelow === 3 && JSON.stringify(CANDIDATE_OPTS.menuPlus) === JSON.stringify(['hr']) && Object.isFrozen(CANDIDATE_OPTS.menuPlus) && CANDIDATE_OPTS.tableDealing === false,
-  "the later keys are D28's, D29's and D30's: tiersBelow 3, menuPlus ['hr'] (HR whole, D27; frozen too), tableDealing false");
+ok(PHASE4_HASH === 'fcd8096217b7' && hashOf(PHASE4_OPTS) === PHASE4_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(PHASE4_OPTS).length + AFTER_PHASE4_KEYS.length && AFTER_PHASE4_KEYS.every(k => LATER_KEYS.includes(k)),
+  `Phase 4's candidate reproduces its registered hash fcd8096217b7 (${PHASE4_HASH}); the candidate ${CANDIDATE_HASH} adds ${AFTER_PHASE4_KEYS.join(', ')}`);
+ok(CANDIDATE_OPTS.tiersBelow === 3 && JSON.stringify(CANDIDATE_OPTS.menuPlus) === JSON.stringify(['hr']) && Object.isFrozen(CANDIDATE_OPTS.menuPlus) && CANDIDATE_OPTS.tableDealing === false && CANDIDATE_OPTS.failDelivered === true,
+  "the later keys are D28's, D29's, D30's and D43's: tiersBelow 3, menuPlus ['hr'] (HR whole, D27; frozen too), tableDealing false, failDelivered true");
+ok(hashOf({ ...CANDIDATE_OPTS, failDelivered: false }) !== CANDIDATE_HASH && hashOf({ ...PHASE4_OPTS, failDelivered: false }) !== PHASE4_HASH, 'planted: failDelivered off, or written out as off, moves the hash');
 ok(hashOf({ ...ASSEMBLED_OPTS, tiersBelow: 3 }) !== ASSEMBLED_HASH && hashOf({ ...CANDIDATE_OPTS, menuPlus: ['hrwrap'] }) !== CANDIDATE_HASH, 'planted: a menu key added, or HR in another form, moves the hash');
 ok(hashOf({ ...FROZEN_OPTS, switchCharge: 0.002 }) !== FROZEN_HASH && hashOf({ ...FROZEN_OPTS, readerSplit: 'rs' }) !== FROZEN_HASH, 'planted: a changed value or an extra key moves the hash');
 ok(CANDIDATE_OPTS.readerRef === 'adaptive' && CANDIDATE_OPTS.readerSplit === 'rs' && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }) && Object.isFrozen(CANDIDATE_OPTS.adaptiveLattice),
@@ -82,10 +86,11 @@ const hrRan = acts => (acts.some(a => a.steps.includes('penHR')) && acts.some(a 
 // even where tiersFor fell back to two steps: the reviewer, 25 Oct)
 const below = acts => (acts.some(a => a.tierPen === 3 && a.tierIsa === 3) ? 3 : 2);
 // the table without the dealing cost ran where E5 did (it runs only with it, under the joint tier state)
-const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp, readerRef: r.meta.readerRef, readerSplit: r.meta.readerSplit, tiersBelow: below(r.actions), menuPlus: hrRan(r.actions), tableDealing: r.meta.tsOnce === true ? r.meta.tableDealing : 'E5 off' };
+const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp, readerRef: r.meta.readerRef, readerSplit: r.meta.readerSplit, tiersBelow: below(r.actions), menuPlus: hrRan(r.actions), tableDealing: r.meta.tsOnce === true ? r.meta.tableDealing : 'E5 off', failDelivered: r.meta.failDelivered === true };
 const sameRun = o => Object.entries(o).every(([k, v]) => JSON.stringify(v) === JSON.stringify(CANDIDATE_OPTS[k]));
 ok(sameRun(ran), `solveCandidate ran the candidate (${JSON.stringify(ran)})`);
 ok(!sameRun({ ...ran, bridgeStep: undefined }), 'planted: a solve that dropped a setting (bridgeStep) fails the same check');
+ok(!sameRun({ ...ran, failDelivered: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, PHASE4_OPTS).meta.failDelivered === true }), 'planted: a solve on Phase 4\'s candidate (the failure year at its fixed price) fails the same check');
 const old = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, ASSEMBLED_OPTS);
 ok(!sameRun({ ...ran, menuPlus: hrRan(old.actions) }) && !sameRun({ ...ran, tiersBelow: below(old.actions) }) && !sameRun({ ...ran, tableDealing: old.meta.tsOnce === true ? old.meta.tableDealing : 'E5 off' }), 'planted: a solve without HR, one without the third step and one with the dealing cost in the table (7u-F\'s candidate) each fail it');
 const arm = solveCandidate(E, M, plan, { lambda: 0.5, points: 3, pclsInterp: false });

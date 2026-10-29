@@ -14,5 +14,6 @@
   "readerSplit": "rs",
   "tiersBelow": 3,
   "menuPlus": ["hr"],
-  "tableDealing": false
+  "tableDealing": false,
+  "failDelivered": true
 }

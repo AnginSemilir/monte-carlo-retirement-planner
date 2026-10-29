@@ -42,9 +42,9 @@ export function registrationProblems(text, { root = ROOT, exists = existsSync, r
 // is used only under a registration it names
 export const SEED_REGISTRY = Object.freeze({
   7001: 'search', 7002: 'tuning', 7003: 'Phase 4 only', 7004: 'second seed (replication; spent by three development tests)', 7005: 'selection',
-  7011: 'held out: M14b, M14c, O19, quad-ref and 7e', 7012: 'held out: K6', 7013: 'held out: 7u', 7014: 'held out: 7u-F', 7018: "held out: Phase 4's replication, in 7004's place (registered with 7u-F, 21 Oct)", 7101: "the 'auto' rule" });
+  7011: 'held out: M14b, M14c, O19, quad-ref and 7e', 7012: 'held out: K6', 7013: 'held out: 7u', 7014: 'held out: 7u-F', 7018: "held out: Phase 4's replication, in 7004's place (registered with 7u-F, 21 Oct)", 7019: 'held out: the failure year at what it can pay (D43, 29 Oct)', 7101: "the 'auto' rule" });
 export const SEED_OWNERS = Object.freeze({
-  7003: [/^phase-?4[\w.-]*\.md$/], 7018: [/^phase-?4[\w.-]*\.md$/], 7012: [/^k6[\w.-]*\.md$/], 7013: [/^confirm-7u[\w.-]*\.md$/], 7014: [/^fresh-7uf[\w.-]*\.md$/],
+  7003: [/^phase-?4[\w.-]*\.md$/], 7018: [/^phase-?4[\w.-]*\.md$/], 7012: [/^k6[\w.-]*\.md$/], 7013: [/^confirm-7u[\w.-]*\.md$/], 7014: [/^fresh-7uf[\w.-]*\.md$/], 7019: [/^fail-delivered[\w.-]*\.md$/],
   7011: ['m14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md', 'bridge-reader.md'] });
 export const ownsSeed = (seed, name) => !!name && (SEED_OWNERS[seed] || []).some(o => typeof o === 'string' ? o === basename(name) : o.test(basename(name)));
 // the registered seeds a text names, comment lines left out

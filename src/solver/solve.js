@@ -969,6 +969,25 @@ export function solve(E, M, plan, opts = {}) {
   const failCostAt = new Float64Array(T + 2);
   if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? lambda * shortOf(Math.min(1, failLevel)) : 0);
   /*
+   * THE YEAR THE MONEY RUNS OUT, AT WHAT IT CAN PAY (`failDelivered`; the external review of 29 Oct,
+   * research/reviews/2026-10-29/SPENDING-CURVE.md on review/external-2026-10-21 at 37fdbf7, section 7). Without it a
+   * move that cannot pay this year is charged failCostAt[t] whatever is left, so where cutting cannot postpone the
+   * failure, money kept for the failure year earns nothing and a raise wins by default (the raise before ruin: 30.2%
+   * of the candidate's paths that run out, on the review's eight households). With it, that year is charged at the
+   * level it can pay, the move's level less its unmet over the year's target (at least nothing), on the cut's own
+   * curve, lambda x shortOf(level), and the years after it as before. A tier variant reads its base's unmet, as it
+   * reads its base's flow. Off, every table is the one solved before.
+   */
+  const FD = !!opts.failDelivered, FDPLANT = opts.failDeliveredPlant === 'nounmet';   // the plant (its test only): the unmet ignored
+  if (FD && !failShort) throw new Error('failDelivered prices the failure year, so it needs failureShortfall');
+  const unmetBuf = FD ? new Float64Array(A) : null;
+  const failDeliveredCost = (ai, t, ub) => {
+    const sp = c.yr.spend[t];
+    if (!(sp > 0)) return failCostAt[t];
+    const lvl = Math.min(1, Math.max(0, levelOf[ai] - (FDPLANT ? 0 : unmetBuf[ub]) / sp));
+    return lambda * shortOf(lvl) + failCostAt[t + 1];
+  };
+  /*
    * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
    * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
    * search per group - one draw order, harvest and tier, all its levels - evaluates four levels instead
@@ -1135,6 +1154,7 @@ export function solve(E, M, plan, opts = {}) {
                     const unmet = F.flow(c, t, b0, postBuf.subarray(ob, ob + 7));
                     evaluated++;
                     failBuf[b0] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                    if (FD) unmetBuf[b0] = unmet;
                     stampFlow[b0] = cellStamp;
                   }
                   return b0;
@@ -1174,7 +1194,7 @@ export function solve(E, M, plan, opts = {}) {
                         }
                       }
                     }
-                    if (failShort && fail) h = failCostAt[t];
+                    if (failShort && fail) h = FD ? failDeliveredCost(ai, t, tierBase[ai]) : failCostAt[t];
                     else h += shortOfAction[ai];
                     if (raiseSurv) h += raiseOfAction[ai] * s;
                     stampScore[ai] = key; scS[ai] = s; scB[ai] = b; scR[ai] = rs; scH[ai] = h;
@@ -1216,11 +1236,13 @@ export function solve(E, M, plan, opts = {}) {
                   const unmet = F.flow(c, t, ai, postBuf.subarray(o, o + 7));
                   evaluated++;
                   failBuf[ai] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                  if (FD) unmetBuf[ai] = unmet;
                   if (PROF) { PROF.flow += now() - tf; PROF.flows++; }
                 } else {
                   const b = tierBase[ai] * 7;
                   for (let q = 0; q < 7; q++) postBuf[o + q] = postBuf[b + q];
                   failBuf[ai] = failBuf[tierBase[ai]];
+                  if (FD) unmetBuf[ai] = unmetBuf[tierBase[ai]];
                   if (PROF) PROF.skipped++;
                 }
               }
@@ -1303,7 +1325,7 @@ export function solve(E, M, plan, opts = {}) {
                         if (MEMO && E8) { const slot = ~mf, en = m8N++, kb = en * 3, vb = en * 4; m8Key[kb] = pid8[ai]; m8Key[kb + 1] = cls8; m8Key[kb + 2] = mLay; m8Stamp[slot] = m8Cur; m8Ent[slot] = en; m8Val[vb] = s; m8Val[vb + 1] = b; m8Val[vb + 2] = rs; m8Val[vb + 3] = h; memoMiss++; }
                         else if (MEMO) { memoPut(~mf, postU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
                       }
-                      if (failShort && fail) h = failCostAt[t];
+                      if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
                       else h += shortOfAction[ai];
                       if (raiseSurv) h += raiseOfAction[ai] * s;
                       eS[ai] = s; eB[ai] = b; eR[ai] = rs; eH[ai] = h;
@@ -1388,7 +1410,7 @@ export function solve(E, M, plan, opts = {}) {
                         }
                         if (MEMO) { memoPut(~mf, mU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
                       }
-                      if (failShort && fail) h = failCostAt[t];
+                      if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
                       else h += shortOfAction[ai];
                       if (raiseSurv) h += raiseOfAction[ai] * s;
                       if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
@@ -1456,7 +1478,7 @@ export function solve(E, M, plan, opts = {}) {
                       }
                       if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
                     }
-                    if (failShort && fail) h = failCostAt[t];
+                    if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
                     else h += shortOfAction[ai];
                     if (raiseSurv) h += raiseOfAction[ai] * s;
                     jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = s + wR * rs + wB * b - h; if (jV[k][ai] - jV[k][ai] !== 0) nonFiniteScore('the backward pass (joint worlds)', t, idx, k, ai, s, b, rs, h);
@@ -1518,7 +1540,7 @@ export function solve(E, M, plan, opts = {}) {
                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                     if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
                   }
-                  if (failShort && fail) h = failCostAt[t];
+                  if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
                   else h += thisShort;
                   if (raiseSurv) h += raiseOfAction[ai] * s;
                   const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass', t, idx, k, ai, s, b, rs, h);
@@ -1563,6 +1585,7 @@ export function solve(E, M, plan, opts = {}) {
   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
+  if (FD) meta.failDelivered = true;
   if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
   if (opts.tsLean !== undefined) meta.tsLean = opts.tsLean;   // SPEED-PORT-2.md's test switch, recorded when set
   if (E3) meta.e3 = { copied: e3Copied };

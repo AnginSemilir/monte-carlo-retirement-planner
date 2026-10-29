@@ -85,9 +85,10 @@ ok(fingerprintOf({ a: 'xy', b: 'z' }) !== fingerprintOf({ a: 'x', b: 'yz' }), 'E
   // a script whose solvePlan call is not the candidate's (SHIP's arm beside solveCandidate) or that checks the pin its own
   // way names why on a line "// e3pcls guard: <why>", as e3-default.test.mjs's "// e3 off: <why>" (21 Oct, the fast suite
   // first ran this scan on every commit and found six such scripts)
-  const unguarded = text => /solvePlan\(/.test(text) && /\b(CANDIDATE_OPTS|FROZEN_OPTS|RESEARCH_OPTS)\b/.test(text) && !/checkE3pclsPin/.test(text) && !/e3pcls: false/.test(text) && !/^\s*\/\/ e3pcls guard: \S.{10,}$/m.test(text);
+  const unguarded = text => /solvePlan\(/.test(text) && /\b(CANDIDATE_OPTS|FROZEN_OPTS|RESEARCH_OPTS|PHASE4_OPTS|ASSEMBLED_OPTS)\b/.test(text) && !/checkE3pclsPin/.test(text) && !/e3pcls: false/.test(text) && !/^\s*\/\/ e3pcls guard: \S.{10,}$/m.test(text);
   ok(unguarded("import { CANDIDATE_OPTS } from './candidate.mjs';\nconst r = solvePlan(E, M, plan, { ...CANDIDATE_OPTS });"), 'planted: a script calling solvePlan with CANDIDATE_OPTS and no checkE3pclsPin is caught');
   ok(!unguarded("const o = { ...CANDIDATE_OPTS }; checkE3pclsPin(o); solvePlan(E, M, plan, o);"), 'EDGE: the same script with the check passes');
+  ok(unguarded("import { PHASE4_OPTS } from './candidate.mjs';\nsolvePlan(E, M, plan, { ...PHASE4_OPTS });") && unguarded("solvePlan(E, M, plan, ASSEMBLED_OPTS);"), 'planted: a solve on Phase 4\'s or 7u-F\'s settings (PHASE4_OPTS, ASSEMBLED_OPTS, e3pcls on too) with no check is flagged (the re-review of 29 Oct, finding 2)');
   ok(!unguarded("// e3pcls guard: SHIP's solve, the product's settings; CAND solves through solveCandidate\nconst r = solvePlan(E, M, plan, {}); CANDIDATE_OPTS;") && unguarded("// e3pcls guard:\nconst r = solvePlan(E, M, plan, { ...CANDIDATE_OPTS });"), 'planted: the marker with its reason passes; the marker with no reason is caught');
   // when each research/solver and research/tests script was first committed, from one git call (an uncommitted script
   // counts as new); both folders, since the three known direct callers are tests (the plan-auditor, 8 Oct, MINOR 2)

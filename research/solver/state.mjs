@@ -36,7 +36,7 @@ const BLOCKS = {
     const cand = { opts: C.CANDIDATE_OPTS, tiers: C.CANDIDATE_TIERS, reals: C.blendReals() };
     const opts = Object.entries(C.CANDIDATE_OPTS).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ');
     return [
-      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, and the table without the dealing cost after D30's check): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
+      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; Phase 4's, failDelivered removed (\`PHASE4_OPTS\`): ${C.PHASE4_HASH}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
       `- 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (\`audit-7uf.mjs\`). Hash ${C.hashOf(Object.fromEntries(Object.entries(C.ASSEMBLED_OPTS).filter(([k]) => k !== 'readerRef' && k !== 'adaptiveLattice')))}.`,
       `- The product baseline (\`PRODUCT_BASELINE\`, src/solver/solve.js): ${Object.entries(S.PRODUCT_BASELINE).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ')}. Hash ${sha(S.PRODUCT_BASELINE)}.`,
       `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
@@ -125,16 +125,17 @@ const BLOCKS = {
     const esc = c => c.replace(/[+]/g, '\\+'), C = ['T3 - CAND', 'HR+T3 - HR', 'HR - CAND', 'HR+T3 - CAND', 'interaction'];
     const panel = C.map(c => `${c} ${['0.02', '0.01'].map(w => pick(R, new RegExp(`^ {2}${esc(c)}\\s+W${w.replace('.', '\\.')}: survival (\\S+) \\(se (\\S+)\\) / score (\\S+) \\(se \\S+\\); on a household survival (\\S+) to (\\S+),`, 'm'), m => `W${w} ${m[1]} (se ${m[2]}) / ${m[3]}, a household ${m[4]} to ${m[5]}`)).join(', ')}`);
     const bars = C.slice(0, 4).map(c => pick(R, new RegExp(`^${esc(c)}: (.*)$`, 'm'), m => `${c}: ${m[1]}`));
-    return [`- The factorial's gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced: ${m[1]}`)}; ${pick(R, /^THE SOLVE against CAND's \([^)]*\), (.*)$/m, m => `the solve against CAND's (four units at a time: a guide for gate 5), ${m[1]}`)} (\`results-n4t3.txt\`).`,
+    // folded into one line for D43's (STATE.md's 300 lines; the figures unchanged)
+    return fold([`- The factorial's gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^N4's units reproduced on this code: (.*)$/m, m => `N4's units reproduced: ${m[1]}`)}; ${pick(R, /^THE SOLVE against CAND's \([^)]*\), (.*)$/m, m => `the solve against CAND's (four units at a time: a guide for gate 5), ${m[1]}`)} (\`results-n4t3.txt\`).`,
       `- The panel, survival points (se) / whole score, against the arm named second: ${panel.join('; ')}.`,
-      `- ${bars.join('; ')}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`];
+      `- ${bars.join('; ')}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`], [[0]]);
   },
   // the candidate as D29 and D30 left it (THIRD-STEP.md and SPEED-PORT.md step 4): its pin with the decided defaults, V1 and V2 on it
   async cand29() {
-    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d30.txt', C = await import('./candidate.mjs');
+    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d43.txt', C = await import('./candidate.mjs');
     if (read(T) === null || read(V) === null) return [`- pending: ${read(T) === null ? T : V}`];
     const h = pick(T, /^PASS {2}7u-F's candidate reproduces its registered hash (\w+) \((\w+)\); the candidate (\w+) adds/m, m => ({ reg: m[1], got: m[2], cand: m[3] })), fz = pick(T, /^PASS {2}the candidate before the assembly reproduces its recorded hash (\w+) \((\w+)\)/m, m => m[2]);
-    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${h.cand} the same as the decided defaults key for key, 7u-F's ${h.got} and the frozen ${fz} reproduced, its smoke solve running the third step, HR whole and the table without the dealing cost (E5). ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d30.txt\`; on D29's candidate alone, \`results-v-candidate-d29.txt\`).`];
+    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${h.cand} the same as the decided defaults key for key, 7u-F's ${h.got} and the frozen ${fz} reproduced, its smoke solve running the third step, HR whole, the table without the dealing cost (E5) and the failure year at what it can pay (D43); Phase 4's fcd8096217b7 reproduced. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d43.txt\`; on D30's candidate, \`-d30.txt\`; on D29's, \`-d29.txt\`).`];
   },
   // the speed port's build (D30, SPEED-PORT.md step 2): its test in the full form
   speedport() {
@@ -156,17 +157,19 @@ const BLOCKS = {
     if (t === null) return [`- pending: ${R}`];
     const hh = ['0.02', '0.01'].map(w => { const sec = (t.split(`AT W${w} `)[1] || '').split('\nAT W')[0].split('\nthe gate')[0]; return `W${w} ${[...sec.matchAll(/^ {2}(S\d+): HR\+T3 [\d.]+%, ND [\d.]+% \(\d+ moves\): survival (\S+) \((\S+)\) \/ score (\S+) \(\S+\)/gm)].map(m => `${m[1]} ${m[2]} (${m[3]}) / ${m[4]}`).join(', ')}`; });
     const panel = [...t.matchAll(/^ {2}the panel W(0\.0\d) (survival|score): (\S+) \(se (\S+)\), its 95% interval's lower end (\S+): (clears|does not clear)/gm)].map(m => `W${m[1]} ${m[2]} ${m[3]} (se ${m[4]}; lower end ${m[5]}, ${m[6]})`);
-    return [`- ${pick(R, /^THE IDENTITY \(step 2\.1\): (.*?), so the factorial's units stand as the first arm$/m, m => `The identity (step 2.1): ${m[1]}`)}; the gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^THE SOLVE, (.*)$/m, m => `the solve, ${m[1]}`)} (\`results-n4nd.txt\`).`,
+    // folded into one line for D43's (STATE.md's 300 lines; the figures unchanged)
+    return fold([`- ${pick(R, /^THE IDENTITY \(step 2\.1\): (.*?), so the factorial's units stand as the first arm$/m, m => `The identity (step 2.1): ${m[1]}`)}; the gate: ${pick(R, /^the gate: (.*)$/m, m => m[1])}; ${pick(R, /^THE SOLVE, (.*)$/m, m => `the solve, ${m[1]}`)} (\`results-n4nd.txt\`).`,
       `- ND less HR+T3, survival points (se) / whole score: ${hh.join('; ')}.`,
-      `- The panel: ${panel.join('; ')}; a household losing more than 0.5 beyond noise: ${pick(R, /^ {2}a household losing more than 0\.5 beyond noise: (.*)$/m, m => m[1])}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`];
+      `- The panel: ${panel.join('; ')}; a household losing more than 0.5 beyond noise: ${pick(R, /^ {2}a household losing more than 0\.5 beyond noise: (.*)$/m, m => m[1])}. ${pick(R, /^DECISION (.*)$/m, m => `DECISION ${m[1]}`)}.`], [[0]]);
   },
   // gate 5 (D11, D25, D26; a measurement; reduce-gate5.mjs): the gate, each household's ratio, the verdicts
   gate5() {
     const R = 'research/solver/results-gate5.txt', t = read(R);
     if (t === null) return [`- pending: ${R}`];
     const rows = [...t.matchAll(/^ {2}(.+?)\s+(\d+)\/(\d+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)$/gm)].map(m => `${m[1]} the product ${m[4]} s, the candidate ${m[5]} s on one core and ${m[6]} s split (x${m[8]} the product's; ${m[2]} of ${m[3]} values differ split)`);
-    return [`- ${pick(R, /^GATE: (passed[^,]*)/m, m => `The gate: ${m[1]}`)}; code ${pick(R, /one at a time, code (\w+);/m, m => m[1])} (\`results-gate5.txt\`). ${rows.join('; ')}; ${pick(R, /^ {2}(median: .*)$/m, m => m[1])}.`,
-      `- ${pick(R, /^PLANTED: (.*)$/m, m => `The plant: ${m[1]}`)}. ${pick(R, /^(VERDICT E2: .*)$/m, m => m[1])}. ${pick(R, /^(VERDICT GATE 5 .*)$/m, m => m[1])}.`];
+    // folded into one line for D43's (STATE.md's 300 lines; the figures unchanged)
+    return fold([`- ${pick(R, /^GATE: (passed[^,]*)/m, m => `The gate: ${m[1]}`)}; code ${pick(R, /one at a time, code (\w+);/m, m => m[1])} (\`results-gate5.txt\`). ${rows.join('; ')}; ${pick(R, /^ {2}(median: .*)$/m, m => m[1])}.`,
+      `- ${pick(R, /^PLANTED: (.*)$/m, m => `The plant: ${m[1]}`)}. ${pick(R, /^(VERDICT E2: .*)$/m, m => m[1])}. ${pick(R, /^(VERDICT GATE 5 .*)$/m, m => m[1])}.`], [[0]]);
   },
   // N4's read (EXPLORATORY, 45 wealth points; n4-menu.mjs --read): the gate, the identity at full scale, each kind's verdict
   n4read() {

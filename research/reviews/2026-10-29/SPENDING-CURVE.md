@@ -220,3 +220,50 @@ The read then declares the two code hashes one.
   run out, with survival within 0.25 of its base.
 - HYB10D is reported as one point on the trade-off between the dislike of cuts and survival, for the lever's default. A
   further point runs only if the maintainer asks.
+
+**Before the read** (`curve/results-curve-test2.txt`, `curve/results-cross-code.txt`): the option's tests, ALL PASS, 14
+checks, against bf333f9, the registered code's solve.js. The test now names that base, as HEAD holds the option once it is
+committed, and checks the two differ. S090's CAND unit re-run on the failure-year code (6ef708fc14ca) is the registered unit
+byte for byte, and a planted flip of one path is seen.
+
+## 8. The second amendment: UTIL at gamma 3 and 5, declared after HYB's read and before its units
+
+**What was seen** (EXPLORATORY; HYB's eight units, the read's interim tables):
+- **HYB keeps CAND's survival** (+0.04 points, se 0.065) **but not its spending**: 2.9% less over a lifetime (se 0.03). It
+  starts lower (84.0% against 85.4%), spends more years at the floor (10.2 against 8.7), and still raises before ruin on
+  19.1% of the 194 paths that run out. It fails the section 4 rule on the raise.
+- **UTIL**, the objective a backward induction solves in the textbook, failed on survival, and at gamma 2 it holds far more
+  equity than the candidate (section 7). In it, one parameter sets both the dislike of uneven spending and the aversion to
+  risk: gamma. A higher gamma makes it more cautious with both, and prices ruin far more heavily against a cut
+  (`curve/gamma-prices.mjs`; `curve/results-gamma-prices.txt`). A year of ruin at 22% of target costs 14 years at the floor
+  at gamma 2, 35 at gamma 3 and 295 at gamma 5.
+- **The maintainer chose** to test gamma 3 and 5, with the failure year at what it can pay, on the same eight households.
+
+**The arms** (`curve/curve-audit3.mjs`, curve-audit2.mjs with two arms added, on the failure-year code; seed 7002, 1,000
+paths; queue `curve/curveq3.sh`):
+
+| Arm | What it is |
+|---|---|
+| UTIL3D | UTIL at gamma 3, with failDelivered |
+| UTIL5D | UTIL at gamma 5, with failDelivered |
+
+Each keeps UTIL's mortality weights, its least level for ruin (10% of target) and its estate at a quarter of a pound spent at
+target. Its switch charge is the candidate's 0.001 in its own units, taken at its own gamma (0.314 and 0.403).
+
+**The tests before the units** (`curve/curve-test3.mjs`; `curve/results-curve-test3.txt`):
+- at gamma 3 and 5, every weight, cost and ruin price as the formula gives, every table finite, and the same checks at the
+  wrong gamma failing;
+- curve-audit3.mjs running curve-audit2.mjs's arms as it does;
+- a smoke run of each new arm on S090 at 6 points and 60 paths. Its figures are not used.
+
+**Prediction:**
+- **UTIL3D:** survival 92 to 95.5%; the first retired year at 88 to 95%; fewer years at the floor than CAND; a raise before
+  ruin under 5% of the paths that run out; lifetime spending within 2% of CAND's.
+- **UTIL5D:** survival 95 to 97.5%; the first retired year at 85 to 93%; fewer years at the floor than CAND; a raise before
+  ruin under 5%; lifetime spending 1 to 4% below CAND's, as it holds less equity.
+
+**The rule:** section 4's rule for a utility arm. If one arm qualifies, it is recommended as the curve's replacement; if both,
+the one with the higher survival. If neither, both are reported as points on the trade-off beside HYB10D.
+
+**The order of the runs:** the first amendment's arms and these first, the registered UTILNM and FLAT after. Every declared
+arm runs before the read.

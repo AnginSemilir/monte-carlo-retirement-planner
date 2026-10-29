@@ -13,7 +13,7 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { gunzipSync } from 'zlib';
 const [dir, list] = process.argv.slice(2);
-const IDS = list.split(','), ARMS = ['APP', 'CAND', 'ZERO', 'FLAT', 'HYB', 'UTIL', 'UTILNM', 'CANDD', 'HYBD', 'HYB10D'];
+const IDS = list.split(','), ARMS = ['APP', 'CAND', 'ZERO', 'FLAT', 'HYB', 'UTIL', 'UTILNM', 'CANDD', 'HYBD', 'HYB10D', 'UTIL3D', 'UTIL5D'];
 // codes declared one (CURVE_EQUIV="a=b", with its evidence named in CURVE_EQUIV_WHY): the amendment's code is the registered
 // code with an option added that, unset, leaves every table bit for bit as before
 const EQ = Object.fromEntries((process.env.CURVE_EQUIV || '').split(',').filter(Boolean).map(x => x.split('=').reverse()));
@@ -205,8 +205,8 @@ const RETIRED = IDS.filter(id => U[id][have[0]].retireT === 0);
 const H = a => have.includes(a);
 L.push('');
 L.push('THE RULES, READ (yes / NO on the estimate, as registered; then whether the 95% interval settles it):');
-if (H('APP') && H('CAND')) for (const a of ['UTIL', 'UTILNM'].filter(H)) {
-  L.push(`  ${a}, the section 4 rule for a utility arm:`);
+if (H('APP') && H('CAND')) for (const a of ['UTIL', 'UTILNM', 'UTIL3D', 'UTIL5D'].filter(H)) {
+  L.push(`  ${a}, the section 4 rule for a utility arm${a.endsWith('D') ? ' (section 8)' : ''}:`);
   const q = [
     crit(`keeps at least half of CAND's survival gain over APP (${a} - APP/2 - CAND/2, points)`, iv(lin('surv', [[a, 1], ['APP', -0.5], ['CAND', -0.5]])), '>=', 0),
     crit(`delivers at least CAND's lifetime spending less 1% (% of CAND's)`, iv(lin('deliv', [[a, 1], ['CAND', -1]], IDS, 'CAND')), '>=', -1, '%'),
@@ -267,6 +267,19 @@ for (const [a, b] of [['CANDD', 'CAND'], ['HYBD', 'HYB']]) pred(a, [
   ['a raise before under 5% of the paths that run out', rs(a), '<=', 5, null, '%'],
   [`survival within 0.3 of ${b}'s (points)`, dS(a, b), 'within', 0.3, [b]],
   [`spending within 1% of ${b}'s (%)`, dP(a, b), 'within', 1, [b], '%']]);
+const lvS = a => () => ({ ...iv(lin('surv', [[a, 1]])), abs: true });
+pred('UTIL3D', [
+  ['survival 92 to 95.5%', lvS('UTIL3D'), 'in', [92, 95.5], null, '%'],
+  ['the first retired year at 88 to 95%', fY('UTIL3D'), 'in', [88, 95]],
+  ['fewer years at the floor than CAND (years)', flR('UTIL3D', 'CAND', 1), '<=', 0, ['CAND']],
+  ['a raise before ruin under 5% of the paths that run out', rs('UTIL3D'), '<=', 5, null, '%'],
+  ['lifetime spending within 2% of CAND\'s (%)', dP('UTIL3D', 'CAND'), 'within', 2, ['CAND'], '%']]);
+pred('UTIL5D', [
+  ['survival 95 to 97.5%', lvS('UTIL5D'), 'in', [95, 97.5], null, '%'],
+  ['the first retired year at 85 to 93%', fY('UTIL5D'), 'in', [85, 93]],
+  ['fewer years at the floor than CAND (years)', flR('UTIL5D', 'CAND', 1), '<=', 0, ['CAND']],
+  ['a raise before ruin under 5% of the paths that run out', rs('UTIL5D'), '<=', 5, null, '%'],
+  ['lifetime spending 1 to 4% below CAND\'s (%)', dP('UTIL5D', 'CAND'), 'in', [-4, -1], ['CAND'], '%']]);
 pred('HYB10D', [
   [`retired at the start (${RETIRED.join(', ')}): the first retired year at 90% or more (%)`, fY('HYB10D', RETIRED), '>=', 90],
   ['  a third fewer years at the floor than HYB (HYB10D - 2/3 HYB, years)', flR('HYB10D', 'HYB', 2 / 3, RETIRED), '<=', 0, ['HYB']],

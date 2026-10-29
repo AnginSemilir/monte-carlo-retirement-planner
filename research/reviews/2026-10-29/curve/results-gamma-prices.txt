@@ -1,0 +1,4 @@
+gamma 2: a year at the floor 0.2500; at 90% 0.1111 (44% of a floor year); at 110% -0.0909; ruin at 10% 9.0 a year (36 floor years), at 22% 3.55 (14); switch charge 0.279508
+gamma 3: a year at the floor 0.2812; at 90% 0.1173 (42% of a floor year); at 110% -0.0868; ruin at 10% 49.5 a year (176 floor years), at 22% 9.83 (35); switch charge 0.314447
+gamma 5: a year at the floor 0.3604; at 90% 0.1310 (36% of a floor year); at 110% -0.0792; ruin at 10% 2499.7 a year (6937 floor years), at 22% 106.47 (295); switch charge 0.402885
+the candidate: a year at the floor 0.000894 (0.089 points); at 90% 0.000224 (25% of a floor year); ruin a floor year a year

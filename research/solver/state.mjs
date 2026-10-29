@@ -69,7 +69,8 @@ const BLOCKS = {
     });
     out.push(`- V2's state check (D20 (4)), the engine and a forward run in step on the light candidate: \`state-check.test.mjs --full\` ${verdict(V)} on the fixed code, ${failedBefore(V)} on the code before it (\`results-state-check.txt\`). Before, ${lockstep(V, true)}; after, ${lockstep(V, false)}. ${pick(V, /^ {2}the engine's taxable account empty with a basis left on it, in some year: (.*)$/m, m => `The engine's taxable account empty with a basis left on it, in some year: ${m[1]}`)}. ${pick(V, /^(?:PASS|FAIL) {2}1\. where the engine's own pick differs from the forward run's \((\d+) of (\d+) years\)[^:]*: the largest gap (\S+).*?, its tie tolerance (\S+)/m, m => `On the fixed code the engine's own pick differs from the forward run's in ${m[1]} of ${m[2]} years, the largest score gap ${m[3]} against the chooser's tie tolerance ${m[4]}: ties`)}.`);
     // folded again for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
-    return fold(out, [[0, 5], [5, 9], [9]]);
+    // folded into one line for the dial's block (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0]]);
   },
   // V3 and V4 on the ported code (EXPLORATORY, the tuning seed): each read's verdicts, from its results file
   v34() {
@@ -321,7 +322,8 @@ const BLOCKS = {
     for (const re of [/^ {2}(FIXBR \(7q, D35\): .*)$/m, /^ {2}(the world return-1 .*)$/m, /^ {2}(the world vol\+25: .*)$/m, /^ {2}(the world left-tail: .*)$/m, /^ {2}(history \(.*)$/m, /^ {2}(runPolicy beside the engine .*)$/m, /^ {2}(the solve, .*)$/m]) out.push(`- ${cap(at(re))}.`);
     // three lines (STATE.md's 300): the gate and the decision; the flags, the replication and what is reported at each
     // weight; FIXBR, the worlds, history, runPolicy and the solve
-    return fold(out, [[0, 4], [4, 17], [17]]);
+    // folded into one line for the dial's block (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0]]);
   },
   // the tier test (D39; EXPLORATORY, seed 7002; reduce-tiers.mjs, results-tiers.txt): the gate, survival per arm, each arm
   // against the app's rules and the shipping solver, the tiers' share of SHIP's and the candidate's gain over the app's rules,
@@ -336,7 +338,19 @@ const BLOCKS = {
     const lv = [...t.matchAll(/^ {2}(APP|SHIP|SHIPNC|CAND|CANDNC)\s+([\d.]+ \/ [\d.]+ \/ [\d.]+); at the floor ([\d.]+), at 90% or below ([\d.]+)$/gm)];
     if (lv.length !== 5) throw new Error(`state.mjs: results-tiers.txt has ${lv.length} spend rows, not 5`);
     out.push(`- The spend as a share of target by retired year (0 to 4, 5 to 9, 10 on; paths not yet failed) and the retired years a path at the 80% floor: ${lv.map(m => `${m[1]} ${m[2]}, ${m[3]} at the floor`).join('; ')}. ${at(/^(runPolicy beside the engine: .*)$/m)}.`);
-    return fold(out, [[0, 7], [7]]);
+    // folded into one line for the dial's block (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0]]);
+  },
+  // the dislike of cuts on the candidate (D44; EXPLORATORY, seed 7002; reduce-curve.mjs --dial)
+  curvedial() {
+    const R = 'research/solver/results-curve-dial.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const at = re => pick(R, re, m => m[1]);
+    const arms = [...t.matchAll(/^ {2}(CANDD|DIAL3|DIAL10)\s+([\d.]+%); (first .*)$/gm)];
+    const vs = [...t.matchAll(/^ {2}(DIAL3|DIAL10)\s+(survival .*)$/gm)];
+    if (arms.length !== 3 || vs.length !== 2) throw new Error(`state.mjs: results-curve-dial.txt has ${arms.length} arm rows and ${vs.length} comparisons, not 3 and 2`);
+    const eq1 = [...t.matchAll(/^ {2}(S\d+F?)\s+CANDD [\d.]+% \(([\d.]+), (\d+%)\)\s+DIAL3 [\d.]+% \(([\d.]+), (\d+%)\)\s+DIAL10 [\d.]+% \(([\d.]+), (\d+%)\)$/gm)].filter(m => m[3] !== m[5] || m[3] !== m[7]).map(m => `${m[1]} ${m[3]} / ${m[5]} / ${m[7]}`);
+    return [`- The gate: ${at(/^THE GATE: (.*)$/m)}; ${at(/^(runPolicy beside the engine: .*)$/m)} (\`results-curve-dial.txt\`). Per arm (survival; the retirees' first year and years 1-5 (% of target); their average back at target, the median path back; from the 21st year; retired years at the floor / at 110%; the share of years a level changes, the mean step; the pension and ISA's equity share at years 1, 5, 10, 20, the retirees; all): ${arms.map(m => `${m[1]} ${m[2]}; ${m[3]}`).join(' || ')}. Against CANDD: ${vs.map(m => `${m[1]} ${m[2]}`).join(' || ')}. Where the year-1 equity moves (CANDD / DIAL3 / DIAL10): ${eq1.join('; ') || 'nowhere'}.`];
   }
 };
 

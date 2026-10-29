@@ -56,7 +56,7 @@ const BUCKETS = [[0, 5], [5, 10], [10, 20], [20, 999]];
 function perUnit(u) {
   const { N, Y, retireT, accessT, target } = u, m = u.m, floorLv = Math.round(100 * (u.ran.levels ? Math.min(...u.ran.levels) : 0.8));
   let sv = 0, delivered = 0, unmet = 0, spendYears = 0, atFloor = 0, atRaise = 0, first = 0, firstN = 0, dsum = 0, dn = 0, changes = 0, fails = 0, raiseBefore = 0, bridgeFails = 0, potMiss = 0;
-  const bs = BUCKETS.map(() => [0, 0]), est = [], wl = [];
+  const bs = BUCKETS.map(() => [0, 0]), est = [], wl = [], ys = new Float64Array(Y), yn = new Float64Array(Y);
   for (let k = 0; k < N; k++) {
     sv += m.survived[k]; delivered += m.delivered[k]; unmet += m.unmet[k];
     const fy = m.failYear[k], lv = m.level.subarray(k * Y, (k + 1) * Y);
@@ -66,7 +66,7 @@ function perUnit(u) {
       if (fy >= 0 && t >= fy) break;
       spendYears++;
       const rt = t - retireT, b = BUCKETS.findIndex(([a, z]) => rt >= a && rt < z);
-      bs[b][0] += lv[t]; bs[b][1]++;
+      bs[b][0] += lv[t]; bs[b][1]++; ys[rt] += lv[t]; yn[rt]++;
       if (lv[t] <= floorLv) atFloor++;
       if (lv[t] >= 110) atRaise++;
       if (rt === 0) { first += lv[t]; firstN++; }
@@ -82,7 +82,7 @@ function perUnit(u) {
   // spending delivered is compared across arms in pounds, paired by path (the same target in every arm)
   return { surv: 100 * sv / N, deliveredMean: delivered / N, unmetYears: unmet / N / target, curve: bs.map(([s, c]) => (c ? s / c : NaN)), atFloor: atFloor / N, atRaise: atRaise / N,
     first: firstN ? first / firstN : NaN, meanChange: dn ? dsum / dn : 0, changeShare: dn ? changes / dn : 0, fails, raiseBefore, bridgeFails, potMiss, estate: est.reduce((a, x) => a + x, 0) / N,
-    wealthMed: wl[Math.floor(N / 2)], wealthP10: wl[Math.floor(N / 10)], target };
+    wealthMed: wl[Math.floor(N / 2)], wealthP10: wl[Math.floor(N / 10)], target, byYear: Array.from(ys, (x, i) => (yn[i] ? x / yn[i] : NaN)) };
 }
 const R = {};
 for (const a of have) R[a] = IDS.map(id => perUnit(U[id][a]));
@@ -126,6 +126,16 @@ for (const co of COH) {
   const ix = IDS.map((id, i) => [id, i]).filter(([id]) => cohortOf(id) === co).map(([, i]) => i);
   L.push(`  ${co} (${ix.map(i => IDS[i]).join(', ')}):`);
   for (const a of have) { const X = ix.map(i => R[a][i]); L.push(`    ${a.padEnd(7)} ${[0, 1, 2, 3].map(j => f1(mean(X.map(x => x.curve[j]).filter(Number.isFinite)))).join(' / ')}; first year ${f1(mean(X.map(x => x.first)))}; at the floor ${f2(mean(X.map(x => x.atFloor)))}`); }
+}
+L.push('');
+// the curve year by year: each household's mean level by retired year over its paths not yet failed, averaged over the
+// households with that year (the count beside, as the shorter plans end)
+{ const YMAX = 35;
+  L.push(`The curve year by year (the mean level, % of target, by retired year 0 to ${YMAX - 1}; households counted below):`);
+  const cnt = Array.from({ length: YMAX }, (_, t) => IDS.filter((id, i) => Number.isFinite(R[have[0]][i].byYear[t])).length);
+  L.push(`  ${'year'.padEnd(7)} ${Array.from({ length: YMAX }, (_, t) => String(t).padStart(6)).join('')}`);
+  L.push(`  ${'(hh)'.padEnd(7)} ${cnt.map(c => String(c).padStart(6)).join('')}`);
+  for (const a of have) L.push(`  ${a.padEnd(7)} ${Array.from({ length: YMAX }, (_, t) => { const v = R[a].map(x => x.byYear[t]).filter(Number.isFinite); return (v.length ? mean(v).toFixed(1) : '-').padStart(6); }).join('')}`);
 }
 L.push('');
 L.push('Per household: survival % by arm; the first retired year\'s level and the years at the floor:');

@@ -283,7 +283,7 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 ## 5. Running now
 
 - N7 (EXPLORATORY): the page (`research/solver/n7/`) published for the maintainer's laptop and phone, each solve saved to its record (`reduce.mjs` reads it); its full-scale run in this container's Chromium in `results-n7-check.txt`.
-- The spending curve (D43, D44), next: the dial (`batch-curve-dial.sh`, EXPLORATORY, seed 7002), then the failure year's held-out run (`registrations/fail-delivered.md`, seed 7019, its design review a PASS on re-review), each through the launcher. Raw units: `results/curve-7002`, `results/curve-7019`, `results/diagp4`, `results/tiers`, `results/n7`.
+- The spending curve (D43, D44): the dial (`batch-curve-dial.sh`, EXPLORATORY, seed 7002) running since 29 Oct 21:40 UK through the launcher, from 8a02258 (task bslfjqwn1, `results/curve-dial-launch-log.txt`); then the failure year's held-out run (`registrations/fail-delivered.md`, seed 7019, its design review a PASS on re-review). Raw units: `results/curve-7002`, `results/curve-7019`, `results/diagp4`, `results/tiers`, `results/n7`.
 
 ## 6. The next three actions
 

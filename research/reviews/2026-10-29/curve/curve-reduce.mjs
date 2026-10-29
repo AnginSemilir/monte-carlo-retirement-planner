@@ -117,4 +117,128 @@ for (const co of COH) {
 L.push('');
 L.push('Per household: survival % by arm; the first retired year\'s level and the years at the floor:');
 for (const [i, id] of IDS.entries()) L.push(`  ${id.padEnd(6)} ${have.map(a => `${a} ${f1(R[a][i].surv)} (${f1(R[a][i].first)}, ${f2(R[a][i].atFloor)})`).join('  ')}`);
+
+// THE RULES AND THE PREDICTIONS, READ (SPENDING-CURVE.md sections 4 and 7). Each criterion: its estimate (each household
+// counted once), its 95% interval by path (the households' variances summed; a share of failures, Wilson's on the pooled
+// count), the verdict on the estimate as registered, and whether the paths settle it: met (the interval clears the margin),
+// not met (the interval is past it), unsettled (the margin is inside the interval).
+const Z = 1.96;
+const PV = {};
+function pathVals(id, a) {
+  const key = `${id} ${a}`;
+  if (PV[key]) return PV[key];
+  const u = U[id][a], { N, Y, retireT } = u, m = u.m, floorLv = Math.round(100 * (u.ran.levels ? Math.min(...u.ran.levels) : 0.8));
+  const surv = new Float64Array(N), deliv = new Float64Array(N), first = new Float64Array(N).fill(NaN), floor = new Float64Array(N), raise = new Float64Array(N);
+  for (let k = 0; k < N; k++) {
+    surv[k] = 100 * m.survived[k]; deliv[k] = m.delivered[k];
+    const fy = m.failYear[k], lv = m.level.subarray(k * Y, (k + 1) * Y);
+    for (let t = retireT; t < Y; t++) {
+      if (lv[t] === 0) continue;
+      if (fy >= 0 && t >= fy) break;
+      if (lv[t] <= floorLv) floor[k]++;
+      if (lv[t] >= 110) raise[k]++;
+      if (t === retireT) first[k] = lv[t];
+    }
+  }
+  return (PV[key] = { surv, deliv, first, floor, raise });
+}
+// a linear combination of arms' per-path values, paired by path within each household, averaged over households
+function lin(field, terms, ids = IDS, normArm = null) {
+  let mu = 0, v = 0;
+  for (const id of ids) {
+    const vals = terms.map(([a]) => pathVals(id, a)[field]), N = vals[0].length;
+    const s = normArm ? 100 / (pathVals(id, normArm).deliv.reduce((p, x) => p + x, 0) / N) : 1;
+    let s1 = 0, s2 = 0, n = 0;
+    for (let k = 0; k < N; k++) {
+      let d = 0, okk = true;
+      for (let j = 0; j < terms.length; j++) { const x = vals[j][k]; if (!Number.isFinite(x)) { okk = false; break; } d += terms[j][1] * x; }
+      if (!okk) continue;
+      d *= s; s1 += d; s2 += d * d; n++;
+    }
+    const md = s1 / n; mu += md; v += (s2 / n - md * md) / n;
+  }
+  return { est: mu / ids.length, se: Math.sqrt(v) / ids.length };
+}
+const shareRaise = (a, ids = IDS) => { let x = 0, n = 0; for (const id of ids) { const r = R[a][IDS.indexOf(id)]; x += r.raiseBefore; n += r.fails; } if (!n) return { est: NaN, lo: NaN, hi: NaN, n }; const p = x / n, d = 1 + Z * Z / n, c = (p + Z * Z / (2 * n)) / d, h = Z * Math.sqrt(p * (1 - p) / n + Z * Z / (4 * n * n)) / d; return { est: 100 * p, lo: 100 * (c - h), hi: 100 * (c + h), n, x }; };
+const iv = ({ est, se }) => ({ est, lo: est - Z * se, hi: est + Z * se });
+// op: '>=' or '<=' a margin, 'within' x of zero, 'in' [a, b]
+function judge(c, op, m) {
+  const { est, lo, hi } = c;
+  if (!Number.isFinite(est)) return { pass: false, settled: 'no data' };
+  if (op === '>=') return { pass: est >= m, settled: lo >= m ? 'met' : hi < m ? 'not met' : 'unsettled' };
+  if (op === '<=') return { pass: est <= m, settled: hi <= m ? 'met' : lo > m ? 'not met' : 'unsettled' };
+  const [a, b] = op === 'within' ? [-m, m] : m;
+  return { pass: est >= a && est <= b, settled: lo >= a && hi <= b ? 'met' : hi < a || lo > b ? 'not met' : 'unsettled' };
+}
+const crit = (label, c, op, m, unit = '') => { const j = judge(c, op, m), q = c.abs ? f2 : sg; L.push(`    ${j.pass ? 'yes' : 'NO '}  ${label}: ${q(c.est)}${unit} (95% ${q(c.lo)} to ${q(c.hi)}${unit}${c.n !== undefined ? `; ${c.x} of ${c.n} failures` : ''}); ${j.settled}`); return j.pass; };
+const RETIRED = IDS.filter(id => U[id][have[0]].retireT === 0);
+const H = a => have.includes(a);
+L.push('');
+L.push('THE RULES, READ (yes / NO on the estimate, as registered; then whether the 95% interval settles it):');
+if (H('APP') && H('CAND')) for (const a of ['UTIL', 'UTILNM'].filter(H)) {
+  L.push(`  ${a}, the section 4 rule for a utility arm:`);
+  const q = [
+    crit(`keeps at least half of CAND's survival gain over APP (${a} - APP/2 - CAND/2, points)`, iv(lin('surv', [[a, 1], ['APP', -0.5], ['CAND', -0.5]])), '>=', 0),
+    crit(`delivers at least CAND's lifetime spending less 1% (% of CAND's)`, iv(lin('deliv', [[a, 1], ['CAND', -1]], IDS, 'CAND')), '>=', -1, '%'),
+    crit('starts retirement at 95% of target or more (the first retired year, %)', { ...iv(lin('first', [[a, 1]])), abs: true }, '>=', 95),
+    crit('spends fewer years at the floor than CAND (years a path)', iv(lin('floor', [[a, 1], ['CAND', -1]])), '<=', 0)];
+  L.push(`    => ${a} ${q.every(Boolean) ? 'QUALIFIES' : 'does not qualify'}`);
+}
+const twoTests = (a, base, label) => {
+  L.push(`  ${a} against ${base}, ${label}:`);
+  const q = [crit(`survival within 0.25 of ${base}'s (points)`, iv(lin('surv', [[a, 1], [base, -1]])), '>=', -0.25),
+    crit('a raise before ruin under 5% of the paths that run out (%)', shareRaise(a), '<=', 5, '%')];
+  L.push(`    => ${q.every(Boolean) ? 'passes both' : 'fails'}`);
+};
+if (H('CAND')) for (const a of ['HYB', 'ZERO', 'FLAT'].filter(H)) twoTests(a, 'CAND', a === 'HYB' ? 'the section 4 rule for HYB' : 'the same two measures (section 4: the best of ZERO and FLAT)');
+for (const [a, b] of [['CANDD', 'CAND'], ['HYBD', 'HYB']]) if (H(a) && H(b)) twoTests(a, b, 'the section 7 rule for failDelivered');
+L.push('');
+L.push('THE PREDICTIONS, READ (held / FAILED on the estimate; the interval as above):');
+const pred = (arm, items) => {
+  if (!H(arm)) return;
+  L.push(`  ${arm}:`);
+  for (const [label, c, op, m, need, unit] of items) {
+    if (need && !need.every(H)) { L.push(`    (not yet)  ${label}: needs ${need.filter(x => !H(x)).join(', ')}`); continue; }
+    const v = c(), j = judge(v, op, m), q = v.abs ? f2 : sg;
+    L.push(`    ${j.pass ? 'held  ' : 'FAILED'}  ${label}: ${q(v.est)}${unit || ''} (95% ${q(v.lo)} to ${q(v.hi)}${unit || ''}${v.n !== undefined ? `; ${v.x} of ${v.n} failures` : ''}); ${j.settled}`);
+  }
+};
+const dS = (a, b, ids) => () => iv(lin('surv', [[a, 1], [b, -1]], ids)), dP = (a, b) => () => iv(lin('deliv', [[a, 1], [b, -1]], IDS, b));
+const fY = (a, ids) => () => ({ ...iv(lin('first', [[a, 1]], ids)), abs: true }), dF = (a, b, ids) => () => iv(lin('first', [[a, 1], [b, -1]], ids));
+const flR = (a, b, r, ids) => () => iv(lin('floor', [[a, 1], [b, -r]], ids)), rs = (a, ids) => () => shareRaise(a, ids);
+const rz = (a, b, r) => () => iv(lin('raise', [[a, 1], [b, -r]]));
+pred('UTIL', [
+  ['the first retired year at 95% or more (%)', fY('UTIL'), '>=', 95],
+  ['at most half CAND\'s years at the floor (UTIL - CAND/2, years)', flR('UTIL', 'CAND', 0.5), '<=', 0, ['CAND']],
+  ['a raise before under 5% of failures', rs('UTIL'), '<=', 5, null, '%'],
+  ['survival 1 to 4 points below CAND\'s (points)', dS('UTIL', 'CAND'), 'in', [-4, -1], ['CAND']],
+  ['lifetime spending within 2% of CAND\'s (%)', dP('UTIL', 'CAND'), 'within', 2, ['CAND'], '%']]);
+pred('UTILNM', [
+  ['survival within a point of CAND\'s (points)', dS('UTILNM', 'CAND'), 'within', 1, ['CAND']],
+  ['fewer years at the floor than CAND (years)', flR('UTILNM', 'CAND', 1), '<=', 0, ['CAND']]]);
+pred('HYB', [
+  ['survival within 0.5 of CAND\'s (points)', dS('HYB', 'CAND'), 'within', 0.5, ['CAND']],
+  ['a raise before under 5% of failures', rs('HYB'), '<=', 5, null, '%'],
+  ['fewer years at 110% than CAND (years)', rz('HYB', 'CAND', 1), '<=', 0, ['CAND']],
+  ['the first retired year within 5 points of CAND\'s (points)', dF('HYB', 'CAND'), 'within', 5, ['CAND']],
+  ['years at the floor within a fifth of CAND\'s (HYB - 1.2 CAND, years: at most 0)', flR('HYB', 'CAND', 1.2), '<=', 0, ['CAND']],
+  ['  and (HYB - 0.8 CAND, years: at least 0)', flR('HYB', 'CAND', 0.8), '>=', 0, ['CAND']]]);
+pred('ZERO', [
+  ['a raise before under 10% of failures', rs('ZERO'), '<=', 10, null, '%'],
+  ['survival +0.1 to +0.5 against CAND (points)', dS('ZERO', 'CAND'), 'in', [0.1, 0.5], ['CAND']],
+  ['spending 0.5 to 1.5% lower (%)', dP('ZERO', 'CAND'), 'in', [-1.5, -0.5], ['CAND'], '%'],
+  ['the early cut stays: the first retired year within 5 points of CAND\'s (points)', dF('ZERO', 'CAND'), 'within', 5, ['CAND']]]);
+pred('FLAT', [
+  ['the early cut stays: the first retired year within 5 points of CAND\'s (points)', dF('FLAT', 'CAND'), 'within', 5, ['CAND']],
+  ['no year at 110% (years a path)', () => ({ ...iv(lin('raise', [['FLAT', 1]])), abs: true }), 'within', 0],
+  ['spending 2 to 4% lower (%)', dP('FLAT', 'CAND'), 'in', [-4, -2], ['CAND'], '%'],
+  ['survival within 0.3 of CAND\'s (points)', dS('FLAT', 'CAND'), 'within', 0.3, ['CAND']]]);
+for (const [a, b] of [['CANDD', 'CAND'], ['HYBD', 'HYB']]) pred(a, [
+  ['a raise before under 5% of the paths that run out', rs(a), '<=', 5, null, '%'],
+  [`survival within 0.3 of ${b}'s (points)`, dS(a, b), 'within', 0.3, [b]],
+  [`spending within 1% of ${b}'s (%)`, dP(a, b), 'within', 1, [b], '%']]);
+pred('HYB10D', [
+  [`retired at the start (${RETIRED.join(', ')}): the first retired year at 90% or more (%)`, fY('HYB10D', RETIRED), '>=', 90],
+  ['  a third fewer years at the floor than HYB (HYB10D - 2/3 HYB, years)', flR('HYB10D', 'HYB', 2 / 3, RETIRED), '<=', 0, ['HYB']],
+  ['  survival 0.5 to 2 points below HYB\'s (points)', dS('HYB10D', 'HYB', RETIRED), 'in', [-2, -0.5], ['HYB']]]);
 console.log(L.join('\n'));

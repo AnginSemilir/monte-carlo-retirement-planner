@@ -8,7 +8,7 @@ STOP=$(( $(date +%s) + 60 * ${QUEUE_MINUTES:-95} ))
 mkdir -p $UNITS/claim
 H="S090 S030 S328F S188 S304F S368 S050 S340F"
 LIST=""
-for a in UTIL3D UTIL5D; do for h in $H; do LIST="$LIST $h-$a"; done; done
+for a in UTIL5D UTIL3D; do for h in $H; do LIST="$LIST $h-$a"; done; done
 for tag in $LIST; do
   id=${tag%-*}; arm=${tag##*-}; low=$(echo $arm | tr 'A-Z' 'a-z')
   [ -f $UNITS/$id-$low.json.gz ] && continue

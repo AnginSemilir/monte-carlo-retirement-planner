@@ -1,0 +1,9 @@
+PASS  1. S090 (light): with spendUtility unset the patched code's 3024 tables hash 9519c7c96bcb5634, the original's 9519c7c96bcb5634
+PASS  1. S328F (light): with spendUtility unset the patched code's 5124 tables hash a63904d98497f78d, the original's a63904d98497f78d
+PASS  1. S090 (the candidate's own lattice, 6 points): with spendUtility unset the patched code's 3024 tables hash 34b7ec01d3593251, the original's 34b7ec01d3593251
+PASS  1. planted: the original at lambda x (1 + 1e-9) hashes 22ccd2baf369cee3, not 9519c7c96bcb5634: the comparison sees a change that small
+PASS  2. S090: every weight, cost and ruin price as the formula gives (the largest gap 5.3e-15); meta records {"gamma":2,"kappa":1,"beta":1,"mortality":{"mode":90,"disp":9},"ruinMin":0.1}
+PASS  2. a cut costs (0.2500 at 80%), a raise earns (-0.0909 at 110%), the target costs nothing, and the second 10% cut costs more than the first
+PASS  2. planted: the same checks against gamma 3 fail (the largest gap 4.0e+1)
+PASS  3. S090: the tables with mortality (e06bc63d92081387), without (6a1431fc05df688a) and the candidate's (9519c7c96bcb5634) all differ
+ALL PASS: 8 checks

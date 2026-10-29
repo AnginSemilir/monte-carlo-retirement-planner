@@ -39,7 +39,7 @@ L.push(`runPolicy beside the engine: paths that differ ${bOff} of ${beside.reduc
 const BUCKETS = [[0, 5], [5, 10], [10, 20], [20, 999]];
 function perUnit(u) {
   const { N, Y, retireT, accessT, target } = u, m = u.m, floorLv = Math.round(100 * (u.ran.levels ? Math.min(...u.ran.levels) : 0.8));
-  let sv = 0, delivered = 0, unmet = 0, spendYears = 0, atFloor = 0, atRaise = 0, first = 0, firstN = 0, dsum = 0, dn = 0, changes = 0, fails = 0, raiseBefore = 0, bridgeFails = 0;
+  let sv = 0, delivered = 0, unmet = 0, spendYears = 0, atFloor = 0, atRaise = 0, first = 0, firstN = 0, dsum = 0, dn = 0, changes = 0, fails = 0, raiseBefore = 0, bridgeFails = 0, potMiss = 0;
   const bs = BUCKETS.map(() => [0, 0]), est = [], wl = [];
   for (let k = 0; k < N; k++) {
     sv += m.survived[k]; delivered += m.delivered[k]; unmet += m.unmet[k];
@@ -57,14 +57,15 @@ function perUnit(u) {
       if (prev >= 0) { dsum += Math.abs(lv[t] - prev); dn++; if (lv[t] !== prev) changes++; }
       prev = lv[t];
     }
-    if (fy >= 0) { fails++; if (fy - 1 >= retireT && lv[fy - 1] >= 110) raiseBefore++; if (fy < accessT) bridgeFails++; }
+    // a failure is running out (a year's spending unmet) or, with every year met, ending below the minimum pot
+    if (fy >= 0) { if (m.unmet[k] > 1) { fails++; if (fy - 1 >= retireT && lv[fy - 1] >= 110) raiseBefore++; if (fy < accessT) bridgeFails++; } else potMiss++; }
     est.push(m.estate[k] / target); wl.push(m.wealth[k] / target);
   }
   wl.sort((a, b) => a - b);
   // the plan's own lifetime target, the sum of each retired year's target the engine asked for at level 1, is not in the unit;
   // spending delivered is compared across arms in pounds, paired by path (the same target in every arm)
   return { surv: 100 * sv / N, deliveredMean: delivered / N, unmetYears: unmet / N / target, curve: bs.map(([s, c]) => (c ? s / c : NaN)), atFloor: atFloor / N, atRaise: atRaise / N,
-    first: firstN ? first / firstN : NaN, meanChange: dn ? dsum / dn : 0, changeShare: dn ? changes / dn : 0, fails, raiseBefore, bridgeFails, estate: est.reduce((a, x) => a + x, 0) / N,
+    first: firstN ? first / firstN : NaN, meanChange: dn ? dsum / dn : 0, changeShare: dn ? changes / dn : 0, fails, raiseBefore, bridgeFails, potMiss, estate: est.reduce((a, x) => a + x, 0) / N,
     wealthMed: wl[Math.floor(N / 2)], wealthP10: wl[Math.floor(N / 10)], target };
 }
 const R = {};
@@ -89,11 +90,11 @@ L.push('');
 L.push('Per arm, the households\' mean (each counted once):');
 L.push('  arm     survival  curve 0-4 / 5-9 / 10-19 / 20+   first year  floor yrs  110% yrs  change/yr  years changing  raise before ruin  bridge fails  estate  wealth med / p10  unmet');
 for (const a of have) {
-  const X = R[a], fails = X.reduce((p, x) => p + x.fails, 0), rb = X.reduce((p, x) => p + x.raiseBefore, 0), bf = X.reduce((p, x) => p + x.bridgeFails, 0);
+  const X = R[a], fails = X.reduce((p, x) => p + x.fails, 0), rb = X.reduce((p, x) => p + x.raiseBefore, 0), bf = X.reduce((p, x) => p + x.bridgeFails, 0), pm = X.reduce((p, x) => p + x.potMiss, 0);
   const cv = [0, 1, 2, 3].map(i => mean(X.map(x => x.curve[i]).filter(Number.isFinite)));
-  L.push(`  ${a.padEnd(7)} ${f2(mean(X.map(x => x.surv))).padStart(7)}%  ${cv.map(f1).join(' / ').padEnd(28)} ${f1(mean(X.map(x => x.first))).padStart(9)}   ${f2(mean(X.map(x => x.atFloor))).padStart(8)}  ${f2(mean(X.map(x => x.atRaise))).padStart(8)}  ${f2(mean(X.map(x => x.meanChange))).padStart(8)}  ${(100 * mean(X.map(x => x.changeShare))).toFixed(1).padStart(12)}%  ${(fails ? (100 * rb / fails).toFixed(1) : '-').padStart(14)}% of ${fails}  ${String(bf).padStart(10)}  ${f2(mean(X.map(x => x.estate))).padStart(6)}  ${f2(mean(X.map(x => x.wealthMed)))} / ${f2(mean(X.map(x => x.wealthP10)))}  ${f2(mean(X.map(x => x.unmetYears)))}`);
+  L.push(`  ${a.padEnd(7)} ${f2(mean(X.map(x => x.surv))).padStart(7)}%  ${cv.map(f1).join(' / ').padEnd(28)} ${f1(mean(X.map(x => x.first))).padStart(9)}   ${f2(mean(X.map(x => x.atFloor))).padStart(8)}  ${f2(mean(X.map(x => x.atRaise))).padStart(8)}  ${f2(mean(X.map(x => x.meanChange))).padStart(8)}  ${(100 * mean(X.map(x => x.changeShare))).toFixed(1).padStart(12)}%  ${(fails ? (100 * rb / fails).toFixed(1) : '-').padStart(14)}% of ${fails} (pot ${pm})  ${String(bf).padStart(10)}  ${f2(mean(X.map(x => x.estate))).padStart(6)}  ${f2(mean(X.map(x => x.wealthMed)))} / ${f2(mean(X.map(x => x.wealthP10)))}  ${f2(mean(X.map(x => x.unmetYears)))}`);
 }
-L.push('  (curve: the mean spend level, % of target, by retired year over paths not yet failed; first year: the first retired year; floor / 110% yrs: retired years a path at the floor / at 110%; change/yr: the mean absolute change in level, points, between retired years; raise before ruin: failures whose year before is at 110%; estate and wealth in years of the household\'s target; unmet: years of target not met)');
+L.push('  (curve: the mean spend level, % of target, by retired year over paths not yet failed; first year: the first retired year; floor / 110% yrs: retired years a path at the floor / at 110%; change/yr: the mean absolute change in level, points, between retired years; raise before ruin: of the paths that ran out (a year unmet), those whose year before is at 110%, beside the count, and in brackets the paths that met every year but ended below the minimum pot; bridge fails: ran out before pension access; estate and wealth in years of the household\'s target; unmet: years of target not met)');
 L.push('');
 for (const b of ['CAND', 'APP']) {
   if (!have.includes(b)) continue;

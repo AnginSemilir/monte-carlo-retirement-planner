@@ -39,10 +39,16 @@ The estate counts at weight 0.02, capped at four times the opening wealth.
    more is taken, and the first years carry the most sequence risk.
 2. **The curve has a convex kink at the target.** A year at 110% earns about as much as a year at 80% costs, while a year
    at 90% costs a quarter of that. The raise credit's square root is steepest just above the target, and the cut's square
-   is flattest just below it. So for the same total spending, the score prefers 90% then 110% to 100% then 100%: the
-   objective rewards swinging around the target. Cut early, raise late is what it asks for, even before survival enters.
-3. **Ruin is priced as a floor year.** On a path the table reads as lost, cutting buys nothing, so the raise wins (the
-   deep review's finding).
+   is flattest just below it. So for the same total spending the score prefers swinging to flat:
+   - 90% then 110% scores 0.073 points better than 100% then 100%;
+   - 80%, 110%, 110% scores 0.100 points better than three years at 100%.
+
+   Cut early, raise late is what it asks for, even before survival enters. A concave curve reverses both: at gamma 2, 90%
+   then 110% costs 0.0202 more than flat.
+3. **Ruin is priced as a floor year.** A year with no money costs the candidate 0.089 points, exactly a floor year, so on
+   a path the table reads as lost cutting buys nothing and the raise wins (the deep review's finding). ZERO's price is
+   2.236 points a year. The utility curve's is 9.0 a year living on 10% of target before the State Pension, and 3.31 from
+   it at 22% (S090): 13 to 36 times a floor year.
 4. **No time or mortality weight.** A cut at 61 costs the same as a cut at 91, and a raise at 91 earns the same as one at
    61, though the chance of being alive to spend it is a fraction.
 5. **The menu jumps from 90% to the floor**, so a cut below 90% is a cut to 80%.
@@ -115,9 +121,9 @@ The arms take the diagnosis apart:
 - working: S188 (55, retiring at 60);
 - FIRE, retiring at 52: S304F (pension-heavy), S328F (the deep review's) and S340F.
 
-**Settings:** seed 7002, 1,500 paths a unit, the landed targets and minimum pots, and arm A's pick searched as Phase 4
+**Settings:** seed 7002, 1,000 paths a unit (two cores), the landed targets and minimum pots, and arm A's pick searched as Phase 4
 searched it. runPath is held to E.runTrial on the first 100 paths of each unit, and runPolicy beside the engine on the first
-500.
+200.
 
 **The read** (`curve/curve-reduce.mjs`), each household counted once. Per arm:
 - survival, and the spending delivered, paired against CAND and APP;
@@ -154,14 +160,20 @@ searched it. runPath is held to E.runTrial on the first 100 paths of each unit, 
 - **Failing that,** the best of ZERO and FLAT by the same measures is recommended as the minimal fix, with the utility
   arms' trade-off set out for the maintainer.
 
-## 5. Declared: the run made before writing
+## 5. Declared: the runs made before launch
 
-The option's tests (`curve/curve-test.mjs`, results in `curve/results-curve-test.txt`) check five things:
-- the identity with the option off, against the original code, every table bit for bit;
-- the weights, costs and ruin prices against their formulas;
-- the mortality weights reaching the tables;
-- the e3pcls pin, re-passed on the patched code (`research/tests/solver-e3pcls.test.mjs 4 --pin`);
-- each check shown failing on a planted fault.
+The prediction above was committed before any of these, at 6a1687d.
+- **The e3pcls pin** (`research/tests/solver-e3pcls.test.mjs 4 --pin`) on the patched code: 27 passed, pinned
+  e4ac8985d7be21b0, in this worktree only.
+- **The option's tests** (`curve/curve-test.mjs`; `curve/results-curve-test.txt`): ALL PASS, 8 checks.
+  - With the option off, every table is the original code's bit for bit: on S090 and S328F at the light settings, and on
+    S090 on the candidate's own lattice. A perturbation of 1e-9 in lambda is seen.
+  - The weights, costs and ruin prices match their formulas to 5.3e-15, and the same checks against gamma 3 fail.
+  - The mortality weights reach the tables.
+- **The prices** (`curve/kink-check.mjs`; `curve/results-kink-check.txt`) are section 2's figures.
+- **A smoke run** of every arm on S090 at 6 points and 60 paths, to test the harness and the read. Its figures are not used.
+  It found the read counting an end below the minimum pot as running out, now separated, and the floor year's exchange
+  rate's sign wrong in the harness, now fixed.
 
 ## 6. The results
 

@@ -36,7 +36,7 @@ const { runPath, solverPlanOf, inputsHash, LAMBDA, CAND_PTS, CANDIDATE } = await
 const { withTable } = await imp('src/solver/bridge.js');
 
 export const ARMS = ['APP', 'CAND', 'ZERO', 'FLAT', 'UTIL', 'UTILNM', 'HYB'];
-export const SEED = 7002, W = 0.02, CHECK = 100, BESIDE = 500, PHI = 0.25;
+export const SEED = 7002, W = 0.02, CHECK = 100, BESIDE = 200, PHI = 0.25;
 export const MORT = { mode: 90, disp: 9 };
 const [nArg, OUT, id, arm] = process.argv.slice(2);
 const N = Number(nArg);
@@ -68,7 +68,7 @@ if (arm === 'APP') {
   const plan = prep(solverPlanOf(h.plan, { decumulationPolicy: A0.decumulationPolicy })), c0 = E.buildContext(plan);
   const scale = Math.max(1, c0.accounts.reduce((x, a) => x + a.balance, 0)), target = c0.targetSpend;
   // the exchange between the candidate's units and the utility curve's: a year at the floor, lambda (1 - 0.8)^2 against u(1) - u(0.8)
-  const FLOOR_U = 1 - 1 / 0.8, FLOOR_C = LAMBDA * 0.04, KCONV = FLOOR_U / FLOOR_C;
+  const FLOOR_U = 1 / 0.8 - 1, FLOOR_C = LAMBDA * 0.04, KCONV = FLOOR_U / FLOOR_C;   // u(1) - u(0.8) at gamma 2, 0.25
   const kappa = arm === 'HYB' ? 1 / KCONV : 1;
   const SU = { gamma: 2, kappa, beta: 1, mortality: arm === 'UTIL' || arm === 'HYB' ? MORT : null, ruinMin: 0.1 };
   const extra = { lambda: LAMBDA, points: Number(process.env.CURVE_PTS) || CAND_PTS, bequestWeight: W,

@@ -1,0 +1,16 @@
+S090 (age 61, target £53500); CAND's menu 0.8, 0.9, 0.95, 1, 1.1
+A year at each level, its cost (a negative cost is a credit):
+  80%: CAND +0.089 points;  UTIL 0.2500 in year 0, 0.1370 in year 25 (alive then with chance 0.548)
+  90%: CAND +0.022 points;  UTIL 0.1111 in year 0, 0.0609 in year 25 (alive then with chance 0.548)
+  95%: CAND +0.006 points;  UTIL 0.0526 in year 0, 0.0288 in year 25 (alive then with chance 0.548)
+  100%: CAND +0.000 points;  UTIL 0.0000 in year 0, 0.0000 in year 25 (alive then with chance 0.548)
+  110%: CAND -0.095 points (times the survival it leads to);  UTIL -0.0909 in year 0, -0.0498 in year 25 (alive then with chance 0.548)
+Patterns of the same total spending, their summed cost (CAND, a raise credited in full; UTIL, in year 0 prices):
+  100%, 100%             CAND +0.000 points;  UTIL 0.0000
+  90%, 110%              CAND -0.073 points;  UTIL 0.0202
+  95%, 105%              CAND -0.061 points;  UTIL 0.0050
+  80%, 110%, 110%        CAND -0.100 points;  UTIL 0.0682
+  90%, 90%, 110%, 110%   CAND -0.145 points;  UTIL 0.0404
+A year with no money (the first retired year, 0): CAND (floor) +0.089 points; ZERO +2.236 points; UTIL 9.0000 (lived on 10% of target, the guaranteed income)
+  from year 7 (the State Pension): UTIL 3.3084 a year (lived on 22% of target)
+CAND: a year at the floor costs +0.089 points; a year at 110% earns +0.095 points times the survival it leads to; ruin at the floor's price makes running out a year sooner cost one floor year.

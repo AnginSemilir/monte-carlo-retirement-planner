@@ -1,0 +1,3 @@
+PASS  S090 CAND on 1000 paths of seed 7002: the re-run on code 6ef708fc14ca matches the registered unit (code 5495d1b168c7) in every field but the code's hash, the timings and the machine, its 7 arrays of path results byte for byte
+PASS  planted: with path 1's survival flipped the comparison fails (main.survived)
+ALL PASS: 2 checks

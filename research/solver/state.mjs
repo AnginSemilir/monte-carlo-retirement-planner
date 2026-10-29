@@ -276,7 +276,8 @@ const BLOCKS = {
     if (sim.length) out.push(`- P2's approximation checked by simulation (${sim[0][1]}): ${sim.map(m => m[2]).join(' | ')}.`);
     // folded into four lines to keep STATE.md under its 300 (the figures unchanged): V1, V2 and the budget; the two
     // re-reads; P1's power at both weights; P2's power and its check by simulation
-    return [[0, 3], [3, 5], [5, 7], [7, out.length]].map(([a, b]) => out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')).filter(Boolean);
+    // folded again for the tier test's block (STATE.md's 300 lines; the figures unchanged)
+    return [[0, 5], [5, out.length]].map(([a, b]) => out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')).filter(Boolean);
   },
   // 7u-F's read, once (reduce-7uf.mjs, results-7uf.txt): the gate, P1, P2, the outcome; the in-band losses at an unadjusted
   // one-sided p below 0.05 (the registration's "floor households that lose most"); DECOMP as D21 left it
@@ -295,7 +296,8 @@ const BLOCKS = {
     const dn = (t.match(/^  DECOMP not read for /gm) || []).length, fid = (t.match(/FIDELITY GAP/g) || []).length;
     out.push(`- DECOMP not read for ${dn} household-weights (D21: stopped on the PASS); fidelity gaps between the engine and runPolicy: ${fid}.`);
     // P1 at both weights on one line, and P2 with the outcome, to keep STATE.md under its 300 lines (the figures unchanged)
-    return [[0, 1], [1, 3], [3, 5], [5, out.length]].flatMap(([a, b]) => (a === 5 ? out.slice(a, b) : [out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')]));
+    // folded again for the tier test's block (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0, 3], [3]]);
   },
   // Phase 4's read, once (reduce-phase4.mjs, results-phase4.txt): the gate, A1, A2 and S1 at both weights, the outcome; the
   // flags (D34); reported beside them: the replication, the whole score, spending against SHIP, the lump-sum split (D38 (2)),
@@ -316,6 +318,21 @@ const BLOCKS = {
     // three lines (STATE.md's 300): the gate and the decision; the flags, the replication and what is reported at each
     // weight; FIXBR, the worlds, history, runPolicy and the solve
     return fold(out, [[0, 4], [4, 17], [17]]);
+  },
+  // the tier test (D39; EXPLORATORY, seed 7002; reduce-tiers.mjs, results-tiers.txt): the gate, survival per arm, each arm
+  // against the app's rules and the shipping solver, the tiers' share of SHIP's and the candidate's gain over the app's rules,
+  // the spend by retired year and the years at the floor
+  tiers() {
+    const R = 'research/solver/results-tiers.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const at = re => pick(R, re, m => m[1]);
+    const out = [`- The gate: ${at(/^THE GATE: (.*)$/m)} (\`results-tiers.txt\`). Survival: ${at(/^survival: (.*)$/m)}.`];
+    for (const k of ['SHIP less APP', 'SHIPNC less APP', 'CAND less APP', 'CANDNC less APP', 'CANDNC less SHIPNC', 'CAND less SHIP']) out.push(`- ${k}: ${pick(R, new RegExp(`^${k}: (.*)$`, 'm'), m => m[1])}.`);
+    for (const x of ['SHIP', 'CAND']) out.push(`- ${pick(R, new RegExp(`^(THE TIERS' SHARE of ${x}'s gain .*)$`, 'm'), m => m[1])}.`);
+    const lv = [...t.matchAll(/^ {2}(APP|SHIP|SHIPNC|CAND|CANDNC)\s+([\d.]+ \/ [\d.]+ \/ [\d.]+); at the floor ([\d.]+), at 90% or below ([\d.]+)$/gm)];
+    if (lv.length !== 5) throw new Error(`state.mjs: results-tiers.txt has ${lv.length} spend rows, not 5`);
+    out.push(`- The spend as a share of target by retired year (0 to 4, 5 to 9, 10 on; paths not yet failed) and the retired years a path at the 80% floor: ${lv.map(m => `${m[1]} ${m[2]}, ${m[3]} at the floor`).join('; ')}. ${at(/^(runPolicy beside the engine: .*)$/m)}.`);
+    return fold(out, [[0, 7], [7]]);
   }
 };
 

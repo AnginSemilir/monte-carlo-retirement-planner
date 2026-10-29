@@ -1,1 +1,5 @@
 S090: the pension and ISA's equity share each arm holds (light settings, 300 paths of seed 7002; a quick look, not a result)
+  CAND    survival 95.3% on 300; equity at years 1, 5, 10, 20, 30: 23%, 23%, 24%, 25%, 72%
+  HYB     survival 96.0% on 300; equity at years 1, 5, 10, 20, 30: 23%, 20%, 20%, 21%, 71%
+  HYB10D  survival 93.3% on 300; equity at years 1, 5, 10, 20, 30: 83%, 76%, 67%, 38%, 70%
+  UTIL    survival 85.3% on 300; equity at years 1, 5, 10, 20, 30: 83%, 77%, 69%, 72%, 74%

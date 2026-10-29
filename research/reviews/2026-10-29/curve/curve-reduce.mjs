@@ -151,7 +151,7 @@ function pathVals(id, a) {
   const key = `${id} ${a}`;
   if (PV[key]) return PV[key];
   const u = U[id][a], { N, Y, retireT } = u, m = u.m, floorLv = Math.round(100 * (u.ran.levels ? Math.min(...u.ran.levels) : 0.8));
-  const surv = new Float64Array(N), deliv = new Float64Array(N), first = new Float64Array(N).fill(NaN), floor = new Float64Array(N), raise = new Float64Array(N), wdeliv = new Float64Array(N);
+  const surv = new Float64Array(N), deliv = new Float64Array(N), first = new Float64Array(N).fill(NaN), floor = new Float64Array(N), raise = new Float64Array(N), wdeliv = new Float64Array(N), outAlive = new Float64Array(N), outAge = new Float64Array(N).fill(NaN);
   // the chance of being alive t years on (the Gompertz the utility arms use: mode 90, dispersion 9, from the plan's start)
   const Sx = t => Math.exp(-Math.exp((u.ageSelf0 - 90) / 9) * (Math.exp(t / 9) - 1));
   for (let k = 0; k < N; k++) {
@@ -173,8 +173,10 @@ function pathVals(id, a) {
     const f = tot > 0 ? (m.delivered[k] + m.unmet[k]) / u.target / tot : 1;
     for (let t = retireT; t < Y; t++) { if (lv[t] === 0) continue; if (fy >= 0 && t >= fy) { wr += Sx(t); nr++; } w += Sx(t) * f * lv[t] / 100; }
     wdeliv[k] = w - (nr ? (m.unmet[k] / u.target) * wr / nr : 0);
+    // running out while alive: a path that runs out (a year unmet) counts the chance of being alive in that year, in points
+    if (fy >= 0 && m.unmet[k] > 1) { outAlive[k] = 100 * Sx(fy); outAge[k] = u.ageSelf0 + fy; }
   }
-  return (PV[key] = { surv, deliv, first, floor, raise, wdeliv });
+  return (PV[key] = { surv, deliv, first, floor, raise, wdeliv, outAlive, outAge });
 }
 // a linear combination of arms' per-path values, paired by path within each household, averaged over households
 function lin(field, terms, ids = IDS, normArm = null, normField = 'deliv') {
@@ -295,5 +297,14 @@ L.push('lifetime total as above. In the years from a failure on, the unit keeps 
 for (const b of ['CAND', 'HYB', 'APP'].filter(H)) {
   L.push(`  against ${b}:`);
   for (const a of have) { if (a === b) continue; const w = lin('wdeliv', [[a, 1], [b, -1]], IDS, b, 'wdeliv'), d = lin('deliv', [[a, 1], [b, -1]], IDS, b); L.push(`    ${a.padEnd(7)} while alive ${sg(w.est, 3)}% (se ${w.se.toFixed(3)});  lifetime ${sg(d.est, 3)}% (se ${d.se.toFixed(3)})`); }
+}
+L.push('');
+L.push('Running out while alive (descriptive, not in the rules): the paths that run out, each counted by the chance of being alive');
+L.push('in the year it runs out (the same Gompertz), in points, beside the share that run out at all and the mean age it happens:');
+for (const a of have) {
+  const r = lin('outAlive', [[a, 1]]), runOut = mean(R[a].map(x => 100 * x.fails / U[IDS[0]][a].N));
+  const ages = IDS.flatMap(id => Array.from(pathVals(id, a).outAge).filter(Number.isFinite));
+  const vsC = H('CAND') && a !== 'CAND' ? lin('outAlive', [[a, 1], ['CAND', -1]]) : null;
+  L.push(`  ${a.padEnd(7)} while alive ${r.est.toFixed(2)} (se ${r.se.toFixed(2)})${vsC ? `, against CAND ${sg(vsC.est)} (se ${vsC.se.toFixed(2)})` : ''};  run out at all ${runOut.toFixed(2)}%;  at a mean age of ${ages.length ? mean(ages).toFixed(1) : '-'} (${ages.length} paths)`);
 }
 console.log(L.join('\n'));

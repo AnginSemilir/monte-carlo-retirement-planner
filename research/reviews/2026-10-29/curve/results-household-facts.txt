@@ -1,0 +1,9 @@
+Each household: age now, target (a year, today's money), the first retired year, and the guaranteed income as a share of the target
+  S090   age 61; target £53,500; first retired year 0 (age 61); guaranteed income 10% of target then, at most 22% (from age 68)
+  S030   age 68; target £62,600; first retired year 0 (age 68); guaranteed income 19% of target then, at most 19% (from age 68)
+  S328F  age 37; target £32,500; first retired year 15 (age 52); guaranteed income 10% of target then, at most 32% (from age 68)
+  S188   age 55; target £44,800; first retired year 5 (age 60); guaranteed income 10% of target then, at most 27% (from age 68)
+  S304F  age 37; target £21,500; first retired year 15 (age 52); guaranteed income 10% of target then, at most 48% (from age 68)
+  S368   age 50; target £18,900; first retired year 0 (age 50); guaranteed income 10% of target then, at most 63% (from age 68)
+  S050   age 68; target £18,000; first retired year 0 (age 68); guaranteed income 46% of target then, at most 46% (from age 68)
+  S340F  age 37; target £30,200; first retired year 15 (age 52); guaranteed income 10% of target then, at most 34% (from age 68)

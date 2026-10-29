@@ -178,3 +178,45 @@ The prediction above was committed before any of these, at 6a1687d.
 ## 6. The results
 
 (to follow)
+
+## 7. The amendment, declared after UTIL's read and HYB's first unit, before its own units
+
+**What was seen** (EXPLORATORY; the registered rule reads UTIL as failing):
+- **UTIL fails the rule on survival.** It keeps 3.0 of CAND's 10.8 points over APP on the eight households (-7.8, se 0.30,
+  against CAND), under half.
+- **The tiers it holds explain it.** On S090 (a light solve, 300 paths; a quick look, not a result), CAND holds the pension
+  and ISA at 23 to 25% equity for 20 years, UTIL at 70 to 83%. At gamma 2 the utility objective is far less averse to risk
+  than the candidate's survival-first objective, and one parameter sets both.
+- **HYB on S090 keeps CAND's survival** (95.0% against 95.1%). But its raise before ruin stays, on 14 of 42 paths that ran
+  out, and so does its first year at the floor.
+- **Why the raise stays.** Every objective here charges the year a move cannot pay at a fixed price, whatever money is
+  left that year. Where cutting cannot postpone the failure, money kept for the failure year earns nothing in the score, so
+  a raise wins by default.
+- **The fix:** charge that year at what it can pay, its spending less its unmet, on the objective's own curve, and the years
+  after as before. This is the option `failDelivered` (`curve/solve-faildelivered.patch`, on top of the spending-utility
+  patch). Unset, every table is the same bit for bit as before (`curve/curve-test2.mjs`; `curve/results-curve-test2.txt`,
+  to pass before launch).
+
+**The amendment's arms** (`curve/curve-audit2.mjs`, the registered harness with three arms added, on the failure-year
+code; the same eight households, seed 7002, 1,000 paths):
+
+| Arm | What it is |
+|---|---|
+| CANDD | CAND with failDelivered |
+| HYBD | HYB with failDelivered |
+| HYB10D | HYBD with ten times the dislike of cuts (a year at the floor costs 0.89 points of survival), its switch charge and the estate by the same exchange |
+
+**The fair test.** The amendment's code is the registered code with the option added, unset everywhere but these arms.
+S090's CAND unit re-run on it must be the registered unit bit for bit (`curve/results-cross-code.txt`, before the read).
+The read then declares the two code hashes one.
+
+**Prediction:**
+- CANDD and HYBD: a raise before under 5% of paths that run out, survival within 0.3 of their bases, spending within 1%.
+- HYB10D: on the households retired at the start, the first year at 90% or more, a third fewer years at the floor than
+  HYB, and survival 0.5 to 2 points below HYB.
+
+**The rule:**
+- failDelivered is recommended for whichever objective is chosen if it brings the raise before ruin below 5% of paths that
+  run out, with survival within 0.25 of its base.
+- HYB10D is reported as one point on the trade-off between the dislike of cuts and survival, for the lever's default. A
+  further point runs only if the maintainer asks.

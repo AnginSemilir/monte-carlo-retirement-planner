@@ -13,7 +13,10 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { gunzipSync } from 'zlib';
 const [dir, list] = process.argv.slice(2);
-const IDS = list.split(','), ARMS = ['APP', 'CAND', 'ZERO', 'FLAT', 'HYB', 'UTIL', 'UTILNM'];
+const IDS = list.split(','), ARMS = ['APP', 'CAND', 'ZERO', 'FLAT', 'HYB', 'UTIL', 'UTILNM', 'CANDD', 'HYBD', 'HYB10D'];
+// codes declared one (CURVE_EQUIV="a=b", with its evidence named in CURVE_EQUIV_WHY): the amendment's code is the registered
+// code with an option added that, unset, leaves every table bit for bit as before
+const EQ = Object.fromEntries((process.env.CURVE_EQUIV || '').split(',').filter(Boolean).map(x => x.split('=').reverse()));
 const TYPES = { survived: Uint8Array, delivered: Float32Array, unmet: Float32Array, estate: Float32Array, wealth: Float32Array, failYear: Int16Array, level: Uint8Array };
 const dec = (b64, T) => { const b = Buffer.from(b64, 'base64'); return new T(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
 const U = {};
@@ -27,11 +30,11 @@ const all = IDS.flatMap(id => Object.values(U[id] || {}));
 const L = [];
 L.push(`THE SPENDING CURVE (EXPLORATORY): ${IDS.length} households of Phase 4's panel (${IDS.join(', ')}); arms complete: ${have.join(', ') || 'none'}${ARMS.filter(a => !have.includes(a)).length ? `; not complete: ${ARMS.filter(a => !have.includes(a)).join(', ')}` : ''}`);
 // the fair test: one code, candidate, seed and path count on every unit; each household's arms on one inputs hash
-const one = k => new Set(all.map(u => JSON.stringify(u[k])));
+const one = k => new Set(all.map(u => JSON.stringify(k === 'code' && EQ[u[k]] ? EQ[u[k]] : u[k])));
 const unfair = ['code', 'candidate', 'seed', 'N'].filter(k => one(k).size > 1);
 const inputsOff = IDS.filter(id => U[id] && new Set(Object.values(U[id]).map(u => u.inputs)).size > 1);
 L.push(unfair.length || inputsOff.length ? `NOT FAIR: the units differ in ${unfair.join(', ') || '-'}; households whose arms differ in inputs: ${inputsOff.join(', ') || 'none'}`
-  : `fair: one code (${all[0].code}), candidate ${all[0].candidate}, seed ${all[0].seed}, ${all[0].N} paths a unit; each household's arms on one inputs hash`);
+  : `fair: one code (${[...new Set(all.map(u => u.code))].join(' and ')}${Object.keys(EQ).length ? `, declared one: ${process.env.CURVE_EQUIV_WHY || 'no evidence named'}` : ''}), candidate ${all[0].candidate}, seed ${all[0].seed}, ${all[0].N} paths a unit; each household's arms on one inputs hash`);
 if (unfair.length || inputsOff.length) { console.log(L.join('\n')); process.exit(1); }
 const beside = all.filter(u => u.beside), bOff = beside.reduce((a, u) => a + u.beside.engineOnly + u.beside.policyOnly, 0);
 L.push(`runPolicy beside the engine: paths that differ ${bOff} of ${beside.reduce((a, u) => a + u.beside.N, 0)} (${beside.length} solver units)`);

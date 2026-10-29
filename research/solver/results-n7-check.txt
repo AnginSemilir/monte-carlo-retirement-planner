@@ -1,0 +1,7 @@
+# node research/solver/n7/check.mjs --quick   (29 Oct 10:01 UK; this container's headless Chromium, the commit's suite running beside it)
+PASS  the check: in worker, the code as built, S126 at 4 points in 21.17 s (Node 20.94 s), its tables the same as Node's bit for bit (777600 values)
+PASS  planted: solve.js changed as served: the code reads "changed", the table check stands down
+PASS  planted: Node's digest altered in data.json: the table check reads "no"
+PASS  this machine's Chromium, S370 product at 30 points: 170.45 s, Node (built, under its batch's load) 193.83 s, gate 5 148.1 s; tables 43 MB, the same as Node's bit for bit
+PASS  this machine's Chromium, S370 cand at 45 points: 668.03 s, Node (built, under its batch's load) 788.18 s, gate 5 569.2 s; tables 261 MB, the same as Node's bit for bit
+ALL PASS: 5 checks

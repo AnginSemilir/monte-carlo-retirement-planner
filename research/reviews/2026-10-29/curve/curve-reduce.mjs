@@ -165,9 +165,13 @@ function pathVals(id, a) {
       if (t === retireT) first[k] = lv[t];
     }
     // spending while alive: each retired year's spending (its level; in the years from the failure on, less the path's unmet
-    // spread evenly over them, as the unit keeps only its total) weighted by the chance of being alive, in years of target
-    let w = 0, wr = 0, nr = 0;
-    for (let t = retireT; t < Y; t++) { if (lv[t] === 0) continue; if (fy >= 0 && t >= fy) { wr += Sx(t); nr++; } w += Sx(t) * lv[t] / 100; }
+    // spread evenly over them, as the unit keeps only its total) weighted by the chance of being alive, in years of target.
+    // The levels are scaled so they sum to the path's delivered and unmet: exact for the solver's (delivered-check.mjs), and
+    // for the app's it undoes the rounding of its levels to whole percents.
+    let w = 0, wr = 0, nr = 0, tot = 0;
+    for (let t = 0; t < Y; t++) tot += lv[t] / 100;
+    const f = tot > 0 ? (m.delivered[k] + m.unmet[k]) / u.target / tot : 1;
+    for (let t = retireT; t < Y; t++) { if (lv[t] === 0) continue; if (fy >= 0 && t >= fy) { wr += Sx(t); nr++; } w += Sx(t) * f * lv[t] / 100; }
     wdeliv[k] = w - (nr ? (m.unmet[k] / u.target) * wr / nr : 0);
   }
   return (PV[key] = { surv, deliv, first, floor, raise, wdeliv });

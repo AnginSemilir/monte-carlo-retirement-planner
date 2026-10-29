@@ -1,0 +1,168 @@
+# The spending curve: a whole review, and a curve native to backward induction (EXPLORATORY), 29 Oct
+
+The agent's brief of 29 Oct (D40 (3)): the solver's spending curve, before Part C fixes its defaults. Its four questions are:
+- is the front-loaded cut sound or an artefact;
+- is the raise before ruin only presentation, or should ruin be priced differently;
+- which changes give a smoother, more defensible curve, tested;
+- and what Part C's defaults should be.
+
+The maintainer, the same morning: "the most important thing is to do a wholistic review of the curve and see if it's the
+best option. This was a replacement to Guyton-Klinger Guardrails - but it's not working in this format to replace that.
+I'd like something that fits with Backward Induction more naturally."
+
+The work runs on `AnginSemilir/monte-carlo-retirement-planner` at the agent's ae20199 (29 Oct 08:03, D40), the maintainer's
+choice. The D41 commit the brief names is not on it. All runs are EXPLORATORY, on seed 7002 only. No default, no
+candidate.json and no file on the agent's branch is changed; the prototype is a patch in this folder. This plan is written,
+committed and pushed before the experiment is launched. One run was made before writing (the option's tests), declared
+below.
+
+## 1. What the curve is, in the code
+
+The candidate scores each move at a position by
+`survival + estate weight x estate / opening wealth - h` (solve.js l.573-584). `h` is the expected sum, over the years
+left, of a cost per year:
+- **A cut** to level l costs `lambda (1 - l)^2`, with lambda 0.0224 (costOf, l.649).
+- **A raise** earns `raiseWeight x sqrt(min(0.2, l - 1))`, with raiseWeight 0.003, times the survival it leads to
+  (raiseSurvival, l.944-952).
+- **A year the money has run out** is charged what a year at the floor costs, in every year left (failureShortfall,
+  l.955-970).
+- **No year is weighted** by when it falls or by the chance of being alive in it.
+- **The menu** is 80% (the floor), 90%, 95%, 100% and 110% of target (productLevels, the 110% cap).
+
+The estate counts at weight 0.02, capped at four times the opening wealth.
+
+## 2. Why it front-loads cuts and raises before ruin (the diagnosis)
+
+`curve/kink-check.mjs` prints each objective's own prices (S090). Five things combine:
+
+1. **Spending is nearly free next to survival.** A year at the floor costs 0.089 points of survival, so any cut that buys
+   more is taken, and the first years carry the most sequence risk.
+2. **The curve has a convex kink at the target.** A year at 110% earns about as much as a year at 80% costs, while a year
+   at 90% costs a quarter of that. The raise credit's square root is steepest just above the target, and the cut's square
+   is flattest just below it. So for the same total spending, the score prefers 90% then 110% to 100% then 100%: the
+   objective rewards swinging around the target. Cut early, raise late is what it asks for, even before survival enters.
+3. **Ruin is priced as a floor year.** On a path the table reads as lost, cutting buys nothing, so the raise wins (the
+   deep review's finding).
+4. **No time or mortality weight.** A cut at 61 costs the same as a cut at 91, and a raise at 91 earns the same as one at
+   61, though the chance of being alive to spend it is a fraction.
+5. **The menu jumps from 90% to the floor**, so a cut below 90% is a cut to 80%.
+
+Guyton-Klinger's guardrails are a rule laid on top of a plan. A backward induction does something different: it
+maximises an objective year by year. What it maximises therefore decides the curve, and the curve above is an objective
+that prefers volatile spending.
+
+## 3. What fits backward induction naturally
+
+The textbook problem a backward induction solves for retirement spending is expected lifetime utility (Yaari 1965;
+Merton 1969):
+- a concave curve u on each year's spending, so a cut hurts more than a raise of the same size pleases, which is the
+  dislike of cuts made consistent;
+- each year weighted by the chance of being alive to spend it, and optionally a time preference;
+- running out lived through on the guaranteed income and priced on the same curve, so its depth and its length count;
+- the estate valued by its own term.
+
+Smooth spending is then what the optimum does, with no rule added. Spending follows the markets in small steps,
+which is what guardrails were reaching for, and it never pays to swing around the target or to raise before ruin. Each
+of Part C's levers maps onto one parameter:
+- the dislike of cuts is the curve's curvature (gamma);
+- the estate's priority is the estate's weight against spending (phi);
+- the minimum pot stays a reserve at the end;
+- raises are the menu's top.
+
+**The prototype** (`curve/solve-spendutility.patch`, the option `spendUtility`, off by default) replaces the per-year
+cost with `kappa w(t) (u(1) - u(l))`:
+- u the CRRA curve, `(l^(1 - gamma) - 1) / (1 - gamma)`, at gamma 2;
+- `w(t)` a Gompertz chance of being alive at mode 90 and dispersion 9. That gives a life expectancy at 65 of 21.7 years,
+  against the ONS's 2024-based cohort figures of 20.0 for men and 22.7 for women. There is no further time preference;
+- a year of ruin lived on the guaranteed income, at its level, at least 10% of target, in every year left;
+- the estate a quarter of a pound spent at target (the estate weight 0.25 x the opening wealth / the target). That is
+  the candidate's own exchange rate: at W0.02 a year of target left in the estate scores about what a year at the floor
+  costs;
+- the survival term kept at weight one, now a small extra price on running out and on missing the minimum pot.
+
+Everything else (the menu, the tiers, the reader, the draws) is the candidate's.
+
+The prototype has two known limits:
+- the estate is valued only at the end of the plan, not at each age the person might die, so it is favoured against
+  late spending;
+- the bridge reader refines the survival read only, while the shortfall table it now leans on is read linearly near the
+  bridge's cliff. The arms report failures before pension access to show what that costs.
+
+## 4. The experiment
+
+**Arms**, each executed by the engine on the same paths (`curve/curve-audit.mjs`, built from the tier test's
+`audit-tiers.mjs`):
+
+| Arm | What it is |
+|---|---|
+| APP | arm A, the app's rules with guardrails, as Phase 4 ran it |
+| CAND | the candidate (fcd8096217b7), 45 points, estate weight 0.02 |
+| ZERO | CAND with a year of ruin priced as a cut to nothing (`failureShortfall: 'zero'`, the option the code keeps) |
+| FLAT | CAND with no raises (`raiseWeight: 0`: the credit and the 110% level gone) |
+| HYB | UTIL's curve, ruin price and mortality, with survival still the currency: kappa set so a year at the floor costs what it costs CAND (lambda x 0.2^2), the estate by the same exchange, CAND's switch charge |
+| UTIL | the spending-utility objective above, spending the currency (kappa 1); its switch charge CAND's 0.001 in its units (x 0.25 / (lambda x 0.04)), so a tier change costs what it costs CAND against a year at the floor |
+| UTILNM | UTIL without the mortality weights |
+
+The arms take the diagnosis apart:
+- ZERO changes the ruin price alone (point 3);
+- FLAT removes the kink alone (point 2);
+- HYB changes the curve, the ruin price and the time weight (points 2 to 4) with survival still the currency;
+- UTIL makes spending the currency as well (point 1);
+- UTILNM is UTIL without the mortality weights.
+
+**Households**, 8 of Phase 4's 40, chosen before any run:
+- retired at the start: S030 and S050 (68), S090 (61, the deep review's), S368 (50, a long bridge);
+- working: S188 (55, retiring at 60);
+- FIRE, retiring at 52: S304F (pension-heavy), S328F (the deep review's) and S340F.
+
+**Settings:** seed 7002, 1,500 paths a unit, the landed targets and minimum pots, and arm A's pick searched as Phase 4
+searched it. runPath is held to E.runTrial on the first 100 paths of each unit, and runPolicy beside the engine on the first
+500.
+
+**The read** (`curve/curve-reduce.mjs`), each household counted once. Per arm:
+- survival, and the spending delivered, paired against CAND and APP;
+- the curve: the mean level by retired year (0-4, 5-9, 10-19, 20 on), over paths not yet failed;
+- the first retired year's level;
+- years at the floor and at 110%;
+- the mean year-to-year change and the share of years that change;
+- the share of failures whose year before is a raise, and failures before pension access;
+- the estate, and the median and unlucky tenth's end wealth;
+- unmet spending.
+
+**Prediction:**
+- **UTIL:** the first retired year at 95% of target or more; the curve flat or gently falling; at most half CAND's years
+  at the floor; a raise before under 5% of failures. Survival 1 to 4 points below CAND, since the mortality weights
+  discount a late shortfall, but well above APP. Lifetime spending within 2% of CAND's.
+- **UTILNM:** survival within a point of CAND, a flat curve, fewer years at the floor than CAND.
+- **HYB:** survival within 0.5 of CAND and a raise before under 5% of failures, with fewer years at 110%. The first
+  year's cut largely stays, since a year at the floor costs what it costs CAND and buys the same survival: within 5 points
+  of CAND's first-year level, and its years at the floor within a fifth of CAND's.
+- **ZERO:** a raise before under 10% of failures, survival +0.1 to +0.5 against CAND, spending 0.5 to 1.5% lower, and the
+  early cut stays.
+- **FLAT:** the early cut stays, since it buys survival; no year at 110%; spending 2 to 4% lower; survival within 0.3.
+
+**The rule for the recommendation**, fixed now:
+- **A utility arm is recommended** as the curve's replacement if, on these households, it:
+  - keeps at least half of CAND's survival gain over APP;
+  - delivers at least CAND's lifetime spending less 1%;
+  - starts retirement at 95% of target or more;
+  - spends fewer years at the floor than CAND.
+- **If both utility arms qualify,** UTIL is recommended, mortality being the natural weight. UTILNM is offered as the
+  setting for a user who wants every year to count alike.
+- **If neither qualifies, but HYB keeps survival within 0.25 of CAND's and cuts the raise before ruin below 5% of
+  failures,** HYB is recommended as the smallest change consistent with backward induction.
+- **Failing that,** the best of ZERO and FLAT by the same measures is recommended as the minimal fix, with the utility
+  arms' trade-off set out for the maintainer.
+
+## 5. Declared: the run made before writing
+
+The option's tests (`curve/curve-test.mjs`, results in `curve/results-curve-test.txt`) check five things:
+- the identity with the option off, against the original code, every table bit for bit;
+- the weights, costs and ruin prices against their formulas;
+- the mortality weights reaching the tables;
+- the e3pcls pin, re-passed on the patched code (`research/tests/solver-e3pcls.test.mjs 4 --pin`);
+- each check shown failing on a planted fault.
+
+## 6. The results
+
+(to follow)

@@ -1,0 +1,103 @@
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index 0a5f325..6522514 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -646,7 +646,32 @@ export function solve(E, M, plan, opts = {}) {
+    */
+   const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
+   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
+-  const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
++  /*
++   * SPENDING UTILITY (research only; the external review of 29 Oct, research/reviews/2026-10-29/SPENDING-CURVE.md).
++   * `spendUtility` = { gamma, kappa, beta, mortality: { mode, disp } or null, ruinMin }. A year's spending level scores
++   * u(level) = (level^(1 - gamma) - 1) / (1 - gamma) (the log at gamma 1), weighted by the chance of being alive that year
++   * and the time preference, w(t) = kappa S(t) beta^t, S a Gompertz survival from the plan's age (its mode and dispersion in
++   * years; 1 without mortality). A move's cost is w(t) (u(1) - u(level)): a cut costs and a raise earns on one concave
++   * curve; lambda and the raise credit are not used. A year that cannot be paid is lived on the guaranteed income: its level
++   * max(ruinMin, the year's guaranteed net income over its target), priced by the same curve in every remaining year
++   * (failCostAt), so running out costs by its depth and its length. A raise counts in the year it is spent
++   * (raiseSurvival does not apply). Off, every table is the one solved before.
++   */
++  const SU = opts.spendUtility || null;
++  const SUw = SU ? new Float64Array(T + 2) : null;
++  let uOf = null;
++  if (SU) {
++    const gam = SU.gamma !== undefined ? SU.gamma : 2, kap = SU.kappa !== undefined ? SU.kappa : 1, beta = SU.beta !== undefined ? SU.beta : 1;
++    if (!(gam > 0) || !(kap > 0) || !(beta > 0)) throw new Error('spendUtility needs gamma, kappa and beta above nothing');
++    uOf = Math.abs(gam - 1) < 1e-12 ? (l) => Math.log(l) : (l) => (Math.pow(l, 1 - gam) - 1) / (1 - gam);
++    const mo = SU.mortality || null, a0 = m.ctx.ageSelf0;
++    if (mo && !(mo.disp > 0)) throw new Error('spendUtility: the mortality needs a dispersion above nothing');
++    const Sx = (t) => (mo ? Math.exp(-Math.exp((a0 - mo.mode) / mo.disp) * (Math.exp(t / mo.disp) - 1)) : 1);
++    for (let t = 0; t <= T + 1; t++) SUw[t] = kap * Sx(t) * Math.pow(beta, t);
++  }
++  const costOf = SU
++    ? (level, t = 0) => SUw[t] * (uOf(1) - uOf(level))
++    : (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
+   /*
+    * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
+    * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
+@@ -949,7 +974,7 @@ export function solve(E, M, plan, opts = {}) {
+    * already computed for the move), so a raise in a hopeless position is worth nothing. Off, every table is
+    * the one solved before, bit for bit.
+    */
+-  const raiseSurv = !!opts.raiseSurvival;
++  const raiseSurv = !!opts.raiseSurvival && !SU;   // spendUtility counts a raise in the year it is spent
+   const raiseOfAction = new Float64Array(A);
+   /*
+    * A YEAR WITH NO MONEY IS THE DEEPEST CUT (`failureShortfall`, M17's root cause). The trim penalty is charged
+@@ -967,7 +992,11 @@ export function solve(E, M, plan, opts = {}) {
+   const failShort = !!opts.failureShortfall;
+   const failLevel = opts.failureShortfall === 'zero' ? 0 : Math.min(...levelOf);
+   const failCostAt = new Float64Array(T + 2);
+-  if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? lambda * shortOf(Math.min(1, failLevel)) : 0);
++  if (SU && !failShort) throw new Error('spendUtility prices a year that cannot be paid, so it needs failureShortfall');
++  // spendUtility: each remaining spending year lived on the guaranteed income, at least ruinMin of the target, on the same curve
++  const ruinLevelAt = SU ? Float64Array.from({ length: T + 1 }, (_, t) => (c.yr.spend[t] > 0 ? Math.min(1, Math.max(SU.ruinMin !== undefined ? SU.ruinMin : 0.1, (c.yr.taxFree0[t] + E.calculateUKNetIncome(c.yr.taxable0[t], c.P)) / c.yr.spend[t])) : 1)) : null;
++  if (SU) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? SUw[t] * (uOf(1) - uOf(ruinLevelAt[t])) : 0);
++  else if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? lambda * shortOf(Math.min(1, failLevel)) : 0);
+   /*
+    * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
+    * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
+@@ -1082,7 +1111,7 @@ export function solve(E, M, plan, opts = {}) {
+     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
+     // outer one and this would otherwise be evaluated K times for the same answer
+     for (let ai = 0; ai < A; ai++) {
+-      const cst = spendYear ? costOf(levelOf[ai]) : 0;
++      const cst = spendYear ? costOf(levelOf[ai], t) : 0;
+       if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
+       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
+     }
+@@ -1563,6 +1592,7 @@ export function solve(E, M, plan, opts = {}) {
+   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
+   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
+   if (switchCharge > 0) meta.switchCharge = switchCharge;
++  if (SU) meta.spendUtility = { gamma: SU.gamma !== undefined ? SU.gamma : 2, kappa: SU.kappa !== undefined ? SU.kappa : 1, beta: SU.beta !== undefined ? SU.beta : 1, mortality: SU.mortality || null, ruinMin: SU.ruinMin !== undefined ? SU.ruinMin : 0.1 };   // the review's research option, recorded for the fair test
+   if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
+   if (opts.tsLean !== undefined) meta.tsLean = opts.tsLean;   // SPEED-PORT-2.md's test switch, recorded when set
+   if (E3) meta.e3 = { copied: e3Copied };
+@@ -1593,6 +1623,7 @@ export function solve(E, M, plan, opts = {}) {
+     finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX,
+     tsLayers: TS ? layW[centre] : null, tsLayerOf,
+     raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
++    spendUtility: SU ? { w: SUw, ruinLevel: ruinLevelAt, failCost: failCostAt } : null,   // the review's research option: its weights and ruin prices, for its tests
+     /*
+      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
+      * `scoreMoves(tab, ...)` on each and so needs a complete object. Everything immutable is shared by
+@@ -1788,7 +1819,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; if (SV) SV[ai] = 0; continue; }
+     // a move that changes tier pays the round trip on the slice traded before the year's growth
+     if (held) F.chargeSwitch(c, post, held, variant ? variant.act : c.acts[ai], t);
+-    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
++    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
+     const rz = r.raiseSurvival && cst < 0 ? cst : 0;   // M17: a raise's credit, weighted below by the survival it leads to
+     let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+     const nr = variant ? variant.nr : nodeRealOf[ai];
+@@ -1934,7 +1965,7 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+     TX[ai] = D.tx[ai];
+     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+     const o = ai * L, post = D.cpost.subarray(o, o + L);
+-    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
++    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
+     const rz = r.raiseSurvival && cst < 0 ? cst : 0;
+     let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+     const lj = !final && r.tsLayers ? r.tsLayerOf[ai] + 1 : 0, cl = plant === 'nocls' ? 0 : cls[ai];

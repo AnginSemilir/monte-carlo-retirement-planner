@@ -121,11 +121,11 @@ L.push('');
 // the curve by cohort: retired at the start, still working, retiring at 52 (Phase 4's FIRE cohort)
 const cohortOf = id => { const u = U[id][have[0]]; return u.retireT === 0 ? 'retired at the start' : id.endsWith('F') ? 'FIRE, retiring at 52' : 'still working'; };
 const COH = [...new Set(IDS.map(cohortOf))];
-L.push('The curve by cohort (mean level, % of target, by retired year 0-4 / 5-9 / 10-19 / 20 on; the first retired year; years at the floor):');
+L.push('The curve by cohort (survival; the mean level, % of target, by retired year 0-4 / 5-9 / 10-19 / 20 on; the first retired year; years at the floor):');
 for (const co of COH) {
   const ix = IDS.map((id, i) => [id, i]).filter(([id]) => cohortOf(id) === co).map(([, i]) => i);
   L.push(`  ${co} (${ix.map(i => IDS[i]).join(', ')}):`);
-  for (const a of have) { const X = ix.map(i => R[a][i]); L.push(`    ${a.padEnd(7)} ${[0, 1, 2, 3].map(j => f1(mean(X.map(x => x.curve[j]).filter(Number.isFinite)))).join(' / ')}; first year ${f1(mean(X.map(x => x.first)))}; at the floor ${f2(mean(X.map(x => x.atFloor)))}`); }
+  for (const a of have) { const X = ix.map(i => R[a][i]); L.push(`    ${a.padEnd(7)} ${f2(mean(X.map(x => x.surv))).padStart(6)}%;  ${[0, 1, 2, 3].map(j => f1(mean(X.map(x => x.curve[j]).filter(Number.isFinite)))).join(' / ')}; first year ${f1(mean(X.map(x => x.first)))}; at the floor ${f2(mean(X.map(x => x.atFloor)))}`); }
 }
 L.push('');
 // the curve year by year: each household's mean level by retired year over its paths not yet failed, averaged over the

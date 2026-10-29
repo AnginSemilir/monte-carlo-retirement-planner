@@ -291,8 +291,8 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
-1. Part C (D40): the app behind its switch (`SOLVER` in `App.jsx`, the archived plan's phases 7 to 12), its build plan to the maintainer before any app code;
-   the spending curve with the external reviewer meanwhile, whose answer may move the candidate's settings before the switch goes on.
+1. Part C (D40): the app behind its switch (`SOLVER` in `App.jsx`, the archived plan's phases 7 to 12); its build plan, `PART-C-PLAN.md` (N7, then Phase 7),
+   with the maintainer before any app code; the spending curve with the external reviewer meanwhile, whose answer may move the candidate's settings.
 2. D37's and D38's items (D40). Done: the GIA basis under CGT off guarded (`state-check.test.mjs`'s CGT-off household, failing before); the held-out
-   scan reads the review branch (`held-out.mjs`, a planted case). Next: sized, the windfall, `solveBoth`'s lump sum and the savings split while working
-   (`action.contrib`); the cash ISA under a table a known limitation; the nightly sweep weighed. M21's Medium-tier check skipped (D40).
+   scan reads the review branch (`held-out.mjs`, a planted case). Sized, recorded and weighed in `AFTER-PHASE4.md`: the lump sum (almost a
+   solver choice already), the windfall and the savings split; the cash ISA a known limitation; the sweep for the nightly tier. Each build waits on the maintainer.

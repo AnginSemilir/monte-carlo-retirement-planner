@@ -3,3 +3,5 @@ S090: the pension and ISA's equity share each arm holds (light settings, 300 pat
   HYB     survival 96.0% on 300; equity at years 1, 5, 10, 20, 30: 23%, 20%, 20%, 21%, 71%
   HYB10D  survival 93.3% on 300; equity at years 1, 5, 10, 20, 30: 83%, 76%, 67%, 38%, 70%
   UTIL    survival 85.3% on 300; equity at years 1, 5, 10, 20, 30: 83%, 77%, 69%, 72%, 74%
+  UTIL3D  survival 89.7% on 300; equity at years 1, 5, 10, 20, 30: 83%, 76%, 58%, 56%, 70%
+  UTIL5D  survival 92.7% on 300; equity at years 1, 5, 10, 20, 30: 83%, 73%, 56%, 37%, 54%

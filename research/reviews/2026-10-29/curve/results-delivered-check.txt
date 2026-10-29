@@ -1,0 +1,2 @@
+planted: at the target x (1 + 1e-3) the identity misses by 1891 pounds on S030 CAND (seen)
+96 units: the largest gap between delivered and the levels times the target less the unmet, the solver's units 0.06 pounds (S340F ZERO), the app's 5033.88 pounds (S090 APP)

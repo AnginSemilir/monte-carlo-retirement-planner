@@ -16,6 +16,48 @@ candidate.json and no file on the agent's branch is changed; the prototype is a 
 committed and pushed before the experiment is launched. One run was made before writing (the option's tests), declared
 below.
 
+## The answers in brief
+
+The figures are section 9's, each printed by the read: `curve/results-spending-curve.txt`, and for the four households
+retired at the start `curve/results-spending-curve-retired.txt`. The reasoning is section 10's. EXPLORATORY: eight
+households, one seed.
+
+1. **The front-loaded cut is sound. It is the price of the success rate, not a fault in the curve.** For the four households
+   retired at the start, every arm that starts higher survives less (the first year's level, then survival):
+   - the candidate: 80% and 97.4%;
+   - ten times the dislike of cuts: 82.5% and 94.7%;
+   - the utility objective at gamma 5: 83.8% and 92.2%;
+   - at gamma 3: 87.5% and 88.8%;
+   - at gamma 2: 93.8% and 88.2%;
+   - the app's guardrails: 100% and 86.1%.
+
+   Neither the ruin price, nor the curve's shape, nor the failure-year fix moves the start: each starts them at 80%. The
+   candidate also buys survival by holding the investments much safer. On S090 it holds about a quarter in equity where
+   the plan holds 83% (a quick look, not a result).
+2. **The raise before ruin is a fault in how ruin is priced, and the fix is free.** The year the money runs out is charged a
+   fixed price, however much is left, so money kept for it earns nothing. Charging that year by what it can pay
+   (`failDelivered`) takes the raise from 30.2% of the paths that run out to none, for the candidate and the hybrid alike.
+   Survival is the same on every path and spending 0.007% lower. It is recommended for whichever objective is chosen.
+3. **No tested change gives a smoother curve for free.** The best trade found is ten times the dislike of cuts:
+   - retirees start at 82.5% and are back at target by year 8, instead of year 12;
+   - spending from year 20 averages 101.9% of target, instead of 107.5%;
+   - spending while alive is 0.4% higher;
+   - it costs 2.1 points of survival.
+
+   The textbook backward-induction objective (spending utility weighted by the chance of being alive) does worse at every
+   gamma tried. At gamma 5 it costs 4.7 points of survival, for 0.2% less spending while alive and a start no better on
+   average (83.6% against 85.4%).
+   Taking the raises away (FLAT) costs 8.5% of lifetime spending, for nothing.
+4. **Part C's defaults:**
+   - the candidate with the failure-year fix;
+   - raises to 110%, as now;
+   - the estate weight and the minimum pot as they are;
+   - the dislike of cuts as the user's dial, with today's setting the default.
+
+   Ten times is the smoother option. But on S090 it also stops the solver holding the investments safer, so the dial needs
+   one more test before it ships (section 10). The app presents the early cut as a safe starting spend, with its path back
+   to target, and the late raise as what good markets would allow.
+
 ## 1. What the curve is, in the code
 
 The candidate scores each move at a position by
@@ -177,7 +219,8 @@ The prediction above was committed before any of these, at 6a1687d.
 
 ## 6. The results
 
-(to follow)
+The results of all three declarations are read together in section 9, after the two amendments (sections 7 and 8) that
+added arms before the read.
 
 ## 7. The amendment, declared after UTIL's read and HYB's first unit, before its own units
 
@@ -267,3 +310,201 @@ the one with the higher survival. If neither, both are reported as points on the
 
 **The order of the runs:** the first amendment's arms and these first, the registered UTILNM and FLAT after. Every declared
 arm runs before the read.
+
+## 9. The results
+
+Every figure here is printed by `curve/curve-reduce.mjs` over the 96 units. The eight households' figures are in
+`curve/results-spending-curve.txt`; those of the four retired at the start are in `curve/results-spending-curve-retired.txt`.
+Each household counts once.
+
+**The checks** (the read's first lines, and the units' own records):
+- **Fair:** one candidate (fcd8096217b7), seed 7002, 1,000 paths a unit, and each household's arms on one inputs hash. The
+  code is the registered 5495d1b168c7 and the failure-year code 6ef708fc14ca, declared one by
+  `curve/results-curve-test2.txt` and `curve/results-cross-code.txt`.
+- **The engine and the policy agree.** runPath was held to E.runTrial on the first 100 paths of every unit, and a unit that
+  differed would have stopped; none did. runPolicy beside the engine differs on 0 of 17,600 paths (88 solver units).
+- **Each arm ran what was declared,** printed from its units.
+- **The spending measures rest on one identity:** delivered is the levels times the target, less the unmet. It holds to 6
+  pence on every solver unit, and a planted error in the target is seen (`curve/delivered-check.mjs`;
+  `curve/results-delivered-check.txt`). The app's levels are stored rounded (within £5,034 on a path), so the read
+  rescales them to their totals.
+- **The order of the runs changed twice,** to bring the deciding arms forward: UTILNM, then gamma 5 and the tenfold arm. That
+  changes no result. Four units, cut off by the harness's two-hour limit or stopped to reorder, ran again from the start; a
+  unit is written only when it completes.
+
+**The arms** (the households' means; against CAND paired by path, its se at most 0.35 points of survival and 0.07% of
+spending):
+
+| Arm | Survival | Against CAND: survival | Spending against CAND, lifetime / while alive | Retirees: first year / years 1-5 | From year 20 | Years at the floor | Raise before ruin | Running out while alive |
+|---|---|---|---|---|---|---|---|---|
+| APP | 86.15% | -10.83 | -5.47% / -3.25% | 100 / 98.3 | 97.8 | 5.19 | 2.6% of 922 | 7.11 |
+| CAND | 96.97% | | | 80.0 / 80.7 | 107.5 | 8.66 | 30.2% of 202 | 1.24 |
+| ZERO | 96.97% | +0.00 | -0.22% / -0.31% | 80.0 / 80.6 | 107.4 | 9.11 | 9.8% of 193 | 1.12 |
+| FLAT | 97.05% | +0.08 | -8.52% / -7.85% | 80.0 / 81.4 | 96.4 | 7.33 | 0% of 198 | 1.20 |
+| HYB | 97.01% | +0.04 | -2.95% / -1.73% | 80.0 / 81.2 | 101.4 | 10.18 | 19.1% of 194 | 1.13 |
+| UTIL | 89.15% | -7.83 | -0.37% / +2.36% | 93.8 / 94.6 | 102.2 | 6.06 | 18.1% of 723 | 3.99 |
+| UTILNM | 89.41% | -7.56 | +1.02% / +1.95% | 83.8 / 87.6 | 107.4 | 5.92 | 13.6% of 513 | 2.87 |
+| CANDD | 96.97% | +0.00 | -0.01% / -0.01% | 80.0 / 80.7 | 107.5 | 8.69 | 0% of 197 | 1.22 |
+| HYBD | 97.01% | +0.04 | -2.94% / -1.73% | 80.0 / 81.2 | 101.3 | 10.19 | 0% of 195 | 1.14 |
+| HYB10D | 94.88% | -2.10 | -1.48% / +0.36% | 82.5 / 86.3 | 101.9 | 8.19 | 0% of 321 | 2.04 |
+| UTIL3D | 89.63% | -7.35 | -0.75% / +1.50% | 87.5 / 90.7 | 102.5 | 6.12 | 0% of 686 | 3.53 |
+| UTIL5D | 92.28% | -4.70 | -1.61% / -0.22% | 83.8 / 85.4 | 102.7 | 6.69 | 0% of 453 | 2.26 |
+
+The columns:
+- **Retirees** are the four households retired at the start; their years 1-5 are the read's retired years 0-4.
+- **From year 20** is the mean level, % of target, from the 20th retired year, over all eight households.
+- **Raise before ruin** counts the paths that ran out whose year before was at 110%.
+- **Running out while alive** counts each path that runs out by the chance of being alive that year, in points.
+
+**The rules, read.** Each criterion's estimate is the verdict, as registered. Its 95% interval by path settles every verdict
+below.
+- **Section 4, a utility arm: none qualifies.**
+  - UTIL, UTILNM and UTIL3D keep too little of CAND's survival gain over APP: 2.41, 2.15 and 1.94 points short of half.
+  - None starts at 95% (UTIL, the closest, at 93.9%).
+  - UTIL5D keeps enough survival (0.71 points over half the gain), but spends 1.61% less than CAND over a lifetime and starts
+    at 83.6%.
+- **Section 4, HYB: fails** on the raise before ruin, 19.1% of the paths that run out.
+- **Section 4's fallback, the better of ZERO and FLAT on the same two measures:** ZERO fails (9.8%); FLAT passes both.
+  - By the rule's letter, FLAT is the minimal fix.
+  - But the two measures leave out spending, and FLAT gives up 8.5% of it, a gap in how the rule was drafted.
+  - The failure-year fix meets the same two measures at no cost (section 7). So FLAT is not recommended.
+- **Section 7: failDelivered passes on both its bases.**
+  - Survival is within 0.25: +0.000 path by path for CAND, and +0.000 for HYB.
+  - No raise before ruin: 0 of 197 and 0 of 195 paths that run out.
+  - It is recommended.
+- **Section 8:** neither UTIL3D nor UTIL5D qualifies (above).
+
+**The predictions, read.** 25 of the 40 checks held. The misses, in plain words:
+- **The utility arms' survival** was predicted too high every time:
+  - UTIL -7.8 points against CAND, predicted -1 to -4;
+  - UTILNM -7.6, predicted within a point;
+  - UTIL3D 89.6%, predicted 92 to 95.5%;
+  - UTIL5D 92.3%, predicted 95 to 97.5%.
+
+  The mortality weights and gamma were expected to be the levers; neither is (section 10).
+- **The early cut** held more firmly than predicted: UTIL's first year 93.9% (predicted 95% or more), and HYB10D's retirees
+  82.5% (predicted 90% or more).
+- **ZERO changed less than predicted** (survival +0.00, spending -0.2%), and **FLAT cost far more spending** (-8.5%, predicted
+  -2 to -4%).
+- **HYB10D cost more survival** on the retirees (-2.7 points against HYB, predicted -0.5 to -2) and cut their years at the
+  floor by less than a third.
+- **The failure-year fix did what was predicted,** on every check.
+
+**What the households show** (the read's per-household rows):
+- S050 is 68, with a small target largely covered by the State Pension. Every utility arm survives 82.4% to 86.1% there,
+  against CAND's 98.9%: running out of savings is a modest cut there, and the utility objective prices it so.
+- The tenfold setting costs 3.3 to 3.6 points of survival on S090, S030, S050 and S340F, and 0.3 to 1.1 on the other four.
+- S304F and S368 survive 93.1% to 99.8% under every solver arm.
+
+**A quick look at the investments** (`curve/tier-read.mjs`; `curve/results-tier-read.txt`: S090 at the light settings,
+300 paths; not a result):
+- The solver may hold each wrapper at the plan's own tier or up to two tiers safer.
+- CAND and HYB hold 20% to 25% in equity for 20 years.
+- HYB10D and every utility arm keep the plan's 83% in the first year. By year 10 the utility arms hold 56% to 69% and HYB10D
+  67%.
+
+## 10. The answers, the recommendation and what is left
+
+### The four questions
+
+**1. Is the front-loaded cut sound, or an artefact?** Sound. It is what a survival-first objective is asked for.
+- For the households retired at the start, the first year is one decision, taken on the same state on every path. Every
+  arm that prices running out seriously takes it at the floor: CAND, ZERO, FLAT, HYB and the failure-year arms at 80%,
+  and the tenfold arm at 82.5%.
+- A higher start is bought with survival (the brief's list). No arm moves along that line for free.
+- The curve's shape changes the later years, not the start. CAND's raise credit is steepest just above the target and
+  ignores the chance of being alive, so CAND climbs to 107.5% of target from year 20. The arms with the mortality weights
+  stay at 101% to 103%.
+- The cut works with a second lever: CAND holds the investments much safer than the plan (the quick look).
+
+So the cut is not an artefact to remove. Its size is a choice: the exchange rate between a year's cut and the chance of
+running out, which is Part C's dislike of cuts.
+
+**2. Is the raise before ruin only presentation, or should ruin be priced differently?** Priced differently, and the fix
+costs nothing.
+- CAND raises in the year before the money runs out on 30.2% of the paths that run out.
+- The year of ruin is charged a fixed price, whatever is left. On a path where cutting cannot postpone the failure, money
+  kept for that year earns nothing, so the raise wins.
+- Pricing each year of ruin as a cut to nothing (ZERO) only brings it down to 9.8%.
+- Charging the failure year by what it can pay (failDelivered) removes it: 0 of 197 paths that run out for CAND, and 0 of
+  195 for HYB.
+- With the fix, survival is the same on every path, spending is 0.007% lower over a lifetime, and the curve is the same to
+  a tenth of a point. The fix only changes what the plan does on paths already lost.
+
+**3. Which changes give a smoother, more defensible curve, and at what cost?**
+- **The failure-year fix** is free, and it makes the curve defensible where it was not.
+- **Ten times the dislike of cuts** is the best smoothing found.
+  - Retirees start at 82.5% and spend 86.3% of target in their first five years, against 80.7%.
+  - They are back at target by year 8, instead of year 12.
+  - Spending from year 20 averages 101.9% of target, against 107.5%.
+  - It costs 2.1 points of survival and 1.5% of lifetime spending, and spends 0.4% more while alive.
+  - On S090 it also keeps the plan's equity early, which likely accounts for much of the survival it gives up.
+- **The utility curve with survival first** (HYB) keeps CAND's survival and flattens the late rise. But it spends 2.9% less
+  over a lifetime (1.7% while alive) and spends more years at the floor (10.2 against 8.7). It is principled, but no better.
+- **The textbook objective** (UTIL at gamma 2, 3 and 5, and UTILNM without the mortality weights) costs 4.7 to 7.8 points of
+  survival. At gamma 2 and 3, and without the weights, it spends 1.5% to 2.4% more while alive; at gamma 5, 0.2% less.
+- **Pricing ruin as a cut to nothing** (ZERO) changes almost nothing: the same survival, 0.2% less spending, and the raise
+  before ruin only partly gone.
+- **Taking the raises away** (FLAT) gives the smallest steps (0.85 points a year against 1.64) but costs 8.5% of lifetime
+  spending, for 0.08 points of survival. Spending never gets back to the target on average, so the raise credit is what lifts
+  the curve after the early cut, not only above the target.
+
+**4. What should Part C's defaults be, and how should the app present the cut and the raise?**
+- **The objective:** the candidate's, with the failure-year fix.
+- **The dislike of cuts:** the user's dial, with today's setting the default. The smoother setting (ten times) costs about 2
+  points of survival. Its design needs the test below first, since on S090 it also changes the investments.
+- **Raises:** to 110% of target, as now. Without them, lifetime spending is 8.5% lower.
+- **The estate weight (0.02) and the minimum pot:** as they are. Nothing here argues for a change.
+- **The early cut,** presented as a safe starting spend: "start at £X a year, 80% of your target; on the typical path you
+  are back at your target in about N years". Beside it, what the cut buys: for these households, 97.4% survival, where
+  the app's guardrails, starting at the target, reach 86.1%.
+- **The late raise,** presented as what good markets would allow: "if markets do well, you can spend above your target
+  later on". It belongs in the fan of outcomes, not the headline.
+
+### The recommended settings, with their costs
+
+Against today's candidate, on the eight households:
+
+| Setting | Recommended | Survival | Lifetime spending | Spending while alive | Retirees: first year, back at target |
+|---|---|---|---|---|---|
+| The failure year at what it can pay | on | +0.000 | -0.007% | -0.010% | 80%, year 12 (unchanged) |
+| The dislike of cuts | today's, the default | | | | 80%, year 12 |
+| Its smoother setting | ten times (HYB10D), after the test below | -2.10 | -1.48% | +0.36% | 82.5%, year 8 |
+| Raises | to 110%, as now | without them +0.08 | without them -8.52% | without them -7.85% | |
+| The estate weight and the minimum pot | as now | | | | |
+
+### Why the textbook objective does not win here
+
+Expected lifetime utility is what a backward induction solves in the textbook. It is coherent, and it smooths spending by
+itself. It loses here for three reasons, all in the read:
+- **It charges running out by the cut it brings.** For S050, whose State Pension covers most of the target, running out of
+  savings is a modest cut, so the objective accepts it: 86.1% survival at gamma 5, against CAND's 98.9%. The success rate
+  counts the same path as a failure.
+- **It discounts late years by the chance of being alive.** At gamma 5 its paths run out at a mean age of 88.1, against
+  CAND's 85.3. Counted by the chance of being alive when it happens, its risk of running out is 2.26 points against 1.24:
+  much closer than the success rates. The weights are not the cause of the lost survival, though. Without them (UTILNM)
+  survival is 89.4%, against 89.2% with them.
+- **It keeps the plan's equity.** At gamma 2 to 5 it holds the plan's 83% in the first year on S090, where CAND holds about
+  a quarter. One parameter sets both its dislike of uneven spending and its aversion to risk.
+
+So it answers a different question from the app's headline. If the app ever led with the chance of running out while
+alive, rather than the success rate to the plan's end, it would be worth a second look.
+
+### What this does not show
+- The panel is eight households and one seed, all single, so the mortality weight is one person's. A couple's should be the
+  chance that either is alive.
+- The utility arms value the estate only at the plan's end, not at each age of death.
+- The investment figures are a quick look, on one household at the light settings.
+- The dislike of cuts was tested at one point, ten times, on the utility curve. The candidate's own lambda was not scaled.
+- Not tested:
+  - a first year held at the target, which would price a guardrail-like start directly;
+  - a dial that leaves the investments to the survival-first objective;
+  - Epstein-Zin preferences, which give risk and the smoothing of spending a dial each and are built for backward
+    induction.
+
+### What would come next, if the maintainer asks
+1. **The dial:** the candidate's lambda at three and ten times, and HYB at three times, on these households, with the
+   tiers each holds reported.
+2. **The start at target:** the first year held at the target and the rest solved, to price a guardrail-like start.
+3. **The fix into the solver:** `failDelivered` on by default. That is CC's work, after the maintainer's decision. It needs
+   the e3pcls pin refreshed and the deep review's tests.

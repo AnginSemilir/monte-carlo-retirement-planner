@@ -179,7 +179,8 @@ const BLOCKS = {
       const v = pick(R, new RegExp(`^${esc}: (PASSES N4's bar|does not pass N4's bar): beyond the targets (.*?); a household loss beyond 0\\.5 (.*)$`, 'm'), m => `${m[1]}${m[2] === 'nowhere' ? '' : ` (beyond the targets on ${[...new Set([...m[2].matchAll(/(S\d+|panel mean) W/g)].map(x => x[1]))].join(', ')})`}; a household loss beyond 0.5 ${m[3]}`);
       out.push(`- ${k}: ${v}; ${mean.join('; ')}.`);
     }
-    return fold(out, [[0, 1], [1, 2], [2]]);
+    // folded for D40's line (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0, 1], [1]]);
   },
   // HR decomposed (D27; n4-menu.mjs --read-hr): each half alone against the candidate, and their interaction
   n4hr() {

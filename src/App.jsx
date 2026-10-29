@@ -2502,7 +2502,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
         const excess = cash - bufferEach;
         pots[o.ids.cash] = bufferEach;
         pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
-        giaAddBasis(state, o.key, excess);
+        if (cgtOn) giaAddBasis(state, o.key, excess);
       } else if (cash < bufferEach) {
         const before = realisedGains[o.key];
         const got = sellGia(o.ids.other, bufferEach - cash);

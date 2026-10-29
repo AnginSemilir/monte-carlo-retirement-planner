@@ -23,6 +23,8 @@
  *      hides there;
  *   4. planted: a field added to the state fails the inventory, and the carried gains listed as inert fail the
  *      perturbation.
+ * A sixth household (D38 (3)): the taxable household with CGT off and cash above its buffer, the sweep's basis add in
+ * the engine unguarded before 29 Oct; it runs in both forms.
  * Singles only: a couple's forward run is couple.js's own (7u-F's panel is all singles). Two forms: by default the quick
  * one, in the fast suite (so this file is protected): the taxable household and S370 at 10 paths each, so both planted
  * faults still fire; with --full (state-check-full.test.mjs, in the nightly full suite) all five households, 40 paths.
@@ -49,8 +51,11 @@ const CARRY = {
     acc('other_self', 'Myself', 'Other Investments (e.g. GIA)', 400000, 'Medium Risk', { unrealisedGain: 240000 }), acc('cash_self', 'Myself', 'Cash Savings', 15000, 'Cash Equivalents')],
   config: { valuationDate: '2026-01-01' }
 };
+// the same household with CGT off and cash above its buffer, so the sweep moves the excess into the taxable account: the
+// engine must not add it to a basis that nothing with CGT off keeps (D38 (3); the review's gaps sweep, gaps/cgt-basis.patch)
+const NOCGT = { ...CARRY, accounts: CARRY.accounts.map(a => (a.id === 'cash_self' ? { ...a, balance: 90000 } : a)), config: { ...CARRY.config, cgtEnabled: false } };
 const all = buildScenarios();
-const HH = [['carry', CARRY], ...(QUICK ? ['S370'] : ['S224', 'S370', 'S008', 'S380']).map(id => [id, all.find(s => s.id === id).plan])];
+const HH = [['carry', CARRY], ['carry, CGT off', NOCGT], ...(QUICK ? ['S370'] : ['S224', 'S370', 'S008', 'S380']).map(id => [id, all.find(s => s.id === id).plan])];
 const planOf = p => { const h = JSON.parse(JSON.stringify(p)); return E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } })); };
 
 // the move a table hands the engine for index ai, as tablePolicy builds it (checked against it whenever both pick the same)

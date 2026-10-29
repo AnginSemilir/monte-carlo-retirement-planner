@@ -1,0 +1,7 @@
+PASS  two untouched library ids to plant (S003, S005; 204 untouched of the library)
+PASS  the planted case: S003, named in a review file's contents, is in the scan (touched() alone: out)
+PASS  the planted case: S005, named in a review file's name, is in the scan
+PASS  everything touched() finds stays in the scan
+PASS  a review branch that cannot be read is refused: held-out: the review branch origin/no-such-branch cannot be read (fetch it: git fetch origin no-such-branch)
+PASS  the real review branch (174 files, 81 ids named): every one in the scan, S368 among them; added to touched() alone: S036, S080, S152, S170, S372, S396
+ALL PASS: 6 checks

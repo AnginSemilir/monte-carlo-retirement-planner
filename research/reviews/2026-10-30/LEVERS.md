@@ -163,6 +163,8 @@ flexible-spending rows, the solver's investments with spending flexible (+4.6), 
 - The static tier is chosen on 1,000 search paths, so its choice carries their noise; that is part of choosing a rule in
   advance.
 - The draws were not the same levers on both sides (the next section).
+- The app's policy search here is 300 paths a combination. At the app button's 4,000 it does about a third of a point
+  better (the next section).
 
 ## What the solver does with the draws
 
@@ -305,6 +307,25 @@ arm's unit and the solver's.
 - **Acceptance:** the checks pass. **Time box:** 20 minutes.
 - **The prediction:** the pick is the same on most of the 16 household-rows; where it differs, the button's pick is within
   a point of the arm's, so the solver's lead moves by a few tenths at most.
+
+**Its results** (`levers/results-button-check.txt`). Every check passes: on all 16 household-rows the arm's pick is its
+unit's and replays as the unit on every path, and the plant is caught on every row. The solver less the arm, recomputed
+here, is the levers result in both rows (+3.20 and +6.20).
+- **9 of the 16 household-rows pick differently at the button's budget;** 5 of the 9 are close calls (the button's two
+  seeds pick differently).
+- **On the units' paths the button's pick is within a point of the arm's on seven of the nine** (-0.20 to +0.70). On S050
+  it is better: +1.80 with spending fixed and +2.80 flexible.
+- **Pooled, the button's pick is a little better:** +0.31 points with spending fixed (+0.13 to +0.49) and +0.38 flexible
+  (+0.17 to +0.58).
+- **So the solver's lead is a little smaller against the button.** The draws alone come to +2.89 (+2.50 to +3.28; +3.20
+  against the arm). The spending and the draws come to +5.82 (+5.30 to +6.35; +6.20 against the arm). Where the pick
+  changed, the solver is still ahead on every household-row (+1.40 to +8.90).
+- **The prediction** missed on the count (9 of 16 differ, where most were to be the same) and on S050 (beyond a point). It
+  held pooled: the lead moves by 0.31 and 0.38 points.
+- **What it means.** The app arm is the app's own optimiser, run on a smaller budget than the button's. At the button's
+  budget the app does about a third of a point better, and the solver's lead shrinks by that much. Phase 4's arm A runs
+  the same 300-path search (`select-phase4.mjs`, `TP = 300`), so Phase 4's +10.7 may carry a similar small bias towards
+  the solver; this was not measured on its households.
 
 **Noted, not investigated.** Over all paths the solver pays far more income tax than the fixed policy: pooled 17.50
 against 2.03 years of target, with income above the basic rate 17.97 against 0.46 (`results-draws.txt`). It also draws

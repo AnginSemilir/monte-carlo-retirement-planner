@@ -177,7 +177,9 @@ console.log('=========== E. THE GAIN FRACTION, WHICH THE GRID WILL LEAN ON =====
   /*
    * A GIA sale realises gain pro-rata and removes the cost portion from the basis, so the fraction of
    * the holding that is gain does not move. Only a deposit at cost and growth move it. The grid stores
-   * that fraction in three buckets, and this is the property that makes the bucket meaningful.
+   * that fraction in three buckets, and this is the property that makes the bucket meaningful. The GIA's
+   * dividends are such a deposit since 21 Oct (reinvested at cost, as the engine does: F0a), so the sale is
+   * checked with the dividend yield off, and the year with it on moves the fraction by the dividend alone.
    */
   const plan = E.normalizePlan({
     demographics: { planningMode: 'single', currentAgeSelf: 62, retireAgeSelf: 62, salarySelf: 0, employmentSelf: 'employed', statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 11500, terminalAge: 80 },
@@ -189,7 +191,7 @@ console.log('=========== E. THE GAIN FRACTION, WHICH THE GRID WILL LEAN ON =====
       { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' }
     ],
     otherIncomes: [], oneOffContributions: [], oneOffCosts: [],
-    config: { valuationDate: '2026-01-01', guardrails: false, lookaheadYears: 0, cgtEnabled: true }
+    config: { valuationDate: '2026-01-01', guardrails: false, lookaheadYears: 0, cgtEnabled: true, giaDividendYield: 0 }
   });
   const m = M.prepare(E, E.resolveMpaa(plan));
   const state = M.initialState(m);
@@ -201,6 +203,16 @@ console.log('=========== E. THE GAIN FRACTION, WHICH THE GRID WILL LEAN ON =====
   M.step(m, state, M.actionFromContext(m.ctx), 0, rates);
   const f1 = frac();
   ok('E2  a year of selling from the GIA leaves the fraction where it was', Math.abs(f1 - f0) < 1e-9, `${f0.toFixed(6)} -> ${f1.toFixed(6)}, sold £${Math.round(300000 - gia())}`);
+  {
+    // the same year with the app's dividend yield: the dividend, booked at cost before the sale, takes y x the year's
+    // fraction off the gain fraction, and the sale leaves the rest where it was
+    const mD = M.prepare(E, E.resolveMpaa({ ...plan, config: { ...plan.config, giaDividendYield: undefined } }));
+    const sD = M.initialState(mD), fracD = () => (sD.pots.other_self - sD.basis.self) / sD.pots.other_self;
+    const g0 = fracD();
+    M.step(mD, sD, M.actionFromContext(mD.ctx), 0, rates);
+    const want = g0 - mD.P.giaDividendYield * mD.ctx.yf;
+    ok('E2b ...and with the dividend yield on, the dividends reinvested at cost take it down by the yield alone', mD.P.giaDividendYield > 0 && Math.abs(fracD() - want) < 1e-9, `${g0.toFixed(6)} -> ${fracD().toFixed(6)} (yield ${(100 * mD.P.giaDividendYield).toFixed(1)}%, year fraction ${mD.ctx.yf.toFixed(3)})`);
+  }
   // growth at a positive rate lifts it, because the basis does not grow
   const before = frac(), bal = gia();
   M.step(m, state, M.actionFromContext(m.ctx), 1, { pen_self: 0, isa_self: 0, other_self: 0.05, cash_self: 0 });

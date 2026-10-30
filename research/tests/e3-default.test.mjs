@@ -48,11 +48,22 @@ ok(Object.isFrozen(RESEARCH_OPTS), 'RESEARCH_OPTS is frozen, so a script cannot 
 
 // 3. the research scripts: from E3_FROM on, RESEARCH_OPTS or a stated reason
 const callsSolver = src => /\bsolvePlan\s*\(|\bsolve\s*\(\s*E\s*,/.test(src);
-const complies = src => !callsSolver(src) || /\.\.\.RESEARCH_OPTS\b/.test(src) || /^\s*\/\/ e3 off: \S.{10,}$/m.test(src);
+// a script whose solvePlan runs the product's settings (SHIP: e3 off by the decided defaults, check 1) and whose candidate
+// solves through solveCandidate (RESEARCH_OPTS inside CANDIDATE_OPTS) states its reason in a comment saying so: on one
+// line, or as its solvePlan being SHIP's with SHIP named as the product's settings (audit-tiers.mjs's header)
+const comment = re => new RegExp(`^\\s*(//|\\*).*${re}`, 'm');
+const statesShip = src => comment(`\\bsolvePlan\\b.*\\bthe product's (own )?settings\\b`).test(src)
+  || (comment(`\\bsolvePlan here is SHIP's\\b`).test(src) && comment(`\\bSHIP\\b.*\\bthe product's (own )?settings\\b`).test(src));
+const complies = src => !callsSolver(src) || /\.\.\.RESEARCH_OPTS\b/.test(src) || /^\s*\/\/ e3 off: \S.{10,}$/m.test(src) || statesShip(src);
 ok(!complies("import { solvePlan } from 'x';\nconst r = solvePlan(E, M, plan, { points: 6 });\n"), 'planted: a script that calls the solver with neither RESEARCH_OPTS nor a reason fails');
 ok(complies("const r = solvePlan(E, M, plan, { points: 6, ...RESEARCH_OPTS });\n"), 'a script that spreads RESEARCH_OPTS passes');
 ok(complies("  // e3 off: coverage refuses e3 until shown identical\nconst r = solvePlan(E, M, plan, { e3: false });\n"), 'a script with a stated reason passes');
 ok(!complies("// e3 off:\nconst r = solvePlan(E, M, plan, {});\n"), 'planted: a reason line with no reason fails');
+ok(complies("// e3pcls guard: CAND solves through solveCandidate; solvePlan here is SHIP's, the product's settings\nconst r = solvePlan(E, M, plan, {});\n"), 'a script whose comment says its solvePlan runs the product\'s settings passes');
+ok(!complies("// solvePlan here is SHIP's\nconst r = solvePlan(E, M, plan, {});\n"), 'planted: a comment naming solvePlan without the product\'s settings fails');
+ok(complies(" *   SHIP     the product's settings at 30 points\n// e3pcls guard: solvePlan here is SHIP's and SHIPNC's\nconst r = solvePlan(E, M, plan, {});\n"), 'a script whose solvePlan is SHIP\'s, SHIP named as the product\'s settings, passes');
+ok(!complies(" *   SHIP     the shipping arm at 30 points\n// e3pcls guard: solvePlan here is SHIP's\nconst r = solvePlan(E, M, plan, {});\n"), 'planted: SHIP not named as the product\'s settings fails');
+ok(!complies("const note = 'solvePlan with the product\\'s settings';\nconst r = solvePlan(E, M, plan, {});\n"), 'planted: the words in code, not a comment, fail');
 const added = f => { try { return execFileSync('git', ['log', '--diff-filter=A', '--format=%cI', '--', f], { cwd: SOLVER, encoding: 'utf8' }).trim().split('\n').pop(); } catch { return ''; } };
 const from = Date.parse(E3_FROM);
 ok(Number.isFinite(from), `E3_FROM parses (${E3_FROM})`);

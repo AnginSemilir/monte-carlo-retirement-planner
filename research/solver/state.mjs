@@ -95,7 +95,8 @@ const BLOCKS = {
     });
     out.push(`- V4: ${v4.join('; ')}. ${pick(V4, /^V4 ensemble: (.*)$/m, m => `Its verdict: ${m[1]}`)} (\`results-v3.txt\`, \`results-v4.txt\`).`);
     // folded again for Phase 4's read (STATE.md's 300 lines; the figures unchanged)
-    return fold(out, [[0, 3], [3]]);
+    // folded into one line for the failure year's read (STATE.md's 300 lines; the figures unchanged)
+    return fold(out, [[0]]);
   },
   // N4's build (Step 6, n4-design.md): its test in the full form, and the product's path unchanged
   n4build() {
@@ -340,6 +341,14 @@ const BLOCKS = {
     out.push(`- The spend as a share of target by retired year (0 to 4, 5 to 9, 10 on; paths not yet failed) and the retired years a path at the 80% floor: ${lv.map(m => `${m[1]} ${m[2]}, ${m[3]} at the floor`).join('; ')}. ${at(/^(runPolicy beside the engine: .*)$/m)}.`);
     // folded into one line for the dial's block (STATE.md's 300 lines; the figures unchanged)
     return fold(out, [[0]]);
+  },
+  // the failure year's held-out read (D43; registrations/fail-delivered.md, read once; reduce-curve.mjs --registered)
+  faildelivered() {
+    const R = 'research/solver/results-fail-delivered.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const at = re => pick(R, re, m => m[1]);
+    const flags = [...t.matchAll(/^ {2}(S\d+F?)\s.*FLAG: (.*)$/gm)].map(m => `${m[1]} ${m[2]}`);
+    return [`- The gate: ${at(/^THE GATE: (.*)$/m)}; ${at(/^(runPolicy beside the engine: .*)$/m)} (\`results-fail-delivered.txt\`). Survival: ${at(/^survival: (.*)$/m)}. ${at(/^(P1 .*)$/m)}. ${at(/^(P2 .*)$/m)}. ${at(/^(P3 .*)$/m)}. Beside, not deciding: ${at(/^beside \(not deciding\): (.*)$/m)}; the households flagged by D34's threshold: ${flags.join('; ') || 'none'}. ${at(/^(OUTCOME: .*)$/m)}.`];
   },
   // the dislike of cuts on the candidate (D44; EXPLORATORY, seed 7002; reduce-curve.mjs --dial)
   curvedial() {

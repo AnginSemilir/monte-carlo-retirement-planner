@@ -146,13 +146,15 @@ The app's single best tier also did better than predicted, +3.2 and +3.0 (predic
 flexible-spending rows, the solver's investments with spending flexible (+4.6), both spending levers, and Phase 4's figure.
 
 **What it means:**
-- **The solver is better at deciding, not only better equipped.** Given exactly the app's levers, it survives more on every
+- **The solver is better at deciding, not only better equipped.** Given the app's levers, it survives more on every
   household, with as much spending or more. Its edge is acting on the state each year: which pot to draw, how much risk to
-  hold, how much to spend.
+  hold, how much to spend. One lever came with it unnoticed, its cash sweep, but it is small: 0.36 of the draws' 3.20
+  points (the next section).
 - **With no flexibility in spending, it still adds 10.8 points,** as much as with flexibility. Without the spending lever,
   more of the work moves to the investments: they add 7.6 points in its hands with spending fixed, 4.6 with it flexible.
 - **The app could close about 3 points by itself,** by choosing one investment tier for the whole plan. The rest needs
-  decisions that follow the markets.
+  decisions that follow the markets. In the draws, a fixed cash sweep and the best fixed move from the solver's own menu
+  would close 0.36 points each; choosing each year is the other 2.45 (the next section).
 
 **What this does not show:**
 - Eight households and one seed, all single.
@@ -253,3 +255,42 @@ best third: the share drawing the pension first, harvesting, selling for the CGT
 - **Acceptance:** the checks pass. **Time box:** 45 minutes.
 - **The prediction:** BESTFIX less A4 between 0 and +1.5; FIXHOLD less BESTFIX between +1.3 and +2.8, so most of the
   solver's own choices is choosing each year, not a better fixed rule; MODAL no better than BESTFIX.
+
+**Its results** (`levers/results-draws-adapt.txt`). Every check passes: the re-solve with its recorder is FIXHOLD's unit
+on every path of every household (the plant caught on every one), and the rebuilt A4 has the split's survival on every
+household.
+
+| The solver's own choices (+2.81), split (pooled, each household once) | Points | 95% | Share |
+|---|---|---|---|
+| Its best fixed move, chosen in advance, against the app's order | +0.36 | +0.07 to +0.65 | 12.9% |
+| Choosing each year, against that move | +2.45 | +2.11 to +2.79 | 87.1% |
+| Beside: its most used move, against the app's order | -0.28 | -0.58 to +0.03 | |
+
+- **The prediction held** on all three counts.
+- **No single fixed move from the solver's own menu does much better than the app's order.** The best, chosen on the
+  search seed, gains on five households (+0.40 to +1.70), ties on S340F and loses on S328F (-0.40) and S368 (-0.90): 85
+  paths saved and 56 lost in all.
+- **Choosing each year gains on every household** (+1.30 to +3.30): 197 paths saved and 1 lost in all.
+- **How it chooses.** It uses 13 to 24 of its 40 moves, and changes its move from the year before on 18% to 43% of its
+  decisions. Last year's market explains only part of the changes:
+  - after a good year (the best third) it draws pension into the tax bands, to the basic-rate limit or above, more often
+    than after a bad one (the worst third): on S090 29% of its decisions against 12%, on S030 32% against 15%;
+  - elsewhere the gap is 3 to 12 points;
+  - it never sells the taxable account for the CGT exemption.
+
+  So it responds to more than the market: to where the plan stands each year, the position its tables are built on.
+
+**The answer to the question.** Outside the tiers and spending, the solver gains 3.20 points from the draws:
+- **0.36 is the cash sweep,** a fixed rule the app could adopt. The cost lookahead and the lump sum are nothing.
+- **2.81 is the solver's own choice of draw each year.** A better fixed rule from its own menu would give the app 0.36 of
+  that; the other 2.45 comes from choosing again each year.
+- **Tax is not the reason.** On the paths where survival is decided, the solver has paid about as much tax by then, or
+  more.
+- **The paths it saves are mostly lost late, by a little,** under the fixed policy. The exception is the bridge before the
+  pension opens, on S368 and S304F.
+
+**Noted, not investigated.** Over all paths the solver pays far more income tax than the fixed policy: pooled 17.50
+against 2.03 years of target, with income above the basic rate 17.97 against 0.46 (`results-draws.txt`). It also draws
+far more pension in all (41.04 against 10.23). On the paths that decide survival the tax paid is about the same, so the gap
+is on the paths both survive, where the pots grow large. It costs the estate there, not survival. Whether that is right
+for the estate (the pension's death tax, the estate weight 0.02) is the maintainer's question.

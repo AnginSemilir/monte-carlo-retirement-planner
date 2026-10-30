@@ -46,6 +46,8 @@ if (args[0] === '--pool') {
     out.push(`         survival ${['A4', 'MODAL', 'BESTFIX', 'FIXHOLD'].map(k => f1(r.surv[k])).join(' / ')}; ${PAIRS.map(([k, , , label]) => `${label} ${sg(r.pairs[k].d)} (${r.pairs[k].saved}/${r.pairs[k].lost})`).join('; ')}`);
     out.push(`         ${a.n} decisions, ${a.distinct} moves used, the move changed from the year before on ${pc(a.changed)}; after the worst third of market years / the best third: the pension drawn first ${pc(a.lo.penFirst)} / ${pc(a.hi.penFirst)}, a harvest ${pc(a.lo.harvest)} / ${pc(a.hi.harvest)} (to the basic rate or above ${pc(a.lo.harvestHigh)} / ${pc(a.hi.harvestHigh)}), a CGT sale ${pc(a.lo.cgt)} / ${pc(a.hi.cgt)}, the modal move ${pc(a.lo.modal)} / ${pc(a.hi.modal)}`);
   }
+  const tally = k => `${rs.reduce((p, r) => p + r.pairs[k].saved, 0)} saved, ${rs.reduce((p, r) => p + r.pairs[k].lost, 0)} lost`;
+  out.push(`  all households, paths: the best fixed move against the app's order ${tally('better')}; choosing each year against it ${tally('adapt')}; the moves used ${Math.min(...rs.map(r => r.adapt.distinct))} to ${Math.max(...rs.map(r => r.adapt.distinct))}, changed from the year before on ${pc(Math.min(...rs.map(r => r.adapt.changed)))} to ${pc(Math.max(...rs.map(r => r.adapt.changed)))} of the decisions; a CGT sale on ${pc(Math.max(...rs.flatMap(r => [r.adapt.lo.cgt, r.adapt.hi.cgt])))} at most`);
   const pool = k => { const xs = rs.map(r => r.pairs[k]); const d = xs.reduce((p, x) => p + x.d, 0) / xs.length, se = Math.sqrt(xs.reduce((p, x) => p + x.v, 0)) / xs.length; return { d, se, lo: d - 1.96 * se, hi: d + 1.96 * se }; };
   const own = pool('own');
   out.push('');

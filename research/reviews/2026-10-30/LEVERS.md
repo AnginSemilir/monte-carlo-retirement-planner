@@ -289,6 +289,23 @@ household.
 - **The paths it saves are mostly lost late, by a little,** under the fixed policy. The exception is the bridge before the
   pension opens, on S368 and S304F.
 
+**Is the app arm the app's own "Auto-pick best policy"?** (the maintainer, 30 Oct 10:00; declared before its run,
+`levers/button-check.mjs`, EXPLORATORY). The app arm runs the app's own policy optimiser, not a preset:
+- the same 18 combinations as the button (`E.buildPolicyCandidates`: five withdrawal policies, phased or the full lump sum,
+  the harvest on or off);
+- the same picker (`E.explainPick`, the default priorities: survival first, then the downside, the estate, the bridge,
+  the pot, tax).
+
+It scores each on 300 paths of one search seed, where the button scores each on 4,000 (two seeds of 2,000, averaged). The
+check runs the search at the button's budget, on the seeds the brief allows (7001 and 99001, never the scoring seed), in
+both rows (spending fixed and flexible). Where the pick differs, the button's pick is scored on the units' paths beside the
+arm's unit and the solver's.
+- **Checks:** the arm's pick is its unit's, and replayed it is the unit on every path (planted: the solver's unit must
+  differ).
+- **Acceptance:** the checks pass. **Time box:** 20 minutes.
+- **The prediction:** the pick is the same on most of the 16 household-rows; where it differs, the button's pick is within
+  a point of the arm's, so the solver's lead moves by a few tenths at most.
+
 **Noted, not investigated.** Over all paths the solver pays far more income tax than the fixed policy: pooled 17.50
 against 2.03 years of target, with income above the basic rate 17.97 against 0.46 (`results-draws.txt`). It also draws
 far more pension in all (41.04 against 10.23). On the paths that decide survival the tax paid is about the same, so the gap

@@ -1,0 +1,8 @@
+PASS  1. the weights are the Gompertz chance of being alive from age 61: the largest gap 0.00e+0 over 37 years (at 75 0.862, at 85 0.586)
+PASS     planted (a): against the weights at mode 91 the gap is 4.08e-2, caught
+PASS  2. each level's cost is the weight times its cost without it (levels 1, 1.1, 0.95, 0.9, 0.8; lambda 0.223607, the raise weight 0.003): the largest gap 0.00e+0
+PASS     planted (b): against the costs unweighted the gap is 7.62e-3, caught
+PASS  3. the price of running out is the remaining spending years' floor cost, each weighted (relative gap 4.96e-16; at year 0 0.225596)
+PASS  4. off, every level's cost is its unweighted cost at every year (the largest gap 0), nothing is recorded; on, the meta records {"mode":90,"disp":9}
+PASS  5. the weights reach the table: the opening score 0.49487785 on against 0.49019788 off
+ALL PASS: 7 checks (two of them plants)

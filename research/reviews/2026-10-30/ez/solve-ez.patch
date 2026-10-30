@@ -1,0 +1,174 @@
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index 113e3da..6bc685a 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -647,6 +647,38 @@ export function solve(E, M, plan, opts = {}) {
+   const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
+   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
+   const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
++  /*
++   * EPSTEIN-ZIN SPENDING (research only; the external review of 30 Oct, research/reviews/2026-10-30/EZ.md on
++   * review/external-2026-10-21). `ez` = { gamma, rho, beta, mortality: { mode, disp }, ruinMin } values each move as
++   * V_t = [c^(1 - rho) + beta p_t CE^(1 - rho)]^(1 / (1 - rho)), CE = (E[V_(t+1)^(1 - gamma)])^(1 / (1 - gamma)): c the year's
++   * level against its target (left out in a year with no spending), p_t a Gompertz chance of living from t to t+1. gamma alone
++   * sets the aversion to risk, rho the dislike of uneven spending. A move that cannot pay is that year at what it can pay and
++   * every year after on the guaranteed income, each at least ruinMin of the target; a plan that ends below the minimum pot has
++   * its final year at the guaranteed income's level. The value is stored as V^(1 - gamma) in the resilience table's slot (read
++   * linearly; its weight is 0 in every setting that runs today) and the move kept is the one with the largest V. It runs on
++   * the tier state with joint worlds without E5 and is refused elsewhere (below). Off, nothing here runs.
++   */
++  const EZ = opts.ez || null;
++  let ez = null;
++  if (EZ) {
++    const gam = EZ.gamma, rho = EZ.rho, beta = EZ.beta !== undefined ? EZ.beta : 1, rmin = EZ.ruinMin !== undefined ? EZ.ruinMin : 0.1, mo = EZ.mortality || { mode: 90, disp: 9 };
++    if (!(gam > 0) || Math.abs(gam - 1) < 1e-9 || !(rho > 0) || Math.abs(rho - 1) < 1e-9 || !(beta > 0) || !(rmin > 0) || !(mo.disp > 0) || !Number.isFinite(mo.mode)) throw new Error('ez needs gamma and rho above nothing and not 1, beta and ruinMin above nothing, and a mortality mode and dispersion');
++    const a0 = m.ctx.ageSelf0, Sx = (t) => Math.exp(-Math.exp((a0 - mo.mode) / mo.disp) * (Math.exp(t / mo.disp) - 1));
++    const e1 = 1 - rho, e2 = 1 - gam, spendAt = c.yr.spend;
++    const p = new Float64Array(T + 1); for (let t = 0; t <= T; t++) p[t] = Sx(t + 1) / Sx(t);
++    const ruin = new Float64Array(T + 1); for (let t = 0; t <= T; t++) ruin[t] = spendAt[t] > 0 ? Math.min(1, Math.max(rmin, (c.yr.taxFree0[t] + E.calculateUKNetIncome(c.yr.taxable0[t], c.P)) / spendAt[t])) : 1;
++    const cterm = (t, l) => (spendAt[t] > 0 ? Math.pow(l, e1) : 0);
++    // the value of living on the guaranteed income from year t to the end
++    const vRuin = new Float64Array(T + 1); vRuin[T] = ruin[T];
++    for (let t = T - 1; t >= 0; t--) vRuin[t] = Math.pow(cterm(t, ruin[t]) + beta * p[t] * Math.pow(vRuin[t + 1], e1), 1 / e1);
++    // a move's value from its continuation q = E[V_(t+1)^(1 - gamma)]; at the final year q is E[V_T^(1 - gamma)] under the end's rule
++    const valueOf = (t, l, q) => (t >= T ? Math.pow(q, 1 / e2) : Math.pow(cterm(t, l) + beta * p[t] * Math.pow(q, e1 / e2), 1 / e1));
++    // the final year: at or above the minimum pot with chance s, the year at its level; below it, at the guaranteed income's
++    const finalQ = (l, s) => s * Math.pow(l, e2) + (1 - s) * Math.pow(ruin[T], e2);
++    // a move that cannot pay: the year at what it can pay, at least ruinMin, then the guaranteed income's path
++    const failValue = (t, d) => { const dl = Math.max(rmin, d); return t >= T ? dl : Math.pow((spendAt[t] > 0 ? Math.pow(dl, e1) : 0) + beta * p[t] * Math.pow(vRuin[t + 1], e1), 1 / e1); };
++    ez = { gamma: gam, rho, beta, ruinMin: rmin, mortality: { mode: mo.mode, disp: mo.disp }, p, ruin, vRuin, e1, e2, valueOf, finalQ, failValue };
++  }
+   /*
+    * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
+    * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
+@@ -987,6 +1019,12 @@ export function solve(E, M, plan, opts = {}) {
+     const lvl = Math.min(1, Math.max(0, levelOf[ai] - (FDPLANT ? 0 : unmetBuf[ub]) / sp));
+     return lambda * shortOf(lvl) + failCostAt[t + 1];
+   };
++  // EZ (above) runs on the tier state with joint worlds (the candidate's path), without E5's speed path, and needs the level a
++  // failing move can pay (failDelivered) and the resilience slot read linearly (the shortfall form); anything else throws
++  // (and the chooser's rules in score units - the switch margin, the tie margin and the taxable account's hold check - are
++  // not carried into its units, so they too must be off)
++  if (EZ && (!TS || !JOINT || E5 || !FD || !shortfall || E2 || g.cov || switchMargin > 0 || (opts.tieMargin || 0) > 0 || c.tiers.gia)) throw new Error('ez runs on the tier state with joint worlds, without E5 (tsOnce: false), E2 or coverage, with failDelivered and the shortfall resilience read, and with no switch margin, tie margin or taxable-account tiers');
++  const ezPaid = (ai, t) => { const sp = c.yr.spend[t]; return sp > 0 ? Math.min(1, Math.max(0, levelOf[ai] - unmetBuf[ai] / sp)) : 0; };
+   /*
+    * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
+    * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
+@@ -1414,6 +1452,14 @@ export function solve(E, M, plan, opts = {}) {
+                       else h += shortOfAction[ai];
+                       if (raiseSurv) h += raiseOfAction[ai] * s;
+                       if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
++                      if (EZ) {
++                        // EZ: jR keeps the move's continuation (at the final year, the end's rule; NaN for a move that cannot pay),
++                        // jV this world's value of it, a switch of tiers at the switch charge's fraction of value
++                        const q = fail ? NaN : t === T ? ez.finalQ(levelOf[ai], s) : rs;
++                        const v = (fail ? ez.failValue(t, ezPaid(ai, t)) : ez.valueOf(t, levelOf[ai], q)) * (switchCharge > 0 && tsLayerOf[ai] !== j ? 1 - switchCharge : 1);
++                        if (!(v > 0 && v < Infinity)) nonFiniteScore('the backward pass (EZ)', t, idx, k, ai, s, b, q, v);
++                        jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = q; jH[k][ai] = h; jV[k][ai] = v; continue;
++                      }
+                       const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state)', t, idx, k, ai, s, b, rs, h);
+                       if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
+                       if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
+@@ -1432,12 +1478,18 @@ export function solve(E, M, plan, opts = {}) {
+                   let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
+                   for (let ai = 0; ai < A; ai++) {
+                     let v = 0, wb = 0;
+-                    for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
++                    if (EZ) {
++                      // EZ on the mixture: the worlds' continuations weighted, then the year's value (a move that cannot pay is
++                      // worth its failure value in every world)
++                      let qm = 0; for (let k = 0; k < K; k++) { qm += JW[k] * jR[k][ai]; wb += JW[k] * jB[k][ai]; }
++                      v = qm === qm ? ez.valueOf(t, levelOf[ai], qm) * (switchCharge > 0 && tsLayerOf[ai] !== j ? 1 - switchCharge : 1) : jV[0][ai];
++                    } else for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
+                     if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                     if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
+                   }
+                   if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+-                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
++                  // EZ: each world's layer keeps its own value of the move, powered (V^(1 - gamma)), in the resilience slot
++                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = EZ ? Math.pow(jV[k][bestA], ez.e2) : jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
+                 }
+                 }
+                 if (PROF) PROF.cells++;
+@@ -1583,7 +1635,7 @@ export function solve(E, M, plan, opts = {}) {
+ 
+   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
+   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
+-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
++  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, ...(ez ? { ez: { gamma: ez.gamma, rho: ez.rho, beta: ez.beta, ruinMin: ez.ruinMin, mortality: ez.mortality } } : {}), solverVersion: SOLVER_VERSION };   // EZ recorded only when on: off, the record is as before
+   if (switchCharge > 0) meta.switchCharge = switchCharge;
+   if (FD) meta.failDelivered = true;
+   if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
+@@ -1609,6 +1661,7 @@ export function solve(E, M, plan, opts = {}) {
+   const r = {
+     tablesW: { survW, beqW, resilW, polW, shortW, layW: TS ? layW : null },
+     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
++    ez,   // EZ's recursion (null off): the chooser turns each move's continuation into the year's value with it
+     quadWeights: QW, quadNodes: QZ,
+     tieMargin: opts.tieMargin || 0,
+     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
+@@ -1631,7 +1684,7 @@ export function solve(E, M, plan, opts = {}) {
+     value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const k = Math.min(t, T), o = readValues(g, lsurv[k], beq[k], s, new Float64Array(4), lresil[k], null, k); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+   };
+   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
+-    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
++    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf, ez,
+     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
+     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
+     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
+@@ -1700,6 +1753,11 @@ export function chooseAction(r, s, t, held = null) {
+       for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
+     });
+   } else scoreMoves(r, s, t, SC, TX, BQ, held);
++  // EZ: each move's continuation, mixed across the worlds above, becomes the year's value, as the backward pass's joint choice
++  if (r.ez) {
++    if (r.rich) throw new Error('ez has no Richardson second table');
++    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity) SC[ai] = r.ez.valueOf(t, r.levelOf[ai], SC[ai]);
++  }
+   /*
+    * RICHARDSON EXTRAPOLATION. The table's optimism was measured to fall as 1/n in the grid points
+    * (S070: +21, +16, +13, +9 at 12, 16, 20, 28). With a second solve at half the points, 2 x score(n)
+@@ -1726,7 +1784,7 @@ export function chooseAction(r, s, t, held = null) {
+   const sc = r.switchCharge || 0;
+   if (held && sc > 0) {
+     const acts = r.c.acts;
+-    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa)) SC[ai] -= sc;
++    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa)) { if (r.ez) SC[ai] *= 1 - sc; else SC[ai] -= sc; }   // EZ: the charge a fraction of value, as the backward pass
+     bestScore = -Infinity; bestB = -Infinity; best = 0;
+     for (let ai = 0; ai < n; ai++) { const score = SC[ai]; if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; } }
+   }
+@@ -1834,7 +1892,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+         bq += QW[zi] * (alive ? beqOf(net) : 0);
+       }
+       if (rz) h += rz * sv;
+-      SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
++      // EZ: the move's end by the end's rule (chooseAction turns it into the year's value, after the worlds are mixed)
++      SC[ai] = r.ez ? r.ez.finalQ(levelOf[ai], sv) : sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
+       if (SV) SV[ai] = sv;
+       continue;
+     }
+@@ -1854,7 +1913,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+       h += QW[zi] * rd[3];
+     }
+     if (rz) h += rz * sv;
+-    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
++    // EZ: the move's continuation, next year's V^(1 - gamma) in expectation (chooseAction turns it into the year's value)
++    SC[ai] = r.ez ? rs : sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
+     if (SV) SV[ai] = sv;
+   }
+ }
+@@ -2004,12 +2064,13 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+       val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
+     }
+     if (rz) h += rz * sv;
+-    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
++    SC[ai] = r.ez ? (final ? r.ez.finalQ(levelOf[ai], sv) : rs) : sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);   // EZ: as scoreMoves
+   }
+ }
+ 
+ /* The K best moves at a position, by the same score chooseAction uses (a couple's rollout builds its candidates from these). */
+ export function rankActions(r, s, t, held = null, K = 3) {
++  if (r.ez) throw new Error('rankActions does not read EZ values (a couple\'s rollout is not built for it)');
+   const n = r.actions.length;
+   const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n);
+   if (r.mix) {

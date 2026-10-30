@@ -1,0 +1,59 @@
+EPSTEIN-ZIN SPENDING (EXPLORATORY): EZ (gamma 4, rho 2, the price of failing 30; each year weighted by the chance of being alive, Gompertz mode 90, dispersion 9; running out lived on the guaranteed income) against the candidate (CAND, the dial at one), the dial at ten (DIAL10) and with age weights (DIAL10M), and the app's guardrails (APP); the eight households, seed 7002, 1,000 paths each; the retired years before any failure
+  S090   APP 87.8%, first year 100.0%, by years 1-5 97.4%, 6-10 95.5%, 11-20 93.0%, 21-on 93.2%
+         CAND 95.1%, first year 80.0%, by years 1-5 80.7%, 6-10 88.3%, 11-20 98.0%, 21-on 105.6%; equity at retired years 1, 5, 10, 20: 22.6 / 20.0 / 24.6 / 52.2%
+         DIAL10 92.8%, first year 90.0%, by years 1-5 92.5%, 6-10 95.8%, 11-20 100.0%, 21-on 105.0%; equity at retired years 1, 5, 10, 20: 42.6 / 39.9 / 39.9 / 45.9%
+         DIAL10M 92.6%, first year 95.0%, by years 1-5 94.1%, 6-10 96.5%, 11-20 100.1%, 21-on 104.1%; equity at retired years 1, 5, 10, 20: 42.6 / 39.9 / 39.9 / 47.1%
+         EZ 94.0%, first year 80.0%, by years 1-5 86.3%, 6-10 95.6%, 11-20 100.0%, 21-on 104.6%; equity at retired years 1, 5, 10, 20: 22.6 / 20.0 / 18.9 / 20.4%
+         EZ less CAND -1.10 (se 0.36; 1/12); less DIAL10 +1.20 (se 0.47); less DIAL10M +1.40 (se 0.47); the estate where each survives, EZ 846439, CAND 1740447
+  S030   APP 87.5%, first year 100.0%, by years 1-5 97.6%, 6-10 94.9%, 11-20 93.6%, 21-on 93.9%
+         CAND 95.9%, first year 80.0%, by years 1-5 81.1%, 6-10 91.1%, 11-20 101.6%, 21-on 106.8%; equity at retired years 1, 5, 10, 20: 23.3 / 23.4 / 32.1 / 60.0%
+         DIAL10 93.9%, first year 90.0%, by years 1-5 92.2%, 6-10 95.8%, 11-20 101.0%, 21-on 105.6%; equity at retired years 1, 5, 10, 20: 23.3 / 24.1 / 25.2 / 53.1%
+         DIAL10M 93.6%, first year 95.0%, by years 1-5 93.7%, 6-10 96.3%, 11-20 100.7%, 21-on 104.6%; equity at retired years 1, 5, 10, 20: 23.3 / 23.6 / 26.2 / 56.7%
+         EZ 94.4%, first year 80.0%, by years 1-5 86.5%, 6-10 96.3%, 11-20 102.0%, 21-on 106.3%; equity at retired years 1, 5, 10, 20: 23.3 / 23.4 / 23.7 / 23.0%
+         EZ less CAND -1.50 (se 0.46; 3/18); less DIAL10 +0.50 (se 0.54); less DIAL10M +0.80 (se 0.53); the estate where each survives, EZ 663032, CAND 1257350
+  S328F  APP 85.6%, first year 100.0%, by years 1-5 98.8%, 6-10 96.3%, 11-20 95.9%, 21-on 95.1%
+         CAND 94.1%, first year 94.7%, by years 1-5 96.8%, 6-10 100.2%, 11-20 102.8%, 21-on 106.7%; equity at retired years 1, 5, 10, 20: 45.0 / 44.7 / 43.5 / 42.4%
+         DIAL10 93.2%, first year 100.4%, by years 1-5 101.4%, 6-10 102.9%, 11-20 104.4%, 21-on 106.7%; equity at retired years 1, 5, 10, 20: 33.8 / 33.9 / 32.7 / 34.9%
+         DIAL10M 93.1%, first year 100.8%, by years 1-5 101.9%, 6-10 103.3%, 11-20 104.6%, 21-on 105.8%; equity at retired years 1, 5, 10, 20: 35.8 / 35.8 / 34.5 / 35.4%
+         EZ 93.2%, first year 100.0%, by years 1-5 100.6%, 6-10 102.1%, 11-20 103.1%, 21-on 105.4%; equity at retired years 1, 5, 10, 20: 23.9 / 24.6 / 23.8 / 22.5%
+         EZ less CAND -0.90 (se 0.36; 2/11); less DIAL10 +0.00 (se 0.37); less DIAL10M +0.10 (se 0.39); the estate where each survives, EZ 2804735, CAND 4778996
+  S188   APP 84.8%, first year 100.0%, by years 1-5 98.2%, 6-10 95.2%, 11-20 94.5%, 21-on 97.4%
+         CAND 97.7%, first year 91.6%, by years 1-5 94.4%, 6-10 99.7%, 11-20 103.7%, 21-on 107.8%; equity at retired years 1, 5, 10, 20: 27.8 / 31.6 / 41.5 / 54.8%
+         DIAL10 96.6%, first year 99.0%, by years 1-5 100.1%, 6-10 102.6%, 11-20 104.7%, 21-on 107.2%; equity at retired years 1, 5, 10, 20: 28.0 / 29.7 / 33.3 / 43.0%
+         DIAL10M 96.5%, first year 100.1%, by years 1-5 101.1%, 6-10 103.2%, 11-20 104.9%, 21-on 106.6%; equity at retired years 1, 5, 10, 20: 27.9 / 29.3 / 34.1 / 48.7%
+         EZ 97.1%, first year 101.4%, by years 1-5 102.4%, 6-10 103.8%, 11-20 104.7%, 21-on 106.9%; equity at retired years 1, 5, 10, 20: 27.6 / 26.4 / 26.0 / 26.6%
+         EZ less CAND -0.60 (se 0.28; 1/7); less DIAL10 +0.50 (se 0.26); less DIAL10M +0.60 (se 0.28); the estate where each survives, EZ 1448335, CAND 2662326
+  S304F  APP 88.3%, first year 100.0%, by years 1-5 99.6%, 6-10 100.2%, 11-20 100.8%, 21-on 103.4%
+         CAND 98.3%, first year 80.0%, by years 1-5 80.0%, 6-10 107.9%, 11-20 108.2%, 21-on 108.7%; equity at retired years 1, 5, 10, 20: 28.4 / 30.4 / 29.6 / 29.5%
+         DIAL10 97.4%, first year 89.0%, by years 1-5 87.3%, 6-10 108.5%, 11-20 108.7%, 21-on 108.8%; equity at retired years 1, 5, 10, 20: 29.2 / 30.3 / 29.6 / 29.5%
+         DIAL10M 97.7%, first year 90.1%, by years 1-5 89.1%, 6-10 108.6%, 11-20 108.7%, 21-on 108.5%; equity at retired years 1, 5, 10, 20: 29.4 / 30.8 / 29.7 / 29.5%
+         EZ 97.7%, first year 80.0%, by years 1-5 80.0%, 6-10 109.4%, 11-20 109.1%, 21-on 108.6%; equity at retired years 1, 5, 10, 20: 27.7 / 29.5 / 28.9 / 28.1%
+         EZ less CAND -0.60 (se 0.28; 1/7); less DIAL10 +0.30 (se 0.30); less DIAL10M +0.00 (se 0.32); the estate where each survives, EZ 3688819, CAND 3991569
+  S368   APP 84.5%, first year 100.0%, by years 1-5 99.2%, 6-10 99.7%, 11-20 102.1%, 21-on 105.3%
+         CAND 99.8%, first year 80.0%, by years 1-5 80.0%, 6-10 98.0%, 11-20 110.0%, 21-on 109.9%; equity at retired years 1, 5, 10, 20: 28.3 / 29.4 / 48.8 / 51.8%
+         DIAL10 99.7%, first year 90.0%, by years 1-5 88.4%, 6-10 101.2%, 11-20 110.0%, 21-on 110.0%; equity at retired years 1, 5, 10, 20: 28.6 / 29.9 / 44.1 / 50.7%
+         DIAL10M 99.8%, first year 90.0%, by years 1-5 88.9%, 6-10 101.6%, 11-20 110.0%, 21-on 109.9%; equity at retired years 1, 5, 10, 20: 28.6 / 29.9 / 46.6 / 52.2%
+         EZ 99.3%, first year 80.0%, by years 1-5 80.0%, 6-10 97.9%, 11-20 110.0%, 21-on 110.0%; equity at retired years 1, 5, 10, 20: 28.6 / 29.9 / 29.6 / 28.3%
+         EZ less CAND -0.50 (se 0.22; 0/5); less DIAL10 -0.40 (se 0.20); less DIAL10M -0.50 (se 0.22); the estate where each survives, EZ 3772736, CAND 5142909
+  S050   APP 84.4%, first year 100.0%, by years 1-5 98.9%, 6-10 98.0%, 11-20 95.2%, 21-on 93.7%
+         CAND 98.9%, first year 80.0%, by years 1-5 81.2%, 6-10 90.5%, 11-20 100.9%, 21-on 107.1%; equity at retired years 1, 5, 10, 20: 24.0 / 25.8 / 60.1 / 69.1%
+         DIAL10 97.1%, first year 95.0%, by years 1-5 93.9%, 6-10 97.2%, 11-20 102.2%, 21-on 105.6%; equity at retired years 1, 5, 10, 20: 44.0 / 43.4 / 37.2 / 58.6%
+         DIAL10M 97.2%, first year 95.0%, by years 1-5 94.5%, 6-10 97.4%, 11-20 101.4%, 21-on 102.7%; equity at retired years 1, 5, 10, 20: 24.0 / 24.6 / 29.3 / 61.0%
+         EZ 98.1%, first year 90.0%, by years 1-5 92.4%, 6-10 99.4%, 11-20 103.4%, 21-on 105.5%; equity at retired years 1, 5, 10, 20: 24.0 / 23.2 / 21.1 / 17.7%
+         EZ less CAND -0.80 (se 0.32; 1/9); less DIAL10 +1.00 (se 0.37); less DIAL10M +0.90 (se 0.39); the estate where each survives, EZ 93904, CAND 296653
+  S340F  APP 86.3%, first year 100.0%, by years 1-5 99.1%, 6-10 97.8%, 11-20 98.2%, 21-on 100.5%
+         CAND 96.0%, first year 96.5%, by years 1-5 97.7%, 6-10 102.0%, 11-20 103.9%, 21-on 107.0%; equity at retired years 1, 5, 10, 20: 44.0 / 44.9 / 43.3 / 43.4%
+         DIAL10 94.7%, first year 100.4%, by years 1-5 100.4%, 6-10 104.4%, 11-20 105.5%, 21-on 107.4%; equity at retired years 1, 5, 10, 20: 39.4 / 32.0 / 32.4 / 32.2%
+         DIAL10M 94.6%, first year 101.1%, by years 1-5 101.3%, 6-10 104.7%, 11-20 105.7%, 21-on 106.5%; equity at retired years 1, 5, 10, 20: 40.3 / 34.3 / 34.3 / 35.2%
+         EZ 95.3%, first year 100.6%, by years 1-5 100.6%, 6-10 104.2%, 11-20 104.9%, 21-on 106.4%; equity at retired years 1, 5, 10, 20: 23.9 / 25.0 / 25.0 / 24.2%
+         EZ less CAND -0.70 (se 0.33; 2/9); less DIAL10 +0.60 (se 0.35); less DIAL10M +0.70 (se 0.36); the estate where each survives, EZ 2359962, CAND 4622789
+
+Pooled, each household once (the retirees: the households retired at the start):
+  APP      survival 86.1%; the first retired year 100.0% (the retirees 100.0%); by retired years 1-5 98.6%, 6-10 97.2%, 11-20 96.7%, 21-on 97.8%; at the floor 1-5 3%, 6-10 12%, 11-20 17%, 21-on 18%; at 110% 1-5 9%, 6-10 22%, 11-20 24%, 21-on 34%; cuts after year 1 16.4 a hundred years, 84% after the worst third of market years
+  CAND     survival 97.0%; the first retired year 85.3% (the retirees 80.0%); by retired years 1-5 86.5%, 6-10 97.2%, 11-20 103.6%, 21-on 107.5%; at the floor 1-5 76%, 6-10 38%, 11-20 18%, 21-on 7%; at 110% 1-5 20%, 6-10 55%, 11-20 77%, 21-on 90%; cuts after year 1 2.7 a hundred years, 91% after the worst third of market years; the pension and ISA's equity share at retired years 1, 5, 10, 20 30.4 / 31.3 / 40.4 / 50.4% (the retirees 24.6 / 24.6 / 41.4 / 58.3%)
+  DIAL10   survival 95.7%; the first retired year 94.2% (the retirees 91.3%); by retired years 1-5 94.5%, 6-10 101.0%, 11-20 104.6%, 21-on 107.0%; at the floor 1-5 8%, 6-10 7%, 11-20 7%, 21-on 5%; at 110% 1-5 17%, 6-10 50%, 11-20 71%, 21-on 85%; cuts after year 1 4.2 a hundred years, 88% after the worst third of market years; the pension and ISA's equity share at retired years 1, 5, 10, 20 33.6 / 32.9 / 34.3 / 43.5% (the retirees 34.6 / 34.3 / 36.6 / 52.1%)
+  DIAL10M  survival 95.6%; the first retired year 95.9% (the retirees 93.8%); by retired years 1-5 95.6%, 6-10 101.5%, 11-20 104.5%, 21-on 106.1%; at the floor 1-5 5%, 6-10 5%, 11-20 7%, 21-on 6%; at 110% 1-5 19%, 6-10 52%, 11-20 71%, 21-on 79%; cuts after year 1 4.8 a hundred years, 87% after the worst third of market years; the pension and ISA's equity share at retired years 1, 5, 10, 20 31.5 / 31.0 / 34.3 / 45.7% (the retirees 29.6 / 29.5 / 35.5 / 54.2%)
+  EZ       survival 96.1%; the first retired year 89.0% (the retirees 82.5%); by retired years 1-5 91.1%, 6-10 101.1%, 11-20 104.7%, 21-on 106.7%; at the floor 1-5 52%, 6-10 23%, 11-20 14%, 21-on 8%; at 110% 1-5 28%, 6-10 64%, 11-20 78%, 21-on 86%; cuts after year 1 4.0 a hundred years, 91% after the worst third of market years; the pension and ISA's equity share at retired years 1, 5, 10, 20 25.2 / 25.3 / 24.6 / 23.8% (the retirees 24.6 / 24.1 / 23.3 / 22.3%)
+  EZ less CAND, survival -0.84 (se 0.12; -1.07 to -0.61); less DIAL10 +0.46 (se 0.13; +0.20 to +0.72); less DIAL10M +0.50 (se 0.13; +0.24 to +0.76)
+  the estate where each survives, the households' mean: EZ 1959745, CAND 3061630
+FAIR: one seed, path count, years and inputs; CAND on the patched code the CAND unit, and DIAL10 on the age-weight code the DIAL10 unit, on every household

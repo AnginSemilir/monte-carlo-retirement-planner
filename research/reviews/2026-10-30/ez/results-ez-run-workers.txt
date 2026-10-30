@@ -1,0 +1,29 @@
+EZ's run, the workers' logs whole (ez-run.mjs from the root of the patched code; UK times from the log files' records)
+
+== worker 1, S090 S030 S328F S188 (log begun 17:52:05, last written 19:50:00)
+S090 CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 319 s
+S090 ez-g4-r2-f30: survival 94.00% (CAND 95.10%); the first retired year's move's equity 22.6% (CAND 22.6%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1049 s; code bb63cda25821
+S030 CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 261 s
+S030 ez-g4-r2-f30: survival 94.40% (CAND 95.90%); the first retired year's move's equity 23.3% (CAND 23.3%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 833 s; code bb63cda25821
+S328F CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 455 s
+S328F ez-g4-r2-f30: survival 93.20% (CAND 94.10%); the first retired year's move's equity 23.9% (CAND 45.0%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1763 s; code bb63cda25821
+S188 CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 346 s
+S188 ez-g4-r2-f30: survival 97.10% (CAND 97.70%); the first retired year's move's equity 27.6% (CAND 27.8%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1260 s; code bb63cda25821
+
+[exited with code 0]
+
+== worker 2, S304F S368 S050 S340F (log begun 17:52:05, last written 19:52:05; stopped at the session's two-hour limit for a background job)
+S304F CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 451 s
+S304F ez-g4-r2-f30: survival 97.70% (CAND 98.30%); the first retired year's move's equity 27.7% (CAND 28.4%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1727 s; code bb63cda25821
+S368 CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 516 s
+S368 ez-g4-r2-f30: survival 99.30% (CAND 99.80%); the first retired year's move's equity 28.6% (CAND 28.3%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1471 s; code bb63cda25821
+S050 CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 233 s
+S050 ez-g4-r2-f30: survival 98.10% (CAND 98.90%); the first retired year's move's equity 24.0% (CAND 24.0%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 851 s; code bb63cda25821
+S340F CANDEQ on the patched code, EZ off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; solve 488 s
+
+[killed]
+
+== S340F's EZ arm alone, --no-identity (log begun 19:52:54, last written 20:22:59)
+S340F ez-g4-r2-f30: survival 95.30% (CAND 96.00%); the first retired year's move's equity 23.9% (CAND 44.0%); beside: the engine alone 0, runPolicy alone 0 of 200; solve 1669 s; code bb63cda25821
+
+[exited with code 0]

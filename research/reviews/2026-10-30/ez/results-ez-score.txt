@@ -1,0 +1,22 @@
+EZ's run scored (EXPLORATORY), against the prediction in EZ.md section 9 (committed before the launch), from results-ez-run.txt; the read FAIR
+The prediction:
+  1. survival, EZ less CAND, pooled: -0.84 (se 0.12; -1.07 to -0.61) against -1.0 to +0.5: HELD (the interval reaches past the range, to -1.07)
+  2. retired years 1-5: EZ 91.1% against CAND's 86.5%, +4.6 points, against +3 to +10: HELD
+  3. retired years 1-5 at the floor: EZ 52% (CAND 76%) against 25% to 65%: HELD
+  4. the retirees' first retired year: EZ 82.5% against CAND's 80.0%, +2.5, against within 5: HELD
+  5. from the 21st retired year: EZ 106.7% against CAND's 107.5%, -0.8, against within 2: HELD
+  6. the retirees' equity in retired year 1: EZ 24.6% against CAND's 24.6%, 0.0, against within 5: HELD
+  7. EZ less DIAL10M, survival: +0.50 (se 0.13; +0.24 to +0.76) against +0.3 to +2.0: HELD; retired years 1-5: EZ 91.1% against DIAL10M's 95.6%, below: HELD
+  held 7 of 7 (7 holds only if both its parts do)
+Beside (not predicted):
+  survival, EZ less CAND, by household: S090 -1.10, S030 -1.50, S328F -0.90, S188 -0.60, S304F -0.60, S368 -0.50, S050 -0.80, S340F -0.70; below CAND on 8 of 8; the paths where one of the two alone fails: EZ 78, CAND 11, of 8000
+  each arm less CAND, pooled: survival (paired, from the households' counts), retired years 1-5 (the pooled levels), and years 1-5 at the floor
+    DIAL10   -1.30 points; +8.0 points (94.5%); at the floor 8% (CAND 76%)
+    DIAL10M  -1.34 points; +9.1 points (95.6%); at the floor 5% (CAND 76%)
+    EZ       -0.84 points; +4.6 points (91.1%); at the floor 52% (CAND 76%)
+  the first retired year at the floor on every path (80.0%): EZ on S090, S030, S304F, S368; CAND on S090, S030, S304F, S368, S050; of the retirees (S090, S030, S368, S050) EZ 3, CAND 4
+  the pension and ISA's equity share at retired years 1 / 5 / 10 / 20, pooled: EZ 25.2 / 25.3 / 24.6 / 23.8%, CAND 30.4 / 31.3 / 40.4 / 50.4%, EZ less CAND -5.2 / -6.0 / -15.8 / -26.6 points; the retirees: EZ 24.6 / 24.1 / 23.3 / 22.3%, CAND 24.6 / 24.6 / 41.4 / 58.3%, 0.0 / -0.5 / -18.1 / -36.0
+  the first retired year's equity where retirement comes later: S328F EZ 23.9% against CAND 45.0%, S188 EZ 27.6% against CAND 27.8%, S304F EZ 27.7% against CAND 28.4%, S340F EZ 23.9% against CAND 44.0%
+  the equity share at the four years, over every household: EZ 17.7% to 29.9%, CAND 20.0% to 69.1%, DIAL10M 23.3% to 61.0%
+  at 110% in retired years 6-10: CAND 55%, DIAL10 50%, DIAL10M 52%, EZ 64%; cuts after year 1 a hundred years: CAND 2.7, DIAL10 4.2, DIAL10M 4.8, EZ 4.0
+  the estate where each survives, the households' mean: EZ 1,959,745 against CAND 3,061,630, 36% lower; lower on 8 of 8

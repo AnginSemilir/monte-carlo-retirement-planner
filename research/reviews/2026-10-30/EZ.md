@@ -175,3 +175,86 @@ unit; the read prints FAIR. **Time box:** 4 hours from launch.
 - **1 misses low:** a price set on one household does not carry to the others, and the price would have to be set per
   household. That is a design question for the maintainer.
 - **2 and 3 miss:** EZ adds nothing over the candidate's own penalty at the same survival.
+
+## 10. The result (30 Oct, evening)
+
+Read once by `ez/ez-run.mjs --read` (its output whole in `ez/results-ez-run.txt`), and scored by `ez/ez-score.mjs`
+(`ez/results-ez-score.txt`). The scorer refuses a read that is not FAIR or does not add up. Eight planted faults were
+each caught (`ez/results-ez-score-plants.txt`). The workers' logs are in `ez/results-ez-run-workers.txt`.
+
+**The checks passed.**
+- **CANDEQ** (the candidate on the patched code, EZ off) was the CAND unit on every path, year and failure, on all eight
+  households. So the patch is inert when off at full scale, and across the agent's four commits since 1b39400.
+- **runPath** matched E.runTrial on the first 100 paths of every unit. The worker stops otherwise.
+- **The read** printed FAIR: one seed, path count, years and inputs.
+
+**One worker was stopped.** The second worker reached the session's two-hour limit for a background job during S340F's
+EZ arm (its log begun 17:52:05, last written 19:52:05). S340F's identity was already written. Its EZ arm was rerun
+alone on the same code (code bb63cda25821 on every unit; the read requires it). The read came inside the time box.
+
+Pooled, each household once (the retirees, retired at the start, are S090, S030, S368 and S050):
+
+| | survival | retired years 1-5 | at the floor, years 1-5 | the retirees' first year | 21 on | equity, retired years 1 / 5 / 10 / 20 |
+|---|---|---|---|---|---|---|
+| CAND | 97.0% | 86.5% | 76% | 80.0% | 107.5% | 30.4 / 31.3 / 40.4 / 50.4% |
+| DIAL10 | 95.7% | 94.5% | 8% | 91.3% | 107.0% | 33.6 / 32.9 / 34.3 / 43.5% |
+| DIAL10M | 95.6% | 95.6% | 5% | 93.8% | 106.1% | 31.5 / 31.0 / 34.3 / 45.7% |
+| EZ | 96.1% | 91.1% | 52% | 82.5% | 106.7% | 25.2 / 25.3 / 24.6 / 23.8% |
+
+- **EZ less CAND, survival:** -0.84 points (se 0.12; -1.07 to -0.61). It is below CAND on all eight households (-0.50
+  to -1.50). EZ alone fails on 78 paths and CAND alone on 11, of 8,000.
+- **EZ less DIAL10M:** +0.50 (se 0.13; +0.24 to +0.76). **Less DIAL10:** +0.46 (se 0.13).
+
+**The prediction, scored: all seven held.**
+1. Survival less CAND, -1.0 to +0.5: HELD at -0.84. Its interval reaches -1.07, past the range.
+2. Years 1-5, 3 to 10 points above CAND: HELD, +4.6.
+3. Years 1-5 at the floor, 25% to 65%: HELD, 52%.
+4. The retirees' first year within 5 points of CAND's 80.0%: HELD, 82.5%.
+5. From the 21st year, within 2 points of CAND's 107.5%: HELD, 106.7%.
+6. The retirees' first-year equity within 5 points of CAND's 24.6%: HELD, 24.6%.
+7. Survival 0.3 to 2.0 points above DIAL10M, and years 1-5 below it: HELD, +0.50, and 91.1% against 95.6%.
+
+By the reading declared in section 9 (1 to 3 hold), EZ with the price spends more early than the candidate and sits at
+the floor less, near the candidate's survival. It is a spending method to weigh against DIAL10M. Four results beside
+the prediction bear on how it weighs:
+
+1. **It still opens at the floor.** EZ's first retired year is 80% on every path for three of the four retirees (S090,
+   S030, S368), as the candidate's is for all four. Its gain is from raising sooner, not from starting higher: retired
+   years 6-10 at 101.1% against the candidate's 97.2%, and at 110% in 64% of those years against 55%.
+2. **On these figures it does not trade better than the dial.** Against the candidate:
+   - EZ gives up 0.84 points of survival for +4.6 points in years 1-5;
+   - DIAL10 gives up 1.30 for +8.0;
+   - DIAL10M gives up 1.34 for +9.1, with 5% of its early years at the floor against EZ's 52%.
+
+   The three are at different survival, so this run cannot settle which trades better.
+3. **Its risk-taking is its own, not the candidate's.** gamma was set to the candidate's opening equity, and there it
+   matches (the retirees 24.6% each). After that, the two diverge:
+   - EZ's share stays between 17.7% and 29.9% on every household at the four years read;
+   - the candidate's rises, to 50.4% pooled at year 20 (the retirees 58.3%);
+   - where retirement comes later, EZ starts at 23.9% against the candidate's 45.0% (S328F) and 44.0% (S340F);
+   - the price moved the tiers in the calibration: S090's opening equity was 43.3% at a price of 3, and 23.3% at 10 and
+     at 30 (`ez/results-ez-calib-price.txt`).
+
+   So EZ separates the dislike of uneven spending from risk aversion in its formula, but it does not keep the
+   candidate's tiers.
+4. **Its estate is 36% lower** where each survives: 1,959,745 against 3,061,630 (the households' mean), and lower on all
+   eight. EZ gives the estate no value (section 2). The candidate's estate weight is 0.02.
+
+**Odd results, each with what follows:**
+- **The survival deficit on every household.** The price was set on S090's 200 paths of seed 99001, at 94.0% each. On
+  the run's 1,000 paths of seed 7002, S090 itself is 1.10 points below. A price set on 200 paths is too noisy to hold
+  survival within a point. The deficit is inside the prediction, so no rerun follows. Any further EZ arm should set its
+  price on more paths.
+- **The flat equity.** The candidate's rise is likely where its survival is assured and its estate weight decides. NOT
+  CHECKED.
+
+**For the maintainer (no default changes):**
+- **Settle the trade against the dial at equal survival:** EZ with its price set to DIAL10M's survival, or the dial
+  set to EZ's, on the eight households. The calibration's ladder brackets that price: on S090's 200 paths, survival was
+  2.0 points below the candidate's at a price of 10 (opening at 95%), and level with it at 30 (opening at 80%).
+- **Keep the candidate's tiers, literally:** EZ chooses only the spending, and the tiers are the candidate's choice at
+  each position. That is the strictest reading of requirement (1). It is a build, with its own tests, before a run.
+- **Give EZ an estate term:** a value on the estate, as scoped in `AGE-WEIGHT.md`. It would likely raise the later
+  equity and the estate (NOT CHECKED). A build and a new calibration.
+- **Stop at DIAL10M:** it has (2), at no survival cost against DIAL10, and more early spending than EZ, but not (1).
+  It is 1.34 points below the candidate's survival.

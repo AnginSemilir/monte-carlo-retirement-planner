@@ -1,0 +1,7 @@
+The locked arms' worker, a smoke run at 4 wealth points on S090 (lock-run.mjs --prices 10,30 --points 4 S090, from the root of the lock's code): the pipeline only, not the run's settings; at 4 points the candidate itself is not the one at 45
+S090 candlk-p4 on the patched code, both options off: 4 points (a smoke run, not the unit's settings); the tier above off: no tier above the plan; solve 25 s
+S090 d10mlk-p4: survival 86.20% (CAND 95.10%); the first retired year's move's equity 82.5% (CAND 22.6%); the lock held at 7059 of 7059 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 24 s, paths 176 s; code 7fc8551be6e5
+S090 ezlk-g4-r2-f10-p4: survival 59.90% (CAND 95.10%); the first retired year's move's equity 82.5% (CAND 22.6%); the lock held at 6737 of 6737 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 33 s, paths 166 s; code 7fc8551be6e5
+S090 ezlk-g4-r2-f30-p4: survival 59.90% (CAND 95.10%); the first retired year's move's equity 82.5% (CAND 22.6%); the lock held at 6747 of 6747 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 29 s, paths 161 s; code 7fc8551be6e5
+
+[exited with code 0]

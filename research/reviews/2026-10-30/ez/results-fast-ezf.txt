@@ -1,0 +1,71 @@
+The agent's fast suite on EZ's code (a0e6400 with ez/solve-ez.patch, the e3pcls pin refreshed in its worktree): node research/tests/run-all.mjs fast -j 1, its output whole
+
+ok   solver-invariants.test.mjs (73 s)
+ok   known-answer.test.mjs (97 s)
+ok   engine-fidelity.test.mjs (187 s)
+ok   solver-carry.test.mjs (2 s)
+ok   tier-above.test.mjs (18 s)
+ok   tax-2026.test.mjs (0 s)
+ok   table-guards.test.mjs (5 s)
+ok   final-integral.test.mjs (17 s)
+FAIL check-state.test.mjs (0 s): } |  | Node.js v22.22.0
+ok   hooks.test.mjs (0 s)
+ok   fair-gate.test.mjs (0 s)
+ok   plan-defaults.test.mjs (0 s)
+FAIL e3pcls-guard.test.mjs (3 s): } |  | Node.js v22.22.0
+ok   scottax.test.mjs (0 s)
+ok   savings-tax.test.mjs (0 s)
+ok   bridge.test.mjs (4 s)
+ok   cf.test.mjs (0 s)
+ok   diff.test.mjs (0 s)
+ok   entrants.test.mjs (2 s)
+ok   guardrails.test.mjs (2 s)
+ok   inheritance.test.mjs (0 s)
+ok   lookahead.test.mjs (1 s)
+ok   pctband.test.mjs (1 s)
+ok   policy.test.mjs (0 s)
+ok   priorities.test.mjs (0 s)
+ok   salarygrowth.test.mjs (0 s)
+ok   settings.test.mjs (0 s)
+ok   reader.test.mjs (0 s)
+ok   hygiene.test.mjs (0 s)
+ok   reduce-7uf.test.mjs (0 s)
+ok   check-prediction.test.mjs (0 s)
+ok   solver-cash.test.mjs (7 s)
+ok   audit-7uf-checks.test.mjs (1 s)
+ok   solver-guards.test.mjs (24 s)
+ok   state-check.test.mjs (91 s)
+ok   solver-scratch.test.mjs (56 s)
+ok   solver-memo.test.mjs (374 s)
+ok   adaptive-dup.test.mjs (87 s)
+ok   chooser-share.test.mjs (234 s)
+ok   n4-menu.test.mjs (333 s)
+ok   tier-steps.test.mjs (56 s)
+ok   speed-port.test.mjs (851 s)
+ok   bed-sipp.test.mjs (1 s)
+ok   phase4-audit.test.mjs (3 s)
+ok   risk-consent.test.mjs (57 s)
+ok   fail-delivered.test.mjs (346 s)
+run-all fast: 46 files found, 46 run, 44 passed, FAILED: check-state.test.mjs (1), e3pcls-guard.test.mjs (1)
+exit 1
+
+== The two failures
+
+1. check-state.test.mjs, run alone on EZ's code (its lines other than PASS):
+FAIL  the committed STATE.md passes (STATE.md's printed block "candidate" is not what state.mjs prints from the files now (run: node research/solver/state.mjs --write))
+FAILED: 1 of 8 checks
+node:internal/modules/run_main:123
+   the same test on the agent's code unpatched (a0e6400):
+ALL PASS: 8 checks
+   STATE.md's printed block 'candidate' against what state.mjs prints on EZ's code, the lines that differ (diff of the committed block, <, and the printed, >):
+8,9c8,9
+< - The solver code the e3pcls pin last passed on: fe07566d4edbf177 (30 Oct, 10:55 UK)
+<  the code now: fe07566d4edbf177.
+---
+> - The solver code the e3pcls pin last passed on: b3cbc39c8b83f5da (30 Oct, 17:25 UK)
+>  the code now: b3cbc39c8b83f5da.
+
+2. e3pcls-guard.test.mjs, run alone on the agent's code unpatched (a0e6400), its first lines other than PASS:
+AssertionError [ERR_ASSERTION]: EDGE: an uncommitted test counts as new, an old test as old (the dates read for research/tests too)
+   why: this clone is shallow, so git dates an old test's first commit at the clone's oldest commit:
+   shallow: true; e2.test.mjs first added, as this clone sees it: 2026-10-21T06:54:07+00:00; the clone's oldest commit: 3771bb2 2026-10-21T06:54:07+00:00; E3PCLS_FROM: E3PCLS_FROM = '2026-10-07T22:50:00+01:00'

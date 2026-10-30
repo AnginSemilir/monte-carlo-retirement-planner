@@ -1,0 +1,4 @@
+solve()'s bytecode against V8's --max-optimized-bytecode-size (61440 bytes in Node v22.22.0)
+  /home/claude/base7c-wt (a0e6400): 60024 bytes, 1416 under the limit
+  /home/claude/ezf-wt (a0e6400 with changes): 60841 bytes, 599 under the limit
+  /home/claude/lock-wt (a0e6400 with changes): 61196 bytes, 244 under the limit

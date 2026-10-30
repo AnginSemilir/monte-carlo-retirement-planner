@@ -17,7 +17,14 @@
  *                        maintainer asked for (29 Oct): survival, lifetime spending and spending while alive, the retirees'
  *                        first year and when they are back at target, how often a path's level changes, and the equity
  *                        share the pension and ISA hold.
- *   node research/solver/reduce-curve.mjs --registered|--dial [dir]
+ *   --pay <dir> [<dir>]  EXPLORATORY (D46): CANDDP, the backward pass kept to paying moves where one pays, and DIAL6, the
+ *                        dial at six times, each against CANDD re-run on the same code; the deep review's read of 30 Oct
+ *                        (reviews/2026-10-30-deep-fail-delivered.md section 4): the run-out paths with a 110% year in the
+ *                        three years before ruin against CANDD's, and where the latest falls; the year before ruin at the
+ *                        floor; the paired survival change and its discordant paths; lifetime spending and while alive;
+ *                        running out while alive; the failure year's shift; its rule's reading. With a second folder, CANDD's
+ *                        units on this code against that folder's (the option unset, the same outcomes byte for byte).
+ *   node research/solver/reduce-curve.mjs --registered|--dial|--pay [dir]
  *   node research/solver/reduce-curve.mjs --planted       the gate and both reads on synthetic units with known answers
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -27,7 +34,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const REG_SEED = 7019, HELD_OUT = [7003, 7011, 7012, 7013, 7014, 7018], Z = 1.959964, POOLED = 0.1;   // POOLED: the decided margins' pooled floor, in points (STATE.md's decided defaults)
-export const READS = { registered: ['CAND', 'CANDD'], dial: ['CANDD', 'DIAL3', 'DIAL10'] };
+export const READS = { registered: ['CAND', 'CANDD'], dial: ['CANDD', 'DIAL3', 'DIAL10'], pay: ['CANDD', 'CANDDP', 'DIAL6'] };
 const TYPES = { survived: Uint8Array, delivered: Float32Array, unmet: Float32Array, estate: Float32Array, wealth: Float32Array, failYear: Int16Array, level: Uint8Array };
 const decode = u => ({ ...u, main: Object.fromEntries(Object.entries(u.main).map(([k, v]) => { const b = Buffer.from(v, 'base64'); return [k, new TYPES[k](b.buffer, b.byteOffset, b.byteLength / TYPES[k].BYTES_PER_ELEMENT)]; })) });
 
@@ -52,14 +59,14 @@ export function gate(units, ids, arms, filesAudit, registered) {
   // switch charge, raise weight and failure price across every unit read
   for (const u of read) {
     const want = ranOf(u.arm);
-    if (!u.ran || u.ran.failDelivered !== want.failDelivered || Math.abs(u.ran.lambda - want.lambda) > 1e-15) P.push(`${u.id} ${u.arm}: ran failDelivered ${u.ran && u.ran.failDelivered}, lambda ${u.ran && u.ran.lambda} (the arm is ${want.failDelivered}, ${want.lambda})`);
+    if (!u.ran || u.ran.failDelivered !== want.failDelivered || Math.abs(u.ran.lambda - want.lambda) > 1e-15 || !!u.ran.payWhereOnePays !== want.payWhereOnePays) P.push(`${u.id} ${u.arm}: ran failDelivered ${u.ran && u.ran.failDelivered}, lambda ${u.ran && u.ran.lambda}, payWhereOnePays ${!!(u.ran && u.ran.payWhereOnePays)} (the arm is ${want.failDelivered}, ${want.lambda}, ${want.payWhereOnePays})`);
   }
   for (const k of ['pts', 'levels', 'switchCharge', 'raiseWeight', 'failureShortfall']) one(`what the units ran: ${k}`, u => JSON.stringify(u.ran && u.ran[k]));
   return P;
 }
 /* each arm's settings as audit-curve.mjs sets them */
-export const LAMBDA = 0.0223606797749979, DIAL = { DIAL3: 3, DIAL10: 10 };
-export const ranOf = arm => ({ failDelivered: arm !== 'CAND', lambda: LAMBDA * (DIAL[arm] || 1) });
+export const LAMBDA = 0.0223606797749979, DIAL = { DIAL3: 3, DIAL10: 10, DIAL6: 6 };
+export const ranOf = arm => ({ failDelivered: arm !== 'CAND', lambda: LAMBDA * (DIAL[arm] || 1), payWhereOnePays: arm === 'CANDDP' });
 
 /* per path, one unit's values (the review's pathVals): survival, lifetime spending delivered, spending while alive (each
    retired year's spending weighted by a Gompertz chance of being alive, mode 90 and dispersion 9 from the plan's start age;
@@ -199,8 +206,8 @@ export function readRegistered(by, ids) {
   return { L, p1, p2, p3, harm, outcome };
 }
 /* the dial's read (EXPLORATORY) */
-export function readDial(by, ids, retirees) {
-  const L = [], arms = READS.dial;
+export function readDial(by, ids, retirees, arms = READS.dial) {
+  const L = [];
   L.push(`retired at the start: ${retirees.join(', ')}; years counted from 1, the first retired year`);
   L.push('per arm: survival; the retirees\' first year and years 1-5 (% of target); their average back at target (year), the median path back (year); from the 21st year (all); retired years at the floor / at 110%; the share of years a path\'s level changes, and the mean step (points); the pension and ISA\'s equity share at years 1, 5, 10, 20 (retirees; all)');
   for (const a of arms) {
@@ -217,6 +224,64 @@ export function readDial(by, ids, retirees) {
   L.push('per household: survival, the first retired year\'s level and the equity held in year 1, by arm:');
   for (const id of ids) L.push(`  ${id.padEnd(6)} ${arms.map(a => { const v = pathVals(by[id][a]), first = Array.from(v.first).filter(Number.isFinite); const e = by[id][a].equity && by[id][a].equity[0]; return `${a} ${(v.surv.reduce((p, x) => p + x, 0) / by[id][a].N).toFixed(2)}% (${first.length ? f1(first.reduce((p, x) => p + x, 0) / first.length) : '-'}, ${e === null || e === undefined ? '-' : `${Math.round(100 * e)}%`})`; }).join('  ')}`);
   return { L };
+}
+
+/* the year before ruin and the three before it, over the paths that run out: the latest 110% year's distance from ruin
+   (1, 2 or 3 years before) and the year before at the floor */
+export function beforeRuin(by, ids, arm) {
+  const at = [0, 0, 0, 0]; let n = 0, floor = 0;
+  for (const id of ids) {
+    const u = by[id][arm], { N, Y, retireT } = u, m = u.main, fl = Math.round(100 * Math.min(...u.ran.levels));
+    for (let k = 0; k < N; k++) {
+      const fy = m.failYear[k]; if (!(fy >= 0 && m.unmet[k] > 1)) continue;
+      n++;
+      if (fy - 1 >= retireT && m.level[k * Y + fy - 1] > 0 && m.level[k * Y + fy - 1] <= fl) floor++;
+      for (let d = 1; d <= 3; d++) { const t = fy - d; if (t >= retireT && m.level[k * Y + t] >= 110) { at[d]++; break; } }
+    }
+  }
+  return { n, floor, at, within: at[1] + at[2] + at[3] };
+}
+/* the failure year's shift between two arms, over the paths that run out in both: earlier, the same year, later */
+export function failShift(by, ids, a, b) {
+  let earlier = 0, same = 0, later = 0, sum = 0;
+  for (const id of ids) {
+    const x = by[id][a].main, y = by[id][b].main;
+    for (let k = 0; k < x.failYear.length; k++) {
+      if (!(x.failYear[k] >= 0 && x.unmet[k] > 1 && y.failYear[k] >= 0 && y.unmet[k] > 1)) continue;
+      const d = x.failYear[k] - y.failYear[k]; sum += d;
+      if (d < 0) earlier++; else if (d > 0) later++; else same++;
+    }
+  }
+  const n = earlier + same + later;
+  return { earlier, same, later, n, mean: n ? sum / n : NaN };
+}
+/* CANDDP's and DIAL6's read (EXPLORATORY, D46), against CANDD on the same code, by the deep review's rule for CANDDP */
+export function readPay(by, ids, retirees) {
+  const L = [...readDial(by, ids, retirees, READS.pay).L];
+  const c = beforeRuin(by, ids, 'CANDD'), p = beforeRuin(by, ids, 'CANDDP');
+  const pct = (x, n) => (n ? `${(100 * x / n).toFixed(1)}%` : '-');
+  L.push('CANDDP against CANDD, the deep review\'s read (reviews/2026-10-30-deep-fail-delivered.md section 4):');
+  for (const [a, r] of [['CANDD', c], ['CANDDP', p]]) L.push(`  ${a.padEnd(6)} of ${r.n} paths that run out: a 110% year in the three years before ruin ${r.within} (${pct(r.within, r.n)}), the latest 1 / 2 / 3 years before ${r.at[1]} / ${r.at[2]} / ${r.at[3]}; the year before ruin at the floor ${r.floor} (${pct(r.floor, r.n)})`);
+  const sv = lin(by, ids, 'surv', [['CANDDP', 1], ['CANDD', -1]]), sp = lin(by, ids, 'deliv', [['CANDDP', 1], ['CANDD', -1]], 'CANDD');
+  const d = discordant(by, ids, 'CANDDP', 'CANDD'), sh = failShift(by, ids, 'CANDDP', 'CANDD');
+  L.push(`  survival ${iv(sv)} points; ${d.saved + d.lost} of ${d.n} paths differ (${d.saved} saved: ${d.savedOut} out, ${d.savedPot} pot; ${d.lost} lost: ${d.lostOut} out, ${d.lostPot} pot); lifetime spending ${iv(sp, 4, '%')}`);
+  L.push(`  the failure year, of ${sh.n} paths that run out under both: earlier ${sh.earlier}, the same ${sh.same}, later ${sh.later} (mean ${sg(sh.mean, 2)} years)`);
+  // the review's rule: near none (under 2% of run-out paths) with survival not below -0.1 pooled and spending within 0.1%: the
+  // failing cells are the cause; three-quarters of CANDD's count or more: they are not; between: both
+  const near = p.n > 0 && p.within / p.n < 0.02, kept = p.within >= 0.75 * c.within, price = sv.est < -POOLED || Math.abs(sp.est) > 0.1;
+  const verdict = near && !price ? 'the count falls to near none, survival and spending within their margins: THE FAILING CELLS ARE THE CAUSE (to the maintainer as D43\'s completion; joins the candidate only by a ruling naming this run or a registered held-out read)'
+    : near ? 'the count falls to near none, but survival or spending moves past its margin: the cause, at the price above (to the maintainer)'
+    : kept ? 'the count stays at three-quarters of CANDD\'s or more: THE FAILING CELLS ARE NOT THE CAUSE (Part C keeps the presentation rule)'
+    : 'the count falls, but not to near none: BOTH (to the maintainer)';
+  L.push(`  by the review's rule: ${verdict}`);
+  return { L, near, kept, price, verdict, c, p };
+}
+/* CANDD's outcomes on this code against another folder's CANDD units (the option unset: the same, byte for byte) */
+export function sameAs(units, old, ids) {
+  const key = u => JSON.stringify({ main: Object.fromEntries(Object.entries(u.main).map(([k, v]) => [k, Buffer.from(v.buffer, v.byteOffset, v.byteLength).toString('base64')])), beside: u.beside, equity: u.equity });
+  const pick = (us, id) => us.find(u => u.id === id && u.arm === 'CANDD');
+  const same = ids.filter(id => pick(units, id) && pick(old, id) && key(pick(units, id)) === key(pick(old, id)));
+  return { same: same.length, of: ids.length, differ: ids.filter(id => !same.includes(id)) };
 }
 
 /* synthetic units with known answers */
@@ -262,6 +327,17 @@ function planted() {
   ok(gate(synth({ arms: READS.dial, seed: 7014 }), ids, READS.dial, 'a', false).some(p => /held out/.test(p)), 'another test\'s held-out seed is refused');
   ok(gate(synth({ arms: R, seed: REG_SEED, inputsOf: (id, arm) => (id === 'A' && arm === 'CANDD' ? 'y' : 'x') }), ids, R, 'a', true).some(p => /A: its arms differ in inputs/.test(p)), 'a household whose arms ran on other inputs is refused');
   ok(gate(synth({ arms: R, seed: REG_SEED }), ids, R, 'b', true).some(p => /not the files'/.test(p)), 'units stamped on other files are refused');
+  { const P8 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    const o = readPay(byOf(synth({ arms: READS.pay, ids: P8, change: { CANDD: { fail: 20, raise: true }, CANDDP: { fail: 20 }, DIAL6: { fail: 20 } } })), P8, P8);
+    ok(o.near && !o.price && /THE FAILING CELLS ARE THE CAUSE/.test(o.verdict), `CANDDP with no raise before ruin where CANDD has it on every run-out path: the cause (${o.p.within} of ${o.p.n} against ${o.c.within})`);
+    const o2 = readPay(byOf(synth({ arms: READS.pay, ids: P8, change: { CANDD: { fail: 20, raise: true }, CANDDP: { fail: 20, raise: true }, DIAL6: { fail: 20 } } })), P8, P8);
+    ok(o2.kept && /ARE NOT THE CAUSE/.test(o2.verdict), 'CANDDP raising as often as CANDD: not the cause');
+    const o3 = readPay(byOf(synth({ arms: READS.pay, ids: P8 })), P8, P8);
+    ok(!o3.near && o3.kept && o3.p.n === 0, 'no path runs out under either: nothing falls, so not near none (EDGE: an empty class)');
+    ok(gate(synth({ arms: READS.pay, ranAs: { 'A CANDDP': { payWhereOnePays: false } } }), ids, READS.pay, 'a', false).some(p => /A CANDDP: ran .*payWhereOnePays false/.test(p)), 'a CANDDP unit that ran without the option is refused');
+    const U = synth({ arms: READS.pay }), V = synth({ arms: READS.pay }); V.find(u => u.id === 'B' && u.arm === 'CANDD').main.level[5] = 90;
+    const s1 = sameAs(U, synth({ arms: READS.pay }), ids), s2 = sameAs(U, V, ids);
+    ok(s1.same === 2 && s2.same === 1 && s2.differ[0] === 'B', 'CANDD against another folder: the same where every value is, not where one level differs'); }
   { const by = byOf(synth({ arms: READS.dial })), c = curveOf(by, ids, 'DIAL3', ids); ok(c.first === 80 && c.backAvg === 2 && c.medBack === 2 && Math.abs(c.changeShare - 100 / 3) < 1e-9, `the curve's facts: first year 80, back at target in year 2 (average and median path), a third of the steps change (${f1(c.first)}, ${c.backAvg}, ${c.medBack}, ${c.changeShare.toFixed(2)}%)`); }
   for (const [c, m] of res) console.log(`${c ? 'ok  ' : 'FAIL'} ${m}`);
   const bad = res.filter(([c]) => !c).length;
@@ -274,9 +350,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const bad = planted();
   if (bad) process.exit(1);
   if (process.argv[2] === '--planted') process.exit(0);
-  const mode = process.argv[2] === '--registered' ? 'registered' : process.argv[2] === '--dial' ? 'dial' : null;
-  if (!mode) { console.error('usage: reduce-curve.mjs --registered|--dial [dir] | --planted'); process.exit(2); }
-  const dir = process.argv[3] || join(HERE, 'results', `curve-${mode === 'registered' ? REG_SEED : 7002}`);
+  const mode = { '--registered': 'registered', '--dial': 'dial', '--pay': 'pay' }[process.argv[2]] || null;
+  if (!mode) { console.error('usage: reduce-curve.mjs --registered|--dial|--pay [dir] [old dir] | --planted'); process.exit(2); }
+  const dir = process.argv[3] || join(HERE, 'results', mode === 'pay' ? 'curve-pay-7002' : `curve-${mode === 'registered' ? REG_SEED : 7002}`);
   const { requireFairLogs } = await import('./fair-gate.mjs');
   const logs = Object.fromEntries(readdirSync(dir).filter(f => /^case\d+\.txt$/.test(f)).map(f => [f, readFileSync(join(dir, f), 'utf8')]));
   requireFairLogs(logs, mode === 'registered' ? 'research/solver/registrations/fail-delivered.md' : 'none', mode === 'registered' ? {} : { blob: () => '-' });
@@ -292,5 +368,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const beside = read.reduce((a, u) => a + u.beside.engineOnly + u.beside.policyOnly, 0);
   console.log(`runPolicy beside the engine: paths that differ ${beside} of ${read.reduce((a, u) => a + u.beside.N, 0)}`);
   if (mode === 'registered') console.log(`THE FAILURE YEAR AT WHAT IT CAN PAY (registrations/fail-delivered.md, read once):\n${readRegistered(by, HOUSEHOLDS).L.join('\n')}`);
-  else console.log(`THE DISLIKE OF CUTS ON THE CANDIDATE (EXPLORATORY, seed ${u0.seed}):\n${readDial(by, HOUSEHOLDS, HOUSEHOLDS.filter(id => by[id].CANDD.retireT === 0)).L.join('\n')}`);
+  else if (mode === 'dial') console.log(`THE DISLIKE OF CUTS ON THE CANDIDATE (EXPLORATORY, seed ${u0.seed}):\n${readDial(by, HOUSEHOLDS, HOUSEHOLDS.filter(id => by[id].CANDD.retireT === 0)).L.join('\n')}`);
+  else {
+    console.log(`PAYING WHERE ONE PAYS, AND THE DIAL AT SIX TIMES (EXPLORATORY, D46, seed ${u0.seed}):\n${readPay(by, HOUSEHOLDS, HOUSEHOLDS.filter(id => by[id].CANDD.retireT === 0)).L.join('\n')}`);
+    if (process.argv[4]) {
+      const old = readdirSync(process.argv[4]).filter(f => f.endsWith('.json.gz')).map(f => decode(JSON.parse(gunzipSync(readFileSync(join(process.argv[4], f))).toString())));
+      const s = sameAs(read, old, HOUSEHOLDS);
+      console.log(`CANDD on this code (the option unset) against ${process.argv[4].replace(/.*research\/solver\//, '')}: the same outcomes byte for byte on ${s.same} of ${s.of} households${s.differ.length ? `; DIFFER: ${s.differ.join(', ')}` : ''}`);
+    }
+  }
 }

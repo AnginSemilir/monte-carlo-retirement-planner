@@ -9,7 +9,10 @@
  *   CANDD   the candidate (failDelivered on, D43) at 45 points;
  *   DIAL3   CANDD with three times the dislike of cuts (lambda x 3), nothing else changed (D44: the dial on the candidate's
  *           own lambda; the switch charge stays in survival points, as the currency does);
- *   DIAL10  the same at ten times.
+ *   DIAL10  the same at ten times;
+ *   DIAL6   the same at six times (D46: the dial's positions 1x, 3x, 6x, 10x; 6x measured before it ships, D44 (1));
+ *   CANDDP  CANDD with the backward pass kept to paying moves where one pays (solve.js `payWhereOnePays`; D46, the deep
+ *           review of 30 Oct, reviews/2026-10-30-deep-fail-delivered.md section 4).
  * Each unit records, per path, the survival, the spending delivered, the unmet spending, the estate, the end wealth, the year
  * it failed and each year's level (Phase 4's runPath, held to E.runTrial on the first CHECK paths); and runPolicy beside the
  * engine on the first BESIDE paths, which also records the pension and ISA's equity share the policy holds each year, the
@@ -18,7 +21,7 @@
  * code and this test's files.
  *   node research/solver/audit-curve.mjs <paths> part k/n [seed]     (seed 7002 unless given)
  *   node research/solver/audit-curve.mjs --units
- *   CURVE_ARMS=<arm>,<arm> the arms (all four unless set); CURVE_ONLY=<id>,<id> the households; CURVE_PTS the points (smoke only)
+ *   CURVE_ARMS=<arm>,<arm> the arms (all six unless set); CURVE_ONLY=<id>,<id> the households; CURVE_PTS the points (smoke only)
  * Seed REG_SEED runs only under its registration (registrations/fail-delivered.md, CAND and CANDD), launched through
  * run-from-snapshot.sh; the held-out seeds of the others are refused.
  */
@@ -42,7 +45,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const HOUSEHOLDS = ['S030', 'S050', 'S090', 'S368', 'S188', 'S304F', 'S328F', 'S340F'];
 export const SEED = 7002, REG_SEED = 7019, REGISTRATION = 'fail-delivered.md', W = 0.02, CHECK = 200, BESIDE = 1000;
-export const ARMS = ['CAND', 'CANDD', 'DIAL3', 'DIAL10'], DIAL = { DIAL3: 3, DIAL10: 10 };
+export const ARMS = ['CAND', 'CANDD', 'DIAL3', 'DIAL10', 'DIAL6', 'CANDDP'], DIAL = { DIAL3: 3, DIAL10: 10, DIAL6: 6 };
 export const HELD_OUT = [7003, 7011, 7012, 7013, 7014, 7018];
 /* the files the stamp hashes, in this order */
 export const STAMP_FILES = ['audit-curve.mjs', 'reduce-curve.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', 'select-phase4.mjs', 'candidate.mjs', 'candidate.json', 'phase4-panel.json'];
@@ -54,12 +57,13 @@ export function stampFilesHash() {
 export const unitsOf = (ids, arms = ARMS) => arms.flatMap(arm => ids.map(id => [id, arm]));
 export const fileOf = (id, arm) => `${id}-${arm.toLowerCase()}.json.gz`;
 /* each arm's settings: the base settings object and the caller's own on top */
-export const armOf = arm => ({ base: arm === 'CAND' ? PHASE4_OPTS : CANDIDATE_OPTS, lambda: LAMBDA * (DIAL[arm] || 1) });
+export const armOf = arm => ({ base: arm === 'CAND' ? PHASE4_OPTS : arm === 'CANDDP' ? { ...CANDIDATE_OPTS, payWhereOnePays: true } : CANDIDATE_OPTS, lambda: LAMBDA * (DIAL[arm] || 1) });
 /* what each arm must have run */
 export function armProblems(arm, r) {
   const P = [], fd = r.meta.failDelivered === true, lam = LAMBDA * (DIAL[arm] || 1);
   if ((arm === 'CAND') === fd) P.push(`failDelivered ${r.meta.failDelivered} on ${arm}`);
   if (Math.abs(r.lambda - lam) > 1e-15) P.push(`lambda ${r.lambda}, not ${lam}`);
+  if ((arm === 'CANDDP') !== (r.meta.payWhereOnePays === true)) P.push(`payWhereOnePays ${r.meta.payWhereOnePays} on ${arm}`);
   if (!r.meta.tierState || !(r.switchCharge > 0)) P.push(`no tier state (${r.meta.tierState}) or switch charge (${r.switchCharge})`);
   if (Math.abs(r.switchCharge - CANDIDATE_OPTS.switchCharge) > 1e-15) P.push(`switch charge ${r.switchCharge}, not the candidate's`);
   if (!r.levelOf.some(l => l > 1)) P.push('no raise on the menu');
@@ -103,9 +107,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const ctx = E.buildContext(withTable(r.m.ctx.plan, r)), T = ctx.totalYears, Y = T + 1, inputs = inputsHash(ctx), self = ctx.owners.find(o => o.key === 'self');
     const retireT = Math.max(0, Math.min(Y, self.retireAge - ctx.ageSelf0)), accessT = Math.max(0, ctx.nmpa - ctx.ageSelf0);
     const levels = [...new Set(r.levelOf)].sort((x, y) => x - y);
-    const ran = { arm, pts: r.g.np, actions: r.actions.length, levels, lambda: r.lambda, raiseWeight: r.meta.raiseWeight, failureShortfall: r.failureShortfall, failDelivered: r.meta.failDelivered === true,
+    const ran = { arm, pts: r.g.np, actions: r.actions.length, levels, lambda: r.lambda, raiseWeight: r.meta.raiseWeight, failureShortfall: r.failureShortfall, failDelivered: r.meta.failDelivered === true, payWhereOnePays: r.meta.payWhereOnePays === true,
       switchCharge: r.switchCharge, tierState: r.meta.tierState, bequestWeight: +Number(r.meta.bequestWeight).toPrecision(10), minPot: E.num(r.m.ctx.solvencyFloor, 0) };
-    console.log(`${''.padEnd(8)} ran ${arm}: lambda ${ran.lambda} failDelivered ${ran.failDelivered} levels ${levels.join(',')} pts ${ran.pts} actions ${ran.actions} switchCharge ${ran.switchCharge} inputs ${inputs} retires at year ${retireT} | solve secs ${Math.round(solveSecs)}`);
+    console.log(`${''.padEnd(8)} ran ${arm}: lambda ${ran.lambda} failDelivered ${ran.failDelivered}${ran.payWhereOnePays ? ' payWhereOnePays true' : ''} levels ${levels.join(',')} pts ${ran.pts} actions ${ran.actions} switchCharge ${ran.switchCharge} inputs ${inputs} retires at year ${retireT} | solve secs ${Math.round(solveSecs)}`);
     const paths = E.pathsForSeed(SEED_RUN, N, T), n = paths.length, e0 = Date.now();
     const main = { survived: new Uint8Array(n), delivered: new Float32Array(n), unmet: new Float32Array(n), estate: new Float32Array(n), wealth: new Float32Array(n), failYear: new Int16Array(n), level: new Uint8Array(n * Y) };
     let badCheck = 0;

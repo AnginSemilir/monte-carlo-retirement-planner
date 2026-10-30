@@ -981,6 +981,22 @@ export function solve(E, M, plan, opts = {}) {
   const FD = !!opts.failDelivered, FDPLANT = opts.failDeliveredPlant === 'nounmet';   // the plant (its test only): the unmet ignored
   if (FD && !failShort) throw new Error('failDelivered prices the failure year, so it needs failureShortfall');
   const unmetBuf = FD ? new Float64Array(A) : null;
+  /*
+   * PAYING WHERE ONE PAYS (`payWhereOnePays`, research only, default off; STATE.md FD-RAISE, D46; the deep review of 30 Oct,
+   * reviews/2026-10-30-deep-fail-delivered.md section 4, its CANDDP arm). The chooser never takes a move that cannot pay
+   * (scoreMoves scores it -Infinity), but the backward pass ranks it by its price, and under failDelivered a year-before-ruin
+   * cell can store "fail now at 110%" where paying the floor was possible: next year's value then runs flat in wealth, and a
+   * raise two years before ruin reads as free. With the option, wherever some move pays this year, every argmax of the
+   * backward pass skips the moves that cannot (skipped, not scored -Infinity: the guards throw on a non-finite score); a cell
+   * where every move fails is as before. Whether a move pays is the same in every world, so it is known once a cell, after
+   * pass 1. The ternary level search evaluates only some moves, so it cannot know, and refuses the option.
+   * `countFailPicks` (tests) counts the layer-cells whose stored move fails while one pays (meta.failPicks). The plant
+   * 'onesite' (tests only) leaves the tier state's one-pass phase B without the skip.
+   */
+  const PAY = !!opts.payWhereOnePays, PAYPLANT = opts.payWhereOnePaysPlant === 'onesite', CFP = PAY || !!opts.countFailPicks;
+  if (PAY && opts.levelSearch === 'ternary') throw new Error('payWhereOnePays needs every move evaluated: the ternary level search evaluates some');
+  let payOK = false, failPicks = 0;
+  const failPick = ai => { if (CFP && payOK && failBuf[ai] === 1) failPicks++; };
   const failDeliveredCost = (ai, t, ub) => {
     const sp = c.yr.spend[t];
     if (!(sp > 0)) return failCostAt[t];
@@ -1246,6 +1262,8 @@ export function solve(E, M, plan, opts = {}) {
                   if (PROF) PROF.skipped++;
                 }
               }
+              if (CFP) { payOK = false; for (let ai = 0; ai < A; ai++) if (failBuf[ai] !== 1) { payOK = true; break; } }
+              const skipFail = PAY && payOK;   // payWhereOnePays: this cell's argmaxes pass over the moves that cannot pay
               if (TS) {
                 // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
                 // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
@@ -1359,10 +1377,12 @@ export function solve(E, M, plan, opts = {}) {
                           v += JW[k] * score; wb += JW[k] * b;
                         }
                       }
+                      if (skipFail && !PAYPLANT && failBuf[ai] === 1) continue;
                       if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
                       if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
                     }
                     if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                    failPick(bestA);
                     const swB = switchCharge > 0 && tsLayerOf[bestA] !== j && E5PLANT !== 'nocharge';
                     for (let k = 0; k < K; k++) { let h = e5H[k][bestA]; if (swB) h += switchCharge; const Lj = layW[k][j]; Lj.surv[t][idx] = e5S[k][bestA]; Lj.beq[t][idx] = e5B[k][bestA]; Lj.resil[t][idx] = e5R[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = h; }
                   }
@@ -1416,6 +1436,7 @@ export function solve(E, M, plan, opts = {}) {
                       if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
                       const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state)', t, idx, k, ai, s, b, rs, h);
                       if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
+                      if (skipFail && failBuf[ai] === 1) continue;
                       if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                       if (lj === j && (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && b > stayB))) { stayScore = score; stayS = s; stayB = b; stayR = rs; stayH = h; stayA = ai; }
                     }
@@ -1423,6 +1444,7 @@ export function solve(E, M, plan, opts = {}) {
                     // the chooser's rule: a move to another pair only when it beats the best that stays by more than the margin
                     if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayScore > -Infinity && bestScore - stayScore <= switchMargin) { bestS = stayS; bestB = stayB; bestR = stayR; bestH = stayH; bestA = stayA; }
                     const Lj = layW[k][j];
+                    failPick(bestA);
                     Lj.surv[t][idx] = bestS; Lj.beq[t][idx] = bestB; Lj.resil[t][idx] = bestR; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = bestH;
                   }
                 }
@@ -1432,11 +1454,13 @@ export function solve(E, M, plan, opts = {}) {
                   let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
                   for (let ai = 0; ai < A; ai++) {
                     let v = 0, wb = 0;
+                    if (skipFail && failBuf[ai] === 1) continue;
                     for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
                     if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
                     if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
                   }
                   if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                  failPick(bestA);
                   for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
                 }
                 }
@@ -1486,10 +1510,12 @@ export function solve(E, M, plan, opts = {}) {
                 }
                 let bestV = -Infinity, bestWB = -Infinity, bestA = 0;
                 for (let ai = 0; ai < A; ai++) {
+                  if (skipFail && failBuf[ai] === 1) continue;
                   let v = 0, wb = 0;
                   for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
                   if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
                 }
+                failPick(bestA);
                 for (let k = 0; k < K; k++) {
                   survW[k][t][idx] = jS[k][bestA]; beqW[k][t][idx] = jB[k][bestA]; resilW[k][t][idx] = jR[k][bestA];
                   polW[k][t][idx] = bestA; shortW[k][t][idx] = jH[k][bestA];
@@ -1544,8 +1570,10 @@ export function solve(E, M, plan, opts = {}) {
                   else h += thisShort;
                   if (raiseSurv) h += raiseOfAction[ai] * s;
                   const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass', t, idx, k, ai, s, b, rs, h);
+                  if (skipFail && failBuf[ai] === 1) continue;
                   if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                 }
+                failPick(bestA);
                 survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
                 polW[k][t][idx] = bestA; shortW[k][t][idx] = bestH;
               }
@@ -1583,11 +1611,14 @@ export function solve(E, M, plan, opts = {}) {
     if (opts.progress && (!E2 || E2.part === 0)) opts.progress({ phase: 'years', done: T - t + 1, total: T + 1 });
   }
 
+  if (E2 && CFP) failPicks = E2.sum(failPicks);   // every part sums at the same point, before the others below
   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
   EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (FD) meta.failDelivered = true;
+  if (PAY) meta.payWhereOnePays = true;
+  if (CFP) meta.failPicks = failPicks;
   if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
   if (opts.tsLean !== undefined) meta.tsLean = opts.tsLean;   // SPEED-PORT-2.md's test switch, recorded when set
   if (E3) meta.e3 = { copied: e3Copied };

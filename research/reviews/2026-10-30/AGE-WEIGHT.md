@@ -56,6 +56,51 @@ For a 65-year-old, a cut at 65 then costs about 1.7 times the same cut at 85.
 
 **Acceptance:** the checks pass. **Time box:** 90 minutes from the pin's start.
 
+## The result (30 Oct, read once by `dial/ageweight.mjs --read`; its output whole in `dial/results-ageweight.txt`)
+
+**The checks passed.** The option's own test passed (7 checks, two plants caught). DIAL10 on the patched code was the
+DIAL10 unit on every path, year and failure, on all eight households. The read printed FAIR: one seed, path count, years
+and inputs. One fix came before the read: the equity share is read one year on. The harnesses record the tiers held
+entering each year, so read where they were, a retiree's first year showed the plan's own tiers (commit d686893).
+
+**The time box was missed:** about 2 hours 10 minutes from the pin's start against 90 minutes. The pin was written at
+13:26 UK (`e3pcls-pin.json` in the worktree), its run about 13 minutes before, and the read came at 15:25. The EZ
+build's runs shared the machine's two cores.
+
+Pooled, each household once (the retirees are the four retired at the start):
+
+| | survival | first retired year (retirees) | retired years 1-5 | 21 on | at the floor, years 1-5 | equity, retired years 1 / 5 / 10 / 20 (retirees) |
+|---|---|---|---|---|---|---|
+| CAND | 97.0% | 85.3% (80.0%) | 86.5% | 107.5% | 76% | 24.6 / 24.6 / 41.4 / 58.3% |
+| DIAL10 | 95.7% | 94.2% (91.3%) | 94.5% | 107.0% | 8% | 34.6 / 34.3 / 36.6 / 52.1% |
+| DIAL10M | 95.6% | 95.9% (93.8%) | 95.6% | 106.1% | 5% | 29.6 / 29.5 / 35.5 / 54.2% |
+
+- **DIAL10M less DIAL10, survival:** -0.04 points (se 0.08; -0.19 to +0.12).
+- **DIAL10M less CAND:** -1.34 (se 0.13; -1.60 to -1.08).
+
+**The prediction, scored:**
+- **The retirees' first year at 93% to 97%:** HELD, at 93.8%. **Years 1-5 higher than DIAL10's:** HELD, 95.6% against
+  94.5% pooled, and higher on each of the four retirees.
+- **From the 21st retired year, lower than DIAL10's:** HELD, 106.1% against 107.0%. **Fewer late raises:** NOT CHECKED.
+  The read counts years at the floor, not years at 110%.
+- **Survival 0.2 to 1.5 points below DIAL10's:** MISSED. It is the same as DIAL10's, within 0.2 either way.
+- **The equity share within 5 points of DIAL10's at each of the four years:**
+  - Pooled over the eight: HELD (-2.1, -1.9, 0.0 and +2.2 points).
+  - For the retirees' first year: at the edge (-5.0).
+  - On S050: 24.0% against DIAL10's 44.0% in the first retired year. That is the candidate's own share; DIAL10M took
+    S050's risk back down.
+
+**For the maintainer's two requirements:**
+- **(2), cuts disliked more when younger:** the age weights do this at no survival cost against DIAL10. The first year
+  and the first five years are higher, and the years from the 21st lower. There are fewer years at the floor in the first
+  ten retired years (5% against 8% in years 1 to 5; 5% against 7% in years 6 to 10), and slightly more from the 21st (6%
+  against 5%).
+- **(1), apart from the tiers' risk-taking:** neither dial arm gives this. Raising the dislike of cuts from one to ten
+  times moves the retirees' first-year equity from 24.6% to 34.6% (S050 24% to 44%; S090 23% to 43%). The age weights
+  then move it again, to 29.6% (S050 back to 24%). In this objective the price of a cut is paid in survival points, so
+  any change to that price changes the tiers. That separation is what Epstein-Zin is for (`EZ.md`, the build now under
+  way).
+
 ## Full Epstein-Zin, scoped (not built)
 
 If the age weighting on the candidate's own penalty gives the shape the maintainer wants, EZ adds little and need not be

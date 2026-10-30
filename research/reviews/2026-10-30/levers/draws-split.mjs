@@ -69,6 +69,8 @@ if (args[0] === '--pool') {
     out.push(`         survival ${ARMS.map(a => f1(r.surv[a])).join(' / ')}; cash ${f2(r.cash.A2)} / ${f2(r.cash.A3)}`);
     out.push(`         ${STEPS.map(([k, , , label]) => `${label} ${sg(r.steps[k].d)} (${r.steps[k].saved}/${r.steps[k].lost})`).join('; ')}`);
   }
+  const K = ['early', 'bridge', 'last', 'minpot'].map(k => rs.reduce((p, r) => p + r.kinds[k], 0)), savedAll = rs.reduce((p, r) => p + r.steps.total.saved, 0), lostAll = rs.reduce((p, r) => p + r.steps.total.lost, 0);
+  out.push(`  all households: FIXHOLD saves ${savedAll} paths and loses ${lostAll}; on those it saves, FIXAPP falls short only in the plan's last year on ${K[2]} or ends below the minimum pot on ${K[3]} (together ${K[2] + K[3]}), and falls short before the last year on ${K[0]}, ${K[1]} of them in the bridge`);
   const pool = k => { const xs = rs.map(r => r.steps[k]); const d = xs.reduce((p, x) => p + x.d, 0) / xs.length, se = Math.sqrt(xs.reduce((p, x) => p + x.v, 0)) / xs.length; return { d, se, lo: d - 1.96 * se, hi: d + 1.96 * se }; };
   const tot = pool('total');
   out.push('');

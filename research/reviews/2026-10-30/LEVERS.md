@@ -213,3 +213,43 @@ the tax bands, and when to sell the taxable account up to the CGT exemption.
   the lump sum after the sweep is within half a point either way; the solver's own choices are the rest, 0 to +1.5. If the
   sweep is most of it, the levers result's "about seven tenths is better decisions" falls, since the sweep is a fixed rule
   the app could adopt.
+
+**The split's results** (`levers/results-draws-split.txt`). Every check passes: the replay of FIXAPP is its unit on every
+path of every household, and the hook is A1; both plants are caught on every household.
+
+| Step (pooled, each household once) | Points | 95% | Share of +3.20 |
+|---|---|---|---|
+| The cost lookahead off | +0.00 | +0.00 to +0.00 | 0.0% |
+| The cash sweep | +0.36 | +0.09 to +0.64 | 11.3% |
+| No full lump sum, after the sweep | +0.03 | -0.07 to +0.12 | 0.8% |
+| The solver's own choices of draw each year | +2.81 | +2.45 to +3.17 | 87.9% |
+| FIXHOLD less FIXAPP | +3.20 | +2.79 to +3.61 | |
+
+- **The prediction missed where it mattered.** The sweep is a small part (+0.36; predicted +1.5 to +3.0), and the solver's
+  own choices are most of it (+2.81; predicted 0 to +1.5). The lookahead (no household has a one-off cost) and the lump sum
+  held.
+- **The sweep helps only where cash is large:** S050, with 4.50 years of target in cash at the start, +3.10. It costs the
+  app's policy 0.70 and 0.60 points on S090 and S030, and is within half a point either way elsewhere.
+- **The solver's own choices lose no path** against the app's order with the sweep, on any household: 18 to 40 saved each,
+  none lost.
+- **The paths the solver saves fail late under the fixed policy.** Of 272 saved, 151 fall short only in the plan's last
+  year or end below the minimum pot (a year of target; on S304F the plan's own, 9.53 years); 121 fall short earlier, 37 of
+  them in the bridge (all 30 of S368's and 7 of S304F's, at a median age of 57; the pension opens at 58).
+- **So the levers result stands, a little smaller.** The sweep is a lever, but a small one: in the draws alone it is 0.36
+  of the 3.20 points, and the rest is the solver's own choices.
+
+**What the solver's own choices are: declared before its run** (`levers/draws-adapt.mjs`, EXPLORATORY). Are they a better
+fixed rule than the app's, or choosing each year? FIXHOLD is solved again as its unit was, and its move recorded at each
+decision on the units' paths. Two fixed rules from its own menu are then played every year:
+- MODAL: the move it makes most often in the retired years;
+- BESTFIX: the move with the best survival on 1,000 paths of seed 7001 (a search seed, never scored), chosen in advance as
+  the app's rules are.
+
+The read: BESTFIX less A4 (what a better fixed rule from the solver's menu adds) and FIXHOLD less BESTFIX (what choosing
+each year adds), paired by path. Beside it: how the moves follow the markets (after the worst third of years and after the
+best third: the share drawing the pension first, harvesting, selling for the CGT exemption).
+- **Checks:** the re-solve, recorder on, reproduces FIXHOLD's unit on every path (planted: against FIXAPP's unit it must
+  differ); the rebuilt A4 has the split's survival.
+- **Acceptance:** the checks pass. **Time box:** 45 minutes.
+- **The prediction:** BESTFIX less A4 between 0 and +1.5; FIXHOLD less BESTFIX between +1.3 and +2.8, so most of the
+  solver's own choices is choosing each year, not a better fixed rule; MODAL no better than BESTFIX.

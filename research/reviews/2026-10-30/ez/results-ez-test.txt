@@ -1,16 +1,16 @@
-EZ's tests: the patched code at /home/claude/ez7c-wt (a0e6400 with the patch), the originals at /home/claude/base7c-wt (a0e6400) and /home/claude/fixed-wt (1b39400)
+EZ's tests: the patched code at /home/claude/ezf-wt (a0e6400 with the patch), the originals at /home/claude/base7c-wt (a0e6400) and /home/claude/fixed-wt (1b39400)
 =========== 1. OFF: THE ORIGINAL CODE'S TABLES AND RUNS ===========
-PASS  1. S090, the candidate's settings, EZ off, against a0e6400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 30 s, the original's 34 s)
-PASS  1. S090, the candidate's settings, EZ off, against 1b39400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 30 s, the original's 32 s)
-PASS  1. S090, the layer loop (tsOnce: false), EZ off, against a0e6400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 49 s, the original's 53 s)
-PASS  1. S090, the layer loop (tsOnce: false), EZ off, against 1b39400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 49 s, the original's 49 s)
-PASS  1. S328F, the candidate's settings, EZ off, against a0e6400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 39 s, the original's 44 s)
-PASS  1. S328F, the candidate's settings, EZ off, against 1b39400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 39 s, the original's 45 s)
-PASS  1. S328F, the layer loop (tsOnce: false), EZ off, against a0e6400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 63 s, the original's 73 s)
-PASS  1. S328F, the layer loop (tsOnce: false), EZ off, against 1b39400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 63 s, the original's 73 s)
-PASS  1. planted: S090 with EZ on parts the tables (first difference at world 0 layer 0 surv year 0 cell 2: 0.00006584158100284182 against 0.00013321004261172785) (83 s)
+PASS  1. S090, the candidate's settings, EZ off, against a0e6400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 29 s, the original's 33 s)
+PASS  1. S090, the candidate's settings, EZ off, against 1b39400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 29 s, the original's 31 s)
+PASS  1. S090, the layer loop (tsOnce: false), EZ off, against a0e6400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 47 s, the original's 49 s)
+PASS  1. S090, the layer loop (tsOnce: false), EZ off, against 1b39400: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 47 s, the original's 50 s)
+PASS  1. S328F, the candidate's settings, EZ off, against a0e6400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 36 s, the original's 42 s)
+PASS  1. S328F, the candidate's settings, EZ off, against 1b39400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 36 s, the original's 45 s)
+PASS  1. S328F, the layer loop (tsOnce: false), EZ off, against a0e6400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 69 s, the original's 71 s)
+PASS  1. S328F, the layer loop (tsOnce: false), EZ off, against 1b39400: 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the patched code's solve 69 s, the original's 74 s)
+PASS  1. planted: S090 with EZ on parts the tables (first difference at world 0 layer 0 surv year 0 cell 2: 0.00009178404520537829 against 0.00013321004261172785) (85 s)
 =========== 2. THE FORMULAS ===========
-PASS  2. the settings: {"gamma":4,"rho":2,"beta":1,"ruinMin":0.1,"mortality":{"mode":90,"disp":9}} (the defaults beta 1, ruinMin 0.1, Gompertz mode 90, dispersion 9)
+PASS  2. the settings: {"gamma":4,"rho":2,"beta":1,"ruinMin":0.1,"mortality":{"mode":90,"disp":9},"failPrice":20} (the defaults beta 1, ruinMin 0.1, Gompertz mode 90, dispersion 9)
 PASS  2a. the chance of living each year is Gompertz's from age 61: the largest relative gap 0.00e+0 over 36 years (alive at 75 given 65: 0.881; at 85: 0.600)
 PASS      planted: against mode 91 the gap is 2.38e-2, caught
 PASS  2b. the ruin level is the guaranteed income after tax over the target, between 0.1 and 1: the largest gap 0.00e+0 (in the spending years from 0.100 to 0.224)
@@ -19,28 +19,34 @@ PASS  2c. the ruin path's value is its unrolled sum: the largest relative gap 4.
 PASS      planted: beta 0.99 gives a gap of 1.01e-1, caught
 PASS  2d. the aggregator is its definition at 2,000 random years, levels and continuations: the largest relative gap 4.61e-16
 PASS      planted: rho 2.1 gives a gap of 5.17e-2, caught
-PASS  2e. the final year is at its level with the chance of ending above the minimum pot, at the guaranteed income's level (0.224) otherwise: the largest relative gap 0.00e+0
-PASS      planted: running out at ruinMin gives a gap of 9.11e-1, caught
-PASS  2f. a failure year is that year at what it pays (at least 0.1), then the ruin path: the largest relative gap 6.53e-16 at 1,000 random years and levels
-PASS      planted: what is paid not held at ruinMin gives a gap of 2.62e+1, caught
-PASS  2g. at 144 grid cells a year in, the read returns the stored value powered, V^(1 - gamma): the largest relative gap 8.91e-16; off, no power set
+PASS  2e. the final year is at its level with the chance of ending above the minimum pot, at the guaranteed income's level (0.224) with the price of failing (20 / 0.1484) otherwise: the largest relative gap 0.00e+0
+PASS      planted: running out at ruinMin gives a gap of 1.10e-1, caught
+PASS      planted: the price not scaled to the opening gives a gap of 1.83e+2, caught
+PASS  2f. a failure year is that year at what it pays (at least 0.1), then the ruin path, with the price of failing once (F / D(t)): the largest relative gap 4.67e-16 at 1,000 random years and levels
+PASS      planted: what is paid not held at ruinMin gives a gap of 2.11e+1, caught
+PASS      planted: the price unscaled (the same F in every year's units, so it shrinks with age) gives a gap of 8.46e-1, caught
+PASS  2h. the price's scale is the weights' product from the opening (at 75 0.862, at the end 0.148): the largest relative gaps 0.00e+0, 0.00e+0
+PASS      the price at 0: 3919104 table entries the same as no price, to the bit; nothing recorded (161 s)
+PASS  2g. at 144 grid cells a year in, the read returns the stored value powered, V^(1 - gamma): the largest relative gap 9.57e-16; off, no power set
 PASS      planted: the grid without the power gives a gap of 1.00e+0, caught
 =========== 3. THE RECURSION IN THE TABLES ===========
-PASS  3. year 0 (the opening): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 1594 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 3.04e-16 (world 1, layer 1, cell 2/1/0/1/2, taxable before ISA, harvest to the allowance, spend 80%) (6 s)
-PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 1.73e-18 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
+PASS  3. year 0 (the opening): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 1606 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 3.04e-16 (world 2, layer 1, cell 2/3/1/1/2, taxable before ISA, harvest to the basic-rate limit, spend 80%, pension 1 tier down, ISA 1 tier down) (5 s)
+PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 8.67e-19 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
 PASS     planted: rho 2.1 gives a gap of 1.29e-2, caught
-PASS  3. year 17 (a middle retired year): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 1566 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 4.72e-16 (world 1, layer 2, cell 2/4/5/0/1, penPA+penBasic first, taxable before ISA, harvest to the basic-rate limit, spend 80%, pension 1 tier down, ISA 1 tier down) (6 s)
-PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 1.39e-17 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
+PASS  3. year 17 (a middle retired year): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 1662 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 4.78e-16 (world 2, layer 2, cell 2/2/5/0/1, penPA+penBasic first, taxable before ISA, harvest to the basic-rate limit, spend 80%, pension 1 tier down, ISA 1 tier down) (6 s)
+PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 3.47e-18 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
 PASS     planted: rho 2.1 gives a gap of 2.17e-2, caught
-PASS  3. year 35 (the final year): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 0 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 0.00e+0 (8 s)
-PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 1.27e-12 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
-PASS     planted: gamma 4.1 in the end rule gives a gap of 5.61e-5, caught
+PASS  3. year 35 (the final year): 15552 stored values (1296 cells x 4 layers x 3 worlds; 2592 cell-layers whose stored move cannot pay, 72 that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap 0.00e+0 (7 s)
+PASS     the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best 1.73e-18 of value, in value units, where a plan at target every year is worth 0.03965 at the opening)
+PASS     planted: gamma 4.1 in the end rule gives a gap of 6.29e-5, caught
 =========== 4. THE CHOOSER ===========
 PASS  4. the shared year's scores are scoreMoves' to the bit under EZ: 828000 move scores checked on 10 forward runs
-PASS  4. EZ's moves reach the forward runs: 40 of 40 paths spend or switch otherwise than the candidate's; every figure finite (survival 30 against 39; mean level 1.0884 against 0.9765) (10 s)
+PASS  4. EZ's moves reach the forward runs: 40 of 40 paths spend or switch otherwise than the candidate's; every figure finite (survival 31 against 39; mean level 1.0867 against 0.9765) (9 s)
 =========== 5. THE REFUSALS ===========
 PASS  5. EZ with E5 (tsOnce left on) throws: "ez runs on the tier state with joint worlds, without E5 (tsOnce: false), E2 or coverage, w..."
 PASS  5. EZ without failDelivered throws: "ez runs on the tier state with joint worlds, without E5 (tsOnce: false), E2 or coverage, w..."
 PASS  5. EZ with a switch margin throws: "ez runs on the tier state with joint worlds, without E5 (tsOnce: false), E2 or coverage, w..."
 PASS  5. EZ with gamma 1 throws: "ez needs gamma and rho above nothing and not 1, beta and ruinMin above nothing, and a mort..."
-ALL PASS: 39 checks
+PASS  5. EZ with a price of failing and rho under 1 throws: "ez: failPrice is a price at or above nothing, and needs rho above 1 (a failing year then a..."
+PASS  5. EZ with a price of failing below nothing throws: "ez: failPrice is a price at or above nothing, and needs rho above 1 (a failing year then a..."
+ALL PASS: 45 checks

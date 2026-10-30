@@ -26,13 +26,13 @@ the order on 29 Oct (D41) and settled couples the same day (D42); their answers 
 - **Couples (D42).** Part C ships for single households only. Under the switch a couple's plan keeps the app's rules (its
   withdrawal policy and tournament, as today), with a line on the Strategy tab saying so. Couples in the solver are the work
   after Part C (below).
-- **No measurement on real devices yet.** N7 (a standalone page built from `src/solver`, run by the maintainer on a laptop
-  and a phone, D20 (10)) has not run. The worker's design and the phone's coarser grid wait on it.
+- **No measurement on real devices.** N7 (a standalone page built from `src/solver`, D20 (10)) was built and run in this
+  container's Chromium (`results-n7-check.txt`); the maintainer skipped its laptop and phone runs (D45). The worker is
+  designed on the container's run, and the phone's coarser grid is measured in the app (Phase 11).
 
 ## The order
 
-1. **N7 first** (small): the standalone timing page, so the maintainer measures a solve on a laptop and a phone before the
-   worker is designed around a guess.
+1. **N7**: the standalone timing page, built and run in this container's Chromium; its device runs skipped (D45).
 2. **Phase 7, plumbing** (does not depend on the settings): `src/solverWorker.js` (the `mcWorker.js` pattern) with the solve
    split across cores, progress per year and the tables back as transferable buffers; `solveState` (idle, solving,
    solved, stale); `firstAffectedYear` in a new `src/solver/diff.js`, so an edit re-solves only from the year it touches
@@ -52,7 +52,7 @@ the order on 29 Oct (D41) and settled couples the same day (D42); their answers 
    retirement-age dial re-solve (the age pre-solved three years either way, D18); the Simple page's safe spend and safe age
    by search over solves, on request; scenarios carry a solve; the audit table gains an action column; history labelled
    the out-of-model check.
-6. **Phase 11, the phone**: the coarser grid N7 supports, the progress bar, the Strategy tab as the deck's slides.
+6. **Phase 11, the phone**: the coarser grid, measured on a phone in the app, the progress bar, the Strategy tab as the deck's slides.
 7. **Phase 12, rollout**: the rename pass, "How the solver decides" in the docs, the tests and harnesses the archive names
    retired and replaced; `SOLVER = true` for beta once the full suite is green with it on and off; two weeks of both paths;
    then the switch removed for single households; the tournament code stays for couples (D42) until they run in
@@ -74,7 +74,7 @@ Its build plan comes to the maintainer when Part C's phases are under way.
 
 ## The maintainer's answers (29 Oct)
 
-1. **The order**, N7 then Phase 7, with Phases 8 to 12 after: approved (D41 (1)).
+1. **The order**, N7 then Phase 7, with Phases 8 to 12 after: approved (D41 (1)); N7's device runs skipped on 30 Oct (D45).
 2. **Phase 8's defaults wait** on the spending curve: agreed; the maintainer takes it to the external reviewer first, since
    it may change the settings (D41 (2)).
 3. **Couples**: Part C ships without couples in the solver; couples in the solver come after (D42).

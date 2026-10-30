@@ -39,6 +39,7 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D45. 30 Oct, maintainer: "No need for N7, skip that": N7's device runs are not made (D20 (10) and D41 (1) so amended); Part C goes on to Phase 7. The page stays as built (`research/solver/n7/`), its run in this container's Chromium (`results-n7-check.txt`) the only browser measurement; Phase 7's worker is designed on it and measured in the app.
 - D44. 29 Oct, maintainer, on the review: (1) the dislike of cuts a Part C lever on the candidate's own lambda, today's the default; lambda times `3` and `10` tested against the candidate on the review's eight households (EXPLORATORY), the investments reported, a non-default setting shipped only after the maintainer has seen it; (2) Part C presents the early cut as a safe starting spend (the first year's spend against the target, and the year the plan's median path is back at target), and, where the recommended first year is below the target, says the plan will tend to spend below it because survival comes first, unless the dial is turned up, which keeps spending nearer the target and raises the chance of running out; the late raise in the fan, not the headline; the wording to the maintainer; (3) only if the maintainer asks: the first year held at the target; Epstein-Zin preferences.
 - D43. 29 Oct, maintainer, on the external review of the spending curve (`research/reviews/2026-10-29/SPENDING-CURVE.md` on review/external-2026-10-21 at 37fdbf7, EXPLORATORY): (1) `failDelivered` (the year the money runs out charged at the level it can pay) ported into solve.js, not the review's utility prototype, and on by default for the candidate (decided), its registered prediction tested on a held-out seed (`registrations/fail-delivered.md`): survival the same on every path, lifetime spending `-0.007%`, the raise before ruin from `30.2%` of the paths that run out to none; (2) unchanged: raises to `110%` of target, the estate weight `0.02` and the minimum pot.
 - D42. 29 Oct, maintainer, on D41 (3): Part C ships without couples in the solver (under the switch a couple's plan keeps the app's rules, with a line saying so); couples in the solver are the work after, with their own test before they run under the switch.
@@ -284,7 +285,6 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 <!-- end printed:curvedial -->
 ## 5. Running now
 
-- N7 (EXPLORATORY): the page (`research/solver/n7/`) published for the maintainer's laptop and phone, each solve saved to its record (`reduce.mjs` reads it); its full-scale run in this container's Chromium in `results-n7-check.txt`.
 - Nothing. The failure year's held-out run (task btlg5a6i0, `results/curve-fd-launch-log.txt`, units in `results/curve-7019`) finished on 30 Oct at 00:47 UK, and the dial's (`results/curve-7002`) at 23:22 UK on 29 Oct; both reads are above.
 
 ## 6. The next three actions
@@ -293,7 +293,7 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. The spending curve (D43, D44): to the maintainer, the failure year's held-out read (MISSED, reviewer PASS), the deep review's one test (FD-RAISE),
    the dial's read and a non-default dial setting, and the wording (`PART-C-WORDING.md`); each the maintainer's call.
-2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: N7's device runs (the maintainer), then Phase 7's plumbing behind `SOLVER` in `App.jsx`;
+2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7's plumbing (N7 skipped, D45) behind `SOLVER` in `App.jsx`;
    Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
 3. D37's and D38's items (D40, D41 (5)), by `AFTER-PHASE4.md` (two done: the GIA basis under CGT off, the held-out scan): the windfall and the
    savings splits built, each default-off with its tests, then a factorial on the panel (EXPLORATORY, seed 7002); the lump sum's route the maintainer's call; the sweep nightly.

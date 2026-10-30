@@ -130,3 +130,48 @@ Each item below is printed by a script into a results file in `ez/`, beside the 
    rather than in full, so EZ stops spending at 110% for most years. It is closer to "the target is what the user wants".
 3. **Stop EZ.** Take the age-weighted dial (AGE-WEIGHT.md: survival 1.3 points under the candidate, a steadier start),
    which meets (2) but not (1): the tiers still move with the dial.
+
+## 9. The run, declared before it (30 Oct, evening)
+
+The maintainer chose the first option at 16:48 UK: a price for failing.
+
+**The build:**
+- `failPrice` F in `ezSetup`, in the plan's opening units. Running out, or ending below the minimum pot, adds F once to
+  V^(1 - rho), as F / D(t) in year t's units. D(t) is the product of the weights from the opening.
+- Absent, every value is the one without it, to the bit (`results-ez-test.txt`, 2h).
+- The tests on this code pass: 45 checks. The pin is refreshed (`results-ez-pin.txt`). solve() is unchanged at 60,841
+  bytes.
+
+**The settings:**
+- **The price, set on S090** at 45 points on 200 paths of seed 99001, not the run's seed (`results-ez-calib-price.txt`):
+  survival 89.5% at 3, 92.0% at 10, 94.0% at 30, against the candidate's 94.0% on the same paths. **F = 30**, the
+  ladder's first price to meet it.
+- **gamma 4 kept.** At F = 30 the opening move's equity share is the candidate's on both retirees checked: S090 23.3%
+  against the candidate's first year 22.6%, and S050 24.0% against 24.0% (`results-ez-calib-gamma.txt`). No ladder was
+  needed. rho 2.
+
+**The arms** (`ez/ez-run.mjs --gamma 4 --rho 2 --failPrice 30`): the eight households, seed 7002, the levers units'
+1,000 paths, 45 points.
+- CANDEQ: EZ off. It must be the CAND unit on every path, as the patch's identity at full scale across the agent's four
+  commits.
+- EZ: on the layer loop.
+- The read (`--read`) sets EZ against APP, CAND, DIAL10 and DIAL10M, with the estate beside.
+
+**Acceptance:** CANDEQ is the CAND unit on every household; runPath equals E.runTrial on the first 100 paths of every
+unit; the read prints FAIR. **Time box:** 4 hours from launch.
+
+**The prediction:**
+1. Survival, EZ less CAND pooled: between -1.0 and +0.5 points.
+2. Retired years 1-5: EZ above CAND's 86.5% by 3 to 10 points.
+3. Retired years 1-5 at the floor: EZ below CAND's 76%, between 25% and 65%.
+4. The retirees' first retired year: within 5 points of CAND's 80.0%.
+5. From the 21st retired year: within 2 points of CAND's 107.5%.
+6. The retirees' equity in retired year 1: within 5 points of CAND's 24.6%.
+7. Against DIAL10M: EZ's survival 0.3 to 2.0 points above DIAL10M's 95.6%, and its years 1-5 below DIAL10M's 95.6%.
+
+**What the outcomes would mean:**
+- **1 to 3 hold:** at the candidate's survival, EZ with the price spends more early and sits at the floor less.
+  (1) is shown by 6 and (2) by the age profile, so it is a spending method for the maintainer to weigh against DIAL10M.
+- **1 misses low:** a price set on one household does not carry to the others, and the price would have to be set per
+  household. That is a design question for the maintainer.
+- **2 and 3 miss:** EZ adds nothing over the candidate's own penalty at the same survival.

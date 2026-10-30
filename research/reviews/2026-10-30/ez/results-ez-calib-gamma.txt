@@ -1,0 +1,2 @@
+EZ's calibration (EXPLORATORY): the opening move, rho 2, gamma 4, the price of failing 30; the candidate's settings at 45 points
+  S050   gamma 4    the opening move taxable before ISA, spend 90%, pension 3 tiers down, ISA 3 tiers down: level 0.9, tiers 3/3 (Medium/Low Risk / Low Risk), equity 24.0% (CAND's first retired year 24.0%); the table's value at the opening 0.049099; 812 s

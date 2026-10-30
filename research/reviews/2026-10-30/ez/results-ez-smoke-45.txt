@@ -1,0 +1,5 @@
+EZ's first look (EXPLORATORY): S090 at light settings (45 points, lattice 24/5/16, e3pcls off), 200 paths of seed 99001; the candidate's plan with the app's policy (Bracket Fill Basic)
+age 61 to 96; retired (spending) from year 0; the minimum pot 53500; the menu's levels 1, 1.1, 0.95, 0.9, 0.8
+CAND    survival 94.0% (188 of 200); ran out 8 (at ages 61-70: 0, 71-80: 0, 81-90: 3, 91-96: 5), ended below the minimum pot 4; level by age (%) 61-70 85.5, 71-80 98.6, 81-90 105.0, 91-96 107.9; retired years at the top 59.2%, at target 0.1%, below 40.8%, at the floor 35.9%; 2158 s
+(CAND on the patched code before its move into helpers: solve() over V8's limit, so slower, the same arithmetic; EZ4 on the final code)
+EZ4     survival 58.5% (117 of 200); ran out 64 (at ages 61-70: 0, 71-80: 0, 81-90: 7, 91-96: 57), ended below the minimum pot 19; level by age (%) 61-70 107.0, 71-80 104.9, 81-90 103.5, 91-96 103.3; retired years at the top 76.3%, at target 5.0%, below 18.7%, at the floor 10.7%; 1179 s

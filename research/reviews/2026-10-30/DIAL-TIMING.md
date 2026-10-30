@@ -109,3 +109,34 @@ pay for the early years.
 - from 76 it spends 10 to 20 points of the target less than DIAL10.
 
 **Acceptance:** the checks pass. **Time box:** 60 minutes.
+
+### The staggered target's results
+
+Every figure is printed by `dial/stagger.mjs --read` (`dial/results-stagger.txt`).
+
+**The checks pass:**
+- the band is applied as asked on every household;
+- with the band set aside, the inputs are DIAL10's;
+- runPath matches E.runTrial on the first 100 paths of every unit;
+- the read is fair.
+
+**Pooled, each household once** (spending in pounds as a share of the household's own target):
+
+| | Survival | First retired year | Years 1-5 | 6-10 | 11-20 | 21 on | From age 76 |
+|---|---|---|---|---|---|---|---|
+| CAND (flat, the dial at one) | 97.0% | 85.3% | 86.5% | 97.2% | 103.6% | 107.5% | 106.3% |
+| DIAL10 (flat) | 95.7% | 94.2% | 94.5% | 101.0% | 104.6% | 107.0% | 106.2% |
+| STAG10 (85% from 76) | 97.4% | 96.0% | 96.5% | 102.1% | 100.9% | 93.4% | 91.7% |
+
+- **Survival:** STAG10 less DIAL10 is +1.74 points (+1.45 to +2.03); STAG10 less CAND is +0.44 (+0.24 to +0.63).
+- **So the stagger buys a higher start and beats today's default on survival.** The price is the later years: from 76,
+  91.7% of the target against DIAL10's 106.2%.
+- **It helps where the step is near.** For the households retired in their sixties, the first year is at 95.0% (S090,
+  S030, S050). Where the step is far off, the early years are as DIAL10's: S368, retired at 50, at 90.0%; S304F, retiring
+  at 52, at 89.2%.
+
+**Against the prediction:** two of four held.
+- The first year at 96.0% and years 1-5 at 96.5% fell just short of the predicted 97%: missed.
+- Survival above DIAL10 by +1.74 was more than the predicted 0.3 to 1.5: missed.
+- Against CAND, +0.44 is inside the predicted range: held.
+- From 76, 14.5 points of the target below DIAL10 is inside 10 to 20: held.

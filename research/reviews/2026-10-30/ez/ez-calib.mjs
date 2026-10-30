@@ -5,7 +5,7 @@
  * before the run's prediction is written. For each household and gamma: EZ solved as ez-run.mjs solves it (the candidate's
  * settings at its points, the estate weight 0.02, rho as given, the layer loop), then the chooser's move at the plan's
  * opening, holding the plan's own tiers: its spending level, its tiers and their equity share at the opening's pension and ISA.
- *   node ez-calib.mjs <levers unit dir> --rho R --gammas G1,G2,... <id>...      (from the root of the patched code)
+ *   node ez-calib.mjs <levers unit dir> --rho R --gammas G1,G2,... [--failPrice F] <id>...      (from the root of the patched code)
  */
 import { resolve, join } from 'path';
 import { pathToFileURL } from 'url';
@@ -17,13 +17,13 @@ const { readPanel, appPlan } = await imp('research/solver/phase4-panel.mjs');
 const { armA } = await imp('research/solver/select-phase4.mjs');
 const { solverPlanOf, LAMBDA, CAND_PTS } = await imp('research/solver/audit-phase4.mjs');
 const argv = process.argv.slice(2), flag = k => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : undefined; };
-const RHO = Number(flag('--rho')), GAMMAS = (flag('--gammas') || '').split(',').map(Number).filter(x => x > 0);
-const pos = argv.filter((x, i) => !x.startsWith('--') && !['--rho', '--gammas'].includes(argv[i - 1]));
+const RHO = Number(flag('--rho')), GAMMAS = (flag('--gammas') || '').split(',').map(Number).filter(x => x > 0), FP = flag('--failPrice') !== undefined ? Number(flag('--failPrice')) : 0;
+const pos = argv.filter((x, i) => !x.startsWith('--') && !['--rho', '--gammas', '--failPrice'].includes(argv[i - 1]));
 const [dir, ...ids] = pos;
 if (!dir || !ids.length || !(RHO > 0) || !GAMMAS.length) { console.error('usage: ez-calib.mjs <levers unit dir> --rho R --gammas G1,G2,... <id>...'); process.exit(2); }
 const P = Object.fromEntries(readPanel().map(x => [x.id, x]));
 const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
-console.log(`EZ's calibration (EXPLORATORY): the opening move, rho ${RHO}, gamma ${GAMMAS.join(', ')}; the candidate's settings at ${CAND_PTS} points`);
+console.log(`EZ's calibration (EXPLORATORY): the opening move, rho ${RHO}, gamma ${GAMMAS.join(', ')}${FP > 0 ? `, the price of failing ${FP}` : ''}; the candidate's settings at ${CAND_PTS} points`);
 for (const id of ids) {
   const pk = JSON.parse(readFileSync(join(dir, `${id}-pick-app.json`), 'utf8'));
   if (armA(appPlan(P[id].plan), { tournament: false }).planState.spending.decumulationPolicy !== pk.decumulationPolicy) throw new Error(`${id}: APP's pick differs from the unit's`);
@@ -32,7 +32,7 @@ for (const id of ids) {
   const candEq = cand.tierYears && cand.tierYears[cand.retireT + 1];
   for (const gamma of GAMMAS) {
     const t0 = Date.now();
-    const r = C.solveCandidate(E, M, structuredClone(plan), { lambda: LAMBDA, points: CAND_PTS, bequestWeight: 0.02, tsOnce: false, ez: { gamma, rho: RHO } });
+    const r = C.solveCandidate(E, M, structuredClone(plan), { lambda: LAMBDA, points: CAND_PTS, bequestWeight: 0.02, tsOnce: false, ez: { gamma, rho: RHO, ...(FP > 0 ? { failPrice: FP } : {}) } });
     if (!r.meta.ez || r.meta.ez.gamma !== gamma || r.meta.ez.rho !== RHO) throw new Error(`${id}: EZ not as asked`);
     const s0 = G.vecOf(r.m, M.initialState(r.m)), held = { pen: 0, isa: 0, gia: 0 };
     const ai = S.chooseAction(r, Float64Array.from(s0), 0, held), a = r.c.acts[ai];

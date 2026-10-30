@@ -9,9 +9,9 @@
  *           (tsOnce: false), every other setting the candidate's.
  * Each is executed by the engine on the levers units' 1,000 paths (seed 7002), runPath held to E.runTrial on the first 100,
  * and the pension and ISA's equity share recorded by year on the first 200 (runPolicy's visit, as levers-audit.mjs).
- * Worker:  node ez-run.mjs <levers unit dir> <ez unit dir> --gamma G --rho R [--points P] [--no-identity] <id>...
+ * Worker:  node ez-run.mjs <levers unit dir> <ez unit dir> --gamma G --rho R [--failPrice F] [--points P] [--no-identity] <id>...
  *          (from the root of the patched code; --points only for a calibration look, never the run)
- * Read:    node ez-run.mjs --read <levers unit dir> <dial unit dir> <ez unit dir> --gamma G --rho R
+ * Read:    node ez-run.mjs --read <levers unit dir> <dial unit dir> <ez unit dir> --gamma G --rho R [--failPrice F]
  */
 import { resolve, join } from 'path';
 import { pathToFileURL } from 'url';
@@ -22,10 +22,10 @@ const imp = p => import(pathToFileURL(resolve(process.cwd(), p)).href);
 const E = await imp('research/engine.mjs');
 const IDS = ['S090', 'S030', 'S328F', 'S188', 'S304F', 'S368', 'S050', 'S340F'], BESIDE = 200, CHECK = 100, W = 0.02;
 const argv = process.argv.slice(2), flag = k => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : undefined; };
-const GAMMA = Number(flag('--gamma')), RHO = Number(flag('--rho')), PTS = flag('--points') ? Number(flag('--points')) : null;
-const pos = argv.filter((x, i) => !x.startsWith('--') && !['--gamma', '--rho', '--points'].includes(argv[i - 1]));
+const GAMMA = Number(flag('--gamma')), RHO = Number(flag('--rho')), PTS = flag('--points') ? Number(flag('--points')) : null, FP = flag('--failPrice') !== undefined ? Number(flag('--failPrice')) : 0;
+const pos = argv.filter((x, i) => !x.startsWith('--') && !['--gamma', '--rho', '--points', '--failPrice'].includes(argv[i - 1]));
 if (!(GAMMA > 0) || !(RHO > 0)) { console.error('ez-run: --gamma and --rho are required'); process.exit(2); }
-const TAG = `ez-g${GAMMA}-r${RHO}${PTS ? `-p${PTS}` : ''}`;
+const TAG = `ez-g${GAMMA}-r${RHO}${FP > 0 ? `-f${FP}` : ''}${PTS ? `-p${PTS}` : ''}`;
 const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
 const arr = (s, T) => { const b = Buffer.from(s, 'base64'); return new T(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
 const unitOf = (dir, id, arm) => JSON.parse(gunzipSync(readFileSync(join(dir, `${id}-${arm}.json.gz`))));
@@ -47,9 +47,9 @@ if (argv[0] !== '--read') {
     if (armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy !== pk.decumulationPolicy) throw new Error(`${id}: APP's pick differs from the unit's`);
     const plan = prep(solverPlanOf(h.plan, { decumulationPolicy: pk.decumulationPolicy }));
     for (const arm of identity ? ['CANDEQ', 'EZ'] : ['EZ']) {
-      const t0 = Date.now(), ez = { gamma: GAMMA, rho: RHO };
+      const t0 = Date.now(), ez = { gamma: GAMMA, rho: RHO, ...(FP > 0 ? { failPrice: FP } : {}) };
       const r = C.solveCandidate(E, M, structuredClone(plan), { lambda: LAMBDA, points: PTS || CAND_PTS, bequestWeight: W, ...(arm === 'EZ' ? { tsOnce: false, ez } : {}) });
-      const okEz = arm === 'EZ' ? r.meta.ez && r.meta.ez.gamma === GAMMA && r.meta.ez.rho === RHO && r.meta.ez.mortality.mode === 90 && r.meta.ez.ruinMin === 0.1 && r.meta.tsOnce === false : r.meta.ez === undefined && r.ez === null;
+      const okEz = arm === 'EZ' ? r.meta.ez && r.meta.ez.gamma === GAMMA && r.meta.ez.rho === RHO && r.meta.ez.mortality.mode === 90 && r.meta.ez.ruinMin === 0.1 && (r.meta.ez.failPrice || 0) === FP && r.meta.tsOnce === false : r.meta.ez === undefined && r.ez === null;
       if (!r.meta.failDelivered || Math.abs(r.lambda - LAMBDA) > 1e-15 || !okEz) throw new Error(`${id} ${arm}: not as asked (lambda ${r.lambda}, failDelivered ${r.meta.failDelivered}, ez ${JSON.stringify(r.meta.ez)}, tsOnce ${r.meta.tsOnce})`);
       const secs = (Date.now() - t0) / 1000;
       const ctx = E.buildContext(withTable(r.m.ctx.plan, r)), T = ctx.totalYears, Y = T + 1, N = ref.N, paths = E.pathsForSeed(ref.seed, N, T);
@@ -89,7 +89,7 @@ if (argv[0] !== '--read') {
   const BANDS = [[1, 5], [6, 10], [11, 20], [21, 99]], EQ_YEARS = [1, 5, 10, 20];
   const pc = x => `${(100 * x).toFixed(0)}%`, f1 = x => (Number.isFinite(x) ? x.toFixed(1) : '-'), sg = x => `${x >= 0 ? '+' : ''}${x.toFixed(2)}`;
   const fail = [], rows = Object.fromEntries(ARMS.map(([a]) => [a, []])), pairs = { vsCand: [], vsDial: [], vsDialM: [] }, est = [];
-  const out = [`EPSTEIN-ZIN SPENDING (EXPLORATORY): EZ (gamma ${GAMMA}, rho ${RHO}; each year weighted by the chance of being alive, Gompertz mode 90, dispersion 9; running out lived on the guaranteed income) against the candidate (CAND, the dial at one), the dial at ten (DIAL10) and with age weights (DIAL10M), and the app's guardrails (APP); the eight households, seed 7002, 1,000 paths each; the retired years before any failure`];
+  const out = [`EPSTEIN-ZIN SPENDING (EXPLORATORY): EZ (gamma ${GAMMA}, rho ${RHO}${FP > 0 ? `, the price of failing ${FP}` : ''}; each year weighted by the chance of being alive, Gompertz mode 90, dispersion 9; running out lived on the guaranteed income) against the candidate (CAND, the dial at one), the dial at ten (DIAL10) and with age weights (DIAL10M), and the app's guardrails (APP); the eight households, seed 7002, 1,000 paths each; the retired years before any failure`];
   for (const id of IDS) {
     if (!existsSync(join(ezDir, `${id}-${TAG}.json.gz`))) { fail.push(`${id}: no ${TAG} unit`); continue; }
     const us = Object.fromEntries(ARMS.map(([a, d, f]) => [a, unitOf(d, id, f)])), u0 = us.EZ, Y = u0.Y, N = u0.N, retT = u0.retireT;

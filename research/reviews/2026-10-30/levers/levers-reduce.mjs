@@ -24,7 +24,15 @@ if (missing.length) { console.log(`NOT COMPLETE: missing ${missing.join(', ')}`)
 const all = IDS.flatMap(id => ARMS.map(a => U[id][a]));
 const one = k => new Set(all.map(u => JSON.stringify(u[k])));
 const unfair = ['code', 'candidate', 'seed', 'N'].filter(k => one(k).size > 1);
-const inputsOff = IDS.filter(id => new Set(ARMS.map(a => U[id][a].inputs)).size > 1);
+// a declared exception (LEVERS_INPUTS_DECLARED="id:ARM,ARM;...", its evidence named in LEVERS_INPUTS_WHY): the named arms of a
+// household share one hash between them, and the rest of its arms another; the evidence shows the difference is the app's
+// own pick (results-inputs-check.txt)
+const DECL = Object.fromEntries((process.env.LEVERS_INPUTS_DECLARED || '').split(';').filter(Boolean).map(x => { const [id, arms] = x.split(':'); return [id, arms.split(',')]; }));
+const inputsOff = IDS.filter(id => {
+  const d = DECL[id] || [];
+  const rest = new Set(ARMS.filter(a => !d.includes(a)).map(a => U[id][a].inputs)), named = new Set(d.map(a => U[id][a].inputs));
+  return rest.size > 1 || named.size > 1;
+});
 const potOff = IDS.filter(id => new Set(ARMS.map(a => Math.round(U[id][a].ran.minPot))).size > 1);
 const offTarget = all.filter(u => u.arm.startsWith('FIX') && u.offTarget > 0).map(u => `${u.id} ${u.arm}`);
 L.push(`BETTER DECISIONS, OR MORE LEVERS? (EXPLORATORY): ${IDS.length} households of Phase 4's panel (${IDS.join(', ')}); eight arms`);
@@ -32,7 +40,7 @@ if (unfair.length || inputsOff.length || potOff.length || offTarget.length) {
   L.push(`NOT FAIR: the units differ in ${unfair.join(', ') || '-'}; inputs differ on ${inputsOff.join(', ') || 'none'}; minimum pots differ on ${potOff.join(', ') || 'none'}; fixed-spending years off the target on ${offTarget.join(', ') || 'none'}`);
   console.log(L.join('\n')); process.exit(1);
 }
-L.push(`fair: one code (${all[0].code}), candidate ${all[0].candidate}, seed ${all[0].seed}, ${all[0].N} paths a unit; each household's arms on one inputs hash and one minimum pot; every fixed-spending year at the target before a failure`);
+L.push(`fair: one code (${all[0].code}), candidate ${all[0].candidate}, seed ${all[0].seed}, ${all[0].N} paths a unit; each household's arms on one inputs hash${Object.keys(DECL).length ? ` (declared: ${Object.entries(DECL).map(([id, a]) => `${id}'s ${a.join(' and ')} on their own, ${process.env.LEVERS_INPUTS_WHY || 'no evidence named'}`).join('; ')})` : ''} and one minimum pot; every fixed-spending year at the target before a failure`);
 const beside = all.filter(u => u.beside);
 L.push(`runPolicy beside the engine: paths that differ ${beside.reduce((a, u) => a + u.beside.engineOnly + u.beside.policyOnly, 0)} of ${beside.reduce((a, u) => a + u.beside.N, 0)} (${beside.length} solver units)`);
 L.push('');

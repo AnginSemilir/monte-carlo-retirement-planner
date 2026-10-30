@@ -85,6 +85,77 @@ Each same-levers comparison reads one of four ways:
 
 The solver decides better if the comparisons read BETTER. Where only the lever comparisons are large, it is the levers.
 
-## 9. The results
+## The results
 
-(to follow)
+Every figure here is printed by `levers/levers-reduce.mjs` over the 64 units (`levers/results-levers.txt`). Each
+household counts once; the intervals are 95%, by path.
+
+**The checks:**
+- **Fair:** one code (88a2c9eee295), candidate d71f65ae871e, seed 7002, 1,000 paths a unit, one minimum pot; every
+  fixed-spending year at the target.
+- **The engine and the policy agree:** runPolicy beside the engine differs on 0 of 6,400 paths.
+- **One declared exception: S050.** Its fixed-policy pick ("Sequential, lump sum") hashes differently from its other arms,
+  and the read refused it until the reason was shown (`levers/inputs-check.mjs`; `levers/results-inputs-check.txt`, ALL
+  PASS):
+  - the difference is the app's own lump sum and the MPAA age that follows from it: set back, the hash is every other arm's;
+  - the MPAA cannot bind: the household's largest year's pension contribution is £3,600, under the £10,000 cap;
+  - a planted £100 change in the target is seen.
+
+**The decisions, on the same levers** (the solver less the app's rules, same row):
+
+| Levers both sides have | Survival | 95% | Spending | Households ahead (beyond 2 se) | Verdict |
+|---|---|---|---|---|---|
+| The draws alone (fixed spending, the plan's investments) | +3.20 | +2.79 to +3.61 | +0.21% | 8 of 8 | BETTER |
+| The draws and the investments (fixed spending) | +7.51 | +6.92 to +8.10 | +0.52% | 8 of 8 | BETTER |
+| The spending and the draws (the plan's investments) | +6.20 | +5.66 to +6.74 | +4.07% | 8 of 8 | BETTER |
+| All three | +7.80 | +7.22 to +8.38 | +5.90% | 8 of 8 | BETTER |
+
+No household is behind in any row.
+
+**What each lever adds** (survival, then spending):
+
+| Lever | Used by the app's rules | Used by the solver |
+|---|---|---|
+| The investments, spending fixed | +3.24, +1.37% (one tier for the whole plan) | +7.55, +1.69% |
+| The investments, spending flexible | +3.03, -0.02% | +4.63, +1.72% |
+| The spending, the plan's investments | +12.15, -0.03% (the guardrails) | +15.15, +3.81% |
+| The spending, investments a lever | +11.94, -1.39% | +12.23, +3.85% |
+
+**The first question, and Phase 4's** (the solver with all its levers against the app as it is):
+- **No flexibility in spending** (FIXCAND less FIXAPP): **+10.75 points** (+10.07 to +11.43), spending +1.90%, ahead on all
+  eight (+8.7 to +13.3).
+- **Flexible spending** (CAND less APP, Phase 4's comparison): +10.83 points (+10.15 to +11.50), spending +5.87%.
+
+**Where the gain comes from.** Each total splits into two steps that add up exactly:
+- No flexibility in spending: +10.75 = +3.24 (the investment lever, used as one tier for the whole plan) + 7.51 (the
+  solver's better use of the same draws and investments).
+- Phase 4's comparison: +10.83 = +3.03 (the investment lever, the same way) + 7.80 (the solver's better use of all three
+  levers).
+
+So about seven tenths of the solver's lead is better decisions. About three tenths is a lever the app lacks but could use
+statically.
+
+**Against the prediction:** 6 of the 13 checks held. The solver did better than predicted wherever spending was fixed:
+- the draws alone gave +3.2 (predicted 0 to +1.5);
+- the draws and the investments +7.5 (predicted +1 to +4);
+- the investments in the solver's hands +7.6 (predicted +1 to +5);
+- the first question +10.8 (predicted +1 to +5).
+
+The app's single best tier also did better than predicted, +3.2 and +3.0 (predicted 0 to +2). The spending rows and
+Phase 4's figure held.
+
+**What it means:**
+- **The solver is better at deciding, not only better equipped.** Given exactly the app's levers, it survives more on every
+  household, with as much spending or more. Its edge is acting on the state each year: which pot to draw, how much risk to
+  hold, how much to spend.
+- **With no flexibility in spending, it still adds 10.8 points,** as much as with flexibility. Without the spending lever,
+  more of the work moves to the investments: they add 7.6 points in its hands with spending fixed, 4.6 with it flexible.
+- **The app could close about 3 points by itself,** by choosing one investment tier for the whole plan. The rest needs
+  decisions that follow the markets.
+
+**What this does not show:**
+- Eight households and one seed, all single.
+- "The app's rules" are its own policy search and one tier chosen in advance, not every fixed rule there could be. A
+  de-risking glide path, say, was not tried.
+- The static tier is chosen on 1,000 search paths, so its choice carries their noise; that is part of choosing a rule in
+  advance.

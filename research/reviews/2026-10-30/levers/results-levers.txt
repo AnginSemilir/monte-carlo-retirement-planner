@@ -1,0 +1,57 @@
+BETTER DECISIONS, OR MORE LEVERS? (EXPLORATORY): 8 households of Phase 4's panel (S090, S030, S328F, S188, S304F, S368, S050, S340F); eight arms
+fair: one code (88a2c9eee295), candidate d71f65ae871e, seed 7002, 1000 paths a unit; each household's arms on one inputs hash (declared: S050's FIXAPP and FIXAPPT on their own, results-inputs-check.txt: the app's lump sum and the MPAA age it sets, inert) and one minimum pot; every fixed-spending year at the target before a failure
+runPolicy beside the engine: paths that differ 0 of 6400 (32 solver units)
+
+What each arm ran (from the units):
+  S090   FIXAPP ISA First; FIXAPPT step 1 (0: 73.5, 1: 74.3, 2: 73.9, 3: 72.2 on the search seed), ISA First; APP Bracket Fill Basic; APPT step 2 (0: 88.6, 1: 89.5, 2: 89.6, 3: 87.6), Bracket Fill Basic; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S030   FIXAPP Bracket Fill Basic; FIXAPPT step 0 (0: 72.5, 1: 72.5, 2: 71.2, 3: 68.0 on the search seed), Bracket Fill Basic; APP Bracket Fill Basic, lump sum; APPT step 2 (0: 88.3, 1: 89.5, 2: 90.6, 3: 88.4), Bracket Fill Basic, lump sum; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S328F  FIXAPP ISA First; FIXAPPT step 2 (0: 78.5, 1: 80.2, 2: 80.7, 3: 78.5 on the search seed), ISA First; APP Bracket Fill, lump sum; APPT step 2 (0: 86.3, 1: 89.1, 2: 90.1, 3: 88.4), Bracket Fill, lump sum; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S188   FIXAPP Bracket Fill; FIXAPPT step 2 (0: 80.0, 1: 83.2, 2: 85.7, 3: 85.2 on the search seed), Bracket Fill; APP Bracket Fill Basic, lump sum; APPT step 2 (0: 86.9, 1: 90.1, 2: 92.2, 3: 91.8), Bracket Fill Basic, lump sum; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S304F  FIXAPP Bracket Fill Basic; FIXAPPT step 2 (0: 82.7, 1: 88.2, 2: 91.3, 3: 90.0 on the search seed), Bracket Fill Basic; APP Bracket Fill Basic; APPT step 2 (0: 86.7, 1: 91.7, 2: 94.6, 3: 92.9), Bracket Fill Basic; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S368   FIXAPP Bracket Fill, lump sum; FIXAPPT step 2 (0: 69.1, 1: 71.3, 2: 72.4, 3: 67.8 on the search seed), Bracket Fill, lump sum; APP ISA First; APPT step 0 (0: 87.3, 1: 86.2, 2: 83.4, 3: 78.4), ISA First; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S050   FIXAPP Sequential (harvest off), lump sum; FIXAPPT step 1 (0: 69.2, 1: 70.1, 2: 66.6, 3: 58.2 on the search seed), Sequential (harvest off), lump sum; APP ISA First; APPT step 1 (0: 85.6, 1: 86.4, 2: 85.5, 3: 84.6), ISA First; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+  S340F  FIXAPP Bracket Fill, lump sum; FIXAPPT step 2 (0: 79.7, 1: 83.1, 2: 84.6, 3: 79.3 on the search seed), Bracket Fill, lump sum; APP Bracket Fill Basic; APPT step 2 (0: 86.9, 1: 90.6, 2: 92.3, 3: 90.4), Bracket Fill Basic; the solver's tier moves 0/0 1/1 2/2 3/3 (held: 0/0)
+
+Per arm, the households' mean (survival; paths that run out, at a mean age, before pension access; paths below the minimum pot; median and unlucky tenth's end wealth in years of target; the pension and ISA's equity share in years 1, 10 and 20 on the solver's paths beside):
+  FIXAPP    74.00%  run out 1964 (age 78.8, before access 455)  below the minimum pot 116  end wealth 114.5 / 3.9
+  FIXAPPT   77.24%  run out 1688 (age 80.9, before access 364)  below the minimum pot 133  end wealth 74.2 / 9.7
+  APP       86.15%  run out 922 (age 78.5, before access 240)  below the minimum pot 186  end wealth 117.7 / 6.1
+  APPT      89.17%  run out 690 (age 80.0, before access 199)  below the minimum pot 176  end wealth 86.7 / 9.2
+  FIXHOLD   77.20%  run out 1726 (age 77.8, before access 418)  below the minimum pot 98  end wealth 91.3 / 4.5  equity 85% / 85% / 82%
+  FIXCAND   84.75%  run out 1116 (age 78.3, before access 280)  below the minimum pot 104  end wealth 68.8 / 7.2  equity 59% / 33% / 41%
+  FLEXHOLD  92.35%  run out 541 (age 81.5, before access 61)  below the minimum pot 71  end wealth 92.7 / 6.0  equity 85% / 84% / 82%
+  CAND      96.97%  run out 197 (age 85.1, before access 9)  below the minimum pot 45  end wealth 68.7 / 8.6  equity 60% / 38% / 49%
+
+THE DECISIONS, ON THE SAME LEVERS (the rule, fixed before the runs: BETTER if the pooled survival interval is above zero, spending's 95% lower end above -1%, and no household behind by more than a point beyond 2 se; WORSE if the interval is below zero; else NOT SHOWN):
+  fixed spending, the plan's tiers (the draws alone)         FIXHOLD less FIXAPP: survival +3.200 (95% +2.79 to +3.61), spending +0.205% (se 0.019); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0  => BETTER
+                                                             per household: S090 +3.3, S030 +2.6, S328F +2.2, S188 +2.3, S304F +2.1, S368 +2.4, S050 +7.5, S340F +3.2
+  fixed spending, the tier menu (the draws and the tiers)    FIXCAND less FIXAPPT: survival +7.513 (95% +6.92 to +8.10), spending +0.521% (se 0.033); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0  => BETTER
+                                                             per household: S090 +9.4, S030 +8.7, S328F +7.3, S188 +5.8, S304F +1.4, S368 +8.2, S050 +12.9, S340F +6.4
+  flexible spending, the plan's tiers (the spending and the draws) FLEXHOLD less APP: survival +6.200 (95% +5.66 to +6.74), spending +4.068% (se 0.066); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0  => BETTER
+                                                             per household: S090 +3.4, S030 +3.5, S328F +4.0, S188 +5.4, S304F +5.1, S368 +12.7, S050 +11.7, S340F +3.8
+  flexible spending, the tier menu (all three)               CAND less APPT: survival +7.800 (95% +7.22 to +8.38), spending +5.898% (se 0.064); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0  => BETTER
+                                                             per household: S090 +6.4, S030 +6.9, S328F +4.4, S188 +7.0, S304F +4.1, S368 +15.3, S050 +14.5, S340F +3.8
+
+THE LEVERS, EACH DECISION-MAKER (what a lever adds, used statically by the app and dynamically by the solver):
+  the tiers, the app (fixed spending)                        FIXAPPT less FIXAPP: survival +3.237 (95% +2.85 to +3.63), spending +1.366% (se 0.046); ahead beyond 2 se on 6 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +0.7, S030 +0.0, S328F +2.5, S188 +6.4, S304F +8.4, S368 +2.9, S050 +0.4, S340F +4.6
+  the tiers, the app (flexible spending)                     APPT less APP: survival +3.025 (95% +2.63 to +3.42), spending -0.023% (se 0.044); ahead beyond 2 se on 5 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +0.9, S030 +1.5, S328F +4.1, S188 +5.9, S304F +5.9, S368 +0.0, S050 +0.0, S340F +5.9
+  the tiers, the solver (fixed spending)                     FIXCAND less FIXHOLD: survival +7.550 (95% +6.95 to +8.15), spending +1.685% (se 0.059); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +6.8, S030 +6.1, S328F +7.6, S188 +9.9, S304F +7.7, S368 +8.7, S050 +5.8, S340F +7.8
+  the tiers, the solver (flexible spending)                  CAND less FLEXHOLD: survival +4.625 (95% +4.16 to +5.09), spending +1.721% (se 0.046); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +3.9, S030 +4.9, S328F +4.5, S188 +7.5, S304F +4.9, S368 +2.6, S050 +2.8, S340F +5.9
+  the spending, the app (the plan's tiers)                   APP less FIXAPP: survival +12.150 (95% +11.37 to +12.93), spending -0.031% (se 0.077); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +17.3, S030 +15.7, S328F +8.8, S188 +7.5, S304F +4.9, S368 +17.7, S050 +17.3, S340F +8.0
+  the spending, the app (the best tier)                      APPT less FIXAPPT: survival +11.938 (95% +11.17 to +12.71), spending -1.387% (se 0.077); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +17.5, S030 +17.2, S328F +10.4, S188 +7.0, S304F +2.4, S368 +14.8, S050 +16.9, S340F +9.3
+  the spending, the solver (the plan's tiers)                FLEXHOLD less FIXHOLD: survival +15.150 (95% +14.38 to +15.92), spending +3.813% (se 0.053); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +17.4, S030 +16.6, S328F +10.6, S188 +10.6, S304F +7.9, S368 +28.0, S050 +21.5, S340F +8.6
+  the spending, the solver (the tier menu)                   CAND less FIXCAND: survival +12.225 (95% +11.52 to +12.93), spending +3.853% (se 0.055); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +14.5, S030 +15.4, S328F +7.5, S188 +8.2, S304F +5.1, S368 +21.9, S050 +18.5, S340F +6.7
+
+THE FIRST QUESTION AND PHASE 4'S (the solver with every lever it has against the app as it is):
+  no flexibility in spending: the solver against the app's fixed policy FIXCAND less FIXAPP: survival +10.750 (95% +10.07 to +11.43), spending +1.895% (se 0.062); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +10.1, S030 +8.7, S328F +9.8, S188 +12.2, S304F +9.8, S368 +11.1, S050 +13.3, S340F +11.0
+  flexible spending: the solver against the app (Phase 4's comparison) CAND less APP: survival +10.825 (95% +10.15 to +11.50), spending +5.873% (se 0.073); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0
+                                                             per household: S090 +7.3, S030 +8.4, S328F +8.5, S188 +12.9, S304F +10.0, S368 +15.3, S050 +14.5, S340F +9.7

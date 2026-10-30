@@ -1,0 +1,6 @@
+PASS  S050 FIXAPP: its pick (Sequential (harvest off), lump sum; drawdown 'Full 25% Lump Sum') hashes 3bea4a90615e, as its unit recorded (3bea4a90615e)
+PASS  S050 FIXAPP: with the drawdown set back to the household's own ('Phased Drawdown') and the MPAA age at the other arms' (68, the pick's 87) it hashes f8436d02da78, every other arm's (f8436d02da78)
+PASS  S050: the largest year's pension contribution is £3600 (regular £0; one-off £3600 in 2030), within the MPAA's £10000, so the MPAA age cannot bind
+PASS  planted: the target moved by £100 hashes 9cba116d5c5d, not f8436d02da78
+ALL PASS: 4 checks
+exit 0

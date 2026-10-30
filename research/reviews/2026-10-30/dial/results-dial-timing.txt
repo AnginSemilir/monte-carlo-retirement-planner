@@ -1,0 +1,40 @@
+WHEN THE CUTS COME (EXPLORATORY): the app's guardrails (APP), the candidate (CAND, the dial at one) and the dial at ten (DIAL10), the eight households, seed 7002, 1,000 paths each; retired years before any failure
+  S090   APP opening 100.0% (below target 0%); by years 1-5 97.4%, 6-10 95.5%, 11-20 93.0%, 21-on 93.2%; cuts after year 1: 6774, 88% after the worst third of years, rate 52% after the worst against 2% after the best
+         CAND opening 80.0% (below target 100%); by years 1-5 80.7%, 6-10 88.3%, 11-20 98.0%, 21-on 105.6%; cuts after year 1: 1158, 92% after the worst third of years, rate 9% after the worst against 0% after the best
+         DIAL10 opening 90.0% (below target 100%); by years 1-5 92.5%, 6-10 95.8%, 11-20 100.0%, 21-on 105.0%; cuts after year 1: 2095, 92% after the worst third of years, rate 17% after the worst against 0% after the best
+  S030   APP opening 100.0% (below target 0%); by years 1-5 97.6%, 6-10 94.9%, 11-20 93.6%, 21-on 93.9%; cuts after year 1: 5292, 89% after the worst third of years, rate 54% after the worst against 0% after the best
+         CAND opening 80.0% (below target 100%); by years 1-5 81.1%, 6-10 91.1%, 11-20 101.6%, 21-on 106.8%; cuts after year 1: 962, 92% after the worst third of years, rate 10% after the worst against 0% after the best
+         DIAL10 opening 90.0% (below target 100%); by years 1-5 92.2%, 6-10 95.8%, 11-20 101.0%, 21-on 105.6%; cuts after year 1: 1743, 92% after the worst third of years, rate 18% after the worst against 0% after the best
+  S328F  APP opening 100.0% (below target 0%); by years 1-5 98.8%, 6-10 96.3%, 11-20 95.9%, 21-on 95.1%; cuts after year 1: 8264, 76% after the worst third of years, rate 44% after the worst against 5% after the best
+         CAND opening 94.7% (below target 53%); by years 1-5 96.8%, 6-10 100.2%, 11-20 102.8%, 21-on 106.7%; cuts after year 1: 1035, 91% after the worst third of years, rate 6% after the worst against 0% after the best
+         DIAL10 opening 100.4% (below target 52%); by years 1-5 101.4%, 6-10 102.9%, 11-20 104.4%, 21-on 106.7%; cuts after year 1: 1394, 90% after the worst third of years, rate 9% after the worst against 0% after the best
+  S188   APP opening 100.0% (below target 0%); by years 1-5 98.2%, 6-10 95.2%, 11-20 94.5%, 21-on 97.4%; cuts after year 1: 4971, 84% after the worst third of years, rate 37% after the worst against 0% after the best
+         CAND opening 91.6% (below target 65%); by years 1-5 94.4%, 6-10 99.7%, 11-20 103.7%, 21-on 107.8%; cuts after year 1: 1391, 94% after the worst third of years, rate 11% after the worst against 0% after the best
+         DIAL10 opening 99.0% (below target 63%); by years 1-5 100.1%, 6-10 102.6%, 11-20 104.7%, 21-on 107.2%; cuts after year 1: 1361, 93% after the worst third of years, rate 11% after the worst against 0% after the best
+  S304F  APP opening 100.0% (below target 0%); by years 1-5 99.6%, 6-10 100.2%, 11-20 100.8%, 21-on 103.4%; cuts after year 1: 4760, 83% after the worst third of years, rate 29% after the worst against 0% after the best
+         CAND opening 80.0% (below target 100%); by years 1-5 80.0%, 6-10 107.9%, 11-20 108.2%, 21-on 108.7%; cuts after year 1: 412, 95% after the worst third of years, rate 3% after the worst against 0% after the best
+         DIAL10 opening 89.0% (below target 100%); by years 1-5 87.3%, 6-10 108.5%, 11-20 108.7%, 21-on 108.8%; cuts after year 1: 804, 77% after the worst third of years, rate 4% after the worst against 0% after the best
+  S368   APP opening 100.0% (below target 0%); by years 1-5 99.2%, 6-10 99.7%, 11-20 102.1%, 21-on 105.3%; cuts after year 1: 3884, 85% after the worst third of years, rate 25% after the worst against 0% after the best
+         CAND opening 80.0% (below target 100%); by years 1-5 80.0%, 6-10 98.0%, 11-20 110.0%, 21-on 109.9%; cuts after year 1: 29, 90% after the worst third of years, rate 0% after the worst against 0% after the best
+         DIAL10 opening 90.0% (below target 100%); by years 1-5 88.4%, 6-10 101.2%, 11-20 110.0%, 21-on 110.0%; cuts after year 1: 601, 90% after the worst third of years, rate 4% after the worst against 0% after the best
+  S050   APP opening 100.0% (below target 0%); by years 1-5 98.9%, 6-10 98.0%, 11-20 95.2%, 21-on 93.7%; cuts after year 1: 6356, 87% after the worst third of years, rate 62% after the worst against 1% after the best
+         CAND opening 80.0% (below target 100%); by years 1-5 81.2%, 6-10 90.5%, 11-20 100.9%, 21-on 107.1%; cuts after year 1: 1312, 90% after the worst third of years, rate 13% after the worst against 0% after the best
+         DIAL10 opening 95.0% (below target 100%); by years 1-5 93.9%, 6-10 97.2%, 11-20 102.2%, 21-on 105.6%; cuts after year 1: 2004, 93% after the worst third of years, rate 21% after the worst against 0% after the best
+  S340F  APP opening 100.0% (below target 0%); by years 1-5 99.1%, 6-10 97.8%, 11-20 98.2%, 21-on 100.5%; cuts after year 1: 5198, 83% after the worst third of years, rate 30% after the worst against 0% after the best
+         CAND opening 96.5% (below target 49%); by years 1-5 97.7%, 6-10 102.0%, 11-20 103.9%, 21-on 107.0%; cuts after year 1: 1005, 87% after the worst third of years, rate 6% after the worst against 0% after the best
+         DIAL10 opening 100.4% (below target 53%); by years 1-5 100.4%, 6-10 104.4%, 11-20 105.5%, 21-on 107.4%; cuts after year 1: 1403, 77% after the worst third of years, rate 7% after the worst against 1% after the best
+
+Pooled, each household once (households with no cut in a measure left out of its mean):
+  APP     the first retired year 100.0% of target, below target on 0% of paths
+          the level by retired years 1-5 98.6%, 6-10 97.2%, 11-20 96.7%, 21-on 97.8%
+          years below target 1-5 45%, 6-10 56%, 11-20 52%, 21-on 48%; at the floor 1-5 3%, 6-10 12%, 11-20 17%, 21-on 18%
+          cuts after the first year: 16.4 a hundred years; 84% of them after the worst third of market years (a third by chance); the chance of a cut after the worst third 42%, after the best 1%; the mean cut 3.1 points of target after the worst, 2.9 after the best
+  CAND    the first retired year 85.3% of target, below target on 83% of paths
+          the level by retired years 1-5 86.5%, 6-10 97.2%, 11-20 103.6%, 21-on 107.5%
+          years below target 1-5 80%, 6-10 45%, 11-20 23%, 21-on 9%; at the floor 1-5 76%, 6-10 38%, 11-20 18%, 21-on 7%
+          cuts after the first year: 2.7 a hundred years; 91% of them after the worst third of market years (a third by chance); the chance of a cut after the worst third 7%, after the best 0%; the mean cut 19.4 points of target after the worst, 16.9 after the best
+  DIAL10  the first retired year 94.2% of target, below target on 84% of paths
+          the level by retired years 1-5 94.5%, 6-10 101.0%, 11-20 104.6%, 21-on 107.0%
+          years below target 1-5 80%, 6-10 45%, 11-20 25%, 21-on 13%; at the floor 1-5 8%, 6-10 7%, 11-20 7%, 21-on 5%
+          cuts after the first year: 4.2 a hundred years; 88% of them after the worst third of market years (a third by chance); the chance of a cut after the worst third 11%, after the best 0%; the mean cut 8.4 points of target after the worst, 13.4 after the best
+FAIR: every household's three arms on one seed, path count, code and inputs

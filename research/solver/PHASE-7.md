@@ -66,9 +66,18 @@ Read against the code on 30 Oct, three parts of the archived Phase 7 do not hold
   positions, 1, 3, 6 and 10 times lambda (D46).
 
 **7c. The locks** (box: one working session).
-- `plan.solver.locks` in `normalizePlan`: `pensionBefore` (an age or null), `tierCeiling` per wrapper, `lumpSum` ('free',
-  'never', 'now'); absent, every solve and every engine run the same bit for bit. Each lock shrinks the move menu, never
-  adds to it. Its test: each lock respected on every path the engine runs, and every table the same with no locks.
+- `plan.solver.locks` in `normalizePlan` (App.jsx `normalizeSolverLocks`), kept only where a plan carries them: on the
+  library's 420 households a plan without them normalises with no `solver` key, as before. `pensionBefore` an age or null,
+  `tierCeiling` per wrapper (pen, isa) a tier or null, `lumpSum` 'free', 'never' or 'now'.
+- Applied as the solver prepares the plan (`src/solverSettings.js` `lockedPlan`), so the engine that runs the solved plan
+  holds to them too, and no solver code changes: the pension access age raised to `pensionBefore` (never lowered); the
+  pension's or ISA's tier lowered to its ceiling where riskier, and the tier above switched off (`riskAbove: false`); the
+  drawdown strategy set by `lumpSum` ('free' keeps the plan's own: the solver does not choose the lump yet, the lump sum's
+  route being the maintainer's call, D41 (5)). Each shrinks what the solver may do; applied twice is applied once; the
+  solve's key carries them.
+- Its test, `solver-locks.test.mjs`: each lock held on every year of 200 engine paths of its solved plan on S126, and the
+  same check on the solve without the lock finding it broken (so it can see a breach); locks all free leave every table
+  as without them; each lock another key.
 
 ## Deferred to Phase 12 (the maintainer's call then)
 

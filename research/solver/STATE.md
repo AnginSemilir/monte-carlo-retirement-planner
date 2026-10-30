@@ -294,6 +294,6 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. The spending curve (D46): CANDDP and the dial at six times, built, run and read (EXPLORATORY, seed 7002); the wording's three questions to the maintainer.
 2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7 (N7 skipped, D45) by `PHASE-7.md`, 7a (the worker, the split,
-   the state) and 7b (the key, the stored solve) built behind `SOLVER`, 7c (the locks) next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
+   the state), 7b (the key, the stored solve) and 7c (the locks) built behind `SOLVER`, its pull request next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
 3. D37's and D38's items (D40, D41 (5)), by `AFTER-PHASE4.md` (two done: the GIA basis under CGT off, the held-out scan): the windfall and the
    savings splits built, each default-off with its tests, then a factorial on the panel (EXPLORATORY, seed 7002); the lump sum's route the maintainer's call; the sweep nightly.

@@ -30,12 +30,44 @@ export function appPlan(E, plan) {
   return { ...plan, riskProfiles: rp, riskSource: '' };
 }
 
+/* the risk tiers, riskiest first (Cash Equivalents last) */
+const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
 /*
- * The plan as the solver takes it: guardrails and the one-off cost lookahead off (a solved table is the spending rule, and
+ * THE LOCKS (Part C Phase 7c, research/solver/PHASE-7.md): `plan.solver.locks` (App.jsx normalizeSolverLocks) applied to the plan
+ * the solver solves, so the engine that runs the solved plan holds to them too. Each shrinks what the solver may do:
+ *   pensionBefore  the plan's pension access age raised to it (never lowered): no pension, nor lump sum, before that age;
+ *   tierCeiling    the pension's or ISA's tier lowered to it where riskier (single households: the wrappers of 'self'), and
+ *                  the tier above switched off (`riskAbove: false`), so no tier the solver may choose is riskier;
+ *   lumpSum        'never' phased drawdown, 'now' the full tax-free lump at first access, 'free' the plan's own choice (the
+ *                  solver does not choose the lump yet: the lump sum's route is the maintainer's call, D41 (5)).
+ * Applied twice is applied once.
+ */
+export function lockedPlan(E, plan) {
+  const L = plan.solver && plan.solver.locks;
+  if (!L) return { plan, riskAbove: undefined };
+  let p = plan, binds = false;
+  if (L.pensionBefore !== null && L.pensionBefore !== undefined) {
+    const d = p.demographics || {}, now = E.num(d.privatePensionAge, 58);
+    if (L.pensionBefore > now) p = { ...p, demographics: { ...d, privatePensionAge: L.pensionBefore } };
+  }
+  if (L.lumpSum === 'never' || L.lumpSum === 'now') p = { ...p, spending: { ...p.spending, drawdownStrategy: L.lumpSum === 'now' ? 'Full 25% Lump Sum' : 'Phased Drawdown' } };
+  const tc = L.tierCeiling || {};
+  for (const [w, prefix] of [['pen', 'pen_'], ['isa', 'isa_']]) {
+    const ceil = tc[w];
+    if (!ceil || !RISK.includes(ceil)) continue;
+    binds = true;
+    p = { ...p, accounts: (p.accounts || []).map(a => (a.id && a.id.startsWith(prefix) && RISK.indexOf(a.risk) < RISK.indexOf(ceil) ? { ...a, risk: ceil } : a)) };
+  }
+  return { plan: p, riskAbove: binds ? false : undefined };
+}
+
+/*
+ * The plan as the solver takes it: the locks applied (lockedPlan), guardrails and the one-off cost lookahead off (a solved table is the spending rule, and
  * the engine refuses a table with either on; src/solver/bridge.js withTable), normalised, the MPAA resolved. Twice is once:
  * the same plan back on every one of the library's 420 households (30 Oct).
  */
 export function prepareForSolve(E, plan) {
-  return E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
+  const p = lockedPlan(E, E.normalizePlan(plan)).plan;
+  return E.resolveMpaa(E.normalizePlan({ ...p, config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
 }
 

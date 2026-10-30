@@ -1,0 +1,13 @@
+PASS  1. 420 library plans without locks normalise with no solver key
+PASS  1. locks normalised: {"locks":{"pensionBefore":61,"tierCeiling":{"pen":"Medium Risk","isa":null},"lumpSum":"free"}}
+PASS  1. locks all free leave every table as without them (fe85b2679e929e51)
+PASS  2. S126 pensionBefore {"pensionBefore":62}: no pension drawn before the age on 200 of 200 paths
+PASS  2. planted, the lock not applied: the check finds it broken on 200 of 200 paths
+PASS  2. S126 tierCeiling {"tierCeiling":{"pen":"Medium/Low Risk","isa":"Medium Risk"}}: no tier riskier than the ceiling on 200 of 200 paths
+PASS  2. planted, the lock not applied: the check finds it broken on 200 of 200 paths
+PASS  2. S126 lumpSum never {"lumpSum":"never"}: no full lump sum taken on 200 of 200 paths
+PASS  2. planted, the lock not applied: the check finds it broken on 200 of 200 paths
+PASS  2. S126 lumpSum now {"lumpSum":"now"}: the full lump taken in the first year the pension is open and not before on 200 of 200 paths
+PASS  2. planted, the lock not applied: the check finds it broken on 200 of 200 paths
+PASS  3. each lock gives the solve another key
+ALL PASS: 12 checks

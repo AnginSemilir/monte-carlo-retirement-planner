@@ -1050,6 +1050,18 @@ function normaliseSpendBands(s, d) {
   return bands.map((b, i) => ({ id: 'sb_migrated_' + i, ...b }));
 }
 
+/*
+ * THE SOLVER'S LOCKS (Part C Phase 7c, research/solver/PHASE-7.md): what the solver may not change. `pensionBefore` an age
+ * (whole years) or null; `tierCeiling` per wrapper the riskiest tier the pension and the ISA may hold, or null; `lumpSum`
+ * 'free', 'never' or 'now'. Anything else reads as no lock. src/solverSettings.js applies them as the solver prepares a plan.
+ */
+function normalizeSolverLocks(src) {
+  const l = isPlainObject(src.locks) ? src.locks : {}, tc = isPlainObject(l.tierCeiling) ? l.tierCeiling : {};
+  const age = l.pensionBefore === null || l.pensionBefore === '' || l.pensionBefore === undefined ? NaN : num(l.pensionBefore, NaN);
+  const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
+  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
+}
+
 function normalizePlan(raw) {
   const src = isPlainObject(raw) ? raw : {};
   const d = isPlainObject(src.demographics) ? src.demographics : {};
@@ -1159,6 +1171,8 @@ function normalizePlan(raw) {
     plan.riskProfiles[k] = { ...DEFAULT_RISK_PROFILES[k], ...(isPlainObject(rp[k]) ? rp[k] : {}) };
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
+  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
+  if (isPlainObject(src.solver)) plan.solver = normalizeSolverLocks(src.solver);
   return plan;
 }
 

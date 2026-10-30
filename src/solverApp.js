@@ -10,9 +10,9 @@
  * test fails any commit whose pin does not match the solver's code.
  */
 import { solvePlan } from './solver/solve.js';
-import { APP_CANDIDATE, APP_LAMBDA, APP_POINTS, appPlan, prepareForSolve } from './solverSettings.js';
+import { APP_CANDIDATE, APP_LAMBDA, APP_POINTS, appPlan, prepareForSolve, lockedPlan } from './solverSettings.js';
 
-export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, appPlan, prepareForSolve } from './solverSettings.js';
+export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, appPlan, prepareForSolve, lockedPlan } from './solverSettings.js';
 
 /*
  * The candidate's solve of a plan, as the app holds it (prepared here). `e2` splits it across workers (src/solverPool.js),
@@ -21,8 +21,10 @@ export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, appPla
  * the way the 'auto' risk rule chose, its tables copied in rather than solved, its meta the stored one's.
  */
 export function solveForApp(E, M, plan, { lambda = APP_LAMBDA, points = APP_POINTS, e2 = null, progress = null, research = null, restore = null } = {}) {
+  // a tier ceiling (a lock) switches the tier above off; a restore solves the way its stored solve was chosen
+  const locked = lockedPlan(E, E.normalizePlan(plan)).riskAbove === false ? { riskAbove: false } : {};
   const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref: restore.ref } } : {};
-  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...research, lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...again });
+  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...research, lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...again });
   if (restore) Object.assign(r.meta, restore.meta, { restored: true });
   return r;
 }

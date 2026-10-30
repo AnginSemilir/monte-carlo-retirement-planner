@@ -160,3 +160,56 @@ flexible-spending rows, the solver's investments with spending flexible (+4.6), 
   de-risking glide path, say, was not tried.
 - The static tier is chosen on 1,000 search paths, so its choice carries their noise; that is part of choosing a rule in
   advance.
+- The draws were not the same levers on both sides (the next section).
+
+## What the solver does with the draws
+
+The maintainer's next question (30 Oct 09:08): what makes the solver better outside the tiers and spending, that is, in
+the draws alone (+3.20 points)?
+
+**The replay** (`levers/draws-read.mjs`, its output `levers/results-draws.txt`): FIXAPP and FIXHOLD year by year with the
+engine's own stepYear, on 500 of the units' paths, the solver solved again as its unit was. Each household's detail lines
+print above its own line.
+- **The paths that decide survival.** The solver saves 11 to 42 paths a household that the fixed policy loses, and loses
+  0 to 5 that it keeps. On seven households the fixed policy fails at or near the plan's end (median ages 94 to 97). A year
+  before, it holds less than the solver on every one: 0.4 to 1.3 years of target against 2.1 to 4.9 on six, and 7.9
+  against 16.2 on S304F.
+- **S368 fails in the bridge.** Its 17 saved paths run out at 57 under the fixed policy, with 44.2 years of target locked
+  in the pension. A year before, outside the pension it has the ISA's 0.9 years of target and nothing in the GIA or cash;
+  the solver has 0.6 in the GIA and 0.5 in cash.
+- **Not tax.** By then the solver has paid more tax on five households, none on S368 (as the fixed policy), about the same
+  on S188 (3.90 against 3.94 years of target), and less only on S050 (0.00 against 0.46).
+- **Cash.** The solver holds half a year of target in cash in every year shown, on every household (0.50 to 0.51). The
+  fixed policy holds 0.20 (S304F) to 4.88 (S050, half its pots) at the first retired year. On S368 and S340F it holds 13.29
+  and 4.61 at the 11th retired year, after the pension opens: the lump sum.
+
+**Why, from the code.**
+- Under the solver's table the engine sweeps the cash each year (`research/engine.mjs`, step 7d). It keeps half a year of
+  target in cash (the plan's six-month buffer) and puts the rest in the GIA at cost; a shortfall is topped up from the GIA.
+- Every move on the solver's menu carries the sweep (`src/solver/solve.js`, `sweepCash: true`). So the sweep is a fixed
+  rule of the solver's arm, not a choice: a lever the app's rules lack, as the investment tier is.
+- The app's policy has no sweep. Cash sits until its draw order reaches it, and a full lump sum lands in cash (step 3).
+- Two more differences come with the arms:
+  - the app's plan runs the cost lookahead (5 years), which the engine refuses under a table;
+  - the app's pick takes the full lump sum on three households (S368, S050 and S340F, "lump sum" in their labels), where
+    the solver solves the household's own plan.
+- So the draws alone were not the same levers on both sides, and the levers result above needs this split.
+
+**The split, declared before its run** (`levers/draws-split.mjs`, EXPLORATORY). The app's own fixed policy is given, in
+turn, what the solver's arm has besides its choice of draw, on the units' 1,000 paths, paired by path:
+- A1: the lookahead off;
+- A2: A1 through the engine's table hook, with the policy's own move every year (it must equal A1 on every path);
+- A3: A2 with the sweep;
+- A4: A3 with the household's own drawdown (no full lump sum where the pick took it); A5, the same without the sweep, for
+  the other order.
+
+What is left, FIXHOLD less A4, is the solver's own choice of draw each year: which pot pays, how much pension to draw into
+the tax bands, and when to sell the taxable account up to the CGT exemption.
+- **Checks:** the replay of FIXAPP equals its unit on every path, and the hook equals A1; each check is shown failing on a
+  plant (FIXHOLD's unit; the draw order reversed). The read also prints how the fixed policy fails on the paths the solver
+  saves.
+- **Acceptance:** the checks pass. **Time box:** 45 minutes.
+- **The prediction:** the lookahead adds nothing or close to it; the sweep is most of the +3.20, between +1.5 and +3.0;
+  the lump sum after the sweep is within half a point either way; the solver's own choices are the rest, 0 to +1.5. If the
+  sweep is most of it, the levers result's "about seven tenths is better decisions" falls, since the sweep is a fixed rule
+  the app could adopt.

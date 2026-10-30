@@ -4,8 +4,8 @@
  * optionally, a second original (the agent's code at 1b39400, on which the age-weight and dial units were solved):
  *   node ez-test.mjs <root of the original code> [<root of a second original>] [--dev]
  * --dev: every solve with e3pcls off, for use before the pin is refreshed on the patched code; never a record.
- * At light settings (4 wealth points, a small reference lattice), the candidate with EZ { gamma 4, rho 2 } on the layer loop
- * (tsOnce: false), and without EZ:
+ * At light settings (4 wealth points, a small reference lattice), the candidate with EZ { gamma 4, rho 2, failPrice 20 } on
+ * the layer loop (tsOnce: false), and without EZ:
  *   1. OFF: on S090 and S328F, every table of every layer, world and year is the original code's to the bit, at the
  *      candidate's settings and on the layer loop, and 40 forward runs return the same; planted: EZ on parts the tables
  *   2. THE FORMULAS (S090), each against its definition computed here, each with a plant that must be caught:
@@ -13,8 +13,11 @@
  *      b. the ruin level, the guaranteed income after tax over the target, between ruinMin and 1; planted: no ruinMin
  *      c. the ruin path's value, as the sum the recursion unrolls to; planted: beta 0.99
  *      d. the aggregator at random years, levels and continuations; planted: rho 2.1
- *      e. the final year's end rule; planted: running out at ruinMin, not at the guaranteed income
- *      f. the failure year; planted: what is paid not held at ruinMin
+ *      e. the final year's end rule, below the minimum pot at the guaranteed income's level with the price of failing;
+ *         planted: running out at ruinMin, not at the guaranteed income; the price not scaled to the opening
+ *      f. the failure year, with the price of failing; planted: what is paid not held at ruinMin; the price unscaled
+ *      h. the price's scale, the weights' product from the opening, against its own product; and the price at 0 the same
+ *         tables as no price, to the bit (one more solve)
  *      g. the read: at grid cells, readValues returns the stored value powered, V^(1 - gamma); off, no power is set;
  *         planted: the grid without the power, caught
  *   3. THE RECURSION IN THE TABLES (S090): at the opening, a middle retired year and the final year, at every cell and
@@ -24,7 +27,8 @@
  *      worlds. Planted: rho 2.1 at the two earlier years, gamma 4.1 at the final year, each must fail
  *   4. THE CHOOSER: forward runs with the shared year's check on (each shared score recomputed by scoreMoves, a difference
  *      thrown); EZ's moves differ from the candidate's on some path; every run's figures finite
- *   5. THE REFUSALS: EZ with E5, without failDelivered, with a switch margin, and with gamma 1, each throws
+ *   5. THE REFUSALS: EZ with E5, without failDelivered, with a switch margin, with gamma 1, and a price with rho under 1 or
+ *      below nothing, each throws
  */
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -46,7 +50,7 @@ const panel = readPanel();
 const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
 const planOf = id => { const h = panel.find(x => x.id === id); const pk = armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy; return prep(solverPlanOf(h.plan, { decumulationPolicy: pk })); };
 const light = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, ...(DEV ? { e3pcls: false } : {}) };
-const EZ = { gamma: 4, rho: 2 }, LOOP = { tsOnce: false };
+const EZ = { gamma: 4, rho: 2, failPrice: 20 }, LOOP = { tsOnce: false };
 const { execSync } = await import('child_process');
 const headOf = root => { try { return execSync('git log --oneline -1', { cwd: root }).toString().trim().slice(0, 7); } catch (e) { return '?'; } };
 console.log(`EZ's tests${DEV ? ' (--dev: e3pcls off, not a record)' : ''}: the patched code at ${ROOT} (${headOf(ROOT)} with the patch), the original${ORIG.length > 1 ? 's' : ''} at ${ORIG.map(o => `${o.root} (${headOf(o.root)})`).join(' and ')}`);
@@ -103,9 +107,11 @@ for (const id of ['S090', 'S328F']) {
 // ---------------------------------------------------------------------------------------------------- 2. THE FORMULAS
 console.log('=========== 2. THE FORMULAS ===========');
 const r = solved.S090.on, z = r.ez, T = r.m.ctx.totalYears, a0 = r.m.ctx.ageSelf0, spend = r.c.yr.spend, gam = EZ.gamma, rho = EZ.rho;
-const e1 = 1 - rho, e2 = 1 - gam, rmin = 0.1, beta = 1;
-ok(z && z.gamma === gam && z.rho === rho && z.beta === beta && z.ruinMin === rmin && z.mortality.mode === 90 && z.mortality.disp === 9 && JSON.stringify(r.meta.ez) === JSON.stringify({ gamma: gam, rho, beta, ruinMin: rmin, mortality: { mode: 90, disp: 9 } }),
+const e1 = 1 - rho, e2 = 1 - gam, rmin = 0.1, beta = 1, FP = EZ.failPrice;
+ok(z && z.gamma === gam && z.rho === rho && z.beta === beta && z.ruinMin === rmin && z.mortality.mode === 90 && z.mortality.disp === 9 && z.failPrice === FP && JSON.stringify(r.meta.ez) === JSON.stringify({ gamma: gam, rho, beta, ruinMin: rmin, mortality: { mode: 90, disp: 9 }, failPrice: FP }),
   `2. the settings: ${JSON.stringify(r.meta.ez)} (the defaults beta 1, ruinMin 0.1, Gompertz mode 90, dispersion 9)`);
+// the price's scale, computed here: the weights' product from the opening to each year (h checks the code's against it)
+const Dh = new Float64Array(T + 1); Dh[0] = 1; for (let t = 0; t < T; t++) Dh[t + 1] = Dh[t] * beta * z.p[t];
 const maxRel = (f, n0, n1) => { let w = 0, at = -1; for (let i = n0; i <= n1; i++) { const [x, y] = f(i); const d = Math.abs(x - y) / Math.max(1e-300, Math.abs(y)); if (!(d <= w)) { w = d; at = i; } } return { w, at }; };
 // a. the chance of living each year
 const Sg = (mode, t) => Math.exp(-Math.exp((a0 - mode) / 9) * (Math.exp(t / 9) - 1));
@@ -136,18 +142,30 @@ const pts = Array.from({ length: 2000 }, () => { const t = Math.floor(u01() * (T
 const dA = maxRel(i => [z.valueOf(...pts[i]), vOf(...pts[i])], 0, pts.length - 1), dP = maxRel(i => [z.valueOf(...pts[i]), vOfP(...pts[i])], 0, pts.length - 1);
 ok(dA.w < 1e-13, `2d. the aggregator is its definition at 2,000 random years, levels and continuations: the largest relative gap ${dA.w.toExponential(2)}`);
 ok(!(dP.w < 1e-13), `    planted: rho 2.1 gives a gap of ${dP.w.toExponential(2)}, caught`);
-// e. the final year's end rule: E[V_T^(1 - gamma)] = s l^(1 - gamma) + (1 - s) ruin_T^(1 - gamma)
-const fqOf = rT => (l, s) => s * Math.pow(l, e2) + (1 - s) * Math.pow(rT, e2);
+// e. the final year's end rule: E[V_T^(1 - gamma)] = s l^(1 - gamma) + (1 - s) V_ruin^(1 - gamma), V_ruin^(1 - rho) the
+// guaranteed income's level powered plus the price of failing in the final year's units, F / D(T)
+const endU = (rT, pT) => Math.pow(Math.pow(rT, e1) + pT, e2 / e1);
+const fqOf = (rT, pT) => (l, s) => s * Math.pow(l, e2) + (1 - s) * endU(rT, pT);
 const fpts = Array.from({ length: 500 }, () => [0.8 + 0.3 * u01(), u01()]);
-const eA = maxRel(i => [z.finalQ(...fpts[i]), fqOf(z.ruin[T])(...fpts[i])], 0, fpts.length - 1), eP = maxRel(i => [z.finalQ(...fpts[i]), fqOf(rmin)(...fpts[i])], 0, fpts.length - 1);
-ok(eA.w < 1e-13, `2e. the final year is at its level with the chance of ending above the minimum pot, at the guaranteed income's level (${z.ruin[T].toFixed(3)}) otherwise: the largest relative gap ${eA.w.toExponential(2)}`);
-ok(z.ruin[T] !== rmin ? !(eP.w < 1e-13) : false, `    planted: running out at ruinMin gives a gap of ${eP.w.toExponential(2)}, caught`);
+const eA = maxRel(i => [z.finalQ(...fpts[i]), fqOf(z.ruin[T], FP / Dh[T])(...fpts[i])], 0, fpts.length - 1), eP = maxRel(i => [z.finalQ(...fpts[i]), fqOf(rmin, FP / Dh[T])(...fpts[i])], 0, fpts.length - 1), eP2 = maxRel(i => [z.finalQ(...fpts[i]), fqOf(z.ruin[T], FP)(...fpts[i])], 0, fpts.length - 1);
+ok(eA.w < 1e-12, `2e. the final year is at its level with the chance of ending above the minimum pot, at the guaranteed income's level (${z.ruin[T].toFixed(3)}) with the price of failing (${FP} / ${Dh[T].toFixed(4)}) otherwise: the largest relative gap ${eA.w.toExponential(2)}`);
+ok(z.ruin[T] !== rmin ? !(eP.w < 1e-12) : false, `    planted: running out at ruinMin gives a gap of ${eP.w.toExponential(2)}, caught`);
+ok(!(eP2.w < 1e-12), `    planted: the price not scaled to the opening gives a gap of ${eP2.w.toExponential(2)}, caught`);
 // f. the failure year
-const fvOf = fl => (t, d) => { const dl = Math.max(fl, d); return t >= T ? dl : Math.pow((spend[t] > 0 ? Math.pow(dl, e1) : 0) + beta * z.p[t] * Math.pow(vR[t + 1], e1), 1 / e1); };
+const fvOf = (fl, scaled = true) => (t, d) => { const dl = Math.max(fl, d), pr = FP > 0 ? (scaled ? FP / Dh[t] : FP) : 0; return t >= T ? (FP > 0 ? Math.pow(Math.pow(dl, e1) + pr, 1 / e1) : dl) : Math.pow((spend[t] > 0 ? Math.pow(dl, e1) : 0) + beta * z.p[t] * Math.pow(vR[t + 1], e1) + pr, 1 / e1); };
 const vpts = Array.from({ length: 1000 }, () => [Math.floor(u01() * (T + 1)), 1.1 * u01()]);
-const fA = maxRel(i => [z.failValue(...vpts[i]), fvOf(rmin)(...vpts[i])], 0, vpts.length - 1), fP = maxRel(i => [z.failValue(...vpts[i]), fvOf(0)(...vpts[i])], 0, vpts.length - 1);
-ok(fA.w < 1e-12, `2f. a failure year is that year at what it pays (at least ${rmin}), then the ruin path: the largest relative gap ${fA.w.toExponential(2)} at 1,000 random years and levels`);
+const fA = maxRel(i => [z.failValue(...vpts[i]), fvOf(rmin)(...vpts[i])], 0, vpts.length - 1), fP = maxRel(i => [z.failValue(...vpts[i]), fvOf(0)(...vpts[i])], 0, vpts.length - 1), fP2 = maxRel(i => [z.failValue(...vpts[i]), fvOf(rmin, false)(...vpts[i])], 0, vpts.length - 1);
+ok(fA.w < 1e-12, `2f. a failure year is that year at what it pays (at least ${rmin}), then the ruin path, with the price of failing once (F / D(t)): the largest relative gap ${fA.w.toExponential(2)} at 1,000 random years and levels`);
 ok(!(fP.w < 1e-12), `    planted: what is paid not held at ruinMin gives a gap of ${fP.w.toExponential(2)}, caught`);
+ok(!(fP2.w < 1e-12), `    planted: the price unscaled (the same F in every year's units, so it shrinks with age) gives a gap of ${fP2.w.toExponential(2)}, caught`);
+// h. the price's scale, and the price at 0
+{
+  const hA = maxRel(t => [z.D[t], Dh[t]], 0, T), hA2 = maxRel(t => [z.pen[t], FP / Dh[t]], 0, T);
+  ok(hA.w < 1e-14 && hA2.w < 1e-14 && z.D[0] === 1, `2h. the price's scale is the weights' product from the opening (at 75 ${z.D[75 - a0].toFixed(3)}, at the end ${z.D[T].toFixed(3)}): the largest relative gaps ${hA.w.toExponential(2)}, ${hA2.w.toExponential(2)}`);
+  const t0 = Date.now(), z0 = C.solveCandidate(E, M, structuredClone(solved.S090.plan), { ...light, ...LOOP, ez: { gamma: 4, rho: 2, failPrice: 0 } }), zn = C.solveCandidate(E, M, structuredClone(solved.S090.plan), { ...light, ...LOOP, ez: { gamma: 4, rho: 2 } });
+  const st0 = sameTables(z0, zn);
+  ok(st0.same && st0.n > 0 && z0.meta.ez.failPrice === undefined, `    the price at 0: ${st0.n} table entries the same as no price, to the bit${st0.same ? '' : ` (first difference: ${st0.at})`}; nothing recorded (${sec(t0)})`);
+}
 // g. the read: at grid cells of the plan's layer in the middle world, a year in, readValues returns the stored value powered
 {
   const g = r.g, LW = r.tablesW.layW, J0 = r.worlds[1].tsLayers.findIndex(L => L.lsurv === r.worlds[1].lsurv), L = LW[1][J0], t = 1;
@@ -192,7 +210,7 @@ console.log('=========== 3. THE RECURSION IN THE TABLES ===========');
           const sw = r.tsLayerOf[ai] !== j ? 1 - sc : 1;
           if (failA[ai]) return fv(t, paid[ai]) * sw;
           const f2 = 1 - gm;
-          const qOf = kk => (t >= T ? SV[kk][ai] * Math.pow(r.levelOf[ai], f2) + (1 - SV[kk][ai]) * Math.pow(z.ruin[T], f2) : SC[kk][ai]);
+          const qOf = kk => (t >= T ? SV[kk][ai] * Math.pow(r.levelOf[ai], f2) + (1 - SV[kk][ai]) * Math.pow(Math.pow(z.ruin[T], e1) + FP / Dh[T], f2 / e1) : SC[kk][ai]);
           let q = 0; if (k >= 0) q = qOf(k); else for (let kk = 0; kk < K; kk++) q += JW[kk] * qOf(kk);
           return vfn(t, r.levelOf[ai], q) * sw;
         };
@@ -247,7 +265,9 @@ console.log('=========== 5. THE REFUSALS ===========');
     ['with E5 (tsOnce left on)', { ez: EZ }, /ez runs on the tier state/],
     ['without failDelivered', { ...LOOP, ez: EZ, failDelivered: false }, /ez runs on the tier state/],
     ['with a switch margin', { ...LOOP, ez: EZ, switchMargin: 0.001 }, /ez runs on the tier state/],
-    ['with gamma 1', { ...LOOP, ez: { gamma: 1, rho: 2 } }, /ez needs/]
+    ['with gamma 1', { ...LOOP, ez: { gamma: 1, rho: 2 } }, /ez needs/],
+    ['with a price of failing and rho under 1', { ...LOOP, ez: { gamma: 4, rho: 0.5, failPrice: 20 } }, /failPrice/],
+    ['with a price of failing below nothing', { ...LOOP, ez: { gamma: 4, rho: 2, failPrice: -1 } }, /failPrice/]
   ]) {
     let msg = '';
     try { C.solveCandidate(E, M, structuredClone(plan), { ...light, ...extra }); } catch (e) { msg = e.message; }

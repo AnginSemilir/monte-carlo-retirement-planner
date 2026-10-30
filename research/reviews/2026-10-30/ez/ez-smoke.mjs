@@ -6,11 +6,12 @@
  * failures fall (running out, by age; ending below the minimum pot); the spending level by age band among the paths still
  * going; the share of retired years at the top level, at target, below it and at the floor.
  *   node ez-smoke.mjs [points=4] [arms=CAND,EZ4,EZ4-NM,EZ10] > results-ez-smoke.txt      (from the root of the patched code)
+ * Any arm EZ<gamma>[-NM][-F<price>] is built from its name (rho 2): EZ4-F20 is gamma 4 with the price of failing 20.
  */
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 const imp = p => import(pathToFileURL(resolve(process.cwd(), p)).href);
-const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js'), C = await imp('research/solver/candidate.mjs'), S = await imp('src/solver/solve.js');
+const E = await imp('research/engine.mjs'), M = await imp('src/solver/model.js'), C = await imp('research/solver/candidate.mjs'), S = await imp('src/solver/solve.js'), G = await imp('src/solver/grid.js');
 const { readPanel, appPlan } = await imp('research/solver/phase4-panel.mjs');
 const { armA } = await imp('research/solver/select-phase4.mjs');
 const { solverPlanOf, LAMBDA } = await imp('research/solver/audit-phase4.mjs');
@@ -28,7 +29,9 @@ const ARMS0 = [
   ['EZ4-NM', { ...LOOP, ez: { gamma: 4, rho: 2, mortality: { mode: 1000, disp: 9 } } }],
   ['EZ10', { ...LOOP, ez: { gamma: 10, rho: 2 } }]
 ];
-const ARMS = PICK ? ARMS0.filter(([n]) => PICK.includes(n)) : ARMS0;
+// any other arm named EZ<gamma>[-NM][-F<price>] (e.g. EZ4-F20: gamma 4, rho 2, the price of failing 20) is built from its name
+const armOf = n => { const x = ARMS0.find(([a]) => a === n); if (x) return x; const mm = /^EZ(\d+(?:\.\d+)?)(-NM)?(?:-F(\d+(?:\.\d+)?))?$/.exec(n); if (!mm) throw new Error(`ez-smoke: no arm ${n}`); return [n, { ...LOOP, ez: { gamma: Number(mm[1]), rho: 2, ...(mm[2] ? { mortality: { mode: 1000, disp: 9 } } : {}), ...(mm[3] ? { failPrice: Number(mm[3]) } : {}) } }]; };
+const ARMS = PICK ? PICK.map(armOf) : ARMS0;
 console.log(`EZ's first look (EXPLORATORY): ${ID} at light settings (${PTS} points, lattice 24/5/16, e3pcls off), ${N} paths of seed ${SEED}; the candidate's plan with the app's policy (${pk})`);
 const pct = (a, b) => (b > 0 ? (100 * a / b).toFixed(1) : '-');
 let first = true;
@@ -48,5 +51,9 @@ for (const [name, extra] of ARMS) {
   let yrs = 0, top = 0, at = 0, below = 0, floorY = 0; const lvTop = Math.round(100 * Math.max(...r.meta.spendLevels)), lvFloor = Math.round(100 * Math.min(...r.meta.spendLevels));
   for (let i = 0; i < N; i++) for (let t = 0; t <= T; t++) { if (!(spend[t] > 0) || (tr.failYear[i] >= 0 && t >= tr.failYear[i])) continue; const l = tr.level[i * Y + t]; yrs++; if (l >= lvTop) top++; if (l === 100) at++; if (l < 100) below++; if (l <= lvFloor) floorY++; }
   const outBy = bands.map(([lo, hi]) => outAges.filter(a => a >= lo && a <= hi).length);
+  // the opening move, holding the plan's tiers: its level and its tiers' equity share at the opening's pension and ISA
+  const s0 = G.vecOf(r.m, M.initialState(r.m)), a1 = S.chooseAction(r, Float64Array.from(s0), 0, { pen: 0, isa: 0, gia: 0 }), act1 = r.c.acts[a1], w0 = s0[0] + s0[1];
+  const eq0 = w0 > 0 ? (r.c.tiers.pen[act1.tierPen].equity * s0[0] + r.c.tiers.isa[act1.tierIsa].equity * s0[1]) / w0 : NaN;
+  console.log(`${name.padEnd(7)} the opening move: level ${r.levelOf[a1]}, tiers ${act1.tierPen}/${act1.tierIsa}, the pension and ISA's equity ${(100 * eq0).toFixed(1)}%`);
   console.log(`${name.padEnd(7)} survival ${pct(surv, N)}% (${surv} of ${N}); ran out ${ranOut.length} (at ages ${bands.map(([lo, hi], b) => `${lo}-${hi}: ${outBy[b]}`).join(', ')}), ended below the minimum pot ${belowPot}; level by age (%) ${bands.map(([lo, hi], b) => `${lo}-${hi} ${band[b]}`).join(', ')}; retired years at the top ${pct(top, yrs)}%, at target ${pct(at, yrs)}%, below ${pct(below, yrs)}%, at the floor ${pct(floorY, yrs)}%; ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }

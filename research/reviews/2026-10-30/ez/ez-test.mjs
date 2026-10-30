@@ -15,8 +15,10 @@
  *      d. the aggregator at random years, levels and continuations; planted: rho 2.1
  *      e. the final year's end rule; planted: running out at ruinMin, not at the guaranteed income
  *      f. the failure year; planted: what is paid not held at ruinMin
+ *      g. the read: at grid cells, readValues returns the stored value powered, V^(1 - gamma); off, no power is set;
+ *         planted: the grid without the power, caught
  *   3. THE RECURSION IN THE TABLES (S090): at the opening, a middle retired year and the final year, at every cell and
- *      layer, each world's stored V^(1 - gamma) is the year's value, computed here from the formulas of 2, of the stored
+ *      layer, each world's stored value V is the year's value, computed here from the formulas of 2, of the stored
  *      move's continuation as the chooser's scoreMoves reads it at the cell (the final year: of its chance of ending above
  *      the minimum pot), less the switch charge as a fraction; and the stored move is the best on the mixture of the
  *      worlds. Planted: rho 2.1 at the two earlier years, gamma 4.1 at the final year, each must fail
@@ -146,6 +148,19 @@ const vpts = Array.from({ length: 1000 }, () => [Math.floor(u01() * (T + 1)), 1.
 const fA = maxRel(i => [z.failValue(...vpts[i]), fvOf(rmin)(...vpts[i])], 0, vpts.length - 1), fP = maxRel(i => [z.failValue(...vpts[i]), fvOf(0)(...vpts[i])], 0, vpts.length - 1);
 ok(fA.w < 1e-12, `2f. a failure year is that year at what it pays (at least ${rmin}), then the ruin path: the largest relative gap ${fA.w.toExponential(2)} at 1,000 random years and levels`);
 ok(!(fP.w < 1e-12), `    planted: what is paid not held at ruinMin gives a gap of ${fP.w.toExponential(2)}, caught`);
+// g. the read: at grid cells of the plan's layer in the middle world, a year in, readValues returns the stored value powered
+{
+  const g = r.g, LW = r.tablesW.layW, J0 = r.worlds[1].tsLayers.findIndex(L => L.lsurv === r.worlds[1].lsurv), L = LW[1][J0], t = 1;
+  const v = new Float64Array(7), out = new Float64Array(4), gNo = { ...g, ezPow: undefined };
+  let worst = 0, worstP = 0, n = 0;
+  for (let ip = 0; ip < g.np; ip++) for (let ii = 0; ii < g.ni; ii++) for (let it = 0; it < g.nt; it++) {
+    G.toVec(g, ip, ii, it, 0, 0, v, t); const idx = g.index(ip, ii, it, 0, 0), want = Math.pow(L.resil[t][idx], e2);
+    G.readValues(g, L.lsurv[t], L.beq[t], v, out, L.lresil[t], L.short[t], t); worst = Math.max(worst, Math.abs(out[2] - want) / want); n++;
+    G.readValues(gNo, L.lsurv[t], L.beq[t], v, out, L.lresil[t], L.short[t], t); worstP = Math.max(worstP, Math.abs(out[2] - want) / want);
+  }
+  ok(n > 0 && worst < 1e-12 && r.g.ezPow === e2 && solved.S090.off.g.ezPow === undefined, `2g. at ${n} grid cells a year in, the read returns the stored value powered, V^(1 - gamma): the largest relative gap ${worst.toExponential(2)}; off, no power set`);
+  ok(!(worstP < 1e-12), `    planted: the grid without the power gives a gap of ${worstP.toExponential(2)}, caught`);
+}
 
 // ---------------------------------------------------------------------------------------------------- 3. THE RECURSION
 console.log('=========== 3. THE RECURSION IN THE TABLES ===========');
@@ -186,11 +201,11 @@ console.log('=========== 3. THE RECURSION IN THE TABLES ===========');
         if (failA[a]) nFail++;
         for (let k = 0; k < K; k++) {
           const stored = LW[k][j].resil[t][idx];
-          const want = Math.pow(valueAt(a, k, vOf, gam), e2);
+          const want = valueAt(a, k, vOf, gam);
           const d = Math.abs(stored - want) / Math.abs(want); nVals++;
           if (!(d <= worst)) { worst = d; wAt = `world ${k}, layer ${j}, cell ${ip}/${ii}/${it}/${ig}/${ic}, ${r.actions[a].label || a}${failA[a] ? ' (cannot pay)' : ''}`; }
           // planted: rho 2.1 before the final year; at it, gamma 4.1 in the end rule
-          const wantP = t >= T ? Math.pow(valueAt(a, k, valueOfWith(rho, 4.1), 4.1), e2) : Math.pow(valueAt(a, k, vP, gam), e2);
+          const wantP = t >= T ? valueAt(a, k, valueOfWith(rho, 4.1), 4.1) : valueAt(a, k, vP, gam);
           worstP = Math.max(worstP, Math.abs(stored - wantP) / Math.abs(wantP));
         }
         // the stored move is the best on the mixture (ties within 1e-12 of the value)

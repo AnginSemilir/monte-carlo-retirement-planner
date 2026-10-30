@@ -1,11 +1,11 @@
 /*
- * EZ'S FIRST LOOK (EXPLORATORY; EZ.md; not the calibration and not the run). S090 at light settings (4 wealth points, a
- * small reference lattice, e3pcls off: the pin is not yet refreshed on the patched code, and e3pcls changes no table), 200
- * paths of seed 99001. Arms: the candidate (CAND, the dial at 1); EZ at gamma 4, rho 2 (EZ4); the same without the chance
+ * EZ'S FIRST LOOK (EXPLORATORY; EZ.md; not the calibration and not the run). S090 at light settings (4 wealth points by
+ * default, a small reference lattice, e3pcls off: the pin is not yet refreshed on the patched code, and e3pcls changes no
+ * table), 200 paths of seed 99001. Arms: the candidate (CAND, the dial at 1); EZ at gamma 4, rho 2 (EZ4); the same without the chance
  * of dying (EZ4-NM: mode 1000, so every year counts in full); EZ at gamma 10, rho 2 (EZ10). Per arm: survival; how the
  * failures fall (running out, by age; ending below the minimum pot); the spending level by age band among the paths still
  * going; the share of retired years at the top level, at target, below it and at the floor.
- *   node ez-smoke.mjs > results-ez-smoke.txt      (from the root of the patched code)
+ *   node ez-smoke.mjs [points=4] [arms=CAND,EZ4,EZ4-NM,EZ10] > results-ez-smoke.txt      (from the root of the patched code)
  */
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -19,15 +19,17 @@ const h = readPanel().find(x => x.id === ID);
 const pk = armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy;
 const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 } }));
 const plan = prep(solverPlanOf(h.plan, { decumulationPolicy: pk }));
-const light = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, e3pcls: false };
+const PTS = Number(process.argv[2] || 4), PICK = process.argv[3] ? process.argv[3].split(',') : null;
+const light = { lambda: LAMBDA, points: PTS, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, e3pcls: false };
 const LOOP = { tsOnce: false };
-const ARMS = [
+const ARMS0 = [
   ['CAND', {}],
   ['EZ4', { ...LOOP, ez: { gamma: 4, rho: 2 } }],
   ['EZ4-NM', { ...LOOP, ez: { gamma: 4, rho: 2, mortality: { mode: 1000, disp: 9 } } }],
   ['EZ10', { ...LOOP, ez: { gamma: 10, rho: 2 } }]
 ];
-console.log(`EZ's first look (EXPLORATORY): ${ID} at light settings (4 points, lattice 24/5/16, e3pcls off), ${N} paths of seed ${SEED}; the candidate's plan with the app's policy (${pk})`);
+const ARMS = PICK ? ARMS0.filter(([n]) => PICK.includes(n)) : ARMS0;
+console.log(`EZ's first look (EXPLORATORY): ${ID} at light settings (${PTS} points, lattice 24/5/16, e3pcls off), ${N} paths of seed ${SEED}; the candidate's plan with the app's policy (${pk})`);
 const pct = (a, b) => (b > 0 ? (100 * a / b).toFixed(1) : '-');
 let first = true;
 for (const [name, extra] of ARMS) {

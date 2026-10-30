@@ -1,0 +1,21 @@
+grid total np 4 ni 6 nt 6 gain 3 pcls 3 W pts 0 5350 174628 5700000 hi 5700000
+opening wealth 950000 pen 285000 isa 142500 tax 522500 spend0 53500
+t 1: 0k: U 2.828e+6 V 0.0071 surv 0.000 lv 1 | 5k: U 2.828e+6 V 0.0071 surv 0.000 lv 1 | 175k: U 5.104e+5 V 0.0125 surv 0.002 lv 0.8 | 5700k: U 2.655e+4 V 0.0335 surv 1.000 lv 1.1
+t 5: 0k: U 1.135e+6 V 0.0096 surv 0.000 lv 1 | 5k: U 1.135e+6 V 0.0096 surv 0.000 lv 1 | 175k: U 2.639e+5 V 0.0156 surv 0.000 lv 0.8 | 5700k: U 1.521e+4 V 0.0404 surv 1.000 lv 1.1
+t 15: 0k: U 2.006e+5 V 0.0171 surv 0.000 lv 1 | 5k: U 1.874e+5 V 0.0175 surv 0.000 lv 1 | 175k: U 4.128e+4 V 0.0289 surv 0.004 lv 0.8 | 5700k: U 2.664e+3 V 0.0721 surv 1.000 lv 1.1
+t 25: 0k: U 2.919e+4 V 0.0325 surv 0.000 lv 1 | 5k: U 2.561e+4 V 0.0339 surv 0.000 lv 1 | 175k: U 3.443e+3 V 0.0662 surv 0.382 lv 0.8 | 5700k: U 2.865e+2 V 0.1517 surv 1.000 lv 1.1
+t 34: 0k: U 5.329e+2 V 0.1233 surv 0.000 lv 1 | 5k: U 3.136e+2 V 0.1472 surv 0.000 lv 1 | 175k: U 9.339e+0 V 0.4749 surv 1.000 lv 1.1 | 5700k: U 4.491e+0 V 0.6061 surv 1.000 lv 1.1
+t 35: 0k: U 8.915e+1 V 0.2239 surv 0.000 lv 1 | 5k: U 3.137e+1 V 0.3171 surv 0.000 lv 1 | 175k: U 7.513e-1 V 1.1000 surv 1.000 lv 1.1 | 5700k: U 7.513e-1 V 1.1000 surv 1.000 lv 1.1
+opening, the best 8 moves by V:
+  taxable before ISA, harvest to the allowance, spend 110% level 1.1 tier 0/0 q 2.8064e+5 V 0.015134
+  taxable before ISA, spend 110% level 1.1 tier 0/0 q 2.8068e+5 V 0.015134
+  penPA first, taxable before ISA, spend 110% level 1.1 tier 0/0 q 2.8095e+5 V 0.015129
+  penPA first, taxable before ISA, harvest to the allowance, spend 110% level 1.1 tier 0/0 q 2.8095e+5 V 0.015129
+  taxable before ISA, harvest to the allowance level 1 tier 0/0 q 2.7986e+5 V 0.015128
+  taxable before ISA             level 1 tier 0/0 q 2.7990e+5 V 0.015127
+  taxable before ISA, harvest to the allowance, spend 95% level 0.95 tier 0/0 q 2.7946e+5 V 0.015122
+  penPA first, taxable before ISA level 1 tier 0/0 q 2.8016e+5 V 0.015122
+best by level: 0.8: q 2.7829e+5 V 0.015098 | 0.9: q 2.7907e+5 V 0.015116 | 0.95: q 2.7946e+5 V 0.015122 | 1: q 2.7986e+5 V 0.015128 | 1.1: q 2.8064e+5 V 0.015134
+chooser picks taxable before ISA, harvest to the allowance, spend 110% stored 
+
+[exited with code 0]

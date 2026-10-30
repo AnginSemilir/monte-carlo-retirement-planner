@@ -75,3 +75,37 @@ Every figure is printed by `dial/dial-timing.mjs --read` (`dial/results-dial-tim
 **Against the prediction:** all three held. DIAL10's years below target are front-loaded (80% in years 1-5, 25% in years
 11-20). Its cuts follow bad years (88% after the worst third). The guardrails start at the target on every path and are not
 front-loaded.
+
+## A staggered target, declared before its run
+
+The maintainer's next question (30 Oct 12:37): could we allow a staggered spend, higher at the start, without impacting
+performance?
+
+**What a stagger can and cannot do.** Spending more early is not free on a flat target. The review found that every arm
+starting the retirees higher than the candidate survives less (`../2026-10-29/SPENDING-CURVE.md`, the answers, point 1).
+But the plan can say its needs fall with age. Its spending bands (a target by age) already do this, and the solver plans
+each year against that year's band (`src/solver/fast.js`, `yr.scheduled`). A lower target later is less to fund, which can
+pay for the early years.
+
+**The arm** (`dial/stagger.mjs`): STAG10 is DIAL10 with one band: the household's own target to age 75, 85% of it from 76
+(the go-go and slow-go years), nothing else changed. Against DIAL10 and CAND (flat targets, their units), on the same
+1,000 paths of seed 7002.
+
+**The read:**
+- survival, paired by path against DIAL10 and CAND;
+- the spending in each retired year before any failure, in pounds as a share of the household's own target: by band of
+  years, in the first retired year and from 76;
+- the years below 80% of that target.
+
+**The checks:**
+- the band is applied as asked (the target at 75, 85% at 76);
+- with the band set aside, the plan's inputs are DIAL10's;
+- runPath matches E.runTrial on the first 100 paths;
+- the read refuses a household whose arms differ in seed, paths, years or code.
+
+**The prediction:**
+- STAG10's first retired year averages at least 97% of the target (DIAL10 94.2%), and so do years 1-5;
+- its survival is 0.3 to 1.5 points above DIAL10's, and between 1.5 below and 0.5 above CAND's;
+- from 76 it spends 10 to 20 points of the target less than DIAL10.
+
+**Acceptance:** the checks pass. **Time box:** 60 minutes.

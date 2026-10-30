@@ -9,7 +9,10 @@
  *   - the solved plan, simulated by the engine in the worker that owns the tables, gives Node's statistics exactly;
  *   - a cancelled solve stops at once and says so;
  *   - the page is cross-origin isolated (the preview server's headers, vite.config.js), and a solve split across two
- *     workers (src/solverPool.js) gives the same tables as the whole one.
+ *     workers (src/solverPool.js) gives the same tables as the whole one;
+ *   - Phase 7b: the solve is stored under its key (src/solverKey.js, src/solverCache.js); after a reload the same key restores
+ *     it, in a fraction of the solve's time, with Node's tables and simulation; a pound more of spending target is another key,
+ *     and solves afresh.
  * S126 from the research library (never anybody's own plan) at 4 wealth points and a light lattice, so it runs in minutes.
  *
  *   node research/ui-harnesses/solver-progress-ui.cjs [port]
@@ -55,12 +58,13 @@ const progressOk = calls => {
   ok('the full planner renders', await p.evaluate(() => /Plan Inputs/.test(document.body.innerText)));
 
   const whole = await p.evaluate(async ({ plan, opts, sim }) => {
-    const c = await window.__solverHarness(), prog = [], t0 = performance.now();
-    const job = c.startSolve(plan, { ...opts, parts: 1, onProgress: x => prog.push(x) });
+    const c = await window.__solverHarness(), prog = [], t0 = performance.now(), key = await c.keyOf(window.__solverEngine, plan, opts);
+    let storedOk; const stored = new Promise(res => { storedOk = res; });
+    const job = c.startSolve(plan, { ...opts, key, parts: 1, onProgress: x => prog.push(x), onStored: storedOk });
     const done = await job.done, secs = (performance.now() - t0) / 1000;
-    const dg = await job.ask('digest'), st = await job.ask('simulate', sim);
+    const dg = await job.ask('digest'), st = await job.ask('simulate', sim), wasStored = await stored;
     job.close();
-    return { done, secs, dg, stats: st.stats, prog, isolated: self.crossOriginIsolated, canSplit: c.canSplit() };
+    return { done, secs, dg, stats: st.stats, prog, key, wasStored, isolated: self.crossOriginIsolated, canSplit: c.canSplit() };
   }, { plan, opts: OPTS, sim: SIM });
   const phases = [...new Set(whole.prog.map(x => x.phase))];
   ok('the solve reports its progress, each phase rising year by year to its end', progressOk(whole.prog) && phases.includes('years'),
@@ -77,6 +81,25 @@ const progressOk = calls => {
     const t = performance.now();
     try { await job.done; return { ok: false, why: 'resolved' }; } catch (e) { return { ok: e.message === 'cancelled', why: e.message, ms: performance.now() - t }; }
   }, { plan, opts: OPTS });
+  // Phase 7b: stored under its key, restored after a reload
+  ok('the solve is stored under its key', whole.wasStored === true && whole.done.restored === false && /^[0-9a-f]{64}$/.test(whole.key), `key ${whole.key.slice(0, 16)}, stored ${whole.wasStored}`);
+  await p.reload({ waitUntil: 'networkidle' });
+  const again = await p.evaluate(async ({ plan, opts, sim }) => {
+    const c = await window.__solverHarness(), key = await c.keyOf(window.__solverEngine, plan, opts), t0 = performance.now();
+    const job = c.startSolve(plan, { ...opts, key });
+    const done = await job.done, secs = (performance.now() - t0) / 1000, dg = await job.ask('digest'), st = await job.ask('simulate', sim);
+    job.close();
+    const edited = { ...plan, spending: { ...plan.spending, targetSpend: Number(plan.spending.targetSpend) + 1 } }, k2 = await c.keyOf(window.__solverEngine, edited, opts);
+    const j2 = c.startSolve(edited, { ...opts, key: k2, parts: 1 });
+    let first = false; const d2 = await Promise.race([j2.done.then(d => d), new Promise(res => setTimeout(() => { first = true; res(null); }, 4000))]);
+    j2.cancel(); j2.close();
+    return { key, done, secs, dg, stats: st.stats, k2, editedRestored: d2 ? d2.restored : false, editedStillSolving: first };
+  }, { plan, opts: OPTS, sim: SIM });
+  ok('after a reload the same key restores the solve, quicker than solving it', again.key === whole.key && again.done.restored === true && again.secs < whole.secs,
+    `restored in ${again.secs.toFixed(1)} s against ${whole.secs.toFixed(1)} s solved`);
+  ok("the restored tables and simulation are Node's", again.dg.digest === nodeDigest && JSON.stringify(again.stats) === JSON.stringify(nodeStats), `${again.dg.digest.slice(0, 16)}; survival ${again.stats.successRate}`);
+  ok('a pound more of spending target is another key, and solves afresh', again.k2 !== again.key && !again.editedRestored && again.editedStillSolving, `key ${again.k2.slice(0, 16)}; still solving after 4 s`);
+
   ok('a cancelled solve stops at once and says so', cancel.ok && cancel.ms < 1000, `${cancel.why} after ${cancel.ms === undefined ? '?' : cancel.ms.toFixed(0)} ms`);
 
   ok('the preview page is cross-origin isolated, so a solve can split', whole.isolated && whole.canSplit, `crossOriginIsolated ${whole.isolated}, canSplit ${whole.canSplit}`);

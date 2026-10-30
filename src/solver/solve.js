@@ -685,6 +685,16 @@ export function solve(E, M, plan, opts = {}) {
    * (e3, COV) and the log-odds, all wait again, and each part builds its own reader tables. Absent, nothing changes.
    */
   const E2 = opts.e2 && opts.e2.parts > 1 ? opts.e2 : null;
+  /*
+   * A RESTORED SOLVE (Part C Phase 7b, research/solver/PHASE-7.md; src/solverCache.js). `opts.restore` = { layers, ref }, the
+   * tables a solve of the same plan, settings and code kept: layers[k][j] its surv, beq, resil, pol and short by year for
+   * world k and tier layer j (the plain tables are layer 0 without the tier state), ref the adaptive reference's arrays. Each
+   * year's cells are copied in where the cell loop would solve them, and the rest of the year (the log-odds, the reader's
+   * tables, next year's caches) runs as it always does, so what comes back is the solve's result bit for bit
+   * (solver-cache.test.mjs). Never split.
+   */
+  const RESTORE = opts.restore || null;
+  if (RESTORE && E2) throw new Error('a restored solve is not split: it solves nothing');
   const f64 = E2 ? E2.f64 : (n) => new Float64Array(n), u16 = E2 ? E2.u16 : (n) => new Uint16Array(n);
   // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
   const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = f64(g.size); return a; };
@@ -1122,7 +1132,12 @@ export function solve(E, M, plan, opts = {}) {
       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
     }
     let cellNo = 0;
-    for (let ic = 0; ic < g.pcls.length; ic++) {
+    if (RESTORE) for (let k = 0; k < K; k++) {
+      const ls = TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }];
+      if (!RESTORE.layers[k] || RESTORE.layers[k].length !== ls.length) throw new Error(`restore: world ${k} has ${ls.length} layers, the stored solve ${RESTORE.layers[k] ? RESTORE.layers[k].length : 0}`);
+      ls.forEach((L, j) => { const R = RESTORE.layers[k][j]; for (const key of ['surv', 'beq', 'resil', 'pol', 'short']) L[key][t].set(R[key][t]); });
+    }
+    else for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
           for (let ii = 0; ii < g.ni; ii++) {
@@ -1617,6 +1632,7 @@ export function solve(E, M, plan, opts = {}) {
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (FD) meta.failDelivered = true;
+  if (RESTORE) meta.restored = true;
   if (PAY) meta.payWhereOnePays = true;
   if (CFP) meta.failPicks = failPicks;
   if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
@@ -2501,7 +2517,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     const cA = F.compile(m, actions);
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
-    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
     g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {

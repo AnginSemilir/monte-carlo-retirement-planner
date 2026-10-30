@@ -1,12 +1,13 @@
 PASS  1. the app's candidate is candidate.json key for key, its hash d71f65ae871e the candidate's d71f65ae871e
 PASS  1. the app's tier returns are O60's: {"High Risk":4.97,"Medium/High Risk":4.65,"Medium Risk":4.18,"Medium/Low Risk":3.55,"Low Risk":2.76}
 PASS  1. the app's dislike of cuts is Phase 4's lambda (0.0223606797749979)
+PASS  1. the dial's positions are D46's, 1 the default: 1, 3, 6, 10 times lambda
 PASS  1. planted: one setting, the lattice, or one tier's return changed in the copy fails the comparison
 PASS  1. appPlan is candidatePlan on S126
-PASS  2. S126: solveForApp's 2410 arrays (3115746 values, the reference's among them) the same bit for bit as the candidate's solve (20.831 s)
-PASS  3. S126 split 2 ways on the arena (29.7 MB carved): every array the same as whole, 0 of 3115746 values differ; the reference's 1377 cells each written (11.716 s)
-PASS  3. S126 split 3 ways on the arena (29.7 MB carved): every array the same as whole, 0 of 3115746 values differ; the reference's 1377 cells each written (10.054 s)
-PASS  3. planted: part 1 claims cells and drops them: 2073258 values differ
+PASS  2. S126: solveForApp's 2410 arrays (3115746 values, the reference's among them) the same bit for bit as the candidate's solve (20.97 s)
+PASS  3. S126 split 2 ways on the arena (29.7 MB carved): every array the same as whole, 0 of 3115746 values differ; the reference's 1377 cells each written (15.817 s)
+PASS  3. S126 split 3 ways on the arena (29.7 MB carved): every array the same as whole, 0 of 3115746 values differ; the reference's 1377 cells each written (17.925 s)
+PASS  3. planted: part 1 claims cells and drops them: 2074686 values differ
 PASS  3. planted: part 1 carves one table more: the barrier fails the solve (solverPool: part 0 carved 3361 tables to 31109184 bytes, part 1 3362 to 31109264)
 PASS  3. planted: part 1 throws before it starts: the solve fails whole (solverPool: part 0: another part failed)
-ALL PASS: 11 checks
+ALL PASS: 12 checks

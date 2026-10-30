@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan } from '../../src/solver/solve.js';
-import { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, appPlan, solveForApp } from '../../src/solverApp.js';
+import { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_DIAL, appPlan, solveForApp } from '../../src/solverApp.js';
 import { arenaFor, arenaPool } from '../../src/solverPool.js';
 import { CANDIDATE_OPTS, CANDIDATE_HASH, hashOf, blendReals, candidatePlan } from '../solver/candidate.mjs';
 import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
@@ -37,6 +37,7 @@ const realsSame = (a, b) => Object.keys(b).length === Object.keys(a).length && O
 ok(same(APP_CANDIDATE, CANDIDATE_OPTS) && hashOf({ ...APP_CANDIDATE }) === CANDIDATE_HASH, `1. the app's candidate is candidate.json key for key, its hash ${hashOf({ ...APP_CANDIDATE })} the candidate's ${CANDIDATE_HASH}`);
 ok(realsSame(APP_TIER_REALS, blendReals()), `1. the app's tier returns are O60's: ${JSON.stringify(APP_TIER_REALS)}`);
 ok(APP_LAMBDA === LAMBDA, `1. the app's dislike of cuts is Phase 4's lambda (${APP_LAMBDA})`);
+ok(JSON.stringify(APP_DIAL) === '[1,3,6,10]', `1. the dial's positions are D46's, 1 the default: ${APP_DIAL.join(', ')} times lambda`);
 ok(!same({ ...APP_CANDIDATE, switchCharge: 0.002 }, CANDIDATE_OPTS) && !same({ ...APP_CANDIDATE, adaptiveLattice: { ...APP_CANDIDATE.adaptiveLattice, nz: 64 } }, CANDIDATE_OPTS)
   && !realsSame({ ...APP_TIER_REALS, 'Low Risk': 2.77 }, blendReals()), '1. planted: one setting, the lattice, or one tier\'s return changed in the copy fails the comparison');
 { const p = planOf('S126'), a = appPlan(E, p), b = candidatePlan(E, p);

@@ -13,13 +13,14 @@ Read against the code on 30 Oct, three parts of the archived Phase 7 do not hold
    is a policy only together with its model (`r.m` holds the engine's functions, `r.c` the compiled context), and neither
    crosses a worker boundary. So the worker that solved keeps the result and answers the questions asked of it (simulate
    the solved plan, this year's move); the page holds only `solveState` and `solveMeta`.
-2. **An edit's tables are kept from the LAST year it touches, not the first.** The tables are solved backwards: year t
+2. **An edit could keep the tables after the LAST year it touches, not the first.** The tables are solved backwards: year t
    reads year t + 1. An edit that changes years up to k changes every table at or before k and none after it. And every
    edit that moves the grid (its unit is the spending target at the start, its top six times the opening wealth or sixty
    years of it, `grid.js` makeGrid) changes every table.
-3. **A balance-only edit re-solves nothing only when the grid does not move.** The opening balances set the top of each
-   wealth axis whenever six times the opening wealth exceeds sixty years of spending. Below that, whether nothing else in
-   the solve reads the balances is a claim to test, not assume.
+3. **A balance-only edit re-solves.** The opening balances set the top of each wealth axis whenever six times the opening
+   wealth exceeds sixty years of spending; and whatever the grid, the objective weighs the estate against the opening wealth
+   (`solve.js`, `scale`), and the bridge reader and the cash buffer read the balances. So every balance moves the tables
+   (step 7b).
 
 ## The steps, each with its test and its time box
 
@@ -48,13 +49,21 @@ Read against the code on 30 Oct, three parts of the archived Phase 7 do not hold
   simulation of the solved plan the same as Node's; cancel; split and whole the same where the page is isolated.
 
 **7b. Staleness and the cache** (box: one working session).
-- `src/solver/diff.js` `keepAfter(prev, next)`: null (nothing to re-solve), or the last year the edit touches (re-solve that
-  year and every year before it), or -1 (everything). Its test: the solves it says it may skip are the same bit for bit.
-- The partial re-solve (`opts.reuse`) only if 7b's identity test passes on the candidate's path; otherwise every edit that
-  is not balance-only re-solves whole, and the note says so.
-- Tables cached in IndexedDB under the plan's hash, the options' hash and `SOLVER_VERSION`; the latest plan only (a
-  candidate solve at 45 points is about 261 MB of tables in Chromium, `results-n7-check.txt`). Its test: a restored
-  result chooses the same move as the solved one at every decision of a set of paths.
+- No edit keeps the tables but changes nothing the solver reads. The objective weighs the estate against the opening wealth
+  (`solve.js`, `scale`), and the bridge reader and the cash buffer read the opening balances too, so a balance edit moves the
+  tables like any other (`solver-cache.test.mjs` check 3). The partial re-solve (keep the years after the last one an edit
+  touches) is not built: it would save time only on edits confined to early years, at the risk of reading stale reader
+  tables, adaptive reference or next-year caches, and it can come later if the solve's wait proves long.
+- `src/solverKey.js`: the solve's key, the SHA-256 of the plan as the solver takes it and the settings, keys sorted. The same
+  key, the same tables; any other, a new solve, the old result shown as stale meanwhile (`src/useSolver.js`).
+- `src/solverCache.js`: the latest solve in IndexedDB under its key and the code that made it (the worker's fingerprinted
+  URL), with a small key record beside it so the page can ask without loading tables. `solve.js` `opts.restore` and
+  `adaptive.js` `restore`: each year's cells copied in where the cell loop would solve them, the rest of the year as always.
+  Its test, `solver-cache.test.mjs`: a restored solve the solved one bit for bit (tables, the reference, every path
+  runPolicy runs, the engine's simulation), with and without the tier state, through a structured clone; a planted stored
+  value caught; the key's properties. The harness: stored, restored after a reload with Node's tables, an edit solved afresh.
+- `src/solverSettings.js`: the settings without the solver, so the page names a solve without loading it; the dial's
+  positions, 1, 3, 6 and 10 times lambda (D46).
 
 **7c. The locks** (box: one working session).
 - `plan.solver.locks` in `normalizePlan`: `pensionBefore` (an age or null), `tierCeiling` per wrapper, `lumpSum` ('free',

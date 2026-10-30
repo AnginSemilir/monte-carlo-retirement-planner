@@ -6796,6 +6796,9 @@ const SHOW_INHERITANCE = false;
  * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
  */
 const SOLVER = false;
+// the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
+// the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
+if (typeof window !== 'undefined') window.__solverEngine = E;
 // The Documentation tab is prose, and prose can arrive when it is asked for rather than with the engine.
 // It sits here, below the export line, because research/build-engine.py takes everything above it as the
 // engine and strips the imports - a lazy() up there breaks engine.mjs.
@@ -8232,7 +8235,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it)
-  useSolverState(plan, SOLVER);
+  useSolverState(plan, SOLVER, E);
 
   const [scenarios, setScenarios] = useState(() => {
     try {

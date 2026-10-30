@@ -332,3 +332,4 @@
 28 Oct 23:29 UK | main | none: EXPLORATORY, the tier test (D39): APP, SHIP and the candidate with and without consent to change risk, seed 7002 | code 53ea905f8e07 | c06232e | load 1.06 0.53 0.21 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-tiers.sh
 29 Oct 21:40 UK | main | none: EXPLORATORY, the dislike of cuts on the candidate (D44) | code dc14b41369ef | 8a02258 | load 1.16 1.20 1.54 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-curve-dial.sh
 29 Oct 23:23 UK | main | research/solver/registrations/fail-delivered.md | code dc14b41369ef | 5df83cd | load 0.73 1.38 2.42 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-fail-delivered.sh
+30 Oct 10:51 UK | main | none: EXPLORATORY, paying where one pays and the dial at six times (D46) | code 0fbe5e9a22d3 | f2345c8 | load 2.21 2.57 2.24 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-curve-pay.sh

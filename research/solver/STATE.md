@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: c2d6adebe941944c (30 Oct, 09:04 UK); the code now: c2d6adebe941944c.
+- The solver code the e3pcls pin last passed on: fe07566d4edbf177 (30 Oct, 10:55 UK); the code now: fe07566d4edbf177.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -286,7 +286,7 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 <!-- end printed:curvedial -->
 ## 5. Running now
 
-- Nothing. The failure year's held-out run (task btlg5a6i0, `results/curve-fd-launch-log.txt`, units in `results/curve-7019`) finished on 30 Oct at 00:47 UK, and the dial's (`results/curve-7002`) at 23:22 UK on 29 Oct; both reads are above.
+- CANDDP and the dial at six times (D46, EXPLORATORY): `batch-curve-pay.sh` through the launcher from f2345c8 (task blc3eynfy, log `results/curve-pay-launch-log.txt`, units in `results/curve-pay-7002`), CANDD, CANDDP and DIAL6 on seed 7002; read by `reduce-curve.mjs --pay` with `results/curve-7002` as the second folder.
 
 ## 6. The next three actions
 
@@ -294,6 +294,6 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. The spending curve (D46): CANDDP and the dial at six times, built, run and read (EXPLORATORY, seed 7002); the wording's three questions to the maintainer.
 2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7 (N7 skipped, D45) by `PHASE-7.md`, 7a (the worker, the split,
-   the state, behind `SOLVER`) built, 7b and 7c next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
+   the state) and 7b (the key, the stored solve) built behind `SOLVER`, 7c (the locks) next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
 3. D37's and D38's items (D40, D41 (5)), by `AFTER-PHASE4.md` (two done: the GIA basis under CGT off, the held-out scan): the windfall and the
    savings splits built, each default-off with its tests, then a factorial on the panel (EXPLORATORY, seed 7002); the lump sum's route the maintainer's call; the sweep nightly.

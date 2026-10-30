@@ -43,7 +43,7 @@ function nonFiniteQ(where, t, cell, Qm, mi) {
 }
 
 export function adaptiveReference(input) {
-  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true, e2 = null, progress = null } = input;
+  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true, e2 = null, progress = null, restore = null } = input;
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -86,7 +86,9 @@ export function adaptiveReference(input) {
   const anyPays = (A, b, gf) => { setState(A, b, gf); for (const ai of moves) if (flowOk(TL, ai)) return true; return false; };
   let nonMono = 0;
   const takeL = phase(nb * NG);
-  for (let ig = 0; ig < NG; ig++) for (let jb = 0; jb < nb; jb++) {
+  // Part C Phase 7b: a restored reference (solve.js `opts.restore`) takes the stored arrays in place of each build
+  if (restore) { AST.set(restore.AST); nonMono = restore.nonMono || 0; }
+  else for (let ig = 0; ig < NG; ig++) for (let jb = 0; jb < nb; jb++) {
     if (!takeL()) continue;
     const b = BG[jb], gf = gains[ig];
     if (anyPays(0, b, gf)) { AST[jb * NG + ig] = 0; continue; }
@@ -104,7 +106,7 @@ export function adaptiveReference(input) {
     const v = (j, i) => AST[j * NG + i];
     return (1 - wb) * ((1 - wg) * v(ib, ig) + wg * v(ib, g2)) + wb * ((1 - wg) * v(ib + 1, ig) + wg * v(ib + 1, g2));
   };
-  const STEP = stepAll && plant !== 'stepramp', ASTY = stepAll ? stepThresholds() : {};   // `stepAll`: every bridge year's own step (stepThresholds, below)
+  const STEP = stepAll && plant !== 'stepramp', ASTY = stepAll ? (restore ? Object.fromEntries(Object.entries(restore.ASTY).map(([t, a]) => [t, Float64Array.from(a)])) : stepThresholds()) : {};   // `stepAll`: every bridge year's own step (stepThresholds, below)
 
   // 2. THE EARLIER BRIDGE YEARS, backward: V[k][t] on a log-A by b by gf lattice
   const AG = {}, V = Array.from({ length: K }, () => ({})), MV = {}, centre = K >> 1, V0 = Array.from({ length: K }, () => ({})), MV0 = {}; let footLive = 0;
@@ -157,6 +159,14 @@ export function adaptiveReference(input) {
     const t = bridge[yi], ag = AG[t], next = t + 1;
     for (let k = 0; k < K; k++) V[k][t] = f64(na * nb * NG);
     MV[t] = i32(na * nb * NG);
+    if (restore) {
+      for (let k = 0; k < K; k++) V[k][t].set(restore.V[k][t]);
+      MV[t].set(restore.MV[t]);
+      if (foot) { for (let k = 0; k < K; k++) V0[k][t] = Float64Array.from(restore.V0[k][t]); MV0[t] = Int32Array.from(restore.MV0[t]); }
+      footLive = restore.footLive || 0;
+      if (progress) progress({ phase: 'reference', done: bridge.length - 1 - yi, total: bridge.length - 1 });
+      continue;
+    }
     if (memoOn) classesAt(t);
     const takeY = phase(na * nb * NG);
     for (let ia = 0; ia < na; ia++) for (let jb = 0; jb < nb; jb++) for (let ig = 0; ig < NG; ig++) {

@@ -78,8 +78,18 @@ const JS_CEILING = 226;
  * the 115ms spread, and still catches a page that has become several times slower. If a future change
  * approaches this line, build both sides and compare the bundles before touching the number: identical
  * bytes mean the runner, and different bytes mean the page.
+ *
+ * RAISED TO 3,800 on 30 Oct, on the maintainer's call, after main and the branch failed it alike. The
+ * build both sides rule, taken further: the very commit the 2,950 line was set on (d9b9491, measured 2,638
+ * to 2,753 then) measured 2,966 to 3,006 on this machine, so the runner is about 12% slower. The page grew
+ * too: alternated with the branch head, that commit ran about 270ms faster, and main ran the same as the
+ * head (not bisected here; phone-perf's long tasks bisect to 969669a, the engine's tax on savings interest
+ * and dividends). Alternated on one machine: main (d9d9b08) 3,104 to 3,155, the branch head 3,065 to 3,389,
+ * the branch before Part C's solver plumbing 3,128 to 3,544: one population, 3,065 to 3,544. 3,800 sits about
+ * 250ms above the worst of them, half the spread, and still catches a page that has become several times
+ * slower.
  */
-const CEILING = 2950;
+const CEILING = 3800;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };

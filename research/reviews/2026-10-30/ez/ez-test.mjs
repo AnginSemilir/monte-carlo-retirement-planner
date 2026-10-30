@@ -1,7 +1,8 @@
 /*
  * EPSTEIN-ZIN SPENDING'S OWN TESTS (EXPLORATORY; EZ.md section 5; the patch ez/solve-ez.patch, on the agent's code at
- * 1b39400, in a local worktree only). Run from the root of the patched code, with the root of the original code given:
- *   node ez-test.mjs <root of the original code> [--dev]
+ * a0e6400, in a local worktree only). Run from the root of the patched code, with the root of the original code given and,
+ * optionally, a second original (the agent's code at 1b39400, on which the age-weight and dial units were solved):
+ *   node ez-test.mjs <root of the original code> [<root of a second original>] [--dev]
  * --dev: every solve with e3pcls off, for use before the pin is refreshed on the patched code; never a record.
  * At light settings (4 wealth points, a small reference lattice), the candidate with EZ { gamma 4, rho 2 } on the layer loop
  * (tsOnce: false), and without EZ:
@@ -25,13 +26,13 @@
  */
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-const ROOT = process.cwd(), ORIG = process.argv[2] && !process.argv[2].startsWith('--') ? resolve(process.argv[2]) : null;
-if (!ORIG) throw new Error('usage: node ez-test.mjs <root of the original code> [--dev]');
+const ROOT = process.cwd(), ORIGS = process.argv.slice(2).filter(x => !x.startsWith('--')).map(x => resolve(x));
+if (!ORIGS.length || ORIGS.length > 2) throw new Error('usage: node ez-test.mjs <root of the original code> [<root of a second original>] [--dev]');
 const DEV = process.argv.includes('--dev');
 const imp = (root, p) => import(pathToFileURL(resolve(root, p)).href);
 const E = await imp(ROOT, 'research/engine.mjs'), M = await imp(ROOT, 'src/solver/model.js'), C = await imp(ROOT, 'research/solver/candidate.mjs');
 const S = await imp(ROOT, 'src/solver/solve.js'), G = await imp(ROOT, 'src/solver/grid.js'), F = await imp(ROOT, 'src/solver/fast.js');
-const E0 = await imp(ORIG, 'research/engine.mjs'), M0 = await imp(ORIG, 'src/solver/model.js'), C0 = await imp(ORIG, 'research/solver/candidate.mjs'), S0 = await imp(ORIG, 'src/solver/solve.js');
+const ORIG = await Promise.all(ORIGS.map(async root => ({ root, E: await imp(root, 'research/engine.mjs'), M: await imp(root, 'src/solver/model.js'), C: await imp(root, 'research/solver/candidate.mjs'), S: await imp(root, 'src/solver/solve.js') })));
 const { readPanel, appPlan } = await imp(ROOT, 'research/solver/phase4-panel.mjs');
 const { armA } = await imp(ROOT, 'research/solver/select-phase4.mjs');
 const { solverPlanOf, LAMBDA } = await imp(ROOT, 'research/solver/audit-phase4.mjs');
@@ -44,7 +45,9 @@ const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.
 const planOf = id => { const h = panel.find(x => x.id === id); const pk = armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy; return prep(solverPlanOf(h.plan, { decumulationPolicy: pk })); };
 const light = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, ...(DEV ? { e3pcls: false } : {}) };
 const EZ = { gamma: 4, rho: 2 }, LOOP = { tsOnce: false };
-console.log(`EZ's tests${DEV ? ' (--dev: e3pcls off, not a record)' : ''}: the patched code at ${ROOT}, the original at ${ORIG}`);
+const { execSync } = await import('child_process');
+const headOf = root => { try { return execSync('git log --oneline -1', { cwd: root }).toString().trim().slice(0, 7); } catch (e) { return '?'; } };
+console.log(`EZ's tests${DEV ? ' (--dev: e3pcls off, not a record)' : ''}: the patched code at ${ROOT} (${headOf(ROOT)} with the patch), the original${ORIG.length > 1 ? 's' : ''} at ${ORIG.map(o => `${o.root} (${headOf(o.root)})`).join(' and ')}`);
 
 // ---------------------------------------------------------------------------------------------------- 1. OFF
 console.log('=========== 1. OFF: THE ORIGINAL CODE\'S TABLES AND RUNS ===========');
@@ -72,13 +75,18 @@ const solved = {};
 for (const id of ['S090', 'S328F']) {
   const plan = planOf(id);
   for (const [name, extra] of [['the candidate\'s settings', {}], ['the layer loop (tsOnce: false)', LOOP]]) {
-    const t0 = Date.now();
-    const a = C.solveCandidate(E, M, structuredClone(plan), { ...light, ...extra }), b = C0.solveCandidate(E0, M0, structuredClone(plan), { ...light, ...extra });
-    const st = sameTables(a, b), paths = E.pathsForSeed(99001, 40, a.m.ctx.totalYears);
-    const ra = runsOf(S, a, paths), rb = runsOf(S0, b, paths), runDiff = ra.findIndex((x, i) => x !== rb[i]);
-    const metaSame = JSON.stringify({ ...a.meta, ms: 0 }) === JSON.stringify({ ...b.meta, ms: 0 });
-    ok(st.same && st.n > 0 && runDiff < 0 && metaSame && a.ez === null && a.meta.ez === undefined,
-      `1. ${id}, ${name}, EZ off: ${st.n} table entries the original's to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${runDiff < 0 ? 'the same' : `differ first at path ${runDiff}`}; the run record ${metaSame ? 'the same' : 'differs'} (${sec(t0)})`);
+    let t0 = Date.now();
+    const a = C.solveCandidate(E, M, structuredClone(plan), { ...light, ...extra }), ta = sec(t0), paths = E.pathsForSeed(99001, 40, a.m.ctx.totalYears), ra = runsOf(S, a, paths);
+    // the run record, its timings aside (every key named ms, at any depth)
+    const flat = (o, pre = '', out = {}) => { for (const [k, x] of Object.entries(o || {})) { if (k === 'ms') continue; if (x && typeof x === 'object' && !Array.isArray(x)) flat(x, `${pre}${k}.`, out); else out[`${pre}${k}`] = JSON.stringify(x); } return out; };
+    for (const o of ORIG) {
+      t0 = Date.now();
+      const b = o.C.solveCandidate(o.E, o.M, structuredClone(plan), { ...light, ...extra });
+      const st = sameTables(a, b), rb = runsOf(o.S, b, paths), runDiff = ra.findIndex((x, i) => x !== rb[i]);
+      const fa = flat(a.meta), fb = flat(b.meta), metaDiff = [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter(k => fa[k] !== fb[k]);
+      ok(st.same && st.n > 0 && runDiff < 0 && metaDiff.length === 0 && a.ez === null && a.meta.ez === undefined,
+        `1. ${id}, ${name}, EZ off, against ${headOf(o.root)}: ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${runDiff < 0 ? 'the same' : `differ first at path ${runDiff}`}; the run record ${metaDiff.length === 0 ? 'the same, its timings aside' : `differs at ${metaDiff.slice(0, 4).join(', ')}`} (the patched code's solve ${ta}, the original's ${sec(t0)})`);
+    }
     if (extra === LOOP) solved[id] = { plan, off: a };
   }
 }
@@ -114,6 +122,7 @@ ok(!(rP.w < 1e-14), `    planted: without the floor at ruinMin the gap is ${rP.w
 // c. the ruin path's value, as the sum it unrolls to: V_t^(1 - rho) = sum over u of (beta^(u-t) prod p) x ruin_u^(1 - rho), the spending years and the final year
 const vRuinOf = b => { const out = new Float64Array(T + 1); for (let t = 0; t <= T; t++) { let s = 0, d = 1; for (let u = t; u <= T; u++) { if (spend[u] > 0 || u === T) s += d * Math.pow(z.ruin[u], e1); d *= b * z.p[u]; } out[t] = Math.pow(s, 1 / e1); } return out; };
 const vR = vRuinOf(beta), vRP = vRuinOf(0.99);
+const vTarget = (() => { let s = 0, d = 1; for (let u = 0; u <= T; u++) { if (spend[u] > 0 || u === T) s += d; d *= beta * z.p[u]; } return Math.pow(s, 1 / e1); })();
 const cA = maxRel(t => [z.vRuin[t], vR[t]], 0, T), cP = maxRel(t => [z.vRuin[t], vRP[t]], 0, T);
 ok(cA.w < 1e-12, `2c. the ruin path's value is its unrolled sum: the largest relative gap ${cA.w.toExponential(2)} (at the opening ${z.vRuin[0].toPrecision(6)})`);
 ok(!(cP.w < 1e-12), `    planted: beta 0.99 gives a gap of ${cP.w.toExponential(2)}, caught`);
@@ -186,13 +195,14 @@ console.log('=========== 3. THE RECURSION IN THE TABLES ===========');
         }
         // the stored move is the best on the mixture (ties within 1e-12 of the value)
         let best = -Infinity; for (let ai = 0; ai < n; ai++) best = Math.max(best, valueAt(ai, -1, vOf, gam));
-        const va = valueAt(a, -1, vOf, gam), gap = (best - va) / best;
+        // (the backward pass takes a move within its eps, 1e-12 of value, of the best when its estate is larger)
+        const va = valueAt(a, -1, vOf, gam), gap = best - va;
         if (gap > worstC) worstC = gap;
-        if (gap > 1e-12) { choiceBad++; if (!choiceAt) choiceAt = `layer ${j}, cell ${ip}/${ii}/${it}/${ig}/${ic}: stored ${r.actions[a].label || a} ${va} against the best ${best}`; }
+        if (gap > 2e-12) { choiceBad++; if (!choiceAt) choiceAt = `layer ${j}, cell ${ip}/${ii}/${it}/${ig}/${ic}: stored ${r.actions[a].label || a} ${va} against the best ${best}`; }
       }
     }
     ok(nVals > 0 && worst < 1e-9, `3. year ${t}${t === T ? ' (the final year)' : t === tm ? ' (a middle retired year)' : ' (the opening)'}: ${nVals} stored values (${nCells} cells x ${J} layers x ${K} worlds; ${nFail} cell-layers whose stored move cannot pay, ${nSwitch} that switch) are the year's value of the stored move as the chooser reads it: the largest relative gap ${worst.toExponential(2)}${worst > 0 ? ` (${wAt})` : ''} (${sec(t0)})`);
-    ok(choiceBad === 0, `   the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best ${worstC.toExponential(2)})${choiceAt ? `; first miss: ${choiceAt}` : ''}`);
+    ok(choiceBad === 0, `   the stored move is the best on the mixture of the worlds at every cell-layer (the largest shortfall from the best ${worstC.toExponential(2)} of value, in value units, where a plan at target every year is worth ${vTarget.toPrecision(4)} at the opening)${choiceAt ? `; first miss: ${choiceAt}` : ''}`);
     ok(!(worstP < 1e-9), `   planted: ${t >= T ? 'gamma 4.1 in the end rule' : 'rho 2.1'} gives a gap of ${worstP.toExponential(2)}, caught`);
   }
 }

@@ -135,14 +135,15 @@ No household is behind in any row.
 So about seven tenths of the solver's lead is better decisions. About three tenths is a lever the app lacks but could use
 statically.
 
-**Against the prediction:** 6 of the 13 checks held. The solver did better than predicted wherever spending was fixed:
+**Against the prediction:** 8 of the 14 checks held (a lever's prediction is checked once with spending fixed and once
+flexible). The solver did better than predicted wherever spending was fixed:
 - the draws alone gave +3.2 (predicted 0 to +1.5);
 - the draws and the investments +7.5 (predicted +1 to +4);
 - the investments in the solver's hands +7.6 (predicted +1 to +5);
 - the first question +10.8 (predicted +1 to +5).
 
-The app's single best tier also did better than predicted, +3.2 and +3.0 (predicted 0 to +2). The spending rows and
-Phase 4's figure held.
+The app's single best tier also did better than predicted, +3.2 and +3.0 (predicted 0 to +2). The rest held: the two
+flexible-spending rows, the solver's investments with spending flexible (+4.6), both spending levers, and Phase 4's figure.
 
 **What it means:**
 - **The solver is better at deciding, not only better equipped.** Given exactly the app's levers, it survives more on every

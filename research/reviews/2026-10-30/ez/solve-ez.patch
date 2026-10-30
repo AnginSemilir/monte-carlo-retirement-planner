@@ -1,8 +1,25 @@
+diff --git a/src/solver/grid.js b/src/solver/grid.js
+index 1ab51ec..89534f8 100644
+--- a/src/solver/grid.js
++++ b/src/solver/grid.js
+@@ -396,10 +396,10 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
+   if (lrArr && shArr) {
+     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
+     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
+-    out[2] = g.linearResil ? lr : expit(lr); out[3] = sh;
++    out[2] = g.ezPow ? Math.pow(lr, g.ezPow) : g.linearResil ? lr : expit(lr); out[3] = sh;   // ezPow: EZ's value read powered, V^(1 - gamma) (solve.js)
+   } else if (lrArr) {
+     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
+-    out[2] = g.linearResil ? lr : expit(lr);
++    out[2] = g.ezPow ? Math.pow(lr, g.ezPow) : g.linearResil ? lr : expit(lr);
+   } else {
+     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
+   }
 diff --git a/src/solver/solve.js b/src/solver/solve.js
-index a5a9519..9cd49fb 100644
+index a5a9519..d13bb78 100644
 --- a/src/solver/solve.js
 +++ b/src/solver/solve.js
-@@ -647,6 +647,38 @@ export function solve(E, M, plan, opts = {}) {
+@@ -647,6 +647,42 @@ export function solve(E, M, plan, opts = {}) {
    const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
    const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
    const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
@@ -13,9 +30,12 @@ index a5a9519..9cd49fb 100644
 +   * level against its target (left out in a year with no spending), p_t a Gompertz chance of living from t to t+1. gamma alone
 +   * sets the aversion to risk, rho the dislike of uneven spending. A move that cannot pay is that year at what it can pay and
 +   * every year after on the guaranteed income, each at least ruinMin of the target; a plan that ends below the minimum pot has
-+   * its final year at the guaranteed income's level. The value is stored as V^(1 - gamma) in the resilience table's slot (read
-+   * linearly; its weight is 0 in every setting that runs today) and the move kept is the one with the largest V. It runs on
-+   * the tier state with joint worlds without E5 and is refused elsewhere (below). Off, nothing here runs.
++   * its final year at the guaranteed income's level. The value V itself is stored in the resilience table's slot (its weight
++   * is 0 in every setting that runs today), and every read of it at a grown position is powered to V^(1 - gamma) (grid.js
++   * readValues, g.ezPow), so each expectation is of the powered value with V interpolated: V is smooth in wealth, its power is
++   * not (at 4 wealth points the powered value read across one chord made a plan of 950,000 look half ruined; the external
++   * review's first look, 30 Oct). The move kept is the one with the largest V. It runs on the tier state with joint worlds
++   * without E5 and is refused elsewhere (below). Off, nothing here runs.
 +   */
 +  const EZ = opts.ez || null;
 +  let ez = null;
@@ -37,11 +57,12 @@ index a5a9519..9cd49fb 100644
 +    // a move that cannot pay: the year at what it can pay, at least ruinMin, then the guaranteed income's path
 +    const failValue = (t, d) => { const dl = Math.max(rmin, d); return t >= T ? dl : Math.pow((spendAt[t] > 0 ? Math.pow(dl, e1) : 0) + beta * p[t] * Math.pow(vRuin[t + 1], e1), 1 / e1); };
 +    ez = { gamma: gam, rho, beta, ruinMin: rmin, mortality: { mode: mo.mode, disp: mo.disp }, p, ruin, vRuin, e1, e2, valueOf, finalQ, failValue };
++    g.ezPow = e2;   // every read of the slot at a grown position returns V^(1 - gamma) (grid.js readValues)
 +  }
    /*
     * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
     * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
-@@ -1013,6 +1045,12 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1013,6 +1049,12 @@ export function solve(E, M, plan, opts = {}) {
      const lvl = Math.min(1, Math.max(0, levelOf[ai] - (FDPLANT ? 0 : unmetBuf[ub]) / sp));
      return lambda * shortOf(lvl) + failCostAt[t + 1];
    };
@@ -54,7 +75,7 @@ index a5a9519..9cd49fb 100644
    /*
     * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
     * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
-@@ -1449,6 +1487,14 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1449,6 +1491,14 @@ export function solve(E, M, plan, opts = {}) {
                        else h += shortOfAction[ai];
                        if (raiseSurv) h += raiseOfAction[ai] * s;
                        if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
@@ -69,7 +90,7 @@ index a5a9519..9cd49fb 100644
                        const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state)', t, idx, k, ai, s, b, rs, h);
                        if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
                        if (skipFail && failBuf[ai] === 1) continue;
-@@ -1470,13 +1516,19 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1470,13 +1520,19 @@ export function solve(E, M, plan, opts = {}) {
                    for (let ai = 0; ai < A; ai++) {
                      let v = 0, wb = 0;
                      if (skipFail && failBuf[ai] === 1) continue;
@@ -86,12 +107,12 @@ index a5a9519..9cd49fb 100644
                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
                    failPick(bestA);
 -                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
-+                  // EZ: each world's layer keeps its own value of the move, powered (V^(1 - gamma)), in the resilience slot
-+                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = EZ ? Math.pow(jV[k][bestA], ez.e2) : jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
++                  // EZ: each world's layer keeps its own value V of the move in the resilience slot (read back powered, g.ezPow)
++                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = EZ ? jV[k][bestA] : jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
                  }
                  }
                  if (PROF) PROF.cells++;
-@@ -1629,7 +1681,7 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1629,7 +1685,7 @@ export function solve(E, M, plan, opts = {}) {
    if (E2 && CFP) failPicks = E2.sum(failPicks);   // every part sums at the same point, before the others below
    if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
    EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
@@ -100,7 +121,7 @@ index a5a9519..9cd49fb 100644
    if (switchCharge > 0) meta.switchCharge = switchCharge;
    if (FD) meta.failDelivered = true;
    if (RESTORE) meta.restored = true;
-@@ -1658,6 +1710,7 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1658,6 +1714,7 @@ export function solve(E, M, plan, opts = {}) {
    const r = {
      tablesW: { survW, beqW, resilW, polW, shortW, layW: TS ? layW : null },
      m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
@@ -108,7 +129,7 @@ index a5a9519..9cd49fb 100644
      quadWeights: QW, quadNodes: QZ,
      tieMargin: opts.tieMargin || 0,
      /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
-@@ -1680,7 +1733,7 @@ export function solve(E, M, plan, opts = {}) {
+@@ -1680,7 +1737,7 @@ export function solve(E, M, plan, opts = {}) {
      value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const k = Math.min(t, T), o = readValues(g, lsurv[k], beq[k], s, new Float64Array(4), lresil[k], null, k); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
    };
    r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
@@ -117,7 +138,7 @@ index a5a9519..9cd49fb 100644
      surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
      nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
      tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
-@@ -1749,6 +1802,11 @@ export function chooseAction(r, s, t, held = null) {
+@@ -1749,6 +1806,11 @@ export function chooseAction(r, s, t, held = null) {
        for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
      });
    } else scoreMoves(r, s, t, SC, TX, BQ, held);
@@ -129,7 +150,7 @@ index a5a9519..9cd49fb 100644
    /*
     * RICHARDSON EXTRAPOLATION. The table's optimism was measured to fall as 1/n in the grid points
     * (S070: +21, +16, +13, +9 at 12, 16, 20, 28). With a second solve at half the points, 2 x score(n)
-@@ -1775,7 +1833,7 @@ export function chooseAction(r, s, t, held = null) {
+@@ -1775,7 +1837,7 @@ export function chooseAction(r, s, t, held = null) {
    const sc = r.switchCharge || 0;
    if (held && sc > 0) {
      const acts = r.c.acts;
@@ -138,7 +159,7 @@ index a5a9519..9cd49fb 100644
      bestScore = -Infinity; bestB = -Infinity; best = 0;
      for (let ai = 0; ai < n; ai++) { const score = SC[ai]; if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; } }
    }
-@@ -1883,7 +1941,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+@@ -1883,7 +1945,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
          bq += QW[zi] * (alive ? beqOf(net) : 0);
        }
        if (rz) h += rz * sv;
@@ -148,7 +169,7 @@ index a5a9519..9cd49fb 100644
        if (SV) SV[ai] = sv;
        continue;
      }
-@@ -1903,7 +1962,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
+@@ -1903,7 +1966,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV
        h += QW[zi] * rd[3];
      }
      if (rz) h += rz * sv;
@@ -158,7 +179,7 @@ index a5a9519..9cd49fb 100644
      if (SV) SV[ai] = sv;
    }
  }
-@@ -2053,12 +2113,13 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+@@ -2053,12 +2117,13 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
        val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
      }
      if (rz) h += rz * sv;

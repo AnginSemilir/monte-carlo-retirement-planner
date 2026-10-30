@@ -1,0 +1,5 @@
+solve()'s bytecode against V8's --max-optimized-bytecode-size (61440 bytes in Node v22.22.0)
+  /home/claude/fixed-wt (1b39400): 58353 bytes, 3087 under the limit; one light solve 28.1 s at the default limit, 27.9 s with it raised to 300,000
+  /home/claude/base7c-wt (a0e6400): 60024 bytes, 1416 under the limit; one light solve 30.7 s at the default limit, 28.8 s with it raised to 300,000
+  /home/claude/ezslow-wt (a0e6400 with changes): 63369 bytes, 1929 OVER the limit; one light solve 113.2 s at the default limit, 30.0 s with it raised to 300,000
+  /home/claude/ez7c-wt (a0e6400 with changes): 60841 bytes, 599 under the limit; one light solve 29.6 s at the default limit, 30.8 s with it raised to 300,000

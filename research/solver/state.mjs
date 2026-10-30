@@ -232,6 +232,7 @@ const BLOCKS = {
       '| O194 | the bridge reader\'s reference, undecided | none: a choice | the assembly carries it (D5: the adaptive package in candidate.json) | closed by the assembly |',
       `| PR35 | the twelve-point rule on each side of a bridge split, under the package | its worst miss against the 4,000-return reference, in score units (survival as a fraction): ${pick(`${S}results-pr31-split.txt`, /NEAR: where the split acts.*?the worst ([\d.e-]+) \(([^)]*)\)/, m => `${m[1]} (${m[2]})`)} (\`results-pr31-split.txt\`) | below a tenth of a point of survival whatever its sign: not a bug (Step 4's rule) | closed, reported |`,
       '| PR24, PR29, PR31 | premises naming 7u-F: the order reference standing in for the candidate\'s, the adaptive reference\'s exact steps, the chooser\'s split at the reference\'s own step | carried by D5: the adaptive package, with PR31\'s split, is the reference the assembled candidate takes | 7u-F | closed by 7u-F\'s PASS on the candidate as assembled, not by a measurement: the decomposing arm\'s read was waived by D21, and PR29\'s and PR31\'s premises stay untested (no decision rests on them) |',
+      `| FD-RAISE | the raise before ruin under the failure year at what it can pay (D43): gone from the year just before ruin, but a 110% year within three years of it remains, mostly two years before and then the floor (the read's reviewer and the deep review of 30 Oct) | ${pick(`${S}results-fail-delivered.txt`, /^P3 the raise before ruin, of the paths that run out: CANDD (\d+ of \d+) .*?; CAND (\d+ of \d+) /m, m => `in the year before ruin CANDD ${m[1]}, CAND ${m[2]}`)}; ${pick(`${S}results-fail-delivered.txt`, /a 110% year in any of the three years before ruin, CANDD (\d+ of \d+), CAND (\d+ of \d+)/m, m => `within three years CANDD ${m[1]}, CAND ${m[2]}`)}; survival and spending unchanged (\`results-fail-delivered.txt\`) | the deep review's one test (CANDDP: the backward pass kept to paying moves where one pays, EXPLORATORY, \`reviews/2026-10-30-deep-fail-delivered.md\`), the maintainer's call; meanwhile Part C shows no raise on a path heading for ruin | open |`,
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
     ];
   },
@@ -283,7 +284,8 @@ const BLOCKS = {
     // folded into four lines to keep STATE.md under its 300 (the figures unchanged): V1, V2 and the budget; the two
     // re-reads; P1's power at both weights; P2's power and its check by simulation
     // folded again for the tier test's block (STATE.md's 300 lines; the figures unchanged)
-    return [[0, 5], [5, out.length]].map(([a, b]) => out.slice(a, b).map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')).filter(Boolean);
+    // folded into one line for FD-RAISE's row (STATE.md's 300 lines; the figures unchanged)
+    return [out.map((x, k) => (k ? x.replace(/^- /, '') : x)).join(' ')].filter(Boolean);
   },
   // 7u-F's read, once (reduce-7uf.mjs, results-7uf.txt): the gate, P1, P2, the outcome; the in-band losses at an unadjusted
   // one-sided p below 0.05 (the registration's "floor households that lose most"); DECOMP as D21 left it

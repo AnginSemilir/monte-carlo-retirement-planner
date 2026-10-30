@@ -71,6 +71,11 @@ Not in the headline. Shown on the fan of outcomes, on the upper band:
   spends above target.
 - In the year-by-year table the raise shows as "up to [£33,000] if markets have done well", never as the plan's expected
   spend.
+- Never a raise on a path heading for ruin: where the plan's chance of lasting from that year is nil, the app says so instead
+  of showing a raise (the Phase 4 deep review's presentation rule). Under the failure year at what it can pay, the raise in
+  the year before ruin is nearly gone, but on about a fifth of the paths that run out a 110% year comes two years before
+  ruin, then the floor (results-fail-delivered.txt; the deep review of 30 Oct, reviews/2026-10-30-deep-fail-delivered.md).
+  Until the deep review's test reads, the year-by-year advice keeps this rule.
 
 ## Open for the maintainer
 

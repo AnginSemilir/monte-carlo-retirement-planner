@@ -51,7 +51,8 @@ if (args[0] !== '--read') {
         if (k < 100) { const q = E.runTrial(ctx, zs); if (q.survived !== o.survived || q.unmetTotal !== o.unmet) bad++; }
       }
       if (bad) throw new Error(`${id} ${arm}: runPath differs from E.runTrial on ${bad} of the first 100 paths`);
-      // the pension and ISA's equity share the policy holds, by year, on the first BESIDE paths (levers-audit.mjs's record)
+      // the pension and ISA's equity share the policy holds, by year, on the first BESIDE paths (levers-audit.mjs's record: the
+      // tiers held entering each year, so the read takes year t's move from t + 1)
       const eq = new Float64Array(Y), en = new Float64Array(Y);
       for (let k = 0; k < Math.min(N, BESIDE); k++) S.runPolicy(r, Float64Array.from(paths[k]), { visit: (t, s, held) => { const e = r.c.tiers.pen[held.pen].equity * s[0] + r.c.tiers.isa[held.isa].equity * s[1], wt = s[0] + s[1]; if (wt > 0 && t < Y) { eq[t] += e / wt; en[t]++; } } });
       const tierYears = Array.from(eq, (x, t) => (en[t] ? +(x / en[t]).toFixed(4) : null));
@@ -99,7 +100,8 @@ if (args[0] !== '--read') {
       }
       const zs = dec.map(d => d.z).sort((x, y) => x - y), lo = zs[Math.floor(zs.length / 3)];
       const cuts = dec.filter(d => d.lv < d.prev && d.lv < 100);
-      const eqAt = yr => (u.tierYears && u.tierYears[retT + yr - 1] !== null && u.tierYears[retT + yr - 1] !== undefined ? 100 * u.tierYears[retT + yr - 1] : NaN);
+      // the tiers of retired year yr's move: tierYears[t] is what entered year t (the visit's held, before the move), so read one on
+      const eqAt = yr => (u.tierYears && u.tierYears[retT + yr] !== null && u.tierYears[retT + yr] !== undefined ? 100 * u.tierYears[retT + yr] : NaN);
       const r = { surv: 100 * surv[a].reduce((p, x) => p + x, 0) / N, open: openN ? open / openN : NaN, bands: band.map(x => ({ level: x.n ? x.sum / x.n : NaN, floor: x.n ? x.floor / x.n : NaN })),
         afterWorst: cuts.length ? cuts.filter(d => d.z <= lo).length / cuts.length : NaN, cutsPer100: dec.length ? 100 * cuts.length / dec.length : NaN, eq: EQ_YEARS.map(eqAt), retired0: retT === 0 };
       rows[a].push(r);

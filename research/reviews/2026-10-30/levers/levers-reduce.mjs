@@ -67,8 +67,10 @@ for (const id of IDS) for (const a of ARMS) S[`${id} ${a}`] = stats(U[id][a]);
 const mean = f => IDS.reduce((p, id) => p + f(id), 0) / IDS.length;
 L.push('');
 L.push('Per arm, the households\' mean (survival; paths that run out, at a mean age, before pension access; paths below the minimum pot; median and unlucky tenth\'s end wealth in years of target; the pension and ISA\'s equity share in years 1, 10 and 20 on the solver\'s paths beside):');
+// the equity: tierYears[t] is what entered year t (levers-audit.mjs's visit, before the move), so retired year t + 1's move is
+// read at retireT + t + 1 (the external review, 30 Oct: read at retireT + t, a retiree's first year was the plan's own tiers)
 for (const a of ARMS) {
-  const xs = IDS.map(id => S[`${id} ${a}`]), eq = t => { const v = IDS.map(id => U[id][a].tierYears && U[id][a].tierYears[U[id][a].retireT + t]).filter(x => x !== null && x !== undefined); return v.length ? `${(100 * v.reduce((p, x) => p + x, 0) / v.length).toFixed(0)}%` : '-'; };
+  const xs = IDS.map(id => S[`${id} ${a}`]), eq = t => { const v = IDS.map(id => U[id][a].tierYears && U[id][a].tierYears[U[id][a].retireT + t + 1]).filter(x => x !== null && x !== undefined); return v.length ? `${(100 * v.reduce((p, x) => p + x, 0) / v.length).toFixed(0)}%` : '-'; };
   L.push(`  ${a.padEnd(8)} ${f2(mean(id => S[`${id} ${a}`].surv)).padStart(6)}%  run out ${xs.reduce((p, x) => p + x.fails, 0)} (age ${f1(xs.filter(x => x.fails).reduce((p, x) => p + x.age * x.fails, 0) / Math.max(1, xs.reduce((p, x) => p + x.fails, 0)))}, before access ${xs.reduce((p, x) => p + x.bridge, 0)})  below the minimum pot ${xs.reduce((p, x) => p + x.pot, 0)}  end wealth ${f1(mean(id => S[`${id} ${a}`].med))} / ${f1(mean(id => S[`${id} ${a}`].p10))}${U[IDS[0]][a].tierYears ? `  equity ${eq(0)} / ${eq(9)} / ${eq(19)}` : ''}`);
 }
 // a paired comparison, x less y: survival in points, spending delivered in % of y's; per household and pooled

@@ -18,9 +18,9 @@ Per arm, the households' mean (survival; paths that run out, at a mean age, befo
   APP       86.15%  run out 922 (age 78.5, before access 240)  below the minimum pot 186  end wealth 117.7 / 6.1
   APPT      89.17%  run out 690 (age 80.0, before access 199)  below the minimum pot 176  end wealth 86.7 / 9.2
   FIXHOLD   77.20%  run out 1726 (age 77.8, before access 418)  below the minimum pot 98  end wealth 91.3 / 4.5  equity 85% / 85% / 82%
-  FIXCAND   84.75%  run out 1116 (age 78.3, before access 280)  below the minimum pot 104  end wealth 68.8 / 7.2  equity 59% / 33% / 41%
+  FIXCAND   84.75%  run out 1116 (age 78.3, before access 280)  below the minimum pot 104  end wealth 68.8 / 7.2  equity 36% / 33% / 41%
   FLEXHOLD  92.35%  run out 541 (age 81.5, before access 61)  below the minimum pot 71  end wealth 92.7 / 6.0  equity 85% / 84% / 82%
-  CAND      96.97%  run out 197 (age 85.1, before access 9)  below the minimum pot 45  end wealth 68.7 / 8.6  equity 60% / 38% / 49%
+  CAND      96.97%  run out 197 (age 85.1, before access 9)  below the minimum pot 45  end wealth 68.7 / 8.6  equity 30% / 40% / 50%
 
 THE DECISIONS, ON THE SAME LEVERS (the rule, fixed before the runs: BETTER if the pooled survival interval is above zero, spending's 95% lower end above -1%, and no household behind by more than a point beyond 2 se; WORSE if the interval is below zero; else NOT SHOWN):
   fixed spending, the plan's tiers (the draws alone)         FIXHOLD less FIXAPP: survival +3.200 (95% +2.79 to +3.61), spending +0.205% (se 0.019); ahead beyond 2 se on 8 of 8, behind by a point beyond 2 se on 0  => BETTER

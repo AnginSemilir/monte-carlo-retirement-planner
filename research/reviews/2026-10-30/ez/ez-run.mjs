@@ -62,7 +62,8 @@ if (argv[0] !== '--read') {
         if (k < CHECK) { const q = E.runTrial(ctx, zs); if (q.survived !== o.survived || q.unmetTotal !== o.unmet) bad++; }
       }
       if (bad) throw new Error(`${id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${CHECK} paths`);
-      // the pension and ISA's equity share the policy holds, by year, on the first BESIDE paths (levers-audit.mjs's record)
+      // the pension and ISA's equity share the policy holds, by year, on the first BESIDE paths (levers-audit.mjs's record: the
+      // tiers held entering each year, so the read takes year t's move from t + 1)
       const eq = new Float64Array(Y), en = new Float64Array(Y);
       let engineOnly = 0, policyOnly = 0;
       for (let k = 0; k < Math.min(N, BESIDE); k++) {
@@ -78,7 +79,7 @@ if (argv[0] !== '--read') {
         rec.identity = diff.length === 0 && rec.inputs === ref.inputs;
         console.log(`${id} CANDEQ on the patched code, EZ off: ${rec.identity ? 'THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs' : `DIFFERS from the CAND unit (${diff.join(', ') || 'inputs'})`}; solve ${Math.round(secs)} s`);
         if (!rec.identity) process.exitCode = 1;
-      } else console.log(`${id} ${TAG}: survival ${surv.toFixed(2)}% (CAND ${refSurv.toFixed(2)}%); year-1 equity ${tierYears[ref.retireT] === null ? '-' : (100 * tierYears[ref.retireT]).toFixed(1)}% (CAND ${ref.tierYears && ref.tierYears[ref.retireT] !== null ? (100 * ref.tierYears[ref.retireT]).toFixed(1) : '-'}%); beside: the engine alone ${engineOnly}, runPolicy alone ${policyOnly} of ${Math.min(N, BESIDE)}; solve ${Math.round(secs)} s; code ${code}`);
+      } else console.log(`${id} ${TAG}: survival ${surv.toFixed(2)}% (CAND ${refSurv.toFixed(2)}%); the first retired year's move's equity ${tierYears[ref.retireT + 1] === null ? '-' : (100 * tierYears[ref.retireT + 1]).toFixed(1)}% (CAND ${ref.tierYears && ref.tierYears[ref.retireT + 1] !== null ? (100 * ref.tierYears[ref.retireT + 1]).toFixed(1) : '-'}%); beside: the engine alone ${engineOnly}, runPolicy alone ${policyOnly} of ${Math.min(N, BESIDE)}; solve ${Math.round(secs)} s; code ${code}`);
       writeFileSync(join(ezDir, `${id}-${arm === 'CANDEQ' ? 'candeq' : TAG}.json.gz`), gzipSync(JSON.stringify(rec)));
     }
   }
@@ -121,7 +122,8 @@ if (argv[0] !== '--read') {
       }
       const zs = dec.map(d => d.z).sort((x, y) => x - y), lo = zs[Math.floor(zs.length / 3)];
       const cuts = dec.filter(d => d.lv < d.prev && d.lv < 100);
-      const eqAt = yr => (u.tierYears && u.tierYears[retT + yr - 1] !== null && u.tierYears[retT + yr - 1] !== undefined ? 100 * u.tierYears[retT + yr - 1] : NaN);
+      // the tiers of retired year yr's move: tierYears[t] is what entered year t (the visit's held, before the move), so read one on
+      const eqAt = yr => (u.tierYears && u.tierYears[retT + yr] !== null && u.tierYears[retT + yr] !== undefined ? 100 * u.tierYears[retT + yr] : NaN);
       const r = { surv: 100 * surv[a].reduce((p, x) => p + x, 0) / N, open: openN ? open / openN : NaN, bands: band.map(x => ({ level: x.n ? x.sum / x.n : NaN, floor: x.n ? x.floor / x.n : NaN, top: x.n ? x.top / x.n : NaN })),
         afterWorst: cuts.length ? cuts.filter(d => d.z <= lo).length / cuts.length : NaN, cutsPer100: dec.length ? 100 * cuts.length / dec.length : NaN, eq: EQ_YEARS.map(eqAt), retired0: retT === 0 };
       rows[a].push(r);

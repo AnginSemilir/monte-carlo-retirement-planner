@@ -143,7 +143,8 @@ if (r) {
     if (out.survived[k] && !p) engineOnly++; if (p && !out.survived[k]) policyOnly++;
   }
   beside = { N: NB, engineOnly, policyOnly };
-  // the pension and ISA's equity share the policy holds, by year, on the paths beside (what the investment lever did)
+  // the pension and ISA's equity share the policy holds, by year, on the paths beside (what the investment lever did): the
+  // visit's held is what entered year t, before the move, so year t's move is recorded at t + 1 (the readers read it there)
   tierYears = Array.from(eq, (x, t) => (en[t] ? +(x / en[t]).toFixed(4) : null));
 }
 // the spending lever's use: the spending years off the target before a failure (none in the fixed-spending arms)

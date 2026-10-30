@@ -35,6 +35,7 @@ const labelOf = c => `${c.decumulationPolicy}${c.harvestPersonalAllowance ? '' :
 const sg = x => `${x >= 0 ? '+' : ''}${x.toFixed(2)}`;
 const out = [`IS THE APP ARM THE APP'S OWN "AUTO-PICK BEST POLICY"? (EXPLORATORY): the app's policy search at the button's budget (18 combinations, 2 seeds x ${PER} paths: ${SEEDS.join(' and ')}, averaged; the default priorities) against the arm's (300 paths of 7001)`];
 let failed = 0, changed = 0;
+const pooled = { fixed: [], flexible: [] };
 for (const id of IDS) {
   const h = P[id];
   for (const [row, armUnit, solverUnit, planOf] of ROWS) {
@@ -58,10 +59,11 @@ for (const id of IDS) {
     const searchRate = c => c.stats.successRate;
     const armC = cands.find(c => labelOf(c) === arm.label);
     let line = `  ${id.padEnd(6)} ${row.padEnd(8)} the arm's pick "${arm.label}" (the unit's: ${sameLabel ? 'yes' : `NO, ${uA.ran.label}`}; replayed, paths differing from its unit ${replay}, planted ${plant}); at the button's budget "${labelOf(won)}"${close ? ' (a close call: the two seeds pick differently)' : ''}; survival on the button's search ${searchRate(won).toFixed(2)}% against the arm's pick ${armC ? searchRate(armC).toFixed(2) : '-'}%`;
-    if (won.id !== (armC && armC.id)) {
+    const differs = won.id !== (armC && armC.id), sWon = differs ? survOf(E.buildContext(E.resolveMpaa(won.planState))) : sArm;
+    const a = pair(sWon, sArm), s = pair(bits(uS), sWon), s0 = pair(bits(uS), sArm);
+    pooled[row].push({ a, s, s0 });
+    if (differs) {
       changed++;
-      const sWon = survOf(E.buildContext(E.resolveMpaa(won.planState)));
-      const a = pair(sWon, sArm), s = pair(bits(uS), sWon), s0 = pair(bits(uS), sArm);
       line += `\n           DIFFERENT: on the units' paths the button's pick less the arm's ${sg(a.d)} (se ${a.se.toFixed(2)}; ${a.saved}/${a.lost}); the solver (${solverUnit.toUpperCase()}) less the button's pick ${sg(s.d)} (se ${s.se.toFixed(2)}), less the arm's ${sg(s0.d)}`;
     }
     out.push(line);
@@ -69,6 +71,9 @@ for (const id of IDS) {
 }
 out.push('');
 out.push(`${changed} of ${IDS.length * ROWS.length} household-rows pick differently at the button's budget`);
+// pooled, each household once: the means of the per-household paired changes, their se from the per-household se's
+const pool = (xs, k) => { const d = xs.reduce((p, x) => p + x[k].d, 0) / xs.length, se = Math.sqrt(xs.reduce((p, x) => p + x[k].se ** 2, 0)) / xs.length; return `${sg(d)} (se ${se.toFixed(2)}; ${sg(d - 1.96 * se)} to ${sg(d + 1.96 * se)})`; };
+for (const [row, , solverUnit] of ROWS) out.push(`Pooled, spending ${row} (${pooled[row].length} households, each once): the button's pick less the arm's ${pool(pooled[row], 'a')}; the solver (${solverUnit.toUpperCase()}) less the arm's ${pool(pooled[row], 's0')}, less the button's pick ${pool(pooled[row], 's')}`);
 out.push(failed ? `CHECKS FAILED on ${failed} household-rows` : 'ALL CHECKS PASS');
 console.log(out.join('\n'));
 process.exit(failed ? 1 : 0);

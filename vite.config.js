@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import inlineEdit from './vite-plugin-inline-edit.js';
 
+const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
+
 export default defineConfig({
   /*
    * Asset URLs relative to the page, not absolute from the domain root.
@@ -22,4 +24,12 @@ export default defineConfig({
    * to resolve an import the main build resolves fine.
    */
   worker: { format: 'es', plugins: () => [react(), inlineEdit()] },
+  /*
+   * Cross-origin isolation on the local servers, so the solver can split a solve across workers (src/solverPool.js needs
+   * SharedArrayBuffer, which a page has only when isolated; research/solver/PHASE-7.md). Local only: the deployed site sends
+   * no such headers until Phase 12 settles how (GitHub Pages cannot send them), and with the solver switched off nothing
+   * in the app reads them. Every asset the app loads is its own, so `require-corp` blocks nothing.
+   */
+  server: { headers: ISOLATED },
+  preview: { headers: ISOLATED },
 });

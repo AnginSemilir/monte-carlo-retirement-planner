@@ -20,7 +20,7 @@ rules head to head (Phase 4) before anything changes in the app. Until then the 
 - The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
 - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
 - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
-- The solver code the e3pcls pin last passed on: f7239113db074d9e (29 Oct, 18:46 UK); the code now: f7239113db074d9e.
+- The solver code the e3pcls pin last passed on: 6d9f91a630c92919 (30 Oct, 07:59 UK); the code now: 6d9f91a630c92919.
 <!-- end printed:candidate -->
 
 The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`,
@@ -293,7 +293,7 @@ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/20
 
 1. The spending curve (D43, D44): to the maintainer, the failure year's held-out read (MISSED, reviewer PASS), the deep review's one test (FD-RAISE),
    the dial's read and a non-default dial setting, and the wording (`PART-C-WORDING.md`); each the maintainer's call.
-2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7's plumbing (N7 skipped, D45) behind `SOLVER` in `App.jsx`;
-   Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
+2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7 (N7 skipped, D45) by `PHASE-7.md`, 7a (the worker, the split,
+   the state, behind `SOLVER`) built, 7b and 7c next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
 3. D37's and D38's items (D40, D41 (5)), by `AFTER-PHASE4.md` (two done: the GIA basis under CGT off, the held-out scan): the windfall and the
    savings splits built, each default-off with its tests, then a factorial on the panel (EXPLORATORY, seed 7002); the lump sum's route the maintainer's call; the sweep nightly.

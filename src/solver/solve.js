@@ -1579,6 +1579,8 @@ export function solve(E, M, plan, opts = {}) {
         g.reader.unsupported += tb.unsupported; g.reader.copied += tb.copied; g.reader.copiedTop += tb.copiedTop; g.reader.nodes += tb.nodes; g.reader.built++;
       }
     }
+    // Part C Phase 7 (research/solver/PHASE-7.md): the app's progress bar, a year at a time; it reads nothing the solve writes
+    if (opts.progress && (!E2 || E2.part === 0)) opts.progress({ phase: 'years', done: T - t + 1, total: T + 1 });
   }
 
   if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
@@ -2411,7 +2413,9 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  * `riskAbove: true` still allows the tier above in any plan (research, and a user who asks for it); `false` never.
  */
 function solvePlanAuto(E, M, plan, opts) {
-  const off = solvePlan(E, M, plan, { ...opts, riskAbove: false });
+  // Part C Phase 7 (PHASE-7.md): the progress bar told which of the two solves it is in
+  const passOf = (pass) => (opts.progress ? { progress: (x) => opts.progress({ ...x, pass }) } : {});
+  const off = solvePlan(E, M, plan, { ...opts, riskAbove: false, ...passOf('without the tier above') });
   const note = (r, decision, s0, s1) => { r.meta.riskAbove = { decision, thinSurvival: PRODUCT_DEFAULTS.thinSurvival, survivalWithout: s0, survivalWith: s1 }; return r; };
   if (opts.riskConsent === false) return note(off, 'off: no consent to change risk');
   // no tier above to allow when every wrapper already sits at the top tier
@@ -2423,7 +2427,7 @@ function solvePlanAuto(E, M, plan, opts) {
   const ok0 = paths.map(zs => runPolicy(off, zs).survived);
   const s0 = ok0.filter(Boolean).length / N;
   if (s0 >= PRODUCT_DEFAULTS.thinSurvival) return note(off, 'off: not thin', s0);
-  const on = solvePlan(E, M, plan, { ...opts, riskAbove: true });
+  const on = solvePlan(E, M, plan, { ...opts, riskAbove: true, ...passOf('with the tier above') });
   const s1 = paths.filter(zs => runPolicy(on, zs).survived).length / N;
   return s1 >= s0 ? note(on, 'on: thin, and no worse on the same paths', s0, s1) : note(off, 'off: thin, but worse with it on the same paths', s0, s1);
 }
@@ -2466,7 +2470,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     const cA = F.compile(m, actions);
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
-    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
     g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {

@@ -43,7 +43,7 @@ function nonFiniteQ(where, t, cell, Qm, mi) {
 }
 
 export function adaptiveReference(input) {
-  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true, e2 = null } = input;
+  const { cs, flowCtx, actions, levelOf, weights, years, billsOf, gains, realAt, PhiInv, na = 160, nb = 41, nz = 128, plant = '', foot = false, stepAll = false, dupMoves = true, e2 = null, progress = null } = input;
   const t0 = Date.now(), K = cs.length;
   if (!weights || weights.length !== K) throw new Error('the adaptive reference needs the mixture\'s weights (jointWorlds)');
   const bridge = []; for (let t = 0; t < years.length; t++) if (years[t]) bridge.push(t);
@@ -225,6 +225,7 @@ export function adaptiveReference(input) {
       }
     }
     close();   // the year's lattice and foot written by every part before the year before reads them
+    if (progress) progress({ phase: 'reference', done: bridge.length - 1 - yi, total: bridge.length - 1 });   // Part C Phase 7's progress bar (PHASE-7.md)
   }
   // the counts summed across E2's parts (each part counted its own cells); unsplit, each is already the whole
   let split = null;

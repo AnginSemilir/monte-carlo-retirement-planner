@@ -32,6 +32,10 @@ import '@fontsource/newsreader/latin-600-italic.css'
 import '@fontsource/newsreader/latin-700-italic.css'
 import './index.css'
 import Shell from './Shell.jsx'
+// Part C Phase 7: the solve state's hook, installed here because no worker imports this file (src/solverState.js)
+import { installSolver } from './solverState.js'
+import { useSolver } from './useSolver.js'
+installSolver(useSolver)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

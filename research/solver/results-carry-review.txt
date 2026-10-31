@@ -1,0 +1,156 @@
+CARRY'S DEEP REVIEW FIGURES (the deep review of 8 Oct 09:32 UK; read-only scripts over results/diag7aj and results/diag7aw, grade C, post hoc)
+
+=== read-carry-pool.mjs
+gain  summed over the nineteen: -0.475 points, se 0.168 (paths shared), z -2.83; paths with any move 128
+cand  summed over the nineteen: -0.250 points, se 0.112 (paths shared), z -2.24; paths with any move 71
+ship  summed over the nineteen: 0.225 points, se 0.145 (paths shared), z 1.56; paths with any move 94
+gain se if the households were independent: 0.174
+
+=== read-carry-paths.mjs
+household cls | arm: survival paths up/down (net) at 0.02 vs 0.01; moved paths with a different tier path up/down, with a different spending path up/down; paths whose tier path differs (net safer/riskier), median first year; pension tier-2 share of alive path-years 0.01 -> 0.02
+share 0.50     19 CAND   2/1   (   1) T 2/1 L 2/1 | tierdiff 4940 (s506/r4344) yr15 | pen2 0.768->0.706
+                  SHIP   7/2   (   5) T 4/2 L 7/2 | tierdiff  848 (s472/r376) yr39 | pen2 0.088->0.077
+share 0.70     19 CAND   0/2   (  -2) T 0/2 L 0/2 | tierdiff 4310 (s362/r3870) yr19 | pen2 0.825->0.775
+                  SHIP   4/6   (  -2) T 4/6 L 4/5 | tierdiff 1031 (s480/r550) yr16 | pen2 0.149->0.129
+share 0.78     19 CAND   0/0   (   0) T 0/0 L 0/0 | tierdiff 4013 (s294/r3646) yr20 | pen2 0.842->0.796
+                  SHIP   0/0   (   0) T 0/0 L 0/0 | tierdiff    9 (s6/r3) yr36 | pen2 1.000->1.000
+share 0.90     19 CAND   0/1   (  -1) T 0/0 L 0/1 | tierdiff 3804 (s344/r3383) yr21 | pen2 0.822->0.786
+                  SHIP   2/11  (  -9) T 2/9 L 2/10 | tierdiff  795 (s515/r279) yr38 | pen2 0.190->0.186
+share 0.95     19 CAND   2/0   (   2) T 2/0 L 2/0 | tierdiff 3673 (s299/r3309) yr21 | pen2 0.850->0.811
+                  SHIP   2/4   (  -2) T 1/4 L 2/4 | tierdiff  535 (s369/r166) yr39 | pen2 0.135->0.129
+bridge 0       19 CAND   0/2   (  -2) T 0/2 L 0/2 | tierdiff 4313 (s346/r3876) yr18 | pen2 0.821->0.772
+                  SHIP   2/7   (  -5) T 2/7 L 1/6 | tierdiff  709 (s521/r187) yr37 | pen2 0.115->0.112
+bridge 1       19 CAND   1/7   (  -6) T 1/7 L 0/7 | tierdiff 4087 (s333/r3692) yr19 | pen2 0.835->0.790
+                  SHIP   4/2   (   2) T 3/2 L 3/2 | tierdiff  769 (s504/r265) yr37 | pen2 0.140->0.135
+bridge 6       19 CAND   3/4   (  -1) T 3/4 L 3/4 | tierdiff 3363 (s329/r2975) yr25 | pen2 0.877->0.846
+                  SHIP   1/1   (   0) T 1/1 L 1/1 | tierdiff   67 (s60/r6) yr2 | pen2 0.999->0.999
+wealth x0.5    19 CAND   8/6   (   2) T 8/5 L 6/3 | tierdiff 4406 (s760/r3561) yr24 | pen2 0.857->0.812
+                  SHIP  15/5   (  10) T 12/5 L 13/4 | tierdiff  333 (s102/r216) yr12 | pen2 0.952->0.946
+wealth x2      19 CAND   0/2   (  -2) T 0/2 L 0/2 | tierdiff 4793 (s4548/r226) yr10 | pen2 0.437->0.517
+                  SHIP   0/0   (   0) T 0/0 L 0/0 | tierdiff    0 (s0/r0) yr- | pen2 1.000->1.000
+S120           19 CAND   0/0   (   0) T 0/0 L 0/0 | tierdiff 5684 (s5684/r0) yr19 | pen2 0.000->0.372
+                  SHIP   0/0   (   0) T 0/0 L 0/0 | tierdiff    0 (s0/r0) yr- | pen2 1.000->1.000
+S122           19 CAND   1/2   (  -1) T 1/1 L 1/2 | tierdiff 4936 (s4487/r445) yr21 | pen2 0.081->0.328
+                  SHIP   5/0   (   5) T 3/0 L 5/0 | tierdiff  726 (s507/r219) yr39 | pen2 0.018->0.018
+S126           19 CAND   0/2   (  -2) T 0/2 L 0/2 | tierdiff 3897 (s312/r3516) yr20 | pen2 0.846->0.806
+                  SHIP   1/0   (   1) T 1/0 L 1/0 | tierdiff    5 (s3/r1) yr36 | pen2 1.000->1.000
+bridge 4       19 CAND   0/6   (  -6) T 0/5 L 0/5 | tierdiff 3635 (s328/r3250) yr23 | pen2 0.864->0.830
+                  SHIP   2/1   (   1) T 2/0 L 2/1 | tierdiff 1066 (s1055/r9) yr2 | pen2 0.859->0.973
+S360           19 CAND   0/2   (  -2) T 0/1 L 0/2 | tierdiff  483 (s129/r350) yr28 | pen2 0.794->0.803
+                  SHIP   2/0   (   2) T 0/0 L 2/0 | tierdiff  104 (s104/r0) yr45 | pen2 0.000->0.001
+S194           19 CAND   9/7   (   2) T 3/4 L 9/7 | tierdiff 3628 (s1162/r2411) yr28 | pen2 0.899->0.885
+                  SHIP  14/9   (   5) T 8/9 L 14/7 | tierdiff 1639 (s167/r1471) yr3 | pen2 0.555->0.499
+S124           SW CAND  11/7   (   4) T 6/6 L 10/6 | tierdiff 3179 (s286/r2821) yr32 | pen2 0.943->0.916
+                  SHIP  11/3   (   8) T 5/2 L 10/2 | tierdiff  161 (s87/r60) yr30 | pen2 0.985->0.985
+S128           HC CAND  27/19  (   8) T 25/19 L 20/17 | tierdiff 3789 (s460/r3225) yr25 | pen2 0.755->0.718
+                  SHIP  35/17  (  18) T 34/17 L 31/14 | tierdiff 1212 (s254/r873) yr4 | pen2 0.808->0.806
+S130           HC CAND   7/8   (  -1) T 7/6 L 6/3 | tierdiff 3658 (s462/r3108) yr28 | pen2 0.871->0.841
+                  SHIP  27/4   (  23) T 25/4 L 27/4 | tierdiff  451 (s246/r173) yr20 | pen2 0.923->0.924
+S366           19 CAND   1/5   (  -4) T 1/5 L 1/5 | tierdiff 3146 (s315/r2773) yr27 | pen2 0.889->0.862
+                  SHIP   5/2   (   3) T 5/2 L 4/2 | tierdiff  971 (s577/r392) yr5 | pen2 0.941->0.964
+S370           HC CAND  27/5   (  22) T 27/5 L 23/4 | tierdiff 3218 (s397/r2748) yr34 | pen2 0.855->0.833
+                  SHIP  16/7   (   9) T 16/7 L 13/6 | tierdiff  578 (s257/r299) yr16 | pen2 0.820->0.823
+bridge 4+cost  SW CAND   2/3   (  -1) T 0/1 L 2/2 | tierdiff 3728 (s341/r3317) yr22 | pen2 0.858->0.823
+                  SHIP   5/5   (   0) T 2/4 L 5/3 | tierdiff  785 (s384/r399) yr16 | pen2 0.250->0.240
+S162           19 CAND   5/3   (   2) T 3/2 L 5/3 | tierdiff 4323 (s467/r3783) yr22 | pen2 0.859->0.814
+                  SHIP   3/1   (   2) T 2/1 L 3/1 | tierdiff 1311 (s392/r917) yr8 | pen2 0.284->0.252
+S172           SW CAND   7/5   (   2) T 3/4 L 7/5 | tierdiff 5204 (s970/r4148) yr19 | pen2 0.775->0.724
+                  SHIP   5/20  ( -15) T 5/20 L 5/18 | tierdiff 8000 (s4/r7991) yr0 | pen2 0.998->0.544
+S168           19 CAND   0/0   (   0) T 0/0 L 0/0 | tierdiff 4962 (s4962/r0) yr22 | pen2 0.000->0.279
+                  SHIP   0/0   (   0) T 0/0 L 0/0 | tierdiff  288 (s288/r0) yr39 | pen2 0.000->0.001
+THE NINETEEN, totals: CAND {"up":32,"down":52,"upT":24,"downT":43,"upL":29,"downL":48} SHIP {"up":69,"down":51,"upT":50,"downT":48,"upL":64,"downL":45}
+CAND differing tier paths mostly riskier at 0.02 on 21 of 25 households, mostly safer on 4 (wealth x2, S120, S122, S168), none on 0
+SHIP differing tier paths mostly riskier at 0.02 on 8 of 25 households, mostly safer on 15 (share 0.50, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, S122, S126, bridge 4, S360, S124, S130, S366, S168), none on 2
+
+=== read-carry-moved2.mjs
+share 0.50     19 CAND down@yr:riskier 1, up@end:riskier 1, up@end:safer 1 | SHIP down@end:riskier 1, down@yr:riskier 1, up@end:safer 4, up@end:spendOnly 3
+share 0.70     19 CAND down@end:riskier 2 | SHIP down@end:riskier 4, down@yr:riskier 2, up@end:safer 3, up@yr:safer 1
+share 0.78     19 CAND - | SHIP -
+share 0.90     19 CAND down@end:spendOnly 1 | SHIP down@end:riskier 8, down@end:spendOnly 2, down@yr:riskier 1, up@end:safer 2
+share 0.95     19 CAND up@end:safer 2 | SHIP down@end:riskier 4, up@end:safer 1, up@end:spendOnly 1
+bridge 0       19 CAND down@end:riskier 1, down@yr:riskier 1 | SHIP down@end:riskier 7, up@end:safer 2
+bridge 1       19 CAND down@end:riskier 7, up@end:mixed 1 | SHIP down@end:riskier 2, up@end:safer 3, up@end:spendOnly 1
+bridge 6       19 CAND down@end:riskier 4, up@end:safer 3 | SHIP down@end:riskier 1, up@end:safer 1
+wealth x0.5    19 CAND down@end:none 1, down@end:riskier 4, down@yr:riskier 1, up@end:riskier 1, up@end:safer 7 | SHIP down@end:mixed 1, down@end:riskier 1, down@end:safer 1, down@yr:riskier 2, up@end:none 1, up@end:safer 11, up@end:spendOnly 2, up@yr:safer 1
+wealth x2      19 CAND down@end:riskier 2 | SHIP -
+S120           19 CAND - | SHIP -
+S122           19 CAND down@end:riskier 1, down@end:spendOnly 1, up@end:riskier 1 | SHIP up@end:riskier 2, up@end:safer 1, up@end:spendOnly 2
+S126           19 CAND down@end:riskier 2 | SHIP up@end:safer 1
+bridge 4       19 CAND down@end:riskier 4, down@end:spendOnly 1, down@yr:riskier 1 | SHIP down@end:spendOnly 1, up@end:safer 1, up@yr:safer 1
+S360           19 CAND down@yr:none 1, down@yr:riskier 1 | SHIP up@yr:spendOnly 2
+S194           19 CAND down@end:riskier 4, down@end:spendOnly 3, up@end:riskier 1, up@end:safer 2, up@end:spendOnly 6 | SHIP down@end:mixed 1, down@end:riskier 7, down@end:safer 1, up@end:riskier 4, up@end:safer 4, up@end:spendOnly 6
+S124           SW CAND down@end:riskier 3, down@end:safer 3, down@end:spendOnly 1, up@end:safer 6, up@end:spendOnly 5 | SHIP down@end:none 1, down@end:riskier 2, up@end:riskier 2, up@end:safer 3, up@end:spendOnly 6
+S128           HC CAND down@end:riskier 7, down@yr:riskier 12, up@end:none 1, up@end:safer 18, up@end:spendOnly 1, up@yr:safer 7 | SHIP down@end:riskier 4, down@yr:riskier 13, up@end:riskier 1, up@end:safer 14, up@end:spendOnly 1, up@yr:safer 19
+S130           HC CAND down@end:none 2, down@end:riskier 5, down@yr:riskier 1, up@end:safer 3, up@yr:safer 4 | SHIP down@end:mixed 1, down@end:riskier 2, down@yr:safer 1, up@end:safer 12, up@end:spendOnly 2, up@yr:safer 13
+S366           19 CAND down@end:riskier 5, up@end:safer 1 | SHIP down@end:riskier 1, down@end:safer 1, up@end:safer 4, up@yr:safer 1
+S370           HC CAND down@end:riskier 3, down@yr:riskier 2, up@end:safer 12, up@yr:safer 15 | SHIP down@end:riskier 2, down@yr:riskier 5, up@end:safer 9, up@yr:safer 7
+bridge 4+cost  SW CAND down@end:none 1, down@end:riskier 1, down@end:spendOnly 1, up@end:spendOnly 2 | SHIP down@end:riskier 3, down@end:spendOnly 1, down@yr:riskier 1, up@end:safer 2, up@end:spendOnly 3
+S162           19 CAND down@end:riskier 2, down@end:spendOnly 1, up@end:safer 3, up@end:spendOnly 2 | SHIP down@end:riskier 1, up@end:safer 2, up@end:spendOnly 1
+S172           SW CAND down@end:riskier 4, down@end:spendOnly 1, up@end:safer 3, up@end:spendOnly 4 | SHIP down@end:riskier 20, up@end:mixed 1, up@end:riskier 4
+S168           19 CAND - | SHIP -
+TOTAL CAND 19: down@end:none 1, down@end:riskier 38, down@end:spendOnly 7, down@yr:none 1, down@yr:riskier 5, up@end:mixed 1, up@end:riskier 4, up@end:safer 19, up@end:spendOnly 8
+TOTAL CAND SW: down@end:none 1, down@end:riskier 8, down@end:safer 3, down@end:spendOnly 3, up@end:safer 9, up@end:spendOnly 11
+TOTAL CAND HC: down@end:none 2, down@end:riskier 15, down@yr:riskier 15, up@end:none 1, up@end:safer 33, up@end:spendOnly 1, up@yr:safer 26
+TOTAL SHIP 19: down@end:mixed 2, down@end:riskier 37, down@end:safer 3, down@end:spendOnly 3, down@yr:riskier 6, up@end:none 1, up@end:riskier 6, up@end:safer 40, up@end:spendOnly 16, up@yr:safer 4, up@yr:spendOnly 2
+TOTAL SHIP SW: down@end:none 1, down@end:riskier 25, down@end:spendOnly 1, down@yr:riskier 1, up@end:mixed 1, up@end:riskier 6, up@end:safer 5, up@end:spendOnly 9
+TOTAL SHIP HC: down@end:mixed 1, down@end:riskier 8, down@yr:riskier 18, down@yr:safer 1, up@end:riskier 1, up@end:safer 35, up@end:spendOnly 3, up@yr:safer 39
+
+=== read-carry-own.mjs
+EACH ARM'S OWN POLICY AT THE TWO WEIGHTS (read-only, grade C, post hoc; 7aj's and 7aw's traces, 8,000 paths of seed 7002)
+controls: each arm's 0.01 policy against itself reads 0 at both weights (50 units); reduce-carry.mjs item 2's 25 legs reproduced to 0.0005 (results-carry.txt)
+household      arm  | the 0.02 policy against the 0.01 policy: at the 0.02 objective, whole (95% unconditional) path se z | at the 0.01 objective, the same
+share 0.50     CAND | +0.080 (-0.010 to 0.177) se 0.023 z 3.4 | +0.038 (-0.046 to 0.129) se 0.023 z 1.7
+share 0.50     SHIP | +0.069 (-0.036 to 0.187) se 0.038 z 1.8 | +0.053 (-0.049 to 0.169) se 0.038 z 1.4
+share 0.70     CAND | +0.027 (-0.067 to 0.106) se 0.019 z 1.4 | -0.008 (-0.095 to 0.066) se 0.019 z -0.4
+share 0.70     SHIP | -0.020 (-0.138 to 0.094) se 0.040 z -0.5 | -0.042 (-0.158 to 0.069) se 0.040 z -1.0
+share 0.78     CAND | +0.047 (-0.027 to 0.122) se 0.005 z 8.9 | +0.015 (-0.054 to 0.084) se 0.003 z 5.2
+share 0.78     SHIP | -0.002 (-0.065 to 0.062) se 0.000 z -4.8 | -0.003 (-0.067 to 0.060) se 0.000 z -10.5
+share 0.90     CAND | +0.029 (-0.054 to 0.105) se 0.014 z 2.2 | -0.005 (-0.083 to 0.066) se 0.013 z -0.4
+share 0.90     SHIP | -0.123 (-0.257 to -0.007) se 0.046 z -2.7 | -0.140 (-0.272 to -0.026) se 0.046 z -3.1
+share 0.95     CAND | +0.073 (-0.007 to 0.160) se 0.018 z 4.0 | +0.041 (-0.033 to 0.124) se 0.018 z 2.3
+share 0.95     SHIP | -0.027 (-0.107 to 0.053) se 0.031 z -0.9 | -0.038 (-0.116 to 0.041) se 0.031 z -1.2
+bridge 0       CAND | +0.034 (-0.061 to 0.112) se 0.019 z 1.8 | -0.003 (-0.092 to 0.068) se 0.018 z -0.2
+bridge 0       SHIP | -0.072 (-0.188 to 0.031) se 0.038 z -1.9 | -0.086 (-0.200 to 0.016) se 0.038 z -2.3
+bridge 1       CAND | -0.023 (-0.149 to 0.075) se 0.037 z -0.6 | -0.058 (-0.178 to 0.035) se 0.036 z -1.6
+bridge 1       SHIP | +0.023 (-0.073 to 0.125) se 0.031 z 0.7 | +0.005 (-0.090 to 0.104) se 0.031 z 0.1
+bridge 6       CAND | -0.069 (-0.178 to 0.038) se 0.034 z -2.0 | -0.119 (-0.223 to -0.017) se 0.034 z -3.5
+bridge 6       SHIP | +0.000 (-0.075 to 0.075) se 0.018 z 0.0 | -0.007 (-0.082 to 0.068) se 0.018 z -0.4
+wealth x0.5    CAND | +0.121 (-0.014 to 0.258) se 0.048 z 2.5 | -0.048 (-0.176 to 0.082) se 0.047 z -1.0
+wealth x0.5    SHIP | +0.130 (-0.011 to 0.278) se 0.056 z 2.3 | +0.032 (-0.107 to 0.178) se 0.056 z 0.6
+wealth x2      CAND | +0.021 (-0.072 to 0.094) se 0.019 z 1.2 | -0.005 (-0.094 to 0.062) se 0.018 z -0.3
+wealth x2      SHIP | -0.000 (-0.063 to 0.063) se 0.000 z -1.1 | -0.000 (-0.063 to 0.063) se 0.000 z -1.3
+S120           CAND | +0.096 (0.024 to 0.169) se 0.004 z 22.2 | +0.048 (-0.020 to 0.116) se 0.002 z 22.1
+S120           SHIP | +0.000 (-0.063 to 0.063) se 0.000 z 0.0 | +0.000 (-0.063 to 0.063) se 0.000 z 0.0
+S122           CAND | +0.080 (-0.013 to 0.168) se 0.023 z 3.5 | +0.003 (-0.086 to 0.086) se 0.022 z 0.1
+S122           SHIP | +0.062 (-0.020 to 0.164) se 0.029 z 2.2 | +0.044 (-0.037 to 0.145) se 0.029 z 1.5
+S126           CAND | +0.020 (-0.072 to 0.098) se 0.019 z 1.1 | -0.012 (-0.099 to 0.061) se 0.018 z -0.7
+S126           SHIP | +0.013 (-0.053 to 0.086) se 0.013 z 1.0 | +0.009 (-0.057 to 0.082) se 0.013 z 0.7
+bridge 4       CAND | -0.030 (-0.145 to 0.061) se 0.032 z -0.9 | -0.064 (-0.174 to 0.022) se 0.032 z -2.0
+bridge 4       SHIP | +0.045 (-0.039 to 0.134) se 0.022 z 2.0 | +0.028 (-0.054 to 0.114) se 0.022 z 1.3
+S360           CAND | -0.026 (-0.109 to 0.020) se 0.020 z -1.3 | -0.029 (-0.110 to 0.015) se 0.020 z -1.5
+S360           SHIP | +0.022 (-0.027 to 0.104) se 0.020 z 1.1 | +0.020 (-0.027 to 0.101) se 0.020 z 1.0
+S194           CAND | +0.164 (0.024 to 0.308) se 0.051 z 3.2 | +0.007 (-0.127 to 0.145) se 0.051 z 0.1
+S194           SHIP | +0.172 (0.012 to 0.337) se 0.061 z 2.8 | +0.030 (-0.123 to 0.190) se 0.061 z 0.5
+S124           CAND | +0.079 (-0.062 to 0.222) se 0.054 z 1.5 | -0.012 (-0.148 to 0.127) se 0.054 z -0.2
+S124           SHIP | +0.173 (0.050 to 0.302) se 0.048 z 3.6 | +0.062 (-0.059 to 0.188) se 0.047 z 1.3
+S128           CAND | +0.149 (-0.054 to 0.352) se 0.085 z 1.7 | +0.084 (-0.114 to 0.283) se 0.085 z 1.0
+S128           SHIP | +0.214 (0.006 to 0.422) se 0.090 z 2.4 | +0.181 (-0.026 to 0.389) se 0.090 z 2.0
+S130           CAND | +0.023 (-0.107 to 0.153) se 0.049 z 0.5 | -0.066 (-0.192 to 0.059) se 0.049 z -1.4
+S130           SHIP | +0.269 (0.106 to 0.437) se 0.070 z 3.9 | +0.227 (0.064 to 0.394) se 0.070 z 3.2
+S366           CAND | -0.113 (-0.222 to -0.016) se 0.031 z -3.6 | -0.157 (-0.262 to -0.065) se 0.031 z -5.0
+S366           SHIP | +0.034 (-0.063 to 0.139) se 0.033 z 1.0 | +0.030 (-0.066 to 0.134) se 0.033 z 0.9
+S370           CAND | +0.291 (0.120 to 0.464) se 0.071 z 4.1 | +0.230 (0.063 to 0.400) se 0.071 z 3.2
+S370           SHIP | +0.099 (-0.041 to 0.241) se 0.060 z 1.7 | +0.071 (-0.069 to 0.212) se 0.060 z 1.2
+bridge 4+cost  CAND | +0.041 (-0.060 to 0.139) se 0.029 z 1.4 | +0.001 (-0.095 to 0.094) se 0.029 z 0.0
+bridge 4+cost  SHIP | -0.011 (-0.123 to 0.101) se 0.040 z -0.3 | -0.027 (-0.137 to 0.083) se 0.040 z -0.7
+S162           CAND | +0.097 (-0.014 to 0.212) se 0.037 z 2.6 | +0.049 (-0.056 to 0.160) se 0.036 z 1.4
+S162           SHIP | +0.035 (-0.056 to 0.131) se 0.026 z 1.4 | +0.005 (-0.082 to 0.096) se 0.025 z 0.2
+S172           CAND | +0.150 (0.021 to 0.282) se 0.045 z 3.3 | +0.015 (-0.107 to 0.141) se 0.044 z 0.3
+S172           SHIP | -0.014 (-0.205 to 0.159) se 0.065 z -0.2 | -0.248 (-0.427 to -0.085) se 0.064 z -3.9
+S168           CAND | +0.048 (-0.022 to 0.118) se 0.003 z 15.6 | +0.024 (-0.042 to 0.090) se 0.002 z 15.6
+S168           SHIP | +0.004 (-0.060 to 0.067) se 0.000 z 8.1 | +0.002 (-0.061 to 0.065) se 0.000 z 8.1
+LOSES AT ITS OWN 0.02 OBJECTIVE (z at or below -2): share 0.78 SHIP -0.002 (se 0.000, z -4.8); share 0.90 SHIP -0.123 (se 0.046, z -2.7); bridge 6 CAND -0.069 (se 0.034, z -2.0); S366 CAND -0.113 (se 0.031, z -3.6)
+WINS AT THE 0.01 POLICY'S OWN OBJECTIVE (z at or above 2): share 0.78 CAND +0.015 (se 0.003, z 5.2); share 0.95 CAND +0.041 (se 0.018, z 2.3); S120 CAND +0.048 (se 0.002, z 22.1); S128 SHIP +0.181 (se 0.090, z 2.0); S130 SHIP +0.227 (se 0.070, z 3.2); S370 CAND +0.230 (se 0.071, z 3.2); S168 CAND +0.024 (se 0.002, z 15.6); S168 SHIP +0.002 (se 0.000, z 8.1)
+CHARGE S120  CAND tier changes a path 0.000 at 0.01, 0.718 at 0.02 (results-7aj.txt, results-7aw.txt); the charge a path 0.000 and 0.072 points
+CHARGE S168  CAND tier changes a path 0.000 at 0.01, 0.622 at 0.02 (results-7aj.txt, results-7aw.txt); the charge a path 0.000 and 0.062 points
+CHARGE S122  CAND tier changes a path 0.176 at 0.01, 0.691 at 0.02 (results-7aj.txt, results-7aw.txt); the charge a path 0.018 and 0.069 points

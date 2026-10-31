@@ -1,0 +1,132 @@
+ok   an arm that changes nothing: 1-3 FALSIFIED: "FALSIFIED,FALSIFIED,FALSIFIED"
+ok   an arm whose gap's high end is exactly half of Gb, the world order kept: 1 HELD: "HELD"
+ok   the same a hundredth of a point higher: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   an arm whose tables stay at or above zero but under-read its own runs past half (gap -2.620 of Gb 2.990): 2 INCONCLUSIVE, over-corrected: "INCONCLUSIVE over"
+ok   an arm that drives worlds 0 and 1 to a zero table (removed about 1.1), bridge 4 kept: 3 HELD: "HELD"
+ok   SIMP removing the gap, the order kept, bridge 4 kept: 2 HELD: "HELD"
+ok   READEROFF removing the gap with bridge 4 shown off: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a world-order tie (T0 = T1) with the gap removed: 1 HELD: "HELD"
+ok   the gap removed but the world order not restored: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gap removed but bridge 4 shown a point off in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gap removed, bridge 4 off by 0.45 in world 0 but not shown past 0.3: 1 HELD: "HELD"
+ok   a world with no surviving path, its table near 0: 1 HELD: "HELD"
+ok   a BASE with no gap: 1-3 INCONCLUSIVE: "INCONCLUSIVE,INCONCLUSIVE,INCONCLUSIVE"
+ok   residual shares exactly 0.5, 0.5 and 0.25: 4 HELD: "HELD"
+ok   residual shares 0.25 and 0.25 in worlds 0 and 1: 4 FALSIFIED: "FALSIFIED"
+ok   a world whose survival part is 0: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   residual shares 0.6, 0.6 and 0.4: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4's world 0 off by exactly 0.3 points: 5 HELD: "HELD"
+ok   bridge 4 shown a point off in world 0: 5 FALSIFIED: "FALSIFIED"
+ok   bridge 4 off by 0.45 in world 0, its interval reaching inside 0.3: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gate passes eleven good jobs: ""
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses an arm that did not take (armTook 0): true
+ok   the gate refuses R0 whose solve carries no r0 split: true
+ok   the gate refuses a forceIdentity one path short: true
+ok   the gate refuses SS differing between the arms: true
+ok   the gate refuses other points: true
+ok   the gate refuses another seed: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a missing file: true
+planted (32): all read as they should
+GATE: passed - the eleven jobs once and done at the registered settings (30 points, 4000 paths a world, seed 7002); every arm in its solve's meta; the same SS and SC under every arm; every self-check passed (armTook, splitIdentity, splitCover, forceIdentity on world 0's first 1,000 paths); every file the log's
+
+NE-ROOT: the candidate's S364 survival read, split and its causes armed one at a time, on the tuning seed (predictions/diag-neroot.md)
+
+S364 BASE/W0.02: table 4.8605; bridgeRead reader bridgeStep exact readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 3.6685 sim 0.0500 (2/4000); SC table 4.1670 sim 0.0000 (0/4000)
+  world 1 (z 0, weight 0.666667): SS table 3.2066 sim 0.3000 (12/4000); SC table 3.5177 sim 0.1000 (4/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 1.7719 sim 1.5500 (62/4000); SC table 1.5701 sim 0.4750 (19/4000)
+  split 0 SS: sv 3.6685 pc 0.0016 r 3.6671 (r/sv 0.9996) p 0.0017 w1 0.999998 | sup 0.1251 clip 0.0000 share 0.8749 row 0.0000 none 0.0000
+  split 1 SS: sv 3.2066 pc 0.0254 r 3.1813 (r/sv 0.9921) p 0.0255 w1 0.999998 | sup 0.0081 clip 0.1749 share 0.8170 row 0.0000 none 0.0000
+  split 2 SS: sv 1.7719 pc 0.2238 r 1.5482 (r/sv 0.8738) p 0.2238 w1 0.999998 | sup 0.0252 clip 0.4862 share 0.4886 row 0.0000 none 0.0000
+  split 0 SC: sv 4.1670 pc 0.0001 r 4.1671 (r/sv 1.0000) p 0.0001 w1 0.999998 | sup 0.0913 clip 0.0000 share 0.9087 row 0.0000 none 0.0000
+  split 1 SC: sv 3.5177 pc 0.0006 r 3.5173 (r/sv 0.9999) p 0.0006 w1 0.999998 | sup 0.0011 clip 0.1285 share 0.8704 row 0.0000 none 0.0000
+  split 2 SC: sv 1.5701 pc 0.0112 r 1.5590 (r/sv 0.9929) p 0.0112 w1 0.999998 | sup 0.0016 clip 0.5542 share 0.4442 row 0.0000 none 0.0000
+  reader tables: 72; nodes by status sup 254545 clip 1091 share 110808 row 333396 none 0
+  gap over worlds 0 and 1: SS 3.0490 (2.7930 to 3.1923); SC 3.5676 (3.3865 to 3.6320)
+
+S364 R0/W0.02: table 0.0063; bridgeRead reader bridgeStep exact readerSplit r0 (zeroP 408564) readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 0.0005 sim 0.0500 (2/4000); SC table 0.0001 sim 0.0000 (0/4000)
+  world 1 (z 0, weight 0.666667): SS table 0.0077 sim 0.3000 (12/4000); SC table 0.0002 sim 0.0000 (0/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 0.0678 sim 1.5500 (62/4000); SC table 0.0033 sim 0.0000 (0/4000)
+  gap over worlds 0 and 1: SS -0.2437 (-0.4997 to -0.1003); SC 0.0002 (-0.1194 to 0.0002)
+
+S380 BASE/W0.02: table 72.4085; bridgeRead reader bridgeStep exact readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): OWN table 35.0977 sim 30.8500 (1234/4000)
+  world 1 (z 0, weight 0.666667): OWN table 76.2609 sim 78.4000 (3136/4000)
+  world 2 (z 1.732051, weight 0.166667): OWN table 94.5685 sim 97.0250 (3881/4000)
+  REPORTED, CAND's own opening: gap over worlds 0 and 1 -0.8618 (-2.4497 to 0.7658); by world 0 4.2477, 1 -2.1391, 2 -2.4565
+
+S364 SIMP/W0.02: table 4.8040; bridgeRead reader bridgeStep exact readerSplit null readerChance sim tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 3.0354 sim 0.0500 (2/4000); SC table 3.4187 sim 0.0000 (0/4000)
+  world 1 (z 0, weight 0.666667): SS table 2.9888 sim 0.3000 (12/4000); SC table 3.2347 sim 0.1000 (4/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 1.5203 sim 1.5500 (62/4000); SC table 1.2374 sim 0.4750 (19/4000)
+  gap over worlds 0 and 1: SS 2.7481 (2.4921 to 2.8915); SC 3.1915 (3.0104 to 3.2559)
+
+S364 READEROFF/W0.02: table 0.0429; bridgeRead false bridgeStep null readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 0.0064 sim 0.0500 (2/4000); SC table 0.0059 sim 0.0000 (0/4000)
+  world 1 (z 0, weight 0.666667): SS table 0.0245 sim 0.2500 (10/4000); SC table 0.0218 sim 0.0000 (0/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 0.0563 sim 1.5000 (60/4000); SC table 0.0505 sim 0.0000 (0/4000)
+  gap over worlds 0 and 1: SS -0.1891 (-0.4313 to -0.0601); SC 0.0186 (-0.1010 to 0.0186)
+
+bridge 4 BASE/W0.02: table 99.7554; bridgeRead reader bridgeStep exact readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 98.4967 sim 98.4000 (3936/4000); SC table 98.7719 sim 98.6750 (3947/4000)
+  world 1 (z 0, weight 0.666667): SS table 99.9761 sim 99.9750 (3999/4000); SC table 99.9822 sim 99.9500 (3998/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 99.9955 sim 100.0000 (4000/4000); SC table 99.9956 sim 100.0000 (4000/4000)
+  gap over worlds 0 and 1: SS 0.0202 (-0.0869 to 0.2453); SC 0.0451 (-0.0711 to 0.2775)
+
+bridge 4 R0/W0.02: table 53.8619; bridgeRead reader bridgeStep exact readerSplit r0 (zeroP 189378) readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 50.6523 sim 98.3750 (3935/4000); SC table 50.7111 sim 98.6500 (3946/4000)
+  world 1 (z 0, weight 0.666667): SS table 51.4093 sim 99.9750 (3999/4000); SC table 51.5800 sim 99.9500 (3998/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 51.3746 sim 100.0000 (4000/4000); SC table 51.8089 sim 100.0000 (4000/4000)
+  gap over worlds 0 and 1: SS -48.3971 (-48.5050 to -48.1714); SC -48.2838 (-48.4008 to -48.0506)
+
+bridge 4 SIMP/W0.02: table 99.7554; bridgeRead reader bridgeStep exact readerSplit null readerChance sim tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 98.4967 sim 98.4000 (3936/4000); SC table 98.7719 sim 98.6750 (3947/4000)
+  world 1 (z 0, weight 0.666667): SS table 99.9761 sim 99.9750 (3999/4000); SC table 99.9822 sim 99.9500 (3998/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 99.9955 sim 100.0000 (4000/4000); SC table 99.9956 sim 100.0000 (4000/4000)
+  gap over worlds 0 and 1: SS 0.0202 (-0.0869 to 0.2452); SC 0.0451 (-0.0711 to 0.2775)
+
+bridge 4 READEROFF/W0.02: table 17.0504; bridgeRead false bridgeStep null readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 1.6319 sim 98.3250 (3933/4000); SC table 1.6336 sim 98.6500 (3946/4000)
+  world 1 (z 0, weight 0.666667): SS table 11.0026 sim 99.9750 (3999/4000); SC table 11.7549 sim 99.9500 (3998/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 16.6024 sim 100.0000 (4000/4000); SC table 18.1001 sim 100.0000 (4000/4000)
+  gap over worlds 0 and 1: SS -90.5165 (-90.6259 to -90.2894); SC -89.9594 (-90.0764 to -89.7262)
+
+S364 BASE/W0.01: table 4.8688; bridgeRead reader bridgeStep exact readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.01 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): SS table 3.6898 sim 0.0500 (2/4000); SC table 4.1919 sim 0.0000 (0/4000)
+  world 1 (z 0, weight 0.666667): SS table 3.2125 sim 0.3000 (12/4000); SC table 3.5236 sim 0.1000 (4/4000)
+  world 2 (z 1.732051, weight 0.166667): SS table 1.7716 sim 1.5500 (62/4000); SC table 1.5699 sim 0.4750 (19/4000)
+  split 0 SS: sv 3.6898 pc 0.0016 r 3.6883 (r/sv 0.9996) p 0.0017 w1 0.999998 | sup 0.1251 clip 0.0000 share 0.8749 row 0.0000 none 0.0000
+  split 1 SS: sv 3.2125 pc 0.0254 r 3.1872 (r/sv 0.9921) p 0.0255 w1 0.999998 | sup 0.0081 clip 0.1749 share 0.8170 row 0.0000 none 0.0000
+  split 2 SS: sv 1.7716 pc 0.2238 r 1.5479 (r/sv 0.8737) p 0.2238 w1 0.999998 | sup 0.0252 clip 0.4862 share 0.4886 row 0.0000 none 0.0000
+  split 0 SC: sv 4.1919 pc 0.0001 r 4.1920 (r/sv 1.0000) p 0.0001 w1 0.999998 | sup 0.0913 clip 0.0000 share 0.9087 row 0.0000 none 0.0000
+  split 1 SC: sv 3.5236 pc 0.0006 r 3.5232 (r/sv 0.9999) p 0.0006 w1 0.999998 | sup 0.0011 clip 0.1285 share 0.8704 row 0.0000 none 0.0000
+  split 2 SC: sv 1.5699 pc 0.0112 r 1.5587 (r/sv 0.9929) p 0.0112 w1 0.999998 | sup 0.0016 clip 0.5542 share 0.4442 row 0.0000 none 0.0000
+  reader tables: 72; nodes by status sup 254540 clip 1096 share 110808 row 333396 none 0
+  gap over worlds 0 and 1: SS 3.0579 (2.8019 to 3.2013); SC 3.5773 (3.3963 to 3.6417)
+
+S224 BASE/W0.02: table 72.2256; bridgeRead reader bridgeStep exact readerSplit null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 0 switchCharge 0.001 bequestWeight 0.02 mix 3 pts 30 minPot 0
+  world 0 (z -1.732051, weight 0.166667): OWN table 25.7906 sim 25.9000 (1036/4000)
+  world 1 (z 0, weight 0.666667): OWN table 77.0081 sim 75.7000 (3028/4000)
+  world 2 (z 1.732051, weight 0.166667): OWN table 97.4863 sim 96.6250 (3865/4000)
+  REPORTED, CAND's own opening: gap over worlds 0 and 1 1.0246 (-0.6012 to 2.6834); by world 0 -0.1094, 1 1.3081, 2 0.8613
+
+THE ITEMS (each read by its registered rule)
+1. R0 removes at least half of SS's gap in worlds 0 and 1, restores the world order, bridge 4 kept: INCONCLUSIVE
+     Gb 3.0490; arm's gap -0.2437 (-0.4997 to -0.1003); removed 1.0799; SS tables by world 0.0005, 0.0077, 0.0678 (order rising); bridge 4 table less simulated by world -47.7227 (-48.1631 to -47.1783), -48.5657 (-48.5905 to -48.4197), -48.6254 (-48.6254 to -48.5057) (shown off)
+2. SIMP removes at least half of SS's gap in worlds 0 and 1, restores the world order, bridge 4 kept: FALSIFIED
+     Gb 3.0490; arm's gap 2.7481 (2.4921 to 2.8915); removed 0.0987; SS tables by world 3.0354, 2.9888, 1.5203 (order not rising); bridge 4 table less simulated by world 0.0967 (-0.3401 to 0.6374), 0.0011 (-0.0237 to 0.1472), -0.0045 (-0.0045 to 0.1151) (kept)
+3. READEROFF removes at least half of SS's gap in worlds 0 and 1, restores the world order, bridge 4 kept: INCONCLUSIVE
+     Gb 3.0490; arm's gap -0.1891 (-0.4313 to -0.0601); removed 1.0620; SS tables by world 0.0064, 0.0245, 0.0563 (order rising); bridge 4 table less simulated by world -96.6931 (-97.1408 to -96.1417), -88.9724 (-88.9972 to -88.8263), -83.3976 (-83.3976 to -83.2780) (shown off)
+4. stage 1: the residual carries most of SS's year-1 read in worlds 0 and 1 and little in world 2: INCONCLUSIVE
+     r/sv by world 0.9996, 0.9921, 0.8738
+5. the control, bridge 4 under BASE within 0.3 points in every world: HELD
+     world 0 0.0967 (-0.3400 to 0.6375); world 1 0.0011 (-0.0237 to 0.1472); world 2 -0.0045 (-0.0045 to 0.1151)
+REALISED item 1: 1.0799
+REALISED item 2: 0.0987
+REALISED item 3: 1.0620
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 INCONCLUSIVE, 4 INCONCLUSIVE, 5 HELD

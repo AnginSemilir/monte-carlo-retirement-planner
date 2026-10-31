@@ -1,0 +1,9 @@
+caught: 1: for (const t of F.bridge) if (t > t0) s += F.per
+caught: 2: export const isaFirst = ai => Math.floor(Math.floo
+caught: 3: if (t0 === 1 && !isaFirst(mA[i * Y + 1]) && isaFir
+caught: 4: if (t0 < 0 || !br.includes(t0)) continue;
+caught: 5: for (const i of cellPaths) y[i] += 0.01;
+caught: 6: if (plant === 'y3') B = { ...B, per: { ...B.per } 
+caught: 7: const d = st(cellPaths.map(i => 100 * (bB[i] - bA[
+caught: 8: mS += W[k] * ds.m;
+8 of 8 mutations caught

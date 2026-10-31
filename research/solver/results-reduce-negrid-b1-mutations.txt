@@ -1,0 +1,78 @@
+caught: 1: if (n !== 1) bad.push(`${key(id, arm, g)}:
+caught: 2: if (n !== 1) bad.push(`${key(id, arm, g)}:
+caught: 3: if (!j.done) bad.push(
+caught: 4: ['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] 
+caught: 5: j.head.coarse !== coarse || j.head.fine !== fine || j.head.n
+caught: 6: j.head.coarse !== coarse || j.head.fine !== fine || j.head.n
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 9: if (!j.checks.pairTook || j.checks.pairTook[0] !== 1)
+caught: 10: Object.entries({ ...WANT[j.arm], ...COMMON })
+caught: 11: Object.entries({ ...WANT[j.arm], ...COMMON })
+caught: 12: if (field(ran, 'pts') !== pts) bad.push(
+caught: 13: j.pair.P !== PAIRS[j.id][0] || j.pair.D
+caught: 14: j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== 
+caught: 15: j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== 
+caught: 16: if (j.tables.length !== 3 || j.tables.some((x, i) => x.k !==
+caught: 17: else if (j.arm === 'BASE' && j.clamps.n !== 0) bad.push(
+caught: 18: else if (j.arm === 'LOR' && j.id === 'S224' && j.clamps.n !=
+caught: 19: else if (j.arm === 'LOR' && j.id !== 'S224' && !(j.clamps.n 
+caught: 20: if (!s || s.n !== npw) bad.push(
+caught: 21: if (!s || s.n !== npw) bad.push(
+caught: 22: ...(j.own && j.pair && j.own.ai !== j.pair.P && j.own.ai !==
+caught: 23: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1
+caught: 24: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1
+caught: 25: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 26: if (!f.stamp || !j.stamp || ['code', 'audit', 'prediction'].
+caught: 27: typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[n
+caught: 28: typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[n
+caught: 29: if (hs.size > 1) bad.push(
+caught: 30: ['P', 'D', 'OWN'].some(o => !l.tables[i] || x[o].toFixed(6) 
+caught: 31: x[o].toFixed(6) !== l.tables[i][o].toFixed(6)
+caught: 32: || !b.own || !l.own || b.own.ai !== l.own.ai)) bad.push(
+caught: 33: if (!rec) bad.push(
+caught: 34: j.tables.some((x, i) => x[o].toFixed(4) !== r.worlds[i].tabl
+caught: 35: || (r.own !== undefined && j.own && j.own.ai !== r.own)
+caught: 36: chk(J[key('S380', 'BASE', 'coarse')], 'P', rec.s380BASE, 'S3
+caught: 37: chk(J[key('S380', 'LOR', 'coarse')], 'D', rec.s380LOR, 'S380
+caught: 38: chk(J[key('bridge 4', 'LOR', 'coarse')], 'D', rec.b4LOR, 'br
+caught: 39: chk(J[key('S224', 'BASE', 'coarse')], 'OWN', rec.s224BASE, '
+caught: 40: const [l, h] = clopperPearson(ok, n, 2 * a1); return { d: ta
+caught: 41: const a1 = ALPHA / 6;
+caught: 42: const dist0 = (lo, hi) => (lo > 0 ? lo : hi < 0 ? -hi : 0);
+caught: 43: if (x && y) a++; else if (x && !y) b++; else if (!x && y) c+
+caught: 44: const u = guarded(survivalChangeU(c.a, c.b, c.c, c.d, ALPHA 
+caught: 45: return { k, dt, ds: u.d, err: dt - u.d, lo: dt - u.hi, hi: d
+caught: 46: pairCells(bitsOf(j, 'P', k), bitsOf(j, 'D', k))
+caught: 47: const counted = q(Math.abs(gc)) >= GMIN;
+caught: 48: const counted = q(Math.abs(gc)) >= GMIN;
+caught: 49: for (const o of ['P', 'D']) for (const k of [0, 1]) {
+caught: 50: cc.every(c => c.r <= SHRINK) ? 'HELD'
+caught: 51: cc.every(c => c.r <= SHRINK) ? 'HELD'
+caught: 52: cc.every(c => c.r >= STAY) ? 'FALSIFIED'
+caught: 53: cc.every(c => c.r >= STAY) ? 'FALSIFIED'
+caught: 54: r: counted ? q(Math.abs(gf) / Math.abs(gc)) : null
+caught: 55: out[1] = { outcome: cc.length && cc.every
+caught: 56: const gf = J[key('S380', 'LOR', 'fine')].tables[k][o] - J[ke
+caught: 57: for (const [arm, o] of [['BASE', 'P'], ['LOR', 'D']]) {
+caught: 58: half: q(A) <= q(A30[arm] * SHRINK)
+caught: 59: surelyNot: q(Alo) > q(A30[arm] * SHRINK)
+caught: 60: surelyNot: q(Alo) > q(A30[arm] * SHRINK)
+caught: 61: conv.BASE.half && conv.LOR.half ? 'HELD'
+caught: 62: conv.BASE.surelyNot && conv.LOR.surelyNot ? 'FALSIFIED'
+caught: 63: const A = w.reduce((t, x, k) => t + WEIGHTS[k] * Math.abs(x.
+caught: 64: const A = w.reduce((t, x, k) => t + WEIGHTS[k] * Math.abs(x.
+caught: 65: pr.every(x => q(Math.abs(x.err)) <= PRICE) ? 'HELD'
+caught: 66: pr.every(x => q(Math.abs(x.err)) <= PRICE) ? 'HELD'
+caught: 67: pr.some(x => q(x.lo) > PRICE || q(x.hi) < -PRICE) ? 'FALSIFI
+caught: 68: pr.some(x => q(x.lo) > PRICE || q(x.hi) < -PRICE) ? 'FALSIFI
+caught: 69: const pr = [...price.BASE, ...price.LOR];
+caught: 70: const dt = j.tables[k].D - j.tables[k].P;
+caught: 71: bw.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'
+caught: 72: bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 73: bw.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 74: const bw = b4.BASE.w;
+caught: 75: const bw = b4.BASE.w;
+caught: 76: o = j.own.ai === j.pair.P ? 'P' : j.own.ai === j.pair.D ? 'D
+caught: 77: export const q = x => Math.round(x * 1e9) / 1e9;
+77 of 77 mutations caught

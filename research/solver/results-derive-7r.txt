@@ -1,0 +1,20 @@
+7R'S POWER: 7e's rates scaled to 3000 paths (S126 14 lost, 0 saved; bridge 4 9.75 lost, 0.375 saved), Poisson counts, 20000 draws a scenario (seed 7002)
+
+THE PRIMARY READ, by the true story (RTIER the reader's tiers with off's rest; RREST the reverse):
+the tier carries it all (RTIER = the reader, RREST = off)      HELD 0.997  FALSIFIED 0.000  INCONCLUSIVE 0.003   item 1: S126 0.997, bridge 4 0.916, both 0.914
+the rest carries it all (RTIER = off, RREST = the reader)      HELD 0.000  FALSIFIED 0.997  INCONCLUSIVE 0.003   item 1: S126 0.998, bridge 4 0.916, both 0.914
+each carries half, independently                               HELD 0.130  FALSIFIED 0.132  INCONCLUSIVE 0.739   item 1: S126 0.997, bridge 4 0.920, both 0.918
+the tier on S126, the rest on bridge 4                         HELD 0.177  FALSIFIED 0.004  INCONCLUSIVE 0.819   item 1: S126 0.998, bridge 4 0.919, both 0.917
+no harm on these paths (the reader 1 lost, 1 saved expected)   HELD 0.000  FALSIFIED 0.000  INCONCLUSIVE 1.000   item 1: S126 0.000, bridge 4 0.000, both 0.000
+
+O23 (item 3), S366 under v1 at 3,000 paths:
+  real at 7e's rate (21 lost, 0 saved expected)                replicated 1.000  closes 0.000  stays open 0.000
+  noise at 7e's discordance (10.5 lost, 10.5 saved expected)   replicated 0.034  closes 0.339  stays open 0.627
+  no change at all (1 lost, 1 saved expected)                  replicated 0.001  closes 0.999  stays open 0.000
+
+THE LEAST COUNTS, with none saved:
+  a swap arm carries the harm alone after Holm over the four: 7 lost (the smallest of the four p values is multiplied by 4)
+  item 1's case, the other case far stronger (Holm's second step): 5 lost; both cases alike: 6 lost each
+  "carries none" holds up to 7 lost with none saved (the exact interval's lower end above -0.25 of 3000)
+
+ITEM 5: about 2985 pairs; the 97.5% interval for the paired median runs from order statistic 1431 to 1555, 62 either side of the middle

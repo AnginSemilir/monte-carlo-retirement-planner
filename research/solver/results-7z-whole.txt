@@ -1,0 +1,19 @@
+7Z'S TRACES, READ FURTHER (results/diag7z through reduce-7z's gates; reported, grade C)
+
+share 0.95: whole score 2.556 +/- 0.193 = survival 2.563, estate -0.318, the rest 0.312; paths with any spend level or tier different 8000
+   shift below -sqrt 3    n   277  READER 70.76  READER+STEP 80.87  saved/lost 28/0
+   shift -sqrt 3 to -1    n   966  READER 83.44  READER+STEP 87.78  saved/lost 42/0
+   shift -1 to 0          n  2746  READER 92.21  READER+STEP 95.27  saved/lost 84/0
+   shift 0 and above      n  4011  READER 97.38  READER+STEP 98.65  saved/lost 51/0
+   the saved paths, the year each failed without the fix (-1: the end pot): {"1":175,"33":1,"34":2,"36":3,"37":3,"38":3,"39":2,"-1":16}
+   year 0: tier codes held (pension x 4 + ISA) READER {"0":8000}  READER+STEP {"10":8000}
+   year 1: tier codes held (pension x 4 + ISA) READER {"0":8000}  READER+STEP {"0":339,"10":7661}
+   year 2: tier codes held (pension x 4 + ISA) READER {"0":7947,"10":53}  READER+STEP {"0":339,"10":7661}
+   year 5: tier codes held (pension x 4 + ISA) READER {"0":7180,"10":820}  READER+STEP {"0":339,"10":7661}
+   year 10: tier codes held (pension x 4 + ISA) READER {"0":6684,"10":1316}  READER+STEP {"0":339,"10":7661}
+   year 20: tier codes held (pension x 4 + ISA) READER {"0":6408,"5":1,"10":1591}  READER+STEP {"0":340,"10":7660}
+   year 30: tier codes held (pension x 4 + ISA) READER {"0":6342,"10":1658}  READER+STEP {"0":346,"5":1,"10":7653}
+   READER+STEP paths holding tier code 10 (2/2) in every year 1 to 30: 7649 of 8000
+S126: whole score 0.000 +/- 0.000 = survival 0.000, estate 0.000, the rest 0.000; paths with any spend level or tier different 0
+bridge 4: whole score 0.000 +/- 0.000 = survival 0.000, estate 0.000, the rest 0.000; paths with any spend level or tier different 0
+S194: whole score 0.000 +/- 0.000 = survival 0.000, estate 0.000, the rest 0.000; paths with any spend level or tier different 0

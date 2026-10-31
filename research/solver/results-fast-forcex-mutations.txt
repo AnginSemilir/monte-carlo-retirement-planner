@@ -1,0 +1,13 @@
+true code (fast.js f33e9bf8412f): 12 passed, 0 failed
+caught  the flag not cleared: 3 test(s) fail, first: the flag cleared after the year: 0 of 1916
+caught  the allowance left ignored: 2 test(s) fail, first: the pension falls by the force over the lump-sum share (within 1e-6): worst 1.11e+5
+caught  forced before access: 1 test(s) fail, first: before access or while working: 543 positions, 56 changed
+caught  forced while working: 1 test(s) fail, first: before access or while working: 543 positions, 82 changed
+caught  the lump-sum share ignored (the force taken as the gross): 3 test(s) fail, first: the tax-free used rises by exactly the force (within 1e-6; 198 years with a CGT bill apart): worst 2.11e
+caught  the taxable part untaxed: 1 test(s) fail, first: nothing lost but the extra tax (the pots' total, within 1e-6): worst 8.43e+4
+caught  the proceeds lost: 1 test(s) fail, first: nothing lost but the extra tax (the pots' total, within 1e-6): worst 8.65e+4
+caught  the tax-free part not counted against the allowance: 2 test(s) fail, first: the tax-free used rises by exactly the force (within 1e-6; 198 years with a CGT bill apart): worst 2.81e
+caught  c.forced not recorded: 1 test(s) fail, first: c.forced records the gross: 0 of 1916
+caught  the force ignored: 6 test(s) fail, first: the tax-free used rises by exactly the force (within 1e-6; 198 years with a CGT bill apart): worst 2.81e
+
+10 plants: every one caught; the file restored byte for byte: True

@@ -1,0 +1,13 @@
+GATE 5'S IMPACT, ESTIMATED (grade C; results-axho.txt, results-foot-preflight.txt)
+
+1. ONE PROCESS A SOLVE (AX-HO's batch, 60 points, five jobs on four cores)
+  S366: J1 under the adaptive reference 2701 s (its build 254.7 s, 9.4% of the solve) against J2 under the order reference 2326 s: 375 s more (16.1%)
+  S360: J3 under the adaptive reference 2928 s (its build 234.9 s, 8.0% of the solve) against J4 under the order reference 2424 s: 504 s more (20.8%)
+
+2. THE FIX'S OWN COST (FOOT-S366's preflight, S362 at a fifteenth of the points, the same load): K1's build 294.8 s, K1F's 297.9 s (1.1%)
+
+3. UNDER E2 (each part builds its own reference, not split; the rest of the solve split ideally)
+  4 parts, S366: about 14.4 min against 9.7 min under the order reference, 4.7 min more (49.0%), the build 29.4% of the wall
+  4 parts, S360: about 15.1 min against 10.1 min under the order reference, 5.0 min more (49.9%), the build 25.9% of the wall
+  8 parts, S366: about 9.3 min against 4.8 min under the order reference, 4.5 min more (92.8%), the build 45.4% of the wall
+  8 parts, S360: about 9.5 min against 5.0 min under the order reference, 4.5 min more (88.6%), the build 41.1% of the wall

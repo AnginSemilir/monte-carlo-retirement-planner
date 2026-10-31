@@ -1,0 +1,8 @@
+{
+  "fingerprint": "112f140fff6cbabf",
+  "at": "31 Oct, 10:25 UK",
+  "points": 4,
+  "passed": 27,
+  "test": "research/tests/solver-e3pcls.test.mjs",
+  "testBlob": "c75f5d8ac501"
+}

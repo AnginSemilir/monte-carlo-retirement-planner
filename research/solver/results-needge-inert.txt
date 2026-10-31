@@ -1,0 +1,6 @@
+NE-EDGE's code change against 0ece8f3605c1 (S364, 4 wealth points, the candidate's options)
+old code, defaults: tables 9adf125874e13b37 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line 0.5 secs 164
+new code, defaults: tables 9adf125874e13b37 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line 0.5 secs 161
+new code, readerSplit 'rs': tables 3218dcbaa08520e9 (259623 arrays) reader nodes 36936 copied 11826 supported 25110 unsupported 0 line 0.5 secs 158
+PASS 1. old and new code alike at defaults
+PASS 2. readerSplit 'rs' differs

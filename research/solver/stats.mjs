@@ -1,0 +1,230 @@
+/*
+ * THE PAIRED STATISTICS (the outside review of 25 Sep, "Solver research: review, new findings and the updated regimen",
+ * section 16; adopted by the maintainer 25 Sep 20:47 UK). Replaces "beyond two standard errors" for new tests:
+ *   - exact conditional McNemar on the discordant paths (one-sided, for harm); mid-p only where a prediction declares it
+ *   - a 95% exact interval for the survival change: Clopper-Pearson on the lost share, mapped to points
+ *   - Holm's correction across the households of one comparison
+ *   - three outcomes per household against a pre-registered margin: no material harm, harm, inconclusive
+ *   - the paths needed to resolve a margin: N > 1.96^2 d / delta^2
+ * All survival changes are in POINTS (percentage points); margins too. b = paths lost (arm A survives, arm B fails),
+ * c = paths saved, N = paths in all.
+ */
+
+/* the regimen's margins, in points (the review's section 16 item 3; adopted by the maintainer 25 Sep 20:47 UK): 0.25
+   where the comparison arm survives 95% or more, 0.5 below, 0.1 for a pooled mean. PLAN.md's decided-defaults block
+   carries the same numbers ("margins"). `rel` (the maintainer, 11 Oct, the session: 'A tenth (Recommended)', answering
+   PR13): for a test registered from 11 Oct the margin is the smaller of marginFor's and a tenth of the comparison arm's
+   survival (marginRel), so where that arm survives under 5 points a loss of its few surviving paths can read as harm;
+   a test registered before keeps marginFor, its registered rule. */
+export const MARGINS = Object.freeze({ high: 0.25, low: 0.5, pooled: 0.1, highAt: 95, rel: 0.1 });
+export const marginFor = offSim => (offSim >= MARGINS.highAt ? MARGINS.high : MARGINS.low);
+export const marginRel = offSim => Math.min(marginFor(offSim), MARGINS.rel * offSim);
+/* the relative margin's floor (the maintainer, 11 Oct, the session: 'Keep a tenth (Recommended)', the cost put correctly -
+   the plan-auditor's MINOR 1 of 11 Oct 07:51 UK): a household whose comparison arm keeps so few surviving paths that
+   identical arms (none lost, none saved) could not clear the guarded rule at the look's level is never certified, only
+   reported - harm is still read on it - and its report blocks no other household: about 39 surviving paths at a single
+   look at 0.05, 40 at 0.045, 78 at 0.005, at any path count (the plan-auditor's MINOR 1 of 08:03 UK: the look's level);
+   a household whose arm never survives can lose nothing, and is reported alike */
+export const relClearable = (alive, N, level = 0.05) => alive > 0 && survivalChangeU(alive, 0, 0, N - alive, level).lo > -marginRel(100 * alive / N);
+
+/* P(X >= k) for X ~ Bin(n, 1/2), exactly. Up to about 1,000 tosses the direct sum, as it always ran; above that 2^-n
+ * underflows to 0 and the direct sum read 1 for every k (found 26 Sep building 7r, where n is 3,000 paths; no earlier
+ * caller passed more than a few hundred: every one passes a McNemar discordant count or a household count), so the terms
+ * are built in logs there, and the smaller tail is summed so a tiny p is not lost to 1 minus a sum near 1. */
+export function binomUpperHalf(k, n) {
+  if (k <= 0) return 1;
+  if (k > n) return 0;
+  if (n * Math.LN2 < 700) {
+    let lp = -n * Math.LN2, term = Math.exp(lp), cdfBelow = 0;   // term = C(n, i) / 2^n, i from 0
+    for (let i = 0; i < k; i++) { cdfBelow += term; term *= (n - i) / (i + 1); }
+    return Math.max(0, 1 - cdfBelow);
+  }
+  let lp = -n * Math.LN2, below = 0, above = 0;   // lp = log C(n, i) - n log 2, i from 0
+  for (let i = 0; i <= n; i++) { if (i < k) below += Math.exp(lp); else above += Math.exp(lp); lp += Math.log((n - i) / (i + 1)); }
+  return k > n / 2 ? above : Math.max(0, 1 - below);
+}
+/* the one-sided exact McNemar p-value for harm: the chance of at least b losses in n = b + c fair tosses */
+export function mcnemarHarmP(b, c, { midP = false } = {}) {
+  const n = b + c;
+  if (n === 0) return 1;
+  const p = binomUpperHalf(b, n);
+  return midP ? p - 0.5 * (binomUpperHalf(b, n) - binomUpperHalf(b + 1, n)) : p;
+}
+
+/* the regularised incomplete beta by continued fraction (Numerical Recipes betacf), for the binomial's exact bounds */
+function lgamma(x) { const g = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const c of g) s += c / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+function betacf(a, b, x) {
+  let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; if (Math.abs(d) < 1e-300) d = 1e-300; d = 1 / d; let h = d;
+  for (let m = 1; m <= 300; m++) {
+    const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+    d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del;
+    if (Math.abs(del - 1) < 1e-14) break;
+  }
+  return h;
+}
+export function betaInc(a, b, x) {
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b;
+}
+function betaQuantile(p, a, b) { let lo = 0, hi = 1; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (betaInc(a, b, m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
+/* Clopper-Pearson 95% (by default) interval for a binomial share: k of n */
+export function clopperPearson(k, n, alpha = 0.05) {
+  if (n === 0) return [0, 1];
+  const lo = k === 0 ? 0 : betaQuantile(alpha / 2, k, n - k + 1);
+  const hi = k === n ? 1 : betaQuantile(1 - alpha / 2, k + 1, n - k);
+  return [lo, hi];
+}
+/* the survival change B - A in points, with its exact interval: Delta = (c - b)/N = n(1 - 2 pi)/N, pi = b/n.
+   CONDITIONAL ON n (the eighty-fourth review, 26 Sep, BLOCKING 2): Clopper-Pearson on b of n treats the discordant count as
+   fixed, so when every discordant path is lost (or every one saved) the interval's end on that side is the point estimate,
+   and a true loss exactly at the margin reads "no material harm" about half the time with one-sided losses (P(n <= 7) =
+   0.525 at 3,000 paths). The harm test (the exact McNemar p and the point loss) is sound; the no-material-harm and
+   no-material-gain ends are not. survivalChangeU below counts the chance in n too, and is reported beside it. */
+export function survivalChange(b, c, N, alpha = 0.05) {
+  const n = b + c, d = 100 * (c - b) / N;
+  if (n === 0) return { d: 0, lo: 0, hi: 0, n };
+  const [pL, pU] = clopperPearson(b, n, alpha);
+  return { d, lo: 100 * n * (1 - 2 * pU) / N, hi: 100 * n * (1 - 2 * pL) / N, n };
+}
+/* the standard normal's upper tail P(Z > z), by the complementary error function (Numerical Recipes erfcc, fractional
+   error below 1.2e-7), and the z leaving level/2 in each tail (1.96 at 0.05, 2.81 at 0.005) */
+export function normUpper(z) {
+  const x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.5 * x);
+  const erfc = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return z >= 0 ? erfc / 2 : 1 - erfc / 2;
+}
+export function zFor(level) { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (normUpper(m) > level / 2) lo = m; else hi = m; } return (lo + hi) / 2; }
+/* Wilson's score interval for x of n at z */
+export function wilson(x, n, z) {
+  const p = x / n, z2 = z * z, den = 1 + z2 / n, mid = (p + z2 / (2 * n)) / den, h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / den;
+  return [mid - h, mid + h];
+}
+/*
+ * THE PAIRED SURVIVAL CHANGE, UNCONDITIONALLY (Newcombe 1998, "Improved confidence intervals for the difference between
+ * binomial proportions based on paired data", method 10: each arm's survival by Wilson's interval, combined through the
+ * paired correlation phi). Cells: a both survive, b arm A survives and B fails (lost), c B survives and A fails (saved),
+ * d both fail; the change B - A in points at 1 - level. Unlike survivalChange it counts the chance in how many paths
+ * differ: at a true one-sided loss exactly at the 0.25 margin it reads "no material harm" at or below the nominal rate on
+ * nearly every row of results-sim-unconditional.txt (sim-unconditional.mjs: survival 95% to 99.8%, 1,000 to 8,000 paths),
+ * where survivalChange reads it about half the time - but 4.1% at 95% survival and 8,000 paths (nominal 2.5%), so it is not
+ * exact either (the eighty-fifth review, MINOR 2). Reported beside the registered exact interval; it replaces it only by
+ * the maintainer's decision (the regimen's item 1).
+ */
+export function survivalChangeU(a, b, c, d, level = 0.05) {
+  const N = a + b + c + d, z = zFor(level), pB = (a + c) / N, pA = (a + b) / N, dl = pB - pA;
+  const [lB, uB] = wilson(a + c, N, z), [lA, uA] = wilson(a + b, N, z);
+  const den = Math.sqrt((a + c) * (b + d) * (a + b) * (c + d)), phi = den > 0 ? (a * d - b * c) / den : 0;
+  const lo = dl - Math.sqrt(Math.max(0, (pB - lB) ** 2 - 2 * phi * (pB - lB) * (uA - pA) + (uA - pA) ** 2));
+  const hi = dl + Math.sqrt(Math.max(0, (uB - pB) ** 2 - 2 * phi * (uB - pB) * (pA - lA) + (pA - lA) ** 2));
+  return { d: 100 * dl, lo: 100 * lo, hi: 100 * hi, N };
+}
+/* Holm's step-down adjusted p-values, in the input order */
+export function holm(ps) {
+  const m = ps.length, idx = ps.map((p, i) => [p, i]).sort((x, y) => x[0] - y[0]), adj = new Array(m);
+  let run = 0;
+  idx.forEach(([p, i], r) => { run = Math.max(run, Math.min(1, (m - r) * p)); adj[i] = run; });
+  return adj;
+}
+/*
+ * The three outcomes for one household (section 16, item 4): no material harm when the interval's lower end is above
+ * minus the margin; harm when the Holm-adjusted p is below 0.05 AND the point loss is at least the margin; otherwise
+ * inconclusive. 0 of 0 discordant is no material harm (the interval is the point 0), never "at the line".
+ */
+export function outcome({ b, c, N, margin, pHolm, level = 0.05 }) {
+  // `level` is the look's error rate: the interval is at 1 - level and harm needs pHolm below it (section 16 item 8:
+  // two looks at 0.005 then 0.045; a single look at 0.05)
+  const iv = survivalChange(b, c, N, level);
+  if (iv.lo > -margin) return { ...iv, outcome: 'no material harm' };
+  if (pHolm < level && -iv.d >= margin) return { ...iv, outcome: 'harm' };
+  return { ...iv, outcome: 'inconclusive' };
+}
+/*
+ * A random-effects pooled mean change (DerSimonian-Laird) with its 95% interval, over households' paired changes in
+ * points. Each household's variance is (discordant - net^2 / N) / N^2, in points^2, floored at one discordant path so a
+ * household with none still carries weight (declared: the floor is a choice, not part of the method).
+ */
+export function pooledRE(cases) {
+  const k = cases.length; if (!k) return null;
+  const d = cases.map(x => 100 * (x.c - x.b) / x.N), v = cases.map(x => { const n = x.b + x.c, net = x.c - x.b; return 1e4 * Math.max(1, n - net * net / x.N) / (x.N * x.N); });
+  const w = v.map(x => 1 / x), sw = w.reduce((a, b) => a + b, 0), mw = w.reduce((a, x, i) => a + x * d[i], 0) / sw;
+  const Q = w.reduce((a, x, i) => a + x * (d[i] - mw) ** 2, 0), sw2 = w.reduce((a, x) => a + x * x, 0);
+  const tau2 = k > 1 ? Math.max(0, (Q - (k - 1)) / (sw - sw2 / sw)) : 0;
+  const ws = v.map(x => 1 / (x + tau2)), sws = ws.reduce((a, b) => a + b, 0), mean = ws.reduce((a, x, i) => a + x * d[i], 0) / sws, se = Math.sqrt(1 / sws);
+  return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, tau2, k };
+}
+/*
+ * A fixed-effect (inverse-variance) pooled mean change with its 95% interval, over the same per-household variances as
+ * pooledRE. Its interval does not widen with the spread between households, so a gain on one household cannot pull the
+ * lower end down: the floor for a registered set of cases expected unchanged (the forty-eighth review's MINOR 2; the
+ * maintainer chose it for 7e's pooled floor, 25 Sep 22:45 UK; results-pooled-floor.txt).
+ */
+export function pooledFE(cases) {
+  const k = cases.length; if (!k) return null;
+  const d = cases.map(x => 100 * (x.c - x.b) / x.N), v = cases.map(x => { const n = x.b + x.c, net = x.c - x.b; return 1e4 * Math.max(1, n - net * net / x.N) / (x.N * x.N); });
+  const w = v.map(x => 1 / x), sw = w.reduce((a, b) => a + b, 0), mean = w.reduce((a, x, i) => a + x * d[i], 0) / sw, se = Math.sqrt(1 / sw);
+  return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, k };
+}
+/*
+ * THE POOLED FLOOR, SUMMED (the maintainer, 29 Sep 22:12 UK, O28: it replaces pooledFE and pooledRE as the pooled gate in
+ * 7u and 8f). The households' paired cells added into one table, read by survivalChangeU: each household weighs by its
+ * paths, not by its own counts, so a household that lost fewer by chance does not weigh more. At a true one-sided loss of
+ * 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time, against 2.5% (results-pooled-fixed.txt);
+ * pooledFE held 7.1% at 7e's two looks (results-pooled-floor.txt) and 13.0% to 65.9% at a fixed count (results-pooled-fixed.txt). `cases` [{ a, lost, saved, d }] (a both survive, d both fail); returns survivalChangeU's
+ * interval over the sum, in points (d, lo, hi), and the pooled cells.
+ */
+export function pooledSummed(cases, level = 0.05) {
+  if (!cases.length) return null;
+  let a = 0, lost = 0, saved = 0, d = 0;
+  for (const x of cases) { a += x.a; lost += x.lost; saved += x.saved; d += x.d; }
+  return { ...survivalChangeU(a, lost, saved, d, level), cells: { a, lost, saved, d }, N: a + lost + saved + d, k: cases.length };
+}
+/* the two-sided sign test over households' changes (zeros dropped) */
+export function signTest(ds) {
+  const pos = ds.filter(x => x > 0).length, neg = ds.filter(x => x < 0).length, n = pos + neg;
+  if (!n) return { pos, neg, p: 1 };
+  return { pos, neg, p: Math.min(1, 2 * binomUpperHalf(Math.max(pos, neg), n)) };
+}
+/* the paths needed so the interval's half-width fits the margin at discordance d (both as fractions) */
+export const pathsNeeded = (d, delta) => Math.ceil(1.96 * 1.96 * d / (delta * delta));
+/*
+ * A REFERENCE CHANGE'S HARM, READ BY THE MIXTURE (the maintainer, 18 Oct, PLAN.md's 18 Oct 09:43 row: "Yes, mixture only"; the
+ * deep review after FOOT-S366's premise 1). The chooser is world-blind and weighs its worlds by solve.js's MIX3 (1/6, 2/3,
+ * 1/6), so a reference change is judged by the paired survival change weighted the same way, each world's line reported and
+ * not binding. Each world's change and its interval read by both (the unconditional interval, survivalChangeU, held at least
+ * as far out as the exact conditional bound, survivalChange: the maintainer's rule of 29 Sep) are combined by
+ * the method of variance estimates recovery for a weighted sum (Zou and Donner 2008): the point is the weighted sum, each
+ * end the point less (or plus) the root of the weighted squared distances to that world's own end. Not exact: at 95% it read
+ * "no material harm" 3.67% to 4.21% of the time at a true weighted loss at the margin on S362-like cells, so the rule reads
+ * the interval at 98% (MIX_LEVEL), which holds 1.78% to 2.27% there and 0.03% to 0.39% at high survival (sim-mixture.mjs,
+ * results-sim-mixture.txt).
+ * `cells` [{ a, b, c, d }] per world (a both survive, b lost, c saved, d both fail), `w` the world weights (summing to 1).
+ */
+export const MIX3W = Object.freeze([1 / 6, 2 / 3, 1 / 6]), MIX_LEVEL = 0.02;
+export function mixtureChange(cells, w = MIX3W, level = MIX_LEVEL) {
+  if (cells.length !== w.length) throw new Error('mixtureChange: one weight a world');
+  // each world's interval read by both (the maintainer, 29 Sep 22:12 UK, section 8): the unconditional interval held at least as
+  // far out as the exact conditional bound at each end
+  const per = cells.map(x => { const u = survivalChangeU(x.a, x.b, x.c, x.d, level), e = survivalChange(x.b, x.c, x.a + x.b + x.c + x.d, level); return { d: u.d, lo: Math.min(u.lo, e.lo), hi: Math.max(u.hi, e.hi), u, e }; });
+  const d = per.reduce((t, x, k) => t + w[k] * x.d, 0);
+  const lo = d - Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.d - x.lo)) ** 2, 0)), hi = d + Math.sqrt(per.reduce((t, x, k) => t + (w[k] * (x.hi - x.d)) ** 2, 0));
+  const ctrl = cells.reduce((t, x, k) => t + w[k] * 100 * (x.a + x.b) / (x.a + x.b + x.c + x.d), 0);
+  return { d, lo, hi, ctrl, per };
+}
+/* the mixture's three outcomes, as section 8 item 3 reads one household: no material harm (lower end above minus the margin);
+   harm (the whole interval below zero and a point loss of at least the margin); inconclusive (neither). The margin is
+   marginRel at the control's mixture survival. */
+export function mixtureOutcome(m, margin = marginRel(m.ctrl)) {
+  if (m.lo > -margin) return { ...m, margin, outcome: 'no material harm' };
+  if (m.hi < 0 && -m.d >= margin) return { ...m, margin, outcome: 'harm' };
+  return { ...m, margin, outcome: 'inconclusive' };
+}
+/* a paired per-path quantity (the whole score, points) weighted the same way: each world's paired mean difference B - A and
+   its normal standard error, combined at the weights; `pairs` [{ A: Float64Array, B: Float64Array }] per world */
+export function mixtureMean(pairs, w = MIX3W, level = MIX_LEVEL) {
+  const z = zFor(level), per = pairs.map(({ A, B }) => { const n = A.length; let s = 0; for (let i = 0; i < n; i++) s += B[i] - A[i]; const m = s / n; let v = 0; for (let i = 0; i < n; i++) v += (B[i] - A[i] - m) ** 2; return { d: m, se: Math.sqrt(v / (n - 1) / n), n }; });
+  const d = per.reduce((t, x, k) => t + w[k] * x.d, 0), se = Math.sqrt(per.reduce((t, x, k) => t + (w[k] * x.se) ** 2, 0));
+  return { d, lo: d - z * se, hi: d + z * se, se, per };
+}

@@ -1,0 +1,11 @@
+7R'S LOST PATHS: WHERE THEY SIT AND WHAT THEY DO LATE (reported, not a test; the logs' stamp gate and every trace's stamp checked; 3000 paths of seed 7002)
+shift bins: below -sqrt 3 / -sqrt 3 to -1 / -1 to 0 / 0 and above
+
+S126: all paths by bin 3.2% / 12.4% / 35.3% / 49.2%
+  the reader against off: lost 15 (7/4/3/1), saved 0 (0/0/0/0)
+  survival by bin: OFF 95.83 / 99.73 / 100.00 / 100.00; READER 88.54 / 98.65 / 99.72 / 99.93
+  lost paths that re-risk late (recorded years only): 14 of 15; the reader's surviving paths with a shift below -1 that do: 0 of 451
+bridge_4: all paths by bin 4.2% / 12.1% / 34.4% / 49.3%
+  the reader against off: lost 12 (6/4/1/1), saved 0 (0/0/0/0)
+  survival by bin: OFF 92.13 / 98.90 / 99.71 / 100.00; READER 87.40 / 97.80 / 99.61 / 99.93
+  lost paths that re-risk late (recorded years only): 11 of 12; the reader's surviving paths with a shift below -1 that do: 2 of 466

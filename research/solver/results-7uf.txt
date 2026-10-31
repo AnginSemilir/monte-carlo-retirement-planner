@@ -1,0 +1,271 @@
+7U-F READ: research/solver/results/diag7uf; 19 households; seed 7014, 16000 paths; stamp {"code":"524aae79f9a0","audit":"64d9b42cd0dd","candidate":"e65e5e99ba49","prediction":"research/solver/registrations/fresh-7uf.md","sha":"d02c599ca5bef18e446327c819143242e944446a"}
+THE GATE: fair (every CAND and SHIP unit present; each household's arms on the same seed, paths and stamps, every unit launched under the registration as it stands; settings differing only in the arm's own)
+  DECOMP not read for S224/0.02 (reported, not a gate): S224 W0.02: no DECOMP unit
+  DECOMP not read for S224/0.01 (reported, not a gate): S224 W0.01: no DECOMP unit
+  DECOMP not read for S380/0.02 (reported, not a gate): S380 W0.02: no DECOMP unit
+  DECOMP not read for S380/0.01 (reported, not a gate): S380 W0.01: no DECOMP unit
+  DECOMP not read for S364/0.02 (reported, not a gate): S364 W0.02: no DECOMP unit
+  DECOMP not read for S364/0.01 (reported, not a gate): S364 W0.01: no DECOMP unit
+  DECOMP not read for S370/0.02 (reported, not a gate): S370 W0.02: no DECOMP unit
+  DECOMP not read for S370/0.01 (reported, not a gate): S370 W0.01: no DECOMP unit
+  DECOMP not read for S382/0.02 (reported, not a gate): S382 W0.02: no DECOMP unit
+  DECOMP not read for S382/0.01 (reported, not a gate): S382 W0.01: no DECOMP unit
+  DECOMP not read for S394/0.02 (reported, not a gate): S394 W0.02: no DECOMP unit
+  DECOMP not read for S394/0.01 (reported, not a gate): S394 W0.01: no DECOMP unit
+  DECOMP not read for S406/0.02 (reported, not a gate): S406 W0.02: no DECOMP unit
+  DECOMP not read for S406/0.01 (reported, not a gate): S406 W0.01: no DECOMP unit
+  DECOMP not read for S418/0.02 (reported, not a gate): S418 W0.02: no DECOMP unit
+  DECOMP not read for S418/0.01 (reported, not a gate): S418 W0.01: no DECOMP unit
+  DECOMP not read for S362/0.02 (reported, not a gate): S362 W0.02: no DECOMP unit
+  DECOMP not read for S362/0.01 (reported, not a gate): S362 W0.01: no DECOMP unit
+  DECOMP not read for S366/0.02 (reported, not a gate): S366 W0.02: no DECOMP unit
+  DECOMP not read for S366/0.01 (reported, not a gate): S366 W0.01: no DECOMP unit
+  DECOMP not read for S144/0.02 (reported, not a gate): S144 W0.02: no DECOMP unit
+  DECOMP not read for S144/0.01 (reported, not a gate): S144 W0.01: no DECOMP unit
+  DECOMP not read for S176/0.02 (reported, not a gate): S176 W0.02: no DECOMP unit
+  DECOMP not read for S176/0.01 (reported, not a gate): S176 W0.01: no DECOMP unit
+  DECOMP not read for S214/0.02 (reported, not a gate): S214 W0.02: no DECOMP unit
+  DECOMP not read for S214/0.01 (reported, not a gate): S214 W0.01: no DECOMP unit
+  DECOMP not read for S248/0.02 (reported, not a gate): S248 W0.02: no DECOMP unit
+  DECOMP not read for S248/0.01 (reported, not a gate): S248 W0.01: no DECOMP unit
+  DECOMP not read for S284/0.02 (reported, not a gate): S284 W0.02: no DECOMP unit
+  DECOMP not read for S284/0.01 (reported, not a gate): S284 W0.01: no DECOMP unit
+
+P1 at W0.02: the pooled change over the 18 floor households +0.660 points (by path 0.616 to 0.705, se 0.0226): HELD
+P1 at W0.01: the pooled change over the 18 floor households +0.702 points (by path 0.656 to 0.747, se 0.0232): HELD
+P2: 28 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none
+  S224   W0.02: SHIP 70.03 CAND 69.85 change -0.181 (-0.359 to -0.004; 90 saved, 119 lost) p 2.63e-2 Holm 7.09e-1; at the margins 0.25 not clear, 0.5 clear
+  S224   W0.01: SHIP 69.96 CAND 69.67 change -0.281 (-0.534 to -0.029; 190 saved, 235 lost) p 1.63e-2 Holm 4.58e-1; at the margins 0.25 not clear, 0.5 not clear
+  S380   W0.02: SHIP 73.01 CAND 73.09 change +0.081 (-0.210 to 0.373; 289 saved, 276 lost) p 7.22e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S380   W0.01: SHIP 72.87 CAND 73.08 change +0.206 (-0.085 to 0.497; 298 saved, 265 lost) p 9.24e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S364   W0.02: SHIP 0.42 CAND 0.47 change +0.056 (0.016 to 0.103; 9 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S364   W0.01: SHIP 0.32 CAND 0.47 change +0.156 (0.097 to 0.228; 25 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S370   W0.02: SHIP 74.04 CAND 80.59 change +6.556 (6.099 to 7.016; 1260 saved, 211 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S370   W0.01: SHIP 73.93 CAND 80.49 change +6.563 (6.105 to 7.022; 1259 saved, 209 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S382   W0.02: SHIP 90.52 CAND 90.47 change -0.050 (-0.179 to 0.079; 50 saved, 58 lost) p 2.50e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S382   W0.01: SHIP 90.32 CAND 90.26 change -0.063 (-0.182 to 0.056; 41 saved, 51 lost) p 1.74e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S394   W0.02: SHIP 85.58 CAND 85.45 change -0.125 (-0.265 to 0.014; 54 saved, 74 lost) p 4.63e-2 Holm 1.00e+0; at the margins 0.25 not clear, 0.5 clear
+  S394   W0.01: SHIP 85.42 CAND 85.41 change -0.006 (-0.147 to 0.135; 65 saved, 66 lost) p 5.00e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S406   W0.02: SHIP 88.47 CAND 90.84 change +2.362 (2.126 to 2.606; 384 saved, 6 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S406   W0.01: SHIP 88.18 CAND 90.69 change +2.513 (2.267 to 2.765; 411 saved, 9 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S418   W0.02: SHIP 90.74 CAND 91.52 change +0.775 (0.626 to 0.928; 137 saved, 13 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S418   W0.01: SHIP 90.56 CAND 91.44 change +0.881 (0.727 to 1.041; 152 saved, 11 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S362   W0.02: SHIP 44.85 CAND 49.22 change +4.369 (3.999 to 4.738; 819 saved, 120 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S362   W0.01: SHIP 44.84 CAND 49.24 change +4.394 (4.025 to 4.762; 820 saved, 117 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S366   W0.02: SHIP 99.46 CAND 99.56 change +0.106 (0.055 to 0.167; 17 saved, 0 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S366   W0.01: SHIP 99.42 CAND 99.54 change +0.125 (0.068 to 0.192; 21 saved, 1 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S002   W0.02: SHIP 99.97 CAND 100.00 change +0.025 (-0.003 to 0.064; 4 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S002   W0.01: SHIP 99.97 CAND 100.00 change +0.025 (-0.003 to 0.064; 4 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S018   W0.02: SHIP 99.98 CAND 100.00 change +0.019 (-0.008 to 0.055; 3 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S018   W0.01: SHIP 99.98 CAND 100.00 change +0.019 (-0.008 to 0.055; 3 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S044   W0.02: SHIP 85.63 CAND 85.64 change +0.019 (-0.099 to 0.137; 47 saved, 44 lost) p 6.62e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S044   W0.01: SHIP 85.59 CAND 85.57 change -0.019 (-0.139 to 0.102; 46 saved, 49 lost) p 4.19e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S078   W0.02: SHIP 99.86 CAND 99.94 change +0.081 (0.040 to 0.139; 13 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S078   W0.01: SHIP 99.88 CAND 99.96 change +0.075 (0.035 to 0.131; 12 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S144   W0.02: SHIP 99.99 CAND 99.99 change +0.000 (-0.024 to 0.024; 0 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S144   W0.01: SHIP 99.99 CAND 99.99 change +0.006 (-0.017 to 0.036; 1 saved, 0 lost) outside the band: reported; at the margins 0.25 clear, 0.5 clear
+  S176   W0.02: SHIP 81.23 CAND 81.20 change -0.031 (-0.173 to 0.111; 64 saved, 69 lost) p 3.64e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S176   W0.01: SHIP 81.24 CAND 81.17 change -0.063 (-0.204 to 0.079; 61 saved, 71 lost) p 2.17e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S214   W0.02: SHIP 87.29 CAND 87.21 change -0.087 (-0.207 to 0.031; 39 saved, 53 lost) p 8.75e-2 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S214   W0.01: SHIP 87.16 CAND 87.11 change -0.056 (-0.167 to 0.054; 35 saved, 44 lost) p 1.84e-1 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S248   W0.02: SHIP 50.67 CAND 52.48 change +1.806 (1.493 to 2.119; 473 saved, 184 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S248   W0.01: SHIP 50.52 CAND 52.41 change +1.887 (1.576 to 2.199; 478 saved, 176 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S284   W0.02: SHIP 59.92 CAND 62.58 change +2.663 (2.386 to 2.939; 474 saved, 48 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S284   W0.01: SHIP 59.77 CAND 62.60 change +2.831 (2.548 to 3.114; 500 saved, 47 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+OUTCOME: PASS: the candidate goes to Phase 4
+
+REPORTED (not gating)
+  S224   W0.02: estate +25715.789 (se 1864.376), unmet -2034.464, realised spend -146.076, years cut +0.000; whole score -0.264 (se 0.1841) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 25.77 less the engine 26.20 = -0.434 (the runs 24.32 to 28.17); 1 table 77.26 less the engine 74.30 = +2.957 (the runs 72.34 to 76.17); 2 table 97.57 less the engine 96.70 = +0.872 (the runs 95.82 to 97.40)
+  S224   W0.01: estate -12460.964 (se 1771.513), unmet -5650.906, realised spend -246.306, years cut +0.000; whole score -0.840 (se 0.2588) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 25.33 less the engine 26.15 = -0.817 (the runs 24.27 to 28.12); 1 table 77.43 less the engine 74.05 = +3.383 (the runs 72.08 to 75.92); 2 table 97.71 less the engine 97.05 = +0.655 (the runs 96.21 to 97.71)
+  S380   W0.02: estate +177394.590 (se 3427.653), unmet +11629.715, realised spend +157.685, years cut +0.000; whole score +0.437 (se 0.3057) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 35.43 less the engine 31.70 = +3.728 (the runs 29.70 to 33.77); 1 table 76.07 less the engine 77.70 = -1.628 (the runs 75.82 to 79.47); 2 table 93.96 less the engine 97.20 = -3.243 (the runs 96.38 to 97.84)
+  S380   W0.01: estate +129591.047 (se 2977.728), unmet +11858.539, realised spend +209.230, years cut +0.000; whole score +0.183 (se 0.3010) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 35.59 less the engine 31.20 = +4.392 (the runs 29.21 to 33.26); 1 table 76.17 less the engine 77.80 = -1.626 (the runs 75.93 to 79.57); 2 table 94.00 less the engine 97.20 = -3.197 (the runs 96.38 to 97.84)
+  S364   W0.02: estate +1097.393 (se 342.803), unmet +45.536, realised spend -1.095, years cut +0.000; whole score +0.058 (se 0.0407) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 0.05 less the engine 0.05 = +0.004 (the runs 0.01 to 0.28); 1 table 0.39 less the engine 0.35 = +0.042 (the runs 0.17 to 0.72); 2 table 1.70 less the engine 1.60 = +0.104 (the runs 1.14 to 2.25)
+  S364   W0.01: estate +2846.897 (se 563.119), unmet +773.665, realised spend +12.826, years cut +0.000; whole score +0.185 (se 0.0679) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 0.05 less the engine 0.05 = +0.004 (the runs 0.01 to 0.28); 1 table 0.39 less the engine 0.35 = +0.042 (the runs 0.17 to 0.72); 2 table 1.70 less the engine 1.60 = +0.104 (the runs 1.14 to 2.25)
+  S370   W0.02: estate +280581.348 (se 12941.853), unmet -53179.267, realised spend -1512.069, years cut +0.000; whole score +6.223 (se 0.4906) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 1, runPolicy alone 0 of 4000 (two-sided exact p 1.0000) (apart on some paths, below the gap's test)
+      the paths apart (index from 0): the engine alone 342; runPolicy alone -
+    by world CAND: 0 table 50.31 less the engine 41.00 = +9.309 (the runs 38.86 to 43.17); 1 table 89.10 less the engine 86.95 = +2.149 (the runs 85.40 to 88.36); 2 table 98.65 less the engine 99.30 = -0.651 (the runs 98.83 to 99.58)
+  S370   W0.01: estate +200396.345 (se 12403.069), unmet -54180.544, realised spend -1416.159, years cut +0.000; whole score +6.059 (se 0.4842) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 1, runPolicy alone 0 of 4000 (two-sided exact p 1.0000) (apart on some paths, below the gap's test)
+      the paths apart (index from 0): the engine alone 342; runPolicy alone -
+    by world CAND: 0 table 50.30 less the engine 40.45 = +9.848 (the runs 38.32 to 42.62); 1 table 89.10 less the engine 86.85 = +2.248 (the runs 85.30 to 88.26); 2 table 98.65 less the engine 99.25 = -0.598 (the runs 98.77 to 99.54)
+  S382   W0.02: estate +368110.501 (se 7347.831), unmet -243.306, realised spend -407.363, years cut +0.000; whole score +0.247 (se 0.1430) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 1, runPolicy alone 1 of 4000 (two-sided exact p 1.0000) (apart on some paths, below the gap's test)
+      the paths apart (index from 0): the engine alone 3575; runPolicy alone 406
+    fidelity CAND: the engine alone 2, runPolicy alone 0 of 4000 (two-sided exact p 0.5000) (apart on some paths, below the gap's test)
+      the paths apart (index from 0): the engine alone 406 983; runPolicy alone -
+    by world CAND: 0 table 59.64 less the engine 59.90 = -0.260 (the runs 57.74 to 62.03); 1 table 93.73 less the engine 96.15 = -2.419 (the runs 95.21 to 96.91); 2 table 99.42 less the engine 99.95 = -0.525 (the runs 99.72 to 99.99)
+  S382   W0.01: estate +280593.119 (se 6352.695), unmet -81.605, realised spend -364.338, years cut +0.000; whole score +0.046 (se 0.1305) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 59.89 less the engine 58.90 = +0.987 (the runs 56.73 to 61.04); 1 table 93.79 less the engine 95.95 = -2.162 (the runs 94.99 to 96.73); 2 table 99.44 less the engine 99.95 = -0.512 (the runs 99.72 to 99.99)
+  S394   W0.02: estate +160705.218 (se 5010.039), unmet +307.142, realised spend -212.590, years cut +0.000; whole score +0.107 (se 0.1317) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 44.80 less the engine 47.60 = -2.803 (the runs 45.42 to 49.79); 1 table 87.94 less the engine 92.15 = -4.214 (the runs 90.89 to 93.25); 2 table 98.85 less the engine 99.80 = -0.946 (the runs 99.49 to 99.92)
+  S394   W0.01: estate +97828.037 (se 3905.434), unmet +538.102, realised spend -227.686, years cut +0.000; whole score +0.283 (se 0.1379) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 44.80 less the engine 47.10 = -2.305 (the runs 44.92 to 49.29); 1 table 87.96 less the engine 92.10 = -4.137 (the runs 90.84 to 93.20); 2 table 98.86 less the engine 99.80 = -0.941 (the runs 99.49 to 99.92)
+  S406   W0.02: estate +417215.907 (se 7220.028), unmet -11805.601, realised spend -298.849, years cut +0.000; whole score +2.733 (se 0.2503) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 59.48 less the engine 62.50 = -3.015 (the runs 60.36 to 64.60); 1 table 92.95 less the engine 96.05 = -3.098 (the runs 95.10 to 96.82); 2 table 99.27 less the engine 99.90 = -0.630 (the runs 99.64 to 99.97)
+  S406   W0.01: estate +333844.463 (se 6212.305), unmet -12472.231, realised spend -257.604, years cut +0.000; whole score +2.667 (se 0.2563) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 59.63 less the engine 61.85 = -2.215 (the runs 59.70 to 63.95); 1 table 92.96 less the engine 95.95 = -2.987 (the runs 94.99 to 96.73); 2 table 99.27 less the engine 99.90 = -0.626 (the runs 99.64 to 99.97)
+  S418   W0.02: estate +297667.673 (se 6799.679), unmet -2638.366, realised spend -402.041, years cut +0.000; whole score +0.893 (se 0.1505) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 60.25 less the engine 65.00 = -4.749 (the runs 62.88 to 67.06); 1 table 93.31 less the engine 96.15 = -2.841 (the runs 95.21 to 96.91); 2 table 99.38 less the engine 99.90 = -0.524 (the runs 99.64 to 99.97)
+  S418   W0.01: estate +242827.783 (se 6076.550), unmet -2671.857, realised spend -366.758, years cut +0.000; whole score +0.807 (se 0.1545) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 60.34 less the engine 64.50 = -4.161 (the runs 62.38 to 66.57); 1 table 93.31 less the engine 96.20 = -2.889 (the runs 95.27 to 96.95); 2 table 99.38 less the engine 99.90 = -0.523 (the runs 99.64 to 99.97)
+  S362   W0.02: estate +34028.288 (se 1133.358), unmet -163.084, realised spend -15.630, years cut +0.000; whole score +5.585 (se 0.4417) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 28.94 less the engine 29.90 = -0.958 (the runs 27.93 to 31.94); 1 table 49.52 less the engine 49.05 = +0.466 (the runs 46.86 to 51.24); 2 table 67.60 less the engine 67.65 = -0.052 (the runs 65.57 to 69.66)
+  S362   W0.01: estate +31426.192 (se 1106.467), unmet -161.684, realised spend +5.794, years cut +0.000; whole score +5.342 (se 0.4313) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 28.99 less the engine 30.00 = -1.010 (the runs 28.03 to 32.05); 1 table 49.52 less the engine 49.05 = +0.468 (the runs 46.86 to 51.24); 2 table 67.60 less the engine 67.65 = -0.052 (the runs 65.57 to 69.66)
+  S366   W0.02: estate +82542.790 (se 2672.597), unmet -130.460, realised spend -2.175, years cut +0.000; whole score +0.263 (se 0.0519) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 95.81 less the engine 97.75 = -1.940 (the runs 97.00 to 98.31); 1 table 99.86 less the engine 99.95 = -0.091 (the runs 99.72 to 99.99); 2 table 99.99 less the engine 100.00 = -0.009 (the runs 99.81 to 100.00)
+  S366   W0.01: estate +42672.490 (se 2266.429), unmet -122.498, realised spend +127.966, years cut +0.000; whole score +0.270 (se 0.0623) on 4000 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 96.04 less the engine 97.75 = -1.709 (the runs 97.00 to 98.31); 1 table 99.86 less the engine 99.95 = -0.087 (the runs 99.72 to 99.99); 2 table 99.99 less the engine 100.00 = -0.009 (the runs 99.81 to 100.00)
+  S002   W0.02: estate +11194.888 (se 276.510), unmet -0.000, realised spend +1.017, years cut +0.000; whole score +0.124 (se 0.0061) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.98 less the engine 100.00 = -0.022 (the runs 99.81 to 100.00); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00)
+  S002   W0.01: estate +2187.267 (se 113.142), unmet +0.000, realised spend +1.331, years cut +0.000; whole score +0.012 (se 0.0012) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.98 less the engine 99.95 = +0.034 (the runs 99.72 to 99.99); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00)
+  S018   W0.02: estate +34642.187 (se 1153.200), unmet -0.000, realised spend +1.871, years cut +0.000; whole score +0.067 (se 0.0045) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.96 less the engine 99.95 = +0.015 (the runs 99.72 to 99.99); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00)
+  S018   W0.01: estate +5269.761 (se 484.522), unmet -0.000, realised spend +2.521, years cut +0.000; whole score +0.007 (se 0.0010) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.97 less the engine 99.95 = +0.022 (the runs 99.72 to 99.99); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.81 to 100.00)
+  S044   W0.02: estate +76380.577 (se 2088.486), unmet +304.094, realised spend -38.401, years cut +0.000; whole score -0.041 (se 0.1387) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 56.59 less the engine 53.65 = +2.941 (the runs 51.46 to 55.83); 1 table 92.50 less the engine 90.10 = +2.397 (the runs 88.71 to 91.33); 2 table 99.55 less the engine 99.55 = +0.000 (the runs 99.15 to 99.76)
+  S044   W0.01: estate +62837.595 (se 1762.902), unmet +308.318, realised spend -53.124, years cut +0.000; whole score -0.101 (se 0.1330) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 56.60 less the engine 53.35 = +3.247 (the runs 51.16 to 55.53); 1 table 92.53 less the engine 90.30 = +2.232 (the runs 88.92 to 91.52); 2 table 99.56 less the engine 99.55 = +0.005 (the runs 99.15 to 99.76)
+  S078   W0.02: estate +43332.098 (se 1418.658), unmet -9.584, realised spend +14.525, years cut +0.000; whole score +0.174 (se 0.0445) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.72 less the engine 99.65 = +0.066 (the runs 99.28 to 99.83); 1 table 99.99 less the engine 100.00 = -0.007 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.004 (the runs 99.81 to 100.00)
+  S078   W0.01: estate +12411.194 (se 1116.220), unmet -5.894, realised spend +17.454, years cut +0.000; whole score +0.102 (se 0.0446) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.81 less the engine 99.65 = +0.155 (the runs 99.28 to 99.83); 1 table 99.99 less the engine 100.00 = -0.006 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.004 (the runs 99.81 to 100.00)
+  S144   W0.02: estate +4046.056 (se 137.969), unmet -0.000, realised spend +0.086, years cut +0.000; whole score +0.043 (se 0.0030) on 4000 paths
+    the reader: 2 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.96 less the engine 100.00 = -0.037 (the runs 99.81 to 100.00); 1 table 100.00 less the engine 100.00 = -0.005 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.004 (the runs 99.81 to 100.00)
+  S144   W0.01: estate +2253.711 (se 54.308), unmet -0.000, realised spend +0.125, years cut +0.000; whole score +0.013 (se 0.0007) on 4000 paths
+    the reader: 2 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 99.97 less the engine 100.00 = -0.030 (the runs 99.81 to 100.00); 1 table 100.00 less the engine 100.00 = -0.004 (the runs 99.81 to 100.00); 2 table 100.00 less the engine 100.00 = -0.004 (the runs 99.81 to 100.00)
+  S176   W0.02: estate +139707.608 (se 2993.252), unmet -84.145, realised spend -126.795, years cut +0.000; whole score +0.320 (se 0.1259) on 4000 paths
+    the reader: 2 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 43.98 less the engine 41.90 = +2.079 (the runs 39.76 to 44.08); 1 table 86.75 less the engine 86.65 = +0.097 (the runs 85.09 to 88.07); 2 table 98.24 less the engine 99.30 = -1.059 (the runs 98.83 to 99.58)
+  S176   W0.01: estate +82426.718 (se 2368.722), unmet +175.730, realised spend -93.840, years cut +0.000; whole score +0.094 (se 0.1461) on 4000 paths
+    the reader: 2 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 44.15 less the engine 41.60 = +2.547 (the runs 39.46 to 43.77); 1 table 86.77 less the engine 86.70 = +0.075 (the runs 85.14 to 88.12); 2 table 98.25 less the engine 99.25 = -1.002 (the runs 98.77 to 99.54)
+  S214   W0.02: estate +159035.777 (se 4954.979), unmet -613.828, realised spend -311.205, years cut +0.000; whole score +0.014 (se 0.1214) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 48.79 less the engine 52.20 = -3.414 (the runs 50.01 to 54.38); 1 table 93.51 less the engine 93.10 = +0.406 (the runs 91.90 to 94.13); 2 table 99.78 less the engine 99.85 = -0.068 (the runs 99.56 to 99.95)
+  S214   W0.01: estate +100998.273 (se 3729.884), unmet -755.821, realised spend -309.036, years cut +0.000; whole score +0.044 (se 0.1006) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 48.70 less the engine 52.05 = -3.350 (the runs 49.86 to 54.23); 1 table 93.48 less the engine 93.00 = +0.481 (the runs 91.80 to 94.04); 2 table 99.78 less the engine 99.85 = -0.068 (the runs 99.56 to 99.95)
+  S248   W0.02: estate +89451.677 (se 2974.211), unmet -4363.029, realised spend +572.585, years cut +0.000; whole score +2.317 (se 0.3332) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 9.93 less the engine 9.15 = +0.779 (the runs 7.96 to 10.49); 1 table 55.84 less the engine 53.50 = +2.341 (the runs 51.31 to 55.68); 2 table 93.17 less the engine 92.20 = +0.967 (the runs 90.94 to 93.30)
+  S248   W0.01: estate +75695.478 (se 2753.927), unmet -5628.224, realised spend +576.589, years cut +0.000; whole score +2.052 (se 0.3298) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 9.79 less the engine 9.20 = +0.587 (the runs 8.01 to 10.55); 1 table 55.78 less the engine 53.75 = +2.028 (the runs 51.56 to 55.93); 2 table 93.19 less the engine 92.25 = +0.936 (the runs 91.00 to 93.34)
+  S284   W0.02: estate +121442.137 (se 2470.476), unmet -11743.658, realised spend +20.010, years cut +0.000; whole score +2.832 (se 0.2734) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 14.07 less the engine 15.05 = -0.984 (the runs 13.55 to 16.68); 1 table 67.29 less the engine 66.90 = +0.395 (the runs 64.81 to 68.93); 2 table 96.74 less the engine 96.55 = +0.186 (the runs 95.66 to 97.26)
+  S284   W0.01: estate +113714.358 (se 2209.783), unmet -13045.147, realised spend +5.804, years cut +0.000; whole score +2.928 (se 0.2903) on 4000 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 4000 (two-sided exact p 1.0000)
+    by world CAND: 0 table 13.89 less the engine 15.00 = -1.107 (the runs 13.50 to 16.63); 1 table 67.26 less the engine 66.85 = +0.410 (the runs 64.76 to 68.88); 2 table 96.74 less the engine 96.60 = +0.144 (the runs 95.71 to 97.31)

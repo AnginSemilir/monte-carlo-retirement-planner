@@ -1,0 +1,19 @@
+# node research/tests/tier-above.test.mjs (on this commit's code)
+PASS  the solver's pension tiers, held at Medium with risk above: Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk
+PASS  the engine's pen list begins with the solver's: Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk, High Risk
+PASS  the engine's isa list begins with the solver's: Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk, High Risk
+PASS  200 paths, 7200 years: the table held the tier above in 1066, and every year each wrapper grew at the solver's tier for its index (mismatches 0)
+PASS  index 3 on the Medium plan gives the Medium/High plan's pots every year (final 2208985 against 2208985)
+PASS  planted: with the old list, index 3 grows at Low Risk and check 3 sees it (final 0 against 2208985)
+PASS  planted: a move naming the wrong tier throws (table move: tier 3 of pen_self is Medium/High Risk in the engine but Low Risk in the table)
+ALL PASS: 7 checks
+
+# the same test in a worktree at 9d4176d (the engine and bridge before the fix): it must fail
+PASS  the solver's pension tiers, held at Medium with risk above: Medium Risk, Medium/Low Risk, Low Risk, Medium/High Risk
+FAIL  the engine's pen list begins with the solver's: Medium Risk, Medium/Low Risk, Low Risk
+FAIL  the engine's isa list begins with the solver's: Medium Risk, Medium/Low Risk, Low Risk
+FAIL  200 paths, 7200 years: the table held the tier above in 0, and every year each wrapper grew at the solver's tier for its index (mismatches 7200, first year 0: pension index 1 grown at undefined)
+FAIL  index 3 on the Medium plan gives the Medium/High plan's pots every year (final 0 against 2208985)
+PASS  planted: with the old list, index 3 grows at Low Risk and check 3 sees it (final 0 against 2208985)
+FAIL  planted: a move naming the wrong tier throws (it did not throw)
+FAILED: 5 of 7 checks

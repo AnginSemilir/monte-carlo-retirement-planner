@@ -1,0 +1,47 @@
+GATE: passed - 9 units, each once and done, ADOPT-PI's settings and the arm's tables and read, tie margin 0 and death tax 0 on every ran line; each household's units on one access line and one set of paths; every per-path file present, stamped and holding its sum line; the SNAP and PCLSI arms equal to ADOPT-PI's per-path files on every path (ADOPT-PI's files through their own gate)
+
+HYB: ADOPT-PI's unit (no reader, the product's settings, lambda held, the estate weight 0.02, 30 points), seed 7005, death tax 0, every arm of a household on the same paths; SNAP, PCLSI and HYB (PCLSI's tables read through the snap) on S130, S370, S128.
+
+ITEM 1 (primary): O89's split: y = (PCLSI - HYB) - (HYB - SNAP) a path in survival; the randomization test (B 20000) of mean(y) above 0 (READ) and below (TABLES), Holm over 6; the parts' cells beside it
+  S130             tables (HYB over SNAP): b 117 c 68 change -0.817 | read (PCLSI over HYB): b 10 c 202 change 3.200 | the read's share 1.343 | mean y 401.7e-4, p 5.00e-5 / 1.00e+0, Holm 3.00e-4 / 1.00e+0 | READ
+  S370             tables (HYB over SNAP): b 63 c 68 change 0.083 | read (PCLSI over HYB): b 14 c 57 change 0.717 | the read's share 0.896 | mean y 63.3e-4, p 1.20e-2 / 9.92e-1, Holm 4.82e-2 / 1.00e+0 | READ
+  S128             tables (HYB over SNAP): b 75 c 54 change -0.350 | read (PCLSI over HYB): b 28 c 73 change 0.750 | the read's share 1.875 | mean y 110.0e-4, p 3.00e-4 / 1.00e+0, Holm 1.50e-3 / 1.00e+0 | READ
+  -> HELD (HELD when S130 reads READ; FALSIFIED when S130 reads TABLES; else INCONCLUSIVE)
+
+SECONDARY (declared; decides nothing): paired changes a path, survival in points, tax and net (se over paths)
+  S130     PCLSI less SNAP  survival   2.383  tax  -321013.36 (2895.26)  net    261976.90 (9239.00)
+  S130     HYB less SNAP    survival  -0.817  tax   132172.51 (1640.53)  net    135191.25 (5792.10)
+  S130     PCLSI less HYB   survival   3.200  tax  -453185.87 (3402.04)  net    126785.66 (9047.52)
+  S370     PCLSI less SNAP  survival   0.800  tax   -38501.92 (1430.37)  net    705183.23 (314209.05)
+  S370     HYB less SNAP    survival   0.083  tax    16853.05 (1115.32)  net    685356.06 (319865.18)
+  S370     PCLSI less HYB   survival   0.717  tax   -55354.97 (1062.11)  net     19827.17 (29741.69)
+  S128     PCLSI less SNAP  survival   0.400  tax   -72204.42 (862.48)  net     17474.91 (2356.16)
+  S128     HYB less SNAP    survival  -0.350  tax    28499.85 (522.17)  net     57468.40 (2253.12)
+  S128     PCLSI less HYB   survival   0.750  tax  -100704.28 (1143.05)  net    -39993.49 (2681.61)
+
+REPORTED (the deep review after COV-B-STEP): the first year a discordant path differs in tier or spend level (year: paths), and each arm's year-0 move
+  S130     HYB against SNAP: 1:20 2:1 3:4 5:14 6:9 7:14 8:17 9:13 10:9 11:7 12:17 13:6 14:3 15:3 16:8 17:2 18:8 19:5 20:2 21:1 23:1 24:1 26:2 27:1 28:2 29:3 30:3 31:1 32:2 34:2 35:3 36:1
+  S130     PCLSI against HYB: 2:1 3:2 4:1 5:2 6:6 7:11 8:7 9:10 10:9 11:8 12:25 13:11 14:8 15:6 16:8 17:7 18:12 19:6 20:7 21:4 22:6 23:7 24:4 25:3 26:6 27:5 28:4 29:5 30:4 31:3 32:5 33:4 34:2 35:1 36:2
+  S130     PCLSI against SNAP: 1:22 2:3 3:5 4:1 5:15 6:9 7:8 8:13 9:11 10:11 11:6 12:10 13:10 14:5 15:7 16:6 17:4 18:3 19:5 20:4 21:3 22:1 23:4 24:2 25:1 26:4 27:2 28:1 29:3 30:2 31:2 32:2 33:1 34:2 35:4 36:1
+  S130     year-0 move: SNAP tier 0 level 80 (6000) | PCLSI tier 0 level 80 (6000) | HYB tier 0 level 80 (6000)
+  S370     HYB against SNAP: 3:1 4:20 7:24 8:9 9:11 10:7 11:6 12:16 13:14 14:4 15:6 16:6 21:1 22:1 23:2 26:1 44:1 45:1
+  S370     PCLSI against HYB: 8:3 9:5 10:1 12:3 13:6 14:4 15:2 16:3 17:2 18:4 19:2 20:3 21:3 22:2 23:3 24:1 26:2 27:3 28:2 29:1 30:1 31:1 34:1 35:1 36:2 37:1 38:2 39:1 40:1 42:3 43:1 44:1
+  S370     PCLSI against SNAP: 3:2 4:19 7:25 8:7 9:17 10:9 11:7 12:7 13:11 14:6 15:10 16:4 17:2 18:2 19:1 22:1 24:1 42:1 44:1 45:1
+  S370     year-0 move: SNAP tier 0 level 80 (6000) | PCLSI tier 0 level 80 (6000) | HYB tier 0 level 80 (6000)
+  S128     HYB against SNAP: 1:9 2:11 3:8 4:7 5:6 6:3 7:8 8:3 9:9 10:11 11:4 12:4 13:7 14:6 15:5 16:8 17:2 19:1 20:2 21:2 22:1 23:2 24:2 26:1 27:1 28:1 29:2 30:1 34:1 37:1
+  S128     PCLSI against HYB: 2:1 3:4 4:4 5:10 6:5 7:3 8:2 9:3 10:3 11:4 12:3 13:3 14:5 15:4 16:3 18:1 19:1 21:2 22:2 23:2 24:6 25:4 26:2 27:3 28:4 29:5 30:2 32:3 34:1 38:2 39:1 | no difference in tier or level on 3
+  S128     PCLSI against SNAP: 1:10 2:11 3:12 4:12 5:8 6:7 7:5 8:2 9:5 10:7 11:3 12:3 13:8 14:2 15:3 16:3 17:2 19:1 20:2 22:4 23:1 25:1 26:2 27:1 29:1 32:1 35:1 37:2 38:1 | no difference in tier or level on 1
+  S128     year-0 move: SNAP tier 0 level 80 (6000) | PCLSI tier 0 level 80 (6000) | HYB tier 0 level 80 (6000)
+
+REPORTED: the hold per arm (paths reaching 0.6 of the allowance, crossing 0.75, the mean years in [0.6, 0.75) of the reaching paths)
+  S130 SNAP      reach  5998 cross  5991 dwell 9.81
+  S130 PCLSI     reach  6000 cross  5992 dwell 2.14
+  S130 HYB       reach  5995 cross  5983 dwell 1.91
+  S370 SNAP      reach  5279 cross  5266 dwell 2.50
+  S370 PCLSI     reach  5279 cross  5264 dwell 1.40
+  S370 HYB       reach  5279 cross  5264 dwell 1.87
+  S128 SNAP      reach  5482 cross  5098 dwell 9.87
+  S128 PCLSI     reach  5500 cross  5088 dwell 3.94
+  S128 HYB       reach  5474 cross  5046 dwell 6.32
+
+OUTCOME: 1 HELD

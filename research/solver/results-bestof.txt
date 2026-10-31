@@ -1,0 +1,61 @@
+M18 - THE PURPOSE TEST (the maintainer's best-of-candidates check), 24 Sep 00:35-01:33
+From snapshot /tmp/solver-snap-ILfM9G (6e7bc87). 8 households (S070 S184 S330 S354 thin; S252 S054 S112 S162
+middle), 20 positions each (80 on the cliff, forecast 30-97%), the table's top 6 DISTINCT moves, each simulated
+(take it, then follow the solver) on 800 shared paths: the best PICKED on 400, MEASURED on the other 400 against
+the solver's pick. Full scan, exact final year, single table. Data: results/bestof/.
+
+THE MAINTAINER'S CRITERION - is the best-surviving candidate further from the solver's pick than noise?
+  At 159 of 160 positions the best-surviving candidate is within noise of the solver's pick; on average it
+  survives 0.02 points LESS (-0.019 +/- 0.030). The one exception: +1.75 points, within 2 se of 3.
+  VERDICT: the solver's pick is the best-surviving of its top six, within noise. SUCCESS on the criterion.
+
+AGAINST THE PREDICTION (written 22:20, before the run)
+  survival: best candidate ahead by under half a point on average   HELD (-0.02)
+            within noise at 90% of positions                        HELD (159 of 160, 99%)
+            where ahead, it cut more                                PARTLY (10 of 23)
+  objective (survival + estate - cuts + raises, simulated):
+            challenger ahead beyond 2 se at no more than 5%          FAILED AS WRITTEN: 13 of 160 (8.1%)
+            mean advantage within noise                              HELD, and negative: -0.07 +/- 0.03 points
+  FALSIFIER (over 10% beyond 2 se, or mean advantage over 0.5)       NOT FIRED
+  What the 13 are: 10 differ by 0.00-0.06 points with a standard error near zero - deterministic ties such as
+  harvesting to the allowance or not, where survival is identical and only a sliver of estate credit differs;
+  two are comfortable positions (survival ~100%) where one tier MORE risk than the solver chose simulates
+  better on the objective (S112 t=2 +0.56, S070 t=29 +0.13): the solver de-risks a little more than its own
+  estate credit warrants; one is a near-hopeless position on S330 (+1.47 +/- 0.53, spend 95% vs 90%).
+
+THE TABLE'S RANKING AGAINST SIMULATION
+  Across the 710 challengers, the table's score gap and the simulated gap run together (correlation -0.52):
+  the further behind the table puts a move, the worse it simulates. The 30 moves the table puts more than half a
+  point behind simulate 1.42 points behind on average and are ahead in 1 of 30.
+
+WHAT IT MEANS
+  The solver finds the best-surviving plan among its own candidates, within noise, at every position tested -
+  including 80 positions on the cliff where decisions matter. The table's 3-5 point optimism (M16) does not
+  cost the choice. On the full objective there is a small, real lean: in comfortable positions the solver holds
+  a tier more caution than its estate credit pays for (Phase 6 saw the same trade: survival bought with upside).
+
+PER HOUSEHOLD (the audit's own lines)
+S070 just-retired/pension-heavy/wealthy/moder - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 1.140477893362459
+  all                              objective: solver's pick is best-on-A 8/20; best-on-A ahead on B +0.08 pts (beyond 2 se at 1/20)  |  survival: best-on-A ahead on B +0.17 pts (beyond 2 se at 1/20), its score gap from the top 1.4e-3
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B +0.12 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B +0.23 pts (beyond 2 se at 0/10), its score gap from the top 2.6e-3
+S184 near/pension-heavy/modest/moderate - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 2
+  all                              objective: solver's pick is best-on-A 6/20; best-on-A ahead on B -0.08 pts (beyond 2 se at 2/20)  |  survival: best-on-A ahead on B -0.15 pts (beyond 2 se at 0/20), its score gap from the top 2.5e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B -0.13 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B -0.28 pts (beyond 2 se at 0/10), its score gap from the top 2.6e-4
+S354 far/cash-heavy/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 1.140477893362459
+  all                              objective: solver's pick is best-on-A 5/20; best-on-A ahead on B -0.29 pts (beyond 2 se at 0/20)  |  survival: best-on-A ahead on B -0.06 pts (beyond 2 se at 0/20), its score gap from the top 1.6e-3
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 1/10; best-on-A ahead on B -0.31 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B +0.05 pts (beyond 2 se at 0/10), its score gap from the top 3.0e-3
+S330 far/gia-heavy/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.9457416090031758
+  all                              objective: solver's pick is best-on-A 7/20; best-on-A ahead on B -0.04 pts (beyond 2 se at 1/20)  |  survival: best-on-A ahead on B -0.09 pts (beyond 2 se at 0/20), its score gap from the top 5.8e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 5/10; best-on-A ahead on B +0.18 pts (beyond 2 se at 1/10)  |  survival: best-on-A ahead on B -0.15 pts (beyond 2 se at 0/10), its score gap from the top 2.3e-4
+S054 in-drawdown/cash-heavy/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.1
+  all                              objective: solver's pick is best-on-A 6/20; best-on-A ahead on B -0.07 pts (beyond 2 se at 2/20)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/20), its score gap from the top 1.9e-5
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 0/10; best-on-A ahead on B -0.15 pts (beyond 2 se at 1/10)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/10), its score gap from the top 3.9e-5
+S252 mid/isa-heavy/lean/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 2
+  all                              objective: solver's pick is best-on-A 8/20; best-on-A ahead on B -0.14 pts (beyond 2 se at 2/20)  |  survival: best-on-A ahead on B -0.06 pts (beyond 2 se at 0/20), its score gap from the top 2.4e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B -0.29 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B -0.13 pts (beyond 2 se at 0/10), its score gap from the top 4.9e-4
+S112 just-retired/cash-heavy/modest/moderate - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.0223606797749979
+  all                              objective: solver's pick is best-on-A 6/20; best-on-A ahead on B +0.05 pts (beyond 2 se at 4/20)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/20), its score gap from the top 1.4e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 0/10; best-on-A ahead on B +0.03 pts (beyond 2 se at 1/10)  |  survival: best-on-A ahead on B -0.03 pts (beyond 2 se at 0/10), its score gap from the top 2.8e-4
+S162 early-bridge/balanced/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.1
+  all                              objective: solver's pick is best-on-A 11/20; best-on-A ahead on B -0.10 pts (beyond 2 se at 1/20)  |  survival: best-on-A ahead on B +0.04 pts (beyond 2 se at 0/20), its score gap from the top 1.3e-5
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B -0.21 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B +0.03 pts (beyond 2 se at 0/10), its score gap from the top 2.0e-5

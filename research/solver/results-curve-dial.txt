@@ -1,0 +1,43 @@
+ok   a complete registered set passes the gate
+ok   the same survival, the same spending, no raise before ruin under CANDD (CAND's 20 of 20): HELD (HELD)
+ok   one path lost on each household: P1 MISSED (EDGE: a single discordant path)
+ok   spending 0.11% lower: P2 MISSED (EDGE: just past the tenth of a percent)
+ok   spending 0.09% lower: P2 HELD (EDGE: just inside the tenth of a percent)
+ok   a raise before ruin under CANDD: P3 MISSED
+ok   survival 30 points lower under CANDD: HARM
+ok   two paths a household lost below the minimum pot: P1 MISSED, not HARM (EDGE: the pooled margin, -0.05 points; MISSED)
+ok   eight paths a household lost of 1,000: HARM (-0.8 points, past the margin)
+ok   one of eight households losing 40 of 4,000 paths (a point): MISSED pooled (-0.125), its line FLAGGED, the others' not (EDGE: a loss on one household; the re-review's finding 1)
+ok   a unit that ran without the option it names is refused
+ok   a dial unit at the wrong lambda is refused
+ok   units at different grids are refused
+ok   no path runs out in either arm: P3 has nothing to miss (EDGE: an empty class)
+ok   a missing unit is refused
+ok   the registered read on another seed is refused
+ok   the registered seed in the dial's read is refused
+ok   another test's held-out seed is refused
+ok   a household whose arms ran on other inputs is refused
+ok   units stamped on other files are refused
+ok   the curve's facts: first year 80, back at target in year 2 (average and median path), a third of the steps change (80.0, 2, 2, 33.33%)
+EDGES: a single discordant path, just past the tenth of a percent, just inside it, an empty class of paths that run out, a loss inside the pooled margin, a loss on one household
+planted (21): all read as they should
+THE GATE: fair - 8 households in CANDD, DIAL3, DIAL10, seed 7002, 4000 paths, one stamp (code dc14b41369ef, audit 5c9b63b20e97), candidate d71f65ae871e
+runPolicy beside the engine: paths that differ 0 of 24000
+THE DISLIKE OF CUTS ON THE CANDIDATE (EXPLORATORY, seed 7002):
+retired at the start: S030, S050, S090, S368; years counted from 1, the first retired year
+per arm: survival; the retirees' first year and years 1-5 (% of target); their average back at target (year), the median path back (year); from the 21st year (all); retired years at the floor / at 110%; the share of years a path's level changes, and the mean step (points); the pension and ISA's equity share at years 1, 5, 10, 20 (retirees; all)
+  CANDD  96.63%; first 80.0, 1-5 80.8; back at target year 13, median path year 8; from the 21st 107.5; floor 8.83 / 110% 28.42; changes 7.5% of years, step 1.50; equity 24.7 / 24.6 / 41.1 / 57.6; 30.2 / 30.2 / 39.2 / 48.9
+  DIAL3  96.21%; first 82.5, 1-5 85.9; back at target year 10, median path year 8; from the 21st 107.5; floor 4.94 / 110% 27.94; changes 11.4% of years, step 1.37; equity 34.7 / 33.6 / 38.4 / 54.3; 35.2 / 34.7 / 37.5 / 46.7
+  DIAL10 95.17%; first 91.3, 1-5 91.8; back at target year 9, median path year 8; from the 21st 107.4; floor 2.30 / 110% 26.72; changes 11.8% of years, step 1.11; equity 34.7 / 34.4 / 36.8 / 51.0; 35.2 / 35.1 / 37.5 / 42.0
+against CANDD (paired by path; survival in points, spending in % of CANDD's, running out while alive in points):
+  DIAL3  survival -0.413 (-0.503 to -0.322, se 0.0461); lifetime spending +1.074% (+1.059 to +1.089%, se 0.0077); while alive +1.559% (+1.543 to +1.575%, se 0.0080); running out while alive +0.140 (+0.115 to +0.165, se 0.0129); the raise before ruin 4 of 963 (a 110% year in the three before, 207)
+  DIAL10 survival -1.453 (-1.592 to -1.314, se 0.0710); lifetime spending +1.604% (+1.584 to +1.625%, se 0.0105); while alive +2.564% (+2.543 to +2.584%, se 0.0106); running out while alive +0.542 (+0.493 to +0.591, se 0.0251); the raise before ruin 1 of 1199 (a 110% year in the three before, 223)
+per household: survival, the first retired year's level and the equity held in year 1, by arm:
+  S030   CANDD 95.60% (80.0, 23%)  DIAL3 95.28% (80.0, 23%)  DIAL10 93.72% (90.0, 23%)
+  S050   CANDD 98.80% (80.0, 24%)  DIAL3 97.75% (90.0, 44%)  DIAL10 96.67% (95.0, 44%)
+  S090   CANDD 94.75% (80.0, 23%)  DIAL3 94.13% (80.0, 43%)  DIAL10 92.05% (90.0, 43%)
+  S368   CANDD 99.85% (80.0, 28%)  DIAL3 99.78% (80.0, 28%)  DIAL10 99.72% (90.0, 28%)
+  S188   CANDD 97.55% (91.2, 28%)  DIAL3 97.30% (96.8, 28%)  DIAL10 96.25% (99.0, 28%)
+  S304F  CANDD 98.28% (80.0, 28%)  DIAL3 97.90% (84.5, 28%)  DIAL10 97.13% (88.8, 28%)
+  S328F  CANDD 93.10% (94.8, 43%)  DIAL3 92.83% (97.9, 43%)  DIAL10 91.88% (100.3, 43%)
+  S340F  CANDD 95.08% (96.4, 43%)  DIAL3 94.75% (98.7, 43%)  DIAL10 93.95% (100.5, 43%)

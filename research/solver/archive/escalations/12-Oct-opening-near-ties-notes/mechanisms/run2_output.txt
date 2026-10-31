@@ -1,0 +1,25 @@
+reference gaps (1200 pts, 20 GH) [0.       0.005692 0.008951]  V0 0.91312
+n=1200 GH= 5: gaps [0.       0.00569  0.008922]  error vs ref [ 0.e+00 -2.e-06 -3.e-05]  V0 0.91304 (ref 0.91312)
+n=  30 GH=20: gaps [0.       0.002705 0.003327]  error vs ref [ 0.       -0.002988 -0.005625]  V0 0.82598 (ref 0.91312)
+n=  30 GH= 5: gaps [0.       0.003944 0.006087]  error vs ref [ 0.       -0.001749 -0.002865]  V0 0.84457 (ref 0.91312)
+n=  60 GH= 5: gaps [0.       0.005088 0.008842]  error vs ref [ 0.       -0.000604 -0.00011 ]  V0 0.90140 (ref 0.91312)
+n= 120 GH= 5: gaps [0.       0.005754 0.008618]  error vs ref [ 0.00e+00  6.10e-05 -3.33e-04]  V0 0.90821 (ref 0.91312)
+variant n=30 shift=0: product gap 1-0 +0.003944 2-0 +0.006087 | one-step re-scored with 20 GH: +0.003204 +0.004202
+variant n=30 shift=0.25: product gap 1-0 +0.004087 2-0 +0.005047 | one-step re-scored with 20 GH: +0.002693 +0.003805
+variant n=30 shift=0.5: product gap 1-0 +0.001888 2-0 +0.002790 | one-step re-scored with 20 GH: +0.003305 +0.004497
+variant n=30 shift=0.75: product gap 1-0 +0.002030 2-0 +0.002461 | one-step re-scored with 20 GH: +0.003279 +0.004124
+variant n=28 shift=0: product gap 1-0 +0.001622 2-0 +0.002054 | one-step re-scored with 20 GH: +0.003151 +0.003533
+variant n=32 shift=0: product gap 1-0 +0.004057 2-0 +0.005711 | one-step re-scored with 20 GH: +0.003220 +0.004315
+dispersion (SD) across 6 variants: gap1 0.001204 gap2 0.001788 | mean error vs ref -0.002755 -0.004926
+optimism scaling: n=  15 table 0.7317 realised 0.8750 table-realised -0.1433  table-ref -0.18141
+optimism scaling: n=  30 table 0.8260 realised 0.9110 table-realised -0.0850  table-ref -0.08715
+optimism scaling: n=  60 table 0.8863 realised 0.9137 table-realised -0.0274  table-ref -0.02678
+optimism scaling: n= 120 table 0.9056 realised 0.9143 table-realised -0.0087  table-ref -0.00749
+cell h=0.2206; coarse-minus-reference gap(2-0) across 3 cells: mean -0.002774 range [-0.006724,+0.001042]; reference gap varies -0.003237..+0.008955
+periodicity: corr(err(x), err(x+h)) = -0.082 ; corr(err(x), err(x+h/2)) = -0.116
+half-step test on coarse: step 1.00 cell: even part -5.07e-03 odd part +4.22e-03
+half-step test on coarse: step 0.50 cell: even part -7.60e-03 odd part +2.40e-03
+half-step test on coarse: step 0.25 cell: even part -5.19e-03 odd part -1.58e-03
+half-step test on reference: step 1.00 cell: even part -1.02e-02 odd part +2.62e-03
+half-step test on reference: step 0.50 cell: even part -2.96e-03 odd part +2.99e-04
+half-step test on reference: step 0.25 cell: even part -7.52e-04 odd part -5.07e-05

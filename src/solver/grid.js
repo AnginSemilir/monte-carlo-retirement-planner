@@ -35,7 +35,7 @@
 
 // survival probabilities are held off 0 and 1 so the log-odds stay finite; the clamp and the choice of
 // log-odds against plain probability are overridable from the environment for the smear experiments
-const CLAMP = process.env.SOLVER_CLAMP ? Number(process.env.SOLVER_CLAMP) : 1e-6;
+const CLAMP = process.env.SOLVER_CLAMP ? Number(process.env.SOLVER_CLAMP) : 1e-6; export const LOR_CLAMPS = { n: 0, lo: 0, hi: 0 }; export const READER_PROBE = { fn: null }; export const ruScale = (pq, pk) => (pq > pk ? (1 - pq) / (1 - pk) : 1);   // NE-GRID's count of LOR corners read past the clamp (research only; counts nothing off the LOR arm); ruScale, STEP-O182's SNR arm (`readerSplit: 'ru'`, research only): the factor on a corner's residual R where the query's chance pq exceeds the corner's pk, so a near-certain query does not carry a copied corner's whole R; 1 elsewhere (RS's mirror; items/STEP-O182.md, PR25)
 const LINEAR = process.env.SOLVER_INTERP === 'linear';
 const logit = LINEAR ? (p) => p : (p) => { const q = p < CLAMP ? CLAMP : (p > 1 - CLAMP ? 1 - CLAMP : p); return Math.log(q / (1 - q)); };
 const expit = LINEAR ? (x) => x : (x) => 1 / (1 + Math.exp(-x));
@@ -59,7 +59,7 @@ function linAxis(n) {
   for (let i = 0; i < n; i++) pts[i] = i / (n - 1);
   return { pts, n, linear: true };
 }
-function locateLin(ax, v) {
+function locateLin(ax, v) { if (ax.nodes) return locateNodes(ax, v);   // NODE-1's explicit share nodes (research only; the file's end)
   const f = Math.max(0, Math.min(1, v)) * (ax.n - 1);
   const i = Math.min(ax.n - 2, Math.floor(f));
   return { i, w: f - i };
@@ -115,19 +115,44 @@ export function makeGrid(m, opts = {}) {
   // The default since the 41-household re-run: every loss smaller, no win lost, six times faster.
   const total = (opts.coords || 'total') === 'total';
   const n1 = total ? ((pts && pts.total) || opts.points || 40) : np;
-  const n2 = total ? ((pts && pts.share) || opts.shares || 6) : ni;
+  // COV-B (`coverage`, research only; items/COV.md): one more share slot, the edge node in step years (a copy of a = 1 elsewhere)
+  const COV = !!opts.coverage; if (COV && !total) throw new Error('coverage needs the total-wealth coordinates'); const SN = shareNodesOf(opts, total, COV);   // NODE-1 (research only; null in every product path)
+  const n2 = total ? (SN ? SN.length : ((pts && pts.share) || opts.shares || 6) + (COV ? 1 : 0)) : ni;
   const n3 = total ? ((pts && pts.share) || opts.shares || 6) : nt;
   if (total) {
     axes.W = logAxis(n1, spend * 0.1, spend * top(open.pen + open.isa + open.tax));
-    axes.a = linAxis(n2);
+    axes.a = linAxis(COV ? n2 - 1 : n2); if (SN) axes.a = nodesAxis(SN);
     axes.b = linAxis(n3);
   }
   const size = n1 * n2 * n3 * gain.length * pcls.length;
   const stride = { isa: n1, tax: n1 * n2, gain: n1 * n2 * n3, pcls: n1 * n2 * n3 * gain.length };
   return {
     m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
+    /* Phase 6e arms 3 and 4. Both default off, so the shipped build is bit-identical to before. */
+    gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
+    cov: COV ? { years: [] } : null, // COV-B: per step year every wealth row's share nodes (np x ni, sorted), set by `solve`
+    /* 7ap (the deep review after 7al, O71): the allowance axis interpolated, not snapped. Research only, default off. */
+    pclsInterp: pclsInterpOf(opts), pclsSeg: pclsSegOf(opts),   // pclsSeg: EDGE-SPLIT (O101), research only, default null; see the file's end
+    /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
+    shareDead: opts.shareDead === 'drop' || opts.shareDead === 'linear' ? opts.shareDead : null,
+    /* F1, the cliff-aware read of a bridge year (see bridgeAdjust); set by `solve` when `bridgeRead` is on */
+    bridge: null,
     index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
+}
+
+/*
+ * 7AP, THE INTERPOLATED ALLOWANCE AXIS (`pclsInterp`; PLAN.md O71 and 7ap). Snapped by `nearest`, the used-allowance
+ * axis is absorbing: a year using under a quarter of the allowance reads back on the bucket it started from, so the
+ * tables value the tax-free part of every later draw as lasting for ever, while a real path's use grows until it crosses
+ * 0.75 and its read jumps to the last bucket. This brackets the used fraction between two buckets as `gainInterp`
+ * brackets the gain, blending the corners one bucket apart. Between buckets 0 and 0.5 the blend also mixes the
+ * lump-taken flag that `toVec` derives from the bucket (a cell on bucket 0 may still take the whole lump; one on 0.5
+ * has taken it) - stated, not hidden: the arm removes the snap, not the flag's coarseness. Excludes `pclsStrict`.
+ */
+function pclsInterpOf(opts) {
+  if (opts.pclsInterp && opts.pclsStrict) throw new Error('grid: pclsInterp and pclsStrict are two readings of the same axis; set one');
+  return !!opts.pclsInterp;
 }
 
 /* Nearest bucket, for the two dimensions that are not interpolated. */
@@ -135,6 +160,44 @@ const nearest = (arr, v) => {
   let best = 0, bd = Infinity;
   for (let i = 0; i < arr.length; i++) { const d = Math.abs(arr[i] - v); if (d < bd) { bd = d; best = i; } }
   return best;
+};
+
+/*
+ * PHASE 6e ARM 4. The lump-sum-allowance axis, snapped so that bucket 0 is reachable ONLY by a state
+ * that has taken nothing.
+ *
+ * `nearest` puts everything below a quarter of the allowance on bucket 0, and `toVec` derives the
+ * lump-taken FLAG from the bucket (`out[5] = pcls[ic] > 0 ? 1 : 0`). So a household that has spent part
+ * of its tax-free lump is valued as one that may still take the whole thing - an action it no longer
+ * has. Measured on the clean 41: eight of them, using between 7.1% and 20.9% of the allowance, S172
+ * having spent GBP 56,047 and read as having spent nothing.
+ *
+ * This keeps the flag honest by excluding bucket 0 from the search once anything has been taken. It is
+ * not free: S374, at 7.1% of the allowance, then reads as 50% instead of 0%, so the FIGURE gets worse
+ * for the eight while the FLAG gets right. Which of the two errors costs more is what the screen is for.
+ */
+const nearestPclsStrict = (arr, v) => {
+  if (!(v > 0)) return 0;
+  let best = 1, bd = Infinity;
+  for (let i = 1; i < arr.length; i++) { const d = Math.abs(arr[i] - v); if (d < bd) { bd = d; best = i; } }
+  return best;
+};
+
+/*
+ * PHASE 6e ARM 3. Bracket a value on an ascending bucket list, for interpolating the gain axis instead
+ * of snapping to it. Returns the lower index and the weight on the one above, clamped at both ends, so
+ * a household beyond the top bucket reads as the top bucket and the axis stays flat there - this arm
+ * removes the SNAPPING, not the ceiling. Arm 2 moves the ceiling; the two are measured separately on
+ * purpose, because one is free and the other is not.
+ */
+const bracket = (arr, v) => {
+  if (v <= arr[0]) return { i: 0, w: 0 };
+  const n = arr.length;
+  if (v >= arr[n - 1]) return { i: n - 2 < 0 ? 0 : n - 2, w: n > 1 ? 1 : 0 };
+  let k = 0;
+  while (k < n - 2 && v > arr[k + 1]) k++;
+  const lo = arr[k], hi = arr[k + 1];
+  return { i: k, w: hi > lo ? (v - lo) / (hi - lo) : 0 };
 };
 
 /*
@@ -172,9 +235,9 @@ function cashAtOf(m, t, taxPot) {
 }
 
 /* The same cell as a six-slot vector for the fast flow: pen, isa, taxable, gain fraction, tax-free used, lump taken. */
-export function toVec(g, ip, ii, it, ig, ic, out) {
+export function toVec(g, ip, ii, it, ig, ic, out, yr = -1) {
   if (g.mode === 'total') {
-    const W = g.axes.W.pts[ip], a = g.axes.a.pts[ii], b = g.axes.b.pts[it];
+    const W = g.axes.W.pts[ip], a = g.cov ? shareNode(g, ip, ii, yr) : g.axes.a.pts[ii], b = g.axes.b.pts[it];
     const pen = a * W, rest = W - pen, isa = b * rest;
     out[0] = pen; out[1] = isa; out[2] = rest - isa;
   } else {
@@ -187,13 +250,49 @@ export function toVec(g, ip, ii, it, ig, ic, out) {
 
 /* Where a six-slot vector sits on the grid. */
 export function locateVec(g, s) {
-  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  if (g.cov) throw new Error('coverage: locateVec has no year; read through readValues or nearestIndex with the year');
+  const pf = Math.min(1, s[4] / g.m.P.lsa);
+  // when the allowance axis is interpolated (7ap), `ic` is the LOWER bracket and `icw` the weight on the one above
+  const cb = !pclsOnSeg(g, pf) ? null : g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  const icw = cb ? cb.w : 0;
+  // when the gain axis is interpolated, `ig` is the LOWER bracket and `igw` the weight on the one above
+  const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
+  const ig = gb ? gb.i : nearest(g.gain, s[3]);
+  const igw = gb ? gb.w : 0;
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
-    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic };
+    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic, igw, icw };
   }
-  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic };
+  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic, igw, icw };
 }
+
+/*
+ * COV-B (`coverage`): the share value of slot `ii` on wealth row `ip` in year `yr`. In a step year the row's nodes are
+ * the share axis's own with the edge node inserted in order (solve.js sets them); elsewhere the extra last slot repeats
+ * the top node (a = 1). Off, the share axis's node.
+ */
+export function shareNode(g, ip, ii, yr) {
+  if (!g.cov) return g.axes.a.pts[ii];
+  if (!(yr >= 0)) throw new Error('coverage: a share node needs the year');
+  const R = g.cov.years[yr];
+  if (R) return R[ip * g.ni + ii];
+  return ii < g.axes.a.n ? g.axes.a.pts[ii] : 1;
+}
+/* COV-B: where share `a` sits on wealth row `ip` in year `yr`: the lower slot and the weight on the next, skipping
+   zero-width cells (a repeated node); outside step years the share axis's own six-node arithmetic */
+const SL = new Float64Array(2);
+function shareLoc(g, ip, a, yr) {
+  const R = g.cov.years[yr];
+  if (!R) { const f = (a <= 0 ? 0 : a >= 1 ? 1 : a) * (g.axes.a.n - 1), i = Math.min(g.axes.a.n - 2, Math.floor(f)); SL[0] = i; SL[1] = f - i; return SL; }
+  const o = ip * g.ni, last = g.ni - 1;
+  // the last cell of positive width whose lower node is at or below a (nodes ascend); below every node, the first such cell
+  let c = -1;
+  for (let i = 0; i < last; i++) if (R[o + i + 1] > R[o + i] && (c < 0 || R[o + i] <= a)) c = i;
+  const lo = R[o + c], hi = R[o + c + 1];
+  SL[0] = c; SL[1] = Math.min(1, Math.max(0, (a - lo) / (hi - lo))); return SL;
+}
+export function shareLocOf(g, ip, a, yr) { const r = shareLoc(g, ip, a, yr); return { i: r[0], w: r[1] }; }
 
 /*
  * THE HOT READ: both tables at one position, nothing allocated.
@@ -205,8 +304,8 @@ export function locateVec(g, s) {
  * `out[0]` is survival, `out[1]` bequest.
  */
 const LOC = new Float64Array(6);     // i, w for each of the three axes
-const IDX = new Int32Array(8);
-const W = new Float64Array(8);
+const IDX = new Int32Array(32);   // 8 corners; 16 with the gain axis interpolated too (Phase 6e arm 3); 32 with the allowance axis as well (7ap)
+const W = new Float64Array(32);
 function locInto(ax, v, k) {
   if (!(v > 0)) { LOC[k] = 0; LOC[k + 1] = 0; return; }
   if (v <= ax.pts[1]) { LOC[k] = 0; LOC[k + 1] = v / ax.pts[1]; return; }
@@ -215,22 +314,44 @@ function locInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-function locLinInto(ax, v, k) {
+function locLinInto(ax, v, k) { if (ax.nodes) { const r = locateNodes(ax, v); LOC[k] = r.i; LOC[k + 1] = r.w; return; }   // NODE-1 (research only)
   const f = (v <= 0 ? 0 : v >= 1 ? 1 : v) * (ax.n - 1);
   const i = Math.min(ax.n - 2, Math.floor(f));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
+export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1, rdGiven = false, rdIn = null) {   // rdGiven: the bridge reader's split found by the caller (E11, SPEED-PORT-2.md), what the line below would find
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
     locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
   } else {
     locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   }
-  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  const pf = Math.min(1, s[4] / g.m.P.lsa);
+  const cb = !pclsOnSeg(g, pf) ? null : g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
+  const ig = gb ? gb.i : nearest(g.gain, s[3]);
   const n = g.stride.isa, nn = g.stride.tax;
+  const wp1 = LOC[1], wt1 = LOC[5], wp0 = 1 - wp1, wt0 = 1 - wt1;
+  if (g.cov) {
+    // COV-B: each wealth row has its own share nodes in a step year, so the share is located on each corner's row; the
+    // corner order k = dp + 2 di + 4 dt is kept for the gain and allowance layers below
+    if (!(yr >= 0)) throw new Error('coverage: readValues needs the year of the table read');
+    const W0 = s[0] + s[1] + s[2], a = W0 > 0 ? s[0] / W0 : 0, p0 = LOC[0], p1 = p0 + 1;
+    let r = shareLoc(g, p0, a, yr); const ia0 = r[0], wa0 = r[1];
+    r = shareLoc(g, p1, a, yr); const ia1 = r[0], wa1 = r[1];
+    const b0 = LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
+    IDX[0] = p0 + ia0 * n + b0;           W[0] = wp0 * (1 - wa0) * wt0;
+    IDX[1] = p1 + ia1 * n + b0;           W[1] = wp1 * (1 - wa1) * wt0;
+    IDX[2] = p0 + (ia0 + 1) * n + b0;     W[2] = wp0 * wa0 * wt0;
+    IDX[3] = p1 + (ia1 + 1) * n + b0;     W[3] = wp1 * wa1 * wt0;
+    IDX[4] = IDX[0] + nn;                 W[4] = wp0 * (1 - wa0) * wt1;
+    IDX[5] = IDX[1] + nn;                 W[5] = wp1 * (1 - wa1) * wt1;
+    IDX[6] = IDX[2] + nn;                 W[6] = wp0 * wa0 * wt1;
+    IDX[7] = IDX[3] + nn;                 W[7] = wp1 * wa1 * wt1;
+  } else {
   const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
-  const wp1 = LOC[1], wi1 = LOC[3], wt1 = LOC[5], wp0 = 1 - wp1, wi0 = 1 - wi1, wt0 = 1 - wt1;
+  const wi1 = LOC[3], wi0 = 1 - wi1;
   IDX[0] = i0;           W[0] = wp0 * wi0 * wt0;
   IDX[1] = i0 + 1;       W[1] = wp1 * wi0 * wt0;
   IDX[2] = i0 + n;       W[2] = wp0 * wi1 * wt0;
@@ -239,20 +360,230 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
+  }
+  /*
+   * PHASE 6e ARM 3. With the gain axis interpolated, the same eight corners are read again one gain
+   * bucket up and the two sets are blended. Sixteen reads instead of eight on this path, no extra cells.
+   * `gw` is 0 at or below the bottom bucket and at or above the top, so the flat region above the top
+   * bucket is untouched - removing the snap is not the same as removing the ceiling.
+   */
+  let NC = 8;
+  if (gb) {
+    const gw = gb.w;
+    if (gw > 0) {
+      const step = g.stride.gain;
+      for (let k = 0; k < 8; k++) { IDX[k + 8] = IDX[k] + step; W[k + 8] = W[k] * gw; W[k] *= 1 - gw; }
+      NC = 16;
+    }
+  }
+  // 7ap: the allowance axis interpolated - every corner so far read again one allowance bucket up, and the sets blended
+  if (cb && cb.w > 0) {
+    const cw = cb.w, step = g.stride.pcls;
+    for (let k = 0; k < NC; k++) { IDX[k + NC] = IDX[k] + step; W[k + NC] = W[k] * cw; W[k] *= 1 - cw; }
+    NC *= 2;
+  }
+  /*
+   * THE BRIDGE READER (`bridgeRead: 'reader'`; src/solver/reader.js): in a retired bridge year, survival is
+   * p x I[c] + I[R] - p from this position's own accessible money, c and R blended with the same corner weights, in
+   * probability. It replaces F1 and the #106 options there (neither runs with it); every other year, and the bequest,
+   * resilience and shortfall reads, are unchanged.
+   */
+  const RD = rdGiven ? rdIn : g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;
+  // F1 in a retired bridge year (yr is the year of the table read); otherwise the #106 options, if set
+  const cap = !RD && g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
+  const linearRead = !RD && cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
   let ls = 0, b = 0, lr = 0, sh = 0;
   if (lrArr && shArr) {
     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
     out[2] = g.linearResil ? lr : expit(lr); out[3] = sh;
   } else if (lrArr) {
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
     out[2] = g.linearResil ? lr : expit(lr);
   } else {
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }
-  out[0] = expit(ls); out[1] = b;
+  if (cap !== null && ls > cap) ls = cap;
+  if (RD) {
+    // `g.readerAcc` (research only, 7ak's attribution: unset in every product path): the accessible money the reader's
+    // chance is read at, in place of this position's own ISA plus taxable pot
+    // RTAX v2 (`readerTax`; items/RTAX.md): in a step year, inside the edge band, support is the flow's at this position
+    const acc = g.readerAcc ? g.readerAcc(s) : s[1] + s[2], tx = g.reader.tax ? g.reader.tax[yr] : null;
+    if (tx && g.readerAcc) throw new Error('readerTax and readerAcc are two readings of the same support; set one'); if (RD.chance.at) RD.chance.at(s);   // the adaptive reference reads the position's share and gain fraction
+    const pr = tx && tx.inBand(acc) ? (tx.payable(s) ? 1 : 0) : RD.chance(acc);
+    let cc = 0, rr = 0;
+    // NE-EDGE's RS arm (`readerSplit: 'rs'`, research only; false in every product path): each corner's residual scaled
+    // by min(1, the query's chance / the corner's), so a near-dead query does not carry the corner's whole R; TOP-CELL's RSU (`readerSplit: 'rsu'`): RS's scale where the corner's chance is above the query's and RU's (ruScale) where it is below, in one loop, since both flags set would run RS alone (the else-if)
+    if (g.reader.rsu) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k], pk = RD.p[i]; cc += w * RD.c[i]; rr += w * RD.R[i] * (pk > pr ? pr / pk : ruScale(pr, pk)); } } else if (g.reader.rs) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k], pk = RD.p[i]; cc += w * RD.c[i]; rr += w * RD.R[i] * (pk > pr ? pr / pk : 1); } } else if (g.reader.ru) { for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; cc += w * RD.c[i]; rr += w * RD.R[i] * ruScale(pr, RD.p[i]); } }   // STEP-O182's SNR arm (`readerSplit: 'ru'`, research only; false in every product path): RS's mirror, each corner's R scaled by ruScale
+    else for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
+    const v = pr * cc + rr; if (READER_PROBE.fn) READER_PROBE.fn(W, IDX, NC, RD, pr, yr, acc, s);   // NE-GRID C's per-corner log, and NE-REF's read money and state (research only; null in every product path)
+    if (g.reader.blend === 'logodds') { let lo = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const vi = pr * RD.c[IDX[k]] + RD.R[IDX[k]], ci = vi < CLAMP ? CLAMP : (vi > 1 - CLAMP ? 1 - CLAMP : vi); LOR_CLAMPS.n++; if (vi < CLAMP) LOR_CLAMPS.lo++; else if (vi > 1 - CLAMP) LOR_CLAMPS.hi++; lo += w * Math.log(ci / (1 - ci)); } out[0] = expit(lo); } else out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);   // NE-BLEND's LOR arm (`readerBlend: 'logodds'`, research only): each corner read at this position's chance, p x c_i + R_i, blended in log-odds
+  } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
+  else out[0] = expit(ls);
+  out[1] = b;
   return out;
 }
+
+/*
+ * #106, THE DEAD CORNER ON A SHARE AXIS (results-106-deadcorner.txt, results-phase-v.txt). Survival is
+ * blended in log-odds, so a corner at true zero enters at the clamp, -13.8, and a quarter's weight on it
+ * divides the odds by ~32. Along TOTAL WEALTH that sharpness is the point - it is the survival cliff. Along
+ * a SHARE axis it is not a cliff the position is near: it is the all-pension node of a household short of
+ * pension access, which cannot fund its bridge. Two treatments, both default off:
+ *   'drop'   - within each total-wealth slice, a share-axis corner that is dead while another corner in the
+ *              same slice is alive gets no weight, and the slice's weight goes to its live corners;
+ *   'linear' - when the stencil holds such a pair, survival is blended in probability, not log-odds.
+ * Operates on the corner weights in W before the reads, so every table read at that position agrees.
+ * Returns true when the caller should blend survival linearly.
+ */
+const DEAD_LS = -11.5;   // log-odds of about 1e-5: a corner the backward pass found (all but) certain to fail
+function shareDeadAdjust(g, lsArr, NC) {
+  let mixed = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      // the four corners of one total-wealth slice: k = dp + 2*di + 4*dt
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        mixed = true;
+        if (g.shareDead === 'drop') {
+          const f = (wAlive + wDead) / wAlive;
+          for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+        }
+      }
+    }
+  }
+  return g.shareDead === 'linear' && mixed;
+}
+/*
+ * F1, THE CLIFF-AWARE READ OF A BRIDGE YEAR (PLAN.md "S126's dead corner"; maintainer, 24 Sep).
+ *
+ * In a retired year before pension access only the ISA, the GIA and cash can pay, so along the pension share
+ * survival falls off a cliff at a* = 1 - (the bridge's need at the floor) / W. The share axis has six nodes, the
+ * all-pension one is dead in every bridge year, and a log-odds blend with a dead node puts the cliff where the clamp
+ * says (about 0.83 for S126) rather than where the money says (0.95). #106's `drop` removed the dead node whatever
+ * side of the cliff the position was on, so positions past a* read as alive (-0.30 on S126).
+ *
+ * F1 asks the position itself. If its accessible money does not cover the rest of the bridge at the floor, it is
+ * truly short and the read stands. If it does, the dead share-corners are on the far side of a cliff it has not
+ * reached: they get no weight (each wealth slice's weight goes to its live corners, as `drop`), and survival is capped
+ * at the chance the accessible money itself lasts the bridge, Phi(ln(coverage) / (sigma x sqrt(years left))), so a
+ * position just inside the cliff is not read as safe. Returns the cap in log-odds, or null when nothing applies.
+ */
+export function Phi(z) {   // the standard normal distribution function (Abramowitz and Stegun 26.2.17, error under 7.5e-8)
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+  const p = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return z >= 0 ? 1 - p : p;
+}
+function bridgeAdjust(g, lsArr, NC, s, yr) {
+  const B = g.bridge, need = B.need[yr];
+  const acc = s[1] + s[2];                     // the ISA and the taxable pot with its cash: what can pay before access
+  if (B.version === 2) return bridgeAdjust2(B, lsArr, NC, acc, yr);
+  if (!(acc >= need)) return null;             // short of the bridge even at the floor: the dead read is the truth
+  let dropped = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        dropped = true;
+        const f = (wAlive + wDead) / wAlive;
+        for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+      }
+    }
+  }
+  if (!dropped) return null;
+  const cash = Math.min(acc, B.cash[yr]);
+  const sd = B.sigma * (acc > 0 ? (acc - cash) / acc : 0) * Math.sqrt(B.years[yr]);
+  if (!(sd > 0)) return null;                  // nothing invested: covered means covered
+  const p = Math.min(1 - CLAMP, Math.max(CLAMP, Phi(Math.log(acc / need) / sd)));
+  return Math.log(p / (1 - p));
+}
+/*
+ * F1 VERSION 2 (PLAN.md, the F1 write-up: why F1 missed what it missed; approved by the maintainer 24 Sep 12:42 UK). Three changes:
+ *  1. Money arriving later in the bridge counts. The test is no longer "does the accessible money cover the whole
+ *     bridge's need" but "does it cover every year up to access, with the deposits due by then": B.req[yr] is the
+ *     accessible money needed now (the largest shortfall of cumulative need over cumulative inflows), which an
+ *     inheritance inside the bridge lowers (S366 read dead without it: short on v1's test, so F1 stayed off; the
+ *     bridge-6 variant looked just covered, so F1 acted, but its cap read low; S370's is inferred from inputs, never solved).
+ *  2. The chance the money lasts has growth. Money spent evenly over the years left is invested for about half of them,
+ *     so the cap is Phi((ln(acc / req) + mu * tau) / (sigma * sqrt(tau))) with tau = half the bridge years left and mu, sigma
+ *     the accessible money's expected real return and spread (cash at its own rate). As built, F1's cap had neither
+ *     and reproduced its low reads (share 0.95 57.7 against 57.4 read; results-f1-misses.txt).
+ *  3. It acts when the money looks short too. A position short of the bridge is not certain to fail - its money may
+ *     grow into the gap - so its dead corners (no accessible money at all) get no weight either, and the cap, now below
+ *     one half, carries the risk (S360, short on v1's test, so F1 stayed off: read 4.3 against 44.1 simulated).
+ * Version 1 is unchanged for comparison (bridgeRead: true or 1); version 2 is bridgeRead: 2.
+ */
+function bridgeAdjust2(B, lsArr, NC, acc, yr) {
+  const req = B.req[yr];
+  let dropped = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        dropped = true;
+        const f = (wAlive + wDead) / wAlive;
+        for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+      }
+    }
+  }
+  if (!dropped) return null;
+  const p = bridgeChanceV2(acc, req, B.cash[yr], B.years[yr], B.sigma, B.mu, B.cashReal);
+  return p === null ? null : Math.log(p / (1 - p));
+}
+/* v2's chance the accessible money lasts to access, or null when the inflows due cover every year (nothing to cap) */
+export function bridgeChanceV2(acc, req, cashBuffer, yearsLeft, sigma, mu, cashReal) {
+  if (!(req > 0)) return null;
+  if (!(acc > 0)) return CLAMP;
+  const cash = Math.min(acc, cashBuffer), f = (acc - cash) / acc;
+  const tau = yearsLeft / 2;                   // money spent evenly over the years left is invested for about half of them
+  const m = f * mu + (1 - f) * cashReal, sd = sigma * f * Math.sqrt(tau);
+  const z = sd > 0 ? (Math.log(acc / req) + m * tau) / sd : (acc * Math.exp(m * tau) >= req ? 40 : -40);
+  return Math.min(1 - CLAMP, Math.max(CLAMP, Phi(z)));
+}
+/*
+ * The per-year bridge table F1 reads: for each retired year before access, the need from that year to access at the
+ * lowest spending level on the menu (the floor), net of guaranteed income, plus any one-off costs due in those years;
+ * the bridge years left; the cash buffer; and the spread of the accessible investments (the ISA and GIA at the plan's
+ * tiers, weighted by opening balance). Years that are working or past access carry no need, and F1 does nothing there.
+ */
+export function bridgeTable(E, m, c, floorLevel, version = 1) {
+  const T = c.T, yr = c.yr;
+  const need = new Float64Array(T + 2), years = new Float64Array(T + 2), cash = new Float64Array(T + 2);
+  let accessAt = T + 1;
+  for (let t = 0; t <= T; t++) if (yr.access[t]) { accessAt = t; break; }
+  let run = 0, n = 0;
+  const needY = new Float64Array(T + 2), inY = new Float64Array(T + 2);
+  for (let t = Math.min(accessAt, T + 1) - 1; t >= 0; t--) {
+    const guaranteed = yr.taxFree0[t] + (yr.taxable0[t] > 0 ? E.calculateUKNetIncome(yr.taxable0[t], c.P) : 0);
+    needY[t] = Math.max(0, floorLevel * yr.spend[t] - guaranteed) + (yr.cost[t] || 0);
+    run += needY[t];
+    if (yr.spend[t] > 0) n += yr.frac[t];
+    if (yr.spend[t] > 0) { need[t] = run; years[t] = n; }
+    cash[t] = yr.buffer[t];
+    // dated deposits into the accessible pots (ISA, taxable account, cash), less deductions from them: v2's req and the
+    // reader read them; v1 never did, and its need, years, cash and sigma do not depend on them
+    for (let i = 1; i <= 3; i++) inY[t] += (yr.dep[i][t] || 0) - (yr.ded[i][t] || 0);
+  }
+  const o = m.ctx.owners[0], isaA = m.acc[o.ids.isa], giaA = m.acc[o.ids.other];
+  const bi = isaA ? isaA.balance : 0, bg = giaA ? giaA.balance : 0;
+  const sigma = bi + bg > 0 ? (bi * c.volEff[1] + bg * c.volEff[2]) / (bi + bg) : 0;
+  if (version !== 2) return { need, years, cash, sigma, accessAt, floorLevel, needY, inY };
+  // v2: the accessible money needed now so every year to access is met, the inflows due by each year counted
+  const req = new Float64Array(T + 2);
+  for (let t = 0; t < Math.min(accessAt, T + 1); t++) {
+    if (!(need[t] > 0)) continue;
+    let cumNeed = 0, cumIn = 0, worst = -Infinity;
+    for (let j = t; j < Math.min(accessAt, T + 1); j++) { cumNeed += needY[j]; cumIn += inY[j]; worst = Math.max(worst, cumNeed - cumIn); }
+    req[t] = worst;
+  }
+  const mu = bi + bg > 0 ? (bi * c.real[1] + bg * c.real[2]) / (bi + bg) : 0;
+  return { need, years, cash, sigma, accessAt, floorLevel, needY, inY, version: 2, req, mu, cashReal: c.cashReal || 0 };
+}
+
 /* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */
 export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out[i] = logit(sArr[i]); return out; }
 
@@ -260,10 +591,21 @@ export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out
 export function vecOf(m, st) {
   const o = m.ctx.owners[0];
   const gia = st.pots[o.ids.other] || 0;
-  const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
+  const gf = gia > 0 ? Math.min(1, (gia - (st.basis.self || 0)) / gia) : 0;   // below 0 when the basis is above the value (an unrealised loss): the forward run carries it, a table reads it at its lowest gain bucket
   const base = [st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0, st.cashIsa ? (st.cashIsa.self || 0) : 0];
-  // a state that carries the guardrails' memory hands it to the forward run in four more slots
+  // a state that carries the guardrails' memory hands it to the forward run in four more slots (withRuleSlots's
+  // starting values when it has none), then the gains carried into next year's CGT tally in slot 11 (fast.js flow, F0)
   if (st.guard && m.ctx.guardrails) base.push(st.guard.rate0 === null ? -1 : st.guard.rate0, st.guard.mult, st.guard.lostLastYear ? 1 : 0, st.guard.lastBaseDraw);
+  else base.push(-1, 1, 0, 0);
+  base.push(st.cgtCarry ? (st.cgtCarry.self || 0) : 0);
+  // and the cash itself in slot 12: the grid merges it with the GIA and splits them by the buffer rule (fast.js
+  // cashSplit), which grows last year's buffer at the cash tier's own rate; the engine grows it at the path's (its long-run
+  // shift included), so a forward run carries the engine's cash (V2 on the assembled candidate, 21 Oct: S224's paths)
+  base.push(st.pots[o.ids.cash] || 0);
+  // and the basis left on an emptied taxable account in slot 13: the engine never realises a loss (giaDispose), so an
+  // account sold out below its cost keeps that basis, and money paid in later joins it; slot 3, a share of the value,
+  // cannot hold it (V2's state check, 23 Oct: S370)
+  base.push(gia > 0 ? 0 : (st.basis.self || 0));
   return Float64Array.from(base);
 }
 
@@ -276,7 +618,12 @@ export function locateState(g, st) { return locateVec(g, vecOf(g.m, st)); }
  * making it and not survives the read.
  */
 export function interp(g, arr, loc, survival) {
+  if (g.cov) throw new Error('coverage: interp has no year; read through readValues');
   const { p, i, t, ig, ic } = loc;
+  // Phase 6e arm 3: when the gain axis is interpolated, loc carries the weight on the bucket above
+  const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;
+  // 7ap: and when the allowance axis is, the weight on the allowance bucket above
+  const cw = g.pclsInterp && loc.icw > 0 && ic + 1 < g.pcls.length ? loc.icw : 0;
   let acc = 0;
   for (let dp = 0; dp < 2; dp++) {
     const wp = dp ? p.w : 1 - p.w; if (wp === 0) continue;
@@ -284,8 +631,16 @@ export function interp(g, arr, loc, survival) {
       const wi = di ? i.w : 1 - i.w; if (wi === 0) continue;
       for (let dt = 0; dt < 2; dt++) {
         const wt = dt ? t.w : 1 - t.w; if (wt === 0) continue;
-        const v = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig, ic)];
-        acc += wp * wi * wt * (survival ? logit(v) : v);
+        const w3 = wp * wi * wt;
+        for (let dc = 0; dc < 2; dc++) {
+          const wc = dc ? cw : 1 - cw; if (wc === 0) continue;
+          const v = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig, ic + dc)];
+          acc += w3 * wc * (1 - gw) * (survival ? logit(v) : v);
+          if (gw > 0) {
+            const v2 = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic + dc)];
+            acc += w3 * wc * gw * (survival ? logit(v2) : v2);
+          }
+        }
       }
     }
   }
@@ -324,4 +679,46 @@ export function zeroGrowthNeed(m, t) {
   }
   ctx.oneOffCosts.forEach((amt, year) => { if (year >= ctx.baseYear + t) need += amt / (1 - worstRate); });
   return Math.max(need, ctx.solvencyFloor);
+}
+
+/* EDGE-SPLIT (O101, the deep review after HYB): the interpolated allowance read on one segment only - 'lo' below the
+   middle bucket, 'hi' above it, the snap on the other. Research only, default off (null). Kept at the file's end so the
+   lines above, which registered predictions anchor by number, do not move. */
+function pclsSegOf(opts) {
+  if (opts.pclsSeg == null) return null;
+  if (opts.pclsSeg !== 'lo' && opts.pclsSeg !== 'hi') throw new Error(`grid: pclsSeg is 'lo' or 'hi', not ${opts.pclsSeg}`);
+  if (!opts.pclsInterp) throw new Error('grid: pclsSeg splits the interpolated allowance read; set pclsInterp with it');
+  return opts.pclsSeg;
+}
+/* Whether a used share pf is on the segment where the allowance axis is read interpolated (7ap): always, unless `pclsSeg`
+   is set - then only on its segment ('lo': at or below the middle bucket; 'hi': at or above it), so the snap's cliff on
+   the other segment stays (EDGE-SPLIT, O101). At the middle bucket itself both readings agree. */
+function pclsOnSeg(g, pf) {
+  if (!g.pclsSeg) return true;
+  if (g.pcls.length !== 3) throw new Error(`grid: pclsSeg needs the three-bucket allowance axis, not ${g.pcls.length}`);
+  return g.pclsSeg === 'lo' ? pf <= g.pcls[1] : pf >= g.pcls[1];
+}
+
+/*
+ * NODE-1's EXPLICIT PENSION-SHARE NODES (`shareNodes`, research only; PLAN.md NODE-1, O152; unset in every product path,
+ * where the a axis stays linear and these are never called). The a axis on a given ascending list from 0 to 1 (at least
+ * three nodes), b keeping its own count; located by search with locateLin's convention: a value at an inner node sits on
+ * that node with weight 0 on the next, and 1 sits at the top cell's end. Total-wealth coordinates only, never with COV-B.
+ */
+function shareNodesOf(opts, total, cov) {
+  const SN = opts.shareNodes || null;
+  if (!SN) return null;
+  if (!total || cov) throw new Error('shareNodes needs the total-wealth coordinates and no coverage');
+  if (!Array.isArray(SN) || SN.length < 3 || SN[0] !== 0 || SN[SN.length - 1] !== 1 || SN.some((x, i) => i > 0 && !(x > SN[i - 1]))) throw new Error(`shareNodes ${JSON.stringify(SN)}: an ascending list of at least three from 0 to 1`);
+  return SN;
+}
+export function nodesAxis(list) {
+  const pts = Float64Array.from(list);
+  return { pts, n: pts.length, linear: true, nodes: true };
+}
+export function locateNodes(ax, v) {
+  const x = v <= 0 ? 0 : v >= 1 ? 1 : v, p = ax.pts;
+  let i = 0;
+  while (i < ax.n - 2 && x >= p[i + 1]) i++;
+  return { i, w: (x - p[i]) / (p[i + 1] - p[i]) };
 }

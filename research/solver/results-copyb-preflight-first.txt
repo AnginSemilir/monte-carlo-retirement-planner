@@ -1,0 +1,53 @@
+=== a MEASUREMENT, not a test: COPY-B's preflight (COPY-W's stage B): the fifteen jobs at a fifteenth of the points on 40 paths a world, the reach screen and the nine plants; no figure read for an item (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-gaDKf9   from 7c42bce
+=== smoke run on code d3f2e95210e9 (smoke stamp 7750be70a0f3): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+A. 15 jobs, 15 finished
+  a job that is not COPY-B's: S126 CW/P60S6Q5
+  a job that is not COPY-B's: S126 CXW/P60S6Q5
+  a job that is not COPY-B's: S128 CW/P60S6Q5
+  S362 CW/P4S6Q5: missing
+  S362 CXW/P4S6Q5: missing
+  S370 CW/P8S6Q5: missing
+  S362 C/P4S6Q5: missing
+  S362 CX/P4S6Q5: missing
+  S130 CW/P4S6Q5: missing
+  S130 CXW/P4S6Q5: missing
+  S126 CW/P4S6Q5: missing
+  S126 CXW/P4S6Q5: missing
+  S128 CW/P4S6Q5: missing
+  S130 C/P4S6Q5: missing
+  S130 CX/P4S6Q5: missing
+  S126 C/P4S6Q5: missing
+  S126 CX/P4S6Q5: missing
+  S128 C/P4S6Q5: missing
+THE GATE REFUSED THE PREFLIGHT'S JOBS - the preflight fails
+B. reader-copy exit 0: 10 PASS, 0 FAIL
+C. plant cxw exit 3: audit-copyb: S130 CXW/P60S6Q5: the job's settings did not take
+C. plant own exit 3: audit-copyb: S130 CW/P60S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-copyb: S130 CW/P60S6Q5: the ledger does not close on every path (ownTook 120/120 identity 28/120)
+C. plant quad exit 3: audit-copyb: S130 CW/P60S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 40/120)
+C. plant held exit 0: 
+PLANT held NOT REFUSED ON ITS OWN CHECK - the preflight fails
+C. plant score exit 3: audit-copyb: S130 CW/P60S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 86/120)
+C. plant trace exit 3: audit-copyb: S130 CW/P60S6Q5: the trace disagrees with runPolicy's own counters (counters 34/120)
+C. plant split exit 3: audit-copyb: S130 CW/P60S6Q5: a bridge-year read is not given back by its split (splitTook 0/120)
+C. plant class exit 0: 
+PLANT class NOT REFUSED ON ITS OWN CHECK - the preflight fails
+preflight done 14:55 UK

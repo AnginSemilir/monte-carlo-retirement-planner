@@ -1,0 +1,10 @@
+T 30 beta 0.0 43s
+T 30 beta 0.01 84s
+T 30 beta 0.02 126s
+T 35 beta 0.0 175s
+T 35 beta 0.01 224s
+T 35 beta 0.02 271s
+T 40 beta 0.0 327s
+T 40 beta 0.01 382s
+T 40 beta 0.02 436s
+saved 436s

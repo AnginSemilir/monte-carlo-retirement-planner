@@ -1,0 +1,13 @@
+S328F W0.02 45 points: solved in 443 s; T 60; 800 moves; levels 1,1.1,0.95,0.9,0.8; target 32500; lambda 0.0223606797749979
+year 0: the pick 2 at 1 (taxable before ISA, pension 2 tiers down, ISA 2 tiers down); score 1.001108
+  best at 1.1: move 6, score 1.001108 (pick - it 0.000000), the chooser's expected survival 93.120%
+  best at 1: move 2, score 1.001108 (pick - it 0.000000), the chooser's expected survival 93.120%
+  best at 0.95: move 10, score 1.001108 (pick - it 0.000000), the chooser's expected survival 93.120%
+  best at 0.9: move 14, score 1.001108 (pick - it 0.000000), the chooser's expected survival 93.120%
+  best at 0.8: move 18, score 1.001108 (pick - it 0.000000), the chooser's expected survival 93.120%
+  the cut's charge a year at the floor: lambda x 0.2^2 = 0.000894 score units
+runPolicy on 2000 paths of 7002: survival 93.85%
+failures before the last year 113; with 110% the year before 36
+at those 110% years: the chooser's expected survival for its pick median 0.0001% (90th 0.0001%), for its best floor move median 0.0001% (90th 0.0001%, max 0.0001%); the pick's score above the floor move's median 8.886e-4; wealth in years of target median 1.00 (10th 0.80, 90th 1.39); ages 64 to 93
+floor in place of the pick at 36 such positions, 200 paths of 99002 each (7200 pairs): saved 0, lost 0; years from the position to the failure (or the end) 1.00 under the pick, 1.26 under the floor; the levels summed over the years with money 2.100 against 2.015 years of target
+tiers: years with the pension below the plan's tier 55.6, the ISA 55.6, of 45.1 spending years (all years counted); tier changes a path 0.9; the first retired year (t 15): 2/2@1.1 948, 2/2@0.8 887, 2/2@0.9 122, 0/0@0.8 29, 1/1@0.8 12, 3/3@1.1 1 (pension/ISA tiers down @ level)

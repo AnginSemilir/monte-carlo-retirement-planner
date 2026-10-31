@@ -1,0 +1,49 @@
+7AR'S READS OF THE NEXT YEAR'S TABLE (S130, bridge years 0 and 1, access at year 2; means over the 2,000 paths of each world; the read = the claim at t + 1 plus the read term)
+world 0 year 0 (the read of year 1's table):
+  READER DEFAULT  claim at t 63.84  claim at t+1 60.86  read term 2.63  the read 63.49
+  READER PCLSI    claim at t 57.86  claim at t+1 52.67  read term 4.89  the read 57.56
+  READER PCLSF    claim at t 57.86  claim at t+1 52.67  read term 4.89  the read 57.56
+  OFF DEFAULT     claim at t 0.54  claim at t+1 59.95  read term -59.41  the read 0.54
+  OFF PCLSI       claim at t 0.46  claim at t+1 52.26  read term -51.80  the read 0.46
+  READER interpolated less snapped: the claim at t+1 -8.19, the read -5.93, the read term 2.26
+  OFF interpolated less snapped: the claim at t+1 -7.69, the read -0.08, the read term 7.61
+world 0 year 1 (the read of year 2's table):
+  READER DEFAULT  claim at t 60.86  claim at t+1 60.84  read term 0.08  the read 60.92
+  READER PCLSI    claim at t 52.67  claim at t+1 52.68  read term 0.03  the read 52.71
+  READER PCLSF    claim at t 52.67  claim at t+1 52.69  read term 0.02  the read 52.71
+  OFF DEFAULT     claim at t 59.95  claim at t+1 59.93  read term 0.07  the read 60.00
+  OFF PCLSI       claim at t 52.26  claim at t+1 52.28  read term 0.01  the read 52.28
+  READER interpolated less snapped: the claim at t+1 -8.15, the read -8.21, the read term -0.05
+  OFF interpolated less snapped: the claim at t+1 -7.65, the read -7.72, the read term -0.06
+world 1 year 0 (the read of year 1's table):
+  READER DEFAULT  claim at t 95.92  claim at t+1 95.45  read term 0.32  the read 95.77
+  READER PCLSI    claim at t 94.46  claim at t+1 93.10  read term 1.18  the read 94.28
+  READER PCLSF    claim at t 94.46  claim at t+1 93.11  read term 1.18  the read 94.28
+  OFF DEFAULT     claim at t 2.72  claim at t+1 94.75  read term -92.02  the read 2.73
+  OFF PCLSI       claim at t 2.22  claim at t+1 92.35  read term -90.12  the read 2.22
+  READER interpolated less snapped: the claim at t+1 -2.35, the read -1.49, the read term 0.85
+  OFF interpolated less snapped: the claim at t+1 -2.41, the read -0.51, the read term 1.90
+world 1 year 1 (the read of year 2's table):
+  READER DEFAULT  claim at t 95.45  claim at t+1 95.44  read term 0.04  the read 95.49
+  READER PCLSI    claim at t 93.10  claim at t+1 93.10  read term 0.05  the read 93.15
+  READER PCLSF    claim at t 93.11  claim at t+1 93.10  read term 0.05  the read 93.15
+  OFF DEFAULT     claim at t 94.75  claim at t+1 94.73  read term 0.05  the read 94.78
+  OFF PCLSI       claim at t 92.35  claim at t+1 92.32  read term 0.06  the read 92.38
+  READER interpolated less snapped: the claim at t+1 -2.34, the read -2.34, the read term 0.00
+  OFF interpolated less snapped: the claim at t+1 -2.41, the read -2.40, the read term 0.01
+world 2 year 0 (the read of year 1's table):
+  READER DEFAULT  claim at t 99.80  claim at t+1 99.80  read term -0.00  the read 99.80
+  READER PCLSI    claim at t 99.70  claim at t+1 99.65  read term 0.05  the read 99.70
+  READER PCLSF    claim at t 99.71  claim at t+1 99.65  read term 0.05  the read 99.70
+  OFF DEFAULT     claim at t 15.94  claim at t+1 99.73  read term -83.78  the read 15.95
+  OFF PCLSI       claim at t 12.84  claim at t+1 99.54  read term -86.69  the read 12.85
+  READER interpolated less snapped: the claim at t+1 -0.16, the read -0.10, the read term 0.06
+  OFF interpolated less snapped: the claim at t+1 -0.19, the read -3.10, the read term -2.91
+world 2 year 1 (the read of year 2's table):
+  READER DEFAULT  claim at t 99.80  claim at t+1 99.81  read term -0.00  the read 99.81
+  READER PCLSI    claim at t 99.65  claim at t+1 99.65  read term -0.00  the read 99.65
+  READER PCLSF    claim at t 99.65  claim at t+1 99.65  read term -0.00  the read 99.65
+  OFF DEFAULT     claim at t 99.73  claim at t+1 99.73  read term 0.00  the read 99.73
+  OFF PCLSI       claim at t 99.54  claim at t+1 99.54  read term 0.00  the read 99.54
+  READER interpolated less snapped: the claim at t+1 -0.16, the read -0.16, the read term -0.00
+  OFF interpolated less snapped: the claim at t+1 -0.19, the read -0.19, the read term 0.00

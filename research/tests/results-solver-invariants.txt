@@ -1,0 +1,35 @@
+# node research/tests/solver-invariants.test.mjs (on this commit's code)
+PASS  PhiInv(0) -7.941 and PhiInv(1) 7.941 are finite
+PASS  the final year clearing at z 6: survival 9.901e-10 (Phi(-z) 9.866e-10), estate 1.014e-4, resilience 9.901e-10: all finite, survival within 2%
+PASS  the final year clearing at z 7.8: survival 3.125e-15 (Phi(-z) 3.095e-15), estate 3.165e-10, resilience 3.125e-15: all finite, survival within 2%
+PASS  the final year clearing at z 8.5: survival 9.597e-18 (Phi(-z) 9.480e-18), estate 8.826e-13, resilience 9.597e-18: all finite, survival within 2%
+PASS  the final year clearing at z 8.9: survival 2.832e-19 (Phi(-z) 2.792e-19), estate 2.453e-14, resilience 2.832e-19: all finite, survival within 2%
+PASS  S070 at 30 points, 3 worlds, 1049760 cells: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+PASS  S224 at 30 points, 3 worlds, 1195560 cells: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+PASS  S224 at 30 points: the central world's opening survival 41.27% is above 30% (0.00% before O200's fix)
+PASS  planted: NaN in a solved table's year-1 survival makes the chooser throw (solver: non-finite score in the chooser, year 0, cell at the position, world -, move 0: survival NaN)
+PASS  S070 at 60 points, 3 worlds, 2099520 cells: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+PASS  S224 at 60 points, 3 worlds, 2391120 cells: non-finite 0, survival outside [0, 1] 0, resilience outside [0, 1] 0, no move chosen 0
+PASS  the plant's anchor (the end of finalYearExact) is found once in solve.js
+PASS  the plant fired (one move's final-year estate set to NaN)
+PASS  planted: the solve throws, naming the year, cell, world, move and part (solver: non-finite score in the backward pass, year 40, cell 7, world 0, move 0: estate NaN)
+ALL PASS: 14 checks
+exit 0 after 147 s
+
+# the same test pointed at the code before the fix (SOLVER_DIR=<a copy of src/solver with solve.js from 9d4176d>): it must fail
+FAIL  PhiInv is exported from solve.js
+PASS  the final year clearing at z 6: survival 9.901e-10 (Phi(-z) 9.866e-10), estate 1.014e-4, resilience 9.901e-10: all finite, survival within 2%
+FAIL  the final year clearing at z 7.8: survival 3.125e-15 (Phi(-z) 3.095e-15), estate NaN, resilience NaN: all finite, survival within 2%
+FAIL  the final year clearing at z 8.5: survival 9.597e-18 (Phi(-z) 9.480e-18), estate NaN, resilience NaN: all finite, survival within 2%
+FAIL  the final year clearing at z 8.9: survival 2.832e-19 (Phi(-z) 2.792e-19), estate NaN, resilience NaN: all finite, survival within 2%
+FAIL  S070 at 30 points, 3 worlds, 1049760 cells: non-finite 71733, survival outside [0, 1] 71733, resilience outside [0, 1] 0, no move chosen 71733 (first: world 0, year 0, cell 6528: survival -1, estate -Infinity, resilience 0, cost 0, move 0)
+FAIL  S224 at 30 points, 3 worlds, 1195560 cells: non-finite 468900, survival outside [0, 1] 468900, resilience outside [0, 1] 0, no move chosen 468900 (first: world 0, year 0, cell 0: survival -1, estate -Infinity, resilience 0, cost 0, move 0)
+FAIL  S224 at 30 points: the central world's opening survival 0.00% is above 30% (0.00% before O200's fix)
+FAIL  planted: NaN in a solved table's year-1 survival makes the chooser throw (it did not throw)
+FAIL  S070 at 60 points, 3 worlds, 2099520 cells: non-finite 629784, survival outside [0, 1] 629784, resilience outside [0, 1] 0, no move chosen 629784 (first: world 0, year 0, cell 393: survival -1, estate -Infinity, resilience 0, cost 0, move 0)
+FAIL  S224 at 60 points, 3 worlds, 2391120 cells: non-finite 1097472, survival outside [0, 1] 1097472, resilience outside [0, 1] 0, no move chosen 1097472 (first: world 0, year 0, cell 0: survival -1, estate -Infinity, resilience 0, cost 0, move 0)
+PASS  the plant's anchor (the end of finalYearExact) is found once in solve.js
+PASS  the plant fired (one move's final-year estate set to NaN)
+FAIL  planted: the solve throws, naming the year, cell, world, move and part (it did not throw)
+FAILED: 11 of 14 checks
+exit 1

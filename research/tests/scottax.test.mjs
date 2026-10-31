@@ -1,9 +1,9 @@
 /*
  * Scottish and Welsh income tax bands.
  *
- * Expected values are computed from the 2025/26 Scottish statute, not from the model: starter 19% on
- * £12,571-£15,397, basic 20% to £27,491, intermediate 21% to £43,662, higher 42% to £75,000, advanced
- * 45% to £125,140 and top 48% above that.
+ * Expected values are computed from the 2026/27 Scottish statute (gov.scot; moved from 2025/26 on 21 Oct,
+ * the external review's F0a), not from the model: starter 19% on £12,571-£16,537, basic 20% to £29,526,
+ * intermediate 21% to £43,662, higher 42% to £75,000, advanced 45% to £125,140 and top 48% above that.
  *
  * The properties that matter most here are the ones about what must *not* change. Income tax bands are
  * devolved; National Insurance, capital gains tax, the personal allowance and its taper are not, and
@@ -29,8 +29,8 @@ console.log('=== the ladder is built as declared ===');
   ok('every band top is non-decreasing', SCO.ladder.every((b, i) => i === 0 || b.top >= SCO.ladder[i - 1].top));
   ok('the last band is unbounded', SCO.ladder[5].top === Infinity && RUK.ladder[2].top === Infinity);
   // taxable-space tops, i.e. gross limit less the allowance surviving at that income
-  near('starter band ends at £2,827 of taxable income', SCO.ladder[0].top, 15397 - 12570, 1e-9);
-  near('basic band ends at £14,921', SCO.ladder[1].top, 27491 - 12570, 1e-9);
+  near('starter band ends at £3,967 of taxable income', SCO.ladder[0].top, 16537 - 12570, 1e-9);
+  near('basic band ends at £16,956', SCO.ladder[1].top, 29526 - 12570, 1e-9);
   near('intermediate band ends at £31,092', SCO.ladder[2].top, 43662 - 12570, 1e-9);
   near('higher band ends at £62,430', SCO.ladder[3].top, 75000 - 12570, 1e-9);
   // the allowance is fully tapered away by £125,140, so the advanced band top is the gross figure itself
@@ -42,15 +42,15 @@ console.log('=== the ladder is built as declared ===');
 console.log('\n=== income tax at each Scottish band edge, against statute ===');
 {
   near('no tax at the personal allowance', E.incomeTax(12570, SCO), 0);
-  near('top of the starter band', E.incomeTax(15397, SCO), 2827 * 0.19);
-  near('top of the basic band', E.incomeTax(27491, SCO), 2827 * 0.19 + 12094 * 0.20);
-  near('top of the intermediate band', E.incomeTax(43662, SCO), 2827 * 0.19 + 12094 * 0.20 + 16171 * 0.21);
-  near('top of the higher band', E.incomeTax(75000, SCO), 2827 * 0.19 + 12094 * 0.20 + 16171 * 0.21 + 31338 * 0.42);
+  near('top of the starter band', E.incomeTax(16537, SCO), 3967 * 0.19);
+  near('top of the basic band', E.incomeTax(29526, SCO), 3967 * 0.19 + 12989 * 0.20);
+  near('top of the intermediate band', E.incomeTax(43662, SCO), 3967 * 0.19 + 12989 * 0.20 + 14136 * 0.21);
+  near('top of the higher band', E.incomeTax(75000, SCO), 3967 * 0.19 + 12989 * 0.20 + 14136 * 0.21 + 31338 * 0.42);
   // the allowance tapers away between £100,000 and £125,140, so taxable income at £125,140 is the whole of it
   near('top of the advanced band', E.incomeTax(125140, SCO),
-    2827 * 0.19 + 12094 * 0.20 + 16171 * 0.21 + 31338 * 0.42 + (125140 - 62430) * 0.45);
+    3967 * 0.19 + 12989 * 0.20 + 14136 * 0.21 + 31338 * 0.42 + (125140 - 62430) * 0.45);
   near('into the top rate', E.incomeTax(150000, SCO),
-    2827 * 0.19 + 12094 * 0.20 + 16171 * 0.21 + 31338 * 0.42 + (125140 - 62430) * 0.45 + 24860 * 0.48);
+    3967 * 0.19 + 12989 * 0.20 + 14136 * 0.21 + 31338 * 0.42 + (125140 - 62430) * 0.45 + 24860 * 0.48);
   // The allowance taper is reserved, so it applies in Scotland too - but at £100,000 the Scottish band is
   // the 45% advanced rate, not the 42% higher rate, so the effective marginal rate there is 67.5%, not 63%.
   near('the taper bites at the advanced rate, giving 67.5% effective', E.incomeTax(101000, SCO) - E.incomeTax(100000, SCO), 1500 * 0.45);
@@ -97,7 +97,7 @@ console.log('\n=== the bracket-fill ceiling follows the higher rate, not a band 
 {
   near('rUK fills to £50,270 as before', RUK.higherRateStartsAt, 50270, 1e-9);
   near('Scotland fills to £43,662, where 42% starts', SCO.higherRateStartsAt, 43662, 1e-9);
-  ok('not to the top of the 20% band', SCO.higherRateStartsAt !== 27491);
+  ok('not to the top of the 20% band', SCO.higherRateStartsAt !== 29526);
   near('the marginal rate just below it is 21%', E.marginalRateAt(43000, SCO), 0.21, 1e-9);
   near('and just above it is 42%', E.marginalRateAt(44000, SCO), 0.42, 1e-9);
   near('marginalRateAt is 0 inside the allowance', E.marginalRateAt(10000, SCO), 0, 1e-9);
@@ -109,7 +109,7 @@ console.log('\n=== the bracket-fill ceiling follows the higher rate, not a band 
 console.log('\n=== breakpoints cover every band, which the analytic solver depends on ===');
 {
   const bpS = E.taxBreakpoints(SCO), bpR = E.taxBreakpoints(RUK);
-  for (const x of [12570, 15397, 27491, 43662, 75000, 100000, 125140]) ok(`Scottish breakpoints include £${x.toLocaleString()}`, bpS.some(b => Math.abs(b - x) < 1e-6));
+  for (const x of [12570, 16537, 29526, 43662, 75000, 100000, 125140]) ok(`Scottish breakpoints include £${x.toLocaleString()}`, bpS.some(b => Math.abs(b - x) < 1e-6));
   ok('rUK breakpoints are unchanged', bpR.filter((v, i, a) => a.indexOf(v) === i).join(',') === '12570,50270,100000,125140', bpR.join(','));
   ok('sorted ascending', bpS.every((v, i) => i === 0 || v >= bpS[i - 1]));
 

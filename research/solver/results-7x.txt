@@ -1,0 +1,109 @@
+ok   a log parsed and gated: twenty units, the gate passes: 20 0
+ok   the gate refuses the wrong held tier on the ran line: true
+ok   the gate refuses the reader's reference at the held tier: true
+ok   the gate refuses a hold line that disagrees: true
+ok   the gate refuses three worlds where five are named: true
+ok   the gate refuses a missing world line: true
+ok   the gate refuses world runs at another size: true
+ok   the gate refuses a second setting changed within a case (the minimum pot): true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses a unit with no done line: true
+ok   the gate refuses the wrong seed on every unit of a case (so no within-case comparison sees it): true
+ok   the gate refuses a hole among the world lines (the middle world missing): true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   FS as the deep review states it: 1 HELD, 2 FALSIFIED, 3 HELD, 4 HELD: 1 HELD, 2 FALSIFIED, 3 HELD, 4 HELD
+ok   W as the deep review states it: 1 FALSIFIED, 2 HELD: 1 FALSIFIED, 2 HELD
+ok   R at 1.6 is not within 1.5: item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   no material realised gain: item 1 INCONCLUSIVE whatever R: INCONCLUSIVE
+ok   the Q control within 1.5 times: item 3 FALSIFIED: FALSIFIED
+ok   the sign control reversed: item 4 FALSIFIED; the tables flat: INCONCLUSIVE: FALSIFIED INCONCLUSIVE
+ok   W at 1.3 times on one case: item 2 INCONCLUSIVE: INCONCLUSIVE
+ok   R within 1.5 but the realised gain not material (3 saved of 8,000): item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   R at 0.6 on both (between the bounds): item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   five worlds 1.3 times on both: item 2 INCONCLUSIVE; 1.6 and 1.0: INCONCLUSIVE: INCONCLUSIVE INCONCLUSIVE
+ok   the Q control with no material realised gain: item 3 INCONCLUSIVE: INCONCLUSIVE
+ok   the sign control with the tables under 0.1 points: item 4 INCONCLUSIVE: INCONCLUSIVE
+ok   the sign control below 95% survival reads a 0.4-point loss at the 0.5 margin: not material, item 4 INCONCLUSIVE: INCONCLUSIVE
+ok   dT and dS by hand: S126 0.5 and 0.5, R 1: 0.500 0.500 1.000
+planted (28): all read as they should
+
+7X: IS THE DE-RISK'S UNDERVALUING FREE SWITCHING OR THE THREE WORLDS? (predictions/diag-7x.md; 8000 paths of seed 7002, 1000 a world; the fair-test gate passed: the stamps, every unit's settings, every world, run and trace)
+
+EVERY UNIT: the held tables' opening survival against the aggregate run; each world's table against its own world run; survival on the paths whose shift lies below -sqrt 3
+S126 (reader; 277 paths below -sqrt 3)
+  READER/H00/M3   table  99.01 sim  98.79 (table less sim 0.22)  deep 85.9  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 104 s)
+                  worlds z -1.73: 95.43/94.60  z 0.00: 99.66/99.80  z 1.73: 99.98/100.00
+  READER/H22/M3   table  99.83 sim  99.83 (table less sim 0.00)  deep 96.4  tier-below 40.00 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 135 s)
+                  worlds z -1.73: 99.15/99.00  z 0.00: 99.95/100.00  z 1.73: 99.99/100.00
+  READER/H00/M5   table  99.01 sim  98.79 (table less sim 0.23)  deep 85.9  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 162 s)
+                  worlds z -2.86: 81.05/75.60  z -1.36: 97.39/96.70  z 0.00: 99.66/99.80  z 1.36: 99.96/100.00  z 2.86: 99.99/100.00
+  READER/H22/M5   table  99.82 sim  99.83 (table less sim -0.01)  deep 96.4  tier-below 40.00 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 178 s)
+                  worlds z -2.86: 94.65/91.50  z -1.36: 99.57/99.50  z 0.00: 99.95/100.00  z 1.36: 99.99/100.00  z 2.86: 100.00/100.00
+S194 (off; 332 paths below -sqrt 3)
+  OFF/H00/M3      table  94.89 sim  94.85 (table less sim 0.04)  deep 66.6  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 120 s)
+                  worlds z -1.73: 76.59/77.60  z 0.00: 98.20/98.30  z 1.73: 99.92/100.00
+  OFF/H22/M3      table  98.26 sim  98.33 (table less sim -0.07)  deep 82.8  tier-below 40.99 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 121 s)
+                  worlds z -1.73: 91.01/91.40  z 0.00: 99.64/99.90  z 1.73: 99.98/100.00
+  OFF/H00/M5      table  95.03 sim  94.84 (table less sim 0.19)  deep 66.6  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 183 s)
+                  worlds z -2.86: 40.73/38.10  z -1.36: 85.07/84.90  z 0.00: 98.20/98.30  z 1.36: 99.85/99.90  z 2.86: 99.99/100.00
+  OFF/H22/M5      table  98.35 sim  98.33 (table less sim 0.02)  deep 83.1  tier-below 40.99 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 201 s)
+                  worlds z -2.86: 58.20/59.20  z -1.36: 95.59/95.50  z 0.00: 99.64/99.90  z 1.36: 99.97/100.00  z 2.86: 99.99/100.00
+share 0.95 (reader; 277 paths below -sqrt 3)
+  READER/H00/M3   table  81.15 sim  92.60 (table less sim -11.45)  deep 68.2  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 126 s)
+                  worlds z -1.73: 69.28/79.60  z 0.00: 82.03/94.20  z 1.73: 89.49/98.60
+  READER/H22/M3   table  81.76 sim  95.59 (table less sim -13.83)  deep 81.6  tier-below 38.39 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 107 s)
+                  worlds z -1.73: 71.97/85.50  z 0.00: 82.27/96.60  z 1.73: 89.50/99.10
+  READER/H00/M5   table  81.16 sim  92.60 (table less sim -11.44)  deep 68.2  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 162 s)
+                  worlds z -2.86: 52.78/54.30  z -1.36: 72.95/83.20  z 0.00: 82.03/94.20  z 1.36: 88.12/98.60  z 2.86: 92.87/99.50
+  READER/H22/M5   table  81.76 sim  95.58 (table less sim -13.82)  deep 81.2  tier-below 38.39 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 179 s)
+                  worlds z -2.86: 61.63/68.60  z -1.36: 74.58/88.20  z 0.00: 82.27/96.60  z 1.36: 88.15/98.60  z 2.86: 92.87/99.80
+bridge 4 (reader; 319 paths below -sqrt 3)
+  READER/H00/M3   table  98.39 sim  98.16 (table less sim 0.23)  deep 81.2  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 132 s)
+                  worlds z -1.73: 92.65/92.30  z 0.00: 99.44/99.60  z 1.73: 99.97/100.00
+  READER/H22/M3   table  99.61 sim  99.59 (table less sim 0.02)  deep 94.7  tier-below 41.99 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 109 s)
+                  worlds z -1.73: 98.04/98.70  z 0.00: 99.91/100.00  z 1.73: 99.99/100.00
+  READER/H00/M5   table  98.43 sim  98.08 (table less sim 0.36)  deep 80.3  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 169 s)
+                  worlds z -2.86: 74.01/69.30  z -1.36: 95.67/95.30  z 0.00: 99.44/99.60  z 1.36: 99.94/100.00  z 2.86: 99.99/100.00
+  READER/H22/M5   table  99.60 sim  99.59 (table less sim 0.02)  deep 94.7  tier-below 41.99 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 165 s)
+                  worlds z -2.86: 89.69/87.70  z -1.36: 98.98/99.30  z 0.00: 99.91/100.00  z 1.36: 99.99/100.00  z 2.86: 100.00/100.00
+S360 (off; 348 paths below -sqrt 3)
+  OFF/H00/M3      table   0.61 sim  41.06 (table less sim -40.46)  deep 22.7  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 159 s)
+                  worlds z -1.73: 0.45/20.50  z 0.00: 0.62/40.30  z 1.73: 0.69/61.40
+  OFF/H22/M3      table   0.93 sim  28.20 (table less sim -27.27)  deep 10.1  tier-below 18.37 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 126 s)
+                  worlds z -1.73: 0.63/9.10  z 0.00: 0.92/27.40  z 1.73: 1.27/51.30
+  OFF/H00/M5      table   0.61 sim  41.06 (table less sim -40.46)  deep 22.7  tier-below 0.00 changes 0.000  held High_Risk/Medium/High_Risk  (solve 219 s)
+                  worlds z -2.86: 0.32/12.20  z -1.36: 0.50/25.00  z 0.00: 0.62/40.30  z 1.36: 0.69/57.40  z 2.86: 0.69/74.30
+  OFF/H22/M5      table   0.93 sim  28.20 (table less sim -27.27)  deep 10.1  tier-below 18.37 changes 0.000  held Medium_Risk/Medium/Low_Risk  (solve 186 s)
+                  worlds z -2.86: 0.49/2.70  z -1.36: 0.69/12.30  z 0.00: 0.92/27.40  z 1.36: 1.19/46.40  z 2.86: 1.54/67.70
+
+THE QUANTITIES (points): dT the held tables' difference at the opening (2/2 less 0/0), dS the realised difference on the same paths (saved/lost), R = dT / dS
+  S126        READER  3 worlds  dT   0.8200  dS   1.0375 (83/0; exact 0.947 to 1.038)  R 0.790
+  S126        READER  5 worlds  dT   0.8043  dS   1.0375 (83/0; exact 0.947 to 1.038)  R 0.775
+  S194        OFF     3 worlds  dT   3.3713  dS   3.4750 (278/0; exact 3.383 to 3.475)  R 0.970
+  S194        OFF     5 worlds  dT   3.3231  dS   3.4875 (279/0; exact 3.396 to 3.487)  R 0.953
+  share 0.95  READER  3 worlds  dT   0.6150  dS   2.9875 (239/0; exact 2.896 to 2.987)  R 0.206
+  share 0.95  READER  5 worlds  dT   0.6002  dS   2.9750 (238/0; exact 2.883 to 2.975)  R 0.202
+  bridge 4    READER  3 worlds  dT   1.2148  dS   1.4250 (114/0; exact 1.334 to 1.425)  R 0.852
+  bridge 4    READER  5 worlds  dT   1.1733  dS   1.5125 (121/0; exact 1.422 to 1.512)  R 0.776
+  S360        OFF     3 worlds  dT   0.3262  dS -12.8625 (0/1029; exact -12.863 to -12.770)  R -0.025
+  S360        OFF     5 worlds  dT   0.3255  dS -12.8625 (0/1029; exact -12.863 to -12.770)  R -0.025
+
+THE ITEMS (the path legs by the regimen's exact reading, Holm within each item, the unconditional interval beside; the ratios by their registered bounds)
+1. FS: on S126 and S194, in three worlds, the held tables' difference lies within 1.5 times the realised one (FALSIFIED: below 0.5 times on both): HELD
+     S126: READER/H22/M3 against READER/H00/M3 83 saved/0 lost +1.038 (exact 0.947 to 1.038; unconditional 0.833 to 1.285) gain
+     S194: OFF/H22/M3 against OFF/H00/M3 278 saved/0 lost +3.475 (exact 3.383 to 3.475; unconditional 3.089 to 3.900) gain
+     S126: dT 0.8200, dS 1.0375, R 0.790
+     S194: dT 3.3713, dS 3.4750, R 0.970
+2. W: on the same two cases, the held tables' difference in five worlds is at least 1.5 times that in three (FALSIFIED: at most 1.2 times on both): FALSIFIED
+     S126: dT 0.8200 in three worlds, 0.8043 in five (0.98)
+     S194: dT 3.3713 in three worlds, 3.3231 in five (0.99)
+3. the Q control: on share 0.95, in three worlds, the held tables' difference is below 0.5 times the realised one (FALSIFIED: within 1.5 times): HELD
+     share 0.95: READER/H22/M3 against READER/H00/M3 239 saved/0 lost +2.987 (exact 2.896 to 2.987; unconditional 2.624 to 3.384) gain
+     share 0.95: dT 0.6150, dS 2.9875, R 0.206
+4. the sign control: on S360 (off), in three worlds, the held tables' difference has the realised one's sign (FALSIFIED: the opposite sign): FALSIFIED
+     S360: OFF/H22/M3 against OFF/H00/M3 0 saved/1029 lost -12.863 (exact -12.863 to -12.770; unconditional -13.616 to -12.128) harm
+     S360: OFF/H22/M3 against OFF/H00/M3 0 saved/1029 lost -12.863 (exact -12.863 to -12.770; unconditional -13.616 to -12.128) no material gain
+     S360: dT 0.3262, dS -12.8625, R -0.025
+
+OUTCOME: 1 HELD, 2 FALSIFIED, 3 HELD, 4 FALSIFIED

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!--N7-PAGE-->
+<title>Solver Stopwatch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500&display=swap">
+<style>
+/* One column, a bench readout: the device first, then the run, then the table of times. */
+:root {
+  --bg: #f3f4f1; --panel: #ffffff; --ink: #1c2320; --muted: #5d6762; --rule: #d6dbd6;
+  --accent: #2c5f8a; --accent-ink: #ffffff; --good: #2f7a4b; --bad: #b0412e; --warn: #8a6410;
+  --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121614; --panel: #1a201d; --ink: #e2e7e4; --muted: #98a39d; --rule: #2c3531;
+  --accent: #8db8de; --accent-ink: #0f1a24; --good: #7cc596; --bad: #ef8f7c; --warn: #d9b45e; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121614; --panel: #1a201d; --ink: #e2e7e4; --muted: #98a39d; --rule: #2c3531;
+  --accent: #8db8de; --accent-ink: #0f1a24; --good: #7cc596; --bad: #ef8f7c; --warn: #d9b45e; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font: 500 2rem/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 .78rem/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--muted); }
+section { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; min-width: 0; }
+dl { display: grid; grid-template-columns: minmax(7.5em, max-content) 1fr; gap: 6px 14px; margin: 0; }
+dt { color: var(--muted); }
+dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.mono, td, th { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; font: 500 .75rem/1.6 var(--mono); padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; }
+.good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); } .muted { color: var(--muted); }
+label { cursor: pointer; }
+input[type="text"] { font: inherit; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); width: min(100%, 22em); }
+.presets { display: grid; gap: 8px; margin: 0 0 14px; padding: 0; border: 0; }
+.presets label { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: baseline; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 4px; }
+.presets label:has(input:checked) { border-color: var(--accent); }
+.presets small { grid-column: 2; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 500 .95rem var(--body); padding: 9px 16px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button.quiet { background: transparent; color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.clock { font: 500 2.4rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+.now { display: grid; gap: 6px; }
+.table { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font-weight: 500; color: var(--muted); }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+td.empty { color: var(--muted); padding: 10px 0; white-space: normal; text-align: left; font-family: var(--body); }
+textarea { width: 100%; box-sizing: border-box; min-height: 8em; font: .78rem/1.4 var(--mono); background: var(--bg); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: 8px; }
+@media (prefers-reduced-motion: no-preference) { .running .clock { transition: color .3s; } }
+</style>
+<!--/N7-HEAD-->
+</head>
+<body>
+<main id="n7">
+  <header>
+    <h1>Solver stopwatch</h1>
+    <p class="lede">Times the planner's solver on this device, one core: the app's solve as it ships (30 wealth points) and the
+      research candidate's (45 points), on the four households gate 5 timed on the research machine. Each solve is
+      also checked against the research machine's tables, bit for bit.</p>
+  </header>
+
+  <section aria-labelledby="dev-h">
+    <h2 id="dev-h">This device</h2>
+    <dl>
+      <dt>Name</dt><dd><input id="dev-name" type="text" placeholder="e.g. MacBook Air M2, Pixel 7" autocomplete="off"></dd>
+      <dt>Browser</dt><dd id="dev-ua" class="mono">reading…</dd>
+      <dt>Cores</dt><dd id="dev-cores">…</dd>
+      <dt>Runs in</dt><dd id="dev-mode">starting the worker…</dd>
+      <dt>Code</dt><dd id="dev-code">checking…</dd>
+      <dt>Record</dt><dd id="dev-db">connecting…</dd>
+    </dl>
+  </section>
+
+  <section aria-labelledby="run-h">
+    <h2 id="run-h">Run</h2>
+    <fieldset class="presets" id="presets">
+      <label><input type="radio" name="preset" id="p-quick" value="quick" checked> S370, both solves, once
+        <small id="eta-quick">…</small></label>
+      <label><input type="radio" name="preset" id="p-all" value="all"> All four households, both solves, once
+        <small id="eta-all">…</small></label>
+      <label><input type="radio" name="preset" id="p-full" value="full"> All four, three times each (the median)
+        <small id="eta-full">…</small></label>
+      <label><input type="radio" name="preset" id="p-check" value="check"> Check the page works
+        <small>The app's solve at 4 points on S126: about 20 seconds on the research machine.</small></label>
+    </fieldset>
+    <div class="row">
+      <button id="start" disabled>Start</button>
+      <button id="stop" class="quiet" disabled>Stop</button>
+      <span id="lock" class="muted"></span>
+    </div>
+    <p class="muted" style="margin-top:10px">Keep this page open and the screen on until it finishes; on a phone, switching to another app can pause it.</p>
+  </section>
+
+  <section aria-labelledby="now-h" id="now-box" hidden>
+    <h2 id="now-h">Now solving</h2>
+    <div class="now">
+      <div id="now-what">…</div>
+      <div class="clock" id="now-clock">0:00</div>
+      <div id="now-left" class="muted"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="res-h">
+    <h2 id="res-h">Times</h2>
+    <div class="table">
+      <table>
+        <thead><tr><th>Household</th><th>Solve</th><th>This device</th><th>Research machine</th><th>Ratio</th><th>Tables</th><th>Same tables</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="7" class="empty">No solves yet. Choose a run above and press Start.</td></tr></tbody>
+      </table>
+    </div>
+    <p class="muted" id="ref-note" style="margin-top:10px"></p>
+  </section>
+
+  <section aria-labelledby="sum-h" id="sum-box" hidden>
+    <h2 id="sum-h">What it means</h2>
+    <dl id="sum"></dl>
+    <div class="row" style="margin-top:14px">
+      <button id="copy" class="quiet">Copy the results</button>
+      <span id="copied" class="muted" aria-live="polite"></span>
+    </div>
+    <textarea id="out" readonly hidden aria-label="The results as text"></textarea>
+  </section>
+</main>
+<script type="module" src="./page.mjs"></script>
+</body>
+</html>

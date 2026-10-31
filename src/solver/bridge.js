@@ -21,10 +21,11 @@ export function modelStateOf(engineState) {
   };
 }
 
+const N4_CODE = { hr: 'h++', pam: 'h-', bm: 'hm' };   // N4's research re-wrap ceilings (research/solver/n4-design.md); 'g' its CGT sale
 /* A short code for the audit row: the draw order's first pot, the harvest, the level and the tiers. */
 function codeOf(a, ca) {
   const first = a.steps[0].replace('pen', 'P').replace('isa', 'I').replace('cash', 'C').replace('other', 'G');
-  return `${first}${a.harvest ? (a.harvestCeil === 'basic' ? 'h+' : 'h') : ''}${a.spendLevel !== undefined && a.spendLevel !== 1 ? ` ${Math.round(a.spendLevel * 100)}%` : ''}${ca.tierPen || ca.tierIsa ? ` t${ca.tierPen}${ca.tierIsa}` : ''}`;
+  return `${first}${a.harvest ? (a.harvestCeil === 'basic' ? 'h+' : N4_CODE[a.harvestCeil] || 'h') : ''}${a.cgtSale ? 'g' : ''}${a.spendLevel !== undefined && a.spendLevel !== 1 ? ` ${Math.round(a.spendLevel * 100)}%` : ''}${ca.tierPen || ca.tierIsa ? ` t${ca.tierPen}${ca.tierIsa}` : ''}`;
 }
 
 export function tablePolicy(r) {
@@ -37,15 +38,20 @@ export function tablePolicy(r) {
       const a = actions[ai], ca = c.acts[ai];
       return {
         steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa',
-        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1,
-        tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca)
+        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}),
+        tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca),
+        // the tiers by name too: the engine checks its own list's tier at each index against them (F2a, 21 Oct)
+        tierPenName: c.tiers.pen[ca.tierPen || 0].name, tierIsaName: c.tiers.isa[ca.tierIsa || 0].name
       };
     },
     switchCost: c.switchCost || 0,
+    tiersBelow: r.m.tiersBelow || 2,   // D28: the engine builds its tier list to the table's (App.jsx buildContext)
     meta: r.meta
   };
 }
 
+/* With guardrails and the cost lookahead off: the table chooses the spend level and the draw, and the engine refuses a
+   table with either on (the external review of 21 Oct, F0a). */
 export function withTable(plan, r) {
-  return { ...plan, spending: { ...plan.spending, policyOverride: tablePolicy(r) } };
+  return { ...plan, config: { ...plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...plan.spending, policyOverride: tablePolicy(r) } };
 }

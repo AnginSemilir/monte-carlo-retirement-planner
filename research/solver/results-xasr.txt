@@ -1,0 +1,5 @@
+GATE: FAILED - NOT SETTLED
+  the BASE guard: S370 year 2 BASE's mean (va - ex5) 1.1305e-1 above 0.005 (optimism added)
+  the BASE guard: S370 year 2 BASE's mean (va - ex5) 1.1305e-1 against the reader's (read - ex5) -6.2866e-3: more than 0.005 further from the one-step value
+  the BASE guard: S370 year 6 BASE's mean (va - ex5) -2.0443e-1 against the reader's (read - ex5) -1.9464e-3: more than 0.005 further from the one-step value
+  the BASE guard: bridge 4 year 2 BASE's mean (va - ex5) -4.0868e-2 against the reader's (read - ex5) -6.0365e-4: more than 0.005 further from the one-step value

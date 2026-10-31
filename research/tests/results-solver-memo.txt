@@ -1,0 +1,20 @@
+# node research/tests/solver-memo-full.test.mjs, i.e. solver-memo.test.mjs --full (on this commit's code; wall 2655 s)
+PASS  S224 SHIP: the memo off and on, tableHash f3d751fa4a423812 / f3d751fa4a423812, layerHash c2283d49137e140e / c2283d49137e140e (615 arrays); the memo's hits 37304001, integrations 10984959 (off: 0, 0); 51 s off, 22 s on
+PASS  S224 CAND: the memo off and on, tableHash 7e83e2f8d9e988f5 / 7e83e2f8d9e988f5, layerHash ee301027e4601e63 / ee301027e4601e63 (2583 arrays); the memo's hits 78043554, integrations 26115966 (off: 0, 0); 129 s off, 57 s on
+PASS  S224 FROZEN: the memo off and on, tableHash 7e83e2f8d9e988f5 / 7e83e2f8d9e988f5, layerHash ee301027e4601e63 / ee301027e4601e63 (2583 arrays); the memo's hits 78043554, integrations 26115966 (off: 0, 0); 129 s off, 52 s on
+PASS  S224 DECOMP: the memo off and on, tableHash 7e83e2f8d9e988f5 / 7e83e2f8d9e988f5, layerHash ee301027e4601e63 / ee301027e4601e63 (2583 arrays); the memo's hits 78043554, integrations 26115966 (off: 0, 0); 129 s off, 56 s on
+PASS  S224 JOINT: the memo off and on, tableHash 75dddb61b341a6e2 / 75dddb61b341a6e2, layerHash 850ef536ef11763d / 850ef536ef11763d (615 arrays); the memo's hits 24900237, integrations 9819603 (off: 0, 0); 47 s off, 24 s on
+PASS  S362 SHIP: the memo off and on, tableHash a24a47c610b8e710 / a24a47c610b8e710, layerHash e800ff3e132ca4f6 / e800ff3e132ca4f6 (690 arrays); the memo's hits 58792635, integrations 10468197 (off: 0, 0); 79 s off, 27 s on
+PASS  S362 CAND: the memo off and on, tableHash 22c8be083169b948 / 22c8be083169b948, layerHash 33f08957c1725bc0 / 33f08957c1725bc0 (2898 arrays); the memo's hits 120400734, integrations 22423650 (off: 0, 0); 220 s off, 62 s on
+PASS  S362 FROZEN: the memo off and on, tableHash bdcd4337e9ec5173 / bdcd4337e9ec5173, layerHash 9413b2c492b7fe89 / 9413b2c492b7fe89 (2898 arrays); the memo's hits 120400734, integrations 22423650 (off: 0, 0); 215 s off, 58 s on
+PASS  S362 DECOMP: the memo off and on, tableHash af3dd48def48a405 / af3dd48def48a405, layerHash 7f3aa4da046cb056 / 7f3aa4da046cb056 (2898 arrays); the memo's hits 120400734, integrations 22423650 (off: 0, 0); 212 s off, 61 s on
+PASS  S362 JOINT: the memo off and on, tableHash 517456a6ab0431b1 / 517456a6ab0431b1, layerHash bc0245d4ecc537b0 / bc0245d4ecc537b0 (690 arrays); the memo's hits 39121605, integrations 8486523 (off: 0, 0); 83 s off, 26 s on
+PASS  S370 SHIP: the memo off and on, tableHash c94b936a6f46df07 / c94b936a6f46df07, layerHash 476e2593eca45543 / 476e2593eca45543 (690 arrays); the memo's hits 35493183, integrations 12212577 (off: 0, 0); 55 s off, 25 s on
+PASS  S370 CAND: the memo off and on, tableHash 1768349685e18fc5 / 1768349685e18fc5, layerHash 13ff8fc72885f4e8 / 13ff8fc72885f4e8 (2898 arrays); the memo's hits 73765746, integrations 29032974 (off: 0, 0); 192 s off, 65 s on
+PASS  S370 FROZEN: the memo off and on, tableHash 4d09d811c807488e / 4d09d811c807488e, layerHash 56974203b1357c78 / 56974203b1357c78 (2898 arrays); the memo's hits 73765746, integrations 29032974 (off: 0, 0); 155 s off, 60 s on
+PASS  S370 DECOMP: the memo off and on, tableHash 16842e9d18b33ae2 / 16842e9d18b33ae2, layerHash 6b8dd4d691235cd5 / 6b8dd4d691235cd5 (2898 arrays); the memo's hits 73765746, integrations 29032974 (off: 0, 0); 157 s off, 64 s on
+PASS  S370 JOINT: the memo off and on, tableHash 4b62d252b9ef4f23 / 4b62d252b9ef4f23, layerHash 73adbc71eca721f9 / 73adbc71eca721f9 (690 arrays); the memo's hits 23351769, integrations 10914471 (off: 0, 0); 64 s off, 26 s on
+PASS  planted: the key without the growth class changes S224 SHIP's tables (f3d751fa4a423812 to 239e2e269cdac5f9)
+PASS  planted: the key without the world changes S224 CAND's layers (ee301027e4601e63 to 43fb202b769862b6)
+ALL PASS: 17 checks
+# the code before the port (8249958), the speed review's scripts/speed-timing.mjs with PTS=6 PATHS=0: S224 SHIP tableHash f3d751fa4a423812, layerHash c2283d49137e140e (the same as above, the memo off and on)

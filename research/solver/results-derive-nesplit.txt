@@ -1,0 +1,57 @@
+FAIR-TEST GATE: passed (requireFairLogs over 220 logs of results/diag7u, 7u's registered prediction)
+
+1. THE RECORDS (7u, seed 7013, 8,000 paths; results-7u.txt and results/diag7u)
+  S364 W0.02: CAND against SHIP 0 saved/31 lost; CAND's year 0 level 0.90 tier code 10 (pension 2, ISA 2); SHIP's level 0.80 tier code 0; CAND moves tier in year 1 on 5815 of 8000 paths alive; failures at the plan's end below its minimum pot / by running out: CAND 0/7997, SHIP 0/7966
+  S364 W0.01: CAND against SHIP 0 saved/28 lost; CAND's year 0 level 0.95 tier code 10 (pension 2, ISA 2); SHIP's level 0.80 tier code 0; CAND moves tier in year 1 on 5554 of 8000 paths alive; failures at the plan's end below its minimum pot / by running out: CAND 0/7997, SHIP 0/7969
+  S364 CAND W0.02: year-0 table 4.8605 sim 0.04 error 4.82 (results-7u.txt)
+  S364 SHIP W0.02: year-0 table 0.0383 sim 0.42 error -0.39 (results-7u.txt)
+  bridge 4 CAND W0.02: year-0 table 99.7554 sim 99.76 error -0.01 (results-7u.txt)
+  bridge 4 SHIP W0.02: year-0 table 13.3493 sim 99.66 error -86.31 (results-7u.txt)
+  S364 CAND W0.01: year-0 table 4.8688 sim 0.04 error 4.83 (results-7u.txt)
+  S364 SHIP W0.01: year-0 table 0.0393 sim 0.39 error -0.35 (results-7u.txt)
+  bridge 4 CAND W0.01: year-0 table 99.7855 sim 99.75 error 0.04 (results-7u.txt)
+  bridge 4 SHIP W0.01: year-0 table 15.1379 sim 99.65 error -84.51 (results-7u.txt)
+
+2. THE POWER (the share of draws where the loss reads at both weights and reaches -0.25 points (item 1's MISREADS with the table blind), Holm over the two; item 1's simulated half; the stories' own-against-SS loss from 7u's S364 legs, a carry from CAND-against-SHIP to own-against-SS, grade D)
+  SAME : loss reads at both 0.9327
+  HALF : loss reads at both 0.0147
+  NULL : loss reads at both 0.0000
+  sensitivity, SAME with the churn 8 times larger (SAME x2): loss reads at both 0.9025
+  sensitivity, SAME with the churn 12 times larger (SAME x3): loss reads at both 0.8782
+  item 4 (the de-risk against the spend, Holm over eight with SC against CS on the same paths; the loss of the SAME story split as the story says, each pair's churn added):
+    DERISK: HELD 0.9722 INCONCLUSIVE 0.0278 FALSIFIED 0.0000
+    SPEND : HELD 0.0000 INCONCLUSIVE 0.0290 FALSIFIED 0.9710
+    BOTH  : HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 2 HELD needs, at 0.02 with 7u's 0 saved/31 lost: G below (dT - -0.2497) / 100, so with dT 0 below 2.497e-3, 1.93 times 7u's gap 0.0012931
+  item 2 HELD needs, at 0.01 with 7u's 0 saved/28 lost: G below (dT - -0.2190) / 100, so with dT 0 below 2.190e-3, 1.33 times 7u's gap 0.001644
+  items 1 and 2 (G 7u's year-0 gap 0.0012931 at 0.02 and 0.001644 at 0.01, times 1, 2, 3, 1.5; a BLIND table's dT 0, 1, 0.1; both-survive 3 paths a weight):
+    BLIND SAME: item 1 HELD 0.9302 INCONCLUSIVE 0.0698 FALSIFIED 0.0000; item 2 HELD 0.7139 INCONCLUSIVE 0.2861 FALSIFIED 0.0000; both HELD 0.6777; the loss reads at both 1.0000
+    BLIND HALF: item 1 HELD 0.0141 INCONCLUSIVE 0.9859 FALSIFIED 0.0000; item 2 HELD 0.4597 INCONCLUSIVE 0.5402 FALSIFIED 0.0001; both HELD 0.0087; the loss reads at both 0.9865
+    BLIND NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.4000 INCONCLUSIVE 0.3201 FALSIFIED 0.2799; both HELD 0.0000; the loss reads at both 0.0000
+    SEES  SAME: item 1 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.9048 FALSIFIED 0.0953; both HELD 0.0000; the loss reads at both 1.0000
+    SEES  HALF: item 1 HELD 0.0000 INCONCLUSIVE 0.0140 FALSIFIED 0.9860; item 2 HELD 0.0000 INCONCLUSIVE 0.8063 FALSIFIED 0.1937; both HELD 0.0000; the loss reads at both 0.9868
+    SEES  NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.2042 FALSIFIED 0.7958; both HELD 0.0000; the loss reads at both 0.0000
+    MID   SAME: item 1 HELD 0.0000 INCONCLUSIVE 0.9993 FALSIFIED 0.0007; item 2 HELD 0.0182 INCONCLUSIVE 0.9818 FALSIFIED 0.0000; both HELD 0.0000; the loss reads at both 1.0000
+    MID   HALF: item 1 HELD 0.0097 INCONCLUSIVE 0.9794 FALSIFIED 0.0109; item 2 HELD 0.0000 INCONCLUSIVE 0.9933 FALSIFIED 0.0067; both HELD 0.0000; the loss reads at both 0.9881
+    MID   NULL: item 1 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; item 2 HELD 0.0000 INCONCLUSIVE 0.2146 FALSIFIED 0.7854; both HELD 0.0000; the loss reads at both 0.0000
+    sensitivity, BLIND dT 0 SAME, G 1 times the gap: item 2 HELD 0.8005 INCONCLUSIVE 0.1995 FALSIFIED 0.0000
+    sensitivity, BLIND dT 0 SAME, G 2 times the gap: item 2 HELD 0.0125 INCONCLUSIVE 0.9875 FALSIFIED 0.0000
+    sensitivity, BLIND dT 0 SAME, G 3 times the gap: item 2 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+    sensitivity, BLIND dT 0 SAME, G 1.5 times the gap: item 2 HELD 0.2367 INCONCLUSIVE 0.7632 FALSIFIED 0.0000
+
+3. THE CREDENCES (the receipt of 10 Oct 04:17 UK: NE-SURV=0.45; NE-OTHER=0.24; NE-TS=0.23; NE-NS=0.08, normalised over the NE causes; the judged conditionals in this script's JUDGED)
+  items 1 and 2 mixed over the causes' table positions and the loss stories (section 2's simulation): P(both HELD) 0.2216; P(the loss reads at both) 0.7954
+CREDENCE item 1: point -0.2125 HELD 0.31 INCONCLUSIVE 0.58 FALSIFIED 0.11
+CREDENCE item 2: point - HELD 0.41 INCONCLUSIVE 0.49 FALSIFIED 0.10
+CREDENCE item 3: point - HELD 0.28 INCONCLUSIVE 0.26 FALSIFIED 0.46
+CREDENCE item 4: point -0.2125 HELD 0.44 INCONCLUSIVE 0.32 FALSIFIED 0.24
+CREDENCE item 5: point - HELD 0.80 INCONCLUSIVE 0.12 FALSIFIED 0.08
+  POINT item 1: -0.2125 (80% interval -0.4250 to 0.0000; own against SS at 0.02 over the loss stories)
+  POINT item 4: -0.2125 (80% interval -0.3875 to -0.0250; the de-risk against SS at 0.02 over the split stories)
+  DECISION ROWS: items 1 and 2 HELD 0.22; item 3 HELD, item 2 not HELD 0.16; items 2 and 3 FALSIFIED 0.05; else 0.57
+
+4. THE BUDGET (7u's logs: each unit's solve and its 8,000 paths forward, results/diag7u)
+  S364 W0.02: CAND solve 1272 s, SHIP solve 255 s, CAND 8,000 paths 388 s, SHIP 41 s: the unit about 1.30 core-hours
+  S364 W0.01: CAND solve 1394 s, SHIP solve 266 s, CAND 8,000 paths 361 s, SHIP 41 s: the unit about 1.27 core-hours
+  bridge 4 W0.02: CAND solve 1042 s, SHIP solve 375 s, CAND 8,000 paths 1045 s, SHIP 875 s: the unit about 2.96 core-hours
+  total about 5.53 core-hours; the three units run at once, so the wall time is the longest unit's

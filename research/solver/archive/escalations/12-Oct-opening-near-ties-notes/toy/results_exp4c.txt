@@ -1,0 +1,10 @@
+TOY RESULTS - Exp 4c: seed dependence of rule (c) (rollout seeds 4242 vs 4243; evaluation seed 777 for both)
+[P1] N= 1000/world: choice differs between seeds in  8/30; mean loss 0.00060 (seed 4242) vs 0.00099 (4243); worst 0.00456 vs 0.00547
+[P1] N= 4000/world: choice differs between seeds in  9/30; mean loss 0.00059 (seed 4242) vs 0.00022 (4243); worst 0.00347 vs 0.00456
+[P1] N= 8000/world: choice differs between seeds in  5/30; mean loss 0.00017 (seed 4242) vs 0.00030 (4243); worst 0.00232 vs 0.00456
+[P2] N= 1000/world: choice differs between seeds in 11/30; mean loss 0.00104 (seed 4242) vs 0.00117 (4243); worst 0.00838 vs 0.00838
+[P2] N= 4000/world: choice differs between seeds in  4/30; mean loss 0.00032 (seed 4242) vs 0.00038 (4243); worst 0.00402 vs 0.00402
+[P2] N= 8000/world: choice differs between seeds in  4/30; mean loss 0.00019 (seed 4242) vs 0.00059 (4243); worst 0.00222 vs 0.00441
+[C] N= 1000/world: choice differs between seeds in 12/30; mean loss 0.00101 (seed 4242) vs 0.00135 (4243); worst 0.00748 vs 0.00748
+[C] N= 4000/world: choice differs between seeds in 10/30; mean loss 0.00057 (seed 4242) vs 0.00021 (4243); worst 0.00474 vs 0.00177
+[C] N= 8000/world: choice differs between seeds in  2/30; mean loss 0.00013 (seed 4242) vs 0.00012 (4243); worst 0.00216 vs 0.00177

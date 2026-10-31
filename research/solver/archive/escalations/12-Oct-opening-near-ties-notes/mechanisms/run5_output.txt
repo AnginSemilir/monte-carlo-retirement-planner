@@ -1,0 +1,3 @@
+start +0.00 cell: exact-integrated 30pt gap +0.00389 (GH5 +0.00609, ref +0.00895); even parts [-3.95e-03 -3.40e-04  6.90e-05  3.04e-05] ratios [11.63 -4.92  2.27]
+start +0.33 cell: exact-integrated 30pt gap +0.00470 (GH5 +0.00230, ref +0.00829); even parts [-0. -0. -0. -0.] ratios [2.48 2.99 3.68]
+start +0.61 cell: exact-integrated 30pt gap +0.00475 (GH5 +0.00443, ref +0.00711); even parts [-0. -0. -0. -0.] ratios [2.44 3.16 3.75]

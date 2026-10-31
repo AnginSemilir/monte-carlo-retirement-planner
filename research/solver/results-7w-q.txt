@@ -1,0 +1,4 @@
+7W: THE 15-POINT TABLE'S YEAR-0 GAP ON SHARE 0.95 AGAINST Q'S ARITHMETIC (results-derive-7w.txt) AND THE CONTINUOUS CHANCE (grade C)
+  Q's arithmetic at 15 points 0.0596; the continuous chance 0.0208
+  READER    gap 0.00022992 at 5, 0.0031576 at 15 (rise 2.9277e-3): arithmetic / gap 18.9, arithmetic / rise 20.4; continuous / gap 6.6
+  READER+J  gap 0.00011926 at 5, 0.0031917 at 15 (rise 3.0724e-3): arithmetic / gap 18.7, arithmetic / rise 19.4; continuous / gap 6.5

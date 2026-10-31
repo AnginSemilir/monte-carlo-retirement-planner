@@ -1,0 +1,76 @@
+stamp: code 5e1edac08e4b audit 96e4bafc00d1 prediction none sha -
+COV'S EDGE PRINT: READER/TS+J/W0.02/PCLSI at 6 share points, solved at 4 wealth points to build the reader; per household, reader year and world: d0, req, acc*, step, acc*/req, (acc* - (d0 - 1)) / d0
+S130             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | reader yes | secs 154
+                 edge year 0 world 0: d0 83200 req 166400 acc* 166014 step no bills 2 accreq 0.9977 accd0 0.9954
+                 edge year 0 world 1: d0 83200 req 166400 acc* 163751 step no bills 2 accreq 0.9841 accd0 0.9682
+                 edge year 0 world 2: d0 83200 req 166400 acc* 161549 step no bills 2 accreq 0.9708 accd0 0.9417
+                 spread year 0: acc* from 161549 to 166014 across 3 worlds, the largest over the least 1.0276
+                 edge year 1 world 0: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 1 world 1: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 1 world 2: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 spread year 1: acc* from 83199 to 83199 across 3 worlds, the largest over the least 1.0000
+                 done 6 reads
+S370             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | reader yes | secs 184
+                 edge year 0 world 0: d0 83200 req 332800 acc* 330885 step no bills 8 accreq 0.9942 accd0 2.9770
+                 edge year 0 world 1: d0 83200 req 332800 acc* 317611 step no bills 8 accreq 0.9544 accd0 2.8174
+                 edge year 0 world 2: d0 83200 req 332800 acc* 305159 step no bills 8 accreq 0.9169 accd0 2.6678
+                 spread year 0: acc* from 305159 to 330885 across 3 worlds, the largest over the least 1.0843
+                 edge year 1 world 0: d0 83200 req 249600 acc* 248592 step no bills 7 accreq 0.9960 accd0 1.9879
+                 edge year 1 world 1: d0 83200 req 249600 acc* 241878 step no bills 7 accreq 0.9691 accd0 1.9072
+                 edge year 1 world 2: d0 83200 req 249600 acc* 235465 step no bills 7 accreq 0.9434 accd0 1.8301
+                 spread year 1: acc* from 235465 to 248592 across 3 worlds, the largest over the least 1.0557
+                 edge year 2 world 0: d0 83200 req 166400 acc* 166014 step no bills 6 accreq 0.9977 accd0 0.9954
+                 edge year 2 world 1: d0 83200 req 166400 acc* 163751 step no bills 6 accreq 0.9841 accd0 0.9682
+                 edge year 2 world 2: d0 83200 req 166400 acc* 161549 step no bills 6 accreq 0.9708 accd0 0.9417
+                 spread year 2: acc* from 161549 to 166014 across 3 worlds, the largest over the least 1.0276
+                 edge year 3 world 0: d0 83200 req 83200 acc* 83199 step yes bills 5 accreq 1.0000 accd0 0.0000
+                 edge year 3 world 1: d0 83200 req 83200 acc* 83199 step yes bills 5 accreq 1.0000 accd0 0.0000
+                 edge year 3 world 2: d0 83200 req 83200 acc* 83199 step yes bills 5 accreq 1.0000 accd0 0.0000
+                 spread year 3: acc* from 83199 to 83199 across 3 worlds, the largest over the least 1.0000
+                 edge year 4 world 0: d0 -345200 req -95600 acc* 0 step no bills 4 accreq 0.0000 accd0 -1.0000
+                 edge year 4 world 1: d0 -345200 req -95600 acc* 0 step no bills 4 accreq 0.0000 accd0 -1.0000
+                 edge year 4 world 2: d0 -345200 req -95600 acc* 0 step no bills 4 accreq 0.0000 accd0 -1.0000
+                 spread year 4: acc* from 0 to 0 across 3 worlds, the largest over the least NaN
+                 edge year 5 world 0: d0 83200 req 249600 acc* 248592 step no bills 3 accreq 0.9960 accd0 1.9879
+                 edge year 5 world 1: d0 83200 req 249600 acc* 241878 step no bills 3 accreq 0.9691 accd0 1.9072
+                 edge year 5 world 2: d0 83200 req 249600 acc* 235465 step no bills 3 accreq 0.9434 accd0 1.8301
+                 spread year 5: acc* from 235465 to 248592 across 3 worlds, the largest over the least 1.0557
+                 edge year 6 world 0: d0 83200 req 166400 acc* 166014 step no bills 2 accreq 0.9977 accd0 0.9954
+                 edge year 6 world 1: d0 83200 req 166400 acc* 163751 step no bills 2 accreq 0.9841 accd0 0.9682
+                 edge year 6 world 2: d0 83200 req 166400 acc* 161549 step no bills 2 accreq 0.9708 accd0 0.9417
+                 spread year 6: acc* from 161549 to 166014 across 3 worlds, the largest over the least 1.0276
+                 edge year 7 world 0: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 7 world 1: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 7 world 2: d0 83200 req 83200 acc* 83199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 spread year 7: acc* from 83199 to 83199 across 3 worlds, the largest over the least 1.0000
+                 done 24 reads
+bridge 4         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | reader yes | secs 166
+                 edge year 0 world 0: d0 23200 req 92800 acc* 92266 step no bills 4 accreq 0.9942 accd0 2.9770
+                 edge year 0 world 1: d0 23200 req 92800 acc* 88565 step no bills 4 accreq 0.9544 accd0 2.8175
+                 edge year 0 world 2: d0 23200 req 92800 acc* 85092 step no bills 4 accreq 0.9169 accd0 2.6678
+                 spread year 0: acc* from 85092 to 92266 across 3 worlds, the largest over the least 1.0843
+                 edge year 1 world 0: d0 23200 req 69600 acc* 69319 step no bills 3 accreq 0.9960 accd0 1.9879
+                 edge year 1 world 1: d0 23200 req 69600 acc* 67447 step no bills 3 accreq 0.9691 accd0 1.9072
+                 edge year 1 world 2: d0 23200 req 69600 acc* 65659 step no bills 3 accreq 0.9434 accd0 1.8302
+                 spread year 1: acc* from 65659 to 69319 across 3 worlds, the largest over the least 1.0557
+                 edge year 2 world 0: d0 23200 req 46400 acc* 46292 step no bills 2 accreq 0.9977 accd0 0.9954
+                 edge year 2 world 1: d0 23200 req 46400 acc* 45661 step no bills 2 accreq 0.9841 accd0 0.9682
+                 edge year 2 world 2: d0 23200 req 46400 acc* 45047 step no bills 2 accreq 0.9708 accd0 0.9417
+                 spread year 2: acc* from 45047 to 46292 across 3 worlds, the largest over the least 1.0276
+                 edge year 3 world 0: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 3 world 1: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 3 world 2: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 spread year 3: acc* from 23199 to 23199 across 3 worlds, the largest over the least 1.0000
+                 done 12 reads
+S126             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | reader yes | secs 162
+                 edge year 0 world 0: d0 23200 req 46400 acc* 46292 step no bills 2 accreq 0.9977 accd0 0.9954
+                 edge year 0 world 1: d0 23200 req 46400 acc* 45661 step no bills 2 accreq 0.9841 accd0 0.9682
+                 edge year 0 world 2: d0 23200 req 46400 acc* 45047 step no bills 2 accreq 0.9708 accd0 0.9417
+                 spread year 0: acc* from 45047 to 46292 across 3 worlds, the largest over the least 1.0276
+                 edge year 1 world 0: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 1 world 1: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 edge year 1 world 2: d0 23200 req 23200 acc* 23199 step yes bills 1 accreq 1.0000 accd0 0.0000
+                 spread year 1: acc* from 23199 to 23199 across 3 worlds, the largest over the least 1.0000
+                 done 6 reads
+bridge 0         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | reader yes | secs 149
+                 done 0 reads

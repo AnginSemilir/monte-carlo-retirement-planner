@@ -1,0 +1,56 @@
+=== a MEASUREMENT, not a test: NS-COND preflight - the table checks at the registered 30 points on all five households, the read path blind at 4 points, and the audit's five plants; no item line, not evidence for any test (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-cNaOB4   from 87be040
+TABLE CHECKS: passed - 5 households once at 30 points: DEADSTEP passed and ran on each arm, each slice's tolerance at least 2 times its clean error, a census line per arm, some node with no accessible money classed dead
+  S370      BASE: DEADSTEP FAIL 63331 NEXT 7296; census years 7, FAIL 63331 NEXT 7296 KEPT 57816
+  S370      COV: DEADSTEP FAIL 96284 NEXT 7336; census years 7, FAIL 96284 NEXT 7336 KEPT 65292
+  bridge 4  BASE: DEADSTEP FAIL 39366 NEXT 4053; census years 3, FAIL 39366 NEXT 4053 KEPT 4486
+  bridge 4  COV: DEADSTEP FAIL 57348 NEXT 4002; census years 3, FAIL 57348 NEXT 4002 KEPT 4990
+  S126      BASE: DEADSTEP FAIL 10710 NEXT 40; census years 1, FAIL 10710 NEXT 40 KEPT 1350
+  S126      COV: DEADSTEP FAIL 11010 NEXT 340; census years 1, FAIL 11010 NEXT 340 KEPT 1780
+  S130      BASE: DEADSTEP FAIL 9720 NEXT 0; census years 1, FAIL 9720 NEXT 0 KEPT 4322
+  S130      COV: DEADSTEP FAIL 10338 NEXT 621; census years 1, FAIL 10338 NEXT 621 KEPT 5525
+  S128      BASE: DEADSTEP FAIL 8903 NEXT 450; census years 1, FAIL 8903 NEXT 450 KEPT 6168
+  S128      COV: DEADSTEP FAIL 9020 NEXT 667; census years 1, FAIL 9020 NEXT 667 KEPT 7468
+                 deadstep BASE: FAIL 8748/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 18/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 12636/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 checks BASE: replicaNS 63/63 wdRead 63/63 deadstepFail 8748/8748 deadstepNext 18/18 restore 567/567 replica 18/18 rebuild 7776/7776 nodes 144/144 fine 72/72 noAccessDead 26244
+                 checks COV: replicaNS 63/63 wdRead 63/63 deadstepFail 12636/12636 deadstepNext 0/0 restore 567/567 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 35964
+                 blind: reads 63, states 63, item-3 reads 18; no item line and no file
+                 deadstep BASE: FAIL 2916/2916 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 4860/4860 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 checks BASE: replicaNS 27/27 wdRead 27/27 deadstepFail 2916/2916 deadstepNext 0/0 restore 243/243 replica 9/9 rebuild 3888/3888 nodes 48/48 fine 24/24 noAccessDead 13122
+                 checks COV: replicaNS 27/27 wdRead 27/27 deadstepFail 4860/4860 deadstepNext 0/0 restore 243/243 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 17982
+                 blind: reads 27, states 27, item-3 reads 9; no item line and no file
+                 deadstep BASE: FAIL 972/972 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 972/972 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 checks BASE: replicaNS 9/9 wdRead 9/9 deadstepFail 972/972 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 4374
+                 checks COV: replicaNS 9/9 wdRead 9/9 deadstepFail 972/972 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 5346
+                 blind: reads 9, states 9, item-3 reads 0; no item line and no file
+                 deadstep BASE: FAIL 1458/1458 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 1458/1458 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 checks BASE: replicaNS 9/9 wdRead 9/9 deadstepFail 1458/1458 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 4374
+                 checks COV: replicaNS 9/9 wdRead 9/9 deadstepFail 1458/1458 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 5346
+                 blind: reads 9, states 9, item-3 reads 0; no item line and no file
+                 deadstep BASE: FAIL 1458/1458 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 1458/1458 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 checks BASE: replicaNS 9/9 wdRead 9/9 deadstepFail 1458/1458 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 4374
+                 checks COV: replicaNS 9/9 wdRead 9/9 deadstepFail 1458/1458 deadstepNext 0/0 restore 81/81 replica 0/0 rebuild 0/0 nodes 0/0 fine 0/0 noAccessDead 5346
+                 blind: reads 9, states 9, item-3 reads 0; no item line and no file
+the deadshift plant refused by its check wdReadBad (exit 2)
+                 deadstep BASE: FAIL 8748/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 18/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 12636/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+the norestore plant refused by its check restoreBad (exit 2)
+                 deadstep BASE: FAIL 8748/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 18/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 12636/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+the rebuild plant refused by its check rebuildBad (exit 2)
+                 deadstep BASE: FAIL 8748/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 18/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 12636/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+the deadh plant refused by its check deadstepFailBad (exit 2)
+                 deadstep BASE: FAIL 8747/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant 4.0249e-5; NEXT 18/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+                 deadstep COV: FAIL 12635/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant 4.0249e-5; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+the deadnext plant refused by its check deadstepNextBad (exit 2)
+                 deadstep BASE: FAIL 8748/8748 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 17/18 clean error s 8.4703e-22 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant 1.0000e-8
+                 deadstep COV: FAIL 12636/12636 clean error 0.0000e+0 tolerance 1.0000e-9 plant NaN; NEXT 0/0 clean error s 0.0000e+0 b 0.0000e+0 h 0.0000e+0 tolerance 1.0000e-9 plant NaN
+=== snapshot kept at /tmp/solver-snap-cNaOB4 for provenance; remove it when the results are written up
+exit 0

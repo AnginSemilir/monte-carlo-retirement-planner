@@ -1,0 +1,26 @@
+=== a MEASUREMENT, not a test: NSB dead-node census at 30 points on S370 (after NSB's deadExact refusal; tables only, no read; not evidence for any test) (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-lB1kdY   from b9e9c09 + 3 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+stamp: code 6dfa9cfea59a audit 713d3f93cefd prediction none sha -
+NSB: READER/TS+J/W0.02/PCLSI at 6 share points, 30 wealth points, 2000 paths a world (seed 7002); arms BASE and COV; the dead node's non-survival values in every bridge year; 5 households; part 0/5
+S370             case | unit READER/TS+J/W0.02/PCLSI | lambda 0.0223606797749979 tier own riskAbove auto mix 3 | arms BASE,COV
+                 solve BASE: secs 1354 pts 30 shares 6 readerYears 8 readerTax - coverage -
+                 solve COV: secs 1626 pts 30 shares 7 readerYears 8 readerTax 3:6227,7:6227 coverage {"nodes":40,"copied":72360}
+                 ran READER/TS+J/W0.02/PCLSI: mix 3 pts 30 seed 7002 paths 6000 worlds 3 steps 3,7 before 2,6 readerYears 0,1,2,3,4,5,6,7
+                 census BASE t1: at or below DEAD_LS 53202; bequest 0 49866 (at the clamp 49866, off it 0, 0 of them on the share axis); bequest kept 3336 (largest 5.82e+5, the year's largest bequest 9.51e+6)
+                 census BASE t2: at or below DEAD_LS 51233; bequest 0 48333 (at the clamp 48333, off it 0, 0 of them on the share axis); bequest kept 2900 (largest 5.55e+5, the year's largest bequest 9.51e+6)
+                 census BASE t3: at or below DEAD_LS 47698; bequest 0 44253 (at the clamp 44253, off it 0, 0 of them on the share axis); bequest kept 3445 (largest 1.51e+2, the year's largest bequest 9.51e+6)
+                 census BASE t4: at or below DEAD_LS 29787; bequest 0 0 (at the clamp 0, off it 0, 0 of them on the share axis); bequest kept 29787 (largest 1.44e+2, the year's largest bequest 9.51e+6)
+                 census BASE t5: at or below DEAD_LS 56193; bequest 0 50299 (at the clamp 50191, off it 108, 38 of them on the share axis); bequest kept 5894 (largest 1.94e+5, the year's largest bequest 9.51e+6); off-clamp log-odds -13.815 to -13.809; shortfall the clamped dead's on 0 of 108 (ratio 0.9509 to 0.9512)
+                 census BASE t6: at or below DEAD_LS 55799; bequest 0 49817 (at the clamp 48838, off it 979, 191 of them on the share axis); bequest kept 5982 (largest 5.95e+4, the year's largest bequest 9.51e+6); off-clamp log-odds -13.816 to -13.280; shortfall the clamped dead's on 0 of 979 (ratio 0.9496 to 0.9750)
+                 census BASE t7: at or below DEAD_LS 55775; bequest 0 49303 (at the clamp 49303, off it 0, 0 of them on the share axis); bequest kept 6472 (largest 6.75e+3, the year's largest bequest 9.51e+6)
+                 census COV t1: at or below DEAD_LS 67741; bequest 0 64446 (at the clamp 64446, off it 0, 0 of them on the share axis); bequest kept 3295 (largest 1.14e+6, the year's largest bequest 9.51e+6)
+                 census COV t2: at or below DEAD_LS 65838; bequest 0 62913 (at the clamp 62913, off it 0, 0 of them on the share axis); bequest kept 2925 (largest 9.07e+5, the year's largest bequest 9.51e+6)
+                 census COV t3: at or below DEAD_LS 53671; bequest 0 49113 (at the clamp 49113, off it 0, 0 of them on the share axis); bequest kept 4558 (largest 1.51e+2, the year's largest bequest 9.51e+6)
+                 census COV t4: at or below DEAD_LS 34533; bequest 0 0 (at the clamp 0, off it 0, 0 of them on the share axis); bequest kept 34533 (largest 1.44e+2, the year's largest bequest 9.51e+6)
+                 census COV t5: at or below DEAD_LS 70779; bequest 0 64879 (at the clamp 64771, off it 108, 38 of them on the share axis); bequest kept 5900 (largest 3.29e+5, the year's largest bequest 9.51e+6); off-clamp log-odds -13.815 to -13.809; shortfall the clamped dead's on 0 of 108 (ratio 0.9509 to 0.9512)
+                 census COV t6: at or below DEAD_LS 70373; bequest 0 64322 (at the clamp 63465, off it 857, 112 of them on the share axis); bequest kept 6051 (largest 9.28e+4, the year's largest bequest 9.51e+6); off-clamp log-odds -13.816 to -13.327; shortfall the clamped dead's on 0 of 857 (ratio 0.9496 to 0.9751)
+                 census COV t7: at or below DEAD_LS 63983; bequest 0 55953 (at the clamp 55953, off it 0, 0 of them on the share axis); bequest kept 8030 (largest 6.75e+3, the year's largest bequest 9.51e+6)
+=== snapshot kept at /tmp/solver-snap-lB1kdY for provenance; remove it when the results are written up
+exit 0

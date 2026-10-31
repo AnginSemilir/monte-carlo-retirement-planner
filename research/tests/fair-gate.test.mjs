@@ -1,0 +1,164 @@
+/*
+ * THE FAIR-TEST GATE, SHOWN TO FAIL ON PLANTED FAULTS (RULES.md rule 2), and every new reducer shown to use it.
+ * Synthetic result files only: no solve, no results directory needed.
+ */
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { compareData, parseAccept, formatReport, checkLogStamps } from '../solver/fair-gate.mjs';
+import { codeFiles, smokeFiles, ROOT, isFileAt } from '../solver/code-id.mjs';
+
+const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
+let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
+
+const knobs = { levels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], exponent: 2, margin: 0.005, raise: 0.003, drift: 0, bequestShape: 'cap', bequestCap: 1e6, gainBuckets: null, gainInterp: false, pclsStrict: false, bequestWeight: 0.02, resilienceWeight: 0, tiers: ['0/0', '1/1', '2/2'], mixture: 0, levelSearch: 'exhaustive', shareDead: null, quadNodes: 5, raiseCap: '1.1', blockTrim: false, raiseSurvival: true, failureShortfall: '1', estateScale: null, minPotYears: '1', finalExact: true, giaTiers: false, giaGain: null, planTier: null, bridgeRead: false };
+const file = (id, over = {}) => ({ id, target: 30000, floorSpend: 24000, held: 3000, seedHeld: 7002, seedSearch: 7001, confidence: 0.9, coords: 'total 30 x 6 x 6', code: { hash: 'aaaa' }, prediction: { file: 'research/solver/predictions/x.md', sha: 'p1' }, knobs: { ...knobs, ...(over.knobs || {}) }, solver: { lambda: 0.02, landed: 'lambda held', successRate: 90 }, ...Object.fromEntries(Object.entries(over).filter(([k]) => k !== 'knobs')) });
+const tag = (name, files, arm = 'solver') => ({ tag: name, arm, byId: Object.fromEntries(files.map(f => [f.id, f])) });
+const blob = () => 'p1';
+const cmp = (A, B, o = {}) => compareData(A, B, { blob, ...o });
+const two = over => [tag('a', [file('S001'), file('S002')]), tag('b', [file('S001', over), file('S002', over)])];
+
+let r = cmp(...two({}));
+ok(r.bad === 0, 'identical arms are fair');
+r = cmp(...two({ knobs: { mixture: 3 } }));
+ok(r.bad === 1 && r.rows.find(x => x.n === 7).status === 'DIFFERS', 'planted: a different market world is caught (7)');
+r = cmp(...two({ knobs: { minPotYears: null } }));
+ok(r.rows.find(x => x.n === 10).status === 'DIFFERS', 'planted: a different minimum pot is caught (10)');
+r = cmp(...two({ seedHeld: 7005 }));
+ok(r.rows.find(x => x.n === 5).status === 'DIFFERS', 'planted: different held-out paths are caught (5)');
+r = cmp(...two({ knobs: { failureShortfall: false } }), { tested: [22] });
+ok(r.bad === 0 && r.rows.find(x => x.n === 22).status === 'TESTED', 'the thing under test is TESTED, not a failure');
+r = cmp(...two({}), { tested: [22] });
+ok(r.rows.find(x => x.n === 22).status === 'TESTED, BUT EQUAL', 'a "tested" variable that does not differ is flagged');
+r = cmp(...two({ code: { hash: 'bbbb' } }));
+ok(r.rows.find(x => x.n === 28).status === 'DIFFERS', 'planted: arms made by different code are caught (28)');
+r = cmp(...two({ code: undefined }));
+ok(r.rows.find(x => x.n === 28).status === 'UNKNOWN' && r.bad === 1, 'planted: an arm with no code stamp is UNKNOWN, not a pass');
+r = cmp(...two({ code: undefined }), { accept: parseAccept('28=predates the code stamp; checked in git') });
+ok(r.bad === 0 && r.rows.find(x => x.n === 28).status === 'ACCEPTED' && /predates/.test(formatReport(r)), 'an accepted difference passes and its reason is printed');
+assert.throws(() => parseAccept('28'), /needs/); n++; console.log('PASS  an acceptance with no reason is refused');
+r = cmp(tag('a', [file('S001'), file('S002', { code: { hash: 'cccc' } })]), tag('b', [file('S001'), file('S002')]));
+ok(r.checks.some(c => c.status === 'MIXED CODE') && r.bad >= 1, 'planted: a tag made by two versions of the code is caught (the 21 Sep flex-mix split)');
+r = cmp(...two({}), { blob: () => 'p2' });
+ok(r.checks.some(c => c.status === 'PREDICTION EDITED') && r.bad >= 1, 'planted: a prediction edited after the results is caught');
+r = cmp(...two({ prediction: { none: 'a measurement' } }));
+ok(r.checks.some(c => c.status === 'NO PREDICTION') && r.bad >= 1, 'planted: a test arm run as a measurement cannot settle a test');
+r = cmp(...two({ prediction: null }));
+ok(r.checks.some(c => c.status === 'NO PREDICTION'), 'planted: an arm launched outside the launcher is caught');
+const legacy = f => { const g = { ...f }; delete g.prediction; delete g.code; return g; };
+r = cmp(tag('a', [legacy(file('S001'))]), tag('b', [legacy(file('S001'))]), { accept: parseAccept('28=legacy') });
+ok(r.bad === 0 && r.checks.every(c => c.status === 'NOT RECORDED'), 'files from before the gate are noted, not failed, on the prediction');
+r = cmp(tag('a', [file('S001')]), tag('g', [{ ...file('S001'), gkFloor: { successRate: 88, label: 'rule' }, solver: undefined, knobs: { mixture: 0, guardCap: 1.1, minPotYears: '1', armsOnly: true } }], 'gkFloor'));
+ok(r.bad === 0 && r.rows.filter(x => x.status === 'DESIGN').length > 10, 'solver against guardrails: the solver-only settings are DESIGN, and the user\'s rules are compared');
+r = cmp(tag('a', [file('S001')]), tag('g', [{ ...file('S001'), gkFloor: { successRate: 88, label: 'rule' }, solver: undefined, knobs: { mixture: 0, guardCap: 0, minPotYears: '1', armsOnly: true } }], 'gkFloor'));
+ok(r.rows.find(x => x.n === 11).status === 'DIFFERS', "planted: the guardrails without the user's raise cap are caught (K5's first target)");
+r = cmp(tag('a', [file('S001')]), tag('b', [file('S009')]));
+ok(r.empty && r.bad, 'two arms with no household in common are not a fair test');
+// the F1 version is compared, not only whether F1 is on (maintainer's unlock, 24 Sep 13:44 UK)
+const f1 = b => [file('S001', { knobs: { bridgeRead: b } }), file('S002', { knobs: { bridgeRead: b } })];
+r = cmp(tag('a', f1(true)), tag('b', f1(2)));
+ok(r.bad === 1 && r.rows.find(x => x.name === 'bridge read (F1)').status === 'DIFFERS', 'planted: F1 v1 against F1 v2 is caught (24)');
+r = cmp(tag('a', f1(true)), tag('b', f1(true)));
+ok(r.bad === 0, 'v1 against v1 is still the same');
+// the final year integrated exactly against 5 nodes (O19; maintainer's unlock, 24 Sep ~20:10 UK)
+const fi = v => [file('S001', { knobs: { finalIntegral: v } }), file('S002', { knobs: { finalIntegral: v } })];
+r = cmp(tag('a', fi(false)), tag('b', fi(true)));
+ok(r.bad === 1 && r.rows.find(x => x.name === 'final-year integration').status === 'DIFFERS', 'planted: the exact final year against 5 nodes is caught (8)');
+r = cmp(tag('a', [file('S001'), file('S002')]), tag('b', fi(false)));
+ok(r.bad === 0, 'a file from before the setting existed reads as 5 nodes, the same as off');
+
+// every reducer written from 24 Sep must call the gate; the older ones are listed and frozen
+// reduce-o22.mjs: its logs (7j, read 25 Sep 07:54 UK) predate the log stamp, so it is frozen with the others
+const LEGACY = ['reduce-108.mjs', 'reduce-6e.mjs', 'reduce-bestof.mjs', 'reduce-calibration.mjs', 'reduce-k.mjs', 'reduce-m17.mjs', 'reduce-step2.mjs', 'reduce-o22.mjs'];
+const reducers = readdirSync(S).filter(f => /^reduce-.*\.mjs$/.test(f));
+const missing = reducers.filter(f => !LEGACY.includes(f) && !/requireFair(Logs)?\(/.test(readFileSync(join(S, f), 'utf8')));
+ok(missing.length === 0, `every reducer outside the legacy list calls requireFair or, over text logs, requireFairLogs (missing: ${missing.join(', ') || 'none'})`);
+// the log gate, planted (audit-s126.mjs's stamp line)
+{
+  const P = 'research/solver/predictions/x.md', st = (code = 'c1', audit = 'a1', pred = P, sha = 'p1') => `stamp: code ${code} audit ${audit} prediction ${pred} sha ${sha}\nS126 | OFF table 1`;
+  const lg = (texts, b = 'p1') => checkLogStamps(texts, P, { blob: () => b });
+  ok(lg({ a: st(), b: `${st()}\n${st()}` }).length === 0, 'logs launched under the prediction, one code, pass the log gate');
+  ok(lg({ a: st(), b: st('c2') }).some(e => /more than one version/.test(e)), 'planted: a log made by other code is caught');
+  ok(lg({ a: st(), b: st('c1', 'a2') }).some(e => /more than one version/.test(e)), 'planted: a log made by another version of the audit script is caught');
+  ok(lg({ a: st() }, 'p2').some(e => /PREDICTION EDITED/.test(e)), 'planted: a prediction edited after launch is caught');
+  ok(lg({ a: st('c1', 'a1', 'NOT-LAUNCHED', '-') }).some(e => /outside run-from-snapshot/.test(e)), 'planted: a log launched outside the launcher is caught');
+  ok(lg({ a: st('c1', 'a1', 'none', '-') }).some(e => /launched under none/.test(e)), 'planted: a measurement cannot settle a test');
+  ok(lg({ a: 'S126 | OFF table 1' }).some(e => /no stamp/.test(e)), 'planted: a log with no stamp is caught');
+  // a declared correction (the maintainer's unlock, 29 Sep): only typed UK times may change after launch, and the change is
+  // declared under "Changes after seeing results"; anything else stays PREDICTION EDITED
+  const L = '# Prediction: x\n\n- **Written:** 28 Sept, 23:07 UK; revised 23:40 UK (FAIL 23:24 UK)\n\n## Prediction\n\n1. No harm at 0.25.\n\n## Changes after seeing results\n\nNone.\n';
+  const DECL = '\n## Changes after seeing results\n\n- Typed times corrected from the records: 23:40 to 23:32 UK, 23:24 to 23:23 UK.\n';
+  const fixed = L.replace('23:40 UK', '23:32 UK').replace('23:24 UK', '23:23 UK').replace('\n## Changes after seeing results\n\nNone.\n', DECL);
+  const lc = now => checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L, textNow: () => now });
+  const good = lc(fixed);
+  ok(good.length === 0 && good.corrections.length === 1 && /Typed times corrected/.test(good.corrections[0].declared), 'a correction of typed UK times, declared, passes the log gate and is reported');
+  ok(lc(fixed.replace('No harm at 0.25', 'No harm at 0.5')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declared correction that also changes the prediction is caught');
+  ok(lc(L.replace('23:40 UK', '23:32 UK')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a time corrected without a declaration is caught');
+  ok(lc(fixed.replace('- **Written:** 28 Sept', '- **Written:** 27 Sept')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a date (not a UK time) changed under a declaration is caught');
+  ok(lc(L.replace('\n## Changes after seeing results\n\nNone.\n', DECL)).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declaration with no time changed is caught (a declaration alone is not a correction)');
+  ok(lc(L.replace('\n## Changes after seeing results\n\nNone.\n', '\n## Changes after seeing results\n\n- Item 4\'s pooling corrected in reduce-7ak.mjs after the read.\n')).length === 0, 'a declaration naming the reducer it corrects passes with the prediction\'s text unchanged (7ak, 30 Sep)');
+  ok(lc(L.replace('\n## Changes after seeing results\n\nNone.\n', '\n## Changes after seeing results\n\n- Item 4\'s pooling corrected in reduce-7ak.mjs after the read.\n').replace('No harm at 0.25', 'No harm at 0.5')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a reducer declaration that also changes the prediction is caught');
+  ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => null, textNow: () => fixed }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a launch version git cannot give back is caught');
+  { const L2 = L.replace('\nNone.\n', '\n- An earlier declaration.\n'), F2 = L2.replace('23:40 UK', '23:32 UK');
+    ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L2, textNow: () => F2.replace('- An earlier declaration.', '- Rewritten into a longer declaration than the one at launch.') }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declaration that rewrites the launch section is caught');
+    ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L2, textNow: () => F2.replace('- An earlier declaration.', '- An earlier declaration.\n- Times corrected.') }).length === 0, 'a declaration added below an earlier one passes'); }
+}
+ok(LEGACY.every(f => reducers.includes(f)), 'the legacy list names only reducers that exist');
+
+// the smoke stamp covers every script a batch runs, the code hash only what moves a result (24 Sep, the plan-auditor:
+// an edit to audit-s126.mjs alone did not re-run the smoke test)
+const SF = smokeFiles(), CF = codeFiles();
+ok(CF.every(x => SF.includes(x)), 'the smoke stamp hashes every file the code hash does');
+ok(['research/solver/audit-s126.mjs', 'research/solver/select-phase4.mjs', 'research/solver/couple-gate.mjs', 'research/solver/smoke.sh'].every(x => SF.includes(x)),
+   'the smoke stamp also hashes the audits, the Phase 4 selection, the gate scripts and smoke.sh');
+ok(!CF.includes('research/solver/audit-s126.mjs'), 'the code hash (result identity) still leaves the audit scripts out');
+const batchNamed = readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x)).flatMap(b => [...readFileSync(join(S, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)].map(m => 'research/solver/' + m[1]));
+ok(batchNamed.every(x => SF.includes(x)), 'every script a batch names is in the smoke stamp');
+// ...and every module those import from inside the repository (maintainer's unlock, 24 Sep 13:44 UK: settings.mjs,
+// imported by every experiment.mjs run, and code-id.mjs itself were outside the stamp)
+function unstampedImports(SF, root = ROOT) {
+  const out = new Set();
+  for (const f of SF.filter(x => /\.(m?js)$/.test(x))) {
+    const text = readFileSync(join(root, f), 'utf8');
+    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
+      const spec = m[1];
+      if (spec.startsWith('node:') || !(spec.startsWith('.') || spec.startsWith('/'))) continue;
+      // code-id.mjs's rule: a new URL naming a folder or a missing data path is a read, not an import
+      if (/^new\s/.test(m[0]) && !/\.m?js$/.test(spec) && !isFileAt(spec.startsWith('/') ? spec : join(root, dirname(f), spec))) continue;
+      const abs = spec.startsWith('/') ? spec : join(root, dirname(f), spec);
+      const rel = relative(root, abs);
+      if (!rel.startsWith('..') && !SF.includes(rel)) out.add(`${rel} (imported by ${f})`);
+    }
+  }
+  return [...out];
+}
+const loose = unstampedImports(SF);
+ok(loose.length === 0, `every module a stamped script imports is stamped too (outside: ${loose.join(', ') || 'none'})`);
+ok(['research/solver/settings.mjs', 'research/solver/code-id.mjs'].every(x => SF.includes(x)), 'settings.mjs and code-id.mjs are in the smoke stamp');
+// the stamp follows imports to the end (the maintainer's unlock of 6 Oct): planted, an audit importing a.mjs that imports
+// b.mjs; the one-level stamp of before left b.mjs out
+{
+  const T = mkdtempSync(join(tmpdir(), 'stamp-')), SD = join(T, 'research/solver');
+  mkdirSync(SD, { recursive: true }); mkdirSync(join(T, 'src/solver'), { recursive: true });
+  writeFileSync(join(SD, 'audit-plant.mjs'), "import { a } from './a.mjs';\n");
+  writeFileSync(join(SD, 'a.mjs'), "import { b } from './b.mjs';\nexport const a = b;\n");
+  writeFileSync(join(SD, 'b.mjs'), 'export const b = 1;\n');
+  const PS = smokeFiles(T);
+  ok(PS.includes('research/solver/a.mjs') && PS.includes('research/solver/b.mjs'), `planted: a module two imports down from a stamped audit is stamped (${PS.filter(x => /\/(a|b)\.mjs$/.test(x)).join(', ')})`);
+  ok(unstampedImports(PS.filter(x => existsSync(join(T, x))), T).length === 0, 'planted: the transitive scan finds nothing outside the planted stamp');
+  // a side-effect import and a require, each a step further down (the plan-auditor's MINOR on 09dd9a7335)
+  writeFileSync(join(SD, 'b.mjs'), "import './c.mjs';\nexport const b = 1;\n");
+  writeFileSync(join(SD, 'c.mjs'), "const d = require('./d.cjs');\n");
+  writeFileSync(join(SD, 'd.cjs'), 'module.exports = 1;\n');
+  // a worker's file named by new URL (e2.mjs's e2-worker.mjs; the plan-auditor's MINOR 5 on c60a545864)
+  writeFileSync(join(SD, 'a.mjs'), "import { b } from './b.mjs';\nconst W = new URL('./w.mjs', import.meta.url);\nexport const a = b;\n");
+  writeFileSync(join(SD, 'w.mjs'), 'export const w = 1;\n');
+  const PS2 = smokeFiles(T);
+  ok(PS2.includes('research/solver/c.mjs') && PS2.includes('research/solver/d.cjs'), `planted: a side-effect import and a require are followed (${PS2.filter(x => /\/(c\.mjs|d\.cjs)$/.test(x)).join(', ')})`);
+  ok(PS2.includes('research/solver/w.mjs'), 'planted: a worker file named by new URL(..., import.meta.url) is followed');
+  rmSync(T, { recursive: true, force: true });
+}
+
+console.log(`\n${n} passed`);

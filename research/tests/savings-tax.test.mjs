@@ -29,12 +29,12 @@ ok('A5  partial starting-rate room is used first', near(P.savingsTax(15000, 3980
 ok('A7  switched off, nothing is charged', E.taxParams({ ...E.DEFAULT_CONFIG, cashInterestTaxed: false }).savingsTax(30000, 3980) === 0);
 
 console.log('=========== C. DIVIDENDS IN THE GIA, EXACT ===========');
-ok('C1  basic-rate taxpayer: £500 allowance then 8.75%', near(P.dividendTax(30000, 0, 4000), (4000 - 500) * 0.0875), `${P.dividendTax(30000, 0, 4000).toFixed(2)}`);
-ok('C2  higher-rate taxpayer: £500 allowance then 33.75%', near(P.dividendTax(60000, 0, 4000), (4000 - 500) * 0.3375), `${P.dividendTax(60000, 0, 4000).toFixed(2)}`);
+ok('C1  basic-rate taxpayer: £500 allowance then 10.75% (2026/27)', near(P.dividendTax(30000, 0, 4000), (4000 - 500) * 0.1075), `${P.dividendTax(30000, 0, 4000).toFixed(2)}`);
+ok('C2  higher-rate taxpayer: £500 allowance then 35.75% (2026/27)', near(P.dividendTax(60000, 0, 4000), (4000 - 500) * 0.3575), `${P.dividendTax(60000, 0, 4000).toFixed(2)}`);
 ok('C3  additional-rate taxpayer: 39.35%', near(P.dividendTax(140000, 0, 4000), (4000 - 500) * 0.3935), `${P.dividendTax(140000, 0, 4000).toFixed(2)}`);
 {
-  const ns = P.basicLimit - 1500, d = 4000; // £1,500 of basic band left: £500 allowance, £1,000 at 8.75%, the rest at 33.75%
-  const expect = 1000 * 0.0875 + (d - 1500) * 0.3375;
+  const ns = P.basicLimit - 1500, d = 4000; // £1,500 of basic band left: £500 allowance, £1,000 at 10.75%, the rest at 35.75% (2026/27)
+  const expect = 1000 * 0.1075 + (d - 1500) * 0.3575;
   ok('C4  dividends straddling the higher-rate line are split at the line', near(P.dividendTax(ns, 0, d), expect), `${P.dividendTax(ns, 0, d).toFixed(2)} vs ${expect.toFixed(2)}`);
 }
 ok('C5  interest sits below the dividends and pushes them up', P.dividendTax(P.basicLimit - 3000, 2500, 4000) > P.dividendTax(P.basicLimit - 3000, 0, 4000));

@@ -1,0 +1,98 @@
+caught: the gate accepts a missing unit
+caught: the gate accepts a unit twice
+caught: the gate accepts an unregistered unit
+caught: the gate ignores the unit line's lambda
+caught: the gate accepts a missing solve line
+caught: the gate ignores the estate weight
+caught: the gate ignores the paths
+caught: the gate ignores the points (and the grid that names them)
+caught: the gate takes SHIP with the reader
+caught: the gate takes SHIP with the tier state
+caught: the gate takes SHIP with the interpolated allowance axis
+caught: the gate takes CAND without Q's step
+caught: the gate takes CAND without the charge
+caught: the gate takes CAND without e3
+caught: the gate takes CAND without the tier state
+caught: the gate takes other tiers
+caught: the tiers check takes a sixth tier
+caught: the gate ignores the joint flag
+caught: the gate ignores the solve's margin
+caught: the gate ignores a pension death charge
+caught: the gate accepts world lines
+caught: the done line is not required
+caught: the gate strips minPot within a household
+caught: the gate refuses a tier above in one arm only
+caught: the gate ignores a settings difference within a household
+caught: the gate ignores the scale within a household
+caught: the trace agreement ignores the arm
+caught: the trace agreement ignores the stamp
+caught: the trace agreement ignores the survival
+caught: the trace tolerance ten times wider
+caught: a trace off its log is not refused
+caught: item 1 reads harm the wrong way round
+caught: item 1 at the margin 0.25 everywhere
+caught: the margins: S130 at 0.25
+caught: item 1 without Holm
+caught: item 1 passes without the unconditional interval
+caught: item 1 FALSIFIED only when every household reads harm
+caught: item 2 takes a lower end at minus the margin
+caught: item 2 FALSIFIED on a lower end
+caught: item 2 at the margin 0.25 everywhere
+caught: item 3 HELD without the mean
+caught: item 3 FALSIFIED without the mean
+caught: item 3's household line at -6%
+NOT CAUGHT: the gate accepts a missing ran line
+NOT CAUGHT: the gate takes a readerRef, coverage, holdTier or death tax on the ran line
+NOT CAUGHT: the gate accepts a missing gap line
+NOT CAUGHT: the gate accepts a missing run line
+NOT CAUGHT: item 1's interval unguarded
+43 of 48 mutations caught
+caught: the gate accepts a missing unit
+caught: the gate accepts a unit twice
+caught: the gate accepts an unregistered unit
+caught: the gate ignores the unit line's lambda
+caught: the gate accepts a missing solve line
+caught: the gate ignores the estate weight
+caught: the gate ignores the paths
+caught: the gate ignores the points (and the grid that names them)
+caught: the gate takes SHIP with the reader
+caught: the gate takes SHIP with the tier state
+caught: the gate takes SHIP with the interpolated allowance axis
+caught: the gate takes CAND without Q's step
+caught: the gate takes CAND without the charge
+caught: the gate takes CAND without e3
+caught: the gate takes CAND without the tier state
+caught: the gate takes other tiers
+caught: the tiers check takes a sixth tier
+caught: the gate ignores the joint flag
+caught: the gate ignores the solve's margin
+caught: the gate ignores a pension death charge
+caught: the gate accepts world lines
+caught: the done line is not required
+caught: the gate strips minPot within a household
+caught: the gate refuses a tier above in one arm only
+caught: the gate ignores a settings difference within a household
+caught: the gate ignores the scale within a household
+caught: the trace agreement ignores the arm
+caught: the trace agreement ignores the stamp
+caught: the trace agreement ignores the survival
+caught: the trace tolerance ten times wider
+caught: a trace off its log is not refused
+caught: item 1 reads harm the wrong way round
+caught: item 1 at the margin 0.25 everywhere
+caught: the margins: S130 at 0.25
+caught: item 1 without Holm
+caught: item 1 passes without the unconditional interval
+caught: item 1 FALSIFIED only when every household reads harm
+caught: item 2 takes a lower end at minus the margin
+caught: item 2 FALSIFIED on a lower end
+caught: item 2 at the margin 0.25 everywhere
+caught: item 3 HELD without the mean
+caught: item 3 FALSIFIED without the mean
+caught: item 3's household line at -6%
+NOT CAUGHT: the gate accepts a missing ran line
+NOT CAUGHT: the gate takes a readerRef, coverage, holdTier or death tax on the ran line
+NOT CAUGHT: the gate accepts a missing gap line
+NOT CAUGHT: the gate accepts a missing run line
+NOT CAUGHT: item 1's interval unguarded
+43 of 48 mutations caught

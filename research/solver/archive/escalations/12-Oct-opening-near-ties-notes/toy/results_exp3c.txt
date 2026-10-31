@@ -1,0 +1,22 @@
+TOY RESULTS - Exp 3c: Richardson extrapolation of the year-0 gap, fine-grid self-check, quadrature check (30 households x 2 gaps)
+
+[product] variant          mean err  mean|err|   max|err|     flip
+[product] 30              +6.18e-03   6.23e-03   1.47e-02     0.50
+[product] 40              +3.12e-03   3.12e-03   7.46e-03     0.43
+[product] 60              +1.19e-03   1.19e-03   2.33e-03     0.30
+[product] R30+40          -6.72e-04   2.83e-03   8.57e-03     0.40
+[product] R30+60          -4.01e-04   8.20e-04   2.26e-03     0.23
+[product] fine640-1280    +1.68e-05   1.90e-05   6.62e-05        -
+[product] GH9-GH5         +1.27e-04   1.36e-04   3.03e-04        -
+
+[candidate] variant          mean err  mean|err|   max|err|     flip
+[candidate] 30              +6.33e-03   6.38e-03   1.39e-02     0.70
+[candidate] 40              +3.11e-03   3.11e-03   7.50e-03     0.50
+[candidate] 60              +1.31e-03   1.31e-03   2.55e-03     0.30
+[candidate] R30+40          -8.64e-04   3.12e-03   1.00e-02     0.13
+[candidate] R30+60          -2.94e-04   8.25e-04   2.36e-03     0.03
+[candidate] fine640-1280    +7.52e-06   1.16e-04   6.55e-04        -
+[candidate] GH9-GH5         +4.65e-06   1.48e-04   3.40e-04        -
+
+R30+n: gap_n + (gap_n - gap_30)/((29/(n-1))^-2 - 1), assumes 2nd-order error in the cell width (cost: 2 solves).
+fine640-1280: fine-grid gap minus a 1280-point gap (the fine grid's own resolution error); GH9-GH5: quadrature effect, T=35.

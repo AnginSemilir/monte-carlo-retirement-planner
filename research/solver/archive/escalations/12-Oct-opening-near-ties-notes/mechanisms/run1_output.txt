@@ -1,0 +1,29 @@
+tier log-vol [0.1447 0.1152 0.0882 0.0669 0.0578] log-median [0.0485 0.0455 0.0409 0.0349 0.0272]
+W0=  20  table Q0 by opening [0.62482 0.62423 0.62128]  gaps vs tier0 [ 0.      -0.00058 -0.00354] | fixed-for-life survival [0.5542 0.5325 0.4561] diffs vs tier0 [ 0.     -0.0217 -0.098 ]
+W0=  24  table Q0 by opening [0.80117 0.8055  0.80692]  gaps vs tier0 [0.      0.00433 0.00575] | fixed-for-life survival [0.7155 0.7335 0.7233] diffs vs tier0 [0.     0.018  0.0078]
+W0=  28  table Q0 by opening [0.90417 0.90987 0.91312]  gaps vs tier0 [0.      0.00569 0.00895] | fixed-for-life survival [0.8206 0.8555 0.8768] diffs vs tier0 [0.     0.0349 0.0562]
+W0=  32  table Q0 by opening [0.9563  0.96074 0.96343]  gaps vs tier0 [0.      0.00444 0.00713] | fixed-for-life survival [0.8861 0.9228 0.9486] diffs vs tier0 [0.     0.0367 0.0625]
+local expansion at W0=24: V1'=0.9360 V1''=-1.8225; tier1-tier0 approx 0.00440
+local expansion at W0=24: V1'=0.9360 V1''=-1.8225; tier2-tier0 approx 0.00554
+margin 0.001: realised survival by forced opening [np.float64(0.8015), np.float64(0.806), np.float64(0.8071)]; switches/path after yr0 [np.float64(2.654), np.float64(2.59), np.float64(2.077)]
+   open 1 vs open 0: saved 528 lost 348 of 40000; realised gap +0.0045 (SE 0.0007)
+   open 2 vs open 0: saved 843 lost 618 of 40000; realised gap +0.0056 (SE 0.0010)
+   unforced chooser: survival 0.8071, switches/path after yr0 2.077
+margin 0.0003: realised survival by forced opening [np.float64(0.8022), np.float64(0.8063), np.float64(0.8077)]; switches/path after yr0 [np.float64(3.098), np.float64(3.094), np.float64(2.594)]
+   open 1 vs open 0: saved 478 lost 316 of 40000; realised gap +0.0040 (SE 0.0007)
+   open 2 vs open 0: saved 819 lost 600 of 40000; realised gap +0.0055 (SE 0.0009)
+   unforced chooser: survival 0.8077, switches/path after yr0 2.594
+margin 0.0: realised survival by forced opening [np.float64(0.802), np.float64(0.8059), np.float64(0.8071)]; switches/path after yr0 [np.float64(3.305), np.float64(3.323), np.float64(2.84)]
+   open 1 vs open 0: saved 470 lost 315 of 40000; realised gap +0.0039 (SE 0.0007)
+   open 2 vs open 0: saved 804 lost 600 of 40000; realised gap +0.0051 (SE 0.0009)
+   unforced chooser: survival 0.8071, switches/path after yr0 2.840
+path-years where the free tables would leave but the 0.001 margin holds: 0.181
+distribution of the best one-year gain over the held tier along paths: quantiles 50/90/99/99.9% [0.000e+00 9.100e-05 6.493e-03 2.062e-02]  share > 1e-3: 0.0806
+margin 0.001: opening 1 vs 0: table price +0.00433, realised +0.00450, ratio 0.962
+margin 0.001: opening 2 vs 0: table price +0.00575, realised +0.00562, ratio 1.022
+margin 0.0: opening 1 vs 0: table price +0.00433, realised +0.00387, ratio 1.117
+margin 0.0: opening 2 vs 0: table price +0.00575, realised +0.00510, ratio 1.128
+paths saved by opening 2 and lost by opening 0: 843; of these paid every year and ended below P: 0.13; median shortfall/P 0.45
+charge 0.001: year-0 net gaps vs stay [0.       0.003278 0.005246]; delta1 (stay continuation) [0.       0.004193 0.00548 ]; max|V1(.,h)-V1(.,0)| [0.001 0.001] (bound c)
+   consistent: open 1 vs 0 realised +0.00370 (SE 0.00074) vs table gross gap +0.00428 [net of charge +0.00328]; switches/path 2.602; saved 515 lost 367
+   consistent: open 2 vs 0 realised +0.00555 (SE 0.00096) vs table gross gap +0.00625 [net of charge +0.00525]; switches/path 2.046; saved 844 lost 622

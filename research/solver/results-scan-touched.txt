@@ -1,0 +1,20 @@
+ok   a hyphenated trace name, an underscore name, an F id as its base: S120,S122,S302
+ok   not a four-digit run, not glued to a letter or digit: 
+ok   a base64-like payload matches by chance (why PAYLOAD overcounts): S482,S013
+planted (3): all read as they should
+
+THE SCANS at the selection's snapshot (results/ files modified at or before 2026-10-08T19:20:26.247Z, 6882 read, p4-select left out; 358 results-*.txt files as committed at 53e80b0), over the library's 210 single households:
+  NAME (select-phase4.mjs usedIds exactly): 85 touched
+  MEANT (names, plain text, a gzipped trace's id field, the results-*.txt files): 91 touched
+  MEANT/R (MEANT confined to results/): 90 touched
+  PAYLOAD (select-7u-broad.mjs as it ran, gzipped payloads read through): 156 touched
+  touched by MEANT, missed by NAME: 6 (S000 (results-*.txt only: outside the results/ walk), S120, S122, S168, S180, S360)
+  touched by PAYLOAD only (found only inside gzipped payloads): 65
+  aged 44 or under (Phase 4's FIRE bases): 30 of the 210; untouched by MEANT 21, by PAYLOAD 6
+
+THE POOLS (untouched and older than 44) and 30 taken evenly:
+  as run (PAYLOAD): 48; its panel S002 S008 S016 S018 S028 S042 S044 S066 S072 S078 S088 S104 S144 S150 S156 S176 S190 S212 S214 S224 S236 S248 S262 S278 S284 S296 S364 S380 S394 S408 - the frozen panel (results-7u-broad.txt)
+  as meant (MEANT): 98; its panel S002 S012 S018 S028 S038 S044 S052 S066 S078 S086 S092 S102 S116 S138 S146 S158 S176 S192 S210 S224 S242 S250 S262 S278 S286 S296 S364 S382 S392 S404; shared with the frozen panel: 12 of 30
+  by life stage - frozen: in-drawdown 7, just-retired 5, early-bridge 4, near 5, mid 5, long-bridge 4; as meant: in-drawdown 7, just-retired 6, early-bridge 4, near 3, mid 6, long-bridge 4
+
+THE FROZEN 30 against each scan: touched by NAME 0, by MEANT 0, by PAYLOAD 0

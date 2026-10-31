@@ -1,0 +1,15 @@
+AX-HO'S HOUSEHOLD RULE: 60 single households with a bridge; candidates all but S360 and S364; coverage = accessible money / (0.8 x target x bridge years), nearest 1 in log terms
+  S360 bridge 8 years, accessible 27000, target 5000: coverage 0.844 (excluded)
+  S366 bridge 8 years, accessible 142500, target 29000: coverage 0.768
+  S404 bridge 8 years, accessible 475000, target 52500: coverage 1.414
+  S398 bridge 8 years, accessible 90000, target 8500: coverage 1.654
+  S128 bridge 2 years, accessible 142500, target 53000: coverage 1.680
+  S364 bridge 8 years, accessible 67500, target 18500: coverage 0.570 (excluded)
+  S406 bridge 8 years, accessible 1200000, target 103500: coverage 1.812
+  S370 bridge 8 years, accessible 360000, target 104000: coverage 0.541
+  S416 bridge 8 years, accessible 617500, target 52000: coverage 1.855
+  S122 bridge 2 years, accessible 27000, target 9000: coverage 1.875
+  S400 bridge 8 years, accessible 225000, target 18500: coverage 1.900
+  S392 bridge 8 years, accessible 665000, target 52500: coverage 1.979
+  S380 (the receipt's, its arms alike at 4 and 30 points): coverage 2.121
+CHOSEN: S366 (coverage 0.768)

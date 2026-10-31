@@ -1,0 +1,23 @@
+THE MIXTURE RULE'S RATES (20000 draws a row, 4000 paths a world, weights 1/6, 2/3, 1/6; seed 20261018)
+
+S362-like (survival 29.75, 49.875, 67.65; discordance as FOOT-S366 found, 0.78%, 0.58%, 0.70%):
+  even loss at the margin: true weighted change -0.5000 at margin 0.5: at 95% no material harm 4.21%, harm 49.38%; at 98% (the rule) no material harm 2.27%, harm 49.38%
+  a trade at the margin (bad -1.7, middle -0.5, good +0.7): true weighted change -0.5000 at margin 0.5: at 95% no material harm 3.99%, harm 49.06%; at 98% (the rule) no material harm 1.92%, harm 49.06%
+  the middle world alone at the margin: true weighted change -0.5000 at margin 0.5: at 95% no material harm 3.67%, harm 48.80%; at 98% (the rule) no material harm 1.78%, harm 48.80%
+  no change: true weighted change 0.0000 at margin 0.5: at 95% no material harm 100.00%, harm 0.00%; at 98% (the rule) no material harm 99.95%, harm 0.00%
+  FOOT-S366's trade (bad -0.575, middle +0.025, good +0.55): true weighted change 0.0125 at margin 0.5: at 95% no material harm 100.00%, harm 0.00%; at 98% (the rule) no material harm 99.96%, harm 0.00%
+
+mid survival (60, 80, 90; discordance 2% a world):
+  even loss at the margin: true weighted change -0.5000 at margin 0.5: at 95% no material harm 2.44%, harm 49.56%; at 98% (the rule) no material harm 0.98%, harm 49.56%
+  a trade at the margin (bad -1.7, middle -0.5, good +0.7): true weighted change -0.5000 at margin 0.5: at 95% no material harm 2.23%, harm 50.10%; at 98% (the rule) no material harm 0.95%, harm 50.10%
+  no change: true weighted change 0.0000 at margin 0.5: at 95% no material harm 87.80%, harm 0.10%; at 98% (the rule) no material harm 78.61%, harm 0.10%
+
+high survival (97.8, 99.9, 99.95; discordance 0.6%, 0.3%, 0.3%):
+  even loss at the margin: true weighted change -0.2500 at margin 0.25: at 95% no material harm 1.45%, harm 48.55%; at 98% (the rule) no material harm 0.39%, harm 48.55%
+  the bad world alone (-1.5, a weighted -0.25): true weighted change -0.2500 at margin 0.25: at 95% no material harm 0.14%, harm 78.77%; at 98% (the rule) no material harm 0.03%, harm 78.77%
+  no change: true weighted change 0.0000 at margin 0.25: at 95% no material harm 83.61%, harm 0.05%; at 98% (the rule) no material harm 68.69%, harm 0.05%
+
+the whole score (mixtureMean), S362-like discordance, a continuous part of sd 0.3 points a path:
+  even loss at the margin: at 98% no material harm 2.02%, harm 50.98%
+  a trade at the margin (bad -1.7, middle -0.5, good +0.7): at 98% no material harm 1.80%, harm 49.77%
+  no change: at 98% no material harm 99.97%, harm 0.00%

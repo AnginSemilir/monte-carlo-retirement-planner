@@ -1,0 +1,32 @@
+caught: 1: if (n !== 1) bad.push(`${k}: ${n} unit lines, not 1`);
+caught: 2: if (!u.done) bad.push(`${tag}: not done`);
+caught: 3: mix: '3', tables: A.tables, read: A.read, seg: A.seg,
+caught: 4: mix: '3', tables: A.tables, read: A.read, seg: A.seg,
+caught: 5: seg: A.seg, deathTax: '0' };
+caught: 6: if (num(u.ran, 'tieMargin') !== 0)
+caught: 7: if (new Set(us.map(u => u.sum.pathsum)).size > 1)
+caught: 8: if (s !== u.sum.survived) bad.push(
+caught: 9: ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] 
+caught: 10: if (!t) return [`${tag}: missing`];
+caught: 11: if (t.survived[j] !== o.survived[j] || t.tax[j] !== o.tax[j]
+caught: 12: if (n) bad.push(`identity
+caught: 13: for (const id of PANEL) for (const a of ['SNAP', 'PCLSI']) {
+caught: 14: return Array.from({ length: X.N }, (_, j) => X.survived[j] -
+caught: 15: const p = ys.map((y, i) => [flipP(y, nb, 7002 + 2 * i), flip
+caught: 16: const read = d < 0 ? 'REPORTED' : hU < ALPHA ? up : hD < ALP
+caught: 17: const read = d < 0 ? 'REPORTED' : hU < ALPHA ? up : hD < ALP
+caught: 18: const s = rows.find(r => r.id === 'S130').read
+caught: 19: const h = holm(DECIDE.flatMap(id => p[PANEL.indexOf(id)]));
+caught: 20: one: splitItem(files, 'P-LO', 'P-HI', 'LO', 'HI', opts)
+caught: 21: two: splitItem(files, 'S-HI', 'S-LO', 'HI', 'LO', opts)
+caught: 22: const legs = rows.filter(r => r.id !== 'S130' && DECIDE.incl
+caught: 23: s >= SHARE_BAR ? 'SETTLED'
+caught: 24: v !== 'HELD' || !g ? 'NOT APPLICABLE'
+caught: 25: const F = k => files[`S130 ${k}`];
+caught: 26: lo = share(diff(F('P-LO'), F('HYB')), diff(F('PCLSI'), F('HY
+caught: 27: hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('S
+caught: 28: v !== 'HELD' || !g ? 'NOT APPLICABLE'
+caught: 29: gHi = shown(F('S-INT'), F('SNAP'), 7102)
+caught: 30: const gLo = shown(F('PCLSI'), F('HYB'), 7101)
+caught: 31: nb, seed) < ALPHA;
+31 of 31 mutations caught

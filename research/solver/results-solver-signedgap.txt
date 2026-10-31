@@ -1,0 +1,19 @@
+=========== P ===========
+  solved in 317.6 s; 3 tier pairs at 8 years: 24 cases
+PASS  A  P: the signed gap agrees with the bisected one on all 24 cases
+PASS  B  P: both signs occur (11 at or below 0, 13 above)
+PASS  C  P: the plant 'nocharge' is refused on at least one case  -- 16 of 24
+PASS  C  P: the plant 'flipped' is refused on at least one case  -- 24 of 24
+PASS  C  P: the plant 'swapped' is refused on at least one case  -- 20 of 24
+PASS  C  P: the plant 'noweights' is refused on at least one case  -- 16 of 24
+=========== the bundle ===========
+  solved in 317.8 s; 3 tier pairs at 8 years: 24 cases
+PASS  A  the bundle: the signed gap agrees with the bisected one on all 24 cases
+PASS  B  the bundle: both signs occur (8 at or below 0, 16 above)
+PASS  C  the bundle: the plant 'flipped' is refused on at least one case  -- 24 of 24
+PASS  C  the bundle: the plant 'swapped' is refused on at least one case  -- 24 of 24
+PASS  C  the bundle: the plant 'noweights' is refused on at least one case  -- 16 of 24
+PASS  D  signedGap refuses a solve without the mixture
+
+12 passed, 0 failed
+exit 0

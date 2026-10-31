@@ -1,0 +1,114 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!want.some(w => w.key === x.key)) 
+caught: 3: if (codes.size !== 1 || codes.has(undefined) || codes.has(nu
+caught: 4: if (!j.done) bad.push(`${K}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: ['S362', 'AN3', 30], ['S362', 'AN', 30]
+caught: 8: ...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm],
+caught: 9: ...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm],
+caught: 10: readerBlend: 'null', readerCopy: 'null', readerChance: 'null
+caught: 11: export const SPLIT = Object.freeze({ AN3: 'null', AN: 'null'
+caught: 12: export const SPLIT = Object.freeze({ AN3: 'null', AN: 'null'
+caught: 13: export const STEPS = Object.freeze({ AN3: true, AN: false, C
+caught: 14: export const STEPS = Object.freeze({ AN3: true, AN: false, C
+caught: 15: export const REF = Object.freeze({ AN3: 'adaptive', AN: 'ada
+caught: 16: !A.fix || A.stepAll !== STEPS[w.arm] || 
+caught: 17: A.ref !== 'adaptive' || !A.fix || 
+caught: 18: !(A.moves > 0) || A.nonMono !== 0 || 
+caught: 19: !(A.moves > 0) || A.nonMono !== 0 || 
+caught: 20: if (!ad && (!A || A.ref !== 'null' || A.fix || A.stepAll || 
+caught: 21: for (const c of [...NEED, ...(STEPS[w.arm] ? ['stepTook'] : 
+caught: 22: if (!STEPS[w.arm] && j.checks.stepTook) bad.push(
+caught: 23: if (STEPS[w.arm] && !j.steps.length) bad.push(
+caught: 24: if (ad && !j.pr31.length) bad.push(
+caught: 25: if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran,
+caught: 26: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 27: if (j.bridge && peers.some(x => x.bridge.join(',') !== j.bri
+caught: 28: for (const s of ['REF-B', 'COPY-B', 'COPY-X']) if (!ok[s]) b
+caught: 29: for (const s of ['REF-B', 'COPY-B', 'COPY-X']) if (!ok[s]) b
+caught: 30: if (!c.file[g] || c.file[g][x] !== v) bad.push(
+caught: 31: const groups = { per: c.oldFile.per || {}, bits: c.oldFile.b
+caught: 32: const groups = { per: c.oldFile.per || {}, bits: c.oldFile.b
+caught: 33: c.old.tables[k].OWN !== c.job.tables[k].OWN || 
+caught: 34: if (c.src !== src) bad.push(
+caught: 35: if (!c.old.head || c.old.head.seed !== SEED || c.old.head.np
+caught: 36: if ((c.oldFile.bridge || []).join(',') !== (c.file.bridge ||
+caught: 37: for (const x of Object.keys(c.file[g] || {})) if (!(x in o))
+caught: 38: if (!c || !c.old || !c.oldFile || !c.job || !c.file) { bad.p
+caught: 39: export const REPRO = Object.freeze([['S362', 'AN', 'REF-B'],
+caught: 40: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 41: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 42: const D = P.S362.dying[k], q = [0, 1, 2].map(j => removal(D,
+caught: 43: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 44: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 45: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 46: inb = q.every(r => r.lo >= QLO && r.hi <= QHI)
+caught: 47: off = q[2].hi < QOUT;
+caught: 48: off = q[2].hi < QOUT;
+caught: 49: off = q[2].hi < QOUT;
+caught: 50: return { k, q, tails, read: off ? 'kept' : inb ? 'removed' :
+caught: 51: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 52: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 53: const z = zFor(0.05 / 9), per = K.map(k => { const D = P.S36
+caught: 54: num = K.reduce((s, k) => s + WMIX[k] * c.n[k], 0)
+caught: 55: den = K.reduce((s, k) => s + WMIX[k] * c.nAN[k], 0);
+caught: 56: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
+caught: 57: const rho = den > 0 ? num / den : NaN, se = den > 0 ? Math.s
+caught: 58: vr = n => n * (1 - n / c.N)
+caught: 59: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 60: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 61: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 62: outcome: !iv ? 'INCONCLUSIVE' : iv.hi < HALF ? 'HELD' : iv.l
+caught: 63: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
+caught: 64: export const LEGS = Object.freeze([['AN3', 'C', ['S362', 'S3
+caught: 65: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 66: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 67: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 68: out['3'] = { outcome: all.some(x => x.harm) ? 'FALSIFIED' : 
+caught: 69: export const floorOf = cells => mixtureOutcome(mixtureChange
+caught: 70: export const floorOf = cells => mixtureOutcome(mixtureChange
+caught: 71: harm = s.outcome === 'harm' || w.outcome === 'harm', ok
+caught: 72: harm = s.outcome === 'harm' || w.outcome === 'harm', ok
+caught: 73: ok = s.outcome === 'no material harm' && w.outcome === 'no m
+caught: 74: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws
+caught: 75: const s = mixtureOutcome(mixtureChange(cells)), w = wsMix(ws
+caught: 76: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
+caught: 77: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 78: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 79: const cand = ['S364', 'S360'].flatMap(h => K.filter(k => Mat
+caught: 80: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 81: read: c.lo >= -GAP && c.hi <= GAP ? 'closed' : c.lo > GAP ||
+caught: 82: const c = meanOf(P.br[h].AR3[k], z);
+caught: 83: out['4'] = { outcome: per.length ? allOf(per, 'closed', 'ope
+caught: 84: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 85: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 86: Float64Array.from(P.S370.tail3.AN3[k], (v, i) => v - P.S370.
+caught: 87: if (o('3') === 'FALSIFIED') return 'R3';
+caught: 88: if (o('1') === 'FALSIFIED') return 'R5';
+caught: 89: if (o('4') === 'FALSIFIED') return 'R4';
+caught: 90: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R1';
+caught: 91: if (o('1') === 'HELD' && o('2') === 'FALSIFIED') return 'R2'
+caught: 92: if (o2 === 'HELD') return o1 === 'HELD' ? 'O191-SMEAR' :
+caught: 93: if (o2 === 'FALSIFIED') return o1 === 'HELD' ? 'O191-SMEAR n
+caught: 94: const tail = (h, a, k, t) => tailOf(ys(h, a, k), perP(h, a, 
+caught: 95: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 96: AN3: K.map(k => [1, 2, 3].map(t => tail('S362', 'AN3', k, t)
+caught: 97: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 98: dying: K.map(k => dyingF('S362', 'AN', k)) }
+caught: 99: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 100: const cell = { n: o191.AN3.cell.map(x => x.n), nAN: o191.AN.
+caught: 101: { C: K.map(k => tail(h, 'C', k, 1)), AR3: K.map(k => tail(h,
+caught: 102: AN3: K.map(k => tail('S370', 'AN3', k, 3)), AN: K.map(k => t
+caught: 103: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 104: const at = mv[i * years + t] !== 65535, next = t + 1 < years
+caught: 105: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 106: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 107: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 108: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 109: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 110: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 111: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 112: export const QLO = 0.75, QHI = 1.25, QOUT = 0.25, HALF = 0.5
+caught: 113: export const LATTICE_LINE = '160x41 nz 128';
+113 of 113 mutations caught

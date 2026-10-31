@@ -1,0 +1,40 @@
+1. THE RECORDS (NE-ROOT, seed 7002, 4,000 paths a world; results/diagneroot behind its gate: passed)
+  bridge 4 BASE SS world 0: table 98.4967 simulated 98.4000
+  bridge 4 BASE SS world 1: table 99.9761 simulated 99.9750
+  bridge 4 BASE SS world 2: table 99.9955 simulated 100.0000
+  S380 BASE own world 0: table 35.0977 simulated 30.8500
+  S380 BASE own world 1: table 76.2609 simulated 78.4000
+  S380 BASE own world 2: table 94.5685 simulated 97.0250
+  S380's spread ratio under BASE (the table's spread over the simulated, worlds 0 to 2): 0.8987
+
+2. THE POWER (1500 draws a cell at 4000 paths a world through reduce-neblend-a.mjs's items())
+  items 1 and 2, bridge 4 kept  : HELD 0.8180 INCONCLUSIVE 0.1813 FALSIFIED 0.0007
+  items 1 and 2, bridge 4 small : HELD 0.0793 INCONCLUSIVE 0.6940 FALSIFIED 0.2267
+  items 1 and 2, bridge 4 broken: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 3, LOR's spread ratio 0.899: HELD 0.0000 INCONCLUSIVE 0.1007 FALSIFIED 0.8993
+  item 3, LOR's spread ratio 0.95 : HELD 0.0027 INCONCLUSIVE 0.9960 FALSIFIED 0.0013
+  item 3, LOR's spread ratio 1    : HELD 0.7420 INCONCLUSIVE 0.2580 FALSIFIED 0.0000
+  item 3, LOR's spread ratio 1.1  : HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000 (over-corrected 0.8407)
+  item 4, a world-0 change of -0.5 points, churn 0.01: HELD 0.5053 INCONCLUSIVE 0.4733 FALSIFIED 0.0213 (HELD up 0.0000, down 0.5053)
+  item 4, a world-0 change of -0.5 points, churn 0.05: HELD 0.2607 INCONCLUSIVE 0.7393 FALSIFIED 0.0000 (HELD up 0.0000, down 0.2607)
+  item 4, a world-0 change of 0 points, churn 0.01: HELD 0.0033 INCONCLUSIVE 0.2300 FALSIFIED 0.7667 (HELD up 0.0013, down 0.0020)
+  item 4, a world-0 change of 0 points, churn 0.05: HELD 0.0493 INCONCLUSIVE 0.9507 FALSIFIED 0.0000 (HELD up 0.0233, down 0.0260)
+  item 4, a world-0 change of 0.5 points, churn 0.01: HELD 0.5293 INCONCLUSIVE 0.4433 FALSIFIED 0.0273 (HELD up 0.5293, down 0.0000)
+  item 4, a world-0 change of 0.5 points, churn 0.05: HELD 0.2380 INCONCLUSIVE 0.7620 FALSIFIED 0.0000 (HELD up 0.2380, down 0.0000)
+  item 4, a world-0 change of 1.5 points, churn 0.01: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000 (HELD up 1.0000, down 0.0000)
+  item 4, a world-0 change of 1.5 points, churn 0.05: HELD 0.9487 INCONCLUSIVE 0.0513 FALSIFIED 0.0000 (HELD up 0.9487, down 0.0000)
+
+3. THE CREDENCES (the receipt of 11 Oct 10:33 UK: PB-WIDE=0.35; PB-EDGE=0.31; PB-REF=0.14; PB-OTHER=0.2; B4-COPY=0.65; B4-R=0.2; B4-OTHER=0.15; the judged stories in this script's JUDGED; 40000 draws)
+CREDENCE item 1: point - HELD 0.53 INCONCLUSIVE 0.22 FALSIFIED 0.25
+CREDENCE item 2: point - HELD 0.55 INCONCLUSIVE 0.26 FALSIFIED 0.20
+CREDENCE item 3: point 0.9592 HELD 0.21 INCONCLUSIVE 0.40 FALSIFIED 0.39
+CREDENCE item 4: point 0.2992 HELD 0.28 INCONCLUSIVE 0.51 FALSIFIED 0.21
+  POINT item 3: 0.9592 (80% interval 0.8910 to 1.0882; LOR's spread ratio on S380 over the stories)
+  POINT item 4: 0.2992 (80% interval -0.1366 to 1.4348; LOR's change in S380's world-0 survival, points)
+  item 3 over-corrected 0.09 (inside its INCONCLUSIVE); item 4 HELD up 0.24, down 0.04; item 4 HELD with item 3 HELD 0.09
+  DECISION ROWS: items 2 and 3 HELD 0.12; item 3 FALSIFIED 0.39; item 3 over-corrected 0.09; item 2 FALSIFIED, item 3 neither 0.10; else 0.30
+
+4. THE BUDGET (NE-ROOT's logs: each job's solve and its forward pass, results/diagneroot)
+  bridge 4: CAND solve 1399 s, 0.1718 s a path: a job about 1.06 core-hours (14000 paths, no SHIP solve)
+  S380: CAND solve 1628 s, 0.1293 s a path: a job about 0.95 core-hours
+  total about 4.02 core-hours; the four jobs at once, about 1.06 h wall; the arms' own solves untimed until the preflight

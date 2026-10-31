@@ -1,0 +1,116 @@
+ok   the copied corners carry seven tenths of SN's Y1 + Y5: 1 HELD: "HELD"
+ok   they carry a tenth: 1 FALSIFIED: "FALSIFIED"
+ok   they carry four tenths: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   they carry exactly half with no spread (the line itself): 1 HELD: "HELD"
+ok   SN's Y1 + Y5 under a point (nothing to carry): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the copied corners' part against the residual (a negative share): 1 FALSIFIED: "FALSIFIED"
+ok   they carry 0.55 with spread, the interval below a half: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   they carry 0.2 with spread, the interval reaching a quarter: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR removes seven tenths of SN's Y1 + Y5: 2 HELD: "HELD"
+ok   SNR removes 0.2 with spread, its interval reaching a quarter: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR removes a tenth: 2 FALSIFIED: "FALSIFIED"
+ok   SNR removes four tenths: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR makes it worse (a negative removal): 2 FALSIFIED: "FALSIFIED"
+ok   SN's Y1 + Y5 under a point (nothing to remove): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR's table 6 points under C's on runs at C's (C's gap 9): 3 HELD: "HELD"
+ok   SNR's table 1 point under C's: 3 FALSIFIED: "FALSIFIED"
+ok   SNR's table 3 points under (C's gap 9): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   C's table half a point over its runs (nothing to remove): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR's runs fall by as much as its table (no drop, paired by path): 3 FALSIFIED: "FALSIFIED"
+ok   SNR's table above C's (the gap grows): 3 FALSIFIED: "FALSIFIED"
+ok   SNR's table 2 points under on discordant runs (its interval reaching a quarter of C's gap): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR at C in every world: 4 HELD: "HELD"
+ok   SNR loses 60 paths in world 0: 4 FALSIFIED: "FALSIFIED"
+ok   SNR loses 15 paths net in world 1 (its interval across the margin): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR's whole score 1 point down in world 2 alone: 4 FALSIFIED: "FALSIFIED"
+ok   SNR's whole score across the margin in world 0: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   SNR loses 4 and saves none in world 2 (the guard holds the interval out): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the rows: SNR removes it and the gap falls, reads R1: "R1"
+ok   the rows: SNR harms, reads R4 over R1: "R4"
+ok   the rows: SNR removes the slice, the gap stays, reads R2: "R2"
+ok   the rows: the copied corners carry little and SNR removes little, reads R3: "R3"
+ok   the rows: SNR works though the copied corners carry little, reads R1 (the fix over the split): "R1"
+ok   the rows: SNR partly, reads else: "else"
+ok   the rows: the gap stays and SNR removes the slice only partly, reads else (R2 needs item 2 HELD): "else"
+ok   the rows: the copied corners' share inconclusive and SNR partly, reads else (R3 needs item 1 FALSIFIED): "else"
+ok   the share of a half on three paths reads 0.5 with no spread: "0.500 0.500 0.500"
+ok   the removal of a half on three paths reads 0.5 with no spread: "0.500 0.500 0.500"
+ok   the gate passes the three jobs as registered: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside the three: "true"
+ok   the gate refuses SN without its nodes (the nodes plant): "true"
+ok   the gate refuses SNR without its split (the snr plant): "true"
+ok   the gate refuses SN with the split: "true"
+ok   the gate refuses C with SN's nodes: "true"
+ok   the gate refuses SNR with other nodes: "true"
+ok   the gate refuses SN's nodes line naming other nodes, its solve meta right: "true"
+ok   the gate refuses a reader reference set: "true"
+ok   the gate refuses SNR at 60 points: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses another household: "true"
+ok   the gate refuses a header naming another path count: "true"
+ok   the gate refuses a floor other than the product rule's: "true"
+ok   the gate refuses no recount of the copied nodes: "true"
+ok   the gate refuses a recount off the solve's count (the class plant): "true"
+ok   the gate refuses copyTook failed, its recount line right: "true"
+ok   the gate refuses a recount off the solve's count, copyTook passed (a log at odds with itself): "true"
+ok   the gate refuses a recount at another line: "true"
+ok   the gate refuses a case line at another point count alone: "true"
+ok   the gate refuses SN's solve meta naming other nodes of the same count, its nodes line right: "true"
+ok   the gate refuses a file whose whole scores are not the log's: "true"
+ok   the gate refuses splitTook short (the split plant): "true"
+ok   the gate refuses a world's split line missing: "true"
+ok   the gate refuses a file without year 5's copied part: "true"
+ok   the gate refuses a file without world 0's saved states: "true"
+ok   the gate refuses bridge years without year 5: "true"
+ok   the gate refuses C with no done line: "true"
+ok   the gate refuses C not reproducing STEP-S370's saved C (one path's Y5 in world 1): "true"
+ok   the gate refuses SN not reproducing STEP-S370's saved SN (its world-2 bits): "true"
+ok   the gate refuses SN not reproducing STEP-S370's saved SN (its world-0 moves): "true"
+ok   the gate refuses no saved STEP-S370 file for C: "true"
+ok   the gate refuses a full read with no saved STEP-S370 files at all: "true"
+planted (71): all read as they should
+GATE: passed - C, SN and SNR once and done at the registered settings (4000 paths a world, scale 1, seed 7002; S370 at 30 points); the candidate's settings with no readerRef, NODES_SN on SN and SNR, the split on SNR alone, every self-check in full; C and SN reproduce STEP-S370's saved runs bit for bit (/home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagsteps370): the option inert off
+
+STEP-O182: a copied corner's residual R carried unscaled into queries of higher chance, at S370's years 1 and 5, the candidate as it stands (predictions/diag-o182.md)
+
+THE ITEMS (each read by its registered rule)
+1. under SN the copied corners' I[R] carries at least half of world 0's Y1 + Y5 (path by path): HELD
+     the share 0.6959 (0.6919 to 0.6998) of SN's mean 7.7122 points
+2. SNR removes at least half of SN's world-0 Y1 + Y5: HELD
+     the removal 0.6299 (0.6272 to 0.6326) of SN's mean 7.7122 points
+3. SNR's world-0 table less runs at most half of C's: INCONCLUSIVE
+     C's table less runs 9.0487, SNR's 4.8436, the drop 4.2051 (3.8222 to 4.5881)
+4. no material harm, SNR against C, by RULES.md section 8's rule as written (survival by both, whole score beside), per world: INCONCLUSIVE
+     world 0: survival 0.1250 exact (-0.2791 to 0.5165) no material harm, guarded unconditional (-0.2579 to 0.5080), whole score 0.1316 (-0.2528 to 0.5159), margin 0.5000: no material harm
+     world 1: survival -0.0750 exact (-0.3516 to 0.2165) no material harm, guarded unconditional (-0.3573 to 0.2060), whole score -0.0643 (-0.3387 to 0.2100), margin 0.5000: no material harm
+     world 2: survival -0.1250 exact (-0.1737 to 0.0276) no material harm, guarded unconditional (-0.2948 to 0.0244), whole score -0.1100 (-0.2430 to 0.0231), margin 0.2500: inconclusive
+OUTCOME: 1 HELD, 2 HELD, 3 INCONCLUSIVE, 4 INCONCLUSIVE
+ROW: else
+REALISED item 1: 0.6959
+REALISED item 2: 0.6299
+REALISED item 3: 4.2051
+REALISED item 4: 0.1250
+
+REPORTED
+  C world 0: table 49.0987 runs 1602/4000 (40.0500), table less runs 9.0487; GB 8.1473 GA 1.7213 T -0.8199; by year 1: -1.8579 | 2: -0.8274 | 3: 4.1047 | 4: 0.1508 | 5: 0.0645 | 6: 0.0539 | 7: 6.4586
+  C world 1: table 87.9402 runs 3472/4000 (86.8000), table less runs 1.1402; GB -0.0706 GA 1.5874 T -0.3767; by year 1: -1.5681 | 2: -0.8230 | 3: 1.4581 | 4: -0.5445 | 5: -0.5527 | 6: -0.5573 | 7: 2.5169
+  C world 2: table 98.2445 runs 3959/4000 (98.9750), table less runs -0.7305; GB -0.9000 GA 0.0888 T 0.0808; by year 1: -0.5090 | 2: -0.2104 | 3: 0.0750 | 4: -0.1312 | 5: -0.1540 | 6: -0.1331 | 7: 0.1627
+  SN world 0: table 50.4678 runs 1605/4000 (40.1250), table less runs 10.3428; GB 8.8630 GA 2.0465 T -0.5668; by year 1: 5.6309 | 2: 0.5652 | 3: 0.1444 | 4: -0.0323 | 5: 2.0813 | 6: 0.2618 | 7: 0.2117
+  SN world 1: table 91.2675 runs 3469/4000 (86.7250), table less runs 4.5425; GB 2.9196 GA 1.7613 T -0.1383; by year 1: 4.6685 | 2: 0.6578 | 3: -0.3661 | 4: -0.7083 | 5: 0.1317 | 6: -0.6652 | 7: -0.7989
+  SN world 2: table 99.1311 runs 3955/4000 (98.8750), table less runs 0.2561; GB 0.0604 GA 0.0993 T 0.0965; by year 1: 1.2039 | 2: 0.8029 | 3: -0.2092 | 4: -0.6652 | 5: -0.6972 | 6: -0.2080 | 7: -0.1668
+  SNR world 0: table 45.0186 runs 1607/4000 (40.1750), table less runs 4.8436; GB 3.7084 GA 2.0390 T -0.9039; by year 1: 1.1527 | 2: 0.0986 | 3: 0.1566 | 4: 0.1272 | 5: 1.7015 | 6: 0.2610 | 7: 0.2109
+  SNR world 1: table 85.6720 runs 3469/4000 (86.7250), table less runs -1.0530; GB -2.6103 GA 1.7557 T -0.1984; by year 1: -0.1982 | 2: -0.4912 | 3: -0.3511 | 4: -0.5417 | 5: 0.4300 | 6: -0.6608 | 7: -0.7974
+  SNR world 2: table 98.5924 runs 3954/4000 (98.8500), table less runs -0.2576; GB -0.5492 GA 0.0976 T 0.1940; by year 1: 0.7039 | 2: -0.1166 | 3: -0.1875 | 4: -0.2722 | 5: -0.3064 | 6: -0.2036 | 7: -0.1668
+  C world 0 split by year (PC, RS, RC): 1: 48.8057, 0.0000, 0.0000 | 2: 50.7709, 0.0000, 0.0001 | 3: 51.4950, 0.0000, 0.0001 | 4: 47.4698, 0.0000, 0.0000 | 5: 47.6307, 0.0000, 0.0000 | 6: 47.4370, 0.0000, 0.0000 | 7: 47.4439, 0.0000, 0.0001
+  C world 1 split by year (PC, RS, RC): 1: 87.6932, 0.0000, 0.0000 | 2: 89.3104, 0.0000, 0.0001 | 3: 90.1793, 0.0000, 0.0001 | 4: 88.7510, 0.0000, 0.0000 | 5: 89.4054, 0.0000, 0.0000 | 6: 89.8946, 0.0000, 0.0000 | 7: 90.5757, 0.0000, 0.0001
+  C world 2 split by year (PC, RS, RC): 1: 98.1902, 0.0000, 0.0000 | 2: 98.6724, 0.0000, 0.0001 | 3: 98.8695, 0.0000, 0.0001 | 4: 98.7998, 0.0000, 0.0000 | 5: 98.9432, 0.0000, 0.0000 | 6: 99.0828, 0.0000, 0.0000 | 7: 99.2599, 0.0000, 0.0001
+  SN world 0 split by year (PC, RS, RC): 1: 44.8500, 0.0000, 5.0163 | 2: 43.8667, 0.0000, 0.4634 | 3: 43.6423, 0.0000, 0.0000 | 4: 43.5686, 0.0000, 0.0000 | 5: 43.5304, 0.0000, 0.3503 | 6: 41.6849, 0.0000, -0.0014 | 7: 41.4818, 0.0000, 0.0000
+  SN world 1 split by year (PC, RS, RC): 1: 85.8414, 0.0000, 5.0871 | 2: 85.3815, 0.0000, 0.9270 | 3: 85.6605, 0.0000, 0.0000 | 4: 86.0666, 0.0000, 0.0000 | 5: 87.1291, 0.0004, -0.2015 | 6: 86.7303, 0.0000, -0.0044 | 7: 87.5085, 0.0000, 0.0000
+  SN world 2 split by year (PC, RS, RC): 1: 98.6125, 1.1342, 0.0261 | 2: 97.2726, 0.0000, 1.4086 | 3: 97.1213, 0.0000, 0.0000 | 4: 97.3388, 0.0000, 0.0000 | 5: 98.0313, 0.0010, 0.0004 | 6: 98.7162, 0.0000, -0.0045 | 7: 98.9733, 0.0000, 0.0000
+  SNR world 0 split by year (PC, RS, RC): 1: 44.3706, 0.0000, 0.3554 | 2: 43.6614, 0.0000, 0.0014 | 3: 43.4407, 0.0000, 0.0000 | 4: 43.3569, 0.0000, 0.0000 | 5: 43.5192, 0.0000, 0.0000 | 6: 41.7001, 0.0000, 0.0000 | 7: 41.4968, 0.0000, 0.0000
+  SNR world 1 split by year (PC, RS, RC): 1: 85.2965, 0.0000, 0.1257 | 2: 85.6627, 0.0000, 0.0021 | 3: 86.1654, 0.0000, 0.0000 | 4: 86.5572, 0.0000, 0.0000 | 5: 87.2339, 0.0000, 0.0000 | 6: 86.7292, 0.0000, 0.0000 | 7: 87.5073, 0.0000, 0.0000
+  SNR world 2 split by year (PC, RS, RC): 1: 98.5484, 0.0066, 0.0011 | 2: 97.8340, 0.0000, 0.0010 | 3: 97.9368, 0.0000, 0.0000 | 4: 98.1314, 0.0000, 0.0000 | 5: 98.4266, 0.0000, 0.0000 | 6: 98.7154, 0.0000, 0.0000 | 7: 98.9732, 0.0000, 0.0000
+  C: copied 100116 copiedTop 59778 of 446148 nodes; reads at the clamp 200 of 83240; solve 776 s
+  SN: copied 167670 copiedTop 59778 of 594864 nodes; reads at the clamp 4656 of 83240; solve 1120 s
+  SNR: copied 167670 copiedTop 59778 of 594864 nodes; reads at the clamp 153 of 83240; solve 1149 s

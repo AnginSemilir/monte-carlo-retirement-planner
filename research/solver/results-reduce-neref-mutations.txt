@@ -1,0 +1,87 @@
+caught: 1: n = (byKey[k] || []).length; if (n !== 1)
+caught: 2: n = (byKey[k] || []).length; if (n !== 1)
+caught: 3: if (!j.done) bad.push(
+caught: 4: ['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] 
+caught: 5: j.head.npw !== npw || j.head.seed !== seed
+caught: 6: j.head.npw !== npw || j.head.seed !== seed
+caught: 7: || j.head.scale !== scale ||
+caught: 8: || j.head.draws !== draws ||
+caught: 9: || j.head.flow !== flow)
+caught: 10: if (j.pts !== pts) bad.push(
+caught: 11: ...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm
+caught: 12: ...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm
+caught: 13: floor: String(FLOORS[j.id]), pts: String(pts),
+caught: 14: pts: String(pts), grid: `total${pts}x6x6` })
+caught: 15: switchCharge: '0.001', line: '0.5', mix: '3' };
+caught: 16: readerChance: 'null', jointWorlds: 'true', e3pcls: 'true',
+caught: 17: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 18: if (o.length !== 2 || o.some(x => !x) || !o.some(x => x.ai =
+caught: 19: !(Math.abs(j.opening.isa + j.opening.gia + j.opening.cash - 
+caught: 20: !(j.checks.mirrorTook[1] > 0) || 
+caught: 21: || j.checks.mirrorTook[0] !== j.checks.mirrorTook[1]) bad.pu
+caught: 22: if (!j.quad[w]) bad.push(
+caught: 23: if (rows.length !== 5 || [0, 1, 2, 3, 4].some(i => !rows[i])
+caught: 24: if (rows.some(r => r.N !== draws ||
+caught: 25: fl[i].N !== flow || fl[i].N2 !== flow ||
+caught: 26: || fl[i].survived > fl[i].bridge ||
+caught: 27: if (fl.length !== 2 || [0, 1].some(i => !fl[i] ||
+caught: 28: || j.pair.D !== pair[1] ||
+caught: 29: || !j.checks.pairTook || j.checks.pairTook[0] !== 1)) bad.pu
+caught: 30: if (!s || s.n !== nw || s.bridge < s.ok) bad.push(
+caught: 31: if (!s || s.n !== nw || s.bridge < s.ok) bad.push(
+caught: 32: j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1
+caught: 33: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 34: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
+caught: 35: if (!b || sha16(Buffer.from(b, 'base64')) !== sh) bad.push(
+caught: 36: const runs = j.arm === 'RSP' ? ['P'] : pair ?
+caught: 37: const nw = j.arm === 'RSP' && w > 0 ? flow : npw;
+caught: 38: if (j.arm === 'RSP' && w > 0) { const f = j.first[`P${w}`]; 
+caught: 39: const T = [0, 1, 2].map(k => rsp.tables[k].P), Rr
+caught: 40: if (!P.tables[w] || P.tables[w].P.toFixed(6) !== edge.rs.tab
+caught: 41: if (!mine || !theirs || mine.ok !== theirs.ok || mine.bits !
+caught: 42: if (mean.toExponential(4) !== edge.pr[w])
+caught: 43: const best = arr => arr.reduce((b, x, i) => (x > arr[b] ? i 
+caught: 44: const FS = wsum(x => x.form / N), FSlo = wsum(x => cp(x.form
+caught: 45: OSlo = wsum(x => cp(x.os[best(x.os)], N, 2 * a1)[0]), OShi =
+caught: 46: [rlo, rhi] = cp(r.ok, r.n, 2 * a1);
+caught: 47: const G = ln(rr) - ln(tt), Glo = ln(rlo) - ln(tt), Ghi = ln(
+caught: 48: MIX: ln(OS) - ln(FS), MIXlo: ln(OSlo) - ln(FShi), MIXhi: ln(
+caught: 49: FLOW: ln(FB) - ln(OS), AFTER:
+caught: 50: const fl = Lj.flow[k], bi = fl[0].bridge >= fl[1].bridge ? 0
+caught: 51: holds: q(Ghi) > 0 && Number.isFinite(lo) && q(lo) >= q(HALF 
+caught: 52: holds: q(Ghi) > 0 && Number.isFinite(lo) && q(lo) >= q(HALF 
+caught: 53: falls: Number.isFinite(Glo) && q(Glo) > 0 && q(hi) < q(HALF 
+caught: 54: falls: Number.isFinite(Glo) && q(Glo) > 0 && q(hi) < q(HALF 
+caught: 55: const w = [1, 2].map(k => shareRead(
+caught: 56: const w = [1, 2].map(k => shareRead(
+caught: 57: return w.every(x => x.holds) ? 'HELD' : w.every(x => x.falls
+caught: 58: return w.every(x => x.holds) ? 'HELD' : w.every(x => x.falls
+caught: 59: out['2'] = { outcome: shareItem('ENlo', 'ENhi') };
+caught: 60: EN: ln(rr) - ln(OS), ENlo: ln(rlo) - ln(OShi), ENhi: ln(rhi)
+caught: 61: EN: ln(rr) - ln(OS), ENlo: ln(rlo) - ln(OShi), ENhi: ln(rhi)
+caught: 62: holds: q(led[k].FORMhi) <= q(Math.log(FORM_OK))
+caught: 63: q(led[k].FORMlo) >= q(Math.log(FORM_BAD))
+caught: 64: out['3'] = { outcome: f3.every(x => x.holds) ? 'HELD' : f3.s
+caught: 65: o4.lo > d2 && o4.d >= q(d2 / 2) ? 'HELD'
+caught: 66: o4.lo > d2 && o4.d >= q(d2 / 2) ? 'HELD'
+caught: 67: o4.hi < q(d2 / 2) ? 'FALSIFIED'
+caught: 68: const [l, h] = cp(ok, n, al); return { d: q(table - 100 * ok
+caught: 69: let b = 0, c = 0; for (let i = 0; i < N; i++) { if (B[i] && 
+caught: 70: const m = b + c, [lo, hi] = m ? cp(c, m, 2 * a5) : [0.5, 0.5
+caught: 71: return { k, b, c, N, dT: q(dT), D: q(dT - dr), lo: q(dT - dr
+caught: 72: out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' :
+caught: 73: out['5'] = { outcome: c5.every(x => x.lo >= DEEP) ? 'HELD' :
+caught: 74: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 75: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 76: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 77: over: rsoW.filter(x => x.k > 0).some(x => x.lo > 0) };
+caught: 78: `OVER-CORRECTION (RSO's table shown above its runs in world 
+caught: 79: L.push(`OUTCOME: ${['1', '2', '4', '5'].map
+caught: 80: 'O150-REFMIX': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'op
+caught: 81: 'O150-REFFLOW': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'o
+caught: 82: 'O150-FORM': { HELD: 'not', FALSIFIED: 'held' }[o3] || 'open
+caught: 83: L.push(`5. RS does not deepen S360's under-read
+caught: 84: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 85: L.push(`OUTCOME: ${['1', '2', '4', '5'].map
+caught: 86: export const q = x => (Number.isFinite(x) ? Math.round(x * 1
+86 of 86 mutations caught

@@ -1,0 +1,120 @@
+ok   RSO reads S360 as BO: 1 HELD: "HELD"
+ok   RSO 1.5 lower than BO in world 0, the runs alike: 1 FALSIFIED: "FALSIFIED"
+ok   RSO exactly half a point lower in world 0: 1 HELD: "HELD"
+ok   RSO exactly a point lower in world 0, 0 of 0 discordant: 1 FALSIFIED: "FALSIFIED"
+ok   RSO 0.8 lower in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RSO a point lower in world 1 only: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RSO 0.3 lower in world 0 with 20 saved and 20 lost: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIXS ln 1.5 of a GAP of ln 2 (0.58) in worlds 0 and 1: 2 HELD: "HELD"
+ok   MIXS ln 1.05 of a GAP of ln 2 in worlds 0 and 1: 2 FALSIFIED: "FALSIFIED"
+ok   MIXS carries the gap in world 0 only: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIXS small in world 2 only: 2 reads worlds 0 and 1, HELD: "HELD"
+ok   no gap beyond ORDER (FB at OW): 2 not FALSIFIED: "INCONCLUSIVE"
+ok   the state's pots paying nothing (zero counts): 2 FALSIFIED: "FALSIFIED"
+ok   the engine paying no bridge (zero flow counts): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIXS's bottom at or above half of GAP's top by under one path: 2 HELD: "HELD"
+ok   MIXS's bottom exactly half of GAP's top in worlds 0 and 1 (a continuous weight): 2 HELD: "HELD"
+ok   MIXS's bottom a thousandth under half of GAP's top, above half its point: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   MIXS's bottom 1e-12 under half of GAP's top, equal on the rounding: 2 HELD: "HELD"
+ok   no gap shown and MIXS negative: 2 not FALSIFIED: "INCONCLUSIVE"
+ok   MIXS just under half of GAP's point, its top above half GAP's bottom: 2 not FALSIFIED: "INCONCLUSIVE"
+ok   small reference counts (20 of a million), MIXS 0.6 of a large GAP: 2 HELD: "HELD"
+ok   MIXS 0.56 of GAP on counts of 3 and 12 and a flow of 12 paths, the intervals deciding: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   RSO two points under BO in world 0 (BO two above BASE, RSO at BASE): 1 FALSIFIED: "FALSIFIED"
+ok   BO at the 95% share household's runs: 3 HELD: "HELD"
+ok   BO two points above its runs in world 0: 3 FALSIFIED: "FALSIFIED"
+ok   BO 0.8 above its runs in world 0, its interval reaching under 0.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BO's bottom exactly 0.5 above its runs: 3 not FALSIFIED: "INCONCLUSIVE"
+ok   BO's point exactly 0.5 above its runs: 3 HELD: "HELD"
+ok   BO's runs alike BASE's: SAME: true
+ok   BO's runs differing from BASE's in world 2: DIFFERENT: false
+ok   1 HELD: O151-REF held, O151-RS not: "held not"
+ok   1 FALSIFIED, GAP shown in worlds 0 and 1: both open (ORDER's shortfall may be the deepening): "open open"
+ok   1 FALSIFIED, no GAP shown (FB at OW) in worlds 0 and 1: O151-REF not, O151-RS held: "not held"
+ok   1 FALSIFIED, GAP shown in world 1 only: both open: "open open"
+ok   1 FALSIFIED, GAP shown in world 2 only: O151-RS held (worlds 0 and 1 decide): "held"
+ok   1 FALSIFIED, the engine paying no bridge (GAP's bottom not finite): both open: "open open"
+ok   1 HELD, GAP shown: O151-REF held, O151-RS not (the clearance reads FALSIFIED only): "held not"
+ok   1 HELD, no GAP shown: O151-REF held, O151-RS not: "held not"
+ok   the clearance: no GAP shown reads YES, GAP shown NO: "true false"
+ok   1 FALSIFIED, GAP's point above 0 but its bottom under (FB 1% over OW): O151-RS held: "held"
+ok   the read prints the clearance: YES with no GAP shown, NO with it: "YES NO"
+ok   1 INCONCLUSIVE: both open: "open open"
+ok   2 HELD: RR-MIXS held: "held"
+ok   2 FALSIFIED: RR-MIXS not: "not"
+ok   the ledger: GAP is MIXS + SWEEP + REST: true
+ok   the read prints every item, three causes and an OUTCOME line of three items, end to end: "true 3 3 true"
+ok   the gate passes the five jobs as registered: 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses other ledger draws in the head: true
+ok   the gate refuses other flow paths in the head: true
+ok   the gate refuses the ledger at other points: true
+ok   the gate refuses a 60-point job at other points: true
+ok   the gate refuses a case line at other points than its ran line: true
+ok   the gate refuses armTook 0: true
+ok   the gate refuses BO without readerRef order: true
+ok   the gate refuses RSO without its split: true
+ok   the gate refuses the 95% share household's BASE under ORDER: true
+ok   the gate refuses another minimum end pot: true
+ok   the gate refuses another support line: true
+ok   the gate refuses the candidate without e3pcls: true
+ok   the gate refuses mirrorTook short: true
+ok   the gate refuses mirrorTook over nothing: true
+ok   the gate refuses no P line: true
+ok   the gate refuses P not among the flow moves: true
+ok   the gate refuses opening weights not summing to 1: true
+ok   the gate refuses a ledger row missing: true
+ok   the gate refuses a world of four ledger rows whose weights sum to 1: true
+ok   the gate refuses the sweep's counts out of other draws: true
+ok   the gate refuses a quadrature line missing: true
+ok   the gate refuses a flow line missing: true
+ok   the gate refuses flow counts out of other paths: true
+ok   the gate refuses a missing world table: true
+ok   the gate refuses a missing run in world 2: true
+ok   the gate refuses runs on other paths than registered: true
+ok   the gate refuses fewer paying the bridge than surviving: true
+ok   the gate refuses forceIdentity one path short: true
+ok   the gate refuses forceIdentity over fewer paths than registered: true
+ok   the gate passes NE-REF's S360 jobs on this run's code: 0
+ok   the gate refuses NE-REF's S360 jobs on other code: true
+ok   the gate passes files whose bits are the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+planted (89): all read as they should
+GATE: passed - the five jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002, ledger draws 1000000, flow paths 40000); every job's split and reference in its solve's meta; every self-check passed (armTook, mirrorTook, forceIdentity); every file the log's; NE-REF's S360 BASE and RS behind NE-REF's gate, on this run's code
+
+REF-2: S360's 2 x 2 (BASE, RS, BO, RSO), the ledger at S360's states, the 95% share household under BASE and BO (predictions/diag-ref2.md)
+
+THE ITEMS (each read by its registered rule)
+1. under ORDER, RS does not deepen S360's read by more than half a point (O151): INCONCLUSIVE
+     world 0: RSO less BO -0.9042 (-0.9042 to -0.9042), 0 saved/0 lost of 4000; world 1: RSO less BO -0.0611 (-0.0611 to -0.0611), 0 saved/0 lost of 4000; world 2: RSO less BO -0.0176 (-0.0176 to -0.0176), 0 saved/0 lost of 4000
+     the 2 x 2 (own opening's table / runs, points): world 0: BASE 16.4162/29.0250, RS 15.1576/29.0250, BO 23.6259/28.6250, RSO 22.7217/28.6250; world 1: BASE 36.2707/48.9000, RS 35.9426/48.9000, BO 43.7384/48.6500, RSO 43.6773/48.6500; world 2: BASE 62.4442/69.6000, RS 62.3907/69.6000, BO 66.2316/69.7750, RSO 66.2139/69.7750
+2. at S360's states the state's own pots carry at least half of the gap beyond the order-drawn reference (RR-MIXS): INCONCLUSIVE
+     world 0: MIXS 0.0780 (0.0711 to 0.0850) against GAP 0.0293 (0.0054 to 0.0530); world 1: MIXS 0.0191 (0.0147 to 0.0235) against GAP -0.0109 (-0.0261 to 0.0041)
+3. ORDER does not over-read the 95% share household by more than half a point: INCONCLUSIVE
+     world 0: BO 0.7421 (-0.5127 to 2.0743), BASE 0.7421 (-0.5127 to 2.0743); world 1: BO 0.0167 (-0.5843 to 0.7179), BASE 0.0167 (-0.5843 to 0.7179); world 2: BO 0.1470 (-0.0937 to 0.4963), BASE 0.1470 (-0.0937 to 0.4963)
+     BO's runs are BASE's in every world: SAME
+
+THE CAUSES (the registered map)
+   no gap shown beyond ORDER at S360's states (GAP's bottom at most 0 in worlds 0 and 1): NO
+=> O151-REF open
+=> O151-RS open
+=> RR-MIXS open
+
+THE LEDGER AT S360'S YEAR-1 STATES (reported; per world, weighted by the year-0 nodes)
+  world 0: REF 1.5131e-1 FS 1.5107e-1 OW 2.2789e-1 OS 2.4639e-1 OSW 2.3294e-1 FB 2.3467e-1 (order 0); FORM -0.0016 MIXO 0.4111 MIXS 0.0780 SWEEP -0.0561 REST 0.0074 (GAP 0.0293 = MIXS + SWEEP + REST)
+  world 1: REF 3.5926e-1 FS 3.6044e-1 OW 4.3607e-1 OS 4.4448e-1 OSW 4.3237e-1 FB 4.3133e-1 (order 0); FORM 0.0033 MIXO 0.1905 MIXS 0.0191 SWEEP -0.0276 REST -0.0024 (GAP -0.0109 = MIXS + SWEEP + REST)
+  world 2: REF 6.2385e-1 FS 6.2569e-1 OW 6.6182e-1 OS 6.5514e-1 OSW 6.5242e-1 FB 6.4868e-1 (order 0); FORM 0.0029 MIXO 0.0561 MIXS -0.0101 SWEEP -0.0042 REST -0.0058 (GAP -0.0201 = MIXS + SWEEP + REST)
+  quadrature world 0: five nodes 1.5131e-1, fine 1.5101e-1, ratio 0.9980
+  quadrature world 1: five nodes 3.5926e-1, fine 3.5973e-1, ratio 1.0013
+  quadrature world 2: five nodes 6.2385e-1, fine 6.2333e-1, ratio 0.9992
+REALISED item 1: -0.9042
+REALISED item 3: 0.7421
+OUTCOME: 1 INCONCLUSIVE, 2 INCONCLUSIVE, 3 INCONCLUSIVE

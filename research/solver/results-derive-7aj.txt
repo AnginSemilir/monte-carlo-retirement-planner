@@ -1,0 +1,46 @@
+7AJ DERIVATION: the power of the three items and the derived credences, from 7af's and 7ag's records at 0.02 (the bundle), read through reduce-7aj.mjs items()
+
+1. THE RECORDS (CAND against SHIP at 0.02; 7ag scaled to 8,000 paths)
+  share 0.50     SHIP 99.47 margin 0.25  saved 15.0 lost 2.0  whole +0.231 (0.096 to 0.391; the rest +0.068)  spending 0.163% (0.145 to 0.182)
+  share 0.70     SHIP 99.30 margin 0.25  saved 44.0 lost 0.0  whole +0.628 (0.427 to 0.880; the rest +0.078)  spending 0.611% (0.571 to 0.650)
+  share 0.78     SHIP 99.83 margin 0.25  saved 3.0 lost 0.0  whole +0.346 (0.256 to 0.454; the rest +0.309)  spending -0.044% (-0.052 to -0.037)
+  share 0.90     SHIP 99.29 margin 0.25  saved 34.0 lost 1.0  whole +0.549 (0.364 to 0.775; the rest +0.136)  spending 0.524% (0.491 to 0.557)
+  share 0.95     SHIP 73.33 margin 0.5  saved 1600.0 lost 0.0  whole +22.287 (21.173 to 23.429; the rest +2.287)  spending 0.187% (0.158 to 0.217)
+  bridge 0       SHIP 99.40 margin 0.25  saved 36.0 lost 0.0  whole +0.458 (0.272 to 0.693; the rest +0.008)  spending 0.718% (0.672 to 0.764)
+  bridge 1       SHIP 99.35 margin 0.25  saved 35.0 lost 2.0  whole +0.453 (0.259 to 0.688; the rest +0.040)  spending 0.719% (0.675 to 0.762)
+  bridge 6       SHIP 99.30 margin 0.25  saved 8.0 lost 0.0  whole +0.404 (0.292 to 0.536; the rest +0.304)  spending 0.051% (0.044 to 0.059)
+  wealth x0.5    SHIP 95.55 margin 0.25  saved 69.0 lost 22.0  whole +0.798 (0.504 to 1.104; the rest +0.210)  spending -0.615% (-0.654 to -0.576)
+  wealth x2      SHIP 99.99 margin 0.25  saved 0.0 lost 5.0  whole +0.223 (0.096 to 0.315; the rest +0.285)  spending -0.105% (-0.124 to -0.085)
+  S120           SHIP 100.00 margin 0.25  saved 0.0 lost 0.0  whole +0.246 (0.166 to 0.327; the rest +0.246)  spending 0.000% (-0.001 to 0.000)
+  S122           SHIP 99.70 margin 0.25  saved 3.0 lost 1.0  whole +0.071 (-0.016 to 0.166; the rest +0.046)  spending -0.020% (-0.025 to -0.016)
+  S126           SHIP 99.81 margin 0.25  saved 3.0 lost 0.0  whole +0.335 (0.244 to 0.442; the rest +0.297)  spending -0.045% (-0.051 to -0.038)
+  bridge 4       SHIP 99.54 margin 0.25  saved 6.0 lost 2.0  whole +0.338 (0.223 to 0.465; the rest +0.288)  spending -0.053% (-0.061 to -0.045)
+  S360           SHIP 34.30 margin 0.5  saved 931.0 lost 0.0  whole +13.318 (12.398 to 14.260; the rest +1.680)  spending 0.031% (0.028 to 0.035)
+  S194           SHIP 98.22 margin 0.25  saved 45.0 lost 3.0  whole +0.714 (0.495 to 0.961; the rest +0.189)  spending 0.526% (0.500 to 0.553)
+  S124           SHIP 94.26 margin 0.25  saved 8.0 lost 6.0  whole +0.141 (0.053 to 0.229; the rest +0.116)  spending -0.183% (-0.189 to -0.178)
+  S128           SHIP 68.71 margin 0.5  saved 31.5 lost 25.5  whole +0.270 (0.109 to 0.432; the rest +0.195)  spending -0.074% (-0.085 to -0.063)
+  S130           SHIP 82.57 margin 0.5  saved 121.0 lost 84.0  whole +0.548 (0.248 to 0.850; the rest +0.086)  spending -0.507% (-0.537 to -0.477)
+  S366           SHIP 99.12 margin 0.25  saved 5.0 lost 0.5  whole +0.314 (0.248 to 0.387; the rest +0.258)  spending -0.051% (-0.057 to -0.046)
+  S370           SHIP 70.09 margin 0.5  saved 556.5 lost 188.5  whole +4.469 (3.896 to 5.044; the rest -0.131)  spending -1.404% (-1.450 to -1.359)
+  bridge 4+cost  SHIP 95.23 margin 0.25  saved 322.5 lost 1.0  whole +4.539 (4.162 to 4.942; the rest +0.521)  spending 0.672% (0.647 to 0.698)
+  S162           SHIP 98.78 margin 0.25  saved 37.5 lost 2.0  whole +0.632 (0.488 to 0.792; the rest +0.188)  spending 0.834% (0.806 to 0.862)
+  S172           SHIP 98.67 margin 0.25  saved 11.0 lost 2.0  whole +0.464 (0.374 to 0.560; the rest +0.351)  spending -0.242% (-0.249 to -0.235)
+  S168           SHIP 100.00 margin 0.25  saved 0.0 lost 0.0  whole +0.005 (-0.028 to 0.038; the rest +0.005)  spending 0.000% (0.000 to 0.000)
+
+2. THE POWER: each story drawn 2000 times, the outcome shares per item (HELD / INCONCLUSIVE / FALSIFIED)
+  SAME   item 1 0.995 / 0.005 / 0.000   item 2 1.000 / 0.001 / 0.000   item 3 1.000 / 0.000 / 0.000
+  DRIFT  item 1 0.173 / 0.778 / 0.048   item 2 0.969 / 0.032 / 0.000   item 3 1.000 / 0.000 / 0.000
+  ONE    item 1 0.000 / 0.000 / 1.000   item 2 0.000 / 0.138 / 0.862   item 3 1.000 / 0.000 / 0.000
+
+3. THE DERIVED CREDENCES: SAME at the NOHARM base rate 0.81, DRIFT and ONE 0.095 each (declared)
+  item 1: HELD 0.82, INCONCLUSIVE 0.08, FALSIFIED 0.10
+  item 2: HELD 0.90, INCONCLUSIVE 0.02, FALSIFIED 0.08
+  item 3: HELD 1.00, INCONCLUSIVE 0.00, FALSIFIED 0.00
+
+4. THE DECISION TABLE'S ROWS (derived): all three HELD 0.82; any FALSIFIED 0.10; else (an INCONCLUSIVE, none FALSIFIED) 0.08
+
+CREDENCE item 1: point 1.79 HELD 0.82 INCONCLUSIVE 0.08 FALSIFIED 0.10
+CREDENCE item 2: point 0.003 HELD 0.90 INCONCLUSIVE 0.02 FALSIFIED 0.08
+CREDENCE item 3: point -1.40 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+
+5. THE POINTS under SAME: the panel's mean survival change 1.789 points (median 0.163, least -0.063 on wealth x2); the whole score's least point 0.003; spending's least -1.404%

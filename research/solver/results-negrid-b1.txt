@@ -1,0 +1,171 @@
+ok   the gap halves exactly (2 to 1) in every counted cell: 1 HELD: "HELD"
+ok   the gap to 1.0000001 of 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gap to 1.6 of 2 (ratio exactly 0.8): 1 FALSIFIED: "FALSIFIED"
+ok   the gap to 1.5999 of 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gap grows (2 to 3): 1 FALSIFIED: "FALSIFIED"
+ok   the gap flips sign at the same size (2 to -2): 1 FALSIFIED: "FALSIFIED"
+ok   no coarse gap of half a point (0.25 everywhere): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a coarse gap exactly 0.5 is counted (and halves): 1 HELD: "HELD"
+ok   one cell halves, one stays: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2's gap is not read (it stays at 2): 1 HELD: "HELD"
+ok   a gap in BASE's table read the same as LOR's (BASE 48 coarse, 49 fine): 1 HELD: "HELD"
+ok   bridge 4's gaps do not count (bridge 4 off, S380 halved): 1 HELD: "HELD"
+ok   both arms at their runs: 2 HELD: "HELD"
+ok   both arms' A exactly half their coarse A (world 0 off by 6, weight 1/6): 2 HELD: "HELD"
+ok   LOR's A just past half (world 0 off by 6.00001): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   both arms off by 12 in world 0 (its bound well past half): 2 FALSIFIED: "FALSIFIED"
+ok   BASE off by 12, LOR at its runs: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   both off by 7 in world 0 (A past half, its bound not): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   both off by -12 (under-read): 2 FALSIFIED: "FALSIFIED"
+ok   both off by 12, the coarse A set so half of it is exactly the bound: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 2 reads BASE at P and LOR at D (BASE's D and LOR's P off by 12, not read): 2 HELD: "HELD"
+ok   item 2 against a coarse A of 4 (both off by 12 in world 0, A exactly half): 2 HELD: "HELD"
+ok   tables and runs agree D = P: 3 HELD: "HELD"
+ok   the table prices D a point above P, the runs the same: 3 HELD: "HELD"
+ok   the table prices D 1.0000001 above P: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the table prices D 5 above P, the runs no change: 3 FALSIFIED: "FALSIFIED"
+ok   D loses 100 world-0 paths (2.5 points), the table prices it: 3 HELD: "HELD"
+ok   D loses 100 world-0 paths, the table prices no change: 3 FALSIFIED: "FALSIFIED"
+ok   D saves 100 under LOR, LOR's table prices no change: 3 FALSIFIED: "FALSIFIED"
+ok   D loses 70 and saves 20 in world 0 (1.25 points), the table prices none, its interval reaching inside: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   D saves 30 paths in world 2, loses none, the table prices 2.1 (FALSIFIED unguarded; the one-sided guard holds the interval out): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 at its runs: 4 HELD: "HELD"
+ok   bridge 4 off by exactly 0.3 in world 0: 4 HELD: "HELD"
+ok   bridge 4 off by 0.3000001: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 off by 0.3 computed as 0.30000000000000004 (1.3 against 1): read rounded: 4 HELD: "HELD"
+ok   bridge 4 off by 0.8 (its interval at ALPHA / 6 reaching inside 0.3, at ALPHA / 2 not): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 off by -0.5 at its point (its interval reaching inside): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   bridge 4 off by 2 under BASE: 4 FALSIFIED: "FALSIFIED"
+ok   bridge 4 under by 2 under BASE: 4 FALSIFIED: "FALSIFIED"
+ok   bridge 4 off by 2 under LOR alone (not the control: reported): 4 HELD: "HELD"
+ok   bridge 4's own opening is D, its D runs read (D off by 5, P at its runs): 4 FALSIFIED: "FALSIFIED"
+ok   bridge 4's own opening is P, its D off by 5 not read: 4 HELD: "HELD"
+ok   the gate passes twelve good jobs: ""
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses a job at the other grid's points: true
+ok   the gate refuses a solve at other points than its job: true
+ok   the gate refuses armTook 0: true
+ok   the gate refuses LOR whose solve carries no blend: true
+ok   the gate refuses the candidate without e3pcls: true
+ok   the gate refuses pairTook 0: true
+ok   the gate refuses a forced pair at other tiers: true
+ok   the gate refuses a forced pair at two levels: true
+ok   the gate refuses a forced pair at another action: true
+ok   the gate refuses a household solved on two action lists: true
+ok   the gate refuses a missing world table: true
+ok   the gate refuses BASE counting LOR reads: true
+ok   the gate refuses S224 under LOR counting LOR reads: true
+ok   the gate refuses LOR counting no LOR read on S380: true
+ok   the gate refuses S224 under LOR off BASE's tables by a millionth: true
+ok   the gate refuses S224 under LOR at another own opening: true
+ok   the gate refuses S224 under LOR off BASE's own-opening table alone: true
+ok   the gate refuses a missing D run in world 2: true
+ok   the gate refuses a run of other paths: true
+ok   the gate refuses an own opening that is neither P nor D, unrun: true
+ok   the gate refuses a forceIdentity one path short: true
+ok   the gate refuses a forceIdentity over too few paths: true
+ok   the gate refuses a forceIdentity over other paths than the first 1,000 of the runs: true
+ok   the gate refuses S380 BASE off stage A's tables by a ten-thousandth: true
+ok   the gate refuses S380 LOR at another own opening than stage A's: true
+ok   the gate refuses bridge 4 LOR off stage A's tables: true
+ok   the gate refuses S224 BASE off NE-ROOT's tables: true
+ok   the gate refuses a missing record: true
+ok   the gate passes twelve good jobs with their files: ""
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a file missing one run's bits: true
+ok   the gate refuses a file stamped by other code: true
+planted (82): all read as they should
+GATE: passed - the twelve jobs once and done at the registered settings (30 and 60 points, 4000 paths a world, seed 7002); every arm in its solve's meta; every self-check passed (armTook, pairTook, forceIdentity on world 0's first 1,000 paths); one action list a household; no LOR read counted under BASE or on S224, S224's arms the same; every file the log's; the coarse grid reproduces stage A's and NE-ROOT's records to the printed digits
+
+NE-GRID B1: BASE and LOR at the coarse and fine grids on S380, bridge 4 and S224, the tuning seed (predictions/diag-negrid-b1.md)
+
+S380 BASE fine (60 points): own ai 12 level 0.8 tiers 0,0; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 33.2954 sim 33.1500 (1326/4000); D 32.4347 sim 32.0500 (1282/4000); OWN 33.2954
+  world 1 (weight 0.666667): P 77.3833 sim 78.7750 (3151/4000); D 77.6621 sim 79.4000 (3176/4000); OWN 77.3833
+  world 2 (weight 0.166667): P 96.0226 sim 96.9500 (3878/4000); D 96.3843 sim 97.2250 (3889/4000); OWN 96.0226
+
+S380 LOR fine (60 points): own ai 12 level 0.8 tiers 0,0; clamps n 6854093160 lo 346660020 hi 10578300
+  world 0 (weight 0.166667): P 32.3720 sim 32.8250 (1313/4000); D 31.2043 sim 31.6750 (1267/4000); OWN 32.3720
+  world 1 (weight 0.666667): P 78.4549 sim 78.6750 (3147/4000); D 78.7582 sim 79.2500 (3170/4000); OWN 78.4549
+  world 2 (weight 0.166667): P 96.9541 sim 96.9250 (3877/4000); D 97.4591 sim 97.2000 (3888/4000); OWN 96.9541
+
+S224 BASE coarse (30 points): own ai 1 level 1 tiers 1,1; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 26.0358; D 25.1197; OWN 25.7906
+  world 1 (weight 0.666667): P 76.7930; D 77.1119; OWN 77.0081
+  world 2 (weight 0.166667): P 97.3292; D 97.6700; OWN 97.4863
+
+S224 LOR coarse (30 points): own ai 1 level 1 tiers 1,1; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 26.0358; D 25.1197; OWN 25.7906
+  world 1 (weight 0.666667): P 76.7930; D 77.1119; OWN 77.0081
+  world 2 (weight 0.166667): P 97.3292; D 97.6700; OWN 97.4863
+
+bridge 4 BASE fine (60 points): own ai 59 level 0.8 tiers 2,2; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 98.9145 sim 98.7750 (3951/4000); D 99.1160 sim 99.0000 (3960/4000); OWN 99.1160
+  world 1 (weight 0.666667): P 99.9872 sim 100.0000 (4000/4000); D 99.9898 sim 100.0000 (4000/4000); OWN 99.9898
+  world 2 (weight 0.166667): P 99.9958 sim 100.0000 (4000/4000); D 99.9958 sim 100.0000 (4000/4000); OWN 99.9958
+
+bridge 4 LOR fine (60 points): own ai 59 level 0.8 tiers 2,2; clamps n 3285022392 lo 159969996 hi 2913000
+  world 0 (weight 0.166667): P 98.9827 sim 98.7750 (3951/4000); D 99.1678 sim 99.0000 (3960/4000); OWN 99.1678
+  world 1 (weight 0.666667): P 99.9879 sim 100.0000 (4000/4000); D 99.9903 sim 100.0000 (4000/4000); OWN 99.9903
+  world 2 (weight 0.166667): P 99.9958 sim 100.0000 (4000/4000); D 99.9958 sim 100.0000 (4000/4000); OWN 99.9958
+
+S224 BASE fine (60 points): own ai 0 level 1 tiers 0,0; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 26.4327 sim 28.0500 (1122/4000); D 25.7064 sim 27.4250 (1097/4000); OWN 26.4327
+  world 1 (weight 0.666667): P 73.7264 sim 74.6250 (2985/4000); D 73.7126 sim 75.2750 (3011/4000); OWN 73.7264
+  world 2 (weight 0.166667): P 96.3468 sim 96.3750 (3855/4000); D 96.5938 sim 96.5750 (3863/4000); OWN 96.3468
+
+S224 LOR fine (60 points): own ai 0 level 1 tiers 0,0; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 26.4327; D 25.7064; OWN 26.4327
+  world 1 (weight 0.666667): P 73.7264; D 73.7126; OWN 73.7264
+  world 2 (weight 0.166667): P 96.3468; D 96.5938; OWN 96.3468
+
+S380 BASE coarse (30 points): own ai 12 level 0.8 tiers 0,0; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 35.0977; D 34.3882; OWN 35.0977
+  world 1 (weight 0.666667): P 76.2609; D 76.4294; OWN 76.2609
+  world 2 (weight 0.166667): P 94.5685; D 94.7218; OWN 94.5685
+
+S380 LOR coarse (30 points): own ai 14 level 0.8 tiers 2,2; clamps n 3336345576 lo 156492732 hi 5932212
+  world 0 (weight 0.166667): P 31.5924; D 30.4985; OWN 30.4985
+  world 1 (weight 0.666667): P 81.8530; D 82.8315; OWN 82.8315
+  world 2 (weight 0.166667): P 97.8577; D 98.3518; OWN 98.3518
+
+bridge 4 BASE coarse (30 points): own ai 59 level 0.8 tiers 2,2; clamps n 0 lo 0 hi 0
+  world 0 (weight 0.166667): P 98.4967; D 98.7719; OWN 98.7719
+  world 1 (weight 0.666667): P 99.9761; D 99.9822; OWN 99.9822
+  world 2 (weight 0.166667): P 99.9955; D 99.9956; OWN 99.9956
+
+bridge 4 LOR coarse (30 points): own ai 59 level 0.8 tiers 2,2; clamps n 1604826720 lo 74626080 hi 1865076
+  world 0 (weight 0.166667): P 98.9302; D 99.1231; OWN 99.1231
+  world 1 (weight 0.666667): P 99.9836; D 99.9862; OWN 99.9862
+  world 2 (weight 0.166667): P 99.9955; D 99.9956; OWN 99.9956
+
+THE ITEMS (each read by its registered rule)
+1. S380's read-space gap (LOR less BASE) shrinks by half from 30 to 60 points: HELD
+     P world 0: coarse -3.5053 fine -0.9234 ratio 0.2634; P world 1: coarse 5.5921 fine 1.0716 ratio 0.1916; D world 0: coarse -3.8897 fine -1.2304 ratio 0.3163; D world 1: coarse 6.4021 fine 1.0961 ratio 0.1712
+2. S380's tables converge toward their runs at 60 points: HELD
+     BASE at P: A 1.1066 (lower bound 0.0355) against coarse 2.5434, half 1.2717; by world 0.1454 (-1.6660 to 1.9214), -1.3917 (-2.9213 to 0.1983), -0.9274 (-1.5416 to -0.2133); LOR at D: A 0.4495 (lower bound 0.0000) against coarse 3.2377, half 1.6189; by world -0.4707 (-2.2627 to 1.2828), -0.4918 (-2.0081 to 1.0859), 0.2591 (-0.3284 to 0.9472)
+3. S380's tables price D against P at 60 points: HELD
+     BASE: world 0 table -0.8607 runs -1.1000 (81 saved/125 lost) err 0.2393 (-0.6191 to 1.0986); world 1 table 0.2788 runs 0.6250 (102 saved/77 lost) err -0.3462 (-1.1517 to 0.4566); world 2 table 0.3618 runs 0.2750 (26 saved/15 lost) err 0.0868 (-0.3276 to 0.4839)
+     LOR: world 0 table -1.1677 runs -1.1500 (83 saved/129 lost) err -0.0177 (-0.8884 to 0.8540); world 1 table 0.3033 runs 0.5750 (104 saved/81 lost) err -0.2717 (-1.0903 to 0.5444); world 2 table 0.5050 runs 0.2750 (25 saved/14 lost) err 0.2300 (-0.1756 to 0.6179)
+4. bridge 4 under BASE within 0.3 points at 60 points: HELD
+     BASE at D: world 0 0.1160 (-0.2218 to 0.5600); world 1 -0.0102 (-0.0102 to 0.1094); world 2 -0.0042 (-0.0042 to 0.1154)
+     REPORTED, LOR at D: world 0 0.1678 (-0.1701 to 0.6118); world 1 -0.0097 (-0.0097 to 0.1099); world 2 -0.0042 (-0.0042 to 0.1154)
+
+REPORTED
+  S380 BASE: the coarse tables' D less P by world -0.7095, 0.1686, 0.1533 against the fine runs' -1.1000, 0.6250, 0.2750; own opening coarse ai 12, fine ai 12
+  S380 LOR: the coarse tables' D less P by world -1.0939, 0.9785, 0.4940 against the fine runs' -1.1500, 0.5750, 0.2750; own opening coarse ai 14, fine ai 12
+  S224 BASE at its fine own opening (ai 0): table less simulated by world -1.6173, -0.8986, -0.0282; NE-ROOT's coarse -0.1094, 1.3081, 0.8613
+  bridge 4 coarse: LOR less BASE at P 0.4334, 0.0075, 0.0001; at D 0.3512, 0.0041, 0.0000
+  bridge 4 fine: LOR less BASE at P 0.0682, 0.0007, 0.0000; at D 0.0518, 0.0005, 0.0000
+  each read's own move between the grids at item 1's cells (fine less coarse; RB-INTERP: LOR's moves too, RB-SPACE: LOR's stays and BASE's moves to it): P world 0 BASE -1.8023 LOR 0.7795; P world 1 BASE 1.1225 LOR -3.3981; D world 0 BASE -1.9536 LOR 0.7057; D world 1 BASE 1.2327 LOR -4.0733
+  S380 BASE at its own fine opening (ai 12, P): table less simulated by world 0.1454, -1.3917, -0.9274; weighted |.| 1.1066 (item 2 reads stage A's opening)
+  S380 LOR at its own fine opening (ai 12, P): table less simulated by world -0.4530, -0.2201, 0.0291; weighted |.| 0.2271 (item 2 reads stage A's opening)
+REALISED item 1: 0.3163
+REALISED item 2: 0.4351
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD

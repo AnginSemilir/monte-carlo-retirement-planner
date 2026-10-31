@@ -1,0 +1,18 @@
+# 7k: the exact final year's run time (a measurement, not a test). PREDICTION="none: ..." (runs.log 25 Sep 08:27 UK): node research/solver/audit-s126.mjs time 16 2 S126,S194,S330 through run-from-snapshot.sh on a quiet box (nothing else launched; the load average printed with each solve). The output as printed:
+FINAL-YEAR TIMING, 16 points, 2 runs each way, alternated; households S126, S194, S330; load before 1.11 0.93 0.61
+  S126 run 1 final year averaged: 208.5 s (load 1.01)
+  S126 run 1 final year exact   : 229.8 s (load 1.00)
+  S126 run 2 final year exact   : 227.9 s (load 1.00)
+  S126 run 2 final year averaged: 211.8 s (load 1.00)
+  S194 run 1 final year averaged: 240.4 s (load 1.00)
+  S194 run 1 final year exact   : 259.7 s (load 1.01)
+  S194 run 2 final year exact   : 263.0 s (load 1.00)
+  S194 run 2 final year averaged: 241.3 s (load 1.03)
+  S330 run 1 final year averaged: 361.4 s (load 1.01)
+  S330 run 1 final year exact   : 374.6 s (load 1.04)
+  S330 run 2 final year exact   : 373.7 s (load 1.08)
+  S330 run 2 final year averaged: 366.9 s (load 1.06)
+load after 1.06 1.03 1.00
+S126: median 210.2 s averaged, 228.9 s exact -> ratio 1.089
+S194: median 240.8 s averaged, 261.4 s exact -> ratio 1.085
+S330: median 364.2 s averaged, 374.1 s exact -> ratio 1.027

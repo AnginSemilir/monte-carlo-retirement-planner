@@ -1,0 +1,22 @@
+7AS'S DERIVATION (P's registered read, results-P.txt, and P's case files through their stamps; no solve)
+1. S194's slice at world 0's node, OPEN2 against OPEN2 at the margin 1e-3 (16,000 paths)
+   charge 0 (margin 0): 44/126 survival -0.513 (-0.672 to -0.353)
+   charge 0.001 (P):    18/59 survival -0.256 (-0.364 to -0.149); the whole score -0.261 (-0.395 to -0.131)
+   the line through the two: 257.0 points per unit of charge; at 0.0005 -0.385, at 0.002 0.001 (survival; two points, not a model)
+   item 2's band: HELD needs the whole score's lower end above -0.25, so a point above about -0.118 at P's half-width 0.132; FALSIFIED a point below about -0.382
+1b. the world-aware chooser at S194's node (survival, 16,000 paths): margin 1e-3 93.85, margin 0 93.84, the charge 0.001 93.80 (its paired legs from P's traces in 1c)
+1c. the split at P's charge, from P's traces (S194's node, 16000 paths; grade C, post hoc)
+   OPEN2 at 0.001 against 1e-3: whole -0.261 (-0.395 to -0.131), half-width 0.132
+   WA at 0.001 against 1e-3:    whole -0.019 (-0.108 to 0.068), half-width 0.088; WA at margin 0 against 1e-3: -0.039 (-0.167 to 0.089), half-width 0.128
+   item 3's power at 0.0005, from both ends (the whole-score slice, WA's share, the sd of a - o/3): margin 0 0.589, 0.066, 7.676 (the HELD side's z 2.59); 0.001 0.261, 0.074, 4.896 (z 1.75); at 0.0005, taken between, 0.425, 0.070, 6.286: the premise's z 6.12, the HELD side's z 2.25; Holm over two needs a one-sided p under 0.025, z about 1.96, power 0.8 at about 2.8 - a model of two points, NOT CHECKED
+   the contrast at margin 0 (O50's own setting; reduce-7as.mjs splitItem; grade C, post hoc - the plan-auditor's receipt of 20:29 UK had computed it): the slice -0.589 a path (p 5.00e-5), WA's move -0.039, WA's share 0.07; HELD side p 5.50e-3 (Holm 1.10e-2), FALSIFIED side p 1.00e+0 (Holm 1.00e+0): HELD
+   the contrast at P's charge path by path (reduce-7as.mjs splitItem): the slice -0.261 a path (p 5.00e-5), WA's move -0.019, WA's share of the slice 0.07; HELD side p 3.93e-2 (Holm 7.87e-2), FALSIFIED side p 9.99e-1 (Holm 9.99e-1): INCONCLUSIVE
+2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2
+   bridge 4  2/3 whole -0.007 (-0.052 to 0.037): half-width 0.044, at 8,000 about 0.063; FLAT (inside +/-0.25) needs a point within about 0.187 of 0
+   S194      6/8 whole +0.086 (0.016 to 0.155): half-width 0.070, at 8,000 about 0.098; FLAT (inside +/-0.25) needs a point within about 0.152 of 0
+   S126      0/0 whole -0.000 (-0.032 to 0.031): half-width 0.032, at 8,000 about 0.045; FLAT (inside +/-0.25) needs a point within about 0.205 of 0
+3. the time: P's measured seconds per unit (results/diagP), scaled
+   bridge 4  P: solve 731 s, node (4 rules, 16,000) 5132 s, all worlds (16,000) 1266 s; a 7as charged job about 2120 s, an identity solve about 1136 s (times 1.55)
+   S194      P: solve 784 s, node (4 rules, 16,000) 4444 s, all worlds (16,000) 1221 s; a 7as charged job about 7349 s, an identity solve about 1219 s (times 1.55)
+   S126      P: solve 699 s, node (4 rules, 16,000) 4715 s, all worlds (16,000) 1171 s; a 7as charged job about 1997 s, an identity solve about 1087 s (times 1.55)
+   9 jobs: 7.33 core-hours; on four cores (longest first) 2.04 hours (P's own host unrecorded: NOT CHECKED)

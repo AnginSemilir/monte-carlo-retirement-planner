@@ -1,0 +1,94 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!want.some(w => w.key === x.key)) 
+caught: 3: if (codes.size !== 1 || codes.has(undefined) || codes.has(nu
+caught: 4: if (!j.done) bad.push(`${K}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: ['S370', 'AN', 30], ['S362', 'AR', 30]
+caught: 8: ...COMMON, readerSplit: SPLIT[w.arm], readerCopy: COPY[w.arm
+caught: 9: ...COMMON, readerSplit: SPLIT[w.arm], readerCopy: COPY[w.arm
+caught: 10: export const SPLIT = Object.freeze({ AR: 'rs', ARX: 'rs', AN
+caught: 11: export const SPLIT = Object.freeze({ AR: 'rs', ARX: 'rs', AN
+caught: 12: export const COPY = Object.freeze({ AR: 'null', ARX: 'extrap
+caught: 13: export const COPY = Object.freeze({ AR: 'null', ARX: 'extrap
+caught: 14: readerBlend: 'null', readerRef: 'adaptive', readerChance: 'n
+caught: 15: !j.adaptive.fix || 
+caught: 16: !(j.adaptive.moves > 0) || 
+caught: 17: j.adaptive.nonMono !== 0 || 
+caught: 18: if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran,
+caught: 19: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 20: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 21: if (j.bridge && peers.some(x => x.bridge.join(',') !== j.bri
+caught: 22: if (!j.split[k] || (j.bridge || []).some(
+caught: 23: if (!bOk) bad.push(
+caught: 24: if (!xOk) bad.push(
+caught: 25: if (!j.stamp || j.stamp.code !== code) bad.push(
+caught: 26: if (!j.head || j.head.seed !== SEED) bad.push(
+caught: 27: const v = f === 'readerRef' ? 'null' : COMMON[f];
+caught: 28: field(j.ran || '', 'readerCopy') !== (a === 'CX' ? 'extrap' 
+caught: 29: if (!peer || (j.bridge || []).join(',') !== peer.bridge.join
+caught: 30: if (!j) { bad.push(`the reused ${h} ${a} not found`); contin
+caught: 31: const read = K.filter(k => Math.abs(mean(P.S362.y12.C[k])) >
+caught: 32: const per = read.map(k => { const r = removal(P.S362.y12.C[k
+caught: 33: const per = read.map(k => { const r = removal(P.S362.gb.C[k]
+caught: 34: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 35: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 36: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 37: tails, read: r.lo >= THREEQ && tin ? 'removed' : r.hi < QUAR
+caught: 38: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
+caught: 39: tin = tails.every(c => c.lo >= -TAIL && c.hi <= TAIL)
+caught: 40: out['1'] = { outcome: per.length ? allOf(per, 'removed', 'ke
+caught: 41: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 42: const allOf = (per, yes, no) => (per.some(x => x.read === no
+caught: 43: const read = K.filter(k => Math.abs(mean(P.S370.y12.C[k])) >
+caught: 44: P.S370.y12.AN[k], z); return { k, r, read: r.lo >= THREEQ ? 
+caught: 45: const r = removal(P.S370.y12.C[k], P.S370.y12.AN[k], z);
+caught: 46: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
+caught: 47: x.lo >= -INTER && x.hi <= INTER ? 'additive' : x.hi < -INTER
+caught: 48: CW: I.tab.AR[k], CXW: I.tab.ARX[k] }
+caught: 49: per = ['S362', 'S370'].flatMap(h =>
+caught: 50: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 51: read: c.lo >= -STILL && c.hi <= STILL ? 'still' : c.hi < -ST
+caught: 52: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 53: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 54: export const LEGS = Object.freeze([['AR', 'C', ['S362', 'S37
+caught: 55: out['5'] = { outcome: all.some(x => x.outcome === 'FALSIFIED
+caught: 56: { cells: K.map(k => cellsOf(bitsF(h, ctl, k), bitsF(h, arm, 
+caught: 57: if (o('5') === 'FALSIFIED') return 'R5';
+caught: 58: if (o('4') === 'FALSIFIED') return 'R3';
+caught: 59: if (o('1') === 'HELD') return 'R1';
+caught: 60: if (o('1') === 'FALSIFIED') return 'R2';
+caught: 61: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
+caught: 62: tails: { AN: K.map(k => [1, 2, 3].map(t => tailOf(ys('S362',
+caught: 63: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
+caught: 64: let s = g; for (const u of bridge) if (u >= t) s += y[u][i];
+caught: 65: return Float64Array.from(y[1], (v, i) => v + y[2][i]); };
+caught: 66: gb: { C: K.map(k => perP('S362', 'C', k, 'GB')), AN: K.map(k
+caught: 67: y12: { C: K.map(k => y12('S362', 'C', k)), AN: K.map(k => y1
+caught: 68: s130: { gb: { C: K.map(k => perP('S130', 'C', k, 'GB')), AR:
+caught: 69: return t === 0 ? 0 : t <= nb ? 1 : t <= nb + 5 ? 2 : 3;
+caught: 70: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 71: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 72: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 73: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 74: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 75: export const QUARTER = 0.25, THREEQ = 0.75, MINRES = 1, TAIL
+caught: 76: export const LATTICE_LINE = '160x41 nz 128';
+caught: 77: return { 1: one(P.S362.y12.C, P.S362.y12.AR), 2: one(P.S370.
+caught: 78: return { 1: one(P.S362.y12.C, P.S362.y12.AR), 2: one(P.S370.
+caught: 79: return read.map(k => { const r = removal(C[k], A[k], z); ret
+caught: 80: const r = removal(C[k], A[k], z); return { k, r, read: r.lo 
+caught: 81: read: c.lo >= -MOVE && c.hi <= MOVE ? 'still'
+caught: 82: c.hi < -MOVE || c.lo > MOVE ? 'moved'
+caught: 83: MOVE = 0.5;
+caught: 84: Float64Array.from(P.S370.tail3.AN[k], (v, i) => v - P.S370.t
+caught: 85: return ar.some(x => x.read === 'removed') ? 'RS with the ref
+caught: 86: ar = sp[i].filter(x => kept.includes(x.k));
+caught: 87: ar.length && ar.every(x => x.read === 'kept') ? `${not} at s
+caught: 88: (wh.every(x => x.read === 'still') ? 'Y12R-REF'
+caught: 89: wh.some(x => x.read === 'moved') ? 'Y12R-REF not credited: t
+caught: 90: const c1 = o('1') === 'HELD' ? 'O188-REF' : o('1') === 'FALS
+caught: 91: AR: K.map(k => y12('S370', 'AR', k)) }, tail3
+caught: 92: tail3: { C: K.map(k => t3('S370', 'C', k)), AN: K.map(k => t
+caught: 93: const t3 = (h, a, k) => tailOf(ys(h, a, k), perP(h, a, k, 'G
+93 of 93 mutations caught

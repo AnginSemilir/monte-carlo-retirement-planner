@@ -1,0 +1,21 @@
+# THE FIFTH UNLOCK (the maintainer's 'Unlock enforcement' of 5 Oct, kept): uncertainty.mjs counts the tests since a review by
+# their closes in lessons.md (testsAfter), the plan-auditor's MINOR 6 on 967f853. First written after the fourth unlock had
+# lapsed (held uncommitted, the maintainer told); kept on the fifth.
+# 1. python3 research/solver/mutate-credence-checks.py, every group (one survivor, the index's call site):
+item 4: 17/17 caught
+25/25 caught
+item 5: 3/3 caught
+labels: 8/8 caught
+SURVIVED uncertainty:   const after = testsAfter(tests, covered, lessons);
+uncertainty: 3/4 caught
+# 2. a planted case added (index passes lessons.md to the ordering); the group re-run alone:
+CAUGHT   uncertainty: return tests.filter(t => { const v = closes.get(key(t.name))
+CAUGHT   uncertainty: return v !== undefined && v !== null && v > c; });
+CAUGHT   uncertainty: if (c === undefined || c === null) return tests.slice(
+CAUGHT   uncertainty:   const after = testsAfter(tests, covered, lessons);
+uncertainty: 4/4 caught
+ research/solver/uncertainty.mjs | 21 ++++++++++++++++++---
+# 3. node research/solver/uncertainty.mjs --planted:
+planted (17): all read as they should
+# node research/solver/uncertainty.mjs --due:
+no deep review due (HIGH)

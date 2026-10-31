@@ -1,0 +1,22 @@
+ADAPTIVE STEP TEST (S362 under REF-STEP's AN3 settings, e3pcls off; 20000 runs a cell; a cell's tolerance 4 se + 0.05)
+  base: built in 326 s; bridge years 0,1,2,3,4,5,6,7, last 7; stepAll true; nonMono 0
+  base: cells BELOW 81, INCELL 81, CLIFF 162; 0 off
+PASS  base: no non-monotone threshold (0)
+PASS  base: every cell of every slice within its tolerance (0 off)
+PASS  base INCELL: cells 81, the largest gap 0.0056, 0.090 of its cell's tolerance (at most one half)
+PASS  base CLIFF: cells 162, the largest gap 0.0048, 0.076 of its cell's tolerance (at most one half)
+PASS  base BELOW: p exactly 0 and the rule run forward never paying just under every year's step (81 cells)
+  plant stepramp: built in 284 s; bridge years 0,1,2,3,4,5,6,7, last 7; stepAll true; nonMono 0
+  plant stepramp: cells BELOW 81, INCELL 81, CLIFF 162; 27 off
+    off BELOW world 0 year 3 A 7199 b 0 gain 0.050: p 0.4615 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 0 gain 0.250: p 0.4615 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 0 gain 0.550: p 0.4615 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 0.5 gain 0.050: p 0.4618 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 0.5 gain 0.250: p 0.4618 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 0.5 gain 0.550: p 0.4618 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 1 gain 0.050: p 0.4618 s 0.0000 (tol 0.0000)
+    off BELOW world 0 year 3 A 7199 b 1 gain 0.250: p 0.4618 s 0.0000 (tol 0.0000)
+PASS  plant stepramp caught: INCELL's largest gap 0.0073, 0.11 times its cell's tolerance; 27 of 81 BELOW cells read over 0
+
+adaptive-step: all passed
+exit 0

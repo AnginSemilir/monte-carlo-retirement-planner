@@ -14,8 +14,9 @@
  *
  * WHAT IS BEING MAXIMISED, in the order the app already ranks things: the probability of never falling
  * short, and then, among moves that tie on it EXACTLY, the expected bequest net of the pension death
- * charge. Both are carried through the table separately so a change of prioritisation can re-combine
- * them without re-solving.
+ * charge. Both are carried through the table separately, so each can be reported and read on its own.
+ * (They can NOT be re-weighted without a re-solve: every cell's stored continuation value was chosen under
+ * the weights in force, so new weights re-rank only the current year's choice. Corrected 23 Sep.)
  *
  * THE MOVES. UK tax is straight lines with corners, and a best move can only sit at a corner: if it is
  * worth drawing a pound of pension at 20%, it is worth drawing the next one at 20% too, so the choice
@@ -33,8 +34,9 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds } from './grid.js';
-import * as F from './fast.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi, shareNode, shareLocOf, READER_PROBE } from './grid.js';
+import { referenceChance, orderChance, buildReaderTable, simChance, r0Split } from './reader.js';
+import * as F from './fast.js'; import { adaptiveReference } from './adaptive.js';
 
 /*
  * Five-point Gauss-Hermite quadrature against a standard normal: five representative years, weighted so
@@ -50,6 +52,9 @@ import * as F from './fast.js';
  * landing can move. Experiments run from a snapshot of the tree; this catches it when one does not.
  */
 export const SOLVER_VERSION = '2026-09-21.single-stage-landing';
+// S1's memo (solve below): its hits and integrations over every solve in this process, for the tests and the timings; on
+// no returned object, so no table's hash moves with it
+export const EXP_MEMO_STATS = { hits: 0, misses: 0 };
 
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
@@ -58,14 +63,72 @@ export const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
 export const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
 /*
+ * GAUSS-HERMITE AT ANY ORDER, so the five above can be CHECKED rather than trusted (PLAN.md Phase V).
+ *
+ * Five nodes is exact for polynomials to degree nine. That bound is quoted as though it settles the
+ * matter, and it does not: the integrand here contains a survival cliff, which is not a polynomial, and
+ * the outer two nodes carry 1.1% of the weight each. If a cell's cliff falls near z = -2 the rule has no
+ * node anywhere near it. Nothing in this repository has ever varied the count, so the question is open.
+ *
+ * Computed by Newton iteration on the physicists' Hermite polynomials - the classical `gauher` - then
+ * rescaled to the probabilists' form the solver wants (x*sqrt(2), w/sqrt(pi)), so it integrates against
+ * a standard normal. Derived rather than tabulated, so there are no new magic numbers to mistype; the
+ * gate for it is that n = 5 reproduces the constants above.
+ */
+export function gaussHermite(n) {
+  const x = new Array(n).fill(0), w = new Array(n).fill(0);
+  const m = (n + 1) >> 1;
+  for (let i = 0; i < m; i++) {
+    // the classical starting guesses, which converge in a handful of steps
+    let z = i === 0 ? Math.sqrt(2 * n + 1) - 1.85575 * Math.pow(2 * n + 1, -1 / 6)
+      : i === 1 ? z0 - 1.14 * Math.pow(n, 0.426) / x[0]
+        : i === 2 ? 1.86 * z0 - 0.86 * x[0]
+          : i === 3 ? 1.91 * z0 - 0.91 * x[1]
+            : 2 * z0 - x[i - 2];
+    var z0 = z;
+    let pp = 0;
+    for (let its = 0; its < 100; its++) {
+      let p1 = Math.PI ** -0.25, p2 = 0;
+      for (let j = 0; j < n; j++) { const p3 = p2; p2 = p1; p1 = z * Math.sqrt(2 / (j + 1)) * p2 - Math.sqrt(j / (j + 1)) * p3; }
+      pp = Math.sqrt(2 * n) * p2;
+      const dz = p1 / pp;
+      z -= dz;
+      if (Math.abs(dz) <= 1e-14) break;
+    }
+    z0 = z;
+    x[i] = z; x[n - 1 - i] = -z;
+    w[i] = 2 / (pp * pp); w[n - 1 - i] = w[i];
+  }
+  // physicists' (weight e^-x^2) -> probabilists' (standard normal)
+  // `x` comes out largest-positive first, so negating already gives ascending order; do NOT reverse it
+  const nodes = x.map(v => -v * Math.SQRT2);
+  const wts = w.map(v => v / Math.sqrt(Math.PI));
+  return { nodes, weights: wts };
+}
+
+/*
  * The draw orders worth considering. The three pension steps keep their band order - drawing to the
  * basic-rate limit before filling the allowance is not a different strategy, it is the same one - and
  * cash sits directly before the GIA, because the grid holds them as one pot and the sweep decides the
  * split. Everything else varies.
  */
 export function buildActions(opts = {}) {
-  const PREFIX = [[], ['penPA'], ['penPA', 'penBasic'], ['penPA', 'penBasic', 'penAny']];
-  const PEN = ['penPA', 'penBasic', 'penAny'];
+  /*
+   * N4 (research only, research/solver/n4-design.md): `menuPlus` adds move kinds the product's menu lacks - 'hr' a ceiling
+   * at the taper threshold, 'mid' the allowance's and the basic band's midpoints, each as a draw-first and a re-wrap
+   * ceiling, and 'cgt' selling the taxable account up to the exemption. The pension ceilings form a ladder, lowest first;
+   * the draw-first prefixes are its leading runs. Absent, the ladder and the menu are the product's, move for move.
+   */
+  const plus = new Set(opts.menuPlus || []);
+  for (const k of plus) if (!['hr', 'mid', 'cgt', 'hrdraw', 'hrwrap'].includes(k)) throw new Error(`menuPlus: unknown kind ${k}`);
+  // 'hrdraw' and 'hrwrap' (the maintainer, 25 Oct, D27): HR's two halves alone - the taper threshold as a draw-first ceiling
+  // only, or as a re-wrap ceiling only; 'hr' is both
+  const mid = plus.has('mid'), hrDraw = plus.has('hr') || plus.has('hrdraw'), hrWrap = plus.has('hr') || plus.has('hrwrap');
+  const PEN = [...(mid ? ['penPAm'] : []), 'penPA', ...(mid ? ['penBm'] : []), 'penBasic', ...(hrDraw ? ['penHR'] : []), 'penAny'];
+  const PREFIX = PEN.map((_, i) => PEN.slice(0, i)).concat([PEN]);
+  const HARVEST = [null, 'pa', 'basic', ...(mid ? ['pam', 'bm'] : []), ...(hrWrap ? ['hr'] : [])];
+  const SALES = plus.has('cgt') ? [false, true] : [false];
+  const HARVEST_LABEL = { pa: 'the allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the allowance', bm: 'the middle of the basic band' };
   // flexible spending (Part D): each withdrawal move at each spend level, 1 meaning the plan as written
   // the plan as written comes first at every level list, so a tie in the score goes to it and not to a trim or a raise
   const given = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
@@ -79,17 +142,19 @@ export function buildActions(opts = {}) {
     for (const isaFirst of [false, true]) {
       const mid = isaFirst ? ['isa', 'cash', 'other'] : ['cash', 'other', 'isa'];
       const steps = [...prefix, ...mid, ...rest];
-      for (const harvest of [null, 'pa', 'basic']) {
-        for (const level of levels) {
-          const base = out.length;
-          for (const [tp, ti] of tiers) {
-            out.push({
-              steps, costSteps: steps,
-              harvest: harvest !== null, harvestCeil: harvest || 'pa',
-              sweepCash: true, lump: false, contrib: null, spendLevel: level,
-              tierPen: tp, tierIsa: ti, tierBase: base,
-              label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
-            });
+      for (const harvest of HARVEST) {
+        for (const sale of SALES) {
+          for (const level of levels) {
+            const base = out.length;
+            for (const [tp, ti] of tiers) {
+              out.push({
+                steps, costSteps: steps,
+                harvest: harvest !== null, harvestCeil: harvest || 'pa',
+                sweepCash: true, lump: false, contrib: null, spendLevel: level,
+                tierPen: tp, tierIsa: ti, tierBase: base, ...(sale ? { cgtSale: true } : {}),
+                label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${HARVEST_LABEL[harvest]}` : ''}${sale ? ', sell the taxable account up to the CGT exemption' : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
+              });
+            }
           }
         }
       }
@@ -110,11 +175,126 @@ export function spendLevelsFor(floorFrac) {
   return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
 }
 
-/* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
+/*
+ * The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. log(1 + R) is kept with the rate vector it was
+ * taken of (the speed port, SPEED-PORT.md; the 23 Oct review's idea): the same double, taken once a vector rather than on
+ * every call. A rate vector is built once (fast.js ratesFor) and never written after, so a WeakMap keyed by it is exact.
+ * REALAT (speed-port.test.mjs only): cache false takes the logs on every call, as before; plant 'wrongkey' keys every
+ * move's rates on the plan's own vector, which must part the tables.
+ */
+export const REALAT = { cache: true, plant: '' };
+const LOG1P_OF = new WeakMap();
 function realAt(c, z, out, act = null, t = 0, zPath = 0) {
   const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t], S = act ? act.sigma : c.sigma;
-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1;
+  if (!REALAT.cache) { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1; return out; }
+  const key = REALAT.plant === 'wrongkey' ? c.real : R;
+  let LR = LOG1P_OF.get(key);
+  if (LR === undefined) { LR = new Float64Array(4); for (let i = 0; i < 4; i++) LR[i] = Math.log(1 + key[i]); LOG1P_OF.set(key, LR); }
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(LR[i] + S[i] * zPath + V[i] * z) - 1;
   return out;
+}
+
+/*
+ * THE FINAL YEAR INTEGRATED EXACTLY (`finalIntegral`; PLAN.md O19, a lead from an outside review of
+ * blurred-lines-brief.md, 24 Sep). With five nodes the last year's survival is a staircase: each node is judged exactly
+ * against the minimum pot, but their weighted count jumps by a node's weight (53 points at the middle one) and can price
+ * one tier up at nothing where it really costs several points (results-final-year-staircase.txt). The estate credit is
+ * zero below the pot, so it has the same step. Here the same cash flow and the same growth are used, and only the average
+ * changes: every pot grows with the one yearly shock z and wealth never falls as z rises, so the plan ends alive exactly
+ * when z >= z*, the shock at which it just reaches the pot. Survival is Phi(-z*), found by bisection to 1e-9 in z; the
+ * estate (and resilience) credit is integrated over the surviving shocks by 12-point Gauss-Legendre in u = Phi(z) on
+ * [Phi(z*), 1]. Returns [survival, estate, resilience] in `out`. Off, nothing changes: the five nodes as before.
+ */
+function gaussLegendre(n) {
+  const x = new Float64Array(n), w = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    let z = Math.cos(Math.PI * (i + 0.75) / (n + 0.5)), pp = 0;
+    for (let it = 0; it < 100; it++) {
+      let p1 = 1, p2 = 0;
+      for (let j = 1; j <= n; j++) { const p3 = p2; p2 = p1; p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j; }
+      pp = n * (z * p1 - p2) / (z * z - 1);
+      const dz = p1 / pp; z -= dz;
+      if (Math.abs(dz) < 1e-15) break;
+    }
+    x[i] = z; w[i] = 2 / ((1 - z * z) * pp * pp);
+  }
+  return { x, w };
+}
+const GL12 = gaussLegendre(12);
+// the inverse of Phi (Acklam's rational approximation, relative error under 1.2e-9); u clamped, so z stays within +/-7.94 (O199, O200)
+export function PhiInv(u) {
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  u = Math.min(1 - 1e-15, Math.max(1e-15, u));   // beyond z of about 7.7, Phi(z) rounds to 1: unclamped, Infinity and then NaN
+  if (u < 0.02425) { const q = Math.sqrt(-2 * Math.log(u)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (u > 1 - 0.02425) { const q = Math.sqrt(-2 * Math.log(1 - u)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  const q = u - 0.5, r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+export function finalYearExact(c, t, post, act, terminal, grown, rbuf, out) {
+  const { floor, deathTax, resilK, shortfall, beqOf } = terminal;
+  const n = Math.min(post.length, grown.length);
+  const totalAt = z => { for (let q = 0; q < n; q++) grown[q] = post[q]; F.grow(c, t, grown, realAt(c, z, rbuf, act, t)); return grown[0] + grown[1] + grown[2]; };
+  const ZL = -9, ZH = 9;
+  let zStar = -Infinity;
+  if (floor > 0 && totalAt(ZL) < floor) {
+    if (totalAt(ZH) < floor) { out[0] = 0; out[1] = 0; out[2] = 0; return out; }
+    let lo = ZL, hi = ZH;
+    while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (totalAt(m) >= floor) hi = m; else lo = m; }
+    zStar = hi;
+  }
+  const u0 = zStar === -Infinity ? 0 : 1 - Phi(-zStar);
+  const sv = zStar === -Infinity ? 1 : Phi(-zStar);
+  let bq = 0, rs = 0;
+  for (let j = 0; j < GL12.x.length; j++) {
+    const u = u0 + (1 - u0) * (GL12.x[j] + 1) / 2, wj = sv * GL12.w[j] / 2;
+    const total = totalAt(PhiInv(u));
+    const net = Math.max(0, total - grown[0] * deathTax);
+    bq += wj * beqOf(net);
+    rs += wj * (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0));
+  }
+  out[0] = sv; out[1] = bq; out[2] = rs;
+  return out;
+}
+
+/*
+ * THE READER'S STEP, INTEGRATED ACROSS (`bridgeStep: 'exact'`; PLAN.md 7z, Q; research only). In a year t whose next
+ * year is a reader year, next year's survival read is p(acc) x c + R, and p is a hard step: 0 when the accessible money
+ * at t+1 (ISA plus taxable account and cash, s[1] + s[2]) cannot pay that year's first bill (reader.js referenceChance:
+ * acc - d0 < -1). The year's return is averaged over the quadrature's few points, and when the step falls between two
+ * of them the average cannot see it (7w: five points see none of share 0.95's year-1 step; fifteen see it through one).
+ * Here the step's place in z is found by bisection (the accessible money rises with z: one shared shock) and the
+ * expectation is taken by 12-point Gauss-Legendre on each side of it in probability (u = Phi(z)), as the exact final
+ * year does across its floor (finalYearExact, O19). Returns false - the caller keeps its points - when the step lies
+ * outside z in [-9, 9]. `out`: survival, bequest, resilience, shortfall, as the points would sum them.
+ */
+function stepExpect(c, g, t, post, act, stepAt, grown, rbuf, rd, sN, bN, rN, hN, out) {
+  const n = Math.min(post.length, grown.length);
+  const accAt = z => { for (let q = 0; q < n; q++) grown[q] = post[q]; F.grow(c, t, grown, realAt(c, z, rbuf, act, t)); return grown[1] + grown[2]; };
+  const ZL = -9, ZH = 9, thr = typeof stepAt === 'function' ? stepAt : null, clr = z => (thr ? accAt(z) >= thr(grown) : accAt(z) >= stepAt);   // thr: PR31's threshold at the grown state (stepThrOf, the file's end)
+  if (thr ? clr(ZL) || !clr(ZH) : accAt(ZL) >= stepAt || accAt(ZH) < stepAt) return false;
+  let lo = ZL, hi = ZH;
+  while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (clr(m)) hi = m; else lo = m; }
+  const uS = Phi(hi);
+  out[0] = 0; out[1] = 0; out[2] = 0; out[3] = 0;
+  for (const [u0, u1] of [[0, uS], [uS, 1]]) {
+    if (!(u1 > u0)) continue;
+    for (let j = 0; j < GL12.x.length; j++) {
+      const u = u0 + (u1 - u0) * (GL12.x[j] + 1) / 2, w = (u1 - u0) * GL12.w[j] / 2;
+      accAt(PhiInv(Math.min(1 - 1e-15, Math.max(1e-15, u))));
+      readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+      out[0] += w * rd[0]; out[1] += w * rd[1]; out[2] += w * rd[2]; out[3] += w * rd[3];
+    }
+  }
+  return true;
+}
+/* Where next year's reader step lies for the table `L` (next year's survival, log-odds), or null: no reader year next. */
+function stepAtOf(g, t, L) {
+  if (!g.reader || !g.reader.years[t + 1] || !L) return null;
+  const RD = g.reader.of.get(L), sch = RD && RD.chance && RD.chance.schedule; if (sch && sch.adaptive && g.reader.adaptive && g.reader.adaptive.lattice.stepAll) return stepThrOf(g.reader.adaptive.ref, t + 1);   // PR31 (the file's end)
+  return sch && sch.bills.length ? sch.bills[0] - 1 : null;
 }
 
 /*
@@ -136,7 +316,7 @@ export function solveMixture(E, M, plan, opts = {}) {
    * flow a cell shared between them, and what comes out is what the separate solves produced, bit for
    * bit. `solve` reports the whole interleaved build in `meta.ms`, so no summing here.
    */
-  const r = solve(E, M, plan, { ...opts, shifts: zs, shiftZ: undefined });
+  const r = solve(E, M, plan, { ...opts, shifts: zs, shiftZ: undefined, ...(opts.jointWorlds ? { shiftWeights: ws } : {}) });
   r.mix = { tables: r.worlds, weights: ws, nodes: zs };
   r.meta.mixture = K;
   return r;
@@ -168,12 +348,45 @@ export function solve(E, M, plan, opts = {}) {
   const t0 = Date.now();
   const m = M.prepare(E, plan);
   if (opts.shiftZ !== undefined) m.shiftZ = opts.shiftZ;   // the scenario mixture: this table's held shift
+  if (opts.tiersAbove) m.tiersAbove = opts.tiersAbove;   // M14, research only: tiers above the plan's (see tiersFor)
+  if (opts.tiersBelow !== undefined) {   // D28, research only: a third joint step down (fast.js tiersFor; off at 2)
+    if (opts.tiersBelow !== 2 && opts.tiersBelow !== 3) throw new Error(`tiersBelow ${opts.tiersBelow}: only 2 or 3`);
+    m.tiersBelow = opts.tiersBelow;
+  }
+  // the speed port (SPEED-PORT.md, research only): `tableDealing: false` solves the tier state's table without a switch's
+  // dealing cost; it needs the tier state, whose table is the only one that charges it
+  if (opts.tableDealing !== undefined && opts.tableDealing !== true && opts.tableDealing !== false) throw new Error(`tableDealing ${opts.tableDealing}: only true or false`);
+  if (opts.tableDealing === false && !opts.tierState) throw new Error('tableDealing: false needs the tier state');
+  if (opts.giaTiers) m.giaTiers = true;   // M15, research only: the taxable account takes the joint tier step (see tiersFor)
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
   const raiseOn = (opts.raiseWeight || 0) > 0;
-  const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
+  let menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
+  /* THE USER'S RULES ON THE MENU (PLAN.md step 3). `raiseCap`: no level above it (1 blocks raises). `blockTrim`:
+   * no level below 1 - never spend under the target. Both only remove moves, never add them. */
+  if (menuLevels && opts.raiseCap !== undefined) menuLevels = menuLevels.filter(l => l <= opts.raiseCap + 1e-9);
+  if (menuLevels && opts.blockTrim) menuLevels = menuLevels.filter(l => l >= 1 - 1e-9);
+  /*
+   * ONE TIER HELD FOR THE WHOLE PLAN (`holdTier: [pension, ISA]`, PLAN.md 7x) - research only. The menu keeps every
+   * withdrawal move and spend level but a single tier pair, taken from the household's own joint tier menu, so the tables
+   * value holding that tier for life rather than a future of free switching. A pair not on the menu is refused.
+   */
+  let tierList = opts.tiers ? tierCombos(m, opts.tiers) : null;
+  if (opts.holdTier) {
+    const [hp, hi] = opts.holdTier;
+    if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
+    tierList = [[hp, hi]];
+  }
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus })).map(a => ({ ...a, lump: !!opts.lump }));
+  /*
+   * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
+   * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
+   * with two pairs or more on the menu. With one - the user's consent to change risk withdrawn (`tiers` off), or a pension
+   * and ISA held in Cash Equivalents, which have no step down - no move can switch, and the solve runs without them, as
+   * the product's settings do (it threw before). A held tier asks for one pair on purpose: its refusal below stands.
+   */
+  const ONE_PAIR = !!opts.tierState && !opts.holdTier && new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`)).size < 2;
   /*
    * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
    * side by side; absent, it is the single-world list `[opts.shiftZ]` and K is 1, which must stay
@@ -189,6 +402,16 @@ export function solve(E, M, plan, opts = {}) {
   const shifts = opts.shifts !== undefined ? opts.shifts : [opts.shiftZ];
   const K = shifts.length;
   const cs = shifts.map(z => { if (z === undefined) delete m.shiftZ; else m.shiftZ = z; return F.compile(m, actions); });
+  /*
+   * ONE POLICY FOR EVERY WORLD (`jointWorlds`, research only: PLAN.md 7t). Off, each world's backward pass picks that
+   * world's own best move at every cell, so each world's table values a future in which the household knows which
+   * world it is in; the forward chooser never knows (chooseAction weighs the worlds by the mixture's fixed weights, every
+   * year). On, every world takes the one move with the best weighted score across the worlds - the forward chooser's own
+   * rule (weights `shiftWeights`, ties to the larger weighted estate) - so each table values the policy the household
+   * can actually follow. Off, nothing below changes.
+   */
+  const JOINT = !!opts.jointWorlds, JW = JOINT ? opts.shiftWeights : null;
+  if (JOINT && (!JW || JW.length !== K || K < 2 || opts.levelSearch === 'ternary')) throw new Error('jointWorlds needs the mixture (two worlds or more, with their weights) and the full level scan');
   const centre = K >> 1;                       // the middle world is the one the result presents, as solveMixture did
   const c = cs[centre];
   // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
@@ -196,16 +419,118 @@ export function solve(E, M, plan, opts = {}) {
   for (const cc of cs) cc.switchCost = switchCost;
   // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
   const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
+  /*
+   * THE TIER STATE (`tierState: true`; PLAN.md 7y; research only; the deep review after 7x, deep-review-log.md 27 Sep 22:32
+   * UK). Off, the backward pass solves every table as if the tier could be changed each year for nothing: the tier is not
+   * part of the state, and the chooser's switching cost and margin are applied forward only (7x item 1: tables held at one
+   * tier price that tier's value within 0.79 to 0.97 of what holding it realises; the free tables see a fraction). On, the
+   * tier pair held on entering the year is part of the state: one table layer per pair on the menu, and at every cell of
+   * layer j each move is scored as the chooser scores it holding j - a move to another pair pays chargeSwitch on the
+   * slice traded before the year's growth and reads the NEXT year's layer of the pair it moves to - and the move kept is
+   * the chooser's: the best, unless a move that stays in j is within the switch margin of it (ties to staying, as
+   * chooseAction). Each world's layer is solved on its own (the forward chooser weighs the worlds before the margin; the
+   * backward pass, as today, one world at a time). The plan's own pair (0/0) is the layer the result's tables expose, and
+   * scoreMoves reads each move's next-year layer. The product's path only: the ternary level search, a held tier and the
+   * taxable account's tier are refused.
+   * With jointWorlds as well (TS+J; research only; O41, the deep review after 7z): the chooser's FULL rule - one move for every
+   * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
+   */
+  const TS = !!opts.tierState && !ONE_PAIR;
+  /*
+   * THE TABLE WITHOUT THE DEALING COST (`tableDealing: false`; the speed port, SPEED-PORT.md; research only, off by default):
+   * the tier state's backward pass no longer charges a switch's dealing cost (F.chargeSwitch) on the move's position. The
+   * chooser (scoreMoves, scoreMovesShared), the forward run and the engine still charge it when a move is taken, as now,
+   * and the switch charge (switchCharge, in score units) stays in the table. It changes the tables.
+   * E5 (exact given it): without the dealing cost a move's position, and so its expectation and terms, no longer depend on
+   * the layer held, so the joint tier state's loop computes them once a cell and world and scores each layer by adding the
+   * switch charge alone - the same arithmetic in the same order as the layer loop, so the same tables bit for bit.
+   * `tsOnce: false` keeps the layer loop (speed-port.test.mjs); `tsOncePlant: 'nocharge'` (tests only) drops the switch
+   * charge, which must part the tables. Without jointWorlds the layer loop stays, still correct, only slower.
+   */
+  const NODEAL = opts.tableDealing === false;
+  const E5 = NODEAL && TS && JOINT && opts.tsOnce !== false, E5PLANT = opts.tsOncePlant || '';
+  /*
+   * THE SMALLER CUTS IN E5'S PATH (SPEED-PORT-2.md; STATE.md D31): exact, each the same tables bit for bit, on whenever E5
+   * is; `tsLean: false` (speed-port.test.mjs) turns all four off.
+   *   E7: each move's mixture-weighted score once a cell for staying and once for switching (the switch charge added to each
+   *       world's term, as E5 adds it), so each layer held only picks one of the two: the same sums in the same order;
+   *   E8: each base move's position (its 14 words) hashed once a cell to an id, a tier variant taking its base's, and the
+   *       memo keyed by (the id, the growth class, the layer and world read) - three integers - for the 14 words per world;
+   *   E9: next year's four tables of each world and layer looked up once a year, not once a move and world;
+   *   E11: the bridge reader's split for each world and layer found once a year, after the year below has built it, and
+   *       handed to readValues (rdGiven), the object readValues would find itself.
+   * Their plants (tests only): mixOncePlant 'swap' (the switching sum taken for staying), postIdsPlant 'pen' (ids from the
+   * pension's two words alone), hoistNextPlant 'layer0' (every lookup at layer 0), readerDirectPlant 'world0' (every world
+   * handed world 0's split). E6 (packed reads) and E10 (the faster gross-up) are not ported (D31).
+   */
+  const LEAN = E5 && opts.tsLean !== false;
+  const E7 = LEAN, E8 = LEAN, E9 = LEAN, E11 = LEAN, E7PLANT = opts.mixOncePlant || '';
+  const NW8 = opts.postIdsPlant === 'pen' ? 2 : 14, E9L0 = opts.hoistNextPlant === 'layer0', E11W0 = opts.readerDirectPlant === 'world0';
+  /*
+   * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
+   * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
+   * is its zero-gain twin's; with `e3` those cells are copied from the twin instead of solved. Exact only if the solve
+   * never reads the gain of an empty pot: research/tests/solver-e3.test.mjs holds every table bit for bit against e3 off.
+   */
+  const E3 = !!opts.e3;
+  /*
+   * E3's LUMP-SUM HALF (`e3pcls`; PLAN.md E3-PCLS; the maintainer, 6 Oct: 'Do the lump sum work before phase 4 anyway';
+   * research, off by default). The allowance used (cumPcls) and the lump-taken flag are read only where the pension holds
+   * money - the three read sites, each behind a pension-above-zero guard: the lump (fast.js l.399), drawPension (l.409) and
+   * the tax-free part of a draw (l.536; model.js step's lump and draw steps). Any new read of the allowance without that
+   * guard (a death-benefit allowance in the death tax, a state-dependent MPAA, a contribution move) breaks this silently.
+   * The copy is also exact only while bucket x lsa / lsa returns the bucket exactly (0, 0.5 and 1 do). So in total coordinates
+   * a cell whose pension is empty (share a = 0, or no wealth at all) has every allowance bucket equal to its zero bucket's -
+   * PROVIDED nothing can pay into the pension in that year or any later one. Contributions while an owner works (the plan's
+   * schedule or the solver's own saving choice), dated one-off deposits into a pension and staged transfers into one each
+   * refill it, and a refilled pension reads its allowance; so only the years after the last such possible inflow
+   * (`lastPenIn`) are copied. Exact only if that list of inflows is complete: research/tests/solver-e3pcls.test.mjs holds
+   * every table bit for bit against e3pcls off, and a planted copy that ignores the inflow rule must break identity on a
+   * household that still works.
+   */
+  const E3P = !!opts.e3pcls;
+  /*
+   * P, THE SWITCH CHARGED (`switchCharge`, score units; PLAN.md P; the deep review after 7ae, deep-review-log.md 28 Sep
+   * 22:52 UK; research only, off by default). `switchMargin` is a decision rule: a switch is suppressed unless it gains more
+   * than the margin, and the table stores the value of the move made, never charging the margin - so a value that assumes
+   * next year's stored move can disagree with a forward run that holds where the cell leaves (O44, O48, O50). Charged, a
+   * move that leaves the held tier pair pays the charge in its score: in the tier state's backward pass (in h, so the stored
+   * values carry every later switch's charge) and in the forward chooser at the true state. Needs the tier state.
+   */
+  const switchAsked = opts.switchCharge !== undefined ? opts.switchCharge : 0;
+  if (!(switchAsked >= 0) || !Number.isFinite(switchAsked)) throw new Error(`switchCharge must be a finite number of 0 or more, not ${opts.switchCharge}`);
+  const switchCharge = ONE_PAIR ? 0 : switchAsked;   // one tier pair: no switch to charge
+  if (switchCharge > 0 && !TS) throw new Error('switchCharge needs the tier state (tierState: true): only its tables know the tier held');
+  let tsPairs = null, tsLayerOf = null, tsHeld = null, tsJ0 = 0;
+  if (TS) {
+    if (opts.holdTier) throw new Error('tierState and holdTier: a held tier is one layer, not a tier state');
+    if (opts.levelSearch === 'ternary') throw new Error('tierState: the ternary level search is not supported');
+    // with jointWorlds (TS+J, research only; the deep review after 7z, O41): one move for every world at each cell and layer,
+    // chosen by the chooser's full rule on the mixture-weighted score, each world's layer storing its own value of that move
+    if (opts.giaTiers) throw new Error('tierState: the taxable account\'s tier is not supported');
+    tsPairs = [...new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`))].map(x => x.split('/').map(Number));
+    if (tsPairs.length < 2) throw new Error('tierState needs a tier menu of two pairs or more');
+    tsLayerOf = Uint8Array.from(actions, a => tsPairs.findIndex(([p, i]) => p === (a.tierPen || 0) && i === (a.tierIsa || 0)));
+    tsHeld = tsPairs.map(([pen, isa]) => ({ pen, isa, gia: 0 }));
+    tsJ0 = tsPairs.findIndex(([p, i]) => p === 0 && i === 0);
+    if (tsJ0 < 0) throw new Error('tierState: the menu has no move at the plan\'s own tiers');
+  }
   const T0 = m.ctx.totalYears;
   // the quadrature rates by year (the folded spread depends on the years left) for each move's tier
   // combination, shared between moves that hold the same tiers
   const byCombo = {};
   // per world, per year, per action: the five quadrature rates. This is the only place the shift lands.
+  /*
+   * PHASE V1: the quadrature order is a parameter. `quadNodes` absent or 5 uses the tabulated constants,
+   * so every existing result is reproduced bit for bit; any other n comes from `gaussHermite`.
+   */
+  const QUAD = opts.quadNodes && opts.quadNodes !== 5 ? gaussHermite(opts.quadNodes) : { nodes: NODES, weights: WEIGHTS };
+  const QZ = QUAD.nodes, QW = QUAD.weights, NQ = QW.length;
   const nodeRealOfAtW = cs.map((cc) => {
     const out = [];
     for (let t = 0; t <= T0; t++) {
       const byK = {};
-      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = NODES.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
+      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}${cc.acts[ai].tierGia ? '/' + cc.acts[ai].tierGia : ''}`; if (!byK[k]) byK[k] = QZ.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
     }
     return out;
   });
@@ -277,10 +602,21 @@ export function solve(E, M, plan, opts = {}) {
    * about 5.6 cap rather than 100, so the lottery ticket still loses. `cap` stays the default until
    * gate 6c is judged, and every result to date was measured with it.
    */
-  const beqShape = opts.bequestShape === 'soft' ? 'soft' : 'cap';
+  /*
+   * THE ESTATE CREDIT CURVE ABOVE THE MINIMUM POT (`bequestShape: 'logfloor'`, PLAN.md K4). What the
+   * maintainer asked for: credit starts at the user's minimum end pot P, not at zero, and each extra pound
+   * counts a little less than the one before - a pound counts half at P + s, a third at P + 2s. `estateScale`
+   * sets s in multiples of opening wealth; no cap is needed, since the logarithm already refuses to chase a
+   * lucky tail. K4 maps the user's 0-100% slider onto (bequestWeight, estateScale).
+   */
+  const beqShape = opts.bequestShape === 'soft' ? 'soft' : opts.bequestShape === 'logfloor' ? 'logfloor' : 'cap';
+  const estS = (opts.estateScale !== undefined ? opts.estateScale : 1) * scale;
+  const minPot = m.ctx.solvencyFloor || 0;
   const beqOf = beqShape === 'soft'
     ? (net) => (net <= beqCap ? net : beqCap * (1 + Math.log(1 + (net - beqCap) / beqCap)))
-    : (net) => Math.min(net, beqCap);
+    : beqShape === 'logfloor'
+      ? (net) => (net <= minPot ? 0 : estS * Math.log(1 + (net - minPot) / estS))
+      : (net) => Math.min(net, beqCap);
   /*
    * THE RISK TERM, SHORTFALL OR INDICATOR (plan 2c.2). The default is the shortfall,
    * 1 - E[min(1, max(0, K - net) / K)]; `resilience: 'indicator'` restores P(net >= K). The shortfall is: one when the household ends
@@ -310,7 +646,9 @@ export function solve(E, M, plan, opts = {}) {
    */
   const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
-  const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
+  // AGE-WEIGHTED CUTS (`ageWeight`, research only, off by default): ageWeighted at the file's end says what it is; off, the
+  // cost is this function itself, its second argument (the year) unread
+  const costOf = ageWeighted(opts.ageWeight, m, T, (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0));
   /*
    * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
    * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
@@ -338,20 +676,199 @@ export function solve(E, M, plan, opts = {}) {
     if (!list || !list[0] || !list[k] || list[0].equity === undefined || list[k].equity === undefined) return 0;
     return Math.max(0, list[0].equity - list[k].equity);
   };
-  const driftCostOf = actions.map(a => (driftW > 0 && c.tiers
-    ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0))
+  const driftCostOf = actions.map((a, ai) => (driftW > 0 && c.tiers
+    ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0) + (c.tiers.gia ? eqDrop(c.tiers.gia, c.acts[ai].tierGia) : 0))
     : 0));
 
+  /*
+   * E2 (PLAN.md Phase 4 condition 5, the maintainer 6 Oct): one solve split across cores. `opts.e2` = { part, parts,
+   * f64(n), u16(n), i32(n), barrier(), sum(n) }, built by research/solver/e2.mjs: every part runs this same solve, its
+   * tables in memory every part shares; a part solves each cell of a year it is first to claim, then all wait; part 0 makes the copied cells
+   * (e3, COV) and the log-odds, all wait again, and each part builds its own reader tables. Absent, nothing changes.
+   */
+  const E2 = opts.e2 && opts.e2.parts > 1 ? opts.e2 : null;
+  /*
+   * A RESTORED SOLVE (Part C Phase 7b, research/solver/PHASE-7.md; src/solverCache.js). `opts.restore` = { layers, ref }, the
+   * tables a solve of the same plan, settings and code kept: layers[k][j] its surv, beq, resil, pol and short by year for
+   * world k and tier layer j (the plain tables are layer 0 without the tier state), ref the adaptive reference's arrays. Each
+   * year's cells are copied in where the cell loop would solve them, and the rest of the year (the log-odds, the reader's
+   * tables, next year's caches) runs as it always does, so what comes back is the solve's result bit for bit
+   * (solver-cache.test.mjs). Never split.
+   */
+  const RESTORE = opts.restore || null;
+  if (RESTORE && E2) throw new Error('a restored solve is not split: it solves nothing');
+  const f64 = E2 ? E2.f64 : (n) => new Float64Array(n), u16 = E2 ? E2.u16 : (n) => new Uint16Array(n);
   // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
-  const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = new Float64Array(g.size); return a; };
+  const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = f64(g.size); return a; };
   const survW = [], lsurvW = [], resilW = [], lresilW = [], beqW = [], polW = [], shortW = [];
   for (let k = 0; k < K; k++) {
     survW[k] = mk(); lsurvW[k] = mk(); resilW[k] = mk(); lresilW[k] = mk(); beqW[k] = mk(); shortW[k] = mk();
-    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint8Array(g.size);
+    // Uint16, not Uint8: with tiers and five spending levels the menu has 360 moves (432 with six), and a
+    // byte silently wrapped every index above 255 to a different move. Found 23 Sep; see results-pol-overflow.txt
+    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = u16(g.size);
   }
+  // the tier state's layers (above): layer tsJ0, the plan's own pair, IS each world's tables; the others are allocated here
+  const mkPol = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = u16(g.size); return a; };
+  const layW = TS ? cs.map((_, k) => tsPairs.map((_, j) => (j === tsJ0 ? { surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k] }
+    : { surv: mk(), lsurv: mk(), resil: mk(), lresil: mk(), beq: mk(), short: mk(), pol: mkPol() }))) : null;
+  // E2: who solves each cell this year - the first part to claim it (cells cost unequally, so a fixed share would idle parts)
+  const claim = E2 ? E2.i32(g.size) : null;
   const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
+  // F1 (PLAN.md "S126's dead corner"): the cliff-aware read of a retired bridge year, research option until tested
+  // F1 v2 (bridgeRead: 2) counts money arriving in the bridge, adds growth and acts when the money looks short too
+  /*
+   * THE BRIDGE READER (`bridgeRead: 'reader'`; src/solver/reader.js, drafts/reader-design.md; 7e's reader arm). F1 stays
+   * off (g.bridge null). For each retired year before access, once that year's table is solved (below), each world's
+   * survival is split into p x c + R against one declared reference: the year's floor bills to access, net of the
+   * money due into the accessible pots (the bridge table's needY - inY), paid from the accessible mix at the opening
+   * balances - the ISA, the taxable account and cash, weighted by balance, at the plan's tiers and this world's rates;
+   * the ISA and taxable account moving together, cash with no spread. Never the candidate move's own tiers (a table held
+   * at one tier keeps it too, unless `readerRef: 'held'` asks otherwise: below).
+   */
+  if (opts.bridgeRead === 'reader') {
+    const B = bridgeTable(E, m, c, Math.min(...levelOf), 2);
+    const years = new Uint8Array(T + 2);
+    for (let t = 0; t <= T; t++) if (B.need[t] > 0 && t < B.accessAt) years[t] = 1;
+    const o = m.ctx.owners[0], bal = (id) => (id && m.acc[id] ? m.acc[id].balance : 0);
+    const bi = bal(o.ids.isa), bg = bal(o.ids.other), bc = bal(o.ids.cash), tot = bi + bg + bc;
+    const wi = tot > 0 ? bi / tot : 0, wg = tot > 0 ? bg / tot : 0, wc = tot > 0 ? bc / tot : 1;
+    /*
+     * A table held at one tier (holdTier, 7x) keeps the reference at the plan's tiers, as every other table does: the
+     * compiled plan rates (cs[k].real, cs[k].volEffAt) are what a move at 0/0 carries, so the held table differs from the
+     * free one in its menu alone. `readerRef: 'held'` (research only) reads the bridge at the held tier instead - the
+     * move's own tiers, the premise the deep review after 7w put in doubt - kept to size that premise, never the default.
+     */
+    const refHeld = opts.holdTier && opts.readerRef === 'held', adaptiveRef = opts.readerRef === 'adaptive' ? adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf, years, B, T, g }) : null;   // AN (adaptiveFor, the file's end)
+    // the menu's draw orders over the accessible pots (buildActions' middle steps), for readerRef 'order'
+    const orders = [...new Set(actions.map(a => a.steps.filter(x => x === 'isa' || x === 'cash' || x === 'other').map(x => (x === 'other' ? 'gia' : x)).join(',')))].map(x => x.split(','));
+    const ai0 = opts.holdTier ? 0 : actions.findIndex(a => !(a.tierPen > 0) && !(a.tierIsa > 0));
+    if (ai0 < 0) throw new Error('the bridge reader needs a move at the plan\'s tiers');
+    const chanceOf = (k, t) => {
+      const act = opts.holdTier && !refHeld ? cs[k] : cs[k].acts[ai0], bills = [], rho = [], vol = [];
+      for (let j = t; j < Math.min(B.accessAt, T + 1); j++) bills.push(B.needY[j] - B.inY[j]);
+      for (let j = t; j < t + bills.length - 1; j++) {
+        // the solver grows each pot by exp(ln(1 + R) + V z), one shared z (nodeRealOf above): R is the MEDIAN, and a pot's
+        // mean gross is (1 + R) e^{V^2/2}. The mix's mean gross is matched, and its log drift is that less v^2 / 2. (Until
+        // 25 Sep evening the drag was taken off 1 + R as if R were the mean - about half a point a year too pessimistic at
+        // Medium; the outside review's Finding 3, the same slip in R2 and M15 v2's derivations.)
+        const vi = act.volEffAt[j][1], vg = act.volEffAt[j][2], vc = act.volEffAt[j][3] || 0;
+        const v = wi * vi + wg * vg + wc * vc;
+        const gross = wi * (1 + act.real[1]) * Math.exp(vi * vi / 2) + wg * (1 + act.real[2]) * Math.exp(vg * vg / 2) + wc * (1 + act.real[3]) * Math.exp(vc * vc / 2);
+        rho.push(Math.log(gross) - v * v / 2); vol.push(v);
+      }
+      if (adaptiveRef) return adaptiveRef.chance(k, t, bills, ai0); if (opts.readerRef === 'order') {
+        // the reference drawn pot by pot in the better of the menu's draw orders (reader.js orderChance; PLAN.md O36)
+        const rate = [];
+        for (let j = t; j < t + bills.length - 1; j++) rate.push({ isa: [act.real[1], act.volEffAt[j][1]], gia: [act.real[2], act.volEffAt[j][2]], cash: [act.real[3], act.volEffAt[j][3] || 0] });
+        const f = orderChance(bills, { isa: wi, gia: wg, cash: wc }, rate, orders);
+        f.schedule = { bills, rate, orders, t, k, ai0 };
+        return f;
+      }
+      const f = opts.readerChance === 'sim' ? simChance(bills, rho, vol) : referenceChance(bills, rho, vol);   // NE-ROOT's SIMP arm (`readerChance: 'sim'`, research only): the same schedule, its chance simulated (reader.js simChance)
+      f.schedule = { bills, rho, vol, t, k, ai0 };   // kept for the checks (reader-solve.test.mjs)
+      return f;
+    };
+    g.reader = { years, of: new Map(), chanceOf, blend: opts.readerBlend === 'logodds' ? 'logodds' : null, line: opts.readerSupportLine !== undefined ? opts.readerSupportLine : 0.5, rs: opts.readerSplit === 'rs', ru: opts.readerSplit === 'ru', rsu: opts.readerSplit === 'rsu', copy: opts.readerCopy === 'extrap' ? 'extrap' : null, unsupported: 0, copied: 0, copiedTop: 0, nodes: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
+    /*
+     * RTAX v2, THE READER'S SUPPORT WITH THIS YEAR'S TAX (`readerTax`, research only, default off; items/RTAX.md, PLAN.md
+     * RTAX and O92). The reference's bills carry no tax (needY - inY), while the flow's year pays savings, dividend and
+     * capital gains tax and fails at unmet > 1, so a position the reference calls supported can fail every move by the
+     * tax (results-covflow.txt). In a step year - every world's reference 1 at d0 - tol/2 and 0 at d0 - 2 tol, so nothing
+     * after today stands between money and bill - support is decided by the flow inside the edge band [d0 - tol,
+     * d0 + tauBar]: p = 1 when some floor move pays the year from the position (the distinct floor moves, tier variants
+     * reusing their base's flow), else 0; outside the band the reference reads as before. tauBar is 1.25 times the
+     * largest tax at a paying state of a fixed lattice with accessible money d0 to 1.5 d0 (tax = accessible money less d0 less the best floor
+     * move's accessible money after the flow, net of unmet: no income tax on guaranteed income, which the bills net off).
+     * The flows run on their own compiled context, so a read never disturbs the cell loop's scratch. Spread years are
+     * untouched (the later bills' tax is a separate option, not built).
+     */
+    if (opts.readerTax) {
+      if (opts.bridgeStep === 'exact') throw new Error("readerTax cannot run with bridgeStep 'exact': stepAtOf puts the step at the untaxed bills");
+      const z0 = shifts[centre], zLast = m.shiftZ;
+      if (z0 === undefined) delete m.shiftZ; else m.shiftZ = z0;
+      const cR = F.compile(m, actions);
+      if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
+      const lv0 = Math.min(...levelOf), bases = actions.map((a, ai) => ai).filter(ai => levelOf[ai] === lv0 && tierBase[ai] === ai);
+      const fb = new Float64Array(7), TOL = 1;
+      const best = (t, s) => {
+        let pays = false, L = -Infinity;
+        for (const ai of bases) {
+          for (let q = 0; q < 7; q++) fb[q] = s[q];
+          const u = F.flow(cR, t, ai, fb);
+          if (!(u > 1 || cR.last.preNmpaInsolvent)) pays = true;
+          const Lm = fb[1] + fb[2] - u; if (Lm > L) L = Lm;
+        }
+        return { pays, L };
+      };
+      const tax = new Array(T + 2).fill(null), v = new Float64Array(7);
+      for (let t = 0; t <= T; t++) {
+        if (!years[t]) continue;
+        const fs = Array.from({ length: K }, (_, k) => chanceOf(k, t)), d0 = fs[0].schedule.bills[0];
+        if (!fs.every(f => f.schedule.bills[0] === d0 && f(d0 - TOL / 2) === 1 && f(d0 - 2 * TOL) === 0)) continue;
+        // the bound on a fixed lattice of states, not the grid's nodes (a coarse grid may hold no node near the edge, the
+        // first build's fault: reader-tax.test.mjs check 4 at 4 points): accessible money d0 to 1.5 d0 in twentieths, the ISA
+        // share of it 0 to 1 in tenths, the gain 0.05 to 1, the allowance used at the grid's buckets, the pension 0 or equal
+        let tb = 0;
+        for (let k = 0; k <= 10; k++) for (let j = 0; j <= 10; j++) for (const gn of [0.05, 0.25, 0.55, 0.8, 1]) for (const pf of g.pcls) for (const pr of [0, 1]) {
+          const A = d0 * (1 + k / 20), isa = A * j / 10;
+          v[0] = pr * A; v[1] = isa; v[2] = A - isa; v[3] = gn; v[4] = pf * m.P.lsa; v[5] = pf > 0 ? 1 : 0; v[6] = -1;
+          const o = best(t, v);
+          if (o.pays && A - d0 - o.L > tb) tb = A - d0 - o.L;
+        }
+        const tauBar = 1.25 * tb;
+        tax[t] = { d0, tauBar, tol: TOL, payable: (s) => best(t, s).pays, inBand: (A) => A >= d0 - TOL && A <= d0 + tauBar };
+      }
+      g.reader.tax = tax;
+    }
+    /*
+     * COV-B, THE STEP-YEAR EDGE NODE (`coverage`, research only, default off; items/COV.md, items/RTAX.md). In a step year
+     * each wealth row W_j gets one more share node, where the year's bill can just be paid from accessible money with the
+     * year's tax: a*_j = 1 - (d0 - tol/2 + tauMax_j) / W_j, tauMax_j the largest edge tax on the row over every ISA share,
+     * gain and allowance bucket (each found by bisection on the share with the floor moves' flow; 0 without readerTax,
+     * so the node sits at the reference's own edge). The share axis's own nodes are all kept; the node is inserted in
+     * order, merged with a node within 1e-9, and left out where a*_j falls outside (0, 1) (the extra slot then repeats
+     * a = 1). Outside step years the extra slot repeats a = 1 and is copied, not solved (the cell loop below).
+     */
+    if (opts.coverage) {
+      const ni = g.ni, nA = g.axes.a.n, TOLc = 1;
+      const zc = shifts[centre], zl = m.shiftZ;
+      if (zc === undefined) delete m.shiftZ; else m.shiftZ = zc;
+      const cC = F.compile(m, actions);
+      if (zl === undefined) delete m.shiftZ; else m.shiftZ = zl;
+      const lvc = Math.min(...levelOf), basesC = actions.map((a, ai) => ai).filter(ai => levelOf[ai] === lvc && tierBase[ai] === ai);
+      const fc = new Float64Array(7), vc = new Float64Array(7);
+      const paysAt = (t, s) => { for (const ai of basesC) { for (let q = 0; q < 7; q++) fc[q] = s[q]; const u = F.flow(cC, t, ai, fc); if (!(u > 1 || cC.last.preNmpaInsolvent)) return true; } return false; };
+      g.cov.nodes = 0;
+      for (let t = 0; t <= T; t++) {
+        if (!years[t]) continue;
+        const fs = Array.from({ length: K }, (_, k) => chanceOf(k, t)), d0 = fs[0].schedule.bills[0];
+        if (!fs.every(f => f.schedule.bills[0] === d0 && f(d0 - TOLc / 2) === 1 && f(d0 - 2 * TOLc) === 0)) continue;
+        const Rn = new Float64Array(g.np * ni);
+        for (let ip = 0; ip < g.np; ip++) {
+          const Wj = g.axes.W.pts[ip];
+          let tauMax = 0;
+          if (opts.readerTax && Wj > d0) {
+            for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) {
+              const at = (a) => { const pen = a * Wj, rest = Wj - pen, isa = g.axes.b.pts[it] * rest; vc[0] = pen; vc[1] = isa; vc[2] = rest - isa; vc[3] = g.gain[ig]; vc[4] = g.pcls[ic] * m.P.lsa; vc[5] = g.pcls[ic] > 0 ? 1 : 0; vc[6] = -1; return vc; };
+              if (!paysAt(t, at(0))) continue;   // the row cannot pay at any share here: no edge on it
+              let lo = 0, hi = 1;
+              for (let q = 0; q < 40; q++) { const mid = (lo + hi) / 2; if (paysAt(t, at(mid))) lo = mid; else hi = mid; }
+              const edgeTax = Wj * (1 - lo) - (d0 - TOLc);
+              if (edgeTax > tauMax) tauMax = edgeTax;
+            }
+          }
+          const aStar = Wj > 0 ? 1 - (d0 - TOLc / 2 + tauMax) / Wj : -Infinity;
+          const row = Array.from({ length: nA }, (_, i) => g.axes.a.pts[i]);
+          if (aStar > 0 && aStar < 1 && !row.some(x => Math.abs(x - aStar) <= 1e-9)) { row.push(aStar); row.sort((x, y) => x - y); g.cov.nodes++; }
+          while (row.length < ni) row.push(1);
+          for (let ii = 0; ii < ni; ii++) Rn[ip * ni + ii] = row[ii];
+        }
+        g.cov.years[t] = Rn;
+      }
+    }
+  } else if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
 
   /*
    * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
@@ -381,22 +898,364 @@ export function solve(E, M, plan, opts = {}) {
   const base = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4);
   const A = actions.length;
   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
+  const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
   const failBuf = new Uint8Array(A);
-  let evaluated = 0;
+  /*
+   * THE CELL'S EXPECTATION MEMO (S1 of the speed review of 23 Oct; STATE.md D24). Many moves leave a cell in the same
+   * post-decision state bit for bit, and a move's expectation (its growth at its tiers' rates and the read of next year's
+   * tables) is a function of that state, the move's growth class (clsW below) and the layer and world read, nothing else:
+   * each key is integrated once a cell (and world), and every move then adds its own terms after it, as before, so no
+   * number moves (solver-memo.test.mjs). The key is the state's bits, confirmed word by word on a hash hit, so -0 and a
+   * NaN never merge. On by default in the product's path and the research runs alike (the maintainer, 23 Oct);
+   * `expMemo: false` turns it off, and so does a reader probe or the log-odds blend, which count every read.
+   * `expMemoPlant` (research only): 'nocls' drops the growth class from the key, 'noworld' the world.
+   */
+  const MEMO = opts.expMemo !== false && !READER_PROBE.fn && opts.readerBlend !== 'logodds';
+  const PLANT = opts.expMemoPlant || '';
+  const memoCap = A * (TS ? tsPairs.length * K : 1) + 1;
+  const MSIZE = 1 << Math.ceil(Math.log2(2 * memoCap)), MMASK = MSIZE - 1;
+  const mSlotStamp = new Int32Array(MSIZE).fill(-1), mSlotEnt = new Int32Array(MSIZE);
+  const mKey = new Uint32Array(memoCap * 16), mVal = new Float64Array(memoCap * 4);
+  let mStamp = 0, mN = 0, memoHits = 0, memoMiss = 0;
+  const postU = new Uint32Array(postBuf.buffer), tsPostU = new Uint32Array(tsPost.buffer);
+  // a new memo by a new stamp; the stamps start again before they would wrap (a 90-point grid nears 2^31 resets)
+  const memoReset = () => { mN = 0; if (++mStamp === 0x7fffffff) { mSlotStamp.fill(-1); mStamp = 0; } };
+  const memoFind = (U, w0, cls, lay) => {
+    if (PLANT === 'nocls') cls = 0;
+    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
+    for (let w = 0; w < 14; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
+    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
+    let slot = h & MMASK;
+    for (;;) {
+      if (mSlotStamp[slot] !== mStamp) return ~slot;
+      const e = mSlotEnt[slot], kb = e * 16;
+      if (mKey[kb + 14] === cls && mKey[kb + 15] === lay) {
+        let w = 0;
+        while (w < 14 && mKey[kb + w] === U[w0 + w]) w++;
+        if (w === 14) return e;
+      }
+      slot = (slot + 1) & MMASK;
+    }
+  };
+  const memoPut = (slot, U, w0, cls, lay, s, b, rs, h) => {
+    if (PLANT === 'nocls') cls = 0;
+    const e = mN++, kb = e * 16, vb = e * 4;
+    for (let w = 0; w < 14; w++) mKey[kb + w] = U[w0 + w];
+    mKey[kb + 14] = cls; mKey[kb + 15] = lay;
+    mSlotStamp[slot] = mStamp; mSlotEnt[slot] = e;
+    mVal[vb] = s; mVal[vb + 1] = b; mVal[vb + 2] = rs; mVal[vb + 3] = h;
+  };
+  const clsW = cs.map(() => new Int32Array(A));
+  const bitsF = new Float64Array(1), bitsU = new Uint32Array(bitsF.buffer);
+  const bitsOf = x => { bitsF[0] = x; return bitsU[0].toString(36) + '.' + bitsU[1].toString(36); };   // a double's bits, for the growth class's key
+  const bitsList = v => Array.from(v, bitsOf).join(',');
+  let evaluated = 0, e3Copied = 0, covCopied = 0;
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
+  /*
+   * RAISES COUNT ONLY IN FUTURES THAT SURVIVE (`raiseSurvival`, PLAN.md finding M17). The step-2 records
+   * showed that in futures heading for failure the solver raised spending to 1.2 in the last years on
+   * 94-100% of failing paths: once the survival chance is near zero it no longer moves with the move, so the
+   * raise credit is the only reward left and "spend it while you can" wins. With this on, a raise's credit
+   * is multiplied by the survival chance it leads to (the expected read of next year's survival table,
+   * already computed for the move), so a raise in a hopeless position is worth nothing. Off, every table is
+   * the one solved before, bit for bit.
+   */
+  const raiseSurv = !!opts.raiseSurvival;
+  const raiseOfAction = new Float64Array(A);
+  /*
+   * A YEAR WITH NO MONEY IS THE DEEPEST CUT (`failureShortfall`, M17's root cause). The trim penalty is charged
+   * only in years the household can still pay, so running out ENDS the charges: in a position heading for
+   * failure, spending more now reaches failure sooner and skips the cuts that staying alive would cost, and
+   * the score rewards it (found 23 Sep 22:00 on S070: at a hopeless cell, spending 1.2 scored above 1.0 purely
+   * through a smaller expected future trim cost). With this on, a move that cannot pay this year is charged
+   * every remaining spending year at the trim curve's own end point, a cut to nothing: lambda x (1 - 0)^gamma a
+   * year. Running out is then never cheaper than cutting. Off, every table is the one solved before.
+   */
+  // `true`: a year with no money costs what a year at the user's floor costs - the most any year WITH money can
+  // cost, so running out is never cheaper than cutting, and nothing else moves. `'zero'`: a cut to nothing,
+  // the trim curve's end point - a much heavier charge that makes the whole plan more cautious (measured in
+  // solver-raisesurv.test.mjs: raising in comfortable cells falls about a fifth), kept as the alternative.
+  const failShort = !!opts.failureShortfall;
+  const failLevel = opts.failureShortfall === 'zero' ? 0 : Math.min(...levelOf);
+  const failCostAt = new Float64Array(T + 2);
+  if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? costOf(Math.min(1, failLevel), t) : 0);   // costOf below the target: lambda x shortOf (age-weighted under ageWeight)
+  /*
+   * THE YEAR THE MONEY RUNS OUT, AT WHAT IT CAN PAY (`failDelivered`; the external review of 29 Oct,
+   * research/reviews/2026-10-29/SPENDING-CURVE.md on review/external-2026-10-21 at 37fdbf7, section 7). Without it a
+   * move that cannot pay this year is charged failCostAt[t] whatever is left, so where cutting cannot postpone the
+   * failure, money kept for the failure year earns nothing and a raise wins by default (the raise before ruin: 30.2%
+   * of the candidate's paths that run out, on the review's eight households). With it, that year is charged at the
+   * level it can pay, the move's level less its unmet over the year's target (at least nothing), on the cut's own
+   * curve, lambda x shortOf(level), and the years after it as before. A tier variant reads its base's unmet, as it
+   * reads its base's flow. Off, every table is the one solved before.
+   */
+  const FD = !!opts.failDelivered, FDPLANT = opts.failDeliveredPlant === 'nounmet';   // the plant (its test only): the unmet ignored
+  if (FD && !failShort) throw new Error('failDelivered prices the failure year, so it needs failureShortfall');
+  const unmetBuf = FD ? new Float64Array(A) : null;
+  /*
+   * PAYING WHERE ONE PAYS (`payWhereOnePays`, research only, default off; STATE.md FD-RAISE, D46; the deep review of 30 Oct,
+   * reviews/2026-10-30-deep-fail-delivered.md section 4, its CANDDP arm). The chooser never takes a move that cannot pay
+   * (scoreMoves scores it -Infinity), but the backward pass ranks it by its price, and under failDelivered a year-before-ruin
+   * cell can store "fail now at 110%" where paying the floor was possible: next year's value then runs flat in wealth, and a
+   * raise two years before ruin reads as free. With the option, wherever some move pays this year, every argmax of the
+   * backward pass skips the moves that cannot (skipped, not scored -Infinity: the guards throw on a non-finite score); a cell
+   * where every move fails is as before. Whether a move pays is the same in every world, so it is known once a cell, after
+   * pass 1. The ternary level search evaluates only some moves, so it cannot know, and refuses the option.
+   * `countFailPicks` (tests) counts the layer-cells whose stored move fails while one pays (meta.failPicks). The plant
+   * 'onesite' (tests only) leaves the tier state's one-pass phase B without the skip.
+   */
+  const PAY = !!opts.payWhereOnePays, PAYPLANT = opts.payWhereOnePaysPlant === 'onesite', CFP = PAY || !!opts.countFailPicks;
+  if (PAY && opts.levelSearch === 'ternary') throw new Error('payWhereOnePays needs every move evaluated: the ternary level search evaluates some');
+  let payOK = false, failPicks = 0;
+  const failPick = ai => { if (CFP && payOK && failBuf[ai] === 1) failPicks++; };
+  const failDeliveredCost = (ai, t, ub) => {
+    const sp = c.yr.spend[t];
+    if (!(sp > 0)) return failCostAt[t];
+    const lvl = Math.min(1, Math.max(0, levelOf[ai] - (FDPLANT ? 0 : unmetBuf[ub]) / sp));
+    return costOf(lvl, t) + failCostAt[t + 1];   // lvl at most 1: lambda x shortOf (age-weighted under ageWeight)
+  };
+  // THE CANDIDATE'S TIERS (`lockTiers`, research only, off by default): lockSetup at the file's end says what it is
+  const LK = opts.lockTiers ? lockSetup(opts, g, tsPairs, tsLayerOf, actions) : null;
+  /*
+   * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
+   * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
+   * search per group - one draw order, harvest and tier, all its levels - evaluates four levels instead
+   * of six, missing 24 times in 5.0 million by at most 0.009 survival points. Flows are computed lazily,
+   * only for the levels the search visits; every move it does evaluate is scored with exactly the
+   * arithmetic of the exhaustive scan, and the winner is chosen among the evaluated moves by the same
+   * rule in the same order, so where the search finds the true peak the table is bit-identical.
+   * Off by default: the exhaustive scan below is untouched.
+   */
+  const TERN = opts.levelSearch === 'ternary';
+  let groups = null, stampFlow = null, stampScore = null, scS = null, scB = null, scR = null, scH = null, scV = null, cellStamp = 0;
+  if (TERN) {
+    const byKey = new Map();
+    actions.forEach((a, ai) => { const key = `${(a.steps || []).join('>')}|${a.harvest ? a.harvestCeil : '-'}${a.cgtSale ? 'g' : ''}|${a.tierPen || 0}/${a.tierIsa || 0}`; if (!byKey.has(key)) byKey.set(key, []); byKey.get(key).push(ai); });
+    groups = [...byKey.values()].map(list => list.sort((x, y) => levelOf[x] - levelOf[y]));
+    stampFlow = new Int32Array(A).fill(-1); stampScore = new Float64Array(A).fill(-1);
+    scS = new Float64Array(A); scB = new Float64Array(A); scR = new Float64Array(A); scH = new Float64Array(A); scV = new Float64Array(A);
+  }
+  // the final year integrated exactly (finalYearExact, O19); off: the five nodes, as before
+  const FINT = !!opts.finalIntegral, FTERM = { floor, deathTax, resilK, shortfall, beqOf }, fx = new Float64Array(3), fxR = new Float64Array(4);
+  // Q's fix (stepExpect): research only; with the reader alone, since only the reader's read has the step
+  if (opts.bridgeStep && opts.bridgeStep !== 'exact') throw new Error(`bridgeStep ${opts.bridgeStep}: only 'exact'`);
+  const STEPX = opts.bridgeStep === 'exact' && opts.bridgeRead === 'reader', sx = new Float64Array(4), sxR = new Float64Array(4);
+  if (opts.coverage && (opts.bridgeRead !== 'reader' || opts.bridgeStep === 'exact' || opts.holdTier || opts.e3 !== false)) throw new Error("coverage needs the bridge reader, e3: false, and neither bridgeStep 'exact' nor holdTier (items/COV.md: each shown identical with it before it joins)");
+  if (opts.readerTax && opts.bridgeRead !== 'reader') throw new Error("readerTax needs the bridge reader (bridgeRead: 'reader')");
+  if (opts.bridgeStep === 'exact' && opts.bridgeRead !== 'reader') throw new Error("bridgeStep 'exact' needs the bridge reader (bridgeRead: 'reader')");
+  if (opts.readerChance || opts.readerSplit || opts.readerBlend || opts.readerCopy !== undefined || opts.readerSupportLine !== undefined) { if (opts.bridgeRead !== 'reader') throw new Error('readerChance, readerSplit, readerBlend, readerCopy and readerSupportLine need the bridge reader'); if (opts.readerCopy !== undefined && opts.readerCopy !== 'extrap') throw new Error(`readerCopy ${opts.readerCopy}: only 'extrap'`); if (opts.readerCopy && opts.readerSplit === 'r0') throw new Error("readerCopy 'extrap' sets the copied nodes' c, which readerSplit 'r0' replaces; set one"); if (opts.readerSupportLine !== undefined && !(opts.readerSupportLine > 0 && opts.readerSupportLine < 1)) throw new Error(`readerSupportLine ${opts.readerSupportLine}: a chance strictly between 0 and 1`); if (opts.readerBlend && opts.readerBlend !== 'logodds') throw new Error(`readerBlend ${opts.readerBlend}: only 'logodds'`); if (opts.readerChance && opts.readerChance !== 'sim') throw new Error(`readerChance ${opts.readerChance}: only 'sim'`); if (opts.readerSplit && opts.readerSplit !== 'r0' && opts.readerSplit !== 'rz' && opts.readerSplit !== 'rs' && opts.readerSplit !== 'ru' && opts.readerSplit !== 'rsu') throw new Error(`readerSplit ${opts.readerSplit}: only 'r0', 'rz', 'rs', 'ru' or 'rsu'`); if ((opts.readerSplit === 'rs' || opts.readerSplit === 'ru' || opts.readerSplit === 'rsu') && opts.readerBlend) throw new Error(`readerSplit '${opts.readerSplit}' scales the probability blend's residual; it is not defined for readerBlend`); if (opts.readerChance && opts.readerRef === 'order') throw new Error("readerChance 'sim' and readerRef 'order' are two references; set one"); }   // NE-ROOT's arms (research only)
+  // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
+  const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
+  // E5: each world's terms for every move at a cell, once (the layer held adds only the switch charge)
+  const e5S = E5 ? shifts.map(() => new Float64Array(A)) : null, e5B = E5 ? shifts.map(() => new Float64Array(A)) : null, e5R = E5 ? shifts.map(() => new Float64Array(A)) : null, e5H = E5 ? shifts.map(() => new Float64Array(A)) : null;
+  // E7: each move's mixture sums, staying and switching, and its weighted estate
+  const e7Vs = E7 ? new Float64Array(A) : null, e7Vw = E7 ? new Float64Array(A) : null, e7Wb = E7 ? new Float64Array(A) : null;
+  // E9 and E11: next year's tables and the reader's split for each world and layer (k * NL9 + layer)
+  const NL9 = TS ? tsPairs.length : 0;
+  const e9S = E9 ? new Array(K * NL9).fill(null) : null, e9B = E9 ? new Array(K * NL9).fill(null) : null, e9R = E9 ? new Array(K * NL9).fill(null) : null, e9H = E9 ? new Array(K * NL9).fill(null) : null;
+  const e11RD = E11 ? new Array(K * NL9).fill(null) : null;
+  // E8: the base moves' positions to ids, once a cell (an open-addressed table stamped per cell), and the memo keyed by
+  // (id, class, layer read), stamped per cell as memoReset clears the other
+  const pid8 = E8 ? new Int32Array(A) : null, P8SIZE = E8 ? 1 << Math.ceil(Math.log2(2 * A + 2)) : 1, P8MASK = P8SIZE - 1;
+  const p8Stamp = E8 ? new Int32Array(P8SIZE).fill(-1) : null, p8Ai = E8 ? new Int32Array(P8SIZE) : null, p8Id = E8 ? new Int32Array(P8SIZE) : null;
+  let p8Cur = 0;
+  const m8Cap = E8 ? A * NL9 * K + 1 : 1, M8SIZE = E8 ? 1 << Math.ceil(Math.log2(2 * m8Cap)) : 1, M8MASK = M8SIZE - 1;
+  const m8Stamp = E8 ? new Int32Array(M8SIZE).fill(-1) : null, m8Ent = E8 ? new Int32Array(M8SIZE) : null, m8Key = E8 ? new Int32Array(m8Cap * 3) : null, m8Val = E8 ? new Float64Array(m8Cap * 4) : null;
+  let m8Cur = 0, m8N = 0;
+  const isE3Copy = (ii, it, ig) => E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1);
+  if (E3P && (g.mode !== 'total' || g.cov)) throw new Error('e3pcls needs total coordinates and no coverage axis');
+  // the last year index in which money can enter a pension: a year an owner works, or a dated deposit or staged transfer into one
+  const lastPenIn = !E3P ? T : (() => {
+    const penIds = new Set(m.owners.map(o => o.ids && o.ids.pen).filter(Boolean)); let last = -1;
+    for (let k = 0; k <= T; k++) {
+      const year = m.ctx.baseYear + k;
+      const works = m.owners.some(o => (o.key === 'self' ? m.ctx.ageSelf0 : m.ctx.agePart0) + k < o.retireAge);
+      const dep = (m.ctx.oneOffContribs.get(year) || []).some(x => penIds.has(x.id));
+      const drip = (m.ctx.stagedTransfers.get(year) || []).some(x => penIds.has(x.toId));
+      // tests only (`e3pclsPlant`): drop one clause of the rule, so each is shown to matter on a household it alone sets
+      const P = opts.e3pclsPlant;
+      if ((works && P !== 'work') || (dep && P !== 'deposit') || (drip && P !== 'transfer')) last = k;
+    }
+    return opts.e3pclsPlant === 'all' ? -1 : last;   // tests only: copy in every year
+  })();
+  const firstCopyYear = opts.e3pclsPlant === 'boundary' ? lastPenIn : lastPenIn + 1;   // tests only: copy from the last inflow year itself
+  // which clause set lastPenIn (reported): 'work', 'deposit', 'transfer', or 'none' when nothing can refill a pension
+  const pclsSetBy = !E3P ? null : (() => {
+    if (lastPenIn < 0) return 'none';
+    const k = lastPenIn, year = m.ctx.baseYear + k, penIds = new Set(m.owners.map(o => o.ids && o.ids.pen).filter(Boolean)), by = [];
+    if (m.owners.some(o => (o.key === 'self' ? m.ctx.ageSelf0 : m.ctx.agePart0) + k < o.retireAge)) by.push('work');
+    if ((m.ctx.oneOffContribs.get(year) || []).some(x => penIds.has(x.id))) by.push('deposit');
+    if ((m.ctx.stagedTransfers.get(year) || []).some(x => penIds.has(x.toId))) by.push('transfer');
+    return by.join('+') || 'none';
+  })();
+  const penEmpty = (ip, ii) => g.axes.a.pts[ii] === 0 || g.axes.W.pts[ip] === 0;
+  const isPclsCopy = (ip, ii, ic, t) => E3P && ic > 0 && t >= firstCopyYear && penEmpty(ip, ii);
+  let pclsCopied = 0;
+  const isCovCopy = (ip, ii, t) => !!g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t);
+  // E2's copy pass: the copied cells, in the loop's own order, so a copy of a copy reads its source already made
+  const copyPass = (t) => {
+    for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
+      const idx = g.index(ip, ii, it, ig, ic);
+      let src = -1;
+      if (isE3Copy(ii, it, ig)) { src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic); e3Copied++; }
+      else if (isPclsCopy(ip, ii, ic, t)) { src = g.index(ip, ii, it, ig, 0); pclsCopied++; }
+      else if (isCovCopy(ip, ii, t)) { src = g.index(ip, ii - 1, it, ig, ic); covCopied++; }
+      if (src < 0) continue;
+      for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+        L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+      }
+    }
+  };
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
+    const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
+    // E9 and E11, once a year: next year's four tables of each world and layer, and the reader's split readValues would find
+    // for this year's read (yr = t + 1), built by the year below
+    if (E9 || E11) for (let k = 0; k < K; k++) for (let lj = 0; lj < NL9; lj++) {
+      const L = layW[k][lj], q9 = k * NL9 + lj;
+      if (E9) { e9S[q9] = t < T ? L.lsurv[t + 1] : null; e9B[q9] = t < T ? L.beq[t + 1] : null; e9R[q9] = t < T ? L.lresil[t + 1] : null; e9H[q9] = t < T ? L.short[t + 1] : null; }
+      if (E11) { const yr = t + 1, ls = t < T ? L.lsurv[t + 1] : null; e11RD[q9] = g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(ls) : null; }
+    }
+    // the memo's growth classes this year: a move's tiers and every rate its growth reads (its rates, their spread, the year's
+    // volatility and the quadrature nodes' rates), bit for bit; moves of one class grow a state alike
+    if (MEMO) for (let k = 0; k < K; k++) {
+      const ids = new Map(), ck = cs[k], nro = nodeRealOfAtW[k][t];
+      for (let ai = 0; ai < A; ai++) {
+        const a = ck.acts[ai];
+        const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${bitsList(a.real)}|${bitsList(a.sigma)}|${bitsList(a.volEffAt[t])}|${nro[ai].map(bitsList).join(';')}`;
+        let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
+        clsW[k][ai] = id;
+      }
+    }
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
-    for (let ai = 0; ai < A; ai++) shortOfAction[ai] = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
-    for (let ic = 0; ic < g.pcls.length; ic++) {
+    for (let ai = 0; ai < A; ai++) {
+      const cst = spendYear ? costOf(levelOf[ai], t) : 0;
+      if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
+      else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
+    }
+    let cellNo = 0;
+    if (RESTORE) for (let k = 0; k < K; k++) {
+      const ls = TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }];
+      if (!RESTORE.layers[k] || RESTORE.layers[k].length !== ls.length) throw new Error(`restore: world ${k} has ${ls.length} layers, the stored solve ${RESTORE.layers[k] ? RESTORE.layers[k].length : 0}`);
+      ls.forEach((L, j) => { const R = RESTORE.layers[k][j]; for (const key of ['surv', 'beq', 'resil', 'pol', 'short']) L[key][t].set(R[key][t]); });
+    }
+    else for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
           for (let ii = 0; ii < g.ni; ii++) {
             for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
-              toVec(g, ip, ii, it, ig, ic, base);
+              // E2: a copied cell reads another cell of this year, so the copies wait until every part's cells are done
+              if (E2 && (isE3Copy(ii, it, ig) || isPclsCopy(ip, ii, ic, t) || isCovCopy(ip, ii, t))) continue;
+              if (E2 && Atomics.compareExchange(claim, cellNo++, 0, 1) !== 0) continue;
+              if (E2 && E2.planted === 'drop' && E2.part === 1) continue;   // tests only: a part that claims cells and never writes them
+              if (E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1)) {
+                // `e3PlantedWrongTwin` (tests only): copy from the ISA-share neighbour, so the identity test is shown to fail
+                const src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                e3Copied++;
+                continue;
+              }
+              // E3's lump-sum half: an empty pension past the last possible inflow reads its zero-allowance bucket
+              if (isPclsCopy(ip, ii, ic, t)) {
+                const src = g.index(ip, ii, it, ig, 0);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                pclsCopied++;
+                continue;
+              }
+              // COV-B: a slot repeating the node below it (the extra slot outside an inserted edge) is copied, not solved
+              if (g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t)) {
+                const src = g.index(ip, ii - 1, it, ig, ic);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                covCopied++;
+                continue;
+              }
+              toVec(g, ip, ii, it, ig, ic, base, t);
+              if (TERN) {
+                cellStamp++;
+                const ensure = (ai) => {
+                  const b0 = tierBase[ai];
+                  if (stampFlow[b0] !== cellStamp) {
+                    const ob = b0 * 7;
+                    for (let q = 0; q < 7; q++) postBuf[ob + q] = base[q];
+                    const unmet = F.flow(c, t, b0, postBuf.subarray(ob, ob + 7));
+                    evaluated++;
+                    failBuf[b0] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                    if (FD) unmetBuf[b0] = unmet;
+                    stampFlow[b0] = cellStamp;
+                  }
+                  return b0;
+                };
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t];
+                  const sNext = t < T ? lsurvW[k][t + 1] : null;
+                  const bNext = t < T ? beqW[k][t + 1] : null;
+                  const rNext = t < T ? lresilW[k][t + 1] : null;
+                  const hNext = t < T ? shortW[k][t + 1] : null;
+                  const key = cellStamp * K + k;
+                  const score = (ai) => {
+                    if (stampScore[ai] === key) return scV[ai];
+                    const o = ensure(ai) * 7;
+                    const fail = failBuf[tierBase[ai]] === 1;
+                    let s = 0, b = 0, rs = 0, h = 0;
+                    if (!fail) {
+                      const nr = nodeRealOf[ai];
+                      if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                      else for (let zi = 0; zi < NQ; zi++) {
+                        for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                        F.grow(cs[k], t, grown, nr[zi]);
+                        if (t === T) {
+                          const total = grown[0] + grown[1] + grown[2];
+                          const alive = !(floor > 0 && total < floor);
+                          const net = Math.max(0, total - grown[0] * deathTax);
+                          s += QW[zi] * (alive ? 1 : 0);
+                          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                          b += QW[zi] * (alive ? beqOf(net) : 0);
+                        } else {
+                          readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                          s += QW[zi] * rd[0];
+                          b += QW[zi] * rd[1];
+                          rs += QW[zi] * rd[2];
+                          h += QW[zi] * rd[3];
+                        }
+                      }
+                    }
+                    if (failShort && fail) h = FD ? failDeliveredCost(ai, t, tierBase[ai]) : failCostAt[t];
+                    else h += shortOfAction[ai];
+                    if (raiseSurv) h += raiseOfAction[ai] * s;
+                    stampScore[ai] = key; scS[ai] = s; scB[ai] = b; scR[ai] = rs; scH[ai] = h;
+                    const v = s + wR * rs + wB * b - h; if (v - v !== 0) nonFiniteScore('the backward pass (ternary)', t, idx, k, ai, s, b, rs, h); return (scV[ai] = v);
+                  };
+                  for (const G of groups) {
+                    let lo = 0, hi = G.length - 1;
+                    while (hi - lo > 2) {
+                      const m1 = lo + Math.floor((hi - lo) / 3), m2 = hi - Math.floor((hi - lo) / 3);
+                      if (score(G[m1]) < score(G[m2])) lo = m1 + 1; else hi = m2 - 1;
+                    }
+                    for (let j = lo; j <= hi; j++) score(G[j]);
+                  }
+                  // the winner among every move evaluated, by the exhaustive scan's own rule and order
+                  let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                  for (let ai = 0; ai < A; ai++) {
+                    if (stampScore[ai] !== key) continue;
+                    const score_ = scV[ai], b = scB[ai];
+                    if (score_ > bestScore + eps || (Math.abs(score_ - bestScore) <= eps && b > bestB)) { bestScore = score_; bestS = scS[ai]; bestB = b; bestR = scR[ai]; bestH = scH[ai]; bestA = ai; }
+                  }
+                  survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
+                  polW[k][t][idx] = bestA; shortW[k][t][idx] = bestH;
+                }
+                if (PROF) PROF.cells++;
+                continue;
+              }
               /*
                * PASS 1, shared by every world. Every move is tried at every cell; there is no
                * certain-success shortcut, because the plan's bound assumed "no growth" was the worst
@@ -412,13 +1271,279 @@ export function solve(E, M, plan, opts = {}) {
                   const unmet = F.flow(c, t, ai, postBuf.subarray(o, o + 7));
                   evaluated++;
                   failBuf[ai] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                  if (FD) unmetBuf[ai] = unmet;
                   if (PROF) { PROF.flow += now() - tf; PROF.flows++; }
                 } else {
                   const b = tierBase[ai] * 7;
                   for (let q = 0; q < 7; q++) postBuf[o + q] = postBuf[b + q];
                   failBuf[ai] = failBuf[tierBase[ai]];
+                  if (FD) unmetBuf[ai] = unmetBuf[tierBase[ai]];
                   if (PROF) PROF.skipped++;
                 }
+              }
+              if (CFP) { payOK = false; for (let ai = 0; ai < A; ai++) if (failBuf[ai] !== 1) { payOK = true; break; } }
+              const skipFail = PAY && payOK;   // payWhereOnePays: this cell's argmaxes pass over the moves that cannot pay
+              if (TS) {
+                // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
+                // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
+                // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
+                if (MEMO) memoReset();   // one memo a cell: the world and the layer read are in its key
+                if (E5) {
+                  // E8: each base move's position (its flow's, bit for bit) to an id, once a cell; a tier variant takes its base's
+                  if (E8) {
+                    if (++p8Cur === 0x7fffffff) { p8Stamp.fill(-1); p8Cur = 0; }
+                    if (++m8Cur === 0x7fffffff) { m8Stamp.fill(-1); m8Cur = 0; }
+                    m8N = 0;
+                    let nId = 0;
+                    for (let ai = 0; ai < A; ai++) {
+                      if (tierBase[ai] !== ai) { pid8[ai] = pid8[tierBase[ai]]; continue; }
+                      const w0 = ai * 14; let hh = 0x811C9DC5;
+                      for (let w = 0; w < NW8; w++) hh = Math.imul(hh ^ postU[w0 + w], 0x01000193);
+                      hh ^= hh >>> 15; hh = Math.imul(hh, 0x2C1B3C6D); hh ^= hh >>> 12;
+                      let slot = hh & P8MASK;
+                      for (;;) {
+                        if (p8Stamp[slot] !== p8Cur) { p8Stamp[slot] = p8Cur; p8Ai[slot] = ai; p8Id[slot] = nId; pid8[ai] = nId++; break; }
+                        const wj = p8Ai[slot] * 14; let w = 0;
+                        while (w < NW8 && postU[wj + w] === postU[w0 + w]) w++;
+                        if (w === NW8) { pid8[ai] = p8Id[slot]; break; }
+                        slot = (slot + 1) & P8MASK;
+                      }
+                    }
+                  }
+                  // E5, PHASE A: each world's terms for every move, once a cell, as the layer loop below takes them for its first layer
+                  for (let k = 0; k < K; k++) {
+                    const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k];
+                    for (let ai = 0; ai < A; ai++) {
+                      const lj = tsLayerOf[ai], q9 = k * NL9 + lj;
+                      let sNext, bNext, rNext, hNext;
+                      if (E9) { const q = E9L0 ? k * NL9 : q9; sNext = e9S[q]; bNext = e9B[q]; rNext = e9R[q]; hNext = e9H[q]; }
+                      else { const Ln = layW[k][lj]; sNext = t < T ? Ln.lsurv[t + 1] : null; bNext = t < T ? Ln.beq[t + 1] : null; rNext = t < T ? Ln.lresil[t + 1] : null; hNext = t < T ? Ln.short[t + 1] : null; }
+                      const fail = failBuf[ai] === 1, o = ai * 7;
+                      let s = 0, b = 0, rs = 0, h = 0;
+                      let mf = -1;
+                      const mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
+                      const cls8 = PLANT === 'nocls' ? 0 : clsW[k][ai];
+                      if (!fail && MEMO && E8) {
+                        // E8's memo: the key is (the position's id, the growth class, the layer and world read), three integers
+                        const pv = pid8[ai];
+                        let hh = Math.imul(pv + 1, 0x9E3779B1) ^ Math.imul(cls8 + 1, 0x85EBCA77) ^ Math.imul(mLay + 1, 0xC2B2AE3D);
+                        hh ^= hh >>> 15; hh = Math.imul(hh, 0x2C1B3C6D); hh ^= hh >>> 12;
+                        let slot = hh & M8MASK;
+                        for (;;) {
+                          if (m8Stamp[slot] !== m8Cur) { mf = ~slot; break; }
+                          const en = m8Ent[slot], kb = en * 3;
+                          if (m8Key[kb] === pv && m8Key[kb + 1] === cls8 && m8Key[kb + 2] === mLay) { mf = en; break; }
+                          slot = (slot + 1) & M8MASK;
+                        }
+                        if (mf >= 0) { const vb = mf * 4; s = m8Val[vb]; b = m8Val[vb + 1]; rs = m8Val[vb + 2]; h = m8Val[vb + 3]; memoHits++; }
+                      } else if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                      if (!fail && mf < 0) {
+                        const nr = nodeRealOf[ai];
+                        if (t === T && FINT) { finalYearExact(ck, t, postBuf.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                        else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, postBuf.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                        else for (let zi = 0; zi < NQ; zi++) {
+                          for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                          F.grow(ck, t, grown, nr[zi]);
+                          if (t === T) {
+                            const total = grown[0] + grown[1] + grown[2];
+                            const alive = !(floor > 0 && total < floor);
+                            const net = Math.max(0, total - grown[0] * deathTax);
+                            s += QW[zi] * (alive ? 1 : 0);
+                            rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                            b += QW[zi] * (alive ? beqOf(net) : 0);
+                          } else {
+                            readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1, E11, E11 ? e11RD[E11W0 ? lj : q9] : null);
+                            s += QW[zi] * rd[0];
+                            b += QW[zi] * rd[1];
+                            rs += QW[zi] * rd[2];
+                            h += QW[zi] * rd[3];
+                          }
+                        }
+                        if (MEMO && E8) { const slot = ~mf, en = m8N++, kb = en * 3, vb = en * 4; m8Key[kb] = pid8[ai]; m8Key[kb + 1] = cls8; m8Key[kb + 2] = mLay; m8Stamp[slot] = m8Cur; m8Ent[slot] = en; m8Val[vb] = s; m8Val[vb + 1] = b; m8Val[vb + 2] = rs; m8Val[vb + 3] = h; memoMiss++; }
+                        else if (MEMO) { memoPut(~mf, postU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
+                      }
+                      if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
+                      else h += shortOfAction[ai];
+                      if (raiseSurv) h += raiseOfAction[ai] * s;
+                      eS[ai] = s; eB[ai] = b; eR[ai] = rs; eH[ai] = h;
+                    }
+                  }
+                  // E7: each move's mixture sums once a cell, staying (no charge) and switching (the charge added as phase B adds it)
+                  if (E7) for (let ai = 0; ai < A; ai++) {
+                    let vs = 0, vw = 0, wb = 0;
+                    for (let k = 0; k < K; k++) {
+                      const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai], h0 = e5H[k][ai];
+                      let h1 = h0; if (switchCharge > 0 && E5PLANT !== 'nocharge') h1 += switchCharge;
+                      const sc0 = s + wR * rs + wB * b - h0; if (sc0 - sc0 !== 0) nonFiniteScore('the backward pass (tier state, E7)', t, idx, k, ai, s, b, rs, h0);
+                      const sc1 = s + wR * rs + wB * b - h1; if (sc1 - sc1 !== 0) nonFiniteScore('the backward pass (tier state, E7)', t, idx, k, ai, s, b, rs, h1);
+                      vs += JW[k] * sc0; vw += JW[k] * sc1; wb += JW[k] * b;
+                    }
+                    e7Vs[ai] = vs; e7Vw[ai] = vw; e7Wb[ai] = wb;
+                  }
+                  // E5, PHASE B: for each layer held, the switch charge alone, then the chooser's full rule on the mixture, as below
+                  for (let j = 0; j < tsPairs.length; j++) {
+                    let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
+                    for (let ai = 0; ai < A; ai++) {
+                      let v = 0, wb = 0;
+                      if (E7) { v = (tsLayerOf[ai] === j) !== (E7PLANT === 'swap') ? e7Vs[ai] : e7Vw[ai]; wb = e7Wb[ai]; }
+                      else {
+                        const sw = switchCharge > 0 && tsLayerOf[ai] !== j && E5PLANT !== 'nocharge';
+                        for (let k = 0; k < K; k++) {
+                          let h = e5H[k][ai];
+                          if (sw) h += switchCharge;
+                          const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai];
+                          const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state, E5)', t, idx, k, ai, s, b, rs, h);
+                          v += JW[k] * score; wb += JW[k] * b;
+                        }
+                      }
+                      if (skipFail && !PAYPLANT && failBuf[ai] === 1) continue;
+                      if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                      if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
+                    }
+                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                    failPick(bestA);
+                    const swB = switchCharge > 0 && tsLayerOf[bestA] !== j && E5PLANT !== 'nocharge';
+                    for (let k = 0; k < K; k++) { let h = e5H[k][bestA]; if (swB) h += switchCharge; const Lj = layW[k][j]; Lj.surv[t][idx] = e5S[k][bestA]; Lj.beq[t][idx] = e5B[k][bestA]; Lj.resil[t][idx] = e5R[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = h; }
+                  }
+                  if (PROF) PROF.cells++;
+                  continue;
+                }
+                for (let j = 0; j < tsPairs.length; j++) {
+                const lkJ = LK ? LK.at(t, j, idx) : -1;   // lockTiers: the pair the candidate's table chose here (lockSetup)
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
+                  {
+                    let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                    let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
+                    for (let ai = 0; ai < A; ai++) {
+                      const lj = tsLayerOf[ai]; if (lkJ >= 0 && lj !== lkJ) continue;
+                      const Ln = layW[k][lj];
+                      const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
+                      const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                      const fail = failBuf[ai] === 1;
+                      let src = postBuf, o = ai * 7;
+                      if (!fail && lj !== j && ck.switchCost > 0 && !NODEAL) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                      let s = 0, b = 0, rs = 0, h = 0;
+                      let mf = -1;
+                      const mU = src === tsPost ? tsPostU : postU, mLay = PLANT === 'noworld' ? lj : lj * K + k;   // the layer read and the world
+                      if (!fail && MEMO) { mf = memoFind(mU, o * 2, clsW[k][ai], mLay); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                      if (!fail && mf < 0) {
+                        const nr = nodeRealOf[ai];
+                        if (t === T && FINT) { finalYearExact(ck, t, src.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                        else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, src.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                        else for (let zi = 0; zi < NQ; zi++) {
+                          for (let q = 0; q < 7; q++) grown[q] = src[o + q];
+                          F.grow(ck, t, grown, nr[zi]);
+                          if (t === T) {
+                            const total = grown[0] + grown[1] + grown[2];
+                            const alive = !(floor > 0 && total < floor);
+                            const net = Math.max(0, total - grown[0] * deathTax);
+                            s += QW[zi] * (alive ? 1 : 0);
+                            rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                            b += QW[zi] * (alive ? beqOf(net) : 0);
+                          } else {
+                            readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                            s += QW[zi] * rd[0];
+                            b += QW[zi] * rd[1];
+                            rs += QW[zi] * rd[2];
+                            h += QW[zi] * rd[3];
+                          }
+                        }
+                        if (MEMO) { memoPut(~mf, mU, o * 2, clsW[k][ai], mLay, s, b, rs, h); memoMiss++; }
+                      }
+                      if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
+                      else h += shortOfAction[ai];
+                      if (raiseSurv) h += raiseOfAction[ai] * s;
+                      if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
+                      const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass (tier state)', t, idx, k, ai, s, b, rs, h);
+                      if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
+                      if (skipFail && failBuf[ai] === 1) continue;
+                      if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
+                      if (lj === j && (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && b > stayB))) { stayScore = score; stayS = s; stayB = b; stayR = rs; stayH = h; stayA = ai; }
+                    }
+                    if (JOINT) continue;
+                    // the chooser's rule: a move to another pair only when it beats the best that stays by more than the margin
+                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayScore > -Infinity && bestScore - stayScore <= switchMargin) { bestS = stayS; bestB = stayB; bestR = stayR; bestH = stayH; bestA = stayA; }
+                    const Lj = layW[k][j];
+                    failPick(bestA);
+                    Lj.surv[t][idx] = bestS; Lj.beq[t][idx] = bestB; Lj.resil[t][idx] = bestR; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = bestH;
+                  }
+                }
+                if (JOINT) {
+                  // TS+J: the chooser's full rule on the mixture - the best move by the weighted score (ties to the larger weighted
+                  // estate), the best that stays in j, the margin between them - and every world's layer j keeps ITS value of that move
+                  let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
+                  for (let ai = 0; ai < A; ai++) {
+                    let v = 0, wb = 0;
+                    if (skipFail && failBuf[ai] === 1) continue;
+                    if (lkJ >= 0 && tsLayerOf[ai] !== lkJ) continue;
+                    for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
+                    if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                    if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
+                  }
+                  if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                  failPick(bestA);
+                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
+                }
+                }
+                if (PROF) PROF.cells++;
+                continue;
+              }
+              if (JOINT) {
+                // `jointWorlds`: every world's components for every move, as PASS 2 below computes them, then ONE move for
+                // every world - the best weighted score across the worlds, ties to the larger weighted estate (chooseAction)
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t];
+                  const sNext = t < T ? lsurvW[k][t + 1] : null, bNext = t < T ? beqW[k][t + 1] : null;
+                  const rNext = t < T ? lresilW[k][t + 1] : null, hNext = t < T ? shortW[k][t + 1] : null;
+                  if (MEMO) memoReset();
+                  const clsK = clsW[k];
+                  for (let ai = 0; ai < A; ai++) {
+                    const o = ai * 7, fail = failBuf[ai] === 1;
+                    let s = 0, b = 0, rs = 0, h = 0;
+                    let mf = -1;
+                    if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                    if (!fail && mf < 0) {
+                      const nr = nodeRealOf[ai];
+                      if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                      else for (let zi = 0; zi < NQ; zi++) {
+                        for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                        F.grow(cs[k], t, grown, nr[zi]);
+                        if (t === T) {
+                          const total = grown[0] + grown[1] + grown[2];
+                          const alive = !(floor > 0 && total < floor);
+                          const net = Math.max(0, total - grown[0] * deathTax);
+                          s += QW[zi] * (alive ? 1 : 0);
+                          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                          b += QW[zi] * (alive ? beqOf(net) : 0);
+                        } else {
+                          readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                          s += QW[zi] * rd[0]; b += QW[zi] * rd[1]; rs += QW[zi] * rd[2]; h += QW[zi] * rd[3];
+                        }
+                      }
+                      if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
+                    }
+                    if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
+                    else h += shortOfAction[ai];
+                    if (raiseSurv) h += raiseOfAction[ai] * s;
+                    jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = s + wR * rs + wB * b - h; if (jV[k][ai] - jV[k][ai] !== 0) nonFiniteScore('the backward pass (joint worlds)', t, idx, k, ai, s, b, rs, h);
+                  }
+                }
+                let bestV = -Infinity, bestWB = -Infinity, bestA = 0;
+                for (let ai = 0; ai < A; ai++) {
+                  if (skipFail && failBuf[ai] === 1) continue;
+                  let v = 0, wb = 0;
+                  for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
+                  if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                }
+                failPick(bestA);
+                for (let k = 0; k < K; k++) {
+                  survW[k][t][idx] = jS[k][bestA]; beqW[k][t][idx] = jB[k][bestA]; resilW[k][t][idx] = jR[k][bestA];
+                  polW[k][t][idx] = bestA; shortW[k][t][idx] = jH[k][bestA];
+                }
+                if (PROF) PROF.cells++;
+                continue;
               }
               // PASS 2, once per world: growth at that world's rates, read of that world's tables.
               for (let k = 0; k < K; k++) {
@@ -428,38 +1553,49 @@ export function solve(E, M, plan, opts = {}) {
                 const rNext = t < T ? lresilW[k][t + 1] : null;
                 const hNext = t < T ? shortW[k][t + 1] : null;
                 let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                if (MEMO) memoReset();
+                const clsK = clsW[k];
                 for (let ai = 0; ai < A; ai++) {
                   const o = ai * 7;
                   const fail = failBuf[ai] === 1;
                   let s = 0, b = 0, rs = 0, h = 0;
                   const thisShort = shortOfAction[ai];
-                  if (!fail) {
+                  let mf = -1;
+                  if (!fail && MEMO) { mf = memoFind(postU, o * 2, clsK[ai], 0); if (mf >= 0) { const vb = mf * 4; s = mVal[vb]; b = mVal[vb + 1]; rs = mVal[vb + 2]; h = mVal[vb + 3]; memoHits++; } }
+                  if (!fail && mf < 0) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];
-                    for (let zi = 0; zi < 5; zi++) {
+                    if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                    else for (let zi = 0; zi < NQ; zi++) {
                       for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                       F.grow(cs[k], t, grown, nr[zi]);
                       if (t === T) {
                         const total = grown[0] + grown[1] + grown[2];
                         const alive = !(floor > 0 && total < floor);
                         const net = Math.max(0, total - grown[0] * deathTax);
-                        s += WEIGHTS[zi] * (alive ? 1 : 0);
-                        rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
-                        b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
+                        s += QW[zi] * (alive ? 1 : 0);
+                        rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                        b += QW[zi] * (alive ? beqOf(net) : 0);
                       } else {
-                        readValues(g, sNext, bNext, grown, rd, rNext, hNext);
-                        s += WEIGHTS[zi] * rd[0];
-                        b += WEIGHTS[zi] * rd[1];
-                        rs += WEIGHTS[zi] * rd[2];
-                        h += WEIGHTS[zi] * rd[3];
+                        readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                        s += QW[zi] * rd[0];
+                        b += QW[zi] * rd[1];
+                        rs += QW[zi] * rd[2];
+                        h += QW[zi] * rd[3];
                       }
                     }
                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
+                    if (MEMO) { memoPut(~mf, postU, o * 2, clsK[ai], 0, s, b, rs, h); memoMiss++; }
                   }
-                  h += thisShort;
-                  const score = s + wR * rs + wB * b - h;
+                  if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
+                  else h += thisShort;
+                  if (raiseSurv) h += raiseOfAction[ai] * s;
+                  const score = s + wR * rs + wB * b - h; if (score - score !== 0) nonFiniteScore('the backward pass', t, idx, k, ai, s, b, rs, h);
+                  if (skipFail && failBuf[ai] === 1) continue;
                   if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                 }
+                failPick(bestA);
                 survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
                 polW[k][t][idx] = bestA; shortW[k][t][idx] = bestH;
               }
@@ -469,13 +1605,51 @@ export function solve(E, M, plan, opts = {}) {
         }
       }
     }
-    for (let k = 0; k < K; k++) {
-      toLogOdds(survW[k][t], lsurvW[k][t]);
-      if (shortfall) lresilW[k][t].set(resilW[k][t]); else toLogOdds(resilW[k][t], lresilW[k][t]);
+    const layersOf = (k) => (TS ? layW[k] : [{ surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k] }]);
+    if (E2) {
+      E2.barrier();
+      if (E2.part === 0) {
+        claim.fill(0);
+        copyPass(t);
+        for (let k = 0; k < K; k++) for (const Ly of layersOf(k)) { toLogOdds(Ly.surv[t], Ly.lsurv[t]); if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]); }
+      }
+      E2.barrier();
     }
+    for (let k = 0; k < K; k++) for (const Ly of layersOf(k)) {
+      if (!E2) { toLogOdds(Ly.surv[t], Ly.lsurv[t]); if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]); }
+      // the bridge reader: this year's table split into p x c + R, from the clamped survival the table now holds
+      if (g.reader && g.reader.years[t]) {
+        const ls = Ly.lsurv[t], Sc = new Float64Array(ls.length);
+        for (let i = 0; i < ls.length; i++) Sc[i] = 1 / (1 + Math.exp(-ls[i]));
+        const chance = g.reader.chanceOf(k, t), tx = g.reader.tax ? g.reader.tax[t] : null;
+        // RTAX v2: inside the edge band a node's support is the flow's (items/RTAX.md)
+        const tb = buildReaderTable(g, Sc, chance, tx ? (vv) => { const A = vv[1] + vv[2]; return tx.inBand(A) ? (tx.payable(vv) ? 1 : 0) : chance(A); } : null, t);
+        if (opts.readerSplit === 'r0') { const z = r0Split(Sc, tb.p); tb.c = z.c; tb.R = z.R; g.reader.zeroP = (g.reader.zeroP || 0) + z.zeroP; } else if (opts.readerSplit === 'rz') tb.R = new Float64Array(tb.R.length);   // NE-ROOT's R0 arm (`readerSplit: 'r0'`, research only): nothing left in the residual (reader.js r0Split)
+        g.reader.of.set(ls, { chance, c: tb.c, R: tb.R, p: tb.p, t, k });
+        g.reader.unsupported += tb.unsupported; g.reader.copied += tb.copied; g.reader.copiedTop += tb.copiedTop; g.reader.nodes += tb.nodes; g.reader.built++;
+      }
+    }
+    // Part C Phase 7 (research/solver/PHASE-7.md): the app's progress bar, a year at a time; it reads nothing the solve writes
+    if (opts.progress && (!E2 || E2.part === 0)) opts.progress({ phase: 'years', done: T - t + 1, total: T + 1 });
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  if (E2 && CFP) failPicks = E2.sum(failPicks);   // every part sums at the same point, before the others below
+  if (E2) { evaluated = E2.sum(evaluated); e3Copied = E2.sum(e3Copied); covCopied = E2.sum(covCopied); pclsCopied = E2.sum(pclsCopied); }
+  EXP_MEMO_STATS.hits += memoHits; EXP_MEMO_STATS.misses += memoMiss;
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, tiersBelow: m.tiersBelow || 2, tableDealing: !NODEAL, tsOnce: E5, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, coverage: g.cov ? { nodes: g.cov.nodes || 0, copied: covCopied } : null, readerTax: g.reader && g.reader.tax ? g.reader.tax.map((x, t) => (x ? `${t}:${Math.round(x.tauBar)}` : null)).filter(Boolean).join(',') || 'none' : null, readerRef: g.reader && (opts.readerRef === 'order' || opts.readerRef === 'adaptive') ? opts.readerRef : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, readerChance: g.reader && opts.readerChance === 'sim' ? 'sim' : null, readerSplit: g.reader && opts.readerSplit === 'r0' ? `r0 (zeroP ${g.reader.zeroP || 0})` : g.reader && opts.readerSplit === 'rz' ? 'rz' : g.reader && opts.readerSplit === 'rs' ? 'rs' : g.reader && opts.readerSplit === 'ru' ? 'ru' : g.reader && opts.readerSplit === 'rsu' ? 'rsu' : null, readerCopy: g.reader && opts.readerCopy === 'extrap' ? 'extrap' : null, readerBlend: g.reader && g.reader.blend ? g.reader.blend : null, readerSupportLine: g.reader ? g.reader.line : null, solverVersion: SOLVER_VERSION };
+  if (switchCharge > 0) meta.switchCharge = switchCharge;
+  if (FD) meta.failDelivered = true;
+  if (RESTORE) meta.restored = true;
+  if (PAY) meta.payWhereOnePays = true;
+  if (CFP) meta.failPicks = failPicks;
+  if (ONE_PAIR) meta.tierStateOff = 'one tier pair on the menu: no switch to track';
+  if (opts.tsLean !== undefined) meta.tsLean = opts.tsLean;   // SPEED-PORT-2.md's test switch, recorded when set
+  if (E3) meta.e3 = { copied: e3Copied };
+  if (E3P) meta.e3pcls = { copied: pclsCopied, lastPenIn, setBy: pclsSetBy };
+  if (E2) meta.e2 = { parts: E2.parts };
+  if (g.axes.a && g.axes.a.nodes) meta.shareNodes = Array.from(g.axes.a.pts);   // NODE-1's explicit pension-share nodes (research only; absent in every product path)
+  if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
+  if (JOINT) meta.jointWorlds = true;
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -489,8 +1663,15 @@ export function solve(E, M, plan, opts = {}) {
     meta.profile = PROF;
   }
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
+    tablesW: { survW, beqW, resilW, polW, shortW, layW: TS ? layW : null },
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
+    quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0,
+    /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
+    terminal: { floor, deathTax, resilK, shortfall, beqOf },
+    finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX,
+    tsLayers: TS ? layW[centre] : null, tsLayerOf,
+    raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
      * `scoreMoves(tab, ...)` on each and so needs a complete object. Everything immutable is shared by
@@ -501,24 +1682,26 @@ export function solve(E, M, plan, opts = {}) {
     worlds: null,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
-    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const k = Math.min(t, T), o = readValues(g, lsurv[k], beq[k], s, new Float64Array(4), lresil[k], null, k); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
-    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
+    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
-    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0],
+    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX, tsLayers: TS ? layW[k] : null, tsLayerOf, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
      * test asks each table what the opening position is worth, and that is the one question a table
      * exists to answer. Same bodies as above, bound to this world's six tables.
      */
-    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s)]]; },
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))]]; },
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const kk = Math.min(t, T), o = readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), lresilW[k][kk], null, kk); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
+  researchFinish(r, LK, opts);   // ageWeight and lockTiers recorded in the run record, the lock's settings checked (the file's end)
   return r;
 }
 
@@ -537,8 +1720,17 @@ export function solve(E, M, plan, opts = {}) {
 export function chooseAction(r, s, t, held = null) {
   const { actions } = r;
   const T = r.m.ctx.totalYears;
-  if (t >= T && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
-  if (t >= T) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
+  /*
+   * THE FINAL YEAR (`finalExact`, 23 Sep, found by the step-2 records). Off, the last year reads the stored
+   * move of the NEAREST cell - the one read this function exists to avoid. It decided the step-2 outliers:
+   * all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search, failed in the
+   * final year, from a near-empty position whose nearest cell could afford a move the real one could not.
+   * On, every move is scored at the exact position against the end-of-plan rule the backward pass itself
+   * applies at t = T (scoreMoves below), so the last year is the same exact maximisation as every other.
+   */
+  if (t >= T && !r.finalExact && !r.mix) return r.pol[T][nearestIndex(r.g, s, T)];
+  if (t >= T && !r.finalExact) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s, T)];
+  if (r.c.tiers.gia) r.giaHold = -1;
   const eps = r.eps;
   const n = actions.length;
   const SC = r._sc || (r._sc = new Float64Array(n));
@@ -548,8 +1740,19 @@ export function chooseAction(r, s, t, held = null) {
     // the mixture: the weighted average of every table's score for each move; a move that fails in any table fails
     SC.fill(0); TX.fill(0); BQ.fill(0);
     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
+    // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
+    // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
+    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
     r.mix.tables.forEach((tab, k) => {
-      scoreMoves(tab, s, t, S2, T2, B2, held);
+      if (D) {
+        scoreMovesShared(tab, s, t, S2, T2, B2, D);
+        if (CHOOSER.check) {
+          const S3 = new Float64Array(n), T3 = new Float64Array(n), B3 = new Float64Array(n);
+          scoreMoves(tab, s, t, S3, T3, B3, held);
+          for (let ai = 0; ai < n; ai++) if (!Object.is(S2[ai], S3[ai]) || !Object.is(T2[ai], T3[ai]) || !Object.is(B2[ai], B3[ai])) throw new Error(`share check: year ${t}, world ${k}, move ${ai}: ${S2[ai]} ${S3[ai]} | ${T2[ai]} ${T3[ai]} | ${B2[ai]} ${B3[ai]}`);
+          SHARE_CHECKED.n += n;
+        }
+      } else scoreMoves(tab, s, t, S2, T2, B2, held);
       const w = r.mix.weights[k];
       for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
     });
@@ -565,6 +1768,8 @@ export function chooseAction(r, s, t, held = null) {
     scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)), held);
     for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
   }
+  // lockTiers: only the moves on the pair the candidate's chooser picks here stay in (lockMask, at the file's end)
+  if (r.lockTiers) { const lk = lockMask(r, s, t, held, SC); if (lk >= 0) return lk; }
   let bestScore = -Infinity, bestB = -Infinity, best = 0;
   for (let ai = 0; ai < n; ai++) {
     const score = SC[ai];
@@ -576,6 +1781,14 @@ export function chooseAction(r, s, t, held = null) {
    * noise is not worth the trades and the bother. The moves that keep the tiers held are compared on
    * their own; if the best of them is within the margin of the best overall, it is chosen.
    */
+  // P: a move that leaves the held tiers pays the charge (the backward pass charged it too; see `switchCharge` in solve)
+  const sc = r.switchCharge || 0;
+  if (held && sc > 0) {
+    const acts = r.c.acts;
+    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa)) SC[ai] -= sc;
+    bestScore = -Infinity; bestB = -Infinity; best = 0;
+    for (let ai = 0; ai < n; ai++) { const score = SC[ai]; if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; } }
+  }
   const sm = r.switchMargin || 0;
   if (held && sm > 0) {
     const acts = r.c.acts;
@@ -601,38 +1814,256 @@ export function chooseAction(r, s, t, held = null) {
       if (SC[ai] < bestScore - tie) continue;
       if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
     }
-    return pick;
+    return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, pick) : pick;
   }
-  return best;
+  return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, best) : best;
+}
+
+/*
+ * KEEP THE TAXABLE ACCOUNT WHERE IT IS? (M15, `giaTiers`.) The GIA takes the joint step, so without this every
+ * pension move would force a GIA sale and its capital gains tax. The chosen move is scored once more with the GIA
+ * at the tier it holds, paying no GIA charge; unless switching beats that by the switch margin, the GIA stays and
+ * `r.giaHold` names its tier (-1: take the move's). One move, five nodes: a few evaluations a decision. The single
+ * table only; a mixture or an extrapolated score takes the move's own tier.
+ */
+function giaHoldCheck(r, s, t, held, ai) {
+  const c = r.c;
+  if (!held || r.mix || r.rich) return ai;
+  const hg = held.gia || 0;
+  if (c.acts[ai].tierGia === hg) return ai;
+  const act = c.actWithGia(ai, hg);
+  const nr = r.quadNodes.map(z => realAt(c, z, new Float64Array(4), act, t));
+  const SC = r._sc, TX = r._tx, BQ = r._bq;
+  const was = SC[ai], wasTx = TX[ai], wasB = BQ[ai];
+  scoreMoves(r, s, t, SC, TX, BQ, held, { ai, act, nr });
+  if (SC[ai] >= was - (r.switchMargin || 0) - r.eps) r.giaHold = hg;
+  SC[ai] = was; TX[ai] = wasTx; BQ[ai] = wasB;
+  return ai;
 }
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
-function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
+/*
+ * Exported so a probe can ask what EVERY action scores at a position, not just which one wins.
+ * `chooseAction` returns the argmax and throws the rest away, which makes questions about the SHAPE of
+ * the action set - is the score single-peaked in spending level? are most actions dominated? -
+ * unanswerable from outside. Pure function, no state touched. `SV`, when given, receives each move's expected survival
+ * alone (the score's survival part, before the estate, resilience and cut terms; 0 for an infeasible move): 7ad's
+ * like-for-like price of a move, survival and whole apart.
+ */
+export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
   const nodeRealOf = nodeRealOfAt[t];
-  const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
-  const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
+  // the scratch at the length of the state given (the speed review of 23 Oct, finding 1): kept at the first call's length,
+  // a seven-slot grid position scored after forward runs (14 slots) ran as a forward state, its flow reading the last
+  // flow's slots 11 to 13 and its growth taking its cash from slot 12; the other way round it threw
+  let post = r._post, grown = r._grown;
+  if (!post || post.length !== s.length) post = r._post = new Float64Array(s.length);
+  if (!grown || grown.length !== s.length) grown = r._grown = new Float64Array(s.length);
   const rd = r._rd || (r._rd = new Float64Array(4));
   const spendYear = c.yr.spend[t] > 0;
-  for (let ai = 0; ai < actions.length; ai++) {
+  // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)
+  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : actions.length;
+  for (let ai = a0; ai < a1; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
-    if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
+    if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; if (SV) SV[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
-    if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
-    let sv = 0, bq = 0, rs = 0, h = (spendYear ? r.costOf(levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
-    const nr = nodeRealOf[ai];
-    for (let zi = 0; zi < 5; zi++) {
+    if (held) F.chargeSwitch(c, post, held, variant ? variant.act : c.acts[ai], t);
+    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
+    const rz = r.raiseSurvival && cst < 0 ? cst : 0;   // M17: a raise's credit, weighted below by the survival it leads to
+    let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+    const nr = variant ? variant.nr : nodeRealOf[ai];
+    const QW = r.quadWeights || WEIGHTS;
+    if (t >= r.m.ctx.totalYears) {
+      // the final year, exactly as the backward pass scores it at t = T: grown, then judged by the end-of-plan rule
+      const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
+      if (r.finalIntegral) {
+        const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
+        finalYearExact(c, t, post, variant ? variant.act : c.acts[ai], r.terminal, grown, fxR, fx);
+        sv = fx[0]; bq = fx[1]; rs = fx[2];
+      } else for (let zi = 0; zi < QW.length; zi++) {
+        grown.set(post);
+        F.grow(c, t, grown, nr[zi]);
+        const total = grown[0] + grown[1] + grown[2];
+        const alive = !(floor > 0 && total < floor);
+        const net = Math.max(0, total - grown[0] * deathTax);
+        sv += QW[zi] * (alive ? 1 : 0);
+        rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+        bq += QW[zi] * (alive ? beqOf(net) : 0);
+      }
+      if (rz) h += rz * sv;
+      SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
+      if (SV) SV[ai] = sv;
+      continue;
+    }
+    // the tier state (solve's tierState): each move reads the next year's layer of the pair it moves to
+    const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
+    const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
+    const stepAt = r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
+    const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
+    if (stepAt !== null && stepExpect(c, g, t, post, variant ? variant.act : c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; }
+    else for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
-      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1]);
-      sv += WEIGHTS[zi] * rd[0];
-      bq += WEIGHTS[zi] * rd[1];
-      rs += WEIGHTS[zi] * rd[2];
-      h += WEIGHTS[zi] * rd[3];
+      readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+      sv += QW[zi] * rd[0];
+      bq += QW[zi] * rd[1];
+      rs += QW[zi] * rd[2];
+      h += QW[zi] * rd[3];
     }
-    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+    if (rz) h += rz * sv;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
+    if (SV) SV[ai] = sv;
+  }
+}
+
+/*
+ * THE CHOOSER'S SHARED YEAR (S2 of the speed review of 23 Oct; STATE.md D24). scoreMoves scores every move in every world
+ * from scratch: the year's flow once a move a world (the flow reads no world field, and a tier variant's flow is its base
+ * move's) and the expectation once a move, even where two moves leave the same position. Here the flows and the switch
+ * charge are computed once a decision and shared; within a world, moves with the same charged position, growth class and
+ * layer share one expectation. A move's own terms are applied in the original order (h's node terms kept and added one by
+ * one: floating-point addition does not reassociate), so every score is the same bit for bit (chooser-share.test.mjs). On
+ * by default in the product's path and the research runs (the maintainer, 23 Oct). The switch is this object, not the
+ * environment (one process.env read a move made the prototype's chooser 2.5 times slower): `share`; `check` (tests: every
+ * score recomputed by scoreMoves, a difference thrown); `plant` (research only: 'nocharge', a tier variant's switch charge
+ * skipped; 'nocls', the growth class left out of the key). The old path stays for a single table, a taxable-account tier,
+ * a state under seven slots, Richardson's second table, a reader probe and the log-odds blend (both count every read), and
+ * scoreMoves stays the reference that probes and rankActions use.
+ */
+export const CHOOSER = { share: true, check: false, plant: '' };
+export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0 };
+function decisionFlows(r, s, t, held) {
+  const c = r.c, actions = r.actions, n = actions.length, L = s.length;
+  let D = r._dec;
+  if (!D || D.L !== L) {
+    D = r._dec = { L, post: new Float64Array(n * L), cpost: new Float64Array(n * L), fail: new Uint8Array(n), tx: new Float64Array(n),
+      base: Int32Array.from(actions, (a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai)) };
+    D.cU = new Uint32Array(D.cpost.buffer);
+  }
+  const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant;
+  for (let ai = 0; ai < n; ai++) {
+    const o = ai * L, b = base[ai];
+    if (b === ai) {
+      const p = post.subarray(o, o + L); p.set(s);
+      const unmet = F.flow(c, t, ai, p);
+      tx[ai] = c.last.taxPaid + c.last.cgtPaid;
+      fail[ai] = unmet > 1 || c.last.preNmpaInsolvent ? 1 : 0;
+    } else { post.copyWithin(o, b * L, b * L + L); tx[ai] = tx[b]; fail[ai] = fail[b]; }
+    for (let q = 0; q < L; q++) cpost[o + q] = post[o + q];
+    if (held && !fail[ai] && !(plant === 'nocharge' && b !== ai)) F.chargeSwitch(c, cpost.subarray(o, o + L), held, c.acts[ai], t);
+  }
+  return D;
+}
+const clsBitsF = new Float64Array(1), clsBitsU = new Uint32Array(clsBitsF.buffer);
+const clsBits = v => Array.from(v, x => { clsBitsF[0] = x; return clsBitsU[0].toString(36) + '.' + clsBitsU[1].toString(36); }).join(',');
+function classesOf(r, t) {
+  const cache = r._clsAt || (r._clsAt = []);
+  if (cache[t]) return cache[t];
+  const n = r.actions.length, out = new Int32Array(n), ids = new Map(), nro = r.nodeRealOfAt[t], acts = r.c.acts;
+  for (let ai = 0; ai < n; ai++) {
+    const a = acts[ai];
+    const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${clsBits(a.real)}|${clsBits(a.sigma)}|${clsBits(a.volEffAt[t])}|${nro[ai].map(clsBits).join(';')}`;
+    let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
+    out[ai] = id;
+  }
+  return (cache[t] = out);
+}
+function makeMemo(cap, words, NQ) {
+  const size = 1 << Math.ceil(Math.log2(2 * cap + 2)), mask = size - 1, KW = words + 2;
+  const slotStamp = new Int32Array(size).fill(-1), slotEnt = new Int32Array(size), key = new Uint32Array(cap * KW);
+  const M = { words, NQ, val: new Float64Array(cap * 3), hv: new Float64Array(cap * NQ), mode: new Uint8Array(cap), stamp: 0, n: 0 };
+  M.reset = () => { M.stamp++; M.n = 0; };
+  M.find = (U, w0, cls, lay) => {
+    let h = Math.imul(cls + 1, 0x9E3779B1) ^ Math.imul(lay + 1, 0x85EBCA77);
+    for (let w = 0; w < words; w++) h = Math.imul(h ^ U[w0 + w], 0x01000193);
+    h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12;
+    let slot = h & mask;
+    for (;;) {
+      if (slotStamp[slot] !== M.stamp) return ~slot;
+      const e = slotEnt[slot], kb = e * KW;
+      if (key[kb + words] === cls && key[kb + words + 1] === lay) { let w = 0; while (w < words && key[kb + w] === U[w0 + w]) w++; if (w === words) return e; }
+      slot = (slot + 1) & mask;
+    }
+  };
+  M.put = (slot, U, w0, cls, lay) => {
+    const e = M.n++, kb = e * KW;
+    for (let w = 0; w < words; w++) key[kb + w] = U[w0 + w];
+    key[kb + words] = cls; key[kb + words + 1] = lay;
+    slotStamp[slot] = M.stamp; slotEnt[slot] = e;
+    return e;
+  };
+  return M;
+}
+function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
+  const nodeRealOf = nodeRealOfAt[t], n = actions.length, L = D.L;
+  const grown = r._grownS && r._grownS.length === Math.max(7, s.length) ? r._grownS : (r._grownS = new Float64Array(Math.max(7, s.length)));   // its own scratch: scoreMoves' is left as it was
+  const rd = r._rd || (r._rd = new Float64Array(4));
+  const spendYear = c.yr.spend[t] > 0;
+  const QW = r.quadWeights || WEIGHTS, NQ = QW.length;
+  const final = t >= r.m.ctx.totalYears;
+  const stepAt = !final && r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
+  const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
+  const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
+  const cls = classesOf(r, t), plant = CHOOSER.plant;
+  let M = r._cm;
+  if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
+  M.reset();
+  const { val, hv, mode } = M, cU = D.cU;
+  for (let ai = 0; ai < n; ai++) {
+    TX[ai] = D.tx[ai];
+    if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+    const o = ai * L, post = D.cpost.subarray(o, o + L);
+    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
+    const rz = r.raiseSurvival && cst < 0 ? cst : 0;
+    let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+    const lj = !final && r.tsLayers ? r.tsLayerOf[ai] + 1 : 0, cl = plant === 'nocls' ? 0 : cls[ai];
+    const f = M.find(cU, o * 2, cl, lj);
+    if (f >= 0) {
+      SHARE_CHECKED.hits++;
+      const vb = f * 3, hb = f * NQ; sv = val[vb]; bq = val[vb + 1]; rs = val[vb + 2];
+      if (mode[f] === 1) h += hv[hb]; else if (mode[f] === 2) for (let zi = 0; zi < NQ; zi++) h += hv[hb + zi];
+    } else {
+      SHARE_CHECKED.miss++;
+      const e = M.put(~f, cU, o * 2, cl, lj), vb = e * 3, hb = e * NQ;
+      const nr = nodeRealOf[ai];
+      if (final) {
+        const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
+        if (r.finalIntegral) { finalYearExact(c, t, post, c.acts[ai], r.terminal, grown, fxR, fx); sv = fx[0]; bq = fx[1]; rs = fx[2]; }
+        else for (let zi = 0; zi < QW.length; zi++) {
+          grown.set(post);
+          F.grow(c, t, grown, nr[zi]);
+          const total = grown[0] + grown[1] + grown[2];
+          const alive = !(floor > 0 && total < floor);
+          const net = Math.max(0, total - grown[0] * deathTax);
+          sv += QW[zi] * (alive ? 1 : 0);
+          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+          bq += QW[zi] * (alive ? beqOf(net) : 0);
+        }
+        mode[e] = 0;
+      } else {
+        const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
+        const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
+        if (stepAt !== null && stepExpect(c, g, t, post, c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; hv[hb] = sx[3]; mode[e] = 1; }
+        else {
+          for (let zi = 0; zi < NQ; zi++) {
+            grown.set(post);
+            F.grow(c, t, grown, nr[zi]);
+            readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+            sv += QW[zi] * rd[0];
+            bq += QW[zi] * rd[1];
+            rs += QW[zi] * rd[2];
+            const term = QW[zi] * rd[3]; h += term; hv[hb + zi] = term;
+          }
+          mode[e] = 2;
+        }
+      }
+      val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
+    }
+    if (rz) h += rz * sv;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
   }
 }
 
@@ -643,8 +2074,8 @@ export function rankActions(r, s, t, held = null, K = 3) {
   if (r.mix) {
     SC.fill(0);
     const S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
-    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
-  } else scoreMoves(r, s, Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
+    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, r.finalExact ? t : Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
+  } else scoreMoves(r, s, r.finalExact ? t : Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
   const idx = []; for (let ai = 0; ai < n; ai++) if (SC[ai] > -Infinity) idx.push(ai);
   idx.sort((a, b) => (SC[b] - SC[a]) || (BQ[b] - BQ[a]));
   return idx.slice(0, K);
@@ -659,19 +2090,36 @@ export function rankActions(r, s, t, held = null, K = 3) {
 export function runPolicy(r, zs, opts = {}) {
   const { m, g, c, actions, pol } = r;
   const T = m.ctx.totalYears;
-  const s = vecOf(m, r.M.initialState(m));
+  /* `start` (the ranking check, PLAN.md step 2b): begin at year t0 from a given position and tiers, taking
+   * `firstAi` in that first year and the solver's own move after it. Absent, the run starts at year 0 as always. */
+  const st0 = opts.start || null;
+  const s = st0 ? Float64Array.from(st0.s) : vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
   // the path's own long-run shift, drawn once (the engine keeps it after the yearly draws); nothing in fold mode
   const zPath = zs.length > T + 1 ? zs[T + 1] : 0;
   // belowSum/aboveSum carry the level in the years it was under or over target, so the report can say how
   // DEEP a trim was and how big a raise, not only how often each happened
   let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
-  const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
-  for (let t = 0; t <= T; t++) {
-    const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
+  const held = st0 ? { pen: st0.held.pen, isa: st0.held.isa, gia: st0.held.gia || 0 } : { pen: 0, isa: 0, gia: 0 };   // the tiers held: the plan's until a move changes them
+  const giaOn = !!c.tiers.gia;
+  let giaYears = 0, giaChanges = 0;
+  /* RUN RECORDS (research/solver/record.mjs): a per-year trace when a caller asks for one. Off, it costs a null check. */
+  const tr = opts.trace || null;
+  const traceYear = (t, lv, spendYear, taxYear) => {
+    const k = tr.row * tr.Y + t, w = s[0] + s[1] + s[2];
+    tr.level[k] = spendYear ? Math.max(0, Math.min(255, Math.round(100 * lv))) : 0;
+    tr.tier[k] = held.pen * 4 + held.isa; tr.wealth[k] = w; tr.penShare[k] = w > 0 ? Math.round(100 * s[0] / w) : 0; tr.taxPaid[k] = taxYear;
+  };
+  for (let t = st0 ? st0.t : 0; t <= T; t++) {
+    // `choose` (research only, 7r's swap arms): a caller's own chooser in place of the solver's; absent, nothing changes
+    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))] : opts.choose ? opts.choose(t, s, held) : chooseAction(r, s, t, held));
+    // M15: the move as run, with the taxable account kept at its tier when the decision said so
+    const act = giaOn && r.giaHold >= 0 && !(st0 && t === st0.t) && !opts.stored ? c.actWithGia(ai, r.giaHold) : c.acts[ai];
+    if (opts.visit) opts.visit(t, s, held, ai);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
-    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    if (giaOn) { if (act.tierGia !== held.gia) giaChanges++; if (act.tierGia > 0) giaYears++; }
+    { const a = act; switchPaid += F.chargeSwitch(c, s, held, a, t); held.pen = a.tierPen; held.isa = a.tierIsa; held.gia = a.tierGia; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
       if (lv >= 1 - 1e-9) atTarget++; else belowSum += lv;
@@ -682,11 +2130,12 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid };
-    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) }; }
+    F.grow(c, t, s, realAt(c, zs[t], real, act, t, zPath));
+    if (tr) traceYear(t, c.last.level, c.yr.spend[t] > 0, c.last.taxPaid + c.last.cgtPaid);
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
+  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }
@@ -752,22 +2201,92 @@ export function solveFlex(E, M, plan, opts = {}) {
   const nVerify = Math.max(opts.verifyPaths || nSearch, nSearch);
   const zsAll = E.pathsForSeed(opts.seed || 4242, nVerify, probe.ctx.totalYears);
   const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
-  const rateOn = (r, paths) => paths.filter(z => runPolicy(r, z).survived).length / paths.length;
-  let solves = 0;
-  const at = (lambda) => {
-    const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
-    r.floorRate = rateOn(r, zsSearch); solves++; return r;
+  /*
+   * THE SPLIT, off unless SOLVER_PROFILE is set: how much of a LANDING is solving, and how much is
+   * running the policy forward over paths?
+   *
+   * It matters because the whole of Part E - E0 through E4 - makes the SOLVE faster and none of it
+   * touches the forward passes. If those are half the run then E3's measured 30.2% is 30.2% of half,
+   * and the cheapest remaining win is the search-path count instead. That was an estimate differenced
+   * from two runs that changed several things at once, which is exactly the reasoning that produced
+   * the wrong cost figures this instrument exists to replace. So: measure it directly.
+   */
+  const FPROF = typeof process !== 'undefined' && process.env && process.env.SOLVER_PROFILE
+    ? { solveMs: 0, fwdMs: 0, solveCalls: 0, fwdRuns: 0 } : null;
+  const rateOn = (r, paths) => {
+    const t = FPROF ? Date.now() : 0;
+    const v = paths.filter(z => runPolicy(r, z).survived).length / paths.length;
+    if (FPROF) { FPROF.fwdMs += Date.now() - t; FPROF.fwdRuns += paths.length; }
+    return v;
   };
-  // the rate about to be promised, on the full draw the search set is a prefix of
-  const verify = (r) => { if (r.searchFloorRate === undefined) { r.searchFloorRate = r.floorRate; r.floorRate = rateOn(r, zsAll); } return r; };
+  let solves = 0;
+  /*
+   * THE TRACE: every (lambda, floor rate) the search actually visits, in order.
+   *
+   * The landing computed these and threw them away, keeping only where it stopped. That made a fair
+   * question - what does the floor rate look like as a function of lambda? - unanswerable from any
+   * recorded run, and the answer decides whether a smarter root-finder than bisection can help.
+   *
+   * It matters because the shape is NOT the smooth curve the stage-2 comment below implies. The policy
+   * is an argmax over a finite action set, so it is constant in lambda until two actions tie and then
+   * jumps: the floor rate is a STAIRCASE. And the solver maximises survival + resilience + bequest,
+   * not survival alone, so nothing forces the survival component of an argmax to move monotonically
+   * when one term's weight changes - gate 6b found the de-risking channel lifting floors on its own.
+   * Free to keep, and it makes the shape a matter of record rather than of assumption.
+   */
+  const trace = [];
+  const at = (lambda) => {
+    const t = FPROF ? Date.now() : 0;
+    const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
+    if (FPROF) { FPROF.solveMs += Date.now() - t; FPROF.solveCalls++; }
+    r.floorRate = rateOn(r, zsSearch); solves++;
+    trace.push({ lambda, searchRate: r.floorRate });
+    return r;
+  };
+  /*
+   * The rate about to be promised, on the full draw the search set is a prefix of.
+   *
+   * WHEN THE TWO DRAWS ARE THE SAME ARRAY, THIS IS A NO-OP, AND IT USED NOT TO BE. `verifyPaths`
+   * defaults to `searchPaths` - that is the whole point of the single-stage landing above - so
+   * `zsSearch` and `zsAll` are the SAME OBJECT, and re-running `rateOn` against the same immutable
+   * table on the same paths returned the same bits at full price.
+   *
+   * It was not a small price. A landing calls `at` eight times and `verify` three times (the bracket
+   * top, the bracket bottom, and the chosen table), so a QUARTER of all forward-pass work was
+   * recomputing a number already in hand - and forward passes dominate: a single-solve probe at 12
+   * points still took 15 minutes, almost none of it solving.
+   *
+   * The guard is identity, not equality, so it cannot fire on two draws that merely happen to match.
+   * When `verifyPaths` is raised above `searchPaths` the second pass is real work and still happens.
+   */
+  const sameDraw = zsSearch === zsAll;
+  const verify = (r) => {
+    if (r.searchFloorRate !== undefined) return r;
+    r.searchFloorRate = r.floorRate;
+    if (!sameDraw) r.floorRate = rateOn(r, zsAll);
+    return r;
+  };
   const done = (r, landed, vSteps = 0) => {
     r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
     r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
     r.meta.solverVersion = SOLVER_VERSION;
+    if (FPROF) r.meta.split = { ...FPROF, totalMs: FPROF.solveMs + FPROF.fwdMs };
+    r.meta.trace = trace;
     return r;
   };
   if (levels.length === 1) return done(verify(at(0)), 'no floor');
   if (!levels.some(l => l < 1)) return done(verify(at(0)), 'no floor');   // raises only: nothing to land
+  /*
+   * LAMBDA HELD, FOR A SCREEN. One solve instead of the five to seven a landing takes, by skipping the
+   * bisection and using a penalty that was landed on a previous run of the same household.
+   *
+   * This exists so a screen can compare ARMS at a fixed penalty rather than comparing landings, which
+   * is a different and much more expensive question. The cost is stated wherever it is used and is not
+   * negotiable: with lambda held, THE FLOOR RATE IS NOT PINNED, so the arms are not compared at equal
+   * downside and no number from such a run is a headline. `landed` says 'lambda held' so a reducer
+   * cannot mistake one of these for a landing.
+   */
+  if (opts.lambdaFixed !== undefined) return done(verify(at(opts.lambdaFixed)), 'lambda held');
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
   let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);
@@ -834,10 +2353,23 @@ export function solveFlex(E, M, plan, opts = {}) {
   return done(best, 'landed', vSteps);
 }
 
-function nearestIndex(g, s) {
+// exported for 7ae's decision log (research/solver/audit-s126.mjs diag7ae): the cell whose stored move the forward chooser is
+// compared with; the solver's own rule, not a copy
+export function nearestIndex(g, s, yr = -1) {
+  if (g.cov) {
+    // COV-B: the nearest wealth row, then the nearest share slot on that row's own nodes in that year
+    if (!(yr >= 0)) throw new Error('coverage: nearestIndex needs the year');
+    const W = s[0] + s[1] + s[2], a = W > 0 ? s[0] / W : 0;
+    const l = locateVec({ ...g, cov: null }, s);
+    const ip = Math.min(g.np - 1, l.p.i + (l.p.w > 0.5 ? 1 : 0)), sa = shareLocOf(g, ip, a, yr);
+    return g.index(ip, Math.min(g.ni - 1, sa.i + (sa.w > 0.5 ? 1 : 0)), Math.min(g.nt - 1, l.t.i + (l.t.w > 0.5 ? 1 : 0)), l.ig + (l.igw > 0.5 ? 1 : 0), l.ic + (l.icw > 0.5 ? 1 : 0));
+  }
   const loc = locateVec(g, s);
   return g.index(Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
-    Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);
+    Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)),
+    // with the gain or allowance axis interpolated (research only), ig and ic are the LOWER bracket: round by the weight above
+    // (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK); off, both weights are 0 and this is the snap as before
+    loc.ig + (loc.igw > 0.5 ? 1 : 0), loc.ic + (loc.icw > 0.5 ? 1 : 0));
 }
 
 /*
@@ -854,4 +2386,247 @@ export function solveBoth(E, M, plan, opts = {}) {
   const better = (bt.survival > at.survival + eps || (Math.abs(bt.survival - at.survival) <= eps && bt.bequest > at.bequest)) ? b : a;
   better.alternative = better === a ? b : a;
   return better;
+}
+
+/*
+ * THE PRODUCT ENTRY POINT (PLAN.md finding M1, 23 Sep). `solve()` keeps the research engine's historical
+ * defaults - resilience 0.5, the full level scan, no raises, no #106 fix - because fourteen test suites and
+ * every recorded result are written against them. The app must never inherit those by omission, so it calls
+ * this instead, which carries the baseline decided on 23 Sep and nothing else:
+ *
+ *   survival the anchor, no resilience term; the six-level menu down to the user's floor (raises to 1.2 unless
+ *   capped or blocked); raise credit 0.003; the full level scan; the exact final year; the pension and ISA tiers
+ *   when the user consents; the three-world mixture; 30 wealth points.
+ *
+ * The user's settings arrive as `opts`: `lambda` (dislike of cuts), `raiseCap`, `riskConsent` (default on),
+ * and anything the caller must override for a test (`points`). Block trimming is the plan's floor set equal
+ * to its target, which leaves the menu nothing below 1. The estate curve and the minimum-pot default join
+ * after the maintainer's step-6 choices. Gate: identical, bit for bit, to `solveMixture` with the same options
+ * written out (solver-plan.test.mjs).
+ */
+export const PRODUCT_BASELINE = Object.freeze({
+  resilienceWeight: 0, raiseWeight: 0.003, finalExact: true, mix: 3, points: 30,
+  // step 6 (24 Sep): the M17 floor fix - a year with no money costs what a year at the floor costs, and a raise's
+  // credit counts only in the futures that survive. It keeps the plan from spending up into a failure.
+  raiseSurvival: true, failureShortfall: true,
+  // The final year integrated exactly (the maintainer, 25 Sep 09:36 UK, on O19, 7j and 7k): survival and the estate in the
+  // last year from the crossing shock, not averaged over the return points. O19: no harm on six households, and it stops
+  // the 5-node staircase pricing a riskier tier at nothing (results-o19.txt, results-o19-exact.txt); 7j: S360's survival
+  // unchanged and its end wealth higher (results-o22-detail.txt, not registered); 7k: 3-9% more solve time at 16 points
+  // (results-finalyear-timing.txt). Callers pass `finalIntegral: false` for the averaged final year.
+  finalIntegral: true,
+  // The bridge read: OFF until F2's test (schedule 7e) chooses between off, F1 v1, F1 v2 and F2 in one setting. F1 v2
+  // was made the provisional default at 18:21 UK on the condition that it was genuinely better than v1; withdrawn 24 Sep
+  // 19:25 UK, since the files do not show that (v2 lost 0.8 +/- 0.32 on bridge 4, results-f1v2.txt, where v1 lost
+  // nothing beyond two se, results-f1-verdict.txt, in a different setting) and the F1 v2 test's registered consequence
+  // (predictions/f1v2-test.md) is that v2 is not carried forward. Callers pass `bridgeRead: 1` or `2` to read with F1.
+  bridgeRead: false,
+  // E3 (the empty-pot copy): OFF in the product. E3c held every table bit for bit with it on and off on the 25 panel
+  // households (results-e3c.txt: EXACT), so it is the research default only (research/solver/research-opts.mjs); a
+  // product default would be a separate decision. Pinned with PLAN.md's decided-defaults block by
+  // research/tests/e3-default.test.mjs.
+  e3: false
+  // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
+  // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
+  // option passed its test on S126 (results-step2.txt).
+});
+/* The menu for a floor, as a fraction of target: raises to 1.2, then 1, 0.95, 0.9 and the floor itself, never below it. */
+export function productLevels(floorFrac) {
+  const f = floorFrac > 0 ? Math.min(1, floorFrac) : 1;
+  const raw = [1.2, 1.1, 1, 0.95, 0.9, f].filter(l => l >= f - 1e-9);
+  return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
+}
+/*
+ * THE USER'S DEFAULTS, decided at step 6 (24 Sep; PLAN.md schedule row 6, the evidence in the morning summary):
+ *   - raises capped at 110% of target unless the user sets `raiseCap` (1 blocks raises): half the extra spending of
+ *     the uncapped 120% for the same survival (K3);
+ *   - a minimum end-of-life pot of one year of target spending, before any tax on the pension at death, unless the
+ *     plan carries its own or the user sets `minPotYears` (0 for none): it stops the plan aiming to end at zero (K2);
+ *   - the estate slider (`estateWeight`) never below 0.01, because a weight of zero leaves nothing rewarding a pound
+ *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
+ *   - risk ABOVE the user's tier by the 'auto' rule: one tier above, only with consent to change risk, only where the
+ *     plan is thin (simulated survival below 85% without it) and only if no worse on the same paths (M14b; approved
+ *     24 Sep 16:55 UK, held for M14c, O19 and 7h, decided 25 Sep 06:31 UK; "on in every plan" lost survival on
+ *     comfortable plans);
+ *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
+ *     planned, not built.
+ */
+export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.85, thinPaths: 1000, thinSeed: 7101 });
+/*
+ * RISK ABOVE THE USER'S TIER: THE 'AUTO' RULE BY DEFAULT (maintainer, decided 25 Sep 06:31 UK on M14b, M14c, O19 and 7h; PLAN.md M14, M14b).
+ *
+ * With the plan's tier below the top, allowing one tier above is a bet made when behind. Under the step-6 defaults
+ * (M14b, results-m14b.txt) it still helped the thinnest plans (S330 +1.20, S354 +1.30 points of survival, 76-81%
+ * without it) but lost on comfortable ones beyond two paired se (S172 -0.77, S194 -0.27, S162 -0.20, all 99%+): there
+ * the option made the solver hold a riskier tier in ordinary years, or the bet sped up failure in the worst markets
+ * (results-m14b-why.txt). Neither the exact final year (O19) nor finer averaging (7h) removed that cost
+ * (results-o19-exact.txt, results-quadref-exact.txt; figures beside the registered readings). So `riskAbove` left unset means 'auto':
+ *   - never without consent to change risk, and never where no tier above exists (a pension at the top tier);
+ *   - only where the plan is thin: its SIMULATED survival without it is below `thinSurvival` (85%, between the last
+ *     household that gained, 81.1%, and the first that did not, 89.2% - fitted on M14b's twelve, to be checked on
+ *     other households), on `thinPaths` paths of a seed used for nothing else. The table's own number is not used: it
+ *     runs 3-5 points optimistic (M16) and reads dead corners low (#106);
+ *   - and it is kept only if the plan with it survives at least as well on those same paths.
+ * `riskAbove: true` still allows the tier above in any plan (research, and a user who asks for it); `false` never.
+ */
+function solvePlanAuto(E, M, plan, opts) {
+  // Part C Phase 7 (PHASE-7.md): the progress bar told which of the two solves it is in
+  const passOf = (pass) => (opts.progress ? { progress: (x) => opts.progress({ ...x, pass }) } : {});
+  const off = solvePlan(E, M, plan, { ...opts, riskAbove: false, ...passOf('without the tier above') });
+  const note = (r, decision, s0, s1) => { r.meta.riskAbove = { decision, thinSurvival: PRODUCT_DEFAULTS.thinSurvival, survivalWithout: s0, survivalWith: s1 }; return r; };
+  if (opts.riskConsent === false) return note(off, 'off: no consent to change risk');
+  // no tier above to allow when every wrapper already sits at the top tier
+  const probe = M.prepare(E, plan), probeUp = M.prepare(E, plan); probeUp.tiersAbove = 1;
+  if (opts.tiersBelow !== undefined) probe.tiersBelow = probeUp.tiersBelow = opts.tiersBelow;   // D28: the probes take the ladder the solve will
+  if (tierCombos(probeUp).length === tierCombos(probe).length) return note(off, 'off: no tier above the plan');
+  const N = opts.thinPaths || PRODUCT_DEFAULTS.thinPaths;
+  const paths = E.pathsForSeed(opts.thinSeed || PRODUCT_DEFAULTS.thinSeed, N, off.m.ctx.totalYears);
+  const ok0 = paths.map(zs => runPolicy(off, zs).survived);
+  const s0 = ok0.filter(Boolean).length / N;
+  if (s0 >= PRODUCT_DEFAULTS.thinSurvival) return note(off, 'off: not thin', s0);
+  const on = solvePlan(E, M, plan, { ...opts, riskAbove: true, ...passOf('with the tier above') });
+  const s1 = paths.filter(zs => runPolicy(on, zs).survived).length / N;
+  return s1 >= s0 ? note(on, 'on: thin, and no worse on the same paths', s0, s1) : note(off, 'off: thin, but worse with it on the same paths', s0, s1);
+}
+export function solvePlan(E, M, plan, opts = {}) {
+  if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
+  if (opts.giaTiers) throw new Error('the taxable account cannot change tier in the product: its first design failed (PLAN.md M15)');
+  if (opts.riskAbove === 'auto') return solvePlanAuto(E, M, plan, opts);
+  if (opts.riskAbove === undefined) return solvePlanAuto(E, M, plan, opts);
+  const { riskConsent, riskAbove, minPotYears, estateWeight, thinPaths, thinSeed, ...rest } = opts;
+  const years = minPotYears !== undefined ? minPotYears : PRODUCT_DEFAULTS.minPotYears;
+  const own = Math.max(0, E.num(plan.config && plan.config.solvencyFloor, 0));
+  const target = E.num(plan.spending && plan.spending.targetSpend, 0);
+  const floorPot = own > 0 && minPotYears === undefined ? own : Math.round(Math.max(0, years) * target);
+  const p = floorPot === own ? plan : { ...plan, config: { ...plan.config, solvencyFloor: floorPot } };
+  const m = M.prepare(E, p);
+  const o = {
+    ...PRODUCT_BASELINE, ...rest,
+    raiseCap: rest.raiseCap !== undefined ? rest.raiseCap : PRODUCT_DEFAULTS.raiseCap,
+    ...(estateWeight !== undefined ? { bequestShape: 'logfloor', bequestWeight: Math.max(PRODUCT_DEFAULTS.estateWeightMin, estateWeight) } : {}),
+    ...(riskAbove && riskConsent !== false ? { tiersAbove: 1 } : {}),
+    spendLevels: productLevels(m.ctx.floorFrac || 0),
+    lump: m.ctx.fullLumpSum,
+    tiers: riskConsent === false ? undefined : true
+  };
+  return solveMixture(E, M, p, o);
+}
+
+/*
+ * THE ADAPTIVE REFERENCE'S HOOK (`readerRef: 'adaptive'`, research only; src/solver/adaptive.js; PLAN.md AREF, its AN arm).
+ * Called once from solve()'s bridge reader; kept here at the file's end so no line a registered anchor cites moves. The
+ * reference is built on the first bridge-year split, for every world and bridge year, on its own compiled context (the
+ * flows never disturb the cell loop's scratch), and read at the position (grid.js readValues hands it over).
+ */
+function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf, years, B, T, g }) {
+  if (!JOINT || opts.readerTax || opts.readerChance || opts.holdTier) throw new Error("readerRef 'adaptive' needs jointWorlds and runs without readerTax, readerChance or holdTier");
+  let built = null;
+  const build = () => {
+    const z0 = shifts[centre], zLast = m.shiftZ;
+    if (z0 === undefined) delete m.shiftZ; else m.shiftZ = z0;
+    const cA = F.compile(m, actions);
+    if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
+    const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
+    g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
+  };
+  return {
+    chance(k, t, bills, ai0) {
+      if (!built) build();
+      const f = built.at(k, t);
+      f.schedule = { bills, t, k, ai0, adaptive: true };
+      return f;
+    },
+  };
+}
+/*
+ * PR31, THE CHOOSER'S SPLIT UNDER THE ADAPTIVE REFERENCE'S EXACT STEPS (`adaptiveLattice.stepAll`, research only; PLAN.md
+ * PR31; the deep review after REF-STEP, deep-review-log.md 20 Oct 10:31 UK). stepAtOf put next year's step at the plan
+ * reference's untaxed bill less 1, a fixed amount of accessible money; under the adaptive reference with `stepAll` the
+ * read is 0 below the reference's own threshold A*_{t+1}(b, gf), which moves with the ISA share and the taxable account's
+ * gain fraction (REF-STEP's print: on S370 at b 0 it rises with the gain node, 84039 and 85696 against the split's 83199).
+ * Here the step is that threshold at the grown state, as adaptive.js's expectSplit finds the shock that clears it;
+ * stepExpect bisects on it in z (the grown money and its share move together under one shock). A year with no step
+ * (astarAt 0) clears at every z, so stepExpect keeps its points. Without `stepAll`, and under any other reference, the
+ * split is as before.
+ */
+function stepThrOf(ref, tn) {
+  return grown => { const A2 = grown[1] + grown[2]; return ref.astarAt(tn, A2 > 0 ? grown[1] / A2 : 0, grown[3]); };
+}
+
+/*
+ * FAIL LOUDLY (the external review of 21 Oct, Part B Step 1). In the backward pass a move that cannot pay this year still
+ * scores a finite penalty and a move that can pay reads finite tables, so a non-finite score there is always a bug; in
+ * the chooser (scoreMoves), so is one for a move that can pay (a move that cannot keeps its -Infinity). O200's NaN went
+ * unseen: a NaN score never wins, a cell where every move was NaN kept survival -1 and estate -Infinity, and that spread
+ * backwards (468,900 of S224's cells; PhiInv now clamps). Throws, naming the year, the cell, the world, the move and the
+ * first non-finite part. Every argmax loop of solve() and both returns of scoreMoves call it.
+ */
+function nonFiniteScore(where, t, cell, k, ai, s, b, rs, h) {
+  const part = !Number.isFinite(s) ? `survival ${s}` : !Number.isFinite(b) ? `estate ${b}` : !Number.isFinite(rs) ? `resilience ${rs}` : !Number.isFinite(h) ? `cost ${h}` : 'the weighted score';
+  throw new Error(`solver: non-finite score in ${where}, year ${t}, cell ${cell}, world ${k}, move ${ai}: ${part}`);
+}
+
+/*
+ * AGE-WEIGHTED CUTS (`ageWeight`; research only, off by default; the external review of 30 Oct,
+ * research/reviews/2026-10-30/AGE-WEIGHT.md on review/external-2026-10-21, its patch dial/solve-ageweight.patch, here as a
+ * helper so that solve() stays under V8's limit for an optimised function). `ageWeight` = { mode, disp } weights each year's
+ * cost of a cut, and its credit for a raise, by a Gompertz chance of being alive from the plan's age, mode and dispersion
+ * in years (the curve of the review of 29 Oct, SPENDING-CURVE.md): w(t) = exp(-exp((a0 - mode) / disp) (exp(t / disp) - 1)).
+ * A cut when younger then costs more than the same cut later; the failure year's charge and each year's after it are
+ * weighted alike (failCostAt, failDeliveredCost in solve). Survival stays the currency and nothing else moves. Off, costOf
+ * is the function it was and every table the one solved before, bit for bit.
+ */
+function ageWeighted(AW, m, T, base) {
+  if (!AW) return base;
+  if (!(AW.disp > 0) || !Number.isFinite(AW.mode)) throw new Error('ageWeight needs a mode and a dispersion above nothing');
+  const a0 = m.ctx.ageSelf0, w = new Float64Array(T + 2);
+  for (let t = 0; t <= T + 1; t++) w[t] = Math.exp(-Math.exp((a0 - AW.mode) / AW.disp) * (Math.exp(t / AW.disp) - 1));
+  const costOf = (level, t) => w[t] * base(level);
+  costOf.w = w; costOf.meta = { mode: AW.mode, disp: AW.disp };
+  return costOf;
+}
+
+/*
+ * THE CANDIDATE'S TIERS (`lockTiers`; research only, off by default; the external review of 30 Oct,
+ * research/reviews/2026-10-30/LOCK.md on review/external-2026-10-21). The maintainer's first requirement for a way of handling
+ * cuts and raises: that it be disconnected from the tiers' risk-taking. `lockTiers` is the candidate's own solved result
+ * (solveCandidate, the dial at one) for the same plan, grid and menu. At every position the pair of tiers is the candidate's:
+ *   - the backward pass: at each cell, year and pair held, only the moves on the pair the candidate's table chose there are
+ *     scored and chosen among (LK.at);
+ *   - the chooser (and so the engine through the bridge, and runPolicy): only the moves on the pair the candidate's own
+ *     chooser picks at that position (lockMask); where every one of them fails, the candidate's own move.
+ * The arm's own objective (a dial's penalty with age weights, say) then chooses the level and the order of drawing among
+ * them. The rule for the tiers is the candidate's; the tiers held on a path can still differ from the candidate's on that
+ * path, because spending differently leaves different wealth. Locked to itself, the candidate is the candidate
+ * (research/tests/lock-tiers.test.mjs; ported without the review's EZ, STATE.md D48). The layer loop only (the tier state,
+ * joint worlds, tsOnce false), switchMargin 0 and no GIA tiers; anything else throws. Plants (tests only): lockTiersPlant
+ * 'layer0' (every layer reads the candidate's choice for the first pair held), 'nochooser' (the chooser leaves the moves
+ * unlocked).
+ */
+function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
+  const rc = opts.lockTiers, plant = opts.lockTiersPlant || '';
+  if (!tsPairs || !opts.jointWorlds) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false)');
+  if (!rc || !rc.tsLayers || !rc.g || !rc.m || !rc.actions || !rc.tsLayerOf) throw new Error('lockTiers: not a solved result with the tier state');
+  const gk = x => JSON.stringify([x.mode, x.size, x.np, x.ni, x.nt, Object.keys(x.axes).sort().map(k => [k, Array.from(x.axes[k].pts || [])]), x.gain, x.pcls]);
+  if (gk(rc.g) !== gk(g) || rc.m.ctx.totalYears !== g.m.ctx.totalYears) throw new Error('lockTiers: the candidate was solved on another grid or plan');
+  const ak = (as, lo) => JSON.stringify(as.map((a, i) => [a.label || '', a.tierPen || 0, a.tierIsa || 0, a.spend, lo[i]]));
+  if (rc.tsLayers.length !== tsPairs.length || ak(rc.actions, rc.tsLayerOf) !== ak(actions, tsLayerOf)) throw new Error('lockTiers: the candidate has another menu or other tier pairs');
+  const pol = rc.tsLayers.map(L => L.pol);
+  return { rc, plant, at: plant === 'layer0' ? (t, j, idx) => tsLayerOf[pol[0][t][idx]] : (t, j, idx) => tsLayerOf[pol[j][t][idx]], meta: { pairs: tsPairs.length, cells: g.size, ...(plant ? { plant } : {}) } };
+}
+// at the end of the solve: the two options recorded in the run record, and the lock's other settings checked (the layer loop,
+// no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
+function researchFinish(r, LK, opts) {
+  if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
+  if (!LK) return;
+  if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
+  r.meta.lockTiers = LK.meta; r.lockTiers = LK;
+}
+function lockMask(r, s, t, held, SC) {
+  const LK = r.lockTiers, ac = chooseAction(LK.rc, s, t, held), lj = r.tsLayerOf[ac];
+  if (LK.plant === 'nochooser') return -1;
+  let any = false;
+  for (let ai = 0; ai < SC.length; ai++) { if (r.tsLayerOf[ai] !== lj) SC[ai] = -Infinity; else if (SC[ai] !== -Infinity) any = true; }
+  return any ? -1 : ac;
 }

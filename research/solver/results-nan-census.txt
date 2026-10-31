@@ -1,0 +1,26 @@
+O199'S CENSUS: non-finite values in the saved files (REF-STEP's and REF-B's), and the split's midpoints at u = 1
+  diagrefstep/S360-AR3-P30S6Q5.json.gz: bridge-year table values non-finite 2484 of 699840 (world/layer/year: 0/0/1 450, 0/0/2 243, 0/0/3 135, 0/1/1 450, 0/1/2 243, 0/1/3 135, 0/2/1 450, 0/2/2 243, 0/2/3 135); per-path values non-finite 0 of 543000
+  diagrefstep/S360-C-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S362-AN-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S362-AN3-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S362-C-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S364-AR3-P30S6Q5.json.gz: bridge-year table values non-finite 2700 of 699840 (world/layer/year: 0/0/1 459, 0/0/2 273, 0/0/3 168, 0/1/1 459, 0/1/2 273, 0/1/3 168, 0/2/1 459, 0/2/2 273, 0/2/3 168); per-path values non-finite 0 of 543000
+  diagrefstep/S364-C-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S370-AN-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S370-AN3-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefstep/S370-C-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S130-AR-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 174960; per-path values non-finite 0 of 183000
+  diagrefb/S362-AN-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S362-AR-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S362-ARX-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S370-AN-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S370-AR-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  diagrefb/S370-ARX-P30S6Q5.json.gz: bridge-year table values non-finite 0 of 699840; per-path values non-finite 0 of 543000
+  the split's midpoints (nz 128) that reach u = 1 when the split sits at z* (grid.js Phi):
+    z* 6: 1 - Phi 9.901e-10, midpoints at u = 1: 0 of 128
+    z* 7: 1 - Phi 1.288e-12, midpoints at u = 1: 0 of 128
+    z* 7.5: 1 - Phi 3.220e-14, midpoints at u = 1: 0 of 128
+    z* 7.8: 1 - Phi 3.109e-15, midpoints at u = 1: 2 of 128
+    z* 7.9: 1 - Phi 1.443e-15, midpoints at u = 1: 5 of 128
+    z* 8: 1 - Phi 6.661e-16, midpoints at u = 1: 11 of 128
+VERDICT: 5184 non-finite values in the saved files

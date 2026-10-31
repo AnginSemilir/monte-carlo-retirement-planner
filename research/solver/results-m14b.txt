@@ -1,0 +1,21 @@
+# M14b, reduced 24 Sep 16:49 UK by `UP=m14b-up DOWN=m14b-down node research/solver/reduce-m14.mjs` (batch from 14:37 UK, code de180680d398, runs.log). The last column (item 2) was added to the reducer before reading it and checked on M14's own records first: thin four 74.1-83.3% / 12.3-20.1%, against the 74-83% / 10-20% already taken from them.
+FAIR-TEST CHECK: m14b-down:solver  against  m14b-up:solver
+  households: 12 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  33 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+PROBE M14 - one tier above allowed (plan held at Medium), paired against down-only on the same paths
+  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)   of up-move years: in failing futures / in their last 3 paid years
+  S020   89.23 -> 88.90 (-0.33 +/- 0.25)    1.1 -> 1.5%      24 -> 24 yrs        0.33 -> 0.34      4.0%        100.0%        81.0% / 21.8%
+  S070   76.70 -> 77.27 (+0.57 +/- 0.30)    0.4 -> 0.8%      25 -> 25 yrs        1.52 -> 1.51      9.2%        100.0%        83.1% / 18.8%
+  S082   92.77 -> 92.43 (-0.33 +/- 0.19)    0.0 -> 0.0%      32 -> 32 yrs        0.38 -> 0.38      2.5%        100.0%        85.3% / 20.8%
+  S162   99.83 -> 99.63 (-0.20 +/- 0.09)    0.0 -> 0.0%      40 -> 40 yrs        0.00 -> 0.00      0.0%        100.0%        100.0% / 59.4%
+  S172   99.77 -> 99.00 (-0.77 +/- 0.16)    0.0 -> 0.0%      40 -> 40 yrs        0.00 -> 0.01      0.1%        100.0%        91.8% / 35.6%
+  S184   90.90 -> 90.73 (-0.17 +/- 0.24)    0.0 -> 0.1%      34 -> 35 yrs        0.64 -> 0.64      4.0%        100.0%        80.6% / 12.1%
+  S194   99.60 -> 99.33 (-0.27 +/- 0.11)    0.0 -> 0.0%      41 -> 41 yrs        0.00 -> 0.01      0.3%        75.2%        49.3% / 8.8%
+  S234   99.37 -> 99.43 (+0.07 +/- 0.07)    0.0 -> 0.0%      41 -> 41 yrs        0.01 -> 0.01      0.1%        100.0%        81.9% / 18.8%
+  S252   98.90 -> 98.73 (-0.17 +/- 0.09)    0.0 -> 0.0%      52 -> 52 yrs        0.08 -> 0.09      0.5%        99.7%        72.9% / 9.6%
+  S330   76.03 -> 77.23 (+1.20 +/- 0.28)    0.0 -> 0.0%      43 -> 42 yrs        2.60 -> 2.48      11.4%        100.0%        88.6% / 15.0%
+  S354   81.07 -> 82.37 (+1.30 +/- 0.26)    0.0 -> 0.0%      45 -> 44 yrs        1.87 -> 1.80      8.5%        100.0%        87.4% / 14.8%
+  S414   99.33 -> 99.20 (-0.13 +/- 0.09)    0.0 -> 0.0%      46 -> 46 yrs        0.04 -> 0.05      0.2%        93.2%        84.2% / 12.2%

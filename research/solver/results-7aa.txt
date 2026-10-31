@@ -1,0 +1,175 @@
+ok   a log parsed and gated: thirty units, the gate passes: 30 0
+ok   the gate refuses 16 points on one solve: true
+ok   the gate refuses the estate weight 0.02 on a W0 unit: true
+ok   the gate refuses the estate weight missing: true
+ok   the gate refuses the tier state missing on a TS solve: true
+ok   the gate refuses the tier state on a PRODUCT solve: true
+ok   the gate refuses one policy missing on TS+J: true
+ok   the gate refuses one policy on TS: true
+ok   the gate refuses a held tier: true
+ok   the gate refuses Q's fix: true
+ok   the gate refuses the reader's held reference: true
+ok   the gate refuses the reader off on a READER unit: true
+ok   the gate refuses the reader on an OFF unit: true
+ok   the gate refuses a second setting changed within a case (the minimum pot): true
+ok   the gate refuses another scale within a case: true
+ok   the gate refuses the wrong seed on every solve: true
+ok   the gate refuses a held tier on every solve: true
+ok   the gate refuses Q's fix on every solve: true
+ok   the gate refuses the held reference on every solve: true
+ok   the gate refuses another path count on every solve: true
+ok   the gate refuses 16 points on every solve (the grid unchanged): true
+ok   the gate refuses 15 return points on every solve: true
+ok   the gate refuses an averaged final year on every solve: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses a missing gap line: true
+ok   the gate refuses two world lines: true
+ok   the gate refuses four world lines: true
+ok   the gate refuses a world of 500 paths: true
+ok   the gate refuses a missing run line: true
+ok   the gate refuses a missing done line: true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   the trace name carries the case, the arm, the arm's tag and the weight: bridge_4-reader-ts_j@w0.02.json.gz
+ok   wholePaths at 0.02 is scorePaths to the bit; at 0 the estate drops out: true 6.000000
+ok   a whole-score leg adds its parts: survival -2 paths; the rest +2 points a path, less the 3 lost paths' estate and failure charge, plus the saved one's: 1.9982: -0.0250 1.9982 0.000000
+ok   its interval holds its point and covers both parts' spreads: true
+ok   with survival identical the interval is the rest's 2 z se at a/2 plus the unconditional survival part's width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (the guard, 100 x 6.342e-4, inside it): 0.1558 true
+ok   the guard holds a one-sided upper end at the exact bound on its count (3 saved of 8,000: Newcombe alone short of it; by hand, the Poisson bound chi2(0.99375, 8 df)/2 = 10.67 of 8,000 = 0.1334 points): true true 0.1334
+ok   the calibration at the margin: the rule reads no material gain at most 0.0175 on all four legs, the exact form over 0.1 at the background 0.5 (0.0005/0.2620, 0.0050/0.0495, 0.0025/0.2345, 0.0010/0.0340): true true
+ok   TS+J as the first-ranked cause predicts: 1 to 6 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD
+ok   TS+J doing nothing: 1, 2, 4 and 5 FALSIFIED, 3 and 6 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 FALSIFIED, 6 HELD
+ok   a gain at W0 on one case only: item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   TS gains as much as TS+J at W0: item 2 FALSIFIED on both, item 1 HELD: HELD FALSIFIED
+ok   harm on S360 under off at W0: item 3 FALSIFIED: FALSIFIED
+ok   bridge 4 losing 30 paths at W0.02 (0.375 points, margin 0.25): item 6 FALSIFIED: FALSIFIED
+ok   the whole score gains but survival harms on S126 at W0.02: item 4 not HELD, its leg harm: INCONCLUSIVE harm (the survival limit)
+ok   the whole score gains but survival is inconclusive (3 saved, 20 lost): the leg inconclusive: inconclusive
+ok   the whole score gains and survival loses within the margin (3 saved, 12 lost): the leg gains: gain
+ok   the survival limit read unconditionally: S126 losing 12 and saving none at W0.02 (exact: the point -0.15, no material harm; unconditional: -100 x the exact bound on 12 of 8,000, -0.262, past -0.25) leaves a whole-score gain inconclusive, where the exact form reads gain: inconclusive gain
+ok   the whole score within the margin on both: item 4 FALSIFIED: FALSIFIED
+ok   the whole score's interval over 0 but its upper end past the margin: inconclusive: inconclusive
+ok   the margin is the case's own at the leg's weight: bridge 4 at W0.02 losing 30 of PRODUCT at 98.75% reads harm at 0.25: harm
+ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) leaves W0.02's at 0.25, so 30 lost at W0.02 is harm: FALSIFIED
+ok   the opening's saves do not carry item 5: TS+J saving 30 paths the product fails on S126, TS as the product: FALSIFIED: FALSIFIED
+ok   item 5 reads TS's losses on the product's survivors: TS losing 30 on S126 alone, TS+J not, is a pooled gain: HELD
+ok   item 5: TS+J keeping TS's 30 losses: FALSIFIED: FALSIFIED
+ok   item 5 at the pooled margin 0.1: 200 saved and 200 lost against TS on S126 (the upper end about 0.17, below 0.25): INCONCLUSIVE: INCONCLUSIVE
+ok   item 5: TS+J losing 60 to TS on the product's survivors is no material gain: FALSIFIED: FALSIFIED
+ok   item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.1): INCONCLUSIVE: INCONCLUSIVE
+ok   item 5 pools the three cases' product survivors: 23,700 paths (100 fail on each), 20 saved on S126 and 25 lost on S194 summed: 23700 20 25
+planted (62): all read as they should
+
+7AA: DOES THE JOINT TIER STATE GAIN WHERE THE PER-WORLD ONE DID NOT, WITH THE POT'S WEIGHT OFF (0) AND ON (0.02)? (predictions/diag-7aa.md; 8000 paths of seed 7002; the fair-test gate passed: the stamps, every unit's settings, worlds, run and trace)
+
+EVERY RUN: survival; against PRODUCT at the same weight saved/lost; the whole score against PRODUCT (95%, the rule's interval at 0.05); pension switches a path; years below the plan's tier; estate; the year-0 gap and the pension tier it opens in at 1e-3 and at 0
+S126 (reader) at W0
+  PRODUCT   99.3500        0/0  whole -                        switches 0.25  tier-below 7.87  estate 2264458  gap 5.9469e-4 opens 0 at 1e-3, 2 at 0
+  TS        99.8125       37/0  whole +0.593 (0.427 to 0.808)  switches 0.00  tier-below 39.99  estate 2015272  gap 1.0055e-3 opens 2 at 1e-3, 2 at 0
+  TS+J      99.8500       40/0  whole +0.630 (0.459 to 0.852)  switches 0.00  tier-below 39.99  estate 2012077  gap 1.0649e-3 opens 2 at 1e-3, 2 at 0
+S194 (off) at W0
+  PRODUCT   98.2000        0/0  whole -                        switches 0.06  tier-below 40.86  estate 340699  gap 1.0510e-3 opens 2 at 1e-3, 2 at 0
+  TS        98.1875        0/1  whole -0.014 (-0.082 to 0.052)  switches 0.06  tier-below 40.86  estate 340773  gap 1.6482e-3 opens 2 at 1e-3, 2 at 0
+  TS+J      98.3750       15/1  whole +0.131 (0.009 to 0.268)  switches 0.06  tier-below 40.87  estate 343872  gap 1.1335e-3 opens 2 at 1e-3, 2 at 0
+bridge 4 (reader) at W0
+  PRODUCT   99.1875        0/0  whole -                        switches 0.41  tier-below 14.70  estate 2219577  gap 8.0106e-4 opens 0 at 1e-3, 2 at 0
+  TS        99.5875       32/0  whole +0.514 (0.355 to 0.713)  switches 0.01  tier-below 41.96  estate 2089422  gap 1.2176e-3 opens 2 at 1e-3, 2 at 0
+  TS+J      99.6500       38/1  whole +0.576 (0.402 to 0.791)  switches 0.01  tier-below 41.97  estate 2087043  gap 1.3456e-3 opens 2 at 1e-3, 2 at 0
+S360 (reader) at W0
+  PRODUCT   45.9125        0/0  whole -                        switches 0.70  tier-below 19.33  estate 303808  gap 0 opens 0 at 1e-3, 0 at 0
+  TS        45.9125        0/0  whole +0.000 (-0.055 to 0.055)  switches 0.70  tier-below 19.33  estate 303689  gap 0 opens 0 at 1e-3, 0 at 0
+  TS+J      45.9125        0/0  whole +0.000 (-0.055 to 0.055)  switches 0.70  tier-below 19.32  estate 303667  gap 0 opens 0 at 1e-3, 0 at 0
+S360 (off) at W0
+  PRODUCT   28.6000        0/0  whole -                        switches 0.00  tier-below 0.00  estate 193186  gap 4.8212e-4 opens 0 at 1e-3, 2 at 0
+  TS        28.6375        3/0  whole +0.040 (-0.019 to 0.127)  switches 0.00  tier-below 0.00  estate 193168  gap 4.8670e-4 opens 0 at 1e-3, 2 at 0
+  TS+J      28.6375        3/0  whole +0.040 (-0.019 to 0.127)  switches 0.00  tier-below 0.00  estate 193165  gap 4.7239e-4 opens 0 at 1e-3, 2 at 0
+S126 (reader) at W0.02
+  PRODUCT   99.2625        0/0  whole -                        switches 0.31  tier-below 7.76  estate 2430759  gap 8.0241e-4 opens 0 at 1e-3, 2 at 0
+  TS        99.2125        5/9  whole +0.071 (-0.069 to 0.204)  switches 0.54  tier-below 6.66  estate 2492273  gap 7.9487e-4 opens 0 at 1e-3, 2 at 0
+  TS+J      99.8500       47/0  whole +0.704 (0.495 to 0.964)  switches 0.64  tier-below 32.66  estate 2391696  gap 1.0600e-3 opens 2 at 1e-3, 2 at 0
+S194 (off) at W0.02
+  PRODUCT   98.2250        0/0  whole -                        switches 0.78  tier-below 26.14  estate 397761  gap 7.5604e-4 opens 0 at 1e-3, 2 at 0
+  TS        98.0500       2/16  whole +0.014 (-0.143 to 0.159)  switches 1.19  tier-below 25.41  estate 413931  gap 9.6876e-4 opens 0 at 1e-3, 1 at 0
+  TS+J      98.7500       45/3  whole +0.714 (0.495 to 0.961)  switches 0.66  tier-below 36.02  estate 403679  gap 1.0525e-3 opens 2 at 1e-3, 2 at 0
+bridge 4 (reader) at W0.02
+  PRODUCT   99.5625        0/0  whole -                        switches 0.04  tier-below 41.93  estate 2273145  gap 1.0059e-3 opens 2 at 1e-3, 2 at 0
+  TS        99.4750        0/7  whole +0.173 (0.047 to 0.279)  switches 0.60  tier-below 35.21  estate 2398551  gap 1.0655e-3 opens 2 at 1e-3, 2 at 0
+  TS+J      99.5875        4/2  whole +0.313 (0.203 to 0.429)  switches 0.64  tier-below 34.34  estate 2417865  gap 1.4138e-3 opens 2 at 1e-3, 2 at 0
+S360 (reader) at W0.02
+  PRODUCT   45.9125        0/0  whole -                        switches 0.70  tier-below 19.32  estate 304735  gap 0 opens 0 at 1e-3, 0 at 0
+  TS        45.9375        3/1  whole +0.041 (-0.024 to 0.106)  switches 0.76  tier-below 18.94  estate 305982  gap 0 opens 0 at 1e-3, 0 at 0
+  TS+J      45.9375        3/1  whole +0.050 (-0.016 to 0.116)  switches 0.78  tier-below 18.58  estate 306810  gap 0 opens 0 at 1e-3, 0 at 0
+S360 (off) at W0.02
+  PRODUCT   34.3000        0/0  whole -                        switches 0.01  tier-below 0.01  estate 230466  gap 5.5644e-4 opens 0 at 1e-3, 2 at 0
+  TS        34.2125       5/12  whole -0.099 (-0.233 to 0.034)  switches 0.02  tier-below 0.03  estate 229994  gap 5.6446e-4 opens 0 at 1e-3, 2 at 0
+  TS+J      34.2500        4/8  whole -0.044 (-0.158 to 0.069)  switches 0.11  tier-below 2.02  estate 231311  gap 5.5346e-4 opens 0 at 1e-3, 2 at 0
+
+EACH WORLD: the opening table against the policy's run in that world (1,000 paths, the shift set to the world's node), table less run, points; the bad world first
+  S126 (reader) W0         PRODUCT +2.565 / -0.023 / -0.005   TS +0.460 / -0.027 / -0.007   TS+J -0.119 / -0.017 / -0.004
+  S194 (off) W0            PRODUCT +4.940 / +0.082 / -0.020   TS +4.930 / +0.020 / -0.041   TS+J +1.453 / +0.153 / -0.007
+  bridge 4 (reader) W0     PRODUCT +2.936 / +0.051 / -0.006   TS +0.822 / -0.053 / -0.008   TS+J -0.215 / -0.032 / -0.005
+  S360 (reader) W0         PRODUCT -12.877 / -14.540 / -6.142   TS -12.961 / -14.601 / -6.172   TS+J -12.867 / -14.600 / -6.170
+  S360 (off) W0            PRODUCT -9.279 / -25.917 / -50.540   TS -9.260 / -25.918 / -50.539   TS+J -9.277 / -25.917 / -50.535
+  S126 (reader) W0.02      PRODUCT +2.658 / +0.023 / -0.013   TS +2.959 / -0.016 / -0.014   TS+J -0.088 / -0.019 / -0.004
+  S194 (off) W0.02         PRODUCT +5.071 / -0.258 / -0.047   TS +6.021 / -0.228 / -0.052   TS+J -0.875 / -0.063 / -0.007
+  bridge 4 (reader) W0.02  PRODUCT +0.825 / -0.094 / -0.016   TS +0.923 / -0.079 / -0.015   TS+J -0.455 / -0.034 / -0.005
+  S360 (reader) W0.02      PRODUCT -12.876 / -14.540 / -6.147   TS -12.959 / -14.600 / -6.178   TS+J -12.996 / -14.601 / -6.171
+  S360 (off) W0.02         PRODUCT -13.236 / -31.970 / -54.927   TS -13.236 / -31.765 / -54.724   TS+J -13.261 / -31.864 / -54.727
+
+BY LONG-RUN SHIFT (each case's own paths): TS+J against PRODUCT - saved/lost, the whole score per 100 of all paths, path-years TS+J holds a riskier/safer tier (a lower tier code is riskier)
+  S126 (reader) W0         below -sqrt 3: 16/0 +0.226 0/6423 | -sqrt 3 to -1: 17/0 +0.253 0/25565 | -1 to 0: 7/0 +0.136 0/85161 | 0 and above: 0/0 +0.015 0/139838
+  S194 (off) W0            below -sqrt 3: 6/0 +0.074 25/46 | -sqrt 3 to -1: 4/1 +0.032 33/43 | -1 to 0: 4/0 +0.032 23/37 | 0 and above: 1/0 -0.007 0/5
+  bridge 4 (reader) W0     below -sqrt 3: 19/1 +0.250 0/5328 | -sqrt 3 to -1: 14/0 +0.212 0/20743 | -1 to 0: 4/0 +0.091 0/71230 | 0 and above: 1/0 +0.022 0/120887
+  S360 (reader) W0         below -sqrt 3: 0/0 +0.000 5/1 | -sqrt 3 to -1: 0/0 -0.000 3/4 | -1 to 0: 0/0 +0.000 13/50 | 0 and above: 0/0 +0.000 50/55
+  S360 (off) W0            below -sqrt 3: 0/0 -0.000 0/0 | -sqrt 3 to -1: 2/0 +0.027 0/0 | -1 to 0: 0/0 -0.000 0/0 | 0 and above: 1/0 +0.013 0/0
+  S126 (reader) W0.02      below -sqrt 3: 21/0 +0.294 819/4651 | -sqrt 3 to -1: 18/0 +0.278 4018/18847 | -1 to 0: 7/0 +0.110 8555/68008 | 0 and above: 1/0 +0.021 6326/127400
+  S194 (off) W0.02         below -sqrt 3: 11/0 +0.144 515/2213 | -sqrt 3 to -1: 17/0 +0.232 2795/7584 | -1 to 0: 14/2 +0.208 12207/29361 | 0 and above: 3/1 +0.130 13722/69312
+  bridge 4 (reader) W0.02  below -sqrt 3: 3/2 +0.011 2803/14 | -sqrt 3 to -1: 1/0 +0.034 10568/21 | -1 to 0: 0/0 +0.117 27159/34 | 0 and above: 0/0 +0.152 20338/36
+  S360 (reader) W0.02      below -sqrt 3: 0/0 +0.001 967/30 | -sqrt 3 to -1: 1/0 +0.018 1652/153 | -1 to 0: 1/1 +0.011 2766/398 | 0 and above: 1/0 +0.021 1852/1127
+  S360 (off) W0.02         below -sqrt 3: 1/0 +0.015 0/172 | -sqrt 3 to -1: 0/0 +0.002 0/694 | -1 to 0: 0/2 -0.022 2/4515 | 0 and above: 3/6 -0.040 4/10709
+
+S194: PATHS HOLDING THE MIDDLE PAIR 1/1 (tier code 5) IN YEAR 1, of 8,000
+  W0: PRODUCT 0  TS 0  TS+J 0
+  W0.02: PRODUCT 0  TS 961  TS+J 0
+
+AT W0, THE WHOLE SCORE BESIDE SURVIVAL (reported; survival decides at W0)
+  S126 (reader)      TS+J against PRODUCT survival 40/0  whole +0.630 (0.459 to 0.852)
+  S126 (reader)      TS+J against TS      survival 3/0  whole +0.037 (-0.034 to 0.125)
+  S194 (off)         TS+J against PRODUCT survival 15/1  whole +0.131 (0.009 to 0.268)
+  S194 (off)         TS+J against TS      survival 16/1  whole +0.145 (0.020 to 0.285)
+  bridge 4 (reader)  TS+J against PRODUCT survival 38/1  whole +0.576 (0.402 to 0.791)
+  bridge 4 (reader)  TS+J against TS      survival 6/1  whole +0.062 (-0.029 to 0.168)
+  S360 (reader)      TS+J against PRODUCT survival 0/0  whole +0.000 (-0.055 to 0.055)
+  S360 (reader)      TS+J against TS      survival 0/0  whole -0.000 (-0.055 to 0.055)
+  S360 (off)         TS+J against PRODUCT survival 3/0  whole +0.040 (-0.019 to 0.127)
+  S360 (off)         TS+J against TS      survival 0/0  whole -0.000 (-0.055 to 0.055)
+
+ITEM 5 BY CASE (reported): at W0.02, on the paths PRODUCT survives, TS+J against TS saved/lost; each arm's losses against PRODUCT; the pension tier each opens in (at 1e-3), marked where the two open alike (there the opening cannot carry the case); the whole score of TS+J against TS (95%, the rule's interval)
+  S126 (reader)          9/0 of 7941  TS loses 9, TS+J loses 0  opens TS 0, TS+J 2 (apart)  whole +0.633 (0.419 to 0.899)
+  S194 (off)            15/2 of 7858  TS loses 16, TS+J loses 3  opens TS 0, TS+J 2 (apart)  whole +0.699 (0.464 to 0.968)
+  bridge 4 (reader)      6/1 of 7965  TS loses 7, TS+J loses 2  opens TS 2, TS+J 2 (alike)  whole +0.140 (0.028 to 0.272)
+
+THE ITEMS (each a Holm family of its own where it tests paths, the regimen's reading deciding, the unconditional one beside it; item 4 by the whole-score rule, the survival part unconditional, the exact form beside)
+1. W0, the gain: on S126 (reader) and S194 (off), TS+J gains against PRODUCT by survival (FALSIFIED: no material gain on both): HELD
+     S126 (reader): TS+J against PRODUCT at W0 40 saved/0 lost +0.500 (exact 0.412 to 0.500; unconditional 0.360 to 0.680) gain
+     S194 (off): TS+J against PRODUCT at W0 15 saved/1 lost +0.175 (exact 0.079 to 0.199; unconditional 0.073 to 0.289 <-- the readings DISAGREE) gain
+2. W0, the per-world rule (O41): on S126 and S194, TS+J gains against TS by survival (FALSIFIED: no material gain on both): INCONCLUSIVE
+     S126 (reader): TS+J against TS at W0 3 saved/0 lost +0.037 (exact -0.016 to 0.037; unconditional -0.019 to 0.110) no material gain
+     S194 (off): TS+J against TS at W0 16 saved/1 lost +0.188 (exact 0.091 to 0.212; unconditional 0.083 to 0.305 <-- the readings DISAGREE) gain
+3. W0, no harm: on bridge 4 (reader), S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT (FALSIFIED: harm on any): HELD
+     bridge 4 (reader): TS+J against PRODUCT at W0 38 saved/1 lost +0.463 (exact 0.356 to 0.487; unconditional 0.320 to 0.637) no material harm
+     S360 (reader): TS+J against PRODUCT at W0 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material harm
+     S360 (off): TS+J against PRODUCT at W0 3 saved/0 lost +0.037 (exact -0.016 to 0.037; unconditional -0.009 to 0.110) no material harm
+4. W0.02, the gain by the whole score within the survival limit: on S126 and S194, TS+J against PRODUCT (FALSIFIED: no material gain or survival harm on both): HELD
+     S126 (reader): TS+J against PRODUCT at W0.02: whole +0.704 (unconditional 0.472 to 0.999; exact 0.544 to 0.743; survival part +0.588, the rest +0.116 +/- 0.016); survival 47/0 no material harm (exact no material harm); gain
+     S194 (off): TS+J against PRODUCT at W0.02: whole +0.714 (unconditional 0.469 to 0.994; exact 0.508 to 0.814; survival part +0.525, the rest +0.189 +/- 0.014); survival 45/3 no material harm (exact no material harm); gain
+5. W0.02, O42, TS's losses: pooled over S126, S194 and bridge 4, on the paths PRODUCT survives at 0.02, TS+J survives more than TS (FALSIFIED: no material gain, the pooled margin 0.1): HELD
+     pooled over S126, S194 and bridge 4, on the paths PRODUCT survives: TS+J against TS at W0.02 30 saved/3 lost +0.114 (exact 0.071 to 0.134; unconditional 0.069 to 0.168) gain
+6. W0.02, no harm: on bridge 4 (reader), S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT by survival (FALSIFIED: harm on any): HELD
+     bridge 4 (reader): TS+J against PRODUCT at W0.02 4 saved/2 lost +0.025 (exact -0.042 to 0.069; unconditional -0.049 to 0.104) no material harm
+     S360 (reader): TS+J against PRODUCT at W0.02 3 saved/1 lost +0.025 (exact -0.031 to 0.049; unconditional -0.024 to 0.074) no material harm
+     S360 (off): TS+J against PRODUCT at W0.02 4 saved/8 lost -0.050 (exact -0.120 to 0.045; unconditional -0.136 to 0.036) no material harm
+
+OUTCOME: 1 HELD, 2 INCONCLUSIVE, 3 HELD, 4 HELD, 5 HELD, 6 HELD

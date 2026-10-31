@@ -1,0 +1,108 @@
+ok   J1F's year-4 residual 0.05: 1 HELD: "HELD"
+ok   J1F's year-4 residual 2.1 (the fix inert): 1 FALSIFIED (over): "FALSIFIED"
+ok   J1F's year-4 residual -1.4: 1 FALSIFIED (under): "FALSIFIED"
+ok   J1F's year-4 residual 0.49, its interval across 0.5: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1F's year-4 residual 0.75: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 1 names its side: "FALSIFIED over"
+ok   J1F's table at its runs: 2 HELD: "HELD"
+ok   world 0's table 2.08 over (AX-HO's J1): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 1's table 3.45 under: 2 FALSIFIED (under): "FALSIFIED"
+ok   world 2 every run alive: 2 HELD: "HELD"
+ok   world 2's table 4 points under its runs (world 2 read too): 2 FALSIFIED: "FALSIFIED"
+ok   world 0's table 1.7 over, its interval inside 2.5 but past 1.5: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 2 names its side: "FALSIFIED under"
+ok   J1D at J1's year-4 residual: 3 HELD: "HELD"
+ok   J1D 2 points under J1 (the split a part): 3 FALSIFIED (under): "FALSIFIED"
+ok   J1D 0.75 over J1: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   item 3 names its side: "FALSIFIED under"
+ok   item 3 reads the difference path by path (equal paths, a difference of 0 with no spread): "0.0000 0.0000"
+ok   J1F equal to J2 on every path: 4 HELD: "HELD"
+ok   J1F loses 40 paths in world 0: 4 FALSIFIED: "FALSIFIED"
+ok   J1F loses 11 and saves 2 in world 0 (0.225 points, short of the margin): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   J1F loses 4 and saves 1 in world 0: 4 HELD: "HELD"
+ok   item 4's margin is the relative one at J2's survival (0.25 at 98%): 0.25
+ok   the read prints four items, an OUTCOME of four and four REALISED lines: "true 4 4"
+ok   the inert check reads equal files equal: 0
+ok   the inert check reads a changed table: "tables 0/0/1"
+ok   the inert check reads an array missing on one side: "per X0"
+ok   the gate passes the four jobs as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job missing: true
+ok   the gate refuses J1D with no done line: true
+ok   the gate refuses another seed: true
+ok   the gate refuses a header naming another path count: true
+ok   the gate refuses S362 at 60 points: true
+ok   the gate refuses a case line at another point count alone: true
+ok   the gate refuses a job of another test: true
+ok   the gate refuses J1F without the fix (the arm plant): true
+ok   the gate refuses a fixed job with no node alive: true
+ok   the gate refuses J1D with the fix: true
+ok   the gate refuses J1D under the RS split (the split plant): true
+ok   the gate refuses J1F without the RS split: true
+ok   the gate refuses J1F under the order reference: true
+ok   the gate refuses K1 on S366: true
+ok   the gate refuses K1 at S366's floor: true
+ok   the gate refuses footTook short: true
+ok   the gate refuses an identity short (the own and layer plants): true
+ok   the gate refuses a ledger job short of a world: true
+ok   the gate refuses a job without bridge year 4: true
+ok   the gate refuses a job with no moves recorded: true
+ok   the gate passes the files as the logs name them: ""
+ok   the gate refuses a file whose moves are not the log's: true
+ok   the gate refuses a missing file: true
+planted (52): all read as they should
+GATE: passed - J1F, J1D, K1 and K1F once and done at the registered settings (4000 paths a world, scale 1, seed 7004); the adaptive reference and each job's split in its solve's meta, the fix on J1F and K1F with an A = 0 node alive and off on J1D and K1; every self-check in full; the files and their moves the logs'; AX-HO's J1 (6d3833268f934865) and J2 (6fd322058ca882af) behind AX-HO's gate
+
+FOOT-S366: the adaptive reference's floor at no accessible money fixed, on S366 (J1F, J1D against AX-HO's J1 and J2) and on S362, a held-out deposit household (K1F against K1) (predictions/diag-foot.md)
+
+THE ITEMS (each read by its registered rule)
+1. J1F's bridge year 4 grid residual in world 0 within half a point (FALSIFIED at a whole interval past one point either way): HELD
+     world 0: -0.0506 (-0.0529 to -0.0482)
+2. J1F's table at its own opening against its runs inside 1.5 points in every world (FALSIFIED at a whole interval past 3 points either way): HELD
+     world 0: table 97.8126 runs 3914/4000 (97.8500), table less runs -0.0374 (-0.5488 to 0.5763); world 1: table 99.9708 runs 3997/4000 (99.9250), table less runs 0.0458 (-0.0190 to 0.2279); world 2: table 99.9953 runs 4000/4000 (100.0000), table less runs -0.0047 (-0.0047 to 0.1149)
+3. J1D against AX-HO's J1 in world 0's year-4 residual, path by path, within half a point (FALSIFIED at a whole interval past one point either way): HELD
+     J1D less J1: 0.0000 (0.0000 to 0.0000)
+4. no material harm to J1F's runs against AX-HO's J2 on S366 on the same paths, worlds 0 and 1: HELD
+     world 0: lost 0 saved 0 of 4000, change 0.0000 (0.0000 to 0.0000) at margin 0.25: no material harm; world 1: lost 0 saved 0 of 4000, change 0.0000 (0.0000 to 0.0000) at margin 0.25: no material harm
+     moves differing, J1F against J2: world 0: 0 of 4000 paths and 0 of 183604 path-years; world 1: 0 of 4000 paths and 0 of 183994 path-years; world 2: 0 of 4000 paths and 0 of 184000 path-years
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+REALISED item 1: -0.0506
+REALISED item 2: -0.0374
+REALISED item 3: 0.0000
+REALISED item 4: 0.0000
+
+REPORTED
+  J1F: the fix on, 369 A = 0 nodes alive; the reference built in 371.4 s; solve 3646 s
+  J1D: the fix off; the reference built in 351.6 s; solve 3647 s
+  K1: the fix off; the reference built in 312.3 s; solve 2228 s
+  K1F: the fix on, 369 A = 0 nodes alive; the reference built in 355 s; solve 2313 s
+  J1D world 0: table at its own opening 99.9764 runs 3911/4000 (97.7750), table less runs 2.2014 (1.6807 to 2.8243)
+  J1D world 1: table at its own opening 99.9996 runs 3997/4000 (99.9250), table less runs 0.0746 (0.0097 to 0.2566)
+  J1D world 2: table at its own opening 99.9996 runs 4000/4000 (100.0000), table less runs -0.0004 (-0.0004 to 0.1192)
+  K1 world 0: table at its own opening 29.8429 runs 1190/4000 (29.7500), table less runs 0.0929 (-1.6706 to 1.8139)
+  K1 world 1: table at its own opening 47.4117 runs 1995/4000 (49.8750), table less runs -2.4633 (-4.3677 to -0.5591)
+  K1 world 2: table at its own opening 66.1124 runs 2706/4000 (67.6500), table less runs -1.5376 (-3.3017 to 0.2635)
+  K1F world 0: table at its own opening 30.5208 runs 1167/4000 (29.1750), table less runs 1.3458 (-0.4085 to 3.0565)
+  K1F world 1: table at its own opening 48.5742 runs 1996/4000 (49.9000), table less runs -1.3258 (-3.2302 to 0.5784)
+  K1F world 2: table at its own opening 67.3889 runs 2728/4000 (68.2000), table less runs -0.8111 (-2.5666 to 0.9826)
+  J1F world 0: OWN less runs -0.0374 = T 0.0596 + GB -0.0731 (-0.0785 to -0.0678) + GA -0.0239; by year 1: -0.0208 | 2: -0.0499 | 3: 0.0889 | 4: -0.0506 | 5: -0.0266 | 6: -0.0337 | 7: 0.0195
+  J1 (AX-HO) world 0: OWN less runs 2.2014 = T 0.0991 + GB 2.1124 (2.0357 to 2.1891) + GA -0.0101; by year 1: -0.0040 | 2: -0.0044 | 3: -0.0172 | 4: 2.1823 | 5: -0.0295 | 6: -0.0345 | 7: 0.0196
+  J1D world 0: OWN less runs 2.2014 = T 0.0991 + GB 2.1124 (2.0357 to 2.1891) + GA -0.0101; by year 1: -0.0040 | 2: -0.0044 | 3: -0.0172 | 4: 2.1823 | 5: -0.0295 | 6: -0.0345 | 7: 0.0196
+  J1F against J1 world 0: moves differing on 2264 of 4000 paths and 14324 of 183580 path-years; runs lost 1 saved 4 of 4000; year-4 residual less J1's -2.2329 (-2.3162 to -2.1496)
+  J1F world 1: OWN less runs 0.0458 = T 0.0484 + GB -0.0034 (-0.0037 to -0.0030) + GA 0.0007; by year 1: -0.0007 | 2: -0.0012 | 3: 0.0026 | 4: -0.0019 | 5: -0.0007 | 6: -0.0007 | 7: -0.0007
+  J1 (AX-HO) world 1: OWN less runs 0.0746 = T 0.0464 + GB 0.0260 (0.0234 to 0.0286) + GA 0.0022; by year 1: -0.0000 | 2: -0.0000 | 3: 0.0001 | 4: 0.0282 | 5: -0.0008 | 6: -0.0007 | 7: -0.0007
+  J1D world 1: OWN less runs 0.0746 = T 0.0464 + GB 0.0260 (0.0234 to 0.0286) + GA 0.0022; by year 1: -0.0000 | 2: -0.0000 | 3: 0.0001 | 4: 0.0282 | 5: -0.0008 | 6: -0.0007 | 7: -0.0007
+  J1F against J1 world 1: moves differing on 1685 of 4000 paths and 7787 of 183994 path-years; runs lost 0 saved 0 of 4000; year-4 residual less J1's -0.0301 (-0.0329 to -0.0272)
+  J1F world 2: OWN less runs -0.0047 = T -0.0046 + GB -0.0000 (-0.0000 to 0.0000) + GA -0.0001; by year 1: -0.0000 | 2: -0.0000 | 3: 0.0000 | 4: -0.0000 | 5: -0.0000 | 6: -0.0000 | 7: 0.0000
+  J1 (AX-HO) world 2: OWN less runs -0.0004 = T -0.0046 + GB 0.0043 (0.0042 to 0.0043) + GA -0.0001; by year 1: -0.0000 | 2: -0.0000 | 3: 0.0001 | 4: 0.0042 | 5: -0.0000 | 6: -0.0000 | 7: 0.0000
+  J1D world 2: OWN less runs -0.0004 = T -0.0046 + GB 0.0043 (0.0042 to 0.0043) + GA -0.0001; by year 1: -0.0000 | 2: -0.0000 | 3: 0.0001 | 4: 0.0042 | 5: -0.0000 | 6: -0.0000 | 7: 0.0000
+  J1F against J1 world 2: moves differing on 1155 of 4000 paths and 5199 of 184000 path-years; runs lost 0 saved 0 of 4000; year-4 residual less J1's -0.0042 (-0.0043 to -0.0041)
+  K1 world 0: OWN less runs 0.0929 = T 0.9221 + GB -0.8829 (-1.1142 to -0.6517) + GA 0.0537; by year 1: 0.0699 | 2: -0.1038 | 3: -8.3482 | 4: 7.5014 | 5: 0.0005 | 6: 0.0015 | 7: -0.0042
+  K1F world 0: OWN less runs 1.3458 = T 0.7753 + GB 0.5258 (0.3499 to 0.7017) + GA 0.0447; by year 1: 0.1067 | 2: 0.0740 | 3: 0.2203 | 4: 0.1362 | 5: -0.0100 | 6: 0.0028 | 7: -0.0042
+  K1F against K1 world 0: moves differing on 541 of 4000 paths and 2029 of 66292 path-years; runs lost 27 saved 4 of 4000; year-4 residual less K1's -7.3652 (-7.8034 to -6.9270)
+  K1 world 1: OWN less runs -2.4633 = T -1.5653 + GB -0.8978 (-1.1694 to -0.6263) + GA -0.0002; by year 1: 0.0112 | 2: 0.0096 | 3: -4.9150 | 4: 4.0648 | 5: -0.0469 | 6: -0.0214 | 7: -0.0000
+  K1F world 1: OWN less runs -1.3258 = T -1.8660 + GB 0.5404 (0.3546 to 0.7261) + GA -0.0002; by year 1: -0.0473 | 2: 0.0205 | 3: 0.3719 | 4: 0.2704 | 5: -0.0536 | 6: -0.0215 | 7: -0.0000
+  K1F against K1 world 1: moves differing on 574 of 4000 paths and 2645 of 100046 path-years; runs lost 11 saved 12 of 4000; year-4 residual less K1's -3.7944 (-4.0090 to -3.5798)
+  K1 world 2: OWN less runs -1.5376 = T -1.1512 + GB -0.3864 (-0.6427 to -0.1300) + GA -0.0001; by year 1: 0.3191 | 2: 0.0871 | 3: -2.0650 | 4: 1.3223 | 5: -0.0360 | 6: -0.0138 | 7: 0.0001
+  K1F world 2: OWN less runs -0.8111 = T -0.9654 + GB 0.1543 (-0.0210 to 0.3297) + GA -0.0001; by year 1: -0.0680 | 2: -0.0683 | 3: 0.7579 | 4: -0.4182 | 5: -0.0349 | 6: -0.0142 | 7: 0.0001
+  K1F against K1 world 2: moves differing on 611 of 4000 paths and 2814 of 129744 path-years; runs lost 3 saved 25 of 4000; year-4 residual less K1's -1.7405 (-1.8260 to -1.6549)

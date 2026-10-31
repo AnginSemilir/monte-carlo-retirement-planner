@@ -1,0 +1,79 @@
+FAIR-TEST AUDIT, 24 Sep (RULES.md "Every test is a fair test"): fair-test.mjs on the comparisons the current plan rests on.
+Files made before 24 Sep ~09:00 UK record no code identity: variable 28 is UNKNOWN on all of them until the retro audit (8e)
+establishes it from git history. For M15 the GIA's tier (16) also changes the tier labels (13), so both are tested.
+
+$ node research/solver/fair-test.mjs k5-c0.001-x2 flex-tiers:gkFloor
+FAIR-TEST CHECK: k5-c0.001-x2:solver  against  flex-tiers:gkFloor
+  households: 4 shared; only in flex-tiers: S004 S020 S034 S058 S070 S082 S100 S112 S118 S142 S154 S162 S172 S178 S184 S194 S198 S206 S218 S222 S230 S234 S240 S258 S268 S276 S292 S300 S318 S330 S342 S354 S374 S378 S400 S410 S414
+  [ 7] market world                 single-table fold              | 3-world mixture                DIFFERS
+  [10] minimum pot                  1 yr of target                 | plan's own*                    DIFFERS
+  [11] raise cap                    1.1                            | none*                          DIFFERS
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for k5-c0.001-x2: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for flex-tiers: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  6 recorded variables SAME (2 by an assumed default: plan tier held (PLANTIER), GIA opening gain (GIAGAIN)); 25 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 4 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)
+
+$ node research/solver/fair-test.mjs k5-c0.001-x2 k5t-fold-cap:gkFloor
+FAIR-TEST CHECK: k5-c0.001-x2:solver  against  k5t-fold-cap:gkFloor
+  households: 4 shared; only in k5t-fold-cap: S070 S100 S112 S162 S184 S206 S330 S354
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for k5-c0.001-x2: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for k5t-fold-cap: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  8 recorded variables SAME (2 by an assumed default: plan tier held (PLANTIER), GIA opening gain (GIAGAIN)); 26 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 1 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)
+
+$ node research/solver/fair-test.mjs s2-fnewex m17-floor --tested=21,22
+FAIR-TEST CHECK: s2-fnewex:solver  against  m17-floor:solver
+  households: 6 shared; only in s2-fnewex: S054 S100 S162 S206 S252 S390
+  [21] raise credit x survival      false*                         | true                           TESTED
+  [22] failed-year price            false*                         | 1                              TESTED
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for s2-fnewex: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for m17-floor: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  31 recorded variables SAME (4 by an assumed default: plan tier held (PLANTIER), GIA opening gain (GIAGAIN), GIA tier moves, bridge read (F1)); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 1 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)
+
+$ node research/solver/fair-test.mjs m14-down m14-up --tested=13
+FAIR-TEST CHECK: m14-down:solver  against  m14-up:solver
+  households: 12 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for m14-down: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for m14-up: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  32 recorded variables SAME (3 by an assumed default: GIA opening gain (GIAGAIN), GIA tier moves, bridge read (F1)); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 1 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)
+
+$ node research/solver/fair-test.mjs s2-fnewex m15-gia --tested=16,13
+FAIR-TEST CHECK: s2-fnewex:solver  against  m15-gia:solver
+  households: 6 shared; only in s2-fnewex: S070 S100 S126 S162 S252 S354
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1/1","2/2/2"]        TESTED
+  [16] GIA tier moves               false*                         | true                           TESTED
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for s2-fnewex: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for m15-gia: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  31 recorded variables SAME (4 by an assumed default: GIA opening gain (GIAGAIN), raise credit x survival, failed-year price, bridge read (F1)); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 1 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)
+
+$ node research/solver/fair-test.mjs m15-off-gain40 m15-gia-gain40 --tested=16,13
+FAIR-TEST CHECK: m15-off-gain40:solver  against  m15-gia-gain40:solver
+  households: 3 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1/1","2/2/2"]        TESTED
+  [16] GIA tier moves               false                          | true                           TESTED
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   UNKNOWN
+  [--] prediction registered for m15-off-gain40: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for m15-gia-gain40: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  31 recorded variables SAME (1 by an assumed default: bridge read (F1)); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  NOT A FAIR TEST: 1 item(s) DIFFERS / UNKNOWN / MIXED CODE / PREDICTION EDITED / NO PREDICTION
+(exit 1)

@@ -1,0 +1,23 @@
+# node research/tests/tax-2026.test.mjs (on this commit's code)
+PASS  dividends: £4,000 on £20,000 pays £376.25 (published rates: £376.25); £20,000 on £60,000 pays £6971.25 (£6971.25)
+PASS  Scotland 2026/27: income tax on £30,000 is £3451.07 (published bands: £3451.07)
+PASS  income tax in every band: rUK at 30000, 80000, 150000 and Scotland at 14000, 25000, 40000, 60000, 100000, 150000, each within a penny of the published bands (worst 0.0000)
+PASS  a Scottish taxpayer's dividends at the UK bands: £10,000 on £40,000 pays £1021.25 (£1021.25), on £60,000 £3396.25 (£3396.25)
+PASS  savings interest at the UK bands: £5,000 on £45,000 pays £800.00 in Scotland and £800.00 in rUK (published: £800.00)
+PASS  reinvested dividends: the GIA's cost rises by the year's dividends (£2000.00 against £2000.00; cost before £60000)
+PASS  TZ=America/New_York: a 1 January plan's first year is 1 of a year, a 2 July plan's 0.5015 (183 days of 365: 0.5014)
+PASS  TZ=Europe/London: a 1 January plan's first year is 1 of a year, a 2 July plan's 0.5015 (183 days of 365: 0.5014)
+PASS  TZ=Asia/Tokyo: a 1 January plan's first year is 1 of a year, a 2 July plan's 0.5014 (183 days of 365: 0.5014)
+ALL PASS: 9 checks
+
+# the same test in a worktree at 9d4176d (the engine before the fix): it must fail
+FAIL  dividends: £4,000 on £20,000 pays £306.25 (published rates: £376.25); £20,000 on £60,000 pays £6581.25 (£6971.25)
+FAIL  Scotland 2026/27: income tax on £30,000 is £3482.82 (published bands: £3451.07)
+FAIL  income tax in every band: rUK at 30000, 80000, 150000 and Scotland at 14000, 25000, 40000, 60000, 100000, 150000, each within a penny of the published bands (worst 31.7500)
+FAIL  a Scottish taxpayer's dividends at the UK bands: £10,000 on £40,000 pays £831.25 (£1021.25), on £60,000 £3206.25 (£3396.25)
+FAIL  savings interest at the UK bands: £5,000 on £45,000 pays £1680.00 in Scotland and £800.00 in rUK (published: £800.00)
+FAIL  reinvested dividends: the GIA's cost rises by the year's dividends (£0.00 against £2000.00; cost before £60000)
+FAIL  TZ=America/New_York: a 1 January plan's first year is 0.01 of a year, a 2 July plan's 0.5019 (183 days of 365: 0.5014)
+PASS  TZ=Europe/London: a 1 January plan's first year is 1 of a year, a 2 July plan's 0.5014 (183 days of 365: 0.5014)
+FAIL  TZ=Asia/Tokyo: a 1 January plan's first year is 0.998972602739726 of a year, a 2 July plan's 0.5003 (183 days of 365: 0.5014)
+FAILED: 8 of 9 checks

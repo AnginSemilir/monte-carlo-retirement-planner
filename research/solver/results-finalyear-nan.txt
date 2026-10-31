@@ -1,0 +1,5 @@
+O200'S PLANTED CALL: finalYearExact where the floor clears only far in the upper tail (floor 100000)
+  z* about 7: pot 33655 (0.3366 of the floor): survival 1.302e-12, bequest 1.3288469293276648e-7, resilience 1.3017184104892042e-12
+  z* about 7.9: pot 29405 (0.2941 of the floor): survival 1.425e-15, bequest NaN, resilience NaN - NON-FINITE
+  z* about 8.5: pot 26874 (0.2687 of the floor): survival 9.719e-18, bequest NaN, resilience NaN - NON-FINITE
+VERDICT: 2 of 3 calls return a non-finite value

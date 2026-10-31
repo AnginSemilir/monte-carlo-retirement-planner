@@ -1,0 +1,33 @@
+GATE: passed - 25 households, each once and done, three modes each at 8 points, every comparison on its arrays, the plant on S126
+E3C, E3'S PANEL-WIDE EXACTNESS CHECK (a measurement of an identity): 7e's panel (25 households) at 8 points, every table with e3 off and on, in SHIP (no reader), PRODUCT (solvePlan's defaults) and TSJ (TS+J with the reader), the estate weight 0.02
+  household        SHIP: differ copied/want  secs off/on   PRODUCT: differ copied/want  secs off/onTSJ: differ copied/want  secs off/on    
+  share 0.50       SHIP 0 21120/21120 57.2/46.3            PRODUCT 0 21120/21120 57.9/46.8         TSJ 0 21120/21120 163.5/136.7           
+  share 0.70       SHIP 0 21120/21120 59.3/46.8            PRODUCT 0 21120/21120 57.6/47.1         TSJ 0 21120/21120 169.3/136.6           
+  share 0.78       SHIP 0 21120/21120 59.8/46.6            PRODUCT 0 21120/21120 56.6/48.8         TSJ 0 21120/21120 166.2/134.6           
+  share 0.90       SHIP 0 21120/21120 60.0/47.1            PRODUCT 0 21120/21120 58.5/48.3         TSJ 0 21120/21120 164.1/136.1           
+  share 0.95       SHIP 0 21120/21120 58.5/44.6            PRODUCT 0 21120/21120 55.9/46.2         TSJ 0 21120/21120 161.9/133.0           
+  bridge 0         SHIP 0 20064/20064 56.3/45.8            PRODUCT 0 20064/20064 55.3/46.2         TSJ 0 20064/20064 158.1/126.3           
+  bridge 1         SHIP 0 20592/20592 57.6/45.9            PRODUCT 0 20592/20592 56.6/45.3         TSJ 0 20592/20592 161.8/131.3           
+  bridge 6         SHIP 0 23232/23232 62.6/50.0            PRODUCT 0 23232/23232 60.9/51.2         TSJ 0 23232/23232 181.4/147.7           
+  wealth x0.5      SHIP 0 21120/21120 57.5/45.6            PRODUCT 0 21120/21120 55.4/46.1         TSJ 0 21120/21120 159.9/131.0           
+  wealth x2        SHIP 0 21120/21120 57.5/46.7            PRODUCT 0 21120/21120 57.9/46.2         TSJ 0 21120/21120 164.0/132.7           
+  S120             SHIP 0 21120/21120 75.4/61.2            PRODUCT 0 21120/21120 76.0/61.1         TSJ 0 21120/21120 227.0/186.4           
+  S122             SHIP 0 21120/21120 69.8/57.5            PRODUCT 0 21120/21120 69.0/54.0         TSJ 0 21120/21120 204.0/167.8           
+  S126             SHIP 0 21120/21120 58.8/47.7            PRODUCT 0 21120/21120 58.7/47.7         TSJ 0 21120/21120 164.8/137.7           
+  bridge 4         SHIP 0 22176/22176 59.9/48.4            PRODUCT 0 22176/22176 59.1/49.8         TSJ 0 22176/22176 172.6/147.1           
+  S360             SHIP 0 24288/24288 81.3/65.5            PRODUCT 0 24288/24288 81.0/67.5         TSJ 0 24288/24288 252.0/207.8           
+  S194             SHIP 0 21648/21648 68.3/52.3            PRODUCT 0 21648/21648 67.5/54.7         TSJ 0 21648/21648 185.9/149.0           
+  S124             SHIP 0 21120/21120 57.2/44.2            PRODUCT 0 21120/21120 56.9/45.9         TSJ 0 21120/21120 160.6/136.9           
+  S128             SHIP 0 21120/21120 53.9/43.1            PRODUCT 0 21120/21120 53.5/43.6         TSJ 0 21120/21120 156.2/125.6           
+  S130             SHIP 0 21120/21120 54.3/44.6            PRODUCT 0 21120/21120 53.9/44.4         TSJ 0 21120/21120 154.4/126.5           
+  S366             SHIP 0 24288/24288 64.0/51.1            PRODUCT 0 24288/24288 64.4/51.6         TSJ 0 24288/24288 190.2/163.0           
+  S370             SHIP 0 24288/24288 60.8/50.3            PRODUCT 0 24288/24288 60.0/49.0         TSJ 0 24288/24288 188.7/156.1           
+  bridge 4+cost    SHIP 0 22176/22176 60.0/48.5            PRODUCT 0 22176/22176 59.4/48.4         TSJ 0 22176/22176 176.8/141.2           
+  S162             SHIP 0 21120/21120 58.4/47.6            PRODUCT 0 21120/21120 59.0/50.3         TSJ 0 21120/21120 166.6/136.7           
+  S172             SHIP 0 21120/21120 58.7/47.9            PRODUCT 0 21120/21120 59.2/46.3         TSJ 0 21120/21120 167.5/138.5           
+  S168             SHIP 0 21120/21120 77.5/62.8            PRODUCT 0 21120/21120 77.4/62.7         TSJ 0 21120/21120 231.3/188.3           
+
+TIME (read beside other work, not a quiet-machine timing): SHIP 1544.6 s off, 1238.1 s on (19.8% less); PRODUCT 1527.6 s off, 1249.2 s on (18.2% less); TSJ 4448.8 s off, 3654.6 s on (17.9% less)
+PLANTED: the wrong twin on S126 differs in 582374 values
+
+VERDICT: EXACT

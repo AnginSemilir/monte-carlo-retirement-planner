@@ -1,0 +1,227 @@
+/*
+ * FOOT-S366 (PLAN.md AREF, items/FOOT-S366.md; predictions/diag-foot.md; the deep review after AX-HO, deep-review-log.md 18 Oct
+ * 01:41 UK; O177): the adaptive reference's floor at no accessible money, fixed (`adaptiveLattice: { foot: true }`,
+ * src/solver/adaptive.js) and tested where an inflow pays its own year. Four jobs, the candidate's own unit, seed 7004, AN's
+ * ledger (audit-axho.mjs's, copied: B_t, V_t, G_t, T_t, the identity, GB, GL, GA, GD, Y<t>, QF, every year's own move saved)
+ * on the first 4,000 paths a world, so each pairs with AX-HO's saved jobs on the same paths:
+ *   J1F  S366 at 60 points under the adaptive reference with the RS split and the fix (against AX-HO's J1 and J2);
+ *   J1D  S366 at 60 points under the adaptive reference with the default split (R3's decomposition, beside the fix);
+ *   K1   S362, a held-out deposit household, at 30 points under the adaptive reference with the RS split;
+ *   K1F  K1 with the fix.
+ * FOOT_INERT=1 runs the preflight's inert jobs instead (each pair must match to the bit, the fix inert where no inflow pays
+ * its year): I0 and I1 on S360, I2 and I3 on S364, under the adaptive reference with the RS split, the second of each with
+ * the fix.
+ * Self-checks, each refusing the job (exit 3): armTook (the reference, the split), footTook (the fix in the reference's own
+ * record where asked, absent where not, and on a fixed job in an inflow household at least one A = 0 node alive), adaptTook,
+ * ownTook, identity, qfTook and layerTook (the ledger, AN's).
+ * FOOT_PLANT (each must make its job refuse on its own check, or the inert pair differ): arm (J1F without the fix:
+ * footTook), split (J1D under the RS split: armTook), foot (the reference's plant 'foot', an A = 0 node of 0 valued as
+ * sure to pay: the inert pair must differ), and AN's own, layer, quad and held (the ledger's checks).
+ *   node research/solver/audit-foot.mjs [scale=1] [paths a world=4000] part k/n [seed]
+ */
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { runPolicy, chooseAction, scoreMoves, NODES, WEIGHTS } from '../../src/solver/solve.js';
+import { readValues } from '../../src/solver/grid.js';
+import { solveCandidate, CANDIDATE_OPTS } from './candidate.mjs';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { SEED as SEED_7U } from './panel-7u.mjs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { codeId } from './code-id.mjs';
+
+// [household, arm, wealth points, shares, return nodes]
+export const MAIN = [['S366', 'J1F', 60, 6, 5], ['S366', 'J1D', 60, 6, 5], ['S362', 'K1', 30, 6, 5], ['S362', 'K1F', 30, 6, 5]];
+export const INERT = [['S360', 'I0', 60, 6, 5], ['S360', 'I1', 60, 6, 5], ['S364', 'I2', 60, 6, 5], ['S364', 'I3', 60, 6, 5]];
+export const JOBS = process.env.FOOT_INERT === '1' ? INERT : MAIN;
+export const ARMS = Object.freeze({ J1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, J1D: { readerRef: 'adaptive' }, K1: { readerRef: 'adaptive', readerSplit: 'rs' }, K1F: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, I0: { readerRef: 'adaptive', readerSplit: 'rs' }, I1: { readerRef: 'adaptive', readerSplit: 'rs', foot: true }, I2: { readerRef: 'adaptive', readerSplit: 'rs' }, I3: { readerRef: 'adaptive', readerSplit: 'rs', foot: true } });
+// a fixed job in a household whose inflow pays its own year must show the fix alive (an A = 0 node not 0)
+export const INFLOW = Object.freeze({ S366: true, S362: true, S360: false, S364: false });
+export const FLOORS = Object.freeze({ S366: 29000, S362: 35000, S360: 5000, S364: 205000 });
+// the reference's lattice (adaptive.js's defaults)
+export const LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128 });
+export const jobLabel = ([, arm, pts, sh, qn]) => `${arm}/P${pts}S${sh}Q${qn}`;
+if (process.argv[2] === '--units') { console.log(JOBS.length); process.exit(0); }
+const STAMP = (() => {
+  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
+  return { code: cid ? cid.hash : 'unknown', audit: own, prediction: !process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || '-' };
+})();
+console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);
+const SCALE = Number(process.argv[2] || 1), NPW = Number(process.argv[3] || 4000);
+if (!(SCALE >= 1) || !(NPW >= 1)) { console.error(`audit-foot: bad scale or path count (${process.argv.slice(2, 4).join(', ')})`); process.exit(2); }
+const part = process.argv[4] === 'part' ? process.argv[5] : '0/1';
+const [pk, pn] = part.split('/').map(Number);
+if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-foot: bad part ${part}`); process.exit(2); }
+const SEED = process.argv[6] ? Number(process.argv[6]) : 7004;
+if (!(SEED >= 1) || SEED === SEED_7U) { console.error(`audit-foot: seed ${process.argv[6]} refused (7u's held-out seed, or not a seed)`); process.exit(2); }
+const PLANT = process.env.FOOT_PLANT || '';
+if (PLANT && !['arm', 'split', 'foot', 'own', 'layer', 'quad', 'held'].includes(PLANT)) { console.error(`audit-foot: unknown plant ${PLANT}`); process.exit(2); }
+if (PLANT) console.log(`plant: ${PLANT}`);
+const LAMBDA = 0.0223606797749979, W = 0.02, TOL = 1e-9;
+if (CANDIDATE_OPTS.e3pcls !== true) { console.error('audit-foot: the candidate does not carry e3pcls'); process.exit(2); }
+const OUT = process.env.DIAGFOOT_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagfoot');
+mkdirSync(OUT, { recursive: true });
+
+const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
+const caseOf = id => all.find(s => s.id === id);
+const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+const sha16 = x => createHash('sha256').update(Buffer.from(x.buffer, x.byteOffset, x.byteLength)).digest('hex').slice(0, 16);
+export const fileOfJob = job => `${job[0]}-${jobLabel(job).replace(/\//g, '-')}.json.gz`;
+const H0 = () => ({ pen: 0, isa: 0, gia: 0 });
+const f6 = x => x.toFixed(6);
+// the per-path quantities saved (AN's): X survived, B0 the own table, T the quadrature and noise, GB and GA the grid's residual
+// in and after the bridge (B0 - X = T + GB + GA), GL years 4 to 6, GD the de-risked layers' part of GB; Y<t> per bridge year
+export const KEYS = ['X', 'B0', 'T', 'GB', 'GA', 'GL', 'GD'];
+export const NQF = 1000, NFINE = 1024;
+export const NOMOVE = 65535;   // a year the path did not reach, in the saved moves
+const PhiInvA = u => {
+  const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+  const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+  const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+  const lo = 0.02425, q0 = Math.min(u, 1 - u);
+  let z;
+  if (q0 < lo) { const q = Math.sqrt(-2 * Math.log(q0)); z = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); if (u > 0.5) z = -z; }
+  else { const q = u - 0.5, r = q * q; z = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); }
+  return z;
+};
+const ZF = Array.from({ length: NFINE }, (_, i) => PhiInvA((i + 0.5) / NFINE)), WF = new Array(NFINE).fill(1 / NFINE);
+// a move's rate at draw z, rebuilt as solve.js realAt builds the node rates (zPath 0)
+const realAtRep = (c, z, act, t) => { const R = act.real, Vv = act.volEffAt[t], S = act.sigma, out = new Float64Array(4); for (let q = 0; q < 4; q++) out[q] = Math.exp(Math.log(1 + R[q]) + S[q] * 0 + Vv[q] * z) - 1; return out; };
+
+console.log(`FOOT-S366: the candidate's own unit, ${NPW} paths a world, wealth points divided by ${SCALE} (seed ${SEED}); ${JOBS.length} jobs; part ${part}`);
+JOBS.forEach((job, ji) => {
+  if (ji % pn !== pk) return;
+  const [id, arm, pts0, shares, quad] = job;
+  const h = caseOf(id);
+  if (!h) { console.error(`audit-foot: no case ${id}`); process.exit(2); }
+  const PTS = Math.max(4, Math.round(pts0 / SCALE)), L = jobLabel(job), want = ARMS[arm];
+  console.log(`${id.padEnd(16)} case | job ${L} | points ${PTS} | lambda ${LAMBDA}`);
+  const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
+  const t0 = Date.now();
+  // the plants: arm takes the fix off J1F, split puts the RS split on J1D, foot plants the reference's own 'foot' on a fixed job
+  const run = arm === 'J1F' && PLANT === 'arm' ? { ...want, foot: false } : arm === 'J1D' && PLANT === 'split' ? { ...want, readerSplit: 'rs' } : want;
+  const extra = { readerRef: run.readerRef, ...(run.readerSplit ? { readerSplit: run.readerSplit } : {}), adaptiveLattice: { ...LATTICE, ...(run.foot ? { foot: true } : {}), ...(PLANT === 'foot' && run.foot ? { plant: 'foot' } : {}) }, ...(shares !== 6 ? { shares } : {}), ...(quad !== 5 ? { quadNodes: quad } : {}) };
+  const cand = solveCandidate(E, M, plan, { lambda: LAMBDA, points: PTS, bequestWeight: W, ...extra });
+  const mt = cand.meta;
+  const common = !!mt.tierState && !!mt.jointWorlds && !!mt.e3pcls && cand.switchMargin === 0 && cand.switchCharge === 0.001 && Math.abs(mt.bequestWeight - W) < 1e-12 && mt.bridgeRead === 'reader' && mt.bridgeStep === 'exact' && !mt.readerChance && !mt.readerBlend && (mt.readerSplit || null) === (want.readerSplit || null);
+  const took = mt.readerRef === want.readerRef && mt.shareNodes === undefined && mt.points === `total ${PTS} x ${shares} x 6` && cand.m.ctx.solvencyFloor === FLOORS[id] && mt.readerSupportLine === 0.5;
+  const s0v = M.initialState(cand.m);
+  const table = 100 * cand.worlds.reduce((t, wd, k) => t + cand.mix.weights[k] * wd.value(s0v, 0).survival, 0);
+  const rdm = mt.reader || {};
+  console.log(`${''.padEnd(16)} solve CAND ${L}: table ${table.toFixed(4)} secs ${Math.round((Date.now() - t0) / 1000)}`);
+  console.log(`${''.padEnd(16)} ran CAND ${L}: bridgeRead ${mt.bridgeRead} bridgeStep ${mt.bridgeStep} readerSplit ${mt.readerSplit} readerBlend ${mt.readerBlend} readerRef ${mt.readerRef || null} readerChance ${mt.readerChance} tierState ${mt.tierState} jointWorlds ${!!mt.jointWorlds} e3pcls ${!!mt.e3pcls} switchMargin ${cand.switchMargin} switchCharge ${cand.switchCharge} bequestWeight ${mt.bequestWeight} mix ${cand.mix.nodes.length} pts ${PTS} grid ${String(mt.points).replace(/ /g, '')} shareNodes ${mt.shareNodes ? mt.shareNodes.join(',') : 'none'} floor ${cand.m.ctx.solvencyFloor} line ${mt.readerSupportLine}`);
+  console.log(`${''.padEnd(16)} reader ${L}: tables ${rdm.tables} unsupported ${rdm.unsupported} copied ${rdm.copied} copiedTop ${rdm.copiedTop} nodes ${rdm.nodes}`);
+  console.log(`${''.padEnd(16)} checks ${L}: armTook ${took && common ? 1 : 0}/1`);
+  if (!(took && common)) { console.error(`audit-foot: ${id} ${L}: the job's settings did not take`); process.exit(3); }
+  const ad = cand.mix.tables[0].g.reader && cand.mix.tables[0].g.reader.adaptive, ref = ad ? ad.ref : null, lt = ad && ad.lattice;
+  { const ok = !!ad && ad.moves > 0 && ad.nonMono === 0 && lt.na === LATTICE.na && lt.nb === LATTICE.nb && lt.nz === LATTICE.nz;
+    console.log(`${''.padEnd(16)} adaptive ${L}: moves ${ad ? ad.moves : 0} nonMono ${ad ? ad.nonMono : -1} lattice ${lt ? `${lt.na}x${lt.nb}x${lt.ng} nz ${lt.nz}` : 'none'} last year ${ad ? ad.TL : -1} secs ${ad ? ad.secs.toFixed(1) : -1}`);
+    console.log(`${''.padEnd(16)} checks ${L}: adaptTook ${ok ? 1 : 0}/1`);
+    if (!ok) { console.error(`audit-foot: ${id} ${L}: the adaptive reference did not build at the lattice asked, or its last year's threshold is not monotone`); process.exit(3); } }
+  // footTook: the fix in the reference's own record where asked and absent where not; a fixed job in an inflow household has
+  // an A = 0 node alive (the fix acted), and the count printed on every fixed job (0 expected where no inflow pays a year)
+  { const on = !!(lt && lt.foot), live = ref && Number.isFinite(ref.footLive) ? ref.footLive : -1;
+    const ok = on === !!want.foot && (!want.foot || (live >= 0 && (!INFLOW[id] || live > 0)));
+    console.log(`${''.padEnd(16)} foot ${L}: ${on ? 'on' : 'off'} live nodes ${live}`);
+    console.log(`${''.padEnd(16)} checks ${L}: footTook ${ok ? 1 : 0}/1`);
+    if (!ok) { console.error(`audit-foot: ${id} ${L}: the fix is not as asked in the reference's own record, or acted nowhere in an inflow household`); process.exit(3); } }
+  const m = cand.m, T = m.ctx.totalYears, acts = cand.actions, n = acts.length, K = cand.mix.nodes.length;
+  if (n >= NOMOVE) { console.error(`audit-foot: ${id} ${L}: ${n} moves do not fit the saved moves' width`); process.exit(2); }
+  let s0 = null;
+  runPolicy(cand, E.pathsForSeed(SEED, 1, T)[0], { choose: (t, st, held) => { if (t === 0 && !s0) s0 = Float64Array.from(st); return chooseAction(cand, st, t, held); } });
+  const ownC = chooseAction(cand, s0, 0, H0());
+  console.log(`${''.padEnd(16)} openings ${L}: OWN ai ${ownC} level ${cand.levelOf[ownC]} tiers ${acts[ownC].tierPen || 0},${acts[ownC].tierIsa || 0}`);
+  const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n), SV = new Float64Array(n), rd = new Float64Array(4);
+  const B = (tab, s, t, ai, held) => { scoreMoves(tab, s, t, SC, TX, BQ, { ...held }, { ai, act: tab.c.acts[ai], nr: tab.nodeRealOfAt[Math.min(t, tab.nodeRealOfAt.length - 1)][ai] }, SV); return SV[ai]; };
+  for (let k = 0; k < K; k++) { const tab = cand.mix.tables[k]; console.log(`${''.padEnd(16)} tables ${L} ${k} z ${cand.mix.nodes[k].toFixed(6)} weight ${cand.mix.weights[k].toFixed(6)}: OWN ${(100 * B(tab, s0, 0, ownC, H0())).toFixed(6)} READ ${(100 * cand.worlds[k].value(s0v, 0).survival).toFixed(6)}`); }
+  const g = cand.mix.tables[0].g, bridge = [];
+  for (let t = 1; t <= T; t++) if (g.reader && g.reader.years[t]) bridge.push(t);
+  console.log(`${''.padEnd(16)} bridge ${L}: reader years ${bridge.join(',')}`);
+  const wpaths = E.pathsForSeed(SEED, NPW, T), bits = {}, per = {}, moves = {};
+  const worldPath = (i, k) => { const cz = Float64Array.from(wpaths[i]); cz[cz.length - 1] = cand.mix.nodes[k]; return cz; };
+  const f0 = Date.now();
+  {
+    // THE LEDGER (AN's, copied): every path's own-opening run with its visits; B_t, V_t, G_t and T_t; the identity; the
+    // bridge residual by year and layer; QF on the first NQF paths; and here every year's own move saved
+    const nrCache = new Map();
+    // the copy's one-step value: `fine` at the fine rule with the step split off, otherwise at the five nodes rebuilt (qfTook)
+    const Bq = (tab, s, t, ai, held, fine) => {
+      const kk = `${fine ? 'f' : 'n'}/${t}/${ai}/${tab === cand.mix.tables[0] ? 0 : cand.mix.tables.indexOf(tab)}`;
+      // the plant `quad` rebuilds them from the central world's context, missing the world's shift (the one place it lands)
+      const cc = PLANT === 'quad' ? cand.c : tab.c;
+      let nr = nrCache.get(kk); if (!nr) { nr = (fine ? ZF : NODES).map(z => realAtRep(cc, z, cc.acts[ai], t)); nrCache.set(kk, nr); }
+      const r = fine ? { ...tab, stepExact: false, quadWeights: WF } : { ...tab, quadWeights: WEIGHTS };
+      scoreMoves(r, s, t, SC, TX, BQ, { ...held }, { ai, act: tab.c.acts[ai], nr }, SV); return SV[ai];
+    };
+    const layerOf = (tab, ai) => (tab.tsLayers ? tab.tsLayers[tab.tsLayerOf[ai]] : tab);
+    const V = (tab, Ly, s, t) => { readValues(tab.g, Ly.lsurv[t], Ly.beq[t], s, rd, Ly.lresil[t], Ly.short[t], t); return rd[0]; };
+    let idOk = 0, idN = 0, ownOk = 0, qfOk = 0, qfN = 0, lyOk = 0, lyN = 0;
+    const li0 = (() => { const t0b = cand.mix.tables[0]; return t0b.tsLayerOf ? t0b.tsLayerOf[t0b.tsLayerOf.findIndex((_, ai) => (acts[ai].tierPen || 0) === 0 && (acts[ai].tierIsa || 0) === 0)] : 0; })();
+    const NQ = Math.min(NPW, NQF);
+    // each tier layer's pair (the tiers a move into it holds), for layerTook
+    const pairOf = (() => { const t0b = cand.mix.tables[0], m0 = {}; if (t0b.tsLayerOf) t0b.tsLayerOf.forEach((li, ai) => { if (!(li in m0)) m0[li] = [acts[ai].tierPen || 0, acts[ai].tierIsa || 0]; }); return m0; })();
+    const YK = bridge.map(t => `Y${t}`), nL = cand.mix.tables[0].tsLayers ? cand.mix.tables[0].tsLayers.length : 1;
+    for (let k = 0; k < K; k++) {
+      const tab = cand.mix.tables[k];
+      const A = Object.fromEntries([...KEYS, ...YK, 'NB', 'ND'].map(x => [x, new Float64Array(NPW)])), b = new Uint8Array(NPW), bb = new Uint8Array(NPW), QF = new Float64Array(NQ);
+      const MV = new Uint16Array(NPW * (T + 1)).fill(NOMOVE);
+      const yr = { G: new Float64Array(T + 2), T: new Float64Array(T + 2) }, yrN = new Float64Array(T + 2), byL = new Float64Array(nL), byLN = new Float64Array(nL);
+      const other = (() => { for (let ai = 0; ai < n; ai++) if (ai !== ownC && cand.levelOf[ai] !== cand.levelOf[ownC]) return ai; return ownC; })();
+      for (let i = 0; i < NPW; i++) {
+        const rec = [];
+        const r = runPolicy(cand, worldPath(i, k), { start: { t: 0, s: s0, held: H0(), firstAi: PLANT === 'own' ? other : ownC }, visit: (t, s, held, ai) => rec.push({ t, s: Float64Array.from(s), held: { ...held }, ai }) });
+        b[i] = r.survived ? 1 : 0; bb[i] = r.survived || !r.preAccess ? 1 : 0;
+        for (const x of rec) MV[i * (T + 1) + x.t] = x.ai;
+        const X = b[i], Bv = rec.map(x => B(tab, x.s, x.t, x.ai, x.held)), Vv = rec.map((x, j) => (j === 0 ? NaN : V(tab, layerOf(tab, rec[j - 1].ai), x.s, x.t)));
+        let Ts = 0, Gs = 0, GB = 0, GA = 0, GL = 0, GD = 0, NB = 0, ND = 0, QFs = 0;
+        for (let j = 0; j < rec.length; j++) {
+          const x = rec[j], last = j === rec.length - 1, next = last ? (x.t >= T ? X : 0) : Vv[j + 1], Tj = Bv[j] - next;
+          Ts += Tj; yr.T[x.t] += Tj; yrN[x.t]++;
+          if (j === 0) continue;
+          // the plant `layer` reads G's table in the layer of the move taken, not the tiers held, so T and G no longer telescope
+          const Vj = PLANT === 'layer' ? V(tab, layerOf(tab, x.ai), x.s, x.t) : Vv[j], Gj = Vj - Bv[j];
+          Gs += Gj; yr.G[x.t] += Gj;
+          const bi = bridge.indexOf(x.t);
+          if (bi < 0) { GA += Gj; continue; }
+          GB += Gj; A[`Y${x.t}`][i] += Gj; if (x.t >= 4 && x.t <= 6) GL += Gj;
+          // the layer the visit's G is filed under: the tiers held (the previous move's); the plant `held` files it under the move taken
+          const li = tab.tsLayerOf ? tab.tsLayerOf[PLANT === 'held' ? x.ai : rec[j - 1].ai] : 0; byL[li] += Gj; byLN[li]++;
+          lyN++; if (!tab.tsLayerOf || (pairOf[li] && pairOf[li][0] === (x.held.pen || 0) && pairOf[li][1] === (x.held.isa || 0))) lyOk++;
+          NB++; if (li !== li0) { GD += Gj; ND++; }
+          if (i < NQ) { const Bc = Bq(tab, x.s, x.t, x.ai, x.held, false); qfN++; if (Bc === Bv[j]) qfOk++; QFs += Bv[j] - Bq(tab, x.s, x.t, x.ai, x.held, true); }
+        }
+        const B0 = Bv[0], resid = B0 - X - Ts - Gs;
+        idN++; if (Math.abs(resid) <= TOL) idOk++;
+        if (Math.abs(B0 - B(tab, s0, 0, ownC, H0())) <= TOL) ownOk++;
+        A.X[i] = X; A.B0[i] = B0; A.T[i] = Ts; A.GB[i] = GB; A.GA[i] = GA; A.GL[i] = GL; A.GD[i] = GD; A.NB[i] = NB; A.ND[i] = ND;
+        if (i < NQ) QF[i] = QFs;
+      }
+      bits[`OWN${k}`] = b; bits[`OWN${k}b`] = bb; moves[`MV${k}`] = MV;
+      for (const x of [...KEYS, ...YK, 'NB', 'ND']) per[`${x}${k}`] = A[x];
+      per[`QF${k}`] = QF;
+      console.log(`${''.padEnd(16)} sim ${L} ${k} OWN ai ${ownC}: ${b.reduce((t, x) => t + x, 0)}/${NPW} bridge ${bb.reduce((t, x) => t + x, 0)} bits ${sha16(b)} ${sha16(bb)}`);
+      let py = 0; for (const v of MV) if (v !== NOMOVE) py++;
+      console.log(`${''.padEnd(16)} moves ${L} ${k}: path-years ${py} sha ${sha16(MV)}`);
+      const mean = a => a.reduce((t, x) => t + x, 0) / a.length;
+      console.log(`${''.padEnd(16)} ledger ${L} ${k}: ${[...KEYS, ...YK].map(x => `${x} ${f6(100 * mean(A[x]))}`).join(' ')}`);
+      for (let t = 1; t <= T; t++) if (yrN[t] > 0) console.log(`${''.padEnd(16)} year ${L} ${k} ${t}: paths ${yrN[t]} ${['G', 'T'].map(x => `${x} ${f6(100 * yr[x][t] / NPW)}`).join(' ')}`);
+      console.log(`${''.padEnd(16)} derisk ${L} ${k}: plan layer ${li0} bridge path-years ${A.NB.reduce((t, x) => t + x, 0)} de-risked ${A.ND.reduce((t, x) => t + x, 0)} GD ${f6(100 * mean(A.GD))}`);
+      console.log(`${''.padEnd(16)} qf ${L} ${k}: paths ${NQ} QF ${f6(100 * mean(QF))}`);
+      for (let li = 0; li < nL; li++) console.log(`${''.padEnd(16)} layer ${L} ${k} ${li}: bridge path-years ${byLN[li]} G ${f6(100 * byL[li] / NPW)}`);
+    }
+    console.log(`${''.padEnd(16)} checks ${L}: ownTook ${ownOk}/${idN} identity ${idOk}/${idN} qfTook ${qfOk}/${qfN} layerTook ${lyOk}/${lyN} secs ${Math.round((Date.now() - f0) / 1000)}`);
+    if (ownOk !== idN || idOk !== idN) { console.error(`audit-foot: ${id} ${L}: the ledger does not close on every path (ownTook ${ownOk}/${idN} identity ${idOk}/${idN})`); process.exit(3); }
+    if (!(lyN > 0) || lyOk !== lyN) { console.error(`audit-foot: ${id} ${L}: a bridge visit's G is filed under a layer other than the tiers held (layerTook ${lyOk}/${lyN})`); process.exit(3); }
+    if (!(qfN > 0) || qfOk !== qfN) { console.error(`audit-foot: ${id} ${L}: the fine rule's machinery does not reproduce the one-step value (qfTook ${qfOk}/${qfN})`); process.exit(3); }
+  }
+
+  const tables = {};
+  for (let k = 0; k < K; k++) { const tab = cand.mix.tables[k], Ls = tab.tsLayers || [tab]; Ls.forEach((Ly, li) => { for (const t of [...bridge, bridge[bridge.length - 1] + 1]) tables[`${k}/${li}/${t}`] = b64(Float32Array.from(Ly.lsurv[t])); }); }
+  writeFileSync(join(OUT, fileOfJob(job)), gzipSync(JSON.stringify({ id, job: L, stamp: STAMP, NPW, seed: SEED, own: ownC, bridge, years: T + 1, nqf: Math.min(NPW, NQF), nfine: NFINE, bits: Object.fromEntries(Object.entries(bits).map(([x, v]) => [x, b64(v)])), per: Object.fromEntries(Object.entries(per).map(([x, v]) => [x, b64(v)])), moves: Object.fromEntries(Object.entries(moves).map(([x, v]) => [x, b64(v)])), tables })));
+  console.log(`${''.padEnd(16)} file ${L}: ${fileOfJob(job)}`);
+  console.log(`${''.padEnd(16)} done ${L}`);
+});

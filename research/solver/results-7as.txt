@@ -1,0 +1,40 @@
+FAIR-TEST GATE: research/solver/predictions/diag-7ae.md was corrected after launch (c79b4cbc at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - 29 Sept, after 7ae was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times corrected from the records - the Written line's revision 21:10 to 21:12 UK (commit 4aef99f) and the Derivation's plan-auditor MINOR 1 of 21:1x to 21:13 UK (review-log.md). Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: passed - 9 jobs; P's records through P's gate; P's 0.001 solved again identical to P's on the three units (table, ran, gap, joint, moves, price, worlds); every charged job P's ran line but the charge; every line and trace present and agreeing with its log; the pairing on P's first paths
+7AS: THE CHARGE'S SIZE AND S194'S BAD-WORLD SLICE (predictions/diag-7as.md): P's three units at switchCharge 0.0005 and 0.002 (margin 0) against P's 0.001, 8000 paths of seed 7002 across all worlds, 16000 at S194's bad node; P's records through P's gate, P's 0.001 solved again and identical
+
+THE JOBS: the table, the year-0 gap on top of the charge, the opening, by charge
+  bridge 4  0.0005: table 99.7161 gap 7.4987e-4 opening 2 | 0.001: table 99.7135 gap 5.6751e-4 opening 2 | 0.002: table 99.7166 gap 1.9328e-4 opening 2
+  S194      0.0005: table 98.5622 gap 6.8105e-4 opening 2 | 0.001: table 98.5933 gap 6.7057e-4 opening 2 | 0.002: table 98.6315 gap 6.6263e-4 opening 2
+  S126      0.0005: table 99.8534 gap 5.8980e-4 opening 2 | 0.001: table 99.8535 gap 3.9851e-4 opening 2 | 0.002: table 99.8452 gap 0 opening 0
+
+ITEM 1 (the charge's size across all worlds, primary): TS+J at each charge against TS+J at 0.001 (P's first 8000 paths), survival both ways by the exact rule (Holm over 6 a direction) and the guarded interval at the unit's margin, and the whole score inside +/-0.25
+  bridge 4  0.0005 1 saved/1 lost of 8000 | survival +0.000 (exact -0.024 to 0.024; guarded -0.059 to 0.059; margin 0.25) down no material harm, up no material harm | whole +0.000 (-0.074 to 0.075) | FLAT
+  bridge 4  0.002  3 saved/1 lost of 8000 | survival +0.025 (exact -0.031 to 0.049; guarded -0.040 to 0.096; margin 0.25) down no material harm, up no material harm | whole +0.025 (-0.056 to 0.114) | FLAT
+  S194      0.0005 5 saved/4 lost of 8000 | survival +0.013 (exact -0.065 to 0.082; guarded -0.074 to 0.100; margin 0.25) down no material harm, up no material harm | whole +0.030 (-0.085 to 0.146) | FLAT
+  S194      0.002  2 saved/3 lost of 8000 | survival -0.013 (exact -0.056 to 0.044; guarded -0.085 to 0.059; margin 0.25) down no material harm, up no material harm | whole -0.073 (-0.172 to 0.025) | FLAT
+  S126      0.0005 0 saved/0 lost of 8000 | survival +0.000 (exact 0.000 to 0.000; guarded -0.048 to 0.048; margin 0.25) down no material harm, up no material harm | whole +0.000 (-0.063 to 0.063) | FLAT
+  S126      0.002  0 saved/3 lost of 8000 | survival -0.037 (exact -0.037 to 0.016; guarded -0.110 to 0.019; margin 0.25) down no material harm, up no material harm | whole -0.066 (-0.157 to 0.009) | FLAT
+  -> HELD (HELD when all six legs are FLAT; FALSIFIED when any CHANGES)
+
+ITEM 2 (S194's slice at double the charge): OPEN2 at 0.002 against OPEN2 at 1e-3 at the node, the whole score: -0.152 (-0.295 to -0.011) (survival part -0.150, the rest -0.002)
+  -> INCONCLUSIVE (HELD when the lower end is above -0.25; FALSIFIED when the upper end is below -0.25; a dose-response - more switching friction against the re-risking - that attributes nothing by itself)
+
+ITEM 3 (the split, O50): at the node, path by path, OPEN2's move (0.0005 less the margin; the slice -0.298 a path, its test p 5.00e-5) against WA's move (-0.009 a path): WA's share of the slice 0.03; HELD side mean(a - o/3) p 1.69e-2 Holm 3.38e-2; FALSIFIED side mean(2o/3 - a) p 1.00e+0 Holm 1.00e+0
+  -> HELD (HELD: WA's move a third of the slice or less, the slice the world-blind chooser's; FALSIFIED: two thirds or more, the charge's own)
+  the same contrast at the other charges (reported): 0.001: slice -0.261, WA -0.019, share 0.07 (INCONCLUSIVE); 0.002: slice -0.152, WA -0.036, share 0.24 (INCONCLUSIVE)
+
+REPORTED: S194'S NODE SLICE BY CHARGE (against OPEN2 at 1e-3, P's; saved/lost, survival, the whole score), and TS+J against TS+J at 1e-3 beside it
+  0 (margin 0)  TS+J 44/126 whole -0.589 (-0.787 to -0.394) | OPEN2 44/126 whole -0.589 (-0.787 to -0.394) | WA 35/36 whole -0.039 (-0.167 to 0.089)
+  0.0005        TS+J 27/70 whole -0.298 (-0.449 to -0.150) | OPEN2 27/70 whole -0.298 (-0.449 to -0.150) | WA 16/17 whole -0.009 (-0.102 to 0.084)
+  0.001         TS+J 18/59 whole -0.261 (-0.395 to -0.131) | OPEN2 18/59 whole -0.261 (-0.395 to -0.131) | WA 11/19 whole -0.019 (-0.108 to 0.068)
+  0.002         TS+J 34/58 whole -0.152 (-0.295 to -0.011) | OPEN2 34/58 whole -0.152 (-0.295 to -0.011) | WA 22/32 whole -0.036 (-0.149 to 0.075)
+
+REPORTED: ACROSS ALL WORLDS AGAINST THE MARGIN (TS+J at each charge against TS+J at 1e-3, P's first paths; saved/lost and the whole score)
+  bridge 4  0.0005: 0/1 whole -0.013 (-0.084 to 0.054) | 0.001: 1/2 whole -0.013 (-0.095 to 0.065) | 0.002: 2/1 whole +0.012 (-0.066 to 0.094)
+  S194      0.0005: 3/3 whole +0.115 (0.006 to 0.223) | 0.001: 5/6 whole +0.085 (-0.040 to 0.209) | 0.002: 4/6 whole +0.013 (-0.106 to 0.128)
+  S126      0.0005: 0/0 whole -0.000 (-0.063 to 0.063) | 0.001: 0/0 whole -0.000 (-0.063 to 0.063) | 0.002: 0/3 whole -0.066 (-0.157 to 0.009)
+
+OUTCOME: 1 HELD; 2 INCONCLUSIVE; 3 HELD

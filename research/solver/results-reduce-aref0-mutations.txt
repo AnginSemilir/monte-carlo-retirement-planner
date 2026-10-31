@@ -1,0 +1,38 @@
+caught: 1: if (j.cases !== 1) bad.push(
+caught: 2: if (!j.done) bad.push('no done line');
+caught: 3: j.head.scale !== scale || j.head.nsim !== nsim || j.head.see
+caught: 4: j.head.scale !== scale || j.head.nsim !== nsim || j.head.see
+caught: 5: j.head.scale !== scale || j.head.nsim !== nsim || j.head.see
+caught: 6: for (const c of ['gridTook', 'recTook', 'dpTook'])
+caught: 7: for (const c of ['gridTook', 'recTook', 'dpTook'])
+caught: 8: for (const c of ['gridTook', 'recTook', 'dpTook'])
+caught: 9: if (!x || !(x[1] > 0) || x[0] !== x[1])
+caught: 10: if (!x || !(x[1] > 0) || x[0] !== x[1])
+caught: 11: if (j.cal[k].length !== 5 || [0, 1, 2, 3, 4].some(b => !j.ca
+caught: 12: if (!j.flat[k]) bad.push(
+caught: 13: if (!j.nodeax) bad.push('no NODE-AX file line');
+caught: 14: else if (axSha !== null && j.nodeax !== axSha)
+caught: 15: ['code', 'audit', 'prediction', 'sha'].some(x => file.stamp[
+caught: 16: if (file.nodeax !== j.nodeax) bad.push(
+caught: 17: !['X', 'RD', 'world', 'path', 'year'].every(
+caught: 18: if (!(j.checks.recTook && j.checks.recTook[1] === n)) bad.pu
+caught: 19: Buffer.from(f.S, 'base64').length / 4 === j.flat[k].band)
+caught: 20: j.cal[Number(m[1])][Number(m[2])] = { n: Number(m[3]) };
+caught: 21: else if (l === `done ${LABEL}`) j.done = true;
+caught: 22: outside = x => x.lo > CAL || x.hi < -CAL
+caught: 23: outside = x => x.lo > CAL || x.hi < -CAL
+caught: 24: used.some(w => w.some(outside))
+caught: 25: const used = cal.map(w => w.filter(x => x.n >= MIN_N));
+caught: 26: CAL = 0.03, UNDER_H
+caught: 27: by[b].d.push(R.X[i] - R.P[i]);
+caught: 28: under.every(x => x.lo >= UNDER_H) ? 'HELD'
+caught: 29: d.push(R.X[i] - R.RD[i]);
+caught: 30: UNDER_H = 0.03, UNDER_F
+caught: 31: if (p[i] >= 0.5) { sup++;
+caught: 32: if (c >= 0.9 && c <= 1) fl++;
+caught: 33: flat.every(x => x.share >= FLAT_H) ? 'HELD'
+caught: 34: FLAT_H = 0.8, FLAT_F
+caught: 35: FLAT_F = 0.6;
+caught: 36: out.go = ['1', '2', '3'].every(
+caught: 37: Math.sqrt(v * G / (G - 1)) / n
+37 of 37 mutations caught

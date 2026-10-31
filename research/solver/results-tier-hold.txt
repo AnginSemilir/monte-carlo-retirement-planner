@@ -1,0 +1,12 @@
+planted (4): the tier code decodes as solve.js writes it
+FAIR-TEST GATE: passed (requireFairLogs over 50 logs of results/diag7aw, 7aw's registered prediction)
+
+BELOW THE PLAN'S OWN TIER, share of the alive path-years (7aw, estate weight 0.02, 25 households, 8,000 paths each)
+  CAND years 0-4  : pension 80.5%, ISA 80.5%, either 80.5%; mean steps down 3.212 (path-years 998553)
+  CAND years 5-14 : pension 84.9%, ISA 84.9%, either 84.9%; mean steps down 3.393 (path-years 1959809)
+  CAND years 15 on: pension 68.4%, ISA 68.4%, either 68.4%; mean steps down 2.735 (path-years 4994353)
+  SHIP years 0-4  : pension 45.0%, ISA 45.0%, either 45.0%; mean steps down 1.790 (path-years 989574)
+  SHIP years 5-14 : pension 56.8%, ISA 56.8%, either 56.8%; mean steps down 2.264 (path-years 1924236)
+  SHIP years 15 on: pension 59.9%, ISA 59.9%, either 59.9%; mean steps down 2.390 (path-years 4887664)
+  CAND: households with either pot below the plan's tier in more than half their alive years: 22 of 25; the most S124 92%, S194 89%, S366 86%, bridge 6 85%, S130 84%
+  SHIP: households with either pot below the plan's tier in more than half their alive years: 14 of 25; the most S120 100%, wealth x2 100%, share 0.78 100%, S126 100%, bridge 6 100%

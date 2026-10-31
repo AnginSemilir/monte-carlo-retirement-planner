@@ -1,0 +1,45 @@
+caught: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);
+caught: 2: if (!u.done) bad.push(`${tag}: not done`);
+caught: 3: if (u.solve.BASE && (field(u.solve.BASE, 'readerTax') !== '-
+caught: 4: if (u.solve.COV && (field(u.solve.COV, 'readerTax') === '-' 
+caught: 5: const want = { mix: '3', pts, seed: SEED,
+caught: 6: if (!(c[1] > 0 && c[3] > 0 && c[5] > 0 && c[7] > 0)) bad.pus
+caught: 7: if (c[0] !== c[1] || c[2] !== c[3] || c[4] !== c[5] || c[6] 
+caught: 8: if (u.termsOk !== 4) bad.push(
+caught: 9: ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] 
+caught: 10: if (!t) return [`${tag}: missing`];
+caught: 11: if (t.top.some(x => x !== 0 && x !== 1)) bad.push(
+caught: 12: COLS.some(q => !Array.isArray(A[q]) || A[q].length !== n)
+caught: 13: if (u.xasr[a] && u.xasr[a].reads !== n) bad.push(
+caught: 14: if (at.size !== n) bad.push(
+caught: 15: Math.abs(X.arms[a].read[i] - t.arms[a].read[j]) > 2e-9 || 
+caught: 16: if (off) bad.push(`${tag}: ${off} reads differ
+caught: 17: for (const a of ARMS) if (u.open[a] !== xu.open[a]) bad.push
+caught: 18: if (!tb || !(Math.abs(tb.score - xu.scoreBase) <= 1e-4)) bad
+caught: 19: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 20: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 21: if (!(m <= GUARD + 1e-12)) bad.push(
+caught: 22: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 23: const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A 
+caught: 24: for (const id of READ_UNITS) {
+    const t = files[id]; if (
+caught: 25: r.read = !(r.s >= S_MIN && r.s <= S_MAX) ? 'CONSTRUCT' :
+caught: 26: S_MIN = -0.2, S_MAX = 1.2;
+caught: 27: S_MIN = -0.2, S_MAX = 1.2;
+caught: 28: const D = perPath(S, J, j => A.read[j] - A.va[j]),
+caught: 29: const S = files.S370, A = S.arms.COV,
+caught: 30: lo: D.map((d, i) => d - LO * P[i]), hi: D.map((d, i) => HI *
+caught: 31: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 32: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 33: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 34: v: per.length && per.every(r => r.read === 'COPY') ? 'HELD'
+caught: 35: per.length && per.every(r => r.read === 'GRID') ? 'FALSIFIED
+caught: 36: const key = t.k[j] * 1e6 + t.p[j];
+caught: 37: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 38: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 39: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 40: two = { mv, v: mv.every(x => x.q >= Q_HELD) ? 'HELD'
+caught: 41: mv.every(x => x.q <= Q_FALS) ? 'FALSIFIED'
+caught: 42: const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`]
+caught: 43: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
+43 of 43 mutations caught

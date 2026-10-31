@@ -1,0 +1,8 @@
+7AI SOLVE TIMES AND THE TOP-SHARE TABLES
+  the bundle's blend and reversed solves: 14, secs 1422 to 2144, sum 24643 (6.85 core-hours)
+  S126        READER/TS+J@linear    table 99.7887
+  S126        READER/TS+J@logblend  table 99.8804
+  S126        READER/TS+J@reversed  table 99.6376
+  share 0.90  READER/TS+J@linear    table 99.7887
+  share 0.90  READER/TS+J@logblend  table 99.8805
+  share 0.90  READER/TS+J@reversed  table 99.6376

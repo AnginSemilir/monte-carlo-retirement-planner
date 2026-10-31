@@ -1,0 +1,52 @@
+gates passed: 7aa (thirty units, traces), 7ab (ten units, traces, identity)
+
+1. THE WHOLE SCORE SPLIT (points, per path x100): B against A
+  S126 W0          FREED v PRODUCT    surv +0.463 estate +0.000 cuts +0.053 failfloor +0.001 raises +0.077 | rest +0.131
+  S126 W0          TS+J v FREED       surv +0.037 estate +0.000 cuts -0.001 failfloor +0.000 raises -0.000 | rest -0.001
+  S126 W0          TS+J v PRODUCT     surv +0.500 estate +0.000 cuts +0.053 failfloor +0.001 raises +0.076 | rest +0.130
+  bridge 4 W0      FREED v PRODUCT    surv +0.388 estate +0.000 cuts +0.044 failfloor +0.002 raises +0.069 | rest +0.114
+  bridge 4 W0      TS+J v FREED       surv +0.075 estate +0.000 cuts -0.001 failfloor +0.000 raises -0.000 | rest -0.001
+  bridge 4 W0      TS+J v PRODUCT     surv +0.463 estate +0.000 cuts +0.043 failfloor +0.002 raises +0.068 | rest +0.113
+  S126 W0.02       FREED v PRODUCT    surv +0.550 estate -0.391 cuts +0.087 failfloor +0.001 raises +0.121 | rest -0.181
+  S126 W0.02       TS+J v FREED       surv +0.037 estate +0.308 cuts -0.004 failfloor +0.000 raises -0.007 | rest +0.297
+  S126 W0.02       TS+J v PRODUCT     surv +0.587 estate -0.082 cuts +0.083 failfloor +0.001 raises +0.114 | rest +0.116
+  S194 W0.02       FREED v PRODUCT    surv +0.538 estate -0.252 cuts +0.096 failfloor +0.001 raises +0.098 | rest -0.058
+  S194 W0.02       TS+J v FREED       surv -0.013 estate +0.317 cuts -0.027 failfloor -0.000 raises -0.044 | rest +0.246
+  S194 W0.02       TS+J v PRODUCT     surv +0.525 estate +0.066 cuts +0.069 failfloor +0.001 raises +0.054 | rest +0.189
+  bridge 4 W0.02   FREED v PRODUCT    surv +0.000 estate +0.000 cuts +0.000 failfloor +0.000 raises +0.000 | rest +0.000
+  bridge 4 W0.02   TS+J v FREED       surv +0.025 estate +0.305 cuts -0.006 failfloor +0.000 raises -0.011 | rest +0.288
+  bridge 4 W0.02   TS+J v PRODUCT     surv +0.025 estate +0.305 cuts -0.006 failfloor +0.000 raises -0.011 | rest +0.288
+
+2. PATH-YEARS TS+J RISKIER / SAFER THAN FREED (pension tier), by year band; and TS+J v FREED rest by long-run shift bin
+  S126 W0          y1-5: 0/0  y6-15: 0/0  y16-25: 0/0  y26-99: 1/21
+                   below -sqrt 3 (277): 1/0 rest +0.000 | -sqrt 3 to -1 (966): 1/0 rest +0.000 | -1 to 0 (2746): 1/0 rest -0.001 | 0 and above (4011): 0/0 rest -0.000
+  bridge 4 W0      y1-5: 0/0  y6-15: 0/0  y16-25: 0/3  y26-99: 3/41
+                   below -sqrt 3 (319): 4/1 rest +0.001 | -sqrt 3 to -1 (970): 3/0 rest +0.000 | -1 to 0 (2745): 0/0 rest -0.001 | 0 and above (3966): 0/0 rest -0.001
+  S126 W0.02       y1-5: 0/0  y6-15: 0/0  y16-25: 8486/6  y26-99: 49974/87
+                   below -sqrt 3 (277): 2/0 rest +0.001 | -sqrt 3 to -1 (966): 0/0 rest +0.020 | -1 to 0 (2746): 1/0 rest +0.111 | 0 and above (4011): 0/0 rest +0.165
+  S194 W0.02       y1-5: 0/0  y6-15: 4/5  y16-25: 58/43  y26-99: 38855/65
+                   below -sqrt 3 (332): 1/0 rest +0.000 | -sqrt 3 to -1 (949): 1/0 rest +0.010 | -1 to 0 (2730): 0/2 rest +0.083 | 0 and above (3989): 0/1 rest +0.153
+  bridge 4 W0.02   y1-5: 0/0  y6-15: 0/0  y16-25: 7814/1  y26-99: 53054/104
+                   below -sqrt 3 (319): 3/2 rest -0.001 | -sqrt 3 to -1 (970): 1/0 rest +0.021 | -1 to 0 (2745): 0/0 rest +0.117 | 0 and above (3966): 0/0 rest +0.152
+
+3. FREED v PRODUCT: on the paths FREED saves, the year PRODUCT first leaves the plan's pension tier (never = n), and the long-run shift bin
+  S126 W0          saved 37: first de-risk {"1":1,"2":2,"6-10":7,"11+":11,"3-5":16}; by shift bin 15/16/6/0
+  bridge 4 W0      saved 31: first de-risk {"1":8,"2":4,"6-10":7,"11+":7,"3-5":5}; by shift bin 15/11/4/1
+  S126 W0.02       saved 44: first de-risk {"1":1,"2":1,"6-10":9,"11+":16,"3-5":17}; by shift bin 19/18/6/1
+  S194 W0.02       saved 43: first de-risk {"1":22,"2":10,"6-10":2,"11+":4,"3-5":5}; by shift bin 10/16/14/3
+
+4. BY SHIFT BIN, per path within the bin (points): B v A  survival | estate | cuts+raises | whole
+  S126 W0          FREED v PRODUCT  below -sqrt 3: +5.415 | +0.000 | +0.734 | +6.149   -sqrt 3 to -1: +1.656 | +0.000 | +0.338 | +1.994   -1 to 0: +0.218 | +0.000 | +0.142 | +0.360   0 and above: +0.000 | +0.000 | +0.032 | +0.032
+  S126 W0          TS+J v PRODUCT   below -sqrt 3: +5.776 | +0.000 | +0.745 | +6.521   -sqrt 3 to -1: +1.760 | +0.000 | +0.339 | +2.099   -1 to 0: +0.255 | +0.000 | +0.140 | +0.395   0 and above: +0.000 | +0.000 | +0.031 | +0.031
+  bridge 4 W0      FREED v PRODUCT  below -sqrt 3: +4.702 | +0.000 | +0.602 | +5.305   -sqrt 3 to -1: +1.134 | +0.000 | +0.306 | +1.440   -1 to 0: +0.146 | +0.000 | +0.123 | +0.268   0 and above: +0.025 | +0.000 | +0.022 | +0.047
+  bridge 4 W0      TS+J v PRODUCT   below -sqrt 3: +5.643 | +0.000 | +0.634 | +6.277   -sqrt 3 to -1: +1.443 | +0.000 | +0.309 | +1.752   -1 to 0: +0.146 | +0.000 | +0.119 | +0.264   0 and above: +0.025 | +0.000 | +0.020 | +0.045
+  S126 W0.02       FREED v PRODUCT  below -sqrt 3: +6.859 | -0.026 | +0.919 | +7.752   -sqrt 3 to -1: +1.863 | -0.238 | +0.507 | +2.133   -1 to 0: +0.218 | -0.488 | +0.232 | -0.038   0 and above: +0.025 | -0.386 | +0.074 | -0.287
+  S126 W0.02       TS+J v PRODUCT   below -sqrt 3: +7.581 | +0.025 | +0.891 | +8.497   -sqrt 3 to -1: +1.863 | -0.035 | +0.474 | +2.302   -1 to 0: +0.255 | -0.151 | +0.218 | +0.322   0 and above: +0.025 | -0.054 | +0.071 | +0.042
+  S194 W0.02       FREED v PRODUCT  below -sqrt 3: +3.012 | -0.091 | +0.227 | +3.148   -sqrt 3 to -1: +1.686 | -0.188 | +0.269 | +1.768   -1 to 0: +0.513 | -0.309 | +0.236 | +0.439   0 and above: +0.075 | -0.241 | +0.145 | -0.021
+  S194 W0.02       TS+J v PRODUCT   below -sqrt 3: +3.313 | -0.031 | +0.177 | +3.459   -sqrt 3 to -1: +1.791 | -0.042 | +0.206 | +1.955   -1 to 0: +0.440 | +0.013 | +0.157 | +0.609   0 and above: +0.050 | +0.136 | +0.076 | +0.262
+
+5. FREED v PRODUCT saved paths: year-0 draw z0 (quartiles), share with z0 < -1; long-run shift median; paths whose z0 < -1 among all
+  S126 W0          saved 37: z0 quartiles -0.70/-0.18/0.38, z0 < -1 on 6 (all paths 16.3%); shift quartiles -2.22/-1.60/-1.40; shift >= -1 with z0 < -1: 1 of 6
+  bridge 4 W0      saved 31: z0 quartiles -1.15/-0.32/0.26, z0 < -1 on 8 (all paths 16.3%); shift quartiles -2.14/-1.71/-1.29; shift >= -1 with z0 < -1: 1 of 5
+  S126 W0.02       saved 44: z0 quartiles -1.03/-0.44/0.35, z0 < -1 on 11 (all paths 16.3%); shift quartiles -2.28/-1.63/-1.39; shift >= -1 with z0 < -1: 2 of 7
+  S194 W0.02       saved 43: z0 quartiles -1.39/-0.68/0.36, z0 < -1 on 17 (all paths 16.3%); shift quartiles -1.64/-1.24/-0.88; shift >= -1 with z0 < -1: 6 of 17

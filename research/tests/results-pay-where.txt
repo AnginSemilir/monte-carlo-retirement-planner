@@ -1,0 +1,21 @@
+PASS  0. the code under test (solve.js 5c611b8b18ada455) is not the base it is compared with (6367017, solve.js 49e63509a672e0a2)
+PASS  4. S050 E5: with the option unset the 2352 tables hash eab562c39d4671d8, as at 6367017 (eab562c39d4671d8)
+PASS  1. S050 E5 at 4 points: counted alone (0 failing picks), the tables the same (eab562c39d4671d8); the route reached
+PASS  4. S050 TSLOOP: with the option unset the 2352 tables hash eab562c39d4671d8, as at 6367017 (eab562c39d4671d8)
+PASS  1. S050 TSLOOP at 4 points: counted alone (0 failing picks), the tables the same (eab562c39d4671d8); the route reached
+PASS  4. S050 JOINT: with the option unset the 420 tables hash 5746606b700c0246, as at 6367017 (5746606b700c0246)
+PASS  1. S050 JOINT at 4 points: counted alone (0 failing picks), the tables the same (5746606b700c0246); the route reached
+PASS  4. S050 PASS2: with the option unset the 420 tables hash ff183446cb510de3, as at 6367017 (ff183446cb510de3)
+PASS  1. S050 PASS2 at 4 points: counted alone (0 failing picks), the tables the same (ff183446cb510de3); the route reached
+PASS  1. S340F E5 at 4 points: counted alone (0 failing picks), the tables the same (b215d0e9786cdf12); the route reached
+PASS  1. S340F TSLOOP at 4 points: counted alone (0 failing picks), the tables the same (b215d0e9786cdf12); the route reached
+PASS  1. S340F JOINT at 4 points: counted alone (0 failing picks), the tables the same (1139637d73f2a434); the route reached
+PASS  1. S340F PASS2 at 4 points: counted alone (0 failing picks), the tables the same (47aa35c87f065e91); the route reached
+PASS  2. S050 E5 at 12 points: 26552 layer-cells store a failing move where one pays; with the option 0, and the tables differ (fedbd90957aeb84e, not 0d6995d55185a684)
+PASS  3. S050 E5 at 12 points, planted: phase B without the skip leaves 26552 failing picks
+PASS  2. S050 TSLOOP at 12 points: 26552 layer-cells store a failing move where one pays; with the option 0, and the tables differ (fedbd90957aeb84e, not 0d6995d55185a684)
+PASS  2. S050 JOINT at 12 points: 6638 layer-cells store a failing move where one pays; with the option 0, and the tables differ (f1b1b83e2e5fdb9e, not efdcd1b5d44a977a)
+PASS  2. S050 PASS2 at 12 points: 29106 layer-cells store a failing move where one pays; with the option 0, and the tables differ (647ab4d921e2204d, not c4c0882bf5dee070)
+PASS  3. the ternary level search refuses the option: payWhereOnePays needs every move evaluated: the ternary level search evaluates some
+PASS  4. planted: lambda x 2 at 6367017 hashes e43e601ee7c9f099, not ff183446cb510de3
+ALL PASS: 20 checks

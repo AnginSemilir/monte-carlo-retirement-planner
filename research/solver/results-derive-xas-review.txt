@@ -1,0 +1,42 @@
+GATE: passed - XAS's 4 households through reduce-xas.mjs's gate, the identity against COV-B-STEP's reads and the draw check
+
+1. PASS-THROUGH (COV less BASE: the read on ex5 at the same states; slope 1 passes the whole correction back)
+  S370     year 1 other      reads  6000: slope 0.95 (mean change in ex5 -9.88e-3, in the read -9.68e-3)
+  S370     year 2 other      reads  5245: slope 0.31 (mean change in ex5 -2.77e-2, in the read -9.56e-3)
+  S370     year 2 straddling reads   755: slope 0.30 (mean change in ex5 -3.53e-2, in the read -1.20e-2)
+  S370     year 4 other      reads  5859: slope 0.90 (mean change in ex5 -8.61e-3, in the read -8.02e-3)
+  S370     year 5 other      reads  5859: slope 0.96 (mean change in ex5 -8.59e-3, in the read -8.56e-3)
+  S370     year 6 other      reads  5859: slope 0.21 (mean change in ex5 -3.62e-2, in the read -8.59e-3)
+  bridge 4 year 1 other      reads  6000: slope 0.79 (mean change in ex5 -3.76e-4, in the read -3.01e-4)
+  bridge 4 year 2 other      reads  6000: slope 0.50 (mean change in ex5 -6.98e-4, in the read -3.74e-4)
+
+2. THE STRADDLE, BY WORLD (S370, the years before each step: rep = read less ex5)
+  year 2 BASE: straddling w0 490: -2.73e-2; straddling w1 205: -4.79e-2; straddling w2 60: -4.19e-2; other w0 1510: -8.11e-4; other w1 1795: -4.19e-3; other w2 1940: -1.69e-3
+  year 2 COV : straddling w0 490: -2.40e-3; straddling w1 205: -2.36e-2; straddling w2 60: -3.53e-2; other w0 1510: 3.54e-2; other w1 1795: 1.53e-2; other w2 1940: 1.04e-3
+  year 6 BASE: other w0 1895: 1.38e-3; other w1 1974: -5.43e-3; other w2 1990: -1.66e-3
+  year 6 COV : other w0 1895: 4.75e-2; other w1 1974: 2.77e-2; other w2 1990: 2.88e-3
+  year 2 COV other all worlds 5245: rep 1.58e-2
+  year 2 COV straddling all worlds 755: rep -1.08e-2
+  year 6 COV other all worlds 5859: rep 2.57e-2
+  year 6 COV straddling all worlds 0: rep -
+
+3. COV'S MOVES (S370, the years before each step: COV's rep where its chooser kept BASE's move and where it did not)
+  year 2 same move    reads  5583: rep 1.30e-2, adding 1.21e-2 to the year's mean rep
+  year 2 changed move reads   417: rep 5.78e-3, adding 4.02e-4 to the year's mean rep
+  year 6 same move    reads  4921: rep 2.39e-2, adding 2.01e-2 to the year's mean rep
+  year 6 changed move reads   938: rep 3.47e-2, adding 5.56e-3 to the year's mean rep
+
+4. THE BRIDGE TOTAL (S370: mean D = read less claim per year, summed; year 1's rep)
+  BASE: years 1-3 2.24e-3; years 4-7 2.44e-2; year 1 rep -1.28e-2
+  COV : years 1-3 3.91e-4; years 4-7 1.64e-2; year 1 rep -1.26e-2
+
+5. S126'S OPENING (results/diagxas/case3.txt, as printed by audit-xas.mjs)
+  open BASE: move 59 scores BASE-move 1.0367e+0 COV-move 1.0333e+0 gap 3.3623e-3 best3 59:1.0367e+0,74:1.0367e+0,89:1.0367e+0
+  open COV: move 5 scores BASE-move 1.0772e+0 COV-move 1.0784e+0 gap -1.1808e-3 best3 5:1.0784e+0,20:1.0784e+0,35:1.0784e+0
+  swap BASE: paths 6000 survived 5971 with COV's opening 5968
+  swap COV: paths 6000 survived 5960 with BASE's opening 5971
+
+6. S126 UNDER COV: how far the opening scores rise against how far the survival reads move
+  BASE's opening (move 59): 1.04e+0 under BASE, 1.08e+0 under COV, a rise of 4.05e-2
+  COV's opening (move 5): 1.03e+0 under BASE, 1.08e+0 under COV, a rise of 4.51e-2
+  year 1 reads 6000: the survival read 9.96e-1 under BASE, 9.96e-1 under COV, COV less BASE -3.52e-4

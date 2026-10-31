@@ -11,15 +11,15 @@
  * is the big lever when tiers are off; with tiers on the node loop dominates instead, and what helps
  * both is evaluating fewer (cell, action) pairs at all.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, buildActions } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, buildActions } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
-const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver';
+const HERE = new URL('.', import.meta.url).pathname.replace(/\/$/, '');
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync(HERE + '/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(HERE + '/fixtures/band-70-98-7001.json', 'utf8'));
 const sc = singles[band[Number(process.argv[2] || 0)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(sc.plan)), config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);

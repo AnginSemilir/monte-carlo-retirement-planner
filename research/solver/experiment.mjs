@@ -53,9 +53,26 @@ import * as F from '../../src/solver/fast.js';
 import { solve, solveFlex, solveMixture, runPolicy, chooseAction, buildActions } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { RECORD, STOREPOL, makeTrace, mark, markFail, writeRecord, polToB64 } from './record.mjs';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
+import { checkSettings } from './settings.mjs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { codeId } from './code-id.mjs';
+/*
+ * THE CODE AND THE PREDICTION THAT MADE A RESULT (RULES.md: variables 28 and the prediction lock). `code` is the hash
+ * of the solver, engine, library and this script (code-id.mjs); `prediction` is the registered prediction file the
+ * launcher was given and its git blob hash at launch, so an edit to the prediction after results exist shows up
+ * (fair-gate.mjs compares it with the file as it stands).
+ */
+const CODE = codeId(join(dirname(fileURLToPath(import.meta.url)), '../..'));
+// null: not launched through run-from-snapshot.sh (fair-gate refuses it); { none }: launched as a measurement, not a test
+// every setting is checked before anything runs: an unknown word, flag or number stops the run instead of falling back
+// to a default the result file would not show (settings.mjs; 24 Sep, the plan-auditor's tenth review)
+{ const bad = checkSettings(process.env); if (bad.length) { console.error(`experiment.mjs: refused - ${bad.join('; ')}`); process.exit(2); } }
+const PREDICTION = !process.env.PREDICTION_FILE ? null
+  : process.env.PREDICTION_FILE === 'none' ? { none: process.env.PREDICTION_REASON || 'no reason given' }
+  : { file: process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || null };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RESULTS = join(HERE, 'results');
@@ -98,7 +115,7 @@ function worldOf(kind) {
 }
 
 /* Run one fixed move on one path in the fast flow. */
-function runFixedPath(c, ai, zs, world = worldOf()) {
+function runFixedPath(c, ai, zs, world = worldOf(), tr = null) {
   const m = c.m;
   const s = c.rule ? F.withRuleSlots(vecOf(m, M.initialState(m))) : vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
@@ -116,9 +133,10 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) markFail(tr, t); return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false }; }
     world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
+    if (tr) mark(tr, t, c.yr.spend[t] > 0, c.last.level, s, c.last.taxPaid + c.last.cgtPaid, 0);
   }
   const total = s[0] + s[1] + s[2];
   const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
@@ -147,7 +165,7 @@ function statsFlex(rs) {
     // total spending delivered over retirement as a fraction of the target years: the guardrails' raises count here
     meanLevelMedian: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.5), meanLevelP10: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.1),
     // phase 6: years a wrapper sat below its plan tier, and how often the tiers changed
-    tierPenYearsMean: mean(rs.map(r => r.tierPenYears || 0)), tierIsaYearsMean: mean(rs.map(r => r.tierIsaYears || 0)), tierChangesMean: mean(rs.map(r => r.tierChanges || 0))
+    tierPenYearsMean: mean(rs.map(r => r.tierPenYears || 0)), tierIsaYearsMean: mean(rs.map(r => r.tierIsaYears || 0)), tierChangesMean: mean(rs.map(r => r.tierChanges || 0)), ...(rs.some(r => r.giaYears !== undefined) ? { giaYearsMean: mean(rs.map(r => r.giaYears || 0)), giaChangesMean: mean(rs.map(r => r.giaChanges || 0)) } : {})
   };
 }
 
@@ -157,14 +175,15 @@ function runSolvedPath(r, zs, world = worldOf()) {
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
   let tax = 0, tierYears = 0, tierChanges = 0, switchPaid = 0, lastTier = null;
-  const held = { pen: 0, isa: 0 };
+  const held = { pen: 0, isa: 0, gia: 0 };
   for (let t = 0; t <= m.ctx.totalYears; t++) {
     const ai = chooseAction(r, s, t, held);
+    const act = c.tiers.gia && r.giaHold >= 0 ? c.actWithGia(ai, r.giaHold) : c.acts[ai];   // M15
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
-    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    { const a = act; switchPaid += F.chargeSwitch(c, s, held, a, t); held.pen = a.tierPen; held.isa = a.tierIsa; held.gia = a.tierGia; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
-    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
+    world(c, zs[t], real, act, t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -211,6 +230,10 @@ function paired(a, b, field = 'survived') {
 if (mode === 'select') {
   const lo = Number(process.argv[3] || 70), hi = Number(process.argv[4] || 98);
   const seedSearch = Number(process.argv[5] || 7001);
+  // never over an existing band: runs pick households from it by index (ONLY=k), and select re-scores with today's code.
+  // 27 Sep a parse check that imported this script ran this mode, its default, and rewrote the band (PLAN.md, bugs, 28 Sep)
+  const bandOut = join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`);
+  if (existsSync(bandOut)) { console.error(`experiment.mjs select: refused - ${bandOut} exists; the runs that read it by index would change households. Move it away first to rebuild it.`); process.exit(2); }
   console.log(`single-person households whose same-menu fixed arm scores ${lo}..${hi} survival on ${SEARCH_PATHS} search paths (seed ${seedSearch})`);
   const chosen = [];
   singles.forEach((sc, i) => {
@@ -223,7 +246,7 @@ if (mode === 'select') {
   });
   console.log(`${chosen.length} of ${singles.length} in the band`);
   mkdirSync(RESULTS, { recursive: true });
-  writeFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), JSON.stringify(chosen));
+  writeFileSync(bandOut, JSON.stringify(chosen));
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -232,7 +255,7 @@ if (mode === 'run') {
   const POINTS = Number(process.argv[4] || 20), HELD = Number(process.argv[5] || 3000);
   const seedSearch = Number(process.argv[6] || 7001), seedHeld = Number(process.argv[7] || 7002);
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const bandFile = join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`);
+  const bandFile = join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`);
   if (!existsSync(bandFile)) { console.error(`run select first: ${bandFile} is missing`); process.exit(2); }
   const band = JSON.parse(readFileSync(bandFile, 'utf8'));
   const k = Number(process.env.ONLY);
@@ -278,6 +301,7 @@ if (mode === 'run') {
     verdictSame: verdict(Fs), verdictApp: verdict(A)
   };
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE; out.prediction = PREDICTION;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame, pa = out.pairedApp;
   console.log(`${sc.id} ${sc.name.slice(0, 34).padEnd(35)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  app ${A.successRate.toFixed(1)} (${pa.diff >= 0 ? '+' : ''}${pa.diff.toFixed(1)}±${pa.se.toFixed(1)}, picker: ${out.verdictApp})  p10 ${Math.round(S.p10TerminalNet / 1000)}k/${Math.round(Fs.p10TerminalNet / 1000)}k  median ${Math.round(S.medianTerminalNet / 1000)}k/${Math.round(Fs.medianTerminalNet / 1000)}k  failAge ${S.meanFailAge ? S.meanFailAge.toFixed(1) : '-'}/${Fs.meanFailAge ? Fs.meanFailAge.toFixed(1) : '-'}  ${(out.ms / 1000).toFixed(0)}s`);
@@ -297,7 +321,7 @@ if (mode === 'perturb') {
   const POINTS = Number(process.argv[5] || 40), HELD = Number(process.argv[6] || 3000);
   const seedSearch = Number(process.argv[7] || 7001), seedHeld = Number(process.argv[8] || 7002);
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const band = JSON.parse(readFileSync(join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
   const k = Number(process.env.ONLY);
   if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
   const sc = singles[band[k].i];
@@ -327,6 +351,7 @@ if (mode === 'perturb') {
     verdictSame: verdict(Fs), verdictApp: verdict(A)
   };
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE; out.prediction = PREDICTION;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame;
   console.log(`${sc.id} ${kind.padEnd(10)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  base Δ ${base.pairedSame.diff >= 0 ? '+' : ''}${base.pairedSame.diff.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
@@ -355,14 +380,25 @@ if (mode === 'flex') {
   const CONF_REL = CONF_RAW.startsWith('+') ? Number(CONF_RAW.slice(1)) : null;
   let CONF = CONF_REL === null && CONF_RAW !== 'gkFloor' ? Number(CONF_RAW) : 0.9;
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
-  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const band = JSON.parse(readFileSync(join(HERE, 'fixtures', `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
   const k = Number(process.env.ONLY);
   if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
   const sc = singles[band[k].i];
   const raw = JSON.parse(JSON.stringify(sc.plan));
+  // PLANTIER (M14, research only): hold the pension and the ISA at this tier in the plan, so the library - where every
+  // household holds its pension at the top tier - can test a user who chose less risk
+  if (process.env.PLANTIER) raw.accounts = raw.accounts.map(a => (/^Pensions|^S&S ISA/.test(a.category) ? { ...a, risk: process.env.PLANTIER } : a));
+  // GIAGAIN (M15, research only): the taxable account opens with this fraction of its balance as unrealised gain -
+  // every library GIA opens with none, which makes a tier switch there free of tax
+  if (process.env.GIAGAIN) raw.accounts = raw.accounts.map(a => (/^Other Investments/.test(a.category) && E.num(a.balance, 0) > 0 ? { ...a, unrealisedGain: Math.round(Number(process.env.GIAGAIN) * E.num(a.balance, 0)) } : a));
   const target = E.num(raw.spending.targetSpend, 0);
   const floorSpend = Math.round(target * FLOOR);
-  const variant = (guardrails, floor) => E.resolveMpaa(E.normalizePlan({ ...raw, config: { ...raw.config, guardrails, lookaheadYears: 0 }, spending: { ...raw.spending, floorSpend: floor, floorConfidence: CONF * 100 } }));
+  // MINPOTYEARS: the minimum end-of-life pot, in years of target spending, set on EVERY arm's plan so the
+  // rivals are held to the same rule the solver is (PLAN.md step 3, K2)
+  const minPot = process.env.MINPOTYEARS !== undefined ? Number(process.env.MINPOTYEARS) * target : undefined;
+  // GUARDCAP (M23, maintainer 24 Sep: option A): the guardrails honour the user's raise cap, as the solver's menu does
+  const guardCap = process.env.GUARDCAP ? Number(process.env.GUARDCAP) : 0;
+  const variant = (guardrails, floor) => E.resolveMpaa(E.normalizePlan({ ...raw, config: { ...raw.config, guardrails, lookaheadYears: 0, ...(minPot !== undefined ? { solvencyFloor: minPot } : {}), ...(guardrails && guardCap > 0 ? { raiseCap: guardCap } : {}) }, spending: { ...raw.spending, floorSpend: floor, floorConfidence: CONF * 100 } }));
   const plans = { solver: variant(false, floorSpend), gk: variant(true, 0), gkFloor: variant(true, floorSpend), fixed: variant(false, 0), vanguard: variant(false, floorSpend), arva: variant(false, floorSpend) };
   const EXTRA = (process.env.ARMS || 'vanguard,arva').split(',').filter(Boolean);
   const t0 = Date.now();
@@ -372,7 +408,33 @@ if (mode === 'flex') {
   // the mixture (gate 3): the solver lands its floor on K tables and every arm runs in the engine's world
   const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 3;
   const arms = {};
-  for (const key of ['gk', 'gkFloor', 'fixed', ...EXTRA]) {
+  /*
+   * SOLVERONLY=1: skip the rival arms entirely. For a SCREEN that compares the solver against ITSELF
+   * across arms - 6e's grid fidelity, 6c-screen's curve, 6d's lever - the five rivals are identical in
+   * every cell, so scoring them is work computed and thrown away.
+   *
+   * Measured before this existed: one cell at 12 points and 400 held paths took 15.1 MINUTES, for a
+   * single solve. The solve is not the cost. The cost is forward passes, and most of them are not read:
+   * five rival arms scored over the held draw, plus 10,800 policy runs whose only output is the search
+   * floor rate, which a held-lambda run does not use for anything.
+   *
+   * ONE requirement, checked rather than assumed: CONF must be a NUMBER. `CONF=gkFloor` and `CONF=+n`
+   * both derive the solver's ask FROM an arm, so dropping the arms would silently change what the
+   * solver was asked for rather than only making the run cheaper.
+   *
+   * It first also demanded LAMBDA be held, on the reasoning that without the rivals there is nothing
+   * to calibrate an ask against. **That was too strict and the reasoning was wrong.** With CONF given
+   * as a number the ask is explicit and owes the rivals nothing, so a real landing is perfectly
+   * well defined without them - which is exactly what the search-path sweep needs, since it must
+   * LAND at each path count and cannot hold lambda. The guard was written for screens and mistook the
+   * first use for the only one.
+   */
+  const SOLVER_ONLY = process.env.SOLVERONLY === '1';
+  if (SOLVER_ONLY && (CONF_RAW === 'gkFloor' || CONF_REL !== null)) {
+    console.error('SOLVERONLY needs CONF as a number: gkFloor and +n both derive the ask from an arm that is not being run');
+    process.exit(2);
+  }
+  for (const key of (SOLVER_ONLY ? [] : ['gk', 'gkFloor', 'fixed', ...EXTRA])) {
     const m = M.prepare(E, plans[key]);
     if (MIX) m.shiftZ = 0;
     const menu = buildActions();
@@ -381,35 +443,81 @@ if (mode === 'flex') {
     // the pension after the tax its draw will pay: a quarter tax-free, the rest at the basic rate
     if (key === 'arva') c.rule = { kind: 'arva', rate: F.arvaRate(c, vecOf(m, M.initialState(m))), pensionHaircut: 0.75 * m.P.basicRate };
     const pick = pickFixed(c, menu, search);
-    const rs = held.map(zs => runFixedPath(c, pick.ai, zs));
-    arms[key] = { stats: { ...statsFlex(rs), label: pick.label, ...(c.rule ? { rule: c.rule } : {}) }, rs };
+    const trK = RECORD ? makeTrace(held.length, m.ctx.totalYears + 1) : null;
+    const rs = held.map((zs, i) => { if (trK) trK.row = i; return runFixedPath(c, pick.ai, zs, worldOf(), trK); });
+    arms[key] = { stats: { ...statsFlex(rs), label: pick.label, ...(c.rule ? { rule: c.rule } : {}) }, rs, trace: trK, spendYears: Array.from(c.yr.spend, v => (v > 0 ? 1 : 0)) };
   }
   if (CONF_REL !== null) CONF = Math.min(0.97, Math.round((arms.fixed.stats.successRate + CONF_REL)) / 100);
   // CONF=gkFloor: the solver is asked for exactly the floor rate the guardrails-with-floor arm achieved, so the two
   // are compared at equal downside (Pfau's calibration) on how many years at the target each delivers
   if (CONF_RAW === 'gkFloor') CONF = Math.min(0.99, Math.round(arms.gkFloor.stats.floorRate * 10) / 1000);
+  /*
+   * ARMSONLY=1: the rival arms alone, no solve (K5's targets, 24 Sep). K5 matches the solver's cutting to the guardrails'
+   * and the two must be measured in the SAME market world (MIX) under the SAME user rules (GUARDCAP, MINPOTYEARS);
+   * the targets first used came from flex-tiers, simulated under the mixture and before the cap existed.
+   */
+  if (process.env.ARMSONLY === '1') {
+    mkdirSync(join(RESULTS, tag), { recursive: true });
+    writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify({ tag, id: sc.id, name: sc.name, held: HELD, seedHeld, floor: FLOOR, target, floorSpend, ms: Date.now() - t0, code: CODE, prediction: PREDICTION,
+      knobs: { mixture: MIX, guardCap, minPotYears: process.env.MINPOTYEARS ?? null, armsOnly: true }, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats }, null, 1));
+    console.log(`${sc.id} arms only (mixture ${MIX}, cap ${guardCap || 'none'}): gkFloor below ${arms.gkFloor.stats.belowYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenBelowMean.toFixed(3)}, above ${arms.gkFloor.stats.aboveTargetYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenAboveMean.toFixed(3)}, survival ${arms.gkFloor.stats.successRate.toFixed(1)}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+    process.exit(0);
+  }
   const mS = M.prepare(E, plans.solver);
   const LEVELS = process.env.LEVELS ? process.env.LEVELS.split(',').map(Number) : undefined;
   const EXP = process.env.EXP ? Number(process.env.EXP) : undefined;
   const MARGIN = process.env.MARGIN ? Number(process.env.MARGIN) : 0;
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
-  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 5400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, driftWeight: process.env.DRIFT ? Number(process.env.DRIFT) : undefined, bequestShape: process.env.BEQSHAPE || undefined, bequestWeight: process.env.WB !== undefined ? Number(process.env.WB) : undefined, mix: MIX || undefined });
-  const solvedRs = held.map(zs => runPolicy(r, zs));
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 5400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: process.env.BISECT ? Number(process.env.BISECT) : 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, driftWeight: process.env.DRIFT ? Number(process.env.DRIFT) : undefined, bequestShape: process.env.BEQSHAPE || undefined, lambdaFixed: process.env.LAMBDA ? Number(process.env.LAMBDA) : undefined, gainBuckets: process.env.GAINB ? process.env.GAINB.split(',').map(Number) : undefined, gainInterp: process.env.GAININT === '1' || undefined, pclsStrict: process.env.PCLSSTRICT === '1' || undefined, bequestWeight: process.env.WB !== undefined ? Number(process.env.WB) : undefined, resilienceWeight: process.env.WR !== undefined ? Number(process.env.WR) : undefined, mix: MIX || undefined, levelSearch: process.env.TERNARY === '1' ? 'ternary' : undefined, shareDead: process.env.SHAREDEAD || undefined, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : undefined, raiseCap: process.env.RAISECAP !== undefined ? Number(process.env.RAISECAP) : undefined, blockTrim: process.env.BLOCKTRIM === '1' || undefined, raiseSurvival: process.env.RAISESURV === '1' || undefined, tiersAbove: process.env.TIERSABOVE ? Number(process.env.TIERSABOVE) : undefined, giaTiers: process.env.GIATIERS === '1' || undefined, bridgeRead: (process.env.BRIDGEREAD === '2' ? 2 : process.env.BRIDGEREAD === '1' || undefined), failureShortfall: process.env.FAILSHORT === 'zero' ? 'zero' : (process.env.FAILSHORT === '1' || undefined), estateScale: process.env.ESTATESCALE !== undefined ? Number(process.env.ESTATESCALE) : undefined, finalExact: process.env.FINALEXACT === '1' || undefined, finalIntegral: process.env.FINALINT === '1' || undefined });
+  const trS = RECORD ? makeTrace(held.length, mS.ctx.totalYears + 1) : null;
+  const solvedRs = held.map((zs, i) => { if (trS) trS.row = i; return runPolicy(r, zs, trS ? { trace: trS } : {}); });
   arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, verifiedFloorRate: 100 * r.floorRate, searchFloorRate: 100 * (r.searchFloorRate ?? r.floorRate), searchPaths: r.meta.searchPaths, verifyPaths: r.meta.verifyPaths, verifySteps: r.meta.verifySteps, solverVersion: r.meta.solverVersion, driftWeight: r.meta.driftWeight }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
-    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, drift: r.meta.driftWeight || 0, bequestShape: r.meta.bequestShape, bequestCap: r.meta.bequestCap, bequestWeight: r.meta.bequestWeight, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0 },
-    solver: arms.solver.stats, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
-    pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
-    pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
+    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, drift: r.meta.driftWeight || 0, bequestShape: r.meta.bequestShape, bequestCap: r.meta.bequestCap, gainBuckets: process.env.GAINB || null, gainInterp: process.env.GAININT === '1', pclsStrict: process.env.PCLSSTRICT === '1', bequestWeight: r.meta.bequestWeight, resilienceWeight: r.meta.wR, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0, levelSearch: process.env.TERNARY === '1' ? 'ternary' : 'exhaustive', shareDead: process.env.SHAREDEAD || null, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : 5, solveMs: r.meta.ms, raiseCap: process.env.RAISECAP ?? null, blockTrim: process.env.BLOCKTRIM === '1', raiseSurvival: process.env.RAISESURV === '1', failureShortfall: process.env.FAILSHORT || false, estateScale: process.env.ESTATESCALE ?? null, minPotYears: process.env.MINPOTYEARS ?? null, finalExact: process.env.FINALEXACT === '1', finalIntegral: r.meta.finalIntegral === true, giaTiers: process.env.GIATIERS === '1', bridgeRead: process.env.BRIDGEREAD === '2' ? 2 : process.env.BRIDGEREAD === '1', giaGain: process.env.GIAGAIN ?? null, planTier: process.env.PLANTIER ?? null },
+    solver: arms.solver.stats, solverOnly: SOLVER_ONLY || undefined,
+    ...(SOLVER_ONLY ? {} : {
+      gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
+      pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
+      pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
+    })
   };
-  for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
+  if (!SOLVER_ONLY) for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE; out.prediction = PREDICTION;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
+  if (RECORD) {
+    // one record per arm run, beside the results JSON (record.mjs); the solver's also carries its moves with STOREPOL=1
+    const meta = { tag, id: sc.id, knobs: out.knobs, held: HELD, seedHeld, points: POINTS, lambda: r.lambda, solveMs: r.meta.ms, target, floorSpend, ageSelf0: mS.ctx.ageSelf0, nmpa: mS.ctx.nmpa, arms: Object.keys(arms) };
+    for (const key of Object.keys(arms)) {
+      const arm = arms[key], tr = key === 'solver' ? trS : arm.trace; if (!tr) continue;
+      const spend = key === 'solver' ? Array.from(r.c.yr.spend, v => (v > 0 ? 1 : 0)) : arm.spendYears;
+      const extra = key === 'solver' && STOREPOL ? { pol: polToB64(r.pol), grid: { np: r.g.np, ni: r.g.ni, nt: r.g.nt, gain: r.g.gain, pcls: r.g.pcls, W: Array.from(r.g.axes.W.pts) }, actions: r.actions.map(a => a.label) } : {};
+      writeRecord(join(RESULTS, tag, `${sc.id}.${key}.record.json.gz`), tr, arm.rs, { ...meta, arm: key, spendYears: spend }, extra);
+    }
+  }
+  // BETAUDIT=1 (M14c, 24 Sep): at each held path's first bet, the table's margin and bet against stay simulated; the
+  // solve must reproduce m14b-up's record first (record.mjs, betAudit). Research only; needs RECORD=1 and TIERSABOVE=1.
+  if (process.env.BETAUDIT === '1') {
+    if (!RECORD || !process.env.TIERSABOVE) { console.error('BETAUDIT needs RECORD=1 and TIERSABOVE=1 (the M14b arm it audits)'); process.exit(2); }
+    const { betAudit, betSummary } = await import('./record.mjs');
+    console.log(betSummary(betAudit({ E, r, held, solvedRs, trS, id: sc.id, tag, RESULTS, CODE, PREDICTION, NPOS: Number(process.env.BETPOS || 40), NP: Number(process.env.BETPATHS || 500) })));
+  }
   const f = (x) => x.toFixed(1);
+  /*
+   * The progress line, which must survive SOLVERONLY. It did not: it read out.gkFloor, out.gk,
+   * out.fixed and the EXTRA arms, none of which exist when the rivals are skipped, so every cell of
+   * 6e stage 1 wrote its record and THEN died on the console line. The records were complete - the
+   * write happens first - so the run was salvageable, but the progress output was a stack trace and
+   * the exit codes were wrong. A summary line should never be able to lose a run.
+   */
+  if (SOLVER_ONLY) {
+    console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} solver only: floor/full ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  years at/above target med ${out.solver.yearsAtTargetMedian.toFixed(2)}  median net ${Math.round(out.solver.medianTerminalNet / 1000)}k  changes ${out.solver.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+  } else {
   const extra = EXTRA.map(k => `  ${k} ${f(out[k].floorRate)}/${f(out[k].fullyFundedRate)} lv ${out[k].meanLevelMedian.toFixed(2)}`).join('');
   console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} floor/full: solver ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  gkFloor ${f(out.gkFloor.floorRate)}/${f(out.gkFloor.fullyFundedRate)}  gk ${f(out.gk.floorRate)}/${f(out.gk.fullyFundedRate)}  fixed ${f(out.fixed.floorRate)}/${f(out.fixed.fullyFundedRate)}${extra}  years at/above target med solver ${out.solver.yearsAtTargetMedian.toFixed(2)} gkFloor ${out.gkFloor.yearsAtTargetMedian.toFixed(2)}  changes ${out.solver.changesMean.toFixed(1)}/${out.gkFloor.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------

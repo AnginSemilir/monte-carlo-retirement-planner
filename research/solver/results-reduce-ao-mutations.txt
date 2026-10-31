@@ -1,0 +1,46 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 4: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: AO: { readerRef: 'adaptive', readerSplit: 'null', floor: '20
+caught: 7: AOL: { readerRef: 'adaptive', readerSplit: 'null', floor: '2
+caught: 8: AOL: ['320x41', 256]
+caught: 9: CO: { readerRef: 'order', readerSplit: 'null', floor: '20500
+caught: 10: line: '0.5', mix: '3', shareNodes: 'none' };
+caught: 11: ['armTook', 'pairTook', 'forceIdentity', ...(adaptive ? ['ad
+caught: 12: ['armTook', 'pairTook', 'forceIdentity', ...(adaptive ? ['ad
+caught: 13: ['armTook', 'pairTook', 'forceIdentity', ...(adaptive ? ['ad
+caught: 14: ['armTook', 'adaptTook', 'refTook', 'ownTook', 'identity', '
+caught: 15: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
+caught: 16: if (j.checks.identity && j.checks.identity[1] !== 3 * npw) b
+caught: 17: j.adaptive.lattice !== LATTICE[arm][0] || 
+caught: 18: j.adaptive.nz !== LATTICE[arm][1] || 
+caught: 19: j.adaptive.nonMono !== 0 || 
+caught: 20: if (!j.pair || j.pair[0] !== PAIR[0] || j.pair[1] !== PAIR[1
+caught: 21: if (!sp || sp.n !== npw * PMULT[arm] || sp.ai !== PAIR[0]) b
+caught: 22: for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (
+caught: 23: if (!j.refTail) bad.push(`${arm}: no tail check summary`);
+caught: 24: if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(
+caught: 25: if (!x || sha16(Buffer.from(x, 'base64')) !== sh) bad.push(
+caught: 26: if (!a || Buffer.from(a, 'base64').length !== 8 * npw) bad.p
+caught: 27: if (codes.size !== 1) bad.push(
+caught: 28: if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.in
+caught: 29: if (kinds.length !== 2 || !kinds.includes('A6') || !kinds.in
+caught: 30: if (!m) { bad.push(`${f}: no stamp`); continue; }
+caught: 31: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 32: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 33: const inside = x => x.lo >= -IN1 && x.hi <= IN1, over = x =>
+caught: 34: out['1'] = readItem([1, 2].map(k => ({ k, ...lnRead(...R('AO
+caught: 35: const [plo, phi] = clopperPearson(c, N, alpha), r = 100 * c 
+caught: 36: hi: plo > 0 ? q(Math.log(table / (100 * plo))) : Infinity
+caught: 37: IN1 = Math.log(2), OUT1 = Math.log(3),
+caught: 38: const inside = x => x.lo >= -IN2 && x.hi <= IN2, under = x =
+caught: 39: const g = [0, 1].map(k => ({ k, ...meanOf(P('A6', 'GB', k)) 
+caught: 40: Z = 2.241402727604947,
+caught: 41: if (b[i] && !a[i]) lost++; else if (a[i] && !b[i]) saved++;
+caught: 42: out['3'] = { outcome: oc.some(x => x.outcome === 'harm') ? '
+caught: 43: const pr = [0, 1].map(k => ({ k, ...paired(S('A6', k), S('BO
+caught: 44: const se = Math.sqrt(v / n);
+caught: 45: return { m: q(beta[0]), se:
+45 of 45 mutations caught

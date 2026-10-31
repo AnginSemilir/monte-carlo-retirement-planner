@@ -1,0 +1,22 @@
+# node research/tests/solver-guards.test.mjs (on this commit's code)
+PASS  S362: the adaptive reference builds with no plant (bridge years 0,1,2,3,4,5,6,7)
+PASS  EDGE: rebuilt from the same inputs with no plant, it builds again (no throw)
+PASS  planted: a NaN in the backward step throws (adaptive reference: non-finite value in the backward step, year 6, cell a 0, b 0, gain 0, move 0, world 0: NaN)
+PASS  planted: a NaN at the foot node throws (adaptive reference: non-finite value in the foot node, year 6, cell b 0, gain 0, move 0, world 0: NaN)
+PASS  S007: the joint move is chosen as before (split 1, moves 5 and 0)
+PASS  planted: a table whose value is NaN throws (couple: non-finite score in the joint move, year 0, split 0, moves 5 and 0: NaN)
+PASS  the pension down 20%, the taxable account up 18%: lost money (200000 to 198000), flag 1, the engine's rule 1
+PASS  all up 5%: not lost (flag 0); all down 10%: lost (flag 1), as the engine's rule
+PASS  planted: the old rule (the pension and ISA grown a second time) reads the first year as not lost
+ALL PASS: 9 checks
+# the same test with the guards taken out of adaptive.js and couple.js and fast.js's old flag line put back (the plant hooks kept): it must fail
+PASS  S362: the adaptive reference builds with no plant (bridge years 0,1,2,3,4,5,6,7)
+PASS  EDGE: rebuilt from the same inputs with no plant, it builds again (no throw)
+FAIL  planted: a NaN in the backward step throws (no throw)
+FAIL  planted: a NaN at the foot node throws (no throw)
+PASS  S007: the joint move is chosen as before (split 1, moves 5 and 0)
+FAIL  planted: a table whose value is NaN throws (no throw: the fallback taken in silence)
+FAIL  the pension down 20%, the taxable account up 18%: lost money (200000 to 198000), flag 0, the engine's rule 1
+PASS  all up 5%: not lost (flag 0); all down 10%: lost (flag 1), as the engine's rule
+PASS  planted: the old rule (the pension and ISA grown a second time) reads the first year as not lost
+FAILED: 4 of 9 checks

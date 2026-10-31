@@ -1,0 +1,344 @@
+ok   the tables at their runs in worlds 1 and 2: 1 HELD: "HELD"
+ok   world 1 read at five times its runs: 1 FALSIFIED: "FALSIFIED"
+ok   world 2 read at a fifth of its runs: 1 FALSIFIED: "FALSIFIED"
+ok   world 1 read at twice its runs: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 1 read at 0.45 of its runs (under, short of ln 3): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 0 read at a hundred times its runs (not read): 1 HELD: "HELD"
+ok   no run alive in world 1, its table 0.02 points (no upper end; the foot ln 0.6): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   no run alive in world 1, its table 0.3 points (the foot past ln 3): 1 FALSIFIED: "FALSIFIED"
+ok   a table of 0 against 120 runs: 1 FALSIFIED (under): "FALSIFIED"
+ok   world 2's interval's top just inside +ln 2: 1 HELD: "HELD"
+ok   world 2's interval's top just past +ln 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   world 2's interval's foot just at or past +ln 3: 1 FALSIFIED (over): "FALSIFIED over"
+ok   world 2's interval's foot just short of +ln 3: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   over in world 1 and under in world 2: FALSIFIED, both sides named: "FALSIFIED over and under"
+ok   ln(table / runs) at the table equal to the runs is 0, its interval about it: "0 true"
+ok   GB 0 in both worlds: 2 HELD: "HELD"
+ok   GB -1.5 in world 0: 2 FALSIFIED (under): "FALSIFIED"
+ok   GB +1.5 in world 1: 2 FALSIFIED (over): "FALSIFIED"
+ok   GB +0.7 in world 0: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB -0.7 in world 0: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   GB -3 in world 2 only (not read): 2 HELD: "HELD"
+ok   the interval's top just inside +0.5: 2 HELD: "HELD"
+ok   the interval's top just past +0.5: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the interval's top just below -1.0: 2 FALSIFIED: "FALSIFIED"
+ok   GB +0.3 with no spread: 2 HELD: "HELD"
+ok   A6 equal to BO on every path: 3 HELD: "HELD"
+ok   A6 loses 400 paths in world 0: 3 FALSIFIED: "FALSIFIED"
+ok   A6 loses 25 and saves 10 in world 1: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   A6 loses 15 and saves 3 in world 1: 3 HELD: "HELD"
+ok   A6 loses 400 in world 2 only (not read): 3 HELD: "HELD"
+ok   the paired counts: lost 3 saved 0 of 4,000, BO alive 2,000: "{\"lost\":3,\"saved\":0,\"both\":1997,\"N\":4000,\"bAlive\":2000}"
+ok   the luck adjustment recovers a known intercept (2) from shocks with a non-zero mean: "2.0000"
+ok   the read prints three items, an OUTCOME of three and three REALISED lines, end to end: "true 3 3"
+ok   the gate passes the four jobs as registered: ""
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job of another test: true
+ok   the gate refuses A6 missing: true
+ok   the gate refuses AO with no done line: true
+ok   the gate refuses AO at another seed: true
+ok   the gate refuses AO at another path count: true
+ok   the gate refuses a header naming another path count (the runs right): true
+ok   the gate refuses pairTook failed on CO: true
+ok   the gate refuses A6's identity held on another count of paths: true
+ok   the gate refuses AO run under the order reference (the arm plant): true
+ok   the gate refuses AOL under the RS split: true
+ok   the gate refuses AOL under the order reference: true
+ok   the gate refuses AOL's reference with AO's draws: true
+ok   the gate refuses AOL's reference on AO's lattice: true
+ok   the gate refuses CO under the adaptive reference: true
+ok   the gate refuses A6 on share nodes: true
+ok   the gate refuses AO's reference on another lattice: true
+ok   the gate refuses AO's last year not monotone: true
+ok   the gate refuses adaptTook failed on AOL: true
+ok   the gate refuses P on 4,000 paths on AO (not ten times): true
+ok   the gate refuses another forced pair on CO (the pair plant): true
+ok   the gate refuses forceIdentity short on CO (the force plant): true
+ok   the gate refuses AO's tail check short of a p-decade: true
+ok   the gate refuses AO's tail check with no summary: true
+ok   the gate refuses A6's refTook short: true
+ok   the gate refuses A6's identity short: true
+ok   the gate passes files that are the logs': ""
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses A6's file short of one world's GB: true
+ok   the stamps by audit pass two audits split as registered under one code: " 2"
+ok   the stamps by audit refuse two versions of the code: true
+ok   the stamps by audit refuse a third audit: true
+ok   the stamps by audit refuse A6 under the S364 jobs' audit: true
+ok   the stamps by audit refuse a log with no stamp: true
+FAIR-TEST GATE: research/solver/predictions/diag-ao.md was corrected after launch (f377a671 at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - **reduce-ao.mjs corrected after the run, before any figure was read:** the fair-test gate (fair-gate.mjs requireFairLogs) counts each audit script as a version of the code, and AO runs two by design (audit-ao.mjs for the S364 jobs, audit-an.mjs for A6, as the Run line registers), so at the read the gate refused on "more than one version of the code across the logs" (code d2a982e80436 in all four logs) and printed no figure. The reducer now calls the gate on each audit's logs, and its new stampGroups requires exactly two audits, one holding only the S364 jobs and the other only A6, under one code (five planted cases; mutate-reduce-ao.py 45 of 45 caught). The preflight could not see it: the reducer's preflight mode skips the gate (O168). Nothing else in the reducer, the items or this file changed.
+
+FAIR-TEST GATE: research/solver/predictions/diag-ao.md was corrected after launch (f377a671 at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - **reduce-ao.mjs corrected after the run, before any figure was read:** the fair-test gate (fair-gate.mjs requireFairLogs) counts each audit script as a version of the code, and AO runs two by design (audit-ao.mjs for the S364 jobs, audit-an.mjs for A6, as the Run line registers), so at the read the gate refused on "more than one version of the code across the logs" (code d2a982e80436 in all four logs) and printed no figure. The reducer now calls the gate on each audit's logs, and its new stampGroups requires exactly two audits, one holding only the S364 jobs and the other only A6, under one code (five planted cases; mutate-reduce-ao.py 45 of 45 caught). The preflight could not see it: the reducer's preflight mode skips the gate (O168). Nothing else in the reducer, the items or this file changed.
+
+planted (70): all read as they should
+GATE: passed - AO, AOL, CO and A6 once and done at the registered settings (4000 paths a world, P at ten times on AO and AOL, scale 1, seed 7002); each job's reference and split in its solve's meta, the candidate's settings otherwise; every self-check in full; the pair P ai 12, D ai 14; the tail check's cells printed; the files the logs'; NODE-AX's BO behind NODE-AX's gate (bc583b88e106e30a)
+
+AO: the adaptive reference out of sample on S364 (AO, AOL on a finer lattice; CO the order control) and at six shares on S360 (A6 against NODE-AX's BO) (predictions/diag-ao.md)
+  AO's reference: 24 floor moves, lattice 160x41 by 3 gain nodes, 128 draws, last bridge year 7, built in 298.7 s; solve 3002 s
+  AOL's reference: 24 floor moves, lattice 320x41 by 3 gain nodes, 256 draws, last bridge year 7, built in 1058.5 s; solve 3766 s
+  A6's reference: 24 floor moves, lattice 160x41 by 3 gain nodes, 128 draws, last bridge year 7, built in 265.8 s; solve 3221 s
+
+THE ITEMS (each read by its registered rule)
+1. AO's read at P against its runs, ln(table / runs), inside ln 2 in worlds 1 and 2 (FALSIFIED at a whole interval past ln 3 either way): HELD
+     world 1: table 0.6617 runs 164/40000 (0.4100), ln 0.4787 (0.3053 to 0.6608); world 2: table 1.7768 runs 696/40000 (1.7400), ln 0.0209 (-0.0630 to 0.1069)
+2. A6's bridge-years grid residual GB within half a point in worlds 0 and 1 (FALSIFIED at a whole interval past one point either way): HELD
+     world 0: 0.0715 (0.0362 to 0.1068); world 1: 0.2852 (0.2547 to 0.3158)
+3. no material harm to A6's runs against BO's on the same paths, worlds 0 and 1: HELD
+     world 0: lost 26 saved 29 of 4000, change 0.0750 (-0.3079 to 0.4495) at margin 0.5: no material harm; world 1: lost 10 saved 28 of 4000, change 0.4500 (0.1311 to 0.6953) at margin 0.5: no material harm
+OUTCOME: 1 HELD, 2 HELD, 3 HELD
+REALISED item 1: 0.4787
+REALISED item 2: 0.0715
+REALISED item 3: 0.0750
+
+REPORTED
+  AO world 0: P table 1.8395 runs 37/40000 ln 2.9900 (2.6693 to 3.3407); D table 1.8708 runs 0/4000 ln Infinity (3.0104 to Infinity) (its own opening P)
+  AO world 1: P table 0.6617 runs 164/40000 ln 0.4787 (0.3260 to 0.6376); D table 0.2568 runs 4/4000 ln 0.9431 (0.0037 to 2.2431) (its own opening P)
+  AO world 2: P table 1.7768 runs 696/40000 ln 0.0209 (-0.0527 to 0.0960); D table 0.6553 runs 19/4000 ln 0.3218 (-0.1225 to 0.8284) (its own opening P)
+  AOL world 0: P table 1.8533 runs 37/40000 ln 2.9975 (2.6768 to 3.3483); D table 1.8904 runs 0/4000 ln Infinity (3.0208 to Infinity) (its own opening P)
+  AOL world 1: P table 0.6673 runs 164/40000 ln 0.4871 (0.3344 to 0.6460); D table 0.2606 runs 4/4000 ln 0.9577 (0.0183 to 2.2577) (its own opening P)
+  AOL world 2: P table 1.7755 runs 696/40000 ln 0.0202 (-0.0535 to 0.0953); D table 0.6243 runs 19/4000 ln 0.2732 (-0.1711 to 0.7798) (its own opening P)
+  CO world 0: P table 2.1463 runs 2/4000 ln 3.7595 (2.4758 to 5.8705); D table 2.4564 runs 0/4000 ln Infinity (3.2827 to Infinity) (its own opening P)
+  CO world 1: P table 1.4567 runs 12/4000 ln 1.5801 (1.0235 to 2.2398); D table 1.1505 runs 4/4000 ln 2.4428 (1.5034 to 3.7428) (its own opening P)
+  CO world 2: P table 2.6566 runs 62/4000 ln 0.5388 (0.2926 to 0.8028); D table 1.9341 runs 19/4000 ln 1.4041 (0.9597 to 1.9107) (its own opening P)
+  CO world 0 against NE-GRID C's ORDER (code e8fcd19e347c): P same bits, table 2.1463 against 2.1463; D same bits, table 2.4564 against 2.4564
+  NE-GRID C's BASE world 0 (six shares): P table 3.4212 runs 2/4000; D table 4.0826 runs 0/4000
+  CO world 1 against NE-GRID C's ORDER (code e8fcd19e347c): P same bits, table 1.4567 against 1.4567; D same bits, table 1.1505 against 1.1505
+  NE-GRID C's BASE world 1 (six shares): P table 2.8196 runs 12/4000; D table 3.1261 runs 4/4000
+  CO world 2 against NE-GRID C's ORDER (code e8fcd19e347c): P same bits, table 2.6566 against 2.6566; D same bits, table 1.9341 against 1.9341
+  NE-GRID C's BASE world 2 (six shares): P table 1.3275 runs 61/4000; D table 1.0817 runs 19/4000
+  probe AO world 0: reads 5; weight sup 0.2158 (p 0.9274, R 0.0000), clip 0.0000 (p 0.0000, R 0.0000), copy 0.7842 (p 0.0491, R 1.3288); S 21.8181 = deletion 20.7760 + residual 1.0421 (R's share 0.0478)
+  probe AO world 1: reads 5; weight sup 0.3157 (p 0.8675, R 0.0000), clip 0.0000 (p 0.0000, R 0.0000), copy 0.6843 (p 0.0263, R 0.5353); S 29.2521 = deletion 28.8858 + residual 0.3663 (R's share 0.0125)
+  probe AO world 2: reads 5; weight sup 0.2014 (p 0.9999, R 0.0000), clip 0.1301 (p 0.8321, R 0.0322), copy 0.6686 (p 0.0577, R 0.1086); S 34.8816 = deletion 34.8048 + residual 0.0768 (R's share 0.0022)
+  probe AOL world 0: reads 5; weight sup 0.2158 (p 0.9285, R 0.0000), clip 0.0000 (p 0.0000, R 0.0000), copy 0.7842 (p 0.0490, R 1.3277); S 21.8230 = deletion 20.7818 + residual 1.0412 (R's share 0.0477)
+  probe AOL world 1: reads 5; weight sup 0.3157 (p 0.8677, R 0.0000), clip 0.0000 (p 0.0000, R 0.0000), copy 0.6843 (p 0.0262, R 0.5432); S 29.2535 = deletion 28.8817 + residual 0.3717 (R's share 0.0127)
+  probe AOL world 2: reads 5; weight sup 0.2857 (p 0.9576, R 0.0000), clip 0.0457 (p 0.7875, R 0.0922), copy 0.6686 (p 0.0576, R 0.1191); S 34.8804 = deletion 34.7966 + residual 0.0839 (R's share 0.0024)
+  probe CO world 0: reads 5; weight sup 0.2158 (p 0.8651, R 0.0000), clip 0.0000 (p 0.0000, R 0.0000), copy 0.7842 (p 0.0389, R 1.5399); S 20.7652 = deletion 19.5576 + residual 1.2076 (R's share 0.0582)
+  probe CO world 1: reads 5; weight sup 0.1710 (p 0.9989, R 0.0000), clip 0.1447 (p 0.6356, R 1.9761), copy 0.6843 (p 0.0212, R 0.9592); S 28.5606 = deletion 27.6183 + residual 0.9423 (R's share 0.0330)
+  probe CO world 2: reads 5; weight sup 0.2282 (p 0.9981, R 0.0000), clip 0.1032 (p 0.7313, R 3.6017), copy 0.6686 (p 0.0504, R 0.8085); S 34.5901 = deletion 33.6778 + residual 0.9123 (R's share 0.0264)
+  tail AO: cells 12, off 0 simulated, 0 in the engine (off: an interval wholly beyond ln 1.5)
+    world 0 p-decade 0: records 10716 states 25 years 1,2 p 3.4572e-4 | simulated ln -0.2592 (-0.3177 to -0.1997) | engine ln -0.4823 (-0.9996 to 0.1214)
+    world 0 p-decade 1: records 5769 states 25 years 1,2,4 p 3.5647e-3 | simulated ln -0.0729 (-0.0929 to -0.0529) | engine ln -0.4729 (-0.6362 to -0.3023)
+    world 0 p-decade 2: records 1216 states 25 years 1,2,3,4 p 2.1212e-2 | simulated ln -0.0168 (-0.0251 to -0.0084) | engine ln -0.2096 (-0.2852 to -0.1325)
+    world 0 p-decade 3: records 432 states 25 years 1,2,3,4,5,6 p 1.4242e-1 | simulated ln 0.0057 (0.0026 to 0.0087) | engine ln -0.0237 (-0.0537 to 0.0066)
+    world 1 p-decade 0: records 16782 states 25 years 1,2,3 p 3.7847e-4 | simulated ln -0.2360 (-0.2926 to -0.1785) | engine ln -0.2376 (-0.7952 to 0.4225)
+    world 1 p-decade 1: records 16005 states 25 years 1,2,3 p 4.1746e-3 | simulated ln -0.0670 (-0.0855 to -0.0484) | engine ln -0.1228 (-0.3026 to 0.0659)
+    world 1 p-decade 2: records 5694 states 25 years 1,2,3,4 p 1.9297e-2 | simulated ln -0.0112 (-0.0200 to -0.0024) | engine ln -0.2281 (-0.3067 to -0.1477)
+    world 1 p-decade 3: records 2613 states 25 years 1,2,3,4,5,6 p 2.4170e-1 | simulated ln 0.0020 (-0.0002 to 0.0042) | engine ln -0.0186 (-0.0402 to 0.0033)
+    world 2 p-decade 0: records 16073 states 25 years 1,2,3,4,5 p 4.7442e-4 | simulated ln -0.2315 (-0.2822 to -0.1802) | engine ln 0.8638 (0.0165 to 1.9886)
+    world 2 p-decade 1: records 23843 states 25 years 1,2,4,5 p 3.7082e-3 | simulated ln -0.0549 (-0.0747 to -0.0351) | engine ln 0.2809 (0.0475 to 0.5297)
+    world 2 p-decade 2: records 16010 states 25 years 1,2,3 p 2.4254e-2 | simulated ln 0.0019 (-0.0060 to 0.0098) | engine ln 0.1498 (0.0649 to 0.2366)
+    world 2 p-decade 3: records 11502 states 25 years 1,2,3,4,5 p 2.0183e-1 | simulated ln 0.0025 (0.0001 to 0.0050) | engine ln 0.0340 (0.0089 to 0.0595)
+  tail AOL: cells 12, off 0 simulated, 0 in the engine (off: an interval wholly beyond ln 1.5)
+    world 0 p-decade 0: records 11566 states 25 years 1,2 p 4.2215e-4 | simulated ln -0.1717 (-0.2270 to -0.1155) | engine ln -0.3516 (-0.8518 to 0.2287)
+    world 0 p-decade 1: records 5968 states 25 years 1,2,3 p 3.0551e-3 | simulated ln -0.0570 (-0.0788 to -0.0352) | engine ln -0.4434 (-0.6225 to -0.2556)
+    world 0 p-decade 2: records 1221 states 25 years 1,2,3,5 p 2.1856e-2 | simulated ln -0.0076 (-0.0158 to 0.0007) | engine ln -0.2246 (-0.2985 to -0.1492)
+    world 0 p-decade 3: records 431 states 25 years 2,3,4,5 p 2.4647e-1 | simulated ln -0.0005 (-0.0026 to 0.0017) | engine ln -0.0392 (-0.0603 to -0.0179)
+    world 1 p-decade 0: records 17321 states 25 years 1,2,3,4 p 4.1750e-4 | simulated ln -0.1486 (-0.2050 to -0.0915) | engine ln 0.0428 (-0.5663 to 0.7777)
+    world 1 p-decade 1: records 16322 states 25 years 1,2 p 3.2743e-3 | simulated ln -0.0706 (-0.0915 to -0.0497) | engine ln -0.0377 (-0.2496 to 0.1867)
+    world 1 p-decade 2: records 5760 states 25 years 1,2,3,4,5,6 p 2.1687e-2 | simulated ln -0.0043 (-0.0126 to 0.0041) | engine ln -0.2338 (-0.3076 to -0.1585)
+    world 1 p-decade 3: records 2606 states 25 years 1,2,3,4,5 p 1.4438e-1 | simulated ln -0.0008 (-0.0038 to 0.0022) | engine ln -0.0310 (-0.0606 to -0.0010)
+    world 2 p-decade 0: records 16591 states 25 years 1,2,3,4 p 4.0397e-4 | simulated ln -0.1939 (-0.2498 to -0.1371) | engine ln 1.2139 (0.1416 to 2.7926)
+    world 2 p-decade 1: records 24428 states 25 years 1,2,3,4 p 3.9949e-3 | simulated ln -0.0487 (-0.0678 to -0.0295) | engine ln 0.4295 (0.1873 to 0.6883)
+    world 2 p-decade 2: records 16052 states 25 years 1,2,3,4 p 2.5817e-2 | simulated ln -0.0057 (-0.0133 to 0.0019) | engine ln 0.0763 (-0.0028 to 0.1572)
+    world 2 p-decade 3: records 11442 states 25 years 1,2,3,4,5 p 1.7895e-1 | simulated ln -0.0007 (-0.0033 to 0.0020) | engine ln 0.0399 (0.0127 to 0.0673)
+  tier AO world 0 year 1 tiers 0,0 band: records 35 paths 35 realised less p -2.6067 (se 4.0981)
+  tier AO world 0 year 1 tiers 0,0 low: records 39965 paths 39965 realised less p 0.0223 (se 0.0147)
+  tier AO world 0 year 2 tiers 0,0 band: records 118 paths 118 realised less p -1.1866 (se 2.7359)
+  tier AO world 0 year 2 tiers 0,0 low: records 39879 paths 39879 realised less p 0.0221 (se 0.0118)
+  tier AO world 0 year 2 tiers 1,1 band: records 2 paths 2 realised less p 3.5743 (se 49.8180)
+  tier AO world 0 year 2 tiers 2,2 band: records 1 paths 1 realised less p 49.3158 (se NaN)
+  tier AO world 0 year 3 tiers 0,0 band: records 105 paths 105 realised less p 3.2832 (se 3.6327)
+  tier AO world 0 year 3 tiers 0,0 low: records 39879 paths 39879 realised less p -0.0023 (se 0.0056)
+  tier AO world 0 year 3 tiers 1,1 band: records 2 paths 2 realised less p 5.5384 (se 49.9711)
+  tier AO world 0 year 3 tiers 2,2 band: records 10 paths 10 realised less p 21.5718 (se 13.2196)
+  tier AO world 0 year 3 tiers 2,2 high: records 4 paths 4 realised less p 1.9992 (se 0.6600)
+  tier AO world 0 year 4 tiers 0,0 band: records 64 paths 64 realised less p 3.5260 (se 5.1640)
+  tier AO world 0 year 4 tiers 0,0 low: records 36464 paths 36464 realised less p 0.0007 (se 0.0038)
+  tier AO world 0 year 4 tiers 2,2 band: records 18 paths 18 realised less p 11.3486 (se 8.8573)
+  tier AO world 0 year 4 tiers 2,2 high: records 5 paths 5 realised less p 0.9702 (se 0.4302)
+  tier AO world 0 year 5 tiers 0,0 band: records 32 paths 32 realised less p -3.3451 (se 5.8630)
+  tier AO world 0 year 5 tiers 0,0 low: records 11797 paths 11797 realised less p -0.0042 (se 0.0009)
+  tier AO world 0 year 5 tiers 1,1 band: records 5 paths 5 realised less p -8.0066 (se 24.4201)
+  tier AO world 0 year 5 tiers 2,2 band: records 19 paths 19 realised less p 11.2748 (se 7.9375)
+  tier AO world 0 year 5 tiers 2,2 high: records 14 paths 14 realised less p 0.8892 (se 0.2618)
+  tier AO world 0 year 6 tiers 0,0 band: records 13 paths 13 realised less p -1.8615 (se 11.0250)
+  tier AO world 0 year 6 tiers 0,0 low: records 1590 paths 1590 realised less p -0.0121 (se 0.0043)
+  tier AO world 0 year 6 tiers 1,1 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AO world 0 year 6 tiers 2,2 band: records 8 paths 8 realised less p 4.9327 (se 10.5918)
+  tier AO world 0 year 6 tiers 2,2 high: records 26 paths 26 realised less p 0.5567 (se 0.2194)
+  tier AO world 1 year 1 tiers 0,0 band: records 550 paths 550 realised less p -0.3815 (se 1.1850)
+  tier AO world 1 year 1 tiers 0,0 low: records 39450 paths 39450 realised less p 0.0113 (se 0.0272)
+  tier AO world 1 year 2 tiers 0,0 band: records 784 paths 784 realised less p -0.0307 (se 1.1703)
+  tier AO world 1 year 2 tiers 0,0 low: records 39207 paths 39207 realised less p 0.0037 (se 0.0182)
+  tier AO world 1 year 2 tiers 1,1 band: records 5 paths 5 realised less p -4.8689 (se 25.5660)
+  tier AO world 1 year 2 tiers 2,2 band: records 4 paths 4 realised less p 17.3995 (se 4.3913)
+  tier AO world 1 year 3 tiers 0,0 band: records 593 paths 593 realised less p -1.3361 (se 1.4141)
+  tier AO world 1 year 3 tiers 0,0 low: records 39354 paths 39354 realised less p 0.0078 (se 0.0118)
+  tier AO world 1 year 3 tiers 1,1 band: records 9 paths 9 realised less p 5.4947 (se 16.6099)
+  tier AO world 1 year 3 tiers 2,2 band: records 32 paths 32 realised less p 3.9916 (se 6.3143)
+  tier AO world 1 year 3 tiers 2,2 high: records 12 paths 12 realised less p 1.6140 (se 0.3859)
+  tier AO world 1 year 4 tiers 0,0 band: records 325 paths 325 realised less p 0.8714 (se 2.0567)
+  tier AO world 1 year 4 tiers 0,0 low: records 38086 paths 38086 realised less p -0.0014 (se 0.0069)
+  tier AO world 1 year 4 tiers 1,1 band: records 1 paths 1 realised less p 37.0558 (se NaN)
+  tier AO world 1 year 4 tiers 2,2 band: records 53 paths 53 realised less p 4.3806 (se 4.1492)
+  tier AO world 1 year 4 tiers 2,2 high: records 38 paths 38 realised less p 1.1020 (se 0.2427)
+  tier AO world 1 year 5 tiers 0,0 band: records 141 paths 141 realised less p -1.0766 (se 3.1897)
+  tier AO world 1 year 5 tiers 0,0 high: records 2 paths 2 realised less p 0.0000 (se 0.0000)
+  tier AO world 1 year 5 tiers 0,0 low: records 18252 paths 18252 realised less p -0.0017 (se 0.0078)
+  tier AO world 1 year 5 tiers 1,1 band: records 9 paths 9 realised less p 6.7545 (se 16.6655)
+  tier AO world 1 year 5 tiers 2,2 band: records 43 paths 43 realised less p 7.2365 (se 4.2700)
+  tier AO world 1 year 5 tiers 2,2 high: records 89 paths 89 realised less p -1.4890 (se 1.5385)
+  tier AO world 1 year 6 tiers 0,0 band: records 47 paths 47 realised less p 4.9865 (se 6.5012)
+  tier AO world 1 year 6 tiers 0,0 high: records 4 paths 4 realised less p 0.0000 (se 0.0000)
+  tier AO world 1 year 6 tiers 0,0 low: records 3902 paths 3902 realised less p 0.0025 (se 0.0256)
+  tier AO world 1 year 6 tiers 1,1 band: records 1 paths 1 realised less p -58.0608 (se NaN)
+  tier AO world 1 year 6 tiers 2,2 band: records 16 paths 16 realised less p -3.6936 (se 10.7993)
+  tier AO world 1 year 6 tiers 2,2 high: records 131 paths 131 realised less p 0.3651 (se 0.0845)
+  tier AO world 2 year 1 tiers 0,0 band: records 3627 paths 3627 realised less p 0.0655 (se 0.5055)
+  tier AO world 2 year 1 tiers 0,0 low: records 36373 paths 36373 realised less p 0.0301 (se 0.0469)
+  tier AO world 2 year 2 tiers 0,0 band: records 3200 paths 3200 realised less p -0.1912 (se 0.6139)
+  tier AO world 2 year 2 tiers 0,0 low: records 36776 paths 36776 realised less p 0.0388 (se 0.0309)
+  tier AO world 2 year 2 tiers 1,1 band: records 7 paths 7 realised less p -10.9336 (se 18.1124)
+  tier AO world 2 year 2 tiers 2,2 band: records 11 paths 11 realised less p 9.5961 (se 0.7879)
+  tier AO world 2 year 2 tiers 2,2 high: records 6 paths 6 realised less p 2.5020 (se 0.8064)
+  tier AO world 2 year 3 tiers 0,0 band: records 2087 paths 2087 realised less p -0.5129 (se 0.8327)
+  tier AO world 2 year 3 tiers 0,0 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AO world 2 year 3 tiers 0,0 low: records 37723 paths 37723 realised less p 0.0303 (se 0.0202)
+  tier AO world 2 year 3 tiers 1,1 band: records 40 paths 40 realised less p -3.7084 (se 7.1244)
+  tier AO world 2 year 3 tiers 2,2 band: records 81 paths 81 realised less p 2.6921 (se 3.3286)
+  tier AO world 2 year 3 tiers 2,2 high: records 68 paths 68 realised less p 0.1384 (se 1.4739)
+  tier AO world 2 year 4 tiers 0,0 band: records 1239 paths 1239 realised less p 0.3505 (se 1.1690)
+  tier AO world 2 year 4 tiers 0,0 high: records 2 paths 2 realised less p 0.0000 (se 0.0000)
+  tier AO world 2 year 4 tiers 0,0 low: records 37858 paths 37858 realised less p 0.0033 (se 0.0118)
+  tier AO world 2 year 4 tiers 1,1 band: records 10 paths 10 realised less p -6.7374 (se 15.2283)
+  tier AO world 2 year 4 tiers 2,2 band: records 137 paths 137 realised less p 4.5470 (se 2.3157)
+  tier AO world 2 year 4 tiers 2,2 high: records 190 paths 190 realised less p 0.5517 (se 0.5335)
+  tier AO world 2 year 5 tiers 0,0 band: records 601 paths 601 realised less p 0.7807 (se 1.6757)
+  tier AO world 2 year 5 tiers 0,0 high: records 10 paths 10 realised less p 0.0000 (se 0.0000)
+  tier AO world 2 year 5 tiers 0,0 low: records 24300 paths 24300 realised less p 0.0034 (se 0.0115)
+  tier AO world 2 year 5 tiers 1,1 band: records 24 paths 24 realised less p -1.6376 (se 9.4956)
+  tier AO world 2 year 5 tiers 2,2 band: records 142 paths 142 realised less p -1.8084 (se 2.9532)
+  tier AO world 2 year 5 tiers 2,2 high: records 365 paths 365 realised less p -0.1894 (se 0.4640)
+  tier AO world 2 year 6 tiers 0,0 band: records 230 paths 230 realised less p -3.3685 (se 2.7584)
+  tier AO world 2 year 6 tiers 0,0 high: records 17 paths 17 realised less p 0.0000 (se 0.0000)
+  tier AO world 2 year 6 tiers 0,0 low: records 7727 paths 7727 realised less p -0.0023 (se 0.0179)
+  tier AO world 2 year 6 tiers 1,1 band: records 4 paths 4 realised less p 7.4919 (se 25.0234)
+  tier AO world 2 year 6 tiers 1,1 high: records 2 paths 2 realised less p 0.0000 (se 0.0000)
+  tier AO world 2 year 6 tiers 2,2 band: records 62 paths 62 realised less p -0.4673 (se 4.3463)
+  tier AO world 2 year 6 tiers 2,2 high: records 558 paths 558 realised less p 0.0764 (se 0.1778)
+  tier AOL world 0 year 1 tiers 0,0 band: records 35 paths 35 realised less p -2.5865 (se 4.0982)
+  tier AOL world 0 year 1 tiers 0,0 low: records 39965 paths 39965 realised less p 0.0208 (se 0.0147)
+  tier AOL world 0 year 2 tiers 0,0 band: records 118 paths 118 realised less p -1.1413 (se 2.7358)
+  tier AOL world 0 year 2 tiers 0,0 low: records 39879 paths 39879 realised less p 0.0216 (se 0.0118)
+  tier AOL world 0 year 2 tiers 1,1 band: records 2 paths 2 realised less p 3.3354 (se 49.9577)
+  tier AOL world 0 year 2 tiers 2,2 band: records 1 paths 1 realised less p 48.8380 (se NaN)
+  tier AOL world 0 year 3 tiers 0,0 band: records 105 paths 105 realised less p 3.3228 (se 3.6328)
+  tier AOL world 0 year 3 tiers 0,0 low: records 39879 paths 39879 realised less p -0.0025 (se 0.0056)
+  tier AOL world 0 year 3 tiers 1,1 band: records 2 paths 2 realised less p 5.6747 (se 49.9751)
+  tier AOL world 0 year 3 tiers 2,2 band: records 10 paths 10 realised less p 21.7902 (se 13.2198)
+  tier AOL world 0 year 3 tiers 2,2 high: records 4 paths 4 realised less p 1.9575 (se 0.6475)
+  tier AOL world 0 year 4 tiers 0,0 band: records 64 paths 64 realised less p 3.5571 (se 5.1651)
+  tier AOL world 0 year 4 tiers 0,0 low: records 36464 paths 36464 realised less p 0.0007 (se 0.0038)
+  tier AOL world 0 year 4 tiers 2,2 band: records 18 paths 18 realised less p 11.2876 (se 8.8494)
+  tier AOL world 0 year 4 tiers 2,2 high: records 5 paths 5 realised less p 0.9259 (se 0.4095)
+  tier AOL world 0 year 5 tiers 0,0 band: records 32 paths 32 realised less p -3.2991 (se 5.8653)
+  tier AOL world 0 year 5 tiers 0,0 low: records 11797 paths 11797 realised less p -0.0042 (se 0.0009)
+  tier AOL world 0 year 5 tiers 1,1 band: records 6 paths 6 realised less p 2.0540 (se 21.9064)
+  tier AOL world 0 year 5 tiers 2,2 band: records 18 paths 18 realised less p 9.0572 (se 8.1275)
+  tier AOL world 0 year 5 tiers 2,2 high: records 14 paths 14 realised less p 0.8474 (se 0.2478)
+  tier AOL world 0 year 6 tiers 0,0 band: records 13 paths 13 realised less p -1.7628 (se 11.0270)
+  tier AOL world 0 year 6 tiers 0,0 low: records 1590 paths 1590 realised less p -0.0117 (se 0.0042)
+  tier AOL world 0 year 6 tiers 1,1 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AOL world 0 year 6 tiers 2,2 band: records 7 paths 7 realised less p 4.7480 (se 12.2603)
+  tier AOL world 0 year 6 tiers 2,2 high: records 27 paths 27 realised less p 0.5898 (se 0.2454)
+  tier AOL world 1 year 1 tiers 0,0 band: records 548 paths 548 realised less p -0.3321 (se 1.1892)
+  tier AOL world 1 year 1 tiers 0,0 low: records 39452 paths 39452 realised less p 0.0085 (se 0.0272)
+  tier AOL world 1 year 2 tiers 0,0 band: records 781 paths 781 realised less p 0.0251 (se 1.1747)
+  tier AOL world 1 year 2 tiers 0,0 low: records 39210 paths 39210 realised less p 0.0022 (se 0.0182)
+  tier AOL world 1 year 2 tiers 1,1 band: records 5 paths 5 realised less p -4.8274 (se 25.5489)
+  tier AOL world 1 year 2 tiers 2,2 band: records 4 paths 4 realised less p 17.3104 (se 4.4536)
+  tier AOL world 1 year 3 tiers 0,0 band: records 591 paths 591 realised less p -1.2702 (se 1.4187)
+  tier AOL world 1 year 3 tiers 0,0 low: records 39356 paths 39356 realised less p 0.0072 (se 0.0118)
+  tier AOL world 1 year 3 tiers 1,1 band: records 9 paths 9 realised less p 5.5506 (se 16.6052)
+  tier AOL world 1 year 3 tiers 2,2 band: records 32 paths 32 realised less p 3.8314 (se 6.3114)
+  tier AOL world 1 year 3 tiers 2,2 high: records 12 paths 12 realised less p 1.5665 (se 0.3769)
+  tier AOL world 1 year 4 tiers 0,0 band: records 325 paths 325 realised less p 0.9400 (se 2.0561)
+  tier AOL world 1 year 4 tiers 0,0 low: records 38086 paths 38086 realised less p -0.0016 (se 0.0069)
+  tier AOL world 1 year 4 tiers 1,1 band: records 1 paths 1 realised less p 37.2036 (se NaN)
+  tier AOL world 1 year 4 tiers 2,2 band: records 53 paths 53 realised less p 4.2670 (se 4.1424)
+  tier AOL world 1 year 4 tiers 2,2 high: records 38 paths 38 realised less p 1.0680 (se 0.2362)
+  tier AOL world 1 year 5 tiers 0,0 band: records 141 paths 141 realised less p -1.0101 (se 3.1894)
+  tier AOL world 1 year 5 tiers 0,0 high: records 2 paths 2 realised less p 0.0000 (se 0.0000)
+  tier AOL world 1 year 5 tiers 0,0 low: records 18252 paths 18252 realised less p -0.0018 (se 0.0078)
+  tier AOL world 1 year 5 tiers 1,1 band: records 9 paths 9 realised less p 7.3088 (se 16.6746)
+  tier AOL world 1 year 5 tiers 2,2 band: records 43 paths 43 realised less p 6.9844 (se 4.2742)
+  tier AOL world 1 year 5 tiers 2,2 high: records 89 paths 89 realised less p -1.5155 (se 1.5401)
+  tier AOL world 1 year 6 tiers 0,0 band: records 47 paths 47 realised less p 5.1460 (se 6.4994)
+  tier AOL world 1 year 6 tiers 0,0 high: records 4 paths 4 realised less p 0.0000 (se 0.0000)
+  tier AOL world 1 year 6 tiers 0,0 low: records 3902 paths 3902 realised less p 0.0032 (se 0.0256)
+  tier AOL world 1 year 6 tiers 1,1 band: records 1 paths 1 realised less p -57.5029 (se NaN)
+  tier AOL world 1 year 6 tiers 2,2 band: records 16 paths 16 realised less p -3.9979 (se 10.7889)
+  tier AOL world 1 year 6 tiers 2,2 high: records 131 paths 131 realised less p 0.3439 (se 0.0813)
+  tier AOL world 2 year 1 tiers 0,0 band: records 3593 paths 3593 realised less p 0.0709 (se 0.5082)
+  tier AOL world 2 year 1 tiers 0,0 low: records 36407 paths 36407 realised less p 0.0320 (se 0.0471)
+  tier AOL world 2 year 2 tiers 0,0 band: records 3190 paths 3190 realised less p -0.1342 (se 0.6159)
+  tier AOL world 2 year 2 tiers 0,0 low: records 36786 paths 36786 realised less p 0.0361 (se 0.0309)
+  tier AOL world 2 year 2 tiers 1,1 band: records 7 paths 7 realised less p -10.5420 (se 18.1679)
+  tier AOL world 2 year 2 tiers 2,2 band: records 11 paths 11 realised less p 9.4753 (se 0.8250)
+  tier AOL world 2 year 2 tiers 2,2 high: records 6 paths 6 realised less p 2.4273 (se 0.7926)
+  tier AOL world 2 year 3 tiers 0,0 band: records 2092 paths 2092 realised less p -0.4387 (se 0.8318)
+  tier AOL world 2 year 3 tiers 0,0 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AOL world 2 year 3 tiers 0,0 low: records 37723 paths 37723 realised less p 0.0296 (se 0.0202)
+  tier AOL world 2 year 3 tiers 1,1 band: records 39 paths 39 realised less p -2.9678 (se 6.9862)
+  tier AOL world 2 year 3 tiers 2,2 band: records 77 paths 77 realised less p 1.5271 (se 3.4734)
+  tier AOL world 2 year 3 tiers 2,2 high: records 68 paths 68 realised less p 0.1099 (se 1.4745)
+  tier AOL world 2 year 4 tiers 0,0 band: records 1239 paths 1239 realised less p 0.3721 (se 1.1708)
+  tier AOL world 2 year 4 tiers 0,0 high: records 3 paths 3 realised less p 0.0000 (se 0.0000)
+  tier AOL world 2 year 4 tiers 0,0 low: records 37858 paths 37858 realised less p 0.0030 (se 0.0117)
+  tier AOL world 2 year 4 tiers 1,1 band: records 10 paths 10 realised less p 3.5391 (se 13.5672)
+  tier AOL world 2 year 4 tiers 1,1 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AOL world 2 year 4 tiers 2,2 band: records 136 paths 136 realised less p 4.2273 (se 2.3366)
+  tier AOL world 2 year 4 tiers 2,2 high: records 189 paths 189 realised less p 0.5358 (se 0.5364)
+  tier AOL world 2 year 5 tiers 0,0 band: records 597 paths 597 realised less p 0.9666 (se 1.6896)
+  tier AOL world 2 year 5 tiers 0,0 high: records 11 paths 11 realised less p 0.0000 (se 0.0000)
+  tier AOL world 2 year 5 tiers 0,0 low: records 24305 paths 24305 realised less p 0.0025 (se 0.0115)
+  tier AOL world 2 year 5 tiers 1,1 band: records 22 paths 22 realised less p -3.9830 (se 10.2225)
+  tier AOL world 2 year 5 tiers 1,1 high: records 1 paths 1 realised less p 0.0000 (se NaN)
+  tier AOL world 2 year 5 tiers 2,2 band: records 138 paths 138 realised less p -1.2916 (se 2.9707)
+  tier AOL world 2 year 5 tiers 2,2 high: records 368 paths 368 realised less p -0.4283 (se 0.5308)
+  tier AOL world 2 year 6 tiers 0,0 band: records 228 paths 228 realised less p -3.4054 (se 2.7790)
+  tier AOL world 2 year 6 tiers 0,0 high: records 18 paths 18 realised less p 0.0000 (se 0.0000)
+  tier AOL world 2 year 6 tiers 0,0 low: records 7728 paths 7728 realised less p -0.0021 (se 0.0179)
+  tier AOL world 2 year 6 tiers 1,1 band: records 4 paths 4 realised less p 8.6154 (se 25.0347)
+  tier AOL world 2 year 6 tiers 1,1 high: records 2 paths 2 realised less p 0.0000 (se 0.0000)
+  tier AOL world 2 year 6 tiers 2,2 band: records 59 paths 59 realised less p 0.5015 (se 4.3684)
+  tier AOL world 2 year 6 tiers 2,2 high: records 561 paths 561 realised less p -0.0900 (se 0.2451)
+  A6 world 0: OWN less runs -0.5616 = T -0.6331 + GB 0.0715 + GA -0.0000; BO's GB -4.1495 (-4.4340 to -3.8650); A6 less BO in GB 4.2210 (3.9345 to 4.5075); survival A6 28.7000 BO 28.6250
+  A6 world 0 by year (A6; BO): 1: -0.0332; 0.6882 | 2: -0.0259; -1.2205 | 3: 0.0583; -1.4866 | 4: 0.0418; -1.2882 | 5: 0.0234; -0.9312 | 6: 0.0070; 0.0888 | 7: 0.0000; 0.0000
+  A6 world 0: T luck-adjusted (years 0 to 7's shocks) -0.8339 (se 0.4733); BO's -0.9335 (se 0.4578)
+  A6 world 0 QF by year (A6; BO, se): 1: 0.0363 (0.0072); 0.0011 (0.0091) | 2: 0.0312 (0.0088); 0.0335 (0.0084) | 3: 0.0248 (0.0095); 0.0606 (0.0115) | 4: -0.0354 (0.0099); -0.0174 (0.0102) | 5: -0.0202 (0.0161); -0.0441 (0.0245) | 6: -0.0001 (0.0004); -0.0008 (0.0004) | 7: -0.0000 (0.0000); -0.0000 (0.0000)
+  A6 world 1: OWN less runs 0.5010 = T 0.2158 + GB 0.2852 + GA -0.0000; BO's GB -5.3151 (-5.5035 to -5.1267); A6 less BO in GB 5.6004 (5.4097 to 5.7910); survival A6 49.1000 BO 48.6500
+  A6 world 1 by year (A6; BO): 1: 0.0766; -0.7371 | 2: 0.0929; -1.6859 | 3: 0.0970; -1.4214 | 4: 0.0237; -0.9888 | 5: -0.0072; -0.6663 | 6: 0.0023; 0.1843 | 7: 0.0001; 0.0001
+  A6 world 1: T luck-adjusted (years 0 to 7's shocks) -0.0878 (se 0.4753); BO's 0.1400 (se 0.4767)
+  A6 world 1 QF by year (A6; BO, se): 1: -0.0271 (0.0070); 0.0154 (0.0134) | 2: -0.0626 (0.0105); -0.0198 (0.0131) | 3: -0.0671 (0.0112); -0.0340 (0.0145) | 4: -0.0056 (0.0068); -0.0007 (0.0099) | 5: 0.0237 (0.0126); 0.0391 (0.0196) | 6: -0.0005 (0.0004); -0.0000 (0.0004) | 7: -0.0000 (0.0000); -0.0000 (0.0000)
+  A6 world 2: OWN less runs -0.3097 = T -0.4259 + GB 0.1162 + GA -0.0001; BO's GB -3.0835 (-3.2127 to -2.9544); A6 less BO in GB 3.1997 (3.0666 to 3.3328); survival A6 70.5250 BO 69.7750
+  A6 world 2 by year (A6; BO): 1: 0.0329; -0.7572 | 2: 0.0488; -1.0236 | 3: 0.0039; -0.7965 | 4: 0.0074; -0.4732 | 5: 0.0197; -0.3178 | 6: 0.0034; 0.2847 | 7: 0.0001; 0.0001
+  A6 world 2: T luck-adjusted (years 0 to 7's shocks) -0.6999 (se 0.4716); BO's -0.7480 (se 0.4829)
+  A6 world 2 QF by year (A6; BO, se): 1: -0.0215 (0.0085); -0.0201 (0.0194) | 2: -0.0338 (0.0108); -0.0191 (0.0179) | 3: -0.0175 (0.0099); -0.0082 (0.0180) | 4: 0.0187 (0.0077); 0.0124 (0.0095) | 5: -0.0167 (0.0083); -0.0201 (0.0139) | 6: -0.0002 (0.0003); 0.0003 (0.0003) | 7: -0.0001 (0.0000); -0.0001 (0.0000)
+  A6 refcheck world 0 bin 0: states 99 p 0.117737 simulated 0.115970 se 0.001008 ok
+  A6 refcheck world 0 bin 1: states 77 p 0.295910 simulated 0.294935 se 0.001629 ok
+  A6 refcheck world 0 bin 2: states 48 p 0.478289 simulated 0.475208 se 0.002265 ok
+  A6 refcheck world 0 bin 3: states 44 p 0.701656 simulated 0.707341 se 0.002155 ok
+  A6 refcheck world 0 bin 4: states 32 p 0.883869 simulated 0.887906 se 0.001749 ok
+  A6 refcheck world 1 bin 0: states 62 p 0.110293 simulated 0.108032 se 0.001231 ok
+  A6 refcheck world 1 bin 1: states 71 p 0.297160 simulated 0.296056 se 0.001701 ok
+  A6 refcheck world 1 bin 2: states 65 p 0.496066 simulated 0.498646 se 0.001947 ok
+  A6 refcheck world 1 bin 3: states 65 p 0.696258 simulated 0.695108 se 0.001787 ok
+  A6 refcheck world 1 bin 4: states 37 p 0.889884 simulated 0.891270 se 0.001603 ok
+  A6 refcheck world 2 bin 0: states 38 p 0.127580 simulated 0.127211 se 0.001693 ok
+  A6 refcheck world 2 bin 1: states 48 p 0.298459 simulated 0.296396 se 0.002068 ok
+  A6 refcheck world 2 bin 2: states 64 p 0.502393 simulated 0.501500 se 0.001961 ok
+  A6 refcheck world 2 bin 3: states 74 p 0.698830 simulated 0.700851 se 0.001671 ok
+  A6 refcheck world 2 bin 4: states 76 p 0.890596 simulated 0.892882 se 0.001110 ok

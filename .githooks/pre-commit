@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# THE PRE-COMMIT CHECK (the external review of 21 Oct, Part B Step 3). Switched on per clone by
+# `git config core.hooksPath .githooks` (the SessionStart hook does it). Do not bypass it with --no-verify: CI runs the
+# same checks on every push regardless.
+#   - always (seconds): STATE.md's check (its length, its sections, figures printed from results files), the hooks'
+#     test, the fair-test gate's test, the decided defaults against the code, and check-state's own test;
+#   - when the commit touches code (src/, research/**/*.mjs or .js, a hook): the fast verification suite, every file of
+#     it run and passed (research/tests/run-all.mjs fast).
+#
+python3 research/build-engine.py > /tmp/.precommit-build.txt 2>&1 || {
+  tail -3 /tmp/.precommit-build.txt >&2
+  echo "pre-commit: research/build-engine.py failed (CI builds the engine the same way). Fix it." >&2
+  exit 1
+}
+node research/solver/check-state.mjs > /tmp/.precommit-state.txt 2>&1 || {
+  cat /tmp/.precommit-state.txt >&2
+  echo "pre-commit: STATE.md fails its check (node research/solver/check-state.mjs). Fix it." >&2
+  exit 1
+}
+for t in hooks fair-gate plan-defaults check-state; do
+  node "research/tests/$t.test.mjs" > /tmp/.precommit-test.txt 2>&1 || {
+    grep -E "FAIL|Error" /tmp/.precommit-test.txt | head -5 >&2
+    echo "pre-commit: research/tests/$t.test.mjs failed (as CI would). Fix it." >&2
+    exit 1
+  }
+done
+if git diff --cached --name-only | grep -qE '^(src/|research/.*\.(mjs|js)$|\.claude/hooks/|\.githooks/)'; then
+  node research/tests/run-all.mjs fast -j 2 > /tmp/.precommit-fast.txt 2>&1 || {
+    grep -E "^FAIL|^run-all" /tmp/.precommit-fast.txt >&2
+    echo "pre-commit: the fast verification suite failed (node research/tests/run-all.mjs fast). Fix it." >&2
+    exit 1
+  }
+fi
+exit 0

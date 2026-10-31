@@ -1,0 +1,31 @@
+7AJ ITEM 1 BY HOUSEHOLD: the survival change CAND less SHIP (points) at 0.02 (results-derive-7aj.txt section 1, the
+derivation's SAME) and at 0.01 (results-7aj.txt item 1), and the difference
+
+  S130           at 0.02 +0.463  at 0.01 +3.638  difference +3.175
+  S370           at 0.02 +4.600  at 0.01 +6.662  difference +2.062
+  share 0.95     at 0.02 +20.000  at 0.01 +21.762  difference +1.762
+  S128           at 0.02 +0.075  at 0.01 +0.988  difference +0.913
+  bridge 4+cost  at 0.02 +4.019  at 0.01 +3.712  difference -0.307
+  share 0.50     at 0.02 +0.163  at 0.01 +0.338  difference +0.176
+  S194           at 0.02 +0.525  at 0.01 +0.362  difference -0.163
+  share 0.70     at 0.02 +0.550  at 0.01 +0.412  difference -0.138
+  S122           at 0.02 +0.025  at 0.01 +0.163  difference +0.138
+  S360           at 0.02 +11.637  at 0.01 +11.775  difference +0.138
+  S366           at 0.02 +0.056  at 0.01 +0.175  difference +0.119
+  bridge 1       at 0.02 +0.412  at 0.01 +0.512  difference +0.100
+  wealth x0.5    at 0.02 +0.588  at 0.01 +0.650  difference +0.063
+  bridge 0       at 0.02 +0.450  at 0.01 +0.388  difference -0.062
+  S162           at 0.02 +0.444  at 0.01 +0.388  difference -0.056
+  bridge 6       at 0.02 +0.100  at 0.01 +0.050  difference -0.050
+  wealth x2      at 0.02 -0.063  at 0.01 -0.013  difference +0.050
+  S124           at 0.02 +0.025  at 0.01 +0.063  difference +0.038
+  bridge 4       at 0.02 +0.050  at 0.01 +0.075  difference +0.025
+  share 0.78     at 0.02 +0.037  at 0.01 +0.025  difference -0.012
+  S172           at 0.02 +0.113  at 0.01 +0.100  difference -0.012
+  share 0.90     at 0.02 +0.412  at 0.01 +0.412  difference -0.001
+  S126           at 0.02 +0.037  at 0.01 +0.037  difference -0.001
+  S120           at 0.02 +0.000  at 0.01 +0.000  difference +0.000
+  S168           at 0.02 +0.000  at 0.01 +0.000  difference +0.000
+
+THE MEANS: at 0.02 1.789, at 0.01 2.107, the gap +0.318 points
+THE FOUR LARGEST: S130 +3.18, S370 +2.06, share 0.95 +1.76, S128 +0.91; together 99% of the gap

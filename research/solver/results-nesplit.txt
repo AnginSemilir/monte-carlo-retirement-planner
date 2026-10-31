@@ -1,0 +1,99 @@
+ok   the review's geometry: the table favours own, own loses 0/30, survival over the whole gap, the swap removes it, the de-risk carries the loss: 1-4 HELD, 5 HELD: "HELD,HELD,HELD,HELD,HELD"
+ok   the table sees over half the realised loss (dT -0.2 against -0.375) at both weights: 1 FALSIFIED, 2 FALSIFIED: "FALSIFIED,FALSIFIED"
+ok   a realised loss exactly -0.25 (0 saved/20 lost) counts: 1 HELD: "HELD"
+ok   the review's case: dT -0.05 against a realised -0.375 is a misread, not a FALSIFIED: 1 HELD: "HELD"
+ok   dT -0.1 against -0.375: the table sees over a quarter and under half, neither a misread nor a sight: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   no discordant path at one weight: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   0 saved/4 lost at each weight (p 0.0625 alone): the loss does not read, 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   correcting the survival read flips the choice at one weight only: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   correcting the survival read flips the choice at both weights: 2 HELD: "HELD"
+ok   the corrected gap flips at its point (-7.5e-4) but not at the interval's upper end (+6e-4): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the corrected gap is at least half at its point (0.02125 of 0.04) but not at the interval's lower end (0.01937): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the swap leaves the gap at G / 2 exactly (0.02 of 0.04) at both weights: 3 FALSIFIED: "FALSIFIED"
+ok   the swap shrinks the gap but leaves it positive and under half at one weight: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   own holds the plan's tiers: no layer to swap, 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the spend carries the loss at both weights: 4 FALSIFIED: "FALSIFIED"
+ok   the de-risk and the spend lose alike, SC against CS not reading: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the de-risk loses more than the spend but SC against CS does not read: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the control misranks (table up, 0/30 in simulation): 5 FALSIFIED: "FALSIFIED"
+ok   the control disagrees in sign without reading: 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gate passes a good set: ""
+ok   the gate refuses a plant line: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a unit with no done line: true
+ok   the gate refuses CAND at the stored margin: true
+ok   the gate refuses SHIP with the reader: true
+ok   the gate refuses a unit at the other weight: true
+ok   the gate refuses arms at different minimum pots: true
+ok   the gate refuses other points: true
+ok   the gate refuses the held-out seed: true
+ok   the gate refuses a failed partsSum: true
+ok   the gate refuses a forceIdentity short of every path: true
+ok   the gate refuses a missing run: true
+ok   the gate refuses an own opening outside the four: true
+ok   the gate refuses a world short of its paths: true
+ok   the gate passes files whose bits are the log's: ""
+ok   the gate refuses a file whose bits are not the log's: true
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a unit with no own line: true
+planted (40): all read as they should
+GATE: passed - the three units once and done at the registered settings (30 points, 8000 paths, 2000 a world, seed 7002); every self-check passed (partsSum, swapIdentity, chooserTop, forceIdentity on every path); every file the log's
+
+NE-SPLIT: S364's opening split by parts in CAND's tables and forced on the tuning seed (predictions/diag-nesplit.md)
+
+S364 NE/W0.02: CAND's own CC (level 0.9, tiers 2,2); SHIP's own level 0.8, tiers 0,0
+  SS (level 0.8, tiers 0,0): table sv 3.0444 bq 2.6290e+5 rs 2.0192e-1 h 2.9784e-2 score 1.2345e-2 charge 0 chooser 1.2345e-2 | swapped chooser 1.2345e-2 | sim 33/8000 (ran out 7967, end below the minimum pot 0)
+  SC (level 0.8, tiers 2,2): table sv 3.3013 bq 2.5947e+5 rs 2.0110e-1 h 3.0164e-2 score 1.4381e-2 charge 0.001 chooser 1.3381e-2 | swapped chooser 1.4325e-2 | sim 18/8000 (ran out 7982, end below the minimum pot 0)
+  CS (level 0.9, tiers 0,0): table sv 3.0438 bq 2.5308e+5 rs 1.9464e-1 h 2.9532e-2 score 1.2154e-2 charge 0 chooser 1.2154e-2 | swapped chooser 1.2154e-2 | sim 27/8000 (ran out 7973, end below the minimum pot 0)
+  CC (level 0.9, tiers 2,2): table sv 3.3485 bq 2.4961e+5 rs 1.9373e-1 h 2.9940e-2 score 1.4638e-2 charge 0.001 chooser 1.3638e-2 | swapped chooser 1.4610e-2 | sim 6/8000 (ran out 7994, end below the minimum pot 0)
+  world 0 (z -1.732051, weight 0.166667): SS table 3.6685 sim 0.0500; SC table 4.1670 sim 0.0000; CS table 3.6972 sim 0.0000; CC table 4.2056 sim 0.0000
+  world 1 (z 0, weight 0.666667): SS table 3.2066 sim 0.3500; SC table 3.5177 sim 0.1500; CS table 3.2188 sim 0.3000; CC table 3.5708 sim 0.1000
+  world 2 (z 1.732051, weight 0.166667): SS table 1.7719 sim 1.7500; SC table 1.5701 sim 0.7000; CS table 1.6906 sim 1.3000; CC table 1.6021 sim 0.2500
+  SHIP's tables: SS sv 2.437331e-2 score -1.588175e-2; SC sv 2.170782e-2 score -1.618145e-2; CS sv 2.024040e-2 score -1.616870e-2; CC sv 1.807309e-2 score -1.646791e-2
+  reader: unsupported 0 copied 110808 copiedTop 61074 nodes 366444
+  REPORTED, the arms unforced: CAND 6/8000 (ran out 7994, end below 0) against SHIP 31/8000 (ran out 7969, end below 0): 1 saved/26 lost, change -0.3125
+
+S364 NE/W0.01: CAND's own CC (level 0.95, tiers 2,2); SHIP's own level 0.8, tiers 0,0
+  SS (level 0.8, tiers 0,0): table sv 3.0519 bq 2.5825e+5 rs 2.0160e-1 h 2.9636e-2 score 6.6217e-3 charge 0 chooser 6.6217e-3 | swapped chooser 6.6217e-3 | sim 33/8000 (ran out 7967, end below the minimum pot 0)
+  SC (level 0.8, tiers 2,2): table sv 3.3094 bq 2.5478e+5 rs 2.0080e-1 h 3.0013e-2 score 8.7422e-3 charge 0.001 chooser 7.7422e-3 | swapped chooser 8.6830e-3 | sim 18/8000 (ran out 7982, end below the minimum pot 0)
+  CS (level 0.95, tiers 0,0): table sv 3.0576 bq 2.4377e+5 rs 1.9071e-1 h 2.9432e-2 score 6.5613e-3 charge 0 chooser 6.5613e-3 | swapped chooser 6.5613e-3 | sim 25/8000 (ran out 7975, end below the minimum pot 0)
+  CC (level 0.95, tiers 2,2): table sv 3.3803 bq 2.4025e+5 rs 1.8978e-1 h 2.9852e-2 score 9.2898e-3 charge 0.001 chooser 8.2898e-3 | swapped chooser 9.2709e-3 | sim 3/8000 (ran out 7997, end below the minimum pot 0)
+  world 0 (z -1.732051, weight 0.166667): SS table 3.6898 sim 0.0500; SC table 4.1919 sim 0.0000; CS table 3.7323 sim 0.0000; CC table 4.2489 sim 0.0000
+  world 1 (z 0, weight 0.666667): SS table 3.2125 sim 0.3500; SC table 3.5236 sim 0.1500; CS table 3.2352 sim 0.2000; CC table 3.6030 sim 0.0000
+  world 2 (z 1.732051, weight 0.166667): SS table 1.7716 sim 1.7500; SC table 1.5699 sim 0.7000; CS table 1.6724 sim 0.8000; CC table 1.6209 sim 0.1000
+  SHIP's tables: SS sv 2.489811e-2 score -2.182871e-2; SC sv 2.219666e-2 score -2.205426e-2; CS sv 1.881523e-2 score -2.209608e-2; CC sv 1.683850e-2 score -2.232009e-2
+  reader: unsupported 0 copied 110808 copiedTop 61074 nodes 366444
+  REPORTED, the arms unforced: CAND 3/8000 (ran out 7997, end below 0) against SHIP 30/8000 (ran out 7970, end below 0): 0 saved/27 lost, change -0.3375
+
+bridge 4 NE/W0.02: CAND's own SC (level 0.8, tiers 2,2); SHIP's own level 0.8, tiers 2,2
+  SS (level 0.8, tiers 0,0): table sv 99.7328 bq 1.2877e+6 rs 4.3326e-1 h 3.6241e-3 score 1.0208e+0 charge 0 chooser 1.0208e+0 | swapped chooser 1.0208e+0 | sim 7976/8000 (ran out 11, end below the minimum pot 13)
+  SC (level 0.8, tiers 2,2): table sv 99.7827 bq 1.2941e+6 rs 4.3630e-1 h 2.6835e-3 score 1.0224e+0 charge 0.001 chooser 1.0214e+0 | swapped chooser 1.0207e+0 | sim 7979/8000 (ran out 9, end below the minimum pot 12)
+  CS (level 0.8, tiers 0,0): table sv 99.7328 bq 1.2877e+6 rs 4.3326e-1 h 3.6241e-3 score 1.0208e+0 charge 0 chooser 1.0208e+0 | swapped chooser 1.0208e+0 | sim 7976/8000 (ran out 11, end below the minimum pot 13)
+  CC (level 0.8, tiers 2,2): table sv 99.7827 bq 1.2941e+6 rs 4.3630e-1 h 2.6835e-3 score 1.0224e+0 charge 0.001 chooser 1.0214e+0 | swapped chooser 1.0207e+0 | sim 7979/8000 (ran out 9, end below the minimum pot 12)
+  world 0 (z -1.732051, weight 0.166667): SS table 98.4967 sim 98.3000; SC table 98.7719 sim 98.5500; CS table 98.4967 sim 98.3000; CC table 98.7719 sim 98.5500
+  world 1 (z 0, weight 0.666667): SS table 99.9761 sim 99.9500; SC table 99.9822 sim 99.9000; CS table 99.9761 sim 99.9500; CC table 99.9822 sim 99.9000
+  world 2 (z 1.732051, weight 0.166667): SS table 99.9955 sim 100.0000; SC table 99.9956 sim 100.0000; CS table 99.9955 sim 100.0000; CC table 99.9956 sim 100.0000
+  SHIP's tables: SS sv 8.152077e+0 score 1.066197e-1; SC sv 8.709399e+0 score 1.126312e-1; CS sv 8.152077e+0 score 1.066197e-1; CC sv 8.709399e+0 score 1.126312e-1
+  reader: unsupported 0 copied 58806 copiedTop 34992 nodes 209952
+  REPORTED, the arms unforced: CAND 7979/8000 (ran out 9, end below 12) against SHIP 7980/8000 (ran out 12, end below 8): 3 saved/4 lost, change -0.0125
+
+THE ITEMS (each read by its registered rule)
+1. NE-SURV, the table's survival gap against the realised one, own against SS on S364: HELD
+     W0.02 dT 0.3041 pair 0 saved/27 lost (change -0.3375) Holm p 7.4506e-9 MISREADS
+     W0.01 dT 0.3284 pair 0 saved/30 lost (change -0.3750) Holm p 1.8626e-9 MISREADS
+2. correcting the survival read alone flips own's preference over SS: HELD
+     W0.02 G 1.2931e-3 corrected -5.1226e-3 (at d's ends -0.5179 and -0.2075: -6.9264e-3 to -3.8227e-3)
+     W0.01 G 1.6681e-3 corrected -5.3662e-3 (at d's ends -0.5634 and -0.2394: -7.2504e-3 to -4.0106e-3)
+3. the year-1 held-tier layer carries it: FALSIFIED
+     W0.02 G 1.2931e-3 swapped 2.2643e-3
+     W0.01 G 1.6681e-3 swapped 2.6492e-3
+4. the de-risk, not the spend, carries the simulated loss: INCONCLUSIVE
+     W0.02 de-risk 0 saved/15 lost (Holm p 2.4414e-4) spend 0 saved/6 lost (Holm p 6.2500e-2) SC against CS 1 saved/10 lost (Holm p 2.9297e-2 / 1.0000e+0)
+     W0.01 de-risk 0 saved/15 lost (Holm p 2.4414e-4) spend 0 saved/8 lost (Holm p 2.3437e-2) SC against CS 1 saved/8 lost (Holm p 6.2500e-2 / 1.0000e+0)
+5. the control (bridge 4 at 0.02): no misranking where the table is calibrated: HELD
+     dT 0.0499 pair 5 saved/2 lost p 4.5312e-1
+REALISED item 1: -0.3375
+REALISED item 4: -0.1875
+OUTCOME: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 HELD

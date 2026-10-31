@@ -1,0 +1,63 @@
+ok   switches and reversals on a planted path: 2 0.5 0.5
+ok   the parts sum to scorePaths(): 100.874868330
+ok   years below the plan's tier: 1
+planted (3): all read as they should
+
+THE SECOND DEEP REVIEW'S READS OF 7T'S TRACES (reported, not a test; grade C; the logs' stamp gate, reduce-7t.mjs's gate and every trace's stamp checked; 8,000 paths of seed 7002)
+
+1. PER ARM ON THE HARMED CASES: pension switches a path, years below the plan's tier, and the whole score against OFF by its parts (points); lost and saved against OFF by long-run shift bin (below -sqrt 3 / -sqrt 3 to -1 / -1 to 0 / 0 and above)
+S126
+  OFF          switches 0.03, years below 40.0 | against OFF: survival +0.000 estate +0.000 cuts +0.000 raise +0.000 | lost 0 (0/0/0/0) saved 0 (0/0/0/0)
+  OFF/M0       switches 10.52, years below 25.7 | against OFF: survival -0.175 estate +0.499 cuts -0.022 raise -0.035 | lost 14 (6/6/2/0) saved 0 (0/0/0/0)
+  READER       switches 0.33, years below 8.6 | against OFF: survival -0.525 estate +0.364 cuts -0.083 raise -0.113 | lost 42 (19/15/7/1) saved 0 (0/0/0/0)
+  READER/M0    switches 10.52, years below 25.7 | against OFF: survival -0.175 estate +0.499 cuts -0.022 raise -0.035 | lost 14 (6/6/2/0) saved 0 (0/0/0/0)
+  OFF+J        switches 0.03, years below 40.0 | against OFF: survival +0.000 estate -0.009 cuts -0.002 raise -0.005 | lost 0 (0/0/0/0) saved 0 (0/0/0/0)
+  OFF+J/M0     switches 9.01, years below 26.1 | against OFF: survival -0.025 estate +0.462 cuts -0.014 raise -0.023 | lost 2 (1/1/0/0) saved 0 (0/0/0/0)
+  READER+J     switches 0.34, years below 9.2 | against OFF: survival -0.350 estate +0.338 cuts -0.086 raise -0.118 | lost 28 (10/12/6/0) saved 0 (0/0/0/0)
+  READER+J/M0  switches 9.01, years below 26.1 | against OFF: survival -0.025 estate +0.462 cuts -0.014 raise -0.023 | lost 2 (1/1/0/0) saved 0 (0/0/0/0)
+  OFF+L        switches 0.05, years below 39.9 | against OFF: survival +0.063 estate -0.002 cuts -0.006 raise -0.007 | lost 0 (0/0/0/0) saved 5 (4/1/0/0)
+  READER+L     switches 0.40, years below 11.0 | against OFF: survival -0.125 estate +0.289 cuts -0.081 raise -0.103 | lost 10 (2/5/3/0) saved 0 (0/0/0/0)
+  OFF+O        switches 0.22, years below 38.7 | against OFF: survival +0.087 estate +0.020 cuts -0.012 raise -0.014 | lost 0 (0/0/0/0) saved 7 (6/1/0/0)
+  READER+O     switches 0.25, years below 10.5 | against OFF: survival -0.013 estate +0.411 cuts -0.052 raise -0.069 | lost 9 (0/0/4/5) saved 8 (7/1/0/0)
+  OFF5         switches 0.03, years below 40.0 | against OFF: survival +0.000 estate -0.001 cuts +0.000 raise +0.000 | lost 0 (0/0/0/0) saved 0 (0/0/0/0)
+  READER5      switches 0.32, years below 8.5 | against OFF: survival -0.513 estate +0.365 cuts -0.083 raise -0.114 | lost 41 (18/15/7/1) saved 0 (0/0/0/0)
+  OFF5+L       switches 0.06, years below 39.9 | against OFF: survival +0.050 estate +0.000 cuts -0.008 raise -0.008 | lost 0 (0/0/0/0) saved 4 (4/0/0/0)
+  READER5+L    switches 0.41, years below 11.2 | against OFF: survival -0.113 estate +0.287 cuts -0.082 raise -0.103 | lost 9 (1/5/3/0) saved 0 (0/0/0/0)
+bridge 4
+  OFF          switches 0.04, years below 41.9 | against OFF: survival +0.000 estate +0.000 cuts +0.000 raise +0.000 | lost 0 (0/0/0/0) saved 0 (0/0/0/0)
+  OFF/M0       switches 10.02, years below 28.0 | against OFF: survival -0.075 estate +0.423 cuts -0.018 raise -0.028 | lost 6 (6/0/0/0) saved 0 (0/0/0/0)
+  READER       switches 0.45, years below 14.6 | against OFF: survival -0.363 estate +0.203 cuts -0.075 raise -0.100 | lost 29 (13/9/5/2) saved 0 (0/0/0/0)
+  READER/M0    switches 10.00, years below 28.0 | against OFF: survival -0.038 estate +0.422 cuts -0.017 raise -0.027 | lost 6 (5/0/1/0) saved 3 (1/2/0/0)
+  OFF+J        switches 0.03, years below 41.9 | against OFF: survival +0.087 estate -0.005 cuts -0.005 raise -0.007 | lost 1 (1/0/0/0) saved 8 (5/3/0/0)
+  OFF+J/M0     switches 9.55, years below 28.4 | against OFF: survival +0.050 estate +0.403 cuts -0.016 raise -0.026 | lost 3 (3/0/0/0) saved 7 (4/3/0/0)
+  READER+J     switches 0.48, years below 15.8 | against OFF: survival -0.175 estate +0.173 cuts -0.078 raise -0.105 | lost 15 (7/3/4/1) saved 1 (0/1/0/0)
+  READER+J/M0  switches 9.40, years below 28.5 | against OFF: survival +0.075 estate +0.397 cuts -0.014 raise -0.023 | lost 5 (4/0/1/0) saved 11 (5/4/2/0)
+  OFF+L        switches 0.04, years below 41.9 | against OFF: survival +0.212 estate +0.003 cuts -0.012 raise -0.010 | lost 1 (1/0/0/0) saved 18 (9/8/1/0)
+  READER+L     switches 0.52, years below 16.6 | against OFF: survival +0.037 estate +0.165 cuts -0.082 raise -0.098 | lost 6 (3/1/1/1) saved 9 (5/4/0/0)
+  OFF+O        switches 0.21, years below 40.6 | against OFF: survival +0.175 estate +0.015 cuts -0.026 raise -0.026 | lost 2 (2/0/0/0) saved 16 (9/6/1/0)
+  READER+O     switches 0.23, years below 17.4 | against OFF: survival +0.175 estate +0.248 cuts -0.038 raise -0.047 | lost 8 (1/0/1/6) saved 22 (10/10/2/0)
+  OFF5         switches 0.04, years below 41.9 | against OFF: survival -0.013 estate -0.001 cuts +0.000 raise +0.000 | lost 3 (2/1/0/0) saved 2 (1/1/0/0)
+  READER5      switches 0.45, years below 14.5 | against OFF: survival -0.363 estate +0.204 cuts -0.075 raise -0.099 | lost 29 (11/10/7/1) saved 0 (0/0/0/0)
+  OFF5+L       switches 0.05, years below 41.9 | against OFF: survival +0.188 estate +0.003 cuts -0.013 raise -0.011 | lost 1 (1/0/0/0) saved 16 (8/8/0/0)
+  READER5+L    switches 0.52, years below 16.5 | against OFF: survival +0.025 estate +0.168 cuts -0.083 raise -0.099 | lost 7 (3/2/1/1) saved 9 (5/4/0/0)
+
+2. THE SWITCHING PATTERN (pension switches a path; the share reversed the next year and within three years)
+  S126       OFF 0.03 (0%, 2%); OFF/M0 10.52 (24%, 48%); READER 0.33 (1%, 1%); READER/M0 10.52 (24%, 48%); READER+J/M0 9.01 (23%, 45%)
+  bridge 4   OFF 0.04 (6%, 12%); OFF/M0 10.02 (24%, 47%); READER 0.45 (1%, 1%); READER/M0 10.00 (24%, 47%); READER+J/M0 9.40 (23%, 46%)
+  S360       OFF 0.01 (0%, 0%); OFF/M0 3.19 (21%, 44%); READER 0.69 (16%, 23%); READER/M0 6.54 (21%, 42%); READER+J/M0 6.38 (20%, 41%)
+  share 0.95 OFF 0.19 (1%, 2%); OFF/M0 8.88 (23%, 46%); READER 0.29 (1%, 2%); READER/M0 10.40 (23%, 46%); READER+J/M0 9.64 (21%, 43%)
+  S194       OFF 0.78 (1%, 2%); OFF/M0 7.84 (21%, 44%)
+
+3. THE DEEP BAD WORLD (paths whose long-run shift is below -sqrt 3): the mean pension risk step by years of the plan, and survival there
+  S126      OFF          risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -2.00 -2.00 -2.00 -1.98 -1.96; survival 96.4% of 277
+  S126      READER       risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -0.18 -0.71 -1.00 -1.13 -1.11; survival 89.5% of 277
+  S126      READER+L     risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -0.29 -0.83 -1.17 -1.30 -1.32; survival 95.7% of 277
+  S126      READER+O     risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -2.00 -2.00 -2.00 -1.99 -1.99; survival 98.9% of 277
+  S126      OFF/M0       risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -1.78 -1.68 -1.41 -0.91 -0.89; survival 94.2% of 277
+  S126      READER+J/M0  risk step by years 0-5, 5-10, 10-20, 20-30, 30-40: -1.97 -1.84 -1.51 -0.94 -0.87; survival 96.0% of 277
+  bridge 4  OFF          risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -2.00 -2.00 -2.00 -1.97 -1.96; survival 93.4% of 319
+  bridge 4  READER       risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -0.55 -1.02 -1.29 -1.38 -1.37; survival 89.3% of 319
+  bridge 4  READER+L     risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -0.61 -1.17 -1.47 -1.53 -1.56; survival 94.0% of 319
+  bridge 4  READER+O     risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -2.00 -2.00 -1.99 -1.97 -1.98; survival 96.2% of 319
+  bridge 4  OFF/M0       risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -1.95 -1.84 -1.55 -1.02 -0.95; survival 91.5% of 319
+  bridge 4  READER+J/M0  risk step by years 0-5, 5-10, 10-20, 20-30, 30-42: -1.98 -1.90 -1.66 -1.06 -0.92; survival 93.7% of 319

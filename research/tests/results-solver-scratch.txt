@@ -1,0 +1,16 @@
+# node research/tests/solver-scratch.test.mjs (on this commit's code; about 2 minutes)
+PASS  SHIP (S224, 6 points, 3 worlds, 360 moves): scoreMoves on a table that ran forward paths and on a fresh one, 375 position-tables, 125 positions: the same bit for bit in all but 0 (the largest score gap 0.0e+0)
+PASS  SHIP: chooseAction, the move and every mixture score the same bit for bit at 125 of 125 positions
+PASS  SHIP: rankActions, the top five the same at 125 of 125 positions
+PASS  CAND (S224, 4 points, 3 worlds, 360 moves): scoreMoves on a table that ran forward paths and on a fresh one, 225 position-tables, 75 positions: the same bit for bit in all but 0 (the largest score gap 0.0e+0)
+PASS  CAND: chooseAction, the move and every mixture score the same bit for bit at 75 of 75 positions
+PASS  CAND: rankActions, the top five the same at 75 of 75 positions
+ALL PASS: 6 checks
+# the same test on the code before the fix (8249958: scoreMoves' scratch kept at its first call's length, Math.max(7, s.length)): it must fail
+FAIL  SHIP (S224, 6 points, 3 worlds, 360 moves): scoreMoves on a table that ran forward paths and on a fresh one, 375 position-tables, 125 positions: the same bit for bit in all but 78 (the largest score gap 5.4e-5)
+FAIL  SHIP: chooseAction, the move and every mixture score the same bit for bit at 99 of 125 positions
+PASS  SHIP: rankActions, the top five the same at 125 of 125 positions
+FAIL  CAND (S224, 4 points, 3 worlds, 360 moves): scoreMoves on a table that ran forward paths and on a fresh one, 225 position-tables, 75 positions: the same bit for bit in all but 66 (the largest score gap 8.6e-6)
+FAIL  CAND: chooseAction, the move and every mixture score the same bit for bit at 53 of 75 positions
+PASS  CAND: rankActions, the top five the same at 75 of 75 positions
+FAILED: 4 of 6 checks

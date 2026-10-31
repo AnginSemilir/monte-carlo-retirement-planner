@@ -1,0 +1,40 @@
+PROBE M14 - RISK ABOVE THE USER'S TIER, 24 Sep 02:00-02:25, from snapshot /tmp/solver-snap-gmTGGL (d64d217)
+The 12 step-2 households with pension and ISA held at Medium in the plan (PLANTIER, research only: every library
+household holds its pension at the top tier, M21). Down-only (plan tier and two below) against one step above
+also allowed (tiersAbove 1, joint), paired on the same 3,000 held-out paths (seed 7002). Full scan, exact final
+year, single table.
+
+AGAINST THE PREDICTION (written 00:55 before the run, from the toy model)
+  survival up on most, by 1-10 points on the thin ones      THIN ONES HELD: S070 +2.07, S184 +2.90, S330 +2.23,
+                                                            S354 +2.50 (each 5-7 se). "On most" NOT held: the eight
+                                                            comfortable households barely use it (0.1-0.8% of years)
+                                                            and move within noise (S162 -0.23 +/- 0.09 the largest)
+  running out within 20 years up on most                    NOT HELD: S070 2.5 -> 2.3%, S184 2.4 -> 3.0%, the rest 0
+  the worst 5% funded fewer years on most                   NOT HELD: the same or longer everywhere (S070 21 -> 22)
+  at least 3/4 of up-move years behind the median wealth    HELD: 99.7-100% on every household that uses it
+  FALSIFIERS (up-moves mostly ahead of the median; early    NOT FIRED
+  ruin falls on most)
+  Years without money per path fell on the thin four: 2.35 -> 2.03, 2.27 -> 2.03, 3.08 -> 2.61, 2.34 -> 1.97.
+
+WHAT IT MEANS
+  The maintainer's intuition (23 Sep) holds better than the toy did: in the real solver, moving up a tier happens
+  only when a household is behind, and across the markets it is averaged over it helps - survival up 2-3 points on
+  the thin households and fewer years without money - without the tail getting worse. The toy's tail result did
+  not carry over (it had no tax, no flexible spending and one pot). It is still a move made precisely when a plan
+  is in trouble, so it stays a consent question for the product, not a default.
+
+TABLE (reduce-m14.mjs)
+PROBE M14 - one tier above allowed (plan held at Medium), paired against down-only on the same paths
+  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)
+  S054   99.00 -> 98.93 (-0.07 +/- 0.08)    0.0 -> 0.0%      28 -> 28 yrs        0.00 -> 0.00      0.2%        100.0%
+  S070   76.37 -> 78.43 (+2.07 +/- 0.40)    2.5 -> 2.3%      21 -> 22 yrs        2.35 -> 2.03      8.2%        99.8%
+  S100   99.90 -> 99.77 (-0.13 +/- 0.07)    0.0 -> 0.0%      36 -> 36 yrs        0.01 -> 0.02      0.1%        100.0%
+  S112   99.33 -> 99.20 (-0.13 +/- 0.08)    0.0 -> 0.0%      36 -> 36 yrs        0.00 -> 0.00      0.1%        100.0%
+  S126   99.93 -> 99.97 (+0.03 +/- 0.06)    0.0 -> 0.0%      40 -> 40 yrs        0.00 -> 0.00      0.6%        0.0%
+  S162   99.43 -> 99.20 (-0.23 +/- 0.09)    0.0 -> 0.0%      40 -> 40 yrs        0.01 -> 0.01      0.2%        100.0%
+  S184   75.27 -> 78.17 (+2.90 +/- 0.40)    2.4 -> 3.0%      22 -> 22 yrs        2.27 -> 2.03      13.0%        99.7%
+  S206   99.93 -> 99.93 (+0.00 +/- 0.00)    0.0 -> 0.0%      41 -> 41 yrs        0.00 -> 0.00      0.0%        100.0%
+  S252   98.03 -> 98.03 (+0.00 +/- 0.09)    0.0 -> 0.0%      52 -> 52 yrs        0.26 -> 0.25      0.8%        100.0%
+  S330   78.03 -> 80.27 (+2.23 +/- 0.35)    0.0 -> 0.0%      40 -> 40 yrs        3.08 -> 2.61      9.2%        100.0%
+  S354   80.83 -> 83.33 (+2.50 +/- 0.32)    0.0 -> 0.0%      42 -> 42 yrs        2.34 -> 1.97      9.1%        100.0%
+  S390   99.63 -> 99.60 (-0.03 +/- 0.07)    0.0 -> 0.0%      46 -> 46 yrs        0.03 -> 0.03      0.1%        100.0%

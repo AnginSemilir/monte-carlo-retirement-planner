@@ -1,0 +1,112 @@
+caught: 1: n = (byKey[k] || []).length; if (n !== 1)
+caught: 2: n = (byKey[k] || []).length; if (n !== 1)
+caught: 3: if (!j.done) bad.push(
+caught: 4: ['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] 
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 8: if (j.pts !== pts) bad.push(
+caught: 9: if (!j.checks.armTook || j.checks.armTook[0] !== 1)
+caught: 10: if (!j.checks.pairTook || j.checks.pairTook[0] !== 1)
+caught: 11: Object.entries({ ...COMMON, readerBlend: BLEND[j.arm] })
+caught: 12: Object.entries({ ...COMMON, readerBlend: BLEND[j.arm] })
+caught: 13: if ((j.arm === 'ORDER') !== (field(ran, 'readerRef') === 'or
+caught: 14: if ((j.arm === 'ORDER') !== (field(ran, 'readerRef') === 'or
+caught: 15: if (field(ran, 'pts') !== String(pts)) bad.push(
+caught: 16: if (field(ran, 'grid') !== `total${pts}x${reg[3]}x${reg[3]}`
+caught: 17: if (field(ran, 'mix') !== '3')
+caught: 18: j.pair.P !== PAIRS[j.id][0] || j.pair.D
+caught: 19: j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== 
+caught: 20: j.pair.tP !== '0,0' || j.pair.tD !== '2,2' || j.pair.lP !== 
+caught: 21: else if (j.arm !== 'LOR' && j.reader.clampN !== 0) bad.push(
+caught: 22: if (j.tables.length !== 3 || j.tables.some((x, i) => x.k !==
+caught: 23: const need = [['P', npw * mult], ['D', npw],
+caught: 24: if (!s || s.n !== np) bad.push(
+caught: 25: ...(j.own && j.pair && j.own.ai !== j.pair.P && j.own.ai !==
+caught: 26: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1
+caught: 27: j.checks.forceIdentity[0] !== fi || j.checks.forceIdentity[1
+caught: 28: if (!f) bad.push(`${k}: its file ${j.file} is missing`);
+caught: 29: if (!f.stamp || !j.stamp || ['code', 'audit', 'prediction'].
+caught: 30: typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[n
+caught: 31: typeof f.bits[nm] !== 'string' || sha16(Buffer.from(f.bits[n
+caught: 32: const [l, h] = clopperPearson(ok, n, 2 * a1); return { d: ta
+caught: 33: const a1 = ALPHA / 6;
+caught: 34: const counted = q(Math.abs(m1)) >= GMIN;
+caught: 35: const counted = q(Math.abs(m1)) >= GMIN;
+caught: 36: for (const o of ['P', 'D']) for (const k of [0, 1]) {
+caught: 37: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.
+caught: 38: out[1] = { outcome: read3(cells, c => c.r <= SECOND, c => c.
+caught: 39: r: counted ? q(Math.abs(m2) / Math.abs(m1)) : null
+caught: 40: const t30 = B1[id][arm].coarse[k][o], t60 = B1[id][arm].fine
+caught: 41: ['S224', 'BASE', 'BASE/P120S6Q5'], ['S380', 'LOR', 'LOR/P120
+caught: 42: (arm === 'LOR' ? lorCells : cells).push(
+caught: 43: return cc.length && cc.every(hold) ? 'HELD'
+caught: 44: return cc.length && cc.every(hold) ? 'HELD' : cc.length && c
+caught: 45: cc.length && cc.every(fals) ? 'FALSIFIED'
+caught: 46: out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD'
+caught: 47: out[2] = { outcome: u2.some(x => q(x.hi) < -UNDER) ? 'HELD'
+caught: 48: u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED'
+caught: 49: u2.every(x => q(Math.abs(x.d)) <= UNDER) ? 'FALSIFIED'
+caught: 50: const j2 = jt('S224', 'BASE/P120S6Q5'), u2 = [0, 1].map(
+caught: 51: const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, cou
+caught: 52: const rise = j.tables[x.k].P - B1.S224.BASE.fine[x.k].P, cou
+caught: 53: frac: counted ? q(rise / -x.u) : null }; }); return { outcom
+caught: 54: frac: counted ? q(rise / -x.u) : null }; }); return { outcom
+caught: 55: out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P6
+caught: 56: out['3'] = carry('BASE/P60S6Q15'); out['4'] = carry('BASE/P6
+caught: 57: const under60 = [0, 1].map(k => { const s = b1Runs224[k]; re
+caught: 58: const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted 
+caught: 59: const dropped = b4.tables[x.k].P - j.tables[x.k].P, counted 
+caught: 60: frac: counted ? q(dropped / x.o) : null }; }); return { outc
+caught: 61: out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120
+caught: 62: out['5'] = fall('BASE/P60S12Q5'); out['6'] = fall('BASE/P120
+caught: 63: w5.every(x => q(Math.abs(x.d)) <= CTRL) ? 'HELD'
+caught: 64: w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 65: w5.some(x => q(x.lo) > CTRL || q(x.hi) < -CTRL) ? 'FALSIFIED
+caught: 66: o5 = j5.own.ai === j5.pair.P ? 'P' : j5.own.ai === j5.pair.D
+caught: 67: 'RG-WSLOW': out[1].outcome === 'FALSIFIED' ? 'held' : out[1]
+caught: 68: 'RG-PATHS': out[2].outcome === 'FALSIFIED' && lucky ? 'held'
+caught: 69: q(j2.tables[k].P - 100 * extra.first4k(k) / NPW) < -UNDER
+caught: 70: const lucky = [0, 1].some(
+caught: 71: q(x.o) >= q(0.5 * extra.over30[k])
+caught: 72: 'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].ou
+caught: 73: 'S364-W': out['6'].outcome === 'HELD' ? 'held' : out['6'].ou
+caught: 74: at ${it[8].o}: ${it[8].w.map(
+caught: 75: for (const [c, v] of Object.entries(it.causes)) L.push(`=> $
+caught: 76: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
+caught: 77: 'RG-UNMASK': out[2].outcome === 'HELD' && (out['3'].outcome 
+caught: 78: 'S364-REF': { HELD: 'held', FALSIFIED: 'not' }[out['7'].outc
+caught: 79: if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOO
+caught: 80: if (field(ran, 'floor') !== String(ch.floor === 0 ? 0 : FLOO
+caught: 81: if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(
+caught: 82: if (field(ran, 'line') !== String(ch.line || 0.5)) bad.push(
+caught: 83: if (PROBED.has(k)) { const pb = j.probe || [];
+caught: 84: if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))
+caught: 85: if ([0, 1, 2].some(w => !pb[w] || !(pb[w].reads > 0)))
+caught: 86: if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)
+caught: 87: if (Math.abs(x.sup[0] + x.clip[0] + x.copy[0] - 1) > 1e-5)
+caught: 88: if (Math.abs(x.plain - x.del - x.res) > 1e-4)
+caught: 89: const j9 = jt('S224', 'BASE/P120S6Q5F0')
+caught: 90: u9 = [0, 1].map(
+caught: 91: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'
+caught: 92: u9.every(x => q(Math.abs(x.d)) <= UNDER) ? 'HELD'
+caught: 93: u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'
+caught: 94: u9.some(x => q(x.hi) < -UNDER) ? 'FALSIFIED'
+caught: 95: out['10'] = fall('BASE/P60S6Q5L25');
+caught: 96: out['10'] = fall('BASE/P60S6Q5L25');
+caught: 97: 'RG-FLOOR': out[2].outcome === 'HELD' && out['9'].outcome ==
+caught: 98: out['9'].outcome === 'FALSIFIED' ? 'not' : 'open',
+caught: 99: 'S364-COPY': out['10'].outcome === 'HELD' ? 'held'
+caught: 100: out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open
+caught: 101: out['10'].outcome === 'FALSIFIED' && reaches ? 'not' : 'open
+caught: 102: c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)
+caught: 103: c10.every(c => reach(c.k) !== null && reach(c.k) >= REACH)
+caught: 104: const c10 = out['10'].cells.filter(c => c.counted),
+caught: 105: q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])
+caught: 106: q((pb0[k].copy[0] - pbL[k].copy[0]) / pb0[k].copy[0])
+caught: 107: L.push(`9. S224 without
+caught: 108: L.push(`10. the support line
+caught: 109: ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+caught: 110: const m = /: (\d+) (HELD|INCONCLUSIVE|FALSIFIED)$/.exec(what
+caught: 111: export const q = x => Math.round(x * 1e9) / 1e9;
+111 of 111 mutations caught

@@ -1,0 +1,37 @@
+=== THE PREFLIGHT: the tuning seed, not 7u-F's read ===
+7U-F READ: research/solver/results/preflight-7uf; 3 households; seed 7002, 400 paths; stamp {"code":"524aae79f9a0","audit":"64d9b42cd0dd","candidate":"e65e5e99ba49","prediction":"none","sha":"-"}
+THE GATE: fair (every CAND and SHIP unit present; each household's arms on the same seed, paths and stamps; settings differing only in the arm's own)
+
+P1 at W0.02: the pooled change over the 3 floor households +1.500 points (by path 0.747 to 2.253, se 0.3841): HELD
+P2: 2 household-weight pairs in the band [5, 99.5], Holm over them; harmed: none
+  S224   W0.02: SHIP 71.75 CAND 72.00 change +0.250 (-0.686 to 1.196; 2 saved, 1 lost) p 8.75e-1 Holm 1.00e+0; at the margins 0.25 not clear, 0.5 not clear
+  S362   W0.02: SHIP 46.75 CAND 51.00 change +4.250 (2.156 to 6.326; 18 saved, 1 lost) p 1.00e+0 Holm 1.00e+0; at the margins 0.25 clear, 0.5 clear
+  S002   W0.02: SHIP 100.00 CAND 100.00 change +0.000 (-0.951 to 0.951; 0 saved, 0 lost) outside the band: reported; at the margins 0.25 not clear, 0.5 not clear
+OUTCOME: PASS: the candidate goes to Phase 4
+
+REPORTED (not gating)
+PREFLIGHT S002 W0.02: no bridge years; DECOMP is CAND path for path (table 99.9939 and 99.9939)
+  S224   W0.02: estate +13447.060 (se 10479.440), unmet -735.782, realised spend -166.736, years cut +0.000; whole score +0.228 (se 0.4387) on 400 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity DECOMP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    the reference's part (CAND less DECOMP): by the mixture +0.000 (-0.573 to 0.573; by world +0.000, +0.000, +0.000); on the seed's paths +0.000 (-0.419 to 0.419; 0 saved, 0 lost)
+    by world CAND: 0 table 25.77 less the engine 25.25 = +0.516 (the runs 21.24 to 29.73); 1 table 77.26 less the engine 79.25 = -1.993 (the runs 75.01 to 82.94); 2 table 97.57 less the engine 97.50 = +0.072 (the runs 95.46 to 98.64)
+    by world DECOMP: 0 table 25.77 less the engine 25.25 = +0.516 (the runs 21.24 to 29.73); 1 table 77.26 less the engine 79.25 = -1.993 (the runs 75.01 to 82.94); 2 table 97.57 less the engine 97.50 = +0.072 (the runs 95.46 to 98.64)
+  S362   W0.02: estate +33842.444 (se 7004.297), unmet -158.899, realised spend -14.209, years cut +0.000; whole score +4.932 (se 1.2140) on 400 paths
+    the reader: 8 bridge years read; the adaptive reference consulted
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity DECOMP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    the reference's part (CAND less DECOMP): by the mixture +0.542 (-0.443 to 1.424; by world +0.250, +0.750, +0.000); on the seed's paths +0.250 (-0.237 to 0.737; 1 saved, 0 lost)
+    by world CAND: 0 table 28.94 less the engine 29.50 = -0.558 (the runs 25.24 to 34.15); 1 table 49.52 less the engine 51.50 = -1.984 (the runs 46.61 to 56.36); 2 table 67.60 less the engine 66.00 = +1.598 (the runs 61.23 to 70.47)
+    by world DECOMP: 0 table 23.98 less the engine 29.25 = -5.269 (the runs 25.01 to 33.89); 1 table 42.96 less the engine 50.75 = -7.790 (the runs 45.87 to 55.62); 2 table 63.48 less the engine 66.00 = -2.519 (the runs 61.23 to 70.47)
+  S002   W0.02: estate +11655.254 (se 1815.162), unmet +0.000, realised spend +1.366, years cut +0.000; whole score +0.132 (se 0.0201) on 400 paths
+    the reader: 0 bridge years read; the adaptive reference not consulted (CAND is DECOMP here by construction)
+    fidelity SHIP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity CAND: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    fidelity DECOMP: the engine alone 0, runPolicy alone 0 of 400 (two-sided exact p 1.0000)
+    the reference's part (CAND less DECOMP): by the mixture +0.000 (-0.944 to 0.944; by world +0.000, +0.000, +0.000); on the seed's paths +0.000 (-0.951 to 0.951; 0 saved, 0 lost)
+    by world CAND: 0 table 99.98 less the engine 100.00 = -0.022 (the runs 99.05 to 100.00); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.05 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.05 to 100.00)
+    by world DECOMP: 0 table 99.98 less the engine 100.00 = -0.022 (the runs 99.05 to 100.00); 1 table 100.00 less the engine 100.00 = -0.003 (the runs 99.05 to 100.00); 2 table 100.00 less the engine 100.00 = -0.003 (the runs 99.05 to 100.00)

@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync(HERE + '/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(HERE + '/fixtures/band-70-98-7001.json', 'utf8'));
 
 const world = (c, z, out, act, t, zp = 0) => {
   const r = act ? act.real : c.real, v = act ? act.volEffAt[t] : c.volEffAt[t], sg = act ? act.sigma : c.sigma;

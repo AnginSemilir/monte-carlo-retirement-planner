@@ -1,0 +1,349 @@
+ok   a log parsed: nine cases; S126 four arms, 17 runs, worlds at 1e-3 and 0, a joint line's decision, a gap line: 9 4 17 8 off:_no_tier_above_the_plan 4.2100e-4 1100
+ok   the gate passes a log at the registered settings: 0
+ok   the gate refuses a second setting changed between arms: true
+ok   the gate refuses the wrong seed (on every arm, so only the seed check sees it): true
+ok   the gate refuses 16 points on every arm (the grid line left at 30): true
+ok   the gate refuses a 16-point grid on every arm (the points left at 30): true
+ok   the gate refuses the reference lambda 0.025 on every arm of S126 (7t's 0.0224 is registered): true
+ok   the gate refuses a case line that names another lambda: true
+ok   the gate refuses a tier above that did not open on S172 up: true
+ok   the gate refuses five worlds run as three: true
+ok   the gate refuses an arm whose joint line does not match its label: true
+ok   the gate refuses a risk-above decision the prediction does not name: true
+ok   the gate refuses a missing year-0 gap line: true
+ok   the gate refuses a missing run: true
+ok   the gate refuses a missing learner run: true
+ok   the gate refuses a missing world line (the middle world, so the count stays three): true
+ok   the gate refuses S194 without its world lines: true
+ok   the gate refuses world lines on a case that registers none: true
+ok   the gate refuses a missing case: true
+ok   the gate refuses a short done line: true
+ok   a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,false,true,false
+ok   trace names: case, run, + and / replaced: bridge_4-reader_j@0_l.json.gz
+ok   cells: lost, saved, both, neither: 1 1 1 1
+ok   the margin is the case's: 0.25 at 95% survival or more, 0.5 below: 0.25 0.5
+ok   harm needs Holm: two legs of 48 saved, 70 lost (raw 0.026, Holm 0.053) are not harm: inconclusive,inconclusive
+ok   harm needs the point loss at the margin: 19 lost of 8,000 (0.2375) is not harm (the exact interval reads it no material harm), 21 is: no material harm harm
+ok   no material harm by the exact interval, the unconditional one marked where it disagrees (7 of 3,000 lost, none saved; 7 of 8,000 agree): no material harm true false
+ok   the count guard, as read-o27-unconditional.mjs guarded() gives it (3 lost, none saved, 400 failing in both, of 8,000: raw -0.099217, guarded -0.109551): -0.109551
+ok   a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not: gain,gain no material gain,no material gain
+ok   no material gain needs the interval's upper end below the margin: 30 saved, 20 lost of 8,000 (upper end 0.30) is inconclusive: inconclusive
+ok   the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HELD,HELD,HELD,HELD
+ok   the attribution of that story names P alone: HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10)
+ok   the opposite story reads items 1, 2 FALSIFIED, 4, 5, 6 HELD, 7, 8, 10, 11, 12, 13 FALSIFIED: FALSIFIED,FALSIFIED,HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED
+ok   the attribution of the opposite story names N (items 4 and 13), C and L, and says the harm is fragile: the reader does no material harm at the product's settings (item 1 FALSIFIED: the harm at 0.001 is fragile to the settings, as P allows); HELD: N, table noise (item 4 and item 13); C, a clairvoyance error the margin does not carry (item 5); L, a learning error the margin does not carry (item 6)
+ok   item 3 reads FALSIFIED when one policy harms at 0 on both: FALSIFIED
+ok   item 3 reads INCONCLUSIVE when it rises on one case and falls on the other: INCONCLUSIVE
+ok   item 3 does not rise when a step falls by more than the tolerance (net -40, -20, -25, -2): INCONCLUSIVE
+ok   item 3 rises through a step that falls within the tolerance (net -40, -20, -22, -2): HELD
+ok   item 3 reads FALSIFIED when it rises but still harms at 0 (net -80, -60, -40, -30): FALSIFIED
+ok   item 3 does not rise when it is flat (net -5 at every margin, no harm at 0): INCONCLUSIVE
+ok   the margin follows the product's survival: at 94% a loss of 30 paths (0.375) is not harm by the 0.5 margin, so item 1 reads FALSIFIED: FALSIFIED
+ok   item 2 reads the reader against off at margin 0, not against the product (both lose the same 40 paths): HELD
+ok   item 4 reads margin 0 against the better small margin, 3e-4 here (60 saved there, none at 1e-4 or 0): HELD
+ok   item 4 reads the fix alone's own tables too: off at 0 losing 60 on S360 against its better small margin is noise: HELD
+ok   item 4 reads off+J on S194 (a non-bridge case): HELD
+ok   item 5 is read at margin 0 alone: a gain there, none at 1e-4, reads HELD: HELD
+ok   item 7 reads NOT REPRODUCED when neither pair differs at 0.001: NOT REPRODUCED
+ok   item 7 reads HELD on one reproduced pair that meets, the other not reproduced: HELD
+ok   item 7 names an unreproduced pair NOT REPRODUCED: S172 (O16): MEETS; S330 (O21): NOT REPRODUCED
+ok   item 7 reads S330's pair by its gain (mix5 against mix3), not S172's harm: S172 (O16): MEETS; S330 (O21): MEETS
+ok   item 8 is INCONCLUSIVE between a half and 0.8 (2 switches at 1e-4 against 3 at 0): INCONCLUSIVE
+ok   item 10 reads the reader alone at 0 against the product: 40 lost there reads FALSIFIED: FALSIFIED
+ok   item 10 INCONCLUSIVE is not read as a negative, and C is not named without item 5: HELD: P, the margin holding a near-tie (items 2 and 3); whether the reader alone is cured at margin 0 is not settled (item 10 INCONCLUSIVE)
+ok   item 10 FALSIFIED says the cure at 0 needs one policy; C is still named only from item 5: HELD: P, the margin holding a near-tie, but the reader alone still harms at margin 0: the cure there needs one policy for every world as well (items 2 and 3; item 10 FALSIFIED); C, a clairvoyance error the margin does not carry (item 5)
+ok   item 3 does not fall on a few paths where one policy has already removed the harm (net -2 at 0.001, -4 at 0, no harm): INCONCLUSIVE
+ok   item 3 does not fall past the tolerance where one policy does no harm at 0.001 (net +10 at 0.001, -4 at 0): INCONCLUSIVE
+ok   item 3 falls past the tolerance where one policy harms at 0.001 (net -40 at 0.001, -50 at 0; harm at both): FALSIFIED
+ok   the deep bad world is picked from each case's own horizon: 41 and 43 years pick different paths, each its own shift's: true true
+ok   the attribution names N from item 13 alone (off's churn gone at 30 points, item 4 FALSIFIED): HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10); N, table noise (item 13)
+ok   the attribution names P only with item 3 as well as item 2: no explanation HELD
+ok   item 11 does not rise when a step falls by more than 0.05 (-0.4, -0.2, -0.3, +0.05): INCONCLUSIVE
+ok   item 12 reads the bad world's gap by its size (-8 halved to 3 holds; 5 does not): HELD FALSIFIED
+ok   item 13 is INCONCLUSIVE between half and 70% of 7t's churn (6 a path): INCONCLUSIVE
+ok   the candidates: no reader arm without its gains; READER+J/0 with them; the fix alone at 1e-4 (no harm anywhere): 0 READER+J/0 true
+ok   a candidate refused for harm on one core case (S194 read on off's run for a reader arm): false
+ok   the fix alone is not refused for off's flat misread on S360 (reported beside), and is for harm on bridge 4: true 60 false
+ok   by the whole score a candidate needs at least 0 on every case of its set: true false
+ok   the reader is off on a non-bridge case: OFF+J/0 READER+J/0
+ok   the product is never a candidate of its own; the reader and one policy at 0.001 are: false true
+ok   items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them: 0/0,0/0 6 true
+ok   item 4 re-read on paths 1,001-8,000: a noise harm on S126 OFF/0 in paths 1-1,000 is left out, one past them is read, on its own leg: FALSIFIED FALSIFIED HELD 14 true
+planted (71): all read as they should
+
+7V: IS THE READER'S HARM THE SWITCH MARGIN HOLDING A NEAR-TIE? (predictions/diag-7v.md; 8000 paths of seed 7002; the fair-test gate passed: the stamps, every case's settings, every run and trace)
+
+EVERY RUN: survival; against the product (OFF/1e-3 on the same case) saved/lost; pension switches a path (reversed within three years); the realised whole score against the product, points, and its parts - survival, estate, cuts, raises (grade C: reported; its standard error is printed, not read as an interval)
+S126 (margin 0.25; solves OFF 252 s, READER 249 s, OFF+J 257 s, READER+J 255 s)
+  year-0 gap OFF       9.9930e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap READER    8.0241e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  year-0 gap OFF+J     2.0826e-2 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap READER+J  9.8301e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  OFF/1e-3         99.813     0/0    switches 0.03 (3%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (550 s)
+  OFF/3e-4         99.813     0/0    switches 0.72 (3%)  whole score +0.327 +/- 0.009 = survival +0.000 estate +0.334 cuts -0.002 raises -0.004  (572 s)
+  OFF/1e-4         99.750     0/5    switches 1.27 (9%)  whole score +0.388 +/- 0.031 = survival -0.063 estate +0.476 cuts -0.009 raises -0.016  (596 s)
+  OFF/0            99.725     0/7    switches 5.00 (32%)  whole score +0.406 +/- 0.036 = survival -0.088 estate +0.534 cuts -0.015 raises -0.025  (530 s)
+  READER/1e-3      99.263     0/44   switches 0.31 (2%)  whole score -0.369 +/- 0.086 = survival -0.550 estate +0.391 cuts -0.089 raises -0.121  (555 s)
+  READER/3e-4      99.813     0/0    switches 0.72 (3%)  whole score +0.327 +/- 0.009 = survival +0.000 estate +0.334 cuts -0.002 raises -0.004  (644 s)
+  READER/1e-4      99.750     0/5    switches 1.27 (9%)  whole score +0.388 +/- 0.031 = survival -0.063 estate +0.476 cuts -0.009 raises -0.016  (552 s)
+  READER/0         99.725     0/7    switches 5.00 (32%)  whole score +0.406 +/- 0.036 = survival -0.088 estate +0.534 cuts -0.015 raises -0.025  (569 s)
+  OFF+J/1e-3       99.838     2/0    switches 0.03 (2%)  whole score +0.019 +/- 0.018 = survival +0.025 estate +0.002 cuts -0.003 raises -0.005  (619 s)
+  OFF+J/3e-4       99.838     2/0    switches 0.71 (3%)  whole score +0.338 +/- 0.020 = survival +0.025 estate +0.325 cuts -0.004 raises -0.008  (595 s)
+  OFF+J/1e-4       99.813     2/2    switches 1.20 (9%)  whole score +0.434 +/- 0.028 = survival +0.000 estate +0.459 cuts -0.009 raises -0.017  (657 s)
+  OFF+J/0          99.787     1/3    switches 4.56 (29%)  whole score +0.455 +/- 0.028 = survival -0.025 estate +0.516 cuts -0.013 raises -0.023  (579 s)
+  READER+J/1e-3    99.300     0/41   switches 0.30 (2%)  whole score -0.345 +/- 0.083 = survival -0.513 estate +0.403 cuts -0.099 raises -0.137  (551 s)
+  READER+J/3e-4    99.838     2/0    switches 0.71 (3%)  whole score +0.338 +/- 0.020 = survival +0.025 estate +0.325 cuts -0.004 raises -0.008  (588 s)
+  READER+J/1e-4    99.813     2/2    switches 1.20 (9%)  whole score +0.434 +/- 0.028 = survival +0.000 estate +0.459 cuts -0.009 raises -0.017  (573 s)
+  READER+J/0       99.787     1/3    switches 4.56 (29%)  whole score +0.455 +/- 0.028 = survival -0.025 estate +0.516 cuts -0.013 raises -0.023  (570 s)
+  READER+J/0+L     99.912     8/0    switches 5.48 (36%)  whole score +0.527 +/- 0.037 = survival +0.100 estate +0.469 cuts -0.018 raises -0.024  (584 s)
+  world OFF/1e-3       z -1.73: table 37.42 realised 98.90 (gap -61.48); z 0.00: table 62.04 realised 100.00 (gap -37.96); z 1.73: table 82.60 realised 100.00 (gap -17.40)
+  world OFF/0          z -1.73: table 37.42 realised 98.00 (gap -60.58); z 0.00: table 62.04 realised 100.00 (gap -37.96); z 1.73: table 82.60 realised 100.00 (gap -17.40)
+  world READER/1e-3    z -1.73: table 99.56 realised 96.90 (gap 2.66); z 0.00: table 99.92 realised 99.90 (gap 0.02); z 1.73: table 99.99 realised 100.00 (gap -0.01)
+  world READER/0       z -1.73: table 99.56 realised 98.00 (gap 1.56); z 0.00: table 99.92 realised 100.00 (gap -0.08); z 1.73: table 99.99 realised 100.00 (gap -0.01)
+  world OFF+J/1e-3     z -1.73: table 17.65 realised 99.10 (gap -81.45); z 0.00: table 78.45 realised 100.00 (gap -21.55); z 1.73: table 89.42 realised 100.00 (gap -10.58)
+  world OFF+J/0        z -1.73: table 17.65 realised 98.80 (gap -81.15); z 0.00: table 78.45 realised 100.00 (gap -21.55); z 1.73: table 89.42 realised 100.00 (gap -10.58)
+  world READER+J/1e-3  z -1.73: table 98.39 realised 97.30 (gap 1.09); z 0.00: table 99.98 realised 99.90 (gap 0.08); z 1.73: table 100.00 realised 100.00 (gap 0.00)
+  world READER+J/0     z -1.73: table 98.39 realised 98.80 (gap -0.41); z 0.00: table 99.98 realised 100.00 (gap -0.02); z 1.73: table 100.00 realised 100.00 (gap 0.00)
+  the deep bad world (277 paths with a long-run shift below -sqrt 3), survival: OFF/1e-3 96.0%, OFF/3e-4 96.0%, OFF/1e-4 95.3%, OFF/0 94.9%, READER/1e-3 89.2%, READER/3e-4 96.0%, READER/1e-4 95.3%, READER/0 94.9%, OFF+J/1e-3 96.4%, OFF+J/3e-4 96.4%, OFF+J/1e-4 96.4%, OFF+J/0 95.7%, READER+J/1e-3 90.6%, READER+J/3e-4 96.4%, READER+J/1e-4 96.4%, READER+J/0 95.7%, READER+J/0+L 97.8%
+bridge 4 (margin 0.25; solves OFF 263 s, READER 263 s, OFF+J 263 s, READER+J 263 s)
+  year-0 gap OFF       5.4063e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap READER    1.0059e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap OFF+J     8.0039e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap READER+J  1.1084e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  OFF/1e-3         99.537     0/0    switches 0.04 (13%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (583 s)
+  OFF/3e-4         99.525     0/1    switches 0.69 (4%)  whole score +0.278 +/- 0.016 = survival -0.012 estate +0.298 cuts -0.003 raises -0.005  (607 s)
+  OFF/1e-4         99.500     0/3    switches 1.21 (11%)  whole score +0.375 +/- 0.025 = survival -0.037 estate +0.435 cuts -0.008 raises -0.014  (622 s)
+  OFF/0            99.475     0/5    switches 4.76 (32%)  whole score +0.376 +/- 0.031 = survival -0.063 estate +0.476 cuts -0.014 raises -0.024  (549 s)
+  READER/1e-3      99.563     2/0    switches 0.04 (10%)  whole score +0.025 +/- 0.018 = survival +0.025 estate -0.002 cuts +0.001 raises +0.002  (613 s)
+  READER/3e-4      99.550     2/1    switches 0.69 (3%)  whole score +0.305 +/- 0.024 = survival +0.013 estate +0.297 cuts -0.002 raises -0.003  (645 s)
+  READER/1e-4      99.537     3/3    switches 1.20 (10%)  whole score +0.415 +/- 0.033 = survival +0.000 estate +0.435 cuts -0.007 raises -0.012  (569 s)
+  READER/0         99.487     2/6    switches 4.72 (32%)  whole score +0.388 +/- 0.038 = survival -0.050 estate +0.475 cuts -0.013 raises -0.023  (644 s)
+  OFF+J/1e-3       99.588     4/0    switches 0.05 (6%)  whole score +0.042 +/- 0.025 = survival +0.050 estate +0.003 cuts -0.004 raises -0.007  (755 s)
+  OFF+J/3e-4       99.563     4/2    switches 1.20 (17%)  whole score +0.282 +/- 0.033 = survival +0.025 estate +0.283 cuts -0.009 raises -0.016  (714 s)
+  OFF+J/1e-4       99.550     4/3    switches 1.98 (27%)  whole score +0.394 +/- 0.035 = survival +0.013 estate +0.416 cuts -0.013 raises -0.021  (620 s)
+  OFF+J/0          99.525     3/4    switches 5.31 (34%)  whole score +0.403 +/- 0.036 = survival -0.012 estate +0.463 cuts -0.017 raises -0.030  (588 s)
+  READER+J/1e-3    99.625     7/0    switches 0.03 (12%)  whole score +0.079 +/- 0.033 = survival +0.088 estate -0.000 cuts -0.003 raises -0.005  (602 s)
+  READER+J/3e-4    99.612     7/1    switches 0.67 (3%)  whole score +0.355 +/- 0.037 = survival +0.075 estate +0.294 cuts -0.005 raises -0.009  (597 s)
+  READER+J/1e-4    99.588     7/3    switches 1.15 (10%)  whole score +0.447 +/- 0.042 = survival +0.050 estate +0.421 cuts -0.009 raises -0.015  (599 s)
+  READER+J/0       99.550     6/5    switches 4.34 (30%)  whole score +0.440 +/- 0.044 = survival +0.013 estate +0.465 cuts -0.013 raises -0.024  (607 s)
+  READER+J/0+L     99.825    23/0    switches 5.23 (36%)  whole score +0.654 +/- 0.061 = survival +0.288 estate +0.424 cuts -0.027 raises -0.031  (588 s)
+  world OFF/1e-3       z -1.73: table 3.59 realised 98.20 (gap -94.61); z 0.00: table 9.51 realised 100.00 (gap -90.49); z 1.73: table 19.82 realised 100.00 (gap -80.18)
+  world OFF/0          z -1.73: table 3.59 realised 97.70 (gap -94.11); z 0.00: table 9.51 realised 100.00 (gap -90.49); z 1.73: table 19.82 realised 100.00 (gap -80.18)
+  world READER/1e-3    z -1.73: table 99.02 realised 98.20 (gap 0.82); z 0.00: table 99.91 realised 100.00 (gap -0.09); z 1.73: table 99.98 realised 100.00 (gap -0.02)
+  world READER/0       z -1.73: table 99.02 realised 97.80 (gap 1.22); z 0.00: table 99.91 realised 100.00 (gap -0.09); z 1.73: table 99.98 realised 100.00 (gap -0.02)
+  world OFF+J/1e-3     z -1.73: table 1.71 realised 98.60 (gap -96.89); z 0.00: table 14.59 realised 100.00 (gap -85.41); z 1.73: table 26.60 realised 100.00 (gap -73.40)
+  world OFF+J/0        z -1.73: table 1.71 realised 98.30 (gap -96.59); z 0.00: table 14.59 realised 100.00 (gap -85.41); z 1.73: table 26.60 realised 100.00 (gap -73.40)
+  world READER+J/1e-3  z -1.73: table 97.48 realised 98.50 (gap -1.02); z 0.00: table 99.96 realised 100.00 (gap -0.04); z 1.73: table 100.00 realised 100.00 (gap 0.00)
+  world READER+J/0     z -1.73: table 97.48 realised 98.10 (gap -0.62); z 0.00: table 99.96 realised 100.00 (gap -0.04); z 1.73: table 100.00 realised 100.00 (gap 0.00)
+  the deep bad world (319 paths with a long-run shift below -sqrt 3), survival: OFF/1e-3 93.4%, OFF/3e-4 93.1%, OFF/1e-4 92.5%, OFF/0 92.2%, READER/1e-3 93.7%, READER/3e-4 93.4%, READER/1e-4 92.8%, READER/0 92.2%, OFF+J/1e-3 94.0%, OFF+J/3e-4 93.7%, OFF+J/1e-4 93.1%, OFF+J/0 92.5%, READER+J/1e-3 95.0%, READER+J/3e-4 94.7%, READER+J/1e-4 94.0%, READER+J/0 93.1%, READER+J/0+L 96.9%
+S360 (margin 0.5; solves OFF 333 s, READER 337 s, OFF+J 317 s, READER+J 380 s)
+  year-0 gap OFF       5.5644e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  year-0 gap READER    0 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 0, 0)
+  year-0 gap OFF+J     5.5098e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  year-0 gap READER+J  0 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 0, 0)
+  OFF/1e-3         34.300     0/0    switches 0.01 (0%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (208 s)
+  OFF/3e-4         28.200     9/497  switches 0.05 (7%)  whole score -6.992 +/- 0.311 = survival -6.100 estate -0.450 cuts -0.215 raises -0.226  (177 s)
+  OFF/1e-4         28.200     9/497  switches 0.10 (9%)  whole score -6.979 +/- 0.311 = survival -6.100 estate -0.438 cuts -0.215 raises -0.226  (182 s)
+  OFF/0            28.200     9/497  switches 1.27 (27%)  whole score -6.974 +/- 0.311 = survival -6.100 estate -0.433 cuts -0.215 raises -0.226  (184 s)
+  READER/1e-3      45.913   929/0    switches 0.70 (24%)  whole score +13.268 +/- 0.409 = survival +11.613 estate +0.825 cuts +0.403 raises +0.427  (296 s)
+  READER/3e-4      45.925   930/0    switches 0.81 (22%)  whole score +13.300 +/- 0.409 = survival +11.625 estate +0.844 cuts +0.404 raises +0.428  (318 s)
+  READER/1e-4      45.925   930/0    switches 0.90 (21%)  whole score +13.317 +/- 0.409 = survival +11.625 estate +0.861 cuts +0.404 raises +0.428  (289 s)
+  READER/0         45.850   924/0    switches 3.09 (23%)  whole score +13.246 +/- 0.408 = survival +11.550 estate +0.870 cuts +0.401 raises +0.425  (283 s)
+  OFF+J/1e-3       34.313     1/0    switches 0.01 (0%)  whole score +0.014 +/- 0.014 = survival +0.013 estate +0.001 cuts +0.000 raises +0.000  (208 s)
+  OFF+J/3e-4       28.200     9/497  switches 0.05 (7%)  whole score -6.992 +/- 0.311 = survival -6.100 estate -0.450 cuts -0.215 raises -0.226  (179 s)
+  OFF+J/1e-4       28.200     9/497  switches 0.10 (9%)  whole score -6.979 +/- 0.311 = survival -6.100 estate -0.437 cuts -0.215 raises -0.226  (184 s)
+  OFF+J/0          28.200     9/497  switches 1.37 (28%)  whole score -6.975 +/- 0.311 = survival -6.100 estate -0.433 cuts -0.215 raises -0.226  (178 s)
+  READER+J/1e-3    45.913   929/0    switches 0.70 (24%)  whole score +13.268 +/- 0.409 = survival +11.613 estate +0.825 cuts +0.403 raises +0.427  (334 s)
+  READER+J/3e-4    45.925   930/0    switches 0.81 (22%)  whole score +13.300 +/- 0.409 = survival +11.625 estate +0.844 cuts +0.404 raises +0.428  (309 s)
+  READER+J/1e-4    45.925   930/0    switches 0.90 (21%)  whole score +13.318 +/- 0.409 = survival +11.625 estate +0.861 cuts +0.404 raises +0.428  (271 s)
+  READER+J/0       45.850   924/0    switches 3.25 (24%)  whole score +13.243 +/- 0.408 = survival +11.550 estate +0.868 cuts +0.401 raises +0.425  (268 s)
+  READER+J/0+L     45.900   928/0    switches 3.61 (27%)  whole score +13.296 +/- 0.409 = survival +11.600 estate +0.867 cuts +0.402 raises +0.426  (277 s)
+share 0.95 (margin 0.5; solves OFF 254 s, READER 251 s, OFF+J 283 s, READER+J 323 s)
+  year-0 gap OFF       4.3068e-5 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 0, 2)
+  year-0 gap READER    2.2992e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 2, 2)
+  year-0 gap OFF+J     4.5900e-5 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 0, 2)
+  year-0 gap READER+J  1.1926e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 2, 2)
+  OFF/1e-3         73.325     0/0    switches 0.18 (1%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (409 s)
+  OFF/3e-4         73.612    23/0    switches 0.91 (1%)  whole score +0.368 +/- 0.062 = survival +0.287 estate -0.008 cuts +0.037 raises +0.052  (418 s)
+  OFF/1e-4         73.638    25/0    switches 1.58 (5%)  whole score +0.485 +/- 0.065 = survival +0.313 estate +0.072 cuts +0.042 raises +0.058  (434 s)
+  OFF/0            85.612   983/0    switches 4.21 (32%)  whole score +13.793 +/- 0.409 = survival +12.287 estate +0.616 cuts +0.424 raises +0.466  (521 s)
+  READER/1e-3      93.000  1575/1    switches 0.27 (1%)  whole score +21.839 +/- 0.495 = survival +19.675 estate +0.892 cuts +0.613 raises +0.659  (501 s)
+  READER/3e-4      93.325  1600/0    switches 1.28 (1%)  whole score +22.274 +/- 0.497 = survival +20.000 estate +0.869 cuts +0.669 raises +0.736  (516 s)
+  READER/1e-4      95.513  1775/0    switches 1.19 (10%)  whole score +24.770 +/- 0.518 = survival +22.188 estate +1.021 cuts +0.744 raises +0.817  (552 s)
+  READER/0         95.487  1773/0    switches 4.71 (32%)  whole score +24.786 +/- 0.518 = survival +22.162 estate +1.072 cuts +0.740 raises +0.811  (589 s)
+  OFF+J/1e-3       73.375     4/0    switches 0.18 (1%)  whole score +0.043 +/- 0.025 = survival +0.050 estate +0.005 cuts -0.005 raises -0.007  (388 s)
+  OFF+J/3e-4       73.675    28/0    switches 1.08 (1%)  whole score +0.424 +/- 0.068 = survival +0.350 estate -0.026 cuts +0.042 raises +0.058  (399 s)
+  OFF+J/1e-4       73.688    29/0    switches 1.54 (5%)  whole score +0.534 +/- 0.070 = survival +0.362 estate +0.069 cuts +0.043 raises +0.060  (457 s)
+  OFF+J/0          85.675   988/0    switches 3.90 (31%)  whole score +13.842 +/- 0.410 = survival +12.350 estate +0.600 cuts +0.425 raises +0.467  (488 s)
+  READER+J/1e-3    93.013  1576/1    switches 0.27 (1%)  whole score +21.837 +/- 0.495 = survival +19.688 estate +0.898 cuts +0.605 raises +0.647  (595 s)
+  READER+J/3e-4    93.388  1605/0    switches 1.43 (1%)  whole score +22.325 +/- 0.498 = survival +20.063 estate +0.850 cuts +0.673 raises +0.740  (583 s)
+  READER+J/1e-4    95.600  1782/0    switches 1.13 (9%)  whole score +24.845 +/- 0.518 = survival +22.275 estate +1.008 cuts +0.745 raises +0.818  (631 s)
+  READER+J/0       95.563  1779/0    switches 4.34 (31%)  whole score +24.846 +/- 0.518 = survival +22.237 estate +1.056 cuts +0.741 raises +0.812  (566 s)
+  READER+J/0+L     95.662  1787/0    switches 5.23 (36%)  whole score +24.901 +/- 0.519 = survival +22.337 estate +1.019 cuts +0.736 raises +0.810  (551 s)
+S194 (margin 0.25; solves OFF 273 s, OFF+J 276 s)
+  year-0 gap OFF       7.5604e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  year-0 gap OFF+J     5.7040e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 2, 2, 2)
+  OFF/1e-3         98.225     0/0    switches 0.78 (2%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (554 s)
+  OFF/3e-4         98.725    42/2    switches 0.77 (8%)  whole score +0.704 +/- 0.085 = survival +0.500 estate +0.018 cuts +0.093 raises +0.093  (568 s)
+  OFF/1e-4         98.638    39/6    switches 1.46 (14%)  whole score +0.726 +/- 0.086 = survival +0.413 estate +0.152 cuts +0.083 raises +0.078  (565 s)
+  OFF/0            98.537    35/10   switches 3.96 (28%)  whole score +0.687 +/- 0.086 = survival +0.313 estate +0.276 cuts +0.057 raises +0.042  (573 s)
+  OFF+J/1e-3       98.200    11/13   switches 0.68 (3%)  whole score -0.019 +/- 0.063 = survival -0.025 estate +0.135 cuts -0.064 raises -0.064  (509 s)
+  OFF+J/3e-4       98.838    52/3    switches 0.77 (7%)  whole score +0.751 +/- 0.095 = survival +0.613 estate +0.036 cuts +0.060 raises +0.043  (572 s)
+  OFF+J/1e-4       98.775    49/5    switches 1.53 (12%)  whole score +0.803 +/- 0.094 = survival +0.550 estate +0.183 cuts +0.046 raises +0.024  (579 s)
+  OFF+J/0          98.550    36/10   switches 4.07 (28%)  whole score +0.677 +/- 0.087 = survival +0.325 estate +0.365 cuts +0.001 raises -0.014  (558 s)
+  OFF+J/0+L        98.862    53/2    switches 4.85 (34%)  whole score +0.914 +/- 0.094 = survival +0.638 estate +0.371 cuts -0.045 raises -0.050  (529 s)
+  world OFF/1e-3       z -1.73: table 95.47 realised 90.40 (gap 5.07); z 0.00: table 99.54 realised 99.80 (gap -0.26); z 1.73: table 99.95 realised 100.00 (gap -0.05)
+  world OFF/0          z -1.73: table 95.47 realised 92.60 (gap 2.87); z 0.00: table 99.54 realised 99.70 (gap -0.16); z 1.73: table 99.95 realised 100.00 (gap -0.05)
+  world OFF+J/1e-3     z -1.73: table 91.63 realised 90.00 (gap 1.63); z 0.00: table 99.81 realised 99.70 (gap 0.11); z 1.73: table 99.99 realised 100.00 (gap -0.01)
+  world OFF+J/0        z -1.73: table 91.63 realised 92.80 (gap -1.17); z 0.00: table 99.81 realised 99.70 (gap 0.11); z 1.73: table 99.99 realised 100.00 (gap -0.01)
+S172 down (margin 0.25; solves OFF 247 s, OFF+J 247 s)
+  year-0 gap OFF       1.9159e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap OFF+J     1.6782e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  OFF/1e-3         97.037     0/0    switches 0.24 (13%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (528 s)
+  OFF/3e-4         97.013    12/14   switches 1.31 (4%)  whole score +0.546 +/- 0.067 = survival -0.025 estate +0.546 cuts -0.027 raises +0.052  (531 s)
+  OFF/1e-4         96.975    15/20   switches 2.41 (8%)  whole score +0.802 +/- 0.079 = survival -0.063 estate +0.848 cuts -0.044 raises +0.061  (539 s)
+  OFF/0            96.963    13/19   switches 4.45 (32%)  whole score +0.839 +/- 0.075 = survival -0.075 estate +0.914 cuts -0.056 raises +0.055  (543 s)
+  OFF+J/1e-3       97.112    11/5    switches 0.27 (9%)  whole score +0.089 +/- 0.051 = survival +0.075 estate +0.019 cuts +0.014 raises -0.018  (561 s)
+  OFF+J/3e-4       97.013    15/17   switches 1.29 (3%)  whole score +0.567 +/- 0.075 = survival -0.025 estate +0.575 cuts -0.025 raises +0.042  (550 s)
+  OFF+J/1e-4       97.013    17/19   switches 2.35 (6%)  whole score +0.844 +/- 0.079 = survival -0.025 estate +0.863 cuts -0.033 raises +0.039  (548 s)
+  OFF+J/0          97.000    17/20   switches 4.38 (31%)  whole score +0.884 +/- 0.081 = survival -0.037 estate +0.925 cuts -0.039 raises +0.035  (552 s)
+  OFF+J/0+L        97.725    68/13   switches 4.84 (32%)  whole score +1.432 +/- 0.113 = survival +0.688 estate +0.955 cuts -0.256 raises +0.046  (569 s)
+  O16's measure, the share of years at the plan's tier / above it: OFF/1e-3 0.9% / 0.0%, OFF/3e-4 15.5% / 0.0%, OFF/1e-4 31.9% / 0.0%, OFF/0 39.8% / 0.0%, OFF+J/1e-3 0.9% / 0.0%, OFF+J/3e-4 15.8% / 0.0%, OFF+J/1e-4 32.2% / 0.0%, OFF+J/0 40.1% / 0.0%, OFF+J/0+L 43.7% / 0.0%
+S172 up (margin 0.25; solves OFF 318 s, OFF+J 317 s)
+  year-0 gap OFF       1.4933e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 2, 2, 2, 2)
+  year-0 gap OFF+J     1.3624e-3 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 1, 1, 1, 1)
+  OFF/1e-3         96.888     0/0    switches 0.37 (12%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (718 s)
+  OFF/3e-4         96.750    16/27   switches 1.81 (4%)  whole score +0.807 +/- 0.088 = survival -0.138 estate +0.893 cuts -0.013 raises +0.065  (720 s)
+  OFF/1e-4         96.763    18/28   switches 2.89 (7%)  whole score +1.038 +/- 0.090 = survival -0.125 estate +1.112 cuts -0.014 raises +0.065  (725 s)
+  OFF/0            96.800    19/26   switches 6.18 (29%)  whole score +1.133 +/- 0.089 = survival -0.088 estate +1.180 cuts -0.020 raises +0.061  (710 s)
+  OFF+J/1e-3       96.775    18/27   switches 0.26 (18%)  whole score +0.468 +/- 0.089 = survival -0.112 estate +0.619 cuts -0.108 raises +0.070  (706 s)
+  OFF+J/3e-4       96.725    16/29   switches 1.06 (8%)  whole score +0.866 +/- 0.090 = survival -0.163 estate +1.036 cuts -0.074 raises +0.067  (733 s)
+  OFF+J/1e-4       96.688    15/31   switches 1.93 (10%)  whole score +0.998 +/- 0.091 = survival -0.200 estate +1.206 cuts -0.071 raises +0.063  (767 s)
+  OFF+J/0          96.787    20/28   switches 6.03 (34%)  whole score +1.142 +/- 0.093 = survival -0.100 estate +1.241 cuts -0.052 raises +0.053  (744 s)
+  OFF+J/0+L        97.575    72/17   switches 6.47 (35%)  whole score +1.756 +/- 0.118 = survival +0.688 estate +1.271 cuts -0.252 raises +0.049  (749 s)
+  O16's measure, the share of years at the plan's tier / above it: OFF/1e-3 0.2% / 1.0%, OFF/3e-4 4.4% / 21.0%, OFF/1e-4 4.0% / 26.9%, OFF/0 10.4% / 27.8%, OFF+J/1e-3 0.3% / 0.9%, OFF+J/3e-4 0.5% / 19.2%, OFF+J/1e-4 3.9% / 27.4%, OFF+J/0 10.5% / 28.8%, OFF+J/0+L 9.9% / 32.3%
+S330 mix3 (margin 0.5; solves OFF 491 s, OFF+J 505 s)
+  year-0 gap OFF       2.9005e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 3, 3)
+  year-0 gap OFF+J     2.9737e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 3, 3)
+  OFF/1e-3         77.463     0/0    switches 1.72 (11%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (959 s)
+  OFF/3e-4         77.975    95/54   switches 3.19 (11%)  whole score +0.892 +/- 0.167 = survival +0.512 estate +0.134 cuts +0.217 raises +0.028  (1012 s)
+  OFF/1e-4         77.900   106/71   switches 3.40 (17%)  whole score +0.806 +/- 0.181 = survival +0.438 estate +0.159 cuts +0.177 raises +0.033  (1015 s)
+  OFF/0            77.987   105/63   switches 9.01 (33%)  whole score +0.893 +/- 0.176 = survival +0.525 estate +0.127 cuts +0.222 raises +0.019  (1027 s)
+  OFF+J/1e-3       77.412    21/25   switches 1.69 (11%)  whole score -0.024 +/- 0.086 = survival -0.050 estate +0.015 cuts +0.015 raises -0.004  (1004 s)
+  OFF+J/3e-4       77.750    83/60   switches 3.23 (11%)  whole score +0.728 +/- 0.163 = survival +0.287 estate +0.147 cuts +0.273 raises +0.021  (921 s)
+  OFF+J/1e-4       77.938   101/63   switches 3.32 (17%)  whole score +0.957 +/- 0.175 = survival +0.475 estate +0.181 cuts +0.270 raises +0.030  (931 s)
+  OFF+J/0          78.000   106/63   switches 8.86 (32%)  whole score +0.989 +/- 0.176 = survival +0.537 estate +0.149 cuts +0.281 raises +0.021  (949 s)
+  OFF+J/0+L        78.400   132/57   switches 9.29 (35%)  whole score +1.831 +/- 0.185 = survival +0.938 estate +0.171 cuts +0.680 raises +0.042  (1019 s)
+S330 mix5 (margin 0.5; solves OFF 855 s, OFF+J 800 s)
+  year-0 gap OFF       2.9390e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 0, 3, 3)
+  year-0 gap OFF+J     3.0156e-4 (the pension tier it opens in at 1e-3, 3e-4, 1e-4, 0: 0, 3, 3, 3)
+  OFF/1e-3         77.350     0/0    switches 1.73 (12%)  whole score +0.000 +/- 0.000 = survival +0.000 estate +0.000 cuts +0.000 raises +0.000  (1741 s)
+  OFF/3e-4         77.912    96/51   switches 3.20 (11%)  whole score +0.928 +/- 0.164 = survival +0.563 estate +0.137 cuts +0.199 raises +0.029  (1626 s)
+  OFF/1e-4         77.925   103/57   switches 3.47 (17%)  whole score +0.973 +/- 0.172 = survival +0.575 estate +0.158 cuts +0.209 raises +0.031  (1572 s)
+  OFF/0            77.963   101/52   switches 9.21 (34%)  whole score +0.986 +/- 0.168 = survival +0.613 estate +0.135 cuts +0.218 raises +0.021  (1577 s)
+  OFF+J/1e-3       77.350    20/20   switches 1.70 (11%)  whole score +0.060 +/- 0.080 = survival +0.000 estate +0.015 cuts +0.050 raises -0.005  (1616 s)
+  OFF+J/3e-4       77.862    95/54   switches 2.53 (14%)  whole score +0.975 +/- 0.170 = survival +0.513 estate +0.173 cuts +0.253 raises +0.036  (1607 s)
+  OFF+J/1e-4       77.950   103/55   switches 3.38 (17%)  whole score +1.049 +/- 0.173 = survival +0.600 estate +0.174 cuts +0.247 raises +0.028  (1667 s)
+  OFF+J/0          78.063   106/49   switches 8.96 (33%)  whole score +1.139 +/- 0.170 = survival +0.713 estate +0.152 cuts +0.253 raises +0.022  (1717 s)
+  OFF+J/0+L        78.525   142/48   switches 9.35 (35%)  whole score +1.959 +/- 0.185 = survival +1.175 estate +0.163 cuts +0.583 raises +0.037  (1723 s)
+
+THE ITEMS (1-8 and 10 each a Holm family of its own, the regimen's reading deciding, the unconditional one beside it; 11-13 on point figures, grade C)
+1. the reader harms against the product at the product's own settings (READER/1e-3 against OFF/1e-3), on both harmed cases: INCONCLUSIVE
+     S126: READER/1e-3 against OFF/1e-3 0 saved/44 lost -0.550 (exact -0.550 to -0.462; unconditional -0.738 to -0.402) harm
+     bridge 4: READER/1e-3 against OFF/1e-3 2 saved/0 lost +0.025 (exact -0.017 to 0.025; unconditional -0.031 to 0.090) no material harm
+2. at switch margin 0 the reader does no material harm against off at margin 0 (the reader's own harm is the margin's), on both harmed cases: HELD
+     S126: READER/0 against OFF/0 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.048 to 0.048) no material harm
+     bridge 4: READER/0 against OFF/0 2 saved/1 lost +0.013 (exact -0.030 to 0.037; unconditional -0.050 to 0.078) no material harm
+3. against the product, one policy's net paths (saved less lost) rise as the margin falls (each step within 3 paths, and more at 0 than at 0.001) and at margin 0 it does no material harm, on both harmed cases (FALSIFIED: it harms at 0, or ends more than 3 paths below 0.001 where it harms at 0.001): INCONCLUSIVE
+     S126: READER+J/0 against OFF/1e-3 1 saved/3 lost -0.025 (exact -0.049 to 0.031; unconditional -0.097 to 0.039) no material harm
+     bridge 4: READER+J/0 against OFF/1e-3 6 saved/5 lost +0.013 (exact -0.073 to 0.091; unconditional -0.081 to 0.108) no material harm
+     S126: READER+J/1e-3 against OFF/1e-3 0 saved/41 lost -0.512 (exact -0.512 to -0.424; unconditional -0.695 to -0.370) harm
+     bridge 4: READER+J/1e-3 against OFF/1e-3 7 saved/0 lost +0.087 (exact 0.016 to 0.087; unconditional 0.016 to 0.180) no material harm
+     S126 READER+J net at 1e-3, 3e-4, 1e-4, 0: -41, 2, 0, -2
+     bridge 4 READER+J net at 1e-3, 3e-4, 1e-4, 0: 7, 6, 4, 1 (not rising)
+4. table noise: margin 0 harms against the same arm's better small positive margin (3e-4 or 1e-4) on at least one core case, in OFF's, OFF+J's or READER+J's tables (READER's own are not read; FALSIFIED does not clear margin 0 for 7u): HELD
+     S126: OFF/0 against OFF/3e-4 0 saved/7 lost -0.087 (exact -0.087 to -0.016; unconditional -0.180 to -0.018) no material harm
+     S126: OFF+J/0 against OFF+J/3e-4 0 saved/4 lost -0.050 (exact -0.050 to 0.010; unconditional -0.128 to 0.010) no material harm
+     S126: READER+J/0 against READER+J/3e-4 0 saved/4 lost -0.050 (exact -0.050 to 0.010; unconditional -0.128 to 0.010) no material harm
+     bridge 4: OFF/0 against OFF/3e-4 0 saved/4 lost -0.050 (exact -0.050 to 0.010; unconditional -0.128 to 0.013) no material harm
+     bridge 4: OFF+J/0 against OFF+J/3e-4 1 saved/4 lost -0.037 (exact -0.062 to 0.027; unconditional -0.114 to 0.031) no material harm
+     bridge 4: READER+J/0 against READER+J/3e-4 0 saved/5 lost -0.063 (exact -0.063 to 0.003; unconditional -0.146 to 0.003) no material harm
+     S360: OFF/0 against OFF/3e-4 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material harm
+     S360: OFF+J/0 against OFF+J/3e-4 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material harm
+     S360: READER+J/0 against READER+J/3e-4 3 saved/9 lost -0.075 (exact -0.134 to 0.022; unconditional -0.160 to 0.010) no material harm
+     share 0.95: OFF/0 against OFF/1e-4 962 saved/4 lost +11.975 (exact 11.820 to 12.048; unconditional 11.264 to 12.695) no material harm
+     share 0.95: OFF+J/0 against OFF+J/1e-4 964 saved/5 lost +11.988 (exact 11.822 to 12.072; unconditional 11.276 to 12.708) no material harm
+     share 0.95: READER+J/0 against READER+J/1e-4 0 saved/3 lost -0.037 (exact -0.037 to 0.016; unconditional -0.110 to 0.022) no material harm
+     S194: OFF/0 against OFF/3e-4 1 saved/16 lost -0.188 (exact -0.212 to -0.091; unconditional -0.305 to -0.083 <-- the readings DISAGREE) no material harm
+     S194: OFF+J/0 against OFF+J/3e-4 1 saved/24 lost -0.287 (exact -0.312 to -0.185; unconditional -0.427 to -0.166) harm
+5. one policy for every world gains against the reader at switch margin 0, on both harmed cases (a clairvoyance error the margin does not carry): FALSIFIED
+     S126: READER+J/0 against READER/0 5 saved/0 lost +0.063 (exact -0.003 to 0.063; unconditional -0.001 to 0.146) no material gain
+     bridge 4: READER+J/0 against READER/0 7 saved/2 lost +0.063 (exact -0.023 to 0.106; unconditional -0.020 to 0.155) no material gain
+6. the learner gains at one policy and margin 0 (READER+J/0+L against READER+J/0), on both harmed cases (a learning error the margin does not carry): HELD
+     S126: READER+J/0+L against READER+J/0 10 saved/0 lost +0.125 (exact 0.048 to 0.125; unconditional 0.051 to 0.230) gain
+     bridge 4: READER+J/0+L against READER+J/0 22 saved/0 lost +0.275 (exact 0.190 to 0.275; unconditional 0.169 to 0.416) gain
+7. the family pairs meet at 0: each pair's difference at margin 0.001 (O16's loss, O21's gain) is gone at margin 0: NOT REPRODUCED
+     S172 up against S172 down at 1e-3 11 saved/23 lost -0.150 (exact -0.277 to 0.004; unconditional -0.302 to -0.003) inconclusive
+     S172 up against S172 down at 0 10 saved/23 lost -0.163 (exact -0.284 to -0.011; unconditional -0.313 to -0.018) inconclusive
+     S330 mix5 against S330 mix3 at 1e-3 10 saved/19 lost -0.113 (exact -0.232 to 0.031; unconditional -0.247 to 0.022) no material gain
+     S330 mix5 against S330 mix3 at 0 18 saved/20 lost -0.025 (exact -0.181 to 0.135; unconditional -0.178 to 0.128) no material gain
+     S172 (O16): NOT REPRODUCED
+     S330 (O21): NOT REPRODUCED
+8. a small margin keeps switching rare: one policy's pension switches a path at margin 1e-4 are at most half those at margin 0 (FALSIFIED: at least 0.8 of them), on both harmed cases: HELD
+     S126 1.20 at 1e-4, 4.56 at 0
+     bridge 4 1.15 at 1e-4, 4.34 at 0
+10. the reader alone at margin 0 does no material harm against the product, on both harmed cases (item 3's cure is the margin's, not one policy's): HELD
+     S126: READER/0 against OFF/1e-3 0 saved/7 lost -0.087 (exact -0.087 to -0.016; unconditional -0.180 to -0.018) no material harm
+     bridge 4: READER/0 against OFF/1e-3 2 saved/6 lost -0.050 (exact -0.094 to 0.030; unconditional -0.138 to 0.030) no material harm
+11. by the realised whole score (grade C, point figures), one policy's result against the product rises as the margin falls (each step no more than 0.05 down, and more at 0 than at 0.001), on both harmed cases: HELD
+     S126 READER+J whole score at 1e-3, 3e-4, 1e-4, 0: -0.345, +0.338, +0.434, +0.455
+     bridge 4 READER+J whole score at 1e-3, 3e-4, 1e-4, 0: +0.079, +0.355, +0.447, +0.440
+12. on S194, one policy at margin 0 at least halves the bad world's overrating (table less realised survival) of off as the product runs it: HELD
+     S194 bad world: OFF/1e-3 5.07, OFF+J/0 -1.17
+13. off's switching at margin 0 holds within 30% of 7t's at 16 points (FALSIFIED: below half of it, the churn a coarse grid's noise), on both harmed cases: FALSIFIED
+     S126 5.00 a path at 30 points, 7t's 10.52 at 16
+     bridge 4 4.76 a path at 30 points, 7t's 10.02 at 16
+
+ITEMS 1, 2 AND 10 ON PATHS 1001-8000 (reported: the timing measurement ran S126 on paths 1-1000 before registration; the ninety-third review, BLOCKING 3, and the ninety-fourth, BLOCKING 2)
+     S126: READER/1e-3 against OFF/1e-3 on paths 1001-8000 0 saved/40 lost -0.571 (exact -0.571 to -0.471; unconditional -0.777 to -0.411) harm
+     bridge 4: READER/1e-3 against OFF/1e-3 on paths 1001-8000 2 saved/0 lost +0.029 (exact -0.020 to 0.029; unconditional -0.035 to 0.103) no material harm
+     S126: READER/0 against OFF/0 on paths 1001-8000 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.055 to 0.055) no material harm
+     bridge 4: READER/0 against OFF/0 on paths 1001-8000 2 saved/1 lost +0.014 (exact -0.035 to 0.042; unconditional -0.057 to 0.089) no material harm
+     S126: READER/0 against OFF/1e-3 on paths 1001-8000 0 saved/6 lost -0.086 (exact -0.086 to -0.007; unconditional -0.186 to -0.011) no material harm
+     bridge 4: READER/0 against OFF/1e-3 on paths 1001-8000 2 saved/5 lost -0.043 (exact -0.093 to 0.042; unconditional -0.139 to 0.045) no material harm
+
+ITEM 4 ON PATHS 1001-8000 (reported: its S126 OFF legs come from OFF run lines read before registration; the maintainer, 27 Sep): HELD
+     S126: OFF/0 against OFF/3e-4 on paths 1001-8000 0 saved/6 lost -0.086 (exact -0.086 to -0.007; unconditional -0.186 to -0.011) no material harm
+     S126: OFF+J/0 against OFF+J/3e-4 on paths 1001-8000 0 saved/4 lost -0.057 (exact -0.057 to 0.012; unconditional -0.146 to 0.011) no material harm
+     S126: READER+J/0 against READER+J/3e-4 on paths 1001-8000 0 saved/4 lost -0.057 (exact -0.057 to 0.012; unconditional -0.146 to 0.011) no material harm
+     bridge 4: OFF/0 against OFF/3e-4 on paths 1001-8000 0 saved/3 lost -0.043 (exact -0.043 to 0.018; unconditional -0.125 to 0.025) no material harm
+     bridge 4: OFF+J/0 against OFF+J/3e-4 on paths 1001-8000 1 saved/3 lost -0.029 (exact -0.056 to 0.035; unconditional -0.110 to 0.046) no material harm
+     bridge 4: READER+J/0 against READER+J/3e-4 on paths 1001-8000 0 saved/4 lost -0.057 (exact -0.057 to 0.012; unconditional -0.146 to 0.014) no material harm
+     S360: OFF/0 against OFF/3e-4 on paths 1001-8000 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.053 to 0.053) no material harm
+     S360: OFF+J/0 against OFF+J/3e-4 on paths 1001-8000 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.053 to 0.053) no material harm
+     S360: READER+J/0 against READER+J/3e-4 on paths 1001-8000 3 saved/6 lost -0.043 (exact -0.109 to 0.052; unconditional -0.127 to 0.041) no material harm
+     share 0.95: OFF/0 against OFF/1e-4 on paths 1001-8000 839 saved/4 lost +11.929 (exact 11.751 to 12.012; unconditional 11.170 to 12.697) no material harm
+     share 0.95: OFF+J/0 against OFF+J/1e-4 on paths 1001-8000 841 saved/5 lost +11.943 (exact 11.754 to 12.039; unconditional 11.183 to 12.713) no material harm
+     share 0.95: READER+J/0 against READER+J/1e-4 on paths 1001-8000 0 saved/3 lost -0.043 (exact -0.043 to 0.018; unconditional -0.125 to 0.025) no material harm
+     S194: OFF/0 against OFF/3e-4 on paths 1001-8000 1 saved/13 lost -0.171 (exact -0.199 to -0.065; unconditional -0.296 to -0.062 <-- the readings DISAGREE) no material harm
+     S194: OFF+J/0 against OFF+J/3e-4 on paths 1001-8000 1 saved/23 lost -0.314 (exact -0.342 to -0.198; unconditional -0.472 to -0.178) harm
+
+9. THE CANDIDATES FOR 7u (a list, not a verdict), by survival (the regimen's) and by the realised whole score (grade C): the fix alone read on S126, bridge 4 and S194 (its S360 and share 0.95 legs beside); a reader arm on all five core cases, and by survival it must also gain on S360 and share 0.95
+  OFF/3e-4     survival CANDIDATE whole score CANDIDATE | S126 0/0 no material harm; bridge 4 0/1 no material harm; S194 42/2 no material harm | beside: S360 9/497; share 0.95 23/0 | whole score S126 +0.327; bridge 4 +0.278; S194 +0.704
+  OFF/1e-4     survival CANDIDATE whole score CANDIDATE | S126 0/5 no material harm; bridge 4 0/3 no material harm; S194 39/6 no material harm | beside: S360 9/497; share 0.95 25/0 | whole score S126 +0.388; bridge 4 +0.375; S194 +0.726
+  OFF/0        survival CANDIDATE whole score CANDIDATE | S126 0/7 no material harm; bridge 4 0/5 no material harm; S194 35/10 no material harm | beside: S360 9/497; share 0.95 983/0 | whole score S126 +0.406; bridge 4 +0.376; S194 +0.687
+  OFF+J/1e-3   survival CANDIDATE whole score no        | S126 2/0 no material harm; bridge 4 4/0 no material harm; S194 11/13 no material harm | beside: S360 1/0; share 0.95 4/0 | whole score S126 +0.019; bridge 4 +0.042; S194 -0.019
+  OFF+J/3e-4   survival CANDIDATE whole score CANDIDATE | S126 2/0 no material harm; bridge 4 4/2 no material harm; S194 52/3 no material harm | beside: S360 9/497; share 0.95 28/0 | whole score S126 +0.338; bridge 4 +0.282; S194 +0.751
+  OFF+J/1e-4   survival CANDIDATE whole score CANDIDATE | S126 2/2 no material harm; bridge 4 4/3 no material harm; S194 49/5 no material harm | beside: S360 9/497; share 0.95 29/0 | whole score S126 +0.434; bridge 4 +0.394; S194 +0.803
+  OFF+J/0      survival CANDIDATE whole score CANDIDATE | S126 1/3 no material harm; bridge 4 3/4 no material harm; S194 36/10 no material harm | beside: S360 9/497; share 0.95 988/0 | whole score S126 +0.455; bridge 4 +0.403; S194 +0.677
+  READER/1e-3  survival no        whole score no        | S126 0/44 harm; bridge 4 2/0 no material harm; S360 929/0 no material harm; share 0.95 1575/1 no material harm; S194 0/0 no material harm | S360 929/0 gain; share 0.95 1575/1 gain | whole score S126 -0.369; bridge 4 +0.025; S360 +13.268; share 0.95 +21.839; S194 +0.000
+  READER/3e-4  survival CANDIDATE whole score CANDIDATE | S126 0/0 no material harm; bridge 4 2/1 no material harm; S360 930/0 no material harm; share 0.95 1600/0 no material harm; S194 42/2 no material harm | S360 930/0 gain; share 0.95 1600/0 gain | whole score S126 +0.327; bridge 4 +0.305; S360 +13.300; share 0.95 +22.274; S194 +0.704
+  READER/1e-4  survival CANDIDATE whole score CANDIDATE | S126 0/5 no material harm; bridge 4 3/3 no material harm; S360 930/0 no material harm; share 0.95 1775/0 no material harm; S194 39/6 no material harm | S360 930/0 gain; share 0.95 1775/0 gain | whole score S126 +0.388; bridge 4 +0.415; S360 +13.317; share 0.95 +24.770; S194 +0.726
+  READER/0     survival CANDIDATE whole score CANDIDATE | S126 0/7 no material harm; bridge 4 2/6 no material harm; S360 924/0 no material harm; share 0.95 1773/0 no material harm; S194 35/10 no material harm | S360 924/0 gain; share 0.95 1773/0 gain | whole score S126 +0.406; bridge 4 +0.388; S360 +13.246; share 0.95 +24.786; S194 +0.687
+  READER+J/1e-3 survival no        whole score no        | S126 0/41 harm; bridge 4 7/0 no material harm; S360 929/0 no material harm; share 0.95 1576/1 no material harm; S194 11/13 no material harm | S360 929/0 gain; share 0.95 1576/1 gain | whole score S126 -0.345; bridge 4 +0.079; S360 +13.268; share 0.95 +21.837; S194 -0.019
+  READER+J/3e-4 survival CANDIDATE whole score CANDIDATE | S126 2/0 no material harm; bridge 4 7/1 no material harm; S360 930/0 no material harm; share 0.95 1605/0 no material harm; S194 52/3 no material harm | S360 930/0 gain; share 0.95 1605/0 gain | whole score S126 +0.338; bridge 4 +0.355; S360 +13.300; share 0.95 +22.325; S194 +0.751
+  READER+J/1e-4 survival CANDIDATE whole score CANDIDATE | S126 2/2 no material harm; bridge 4 7/3 no material harm; S360 930/0 no material harm; share 0.95 1782/0 no material harm; S194 49/5 no material harm | S360 930/0 gain; share 0.95 1782/0 gain | whole score S126 +0.434; bridge 4 +0.447; S360 +13.318; share 0.95 +24.845; S194 +0.803
+  READER+J/0   survival CANDIDATE whole score CANDIDATE | S126 1/3 no material harm; bridge 4 6/5 no material harm; S360 924/0 no material harm; share 0.95 1779/0 no material harm; S194 36/10 no material harm | S360 924/0 gain; share 0.95 1779/0 gain | whole score S126 +0.455; bridge 4 +0.440; S360 +13.243; share 0.95 +24.846; S194 +0.677
+
+OUTCOME: 1 INCONCLUSIVE, 2 HELD, 3 INCONCLUSIVE, 4 HELD, 5 FALSIFIED, 6 HELD, 7 NOT REPRODUCED, 8 HELD, 10 HELD, 11 HELD, 12 HELD, 13 FALSIFIED
+ATTRIBUTION (the prediction's Decision rule): the harm at the product's settings is not settled (item 1 INCONCLUSIVE); HELD: N, table noise (item 4 and item 13); L, a learning error the margin does not carry (item 6)

@@ -1,0 +1,76 @@
+TASK #108: THE LANDING AGAINST SEARCH-PATH COUNT
+====================================================================================================
+
+Promoted ahead of E3 on 22 Sep by the split measurement: solving is 45.7% of a landing and running
+paths forward is 54.3%, so every phase of Part E speeds up the minority half. Each solve is followed by
+5,400 forward runs costing 373 s against the solve's own 314 s - and that 5,400 was chosen once, early,
+and never swept. Run 23 Sep 03:09-09:17, 32 cells, eight genuine landings at four path counts, each at
+its own flex-tiers ask so every cell stays comparable to the 6b record. Reducer written and committed
+before the first record landed.
+
+VERDICT: 5,400 STANDS. Every smaller count lets at least one household MISS the survival rate it
+promised, and it is not close - even 2,400 fails.
+
+    margin = held-out floor rate minus the ask, on 3,000 paths at seed 7002. Negative MISSES.
+
+    id       ask       600     1200     2400     5400     solves (600/1200/2400/5400)
+    S020    88.4    -1.37!   -1.37!   -0.23!   +0.87      1 / 1 / 7 / 7
+    S058    97.9    +0.30    +0.30    +0.37    +0.37      5 / 5 / 3 / 3
+    S070    76.5    -0.37!   -2.20!   -1.63!   +0.77      6 / 1 / 7 / 7
+    S154    70.9    +4.20    +0.73    +0.73    +1.03      7 / 1 / 1 / 6
+    S178    86.1    -0.23!   -1.87!   -0.23!   +1.07      7 / 5 / 6 / 7
+    S268    75.1    -0.83!   -0.83!   +1.47    +2.73      1 / 1 / 7 / 7
+    S318    77.9    +1.67    -0.17!   +1.17    +1.17      7 / 1 / 7 / 6
+    S342    72.0    +3.13    +1.30    +1.30    +1.87      7 / 1 / 1 / 7
+
+      600 paths   worst -1.37 (S020)   FAIL
+     1200 paths   worst -2.20 (S070)   FAIL
+     2400 paths   worst -1.63 (S070)   FAIL
+     5400 paths   worst +0.37 (S058)   PASS
+
+----------------------------------------------------------------------------------------------------
+THE MECHANISM IS VISIBLE IN THE SOLVE COUNTS, AND IT IS NOT "MORE NOISE, SLIGHTLY WORSE ANSWER"
+
+Read the solves column. At 600 and 1,200 paths, households land in ONE solve. One solve means the very
+first test - `verify(rHi).floorRate >= confidence` at the top of the bracket, where NO trimming happens -
+came back true. The noisy estimate told the solver the untrimmed plan already clears the ask, so it did
+nothing and stopped. Then the held-out draw says otherwise.
+
+So the failure is not a slightly mis-tuned dial. **It is the search never starting.** S020, S268 and
+S342 each collapse from six or seven solves to one as the sample shrinks.
+
+**AND THE FAILURES ARE FAST, WHICH IS THE TRAP.** A one-solve collapse costs 338-836 s against
+3,296-7,159 s for a real landing. A study that compared path counts on SPEED would have reported a
+four-to-eight-fold saving and recommended 1,200. The saving is entirely the solver giving up early on
+a wrong reading. This reducer scores the promise first and the clock second, which is the only ordering
+that could have caught it.
+
+S154 is the sharpest illustration: at 2,400 it lands in ONE solve at +0.73, closer to its ask than the
+six-solve answer at 5,400 (+1.03). The worse method got the better-looking number, by luck.
+
+----------------------------------------------------------------------------------------------------
+WHAT IT SETTLES, AND WHAT IT REFUSES TO SETTLE
+
+**Settled: 5,400 is load-bearing.** It was an unexamined constant; it is now a measured floor with the
+failures below it documented. That was worth the six hours on its own, and it closes the largest
+remaining "nobody ever checked this" item in the speed programme.
+
+**Refused: this does NOT say 5,400 is optimal**, only that 600, 1,200 and 2,400 are not enough. The
+count between 2,400 and 5,400 is unexplored, and there is no reason to think the boundary is exactly
+where it was first guessed. It was not worth another six hours to find out, because the prize - some
+fraction of the gap between 2,400 and 5,400 - is small beside what the same hours buy elsewhere.
+
+**The real cost of a landing, measured:** 1,599 to 7,159 s at 5,400 paths, mean 4,709 s. That is the
+number Phase 4 should be sized from - roughly 13 hours on four cores for its solver arm alone.
+
+----------------------------------------------------------------------------------------------------
+AND IT HANDED OVER A FINDING IT WAS NOT LOOKING FOR
+
+Four landings per household, at four path counts, is a coarse (lambda, floor rate) curve - free, as a
+by-product. Read that way it answered a question a separate 1.6-hour run had been queued for: the floor
+rate is MONOTONE in lambda, 0 reversals in 15 adjacent pairs. That run was cancelled before starting.
+
+More importantly, the 5,400 column shows **every household overshooting its ask**, by +0.37 to +2.73,
+with the biggest overshoots on the households that used their full seven-solve budget. That is the
+signature of a search that stopped before converging, and it is what the convergence test now running
+was built to confirm. See results-converge.txt when it lands.

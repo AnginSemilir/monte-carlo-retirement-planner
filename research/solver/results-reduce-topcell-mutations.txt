@@ -1,0 +1,98 @@
+caught: 00 if (js.length !== 1) { bad.push(
+caught: 01 for (const x of jobs) if (!want.some(w => w.key === x.key)) bad.push(
+caught: 02 if (codes.size !== 1 || codes.has(undefined) || codes.has(null)) bad.p
+caught: 03 if (!j.done) bad.push(`${K}: no done line`);
+caught: 04 j.head.npw !== npw || j.head.seed !== seed || j.head.scale !== scale |
+caught: 05 j.head.npw !== npw || j.head.seed !== seed || j.head.scale !== scale |
+caught: 06 j.head.npw !== npw || j.head.seed !== seed || j.head.scale !== scale |
+caught: 07 ['S370', 'PSNXU', 30], ['S370', 'PX', 30]
+caught: 08 ...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm], pts:
+caught: 09 ...COMMON, readerRef: REF[w.arm], readerSplit: SPLIT[w.arm], pts:
+caught: 10 grid: `total${w.pts}x${nn}x6`, shareNodes: NODED[w.arm] ? SN_LINE : 'n
+caught: 11 readerBlend: 'null', readerCopy: 'extrap', readerChance: 'null'
+caught: 12 export const SPLIT = Object.freeze({ PX: 'rs', PX60: 'rs', PSNX: 'rsu'
+caught: 13 PSNX60: 'rsu', PSNXU: 'ru', CX:
+caught: 14 export const NODED = Object.freeze({ PX: false, PX60: false, PSNX: tru
+caught: 15 const PKGA = ['PX', 'PSNX', 'PSNXU', 'PX60', 'PSNX60'];
+caught: 16 !A.fix || A.stepAll !== STEPS[w.arm] || 
+caught: 17 A.ref !== 'adaptive' || !A.fix || 
+caught: 18 !(A.moves > 0) || A.nonMono !== 0 || A.lattice
+caught: 19 !(A.moves > 0) || A.nonMono !== 0 || A.lattice
+caught: 20 if (!ad && (!A || A.ref !== 'null' || A.fix || A.stepAll || A.lattice 
+caught: 21 for (const c of [...NEED, ...(STEPS[w.arm] ? ['stepTook'] : [])])
+caught: 22 if (!STEPS[w.arm] && j.checks.stepTook) bad.push(
+caught: 23 if (STEPS[w.arm] && !j.steps.length) bad.push(
+caught: 24 if (ad && !j.pr31.length) bad.push(
+caught: 25 if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran, 'floor') 
+caught: 26 if (!j.nodes || j.nodes.list !== (NODED[w.arm] ? SN_LINE : 'the unifor
+caught: 27 const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 'qfTook', 
+caught: 28 export const PARTS = Object.freeze(['QS', 'QC', 'RS', 'RC', 'RH']);
+caught: 29 if (js[0].bridge && peers.some(x => x.bridge.join(',') !== js[0].bridg
+caught: 30 if (!bOk) bad.push('COPY-B\'s gate did not pass over its own files');
+caught: 31 if (!reproOk) bad.push(
+caught: 32 if (!peer || !peer.stamp || reproCode !== peer.stamp.code) bad.push(
+caught: 33 if (!j.head || j.head.seed !== SEED) bad.push(`the reused
+caught: 34 if (field(ran, 'readerSplit') !== 'null' || field(ran, 'shareNodes') !
+caught: 35 for (const f of Object.keys(COMMON)) if (field(ran, f) !== COMMON[f]) 
+caught: 36 if (!peer || (j.bridge || []).join(',') !== (peer.bridge || []).join('
+caught: 37 if (!j) { bad.push(`the reused ${h} ${a} not found`); continue; }
+caught: 38 for (const s of ['COPY-X', 'COPY-W', 'COPY-B']) if (!ok[s]) bad.push(
+caught: 39 if (!c.job.stamp || c.job.stamp.code !== code) bad.push(
+caught: 40 if (!c.file[g] || c.file[g][x] !== v) bad.push(
+caught: 41 const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {},
+caught: 42 const groups = { per: c.oldFile.per || {}, bits: c.oldFile.bits || {},
+caught: 43 if (!(x in o) && !(g === 'per' && /^RH\d+$/.test(x))) bad.push(
+caught: 44 if (!Object.keys(ta).length || Object.keys(ta).length !== Object.keys(
+caught: 45 c.old.tables[k].OWN !== c.job.tables[k].OWN || 
+caught: 46 if (c.src !== src) bad.push(
+caught: 47 if (!c.old.head || c.old.head.seed !== SEED || !c.job.head || c.old.he
+caught: 48 if ((c.oldFile.bridge || []).join(',') !== (c.file.bridge || []).join(
+caught: 49 if (!c || !c.old || !c.oldFile || !c.job || !c.file) { bad.push(
+caught: 50 ['S130', 'CX', 30, 'COPY-B'], ['S130', 'CXW', 60, 'COPY-B']]);
+caught: 51 const read = P.sup.filter(x => Math.abs(mean(x.c)) >= MINSUP)
+caught: 52 r.lo >= KEEP && rem.lo >= -REM && rem.hi <= REM ? 'held'
+caught: 53 r.lo >= KEEP && rem.lo >= -REM && rem.hi <= REM ? 'held'
+caught: 54 r.hi < HALF || rem.lo > OUT || rem.hi < -OUT ? 'falsified'
+caught: 55 r.hi < HALF || rem.lo > OUT || rem.hi < -OUT ? 'falsified'
+caught: 56 export const KEEP = 0.75, HALF = 0.5,
+caught: 57 z = zFor(0.05 / Math.max(1, 2 * read.length));
+    const per = read.ma
+caught: 58 read: r.hi < STILL ? 'still' : r.lo >= MOVED ? 'moved' : 'unclear'
+caught: 59 read: r.hi < STILL ? 'still' : r.lo >= MOVED ? 'moved' : 'unclear'
+caught: 60 sa = ma.lo > 0 ? [1] : ma.hi < 0 ? [-1] : [1, -1]
+caught: 61 const d = meanOf(Float64Array.from(a, (v, i) => y * b[i] - x * v), z);
+caught: 62 nm: K.flatMap(k => [...OTHERY.map(t =>
+caught: 63 export const STEPY = Object.freeze([3, 7]), OTHERY = Object.freeze([1,
+caught: 64 const label = within(lv60, LEVEL) && within(dS, NEAR) ? 'W'
+caught: 65 : within(lvS, LEVEL) && within(d60, NEAR) ? 'TOPC'
+caught: 66 : past(d60, LEVER) && past(dS, LEVER) ? 'BOTH'
+caught: 67 : within(dB, NEAR) ? 'NEITHER' : 'unclear';
+caught: 68 past = (c, b) => c.lo >= b || c.hi <= -b;
+caught: 69 read = cand.filter(x => P.top[x.h] >= TOPMIN)
+caught: 70 const cand = P.br.filter(x => Math.abs(mean(x.c)) >= MINRES)
+caught: 71 out['5'] = { outcome: legs.some(l => l.hw.outcome === 'FALSIFIED') ? '
+caught: 72 maint: hw.outcome === 'FALSIFIED' && mx.d > 0 };
+caught: 73 legs.every(l => l.hw.outcome === 'HELD') ? 'HELD' : 'INCONCLUSIVE'
+caught: 74 if (o('5') === 'FALSIFIED') return 'RH';
+  if (o('2') === 'FALSIFIED')
+caught: 75 if (o('2') === 'FALSIFIED') return 'RM';
+  if (o('1') === 'FALSIFIED')
+caught: 76 if (o('1') === 'HELD' && o('2') === 'HELD') return 'RS';
+caught: 77 if (o('4') === 'FALSIFIED') return 'RB';
+caught: 78 plan = y.every(x => x.d.lo >= -Y1P && x.d.hi <= Y1P)
+caught: 79 rise = y.every(x => x.d.lo >= Y1R)
+caught: 80 Math.sign(x.sup) !== Math.sign(x.cop) && Math.abs(x.sup) >= Y1R && Mat
+caught: 81 sn = y.every(x => x.topShare >= HALF)
+caught: 82 tcp = un && !sn ? 'TCP-UNMASK' : sn && !un ? 'TCP-SNREAD'
+caught: 83 if (x.topA[i] || x.topB[i]) top += v;
+caught: 84 const tc = it['1'].outcome === 'HELD' ? 'TC-SUPPORT'
+caught: 85 sup: [{ k: 0, pts: 30, c: sy('S370', 'PX', 0, STEPY), x: sy('S370', 'P
+caught: 86 { k: 1, pts: 60, c: sy('S370', 'PX60', 1, STEPY), x: sy('S370', 'PSNX6
+caught: 87 o192: Object.fromEntries(['PX', 'PSNX', 'PX60', 'PSNX60'].map(a => [a,
+caught: 88 [[30, 'CX', 'SNRX'], [60, 'CXW', 'SNRXW']]
+caught: 89 top: { S130: topF('S130', 'CX'), S128: topF('S128', 'CX') }
+caught: 90 const topV = (h, a, k) => Float64Array.from(stF(h, a, k, 1), v => (v >
+caught: 91 const o = (i * nb + bi) * D, p = st[o], W = st[o] + st[o + 1] + st[o +
+caught: 92 if (!Number.isFinite(v)) continue; n++; if (v >= TOP) top++;
+caught: 93 ['S370', 'PSNX60', 60], ['S370', 'PX60', 60]
+94 of 94 mutations caught

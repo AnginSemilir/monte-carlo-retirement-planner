@@ -1,0 +1,17 @@
+THE SURVIVAL RULE'S CALIBRATION: how often a true loss of exactly the margin PASSES (the exact rule AND the guarded unconditional interval; 20000 draws a row; nominal 2.5%)
+  survival  margin  paths | the rule (both)  the exact rule alone  the guarded interval alone
+    99.8%  0.25   8000 |           2.21%                46.81%                        2.21%
+    99.8%  0.25  16000 |           1.88%                47.89%                        1.88%
+    99.0%  0.25   8000 |           2.15%                47.05%                        2.15%
+    99.0%  0.25  16000 |           1.72%                47.97%                        1.72%
+    95.0%  0.25   8000 |           2.11%                47.55%                        2.11%
+    95.0%  0.25  16000 |           1.85%                47.82%                        1.85%
+    90.0%  0.50   8000 |           1.94%                48.12%                        1.94%
+    90.0%  0.50  16000 |           2.40%                47.32%                        2.40%
+    75.0%  0.50   8000 |           1.84%                48.19%                        1.84%
+    75.0%  0.50  16000 |           2.56%                47.43%                        2.56%
+    46.0%  0.50   8000 |           2.10%                48.09%                        2.10%
+    46.0%  0.50  16000 |           2.67%                47.50%                        2.67%
+
+THE RULE PASSES A TRUE LOSS AT THE MARGIN 1.72% TO 2.67% OF THE TIME, against the nominal 2.5%
+planted: a loss of three times the margin passes under 1% on every row (8,000 paths); a true change of 0 passes above 50% on some row (16,000 paths)

@@ -1,0 +1,7 @@
+=== a MEASUREMENT, not a test:  NE-GRID C budget measurement - one 120-point solve of S380 under BASE (40 paths a world), its solve seconds and peak memory, for NE-GRID-C's budget line; not evidence for any test (its results cannot settle a test)
+exit 0
+                 solve CAND BASE/P120: table 72.9746 secs 5046
+                 checks BASE/P120: forceIdentity 40/40 secs 35
+                 done BASE/P120
+peak memory (VmHWM) 1093980 kB
+measured 07:45 UK

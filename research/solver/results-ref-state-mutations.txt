@@ -1,0 +1,17 @@
+control (no mutation): passes
+caught: 1: if (j > 0) c *= 1 + rate[j - 1].cash[0];
+caught: 2: const left = bills.map((b, j) => (j < js ? 0 : j === js ? rem : b));
+caught: 3: cash = Math.min(tax, Math.max(0, cashOf(tax)));
+caught: 4: cash = Math.min(tax, Math.max(0, cashOf(tax)));
+caught: 5: if (c > best) best = c;
+caught: 6: return row(i, acc) * (1 - u) + row(i + 1, acc) * u;
+caught: 7: p.isa *= Math.exp(Math.log(1 + r.isa[0]) + r.isa[1] * a);
+caught: 8: return { isa: a * acc, gia: tax - cash, cash };
+caught: 9: if (need < 0) { p.cash -= need; continue; }
+caught: 10: return bills.every(b => b >= 0) && rate.every(
+caught: 11: const rho = rate.map(r => Math.log(1 + r.isa[0])), vol = rate.map(r =>
+caught: 12: const x = Math.max(0, Math.min(1, a)) * (shares - 1)
+caught: 13: if (acc - d0 < -tol) return 0;
+    const x
+equivalent (declared): 14: val[i][g] = Math.max(best, g > 0 ? val[i][g - 1] : 0);
+13 of 13 mutations caught; 1 declared equivalent

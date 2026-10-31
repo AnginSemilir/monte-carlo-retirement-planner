@@ -1,0 +1,34 @@
+1. THE RECORDS (NE-SPLIT, seed 7002, 2,000 paths a world; results/diagnesplit behind its gate: passed)
+  S364 W0.02 SS world 0 (weight 0.1667): table 3.6685 simulated 1/2000 (0.0500)
+  S364 W0.02 SS world 1 (weight 0.6667): table 3.2066 simulated 7/2000 (0.3500)
+  S364 W0.02 SS world 2 (weight 0.1667): table 1.7719 simulated 35/2000 (1.7500)
+  bridge 4 W0.02 SS world 0: table 98.4967 simulated 1966/2000 (98.3000); table less simulated 0.1967
+  bridge 4 W0.02 SS world 1: table 99.9761 simulated 1999/2000 (99.9500); table less simulated 0.0261
+  bridge 4 W0.02 SS world 2: table 99.9955 simulated 2000/2000 (100.0000); table less simulated -0.0045
+  SS's gap over worlds 0 and 1 (NE-SPLIT's point, the BASE arm's expected Gb): 3.0090 points
+
+2. THE POWER (2000 draws a cell at 4000 paths a world through reduce-neroot.mjs's items(); an arm's table moves toward its simulated survival by the share it removes; bridge 4 kept, off by half a point in world 0, or off by -86 in every world)
+  removes 0   : kept HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000 | off 0.5 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000 | off -86 HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  removes 0.3 : kept HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000 | off 0.5 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000 | off -86 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  removes 0.6 : kept HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000 | off 0.5 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000 | off -86 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  removes 0.8 : kept HELD 0.9990 INCONCLUSIVE 0.0010 FALSIFIED 0.0000 | off 0.5 HELD 0.6245 INCONCLUSIVE 0.3755 FALSIFIED 0.0000 | off -86 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  removes 1   : kept HELD 0.9995 INCONCLUSIVE 0.0005 FALSIFIED 0.0000 | off 0.5 HELD 0.6220 INCONCLUSIVE 0.3780 FALSIFIED 0.0000 | off -86 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  removes over: kept HELD 0.9985 INCONCLUSIVE 0.0015 FALSIFIED 0.0000 | off 0.5 HELD 0.6170 INCONCLUSIVE 0.3830 FALSIFIED 0.0000 | off -86 HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 5 (bridge 4 under BASE at NE-SPLIT's tables and rates): HELD 0.6950 INCONCLUSIVE 0.3050 FALSIFIED 0.0000
+
+3. THE CREDENCES (the receipt of 11 Oct 02:37 UK: OW-RSPLIT=0.53; OW-OTHER=0.3; OW-BUNDLE=0.1; OW-PREF=0.07; the judged stories in this script's JUDGED; 40000 draws)
+CREDENCE item 1: point 0.5197 HELD 0.37 INCONCLUSIVE 0.35 FALSIFIED 0.29
+CREDENCE item 2: point 0.2235 HELD 0.09 INCONCLUSIVE 0.35 FALSIFIED 0.56
+CREDENCE item 3: point 0.6343 HELD 0.03 INCONCLUSIVE 0.78 FALSIFIED 0.19
+CREDENCE item 4: point - HELD 0.44 INCONCLUSIVE 0.34 FALSIFIED 0.21
+CREDENCE item 5: point - HELD 0.69 INCONCLUSIVE 0.30 FALSIFIED 0.00
+  POINT item 1: 0.5197 (80% interval -0.0138 to 1.0215; the share of SS's gap the R0 arm removes, over the causes and stories)
+  POINT item 2: 0.2235 (80% interval -0.0336 to 0.6600; the share of SS's gap the SIMP arm removes, over the causes and stories)
+  POINT item 3: 0.6343 (80% interval 0.0032 to 1.0960; the share of SS's gap the READEROFF arm removes, over the causes and stories)
+  DECISION ROWS: item 1 HELD, item 2 not HELD 0.34; item 2 HELD, item 1 not HELD 0.07; items 1, 2 and 3 FALSIFIED 0.06; else 0.53
+
+4. THE BUDGET (NE-SPLIT's logs: each unit's solves and its forward pass of 48,000 paths, results/diagnesplit)
+  S364: CAND solve 860 s, SHIP 319 s, 0.0281 s a path: a job about 0.53 core-hours (26000 paths)
+  bridge 4: CAND solve 1398 s, SHIP 533 s, 0.1619 s a path: a job about 1.71 core-hours
+  S224 and S380 (no record of their own: bridge 4's solve and pace, grade D): a job about 1.02 core-hours (14000 paths)
+  total about 11.51 core-hours (5 S364 jobs, 4 bridge 4, 2 others); four at once, the long jobs first: about 2.88 h wall at the least; SIMP's chance tables and the arms' own solves not timed (the preflight times them)

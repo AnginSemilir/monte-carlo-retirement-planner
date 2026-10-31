@@ -1,0 +1,76 @@
+=== a MEASUREMENT, not a test: REF-B's preflight - the seven jobs at a fifteenth of the points read by the reducer's gate, the adaptive corner and reader-copy tests on this code, and ten plants each refused on its own check; no figure read for an item (PREVIEW); the test itself runs under predictions/diag-refb.md (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-w4MqfV   from aca05cf + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code d3f2e95210e9 (smoke stamp 3d1c2f23ec2a): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+A. 7 jobs, 7 finished
+planted (77): all read as they should
+GATE: passed - the seven jobs once and done at the registered settings (40 paths a world, scale 15, seed 7002) on one code; the adaptive reference with its fix on every job, the RS split on AR and ARX alone, the copy rule on ARX alone, every self-check in full (the preflight: no reused cell compared
+PREFLIGHT S370 AR: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB 47.0251 GA -21.6567, copied 14229, clamped 1 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S370 ARX: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB 47.1721 GA -21.6666, copied 14229, clamped 1 of 832, bridge failures by world 2, 0, 0
+PREFLIGHT S370 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB 47.0277 GA -21.6567, copied 14229, clamped 1 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S362 AR: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB -11.4796 GA -2.4937, copied 14580, clamped 87 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 ARX: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB -11.5037 GA -2.4947, copied 14580, clamped 87 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24, world-0 GB -11.4786 GA -2.4937, copied 14580, clamped 87 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S130 AR: bridge years 1, the reference's moves 24, world-0 GB 36.7077 GA -29.3777, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT: the gate and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW)
+ran CAND AR/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMa
+adaptive AR/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AR/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AR/P30S6Q5: 1 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND ARX/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy extrap readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switc
+adaptive ARX/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge ARX/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped ARX/P30S6Q5: 1 of 832 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AN/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+adaptive AN/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN/P30S6Q5: 1 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AR/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMa
+adaptive AR/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AR/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AR/P30S6Q5: 87 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND ARX/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy extrap readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switc
+adaptive ARX/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge ARX/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped ARX/P30S6Q5: 87 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AN/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+adaptive AN/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN/P30S6Q5: 87 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AR/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMa
+adaptive AR/P30S6Q5: readerRef adaptive fix true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AR/P30S6Q5: reader years 1
+clamped AR/P30S6Q5: 0 of 120 bridge-year reads at the reader's clamp (their split does not sum to the read)
+B. adaptive-corner exit 0: 1 all-passed line;   INCELL (reported, not bound): the base's largest gap inside the cliff's step cell 0.4445 over 81 cells
+  plants: foot 19.92 times its cell's tolerance in A0; drift 4.72 times in CLIFF and Y4, worlds 0 and 2; top 54 of 54 year-4 cells at A 500 or more with a non-finite p
+B. reader-copy exit 0: 10 PASS, 0 FAIL
+C. plant foot exit 3: audit-refb: S362 AR/P30S6Q5: the job's settings did not take
+C. plant cxw exit 3: audit-refb: S362 ARX/P30S6Q5: the job's settings did not take
+C. plant own exit 3: audit-refb: S362 AR/P30S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-refb: S362 AR/P30S6Q5: the ledger does not close on every path (ownTook 120/120 identity 50/120)
+C. plant quad exit 3: audit-refb: S362 AR/P30S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 399/632)
+C. plant held exit 3: audit-refb: S362 AR/P30S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 426/632)
+C. plant score exit 3: audit-refb: S362 AR/P30S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 62/120)
+C. plant trace exit 3: audit-refb: S362 AR/P30S6Q5: the trace disagrees with runPolicy's own counters (counters 58/120)
+C. plant split exit 3: audit-refb: S362 AR/P30S6Q5: a bridge-year read is not given back by its split (splitTook 155/632)
+C. plant class exit 3: audit-refb: S362 AR/P30S6Q5: the copied nodes recounted at line 0.6 are not the solve's (15228 of 72 tables against 14580 of 72)
+the gate passed the seven jobs on S370, S362 and S130; the adaptive reference with its fix on every job, the RS split on AR and ARX alone, the copy rule on ARX alone, with the candidate's settings; the adaptive corner and reader-copy tests passed on this code; the ten plants refused, each on its own check
+preflight done 22:16 UK
+=== snapshot kept at /tmp/solver-snap-w4MqfV for provenance; remove it when the results are written up

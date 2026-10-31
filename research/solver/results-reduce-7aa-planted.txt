@@ -1,0 +1,64 @@
+ok   a log parsed and gated: thirty units, the gate passes: 30 0
+ok   the gate refuses 16 points on one solve: true
+ok   the gate refuses the estate weight 0.02 on a W0 unit: true
+ok   the gate refuses the estate weight missing: true
+ok   the gate refuses the tier state missing on a TS solve: true
+ok   the gate refuses the tier state on a PRODUCT solve: true
+ok   the gate refuses one policy missing on TS+J: true
+ok   the gate refuses one policy on TS: true
+ok   the gate refuses a held tier: true
+ok   the gate refuses Q's fix: true
+ok   the gate refuses the reader's held reference: true
+ok   the gate refuses the reader off on a READER unit: true
+ok   the gate refuses the reader on an OFF unit: true
+ok   the gate refuses a second setting changed within a case (the minimum pot): true
+ok   the gate refuses another scale within a case: true
+ok   the gate refuses the wrong seed on every solve: true
+ok   the gate refuses a held tier on every solve: true
+ok   the gate refuses Q's fix on every solve: true
+ok   the gate refuses the held reference on every solve: true
+ok   the gate refuses another path count on every solve: true
+ok   the gate refuses 16 points on every solve (the grid unchanged): true
+ok   the gate refuses 15 return points on every solve: true
+ok   the gate refuses an averaged final year on every solve: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses a missing gap line: true
+ok   the gate refuses two world lines: true
+ok   the gate refuses four world lines: true
+ok   the gate refuses a world of 500 paths: true
+ok   the gate refuses a missing run line: true
+ok   the gate refuses a missing done line: true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   the trace name carries the case, the arm, the arm's tag and the weight: bridge_4-reader-ts_j@w0.02.json.gz
+ok   wholePaths at 0.02 is scorePaths to the bit; at 0 the estate drops out: true 6.000000
+ok   a whole-score leg adds its parts: survival -2 paths; the rest +2 points a path, less the 3 lost paths' estate and failure charge, plus the saved one's: 1.9982: -0.0250 1.9982 0.000000
+ok   its interval holds its point and covers both parts' spreads: true
+ok   with survival identical the interval is the rest's 2 z se at a/2 plus the unconditional survival part's width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (the guard, 100 x 6.342e-4, inside it): 0.1558 true
+ok   the guard holds a one-sided upper end at the exact bound on its count (3 saved of 8,000: Newcombe alone short of it; by hand, the Poisson bound chi2(0.99375, 8 df)/2 = 10.67 of 8,000 = 0.1334 points): true true 0.1334
+ok   the calibration at the margin: the rule reads no material gain at most 0.0175 on all four legs, the exact form over 0.1 at the background 0.5 (0.0005/0.2620, 0.0050/0.0495, 0.0025/0.2345, 0.0010/0.0340): true true
+ok   TS+J as the first-ranked cause predicts: 1 to 6 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD
+ok   TS+J doing nothing: 1, 2, 4 and 5 FALSIFIED, 3 and 6 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 FALSIFIED, 6 HELD
+ok   a gain at W0 on one case only: item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   TS gains as much as TS+J at W0: item 2 FALSIFIED on both, item 1 HELD: HELD FALSIFIED
+ok   harm on S360 under off at W0: item 3 FALSIFIED: FALSIFIED
+ok   bridge 4 losing 30 paths at W0.02 (0.375 points, margin 0.25): item 6 FALSIFIED: FALSIFIED
+ok   the whole score gains but survival harms on S126 at W0.02: item 4 not HELD, its leg harm: INCONCLUSIVE harm (the survival limit)
+ok   the whole score gains but survival is inconclusive (3 saved, 20 lost): the leg inconclusive: inconclusive
+ok   the whole score gains and survival loses within the margin (3 saved, 12 lost): the leg gains: gain
+ok   the survival limit read unconditionally: S126 losing 12 and saving none at W0.02 (exact: the point -0.15, no material harm; unconditional: -100 x the exact bound on 12 of 8,000, -0.262, past -0.25) leaves a whole-score gain inconclusive, where the exact form reads gain: inconclusive gain
+ok   the whole score within the margin on both: item 4 FALSIFIED: FALSIFIED
+ok   the whole score's interval over 0 but its upper end past the margin: inconclusive: inconclusive
+ok   the margin is the case's own at the leg's weight: bridge 4 at W0.02 losing 30 of PRODUCT at 98.75% reads harm at 0.25: harm
+ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) leaves W0.02's at 0.25, so 30 lost at W0.02 is harm: FALSIFIED
+ok   the opening's saves do not carry item 5: TS+J saving 30 paths the product fails on S126, TS as the product: FALSIFIED: FALSIFIED
+ok   item 5 reads TS's losses on the product's survivors: TS losing 30 on S126 alone, TS+J not, is a pooled gain: HELD
+ok   item 5: TS+J keeping TS's 30 losses: FALSIFIED: FALSIFIED
+ok   item 5 at the pooled margin 0.1: 200 saved and 200 lost against TS on S126 (the upper end about 0.17, below 0.25): INCONCLUSIVE: INCONCLUSIVE
+ok   item 5: TS+J losing 60 to TS on the product's survivors is no material gain: FALSIFIED: FALSIFIED
+ok   item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.1): INCONCLUSIVE: INCONCLUSIVE
+ok   item 5 pools the three cases' product survivors: 23,700 paths (100 fail on each), 20 saved on S126 and 25 lost on S194 summed: 23700 20 25
+planted (62): all read as they should
+

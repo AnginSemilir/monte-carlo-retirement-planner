@@ -1,0 +1,33 @@
+7AE'S POWER: 8000 paths at the node drawn from 7ad's 4000 world-0 path triples at 30x5 (the three units together); 20000 draws a story (seed 7002); read by reduce-7ae.mjs's items()
+
+THE SIZES (7ad, world 0 at 30x5, margin 1e-3, through 7aa's, 7ac's and 7ad's gates)
+  bridge 4 (reader) W0   saved 48 lost 4 of 4000: realised 1.100; price 0.482; ratio 0.44
+  S194 (off) W0.02       saved 55 lost 10 of 4000: realised 1.125; price 0.849; ratio 0.75
+  S126 (reader) W0       saved 19 lost 0 of 4000: realised 0.475; price 0.318; ratio 0.67
+  pooled: price 1.648 realised 2.700 ratio 0.61
+
+ITEMS 1 AND 3, the margin-0 run's realised gain 1 times 7ad's (true pooled 2.700)
+  the margin is the cause: priced as realised at margin 0    item 1: HELD 0.979  FALSIFIED 0.000  INCONCLUSIVE 0.021 item 3: HELD 0.909  FALSIFIED 0.002  INCONCLUSIVE 0.088
+  mostly: priced at 0.9 of the realised                      item 1: HELD 0.766  FALSIFIED 0.007  INCONCLUSIVE 0.227 item 3: HELD 0.702  FALSIFIED 0.044  INCONCLUSIVE 0.254
+  half-way: priced at the 1e-3 ratio's mid-point to 1        item 1: HELD 0.256  FALSIFIED 0.187  INCONCLUSIVE 0.558 item 3: HELD 0.158  FALSIFIED 0.631  INCONCLUSIVE 0.211
+  priced at 0.8 of the realised                              item 1: HELD 0.241  FALSIFIED 0.198  INCONCLUSIVE 0.561 item 3: HELD 0.381  FALSIFIED 0.290  INCONCLUSIVE 0.329
+  not the cause: the 1e-3 ratio kept (each unit its own)     item 1: HELD 0.000  FALSIFIED 0.991  INCONCLUSIVE 0.009 item 3: HELD 0.000  FALSIFIED 1.000
+  not the cause: the 1e-3 price kept                         item 1: HELD 0.000  FALSIFIED 0.991  INCONCLUSIVE 0.008 item 3: HELD 0.000  FALSIFIED 1.000
+
+ITEMS 1 AND 3, the margin-0 run's realised gain 0.7 times 7ad's (true pooled 1.890)
+  the margin is the cause: priced as realised at margin 0    item 1: HELD 0.990  FALSIFIED 0.000  INCONCLUSIVE 0.010 item 3: HELD 0.962  FALSIFIED 0.004  INCONCLUSIVE 0.035
+  mostly: priced at 0.9 of the realised                      item 1: HELD 0.883  FALSIFIED 0.005  INCONCLUSIVE 0.112 item 3: HELD 0.864  FALSIFIED 0.052  INCONCLUSIVE 0.083
+  half-way: priced at the 1e-3 ratio's mid-point to 1        item 1: HELD 0.515  FALSIFIED 0.092  INCONCLUSIVE 0.394 item 3: HELD 0.456  FALSIFIED 0.480  INCONCLUSIVE 0.064
+  priced at 0.8 of the realised                              item 1: HELD 0.494  FALSIFIED 0.104  INCONCLUSIVE 0.402 item 3: HELD 0.667  FALSIFIED 0.234  INCONCLUSIVE 0.099
+  not the cause: the 1e-3 ratio kept (each unit its own)     item 1: HELD 0.008  FALSIFIED 0.906  INCONCLUSIVE 0.086 item 3: HELD 0.017  FALSIFIED 0.983
+  not the cause: the 1e-3 price kept                         item 1: HELD 0.803  FALSIFIED 0.015  INCONCLUSIVE 0.182 item 3: HELD 0.218  FALSIFIED 0.777  INCONCLUSIVE 0.005
+
+ITEMS 1 AND 3, the margin-0 run's realised gain 1.3 times 7ad's (true pooled 3.510)
+  the margin is the cause: priced as realised at margin 0    item 1: HELD 0.944  INCONCLUSIVE 0.056               item 3: HELD 0.842  FALSIFIED 0.001  INCONCLUSIVE 0.157
+  mostly: priced at 0.9 of the realised                      item 1: HELD 0.527  FALSIFIED 0.010  INCONCLUSIVE 0.463 item 3: HELD 0.520  FALSIFIED 0.038  INCONCLUSIVE 0.443
+  half-way: priced at the 1e-3 ratio's mid-point to 1        item 1: HELD 0.087  FALSIFIED 0.266  INCONCLUSIVE 0.646 item 3: HELD 0.044  FALSIFIED 0.737  INCONCLUSIVE 0.218
+  priced at 0.8 of the realised                              item 1: HELD 0.077  FALSIFIED 0.299  INCONCLUSIVE 0.624 item 3: HELD 0.187  FALSIFIED 0.308  INCONCLUSIVE 0.504
+  not the cause: the 1e-3 ratio kept (each unit its own)     item 1: FALSIFIED 1.000  INCONCLUSIVE 0.001          item 3: FALSIFIED 1.000
+  not the cause: the 1e-3 price kept                         item 1: FALSIFIED 1.000                              item 3: FALSIFIED 1.000
+
+ITEM 2: the share of held path-years (years 1 to 7, OPEN0 at margin 1e-3, thousands a unit) where the forward move holds and the cell leaves; no record holds it before this run, so its power is its sampling (a share of 10% on 10,000 path-years has a binomial se near 0.3 points: the 2% and 10% thresholds sit many se apart) and its uncertainty the credence.

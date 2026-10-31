@@ -1,0 +1,44 @@
+ok   7 lost, none saved: the two readings of "no material harm" disagree: 7 0 true false true
+ok   30 lost, none saved: both read harm-side, no disagreement: false false false
+ok   7 saved, none lost: the two readings of "no material gain" disagree: 7 0 true false true
+ok   the count check widens a no-harm read where no path differs at 68.8%: true false -0.37
+ok   the cells: both, lost, saved, neither: 1 1 1 1
+planted (5): all read as they should
+7T'S CURE TESTS, THE REGISTERED INTERVAL BESIDE THE UNCONDITIONAL ONE (reported, not a test: 7t is read as registered; the logs' stamp gate and every trace's stamp checked)
+
+S126
+  J   g READER+J against READER: 0 lost, 14 saved: registered 0.175 (0.094 to 0.175), unconditional (0.083 to 0.293); no material gain: registered yes, unconditional no  <-- DISAGREE
+      h READER+J against OFF+J: 28 lost, 0 saved: registered -0.350 (-0.350 to -0.264), unconditional (-0.505 to -0.232); no material harm: registered no, unconditional no
+  L   g READER+L against READER: 0 lost, 32 saved: registered 0.400 (0.313 to 0.400), unconditional (0.272 to 0.564); no material gain: registered no, unconditional no
+      h READER+L against OFF+L: 15 lost, 0 saved: registered -0.188 (-0.188 to -0.106), unconditional (-0.309 to -0.100); no material harm: registered yes, unconditional no  <-- DISAGREE
+  O   g READER+O against READER: 4 lost, 45 saved: registered 0.512 (0.372 to 0.585), unconditional (0.352 to 0.705); no material gain: registered no, unconditional no
+      h READER+O against OFF+O: 9 lost, 1 saved: registered -0.100 (-0.124 to -0.014), unconditional (-0.202 to -0.022); no material harm: registered yes, unconditional yes
+  5   g READER5 against READER: 0 lost, 1 saved: registered 0.013 (-0.012 to 0.013), unconditional (-0.039 to 0.070); no material gain: registered yes, unconditional yes
+      h READER5 against OFF5: 41 lost, 0 saved: registered -0.512 (-0.512 to -0.424), unconditional (-0.695 to -0.370); no material harm: registered no, unconditional no
+  5L  g READER5+L against READER: 0 lost, 33 saved: registered 0.412 (0.325 to 0.412), unconditional (0.283 to 0.579); no material gain: registered no, unconditional no
+      h READER5+L against OFF5+L: 13 lost, 0 saved: registered -0.163 (-0.163 to -0.082), unconditional (-0.278 to -0.080); no material harm: registered yes, unconditional no  <-- DISAGREE
+  M0  g READER/M0 against READER: 1 lost, 29 saved: registered 0.350 (0.246 to 0.374), unconditional (0.224 to 0.506); no material gain: registered no, unconditional no
+      h READER/M0 against OFF/M0: 0 lost, 0 saved: registered 0.000 (0.000 to 0.000), unconditional (-0.048 to 0.048); no material harm: registered yes, unconditional yes
+  item 13: READER+J/M0 against OFF+J/M0: 0 lost, 0 saved: registered 0.000 (0.000 to 0.000), unconditional (-0.048 to 0.048); no material harm: registered yes, unconditional yes
+bridge 4
+  J   g READER+J against READER: 3 lost, 18 saved: registered 0.188 (0.072 to 0.246), unconditional (0.074 to 0.317); no material gain: registered yes, unconditional no  <-- DISAGREE
+      h READER+J against OFF+J: 22 lost, 1 saved: registered -0.263 (-0.287 to -0.161), unconditional (-0.401 to -0.150); no material harm: registered no, unconditional no
+  L   g READER+L against READER: 0 lost, 32 saved: registered 0.400 (0.313 to 0.400), unconditional (0.270 to 0.564); no material gain: registered no, unconditional no
+      h READER+L against OFF+L: 14 lost, 0 saved: registered -0.175 (-0.175 to -0.094), unconditional (-0.293 to -0.086); no material harm: registered yes, unconditional no  <-- DISAGREE
+  O   g READER+O against READER: 4 lost, 47 saved: registered 0.537 (0.397 to 0.610), unconditional (0.373 to 0.733); no material gain: registered no, unconditional no
+      h READER+O against OFF+O: 7 lost, 7 saved: registered 0.000 (-0.094 to 0.094), unconditional (-0.103 to 0.103); no material harm: registered yes, unconditional yes
+  5   g READER5 against READER: 5 lost, 5 saved: registered 0.000 (-0.078 to 0.078), unconditional (-0.091 to 0.091); no material gain: registered yes, unconditional yes
+      h READER5 against OFF5: 29 lost, 1 saved: registered -0.350 (-0.374 to -0.246), unconditional (-0.505 to -0.222); no material harm: registered no, unconditional no
+  5L  g READER5+L against READER: 0 lost, 31 saved: registered 0.388 (0.301 to 0.388), unconditional (0.259 to 0.550); no material gain: registered no, unconditional no
+      h READER5+L against OFF5+L: 13 lost, 0 saved: registered -0.163 (-0.163 to -0.082), unconditional (-0.278 to -0.076); no material harm: registered yes, unconditional no  <-- DISAGREE
+  M0  g READER/M0 against READER: 2 lost, 28 saved: registered 0.325 (0.209 to 0.369), unconditional (0.196 to 0.479); no material gain: registered no, unconditional no
+      h READER/M0 against OFF/M0: 1 lost, 4 saved: registered 0.037 (-0.027 to 0.062), unconditional (-0.031 to 0.113); no material harm: registered yes, unconditional yes
+  item 13: READER+J/M0 against OFF+J/M0: 3 lost, 5 saved: registered 0.025 (-0.051 to 0.083), unconditional (-0.057 to 0.111); no material harm: registered yes, unconditional yes
+S360
+  item 10: READER+J against READER: 0 lost, 0 saved: registered 0.000 (0.000 to 0.000), unconditional (-0.046 to 0.046); no material harm: registered yes, unconditional yes
+  item 14: READER+L against READER: 4 lost, 4 saved: registered 0.000 (-0.069 to 0.069), unconditional (-0.069 to 0.069); no material harm: registered yes, unconditional yes
+share 0.95
+  item 10: READER+J against READER: 1 lost, 9 saved: registered 0.100 (0.014 to 0.124), unconditional (0.014 to 0.189); no material harm: registered yes, unconditional yes
+  item 14: READER+L against READER: 0 lost, 20 saved: registered 0.250 (0.166 to 0.250), unconditional (0.136 to 0.386); no material harm: registered yes, unconditional yes
+
+6 leg(s) where the two readings disagree: each goes to the maintainer beside 7t's attribution

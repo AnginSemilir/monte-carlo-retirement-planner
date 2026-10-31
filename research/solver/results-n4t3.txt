@@ -1,0 +1,51 @@
+(the bar's 11 planted checks pass)
+THE THIRD TIER STEP'S FACTORIAL (EXPLORATORY, the tuning seed, 45 wealth points; D28, THIRD-STEP.md step 3): /home/user/vitejs-vite-kdvuf9qw/research/solver/results/n4t3, N4's units from /home/user/vitejs-vite-kdvuf9qw/research/solver/results/n4
+AT W0.02 (survival points (se) / whole score (se), paired by path):
+  S362: CAND 49.00% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 551 / 739 / 925 / 1301 s
+    HR - CAND +0.000 (0.000) / -0.000 (0.000) | T3 - CAND +0.113 (0.089) / +0.095 (0.100) | HR+T3 - CAND +0.113 (0.089) / +0.095 (0.100) | HR+T3 - HR +0.113 (0.089) / +0.095 (0.100) | the interaction +0.000 (0.000) / +0.000 (0.000)
+  S370: CAND 80.35% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 610 / 943 / 1087 / 1644 s
+    HR - CAND +1.712 (0.163) / +1.837 (0.164) | T3 - CAND +2.225 (0.219) / +1.015 (0.223) | HR+T3 - CAND +3.612 (0.229) / +2.542 (0.234) | HR+T3 - HR +1.900 (0.212) / +0.705 (0.216) | the interaction -0.325 (0.221) / -0.310 (0.221)
+  S224: CAND 69.71% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 485 / 751 / 791 / 1309 s
+    HR - CAND +0.000 (0.000) / +0.000 (0.000) | T3 - CAND +0.650 (0.151) / +0.490 (0.153) | HR+T3 - CAND +0.662 (0.150) / +0.503 (0.152) | HR+T3 - HR +0.662 (0.150) / +0.503 (0.152) | the interaction +0.013 (0.013) / +0.013 (0.013)
+  S380: CAND 73.15% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 636 / 950 / 1061 / 1506 s
+    HR - CAND +0.000 (0.000) / -0.000 (0.000) | T3 - CAND -0.025 (0.116) / -0.048 (0.116) | HR+T3 - CAND -0.025 (0.116) / -0.048 (0.116) | HR+T3 - HR -0.025 (0.116) / -0.048 (0.116) | the interaction +0.000 (0.000) / +0.000 (0.000)
+  S248: CAND 52.29% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 508 / 884 / 837 / 1422 s
+    HR - CAND +0.800 (0.126) / +0.893 (0.127) | T3 - CAND +0.600 (0.137) / +0.204 (0.138) | HR+T3 - CAND +1.563 (0.165) / +1.204 (0.167) | HR+T3 - HR +0.762 (0.145) / +0.311 (0.147) | the interaction +0.163 (0.173) / +0.107 (0.174)
+  S002: CAND 100.00% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 579 / 762 / 882 / 1113 s
+    HR - CAND +0.000 (0.000) / +0.000 (0.000) | T3 - CAND +0.000 (0.000) / +0.014 (0.002) | HR+T3 - CAND +0.000 (0.000) / +0.014 (0.002) | HR+T3 - HR +0.000 (0.000) / +0.014 (0.002) | the interaction +0.000 (0.000) / +0.000 (0.000)
+  S330: CAND 90.04% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 526 / 892 / 910 / 1414 s
+    HR - CAND +0.037 (0.033) / +0.033 (0.033) | T3 - CAND +0.313 (0.107) / +0.096 (0.108) | HR+T3 - CAND +0.300 (0.103) / +0.075 (0.104) | HR+T3 - HR +0.263 (0.102) / +0.041 (0.103) | the interaction -0.050 (0.056) / -0.054 (0.056)
+AT W0.01 (survival points (se) / whole score (se), paired by path):
+  S362: CAND 49.00% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 535 / 747 / 908 / 1313 s
+    HR - CAND +0.000 (0.000) / -0.000 (0.000) | T3 - CAND +0.125 (0.088) / +0.116 (0.097) | HR+T3 - CAND +0.125 (0.088) / +0.116 (0.097) | HR+T3 - HR +0.125 (0.088) / +0.116 (0.097) | the interaction +0.000 (0.000) / +0.001 (0.000)
+  S370: CAND 80.31% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 609 / 926 / 1085 / 1569 s
+    HR - CAND +1.688 (0.160) / +1.815 (0.161) | T3 - CAND +2.038 (0.217) / +1.237 (0.220) | HR+T3 - CAND +3.462 (0.226) / +2.758 (0.229) | HR+T3 - HR +1.775 (0.210) / +0.944 (0.212) | the interaction -0.263 (0.217) / -0.293 (0.217)
+  S224: CAND 69.66% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 477 / 758 / 804 / 1310 s
+    HR - CAND +0.000 (0.000) / +0.000 (0.000) | T3 - CAND +0.787 (0.147) / +0.556 (0.148) | HR+T3 - CAND +0.787 (0.147) / +0.556 (0.148) | HR+T3 - HR +0.787 (0.147) / +0.556 (0.148) | the interaction +0.000 (0.000) / +0.000 (0.000)
+  S380: CAND 73.17% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 626 / 950 / 1067 / 1493 s
+    HR - CAND +0.000 (0.000) / -0.000 (0.000) | T3 - CAND +0.050 (0.117) / +0.051 (0.118) | HR+T3 - CAND +0.050 (0.117) / +0.051 (0.118) | HR+T3 - HR +0.050 (0.117) / +0.051 (0.118) | the interaction +0.000 (0.000) / +0.000 (0.000)
+  S248: CAND 52.33% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 499 / 858 / 813 / 1426 s
+    HR - CAND +0.912 (0.129) / +0.978 (0.129) | T3 - CAND +0.487 (0.135) / +0.183 (0.136) | HR+T3 - CAND +1.387 (0.158) / +1.104 (0.159) | HR+T3 - HR +0.475 (0.141) / +0.126 (0.142) | the interaction -0.013 (0.182) / -0.057 (0.182)
+  S002: CAND 100.00% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 316 / 426 / 549 / 711 s
+    HR - CAND +0.000 (0.000) / -0.001 (0.000) | T3 - CAND +0.000 (0.000) / +0.011 (0.001) | HR+T3 - CAND +0.000 (0.000) / +0.011 (0.001) | HR+T3 - HR +0.000 (0.000) / +0.012 (0.001) | the interaction +0.000 (0.000) / +0.001 (0.000)
+  S330: CAND 89.97% (360 moves), HR 600, T3 480, HR+T3 800 moves (tiersBelow 3); solve 531 / 867 / 908 / 1439 s
+    HR - CAND +0.013 (0.028) / +0.011 (0.028) | T3 - CAND +0.450 (0.106) / +0.266 (0.107) | HR+T3 - CAND +0.425 (0.107) / +0.237 (0.108) | HR+T3 - HR +0.412 (0.107) / +0.226 (0.107) | the interaction -0.037 (0.052) / -0.040 (0.052)
+THE SOLVE against CAND's (four units at a time on four cores: a guide for gate 5, not its measurement), the median over the 14 household-weights and the range: HR x1.53 (x1.32 to x1.74), T3 x1.69 (x1.52 to x1.78), HR+T3 x2.63 (x1.92 to x2.86)
+THE PANEL (the mean over the seven households, its se from theirs; the largest and smallest on a household):
+  HR - CAND  W0.02: survival +0.364 (se 0.030) / score +0.395 (se 0.030); on a household survival +0.000 to +1.712, score -0.000 to +1.837
+  HR - CAND  W0.01: survival +0.373 (se 0.030) / score +0.400 (se 0.030); on a household survival +0.000 to +1.688, score -0.001 to +1.815
+  T3 - CAND  W0.02: survival +0.554 (se 0.050) / score +0.267 (se 0.051); on a household survival -0.025 to +2.225, score -0.048 to +1.015
+  T3 - CAND  W0.01: survival +0.563 (se 0.049) / score +0.346 (se 0.050); on a household survival +0.000 to +2.038, score +0.011 to +1.237
+  HR+T3 - CAND W0.02: survival +0.889 (se 0.052) / score +0.626 (se 0.054); on a household survival -0.025 to +3.612, score -0.048 to +2.542
+  HR+T3 - CAND W0.01: survival +0.891 (se 0.052) / score +0.690 (se 0.052); on a household survival +0.000 to +3.462, score +0.011 to +2.758
+  HR+T3 - HR W0.02: survival +0.525 (se 0.050) / score +0.232 (se 0.051); on a household survival -0.025 to +1.900, score -0.048 to +0.705
+  HR+T3 - HR W0.01: survival +0.518 (se 0.049) / score +0.290 (se 0.050); on a household survival +0.000 to +1.775, score +0.012 to +0.944
+  interaction W0.02: survival -0.029 (se 0.041) / score -0.035 (se 0.041); on a household survival -0.325 to +0.163, score -0.310 to +0.107
+  interaction W0.01: survival -0.045 (se 0.041) / score -0.056 (se 0.041); on a household survival -0.263 to +0.000, score -0.293 to +0.001
+the gate: one code (ae49ee6bcedd), seed and paths 7002/8000, candidate e65e5e99ba49, 45 points; tiersBelow 3 on the T3 arms and 2 on the others, as each unit recorded
+N4's units reproduced on this code: CAND and CAND+HR the same bit for bit on 28 of 28 household-weight-arms
+HR - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.837; S370 W0.02 survival +1.712; S248 W0.02 score +0.893; S248 W0.02 survival +0.800; panel mean W0.02 score +0.395; panel mean W0.02 survival +0.364; S370 W0.01 score +1.815; S370 W0.01 survival +1.688; S248 W0.01 score +0.978; S248 W0.01 survival +0.912; panel mean W0.01 score +0.400; panel mean W0.01 survival +0.373; a household loss beyond 0.5 nowhere
+T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +1.015; S370 W0.02 survival +2.225; S224 W0.02 survival +0.650; S248 W0.02 survival +0.600; panel mean W0.02 score +0.267; panel mean W0.02 survival +0.554; S370 W0.01 score +1.237; S370 W0.01 survival +2.038; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.346; panel mean W0.01 survival +0.563; a household loss beyond 0.5 nowhere
+HR+T3 - CAND: PASSES N4's bar: beyond the targets S370 W0.02 score +2.542; S370 W0.02 survival +3.612; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 score +1.204; S248 W0.02 survival +1.563; panel mean W0.02 score +0.626; panel mean W0.02 survival +0.889; S370 W0.01 score +2.758; S370 W0.01 survival +3.462; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; S248 W0.01 score +1.104; S248 W0.01 survival +1.387; panel mean W0.01 score +0.690; panel mean W0.01 survival +0.891; a household loss beyond 0.5 nowhere
+HR+T3 - HR: PASSES N4's bar: beyond the targets S370 W0.02 score +0.705; S370 W0.02 survival +1.900; S224 W0.02 score +0.503; S224 W0.02 survival +0.662; S248 W0.02 survival +0.762; panel mean W0.02 score +0.232; panel mean W0.02 survival +0.525; S370 W0.01 score +0.944; S370 W0.01 survival +1.775; S224 W0.01 score +0.556; S224 W0.01 survival +0.787; panel mean W0.01 score +0.290; panel mean W0.01 survival +0.518; a household loss beyond 0.5 nowhere
+DECISION (D28, the rule committed before launch): with HR in the candidate, CAND+HR+T3 against CAND+HR PASSES: the third step joins; without HR, CAND+T3 against CAND PASSES: the third step joins. Which reading decides is the maintainer's call on HR (D27)

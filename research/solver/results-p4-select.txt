@@ -1,0 +1,184 @@
+STEP 5b - PHASE 4 PANEL SELECTION, 24 Sep 01:50-02:05, from snapshots of b326073 and 3461e4a
+Arm A exactly as Phase 4's (the app's own policy search then its tournament, guardrails on with a floor of 80%
+of target, the lookahead at 5), searched on seed 7001, measured on 1,000 paths of seed 7005. Every id already
+under results/ excluded. All 30 FIRE candidates (retiring at 52) and all 128 free library candidates run.
+
+VERDICT: THE PREDICTION'S FALSIFIER FIRED - STOPPED HERE, FOR THE MAINTAINER.
+  Prediction (written 23 Sep): FIRE 12-20 of 30 in the 75-95% band; library half to two thirds; falsified if
+  under a third land in the band. Outcome: 1 of 158 in the band (S032, library, 77.9%); FIRE 0 of 30.
+  Arm A's survival is split in two, not spread:
+    library (128): 53 at 99-100%, 4 at 95-99%, 1 at 75-85%, 3 at 70-75%, 18 at 60-70%, 21 at 50-60%, 28 below 50%
+                   median 67.6%
+    FIRE (30):     all below 50%, median 13.7% - retiring at 52 with the library's spending is mostly infeasible
+  Why the prediction missed: it was drawn from the tuning 41, which were SELECTED on a fixed rule's survival being
+  70-98%; the rest of the library is either comfortably safe or thin. The panel's own band cannot be filled from
+  this library as written.
+
+OPTIONS FOR THE MAINTAINER (none taken)
+  (a) widen the band: [50, 98] holds 44 library households (no FIRE), [60, 95] holds 22;
+  (b) land each candidate: set each household's spending target so arm A survives about 85% on the band seed,
+      keeping its wealth, wrappers and ages - every household then sits where the two arms can differ, at the
+      cost of changing the spending the household asked for (arm A re-run per candidate: seconds each);
+  (c) redefine the FIRE cohort (retire at 55 or 57 instead of 52), or drop it and take the panel from the library.
+  Recommended: (b) for both cohorts - it keeps the ceiling safeguard's purpose (a band where survival can move)
+  without selecting only on what the library happens to contain; the write-up reports it as landed households.
+
+PER CANDIDATE (the batch's own lines)
+fire   0 S302F  fire/pension-heavy/lean/heavy           arm A   3.3  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   1 S304F  fire/pension-heavy/modest/moderate      arm A   7.0  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   2 S306F  fire/pension-heavy/comfortable/light    arm A  16.6  -  Bracket-Smoothed Sizing + Bracket Fill Basic  7s
+fire   3 S308F  fire/pension-heavy/comfortable/heavy    arm A   0.6  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   4 S310F  fire/pension-heavy/wealthy/moderate     arm A   2.1  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   5 S314F  fire/isa-heavy/lean/heavy               arm A  11.4  -  Bridge-Sized Relief + Bracket Fill  6s
+fire   6 S316F  fire/isa-heavy/modest/moderate          arm A  23.2  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   7 S320F  fire/isa-heavy/comfortable/heavy        arm A   9.5  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire   8 S322F  fire/isa-heavy/wealthy/moderate         arm A  16.2  -  Survival Maximizer + Bracket Fill Basic  6s
+fire   9 S326F  fire/gia-heavy/lean/heavy               arm A   9.1  -  Bracket-Smoothed Sizing + Windfall to ISA  5s
+fire  10 S328F  fire/gia-heavy/modest/moderate          arm A  20.8  -  Bracket-Smoothed Sizing + Bracket Fill Basic  5s
+fire  11 S332F  fire/gia-heavy/comfortable/heavy        arm A   6.7  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  12 S334F  fire/gia-heavy/wealthy/moderate         arm A  12.8  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  13 S338F  fire/balanced/lean/heavy                arm A   9.6  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  14 S340F  fire/balanced/modest/moderate           arm A  19.1  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  15 S344F  fire/balanced/comfortable/heavy         arm A   6.3  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  16 S346F  fire/balanced/wealthy/moderate          arm A  13.0  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  17 S350F  fire/cash-heavy/lean/heavy              arm A   9.6  -  Bracket-Smoothed Sizing + Windfall to ISA  6s
+fire  18 S352F  fire/cash-heavy/modest/moderate         arm A  21.4  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  19 S356F  fire/cash-heavy/comfortable/heavy       arm A   6.9  -  Bracket-Smoothed Sizing + Bracket Fill Basic  6s
+fire  20 S358F  fire/cash-heavy/wealthy/moderate        arm A  13.7  -  Current Plan + Bracket Fill Basic  6s
+fire  21 S300F  fire/pension-heavy/lean/light           arm A  29.2  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  5s
+fire  22 S312F  fire/isa-heavy/lean/light               arm A  42.7  -  Current Plan + Bracket Fill, lump sum  5s
+fire  23 S318F  fire/isa-heavy/comfortable/light        arm A  35.9  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  6s
+fire  24 S324F  fire/gia-heavy/lean/light               arm A  42.4  -  Bridge-Sized Relief + Bracket Fill, lump sum  6s
+fire  25 S330F  fire/gia-heavy/comfortable/light        arm A  32.6  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  6s
+fire  26 S336F  fire/balanced/lean/light                arm A  41.1  -  Survival Maximizer + Bracket Fill  6s
+fire  27 S342F  fire/balanced/comfortable/light         arm A  28.1  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  6s
+fire  28 S348F  fire/cash-heavy/lean/light              arm A  47.1  -  Survival Maximizer + Bracket Fill, lump sum  6s
+fire  29 S354F  fire/cash-heavy/comfortable/light       arm A  33.2  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  6s
+lib    0 S000   in-drawdown/pension-heavy/lean/light    arm A 100.0  -  Current Plan + Bracket Fill Basic  2s
+lib    1 S002   in-drawdown/pension-heavy/lean/heavy    arm A 100.0  -  Current Plan + Bracket Fill Basic, lump sum  3s
+lib    2 S006   in-drawdown/pension-heavy/comfortable/  arm A 100.0  -  Bridge-Sized Relief + Bracket Fill, lump sum  3s
+lib    3 S008   in-drawdown/pension-heavy/comfortable/  arm A  74.4  -  Current Plan + Bracket Fill Basic, lump sum  3s
+lib    4 S012   in-drawdown/isa-heavy/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   2s
+lib    5 S014   in-drawdown/isa-heavy/lean/heavy        arm A  99.7  -  Bridge-Sized Relief + Sequential (harvest off)  2s
+lib    6 S016   in-drawdown/isa-heavy/modest/moderate   arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off), lu  2s
+lib    7 S018   in-drawdown/isa-heavy/comfortable/ligh  arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off)  2s
+lib    8 S024   in-drawdown/gia-heavy/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   2s
+lib    9 S026   in-drawdown/gia-heavy/lean/heavy        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   10 S028   in-drawdown/gia-heavy/modest/moderate   arm A 100.0  -  Bridge-Sized Relief + Bracket Fill  2s
+lib   11 S030   in-drawdown/gia-heavy/comfortable/ligh  arm A 100.0  -  Bridge-Sized Relief + ISA First  3s
+lib   12 S032   in-drawdown/gia-heavy/comfortable/heav  arm A  77.9  IN BAND  Bridge-Sized Relief + Bracket Fill Basic, lump sum  3s
+lib   13 S036   in-drawdown/balanced/lean/light         arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   2s
+lib   14 S038   in-drawdown/balanced/lean/heavy         arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   15 S040   in-drawdown/balanced/modest/moderate    arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off), lu  2s
+lib   16 S042   in-drawdown/balanced/comfortable/light  arm A  99.8  -  Bridge-Sized Relief + ISA First, lump sum  2s
+lib   17 S044   in-drawdown/balanced/comfortable/heavy  arm A  59.9  -  Bridge-Sized Relief + Bracket Fill, lump sum  3s
+lib   18 S048   in-drawdown/cash-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   2s
+lib   19 S050   in-drawdown/cash-heavy/lean/heavy       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   20 S052   in-drawdown/cash-heavy/modest/moderate  arm A  99.8  -  Bridge-Sized Relief + Bracket Fill  3s
+lib   21 S060   just-retired/pension-heavy/lean/light   arm A 100.0  -  Current Plan + Bracket Fill Basic  3s
+lib   22 S062   just-retired/pension-heavy/lean/heavy   arm A  99.9  -  Current Plan + Bracket Fill Basic  3s
+lib   23 S066   just-retired/pension-heavy/comfortable  arm A  99.7  -  Bridge-Sized Relief + Bracket Fill, lump sum  3s
+lib   24 S068   just-retired/pension-heavy/comfortable  arm A  55.7  -  Current Plan + Bracket Fill Basic  4s
+lib   25 S072   just-retired/isa-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   3s
+lib   26 S074   just-retired/isa-heavy/lean/heavy       arm A  99.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   27 S078   just-retired/isa-heavy/comfortable/lig  arm A  99.6  -  Bridge-Sized Relief + Sequential (harvest off)  3s
+lib   28 S080   just-retired/isa-heavy/comfortable/hea  arm A  73.4  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   29 S084   just-retired/gia-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   3s
+lib   30 S086   just-retired/gia-heavy/lean/heavy       arm A 100.0  -  Bridge-Sized Relief + Windfall to ISA  3s
+lib   31 S088   just-retired/gia-heavy/modest/moderate  arm A 100.0  -  Bridge-Sized Relief + Bracket Fill  3s
+lib   32 S090   just-retired/gia-heavy/comfortable/lig  arm A 100.0  -  Bridge-Sized Relief + ISA First  3s
+lib   33 S092   just-retired/gia-heavy/comfortable/hea  arm A  61.3  -  Bridge-Sized Relief + Bracket Fill  3s
+lib   34 S096   just-retired/balanced/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   35 S098   just-retired/balanced/lean/heavy        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   36 S102   just-retired/balanced/comfortable/ligh  arm A  98.9  -  Bridge-Sized Relief + ISA First  3s
+lib   37 S104   just-retired/balanced/comfortable/heav  arm A  49.6  -  Bridge-Sized Relief + Bracket Fill  3s
+lib   38 S108   just-retired/cash-heavy/lean/light      arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off)  3s
+lib   39 S110   just-retired/cash-heavy/lean/heavy      arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off)  3s
+lib   40 S116   just-retired/cash-heavy/comfortable/he  arm A  68.5  -  Bridge-Sized Relief + Bracket Fill  3s
+lib   41 S120   early-bridge/pension-heavy/lean/light   arm A 100.0  -  Current Plan + Bracket Fill Basic  4s
+lib   42 S122   early-bridge/pension-heavy/lean/heavy   arm A  98.5  -  Current Plan + Bracket Fill Basic  4s
+lib   43 S128   early-bridge/pension-heavy/comfortable  arm A  49.5  -  Current Plan + Bracket Fill Basic  5s
+lib   44 S130   early-bridge/pension-heavy/wealthy/mod  arm A  64.1  -  Current Plan + Bracket Fill Basic, lump sum  4s
+lib   45 S132   early-bridge/isa-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   46 S134   early-bridge/isa-heavy/lean/heavy       arm A  97.3  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib   47 S138   early-bridge/isa-heavy/comfortable/lig  arm A  99.5  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   48 S140   early-bridge/isa-heavy/comfortable/hea  arm A  65.7  -  Bridge-Sized Relief + Bracket Fill, lump sum  5s
+lib   49 S144   early-bridge/gia-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  5s
+lib   50 S146   early-bridge/gia-heavy/lean/heavy       arm A 100.0  -  Bridge-Sized Relief + Windfall to ISA (harvest off  3s
+lib   51 S150   early-bridge/gia-heavy/comfortable/lig  arm A  99.9  -  Bridge-Sized Relief + ISA First, lump sum  4s
+lib   52 S152   early-bridge/gia-heavy/comfortable/hea  arm A  55.5  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   53 S156   early-bridge/balanced/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   54 S158   early-bridge/balanced/lean/heavy        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib   55 S164   early-bridge/balanced/comfortable/heav  arm A  46.7  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib   56 S168   early-bridge/cash-heavy/lean/light      arm A 100.0  -  Bridge-Sized Relief + Sequential (harvest off)  3s
+lib   57 S170   early-bridge/cash-heavy/lean/heavy      arm A 100.0  -  Bridge-Sized Relief + Windfall to ISA  3s
+lib   58 S176   early-bridge/cash-heavy/comfortable/he  arm A  60.1  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   59 S180   near/pension-heavy/lean/light           arm A 100.0  -  Bracket-Smoothed Sizing + Bracket Fill Basic  3s
+lib   60 S188   near/pension-heavy/comfortable/heavy    arm A  44.0  -  Current Plan + Bracket Fill Basic, lump sum  4s
+lib   61 S190   near/pension-heavy/wealthy/moderate     arm A  59.5  -  Bridge-Sized Relief + Bracket Fill Basic, lump sum  4s
+lib   62 S192   near/isa-heavy/lean/light               arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   63 S200   near/isa-heavy/comfortable/heavy        arm A  59.8  -  Bridge-Sized Relief + Bracket Fill, lump sum  4s
+lib   64 S204   near/gia-heavy/lean/light               arm A  99.6  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   65 S210   near/gia-heavy/comfortable/light        arm A  98.5  -  Bridge-Sized Relief + ISA First  4s
+lib   66 S212   near/gia-heavy/comfortable/heavy        arm A  52.9  -  Survival Maximizer + Bracket Fill  4s
+lib   67 S214   near/gia-heavy/wealthy/moderate         arm A  67.6  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib   68 S216   near/balanced/lean/light                arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   69 S224   near/balanced/comfortable/heavy         arm A  46.2  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  4s
+lib   70 S228   near/cash-heavy/lean/light              arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  3s
+lib   71 S236   near/cash-heavy/comfortable/heavy       arm A  59.3  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   72 S242   mid/pension-heavy/lean/heavy            arm A  58.3  -  Bracket-Smoothed Sizing + Bracket Fill  5s
+lib   73 S244   mid/pension-heavy/modest/moderate       arm A  59.9  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   74 S248   mid/pension-heavy/comfortable/heavy     arm A  32.1  -  Current Plan + Bracket Fill Basic  5s
+lib   75 S250   mid/pension-heavy/wealthy/moderate      arm A  44.1  -  Relief-First, Bridge-Last + Windfall to ISA  5s
+lib   76 S254   mid/isa-heavy/lean/heavy                arm A  61.9  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   77 S260   mid/isa-heavy/comfortable/heavy         arm A  49.1  -  Survival Maximizer + Bracket Fill Basic  4s
+lib   78 S262   mid/isa-heavy/wealthy/moderate          arm A  57.7  -  Bridge-Sized Relief + Windfall to ISA  4s
+lib   79 S266   mid/gia-heavy/lean/heavy                arm A  65.5  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   80 S272   mid/gia-heavy/comfortable/heavy         arm A  44.3  -  Survival Maximizer + Bracket Fill Basic  4s
+lib   81 S274   mid/gia-heavy/wealthy/moderate          arm A  51.7  -  Survival Maximizer + Windfall to ISA, lump sum  4s
+lib   82 S278   mid/balanced/lean/heavy                 arm A  64.1  -  Bridge-Sized Relief + Bracket Fill  4s
+lib   83 S280   mid/balanced/modest/moderate            arm A  69.0  -  Survival Maximizer + Bracket Fill Basic  4s
+lib   84 S284   mid/balanced/comfortable/heavy          arm A  40.2  -  Survival Maximizer + Bracket Fill Basic, lump sum  4s
+lib   85 S286   mid/balanced/wealthy/moderate           arm A  50.4  -  Bridge-Sized Relief + Windfall to ISA, lump sum  5s
+lib   86 S288   mid/cash-heavy/lean/light               arm A  99.0  -  Bracket-Smoothed Sizing + Bracket Fill  4s
+lib   87 S290   mid/cash-heavy/lean/heavy               arm A  67.0  -  Bridge-Sized Relief + Bracket Fill, lump sum  4s
+lib   88 S296   mid/cash-heavy/comfortable/heavy        arm A  45.7  -  Current Plan + Bracket Fill Basic, lump sum  4s
+lib   89 S298   mid/cash-heavy/wealthy/moderate         arm A  56.2  -  Survival Maximizer + Windfall to ISA  5s
+lib   90 S302   far/pension-heavy/lean/heavy            arm A  49.8  -  Survival Maximizer + Windfall to ISA  5s
+lib   91 S304   far/pension-heavy/modest/moderate       arm A  55.7  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  5s
+lib   92 S306   far/pension-heavy/comfortable/light     arm A  63.6  -  Survival Maximizer + Windfall to ISA  5s
+lib   93 S308   far/pension-heavy/comfortable/heavy     arm A  36.4  -  Relief-First, Bridge-Last + Bracket Fill Basic  5s
+lib   94 S310   far/pension-heavy/wealthy/moderate      arm A  44.0  -  Current Plan + Bracket Fill Basic  5s
+lib   95 S314   far/isa-heavy/lean/heavy                arm A  55.6  -  Bracket-Smoothed Sizing + Windfall to ISA  5s
+lib   96 S316   far/isa-heavy/modest/moderate           arm A  64.2  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib   97 S320   far/isa-heavy/comfortable/heavy         arm A  45.7  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  5s
+lib   98 S322   far/isa-heavy/wealthy/moderate          arm A  54.9  -  Current Plan + Windfall to ISA, lump sum  5s
+lib   99 S326   far/gia-heavy/lean/heavy                arm A  55.6  -  Survival Maximizer + Windfall to ISA  4s
+lib  100 S328   far/gia-heavy/modest/moderate           arm A  63.2  -  Survival Maximizer + Bracket Fill Basic  5s
+lib  101 S332   far/gia-heavy/comfortable/heavy         arm A  41.9  -  Bracket-Smoothed Sizing + Bracket Fill Basic  5s
+lib  102 S334   far/gia-heavy/wealthy/moderate          arm A  48.4  -  Current Plan + Windfall to ISA  5s
+lib  103 S338   far/balanced/lean/heavy                 arm A  55.1  -  Bridge-Sized Relief + Bracket Fill Basic  5s
+lib  104 S340   far/balanced/modest/moderate            arm A  61.6  -  Current Plan + Bracket Fill Basic  5s
+lib  105 S344   far/balanced/comfortable/heavy          arm A  38.7  -  Survival Maximizer + Bracket Fill Basic  5s
+lib  106 S346   far/balanced/wealthy/moderate           arm A  48.5  -  Survival Maximizer + Windfall to ISA, lump sum  5s
+lib  107 S350   far/cash-heavy/lean/heavy               arm A  57.4  -  Bracket-Smoothed Sizing + Windfall to ISA  5s
+lib  108 S352   far/cash-heavy/modest/moderate          arm A  64.0  -  Relief-First, Bridge-Last + Bracket Fill Basic  5s
+lib  109 S356   far/cash-heavy/comfortable/heavy        arm A  43.1  -  Bracket-Smoothed Sizing + Bracket Fill Basic, lump  5s
+lib  110 S358   far/cash-heavy/wealthy/moderate         arm A  52.5  -  Relief-First, Bridge-Last + Windfall to ISA  5s
+lib  111 S360   long-bridge/pension-heavy/lean/light    arm A   0.3  -  Current Plan + Bracket Fill Basic  4s
+lib  112 S362   long-bridge/pension-heavy/lean/heavy    arm A   0.0  -  Bridge-Sized Relief + Windfall to ISA  4s
+lib  113 S364   long-bridge/pension-heavy/modest/moder  arm A   0.0  -  Bridge-Sized Relief + Bracket Fill  8s
+lib  114 S368   long-bridge/pension-heavy/comfortable/  arm A   0.0  -  Bridge-Sized Relief + Bracket Fill Basic  5s
+lib  115 S370   long-bridge/pension-heavy/wealthy/mode  arm A   0.0  -  Bridge-Sized Relief + Windfall to ISA  8s
+lib  116 S372   long-bridge/isa-heavy/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic (harvest   3s
+lib  117 S380   long-bridge/isa-heavy/comfortable/heav  arm A  54.3  -  Bridge-Sized Relief + Bracket Fill Basic  6s
+lib  118 S382   long-bridge/isa-heavy/wealthy/moderate  arm A  72.1  -  Current Plan + Bracket Fill Basic  7s
+lib  119 S384   long-bridge/gia-heavy/lean/light        arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib  120 S386   long-bridge/gia-heavy/lean/heavy        arm A  99.9  -  Bridge-Sized Relief + Bracket Fill Basic, lump sum  5s
+lib  121 S392   long-bridge/gia-heavy/comfortable/heav  arm A  42.3  -  Current Plan + Bracket Fill Basic  4s
+lib  122 S394   long-bridge/gia-heavy/wealthy/moderate  arm A  61.5  -  Current Plan + ISA First, lump sum  4s
+lib  123 S396   long-bridge/balanced/lean/light         arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib  124 S404   long-bridge/balanced/comfortable/heavy  arm A  32.5  -  Current Plan + Bracket Fill Basic, lump sum  7s
+lib  125 S406   long-bridge/balanced/wealthy/moderate   arm A  69.1  -  Current Plan + Windfall to ISA, lump sum  4s
+lib  126 S408   long-bridge/cash-heavy/lean/light       arm A 100.0  -  Bridge-Sized Relief + Bracket Fill Basic  4s
+lib  127 S416   long-bridge/cash-heavy/comfortable/hea  arm A  47.7  -  Current Plan + Bracket Fill Basic  4s

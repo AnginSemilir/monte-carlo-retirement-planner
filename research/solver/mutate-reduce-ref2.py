@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+# REF-2'S REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6; every mutant caught before launch, O144): each mutation breaks one
+# part of reduce-ref2.mjs's gate, ledger, items, cause map or read in a scratch copy, runs the planted set on the copy and
+# must see PLANTED CHECK FAILED (mutate_lib.py, which logs the run to results-mutation-history.txt).
+#   python3 research/solver/mutate-reduce-ref2.py > research/solver/results-reduce-ref2-mutations.txt
+from mutate_lib import run
+M = [
+  # the gate
+  ("n = (byKey[k] || []).length; if (n !== 1)", "n = (byKey[k] || []).length; if (n > 1)"),
+  ("n = (byKey[k] || []).length; if (n !== 1)", "n = (byKey[k] || []).length; if (n < 1)"),
+  ("if (!j.done) bad.push(", "if (false) bad.push("),
+  ("['code', 'audit', 'prediction', 'sha'].some(f => j.stamp[f] !== st0[f])", "['audit'].some(f => j.stamp[f] !== st0[f])"),
+  ("j.head.npw !== npw || j.head.seed !== seed", "j.head.seed !== seed"),
+  ("j.head.npw !== npw || j.head.seed !== seed", "j.head.npw !== npw"),
+  ("|| j.head.scale !== scale ||", "||"),
+  ("|| j.head.draws !== draws ||", "||"),
+  ("|| j.head.flow !== flow)", ")"),
+  ("if (j.pts !== pts) bad.push(", "if (false) bad.push("),
+  ("...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm],", "...COMMON, readerSplit: SPLIT[j.arm],"),
+  ("...COMMON, readerSplit: SPLIT[j.arm], readerRef: REFOF[j.arm],", "...COMMON, readerRef: REFOF[j.arm],"),
+  ("floor: String(FLOORS[j.id]), pts: String(pts),", "pts: String(pts),"),
+  ("switchCharge: '0.001', line: '0.5', mix: '3' };", "switchCharge: '0.001', mix: '3' };"),
+  ("readerChance: 'null', jointWorlds: 'true', e3pcls: 'true',", "readerChance: 'null', jointWorlds: 'true',"),
+  ("if (!j.checks.armTook || j.checks.armTook[0] !== 1)", "if (!j.checks.armTook)"),
+  ("if (!(j.P >= 0) || o.length !== 2 || o.some(x => !x) || !o.some(x => x.ai === j.P))", "if (o.length !== 2 || o.some(x => !x))"),
+  ("if (!(j.P >= 0) || o.length !== 2 || o.some(x => !x) || !o.some(x => x.ai === j.P))", "if (!(j.P >= 0) || o.length !== 2 || o.some(x => !x))"),
+  ("!(Math.abs(j.opening.isa + j.opening.gia + j.opening.cash - 1) < 1e-5)", "false"),
+  ("!(j.checks.mirrorTook[1] > 0) || ", ""),
+  ("|| j.checks.mirrorTook[0] !== j.checks.mirrorTook[1]) bad.push", ") bad.push"),
+  ("if (!j.quad[w]) bad.push(", "if (false) bad.push("),
+  ("if (rows.length !== 5 || [0, 1, 2, 3, 4].some(i => !rows[i]))", "if (rows.length === 0)"),
+  ("|| r.oswN !== draws ||", "||"),
+  ("fl[i].N !== flow || fl[i].N2 !== flow ||", "fl[i].N2 !== flow ||"),
+  ("if (!j.tables[w] || !Number.isFinite(j.tables[w].OWN)) bad.push(", "if (false) bad.push("),
+  ("if (!s || s.n !== npw || s.bridge < s.ok) bad.push(", "if (!s) bad.push("),
+  ("if (!s || s.n !== npw || s.bridge < s.ok) bad.push(", "if (!s || s.n !== npw) bad.push("),
+  ("j.checks.forceIdentity[0] !== FI || j.checks.forceIdentity[1] !== FI", "j.checks.forceIdentity[0] !== j.checks.forceIdentity[1]"),
+  ("if (!f) bad.push(`${k}: its file ${j.file} is missing`);", "if (!f) ;"),
+  ("if (!f.stamp || ['code', 'audit', 'prediction', 'sha'].some(x => f.stamp[x] !== (j.stamp || {})[x]))", "if (!f.stamp)"),
+  ("if (!b || sha16(Buffer.from(b, 'base64')) !== sh) bad.push(", "if (!b) bad.push("),
+  ("if (neref && st0 && neref.code !== st0.code)", "if (false)"),
+  # the ledger
+  ("const best = arr => arr.reduce((b, x, i) => (x > arr[b] ? i : b), 0);", "const best = arr => 1;"),
+  ("const lohi = get => [wsum(x => cp(get(x), N, 2 * a2)[0]), wsum(x => cp(get(x), N, 2 * a2)[1])];", "const lohi = get => [wsum(x => get(x) / N), wsum(x => get(x) / N)];"),
+  ("[fblo, fbhi] = cp(F.bridge, F.N, 2 * a2)", "[fblo, fbhi] = [F.bridge / F.N, F.bridge / F.N]"),
+  ("GAP: ln(FB) - ln(OW), GAPlo: ln(fblo) - ln(OWhi), GAPhi: ln(fbhi) - ln(OWlo),", "GAP: ln(FB) - ln(OW), GAPlo: ln(fbhi) - ln(OWlo), GAPhi: ln(fblo) - ln(OWhi),"),
+  ("MIXS: ln(OS) - ln(OW), MIXSlo: ln(OSlo) - ln(OWhi), MIXShi: ln(OShi) - ln(OWlo),", "MIXS: ln(OS) - ln(OW), MIXSlo: ln(OS) - ln(OW), MIXShi: ln(OS) - ln(OW),"),
+  ("SWEEP: ln(OSW) - ln(OS), REST: ln(FB) - ln(OSW) };", "SWEEP: ln(OSW) - ln(OS), REST: ln(FB) - ln(OS) };"),
+  ("const fl = Lj.flow[k], bi = fl[0].bridge >= fl[1].bridge ? 0 : 1", "const fl = Lj.flow[k], bi = 1"),
+  # item 1
+  ("let b = 0, c = 0; for (let i = 0; i < N; i++) { if (B[i] && !A[i]) b++; else if (!B[i] && A[i]) c++; }", "let b = 0, c = 0;"),
+  ("const m = b + c, [lo, hi] = m ? cp(c, m, 2 * a3) : [0.5, 0.5]", "const m = b + c, [lo, hi] = [0.5, 0.5]"),
+  ("return { k, b, c, N, D: q(dT - dr), lo: q(dT - drHi), hi: q(dT - drLo) };", "return { k, b, c, N, D: q(dT - dr), lo: q(dT - dr), hi: q(dT - dr) };"),
+  ("out['1'] = { outcome: c1.every(x => x.lo >= DEEP) ? 'HELD'", "out['1'] = { outcome: c1.every(x => x.lo > DEEP) ? 'HELD'"),
+  ("c1[0].hi <= DEEPF ? 'FALSIFIED'", "c1[0].hi < DEEPF ? 'FALSIFIED'"),
+  ("c1[0].hi <= DEEPF ? 'FALSIFIED'", "c1.some(x => x.hi <= DEEPF) ? 'FALSIFIED'"),
+  ("const c1 = [0, 1, 2].map(k => paired(jt('S360', 'RSO'), jt('S360', 'BO'), k, bitsOf));", "const c1 = [0, 1, 2].map(k => paired(jt('S360', 'RSO'), jt('S360', 'BASE'), k, bitsOf));"),
+  # item 2
+  ("holds: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && Number.isFinite(l.MIXSlo)", "holds: Number.isFinite(l.MIXSlo)"),
+  ("q(l.MIXSlo) >= q(HALF * l.GAPhi)", "q(l.MIXSlo) > q(HALF * l.GAPhi)"),
+  ("q(l.MIXSlo) >= q(HALF * l.GAPhi)", "q(l.MIXSlo) >= q(HALF * l.GAP)"),
+  ("falls: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && q(l.MIXShi) < q(HALF * l.GAPlo)", "falls: q(l.MIXShi) < q(HALF * l.GAPlo)"),
+  ("falls: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && q(l.MIXShi) < q(HALF * l.GAPlo)", "falls: Number.isFinite(l.GAPlo) && q(l.GAPlo) > 0 && q(l.MIXShi) < q(HALF * l.GAPhi)"),
+  ("const w2 = [0, 1].map(k => {", "const w2 = [1, 2].map(k => {"),
+  ("out['2'] = { outcome: w2.every(x => x.holds) ? 'HELD' : w2.every(x => x.falls) ? 'FALSIFIED'", "out['2'] = { outcome: w2.some(x => x.holds) ? 'HELD' : w2.every(x => x.falls) ? 'FALSIFIED'"),
+  ("out['2'] = { outcome: w2.every(x => x.holds) ? 'HELD' : w2.every(x => x.falls) ? 'FALSIFIED'", "out['2'] = { outcome: w2.every(x => x.holds) ? 'HELD' : w2.some(x => x.falls) ? 'FALSIFIED'"),
+  # item 3
+  ("out['3'] = { outcome: c3.every(x => x.bo.d <= OVER) ? 'HELD'", "out['3'] = { outcome: c3.every(x => x.bo.d < OVER) ? 'HELD'"),
+  ("c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'", "c3.some(x => x.bo.lo >= OVER) ? 'FALSIFIED'"),
+  ("c3.some(x => x.bo.lo > OVER) ? 'FALSIFIED'", "c3.some(x => x.bo.d > OVER) ? 'FALSIFIED'"),
+  ("export function offOf(table, ok, n, al) { const [l, h] = cp(ok, n, al); return { d: q(table - 100 * ok / n), lo: q(table - 100 * h), hi: q(table - 100 * l) }; }", "export function offOf(table, ok, n, al) { const [l, h] = cp(ok, n, al); return { d: q(table - 100 * ok / n), lo: q(table - 100 * l), hi: q(table - 100 * h) }; }"),
+  ("same: [0, 1, 2].every(k => jt('share 0.95', 'BO').sims[`OWN${k}`].bits === jt('share 0.95', 'BASE').sims[`OWN${k}`].bits)", "same: true"),
+  # the cause map
+  ("'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open',", "'O151-REF': { HELD: 'held', FALSIFIED: 'open' }[o1c] || 'open',"),
+  ("'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1c] || 'open',", "'O151-RS': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open',"),
+  ("'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1c] || 'open',", "'O151-REF': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open',"),
+  ("'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1c] || 'open',", "'O151-RS': { HELD: 'not', FALSIFIED: 'held' }[o1] || 'open',"),
+  ("const o1c = o1 === 'FALSIFIED' && !out.clear ? 'INCONCLUSIVE' : o1;", "const o1c = o1;"),
+  ("const o1c = o1 === 'FALSIFIED' && !out.clear ? 'INCONCLUSIVE' : o1;", "const o1c = !out.clear ? 'INCONCLUSIVE' : o1;"),
+  ("out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);", "out.clear = [0, 1].every(k => q(led[k].GAPlo) <= 0);"),
+  ("out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);", "out.clear = [0, 1].some(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);"),
+  ("out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);", "out.clear = [0, 1, 2].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);"),
+  ("out.clear = [0, 1].every(k => Number.isFinite(led[k].GAPlo) && q(led[k].GAPlo) <= 0);", "out.clear = [0, 1].every(k => Number.isFinite(led[k].GAP) && q(led[k].GAP) <= 0);"),
+  ("${it.clear ? 'YES' : 'NO'}", "${'YES'}"),
+  ("'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o2] || 'open' };", "'RR-MIXS': { HELD: 'held', FALSIFIED: 'not' }[o1] || 'open' };"),
+  # the read end to end
+  ("L.push(`3. ORDER does not over-read", "L.push(`3 ORDER does not over-read"),
+  ("for (const [c, v] of Object.entries(it.causes)) L.push(`=> ${c} ${v}`);", "for (const [c, v] of Object.entries(it.causes).slice(1)) L.push(`=> ${c} ${v}`);"),
+  ("L.push(`OUTCOME: ${['1', '2', '3'].map", "L.push(`OUTCOME: ${['1', '2'].map"),
+  ("`     BO's runs are BASE's in every world: ${it['3'].same ? 'SAME' : 'DIFFERENT'}`", "`     BO's runs: ${it['3'].same ? 'SAME' : 'DIFFERENT'}`"),
+  # the rounding
+  ("export const q = x => (Number.isFinite(x) ? Math.round(x * 1e9) / 1e9 : x);", "export const q = x => x;"),
+]
+M = [m for m in M if m[0] != m[1]]
+run('reduce-ref2.mjs', [(f'{i + 1}: {old[:60]}', old, new) for i, (old, new) in enumerate(M)])

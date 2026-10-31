@@ -1,0 +1,29 @@
+=== a MEASUREMENT, not a test: O36 on S360 with the reader (the deep review after 7x's step 3; O36's gate before any deep review judges the combination): held tables 0/0 and 2/2, the reader's reference at the plan's tiers and at the held tier, 30 points, 8,000 paths; a measurement, no test (its results cannot settle a test)
+=== snapshot /tmp/solver-snap-2x2Qgn   from ccd3111 + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code d84e6bab7648 (smoke stamp dbdc63473ea0): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+stamp: code d84e6bab7648 audit b77e4c07d77a prediction none sha -
+O36 ON S360 WITH THE READER: held tables 0/0 and 2/2, the reader's reference at the plan's tiers and at the held tier; 30 points, 8000 paths (seed 7002); a measurement
+  ref plan hold 0/0: table 31.4305 sim 42.0750 secs 214 | ran mix 3 pts 30 seed 7002 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 5000 quad 5 holdTier 0/0 readerRef plan finalIntegral true bridgeRead reader
+  ref plan hold 2/2: table 32.4255 sim 28.9125 secs 190 | ran mix 3 pts 30 seed 7002 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 5000 quad 5 holdTier 2/2 readerRef plan finalIntegral true bridgeRead reader
+  ref held hold 0/0: table 31.4305 sim 42.0750 secs 214 | ran mix 3 pts 30 seed 7002 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 5000 quad 5 holdTier 0/0 readerRef held finalIntegral true bridgeRead reader
+  ref held hold 2/2: table 15.4015 sim 28.9000 secs 195 | ran mix 3 pts 30 seed 7002 paths 8000 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 5000 quad 5 holdTier 2/2 readerRef held finalIntegral true bridgeRead reader
+  ref plan: dT 0.9950 dS -13.1625 (2/2 against 0/0: 0 saved, 1053 lost)
+  ref held: dT -16.0290 dS -13.1750 (2/2 against 0/0: 0 saved, 1054 lost)
+=== snapshot kept at /tmp/solver-snap-2x2Qgn for provenance; remove it when the results are written up

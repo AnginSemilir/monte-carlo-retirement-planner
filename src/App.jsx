@@ -34,6 +34,7 @@ import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
 import EditMode from './EditMode.jsx';
+import { useSolverState } from './solverState.js';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
 // The engine section is framework-free and unit-tested; the UI section starts at "export default function App".
@@ -450,12 +451,12 @@ const DEFAULT_CONFIG = {
   // Where you are tax resident. Income tax bands are devolved; National Insurance, capital gains tax,
   // the personal allowance and its taper are not, and do not follow this setting.
   taxRegion: 'ruk',                  // 'ruk' | 'scotland' | 'wales'
-  // Scottish bands (2025/26). Six of them, and a higher rate that starts £6,608 earlier than rUK.
+  // Scottish bands (2026/27). Six of them, and a higher rate that starts £6,608 earlier than rUK.
   // Each limit is the income at which the *next* band starts, matching basicBandLimit's convention.
   scotStarterRate: 19,
-  scotStarterLimit: 15397,
+  scotStarterLimit: 16537,
   scotBasicRate: 20,
-  scotBasicLimit: 27491,
+  scotBasicLimit: 29526,
   scotIntermediateRate: 21,
   scotIntermediateLimit: 43662,
   scotHigherRate: 42,
@@ -511,8 +512,8 @@ const DEFAULT_CONFIG = {
   // allowance at the dividend rates of the band they fall in, and the tax is a cost the year funds.
   giaDividendYield: 2.0,             // % of the GIA's value a year, an approximation across the tiers
   dividendAllowance: 500,
-  dividendBasicRate: 8.75,
-  dividendHigherRate: 33.75,
+  dividendBasicRate: 10.75,          // 2026/27: the ordinary and upper rates rose two points from 6 April 2026
+  dividendHigherRate: 35.75,
   dividendAdditionalRate: 39.35,
   // Behavioural / modelling assumptions
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
@@ -988,11 +989,15 @@ const DECUMULATION_POLICIES = {
  */
 const GUARDRAILS = Object.freeze({ band: 0.20, cut: 0.10, raise: 0.10, freezeYears: 15 });
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+// today's date where the user is, as YYYY-MM-DD (toISOString gives the UTC date, a day out either side of midnight)
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 // Fraction of the calendar year remaining after the valuation date (0.01..1).
 const calculateYearFraction = (dateStr) => {
-  const d = dateStr ? new Date(dateStr) : new Date();
+  // a YYYY-MM-DD date is read as a local date, as the year's bounds below are: `new Date('2026-01-01')` is UTC midnight,
+  // which west of Greenwich falls in the year before and gave a 1 January plan a 1% first year (F0a, 21 Oct)
+  const ymd = typeof dateStr === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr) : null;
+  const d = ymd ? new Date(+ymd[1], +ymd[2] - 1, +ymd[3]) : dateStr ? new Date(dateStr) : new Date();
   if (isNaN(d.getTime())) return calculateYearFraction('');
   const year = d.getFullYear();
   const start = new Date(year, 0, 1).getTime();
@@ -1043,6 +1048,18 @@ function normaliseSpendBands(s, d) {
     bands.push({ fromAge: t2Age, toAge: terminal, amount: Math.round(base * (1 - t2Rate)) });
   }
   return bands.map((b, i) => ({ id: 'sb_migrated_' + i, ...b }));
+}
+
+/*
+ * THE SOLVER'S LOCKS (Part C Phase 7c, research/solver/PHASE-7.md): what the solver may not change. `pensionBefore` an age
+ * (whole years) or null; `tierCeiling` per wrapper the riskiest tier the pension and the ISA may hold, or null; `lumpSum`
+ * 'free', 'never' or 'now'. Anything else reads as no lock. src/solverSettings.js applies them as the solver prepares a plan.
+ */
+function normalizeSolverLocks(src) {
+  const l = isPlainObject(src.locks) ? src.locks : {}, tc = isPlainObject(l.tierCeiling) ? l.tierCeiling : {};
+  const age = l.pensionBefore === null || l.pensionBefore === '' || l.pensionBefore === undefined ? NaN : num(l.pensionBefore, NaN);
+  const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
+  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
 }
 
 function normalizePlan(raw) {
@@ -1154,6 +1171,8 @@ function normalizePlan(raw) {
     plan.riskProfiles[k] = { ...DEFAULT_RISK_PROFILES[k], ...(isPlainObject(rp[k]) ? rp[k] : {}) };
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
+  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
+  if (isPlainObject(src.solver)) plan.solver = normalizeSolverLocks(src.solver);
   return plan;
 }
 
@@ -1280,12 +1299,20 @@ function taxParams(cfgIn) {
     for (const [a, b, r] of bands) { const w = Math.min(th, b) - Math.max(tl, a); if (w > 0) tax += w * r; }
     return tax;
   };
+  // Savings interest is taxed at the UK rates and bands whatever the region (they are not devolved), as dividends are:
+  // a Scottish taxpayer's interest was charged on the Scottish ladder before 21 Oct (42% where the UK charges 20%).
+  const ukParams = region === 'scotland' ? { ...params, ladder: [[basicLimit, basicRate], [higherLimit, higherRate], [Infinity, addRate]].reduce((acc, [l, r]) => {
+    const top = Number.isFinite(l) ? Math.max(acc.running, l - paAt(l)) : Infinity;
+    if (Number.isFinite(top)) acc.running = top;
+    acc.list.push({ top, rate: r });
+    return acc;
+  }, { running: 0, list: [] }).list } : params;
   params.savingsTax = (nonSavings, interest) => {
     if (!cashInterestTaxed || !(interest > 0)) return 0;
     const ns = Math.max(0, nonSavings), i = interest;
     const starting = Math.max(0, Math.min(srBand, pa + srBand - ns));
     const exempt = Math.min(i, starting + psaAt(ns + i));
-    return Math.max(0, incomeTax(ns + i, params) - incomeTax(ns + exempt, params));
+    return Math.max(0, incomeTax(ns + i, ukParams) - incomeTax(ns + exempt, ukParams));
   };
   return params;
 }
@@ -1845,19 +1872,34 @@ function buildContext(rawPlan) {
    * the year's choice to a solved table: at the top of every year `choose(state, t, tiersHeld)` returns the
    * move (draw order, cost order, harvesting, the lump sum, the spend level and the tier each wrapper holds)
    * and the engine executes it through its own machinery, so tax, MPAA, CGT, the audit row and everything
-   * else keep happening exactly; the table only chooses. Each account's tiers are the one set on Plan
-   * Inputs and up to two below it, never above, with the plan's own assumptions for each.
+   * else keep happening exactly; the table only chooses. Each account's tiers are the solver's list in the
+   * solver's order (src/solver/fast.js tiersFor): the one set on Plan Inputs, up to two below it (three under a table
+   * solved with `tiersBelow: 3`, D28, where both the person's pension and ISA can take the third step without stepping into
+   * Cash Equivalents; otherwise two), then - only when all of those below exist - the tiers above it, with the plan's own
+   * assumptions for each. A table's tier index then means the same tier on both sides: before, the list stopped below
+   * the plan's tier, so the solver's "one above" (index 3) was clamped to the lowest tier here (the external review of
+   * 21 Oct, F2a). The table also names its tier, and a name that disagrees with this list throws (tierOf, below).
    */
   const tableOverride = ov && ov.kind === 'table' && typeof ov.choose === 'function' ? ov : null;
+  // A solved table chooses the year's spend level and draw itself: guardrails would overwrite its level and the cost
+  // lookahead would set aside money it never planned for, so the combination is refused (the external review of 21 Oct,
+  // F0a). src/solver/bridge.js withTable switches both off.
+  if (tableOverride && (c.guardrails || clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15) > 0)) {
+    throw new Error('a solved table runs with guardrails and the cost lookahead off: attach it with withTable (src/solver/bridge.js), which switches both off');
+  }
   const TIER_ORDER = Object.keys(RISK_EQUITY_WEIGHTS);
   const tierProfiles = {};
+  // the table's steps below (D28: 3 under `tiersBelow: 3`), the household's own: two where the person's pension or ISA cannot
+  // take the third step, a step beyond the second never stepping into Cash Equivalents (fast.js tiersFor, the same rule)
+  const stepOk = (k0, d) => k0 >= 0 && k0 + d < TIER_ORDER.length && !(d > 2 && TIER_ORDER[k0 + d] === 'Cash Equivalents');
+  let below = tableOverride && tableOverride.tiersBelow === 3 ? 3 : 2;
+  if (below > 2 && accounts.some(a => a.owner === 'self' && (a.cat === 'pen' || a.cat === 'isa') && !stepOk(TIER_ORDER.indexOf(a.risk), below))) below = 2;
   accounts.forEach(a => {
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
-    for (let d = 1; d <= 2 && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
-      const name = TIER_ORDER[k0 + d]; const prof = riskOf(name);
-      list.push({ name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' });
-    }
+    const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
+    for (let d = 1; d <= below && stepOk(k0, d); d++) list.push(tierAt(TIER_ORDER[k0 + d]));
+    if (list.length === 1 + below) for (let d = 1; k0 - d >= 0; d++) list.push(tierAt(TIER_ORDER[k0 - d]));
     tierProfiles[a.id] = list;
   });
   const ctx = {
@@ -1873,6 +1915,9 @@ function buildContext(rawPlan) {
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
     floorSpend, floorFrac, floorConfidence,
+    // the user's raise cap as a multiple of target (0: none). The solver's menu honours it; so do the guardrails, so
+    // a comparison holds both sides to the same rule (PLAN.md M23). Unset in every shipped plan today.
+    raiseCapFrac: Math.max(0, num(c.raiseCap, 0)),
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
@@ -1920,6 +1965,15 @@ const freshState = (ctx) => {
 // Money paid into the GIA is added at cost, so it creates no gain.
 const giaAddBasis = (state, ownerKey, amount) => { if (amount > 0) state.giaBasis[ownerKey] += amount; };
 
+/*
+ * N4 (research only, research/solver/n4-design.md): the extra ceilings a research table's moves may name, each the gross
+ * income its pension draw stops at. The taper threshold is the schedule's last rising corner (40% to 60%); the midpoints
+ * sit inside the bands the product's menu stops at. Draw tokens first, re-wrap ceilings second; the product's own menu and
+ * policies never name one, so nothing here runs outside a research table.
+ */
+const N4_PEN = { penHR: P => P.thr, penPAm: P => P.pa / 2, penBm: P => (P.pa + P.higherRateStartsAt) / 2 };
+const N4_HARVEST = { hr: N4_PEN.penHR, pam: N4_PEN.penPAm, bm: N4_PEN.penBm };
+
 // A disposal realises gain pro-rata against the whole holding and reduces basis by the cost portion.
 const giaDispose = (state, balanceBefore, ownerKey, amount) => {
   if (amount <= 0 || balanceBefore <= 0) return 0;
@@ -1943,7 +1997,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   const ctx = chosen ? {
     ...ctxBase,
     policySteps: chosen.steps || ctxBase.policySteps, costSteps: chosen.costSteps || ctxBase.costSteps,
-    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : 'pa',
+    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : N4_HARVEST[chosen.harvestCeil] ? chosen.harvestCeil : 'pa',
     fullLumpSum: !!chosen.lump
   } : ctxBase;
   const { P, owners, acc } = ctx;
@@ -2087,6 +2141,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   if (P.giaDividendYield > 0) owners.forEach(o => {
     giaDividends[o.key] = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac);
     dividendTax[o.key] = P.dividendTax(taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
+    // the dividends are reinvested (the GIA's total return includes them), so they buy units at cost (F0a, 21 Oct)
+    if (cgtOn && giaDividends[o.key] > 0) giaAddBasis(state, o.key, giaDividends[o.key]);
   });
   const netGuaranteed = {};
   /*
@@ -2175,6 +2231,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (step === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
       else if (step === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
       else if (step === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[step], rem); } }
     }
     unmetCost = Math.max(0, rem);
@@ -2242,6 +2299,11 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
          * multiplier can never take the year's spend below it. The floor scales with the band, so a
          * household that planned a leaner stretch keeps a proportionally leaner floor there.
          */
+        /* THE CAP, the floor's mirror (M23): with a raise cap set, the multiplier can never take the year's spend above it. */
+        if (ctx.raiseCapFrac > 0) {
+          const maxMult = Math.max(0, scheduled * ctx.raiseCapFrac - covered) / baseDraw;
+          if (gs.mult > maxMult) { gs.mult = maxMult; did.push('held at cap'); }
+        }
         if (ctx.floorFrac > 0) {
           const minMult = Math.max(0, scheduled * ctx.floorFrac - covered) / baseDraw;
           if (gs.mult < minMult) { gs.mult = minMult; did.push('held at floor'); }
@@ -2290,6 +2352,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (step === 'penPA') pensionTier(() => P.pa);
       else if (step === 'penBasic') pensionTier(() => P.higherRateStartsAt);
       else if (step === 'penAny') pensionTier(() => Infinity);
+      else if (N4_PEN[step]) { const cap = N4_PEN[step](P); pensionTier(() => cap); }
       else tier(step);
     }
   }
@@ -2370,7 +2433,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    * where leaving tens of thousands a year in cash would understate the strategy by its own drag.
    */
   if (ctx.harvestPA && anyRetired) {
-    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : P.pa;
+    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : N4_HARVEST[ctx.harvestCeiling] ? N4_HARVEST[ctx.harvestCeiling](P) : P.pa;
     owners.forEach(o => {
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
@@ -2385,6 +2448,25 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
         if (cgtOn && toGia > 0) giaAddBasis(state, o.key, toGia);   // deposited at cost: no gain created
         harvested += net;
       }
+    });
+  }
+
+  /*
+   * 7b''. N4's CGT move (research only, research/solver/n4-design.md): under a research table's move, sell the GIA so the
+   * year's realised gains reach the exempt amount; the proceeds fill the ISA's room left this year and the rest is bought
+   * back at cost, so the basis rises by the gain taken. The product's menu never sets it.
+   */
+  if (chosen && chosen.cgtSale && cgtOn) {
+    owners.forEach(o => {
+      const id = o.ids.other, before = pots[id] || 0, basis = state.giaBasis[o.key] || 0;
+      const room = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0)) - realisedGains[o.key];
+      if (!(room > 0) || !(before > basis)) return;
+      const sold = sellGia(id, Math.min(before, room * before / (before - basis)));
+      const toIsa = Math.min(sold, Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+      pots[o.ids.isa] = (pots[o.ids.isa] || 0) + toIsa;
+      isaContribThisYear[o.key] += toIsa;
+      pots[id] = (pots[id] || 0) + (sold - toIsa);
+      giaAddBasis(state, o.key, sold - toIsa);
     });
   }
 
@@ -2435,7 +2517,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
         const excess = cash - bufferEach;
         pots[o.ids.cash] = bufferEach;
         pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
-        giaAddBasis(state, o.key, excess);
+        if (cgtOn) giaAddBasis(state, o.key, excess);
       } else if (cash < bufferEach) {
         const before = realisedGains[o.key];
         const got = sellGia(o.ids.other, bufferEach - cash);
@@ -2472,7 +2554,10 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   const tierOf = (a) => {
     if (!chosen || a.owner !== 'self' || (a.cat !== 'pen' && a.cat !== 'isa')) return a;
     const profs = ctx.tierProfiles[a.id]; if (!profs) return a;
-    return profs[Math.min(a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), profs.length - 1)];
+    const k = a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), name = a.cat === 'pen' ? chosen.tierPenName : chosen.tierIsaName;
+    const p = profs[Math.min(k, profs.length - 1)];
+    if (name != null && p.name !== name) throw new Error(`table move: tier ${k} of ${a.id} is ${p.name} in the engine but ${name} in the table`);
+    return p;
   };
   if (chosen && state.tierHeld) {
     const o = ownerByKey.self, held = state.tierHeld.self, rate = table.switchCost || 0;
@@ -2490,8 +2575,10 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   // 8. compounding (year 0 pro-rated)
   // The guardrail's inflation rule asks one thing of this step: did the portfolio lose money this year.
   const potBeforeGrowth = ctx.guardrails ? ctx.accounts.reduce((s2, a) => s2 + (pots[a.id] || 0), 0) : 0;
+  const grownAt = { pen: null, isa: null };   // under a table: the tier each of the person's wrappers grew at this year
   ctx.accounts.forEach(a => {
     const p = tierOf(a);
+    if (chosen && a.owner === 'self' && (a.cat === 'pen' || a.cat === 'isa')) grownAt[a.cat] = p.name;
     let g = p.real;
     if (isHistorical) g = (histPoint && !p.isCash) ? (p.equityWeight * histPoint.s + (1 - p.equityWeight) * histPoint.b) / 100 : p.real;
     else if (typeof market === 'object' && market !== null && market.z !== undefined) {
@@ -2544,7 +2631,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     oneOffCost: cost,
     // under a solved table: what it chose this year, the tiers held, and what a tier change cost
     action: chosen ? (chosen.code || null) : null, spendLevel: chosen && chosen.spendLevel !== undefined ? chosen.spendLevel : 1,
-    tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid
+    tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid,
+    tierPenName: grownAt.pen, tierIsaName: grownAt.isa
   };
 }
 
@@ -3441,11 +3529,16 @@ function bedAndSippFor(ctx, alloc, spare, scope) {
   if (scope !== 'full' || !(spare > 0)) return null;
   const o = owners[0];
   const isaSelfBal = acc[o.ids.isa] ? acc[o.ids.isa].balance : 0;
-  const aaRoom = Math.max(0, Math.min(P.aaAt(o.salary), o.salary > 0 ? o.salary : P.pensionAllowance) - alloc.penByOwner[0]);
+  // relief is due on contributions up to the person's relevant UK earnings, or the no-earnings limit where they have less
+  // (wrapperHeadroomAtYear's rule; a blank salary while still working leaves it unconstrained); a non-earner gets the
+  // basic rate at source and nothing to reclaim (it gave £60,000 relieved at the higher rate, the review of 27 Oct)
+  const earnings = relevantEarningsAtYear(ctx, o, 0), retired = o.age0 >= o.retireAge;
+  const cap = (!retired && o.salary <= 0 && earnings <= 0) ? P.aaAt(earnings) : Math.min(P.aaAt(earnings), Math.max(P.pensionNoEarningsLimit, earnings));
+  const aaRoom = Math.max(0, cap - alloc.penByOwner[0]);
   const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
   if (!(gross > 250)) return null;
   const net = gross * (1 - P.reliefAtSource);
-  const reliefTotal = o.salary > 0 ? incomeTax(o.salary, P) - incomeTax(Math.max(0, o.salary - gross), P) : gross * P.higherRate;
+  const reliefTotal = earnings > 0 ? incomeTax(earnings, P) - incomeTax(Math.max(0, earnings - gross), P) : gross * P.reliefAtSource;
   const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
   return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
 }
@@ -6688,7 +6781,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan, N4_PEN, N4_HARVEST, E };
 
 
 /*
@@ -6711,6 +6804,15 @@ const APP_VERSION = 'v0.8 beta';
  * cannot rot - a change that breaks it still breaks the build.
  */
 const SHOW_INHERITANCE = false;
+/*
+ * THE SOLVER IN THE APP (Part C, research/solver/PART-C-PLAN.md; Phase 7, research/solver/PHASE-7.md). Off, the app is the app
+ * of today and its first load fetches no solver code. On (for beta, Phase 12), the plan on screen is solved in the background
+ * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
+ */
+const SOLVER = false;
+// the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
+// the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
+if (typeof window !== 'undefined') window.__solverEngine = E;
 // The Documentation tab is prose, and prose can arrive when it is asked for rather than with the engine.
 // It sits here, below the export line, because research/build-engine.py takes everything above it as the
 // engine and strips the imports - a lazy() up there breaks engine.mjs.
@@ -8146,6 +8248,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [mcSeed, setMcSeed] = useState(12345);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
+  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it)
+  useSolverState(plan, SOLVER, E);
 
   const [scenarios, setScenarios] = useState(() => {
     try {

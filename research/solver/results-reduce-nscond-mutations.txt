@@ -1,0 +1,47 @@
+caught: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);
+caught: 2: for (const u of units) if (u.plant) bad.push(
+caught: 3: if (new Set(st.map(s => s.code)).size > 1 || new Set(st.map(
+caught: 4: if (st[i].prediction !== pred) bad.push(
+caught: 5: if (u.unit !== L) bad.push(
+caught: 6: if (u.blind) bad.push(
+caught: 7: if (u.solve.COV && (field(u.solve.COV, 'readerTax') === '-' 
+caught: 8: for (const [k, v] of Object.entries(want)) if (field(u.ran, 
+caught: 9: if (Object.keys(u.tables).length) bad.push(
+caught: 10: if (!u.done) bad.push(
+caught: 11: for (const q of CHECKS) if (!okFrac(c[q])) bad.push(
+caught: 12: for (const q of CHECKS) if (!okFrac(c[q])) bad.push(
+caught: 13: for (const q of MUST) if (!(c[q][1] > 0)) bad.push(
+caught: 14: if (!(c.noAccessDead > 0)) bad.push(
+caught: 15: if (a === 'BASE' && want3) for (const q of MUST3)
+caught: 16: const before = (field(u.ran, 'before') || 'none').split(',')
+caught: 17: if (want3 && !(u.item3 && u.item3.reads > 0)) bad.push(
+caught: 18: if (!okFrac(d.fail)) bad.push(
+caught: 19: if (!okFrac(d.next)) bad.push(
+caught: 20: if (!(d.fail[1] + d.next[1] > 0)) bad.push(
+caught: 21: if (e > 0 && tol / e < RATIO_MIN) bad.push(
+caught: 22: if (e > 0 && tol / e < RATIO_MIN) bad.push(
+caught: 23: if (d.failPlant !== 'NaN' || d.nextPlant !== 'NaN') bad.push
+caught: 24: if (!(u.census[a] && u.census[a].length)) bad.push(
+caught: 25: for (const a of ARMS) if (!(u.tables[a] && u.tables[a].noAcc
+caught: 26: bad.push(...tableChecks(u));
+caught: 27: if (!t.stamp || `code ${t.stamp.code} audit ${t.stamp.audit}
+caught: 28: if (A.wd.some((w, j) => Math.abs(w + A.w0x[j] + A.wL[j] - 1)
+caught: 29: if (A.wK.some((w, j) => w > A.wL[j] + 1e-12)) bad.push(
+caught: 30: if (!A || COLS1.some(q => !Array.isArray(A[q]) || A[q].lengt
+caught: 31: if (u.item2[a] && (u.item2[a].states !== n2 || u.item2[a].ch
+caught: 32: const counts = J.length > 0 && mwd > WD_MIN, material = coun
+caught: 33: const counts = J.length > 0 && mwd > WD_MIN, material = coun
+caught: 34: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+caught: 35: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+caught: 36: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+caught: 37: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+caught: 38: A.wd[j] > 0 && Number.isFinite(A.bE[j]) && A.bE[j] > 0 && A.
+caught: 39: return Math.abs(x.el) - Math.abs((1 + x.el) / x.rho - 1); }
+caught: 40: return Math.abs(x.eC) - Math.abs(x.eK); }
+caught: 41: eK: A.BL[j] / A.SL[j] * A.sR[j] / A.bE[j] - 1
+caught: 42: mc.every(c => c.pR < ALPHA && c.pK < ALPHA) ? 'HELD'
+caught: 43: mc.every(c => c.pR < ALPHA && c.pK < ALPHA) ? 'HELD'
+caught: 44: mc.every(c => c.pN < ALPHA) ? 'FALSIFIED'
+caught: 45: const v = !mc.length ? 'INCONCLUSIVE' :
+caught: 46: const cells = cellsOf(files), mc = cells.filter(c => c.mater
+46 of 46 mutations caught

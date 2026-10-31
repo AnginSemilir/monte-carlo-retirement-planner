@@ -1,0 +1,97 @@
+AX-HO'S DERIVATION (predictions/diag-axho.md)
+
+1. THE RECORDS (7u, AOR and NODE-AX, each behind its own gate; AX-HO's preflight steps)
+  7u S366 (the candidate at 30 points, 8000 paths, the mixture): table 99.2090 against 99.60 simulated (error -0.39), its opening 2,2; against the shipping default 12 saved and 2 lost of 8000 (a reader change, the nearest record of S366's outcomes moving); solve 1265 s, 8000 runs 1219 s
+  AX-HO's S366 step at 30 points on 40 paths a world: J1 alive 40, 40, 40 and J2 40, 40, 40 by world; the moves differing on 28, 22, 14 paths; J1's own opening ai 59; solve 1446 s (J2 1196 s), the reference's build 256.8 s; the ledger 17 s over 120 paths, the plain runs 39 s over 270: the ledger 1.00 times a plain run (floored at 1; grade C, seconds' resolution)
+  A6RS against BO on S360 world 0 (seed 7002): lost 26 saved 29 of 4000; BO alive 1145
+  A6RS against BO on S360 world 1 (seed 7002): lost 10 saved 28 of 4000; BO alive 1946
+  A6RS's GB world 0: 0.0995 (se 0.0156, per-path sd 0.9885)
+  A6RS's GB world 1: 0.2806 (se 0.0136, per-path sd 0.8616)
+  A6RS's GB world 2: 0.1103 (se 0.0127, per-path sd 0.8042)
+
+2. THE POWER (40 draws a cell through reduce-axho.mjs's items(); S366 at the judged survival 98.0000, 99.8500, 100.0000 by world, J1's runs on 16000 paths a world; S360 at BO's bits with A6RS's GB and spread; S366's paths moved as multiples of its record (7.00 in 4000), S360's of A6RS's against BO's)
+  churn x1 item 1, J1's runs -0.6 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x1 item 1, J1's runs -0.3 points in worlds 0 and 1: HELD 0.25 INCONCLUSIVE 0.00 FALSIFIED 0.75
+  churn x1 item 1, J1's runs 0 points in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1 item 1, J1's runs 0.3 points in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x3 item 1, J1's runs -0.6 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x3 item 1, J1's runs -0.3 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95
+  churn x3 item 1, J1's runs 0 points in worlds 0 and 1: HELD 0.68 INCONCLUSIVE 0.30 FALSIFIED 0.03
+  churn x3 item 1, J1's runs 0.3 points in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x8 item 1, J1's runs -0.6 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x8 item 1, J1's runs -0.3 points in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.17 FALSIFIED 0.82
+  churn x8 item 1, J1's runs 0 points in worlds 0 and 1: HELD 0.28 INCONCLUSIVE 0.55 FALSIFIED 0.17
+  churn x8 item 1, J1's runs 0.3 points in worlds 0 and 1: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  item 2, table less runs -3.5 points in every world: on 16000 paths HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00; on 4000 (the review's) HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, table less runs -2 points in every world: on 16000 paths HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; on 4000 (the review's) HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, table less runs -1 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 0.63 INCONCLUSIVE 0.38 FALSIFIED 0.00
+  item 2, table less runs -0.6 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
+  item 2, table less runs -0.3 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, table less runs 0 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, table less runs 0.3 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, table less runs 0.6 points in every world: on 16000 paths HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00; on 4000 (the review's) HELD 0.82 INCONCLUSIVE 0.17 FALSIFIED 0.00
+  item 2, table less runs 1 points in every world: on 16000 paths HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00; on 4000 (the review's) HELD 0.28 INCONCLUSIVE 0.72 FALSIFIED 0.00
+  item 2, table less runs 2 points in every world: on 16000 paths HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00; on 4000 (the review's) HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, table less runs 3.5 points in every world: on 16000 paths HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00; on 4000 (the review's) HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, table less runs -0.3, 0 and -0.6 by world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, table less runs 0.3, 0 and 0.6 by world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB -1.3 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1 item 3, J1's GB -0.6 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB -0.3 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB 0 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB 0.3 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB 0.45 in worlds 0 and 1: HELD 0.78 INCONCLUSIVE 0.23 FALSIFIED 0.00
+  spread x1 item 3, J1's GB 0.6 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x1 item 3, J1's GB 1.3 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1.5 item 3, J1's GB -1.3 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  spread x1.5 item 3, J1's GB -0.6 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB -0.3 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB 0 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB 0.3 in worlds 0 and 1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB 0.45 in worlds 0 and 1: HELD 0.20 INCONCLUSIVE 0.80 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB 0.6 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  spread x1.5 item 3, J1's GB 1.3 in worlds 0 and 1: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x0.75 item 4, J3's runs -0.6 points in worlds 0 and 1, its GB A6RS's: HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
+  churn x0.75 item 4, J3's runs -0.3 points in worlds 0 and 1, its GB A6RS's: HELD 0.23 INCONCLUSIVE 0.63 FALSIFIED 0.15
+  churn x0.75 item 4, J3's runs 0 points in worlds 0 and 1, its GB A6RS's: HELD 0.82 INCONCLUSIVE 0.17 FALSIFIED 0.00
+  churn x0.75 item 4, J3's runs 0.3 points in worlds 0 and 1, its GB A6RS's: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1.5 item 4, J3's runs -0.6 points in worlds 0 and 1, its GB A6RS's: HELD 0.00 INCONCLUSIVE 0.07 FALSIFIED 0.93
+  churn x1.5 item 4, J3's runs -0.3 points in worlds 0 and 1, its GB A6RS's: HELD 0.05 INCONCLUSIVE 0.63 FALSIFIED 0.33
+  churn x1.5 item 4, J3's runs 0 points in worlds 0 and 1, its GB A6RS's: HELD 0.45 INCONCLUSIVE 0.47 FALSIFIED 0.07
+  churn x1.5 item 4, J3's runs 0.3 points in worlds 0 and 1, its GB A6RS's: HELD 0.85 INCONCLUSIVE 0.15 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 17 Oct 18:22 UK, its judged starts: item 1 HELD 0.70; item 2 HELD 0.40, INCONCLUSIVE 0.45, FALSIFIED 0.15; item 3 HELD 0.50; item 4 HELD 0.65; the story READ at its item 3 start, 0.5, OVER and UNDER sharing the rest: READ 0.50, OVER 0.25, UNDER 0.25; 2000 draws through items())
+  item 1: HELD 0.74 INCONCLUSIVE 0.14 FALSIFIED 0.12
+  item 2: HELD 0.67 INCONCLUSIVE 0.33 FALSIFIED 0.00
+  item 3: HELD 0.66 INCONCLUSIVE 0.20 FALSIFIED 0.14
+  item 4: HELD 0.72 INCONCLUSIVE 0.25 FALSIFIED 0.04
+  decision rows: R1 0.32, R2 0.15, R3 0.07, R4 0.14, else 0.32
+  the chance the action changes (one less the likeliest row): 0.68
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.32
+  item 1's point (J1's runs less J2's in world 0, points): median -0.0250, 80% interval -0.2250 to 0.1250
+  item 2's point (J1's table less its runs in world 0, points): median -0.0250, 80% interval -1.5625 to 1.6438
+  item 3's point (J1's GB in world 0, points): median -0.0053, 80% interval -0.7217 to 0.7423
+  item 4's point (J3's runs less J4's in world 0, points): median 0.0500, 80% interval -0.3000 to 0.4000
+  as stated, item 1: point -0.0250 HELD 0.74 INCONCLUSIVE 0.14 FALSIFIED 0.12
+  as stated, item 2: point -0.0250 HELD 0.67 INCONCLUSIVE 0.33 FALSIFIED 0.00
+  as stated, item 3: point -0.0053 HELD 0.66 INCONCLUSIVE 0.20 FALSIFIED 0.14
+  as stated, item 4: point 0.0500 HELD 0.72 INCONCLUSIVE 0.25 FALSIFIED 0.04
+
+3b. THE CREDENCES WITH THE REVIEW'S STORY AT THE RECORD'S RATE (results-scorecard.txt: 0.40, 13 of 33; READ at 0.4, the rest shared: READ 0.40, OVER 0.30, UNDER 0.30; 2000 draws through items())
+  item 1: HELD 0.74 INCONCLUSIVE 0.13 FALSIFIED 0.12
+  item 2: HELD 0.60 INCONCLUSIVE 0.40 FALSIFIED 0.00
+  item 3: HELD 0.58 INCONCLUSIVE 0.23 FALSIFIED 0.18
+  item 4: HELD 0.70 INCONCLUSIVE 0.26 FALSIFIED 0.04
+  decision rows: R1 0.27, R2 0.16, R3 0.09, R4 0.17, else 0.32
+  the chance the action changes (one less the likeliest row): 0.68
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.32
+  item 1's point (J1's runs less J2's in world 0, points): median -0.0250, 80% interval -0.2250 to 0.1250
+  item 2's point (J1's table less its runs in world 0, points): median 0.0313, 80% interval -1.6563 to 1.7188
+  item 3's point (J1's GB in world 0, points): median 0.0023, 80% interval -0.7835 to 0.7851
+  item 4's point (J3's runs less J4's in world 0, points): median 0.0750, 80% interval -0.3000 to 0.4250
+CREDENCE item 1: point -0.0250 HELD 0.74 INCONCLUSIVE 0.13 FALSIFIED 0.12
+CREDENCE item 2: point 0.0313 HELD 0.60 INCONCLUSIVE 0.40 FALSIFIED 0.00
+CREDENCE item 3: point 0.0023 HELD 0.58 INCONCLUSIVE 0.23 FALSIFIED 0.18
+CREDENCE item 4: point 0.0750 HELD 0.70 INCONCLUSIVE 0.26 FALSIFIED 0.04
+
+4. THE BUDGET (grade C): S366's 60-point solve about 2635 s under the reference with its build (the S366 step's 1446 s at 30 points, 256.8 s of it the build) and 2392 s under the order reference (1196 s at 30), 0.1524 s a run (7u's S366: 8000 runs in 1219 s), the ledger 1.00 times a plain run, the engine leg 258 s (twice AOR's tail check, 129 s): J1 about 2.45 h (the ledger on 12000 paths, 15000 plain runs, P on 12000), J1X about 2.13 h (21000 plain runs, D on 12000), J2 about 1.17 h; J3 as A6RS (solve 3781 s, build 342.20 s, ledger 1402 s) with the engine leg about 1.61 h, J4 as BO (solve 3007 s, ledger 1143 s) about 1.15 h; on four cores, J4 when the first job ends, the wall about 2.45 h

@@ -1,0 +1,12 @@
+control (no mutation): passes
+caught: 1: grid.js: while (i < ax.n - 2 && x >= p[i + 1]) i++;
+caught: 2: grid.js: return { i, w: (x - p[i]) / (p[i + 1] - p[i]) };
+caught: 3: grid.js: function locLinInto(ax, v, k) { if (ax.nodes) { const r = locateNodes(
+caught: 4: grid.js: function locateLin(ax, v) { if (ax.nodes) return locateNodes(ax, v);
+caught: 5: grid.js: axes.a = linAxis(COV ? n2 - 1 : n2); if (SN) axes.a = nodesAxis(SN);
+caught: 6: grid.js: SN.some((x, i) => i > 0 && !(x > SN[i - 1]))
+caught: 7: grid.js: SN.length < 3 ||
+caught: 8: grid.js: if (!total || cov) throw new Error('shareNodes needs the total-wealth 
+caught: 9: grid.js: const n2 = total ? (SN ? SN.length : 
+caught: 10: solve.js: if (g.axes.a && g.axes.a.nodes) meta.shareNodes = Array.from(g.axes.a.
+10 of 10 mutations caught

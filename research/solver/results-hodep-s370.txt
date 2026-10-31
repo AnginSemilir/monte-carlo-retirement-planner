@@ -1,0 +1,10 @@
+S370 UNDER BOTH REFERENCES (HO-DEP's reach step, 30 points, 400 paths a world from path 4,000, seed 7004; read from the jobs' ledger lines)
+
+A (the adaptive reference, the RS split, the fix)
+  world 0: table 51.3448 runs 152/400 (38.0000), table less runs 13.3448 = GB 10.4584 + GA 2.1597 + T 0.7267; of GB, the de-risked layers' GD 10.1946 and years 4-6's GL 0.2803; bridge years Y1-Y7 -0.2281, -0.2183, 4.1850, 0.1232, 0.0873, 0.0698, 6.4395; opening ai 14, bridge path-years 2748, de-risked 2678
+  world 1: table 89.5148 runs 342/400 (85.5000), table less runs 4.0148 = GB 1.4289 + GA 1.6828 + T 0.9031; of GB, the de-risked layers' GD 1.3771 and years 4-6's GL -1.6474; bridge years Y1-Y7 -0.4687, -0.4237, 1.4080, -0.5625, -0.5426, -0.5423, 2.5607; opening ai 14, bridge path-years 2776, de-risked 2758
+  world 2: table 98.6865 runs 394/400 (98.5000), table less runs 0.1865 = GB -0.4758 + GA 0.0423 + T 0.6201; of GB, the de-risked layers' GD -0.4932 and years 4-6's GL -0.4268; bridge years Y1-Y7 -0.1466, -0.1316, 0.0682, -0.1304, -0.1595, -0.1369, 0.1609; opening ai 14, bridge path-years 2796, de-risked 2784
+O (the order reference)
+  world 0: table 50.3079 runs 151/400 (37.7500), table less runs 12.5579 = GB 9.5832 + GA 2.1352 + T 0.8395; of GB, the de-risked layers' GD 9.2836 and years 4-6's GL 0.2781; bridge years Y1-Y7 -1.0768, -0.2268, 4.1670, 0.1212, 0.0872, 0.0697, 6.4417; opening ai 14, bridge path-years 2748, de-risked 2683
+  world 1: table 89.1297 runs 342/400 (85.5000), table less runs 3.6297 = GB 1.0323 + GA 1.6748 + T 0.9226; of GB, the de-risked layers' GD 0.9678 and years 4-6's GL -1.6499; bridge years Y1-Y7 -0.8511, -0.4388, 1.4104, -0.5625, -0.5435, -0.5440, 2.5616; opening ai 14, bridge path-years 2776, de-risked 2760
+  world 2: table 98.6252 runs 394/400 (98.5000), table less runs 0.1252 = GB -0.5363 + GA 0.0421 + T 0.6194; of GB, the de-risked layers' GD -0.5541 and years 4-6's GL -0.4252; bridge years Y1-Y7 -0.2418, -0.0983, 0.0678, -0.1289, -0.1595, -0.1368, 0.1611; opening ai 14, bridge path-years 2796, de-risked 2781

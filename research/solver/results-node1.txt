@@ -1,0 +1,90 @@
+ok   BN's table at its runs in worlds 0 and 1 (the whole gap closed): 1 HELD: "HELD"
+ok   BN's table BO's (no move): 1 FALSIFIED: "FALSIFIED"
+ok   BN's table half way: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the gap closed in world 0 only: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BN's table falls a point (a negative move): 1 FALSIFIED: "FALSIFIED"
+ok   BN's runs at BO's table (no gap shown): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the share's bottom exactly 0.5 in both worlds: 1 HELD: "HELD"
+ok   the share's bottom a millionth of a point under 0.5 in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the share's top exactly 0.25 in both worlds: 1 FALSIFIED: "FALSIFIED"
+ok   the share's top a millionth of a point over 0.25 in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the share's bottom 1e-12 under 0.5, equal on the rounding: 1 HELD: "HELD"
+ok   world 2 falling alone: 1 reads worlds 0 and 1, HELD: "HELD"
+ok   BN's runs all failing (zero counts, the gap negative): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   BN at its runs: no OVER-CORRECTION: false
+ok   BN's world 2 table exactly a point above its runs' top: no OVER-CORRECTION: false
+ok   BN's world 2 table a millionth over a point above its runs' top: OVER-CORRECTION: true
+ok   BO's tables and runs REF-2's: 2 HELD: "HELD"
+ok   BO's world 2 table a printed digit off REF-2's: 2 FALSIFIED: "FALSIFIED"
+ok   the tables alike, world 2's runs not: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   REF-2's BO not read: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the tables and survival bits alike, world 2's bridge bits not: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   1 HELD, 2 HELD: O152-NODE held, O152-MODEL not: "held not"
+ok   1 FALSIFIED, 2 HELD: O152-NODE not, O152-MODEL held: "not held"
+ok   1 INCONCLUSIVE: both open: "open open"
+ok   1 HELD, 2 FALSIFIED (the option not inert off): both open: "open open"
+ok   1 FALSIFIED, 2 INCONCLUSIVE: both open: "open open"
+ok   the paired runs: 5 more survive under BN in world 0: "5 0"
+ok   the paired runs: 5 more survive under BO in world 0: "0 5"
+ok   the share's point is the move over the gap to BN's runs (2.5 of 4.9991): 0.500090016
+ok   a falling table: the share's interval runs from the move over the gap's bottom to the move over its top: "-0.293675272 -0.150765103"
+ok   the gap's bottom exactly 0 in world 0 (not shown), the table moved 3 points: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the year-0 read mixed by the worlds' weights: 44.135183333
+ok   BN's tables BO's in every world: reach 0: 0
+ok   BN's tables moved in two worlds: reach 2: 2
+ok   BN's tables moved in world 2 only: reach 1: 1
+ok   the read prints both items, the over-correction line, two causes, REALISED and an OUTCOME of two items, end to end: "true true 2 true 2"
+ok   the gate passes the two jobs as registered: 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses a job with no done line: true
+ok   the gate refuses a stamp from other code: true
+ok   the gate refuses another seed: true
+ok   the gate refuses another path count in the head: true
+ok   the gate refuses another scale in the head: true
+ok   the gate refuses BN at other points: true
+ok   the gate refuses BN without its nodes in the meta: true
+ok   the gate refuses BO with nodes in the meta: true
+ok   the gate refuses BN on six shares: true
+ok   the gate refuses another reference: true
+ok   the gate refuses e3pcls off: true
+ok   the gate refuses another floor: true
+ok   the gate refuses armTook failed: true
+ok   the gate refuses no solve line: true
+ok   the gate refuses a missing table in world 1: true
+ok   the gate refuses a missing run in world 2: true
+ok   the gate refuses runs on other paths than registered: true
+ok   the gate refuses runs at another opening: true
+ok   the gate refuses fewer paying the bridge than surviving: true
+ok   the gate refuses forceIdentity one path short: true
+ok   the gate refuses forceIdentity over fewer paths than registered: true
+ok   the gate refuses a case line at other points than its solve: true
+ok   the gate passes files whose bits are the log's: 0
+ok   the gate refuses a missing file: true
+ok   the gate refuses a file stamped by other code: true
+ok   the gate refuses a file whose bits are not the log's: true
+planted (65): all read as they should
+GATE: passed - the two jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002); each job's reference, nodes and grid in its solve's meta; every self-check passed (armTook, forceIdentity); every file the log's; REF-2's BO behind REF-2's gate
+ARM'S REACH (O153): BN's own-opening tables differ from BO's in 3 of 3 worlds: world 0 BN 26.60433 BO 23.625885; world 1 BN 47.035256 BO 43.738367; world 2 BN 68.976834 BO 66.231579
+
+NODE-1: S360 under ORDER with explicit pension-share nodes (BN) against six shares (BO) (predictions/diag-node1.md)
+
+THE ITEMS (each read by its registered rule)
+1. the explicit share nodes lift S360's table by at least half of its gap to the runs in worlds 0 and 1 (O152-NODE): INCONCLUSIVE
+     world 0: the table's move 2.9784 of a gap 5.1491 (3.5525 to 6.7852), the share 0.5784 (0.4390 to 0.8384); world 1: the table's move 3.2969 of a gap 5.1616 (3.3793 to 6.9460), the share 0.6387 (0.4746 to 0.9756)
+2. BO on this code is REF-2's BO in every world (the option inert off): HELD
+     tables SAME, SAME, SAME; runs SAME, SAME, SAME
+OVER-CORRECTION (BN's table above its runs by more than 1 point, shown, in any world): NO
+
+THE CAUSES (the registered map)
+=> O152-NODE open
+=> O152-MODEL open
+
+REPORTED
+  world 0: table less runs BN -2.1707 (-3.8068 to -0.5741), BO -4.9991 (-6.6328 to -3.4051); paired runs: 18 survive only under BN, 12 only under BO
+  world 1: table less runs BN -1.8647 (-3.6491 to -0.0824), BO -4.9116 (-6.6960 to -3.1297); paired runs: 14 survive only under BN, 4 only under BO
+  world 2: table less runs BN -0.8732 (-2.4930 to 0.7836), BO -3.5434 (-5.1645 to -1.8856); paired runs: 10 survive only under BN, 7 only under BO
+  BN: the year-0 read at the initial state 46.8793 against its runs 49.0375 (mixed by the worlds' weights); solve 11562 s
+  BO: the year-0 read at the initial state 43.5999 against its runs 48.8334 (mixed by the worlds' weights); solve 3899 s
+REALISED item 1: 0.5784
+OUTCOME: 1 INCONCLUSIVE, 2 HELD

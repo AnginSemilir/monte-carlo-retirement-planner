@@ -1,0 +1,6 @@
+7X'S HELD-FOR-LIFE RUNS AGAINST THE PRODUCT (survival %, 8,000 paths of seed 7002; results-7x.txt and results-7v.txt)
+  case        arm     product 1e-3   held 0/0 (less product)   held 2/2 (less product)
+  S126        READER    99.263        98.79 (-0.473)          99.83 (+0.567)
+  S194        OFF       98.225        94.85 (-3.375)          98.33 (+0.105)
+  share 0.95  READER    93.000        92.60 (-0.400)          95.59 (+2.590)
+  S360        OFF       34.300        41.06 (+6.760)          28.20 (-6.100)

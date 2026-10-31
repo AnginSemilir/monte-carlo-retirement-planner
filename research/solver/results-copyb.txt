@@ -1,0 +1,301 @@
+ok   CX removes eight tenths of C's GB where it is over a point (S130 and S362 world 0, S362 world 1): 1 HELD: "HELD"
+ok   CX removes a tenth on S362 world 0: 1 FALSIFIED: "FALSIFIED"
+ok   CX removes four tenths on S130 world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CX deepens an under-read on S362 world 1 (C -1.5, CX -2): 1 FALSIFIED: "FALSIFIED"
+ok   no household's GB a point in size (nothing to remove): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   C's GB at exactly a point with CX removing exactly half, no spread (the lines themselves): 1 HELD: "HELD"
+ok   a removal of exactly 0.45 with no spread on S130 world 0 (just short of one half): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a removal of 0.55 with wide spread on S362 world 0 (its interval below a half): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   a removal of 0.2 with wide spread on S362 world 0 (its interval reaching past a quarter): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the two fixes additive everywhere: 2 HELD: "HELD"
+ok   S126 world 0 interacting by a point in the tables: 2 FALSIFIED: "FALSIFIED"
+ok   S362 world 1 at 0.4 with discordant runs (its interval across half a point): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the interaction in the runs (CXW saves 60 more paths on S130 world 0): 2 FALSIFIED: "FALSIFIED"
+ok   CW removes eight tenths of C's GA where it is over half a point: 3 HELD: "HELD"
+ok   CW removes a tenth of S128's world-0 GA: 3 FALSIFIED: "FALSIFIED"
+ok   CW removes four tenths of S362's world-0 GA: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CW removes exactly 0.6 of S130's world-0 GA, no spread (past one half, short of three quarters): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CW removes exactly 0.72 everywhere, no spread (just short of three quarters): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CW removes exactly three quarters everywhere, no spread (the line itself): 3 HELD: "HELD"
+ok   C's GA at 0.49 everywhere (under half a point: nothing to remove): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   every household's better cell within half a point by part: 4 HELD: "HELD"
+ok   S362's world-0 GA at 0.52 with its interval across half a point, the rest closed: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the default (S128's CW GA 0.6 in world 0: open): 4 FALSIFIED: "FALSIFIED"
+ok   S362's CXW GB 1.2 in world 0 (open): 4 FALSIFIED: "FALSIFIED"
+ok   S128's CW GA -1.2 in world 1 while its net is near nil (parts read, not the net): 4 FALSIFIED: "FALSIFIED"
+ok   S126's CXW GA -1.2 in world 2 alone (a part wholly below): 4 FALSIFIED: "FALSIFIED"
+ok   parts exactly at half a point with no spread (the line itself): 4 HELD: "HELD"
+ok   every fix at its control in every world: 5 HELD: "HELD"
+ok   CW loses 70 paths against C on S128 world 1: 5 FALSIFIED: "FALSIFIED"
+ok   CX loses 15 paths net on S130 world 1 (its interval across the margin): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW's whole score 2 points down on S126 world 2: 5 FALSIFIED: "FALSIFIED"
+ok   CX saves 70 paths over C and CXW none (CXW 70 down on CX, level with C: the leg is against C): 5 HELD: "HELD"
+ok   CW at 120 removes eight tenths of CW at 60's GA in worlds 0 and 1: 6 HELD: "HELD"
+ok   CW at 120 removes a tenth of world 0's: 6 FALSIFIED: "FALSIFIED"
+ok   CW at 120 removes four tenths of world 0's: 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CW at 120 removes 0.6 of world 0's, no spread (past one half, short of three quarters): 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CW at 60's GA under half a point in every world (nothing to remove): 6 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the rows: the default (each fix does its part, a remainder) reads R2: "R2"
+ok   the rows: every household closed by part reads R1: "R1"
+ok   the rows: closed but a fix harms reads R5 over R1: "R5"
+ok   the rows: the copy rule keeps S362's world-0 GB reads R3: "R3"
+ok   the rows: 60 points keeps S128's world-0 GA reads R4: "R4"
+ok   the rows: both fail reads R3 over R4: "R3"
+ok   the rows: nothing to remove for the copy rule, the wealth fix doing its part reads R2: "R2"
+ok   the rows: item 4 unclear, each fix doing its part, reads R2 (R1 needs item 4 HELD): "R2"
+ok   the rows: item 1 HELD, item 3 unclear, reads else: "else"
+ok   the rows: item 1 unclear reads else: "else"
+ok   the rows: item 6 does not decide a row (S370's order kept, the default otherwise): "R2"
+ok   firstBand: a path differing first at year 3 with a two-year bridge reads the five years after: "2"
+ok   firstBand: a path differing at the opening reads 0: "0"
+ok   firstBand: a path with no difference reads -1: "-1"
+ok   firstBand: a path differing first at the last bridge year reads the bridge: "1"
+ok   pOf: S362's CX GB in world 2 is its own: "313"
+ok   pOf: S128's CW GA in world 1 is its own: "424"
+ok   pOf: S128 carries C and CW only: "C,CW"
+ok   pOf: S370's GA at 60 and 120 points kept apart: "6 2"
+ok   pOf: item 5's CW leg on S130 reads CW's one lost path against C in every world: "-0.0250 -0.0250 -0.0250"
+ok   pOf: item 5's CX leg reads no change in survival (CX's bits are C's): "0.0000 0.0000 0.0000"
+ok   the gate passes the fifteen jobs as registered: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside them: "true"
+ok   the gate refuses S130's CX without its copy rule (the cxw plant's kind): "true"
+ok   the gate refuses S362's CW with the copy rule: "true"
+ok   the gate refuses a job with the split: "true"
+ok   the gate refuses a job with share nodes: "true"
+ok   the gate refuses a reader reference set: "true"
+ok   the gate refuses S370 at 60 points, not 120: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses a header naming another path count: "true"
+ok   the gate refuses a job on another code: "true"
+ok   the gate refuses a floor other than the product rule's: "true"
+ok   the gate refuses no recount of the copied nodes: "true"
+ok   the gate refuses a recount off the solve's count (the class plant): "true"
+ok   the gate refuses copyTook failed, its recount line right: "true"
+ok   the gate refuses a recount off the solve's count, copyTook passed (a log at odds with itself): "true"
+ok   the gate refuses a recount at another line: "true"
+ok   the gate refuses splitTook short (the split plant): "true"
+ok   the gate refuses a world's split line missing: "true"
+ok   the gate refuses a world's year lines missing: "true"
+ok   the gate refuses a file without world 0's saved states: "true"
+ok   the gate refuses a file whose whole scores are not the log's: "true"
+ok   the gate refuses a file missing a bridge year's QC paths: "true"
+ok   the gate refuses a job with no bridge year: "true"
+ok   the gate refuses a job whose bridge years are not its household's other jobs': "true"
+ok   the gate refuses a file whose bridge years are not the log's: "true"
+ok   the gate refuses a file of another household: "true"
+ok   the gate refuses a job with no done line: "true"
+ok   the gate refuses a household with no bridge year on the logs alone: "true"
+ok   the gate passes the preflight's jobs at a fifteenth of the points (labels at the registered points, the case lines at the scaled): ""
+ok   the gate refuses jobs at the registered points read as a fifteenth's: "true"
+ok   the gate refuses a missing job: "true"
+ok   the reuse passes COPY-W's CW on the same code, household, seed and paths: ""
+ok   the reuse refuses when COPY-W's gate failed: "true"
+ok   the reuse refuses COPY-W's CW on other code: "true"
+ok   the reuse refuses COPY-W's CW on another seed: "true"
+ok   the reuse refuses COPY-W's CW with the copy rule: "true"
+ok   the reuse refuses COPY-W's CW on other bridge years: "true"
+ok   the reuse refuses COPY-W's CW on another household: "true"
+ok   the reuse refuses a missing CW: "true"
+planted (99): all read as they should
+GATE: passed - the fifteen jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002) on one code; the candidate's settings with no readerRef, the copy rule on CX and CXW alone, every self-check in full; the reuse: COPY-W's gate passed over /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyw (with COPY-X's over /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyx), and its CW shares COPY-B's code, household, seed, paths, bridge years and settings
+
+COPY-B: COPY-W's stage B, the copy x wealth factorial across the step households at the frozen candidate (predictions/diag-copyb.md)
+
+THE ITEMS (each read by its registered rule)
+1. the copy rule removes at least half of C's bridge part GB where it is a point or more (the factorial's households): FALSIFIED
+     S130 world 0: C's GB 4.7106 points, removed 0.7037 (0.7023 to 0.7051): removed
+     S362 world 0: C's GB -3.2777 points, removed -0.0002 (-0.0003 to -0.0002): kept
+     S362 world 1: C's GB -5.2346 points, removed 0.0000 (-0.0001 to 0.0001): kept
+     S362 world 2: C's GB -4.8926 points, removed -0.0001 (-0.0001 to -0.0001): kept
+     5 cells under the line, not read
+2. the interaction (CXW - CW) - (CX - C) in table less runs within half a point in every factorial household and world: HELD
+     S130 world 0: -0.0092 (-0.0092 to -0.0092) (tables -0.0092, runs 0.0000): additive
+     S130 world 1: -0.1252 (-0.1252 to -0.1252) (tables -0.1252, runs 0.0000): additive
+     S130 world 2: -0.0043 (-0.0043 to -0.0043) (tables -0.0043, runs 0.0000): additive
+     S126 world 0: 0.0055 (0.0055 to 0.0055) (tables 0.0055, runs 0.0000): additive
+     S126 world 1: 0.0002 (0.0002 to 0.0002) (tables 0.0002, runs 0.0000): additive
+     S126 world 2: 0.0000 (0.0000 to 0.0000) (tables 0.0000, runs 0.0000): additive
+     S362 world 0: 0.0003 (0.0003 to 0.0003) (tables 0.0003, runs 0.0000): additive
+     S362 world 1: 0.0000 (0.0000 to 0.0000) (tables 0.0000, runs 0.0000): additive
+     S362 world 2: 0.0000 (0.0000 to 0.0000) (tables 0.0000, runs 0.0000): additive
+3. 60 points removes at least three quarters of C's after-access part GA where it is half a point or more, the wealth axis read as an order (the factorial's households and S128): HELD
+     S130 world 0: C's GA 1.9622 points, removed 0.9604 (0.8960 to 1.0248): removed (against one half, the first-order expectation: above)
+     S130 world 1: C's GA 1.1646 points, removed 1.1062 (1.0488 to 1.1636): removed (against one half, the first-order expectation: above)
+     S128 world 0: C's GA 1.0808 points, removed 1.6735 (1.4307 to 1.9164): removed (against one half, the first-order expectation: above)
+     S128 world 1: C's GA 2.5779 points, removed 1.1942 (1.1572 to 1.2311): removed (against one half, the first-order expectation: above)
+     8 cells under the line, not read
+4. closure by part: the better cell's GB and GA each within half a point in every household and world: FALSIFIED
+     S130 CXW world 0: GB 1.5522 (1.5435 to 1.5609), GA 0.0777 (-0.0869 to 0.2423): open; reported beside: G 1.6299, table less runs 0.8351 (-0.6762 to 2.3465)
+     S130 CXW world 1: GB 0.5847 (0.5781 to 0.5913), GA -0.1237 (-0.1910 to -0.0563): open; reported beside: G 0.4610, table less runs 0.4604 (-0.2521 to 1.1729)
+     S130 CXW world 2: GB 0.0449 (0.0437 to 0.0461), GA -0.0232 (-0.0390 to -0.0073): closed; reported beside: G 0.0217, table less runs 0.0697 (-0.0926 to 0.2320)
+     S126 CXW world 0: GB 0.0004 (-0.0001 to 0.0009), GA -0.0246 (-0.0630 to 0.0138): closed; reported beside: G -0.0243, table less runs 0.0570 (-0.2014 to 0.3154)
+     S126 CXW world 1: GB 0.0001 (0.0001 to 0.0001), GA -0.0013 (-0.0023 to -0.0003): closed; reported beside: G -0.0012, table less runs -0.0081 (-0.0081 to -0.0081)
+     S126 CXW world 2: GB 0.0000 (0.0000 to 0.0000), GA -0.0001 (-0.0001 to -0.0001): closed; reported beside: G -0.0001, table less runs -0.0040 (-0.0040 to -0.0040)
+     S362 CXW world 0: GB -3.1611 (-3.7219 to -2.6002), GA 0.0090 (-0.0055 to 0.0234): open; reported beside: G -3.1521, table less runs -5.2508 (-6.6671 to -3.8344)
+     S362 CXW world 1: GB -5.2267 (-5.6188 to -4.8346), GA -0.0001 (-0.0002 to -0.0000): open; reported beside: G -5.2268, table less runs -5.2892 (-6.8383 to -3.7401)
+     S362 CXW world 2: GB -4.9071 (-5.2366 to -4.5776), GA -0.0001 (-0.0001 to -0.0001): open; reported beside: G -4.9072, table less runs -2.7600 (-4.2216 to -1.2984)
+     S128 CW world 0: GB 2.6233 (2.5888 to 2.6578), GA -0.7279 (-0.8371 to -0.6188): open; reported beside: G 1.8954, table less runs 0.9818 (-0.4875 to 2.4511)
+     S128 CW world 1: GB 2.1200 (2.1065 to 2.1334), GA -0.5006 (-0.5761 to -0.4250): open; reported beside: G 1.6194, table less runs 0.8854 (-0.3920 to 2.1628)
+     S128 CW world 2: GB 0.4523 (0.4391 to 0.4655), GA -0.1018 (-0.1374 to -0.0661): closed; reported beside: G 0.3505, table less runs -0.1046 (-0.6332 to 0.4241)
+5. no material harm per world, each fix against the frozen candidate, by RULES.md section 8's rule as written: INCONCLUSIVE
+     CX against C on S130 world 0: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score 0.0000 (0.0000 to 0.0000), margin 0.5000: no material harm
+     CX against C on S130 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1265 to 0.1265), whole score 0.0000 (0.0000 to 0.0000), margin 0.5000: no material harm
+     CX against C on S130 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1424 to 0.1424), whole score 0.0000 (0.0000 to 0.0000), margin 0.2500: no material harm
+     CX against C on S126 world 0: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1405 to 0.1405), whole score 0.0000 (0.0000 to 0.0000), margin 0.2500: no material harm
+     CX against C on S126 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1431 to 0.1431), whole score 0.0000 (0.0000 to 0.0000), margin 0.2500: no material harm
+     CX against C on S126 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1431 to 0.1431), whole score 0.0000 (0.0000 to 0.0000), margin 0.2500: no material harm
+     CX against C on S362 world 0: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score 0.0000 (-0.0000 to 0.0000), margin 0.5000: no material harm
+     CX against C on S362 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score -0.0000 (-0.0000 to 0.0000), margin 0.5000: no material harm
+     CX against C on S362 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score 0.0000 (0.0000 to 0.0000), margin 0.5000: no material harm
+     CW against C on S130 world 0: survival 1.1250 exact (0.4889 to 1.6595) no material harm, guarded unconditional (0.4927 to 1.7577), whole score 1.1455 (0.5121 to 1.7789), margin 0.5000: no material harm
+     CW against C on S130 world 1: survival 0.2000 exact (-0.1400 to 0.4701) no material harm, guarded unconditional (-0.1409 to 0.5524), whole score 0.2207 (-0.0988 to 0.5401), margin 0.5000: no material harm
+     CW against C on S130 world 2: survival -0.0250 exact (-0.0250 to 0.0247) no material harm, guarded unconditional (-0.1999 to 0.1337), whole score -0.0519 (-0.1152 to 0.0115), margin 0.2500: no material harm
+     CW against C on S126 world 0: survival 0.2000 exact (-0.0159 to 0.2497) no material harm, guarded unconditional (-0.0241 to 0.4726), whole score 0.1993 (-0.0017 to 0.4003), margin 0.2500: no material harm
+     CW against C on S126 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1557 to 0.1557), whole score 0.0187 (0.0060 to 0.0314), margin 0.2500: no material harm
+     CW against C on S126 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1557 to 0.1557), whole score 0.0019 (-0.0036 to 0.0075), margin 0.2500: no material harm
+     CW against C on S362 world 0: survival 0.0500 exact (-0.0421 to 0.0500) no material harm, guarded unconditional (-0.0580 to 0.2247), whole score 0.0532 (-0.0365 to 0.1429), margin 0.5000: no material harm
+     CW against C on S362 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1268 to 0.1268), whole score 0.0045 (-0.0025 to 0.0115), margin 0.5000: no material harm
+     CW against C on S362 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1268 to 0.1268), whole score 0.0002 (-0.0025 to 0.0029), margin 0.5000: no material harm
+     CW against C on S128 world 0: survival 2.3750 exact (1.6777 to 2.9274) no material harm, guarded unconditional (1.6086 to 3.1444), whole score 2.4515 (1.6822 to 3.2208), margin 0.5000: no material harm
+     CW against C on S128 world 1: survival 0.2750 exact (-0.4105 to 0.9380) no material harm, guarded unconditional (-0.3931 to 0.9448), whole score 0.4438 (-0.2234 to 1.1111), margin 0.5000: no material harm
+     CW against C on S128 world 2: survival -0.0750 exact (-0.3713 to 0.2484) inconclusive, guarded unconditional (-0.4229 to 0.2664), whole score 0.0566 (-0.2585 to 0.3717), margin 0.2500: inconclusive
+     CXW against C on S130 world 0: survival 1.1250 exact (0.5152 to 1.6405) no material harm, guarded unconditional (0.5190 to 1.7314), whole score 1.1455 (0.5384 to 1.7526), margin 0.5000: no material harm
+     CXW against C on S130 world 1: survival 0.2000 exact (-0.1274 to 0.4621) no material harm, guarded unconditional (-0.1248 to 0.5354), whole score 0.2207 (-0.0855 to 0.5269), margin 0.5000: no material harm
+     CXW against C on S130 world 2: survival -0.0250 exact (-0.0250 to 0.0246) no material harm, guarded unconditional (-0.1869 to 0.1214), whole score -0.0519 (-0.1126 to 0.0089), margin 0.2500: no material harm
+     CXW against C on S126 world 0: survival 0.2000 exact (-0.0076 to 0.2496) no material harm, guarded unconditional (-0.0118 to 0.4571), whole score 0.1993 (0.0067 to 0.3920), margin 0.2500: no material harm
+     CXW against C on S126 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1431 to 0.1431), whole score 0.0187 (0.0065 to 0.0308), margin 0.2500: no material harm
+     CXW against C on S126 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1431 to 0.1431), whole score 0.0019 (-0.0034 to 0.0072), margin 0.2500: no material harm
+     CXW against C on S362 world 0: survival 0.0500 exact (-0.0409 to 0.0500) no material harm, guarded unconditional (-0.0521 to 0.2157), whole score 0.0532 (-0.0327 to 0.1392), margin 0.5000: no material harm
+     CXW against C on S362 world 1: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score 0.0045 (-0.0022 to 0.0112), margin 0.5000: no material harm
+     CXW against C on S362 world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1196 to 0.1196), whole score 0.0002 (-0.0023 to 0.0028), margin 0.5000: no material harm
+6. on S370, 120 points removes at least three quarters of 60 points' after-access part GA where it is half a point or more: INCONCLUSIVE
+     S370 world 0: CW at 60's GA 0.9115 points, removed 0.6584 (0.6188 to 0.6979): unclear (against one half, the first-order expectation: above)
+     2 cells under the line, not read
+OUTCOME: 1 FALSIFIED, 2 HELD, 3 HELD, 4 FALSIFIED, 5 INCONCLUSIVE, 6 INCONCLUSIVE
+ROW: R3
+
+REPORTED
+  S130 C world 0: table 65.6321 runs 2396/4000 (59.9000), table less runs 5.7321; GB 4.7106 GA 1.9622 T -0.9407 G 6.6727; by bridge year 1: 4.7106; the sum of absolute residuals by year 4.7106; G by band: the bridge 4.7106, the five years after -0.2370, the rest 2.1991; copied weight at the bridge reads (QC + RC) 26.6371; bridge failures 0
+  S130 C world 1: table 96.4021 runs 3768/4000 (94.2000), table less runs 2.2021; GB 0.8020 GA 1.1646 T 0.2355 G 1.9666; by bridge year 1: 0.8020; the sum of absolute residuals by year 0.8020; G by band: the bridge 0.8020, the five years after 0.0936, the rest 1.0710; copied weight at the bridge reads (QC + RC) 39.2036; bridge failures 0
+  S130 C world 2: table 99.8380 runs 3990/4000 (99.7500), table less runs 0.0880; GB 0.0296 GA 0.0198 T 0.0386 G 0.0494; by bridge year 1: 0.0296; the sum of absolute residuals by year 0.0296; G by band: the bridge 0.0296, the five years after -0.0168, the rest 0.0365; copied weight at the bridge reads (QC + RC) 40.7356; bridge failures 0
+  S130 CX world 0: table 62.2831 runs 2396/4000 (59.9000), table less runs 2.3831; GB 1.3957 GA 1.9622 T -0.9748 G 3.3579; by bridge year 1: 1.3957; the sum of absolute residuals by year 1.3957; G by band: the bridge 1.3957, the five years after -0.2370, the rest 2.1991; copied weight at the bridge reads (QC + RC) 23.3223; bridge failures 0
+  S130 CX world 1: table 95.7534 runs 3768/4000 (94.2000), table less runs 1.5534; GB 0.1426 GA 1.1646 T 0.2463 G 1.3071; by bridge year 1: 0.1426; the sum of absolute residuals by year 0.1426; G by band: the bridge 0.1426, the five years after 0.0936, the rest 1.0710; copied weight at the bridge reads (QC + RC) 38.5442; bridge failures 0
+  S130 CX world 2: table 99.8036 runs 3990/4000 (99.7500), table less runs 0.0536; GB -0.0049 GA 0.0198 T 0.0387 G 0.0149; by bridge year 1: -0.0049; the sum of absolute residuals by year 0.0049; G by band: the bridge -0.0049, the five years after -0.0168, the rest 0.0365; copied weight at the bridge reads (QC + RC) 40.7011; bridge failures 0
+  S130 CW world 0: table 65.2183 runs 2441/4000 (61.0250), table less runs 4.1933; GB 4.9265 GA 0.0777 T -0.8109 G 5.0042; by bridge year 1: 4.9265; the sum of absolute residuals by year 4.9265; G by band: the bridge 4.9265, the five years after -0.4596, the rest 0.5373; copied weight at the bridge reads (QC + RC) 26.5595; bridge failures 0
+  S130 CW world 1: table 95.6342 runs 3776/4000 (94.4000), table less runs 1.2342; GB 1.3613 GA -0.1237 T -0.0034 G 1.2376; by bridge year 1: 1.3613; the sum of absolute residuals by year 1.3613; G by band: the bridge 1.3613, the five years after -0.1306, the rest 0.0069; copied weight at the bridge reads (QC + RC) 38.9385; bridge failures 0
+  S130 CW world 2: table 99.8333 runs 3989/4000 (99.7250), table less runs 0.1083; GB 0.0843 GA -0.0232 T 0.0472 G 0.0612; by bridge year 1: 0.0843; the sum of absolute residuals by year 0.0843; G by band: the bridge 0.0843, the five years after -0.0154, the rest -0.0078; copied weight at the bridge reads (QC + RC) 40.7330; bridge failures 0
+  S130 CXW world 0: table 61.8601 runs 2441/4000 (61.0250), table less runs 0.8351; GB 1.5522 GA 0.0777 T -0.7948 G 1.6299; by bridge year 1: 1.5522; the sum of absolute residuals by year 1.5522; G by band: the bridge 1.5522, the five years after -0.4596, the rest 0.5373; copied weight at the bridge reads (QC + RC) 23.1852; bridge failures 0
+  S130 CXW world 1: table 94.8604 runs 3776/4000 (94.4000), table less runs 0.4604; GB 0.5847 GA -0.1237 T -0.0006 G 0.4610; by bridge year 1: 0.5847; the sum of absolute residuals by year 0.5847; G by band: the bridge 0.5847, the five years after -0.1306, the rest 0.0069; copied weight at the bridge reads (QC + RC) 38.1618; bridge failures 0
+  S130 CXW world 2: table 99.7947 runs 3989/4000 (99.7250), table less runs 0.0697; GB 0.0449 GA -0.0232 T 0.0480 G 0.0217; by bridge year 1: 0.0449; the sum of absolute residuals by year 0.0449; G by band: the bridge 0.0449, the five years after -0.0154, the rest -0.0078; copied weight at the bridge reads (QC + RC) 40.6935; bridge failures 0
+  S126 C world 0: table 99.2831 runs 3964/4000 (99.1000), table less runs 0.1831; GB -0.0122 GA 0.1469 T 0.0484 G 0.1347; by bridge year 1: -0.0122; the sum of absolute residuals by year 0.0122; G by band: the bridge -0.0122, the five years after 0.0357, the rest 0.1112; copied weight at the bridge reads (QC + RC) 35.5517; bridge failures 0
+  S126 C world 1: table 99.9885 runs 4000/4000 (100.0000), table less runs -0.0115; GB -0.0002 GA -0.0053 T -0.0060 G -0.0055; by bridge year 1: -0.0002; the sum of absolute residuals by year 0.0002; G by band: the bridge -0.0002, the five years after -0.0016, the rest -0.0037; copied weight at the bridge reads (QC + RC) 35.8896; bridge failures 0
+  S126 C world 2: table 99.9958 runs 4000/4000 (100.0000), table less runs -0.0042; GB 0.0000 GA -0.0003 T -0.0039 G -0.0003; by bridge year 1: 0.0000; the sum of absolute residuals by year 0.0000; G by band: the bridge 0.0000, the five years after -0.0001, the rest -0.0002; copied weight at the bridge reads (QC + RC) 35.9818; bridge failures 0
+  S126 CX world 0: table 99.2263 runs 3964/4000 (99.1000), table less runs 0.1263; GB -0.0691 GA 0.1469 T 0.0485 G 0.0778; by bridge year 1: -0.0691; the sum of absolute residuals by year 0.0691; G by band: the bridge -0.0691, the five years after 0.0357, the rest 0.1112; copied weight at the bridge reads (QC + RC) 35.4948; bridge failures 0
+  S126 CX world 1: table 99.9878 runs 4000/4000 (100.0000), table less runs -0.0122; GB -0.0009 GA -0.0053 T -0.0060 G -0.0062; by bridge year 1: -0.0009; the sum of absolute residuals by year 0.0009; G by band: the bridge -0.0009, the five years after -0.0016, the rest -0.0037; copied weight at the bridge reads (QC + RC) 35.8889; bridge failures 0
+  S126 CX world 2: table 99.9958 runs 4000/4000 (100.0000), table less runs -0.0042; GB 0.0000 GA -0.0003 T -0.0039 G -0.0003; by bridge year 1: 0.0000; the sum of absolute residuals by year 0.0000; G by band: the bridge 0.0000, the five years after -0.0001, the rest -0.0002; copied weight at the bridge reads (QC + RC) 35.9818; bridge failures 0
+  S126 CW world 0: table 99.4083 runs 3972/4000 (99.3000), table less runs 0.1083; GB 0.0522 GA -0.0246 T 0.0807 G 0.0276; by bridge year 1: 0.0522; the sum of absolute residuals by year 0.0522; G by band: the bridge 0.0522, the five years after 0.0004, the rest -0.0251; copied weight at the bridge reads (QC + RC) 35.5928; bridge failures 0
+  S126 CW world 1: table 99.9924 runs 4000/4000 (100.0000), table less runs -0.0076; GB 0.0006 GA -0.0013 T -0.0069 G -0.0007; by bridge year 1: 0.0006; the sum of absolute residuals by year 0.0006; G by band: the bridge 0.0006, the five years after -0.0004, the rest -0.0009; copied weight at the bridge reads (QC + RC) 35.8911; bridge failures 0
+  S126 CW world 2: table 99.9960 runs 4000/4000 (100.0000), table less runs -0.0040; GB 0.0000 GA -0.0001 T -0.0039 G -0.0001; by bridge year 1: 0.0000; the sum of absolute residuals by year 0.0000; G by band: the bridge 0.0000, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 35.9819; bridge failures 0
+  S126 CXW world 0: table 99.3570 runs 3972/4000 (99.3000), table less runs 0.0570; GB 0.0004 GA -0.0246 T 0.0813 G -0.0243; by bridge year 1: 0.0004; the sum of absolute residuals by year 0.0004; G by band: the bridge 0.0004, the five years after 0.0004, the rest -0.0251; copied weight at the bridge reads (QC + RC) 35.5410; bridge failures 0
+  S126 CXW world 1: table 99.9919 runs 4000/4000 (100.0000), table less runs -0.0081; GB 0.0001 GA -0.0013 T -0.0069 G -0.0012; by bridge year 1: 0.0001; the sum of absolute residuals by year 0.0001; G by band: the bridge 0.0001, the five years after -0.0004, the rest -0.0009; copied weight at the bridge reads (QC + RC) 35.8906; bridge failures 0
+  S126 CXW world 2: table 99.9960 runs 4000/4000 (100.0000), table less runs -0.0040; GB 0.0000 GA -0.0001 T -0.0039 G -0.0001; by bridge year 1: 0.0000; the sum of absolute residuals by year 0.0000; G by band: the bridge 0.0000, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 35.9819; bridge failures 0
+  S362 C world 0: table 24.3656 runs 1187/4000 (29.6750), table less runs -5.3094; GB -3.2777 GA 0.0508 T -2.0825 G -3.2269; by bridge year 1: -3.3431 | 2: -7.8006 | 3: 8.4871 | 4: -0.0740 | 5: -0.4386 | 6: -0.1040 | 7: -0.0044; the sum of absolute residuals by year 20.2519; G by band: the bridge -3.2777, the five years after 0.0019, the rest 0.0489; copied weight at the bridge reads (QC + RC) 117.6126; bridge failures 2809
+  S362 C world 1: table 43.5799 runs 1955/4000 (48.8750), table less runs -5.2951; GB -5.2346 GA 0.0051 T -0.0656 G -5.2295; by bridge year 1: -4.0090 | 2: -5.5920 | 3: 4.7354 | 4: 0.0683 | 5: -0.4031 | 6: -0.0342 | 7: -0.0000; the sum of absolute residuals by year 14.8420; G by band: the bridge -5.2346, the five years after -0.0001, the rest 0.0052; copied weight at the bridge reads (QC + RC) 187.8389; bridge failures 2045
+  S362 C world 2: table 63.8506 runs 2664/4000 (66.6000), table less runs -2.7494; GB -4.8926 GA -0.0001 T 2.1433 G -4.8927; by bridge year 1: -3.1075 | 2: -3.2832 | 3: 1.8124 | 4: -0.0526 | 5: -0.2125 | 6: -0.0491 | 7: 0.0001; the sum of absolute residuals by year 8.5174; G by band: the bridge -4.8926, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 253.1596; bridge failures 1336
+  S362 CX world 0: table 24.3649 runs 1187/4000 (29.6750), table less runs -5.3101; GB -3.2785 GA 0.0508 T -2.0824 G -3.2277; by bridge year 1: -3.3435 | 2: -7.8007 | 3: 8.4870 | 4: -0.0740 | 5: -0.4385 | 6: -0.1029 | 7: -0.0059; the sum of absolute residuals by year 20.2525; G by band: the bridge -3.2785, the five years after 0.0019, the rest 0.0489; copied weight at the bridge reads (QC + RC) 117.6099; bridge failures 2809
+  S362 CX world 1: table 43.5798 runs 1955/4000 (48.8750), table less runs -5.2952; GB -5.2345 GA 0.0051 T -0.0658 G -5.2294; by bridge year 1: -4.0091 | 2: -5.5920 | 3: 4.7357 | 4: 0.0683 | 5: -0.4032 | 6: -0.0342 | 7: -0.0001; the sum of absolute residuals by year 14.8425; G by band: the bridge -5.2345, the five years after -0.0001, the rest 0.0052; copied weight at the bridge reads (QC + RC) 187.8403; bridge failures 2045
+  S362 CX world 2: table 63.8505 runs 2664/4000 (66.6000), table less runs -2.7495; GB -4.8931 GA -0.0001 T 2.1437 G -4.8932; by bridge year 1: -3.1080 | 2: -3.2833 | 3: 1.8124 | 4: -0.0526 | 5: -0.2125 | 6: -0.0491 | 7: 0.0001; the sum of absolute residuals by year 8.5179; G by band: the bridge -4.8931, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 253.1591; bridge failures 1336
+  S362 CW world 0: table 24.4746 runs 1189/4000 (29.7250), table less runs -5.2504; GB -3.1606 GA 0.0090 T -2.0987 G -3.1516; by bridge year 1: -3.2809 | 2: -7.7833 | 3: 8.5068 | 4: -0.0691 | 5: -0.4309 | 6: -0.1012 | 7: -0.0020; the sum of absolute residuals by year 20.1742; G by band: the bridge -3.1606, the five years after 0.0014, the rest 0.0075; copied weight at the bridge reads (QC + RC) 117.6985; bridge failures 2809
+  S362 CW world 1: table 43.5859 runs 1955/4000 (48.8750), table less runs -5.2891; GB -5.2265 GA -0.0001 T -0.0625 G -5.2266; by bridge year 1: -4.0030 | 2: -5.5905 | 3: 4.7349 | 4: 0.0684 | 5: -0.4028 | 6: -0.0336 | 7: 0.0000; the sum of absolute residuals by year 14.8333; G by band: the bridge -5.2265, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 187.8475; bridge failures 2045
+  S362 CW world 2: table 63.8401 runs 2664/4000 (66.6000), table less runs -2.7599; GB -4.9070 GA -0.0001 T 2.1472 G -4.9070; by bridge year 1: -3.1223 | 2: -3.2828 | 3: 1.8124 | 4: -0.0527 | 5: -0.2125 | 6: -0.0491 | 7: 0.0001; the sum of absolute residuals by year 8.5319; G by band: the bridge -4.9070, the five years after 0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 253.1594; bridge failures 1336
+  S362 CXW world 0: table 24.4742 runs 1189/4000 (29.7250), table less runs -5.2508; GB -3.1611 GA 0.0090 T -2.0987 G -3.1521; by bridge year 1: -3.2812 | 2: -7.7834 | 3: 8.5069 | 4: -0.0690 | 5: -0.4308 | 6: -0.1002 | 7: -0.0033; the sum of absolute residuals by year 20.1749; G by band: the bridge -3.1611, the five years after 0.0014, the rest 0.0075; copied weight at the bridge reads (QC + RC) 117.6965; bridge failures 2809
+  S362 CXW world 1: table 43.5858 runs 1955/4000 (48.8750), table less runs -5.2892; GB -5.2267 GA -0.0001 T -0.0623 G -5.2268; by bridge year 1: -4.0031 | 2: -5.5906 | 3: 4.7349 | 4: 0.0684 | 5: -0.4028 | 6: -0.0336 | 7: 0.0000; the sum of absolute residuals by year 14.8334; G by band: the bridge -5.2267, the five years after -0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 187.8473; bridge failures 2045
+  S362 CXW world 2: table 63.8400 runs 2664/4000 (66.6000), table less runs -2.7600; GB -4.9071 GA -0.0001 T 2.1472 G -4.9072; by bridge year 1: -3.1224 | 2: -3.2828 | 3: 1.8124 | 4: -0.0527 | 5: -0.2125 | 6: -0.0491 | 7: 0.0001; the sum of absolute residuals by year 8.5320; G by band: the bridge -4.9071, the five years after 0.0000, the rest -0.0001; copied weight at the bridge reads (QC + RC) 253.1593; bridge failures 1336
+  S128 C world 0: table 35.4047 runs 1270/4000 (31.7500), table less runs 3.6547; GB 3.2431 GA 1.0808 T -0.6692 G 4.3239; by bridge year 1: 3.2431; the sum of absolute residuals by year 3.2431; G by band: the bridge 3.2431, the five years after -0.1973, the rest 1.2781; copied weight at the bridge reads (QC + RC) 16.1053; bridge failures 0
+  S128 C world 1: table 80.9086 runs 3121/4000 (78.0250), table less runs 2.8836; GB 1.4351 GA 2.5779 T -1.1294 G 4.0130; by bridge year 1: 1.4351; the sum of absolute residuals by year 1.4351; G by band: the bridge 1.4351, the five years after 0.4748, the rest 2.1032; copied weight at the bridge reads (QC + RC) 36.8220; bridge failures 0
+  S128 C world 2: table 97.1573 runs 3883/4000 (97.0750), table less runs 0.0823; GB -0.1208 GA 0.4480 T -0.2449 G 0.3273; by bridge year 1: -0.1208; the sum of absolute residuals by year 0.1208; G by band: the bridge -0.1208, the five years after 0.1973, the rest 0.2507; copied weight at the bridge reads (QC + RC) 44.1774; bridge failures 0
+  S128 CW world 0: table 35.1068 runs 1365/4000 (34.1250), table less runs 0.9818; GB 2.6233 GA -0.7279 T -0.9136 G 1.8954; by bridge year 1: 2.6233; the sum of absolute residuals by year 2.6233; G by band: the bridge 2.6233, the five years after -0.3715, the rest -0.3564; copied weight at the bridge reads (QC + RC) 16.0187; bridge failures 0
+  S128 CW world 1: table 79.1854 runs 3132/4000 (78.3000), table less runs 0.8854; GB 2.1199 GA -0.5006 T -0.7340 G 1.6194; by bridge year 1: 2.1199; the sum of absolute residuals by year 2.1199; G by band: the bridge 2.1199, the five years after -0.1942, the rest -0.3064; copied weight at the bridge reads (QC + RC) 35.9229; bridge failures 0
+  S128 CW world 2: table 96.8954 runs 3880/4000 (97.0000), table less runs -0.1046; GB 0.4523 GA -0.1018 T -0.4551 G 0.3505; by bridge year 1: 0.4523; the sum of absolute residuals by year 0.4523; G by band: the bridge 0.4523, the five years after 0.0136, the rest -0.1153; copied weight at the bridge reads (QC + RC) 44.0518; bridge failures 0
+  S370 CW world 0: table 48.7700 runs 1641/4000 (41.0250), table less runs 7.7450; GB 7.9261 GA 0.3114 T -0.4925 G 8.2375; by bridge year 1: -1.8394 | 2: -0.8159 | 3: 4.2241 | 4: 0.0972 | 5: -0.0186 | 6: -0.0451 | 7: 6.3237; the sum of absolute residuals by year 13.3640; G by band: the bridge 7.9261, the five years after 0.1141, the rest 0.1973; copied weight at the bridge reads (QC + RC) 147.8576; bridge failures 143
+  S370 CW world 1: table 89.6416 runs 3486/4000 (87.1500), table less runs 2.4916; GB 3.3585 GA -0.1844 T -0.6825 G 3.1741; by bridge year 1: -1.2540 | 2: -0.4649 | 3: 1.7545 | 4: -0.0082 | 5: -0.0451 | 6: -0.0546 | 7: 3.4308; the sum of absolute residuals by year 7.0121; G by band: the bridge 3.3585, the five years after -0.0648, the rest -0.1195; copied weight at the bridge reads (QC + RC) 271.7716; bridge failures 34
+  S370 CW world 2: table 98.9260 runs 3955/4000 (98.8750), table less runs 0.0510; GB -0.0125 GA -0.0615 T 0.1250 G -0.0740; by bridge year 1: -0.3831 | 2: -0.0900 | 3: 0.1305 | 4: -0.0015 | 5: -0.0130 | 6: -0.0125 | 7: 0.3571; the sum of absolute residuals by year 0.9877; G by band: the bridge -0.0125, the five years after -0.0231, the rest -0.0384; copied weight at the bridge reads (QC + RC) 301.5776; bridge failures 11
+  S130 CW against C world 0: GA by band (the five years after the bridge, the rest) -0.2370, 2.1991 under the control, -0.4596, 0.5373 under the arm; the five years after RISES, the rest removed 0.7557
+  S130 CW against C world 1: GA by band (the five years after the bridge, the rest) 0.0936, 1.0710 under the control, -0.1306, 0.0069 under the arm; the five years after RISES, the rest removed 0.9936
+  S130 CW against C world 2: GA by band (the five years after the bridge, the rest) -0.0168, 0.0365 under the control, -0.0154, -0.0078 under the arm; the five years after removed 0.0816, the rest removed 1.2126
+  S130 CXW against CX world 0: GA by band (the five years after the bridge, the rest) -0.2370, 2.1991 under the control, -0.4596, 0.5373 under the arm; the five years after RISES, the rest removed 0.7557
+  S130 CXW against CX world 1: GA by band (the five years after the bridge, the rest) 0.0936, 1.0710 under the control, -0.1306, 0.0069 under the arm; the five years after RISES, the rest removed 0.9936
+  S130 CXW against CX world 2: GA by band (the five years after the bridge, the rest) -0.0168, 0.0365 under the control, -0.0154, -0.0078 under the arm; the five years after removed 0.0816, the rest removed 1.2126
+  S126 CW against C world 0: GA by band (the five years after the bridge, the rest) 0.0357, 0.1112 under the control, 0.0004, -0.0251 under the arm; the five years after removed 0.9875, the rest removed 1.2255
+  S126 CW against C world 1: GA by band (the five years after the bridge, the rest) -0.0016, -0.0037 under the control, -0.0004, -0.0009 under the arm; the five years after removed 0.7593, the rest removed 0.7547
+  S126 CW against C world 2: GA by band (the five years after the bridge, the rest) -0.0001, -0.0002 under the control, -0.0000, -0.0001 under the arm; the five years after removed 0.9469, the rest removed 0.4181
+  S126 CXW against CX world 0: GA by band (the five years after the bridge, the rest) 0.0357, 0.1112 under the control, 0.0004, -0.0251 under the arm; the five years after removed 0.9875, the rest removed 1.2255
+  S126 CXW against CX world 1: GA by band (the five years after the bridge, the rest) -0.0016, -0.0037 under the control, -0.0004, -0.0009 under the arm; the five years after removed 0.7593, the rest removed 0.7547
+  S126 CXW against CX world 2: GA by band (the five years after the bridge, the rest) -0.0001, -0.0002 under the control, -0.0000, -0.0001 under the arm; the five years after removed 0.9469, the rest removed 0.4181
+  S362 CW against C world 0: GA by band (the five years after the bridge, the rest) 0.0019, 0.0489 under the control, 0.0014, 0.0075 under the arm; the five years after removed 0.2381, the rest removed 0.8462
+  S362 CW against C world 1: GA by band (the five years after the bridge, the rest) -0.0001, 0.0052 under the control, -0.0000, -0.0001 under the arm; the five years after removed 0.8687, the rest removed 1.0238
+  S362 CW against C world 2: GA by band (the five years after the bridge, the rest) -0.0000, -0.0001 under the control, 0.0000, -0.0001 under the arm; the five years after removed 1.0000, the rest RISES
+  S362 CXW against CX world 0: GA by band (the five years after the bridge, the rest) 0.0019, 0.0489 under the control, 0.0014, 0.0075 under the arm; the five years after removed 0.2381, the rest removed 0.8462
+  S362 CXW against CX world 1: GA by band (the five years after the bridge, the rest) -0.0001, 0.0052 under the control, -0.0000, -0.0001 under the arm; the five years after removed 0.8687, the rest removed 1.0238
+  S362 CXW against CX world 2: GA by band (the five years after the bridge, the rest) -0.0000, -0.0001 under the control, 0.0000, -0.0001 under the arm; the five years after removed 1.0000, the rest RISES
+  S128 CW against C world 0: GA by band (the five years after the bridge, the rest) -0.1973, 1.2781 under the control, -0.3715, -0.3564 under the arm; the five years after RISES, the rest removed 1.2789
+  S128 CW against C world 1: GA by band (the five years after the bridge, the rest) 0.4748, 2.1032 under the control, -0.1942, -0.3064 under the arm; the five years after removed 1.4090, the rest removed 1.1457
+  S128 CW against C world 2: GA by band (the five years after the bridge, the rest) 0.1973, 0.2507 under the control, 0.0136, -0.1153 under the arm; the five years after removed 0.9312, the rest removed 1.4601
+  S370 CW at 120 against COPY-W's CW at 60 world 0: GA by band (the five years after the bridge, the rest) 0.1455, 0.7660 under the control, 0.1141, 0.1973 under the arm; the five years after removed 0.2156, the rest removed 0.7425
+  S370 CW at 120 against COPY-W's CW at 60 world 1: GA by band (the five years after the bridge, the rest) -0.0339, 0.0909 under the control, -0.0648, -0.1195 under the arm; the five years after RISES, the rest RISES
+  S370 CW at 120 against COPY-W's CW at 60 world 2: GA by band (the five years after the bridge, the rest) -0.0113, -0.0241 under the control, -0.0231, -0.0384 under the arm; the five years after RISES, the rest RISES
+  S362 CW against C world 0: the years-4-6 residual -0.6167 points under the control, removed 0.0251 (0.0189 to 0.0313) (against three quarters and a quarter: kept)
+  S362 CW against C world 1: the years-4-6 residual -0.3690 points under the control, removed 0.0026 (-0.0014 to 0.0067) (against three quarters and a quarter: under half a point, not read)
+  S362 CW against C world 2: the years-4-6 residual -0.3143 points under the control, removed -0.0003 (-0.0005 to -0.0001) (against three quarters and a quarter: under half a point, not read)
+  S362 CXW against CX world 0: the years-4-6 residual -0.6154 points under the control, removed 0.0249 (0.0188 to 0.0311) (against three quarters and a quarter: kept)
+  S362 CXW against CX world 1: the years-4-6 residual -0.3690 points under the control, removed 0.0028 (-0.0012 to 0.0069) (against three quarters and a quarter: under half a point, not read)
+  S362 CXW against CX world 2: the years-4-6 residual -0.3143 points under the control, removed -0.0003 (-0.0005 to -0.0001) (against three quarters and a quarter: under half a point, not read)
+  CX against C on S130 world 0: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S130 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S130 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S126 world 0: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S126 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S126 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S362 world 0: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S362 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CX against C on S362 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S130 world 0: saved 0/0/8/66 and lost 0/0/5/24 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S130 world 1: saved 0/0/2/15 and lost 0/0/3/6 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S130 world 2: saved 0/0/0/0 and lost 0/0/0/1 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S126 world 0: saved 0/0/4/5 and lost 0/0/0/1 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S126 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S126 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S362 world 0: saved 0/0/0/2 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S362 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S362 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S128 world 0: saved 0/28/54/42 and lost 0/12/13/4 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S128 world 1: saved 0/17/23/22 and lost 0/8/34/9 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CW against C on S128 world 2: saved 0/1/6/4 and lost 0/3/9/2 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S130 world 0: saved 0/0/8/66 and lost 0/0/5/24 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S130 world 1: saved 0/0/2/15 and lost 0/0/3/6 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S130 world 2: saved 0/0/0/0 and lost 0/0/0/1 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S126 world 0: saved 0/0/4/5 and lost 0/0/0/1 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S126 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S126 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S362 world 0: saved 0/0/0/2 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S362 world 1: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  CXW against C on S362 world 2: saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  S362 CW: copied 211896 copiedTop 121824 of 905904 nodes; reads at the clamp 8457 of 61218; solve 2259 s
+  S362 CXW: copied 211896 copiedTop 121824 of 905904 nodes; reads at the clamp 8457 of 61218; solve 2251 s
+  S370 CW: copied 433674 copiedTop 250128 of 1850688 nodes; reads at the clamp 198 of 83248; solve 3704 s
+  S362 C: copied 103680 copiedTop 59778 of 446148 nodes; reads at the clamp 9260 of 61215; solve 1209 s
+  S362 CX: copied 103680 copiedTop 59778 of 446148 nodes; reads at the clamp 9259 of 61215; solve 1036 s
+  S130 CW: copied 63666 copiedTop 38070 of 228420 nodes; reads at the clamp 0 of 12000; solve 1330 s
+  S130 CXW: copied 63666 copiedTop 38070 of 228420 nodes; reads at the clamp 0 of 12000; solve 1332 s
+  S126 CW: copied 63504 copiedTop 39042 of 234252 nodes; reads at the clamp 0 of 12000; solve 1426 s
+  S126 CXW: copied 63504 copiedTop 39042 of 234252 nodes; reads at the clamp 0 of 12000; solve 1415 s
+  S128 CW: copied 63342 copiedTop 37260 of 223560 nodes; reads at the clamp 0 of 12000; solve 1289 s
+  S130 C: copied 30132 copiedTop 18468 of 110808 nodes; reads at the clamp 0 of 12000; solve 645 s
+  S130 CX: copied 30132 copiedTop 18468 of 110808 nodes; reads at the clamp 0 of 12000; solve 631 s
+  S126 C: copied 30780 copiedTop 18954 of 113724 nodes; reads at the clamp 0 of 12000; solve 713 s
+  S126 CX: copied 30780 copiedTop 18954 of 113724 nodes; reads at the clamp 0 of 12000; solve 735 s
+  S128 C: copied 30618 copiedTop 18144 of 108864 nodes; reads at the clamp 0 of 12000; solve 664 s
+  S370 CW (60 points, COPY-W's, reused) world 0: GB 8.1491 GA 0.9115 T -0.7090
+  S370 CW (60 points, COPY-W's, reused) world 1: GB 2.9273 GA 0.0571 T -0.4740
+  S370 CW (60 points, COPY-W's, reused) world 2: GB -0.1509 GA -0.0354 T 0.1670

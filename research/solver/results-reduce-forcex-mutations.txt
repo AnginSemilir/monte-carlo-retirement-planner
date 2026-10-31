@@ -1,0 +1,30 @@
+caught: 1: for (const u of units) if (u.plant) bad.push(
+caught: 2: if (n !== 1) bad.push(`${id} ${a}: ${n} unit lines, not 1`);
+caught: 3: for (const [f, v] of Object.entries(want)) if (field(u.ran, 
+caught: 4: if (new Set(h.filter(u => u.sum).map(u => u.sum.pathsum)).si
+caught: 5: if (!(ref.pen[i] > LIVE) || !(u >= 0.15 && u < 0.99) || !(u1
+caught: 6: if (!(ref.pen[i] > LIVE) || !(u >= 0.15 && u < 0.99) || !(u1
+caught: 7: holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p 
+caught: 8: holds++; if (prices.some(p => u >= p - CELL - 1e-6 && u < p 
+caught: 9: else if (s.share < ACT) bad.push(
+caught: 10: else if (s.share < ACT) bad.push(
+caught: 11: if (!(s.holds > 0)) bad.push(
+caught: 12: if (!(pc.survived[j] === 1 && ref.survived[j] === 0)) contin
+caught: 13: gap.push(t.non[i] - pc.non[i]);
+caught: 14: for (let y = 0; y <= last; y++) {
+caught: 15: const last = t.first[j] >= 0 ? t.first[j] : t.Y - 1;
+caught: 16: if (t.first[j] < 0) { ends++; if (t.survived[j] !== ref.surv
+caught: 17: if (!(cells > 0)) bad.push(
+caught: 18: for (let j = 0; j < n; j++) { D[j] = X[j] - A[j]; G[j] = P[j
+caught: 19: R: sG > 0 ? sD / sG : NaN
+caught: 20: lo: D.map((d, j) => d - LO * G[j]), hi: D.map((d, j) => HI *
+caught: 21: pLo < ALPHA && r.R >= HI ? 'RECOVERS'
+caught: 22: pLo < ALPHA && r.R >= HI ? 'RECOVERS'
+caught: 23: pHi < ALPHA && r.R <= LO ? 'KEEPS'
+caught: 24: const v = reads.every(r => r.read === 'RECOVERS') ? 'HELD'
+caught: 25: : reads.every(r => r.read === 'KEEPS') ? 'FALSIFIED'
+caught: 26: (!(r.sG > 0) ? 'NO GAP'
+caught: 27: if (!f || t.pt[i] <= f.t) continue;
+caught: 28: if (t.pu[i] >= f.p - 1e-12 && t.pu[i] < f.p + PAST) near++;
+caught: 29: if (t.pu[i] >= f.p - 1e-12 && t.pu[i] < f.p + PAST) near++;
+29 of 29 mutations caught

@@ -1,0 +1,7 @@
+THE POOLED FLOOR AT A FIXED PATH COUNT: every one of 7e's 16 pool cases loses 0.1 points, one-sided; how often each pooled form HOLDS (lower end above -0.1); nominal 2.5%; 20000 draws a row
+
+paths  background  | fixed effect  random effects  summed (unconditional) | fixed effect mean
+ 3000  7e's        |        23.2%           13.8%                   2.0% | -0.080
+ 8000  7e's        |        13.0%            6.7%                   2.0% | -0.092
+ 3000  none        |        65.9%           50.8%                   3.2% | -0.071
+ 8000  none        |        40.0%           20.4%                   3.2% | -0.086

@@ -1,0 +1,71 @@
+caught: the gate accepts a missing unit
+caught: the gate accepts a unit twice
+caught: the gate accepts an unregistered unit
+caught: the gate ignores the unit line's lambda
+caught: the gate accepts a missing solve line
+caught: the gate accepts a missing ran line
+caught: the gate ignores the unit's weight
+caught: the gate ignores the seed
+caught: the gate ignores the paths
+caught: the gate ignores the points and the grid
+caught: the gate takes SHIP with the reader
+caught: the gate takes SHIP with the tier state
+caught: the gate takes SHIP with e3pcls
+caught: the gate takes SHIP with the interpolated allowance axis
+caught: the gate takes CAND without Q's step
+caught: the gate takes CAND without the charge
+caught: the gate takes CAND without e3
+caught: the gate takes CAND without e3pcls
+caught: the gate takes CAND without the tier state
+caught: the gate takes a readerRef or coverage on the ran line
+caught: the gate takes other tiers
+caught: the tiers check takes a sixth tier
+caught: the gate accepts a missing gap line
+caught: the gate accepts a missing joint line
+caught: the gate ignores the joint flag
+caught: the gate ignores the solve's margin
+caught: the gate ignores a pension death charge
+caught: the gate accepts world lines
+caught: the gate accepts a missing run line
+caught: the done line is not required
+caught: the gate strips minPot within a household
+caught: the gate refuses a tier above in one arm only
+caught: the gate pairs the arms across weights
+caught: the gate ignores a settings difference within a household
+caught: the gate ignores the scale within a household
+caught: a stage household without its access line passes
+caught: a missing resid year passes
+caught: year 0 not held to every path
+caught: paths rising from year to year pass
+caught: stage lines outside the six pass
+caught: the records not checked
+caught: the bridge slice takes access year itself
+caught: the late slice one year too long
+caught: the stage means unweighted by paths
+caught: the trace agreement ignores the arm
+caught: the trace agreement ignores the seed
+caught: the trace agreement ignores the stamp
+caught: the trace agreement ignores the survival
+caught: a trace off its log is not refused
+caught: item 1 reads harm the wrong way round
+caught: item 1 at the margin 0.25 everywhere
+caught: item 1 without Holm
+caught: item 1 passes without the unconditional interval
+caught: item 1's interval unguarded
+caught: item 1 FALSIFIED only when every household reads harm
+caught: item 1's point the sum, not the mean
+caught: item 2 takes a lower end at minus the margin
+caught: item 2 FALSIFIED on a lower end
+caught: item 2 at the margin 0.25 everywhere
+caught: item 3 HELD without the mean
+caught: item 3 FALSIFIED without the mean
+caught: item 3's household line at -6%
+caught: the floor over every household
+caught: the floor HELD at its lower end's line
+caught: the floor FALSIFIED on its lower end
+caught: the items at 0.01 numbered as 0.02's
+caught: panel-7u.mjs: the gain line at 0.25, not 0.5
+caught: panel-7u.mjs: one weight's record for both
+caught: panel-7u.mjs: a record off its hash read anyway
+caught: panel-7u.mjs: the floor keeps the gain set
+70 of 70 mutations caught

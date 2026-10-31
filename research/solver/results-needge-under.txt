@@ -1,0 +1,8 @@
+NE-EDGE: S364 at P, each arm's table against its runs in every world (4,000 paths a world, seed 7002; results/diagneedge behind the reducer's gate)
+BASE world 0 (weight 0.1667): table 3.4212 runs 2/4000 = 0.0500 table less runs 3.3712 (3.2183 to 3.4170); world 1 (weight 0.6667): table 2.8196 runs 12/4000 = 0.3000 table less runs 2.5196 (2.2608 to 2.6794); world 2 (weight 0.1667): table 1.3275 runs 61/4000 = 1.5250 table less runs -0.1975 (-0.6918 to 0.2041)
+     mixture: table 2.6711 runs 0.4625
+RZ   world 0 (weight 0.1667): table 0.0016 runs 2/4000 = 0.0500 table less runs -0.0484 (-0.2013 to -0.0026); world 1 (weight 0.6667): table 0.0255 runs 12/4000 = 0.3000 table less runs -0.2745 (-0.5333 to -0.1147); world 2 (weight 0.1667): table 0.2238 runs 62/4000 = 1.5500 table less runs -1.3262 (-1.8239 to -0.9211)
+     mixture: table 0.0545 runs 0.4667
+RS   world 0 (weight 0.1667): table 0.0016 runs 2/4000 = 0.0500 table less runs -0.0484 (-0.2013 to -0.0026); world 1 (weight 0.6667): table 0.0255 runs 12/4000 = 0.3000 table less runs -0.2745 (-0.5333 to -0.1146); world 2 (weight 0.1667): table 0.2239 runs 62/4000 = 1.5500 table less runs -1.3261 (-1.8238 to -0.9210)
+     mixture: table 0.0546 runs 0.4667
+identity: BASE's world 0 and 1 over-reads are the reducer's (3.3712, 2.5196); planted: a run moved by 40 paths moves the printed difference

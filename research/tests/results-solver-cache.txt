@@ -1,0 +1,13 @@
+PASS  1. S126, the candidate (the tier state's 4 layers a world, the reference): the restored 2410 arrays the solve's bit for bit (fe85b2679e929e51); solved in 22.453 s, restored in 1.13 s
+PASS  1. S126, the candidate: every one of 200 paths runPolicy runs the same on the restore
+PASS  1. S126, the candidate: the engine's simulation of the solved plan the same on the restore
+PASS  1. planted: one stored move changed shows in the restored tables
+PASS  1. S126, consent withdrawn (no tier state, the reference): the restored 610 arrays the solve's bit for bit (c091581221ee8747); solved in 13.221 s, restored in 0.396 s
+PASS  1. S126, consent withdrawn: every one of 200 paths runPolicy runs the same on the restore
+PASS  1. S126, consent withdrawn: the engine's simulation of the solved plan the same on the restore
+PASS  2. the same plan with its fields in another order: the same key (37e4efdb689098ad)
+PASS  2. one pound more of spending target: another key
+PASS  2. one pound more in an account (isa_self): another key
+PASS  2. another code, or another lambda: another key
+PASS  3. isa_self one percent larger: 1238659 of 3115746 table values differ, so a balance edit re-solves
+ALL PASS: 12 checks

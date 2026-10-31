@@ -1,0 +1,41 @@
+ok   the young and the used left out: S006,S008,S010,S012,S014,S016,S018,S020,S022
+ok   three taken evenly in library order (indices 0, 3, 6 of 9): S006,S012,S018
+ok   fewer left than places is an error: threw
+ok   an age of exactly 44 is a FIRE base, 45 is not: S102
+ok   ids read from text: a hyphenated trace name, an F id as its base, not a four-digit or glued id: S101,S120,S302
+planted (5): all read as they should
+EDGES: an age of exactly 44, fewer households than places
+
+7U'S BROAD PANEL (select-7u-broad.mjs; the rule in its header): 210 single households; 156 touched by an earlier run (a content scan of results/ and results-*.txt, Phase 4's band selection left out); 6 more aged 44 or under (Phase 4's FIRE bases); 48 left; 30 taken evenly
+  S002 age 68 in-drawdown/pension-heavy/lean/heavy
+  S008 age 68 in-drawdown/pension-heavy/comfortable/heavy
+  S016 age 68 in-drawdown/isa-heavy/modest/moderate
+  S018 age 68 in-drawdown/isa-heavy/comfortable/light
+  S028 age 68 in-drawdown/gia-heavy/modest/moderate
+  S042 age 68 in-drawdown/balanced/comfortable/light
+  S044 age 68 in-drawdown/balanced/comfortable/heavy
+  S066 age 61 just-retired/pension-heavy/comfortable/light
+  S072 age 61 just-retired/isa-heavy/lean/light
+  S078 age 61 just-retired/isa-heavy/comfortable/light
+  S088 age 61 just-retired/gia-heavy/modest/moderate
+  S104 age 61 just-retired/balanced/comfortable/heavy
+  S144 age 56 early-bridge/gia-heavy/lean/light
+  S150 age 56 early-bridge/gia-heavy/comfortable/light
+  S156 age 56 early-bridge/balanced/lean/light
+  S176 age 56 early-bridge/cash-heavy/comfortable/heavy
+  S190 age 55 near/pension-heavy/wealthy/moderate
+  S212 age 55 near/gia-heavy/comfortable/heavy
+  S214 age 55 near/gia-heavy/wealthy/moderate
+  S224 age 55 near/balanced/comfortable/heavy
+  S236 age 55 near/cash-heavy/comfortable/heavy
+  S248 age 45 mid/pension-heavy/comfortable/heavy
+  S262 age 45 mid/isa-heavy/wealthy/moderate
+  S278 age 45 mid/balanced/lean/heavy
+  S284 age 45 mid/balanced/comfortable/heavy
+  S296 age 45 mid/cash-heavy/comfortable/heavy
+  S364 age 50 long-bridge/pension-heavy/modest/moderate
+  S380 age 50 long-bridge/isa-heavy/comfortable/heavy
+  S394 age 50 long-bridge/gia-heavy/wealthy/moderate
+  S408 age 50 long-bridge/cash-heavy/lean/light
+BROAD: S002 S008 S016 S018 S028 S042 S044 S066 S072 S078 S088 S104 S144 S150 S156 S176 S190 S212 S214 S224 S236 S248 S262 S278 S284 S296 S364 S380 S394 S408
+BROAD sha256 eb5344ebe6849da1

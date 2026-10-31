@@ -1,0 +1,5 @@
+S360 world 0: table less runs BASE -12.6088 RS -13.8674 BO -4.9991 RSO -5.9033; ORDER's effect on the table 7.2097, on the runs -0.4000; RS's deepening under BASE -1.2586, under ORDER -0.9042, ORDER's share of it removed 0.2816
+S360 world 1: table less runs BASE -12.6293 RS -12.9574 BO -4.9116 RSO -4.9727; ORDER's effect on the table 7.4677, on the runs -0.2500; RS's deepening under BASE -0.3281, under ORDER -0.0611, ORDER's share of it removed 0.8138
+S360 world 2: table less runs BASE -7.1558 RS -7.2093 BO -3.5434 RSO -3.5611; ORDER's effect on the table 3.7874, on the runs 0.1750; RS's deepening under BASE -0.0535, under ORDER -0.0177, ORDER's share of it removed 0.6692
+share 0.95 BASE: the year-0 read at the initial state 82.6409; the own opening's tables 87.5421, 97.0917, 99.5970 (mixed 95.9177); its runs mixed 95.7584; the year-0 read less the runs -13.1175
+share 0.95 BO: the year-0 read at the initial state 95.6140; the own opening's tables 87.5421, 97.0917, 99.5970 (mixed 95.9177); its runs mixed 95.7584; the year-0 read less the runs -0.1444

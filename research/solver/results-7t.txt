@@ -1,0 +1,359 @@
+7t: DO THE MIXTURE'S TABLES OVERRATE THE RISKIER TIER BECAUSE EACH WORLD PLANS AS IF IT KNEW ITS WORLD? Read against research/solver/predictions/diag-7t.md
+
+FAIR-TEST GATE: passed - the stamps; on all five cases the arms ran the same settings but the bridge read, the joint lines match the labels, every margin-0 run, pair, world run and trace is there (seed 7002, 8000 paths, 2000 a world, 16 points)
+
+case        run           table    sim    gap  tier-below  below   secs
+S126        OFF            55.8   99.8  -44.0        40.0    1.6   1130
+            OFF/M0                99.7               25.7    2.0    885
+S126        READER         99.6   99.3    0.3         8.6    2.8   1137
+            READER/M0             99.7               25.7    2.0   1009
+S126        OFF+J          61.0   99.8  -38.9        40.0    1.7   1206
+            OFF+J/M0              99.8               26.1    1.9   1019
+S126        READER+J       99.3   99.5   -0.1         9.2    2.8    897
+            READER+J/M0           99.8               26.1    1.9    751
+S126        OFF5           55.7   99.8  -44.1        40.0    1.6   1452
+S126        READER5        99.6   99.3    0.2         8.5    2.8   1411
+S126        OFF+L                 99.9               39.9    1.7    739
+S126        READER+L              99.7               11.0    2.7    723
+S126        OFF+O                 99.9               38.7    1.8    722
+S126        READER+O              99.8               10.5    2.3    706
+S126        OFF5+L                99.9               39.9    1.7   1187
+S126        READER5+L             99.7               11.2    2.7   1106
+bridge 4    OFF             7.8   99.5  -91.7        41.9    4.0   1284
+            OFF/M0                99.5               28.0    4.2   1034
+bridge 4    READER         99.1   99.2   -0.1        14.6    5.0   1285
+            READER/M0             99.5               28.0    4.2   1066
+bridge 4    OFF+J           9.7   99.6  -89.9        41.9    4.1   1388
+            OFF+J/M0              99.6               28.4    4.2    844
+bridge 4    READER+J       98.8   99.3   -0.5        15.8    5.1   1029
+            READER+J/M0           99.6               28.5    4.2    835
+bridge 4    OFF5            7.8   99.5  -91.7        41.9    4.0   1583
+bridge 4    READER5        99.1   99.2   -0.1        14.5    5.0   1543
+bridge 4    OFF+L                 99.7               41.9    4.1    816
+bridge 4    READER+L              99.6               16.6    5.0    799
+bridge 4    OFF+O                 99.7               40.6    4.3    808
+bridge 4    READER+O              99.7               17.4    4.5    808
+bridge 4    OFF5+L                99.7               41.9    4.1   1326
+bridge 4    READER5+L             99.5               16.5    5.0   1260
+S360        OFF             0.8   34.6  -33.9         0.0    6.7    615
+            OFF/M0                28.2               12.8    6.7    306
+S360        READER         33.0   45.9  -12.9        19.3    6.7    848
+            READER/M0             45.9               12.8    6.7    539
+S360        OFF+J           0.8   34.3  -33.5         0.0    6.7    638
+            OFF+J/M0              28.2               12.7    6.7    301
+S360        READER+J       33.0   45.9  -12.9        19.3    6.7    741
+            READER+J/M0           45.9               12.6    6.7    456
+S360        OFF+L                 34.6                0.0    6.7    425
+S360        READER+L              45.9               19.3    6.7    578
+S360        OFF+O                 35.8                1.3    6.7    384
+S360        READER+O              46.1               19.4    6.7    557
+share 0.95  OFF             0.0   73.4  -73.4         4.7    2.5    879
+            OFF/M0                78.8               21.0    2.3    733
+share 0.95  READER         81.6   93.0  -11.5         7.4    3.4   1080
+            READER/M0             94.3               24.8    2.8    984
+share 0.95  OFF+J           0.0   73.4  -73.4         5.0    2.6    861
+            OFF+J/M0              78.9               21.2    2.2    893
+share 0.95  READER+J       81.4   93.1  -11.7         8.0    3.4   1006
+            READER+J/M0           94.5               25.0    2.7    722
+share 0.95  OFF+L                 73.6                6.1    2.5    557
+share 0.95  READER+L              93.3                9.8    3.3    694
+share 0.95  OFF+O                 73.7                6.1    2.3    544
+share 0.95  READER+O              93.1                8.9    3.0    696
+S194        OFF            98.9   97.8    1.2        27.1    7.5   1158
+            OFF/M0                97.9               31.9    7.3    903
+S194        OFF+J          98.6   97.7    0.9        22.9    8.2   1106
+            OFF+J/M0              98.2               31.5    7.9    875
+S194        OFF+L                 98.2               28.0    7.7   1121
+S194        OFF+O                 98.5               19.9    7.4    973
+
+THE LEARNING CHOOSER'S END WEIGHTS, the mean over paths (the prior: 1/6, 2/3, 1/6 over three worlds; the five-point Gauss-Hermite weights over five):
+  S126       OFF+L      0.164 0.666 0.170
+  S126       READER+L   0.164 0.666 0.170
+  S126       OFF+O      0.218 0.557 0.225
+  S126       READER+O   0.218 0.557 0.225
+  S126       OFF5+L     0.011 0.219 0.533 0.226 0.011
+  S126       READER5+L  0.011 0.219 0.533 0.225 0.011
+  bridge 4   OFF+L      0.166 0.665 0.168
+  bridge 4   READER+L   0.166 0.665 0.169
+  bridge 4   OFF+O      0.222 0.560 0.218
+  bridge 4   READER+O   0.222 0.560 0.218
+  bridge 4   OFF5+L     0.011 0.221 0.533 0.224 0.011
+  bridge 4   READER5+L  0.011 0.221 0.533 0.224 0.011
+  S360       OFF+L      0.165 0.664 0.171
+  S360       READER+L   0.167 0.665 0.168
+  S360       OFF+O      0.224 0.558 0.219
+  S360       READER+O   0.224 0.558 0.219
+  share 0.95 OFF+L      0.165 0.666 0.169
+  share 0.95 READER+L   0.159 0.668 0.173
+  share 0.95 OFF+O      0.218 0.557 0.225
+  share 0.95 READER+O   0.218 0.557 0.225
+  S194       OFF+L      0.167 0.664 0.169
+  S194       OFF+O      0.221 0.560 0.219
+
+IN EACH WORLD (2,000 paths a world, each path's persistent shift at the world's node): the world's own table against what the policy realises there
+  S126       OFF       bad: table 29.47 sim 98.50 (gap -69.03), estate 833k / 795k, tier-below 39.8; normal: table 57.51 sim 99.95 (gap -42.44), estate 1490k / 2282k, tier-below 40.0; good: table 75.25 sim 100.00 (gap -24.75), estate 2116k / 3542k, tier-below 40.0
+  S126       READER    bad: table 98.34 sim 96.80 (gap 1.54), estate 832k / 865k, tier-below 16.7; normal: table 99.79 sim 99.80 (gap -0.01), estate 1490k / 2515k, tier-below 8.0; good: table 99.96 sim 100.00 (gap -0.04), estate 2116k / 3600k, tier-below 3.0
+  S126       OFF+J     bad: table 16.72 sim 98.65 (gap -81.93), estate 831k / 793k, tier-below 39.9; normal: table 66.14 sim 99.95 (gap -33.81), estate 1477k / 2277k, tier-below 40.0; good: table 84.54 sim 100.00 (gap -15.46), estate 2029k / 3541k, tier-below 40.0
+  S126       READER+J  bad: table 96.54 sim 97.10 (gap -0.56), estate 830k / 861k, tier-below 17.2; normal: table 99.88 sim 99.85 (gap 0.03), estate 1476k / 2496k, tier-below 8.6; good: table 99.99 sim 100.00 (gap -0.01), estate 2029k / 3590k, tier-below 3.6
+  bridge 4   OFF       bad: table 2.71 sim 97.85 (gap -95.14), estate 676k / 781k, tier-below 41.7; normal: table 7.41 sim 99.90 (gap -92.49), estate 1214k / 2342k, tier-below 42.0; good: table 14.40 sim 100.00 (gap -85.60), estate 1707k / 3582k, tier-below 42.0
+  bridge 4   READER    bad: table 96.50 sim 96.05 (gap 0.45), estate 674k / 836k, tier-below 23.0; normal: table 99.56 sim 99.85 (gap -0.29), estate 1210k / 2467k, tier-below 14.5; good: table 99.94 sim 100.00 (gap -0.06), estate 1707k / 3592k, tier-below 7.9
+  bridge 4   OFF+J     bad: table 1.56 sim 98.25 (gap -96.69), estate 674k / 780k, tier-below 41.8; normal: table 9.25 sim 99.90 (gap -90.65), estate 1205k / 2339k, tier-below 42.0; good: table 19.56 sim 100.00 (gap -80.44), estate 1649k / 3581k, tier-below 41.8
+  bridge 4   READER+J  bad: table 94.14 sim 96.90 (gap -2.76), estate 674k / 832k, tier-below 24.1; normal: table 99.71 sim 99.85 (gap -0.14), estate 1205k / 2455k, tier-below 15.5; good: table 99.98 sim 100.00 (gap -0.02), estate 1650k / 3586k, tier-below 8.9
+  S360       OFF       bad: table 0.52 sim 14.65 (gap -14.13), estate 141k / 70k, tier-below 0.0; normal: table 0.76 sim 33.35 (gap -32.59), estate 210k / 226k, tier-below 0.0; good: table 1.02 sim 57.65 (gap -56.63), estate 257k / 414k, tier-below 0.0
+  S360       READER    bad: table 11.79 sim 25.35 (gap -13.56), estate 140k / 122k, tier-below 10.7; normal: table 31.54 sim 45.20 (gap -13.66), estate 210k / 305k, tier-below 18.9; good: table 60.18 sim 66.40 (gap -6.22), estate 256k / 477k, tier-below 28.0
+  S360       OFF+J     bad: table 0.49 sim 14.45 (gap -13.96), estate 139k / 70k, tier-below 0.0; normal: table 0.76 sim 33.10 (gap -32.34), estate 210k / 224k, tier-below 0.0; good: table 1.03 sim 56.70 (gap -55.67), estate 256k / 408k, tier-below 0.0
+  S360       READER+J  bad: table 11.74 sim 25.40 (gap -13.66), estate 139k / 122k, tier-below 10.7; normal: table 31.55 sim 45.20 (gap -13.65), estate 209k / 305k, tier-below 18.9; good: table 60.17 sim 66.40 (gap -6.23), estate 253k / 477k, tier-below 28.0
+  share 0.95 OFF       bad: table 0.01 sim 63.10 (gap -63.09), estate 278k / 644k, tier-below 8.9; normal: table 0.01 sim 72.20 (gap -72.19), estate 497k / 1931k, tier-below 4.3; good: table 0.01 sim 80.15 (gap -80.14), estate 705k / 2914k, tier-below 1.6
+  share 0.95 READER    bad: table 71.39 sim 80.35 (gap -8.96), estate 277k / 784k, tier-below 12.6; normal: table 82.13 sim 94.35 (gap -12.22), estate 497k / 2411k, tier-below 7.3; good: table 89.47 sim 98.70 (gap -9.23), estate 705k / 3551k, tier-below 3.1
+  share 0.95 OFF+J     bad: table 0.01 sim 63.45 (gap -63.44), estate 277k / 642k, tier-below 9.2; normal: table 0.01 sim 72.20 (gap -72.19), estate 492k / 1925k, tier-below 4.5; good: table 0.02 sim 80.15 (gap -80.13), estate 676k / 2915k, tier-below 1.8
+  share 0.95 READER+J  bad: table 70.08 sim 80.85 (gap -10.77), estate 277k / 778k, tier-below 13.1; normal: table 82.21 sim 94.35 (gap -12.14), estate 492k / 2399k, tier-below 7.9; good: table 89.50 sim 98.70 (gap -9.20), estate 676k / 3546k, tier-below 3.7
+  S194       OFF       bad: table 95.36 sim 87.20 (gap 8.16), estate 233k / 152k, tier-below 33.1; normal: table 99.58 sim 99.50 (gap 0.08), estate 420k / 395k, tier-below 27.7; good: table 99.93 sim 99.95 (gap -0.02), estate 608k / 650k, tier-below 19.9
+  S194       OFF+J     bad: table 92.39 sim 88.15 (gap 4.24), estate 229k / 159k, tier-below 30.3; normal: table 99.77 sim 99.45 (gap 0.32), estate 407k / 407k, tier-below 22.9; good: table 99.98 sim 99.95 (gap 0.03), estate 570k / 653k, tier-below 15.0
+
+PAIRED on the same paths (saved/lost), the survival change in points with its exact 95% interval:
+  S126       READER-OFF             0/42  -0.53 (-0.53 to -0.44)
+  S126       READER+J-READER        14/0  +0.17 (0.09 to 0.17)
+  S126       READER+J-OFF+J         0/28  -0.35 (-0.35 to -0.26)
+  S126       READER+J-OFF           0/28  -0.35 (-0.35 to -0.26)
+  S126       OFF+J-OFF              0/0  +0.00 (0.00 to 0.00)
+  S126       READER/M0-READER       29/1  +0.35 (0.25 to 0.37)
+  S126       OFF/M0-OFF             0/14  -0.17 (-0.17 to -0.09)
+  S126       READER/M0-OFF/M0       0/0  +0.00 (0.00 to 0.00)
+  S126       READER+J/M0-READER+J   26/0  +0.33 (0.24 to 0.33)
+  S126       READER+J/M0-OFF        0/2  -0.03 (-0.03 to 0.02)
+  S126       READER+J/M0-OFF+J/M0   0/0  +0.00 (0.00 to 0.00)
+  S126       READER+L-READER        32/0  +0.40 (0.31 to 0.40)
+  S126       READER+L-OFF+L         0/15  -0.19 (-0.19 to -0.11)
+  S126       OFF+L-OFF              5/0  +0.06 (-0.00 to 0.06)
+  S126       READER+O-READER        45/4  +0.51 (0.37 to 0.58)
+  S126       READER+O-OFF+O         1/9  -0.10 (-0.12 to -0.01)
+  S126       OFF+O-OFF              7/0  +0.09 (0.02 to 0.09)
+  S126       READER5-READER         1/0  +0.01 (-0.01 to 0.01)
+  S126       READER5-OFF5           0/41  -0.51 (-0.51 to -0.42)
+  S126       OFF5-OFF               0/0  +0.00 (0.00 to 0.00)
+  S126       READER5+L-READER       33/0  +0.41 (0.33 to 0.41)
+  S126       READER5+L-OFF5+L       0/13  -0.16 (-0.16 to -0.08)
+  S126       OFF5+L-OFF5            4/0  +0.05 (-0.01 to 0.05)
+  bridge 4   READER-OFF             0/29  -0.36 (-0.36 to -0.28)
+  bridge 4   READER+J-READER        18/3  +0.19 (0.07 to 0.25)
+  bridge 4   READER+J-OFF+J         1/22  -0.26 (-0.29 to -0.16)
+  bridge 4   READER+J-OFF           1/15  -0.17 (-0.20 to -0.08)
+  bridge 4   OFF+J-OFF              8/1  +0.09 (0.00 to 0.11)
+  bridge 4   READER/M0-READER       28/2  +0.33 (0.21 to 0.37)
+  bridge 4   OFF/M0-OFF             0/6  -0.07 (-0.07 to -0.01)
+  bridge 4   READER/M0-OFF/M0       4/1  +0.04 (-0.03 to 0.06)
+  bridge 4   READER+J/M0-READER+J   23/3  +0.25 (0.13 to 0.31)
+  bridge 4   READER+J/M0-OFF        11/5  +0.07 (-0.03 to 0.16)
+  bridge 4   READER+J/M0-OFF+J/M0   5/3  +0.03 (-0.05 to 0.08)
+  bridge 4   READER+L-READER        32/0  +0.40 (0.31 to 0.40)
+  bridge 4   READER+L-OFF+L         0/14  -0.17 (-0.17 to -0.09)
+  bridge 4   OFF+L-OFF              18/1  +0.21 (0.11 to 0.24)
+  bridge 4   READER+O-READER        47/4  +0.54 (0.40 to 0.61)
+  bridge 4   READER+O-OFF+O         7/7  +0.00 (-0.09 to 0.09)
+  bridge 4   OFF+O-OFF              16/2  +0.17 (0.07 to 0.22)
+  bridge 4   READER5-READER         5/5  +0.00 (-0.08 to 0.08)
+  bridge 4   READER5-OFF5           1/29  -0.35 (-0.37 to -0.25)
+  bridge 4   OFF5-OFF               2/3  -0.01 (-0.06 to 0.04)
+  bridge 4   READER5+L-READER       31/0  +0.39 (0.30 to 0.39)
+  bridge 4   READER5+L-OFF5+L       0/13  -0.16 (-0.16 to -0.08)
+  bridge 4   OFF5+L-OFF5            17/1  +0.20 (0.10 to 0.22)
+  S360       READER-OFF             904/0  +11.30 (11.21 to 11.30)
+  S360       READER+J-READER        0/0  +0.00 (0.00 to 0.00)
+  S360       READER+J-OFF+J         931/0  +11.64 (11.55 to 11.64)
+  S360       READER+J-OFF           904/0  +11.30 (11.21 to 11.30)
+  S360       OFF+J-OFF              0/27  -0.34 (-0.34 to -0.25)
+  S360       READER/M0-READER       5/10  -0.06 (-0.14 to 0.04)
+  S360       OFF/M0-OFF             6/520  -6.42 (-6.52 to -6.25)
+  S360       READER/M0-OFF/M0       1413/0  +17.66 (17.57 to 17.66)
+  S360       READER+J/M0-READER+J   5/10  -0.06 (-0.14 to 0.04)
+  S360       READER+J/M0-OFF        899/0  +11.24 (11.15 to 11.24)
+  S360       READER+J/M0-OFF+J/M0   1413/0  +17.66 (17.57 to 17.66)
+  S360       READER+L-READER        4/4  +0.00 (-0.07 to 0.07)
+  S360       READER+L-OFF+L         905/0  +11.31 (11.22 to 11.31)
+  S360       OFF+L-OFF              0/1  -0.01 (-0.01 to 0.01)
+  S360       READER+O-READER        34/22  +0.15 (-0.05 to 0.33)
+  S360       READER+O-OFF+O         821/0  +10.26 (10.17 to 10.26)
+  S360       OFF+O-OFF              112/17  +1.19 (0.96 to 1.36)
+  share 0.95 READER-OFF             1574/1  +19.66 (19.55 to 19.69)
+  share 0.95 READER+J-READER        9/1  +0.10 (0.01 to 0.12)
+  share 0.95 READER+J-OFF+J         1575/0  +19.69 (19.60 to 19.69)
+  share 0.95 READER+J-OFF           1581/0  +19.76 (19.67 to 19.76)
+  share 0.95 OFF+J-OFF              6/0  +0.07 (0.01 to 0.07)
+  share 0.95 READER/M0-READER       107/1  +1.32 (1.21 to 1.35)
+  share 0.95 OFF/M0-OFF             437/1  +5.45 (5.34 to 5.47)
+  share 0.95 READER/M0-OFF/M0       1247/4  +15.54 (15.38 to 15.61)
+  share 0.95 READER+J/M0-READER+J   110/0  +1.38 (1.28 to 1.38)
+  share 0.95 READER+J/M0-OFF        1691/0  +21.14 (21.05 to 21.14)
+  share 0.95 READER+J/M0-OFF+J/M0   1249/0  +15.61 (15.52 to 15.61)
+  share 0.95 READER+L-READER        20/0  +0.25 (0.17 to 0.25)
+  share 0.95 READER+L-OFF+L         1576/0  +19.70 (19.61 to 19.70)
+  share 0.95 OFF+L-OFF              17/0  +0.21 (0.13 to 0.21)
+  share 0.95 READER+O-READER        33/30  +0.04 (-0.17 to 0.24)
+  share 0.95 READER+O-OFF+O         1551/0  +19.39 (19.30 to 19.39)
+  share 0.95 OFF+O-OFF              28/3  +0.31 (0.19 to 0.37)
+  S194       OFF+J-OFF              17/21  -0.05 (-0.20 to 0.11)
+  S194       OFF/M0-OFF             25/12  +0.16 (0.00 to 0.30)
+  S194       OFF+J/M0-OFF+J         51/13  +0.47 (0.28 to 0.62)
+  S194       OFF+J/M0-OFF           39/5  +0.42 (0.28 to 0.51)
+  S194       OFF+L-OFF              38/2  +0.45 (0.33 to 0.49)
+  S194       OFF+O-OFF              78/15  +0.79 (0.58 to 0.95)
+
+THE REALISED WHOLE SCORE (survival, the capped estate at 0.02, the dislike of cuts, the raise credit), per path, points, paired:
+  S126       READER-OFF             -0.357 +/- 0.084
+  S126       READER+J-READER        +0.140 +/- 0.047
+  S126       READER+J-OFF+J         -0.200 +/- 0.069
+  S126       READER+J-OFF           -0.217 +/- 0.069
+  S126       OFF+J-OFF              -0.016 +/- 0.001
+  S126       READER/M0-READER       +0.623 +/- 0.071
+  S126       READER+J/M0-OFF        +0.400 +/- 0.021
+  S126       READER+L-OFF+L         -0.067 +/- 0.051
+  S126       READER+L-READER        +0.337 +/- 0.072
+  S126       OFF+L-OFF              +0.047 +/- 0.028
+  S126       READER+O-OFF+O         +0.197 +/- 0.043
+  S126       READER+O-READER        +0.635 +/- 0.090
+  S126       READER/M0-OFF/M0       +0.000 +/- 0.000
+  S126       READER5-OFF5           -0.343 +/- 0.083
+  S126       READER5-READER         +0.013 +/- 0.013
+  S126       OFF5-OFF               -0.000 +/- 0.000
+  S126       READER5+L-OFF5+L       -0.043 +/- 0.048
+  S126       READER5+L-READER       +0.347 +/- 0.073
+  bridge 4   READER-OFF             -0.333 +/- 0.070
+  bridge 4   READER+J-READER        +0.149 +/- 0.058
+  bridge 4   READER+J-OFF+J         -0.255 +/- 0.063
+  bridge 4   READER+J-OFF           -0.184 +/- 0.053
+  bridge 4   OFF+J-OFF              +0.071 +/- 0.038
+  bridge 4   READER/M0-READER       +0.674 +/- 0.071
+  bridge 4   READER+J/M0-OFF        +0.435 +/- 0.052
+  bridge 4   READER+L-OFF+L         -0.170 +/- 0.049
+  bridge 4   READER+L-READER        +0.356 +/- 0.072
+  bridge 4   OFF+L-OFF              +0.193 +/- 0.055
+  bridge 4   READER+O-OFF+O         +0.199 +/- 0.049
+  bridge 4   READER+O-READER        +0.671 +/- 0.091
+  bridge 4   READER/M0-OFF/M0       +0.039 +/- 0.028
+  bridge 4   READER5-OFF5           -0.319 +/- 0.071
+  bridge 4   READER5-READER         +0.001 +/- 0.040
+  bridge 4   OFF5-OFF               -0.013 +/- 0.028
+  bridge 4   READER5+L-OFF5+L       -0.156 +/- 0.047
+  bridge 4   READER5+L-READER       +0.344 +/- 0.071
+  S360       READER-OFF             +12.907 +/- 0.404
+  S360       READER+J-READER        -0.000 +/- 0.000
+  S360       READER+J-OFF+J         +13.294 +/- 0.409
+  S360       READER+J-OFF           +12.907 +/- 0.404
+  S360       OFF+J-OFF              -0.388 +/- 0.074
+  S360       READER/M0-READER       -0.058 +/- 0.056
+  S360       READER+J/M0-OFF        +12.847 +/- 0.403
+  S360       READER+L-OFF+L         +12.921 +/- 0.404
+  S360       READER+L-READER        -0.000 +/- 0.040
+  S360       OFF+L-OFF              -0.015 +/- 0.014
+  S360       READER+O-OFF+O         +11.740 +/- 0.388
+  S360       READER+O-READER        +0.172 +/- 0.107
+  S360       READER/M0-OFF/M0       +20.213 +/- 0.487
+  share 0.95 READER-OFF             +21.815 +/- 0.494
+  share 0.95 READER+J-READER        +0.075 +/- 0.040
+  share 0.95 READER+J-OFF+J         +21.830 +/- 0.494
+  share 0.95 READER+J-OFF           +21.890 +/- 0.495
+  share 0.95 OFF+J-OFF              +0.060 +/- 0.031
+  share 0.95 READER/M0-READER       +1.661 +/- 0.141
+  share 0.95 READER+J/M0-OFF        +23.618 +/- 0.508
+  share 0.95 READER+L-OFF+L         +21.832 +/- 0.494
+  share 0.95 READER+L-READER        +0.192 +/- 0.057
+  share 0.95 OFF+L-OFF              +0.176 +/- 0.052
+  share 0.95 READER+O-OFF+O         +21.552 +/- 0.492
+  share 0.95 READER+O-READER        +0.121 +/- 0.104
+  share 0.95 READER/M0-OFF/M0       +17.297 +/- 0.453
+  S194       OFF+J-OFF              -0.086 +/- 0.078
+  S194       OFF/M0-OFF             +0.511 +/- 0.079
+  S194       OFF+J/M0-OFF           +0.727 +/- 0.085
+  S194       OFF+L-OFF              +0.395 +/- 0.080
+  S194       OFF+O-OFF              +1.055 +/- 0.123
+
+THE RULE, each cause on each harmed case (g: the reader with the cause removed against the reader as solved today; h: against off with the cause removed; Holm over all 12):
+  J   clairvoyance (one policy for every world): g READER+J against READER, h READER+J against OFF+J -> INCONCLUSIVE
+      S126      g +0.17 (0.09 to 0.17), p for a gain 2.4e-4 (Holm) -> gains; h -0.35 (-0.35 to -0.26), p for harm 4.1e-8 (Holm) -> harms; the case partial
+      bridge 4  g +0.19 (0.07 to 0.25), p for a gain 2.2e-3 (Holm) -> gains; h -0.26 (-0.29 to -0.16), p for harm 2.6e-5 (Holm) -> harms; the case partial
+  L   fixed world weights (a one-pot learner): g READER+L against READER, h READER+L against OFF+L -> HELD
+      S126      g +0.40 (0.31 to 0.40), p for a gain 2.3e-9 (Holm) -> gains; h -0.19 (-0.19 to -0.11), p for harm 2.4e-4 (Holm) -> no material harm; the case cures
+      bridge 4  g +0.40 (0.31 to 0.40), p for a gain 2.3e-9 (Holm) -> gains; h -0.17 (-0.17 to -0.09), p for harm 4.3e-4 (Holm) -> no material harm; the case cures
+  O   fixed world weights (the oracle: the weights known exactly, the bound): g READER+O against READER, h READER+O against OFF+O -> HELD
+      S126      g +0.51 (0.37 to 0.58), p for a gain 3.3e-9 (Holm) -> gains; h -0.10 (-0.12 to -0.01), p for harm 4.3e-2 (Holm) -> no material harm; the case cures
+      bridge 4  g +0.54 (0.40 to 0.61), p for a gain 1.4e-9 (Holm) -> gains; h +0.00 (-0.09 to 0.09), p for harm 1.0e+0 (Holm) -> no material harm; the case cures
+  5   three worlds at +/-sqrt 3 (five worlds): g READER5 against READER, h READER5 against OFF5 -> FALSIFIED
+      S126      g +0.01 (-0.01 to 0.01), p for a gain 1.0e+0 (Holm) -> no material gain; h -0.51 (-0.51 to -0.42), p for harm 5.4e-12 (Holm) -> harms; the case does not cure
+      bridge 4  g +0.00 (-0.08 to 0.08), p for a gain 1.0e+0 (Holm) -> no material gain; h -0.35 (-0.37 to -0.25), p for harm 2.9e-7 (Holm) -> harms; the case does not cure
+  5L  five worlds with the one-pot learner: g READER5+L against READER, h READER5+L against OFF5+L -> HELD
+      S126      g +0.41 (0.33 to 0.41), p for a gain 1.4e-9 (Holm) -> gains; h -0.16 (-0.16 to -0.08), p for harm 7.3e-4 (Holm) -> no material harm; the case cures
+      bridge 4  g +0.39 (0.30 to 0.39), p for a gain 3.3e-9 (Holm) -> gains; h -0.16 (-0.16 to -0.08), p for harm 7.3e-4 (Holm) -> no material harm; the case cures
+  M0  the switch margin's lock-in (margin 0): g READER/M0 against READER, h READER/M0 against OFF/M0 -> HELD
+      S126      g +0.35 (0.25 to 0.37), p for a gain 1.7e-7 (Holm) -> gains; h +0.00 (0.00 to 0.00), p for harm 1.0e+0 (Holm) -> no material harm; the case cures
+      bridge 4  g +0.33 (0.21 to 0.37), p for a gain 2.2e-6 (Holm) -> gains; h +0.04 (-0.03 to 0.06), p for harm 1.0e+0 (Holm) -> no material harm; the case cures
+
+WHERE THE LOST PATHS SIT, by the path's long-run shift (lost/saved against the named reference; the share of all paths in the bin):
+  S126: all paths below -sqrt 3 3.5%, -sqrt 3 to -1 12.1%, -1 to 0 34.3%, 0 and above 50.1%
+    READER against OFF     lost  42 (19/15/7/1), saved   0 (0/0/0/0); lost that re-risk late 40
+    READER+J against OFF+J lost  28 (10/12/6/0), saved   0 (0/0/0/0); lost that re-risk late 27
+    READER+L against OFF+L lost  15 (6/6/3/0), saved   0 (0/0/0/0); lost that re-risk late 14
+    READER+O against OFF+O lost   9 (0/0/4/5), saved   1 (1/0/0/0); lost that re-risk late 9
+    READER/M0 against OFF/M0 lost   0 (0/0/0/0), saved   0 (0/0/0/0); lost that re-risk late 0
+    READER5 against OFF5   lost  41 (18/15/7/1), saved   0 (0/0/0/0); lost that re-risk late 39
+    READER5+L against OFF5+L lost  13 (5/5/3/0), saved   0 (0/0/0/0); lost that re-risk late 12
+    survival by bin: OFF 96.4/99.7/100.0/100.0; READER 89.5/98.1/99.7/100.0; OFF+J 96.4/99.7/100.0/100.0; READER+J 92.8/98.4/99.8/100.0; OFF+L 97.8/99.8/100.0/100.0; READER+L 95.7/99.2/99.9/100.0; OFF5 96.4/99.7/100.0/100.0; READER5 89.9/98.1/99.7/100.0
+    the reader's surviving paths with a shift below -1 that re-risk late: 5 of 1196
+  bridge 4: all paths below -sqrt 3 4.0%, -sqrt 3 to -1 12.1%, -1 to 0 34.3%, 0 and above 49.6%
+    READER against OFF     lost  29 (13/9/5/2), saved   0 (0/0/0/0); lost that re-risk late 26
+    READER+J against OFF+J lost  22 (12/5/4/1), saved   1 (1/0/0/0); lost that re-risk late 19
+    READER+L against OFF+L lost  14 (6/5/2/1), saved   0 (0/0/0/0); lost that re-risk late 14
+    READER+O against OFF+O lost   7 (0/0/1/6), saved   7 (2/4/1/0); lost that re-risk late 7
+    READER/M0 against OFF/M0 lost   1 (0/0/1/0), saved   4 (2/2/0/0); lost that re-risk late 0
+    READER5 against OFF5   lost  29 (11/10/7/1), saved   1 (1/0/0/0); lost that re-risk late 26
+    READER5+L against OFF5+L lost  13 (5/6/1/1), saved   0 (0/0/0/0); lost that re-risk late 13
+    survival by bin: OFF 93.4/98.7/99.9/100.0; READER 89.3/97.7/99.7/99.9; OFF+J 94.7/99.0/99.9/100.0; READER+J 91.2/98.5/99.7/100.0; OFF+L 95.9/99.5/99.9/100.0; READER+L 94.0/99.0/99.8/100.0; OFF5 93.1/98.7/99.9/100.0; READER5 90.0/97.6/99.6/100.0
+    the reader's surviving paths with a shift below -1 that re-risk late: 7 of 1233
+
+WHERE EVERY RUN OPENS (the pension tier held in year 0, as a risk step: 0 the plan's, -1 and -2 below, +1 above; the share of paths):
+  S126       OFF -2:100%; OFF/M0 -2:100%; READER 0:100%; READER/M0 -2:100%; OFF+J -2:100%; OFF+J/M0 -2:100%; READER+J 0:100%; READER+J/M0 -2:100%; OFF+L -2:100%; READER+L 0:100%; OFF+O -2:85%,0:15%; READER+O 0:91%,-2:9%; OFF5 -2:100%; READER5 0:100%; OFF5+L -2:100%; READER5+L 0:100%
+  bridge 4   OFF -2:100%; OFF/M0 -2:100%; READER 0:100%; READER/M0 -2:100%; OFF+J -2:100%; OFF+J/M0 -2:100%; READER+J 0:100%; READER+J/M0 -2:100%; OFF+L -2:100%; READER+L 0:100%; OFF+O -2:86%,0:14%; READER+O 0:75%,-2:25%; OFF5 -2:100%; READER5 0:100%; OFF5+L -2:100%; READER5+L 0:100%
+  S360       OFF 0:100%; OFF/M0 -2:100%; READER 0:100%; READER/M0 0:100%; OFF+J 0:100%; OFF+J/M0 -2:100%; READER+J 0:100%; READER+J/M0 0:100%; OFF+L 0:100%; READER+L 0:100%; OFF+O 0:100%; READER+O 0:100%
+  share 0.95 OFF 0:100%; OFF/M0 -1:100%; READER 0:100%; READER/M0 -1:100%; OFF+J 0:100%; OFF+J/M0 -1:100%; READER+J 0:100%; READER+J/M0 -1:100%; OFF+L 0:100%; READER+L 0:100%; OFF+O 0:100%; READER+O 0:100%
+  S194       OFF 0:100%; OFF/M0 -2:100%; OFF+J 0:100%; OFF+J/M0 -2:100%; OFF+L 0:100%; OFF+O 0:64%,-2:36%
+
+THE WORLDS WEIGHED AGAINST THE PATHS (1/6, 2/3, 1/6 times each world's realised survival, against the arm's survival on the 8,000 paths, whose shifts are drawn from the normal):
+  S126       OFF       weighted 99.72 paths 99.80 (difference -0.08)
+  S126       READER    weighted 99.33 paths 99.30 (difference 0.03)
+  S126       OFF+J     weighted 99.74 paths 99.80 (difference -0.06)
+  S126       READER+J  weighted 99.42 paths 99.50 (difference -0.08)
+  bridge 4   OFF       weighted 99.58 paths 99.50 (difference 0.08)
+  bridge 4   READER    weighted 99.24 paths 99.20 (difference 0.04)
+  bridge 4   OFF+J     weighted 99.64 paths 99.60 (difference 0.04)
+  bridge 4   READER+J  weighted 99.38 paths 99.30 (difference 0.08)
+  S360       OFF       weighted 34.28 paths 34.60 (difference -0.32)
+  S360       READER    weighted 45.43 paths 45.90 (difference -0.47)
+  S360       OFF+J     weighted 33.93 paths 34.30 (difference -0.37)
+  S360       READER+J  weighted 45.43 paths 45.90 (difference -0.47)
+  share 0.95 OFF       weighted 72.01 paths 73.40 (difference -1.39)
+  share 0.95 READER    weighted 92.74 paths 93.00 (difference -0.26)
+  share 0.95 OFF+J     weighted 72.07 paths 73.40 (difference -1.33)
+  share 0.95 READER+J  weighted 92.83 paths 93.10 (difference -0.27)
+  S194       OFF       weighted 97.52 paths 97.80 (difference -0.28)
+  S194       OFF+J     weighted 97.65 paths 97.70 (difference -0.05)
+
+THE PREDICTION'S ITEMS:
+1. OFF and READER reproduce 7r on S126 and bridge 4 (tables and survival to 0.1, the reader's saved and lost against off): both cases -> held
+2. removing clairvoyance (one policy for every world) cures the reader's harm on both harmed cases (HELD): S126 partial, bridge 4 partial -> INCONCLUSIVE -> MISSED
+3. removing fixed world weights (a one-pot learner) cures the reader's harm on both harmed cases (HELD): S126 cures, bridge 4 cures -> HELD -> held
+4. removing three worlds at +/-sqrt 3 (five worlds) cures the reader's harm on both harmed cases (HELD): S126 does not cure, bridge 4 does not cure -> FALSIFIED -> MISSED
+5. removing five worlds with the one-pot learner cures the reader's harm on both harmed cases (HELD): S126 cures, bridge 4 cures -> HELD -> held
+6. removing the switch margin's lock-in (margin 0) cures the reader's harm on both harmed cases (HELD): S126 cures, bridge 4 cures -> HELD -> held
+7. the mixture's bad-world table overrates the reader's policy there by at least 1 point, and by more than its normal world, on both harmed cases: S126 bad 1.54, normal -0.01, good -0.04; bridge 4 bad 0.45, normal -0.29, good -0.06 -> MISSED
+8. one policy for every world halves the bad world's overrating at least, on both harmed cases: S126 1.54 -> -0.56; bridge 4 0.45 -> -2.76 -> MISSED
+9. at switch margin 0 off loses survival against itself as solved (more lost than saved, exact p for harm below 0.05), on both harmed cases: S126 0/14; bridge 4 0/6 -> held
+10. the reader keeps its gains with one policy: against off with one policy it gains (exact p below 0.05) and against itself as solved today it loses nothing material, on S360 and share 0.95: S360 931/0 against OFF+J, 0/0 against READER; share 0.95 1575/0 against OFF+J, 9/1 against READER -> held
+11. on S194 (M14b's family) one policy gains survival (exact p for a gain below 0.05): 17/21 -> MISSED
+12. by the realised whole score the reader with one policy is above itself as solved today, and not more than two standard errors below off with one policy, on both harmed cases: S126 0.140 +/- 0.047 against READER, -0.200 +/- 0.069 against OFF+J; bridge 4 0.149 +/- 0.058 against READER, -0.255 +/- 0.063 against OFF+J -> MISSED
+13. one policy for every world leaves no material harm at switch margin 0 too (READER+J/M0 against OFF+J/M0, the interval's lower end above -0.25), on both harmed cases: S126 0/0 (0.00 to 0.00); bridge 4 5/3 (-0.05 to 0.08) -> held
+14. the reader keeps its gains with the learning chooser: against off learning it gains (exact p below 0.05) and against itself as solved today it loses nothing material, on S360 and share 0.95: S360 905/0 against OFF+L, 4/4 against READER; share 0.95 1576/0 against OFF+L, 20/0 against READER -> held
+15. the reader's lost paths sit in the deep bad world: of its paths lost against off on the harmed cases, pooled, more than a quarter have a long-run shift below -sqrt 3 (about 4% of all paths do): 32 of 71 -> held
+16. the reader's lost paths re-risk late: of them, at least half hold the plan's tier or riskier in their last 8 years after 10 or more years below it: 66 of 71 -> held
+17. removing fixed world weights (the oracle: the weights known exactly, the bound) cures the reader's harm on both harmed cases (HELD): S126 cures, bridge 4 cures -> HELD -> held
+
+OUTCOME: J INCONCLUSIVE, L HELD, O HELD, 5 FALSIFIED, 5L HELD, M0 HELD
+ATTRIBUTION (the prediction's Decision rule): several causes each remove the harm: L, O, 5L, M0 (grade C: partial suspects kept: J)

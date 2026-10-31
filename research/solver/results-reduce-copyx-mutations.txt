@@ -1,0 +1,60 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== HOUSE) bad.push(
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: ...COMMON, readerSplit: SPLIT[arm], readerCopy: COPY[arm], p
+caught: 9: ...COMMON, readerSplit: SPLIT[arm], readerCopy: COPY[arm], p
+caught: 10: export const COPY = Object.freeze({ C: 'null', SNR: 'null', 
+caught: 11: export const NODED = Object.freeze({ C: false, SNR: true, CX
+caught: 12: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode
+caught: 13: readerBlend: 'null', readerRef: 'null', readerChance: 'null'
+caught: 14: if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran,
+caught: 15: if (!j.nodes || j.nodes.list !== (sn ? NODES_SN.join(',') : 
+caught: 16: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 17: const NEED = ['armTook', 'copyTook', 'ownTook', 'identity', 
+caught: 18: if (!j.recount || !j.reader || j.recount.copied !== j.reader
+caught: 19: if (!j.bridge || YEARS.some(t => !j.bridge.includes(t)))
+caught: 20: if (!j.split[w] || (j.bridge || []).some(
+caught: 21: for (const x of [...KEYS, 'WS', ...YEARS.flatMap(t => [`Y${t
+caught: 22: const st = f.states && f.states[`S${w}`]; if (!st ||
+caught: 23: if (ws && j.whole[w] && Math.abs(decRaw(ws).reduce((t, x) =>
+caught: 24: if (saved && INERT[arm]) { const d = inertOf(f, saved[INERT[
+caught: 25: for (const x of INERT_PER) { const a = f.per && f.per[`${x}$
+caught: 26: for (const x of [`OWN${w}`, `OWN${w}b`]) { const a = f.bits 
+caught: 27: const a = f.moves && f.moves[`MV${w}`], b = s.moves && s.mov
+caught: 28: if (!s) return ['no saved STEP-O182 file to compare'];
+caught: 29: export const INERT = Object.freeze({ C: 'S370-C-P30S6Q5.json
+caught: 30: const my = sy / n, S = sy !== 0 ? sx / sy : NaN;
+caught: 31: const e = x[i] - S * y[i]; v += e * e;
+caught: 32: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 33: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 34: outcome: !(r.mc >= MINRES) || !Number.isFinite(r.R) ? 'INCON
+caught: 35: out['1'] = ratioItem(removal(P.y5.SNR, P.y5.SNRX));
+caught: 36: out['2'] = ratioItem(removal(P.gb.C, P.gb.CX));
+caught: 37: SNRX: [0, 1, 2].map(k => cellsOf(bitsF('SNR', k), bitsF('SNR
+caught: 38: SNRX: [0, 1, 2].map(k => wsOf(wsF('SNR', k), wsF('SNRX', k))
+caught: 39: CX: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bitsF('CX', k)
+caught: 40: vsC: { cells: [0, 1, 2].map(k => cellsOf(bitsF('C', k), bits
+caught: 41: return { gapC, gapX, d: (tabC - tabX) + u.d, lo: (tabC - tab
+caught: 42: const dx = dropOf(P.tab.C, P.tab.CX, P.cells.CX[0]);
+caught: 43: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
+caught: 44: dx.lo >= HALF * dx.gapC ? 'HELD' : dx.hi < QUARTER * dx.gapC
+caught: 45: outcome: !(dx.gapC >= MINRES) ? 'INCONCLUSIVE'
+caught: 46: const ok = ex.outcome === 'no material harm' && u.lo > -marg
+caught: 47: const ok = ex.outcome === 'no material harm' && u.lo > -marg
+caught: 48: harm = ex.outcome === 'harm' || w.hi < -margin;
+caught: 49: const N = x.a + x.b + x.c + x.d, margin = marginRel(100 * (x
+caught: 50: const u = guarded(survivalChangeU(x.a, x.b, x.c, x.d, level)
+caught: 51: outcome: hx.outcome === 'FALSIFIED' || hs.outcome === 'FALSI
+caught: 52: hx.outcome === 'HELD' && hs.outcome === 'HELD' ? 'HELD'
+caught: 53: if (o('4') === 'FALSIFIED') return 'R4';
+caught: 54: if (o('3') === 'HELD') return 'R1';
+caught: 55: if (o('1') === 'HELD' && o('2') === 'HELD') return 'R2';
+caught: 56: if (o('1') === 'FALSIFIED' && o('2') === 'FALSIFIED') return
+caught: 57: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+caught: 58: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+caught: 59: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+59 of 59 mutations caught

@@ -1,0 +1,67 @@
+=== a MEASUREMENT, not a test:  COPY-W's preflight: the two jobs at a fifteenth of the points, the reader-copy test, and the nine plants; the test itself runs under predictions/diag-copyw.md (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-4UaZt7   from c9854dc + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code d3f2e95210e9 (smoke stamp f10d6e5abb7d): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+m0 exit 0
+m1 exit 0
+A: solve CAND CW/P60S6Q5: table 54.0639 secs 98
+A: ran CAND CW/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMargin 
+A: reader CW/P60S6Q5: tables 72 unsupported 0 copied 14418 copiedTop 6804 nodes 52488
+A: nodes CW/P60S6Q5: the uniform six floor 104000 (the product's rule 104000)
+A: checks CW/P60S6Q5: armTook 1/1
+A: recount CW/P60S6Q5: tables 72 copied 14418 (the solve's 72 and 14418) line 0.5
+A: checks CW/P60S6Q5: copyTook 1/1
+A: bridge CW/P60S6Q5: reader years 1,2,3,4,5,6,7
+A: whole CW/P60S6Q5 0: mean 27.728116 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole CW/P60S6Q5 1: mean 75.071418 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole CW/P60S6Q5 2: mean 103.118084 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks CW/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 828/828 layerTook 828/828 scoreTook 120/120 splitTook 828/828 secs 16
+A: clamped CW/P60S6Q5: 3 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+A: score legs CW/P60S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND CXW/P60S6Q5: table 54.0231 secs 101
+A: ran CAND CXW/P60S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy extrap readerBlend null readerRef null readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMarg
+A: reader CXW/P60S6Q5: tables 72 unsupported 0 copied 14418 copiedTop 6804 nodes 52488
+A: nodes CXW/P60S6Q5: the uniform six floor 104000 (the product's rule 104000)
+A: checks CXW/P60S6Q5: armTook 1/1
+A: recount CXW/P60S6Q5: tables 72 copied 14418 (the solve's 72 and 14418) line 0.5
+A: checks CXW/P60S6Q5: copyTook 1/1
+A: bridge CXW/P60S6Q5: reader years 1,2,3,4,5,6,7
+A: whole CXW/P60S6Q5 0: mean 27.736501 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole CXW/P60S6Q5 1: mean 75.070806 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole CXW/P60S6Q5 2: mean 103.116433 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks CXW/P60S6Q5: ownTook 120/120 identity 120/120 qfTook 832/832 layerTook 832/832 scoreTook 120/120 splitTook 832/832 secs 16
+A: clamped CXW/P60S6Q5: 2 of 832 bridge-year reads at the reader's clamp (their split does not sum to the read)
+A: score legs CXW/P60S6Q5: scorePaths 120/120 counters 120/120
+A. ok   the reuse refuses COPY-X's C with a reader reference: "true" planted (81): all read as they should GATE: passed - CW and CXW once and done at the registered settings (40 paths a world, scale 15, seed 7002); the candidate's settings with no readerRef, the copy rule on CXW alone, every self-check in full (the preflight: no saved run and no reused cell compared) PREFLIGHT CW: world-1 Y4 + Y5 + Y6 2.2746 points, world-0 GB 43.4486, copied 14418, clamped 3 of 828, world-0 whole score 27.7281 PREFLIGHT CXW: world-1 Y4 + Y5 + Y6 2.2802 points, world-0 GB 44.2685, copied 14418, clamped 2 of 832, world-0 whole score 27.7365 PREFLIGHT: the gate and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW) 
+B. reader-copy exit 0: 10 PASS, 0 FAIL
+C. plant cxw exit 3: audit-copyw: S370 CXW/P60S6Q5: the job's settings did not take
+C. plant own exit 3: audit-copyw: S370 CW/P60S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-copyw: S370 CW/P60S6Q5: the ledger does not close on every path (ownTook 120/120 identity 2/120)
+C. plant quad exit 3: audit-copyw: S370 CW/P60S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 364/828)
+C. plant held exit 3: audit-copyw: S370 CW/P60S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 702/828)
+C. plant score exit 3: audit-copyw: S370 CW/P60S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 79/120)
+C. plant trace exit 3: audit-copyw: S370 CW/P60S6Q5: the trace disagrees with runPolicy's own counters (counters 41/120)
+C. plant split exit 3: audit-copyw: S370 CW/P60S6Q5: a bridge-year read is not given back by its split (splitTook 120/828)
+C. plant class exit 3: audit-copyw: S370 CW/P60S6Q5: the copied nodes recounted at line 0.6 are not the solve's (14580 of 72 tables against 14418 of 72)
+the gate passed the two jobs on S370; the copy rule solves at 60 points' grid with the candidate's settings; the reader-copy test passed on this code; the nine plants refused, each on its own check
+preflight done 11:03 UK
+=== snapshot kept at /tmp/solver-snap-4UaZt7 for provenance; remove it when the results are written up
+
+[exited with code 0]

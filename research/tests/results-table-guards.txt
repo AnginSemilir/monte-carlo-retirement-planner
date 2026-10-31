@@ -1,0 +1,13 @@
+# node research/tests/table-guards.test.mjs (on this commit's code)
+PASS  withTable on a plan with guardrails on and a five-year lookahead: guardrails false, lookahead 0
+PASS  36 years, five bad ones first: guardrail actions 0, years off the table's level 0, set aside £0
+PASS  planted: a table attached by hand with guardrails on is refused (a solved table runs with guardrails and the cost lookahead off: attach it with withTable (src/solver/bridge.js), which switches both off)
+PASS  planted: a table attached by hand with a five-year lookahead is refused (a solved table runs with guardrails and the cost lookahead off: attach it with withTable (src/solver/bridge.js), which switches both off)
+ALL PASS: 4 checks
+
+# the same test in a worktree at 9d4176d (the engine and bridge before the fix): it must fail
+FAIL  withTable on a plan with guardrails on and a five-year lookahead: guardrails true, lookahead 5
+FAIL  36 years, five bad ones first: guardrail actions 10, years off the table's level 35, set aside £59487
+FAIL  planted: a table attached by hand with guardrails on is refused (it was not)
+FAIL  planted: a table attached by hand with a five-year lookahead is refused (it was not)
+FAILED: 4 of 4 checks

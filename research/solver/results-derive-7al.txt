@@ -1,0 +1,15 @@
+7AL DERIVATION: the year-0 table error G by unit, hypothesis (1)'s post-access optimism, and the item's power (D 2 points; z 2.450, one-sided 0.05/7; 2000 paths a world, 3 worlds)
+  unit            source                     table     sim       G      | (1): optimism G/alive  | smallest OPTIMISTIC (n 6000 x sim .. 6000)
+  S360 READER     results-7ah.txt             32.6715   45.9400  -13.27  | -13.27 to -28.88        | 3.58 (all alive) to 2.15 (alive = survival; n 2756 to 6000)
+  S360 ORDER      results-7ah.txt             41.4533   45.9600   -4.51  |  -4.51 to  -9.81        | 3.58 (all alive) to 2.15 (alive = survival; n 2758 to 6000)
+  S370 READER     results-7ah.txt             79.4918   74.4900    5.00  |   5.00 to   6.71        | 3.38 (all alive) to 2.12 (alive = survival; n 4469 to 6000)
+  S370 ORDER      results-7ah.txt             82.3476   74.4600    7.89  |   7.89 to  10.59        | 3.38 (all alive) to 2.12 (alive = survival; n 4468 to 6000)
+  S128 READER     results-7ag.txt             72.9878   68.7900    4.20  |   4.20 to   6.10        | 3.47 (all alive) to 2.12 (alive = survival; n 4127 to 6000)
+  S130 READER     results-7ag.txt             91.0726   83.0300    8.04  |   8.04 to   9.69        | 3.19 (all alive) to 2.11 (alive = survival; n 4982 to 6000)
+  S194 OFF/PRODUCTresults-7af.txt             98.9322   98.2200    0.71  |   0.71 to   0.73        | 2.42 (all alive) to 2.10 (alive = survival; n 5893 to 6000)
+  S194 OFF        results/diag7aa/case20.txt  98.6444   98.7500   -0.11  |  -0.11 to  -0.11        | 2.35 (all alive) to 2.10 (alive = survival; n 5925 to 6000)
+  S194 OFF/TS+J by world (7aa, 1,000 paths a world):
+    world 0 weight 0.1667: table 92.5249 sim 93.4000 G -0.88
+    world 1 weight 0.6667: table 99.8371 sim 99.9000 G -0.06
+    world 2 weight 0.1667: table 99.9931 sim 100.0000 G -0.01
+  O66's pool: 4 units, 24000 paths if all are alive at access, mean survival 81.27: its Clopper-Pearson lower end sits 0.50 points under the point, so NO MATERIAL OPTIMISM (the lower end at c - 2 or more) holds while the pooled optimism is under about 1.50 points

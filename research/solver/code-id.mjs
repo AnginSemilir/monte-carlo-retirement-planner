@@ -1,0 +1,92 @@
+/*
+ * THE CODE THAT MADE A RESULT (RULES.md, variable 28). A hash of every file whose change can move a number - the
+ * solver, the engine slice, the library, the experiment script and the result recorder - plus the git commit where
+ * there is one (a snapshot has none). Two result files with the same hash were made by the same code. The hand-set
+ * SOLVER_VERSION tag was not bumped between 21 and 24 Sep, through the M17 fix and F1, so it proves nothing alone.
+ *
+ *   node research/solver/code-id.mjs          prints the hash of the tree it sits in
+ *   node research/solver/code-id.mjs --smoke  prints the smoke stamp's hash (below)
+ *
+ * Shared by experiment.mjs (stamped into every result file), run-from-snapshot.sh (the smoke stamp) and fair-gate.mjs.
+ *
+ * THE SMOKE STAMP hashes more: every script a batch runs (the audits, the Phase 4 selection, the gate scripts, and any
+ * research/solver script a batch-*.sh names), the modules they import from outside those - settings.mjs (every
+ * experiment.mjs run checks its settings with it) and this file - and smoke.sh itself, so an edit to any of them re-runs
+ * the smoke test (24 Sep: the audit's ids-mode bug sat in a file the code hash left out; settings.mjs and code-id.mjs
+ * were outside the stamp until the maintainer's unlock at 13:44 UK) - and every module any of those imports, followed all the
+ * way down (the maintainer's unlock of 6 Oct: one level left research-opts.mjs, imported by candidate.mjs, outside the
+ * stamp of a script importing candidate.mjs; PLAN.md's bugs list, 6 Oct). It is kept apart from the code hash so the
+ * result files' identity (fair-gate's MIXED CODE check) does not move when only an audit script changes.
+ */
+import { createHash } from 'node:crypto';
+import { execSync } from 'node:child_process';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
+export const isFileAt = p => existsSync(p) && statSync(p).isFile();
+
+export function codeFiles(root = ROOT) {
+  return ['research/engine.mjs', 'research/solver/experiment.mjs', 'research/solver/record.mjs', 'research/policy-study/scenarios.mjs',
+    ...readdirSync(join(root, 'src/solver')).filter(f => f.endsWith('.js')).sort().map(f => `src/solver/${f}`)];
+}
+
+export function codeId(root = ROOT) {
+  try {
+    const h = createHash('sha256');
+    for (const f of codeFiles(root)) h.update(f).update(readFileSync(join(root, f)));
+    let commit = null;
+    try { commit = execSync('git rev-parse --short HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* a snapshot has no .git */ }
+    return { hash: h.digest('hex').slice(0, 12), commit };
+  } catch { return null; }
+}
+
+export function smokeFiles(root = ROOT) {
+  const dir = join(root, 'research/solver');
+  const all = readdirSync(dir);
+  const named = new Set();
+  for (const b of all.filter(f => /^batch-.+\.sh$/.test(f)))
+    for (const m of readFileSync(join(dir, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)) named.add(m[1]);
+  const run = all.filter(f => /^audit-.+\.mjs$/.test(f) || /^(select-phase4|couple-gate|bridge-gate|seedcheck)\.mjs$/.test(f) || named.has(f));
+  const seed = [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])];
+  // and every module those import, from anywhere in the repository, followed to the end (fair-gate.test.mjs: every module
+  // a stamped script imports is stamped too; 25 Sep evening, reduce-7e.mjs's stats.mjs and fair-gate.mjs were outside the
+  // stamp; 6 Oct, research-opts.mjs, two imports down from size-probe.mjs): from, dynamic import(), a side-effect import
+  // and require (the plan-auditor's MINOR on 09dd9a7335), and a worker's file named by new URL(<its path>, import.meta.url)
+  // (its MINOR 5 on c60a545864: e2-worker.mjs)
+  const seen = new Set(seed), queue = seed.filter(f => /\.m?js$/.test(f)), extra = [];
+  while (queue.length) {
+    const f = queue.shift(), p = join(root, f);
+    if (!existsSync(p)) continue;
+    for (const m of readFileSync(p, 'utf8').matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
+      if (!m[1].startsWith('.')) continue;
+      // a new URL is followed to a module (a worker's file, missing or not) or to a file that exists (a fixture, hashed); one
+      // naming a folder or a missing data path (results/, gitignored, D17) is a read, not an import (21 Oct: the absolute
+      // paths made relative named results/flex-tiers and results/ranking this way, and the stamp failed on every tree
+      // without them; hygiene.test.mjs check 4)
+      if (/^new\s/.test(m[0]) && !/\.m?js$/.test(m[1]) && !isFileAt(join(root, dirname(f), m[1]))) continue;
+      const rel = relative(root, join(root, dirname(f), m[1]));
+      if (rel.startsWith('..') || seen.has(rel)) continue;
+      seen.add(rel); extra.push(rel);
+      if (/\.m?js$/.test(rel)) queue.push(rel);
+    }
+  }
+  return [...seed, ...extra.sort()];
+}
+
+export function smokeId(root = ROOT) {
+  try {
+    const h = createHash('sha256');
+    for (const f of smokeFiles(root)) h.update(f).update(readFileSync(join(root, f)));
+    return h.digest('hex').slice(0, 12);
+  } catch { return null; }
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const smoke = process.argv.includes('--smoke');
+  const root = process.argv.slice(2).find(a => !a.startsWith('--')) || ROOT;
+  const id = smoke ? smokeId(root) : codeId(root)?.hash;
+  if (!id) { console.error('code-id: could not hash the code files'); process.exit(1); }
+  console.log(id);
+}

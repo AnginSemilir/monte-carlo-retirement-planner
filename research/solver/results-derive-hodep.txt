@@ -1,0 +1,57 @@
+HO-DEP'S DERIVATION (predictions/diag-hodep.md)
+
+1. THE RECORDS
+  S362, FOOT-S366's K1F (behind FOOT-S366's gate; HO-DEP's K1F reproduces it): tables 30.5208, 48.5742, 67.3889; runs 1167, 1996, 2728 of 4000 by world; discordant against K1 31, 23, 28
+  S370, the reach step (30 points, 400 paths a world from path 4,000): A's tables 51.3448, 89.5148, 98.6865; O's tables 50.3079, 89.1297, 98.6252; O's runs 151, 342, 394 of 400; paths whose moves differ 23, 12, 7 of 400
+
+2. THE POWER (40 draws a cell through reduce-hodep.mjs's items(); S370's O at the reach's survival, 4000 paths a world)
+  item 1, A's survival less O's by the mixture -0.7: HELD 0.10 INCONCLUSIVE 0.60 FALSIFIED 0.30
+  item 1, A's survival less O's by the mixture -0.5: HELD 0.35 INCONCLUSIVE 0.63 FALSIFIED 0.03
+  item 1, A's survival less O's by the mixture -0.3: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  item 1, A's survival less O's by the mixture 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, A's survival less O's by the mixture 0.15: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, A's survival less O's by the mixture 0.4: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1 at no change, discordance 0.03 a differing path: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1 at no change, discordance 0.12 a differing path: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, K1F's survival less K2's by the mixture -0.5: HELD 0.05 INCONCLUSIVE 0.47 FALSIFIED 0.47
+  item 2, K1F's survival less K2's by the mixture -0.3: HELD 0.23 INCONCLUSIVE 0.75 FALSIFIED 0.03
+  item 2, K1F's survival less K2's by the mixture 0: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  item 2, K1F's survival less K2's by the mixture 0.1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2 at no survival change, the whole score -0.4 beside: HELD 0.07 INCONCLUSIVE 0.63 FALSIFIED 0.30
+  item 2 at no survival change, the whole score -0.2 beside: HELD 0.40 INCONCLUSIVE 0.60 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 -5 (K1F's as FOOT-S366 read it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 -3.5 (K1F's as FOOT-S366 read it): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 -2 (K1F's as FOOT-S366 read it): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 -0.8 (K1F's as FOOT-S366 read it): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 -0.3 (K1F's as FOOT-S366 read it): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, K2's table less runs on S362 1 (K1F's as FOOT-S366 read it): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 18 Oct 15:09 UK: O179-TRADE=0.52; O179-SECOND=0.28; O179-FIXOWN=0.08; O179-SEED=0.03; O179-OTHER=0.09; DEP-ADVCAL=0.45; DEP-NONE=0.3; DEP-WORSE=0.17; DEP-OTHER=0.08; 2000 draws through items())
+  item 1: HELD 0.89 INCONCLUSIVE 0.06 FALSIFIED 0.04
+  item 2: HELD 0.59 INCONCLUSIVE 0.19 FALSIFIED 0.22
+  item 3: HELD 0.34 INCONCLUSIVE 0.66 FALSIFIED 0.00
+  decision rows: R1 0.20, R2 0.26, R3 0.00, R4 0.00, else 0.54
+  the chance the action changes (one less the likeliest row): 0.46
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.54
+  item 1's point (A's survival less O's on S370 by the mixture, points): median 0.0083, 80% interval -0.3042 to 0.2417
+  item 2's point (K1F's survival less K2's on S362 by the mixture, points): median -0.0750, 80% interval -0.4167 to 0.1583
+  item 3's point (K2's table error less K1F's on S362 by the mixture, each in absolute points (above zero: the fixed reads truer)): median 0.4053, 80% interval -0.7947 to 4.2053
+  as stated, item 1: point 0.0083 HELD 0.89 INCONCLUSIVE 0.06 FALSIFIED 0.04
+  as stated, item 2: point -0.0750 HELD 0.59 INCONCLUSIVE 0.19 FALSIFIED 0.22
+  as stated, item 3: point 0.4053 HELD 0.34 INCONCLUSIVE 0.66 FALSIFIED 0.00
+
+3b. THE CREDENCES WITH EACH SET'S LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.42, 14 of 34; DEP-ADVCAL 0.42, DEP-NONE 0.32, DEP-WORSE 0.18, DEP-OTHER 0.08; O179-TRADE 0.42, O179-SECOND 0.34, O179-FIXOWN 0.10, O179-SEED 0.04, O179-OTHER 0.11; 2000 draws through items())
+  item 1: HELD 0.88 INCONCLUSIVE 0.07 FALSIFIED 0.05
+  item 2: HELD 0.52 INCONCLUSIVE 0.22 FALSIFIED 0.26
+  item 3: HELD 0.33 INCONCLUSIVE 0.67 FALSIFIED 0.00
+  decision rows: R1 0.17, R2 0.29, R3 0.00, R4 0.00, else 0.54
+  the chance the action changes (one less the likeliest row): 0.46
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.54
+  item 1's point (A's survival less O's on S370 by the mixture, points): median 0.0125, 80% interval -0.3208 to 0.2333
+  item 2's point (K1F's survival less K2's on S362 by the mixture, points): median -0.1042, 80% interval -0.4333 to 0.1542
+  item 3's point (K2's table error less K1F's on S362 by the mixture, each in absolute points (above zero: the fixed reads truer)): median 0.4053, 80% interval -0.7947 to 4.2053
+CREDENCE item 1: point 0.0125 HELD 0.88 INCONCLUSIVE 0.07 FALSIFIED 0.05
+CREDENCE item 2: point -0.1042 HELD 0.52 INCONCLUSIVE 0.22 FALSIFIED 0.26
+CREDENCE item 3: point 0.4053 HELD 0.33 INCONCLUSIVE 0.67 FALSIFIED 0.00
+
+4. THE BUDGET (grade C): FOOT-S366's K1F on S362 at 30 points, solve 2313 s and its ledger on 12,000 paths 1638 s - K1F and A about 1.10 h each; the reach's O solve 1441 s with the same ledger - K2 and O about 0.86 h each; four jobs on four cores, the wall about 1.10 h

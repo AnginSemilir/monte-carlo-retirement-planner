@@ -1,0 +1,30 @@
+7AT: THE DERIVATION FROM THE RECORDS (7ar: results/diag7ar; 7ap: results/diag7ap; each through its stamps)
+
+1. ITEM 1 - the nearest arm to WALL, 7ap's PCLSI, after access, three worlds pooled, by 7ap's two-sided rule (margin 2):
+   S370 PCLSI: paths 5859 claim 73.5994 survived 72.8964 point 0.7030 CP 71.7385 to 74.0315 (band 71.5994 to 75.5994; room 0.1390 below, 1.5680 above): CALIBRATED; DEFAULT point 6.9393 OPTIMISTIC
+   S370: the CP half-width 1.1465, so CALIBRATED needs a point inside +/- 0.8535
+   S130 PCLSI: paths 6000 claim 81.8109 survived 80.9500 point 0.8609 CP 79.9331 to 81.9367 (band 79.8109 to 83.8109; room 0.1221 below, 1.8742 above): CALIBRATED; DEFAULT point 6.8291 OPTIMISTIC
+   S130: the CP half-width 1.0018, so CALIBRATED needs a point inside +/- 0.9982
+
+2. ITEM 2 - the after-access change an axis has made before (7ap, DEFAULT less PCLSI, three worlds pooled), and the bounds on D's per-path sd:
+   S370: DEFAULT 6.9393 less PCLSI 0.7030 = 6.2362 points; unpaired outcome sd per path 62.86 (se over 5859 paths 0.8212, the TOST at 1 point needs se under about 0.6079 with D at 0: not met even unpaired); paired with no outcome flips the sd is the claims' change alone (NOT CHECKED)
+   S130: DEFAULT 6.8291 less PCLSI 0.8609 = 5.9682 points; unpaired outcome sd per path 55.54 (se over 6000 paths 0.7170, the TOST at 1 point needs se under about 0.6079 with D at 0: not met even unpaired); paired with no outcome flips the sd is the claims' change alone (NOT CHECKED)
+
+3. ITEM 3 - 7ar's S130 world-0 read-term rise per path (pstage read term, PCLSI less DEFAULT):
+   Rd mean 2.2054 sd 0.3066 over 2000 paths (se 0.0069); the bands: two thirds 1.4703, a third 0.7351
+   at a share taken away of 1 (X = Rd): mean(X - 2Rd/3) = Rd/3, z 321.67 with X exactly Rd; 101.72 with X's own noise at Rd's sd
+   at a share of 0 (X = 0): mean(Rd/3 - X) = Rd/3, z 321.67; a share near a band edge (a third or two thirds) reads INCONCLUSIVE
+   the bridge years' reads (PCLSI, world 0): y0 reads 2000 unsup 0.40 rowcopy 0.00; y1 reads 2000 unsup 0.00 rowcopy 0.00 - read (b) acts only where unsup > 0
+
+4. ITEM 4 - S370 (no decomposition in any record): 7ap's world-0 bridge stage per path, DEFAULT and PCLSI:
+   S370 bridge stage mean 3.3551 (sd 25.18) to 8.4007 (sd 23.01), the rise 5.0456; access at year 8; how much is the read term is NOT CHECKED (item 4's premise reads it)
+
+5. THE TIME (seconds a unit: the solve plus the three node runs, as measured):
+   S370 DEFAULT: 2843
+   S370 PCLSI: 3122
+   S370 WALL: 4152
+   S130 DEFAULT: 3076
+   S130 PCLSI: 3349
+   S130 WALL: 4193
+   the four-bucket solve cost (7ar: PCLSF 3194 s over PCLSI 2052 s) 1.56; S370's times are 7ap's (1 Oct host), S130's 7ar's (this host, four at once)
+   total 20735 s = 5.76 core-hours; on four cores, longest first, about 1.72 hours

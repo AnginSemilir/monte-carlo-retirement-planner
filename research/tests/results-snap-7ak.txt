@@ -1,0 +1,11 @@
+PASS  nearestOf's cell is nearestIndex's on all 300 forward states of years 1 to 5
+PASS  each single snap moves only its own coordinate and lands on the nearest cell's value (300, 300 of 300)
+PASS  the all-snap is the cell's own state (toVec)
+PASS  the seven snaps
+PASS  the reader hook is removed after (year 0: 0.916629106124724 before and after)
+PASS  the reader hook changes the bridge-year read (0.916629 to 0.916803)
+      live cells: the chooser at a cell's own state against its stored move (leave or hold) 582 of 582 agree; against the next W cell's stored move 484; 1362 dead cells left out
+PASS  stored against recomputed at the live cells' own states: 100.00% agree (at least 99%)
+PASS  planted: the neighbouring cell's stored move agrees less often (484 against 582)
+
+snap-7ak: 8 passed

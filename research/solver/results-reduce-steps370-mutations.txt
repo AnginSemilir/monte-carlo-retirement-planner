@@ -1,0 +1,43 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== HOUSE) bad.push(
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode
+caught: 9: grid: `total${pts}x${sn ? NODES_SN.length : 6}x6`, shareNode
+caught: 10: readerRef: 'null', readerChance: 'null'
+caught: 11: if (!j.nodes || j.nodes.floor !== j.nodes.rule || field(ran,
+caught: 12: if (!j.nodes || j.nodes.list !== (sn ? NODES_SN.join(',') : 
+caught: 13: const NEED = ['armTook', 'ownTook', 'identity', 'qfTook', 'l
+caught: 14: if (!j.bridge || STEPS.some(t => !j.bridge.includes(t)))
+caught: 15: const t = j.tables[w]; if (!t ||
+caught: 16: for (const x of [...KEYS, 'WS', ...STEPS.map(t => `Y${t}`)])
+caught: 17: if (ws && j.whole[w] && Math.abs(decRaw(ws).reduce((t, x) =>
+caught: 18: const s = j.sims[`OWN${w}`]; if (!s || s.n !== npw
+caught: 19: const mc = sc / n, R = sc !== 0 ? sd / sc : NaN;
+caught: 20: const e = (c[i] - x[i]) - R * c[i]; v += e * e;
+caught: 21: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 22: r.lo >= HALF ? 'HELD' : r.hi < QUARTER ? 'FALSIFIED'
+caught: 23: outcome: !(r.mc >= MINRES) || !Number.isFinite(r.R) ? 'INCON
+caught: 24: out['2'] = removalItem(removal(P.y.C, P.y.W60));
+caught: 25: const ok = ex.outcome === 'no material harm' && u.lo > -marg
+caught: 26: const ok = ex.outcome === 'no material harm' && u.lo > -marg
+caught: 27: harm = ex.outcome === 'harm' || w.hi < -margin;
+caught: 28: const ph = holm(cells.map(x => mcnemarHarmP(x.b, x.c))), z =
+caught: 29: const N = x.a + x.b + x.c + x.d, margin = marginRel(100 * (x
+caught: 30: const u = guarded(survivalChangeU(x.a, x.b, x.c, x.d, level)
+caught: 31: return { outcome: per.some(x => x.harm) ? 'FALSIFIED' : per.
+caught: 32: return { gapC, gapSN, d: (tabC - tabSN) + u.d, lo: (tabC - t
+caught: 33: dr.lo >= HALF * dr.gapC ? 'HELD' : dr.hi < QUARTER * dr.gapC
+caught: 34: dr.lo >= HALF * dr.gapC ? 'HELD' : dr.hi < QUARTER * dr.gapC
+caught: 35: outcome: !(dr.gapC >= MINRES) ? 'INCONCLUSIVE'
+caught: 36: if (o('3') === 'FALSIFIED') return 'R2';
+caught: 37: if (o('1') === 'HELD') return 'R1';
+caught: 38: if (o('1') === 'FALSIFIED' && o('2') === 'HELD') return 'R3'
+caught: 39: if (o('1') === 'FALSIFIED' && o('2') === 'FALSIFIED') return
+caught: 40: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+caught: 41: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+caught: 42: export const HALF = 0.5, QUARTER = 0.25, MINRES = 1;
+42 of 42 mutations caught

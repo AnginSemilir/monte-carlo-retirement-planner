@@ -1,0 +1,101 @@
+ok   a log parsed and gated: nine units, the gate passes: 9 0
+ok   the gate refuses 16 points on one unit: true
+ok   the gate reads the points alone (S194, its only unit, the grid unchanged): true
+ok   the gate refuses the wrong return points for the label: true
+ok   the gate refuses the wrong seed: true
+ok   the gate refuses a second setting changed within a case (the minimum pot, which no field check reads): true
+ok   the gate refuses a missing run, the done line full: true
+ok   the gate refuses a short done line, every run present: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses a unit with no gap line: true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   the gap as logged: 0, >1 and a number; the ratio unbounded from 0: 0 Infinity 0.00025 Infinity 1 10.00
+ok   Q as the sixth deep review expects: 1, 2, 3, 4 and 5 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD
+ok   no Q: the gaps unmoved and no gain: 1, 2 and 5 FALSIFIED: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 HELD, 5 FALSIFIED
+ok   a gap rising tenfold but still under the product's margin is not item 1 HELD: INCONCLUSIVE
+ok   the reader's gap exactly at the product's margin does not pass it: INCONCLUSIVE
+ok   the gap exactly at the product's margin does not pass it: INCONCLUSIVE
+ok   the control rising tenfold is item 3 FALSIFIED; fourfold INCONCLUSIVE: FALSIFIED INCONCLUSIVE
+ok   the freed opening harming on both is item 4 FALSIFIED; churning as much as 0 is not HELD: FALSIFIED INCONCLUSIVE
+ok   the freed opening is read against margin 0: level with 0 while both lose to 1e-3 is item 4 HELD: HELD
+ok   the freed opening harming on one case only is item 4 INCONCLUSIVE: INCONCLUSIVE
+ok   Q's survival: a gain on one leg only is INCONCLUSIVE: INCONCLUSIVE
+ok   the twins: each 15-point run against its 5-point twin at the same margin, and only there: 12 8/0 0/0 0/2 0/0
+planted (24): all read as they should
+
+7W: IS T THE FIVE-POINT RETURN AVERAGE HIDING THE BRIDGE'S LAST YEAR? (predictions/diag-7w.md; 3000 paths of seed 7002; the fair-test gate passed: the stamps, every unit's settings, every run and trace)
+
+EVERY RUN: survival; against the unit's own 5-point run at 1e-3 on the same case (the product where the unit is off) saved/lost; pension switches a path; the year-0 gap and the pension tier it opens in at 1e-3 and at 0
+share 0.95
+  READER@15    gap 3.1576e-3   opens 2 at 1e-3, 2 at 0  (solve 639 s)
+    READER@15/1e-3          95.1667       72/0  switches 0.03
+    READER@15/0             95.0333       69/1  switches 3.81
+    READER@15/1e-3+open     95.1667       72/0  switches 0.03
+  READER+J@15  gap 3.1917e-3   opens 2 at 1e-3, 2 at 0  (solve 634 s)
+    READER+J@15/1e-3        95.1667       71/0  switches 0.03
+    READER+J@15/0           95.1000       69/0  switches 3.61
+    READER+J@15/1e-3+open   95.1667       71/0  switches 0.03
+  OFF@15       gap 2.0696e-5   opens 0 at 1e-3, 2 at 0  (solve 631 s)
+    OFF@15/1e-3             72.2667        0/0  switches 0.18
+    OFF@15/0                85.2000      388/0  switches 3.42
+    OFF@15/1e-3+open        85.3333      392/0  switches 0.03
+  READER@5     gap 2.2992e-4   opens 0 at 1e-3, 2 at 0  (solve 254 s)
+    READER@5/1e-3           92.7667        0/0  switches 0.26
+    READER@5/0              95.0667       69/0  switches 4.62
+    READER@5/1e-3+open      95.1667       72/0  switches 0.03
+  READER+J@5   gap 1.1926e-4   opens 0 at 1e-3, 2 at 0  (solve 258 s)
+    READER+J@5/1e-3         92.8000        0/0  switches 0.26
+    READER+J@5/0            95.1333       70/0  switches 4.31
+    READER+J@5/1e-3+open    95.2000       72/0  switches 0.03
+  OFF@5        gap 4.3068e-5   opens 0 at 1e-3, 2 at 0  (solve 246 s)
+    OFF@5/1e-3              72.2667        0/0  switches 0.18
+    OFF@5/0                 85.2333      389/0  switches 4.13
+    OFF@5/1e-3+open         85.3333      392/0  switches 0.03
+S126
+  READER@15    gap 6.5248e-4   opens 0 at 1e-3, 2 at 0  (solve 638 s)
+    READER@15/1e-3          99.3000        0/1  switches 0.30
+    READER@15/0             99.6333       10/1  switches 4.12
+    READER@15/1e-3+open     99.8000       14/0  switches 0.03
+  READER@5     gap 8.0241e-4   opens 0 at 1e-3, 2 at 0  (solve 249 s)
+    READER@5/1e-3           99.3333        0/0  switches 0.31
+    READER@5/0              99.7333       12/0  switches 4.93
+    READER@5/1e-3+open      99.8333       15/0  switches 0.03
+S194
+  OFF@5        gap 7.5604e-4   opens 0 at 1e-3, 2 at 0  (solve 275 s)
+    OFF@5/1e-3              98.2667        0/0  switches 0.79
+    OFF@5/0                 98.6333       15/4  switches 3.97
+    OFF@5/1e-3+open         98.8000       16/0  switches 0.04
+
+EACH 15-POINT RUN AGAINST ITS 5-POINT TWIN AT THE SAME MARGIN (reported: saved/lost at 15 points, the exact interval beside)
+  share 0.95  READER@15/1e-3 against READER@5/1e-3              72/0  +2.400 (exact 2.160 to 2.400)
+  share 0.95  READER@15/0 against READER@5/0                     0/1  -0.033 (exact -0.033 to 0.032)
+  share 0.95  READER@15/1e-3+open against READER@5/1e-3+open       0/0  +0.000 (exact 0.000 to 0.000)
+  share 0.95  READER+J@15/1e-3 against READER+J@5/1e-3          71/0  +2.367 (exact 2.127 to 2.367)
+  share 0.95  READER+J@15/0 against READER+J@5/0                 0/1  -0.033 (exact -0.033 to 0.032)
+  share 0.95  READER+J@15/1e-3+open against READER+J@5/1e-3+open       0/1  -0.033 (exact -0.033 to 0.032)
+  share 0.95  OFF@15/1e-3 against OFF@5/1e-3                     0/0  +0.000 (exact 0.000 to 0.000)
+  share 0.95  OFF@15/0 against OFF@5/0                           0/1  -0.033 (exact -0.033 to 0.032)
+  share 0.95  OFF@15/1e-3+open against OFF@5/1e-3+open           0/0  +0.000 (exact 0.000 to 0.000)
+  S126        READER@15/1e-3 against READER@5/1e-3               0/1  -0.033 (exact -0.033 to 0.032)
+  S126        READER@15/0 against READER@5/0                     0/3  -0.100 (exact -0.100 to 0.042)
+  S126        READER@15/1e-3+open against READER@5/1e-3+open       0/1  -0.033 (exact -0.033 to 0.032)
+
+THE ITEMS (each a Holm family of its own where it tests paths, the regimen's reading deciding, the unconditional one beside it; the gap items by their registered ratios)
+1. Q on the reader: on share 0.95 the year-0 gap rises at least 10-fold from 5 to 15 points and passes the product's margin (the chooser at 0.001 no longer keeps the plan's tier), with and without one policy (FALSIFIED: less than 3-fold on both): HELD
+     READER: gap 2.2992e-4 at 5 points, 3.1576e-3 at 15 (ratio 13.73); above the product's margin at 15 points (opens in tier 2 at 1e-3, 2 at 0)
+     READER+J: gap 1.1926e-4 at 5 points, 3.1917e-3 at 15 (ratio 26.76); above the product's margin at 15 points (opens in tier 2 at 1e-3, 2 at 0)
+2. Q's survival: on share 0.95 the reader at 15 points gains against itself at 5 points, at the product's margin, with and without one policy (FALSIFIED: no material gain on both): HELD
+     share 0.95: READER@15/1e-3 against READER@5/1e-3 72 saved/0 lost +2.400 (exact 2.160 to 2.400; unconditional 1.870 to 3.013) gain
+     share 0.95: READER+J@15/1e-3 against READER+J@5/1e-3 71 saved/0 lost +2.367 (exact 2.127 to 2.367; unconditional 1.840 to 2.976) gain
+3. the control: S126's reader gap moves by less than a factor of 2 between 5 and 15 points (FALSIFIED: it rises 10-fold or more): HELD
+     S126 READER: gap 8.0241e-4 at 5 points, 6.5248e-4 at 15 (ratio 0.81)
+4. the freed opening: with the year-0 move freed at the product's margin, S126's reader and S194's off do no material harm against margin 0 and switch at most half as often (FALSIFIED: harm on both): HELD
+     S126: READER@5/1e-3+open against READER@5/0 3 saved/0 lost +0.100 (exact -0.042 to 0.100; unconditional -0.044 to 0.292) no material harm
+     S194: OFF@5/1e-3+open against OFF@5/0 6 saved/1 lost +0.167 (exact -0.037 to 0.232; unconditional -0.031 to 0.393) no material harm
+     S126: switches a path 0.03 with the opening freed, 4.93 at margin 0
+     S194: switches a path 0.04 with the opening freed, 3.97 at margin 0
+5. Q on the product: off's year-0 gap on share 0.95 rises at least 10-fold at 15 points and passes the product's margin (FALSIFIED: less than 3-fold): FALSIFIED
+     share 0.95 OFF: gap 4.3068e-5 at 5 points, 2.0696e-5 at 15 (ratio 0.48); not above the product's margin at 15 points
+
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 FALSIFIED

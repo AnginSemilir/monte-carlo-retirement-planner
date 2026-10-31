@@ -1,0 +1,20 @@
+7AC ITEM 3'S BRANCHES: pooled over S126 and S194 on the product's survivors at W0.02 (7941 and 7858 paths; TS loses 9 and 16; TS+J against TS 9/0 and 15/2; from results-derive-7ac.txt, sha256 36c65f640b4cbc29); 20000 draws a story (seed 7002); read as reduce-7ac.mjs reads item 3 and its branch (gainFamily and harmFamily at the pooled margin 0.1)
+
+BACKGROUND 0.5 PATHS EACH WAY
+  OPEN0 as the product on its survivors (saves TS's losses)    FALSIFIED without a loss 0.000  HELD 1.000
+  OPEN0 as TS+J (TS+J's cells against TS)                      FALSIFIED without a loss 0.002  HELD 0.997  INCONCLUSIVE 0.001
+  OPEN0 as TS (the opening carried 7aa's item 5)               FALSIFIED without a loss 0.999  HELD 0.001
+  OPEN0 losing to TS what TS loses to the product (a loss)     FALSIFIED by a loss 0.972  FALSIFIED without a loss 0.010  FALSIFIED, a loss not ruled out 0.019
+
+BACKGROUND 5 PATHS EACH WAY
+  OPEN0 as the product on its survivors (saves TS's losses)    FALSIFIED without a loss 0.001  HELD 0.983  INCONCLUSIVE 0.017
+  OPEN0 as TS+J (TS+J's cells against TS)                      FALSIFIED without a loss 0.003  FALSIFIED, a loss not ruled out 0.000  HELD 0.940  INCONCLUSIVE 0.058
+  OPEN0 as TS (the opening carried 7aa's item 5)               FALSIFIED by a loss 0.000  FALSIFIED without a loss 0.908  FALSIFIED, a loss not ruled out 0.040  HELD 0.033  INCONCLUSIVE 0.019
+  OPEN0 losing to TS what TS loses to the product (a loss)     FALSIFIED by a loss 0.924  FALSIFIED without a loss 0.000  FALSIFIED, a loss not ruled out 0.076
+
+BACKGROUND 15 PATHS EACH WAY
+  OPEN0 as the product on its survivors (saves TS's losses)    FALSIFIED, a loss not ruled out 0.001  HELD 0.837  INCONCLUSIVE 0.162
+  OPEN0 as TS+J (TS+J's cells against TS)                      FALSIFIED, a loss not ruled out 0.004  HELD 0.735  INCONCLUSIVE 0.262
+  OPEN0 as TS (the opening carried 7aa's item 5)               FALSIFIED by a loss 0.021  FALSIFIED without a loss 0.048  FALSIFIED, a loss not ruled out 0.427  HELD 0.039  INCONCLUSIVE 0.465
+  OPEN0 losing to TS what TS loses to the product (a loss)     FALSIFIED by a loss 0.839  FALSIFIED without a loss 0.000  FALSIFIED, a loss not ruled out 0.154  INCONCLUSIVE 0.006
+

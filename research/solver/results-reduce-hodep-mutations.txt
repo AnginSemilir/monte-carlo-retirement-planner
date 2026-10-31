@@ -1,0 +1,44 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== house[arm]) bad.push(
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: if (j.pts !== pts) bad.push(
+caught: 8: readerRef: REF[arm], readerSplit: SPLIT[arm], pts:
+caught: 9: readerRef: REF[arm], readerSplit: SPLIT[arm], pts:
+caught: 10: if (!j.guard || j.guard.floor !== j.guard.rule || field(ran,
+caught: 11: if (!j.guard || j.guard.ref !== REF[arm] || j.guard.fix !== 
+caught: 12: const NEED = ['armTook', 'footTook', 'ownTook', 'identity', 
+caught: 13: ...(REF[arm] === 'adaptive' ? ['adaptTook'] : [])
+caught: 14: if (!j.foot || j.foot.on !== FOOT[arm] || (FOOT[arm] && !(j.
+caught: 15: if (!j.foot || j.foot.on !== FOOT[arm] || (FOOT[arm] && !(j.
+caught: 16: const t = j.tables[w]; if (!t ||
+caught: 17: for (const x of [...KEYS, 'WS']) {
+caught: 18: if (ws && j.whole[w] && Math.abs(decRaw(ws).reduce((t, x) =>
+caught: 19: if (!house2 || house2 === 'S362' || house2 === 'S366')
+caught: 20: if (shared && (!(x in A) || !(x in B))) continue; n++; if (A
+caught: 21: if (shared && (!(x in A) || !(x in B))) continue; n++;
+caught: 22: return { outcome: s.outcome === 'harm' || wm.outcome === 'ha
+caught: 23: s.outcome === 'no material harm' && wm.outcome === 'no mater
+caught: 24: const s = mixtureOutcome(mixtureChange(cells)), wm = wsMix(w
+caught: 25: adv = beyond(O, ADV3) && Math.abs(A.m) <= ADV3,
+caught: 26: worse = beyond(A, ADV3) && Math.abs(O.m) <= ADV3,
+caught: 27: sameT = [0, 1, 2].every(k => Math.abs(P.acc[h].A[k].table - 
+caught: 28: <= SAME3);
+caught: 29: const c3 = hh[0];
+caught: 30: out['3'] = { outcome: c3.adv ? 'HELD' : c3.sameT ? 'FALSIFIE
+caught: 31: out['3'] = { outcome: c3.adv ? 'HELD' : c3.sameT ? 'FALSIFIE
+caught: 32: gain: Math.abs(c3.O.m) - Math.abs(c3.A.m)
+caught: 33: export const accMix = (rows, alpha = ALPHA3, w = MIX3W) => {
+caught: 34: const z = zFor(level), d = per.reduce((t, x, k) => t + w[k] 
+caught: 35: outcome: lo > -margin ? 'no material harm' : hi < 0 && -d >=
+caught: 36: if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return
+caught: 37: if (o('1') === 'FALSIFIED' || o('2') === 'FALSIFIED') return
+caught: 38: if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'HE
+caught: 39: if (o('1') === 'HELD' && o('2') === 'HELD' && o('3') === 'FA
+caught: 40: if (it['3'].worse) return 'R4';
+caught: 41: export const ADV3 = 1, SAME3 = 0.5;
+caught: 42: export const ADV3 = 1, SAME3 = 0.5;
+caught: 43: export const ADV3 = 1, SAME3 = 0.5;
+43 of 43 mutations caught

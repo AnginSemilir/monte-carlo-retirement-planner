@@ -1,0 +1,145 @@
+/*
+ * THE UNCERTAINTY INDEX, AND WHETHER A DEEP REVIEW IS DUE (RULES.md section 9; drafts/unmasking-proposal.md section 4;
+ * the maintainer, 26 Sep: "automated deep thought review on a periodic basis based on the level of uncertainty of the
+ * model"). Read from the records, printed with its parts:
+ *   - calibration: the Brier score over the last 10 scored items (results-scorecard.txt, in its order);
+ *   - surprises since the last deep review: scored items missed at credence 0.8 or more, or held at 0.3 or less, in the
+ *     tests after the one the last receipt covered;
+ *   - families: the largest number of OPEN register items (PLAN.md's odd-results register) sharing one "family: <name>";
+ *   - weak foundations: ledger rows after the last receipt whose evidence cell grades something C or D;
+ *   - unmasking flags: ledger rows after the last receipt reading FALSIFIED or harm on a fix (their title);
+ *   - settled results: ledger rows after the last receipt that name a prediction file and whose fair-test cell is not
+ *     n/a (a registration or a decision names its prediction but settles nothing: the maintainer's unlock of 15 Oct, after
+ *     two registration rows made a review due in one night; a row with no fair-test cell still counts).
+ * The level is HIGH when calibration is over 0.25, there are 2 surprises or a family of 3; MEDIUM when calibration is over
+ * 0.20, there is a surprise, an unmasking flag, or 2 weak foundations; else LOW. A deep review is DUE after every settled
+ * result (the process review, deep-review-log.md 4 Oct 13:52 UK, and the maintainer's unlock of 4 Oct: all 36 receipts had
+ * been at HIGH, so the pacing by level - 6 at LOW, 3 at MEDIUM, 1 at HIGH - was in practice this fixed rule); the level is
+ * still printed, for the review to read, and a receipt with nothing settled after it is not due again.
+ * The last receipt: the newest line of deep-review-log.md, "- <dd Mon HH:MM> UK | covered <test name> | ...".
+ *   node research/solver/uncertainty.mjs            the index and whether a review is due
+ *   node research/solver/uncertainty.mjs --due      exit 1 when a review is due (for a hook), else 0
+ *   node research/solver/uncertainty.mjs --planted  the planted checks alone
+ */
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+// "26 Sep 16:02" -> a sortable number (the year is not written in the ledger; the research runs within one year)
+export const stamp = s => { const m = /(\d{1,2}) (\w{3})\w* (\d{2}):(\d{2})/.exec(s || ''); return m ? ((MONTHS[m[2]] * 31 + +m[1]) * 24 + +m[3]) * 60 + +m[4] : null; };
+
+// the scorecard's tests, in order, each with its items [credence, held]
+export function scoredTests(text) {
+  const out = [];
+  for (const line of text.split('\n')) {
+    const m = /^(.+?): Brier [\d.]+ over \d+ \((.*)\)$/.exec(line);
+    if (!m) continue;
+    const items = [...m[2].matchAll(/(?:^|; )[^;]*?(0?\.\d+|1(?:\.0+)?) -> (held|not)/g)].map(x => [Number(x[1]), x[2] === 'held' ? 1 : 0]);
+    out.push({ name: m[1].trim(), items });
+  }
+  return out;
+}
+const brier = items => items.length ? items.reduce((a, [p, o]) => a + (p - o) ** 2, 0) / items.length : null;
+
+// the register's open items and their families; the ledger's rows after a time
+export function registerFamilies(plan) {
+  const fam = {};
+  for (const line of plan.split('\n')) {
+    if (!/^\| O\d+ \|/.test(line)) continue;
+    const cells = line.split(' | '), status = (cells[cells.length - 1] || '').replace(/\|\s*$/, '').trim();
+    if (!/^open/i.test(status)) continue;
+    // every family a row names, once each: a note may run on into a bracket ('family: the reader at the bridge (O32, ...)',
+    // missed before the deep review after 7ap, 1 Oct 09:38 UK) or name a second family (O66, O76)
+    const names = new Set([...line.matchAll(/family: ([\w -]+?)\s*(?:[;.,()'|]|$)/gi)].map(f => f[1].trim()));
+    for (const n of names) if (!/^none\b/i.test(n)) fam[n] = (fam[n] || 0) + 1;   // 'family: none' names no family
+  }
+  return fam;
+}
+export function ledgerAfter(plan, after) {
+  return plan.split('\n').filter(l => /^\| \d{1,2} \w{3} \d{2}:\d{2} \|/.test(l)).map(l => ({ t: stamp(l.slice(2, 14)), line: l })).filter(r => after === null || r.t > after);
+}
+// the tests closed after the covered one, by their closes in lessons.md ("## <test> (closed D Mon HH:MM)"): the scorecard's
+// file order lists EDGE after XAS though XAS closed later (O107; the plan-auditor's MINOR 6 on 967f853, the fourth unlock).
+// Without lessons.md, or with no close for the covered test, the file order as before; a test with no close is not after.
+export function testsAfter(tests, covered, lessons) {
+  if (covered === null) return tests;
+  const closes = new Map();
+  for (const m of String(lessons || '').matchAll(/^## (\S+) \(closed (\d{1,2} \w{3} \d{2}:\d{2})\)/gm)) closes.set(m[1], stamp(m[2]));
+  const key = n => n.split(' (')[0], c = closes.get(key(covered));
+  if (c === undefined || c === null) return tests.slice(tests.findIndex(t => t.name === covered) + 1);
+  return tests.filter(t => { const v = closes.get(key(t.name)); return v !== undefined && v !== null && v > c; });
+}
+export function index({ scorecard, plan, log, lessons = null }) {
+  const tests = scoredTests(scorecard);
+  const last = (log || '').split('\n').filter(l => /^- .* UK \| covered /.test(l)).pop() || null;
+  const since = last ? stamp(last) : null, covered = last ? /\| covered (.+?) \|/.exec(last)[1].trim() : null;
+  const all = tests.flatMap(t => t.items), cal = brier(all.slice(-10));
+  const after = testsAfter(tests, covered, lessons);
+  const surprises = after.flatMap(t => t.items.filter(([p, o]) => (p >= 0.8 && !o) || (p <= 0.3 && o)).map(([p, o]) => `${t.name} ${p} ${o ? 'held' : 'missed'}`));
+  const fams = registerFamilies(plan), family = Math.max(0, ...Object.values(fams));
+  const rows = ledgerAfter(plan, since);
+  const weak = rows.filter(r => /grade [CD]\b/.test(r.line.split(' | ').slice(-1)[0] || '')).length;
+  // a verdict in the bold result: FALSIFIED, or harm - but "no harm" and "no material harm" are the opposite verdict and do
+  // not count (the deep review after 7ah, 30 Sep 14:39 UK: 7ah's "no material harm" title was counted as a harm)
+  const unmask = rows.filter(r => (/\*\*([^*]*)\*\*/.exec(r.line) || [])[1] !== undefined && /FALSIFIED|harm/.test(/\*\*([^*]*)\*\*/.exec(r.line)[1].replace(/\bno (material )?harm\b/gi, ''))).length;
+  // a settled result names its prediction; a maintainer's decision row ("(maintainer)" in the result cell) may name one
+  // too but settles nothing (the maintainer, 27 Sep: 54c05b1's decision row triggered a deep review with no new result)
+  // nor does a row recording a deep review (its evidence cell opens 'deep review: deep-review-log.md'): it names the
+  // predictions it touches, but counting it made every review at HIGH call for the next (the maintainer, 4 Oct: the 12:09
+  // row recording the 12:01 review made a review due again); a read row that cites a review later in its cell still counts
+  // nor does a registration or a decision (its fair-test cell 'n/a'; check-plan.mjs refuses n/a on a row whose title reads
+  // a verdict, so a read cannot hide behind it)
+  const settled = rows.filter(r => /prediction: predictions\/\S+\.md/.test(r.line) && !/^\s*\(maintainer\)/.test(r.line.split(' | ')[1] || '') && !/^\s*deep review: deep-review-log\.md/.test(r.line.split(' | ').slice(-1)[0] || '') && !/fair-test:\s*n\/a\b/i.test(r.line.split(' | ').slice(-1)[0] || '')).length;
+  const level = (cal !== null && cal > 0.25) || surprises.length >= 2 || family >= 3 ? 'HIGH'
+    : (cal !== null && cal > 0.20) || surprises.length >= 1 || unmask >= 1 || weak >= 2 ? 'MEDIUM' : 'LOW';
+  const every = 1;
+  return { cal, surprises, fams, family, weak, unmask, settled, level, every, due: settled >= every, last, covered };
+}
+
+// PLANTED (rule 6)
+function planted() {
+  const sc = 'X\n7e (a): Brier 0.166 over 3 (1 0.7 -> held; 2 0.9 -> not; carried forward 0.6 -> not)\n7r (b): Brier 0.3 over 2 (1 0.3 -> held; outcome HELD 0.55 -> held)\n';
+  const plan = ['| O1 | a | 1 Sep | C | g | open |', '| O2 | b; family: risk | 1 Sep | C | g | open |', '| O3 | c; family: risk | 1 Sep | C | g | open |', '| O4 | d; family: risk | 1 Sep | C | g | resolved 2 Sep |',
+    '| 26 Sep 16:02 | **7s FALSIFIED: x** | y | results: r; prediction: predictions/a.md; grade B |', '| 26 Sep 13:27 | **7r HELD** | y | results: r; prediction: predictions/b.md; grade C for z |', '| 25 Sep 10:00 | old | y | grade D |'].join('\n');
+  const log = '- 26 Sep 12:00 UK | covered 7e (a) | x\n';
+  const u = index({ scorecard: sc, plan, log });
+  const cases = [
+    ['the scorecard read: two tests, three and two items', scoredTests(sc).map(t => t.items.length).join(','), '3,2'],
+    ['calibration over the last items', u.cal.toFixed(4), (((0.7 - 1) ** 2 + 0.9 ** 2 + 0.6 ** 2 + (0.3 - 1) ** 2 + (0.55 - 1) ** 2) / 5).toFixed(4)],
+    ['surprises after the covered test: 7r\'s item at 0.3 held (7e\'s 0.9 miss is before it)', u.surprises.join('|'), '7r (b) 0.3 held'],
+    ['families count open items only: risk 2 (O4 is resolved)', JSON.stringify(u.fams), '{"risk":2}'],
+    ['a family note running into a bracket counts; a row naming two families counts in each, a family named twice in one row once; "family: none" names none', JSON.stringify(registerFamilies(['| O5 | x. Family: the reader at the bridge (O32, O36) | 1 Sep | C | g | open |', '| O6 | y; family: the reader at the bridge; family: risk | 1 Sep | C | g | open |', '| O7 | z; family: risk (w); again family: risk | 1 Sep | C | g | open |', '| O8 | q; family: none (a one-off) | 1 Sep | C | g | open |'].join('\n'))), '{"the reader at the bridge":2,"risk":2}'],
+    ['ledger rows after the receipt: 2 settled, 1 weak (grade C), 1 unmasking flag (FALSIFIED in the title); the 25 Sep row is before it', `${u.settled} ${u.weak} ${u.unmask}`, '2 1 1'],
+    ['the level: calibration 0.40 is HIGH, so a review is due', `${u.level} ${u.due}`, 'HIGH true'],
+    ['LOW with nothing settled is not due; LOW with one settled result is (a review after every result, 4 Oct)', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 1 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
+    ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
+    ['planted: a test listed before the covered one but closed after it counts as after (O107: XAS listed before EDGE, closed later)', testsAfter([{ name: 'XAS (x)' }, { name: 'EDGE (y)' }], 'EDGE (y)', '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n').map(t => t.name).join(','), 'XAS (x)'],
+    ['planted: a test listed after the covered one but closed before it does not count', String(testsAfter([{ name: 'XAS (x)' }, { name: 'EDGE (y)' }], 'XAS (x)', '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n').length), '0'],
+    ['EDGE: with no lessons the file order stands', testsAfter([{ name: 'A (a)' }, { name: 'B (b)' }], 'A (a)', '').map(t => t.name).join(','), 'B (b)'],
+    ['index passes lessons.md to the ordering: a surprise in a test listed before the covered one but closed after it counts', String(index({ scorecard: 'XAS (x): Brier 0.81 over 1 (1 0.9 -> not)\nEDGE (y): Brier 0 over 1 (1 0.5 -> held)\n', plan: '', log: '- 5 Oct 19:00 UK | covered EDGE (y) | x\n', lessons: '## XAS (closed 5 Oct 18:33)\n## EDGE (closed 5 Oct 16:25)\n' }).surprises.length), '1'],
+    ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
+    ['"no material harm" and "no harm" are not harm verdicts; a harm beside them still is', (() => { const rows = ['| 30 Sep 14:20 | **7ah READ: no material harm on the six households** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:10 | **7x READ: no harm to survival** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:00 | **7y READ: no material harm on five, harm on S126** | y | prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 30 Sep 13:00 UK | covered 7r (b) | x' }).unmask); })(), '1'],
+    ['a deep review\'s row naming predictions is not a settled result; a read row citing a review later in its cell is', (() => { const rows = ['| 4 Oct 12:09 | **The pre-launch review** | y | deep review: deep-review-log.md (4 Oct 12:01 UK); fair-test: n/a (a review); prediction: predictions/a.md; grade A |', '| 4 Oct 12:30 | **7x read** | y | results: results-7x.txt; fair-test: pass; prediction: predictions/a.md; deep review: deep-review-log.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 4 Oct 12:01 UK | covered 7r (b) | x' }).settled); })(), '1'],
+    ['a registration row (fair-test n/a) naming a prediction is not a settled result; a read row (fair-test pass), an accepted one and one with no fair-test cell are', (() => { const rows = ['| 15 Oct 03:00 | **X re-cut and REGISTERED** | y | results: r; fair-test: n/a (a registration); prediction: predictions/x.md; grade D |', '| 15 Oct 02:00 | **X READ** | y | results: r; fair-test: pass; prediction: predictions/x.md; grade B |', '| 15 Oct 01:00 | **Y READ** | y | results: r; fair-test: accepted (28=why); prediction: predictions/y.md; grade B |', '| 15 Oct 00:30 | **Z READ** | y | results: r; prediction: predictions/z.md; grade B |']; return index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows.join('\n'), log: '- 14 Oct 23:00 UK | covered 7x (c) | x\n' }).settled; })(), 3],
+    ['a maintainer\'s decision row naming a prediction is not a settled result; a read row is', (() => { const rows = ['| 27 Sep 10:12 | (maintainer) **"re-read item 4"** | y | fair-test: n/a (a decision); prediction: predictions/a.md; grade A |', '| 27 Sep 09:00 | **7v read** | y | fair-test: pass; prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 27 Sep 08:00 UK | covered 7r (b) | x' }).settled); })(), '1'],
+  ];
+  const wrong = cases.filter(([, got, want]) => got !== want);
+  if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
+  return cases.length;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const n = planted();
+  if (process.argv.includes('--planted')) { console.log(`planted (${n}): all read as they should`); process.exit(0); }
+  const rd = f => (existsSync(join(HERE, f)) ? readFileSync(join(HERE, f), 'utf8') : '');
+  const u = index({ scorecard: rd('results-scorecard.txt'), plan: rd('PLAN.md'), log: rd('deep-review-log.md'), lessons: rd('lessons.md') });
+  if (process.argv.includes('--due')) { console.log(u.due ? `DEEP REVIEW DUE (${u.level})` : `no deep review due (${u.level})`); process.exit(u.due ? 1 : 0); }
+  console.log(`THE UNCERTAINTY INDEX (RULES.md section 9): ${u.level}; a deep review ${u.due ? 'IS DUE' : 'is not due'}`);
+  console.log(`  last deep review: ${u.last || 'none yet'}`);
+  console.log(`  calibration, the last 10 scored items: Brier ${u.cal === null ? '-' : u.cal.toFixed(3)} (HIGH over 0.25, MEDIUM over 0.20)`);
+  console.log(`  surprises since: ${u.surprises.length}${u.surprises.length ? ` (${u.surprises.join('; ')})` : ''} (HIGH at 2)`);
+  console.log(`  open register families: ${Object.keys(u.fams).length ? Object.entries(u.fams).map(([k, v]) => `${k} ${v}`).join(', ') : 'none noted'} (HIGH at 3)`);
+  console.log(`  since the last review: ${u.settled} settled results (a review every ${u.every} at ${u.level}), ${u.weak} resting on grade C or D, ${u.unmask} FALSIFIED or harm verdicts`);
+}

@@ -1,0 +1,17 @@
+THE giaTiers LOOK (STATE.md D47; EXPLORATORY), by research/solver/gia-look.mjs on two checkouts: the branch's solver code (cfd4530) and 8bea086 (just before 136c477)
+== code cfd4530 (the branch)
+gia-look: S330, 8 points, 60 paths of seed 7001, giaTiers on, the gain axis at its nearest bucket
+  gain 0: 1.65 GIA switches and 38.1 years below its plan tier a path; of 3507 decisions the joint step below the plan's in 70.4%; the move's GIA tier not the one held in 808, the hold check keeping it in 709, switching in 99; the switches by decade {"0":24,"10":29,"20":36,"30":10}
+  gain 0.4: 3.58 GIA switches and 47.1 years below its plan tier a path; of 3480 decisions the joint step below the plan's in 78.6%; the move's GIA tier not the one held in 765, the hold check keeping it in 550, switching in 215; the switches by decade {"0":110,"10":47,"20":46,"30":12}
+== code 8bea086 (just before 136c477)
+gia-look: S330, 8 points, 60 paths of seed 7001, giaTiers on, the gain axis at its nearest bucket
+  gain 0: 0.43 GIA switches and 8.7 years below its plan tier a path; of 3452 decisions the joint step below the plan's in 35.1%; the move's GIA tier not the one held in 989, the hold check keeping it in 963, switching in 26; the switches by decade {"10":8,"20":7,"30":11}
+  gain 0.4: 0.20 GIA switches and 2.1 years below its plan tier a path; of 3436 decisions the joint step below the plan's in 20.3%; the move's GIA tier not the one held in 648, the hold check keeping it in 636, switching in 12; the switches by decade {"10":1,"20":1,"30":10}
+== code cfd4530 (the branch)
+gia-look: S330, 8 points, 60 paths of seed 7001, giaTiers on, with {"gainInterp":true}
+  gain 0: 0.43 GIA switches and 8.1 years below its plan tier a path; of 3468 decisions the joint step below the plan's in 52.1%; the move's GIA tier not the one held in 1432, the hold check keeping it in 1406, switching in 26; the switches by decade {"20":17,"30":9}
+  gain 0.4: 0.10 GIA switches and 2.9 years below its plan tier a path; of 3467 decisions the joint step below the plan's in 48.2%; the move's GIA tier not the one held in 1569, the hold check keeping it in 1563, switching in 6; the switches by decade {"20":1,"30":5}
+== code 8bea086 (just before 136c477)
+gia-look: S330, 8 points, 60 paths of seed 7001, giaTiers on, with {"gainInterp":true}
+  gain 0: 0.03 GIA switches and 0.0 years below its plan tier a path; of 3447 decisions the joint step below the plan's in 28.8%; the move's GIA tier not the one held in 994, the hold check keeping it in 992, switching in 2; the switches by decade {"30":2}
+  gain 0.4: 0.00 GIA switches and 0.0 years below its plan tier a path; of 3438 decisions the joint step below the plan's in 23.6%; the move's GIA tier not the one held in 812, the hold check keeping it in 812, switching in 0; the switches by decade {}

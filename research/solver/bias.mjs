@@ -30,7 +30,7 @@ const SHARES = process.env.SHARES ? Number(process.env.SHARES) : undefined;
 const TAG = [COORDS ? 'coords=' + COORDS + (SHARES ? 'x' + SHARES : '') : '', RESIL ? 'resil=' + RESIL : '', WR !== undefined ? 'wR=' + WR : '', GAIN ? 'gain=' + GAIN.length : '', RICH ? 'richardson' : '', TIE ? 'tie=' + TIE : ''].filter(Boolean).join(' ');
 const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync(join(HERE, 'results', 'band-70-98-7001.json'), 'utf8'));
+const band = JSON.parse(readFileSync(join(HERE, 'fixtures', 'band-70-98-7001.json'), 'utf8'));
 const sc = singles[band[k].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(sc.plan)), config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan); const T = m.ctx.totalYears;

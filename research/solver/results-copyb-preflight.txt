@@ -1,0 +1,36 @@
+=== a MEASUREMENT, not a test: COPY-B's preflight, second run (COPY-W's stage B): the fifteen jobs at a fifteenth of the points on 40 paths a world, the reach screen and the nine plants on S362's jobs; no figure read for an item (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-MNderb   from 762ed1d + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+A. 15 jobs, 15 finished
+planted (94): all read as they should
+GATE: passed - the fifteen jobs once and done at the registered settings (40 paths a world, scale 15, seed 7002) on one code; the candidate's settings with no readerRef, the copy rule on CX and CXW alone, every self-check in full (the preflight: no reused cell
+PREFLIGHT S362 CW: bridge years 1,2,3,4,5,6,7, world-0 GB -12.2525 GA -2.4455, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 CXW: bridge years 1,2,3,4,5,6,7, world-0 GB -12.1947 GA -2.4376, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S370 CW: bridge years 1,2,3,4,5,6,7, world-0 GB 19.7584 GA -10.3282, copied 25596, clamped 3 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S362 C: bridge years 1,2,3,4,5,6,7, world-0 GB -12.2525 GA -2.4455, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 CX: bridge years 1,2,3,4,5,6,7, world-0 GB -12.1947 GA -2.4376, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S130 CW: bridge years 1, world-0 GB 36.7077 GA -29.3777, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S130 CXW: bridge years 1, world-0 GB 36.6772 GA -29.3777, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S126 CW: bridge years 1, world-0 GB -39.9276 GA 1.9132, copied 2430, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S126 CXW: bridge years 1, world-0 GB -39.9086 GA 2.7909, copied 2430, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S128 CW: bridge years 1, world-0 GB 42.8119 GA -18.2870, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S130 C: bridge years 1, world-0 GB 36.7077 GA -29.3777, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S130 CX: bridge years 1, world-0 GB 36.6772 GA -29.3777, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S126 C: bridge years 1, world-0 GB -39.9276 GA 1.9132, copied 2430, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S126 CX: bridge years 1, world-0 GB -39.9086 GA 2.7909, copied 2430, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT S128 C: bridge years 1, world-0 GB 42.8119 GA -18.2870, copied 3402, clamped 0 of 120, bridge failures by world 0, 0, 0
+PREFLIGHT: the gate and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW)
+B. reader-copy exit 0: 10 PASS, 0 FAIL
+C. plant cxw exit 3: audit-copyb: S362 CXW/P60S6Q5: the job's settings did not take
+C. plant own exit 3: audit-copyb: S362 CW/P60S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-copyb: S362 CW/P60S6Q5: the ledger does not close on every path (ownTook 120/120 identity 50/120)
+C. plant quad exit 3: audit-copyb: S362 CW/P60S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 398/632)
+C. plant held exit 3: audit-copyb: S362 CW/P60S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 466/632)
+C. plant score exit 3: audit-copyb: S362 CW/P60S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 62/120)
+C. plant trace exit 3: audit-copyb: S362 CW/P60S6Q5: the trace disagrees with runPolicy's own counters (counters 58/120)
+C. plant split exit 3: audit-copyb: S362 CW/P60S6Q5: a bridge-year read is not given back by its split (splitTook 139/632)
+C. plant class exit 3: audit-copyb: S362 CW/P60S6Q5: the copied nodes recounted at line 0.6 are not the solve's (15228 of 72 tables against 14580 of 72)
+the gate passed the fifteen jobs on S362, S370, S130, S126 and S128; the copy rule solves on CX and CXW alone with the candidate's settings; the reader-copy test passed on this code; the nine plants refused, each on its own check
+preflight done 15:33 UK
+=== snapshot kept at /tmp/solver-snap-MNderb for provenance; remove it when the results are written up

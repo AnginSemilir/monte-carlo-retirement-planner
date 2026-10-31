@@ -1,0 +1,14 @@
+7AH SOLVE TIMES, ORDER AGAINST READER (seconds; one batch, four at a time; grade C)
+  S360           W0.01  READER 2105  ORDER 2202  ratio 1.046
+  S360           W0.02  READER 2161  ORDER 2287  ratio 1.058
+  S366           W0.01  READER 1723  ORDER 1855  ratio 1.077
+  S366           W0.02  READER 1779  ORDER 1880  ratio 1.057
+  S370           W0.01  READER 1599  ORDER 1727  ratio 1.080
+  S370           W0.02  READER 1606  ORDER 1724  ratio 1.073
+  bridge 4       W0.01  READER 1525  ORDER 1559  ratio 1.022
+  bridge 4       W0.02  READER 1580  ORDER 1590  ratio 1.006
+  bridge 4+cost  W0.01  READER 1568  ORDER 1590  ratio 1.014
+  bridge 4+cost  W0.02  READER 1541  ORDER 1608  ratio 1.043
+  bridge 6       W0.01  READER 1607  ORDER 1676  ratio 1.043
+  bridge 6       W0.02  READER 1660  ORDER 1722  ratio 1.037
+TOTAL: READER 20454 s, ORDER 21420 s, ratio 1.047 over 12 pairs

@@ -1,0 +1,26 @@
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: passed - 42 units; every linear solve 7af's or 7ag's own (table, ran line, gap, opening, joint line); each blend and reversed solve its linear pair's but for the tier returns, which moved by O60's figures (planted 29)
+
+7AI: O60'S OPENINGS CHECK - the year-0 gap and opening (pension/ISA tiers at 0.001 and at 0) with the import's linear tier returns, the medians of their blends (results-o60.txt) and the same shift reversed, CAND (READER/TS+J/W0.02) and SHIP (OFF/PRODUCT/W0.02), 30 points; the linear solves held to 7af's and 7ag's records
+  household     arm               | linear: gap   opening      | blend: gap    opening      change | reversed: gap opening      change
+  share 0.50    READER/TS+J       |  9.3948e-4  0/0 2/2     |  9.4033e-4  0/0 2/2        0.1% |  7.6850e-4  0/0 2/2      -18.2%
+  share 0.90    READER/TS+J       |  9.1220e-4  0/0 2/2     |  9.7733e-4  0/0 2/2        7.1% |  1.4457e-3  2/2 2/2       58.5%   REVERSED MOVES IT
+  bridge 0      READER/TS+J       |  1.0267e-3  2/2 2/2     |  7.6313e-4  0/0 2/2      -25.7% |  9.4747e-4  0/0 2/2       -7.7%   BLEND MOVES THE OPENING   REVERSED MOVES IT
+  bridge 1      READER/TS+J       |  1.0332e-3  2/2 2/2     |  1.1051e-3  2/2 2/2        7.0% |  7.2468e-4  0/0 2/2      -29.9%   REVERSED MOVES IT
+  S126          READER/TS+J       |  1.0600e-3  2/2 2/2     |  1.2191e-3  2/2 2/2       15.0% |  1.6147e-3  2/2 2/2       52.3%
+  S194          READER/TS+J       |  1.0525e-3  2/2 2/2     |  9.8992e-4  0/0 2/2       -5.9% |  1.2652e-3  2/2 2/2       20.2%   BLEND MOVES THE OPENING
+  S162          READER/TS+J       |  1.0735e-3  2/2 2/2     |  1.3592e-3  2/2 2/2       26.6% |  1.1025e-3  2/2 2/2        2.7%
+  share 0.50    OFF/PRODUCT       |  1.3351e-4  0/0 2/2     |  1.6353e-4  0/0 2/2       22.5% |  1.1668e-4  0/0 2/2      -12.6%
+  share 0.90    OFF/PRODUCT       |  3.4884e-4  0/0 2/2     |  2.2963e-4  0/0 2/2      -34.2% |  4.7526e-4  0/0 2/2       36.2%
+  bridge 0      OFF/PRODUCT       |  2.0976e-4  0/0 2/2     |  2.6094e-4  0/0 2/2       24.4% |  1.6420e-4  0/0 2/2      -21.7%
+  bridge 1      OFF/PRODUCT       |  2.7563e-4  0/0 2/2     |  3.2179e-4  0/0 2/2       16.7% |  2.3918e-4  0/0 2/2      -13.2%
+  S126          OFF/PRODUCT       |  9.9930e-3  2/2 2/2     |  1.1830e-2  2/2 2/2       18.4% |  1.4250e-2  2/2 2/2       42.6%
+  S194          OFF/PRODUCT       |  7.5604e-4  0/0 2/2     |  5.4317e-4  0/0 2/2      -28.2% |  8.8633e-4  0/0 2/2       17.2%
+  S162          OFF/PRODUCT       |  4.8530e-4  0/0 2/2     |  4.4099e-4  0/0 2/2       -9.1% |  5.6324e-4  0/0 2/2       16.1%
+
+ITEM 1 (the response has the sign of the change): opposite 9, same 5, of 14 untied pairs (HELD at 7 or more untied and opposite 80% or more; FALSIFIED at same 40% or more) -> INCONCLUSIVE
+ITEM 2 (which way the blend moves the gap): up 9, down 5, of 14 untied pairs (HELD at 7 or more untied and up 70% or more; FALSIFIED at down 70% or more) -> INCONCLUSIVE
+REPORTED: the blend moves 2 of 14 openings at 0.001 (bridge 0 READER/TS+J 2/2 to 0/0; S194 READER/TS+J 2/2 to 0/0); the reversed shift moves 3 (share 0.90 READER/TS+J 0/0 to 2/2; bridge 0 READER/TS+J 2/2 to 0/0; bridge 1 READER/TS+J 2/2 to 0/0); the table with the blend rises on 14 of 14 (mean 1.2110 points)
+
+OUTCOME: 1 INCONCLUSIVE, 2 INCONCLUSIVE

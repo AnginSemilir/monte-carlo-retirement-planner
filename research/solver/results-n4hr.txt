@@ -1,0 +1,10 @@
+N4'S HR DECOMPOSED (EXPLORATORY, the tuning seed, 45 wealth points; D27): /home/user/vitejs-vite-kdvuf9qw/research/solver/results/n4hr, N4's units from /home/user/vitejs-vite-kdvuf9qw/research/solver/results/n4
+AT W0.02:
+  S370: CAND 80.35%; against it, survival (se) / whole score (se): HR +1.712 (0.163) / +1.837 (0.164) | HRDRAW +0.850 (0.127) / +0.945 (0.127) | HRWRAP +1.637 (0.161) / +1.755 (0.162) | the interaction -0.775 (0.140) / -0.863 (0.140); HR's survival gain 50% in HRDRAW alone, 96% in HRWRAP alone
+  S248: CAND 52.29%; against it, survival (se) / whole score (se): HR +0.800 (0.126) / +0.893 (0.127) | HRDRAW +0.700 (0.114) / +0.795 (0.115) | HRWRAP +0.637 (0.114) / +0.722 (0.115) | the interaction -0.537 (0.129) / -0.623 (0.130); HR's survival gain 88% in HRDRAW alone, 80% in HRWRAP alone
+AT W0.01:
+  S370: CAND 80.31%; against it, survival (se) / whole score (se): HR +1.688 (0.160) / +1.815 (0.161) | HRDRAW +0.762 (0.112) / +0.838 (0.112) | HRWRAP +1.563 (0.157) / +1.685 (0.157) | the interaction -0.637 (0.132) / -0.708 (0.132); HR's survival gain 45% in HRDRAW alone, 93% in HRWRAP alone
+  S248: CAND 52.33%; against it, survival (se) / whole score (se): HR +0.912 (0.129) / +0.978 (0.129) | HRDRAW +0.700 (0.112) / +0.768 (0.112) | HRWRAP +0.637 (0.114) / +0.697 (0.114) | the interaction -0.425 (0.122) / -0.488 (0.123); HR's survival gain 77% in HRDRAW alone, 70% in HRWRAP alone
+the gate: one code (19e277fb8f7f), seed and paths 7002/8000, 45 points
+N4's units reproduced on this code: CAND and CAND+HR the same bit for bit on 8 of 8 household-weight-arms
+HR DECOMPOSED: read complete; exploratory, for the maintainer's call on HR (D27)

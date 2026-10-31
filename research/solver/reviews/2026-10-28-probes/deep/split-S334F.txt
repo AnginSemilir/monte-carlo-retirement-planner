@@ -1,0 +1,1 @@
+S334F (fire) on 1000 paths of 7002: APP 85.1% | SHIP 93.5% (less APP 8.4; 84 saved, 0 lost) | SHIP-NC 89.2% (less APP 4.1; 42 saved, 1 lost)

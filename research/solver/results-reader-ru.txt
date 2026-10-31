@@ -1,0 +1,29 @@
+PASS  ruScale scales where the query's chance is the higher: (1 - 0.9) / (1 - 0.5) = 0.2, and nothing left at a certain query
+PASS  ruScale is 1 where the corner's chance is the higher or equal
+PASS  the solve's meta carries the arm ('ru', and null with the option off)
+PASS  the reads: 1244 bridge-year reads under 'ru' and 1240 with the option off, at the visited states of 60 paths a world
+PASS  the scaling acts: 1064 reads have a corner of lower chance than the query with a residual, 4 move by more than 1e-6
+PASS  under 'ru' every read gives back the 'ru' formula (largest gap 0.00e+0)
+PASS  with the option off every read gives back the unscaled formula (largest gap 0.00e+0)
+PASS  planted fault caught: the scaling left off disagrees with the 'ru' reads on 1064 reads
+PASS  planted fault caught: the scaling turned the other way (RS's direction) disagrees on 1064 reads
+PASS  'ru' with the log-odds blend, and an unknown split, are refused
+PASS  the solve's meta carries 'rsu', and the reader its own flag (rs and ru off)
+PASS  the reads: 1244 under 'rsu'; RU's side acts on 1064 (a corner below the query with a residual), RS's on 0 (a corner above it)
+PASS  under 'rsu' every read gives back the RSU formula (largest gap 0.00e+0)
+PASS  RSU is not RS alone: the formulas differ on 1064 reads (and from RU alone on 0)
+PASS  planted fault caught: both flags set with rsu off reads RS alone (every read gives back the RS formula: true) and disagrees with RSU on 1064 reads
+NOTE  under the package on S370, 82 of 13336 reads touch a non-finite corner or chance (O199), excluded from the formula checks
+PASS  under the package with SN's nodes on S370, at the visited and grid states: 13254 reads under 'rsu'; RU's side acts on 1060, RS's on 0
+PASS  under the package every read gives back the RSU formula (largest gap 0.00e+0)
+PASS  planted fault caught under the package on S370: both flags with rsu off (RS alone) disagree with RSU on 1060 reads where RU acts (RU alone on 0)
+NOTE  on S364 under the package, 288 of 9880 reads touch a non-finite corner or chance (O199), excluded from the formula checks
+PASS  S364 under the package with 'rsu', at the visited and grid states: 9592 reads; RS's side acts on 100, RU's on 359
+PASS  on S364 every read gives back the RSU formula (largest gap 0.00e+0)
+NOTE  on S364, RU alone against RSU where RS's side acts: 0 reads differ (RS's corners there hold residuals under the clamp)
+PASS  RS's half on a planted residual (S370 and S364 under the package, 600 mid-cell reads with a corner above the query): every read under 'rsu' gives back the RSU formula on the planted table (largest gap 0.00e+0)
+PASS  planted fault caught: RU alone (RS's factor lost) differs from RSU on 75 of the 75 planted reads where it moves the read by 1e-6 or more inside the clamp (of 600), the smallest expected move 1.54e-6
+PASS  each caught read moves by w x 0.3 x (1 - pr / pk), RS's factor on the planted residual (the largest miss 1.11e-17)
+PASS  'rsu' with the log-odds blend is refused
+reader-ru: 24 checks passed
+exit 0

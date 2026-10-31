@@ -2,7 +2,7 @@
  * THE FAST FLOW IS THE EXACT MODEL, REARRANGED - AND THIS IS WHAT PROVES IT.
  *
  * `model.js` is held to the engine to the pound. `fast.js` is the same year written for the solver:
- * no allocation, calendars and tax as tables, the state as six numbers. Every saving is a chance to
+ * no allocation, calendars and tax as tables, the state as a handful of numbers. Every saving is a chance to
  * compute a different year, so it is held to `model.js` the same way `model.js` is held to the engine,
  * on random positions across the library rather than on a fixture that happens to be easy.
  *
@@ -26,7 +26,11 @@ let rng = 12345; const rand = () => { rng = (rng * 1664525 + 1013904223) >>> 0; 
 
 console.log('=========== A. RANDOM POSITIONS AND MOVES, AGAINST THE EXACT MODEL ===========');
 {
-  let worst = 0, where = '', n = 0, flagDiff = 0, worstGrow = 0;
+  // the forward run's state (grid.js vecOf: fourteen slots), which carries the gains booked after the year's CGT bill
+  // to next year in slot 11 as model.js's cgtCarry does; a grid cell (six slots) has no slot and is charged them now
+  // (fast.js 7d', the external review of 21 Oct, F0), so it is held to the model only where no gain is booked late,
+  // and reads an unrealised loss as no gain (its lowest gain bucket), where a forward run carries it
+  let worst = 0, where = '', n = 0, flagDiff = 0, worstGrow = 0, worstCell = 0, whereCell = '', nCell = 0;
   for (let h = 0; h < 16; h++) {
     const sc = singles[Math.floor(h * singles.length / 16)];
     const m = M.prepare(E, prep(sc.plan));
@@ -46,24 +50,29 @@ console.log('=========== A. RANDOM POSITIONS AND MOVES, AGAINST THE EXACT MODEL 
       m.ctx.accounts.forEach(a => { st.pots[a.id] = 0; });
       st.pots[o.ids.pen] = pen; st.pots[o.ids.isa] = isa; st.pots[o.ids.other] = gia; st.pots[o.ids.cash] = cash;
       const a = { ...actions[ai], sweepCash: true, lump: false };
+      const s = vecOf(m, st);
+      const cell = Float64Array.from([pen, isa, tax, gf, pf * m.P.lsa, pf > 0 ? 1 : 0]);
+      const unmetCell = F.flow(c, t, ai, cell), cellLast = { ...c.last };
       const row = M.step(m, st, a, t, null, true);
-      const s = Float64Array.from([pen, isa, tax, gf, pf * m.P.lsa, pf > 0 ? 1 : 0]);
       const unmet = F.flow(c, t, ai, s);
       const g2 = st.pots[o.ids.other], b2 = st.basis.self;
-      const mGf = g2 > 0 ? Math.max(0, Math.min(1, (g2 - b2) / g2)) : 0;
+      const mGf = g2 > 0 ? Math.min(1, (g2 - b2) / g2) : 0;
       n++;
-      for (const [key, x, y] of [
-        ['pension', st.pots[o.ids.pen], s[0]], ['ISA', st.pots[o.ids.isa], s[1]], ['taxable', st.pots[o.ids.other] + st.pots[o.ids.cash], s[2]],
-        ['gain fraction x1e5', mGf * 1e5, s[3] * 1e5], ['tax-free used', st.cumPcls.self, s[4]],
-        ['unmet', row.unmetDemand, unmet], ['income tax', row.taxPaid, c.last.taxPaid], ['CGT', row.cgtPaid, c.last.cgtPaid], ['pension drawn', row.drawdownPensions, c.last.drawdown]
-      ]) { const d = Math.abs(x - y); if (d > worst) { worst = d; where = `${sc.id} year ${t} move ${ai} ${key}: ${x.toFixed(2)} vs ${y.toFixed(2)}`; } }
+      const fields = (v, u, last) => [
+        ['pension', st.pots[o.ids.pen], v[0]], ['ISA', st.pots[o.ids.isa], v[1]], ['taxable', st.pots[o.ids.other] + st.pots[o.ids.cash], v[2]],
+        ['gain fraction x1e5', (v.length > 11 ? mGf : Math.max(0, mGf)) * 1e5, v[3] * 1e5], ['tax-free used', st.cumPcls.self, v[4]],
+        ['unmet', row.unmetDemand, u], ['income tax', row.taxPaid, last.taxPaid], ['CGT', row.cgtPaid, last.cgtPaid], ['pension drawn', row.drawdownPensions, last.drawdown]
+      ];
+      for (const [key, x, y] of [...fields(s, unmet, c.last), ['gains carried', st.cgtCarry.self, s[11]], ['cash', st.pots[o.ids.cash], s[12]]]) { const d = Math.abs(x - y); if (d > worst) { worst = d; where = `${sc.id} year ${t} move ${ai} ${key}: ${x.toFixed(2)} vs ${y.toFixed(2)}`; } }
+      if (s[11] === 0) { nCell++; for (const [key, x, y] of fields(cell, unmetCell, cellLast)) { const d = Math.abs(x - y); if (d > worstCell) { worstCell = d; whereCell = `${sc.id} year ${t} move ${ai} ${key}: ${x.toFixed(2)} vs ${y.toFixed(2)}`; } } }
       if ((row.preNmpaInsolvent ? 1 : 0) !== (c.last.preNmpaInsolvent ? 1 : 0)) flagDiff++;
       const grown = M.cloneState(st); M.grow(m, grown, t, null);
       const s2 = Float64Array.from(s); F.grow(c, t, s2, c.real);
       worstGrow = Math.max(worstGrow, Math.abs(grown.pots[o.ids.pen] - s2[0]), Math.abs(grown.pots[o.ids.isa] - s2[1]), Math.abs(grown.pots[o.ids.other] + grown.pots[o.ids.cash] - s2[2]));
     }
   }
-  ok(`A1  the flow agrees with the exact model on ${n} random positions and moves`, worst < 0.01, `worst £${worst.toFixed(4)}${worst >= 0.01 ? ' at ' + where : ''}`);
+  ok(`A1  the flow agrees with the exact model on ${n} random positions and moves, the gains carried to next year included`, worst < 0.01, `worst £${worst.toFixed(4)}${worst >= 0.01 ? ' at ' + where : ''}`);
+  ok(`A1b ...and a grid cell agrees with it wherever no gain is booked after the bill (${nCell} of ${n})`, worstCell < 0.01 && nCell > n / 2, `worst £${worstCell.toFixed(4)}${worstCell >= 0.01 ? ' at ' + whereCell : ''}`);
   ok('A2  ...including the pre-access insolvency flag', flagDiff === 0, `${flagDiff} disagreements`);
   ok('A3  ...and growth from the post-decision state', worstGrow < 0.01, `worst £${worstGrow.toFixed(4)}`);
 }
@@ -112,7 +121,7 @@ console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT M
   const cc = F.compile(m, [act]);
   const st = M.initialState(m);
   const s = vecOf(m, st);
-  ok('D1  a state with the rails on hands the fast flow eleven slots', s.length === 11 && s[7] === -1 && s[8] === 1);
+  ok('D1  a state with the rails on hands the fast flow its fourteen slots, the rails\' memory in 7 to 10', s.length === 14 && s[7] === -1 && s[8] === 1);
   const zAt = (t) => (t % 7 === 3 ? -1.8 : (t % 5 === 0 ? -0.9 : 0.4));
   let worst = 0, cuts = 0, floors = 0;
   const real = new Float64Array(4);
@@ -157,7 +166,7 @@ console.log('=========== E. THE RESEARCH OPPONENTS: VANGUARD DYNAMIC SPENDING AN
     return { levels, mults, s };
   };
   const s0 = F.withRuleSlots(vecOf(m, M.initialState(m)));
-  ok('E1  the rule slots start empty: no rate yet, multiplier one', s0.length === 11 && s0[7] === -1 && s0[8] === 1 && s0[9] === 0);
+  ok('E1  the rule slots start empty: no rate yet, multiplier one', s0.length === 14 && s0[7] === -1 && s0[8] === 1 && s0[9] === 0);
   const v = run({ kind: 'vanguard', up: 0.05, down: 0.025 }, () => 0);
   const steps = v.mults.slice(1).map((x, i) => x / v.mults[i]);
   ok('E2  Vanguard starts at the target and never moves the multiplier more than +5% or -2.5% a year', Math.abs(v.mults[0] - 1) < 1e-9 && steps.every(r => r <= 1.05 + 1e-9 && r >= 0.975 - 1e-9), `steps ${Math.min(...steps).toFixed(3)}..${Math.max(...steps).toFixed(3)}`);

@@ -1,0 +1,16 @@
+7AI: THE TABLE WITH THE BLEND MEDIANS LESS THE LINEAR, BY PAIR (points; the solve lines)
+  share 0.50  OFF/PRODUCT/W0.02            +0.0337
+  bridge 0  OFF/PRODUCT/W0.02              +0.0360
+  S126  READER/TS+J/W0.02                  +0.0917
+  share 0.90  READER/TS+J/W0.02            +0.0918
+  bridge 1  READER/TS+J/W0.02              +0.1142
+  share 0.50  READER/TS+J/W0.02            +0.1214
+  bridge 0  READER/TS+J/W0.02              +0.1302
+  S162  OFF/PRODUCT/W0.02                  +0.1484
+  S162  READER/TS+J/W0.02                  +0.3131
+  share 0.90  OFF/PRODUCT/W0.02            +0.4711
+  S194  OFF/PRODUCT/W0.02                  +0.5019
+  S194  READER/TS+J/W0.02                  +0.5276
+  bridge 1  OFF/PRODUCT/W0.02              +4.5578
+  S126  OFF/PRODUCT/W0.02                  +9.8147
+MEAN 1.2110 over 14 pairs; up on 14

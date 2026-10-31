@@ -1,0 +1,55 @@
+ok   a complete registered set passes the gate
+ok   the same survival, the same spending, no raise before ruin under CANDD (CAND's 20 of 20): HELD (HELD)
+ok   one path lost on each household: P1 MISSED (EDGE: a single discordant path)
+ok   spending 0.11% lower: P2 MISSED (EDGE: just past the tenth of a percent)
+ok   spending 0.09% lower: P2 HELD (EDGE: just inside the tenth of a percent)
+ok   a raise before ruin under CANDD: P3 MISSED
+ok   survival 30 points lower under CANDD: HARM
+ok   two paths a household lost below the minimum pot: P1 MISSED, not HARM (EDGE: the pooled margin, -0.05 points; MISSED)
+ok   eight paths a household lost of 1,000: HARM (-0.8 points, past the margin)
+ok   one of eight households losing 40 of 4,000 paths (a point): MISSED pooled (-0.125), its line FLAGGED, the others' not (EDGE: a loss on one household; the re-review's finding 1)
+ok   a unit that ran without the option it names is refused
+ok   a dial unit at the wrong lambda is refused
+ok   units at different grids are refused
+ok   no path runs out in either arm: P3 has nothing to miss (EDGE: an empty class)
+ok   a missing unit is refused
+ok   the registered read on another seed is refused
+ok   the registered seed in the dial's read is refused
+ok   another test's held-out seed is refused
+ok   a household whose arms ran on other inputs is refused
+ok   units stamped on other files are refused
+ok   CANDDP with no raise before ruin where CANDD has it on every run-out path: the cause (0 of 160 against 160)
+ok   CANDDP raising as often as CANDD: not the cause
+ok   no path runs out under either: nothing falls, so not near none (EDGE: an empty class)
+ok   a CANDDP unit that ran without the option is refused
+ok   CANDD against another folder: the same where every value is, not where one level differs
+ok   the curve's facts: first year 80, back at target in year 2 (average and median path), a third of the steps change (80.0, 2, 2, 33.33%)
+EDGES: a single discordant path, just past the tenth of a percent, just inside it, an empty class of paths that run out, a loss inside the pooled margin, a loss on one household
+planted (26): all read as they should
+THE GATE: fair - 8 households in CANDD, CANDDP, DIAL6, seed 7002, 4000 paths, one stamp (code 0fbe5e9a22d3, audit 7edf50ee0870), candidate d71f65ae871e
+runPolicy beside the engine: paths that differ 0 of 24000
+PAYING WHERE ONE PAYS, AND THE DIAL AT SIX TIMES (EXPLORATORY, D46, seed 7002):
+retired at the start: S030, S050, S090, S368; years counted from 1, the first retired year
+per arm: survival; the retirees' first year and years 1-5 (% of target); their average back at target (year), the median path back (year); from the 21st year (all); retired years at the floor / at 110%; the share of years a path's level changes, and the mean step (points); the pension and ISA's equity share at years 1, 5, 10, 20 (retirees; all)
+  CANDD  96.63%; first 80.0, 1-5 80.8; back at target year 13, median path year 8; from the 21st 107.5; floor 8.83 / 110% 28.42; changes 7.5% of years, step 1.50; equity 24.7 / 24.6 / 41.1 / 57.6; 30.2 / 30.2 / 39.2 / 48.9
+  CANDDP 96.62%; first 80.0, 1-5 80.8; back at target year 13, median path year 8; from the 21st 107.5; floor 8.81 / 110% 28.42; changes 7.5% of years, step 1.49; equity 24.7 / 24.6 / 41.0 / 57.5; 30.2 / 30.2 / 39.2 / 48.8
+  DIAL6  95.74%; first 87.5, 1-5 89.8; back at target year 10, median path year 9; from the 21st 107.4; floor 3.16 / 110% 27.27; changes 10.9% of years, step 1.21; equity 34.7 / 33.5 / 36.9 / 51.8; 35.2 / 34.6 / 37.2 / 43.7
+against CANDD (paired by path; survival in points, spending in % of CANDD's, running out while alive in points):
+  CANDDP survival -0.003 (-0.014 to +0.007, se 0.0054); lifetime spending -0.007% (-0.009 to -0.006%, se 0.0008); while alive -0.011% (-0.012 to -0.009%, se 0.0008); running out while alive +0.048 (+0.042 to +0.053, se 0.0028); the raise before ruin 140 of 878 (a 110% year in the three before, 233)
+  DIAL6  survival -0.888 (-1.003 to -0.772, se 0.0588); lifetime spending +1.424% (+1.406 to +1.442%, se 0.0091); while alive +2.201% (+2.183 to +2.219%, se 0.0094); running out while alive +0.308 (+0.272 to +0.345, se 0.0188); the raise before ruin 0 of 1078 (a 110% year in the three before, 191)
+per household: survival, the first retired year's level and the equity held in year 1, by arm:
+  S030   CANDD 95.60% (80.0, 23%)  CANDDP 95.60% (80.0, 23%)  DIAL6 94.45% (90.0, 23%)
+  S050   CANDD 98.80% (80.0, 24%)  CANDDP 98.78% (80.0, 24%)  DIAL6 97.38% (90.0, 44%)
+  S090   CANDD 94.75% (80.0, 23%)  CANDDP 94.75% (80.0, 23%)  DIAL6 92.90% (90.0, 43%)
+  S368   CANDD 99.85% (80.0, 28%)  CANDDP 99.85% (80.0, 28%)  DIAL6 99.78% (80.0, 28%)
+  S188   CANDD 97.55% (91.2, 28%)  CANDDP 97.53% (91.2, 28%)  DIAL6 96.85% (98.4, 28%)
+  S304F  CANDD 98.28% (80.0, 28%)  CANDDP 98.28% (80.0, 28%)  DIAL6 97.65% (87.6, 28%)
+  S328F  CANDD 93.10% (94.8, 43%)  CANDDP 93.13% (94.8, 43%)  DIAL6 92.50% (99.4, 43%)
+  S340F  CANDD 95.08% (96.4, 43%)  CANDDP 95.08% (96.4, 43%)  DIAL6 94.40% (99.8, 43%)
+CANDDP against CANDD, the deep review's read (reviews/2026-10-30-deep-fail-delivered.md section 4):
+  CANDD  of 875 paths that run out: a 110% year in the three years before ruin 197 (22.5%), the latest 1 / 2 / 3 years before 2 / 190 / 5; the year before ruin at the floor 806 (92.1%)
+  CANDDP of 878 paths that run out: a 110% year in the three years before ruin 233 (26.5%), the latest 1 / 2 / 3 years before 140 / 78 / 15; the year before ruin at the floor 269 (30.6%)
+  survival -0.003 (-0.014 to +0.007, se 0.0054) points; 3 of 32000 paths differ (1 saved: 0 out, 1 pot; 2 lost: 1 out, 1 pot); lifetime spending -0.0074% (-0.0089 to -0.0059%, se 0.00079)
+  the failure year, of 874 paths that run out under both: earlier 441, the same 427, later 6 (mean -0.51 years)
+  by the review's rule: the count stays at three-quarters of CANDD's or more: THE FAILING CELLS ARE NOT THE CAUSE (Part C keeps the presentation rule)
+CANDD on this code (the option unset) against results/curve-7002: the same outcomes byte for byte on 8 of 8 households

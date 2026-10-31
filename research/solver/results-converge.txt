@@ -1,0 +1,131 @@
+THE CONVERGENCE TEST: MY HYPOTHESIS WAS WRONG, AND THE REAL CAUSE IS BETTER NEWS AND WORSE
+====================================================================================================
+
+Run 23 Sep 09:15-11:16 from snapshot /tmp/solver-snap-cYIajz (commit 70a3987). Four households landed
+at `bisectSteps = 12` against their recorded five-step results. Prediction written before the run, in
+batch-converge.sh.
+
+    id      ask     margin 5 -> 12      lambda 5 -> 12       spend level 5 -> 12    solves
+    S268   75.1    +2.73 -> +1.90    0.9457 -> 1.0385      1.0676 -> 1.0700       7 -> 8
+    S292   77.2    +2.37 -> +2.37    unchanged             unchanged              7 -> 7
+    S342   72.0    +1.87 -> +1.87    unchanged             unchanged              7 -> 7
+    S058   97.9    +0.37 -> +0.37    unchanged             unchanged              3 -> 3   (control)
+
+PREDICTED: S268 +2.73 -> ~1.6, S292 +2.37 -> ~1.3, S342 +1.87 -> ~0.8, control unchanged.
+HAPPENED: one of three moved, roughly as predicted. TWO DID NOT MOVE AT ALL. Control unchanged.
+
+**THE HYPOTHESIS IS FALSIFIED ON TWO OF THREE.** The bracket width is not the binding constraint.
+
+----------------------------------------------------------------------------------------------------
+WHAT IS ACTUALLY STOPPING THE SEARCH, READ OFF THE SOLVE COUNTS
+
+Solves = 2 bracket ends + loop iterations. With `bisectSteps = 12` the loop COULD run twelve times.
+
+    S268   8 solves = 2 + 6 iterations, then stopped
+    S292   7 solves = 2 + 5, then stopped
+    S342   7 solves = 2 + 5, then stopped
+
+**They stopped with six or seven iterations of budget unused. The tolerance fired.** And at five steps
+S292 and S342 also used 2 + 5 - so the tolerance was satisfiable at exactly the same iteration, and the
+extra budget had nothing to do. S268 was the one household whose sixth iteration mattered, and it is
+worth **0.83 of a point** and 0.0024 of spending level.
+
+**So the over-trimming is real - all 22 landings do overshoot - but the BRACKET is not why.** The
+stopping rule is:
+
+    break when  SEARCH rate <= ask + margin(0.5) + tol(0.5)  =  ask + 1.0
+
+and the reported margin is measured on HELD-OUT paths, a different draw. The solver stops when its
+SEARCH sample says it is within a point of the ask, and the held-out truth then comes in at +1.9 to
++2.4. **The search and held-out estimates disagree by about 1.4 points on these three, all in the same
+direction.**
+
+That direction is the surprise. The winner's curse predicts held-out LOWER than search, and the half-
+point margin exists to absorb exactly that. Here held-out is HIGHER. On three households it is not a
+conclusion, but it is the first evidence that **the two seeds do not agree as closely as the design
+assumes**, which is the "one seed pair throughout" item already recorded as unresolved.
+
+----------------------------------------------------------------------------------------------------
+WHAT THIS CHANGES
+
+**The fix is NOT more steps.** Twelve steps bought 0.83 of a point on one household of three and
+nothing on the rest, for double the solves. Raising `bisectSteps` is close to worthless.
+
+**The fix IS the stopping rule**, which is what the sensitivity analysis had already argued from the
+78-fold spread in how much the floor rate moves per unit of lambda. That argument now has a run behind
+it rather than only algebra. Stop on ESTIMATED REMAINING ERROR - slope x ln(bracket), with the slope
+read from pairs the search has already computed - rather than on whether a sample estimate has landed
+inside a fixed window.
+
+**And Phase 4's fairness worry shrinks.** The concern was a one-sided handicap against the solver on
+spending delivered, because the app's own optimizeSpend converges to a 250-pound bracket while ours
+stops early. Since more steps change almost nothing, that handicap is **smaller than feared** - worth
+fixing, no longer a precondition.
+
+**What does not change: the overshoot itself.** Every landing still delivers more safety than asked and
+pays for it in spending. The cause is now located in the stopping rule and in the search/held-out gap,
+not in the bracket, and the remedy is different from the one proposed yesterday.
+
+----------------------------------------------------------------------------------------------------
+THE PROCESS NOTE, WHICH IS THE POINT OF WRITING PREDICTIONS DOWN
+
+The prediction was specific enough to be wrong in a useful way. Had it said only "more steps should
+help", one household improving would have looked like confirmation. Because it named which households
+should move and by how much, two of them not moving AT ALL was unmissable, and the solve counts then
+said why within minutes.
+
+The first version of this finding also claimed the bracket was a factor of 12.5 when it is 1.21 -
+corrected before the run. Had that error survived, the run would have been read as "the fix works
+weakly" instead of "the diagnosis was wrong".
+
+====================================================================================================
+CORRECTION, SAME DAY: THE "HELD-OUT RUNS HIGHER" CLAIM ABOVE WAS A SELECTION EFFECT
+
+Checked against every flex-tiers household, same policy scored on both draws (search: seed 7001, 5,400
+paths; held-out: seed 7002, 3,000 paths):
+
+    held-out higher on        26 of 41, not all
+    mean gap (held - search)  +0.18 pts, median +0.08, range -0.47 to +1.64
+    per-household noise       +/-0.91 pts
+
+**+0.18 is noise.** The ~1.4-point gap reported above came from S268, S292 and S342 - which were chosen
+FOR THIS TEST because they had the largest overshoots. A household picked for looking extreme on one
+draw looks extreme partly by luck, and will regress on another. **I selected on the outcome.** The
+claim is withdrawn, and the "one seed pair" item stays where it was: unresolved, not evidenced.
+
+WHAT THE OVERSHOOT ACTUALLY IS, averaged over the 22 genuine landings:
+
+    deliberate margin                   +0.50   set on purpose against the winner's curse
+    tolerance window                   ~+0.33   the search stops anywhere in +0.5..+1.0 above the ask
+    draw-to-draw noise                 ~+0.33   zero in expectation, positive in this sample
+    held-out total                      +1.16
+    (search-draw margin                 +0.83   squarely inside the window the stopping rule defines)
+
+**So there is no correctness fault.** The search lands exactly where its settings put it. What remains
+is one design choice - the half-point tolerance window buys up to half a point of extra safety with
+spending, and narrowing it costs solves - and one real consequence for Phase 4, recorded there: the
+two arms do not land to the same effective target.
+
+PROCESS: a test's households must not be chosen by the outcome the test is meant to explain. A
+representative set with a control would have avoided a false finding that survived an hour.
+
+====================================================================================================
+CLOSED ACROSS ALL 22, FROM EXISTING RECORDS (no new run)
+
+The stopping rule lands a household between +0.5 and +1.0 above its ask ON THE SEARCH DRAW. Above +1.0
+means the budget ran out before the tolerance fired - the only case more steps can help. flex-tiers
+records the search-draw rate for every landing:
+
+    inside the window (tolerance fired)     19 of 22
+    above +1.0 (budget-limited)              3 of 22   S020 +1.12, S268 +1.40, S354 +1.01
+    below +0.5 (impossible by construction)  0
+
+**S268 is the one household that moved in the convergence test; S292 and S342, which did not, are not
+on the budget-limited list.** The existing records would have predicted the test's outcome had they been
+read first. More steps can help at most 3 of 22 households, by under a point. Closed.
+
+THE HALF-POINT MARGIN IS ADEQUATE AND SHOULD NOT BE CUT. It absorbs the held-out draw coming in below the
+search draw: across 41 households that happened on 14, worst -0.47 (S400), and no genuine landing fell
+below its ask on held-out (minimum +0.37). The margin covers the worst case using 0.47 of its 0.5 - it
+is load-bearing. Of the ~1 point of extra safety, the MARGIN is load-bearing and the TOLERANCE WINDOW is
+discretionary; if either is ever trimmed, it is the window.

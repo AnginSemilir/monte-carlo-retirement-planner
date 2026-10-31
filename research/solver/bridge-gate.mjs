@@ -24,7 +24,7 @@ const prep = (p) => E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify
 
 if (mode === 'run') {
   const POINTS = Number(process.argv[4] || 30), TRIALS = Number(process.argv[5] || 3000), SEED = Number(process.argv[6] || 9102);
-  const band = JSON.parse(readFileSync(join(RESULTS, 'band-70-98-7001.json'), 'utf8'));
+  const band = JSON.parse(readFileSync(join(RESULTS, '..', 'fixtures', 'band-70-98-7001.json'), 'utf8'));
   const k = Number(process.env.ONLY);
   const sc = singles[band[k].i];
   const plan = prep(sc.plan);

@@ -1,0 +1,14 @@
+PASS  1  the option unset, every single household's tier lists the same as before (210 households; the solver's f52eec9e5946c409, with a tier above f258657a49f1a07d, the engine's 51c8c846d3853e0b)
+PASS  2  a High Risk pension reads High, Medium/High, Medium, Medium/Low
+PASS  2  a Medium/High ISA reads Medium/High, Medium, Medium/Low, Low
+PASS  2  the engine's names the table's at every index the table has
+PASS  2  an ISA at Medium Risk: no third step, today's ladder (no Cash Equivalents)
+PASS  2  and the engine's names the table's at every index the table has
+PASS  2  under a tier above, a household that cannot take the third step keeps its tiers above at today's index
+PASS  2  tiersBelow 4 is refused (tiersBelow 4: only 2 or 3)
+PASS  3  S370 with tiersBelow 3 (pension High Risk > Medium/High Risk > Medium Risk > Medium/Low Risk): the engine and a forward run in step over 191 years of 20 paths, the largest gap £1.16e-10 (S370 year 6 slot 2); years at the new rung 53
+PASS  3  S248 with tiersBelow 3 (pension High Risk > Medium/High Risk > Medium Risk > Medium/Low Risk): the engine and a forward run in step over 720 years of 20 paths, the largest gap £6.40e-10 (S248 year 33 slot 0); years at the new rung 181
+PASS  4  planted: the engine's list built with two below while the table has three: it throws (table move: tier 3 of pen_self is Medium Risk in the engine but Medium/Low Risk in the table)
+PASS  4  planted: the new rung grown at the second's rates in fast.js only: the state parts by £656703.09 (S370 year 38 slot 0)
+PASS  4  planted: the Cash Equivalents stop removed, the ladder check fails on the Medium Risk ISA
+ALL PASS: 13 checks

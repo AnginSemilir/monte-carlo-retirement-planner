@@ -1,4 +1,4 @@
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
+import * as E from '../engine.mjs';
 /*
  * How long the model takes, on a real 32-year plan with three heirs. Run it after anything that adds
  * work to a hot path: the numbers below were measured on a container, so treat them as a baseline to

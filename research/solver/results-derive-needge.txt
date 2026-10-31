@@ -1,0 +1,37 @@
+1. THE RECORDS (NE-GRID C, seed 7002; results/diagnegridc behind C's gate: passed)
+  S364 BASE at 60 points, P: table less its runs by world 3.3712, 2.5196, -0.1975; its own opening (ai 8) survives 2, 12, 55 fewer paths than P by world
+
+2. THE POWER (1000 draws a cell through reduce-needge.mjs's items(); S364's BASE at C's records)
+  items 1 and 2, an arm removing 0.1 of S364's over-read: RZ HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000; RS HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  items 1 and 2, an arm removing 0.3 of S364's over-read: RZ HELD 0.0000 INCONCLUSIVE 0.0150 FALSIFIED 0.9850; RS HELD 0.0000 INCONCLUSIVE 0.0200 FALSIFIED 0.9800
+  items 1 and 2, an arm removing 0.6 of S364's over-read: RZ HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; RS HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  items 1 and 2, an arm removing 0.8 of S364's over-read: RZ HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000; RS HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  items 1 and 2, an arm removing 0.9 of S364's over-read: RZ HELD 0.9390 INCONCLUSIVE 0.0610 FALSIFIED 0.0000; RS HELD 0.9400 INCONCLUSIVE 0.0600 FALSIFIED 0.0000
+  item 3, bridge 4 kept under one arm (the other kept): HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 3, bridge 4 small under one arm (the other kept): HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 3, bridge 4 broken under one arm (the other kept): HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  item 4, S380's tables still under both arms: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000
+  item 4, S380's tables some under both arms: HELD 0.0000 INCONCLUSIVE 1.0000 FALSIFIED 0.0000
+  item 4, S380's tables far under both arms: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+  items 5 and 6, the arm's own opening at P: HELD 1.0000 INCONCLUSIVE 0.0000 FALSIFIED 0.0000; keeping BASE's opening and its loss: HELD 0.0000 INCONCLUSIVE 0.0000 FALSIFIED 1.0000
+
+3. THE CREDENCES (the receipt of 13 Oct 02:17 UK: S364-RUNSCALED=0.5; S364-STORED=0.12; S364-REF=0.1; S364-COPY=0.06; S364-SHARE=0.05; S364-OTHER=0.17; the judged stories in this script's JUDGED; 40000 draws)
+CREDENCE item 1: point 0.5806 HELD 0.39 INCONCLUSIVE 0.24 FALSIFIED 0.37
+CREDENCE item 2: point 0.5367 HELD 0.33 INCONCLUSIVE 0.25 FALSIFIED 0.43
+CREDENCE item 3: point - HELD 0.72 INCONCLUSIVE 0.22 FALSIFIED 0.06
+CREDENCE item 4: point - HELD 0.90 INCONCLUSIVE 0.08 FALSIFIED 0.02
+CREDENCE item 5: point - HELD 0.33 INCONCLUSIVE 0.00 FALSIFIED 0.67
+CREDENCE item 6: point - HELD 0.31 INCONCLUSIVE 0.00 FALSIFIED 0.69
+  POINT item 1: 0.5806 (80% interval 0.1173 to 0.9254; RZ's removal of S364's over-read, world 0)
+  POINT item 2: 0.5367 (80% interval 0.1036 to 0.9221; RS's removal, world 0)
+  DECISION ROWS: item 3 or 4 FALSIFIED 0.08; item 2 HELD with item 5 or 6 HELD 0.25; item 1 HELD, item 2 FALSIFIED 0.00; items 1 and 2 FALSIFIED 0.34; else 0.33
+
+4. THE BUDGET (NE-GRID C's S364 BASE/P60S6Q5 log; B1's S380 and bridge 4 BASE/P60 logs; each job solve plus runs)
+  S364 BASE/P60S6Q5: about 1.50 h
+  S364 RZ/P60S6Q5: about 1.50 h
+  S364 RS/P60S6Q5: about 1.50 h
+  bridge 4 RZ/P60S6Q5: about 2.10 h
+  bridge 4 RS/P60S6Q5: about 2.10 h
+  S380 RZ/P60S6Q5: about 2.02 h
+  S380 RS/P60S6Q5: about 2.02 h
+  total about 12.75 core-hours; the seven jobs four at a time, about 3.61 h wall (two waves, the longest of each)

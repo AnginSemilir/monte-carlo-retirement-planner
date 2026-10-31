@@ -1,9 +1,9 @@
 import fs from 'node:fs'; import path from 'node:path'; import os from 'node:os';
-import { applyPatch } from '/home/user/vitejs-vite-kdvuf9qw/scripts/apply-edits.mjs';
-import { findProse, skeleton } from '/home/user/vitejs-vite-kdvuf9qw/scripts/extract-copy.mjs';
+import { applyPatch } from '../../scripts/apply-edits.mjs';
+import { findProse, skeleton } from '../../scripts/extract-copy.mjs';
 let pass=0, fail=0;
 const ok=(n,c,e='')=>{c?pass++:fail++;console.log(`${c?'PASS':'FAIL'}  ${n}${e?'  — '+e:''}`)};
-const SRC='/home/user/vitejs-vite-kdvuf9qw';
+const SRC=new URL('../..', import.meta.url).pathname.replace(/\/$/, '');
 const root = fs.mkdtempSync(path.join(os.tmpdir(),'safe-'));
 fs.mkdirSync(path.join(root,'src'));
 const reset=()=>{fs.copyFileSync(path.join(SRC,'src/App.jsx'),path.join(root,'src/App.jsx'));

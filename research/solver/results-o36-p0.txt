@@ -1,0 +1,5 @@
+O36: THE READER'S YEAR-0 REFERENCE CHANCE p0 AT SHARE 0.95'S OPENING (accessible money 47499), per world
+  z -1.732: the plan's tiers: p0 72.59% (bills 23200, 23200; vol 0.0848); 2/2: p0 84.21% (bills 23200, 23200; vol 0.0500)  [mix: ISA 0.533, taxable 0.133, cash 0.333]
+  z 0.000: the plan's tiers: p0 82.31% (bills 23200, 23200; vol 0.0848); 2/2: p0 92.43% (bills 23200, 23200; vol 0.0500)  [mix: ISA 0.533, taxable 0.133, cash 0.333]
+  z 1.732: the plan's tiers: p0 89.51% (bills 23200, 23200; vol 0.0848); 2/2: p0 96.90% (bills 23200, 23200; vol 0.0500)  [mix: ISA 0.533, taxable 0.133, cash 0.333]
+planted: p0 is 0 below the first bill and rises with the money

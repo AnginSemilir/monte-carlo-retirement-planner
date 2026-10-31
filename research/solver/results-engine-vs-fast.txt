@@ -1,0 +1,10 @@
+ENGINE AGAINST THE SOLVER'S MODEL ON STEP 1'S CODE (research/reviews/2026-10-21/scripts/engine-vs-fast.mjs <household> 30 2000, seed 99001; the review's section 7 ran the same on its clamped copy): fastOnly = paths surviving only in the solver's model, engineOnly = only in the engine
+{"id":"S330","points":30,"N":2000,"gia":427500,"fast":71.65,"engine":71.65,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S092","points":30,"N":2000,"gia":427500,"fast":53.2,"engine":53.15,"fastMinusEngine":0.05,"se":0.05,"fastOnly":1,"engineOnly":0}
+{"id":"S224","points":30,"N":2000,"gia":95000,"fast":44.15,"engine":44.15,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S070","points":30,"N":2000,"gia":48000,"fast":64,"engine":64,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S032","points":30,"N":2000,"gia":427500,"fast":67.7,"engine":67.7,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S008","points":30,"N":2000,"gia":19000,"fast":63.5,"engine":63.5,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S172","points":30,"N":2000,"gia":22500,"fast":88.45,"engine":88.45,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S194","points":30,"N":2000,"gia":9000,"fast":85.25,"engine":85.25,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}
+{"id":"S028","points":30,"N":2000,"gia":202500,"fast":99.55,"engine":99.55,"fastMinusEngine":0,"se":0,"fastOnly":0,"engineOnly":0}

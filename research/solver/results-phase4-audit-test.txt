@@ -1,0 +1,15 @@
+research/tests/phase4-audit.test.mjs on 9bfb57b with the working tree's audit-phase4.mjs (27 Oct):
+PASS  inputsHash moves with a pound of balance (S272)
+PASS  inputsHash moves with a pound of contribution (S272)
+PASS  inputsHash moves with a hundred pounds of target (S272)
+PASS  inputsHash stays under another draw order (ISA First) (S272)
+PASS  inputsHash stays under the full lump sum (S272)
+PASS  inputsHash stays under the harvest off (S272)
+PASS  inputsHash stays under the guardrails and the lookahead off (S272)
+PASS  the plant: a hash blind to the balances fails the check on a pound of balance
+PASS  seed 7003 outside the registered run: refused
+PASS  seed 7018 outside the registered run: refused
+PASS  the registered run with no PREDICTION_FILE: refused
+PASS  the registered run under another registration: refused
+PASS  the plant: a run the audit allows (--units, 200 units) does not read as refused
+ALL PASS: 13 checks

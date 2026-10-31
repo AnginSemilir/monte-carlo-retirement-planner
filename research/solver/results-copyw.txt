@@ -1,0 +1,137 @@
+ok   CXW removes eight tenths of CX's world-1 years-4-6 under-read: 1 HELD: "HELD"
+ok   CXW removes a tenth: 1 FALSIFIED: "FALSIFIED"
+ok   CXW removes four tenths: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW turns the under-read into an over-read of the same size (removes 2): 1 HELD: "HELD"
+ok   CXW deepens the under-read (a negative removal): 1 FALSIFIED: "FALSIFIED"
+ok   CX's mean there under a point in size (nothing to remove): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW removes exactly half with no spread (the line itself): 1 HELD: "HELD"
+ok   CXW removes 0.15 with spread, its interval reaching a quarter: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW removes 0.55 with spread, its interval below a half: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW's world-1 grid residual 0.7 under: 2 HELD: "HELD"
+ok   CXW's world-1 grid residual 2 points under: 2 FALSIFIED: "FALSIFIED"
+ok   CXW's world-1 grid residual 1 under with spread (its interval across the line): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW's world-1 grid residual exactly a point under with no spread (the line itself): 2 HELD: "HELD"
+ok   CXW's world-1 grid residual 1.5 over: 2 FALSIFIED: "FALSIFIED"
+ok   CXW's world-0 grid residual 0.9 over with spread 4.5: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   CXW's world-0 grid residual 0.2 over: 3 HELD: "HELD"
+ok   CXW's world-0 grid residual 3 over: 3 FALSIFIED: "FALSIFIED"
+ok   CXW's world-0 grid residual 3 under: 3 FALSIFIED: "FALSIFIED"
+ok   the table less runs far out though the grid residual is in (the runs' noise is not the item): 3 HELD: "HELD"
+ok   the two fixes additive in every world (the tables' interaction within 0.1): 4 HELD: "HELD"
+ok   the copy rule moves world 0 by 1 point less at 60 points (interacting): 4 FALSIFIED: "FALSIFIED"
+ok   world 1's interaction 0.4 with discordant runs (its interval across half a point): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the interaction sits in the runs, not the tables (CXW saves 60 more paths in world 0 than additive): 4 FALSIFIED: "FALSIFIED"
+ok   both fixes at their controls in every world: 5 HELD: "HELD"
+ok   CXW loses 60 paths against CX in world 0: 5 FALSIFIED: "FALSIFIED"
+ok   CW loses 60 paths against C in world 0 (reported, not the item): 5 HELD: "HELD"
+ok   CXW's whole score 1 point down in world 2 alone: 5 FALSIFIED: "FALSIFIED"
+ok   CXW loses 15 paths net in world 1 (its interval across the margin): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the rows: worlds 0 and 1 within a point, reads R1: "R1"
+ok   the rows: CXW harms, reads R5 over R1: "R5"
+ok   the rows: years 4-6 removed, world 0 unclear, reads R2: "R2"
+ok   the rows: the axis carries none of it, reads R3: "R3"
+ok   the rows: item 1 inconclusive, world 1 still out, reads else: "else"
+ok   the rows: closure though years 4-6 stay (R1 over R3): "R1"
+ok   the rows: years 4-6 removed while world 1's whole goes out of band, reads R4 (moved): "R4"
+ok   the rows: years 4-6 over-corrected to an over-read of the same size (removal 2), reads R4: "R4"
+ok   the rows: a removal of 1.4 (its interval not wholly above one and a half) reads R2: "R2"
+ok   the rows: years 4-6 removed, world 1's whole inconclusive, reads R2 (R4 needs item 2 falsified): "R2"
+ok   closeOf: table 50 over runs of 2 of 4 reads 0: "0.0000"
+ok   interOf: the tables 40, 33, 38 and 31 on equal runs read 0 interaction: "0.0000 0.0000 0.0000"
+ok   interOf: a table 1 above additive whose runs save a quarter more reads 1 - 25 = -24: "-24.0000"
+ok   pOf: CXW's cells are against CX (none discordant when CXW copies CX): "true"
+ok   pOf: CW's cells are against C (none discordant when CW copies C): "true"
+ok   pOf: CXW's whole score against CX, not C: "0.00"
+ok   pOf: CX's own world-2 loss against C is no harm of either fix: "HELD"
+ok   pOf: CXW's grid residual is GB + GA per path: "yes"
+ok   pOf: years 4 to 6 summed per path from world 1: "yes"
+ok   pOf: the interaction of four equal tables, CX's loss in world 2 shared with CXW, reads additive: "additive"
+ok   the gate passes the two jobs as registered: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside the two: "true"
+ok   the gate refuses CXW without its copy rule (the cxw plant): "true"
+ok   the gate refuses CW with the copy rule: "true"
+ok   the gate refuses CW with the split: "true"
+ok   the gate refuses CXW with SN's nodes: "true"
+ok   the gate refuses a reader reference set: "true"
+ok   the gate refuses a case line at another point count alone: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses another household: "true"
+ok   the gate refuses a header naming another path count: "true"
+ok   the gate refuses a floor other than the product rule's: "true"
+ok   the gate refuses no recount of the copied nodes: "true"
+ok   the gate refuses a recount off the solve's count (the class plant): "true"
+ok   the gate refuses copyTook failed, its recount line right: "true"
+ok   the gate refuses a recount off the solve's count, copyTook passed (a log at odds with itself): "true"
+ok   the gate refuses a recount at another line: "true"
+ok   the gate refuses CW's solve meta naming share nodes, its nodes line the uniform six: "true"
+ok   the gate refuses a file whose whole scores are not the log's: "true"
+ok   the gate refuses splitTook short (the split plant): "true"
+ok   the gate refuses a world's split line missing: "true"
+ok   the gate refuses a file without world 0's saved states: "true"
+ok   the gate refuses bridge years without year 5: "true"
+ok   the gate refuses CW with no done line: "true"
+ok   the gate refuses CW not reproducing STEP-S370's saved W60 (one path's Y5 in world 1): "true"
+ok   the gate refuses CW not reproducing STEP-S370's saved W60 (its world-2 bits): "true"
+ok   the gate refuses CW not reproducing STEP-S370's saved W60 (its world-0 moves): "true"
+ok   the gate refuses no saved W60 file: "true"
+ok   the gate refuses a full read with no saved STEP-S370 file at all: "true"
+ok   the reuse passes COPY-X's C and CX on the same code, household, seed and paths: ""
+ok   the reuse refuses when COPY-X's gate failed: "true"
+ok   the reuse refuses COPY-X's files on other code: "true"
+ok   the reuse refuses COPY-X's C on another seed: "true"
+ok   the reuse refuses a missing CX: "true"
+ok   the reuse refuses COPY-X's C on another household: "true"
+ok   the reuse refuses COPY-X's C with a reader reference: "true"
+planted (85): all read as they should
+GATE: passed - CW and CXW once and done at the registered settings (4000 paths a world, scale 1, seed 7002; S370 at 60 points); the candidate's settings with no readerRef, the copy rule on CXW alone, every self-check in full; CW reproduces STEP-S370's saved W60 bit for bit (/home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagsteps370); the reuse: COPY-X's gate passed over /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyx, and its C and CX share COPY-W's code, household, seed, paths and settings
+
+COPY-W, STAGE A: the copy x wealth factorial on S370, the frozen candidate (predictions/diag-copyw.md)
+
+THE ITEMS (each read by its registered rule)
+1. CXW removes at least half of CX's world-1 residual at years 4 to 6 (path by path): HELD
+     the removal 0.7786 (0.7748 to 0.7825) of CX's mean -1.7563 points
+2. CXW's world-1 grid residual GB + GA within a point (path by path): HELD
+     -0.0063 (-0.1075 to 0.0949); reported beside: its table less runs -0.4611 (-1.5059 to 0.5836) (the runs' binomial interval)
+3. CXW's world-0 grid residual GB + GA within a point (path by path): FALSIFIED
+     1.7892 (1.6499 to 1.9284); reported beside: its table less runs 1.0720 (-0.4529 to 2.5969) (the runs' binomial interval)
+4. the interaction (CXW - CW) - (CX - C) in table less runs within half a point in every world: INCONCLUSIVE
+     world 0: -0.7611 (-1.0632 to -0.4590) (tables -0.7111, runs 0.0500): unclear
+     world 1: -0.0044 (-0.2180 to 0.2093) (tables 0.0206, runs 0.0250): additive
+     world 2: 0.1787 (0.1787 to 0.1787) (tables 0.1787, runs 0.0000): additive
+5. no material harm per world, CXW against CX, by RULES.md section 8's rule as written: INCONCLUSIVE
+     CXW against CX world 0: survival 1.0250 exact (0.5189 to 1.4703) no material harm, guarded unconditional (0.5287 to 1.5214), whole score 1.0613 (0.5630 to 1.5596), margin 0.5000: no material harm
+     CXW against CX world 1: survival 0.1250 exact (-0.3034 to 0.5424) no material harm, guarded unconditional (-0.2872 to 0.5386), whole score 0.1847 (-0.2251 to 0.5945), margin 0.5000: no material harm
+     CXW against CX world 2: survival -0.1250 exact (-0.1737 to 0.0276) no material harm, guarded unconditional (-0.2948 to 0.0244), whole score -0.1441 (-0.2752 to -0.0129), margin 0.2500: inconclusive
+OUTCOME: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 INCONCLUSIVE
+ROW: R2
+REALISED item 1: 0.7786
+REALISED item 2: -0.0063
+REALISED item 3: 1.7892
+REALISED item 4: -0.7611
+REALISED item 5: 1.0250
+
+REPORTED
+  CW against C (known from STEP-S370's W60, not an item) world 0: survival 0.9750 exact (0.4454 to 1.4511) no material harm, guarded unconditional (0.4596 to 1.4905), whole score 1.0068 (0.4894 to 1.5242), margin 0.5000: no material harm
+  CW against C (known from STEP-S370's W60, not an item) world 1: survival 0.1000 exact (-0.3126 to 0.5031) no material harm, guarded unconditional (-0.2976 to 0.4987), whole score 0.1617 (-0.2333 to 0.5567), margin 0.5000: no material harm
+  CW against C (known from STEP-S370's W60, not an item) world 2: survival -0.1250 exact (-0.1737 to 0.0276) no material harm, guarded unconditional (-0.2948 to 0.0244), whole score -0.1452 (-0.2765 to -0.0140), margin 0.2500: inconclusive
+  C world 0: table 49.0987 runs 1602/4000 (40.0500), table less runs 9.0487; GB 8.1473 GA 1.7213 T -0.8199; by year 1: -1.8579 | 2: -0.8274 | 3: 4.1047 | 4: 0.1508 | 5: 0.0645 | 6: 0.0539 | 7: 6.4586; the sum of absolute residuals by year 13.5178
+  C world 1: table 87.9402 runs 3472/4000 (86.8000), table less runs 1.1402; GB -0.0706 GA 1.5874 T -0.3767; by year 1: -1.5681 | 2: -0.8230 | 3: 1.4581 | 4: -0.5445 | 5: -0.5527 | 6: -0.5573 | 7: 2.5169; the sum of absolute residuals by year 8.0206
+  C world 2: table 98.2445 runs 3959/4000 (98.9750), table less runs -0.7305; GB -0.9000 GA 0.0888 T 0.0808; by year 1: -0.5090 | 2: -0.2104 | 3: 0.0750 | 4: -0.1312 | 5: -0.1540 | 6: -0.1331 | 7: 0.1627; the sum of absolute residuals by year 1.3754
+  CX world 0: table 42.6301 runs 1604/4000 (40.1000), table less runs 2.5301; GB 1.7165 GA 1.7150 T -0.9014; by year 1: -1.4689 | 2: -0.4420 | 3: 0.9649 | 4: 0.3367 | 5: 0.2348 | 6: 0.3075 | 7: 1.7834; the sum of absolute residuals by year 5.5382
+  CX world 1: table 84.9729 runs 3472/4000 (86.8000), table less runs -1.8271; GB -3.0646 GA 1.5881 T -0.3507; by year 1: -1.5918 | 2: -0.8079 | 3: 0.3223 | 4: -0.5707 | 5: -0.5974 | 6: -0.5881 | 7: 0.7691; the sum of absolute residuals by year 5.2474
+  CX world 2: table 97.7726 runs 3959/4000 (98.9750), table less runs -1.2024; GB -1.3810 GA 0.0881 T 0.0905; by year 1: -0.5724 | 2: -0.2538 | 3: -0.0714 | 4: -0.1597 | 5: -0.1892 | 6: -0.1642 | 7: 0.0297; the sum of absolute residuals by year 1.4404
+  CW world 0: table 49.3766 runs 1641/4000 (41.0250), table less runs 8.3516; GB 8.1491 GA 0.9115 T -0.7090; by year 1: -1.8450 | 2: -0.8164 | 3: 4.2698 | 4: 0.1217 | 5: 0.0312 | 6: -0.0185 | 7: 6.4064; the sum of absolute residuals by year 13.5091
+  CW world 1: table 89.4104 runs 3476/4000 (86.9000), table less runs 2.5104; GB 2.9273 GA 0.0571 T -0.4740; by year 1: -1.2718 | 2: -0.4889 | 3: 1.7518 | 4: -0.1501 | 5: -0.0881 | 6: -0.0907 | 7: 3.2652; the sum of absolute residuals by year 7.1067
+  CW world 2: table 98.8307 runs 3954/4000 (98.8500), table less runs -0.0193; GB -0.1509 GA -0.0354 T 0.1670; by year 1: -0.3987 | 2: -0.1033 | 3: 0.1286 | 4: -0.0280 | 5: -0.0362 | 6: -0.0301 | 7: 0.3168; the sum of absolute residuals by year 1.0417
+  CXW world 0: table 42.1970 runs 1645/4000 (41.1250), table less runs 1.0720; GB 0.8825 GA 0.9067 T -0.7172; by year 1: -1.5333 | 2: -0.5147 | 3: 0.9724 | 4: 0.1701 | 5: 0.0940 | 6: 0.1187 | 7: 1.5754; the sum of absolute residuals by year 4.9785
+  CXW world 1: table 86.4639 runs 3477/4000 (86.9250), table less runs -0.4611; GB -0.0546 GA 0.0482 T -0.4548; by year 1: -1.2778 | 2: -0.4614 | 3: 0.6582 | 4: -0.2081 | 5: -0.0904 | 6: -0.0903 | 7: 1.4153; the sum of absolute residuals by year 4.2015
+  CXW world 2: table 98.5374 runs 3954/4000 (98.8500), table less runs -0.3126; GB -0.4539 GA -0.0346 T 0.1759; by year 1: -0.4213 | 2: -0.1268 | 3: 0.0434 | 4: -0.0443 | 5: -0.0437 | 6: -0.0378 | 7: 0.1766; the sum of absolute residuals by year 0.8940
+  CW world 0 split by year (QS, QC, RS, RC): 1: 28.9199, 20.1553, 0.0000, 0.0000 | 2: 21.7388, 29.2848, 0.0000, 0.0001 | 3: 13.3712, 38.3631, 0.0000, 0.0001 | 4: 47.5547, 0.0000, 0.0000, 0.0000 | 5: 33.6681, 14.0644, 0.0000, 0.0002 | 6: 27.1010, 20.4655, 0.0000, 0.0000 | 7: 20.4685, 27.1545, 0.0000, 0.0001
+  CW world 1 split by year (QS, QC, RS, RC): 1: 52.8148, 36.4537, 0.0000, 0.0000 | 2: 38.9638, 51.6280, 0.0000, 0.0001 | 3: 24.2019, 66.9434, 0.0000, 0.0001 | 4: 89.4194, 0.0000, 0.0000, 0.0000 | 5: 62.5029, 27.1863, 0.0000, 0.0000 | 6: 51.0034, 38.7272, 0.0000, 0.0000 | 7: 39.2916, 50.6611, 0.0000, 0.0001
+  CW world 2 split by year (QS, QC, RS, RC): 1: 58.4369, 40.3329, 0.0000, 0.0000 | 2: 42.8267, 56.3154, 0.0000, 0.0001 | 3: 27.0525, 72.1813, 0.0000, 0.0001 | 4: 99.1076, 0.0000, 0.0000, 0.0000 | 5: 66.6832, 32.4582, 0.0000, 0.0000 | 6: 54.9834, 44.1769, 0.0000, 0.0000 | 7: 43.2693, 55.9696, 0.0000, 0.0001
+  CXW world 0 split by year (QS, QC, RS, RC): 1: 26.5715, 15.3206, 0.0000, 0.0000 | 2: 20.4103, 23.0933, 0.0000, 0.0001 | 3: 12.8178, 31.0668, 0.0000, 0.0001 | 4: 43.0041, 0.0000, 0.0000, 0.0000 | 5: 31.9324, 11.2201, 0.0000, 0.0002 | 6: 26.3692, 16.5535, 0.0000, 0.0000 | 7: 20.4058, 22.4262, 0.0000, 0.0001
+  CXW world 1 split by year (QS, QC, RS, RC): 1: 51.8300, 34.4820, 0.0000, 0.0000 | 2: 38.4071, 49.2310, 0.0000, 0.0001 | 3: 23.9385, 64.1773, 0.0000, 0.0001 | 4: 87.5011, 0.0000, 0.0000, 0.0000 | 5: 61.6815, 26.1707, 0.0000, 0.0000 | 6: 50.6092, 37.2935, 0.0000, 0.0000 | 7: 39.1899, 48.9255, 0.0000, 0.0001
+  CXW world 2 split by year (QS, QC, RS, RC): 1: 58.3348, 40.1368, 0.0000, 0.0000 | 2: 42.7762, 56.1013, 0.0000, 0.0001 | 3: 27.0208, 71.9681, 0.0000, 0.0001 | 4: 98.9511, 0.0000, 0.0000, 0.0000 | 5: 66.5973, 32.4057, 0.0000, 0.0000 | 6: 54.9327, 44.0927, 0.0000, 0.0000 | 7: 43.2384, 55.8813, 0.0000, 0.0001
+  CW: copied 212868 copiedTop 123606 of 916596 nodes; reads at the clamp 198 of 83248; solve 1794 s
+  CXW: copied 212868 copiedTop 123606 of 916596 nodes; reads at the clamp 202 of 83236; solve 1793 s

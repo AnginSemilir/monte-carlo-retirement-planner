@@ -1,0 +1,34 @@
+O36 FROM 7X: each held table against its own run, per world (table less simulated, points); from results-7x.txt
+
+S126 (reader)
+  READER/H00/M3  z -1.73 +0.83  z 0.00 -0.14  z 1.73 -0.02
+  READER/H22/M3  z -1.73 +0.15  z 0.00 -0.05  z 1.73 -0.01
+  READER/H00/M5  z -2.86 +5.45  z -1.36 +0.69  z 0.00 -0.14  z 1.36 -0.04  z 2.86 -0.01
+  READER/H22/M5  z -2.86 +3.15  z -1.36 +0.07  z 0.00 -0.05  z 1.36 -0.01  z 2.86 +0.00
+S194 (off)
+  OFF/H00/M3     z -1.73 -1.01  z 0.00 -0.10  z 1.73 -0.08
+  OFF/H22/M3     z -1.73 -0.39  z 0.00 -0.26  z 1.73 -0.02
+  OFF/H00/M5     z -2.86 +2.63  z -1.36 +0.17  z 0.00 -0.10  z 1.36 -0.05  z 2.86 -0.01
+  OFF/H22/M5     z -2.86 -1.00  z -1.36 +0.09  z 0.00 -0.26  z 1.36 -0.03  z 2.86 -0.01
+share 0.95 (reader)
+  READER/H00/M3  z -1.73 -10.32  z 0.00 -12.17  z 1.73 -9.11
+  READER/H22/M3  z -1.73 -13.53  z 0.00 -14.33  z 1.73 -9.60
+  READER/H00/M5  z -2.86 -1.52  z -1.36 -10.25  z 0.00 -12.17  z 1.36 -10.48  z 2.86 -6.63
+  READER/H22/M5  z -2.86 -6.97  z -1.36 -13.62  z 0.00 -14.33  z 1.36 -10.45  z 2.86 -6.93
+bridge 4 (reader)
+  READER/H00/M3  z -1.73 +0.35  z 0.00 -0.16  z 1.73 -0.03
+  READER/H22/M3  z -1.73 -0.66  z 0.00 -0.09  z 1.73 -0.01
+  READER/H00/M5  z -2.86 +4.71  z -1.36 +0.37  z 0.00 -0.16  z 1.36 -0.06  z 2.86 -0.01
+  READER/H22/M5  z -2.86 +1.99  z -1.36 -0.32  z 0.00 -0.09  z 1.36 -0.01  z 2.86 +0.00
+S360 (off)
+  OFF/H00/M3     z -1.73 -20.05  z 0.00 -39.68  z 1.73 -60.71
+  OFF/H22/M3     z -1.73 -8.47  z 0.00 -26.48  z 1.73 -50.03
+  OFF/H00/M5     z -2.86 -11.88  z -1.36 -24.50  z 0.00 -39.68  z 1.36 -56.71  z 2.86 -73.61
+  OFF/H22/M5     z -2.86 -2.21  z -1.36 -11.61  z 0.00 -26.48  z 1.36 -45.21  z 2.86 -66.16
+
+PER CASE: the gap's range over its units and worlds, and the worlds more than 2 points pessimistic
+  S126        -0.14 to +5.45; 0 of 16 worlds below -2
+  S194        -1.01 to +2.63; 0 of 16 worlds below -2
+  share 0.95  -14.33 to -1.52; 15 of 16 worlds below -2
+  bridge 4    -0.66 to +4.71; 0 of 16 worlds below -2
+  S360        -73.61 to -2.21; 16 of 16 worlds below -2

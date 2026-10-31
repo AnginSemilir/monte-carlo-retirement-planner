@@ -1,0 +1,159 @@
+=== a MEASUREMENT, not a test:  REF-STEP's preflight - the ten jobs at a fifteenth of the points read by the reducer's gate and the reproduction against the sources' preflights, the adaptive corner, adaptive step and reader-copy tests on this code, and eleven plants each refused on its own check; no figure read for an item (PREVIEW); the test itself runs under predictions/diag-refstep.md (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-yXq7YV   from 8d5fccb + 2 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code c607b8471f77 (smoke stamp b37ebb218270): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+A. 10 jobs, 10 finished
+planted (111): all read as they should
+GATE: passed - the ten jobs once and done at the registered settings (40 paths a world, scale 15, seed 7002) on one code; the adaptive reference with its fix on every adaptive job, stepAll on AN3 and AR3 alone with stepTook in full, the RS split on AR3 alone, every self-check in full; the reproducti
+PREFLIGHT S370 AN3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 45.9644 GA -21.6402, copied 14103, clamped 3 of 828, bridge failures by world 3, 0, 0, stepTook 162/162
+PREFLIGHT S370 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll false, world-0 GB 47.0277 GA -21.6567, copied 14229, clamped 1 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S370 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB 43.4486 GA -21.6591, copied 14418, clamped 3 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S362 AN3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB -11.3098 GA -2.4921, copied 14580, clamped 74 of 632, bridge failures by world 27, 18, 13, stepTook 162/162
+PREFLIGHT S362 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll false, world-0 GB -11.4786 GA -2.4937, copied 14580, clamped 87 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -12.2525 GA -2.4455, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S364 AR3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 0.0038 GA 0.0000, copied 12177, clamped 356 of 536, bridge failures by world 40, 40, 40, stepTook 189/189
+PREFLIGHT S364 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -0.0059 GA 0.0000, copied 11826, clamped 454 of 536, bridge failures by world 40, 40, 40
+PREFLIGHT S360 AR3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 0.4001 GA -0.0261, copied 13851, clamped 128 of 796, bridge failures by world 31, 20, 10, stepTook 189/189
+PREFLIGHT S360 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -13.5982 GA -0.0280, copied 12636, clamped 159 of 796, bridge failures by world 30, 20, 11
+PREFLIGHT S370 AN3 steps 0: 9 of 9 cells with a step, A*_t 83199 to 85748 (median 83199)
+PREFLIGHT S370 AN3 steps 1: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 2: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 3: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 4: 0 of 9 cells with a step
+PREFLIGHT S370 AN3 steps 5: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 6: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S362 AN3 steps 0: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 1: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 2: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 3: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 4: 0 of 9 cells with a step
+PREFLIGHT S362 AN3 steps 5: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 6: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S364 AR3 steps 0: 9 of 9 cells with a step, A*_t 14799 to 14808 (median 14799)
+PREFLIGHT S364 AR3 steps 1: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 2: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 3: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 4: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 5: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 6: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S360 AR3 steps 0: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 1: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 2: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 3: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 4: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 5: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 6: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S370 AN3 pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+PREFLIGHT S370 AN3 pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S362 AN3 pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+PREFLIGHT S362 AN3 pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S364 AR3 pr31 1: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 2: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 3: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 4: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 5: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 6: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 7: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S360 AR3 pr31 1: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 2: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 3: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 4: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 5: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 6: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 7: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT: the gate, the reproduction and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW)
+ran CAND AN3/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switc
+adaptive AN3/P30S6Q5: readerRef adaptive fix true stepAll true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN3/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN3/P30S6Q5: 3 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AN/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+adaptive AN/P30S6Q5: readerRef adaptive fix true stepAll false moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN/P30S6Q5: 1 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+adaptive C/P30S6Q5: readerRef null fix false stepAll false moves 0 nonMono -1 lattice none
+bridge C/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped C/P30S6Q5: 3 of 828 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AN3/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switc
+adaptive AN3/P30S6Q5: readerRef adaptive fix true stepAll true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN3/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN3/P30S6Q5: 74 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AN/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit null readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+adaptive AN/P30S6Q5: readerRef adaptive fix true stepAll false moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AN/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AN/P30S6Q5: 87 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+adaptive C/P30S6Q5: readerRef null fix false stepAll false moves 0 nonMono -1 lattice none
+bridge C/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped C/P30S6Q5: 86 of 632 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AR3/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+adaptive AR3/P30S6Q5: readerRef adaptive fix true stepAll true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AR3/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AR3/P30S6Q5: 356 of 536 bridge-year reads at the reader's clamp (their split does not sum to the read)
+adaptive C/P30S6Q5: readerRef null fix false stepAll false moves 0 nonMono -1 lattice none
+bridge C/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped C/P30S6Q5: 454 of 536 bridge-year reads at the reader's clamp (their split does not sum to the read)
+ran CAND AR3/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerCopy null readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchM
+adaptive AR3/P30S6Q5: readerRef adaptive fix true stepAll true moves 24 nonMono 0 lattice 160x41 nz 128
+bridge AR3/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped AR3/P30S6Q5: 128 of 796 bridge-year reads at the reader's clamp (their split does not sum to the read)
+adaptive C/P30S6Q5: readerRef null fix false stepAll false moves 0 nonMono -1 lattice none
+bridge C/P30S6Q5: reader years 1,2,3,4,5,6,7
+clamped C/P30S6Q5: 159 of 796 bridge-year reads at the reader's clamp (their split does not sum to the read)
+B. adaptive-corner exit 0: 1 all-passed line; PASS  A0: every base cell's gap at most half its own tolerance PASS  CLIFF: every base cell's gap at most half its own tolerance PASS  Y4: every base cell's gap at most half its own tolerance 
+B. adaptive-step exit 0: 1 all-passed line; PASS  base CLIFF: cells 162, the largest gap 0.0048, 0.076 of its cell's tolerance (at most one half) PASS  base BELOW: p exactly 0 and the rule run forward never paying just under every year's step (81 cells) PASS  plant stepramp caught: INCELL's largest gap 0.0073, 0.11 times its cell's tolerance; 27 of 81 BELOW cells read over 0 
+B. reader-copy exit 0: 10 PASS, 0 FAIL
+C. plant foot exit 3: audit-refstep: S362 AN3/P30S6Q5: the job's settings did not take
+C. plant stepoff exit 3: audit-refstep: S362 AN3/P30S6Q5: the job's settings did not take
+C. plant stepramp exit 3: audit-refstep: S362 AN3/P30S6Q5: a read just under an earlier bridge year's own step is not 0 (stepTook 135/162)
+C. plant own exit 3: audit-refstep: S362 AN3/P30S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-refstep: S362 AN3/P30S6Q5: the ledger does not close on every path (ownTook 120/120 identity 51/120)
+C. plant quad exit 3: audit-refstep: S362 AN3/P30S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 399/632)
+C. plant held exit 3: audit-refstep: S362 AN3/P30S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 434/632)
+C. plant score exit 3: audit-refstep: S362 AN3/P30S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 62/120)
+C. plant trace exit 3: audit-refstep: S362 AN3/P30S6Q5: the trace disagrees with runPolicy's own counters (counters 58/120)
+C. plant split exit 3: audit-refstep: S362 AN3/P30S6Q5: a bridge-year read is not given back by its split (splitTook 144/632)
+C. plant class exit 3: audit-refstep: S362 AN3/P30S6Q5: the copied nodes recounted at line 0.6 are not the solve's (15228 of 72 tables against 14580 of 72)
+the gate passed the ten jobs on S370, S362, S364 and S360 and AN's and C's files reproduce the sources' preflights byte for byte; the adaptive reference with its fix on every adaptive job, stepAll on AN3 and AR3 alone, the RS split on AR3 alone; the adaptive corner, adaptive step and reader-copy tests passed on this code; the eleven plants refused, each on its own check
+preflight done 05:49 UK
+=== snapshot kept at /tmp/solver-snap-yXq7YV for provenance; remove it when the results are written up
+launcher exit 0

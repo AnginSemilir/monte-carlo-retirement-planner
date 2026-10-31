@@ -1,0 +1,16 @@
+BED & SIPP (STATE.md D36; research/tests/bed-sipp.test.mjs), the engine built from src/App.jsx
+ON THE FIXED CODE:
+PASS  S024 (retired, no earnings): Bed & SIPP gross £3600.00 (at most the no-earnings limit £3600), refund £0.00 (none beyond the relief at source)
+PASS  S024 through the tournament at scope 'full' (16 plans): the pension's opening balance up by at most £3600.00, cash by £0.00
+PASS  S224 (working, salary £77500): gross £60000.00 within the allowance and the salary, refund £7660.72 (the higher-rate relief, £7660.72)
+PASS  scope 'contributions': no Bed & SIPP move
+ALL PASS: 4 checks
+
+ON THE CODE BEFORE THE FIX (src/App.jsx at e2f0c2f):
+FAIL  S024 (retired, no earnings): Bed & SIPP gross £33750.00 (at most the no-earnings limit £3600), refund £6750.00 (none beyond the relief at source)
+FAIL  S024 through the tournament at scope 'full' (16 plans): the pension's opening balance up by at most £33750.00, cash by £6750.00
+PASS  S224 (working, salary £77500): gross £60000.00 within the allowance and the salary, refund £7660.72 (the higher-rate relief, £7660.72)
+PASS  scope 'contributions': no Bed & SIPP move
+FAILED: 2 of 4 checks
+
+THE PATTERN SEARCH (relief sized without the earnings limit, src/App.jsx): allocateBudget's capOf gives a non-earner's pension the full allowance too; it reaches no outcome (a retired household's budget is 0 unless the user overrides it, and the engine stops regular contributions at retirement), and a blank salary while working is the engine's deliberate 'earnings unknown'; left as it is, reported to the maintainer.

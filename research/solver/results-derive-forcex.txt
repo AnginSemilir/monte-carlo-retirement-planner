@@ -1,0 +1,21 @@
+FAIR-TEST GATE: research/solver/predictions/diag-edge.md was corrected after launch (77bf795c at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - One, declared (5 Oct, after the read): reduce-edge.mjs's flatYears read HYB's pension trace as an undecoded base64 string and printed HYB's REPORTED flat-year row as 0.00 on every household (the deep review after EDGE-SPLIT, deep-review-log.md 5 Oct 16:36 UK). It now decodes the string and refuses any trace that is not a whole Float32Array (a planted case; 33 of 33 mutations, results-mutation-history.txt). Only HYB's three REPORTED rows changed (S130 6.08 / 0.00 / 0.04, S128 1.18 / 0.12 / 2.21, S370 0.30 / 0.00 / 0.01, equal to results-derive-hyb-edges.txt); the items, the share rule and every figure that decides were read as registered and did not move.
+
+GATE (EDGE-SPLIT's and HYB's files, each through its own gate): passed; planted: passed
+
+1. THE GAPS (S130, per path, P = PCLSI - a in survival)
+  SNAP   survivors 4974 (PCLSI 5117): PCLSI saves 168, loses 25, the gap 143 paths
+  P-LO   survivors 4980 (PCLSI 5117): PCLSI saves 148, loses 11, the gap 137 paths
+  HYB    survivors 4925 (PCLSI 5117): PCLSI saves 202, loses 10, the gap 192 paths
+
+2. ITEM 1'S POWER: the same true recovery r on all three arms, a flip share 0.01 on the other paths (assumed), the registered rule, 40 draws (flipP B 2000)
+  r 0.00: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  r 0.10: HELD 0.00 FALSIFIED 1.00 INCONCLUSIVE 0.00
+  r 0.30: HELD 0.00 FALSIFIED 0.95 INCONCLUSIVE 0.05
+  r 0.50: HELD 0.00 FALSIFIED 0.00 INCONCLUSIVE 1.00
+  r 0.70: HELD 0.03 FALSIFIED 0.00 INCONCLUSIVE 0.97
+  r 0.90: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+  r 1.00: HELD 1.00 FALSIFIED 0.00 INCONCLUSIVE 0.00
+
+3. THE CREDENCES (the deep review's own, already shaded by the base rate in its receipt, not shaded again; the unassigned mass kept)
+  item 1 (stories PAUSE 0.500 at r 0.9, TABLES 0.250 at r 0.1, OPT 0.100 at r 0.5, NOISE 0.020 at r 0, OTHER 0.130 at r 0.5): HELD 0.50 INCONCLUSIVE 0.23 FALSIFIED 0.27
+CREDENCE item 1: point 0.59 HELD 0.50 INCONCLUSIVE 0.23 FALSIFIED 0.27

@@ -121,6 +121,9 @@ export function chooseJoint(cp, state, t) {
     const score = t >= T
       ? (Object.values(st.pots).reduce((a, b) => a + b, 0) >= (m.ctx.solvencyFloor || 0) ? 1 : 0) + 1e-9 * Object.values(st.pots).reduce((a, b) => a + b, 0)
       : expectedValue(cp, st, t);
+    // a move that funds the year reads finite tables, so a non-finite score is a bug: it would never win, and the year would
+    // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
+    if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
     if (score > bestScore) { bestScore = score; best = joint; }
   }
   if (!best) {

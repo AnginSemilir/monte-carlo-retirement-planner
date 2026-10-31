@@ -1,0 +1,38 @@
+stamp: code 6dfa9cfea59a audit d2f8e9b7f9cd prediction none sha -
+NS-CAND: 7u's unit (CAND: solveCandidate; SHIP: solvePlan, the product's settings; both on the candidate's plan) at the estate weight 0.02, 30 points, 2000 paths a world (seed 7002); the bridge years' bequest read against its one-step value, CAND's paths
+bridge 4         case | unit CAND,SHIP/W0.02 | lambda 0.0223606797749979
+                 solve CAND: secs 1023 pts 30 shares 6 readerYears 0,1,2,3
+                 solve SHIP: secs 404 pts 30 shares 6 readerYears none
+                 checks CAND: replicaNS 24000/24000 wdRead 24000/24000
+                 checks SHIP: replicaNS 24000/24000 wdRead 24000/24000
+                 census CAND t1: layers 3 dead 15930 share-axis dead 4266 kept 576
+                 census CAND t2: layers 3 dead 15444 share-axis dead 4752 kept 480
+                 census CAND t3: layers 3 dead 14256 share-axis dead 5508 kept 234
+                 census CAND t4: layers 3 dead 0 share-axis dead 0 kept 3051
+                 census SHIP t1: layers 3 dead 15825 share-axis dead 4053 kept 971
+                 census SHIP t2: layers 3 dead 15399 share-axis dead 4653 kept 489
+                 census SHIP t3: layers 3 dead 14256 share-axis dead 5508 kept 424
+                 census SHIP t4: layers 3 dead 0 share-axis dead 0 kept 4246
+                 year CAND t1 bridge: reads 6000 mean wd 3.5885e-1 eb 8.5498e-2 eb+wd 4.4435e-1 elive 6.9371e-1 (reads 6000) next-year wd 4.6989e-1
+                 year CAND t2 bridge: reads 6000 mean wd 4.6989e-1 eb 1.4187e-1 eb+wd 6.1176e-1 elive 1.1544e+0 (reads 6000) next-year wd 5.8184e-1
+                 year CAND t3 bridge: reads 6000 mean wd 5.8184e-1 eb -5.7794e-1 eb+wd 3.9022e-3 elive 9.4416e-3 (reads 6000) next-year wd 0.0000e+0
+                 year CAND t4 after: reads 6000 mean wd 0.0000e+0 eb 2.3321e-5 eb+wd 2.3321e-5 elive NaN (reads 0) next-year wd none read
+                 year SHIP t1 bridge: reads 6000 mean wd 3.5885e-1 eb 8.4707e-2 eb+wd 4.4356e-1 elive 6.9250e-1 (reads 6000) next-year wd 4.6989e-1
+                 year SHIP t2 bridge: reads 6000 mean wd 4.6989e-1 eb 1.4073e-1 eb+wd 6.1061e-1 elive 1.1523e+0 (reads 6000) next-year wd 5.8184e-1
+                 year SHIP t3 bridge: reads 6000 mean wd 5.8184e-1 eb -5.7774e-1 eb+wd 4.1009e-3 elive 9.9189e-3 (reads 6000) next-year wd 0.0000e+0
+                 year SHIP t4 after: reads 6000 mean wd 0.0000e+0 eb 1.1324e-3 eb+wd 1.1324e-3 elive NaN (reads 0) next-year wd none read
+                 done bridge 4
+S126             case | unit CAND,SHIP/W0.02 | lambda 0.0223606797749979
+                 solve CAND: secs 948 pts 30 shares 6 readerYears 0,1
+                 solve SHIP: secs 381 pts 30 shares 6 readerYears none
+                 checks CAND: replicaNS 12000/12000 wdRead 12000/12000
+                 checks SHIP: replicaNS 12000/12000 wdRead 12000/12000
+                 census CAND t1: layers 3 dead 15243 share-axis dead 3579 kept 480
+                 census CAND t2: layers 3 dead 10800 share-axis dead 108 kept 585
+                 census SHIP t1: layers 3 dead 15244 share-axis dead 3622 kept 584
+                 census SHIP t2: layers 3 dead 10791 share-axis dead 99 kept 958
+                 year CAND t1 bridge: reads 6000 mean wd 3.5885e-1 eb -3.5491e-1 eb+wd 3.9356e-3 elive 6.1164e-3 (reads 6000) next-year wd 0.0000e+0
+                 year CAND t2 after: reads 6000 mean wd 0.0000e+0 eb 7.1257e-5 eb+wd 7.1257e-5 elive NaN (reads 0) next-year wd none read
+                 year SHIP t1 bridge: reads 6000 mean wd 3.5885e-1 eb -3.5466e-1 eb+wd 4.1954e-3 elive 6.5125e-3 (reads 6000) next-year wd 0.0000e+0
+                 year SHIP t2 after: reads 6000 mean wd 0.0000e+0 eb 8.6452e-4 eb+wd 8.6452e-4 elive NaN (reads 0) next-year wd none read
+                 done S126

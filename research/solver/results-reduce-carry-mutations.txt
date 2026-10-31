@@ -1,0 +1,33 @@
+caught: 1: if (uniq.length !== 1 || !uniq[0]) {
+caught: 2: if (st[k].audit !== own) bad.push(
+caught: 3: if (a.length !== b.length || a.some((l, i) => l !== b[i])) {
+caught: 4: if (m.length !== 1 || !m[0].done) bad.push(
+caught: 5: if (m.length !== 1 || !m[0].done) bad.push(
+caught: 6: if (ranOf(x.ran) !== ranOf(y.ran)) bad.push(
+caught: 7: return moved ? s.replace(/\s*(tiersAbove|tierState) \S+/g, '
+caught: 8: return moved ? s.replace(/\s*(tiersAbove|tierState) \S+/g, '
+caught: 9: if (settings(x.joint) !== settings(y.joint)) bad.push(
+caught: 10: if (settings(x.joint) !== settings(y.joint)) bad.push(
+caught: 11: if (new Set(ys).size !== 1) bad.push(
+caught: 12: if (!f || f.saved !== c.saved || f.lost !== c.lost) bad.push
+caught: 13: return SIX.filter(f => a.raw[f] !== b.raw[f])
+caught: 14: const departs = Math.abs(sum) >= MIN_SUM && sum !== 0 && Mat
+caught: 15: const departs = Math.abs(sum) >= MIN_SUM && sum !== 0 && Mat
+caught: 16: const departs = Math.abs(sum) >= MIN_SUM && sum !== 0 && Mat
+caught: 17: const held = arm === 'SHIP' ? first : second, counter = arm 
+caught: 18: real: held || ra,
+caught: 19: Number(gap[id]) >= GAP_LO && Number(gap[id]) <= GAP_HI
+caught: 20: Number(gap[id]) >= GAP_LO && Number(gap[id]) <= GAP_HI
+caught: 21: Math.min(it[id].saved, it[id].lost) >= CHURN
+caught: 22: const F2 = dep.every(id => fl(id) || cls.hc.includes(id));
+caught: 23: const F3 = !nineteen.some(id => H[id].dep && !fl(id));
+caught: 24: const split = dep.length > 0 && !allFlip && !allHC && !anyOt
+caught: 25: otherBy.every(id => cls.sw.includes(id))
+caught: 26: const F1 = { p: P.F1, held: b4.ship.any, edge: b4.ship.any &
+caught: 27: const F4 = b4.ship.firstRises ?
+caught: 28: edge: lit.F2 !== alt.F2 }
+caught: 29: return { REOPT: least >= lo && least <= hi,
+caught: 30: if (F.some(f => f.edge)) return 'INCONCLUSIVE';
+caught: 31: return (least.hi < lo || least.lo > hi) ? 'FALSIFIED' : 'INC
+caught: 32: if (least.d >= lo && least.d <= hi) return 'HELD';
+32 of 32 mutations caught

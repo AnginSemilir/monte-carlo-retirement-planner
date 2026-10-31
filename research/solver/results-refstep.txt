@@ -1,0 +1,349 @@
+ok   AN3 removes the dying paths' residual exactly from every year's read error: 1 HELD: "HELD"
+ok   AN3 removes none of it in world 1: 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes half of it in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes all of it with a live-side over-read of a quarter of the smear in world 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes it from year 3 on but years 1 and 2 gain it back (moved, not removed): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes twice the smear in world 1 (over-correction past 1.25): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes exactly three quarters, no spread (the line): 1 HELD: "HELD"
+ok   AN3 removes exactly 1.25, no spread (the upper line): 1 HELD: "HELD"
+ok   AN3 removes 0.2 in world 2 (under a quarter): 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes exactly a quarter in world 2, no spread (not wholly under): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.2 from years 1 and 2 only, all from year 3 (q_3 decides kept): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.8 with a per-path spread putting q's interval under three quarters: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes it from years 1 and 2 but not from year 3 (q_3 under a quarter: kept): 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes exactly 0.72, no spread (under three quarters): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes exactly 1.28, no spread (over 1.25): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.2 in world 2 with a spread whose interval reaches over a quarter: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.8 with a spread whose 95% interval clears three quarters but whose Bonferroni interval over nine does not: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3's cell about a fifth of AN's in every world (the switch largely gone): 2 HELD: "HELD"
+ok   the cell stays at AN's size: 2 FALSIFIED: "FALSIFIED"
+ok   the cell at six tenths of AN's (between the lines): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at 0.45 of AN's, its interval reaching past a half: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell gone entirely: 2 HELD: "HELD"
+ok   AN's cell empty (nothing to read): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell grows past AN's (1.2 times): 2 FALSIFIED: "FALSIFIED"
+ok   world 1 alone stays, worlds 0 and 2 gone (0.69 on the mixture: unclear): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   worlds 0 and 2 stay, world 1 gone (a third of the weight): 2 HELD: "HELD"
+ok   the cell at 0.8 of AN's with its interval reaching under three quarters: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at 0.85 of AN's, its interval reaching under three quarters: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at nine tenths of AN's (wholly over three quarters): 2 FALSIFIED: "FALSIFIED"
+ok   rho exactly a half with no variance (worlds 0 and 2 at every path under AN, world 0 alone under AN3): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   300 paths a world, the cell at 0.8 of AN's (the binomial variance's own term puts it over three quarters): 2 FALSIFIED: "FALSIFIED"
+ok   the read error 0.97 does not decide (the cell a fifth of AN's): 2 HELD: "HELD"
+ok   every leg at its control: 3 HELD: "HELD"
+ok   AN3 loses 70 paths on S362 world 1 (the mixture weighs it two thirds): 3 FALSIFIED: "FALSIFIED"
+ok   AN3 loses 70 paths on S362 world 0 alone (a sixth of the weight: a world line, not binding): 3 HELD: "HELD"
+ok   AR3 loses 25 net on S360 world 1 (the mixture's interval across the margin): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S364 at near-nil survival, AR3 at its control: reported only, the rest no harm: 3 HELD: "HELD"
+ok   S364 at near-nil survival, AR3 losing every surviving path: harm still read there: 3 FALSIFIED: "FALSIFIED"
+ok   every household reported only (nothing read): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the whole score alone harms (survival unmoved, S370 world 1 two points less on every path): 3 FALSIFIED: "FALSIFIED"
+ok   AN3 loses 70 paths on S362 world 1 with the whole score unmoved (survival alone harms): 3 FALSIFIED: "FALSIFIED"
+ok   the whole score unclear on S370 (a spread of 50 points a path), survival unmoved: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AR3 saves 70 paths on S360 world 1: 3 HELD: "HELD"
+ok   S364 reported only, its whole score 0.45 under on every path (harm at its own margin, still read): 3 FALSIFIED: "FALSIFIED"
+ok   S364's control near nil, AR3 saving 50 a world with an unclear whole score: reported only by the control, not the arm: 3 HELD: "HELD"
+ok   floorOf: 3 of 4,000 surviving cannot be cleared; 1,000 can: "true false"
+ok   AR3 closes S364's and S360's worlds 0 and 1: 4 HELD: "HELD"
+ok   AR3 leaves S360's world 0 at -2.4: 4 FALSIFIED: "FALSIFIED"
+ok   AR3 leaves S364's world 1 at 0.9 with an interval across a point: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   C under a point in every world of both households (nothing to read): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AR3 exactly at a point, no spread (the line): 4 HELD: "HELD"
+ok   a world under a point under C is not read (S364's world 2 at 3 under AR3): 4 HELD: "HELD"
+ok   AN3 moves S370's tail from year 3 by -0.05: 5 HELD: "HELD"
+ok   AN3 moves S370's world-0 tail from year 3 by -0.6: 5 FALSIFIED: "FALSIFIED"
+ok   AN3 moves world 1 by 0.25 with spread (across the line): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the rows: the default reads R1: "R1"
+ok   the rows: the switch over-valued with item 1 held reads R2: "R2"
+ok   the rows: harm reads R3 over item 1 FALSIFIED: "R3"
+ok   the rows: item 1 FALSIFIED reads R5 over item 4 FALSIFIED: "R5"
+ok   the rows: item 4 FALSIFIED reads R4 over R1: "R4"
+ok   the rows: the switch staying with item 1 unclear reads else, not R2: "else"
+ok   the rows: item 1 unclear reads else: "else"
+ok   the rows: item 2 unclear with item 1 held reads else: "else"
+ok   the rows: item 5 does not decide a row (moved, R1 stands): "R1"
+ok   the cause: items 1 and 2 HELD credit O191-SMEAR: "O191-SMEAR"
+ok   the cause: item 2 HELD with item 1 unclear is not credited: "O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole)"
+ok   the cause: item 2 FALSIFIED with item 1 HELD reads the not: "O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X"
+ok   the cause: item 2 FALSIFIED with item 1 kept reads open: "open (AN3's whole not in band: the interaction)"
+ok   the cause: item 2 FALSIFIED with item 1 unclear reads open: "open (AN3's whole not in band: the interaction)"
+ok   the cause: item 2 INCONCLUSIVE reads open: "open"
+ok   tailOf: from year 3, the residual at year 3 with GA: "1100,2200"
+ok   dyingShare: the path dying at year 3 alone (not the one dying at 2, nor the survivor): "1 12.5"
+ok   dyingOf: the year-3 dying path's residual alone, per path: "0.5,0,0,0"
+ok   dyingShare: at the last year the survivor is not counted: "0"
+ok   dyingShare: the path dying at year 2 alone (not the one dying at year 1, nor the survivor): "1 6.25"
+ok   firstBand: differing first at year 3 with a two-year bridge reads the five years after: "2"
+ok   pOf: S362's dying residual is AN's, world by world: "7.10,7.11,7.12"
+ok   pOf: S362's AN tail from year 1 is AN's years 1 to 3 with GA: "4462.4"
+ok   pOf: S362's AN3 tail from year 2 is years 2 and 3 with GA: "3652.0"
+ok   pOf: S370's AN tail from year 3 is year 3 with GA: "4232.4"
+ok   pOf: S370's AN3 tail from year 3 is AN3's: "4432.0"
+ok   pOf: S360's C read error from year 1 is its one bridge year with GA: "8012.2"
+ok   pOf: S364's AR3 read error from year 1 is years 1 and 2 with GA: "9932.0"
+ok   pOf: the cell is AN3's counts against AN's, AN3's read error: "5,6,7 200,201,202 4000 0.3 0.1"
+ok   pOf: the AN3 leg on S362 sees its one lost path against C: "1/0,1/0,1/0"
+ok   pOf: the AR3 leg on S360 sees its two lost paths against C: "2/0,2/0,2/0"
+ok   the gate passes the ten jobs as registered: ""
+ok   the gate passes the preflight's jobs at a fifteenth of the points: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside them: "true"
+ok   the gate refuses AN3 without stepAll (the stepoff plant's kind): "true"
+ok   the gate refuses AN with stepAll: "true"
+ok   the gate refuses AR3 without its RS split: "true"
+ok   the gate refuses AN3 with the RS split: "true"
+ok   the gate refuses C on the adaptive reference: "true"
+ok   the gate refuses AN3 on the plan reference: "true"
+ok   the gate refuses AR3 without the reference's fix (the foot plant's kind): "true"
+ok   the gate refuses stepTook short (the stepramp plant): "true"
+ok   the gate refuses a stepAll job with no stepTook line: "true"
+ok   the gate refuses a stepAll job with no steps lines: "true"
+ok   the gate refuses an adaptive job with no pr31 lines: "true"
+ok   the gate refuses a run line naming the order reference under the arm's adaptive record: "true"
+ok   the gate refuses C whose record shows the reference's fix: "true"
+ok   the gate refuses AN reporting stepTook without stepAll: "true"
+ok   the gate refuses a reference with no moves: "true"
+ok   the gate refuses a reference with a non-monotone node: "true"
+ok   the gate refuses armTook failed: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses a job on another code: "true"
+ok   the gate refuses a job with the copy rule: "true"
+ok   the gate refuses a job whose bridge years are not its household's other jobs': "true"
+ok   the gate refuses a job whose floor is not the product's rule: "true"
+ok   the gate refuses a job whose header is at a fifteenth of the points, read as the full run: "true"
+ok   the gate refuses a job with no done line: "true"
+ok   the gate refuses a missing job: "true"
+ok   the reproduction passes equal files and tables: ""
+ok   the reproduction refuses when REF-B's gate failed: "true"
+ok   the reproduction refuses when COPY-X's gate failed: "true"
+ok   the reproduction refuses a path's GB differing in one path: "true"
+ok   the reproduction refuses a move differing in world 1: "true"
+ok   the reproduction refuses a visit state differing in world 2: "true"
+ok   the reproduction refuses a table differing in the sixth place: "true"
+ok   the reproduction refuses a source on another seed: "true"
+ok   the reproduction refuses a source on other bridge years: "true"
+ok   the reproduction refuses a missing source file: "true"
+ok   the reproduction refuses a source file naming other bridge years (its arrays equal): "true"
+ok   the reproduction refuses a cell read against the wrong source: "true"
+ok   the reproduction refuses an array in REF-STEP's file that the source lacks: "true"
+ok   the pin: the reducer's jobs are the audit's, in its order: "S370 AN3 30,S370 AN 30,S370 C 30,S362 AN3 30,S362 AN 30,S362 C 30,S364 AR3 30,S364 C 30,S360 AR3 30,S360 C 30"
+ok   the pin: AN3's reference, split, fix and stepAll are the audit's: "adaptive null true true"
+ok   the pin: AN's reference, split, fix and stepAll are the audit's: "adaptive null true false"
+ok   the pin: C's reference, split, fix and stepAll are the audit's: "null null false false"
+ok   the pin: AR3's reference, split, fix and stepAll are the audit's: "adaptive rs true true"
+FAIR-TEST GATE: research/solver/predictions/diag-refstep.md was corrected after launch (e9c22e37 at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - **reduce-refstep.mjs corrected after the run, in its reported section only:** its first read of the batch printed the gate, every item, the OUTCOME, ROW, CAUSE and REALISED lines, then stopped in the REPORTED section (exit 1), where the loop over read-o191.mjs's reads took the paths count `N`, held in the same object, as a third read (TypeError: Cannot read properties of undefined (reading 'cell')). Both the loop and `N` came in with the build (05395be, `git log -S`), so the defect stood from registration and never ran before the batch: `--preflight` exits before REPORTED and no plant runs the REPORTED loop over O191's reads (the plan-auditor's MINOR 3 of 20 Oct 10:21 UK, worded as its MINOR 1 of 10:32 UK gives it). The loop now names the two reads (AN and AN3). Rerun on the same files, every line from THE ITEMS to REPORTED is byte-identical to the first read (diff, empty), and the rest of the report printed; results-refstep.txt is the rerun on the tree with this declaration, which adds the gate's line accepting it. No item, rule or figure read by an item changed. Same pattern searched: no other loop in reduce-refstep.mjs or the other reducers iterates read-o191.mjs's reads; and for the wider class, a reducer path no preflight or plant runs, every other reducer with a `--preflight` mode has printed its REPORTED lines in its own results file (27 reducers, grep), so none carries an unexecuted reported path; the class goes to the next close's lessons.
+
+planted (133): all read as they should
+GATE: passed - the ten jobs once and done at the registered settings (4000 paths a world, scale 1, seed 7002) on one code; the adaptive reference with its fix on every adaptive job, stepAll on AN3 and AR3 alone with stepTook in full, the RS split on AR3 alone, every self-check in full; the reproduction: REF-B's, COPY-B's and COPY-X's gates passed over /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagrefb, /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyb and /home/user/vitejs-vite-kdvuf9qw/research/solver/results/diagcopyx, and AN's and C's files equal theirs byte for byte
+
+REF-STEP: the adaptive reference with every bridge year's step read exactly (AN3, AR3) against AN and the plan reference, on S362 and S370, with S364 and S360 (predictions/diag-refstep.md)
+
+THE ITEMS (each read by its registered rule)
+1. the smear removed from the whole: on S362 the share of AN's year-3 dying paths' residual leaving AN's read error from each of bridge years 1, 2 and 3 under AN3, within [0.75, 1.25] in every world: INCONCLUSIVE
+     world 0: AN's smear 0.4916 points; the share leaving the read error from years 1, 2, 3: 1.1143 (1.0071 to 1.2216); 1.0906 (0.9940 to 1.1872); 0.9499 (0.8938 to 1.0060); AN3's read error from years 1, 2, 3: 0.0130 (-0.0944 to 0.1203); -0.0761 (-0.1758 to 0.0236); -0.0984 (-0.1868 to -0.0100): removed
+     world 1: AN's smear 0.4328 points; the share leaving the read error from years 1, 2, 3: 0.8298 (0.7361 to 0.9235); 0.8868 (0.8100 to 0.9636); 0.9347 (0.8711 to 0.9982); AN3's read error from years 1, 2, 3: 0.1362 (0.0659 to 0.2065); 0.1760 (0.1089 to 0.2430); 0.1414 (0.0777 to 0.2050): unclear
+     world 2: AN's smear 0.5623 points; the share leaving the read error from years 1, 2, 3: 0.8164 (0.7070 to 0.9257); 0.8820 (0.8024 to 0.9617); 0.9843 (0.9495 to 1.0191); AN3's read error from years 1, 2, 3: -0.0744 (-0.1317 to -0.0171); -0.0399 (-0.0859 to 0.0062); -0.0468 (-0.0859 to -0.0076): unclear
+2. O191's switch: AN3's year-1 cell (C taxable-first to the arm's ISA-first) under half of AN's on the mixture: FALSIFIED
+     the cell's paths by world: AN3 221, 258, 250 against AN's 234, 269, 271; rho 0.9507 (0.8373 to 1.0640); AN3's own-move read error there on the mixture 0.3137 (se 0.0956; printed, not read)
+3. no material harm by the mixture (RULES.md section 8 item 1 for a reference change), AN3 against C on S362 and S370 and AR3 against C on S364 and S360, a household identical arms cannot clear reported only: HELD
+     AN3 against C on S362: survival by the mixture 0.1583 (-0.0787 to 0.3814) no material harm, whole score 0.1858 (-0.0636 to 0.4353) no material harm, margin 0.5000 (the control's mixture survival 48.6292): no material harm
+       its world line (reported, not binding) world 0: survival -0.2500 exact (-0.4638 to 0.0233) no material harm, guarded unconditional (-0.5032 to 0.0022), whole score -0.2635 (-0.5344 to 0.0074), margin 0.5000: inconclusive
+       its world line (reported, not binding) world 1: survival 0.3000 exact (0.0091 to 0.5290) no material harm, guarded unconditional (0.0319 to 0.5681), whole score 0.3442 (0.0428 to 0.6456), margin 0.5000: no material harm
+       its world line (reported, not binding) world 2: survival 0.0000 exact (-0.2280 to 0.2280) no material harm, guarded unconditional (-0.2213 to 0.2213), whole score 0.0018 (-0.2501 to 0.2536), margin 0.5000: no material harm
+     AN3 against C on S370: survival by the mixture 0.0250 (-0.0555 to 0.1069) no material harm, whole score 0.0266 (-0.0173 to 0.0704) no material harm, margin 0.5000 (the control's mixture survival 81.0375): no material harm
+       its world line (reported, not binding) world 0: survival 0.0250 exact (-0.0237 to 0.0250) no material harm, guarded unconditional (-0.0275 to 0.1392), whole score 0.0255 (-0.0243 to 0.0754), margin 0.5000: no material harm
+       its world line (reported, not binding) world 1: survival 0.0250 exact (-0.0237 to 0.0250) no material harm, guarded unconditional (-0.0603 to 0.1392), whole score 0.0264 (-0.0259 to 0.0786), margin 0.5000: no material harm
+       its world line (reported, not binding) world 2: survival 0.0250 exact (-0.0237 to 0.0250) no material harm, guarded unconditional (-0.0776 to 0.1392), whole score 0.0283 (-0.0267 to 0.0832), margin 0.2500: no material harm
+     AR3 against C on S364: survival by the mixture 0.4083 (0.2674 to 0.6065) no material harm, whole score 0.4042 (0.2400 to 0.5685) no material harm, margin 0.0058 (the control's mixture survival 0.0583), identical arms could not clear it: reported only: reported only
+       its world line (reported, not binding) world 0: survival 0.0500 exact (-0.0342 to 0.0500) inconclusive, guarded unconditional (-0.0526 to 0.1821), whole score -0.0086 (-0.0862 to 0.0691), margin 0.0000: inconclusive
+       its world line (reported, not binding) world 1: survival 0.2500 exact (0.0958 to 0.2500) no material harm, guarded unconditional (0.1082 to 0.4615), whole score 0.2221 (0.0439 to 0.4002), margin 0.0050: no material harm
+       its world line (reported, not binding) world 2: survival 1.4000 exact (1.2215 to 1.4000) no material harm, guarded unconditional (1.0696 to 1.8142), whole score 1.5455 (1.1263 to 1.9647), margin 0.0150: no material harm
+     AR3 against C on S360: survival by the mixture 0.2125 (-0.0919 to 0.5048) no material harm, whole score 0.2403 (-0.0922 to 0.5727) no material harm, margin 0.5000 (the control's mixture survival 49.0375): no material harm
+       its world line (reported, not binding) world 0: survival -0.3250 exact (-0.7066 to 0.0882) inconclusive, guarded unconditional (-0.7161 to 0.0653), whole score -0.3828 (-0.8206 to 0.0551), margin 0.5000: inconclusive
+       its world line (reported, not binding) world 1: survival 0.1750 exact (-0.1908 to 0.5189) no material harm, guarded unconditional (-0.1678 to 0.5178), whole score 0.1973 (-0.1945 to 0.5891), margin 0.5000: no material harm
+       its world line (reported, not binding) world 2: survival 0.9000 exact (0.5489 to 1.1505) no material harm, guarded unconditional (0.5337 to 1.2686), whole score 1.0352 (0.6148 to 1.4555), margin 0.5000: no material harm
+4. PR24's breadth: AR3's read error from bridge year 1 on S364 and S360 within a point in every world where C's is a point or more: HELD
+     S364 world 0: C's 4.0666, AR3's -0.0064 (-0.0081 to -0.0047): closed
+     S364 world 1: C's 3.5476, AR3's 0.0056 (0.0026 to 0.0085): closed
+     S364 world 2: C's 1.4025, AR3's 0.0306 (0.0243 to 0.0368): closed
+     S360 world 0: C's -11.2914, AR3's 0.1037 (0.0625 to 0.1448): closed
+     S360 world 1: C's -12.2948, AR3's 0.2775 (0.2417 to 0.3134): closed
+     S360 world 2: C's -7.6956, AR3's 0.1051 (0.0714 to 0.1388): closed
+5. the control: AN3 moves S370's read error from year 3 on (AN3 less AN) by under a quarter of a point in every world: HELD
+     world 0: AN3 less AN -0.1204 (-0.1831 to -0.0576): still
+     world 1: AN3 less AN -0.0349 (-0.0793 to 0.0095): still
+     world 2: AN3 less AN -0.0289 (-0.0714 to 0.0136): still
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 HELD, 5 HELD
+ROW: else
+CAUSE item 2: open (AN3's whole not in band: the interaction)
+REALISED item 1: 0.8164
+REALISED item 2: 0.9507
+REALISED item 3: 0.0250
+REALISED item 4: 0.2775
+REALISED item 5: 0.1204
+
+REPORTED
+  S362 C world 0: table 24.3656 runs 1187/4000 (29.6750), table less runs -5.3094; GB -3.2777 GA 0.0508 T -2.0825 G -3.2269; by bridge year 1: -3.3431 | 2: -7.8006 | 3: 8.4871 | 4: -0.0740 | 5: -0.4386 | 6: -0.1040 | 7: -0.0044; the read error from each bridge year on 1: -3.2269 | 2: 0.1162 | 3: 7.9168 | 4: -0.5703 | 5: -0.4963 | 6: -0.0576 | 7: 0.0464; split (QS, QC, RS, RC) 1: 13.8347, 11.8428, 0.0000, 0.0011 | 2: 10.7354, 18.3911, 0.0000, 0.0015 | 3: 7.4870, 29.4698, 0.0000, 0.0001 | 4: 27.8013, 0.0000, 0.6847, 0.0000 | 5: 13.9527, 14.9012, 0.0000, 0.0000 | 6: 10.1626, 19.3019, 0.0000, 0.0000 | 7: 6.0285, 23.7031, 0.0000, 0.0000; bridge failures 2809
+  S362 C world 1: table 43.5799 runs 1955/4000 (48.8750), table less runs -5.2951; GB -5.2346 GA 0.0051 T -0.0656 G -5.2295; by bridge year 1: -4.0090 | 2: -5.5920 | 3: 4.7354 | 4: 0.0683 | 5: -0.4031 | 6: -0.0342 | 7: -0.0000; the read error from each bridge year on 1: -5.2295 | 2: -1.2205 | 3: 4.3715 | 4: -0.3639 | 5: -0.4322 | 6: -0.0291 | 7: 0.0050; split (QS, QC, RS, RC) 1: 23.6877, 19.9358, 0.0009, 0.0009 | 2: 17.7586, 29.9448, 0.0000, 0.0005 | 3: 10.9559, 41.9190, 0.0000, 0.0001 | 4: 47.6081, 0.0000, 0.5696, 0.0000 | 5: 23.0755, 25.3355, 0.0000, 0.0000 | 6: 16.8303, 32.1104, 0.0000, 0.0000 | 7: 10.2807, 38.5917, 0.0000, 0.0000; bridge failures 2045
+  S362 C world 2: table 63.8506 runs 2664/4000 (66.6000), table less runs -2.7494; GB -4.8926 GA -0.0001 T 2.1433 G -4.8927; by bridge year 1: -3.1075 | 2: -3.2832 | 3: 1.8124 | 4: -0.0526 | 5: -0.2125 | 6: -0.0491 | 7: 0.0001; the read error from each bridge year on 1: -4.8927 | 2: -1.7851 | 3: 1.4981 | 4: -0.3143 | 5: -0.2617 | 6: -0.0491 | 7: -0.0000; split (QS, QC, RS, RC) 1: 33.8357, 28.0400, 0.0160, 0.0004 | 2: 24.3139, 40.4604, 0.0005, 0.0002 | 3: 14.4031, 53.4468, 0.0000, 0.0001 | 4: 65.9190, 0.0000, 0.1418, 0.0000 | 5: 30.9145, 35.4006, 0.0000, 0.0000 | 6: 22.7790, 43.8180, 0.0000, 0.0000 | 7: 14.6044, 51.9930, 0.0000, 0.0001; bridge failures 1336
+  S362 AN world 0: table 30.5211 runs 1174/4000 (29.3500), table less runs 1.1711; GB 0.5122 GA 0.0486 T 0.6102 G 0.5608; by bridge year 1: 0.1007 | 2: 0.0915 | 3: 0.2276 | 4: 0.1485 | 5: -0.0475 | 6: -0.0043 | 7: -0.0043; the read error from each bridge year on 1: 0.5608 | 2: 0.4601 | 3: 0.3686 | 4: 0.1410 | 5: -0.0074 | 6: 0.0400 | 7: 0.0443; split (QS, QC, RS, RC) 1: 15.8344, 13.3000, 0.0000, 0.0003 | 2: 10.7746, 18.5267, 0.0000, 0.0005 | 3: 5.9389, 23.2844, 0.0000, 0.0001 | 4: 28.8188, 0.0000, 0.1862, 0.0000 | 5: 13.9784, 15.0386, 0.0000, 0.0000 | 6: 10.0619, 19.2352, 0.0000, 0.0000 | 7: 5.9485, 23.4592, 0.0000, 0.0000; bridge failures 2822
+  S362 AN world 1: table 48.5743 runs 1964/4000 (49.1000), table less runs -0.5257; GB 0.4901 GA 0.0053 T -1.0211 G 0.4954; by bridge year 1: -0.0644 | 2: 0.0139 | 3: 0.2561 | 4: 0.2731 | 5: 0.0231 | 6: -0.0116 | 7: -0.0000; the read error from each bridge year on 1: 0.4954 | 2: 0.5598 | 3: 0.5459 | 4: 0.2898 | 5: 0.0167 | 6: -0.0063 | 7: 0.0053; split (QS, QC, RS, RC) 1: 26.9592, 22.2940, 0.0000, 0.0002 | 2: 18.3505, 31.0032, 0.0000, 0.0001 | 3: 10.1665, 38.9154, 0.0000, 0.0001 | 4: 48.6521, 0.0000, 0.1907, 0.0000 | 5: 23.3264, 25.6835, 0.0000, 0.0000 | 6: 16.8506, 32.2548, 0.0000, 0.0000 | 7: 10.2977, 38.7997, 0.0000, 0.0000; bridge failures 2036
+  S362 AN world 2: table 67.3901 runs 2667/4000 (66.6750), table less runs 0.7151; GB 0.3847 GA -0.0001 T 0.3305 G 0.3846; by bridge year 1: -0.0715 | 2: -0.0506 | 3: 0.9217 | 4: -0.4090 | 5: 0.0056 | 6: -0.0116 | 7: 0.0001; the read error from each bridge year on 1: 0.3846 | 2: 0.4561 | 3: 0.5067 | 4: -0.4150 | 5: -0.0060 | 6: -0.0117 | 7: -0.0000; split (QS, QC, RS, RC) 1: 36.9823, 30.2475, 0.0014, 0.0001 | 2: 25.1538, 41.8858, 0.0000, 0.0001 | 3: 14.1916, 52.7339, 0.0000, 0.0001 | 4: 66.0077, 0.0000, 0.0000, 0.0000 | 5: 31.0276, 35.6195, 0.0000, 0.0000 | 6: 22.7988, 43.9450, 0.0000, 0.0000 | 7: 14.6039, 52.0685, 0.0000, 0.0001; bridge failures 1333
+  S362 AN3 world 0: table 30.2185 runs 1177/4000 (29.4250), table less runs 0.7935; GB -0.0359 GA 0.0489 T 0.7805 G 0.0130; by bridge year 1: 0.0890 | 2: 0.0223 | 3: -0.2372 | 4: 0.1490 | 5: -0.0531 | 6: -0.0017 | 7: -0.0043; the read error from each bridge year on 1: 0.0130 | 2: -0.0761 | 3: -0.0984 | 4: 0.1388 | 5: -0.0102 | 6: 0.0428 | 7: 0.0446; split (QS, QC, RS, RC) 1: 15.6176, 13.1279, 0.0000, 0.0003 | 2: 10.6376, 18.2978, 0.0000, 0.0005 | 3: 5.8701, 22.9932, 0.0000, 0.0001 | 4: 28.9227, 0.0000, 0.1866, 0.0000 | 5: 14.0483, 15.1024, 0.0000, 0.0000 | 6: 10.0968, 19.2914, 0.0000, 0.0000 | 7: 5.9666, 23.5160, 0.0000, 0.0000; bridge failures 2819
+  S362 AN3 world 1: table 48.2136 runs 1967/4000 (49.1750), table less runs -0.9614; GB 0.1309 GA 0.0053 T -1.0976 G 0.1362; by bridge year 1: -0.0398 | 2: 0.0346 | 3: -0.1518 | 4: 0.2738 | 5: 0.0250 | 6: -0.0109 | 7: -0.0000; the read error from each bridge year on 1: 0.1362 | 2: 0.1760 | 3: 0.1414 | 4: 0.2931 | 5: 0.0194 | 6: -0.0057 | 7: 0.0053; split (QS, QC, RS, RC) 1: 26.7373, 22.1267, 0.0000, 0.0002 | 2: 18.2036, 30.7598, 0.0000, 0.0001 | 3: 10.0942, 38.6094, 0.0000, 0.0001 | 4: 48.6819, 0.0000, 0.1907, 0.0000 | 5: 23.3392, 25.7011, 0.0000, 0.0000 | 6: 16.8687, 32.2934, 0.0000, 0.0000 | 7: 10.3104, 38.8620, 0.0000, 0.0000; bridge failures 2033
+  S362 AN3 world 2: table 66.9930 runs 2664/4000 (66.6000), table less runs 0.3930; GB -0.0743 GA -0.0001 T 0.4673 G -0.0744; by bridge year 1: -0.0345 | 2: 0.0069 | 3: 0.3742 | 4: -0.4100 | 5: 0.0019 | 6: -0.0128 | 7: 0.0001; the read error from each bridge year on 1: -0.0744 | 2: -0.0399 | 3: -0.0468 | 4: -0.4209 | 5: -0.0109 | 6: -0.0128 | 7: -0.0000; split (QS, QC, RS, RC) 1: 36.7778, 30.1010, 0.0016, 0.0001 | 2: 24.9998, 41.6413, 0.0000, 0.0001 | 3: 14.0775, 52.2426, 0.0000, 0.0001 | 4: 65.9502, 0.0000, 0.0000, 0.0000 | 5: 30.9887, 35.5929, 0.0000, 0.0000 | 6: 22.7728, 43.9070, 0.0000, 0.0000 | 7: 14.5876, 52.0097, 0.0000, 0.0001; bridge failures 1336
+  S370 C world 0: table 49.0987 runs 1602/4000 (40.0500), table less runs 9.0487; GB 8.1473 GA 1.7213 T -0.8199 G 9.8686; by bridge year 1: -1.8579 | 2: -0.8274 | 3: 4.1047 | 4: 0.1508 | 5: 0.0645 | 6: 0.0539 | 7: 6.4586; the read error from each bridge year on 1: 9.8686 | 2: 11.7264 | 3: 12.5538 | 4: 8.4492 | 5: 8.2983 | 6: 8.2338 | 7: 8.1799; split (QS, QC, RS, RC) 1: 28.7763, 20.0294, 0.0000, 0.0000 | 2: 21.6423, 29.1286, 0.0000, 0.0001 | 3: 13.3070, 38.1880, 0.0000, 0.0001 | 4: 47.4698, 0.0000, 0.0000, 0.0000 | 5: 33.6623, 13.9684, 0.0000, 0.0000 | 6: 27.0643, 20.3727, 0.0000, 0.0000 | 7: 20.4026, 27.0413, 0.0000, 0.0001; bridge failures 144
+  S370 C world 1: table 87.9402 runs 3472/4000 (86.8000), table less runs 1.1402; GB -0.0706 GA 1.5874 T -0.3767 G 1.5168; by bridge year 1: -1.5681 | 2: -0.8230 | 3: 1.4581 | 4: -0.5445 | 5: -0.5527 | 6: -0.5573 | 7: 2.5169; the read error from each bridge year on 1: 1.5168 | 2: 3.0850 | 3: 3.9079 | 4: 2.4498 | 5: 2.9943 | 6: 3.5470 | 7: 4.1043; split (QS, QC, RS, RC) 1: 51.8817, 35.8115, 0.0000, 0.0000 | 2: 38.4129, 50.8975, 0.0000, 0.0001 | 3: 23.9481, 66.2312, 0.0000, 0.0001 | 4: 88.7510, 0.0000, 0.0000, 0.0000 | 5: 62.3414, 27.0640, 0.0000, 0.0000 | 6: 51.1383, 38.7563, 0.0000, 0.0000 | 7: 39.6004, 50.9752, 0.0000, 0.0001; bridge failures 35
+  S370 C world 2: table 98.2445 runs 3959/4000 (98.9750), table less runs -0.7305; GB -0.9000 GA 0.0888 T 0.0808 G -0.8112; by bridge year 1: -0.5090 | 2: -0.2104 | 3: 0.0750 | 4: -0.1312 | 5: -0.1540 | 6: -0.1331 | 7: 0.1627; the read error from each bridge year on 1: -0.8112 | 2: -0.3022 | 3: -0.0918 | 4: -0.1668 | 5: -0.0356 | 6: 0.1184 | 7: 0.2515; split (QS, QC, RS, RC) 1: 58.0894, 40.1009, 0.0000, 0.0000 | 2: 42.6193, 56.0531, 0.0000, 0.0001 | 3: 26.9516, 71.9178, 0.0000, 0.0001 | 4: 98.7998, 0.0000, 0.0000, 0.0000 | 5: 66.5444, 32.3988, 0.0000, 0.0000 | 6: 54.9437, 44.1391, 0.0000, 0.0000 | 7: 43.2857, 55.9742, 0.0000, 0.0001; bridge failures 11
+  S370 AN world 0: table 51.3448 runs 1603/4000 (40.0750), table less runs 11.2698; GB 10.5334 GA 1.7045 T -0.9681 G 12.2379; by bridge year 1: -0.2347 | 2: -0.1909 | 3: 4.2599 | 4: 0.1332 | 5: 0.0631 | 6: 0.0522 | 7: 6.4505; the read error from each bridge year on 1: 12.2379 | 2: 12.4726 | 3: 12.6634 | 4: 8.4036 | 5: 8.2704 | 6: 8.2072 | 7: 8.1550; split (QS, QC, RS, RC) 1: 30.1859, 20.9257, 0.0000, 0.0000 | 2: 21.9576, 29.5138, 0.0000, 0.0001 | 3: 13.3292, 38.2505, 0.0000, 0.0001 | 4: 47.4019, 0.0000, 0.0000, 0.0000 | 5: 33.6198, 13.9578, 0.0000, 0.0000 | 6: 27.0402, 20.3584, 0.0000, 0.0000 | 7: 20.3872, 27.0202, 0.0000, 0.0001; bridge failures 152
+  S370 AN world 1: table 89.5148 runs 3472/4000 (86.8000), table less runs 2.7148; GB 1.5037 GA 1.5830 T -0.3718 G 3.0866; by bridge year 1: -0.4234 | 2: -0.4315 | 3: 1.4997 | 4: -0.5477 | 5: -0.5528 | 6: -0.5578 | 7: 2.5172; the read error from each bridge year on 1: 3.0866 | 2: 3.5101 | 3: 3.9415 | 4: 2.4418 | 5: 2.9895 | 6: 3.5423 | 7: 4.1001; split (QS, QC, RS, RC) 1: 52.8855, 36.4287, 0.0000, 0.0000 | 2: 38.6126, 51.1332, 0.0000, 0.0001 | 3: 23.9592, 66.2604, 0.0000, 0.0001 | 4: 88.7520, 0.0000, 0.0000, 0.0000 | 5: 62.3433, 27.0644, 0.0000, 0.0000 | 6: 51.1391, 38.7564, 0.0000, 0.0000 | 7: 39.6020, 50.9763, 0.0000, 0.0001; bridge failures 35
+  S370 AN world 2: table 98.6865 runs 3960/4000 (99.0000), table less runs -0.3135; GB -0.4376 GA 0.0894 T 0.0346 G -0.3482; by bridge year 1: -0.1444 | 2: -0.1413 | 3: 0.1043 | 4: -0.1318 | 5: -0.1540 | 6: -0.1331 | 7: 0.1628; the read error from each bridge year on 1: -0.3482 | 2: -0.2038 | 3: -0.0624 | 4: -0.1667 | 5: -0.0349 | 6: 0.1191 | 7: 0.2522; split (QS, QC, RS, RC) 1: 58.3950, 40.2831, 0.0000, 0.0000 | 2: 42.6686, 56.1089, 0.0000, 0.0001 | 3: 26.9646, 71.9565, 0.0000, 0.0001 | 4: 98.8240, 0.0000, 0.0000, 0.0000 | 5: 66.5592, 32.4083, 0.0000, 0.0000 | 6: 54.9557, 44.1519, 0.0000, 0.0000 | 7: 43.2947, 55.9898, 0.0000, 0.0001; bridge failures 10
+  S370 AN3 world 0: table 51.2176 runs 1603/4000 (40.0750), table less runs 11.1426; GB 10.3593 GA 1.7191 T -0.9358 G 12.0784; by bridge year 1: -0.2526 | 2: -0.2121 | 3: 4.1128 | 4: 0.1338 | 5: 0.0646 | 6: 0.0533 | 7: 6.4596; the read error from each bridge year on 1: 12.0784 | 2: 12.3310 | 3: 12.5431 | 4: 8.4303 | 5: 8.2965 | 6: 8.2320 | 7: 8.1787; split (QS, QC, RS, RC) 1: 30.1086, 20.8786, 0.0000, 0.0000 | 2: 21.9077, 29.4627, 0.0000, 0.0001 | 3: 13.3004, 38.1815, 0.0000, 0.0001 | 4: 47.4507, 0.0000, 0.0000, 0.0000 | 5: 33.6530, 13.9715, 0.0000, 0.0000 | 6: 27.0616, 20.3782, 0.0000, 0.0000 | 7: 20.3993, 27.0459, 0.0000, 0.0001; bridge failures 145
+  S370 AN3 world 1: table 89.4660 runs 3473/4000 (86.8250), table less runs 2.6410; GB 1.4634 GA 1.5890 T -0.4113 G 3.0523; by bridge year 1: -0.4249 | 2: -0.4294 | 3: 1.4586 | 4: -0.5475 | 5: -0.5530 | 6: -0.5576 | 7: 2.5172; the read error from each bridge year on 1: 3.0523 | 2: 3.4772 | 3: 3.9066 | 4: 2.4480 | 5: 2.9956 | 6: 3.5485 | 7: 4.1061; split (QS, QC, RS, RC) 1: 52.8507, 36.4084, 0.0000, 0.0000 | 2: 38.5895, 51.1135, 0.0000, 0.0001 | 3: 23.9447, 66.2349, 0.0000, 0.0001 | 4: 88.7507, 0.0000, 0.0000, 0.0000 | 5: 62.3379, 27.0691, 0.0000, 0.0000 | 6: 51.1357, 38.7616, 0.0000, 0.0000 | 7: 39.5984, 50.9814, 0.0000, 0.0001; bridge failures 35
+  S370 AN3 world 2: table 98.6753 runs 3960/4000 (99.0000), table less runs -0.3247; GB -0.4664 GA 0.0897 T 0.0520 G -0.3767; by bridge year 1: -0.1452 | 2: -0.1402 | 3: 0.0752 | 4: -0.1317 | 5: -0.1540 | 6: -0.1331 | 7: 0.1627; the read error from each bridge year on 1: -0.3767 | 2: -0.2315 | 3: -0.0913 | 4: -0.1665 | 5: -0.0348 | 6: 0.1192 | 7: 0.2524; split (QS, QC, RS, RC) 1: 58.3870, 40.2787, 0.0000, 0.0000 | 2: 42.6594, 56.1000, 0.0000, 0.0001 | 3: 26.9552, 71.9369, 0.0000, 0.0001 | 4: 98.8239, 0.0000, 0.0000, 0.0000 | 5: 66.5589, 32.4083, 0.0000, 0.0000 | 6: 54.9553, 44.1521, 0.0000, 0.0000 | 7: 43.2940, 55.9902, 0.0000, 0.0001; bridge failures 10
+  S364 C world 0: table 4.2056 runs 0/4000 (0.0000), table less runs 4.2056; GB 4.0666 GA 0.0000 T 0.1390 G 4.0666; by bridge year 1: 2.1442 | 2: 1.1055 | 3: 0.7939 | 4: 0.0229 | 5: 0.0000 | 6: 0.0000 | 7: 0.0000; the read error from each bridge year on 1: 4.0666 | 2: 1.9224 | 3: 0.8169 | 4: 0.0230 | 5: 0.0000 | 6: 0.0000 | 7: 0.0000; split (QS, QC, RS, RC) 1: 0.0000, 0.0000, 0.0000, 4.0702 | 2: 0.0000, 0.0000, 0.0000, 1.9222 | 3: 0.0000, 0.0001, 0.0000, 0.8192 | 4: 0.0000, 0.0001, 0.0000, 0.0241 | 5: 0.0000, 0.0000, 0.0000, 0.0000 | 6: 0.0000, 0.0000, 0.0000, 0.0000 | 7: 0.0000, 0.0000, 0.0000, 0.0000; bridge failures 4000
+  S364 C world 1: table 3.5708 runs 2/4000 (0.0500), table less runs 3.5208; GB 3.5476 GA 0.0000 T -0.0268 G 3.5476; by bridge year 1: 2.4871 | 2: 0.4977 | 3: 0.5399 | 4: 0.0316 | 5: -0.0069 | 6: -0.0017 | 7: 0.0000; the read error from each bridge year on 1: 3.5476 | 2: 1.0605 | 3: 0.5628 | 4: 0.0229 | 5: -0.0087 | 6: -0.0017 | 7: 0.0000; split (QS, QC, RS, RC) 1: 0.0000, 0.0000, 0.0945, 3.4846 | 2: 0.0005, 0.0007, 0.1470, 0.9300 | 3: 0.0003, 0.0008, 0.0000, 0.5810 | 4: 0.0013, 0.0054, 0.0000, 0.0352 | 5: 0.0014, 0.0093, 0.0000, 0.0000 | 6: 0.0035, 0.0407, 0.0000, 0.0000 | 7: 0.0021, 0.0479, 0.0000, 0.0000; bridge failures 3998
+  S364 C world 2: table 1.6021 runs 6/4000 (0.1500), table less runs 1.4521; GB 1.4025 GA 0.0000 T 0.0497 G 1.4025; by bridge year 1: 0.8842 | 2: 0.5198 | 3: 0.0488 | 4: -0.0240 | 5: -0.0174 | 6: -0.0089 | 7: 0.0000; the read error from each bridge year on 1: 1.4025 | 2: 0.5183 | 3: -0.0015 | 4: -0.0503 | 5: -0.0263 | 6: -0.0089 | 7: 0.0000; split (QS, QC, RS, RC) 1: 0.0014, 0.0012, 1.3316, 0.2802 | 2: 0.0087, 0.0141, 0.1054, 0.5932 | 3: 0.0122, 0.0311, 0.1006, 0.0231 | 4: 0.0100, 0.0400, 0.0000, 0.0175 | 5: 0.0134, 0.0855, 0.0000, 0.0000 | 6: 0.0111, 0.1156, 0.0000, 0.0000 | 7: 0.0069, 0.1431, 0.0000, 0.0000; bridge failures 3994
+  S364 AR3 world 0: table 0.0651 runs 2/4000 (0.0500), table less runs 0.0151; GB -0.0064 GA 0.0000 T 0.0215 G -0.0064; by bridge year 1: -0.0074 | 2: -0.0006 | 3: 0.0007 | 4: 0.0004 | 5: 0.0006 | 6: -0.0001 | 7: 0.0000; the read error from each bridge year on 1: -0.0064 | 2: 0.0010 | 3: 0.0016 | 4: 0.0009 | 5: 0.0005 | 6: -0.0001 | 7: 0.0000; split (QS, QC, RS, RC) 1: 0.0314, 0.0301, 0.0000, 0.0003 | 2: 0.0228, 0.0339, 0.0000, 0.0001 | 3: 0.0158, 0.0371, 0.0000, 0.0001 | 4: 0.0107, 0.0374, 0.0000, 0.0001 | 5: 0.0087, 0.0457, 0.0000, 0.0000 | 6: 0.0074, 0.0621, 0.0000, 0.0000 | 7: 0.0028, 0.0471, 0.0000, 0.0000; bridge failures 3998
+  S364 AR3 world 1: table 0.4072 runs 12/4000 (0.3000), table less runs 0.1072; GB 0.0056 GA -0.0000 T 0.1016 G 0.0056; by bridge year 1: -0.0048 | 2: 0.0042 | 3: 0.0031 | 4: 0.0018 | 5: 0.0010 | 6: 0.0003 | 7: 0.0000; the read error from each bridge year on 1: 0.0056 | 2: 0.0104 | 3: 0.0062 | 4: 0.0031 | 5: 0.0013 | 6: 0.0003 | 7: -0.0000; split (QS, QC, RS, RC) 1: 0.1970, 0.1985, 0.0000, 0.0005 | 2: 0.1469, 0.2154, 0.0000, 0.0001 | 3: 0.1031, 0.2373, 0.0000, 0.0001 | 4: 0.0697, 0.2396, 0.0000, 0.0001 | 5: 0.0513, 0.2656, 0.0000, 0.0000 | 6: 0.0342, 0.2715, 0.0000, 0.0000 | 7: 0.0196, 0.2804, 0.0000, 0.0000; bridge failures 3988
+  S364 AR3 world 2: table 1.7262 runs 62/4000 (1.5500), table less runs 0.1762; GB 0.0306 GA -0.0000 T 0.1456 G 0.0306; by bridge year 1: -0.0018 | 2: 0.0137 | 3: 0.0090 | 4: 0.0041 | 5: 0.0031 | 6: 0.0023 | 7: 0.0000; the read error from each bridge year on 1: 0.0306 | 2: 0.0323 | 3: 0.0186 | 4: 0.0096 | 5: 0.0055 | 6: 0.0023 | 7: 0.0000; split (QS, QC, RS, RC) 1: 0.9289, 0.7652, 0.0000, 0.0001 | 2: 0.6663, 0.9646, 0.0000, 0.0001 | 3: 0.4820, 1.0938, 0.0000, 0.0001 | 4: 0.3699, 1.2599, 0.0000, 0.0001 | 5: 0.2689, 1.3822, 0.0000, 0.0001 | 6: 0.1783, 1.4560, 0.0000, 0.0000 | 7: 0.0987, 1.4512, 0.0000, 0.0000; bridge failures 3938
+  S360 C world 0: table 16.6956 runs 1161/4000 (29.0250), table less runs -12.3294; GB -11.2914 GA -0.0000 T -1.0380 G -11.2914; by bridge year 1: -1.6242 | 2: -2.6143 | 3: -2.3903 | 4: -2.1183 | 5: -1.6455 | 6: -0.8988 | 7: 0.0000; the read error from each bridge year on 1: -11.2914 | 2: -9.6672 | 3: -7.0529 | 4: -4.6626 | 5: -2.5443 | 6: -0.8988 | 7: 0.0000; split (QS, QC, RS, RC) 1: 9.2311, 5.7013, 1.0450, 0.5146 | 2: 9.0892, 8.4547, 0.5289, 0.0896 | 3: 8.7411, 11.5517, 0.0962, 0.2375 | 4: 8.1561, 15.2913, 0.0336, 0.0403 | 5: 6.9805, 19.0056, 0.0000, 0.0018 | 6: 5.3870, 22.7059, 0.0000, 0.0001 | 7: 3.3665, 25.6573, 0.0000, 0.0000; bridge failures 2839
+  S360 C world 1: table 36.4724 runs 1956/4000 (48.9000), table less runs -12.4276; GB -12.2948 GA -0.0000 T -0.1328 G -12.2948; by bridge year 1: -2.3366 | 2: -3.0472 | 3: -2.6876 | 4: -2.0864 | 5: -1.4038 | 6: -0.7333 | 7: 0.0001; the read error from each bridge year on 1: -12.2948 | 2: -9.9583 | 3: -6.9110 | 4: -4.2235 | 5: -2.1370 | 6: -0.7333 | 7: 0.0000; split (QS, QC, RS, RC) 1: 22.1247, 13.3674, 0.2607, 0.2578 | 2: 20.0370, 18.2289, 0.1565, 0.0502 | 3: 18.0699, 23.4786, 0.0122, 0.0643 | 4: 15.6386, 28.8058, 0.0050, 0.0126 | 5: 12.8051, 34.0629, 0.0000, 0.0004 | 6: 9.5550, 38.5882, 0.0000, 0.0001 | 7: 6.1453, 42.7528, 0.0000, 0.0001; bridge failures 2044
+  S360 C world 2: table 62.4780 runs 2784/4000 (69.6000), table less runs -7.1220; GB -7.6956 GA -0.0001 T 0.5736 G -7.6956; by bridge year 1: -1.0683 | 2: -1.9538 | 3: -1.8344 | 4: -1.4226 | 5: -0.9744 | 6: -0.4421 | 7: 0.0001; the read error from each bridge year on 1: -7.6956 | 2: -6.6273 | 3: -4.6735 | 4: -2.8391 | 5: -1.4165 | 6: -0.4421 | 7: 0.0000; split (QS, QC, RS, RC) 1: 38.8040, 22.7902, 0.0947, 0.0025 | 2: 33.1254, 29.6026, 0.0288, 0.0214 | 3: 28.3467, 36.3024, 0.0084, 0.0005 | 4: 23.6254, 42.7562, 0.0004, 0.0020 | 5: 18.9521, 49.1792, 0.0000, 0.0001 | 6: 14.2388, 55.0054, 0.0000, 0.0001 | 7: 9.5100, 60.0872, 0.0000, 0.0001; bridge failures 1216
+  S360 AR3 world 0: table 28.1757 runs 1148/4000 (28.7000), table less runs -0.5243; GB 0.1037 GA -0.0000 T -0.6280 G 0.1037; by bridge year 1: 0.0031 | 2: -0.0201 | 3: 0.0506 | 4: 0.0386 | 5: 0.0246 | 6: 0.0069 | 7: 0.0000; the read error from each bridge year on 1: 0.1037 | 2: 0.1006 | 3: 0.1207 | 4: 0.0701 | 5: 0.0315 | 6: 0.0069 | 7: 0.0000; split (QS, QC, RS, RC) 1: 17.2873, 10.4296, 0.0000, 0.0025 | 2: 14.6199, 13.1667, 0.0000, 0.0000 | 3: 12.0076, 15.6661, 0.0000, 0.0001 | 4: 9.7389, 18.2650, 0.0000, 0.0001 | 5: 7.5798, 20.8425, 0.0000, 0.0001 | 6: 5.4484, 23.3409, 0.0000, 0.0001 | 7: 3.2613, 25.4376, 0.0000, 0.0000; bridge failures 2852
+  S360 AR3 world 1: table 49.5896 runs 1963/4000 (49.0750), table less runs 0.5146; GB 0.2776 GA -0.0000 T 0.2371 G 0.2775; by bridge year 1: 0.0726 | 2: 0.0907 | 3: 0.0964 | 4: 0.0231 | 5: -0.0074 | 6: 0.0021 | 7: 0.0001; the read error from each bridge year on 1: 0.2775 | 2: 0.2049 | 3: 0.1142 | 4: 0.0179 | 5: -0.0053 | 6: 0.0021 | 7: 0.0000; split (QS, QC, RS, RC) 1: 30.6085, 18.3115, 0.0000, 0.0004 | 2: 25.9288, 23.0355, 0.0000, 0.0000 | 3: 21.3936, 27.5336, 0.0000, 0.0001 | 4: 17.2012, 31.7040, 0.0000, 0.0001 | 5: 13.3711, 35.8781, 0.0000, 0.0001 | 6: 9.6145, 39.4181, 0.0000, 0.0001 | 7: 6.0375, 43.0356, 0.0000, 0.0001; bridge failures 2037
+  S360 AR3 world 2: table 70.2039 runs 2820/4000 (70.5000), table less runs -0.2961; GB 0.1052 GA -0.0001 T -0.4012 G 0.1051; by bridge year 1: 0.0207 | 2: 0.0484 | 3: 0.0041 | 4: 0.0089 | 5: 0.0195 | 6: 0.0035 | 7: 0.0001; the read error from each bridge year on 1: 0.1051 | 2: 0.0844 | 3: 0.0360 | 4: 0.0319 | 5: 0.0230 | 6: 0.0035 | 7: 0.0000; split (QS, QC, RS, RC) 1: 44.3711, 25.6127, 0.0000, 0.0000 | 2: 37.2711, 32.7928, 0.0000, 0.0000 | 3: 30.7955, 39.1712, 0.0000, 0.0001 | 4: 24.8812, 45.0732, 0.0000, 0.0001 | 5: 19.4598, 50.8702, 0.0000, 0.0001 | 6: 14.3442, 56.1597, 0.0000, 0.0001 | 7: 9.4342, 61.0630, 0.0000, 0.0001; bridge failures 1180
+  S362 C: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.0001 (2503 paths); world 1 0.0000 (1882 paths); world 2 0.0000 (1285 paths)
+  S362 AN: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.4916 (2517 paths); world 1 0.4328 (1875 paths); world 2 0.5623 (1283 paths)
+  S362 AN3: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.0001 (2512 paths); world 1 0.0000 (1875 paths); world 2 0.0000 (1286 paths)
+  S370 C: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.0000 (144 paths); world 1 0.0000 (35 paths); world 2 0.0000 (11 paths)
+  S370 AN: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.1486 (152 paths); world 1 0.0438 (35 paths); world 2 0.0302 (10 paths)
+  S370 AN3: the paths dying at bridge year 3, their year-3 residual as a share of each world's mean world 0 0.0000 (145 paths); world 1 0.0000 (35 paths); world 2 0.0000 (10 paths)
+  O191's read, C against AN on S362: the year-1 cell's mixture survival change 0.5398 (se 1.1346), own-move read error C -0.1076 (0.4288), AN 0.9712 (0.2463); all paths on the mixture survival 0.1083 (0.0972), whole score 0.1286 (0.1093)
+    world 0: the cell n 234, survival AN less C -6.4103 (se 1.8189), own-move read error C 1.8264 (1.0879), AN 1.4899 (0.5270)
+    world 1: the cell n 269, survival AN less C 1.8587 (se 1.6195), own-move read error C -0.2895 (0.5761), AN 1.0591 (0.3334)
+    world 2: the cell n 271, survival AN less C 2.2140 (se 1.0369), own-move read error C -1.3139 (0.3544), AN 0.1009 (0.3578)
+    world 0: every first difference at a bridge year n 831, alive C 545 AN 532, own-move read error C 7.0032 (0.4780), AN 0.6911 (0.1863)
+    world 1: every first difference at a bridge year n 1167, alive C 962 AN 971, own-move read error C 2.2959 (0.2155), AN 0.3596 (0.0881)
+    world 2: every first difference at a bridge year n 1575, alive C 1475 AN 1478, own-move read error C 0.2384 (0.0905), AN 0.0248 (0.0832)
+  O191's read, C against AN3 on S362: the year-1 cell's mixture survival change 1.3792 (se 1.1741), own-move read error C -0.0854 (0.4404), AN3 0.3137 (0.0956); all paths on the mixture survival 0.1583 (0.0955), whole score 0.1858 (0.1072)
+    world 0: the cell n 221, survival AN3 less C -4.9774 (se 1.7241), own-move read error C 1.3376 (1.1060), AN3 -0.1064 (0.2047)
+    world 1: the cell n 258, survival AN3 less C 2.7132 (se 1.6843), own-move read error C -0.1770 (0.5932), AN3 0.5567 (0.1311)
+    world 2: the cell n 250, survival AN3 less C 2.4000 (se 1.1234), own-move read error C -1.1420 (0.3590), AN3 -0.2385 (0.1103)
+    world 0: every first difference at a bridge year n 827, alive C 537 AN3 527, own-move read error C 6.9192 (0.4859), AN3 0.0803 (0.0883)
+    world 1: every first difference at a bridge year n 1158, alive C 946 AN3 958, own-move read error C 2.2948 (0.2184), AN3 0.2314 (0.0464)
+    world 2: every first difference at a bridge year n 1576, alive C 1468 AN3 1468, own-move read error C 0.2943 (0.0940), AN3 -0.1167 (0.0219)
+  AN3 against AN on S362 (reported) by the mixture: survival 0.0500 (-0.0341 to 0.1238), whole score 0.0573 (-0.0249 to 0.1394): no material harm
+  AN3 against AN on S362 (reported) world 0: survival 0.0750 exact (-0.0661 to 0.1244) no material harm, guarded unconditional (-0.0600 to 0.2109), whole score 0.0830 (-0.0563 to 0.2222), margin 0.5000: no material harm
+  AN3 against AN on S362 (reported) world 1: survival 0.0750 exact (-0.0402 to 0.0750) no material harm, guarded unconditional (-0.0220 to 0.2433), whole score 0.0868 (-0.0233 to 0.1968), margin 0.5000: no material harm
+  AN3 against AN on S362 (reported) world 2: survival -0.0750 exact (-0.0750 to 0.0402) no material harm, guarded unconditional (-0.2433 to 0.0302), whole score -0.0865 (-0.1981 to 0.0252), margin 0.5000: no material harm
+  AN3 against AN on S370 (reported) by the mixture: survival 0.0167 (-0.0651 to 0.0995), whole score 0.0169 (-0.0267 to 0.0604): no material harm
+  AN3 against AN on S370 (reported) world 0: survival 0.0000 exact (-0.0906 to 0.0906) no material harm, guarded unconditional (-0.1147 to 0.1147), whole score 0.0019 (-0.1112 to 0.1151), margin 0.5000: no material harm
+  AN3 against AN on S370 (reported) world 1: survival 0.0250 exact (-0.0244 to 0.0250) no material harm, guarded unconditional (-0.0822 to 0.1594), whole score 0.0248 (-0.0314 to 0.0811), margin 0.5000: no material harm
+  AN3 against AN on S370 (reported) world 2: survival 0.0000 exact (0.0000 to 0.0000) no material harm, guarded unconditional (-0.1229 to 0.1229), whole score -0.0000 (-0.0002 to 0.0001), margin 0.2500: no material harm
+  AN against C on S362 (reported) by the mixture: survival 0.1083 (-0.1330 to 0.3352), whole score 0.1286 (-0.1256 to 0.3828): no material harm
+  AN against C on S362 (reported) world 0: survival -0.3250 exact (-0.5782 to 0.0089) inconclusive, guarded unconditional (-0.6416 to -0.0100), whole score -0.3465 (-0.6860 to -0.0070), margin 0.5000: inconclusive
+  AN against C on S362 (reported) world 1: survival 0.2250 exact (-0.1102 to 0.5046) no material harm, guarded unconditional (-0.0867 to 0.5367), whole score 0.2574 (-0.0938 to 0.6086), margin 0.5000: no material harm
+  AN against C on S362 (reported) world 2: survival 0.0750 exact (-0.1705 to 0.2875) no material harm, guarded unconditional (-0.1595 to 0.3098), whole score 0.0882 (-0.1772 to 0.3537), margin 0.5000: no material harm
+  AN against C on S370 (reported) by the mixture: survival 0.0083 (-0.0835 to 0.1005), whole score 0.0097 (-0.0521 to 0.0715): no material harm
+  AN against C on S370 (reported) world 0: survival 0.0250 exact (-0.0964 to 0.1158) no material harm, guarded unconditional (-0.1026 to 0.1527), whole score 0.0236 (-0.1031 to 0.1503), margin 0.5000: no material harm
+  AN against C on S370 (reported) world 1: survival 0.0000 exact (-0.0494 to 0.0494) no material harm, guarded unconditional (-0.1216 to 0.1216), whole score 0.0016 (-0.0805 to 0.0836), margin 0.5000: no material harm
+  AN against C on S370 (reported) world 2: survival 0.0250 exact (-0.0244 to 0.0250) no material harm, guarded unconditional (-0.1061 to 0.1639), whole score 0.0283 (-0.0345 to 0.0911), margin 0.2500: no material harm
+  AN3 against C on S362 world 0: moves differ on 827 paths; saved 0/8/0/0 and lost 0/18/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against C on S362 world 1: moves differ on 1158 paths; saved 0/21/0/0 and lost 0/9/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against C on S362 world 2: moves differ on 1576 paths; saved 0/10/0/0 and lost 0/10/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against C on S370 world 0: moves differ on 59 paths; saved 0/1/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against C on S370 world 1: moves differ on 30 paths; saved 0/1/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against C on S370 world 2: moves differ on 20 paths; saved 0/1/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S364 world 0: moves differ on 4000 paths; saved 2/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S364 world 1: moves differ on 4000 paths; saved 10/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S364 world 2: moves differ on 4000 paths; saved 56/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S360 world 0: moves differ on 1277 paths; saved 0/25/0/0 and lost 0/38/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S360 world 1: moves differ on 1414 paths; saved 0/28/0/0 and lost 0/21/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AR3 against C on S360 world 2: moves differ on 1627 paths; saved 0/46/0/0 and lost 0/10/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S362 world 0: moves differ on 85 paths; saved 0/4/0/0 and lost 0/1/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S362 world 1: moves differ on 105 paths; saved 0/3/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S362 world 2: moves differ on 98 paths; saved 0/0/0/0 and lost 0/3/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S370 world 0: moves differ on 155 paths; saved 0/2/0/0 and lost 0/2/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S370 world 1: moves differ on 101 paths; saved 0/1/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  AN3 against AN on S370 world 2: moves differ on 67 paths; saved 0/0/0/0 and lost 0/0/0/0 by the band their moves first differ (the opening / the bridge / the five years after / the rest)
+  S370 AN3 steps 0: 9 of 9 cells with a step, A*_t 83199 to 85748 (median 83199)
+  S370 AN3 steps 1: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+  S370 AN3 steps 2: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+  S370 AN3 steps 3: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+  S370 AN3 steps 4: 0 of 9 cells with a step
+  S370 AN3 steps 5: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+  S370 AN3 steps 6: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+  S370 AN3 pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN3 pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN3 pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN3 pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+  S370 AN3 pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN3 pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN3 pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S370 AN pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S370 AN pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+  S362 AN3 steps 0: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 steps 1: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 steps 2: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 steps 3: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 steps 4: 0 of 9 cells with a step
+  S362 AN3 steps 5: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 steps 6: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+  S362 AN3 pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN3 pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN3 pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN3 pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+  S362 AN3 pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN3 pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN3 pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S362 AN pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+  S362 AN pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+  S364 AR3 steps 0: 9 of 9 cells with a step, A*_t 14799 to 14808 (median 14799)
+  S364 AR3 steps 1: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 steps 2: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 steps 3: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 steps 4: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 steps 5: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 steps 6: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+  S364 AR3 pr31 1: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 2: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 3: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 4: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 5: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 6: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S364 AR3 pr31 7: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+  S360 AR3 steps 0: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 1: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 2: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 3: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 4: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 5: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 steps 6: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+  S360 AR3 pr31 1: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 2: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 3: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 4: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 5: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 6: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S360 AR3 pr31 7: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+  S370 AN3: the adaptive reference's moves 24, fix true, stepAll true; copied 100251 of 446418 nodes; reads at the clamp 191 of 83240; solve 2011 s
+  S370 AN: the adaptive reference's moves 24, fix true, stepAll false; copied 100485 of 446904 nodes; reads at the clamp 155 of 83212; solve 1869 s
+  S370 C: the plan reference; copied 100116 of 446148 nodes; reads at the clamp 200 of 83240; solve 1399 s
+  S362 AN3: the adaptive reference's moves 24, fix true, stepAll true; copied 102924 of 445176 nodes; reads at the clamp 8041 of 61203; solve 2259 s
+  S362 AN: the adaptive reference's moves 24, fix true, stepAll false; copied 103032 of 445338 nodes; reads at the clamp 9028 of 61195; solve 2047 s
+  S362 C: the plan reference; copied 103680 of 446148 nodes; reads at the clamp 9260 of 61215; solve 1542 s
+  S364 AR3: the adaptive reference's moves 24, fix true, stepAll true; copied 110403 of 366768 nodes; reads at the clamp 35891 of 54647; solve 1825 s
+  S364 C: the plan reference; copied 110808 of 366444 nodes; reads at the clamp 21691 of 52190; solve 1346 s
+  S360 AR3: the adaptive reference's moves 24, fix true, stepAll true; copied 108972 of 380376 nodes; reads at the clamp 12765 of 79459; solve 1992 s
+  S360 C: the plan reference; copied 107244 of 378108 nodes; reads at the clamp 12986 of 79394; solve 1483 s

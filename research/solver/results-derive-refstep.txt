@@ -1,0 +1,104 @@
+REF-STEP'S DERIVATION (predictions/diag-refstep.md)
+
+1. THE RECORDS
+  seed 7002, 4000 paths a world: S362's C behind COPY-B's gate and S370's behind COPY-X's; AN on both behind REF-B's (the adaptive reference with its fix, no stepAll: REF-B's arm)
+  S362 world 0: survival C 29.6750, AN 29.3500; AN against C 22 lost, 9 saved; the read error from years 1, 2 and 3 on, AN 0.5608, 0.4601, 0.3686, C -3.2269, 0.1162, 7.9168 (AN's per-path spread from year 3, sd 4.4429); the year-3 dying paths' share of the world's year-3 residual, AN 0.4916 (2517 paths), C 0.0001 (2503); O191's year-1 cell (C taxable-first, AN ISA-first) 234 paths, 17 of AN's lost and 2 of its saved in it; the whole score's alive less dead under AN 110.4227
+  S362 world 1: survival C 48.8750, AN 49.1000; AN against C 11 lost, 20 saved; the read error from years 1, 2 and 3 on, AN 0.4954, 0.5598, 0.5459, C -5.2295, -1.2205, 4.3715 (AN's per-path spread from year 3, sd 4.3199); the year-3 dying paths' share of the world's year-3 residual, AN 0.4328 (1875 paths), C 0.0000 (1882); O191's year-1 cell (C taxable-first, AN ISA-first) 269 paths, 7 of AN's lost and 12 of its saved in it; the whole score's alive less dead under AN 113.8937
+  S362 world 2: survival C 66.6000, AN 66.6750; AN against C 7 lost, 10 saved; the read error from years 1, 2 and 3 on, AN 0.3846, 0.4561, 0.5067, C -4.8927, -1.7851, 1.4981 (AN's per-path spread from year 3, sd 5.3862); the year-3 dying paths' share of the world's year-3 residual, AN 0.5623 (1283 paths), C 0.0000 (1285); O191's year-1 cell (C taxable-first, AN ISA-first) 271 paths, 1 of AN's lost and 7 of its saved in it; the whole score's alive less dead under AN 115.0901
+  S370 world 0: survival C 40.0500, AN 40.0750; AN against C 2 lost, 3 saved; the read error from years 1, 2 and 3 on, AN 12.2379, 12.4726, 12.6634, C 9.8686, 11.7264, 12.5538 (AN's per-path spread from year 3, sd 6.8486); the year-3 dying paths' share of the world's year-3 residual, AN 0.1486 (152 paths), C 0.0000 (144); the whole score's alive less dead under AN 103.7986
+  S370 world 1: survival C 86.8000, AN 86.8000; AN against C 1 lost, 1 saved; the read error from years 1, 2 and 3 on, AN 3.0866, 3.5101, 3.9415, C 1.5168, 3.0850, 3.9079 (AN's per-path spread from year 3, sd 5.4531); the year-3 dying paths' share of the world's year-3 residual, AN 0.0438 (35 paths), C 0.0000 (35); the whole score's alive less dead under AN 107.8739
+  S370 world 2: survival C 98.9750, AN 99.0000; AN against C 0 lost, 1 saved; the read error from years 1, 2 and 3 on, AN -0.3482, -0.2038, -0.0624, C -0.8112, -0.3022, -0.0918 (AN's per-path spread from year 3, sd 1.6224); the year-3 dying paths' share of the world's year-3 residual, AN 0.0302 (10 paths), C 0.0000 (11); the whole score's alive less dead under AN 112.6174
+  O191's read (read-o191.mjs, C against AN on S362): the cell's own-move read error on the mixture AN 0.9712 (se 0.2463), C -0.1076 (0.4288); the cell's mixture survival change 0.5398 (1.1346); all paths on the mixture 0.1083 (0.0972)
+  S360 world 0 (NODE-AX's settings, 15 shares, 60 points; results-an.txt): the plan reference's GB -1.7654, the adaptive reference's 0.0307, survival 28.7750; A6RS against BO (results-aor.txt) 26 lost, 29 saved
+  S360 world 1 (NODE-AX's settings, 15 shares, 60 points; results-an.txt): the plan reference's GB -2.0679, the adaptive reference's -0.1235, survival 48.9000; A6RS against BO (results-aor.txt) 10 lost, 28 saved
+  S360 world 2 (NODE-AX's settings, 15 shares, 60 points; results-an.txt): the plan reference's GB -0.7616, the adaptive reference's -0.0198, survival 69.8500; A6RS against BO (results-aor.txt) not printed
+  S364 world 0 (AO's settings; results-aor.txt): the read at P under the adaptive reference without RS: table 1.8395 (residual 1.7733, R's part 0.9640) against runs 0.0500; with RS (ARS) table 0.0663, residual 0.0001
+  S364 world 1 (AO's settings; results-aor.txt): the read at P under the adaptive reference without RS: table 0.6617 (residual 0.2535, R's part 0.3831) against runs 0.3000; with RS (ARS) table 0.4082, residual 0.0001
+  S364 world 2 (AO's settings; results-aor.txt): the read at P under the adaptive reference without RS: table 1.7768 (residual 0.0488, R's part 0.0275) against runs 1.5500; with RS (ARS) table 1.7282, residual 0.0002
+  S364 at 7u's candidate (results-7u.txt): table 4.8605, runs 0.04, error 4.82
+  KNOWN-LEG: no record shows AN3 or AR3 (new arms); AN3's reach at S362's year-3 step is shown by research/tests/adaptive-step.test.mjs at 4 points (every BELOW cell reads 0 under stepAll where the plant 'stepramp' reads 0.4618 just under the step) and printed in the run by the year-3 dying paths' share under AN3 (reduce-refstep.mjs's REPORTED); so item 2's FALSIFIED reads SMEAR's 'not' only with item 1 HELD (the whole in band: causeOf, a registered line), and item 2's HELD credits SMEAR only with item 1 HELD
+
+2. THE POWER (40 draws a cell through reduce-refstep.mjs's items() and pOf(); C and AN as the files hold them on S362 and S370, every other input drawn from the JUDGED stories at O191-SMEAR)
+  item 1, AN3 removes 0 of the year-3 dying paths' residual, no live-side over-read: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, AN3 removes 0.3 of the year-3 dying paths' residual, no live-side over-read: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN3 removes 0.6 of the year-3 dying paths' residual, no live-side over-read: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN3 removes 0.8 of the year-3 dying paths' residual, no live-side over-read: HELD 0.30 INCONCLUSIVE 0.70 FALSIFIED 0.00
+  item 1, AN3 removes 1 of the year-3 dying paths' residual, no live-side over-read: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, AN3 removes 1.2 of the year-3 dying paths' residual, no live-side over-read: HELD 0.17 INCONCLUSIVE 0.82 FALSIFIED 0.00
+  item 1, AN3 removes all of it with a live-side over-read of 0.1: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN3 removes all of it with a live-side over-read of 0.25: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, AN3 removes all of it with a live-side over-read of 0.4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN3's cell 0 of AN's in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, AN3's cell 0.2 of AN's in every world: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, AN3's cell 0.4 of AN's in every world: HELD 0.88 INCONCLUSIVE 0.13 FALSIFIED 0.00
+  item 2, AN3's cell 0.5 of AN's in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN3's cell 0.6 of AN's in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN3's cell 0.75 of AN's in every world: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, AN3's cell 0.9 of AN's in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, AN3's cell 1 of AN's in every world: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3, AN3's flips 0.75 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, AN3's flips 1.5 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, AN3's flips 3 times AN's outside the cell, the cell's own at its draw: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4, AR3 removes 1 of C's read error on S360 and S364: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4, AR3 removes 0.75 of C's read error on S360 and S364: HELD 0.40 INCONCLUSIVE 0.45 FALSIFIED 0.15
+  item 4, AR3 removes 0.5 of C's read error on S360 and S364: HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
+  item 4, AR3 removes 0.3 of C's read error on S360 and S364: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 5, AN3's live-side over-read 0 on S370 too, all of the smear removed: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 5, AN3's live-side over-read 0.25 on S370 too, all of the smear removed: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 5, AN3's live-side over-read 0.5 on S370 too, all of the smear removed: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 3 by household at the stories (each household by the mixture; one identical arms cannot clear reported only, harm still read): AN3 on S362: no material harm 1.00; AN3 on S370: no material harm 1.00; AR3 on S364: reported only 1.00; AR3 on S360: no material harm 1.00
+
+3. THE CREDENCES AS STATED (the receipt of 20 Oct 02:53 UK: O191-SMEAR=0.45; O191-TIE=0.2; O191-TRADE=0.08; O191-CLUCK=0.07; O191-REFOTHER=0.08; O191-OTHER=0.12; 1000 draws through items())
+  item 1: HELD 0.19 INCONCLUSIVE 0.79 FALSIFIED 0.02
+  item 2: HELD 0.41 INCONCLUSIVE 0.33 FALSIFIED 0.26
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4: HELD 0.62 INCONCLUSIVE 0.04 FALSIFIED 0.34
+  item 5: HELD 0.66 INCONCLUSIVE 0.23 FALSIFIED 0.11
+  decision rows: R1 0.05, R2 0.02, R3 0.00, R4 0.34, R5 0.02, else 0.56
+  item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): open 0.33; O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.32; open (AN3's whole not in band: the interaction) 0.22; O191-SMEAR 0.08; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.04
+  the chance the action changes (one less the likeliest row): 0.44
+  item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6518, 80% interval 0.0511 to 0.9848 (1000 of 1000 draws read)
+  item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.5408, 80% interval 0.1347 to 1.0247 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0125, 80% interval -0.0583 to 0.0208 (1000 of 1000 draws read)
+  item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5964, 80% interval 0.2015 to 2.4524 (1000 of 1000 draws read)
+  item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1427, 80% interval 0.0717 to 0.3523 (1000 of 1000 draws read)
+
+3b. THE CREDENCES WITH O191'S LEADING CAUSE AT THE LEAD RATE'S LOWER BOUND (results-scorecard.txt: 21 of 41, Laplace 0.51; the registered ones; 1000 draws through items())
+  item 1: HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.02
+  item 2: HELD 0.45 INCONCLUSIVE 0.31 FALSIFIED 0.23
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4: HELD 0.65 INCONCLUSIVE 0.03 FALSIFIED 0.32
+  item 5: HELD 0.64 INCONCLUSIVE 0.26 FALSIFIED 0.10
+  decision rows: R1 0.06, R2 0.02, R3 0.00, R4 0.31, R5 0.02, else 0.59
+  item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.37; open 0.31; open (AN3's whole not in band: the interaction) 0.20; O191-SMEAR 0.09; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.04
+  the chance the action changes (one less the likeliest row): 0.41
+  item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6595, 80% interval 0.0684 to 0.9869 (1000 of 1000 draws read)
+  item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.4953, 80% interval 0.1132 to 1.0063 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0125, 80% interval -0.0500 to 0.0208 (1000 of 1000 draws read)
+  item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5593, 80% interval 0.2040 to 2.4230 (1000 of 1000 draws read)
+  item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1466, 80% interval 0.0727 to 0.2847 (1000 of 1000 draws read)
+CREDENCE item 1: point 0.6595 HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.02
+CREDENCE item 2: point 0.4953 HELD 0.45 INCONCLUSIVE 0.31 FALSIFIED 0.23
+CREDENCE item 3: point -0.0125 HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+CREDENCE item 4: point 0.5593 HELD 0.65 INCONCLUSIVE 0.03 FALSIFIED 0.32
+CREDENCE item 5: point 0.1466 HELD 0.64 INCONCLUSIVE 0.26 FALSIFIED 0.10
+CREDENCE else 0.59
+
+3c. THE SAME AT THE SETTLED-SINCE RATE (results-scorecard.txt: 21 of 23, Laplace 0.88; printed beside)
+  item 1: HELD 0.17 INCONCLUSIVE 0.81 FALSIFIED 0.01
+  item 2: HELD 0.70 INCONCLUSIVE 0.24 FALSIFIED 0.06
+  item 3: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 4: HELD 0.63 INCONCLUSIVE 0.03 FALSIFIED 0.35
+  item 5: HELD 0.68 INCONCLUSIVE 0.22 FALSIFIED 0.09
+  decision rows: R1 0.08, R2 0.01, R3 0.00, R4 0.34, R5 0.01, else 0.56
+  item 2's cause reading (reduce-refstep.mjs causeOf, with item 1's whole): O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole) 0.58; open 0.24; O191-SMEAR 0.12; open (AN3's whole not in band: the interaction) 0.04; O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X 0.01
+  the chance the action changes (one less the likeliest row): 0.44
+  item 1's point (the least share of AN's smear leaving S362's read error from bridge years 1 to 3 under AN3, across the worlds): median 0.6635, 80% interval 0.0851 to 0.9881 (1000 of 1000 draws read)
+  item 2's point (AN3's year-1 cell as a share of AN's on the mixture): median 0.3049, 80% interval 0.0601 to 0.6648 (1000 of 1000 draws read)
+  item 3's point (the least survival change by the mixture of any household read, points): median -0.0083, 80% interval -0.0500 to 0.0208 (1000 of 1000 draws read)
+  item 4's point (the largest read error from year 1 in size under AR3 across S364's and S360's worlds read, points): median 0.5942, 80% interval 0.2562 to 2.3941 (1000 of 1000 draws read)
+  item 5's point (the largest move of S370's read error from year 3 on, AN3 less AN, in size across the worlds, points): median 0.1386, 80% interval 0.0692 to 0.2780 (1000 of 1000 draws read)
+
+4. THE BUDGET (grade C on S362 and S370, D on S364 and S360: REF-B's AN 2150 s on S362 and 2201 s on S370, its AR 2069 s on S362; C 2096 s on S362 and 2481 s on S370; AN3 and AR3 at a fifth more, judged)
+  the jobs in the batch's order: S370 AN3 0.73 h; S370 AN 0.61 h; S370 C 0.69 h; S362 AN3 0.72 h; S362 AN 0.60 h; S362 C 0.58 h; S364 AR3 0.69 h; S364 C 0.58 h; S360 AR3 0.69 h; S360 C 0.58 h
+  6.47 job-hours; four at a time in that order, the wall about 1.90 h

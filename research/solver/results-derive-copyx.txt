@@ -1,0 +1,75 @@
+COPY-X'S DERIVATION (predictions/diag-copyx.md)
+
+1. THE RECORDS
+  S370, STEP-O182's C and SNR (the candidate as it stands, seed 7002, 4000 paths a world, behind STEP-O182's gate): C's tables 49.0987, 87.9402, 98.2445, runs 1602, 3472, 3959 of 4000; world 0's table less runs C 9.0487, SNR 4.8436
+  C's world-0 GB per path: mean 8.1473 points, sd 4.5023; SNR's world-0 Y5 per path: mean 1.7015 points, sd 1.0999
+  C against SNR, discordant runs by world: 61 (0.0159 of 4p(1 - p) of the paths), 31 (0.0169 of 4p(1 - p) of the paths), 7 (0.0431 of 4p(1 - p) of the paths); SNR's lost and saved against C by world: 28 lost, 33 saved; 17 lost, 14 saved; 6 lost, 1 saved
+  SNR's runs by world 1607, 3469, 3954 of 4000; SNR less C, the whole score by world: 0.1316, -0.0643, -0.1100 points
+  stated (grade A by the reducer's inert gate once read): C and SNR on the new code with the copy rule off reproduce these bit for bit, so they enter the draws as they are
+  the PRIOR (the receipt of 19 Oct 03:55 UK, grade C, one-year counterfactuals with the backups held, its clip [0, 1]): the in-row extrapolation takes SNR's world-0 Y5 from 1.7015 to 0.7811 (a removal of 0.54), and C's Y3 from 4.1047 to -0.3938 and Y7 from 6.4586 to 1.7844 (9.17 points of C's world-0 GB of 8.15, 1.13 of it with the other years held)
+
+2. THE POWER (40 draws a cell through reduce-copyx.mjs's items(); C's GB, SNR's Y5 and C's runs as recorded, 4000 paths a world)
+  item 1, SNRX removes 0 of SNR's Y5 (noise x0.5): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 1, SNRX removes 0.25 of SNR's Y5 (noise x0.5): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, SNRX removes 0.4 of SNR's Y5 (noise x0.5): HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 1, SNRX removes 0.55 of SNR's Y5 (noise x0.5): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, SNRX removes 0.75 of SNR's Y5 (noise x0.5): HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, a removal of 0.6, noise x0.25: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 1, a removal of 0.6, noise x1: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, CX removes 0 of C's GB: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 2, CX removes 0.25 of C's GB: HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03
+  item 2, CX removes 0.4 of C's GB: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 2, CX removes 0.6 of C's GB: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 2, CX removes 0.9 of C's GB: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, CX removes 0.3 of GB and SNRX 0.2 of Y5, 0 of each moving elsewhere: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00 | the review's reading: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, CX removes 0.5 of GB and SNRX 0.3 of Y5, 0 of each moving elsewhere: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00 | the review's reading: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, CX removes 0.9 of GB and SNRX 0.55 of Y5, 0 of each moving elsewhere: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00 | the review's reading: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  item 3, CX removes 0.9 of GB and SNRX 0.55 of Y5, 0.4 of each moving elsewhere: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00 | the review's reading: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, CX removes 0.9 of GB and SNRX 0.55 of Y5, 0.8 of each moving elsewhere: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | the review's reading: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 3, CX removes 0 of GB and SNRX 0.55 of Y5, 0 of each moving elsewhere: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | the review's reading: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  item 4, the copy rule's survival change -0.6 a world against each arm's control (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | the review's legs (SNRX against C, from SNR's saved paths): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00 | the second output's draw (SNRX against C from C's runs): HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  item 4, the copy rule's survival change -0.25 a world against each arm's control (discordance 0.03 of 4p(1 - p)): HELD 0.00 INCONCLUSIVE 0.30 FALSIFIED 0.70 | the review's legs (SNRX against C, from SNR's saved paths): HELD 0.00 INCONCLUSIVE 0.05 FALSIFIED 0.95 | the second output's draw (SNRX against C from C's runs): HELD 0.00 INCONCLUSIVE 0.33 FALSIFIED 0.68
+  item 4, the copy rule's survival change 0 a world against each arm's control (discordance 0.03 of 4p(1 - p)): HELD 0.20 INCONCLUSIVE 0.75 FALSIFIED 0.05 | the review's legs (SNRX against C, from SNR's saved paths): HELD 0.00 INCONCLUSIVE 0.97 FALSIFIED 0.03 | the second output's draw (SNRX against C from C's runs): HELD 0.15 INCONCLUSIVE 0.80 FALSIFIED 0.05
+  item 4, the copy rule's survival change 0.25 a world against each arm's control (discordance 0.03 of 4p(1 - p)): HELD 0.63 INCONCLUSIVE 0.38 FALSIFIED 0.00 | the review's legs (SNRX against C, from SNR's saved paths): HELD 0.57 INCONCLUSIVE 0.42 FALSIFIED 0.00 | the second output's draw (SNRX against C from C's runs): HELD 0.65 INCONCLUSIVE 0.35 FALSIFIED 0.00
+
+3. THE CREDENCES AS THE RECEIPT STATES THEM (the receipt of 19 Oct 03:55 UK: O186-CFLAT=0.7; O186-BLEND=0.05; O186-CHOOSER=0.03; O186-OTHER=0.22; S370-COPY=0.85; S370-GRID=0.04; S370-CLIP=0.02; S370-OTHER=0.09; 2000 draws through items())
+  item 1: HELD 0.51 INCONCLUSIVE 0.25 FALSIFIED 0.24
+  item 2: HELD 0.88 INCONCLUSIVE 0.04 FALSIFIED 0.08
+  item 3: HELD 0.42 INCONCLUSIVE 0.37 FALSIFIED 0.21
+  item 4: HELD 0.13 INCONCLUSIVE 0.69 FALSIFIED 0.18
+  item 3 as the review set it (the better arm's, 97.5% intervals), on the same draws: HELD 0.56 INCONCLUSIVE 0.43 FALSIFIED 0.00
+  item 4 as the review set it (SNRX against C, its paths from SNR's saved ones), on the same draws: HELD 0.05 INCONCLUSIVE 0.66 FALSIFIED 0.28; the second output's draw (SNRX against C from C's runs): HELD 0.12 INCONCLUSIVE 0.70 FALSIFIED 0.18
+  the SNRX leg's world-2 survival change against SNR, points: median 0.0000, 80% interval -0.2000 to 0.2000
+  decision rows: R1 0.33, R2 0.19, R3 0.02, R4 0.18, else 0.28; with item 4 as the review set it: R1 0.29, R2 0.16, R3 0.01, R4 0.28, else 0.26
+  the chance the action changes (one less the likeliest row): 0.67
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.28
+  item 1's point (the share of SNR's world-0 Y5 SNRX removes): median 0.5365, 80% interval 0.0149 to 0.7503
+  item 2's point (the share of C's world-0 GB CX removes): median 0.8992, 80% interval 0.2985 to 1.1010
+  item 3's point (CX's drop in world 0's table less runs against C, points): median 4.3995, 80% interval 0.7924 to 8.3325
+  item 4's point (CX's survival change against C in world 0, points): median 0.0000, 80% interval -0.4250 to 0.4250
+  as stated, item 1: point 0.5365 HELD 0.51 INCONCLUSIVE 0.25 FALSIFIED 0.24
+  as stated, item 2: point 0.8992 HELD 0.88 INCONCLUSIVE 0.04 FALSIFIED 0.08
+  as stated, item 3: point 4.3995 HELD 0.42 INCONCLUSIVE 0.37 FALSIFIED 0.21
+  as stated, item 4: point 0.0000 HELD 0.13 INCONCLUSIVE 0.69 FALSIFIED 0.18
+
+3b. THE CREDENCES WITH EACH QUESTION'S LEADING CAUSE AT THE RECORD'S RATE (results-scorecard.txt: 0.43, 15 of 35; O186-CFLAT 0.43, O186-BLEND 0.10, O186-CHOOSER 0.06, O186-OTHER 0.42; S370-COPY 0.43, S370-GRID 0.15, S370-CLIP 0.08, S370-OTHER 0.34; 2000 draws through items())
+  item 1: HELD 0.31 INCONCLUSIVE 0.24 FALSIFIED 0.45
+  item 2: HELD 0.53 INCONCLUSIVE 0.14 FALSIFIED 0.33
+  item 3: HELD 0.23 INCONCLUSIVE 0.34 FALSIFIED 0.44
+  item 4: HELD 0.12 INCONCLUSIVE 0.74 FALSIFIED 0.14
+  item 3 as the review set it (the better arm's, 97.5% intervals), on the same draws: HELD 0.39 INCONCLUSIVE 0.61 FALSIFIED 0.00
+  item 4 as the review set it (SNRX against C, its paths from SNR's saved ones), on the same draws: HELD 0.02 INCONCLUSIVE 0.73 FALSIFIED 0.25; the second output's draw (SNRX against C from C's runs): HELD 0.12 INCONCLUSIVE 0.75 FALSIFIED 0.13
+  the SNRX leg's world-2 survival change against SNR, points: median -0.0250, 80% interval -0.1750 to 0.1250
+  decision rows: R1 0.18, R2 0.07, R3 0.13, R4 0.14, else 0.47; with item 4 as the review set it: R1 0.16, R2 0.06, R3 0.12, R4 0.25, else 0.40
+  the chance the action changes (one less the likeliest row): 0.53
+  escalation trigger 3 (a run over 2 hours with the 'else' row at 0.6 or more): else 0.47
+  item 1's point (the share of SNR's world-0 Y5 SNRX removes): median 0.3498, 80% interval -0.0000 to 0.7455
+  item 2's point (the share of C's world-0 GB CX removes): median 0.5951, 80% interval 0.0001 to 1.0982
+  item 3's point (CX's drop in world 0's table less runs against C, points): median 2.4442, 80% interval -0.0000 to 7.3325
+  item 4's point (CX's survival change against C in world 0, points): median 0.0000, 80% interval -0.4000 to 0.3750
+CREDENCE item 1: point 0.3498 HELD 0.31 INCONCLUSIVE 0.24 FALSIFIED 0.45
+CREDENCE item 2: point 0.5951 HELD 0.53 INCONCLUSIVE 0.14 FALSIFIED 0.33
+CREDENCE item 3: point 2.4442 HELD 0.23 INCONCLUSIVE 0.34 FALSIFIED 0.44
+CREDENCE item 4: point 0.0000 HELD 0.12 INCONCLUSIVE 0.74 FALSIFIED 0.14
+
+4. THE BUDGET (grade C: STEP-O182's C, solve 776 s and ledger 1258 s, and SNR, solve 1149 s and ledger 1208 s, on 12,000 paths): C and CX about 0.56 h each, SNR and SNRX about 0.65 h each; four jobs on four cores, the wall about 0.65 h

@@ -1,0 +1,11 @@
+# reader-tax.test.mjs at 4063429, run 5 Oct (4 points; S130, S370, bridge 4, S126, S130 with taxed earnings, S126 all-ISA, S000)
+  ok  1. readerTax refuses no reader and bridgeStep exact
+  ok  1b. readerTax with readerAcc refuses at a read
+  ok  2. off carries no tax; S000 identical on and off; S130 reads differ at 52 of 52 failing band states (meta 1:6227)
+  ok  3. every edge position's support is the flow's (108); today's support calls 24 failing positions supported
+  ok  4. no edge state misread (2000); with tauBar 0, 17 misread
+  ok  5. all-ISA: readerTax on equals off at every node (6 tables) and at 41 band reads (tauBar 1250); the planted payable differs at 15
+  ok  6. through readValues, no edge position or edge-band state misread on 4 more households: S370 (steps 3,7, tauBar 6227,6227): edge 216, band 2000, today false support 48, width-0 misreads 30; bridge 4 (steps 3, tauBar 1250): edge 108, band 1000, today false support 6, width-0 misreads 0; S126 (steps 1, tauBar 1250): edge 108, band 1000, today false support 6, width-0 misreads 0; S130 + earnings (steps 1, tauBar 2112): edge 108, band 1000, today false support 12, width-0 misreads 0
+  ok  7. node reproduction with readerTax and coverage: 9072 nodes over 6 tables (324 in the band), largest miss 1.1e-16; with p taken as 1, 0.999
+  ok  8. the tax table with e3 on and with the ternary level search equals readerTax's alone (d0, tauBar, payable at 500 band states a step year); S126's differs
+reader-tax: 9 checks passed

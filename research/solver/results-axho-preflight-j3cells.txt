@@ -1,0 +1,16 @@
+AX-HO's second preflight (runs.log 17 Oct 20:14 UK), J3 (S360 under A6RS's settings, a fifteenth of the points, 40 paths a world, seed 7004): the engine leg's per-cell lines, copied from results/axho-preflight/main/case3.txt (the stamp line first)
+stamp: code d2a982e80436 audit e2a3589f4f1f prediction none sha -
+                 tail J3/P60S6Q5 0 0: records 4 states 4 years 2,3,4,5 p 5.5470e-4 | simulated 8.1250e-4 ln -0.3817 (-0.4904 to -0.2699) ok | engine 0.0000e+0 ln Infinity (-3.7157 to Infinity) ok
+                 tail J3/P60S6Q5 0 1: records 14 states 14 years 2,3,4,5,6 p 3.3630e-3 | simulated 3.6686e-3 ln -0.0870 (-0.1143 to -0.0595) ok | engine 3.5714e-3 ln -0.0601 (-1.3398 to 2.0503) ok
+                 tail J3/P60S6Q5 0 2: records 15 states 15 years 1,2,3,4 p 2.2752e-2 | simulated 2.3116e-2 ln -0.0159 (-0.0263 to -0.0055) ok | engine 3.8333e-2 ln -0.5217 (-0.9178 to -0.0721) ok
+                 tail J3/P60S6Q5 0 3: records 117 states 25 years 1,2,3,4,5,6 p 2.2183e-1 | simulated 2.2152e-1 ln 0.0014 (-0.0009 to 0.0037) ok | engine 2.2000e-1 ln 0.0083 (-0.1074 to 0.1305) ok
+                 tail J3/P60S6Q5 1 0: records 5 states 5 years 3,4 p 6.8656e-4 | simulated 1.0180e-3 ln -0.3939 (-0.4807 to -0.3051) ok | engine 0.0000e+0 ln Infinity (-3.2816 to Infinity) ok
+                 tail J3/P60S6Q5 1 1: records 11 states 11 years 2,3,4,5,6 p 4.6380e-3 | simulated 4.8373e-3 ln -0.0421 (-0.0689 to -0.0151) ok | engine 2.2727e-3 ln 0.7133 (-0.9992 to 4.3896) ok
+                 tail J3/P60S6Q5 1 2: records 9 states 9 years 2,3,4,5 p 2.8155e-2 | simulated 2.8127e-2 ln 0.0010 (-0.0111 to 0.0132) ok | engine 3.8889e-2 ln -0.3230 (-0.8272 to 0.2734) ok
+                 tail J3/P60S6Q5 1 3: records 117 states 25 years 1,2,3,4,5,6 p 4.6003e-1 | simulated 4.6003e-1 ln 0.0000 (-0.0013 to 0.0014) ok | engine 4.8400e-1 ln -0.0508 (-0.1138 to 0.0163) ok
+                 tail J3/P60S6Q5 2 0: records 1 states 1 years 4 p 6.2334e-4 | simulated 8.8000e-4 ln -0.3448 (-0.5534 to -0.1243) ok | engine 0.0000e+0 ln Infinity (-4.9511 to Infinity) ok
+                 tail J3/P60S6Q5 2 1: records 4 states 4 years 3,4,5 p 3.1787e-3 | simulated 3.6625e-3 ln -0.1417 (-0.1928 to -0.0899) ok | engine 0.0000e+0 ln Infinity (-1.9699 to Infinity) ok
+                 tail J3/P60S6Q5 2 2: records 2 states 2 years 3,5 p 2.3591e-2 | simulated 2.3435e-2 ln 0.0066 (-0.0217 to 0.0351) ok | engine 2.5000e-2 ln -0.0580 (-1.3097 to 2.0483) ok
+                 tail J3/P60S6Q5 2 3: records 90 states 25 years 1,2,3,4,5 p 5.6437e-1 | simulated 5.6452e-1 ln -0.0003 (-0.0014 to 0.0008) ok | engine 5.6600e-1 ln -0.0029 (-0.0562 to 0.0541) ok
+                 refTail J3/P60S6Q5: cells 12 off 0; engine off 0; 100000 runs a state simulated, 40 in the engine on its own draws, secs 86
+                 checks J3/P60S6Q5: engTook 5600/5600

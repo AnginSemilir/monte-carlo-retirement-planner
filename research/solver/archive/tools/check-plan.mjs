@@ -1,0 +1,547 @@
+/*
+ * THE PLAN CHECKER (RULES.md: how each rule is enforced). Run by the git pre-commit hook, by GitHub CI on every push,
+ * and by Claude Code's Stop hook before a turn may end. Everything it checks is mechanical; the judgement calls go to
+ * the plan-auditor agent (.claude/agents/plan-auditor.md).
+ *
+ *   node research/solver/check-plan.mjs              the working tree; new lines against the upstream branch (or HEAD)
+ *   node research/solver/check-plan.mjs --staged     what is staged; new lines against HEAD (the pre-commit hook)
+ *   node research/solver/check-plan.mjs --range A..B commit B; new lines are those added between A and B (CI)
+ *
+ * WHOLE-FILE CHECKS
+ *   checklist   PLAN.md points to research/solver/CHECKLIST.md (or carries a word-for-word copy); the file has at most 12 items
+ *   variables   RULES.md's variable table is exactly fair-variables.mjs's list
+ *   clock       PLAN.md declares its clock (UK time)
+ *   ledger      every re-look ledger row has an evidence cell: results files that exist, the fair-test outcome and the
+ *               prediction (or "decision:" for a maintainer decision); every decimal figure in the settled-result cell
+ *               appears in a cited results file; a failed fair test is marked PROVISIONAL
+ *   register    every open odd result has an owner and a gate to be resolved by; a row below materiality reads "noted,
+ *               below materiality: <largest plausible effect on the panel mean, under 0.1 points> (evidence: ...)"
+ *   bugs        every bug entry from 24 Sep on says "Same pattern searched:"
+ *   schedule    every pending schedule row that names a batch script names its registered prediction
+ *   predictions every prediction file the plan names exists and passes check-prediction.mjs
+ *   finished    no "COMPLETED" section is left in PLAN.md (it moves to PLAN-HISTORY.md)
+ *   defaults    the decided-defaults block parses (plan-defaults.test.mjs compares it with the code)
+ *   retro       every test in results-scorecard.txt after lessons.md's seed has its close in lessons.md ("## <test>
+ *               (closed <D Mon HH:MM>)"), 1 to 5 lines, each with a trigger code and a disposition (AUTOMATE, REPLACE or
+ *               DROP), naming every code of the BLOCKING findings receipted since the close before (RULES.md section 10)
+ *   budget      RULES.md at most RULES_BUDGET bytes; PLAN.md over PLAN_BUDGET is refused when archive-plan.mjs has rows to
+ *               move, and only warned about when it has none
+ * NEW-LINE CHECKS (lines this change adds to PLAN.md)
+ *   no-effect   "unaffected", "does not change", "no effect" ... carry "evidence:" of grade A or B (RULES.md section 8), or
+ *               "NOT CHECKED", on the same line
+ *   claims      "settled", "shows", "causes", "costs nothing", used as a claim (not "not settled", "until settled" ...),
+ *               carry a grade A or B citation, or NOT CHECKED or PROVISIONAL, on the same line (RULES.md section 8)
+ *   grade       a new ledger row's evidence cell names its evidence grade, A to D (a maintainer's decision row excepted)
+ *   clock       no new time is written in UTC
+ */
+import { readFileSync, existsSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { join, dirname, posix } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { markdownTable } from './fair-variables.mjs';
+import { checkPredictionText } from './check-prediction.mjs';
+import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween, minuteKey, escalationOne, escalationTests, escalationLine } from './triggers.mjs';
+import { planMoves, cutoffOf, archiveOpts } from './archive-plan.mjs';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO = join(HERE, '../..');
+export const MAX_CHECKLIST = 12;
+export const BUG_SWEEP_FROM = 24;
+export const PLAN_BUDGET = 650000, RULES_BUDGET = 72000;   // bytes (the feedback loop, 30 Sep: the always-read files)
+// THE PLAN'S SHAPE (the process review, deep-review-log.md 4 Oct 13:52 UK, item 9; the maintainer's unlock of 4 Oct): a new
+// table row is at most ROW_CAP bytes and an edited row over it may not grow (detail goes to research/solver/items/<id>.md,
+// the row keeping a pointer; the 7u row had reached 18,685 characters); a new figure in an edited register or schedule row
+// is in a results file the row cites, as the ledger's are; the premise register's code anchors match the files; and a
+// status word written about another item outside its own row is reported (one source for each item's status)
+export const ROW_CAP = 3000;
+// a struck-through key (~~7x~~, read as cancelled at the schedule check) is the same row (the plan-auditor's MINOR 6 of 4 Oct)
+const rowKey = l => { const k = (/^\| ([^|]+?) \|/.exec(l) || [])[1]; return k && k.replace(/~~/g, '').trim(); };
+// a figure matches as a whole number in the source: 0.404 does not pass against 0.4045 (the plan-auditor's MINOR 5)
+const hasFig = (text, x) => [x, x.replace(/^[-+]/, '')].some(y => new RegExp(`(?<![\\d.])${y.replace(/[.+-]/g, '\\$&')}(?![\\d])`).test(text));
+const FIG = /[-+]?\d+\.\d+/g;
+export function shapeProblems({ added = [], removed = [], readSolverFile, solverFileExists, plan = '' }) {
+  const P = [], W = [], old = new Map(removed.filter(l => l.startsWith('|')).map(l => [rowKey(l), l]));
+  const regKeys = new Set((tableAfter(plan, '## Odd results register')?.rows || []).map(r => r.cells[0]));
+  const S = between(plan, '## The schedule', '\n## ') ?? '', schKeys = new Set(S.split('\n').filter(l => l.startsWith('|')).map(rowKey).filter(Boolean));
+  for (const raw of added.filter(l => l.startsWith('|'))) {
+    const k = rowKey(raw), was = old.get(k), bl = x => Buffer.byteLength(x.replace(/~~/g, '')), n = bl(raw);
+    if (n > ROW_CAP && (!was || n > bl(was))) P.push(`row "${String(k).slice(0, 20)}" is ${n} bytes${was ? `, grown from ${bl(was)}` : ''}: a new row is at most ${ROW_CAP} and a longer row may not grow - move its detail to research/solver/items/<id>.md and keep a pointer`);
+    if (regKeys.has(k) || schKeys.has(k)) {
+      const before = new Set(((was || '').replace(/−/g, '-').match(FIG)) || []);
+      const fresh = [...new Set((raw.replace(/−/g, '-').match(FIG)) || [])].filter(x => !before.has(x) && !before.has(x.replace(/^[-+]/, '')));
+      if (fresh.length) {
+        // sources: a results file, a prediction, runs.log or a results/<dir>/<file> the row cites
+        const files = [...new Set([...raw.matchAll(/\b(?:results-[\w.-]+\.txt|predictions\/[\w.-]+\.md|runs\.log|results\/[\w.-]+\/[\w.-]+)/g)].map(m => m[0]))].filter(f => solverFileExists(f));
+        const text = files.map(f => readSolverFile(f)).join('\n').replace(/−/g, '-');
+        const miss = fresh.filter(x => !hasFig(text, x));
+        if (miss.length) P.push(`row "${k}": the new figure${miss.length > 1 ? 's' : ''} ${miss.slice(0, 4).join(', ')} ${files.length ? `not in ${files.join(', ')}` : 'with no results file cited in the row'} (figures come from a script's output)`);
+      }
+      // a status word about another item, written outside that item's own row
+      for (const m of raw.matchAll(/\b(7[a-z]{1,2}|PMAP|COV|DPC|E3c)\b (REGISTERED|LAUNCHED|RUNNING|BUILT)\b/g)) if (m[1] !== k) W.push(`row "${k}" restates ${m[1]}'s status (${m[2]}): one source for each item's status is its own schedule row - point to it instead`);
+    }
+  }
+  // the premise register
+  const PR = tableAfter(plan, '## Premises at risk');
+  if (!PR) P.push('no table under "## Premises at risk" (| id | premise | code anchor | the test or diagnostic that would falsify it | status |; the process review, 4 Oct)');
+  else for (const { cells } of PR.rows) {
+    const [id, , anchor = ''] = cells, a = /([\w./-]+\.(?:m?js|cjs|sh)):(\d+)\s+"([^"]{6,})"/.exec(anchor);
+    if (!a) { P.push(`premise ${id}: its code anchor reads <path>:<line> "<snippet>"`); continue; }
+    const f = [a[1], `../../${a[1]}`, `../../src/solver/${a[1]}`].find(x => solverFileExists(x));
+    if (!f) { P.push(`premise ${id}: ${a[1]} does not exist`); continue; }
+    const L = readSolverFile(f).split('\n'), ln = Number(a[2]);
+    if (!L.slice(Math.max(0, ln - 6), ln + 5).join('\n').includes(a[3])) P.push(`premise ${id}: "${a[3].slice(0, 40)}" is not within five lines of ${a[1]}:${ln} (the code moved: re-anchor it, or the premise changed)`);
+  }
+  return { problems: P, warnings: W };
+}
+export const LESSON_LINES = [1, 5];   // bug entries dated this day of Sep 2026 and later need the sweep line
+
+const norm = s => s.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+const between = (text, a, b) => { const i = text.indexOf(a); if (i < 0) return null; const j = text.indexOf(b, i + a.length); return j < 0 ? null : text.slice(i + a.length, j); };
+const cellsOf = line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map(c => c.trim());
+
+function tableAfter(text, marker) {
+  const i = text.indexOf(marker);
+  if (i < 0) return null;
+  const lines = text.slice(i + marker.length).split('\n');
+  let k = 0; while (k < lines.length && !lines[k].trim().startsWith('|')) { if (lines[k].trim() && k > 3) return null; k++; }
+  const rows = [];
+  for (; k < lines.length && lines[k].trim().startsWith('|'); k++) rows.push(lines[k]);
+  return rows.length >= 2 ? { header: cellsOf(rows[0]), rows: rows.slice(2).map(r => ({ raw: r, cells: cellsOf(r) })) } : null;
+}
+
+/* strip what should not trigger the no-effect check: quotations, code, struck-through text */
+function unquoted(line, strike = { open: false, paired: false }) {
+  // a strikethrough can span lines: start struck if the paragraph opened one above, and drop one that runs off the end -
+  // but only in a paragraph whose ~~ pair up, so a stray ~~ strikes nothing (a claim after it is still read)
+  let l = (strike.open ? '~~' : '') + line;
+  l = l.replace(/~~[^~]*~~/g, ' ');
+  if (strike.paired) l = l.replace(/~~.*$/, ' ');
+  return l.replace(/`[^`]*`/g, ' ').replace(/"[^"]*"/g, ' ').replace(/“[^”]*”/g, ' ');
+}
+/* where this line sits in its paragraph's strikethroughs: open = it starts inside one opened above; paired = the
+   paragraph's ~~ come in pairs (an odd count means a stray, and then nothing spans lines) */
+function strikeAt(planLines, line) {
+  const i = planLines.indexOf(line);
+  if (i < 0) return { open: false, paired: false };
+  let a = i, b = i, above = 0, total = 0;
+  while (a > 0 && planLines[a - 1].trim()) a--;
+  while (b + 1 < planLines.length && planLines[b + 1].trim()) b++;
+  for (let k = a; k <= b; k++) { const n = (planLines[k].match(/~~/g) || []).length; total += n; if (k < i) above += n; }
+  const paired = total % 2 === 0;
+  return { open: paired && above % 2 === 1, paired };
+}
+export const NO_EFFECT = /\b(unaffected|not affected|does not (change|affect|matter)|doesn't (change|affect|matter)|do not (change|affect)|don't (change|affect)|no effect|cannot (change|affect)|can't (change|affect)|makes no difference|never changes)\b/i;
+const EVIDENCED = /(evidence:|not checked|proof:)/i;
+// the regimen's claim linting (RULES.md section 8, evidence item 1): a claim word needs a grade A or B citation
+// the claim forms only: "is settled", "settled by / that / :", "shows that", "shows no", "causes", "costs nothing" - not
+// "a settled result", "the table shows" or "until it is settled"
+export const CLAIM = /\b(?:is|are|was|were|now|thus|so|hence)\s+(settled)\b|\b(settled)\s*(?::|\bby\b|\bthat\b)|\b(shows)\s+(?:that|no)\b|(?<!\bthe\s)\b(causes)\b|\b(costs nothing)\b/i;
+const NOT_A_CLAIM = /\b(?:not|never|nothing|until|once|when|if|before|whether|is it|was it)\s+(?:yet\s+|been\s+|be\s+|is\s+|was\s+)?settled\b|\bsettles nothing\b|\bunsettled\b/gi;
+const GRADE_AB = /\bgrade [AB]\b/i;
+// strong words the deep review's first retirement pass found behind most overclaim findings (3 Oct 18:09 UK: overclaim in 4 of
+// 5 closes, 7 BLOCKINGs): 'ruled out', 'excluded', 'clean' (a household, control or unit), 'cured', 'calibrated', 'not jitter',
+// 'no harm' - each, in lower case (an item's printed outcome, CALIBRATED, is not one), needs a grade A or B citation on the
+// same line or NOT CHECKED / PROVISIONAL; a negated form ('not ruled out', 'uncalibrated') is not a claim
+export const STRONG = /\b(ruled out|excluded|clean (?:households?|controls?|units?)|cured|calibrated|not jitter|no harm)\b/i;   // any case: 'Ruled out:' and 'EXCLUDED' count (the plan-auditor's MINOR 2 of 3 Oct 18:42 UK)
+const NOT_STRONG = /\b(?:not|never|nor|cannot be|can't be)\s+(?:yet\s+|be\s+|been\s+)?(?:ruled out|excluded|cured|calibrated)\b|\buncalibrated\b/gi;
+// a reducer's printed outcome in capitals beside its item ('reads CALIBRATED', '-> CALIBRATED') is the rule's word, not a claim
+const OUTCOME_WORD = /(?:\breads?|->|:)\s*CALIBRATED\b/g;
+
+/* the retro: each scored test after the seed has its close; returns the problems as strings */
+// THE REPLACE FOLLOW-THROUGH (the process review, deep-review-log.md 4 Oct 13:52 UK: seven REPLACE texts from the 7aq to 7at
+// closes landed in no file; the maintainer's unlock of 4 Oct): a REPLACE line in a close from REPLACE_FROM on names its
+// target ("in <path>") and its new text ("with: <text>"), and once a later close exists the target holds that text's first
+// 40 characters (spaces collapsed); the lines before it were written into the skill under the same unlock
+export const REPLACE_FROM = minuteKey('4 Oct 14:30 UK');
+// THE REPORTED-LINE GRADE (the lesson of 13 Oct, [T:overclaim]: O143's reported line graded B, the plan-auditor's FAIL of
+// 13 Oct 01:43 UK, and O156's of 15 Oct; built on the maintainer's go-ahead after the retirement pass of 15 Oct): an added
+// plan line may not grade A or B the figures its cited results files print only under REPORTED.
+// the lines of a results file a reducer prints under REPORTED: a line opening REPORTED (or "SECONDARY, REPORTED"), and the
+// lines indented under it
+export function reportedLines(text) {
+  const out = new Set(); let at = -1;
+  String(text).replace(/−/g, '-').split('\n').forEach((l, i) => {
+    const ind = l.length - l.trimStart().length, t = l.trim();
+    if (/^(SECONDARY, )?REPORTED\b/.test(t)) { at = ind; out.add(i); return; }
+    if (at >= 0 && t && ind > at) { out.add(i); return; }
+    if (t) at = -1;
+  });
+  return out;
+}
+// a grade A or B given to figures the cited results files print only under REPORTED: each figure (three decimals or more)
+// belongs to the grade mention nearest it on the line ("grade B", "C for ..."), unless NOT CHECKED stands between them;
+// returns the problems
+export function reportedGradeProblems(line, read, exists) {
+  const P = [], t = String(line).replace(/−/g, '-');
+  if (/\breported,? (?:and )?grade [AB]\b/i.test(t)) P.push('it calls a line reported and grades it A or B (a REPORTED line is grade C)');
+  const grades = [...t.matchAll(/\bgrade ([ABCD])\b|\b([ABCD]) for\b/g)].map(m => ({ g: m[1] || m[2], at: m.index }));
+  if (!grades.some(x => /[AB]/.test(x.g))) return P;
+  const files = [...new Set(t.match(/results-[\w.-]+\.txt/g) || [])].filter(exists);
+  if (!files.length) return P;
+  const L = files.flatMap(f => { const s = String(read(f)).replace(/−/g, '-'), rep = reportedLines(s); return s.split('\n').map((x, i) => ({ x, rep: rep.has(i) })); });
+  const by = new Map();
+  for (const m of t.matchAll(/[-+]?\d+\.\d{3,}/g)) {
+    const f = m[0].replace(/^\+/, ''), hit = L.filter(o => o.x.includes(f));
+    if (!hit.length) continue;
+    const near = grades.reduce((a, b) => (Math.abs(b.at - m.index) < Math.abs(a.at - m.index) ? b : a));
+    if (!/[AB]/.test(near.g)) continue;
+    if (/NOT CHECKED/.test(t.slice(Math.min(near.at, m.index), Math.max(near.at, m.index)))) continue;   // a figure marked unchecked is not graded
+    const e = by.get(near.at) || { g: near.g, item: 0, rep: [] }; by.set(near.at, e);
+    if (hit.some(o => !o.rep)) e.item++; else e.rep.push(f);
+  }
+  for (const e of by.values()) if (e.rep.length && !e.item) P.push(`its grade ${e.g} rests on figures the cited results print only under REPORTED (${e.rep.slice(0, 3).join(', ')}): a reported line is grade C`);
+  return P;
+}
+
+export function replaceProblems(L, readFile) {
+  const P = [], norm = x => String(x).replace(/\s+/g, ' ').trim();
+  // "the next close" is the next in time, not in the file (the second unlock of 5 Oct: HYB's close sits above COV-B-STEP's)
+  const byTime = L.closes.filter(c => c.at !== null).sort((a, b) => a.at - b.at), penult = byTime[byTime.length - 2];
+  L.closes.forEach(c => {
+    if (c.at === null || c.at < REPLACE_FROM) return;
+    for (const l of c.lines.filter(x => /\bREPLACE\b/.test(x))) {
+      const tgt = (/\bin ([\w./-]+\.(?:md|mjs|js|sh|cjs))\b/.exec(l.split('REPLACE')[1] || '') || [])[1], w = (/\bwith:\s*(.{40,})/.exec(l) || [])[1];
+      if (!tgt || !w) { P.push(`${c.test}: a REPLACE line needs "in <target file>" and "with: <the new text, 40 characters or more>" ("${l.slice(0, 50)}")`); continue; }
+      // checked at the next close only: a later rewording of the target is the next change's business (the auditor's MINOR 6)
+      if (c !== penult) continue;
+      const txt = readFile ? readFile(tgt) : null;
+      if (txt === null) P.push(`${c.test}: the REPLACE target ${tgt} does not exist`);
+      else if (!norm(txt).includes(norm(w).slice(0, 40))) P.push(`${c.test}: its REPLACE text has not landed in ${tgt} by the next close ("${norm(w).slice(0, 40)}")`);
+    }
+  });
+  return P;
+}
+export function retroProblems({ lessons, scorecard, reviewLog, readFile }) {
+  // any name without a space (the second unlock of 5 Oct, RULES.md limit 29: /^(\w+)/ skipped ADOPT-PI and COV-B-STEP)
+  const P = [], tests = [...String(scorecard ?? '').matchAll(/^(\S+) \(.*\): Brier /gm)].map(m => m[1]);
+  if (lessons === null) return tests.length ? ['lessons.md is missing (RULES.md section 10: it holds the seed and every close)'] : [];
+  const L = lessonsOf(lessons);
+  if (!L.seed || L.seed.at === null) return ['lessons.md has no seed line "Seed: after <test> (<D Mon HH:MM>)"'];
+  const from = tests.indexOf(L.seed.test);
+  if (from < 0) return [`lessons.md's seed names ${L.seed.test}, which is not in results-scorecard.txt`];
+  const receipts = receiptsOf(reviewLog ?? '');
+  const found = [];
+  for (const t of tests.slice(from + 1)) {
+    const c = L.closes.find(x => x.test === t);
+    if (!c) { P.push(`${t} is scored but lessons.md has no "## ${t} (closed <D Mon HH:MM>)" entry: write its lessons`); continue; }
+    if (c.at === null) { P.push(`${t}: the close's time "${c.when}" does not parse`); continue; }
+    found.push({ t, c });
+  }
+  // each close's window of BLOCKING findings runs from the close before it in time (the second unlock: the scorecard's
+  // order is not the closes' order, so a close scored later but closed earlier left a window part-covered)
+  found.sort((a, b) => a.c.at - b.c.at);
+  let prev = L.seed.at;
+  for (const { t, c } of found) {
+    if (c.lines.length < LESSON_LINES[0] || c.lines.length > LESSON_LINES[1]) P.push(`${t}: ${c.lines.length} lesson lines, need ${LESSON_LINES[0]} to ${LESSON_LINES[1]}`);
+    const named = new Set();
+    for (const l of c.lines) {
+      const g = tagsIn(l);
+      if (g.unknown.length) P.push(`${t}: "${l.slice(0, 50)}" has an unknown code (${g.unknown.join(', ')})`);
+      if (!g.tags.length && !g.unknown.length) P.push(`${t}: "${l.slice(0, 50)}" names no trigger code [T:<code>]`);
+      if (!/\b(AUTOMATE|REPLACE|DROP)\b/.test(l)) P.push(`${t}: "${l.slice(0, 50)}" has no disposition (AUTOMATE, REPLACE or DROP)`);
+      g.tags.forEach(x => named.add(x));
+    }
+    const missed = [...blockingCodesBetween(receipts, prev, c.at)].filter(x => !named.has(x));
+    if (missed.length) P.push(`${t}: the BLOCKING findings since the last close carry ${missed.map(x => `[T:${x}]`).join(', ')}, which no lesson names`);
+    prev = Math.max(prev, c.at);
+  }
+  return [...P, ...replaceProblems(L, readFile)];
+}
+export function checkPlan({ plan, rules, checklist, added = [], removed = [], addedItems = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
+  const E = [];
+  const err = (check, msg) => E.push(`[${check}] ${msg}`);
+
+  // checklist
+  const items = checklist.split('\n').filter(l => /^\s*\d+\.\s/.test(l));
+  if (!items.length) err('checklist', 'CHECKLIST.md has no numbered items');
+  if (items.length > MAX_CHECKLIST) err('checklist', `CHECKLIST.md has ${items.length} items; at most ${MAX_CHECKLIST} (long rule lists are followed less - RULES.md)`);
+  // ONE COPY (the maintainer, 26 Sep 18:02 UK: "Do all"): PLAN.md points to CHECKLIST.md instead of carrying a copy; a copy
+  // that is still there must match word for word, so the two can never drift
+  const block = between(plan, '<!-- checklist:start -->', '<!-- checklist:end -->');
+  if (block === null) { if (!/research\/solver\/CHECKLIST\.md/.test(plan)) err('checklist', 'PLAN.md neither points to research/solver/CHECKLIST.md nor carries its copy'); }
+  else if (norm(block) !== norm(checklist)) err('checklist', "PLAN.md's checklist block differs from research/solver/CHECKLIST.md (copy it across word for word, or replace the block with a pointer to the file)");
+
+  // variables
+  const vt = between(rules, '<!-- variables:start -->', '<!-- variables:end -->');
+  if (vt === null) err('variables', 'RULES.md has no <!-- variables:start --> ... <!-- variables:end --> block');
+  else if (norm(vt) !== norm(markdownTable())) err('variables', "RULES.md's variable table differs from fair-variables.mjs (regenerate: node research/solver/fair-variables.mjs --markdown)");
+
+  // clock
+  if (!/\*\*Clock\.\*\*\s+Times in this file are UK time/.test(plan)) err('clock', 'PLAN.md must declare "**Clock.** Times in this file are UK time ..."');
+
+  // ledger
+  const L = tableAfter(plan, '**The re-look ledger**');
+  if (!L) err('ledger', 'no table under "**The re-look ledger**"');
+  else {
+    const h = L.header.map(x => x.toLowerCase());
+    if (h.length !== 4 || h[3] !== 'evidence') err('ledger', `the ledger header must be | date | the settled result | what it changed | evidence | (found ${L.header.length} columns)`);
+    for (const { cells } of L.rows) {
+      const tag = `row "${(cells[0] || '').slice(0, 20)}"`;
+      if (cells.length !== 4) { err('ledger', `${tag}: ${cells.length} cells, need 4`); continue; }
+      const ev = cells[3];
+      if (/\bdecision:/i.test(ev) && !/results:/i.test(ev)) continue;
+      for (const k of ['results:', 'fair-test:', 'prediction:']) if (!ev.toLowerCase().includes(k)) err('ledger', `${tag}: the evidence cell needs "${k}"`);
+      const files = [...ev.matchAll(/results-[\w.-]+\.txt/g)].map(m => m[0]);
+      for (const f of files) if (!solverFileExists(f)) err('ledger', `${tag}: cites ${f}, which does not exist`);
+      const preds = [...ev.matchAll(/predictions\/[\w.-]+\.md/g)].map(m => m[0]);
+      for (const p of preds) if (!solverFileExists(p)) err('ledger', `${tag}: cites ${p}, which does not exist`);
+      const ft = /fair-test:\s*([^;|]*)/i.exec(ev);
+      if (ft) {
+        const v = ft[1].trim().toLowerCase();
+        if (!/^(pass|fail|n\/a|accepted)/.test(v)) err('ledger', `${tag}: fair-test must be pass, fail, n/a or accepted (found "${ft[1].trim().slice(0, 20)}")`);
+        else if (/^(n\/a|accepted)/.test(v) && v.replace(/^(n\/a|accepted)/, '').replace(/[\s:,()-]/g, '').length < 6) err('ledger', `${tag}: fair-test ${v.split(/\s/)[0]} needs a reason`);
+        if (/^fail/.test(v) && !/(provisional|not settled)/i.test(cells.join(' '))) err('ledger', `${tag}: a failed fair test must be marked PROVISIONAL`);
+        // a row whose title reads a verdict settles a result, so its fair test is not n/a: the deep-review index counts a row
+        // naming a prediction as settled only when its fair-test cell is not n/a (the maintainer's unlock of 15 Oct; a
+        // registration row had made a review due twice in a night)
+        const title = (/\*\*([^*]*)\*\*/.exec(cells[1] || '') || [])[1] || '';
+        if (/^n\/a/.test(v) && /\b(READ|FALSIFIED|INCONCLUSIVE)\b|\bitems? [\d, and]+ HELD\b/.test(title)) err('ledger', `${tag}: its title reads a verdict, so its fair test cannot be n/a (the deep-review index would not count it as a settled result)`);
+      }
+      const pr = /prediction:\s*([^;|]*)/i.exec(ev);
+      if (pr && !/predictions\/[\w.-]+\.md/.test(pr[1]) && pr[1].replace(/^\s*none\b/i, '').replace(/[\s:,()-]/g, '').length < 6) err('ledger', `${tag}: prediction "none" needs a reason`);
+      // every decimal figure in the settled result must be in a cited results file
+      const figs = [...cells[1].replace(/−/g, '-').matchAll(/[-+]?\d+\.\d+/g)].map(m => m[0]);
+      if (figs.length) {
+        if (!files.length) err('ledger', `${tag}: quotes figures (${figs.slice(0, 3).join(', ')}) but cites no results file`);
+        else {
+          const text = files.filter(f => solverFileExists(f)).map(f => readSolverFile(f)).join('\n').replace(/−/g, '-');
+          for (const x of figs) if (!text.includes(x) && !text.includes(x.replace(/^[-+]/, ''))) err('ledger', `${tag}: the figure ${x} is not in ${files.join(', ')} (figures come from a script's output)`);
+        }
+      }
+    }
+  }
+
+  // register
+  const R = tableAfter(plan, '## Odd results register');
+  if (!R) err('register', 'no table under "## Odd results register"');
+  else {
+    const want = ['id', 'what', 'found', 'owner', 'resolve by', 'status'];
+    if (R.header.map(x => x.toLowerCase()).join('|') !== want.join('|')) err('register', `the register header must be | ${want.join(' | ')} |`);
+    const seen = new Set();
+    for (const { cells } of R.rows) {
+      const [id, what, , owner, by, status = ''] = cells;
+      if (seen.has(id)) err('register', `${id}: duplicate id`); seen.add(id);
+      if (!what) err('register', `${id}: says nothing`);
+      const st = status.toLowerCase();
+      if (!/^(open|resolved|closed|noted)\b/.test(st)) err('register', `${id}: status must start with open, resolved, closed or noted`);
+      if (/^noted/.test(st)) {
+        const est = /([\d.]+)\s*points?\b/.exec(st);
+        if (!/^noted, below materiality\b/.test(st) || !est || !(Number(est[1]) < 0.1) || !/evidence:/.test(st)) err('register', `${id}: a noted row reads "noted, below materiality: <the largest plausible effect on the panel mean, under 0.1 points> (evidence: ...)" (RULES.md section 8)`);
+      }
+      if (/^open/.test(st) && (!owner || owner === '-' || owner === '?' || !by || by === '-' || by === '?')) err('register', `${id}: an open odd result needs an owner and a gate to be resolved by`);
+      if (/^(resolved|closed)/.test(st) && st.replace(/^(resolved|closed)/, '').replace(/[\s:,()-]/g, '').length < 6) err('register', `${id}: say how it was resolved or why it was closed`);
+    }
+  }
+
+  // bugs
+  const lines = plan.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    // "Bugs found on" as well as "Bugs found and fixed on": the 26 Sep section's heading had escaped the check (found 26 Sep
+    // while re-anchoring its planted test)
+    const m = /^###\s+Bugs found(?: and fixed)? on (\d+) Sep/.exec(lines[i]);
+    if (!m || Number(m[1]) < BUG_SWEEP_FROM) continue;
+    let k = i + 1, cur = null;
+    const bullets = [];
+    for (; k < lines.length && !/^#{1,3}\s/.test(lines[k]); k++) {
+      if (/^- /.test(lines[k])) { cur = [lines[k]]; bullets.push(cur); } else if (cur && /^\s+\S/.test(lines[k])) cur.push(lines[k]); else if (!lines[k].trim()) cur = null;
+    }
+    for (const b of bullets) if (!/Same pattern searched:/i.test(b.join(' '))) err('bugs', `${m[1]} Sep: "${b[0].slice(2, 60)}..." has no "Same pattern searched:" line`);
+  }
+
+  // schedule
+  const S = between(plan, '## The schedule', '\n## ') ?? '';
+  for (const row of S.split('\n').filter(l => l.startsWith('|'))) {
+    const c = cellsOf(row);
+    if (!/batch-[\w.-]+\.sh/.test(row)) continue;
+    if (/~~/.test(c[0] || '') || /\b(done|cancelled|expired)\b/i.test(c[c.length - 1] || '')) continue;
+    if (!/predictions\/[\w.-]+\.md/.test(row)) err('schedule', `pending row "${(c[0] || '').slice(0, 10)} ${(c[1] || '').slice(0, 40)}" names a batch but no registered prediction (predictions/<name>.md)`);
+  }
+
+  // predictions named anywhere in the plan
+  for (const p of new Set([...plan.matchAll(/predictions\/[\w.-]+\.md/g)].map(m => m[0]))) {
+    if (!solverFileExists(p)) { err('predictions', `${p} is named in the plan but does not exist`); continue; }
+    const errs = checkPredictionText(readSolverFile(p), { name: p });
+    if (errs.length) err('predictions', `${p}: ${errs[0]}${errs.length > 1 ? ` (+${errs.length - 1} more)` : ''}`);
+  }
+
+  // finished sections belong in the history
+  for (const l of lines) if (/^#{2,3}\s.*\bCOMPLETED\b/.test(l)) err('finished', `"${l.slice(0, 60)}" is finished: move it to PLAN-HISTORY.md`);
+
+  // decided defaults
+  const dd = between(plan, '<!-- decided-defaults', '-->');
+  if (dd === null) err('defaults', 'PLAN.md has no <!-- decided-defaults {json} --> block');
+  else { try { JSON.parse(dd); } catch (e) { err('defaults', `the decided-defaults block is not JSON: ${e.message}`); } }
+
+  // the retro (RULES.md section 10)
+  const opt = f => (solverFileExists(f) ? readSolverFile(f) : null);
+  const lessonsText = lessons !== undefined ? lessons : opt('lessons.md');
+  for (const p of retroProblems({ readFile: f => { for (const c of [f, `../../${f}`]) { try { if (solverFileExists(c)) return readSolverFile(c); } catch { /* not readable */ } } return null; }, lessons: lessonsText, scorecard: scorecard !== undefined ? scorecard : opt('results-scorecard.txt'), reviewLog: reviewLog !== undefined ? reviewLog : opt('review-log.md') })) err('retro', p);
+
+  // the budget of the always-read files
+  const rb = Buffer.byteLength(rules ?? ''), pb = Buffer.byteLength(plan);
+  if (rb > RULES_BUDGET) err('budget', `RULES.md is ${rb} bytes, over its ${RULES_BUDGET}: cut or retire a rule before adding one`);
+  if (pb > PLAN_BUDGET) {
+    let m = null; try { m = planMoves(plan, cutoffOf(lessonsText ?? ''), archiveOpts(lessonsText ?? '', opt('deep-review-log.md') ?? '')); } catch (e) { err('budget', `PLAN.md is ${pb} bytes and archive-plan.mjs cannot read it (${e.message})`); }
+    const k = m ? m.reg.length + m.led.length + m.sch.length : 0;
+    if (m && k) err('budget', `PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, and archive-plan.mjs has ${k} rows to move: node research/solver/archive-plan.mjs --apply`);
+    else if (m) warnings.push(`PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, with nothing archivable: shorten live rows`);
+  }
+
+  for (const w of stalePhrases({ plan, added, removed })) warnings.push(`stale? ${w}`);
+  // escalation trigger 1 (escalation.md; the maintainer's unlock of 15 Oct): warned at every check while it fires and
+  // escalation.md's log has no run dated on or after the second test's close
+  if (lessons) {
+    const rd = f => { try { return readSolverFile(f); } catch { return ''; } };
+    const e = escalationOne(escalationTests(lessonsOf(lessons).closes, rd));
+    if (e.fires) {
+      const last = e.tests[e.tests.length - 1];
+      const logged = [...String(rd('escalation.md')).matchAll(/^\| (\d{1,2} \w{3}) \| /gm)].some(m => minuteKey(`${m[1]} 23:59`) >= last.at);
+      if (!logged) warnings.push(`${escalationLine(e)}; escalation.md logs no run since ${last.name}'s close`);
+    }
+  }
+  { const sh = shapeProblems({ added, removed, readSolverFile, solverFileExists, plan }); for (const p of sh.problems) err('shape', p); for (const w of sh.warnings) warnings.push(w); }
+  // new lines
+  const planLines = plan.split('\n');
+  const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));
+  for (const raw of added) {
+    const line = unquoted(raw, strikeAt(planLines, raw));
+    if (raw.startsWith('|')) for (const q of reportedGradeProblems(raw, readSolverFile, solverFileExists)) err('grade', `"${raw.trim().slice(0, 60)}...": ${q}`);
+    if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
+    else if (NO_EFFECT.test(line) && !/not checked/i.test(raw) && !GRADE_AB.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs evidence of grade A or B, named on the same line ("grade A" or "grade B"; RULES.md section 8)`);
+    if (CLAIM.test(line.replace(NOT_A_CLAIM, ' ')) && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${CLAIM.exec(line.replace(NOT_A_CLAIM, ' ')).slice(1).find(Boolean)}" is a claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (RULES.md section 8)`);
+    { const st = STRONG.exec(line.replace(OUTCOME_WORD, ' ').replace(NOT_STRONG, ' ')); if (st && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${st[1]}" is a strong claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (the deep review's retirement pass, 3 Oct 18:09 UK)`); }
+    const lc = ledgerRow.get(raw.trim());
+    if (lc && lc.length === 4 && !(/\bdecision:/i.test(lc[3]) && !/results:/i.test(lc[3])) && !/\bgrade [ABCD]\b/i.test(lc[3])) err('grade', `row "${(lc[0] || '').slice(0, 20)}": a new ledger row names its evidence grade in the evidence cell ("grade A" to "grade D"; RULES.md section 8)`);
+    if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);
+  }
+  // GATE TESTS (RULES.md section 4 row 14; the maintainer's decision and unlock of 7 Oct, after the O55 unit test passed its
+  // plants where the faults could not show): a new line recording a gate met by a research/tests file names the design
+  // review of that test (`design review: <D Mon HH:MM> UK`); that receipt in deep-review-log.md names the test file and the
+  // blob it reviewed, which must be the file's blob now - an edit after the review needs a new review. It reads the new
+  // lines of items/*.md too, where 7u's conditions are cleared, and any wording of a gate or condition met, passed,
+  // cleared or left (the deep review of 7 Oct 11:42 UK: 'condition met', 'leaves 7u's gates' and 'gate passed' escaped
+  // the first version, which read 'gate met' in PLAN.md alone)
+  const drLog = opt('deep-review-log.md') ?? '';
+  for (const [raw, inPlan] of [...added.map(x => [x, true]), ...addedItems.map(x => [x, false])]) {
+    const line = inPlan ? unquoted(raw, strikeAt(planLines, raw)) : raw;
+    if (!gateMet(line)) continue;
+    const tests = gateTestsIn(raw, f => solverFileExists(`../tests/${f}`));
+    if (!tests.length) continue;
+    const head = `"${raw.trim().slice(0, 60)}..."`;
+    const dr = /design review:\s*(\d{1,2} [A-Z][a-z]{2} \d{2}:\d{2}) UK/.exec(raw);
+    if (!dr) { err('gate tests', `${head} records a gate met by ${tests.join(', ')} with no "design review: <D Mon HH:MM> UK" (RULES.md section 4 row 14)`); continue; }
+    const receipt = drLog.split('\n').find(x => x.startsWith(`- ${dr[1]} UK |`));
+    if (!receipt) { err('gate tests', `${head}: no deep-review-log.md receipt at ${dr[1]} UK`); continue; }
+    let named = true;
+    for (const t of tests) {
+      const rel = `../tests/${t}`;
+      if (!solverFileExists(rel)) { named = false; err('gate tests', `${head}: research/tests/${t} does not exist`); continue; }
+      const blob = blobOf(readSolverFile(rel)).slice(0, 12);
+      if (!receipt.includes(t)) { named = false; err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}`); }
+      else if (!receipt.includes(`blob ${blob}`)) { named = false; err('gate tests', `${head}: the design review of ${dr[1]} UK does not name ${t}'s blob as it stands (blob ${blob}): the test changed after its review, or the receipt names no blob`); }
+    }
+    // the verdict (the maintainer's unlock of 20 Oct; the design review of 20 Oct 13:40 UK, its enforcement flag): a receipt
+    // naming the test and its blob counts only if its own verdict passes the test, not whatever it says
+    const v = receiptVerdict(receipt);
+    if (named && !v.ok) err('gate tests', `${head}: the design review of ${dr[1]} UK does not read GATE-READY (its verdict: ${v.text ? `"${v.text.slice(0, 60)}"` : 'none'})`);
+  }
+  return E;
+}
+// a design review's verdict: the receipt's first unquoted "VERDICT:" (so a verdict quoted later, inside a proposal, does
+// not count), read up to its sentence's end; it passes a test only as GATE-READY or "... MAY BE RECORDED MET ...", and never
+// with NOT or CANNOT in it (the receipt of 7 Oct 19:01 UK reads 'VERDICT: O55's gate MAY BE RECORDED MET on blob ...';
+// those of 20 Oct 13:40 and 18 Oct 11:52 UK 'NOT GATE-READY' and 'NOT READY')
+export function receiptVerdict(receipt) {
+  const m = /(?<!['"\u2018\u201c])\bVERDICT:\s*([^.;]*)/.exec(String(receipt || ''));
+  if (!m) return { ok: false, text: '' };
+  const text = m[1].trim();
+  return { ok: (/^GATE-READY\b/.test(text) || /\bMAY BE RECORDED MET\b/.test(text)) && !/\b(?:NOT|CANNOT)\b/.test(text), text };
+}
+// a gate or condition recorded met, passed, cleared or left (not "not met"), and the research/tests files a line cites:
+// a results file reads as its test
+export const GATE_WORD = /\b(?:gates?|conditions?)\b/i;
+export const GATE_DONE = /\b(?:met|meets|pass(?:ed|es)?|cleared|satisfied|leaves?|left)\b/i;
+export const GATE_NOT = /\bnot\s+(?:yet\s+)?(?:met|passed|cleared|satisfied)\b|\b(?:still|remains?)\s+open\b/i;
+export const gateMet = line => GATE_WORD.test(line) && GATE_DONE.test(line) && !GATE_NOT.test(line);
+export const GATE_TEST_FILE = /research\/tests\/([\w.-]+?\.(?:test\.mjs|txt))\b/g;
+// the tests a line cites: by path, a test file by bare name, or a results file by bare name when research/tests holds it
+// (a bare 'results-solver-q-tsj-6pts.txt' escaped the path-only match, the 7 Oct unlock)
+export const gateTestsIn = (raw, inTests = () => false) => [...new Set([
+  ...[...raw.matchAll(GATE_TEST_FILE)].map(m => m[1]),
+  ...[...raw.matchAll(/(?<![\w/.-])([\w.-]+\.test\.mjs)\b/g)].map(m => m[1]),
+  ...[...raw.matchAll(/(?<![\w/.-])(results-[\w.-]+\.txt)\b/g)].map(m => m[1]).filter(inTests),
+].map(gateTestOf))];
+export const gateTestOf = f => (f.endsWith('.test.mjs') ? f : `${f.replace(/^results-/, '').replace(/\.txt$/, '').replace(/-\d+pts?$/, '')}.test.mjs`);
+// git's blob id of a text, as `git hash-object` prints it
+export const blobOf = text => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
+
+/* ---- reading the tree, the index or a commit ---- */
+const git = (cmd, opts = {}) => execSync(`git ${cmd}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20, ...opts }).toString();
+// the paths are normalised: git resolves no '..' inside a commit's tree, and the premise anchors and REPLACE targets name
+// files outside research/solver (../../src/solver/reader.js); unnormalised, --range failed on every push from 2f20a76 (the
+// plan-auditor's BLOCKING 1 of 4 Oct)
+const relOf = p => posix.normalize(`research/solver/${p}`);
+export function source(mode, rev) {
+  const rel = relOf;
+  if (mode === 'staged') return p => { try { return git(`show :${rel(p)}`); } catch { return readFileSync(join(HERE, p), 'utf8'); } };
+  if (mode === 'rev') return p => git(`show ${rev}:${rel(p)}`);
+  return p => readFileSync(join(HERE, p), 'utf8');
+}
+export function exists(mode, rev) {
+  if (mode === 'rev') return p => { try { git(`cat-file -e ${rev}:${relOf(p)}`); return true; } catch { return false; } };
+  if (mode === 'staged') return p => { try { git(`cat-file -e :${relOf(p)}`); return true; } catch { return existsSync(join(HERE, p)); } };
+  return p => existsSync(join(HERE, p));
+}
+function addedLines(diffText) { return diffText.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1)); }
+function removedLines(diffText) { return diffText.split('\n').filter(l => l.startsWith('-') && !l.startsWith('---')).map(l => l.slice(1)); }
+/* STALE PHRASES (the deep review's first retirement pass, 3 Oct 18:09 UK: stale in 3 of 5 closes; the 10:08 and 18:13 FAILs
+   were a correction made in one row while the same phrase stood in another): a clause of 40 characters or more that an edit
+   removed from a line, that no added line carries, but that still stands elsewhere in the plan. A report, not a refusal
+   (an old ledger row may quote it on purpose): each is listed for the author and the reviewer to look at */
+export function stalePhrases({ plan, added = [], removed = [] }) {
+  const out = [], seen = new Set(), now = String(plan), addedText = added.join('\n');
+  for (const line of removed) for (const frag of line.split(/[.;:|()]\s+|\s+-\s+|\*\*/).map(x => x.trim()).filter(x => x.length >= 40)) {
+    if (seen.has(frag) || addedText.includes(frag) || !now.includes(frag)) continue;
+    seen.add(frag);
+    const where = now.split('\n').find(l => l.includes(frag)) || '';
+    out.push(`"${frag.slice(0, 80)}" was edited out of a line and still stands in "${where.trim().slice(0, 30)}"`);
+  }
+  return out;
+}
+
+export function runCli(argv = process.argv.slice(2)) {
+  let mode = 'tree', rev = null, added = [], removed = [], addedItems = [], base = null;
+  const PLAN = 'research/solver/PLAN.md';
+  try {
+    if (argv.includes('--staged')) { mode = 'staged'; const d = git(`diff --cached -U0 -- ${PLAN}`); added = addedLines(d); removed = removedLines(d); base = 'HEAD'; }
+    else if (argv.find(a => a.startsWith('--range'))) {
+      const r = (argv.find(a => a.startsWith('--range=')) || '').slice(8) || argv[argv.indexOf('--range') + 1];
+      const [a, b] = r.split('..');
+      mode = 'rev'; rev = b || 'HEAD';
+      if (a && !/^0+$/.test(a)) { try { git(`cat-file -e ${a}^{commit}`); base = a; } catch { base = null; } }
+      if (!base) { try { base = git(`merge-base origin/main ${rev}`).trim(); } catch { base = null; } }
+      const d = base ? git(`diff -U0 ${base} ${rev} -- ${PLAN}`) : ''; added = addedLines(d); removed = removedLines(d);
+    } else {
+      try { base = git('rev-parse --abbrev-ref --symbolic-full-name @{upstream}').trim(); } catch { base = 'HEAD'; }
+      const d = git(`diff -U0 ${base} -- ${PLAN}`); added = addedLines(d); removed = removedLines(d);
+    }
+    // the item files' new lines, for the gate-tests check (7u's conditions are cleared there)
+    const ITEMS = 'research/solver/items';
+    addedItems = addedLines(mode === 'staged' ? git(`diff --cached -U0 -- ${ITEMS}`) : mode === 'rev' ? (base ? git(`diff -U0 ${base} ${rev} -- ${ITEMS}`) : '') : git(`diff -U0 ${base} -- ${ITEMS}`));
+  } catch (e) { console.error(`check-plan: git failed (${e.message.split('\n')[0]})`); return 2; }
+  const read = source(mode, rev), has = exists(mode, rev);
+  const warnings = [];
+  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, removed, addedItems, readSolverFile: read, solverFileExists: has, warnings });
+  for (const w of warnings) console.log(`WARNING: ${w}`);
+  if (errs.length) {
+    console.log(`PLAN CHECK FAILED (${errs.length}) - ${mode === 'rev' ? `commit ${rev}` : mode}${base ? `, new lines against ${/^[0-9a-f]{40}$/.test(base) ? base.slice(0, 12) : base}` : ''}:`);
+    for (const e of errs) console.log(`  ${e}`);
+    console.log('Fix the plan; do not bypass the check (RULES.md). The rules: research/solver/RULES.md.');
+    return 1;
+  }
+  console.log(`plan check passed (${mode}${base ? `, ${added.length} new line(s) against ${/^[0-9a-f]{40}$/.test(base) ? base.slice(0, 12) : base}` : ''})`);
+  return 0;
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) process.exit(runCli());

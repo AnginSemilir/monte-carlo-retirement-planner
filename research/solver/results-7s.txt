@@ -1,0 +1,40 @@
+7s: DOES 15-POINT SAMPLING STOP THE READER OVERRATING THE TIER? Read against research/solver/predictions/diag-7s.md
+
+FAIR-TEST GATE: passed - the stamps, and on both cases the four arms ran the same settings but the bridge read and the return points, at the registered settings (seed 7002, 3000 paths, 16 points)
+
+case       arm         table    sim    gap  tier-below  below   solve s
+S126       OFF          55.8   99.8  -44.0        40.0    1.6       430
+S126       READER       99.6   99.3    0.2         8.7    2.7       432
+S126       OFF@15       68.2   99.8  -31.7        40.0    1.6       899
+S126       READER@15    99.7   99.3    0.4         8.1    2.8       911
+bridge 4   OFF           7.8   99.4  -91.6        41.9    4.0       458
+bridge 4   READER       99.1   99.0    0.1        14.9    5.0       473
+bridge 4   OFF@15       13.2   99.4  -86.2        41.9    4.0       945
+bridge 4   READER@15    99.2   99.0    0.2        14.7    5.0       973
+
+PAIRED on the same paths (saved/lost), the survival change in points with its exact 95% interval:
+  S126      READER-OFF         0/15  -0.50 (-0.50 to -0.28)
+  S126      OFF@15-OFF         0/0  +0.00 (0.00 to 0.00)
+  S126      OFF@15-READER      15/0  +0.50 (0.28 to 0.50)
+  S126      READER@15-OFF      0/16  -0.53 (-0.53 to -0.31)
+  S126      READER@15-READER   0/1  -0.03 (-0.03 to 0.03)
+  S126      READER@15-OFF@15   0/16  -0.53 (-0.53 to -0.31)
+  bridge 4  READER-OFF         0/12  -0.40 (-0.40 to -0.19)
+  bridge 4  OFF@15-OFF         0/1  -0.03 (-0.03 to 0.03)
+  bridge 4  OFF@15-READER      12/1  +0.37 (0.12 to 0.43)
+  bridge 4  READER@15-OFF      0/13  -0.43 (-0.43 to -0.22)
+  bridge 4  READER@15-READER   2/3  -0.03 (-0.15 to 0.12)
+  bridge 4  READER@15-OFF@15   0/12  -0.40 (-0.40 to -0.19)
+
+THE RULE, per case (g: the reader at 15 against the reader at 5; h: the reader at 15 against off at 15; Holm over the two cases):
+  S126      g -0.03 (-0.03 to 0.03), p for a gain 1.0e+0 (Holm) -> no material gain; h -0.53 (-0.53 to -0.31), p for harm 3.1e-5 (Holm) -> harms; the case does not cure
+  bridge 4  g -0.03 (-0.15 to 0.12), p for a gain 1.0e+0 (Holm) -> no material gain; h -0.40 (-0.40 to -0.19), p for harm 2.4e-4 (Holm) -> harms; the case does not cure
+
+THE PREDICTION'S ITEMS:
+1. the 5-point arms reproduce 7r (tables and survival to 0.1, the reader's saved and lost against off): both cases -> held
+2. the outcome is FALSIFIED: FALSIFIED -> held
+3. off at 15 points against off at 5 shows no material change on either case (the exact 95% interval inside +/-0.25): S126 0/0 (0.00 to 0.00), bridge 4 0/1 (-0.03 to 0.03) -> held
+4. the reader at 15 points holds the pension below its tier no more than 3 years more than at 5, on both: S126 -0.6, bridge 4 -0.2 -> held
+5. the reader's table at 15 points reads within 1 point of its simulation, on both: S126 gap 0.4, bridge 4 gap 0.2 -> held
+
+OUTCOME: FALSIFIED

@@ -1,0 +1,84 @@
+=== a MEASUREMENT, not a test:  HO-DEP's preflight, second launch (items/HO-DEP.md): the first passed all but the plant arm, refused by R1's guard ahead of footTook; the arm plant now declares K1F unfixed so footTook must catch it; the four jobs at a fifteenth of the points, 40 paths a world, seed 7004, the reducer's gate, K1F against FOOT-S366's preflight K1F, the eight plants (its results cannot settle a test)
+seeds: 7004 (second seed (replication))
+=== snapshot /tmp/solver-snap-QklHD6   from 6bac163 + 4 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+=== smoke run on code 01abacb478e9 (smoke stamp 6f2347e368a2): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+m0 exit 0
+m1 exit 0
+m2 exit 0
+m3 exit 0
+A: solve CAND K1F/P30S6Q5: table 28.5207 secs 528
+A: ran CAND K1F/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switch
+A: guard K1F/P30S6Q5: readerRef adaptive fix true declared unfixed false floor 35000 (the product's rule 35000)
+A: checks K1F/P30S6Q5: armTook 1/1
+A: adaptive K1F/P30S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 332.5
+A: checks K1F/P30S6Q5: adaptTook 1/1
+A: foot K1F/P30S6Q5: on live nodes 369
+A: checks K1F/P30S6Q5: footTook 1/1
+A: whole K1F/P30S6Q5 0: mean 39.482273 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: whole K1F/P30S6Q5 1: mean 66.889574 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: whole K1F/P30S6Q5 2: mean 70.720557 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: checks K1F/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 640/640 layerTook 640/640 scoreTook 120/120 secs 17
+A: score legs K1F/P30S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND K2/P30S6Q5: table 27.7848 secs 348
+A: guard K2/P30S6Q5: readerRef order fix false declared unfixed false floor 35000 (the product's rule 35000)
+A: checks K2/P30S6Q5: armTook 1/1
+A: foot K2/P30S6Q5: off live nodes -1
+A: checks K2/P30S6Q5: footTook 1/1
+A: whole K2/P30S6Q5 0: mean 39.588173 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: whole K2/P30S6Q5 1: mean 66.844343 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: whole K2/P30S6Q5 2: mean 70.724339 spending years 46 of 46 floor level 0.8 scale 180000 cap 720000 death charge 0
+A: checks K2/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 640/640 layerTook 640/640 scoreTook 120/120 secs 14
+A: score legs K2/P30S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND A/P30S6Q5: table 56.4765 secs 532
+A: ran CAND A/P30S6Q5: bridgeRead reader bridgeStep exact readerSplit rs readerBlend null readerRef adaptive readerChance null tierState 0/0,1/1,2/2 jointWorlds true e3pcls true switchMa
+A: guard A/P30S6Q5: readerRef adaptive fix true declared unfixed false floor 104000 (the product's rule 104000)
+A: checks A/P30S6Q5: armTook 1/1
+A: adaptive A/P30S6Q5: moves 24 nonMono 0 lattice 160x41x3 nz 128 last year 7 secs 365.9
+A: checks A/P30S6Q5: adaptTook 1/1
+A: foot A/P30S6Q5: on live nodes 369
+A: checks A/P30S6Q5: footTook 1/1
+A: whole A/P30S6Q5 0: mean 35.876521 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole A/P30S6Q5 1: mean 81.252196 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole A/P30S6Q5 2: mean 108.619384 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks A/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 836/836 layerTook 836/836 scoreTook 120/120 secs 21
+A: score legs A/P30S6Q5: scorePaths 120/120 counters 120/120
+A: solve CAND O/P30S6Q5: table 55.7692 secs 316
+A: guard O/P30S6Q5: readerRef order fix false declared unfixed false floor 104000 (the product's rule 104000)
+A: checks O/P30S6Q5: armTook 1/1
+A: foot O/P30S6Q5: off live nodes -1
+A: checks O/P30S6Q5: footTook 1/1
+A: whole O/P30S6Q5 0: mean 35.847494 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole O/P30S6Q5 1: mean 81.268446 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: whole O/P30S6Q5 2: mean 108.619384 spending years 46 of 46 floor level 0.8 scale 2400000 cap 9600000 death charge 0
+A: checks O/P30S6Q5: ownTook 120/120 identity 120/120 qfTook 836/836 layerTook 836/836 scoreTook 120/120 secs 18
+A: score legs O/P30S6Q5: scorePaths 120/120 counters 120/120
+A. GATE: passed - K1F, K2, A and O once and done at the registered settings (40 paths a world, scale 15, seed 7004; S362 and S370 at 30 points); each job's reference and split in its solve's meta, its floor the product's rule's, R1's guard; the fix on K1F and A with an A = 0 node alive and off on K2 and O; every self-check in full, scoreTook among them; the files, their moves and whole scores the logs' PREFLIGHT K1F: S362, foot on, live nodes 369, world-0 whole score 39.4823 PREFLIGHT K2: S362, foot off, live nodes -1, world-0 whole score 39.5882 PREFLIGHT A: S370, foot on, live nodes 369, world-0 whole score 35.8765 PREFLIGHT O: S370, foot off, live nodes -1, world-0 whole score 35.8475 PREFLI
+B. FOOT-S366's preflight K1F against this code's: SAME: identical (132 arrays both carry)
+C. plant arm exit 3: audit-hodep: S362 K1F/P30S6Q5: the fix is not as asked in the reference's own record, or acted nowhere in an inflow household
+C. plant guard exit 3: audit-hodep: S370 A/P30S6Q5: the job's settings did not take
+C. plant own exit 3: audit-hodep: S362 K1F/P30S6Q5: the ledger does not close on every path (ownTook 0/120 identity 120/120)
+C. plant layer exit 3: audit-hodep: S362 K1F/P30S6Q5: the ledger does not close on every path (ownTook 120/120 identity 48/120)
+C. plant quad exit 3: audit-hodep: S362 K1F/P30S6Q5: the fine rule's machinery does not reproduce the one-step value (qfTook 409/640)
+C. plant held exit 3: audit-hodep: S362 K1F/P30S6Q5: a bridge visit's G is filed under a layer other than the tiers held (layerTook 444/640)
+C. plant score exit 3: audit-hodep: S362 K1F/P30S6Q5: the whole score does not reproduce reduce-7t.mjs's over the trace (scorePaths 67/120)
+C. plant trace exit 3: audit-hodep: S362 K1F/P30S6Q5: the trace disagrees with runPolicy's own counters (counters 53/120)
+the gate passed the four jobs on S370 and S362; FOOT-S366's K1F reproduced; the eight plants refused, each on its own check
+preflight done 16:41 UK
+=== snapshot kept at /tmp/solver-snap-QklHD6 for provenance; remove it when the results are written up

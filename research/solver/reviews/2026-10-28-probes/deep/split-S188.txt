@@ -1,0 +1,1 @@
+S188 (lib) on 1000 paths of 7002: APP 84.8% | SHIP 97.0% (less APP 12.2; 123 saved, 1 lost) | SHIP-NC 89.8% (less APP 5.0; 56 saved, 6 lost)

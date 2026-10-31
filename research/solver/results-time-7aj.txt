@@ -1,0 +1,4 @@
+7AJ'S MEASURED COST: 50 unit logs, 100 secs lines (the solve and the forward run of each unit)
+  CAND: 18.41 core-hours
+  SHIP: 14.45 core-hours
+  total: 32.86 core-hours, about 8.2 h on four cores at four units at once

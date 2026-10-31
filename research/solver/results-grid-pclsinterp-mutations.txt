@@ -1,0 +1,10 @@
+true code (grid.js 4346a452d48a, solve.js 1462359dee7b): 11 passed, 0 failed
+caught  readValues drops the upper allowance corners: 5 E-test(s) fail, first: E2  interpolated, the read is the used share itself on a table linear in it (to 1e-12), across the 0.75 
+caught  readValues ignores the option: 2 E-test(s) fail, first: E2  interpolated, the read is the used share itself on a table linear in it (to 1e-12), across the 0.75 
+caught  interp() ignores the allowance weight: 1 E-test(s) fail, first: E5  locateVec brackets 0.74 between the 0.5 and 1 buckets with weight 0.48 above, and interp agrees with
+caught  the option is never set: 4 E-test(s) fail, first: E2  interpolated, the read is the used share itself on a table linear in it (to 1e-12), across the 0.75 
+caught  pclsInterp and pclsStrict accepted together: 1 E-test(s) fail, first: E7  pclsInterp and pclsStrict together are refused (two readings of one axis)
+caught  nearestIndex takes the lower allowance bracket: 1 E-test(s) fail, first: E10 nearestIndex under the interpolated allowance picks the snap's bucket (0.2 -> 0, 0.3 and 0.74 -> 0.5
+caught  nearestIndex takes the lower gain bracket: 1 E-test(s) fail, first: E11 and under the interpolated gain axis, the snap's gain bucket (0.39 -> 0.25, 0.41 -> 0.55)  -- 0.05->
+
+7 plants: every one caught; the files restored byte for byte: True

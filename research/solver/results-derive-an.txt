@@ -1,0 +1,92 @@
+AN'S DERIVATION (predictions/diag-an.md)
+
+1. THE RECORDS: NODE-AX's BN and BO behind NODE-AX's gate (4000 paths a world, seed 7002)
+  BN world 0: GB mean -1.7654 sd 5.4538; survival 28.7750; BO against BN on the same paths: lost 18 saved 12
+  BN world 1: GB mean -2.0679 sd 4.2499; survival 48.9000; BO against BN on the same paths: lost 14 saved 4
+  BN world 2: Y1 mean -0.7929 sd 1.0666
+  the incidence, world 0: the reference read at 6.33 bridge path-years a path (BN's ledger), on 4000 of 4000 paths
+  the incidence, world 1: the reference read at 6.63 bridge path-years a path (BN's ledger), on 4000 of 4000 paths
+  the incidence, world 2: the reference read at 6.83 bridge path-years a path (BN's ledger), on 4000 of 4000 paths
+
+2. THE POWER (40 draws a cell through reduce-an.mjs's items(), 4000 paths a world; the record's spread times 0.75, 1, 1.5)
+  x0.75 item 1, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x0.75 item 1, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x0.75 item 1, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 1, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 1, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 1, GB -0.3 in both worlds: HELD 0.80 INCONCLUSIVE 0.20 FALSIFIED 0.00
+  x0.75 item 1, GB 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x0.75 item 1, GB 0.3 in both worlds: HELD 0.85 INCONCLUSIVE 0.15 FALSIFIED 0.00
+  x0.75 item 1, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 1, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 1, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 0.95 FALSIFIED 0.05
+  x0.75 item 1, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
+  x0.75 item 3, world 2's Y1 -0.8: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x0.75 item 3, world 2's Y1 -0.6: HELD 0.00 INCONCLUSIVE 0.93 FALSIFIED 0.07
+  x0.75 item 3, world 2's Y1 -0.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x0.75 item 3, world 2's Y1 -0.4: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  x0.75 item 3, world 2's Y1 -0.25: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x0.75 item 3, world 2's Y1 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x1 item 1, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1 item 1, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.10 FALSIFIED 0.90
+  x1 item 1, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB -0.3 in both worlds: HELD 0.42 INCONCLUSIVE 0.57 FALSIFIED 0.00
+  x1 item 1, GB 0 in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x1 item 1, GB 0.3 in both worlds: HELD 0.33 INCONCLUSIVE 0.68 FALSIFIED 0.00
+  x1 item 1, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 1, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.03 FALSIFIED 0.97
+  x1 item 3, world 2's Y1 -0.8: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1 item 3, world 2's Y1 -0.6: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 3, world 2's Y1 -0.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1 item 3, world 2's Y1 -0.4: HELD 0.03 INCONCLUSIVE 0.97 FALSIFIED 0.00
+  x1 item 3, world 2's Y1 -0.25: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x1 item 3, world 2's Y1 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x1.5 item 1, GB -1.8 in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1.5 item 1, GB -1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.50 FALSIFIED 0.50
+  x1.5 item 1, GB -1 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 1, GB -0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 1, GB -0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 1, GB -0.3 in both worlds: HELD 0.10 INCONCLUSIVE 0.90 FALSIFIED 0.00
+  x1.5 item 1, GB 0 in both worlds: HELD 0.82 INCONCLUSIVE 0.17 FALSIFIED 0.00
+  x1.5 item 1, GB 0.3 in both worlds: HELD 0.07 INCONCLUSIVE 0.93 FALSIFIED 0.00
+  x1.5 item 1, GB 0.5 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 1, GB 0.8 in both worlds: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 1, GB 1 in both worlds: HELD 0.00 INCONCLUSIVE 0.90 FALSIFIED 0.10
+  x1.5 item 1, GB 1.2 in both worlds: HELD 0.00 INCONCLUSIVE 0.50 FALSIFIED 0.50
+  x1.5 item 3, world 2's Y1 -0.8: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  x1.5 item 3, world 2's Y1 -0.6: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 3, world 2's Y1 -0.5: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 3, world 2's Y1 -0.4: HELD 0.00 INCONCLUSIVE 1.00 FALSIFIED 0.00
+  x1.5 item 3, world 2's Y1 -0.25: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  x1.5 item 3, world 2's Y1 0: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x0.5 item 2, the runs -0.6 points in both worlds: HELD 0.47 INCONCLUSIVE 0.00 FALSIFIED 0.53
+  churn x0.5 item 2, the runs -0.3 points in both worlds: HELD 0.95 INCONCLUSIVE 0.05 FALSIFIED 0.00
+  churn x0.5 item 2, the runs 0 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x0.5 item 2, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x1 item 2, the runs -0.6 points in both worlds: HELD 0.00 INCONCLUSIVE 0.07 FALSIFIED 0.93
+  churn x1 item 2, the runs -0.3 points in both worlds: HELD 0.25 INCONCLUSIVE 0.63 FALSIFIED 0.13
+  churn x1 item 2, the runs 0 points in both worlds: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
+  churn x1 item 2, the runs 0.3 points in both worlds: HELD 1.00 INCONCLUSIVE 0.00 FALSIFIED 0.00
+  churn x2 item 2, the runs -0.6 points in both worlds: HELD 0.00 INCONCLUSIVE 0.00 FALSIFIED 1.00
+  churn x2 item 2, the runs -0.3 points in both worlds: HELD 0.07 INCONCLUSIVE 0.65 FALSIFIED 0.28
+  churn x2 item 2, the runs 0 points in both worlds: HELD 0.70 INCONCLUSIVE 0.28 FALSIFIED 0.03
+  churn x2 item 2, the runs 0.3 points in both worlds: HELD 0.97 INCONCLUSIVE 0.03 FALSIFIED 0.00
+
+3. THE CREDENCES (the receipt of 15 Oct 10:13 UK: N2-REF=0.62; N2-OTHER=0.1; N2-MODEL=0.08; N2-SHARE=0.05; N2-CPART=0.04; N2-B=0.035; N2-W=0.035; N2-LAYER=0.02; N2-QUAD=0.01; N2-NOISE=0.01; REF taken at 0.5, the rest scaled: REF 0.50, OTHER 0.13, MODEL 0.11, SHARE 0.07, CPART 0.05, B 0.05, W 0.05, LAYER 0.03, QUAD 0.01, NOISE 0.01; 2000 draws through items())
+  item 1: HELD 0.23 INCONCLUSIVE 0.52 FALSIFIED 0.25
+  item 2: HELD 0.82 INCONCLUSIVE 0.14 FALSIFIED 0.04
+  item 3: HELD 0.37 INCONCLUSIVE 0.40 FALSIFIED 0.23
+  decision rows: R1 0.19, R2 0.04, R3 0.25, R4 0.00, else 0.52
+  the chance the action changes (one less the likeliest row): 0.48
+  item 1's point (AN's GB in world 0, the reducer's own mean): median -0.2721, 80% interval -1.5815 to 0.7319
+  item 2's point (AN's runs less BN's in world 0, points): median 0.0000, 80% interval -0.3250 to 0.3500
+  item 3's point (world 2's year-1 term under AN, points): median -0.4929, 80% interval -0.8029 to -0.0062
+CREDENCE item 1: point -0.2721 HELD 0.23 INCONCLUSIVE 0.52 FALSIFIED 0.25
+CREDENCE item 2: point 0.0000 HELD 0.82 INCONCLUSIVE 0.14 FALSIFIED 0.04
+CREDENCE item 3: point -0.4929 HELD 0.37 INCONCLUSIVE 0.40 FALSIFIED 0.23
+
+4. THE BUDGET: BN's solve 8469 s and ledger 1173 s (NODE-AX's log, grade C); the reference's build 267.20 s (AN's preflight job: its lattice does not depend on the grid's points, grade B); refTook 1.50 s (the preflight's, at its registered sample, grade C: fewer records to sample there); AN about 2.75 h on one core

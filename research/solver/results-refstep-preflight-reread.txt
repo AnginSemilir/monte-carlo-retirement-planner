@@ -1,0 +1,216 @@
+ok   AN3 removes the dying paths' residual exactly from every year's read error: 1 HELD: "HELD"
+ok   AN3 removes none of it in world 1: 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes half of it in world 0: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes all of it with a live-side over-read of a quarter of the smear in world 2: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes it from year 3 on but years 1 and 2 gain it back (moved, not removed): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes twice the smear in world 1 (over-correction past 1.25): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes exactly three quarters, no spread (the line): 1 HELD: "HELD"
+ok   AN3 removes exactly 1.25, no spread (the upper line): 1 HELD: "HELD"
+ok   AN3 removes 0.2 in world 2 (under a quarter): 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes exactly a quarter in world 2, no spread (not wholly under): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.2 from years 1 and 2 only, all from year 3 (q_3 decides kept): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.8 with a per-path spread putting q's interval under three quarters: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes it from years 1 and 2 but not from year 3 (q_3 under a quarter: kept): 1 FALSIFIED: "FALSIFIED"
+ok   AN3 removes exactly 0.72, no spread (under three quarters): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes exactly 1.28, no spread (over 1.25): 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.2 in world 2 with a spread whose interval reaches over a quarter: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3 removes 0.8 with a spread whose 95% interval clears three quarters but whose Bonferroni interval over nine does not: 1 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AN3's cell about a fifth of AN's in every world (the switch largely gone): 2 HELD: "HELD"
+ok   the cell stays at AN's size: 2 FALSIFIED: "FALSIFIED"
+ok   the cell at six tenths of AN's (between the lines): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at 0.45 of AN's, its interval reaching past a half: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell gone entirely: 2 HELD: "HELD"
+ok   AN's cell empty (nothing to read): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell grows past AN's (1.2 times): 2 FALSIFIED: "FALSIFIED"
+ok   world 1 alone stays, worlds 0 and 2 gone (0.69 on the mixture: unclear): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   worlds 0 and 2 stay, world 1 gone (a third of the weight): 2 HELD: "HELD"
+ok   the cell at 0.8 of AN's with its interval reaching under three quarters: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at 0.85 of AN's, its interval reaching under three quarters: 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the cell at nine tenths of AN's (wholly over three quarters): 2 FALSIFIED: "FALSIFIED"
+ok   rho exactly a half with no variance (worlds 0 and 2 at every path under AN, world 0 alone under AN3): 2 INCONCLUSIVE: "INCONCLUSIVE"
+ok   300 paths a world, the cell at 0.8 of AN's (the binomial variance's own term puts it over three quarters): 2 FALSIFIED: "FALSIFIED"
+ok   the read error 0.97 does not decide (the cell a fifth of AN's): 2 HELD: "HELD"
+ok   every leg at its control: 3 HELD: "HELD"
+ok   AN3 loses 70 paths on S362 world 1 (the mixture weighs it two thirds): 3 FALSIFIED: "FALSIFIED"
+ok   AN3 loses 70 paths on S362 world 0 alone (a sixth of the weight: a world line, not binding): 3 HELD: "HELD"
+ok   AR3 loses 25 net on S360 world 1 (the mixture's interval across the margin): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   S364 at near-nil survival, AR3 at its control: reported only, the rest no harm: 3 HELD: "HELD"
+ok   S364 at near-nil survival, AR3 losing every surviving path: harm still read there: 3 FALSIFIED: "FALSIFIED"
+ok   every household reported only (nothing read): 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the whole score alone harms (survival unmoved, S370 world 1 two points less on every path): 3 FALSIFIED: "FALSIFIED"
+ok   AN3 loses 70 paths on S362 world 1 with the whole score unmoved (survival alone harms): 3 FALSIFIED: "FALSIFIED"
+ok   the whole score unclear on S370 (a spread of 50 points a path), survival unmoved: 3 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AR3 saves 70 paths on S360 world 1: 3 HELD: "HELD"
+ok   S364 reported only, its whole score 0.45 under on every path (harm at its own margin, still read): 3 FALSIFIED: "FALSIFIED"
+ok   S364's control near nil, AR3 saving 50 a world with an unclear whole score: reported only by the control, not the arm: 3 HELD: "HELD"
+ok   floorOf: 3 of 4,000 surviving cannot be cleared; 1,000 can: "true false"
+ok   AR3 closes S364's and S360's worlds 0 and 1: 4 HELD: "HELD"
+ok   AR3 leaves S360's world 0 at -2.4: 4 FALSIFIED: "FALSIFIED"
+ok   AR3 leaves S364's world 1 at 0.9 with an interval across a point: 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   C under a point in every world of both households (nothing to read): 4 INCONCLUSIVE: "INCONCLUSIVE"
+ok   AR3 exactly at a point, no spread (the line): 4 HELD: "HELD"
+ok   a world under a point under C is not read (S364's world 2 at 3 under AR3): 4 HELD: "HELD"
+ok   AN3 moves S370's tail from year 3 by -0.05: 5 HELD: "HELD"
+ok   AN3 moves S370's world-0 tail from year 3 by -0.6: 5 FALSIFIED: "FALSIFIED"
+ok   AN3 moves world 1 by 0.25 with spread (across the line): 5 INCONCLUSIVE: "INCONCLUSIVE"
+ok   the rows: the default reads R1: "R1"
+ok   the rows: the switch over-valued with item 1 held reads R2: "R2"
+ok   the rows: harm reads R3 over item 1 FALSIFIED: "R3"
+ok   the rows: item 1 FALSIFIED reads R5 over item 4 FALSIFIED: "R5"
+ok   the rows: item 4 FALSIFIED reads R4 over R1: "R4"
+ok   the rows: the switch staying with item 1 unclear reads else, not R2: "else"
+ok   the rows: item 1 unclear reads else: "else"
+ok   the rows: item 2 unclear with item 1 held reads else: "else"
+ok   the rows: item 5 does not decide a row (moved, R1 stands): "R1"
+ok   the cause: items 1 and 2 HELD credit O191-SMEAR: "O191-SMEAR"
+ok   the cause: item 2 HELD with item 1 unclear is not credited: "O191-SMEAR not credited: AN3's read error from years 1 to 3 not in band (its whole)"
+ok   the cause: item 2 FALSIFIED with item 1 HELD reads the not: "O191-SMEAR not (AN3 reads the year-3 step, its read error in band, and the switch stays): FD-X"
+ok   the cause: item 2 FALSIFIED with item 1 kept reads open: "open (AN3's whole not in band: the interaction)"
+ok   the cause: item 2 FALSIFIED with item 1 unclear reads open: "open (AN3's whole not in band: the interaction)"
+ok   the cause: item 2 INCONCLUSIVE reads open: "open"
+ok   tailOf: from year 3, the residual at year 3 with GA: "1100,2200"
+ok   dyingShare: the path dying at year 3 alone (not the one dying at 2, nor the survivor): "1 12.5"
+ok   dyingOf: the year-3 dying path's residual alone, per path: "0.5,0,0,0"
+ok   dyingShare: at the last year the survivor is not counted: "0"
+ok   dyingShare: the path dying at year 2 alone (not the one dying at year 1, nor the survivor): "1 6.25"
+ok   firstBand: differing first at year 3 with a two-year bridge reads the five years after: "2"
+ok   pOf: S362's dying residual is AN's, world by world: "7.10,7.11,7.12"
+ok   pOf: S362's AN tail from year 1 is AN's years 1 to 3 with GA: "4462.4"
+ok   pOf: S362's AN3 tail from year 2 is years 2 and 3 with GA: "3652.0"
+ok   pOf: S370's AN tail from year 3 is year 3 with GA: "4232.4"
+ok   pOf: S370's AN3 tail from year 3 is AN3's: "4432.0"
+ok   pOf: S360's C read error from year 1 is its one bridge year with GA: "8012.2"
+ok   pOf: S364's AR3 read error from year 1 is years 1 and 2 with GA: "9932.0"
+ok   pOf: the cell is AN3's counts against AN's, AN3's read error: "5,6,7 200,201,202 4000 0.3 0.1"
+ok   pOf: the AN3 leg on S362 sees its one lost path against C: "1/0,1/0,1/0"
+ok   pOf: the AR3 leg on S360 sees its two lost paths against C: "2/0,2/0,2/0"
+ok   the gate passes the ten jobs as registered: ""
+ok   the gate passes the preflight's jobs at a fifteenth of the points: ""
+ok   the gate refuses a job run twice: "true"
+ok   the gate refuses a job of another test beside them: "true"
+ok   the gate refuses AN3 without stepAll (the stepoff plant's kind): "true"
+ok   the gate refuses AN with stepAll: "true"
+ok   the gate refuses AR3 without its RS split: "true"
+ok   the gate refuses AN3 with the RS split: "true"
+ok   the gate refuses C on the adaptive reference: "true"
+ok   the gate refuses AN3 on the plan reference: "true"
+ok   the gate refuses AR3 without the reference's fix (the foot plant's kind): "true"
+ok   the gate refuses stepTook short (the stepramp plant): "true"
+ok   the gate refuses a stepAll job with no stepTook line: "true"
+ok   the gate refuses a stepAll job with no steps lines: "true"
+ok   the gate refuses an adaptive job with no pr31 lines: "true"
+ok   the gate refuses a run line naming the order reference under the arm's adaptive record: "true"
+ok   the gate refuses C whose record shows the reference's fix: "true"
+ok   the gate refuses AN reporting stepTook without stepAll: "true"
+ok   the gate refuses a reference with no moves: "true"
+ok   the gate refuses a reference with a non-monotone node: "true"
+ok   the gate refuses armTook failed: "true"
+ok   the gate refuses another seed: "true"
+ok   the gate refuses a job on another code: "true"
+ok   the gate refuses a job with the copy rule: "true"
+ok   the gate refuses a job whose bridge years are not its household's other jobs': "true"
+ok   the gate refuses a job whose floor is not the product's rule: "true"
+ok   the gate refuses a job whose header is at a fifteenth of the points, read as the full run: "true"
+ok   the gate refuses a job with no done line: "true"
+ok   the gate refuses a missing job: "true"
+ok   the reproduction passes equal files and tables: ""
+ok   the reproduction refuses when REF-B's gate failed: "true"
+ok   the reproduction refuses when COPY-X's gate failed: "true"
+ok   the reproduction refuses a path's GB differing in one path: "true"
+ok   the reproduction refuses a move differing in world 1: "true"
+ok   the reproduction refuses a visit state differing in world 2: "true"
+ok   the reproduction refuses a table differing in the sixth place: "true"
+ok   the reproduction refuses a source on another seed: "true"
+ok   the reproduction refuses a source on other bridge years: "true"
+ok   the reproduction refuses a missing source file: "true"
+ok   the reproduction refuses a source file naming other bridge years (its arrays equal): "true"
+ok   the reproduction refuses a cell read against the wrong source: "true"
+ok   the reproduction refuses an array in REF-STEP's file that the source lacks: "true"
+ok   the pin: the reducer's jobs are the audit's, in its order: "S370 AN3 30,S370 AN 30,S370 C 30,S362 AN3 30,S362 AN 30,S362 C 30,S364 AR3 30,S364 C 30,S360 AR3 30,S360 C 30"
+ok   the pin: AN3's reference, split, fix and stepAll are the audit's: "adaptive null true true"
+ok   the pin: AN's reference, split, fix and stepAll are the audit's: "adaptive null true false"
+ok   the pin: C's reference, split, fix and stepAll are the audit's: "null null false false"
+ok   the pin: AR3's reference, split, fix and stepAll are the audit's: "adaptive rs true true"
+planted (133): all read as they should
+GATE: passed - the ten jobs once and done at the registered settings (40 paths a world, scale 15, seed 7002) on one code; the adaptive reference with its fix on every adaptive job, stepAll on AN3 and AR3 alone with stepTook in full, the RS split on AR3 alone, every self-check in full; the reproduction: REF-B's, COPY-B's and COPY-X's gates passed over research/solver/results/refb-preflight/main, research/solver/results/copyb-preflight/main and research/solver/results/copyx-preflight/main, and AN's and C's files equal theirs byte for byte (the preflight, against the sources' preflights)
+PREFLIGHT S370 AN3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 45.9644 GA -21.6402, copied 14103, clamped 3 of 828, bridge failures by world 3, 0, 0, stepTook 162/162
+PREFLIGHT S370 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll false, world-0 GB 47.0277 GA -21.6567, copied 14229, clamped 1 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S370 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB 43.4486 GA -21.6591, copied 14418, clamped 3 of 828, bridge failures by world 3, 0, 0
+PREFLIGHT S362 AN3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB -11.3098 GA -2.4921, copied 14580, clamped 74 of 632, bridge failures by world 27, 18, 13, stepTook 162/162
+PREFLIGHT S362 AN: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll false, world-0 GB -11.4786 GA -2.4937, copied 14580, clamped 87 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S362 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -12.2525 GA -2.4455, copied 14580, clamped 86 of 632, bridge failures by world 27, 18, 13
+PREFLIGHT S364 AR3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 0.0038 GA 0.0000, copied 12177, clamped 356 of 536, bridge failures by world 40, 40, 40, stepTook 189/189
+PREFLIGHT S364 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -0.0059 GA 0.0000, copied 11826, clamped 454 of 536, bridge failures by world 40, 40, 40
+PREFLIGHT S360 AR3: bridge years 1,2,3,4,5,6,7, the reference's moves 24 stepAll true, world-0 GB 0.4001 GA -0.0261, copied 13851, clamped 128 of 796, bridge failures by world 31, 20, 10, stepTook 189/189
+PREFLIGHT S360 C: bridge years 1,2,3,4,5,6,7, the plan reference, world-0 GB -13.5982 GA -0.0280, copied 12636, clamped 159 of 796, bridge failures by world 30, 20, 11
+PREFLIGHT S370 AN3 steps 0: 9 of 9 cells with a step, A*_t 83199 to 85748 (median 83199)
+PREFLIGHT S370 AN3 steps 1: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 2: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 3: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 4: 0 of 9 cells with a step
+PREFLIGHT S370 AN3 steps 5: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S370 AN3 steps 6: 9 of 9 cells with a step, A*_t 83199 to 85696 (median 83199)
+PREFLIGHT S362 AN3 steps 0: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 1: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 2: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 3: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 4: 0 of 9 cells with a step
+PREFLIGHT S362 AN3 steps 5: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S362 AN3 steps 6: 9 of 9 cells with a step, A*_t 7199 to 7199 (median 7199)
+PREFLIGHT S364 AR3 steps 0: 9 of 9 cells with a step, A*_t 14799 to 14808 (median 14799)
+PREFLIGHT S364 AR3 steps 1: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 2: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 3: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 4: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 5: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S364 AR3 steps 6: 9 of 9 cells with a step, A*_t 14799 to 14799 (median 14799)
+PREFLIGHT S360 AR3 steps 0: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 1: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 2: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 3: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 4: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 5: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S360 AR3 steps 6: 9 of 9 cells with a step, A*_t 3999 to 3999 (median 3999)
+PREFLIGHT S370 AN3 pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+PREFLIGHT S370 AN3 pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN3 pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S370 AN pr31 1: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 2: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 3: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 4: the chooser's split -345201; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 5: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 6: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S370 AN pr31 7: the chooser's split 83199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 83199/84039/85696 83199/83199/83199 83199/83199/83199
+PREFLIGHT S362 AN3 pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 0/0/0 0/0/0 0/0/0
+PREFLIGHT S362 AN3 pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN3 pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S362 AN pr31 1: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 2: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 3: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 4: the chooser's split -21601; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 5: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 6: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) not read exactly (no stepAll)
+PREFLIGHT S362 AN pr31 7: the chooser's split 7199; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 7199/7199/7199 7199/7199/7199 7199/7199/7199
+PREFLIGHT S364 AR3 pr31 1: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 2: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 3: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 4: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 5: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 6: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S364 AR3 pr31 7: the chooser's split 14799; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 14799/14799/14799 14799/14799/14799 14799/14799/14799
+PREFLIGHT S360 AR3 pr31 1: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 2: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 3: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 4: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 5: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 6: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT S360 AR3 pr31 7: the chooser's split 3999; A*_t at b 0, 0.5, 1 (gain nodes first, middle, last) 3999/3999/3999 3999/3999/3999 3999/3999/3999
+PREFLIGHT: the gate, the reproduction and the files read; no figure read for an item (a preview at a fraction of the points; PREVIEW)

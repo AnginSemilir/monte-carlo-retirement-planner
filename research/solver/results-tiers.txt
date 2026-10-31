@@ -1,0 +1,71 @@
+ok   a complete synthetic set passes the gate
+ok   the tiers carry exactly half, its interval across the line (34.5 to 65.5): read BETWEEN, not HALF OR MORE
+ok   four-fifths: 80.000% (67.6 to 92.4) read HALF OR MORE
+ok   a fifth: 20.000% read A THIRD OR LESS
+ok   about two-fifths with noise: 28.3% (-10.9 to 67.6) read BETWEEN
+ok   a missing unit is refused
+ok   a household whose arms ran on other inputs is refused
+ok   a held-out seed is refused
+ok   units stamped on other files are refused
+planted (9): all read as they should
+THE GATE: fair - 40 households in every arm, seed 7002, 8000 paths, one stamp (code 53ea905f8e07, audit c3901259b8c1)
+THE TIER TEST (EXPLORATORY): seed 7002; 40 households, 8000 paths, W0.02
+survival: APP 85.606%, SHIP 95.334%, SHIPNC 90.806%, CAND 96.153%, CANDNC 91.147%
+SHIP less APP: survival +9.728 (9.377 to 10.079, se 0.1793) points; spending delivered +7.072% (6.995 to 7.150, se 0.0396)
+SHIPNC less APP: survival +5.200 (5.005 to 5.394, se 0.0993) points; spending delivered +4.552% (4.474 to 4.630, se 0.0398)
+SHIP less SHIPNC: survival +4.528 (4.299 to 4.757, se 0.1168) points; spending delivered +2.520% (2.455 to 2.585, se 0.0330)
+CAND less APP: survival +10.547 (10.165 to 10.928, se 0.1946) points; spending delivered +6.579% (6.502 to 6.657, se 0.0397)
+CANDNC less APP: survival +5.541 (5.334 to 5.748, se 0.1057) points; spending delivered +4.631% (4.552 to 4.709, se 0.0401)
+CAND less CANDNC: survival +5.006 (4.749 to 5.262, se 0.1308) points; spending delivered +1.949% (1.877 to 2.021, se 0.0369)
+CANDNC less SHIPNC: survival +0.341 (0.312 to 0.370, se 0.0147) points; spending delivered +0.078% (0.073 to 0.083, se 0.0025)
+CAND less SHIP: survival +0.818 (0.754 to 0.883, se 0.0327) points; spending delivered -0.493% (-0.512 to -0.474, se 0.0097)
+THE TIERS' SHARE of SHIP's gain over APP, (SHIP less SHIPNC) / (SHIP less APP): 46.5% (45.3 to 47.8): BETWEEN
+THE TIERS' SHARE of CAND's gain over APP, (CAND less CANDNC) / (CAND less APP): 47.5% (46.2 to 48.8): BETWEEN
+spend as a share of target by retired year (0 to 4, 5 to 9, 10 on; paths not yet failed), and retired years a path at the 80% floor / at 90% or below:
+  APP    98.5 / 96.9 / 97.8; at the floor 5.78, at 90% or below 11.31
+  SHIP   91.8 / 99.4 / 105.7; at the floor 8.09, at 90% or below 9.35
+  SHIPNC 89.8 / 97.0 / 104.8; at the floor 9.86, at 90% or below 10.65
+  CAND   90.7 / 98.1 / 105.2; at the floor 8.79, at 90% or below 10.22
+  CANDNC 90.3 / 96.6 / 104.8; at the floor 9.77, at 90% or below 10.64
+per household, survival (APP, SHIP, SHIPNC, CAND, CANDNC) and the tiers' share of SHIP's and of CAND's gain:
+  S026   lib  86.36 97.66 94.83 97.86 94.91 | SHIP 25% CAND 26%
+  S030   lib  86.66 94.28 90.41 95.55 90.85 | SHIP 51% CAND 53%
+  S040   lib  85.56 96.30 91.00 97.69 91.19 | SHIP 49% CAND 54%
+  S050   lib  84.16 98.41 95.85 98.76 95.92 | SHIP 18% CAND 19%
+  S062   lib  86.16 98.19 93.42 98.88 93.60 | SHIP 40% CAND 41%
+  S074   lib  85.04 97.84 93.39 97.85 93.51 | SHIP 35% CAND 34%
+  S090   lib  86.29 94.30 89.80 94.85 90.25 | SHIP 56% CAND 54%
+  S096   lib  84.79 97.53 92.24 98.21 92.31 | SHIP 42% CAND 44%
+  S108   lib  85.16 97.10 93.49 97.89 93.74 | SHIP 30% CAND 33%
+  S132   lib  86.41 99.09 95.01 99.05 95.25 | SHIP 32% CAND 30%
+  S164   lib  85.46 95.13 89.75 95.92 89.95 | SHIP 56% CAND 57%
+  S188   lib  84.00 96.20 89.03 97.71 89.44 | SHIP 59% CAND 60%
+  S204   lib  84.40 95.92 91.16 96.28 91.25 | SHIP 41% CAND 42%
+  S228   lib  85.76 97.33 92.83 97.78 92.94 | SHIP 39% CAND 40%
+  S244   lib  84.92 95.03 88.84 96.33 89.13 | SHIP 61% CAND 63%
+  S260   lib  84.79 93.50 87.74 93.75 87.84 | SHIP 66% CAND 66%
+  S272   lib  85.09 92.22 87.85 93.05 88.08 | SHIP 61% CAND 62%
+  S290   lib  84.63 94.55 90.70 95.29 90.78 | SHIP 39% CAND 42%
+  S368   lib  84.90 99.03 95.09 99.84 96.95 | SHIP 28% CAND 19%
+  S384   lib  85.17 97.88 94.56 97.90 94.78 | SHIP 26% CAND 25%
+  S304F  fire 86.22 94.41 91.66 98.25 92.19 | SHIP 34% CAND 50%
+  S306F  fire 86.69 94.13 89.45 95.44 90.29 | SHIP 63% CAND 59%
+  S308F  fire 85.41 94.26 90.63 97.94 91.33 | SHIP 41% CAND 53%
+  S310F  fire 86.39 94.24 88.96 95.86 90.75 | SHIP 67% CAND 54%
+  S314F  fire 86.22 95.56 90.19 95.76 90.24 | SHIP 58% CAND 58%
+  S316F  fire 86.35 95.05 89.47 95.38 89.59 | SHIP 64% CAND 64%
+  S320F  fire 85.29 94.05 88.40 94.28 88.41 | SHIP 64% CAND 65%
+  S322F  fire 86.16 94.29 89.28 94.70 89.51 | SHIP 62% CAND 61%
+  S326F  fire 86.78 94.35 90.15 94.91 90.24 | SHIP 55% CAND 57%
+  S328F  fire 85.16 92.79 88.50 93.35 88.69 | SHIP 56% CAND 57%
+  S332F  fire 86.11 93.10 89.14 93.64 89.38 | SHIP 57% CAND 57%
+  S334F  fire 85.67 92.70 88.94 93.60 89.13 | SHIP 54% CAND 56%
+  S338F  fire 84.75 94.92 89.49 95.51 89.53 | SHIP 53% CAND 56%
+  S340F  fire 85.44 94.80 89.19 95.17 89.35 | SHIP 60% CAND 60%
+  S344F  fire 85.61 94.51 88.88 94.76 89.13 | SHIP 63% CAND 62%
+  S346F  fire 85.55 93.08 87.90 94.76 89.51 | SHIP 69% CAND 57%
+  S350F  fire 86.42 95.75 91.70 96.15 91.83 | SHIP 43% CAND 44%
+  S352F  fire 86.40 95.28 91.44 95.75 91.56 | SHIP 43% CAND 45%
+  S356F  fire 86.28 95.06 91.34 95.45 91.45 | SHIP 42% CAND 44%
+  S358F  fire 85.60 93.58 90.56 95.01 91.14 | SHIP 38% CAND 41%
+runPolicy beside the engine: paths that differ 0

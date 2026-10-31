@@ -10,15 +10,15 @@
  * the neighbour; 65 of 216 moves ever chosen. The step 0 read wants the last figure at or above 95% on
  * S004, S184, S268 and S330 with each household's landed lambda from its flex-tiers record.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
-const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver';
+const HERE = new URL('.', import.meta.url).pathname.replace(/\/$/, '');
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
-const band = JSON.parse(readFileSync(HERE + '/results/band-70-98-7001.json', 'utf8'));
+const band = JSON.parse(readFileSync(HERE + '/fixtures/band-70-98-7001.json', 'utf8'));
 const sc = singles[band[Number(process.argv[2] || 0)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(sc.plan)), config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);

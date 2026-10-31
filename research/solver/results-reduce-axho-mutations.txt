@@ -1,0 +1,43 @@
+caught: 1: if (js.length !== 1) { bad.push(
+caught: 2: for (const x of jobs) if (!Object.values(LABELS).includes(x.
+caught: 3: if (j.id !== HOUSE[arm]) bad.push(
+caught: 4: if (!j.done) bad.push(`${arm}: no done line`);
+caught: 5: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 6: j.head.npw !== npw || j.head.seed !== seed || j.head.scale !
+caught: 7: J1: { readerRef: 'adaptive', readerSplit: 'rs', floor: '2900
+caught: 8: J1: { readerRef: 'adaptive', readerSplit: 'rs', floor: '2900
+caught: 9: J3: { readerRef: 'adaptive', readerSplit: 'rs', floor: '5000
+caught: 10: J2: { readerRef: 'order', readerSplit: 'null', floor: '29000
+caught: 11: J4: { readerRef: 'order', readerSplit: 'null', floor: '5000'
+caught: 12: J1: ['armTook', 'adaptTook', 'pairTook', 'ownTook', 'identit
+caught: 13: J4: ['armTook', 'ownTook', 'identity', 'qfTook', 'layerTook'
+caught: 14: if (!x || !(x[1] > 0) || x[0] !== x[1] ||
+caught: 15: j.adaptive.nz !== NZ || j.adaptive.nonMono !== 0 ||
+caught: 16: if (S366F && (!j.pair || j.pair[0] !== 12 || j.pair[1] !== 1
+caught: 17: if (!j.moves[w] || !(j.moves[w].py >= npw)) bad.push(
+caught: 18: for (let w = 0; w < 3; w++) for (let b = 0; b < 4; b++) if (
+caught: 19: if (!x || x.from !== npw || x.to !== xs - 1 || x.n !== xs - 
+caught: 20: const o = j.sims.OWNO0; if (!o || o.n !== Math.min(npw, OVER
+caught: 21: if (!j1.own || !j.own || j1.own.ai !== j.own.ai) bad.push(
+caught: 22: if (!j1.tables[w] || !j.tables[w] || j1.tables[w].text !== j
+caught: 23: const d = j.sims[`D${w}`]; if (!d || d.n !== npw || d.ai !==
+caught: 24: const mv = f.moves && f.moves[`MV${w}`]; if (!mv || !j.moves
+caught: 25: !Buffer.from(o, 'base64').equals(Buffer.from(a.bits.OWN0, 'b
+caught: 26: if (!f) { bad.push(`${arm}: its file ${j.file} is missing`);
+caught: 27: text: m.slice(4).filter(Boolean).join(' ')
+caught: 28: if (x === NOMOVE || y === NOMOVE) continue;
+caught: 29: both++; if (x !== y) { py++; d = true; }
+caught: 30: out['1'] = harmItem([0, 1].map(k => ({ k, ...paired(S('J1', 
+caught: 31: const margin = marginRel(100 * x.bAlive / x.N);
+caught: 32: return { outcome: oc.some(x => x.outcome === 'harm') ? 'FALS
+caught: 33: const c2 = [0, 1, 2].map(k =>
+caught: 34: const over2 = x => x.lo >= OUT2, under2 = x => x.hi <= -OUT2
+caught: 35: export function gapOf(table, c, N, alpha = ALPHA2)
+caught: 36: const g3 = [0, 1].map(k => ({ k, ...meanOf(G('J1', k), Z2) }
+caught: 37: out['3'] = { outcome: g3.some(out3) ? 'FALSIFIED' : g3.every
+caught: 38: g4 = [0, 1, 2].map(k => ({ k, ...meanOf(G('J3', k), Z3) }));
+caught: 39: out['4'] = { outcome: h4.outcome === 'FALSIFIED' || g4.some(
+caught: 40: export const IN2 = 1.5, OUT2 = 3, IN3 = 0.5, OUT3 = 1.0;
+caught: 41: export const IN2 = 1.5, OUT2 = 3, IN3 = 0.5, OUT3 = 1.0;
+caught: 42: const w = xs.map(x => 1 / (x.se * x.se))
+42 of 42 mutations caught

@@ -1,0 +1,70 @@
+ok   a log parsed and gated: eight units, the gate passes: 8 0
+ok   the gate refuses 16 points on one unit: true
+ok   the gate refuses the fix missing on a STEP unit: true
+ok   the gate refuses the fix on a READER unit: true
+ok   the gate refuses the reader off: true
+ok   the gate refuses 15 return points: true
+ok   the gate refuses the wrong seed: true
+ok   the gate refuses another path count: true
+ok   the gate refuses a second setting changed within a case (the minimum pot): true
+ok   the gate refuses the wrong seed on every unit: true
+ok   the gate refuses another path count on every unit: true
+ok   the gate refuses 16 points on every unit (the grid unchanged): true
+ok   the gate refuses 15 return points on every unit: true
+ok   the gate refuses the reader off on every unit: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses reader years on S194: true
+ok   the gate refuses no reader years on a bridge case: true
+ok   the gate refuses a unit with no run line: true
+ok   the gate refuses a unit with no done line: true
+ok   the gate refuses a unit with no gap line: true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   the gap as logged: 0, >1 and a number: 0 Infinity 0.00025
+ok   the fix as predicted: 1, 2, 3 and 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+ok   the fix doing nothing: 1 and 2 FALSIFIED, 3 and 4 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 HELD
+ok   a gap past the margin but under 2e-3 is item 2 INCONCLUSIVE: INCONCLUSIVE
+ok   a large gap that keeps the plan's tier at 1e-3 is not item 2 HELD: INCONCLUSIVE
+ok   the gap exactly at the margin is not FALSIFIED: INCONCLUSIVE
+ok   harm on bridge 4 alone is item 3 FALSIFIED: FALSIFIED
+ok   harm on S126 alone is item 3 FALSIFIED: FALSIFIED
+ok   a small loss on bridge 4 (5 paths) is not item 3 FALSIFIED: not falsified
+ok   4 saved and none lost on share 0.95 (exact p 0.0625) is not a gain: item 1 FALSIFIED, its interval under the margin: FALSIFIED
+ok   5 saved and none lost (exact p 0.031) is a gain by the regimen's family: item 1 HELD: HELD
+ok   60 saved against 50 lost on share 0.95 is item 1 INCONCLUSIVE (neither a gain nor under the margin): INCONCLUSIVE
+ok   the control: one path saved on S194 is item 4 FALSIFIED: FALSIFIED
+ok   the control: one year's spend level differing is item 4 FALSIFIED: FALSIFIED
+ok   the control: one year's tier differing is item 4 FALSIFIED: FALSIFIED
+ok   the control: the tables differing is item 4 FALSIFIED: FALSIFIED
+ok   the margin is the case's own: S126 above 95% reads at 0.25, 30 lost is harm: FALSIFIED
+planted (40): all read as they should
+
+7Z: DOES INTEGRATING ACROSS THE READER'S STEP IN THE CHOOSER GAIN ON SHARE 0.95 WITHOUT HARM ELSEWHERE? (predictions/diag-7z.md; 8000 paths of seed 7002; the fair-test gate passed: the stamps, every unit's settings, every run and trace)
+
+EVERY RUN: survival; READER+STEP against READER on the same case saved/lost; pension switches a path; years below target; estate; the year-0 gap and the pension tier it opens in at 1e-3 and at 0; the table
+share 0.95
+  READER        93.0000        0/0  switches 0.27  below 3.39  estate 2343183  gap 2.2992e-4 opens 0 at 1e-3, 2 at 0  table 81.7928  (solve 487 s)
+  READER+STEP   95.5625      205/0  switches 0.03  below 2.48  estate 2191933  gap 2.0004e-2 opens 2 at 1e-3, 2 at 0  table 81.7928  (solve 509 s)
+S126
+  READER        99.2625        0/0  switches 0.31  below 2.80  estate 2430759  gap 8.0241e-4 opens 0 at 1e-3, 2 at 0  table 99.8728  (solve 455 s)
+  READER+STEP   99.2625        0/0  switches 0.31  below 2.80  estate 2430759  gap 8.0241e-4 opens 0 at 1e-3, 2 at 0  table 99.8728  (solve 504 s)
+bridge 4
+  READER        99.5625        0/0  switches 0.04  below 3.92  estate 2273145  gap 1.0059e-3 opens 2 at 1e-3, 2 at 0  table 99.7718  (solve 447 s)
+  READER+STEP   99.5625        0/0  switches 0.04  below 3.92  estate 2273145  gap 1.0059e-3 opens 2 at 1e-3, 2 at 0  table 99.7718  (solve 556 s)
+S194
+  READER        98.2250        0/0  switches 0.78  below 8.28  estate 397761  gap 7.5604e-4 opens 0 at 1e-3, 2 at 0  table 98.9322  (solve 463 s)
+  READER+STEP   98.2250        0/0  switches 0.78  below 8.28  estate 397761  gap 7.5604e-4 opens 0 at 1e-3, 2 at 0  table 98.9322  (solve 568 s)
+
+THE ITEMS (each a Holm family of its own where it tests paths, the regimen's reading deciding, the unconditional one beside it; the gap item by its registered bounds)
+1. the gain: on share 0.95 the fix gains against the reader without it, at the product's margin (FALSIFIED: no material gain): HELD
+     share 0.95: READER+STEP against READER 205 saved/0 lost +2.563 (exact 2.471 to 2.563; unconditional 2.225 to 2.933) gain
+2. the opening: with the fix, share 0.95's year-0 gap is at least 0.002 and it opens de-risked at the product's margin (FALSIFIED: the gap below 0.001, the plan's tier kept): HELD
+     share 0.95: gap 2.2992e-4 without the fix (opens 0 at 1e-3), 2.0004e-2 with it (opens 2 at 1e-3, 2 at 0)
+3. no harm: on S126 and bridge 4 the fix shows no material harm against the reader without it (FALSIFIED: harm on either): HELD
+     S126: READER+STEP against READER 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.047 to 0.047) no material harm
+     bridge 4: READER+STEP against READER 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.048 to 0.048) no material harm
+4. the control: on S194 (no reader year) the two runs are the same path by path and the tables the same (FALSIFIED: anything differs): HELD
+     S194: the same (survival, spend level and tier in every year of every path; the table 98.9322 and 98.9322)
+
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD

@@ -1,0 +1,8 @@
+THE ONE-TIER FIX'S IDENTITY: consent given, 4 wealth points; before the fix code 1d9d47c96f47, after 53ea905f8e07
+SAME  S224 SHIP: table b8cca23f2397753a layers 3ce040c739f29dd7 the engine's run 8760d5aa564278f0 (tier state off)
+SAME  S224 CAND: table 135dd8e33d1e24c1 layers 5fc7abc38fa731f4 the engine's run 6af236495a081a83 (tier state 0/0,1/1,2/2,3/3)
+SAME  S370 SHIP: table bb81ce67e037749d layers 5a3c0ff2750ba4b9 the engine's run d5d78c8d7874d444 (tier state off)
+SAME  S370 CAND: table 5b8122ccab13258a layers 789767ddb94bbe6c the engine's run 2f594381807a0425 (tier state 0/0,1/1,2/2,3/3)
+SAME  S248 SHIP: table ce96fe144fedba9a layers ea7604c4ebfe5ee3 the engine's run db4b12206f82a27a (tier state off)
+SAME  S248 CAND: table bc8d296e0f0c64a8 layers ef5d3e702325a2dd the engine's run 7fec9ba255022041 (tier state 0/0,1/1,2/2,3/3)
+IDENTITY: 6 of 6 units the same bit for bit

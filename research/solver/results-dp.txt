@@ -1,0 +1,30 @@
+GATE: passed - 25 households, each once and done, the shipping default's settings on every ran line, the counts consistent
+THE DRAW-PAUSE MEASUREMENT (O71, O77; a measurement, not a test): the shipping default (no reader, the product's settings, lambda held, the estate weight 0.02, 30 points) on 7e's panel (25 households), 2000 paths each (seed 7002); the wall band 0.6 to under 0.75 of the lump sum allowance used; a pause is a dwell of 2 years or more there with the path's own yearly growth at the wall under a quarter of its pre-wall growth (0.3 to under 0.6), after access
+  household        access  reach  cross  dwell | growth wall  pre-wall | pause  (share)  dwell mean/median/max | stall of wall path-years
+  share 0.50           2    443    350   5.66 |      0.0236    0.0379 |    44  (2.20%)  10.07/13/18 | 148 of 2416
+  share 0.70           2    543    373   7.68 |      0.0172    0.0288 |   122  (6.10%)  13.21/15/22 | 1127 of 4001
+  share 0.78           2    135     62   5.96 |      0.0200    0.0229 |    30  (1.50%)  8.20/10/18 | 94 of 731
+  share 0.90           2   1305     66   7.67 |      0.0101    0.0226 |   420  (21.00%)  15.61/17/25 | 3125 of 8766
+  share 0.95           2   1296    130   8.48 |      0.0121    0.0230 |   350  (17.50%)  17.00/18/25 | 634 of 9824
+  bridge 0             0    524    173  10.28 |      0.0117    0.0237 |   223  (11.15%)  14.63/16/24 | 1485 of 5034
+  bridge 1             1    604    139  10.81 |      0.0103    0.0238 |   304  (15.20%)  15.19/16/25 | 2166 of 6065
+  bridge 6             6   1582     13   4.63 |      0.0168    0.0217 |   153  (7.65%)  11.44/13/24 | 624 of 5751
+  wealth x0.5          2    138     73   4.73 |      0.0225    0.0176 |    13  (0.65%)  6.46/2/18 | 97 of 588
+  wealth x2            2    196     41   7.52 |      0.0145    0.0284 |    68  (3.40%)  9.56/11/18 | 177 of 1318
+  S120                 2    108     60   3.15 |      0.0399    0.0414 |    15  (0.75%)  2.07/2/3 | 44 of 292
+  S122                 2    400    272   3.98 |      0.0331    0.0363 |    34  (1.70%)  5.26/2/15 | 152 of 1463
+  S126                 2    432     24   3.72 |      0.0140    0.0223 |    68  (3.40%)  8.53/10/19 | 206 of 1201
+  bridge 4             4   1112      9   3.62 |      0.0152    0.0220 |   124  (6.20%)  10.09/11/19 | 471 of 2925
+  S360                 8    436    367   5.23 |      0.0289    0.0406 |    44  (2.20%)  13.93/15/21 | 441 of 2212
+  S194                 3     12      5   8.25 |      0.0110    0.0061 |     6  (0.30%)  13.17/12/18 | 68 of 92
+  S124                 2     67     42   3.25 |      0.0396    0.0132 |     8  (0.40%)  2.75/2/8 | 19 of 193
+  S128                 2   1836   1730  10.04 |      0.0161    0.0439 |   163  (8.15%)  14.47/14/19 | 84 of 18320
+  S130                 2   2000   1996   9.86 |      0.0202    0.0671 |   443  (22.15%)  10.66/10/28 | 825 of 19724
+  S366                 8   1801    174   6.60 |      0.0166    0.0208 |   219  (10.95%)  14.07/15/23 | 1360 of 10261
+  S370                 8   1756   1752   2.49 |      0.0722    0.0977 |    12  (0.60%)  8.33/7/18 | 107 of 4370
+  bridge 4+cost        4   1393     98   8.69 |      0.0096    0.0217 |   449  (22.45%)  18.13/19/27 | 4291 of 10814
+  S162                 2    425    342   6.23 |      0.0213    0.0374 |    52  (2.60%)  10.00/13/21 | 293 of 2565
+  S172                 2     18     10   3.06 |      0.0402    0.0436 |     3  (0.15%)  2.00/2/2 | 6 of 47
+  S168                 2    212     96   4.75 |      0.0222    0.0299 |    73  (3.65%)  6.19/6/17 | 389 of 891
+
+TOTALS: households whose paths reach the wall band 25 of 25; with any pausing path 25 (share 0.50, share 0.70, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, wealth x0.5, wealth x2, S120, S122, S126, bridge 4, S360, S194, S124, S128, S130, S366, S370, bridge 4+cost, S162, S172, S168); with 1% of paths or more pausing 19 (share 0.50, share 0.70, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, wealth x2, S122, S126, bridge 4, S360, S128, S130, S366, bridge 4+cost, S162, S168); pausing paths over the panel 3440, their mean dwell 13.75 years

@@ -1,0 +1,27 @@
+GATE: passed (reduce-hyb.mjs's gate and the fair-gate stamp check over results/diaghyb; the identity against ADOPT-PI's files is results-hyb.txt's); planted: passed
+
+1. O88'S SPLIT OVER HYB'S TRACES: the band [0.6, 0.75) State Pension drop by exact entry offset d = SP year - entry year: drop (SP-year path-years / year-before path-years)
+  household  SP year  arm    d 0                       d 1                       d 2                       d 3                       d 4                       
+  S130            12  SNAP   - (1435/0)                -0.0211 (2999/2999)       -0.0185 (1011/1011)       -0.0087 (318/318)         -0.0018 (61/61)           
+  S130            12  PCLSI  - (52/0)                  -0.0016 (4099/4477)       -0.0207 (35/433)          - (0/51)                  - (0/0)                   
+  S130            12  HYB    - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   - (0/0)                   
+  S370            18  SNAP   - (60/0)                  -0.0177 (468/823)         0.0164 (1834/3123)        -0.0004 (46/359)          -0.0037 (18/32)           
+  S370            18  PCLSI  - (156/0)                 -0.0121 (180/1108)        -0.0147 (36/1424)         - (0/22)                  - (0/0)                   
+  S370            18  HYB    - (311/0)                 -0.0043 (2023/2745)       -0.0167 (91/1507)         - (0/5)                   - (0/0)                   
+
+2. THE BAND DWELL OVER THE DISCORDANT PATHS: per group, its paths (n), then per arm the mean years in [0.6, 0.75) of those of its paths that reach 0.6 (and how many reach)
+  S130   the read saves (HYB lost, PCLSI survived)    n   202 | SNAP 9.13 (202)  PCLSI 2.27 (202)  HYB 2.00 (202)
+  S130   the read loses (HYB survived, PCLSI lost)    n    10 | SNAP 8.90 (10)  PCLSI 2.10 (10)  HYB 2.20 (10)
+  S130   the tables lose (SNAP survived, HYB lost)    n   117 | SNAP 8.74 (117)  PCLSI 2.37 (117)  HYB 1.99 (117)
+  S130   the tables save (SNAP lost, HYB survived)    n    68 | SNAP 9.22 (68)  PCLSI 2.07 (68)  HYB 2.07 (68)
+  S130   all paths                                    n  6000 | SNAP 9.81 (5998)  PCLSI 2.14 (6000)  HYB 1.91 (5995)
+  S370   the read saves (HYB lost, PCLSI survived)    n    57 | SNAP 2.79 (57)  PCLSI 1.44 (57)  HYB 2.02 (57)
+  S370   the read loses (HYB survived, PCLSI lost)    n    14 | SNAP 2.79 (14)  PCLSI 1.43 (14)  HYB 1.86 (14)
+  S370   the tables lose (SNAP survived, HYB lost)    n    63 | SNAP 2.29 (63)  PCLSI 1.49 (63)  HYB 1.81 (63)
+  S370   the tables save (SNAP lost, HYB survived)    n    68 | SNAP 2.54 (68)  PCLSI 1.22 (68)  HYB 1.78 (68)
+  S370   all paths                                    n  6000 | SNAP 2.50 (5279)  PCLSI 1.40 (5279)  HYB 1.87 (5279)
+  S128   the read saves (HYB lost, PCLSI survived)    n    73 | SNAP 10.04 (73)  PCLSI 4.45 (73)  HYB 8.01 (73)
+  S128   the read loses (HYB survived, PCLSI lost)    n    28 | SNAP 10.50 (28)  PCLSI 4.29 (28)  HYB 8.21 (28)
+  S128   the tables lose (SNAP survived, HYB lost)    n    75 | SNAP 8.24 (75)  PCLSI 4.83 (75)  HYB 7.75 (75)
+  S128   the tables save (SNAP lost, HYB survived)    n    54 | SNAP 10.59 (54)  PCLSI 4.33 (54)  HYB 8.13 (54)
+  S128   all paths                                    n  6000 | SNAP 9.87 (5482)  PCLSI 3.94 (5500)  HYB 6.32 (5474)

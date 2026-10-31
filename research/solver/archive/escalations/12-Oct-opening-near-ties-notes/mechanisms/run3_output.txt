@@ -1,0 +1,23 @@
+fixed-for-life: argmax w=0.450 (quadratic vertex 0.465), curvature kappa=1.1573, half*kappa*0.2^2=0.02315; value at tiers 0.9/0.7/0.5: [0.82038 0.85564 0.87645]
+one-year (free continuation): argmax w=0.375 (quadratic vertex 0.371), curvature kappa=0.0747, half*kappa*0.2^2=0.00149; value at tiers 0.9/0.7/0.5: [0.90417 0.90988 0.91312]
+estate lam=0.01: one-year gap change from the estate term [ 0.e+00  9.e-06 -3.e-06]; fixed-for-life estate-term difference vs tier 0 [0.0e+00 2.9e-04 6.0e-05]
+estate lam=0.02: one-year gap change from the estate term [ 0.0e+00  1.9e-05 -5.0e-06]; fixed-for-life estate-term difference vs tier 0 [0.      0.00058 0.00011]
+item 7: p=0.1636 (95% CI 0.117-0.219) -> sigma_aux/sigma_surv = tan(pi p) = 0.565 (CI 0.386-0.823)
+   Monte Carlo check of disagreement rate: 0.1637
+raise credit per raised year at level 1.05: 6.71e-04
+raise credit per raised year at level 1.1: 9.49e-04
+raise credit per raised year at level 1.2: 1.34e-03
+2-eps check: sup |V1hat - V1*| on the year-1 support = 0.0760; Q errors by tier [-0.06569 -0.06744 -0.06855]; coarse pick 2 ref pick 2; one-step loss 0.00000 <= 2eps 0.1521; differential error |e_a - e_b| max 0.00286
+backward margin RULE m=0.001: largest one-cell step in V(.,tier0) at t=20 0.00462 (median step 1.06e-16) -> jump of ~m
+   charge c=0.001: largest one-cell step 0.00378
+backward margin RULE m=0.01: largest one-cell step in V(.,tier0) at t=20 0.01320 (median step 1.05e-16) -> jump of ~m
+   charge c=0.01: largest one-cell step 0.00373
+discordant share 0.005: paths for 2 SE <= 0.001: 20,000
+discordant share 0.005: paths for 2 SE <= 0.0003: 222,223
+discordant share 0.005: paths for 2 SE <= 0.0001: 2,000,000
+discordant share 0.02: paths for 2 SE <= 0.001: 80,000
+discordant share 0.02: paths for 2 SE <= 0.0003: 888,889
+discordant share 0.02: paths for 2 SE <= 0.0001: 8,000,000
+discordant share 0.063: paths for 2 SE <= 0.001: 252,000
+discordant share 0.063: paths for 2 SE <= 0.0003: 2,800,001
+discordant share 0.063: paths for 2 SE <= 0.0001: 25,200,000

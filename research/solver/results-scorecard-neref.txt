@@ -1,0 +1,74 @@
+THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md 8j). Brier target below 0.20; always 50% scores 0.25.
+
+7e (the bridge reader): Brier 0.166 over 10 (1 0.7 -> held; 2 0.8 -> held; 3 0.6 -> not; 4 0.65 -> held; 5 0.75 -> not; 6 0.8 -> held; 7 0.85 -> held; 8 0.75 -> held; 9 0.95 -> held; carried forward 0.6 -> not)
+7r (why the reader harms): Brier 0.331 over 6 (1 0.6 -> held; 2 0.9 -> not; 3 0.3 -> held; 4 0.55 -> held; 5 0.65 -> held; outcome HELD 0.55 -> held)
+7s (5 or 15 return points): Brier 0.098 over 6 (1 0.95 -> held; 2 0.45 -> held; 3 0.85 -> held; 4 0.6 -> held; 5 0.8 -> held; outcome HELD 0.25 -> not)
+7t (six suspected causes): Brier 0.261 over 18 (1 0.95 -> held; 10 0.7 -> held; 11 0.3 -> not; 12 0.5 -> not; 13 0.35 -> held; 14 0.8 -> held; 15 0.85 -> held; 16 0.75 -> held; 17 0.35 -> held; 2 0.25 -> not; 3 0.15 -> held; 4 0.2 -> not; 5 0.25 -> held; 6 0.15 -> held; 7 0.65 -> not; 8 0.5 -> not; 9 0.45 -> held; a cause HELD 0.55 -> held)
+7v (the switch margin): Brier 0.214 over 14 (1 0.45 -> held; 10 0.5 -> held; 11 0.5 -> held; 12 0.45 -> held; 13 0.4 -> not; 2 0.85 -> held; 3 0.4 -> not; 4 0.7 -> held; 5 0.55 -> not; 6 0.7 -> not; 7 0.3 -> not; 8 0.5 -> held; P named 0.35 -> not; a READER+J candidate by the whole score 0.55 -> held)
+7w (5 or 15 points at the bridge's last year): Brier 0.222 over 5 (1 0.65 -> held; 2 0.6 -> held; 3 0.55 -> held; 4 0.35 -> held; 5 0.55 -> held)
+7x (held-for-life tables: free switching or three worlds): Brier 0.218 over 4 (1 0.45 -> held; 2 0.55 -> held; 3 0.75 -> held; 4 0.55 -> not)
+7z (Q's fix alone: the reader's step integrated in the chooser): Brier 0.059 over 4 (1 0.8 -> held; 2 0.75 -> held; 3 0.65 -> held; 4 0.9 -> held)
+7y (the tier state: free switching in the tables): Brier 0.252 over 5 (1 0.55 -> not; 2 0.45 -> not; 3 0.5 -> not; 4 0.55 -> held; 5 0.55 -> not)
+7aa (the joint tier state at two settings: the pot off and on): Brier 0.260 over 6 (1 0.5 -> held; 2 0.45 -> not; 3 0.45 -> held; 4 0.5 -> held; 5 0.5 -> held; 6 0.45 -> held)
+7ab (the freed opening against TS+J and the product, the pot off and on): Brier 0.211 over 5 (1 0.5 -> not; 2 0.45 -> not; 3 0.8 -> held; 4 0.6 -> not; 5 0.55 -> held)
+7ac (the fourth cell: TS+J with the opening held in the plan's tier): Brier 0.261 over 3 (1 0.6 -> not; 2 0.6 -> not; 3 0.75 -> held)
+7ad (the refinement check: the bad world's price of the opening at its node and on finer grids): Brier 0.302 over 4 (1 0.65 -> not; 2 0.4 -> not; 3 0.45 -> not; 4 0.65 -> not)
+7ae (the bad node at margin 0: the per-year switch margin and the bad world's price): Brier 0.357 over 3 (1 0.4 -> not; 2 0.3 -> held; 3 0.35 -> held)
+7af (the candidate bundle, the reader with TS+J, against the shipping default): Brier 0.162 over 2 (1 0.55 -> held; 2 0.65 -> held)
+7ag (the bundle on the nine remaining panel households, and S126's attribution): Brier 0.189 over 3 (1 0.45 -> held; 2 0.75 -> held; 3 0.55 -> held)
+P (the switch charged in both passes: which explanation carries families 1 and 2): Brier 0.260 over 7 (1 0.55 -> held; 2 0.55 -> not; 3 0.55 -> not; 4 0.45 -> held; 5 0.5 -> held; 6 0.55 -> not; 7 0.4 -> not)
+7ah (O36's fix: the reader's reference drawn in the menu's order, on the six longer bridges): Brier 0.283 over 7 (1 0.35 -> held; 2 0.45 -> held; 3 0.3 -> held; 4 0.4 -> held; 5 0.5 -> held; 7 0.75 -> held; 8 0.7 -> held)
+7ai (O60's openings check: the tier returns as their blends' medians, and reversed): Brier 0.336 over 2 (1 0.65 -> not; 2 0.5 -> not)
+7ak (the attribution test: which snap turns P's forward-against-cell disagreements, and the switching boundaries): Brier 0.299 over 4 (1 0.7 -> not; 2 0.45 -> not; 3 0.55 -> not; 4 0.45 -> not)
+7al (the stage-by-stage calibration: post-access optimism by household, O66): Brier 0.202 over 1 (1 0.55 -> held)
+7am (the stored margin: P and the bundle under the tier shift, O67): Brier 0.222 over 3 (1 0.4 -> not; 2 0.55 -> not; 3 0.55 -> held)
+7ap (the allowance test: the used-allowance axis snapped against interpolated, O71): Brier 0.209 over 3 (1 0.45 -> held; 2 0.45 -> not; 3 0.65 -> held)
+7aq (P at half the step with a signed gap: is P smooth where the bundle is not, O67): Brier 0.132 over 2 (1 0.25 -> not; 2 0.55 -> held)
+7ar (O76's decomposition: where the bridge stage's rise under the interpolated allowance axis sits): Brier 0.222 over 3 (1 0.45 -> held; 2 0.45 -> not; 3 0.6 -> held)
+7as (the charge's size and S194's bad-world slice): Brier 0.218 over 3 (1 0.55 -> held; 2 0.45 -> not; 3 0.5 -> held)
+7at (the allowance axis with a bucket at the wall, and O76's read (b)): Brier 0.291 over 4 (1 0.5 -> not; 2 0.5 -> held; 3 0.55 -> not; 4 0.4 -> held)
+7au (the learner at P's settings): Brier 0.163 over 2 (1 0.55 -> not; 2 0.85 -> held)
+ADOPT-PI (the interpolated allowance axis in the shipping default): Brier 0.111 over 2 (1 0.75 -> held; 2 0.6 -> held)
+COV-B-STEP (the reader's tax and the step-year edge node): Brier 0.317 over 3 (1 0.7 -> not; 2 0.8 -> held; 3 0.65 -> not)
+HYB (the forward-only hybrid: ADOPT-PI's gain split between the read and the tables): Brier 0.360 over 1 (1 0.4 -> held)
+XAS (the exact one-step check: representation against quadrature at the step reads): Brier 0.338 over 2 (1 0.34 -> held; 2 0.51 -> held)
+EDGE (EDGE-SPLIT: which snap edge carries PCLSI's gain, on each table): Brier 0.247 over 2 (1 0.38 -> held; 2 0.33 -> not)
+XAS-R2 (the year-before reads split three ways: the top cell, the (v-a) nodes, S126's blend): Brier 0.573 over 3 (1 0.28 -> held; 2 0.24 -> held; 3 0.21 -> held)
+FORCE-X (the draw forced past the read's first price point at a would-be hold): Brier 0.202 over 1 (1 0.55 -> held)
+DT-O97 (O97's loss at a pension death tax of 0.4): Brier 0.025 over 2 (1 0.8 -> held; 2 0.1 -> not)
+7aj (the research candidate against the shipping default at the estate weight 0.01, 25 households): Brier 0.014 over 3 (1 0.82 -> held; 2 0.9 -> held; 3 0.98 -> held)
+7aw (the research candidate against the shipping default at the estate weight 0.02, 25 households): Brier 0.010 over 3 (1 0.86 -> held; 2 0.9 -> held; 3 0.98 -> held)
+CARRY (the carry family's rule held out on 7aw, and O123's cause by the fixed-policy re-score): Brier 0.196 over 2 (1 0.65 -> held; 2 0.48 -> held)
+NS-COND (NSB re-scoped: what carries the live corners' bequest error at the share-axis dead reads): Brier 0.039 over 3 (1 0.28 -> not; 2 0.9 -> held; 3 0.17 -> not)
+7u (the research candidate against the shipping default on the held-out seed, 55 households, both estate weights): Brier 0.303 over 8 (1 0.7 -> not; 2 0.79 -> not; 3 0.98 -> held; 4 0.98 -> held; 5 0.81 -> not; 6 0.81 -> not; 7 0.98 -> held; 8 0.98 -> held)
+NE-SPLIT (S364's opening split by parts in the candidate's tables and forced, bridge 4 the control): Brier 0.227 over 5 (1 0.31 -> held; 2 0.41 -> held; 3 0.28 -> not; 4 0.44 -> not; 5 0.8 -> held)
+NE-ROOT (the candidate's S364 survival plateau: the residual, the chance and the reader armed one at a time, bridge 4 the control): Brier 0.087 over 5 (1 0.37 -> not; 2 0.09 -> not; 3 0.03 -> not; 4 0.44 -> not; 5 0.69 -> held)
+NE-BLEND-A (the bridge reader's residual zeroed and its read in log-odds, on bridge 4 and S380): Brier 0.271 over 4 (1 0.53 -> held; 2 0.55 -> not; 3 0.21 -> not; 4 0.28 -> held)
+NE-GRID-B1 (the wealth axis doubled: the two bridge reads at 30 and 60 points against their runs on S380, bridge 4 and S224): Brier 0.466 over 4 (1 0.31 -> held; 2 0.11 -> held; 3 0.26 -> held; 4 0.78 -> held)
+NE-GRID-C (the wealth axis at 120 points; S224 under-read with and without its minimum end pot; S364 by shares, axis, reference and support line): Brier 0.096 over 10 (1 0.51 -> not; 10 0.19 -> not; 2 0.54 -> held; 3 0.24 -> not; 4 0.24 -> not; 5 0.29 -> not; 6 0.29 -> not; 7 0.13 -> not; 8 0.83 -> held; 9 0.35 -> not)
+NE-EDGE (S364's near-dead read: the bridge reader's residual zeroed (RZ) and scaled by the query's chance (RS), bridge 4 and S380 the controls): Brier 0.306 over 6 (1 0.39 -> held; 2 0.33 -> held; 3 0.72 -> held; 4 0.9 -> held; 5 0.33 -> held; 6 0.31 -> held)
+NE-REF (S364's log gap under RS split into the reference's parts; RS with the order-drawn reference; RS on S360): Brier 0.295 over 4 (1 0.35 -> held; 2 0.41 -> not; 4 0.52 -> held; 5 0.6 -> not)
+
+CUMULATIVE: Brier 0.228 over 212 items
+INTERVALS, each registered 80% interval against its reducer's REALISED line: 11 of 23 inside (80% expected); outside: 7u item 1 1.1143 (0.999 to 1.075); 7u item 2 -0.4123 (-0.109 to 0.015); 7u item 4 0.288 (0.132 to 0.193); 7u item 5 1.1559 (1.018 to 1.092); 7u item 6 -0.3114 (-0.121 to -0.035); 7u item 8 0.3199 (0.147 to 0.204); NE-ROOT item 1 1.0799 (-0.0138 to 1.0215); NE-BLEND-A item 4 -2.375 (-0.1366 to 1.4348); NE-GRID-B1 item 1 0.3163 (0.4321 to 1.0716); NE-EDGE item 1 1.0144 (0.1173 to 0.9254); NE-EDGE item 2 1.0143 (0.1036 to 0.9221); NE-REF item 1 1.0581 (0.1005 to 0.8842); 10 registered in 5 tests have no REALISED line (the reducers before 7u print none)
+INTERVAL FORMS over every prediction file: 50 write an 80% interval; 12 in the indexed form (confirm-7u, diag-7aj, diag-7aw, diag-carry, diag-edge, diag-neblend-a, diag-needge, diag-negrid-b1, diag-negrid-c, diag-neref, diag-neroot, diag-nesplit); 38 only in other forms, which the index cannot read (RULES.md known limit 35)
+RELIABILITY (credence bin: items, mean credence, share held):
+  under 60%     134   0.41   0.55
+  60-75%         33   0.65   0.55
+  75-90%         30   0.80   0.87
+  90% and over   15   0.94   0.93
+
+INFORMATION: base rate 0.623 held; always the base rate scores 0.235; over the distinct credences reliability 0.065, resolution 0.072, uncertainty 0.235; AUC 0.65 (0.5 is no discrimination)
+BY KIND (items, mean credence, share held, the author's Brier, the Brier of the kind's base rate from earlier tests):
+  NOHARM     51   0.65   0.78   0.230   0.189
+  EFFECT     26   0.58   0.73   0.215   0.221
+  ATTRIB     66   0.38   0.48   0.269   0.265
+  SIZE       45   0.56   0.53   0.216   0.277
+  CTRL       18   0.73   0.78   0.136   0.205
+  WHOLE       6   0.47   0.50   0.192   0.301
+THREE-OUTCOME ITEMS: ranked probability score 0.162 over 75, a uniform forecast 0.231
+LEGS, an item needing every household scored household by household: Brier 0.083 over 2
+DEEP-REVIEW CAUSES: 221 stated, 20 settled, Brier 0.089
+KIND BASE RATES (a new item's starting credence: Laplace over every scored item of its kind): NOHARM 0.77 (40 of 51), EFFECT 0.71 (19 of 26), ATTRIB 0.49 (32 of 66), SIZE 0.53 (24 of 45), CTRL 0.75 (14 of 18), WHOLE 0.50 (3 of 6); an item leaning on a deep review's cause or story 0.29 (7 of 26: the hand record's 1 of 19, deep-review-log.md, and the leading causes settled since, 6 of 7, review-causes.md)
+DISCRIMINATION, judged against derived (the same items and events): AUC judged 0.61, derived 0.63; resolution judged 0.117, derived 0.204 over 21
+JUDGED AGAINST DERIVED (paired, the same items and events): Brier judged 0.228, derived 0.267 over 21; the decisive check (O29): ACCRUING - 21 of 30 items over 7 tests

@@ -1,0 +1,8 @@
+GATE: passed - 2 households, each once and done at 30 points, ON the candidate with e3, OFF the same without, every comparison on its arrays with cells copied, the plant on share 0.95
+E3-CAND, E3'S EXACTNESS UNDER THE FULL RESEARCH CANDIDATE (a measurement): share 0.95, S130, 30 points; ON the candidate (e3 on), OFF the same with e3 off
+  household        differ/values           evaluated OFF/ON         copied   OFF s   ON s
+  share 0.95       0/17496000              46656000/37152000         79200  1084.9   870.6
+  S130             0/17496000              46656000/37152000         79200  1005.8   806.2
+PLANTED: the wrong-twin copy on share 0.95 differs in 1714630 values
+
+VERDICT E3 UNDER THE CANDIDATE: EXACT

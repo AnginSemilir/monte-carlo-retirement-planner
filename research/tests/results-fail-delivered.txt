@@ -1,0 +1,22 @@
+# node research/tests/fail-delivered.test.mjs --full   (29 Oct 20:38 UK; the port of 37fdbf7's curve/solve-faildelivered.patch, without the spending-utility prototype; the quick form, checks 2 to 4, is in FAST)
+# the review's own results (curve/results-curve-test2.txt at 37fdbf7, its patched code): S090 CAND off 9519c7c96bcb5634, on 9ff9791aeb3c8d3a, unmet ignored 30b136ab611c3621; S304F CAND off 96c6947f7e0744cf
+PASS  0. the code under test (solve.js 0863712025d92502) is not the base it is compared with (8e63de3, solve.js 180d7190a8b53c46)
+PASS  1. S090 TERN: with failDelivered off the 540 tables hash a20c378d594959e8, as at 8e63de3 (a20c378d594959e8)
+PASS  2. S090 TERN: with it on the tables hash 6749bb927c2d7476, not a20c378d594959e8 (meta.failDelivered true; the route reached)
+PASS  3. S090 TERN: with the unmet ignored (planted) 095f8078edf090e9, not 6749bb927c2d7476
+PASS  1. S090 E5: with failDelivered off the 3024 tables hash 9519c7c96bcb5634, as at 8e63de3 (9519c7c96bcb5634)
+PASS  2. S090 E5: with it on the tables hash 9ff9791aeb3c8d3a, not 9519c7c96bcb5634 (meta.failDelivered true; the route reached)
+PASS  3. S090 E5: with the unmet ignored (planted) 30b136ab611c3621, not 9ff9791aeb3c8d3a
+PASS  1. S090 TSLOOP: with failDelivered off the 3024 tables hash 9519c7c96bcb5634, as at 8e63de3 (9519c7c96bcb5634)
+PASS  2. S090 TSLOOP: with it on the tables hash 9ff9791aeb3c8d3a, not 9519c7c96bcb5634 (meta.failDelivered true; the route reached)
+PASS  3. S090 TSLOOP: with the unmet ignored (planted) 30b136ab611c3621, not 9ff9791aeb3c8d3a
+PASS  1. S090 JOINT: with failDelivered off the 540 tables hash 5e61cc17a35b042d, as at 8e63de3 (5e61cc17a35b042d)
+PASS  2. S090 JOINT: with it on the tables hash 9e05cde25d860ace, not 5e61cc17a35b042d (meta.failDelivered true; the route reached)
+PASS  3. S090 JOINT: with the unmet ignored (planted) 00473093abde3917, not 9e05cde25d860ace
+PASS  1. S090 PASS2: with failDelivered off the 540 tables hash 5ab2c7a042870dcf, as at 8e63de3 (5ab2c7a042870dcf)
+PASS  2. S090 PASS2: with it on the tables hash b93c3adf9b541310, not 5ab2c7a042870dcf (meta.failDelivered true; the route reached)
+PASS  3. S090 PASS2: with the unmet ignored (planted) e3e762f2d66fdb5e, not b93c3adf9b541310
+PASS  1. S304F E5: with failDelivered off the 5124 tables hash 96c6947f7e0744cf, as at 8e63de3 (96c6947f7e0744cf)
+PASS  1. planted: lambda x (1 + 1e-9) at 8e63de3 hashes 22ccd2baf369cee3, not 9519c7c96bcb5634
+PASS  4. failDelivered without failureShortfall is refused: failDelivered prices the failure year, so it needs failureShortfall
+ALL PASS: 19 checks

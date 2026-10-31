@@ -1,0 +1,30 @@
+7X'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7x.mjs's rules
+
+THE SIZES (saved/lost of the de-risked run against the plan's tier on 7x's paths; grade C, see the header), and each case's margin
+  S126        37/0  dS 0.4625  margin 0.25
+  S194        35/10  dS 0.3125  margin 0.25
+  share 0.95  199/0  dS 2.4875  margin 0.5
+  S360        9/497  dS -6.1000  margin 0.5
+
+BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
+  item 1, FS: the held tables see the whole realised gain (dT = dS)                      b 0.5  HELD 0.848  INCONCLUSIVE 0.152
+  item 1, FS, the tables a fifth low (dT = 0.8 dS)                                       b 0.5  HELD 0.667  INCONCLUSIVE 0.333
+  item 1, W: the held tables see 0.3 of it                                               b 0.5  FALSIFIED 0.913  INCONCLUSIVE 0.087
+  item 1, between: 0.6 of it                                                             b 0.5  FALSIFIED 0.023  HELD 0.102  INCONCLUSIVE 0.875
+  item 3, Q: the held tables see 0.05 of it                                              b 0.5  HELD 1.000
+  item 3, Q absent: they see all of it                                                   b 0.5  FALSIFIED 1.000
+  item 4, the tables lose 1 point, as the realised run does                              b 0.5  HELD 1.000
+  item 4, the tables flat (off's misread: 0.05 points)                                   b 0.5  INCONCLUSIVE 1.000
+  item 4, the tables gain 1 point                                                        b 0.5  FALSIFIED 1.000
+
+BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
+  item 1, FS: the held tables see the whole realised gain (dT = dS)                      b 5    HELD 0.802  INCONCLUSIVE 0.198
+  item 1, FS, the tables a fifth low (dT = 0.8 dS)                                       b 5    HELD 0.615  INCONCLUSIVE 0.385
+  item 1, W: the held tables see 0.3 of it                                               b 5    FALSIFIED 0.888  INCONCLUSIVE 0.112
+  item 1, between: 0.6 of it                                                             b 5    FALSIFIED 0.031  HELD 0.102  INCONCLUSIVE 0.867
+  item 3, Q: the held tables see 0.05 of it                                              b 5    HELD 1.000
+  item 3, Q absent: they see all of it                                                   b 5    FALSIFIED 1.000
+  item 4, the tables lose 1 point, as the realised run does                              b 5    HELD 1.000
+  item 4, the tables flat (off's misread: 0.05 points)                                   b 5    INCONCLUSIVE 1.000
+  item 4, the tables gain 1 point                                                        b 5    FALSIFIED 1.000
+

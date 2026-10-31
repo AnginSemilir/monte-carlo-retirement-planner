@@ -1,0 +1,24 @@
+NS-COND: THE DERIVATION (records only: the deep review after NSB, the scorecard, NSB's derivation; judged conditional chances, named)
+
+1. THE INPUTS
+  the 8 Oct 17:19 UK causes: NSL-UNCOND 0.45, NSL-WEALTH 0.14, NSL-SHARE 0.14, NSL-OTHER 0.27 (sum 1.00; the review shaded its lead halfway to the lead rate already)
+  the deep-review lead rate (results-scorecard.txt): 0.23 (for reference; not applied again)
+  NSB's derivation output results-derive-nsb.txt: sha256 0d215b1e56d741fa, its registered hash
+
+2. ITEM 1: NSL-UNCOND'S TESTS
+  NSL-UNCOND  0.45: HELD 0.51, FALSIFIED 0.02 (judged; the reasons in this script)
+  NSL-WEALTH  0.14: HELD 0.15, FALSIFIED 0.40 (judged; the reasons in this script)
+  NSL-SHARE   0.14: HELD 0.15, FALSIFIED 0.40 (judged; the reasons in this script)
+  NSL-OTHER   0.27: HELD 0.20, FALSIFIED 0.20 (judged; the reasons in this script)
+  some counting cell material at 30 points: 0.85 (judged); with none, INCONCLUSIVE
+  credence: HELD 0.28, INCONCLUSIVE 0.57, FALSIFIED 0.15; no numeric point (the outcome turns on every material cell's R, K and N)
+
+3. ITEMS 2 AND 3: NSB'S, CARRIED
+  item 2 (the copy rule's census): HELD 0.90, INCONCLUSIVE 0.06, FALSIFIED 0.04, point 0.734 (results-derive-nsb.txt)
+  item 3 (the menu-order reference): HELD 0.17, INCONCLUSIVE 0.37, FALSIFIED 0.46, point 0.27 (results-derive-nsb.txt)
+
+CREDENCE item 1: point - HELD 0.28 INCONCLUSIVE 0.57 FALSIFIED 0.15
+CREDENCE item 2: point 0.734 HELD 0.90 INCONCLUSIVE 0.06 FALSIFIED 0.04
+CREDENCE item 3: point 0.27 HELD 0.17 INCONCLUSIVE 0.37 FALSIFIED 0.46
+
+DERIVED: item 1 HELD 0.28 INCONCLUSIVE 0.57 FALSIFIED 0.15; item 2 HELD 0.90 INCONCLUSIVE 0.06 FALSIFIED 0.04; item 3 HELD 0.17 INCONCLUSIVE 0.37 FALSIFIED 0.46

@@ -25,6 +25,16 @@ const { chromium, devices } = require('/tmp/node_modules/playwright');
 const PORT = process.argv[2] || '5173';
 const THROTTLE = 4;
 const BEFORE_MS = 28398;  // this harness, this plan, the build before the worker existed
+/*
+ * The long-task line. 1,500 when the worker landed, at about 700ms measured. RAISED TO 2,200 on 30 Oct, on the
+ * maintainer's call, after main and the branch failed it alike. Alternated on one machine, the long tasks of
+ * the same run: main (d9d9b08) 1,324 to 1,688, the branch head 1,271 to 1,865, one population; the build of
+ * 20 Sep (d9b9491) 941 to 1,105. The difference is engine work, not the runner: bisected to 969669a (tax on
+ * savings interest and on dividends, two more income-tax calls a person a year), which measured 1,372 and
+ * 1,461. 2,200 sits about 335ms above the worst of them, more than half the spread, and still catches a page
+ * frozen for the 28 seconds this harness exists to prevent, twelve times over.
+ */
+const LONG_TASK_CEILING = 2200;
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {
   demographics:{planningMode:'single',currentAgeSelf:45,retireAgeSelf:62,salarySelf:70000,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},
@@ -115,7 +125,7 @@ async function figures(page) {
   const wall = Date.now() - t0;
   const lt = await a.page.evaluate(() => window.__longtask);
   console.log(`  run finished in ${(wall / 1000).toFixed(1)}s; long tasks ${Math.round(lt)}ms (was ${BEFORE_MS}ms)`);
-  ok('the main thread stays free during the projection', lt >= 0 && lt < 1500, `${Math.round(lt)}ms of long tasks`);
+  ok('the main thread stays free during the projection', lt >= 0 && lt < LONG_TASK_CEILING, `${Math.round(lt)}ms of long tasks, ceiling ${LONG_TASK_CEILING}ms`);
   ok('...and a worker actually ran', a.state.workers >= 1, `${a.state.workers} worker(s)`);
   const fastFigures = await figures(a.page);
   ok('no page errors', a.state.errs.length === 0, a.state.errs.slice(0, 2).join(' | '));

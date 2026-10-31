@@ -1,0 +1,196 @@
+ok   a log parsed and gated: every registered unit, the gate passes: 50 0
+ok   the registered units: 25 candidates and 25 shipping defaults: 25 25
+ok   the margins: five households at 0.5, twenty at 0.25: 5 20
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses an unregistered unit: true
+ok   the gate refuses another lambda on the unit line: true
+ok   the gate refuses the estate weight 0.01 (on every unit of a household): true
+ok   the gate refuses other paths (on every unit of a household): true
+ok   the gate refuses other points (on every unit of a household): true
+ok   the gate refuses the linear tiers (on every unit of a household): true
+ok   the gate refuses a tier set with a sixth tier: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses SHIP with the tier state: true
+ok   the gate refuses SHIP with the reader: true
+ok   the gate refuses SHIP with the interpolated allowance axis: true
+ok   the gate refuses CAND without Q's step: true
+ok   the gate refuses CAND without the charge: true
+ok   the gate refuses CAND without e3: true
+ok   the gate refuses CAND without the tier state: true
+ok   the gate refuses CAND solved per world: true
+ok   the gate refuses CAND at the stored margin: true
+ok   the gate refuses a settings difference within a household (minPot): true
+ok   the gate refuses a pension death charge (on every unit of a household): true
+ok   the gate refuses another scale within a household: true
+ok   the gate takes a risk-above decision that differs between the arms (the arm's own, reported): false
+ok   the gate takes a tier above in one arm only (the 'auto' rule's second solve): false
+ok   the gate refuses a world line (not registered): true
+ok   the gate refuses a missing done line: true
+ok   a trace agrees with the log to four decimals, and not beyond, and only under its own arm: true false false
+ok   a trace on file: its own stamp passes, another code refused: 0 true
+ok   nothing differs: 1 HELD, 2 HELD, 3 HELD: 1 HELD, 2 HELD, 3 HELD
+ok   a household with no discordant path reads no material harm (the interval the point 0): no material harm
+ok   a clear loss on one household (0 saved, 60 lost of 8000, margin 0.25): 1 FALSIFIED: FALSIFIED
+ok   a loss inside the margin whose interval reaches past it (5 saved, 22 lost): 1 INCONCLUSIVE: INCONCLUSIVE
+ok   all differing paths lost inside the margin (0 saved, 15 lost): the exact rule reads no material harm, the guarded unconditional interval does not pass it: 1 INCONCLUSIVE: INCONCLUSIVE
+ok   a gain everywhere is no harm: 1 HELD: HELD
+ok   the margin is the household's: 0 saved, 30 lost (-0.375) reads harm at 0.25 (S122) and not harm at 0.5 (S130): harm not harm
+ok   Holm across 25: 60 saved, 82 lost (-0.275, p 0.039 alone) is not harm after Holm: 1 INCONCLUSIVE: INCONCLUSIVE
+ok   the whole score within the margin everywhere: 2 HELD: HELD
+ok   the whole score's upper end below minus the margin on one household: 2 FALSIFIED: FALSIFIED
+ok   the whole score's interval straddling minus the margin: 2 INCONCLUSIVE: INCONCLUSIVE
+ok   the whole score's lower end exactly at minus the margin is not a pass: 2 INCONCLUSIVE: INCONCLUSIVE
+ok   the whole score at -0.4 to -0.3 is no harm on S370 (margin 0.5), harm on bridge 4 (0.25): HELD FALSIFIED
+ok   spending 6% lower on one household: 3 FALSIFIED: FALSIFIED
+ok   spending 4% lower on one household: 3 HELD: HELD
+ok   spending 1.5% lower on every household: 3 FALSIFIED by the mean: FALSIFIED
+ok   spending 1% lower on every household (the mean at the line): 3 INCONCLUSIVE: INCONCLUSIVE
+ok   spending 4.9% lower with a wide interval (to about -6.9%): 3 INCONCLUSIVE: INCONCLUSIVE
+ok   spending higher is never a fault: +6% on one household: 3 HELD: HELD
+ok   survival is not spending: while both spend -1.0%, the path with no year both spend left out: -1.0 0,1
+ok   the pooled floor sums the 25 households' cells: 25 60 200000
+planted (52): all read as they should
+EDGES: a tier above in one arm only, a household with no discordant path, every discordant path lost and none saved (the exact interval ending at its point), a whole-score lower end exactly at minus the margin, the spending mean exactly at -1%, a path with no year both arms spend
+OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 2: FALSIFIED, HELD, INCONCLUSIVE
+OUTCOMES REACHED: item 3: FALSIFIED, HELD, INCONCLUSIVE
+
+7AW: THE RESEARCH CANDIDATE AGAINST THE SHIPPING DEFAULT AT THE ESTATE WEIGHT 0.02 (predictions/diag-7aw.md; 8000 paths of seed 7002, both arms on O60's blend-median tiers; the fair-test gate passed: the stamps, every unit once and done at the registered settings, the arms' settings, every trace the log's)
+
+EVERY UNIT: the table, the simulated survival, the table error (table less simulated: the misread 7af and 7ai saw on SHIP), the year-0 gap and opening, the risk-above decision, years below target, tier changes and estate
+  share 0.50 SHIP      table 99.9654 sim 99.65 error 0.32 gap 1.6353e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.97 changes 0.174 estate 2621200
+  share 0.50 CAND      table 99.8807 sim 99.94 error -0.06 gap 2.4351e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.28 changes 0.866 estate 2648758
+  share 0.70 SHIP      table 99.8790 sim 99.46 error 0.42 gap 2.7692e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 1.28 changes 0.241 estate 2580032
+  share 0.70 CAND      table 99.8659 sim 99.88 error -0.01 gap 4.5560e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.35 changes 0.752 estate 2654217
+  share 0.78 SHIP      table 99.7008 sim 99.88 error -0.17 gap 1.8858e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 1.30 changes 0.002 estate 2542299
+  share 0.78 CAND      table 99.8560 sim 99.90 error -0.04 gap 1.9837e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 1.38 changes 0.697 estate 2659885
+  share 0.90 SHIP      table 1.9589 sim 99.36 error -97.40 gap 2.2963e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 2.44 changes 0.300 estate 2519237
+  share 0.90 CAND      table 99.8536 sim 99.88 error -0.02 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 1.63 changes 1.657 estate 2630292
+  share 0.95 SHIP      table 0.0140 sim 74.28 error -74.26 gap 1.6693e-5 (opening 0,1) riskAbove off:_no_tier_above_the_plan below 2.32 changes 0.176 estate 2007368
+  share 0.95 CAND      table 82.6111 sim 96.09 error -13.48 gap 1.8321e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 2.35 changes 0.670 estate 2580929
+  bridge 0 SHIP        table 99.9651 sim 99.50 error 0.47 gap 2.6094e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 1.19 changes 0.227 estate 2538451
+  bridge 0 CAND        table 99.9189 sim 99.92 error -0.01 gap 3.7836e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.32 changes 0.756 estate 2616630
+  bridge 1 SHIP        table 92.4960 sim 99.45 error -6.95 gap 3.2179e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 1.28 changes 0.246 estate 2524029
+  bridge 1 CAND        table 99.8868 sim 99.86 error 0.02 gap 4.6806e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.36 changes 0.712 estate 2612136
+  bridge 6 SHIP        table 8.7646 sim 99.56 error -90.80 gap 3.7366e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 5.68 changes 0.013 estate 2605642
+  bridge 6 CAND        table 99.5390 sim 99.60 error -0.06 gap 8.7840e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 5.74 changes 0.592 estate 2699162
+  wealth x0.5 SHIP     table 7.7818 sim 96.88 error -89.09 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 11.97 changes 1.114 estate 875871
+  wealth x0.5 CAND     table 97.4282 sim 97.42 error 0.00 gap 2.7505e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 12.92 changes 0.836 estate 960191
+  wealth x2 SHIP       table 94.9341 sim 100.00 error -5.07 gap 1.4030e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 1.00 changes 0.000 estate 5936253
+  wealth x2 CAND       table 99.9873 sim 99.96 error 0.02 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 1.11 changes 0.848 estate 6048519
+  S120 SHIP            table 91.2982 sim 100.00 error -8.70 gap 2.4185e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 1.00 changes 0.000 estate 598853
+  S120 CAND            table 99.9958 sim 100.00 error -0.00 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 1.00 changes 0.718 estate 606119
+  S122 SHIP            table 61.6249 sim 99.75 error -38.13 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 2.61 changes 0.143 estate 494876
+  S122 CAND            table 99.9361 sim 99.84 error 0.10 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 2.53 changes 0.691 estate 505101
+  S126 SHIP            table 71.1791 sim 99.88 error -28.70 gap 1.1830e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 1.35 changes 0.003 estate 2530904
+  S126 CAND            table 99.8536 sim 99.88 error -0.02 gap 4.1309e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 1.43 changes 0.674 estate 2644434
+  bridge 4 SHIP        table 13.3493 sim 99.75 error -86.40 gap 6.0114e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 3.57 changes 0.037 estate 2558800
+  bridge 4 CAND        table 99.7554 sim 99.74 error 0.02 gap 5.7539e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 3.66 changes 0.628 estate 2662035
+  S360 SHIP            table 0.9983 sim 37.20 error -36.20 gap 5.0113e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 6.70 changes 0.013 estate 251712
+  S360 CAND            table 35.2390 sim 48.92 error -13.69 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 6.71 changes 0.891 estate 333851
+  S194 SHIP            table 99.4341 sim 98.89 error 0.55 gap 5.4317e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 6.45 changes 0.630 estate 442443
+  S194 CAND            table 99.1618 sim 99.21 error -0.05 gap 5.4648e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 5.59 changes 0.659 estate 457208
+  S124 SHIP            table 15.1942 sim 96.03 error -80.83 gap 1.5758e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 13.44 changes 0.161 estate 1019226
+  S124 CAND            table 96.0629 sim 96.04 error 0.03 gap 4.2923e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 13.78 changes 0.677 estate 1051550
+  S128 SHIP            table 1.6254 sim 72.42 error -70.80 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 22.20 changes 2.359 estate 963169
+  S128 CAND            table 75.7580 sim 73.29 error 2.47 gap 3.4361e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 23.03 changes 2.260 estate 1031937
+  S130 SHIP            table 8.3467 sim 86.44 error -78.09 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 18.02 changes 1.583 estate 3800798
+  S130 CAND            table 91.6996 sim 89.78 error 1.92 gap 5.2144e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 19.33 changes 1.076 estate 4304921
+  S366 SHIP            table 3.3757 sim 99.42 error -96.05 gap 1.3653e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 8.07 changes 0.646 estate 2636309
+  S366 CAND            table 99.2090 sim 99.51 error -0.30 gap 1.2441e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 8.11 changes 0.553 estate 2716927
+  S370 SHIP            table 0.1212 sim 73.33 error -73.20 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 19.40 changes 1.636 estate 3956484
+  S370 CAND            table 80.7668 sim 80.15 error 0.62 gap 2.6825e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 24.16 changes 1.467 estate 4219314
+  bridge 4+cost SHIP   table 2.5799 sim 95.84 error -93.26 gap 9.4224e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 4.59 changes 0.338 estate 2428660
+  bridge 4+cost CAND   table 98.3407 sim 99.54 error -1.20 gap 1.4878e-2 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 3.81 changes 0.655 estate 2600534
+  S162 SHIP            table 99.8262 sim 99.16 error 0.66 gap 4.4099e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 1.92 changes 0.391 estate 2543679
+  S162 CAND            table 99.5744 sim 99.55 error 0.02 gap 7.1814e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 0.84 changes 0.757 estate 2610873
+  S172 SHIP            table 99.4738 sim 98.94 error 0.54 gap 9.7570e-4 (opening 0,2) riskAbove off:_no_tier_above_the_plan below 4.93 changes 0.662 estate 912328
+  S172 CAND            table 98.9420 sim 99.25 error -0.31 gap 1.1160e-3 (opening 2,2) riskAbove off:_no_tier_above_the_plan below 4.42 changes 0.940 estate 968391
+  S168 SHIP            table 99.9960 sim 100.00 error -0.00 gap 3.5678e-6 (opening 0,1) riskAbove off:_no_tier_above_the_plan below 0.00 changes 0.036 estate 612068
+  S168 CAND            table 99.9960 sim 100.00 error -0.00 gap 0 (opening 0,0) riskAbove off:_no_tier_above_the_plan below 0.00 changes 0.622 estate 618384
+
+THE ITEMS (each read by its registered rule)
+1. survival at the estate weight 0.02: CAND against SHIP, no material harm on every household (the exact rule with Holm across 25, each at its margin, and the guarded unconditional interval's lower end above minus it; FALSIFIED: harm on any by the exact rule): HELD
+     share 0.50     23 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.287 (exact 0.202 to 0.287; unconditional 0.183 to 0.431)  margin 0.25  no material harm
+     share 0.70     33 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.412 (exact 0.325 to 0.412; unconditional 0.285 to 0.579)  margin 0.25  no material harm
+     share 0.78     2 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.025 (exact -0.017 to 0.025; unconditional -0.028 to 0.090)  margin 0.25  no material harm
+     share 0.90     41 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.512 (exact 0.424 to 0.512; unconditional 0.371 to 0.695)  margin 0.25  no material harm
+     share 0.95     1745 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +21.813 (exact 21.720 to 21.813; unconditional 20.915 to 22.734)  margin 0.5  no material harm
+     bridge 0       34 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.425 (exact 0.338 to 0.425; unconditional 0.297 to 0.594)  margin 0.25  no material harm
+     bridge 1       33 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.412 (exact 0.325 to 0.412; unconditional 0.285 to 0.579)  margin 0.25  no material harm
+     bridge 6       4 saved/1 lost of 8000  p 9.7e-1  Holm 1.0e+0  change +0.037 (exact -0.027 to 0.062; unconditional -0.031 to 0.114)  margin 0.25  no material harm
+     wealth x0.5    53 saved/9 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.550 (exact 0.375 to 0.669; unconditional 0.360 to 0.755)  margin 0.25  no material harm
+     wealth x2      0 saved/3 lost of 8000  p 1.2e-1  Holm 1.0e+0  change -0.037 (exact -0.037 to 0.016; unconditional -0.110 to 0.016)  margin 0.25  no material harm
+     S120           0 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.000 (exact 0.000 to 0.000; unconditional -0.048 to 0.048)  margin 0.25  no material harm
+     S122           7 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.087 (exact 0.016 to 0.087; unconditional 0.019 to 0.180)  margin 0.25  no material harm
+     S126           2 saved/2 lost of 8000  p 6.9e-1  Holm 1.0e+0  change +0.000 (exact -0.043 to 0.043; unconditional -0.068 to 0.068)  margin 0.25  no material harm
+     bridge 4       3 saved/4 lost of 8000  p 5.0e-1  Holm 1.0e+0  change -0.013 (exact -0.070 to 0.055; unconditional -0.094 to 0.067)  margin 0.25  no material harm
+     S360           938 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +11.725 (exact 11.633 to 11.725; unconditional 11.019 to 12.450)  margin 0.5  no material harm
+     S194           29 saved/3 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.325 (exact 0.200 to 0.384; unconditional 0.190 to 0.481)  margin 0.25  no material harm
+     S124           10 saved/9 lost of 8000  p 6.8e-1  Holm 1.0e+0  change +0.013 (exact -0.100 to 0.121; unconditional -0.103 to 0.128)  margin 0.25  no material harm
+     S128           220 saved/151 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.863 (exact 0.381 to 1.330; unconditional 0.391 to 1.335)  margin 0.5  no material harm
+     S130           286 saved/19 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +3.337 (exact 3.084 to 3.523; unconditional 2.921 to 3.767)  margin 0.5  no material harm
+     S366           10 saved/3 lost of 8000  p 9.9e-1  Holm 1.0e+0  change +0.087 (exact -0.012 to 0.146; unconditional -0.007 to 0.193)  margin 0.25  no material harm
+     S370           661 saved/115 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +6.825 (exact 6.302 to 7.296; unconditional 6.161 to 7.493)  margin 0.5  no material harm
+     bridge 4+cost  296 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +3.700 (exact 3.608 to 3.700; unconditional 3.305 to 4.137)  margin 0.25  no material harm
+     S162           33 saved/2 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.388 (exact 0.270 to 0.431; unconditional 0.250 to 0.553)  margin 0.25  no material harm
+     S172           29 saved/4 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.313 (exact 0.180 to 0.384; unconditional 0.175 to 0.470)  margin 0.25  no material harm
+     S168           0 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.000 (exact 0.000 to 0.000; unconditional -0.048 to 0.048)  margin 0.25  no material harm
+2. the whole score at the estate weight 0.02: CAND against SHIP, no material harm on every household, each at its margin (FALSIFIED: an upper end below minus it): HELD
+     share 0.50     whole +0.465 (unconditional 0.319 to 0.662; exact 0.339 to 0.492; survival part +0.287, the rest +0.178 +/- 0.012)  margin 0.25
+     share 0.70     whole +0.729 (unconditional 0.554 to 0.954; exact 0.596 to 0.760; survival part +0.413, the rest +0.317 +/- 0.014)  margin 0.25
+     share 0.78     whole +0.260 (unconditional 0.173 to 0.361; exact 0.195 to 0.280; survival part +0.025, the rest +0.235 +/- 0.009)  margin 0.25
+     share 0.90     whole +0.892 (unconditional 0.701 to 1.134; exact 0.758 to 0.921; survival part +0.513, the rest +0.379 +/- 0.013)  margin 0.25
+     share 0.95     whole +24.562 (unconditional 23.408 to 25.745; exact 24.323 to 24.691; survival part +21.813, the rest +2.749 +/- 0.058)  margin 0.5
+     bridge 0       whole +0.741 (unconditional 0.566 to 0.969; exact 0.609 to 0.771; survival part +0.425, the rest +0.316 +/- 0.013)  margin 0.25
+     bridge 1       whole +0.759 (unconditional 0.583 to 0.984; exact 0.625 to 0.789; survival part +0.412, the rest +0.346 +/- 0.014)  margin 0.25
+     bridge 6       whole +0.260 (unconditional 0.158 to 0.371; exact 0.171 to 0.303; survival part +0.038, the rest +0.222 +/- 0.008)  margin 0.25
+     wealth x0.5    whole +0.753 (unconditional 0.507 to 1.018; exact 0.525 to 0.911; survival part +0.550, the rest +0.203 +/- 0.012)  margin 0.25
+     wealth x2      whole +0.064 (unconditional -0.047 to 0.153; exact 0.043 to 0.142; survival part -0.038, the rest +0.101 +/- 0.009)  margin 0.25
+     S120           whole +0.081 (unconditional 0.002 to 0.159; exact 0.065 to 0.096; survival part +0.000, the rest +0.081 +/- 0.007)  margin 0.25
+     S122           whole +0.215 (unconditional 0.122 to 0.335; exact 0.123 to 0.225; survival part +0.087, the rest +0.127 +/- 0.005)  margin 0.25
+     S126           whole +0.227 (unconditional 0.123 to 0.330; exact 0.162 to 0.292; survival part +0.000, the rest +0.227 +/- 0.009)  margin 0.25
+     bridge 4       whole +0.192 (unconditional 0.074 to 0.306; exact 0.111 to 0.284; survival part -0.013, the rest +0.204 +/- 0.009)  margin 0.25
+     S360           whole +13.475 (unconditional 12.551 to 14.422; exact 13.249 to 13.592; survival part +11.725, the rest +1.750 +/- 0.052)  margin 0.5
+     S194           whole +0.665 (unconditional 0.477 to 0.880; exact 0.489 to 0.760; survival part +0.325, the rest +0.340 +/- 0.014)  margin 0.25
+     S124           whole +0.103 (unconditional -0.045 to 0.253; exact -0.036 to 0.238; survival part +0.012, the rest +0.091 +/- 0.006)  margin 0.25
+     S128           whole +0.915 (unconditional 0.350 to 1.480; exact 0.340 to 1.472; survival part +0.863, the rest +0.052 +/- 0.011)  margin 0.5
+     S130           whole +3.574 (unconditional 3.069 to 4.095; exact 3.253 to 3.809; survival part +3.338, the rest +0.236 +/- 0.013)  margin 0.5
+     S366           whole +0.257 (unconditional 0.127 to 0.400; exact 0.126 to 0.337; survival part +0.088, the rest +0.169 +/- 0.008)  margin 0.25
+     S370           whole +6.873 (unconditional 6.053 to 7.698; exact 6.213 to 7.467; survival part +6.825, the rest +0.048 +/- 0.027)  margin 0.5
+     bridge 4+cost  whole +4.437 (unconditional 3.933 to 4.994; exact 4.274 to 4.492; survival part +3.700, the rest +0.737 +/- 0.024)  margin 0.25
+     S162           whole +0.717 (unconditional 0.528 to 0.943; exact 0.550 to 0.795; survival part +0.388, the rest +0.330 +/- 0.014)  margin 0.25
+     S172           whole +0.669 (unconditional 0.479 to 0.884; exact 0.485 to 0.777; survival part +0.313, the rest +0.356 +/- 0.014)  margin 0.25
+     S168           whole +0.070 (unconditional 0.001 to 0.140; exact 0.063 to 0.077; survival part +0.000, the rest +0.070 +/- 0.003)  margin 0.25
+3. spending while both arms spend: no household's spending more than 5% lower and the panel mean not more than 1% lower, each by its 95% interval (FALSIFIED: a household's upper end below -5% or the mean's below -1%): HELD
+     share 0.50     while both spend (8000 paths) 1.0934 -> 1.0982: +0.435% (0.398 to 0.472) | reported, a failed path's years 0: +0.446%
+     share 0.70     while both spend (8000 paths) 1.0913 -> 1.0977: +0.585% (0.543 to 0.626) | reported, a failed path's years 0: +0.605%
+     share 0.78     while both spend (8000 paths) 1.0905 -> 1.0900: -0.049% (-0.058 to -0.040) | reported, a failed path's years 0: -0.048%
+     share 0.90     while both spend (8000 paths) 1.0826 -> 1.0883: +0.529% (0.492 to 0.565) | reported, a failed path's years 0: +0.548%
+     share 0.95     while both spend (8000 paths) 1.0094 -> 1.0115: +0.207% (0.175 to 0.239) | reported, a failed path's years 0: +28.388%
+     bridge 0       while both spend (8000 paths) 1.0914 -> 1.0978: +0.585% (0.542 to 0.627) | reported, a failed path's years 0: +0.601%
+     bridge 1       while both spend (8000 paths) 1.0910 -> 1.0976: +0.602% (0.561 to 0.644) | reported, a failed path's years 0: +0.624%
+     bridge 6       while both spend (8000 paths) 1.0618 -> 1.0626: +0.074% (0.065 to 0.084) | reported, a failed path's years 0: +0.078%
+     wealth x0.5    while both spend (8000 paths) 1.0135 -> 1.0071: -0.632% (-0.667 to -0.596) | reported, a failed path's years 0: -0.526%
+     wealth x2      while both spend (8000 paths) 1.0925 -> 1.0918: -0.062% (-0.077 to -0.048) | reported, a failed path's years 0: -0.063%
+     S120           while both spend (8000 paths) 1.0925 -> 1.0925: -0.000% (-0.001 to 0.000) | reported, a failed path's years 0: -0.000%
+     S122           while both spend (8000 paths) 1.0821 -> 1.0826: +0.045% (0.037 to 0.052) | reported, a failed path's years 0: +0.045%
+     S126           while both spend (8000 paths) 1.0902 -> 1.0897: -0.047% (-0.056 to -0.039) | reported, a failed path's years 0: -0.046%
+     bridge 4       while both spend (8000 paths) 1.0749 -> 1.0744: -0.048% (-0.057 to -0.040) | reported, a failed path's years 0: -0.044%
+     S360           while both spend (8000 paths) 0.8943 -> 0.8946: +0.030% (0.026 to 0.033) | reported, a failed path's years 0: +23.600%
+     S194           while both spend (8000 paths) 1.0503 -> 1.0581: +0.748% (0.718 to 0.778) | reported, a failed path's years 0: +0.763%
+     S124           while both spend (8000 paths) 1.0030 -> 1.0007: -0.221% (-0.229 to -0.212) | reported, a failed path's years 0: -0.222%
+     S128           while both spend (8000 paths) 0.9085 -> 0.9029: -0.619% (-0.676 to -0.563) | reported, a failed path's years 0: +0.401%
+     S130           while both spend (8000 paths) 0.9604 -> 0.9513: -0.942% (-0.997 to -0.886) | reported, a failed path's years 0: -0.085%
+     S366           while both spend (8000 paths) 1.0478 -> 1.0477: -0.007% (-0.019 to 0.005) | reported, a failed path's years 0: +0.005%
+     S370           while both spend (8000 paths) 0.9323 -> 0.9181: -1.524% (-1.589 to -1.459) | reported, a failed path's years 0: +7.403%
+     bridge 4+cost  while both spend (8000 paths) 1.0584 -> 1.0646: +0.594% (0.557 to 0.631) | reported, a failed path's years 0: +3.833%
+     S162           while both spend (8000 paths) 1.0867 -> 1.0943: +0.699% (0.659 to 0.740) | reported, a failed path's years 0: +0.704%
+     S172           while both spend (8000 paths) 1.0661 -> 1.0703: +0.401% (0.372 to 0.430) | reported, a failed path's years 0: +0.407%
+     S168           while both spend (8000 paths) 1.1000 -> 1.1000: +0.000% (0.000 to 0.000) | reported, a failed path's years 0: +0.000%
+     the panel mean +0.055% (0.043 to 0.068)
+
+REPORTED: the pooled floor (stats.mjs pooledSummed over the 25 households' cells; 7u's pooled gate, not an item here): 4492 saved/325 lost of 200000, change +2.084 (2.016 to 2.151)
+
+OUTCOME: 1 HELD, 2 HELD, 3 HELD

@@ -1,0 +1,3 @@
+FAIR-TEST GATE: FAILED
+  S130 READER/TS+J/W0.02/PCLSI/S12 (7at's checks, shown as S130 READER/TS+J/W0.02/PCLSI): S130 READER/TS+J/W0.02/PCLSI world 0: read (b) moved no bridge read - a read that cannot move cannot answer item 3 (O79)
+  S130 READER/TS+J/W0.02/PCLSI/S12 world 0: the quadratic moved no bridge step read - a read that cannot move cannot answer item 2

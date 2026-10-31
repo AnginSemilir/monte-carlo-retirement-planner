@@ -94,28 +94,49 @@ is the most important design decision, because every extra thing multiplies the 
 
 A move is "how much to pay into or draw from each pot". In principle that is a continuous choice, and a
 table cannot hold infinitely many options. The escape is that UK tax is made of straight lines with
-corners, and the corners are the only places a best move can sit.
+corners, so the corners are the natural places for a move to stop.
 
 Think about drawing from a pension in retirement. The first £12,570 of income is free. The next
 £37,700 costs 20p in the pound. Beyond that 40p, then 45p. If it is worth drawing a pound at 20p, it is
-worth drawing the next pound at 20p too, because nothing changes between them. So you either stop at
-the start of the band or go to the end of it. Stopping halfway is never better than one of the two
-ends. That means the pension move each year is one of about five: draw nothing, draw up to the
-allowance, draw to the basic-rate limit, draw to the higher-rate limit, or draw whatever the year needs.
-The same reasoning gives two choices for the GIA (sell up to the capital gains exemption or not), two
-for re-wrapping surplus into the ISA (do it or not), and in working years four for pension
-contributions (none, up to basic relief, up to higher relief, up to the annual allowance), with the ISA
-taking the rest. Paying into the GIA while there is ISA room left is always worse, so it is never
-offered.
+worth drawing the next pound at 20p too, because the tax does not change between them. So the solver
+offers the ends of the bands, not the points between them.
 
-There is one honest caveat. The tax is straight lines, but the value of money in a pot is not quite:
-having a little more in the ISA is worth slightly more or less depending on how full it is. So a point
-halfway along a band can occasionally beat both ends. The plan adds one midpoint per band to catch
-this. That takes the pension move to about nine choices instead of five, still tiny.
+This is the menu the code offers each year (`buildActions` in src/solver/solve.js), and nothing else:
 
-Put together, a retired person has roughly twenty possible moves a year and a working person about
-eighty. Compare that with the evolver, which had to search a space of millions of rule combinations,
-and you can see why an exact answer becomes affordable.
+- the pension: draw none of it first, draw it first up to the personal allowance, first up to the
+  basic-rate limit, or first for whatever the year needs (four choices);
+- the order of the other pots: the ISA before the taxable account, or the taxable account (with cash)
+  before the ISA (two choices);
+- re-wrapping: none, or draw the pension beyond the year's need up to the allowance, or up to the
+  basic-rate limit, and put the surplus into the ISA, then the taxable account (three choices).
+
+That is 24 withdrawal moves. Each is offered at every spend level the plan allows (the plan as written, a
+raise to 110% (120% only if the user lifts the default cap), trims to 95% and 90%, and the floor, never
+below the floor), and, where the
+household may change risk, at each risk tier on offer (the plan's own, the two below it, and one above
+it where the plan is thin and the household consents).
+
+The research candidate's menu is larger by two things, each measured before it joined (the maintainer, 25
+Oct, after N4 and the factorial that tested them together; STATE.md D28 and D29). Neither is the app's
+until Phase 4.
+
+- One more corner, the taper threshold: £100,000 of income, where the personal allowance starts to be
+  withdrawn and each further pound costs 60p. The pension may be drawn first up to it, and the pension
+  beyond the year's need may be re-wrapped up to it. That is 40 withdrawal moves in place of 24.
+- A third tier step down: the pension and the ISA may move together one, two or three tiers below the
+  plan's own, but never into Cash Equivalents past the second step. A household whose pension or ISA
+  sits too low to take the third step keeps the two-step ladder, the tier above included.
+
+Two honest caveats. First, the menu is smaller than this page once described: there is no ceiling in the
+higher-rate band (the candidate's taper threshold apart), no point in the middle of a band, no choice to
+sell the taxable account up to the capital gains exemption, and no choice of pension contribution in
+working years (contributions follow the plan as entered). N4 tried the midpoints and the sale, and
+neither cleared its bar, which asks a new move to beat this menu beyond the measurement's noise and by
+more than 0.2 points on the panel's average or 0.5 on one household, in survival or in the whole score:
+the midpoints moved nothing beyond noise, and the sale gained a little beyond noise, but less than the
+bar asks (STATE.md, N4's read). Second, the corner argument holds for the tax, not for what the money is
+worth later, which is curved, so the best move can sit inside a band. "Close to the best possible"
+therefore means the best within this menu, and a move joins only where it clears that bar.
 
 ## 5. Handling uncertainty without thousands of paths
 
@@ -352,7 +373,14 @@ most of its retirement and its survival rises several points; a comfortable one 
 no longer needs the return. A tier change is not free: the slice that moves is sold and bought, so
 a quarter of a percent of that slice (about a tenth of a percent each way for the spread and dealing,
 and a day or two out of the market) is charged to the wrapper the year it changes. That cut the
-flipping by a third; a realistic cost is too small to do more. So a change is also made only when it
+flipping by a third; a realistic cost is too small to do more. In the research candidate (STATE.md
+D30) that cost is charged when a move is taken - by the chooser, the forward run and the engine - and
+not inside the table, which keeps the switch's charge in its score; a move's expectation then no longer
+depends on the tier held, so the solve computes it once rather than once a tier. It joined by the rule
+committed before its (exploratory) check: no household losing more than half a point beyond noise and the panel's
+average no worse than a fifth of a point at the lower end of its interval. It is not free of effect:
+one household lost a fifth of a point beyond noise and another gained about as much (STATE.md, D30's
+check). So a change is also made only when it
 is worth noticing: the table's gain from switching has to beat a tenth of a survival point, or the
 household stays where it is. With both, the household changes tier about twice in a retirement and
 pays about £3k to do it, and the survival gain is intact (+4.9 points against +5.0 with free
@@ -379,3 +407,68 @@ ending with at least what you started with", a step that rewards a gamble right 
 the expected shortfall below that line, which is smooth. It changed no decision; it removes the
 incentive. The weights were then tuned on the households the experiment never sees and the pair in
 use, (0.5, 0.02), was confirmed.
+
+**Three worlds at once, for free (E0).** The solver does not assume one future for returns; it solves
+three, a pessimistic, a central and an optimistic one, and averages their advice. That used to mean
+three full passes. But the expensive part of a year - working out the withdrawals, the tax, what lands
+in which pot - does not depend on which world you are in; only the growth rate does. So the three are
+now solved side by side, sharing one pass of that work. Exactly a third of the calls, and the answers
+are identical to the last decimal place, which the test checks rather than assumes: 1.66 times faster
+with the risk tier off, 1.33 with it on.
+
+**A hunt for other hidden cliffs, and what it found.** Earlier work found that valuing an estate at
+"whatever you leave, up to four times what you started with" made the solver blind above that ceiling -
+it would give away millions it could not see. That raised a fair question: where else is the model
+blind? Nine constants were checked. Three turned out to be live faults on paper. The biggest: the
+model tracks what fraction of a general investment account is profit, because that sets the capital
+gains tax, but it only holds three values - 5%, 25% and 55% - and rounds to the nearest. Households
+actually reach 89%, and seven in ten of the years they hold such an account are rounded by more than
+five points. On paper the solver was under-pricing the tax of touching those accounts.
+
+**And then the fix turned out not to matter.** Rather than assume the fault was worth fixing, three
+repairs were tried on the twelve worst-affected households: move the ceiling up, stop rounding, and
+fix a related fault where a household that had spent part of its tax-free lump sum was treated as
+still having all of it. **Every one of them changed the answer by less than 2%, and not one changed how
+many years the household spent at its target.** So the rounding stays. That is a better place to be
+than before - the values now rest on evidence instead of on nobody having looked - and it cancelled
+about thirteen hours of further checking. The lump-sum fix was deliberately NOT made: it swaps one
+wrong number for another (a household that has used 7% of its allowance would read as 50% instead of
+0%), and the field says neither is visible. Changing working code for no measured benefit only buys
+risk.
+
+**A guess about computer memory that came out backwards.** One speed idea was to store four numbers
+per position next to each other rather than in four separate lists, so a single read fetches all four
+from one place in memory. It was timed before being built, as the plan insisted. **It is 3.8% slower**,
+because the processor handles four steady streams at least as well as one skipping one. Twenty minutes
+of measuring saved a morning of building, and the idea is dead.
+
+**Where the time actually goes, finally measured.** Every speed idea so far has made the SOLVING
+faster. But a plan is not just solved; it is then tested against thousands of simulated futures, and
+that is done several times over while the solver tunes how hard to cut spending in bad years. Timed
+properly: **solving is 46% of the work and testing is 54%.** So the whole speed programme has been
+aimed at the smaller half. One idea worth a day and a half of building turns out to be worth 14% of a
+run rather than the 30% it looked like.
+
+**A quarter of the testing was re-running a sum already done.** The search measures a candidate on a
+set of futures, then "verifies" it on the full set. Those two sets have been the same set for some
+time - deliberately, so the whole thing uses one sample throughout - so the verification was running
+the identical calculation against the identical table and getting the identical answer, at full price.
+It happens three times per plan. Now it returns immediately when the two sets are the same object.
+
+**How many futures are enough?** The number was 5,400 and had been picked once, early, and never
+checked. Fewer would be much faster. The answer so far is clear and negative: at 1,200 futures the
+measurement is so noisy that the solver often concludes no spending cuts are needed at all, stops after
+one attempt, and then misses the survival rate it promised - five households of eight did exactly that.
+At 600, four of eight. The failures are FAST, which is the trap: a plain speed comparison would have
+shown a large saving that is really a broken promise with a stopwatch on it.
+
+**A question about the score that turned out to matter.** The solver scores an outcome on survival,
+"resilience", and the estate left behind. Asked why resilience exists at all when the estate is already
+counted, the answer is uncomfortable: they are not two ideas. Both are functions of the same number -
+what is left at the end - and added together they make a single bent line. Resilience is its steep part
+and the estate its shallow part. **The bend is at what the household started with, and the value of a
+pound drops twenty-six-fold as you cross it.** Nobody chose that. It fell out of two weights being
+picked separately, years apart, and it sits in the middle of where outcomes actually land: the unlucky
+tenth finishes below that line on every household tested, and the typical outcome above it. It is a
+bigger feature than the ceiling that started this hunt, and the earlier audit could not have found it,
+because it examined each number on its own and the shape only exists in the sum.

@@ -1,0 +1,15 @@
+PASS  S126 PRODUCT at 8 points: every table bit for bit the same with e3 (600 arrays; copied 21120 cells, 58.234 s off, 47.67 s on)
+PASS  S126 PRODUCT: the copied cells are the empty-pot cells of the non-zero gain buckets (21120 = 21120)
+PASS  S126 READER/TS+J at 8 points: every table bit for bit the same with e3 (1800 arrays; copied 21120 cells, 167.18 s off, 133.992 s on)
+PASS  S126 READER/TS+J: the copied cells are the empty-pot cells of the non-zero gain buckets (21120 = 21120)
+PASS  S194 PRODUCT at 8 points: every table bit for bit the same with e3 (615 arrays; copied 21648 cells, 66.948 s off, 56.004 s on)
+PASS  S194 PRODUCT: the copied cells are the empty-pot cells of the non-zero gain buckets (21648 = 21648)
+PASS  S194 READER/PRODUCT at 8 points: every table bit for bit the same with e3 (615 arrays; copied 21648 cells, 66.005 s off, 54.452 s on)
+PASS  S194 READER/PRODUCT: the copied cells are the empty-pot cells of the non-zero gain buckets (21648 = 21648)
+PASS  S360 READER/TS+J at 8 points: every table bit for bit the same with e3 (2070 arrays; copied 24288 cells, 255.559 s off, 200.13 s on)
+PASS  S360 READER/TS+J: the copied cells are the empty-pot cells of the non-zero gain buckets (24288 = 24288)
+PASS  planted: a copy from the wrong twin (the ISA-share neighbour) breaks identity (582374 values differ)
+
+solver-e3: 11 passed
+
+[exited with code 0]

@@ -1,0 +1,7 @@
+PASS  1. S224 PRODUCT: the 8583 arrays hash 0e969c0499c74f72 without the hook and 0e969c0499c74f72 with it
+PASS  2. S224 PRODUCT: 41 calls, phases years, passes without the tier above; each runs 1 to its total (off: no tier above the plan)
+PASS  3. planted: lambda x 2 hashes 4b15cfe3607f7399, not 0e969c0499c74f72
+PASS  3. planted: a repeated year fails the calls' check
+PASS  1. S370 CAND: the 19574 arrays hash 99dceb1fb2a084e2 without the hook and 99dceb1fb2a084e2 with it
+PASS  2. S370 CAND: 53 calls, phases years, reference, passes without the tier above; each runs 1 to its total (off: no tier above the plan)
+ALL PASS: 6 checks

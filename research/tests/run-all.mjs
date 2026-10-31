@@ -20,14 +20,16 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // speed port's (tier-steps.test.mjs, speed-port.test.mjs, their quick forms; added on the maintainer's unlock of 26 Oct);
 // the engine's Bed & SIPP relief and Phase 4's audit guards (bed-sipp.test.mjs, phase4-audit.test.mjs; added on the
 // maintainer's unlock of 28 Oct, once Phase 4's units were in); the candidate with one tier pair (risk-consent.test.mjs, D39;
-// the unlock of 29 Oct)
+// the unlock of 29 Oct); Phase 7's worker, app wiring, stored solve and locks (solver-progress, solver-app, solver-cache,
+// solver-locks), D46's paying moves (pay-where) and solve()'s bytecode under V8's limit (solve-size, D48; the unlock of 31 Oct)
 export const FAST = [
   'solver-invariants.test.mjs', 'known-answer.test.mjs', 'engine-fidelity.test.mjs', 'solver-carry.test.mjs', 'tier-above.test.mjs', 'tax-2026.test.mjs', 'table-guards.test.mjs',
   'final-integral.test.mjs', 'check-state.test.mjs', 'hooks.test.mjs', 'fair-gate.test.mjs', 'plan-defaults.test.mjs',
   'e3pcls-guard.test.mjs', 'scottax.test.mjs', 'savings-tax.test.mjs', 'bridge.test.mjs', 'cf.test.mjs', 'diff.test.mjs',
   'entrants.test.mjs', 'guardrails.test.mjs', 'inheritance.test.mjs', 'lookahead.test.mjs', 'pctband.test.mjs',
   'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs', 'audit-7uf-checks.test.mjs', 'solver-guards.test.mjs', 'state-check.test.mjs', 'solver-scratch.test.mjs', 'solver-memo.test.mjs', 'adaptive-dup.test.mjs', 'chooser-share.test.mjs', 'n4-menu.test.mjs', 'tier-steps.test.mjs', 'speed-port.test.mjs',
-  'bed-sipp.test.mjs', 'phase4-audit.test.mjs', 'risk-consent.test.mjs', 'fail-delivered.test.mjs'
+  'bed-sipp.test.mjs', 'phase4-audit.test.mjs', 'risk-consent.test.mjs', 'fail-delivered.test.mjs',
+  'solver-progress.test.mjs', 'solver-app.test.mjs', 'solver-cache.test.mjs', 'solver-locks.test.mjs', 'pay-where.test.mjs', 'solve-size.test.mjs'
 ];
 
 // run only as the script, never on import (hygiene.test.mjs imports FAST: unguarded, the import ran the suite, which ran

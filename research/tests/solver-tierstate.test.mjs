@@ -4,7 +4,9 @@
  * as the chooser scores it holding j (chargeSwitch on a move to another pair, the next year's layer of the pair it moves to),
  * and the move kept is the chooser's (the switch margin, ties to staying).
  *
- *   A. it refuses what it cannot do: a held tier, the ternary level search, a one-pair menu
+ *   A. it refuses what it cannot do: a held tier, the ternary level search; a one-pair menu, where no move can switch,
+ *      solves without the tier state, its tables the plain solve's to the bit (D39, 28 Oct: it refused before; the
+ *      candidate with the user's consent to change risk withdrawn; research/tests/risk-consent.test.mjs)
  *   B. THE FREE ENDPOINT: with no switching cost and no margin every layer is today's free table, to the bit (survival,
  *      estate, resilience, shortfall, stored move), every year - planted: with the product's cost and margin it is not
  *   C. THE HELD ENDPOINT: with an infinite margin layer j is holdTier j's table, every year and every pair, within 1e-8. Not
@@ -47,8 +49,13 @@ const tabsSame = (L, R) => { for (let t = 0; t <= T; t++) for (const kk of ['sur
 
 console.log('=========== A. REFUSALS ===========');
 const refuse = (extra, re, fn = solve) => { let e = null; try { fn(E, M, plan, { ...o, tierState: true, ...extra }); } catch (x) { e = x.message; } return !!e && re.test(e) ? e : `no refusal (${e})`; };
-for (const [nm, extra, re, fn] of [['a held tier', { holdTier: [0, 0] }, /holdTier/], ['the ternary level search', { levelSearch: 'ternary' }, /ternary/], ['a one-pair menu', { tiers: false }, /two pairs/]]) {
+for (const [nm, extra, re, fn] of [['a held tier', { holdTier: [0, 0] }, /holdTier/], ['the ternary level search', { levelSearch: 'ternary' }, /ternary/]]) {
   const r = refuse(extra, re, fn); ok(`A  refused: ${nm}`, !/^no refusal/.test(r), r);
+}
+{
+  let one = null, d = null; try { one = solve(E, M, plan, { ...o, tiers: false, tierState: true }); } catch (x) { d = `threw: ${x.message}`; }
+  if (one) { const plain = solve(E, M, plan, { ...o, tiers: false }); d = tabsSame(one, plain); for (let t = 0; t <= T && !d; t++) if (!same(one.pol[t], plain.pol[t])) d = `move year ${t}`; }
+  ok('A  a one-pair menu solves without the tier state, its tables the plain solve\'s to the bit (D39)', !!one && !one.tsLayers && /one tier pair/.test(one.meta.tierStateOff || '') && !d, d || one.meta.tierStateOff);
 }
 
 console.log('=========== B. THE FREE ENDPOINT ===========');

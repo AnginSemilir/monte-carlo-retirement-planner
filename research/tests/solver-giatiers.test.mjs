@@ -6,7 +6,10 @@
  * and the capital gains tax on the slice sold, and each decision also scores the chosen move with the GIA kept
  * where it is. This checks that (1) off, nothing changes; (2) on, the menu is the same size and the GIA's tier
  * follows the step; (3) the charge is the arithmetic written in fast.js; (4) a large unrealised gain makes the
- * solver switch the GIA less, not more.
+ * solver switch the GIA less, not more, with the gain axis read between its buckets (gainInterp). At its nearest bucket
+ * (5, 25, 55%) a 40% gain sits on the edge between two, so the slice a switch sells flips the read, and since 136c477
+ * taxes the sweep's gains the tables weigh the bucket enough for that to pay on paper: 3.58 switches a path against 1.65
+ * with no gain; interpolated, 0.10 against 0.43 (research/solver/results-gia-look.txt; STATE.md D49, the maintainer).
  *
  * Bit-identity against the code before the change was checked by hashing the tables (S070 and S330, 8 points,
  * the M17 hash script): d12c6e177e97cb6a and d9ad3e66a9b6d52c, the same before and after.
@@ -64,11 +67,12 @@ ok(on.c.acts.some(a => a.tierGia > 0 && a.real[2] < on.c.acts[0].real[2]), 'on: 
   ok(F.chargeSwitch(c, s2, { pen: 1, isa: 1, gia: 1 }, act, t) === 0 && F.chargeSwitch(off.c, s2, { pen: 1, isa: 1 }, off.c.acts[ai], t) === 0, 'no switch, no charge; and off, the GIA is never charged');
 }
 
-// (4) a large unrealised gain: fewer GIA switches, run on the same paths
-const onG = solve(E, M, planOf(0.4), { ...base, giaTiers: true });
+// (4) a large unrealised gain: fewer GIA switches, run on the same paths, the gain axis interpolated (D49)
+const on4 = solve(E, M, plan, { ...base, giaTiers: true, gainInterp: true });
+const onG = solve(E, M, planOf(0.4), { ...base, giaTiers: true, gainInterp: true });
 const paths = E.pathsForSeed(7001, 60, m.ctx.totalYears);
 const tally = (r) => { let ch = 0, yrs = 0, surv = 0; for (const zs of paths) { const o = runPolicy(r, zs); ch += o.giaChanges; yrs += o.giaYears; surv += o.survived ? 1 : 0; } return { ch: ch / paths.length, yrs: yrs / paths.length, surv }; };
-const t0 = tally(on), t4 = tally(onG);
+const t0 = tally(on4), t4 = tally(onG);
 console.log(`      no gain: ${t0.ch.toFixed(2)} GIA switches and ${t0.yrs.toFixed(1)} years below its plan tier per path, ${t0.surv}/${paths.length} survive;  40% gain: ${t4.ch.toFixed(2)} switches, ${t4.yrs.toFixed(1)} years, ${t4.surv}/${paths.length}`);
 ok(t0.ch > 0 && t0.yrs > 0, 'with no gain the GIA does move (the option is live on the forward run)');
 ok(t4.ch <= t0.ch, 'with a 40% unrealised gain the GIA switches no more often than with none');

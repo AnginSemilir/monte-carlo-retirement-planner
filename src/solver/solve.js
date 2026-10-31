@@ -646,7 +646,9 @@ export function solve(E, M, plan, opts = {}) {
    */
   const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
-  const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
+  // AGE-WEIGHTED CUTS (`ageWeight`, research only, off by default): ageWeighted at the file's end says what it is; off, the
+  // cost is this function itself, its second argument (the year) unread
+  const costOf = ageWeighted(opts.ageWeight, m, T, (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0));
   /*
    * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
    * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
@@ -977,7 +979,7 @@ export function solve(E, M, plan, opts = {}) {
   const failShort = !!opts.failureShortfall;
   const failLevel = opts.failureShortfall === 'zero' ? 0 : Math.min(...levelOf);
   const failCostAt = new Float64Array(T + 2);
-  if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? lambda * shortOf(Math.min(1, failLevel)) : 0);
+  if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? costOf(Math.min(1, failLevel), t) : 0);   // costOf below the target: lambda x shortOf (age-weighted under ageWeight)
   /*
    * THE YEAR THE MONEY RUNS OUT, AT WHAT IT CAN PAY (`failDelivered`; the external review of 29 Oct,
    * research/reviews/2026-10-29/SPENDING-CURVE.md on review/external-2026-10-21 at 37fdbf7, section 7). Without it a
@@ -1011,8 +1013,10 @@ export function solve(E, M, plan, opts = {}) {
     const sp = c.yr.spend[t];
     if (!(sp > 0)) return failCostAt[t];
     const lvl = Math.min(1, Math.max(0, levelOf[ai] - (FDPLANT ? 0 : unmetBuf[ub]) / sp));
-    return lambda * shortOf(lvl) + failCostAt[t + 1];
+    return costOf(lvl, t) + failCostAt[t + 1];   // lvl at most 1: lambda x shortOf (age-weighted under ageWeight)
   };
+  // THE CANDIDATE'S TIERS (`lockTiers`, research only, off by default): lockSetup at the file's end says what it is
+  const LK = opts.lockTiers ? lockSetup(opts, g, tsPairs, tsLayerOf, actions) : null;
   /*
    * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
    * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
@@ -1127,7 +1131,7 @@ export function solve(E, M, plan, opts = {}) {
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
     for (let ai = 0; ai < A; ai++) {
-      const cst = spendYear ? costOf(levelOf[ai]) : 0;
+      const cst = spendYear ? costOf(levelOf[ai], t) : 0;
       if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
     }
@@ -1405,13 +1409,15 @@ export function solve(E, M, plan, opts = {}) {
                   continue;
                 }
                 for (let j = 0; j < tsPairs.length; j++) {
+                const lkJ = LK ? LK.at(t, j, idx) : -1;   // lockTiers: the pair the candidate's table chose here (lockSetup)
                 for (let k = 0; k < K; k++) {
                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
                   {
                     let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
                     let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
                     for (let ai = 0; ai < A; ai++) {
-                      const lj = tsLayerOf[ai], Ln = layW[k][lj];
+                      const lj = tsLayerOf[ai]; if (lkJ >= 0 && lj !== lkJ) continue;
+                      const Ln = layW[k][lj];
                       const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
                       const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
                       const fail = failBuf[ai] === 1;
@@ -1470,6 +1476,7 @@ export function solve(E, M, plan, opts = {}) {
                   for (let ai = 0; ai < A; ai++) {
                     let v = 0, wb = 0;
                     if (skipFail && failBuf[ai] === 1) continue;
+                    if (lkJ >= 0 && tsLayerOf[ai] !== lkJ) continue;
                     for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
                     if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
                     if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
@@ -1694,6 +1701,7 @@ export function solve(E, M, plan, opts = {}) {
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s, Math.min(t, T))]]; },
     value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); if (g.cov) { const kk = Math.min(t, T), o = readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), lresilW[k][kk], null, kk); return { survival: o[0], resilience: o[2], bequest: o[1], score: o[0] + wR * o[2] + wB * o[1] }; } const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
+  researchFinish(r, LK, opts);   // ageWeight and lockTiers recorded in the run record, the lock's settings checked (the file's end)
   return r;
 }
 
@@ -1760,6 +1768,8 @@ export function chooseAction(r, s, t, held = null) {
     scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)), held);
     for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
   }
+  // lockTiers: only the moves on the pair the candidate's chooser picks here stay in (lockMask, at the file's end)
+  if (r.lockTiers) { const lk = lockMask(r, s, t, held, SC); if (lk >= 0) return lk; }
   let bestScore = -Infinity, bestB = -Infinity, best = 0;
   for (let ai = 0; ai < n; ai++) {
     const score = SC[ai];
@@ -1860,7 +1870,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; if (SV) SV[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
     if (held) F.chargeSwitch(c, post, held, variant ? variant.act : c.acts[ai], t);
-    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
     const rz = r.raiseSurvival && cst < 0 ? cst : 0;   // M17: a raise's credit, weighted below by the survival it leads to
     let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const nr = variant ? variant.nr : nodeRealOf[ai];
@@ -2006,7 +2016,7 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
     TX[ai] = D.tx[ai];
     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
     const o = ai * L, post = D.cpost.subarray(o, o + L);
-    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
     const rz = r.raiseSurvival && cst < 0 ? cst : 0;
     let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const lj = !final && r.tsLayers ? r.tsLayerOf[ai] + 1 : 0, cl = plant === 'nocls' ? 0 : cls[ai];
@@ -2555,4 +2565,68 @@ function stepThrOf(ref, tn) {
 function nonFiniteScore(where, t, cell, k, ai, s, b, rs, h) {
   const part = !Number.isFinite(s) ? `survival ${s}` : !Number.isFinite(b) ? `estate ${b}` : !Number.isFinite(rs) ? `resilience ${rs}` : !Number.isFinite(h) ? `cost ${h}` : 'the weighted score';
   throw new Error(`solver: non-finite score in ${where}, year ${t}, cell ${cell}, world ${k}, move ${ai}: ${part}`);
+}
+
+/*
+ * AGE-WEIGHTED CUTS (`ageWeight`; research only, off by default; the external review of 30 Oct,
+ * research/reviews/2026-10-30/AGE-WEIGHT.md on review/external-2026-10-21, its patch dial/solve-ageweight.patch, here as a
+ * helper so that solve() stays under V8's limit for an optimised function). `ageWeight` = { mode, disp } weights each year's
+ * cost of a cut, and its credit for a raise, by a Gompertz chance of being alive from the plan's age, mode and dispersion
+ * in years (the curve of the review of 29 Oct, SPENDING-CURVE.md): w(t) = exp(-exp((a0 - mode) / disp) (exp(t / disp) - 1)).
+ * A cut when younger then costs more than the same cut later; the failure year's charge and each year's after it are
+ * weighted alike (failCostAt, failDeliveredCost in solve). Survival stays the currency and nothing else moves. Off, costOf
+ * is the function it was and every table the one solved before, bit for bit.
+ */
+function ageWeighted(AW, m, T, base) {
+  if (!AW) return base;
+  if (!(AW.disp > 0) || !Number.isFinite(AW.mode)) throw new Error('ageWeight needs a mode and a dispersion above nothing');
+  const a0 = m.ctx.ageSelf0, w = new Float64Array(T + 2);
+  for (let t = 0; t <= T + 1; t++) w[t] = Math.exp(-Math.exp((a0 - AW.mode) / AW.disp) * (Math.exp(t / AW.disp) - 1));
+  const costOf = (level, t) => w[t] * base(level);
+  costOf.w = w; costOf.meta = { mode: AW.mode, disp: AW.disp };
+  return costOf;
+}
+
+/*
+ * THE CANDIDATE'S TIERS (`lockTiers`; research only, off by default; the external review of 30 Oct,
+ * research/reviews/2026-10-30/LOCK.md on review/external-2026-10-21). The maintainer's first requirement for a way of handling
+ * cuts and raises: that it be disconnected from the tiers' risk-taking. `lockTiers` is the candidate's own solved result
+ * (solveCandidate, the dial at one) for the same plan, grid and menu. At every position the pair of tiers is the candidate's:
+ *   - the backward pass: at each cell, year and pair held, only the moves on the pair the candidate's table chose there are
+ *     scored and chosen among (LK.at);
+ *   - the chooser (and so the engine through the bridge, and runPolicy): only the moves on the pair the candidate's own
+ *     chooser picks at that position (lockMask); where every one of them fails, the candidate's own move.
+ * The arm's own objective (a dial's penalty with age weights, say) then chooses the level and the order of drawing among
+ * them. The rule for the tiers is the candidate's; the tiers held on a path can still differ from the candidate's on that
+ * path, because spending differently leaves different wealth. Locked to itself, the candidate is the candidate
+ * (research/tests/lock-tiers.test.mjs; ported without the review's EZ, STATE.md D48). The layer loop only (the tier state,
+ * joint worlds, tsOnce false), switchMargin 0 and no GIA tiers; anything else throws. Plants (tests only): lockTiersPlant
+ * 'layer0' (every layer reads the candidate's choice for the first pair held), 'nochooser' (the chooser leaves the moves
+ * unlocked).
+ */
+function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
+  const rc = opts.lockTiers, plant = opts.lockTiersPlant || '';
+  if (!tsPairs || !opts.jointWorlds) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false)');
+  if (!rc || !rc.tsLayers || !rc.g || !rc.m || !rc.actions || !rc.tsLayerOf) throw new Error('lockTiers: not a solved result with the tier state');
+  const gk = x => JSON.stringify([x.mode, x.size, x.np, x.ni, x.nt, Object.keys(x.axes).sort().map(k => [k, Array.from(x.axes[k].pts || [])]), x.gain, x.pcls]);
+  if (gk(rc.g) !== gk(g) || rc.m.ctx.totalYears !== g.m.ctx.totalYears) throw new Error('lockTiers: the candidate was solved on another grid or plan');
+  const ak = (as, lo) => JSON.stringify(as.map((a, i) => [a.label || '', a.tierPen || 0, a.tierIsa || 0, a.spend, lo[i]]));
+  if (rc.tsLayers.length !== tsPairs.length || ak(rc.actions, rc.tsLayerOf) !== ak(actions, tsLayerOf)) throw new Error('lockTiers: the candidate has another menu or other tier pairs');
+  const pol = rc.tsLayers.map(L => L.pol);
+  return { rc, plant, at: plant === 'layer0' ? (t, j, idx) => tsLayerOf[pol[0][t][idx]] : (t, j, idx) => tsLayerOf[pol[j][t][idx]], meta: { pairs: tsPairs.length, cells: g.size, ...(plant ? { plant } : {}) } };
+}
+// at the end of the solve: the two options recorded in the run record, and the lock's other settings checked (the layer loop,
+// no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
+function researchFinish(r, LK, opts) {
+  if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
+  if (!LK) return;
+  if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
+  r.meta.lockTiers = LK.meta; r.lockTiers = LK;
+}
+function lockMask(r, s, t, held, SC) {
+  const LK = r.lockTiers, ac = chooseAction(LK.rc, s, t, held), lj = r.tsLayerOf[ac];
+  if (LK.plant === 'nochooser') return -1;
+  let any = false;
+  for (let ai = 0; ai < SC.length; ai++) { if (r.tsLayerOf[ai] !== lj) SC[ai] = -Infinity; else if (SC[ai] !== -Infinity) any = true; }
+  return any ? -1 : ac;
 }

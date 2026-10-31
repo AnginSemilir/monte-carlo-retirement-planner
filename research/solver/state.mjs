@@ -380,6 +380,25 @@ const BLOCKS = {
     const br = [...t.matchAll(/^ {2}(CANDD|CANDDP)\s+(of \d+ paths that run out: .*)$/gm)];
     if (arms.length !== 2 || vs.length !== 2 || br.length !== 2) throw new Error(`state.mjs: results-curve-pay.txt has ${arms.length} arm rows, ${vs.length} comparisons and ${br.length} ruin rows, not 2, 2 and 2`);
     return [`- The gate: ${at(/^THE GATE: (.*)$/m)}; ${at(/^(runPolicy beside the engine: .*)$/m)}; ${at(/^(CANDD on this code \(the option unset\) against .*)$/m)} (\`results-curve-pay.txt\`). Per arm, as the dial's read: ${arms.map(m => `${m[1]} ${m[2]}; ${m[3]}`).join(' || ')}. Against CANDD: ${vs.map(m => `${m[1]} ${m[2]}`).join(' || ')}. Before ruin: ${br.map(m => `${m[1]} ${m[2]}`).join(' || ')}; CANDDP ${at(/^ {2}(survival .*lifetime spending .*)$/m)}; ${at(/^ {2}(the failure year, of .*)$/m)}. ${at(/^ {2}(by the review's rule: .*)$/m)}.`];
+  },
+  // D48's port: ageWeight and lockTiers, off by default (lock-tiers.test.mjs, solve-size.test.mjs; lock-check.mjs at full scale)
+  port48() {
+    const L = 'research/tests/results-lock-tiers.txt', Z = 'research/tests/results-solve-size.txt', K = 'research/solver/results-lock-check.txt';
+    for (const f of [L, Z, K]) if (read(f) === null) return [`- pending: ${f}`];
+    const tl = read(L), tk = read(K);
+    const off = [...tl.matchAll(/^PASS {2}1\. (S\d+F?), the candidate's settings, both options off, against the code before the port: (\d+) table entries/gm)].map(m => `${m[1]} ${m[2]}`);
+    const hc = pick(L, /^PASS {2}3b\. S090, DIAL10M locked: the table's move on the candidate's pair at every year, layer and cell \((\d+)\)/m, m => m[1]);
+    const hd = pick(L, /^PASS {2}3b\. S090, DIAL10M locked: the move on the pair the candidate's chooser picks, at every decision of 40 forward runs \((\d+)\)/m, m => m[1]);
+    const p0 = pick(L, /^PASS {2}3c\. planted: the lock reading .*?: (\d+ of \d+) cells/m, m => m[1]), p1 = pick(L, /^PASS {2}3c\. planted: the chooser unlocked .*?: (\d+ of \d+) decisions/m, m => m[1]);
+    const nref = [...tl.matchAll(/^PASS {2}4\. /gm)].length;
+    const size = pick(Z, /^PASS {2}1\. solve\(\)'s bytecode (\d+) bytes against the limit (\d+): (\d+) under/m, m => `${m[1]} bytes against V8's ${m[2]}, ${m[3]} under`), plant = pick(Z, /^PASS {2}2\. planted: .*? take it to (\d+) bytes/m, m => m[1]);
+    const hh = ['S090', 'S328F'].map(id => {
+      const c = new RegExp(`^${id} CANDLK \\(both options off\\): survival ([\\d.]+)% \\(the review's CAND ([\\d.]+)%\\).*?against the candidate on the code before the port: ([^(]+)\\(`, 'm').exec(tk);
+      const d = new RegExp(`^${id} D10MLK .*?: survival ([\\d.]+)% \\(the review's ([\\d.]+)%: ([^)]+)\\); the lock held at (\\d+) of (\\d+) decisions`, 'm').exec(tk);
+      if (!c || !d) throw new Error(`state.mjs: results-lock-check.txt has no ${id} rows`);
+      return `${id} the candidate ${c[1]}% (the review's ${c[2]}%), on the code before the port ${c[3].trim().replace(/ \(survival.*$/, '').replace(/^THE SAME/, 'the same').replace(/^DIFFERS/, 'DIFFERING')}; DIAL10M locked ${d[1]}% (the review's ${d[2]}%: ${d[3]}), the lock held at ${d[4]} of ${d[5]} decisions`;
+    });
+    return [`- \`lock-tiers.test.mjs\` ${pick(L, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-lock-tiers.txt\`, e3pcls on): both options off, every table the code before the port's to the bit (${off.join(', ')} entries) and 40 runs the same; DIAL10M's age weights on the layer loop the same as on E5, mode 91 parting them; the candidate locked to itself the candidate; DIAL10M locked on the candidate's pair at all ${hc} cells and ${hd} decisions; the plants caught ('layer0' ${p0} cells, 'nochooser' ${p1} decisions); ${nref} refusals. \`solve-size.test.mjs\` (\`results-solve-size.txt\`): solve()'s bytecode ${size}, the plant ${plant}; not yet in FAST (the list is protected). At full scale (\`lock-check.mjs\`, \`results-lock-check.txt\`; seed 7002, 1,000 paths, 45 points): ${hh.join('; ')}.`];
   }
 };
 

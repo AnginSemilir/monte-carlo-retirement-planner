@@ -1,0 +1,4 @@
+PASS  V8's --max-optimized-bytecode-size read: 61440 bytes (Node v22.22.0)
+PASS  1. solve()'s bytecode 60402 bytes against the limit 61440: 1038 under
+PASS  2. planted: 460 dead statements inside solve() take it to 67269 bytes, 5829 over the limit, and the check fails
+ALL PASS: 3 checks

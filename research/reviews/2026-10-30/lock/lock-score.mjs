@@ -34,9 +34,9 @@ for (const id of IDS) for (const a of ARMS) if (!hh[id] || !hh[id][a]) die(`${id
 const pooled = {}, at = lines.findIndex(l => l.startsWith('Pooled, each household once'));
 if (at < 0) die('no pooled block');
 for (const l of lines.slice(at + 1)) {
-  const m = l.match(new RegExp(`^  (APP|CAND|DIAL10M|EZLK10|EZLK30|D10MLK|EZ)\\s+survival ${num}%; the first retired year ${num}% \\(the retirees ${num}%\\); by retired years 1-5 ${num}%, 6-10 ${num}%, 11-20 ${num}%, 21-on ${num}%; at the floor 1-5 (\\d+)%, 6-10 (\\d+)%, 11-20 (\\d+)%, 21-on (\\d+)%; at 110% 1-5 (\\d+)%, 6-10 (\\d+)%, 11-20 (\\d+)%, 21-on (\\d+)%; cuts after year 1 ${num} a hundred years, (\\d+)% after the worst third of market years(?:; the pension and ISA's equity share at retired years 1, 5, 10, 20 ${num} / ${num} / ${num} / ${num}% \\(the retirees ${num} / ${num} / ${num} / ${num}%\\))?; the estate where it survives, the households' mean (\\d+)$`));
+  const m = l.match(new RegExp(`^  (APP|CAND|DIAL10M|EZLK10|EZLK30|D10MLK|EZ)\\s+survival ${num}%; the first retired year ${num}% \\(the retirees ${num}%\\); by retired years 1-5 ${num}%, 6-10 ${num}%, 11-20 ${num}%, 21-on ${num}%; at the floor 1-5 (\\d+)%, 6-10 (\\d+)%, 11-20 (\\d+)%, 21-on (\\d+)%; at 110% 1-5 (\\d+)%, 6-10 (\\d+)%, 11-20 (\\d+)%, 21-on (\\d+)%; cuts after year 1 ${num} a hundred years, (\\d+)% after the worst third of market years(?:; the pension and ISA's equity share at retired years 1, 5, 10, 20 ${num} / ${num} / ${num} / ${num}% \\(the retirees ${num} / ${num} / ${num} / ${num}%\\))?; the estate where it survives, the households' mean (\\d+|-)$`));
   if (!m) continue;
-  const v = m.slice(2).map(x => (x === undefined ? NaN : Number(x)));
+  const v = m.slice(2).map(x => (x === undefined || x === '-' ? NaN : Number(x)));
   pooled[m[1]] = { surv: v[0], open: v[1], openRet: v[2], bands: v.slice(3, 7), floor: v.slice(7, 11), top: v.slice(11, 15), cuts: v[15], eq: v.slice(17, 21), eqRet: v.slice(21, 25), estate: v[25] };
 }
 for (const a of ARMS) if (!pooled[a]) die(`no pooled line for ${a}`);
@@ -74,7 +74,7 @@ out.push(`  held ${items.filter(Boolean).length} of ${items.length} (an item wit
 
 out.push('Beside (not predicted):');
 out.push('  each arm against CAND, pooled: survival (paired), the retirees\' first year, retired years 1-5, at the floor in years 1-5, from the 21st year, the estate where it survives');
-for (const a of ['DIAL10M', 'EZ', 'D10MLK', 'EZLK30', 'EZLK10']) out.push(`    ${a.padEnd(8)} ${sg(dOf(a, 'CAND'), 2)} points; first year ${f1(P[a].openRet)}% (CAND ${f1(P.CAND.openRet)}%); years 1-5 ${f1(P[a].bands[0])}% (${sg(P[a].bands[0] - P.CAND.bands[0])}); at the floor ${P[a].floor[0]}% (CAND ${P.CAND.floor[0]}%); from the 21st ${f1(P[a].bands[3])}% (CAND ${f1(P.CAND.bands[3])}%); the estate ${(100 * (P[a].estate / P.CAND.estate - 1)).toFixed(0)}% against CAND's`);
+for (const a of ['DIAL10M', 'EZ', 'D10MLK', 'EZLK30', 'EZLK10']) out.push(`    ${a.padEnd(8)} ${sg(dOf(a, 'CAND'), 2)} points; first year ${f1(P[a].openRet)}% (CAND ${f1(P.CAND.openRet)}%); years 1-5 ${f1(P[a].bands[0])}% (${sg(P[a].bands[0] - P.CAND.bands[0])}); at the floor ${P[a].floor[0]}% (CAND ${P.CAND.floor[0]}%); from the 21st ${f1(P[a].bands[3])}% (CAND ${f1(P.CAND.bands[3])}%); the estate ${Number.isFinite(P[a].estate) ? `${(100 * (P[a].estate / P.CAND.estate - 1)).toFixed(0)}% against CAND's` : 'not recorded in its units'}`);
 out.push(`  survival by household, D10MLK less DIAL10M: ${IDS.map(id => `${id} ${sg(hh[id].D10MLK.surv - hh[id].DIAL10M.surv)}`).join(', ')}; EZLK30 less EZ: ${IDS.map(id => `${id} ${sg(hh[id].EZLK30.surv - hh[id].EZ.surv)}`).join(', ')}`);
 const atFloor = a => IDS.filter(id => RETIREES.includes(id) && hh[id][a].open === 80);
 out.push(`  the retirees' first retired year at the floor on every path (80.0%): ${['CAND', 'DIAL10M', 'EZ', ...LOCKED].map(a => `${a} ${atFloor(a).length} of 4${atFloor(a).length ? ` (${atFloor(a).join(', ')})` : ''}`).join('; ')}`);

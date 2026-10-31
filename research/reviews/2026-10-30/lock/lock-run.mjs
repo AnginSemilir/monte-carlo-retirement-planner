@@ -128,7 +128,7 @@ if (argv[0] !== '--read') {
     per[id] = {};
     const parts = [];
     for (const [a] of ARMS) {
-      const u = us[a], level = arr(u.main.level, Uint8Array), fy = arr(u.main.failYear, Int16Array), sv = arr(u.main.survived, Uint8Array), est = arr(u.main.estate, Float32Array);
+      const u = us[a], level = arr(u.main.level, Uint8Array), fy = arr(u.main.failYear, Int16Array), sv = arr(u.main.survived, Uint8Array), est = u.main.estate ? arr(u.main.estate, Float32Array) : null;   // the dial's units (dial/ageweight.mjs) record no estate
       // per path: the sums the read pools (so the bootstrap below can resample paths)
       const P5 = { n: new Float64Array(N), sum: new Float64Array(N), floor: new Float64Array(N) };
       const band = BANDS.map(() => ({ n: 0, sum: 0, floor: 0, top: 0 })), dec = [];
@@ -142,7 +142,7 @@ if (argv[0] !== '--read') {
           if (b === 0) { P5.n[k]++; P5.sum[k] += lv; if (lv <= 80) P5.floor[k]++; }
           if (t === retT) { openN++; open += lv; } else { const prev = level[k * Y + t - 1]; if (prev) dec.push({ lv, prev, z: paths[k][t - 1] }); }
         }
-        if (sv[k]) { eS += est[k]; eN++; }
+        if (sv[k] && est) { eS += est[k]; eN++; }
       }
       const zs = dec.map(d => d.z).sort((x, y) => x - y), lo = zs[Math.floor(zs.length / 3)], cuts = dec.filter(d => d.lv < d.prev && d.lv < 100);
       const eqAt = yr => (u.tierYears && u.tierYears[retT + yr] !== null && u.tierYears[retT + yr] !== undefined ? 100 * u.tierYears[retT + yr] : NaN);
@@ -162,7 +162,7 @@ if (argv[0] !== '--read') {
   out.push('', 'Pooled, each household once (the retirees: the households retired at the start):');
   for (const [a] of ARMS) {
     const xs = rows[a], ret = xs.filter(x => x.retired0);
-    out.push(`  ${a.padEnd(8)} survival ${f1(mean(xs, x => x.surv))}%; the first retired year ${f1(mean(xs, x => x.open))}% (the retirees ${f1(mean(ret, x => x.open))}%); by retired years ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${f1(mean(xs, x => x.bands[i].level))}%`).join(', ')}; at the floor ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${pc(mean(xs, x => x.bands[i].floor))}`).join(', ')}; at 110% ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${pc(mean(xs, x => x.bands[i].top))}`).join(', ')}; cuts after year 1 ${f1(mean(xs, x => x.cutsPer100))} a hundred years, ${pc(mean(xs, x => x.afterWorst))} after the worst third of market years${a === 'APP' ? '' : `; the pension and ISA's equity share at retired years ${EQ_YEARS.join(', ')} ${EQ_YEARS.map((_, i) => f1(mean(xs, x => x.eq[i]))).join(' / ')}% (the retirees ${EQ_YEARS.map((_, i) => f1(mean(ret, x => x.eq[i]))).join(' / ')}%)`}; the estate where it survives, the households' mean ${Math.round(mean(xs, x => x.estate))}`);
+    out.push(`  ${a.padEnd(8)} survival ${f1(mean(xs, x => x.surv))}%; the first retired year ${f1(mean(xs, x => x.open))}% (the retirees ${f1(mean(ret, x => x.open))}%); by retired years ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${f1(mean(xs, x => x.bands[i].level))}%`).join(', ')}; at the floor ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${pc(mean(xs, x => x.bands[i].floor))}`).join(', ')}; at 110% ${BANDS.map(([l, hh], i) => `${l}-${hh === 99 ? 'on' : hh} ${pc(mean(xs, x => x.bands[i].top))}`).join(', ')}; cuts after year 1 ${f1(mean(xs, x => x.cutsPer100))} a hundred years, ${pc(mean(xs, x => x.afterWorst))} after the worst third of market years${a === 'APP' ? '' : `; the pension and ISA's equity share at retired years ${EQ_YEARS.join(', ')} ${EQ_YEARS.map((_, i) => f1(mean(xs, x => x.eq[i]))).join(' / ')}% (the retirees ${EQ_YEARS.map((_, i) => f1(mean(ret, x => x.eq[i]))).join(' / ')}%)`}; the estate where it survives, the households' mean ${Number.isFinite(mean(xs, x => x.estate)) ? Math.round(mean(xs, x => x.estate)) : '-'}`);
   }
   out.push('', 'Survival, paired by path (points; the first arm less the second):');
   for (const [a, b] of [['D10MLK', 'CAND'], [EZ1, 'CAND'], [EZ2, 'CAND'], ['D10MLK', 'DIAL10M'], ...(PRICES.includes(30) ? [['EZLK30', 'EZ']] : []), [EZ1, 'D10MLK'], [EZ2, 'D10MLK']]) { const p = pool(a, b); out.push(`  ${a} less ${b}: ${p.s}; by household ${p.by}`); }

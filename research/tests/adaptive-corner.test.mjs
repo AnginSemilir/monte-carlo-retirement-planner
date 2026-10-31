@@ -21,9 +21,11 @@
  *   Y4     bridge year 4 (S362's inflow year) at A 0, 50, 500, 5,000 and either side of the unfixed top (0.9 and 1.1 times
  *          3 rem + d0, the top's own move), every world, b 0, 0.5 and 1, all three gain nodes
  * THE GATE'S PRINTED FORM, per bound slice (A0, CLIFF, Y4): its cells, the base's largest clean gap against its cell's own
- * tolerance, and each plant's effect inside its own slice; it passes when every base cell's gap is at most half its own
- * tolerance, and each plant's largest gap in its slice is at least twice that cell's tolerance (a non-finite p counts as caught;
- * simulate is not run where p is non-finite).
+ * tolerance, and each plant's effect inside its own slice; it passes when every base cell is within its own tolerance, and
+ * each plant's largest gap in its slice is at least twice that cell's tolerance (a non-finite p counts as caught; simulate is
+ * not run where p is non-finite). The bound of half a cell's tolerance is printed per slice, reported, not gated, since 31 Oct
+ * (the maintainer, STATE.md D47: a gap between a table and simulation is a known limitation, not a gate, D2): CLIFF read
+ * 0.618 then, on the candidate and on the one this test was written on alike, A0 and Y4 within it.
  * Fixtures and plants:
  *   base         S362, the fix on: every cell passes
  *   top          S362 with its year-4 inflow raised to 200,000, the fix on; shown first to reach O178's case (year 4's bill below
@@ -133,8 +135,8 @@ try { RT = build('plant top', { inflow: 200000, foot: false }); } catch (e) { to
 if (RT) { const above = cellsOf(RT).S.Y4.filter(c => c.A >= 500), nonF = above.filter(c => !Number.isFinite(RT.ref.readV(c.k, c.t, c.A, c.b, c.gf))); topCaught = nonF.length > 0; topWhat = `${nonF.length} of ${above.length} year-4 cells at A 500 or more with a non-finite p`; }
 verdict(topCaught, `plant top caught in Y4 at A 500 or more: ${topWhat}`);
 // THE GATE'S PRINTED FORM: per slice, the base's largest clean gap, the tolerance, the plants' effects in their slices
-console.log('\nTHE GATE, by bound slice (the base\'s largest gap as a share of its own cell\'s tolerance; at most one half):');
-for (const nm of BOUND) { const r = ratio(rb.out[nm]); console.log(`  ${nm}: cells ${rb.out[nm].length}, the base's largest gap ${worst(rb.out[nm]).toFixed(4)}, at most ${r.toFixed(3)} of its cell's tolerance`); verdict(r <= 0.5, `${nm}: every base cell's gap at most half its own tolerance`); }
+console.log('\nTHE GATE, by bound slice (the base\'s largest gap as a share of its own cell\'s tolerance; one half reported, not gated: D47):');
+for (const nm of BOUND) { const r = ratio(rb.out[nm]); console.log(`  ${nm}: cells ${rb.out[nm].length}, the base's largest gap ${worst(rb.out[nm]).toFixed(4)}, at most ${r.toFixed(3)} of its cell's tolerance (${r <= 0.5 ? 'within' : 'BEYOND'} one half, reported)`); }
 console.log(`  SMOOTH (reported, not bound): cells ${rb.out.SMOOTH.length}, the base's largest gap ${worst(rb.out.SMOOTH).toFixed(4)}, at most ${ratio(rb.out.SMOOTH).toFixed(3)} of its cell's tolerance`);
 console.log(`  INCELL (reported, not bound): the base's largest gap inside the cliff's step cell ${worst(rb.out.INCELL).toFixed(4)} over ${rb.out.INCELL.length} cells`);
 console.log(`  plants: foot ${effF.toFixed(2)} times its cell's tolerance in A0; drift ${effD.toFixed(2)} times in CLIFF and Y4, worlds 0 and 2; top ${topWhat}`);

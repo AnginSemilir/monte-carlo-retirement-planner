@@ -1,11 +1,6 @@
 # The solver research: where it stands
 
-Read whole at every session start (CLAUDE.md imports it). The rules are `CHECKLIST.md` (eight lines). The plan is Part B
-of the external review of 21 Oct (`research/reviews/2026-10-21/EXTERNAL-REVIEW.md`), adopted by the maintainer that day
-and worked in order. Everything before it (the plan, its history, the review and deep-review logs, the lessons, the
-predictions, the items and the escalations) is in `research/solver/archive/`, unchanged: nothing edits it and no check
-reads it. Every figure below sits in a printed block, written by `node research/solver/state.mjs --write` from the
-results files and checked by `check-state.mjs` in the pre-commit hook and CI.
+Read whole at every session start (CLAUDE.md imports it). The rules are `CHECKLIST.md` (eight lines). The plan is Part B of the external review of 21 Oct (`research/reviews/2026-10-21/EXTERNAL-REVIEW.md`), adopted by the maintainer that day and worked in order. Everything before it (the plan, its history, the review and deep-review logs, the lessons, the predictions, the items and the escalations) is in `research/solver/archive/`, unchanged: nothing edits it and no check reads it. Every figure below sits in a printed block, written by `node research/solver/state.mjs --write` from the results files and checked by `check-state.mjs` in the pre-commit hook and CI.
 
 ## 1. The product question
 
@@ -39,6 +34,8 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
 One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have
 lapsed; they stay in the archive.
 
+- D48. 31 Oct, maintainer: two research options ported into src/solver from review/external-2026-10-21 at 7f492a7 (`research/reviews/2026-10-30/LOCK.md` sections 1 and 2, `lock/solve-lock.patch`), both off by default, EXPLORATORY: `ageWeight` { mode, disp } (the age-weighted helper in costOf, failCostAt and failDeliveredCost) and `lockTiers` (lockSetup, lockMask, researchFinish; a locked solve takes riskAbove from the candidate's own meta.riskAbove, tsOnce false); not EZ; no default changes (candidate.json, PRODUCT_BASELINE, the dial's); solve() kept under V8's optimised bytecode limit (`61,440`) with a FAST test; DIAL10M locked on S090 and S328F at full scale against the review's `92.3%` and `93.3%`; reported to the maintainer before any other run.
+- D47. 31 Oct, maintainer, on run-all.sh's engine suite (six tests the branch left stale, four brought to the code in cfd4530 and a0d4dfa): `adaptive-corner`'s bound of half a cell's tolerance is reported, not gated (D2; CLIFF `0.618`, every cell within its tolerance, the three plants caught); `solver-giatiers` (giaTiers, research only and off: since 136c477 a `40%` gain makes it switch the taxable account more, not less) is investigated first, EXPLORATORY and time-boxed, and the test decided after; Phase 7's pull request waits on it.
 - D46. 30 Oct, maintainer, on the spending curve's report: (1) D43's default kept after its held-out read MISSED; (2) the deep review's one test runs (CANDDP: the backward pass kept to paying moves where one pays, `payWhereOnePays`, EXPLORATORY, seed 7002); (3) the dial's positions are 1, 3, 6 and 10 times the candidate's lambda, 1 the default (6 run beside CANDDP before it ships, D44 (1)); the wording's three questions pending.
 - D45. 30 Oct, maintainer: "No need for N7, skip that": N7's device runs are not made (D20 (10) and D41 (1) so amended); Part C goes on to Phase 7. The page stays as built (`research/solver/n7/`), its run in this container's Chromium (`results-n7-check.txt`) the only browser measurement; Phase 7's worker is designed on it and measured in the app.
 - D44. 29 Oct, maintainer, on the review: (1) the dislike of cuts a Part C lever on the candidate's own lambda, today's the default; lambda times `3` and `10` tested against the candidate on the review's eight households (EXPLORATORY), the investments reported, a non-default setting shipped only after the maintainer has seen it; (2) Part C presents the early cut as a safe starting spend (the first year's spend against the target, and the year the plan's median path is back at target), and, where the recommended first year is below the target, says the plan will tend to spend below it because survival comes first, unless the dial is turned up, which keeps spending nearer the target and raises the chance of running out; the late raise in the fan, not the headline; the wording to the maintainer; (3) only if the maintainer asks: the first year held at the target; Epstein-Zin preferences.
@@ -293,7 +290,6 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 
 1. The spending curve (D46): CANDDP's read (not the cause, FD-RAISE closed) and the dial at six times to the maintainer; the wording's three questions pending.
-2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7 (N7 skipped, D45) by `PHASE-7.md`, 7a (the worker, the split,
-   the state), 7b (the key, the stored solve) and 7c (the locks) built behind `SOLVER`, its pull request next; Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42).
+2. Part C (D40 to D42), by `PART-C-PLAN.md`, singles only: Phase 7 (N7 skipped, D45) by `PHASE-7.md`, 7a (the worker, the split, the state), 7b (the key, the stored solve) and 7c (the locks) built behind `SOLVER`; its pull request after run-all.sh's engine suite is green (D47: the giaTiers look, then the test); Phase 8's defaults set by D43 and D44. Couples in the solver after Part C (D42). D48's port beside it.
 3. D37's and D38's items (D40, D41 (5)), by `AFTER-PHASE4.md` (two done: the GIA basis under CGT off, the held-out scan): the windfall and the
    savings splits built, each default-off with its tests, then a factorial on the panel (EXPLORATORY, seed 7002); the lump sum's route the maintainer's call; the sweep nightly.

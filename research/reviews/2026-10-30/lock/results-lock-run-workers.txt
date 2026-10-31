@@ -1,0 +1,69 @@
+The locked run, the workers' logs whole (lock-run.mjs --prices 10,30 <household>, from the root of the lock's code; one household a task, two at a time; UK times from the log files' records)
+
+== S328F (log begun 22:01:43, last written 22:50:39)
+S328F candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 422 s
+S328F d10mlk: survival 93.30% (CAND 94.10%); the first retired year's move's equity 45.0% (CAND 45.0%); the lock held at 11954 of 11954 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 419 s, paths 221 s; code 7fc8551be6e5
+S328F ezlk-g4-r2-f10: survival 92.90% (CAND 94.10%); the first retired year's move's equity 45.1% (CAND 45.0%); the lock held at 12006 of 12006 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 629 s, paths 239 s; code 7fc8551be6e5
+S328F ezlk-g4-r2-f30: survival 93.90% (CAND 94.10%); the first retired year's move's equity 45.1% (CAND 45.0%); the lock held at 12020 of 12020 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 646 s, paths 251 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S304F (log begun 22:01:43, last written 22:51:18)
+S304F candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 431 s
+S304F d10mlk: survival 97.60% (CAND 98.30%); the first retired year's move's equity 28.4% (CAND 28.4%); the lock held at 12080 of 12080 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 427 s, paths 200 s; code 7fc8551be6e5
+S304F ezlk-g4-r2-f10: survival 96.70% (CAND 98.30%); the first retired year's move's equity 28.4% (CAND 28.4%); the lock held at 12079 of 12079 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 654 s, paths 241 s; code 7fc8551be6e5
+S304F ezlk-g4-r2-f30: survival 97.60% (CAND 98.30%); the first retired year's move's equity 28.4% (CAND 28.4%); the lock held at 12080 of 12080 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 665 s, paths 261 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S340F (log begun 22:50:46, last written 23:41:00)
+S340F candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 462 s
+S340F d10mlk: survival 94.30% (CAND 96.00%); the first retired year's move's equity 44.3% (CAND 44.0%); the lock held at 12093 of 12093 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 441 s, paths 241 s; code 7fc8551be6e5
+S340F ezlk-g4-r2-f10: survival 94.20% (CAND 96.00%); the first retired year's move's equity 44.1% (CAND 44.0%); the lock held at 12109 of 12109 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 634 s, paths 245 s; code 7fc8551be6e5
+S340F ezlk-g4-r2-f30: survival 95.50% (CAND 96.00%); the first retired year's move's equity 44.0% (CAND 44.0%); the lock held at 12124 of 12124 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 646 s, paths 240 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S368 (log begun 22:51:27, last written 23:37:03)
+S368 candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 457 s
+S368 d10mlk: survival 99.80% (CAND 99.80%); the first retired year's move's equity 28.6% (CAND 28.3%); the lock held at 9200 of 9200 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 440 s, paths 168 s; code 7fc8551be6e5
+S368 ezlk-g4-r2-f10: survival 99.30% (CAND 99.80%); the first retired year's move's equity 28.6% (CAND 28.3%); the lock held at 9162 of 9162 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 610 s, paths 197 s; code 7fc8551be6e5
+S368 ezlk-g4-r2-f30: survival 99.30% (CAND 99.80%); the first retired year's move's equity 28.6% (CAND 28.3%); the lock held at 9162 of 9162 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 586 s, paths 196 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S188 (log begun 23:37:17, last written 00:12:04)
+S188 candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 304 s
+S188 d10mlk: survival 96.30% (CAND 97.70%); the first retired year's move's equity 28.3% (CAND 27.8%); the lock held at 8137 of 8137 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 281 s, paths 158 s; code 7fc8551be6e5
+S188 ezlk-g4-r2-f10: survival 96.10% (CAND 97.70%); the first retired year's move's equity 28.0% (CAND 27.8%); the lock held at 8152 of 8152 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 437 s, paths 196 s; code 7fc8551be6e5
+S188 ezlk-g4-r2-f30: survival 97.10% (CAND 97.70%); the first retired year's move's equity 27.9% (CAND 27.8%); the lock held at 8155 of 8155 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 432 s, paths 207 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S090 (log begun 23:41:07, last written 00:13:47)
+S090 candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 299 s
+S090 d10mlk: survival 92.30% (CAND 95.10%); the first retired year's move's equity 22.6% (CAND 22.6%); the lock held at 7138 of 7138 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 257 s, paths 170 s; code 7fc8551be6e5
+S090 ezlk-g4-r2-f10: survival 92.70% (CAND 95.10%); the first retired year's move's equity 22.6% (CAND 22.6%); the lock held at 7146 of 7146 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 394 s, paths 179 s; code 7fc8551be6e5
+S090 ezlk-g4-r2-f30: survival 94.50% (CAND 95.10%); the first retired year's move's equity 22.6% (CAND 22.6%); the lock held at 7157 of 7157 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 397 s, paths 179 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S030 and S050 (stopped in its first minute to run the two on separate cores; it wrote no unit) (log begun 00:12:51, last written 00:13:01)
+
+[killed]
+
+== S030 (log begun 00:13:17, last written 00:39:59)
+S030 candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 228 s
+S030 d10mlk: survival 93.50% (CAND 95.90%); the first retired year's move's equity 23.3% (CAND 23.3%); the lock held at 5571 of 5571 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 205 s, paths 144 s; code 7fc8551be6e5
+S030 ezlk-g4-r2-f10: survival 92.60% (CAND 95.90%); the first retired year's move's equity 23.3% (CAND 23.3%); the lock held at 5574 of 5574 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 320 s, paths 155 s; code 7fc8551be6e5
+S030 ezlk-g4-r2-f30: survival 95.20% (CAND 95.90%); the first retired year's move's equity 23.3% (CAND 23.3%); the lock held at 5577 of 5577 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 327 s, paths 153 s; code 7fc8551be6e5
+
+[exited with code 0]
+
+== S050 (log begun 00:13:58, last written 00:38:51)
+S050 candlk on the patched code, both options off: THE SAME as the CAND unit on every path (survival, failure year, level, delivered, unmet, estate, wealth) and its inputs; the tier above off: no tier above the plan; solve 218 s
+S050 d10mlk: survival 97.20% (CAND 98.90%); the first retired year's move's equity 24.0% (CAND 24.0%); the lock held at 5584 of 5584 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 193 s, paths 138 s; code 7fc8551be6e5
+S050 ezlk-g4-r2-f10: survival 96.70% (CAND 98.90%); the first retired year's move's equity 25.7% (CAND 24.0%); the lock held at 5589 of 5589 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 308 s, paths 131 s; code 7fc8551be6e5
+S050 ezlk-g4-r2-f30: survival 98.00% (CAND 98.90%); the first retired year's move's equity 24.0% (CAND 24.0%); the lock held at 5595 of 5595 decisions; beside: the engine alone 0, runPolicy alone 0 of 200; solve 311 s, paths 127 s; code 7fc8551be6e5
+
+[exited with code 0]

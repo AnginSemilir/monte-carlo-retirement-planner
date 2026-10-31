@@ -126,3 +126,76 @@ at a time, so no task nears the two-hour limit for a background job that stopped
 - **NOT BRACKETED:** the comparison is an extrapolation, and a third price would be needed to read it.
 - **1 misses low:** fixing the dial's tiers to the candidate's costs it survival, for the maintainer to weigh against
   requirement (1).
+
+## 4. The result (31 Oct, read once)
+
+Read by `lock/lock-run.mjs --read` (its output whole in `lock/results-lock-run.txt`) and scored by `lock/lock-score.mjs`
+(`lock/results-lock-score.txt`). The scorer refuses a read that is not FAIR or does not add up; its eight planted faults
+were each caught (`lock/results-lock-score-plants.txt`). The workers' logs are in `lock/results-lock-run-workers.txt`.
+
+**The checks passed.**
+- **CANDLK** was the CAND unit on every path of all eight households.
+- **The lock held** at every decision checked, on the first 200 paths of all 24 locked units.
+- **runPath** matched E.runTrial on the first 100 paths of every unit, and the engine matched runPolicy on the first 200.
+- **The read** printed FAIR, inside the time box: launched at 22:01, read at 00:41.
+- **Two incidents, neither touching a result.** The read first stopped on DIAL10M's units, which record no estate. It
+  was fixed to print a dash there (fb9a29d) before it had printed anything. One worker, S030 with S050, was stopped in its
+  first minute so the two could run on separate cores; it had written no unit.
+
+Pooled, each household once (the retirees are S090, S030, S368 and S050):
+
+| | survival | retired years 1-5 | at the floor, years 1-5 | the retirees' first year | 21 on | equity, retired years 1 / 5 / 10 / 20 | estate against CAND's |
+|---|---|---|---|---|---|---|---|
+| CAND | 97.0% | 86.5% | 76% | 80.0% | 107.5% | 30.4 / 31.3 / 40.4 / 50.4% | |
+| DIAL10M | 95.6% | 95.6% | 5% | 93.8% | 106.1% | 31.5 / 31.0 / 34.3 / 45.7% | not recorded |
+| **D10MLK** | 95.5% | 95.5% | 5% | 93.8% | 105.8% | 30.6 / 31.2 / 38.5 / 48.5% | -3% |
+| EZ | 96.1% | 91.1% | 52% | 82.5% | 106.7% | 25.2 / 25.3 / 24.6 / 23.8% | -36% |
+| EZLK30 | 96.4% | 91.4% | 51% | 82.5% | 106.6% | 30.5 / 30.8 / 37.4 / 45.5% | -13% |
+| EZLK10 | 95.2% | 96.7% | 33% | 93.8% | 105.7% | 30.7 / 31.2 / 36.6 / 43.5% | -14% |
+
+- **D10MLK less DIAL10M, survival:** -0.10 points (se 0.09; -0.27 to +0.07).
+- **EZLK30 less EZ:** +0.25 (se 0.10; +0.06 to +0.44).
+- **D10MLK less CAND:** -1.44 (se 0.14).
+- **At equal survival** (D10MLK's 95.5%, bracketed by EZLK10's 95.2% and EZLK30's 96.4%):
+  - years 1-5, EZ less D10MLK: -0.4 points of the target (-1.3 to +0.5), NOT SEPARATED;
+  - years 1-5 at the floor, EZ less D10MLK: +33.5 points (+30.4 to +36.5) against D10MLK's 5.1%, EZ MORE AT THE FLOOR.
+
+**The prediction, scored: four of six held.**
+1. The lock's cost to the dial, -1.0 to +0.5: HELD at -0.10.
+2. The lock's cost to EZ, -0.5 to +0.5: HELD at +0.25.
+3. The price, 0.5 to 3.0 points of survival and +2 to +8 in years 1-5: HELD, 1.24 points and +5.3.
+4. The bracket: HELD.
+5. At equal survival, EZ LOWER and EZ MORE AT THE FLOOR: MISSED. Years 1-5 were NOT SEPARATED; the floor part held.
+6. The first retired year's equity within 1 point of CAND's on every household: MISSED, by EZLK10 on S050 (25.7% against
+   24.0%). The lock held at all of that unit's 5,589 decisions checked. The first is at the plan's opening, the
+   candidate's own first position, so the pair there is the candidate's. The share is weighted by the pension's and
+   ISA's values after the first year's drawing, which differ. The year-20 part held.
+
+**What it means.** By the reading declared in section 3 this is the mixed case, and the maintainer's call:
+- **Requirement (1) costs nothing measurable.** Locked to the candidate's tiers, the dial gives up 0.10 points of
+  survival (-0.27 to +0.07) and EZ gains 0.25. The locked dial's equity follows the candidate's glide: the retirees from
+  24.6% at year 1 to 54.8% at year 20 (the candidate's 24.6% to 58.3%), where the unlocked dial opened them at 29.6%.
+- **At equal survival the two rules spend the same on average in years 1-5, but EZ gets there by swinging.** EZ's share of
+  those years at the floor is 33.5 points above the dial's 5.1%. EZLK10 also spends 42% of them at 110%, against
+  D10MLK's 18%. At the same level and the same survival, the dial's spending is the steadier, which is what disliking
+  cuts asks for.
+- **The locked dial against the candidate** gives up 1.44 points of survival for +9.0 points in years 1-5: the retirees'
+  first year at 93.8% against 80.0%, 5% of the early years at the floor against 76%, and an estate 3% below the
+  candidate's.
+
+**The review's recommendation:** the dial at ten with age weights, on the candidate's tiers. It is no worse than EZ on
+the level of early spending and far better on the floor, and it is two small options on the candidate's code. EZ is not
+needed.
+
+**For the maintainer (no default changes):**
+- **The lock and the age weights to the agent**, as two research options on the candidate's code, without EZ. Their patch
+  without EZ needs its own build and tests: the ones here, less EZ's.
+- **The dial's position stays the lever.** At ten, the locked dial gives up 1.44 points of survival against the
+  candidate. The lock and the age weights work at any position (D46: 1, 3, 6 and 10).
+- **EZ is set aside.** Its patch and tests stay on the review branch.
+
+**Odd results, each with what follows:**
+- **EZ survives better on the candidate's tiers than on its own** (+0.25, the interval above zero). Its risk aversion
+  (gamma 4) was set on the opening equity alone, and its own glide stayed near 24%. No decision rests on EZ now: noted,
+  NOT CHECKED further.
+- **Item 6's miss** is the pension and ISA's weights after the first year, not the tiers, as above.

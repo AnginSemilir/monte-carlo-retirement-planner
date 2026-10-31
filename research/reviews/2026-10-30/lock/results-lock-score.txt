@@ -1,0 +1,20 @@
+The locked run scored (EXPLORATORY), against the prediction in LOCK.md section 3 (committed before the launch), from results-lock-run.txt; the read FAIR
+The prediction:
+  1. the lock's cost to the dial, D10MLK less DIAL10M, survival: -0.10 (se 0.09; -0.27 to +0.07) against -1.0 to +0.5: HELD
+  2. the lock's cost to EZ, EZLK30 less EZ, survival: +0.25 (se 0.10; +0.06 to +0.44) against -0.5 to +0.5: HELD
+  3. the price: EZLK10 below EZLK30 by 1.24 points of survival (against 0.5 to 3.0): HELD; above it in years 1-5 by +5.3 points (96.7% against 91.4%; against +2 to +8): HELD
+  4. the bracket: D10MLK's pooled survival 95.5% between EZLK10's 95.2% and EZLK30's 96.4% (the weight on EZLK30 0.313): HELD
+  5. at equal survival: years 1-5, EZ less D10MLK -0.4 points (-1.3 to +0.5): NOT SEPARATED, predicted EZ LOWER: MISSED; at the floor +33.5 points (+30.4 to +36.5): EZ MORE AT THE FLOOR, predicted EZ MORE AT THE FLOOR: HELD
+  6. the tiers: the first retired year's equity, the largest gap to CAND's on a household: D10MLK 0.5, EZLK10 1.7, EZLK30 0.3 points (against within 1): MISSED; at retired year 20, pooled, D10MLK 48.5%, EZLK10 43.5%, EZLK30 45.5% (against between EZ's 23.8% and CAND's 50.4%): HELD
+  held 4 of 6 (an item with two parts holds only if both do); its parts 7 of 9
+Beside (not predicted):
+  each arm against CAND, pooled: survival (paired), the retirees' first year, retired years 1-5, at the floor in years 1-5, from the 21st year, the estate where it survives
+    DIAL10M  -1.34 points; first year 93.8% (CAND 80.0%); years 1-5 95.6% (+9.1); at the floor 5% (CAND 76%); from the 21st 106.1% (CAND 107.5%); the estate not recorded in its units
+    EZ       -0.84 points; first year 82.5% (CAND 80.0%); years 1-5 91.1% (+4.6); at the floor 52% (CAND 76%); from the 21st 106.7% (CAND 107.5%); the estate -36% against CAND's
+    D10MLK   -1.44 points; first year 93.8% (CAND 80.0%); years 1-5 95.5% (+9.0); at the floor 5% (CAND 76%); from the 21st 105.8% (CAND 107.5%); the estate -3% against CAND's
+    EZLK30   -0.59 points; first year 82.5% (CAND 80.0%); years 1-5 91.4% (+4.9); at the floor 51% (CAND 76%); from the 21st 106.6% (CAND 107.5%); the estate -13% against CAND's
+    EZLK10   -1.82 points; first year 93.8% (CAND 80.0%); years 1-5 96.7% (+10.2); at the floor 33% (CAND 76%); from the 21st 105.7% (CAND 107.5%); the estate -14% against CAND's
+  survival by household, D10MLK less DIAL10M: S090 -0.3, S030 -0.1, S328F +0.2, S188 -0.2, S304F -0.1, S368 0.0, S050 0.0, S340F -0.3; EZLK30 less EZ: S090 +0.5, S030 +0.8, S328F +0.7, S188 0.0, S304F -0.1, S368 0.0, S050 -0.1, S340F +0.2
+  the retirees' first retired year at the floor on every path (80.0%): CAND 4 of 4 (S090, S030, S368, S050); DIAL10M 0 of 4; EZ 3 of 4 (S090, S030, S368); D10MLK 0 of 4; EZLK10 1 of 4 (S368); EZLK30 3 of 4 (S090, S030, S368)
+  the equity share at retired years 1 / 5 / 10 / 20, pooled: CAND 30.4 / 31.3 / 40.4 / 50.4%; DIAL10M 31.5 / 31.0 / 34.3 / 45.7%; EZ 25.2 / 25.3 / 24.6 / 23.8%; D10MLK 30.6 / 31.2 / 38.5 / 48.5%; EZLK10 30.7 / 31.2 / 36.6 / 43.5%; EZLK30 30.5 / 30.8 / 37.4 / 45.5%
+  at 110% in retired years 6-10: CAND 55%, DIAL10M 52%, EZ 64%, D10MLK 51%, EZLK10 72%, EZLK30 65%; cuts after year 1 a hundred years: CAND 2.7, DIAL10M 4.8, EZ 4.0, D10MLK 5.0, EZLK10 5.0, EZLK30 4.2

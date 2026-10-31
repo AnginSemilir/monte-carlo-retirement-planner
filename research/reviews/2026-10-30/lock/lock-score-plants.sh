@@ -18,5 +18,7 @@ plant missing-household '/^  S050   APP/d' refused
 plant household-survival '0,/^(         D10MLK )([0-9.]+)%/s//\1199.9%/' refused
 plant pooled-pair 's/^(  D10MLK less DIAL10M: )([+-][0-9.]+)/\1+9.99/' refused
 plant no-equal-survival '/^At equal survival/d' refused
-plant score-verdict 's/(retired years 1-5, EZ less D10MLK: .*: )(EZ LOWER|EZ HIGHER|NOT SEPARATED)$/\1PLANTED/' refused
+plant garbled-verdict 's/(retired years 1-5, EZ less D10MLK: .*: )(EZ LOWER|EZ HIGHER|NOT SEPARATED)$/\1PLANTED/' refused
+# a scoring plant: the verdict the read printed swapped for the one predicted; item 5's first part must then read HELD
+plant score-verdict 's/(retired years 1-5, EZ less D10MLK: .*: )NOT SEPARATED$/\1EZ LOWER/' 'EZ LOWER, predicted EZ LOWER: HELD'
 rm -rf "$T"

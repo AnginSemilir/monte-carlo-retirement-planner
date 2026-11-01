@@ -90,6 +90,12 @@ the third or tenth retired year (32 cells), CANDD against arm A as D36 set it (t
 it), paired on 3,000 paths; survival and the cost year's tax. R3: a cell losing survival beyond noise (exact, one-sided,
 Holm over 32, 5%) brings M12's remedy and a second run. `reduce-costs.mjs --planted` reads five planted cases as planted.
 
+The read (1 Nov, `results-costs.txt`): fair; by R3 no cell loses survival beyond noise, so plans with a one-off cost run the
+candidate under the switch and M12's remedy is not built. The `reviewer` at the read: PASS (`reviews/2026-11-01-read-L5.md`),
+its MINORs reported to the maintainer: the cost year's tax (a lead, not a cause: the audit records no draws by account),
+S368's early cells uninformative (the cost before pension access sinks it under either policy), and no `runPolicy` check;
+a second run of `audit-costs.mjs` records the cost year's draws by account and runs `runPolicy` beside the engine.
+
 ## Batches and the gate
 
 Each unit runs through `research/solver/run-unit.sh`: at low priority (`nice -n 19`), waiting while the gate's pause file

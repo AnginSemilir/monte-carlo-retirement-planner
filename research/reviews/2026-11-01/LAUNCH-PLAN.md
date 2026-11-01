@@ -47,7 +47,8 @@ spending** (F1).
    pending measurements decide without another stop. The unlocks the plan's test, CI and hook changes need are
    listed, so the agent can run to the beta without stopping.
 2. **Step 0 goes first:** the CI and hook changes.
-   - the nightly on `main` and on the branch;
+   - the full suite on every push instead of nightly, one run at a time per branch, since the agent works around the
+     clock (B14);
    - cheaper commits;
    - a watchdog.
 3. **The switch-on gate is built before Phase 8 merges.** The approved plan already requires it from Phase 8 (D41).
@@ -77,7 +78,7 @@ spending** (F1).
 |---|---|
 | Step 0, CI and hooks (after the unlock) | 2 Nov |
 | Phase 8, with the switch-on gate, merged | 3 Nov |
-| Step L built; L4 and L5 overnight | 4 Nov |
+| Step L built; L4 and L5 running as soon as L's code is green | 4 Nov |
 | Phase 9 | 7 Nov |
 | Phase 10 | 11 Nov |
 | Step P | 13 Nov |
@@ -101,10 +102,10 @@ spending** (F1).
 | Its cost: the app's own (this container, one core) | With the floor at 80%: <ul><li>a solve takes 330 s (S126) and 456 s (S370);</li><li>a path takes 61.9 and 72.6 ms, so 5,000 paths take 5.2 and 6.0 minutes;</li><li>an edit to a solved and simulated plan takes 10.7 and 13.7 minutes;</li><li>the dial at ten from cold takes 21.1 and 25.4 minutes.</li></ul> Tables are 227 and 265 MB a solve, and a locked position holds two (454 and 530 MB). The locked solve takes 0.91 to 0.97 times the base's time; its simulation 1.80 to 1.99 times. | results-app-timing.txt, results-estimate.txt |
 | Its cost: gate 5 (the agent's machine) | 428.8 to 569.2 s on one core, and 113.6 to 160.5 s split four ways (the split's speed-up x3.55). Chromium: 668 s for S370 in one worker. | facts C |
 | The cache | Keeps one solve, the latest: each store replaces the one before. | facts G |
-| Couples | `src/solver/couple.js`, the archive's pilot: 180 lines, tiers off, M4's three gaps open. `solver-couple.test.mjs` runs nightly only. | facts A, G |
+| Couples | `src/solver/couple.js`, the archive's pilot: 180 lines, tiers off, M4's three gaps open. `solver-couple.test.mjs` is in the full tier only. | facts A, G |
 | One-off costs | None on Phase 4's 40 households or the library's 210 singles. All 210 of the library's couples have one. The archive (M12): "The solver's handling of one-off COSTS has never been tested on a single household." | facts G |
 | The bridge safety margin | On the Config tab under the switch ("Tournament bridge safety margin (%)"). No solver file reads it. D18 says "the bridge safety margin stays as a lock". | facts G |
-| The tests | 137 files, 52 in the fast tier. solver-aims, lock-tiers, solver-couple and the two splits' tests run nightly only. | facts A |
+| The tests | 137 files, 52 in the fast tier. solver-aims, lock-tiers, solver-couple and the two splits' tests are in the full tier only, which so far has run by hand. | facts A, B |
 | Protected files | The pre-tool hook refuses edits to: the fast tier's list (`run-all.mjs`) and every test in it, `.github/workflows/`, `.githooks/` and `.claude/hooks/`. | `.claude/hooks/pre-tool.mjs` |
 | CI | The fast tier on a push takes 40 minutes (52 files, 1.11 CPU-hours; pay-where and speed-port are 42% of it). The full tier by hand took 3 h 47 min of the job's 300-minute limit (135 files, 7.54 CPU-hours). The schedule reached `main` on 31 Oct at 21:29. One scheduled time has passed since (1 Nov 02:17), and GitHub lists no scheduled run. A scheduled run tests `main` only. | facts B |
 | The hooks | The pre-commit hook runs the fast tier, 2 at a time, on any commit that touches `src/`, including commits that change only the screens. | facts A |
@@ -196,11 +197,13 @@ G).
 - It takes 40 minutes in CI, and about as long in the session at `-j 2`.
 - **Fix:** B8 and step 0. pay-where comes out, and each fast test is skipped when the files it reads are unchanged.
 
-**F11. The nightly** (facts B).
-- One scheduled time has passed. That is too early to call it broken.
-- But the full tier has 24% headroom under the job's limit.
-- And a scheduled run tests `main`, not the branch where the work is.
-- **Fix:** step 0: shards, both branches, a watchdog.
+**F11. A nightly run does not suit an agent that works around the clock** (facts B).
+- A fixed hour is not a quiet time for the agent. A nightly run tests a day's pushes at once, up to a day late.
+- A scheduled run tests `main` only, not the branch where the work is.
+- The schedule has had one chance to fire and has not.
+- The full tier has 24% headroom under the job's limit.
+- **Fix:** B14 and step 0. The full tier runs on every push, in two shards, one run at a time per branch. A weekly run
+  on `main` is the backstop.
 
 **F12. Two "safe spends".**
 - The Strategy headline's "safe starting spend" is the first year's spending.
@@ -274,19 +277,20 @@ update".
 
 | # | decision | recommendation | why |
 |---|---|---|---|
-| B1 | Leave to merge (DECISIONS-PENDING row 1, widened) | Each step's pull request (0, 8, L, 9, 10, P, 11) merges to `main` once three things are recorded in it: `run-all.sh` prints ALL REQUIRED GREEN in both modes; CI is green on its head; each new test has been shown failing on its plant (CHECKLIST 5). The `reviewer` and `deep-reviewer` agents come in where CLAUDE.md says: each read's claims, each change of default, each confirmatory design, and the deep review after a confirmatory read. | The switch stays off on `main`, so no user sees a change. D50's leave covered Phase 7 only, and each wait costs a day. |
+| B1 | Leave to merge (DECISIONS-PENDING row 1, widened) | Each step's pull request (0, 8, L, 9, 10, P, 11) comes from a release branch cut at the commit the gate passed on, so its head stays still. It merges to `main` once three things are recorded in it: `run-all.sh` prints ALL REQUIRED GREEN in both modes; both CI tiers are green on its head (B14); each new test has been shown failing on its plant (CHECKLIST 5). The `reviewer` and `deep-reviewer` agents come in where CLAUDE.md says: each read's claims, each change of default, each confirmatory design, and the deep review after a confirmatory read. | The switch stays off on `main`, so no user sees a change. D50's leave covered Phase 7 only, and each wait costs a day. |
 | B2 | The solver's spending floor | 80% of the target where the plan sets none. Fixed at launch and stated on the Config tab. Other floors are measured before they are offered. | Every test of the candidate set it at 80% (F1). |
 | B3 | The dial's positions above the default | **B3a:** lambda times the position, the age weights { mode 90, dispersion 9 }, and the candidate's tiers locked. <ul><li>It needs the standing "no mortality in the solver" rule amended for this one use: a chance of being alive weighs a cut's cost.</li><li>Survival is still counted to the plan's fixed age, and the horizon does not move.</li><li>**B3b**, the lock alone with no mortality anywhere, is measured beside it in L4. It replaces B3a by rule R1 if the weights do not earn their place, or outright if the maintainer strikes the amendment.</li><li>Position 1, the default, is the candidate unchanged either way.</li></ul> | The review's recommendation (LOCK.md section 4). At ten, B3a starts the retirees at 93.8% of target, with 5% of years 1 to 5 at the floor, against the candidate's 80.0% and 76%. The lock costs nothing measurable (F2). |
 | B4 | The wording (row 2) | The agent's recommendations: the length of the dip; three years; no second rate in the headline. Also the agent's proposal for a household still working (Phase 9). Built as a table of strings, so a later change is one line. | Phase 9 is not held up by it. |
 | B5 | Isolation on the live site (row 10) | A service worker on GitHub Pages, built in Phase 10. The one-worker fallback is kept. | The origin stays the same, and with it every saved plan: they "would NOT survive a move to a different domain" (deploy.yml). |
 | B6 | The beta switch | A per-browser opt-in ("Try the new planner, beta"), off by default during the beta. One deploy turns it off for everyone. `SOLVER` becomes true in Phase 12, with the gate's two modes becoming the opt-in's two states. The beta starts by rule R6. | Two weeks of both paths, and a rollback, without a rebuild (F9). |
-| B7 | The research (rows 5, 6, 7) | <ul><li>The launch candidate is d71f65ae871e with B2 and B3.</li><li>In idle windows, EXPLORATORY and deciding nothing: GAIN-BUCKET first, at the 20 households whose taxable account is 10% of wealth or more (about 8 core-hours, D49's smaller sizing); then the windfall factorial; then the savings factorial, at 4,000 paths.</li><li>A gain opens a registered v2 test after the launch. A harm to the launch candidate goes to the maintainer at once.</li></ul> | A late result cannot reopen the candidate mid-rollout (F15). The 20 households are where the bucket's edge can bite. |
-| B8 | The unlocks ("unlock enforcement", rows 8 and the plan's own) | One unlock for exactly these edits: <ul><li>the fast tier's list: pay-where out; in, the tests the plan names (L1's floor test, L2's split identity, L3's quick form, Phase 9's split simulation, D1's couples quick form);</li><li>`.githooks/pre-commit`: the per-test skip;</li><li>`.github/workflows/verify.yml`: the nightly matrix and shards;</li><li>`.claude/hooks/session-start.sh`: the watchdog.</li></ul> A later edit to a protected test asks again. | Otherwise the hook stops the agent in the middle of steps 0, L, 9 and D1 (F8). The commit's cost is F10. |
+| B7 | The research (rows 5, 6, 7) | <ul><li>The launch candidate is d71f65ae871e with B2 and B3.</li><li>Whenever cores are free, at low priority, EXPLORATORY and deciding nothing: GAIN-BUCKET first, at the 20 households whose taxable account is 10% of wealth or more (about 8 core-hours, D49's smaller sizing); then the windfall factorial; then the savings factorial, at 4,000 paths.</li><li>A gain opens a registered v2 test after the launch. A harm to the launch candidate goes to the maintainer at once.</li></ul> | A late result cannot reopen the candidate mid-rollout (F15). The 20 households are where the bucket's edge can bite. |
+| B8 | The unlocks ("unlock enforcement", rows 8 and the plan's own) | One unlock for exactly these edits: <ul><li>the fast tier's list: pay-where out; in, the tests the plan names (L1's floor test, L2's split identity, L3's quick form, Phase 9's split simulation, D1's couples quick form);</li><li>`.githooks/pre-commit`: the per-test skip;</li><li>`.github/workflows/`: the full tier's own workflow and the weekly backstop (B14), and `verify.yml` without its nightly schedule;</li><li>`.claude/hooks/session-start.sh`: the watchdog.</li></ul> A later edit to a protected test asks again. | Otherwise the hook stops the agent in the middle of steps 0, L, 9 and D1 (F8). The commit's cost is F10. |
 | B9 | Couples (row 9) | Part D as section 6, built during the singles' beta. Its registration comes to the maintainer before its run. The couples' beta follows the singles'. | The beta's two weeks are the agent's idle time. Building couples beside Phases 10 and 11 would bring them about a week sooner, and delay the singles by about five days. |
 | B10 | The phone's grid | 45 points, with the solve on request. Rule R4 decides any coarser grid. | F13. Step P now comes before the phone. |
 | B11 | The age dial (D18) | Pre-solved on request, not after every edit. | Six solves after each edit cost 11.4 to 16.1 minutes of four cores, even split (facts C). |
-| B12 | Unchanged | <ul><li>Row 3: not now.</li><li>Row 4: the lock alone.</li><li>Row 11: set aside. Position 10 starts the retirees at 93.8% of target (D10MLK); the default stays at 80%.</li><li>Row 12: step 0.</li></ul> | |
+| B12 | Unchanged | <ul><li>Row 3: not now.</li><li>Row 4: the lock alone.</li><li>Row 11: set aside. Position 10 starts the retirees at 93.8% of target (D10MLK); the default stays at 80%.</li><li>Row 12: B14.</li></ul> | |
 | B13 | The bridge safety margin (D18) | Hidden for singles under the switch. It is the tournament's setting, and the tested candidate has no such lock. D18's "stays as a lock" is recorded as superseded by the bridge reader. Building it as a lock would need measuring first. | F18. |
+| B14 | The full suite (row 12: the nightly) | Not nightly, since the agent works around the clock. <ul><li>The full tier runs on every push to the working branch, a release branch or `main`, in two shards. It runs one at a time per branch: a newer push waits, and replaces any older one waiting. So it runs back to back on the latest code while the agent pushes, and stops when the pushes stop.</li><li>B1 needs both tiers green on the pull request's head.</li><li>A weekly run on `main` is the backstop for quiet weeks and runner-image changes.</li><li>The watchdog warns when the branch's latest full run is red, or more than 24 hours older than its head.</li></ul> | A push's full result comes in roughly 2 to 4 hours, instead of up to a day. It tests the branch where the work is. It does not depend on GitHub's scheduler, which has not fired yet. |
 
 **The rules that decide on a measurement**, each fixed before its run:
 
@@ -312,13 +316,15 @@ agent's machine, with its own core count printed beside it.
 Section 5 gives the detail.
 - pay-where comes out of the fast tier.
 - The per-test skip in the pre-commit hook.
-- The nightly as a matrix on `main` and the branch, in two shards each.
+- The full tier's own workflow: on every push, in two shards, one run at a time per branch. A weekly run on `main` as
+  the backstop (B14).
 - The watchdog.
 
 **Acceptance:**
 - each change's test fails on its plant;
 - CI is green on the branch;
-- one nightly run of both branches is recorded.
+- one full run on a push to the branch is recorded, both shards green, with a second push shown waiting and not
+  cancelling it.
 
 **Box:** half a day.
 
@@ -403,7 +409,7 @@ Section 5 gives the detail.
   - the age weights dropped;
   - the base solved with another estate weight;
   - the floor at 0.
-- **Where it runs:** four combinations in the fast tier; the full set nightly.
+- **Where it runs:** four combinations in the fast tier; the full set in the full tier.
 
 **L4. The four positions, both variants** (EXPLORATORY, seed 7002, 45 points, the floor at 80%).
 - **What:** positions 1, 3, 6 and 10 under B3a and under B3b, on the review's eight households, 4,000 paths, one code,
@@ -434,7 +440,8 @@ Section 5 gives the detail.
 
 **Step L's acceptance and box.**
 - **Acceptance:** L1 to L3 pass with their plants; L4 and L5 read FAIR; the fast tier and the gate are green.
-- **Box:** one day's build, with L4 and L5 overnight.
+- **Box:** one day's build. L4 and L5 then run at low priority as soon as L's code is green: about 13.1 and 5.3
+  core-hours (results-estimate.txt).
 
 ### Phase 9: the Strategy tab (singles)
 
@@ -621,7 +628,7 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
 5. **The readiness checklist.** `research/solver/launch-ready.mjs` prints each line PASS or FAIL from results files, on
    the release commit:
    - `run-all.sh` ALL REQUIRED GREEN in both modes;
-   - the fast tier and the nightly green;
+   - both CI tiers green on the release commit;
    - **the full-scale browser solve:** 45 points, the real settings, the floor at 80%, one household. Its tables must be
      Node's bit for bit, and its time is recorded. The harnesses otherwise run at light settings;
    - **the library sweep:** every one of the 210 singles normalises, prepares and solves at light settings without a
@@ -648,7 +655,8 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
 1. Read STATE.md and CI, and fix a red run first.
 2. Do the current step's next task.
 3. At the step's end: the gate, the pull request, the merge (B1).
-4. Overnight: the research queue.
+4. Whenever cores are free: the research queue, at low priority (`nice`). It pauses for the gate and for any timing
+   measurement.
 
 **The only stops.** L4, L5, P2 and the beta's start are not stops: R1 to R6 decide them, and each read goes to the
 maintainer as a report.
@@ -667,20 +675,29 @@ maintainer as a report.
   flight to finish. A gate then waits at most one unit, and a beta fix never waits for a whole batch.
 - The launcher records each pause.
 
-**CI (step 0).**
-- **The nightly** runs on `main` and on the working branch, as a matrix on the checkout's ref.
-  - Each is split into two shards by a fixed split of the files, balanced on the last run's times. That is about
-    2 hours a shard at `-j 2` (7.54 CPU-hours over four parallel slots). The longest file, pr31-split at 84 minutes,
-    fits in one.
+**CI (step 0; B14).** The full tier follows the pushes, not the clock.
+- **The fast tier** runs on every push and pull request, as today.
+- **The full tier** runs on every push to the working branch, a release branch or `main`. It has its own workflow
+  file, so its queue never holds up the fast tier.
+  - **One run at a time per branch.** The workflow's concurrency group is the branch, with cancel-in-progress off. A
+    push that arrives during a run waits, and a later push replaces it in the wait. So while the agent pushes, the full
+    tier runs back to back on the latest code, and it stops when the pushes stop.
+  - **A push's result** arrives within about two runs, so roughly 2 to 4 hours.
+  - **Two shards**, a matrix in one run, split by a fixed split of the files balanced on the last run's times. That is
+    about 2 hours a shard at `-j 2` (7.54 CPU-hours over four parallel slots). The longest file, pr31-split at
+    84 minutes, fits in one.
   - `-j 4` would halve that where the runner has four cores (print `nproc` first; the log does not say), once a run has
     shown the memory holds.
   - Each shard prints a warning past 4 hours.
-- **A watchdog in `session-start.sh`.** If GitHub lists no scheduled run in the last 30 hours, it says so. The agent
-  then dispatches the full tier by hand (`gh workflow run verify.yml -f tier=all`) and records it.
-- **First check:** after 2 Nov 02:17 UK, whether the schedule fired at all.
+- **A weekly run on `main`** (Sundays) is the backstop for quiet weeks, and for changes to GitHub's runner image.
+- **The pull request's head stays still.** Each step's pull request comes from a release branch cut at the commit
+  the gate passed on. The agent's later pushes then cannot move the head. That head gets its own full run, and B1
+  merges it when both tiers are green on it.
+- **A watchdog in `session-start.sh`** prints the working branch's latest full run. It warns when that run is red, or is
+  more than 24 hours older than the branch's head. A red full run is fixed first, like any red CI (the loop's step 1).
 
 **The commit's cost (B8).**
-- pay-where leaves the fast tier: 871 of its 3,988 CPU seconds in CI. It stays in the nightly tier.
+- pay-where leaves the fast tier: 871 of its 3,988 CPU seconds in CI. It stays in the full tier.
 - **Each fast test is skipped when its inputs are unchanged.**
   - A test's inputs are every file it reads, traced by running it once under a file-read hook, so the list is not typed.
     That covers file reads, not just imports: hygiene.test.mjs walks all of `src/`, and settings.test.mjs reads the
@@ -697,7 +714,7 @@ maintainer as a report.
 3. The savings factorial (about 13 core-hours at 4,000 paths).
 
 Each run:
-- goes in an idle window, pausing for the gate;
+- runs whenever cores are free, at low priority (`nice`), pausing for the gate and for any timing measurement;
 - comes back first if it costs a quarter over its estimate;
 - is read with the `reviewer` on its claims;
 - decides nothing.
@@ -823,23 +840,26 @@ struck. Striking the second ships B3b.
 ```
 Read research/reviews/2026-11-01/LAUNCH-PLAN.md on review/external-2026-10-21.
 
-The maintainer's answers: section 3's recommendations B1 to B13, and its rules R1 to R6 (the maintainer's ruling
+The maintainer's answers: section 3's recommendations B1 to B14, and its rules R1 to R6 (the maintainer's ruling
 naming L4, L5, P2 and the beta's start).
 - Unlock enforcement for exactly B8's edits.
 - B3a: the "no mortality in the solver" rule is amended for this one use (the age weights on a cut's cost; survival
   still counted to the plan's fixed age).
 
 1. Record these as D51 onward in STATE.md; close their rows in DECISIONS-PENDING.md.
-2. Step 0: pay-where out of the fast tier; the per-test skip in the pre-commit hook, with its trace check; the nightly
-   as a matrix on main and the branch, two shards each; the session-start watchdog.
+2. Step 0: pay-where out of the fast tier; the per-test skip in the pre-commit hook, with its trace check; the full
+   tier on every push in its own workflow, two shards, one run at a time per branch (a newer push waits), with a
+   weekly run on main and the nightly schedule removed (B14); the session-start watchdog.
 3. Phase 8: build run-all.sh --solver, then the pull request; merge on B1's gate.
 4. Step L: L1 the floor at 80%; L2 the dial's positions and the two-entry cache; L3 the lever matrix; L4 (both of B3's
-   variants) and L5 (one-off costs) overnight, EXPLORATORY, seed 7002. R1 to R3 decide on their reads; send me the
-   reads as reports.
-5. Then Phase 9, Phase 10, step P, Phase 11 and Phase 12, each by its acceptance tests and time box, merging each on
-   B1's gate. Run launch/cache-key.sh on a clean checkout before P1 (g). R4 to R6 decide on their measurements.
+   variants) and L5 (one-off costs) as soon as L's code is green, at low priority, EXPLORATORY, seed 7002. R1 to R3
+   decide on their reads; send me the reads as reports.
+5. Then Phase 9, Phase 10, step P, Phase 11 and Phase 12, each by its acceptance tests and time box. Each pull
+   request comes from a release branch cut at the gate's commit, and merges on B1's gate. Run launch/cache-key.sh on a
+   clean checkout before P1 (g). R4 to R6 decide on their measurements.
 6. Part D when the singles' beta starts. D4's registration comes to me before its run.
-7. The research queue overnight in its order (B7), pausing for the gate. It decides nothing.
+7. The research queue whenever cores are free, at low priority, in its order (B7), pausing for the gate and for timing
+   runs. It decides nothing.
 
 Stop only at section 5's stops.
 ```

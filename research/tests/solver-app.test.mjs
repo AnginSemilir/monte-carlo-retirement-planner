@@ -4,7 +4,8 @@
  *      the candidate's (CANDIDATE_HASH), its tier returns O60's (blendReals), its plan candidatePlan's; planted: a copy with
  *      one setting changed, or one tier's return, fails the comparison;
  *   2. solveForApp the candidate's solve: every table the same bit for bit as solvePlan on candidatePlan with
- *      CANDIDATE_OPTS (S126 at 4 points, a light lattice);
+ *      CANDIDATE_OPTS, the plan's floor at 80% of the target as the app prepares it (step L1) (S126 at 4 points, a light
+ *      lattice);
  *   3. src/solverPool.js, the page's split, on Node's worker threads: every table and the adaptive reference's arrays the
  *      same split 2 and 3 ways as whole; planted: a part that claims cells and drops them (the tables differ), a part that
  *      carves a table the others do not (the barrier's check fails the solve), a part that throws (every part fails).
@@ -53,10 +54,16 @@ const arrays = r => { const out = []; const W = r.tablesW; const add = L => { fo
   return out; };
 const differ = (A, B) => { if (A.length !== B.length) return Infinity; let d = 0; for (let i = 0; i < A.length; i++) { const a = A[i], b = B[i]; if (a.length !== b.length) return Infinity; for (let j = 0; j < a.length; j++) if (!Object.is(a[j], b[j])) d++; } return d; };
 const values = A => A.reduce((t, a) => t + a.length, 0);
-const t0 = Date.now(), one = solveForApp(E, M, plan, opts), t1 = Date.now();
-const ref = solvePlan(E, M, candidatePlan(E, plan), { ...CANDIDATE_OPTS, ...SMALL, lambda: LAMBDA, points: PTS });
+// the app's side on the library's raw plan, so its whole preparation (normalised, the guardrails and the lookahead off, the
+// MPAA resolved, the floor) is compared with the research's (the re-review of 1 Nov, MINOR 3)
+const t0 = Date.now(), one = solveForApp(E, M, all.find(s => s.id === 'S126').plan, opts), t1 = Date.now();
+// the reference on the plan with the floor at 80% of the target, as solver-progress.test.mjs builds its plans (step L1, B2 in
+// D51: the app's preparation sets it where the plan's is 0); the app's side on the plan without one, so the check pins both
+// the app's preparation and position 1 against the research's own solve (the reviewer of 1 Nov, reviews/2026-11-01-L1-floor.md)
+const floored = { ...plan, spending: { ...plan.spending, floorSpend: Math.round(0.8 * E.num(plan.spending.targetSpend, 0)) } };
+const ref = solvePlan(E, M, candidatePlan(E, floored), { ...CANDIDATE_OPTS, ...SMALL, lambda: LAMBDA, points: PTS });
 const A = arrays(one);
-ok(differ(A, arrays(ref)) === 0 && one.g.reader.adaptive, `2. S126: solveForApp's ${A.length} arrays (${values(A)} values, the reference's among them) the same bit for bit as the candidate's solve (${(t1 - t0) / 1000} s)`);
+ok(differ(A, arrays(ref)) === 0 && one.g.reader.adaptive && ref.meta.spendLevels.some(x => Math.abs(x - 0.8) < 1e-9), `2. S126: solveForApp's ${A.length} arrays (${values(A)} values, the reference's among them) the same bit for bit as the candidate's solve with the floor at 80% (${(t1 - t0) / 1000} s)`);
 
 // 3. the split on the arena
 async function split(parts, planted = null) {

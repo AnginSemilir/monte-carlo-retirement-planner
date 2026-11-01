@@ -10,10 +10,10 @@
  * change re-solves (src/useSolver.js). Every position offered has been measured (PHASE-8.md); the defaults are the candidate's.
  */
 import React from 'react';
-import { Fine } from './phone.jsx';
-import { fieldCls } from './ui.js';
-import { MoneyInput } from './numberFormat.jsx';
 import { APP_DIAL } from './solverSettings.js';
+// the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
+// `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
+// more on every load (load-perf, with the switch on)
 
 const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 const LOCKS_FREE = Object.freeze({ pensionBefore: null, tierCeiling: Object.freeze({ pen: null, isa: null }), lumpSum: 'free' });
@@ -31,18 +31,18 @@ const patchSolver = (setPlan, part, patch) => setPlan(prev => {
   return { ...prev, solver: { ...s, [part]: { ...base, ...(s[part] || {}), ...patch } } };
 });
 
-function Choice({ name, options, value, onChange }) {
+function Choice({ name, options, value, onChange, isPhone }) {
   return (
     <div role="radiogroup" aria-label={name} data-solver-choice={name} className="flex flex-wrap gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 w-fit text-[11px] font-bold">
       {options.map(([v, label]) => (
         <button key={String(v)} type="button" role="radio" aria-checked={value === v} data-value={String(v)} onClick={() => onChange(v)}
-          className={`px-2.5 py-1 rounded-md cursor-pointer transition-colors ${value === v ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+          className={`px-2.5 py-1 rounded-md cursor-pointer transition-colors ${isPhone ? 'min-w-11 min-h-11' : ''} ${value === v ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
       ))}
     </div>
   );
 }
 
-function Row({ title, children, help, isPhone }) {
+function Row({ title, children, help, isPhone, Fine }) {
   return (
     <div className="space-y-1.5">
       <div className="text-xs font-semibold text-slate-800">{title}</div>
@@ -52,18 +52,23 @@ function Row({ title, children, help, isPhone }) {
   );
 }
 
-/* the solve's state, in a line: what the solver is doing with the plan on screen */
-function SolveLine({ solve }) {
+/* the solve's state, in a line: what the solver is doing with the plan on screen; on a phone, until asked, a button that asks
+   (the launch plan's B10: the phone solves on request) */
+function SolveLine({ solve, onRequest }) {
   const { solveState, solveMeta, progress, key } = solve || {};
   const pct = progress && progress.total ? Math.round((100 * progress.done) / progress.total) : null;
   const text = solveMeta && solveMeta.error ? `The solver could not solve this plan: ${solveMeta.error}`
     : solveState === 'solving' ? `Solving your plan${progress ? `: ${progress.phase === 'years' ? 'year by year' : 'the years before your pension opens'}, ${pct}%` : '…'}`
     : solveState === 'stale' ? 'Your plan changed; solving it again…'
     : solveState === 'solved' ? `Solved${solveMeta && solveMeta.restored ? ', from the last time it was solved' : solveMeta && solveMeta.secs ? ` in ${Math.round(solveMeta.secs)} seconds` : ''}.`
+    : onRequest ? 'On a phone the solver runs when you ask, and it can take several minutes.'
     : 'Waiting to solve your plan.';
   return (
     <div data-solve-state={solveState || 'idle'} data-solve-key={key || ''} className="text-[11px] text-slate-600 pt-2 border-t border-slate-100">
       <span className="font-semibold text-slate-800">The solver: </span>{text}
+      {onRequest && (
+        <button type="button" data-solve-request onClick={onRequest} className="mt-2 min-h-11 px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-xs font-bold cursor-pointer block">Solve my plan</button>
+      )}
       {solveState === 'solving' && pct !== null && (
         <div className="mt-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-blue-600 transition-all" style={{ width: `${pct}%` }} /></div>
       )}
@@ -71,57 +76,62 @@ function SolveLine({ solve }) {
   );
 }
 
-export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge }) {
+export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge, onSolveRequest = null, ui }) {
+  const { PhoneCollapse, MoneyInput, fieldCls } = ui;
   const a = { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}) };
   const set = patch => patchSolver(setPlan, 'aims', patch);
   const target = Number(plan.spending && plan.spending.targetSpend) || 0;
   return (
     <section data-solver-aims className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+      <PhoneCollapse isPhone={isPhone}>
       <div>
         <h2 className="text-base font-semibold text-slate-900">What the solver aims for</h2>
         <p className="text-xs text-slate-500 mt-1">Not running out comes first. These choices tell the solver what you want from the rest, and each one solves your plan again.</p>
       </div>
-      <Row title="How much do you dislike cuts?" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="How much do you dislike cuts?" isPhone={isPhone}
         help="Low: protect against running out, even if spending dips for a while. High: keep spending steadier, accepting a higher chance of running out. Low is the default.">
-        <Choice name="cuts" value={a.cuts} onChange={v => set({ cuts: v })} options={APP_DIAL.map(x => [x, DIAL_LABELS[x] || `${x}x`])} />
+        <Choice isPhone={isPhone} name="cuts" value={a.cuts} onChange={v => set({ cuts: v })} options={APP_DIAL.map(x => [x, DIAL_LABELS[x] || `${x}x`])} />
       </Row>
-      <Row title="How much the estate matters" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="How much the estate matters" isPhone={isPhone}
         help="The solver weighs what you leave against what you spend. Lower gives the estate half the weight, so the plan spends a little more and leaves a little less.">
-        <Choice name="estate" value={a.estate} onChange={v => set({ estate: v })} options={[['standard', 'Standard'], ['lower', 'Lower']]} />
+        <Choice isPhone={isPhone} name="estate" value={a.estate} onChange={v => set({ estate: v })} options={[['standard', 'Standard'], ['lower', 'Lower']]} />
       </Row>
-      <Row title="When markets do well" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="When markets do well" isPhone={isPhone}
         help="Raises let the plan spend more after good years. Blocked, it never spends above your target, and what good years leave goes to later years and the estate.">
-        <Choice name="raises" value={a.raises} onChange={v => set({ raises: v })} options={[['capped', 'Up to 10% above target'], ['blocked', 'Never above target']]} />
+        <Choice isPhone={isPhone} name="raises" value={a.raises} onChange={v => set({ raises: v })} options={[['capped', 'Up to 10% above target'], ['blocked', 'Never above target']]} />
       </Row>
-      <Row title="Investment risk" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="Investment risk" isPhone={isPhone}
         help="On, the solver may move your pension and ISA to a safer or riskier tier as the years go by. Off, each keeps the tier you chose in Plan Inputs.">
         <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer w-fit">
           <input type="checkbox" data-solver-consent checked={a.riskConsent} onChange={e => set({ riskConsent: e.target.checked })} className="accent-blue-600" />
           The solver may change how your pension and ISA are invested
         </label>
       </Row>
-      <Row title={`Minimum pot at ${terminalAge}`} isPhone={isPhone}
+      <Row Fine={ui.Fine} title={`Minimum pot at ${terminalAge}`} isPhone={isPhone}
         help={`The least the plan aims to end with. Left at 0, the solver keeps one year of your target spending (${fmt(target)}). The same figure as the minimum pot in Plan Inputs.`}>
         <MoneyInput data-solver-minpot min="0" step="5000" placeholder="0" value={plan.config && plan.config.solvencyFloor !== undefined ? plan.config.solvencyFloor : ''}
           onChange={e => updateConfig('solvencyFloor', e.target.value)} className={`${fieldCls} max-w-[12rem]`} />
       </Row>
-      <SolveLine solve={solve} />
+      </PhoneCollapse>
+      <SolveLine solve={solve} onRequest={onSolveRequest} />
     </section>
   );
 }
 
-export function SolverLocks({ plan, setPlan, isPhone }) {
+export function SolverLocks({ plan, setPlan, isPhone, ui }) {
+  const { PhoneCollapse, fieldCls } = ui;
   const L = { ...LOCKS_FREE, ...((plan.solver && plan.solver.locks) || {}) }, tc = { ...LOCKS_FREE.tierCeiling, ...(L.tierCeiling || {}) };
   const set = patch => patchSolver(setPlan, 'locks', patch);
   const d = plan.demographics || {}, strategy = (plan.spending && plan.spending.drawdownStrategy) || 'Phased Drawdown';
   const wrappers = [['pen', 'pen_', 'pension'], ['isa', 'isa_', 'ISA']].filter(([, prefix]) => ownTier(plan, prefix));
   return (
     <section data-solver-locks className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+      <PhoneCollapse isPhone={isPhone}>
       <div>
         <h2 className="text-base font-semibold text-slate-900">What the solver may change</h2>
         <p className="text-xs text-slate-500 mt-1">Left free, the solver decides. A limit here holds in every year of the solved plan.</p>
       </div>
-      <Row title="Do not draw the pension before age" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="Do not draw the pension before age" isPhone={isPhone}
         help={`Blank leaves it to the solver, from your pension access age${d.privatePensionAge ? ` (${d.privatePensionAge})` : ''}. An age before that changes nothing.`}>
         <input type="number" min="0" max="120" data-solver-lock="pensionBefore" placeholder="free" value={L.pensionBefore ?? ''}
           onChange={e => set({ pensionBefore: e.target.value === '' ? null : Number(e.target.value) })} className={`${fieldCls} max-w-[8rem]`} />
@@ -137,7 +147,7 @@ export function SolverLocks({ plan, setPlan, isPhone }) {
           </div>
         </Row>
       ))}
-      <Row title="The tax-free lump sum" isPhone={isPhone}
+      <Row Fine={ui.Fine} title="The tax-free lump sum" isPhone={isPhone}
         help="Free keeps the choice your plan carries; the solver does not choose the lump sum yet. Never draws the tax-free part with each withdrawal; now takes the full tax-free lump when the pension opens.">
         <select aria-label="The tax-free lump sum" data-solver-lock="lumpSum" value={L.lumpSum} onChange={e => set({ lumpSum: e.target.value })} className={`${fieldCls} max-w-[22rem]`}>
           <option value="free">Free: as your plan has it ({strategy === 'Full 25% Lump Sum' ? 'the full lump sum' : 'phased drawdown'})</option>
@@ -145,6 +155,7 @@ export function SolverLocks({ plan, setPlan, isPhone }) {
           <option value="now">The full lump sum when the pension opens</option>
         </select>
       </Row>
+      </PhoneCollapse>
     </section>
   );
 }

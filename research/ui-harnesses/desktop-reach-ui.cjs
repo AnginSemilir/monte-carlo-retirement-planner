@@ -667,6 +667,15 @@ async function runProjection(p) {
     costly.oneOffCosts = [{ id: 'c1', date: '2047-06-01', year: 2047, owner: 'Myself', amount: 600000, desc: 'house move' }];
     const g = await open(b, 1400, 900, 'full', costly);
     await tab(g.p, 'Config');
+    await g.p.waitForTimeout(600);
+    // with the solver's switch on (run-all.sh --solver) a single household's lookahead is hidden, kept in the saved plan:
+    // the solver's tables choose with the costs in view (PHASE-8.md; L5 tests one-off costs), so the field is not there to drive
+    const solverOn = await g.p.evaluate(() => !!document.querySelector('[data-solver-aims]'));
+    if (solverOn) {
+      ok('the solver\'s switch on: the lookahead field is hidden and nothing links to it', await g.p.evaluate(() => !document.querySelector('[data-lookahead-years]') && !document.querySelector('#config-lookahead')));
+      ok('no page errors with the lookahead', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
+      await g.p.context().close();
+    } else {
     const field = await g.p.evaluate(() => { const el = document.querySelector('[data-lookahead-years]'); if (!el) return null; const r = el.getBoundingClientRect(); return { value: el.value, h: Math.round(r.height), label: document.querySelector('label[for="config-lookahead-years"]')?.textContent || '' }; });
     ok('the Config tab has the horizon field, at five by default, with a label', !!field && field.value === '5' && /years ahead/i.test(field.label) && field.h >= 24, JSON.stringify(field));
     await tab(g.p, 'Audit Data Table');
@@ -697,6 +706,7 @@ async function runProjection(p) {
     ok('the Documentation link lands on the lookahead explainer', !!doc && doc.top >= -24 && doc.top < 260 && /One-off Cost/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
     ok('no page errors with the lookahead', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
     await g.p.context().close();
+    }
   }
 
   await b.close();

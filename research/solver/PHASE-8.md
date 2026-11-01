@@ -74,6 +74,14 @@ serves it, and runs every REQUIRED harness against it. A harness that tests what
 script's `SWITCH_OFF_ONLY` with what covers it with the switch on. The engine suites do not read the switch and run in the
 default mode only.
 
+### On a phone (the launch plan's B10)
+
+The switch-on gate found the tab too long on a phone (3.0 to 3.8 screens against the phone harness's 2.0), the dial's
+buttons under 44px, and the solver starting by itself on load, four workers beside the projection (phone-perf). So, on a
+phone: each solver card folds under its heading (`PhoneCollapse`, as the other cards do), the solve line staying in view;
+the choices' buttons are 44px; and the solve waits for "Solve my plan" (`data-solve-request`), then follows the plan for
+the session. Phase 11 adds the expected time and the phone's own budget.
+
 ## The tests
 
 **`solver-aims.test.mjs`** (Node, S126 at light settings):

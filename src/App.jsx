@@ -6934,6 +6934,8 @@ if (typeof window !== 'undefined') window.__solverEngine = E;
 // engine and strips the imports - a lazy() up there breaks engine.mjs.
 const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
 // Part C Phase 8's cards on the Config tab (src/SolverConfig.jsx), fetched only when the switch is on for a single household
+// the page's own pieces the solver's cards use, handed in rather than imported there (src/SolverConfig.jsx says why)
+const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
 /*
@@ -8370,7 +8372,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). Single households only (D42):
   // a couple's plan keeps the app's rules and is not solved
   const solverRules = SOLVER && plan?.demographics?.planningMode === 'single';
-  const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS);
+  // on a phone the solve runs when asked (the launch plan's B10; Phase 11 adds its expected time), and then follows the plan
+  const [solveAsked, setSolveAsked] = useState(false);
+  const solve = useSolverState(plan, solverRules && (!isPhone || solveAsked), E, SOLVER_OPTS);
 
   const [scenarios, setScenarios] = useState(() => {
     try {
@@ -8751,11 +8755,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const attempt = () => { if (document.getElementById(id)) scrollToDocSection(id); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
-  // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it
+  // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it (under the solver's switch,
+  // after the solver's cards, which load on their own and would push the setting down after the scroll)
   const goToConfig = (id) => {
     setActiveTab('config');
     let tries = 0;
-    const attempt = () => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
+    const attempt = () => { const el = document.getElementById(id), ready = el && (!solverRules || document.querySelector('[data-solver-locks]')); if (ready) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
 
@@ -13217,8 +13222,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 at the top; a couple's plan keeps the app's rules (D42), and says so */}
             {solverRules && (
               <Suspense fallback={null}>
-                <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} />
-                <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} />
+                <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} ui={SOLVER_UI} />
+                <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} ui={SOLVER_UI} />
               </Suspense>
             )}
             {SOLVER && !solverRules && (

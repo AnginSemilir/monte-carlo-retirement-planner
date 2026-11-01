@@ -10,6 +10,7 @@
  *        (data-solve-key) moves to Node's key for that saved plan (src/solverKey.js);
  *      - the plan on screen solves, and after the last change re-solves to solved under the last key;
  *      - the hidden policy fields are unchanged in the saved plan.
+ * 2b. The preview build on a phone (the launch plan's B10): the solve waits for "Solve my plan", then solves.
  * 3. The preview build, a couple (D42): the tab as today with the solver's line, no solver card, and nothing solved.
  *
  *   node research/ui-harnesses/solver-config-ui.cjs [port]      (the preview build is served on port + 7)
@@ -129,6 +130,25 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     ok('switch on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     ok('switch on: the solver cards came as their own chunk', urls.some(u => /SolverConfig/.test(u)));
     await p.close();
+
+    // 2b. a phone (the launch plan's B10: the phone solves on request): no solver worker until asked, then the plan solves
+    { const { devices } = require('/tmp/node_modules/playwright');
+      const ctx = await b.newContext({ ...devices['Pixel 7'] }), q = await ctx.newPage(), urls = [], errs = [];
+      q.on('request', r => urls.push(r.url())); q.on('pageerror', e => errs.push(e.message));
+      await q.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); sessionStorage.setItem('seeded', '1'); } }, [STORE, single]);
+      await q.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
+      await q.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(t => /Config/.test(t.textContent)); if (x) x.click(); });
+      await q.waitForTimeout(3000);
+      const early = urls.filter(u => /solverWorker/.test(u)), btn = await q.$('[data-solve-request]');
+      ok('a phone: the solver waits for its request (no solver worker started, a "Solve my plan" button)', early.length === 0 && !!btn, `${early.length} solver workers; button ${!!btn}`);
+      if (btn) {
+        await btn.click();
+        let solved = true;
+        try { await q.waitForSelector('[data-solve-state="solved"]', { timeout: 600000 }); } catch (e) { solved = false; }
+        ok('a phone: asked, the plan solves', solved && urls.some(u => /solverWorker/.test(u)));
+      }
+      ok('a phone: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await ctx.close(); }
 
     // 3. a couple under the switch
     if (!couple) ok('a couple in the library to test with', false);

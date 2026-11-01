@@ -207,7 +207,11 @@ export function compile(m, actions) {
     // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
     cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1),
     // the full-year scheduled spend, which the guardrails measure the draw against
-    scheduled: new Float64Array(T + 1)
+    scheduled: new Float64Array(T + 1),
+    // the windfall split (research, D37): the dated deposits less the plan's Auto entries, by pot; where splits 1 to 3
+    // put the year's Auto money instead (index 0 unused); and whether the year has Auto money at all
+    depNoAuto: CATS.map(() => new Float64Array(T + 1)), splitDep: [null, 1, 2, 3].map(v => v && CATS.map(() => new Float64Array(T + 1))),
+    splitYear: new Uint8Array(T + 1)
   };
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
@@ -223,6 +227,9 @@ export function compile(m, actions) {
     yr.cost[t] = ctx.oneOffCosts.get(year) || 0;
     yr.buffer[t] = E.spendTargetAtAge(ctx, age) * ctx.cashBufferYears;
     (ctx.oneOffContribs.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c) yr.dep[CATS.indexOf(c)][t] += x.amount; });
+    (ctx.oneOffContribs.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c && !x.auto) yr.depNoAuto[CATS.indexOf(c)][t] += x.amount; });
+    const sp = ctx.autoSplit && ctx.autoSplit.get(year);
+    if (sp) { yr.splitYear[t] = 1; for (let v = 1; v <= 3; v++) sp.variants[v].forEach(x => { const c = catOfId[x.id]; if (c) yr.splitDep[v][CATS.indexOf(c)][t] += x.amount; }); }
     (ctx.oneOffDeductions.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c) yr.ded[CATS.indexOf(c)][t] += x.amount; });
     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other) yr.drip[CATS.indexOf(c)][t] += x.amount; });
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
@@ -320,7 +327,7 @@ export function compile(m, actions) {
       steps: Int8Array.from(a.steps.map(codeOf)),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
       harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
-      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, split: a.split || 0,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
       tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
@@ -420,7 +427,9 @@ export function flow(c, t, ai, s) {
       else if (i === 2) { const take = sellGia(d); unmet += d - take; }
       else { const take = Math.min(cash, d); cash -= take; unmet += d - take; }
     }
-    const p = yr.dep[i][t]; if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
+    // the windfall split (research, D37): in a year with Auto money, a move's split replaces the plan's Auto entries
+    const p = a.split && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.split][i][t] : yr.dep[i][t];
+    if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
     const dr = yr.drip[i][t]; if (dr > 0) { const mv = sellGia(dr); if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv; }
   }
   // 2. contributions while working

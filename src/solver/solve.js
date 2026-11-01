@@ -160,7 +160,20 @@ export function buildActions(opts = {}) {
       }
     }
   }
-  return out;
+  return opts.windfallSplit ? withSplitCopies(out) : out;
+}
+
+/*
+ * THE WINDFALL SPLIT (research, off by default; STATE.md D37, research/solver/WINDFALL-SPLIT.md): every move again with
+ * split 1 (the pension, then the ISA, the rest taxable), 2 (the ISA, the rest taxable) and 3 (all taxable), after the whole
+ * menu, each copy's tier variants grouped as its base's. A copy flows as its base outside a year with Auto money, and comes
+ * after it, so a tie there goes to the base; solve() asks for the copies only where the household has an Auto deposit.
+ */
+const SPLIT_LABEL = ['', ', the windfall to the pension, then the ISA', ', the windfall to the ISA', ', the windfall kept taxable'];
+function withSplitCopies(out) {
+  const n = out.length, all = out.slice();
+  for (let v = 1; v <= 3; v++) for (const a of out) all.push({ ...a, split: v, tierBase: a.tierBase + v * n, label: a.label + SPLIT_LABEL[v] });
+  return all;
 }
 
 /*
@@ -378,7 +391,7 @@ export function solve(E, M, plan, opts = {}) {
     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
     tierList = [[hp, hi]];
   }
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus })).map(a => ({ ...a, lump: !!opts.lump }));
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts) })).map(a => ({ ...a, lump: !!opts.lump }));
   /*
    * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
    * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
@@ -1107,7 +1120,9 @@ export function solve(E, M, plan, opts = {}) {
       }
     }
   };
+  const nAt = splitCounts(c, actions, T);
   for (let t = T; t >= 0; t--) {
+    const AT = nAt[t];   // the windfall split's copies (research, D37) only in a year with Auto money (splitCounts)
     const spendYear = c.yr.spend[t] > 0;
     const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
     // E9 and E11, once a year: next year's four tables of each world and layer, and the reader's split readValues would find
@@ -1121,7 +1136,7 @@ export function solve(E, M, plan, opts = {}) {
     // volatility and the quadrature nodes' rates), bit for bit; moves of one class grow a state alike
     if (MEMO) for (let k = 0; k < K; k++) {
       const ids = new Map(), ck = cs[k], nro = nodeRealOfAtW[k][t];
-      for (let ai = 0; ai < A; ai++) {
+      for (let ai = 0; ai < AT; ai++) {
         const a = ck.acts[ai];
         const key = `${a.tierPen}/${a.tierIsa}/${a.tierGia || 0}|${bitsList(a.real)}|${bitsList(a.sigma)}|${bitsList(a.volEffAt[t])}|${nro[ai].map(bitsList).join(';')}`;
         let id = ids.get(key); if (id === undefined) { id = ids.size; ids.set(key, id); }
@@ -1130,7 +1145,7 @@ export function solve(E, M, plan, opts = {}) {
     }
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
-    for (let ai = 0; ai < A; ai++) {
+    for (let ai = 0; ai < AT; ai++) {
       const cst = spendYear ? costOf(levelOf[ai], t) : 0;
       if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
@@ -1245,7 +1260,7 @@ export function solve(E, M, plan, opts = {}) {
                   }
                   // the winner among every move evaluated, by the exhaustive scan's own rule and order
                   let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
-                  for (let ai = 0; ai < A; ai++) {
+                  for (let ai = 0; ai < AT; ai++) {
                     if (stampScore[ai] !== key) continue;
                     const score_ = scV[ai], b = scB[ai];
                     if (score_ > bestScore + eps || (Math.abs(score_ - bestScore) <= eps && b > bestB)) { bestScore = score_; bestS = scS[ai]; bestB = b; bestR = scR[ai]; bestH = scH[ai]; bestA = ai; }
@@ -1263,7 +1278,7 @@ export function solve(E, M, plan, opts = {}) {
                * of a move reuse its flow, as they always have; the buffer only removes the need for
                * them to be adjacent.
                */
-              for (let ai = 0; ai < A; ai++) {
+              for (let ai = 0; ai < AT; ai++) {
                 const o = ai * 7;
                 if (tierBase[ai] === ai) {
                   const tf = PROF ? now() : 0;
@@ -1281,7 +1296,7 @@ export function solve(E, M, plan, opts = {}) {
                   if (PROF) PROF.skipped++;
                 }
               }
-              if (CFP) { payOK = false; for (let ai = 0; ai < A; ai++) if (failBuf[ai] !== 1) { payOK = true; break; } }
+              if (CFP) { payOK = false; for (let ai = 0; ai < AT; ai++) if (failBuf[ai] !== 1) { payOK = true; break; } }
               const skipFail = PAY && payOK;   // payWhereOnePays: this cell's argmaxes pass over the moves that cannot pay
               if (TS) {
                 // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
@@ -1295,7 +1310,7 @@ export function solve(E, M, plan, opts = {}) {
                     if (++m8Cur === 0x7fffffff) { m8Stamp.fill(-1); m8Cur = 0; }
                     m8N = 0;
                     let nId = 0;
-                    for (let ai = 0; ai < A; ai++) {
+                    for (let ai = 0; ai < AT; ai++) {
                       if (tierBase[ai] !== ai) { pid8[ai] = pid8[tierBase[ai]]; continue; }
                       const w0 = ai * 14; let hh = 0x811C9DC5;
                       for (let w = 0; w < NW8; w++) hh = Math.imul(hh ^ postU[w0 + w], 0x01000193);
@@ -1313,7 +1328,7 @@ export function solve(E, M, plan, opts = {}) {
                   // E5, PHASE A: each world's terms for every move, once a cell, as the layer loop below takes them for its first layer
                   for (let k = 0; k < K; k++) {
                     const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k];
-                    for (let ai = 0; ai < A; ai++) {
+                    for (let ai = 0; ai < AT; ai++) {
                       const lj = tsLayerOf[ai], q9 = k * NL9 + lj;
                       let sNext, bNext, rNext, hNext;
                       if (E9) { const q = E9L0 ? k * NL9 : q9; sNext = e9S[q]; bNext = e9B[q]; rNext = e9R[q]; hNext = e9H[q]; }
@@ -1369,7 +1384,7 @@ export function solve(E, M, plan, opts = {}) {
                     }
                   }
                   // E7: each move's mixture sums once a cell, staying (no charge) and switching (the charge added as phase B adds it)
-                  if (E7) for (let ai = 0; ai < A; ai++) {
+                  if (E7) for (let ai = 0; ai < AT; ai++) {
                     let vs = 0, vw = 0, wb = 0;
                     for (let k = 0; k < K; k++) {
                       const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai], h0 = e5H[k][ai];
@@ -1383,7 +1398,7 @@ export function solve(E, M, plan, opts = {}) {
                   // E5, PHASE B: for each layer held, the switch charge alone, then the chooser's full rule on the mixture, as below
                   for (let j = 0; j < tsPairs.length; j++) {
                     let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
-                    for (let ai = 0; ai < A; ai++) {
+                    for (let ai = 0; ai < AT; ai++) {
                       let v = 0, wb = 0;
                       if (E7) { v = (tsLayerOf[ai] === j) !== (E7PLANT === 'swap') ? e7Vs[ai] : e7Vw[ai]; wb = e7Wb[ai]; }
                       else {
@@ -1415,7 +1430,7 @@ export function solve(E, M, plan, opts = {}) {
                   {
                     let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
                     let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
-                    for (let ai = 0; ai < A; ai++) {
+                    for (let ai = 0; ai < AT; ai++) {
                       const lj = tsLayerOf[ai]; if (lkJ >= 0 && lj !== lkJ) continue;
                       const Ln = layW[k][lj];
                       const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
@@ -1473,7 +1488,7 @@ export function solve(E, M, plan, opts = {}) {
                   // TS+J: the chooser's full rule on the mixture - the best move by the weighted score (ties to the larger weighted
                   // estate), the best that stays in j, the margin between them - and every world's layer j keeps ITS value of that move
                   let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
-                  for (let ai = 0; ai < A; ai++) {
+                  for (let ai = 0; ai < AT; ai++) {
                     let v = 0, wb = 0;
                     if (skipFail && failBuf[ai] === 1) continue;
                     if (lkJ >= 0 && tsLayerOf[ai] !== lkJ) continue;
@@ -1498,7 +1513,7 @@ export function solve(E, M, plan, opts = {}) {
                   const rNext = t < T ? lresilW[k][t + 1] : null, hNext = t < T ? shortW[k][t + 1] : null;
                   if (MEMO) memoReset();
                   const clsK = clsW[k];
-                  for (let ai = 0; ai < A; ai++) {
+                  for (let ai = 0; ai < AT; ai++) {
                     const o = ai * 7, fail = failBuf[ai] === 1;
                     let s = 0, b = 0, rs = 0, h = 0;
                     let mf = -1;
@@ -1531,7 +1546,7 @@ export function solve(E, M, plan, opts = {}) {
                   }
                 }
                 let bestV = -Infinity, bestWB = -Infinity, bestA = 0;
-                for (let ai = 0; ai < A; ai++) {
+                for (let ai = 0; ai < AT; ai++) {
                   if (skipFail && failBuf[ai] === 1) continue;
                   let v = 0, wb = 0;
                   for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
@@ -1555,7 +1570,7 @@ export function solve(E, M, plan, opts = {}) {
                 let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
                 if (MEMO) memoReset();
                 const clsK = clsW[k];
-                for (let ai = 0; ai < A; ai++) {
+                for (let ai = 0; ai < AT; ai++) {
                   const o = ai * 7;
                   const fail = failBuf[ai] === 1;
                   let s = 0, b = 0, rs = 0, h = 0;
@@ -1862,7 +1877,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
   const rd = r._rd || (r._rd = new Float64Array(4));
   const spendYear = c.yr.spend[t] > 0;
   // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)
-  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : actions.length;
+  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : movesAt(r, t, SC, BQ);
   for (let ai = a0; ai < a1; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
@@ -1942,8 +1957,8 @@ function decisionFlows(r, s, t, held) {
       base: Int32Array.from(actions, (a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai)) };
     D.cU = new Uint32Array(D.cpost.buffer);
   }
-  const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant;
-  for (let ai = 0; ai < n; ai++) {
+  const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant, nT = movesAt(r, t);
+  for (let ai = 0; ai < nT; ai++) {
     const o = ai * L, b = base[ai];
     if (b === ai) {
       const p = post.subarray(o, o + L); p.set(s);
@@ -2011,8 +2026,8 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
   let M = r._cm;
   if (!M || M.words !== 2 * L || M.NQ !== NQ) M = r._cm = makeMemo(n, 2 * L, NQ);
   M.reset();
-  const { val, hv, mode } = M, cU = D.cU;
-  for (let ai = 0; ai < n; ai++) {
+  const { val, hv, mode } = M, cU = D.cU, nT = movesAt(r, t, SC, BQ);
+  for (let ai = 0; ai < nT; ai++) {
     TX[ai] = D.tx[ai];
     if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
     const o = ai * L, post = D.cpost.subarray(o, o + L);
@@ -2619,6 +2634,8 @@ function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
 // no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
 function researchFinish(r, LK, opts) {
   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
+  if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.split) ? 'on' : 'no Auto deposit';   // D37, research
+  if (r.actions.some(a => a.split)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
   if (!LK) return;
   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
   r.meta.lockTiers = LK.meta; r.lockTiers = LK;
@@ -2629,4 +2646,27 @@ function lockMask(r, s, t, held, SC) {
   let any = false;
   for (let ai = 0; ai < SC.length; ai++) { if (r.tsLayerOf[ai] !== lj) SC[ai] = -Infinity; else if (SC[ai] !== -Infinity) any = true; }
   return any ? -1 : ac;
+}
+/* The windfall split (research, D37): the copies only where the household has an Auto deposit; a refusal where they cannot run. */
+function splitOn(m, opts) {
+  if (!opts.windfallSplit) return false;
+  if (opts.windfallSplit !== true) throw new Error(`windfallSplit ${opts.windfallSplit}: only true`);
+  return !!(m.ctx.autoSplit && m.ctx.autoSplit.size);
+}
+/* The moves the backward pass and the chooser score in year t: every move in a year with Auto money, else the menu before
+   the windfall split's copies (they flow as their base there, so leaving them out changes no score); all where it is off. */
+export const SPLIT = { skip: true };   // windfall-split.test.mjs only: false scores the copies in every year (they tie with their base)
+function splitCounts(c, actions, T) {
+  const A = actions.length, A0 = actions.some(a => a.split) ? actions.findIndex(a => a.split) : A, out = new Int32Array(T + 1).fill(A);
+  if (A0 < A && SPLIT.skip) for (let t = 0; t <= T; t++) if (!c.yr.splitYear[t]) out[t] = A0;
+  return out;
+}
+/* The moves the chooser scores at year t (splitCounts); with SC and BQ given, the windfall split's copies left out are made
+   unchoosable there, so no caller reads a score left from another position. */
+function movesAt(r, t, SC, BQ) {
+  const n = r.actions.length;
+  if (!r.nAt) return n;
+  const nT = r.nAt[Math.min(Math.max(t, 0), r.nAt.length - 1)];
+  if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; }
+  return nT;
 }

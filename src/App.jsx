@@ -1711,17 +1711,21 @@ function buildContext(rawPlan) {
   const oneOffDeductions = new Map();
   const stagedTransfers = new Map();
   const oneOffStaging = new Map();
+  const autoSplit = new Map();   // the windfall split (research, D37): by year, where splits 1 to 3 put the year's Auto money
   {
     // Shared per-owner/wrapper/year claim ledger: every deposit and staged drip tranche competes for the
     // same headroom, so two deposits for the same owner/wrapper can never double-claim one year's allowance.
     const claimed = new Map(); // `${ownerKey}|${cat}|${t}` -> £ already claimed this pass
+    // the windfall split (research, D37): what the Auto deposits claimed in their own year, and their amounts by year
+    const autoClaimed = new Map(), autoAmt = new Map();
     const headroomCtx = { P, owners, acc, otherIncomes };
-    const claim = (ownerKey, cat, t, want) => {
+    const claim = (ownerKey, cat, t, want, auto = false) => {
       const key = `${ownerKey}|${cat}|${t}`;
       const already = claimed.get(key) || 0;
       const avail = Math.max(0, wrapperHeadroomAtYear(headroomCtx, ownerKey, cat, t) - already);
       const take = Math.min(want, avail);
       claimed.set(key, already + take);
+      if (auto) autoClaimed.set(key, (autoClaimed.get(key) || 0) + take);
       return take;
     };
 
@@ -1773,17 +1777,21 @@ function buildContext(rawPlan) {
       // headroom resolution: direct deposit if within headroom, otherwise stage the surplus (Option A)
       // yearHeadroom is this year's raw allowance (before other deposits' claims), shown on the row
       const yearHeadroom = wrapperHeadroomAtYear(headroomCtx, ownerKey, targetCat, t);
-      const H0 = claim(ownerKey, targetCat, t, amt);
+      const isAuto = x.category === AUTO_DEPOSIT;
+      const H0 = claim(ownerKey, targetCat, t, amt, isAuto);
       if (!oneOffContribs.has(y)) oneOffContribs.set(y, []);
+      // an Auto deposit's own entries are marked, so a table's move can put that money elsewhere (the windfall split)
+      const entry = (id, amount) => (isAuto ? { id, amount, auto: true } : { id, amount });
+      if (isAuto) autoAmt.set(`${y}|${ownerKey}`, (autoAmt.get(`${y}|${ownerKey}`) || 0) + amt);
       if (amt <= H0 + 1e-6) {
-        oneOffContribs.get(y).push({ id: targetId, amount: amt });
+        oneOffContribs.get(y).push(entry(targetId, amt));
         oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0 });
         return;
       }
 
       const surplus0 = amt - H0;
-      if (H0 > 0) oneOffContribs.get(y).push({ id: targetId, amount: H0 });
-      oneOffContribs.get(y).push({ id: otherId, amount: surplus0 });
+      if (H0 > 0) oneOffContribs.get(y).push(entry(targetId, H0));
+      oneOffContribs.get(y).push(entry(otherId, surplus0));
 
       const stagedCat = Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === x.stagedTargetWrapper) || targetCat;
       const stagedId = accountId(stagedCat, ownerKey);
@@ -1807,6 +1815,7 @@ function buildContext(rawPlan) {
       );
       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
     });
+    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t) });
   }
   const oneOffCosts = new Map();
   plan.oneOffCosts.forEach(x => {
@@ -1922,7 +1931,7 @@ function buildContext(rawPlan) {
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
     yf, baseYear, valuationDate,
-    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging
+    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging, autoSplit
   };
   return ctx;
 }
@@ -2049,11 +2058,15 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
 
   // 1. one-off deposits (dated: not pro-rated) — includes staged deposits' year-0 immediate tranche + parked surplus
   const deposits = ctx.oneOffContribs.get(year);
-  if (deposits) deposits.forEach(x => {
+  // the windfall split (research, D37): a table's move may put this year's Auto money elsewhere than the plan's routing
+  const split = chosen && chosen.split > 0 && ctx.autoSplit ? ctx.autoSplit.get(year) : null;
+  const deposit = x => {
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (cgtOn && x.id.startsWith('other_')) giaAddBasis(state, ownerOfId(x.id), x.amount);
-  });
+  };
+  if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
+  if (split) split.variants[chosen.split].forEach(deposit);
 
   // 1.5 staged multi-year drip transfers (t>=1): drain GIA into the (possibly redirected) staged target,
   // capped at whatever remains in GIA — this naturally handles a market-crash-depleted GIA.
@@ -3233,6 +3246,37 @@ function suggestOneOffDestination(ctx, ownerKey, t, amount) {
     if (left <= 0) break;
   }
   return best.cat;
+}
+
+/*
+ * THE WINDFALL SPLIT (research, off unless a table's move asks for it; STATE.md D37, research/solver/WINDFALL-SPLIT.md).
+ * For each year with Auto deposits, where splits 1 to 3 put that year's Auto money, by owner: 1 the pension up to its room,
+ * then the ISA up to its allowance, the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
+ * room is what the claim ledger left this year once every other deposit, transfer and contribution claimed, the Auto
+ * deposits' own claims for the year given back. A wrapper the household does not hold takes nothing. Split 0 is the plan's
+ * own routing (the marked entries in oneOffContribs), so nothing here changes a year whose move carries no split.
+ */
+function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room }) {
+  autoAmt.forEach((A, key) => {
+    const [ys, ownerKey] = key.split('|');
+    const y = Number(ys), t = y - baseYear;
+    const left = cat => {
+      if (!acc[accountId(cat, ownerKey)]) return 0;
+      const k = `${ownerKey}|${cat}|${t}`;
+      return Math.max(0, room(ownerKey, cat, t) - ((claimed.get(k) || 0) - (autoClaimed.get(k) || 0)));
+    };
+    const penRoom = left('pen'), isaRoom = left('isa');
+    const pen1 = Math.min(A, penRoom), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
+    // the rest goes to the taxable account, or to cash where the household holds no taxable account
+    const restId = acc[accountId('other', ownerKey)] ? accountId('other', ownerKey) : accountId('cash', ownerKey);
+    const ent = pairs => pairs.filter(([, a]) => a > 0).map(([id, a]) => ({ id, amount: a }));
+    if (!out.has(y)) out.set(y, { variants: [null, [], [], []], room: [] });
+    const e = out.get(y);
+    e.variants[1].push(...ent([[accountId('pen', ownerKey), pen1], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1]]));
+    e.variants[2].push(...ent([[accountId('isa', ownerKey), isa2], [restId, A - isa2]]));
+    e.variants[3].push(...ent([[restId, A]]));
+    e.room.push({ owner: ownerKey, amount: A, pen: penRoom, isa: isaRoom });
+  });
 }
 
 function wrapperHeadroomAtYear(ctx, ownerKey, category, t) {

@@ -207,11 +207,15 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
 
   // 1. dated one-off deposits, not pro-rated
   const deposits = ctx.oneOffContribs.get(year);
-  if (deposits) deposits.forEach(x => {
+  // the windfall split (research, D37; the engine's stepYear step 1): a move's split puts the year's Auto money elsewhere
+  const split = action.split > 0 && ctx.autoSplit ? ctx.autoSplit.get(year) : null;
+  const deposit = x => {
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (x.id.startsWith('other_')) addBasis(ownerOfId(x.id), x.amount);
-  });
+  };
+  if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
+  if (split) split.variants[action.split].forEach(deposit);
 
   // 1.5 staged multi-year transfers out of the GIA, which are real disposals
   const drips = ctx.stagedTransfers.get(year);

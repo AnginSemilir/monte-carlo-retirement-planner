@@ -399,6 +399,33 @@ const BLOCKS = {
       return `${id} the candidate ${c[1]}% (the review's ${c[2]}%), on the code before the port ${c[3].trim().replace(/ \(survival.*$/, '').replace(/^THE SAME/, 'the same').replace(/^DIFFERS/, 'DIFFERING')}; DIAL10M locked ${d[1]}% (the review's ${d[2]}%: ${d[3]}), the lock held at ${d[4]} of ${d[5]} decisions`;
     });
     return [`- \`lock-tiers.test.mjs\` ${pick(L, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-lock-tiers.txt\`, e3pcls on): both options off, every table the code before the port's to the bit (${off.join(', ')} entries) and 40 runs the same; DIAL10M's age weights on the layer loop the same as on E5, mode 91 parting them; the candidate locked to itself the candidate; DIAL10M locked on the candidate's pair at all ${hc} cells and ${hd} decisions; the plants caught ('layer0' ${p0} cells, 'nochooser' ${p1} decisions); ${nref} refusals. \`solve-size.test.mjs\` (\`results-solve-size.txt\`): solve()'s bytecode ${size}, the plant ${plant}; in FAST (the unlock of 31 Oct, D50). At full scale (\`lock-check.mjs\`, \`results-lock-check.txt\`; seed 7002, 1,000 paths, 45 points): ${hh.join('; ')}.`];
+  },
+  // the windfall split's build (D37, research, off by default): its test, read from its results file
+  windfall() {
+    const W = 'research/tests/results-windfall-split.txt';
+    if (read(W) === null) return [`- pending: ${W}`];
+    const t = read(W);
+    const off = [...t.matchAll(/^PASS {2}1\. (S\d+F?), the option unset, against the code before it: (\d+) table entries the same to the bit; 40 forward runs the same/gm)].map(m => `${m[1]} ${m[2]}`);
+    const rt = pick(W, /^PASS {2}2\. S026 as it is .*?: rooms £(\d+) \/ £(\d+) \(pension \/ ISA\), the Auto money £(\d+); split 1 (\{[^}]*\}), 2 (\{[^}]*\}), 3 (\{[^}]*\})/m, m => `rooms £${m[1]} / £${m[2]} (pension / ISA), the Auto money £${m[3]}: split 1 ${m[4]}, 2 ${m[5]}, 3 ${m[6]}`);
+    const nr = [...t.matchAll(/^PASS {2}2\. (?!planted)/gm)].length;
+    const p2 = pick(W, /^PASS {2}2\. planted: .*? part from the hand calculation by £(\d+)/m, m => `£${m[1]}`);
+    const ls = [...t.matchAll(/^PASS {2}3\. S026, split (\d) forced in \d+: (\d+) household-years in step over (\d+) paths, the worst gap £([\d.e+-]+)/gm)].map(m => `split ${m[1]} £${m[4]}`);
+    const p3 = pick(W, /^PASS {2}3\. planted: the engine handed split 1's move without its split parts from the forward run by £(\d+)/m, m => `£${m[1]}`);
+    const on = pick(W, /^PASS {2}4\. (S\d+) \(no Auto deposit\), the option on: the menu the same \((\d+) moves\)/m, m => `${m[1]} (no Auto deposit) the same menu (${m[2]} moves) and tables`);
+    const mn = pick(W, /^PASS {2}4\. S026 \(an Auto deposit\), the option on: (\d+) moves against (\d+)/m, m => `S026 ${m[1]} moves against ${m[2]}`);
+    const sk = pick(W, /^PASS {2}5\. S026: .*?: (\d+) table entries the same to the bit; 40 runs the same/m, m => m[1]);
+    return [`- \`windfall-split.test.mjs\` ${pick(W, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-windfall-split.txt\`, the light settings): the option unset, every table the same to the bit as on the code before it (${off.join(', ')} entries) and 40 runs the same; the routing against a hand calculation on ${nr} cases (S026: ${rt}), planted (the Auto deposit's own claims not given back) ${p2} apart; the engine and the forward run in step with each split forced (${ls.join(', ')}), planted (the split dropped from the engine's move) ${p3} apart; the option on, ${on}, ${mn}; the copies left out outside the deposit year, ${sk} table entries the same as with them scored in every year.`];
+  },
+  // the review's gaps sweep ported (D38 (6), AFTER-PHASE4 section 5): the nightly tier's run, and the CGT case on the code before its fix
+  gaps() {
+    const G = 'research/tests/results-gaps-sweep.txt';
+    if (read(G) === null) return [`- pending: ${G}`];
+    const t = read(G);
+    const head = pick(G, /^THE GAPS SWEEP: code (\w+), the light candidate, (\d+) paths each of seed (\d+); (\d+) cases$/m, m => `code ${m[1]}, ${m[4]} cases, ${m[2]} paths each of seed ${m[3]}`);
+    const verdict = pick(G, /^SWEEP: (.*)$/m, m => m[1]);
+    const worst = Math.max(...[...t.matchAll(/^PASS {2}.*?worst gap £([\d.e+-]+)/gm)].map(m => Number(m[1])));
+    const pre = pick(G, /^FAIL {2}CGT off and cash interest untaxed .*?worst gap £([\d.]+) \(([^,]+), (path \d+ year \d+)\)/m, m => `worst gap £${m[1]} (${m[2]}, ${m[3]})`);
+    return [`- \`gaps-sweep.test.mjs\` (\`results-gaps-sweep.txt\`; the nightly tier, outside FAST): ${head}: ${verdict}, the worst gap on a passing case £${worst.toExponential(2)}. Shown failing once on a real fault: the CGT case on the code before the basis fix (a1fd52f^), ${pre}.`];
   }
 };
 

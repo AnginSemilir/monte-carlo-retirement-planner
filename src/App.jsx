@@ -1061,6 +1061,16 @@ function normalizeSolverLocks(src) {
   const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
   return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
 }
+/*
+ * WHAT THE SOLVER AIMS FOR (Part C Phase 8, research/solver/PHASE-8.md): `plan.solver.aims`, kept only where a plan carries it.
+ * `cuts` the dislike of spending cuts as a multiple of today's (the dial's positions, src/solverSettings.js APP_DIAL; pinned
+ * by solver-aims.test.mjs), `estate` 'standard' or 'lower', `raises` 'capped' (to 110% of target) or 'blocked', `riskConsent`
+ * true or false. Anything off those reads as the default, the first of each. src/solverSettings.js aimsOptions maps them.
+ */
+const SOLVER_DIAL = [1, 3, 6, 10];
+function normalizeSolverAims(a) {
+  return { cuts: SOLVER_DIAL.includes(a.cuts) ? a.cuts : 1, estate: a.estate === 'lower' ? 'lower' : 'standard', raises: a.raises === 'blocked' ? 'blocked' : 'capped', riskConsent: a.riskConsent !== false };
+}
 
 function normalizePlan(raw) {
   const src = isPlainObject(raw) ? raw : {};
@@ -1172,7 +1182,7 @@ function normalizePlan(raw) {
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
   // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
-  if (isPlainObject(src.solver)) plan.solver = normalizeSolverLocks(src.solver);
+  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}) };
   return plan;
 }
 
@@ -6913,6 +6923,9 @@ const SHOW_INHERITANCE = false;
  * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
  */
 const SOLVER = false;
+// the solve's settings beside the switch: null in the app; a harness's light settings in a preview build only (vite.config.js
+// solver-preview, research/solver/PHASE-8.md), so the site's own build never reads anything else here
+const SOLVER_OPTS = null;
 // the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
 // the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
 if (typeof window !== 'undefined') window.__solverEngine = E;
@@ -6920,6 +6933,9 @@ if (typeof window !== 'undefined') window.__solverEngine = E;
 // It sits here, below the export line, because research/build-engine.py takes everything above it as the
 // engine and strips the imports - a lazy() up there breaks engine.mjs.
 const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
+// Part C Phase 8's cards on the Config tab (src/SolverConfig.jsx), fetched only when the switch is on for a single household
+const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
+const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
 /*
  * THE TABS, ONCE.
  *
@@ -8351,8 +8367,10 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [mcSeed, setMcSeed] = useState(12345);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
-  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it)
-  useSolverState(plan, SOLVER, E);
+  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). Single households only (D42):
+  // a couple's plan keeps the app's rules and is not solved
+  const solverRules = SOLVER && plan?.demographics?.planningMode === 'single';
+  const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS);
 
   const [scenarios, setScenarios] = useState(() => {
     try {
@@ -13195,6 +13213,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 2: CONFIG */}
         {activeTab === 'config' && (
           <div className="space-y-6">
+            {/* Part C Phase 8 (research/solver/PHASE-8.md): with the switch on, what the solver aims for and what it may change,
+                at the top; a couple's plan keeps the app's rules (D42), and says so */}
+            {solverRules && (
+              <Suspense fallback={null}>
+                <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} />
+                <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} />
+              </Suspense>
+            )}
+            {SOLVER && !solverRules && (
+              <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the withdrawal rules below.</p>
+            )}
             {/*
               * HOW NUMBERS ARE WRITTEN, WHICH IS NOT THE SAME QUESTION AS WHAT THEY ARE.
               *
@@ -13234,14 +13263,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               */}
             <div className={isPhone ? 'bg-surface border border-slate-200/90 rounded-xl px-4 py-1' : ''}>
             <PhoneCollapse isPhone={isPhone}>
-            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; withdrawal</h2>}
+            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; withdrawal</>}</h2>}
             <div className={isPhone ? 'space-y-3 pb-2' : 'bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4'}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</>}</h2>
+                  {solverRules ? <p data-solver-rules-note className="text-xs text-slate-500 mt-1">The solver chooses each year&apos;s withdrawals, the pension&apos;s tax-free cash and the investment tiers, by what it aims for above. The guardrails apply to your own plan only, the one the solved plan is compared with; the tax settings apply to both.</p> : (
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
+                  )}
                   {/* The size of the search, said plainly: a button that thinks for thirty seconds should
                       account for the time, and the numbers are derived so they cannot go stale. */}
+                  {!solverRules && (
                   <Fine isPhone={isPhone} label="How big the search is">
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
                     Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
@@ -13252,7 +13284,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     and takes about half a minute.
                   </p>
                   </Fine>
+                  )}
                 </div>
+                {!solverRules && (
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
                     className="px-3.5 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -13268,17 +13302,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mt-1.5 max-w-[17rem] leading-snug">{policySweep.why}</p>
                   )}
                 </div>
+                )}
               </div>
-              {policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
+              {!solverRules && policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
 
               {/* What used to be six draggable priorities is now a recommendation plus priced trade-offs
                   (rendered with the results below). The ranking still exists, folded, for anyone who
                   genuinely has an order: measured across 420 households, promoting the pot to first
                   changes the recommendation for 75% of them, so it is a real control, just not the
                   one most people should be asked to operate cold. */}
-              {!policyResults && !isPolicySearching && (
+              {!solverRules && !policyResults && !isPolicySearching && (
                 <p className="text-[11px] text-slate-600 leading-relaxed">Run the policy search to see the recommended settings, and any alternatives that would trade some safety for a materially better result on something else.</p>
               )}
+              {!solverRules && (
               <details className="pt-1 text-xs">
                 <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: rank the priorities yourself</summary>
               <div className="mt-2">
@@ -13391,8 +13427,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </details>
               </div>
               </details>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
                   <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -13404,6 +13442,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </span>
                   </Fine>
                 </div>
+                )}
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
                   <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -13414,8 +13454,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
                   </Fine>
                 </div>
+                )}
                 <div id="config-guardrails">
-                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails</label>
+                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails{solverRules ? <span data-guardrails-own className="font-normal text-slate-500">: your plan only</span> : null}</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" data-guardrails-toggle checked={!!plan?.config?.guardrails} onChange={(e) => updateConfig('guardrails', e.target.checked)} className="accent-blue-600" />
                     <span className="text-slate-700 font-semibold">Let simulated spending react to the pots (Guyton-Klinger): cut {Math.round(E.GUARDRAILS.cut * 100)}% when the withdrawal rate drifts {Math.round(E.GUARDRAILS.band * 100)}% above where it started, raise {Math.round(E.GUARDRAILS.raise * 100)}% when it drifts that far below, and skip the inflation rise after a losing year.</span>
@@ -13424,6 +13465,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
                   </Fine>
                 </div>
+                {!solverRules && (
                 <div id="config-lookahead">
                   <label htmlFor="config-lookahead-years" className="text-slate-600 font-semibold block mb-1">Prepare for one-off costs, years ahead</label>
                   <input id="config-lookahead-years" type="number" min="0" max="15" step="1" data-lookahead-years value={plan?.config?.lookaheadYears ?? 0} onChange={(e) => updateConfig('lookaheadYears', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold" />
@@ -13431,6 +13473,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">0 is off: a one-off cost is met in its own year, and whatever the liquid wrappers cannot cover comes out of the pension in one go, through the higher bands. From this many years ahead the plan instead draws the shortfall a share at a time, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)}), and parks it in the ISA then cash to pay the cost when it lands. Only once retired and past the pension access age; the Audit Data Table shows the years it acted. <button type="button" onClick={() => goToDoc('doc-lookahead')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
                   </Fine>
                 </div>
+                )}
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -13447,6 +13491,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </select>
                   <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
                 </div>
+                )}
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -13469,6 +13514,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Open on a desktop, where it is the payoff of the card. Shut on a phone, where its ten
                   numbered steps are 1,015px - a screen and a half of instructions above the settings the
                   reader came to change. */}
+              {!solverRules && (
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
@@ -13485,8 +13531,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </ol>
                 <span className="text-[10px] text-slate-400 mt-2 block">Written from the policy the model is actually running, so these steps and the projection can never disagree. Changing the policy above rewrites them.</span>
               </details>
+              )}
 
-              {policyResults && (
+              {!solverRules && policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>

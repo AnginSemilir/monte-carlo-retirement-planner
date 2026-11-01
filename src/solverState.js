@@ -5,7 +5,7 @@
  * workers import App.jsx, and through the hook they would bundle the solver's worker inside their own, which imports App.jsx
  * again (Vite refuses the circle). Installed once, before anything renders, so every render calls the same hook.
  */
-const IDLE = Object.freeze({ solveState: 'idle', solveMeta: null, progress: null });
+const IDLE = Object.freeze({ solveState: 'idle', solveMeta: null, progress: null, key: null });
 let impl = () => IDLE;
 export const installSolver = (hook) => { impl = hook; };
-export const useSolverState = (plan, enabled, engine) => impl(plan, enabled, engine);
+export const useSolverState = (plan, enabled, engine, opts = null) => impl(plan, enabled, engine, opts);

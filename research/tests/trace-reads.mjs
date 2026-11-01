@@ -2,7 +2,9 @@
  * THE FILE-READ TRACE (the launch plan of 1 Nov, step 0, B8: "a test's inputs are every file it reads, traced by running it
  * once under a file-read hook, so the list is not typed"). Loaded into every process and worker of a test by
  * research/tests/fast-skip.mjs (NODE_OPTIONS=--import=<this file>, with TRACE_DIR and TRACE_ROOT set); without TRACE_DIR it
- * does nothing. Each process or thread writes, at exit, the repository paths it touched (TRACE_DIR/<pid>-<thread>.json):
+ * does nothing. Each process or thread writes the repository paths it touched (TRACE_DIR/<pid>-<thread>.json): a process at
+ * its exit; a worker thread each time it touches a new path, since a worker is killed without its exit when its process
+ * exits first (a test that exits on the worker's message lost the worker's record on some runs: the full tier of 1 Nov):
  *   read     a file read or opened for reading, or loaded as a module (import, require, a worker's script);
  *   probe    a path whose existence or kind was asked (existsSync, stat, access), read or not;
  *   list     a directory listed (readdir, opendir);
@@ -20,9 +22,19 @@ import { fileURLToPath } from 'node:url';
 
 const DIR = process.env.TRACE_DIR, ROOT = process.env.TRACE_ROOT;
 if (DIR && ROOT) {
-  const SELF = fileURLToPath(import.meta.url), rawWrite = fs.writeFileSync;
+  const SELF = fileURLToPath(import.meta.url), rawWrite = fs.writeFileSync, rawRename = fs.renameSync, eager = !wt.isMainThread;
   const seen = { read: new Set(), probe: new Set(), list: new Set(), write: new Set(), spawn: new Set() };
   const first = new Map();   // path -> the first kind it was touched by (read or write)
+  const out = `${DIR}/${process.pid}-${wt.threadId}.json`;
+  /* the record, written whole to a side file and renamed into place, so a thread killed part way leaves its last whole
+     record (fast-skip.mjs reads only the .json files) */
+  function flush() {
+    try {
+      const o = {}; for (const k of Object.keys(seen)) o[k] = [...seen[k]].sort();
+      o.firstWrite = [...first].filter(([, k]) => k === 'write').map(([p]) => p).sort();
+      rawWrite(`${out}.part`, JSON.stringify(o)); rawRename(`${out}.part`, out);
+    } catch { }
+  }
   const rel = p => {
     try {
       if (p == null || typeof p === 'number') return null;
@@ -32,7 +44,7 @@ if (DIR && ROOT) {
       return r.startsWith('..') || isAbsolute(r) ? null : (r || '.');
     } catch { return null; }
   };
-  const note = (kind, p) => { const r = rel(p); if (r === null) return; seen[kind].add(r); if ((kind === 'read' || kind === 'write') && !first.has(r)) first.set(r, kind); };
+  const note = (kind, p) => { const r = rel(p); if (r === null) return; const fresh = !seen[kind].has(r); seen[kind].add(r); if ((kind === 'read' || kind === 'write') && !first.has(r)) first.set(r, kind); if (fresh && eager) flush(); };
   const writing = flags => typeof flags === 'string' ? /[wa+]/.test(flags) : typeof flags === 'number' ? (flags & (fs.constants.O_WRONLY | fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_APPEND)) !== 0 : false;
   const wrap = (obj, name, before) => { const f = obj[name]; if (typeof f !== 'function') return; obj[name] = function (...a) { try { before(...a); } catch { } return f.apply(this, a); }; };
 
@@ -59,24 +71,17 @@ if (DIR && ROOT) {
     const f = cp[name];
     cp[name] = function (cmd, ...rest) {
       const node = name === 'fork' || isNode(cmd);
-      if (!node) seen.spawn.add(String(cmd));
+      if (!node) { seen.spawn.add(String(cmd)); if (eager) flush(); }
       else { const { oi, opts } = argsOpts([cmd, ...rest], 1); const o = { ...(opts || {}), env: withTrace(opts && opts.env) }; const a = [cmd, ...rest]; if (opts) a[oi] = o; else a.splice(oi, 0, o); return f.apply(this, a); }
       return f.apply(this, [cmd, ...rest]);
     };
   }
-  for (const name of ['exec', 'execSync']) wrap(cp, name, cmd => seen.spawn.add(String(cmd).split(/\s+/)[0]));
+  for (const name of ['exec', 'execSync']) wrap(cp, name, cmd => { seen.spawn.add(String(cmd).split(/\s+/)[0]); if (eager) flush(); });
   // workers: their own thread, so their own hooks; execArgv carries the trace (a worker does not run NODE_OPTIONS' --import)
   const W = wt.Worker;
   if (W) wt.Worker = class extends W { constructor(file, opts = {}) { note('read', typeof file === 'string' && !opts.eval ? file : null); super(file, { ...opts, execArgv: [...(opts.execArgv || process.execArgv), PRELOAD], env: opts.env === wt.SHARE_ENV ? opts.env : withTrace(opts.env) }); } };
 
   // the named imports of node:fs, node:child_process and node:worker_threads read the patched functions too
   module.syncBuiltinESMExports();
-  const out = `${DIR}/${process.pid}-${wt.threadId}.json`;
-  process.on('exit', () => {
-    try {
-      const o = {}; for (const k of Object.keys(seen)) o[k] = [...seen[k]].sort();
-      o.firstWrite = [...first].filter(([, k]) => k === 'write').map(([p]) => p).sort();
-      rawWrite(out, JSON.stringify(o));
-    } catch { }
-  });
+  process.on('exit', flush);
 }

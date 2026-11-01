@@ -8,14 +8,18 @@
  *   2. the trace check on that tree: every record complete; planted, a read taken out of a record (the file read
  *      directly, and the one a node child reads): the check fails;
  *   3. the trace check on the fast tier itself (research/tests/fast-inputs.json, as committed): every record complete,
- *      each test passing in a tree that holds only its recorded inputs.
- *   node research/tests/fast-skip.test.mjs [--fixture]     (--fixture: checks 1 and 2 only)
+ *      each test passing in a tree that holds only its recorded inputs;
+ *   4. on a scratch git tree, a test walking a directory that holds an untracked cache: its record keeps the tracked file,
+ *      the generated engine and a probe of an absent path, and leaves the cache out (the record the same in every clone);
+ *      planted, the same trace without the filter names the cache.
+ *   node research/tests/fast-skip.test.mjs [--fixture]     (--fixture: checks 1, 2 and 4)
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync, appendFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { traced, recordOf } from './fast-skip.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SKIP = join(HERE, 'fast-skip.mjs');
 let n = 0, failed = 0;
@@ -33,7 +37,9 @@ const T = {
   't/program.test.mjs': "import { spawnSync } from 'node:child_process'; process.exit(spawnSync('cat', ['a.txt']).status);\n"
 };
 for (const [p, s] of Object.entries(T)) put(p, s);
-put('t/w.mjs', "import { readFileSync } from 'node:fs'; import { parentPort } from 'node:worker_threads'; parentPort.postMessage(readFileSync('e.txt', 'utf8').trim());\n");
+// the worker outlives its message and the test exits on the message, so a worker's record written only at its own exit is
+// lost on every run (the full tier of 1 Nov lost it on some: the race this pins)
+put('t/w.mjs', "import { readFileSync } from 'node:fs'; import { parentPort } from 'node:worker_threads'; parentPort.postMessage(readFileSync('e.txt', 'utf8').trim()); setTimeout(() => {}, 1500);\n");
 const NAMES = Object.keys(T), INPUTS = join(R, 'inputs.json'), CACHE = join(R, 'cache.json');
 const skip = (...extra) => spawnSync(process.execPath, [SKIP, '--root', R, '--tests', NAMES.join(','), '--inputs', INPUTS, '--cache', CACHE, ...extra], { encoding: 'utf8' });
 const ran = out => out.split('\n').map(l => /^fast-skip: run +(\S+)/.exec(l)).filter(Boolean).map(m => m[1]).sort();
@@ -73,6 +79,20 @@ if (!process.argv.includes('--fixture')) {
   for (const l of lines.filter(x => x.startsWith('FAIL'))) console.log(`      ${l.slice(0, 400)}`);
   ok(c.status === 0, `3. the trace check on the fast tier: ${lines.pop()}`);
 }
+
+// 4. the record holds what a clean checkout has
+{ const G = mkdtempSync(join(tmpdir(), 'fast-skip-git-'));
+  const g = (p, s) => { mkdirSync(dirname(join(G, p)), { recursive: true }); writeFileSync(join(G, p), s); };
+  g('k/a.txt', 'a\n'); g('k/cache/x.pyc', 'cache\n'); g('research/engine.mjs', 'export const E = 1;\n');
+  g('t/walk.test.mjs', "import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs'; const walk = d => readdirSync(d).flatMap(n => statSync(`${d}/${n}`).isDirectory() ? walk(`${d}/${n}`) : [`${d}/${n}`]); const all = walk('k'); readFileSync('k/a.txt'); readFileSync('research/engine.mjs'); process.exit(all.length === 2 && !existsSync('absent.txt') ? 0 : 1);\n");
+  execFileSync('git', ['init', '-q'], { cwd: G }); execFileSync('git', ['add', 'k/a.txt', 't/walk.test.mjs'], { cwd: G });
+  const r = spawnSync(process.execPath, [SKIP, '--root', G, '--tests', 't/walk.test.mjs', '--inputs', join(G, 'inputs.json'), '--cache', join(G, 'cache.json')], { encoding: 'utf8' });
+  const rec = JSON.parse(readFileSync(join(G, 'inputs.json'), 'utf8'))['t/walk.test.mjs'], names = [...rec.read, ...rec.probe, ...rec.list];
+  ok(r.status === 2 && rec.read.includes('k/a.txt') && rec.read.includes('research/engine.mjs') && rec.probe.includes('absent.txt') && rec.list.includes('k') && !names.some(p => p.startsWith('k/cache')),
+    `4. the record keeps the tracked file, the generated engine, the absent probe and the listing, and leaves the untracked cache out (${names.filter(p => p.startsWith('k/')).join(', ')})`);
+  const raw = recordOf((await traced(G, 't/walk.test.mjs')).traces), rawNames = [...raw.read, ...raw.probe, ...raw.list];
+  ok(rawNames.some(p => p.startsWith('k/cache')), `4. planted, the same trace without the filter names the cache (${rawNames.filter(p => p.startsWith('k/cache')).join(', ')})`);
+  rmSync(G, { recursive: true, force: true }); }
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
 process.exit(failed ? 1 : 0);

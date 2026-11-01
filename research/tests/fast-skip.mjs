@@ -6,7 +6,8 @@
  * research/tests/fast-inputs.json (committed, so the full tier can check them), and the content each had when the test
  * last passed in this clone is kept in the git directory (fast-skip.json, never committed). A test runs unless every
  * input is as it was then; one that started another program (git, python, a shell) always runs; one with no record runs.
- * Each test that runs is traced again, and a pass records it. Paths under node_modules count as package-lock.json.
+ * Each test that runs is traced again, and a pass records it. Paths under node_modules count as package-lock.json; a path
+ * that exists here but not in a clean checkout (untracked, and not build-engine.py's) is left out (checkoutPaths).
  *
  *   node research/tests/fast-skip.mjs [-j N]       run the fast tier's tests whose inputs changed (exit 1 on a failure;
  *                                                   exit 2 when all passed and fast-inputs.json changed: stage it)
@@ -52,6 +53,24 @@ export function recordOf(traces) {
 export const fingerprint = (root, rec) => Object.fromEntries([...rec.read.map(p => [p, stateOf(root, p, 'read')]), ...rec.probe.map(p => ['?' + p, stateOf(root, p, 'probe')]), ...rec.list.map(p => ['/' + p, stateOf(root, p, 'list')])]);
 export const sameFp = (a, b) => { const ka = Object.keys(a), kb = Object.keys(b); return ka.length === kb.length && ka.every(k => a[k] === b[k]); };
 
+/* the paths a clean checkout has: every file git tracks, the directories holding them, and build-engine.py's outputs. A
+   path that exists here but is none of those (a local cache, a scratch file) is left out of a record, so the record is the
+   same in every clone (hygiene's named research/solver/__pycache__, a cache this clone had and a fresh one lacks, on 1 Nov);
+   a path absent here stays (absent in a clean checkout too). Outside a git work tree nothing is left out (null). */
+export const GENERATED = ['research/engine.mjs', 'research/simplePlan.mjs'];
+export function checkoutPaths(root, generated = GENERATED) {
+  let files;
+  try { files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'ignore'] }).split('\0').filter(Boolean); } catch { return null; }
+  const s = new Set(['.', LOCK, ...generated]);
+  for (const f of files) { s.add(f); for (let p = f; p.includes('/');) { p = p.slice(0, p.lastIndexOf('/')); s.add(p); } }
+  return s;
+}
+export function keepCheckout(root, rec, known) {
+  if (!known) return rec;
+  const local = p => { if (known.has(p)) return false; try { lstatSync(join(root, p)); return true; } catch { return false; } };
+  return { ...rec, read: rec.read.filter(p => !local(p)), probe: rec.probe.filter(p => !local(p)), list: rec.list.filter(p => !local(p)) };
+}
+
 /* run one test file under the trace, in a tree; resolves to { code, secs, tail, traces } */
 export function traced(root, file, traceRoot = root) {
   return new Promise(res => {
@@ -61,7 +80,7 @@ export function traced(root, file, traceRoot = root) {
     let out = '';
     p.stdout.on('data', d => { out = (out + d).slice(-4000); }); p.stderr.on('data', d => { out = (out + d).slice(-4000); });
     p.on('close', code => {
-      const traces = readdirSync(dir).map(f => { try { return JSON.parse(readFileSync(join(dir, f), 'utf8')); } catch { return {}; } });
+      const traces = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => { try { return JSON.parse(readFileSync(join(dir, f), 'utf8')); } catch { return {}; } });
       rmSync(dir, { recursive: true, force: true });
       res({ code, secs: Math.round((Date.now() - t0) / 1000), tail: out.trim().split('\n').slice(-3).join(' | '), traces });
     });
@@ -132,11 +151,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     writeFileSync(CACHE, JSON.stringify(cache));
     if (inputsChanged) writeFileSync(INPUTS, JSON.stringify(Object.fromEntries(Object.keys(inputs).sort().map(k => [k, inputs[k]])), null, 1) + '\n');
   };
+  const known = run.length ? checkoutPaths(ROOT) : null;
   await pool(run.map(p => p.f), J, async f => {
     const r = await traced(ROOT, testPath(f));
     console.log(`${r.code === 0 ? 'ok  ' : 'FAIL'} ${f} (${r.secs} s)${r.code === 0 ? '' : `: ${r.tail.slice(0, 300)}`}`);
     if (r.code !== 0) { bad.push(f); delete cache[f]; save(); return; }
-    const rec = recordOf(r.traces);
+    const rec = keepCheckout(ROOT, recordOf(r.traces), known);
     if (JSON.stringify(rec) !== JSON.stringify(inputs[f])) { inputs[f] = rec; inputsChanged = true; }
     cache[f] = { fp: fingerprint(ROOT, rec), passed: new Date().toISOString() };
     save();

@@ -41,7 +41,7 @@ const TABS = [
   ['Start Here', /What each tab is for/i],
   ['Plan Inputs', /With partner/i],
   // with the solver's switch on (run-all.sh --solver) a single household's tab leads with the solver's cards, the policy hidden
-  ['Config & Assumptions', /Decumulation|What the solver aims for/i],
+  ['Config & Assumptions', /Decumulation|Spending & tax settings/i],
   ['Projection', /Run the projection/i],
   ['Strategy', /tournament/i],
   ['Historical Backtest', /1928|backtest/i],

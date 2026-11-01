@@ -63,12 +63,17 @@ fi
 echo "   ok"
 
 echo "== serve on :$PORT =="
-npx vite preview --outDir "$OUT" --port "$PORT" --strictPort >/tmp/run-all-preview.log 2>&1 &
+# A server already on the port would answer for this build: a server npx started is a grandchild, which outlived its
+# script's kill, and the next run then tested the last run's build (1 Nov: the switch-off harnesses ran on the switch-on
+# build). So the port must be free, vite runs as this script's own child, and the page it serves must be this build's.
+curl -s -o /dev/null "http://localhost:$PORT/" && { echo "PORT $PORT IN USE: another server answers there; stop it first"; exit 1; }
+node node_modules/vite/bin/vite.js preview --outDir "$OUT" --port "$PORT" --strictPort >/tmp/run-all-preview.log 2>&1 &
 PREVIEW=$!
 # `kill 0` would take out this script too; target the one child, and tolerate it already being gone.
-trap 'kill "$PREVIEW" 2>/dev/null || true; rm -f "$PAUSE"' EXIT
+trap 'kill "$PREVIEW" 2>/dev/null || true; wait "$PREVIEW" 2>/dev/null; rm -f "$PAUSE"' EXIT
 for _ in $(seq 1 40); do curl -sf -o /dev/null "http://localhost:$PORT/" && break; sleep 1; done
 curl -sf -o /dev/null "http://localhost:$PORT/" || { echo "PREVIEW FAILED"; tail -20 /tmp/run-all-preview.log; exit 1; }
+curl -sf "http://localhost:$PORT/" | cmp -s - "$OUT/index.html" || { echo "THE SERVER ON :$PORT IS NOT SERVING $OUT"; exit 1; }
 echo "   ok"
 
 declare -a NAMES=() CODES=() KINDS=() COVER=()

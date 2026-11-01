@@ -68,6 +68,19 @@ async function open(b, w, h, app = 'full', seed = plan) {
 }
 const tab = async (p, name) => { await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(n)); if (x) x.click(); }, name); await p.waitForTimeout(650); };
 const step = async (p, n) => { await p.evaluate(s => { const x = document.querySelector(`[data-slide-pill="${s}"]`); if (x) x.click(); }, String(n)); await p.waitForTimeout(1700); };
+// wait for a smooth scroll to stop: the page's offset the same on three looks 150ms apart, up to eight seconds; returns the ms
+async function settle(p) {
+  const t0 = Date.now();
+  let last = -1, same = 0;
+  while (Date.now() - t0 < 8000) {
+    await p.waitForTimeout(150);
+    const y = await p.evaluate(() => window.scrollY);
+    same = y === last ? same + 1 : 0;
+    last = y;
+    if (same >= 3 && y > 0) break;
+  }
+  return Date.now() - t0;
+}
 async function runProjection(p) {
   await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); x.click(); });
   await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop'), null, { timeout: 300000 });
@@ -620,13 +633,21 @@ async function runProjection(p) {
     // the Config link from the note lands on the switch, which starts unchecked
     await tab(g.p, 'Projection');
     await g.p.evaluate(() => { [...document.querySelectorAll('[data-guardrail-note] button')].find(x => x.textContent.trim() === 'Config').click(); });
-    await g.p.waitForTimeout(900);
+    // the scroll is smooth, and its length is the page's: under the solver's switch (run-all.sh --solver) the solver's
+    // cards stand above the setting and the scroll runs two to four seconds here, so wait for it to stop, up to eight
+    const settled = await settle(g.p);
     const sw = await g.p.evaluate(() => { const el = document.querySelector('[data-guardrails-toggle]'); if (!el) return null; const r = el.getBoundingClientRect(); return { checked: el.checked, onScreen: r.top >= 0 && r.bottom <= window.innerHeight }; });
+    if (sw) sw.settledMs = settled;
     ok('the Config link lands on the switch, unchecked and on screen', !!sw && !sw.checked && sw.onScreen, JSON.stringify(sw));
     await g.p.evaluate(() => document.querySelector('[data-guardrails-toggle]').click());
     await g.p.waitForTimeout(400);
     ok('...and it switches on', await g.p.evaluate(() => document.querySelector('[data-guardrails-toggle]').checked));
     await tab(g.p, 'Audit Data Table');
+    // the column follows the plan at once, its figures the deferred projection (a frame late, longer while the solver's
+    // switch has a solve running): wait for a year the rule acted, up to five seconds, and say how long it took
+    const t0 = Date.now();
+    await g.p.waitForFunction(() => [...document.querySelectorAll('[data-guardrail-cell]')].some(c => !/^\s*\u2014\s*$/.test(c.innerText) && c.innerText.trim() !== ''), null, { timeout: 5000 }).catch(() => {});
+    const waited = Date.now() - t0;
     const audit = await g.p.evaluate(() => {
       const th = [...document.querySelectorAll('th')].some(t => /Guardrail/.test(t.textContent));
       const cells = [...document.querySelectorAll('[data-guardrail-cell]')];
@@ -634,7 +655,7 @@ async function runProjection(p) {
       return { th, rows: cells.length, acted: acted.slice(0, 4), actedN: acted.length };
     });
     ok('the audit table gains a Guardrail column when the rule is on', audit.th && audit.rows > 0, `${audit.rows} rows`);
-    ok('...naming the years the rule acted on the expected path', audit.actedN > 0, audit.acted.join(' | '));
+    ok('...naming the years the rule acted on the expected path', audit.actedN > 0, `${audit.acted.join(' | ')} (after ${waited}ms)`);
     ok('...and not every year, or it is not a list of events', audit.actedN < audit.rows, `${audit.actedN} of ${audit.rows}`);
     await tab(g.p, 'Projection');
     ok('the run card now says on', await g.p.evaluate(() => /guardrails on/i.test(document.querySelector('[data-guardrail-note]')?.innerText || '')));

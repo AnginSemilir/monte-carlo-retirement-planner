@@ -6938,6 +6938,8 @@ const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
 const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
+// Part C Phase 9's Strategy tab (src/SolverStrategy.jsx), fetched only when the switch is on for a single household
+const SolverStrategyCard = /* @__PURE__ */ lazy(() => import('./SolverStrategy.jsx').then(m => ({ default: m.SolverStrategy })));
 /*
  * THE TABS, ONCE.
  *
@@ -14426,8 +14428,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
-        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is */}
-        {activeTab === 'strategy' && (
+        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is. Under the switch a single household's
+            tab is the solved plan (Part C Phase 9, src/SolverStrategy.jsx); a couple's plan, and a solve that failed, keep the
+            tournament below (D42; the launch plan's F16) */}
+        {activeTab === 'strategy' && solverRules && (
+          <Suspense fallback={null}>
+            <SolverStrategyCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} onRetry={() => setPlan(p => ({ ...p }))} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} {...(SOLVER_OPTS && SOLVER_OPTS.strategySteps ? { steps: SOLVER_OPTS.strategySteps } : {})} {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})} />
+          </Suspense>
+        )}
+        {activeTab === 'strategy' && SOLVER && !solverRules && (
+          <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the strategy tournament below.</p>
+        )}
+        {activeTab === 'strategy' && (!solverRules || (solve.solveMeta && solve.solveMeta.error)) && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
               <Fine isPhone={isPhone} label="What this is"

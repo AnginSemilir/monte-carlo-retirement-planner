@@ -18,6 +18,14 @@
  *                                                       with baseKey, solved on the held base of that key
  *   probe     { id, key }                               whether a solve of the key is stored for this code: { id, hit }
  *   simulate  { id, trials, seed }                      the solved plan through the engine's monteCarlo: { id, stats }
+ *   strategy  { id, plan, seed, upto }                  the Strategy tab's figures (Phase 9, src/solverStrategy.js) on paths 0 to
+ *                                                       upto-1 of the seed, the solved plan beside the plan as entered: { id,
+ *                                                       strategy }; the paths already run for this solve, seed and plan are kept
+ *                                                       and only the rest run, so asking for 2,000 then 5,000 costs 5,000
+ *   actions   { id, plan, seed, n }                     this year's move, part by part, each with the survival cost of skipping
+ *                                                       it on n paired paths (the plan's own runs reused): { id, actions }
+ *   ahead     { id, plan, seed, years }                 the next years' moves on the median path of the strategy's runs so far:
+ *                                                       { id, ahead }
  *   digest    { id }                                    the tables' fingerprint (src/solverDigest.js): { id, digest, values, bytes }
  *
  * Imports the engine from App.jsx, as mcWorker.js does, with the two shims first.
@@ -30,11 +38,13 @@ import { withTable } from './solver/bridge.js';
 import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
+import { strategyRuns, joinRuns, strategySummary, actionsOf, aheadOf } from './solverStrategy.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord } from './solverCache.js';
 
 // the engine as the solver reads it: App.jsx's exports and its E namespace (research/engine.mjs is the same union)
 const E = { ...App, ...App.E };
 let solved = null, held = null;   // held: { key, r }, the base a dial position is solved on, kept between solves
+let runs = null;                  // the Strategy tab's paths run so far: { r, plan, runs } (src/solverStrategy.js)
 // the code that solves, for the cache: this worker's own URL, which a build fingerprints with its contents
 const CODE = self.location ? self.location.href : 'unknown';
 const plainMeta = r => JSON.parse(JSON.stringify(r.meta));
@@ -92,6 +102,22 @@ self.onmessage = async ({ data }) => {
     if (kind === 'simulate') {
       const ctx = E.buildContext(withTable(solved.m.ctx.plan, solved));
       self.postMessage({ id, stats: E.monteCarlo(ctx, { trials: data.trials, seed: data.seed }) });
+      return;
+    }
+    if (kind === 'strategy') {
+      const planKey = JSON.stringify(data.plan), seed = data.seed;
+      if (!runs || runs.r !== solved || runs.plan !== planKey || runs.runs.seed !== seed) runs = { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
+      if (data.upto > runs.runs.to) runs.runs = joinRuns([runs.runs, strategyRuns(E, solved, data.plan, { seed, from: runs.runs.to, to: data.upto })]);
+      self.postMessage({ id, strategy: strategySummary(E, solved, runs.runs) });
+      return;
+    }
+    if (kind === 'actions' || kind === 'ahead') {
+      const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
+      if (kind === 'actions') self.postMessage({ id, actions: actionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null }) });
+      else {
+        if (!same) throw new Error('solverWorker: \'ahead\' asked before the strategy\'s runs');
+        self.postMessage({ id, ahead: aheadOf(E, solved, data.plan, same, { years: data.years }) });
+      }
       return;
     }
     if (kind === 'digest') {

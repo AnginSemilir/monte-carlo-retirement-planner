@@ -235,9 +235,12 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
    */
   const contribThisYear = { self: 0, part: 0 };
   const isaContribThisYear = { self: 0, part: 0 };
+  // the savings split (research, D38 (4); the engine's saveSplitRoutes): a move's save is the year's contributions by account
+  const saved = !action.contrib && action.save > 0 && ctx.saveSplitAt ? ctx.saveSplitAt(t) : null;
+  const contrib = action.contrib || (saved ? saved.variants[action.save] : null);
   ctx.accounts.forEach(a => {
     if (!working[a.owner]) return;
-    const amt = action.contrib ? Math.max(0, action.contrib[a.id] || 0) : E.contribAtYear(a, t);
+    const amt = contrib ? Math.max(0, contrib[a.id] || 0) : E.contribAtYear(a, t);
     if (amt > 0) {
       pots[a.id] += amt * frac;
       if (a.cat === 'other') addBasis(a.owner, amt * frac);
@@ -298,7 +301,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     owners.forEach(o => {
       if (!working[o.key] || o.salary <= 0) return;
       const pen = ctx.acc[o.ids.pen];
-      const penContrib = action.contrib ? Math.max(0, action.contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
+      const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
       const pay = E.salaryAtYear(o, t);
       const takeHome = pay - E.calculateUKTaxAndNIC(pay, P, o.selfEmployed) - E.netCostOfPensionContrib(penContrib, pay, P, o.selfEmployed);
       const nonPensionContribs = (contribThisYear[o.key] / frac) - penContrib;

@@ -160,7 +160,7 @@ export function buildActions(opts = {}) {
       }
     }
   }
-  return opts.windfallSplit ? withSplitCopies(out) : out;
+  return opts.windfallSplit ? withSplitCopies(out) : opts.saveSplit ? withSaveCopies(out) : out;
 }
 
 /*
@@ -173,6 +173,17 @@ const SPLIT_LABEL = ['', ', the windfall to the pension, then the ISA', ', the w
 function withSplitCopies(out) {
   const n = out.length, all = out.slice();
   for (let v = 1; v <= 3; v++) for (const a of out) all.push({ ...a, windfall: v, tierBase: a.tierBase + v * n, label: a.label + SPLIT_LABEL[v] });
+  return all;
+}
+/*
+ * THE SAVINGS SPLIT (research, off by default; STATE.md D38 (4), research/solver/SAVINGS-SPLIT.md): every move again with
+ * save 1 (the year's pension and ISA saving in the pension first, at the plan's net cost) and 2 (the ISA first), after the
+ * whole menu, as the windfall split's copies are; a copy flows as its base outside a working year with a choice.
+ */
+const SAVE_LABEL = ['', ', saving into the pension first', ', saving into the ISA first'];
+function withSaveCopies(out) {
+  const n = out.length, all = out.slice();
+  for (let v = 1; v <= 2; v++) for (const a of out) all.push({ ...a, save: v, tierBase: a.tierBase + v * n, label: a.label + SAVE_LABEL[v] });
   return all;
 }
 
@@ -391,7 +402,7 @@ export function solve(E, M, plan, opts = {}) {
     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
     tierList = [[hp, hi]];
   }
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts) })).map(a => ({ ...a, lump: !!opts.lump }));
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts), saveSplit: saveOn(m, opts) })).map(a => ({ ...a, lump: !!opts.lump }));
   /*
    * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
    * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
@@ -2635,7 +2646,8 @@ function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
 function researchFinish(r, LK, opts) {
   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
-  if (r.actions.some(a => a.windfall)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
+  if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
+  if (r.actions.some(a => a.windfall || a.save)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
   if (!LK) return;
   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
   r.meta.lockTiers = LK.meta; r.lockTiers = LK;
@@ -2653,12 +2665,24 @@ function splitOn(m, opts) {
   if (opts.windfallSplit !== true) throw new Error(`windfallSplit ${opts.windfallSplit}: only true`);
   return !!(m.ctx.autoSplit && m.ctx.autoSplit.size);
 }
-/* The moves the backward pass and the chooser score in year t: every move in a year with Auto money, else the menu before
-   the windfall split's copies (they flow as their base there, so leaving them out changes no score); all where it is off. */
-export const SPLIT = { skip: true };   // windfall-split.test.mjs only: false scores the copies in every year (they tie with their base)
+/* The savings split (research, D38 (4)): the copies only where some working year has a choice; refused with the windfall split. */
+function saveOn(m, opts) {
+  if (!opts.saveSplit) return false;
+  if (opts.saveSplit !== true) throw new Error(`saveSplit ${opts.saveSplit}: only true`);
+  if (opts.windfallSplit) throw new Error('saveSplit and windfallSplit together: both rooms would be counted twice');
+  const f = m.ctx.saveSplitAt;
+  if (!f) return false;
+  for (let t = 0; t <= m.ctx.totalYears; t++) if (f(t)) return true;
+  return false;
+}
+/* The moves the backward pass and the chooser score in year t: every move in a year where the copies differ from their base
+   (a year with Auto money for the windfall split, a working year with a choice for the savings split), else the menu before
+   the copies (they flow as their base there, so leaving them out changes no score); all where neither is on. */
+export const SPLIT = { skip: true };   // windfall-split and save-split tests only: false scores the copies in every year (they tie with their base)
 function splitCounts(c, actions, T) {
-  const A = actions.length, A0 = actions.some(a => a.windfall) ? actions.findIndex(a => a.windfall) : A, out = new Int32Array(T + 1).fill(A);
-  if (A0 < A && SPLIT.skip) for (let t = 0; t <= T; t++) if (!c.yr.splitYear[t]) out[t] = A0;
+  const A = actions.length, k = actions.findIndex(a => a.windfall || a.save), A0 = k < 0 ? A : k, out = new Int32Array(T + 1).fill(A);
+  const live = k < 0 ? null : actions[k].windfall ? c.yr.splitYear : c.yr.saveYear;
+  if (A0 < A && SPLIT.skip) for (let t = 0; t <= T; t++) if (!live[t]) out[t] = A0;
   return out;
 }
 /* The moves the chooser scores at year t (splitCounts); with SC and BQ given, the windfall split's copies left out are made

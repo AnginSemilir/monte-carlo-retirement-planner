@@ -28,6 +28,8 @@ contribution.
 The plan's taxable-account and cash contributions are kept as they are. Money that fits neither wrapper goes to the
 taxable account at its net amount, as `allocateBudget` cascades it.
 
+- What the gross-up leaves under half a penny is its bisection's residue, not money, and goes nowhere.
+
 **The rooms.**
 - The pension's room is this year's annual allowance, without carry-forward:
   - tapered on relevant earnings, or the MPAA where it applies;
@@ -64,14 +66,17 @@ is left out of the room for the same reason: an earlier year's choice may have u
 
 1. **Off.** With the option unset, the tables, 40 runs and the run record are the same to the bit as on the code before
    it. This is checked on two saving households and one already retired.
-2. **The gross-up against a hand calculation.**
-   - An employee, a higher-rate employee whose pension room binds, a self-employed owner and a blank salary.
-   - Each variant's net cost equals the plan's to a penny. Each amount is within its room.
-   - Plant: the ISA's amount taken gross (the pension's net cost not used) fails the check.
+2. **The gross-up against a hand calculation** (tax and NIC differenced by hand, the rooms from the allowance rules).
+   - Five cases: an employee across Scottish bands, the self-employed, the MPAA in force (the pension's room binds), a
+     blank salary, and an ISA room that binds because a cash ISA subscription is kept.
+   - Each variant's net cost equals the plan's to a penny. Each amount is within its room and greedy in its order.
+   - Each case shows what it is named for.
+   - Plant: the budget taken with the pension contribution gross (its net cost not used) fails the check.
 3. **In step.** The engine and the forward run stay in step, slot by slot, every year, with each variant forced in the
    working years.
    - The variants must be live: the pots differ between save 1 and save 2.
    - Plant: the engine handed the move without its `save`. The two must part.
+   - The exact model under a save takes that year's variant, the same as the variant handed it as `contrib`.
 4. **On.** A household with no year to choose (retired, or saving nothing into either wrapper) gets the menu and tables as
    off. A saving household's menu is three times as long and its tables differ. `meta.saveSplit` records which.
 5. **The skip.** The copies left out outside the working years change no table and no run.
@@ -87,4 +92,17 @@ paths, the estate weight 0.02, 45 points, EXPLORATORY. Reported, deciding nothin
 - the variant chosen by year;
 - the pots at retirement.
 
-The cost comes from the first pair's times, measured before it is brought.
+**Cost.** Measured on S244 (fifteen working years, 45 points, 500 paths), with the quick suite running on two of the four
+cores, so these are upper guides:
+- CANDS's solve took 1.24 times CANDD's (768 s against 619 s);
+- its engine took 1.68 times as long a path (229 ms against 137 ms);
+- CANDS chose the pension first in 7,499 of its 7,500 working-year decisions;
+- runPolicy and the engine agreed on every path in both arms.
+
+Two estimates for 54 units at 8,000 paths:
+- Scaled from the tier test's CAND units (0.115 core-hours of solve and 0.163 of engine a household): about 19
+  core-hours, 5 hours on four cores.
+- From S244's own times under load: about 32 core-hours.
+
+At 4,000 paths the first estimate is about 13 core-hours. The first pair's times are checked against the estimate, and a
+cost more than a quarter over comes back first.

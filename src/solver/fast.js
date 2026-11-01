@@ -211,8 +211,12 @@ export function compile(m, actions) {
     // the windfall split (research, D37): the dated deposits less the plan's Auto entries, by pot; where splits 1 to 3
     // put the year's Auto money instead (index 0 unused); and whether the year has Auto money at all
     depNoAuto: CATS.map(() => new Float64Array(T + 1)), splitDep: [null, 1, 2, 3].map(v => v && CATS.map(() => new Float64Array(T + 1))),
-    splitYear: new Uint8Array(T + 1)
+    splitYear: new Uint8Array(T + 1),
+    // the savings split (research, D38 (4)): where saves 1 and 2 put the year's contributions, by pot (index 0 unused), and
+    // whether the year has a choice; filled only when the menu carries save copies
+    saveCon: [null, 1, 2].map(v => v && CATS.map(() => new Float64Array(T + 1))), saveYear: new Uint8Array(T + 1)
   };
+  const saveOn = !!(actions && actions.some(a => a.save) && ctx.saveSplitAt);
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
     yr.frac[t] = t === 0 ? ctx.yf : 1;
@@ -233,6 +237,8 @@ export function compile(m, actions) {
     (ctx.oneOffDeductions.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c) yr.ded[CATS.indexOf(c)][t] += x.amount; });
     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other) yr.drip[CATS.indexOf(c)][t] += x.amount; });
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
+    const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
+    if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
     yr.cgtExempt[t] = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
     yr.cashIsaCap[t] = P.cashIsaCapAt(age, year);
   }
@@ -327,7 +333,7 @@ export function compile(m, actions) {
       steps: Int8Array.from(a.steps.map(codeOf)),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
       harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
-      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, windfall: a.windfall || 0,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, windfall: a.windfall || 0, save: a.save || 0,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
       tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
@@ -435,7 +441,9 @@ export function flow(c, t, ai, s) {
   // 2. contributions while working
   let isaContrib = 0, cashIsaSubscribed = 0;
   if (working) {
-    const cp = yr.con[0][t] * frac, ci = yr.con[1][t] * frac, co = yr.con[2][t] * frac, cc = yr.con[3][t] * frac;
+    // the savings split (research, D38 (4)): in a year with a choice, a move's save takes that variant's contributions
+    const con = a.save && yr.saveYear[t] ? yr.saveCon[a.save] : yr.con;
+    const cp = con[0][t] * frac, ci = con[1][t] * frac, co = con[2][t] * frac, cc = con[3][t] * frac;
     pen += cp; isa += ci; isaContrib += ci; addGia(co); cash += cc;
     // 2a. the cash ISA subscription out of the cash paid in (the wrapper's own contribution is folded into cc)
     if (c.cashIsaContrib > 0) {

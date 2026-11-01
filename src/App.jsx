@@ -1712,6 +1712,7 @@ function buildContext(rawPlan) {
   const stagedTransfers = new Map();
   const oneOffStaging = new Map();
   const autoSplit = new Map();   // the windfall split (research, D37): by year, where splits 1 to 3 put the year's Auto money
+  let saveSplitAt = null;   // the savings split (research, D38 (4)): t -> where saves 1 and 2 put the year's saving
   {
     // Shared per-owner/wrapper/year claim ledger: every deposit and staged drip tranche competes for the
     // same headroom, so two deposits for the same owner/wrapper can never double-claim one year's allowance.
@@ -1816,6 +1817,7 @@ function buildContext(rawPlan) {
       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
     });
     autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t) });
+    saveSplitAt = saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears });
   }
   const oneOffCosts = new Map();
   plan.oneOffCosts.forEach(x => {
@@ -1931,7 +1933,7 @@ function buildContext(rawPlan) {
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
     yf, baseYear, valuationDate,
-    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging, autoSplit
+    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging, autoSplit, saveSplitAt
   };
   return ctx;
 }
@@ -2079,12 +2081,14 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     if (cgtOn && x.toId.startsWith('other_')) giaAddBasis(state, ownerOfId(x.toId), move);
   });
 
-  // 2. regular contributions while the owner works (year 0 pro-rated)
+  // 2. regular contributions while the owner works (year 0 pro-rated); a table's move may put the pension and ISA saving
+  // elsewhere at the same net cost (the savings split, research, D38 (4); saveSplitRoutes)
   const contribThisYear = { self: 0, part: 0 };
   const isaContribThisYear = { self: 0, part: 0 };
+  const saved = chosen && chosen.save > 0 && ctx.saveSplitAt ? ctx.saveSplitAt(t) : null, sv = saved ? saved.variants[chosen.save] : null;
   ctx.accounts.forEach(a => {
     if (!working[a.owner]) return;
-    const amt = contribAtYear(a, t);
+    const amt = sv && a.id in sv ? sv[a.id] : contribAtYear(a, t);
     if (amt > 0) {
       pots[a.id] += amt * frac;
       if (cgtOn && a.cat === 'other') giaAddBasis(state, a.owner, amt * frac);
@@ -2174,7 +2178,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     owners.forEach(o => {
       if (!working[o.key] || o.salary <= 0) return;
       const pen = acc[o.ids.pen];
-      const penContrib = pen ? contribAtYear(pen, t) : 0;
+      const penContrib = pen ? (sv && pen.id in sv ? sv[pen.id] : contribAtYear(pen, t)) : 0;
       const pay = salaryAtYear(o, t);
       // pay less tax, NIC and the net cost of the pension contribution — which prices sacrifice for an
       // employee and relief at source for the self-employed, whose NIC is charged on the whole profit
@@ -3277,6 +3281,61 @@ function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, ro
     e.variants[3].push(...ent([[restId, A]]));
     e.room.push({ owner: ownerKey, amount: A, pen: penRoom, isa: isaRoom });
   });
+}
+
+/*
+ * THE SAVINGS SPLIT (research, off by default; STATE.md D38 (4), research/solver/SAVINGS-SPLIT.md): where a working year's
+ * pension and ISA saving goes, at the plan's net cost, when a solved table's move asks (`save`). Save 1 puts the net budget
+ * in the pension first, grossed up to its room, then the ISA up to its room; save 2 the ISA first, then the pension; what fits
+ * neither goes to the taxable account at its net amount (allocateBudget's cascade). The budget is the plan's pension
+ * contribution at its net cost plus its ISA contribution; the taxable and cash contributions stay as the plan has them. The
+ * pension's room is the year's annual allowance (tapered, or the MPAA) capped at relevant earnings, without carry-forward
+ * (an earlier year's choice may have used what it counts), less what the plan's dated deposits and staged transfers claim
+ * that year; the ISA's room is the allowance less those claims and the plan's cash ISA subscription; neither falls below the
+ * plan's own contribution. Returns t -> null (nothing to choose that year) or { variants: [null, v1, v2] (account id -> the
+ * full-year contribution, every account of each working owner), owners: [{ owner, budget, pen, isa }] }, memoised and
+ * computed only when asked, so the app's own runs never pay for it.
+ */
+function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears }) {
+  const memo = new Map(), hctx = { P, owners, acc, otherIncomes };
+  const at = t => {
+    if (!(t >= 0 && t <= totalYears)) return null;
+    const v1 = {}, v2 = {}, rooms = [];
+    let any = false;
+    for (const o of owners) {
+      if ((o.age0 + t) >= o.retireAge) continue;
+      const ids = o.ids, pa = acc[ids.pen], ia = acc[ids.isa], ga = acc[ids.other], ca = acc[ids.cash];
+      const P0 = pa ? contribAtYear(pa, t) : 0, I0 = ia ? contribAtYear(ia, t) : 0, G0 = ga ? contribAtYear(ga, t) : 0, C0 = ca ? contribAtYear(ca, t) : 0;
+      const plan = { [ids.pen]: P0, [ids.isa]: I0, [ids.other]: G0, [ids.cash]: C0 };
+      const put = (v, amts) => { for (const id of Object.keys(amts)) if (acc[id]) v[id] = amts[id]; };
+      const salary = salaryAtYear(o, t), se = !!o.selfEmployed;
+      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se) : 0);
+      const budget = netOf(P0) + I0;
+      // nothing to move, or no taxable account to take what fits neither wrapper: the plan's own contributions
+      if (!(budget > 0) || !ga) { put(v1, plan); put(v2, plan); continue; }
+      const earnings = relevantEarningsAtYear(hctx, o, t);
+      const allowance = mpaaAppliesAtYear(P, o, t) ? P.mpaaLimit : P.aaAt(earnings);
+      const cap = (o.salary <= 0 && earnings <= 0) ? allowance : Math.min(allowance, Math.max(P.pensionNoEarningsLimit, earnings));
+      const claim = cat => claimed.get(`${o.key}|${cat}|${t}`) || 0;
+      const cashIsa = o.cashIsaContrib > 0 ? Math.min(o.cashIsaContrib, P.cashIsaCapAt(o.age0 + t, baseYear + t)) : 0;
+      const penRoom = pa ? Math.max(P0, cap - claim('pen')) : 0;
+      const isaRoom = ia ? Math.max(I0, P.isaAllowance - claim('isa') - cashIsa) : 0;
+      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se) : 0);
+      // what the gross-up leaves: under half a penny is the bisection's residue, not money
+      const rest = x => (x > 0.005 ? x : 0);
+      const pen1 = grossOf(budget), left1 = rest(budget - netOf(pen1)), isa1 = Math.min(left1, isaRoom);
+      const isa2 = Math.min(budget, isaRoom), pen2 = grossOf(budget - isa2), left2 = rest(budget - isa2 - netOf(pen2));
+      // within a penny of the plan's contributions is the plan's (the gross-up's bisection leaves a residue)
+      const snap = amts => (Object.keys(plan).every(id => Math.abs(amts[id] - plan[id]) < 0.01) ? plan : amts);
+      const s1 = snap({ [ids.pen]: pen1, [ids.isa]: isa1, [ids.other]: G0 + left1 - isa1, [ids.cash]: C0 });
+      const s2 = snap({ [ids.pen]: pen2, [ids.isa]: isa2, [ids.other]: G0 + left2, [ids.cash]: C0 });
+      put(v1, s1); put(v2, s2);
+      if (s1 !== plan || s2 !== plan) any = true;
+      rooms.push({ owner: o.key, budget, pen: penRoom, isa: isaRoom });
+    }
+    return any ? { variants: [null, v1, v2], owners: rooms } : null;
+  };
+  return t => { if (!memo.has(t)) memo.set(t, at(t)); return memo.get(t); };
 }
 
 function wrapperHeadroomAtYear(ctx, ownerKey, category, t) {

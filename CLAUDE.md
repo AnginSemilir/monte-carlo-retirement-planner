@@ -9,7 +9,9 @@ The rules, eight lines:
 @research/solver/CHECKLIST.md
 
 - STATE.md (above, read whole) is where the work stands: the candidate, the decisions in force, the open items, what is
-  running and the next actions. The plan is Part B of `research/reviews/2026-10-21/EXTERNAL-REVIEW.md`. Everything
+  running and the next actions. The plan is `research/solver/PART-C-PLAN.md`, with the launch plan
+  (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on review/external-2026-10-21 at 0e24e1b) holding where they differ;
+  Part B of the 21 Oct review is done. Everything
   before 21 Oct is in `research/solver/archive/`, unchanged; never edit it. Use the `research` skill for any run, read
   or change of the candidate.
 - Enforced by: the launcher (`run-from-snapshot.sh`) for confirmatory runs, the reducers' fair-test gate, the fast

@@ -6,7 +6,9 @@ description: The procedure for the solver research (research/solver) - use when 
 # The solver research: how to run, read and record
 
 The rules are `research/solver/CHECKLIST.md` (eight lines); where things stand is `research/solver/STATE.md`; the plan is
-Part B of `research/reviews/2026-10-21/EXTERNAL-REVIEW.md`. Everything before 21 Oct is in `research/solver/archive/`.
+`research/solver/PART-C-PLAN.md`, with the launch plan (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on
+review/external-2026-10-21 at 0e24e1b, D51) holding where they differ; Part B of the 21 Oct review is done. Everything
+before 21 Oct is in `research/solver/archive/`.
 
 ## Exploratory (most work)
 1. Write the script, run it (directly, or through the launcher with `PREDICTION="none:<why>"` when it is a batch that

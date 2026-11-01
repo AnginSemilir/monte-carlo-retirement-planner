@@ -1,6 +1,8 @@
 # A streamlined, single-page version
 
-Queued, not started. This is the plan, for review before anyone writes code.
+**Built** (`src/Simple.jsx`, first committed 17 Sep in 2b6ab99, last changed 19 Sep in 090e831; the app's Simple page). This
+was the plan, written for review before anyone wrote code; it is kept as the design record. Under Part C the Simple
+page's safe spend and safe age come from the solver in Phase 10 (`research/solver/PART-C-PLAN.md`, the launch plan holding).
 
 ## What it is
 

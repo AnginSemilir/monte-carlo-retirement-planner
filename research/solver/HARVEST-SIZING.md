@@ -2,6 +2,10 @@
 
 For the maintainer's go-ahead (D49: "sized and brought to the maintainer before it runs"). Open item GAIN-BUCKET.
 
+**Decided** (B7 in D51): it runs first in the research queue, at the 20 households whose taxable account is `10%` of wealth
+or more (D49's smaller sizing, about 8 core-hours), whenever cores are free, at low priority, EXPLORATORY and deciding
+nothing.
+
 **Question.** Does reading the taxable account's gain share at its nearest bucket (5, 25, 55%) cost the candidate survival
 or spending? D47's look found it reversing giaTiers' switches on S330 (research only, off). The candidate's own moves on
 that account (the yearly sweep into the ISA, the draw order, HR's re-wrap) read the same bucket, and nobody has measured
@@ -26,7 +30,8 @@ The fair-test gate's row 17 (gain buckets) is the one difference. The comparison
 - The solve's time, CANDGI against CANDD.
 
 A gain beyond noise on the panel, or on a household, comes back to the maintainer as a proposal (a registered held-out
-test before any default moves). A null closes GAIN-BUCKET as measured.
+test before any default moves). A null closes GAIN-BUCKET as measured. **Decided** (B7 in D51): a gain opens a registered
+v2 test after the launch, not before; a harm to the launch candidate goes to the maintainer at once.
 
 **Cost.** Taken from the tier test's CAND units (`results/tiers`: 40 households, 8,000 paths, seed 7002, the same machine
 type): the solves took 4.6 core-hours and the engine 6.5. At 4,000 paths that is about 7.9 core-hours an arm, so about

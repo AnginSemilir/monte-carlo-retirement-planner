@@ -61,6 +61,10 @@ taxable account (`stagedTargetWrapper` "Other Investments"), so they have no lat
 
 ## The run, after the build (brought to the maintainer before it runs)
 
+**Decided** (B7 in D51): it runs second in the research queue, after GAIN-BUCKET, whenever cores are free, at low priority,
+EXPLORATORY and deciding nothing. A gain opens a registered v2 test after the launch; a harm to the launch candidate goes
+to the maintainer at once.
+
 The panel's 17 windfall households, the candidate without the split (CANDD) and with it (CANDW). Seed 7002, 8,000 paths,
 the estate weight 0.02, 45 points, EXPLORATORY.
 - Scripts: `audit-windfall.mjs`, `reduce-windfall.mjs` (its gate and read, checked on synthetic units by `--planted`) and

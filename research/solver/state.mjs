@@ -418,7 +418,7 @@ const BLOCKS = {
     const cf = pick(W, /^PASS {2}6\. the code of 4c05bc0 fails the check: (it throws|the worst gap £[\d.]+)/m, m => m[1]);
     return [`- \`windfall-split.test.mjs\` ${pick(W, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-windfall-split.txt\`, the light settings): the option unset, every table the same to the bit as on the code before it (${off.join(', ')} entries) and 40 runs the same; the routing against a hand calculation on ${nr} cases (S026: ${rt}), planted (the Auto deposit's own claims not given back) ${p2} apart; the engine and the forward run in step with each split forced (${ls.join(', ')}), planted (the split dropped from the engine's move) ${p3} apart; the option on, ${on}, ${mn}; the copies left out outside the deposit year, ${sk} table entries the same as with them scored in every year; a couple with an Auto deposit steps under the even funding split as under its own move (${cp}), where on 4c05bc0, whose moves carried the windfall as \`split\`, ${cf}.`, ...savings()];
   },
-  // the review's gaps sweep ported (D38 (6), AFTER-PHASE4 section 5): the nightly tier's run, and the CGT case on the code before its fix
+  // the review's gaps sweep ported (D38 (6), AFTER-PHASE4 section 5): the full tier's run, and the CGT case on the code before its fix
   gaps() {
     const G = 'research/tests/results-gaps-sweep.txt';
     if (read(G) === null) return [`- pending: ${G}`];
@@ -427,7 +427,7 @@ const BLOCKS = {
     const verdict = pick(G, /^SWEEP: (.*)$/m, m => m[1]);
     const worst = Math.max(...[...t.matchAll(/^PASS {2}.*?worst gap £([\d.e+-]+)/gm)].map(m => Number(m[1])));
     const pre = pick(G, /^FAIL {2}CGT off and cash interest untaxed .*?worst gap £([\d.]+) \(([^,]+), (path \d+ year \d+)\)/m, m => `worst gap £${m[1]} (${m[2]}, ${m[3]})`);
-    return [`- \`gaps-sweep.test.mjs\` (\`results-gaps-sweep.txt\`; the nightly tier, outside FAST): ${head}: ${verdict}, the worst gap on a passing case £${worst.toExponential(2)}. Shown failing once on a real fault: the CGT case on the code before the basis fix (a1fd52f^), ${pre}.`];
+    return [`- \`gaps-sweep.test.mjs\` (\`results-gaps-sweep.txt\`; the full tier, outside FAST): ${head}: ${verdict}, the worst gap on a passing case £${worst.toExponential(2)}. Shown failing once on a real fault: the CGT case on the code before the basis fix (a1fd52f^), ${pre}.`];
   }
 };
 

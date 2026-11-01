@@ -2,9 +2,9 @@
 
 `PART-C-PLAN.md` item 3, after Phase 7 (merged, D50). Everything here sits behind `const SOLVER = false` in `src/App.jsx`.
 With the switch off, the Config tab and everything the app computes are as today. One pull request to `main` at the end,
-from a release branch cut at the gate's commit, merged by the agent on B1's gate (D51): `bash
-research/ui-harnesses/run-all.sh 4173` and `bash research/ui-harnesses/run-all.sh 4173 --solver` (the switch-on gate,
-below) both print ALL REQUIRED GREEN, both CI tiers are green on its head, and each new test has failed on its plant.
+from a release branch cut at the gate's commit, merged by the agent on B1's gate (D41; B1 in D51): ALL REQUIRED GREEN with the switch off and
+on, that is `bash research/ui-harnesses/run-all.sh 4173` and `bash research/ui-harnesses/run-all.sh 4173 --solver` (the
+switch-on gate, below) both print it, both CI tiers are green on its head, and each new test has failed on its plant.
 
 **Acceptance test.**
 - `research/tests/solver-aims.test.mjs` passes, each check shown failing on its plant.

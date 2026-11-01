@@ -2541,6 +2541,7 @@
    "research/solver/results-copyx-preflight.txt",
    "research/solver/results-copyx-years.txt",
    "research/solver/results-copyx.txt",
+   "research/solver/results-costs.txt",
    "research/solver/results-covb.txt",
    "research/solver/results-covedge.txt",
    "research/solver/results-covflow.txt",

@@ -1,4 +1,4 @@
-The windfall split's tests: the code at /home/user/vitejs-vite-kdvuf9qw (82e4ad6 with changes), the code before the option at /tmp/windfall-base-ffWzXn (82e4ad6); windfall households S026, S090, no deposit S040; the light settings
+The windfall split's tests: the code at /home/user/vitejs-vite-kdvuf9qw (4c05bc0 with changes), the code before the option at /tmp/windfall-base-1wbD8z (82e4ad6); windfall households S026, S090, no deposit S040; the light settings
 =========== 1. OFF: THE CODE BEFORE THE OPTION ===========
 PASS  1. S026, the option unset, against the code before it: 3048192 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 32 s, the code before 41 s)
 PASS  1. S090, the option unset, against the code before it: 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 41 s, the code before 54 s)
@@ -14,10 +14,13 @@ PASS  3. S026, split 1 forced in 2030: 560 household-years in step over 20 paths
 PASS  3. S026, split 2 forced in 2030: 560 household-years in step over 20 paths, the worst gap £7.28e-11 (ISA, path 10 year 18); the forward run survives 20 of 20
 PASS  3. S026, split 3 forced in 2030: 560 household-years in step over 20 paths, the worst gap £1.46e-10 (wealth at the end, path 15); the forward run survives 20 of 20
 PASS  3. live: after 2030 on path 0 the pension is £63773 under split 1 and £59856 under split 3, the ISA £50660 and £29326
-PASS  3. planted: the engine handed split 1's move without its split parts from the forward run by £54803 (taxable and cash, path 8 year 19), and the check fails (63 s)
+PASS  3. planted: the engine handed split 1's move without its split parts from the forward run by £54803 (taxable and cash, path 8 year 19), and the check fails (64 s)
 =========== 4. THE OPTION ON ===========
-PASS  4. S040 (no Auto deposit), the option on: the menu the same (800 moves); 3048192 table entries the same as off; 40 runs the same; recorded "no Auto deposit" (36 s)
+PASS  4. S040 (no Auto deposit), the option on: the menu the same (800 moves); 3048192 table entries the same as off; 40 runs the same; recorded "no Auto deposit" (35 s)
 PASS  4. S026 (an Auto deposit), the option on: 3200 moves against 800; its tables differ from off (first at world 0 layer 0 surv year 0 cell 2); recorded "on"
 =========== 5. THE COPIES LEFT OUT OUTSIDE A DEPOSIT YEAR ===========
-PASS  5. S026: the copies scored in every year (SPLIT.skip false) against left out outside 2030: 3048192 table entries the same to the bit; 40 runs the same (every year 79 s)
-ALL PASS: 16 checks
+PASS  5. S026: the copies scored in every year (SPLIT.skip false) against left out outside 2030: 3048192 table entries the same to the bit; 40 runs the same (every year 76 s)
+=========== 6. A COUPLE'S FUNDING SPLIT BESIDE AN AUTO DEPOSIT ===========
+PASS  6. S003 (a couple, an Auto deposit in 2030): the even funding split with one order for both, the exact model's year against its own, the worst gap £0.00e+0
+PASS  6. the code of 4c05bc0 fails the check: it throws (Cannot read properties of undefined (reading 'forEach'))
+ALL PASS: 18 checks

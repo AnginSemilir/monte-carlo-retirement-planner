@@ -33,17 +33,17 @@ taxable account (`stagedTargetWrapper` "Other Investments"), so they have no lat
 - The engine (`src/App.jsx`):
   - `buildContext` marks the plan's entries for Auto deposits (`auto: true`) and computes `ctx.autoSplit`: by year, the
     entries for splits 1 to 3.
-  - `stepYear` step 1 skips the marked entries and applies the chosen split's when the year's move carries `split` above 0.
+  - `stepYear` step 1 skips the marked entries and applies the chosen split's when the year's move carries `windfall` above 0.
   - Unchanged when the move carries no split.
 - The forward run (`fast.js`) and the exact model (`model.js`) do the same.
   - `compile` reads the plan's Auto amounts and the split entries by pot and year.
-  - A move's `split` swaps them in, in the deposit year only.
+  - A move's `windfall` swaps them in, in the deposit year only.
 - The menu (`solve.js` `buildActions`): with the option on, and only for a household with an Auto deposit, every move
   gets three split copies.
   - In a year with no Auto deposit, the copies flow exactly as their base move. They come after it in the list, so a tie
     goes to the base.
   - The loops skip the copies in those years, so the solve costs more only in deposit years.
-- The bridge: the move handed to the engine carries `split`.
+- The bridge: the move handed to the engine carries `windfall`.
 - The audit row: the split's code.
 
 ## The tests (`windfall-split.test.mjs`)

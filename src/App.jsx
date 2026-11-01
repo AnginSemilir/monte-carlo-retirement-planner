@@ -2059,14 +2059,14 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   // 1. one-off deposits (dated: not pro-rated) — includes staged deposits' year-0 immediate tranche + parked surplus
   const deposits = ctx.oneOffContribs.get(year);
   // the windfall split (research, D37): a table's move may put this year's Auto money elsewhere than the plan's routing
-  const split = chosen && chosen.split > 0 && ctx.autoSplit ? ctx.autoSplit.get(year) : null;
+  const split = chosen && chosen.windfall > 0 && ctx.autoSplit ? ctx.autoSplit.get(year) : null;
   const deposit = x => {
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (cgtOn && x.id.startsWith('other_')) giaAddBasis(state, ownerOfId(x.id), x.amount);
   };
   if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
-  if (split) split.variants[chosen.split].forEach(deposit);
+  if (split) split.variants[chosen.windfall].forEach(deposit);
 
   // 1.5 staged multi-year drip transfers (t>=1): drain GIA into the (possibly redirected) staged target,
   // capped at whatever remains in GIA — this naturally handles a market-crash-depleted GIA.

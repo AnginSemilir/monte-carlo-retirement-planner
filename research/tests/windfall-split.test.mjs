@@ -18,12 +18,15 @@
  *      differ from the option off, `meta.windfallSplit` 'on'.
  *   5. THE SKIP: the copies left out outside a deposit year (SPLIT.skip) change no table and no run; with them scored in
  *      every year the tables and 40 runs are the same.
+ *   6. A COUPLE'S FUNDING SPLIT: a couple with an Auto deposit steps in the exact model under the even funding split (a
+ *      couple's move carries `split`, the share the first person funds) as under its own move, to the pound. The move's
+ *      windfall field was `split` in 4c05bc0, so the couple threw in its deposit year; that code fails the check.
  *   node research/tests/windfall-split.test.mjs [--base <root of the code before the option>]
  */
 import { resolve, join, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { execFileSync, execSync } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, symlinkSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -161,12 +164,12 @@ try {
   const moveOf = (r, ai, dropSplit) => {
     const a = r.actions[ai], ca = r.c.acts[ai];
     return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-      spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.split && !dropSplit ? { split: a.split } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: 'forced',
+      spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.windfall && !dropSplit ? { windfall: a.windfall } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: 'forced',
       tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
   };
   const id0 = 'S026', plan0 = SOLVED[id0].plan;
   let t0 = Date.now();
-  const rOn = solve(C, E, M, plan0, ON), T = rOn.m.ctx.totalYears, A0 = rOn.actions.findIndex(a => a.split), yDep = Y - rOn.m.ctx.baseYear;
+  const rOn = solve(C, E, M, plan0, ON), T = rOn.m.ctx.totalYears, A0 = rOn.actions.findIndex(a => a.windfall), yDep = Y - rOn.m.ctx.baseYear;
   const paths = pathsFor(rOn, 20);
   const lockstep = (v, dropSplit) => {
     const force = (t, s, held) => { const ai = S.chooseAction(rOn, s, t, held) % A0; return t === yDep ? ai + v * A0 : ai; };
@@ -211,7 +214,7 @@ try {
   {
     t0 = Date.now();
     const off = SOLVED[NODEP].off, on = solve(C, E, M, SOLVED[NODEP].plan, ON);
-    const sameMenu = on.actions.length === off.actions.length && on.actions.every((a, i) => a.label === off.actions[i].label && !a.split);
+    const sameMenu = on.actions.length === off.actions.length && on.actions.every((a, i) => a.label === off.actions[i].label && !a.windfall);
     const st = sameTables(on, off), rd = runDiff(runsOf(S, on, SOLVED[NODEP].paths), runsOf(S, off, SOLVED[NODEP].paths));
     ok(sameMenu && st.same && rd < 0 && on.meta.windfallSplit === 'no Auto deposit',
       `4. ${NODEP} (no Auto deposit), the option on: the menu ${sameMenu ? 'the same' : 'DIFFERENT'} (${on.actions.length} moves); ${st.n} table entries ${st.same ? 'the same as off' : `differ (${st.at})`}; 40 runs ${rd < 0 ? 'the same' : `differ at path ${rd}`}; recorded ${JSON.stringify(on.meta.windfallSplit)} (${sec(t0)})`);
@@ -233,6 +236,32 @@ try {
     try { rAll = runsOf(S, all, SOLVED[id0].paths); } finally { S.SPLIT.skip = true; }
     const rd = runDiff(runsOf(S, rOn, SOLVED[id0].paths), rAll);
     ok(st.same && rd < 0, `5. ${id0}: the copies scored in every year (SPLIT.skip false) against left out outside ${Y}: ${st.n} table entries ${st.same ? 'the same to the bit' : `differ (${st.at})`}; 40 runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`} (every year ${ta})`);
+  }
+
+  // -------------------------------------------------------------------------------------------------- 6. A COUPLE'S FUNDING SPLIT
+  console.log("=========== 6. A COUPLE'S FUNDING SPLIT BESIDE AN AUTO DEPOSIT ===========");
+  {
+    // the bug of 4c05bc0: the windfall was read from a move's `split`, which a couple's move (couple.js) uses for the share of
+    // the need the first person funds, so a couple with an Auto deposit threw in its deposit year; the field is `windfall` now
+    const { buildScenarios } = await imp(ROOT, 'research/policy-study/scenarios.mjs');
+    const sc = buildScenarios().filter(s => s.plan.demographics.planningMode !== 'single').find(s => (s.plan.oneOffContributions || []).some(x => x.category === E.AUTO_DEPOSIT));
+    const plan = E.resolveMpaa(E.normalizePlan({ ...structuredClone(sc.plan), config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
+    const evenYear = Mx => {
+      const m = Mx.prepare(E, plan), own = Mx.actionFromContext(m.ctx), per = { steps: own.steps, harvest: own.harvest, harvestCeil: own.harvestCeil };
+      const even = { ...own, split: 0.5, perOwner: { self: per, part: per } }, s1 = Mx.initialState(m), s2 = Mx.initialState(m);
+      let worst = 0;
+      try { for (let t = 0; t <= m.ctx.totalYears; t++) { const r1 = Mx.step(m, s1, own, t), r2 = Mx.step(m, s2, even, t); worst = Math.max(worst, Math.abs(r1.totalCombined - r2.totalCombined), Math.abs(r1.taxPaid - r2.taxPaid)); } } catch (e) { return { threw: e.message }; }
+      return { worst, years: [...m.ctx.autoSplit.keys()].join(', ') };
+    };
+    const cur = evenYear(M);
+    ok(!cur.threw && cur.worst < 0.01 && cur.years, `6. ${sc.id} (a couple, an Auto deposit in ${cur.years || '?'}): the even funding split with one order for both, the exact model's year against its own, ${cur.threw ? `THREW (${cur.threw})` : `the worst gap £${cur.worst.toExponential(2)}`}`);
+    // shown failing on the code of 4c05bc0 (its model.js, which imports nothing, beside this engine)
+    const dir = mkdtempSync(join(tmpdir(), 'windfall-fault-')), f = join(dir, 'model.mjs');
+    try {
+      writeFileSync(f, execFileSync('git', ['show', '4c05bc0:src/solver/model.js'], { cwd: ROOT }));
+      const bad = evenYear(await import(pathToFileURL(f).href));
+      ok(!!bad.threw || bad.worst >= 0.01, `6. the code of 4c05bc0 fails the check: ${bad.threw ? `it throws (${bad.threw})` : `the worst gap £${bad.worst.toFixed(2)}`}`);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
   }
 } finally {
   cleanup();

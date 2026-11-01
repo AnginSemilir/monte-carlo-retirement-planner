@@ -172,7 +172,7 @@ export function buildActions(opts = {}) {
 const SPLIT_LABEL = ['', ', the windfall to the pension, then the ISA', ', the windfall to the ISA', ', the windfall kept taxable'];
 function withSplitCopies(out) {
   const n = out.length, all = out.slice();
-  for (let v = 1; v <= 3; v++) for (const a of out) all.push({ ...a, split: v, tierBase: a.tierBase + v * n, label: a.label + SPLIT_LABEL[v] });
+  for (let v = 1; v <= 3; v++) for (const a of out) all.push({ ...a, windfall: v, tierBase: a.tierBase + v * n, label: a.label + SPLIT_LABEL[v] });
   return all;
 }
 
@@ -2634,8 +2634,8 @@ function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
 // no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
 function researchFinish(r, LK, opts) {
   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
-  if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.split) ? 'on' : 'no Auto deposit';   // D37, research
-  if (r.actions.some(a => a.split)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
+  if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
+  if (r.actions.some(a => a.windfall)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
   if (!LK) return;
   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
   r.meta.lockTiers = LK.meta; r.lockTiers = LK;
@@ -2657,7 +2657,7 @@ function splitOn(m, opts) {
    the windfall split's copies (they flow as their base there, so leaving them out changes no score); all where it is off. */
 export const SPLIT = { skip: true };   // windfall-split.test.mjs only: false scores the copies in every year (they tie with their base)
 function splitCounts(c, actions, T) {
-  const A = actions.length, A0 = actions.some(a => a.split) ? actions.findIndex(a => a.split) : A, out = new Int32Array(T + 1).fill(A);
+  const A = actions.length, A0 = actions.some(a => a.windfall) ? actions.findIndex(a => a.windfall) : A, out = new Int32Array(T + 1).fill(A);
   if (A0 < A && SPLIT.skip) for (let t = 0; t <= T; t++) if (!c.yr.splitYear[t]) out[t] = A0;
   return out;
 }

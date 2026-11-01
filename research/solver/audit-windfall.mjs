@@ -51,7 +51,7 @@ export const fileOf = (id, arm) => `${id}-${arm.toLowerCase()}.json.gz`;
 export function armProblems(arm, r) {
   const P = [], want = arm === 'CANDW';
   if ((r.meta.windfallSplit === 'on') !== want) P.push(`windfallSplit ${r.meta.windfallSplit} on ${arm}`);
-  if (want && !r.actions.some(a => a.split)) P.push('no split copies on the menu');
+  if (want && !r.actions.some(a => a.windfall)) P.push('no split copies on the menu');
   if (r.meta.failDelivered !== true) P.push(`failDelivered ${r.meta.failDelivered}`);
   if (Math.abs(r.lambda - LAMBDA) > 1e-15) P.push(`lambda ${r.lambda}, not ${LAMBDA}`);
   if (!r.meta.tierState || Math.abs(r.switchCharge - CANDIDATE_OPTS.switchCharge) > 1e-15) P.push(`tier state ${r.meta.tierState}, switch charge ${r.switchCharge}`);
@@ -111,7 +111,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     let engineOnly = 0, policyOnly = 0;
     for (let k = 0; k < NB; k++) {
       const o = runPolicy(r, Float64Array.from(paths[k]), { visit: (t, s, held, ai) => {
-        const d = depT.indexOf(t); if (d >= 0) chosen[d][r.actions[ai].split || 0]++;
+        const d = depT.indexOf(t); if (d >= 0) chosen[d][r.actions[ai].windfall || 0]++;
         const e = depT.indexOf(t - 1); if (e >= 0) { after[e].n++; after[e].pen += s[0]; after[e].isa += s[1]; after[e].tax += s[2]; }
       } });
       const p = o.survived ? 1 : 0;

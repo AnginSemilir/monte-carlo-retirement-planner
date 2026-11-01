@@ -327,7 +327,7 @@ export function compile(m, actions) {
       steps: Int8Array.from(a.steps.map(codeOf)),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
       harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
-      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, split: a.split || 0,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, windfall: a.windfall || 0,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
       tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
@@ -428,7 +428,7 @@ export function flow(c, t, ai, s) {
       else { const take = Math.min(cash, d); cash -= take; unmet += d - take; }
     }
     // the windfall split (research, D37): in a year with Auto money, a move's split replaces the plan's Auto entries
-    const p = a.split && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.split][i][t] : yr.dep[i][t];
+    const p = a.windfall && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.windfall][i][t] : yr.dep[i][t];
     if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
     const dr = yr.drip[i][t]; if (dr > 0) { const mv = sellGia(dr); if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv; }
   }

@@ -1,0 +1,67 @@
+# node facts.mjs --ref 276ae09 (the agent's branch at 276ae09 01 Nov 06:52 DECISIONS-PENDING.md: every open decision in one place, for finalising the plan)
+
+## A. The code
+- The switch: src/App.jsx line 6925 reads "const SOLVER = false;"; the engine slice (research/build-engine.py) ends at line 6897 of 16006, so the switch and the UI below it are outside the engine the tests import.
+- src/solver/diff.js: absent
+- src/solver/distil.js: absent
+- src/solver/couple.js: present
+- research/ui-harnesses/solver-strategy-ui.cjs: absent
+- src/solver/couple.js: 180 lines; "Tiers are off for couples
+ * in this pilot; the raise and the floor are the single solver's and pass through the single plans."
+- The verification suite: 137 test files, 52 in FAST, 85 in the nightly tier only; among the latter: solver-aims.test.mjs, lock-tiers.test.mjs, solver-couple.test.mjs, windfall-split.test.mjs, save-split.test.mjs, gaps-sweep.test.mjs.
+- The harness gate (research/ui-harnesses/run-all.sh): 17 REQUIRED harnesses, the solver's solver-progress and solver-config; the gate builds the site once with `npm run build` (the switch off), and has no mode that builds it with the switch on.
+- CI (.github/workflows/verify.yml): the fast tier on every push and pull request; the full tier on workflow_dispatch and nightly at cron '17 2 * * *' (UTC); one job, timeout 300 minutes, the tests 2 at a time; it checks out the commit that triggered it (a scheduled run: the default branch's).
+- The pre-commit hook: the fast tier, -j 2, whenever a commit touches src/|research/.*.(mjs|js)$|.claude/hooks/|.githooks/.
+- Cross-origin isolation: vite.config.js sends COOP and COEP on server and preview only; .github/workflows/deploy.yml publishes dist to GitHub Pages with no headers step.
+- The live site's saved plans (.github/workflows/deploy.yml): "Visitors' saved plans live in their own browser keyed to that origin, so they survive updates - but they would NOT survive a move to a different domain. See DEPLOY.md."
+- vite.config.js on the headers: "Every asset the app loads is its own, so `require-corp` blocks nothing."
+- The solver's worker imports the whole of App.jsx ("import * as App from './App.jsx';") and keys the stored solves on its own URL: `const CODE = self.location ? self.location.href : 'unknown';` (src/solverWorker.js).
+- The page's solve: "Elsewhere the solve runs whole in one worker." (src/solverClient.js); the simulation of the solved plan runs in the owner worker alone (src/solverWorker.js 'simulate').
+- The engine's monteCarlo runs 5000 paths by default (src/App.jsx).
+- Phase 8's tests: research/solver/results-solver-aims.txt "ALL PASS: 21 checks"; the Phase 8 commit (91cd38e) on research/ui-harnesses/solver-config-ui.cjs: "all 23 checks ok on this code" (a commit message, not a results file).
+- Commits on the branch not on main: 7 (main at 899e5f0 Merge Part C, Phase 7: the solver's plumbing, behind a switch that stays off (#2)).
+
+## B. CI and the repository (GitHub REST, fetched 2026-11-01T07:19:15Z)
+- Default branch main; public true; a fork false; Pages true.
+- The nightly schedule reached main with pull request 2, merged 31 Oct, 21:29 UK; scheduled times since then: 1 (the first 01 Nov, 02:17 UK); scheduled runs GitHub lists for the repository: 0.
+- the fast tier on a push, run 41279180895 on 01bab1b (push): "52 files found, 52 run, 52 passed"; 52 files, 3988 CPU seconds (1.11 CPU-hours); the job 01 Nov, 06:02 to 01 Nov, 06:42 UK, 0 h 40 min; the longest: pay-where.test.mjs 871 s, speed-port.test.mjs 811 s (42% of the tier's CPU).
+- the full tier by hand (workflow_dispatch), run 41268883590 on 574cb57 (workflow_dispatch): "135 files found, 135 run, 135 passed"; 135 files, 27158 CPU seconds (7.54 CPU-hours); the job 01 Nov, 03:21 to 01 Nov, 07:08 UK, 3 h 47 min, against the job's 300-minute limit (24% to spare); the longest: pr31-split.test.mjs 5044 s, solver-memo-full.test.mjs 2663 s, adaptive-dup-full.test.mjs 2059 s, gaps-sweep.test.mjs 1873 s (43% of the tier's CPU).
+- The full tier over four parallel slots (two shards at -j 2): 1.9 hours a shard if balanced; its longest file pr31-split.test.mjs 84 minutes.
+
+## C. The solve's cost, from the agent's results files
+- Gate 5 (research/solver/results-gate5.txt, fbf09b414864): the candidate at 45 points on one core 428.8 to 569.2 s (7.1 to 9.5 min), split across 4 cores 113.6 to 160.5 s; "median: CAND/PRODUCT x2.980, SPLIT/PRODUCT x0.857, the split's speed-up x3.55".
+- Six solves split four ways at gate 5's split times (the age dial's three years either way, D18): 11.4 to 16.1 minutes.
+- In this container's Chromium (research/solver/results-n7-check.txt, the commit's suite running beside it): S370, the candidate at 45 points in one worker, 668.03 s (11.1 min); its tables 261 MB.
+- The locked dial at ten against its base, on the agent's port (research/solver/results-lock-check.txt): S090 569 s against 608 s (x0.94); S328F 833 s against 852 s (x0.98).
+- The dial as built (lambda alone) moves the risk: the retirees' pension and ISA equity share at retired year 1, CANDD 24.7%, DIAL3 34.7%, DIAL10 34.7% (research/solver/results-curve-dial.txt, 8 households, seed 7002, 4,000 paths).
+- Phase 4's budget (research/solver/results-phase4-sizing.txt): "THE BUDGET (D21), from the pilot's units on one host (Intel(R) Xeon(R) Processor @ 2.80GHz): 111.4 core-hours, about 27.9 hours on 4 cores (the solves 17.5, the engine 88.1)".
+- The engine under the candidate's table: "0.115 core-hours of solve and 0.163 of engine a household" at 8,000 paths (research/solver/WINDFALL-SPLIT.md, from the tier test's units): 73 ms a path, so 5000 paths about 6.1 min in one worker.
+
+## D. The review's locked run (research/reviews/2026-10-30/lock, EXPLORATORY, seed 7002, 1,000 paths a household, 8 households)
+- CAND: survival 97.0%; the retirees' first year 80.0% of target; retired years 1-5 86.5%; at the floor in years 1-5 76%; the retirees' equity at retired year 1 24.6%.
+- D10MLK: survival 95.5%; the retirees' first year 93.8% of target; retired years 1-5 95.5%; at the floor in years 1-5 5%; the retirees' equity at retired year 1 24.6%.
+- D10MLK less CAND: -1.44 (se 0.14; -1.71 to -1.17).
+- D10MLK less DIAL10M: -0.10 (se 0.09; -0.27 to +0.07).
+- The locked solve against its base, two households at a time (results-lock-run-workers.txt): S328F 419/422 s, S304F 427/431 s, S340F 441/462 s, S368 440/457 s, S188 281/304 s, S090 257/299 s, S030 205/228 s, S050 193/218 s; the ratio 0.86 to 0.99.
+
+## E. The spending floor
+- Every line under src/ that names the plan's spending floor (floorSpend): src/App.jsx:1597, src/App.jsx:1598, src/App.jsx:1938, src/solver/couple.js:42; no screen asks for it and the solver's preparation (src/solverSettings.js prepareForSolve) sets none.
+- The candidate's menu (src/solver/solve.js productLevels): "The menu for a floor, as a fraction of target: raises to 1.2, then 1, 0.95, 0.9 and the floor itself, never below it."; with no floor the rule is `const f = floorFrac > 0 ? Math.min(1, floorFrac) : 1;`, so the levels are the target and the raises only.
+- Phase 4's panel (research/solver/phase4-panel.mjs line 98): "p.spending = { ...p.spending, targetSpend: target, floorSpend: Math.round(0.8 * target) };"; gate 5's audit (research/solver/audit-e2x.mjs) sets floorSpend at 0.8 of the target too.
+- The curve, dial, tier and lock runs build their households from that panel: research/solver/audit-curve.mjs, research/solver/audit-tiers.mjs, research/solver/lock-check.mjs import phase4-panel.mjs, and so does the review's lock run (research/reviews/2026-10-30/lock/lock-run.mjs).
+- The library (research/policy-study/scenarios.mjs at 276ae09): 420 households, 210 single; 0 of the singles carry a floor.
+
+## F. The wealth points' cost (research/solver/results-v3.txt, V3's ladder: survival points / whole score on the panel mean, then the largest household)
+- the estate weight 0.02, 20 -> 30 points: panel mean +0.364 / +0.398, the largest on a household S224 +0.78 / +0.98 (BEYOND)
+- the estate weight 0.02, 30 -> 45 points: panel mean +0.212 / +0.267, the largest on a household S224 +0.31 / +0.44 (BEYOND)
+- the estate weight 0.02, 45 -> 60 points: panel mean +0.054 / +0.077, the largest on a household S370 +0.19 / +0.21 (within)
+- the estate weight 0.01, 20 -> 30 points: panel mean +0.336 / +0.335, the largest on a household S224 +1.01 / +1.10 (BEYOND)
+- the estate weight 0.01, 30 -> 45 points: panel mean +0.271 / +0.324, the largest on a household S380 +0.47 / +0.53 (BEYOND)
+- the estate weight 0.01, 45 -> 60 points: panel mean +0.039 / +0.046, the largest on a household S370 +0.25 / +0.26 (within)
+
+## G. The cache, the bridge margin, one-off costs and couples
+- The cache (src/solverCache.js) keeps one solve: storing clears the store and puts the new solve as 'latest' ("The latest plan only: a candidate solve at 45 points is about 261 MB of tables (results-n7-check.txt), so each store replaces the one before.").
+- The bridge safety margin: src/App.jsx line 13714 labels it "Tournament bridge safety margin (%)", in the Config card that stays under the switch; files of the solver that read it: none. D18 (STATE.md): "the bridge safety margin stays as a lock".
+- One-off costs: on Phase 4's panel 0 of 40 households; the library's singles 0 of 210; its couples 210 of 210.
+- The archive on couples: O11, "60 of the library's 210 couples have a bridge for at least one partner"; M4, "The couples rollout has three gaps. Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`."; M12, "The solver's handling of one-off COSTS has never been tested on a single household."; and "Mortality: No death probabilities. The horizon is a fixed plan-to age. A maintainer constraint, not a gap."
+- The age weights (src/solver/solve.js): "`ageWeight` = { mode, disp } weights each year's cost of a cut, and its credit for a raise, by a Gompertz chance of being alive from the plan's age"; "Survival stays the currency and nothing else moves."

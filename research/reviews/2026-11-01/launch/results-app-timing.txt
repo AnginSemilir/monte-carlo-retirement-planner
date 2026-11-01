@@ -1,0 +1,23 @@
+# The app's solve and simulation, timed as the app runs them (launch/app-timing.mjs, run from the root of the agent's code
+# at 276ae09 with research/engine.mjs built; the review's container: two cores, one run on each; the start and end
+# times are each run's own records, UK time). EXPLORATORY: a measurement, deciding nothing.
+
+## node app-timing.mjs S126 300 0.8 (01 Nov 07:25:36 to 07:37:22 UK; beside it, S370's runs)
+S126 (the floor at 0.8 of the target) the app's solve (the candidate, 45 points, the default aims): 330 s; the spending levels on its menu [1,1.1,0.95,0.9,0.8]; tables 227 MB; the tier above off: no tier above the plan; the simulation 61.9 ms a path over 300 paths (survival 100.0%); code 276ae09ee151
+S126 (the floor at 0.8 of the target) the dial at ten, age-weighted, on the candidate's tiers: 320 s (0.97 x the base's); tables 227 MB beside the base's; the simulation 122.9 ms a path (1.99 x the base's; survival 100.0%)
+S126 (the floor at 0.8 of the target) 5,000 paths in one worker at these rates: the base 5.2 min, the locked position 10.2 min; the base solve and its 5,000 paths 10.7 min
+
+## node app-timing.mjs S126 300 (01 Nov 07:37:31 to 07:42:20 UK; beside it, S370 with the floor)
+S126 (the plan's own floor: none) the app's solve (the candidate, 45 points, the default aims): 137 s; the spending levels on its menu [1,1.1]; tables 227 MB; the tier above off: no tier above the plan; the simulation 29.2 ms a path over 300 paths (survival 99.7%); code 276ae09ee151
+S126 (the plan's own floor: none) the dial at ten, age-weighted, on the candidate's tiers: 126 s (0.92 x the base's); tables 227 MB beside the base's; the simulation 57.0 ms a path (1.95 x the base's; survival 99.7%)
+S126 (the plan's own floor: none) 5,000 paths in one worker at these rates: the base 2.4 min, the locked position 4.8 min; the base solve and its 5,000 paths 4.7 min
+
+## node app-timing.mjs S370 300 0.8 (01 Nov 07:28:35 to 07:44:08 UK; beside it, S126's runs)
+S370 (the floor at 0.8 of the target) the app's solve (the candidate, 45 points, the default aims): 456 s; the spending levels on its menu [1,1.1,0.95,0.9,0.8]; tables 265 MB; the tier above off: no tier above the plan; the simulation 72.6 ms a path over 300 paths (survival 84.3%); code 276ae09ee151
+S370 (the floor at 0.8 of the target) the dial at ten, age-weighted, on the candidate's tiers: 415 s (0.91 x the base's); tables 265 MB beside the base's; the simulation 130.6 ms a path (1.80 x the base's; survival 81.3%)
+S370 (the floor at 0.8 of the target) 5,000 paths in one worker at these rates: the base 6.0 min, the locked position 10.9 min; the base solve and its 5,000 paths 13.6 min
+
+## node app-timing.mjs S370 300 (01 Nov 07:44:26 to 07:51:43 UK; beside it, a failed dependency install for 25 seconds, then nothing)
+S370 (the plan's own floor: none) the app's solve (the candidate, 45 points, the default aims): 213 s; the spending levels on its menu [1,1.1]; tables 265 MB; the tier above off: no tier above the plan; the simulation 20.7 ms a path over 300 paths (survival 20.3%); code 276ae09ee151
+S370 (the plan's own floor: none) the dial at ten, age-weighted, on the candidate's tiers: 204 s (0.96 x the base's); tables 265 MB beside the base's; the simulation 42.0 ms a path (2.03 x the base's; survival 20.3%)
+S370 (the plan's own floor: none) 5,000 paths in one worker at these rates: the base 1.7 min, the locked position 3.5 min; the base solve and its 5,000 paths 5.3 min

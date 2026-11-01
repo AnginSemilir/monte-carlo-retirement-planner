@@ -1,0 +1,11 @@
+# node estimate.mjs results-app-timing.txt (one worker, one core, as measured; 5,000 paths is the engine's monteCarlo default)
+
+- S126, the floor at 80%: the menu's spending levels [1,1.1,0.95,0.9,0.8]; the solve 330 s and 5,000 paths 310 s, so an edit to a solved and simulated plan 10.7 min; the dial at ten from cold (the base, then the position, then 5,000 of its paths) 21.1 min; the two solves' tables 454 MB; survival on 300 paths 100% (the dial at ten 100%).
+- S126, no floor (the app as wired): the menu's spending levels [1,1.1]; the solve 137 s and 5,000 paths 146 s, so an edit to a solved and simulated plan 4.7 min; the dial at ten from cold (the base, then the position, then 5,000 of its paths) 9.1 min; the two solves' tables 454 MB; survival on 300 paths 99.7% (the dial at ten 99.7%).
+- S370, the floor at 80%: the menu's spending levels [1,1.1,0.95,0.9,0.8]; the solve 456 s and 5,000 paths 363 s, so an edit to a solved and simulated plan 13.7 min; the dial at ten from cold (the base, then the position, then 5,000 of its paths) 25.4 min; the two solves' tables 530 MB; survival on 300 paths 84.3% (the dial at ten 81.3%).
+- S370, no floor (the app as wired): the menu's spending levels [1,1.1]; the solve 213 s and 5,000 paths 104 s, so an edit to a solved and simulated plan 5.3 min; the dial at ten from cold (the base, then the position, then 5,000 of its paths) 10.4 min; the two solves' tables 530 MB; survival on 300 paths 20.3% (the dial at ten 20.3%).
+- S126, the floor's cost: the solve x2.41, a simulated path x2.12; survival 99.7% with no floor against 100% with it, on the same 300 paths.
+- S370, the floor's cost: the solve x2.14, a simulated path x3.51; survival 20.3% with no floor against 84.3% with it, on the same 300 paths.
+- Step L4 at 4,000 paths, a household: S126 50 core-minutes, S370 59 core-minutes; the eight households at their mean, about 7.3 core-hours.
+- Step L4 with both variants of B3 (six locked positions a household): S126 91 core-minutes, S370 106 core-minutes; the eight households at their mean, about 13.1 core-hours.
+- Step L5 (the one-off cost probe: four cells a household, a solve and 3,000 paths each): S126 34 core-minutes, S370 45 core-minutes; the eight households at their mean, about 5.3 core-hours.

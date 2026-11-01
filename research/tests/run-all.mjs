@@ -7,6 +7,10 @@
  *   node research/tests/run-all.mjs --list        the fast tier's files
  * Run from the repository root after `python3 research/build-engine.py`. A file in FAST that does not exist is a failure,
  * not a skip. Adding a test here protects it: the pre-tool hook refuses edits to every file FAST names.
+ * The fast tier is FAST and, of FAST_JOINING, each file that exists (the launch plan's B8: tests the plan names, not yet
+ * built when the maintainer unlocked their joining on 1 Nov). The hook protects FAST's own names; a joined test is moved
+ * into FAST at the next unlock. The pre-commit hook runs the fast tier through research/tests/fast-skip.mjs, which skips
+ * a test whose traced inputs are unchanged since it last passed; CI runs it whole on every push.
  */
 import { spawn } from 'node:child_process';
 import { readdirSync, existsSync } from 'node:fs';
@@ -21,7 +25,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // the engine's Bed & SIPP relief and Phase 4's audit guards (bed-sipp.test.mjs, phase4-audit.test.mjs; added on the
 // maintainer's unlock of 28 Oct, once Phase 4's units were in); the candidate with one tier pair (risk-consent.test.mjs, D39;
 // the unlock of 29 Oct); Phase 7's worker, app wiring, stored solve and locks (solver-progress, solver-app, solver-cache,
-// solver-locks), D46's paying moves (pay-where) and solve()'s bytecode under V8's limit (solve-size, D48; the unlock of 31 Oct)
+// solver-locks) and solve()'s bytecode under V8's limit (solve-size, D48; the unlock of 31 Oct). D46's paying moves
+// (pay-where.test.mjs) left on the unlock of 1 Nov (B8): it tests an option off in the app and the candidate, and runs in
+// the full tier
 export const FAST = [
   'solver-invariants.test.mjs', 'known-answer.test.mjs', 'engine-fidelity.test.mjs', 'solver-carry.test.mjs', 'tier-above.test.mjs', 'tax-2026.test.mjs', 'table-guards.test.mjs',
   'final-integral.test.mjs', 'check-state.test.mjs', 'hooks.test.mjs', 'fair-gate.test.mjs', 'plan-defaults.test.mjs',
@@ -29,16 +35,20 @@ export const FAST = [
   'entrants.test.mjs', 'guardrails.test.mjs', 'inheritance.test.mjs', 'lookahead.test.mjs', 'pctband.test.mjs',
   'policy.test.mjs', 'priorities.test.mjs', 'salarygrowth.test.mjs', 'settings.test.mjs', 'reader.test.mjs', 'hygiene.test.mjs', 'reduce-7uf.test.mjs', 'check-prediction.test.mjs', 'solver-cash.test.mjs', 'audit-7uf-checks.test.mjs', 'solver-guards.test.mjs', 'state-check.test.mjs', 'solver-scratch.test.mjs', 'solver-memo.test.mjs', 'adaptive-dup.test.mjs', 'chooser-share.test.mjs', 'n4-menu.test.mjs', 'tier-steps.test.mjs', 'speed-port.test.mjs',
   'bed-sipp.test.mjs', 'phase4-audit.test.mjs', 'risk-consent.test.mjs', 'fail-delivered.test.mjs',
-  'solver-progress.test.mjs', 'solver-app.test.mjs', 'solver-cache.test.mjs', 'solver-locks.test.mjs', 'pay-where.test.mjs', 'solve-size.test.mjs'
+  'solver-progress.test.mjs', 'solver-app.test.mjs', 'solver-cache.test.mjs', 'solver-locks.test.mjs', 'solve-size.test.mjs'
 ];
+// B8's tests (the unlock of 1 Nov), each in the fast tier once its file exists: L1's floor, L2's split locked solve, L3's
+// lever matrix (its quick form), Phase 9's split simulation and Part D's couples (D1's quick form)
+export const FAST_JOINING = ['solver-floor.test.mjs', 'lock-split.test.mjs', 'lever-matrix.test.mjs', 'sim-split.test.mjs', 'couple-quick.test.mjs'];
+export const fastTier = () => [...FAST, ...FAST_JOINING.filter(f => existsSync(join(HERE, f)))];
 
 // run only as the script, never on import (hygiene.test.mjs imports FAST: unguarded, the import ran the suite, which ran
 // hygiene.test.mjs, which imported it again)
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
-  if (args[0] === '--list') { FAST.forEach(f => console.log(f)); process.exit(0); }
+  if (args[0] === '--list') { fastTier().forEach(f => console.log(f)); process.exit(0); }
   const tier = args[0] || 'fast', jAt = args.indexOf('-j'), J = jAt >= 0 ? Math.max(1, Number(args[jAt + 1]) || 1) : 1;
-  const files = tier === 'all' ? readdirSync(HERE).filter(f => f.endsWith('.test.mjs')).sort() : tier === 'fast' ? FAST : null;
+  const files = tier === 'all' ? readdirSync(HERE).filter(f => f.endsWith('.test.mjs')).sort() : tier === 'fast' ? fastTier() : null;
   if (!files) { console.error(`run-all: unknown tier ${tier} (fast, all)`); process.exit(2); }
 
   const results = [];

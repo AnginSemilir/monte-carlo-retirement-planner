@@ -1,13 +1,15 @@
 # Part C, Phase 8: the Config tab (the build note)
 
 `PART-C-PLAN.md` item 3, after Phase 7 (merged, D50). Everything here sits behind `const SOLVER = false` in `src/App.jsx`.
-With the switch off, the Config tab and everything the app computes are as today. One pull request to `main` at the end
-(D41 (4)), after `bash research/ui-harnesses/run-all.sh 4173` prints ALL REQUIRED GREEN with the switch off.
+With the switch off, the Config tab and everything the app computes are as today. One pull request to `main` at the end,
+from a release branch cut at the gate's commit, merged by the agent on B1's gate (D51): `bash
+research/ui-harnesses/run-all.sh 4173` and `bash research/ui-harnesses/run-all.sh 4173 --solver` (the switch-on gate,
+below) both print ALL REQUIRED GREEN, both CI tiers are green on its head, and each new test has failed on its plant.
 
 **Acceptance test.**
 - `research/tests/solver-aims.test.mjs` passes, each check shown failing on its plant.
 - The harness `research/ui-harnesses/solver-config-ui.cjs` (REQUIRED) passes.
-- The fast suite and run-all.sh pass.
+- The fast suite and run-all.sh pass in both modes.
 
 **Time box.** To 2 Nov 22:00 UK. When it runs out, stop and report.
 
@@ -63,6 +65,14 @@ nothing is solved: `useSolverState` is handed `SOLVER && !isCouple`.
   `SOLVER_PREVIEW_OPTS` (the harness's light settings), which `useSolver` hands to the key and the solve.
 - If either line has moved, the plugin stops the build, so a harness can never pass on a build whose switch stayed off.
 - The site's own build is untouched. The switch stays the one literal line that Phase 12 turns on.
+
+## The switch-on gate (the launch plan's F7; D41, D51)
+
+`PART-C-PLAN.md` asks for ALL REQUIRED GREEN "with the switch off and, from Phase 8 on, with it on as well".
+`run-all.sh 4173 --solver` builds the site with the plugin above at the harnesses' light settings into `dist-solver`,
+serves it, and runs every REQUIRED harness against it. A harness that tests what the switch replaces is listed in the
+script's `SWITCH_OFF_ONLY` with what covers it with the switch on. The engine suites do not read the switch and run in the
+default mode only.
 
 ## The tests
 

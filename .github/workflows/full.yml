@@ -1,0 +1,49 @@
+# THE FULL TIER ON EVERY PUSH (the launch plan of 1 Nov, B14: the full suite follows the pushes, not the clock).
+#
+# Every test file in research/tests (run-shard.mjs: the files of the full tier split two ways, a fixed split balanced on
+# the last full run's times in research/tests/shard-times.json, each shard's files run to a zero exit, longest first),
+# on every push to the working branch, a release branch or main. One run at a time per branch: a push that arrives
+# during a run waits, and a later push replaces it in the wait (concurrency by branch, cancel-in-progress off), so while
+# the agent pushes the tier runs back to back on the latest code, and stops when the pushes stop. A weekly run on main
+# (Sundays) is the backstop for quiet weeks and for changes to GitHub's runner image. The fast tier stays in verify.yml,
+# so this queue never holds it up. A pull request merges with both green on its head (B1); the session start warns when
+# the branch's latest run here is red or more than 24 hours older than the branch's head (.claude/hooks/session-start.sh).
+name: Full
+
+on:
+  push:
+    branches: ['claude/**', 'release/**', 'main']
+  schedule:
+    - cron: '43 4 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: full-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    name: full tier, shard ${{ matrix.shard }} of 2
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the whole history, as verify.yml's (e3pcls-guard.test.mjs dates each script by its first commit)
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: The runner's cores
+        run: nproc
+      - name: Build the engine from src/App.jsx
+        run: python3 research/build-engine.py
+      - name: The full tier, this shard
+        run: node research/tests/run-shard.mjs ${{ matrix.shard }} 2 -j 2

@@ -43,8 +43,9 @@ spending** (F1).
 - **The fix comes first**, at the tested 80% (B2, step L1).
 
 **What else this rework changes.** Each item comes from a finding in section 2.
-1. **One batch of decisions now** (section 3). It includes every unlock the plan's test, CI and hook changes need, so
-   the agent can run to the beta without stopping.
+1. **Every open decision with the review's best recommendation** (section 3), plus six rules (R1 to R6) that let the
+   pending measurements decide without another stop. The unlocks the plan's test, CI and hook changes need are
+   listed, so the agent can run to the beta without stopping.
 2. **Step 0 goes first:** the CI and hook changes.
    - the nightly on `main` and on the branch;
    - cheaper commits;
@@ -258,26 +259,45 @@ G).
   - the coverage card in the docs;
   - the wording's "never back at target" case.
 
-## 3. The decisions, in one batch (for the maintainer, now)
+## 3. The decisions: the review's best recommendations (1 Nov)
 
-Each row is one answer. Once the maintainer answers, the agent records each answer as the next D-line and proceeds
-without stopping until a named stop (section 5).
+**The maintainer, 1 Nov 08:04 UK:** "For your open questions for me, just give your best recommendations and then
+update".
+- Each row below is the review's best recommendation, with no option left open.
+- They take effect when the maintainer sends section 7's prompt. The agent then records them as D51 onward.
+- Two of them need the maintainer's own words, so the prompt carries each as a separate line to keep or strike:
+  - B8's "unlock enforcement": CLAUDE.md lets only the maintainer's explicit say-so open a protected file;
+  - B3's amendment of the standing "no mortality in the solver" rule.
+- Some answers depend on a measurement still to run. For those, the rule that decides is fixed here first (R1 to R6),
+  so the run decides without another stop. Once the prompt is sent, this section is the maintainer's ruling naming each
+  of those runs (CHECKLIST 1).
 
 | # | decision | recommendation | why |
 |---|---|---|---|
 | B1 | Leave to merge (DECISIONS-PENDING row 1, widened) | Each step's pull request (0, 8, L, 9, 10, P, 11) merges to `main` once three things are recorded in it: `run-all.sh` prints ALL REQUIRED GREEN in both modes; CI is green on its head; each new test has been shown failing on its plant (CHECKLIST 5). The `reviewer` and `deep-reviewer` agents come in where CLAUDE.md says: each read's claims, each change of default, each confirmatory design, and the deep review after a confirmatory read. | The switch stays off on `main`, so no user sees a change. D50's leave covered Phase 7 only, and each wait costs a day. |
 | B2 | The solver's spending floor | 80% of the target where the plan sets none. Fixed at launch and stated on the Config tab. Other floors are measured before they are offered. | Every test of the candidate set it at 80% (F1). |
-| B3 | The dial's positions above the default | One of two variants, chosen on step L4's figures. Position 1, the default, is the candidate unchanged either way. <ul><li>**B3a, the review's:** lambda times the position, the age weights { mode 90, dispersion 9 }, and the candidate's tiers locked. The age weights put a chance of being alive into a cut's cost only, while survival is still counted to the plan's fixed age. They need the maintainer's word that this use is allowed (F2).</li><li>**B3b:** lambda times the position on the candidate's tiers, locked, with no age weights and no mortality anywhere.</li></ul> | The lock keeps the dial off the risk taken and costs nothing measurable (F2). The weights are what LOCK.md measured, but they touch a standing constraint. |
-| B4 | The wording (row 2) | The agent's recommendations: the length of the dip; three years; no second rate in the headline. Built as a table of strings, so a later answer is a one-line change. | Phase 9 is not held up by it. |
+| B3 | The dial's positions above the default | **B3a:** lambda times the position, the age weights { mode 90, dispersion 9 }, and the candidate's tiers locked. <ul><li>It needs the standing "no mortality in the solver" rule amended for this one use: a chance of being alive weighs a cut's cost.</li><li>Survival is still counted to the plan's fixed age, and the horizon does not move.</li><li>**B3b**, the lock alone with no mortality anywhere, is measured beside it in L4. It replaces B3a by rule R1 if the weights do not earn their place, or outright if the maintainer strikes the amendment.</li><li>Position 1, the default, is the candidate unchanged either way.</li></ul> | The review's recommendation (LOCK.md section 4). At ten, B3a starts the retirees at 93.8% of target, with 5% of years 1 to 5 at the floor, against the candidate's 80.0% and 76%. The lock costs nothing measurable (F2). |
+| B4 | The wording (row 2) | The agent's recommendations: the length of the dip; three years; no second rate in the headline. Also the agent's proposal for a household still working (Phase 9). Built as a table of strings, so a later change is one line. | Phase 9 is not held up by it. |
 | B5 | Isolation on the live site (row 10) | A service worker on GitHub Pages, built in Phase 10. The one-worker fallback is kept. | The origin stays the same, and with it every saved plan: they "would NOT survive a move to a different domain" (deploy.yml). |
-| B6 | The beta switch | A per-browser opt-in ("Try the new planner, beta"), off by default during the beta. One deploy turns it off for everyone. `SOLVER` becomes true in Phase 12, with the gate's two modes becoming the opt-in's two states. | Two weeks of both paths, and a rollback, without a rebuild (F9). |
-| B7 | The research (rows 5, 6, 7) | <ul><li>The launch candidate is d71f65ae871e with B2 and B3.</li><li>In idle windows, EXPLORATORY and deciding nothing: GAIN-BUCKET first, at the 20 households (about 8 core-hours) or the 40 (about 16), the maintainer's pick (D49); then the windfall factorial; then the savings factorial, at 4,000 paths.</li><li>A gain opens a registered v2 test after the launch. A harm to the launch candidate goes to the maintainer at once.</li></ul> | A late result cannot reopen the candidate mid-rollout (F15). |
+| B6 | The beta switch | A per-browser opt-in ("Try the new planner, beta"), off by default during the beta. One deploy turns it off for everyone. `SOLVER` becomes true in Phase 12, with the gate's two modes becoming the opt-in's two states. The beta starts by rule R6. | Two weeks of both paths, and a rollback, without a rebuild (F9). |
+| B7 | The research (rows 5, 6, 7) | <ul><li>The launch candidate is d71f65ae871e with B2 and B3.</li><li>In idle windows, EXPLORATORY and deciding nothing: GAIN-BUCKET first, at the 20 households whose taxable account is 10% of wealth or more (about 8 core-hours, D49's smaller sizing); then the windfall factorial; then the savings factorial, at 4,000 paths.</li><li>A gain opens a registered v2 test after the launch. A harm to the launch candidate goes to the maintainer at once.</li></ul> | A late result cannot reopen the candidate mid-rollout (F15). The 20 households are where the bucket's edge can bite. |
 | B8 | The unlocks ("unlock enforcement", rows 8 and the plan's own) | One unlock for exactly these edits: <ul><li>the fast tier's list: pay-where out; in, the tests the plan names (L1's floor test, L2's split identity, L3's quick form, Phase 9's split simulation, D1's couples quick form);</li><li>`.githooks/pre-commit`: the per-test skip;</li><li>`.github/workflows/verify.yml`: the nightly matrix and shards;</li><li>`.claude/hooks/session-start.sh`: the watchdog.</li></ul> A later edit to a protected test asks again. | Otherwise the hook stops the agent in the middle of steps 0, L, 9 and D1 (F8). The commit's cost is F10. |
 | B9 | Couples (row 9) | Part D as section 6, built during the singles' beta. Its registration comes to the maintainer before its run. The couples' beta follows the singles'. | The beta's two weeks are the agent's idle time. Building couples beside Phases 10 and 11 would bring them about a week sooner, and delay the singles by about five days. |
-| B10 | The phone's grid | 45 points, the solve on request. A coarser grid only on step P2's measured cost, the maintainer's call at Phase 11. | F13. Step P now comes before the phone. |
-| B11 | The age dial (D18) | Pre-solved on request, not after every edit. | Six solves after each edit cost 11 to 16 minutes of four cores, even split (gate 5's split times). |
+| B10 | The phone's grid | 45 points, with the solve on request. Rule R4 decides any coarser grid. | F13. Step P now comes before the phone. |
+| B11 | The age dial (D18) | Pre-solved on request, not after every edit. | Six solves after each edit cost 11.4 to 16.1 minutes of four cores, even split (facts C). |
 | B12 | Unchanged | <ul><li>Row 3: not now.</li><li>Row 4: the lock alone.</li><li>Row 11: set aside. Position 10 starts the retirees at 93.8% of target (D10MLK); the default stays at 80%.</li><li>Row 12: step 0.</li></ul> | |
 | B13 | The bridge safety margin (D18) | Hidden for singles under the switch. It is the tournament's setting, and the tested candidate has no such lock. D18's "stays as a lock" is recorded as superseded by the bridge reader. Building it as a lock would need measuring first. | F18. |
+
+**The rules that decide on a measurement**, each fixed before its run:
+
+| # | what it decides | the rule |
+|---|---|---|
+| R1 | B3's variant (L4) | B3a ships at positions 3, 6 and 10 if, at every one of them, two things hold, pooled over the eight households and paired: <ul><li>its years 1 to 5 spending is above B3b's (the paired 95% interval above 0);</li><li>its survival is not below B3b's by more than 0.25 points (the interval's lower end above -0.25).</li></ul> Otherwise B3b ships at all three. |
+| R2 | The dial's positions (L4) | Where the direction check reverses on any household (an exact paired test, one-sided at 5%, Holm), the higher position of that step is left off the dial for the launch, and the positions that remain are checked again. Position 1 always stays. What was left off goes to the maintainer as a report, not a stop. |
+| R3 | One-off costs (L5) | If any of the 32 cells loses survival beyond noise (an exact paired test, Holm, 5%), build M12's remedy: a separate cost order on the menu, in the cost year only. Then run L5 again on it. <ul><li>If the remedy clears every cell, it ships.</li><li>If not, a plan with a one-off cost keeps the app's rules under the switch, with a line saying so, until a remedy clears.</li></ul> |
+| R4 | The phone's grid (Phase 11) | 45 points. 30 points on the phone only if the maintainer's phone cannot complete a 45-point solve, or takes over 15 minutes. If so, the docs state 30 points' measured cost (F13). |
+| R5 | Step P's inexact options (P2) | <ul><li>**(a) The 30-point preview** ships for the dial's live line and the search's bracket only. It requires that its engine survival is within 0.5 points of the 45-point solve's on each of the eight households. Its figures are labelled "about", and the 45-point solve replaces them when the user chooses.</li><li>**(b) The phone** shows 2,000 paths first and refines to 5,000, so nothing inexact remains.</li><li>**(c) 32-bit tables** only if R4's phone cannot complete even at 30 points, and only if the paired measurement shows no survival change beyond noise (Holm, 5%).</li></ul> |
+| R6 | The beta's start (Phase 12) | The agent puts the opt-in on `main`, off by default, when the readiness checklist prints all PASS. Only opted-in users see it. The switch to on by default, and the switch's removal, stay the maintainer's. |
 
 ## 4. The order
 
@@ -398,9 +418,9 @@ Section 5 gives the detail.
 - **The direction check.** On each household, survival should not rise and years 1 to 5 spending should not fall as the
   position goes up.
   - It uses paired exact tests, one-sided at 5%, Holm across the households and steps.
-  - A reversal goes to the maintainer.
-- **The read goes to the maintainer**, with the `reviewer` on its claims. B3's variant, and the dial's live-line
-  examples, come from it.
+  - A reversal is settled by rule R2.
+- **What decides:** R1 picks B3's variant and R2 settles the positions. The read goes to the maintainer as a report, with
+  the `reviewer` on its claims. The dial's live-line examples come from it.
 
 **L5. One-off costs on singles** (EXPLORATORY; M12's probe, F3).
 - **What:** the review's eight households, each with a cost of 10% and of 30% of opening wealth, at retired year 3 and
@@ -409,8 +429,8 @@ Section 5 gives the detail.
   - Paired, 3,000 paths.
 - **Cost:** about 5.3 core-hours (results-estimate.txt).
 - **Reported:** survival and the cost year's tax, paired.
-- **A loss beyond noise**, by an exact paired test, Holm across the cells, goes to the maintainer before the beta. With it
-  goes M12's remedy: a separate cost order on the menu in the cost year only.
+- **What decides:** rule R3. A loss beyond noise brings M12's remedy and a second run. If the remedy does not clear,
+  plans with a one-off cost keep the app's rules. The read goes to the maintainer as a report.
 
 **Step L's acceptance and box.**
 - **Acceptance:** L1 to L3 pass with their plants; L4 and L5 read FAIR; the fast tier and the gate are green.
@@ -554,7 +574,7 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
     layer loop is hot: today the locked solve takes 0.91 to 0.97 times the base's.
   - **(f) E10's faster gross-up**, only if the profile shows the gross-up hot in the engine's simulation.
 
-**P2. The measured options.** These are inexact: EXPLORATORY, and the maintainer's call. Nothing ships without it.
+**P2. The measured options.** These are inexact and EXPLORATORY. Rule R5 decides each one before it runs.
 - **(a) A preview grid for live lines and searches:** 30 points, with the final solve at 45. V3 puts 30 points at -0.21
   to -0.27 on the panel mean, and -0.47 at worst (F13).
 - **(b) Fewer paths for the phone's projection:** 2,000 against 5,000, with the survival's standard error printed.
@@ -570,8 +590,8 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
 
 ### Phase 11: the phone
 
-1. **The grid (B10):** 45 points, the solve on request ("Solve my plan", with the expected time). A coarser grid only on
-   P2 (a)'s figures, by the maintainer's call.
+1. **The grid (B10):** 45 points, the solve on request ("Solve my plan", with the expected time). Rule R4 decides any
+   coarser grid, from the real phone's solve (item 2).
 2. **Memory.**
    - The phone holds the solve on show, and for a locked position its base (F5), after step P's cuts.
    - Throttling cannot model a phone's memory limit, so one solve runs on the maintainer's phone (PART-C-PLAN.md: "measured
@@ -606,7 +626,7 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
      Node's bit for bit, and its time is recorded. The harnesses otherwise run at light settings;
    - **the library sweep:** every one of the 210 singles normalises, prepares and solves at light settings without a
      throw, and so does a sample with every lever off its default;
-   - L4 and L5 read and seen by the maintainer;
+   - L4 and L5 read, R1 to R3 applied, and the reads sent to the maintainer;
    - **a solve in Safari and in Firefox**, on the maintainer's devices, or on Playwright's WebKit and Firefox where they
      can be installed.
      - Its figures must sit within the Chromium solve's sampling noise.
@@ -615,7 +635,7 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
    - the isolation, failure-path and phone harnesses green;
    - the opt-in switched on and off without losing a plan.
 6. **The beta.**
-   - The opt-in goes on `main`, off by default, for the maintainer's two weeks.
+   - The opt-in goes on `main`, off by default, when the checklist prints all PASS (R6). The two weeks start then.
    - Go or no-go: no open defect that changes a figure, and the checklist green on the final commit.
    - Then the opt-in is on by default, at the maintainer's word. That is a change of default, with the `reviewer`.
    - Then the switch is removed for singles. The tournament's code stays for couples (D42).
@@ -630,13 +650,12 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
 3. At the step's end: the gate, the pull request, the merge (B1).
 4. Overnight: the research queue.
 
-**The only stops:**
-- the section 3 decisions;
-- an unlock the plan needs that B8 did not give;
-- L4's read, before B3's variant ships, and L5's, before the beta;
+**The only stops.** L4, L5, P2 and the beta's start are not stops: R1 to R6 decide them, and each read goes to the
+maintainer as a report.
+- an unlock the plan needs that the maintainer's prompt did not give;
 - the couples' registration (D4) and its read;
-- Phase 12's beta, its switch to on by default, and the switch's removal;
-- any default change;
+- the beta's switch to on by default, and the switch's removal;
+- any default change not settled in section 3;
 - **any result showing the launch candidate harming a household beyond D34's threshold, or a defect that changes a
   figure.** It goes to the maintainer at once;
 - a time box running out;
@@ -796,16 +815,34 @@ It was measured once, under the old objective, on 19 couples.
   - nothing merges to `main` mid-beta that moves a single's number.
 - D4 follows D3. D5 follows D4's read, and D6 follows D5.
 
-## 7. Instructions for the agent
+## 7. The prompt for the agent
 
-Once the maintainer has answered section 3:
-1. Record the answers as D51 onward in STATE.md, and close their rows in DECISIONS-PENDING.md.
-2. With B8's unlock, do step 0 first.
-3. Then work in this order: Phase 8, step L, Phase 9, Phase 10, step P, Phase 11, Phase 12.
-4. Start Part D when the singles' beta starts.
-5. Each task has the acceptance test and time box written here. Stop only at section 5's stops.
-6. Run the research queue overnight in its order, pausing for the gate. It decides nothing.
-7. Run `launch/cache-key.sh` on a clean checkout before step P1 (g).
+The maintainer sends it. The two lines under "The maintainer's answers" are the maintainer's own words: either can be
+struck. Striking the second ships B3b.
+
+```
+Read research/reviews/2026-11-01/LAUNCH-PLAN.md on review/external-2026-10-21.
+
+The maintainer's answers: section 3's recommendations B1 to B13, and its rules R1 to R6 (the maintainer's ruling
+naming L4, L5, P2 and the beta's start).
+- Unlock enforcement for exactly B8's edits.
+- B3a: the "no mortality in the solver" rule is amended for this one use (the age weights on a cut's cost; survival
+  still counted to the plan's fixed age).
+
+1. Record these as D51 onward in STATE.md; close their rows in DECISIONS-PENDING.md.
+2. Step 0: pay-where out of the fast tier; the per-test skip in the pre-commit hook, with its trace check; the nightly
+   as a matrix on main and the branch, two shards each; the session-start watchdog.
+3. Phase 8: build run-all.sh --solver, then the pull request; merge on B1's gate.
+4. Step L: L1 the floor at 80%; L2 the dial's positions and the two-entry cache; L3 the lever matrix; L4 (both of B3's
+   variants) and L5 (one-off costs) overnight, EXPLORATORY, seed 7002. R1 to R3 decide on their reads; send me the
+   reads as reports.
+5. Then Phase 9, Phase 10, step P, Phase 11 and Phase 12, each by its acceptance tests and time box, merging each on
+   B1's gate. Run launch/cache-key.sh on a clean checkout before P1 (g). R4 to R6 decide on their measurements.
+6. Part D when the singles' beta starts. D4's registration comes to me before its run.
+7. The research queue overnight in its order (B7), pausing for the gate. It decides nothing.
+
+Stop only at section 5's stops.
+```
 
 ## Appendix: the independent review's points, and where each went
 

@@ -18,10 +18,13 @@
  *                                                       with baseKey, solved on the held base of that key
  *   probe     { id, key }                               whether a solve of the key is stored for this code: { id, hit }
  *   simulate  { id, trials, seed }                      the solved plan through the engine's monteCarlo: { id, stats }
- *   strategy  { id, plan, seed, upto }                  the Strategy tab's figures (Phase 9, src/solverStrategy.js) on paths 0 to
+ *   runs      { id, plan, seed, from, to }              paths from..to-1 through both arms (src/solverStrategy.js strategyRuns): the
+ *                                                       share of a split solve's part, which keeps its solve after it: { id, runs }
+ *   strategy  { id, plan, seed, upto, runs }            the Strategy tab's figures (Phase 9, src/solverStrategy.js) on paths 0 to
  *                                                       upto-1 of the seed, the solved plan beside the plan as entered: { id,
  *                                                       strategy }; the paths already run for this solve, seed and plan are kept
- *                                                       and only the rest run, so asking for 2,000 then 5,000 costs 5,000
+ *                                                       and only the rest run, so asking for 2,000 then 5,000 costs 5,000; `runs`
+ *                                                       the parts' shares of the next paths, joined in path order first
  *   actions   { id, plan, seed, n }                     this year's move, part by part, each with the survival cost of skipping
  *                                                       it on n paired paths (the plan's own runs reused): { id, actions }
  *   ahead     { id, plan, seed, years }                 the next years' moves on the median path of the strategy's runs so far:
@@ -56,7 +59,9 @@ self.onmessage = async ({ data }) => {
       const pool = arenaPool(data.part, data.parts, data.arena);
       try {
         const base = data.base ? solveForApp(E, M, data.base.plan, { ...data.opts, restore: data.base.rec }) : null;
-        solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}) });
+        // kept: a split solve's part runs its share of the Strategy tab's paths ('runs', Phase 9)
+        solved = solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}) });
+        runs = null;
       } catch (e) { pool.fail(); throw e; }
       self.postMessage({ done: true });
       return;
@@ -104,9 +109,15 @@ self.onmessage = async ({ data }) => {
       self.postMessage({ id, stats: E.monteCarlo(ctx, { trials: data.trials, seed: data.seed }) });
       return;
     }
+    if (kind === 'runs') {
+      self.postMessage({ id, runs: strategyRuns(E, solved, data.plan, { seed: data.seed, from: data.from, to: data.to }) });
+      return;
+    }
     if (kind === 'strategy') {
       const planKey = JSON.stringify(data.plan), seed = data.seed;
       if (!runs || runs.r !== solved || runs.plan !== planKey || runs.runs.seed !== seed) runs = { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
+      // the paths the split solve's parts ran (src/solverClient.js strategy), joined in path order to those kept here
+      if (data.runs && data.runs.length) runs.runs = joinRuns([runs.runs, ...data.runs]);
       if (data.upto > runs.runs.to) runs.runs = joinRuns([runs.runs, strategyRuns(E, solved, data.plan, { seed, from: runs.runs.to, to: data.upto })]);
       self.postMessage({ id, strategy: strategySummary(E, solved, runs.runs) });
       return;

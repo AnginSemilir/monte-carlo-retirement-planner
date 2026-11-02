@@ -767,6 +767,8 @@
    "research/tests/settings.test.mjs",
    "research/tests/share-nodes.test.mjs",
    "research/tests/sigmaparam.test.mjs",
+   "research/tests/sim-split-worker.mjs",
+   "research/tests/sim-split.test.mjs",
    "research/tests/snap-7ak.test.mjs",
    "research/tests/solve-size.test.mjs",
    "research/tests/solve-store.test.mjs",
@@ -2147,6 +2149,8 @@
    "research/tests/settings.test.mjs",
    "research/tests/share-nodes.test.mjs",
    "research/tests/sigmaparam.test.mjs",
+   "research/tests/sim-split-worker.mjs",
+   "research/tests/sim-split.test.mjs",
    "research/tests/snap-7ak.test.mjs",
    "research/tests/solve-size.test.mjs",
    "research/tests/solve-store.test.mjs",
@@ -3573,6 +3577,30 @@
   "list": [
    "research/solver"
   ],
+  "outdirs": [],
+  "spawns": [],
+  "nodeModules": false
+ },
+ "sim-split.test.mjs": {
+  "read": [
+   "research/engine.mjs",
+   "research/policy-study/scenarios.mjs",
+   "research/tests/sim-split-worker.mjs",
+   "research/tests/sim-split.test.mjs",
+   "src/solver/adaptive.js",
+   "src/solver/bridge.js",
+   "src/solver/fast.js",
+   "src/solver/grid.js",
+   "src/solver/model.js",
+   "src/solver/reader.js",
+   "src/solver/solve.js",
+   "src/solverApp.js",
+   "src/solverPool.js",
+   "src/solverSettings.js",
+   "src/solverStrategy.js"
+  ],
+  "probe": [],
+  "list": [],
   "outdirs": [],
   "spawns": [],
   "nodeModules": false

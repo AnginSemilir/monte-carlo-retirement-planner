@@ -8,6 +8,7 @@
  *   const job = startSolve(plan, { key, base, parts, lambda, points, research, onProgress, onStored });
  *   const { meta, secs, parts, restored, base } = await job.done;   // rejects with 'cancelled' after job.cancel()
  *   await job.ask('simulate', { trials, seed });          // the owner worker's answers (src/solverWorker.js)
+ *   await job.strategy(plan, seed, upto);                 // the Strategy tab's figures, split across the solve's parts
  *   job.close();                                          // the owner worker, and the solved tables with it, let go
  *
  * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored in that
@@ -54,6 +55,31 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
     const id = ++seq;
     return new Promise((resolve, reject) => { pending.set(id, { resolve, reject }); owner.postMessage({ id, kind, ...extra }); });
   };
+  // a kept part's questions, answered by id as the owner's are
+  let kept = [];
+  const askerOf = w => {
+    const waiting = new Map();
+    w.onmessage = ({ data }) => { const p = waiting.get(data.id); if (!p) return; waiting.delete(data.id); if (data.error) p.reject(new Error(data.error)); else p.resolve(data); };
+    w.onerror = e => { for (const p of waiting.values()) p.reject(new Error((e && e.message) || 'a solver part failed')); waiting.clear(); };
+    return (kind, extra = {}) => { const id = ++seq; return new Promise((resolve, reject) => { waiting.set(id, { resolve, reject }); w.postMessage({ id, kind, ...extra }); }); };
+  };
+  /*
+   * The Strategy tab's figures on paths 0 to upto-1 (src/solverWorker.js 'strategy'). With a split solve's parts kept, the
+   * paths not yet run are shared out evenly, the owner taking the first share, and the owner joins them in path order, so
+   * the figures are the whole run's (research/tests/sim-split.test.mjs). Without parts, the owner runs them all.
+   */
+  let have = 0, haveKey = null;
+  const strategy = async (plan, seed, upto) => {
+    const k = JSON.stringify([seed, plan]);
+    if (k !== haveKey) { have = 0; haveKey = k; }
+    if (!kept.length || upto <= have) { const r = await ask('strategy', { plan, seed, upto }); have = Math.max(have, upto); return r; }
+    const all = [ask, ...kept], n = all.length, span = upto - have;
+    const share = i => [have + Math.floor((i * span) / n), have + Math.floor(((i + 1) * span) / n)];
+    const got = await Promise.all(all.map((a, i) => a('runs', { plan, seed, from: share(i)[0], to: share(i)[1] })));
+    const r = await ask('strategy', { plan, seed, upto, runs: got.map(g => g.runs) });
+    have = upto;
+    return r;
+  };
 
   const done = new Promise((resolve, reject) => {
     rejectDone = reject;
@@ -80,7 +106,9 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
         owner.postMessage({ id: 0, kind, plan: phasePlan, opts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
-      workers.splice(1).forEach(w => w.terminate());
+      // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9);
+      // a dial position's base lets them go
+      if (kind === 'solve') kept = workers.slice(1).map(askerOf); else workers.splice(1).forEach(w => w.terminate());
       return m;
     };
     (async () => {
@@ -100,6 +128,7 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
       rejectDone(new Error('cancelled'));
     },
     ask,
-    close() { owner.terminate(); for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); }
+    strategy,
+    close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); }
   };
 }

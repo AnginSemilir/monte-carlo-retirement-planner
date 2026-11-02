@@ -27,7 +27,7 @@ const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500] };
 // a household for each of the wording's cases at these settings (research/ui-harnesses' own scan, 1 Nov), the main one first
-const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', never: 'NEVER_ID' };
+const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', never: 'S364' };
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);

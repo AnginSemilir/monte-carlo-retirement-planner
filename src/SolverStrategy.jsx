@@ -31,7 +31,7 @@ export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSol
     (async () => {
       for (const upto of steps) {
         try {
-          const { strategy } = await solve.ask('strategy', { plan, seed, upto });
+          const { strategy } = solve.strategy ? await solve.strategy(plan, seed, upto) : await solve.ask('strategy', { plan, seed, upto });
           if (!live) return;
           setView({ key: solve.key, strategy, error: null });
           // after the headline's first paths: the next years on its median path, then this year's actions and their skips

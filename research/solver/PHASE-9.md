@@ -26,7 +26,10 @@ a solve that failed (F16).
   - `aheadOf`: the next ten years' moves on the median path (the path at the median of the pot left).
 - `src/solverWords.js`: the table of strings (B4): the headline's words by case, the short note and the full text, the late
   raise, the actions in the playbook's words, the next years, "come back next year".
-- `src/solverWorker.js`: `strategy` (the paths kept and added to, so 2,000 then 5,000 costs 5,000), `actions`, `ahead`.
+- `src/solverWorker.js`: `strategy` (the paths kept and added to, so 2,000 then 5,000 costs 5,000), `actions`, `ahead`, and
+  `runs` (a part's share of the paths). The split simulation (`src/solverClient.js` `strategy`): a split solve keeps its
+  parts, each holding the solve; the paths not yet run are shared out evenly, the owner taking the first share, and the owner
+  joins them in path order. Without parts (a page not isolated, or a restored solve) the owner runs them all.
 - `src/useSolver.js`: `ask` on the solve in hand. `src/SolverStrategy.jsx`: the tab, lazily loaded; `App.jsx` shows it under
   the switch for a single household. A harness's light settings may name fewer paths (`SOLVER_OPTS.strategySteps`,
   `strategyActionsN`).
@@ -40,14 +43,15 @@ a solve that failed (F16).
   differs in its part and its cost is the paired count; the next years on the median path. Each rule's plant (the module's
   `PLANT`): the dip's edge a year early, the quantile from the top, a failed path counted as back, the raise on every path,
   a part that drops a path, another move forced in the first year.
+- `research/tests/sim-split.test.mjs` (the fast tier, D53's `FAST_JOINING`): on Node's worker threads, S126 solved split two
+  ways on the arena, each part running its share of the paths: every figure the whole run's; planted, a part leaving out
+  its first path is refused (three ways checked once by hand: the same).
 - `research/ui-harnesses/solver-strategy-ui.cjs` (REQUIRED): the switch off as today; the preview build's figures Node's bit
   for bit; the words by case on a household for each of the four; a failed solve (the worker planted to fail) with "try
   again" and the tournament below; a couple.
 
 ## Still to build in Phase 9
 
-- The split simulation (`sim-split.test.mjs`, in the fast tier by D53's `FAST_JOINING`): the solved plan's paths split
-  across the solve's parts when the page is isolated, merged in path order (joinRuns), the same statistics as whole.
 - The skip costs' harness fixture (a known costly action: the pension drawn to the basic-rate limit in a bridge year) and a
   planted dominated action.
 - The rule of thumb (`src/solverDistil.js`), which may slip to after the beta without holding anything up.

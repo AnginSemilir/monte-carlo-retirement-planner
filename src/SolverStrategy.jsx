@@ -68,7 +68,7 @@ export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSol
     return (
       <div data-solver-strategy data-strategy-state="idle" className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-2">
         <p>On a phone the plan is worked out when you ask.</p>
-        <button type="button" data-solve-request onClick={onSolveRequest} className="px-3 py-1.5 min-h-11 rounded-lg bg-indigo-600 text-white font-semibold cursor-pointer">Solve my plan</button>
+        <button type="button" data-solve-request onClick={onSolveRequest} className="px-3 py-1.5 min-h-11 rounded-lg bg-accent hover:bg-accent-hover text-onaccent font-semibold cursor-pointer">Solve my plan</button>
       </div>
     );
   }

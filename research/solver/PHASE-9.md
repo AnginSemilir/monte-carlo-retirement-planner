@@ -88,6 +88,20 @@ a solve that failed (F16).
   plan's numbers: the headline's 2,000, the skips' 1,000).
   **Decided (D56, 2 Nov):** (a). Phase 9 merges with the budgets recorded as not met; step P takes the chooser's cost per
   path first and measures the budgets again; the path counts stand.
+- **B1's gate on `release/phase-9` at db0bd70: FAILED in both modes** (2 Nov, 22:09 to 23:19 UTC), and the fixes:
+  - The switch on, `restyle-regression` and `phone`: both still asked the Strategy tab for the tournament, which under the
+    switch a single household no longer has. Each now reads the switch from the page (the solved plan's
+    `[data-solver-strategy]` card), as their Config entries already did. With the switch off the tournament is still required.
+  - On a phone, the "Solve my plan" button was white on the theme's light indigo in dark mode: 2.83:1, below the WCAG bar. A
+    real defect: it now takes the accent colours the Config tab's button has.
+  - At 1400 px the card was sometimes not yet on the page when the harness read it, 700 ms after the click: the card loads
+    lazily, with no fallback, while the solve's workers hold the cores. It now has a fallback ("Loading your plan…"), and the
+    harnesses wait up to 5 s for the card or the tournament.
+  - The phone's glossary and "?" checks ran on the Strategy tab, whose prose was the tournament's. Under the switch they run on
+    Plan Inputs, which the switch leaves alone. Under the switch the tournament card's own layout check gives way to one of
+    the solved plan's card: asked for on a phone, no tournament beside it, at most 130 px.
+  - The switch off, `solver-isolation`: "a plan saved before the worker existed still loads" read the page as soon as it was
+    isolated, before the app had drawn in it (the plan itself was in place). It now waits up to 15 s for the app.
 
 ## Seen on the way
 

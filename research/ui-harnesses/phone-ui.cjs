@@ -74,7 +74,9 @@ const TABS = [
   // with the solver's switch on (run-all.sh --solver) a single household's tab leads with the solver's cards, the policy hidden
   ['Config & Assumptions', /Decumulation|Spending & tax settings/i, 'Config'],
   ['Projection', /Run the projection/i, 'Projection'],
-  ['Strategy', /tournament/i, 'Strategy'],
+  // with the switch on a single household's tab is the solved plan (src/SolverStrategy.jsx), on a phone solved when asked
+  // (B10), not the tournament: read from the page (its [data-solver-strategy] card), so the switch off still demands the tournament
+  ['Strategy', /tournament/i, 'Strategy', /Loading your plan|Working out your plan|Running your plan through|worked out when you ask|Chance the money lasts|could not finish this plan/i],
   ['Historical Backtest', /1928|backtest/i, 'Backtest'],
   ['Audit Data Table', /audit|year-by-year|Age/i, 'Audit'],
   ['Documentation', /methodology|documentation|priorit/i, 'Docs'],
@@ -155,13 +157,16 @@ const navigate = async (page, label, short) => {
       console.log(`\n${devName} @ ${theme} (${desc.viewport.width}x${desc.viewport.height})`);
       ok('the pointer is coarse', await p.evaluate(() => matchMedia('(pointer: coarse)').matches));
 
-      for (const [label, marker, short] of TABS) {
+      for (const [label, offMarker, short, onMarker] of TABS) {
         const via = await navigate(p, label, short);
         // 'top' means it fell back to the hidden desktop strip: the phone route is broken.
         ok(`${label}: reachable from the bottom bar`, via === 'bottom' || via === 'more', via || 'not found');
         if (!via) continue;
         await p.waitForTimeout(650);
+        // a tab loaded lazily (the solved plan's card) may still be arriving, the solve's workers busy: wait for it, or the tournament
+        if (onMarker) await p.waitForFunction(() => !!document.querySelector('[data-solver-strategy]') || /tournament/i.test(document.body.innerText), null, { timeout: 5000 }).catch(() => {});
         const text = await p.evaluate(() => document.body.innerText);
+        const marker = onMarker && await p.evaluate(() => !!document.querySelector('[data-solver-strategy]')) ? onMarker : offMarker;
         ok(`${label}: renders its own content`, marker.test(text), marker.test(text) ? '' : text.slice(0, 50).replace(/\n/g, ' '));
         const over = await p.evaluate(OVERFLOW_PROBE);
         ok(`${label}: no sideways scroll`, over <= 1, `${over}px`);
@@ -686,6 +691,17 @@ const navigate = async (page, label, short) => {
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Strategy'); if (b) b.click(); });
       await p.waitForTimeout(900);
       /*
+       * With the switch on, a single household's Strategy tab is the solved plan's card, which carries no glossary term and no
+       * fold (the tournament's prose is not on it). The same checks then run on Plan Inputs, which the switch leaves as it is
+       * and which has both; with the switch off they stay on the Strategy tab.
+       */
+      const switchOn = await p.evaluate(() => !!document.querySelector('[data-solver-strategy]'));
+      if (switchOn) {
+        console.log('  (the switch on: the Strategy tab is the solved plan, without terms or folds; the glossary checks on Plan Inputs)');
+        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
+        await p.waitForTimeout(900);
+      }
+      /*
        * Open the folds first, the way a reader does. Most of this tab's prose is inside a collapsed card
        * on a phone, and a term inside a closed one is laid out - it has a width, so every "is it there"
        * check passes - while sitting past the end of the document where nothing can scroll to it. Asking
@@ -785,7 +801,21 @@ const navigate = async (page, label, short) => {
       // measured closed: an open explanation is meant to be tall, and this is about the folded state
       await p.evaluate(() => { document.querySelectorAll('[data-help-dot][aria-expanded="true"]').forEach(b => b.click()); });
       await p.waitForTimeout(350);
-      const strat = await p.evaluate(() => {
+      /*
+       * With the switch on, a single household's tab has no tournament card: it is the solved plan's card, on a phone solved
+       * when asked (B10). That card, before the solve, is a line and a button, so the same bar holds for it; the tournament's
+       * card, which the switch does not change, is checked with the switch off.
+       */
+      if (switchOn) {
+        const card = await p.evaluate(() => {
+          const c = document.querySelector('[data-solver-strategy]'), tour = [...document.querySelectorAll('div')].some(d => /Strategy Tournament/.test(d.textContent) && (d.className || '').includes('bg-indigo-50'));
+          return c ? { state: c.getAttribute('data-strategy-state'), h: Math.round(c.getBoundingClientRect().height), tour, btn: !!c.querySelector('[data-solve-request]') } : null;
+        });
+        ok('the switch on: the Strategy tab is the solved plan\'s card, asked for on a phone, and no tournament card', !!card && card.state === 'idle' && card.btn && !card.tour,
+          card ? `state ${card.state}, a request button ${card.btn}, tournament card ${card.tour}` : 'card not found');
+        ok('...so the card is a line and a button, not a screen of nothing', !!card && card.h <= 130, card ? `${card.h}px` : '');
+      }
+      const strat = switchOn ? undefined : await p.evaluate(() => {
         const card = [...document.querySelectorAll('div')].find(d => /Strategy Tournament/.test(d.textContent) && (d.className || '').includes('bg-indigo-50'));
         if (!card) return null;
         const dot = card.querySelector('[data-help-dot]');
@@ -794,10 +824,12 @@ const navigate = async (page, label, short) => {
         return { h: Math.round(card.getBoundingClientRect().height),
           sameRow: Math.abs(dot.getBoundingClientRect().top - head.getBoundingClientRect().top) < 24 };
       });
-      ok('the Strategy card keeps its "?" on the heading\'s line', !!strat && strat.sameRow === true,
-        strat ? `${strat.h}px card, same row: ${strat.sameRow}` : 'card not found');
-      ok('...so the card is a heading and a link, not a screen of nothing', !!strat && strat.h <= 130,
-        strat ? `${strat.h}px` : '');
+      if (!switchOn) {
+        ok('the Strategy card keeps its "?" on the heading\'s line', !!strat && strat.sameRow === true,
+          strat ? `${strat.h}px card, same row: ${strat.sameRow}` : 'card not found');
+        ok('...so the card is a heading and a link, not a screen of nothing', !!strat && strat.h <= 130,
+          strat ? `${strat.h}px` : '');
+      }
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
       await p.waitForTimeout(700);
       /* and not on this tab at all any more: the way across is on Start Here and in More, so a tab you

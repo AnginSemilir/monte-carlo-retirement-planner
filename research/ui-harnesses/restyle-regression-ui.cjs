@@ -43,7 +43,9 @@ const TABS = [
   // with the solver's switch on (run-all.sh --solver) a single household's tab leads with the solver's cards, the policy hidden
   ['Config & Assumptions', /Decumulation|Spending & tax settings/i],
   ['Projection', /Run the projection/i],
-  ['Strategy', /tournament/i],
+  // with the switch on a single household's tab is the solved plan (src/SolverStrategy.jsx), not the tournament: read from the
+  // page (its [data-solver-strategy] card), so the switch off still demands the tournament
+  ['Strategy', /tournament/i, /Loading your plan|Working out your plan|Running your plan through|worked out when you ask|Chance the money lasts|could not finish this plan/i],
   ['Historical Backtest', /1928|backtest/i],
   ['Audit Data Table', /audit|year-by-year|Age/i],
   ['Documentation', /methodology|documentation|priorit/i],
@@ -78,14 +80,17 @@ const PHONE_MAX = 767;                 // in step with src/viewport.js
       await p.waitForTimeout(1600);
       console.log(`\n${theme} @ ${width}px`);
       let worstAll = [];
-      for (const [tab, marker] of TABS) {
+      for (const [tab, offMarker, onMarker] of TABS) {
         const clicked = await p.evaluate((t) => {
           const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(t));
           if (x) { x.click(); return true; } return false;
         }, tab);
         if (!clicked) { ok(`${tab}: tab button present`, false); continue; }
         await p.waitForTimeout(700);
+        // a tab loaded lazily (the solved plan's card) may still be arriving, the solve's workers busy: wait for it, or the tournament
+        if (onMarker) await p.waitForFunction(() => !!document.querySelector('[data-solver-strategy]') || /tournament/i.test(document.body.innerText), null, { timeout: 5000 }).catch(() => {});
         const text = await p.evaluate(() => document.body.innerText);
+        const marker = onMarker && await p.evaluate(() => !!document.querySelector('[data-solver-strategy]')) ? onMarker : offMarker;
         ok(`${tab}: renders its own content`, marker.test(text), marker.test(text) ? '' : text.slice(0, 60).replace(/\n/g, ' '));
         const over = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         ok(`${tab}: no sideways scroll`, over <= 1, `${over}px`);

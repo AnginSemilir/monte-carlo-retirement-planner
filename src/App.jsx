@@ -14445,7 +14445,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             tab is the solved plan (Part C Phase 9, src/SolverStrategy.jsx); a couple's plan, and a solve that failed, keep the
             tournament below (D42; the launch plan's F16) */}
         {activeTab === 'strategy' && solverRules && (
-          <Suspense fallback={null}>
+          <Suspense fallback={<div data-solver-strategy data-strategy-state="loading" className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600">Loading your plan&hellip;</div>}>
             <SolverStrategyCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} onRetry={() => setPlan(p => ({ ...p }))} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} {...(SOLVER_OPTS && SOLVER_OPTS.strategySteps ? { steps: SOLVER_OPTS.strategySteps } : {})} {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})} />
           </Suspense>
         )}

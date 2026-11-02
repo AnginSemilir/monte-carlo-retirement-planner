@@ -102,7 +102,10 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
       const iso = await isolatedWithin(p, 30000), s = await state(p);
       ok('switch on, no headers: the first load registers the worker and reloads once; then the page is cross-origin isolated', iso && s.regs === 1 && s.controlled && s.tried === '1' && navs.length === 2, `${navs.length} loads, ${s.regs} registration, isolated ${s.isolated}`);
       const savedPlan = await p.evaluate(k => JSON.parse(localStorage.getItem(k)), STORE);
-      ok('a plan saved before the worker existed still loads', savedPlan && savedPlan.spending && Number(savedPlan.spending.targetSpend) === Number(plan.spending.targetSpend) && await p.evaluate(() => /Plan Inputs|Projection/.test(document.body.innerText)), `target ${savedPlan && savedPlan.spending && savedPlan.spending.targetSpend}`);
+      // the page isolated is the reloaded document, not yet the app drawn in it: wait for the app (2 Nov: read at once, it
+      // failed once in the gate with the plan in place, the tabs not yet on the page)
+      const drawn = await p.waitForFunction(() => /Plan Inputs|Projection/.test(document.body.innerText), null, { timeout: 15000 }).then(() => true, () => false);
+      ok('a plan saved before the worker existed still loads', savedPlan && savedPlan.spending && Number(savedPlan.spending.targetSpend) === Number(plan.spending.targetSpend) && drawn, `target ${savedPlan && savedPlan.spending && savedPlan.spending.targetSpend}, the app drawn ${drawn}`);
       const split = await solveIn(p, plan, LIGHT, 2);
       ok('in the isolated page a solve split across two workers gives the whole solve\'s tables, Node\'s bit for bit', split.canSplit && split.parts === 2 && split.digest === nodeDigest, `${split.parts} parts, ${split.values} values, ${split.digest.slice(0, 16)} against ${nodeDigest.slice(0, 16)}`);
       ok('switch on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));

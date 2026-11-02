@@ -86,6 +86,8 @@ a solve that failed (F16).
   (a part's path about 218 ms: the tables' reads contend for memory). To the maintainer: (a) Phase 9 merges with the
   budgets recorded as not met, step P's first target the chooser's cost per path; or (b) fewer paths first (the launch
   plan's numbers: the headline's 2,000, the skips' 1,000).
+  **Decided (D56, 2 Nov):** (a). Phase 9 merges with the budgets recorded as not met; step P takes the chooser's cost per
+  path first and measures the budgets again; the path counts stand.
 
 ## Seen on the way
 

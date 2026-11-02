@@ -1,4 +1,8 @@
-# How the app explains the spending curve (Part C; D44 (2)): a draft for the maintainer
+# How the app explains the spending curve (Part C; D44 (2)): a draft for the maintainer, decided (B4 in D51)
+
+**Decided** (B4 in D51, 1 Nov): the agent's recommendations below: the trigger is the length of the dip, the threshold three
+years, and the headline carries no second success rate; the agent's proposal for a household still working (the launch
+plan's Phase 9) is adopted. Built as a table of strings in Phase 9, so a later change is one line.
 
 The external review of 29 Oct found the early cut sound (the price of the success rate) and the late raise a reward for good
 markets (SPENDING-CURVE.md on review/external-2026-10-21 at 37fdbf7, section 10). The maintainer's requirement: for risky
@@ -25,7 +29,7 @@ Always shown at the top of the Strategy tab, in place of a single "you can spend
 ## 2. The explanation, when the plan starts below the target
 
 Shown under the headline whenever the recommended first year is below the target (the maintainer's trigger), in one of
-two lengths (the proposed refinement, below).
+two lengths (the proposed refinement, below; decided, B4 in D51).
 
 **The full explanation** (the plan stays below target for more than [3] years on a typical run, or never gets back):
 
@@ -42,7 +46,7 @@ two lengths (the proposed refinement, below).
 
 > The plan starts a little below your target for the first [two] years, to protect you against a bad start in the markets.
 
-**The proposed trigger, for the maintainer's choice.** "Below target in the first year" alone will show the full text on
+**The proposed trigger, for the maintainer's choice** (decided, B4 in D51: the length of the dip, three years). "Below target in the first year" alone will show the full text on
 most retired plans the panel has seen: the candidate started every household retired at the start at the floor
 (SPENDING-CURVE.md section 10, question 1), though each was landed to be a stretch (the app's rules surviving about 85%, D35). The length of the dip is what separates a brief
 precaution from a plan whose target is high for its savings. So: the short note when the typical path is back at target
@@ -77,7 +81,9 @@ Not in the headline. Shown on the fan of outcomes, on the upper band:
   ruin, then the floor (results-fail-delivered.txt; the deep review of 30 Oct, reviews/2026-10-30-deep-fail-delivered.md).
   Until the deep review's test reads, the year-by-year advice keeps this rule.
 
-## Open for the maintainer
+## Open for the maintainer (each decided, B4 in D51)
+
+Decided as recommended: (1) the length of the dip; (2) three years; (3) no second rate in the headline.
 
 1. The trigger: the first year below target alone (as asked), or the length of the dip (proposed), or the chance of lasting
    at the full target.

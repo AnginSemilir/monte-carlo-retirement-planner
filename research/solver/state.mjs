@@ -399,8 +399,58 @@ const BLOCKS = {
       return `${id} the candidate ${c[1]}% (the review's ${c[2]}%), on the code before the port ${c[3].trim().replace(/ \(survival.*$/, '').replace(/^THE SAME/, 'the same').replace(/^DIFFERS/, 'DIFFERING')}; DIAL10M locked ${d[1]}% (the review's ${d[2]}%: ${d[3]}), the lock held at ${d[4]} of ${d[5]} decisions`;
     });
     return [`- \`lock-tiers.test.mjs\` ${pick(L, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-lock-tiers.txt\`, e3pcls on): both options off, every table the code before the port's to the bit (${off.join(', ')} entries) and 40 runs the same; DIAL10M's age weights on the layer loop the same as on E5, mode 91 parting them; the candidate locked to itself the candidate; DIAL10M locked on the candidate's pair at all ${hc} cells and ${hd} decisions; the plants caught ('layer0' ${p0} cells, 'nochooser' ${p1} decisions); ${nref} refusals. \`solve-size.test.mjs\` (\`results-solve-size.txt\`): solve()'s bytecode ${size}, the plant ${plant}; in FAST (the unlock of 31 Oct, D50). At full scale (\`lock-check.mjs\`, \`results-lock-check.txt\`; seed 7002, 1,000 paths, 45 points): ${hh.join('; ')}.`];
+  },
+  // the windfall split's build (D37, research, off by default): its test, read from its results file
+  windfall() {
+    const W = 'research/tests/results-windfall-split.txt';
+    if (read(W) === null) return [`- pending: ${W}`];
+    const t = read(W);
+    const off = [...t.matchAll(/^PASS {2}1\. (S\d+F?), the option unset, against the code before it: (\d+) table entries the same to the bit; 40 forward runs the same/gm)].map(m => `${m[1]} ${m[2]}`);
+    const rt = pick(W, /^PASS {2}2\. S026 as it is .*?: rooms £(\d+) \/ £(\d+) \(pension \/ ISA\), the Auto money £(\d+); split 1 (\{[^}]*\}), 2 (\{[^}]*\}), 3 (\{[^}]*\})/m, m => `rooms £${m[1]} / £${m[2]} (pension / ISA), the Auto money £${m[3]}: split 1 ${m[4]}, 2 ${m[5]}, 3 ${m[6]}`);
+    const nr = [...t.matchAll(/^PASS {2}2\. (?!planted)/gm)].length;
+    const p2 = pick(W, /^PASS {2}2\. planted: .*? part from the hand calculation by £(\d+)/m, m => `£${m[1]}`);
+    const ls = [...t.matchAll(/^PASS {2}3\. S026, split (\d) forced in \d+: (\d+) household-years in step over (\d+) paths, the worst gap £([\d.e+-]+)/gm)].map(m => `split ${m[1]} £${m[4]}`);
+    const p3 = pick(W, /^PASS {2}3\. planted: the engine handed split 1's move without its split parts from the forward run by £(\d+)/m, m => `£${m[1]}`);
+    const on = pick(W, /^PASS {2}4\. (S\d+) \(no Auto deposit\), the option on: the menu the same \((\d+) moves\)/m, m => `${m[1]} (no Auto deposit) the same menu (${m[2]} moves) and tables`);
+    const mn = pick(W, /^PASS {2}4\. S026 \(an Auto deposit\), the option on: (\d+) moves against (\d+)/m, m => `S026 ${m[1]} moves against ${m[2]}`);
+    const sk = pick(W, /^PASS {2}5\. S026: .*?: (\d+) table entries the same to the bit; 40 runs the same/m, m => m[1]);
+    const cp = pick(W, /^PASS {2}6\. (S\d+) \(a couple, an Auto deposit in [^)]*\): .*?the worst gap £([\d.e+-]+)/m, m => `${m[1]}, £${m[2]}`);
+    const cf = pick(W, /^PASS {2}6\. the code of 4c05bc0 fails the check: (it throws|the worst gap £[\d.]+)/m, m => m[1]);
+    return [`- \`windfall-split.test.mjs\` ${pick(W, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-windfall-split.txt\`, the light settings): the option unset, every table the same to the bit as on the code before it (${off.join(', ')} entries) and 40 runs the same; the routing against a hand calculation on ${nr} cases (S026: ${rt}), planted (the Auto deposit's own claims not given back) ${p2} apart; the engine and the forward run in step with each split forced (${ls.join(', ')}), planted (the split dropped from the engine's move) ${p3} apart; the option on, ${on}, ${mn}; the copies left out outside the deposit year, ${sk} table entries the same as with them scored in every year; a couple with an Auto deposit steps under the even funding split as under its own move (${cp}), where on 4c05bc0, whose moves carried the windfall as \`split\`, ${cf}.`, ...savings()];
+  },
+  // the review's gaps sweep ported (D38 (6), AFTER-PHASE4 section 5): the full tier's run, and the CGT case on the code before its fix
+  gaps() {
+    const G = 'research/tests/results-gaps-sweep.txt';
+    if (read(G) === null) return [`- pending: ${G}`];
+    const t = read(G);
+    const head = pick(G, /^THE GAPS SWEEP: code (\w+), the light candidate, (\d+) paths each of seed (\d+); (\d+) cases$/m, m => `code ${m[1]}, ${m[4]} cases, ${m[2]} paths each of seed ${m[3]}`);
+    const verdict = pick(G, /^SWEEP: (.*)$/m, m => m[1]);
+    const worst = Math.max(...[...t.matchAll(/^PASS {2}.*?worst gap £([\d.e+-]+)/gm)].map(m => Number(m[1])));
+    const pre = pick(G, /^FAIL {2}CGT off and cash interest untaxed .*?worst gap £([\d.]+) \(([^,]+), (path \d+ year \d+)\)/m, m => `worst gap £${m[1]} (${m[2]}, ${m[3]})`);
+    return [`- \`gaps-sweep.test.mjs\` (\`results-gaps-sweep.txt\`; the full tier, outside FAST): ${head}: ${verdict}, the worst gap on a passing case £${worst.toExponential(2)}. Shown failing once on a real fault: the CGT case on the code before the basis fix (a1fd52f^), ${pre}.`];
   }
 };
+
+// the savings split (D38 (4), SAVINGS-SPLIT.md): its test, printed under the windfall split's heading
+function savings() {
+  const V = 'research/tests/results-save-split.txt';
+  if (read(V) === null) return [`- pending: ${V}`];
+  const t = read(V);
+  const off = [...t.matchAll(/^PASS {2}1\. (S\d+F?), the option unset, against the code before it: (\d+) table entries the same to the bit; 40 forward runs the same/gm)].map(m => `${m[1]} ${m[2]}`);
+  const nc = [...t.matchAll(/^PASS {2}2\. (?!planted)/gm)].length;
+  const sc = pick(V, /^PASS {2}2\. S188, an employee taxed in Scotland .*?net budget £([\d.]+); .*?save 1 pension £(\d+), ISA £(\d+).*?; save 2 pension £(\d+), ISA £(\d+)/m, m => `S188 in Scotland, net budget £${Math.round(m[1])}: save 1 pension £${m[2]}, save 2 ISA £${m[5]}`);
+  const mp = pick(V, /^PASS {2}2\. S188 with the MPAA in force .*?save 1 pension £(\d+), ISA £(\d+)/m, m => `the MPAA binding, save 1 pension £${m[1]} and ISA £${m[2]}`);
+  const p2 = pick(V, /^PASS {2}2\. planted: .*? parts the variants from it by £(\d+)/m, m => `£${m[1]}`);
+  const ls = [...t.matchAll(/^PASS {2}3\. (S\d+), save (\d) forced in its (\d+) working years: (\d+) household-years in step over (\d+) paths, the worst gap £([\d.e+-]+)/gm)];
+  const p3 = pick(V, /^PASS {2}3\. planted: the engine handed save 1's move without its save parts from the forward run by £(\d+)/m, m => `£${m[1]}`);
+  const ex = pick(V, /^PASS {2}3\. the exact model under save 1 .*?the worst gap £([\d.e+-]+)\); planted, the save dropped, it parts by £(\d+)/m, m => `£${m[1]}, planted £${m[2]} apart`);
+  const on = pick(V, /^PASS {2}4\. (S\d+) \(retired\), the option on: the menu the same \((\d+) moves\)/m, m => `${m[1]} (retired) the same menu (${m[2]} moves) and tables`);
+  const mn = pick(V, /^PASS {2}4\. (S\d+) \(saving\), the option on: (\d+) moves against (\d+)/m, m => `${m[1]} ${m[2]} moves against ${m[3]}`);
+  const sk = pick(V, /^PASS {2}5\. S\d+: .*?: (\d+) table entries the same to the bit; 40 runs the same/m, m => m[1]);
+  const rf = [...t.matchAll(/^PASS {2}6\. the savings split asked (.*?): refused/gm)].map(m => m[1]);
+  const id = ls.length ? ls[0][1] : '?', wy = ls.length ? ls[0][3] : '?';
+  return [`- \`save-split.test.mjs\` ${pick(V, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-save-split.txt\`, the light settings): the option unset, every table the same to the bit as on the code before it (${off.join(', ')} entries) and 40 runs the same; the gross-up against a hand calculation on ${nc} cases (${sc}; ${mp}), planted (the pension taken gross in the budget) ${p2} apart; the engine and the forward run in step through each save forced in ${id}'s ${wy} working years (${ls.map(m => `save ${m[2]} £${m[6]}`).join(', ')}), planted (the save dropped from the engine's move) ${p3} apart; the exact model under a save the same as under its variant (${ex}); the option on, ${on}, ${mn}; the copies left out after the working years, ${sk} table entries the same as with them scored in every year; refused ${rf.join(' and ')}.`];
+}
 
 const block = async name => (await BLOCKS[name]()).join('\n');
 const blocksIn = text => [...text.matchAll(/<!-- printed:(\w+) -->\n([\s\S]*?)\n?<!-- end printed:\1 -->/g)].map(m => ({ name: m[1], body: m[2], whole: m[0] }));

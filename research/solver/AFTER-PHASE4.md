@@ -4,7 +4,8 @@ The maintainer's go-ahead of 29 Oct (D40 (5)) on the items queued for after Phas
 section 6: the GIA basis guarded under CGT off (`state-check.test.mjs`'s CGT-off household, failing before; results in
 `research/tests/results-cgt-basis.txt`) and the held-out scan reading the review branch (`held-out.mjs`, a planted case;
 `research/tests/results-held-out.txt`). This page sizes the three new solver choices, records the cash ISA limitation and
-weighs the review's sweep for the nightly check. Nothing here is built or run yet; each build waits for the maintainer.
+weighs the review's sweep for the nightly check. When written, nothing here was built or run and each build waited for
+the maintainer; each is now decided, marked **Decided** in its section (D37, D38, D51).
 
 The archived plan lists "contributions" and "lump sum vs phased" as out of scope by design (archive/PLAN.md, "Known,
 recorded, and NOT planned"). D37 and D38 reopen them for sizing only.
@@ -33,6 +34,9 @@ the candidate with the split and without, seed 7002, 8,000 paths, EXPLORATORY: a
 about 0.3 core-hours a household at 8,000 paths), about 3 hours on four cores.
 
 **Size.** The second largest of the three, after the savings split; about a day's build with its tests, then the run.
+
+**Decided** (D37; B7 in D51). Built, off by default (`WINDFALL-SPLIT.md`, 4c05bc0); its factorial runs second in the research
+queue, at low priority, deciding nothing.
 
 ## 2. The lump sum: most of the plumbing is there, but the table's state is not
 
@@ -70,6 +74,8 @@ the lump sum and the rest.
 **Recommendation.** The maintainer's call between the routes; the evidence so far says the gain is small, which favours
 the cheaper route or Part C's lump-sum lock alone (`lumpSum: 'free' | 'never' | 'now'`).
 
+**Decided** (B12 in D51): the lump sum by the lock alone; neither route is built.
+
 ## 3. The savings split while working (`action.contrib`, D38 (4))
 
 **What.** While the household works, the solver chooses where the year's saving goes (the pension or the ISA, at the same
@@ -97,6 +103,9 @@ without, seed 7002, 8,000 paths, EXPLORATORY: about 17 core-hours, about 4.5 hou
 **Size.** The largest of the three: the accumulation years enter the forward run's choices for the first time. About two
 days' build with its tests.
 
+**Decided** (D38 (4); B7 in D51). Built, off by default (`SAVINGS-SPLIT.md`, 54fe4b5); its factorial runs third in the
+research queue, at 4,000 paths, at low priority, deciding nothing.
+
 ## 4. The cash ISA under a table (D38 (5)): a known limitation
 
 Under a table, cash above the buffer goes to the taxable account, cash-ISA money included, so that money loses its
@@ -119,3 +128,6 @@ file in `research/tests` two at a time, so a ported sweep adds that to the night
 case now expected to pass. It covers 58 plan options that the state check's five households never use, each with its own
 plant, for under an hour a night. The port is small: the imports from the repository root, an exit code, and the review's
 case list taken whole.
+
+**Decided** (D38 (6); B14 in D51). Ported (`gaps-sweep.test.mjs`, 4c05bc0). There is no nightly run now: it runs in the full
+tier, on every push (`full.yml`), and weekly on `main`.

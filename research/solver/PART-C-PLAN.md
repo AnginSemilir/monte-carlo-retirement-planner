@@ -1,5 +1,24 @@
 # Part C: the solver in the app, behind a switch (the build plan, approved: D41, D42)
 
+> **Superseded where they differ (1 Nov, D51).** The launch plan (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on
+> review/external-2026-10-21 at 0e24e1b; its section 4 the order, section 5 the stops, section 3 the decisions) holds
+> wherever it and this page differ. The points where they do:
+> - **The order.** Step 0 (CI and the hooks, B14) comes first; step L (the levers: the floor at `80%`, the dial's positions
+>   and their cache, the lever matrix) between Phase 8 and Phase 9; step P (the further performance work) after Phase 10
+>   and before the phone. So: step 0, Phase 8, L, Phase 9, Phase 10, P, Phase 11, Phase 12, each pull request from a
+>   release branch on B1's gate (the harnesses green with the switch off and on).
+> - **Isolation in Phase 10, by a service worker** on GitHub Pages adding COOP and COEP, the one-worker fallback kept (B5);
+>   not deferred to Phase 12.
+> - **The retirement-age dial on request** (B11), one solve an age, not pre-solved three years either way after every edit
+>   (D18 so amended).
+> - **The rule of thumb in `src/solverDistil.js`**, outside `src/solver`, so the e3pcls pin does not move; not
+>   `src/solver/distil.js`.
+> - **The tournament, tradeoffs and priorities harnesses retargeted, not retired**: in Phase 12 they point at a couple's
+>   plan (F14, D42); they retire only after Part D, with the maintainer's word.
+> - **A per-browser opt-in for the beta in place of `SOLVER = true`** (B6, R6): the opt-in goes on `main` off by default
+>   when the readiness checklist prints all PASS, the gate's two modes becoming the opt-in on and off; `SOLVER` becomes
+>   true in Phase 12; the opt-in on by default, and the switch's removal, stay the maintainer's.
+
 D40 (1): the candidate ships behind Part C's switch. This page turns the archived plan's Part C (archive/PLAN.md, "Part C.
 The app (phases 7 to 12), behind a switch") into a build order, updated for what has happened since it was written. Nothing
 of Part C exists in the code yet: no `SOLVER` switch, no solver worker, no `diff.js` or `distil.js`. The maintainer approved

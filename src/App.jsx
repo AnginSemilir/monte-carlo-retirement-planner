@@ -1061,6 +1061,16 @@ function normalizeSolverLocks(src) {
   const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
   return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
 }
+/*
+ * WHAT THE SOLVER AIMS FOR (Part C Phase 8, research/solver/PHASE-8.md): `plan.solver.aims`, kept only where a plan carries it.
+ * `cuts` the dislike of spending cuts as a multiple of today's (the dial's positions, src/solverSettings.js APP_DIAL; pinned
+ * by solver-aims.test.mjs), `estate` 'standard' or 'lower', `raises` 'capped' (to 110% of target) or 'blocked', `riskConsent`
+ * true or false. Anything off those reads as the default, the first of each. src/solverSettings.js aimsOptions maps them.
+ */
+const SOLVER_DIAL = [1, 3, 6, 10];
+function normalizeSolverAims(a) {
+  return { cuts: SOLVER_DIAL.includes(a.cuts) ? a.cuts : 1, estate: a.estate === 'lower' ? 'lower' : 'standard', raises: a.raises === 'blocked' ? 'blocked' : 'capped', riskConsent: a.riskConsent !== false };
+}
 
 function normalizePlan(raw) {
   const src = isPlainObject(raw) ? raw : {};
@@ -1172,7 +1182,7 @@ function normalizePlan(raw) {
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
   // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
-  if (isPlainObject(src.solver)) plan.solver = normalizeSolverLocks(src.solver);
+  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}) };
   return plan;
 }
 
@@ -1711,17 +1721,22 @@ function buildContext(rawPlan) {
   const oneOffDeductions = new Map();
   const stagedTransfers = new Map();
   const oneOffStaging = new Map();
+  const autoSplit = new Map();   // the windfall split (research, D37): by year, where splits 1 to 3 put the year's Auto money
+  let saveSplitAt = null;   // the savings split (research, D38 (4)): t -> where saves 1 and 2 put the year's saving
   {
     // Shared per-owner/wrapper/year claim ledger: every deposit and staged drip tranche competes for the
     // same headroom, so two deposits for the same owner/wrapper can never double-claim one year's allowance.
     const claimed = new Map(); // `${ownerKey}|${cat}|${t}` -> £ already claimed this pass
+    // the windfall split (research, D37): what the Auto deposits claimed in their own year, and their amounts by year
+    const autoClaimed = new Map(), autoAmt = new Map();
     const headroomCtx = { P, owners, acc, otherIncomes };
-    const claim = (ownerKey, cat, t, want) => {
+    const claim = (ownerKey, cat, t, want, auto = false) => {
       const key = `${ownerKey}|${cat}|${t}`;
       const already = claimed.get(key) || 0;
       const avail = Math.max(0, wrapperHeadroomAtYear(headroomCtx, ownerKey, cat, t) - already);
       const take = Math.min(want, avail);
       claimed.set(key, already + take);
+      if (auto) autoClaimed.set(key, (autoClaimed.get(key) || 0) + take);
       return take;
     };
 
@@ -1773,17 +1788,21 @@ function buildContext(rawPlan) {
       // headroom resolution: direct deposit if within headroom, otherwise stage the surplus (Option A)
       // yearHeadroom is this year's raw allowance (before other deposits' claims), shown on the row
       const yearHeadroom = wrapperHeadroomAtYear(headroomCtx, ownerKey, targetCat, t);
-      const H0 = claim(ownerKey, targetCat, t, amt);
+      const isAuto = x.category === AUTO_DEPOSIT;
+      const H0 = claim(ownerKey, targetCat, t, amt, isAuto);
       if (!oneOffContribs.has(y)) oneOffContribs.set(y, []);
+      // an Auto deposit's own entries are marked, so a table's move can put that money elsewhere (the windfall split)
+      const entry = (id, amount) => (isAuto ? { id, amount, auto: true } : { id, amount });
+      if (isAuto) autoAmt.set(`${y}|${ownerKey}`, (autoAmt.get(`${y}|${ownerKey}`) || 0) + amt);
       if (amt <= H0 + 1e-6) {
-        oneOffContribs.get(y).push({ id: targetId, amount: amt });
+        oneOffContribs.get(y).push(entry(targetId, amt));
         oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0 });
         return;
       }
 
       const surplus0 = amt - H0;
-      if (H0 > 0) oneOffContribs.get(y).push({ id: targetId, amount: H0 });
-      oneOffContribs.get(y).push({ id: otherId, amount: surplus0 });
+      if (H0 > 0) oneOffContribs.get(y).push(entry(targetId, H0));
+      oneOffContribs.get(y).push(entry(otherId, surplus0));
 
       const stagedCat = Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === x.stagedTargetWrapper) || targetCat;
       const stagedId = accountId(stagedCat, ownerKey);
@@ -1807,6 +1826,8 @@ function buildContext(rawPlan) {
       );
       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
     });
+    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t) });
+    saveSplitAt = saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears });
   }
   const oneOffCosts = new Map();
   plan.oneOffCosts.forEach(x => {
@@ -1922,7 +1943,7 @@ function buildContext(rawPlan) {
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
     yf, baseYear, valuationDate,
-    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging
+    otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging, autoSplit, saveSplitAt
   };
   return ctx;
 }
@@ -2049,11 +2070,15 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
 
   // 1. one-off deposits (dated: not pro-rated) — includes staged deposits' year-0 immediate tranche + parked surplus
   const deposits = ctx.oneOffContribs.get(year);
-  if (deposits) deposits.forEach(x => {
+  // the windfall split (research, D37): a table's move may put this year's Auto money elsewhere than the plan's routing
+  const split = chosen && chosen.windfall > 0 && ctx.autoSplit ? ctx.autoSplit.get(year) : null;
+  const deposit = x => {
     if (pots[x.id] === undefined) return;
     pots[x.id] += x.amount;
     if (cgtOn && x.id.startsWith('other_')) giaAddBasis(state, ownerOfId(x.id), x.amount);
-  });
+  };
+  if (deposits) deposits.forEach(x => { if (!(split && x.auto)) deposit(x); });
+  if (split) split.variants[chosen.windfall].forEach(deposit);
 
   // 1.5 staged multi-year drip transfers (t>=1): drain GIA into the (possibly redirected) staged target,
   // capped at whatever remains in GIA — this naturally handles a market-crash-depleted GIA.
@@ -2066,12 +2091,14 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     if (cgtOn && x.toId.startsWith('other_')) giaAddBasis(state, ownerOfId(x.toId), move);
   });
 
-  // 2. regular contributions while the owner works (year 0 pro-rated)
+  // 2. regular contributions while the owner works (year 0 pro-rated); a table's move may put the pension and ISA saving
+  // elsewhere at the same net cost (the savings split, research, D38 (4); saveSplitRoutes)
   const contribThisYear = { self: 0, part: 0 };
   const isaContribThisYear = { self: 0, part: 0 };
+  const saved = chosen && chosen.save > 0 && ctx.saveSplitAt ? ctx.saveSplitAt(t) : null, sv = saved ? saved.variants[chosen.save] : null;
   ctx.accounts.forEach(a => {
     if (!working[a.owner]) return;
-    const amt = contribAtYear(a, t);
+    const amt = sv && a.id in sv ? sv[a.id] : contribAtYear(a, t);
     if (amt > 0) {
       pots[a.id] += amt * frac;
       if (cgtOn && a.cat === 'other') giaAddBasis(state, a.owner, amt * frac);
@@ -2161,7 +2188,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     owners.forEach(o => {
       if (!working[o.key] || o.salary <= 0) return;
       const pen = acc[o.ids.pen];
-      const penContrib = pen ? contribAtYear(pen, t) : 0;
+      const penContrib = pen ? (sv && pen.id in sv ? sv[pen.id] : contribAtYear(pen, t)) : 0;
       const pay = salaryAtYear(o, t);
       // pay less tax, NIC and the net cost of the pension contribution — which prices sacrifice for an
       // employee and relief at source for the self-employed, whose NIC is charged on the whole profit
@@ -3233,6 +3260,92 @@ function suggestOneOffDestination(ctx, ownerKey, t, amount) {
     if (left <= 0) break;
   }
   return best.cat;
+}
+
+/*
+ * THE WINDFALL SPLIT (research, off unless a table's move asks for it; STATE.md D37, research/solver/WINDFALL-SPLIT.md).
+ * For each year with Auto deposits, where splits 1 to 3 put that year's Auto money, by owner: 1 the pension up to its room,
+ * then the ISA up to its allowance, the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
+ * room is what the claim ledger left this year once every other deposit, transfer and contribution claimed, the Auto
+ * deposits' own claims for the year given back. A wrapper the household does not hold takes nothing. Split 0 is the plan's
+ * own routing (the marked entries in oneOffContribs), so nothing here changes a year whose move carries no split.
+ */
+function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room }) {
+  autoAmt.forEach((A, key) => {
+    const [ys, ownerKey] = key.split('|');
+    const y = Number(ys), t = y - baseYear;
+    const left = cat => {
+      if (!acc[accountId(cat, ownerKey)]) return 0;
+      const k = `${ownerKey}|${cat}|${t}`;
+      return Math.max(0, room(ownerKey, cat, t) - ((claimed.get(k) || 0) - (autoClaimed.get(k) || 0)));
+    };
+    const penRoom = left('pen'), isaRoom = left('isa');
+    const pen1 = Math.min(A, penRoom), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
+    // the rest goes to the taxable account, or to cash where the household holds no taxable account
+    const restId = acc[accountId('other', ownerKey)] ? accountId('other', ownerKey) : accountId('cash', ownerKey);
+    const ent = pairs => pairs.filter(([, a]) => a > 0).map(([id, a]) => ({ id, amount: a }));
+    if (!out.has(y)) out.set(y, { variants: [null, [], [], []], room: [] });
+    const e = out.get(y);
+    e.variants[1].push(...ent([[accountId('pen', ownerKey), pen1], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1]]));
+    e.variants[2].push(...ent([[accountId('isa', ownerKey), isa2], [restId, A - isa2]]));
+    e.variants[3].push(...ent([[restId, A]]));
+    e.room.push({ owner: ownerKey, amount: A, pen: penRoom, isa: isaRoom });
+  });
+}
+
+/*
+ * THE SAVINGS SPLIT (research, off by default; STATE.md D38 (4), research/solver/SAVINGS-SPLIT.md): where a working year's
+ * pension and ISA saving goes, at the plan's net cost, when a solved table's move asks (`save`). Save 1 puts the net budget
+ * in the pension first, grossed up to its room, then the ISA up to its room; save 2 the ISA first, then the pension; what fits
+ * neither goes to the taxable account at its net amount (allocateBudget's cascade). The budget is the plan's pension
+ * contribution at its net cost plus its ISA contribution; the taxable and cash contributions stay as the plan has them. The
+ * pension's room is the year's annual allowance (tapered, or the MPAA) capped at relevant earnings, without carry-forward
+ * (an earlier year's choice may have used what it counts), less what the plan's dated deposits and staged transfers claim
+ * that year; the ISA's room is the allowance less those claims and the plan's cash ISA subscription; neither falls below the
+ * plan's own contribution. Returns t -> null (nothing to choose that year) or { variants: [null, v1, v2] (account id -> the
+ * full-year contribution, every account of each working owner), owners: [{ owner, budget, pen, isa }] }, memoised and
+ * computed only when asked, so the app's own runs never pay for it.
+ */
+function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears }) {
+  const memo = new Map(), hctx = { P, owners, acc, otherIncomes };
+  const at = t => {
+    if (!(t >= 0 && t <= totalYears)) return null;
+    const v1 = {}, v2 = {}, rooms = [];
+    let any = false;
+    for (const o of owners) {
+      if ((o.age0 + t) >= o.retireAge) continue;
+      const ids = o.ids, pa = acc[ids.pen], ia = acc[ids.isa], ga = acc[ids.other], ca = acc[ids.cash];
+      const P0 = pa ? contribAtYear(pa, t) : 0, I0 = ia ? contribAtYear(ia, t) : 0, G0 = ga ? contribAtYear(ga, t) : 0, C0 = ca ? contribAtYear(ca, t) : 0;
+      const plan = { [ids.pen]: P0, [ids.isa]: I0, [ids.other]: G0, [ids.cash]: C0 };
+      const put = (v, amts) => { for (const id of Object.keys(amts)) if (acc[id]) v[id] = amts[id]; };
+      const salary = salaryAtYear(o, t), se = !!o.selfEmployed;
+      const netOf = g => (g > 0 ? netCostOfPensionContrib(g, salary, P, se) : 0);
+      const budget = netOf(P0) + I0;
+      // nothing to move, or no taxable account to take what fits neither wrapper: the plan's own contributions
+      if (!(budget > 0) || !ga) { put(v1, plan); put(v2, plan); continue; }
+      const earnings = relevantEarningsAtYear(hctx, o, t);
+      const allowance = mpaaAppliesAtYear(P, o, t) ? P.mpaaLimit : P.aaAt(earnings);
+      const cap = (o.salary <= 0 && earnings <= 0) ? allowance : Math.min(allowance, Math.max(P.pensionNoEarningsLimit, earnings));
+      const claim = cat => claimed.get(`${o.key}|${cat}|${t}`) || 0;
+      const cashIsa = o.cashIsaContrib > 0 ? Math.min(o.cashIsaContrib, P.cashIsaCapAt(o.age0 + t, baseYear + t)) : 0;
+      const penRoom = pa ? Math.max(P0, cap - claim('pen')) : 0;
+      const isaRoom = ia ? Math.max(I0, P.isaAllowance - claim('isa') - cashIsa) : 0;
+      const grossOf = n => (n > 0 && penRoom > 0 ? grossUpNet(n, salary, P, penRoom, se) : 0);
+      // what the gross-up leaves: under half a penny is the bisection's residue, not money
+      const rest = x => (x > 0.005 ? x : 0);
+      const pen1 = grossOf(budget), left1 = rest(budget - netOf(pen1)), isa1 = Math.min(left1, isaRoom);
+      const isa2 = Math.min(budget, isaRoom), pen2 = grossOf(budget - isa2), left2 = rest(budget - isa2 - netOf(pen2));
+      // within a penny of the plan's contributions is the plan's (the gross-up's bisection leaves a residue)
+      const snap = amts => (Object.keys(plan).every(id => Math.abs(amts[id] - plan[id]) < 0.01) ? plan : amts);
+      const s1 = snap({ [ids.pen]: pen1, [ids.isa]: isa1, [ids.other]: G0 + left1 - isa1, [ids.cash]: C0 });
+      const s2 = snap({ [ids.pen]: pen2, [ids.isa]: isa2, [ids.other]: G0 + left2, [ids.cash]: C0 });
+      put(v1, s1); put(v2, s2);
+      if (s1 !== plan || s2 !== plan) any = true;
+      rooms.push({ owner: o.key, budget, pen: penRoom, isa: isaRoom });
+    }
+    return any ? { variants: [null, v1, v2], owners: rooms } : null;
+  };
+  return t => { if (!memo.has(t)) memo.set(t, at(t)); return memo.get(t); };
 }
 
 function wrapperHeadroomAtYear(ctx, ownerKey, category, t) {
@@ -6810,6 +6923,9 @@ const SHOW_INHERITANCE = false;
  * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
  */
 const SOLVER = false;
+// the solve's settings beside the switch: null in the app; a harness's light settings in a preview build only (vite.config.js
+// solver-preview, research/solver/PHASE-8.md), so the site's own build never reads anything else here
+const SOLVER_OPTS = null;
 // the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
 // the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
 if (typeof window !== 'undefined') window.__solverEngine = E;
@@ -6817,6 +6933,11 @@ if (typeof window !== 'undefined') window.__solverEngine = E;
 // It sits here, below the export line, because research/build-engine.py takes everything above it as the
 // engine and strips the imports - a lazy() up there breaks engine.mjs.
 const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
+// Part C Phase 8's cards on the Config tab (src/SolverConfig.jsx), fetched only when the switch is on for a single household
+// the page's own pieces the solver's cards use, handed in rather than imported there (src/SolverConfig.jsx says why)
+const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
+const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
+const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
 /*
  * THE TABS, ONCE.
  *
@@ -8248,8 +8369,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [mcSeed, setMcSeed] = useState(12345);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
-  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it)
-  useSolverState(plan, SOLVER, E);
+  // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). Single households only (D42):
+  // a couple's plan keeps the app's rules and is not solved
+  const solverRules = SOLVER && plan?.demographics?.planningMode === 'single';
+  // on a phone the solve runs when asked (the launch plan's B10; Phase 11 adds its expected time), and then follows the plan
+  const [solveAsked, setSolveAsked] = useState(false);
+  const solve = useSolverState(plan, solverRules && (!isPhone || solveAsked), E, SOLVER_OPTS);
 
   const [scenarios, setScenarios] = useState(() => {
     try {
@@ -8630,11 +8755,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const attempt = () => { if (document.getElementById(id)) scrollToDocSection(id); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
-  // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it
+  // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it (under the solver's switch,
+  // after the solver's cards, which load on their own and would push the setting down after the scroll)
   const goToConfig = (id) => {
     setActiveTab('config');
     let tries = 0;
-    const attempt = () => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
+    const attempt = () => { const el = document.getElementById(id), ready = el && (!solverRules || document.querySelector('[data-solver-locks]')); if (ready) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
 
@@ -13092,6 +13218,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 2: CONFIG */}
         {activeTab === 'config' && (
           <div className="space-y-6">
+            {/* Part C Phase 8 (research/solver/PHASE-8.md): with the switch on, what the solver aims for and what it may change,
+                at the top; a couple's plan keeps the app's rules (D42), and says so */}
+            {solverRules && (
+              <Suspense fallback={null}>
+                <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} ui={SOLVER_UI} />
+                <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} ui={SOLVER_UI} />
+              </Suspense>
+            )}
+            {SOLVER && !solverRules && (
+              <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the withdrawal rules below.</p>
+            )}
             {/*
               * HOW NUMBERS ARE WRITTEN, WHICH IS NOT THE SAME QUESTION AS WHAT THEY ARE.
               *
@@ -13131,14 +13268,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               */}
             <div className={isPhone ? 'bg-surface border border-slate-200/90 rounded-xl px-4 py-1' : ''}>
             <PhoneCollapse isPhone={isPhone}>
-            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; withdrawal</h2>}
+            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; withdrawal</>}</h2>}
             <div className={isPhone ? 'space-y-3 pb-2' : 'bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4'}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</>}</h2>
+                  {solverRules ? <p data-solver-rules-note className="text-xs text-slate-500 mt-1">The solver chooses each year&apos;s withdrawals, the pension&apos;s tax-free cash and the investment tiers, by what it aims for above. The guardrails apply to your own plan only, the one the solved plan is compared with; the tax settings apply to both.</p> : (
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
+                  )}
                   {/* The size of the search, said plainly: a button that thinks for thirty seconds should
                       account for the time, and the numbers are derived so they cannot go stale. */}
+                  {!solverRules && (
                   <Fine isPhone={isPhone} label="How big the search is">
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
                     Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
@@ -13149,7 +13289,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     and takes about half a minute.
                   </p>
                   </Fine>
+                  )}
                 </div>
+                {!solverRules && (
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
                     className="px-3.5 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -13165,17 +13307,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mt-1.5 max-w-[17rem] leading-snug">{policySweep.why}</p>
                   )}
                 </div>
+                )}
               </div>
-              {policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
+              {!solverRules && policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
 
               {/* What used to be six draggable priorities is now a recommendation plus priced trade-offs
                   (rendered with the results below). The ranking still exists, folded, for anyone who
                   genuinely has an order: measured across 420 households, promoting the pot to first
                   changes the recommendation for 75% of them, so it is a real control, just not the
                   one most people should be asked to operate cold. */}
-              {!policyResults && !isPolicySearching && (
+              {!solverRules && !policyResults && !isPolicySearching && (
                 <p className="text-[11px] text-slate-600 leading-relaxed">Run the policy search to see the recommended settings, and any alternatives that would trade some safety for a materially better result on something else.</p>
               )}
+              {!solverRules && (
               <details className="pt-1 text-xs">
                 <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: rank the priorities yourself</summary>
               <div className="mt-2">
@@ -13288,8 +13432,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </details>
               </div>
               </details>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
                   <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -13301,6 +13447,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </span>
                   </Fine>
                 </div>
+                )}
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
                   <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -13311,8 +13459,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
                   </Fine>
                 </div>
+                )}
                 <div id="config-guardrails">
-                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails</label>
+                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails{solverRules ? <span data-guardrails-own className="font-normal text-slate-500">: your plan only</span> : null}</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" data-guardrails-toggle checked={!!plan?.config?.guardrails} onChange={(e) => updateConfig('guardrails', e.target.checked)} className="accent-blue-600" />
                     <span className="text-slate-700 font-semibold">Let simulated spending react to the pots (Guyton-Klinger): cut {Math.round(E.GUARDRAILS.cut * 100)}% when the withdrawal rate drifts {Math.round(E.GUARDRAILS.band * 100)}% above where it started, raise {Math.round(E.GUARDRAILS.raise * 100)}% when it drifts that far below, and skip the inflation rise after a losing year.</span>
@@ -13321,6 +13470,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
                   </Fine>
                 </div>
+                {!solverRules && (
                 <div id="config-lookahead">
                   <label htmlFor="config-lookahead-years" className="text-slate-600 font-semibold block mb-1">Prepare for one-off costs, years ahead</label>
                   <input id="config-lookahead-years" type="number" min="0" max="15" step="1" data-lookahead-years value={plan?.config?.lookaheadYears ?? 0} onChange={(e) => updateConfig('lookaheadYears', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold" />
@@ -13328,6 +13478,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">0 is off: a one-off cost is met in its own year, and whatever the liquid wrappers cannot cover comes out of the pension in one go, through the higher bands. From this many years ahead the plan instead draws the shortfall a share at a time, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)}), and parks it in the ISA then cash to pay the cost when it lands. Only once retired and past the pension access age; the Audit Data Table shows the years it acted. <button type="button" onClick={() => goToDoc('doc-lookahead')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
                   </Fine>
                 </div>
+                )}
+                {!solverRules && (
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -13344,6 +13496,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </select>
                   <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
                 </div>
+                )}
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -13366,6 +13519,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Open on a desktop, where it is the payoff of the card. Shut on a phone, where its ten
                   numbered steps are 1,015px - a screen and a half of instructions above the settings the
                   reader came to change. */}
+              {!solverRules && (
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
@@ -13382,8 +13536,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </ol>
                 <span className="text-[10px] text-slate-400 mt-2 block">Written from the policy the model is actually running, so these steps and the projection can never disagree. Changing the policy above rewrites them.</span>
               </details>
+              )}
 
-              {policyResults && (
+              {!solverRules && policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>

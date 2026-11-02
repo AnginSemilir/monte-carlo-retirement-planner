@@ -1,0 +1,28 @@
+The savings split's tests: the code at /tmp/claude-0/-home-user-vitejs-vite-kdvuf9qw/2a53f41c-129c-59b0-b644-606b6facdf9e/scratchpad/wt-save (574cb57 with changes), the code before the option at /tmp/save-base-M85TVn (574cb57); saving households S188, S244, retired S026; the light settings
+=========== 1. OFF: THE CODE BEFORE THE OPTION ===========
+PASS  1. S188, the option unset, against the code before it: 4463424 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 45 s, the code before 58 s)
+PASS  1. S244, the option unset, against the code before it: 5660928 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 49 s, the code before 60 s)
+PASS  1. S026, the option unset, against the code before it: 3048192 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 29 s, the code before 39 s)
+=========== 2. THE GROSS-UP AGAINST A HAND CALCULATION ===========
+PASS  2. S188, an employee taxed in Scotland (the sacrifice crosses the 45% band), year 0: the plan's pension £9300, ISA £4650, net budget £9783.00; rooms pension £60000, ISA £20000; save 1 pension £17604, ISA £0, taxable +£0; save 2 pension £0, ISA £9783, taxable +£0; the worst net cost against the budget £7.3e-12; within the rooms yes, greedy yes, the rooms as by hand yes, the case as named yes
+PASS  2. S244, self-employed (relief at source, income tax only), year 0: the plan's pension £6960, ISA £3480, net budget £7656.00; rooms pension £58000, ISA £20000; save 1 pension £11502, ISA £0, taxable +£0; save 2 pension £0, ISA £7656, taxable +£0; the worst net cost against the budget £6.5e-11; within the rooms yes, greedy yes, the rooms as by hand yes, the case as named yes
+PASS  2. S188 with the MPAA in force (the pension's room £10,000 binds), year 0: the plan's pension £9300, ISA £4650, net budget £9783.00; rooms pension £10000, ISA £20000; save 1 pension £10000, ISA £4258, taxable +£0; save 2 pension £0, ISA £9783, taxable +£0; the worst net cost against the budget £0.0e+0; within the rooms yes, greedy yes, the rooms as by hand yes, the case as named yes
+PASS  2. S204 with its salary blank (the assumed rate), year 0: the plan's pension £4080, ISA £2040, net budget £4406.40; rooms pension £60000, ISA £20000; save 1 pension £7597, ISA £0, taxable +£0; save 2 pension £0, ISA £4406, taxable +£0; the worst net cost against the budget £0.0e+0; within the rooms yes, greedy yes, the rooms as by hand yes, the case as named yes
+PASS  2. S260 with an ISA contribution of £12,000 and a cash ISA subscription of £6,000 (the ISA's room, £14,000, binds), year 0: the plan's pension £10200, ISA £12000, net budget £17412.00; rooms pension £60000, ISA £14000; save 1 pension £31629, ISA £0, taxable +£0; save 2 pension £6438, ISA £14000, taxable +£0; the worst net cost against the budget £7.6e-11; within the rooms yes, greedy yes, the rooms as by hand yes, the case as named yes
+PASS  2. planted: the budget taken with the pension contribution gross (£9300, not its net cost) parts the variants from it by £4167, and the check fails
+=========== 3. THE ENGINE AND THE FORWARD RUN IN STEP THROUGH EVERY SAVE ===========
+PASS  3. S188, save 0 forced in its 5 working years: 820 household-years in step over 20 paths, the worst gap £1.86e-9 (pension, path 11 year 39); the forward run survives 20 of 20
+PASS  3. S188, save 1 forced in its 5 working years: 820 household-years in step over 20 paths, the worst gap £4.66e-10 (pension, path 12 year 18); the forward run survives 20 of 20
+PASS  3. S188, save 2 forced in its 5 working years: 820 household-years in step over 20 paths, the worst gap £4.66e-10 (pension, path 15 year 37); the forward run survives 20 of 20
+PASS  3. live: at retirement on path 0 the pension is £978011 under save 1 and £897516 under save 2, the ISA £80758 and £139520
+PASS  3. planted: the engine handed save 1's move without its save parts from the forward run by £222686 (wealth at the end, path 1), and the check fails (68 s)
+PASS  3. the exact model under save 1 through 5 working years: the same as the variant handed it as contrib (the worst gap £0.0e+0); planted, the save dropped, it parts by £50964
+=========== 4. THE OPTION ON ===========
+PASS  4. S026 (retired), the option on: the menu the same (800 moves); 3048192 table entries the same as off; 40 runs the same; recorded "no year to choose" (37 s)
+PASS  4. S188 (saving), the option on: 2400 moves against 800; its tables differ from off (first at world 0 layer 0 surv year 0 cell 0); recorded "on"
+=========== 5. THE COPIES LEFT OUT OUTSIDE THE WORKING YEARS ===========
+PASS  5. S188: the copies scored in every year (SPLIT.skip false) against left out after its 5 working years: 4463424 table entries the same to the bit; 40 runs the same (every year 98 s)
+=========== 6. THE REFUSALS ===========
+PASS  6. the savings split asked with the windfall split: refused (saveSplit and windfallSplit together: both rooms would be counted twice)
+PASS  6. the savings split asked as 'yes': refused (saveSplit yes: only true)
+ALL PASS: 20 checks

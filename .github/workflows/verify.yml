@@ -3,7 +3,9 @@
 # On every push: the engine is built, STATE.md is checked (its length, its sections, every printed figure against the
 # results files), and the fast verification suite runs, every file of it to a zero exit (research/tests/run-all.mjs).
 # A failure is a red cross on the commit, which no hook inside a session can hide; the session prints this run's result
-# at start. The full suite (some files take half an hour) runs on demand and every night.
+# at start. The full suite (some files take an hour) has its own workflow, full.yml, on every push to the working
+# branch, a release branch or main, and weekly on main (the launch plan of 1 Nov, B14: the nightly schedule removed); it
+# runs here too on demand (workflow_dispatch, tier all).
 name: Verify
 
 on:
@@ -14,8 +16,6 @@ on:
       tier:
         description: 'fast or all'
         default: 'all'
-  schedule:
-    - cron: '17 2 * * *'
 
 permissions:
   contents: read
@@ -49,6 +49,5 @@ jobs:
       - name: The verification suite
         run: |
           TIER=fast
-          [ "${{ github.event_name }}" = "schedule" ] && TIER=all
           [ "${{ github.event_name }}" = "workflow_dispatch" ] && TIER="${{ github.event.inputs.tier }}"
           node research/tests/run-all.mjs "$TIER" -j 2

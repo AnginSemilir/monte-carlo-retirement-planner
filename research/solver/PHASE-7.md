@@ -79,8 +79,9 @@ Read against the code on 30 Oct, three parts of the archived Phase 7 do not hold
   same check on the solve without the lock finding it broken (so it can see a breach); locks all free leave every table
   as without them; each lock another key.
 
-## Deferred to Phase 12 (the maintainer's call then)
+## Isolation in production: Phase 10 (B5 in D51; deferred to Phase 12 when this note was written)
 
 Cross-origin isolation in production. GitHub Pages cannot send the two headers the split needs (COOP and COEP); Cloudflare
-Pages and Netlify can (a `_headers` file), and on Pages a service worker can add them. Until then the preview server sends
-them for the harnesses, and the deployed app, with the switch off, is unchanged.
+Pages and Netlify can (a `_headers` file), and on Pages a service worker can add them. Decided (B5 in D51): a service worker
+on GitHub Pages adds them, built in Phase 10, the one-worker fallback kept. Until then the preview server sends them for
+the harnesses, and the deployed app, with the switch off, is unchanged.

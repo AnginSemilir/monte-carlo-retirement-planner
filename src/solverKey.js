@@ -7,7 +7,7 @@
  * that keeps them: the objective weighs the estate against the opening wealth (solve.js, `scale`), and the bridge reader
  * and the cash buffer read the opening balances too, so every balance moves the tables (solver-cache.test.mjs shows it).
  */
-import { prepareForSolve, APP_CANDIDATE, APP_LAMBDA, APP_POINTS } from './solverSettings.js';
+import { prepareForSolve, aimsOptions, APP_CANDIDATE, APP_POINTS } from './solverSettings.js';
 
 const canonical = v => {
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
@@ -16,9 +16,11 @@ const canonical = v => {
 };
 const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 
-/* the key of a solve: `code` names the code that solves it (the worker chunk's fingerprinted URL in a build) */
-export async function solveKey(E, plan, { lambda = APP_LAMBDA, points = APP_POINTS, research = null } = {}, code = '') {
-  const body = canonical({ plan: prepareForSolve(E, plan), settings: { candidate: APP_CANDIDATE, lambda, points, research }, code });
+/* the key of a solve: `code` names the code that solves it (the worker chunk's fingerprinted URL in a build). The plan carries
+ * what the solver aims for (Phase 8); lambda is the dial's unless given, as solveForApp takes it. */
+export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null } = {}, code = '') {
+  const p = prepareForSolve(E, plan);
+  const body = canonical({ plan: p, settings: { candidate: APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p).lambda, points, research }, code });
   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
 }
 export { canonical };

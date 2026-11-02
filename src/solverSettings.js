@@ -23,6 +23,26 @@ export const APP_POINTS = 45;
 /* the dislike of cuts' positions on Phase 8's dial, as multiples of APP_LAMBDA, the first the default (D46) */
 export const APP_DIAL = Object.freeze([1, 3, 6, 10]);
 
+/*
+ * WHAT THE SOLVER AIMS FOR (Part C Phase 8, research/solver/PHASE-8.md): `plan.solver.aims` (App.jsx normalizeSolverAims) as the
+ * solve's options. Each lever's default is the candidate's, so a plan without aims, or with every aim at its default, solves as
+ * the candidate with today's lambda, bit for bit:
+ *   cuts         the dislike of spending cuts, `lambda` that many times APP_LAMBDA (the dial, D46);
+ *   estate       'lower': `bequestWeight` 0.01 (Phase 4's second weight) in place of the candidate's 0.02;
+ *   raises       'blocked': `raiseCap` 1, no year above target (the default caps raises at 110%, solvePlan's);
+ *   riskConsent  false: the plan's own tiers, no tier move (D39).
+ * The minimum pot is the plan's own field (`config.solvencyFloor`), read by solvePlan as before. research/tests/solver-aims.test.mjs.
+ */
+export function aimsOptions(plan) {
+  const a = (plan && plan.solver && plan.solver.aims) || {};
+  return {
+    lambda: APP_LAMBDA * (APP_DIAL.includes(a.cuts) ? a.cuts : 1),
+    ...(a.estate === 'lower' ? { bequestWeight: 0.01 } : {}),
+    ...(a.raises === 'blocked' ? { raiseCap: 1 } : {}),
+    ...(a.riskConsent === false ? { riskConsent: false } : {})
+  };
+}
+
 /* the plan with each blended tier's real at its blend median; riskSource '' so normalizePlan keeps them (candidate.mjs) */
 export function appPlan(E, plan) {
   const base = E.normalizePlan(plan), rp = {};

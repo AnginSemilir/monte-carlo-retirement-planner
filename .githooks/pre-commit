@@ -5,8 +5,12 @@
 # same checks on every push regardless.
 #   - always (seconds): STATE.md's check (its length, its sections, figures printed from results files), the hooks'
 #     test, the fair-test gate's test, the decided defaults against the code, and check-state's own test;
-#   - when the commit touches code (src/, research/**/*.mjs or .js, a hook): the fast verification suite, every file of
-#     it run and passed (research/tests/run-all.mjs fast).
+#   - on every commit: the fast verification suite through research/tests/fast-skip.mjs (the launch plan of 1 Nov, step 0,
+#     B8): each test of the fast tier runs unless every input it read when it last passed here is unchanged. Its inputs
+#     are traced, not typed (research/tests/trace-reads.mjs records every file a test and its children and workers read,
+#     list or probe, kept in research/tests/fast-inputs.json); a test that starts another program (git, python) always
+#     runs. A changed trace refuses the commit until fast-inputs.json is staged. CI runs the whole fast tier on every push,
+#     and the full tier checks each trace against a tree holding only its inputs (research/tests/fast-skip.test.mjs).
 #
 python3 research/build-engine.py > /tmp/.precommit-build.txt 2>&1 || {
   tail -3 /tmp/.precommit-build.txt >&2
@@ -25,11 +29,15 @@ for t in hooks fair-gate plan-defaults check-state; do
     exit 1
   }
 done
-if git diff --cached --name-only | grep -qE '^(src/|research/.*\.(mjs|js)$|\.claude/hooks/|\.githooks/)'; then
-  node research/tests/run-all.mjs fast -j 2 > /tmp/.precommit-fast.txt 2>&1 || {
-    grep -E "^FAIL|^run-all" /tmp/.precommit-fast.txt >&2
-    echo "pre-commit: the fast verification suite failed (node research/tests/run-all.mjs fast). Fix it." >&2
-    exit 1
-  }
+node research/tests/fast-skip.mjs -j 2 > /tmp/.precommit-fast.txt 2>&1
+code=$?
+if [ "$code" -eq 2 ]; then
+  grep -E "^fast-skip" /tmp/.precommit-fast.txt >&2
+  echo "pre-commit: the fast tier passed, and the traced inputs of some tests changed: git add research/tests/fast-inputs.json and commit again." >&2
+  exit 1
+elif [ "$code" -ne 0 ]; then
+  grep -E "^FAIL|^fast-skip" /tmp/.precommit-fast.txt >&2
+  echo "pre-commit: the fast verification suite failed (node research/tests/fast-skip.mjs; the whole tier: node research/tests/run-all.mjs fast). Fix it." >&2
+  exit 1
 fi
 exit 0

@@ -13,6 +13,8 @@
  *        under half a point of survival (the harness's light settings: 300 paired paths).
  * 3. The wording's four cases (B4), each on a library household that reads so at these settings: starting at the target,
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
+ *    And the skip costs on their fixture (SKIP_FIXTURE): the page's Node's, a known costly action above 0, the costs not all
+ *    0, and a planted dominated action at least 0.
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; the tab says so, offers "try again",
  *    and keeps the tournament (the app's rules) below.
  * 5. A couple under the switch (D42): the tournament, with the solver's line.
@@ -31,6 +33,12 @@ const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 // a household for each of the wording's cases at these settings (research/ui-harnesses' own scan, 1 Nov), the main one first
 const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', never: 'S364' };
+// the skip costs' fixture (the launch plan's Phase 9: "a fixture with a known costly action (the pension drawn to the
+// basic-rate limit in a bridge year)"). At these settings no library household's first move draws the pension to the
+// basic-rate limit (research/solver/skip-scan.mjs, 2 Nov: none of the 30 retired in their bridge). S116 (61, the state
+// pension at 67) draws it to the personal allowance and re-wraps it, and cuts its spending to 80%; skipping the re-wrap
+// lost 3 paths of 300 and saved none, skipping the cut lost 4 and saved none (skip-scan.mjs --all)
+const SKIP_FIXTURE = 'S116';
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
@@ -74,7 +82,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
 (async () => {
   execFileSync('python3', [join(ROOT, 'research/build-engine.py')], { stdio: 'ignore' });
   const E = await load('research/engine.mjs'), M = await load('src/solver/model.js');
-  const { solveForApp } = await load('src/solverApp.js'), { strategyOf } = await load('src/solverStrategy.js');
+  const { solveForApp } = await load('src/solverApp.js'), { strategyOf, actionsOf, firstMove, moveOf, partsOf, runPath } = await load('src/solverStrategy.js');
   const { headlineWords, explanationWords } = await load('src/solverWords.js');
   const { buildScenarios } = await load('research/policy-study/scenarios.mjs');
   const all = buildScenarios(), planOf = id => all.find(s => s.id === id).plan;
@@ -101,7 +109,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     ok('the preview build (the switch on) is served', up, `port ${PREVIEW_PORT}`);
 
     // 2 and 3: each case's household, the main one checked figure for figure
-    // STRATEGY_CASES=main,never (a working run's narrowing; the gate runs every case)
+    // STRATEGY_CASES=main,never,skips (a working run's narrowing; the gate runs every case)
     const only = process.env.STRATEGY_CASES ? process.env.STRATEGY_CASES.split(',') : null;
     for (const [which, id] of Object.entries(CASES).filter(([w]) => !only || only.includes(w))) {
       const { p, errs, urls } = await open(b, PREVIEW_PORT, planOf(id)), s = await tab(p);
@@ -135,6 +143,32 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
         ok(`${which === 'main' ? id : `the case '${which}' (${id})`}: reads ${figs.headline.case}, the wording table's words on the card, the explanation ${kind || 'none'}`, (which === 'main' || figs.headline.case === which) && words && kind === wantKind, `${w.amount}${w.back ? ' / ' + w.back : ''}`);
       } else ok(`the case '${which}' (${id}): its figures came in`, false);
       ok(`${id}: no page errors`, errs.length === 0, errs.slice(0, 2).join(' | '));
+      await p.context().close();
+    }
+
+    // 2b. the skip costs on the fixture: the page's Node's; the re-wrap (the pension drawn to the allowance in a bridge year)
+    // costs above 0; the costs not all 0; a planted dominated action (the year's move at its highest spending level, the rest
+    // of it unchanged) costs at least 0
+    if (!only || only.includes('skips')) {
+      const { p, errs } = await open(b, PREVIEW_PORT, planOf(SKIP_FIXTURE));
+      let done = true;
+      try { await p.waitForSelector('[data-strategy-actions="done"]', { timeout: 900000 }); } catch (e) { done = false; }
+      const page = done ? await p.$$eval('[data-strategy-action]', els => els.map(el => ({ part: el.dataset.strategyAction, cost: el.dataset.strategyCost === '' ? null : Number(el.dataset.strategyCost) }))) : [];
+      const pl = done ? await saved(p) : null, r = done ? solveForApp(E, M, pl, LIGHT) : null;
+      const node = done ? actionsOf(E, r, pl, { seed: SEED, n: LIGHT.strategyActionsN }) : null;
+      const same = done && JSON.stringify(page) === JSON.stringify(node.actions.map(x => ({ part: x.part, cost: x.cost })));
+      const harvest = done ? node.actions.find(x => x.part === 'harvest') : null;
+      ok(`${SKIP_FIXTURE}: this year's skip costs in, the page's Node's (${LIGHT.strategyActionsN} paired paths)`, same, done ? page.map(x => `${x.part} ${x.cost === null ? '-' : x.cost.toFixed(2)}`).join('; ') : 'not done');
+      ok(`${SKIP_FIXTURE}: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0`, !!harvest && harvest.cost > 0 && node.actions.some(x => x.cost), harvest ? `the re-wrap ${harvest.cost.toFixed(2)} points (lost ${harvest.lost}, saved ${harvest.saved})` : 'no re-wrap in the first move');
+      if (done) {
+        const f = firstMove(E, r), sc = f.sc, q = partsOf(r.actions[f.mv.index], r.c.acts[f.mv.index]), top = Math.max(...r.actions.map(x => x.spendLevel || 1));
+        const domAi = r.actions.findIndex((x, ai) => { const d = partsOf(x, r.c.acts[ai]); return d.level === top && d.draw === q.draw && d.isaFirst === q.isaFirst && d.harvest === q.harvest && d.tierPen === q.tierPen && d.tierIsa === q.tierIsa; });
+        const dom = { ...sc, policyOverride: { ...f.base, choose: (st, t, held) => (t === 0 ? moveOf(r, domAi, f.mv) : f.base.choose(st, t, held)) } };
+        let dl = 0, ds = 0;
+        for (const zs of E.pathsForSeed(SEED, LIGHT.strategyActionsN, sc.totalYears)) { const x = runPath(E, sc, zs).survived, y = runPath(E, dom, zs).survived; if (x && !y) dl++; else if (!x && y) ds++; }
+        ok(`${SKIP_FIXTURE}: the year's move forced to spend ${Math.round(100 * top)}% (a planted dominated action) costs at least 0`, domAi >= 0 && domAi !== f.mv.index && dl - ds >= 0, `${((100 * (dl - ds)) / LIGHT.strategyActionsN).toFixed(2)} points (lost ${dl}, saved ${ds})`);
+      }
+      ok(`${SKIP_FIXTURE}: no page errors`, errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close();
     }
 

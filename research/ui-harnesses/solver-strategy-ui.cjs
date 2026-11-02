@@ -38,7 +38,8 @@ const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', nev
 // basic-rate limit (research/solver/skip-scan.mjs, 2 Nov: none of the 30 retired in their bridge). S116 (61, the state
 // pension at 67) draws it to the personal allowance and re-wraps it, and cuts its spending to 80%; skipping the re-wrap
 // lost 3 paths of 300 and saved none, skipping the cut lost 4 and saved none (skip-scan.mjs --all)
-const SKIP_FIXTURE = 'S116';
+// planted (STRATEGY_SKIP_FIXTURE=S126, a household surviving nearly every path, its skips all 0): the costly check fails
+const SKIP_FIXTURE = process.env.STRATEGY_SKIP_FIXTURE || 'S116';
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);

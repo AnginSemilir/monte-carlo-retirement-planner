@@ -60,14 +60,28 @@ a solve that failed (F16).
   when under half a point; the words by case on a household for each of the four; a failed solve (the worker planted to fail) with "try
   again" and the tournament below; a couple.
 
-## Still to build in Phase 9
+## Built and measured since (2 Nov)
 
-- The skip costs' harness fixture (a known costly action: the pension drawn to the basic-rate limit in a bridge year). A
-  scan of ten bridge-year households at light settings (2 Nov) found every first-year action's skip within noise of no
-  cost on 300 paths (-0.67 to +0.67 points, at most three paths either way): one year's departure rarely decides survival.
-  A fixture built to make it decide is still to come. The planted dominated action is in the test (it costs at least 0).
-- The budgets measured on this machine: the headline within 60 seconds of the solve split four ways, the skip costs within
-  two minutes more.
+- **The skip costs split across the parts.** They ran in the owner alone; the launch plan splits them four ways. Now each
+  kept part runs the skips on its share of the paths (`skipRuns`, the worker's 'skipruns') and the owner joins them in path
+  order against the plan's runs it holds (`joinSkipRuns`, `actionsOf`'s `parts`, `src/solverClient.js` actions).
+  `research/tests/skip-split.test.mjs` (the full tier): split two and three ways, every skip and cost the whole run's;
+  planted, a part leaving out its first path is refused (`results-skip-split.txt`). The strategy test unchanged: ALL PASS 34.
+- **The skip costs' fixture: S116.** The launch plan's example, the pension drawn to the basic-rate limit in a bridge year,
+  does not arise at the harness's light settings: no library household's first move draws to the basic-rate limit
+  (`skip-scan.mjs`: none of the 30 retired in their bridge), and every part's skip on 35 households read -0.67 to +1.33
+  points on 300 paths. S116 (61, the state pension at 67) draws the pension to the personal allowance and re-wraps it, and
+  cuts its spending to 80%: skipping the re-wrap lost 3 paths and saved none, the cut 4 and none. The harness (section 2b):
+  the page's skip costs Node's, the re-wrap's above 0 and the costs not all 0, a planted dominated action (the year's move at
+  its highest spending level) at least 0. Its plant (`STRATEGY_SKIP_FIXTURE=S126`, a household whose skips all cost 0): running.
+- **The budgets, measured on this machine: NOT MET** (`budget-strategy.mjs`, `results-budget-strategy.txt`; four
+  households at the app's settings, split four ways, nothing else running). The headline on 2,000 paths 74 to 121 s after the
+  solve, against 60; the skip costs 33 to 173 s more, against 120 (in one worker before the split, 64 to 360). The cause: a
+  path of the solved plan costs about 96 ms on one thread at 45 points (the chooser scores 800 moves at each decision, the
+  five spending levels since L1's floor; the app's own rules cost 0.4 ms a path), and four threads run at about 1.8 times one
+  (a part's path about 218 ms: the tables' reads contend for memory). To the maintainer: (a) Phase 9 merges with the
+  budgets recorded as not met, step P's first target the chooser's cost per path; or (b) fewer paths first (the launch
+  plan's numbers: the headline's 2,000, the skips' 1,000).
 
 ## Seen on the way
 

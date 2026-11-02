@@ -1,0 +1,15 @@
+== before the skip costs were split (f84e273, 19:24 to 20:04 UK)
+PHASE 9'S BUDGETS (the launch plan's Phase 9): S126, S370, S002, S188; split 4 ways; seed 12345; code 9273130d7c86; 4 cores (Intel(R) Xeon(R) Processor @ 2.80GHz), load 0.98 2.20 1.52 at the start
+S126: the solve split 4 ways 172.4 s; then the headline on 2000 paths 109.2 s (target 60), on 5000 257.5 s; the skip costs (3 actions, 1000 paths each) 289.1 s more (target 120): NOT MET; survival 99.85% on 2000, 99.82% on 5000
+S370: the solve split 4 ways 256.6 s; then the headline on 2000 paths 120.4 s (target 60), on 5000 297.6 s; the skip costs (3 actions, 1000 paths each) 359.5 s more (target 120): NOT MET; survival 84.50% on 2000, 84.08% on 5000
+S002: the solve split 4 ways 93.5 s; then the headline on 2000 paths 70.8 s (target 60), on 5000 172.4 s; the skip costs (1 actions, 1000 paths each) 64.1 s more (target 120): NOT MET; survival 100.00% on 2000, 100.00% on 5000
+S188: the solve split 4 ways 164.0 s; then the headline on 2000 paths 112.6 s (target 60), on 5000 274.1 s; the skip costs (0 actions, 1000 paths each) 0.1 s more (target 120): NOT MET; survival 69.70% on 2000, 70.18% on 5000
+VERDICT: NOT every budget met
+
+== the skip costs split across the parts (970558b, 21:04 to 21:38 UK)
+PHASE 9'S BUDGETS (the launch plan's Phase 9): S126, S370, S002, S188; split 4 ways; seed 12345; code 9273130d7c86; 4 cores (Intel(R) Xeon(R) Processor @ 2.80GHz), load 1.12 1.46 1.76 at the start
+S126: the solve split 4 ways 174.1 s; then the headline on 2000 paths 105.8 s (target 60), on 5000 258.9 s; the skip costs (3 actions, 1000 paths each) 151.6 s more (target 120): NOT MET; survival 99.85% on 2000, 99.82% on 5000
+S370: the solve split 4 ways 229.4 s; then the headline on 2000 paths 120.8 s (target 60), on 5000 300.9 s; the skip costs (3 actions, 1000 paths each) 173.3 s more (target 120): NOT MET; survival 84.50% on 2000, 84.08% on 5000
+S002: the solve split 4 ways 92.8 s; then the headline on 2000 paths 73.7 s (target 60), on 5000 169.2 s; the skip costs (1 actions, 1000 paths each) 32.5 s more (target 120): NOT MET; survival 100.00% on 2000, 100.00% on 5000
+S188: the solve split 4 ways 165.5 s; then the headline on 2000 paths 104.1 s (target 60), on 5000 252.8 s; the skip costs (0 actions, 1000 paths each) 0.5 s more (target 120): NOT MET; survival 69.70% on 2000, 70.18% on 5000
+VERDICT: NOT every budget met

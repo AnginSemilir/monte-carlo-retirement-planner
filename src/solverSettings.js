@@ -39,7 +39,8 @@ export const APP_DIAL = Object.freeze([1, 3, 6, 10]);
  * `lockTiers` (the layer loop, `tsOnce: false`, and the base's own decision on the tier above), so the dial changes how
  * spending moves and not the risk taken (LOCK.md section 4). Variant 'B3a' adds the age weights (`ageWeight`, a cut's cost
  * weighed by a Gompertz chance of being alive; survival still counted to the plan's fixed age: D54); 'B3b' is the lock
- * alone. L4 measures both and R1 (D52) decides which ships; until then the app runs APP_DIAL_VARIANT. Where the base has no
+ * alone. L4 measured both and R1 (D52) decided on its read of 2 Nov (results-levers.txt): B3a ships at 3, 6 and 10, and R2
+ * keeps all four positions. Where the base has no
  * tier state (consent withdrawn, or a ceiling that leaves one pair) there is nothing to lock, and lambda and the weights
  * still apply. Position 1 is the candidate unchanged. src/solverApp.js solveForApp solves the base first where none is given.
  */

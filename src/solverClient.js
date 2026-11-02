@@ -19,6 +19,8 @@
  * keeps the base beside the latest position (src/solverCache.js), so another position of the same plan costs one solve.
  */
 import { arenaFor, failArena } from './solverPool.js';
+// Part C Phase 10 (B5): the page's isolation where its host sends no headers, asked for with the first solve (src/useSolver.js)
+export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 

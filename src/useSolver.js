@@ -25,6 +25,7 @@ export const loadSolverClient = () => import('./solverClient.js');
 if (typeof window !== 'undefined') window.__solverHarness = loadSolverClient;
 
 const QUIET_MS = 800;
+let isolationAsked = false;
 
 export function useSolver(plan, enabled, engine, opts = null) {
   const [state, setState] = useState({ solveState: 'idle', solveMeta: null, progress: null, key: null, storeNote: null });
@@ -34,6 +35,9 @@ export function useSolver(plan, enabled, engine, opts = null) {
     let live = true;
     const timer = setTimeout(async () => {
       const client = await loadSolverClient();
+      // with the first solve the page asks for cross-origin isolation, so later solves can split (Phase 10, B5): where the
+      // host sends no headers, a service worker adds them and the page reloads once (src/isolation.js)
+      if (!isolationAsked) { isolationAsked = true; client.ensureIsolation(); }
       const key = await client.keyOf(engine, plan, opts || {});
       if (!live || key === jobKey.current) return;
       setState(s => (s.solveState === 'idle' && !s.solveMeta ? s : { ...s, solveState: 'stale' }));

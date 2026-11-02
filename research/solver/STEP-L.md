@@ -89,6 +89,15 @@ survival is not below B3b's by more than a quarter point (the interval's lower e
 the direction check on B3a (24 tests: eight households, three steps) reverses nowhere, so the dial at launch is B3a at 1, 3,
 6 and 10; B3b's check, reported, reverses nowhere either. The code already runs B3a (`APP_DIAL_VARIANT`): nothing in it
 changes.
+The `reviewer` at the read: PASS (`reviews/2026-11-02-read-L4.md`), two MINORs, fixed on the working branch (they reach
+`main` with the next pull request): (1) no test pinned the variant or the age weights, every test building its expected
+value from the constants: `dial-variant.test.mjs` (the full tier) reads R1's and R2's verdicts from `results-levers.txt`
+and the weights from `audit-levers.mjs`, and fails on a copy of the settings with 'B3b' and on one with the mode at 91
+(`results-dial-variant.txt`); the decided-defaults block and a FAST pin need an unlock (D53), offered to the maintainer;
+(2) `batch-levers.sh`'s resume kept a log with any three done lines, so a B3a unit stopped after its third arm would have
+been kept (not hit: every B3a log holds four): a unit is now kept only with a done line for every one of its arms, and
+`levers-resume.test.mjs` (the full tier) shows it, the rule before failing (`results-levers-resume.txt`). The pattern
+search: every other batch keeps a unit on one done line, and each of their units runs one arm.
 
 ## L5. One-off costs on singles (EXPLORATORY, seed 7002)
 

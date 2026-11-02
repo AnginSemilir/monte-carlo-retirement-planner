@@ -43,7 +43,7 @@ export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSol
         } catch (e) { if (live && e.message !== 'closed') setView({ key: solve.key, strategy: null, error: e.message }); return; }
       }
       try {
-        const { actions } = await solve.ask('actions', { plan, seed, n: actionsN });
+        const { actions } = solve.actions ? await solve.actions(plan, seed, actionsN) : await solve.ask('actions', { plan, seed, n: actionsN });
         if (live) setMore(m => ({ ...m, key: solve.key, actions }));
         // the rule of thumb after the skip costs (the launch plan's order)
         const { distil } = await solve.ask('distil', { plan, seed, n: actionsN });

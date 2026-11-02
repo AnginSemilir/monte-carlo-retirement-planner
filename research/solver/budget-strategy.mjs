@@ -4,7 +4,8 @@
  * solve at the app's settings (solveForApp, 45 points) split four ways on src/solverPool.js's arena (here Node's worker
  * threads, the main thread part 0); then the headline's paths shared out evenly across the four parts, 2,000 first and then
  * up to 5,000, joined in path order (src/solverClient.js strategy, src/solverWorker.js 'runs' and 'strategy'); then this
- * year's skip costs on 1,000 paired paths in one worker, the plan's runs reused (src/solverWorker.js 'actions', actionsOf).
+ * year's skip costs on 1,000 paired paths, shared out the same way and joined against the plan's runs (src/solverClient.js
+ * actions, src/solverWorker.js 'skipruns' and 'actions').
  * Each figure is the wall time from the solve's end; the solve's own time beside it. Run with nothing else on the machine.
  *   node research/solver/budget-strategy.mjs [id ...]      (S126 S370 S002 S188 unless given)
  */
@@ -15,7 +16,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { arenaFor, arenaPool } from '../../src/solverPool.js';
-import { strategyRuns, joinRuns, strategySummary, actionsOf } from '../../src/solverStrategy.js';
+import { strategyRuns, joinRuns, strategySummary, actionsOf, skipRuns } from '../../src/solverStrategy.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { codeId } from './code-id.mjs';
 
@@ -35,12 +36,12 @@ for (const id of ids) {
     const w = new Worker(WORKER, { workerData: { part, parts: PARTS, arena, plan, seed: SEED } });
     const queue = []; replies[part] = queue;
     solvedP.push(new Promise((resolve, reject) => {
-      w.on('message', m => { if (m.error) reject(new Error(m.error)); else if (m.solved) resolve(); else { const q = queue.shift(); q && q(m.runs); } });
+      w.on('message', m => { if (m.error) reject(new Error(m.error)); else if (m.solved) resolve(); else { const q = queue.shift(); q && q(m.runs || m.skipruns); } });
       w.once('error', e => { Atomics.store(new Int32Array(arena.ctrl), 2, 1); reject(e); });
     }));
     workers.push(w);
   }
-  const ask = (part, from, to) => new Promise(resolve => { replies[part].push(resolve); workers[part - 1].postMessage({ from, to }); });
+  const ask = (part, from, to, skips = false) => new Promise(resolve => { replies[part].push(resolve); workers[part - 1].postMessage({ from, to, skips }); });
   const share = (a, b) => Array.from({ length: PARTS }, (_, k) => [a + Math.floor((k * (b - a)) / PARTS), a + Math.floor(((k + 1) * (b - a)) / PARTS)]);
   const t0 = performance.now(), pool = arenaPool(0, PARTS, arena);
   let r;
@@ -53,9 +54,11 @@ for (const id of ids) {
   const h1 = strategySummary(E, r, runs), headS = secs(tEnd);
   runs = joinRuns([runs, ...(await stage(FIRST, MORE))]);
   const h2 = strategySummary(E, r, runs), moreS = secs(tEnd);
+  // the skip costs split the same way (src/solverClient.js actions), joined against the plan's runs the owner holds
+  const t2 = performance.now(), sh = share(0, SKIP_N);
+  const parts = [skipRuns(E, r, { seed: SEED, from: sh[0][0], to: sh[0][1] }), ...(await Promise.all(sh.slice(1).map(([f, t], k) => ask(k + 1, f, t, true))))];
+  const a = actionsOf(E, r, plan, { seed: SEED, n: SKIP_N, base: runs.solved, parts }), skipS = secs(t2);
   workers.forEach(w => w.postMessage('stop'));
-  // the skip costs in one worker, the plan's runs reused
-  const t2 = performance.now(), a = actionsOf(E, r, plan, { seed: SEED, n: SKIP_N, base: runs.solved }), skipS = secs(t2);
   await Promise.all(workers.map(w => w.terminate()));
   const met = headS <= HEADLINE_S && skipS <= SKIP_S;
   allMet = allMet && met;

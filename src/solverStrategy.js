@@ -12,7 +12,8 @@
  *   s.headline   { startLevel, startSpend, target, retireT, retired, backT, backYear, backIn, dip, survival, delivered, case }
  *   s.compare    { yours, solved }: each { survival, medianPot, p10Pot, lifetimeTax, estate } on the same paths
  *   s.raise      { level, age } | null: the first year the fan's upper quartile spends above the target (wording section 4)
- *   actionsOf(E, solved, plan, { seed, n, base })   this year's move, part by part, each with the survival cost of skipping it
+ *   actionsOf(E, solved, plan, { seed, n, base, parts })   this year's move, part by part, each with the survival cost of
+ *                                                    skipping it; skipRuns and joinSkipRuns its paths split across parts
  *   aheadOf(E, solved, runs, { years })             the next years' moves on the median path
  *
  * "Your plan" is D18's baseline: the plan as entered, with the policy it carries (its own withdrawal policy, guardrails and
@@ -185,23 +186,60 @@ export function firstMove(E, solved) {
   return { ...rec, sc, base };
 }
 export const SKIP_PARTS = ['level', 'draw', 'harvest', 'tierPen', 'tierIsa'];
-export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null } = {}) {
+/* this year's skips: the move taken apart and, for each part it takes, the best-ranked move that differs in that part (null
+ * where none does) */
+export function skipsOf(E, solved) {
   const f = firstMove(E, solved), ai0 = f.mv.index, p0 = partsOf(solved.actions[ai0], solved.c.acts[ai0]);
-  const ranked = rankActions(solved, f.s, 0, f.held, solved.actions.length);
-  const paths = E.pathsForSeed(seed, n, f.sc.totalYears);
-  const planRuns = base && base.length >= n ? base.slice(0, n) : paths.map(zs => runPath(E, f.sc, zs));
-  const out = [];
+  const ranked = rankActions(solved, f.s, 0, f.held, solved.actions.length), list = [];
   for (const part of SKIP_PARTS) {
     const taken = part === 'level' ? p0.level !== 1 : part === 'draw' ? p0.draw !== 'none' : part === 'harvest' ? p0.harvest !== null : p0[part] > 0;
     if (!taken) continue;
     const skip = ranked.find(ai => { const p = partsOf(solved.actions[ai], solved.c.acts[ai]); return part === 'draw' ? p.draw !== p0.draw : p[part] !== p0[part]; });
-    if (skip === undefined) { out.push({ part, value: p0[part], skip: null, cost: null }); continue; }
-    const forced = { ...f.sc, policyOverride: { ...f.base, choose: (st, t, held) => (t === 0 ? moveOf(solved, skip, f.mv) : f.base.choose(st, t, held)) } };
-    const runs = paths.map(zs => runPath(E, forced, zs));
-    let saved = 0, lost = 0;
-    for (let k = 0; k < n; k++) { if (planRuns[k].survived && !runs[k].survived) lost++; else if (!planRuns[k].survived && runs[k].survived) saved++; }
-    out.push({ part, value: p0[part], skip: { index: skip, parts: partsOf(solved.actions[skip], solved.c.acts[skip]) }, cost: (100 * (lost - saved)) / n, lost, saved, n });
+    list.push({ part, value: p0[part], skip: skip === undefined ? null : skip });
   }
+  return { f, ai0, p0, list };
+}
+/*
+ * The skips' runs on paths from..to-1 of `seed`: each skip forced in the first year, then the plan, survival per path. A split
+ * solve's parts each run a share of the paths (src/solverClient.js actions) and the owner joins them in path order
+ * (joinSkipRuns), so the skip costs are the whole run's, path for path (research/tests/skip-split.test.mjs).
+ */
+export function skipRuns(E, solved, { seed = 12345, from = 0, to = 1000 } = {}, sk = skipsOf(E, solved)) {
+  const { f, list } = sk, paths = E.pathsForSeed(seed, to, f.sc.totalYears).slice(PLANT.rule === 'skipdrop' && from > 0 ? from + 1 : from);
+  return {
+    seed, from, to, skips: list.map(x => x.skip),
+    survived: list.map(x => {
+      if (x.skip === null) return null;
+      const forced = { ...f.sc, policyOverride: { ...f.base, choose: (st, t, held) => (t === 0 ? moveOf(solved, x.skip, f.mv) : f.base.choose(st, t, held)) } };
+      return Uint8Array.from(paths, zs => (runPath(E, forced, zs).survived ? 1 : 0));
+    })
+  };
+}
+export function joinSkipRuns(parts) {
+  const ps = [...parts].sort((a, b) => a.from - b.from), key = JSON.stringify(ps[0].skips);
+  for (let i = 0; i < ps.length; i++) {
+    if (ps[i].seed !== ps[0].seed || JSON.stringify(ps[i].skips) !== key) throw new Error('joinSkipRuns: the parts ran other skips or another seed');
+    if (i && ps[i].from !== ps[i - 1].to) throw new Error('joinSkipRuns: the parts do not meet in path order');
+    if (ps[i].survived.some(v => v && v.length !== ps[i].to - ps[i].from)) throw new Error('joinSkipRuns: a part ran other than its paths, so they do not meet in path order');
+  }
+  return {
+    seed: ps[0].seed, from: ps[0].from, to: ps[ps.length - 1].to, skips: ps[0].skips,
+    survived: ps[0].skips.map((x, j) => (x === null ? null : Uint8Array.from(ps.flatMap(p => Array.from(p.survived[j])))))
+  };
+}
+export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null, parts = null } = {}) {
+  const sk = skipsOf(E, solved), { f, ai0, p0 } = sk;
+  const runs = parts && parts.length ? joinSkipRuns(parts) : skipRuns(E, solved, { seed, from: 0, to: n }, sk);
+  if (runs.from !== 0 || runs.to !== n || runs.seed !== seed) throw new Error(`actionsOf: the skips' runs are paths ${runs.from} to ${runs.to - 1} of seed ${runs.seed}, not 0 to ${n - 1} of ${seed}`);
+  if (JSON.stringify(runs.skips) !== JSON.stringify(sk.list.map(x => x.skip))) throw new Error('actionsOf: the parts ran other skips than this solve ranks');
+  const planRuns = base && base.length >= n ? base.slice(0, n) : E.pathsForSeed(seed, n, f.sc.totalYears).map(zs => runPath(E, f.sc, zs));
+  const out = sk.list.map((x, j) => {
+    if (x.skip === null) return { part: x.part, value: x.value, skip: null, cost: null };
+    const sv = runs.survived[j];
+    let saved = 0, lost = 0;
+    for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
+    return { part: x.part, value: x.value, skip: { index: x.skip, parts: partsOf(solved.actions[x.skip], solved.c.acts[x.skip]) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
+  });
   return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0 };
 }
 

@@ -9,6 +9,7 @@
  *   const { meta, secs, parts, restored, base } = await job.done;   // rejects with 'cancelled' after job.cancel()
  *   await job.ask('simulate', { trials, seed });          // the owner worker's answers (src/solverWorker.js)
  *   await job.strategy(plan, seed, upto);                 // the Strategy tab's figures, split across the solve's parts
+ *   await job.actions(plan, seed, n);                     // this year's skip costs, split the same way
  *   job.close();                                          // the owner worker, and the solved tables with it, let go
  *
  * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored in that
@@ -83,6 +84,19 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
     return r;
   };
 
+  /*
+   * This year's skip costs on paths 0 to n-1 (src/solverWorker.js 'actions'), after the headline. With a split solve's parts
+   * kept, each part runs the skips on its share of the paths ('skipruns') and the owner joins them in path order against the
+   * plan's runs it holds, so the costs are the whole run's (research/tests/skip-split.test.mjs). Without parts, the owner runs
+   * them all.
+   */
+  const actions = async (plan, seed, n) => {
+    if (!kept.length) return ask('actions', { plan, seed, n });
+    const all = [ask, ...kept], m = all.length, share = i => [Math.floor((i * n) / m), Math.floor(((i + 1) * n) / m)];
+    const got = await Promise.all(all.map((a, i) => a('skipruns', { plan, seed, from: share(i)[0], to: share(i)[1] })));
+    return ask('actions', { plan, seed, n, parts: got.map(g => g.skipruns) });
+  };
+
   const done = new Promise((resolve, reject) => {
     rejectDone = reject;
     // one solve: the base of a dial position ('base') or the plan itself ('solve'), restored when stored, else split where it can be
@@ -131,6 +145,7 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
     },
     ask,
     strategy,
+    actions,
     close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); }
   };
 }

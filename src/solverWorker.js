@@ -44,7 +44,7 @@ import { withTable } from './solver/bridge.js';
 import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
-import { strategyRuns, joinRuns, strategySummary, actionsOf, aheadOf } from './solverStrategy.js';
+import { strategyRuns, joinRuns, strategySummary, actionsOf, skipRuns, aheadOf } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord } from './solverCache.js';
 
@@ -117,6 +117,10 @@ self.onmessage = async ({ data }) => {
       self.postMessage({ id, runs: strategyRuns(E, solved, data.plan, { seed: data.seed, from: data.from, to: data.to }) });
       return;
     }
+    if (kind === 'skipruns') {
+      self.postMessage({ id, skipruns: skipRuns(E, solved, { seed: data.seed, from: data.from, to: data.to }) });
+      return;
+    }
     if (kind === 'strategy') {
       const planKey = JSON.stringify(data.plan), seed = data.seed;
       if (!runs || runs.r !== solved || runs.plan !== planKey || runs.runs.seed !== seed) runs = { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
@@ -133,7 +137,7 @@ self.onmessage = async ({ data }) => {
     }
     if (kind === 'actions' || kind === 'ahead') {
       const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
-      if (kind === 'actions') self.postMessage({ id, actions: actionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null }) });
+      if (kind === 'actions') self.postMessage({ id, actions: actionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null, parts: data.parts || null }) });
       else {
         if (!same) throw new Error('solverWorker: \'ahead\' asked before the strategy\'s runs');
         self.postMessage({ id, ahead: aheadOf(E, solved, data.plan, same, { years: data.years }) });

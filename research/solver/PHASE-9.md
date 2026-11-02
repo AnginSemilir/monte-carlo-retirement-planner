@@ -99,9 +99,11 @@ a solve that failed (F16).
     harnesses wait up to 5 s for the card or the tournament.
   - The phone's glossary and "?" checks ran on the Strategy tab, whose prose was the tournament's. Under the switch they run on
     Plan Inputs, which the switch leaves alone. Under the switch the tournament card's own layout check gives way to one of
-    the solved plan's card: asked for on a phone, no tournament beside it, at most 130 px.
+    the solved plan's card: asked for on a phone, no tournament beside it, at most 130 px. Planted (the card's idle state
+    renamed in the built bundle), it fails: "state idlx".
   - The switch off, `solver-isolation`: "a plan saved before the worker existed still loads" read the page as soon as it was
-    isolated, before the app had drawn in it (the plan itself was in place). It now waits up to 15 s for the app.
+    isolated, before the app had drawn in it (the plan itself was in place). It now waits up to 15 s for the app; three runs, each
+    passing.
 
 ## Seen on the way
 

@@ -14,17 +14,24 @@
 # the Inheritance tab, which sits behind SHOW_INHERITANCE=false and so cannot pass today. Reporting them
 # rather than deleting them keeps the fact visible.
 #
-#   Usage: research/ui-harnesses/run-all.sh [port] [--solver]
+#   Usage: research/ui-harnesses/run-all.sh [port] [--solver | --both] [--engine]
 #
 # --solver (the switch-on gate; PART-C-PLAN.md, D41: ALL REQUIRED GREEN "with the switch off and, from Phase 8 on, with
 # it on as well"; the launch plan's F7 and B1): the site is built with the solver's switch on (vite.config.js
 # solver-preview: SOLVER_PREVIEW=1, the harnesses' light settings) into dist-solver, served, and every REQUIRED harness
 # runs against it, but those in SWITCH_OFF_ONLY, each named with what covers it with the switch on. The engine suites
-# do not read the switch and run in the default mode only. B1's gate is both modes green.
+# do not read the switch. B1's gate is both modes green; --both runs the two, one after the other, under one batch pause
+# (two runs leave a gap between them in which a waiting unit starts, and the second run then waits for it).
+#
+# The engine suites (research/tests, `npm run test:engine`) are not run here unless --engine asks (2 Nov, D55): CI runs
+# every one of them on each push (Verify's fast tier, Full's two shards), and B1's gate reads them there, green on the
+# commit it merges. Here they took about four and a half hours of the gate's five, held the batches paused all that time,
+# and repeated what CI had already run on the same commit; their speed checks beside a batch failed the gate on 28ec7a9.
 #
 set -uo pipefail
-PORT=4173; MODE=off
-for a in "$@"; do case "$a" in --solver) MODE=solver ;; *) PORT="$a" ;; esac; done
+PORT=4173; MODE=off; BOTH=0; ENGINE=0
+for a in "$@"; do case "$a" in --solver) MODE=solver ;; --both) BOTH=1 ;; --engine) ENGINE=1 ;; *) PORT="$a" ;; esac; done
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/../.."
 # the light settings a switch-on build solves at (solver-config-ui.cjs's LIGHT)
 LIGHT='{"points":4,"research":{"adaptiveLattice":{"na":48,"nb":9,"nz":32,"foot":true,"stepAll":true}}}'
@@ -39,12 +46,26 @@ REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sa
 OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)
 
 # batches pause for the gate (the launch plan, section 5): no new unit starts while the pause file is there
-# (research/solver/run-unit.sh), and the gate waits for the units in flight, so a timing harness never runs beside one
-# (in the main working tree, where the batches' results are, whichever worktree the gate runs in)
+# (research/solver/run-unit.sh), and the gate waits for the units in flight, so a timing harness never runs beside one,
+# nor do the engine suites' speed checks under --engine: the file stays until the gate exits
+# (in the main working tree, where the batches' results are, whichever worktree the gate runs in). A pause already there
+# (--both's, or one set by hand to hold the batches) is left for whoever set it, and said so.
 MAIN="$(cd "$(git rev-parse --git-common-dir 2>/dev/null || echo .git)/.." 2>/dev/null && pwd || pwd)"
 PAUSE="$MAIN/research/solver/results/.pause"; RUNNING="$MAIN/research/solver/results/.running"
-mkdir -p "$MAIN/research/solver/results" && touch "$PAUSE"
-trap 'rm -f "$PAUSE"' EXIT
+mkdir -p "$MAIN/research/solver/results"
+OWNPAUSE=0
+if [ -e "$PAUSE" ]; then echo "== the batches' pause was already set: left in place when this run exits =="; else touch "$PAUSE"; OWNPAUSE=1; fi
+unpause() { [ "$OWNPAUSE" = 1 ] && rm -f "$PAUSE"; return 0; }
+trap unpause EXIT
+if [ "$BOTH" = 1 ]; then
+  ENG=(); [ "$ENGINE" = 1 ] && ENG=(--engine)
+  bash "$SELF" "$PORT" "${ENG[@]}"; OFFCODE=$?
+  echo; bash "$SELF" "$PORT" --solver; ONCODE=$?
+  word() { [ "$1" -eq 0 ] && echo green || echo FAILED; }
+  echo; echo "== both modes: the switch off $(word "$OFFCODE"), the switch on $(word "$ONCODE") =="
+  if [ "$OFFCODE" -eq 0 ] && [ "$ONCODE" -eq 0 ]; then echo "ALL REQUIRED GREEN IN BOTH MODES"; exit 0; fi
+  echo "SOMETHING REQUIRED FAILED"; exit 1
+fi
 for m in "$RUNNING"/*; do [ -e "$m" ] && ! kill -0 "${m##*/}" 2>/dev/null && rm -f "$m"; done
 if [ -n "$(ls -A "$RUNNING" 2>/dev/null)" ]; then
   echo "== waiting for the batch units in flight ($(ls "$RUNNING" | wc -l)) =="
@@ -70,7 +91,7 @@ curl -s -o /dev/null "http://localhost:$PORT/" && { echo "PORT $PORT IN USE: ano
 node node_modules/vite/bin/vite.js preview --outDir "$OUT" --port "$PORT" --strictPort >/tmp/run-all-preview.log 2>&1 &
 PREVIEW=$!
 # `kill 0` would take out this script too; target the one child, and tolerate it already being gone.
-trap 'kill "$PREVIEW" 2>/dev/null || true; wait "$PREVIEW" 2>/dev/null; rm -f "$PAUSE"' EXIT
+trap 'kill "$PREVIEW" 2>/dev/null || true; wait "$PREVIEW" 2>/dev/null; unpause' EXIT
 for _ in $(seq 1 40); do curl -sf -o /dev/null "http://localhost:$PORT/" && break; sleep 1; done
 curl -sf -o /dev/null "http://localhost:$PORT/" || { echo "PREVIEW FAILED"; tail -20 /tmp/run-all-preview.log; exit 1; }
 curl -sf "http://localhost:$PORT/" | cmp -s - "$OUT/index.html" || { echo "THE SERVER ON :$PORT IS NOT SERVING $OUT"; exit 1; }
@@ -114,16 +135,20 @@ for i in "${!NAMES[@]}"; do
   printf '%-22s %-9s %s\n' "${NAMES[$i]}" "${KINDS[$i]}" "$r"
 done
 
-# the timing harnesses are done: the batches may go on beside the engine suites, at their low priority
-rm -f "$PAUSE"
+# the engine suites only under --engine (D55, the header). Under it the pause holds through them: they carry speed checks
+# (solver-fast.test.mjs C1 and C2, solver-model.test.mjs G1) that time the thread's CPU, which a neighbour's cache and
+# memory traffic still slows (2 Nov: C2 failed once in the gate on 28ec7a9 beside L4's four units).
 echo
 echo "== engine suites =="
 if [ "$MODE" = solver ]; then
-  echo "   not run with the switch on: they do not read it (the default mode runs them)"
-else
+  echo "   not run with the switch on: they do not read it"
+elif [ "$ENGINE" = 1 ]; then
 npm run test:engine >/tmp/run-all-engine.log 2>&1 \
   && echo "   $(grep -c '^PASS' /tmp/run-all-engine.log) assertions passed" \
   || { echo "   ENGINE FAILED"; grep '^FAIL' /tmp/run-all-engine.log | head -10; FAILED=1; }
+else
+  echo "   not run here: CI runs every one of them on each push (Verify, Full); B1's gate reads them there, green on the"
+  echo "   commit it merges (--engine runs them here too)"
 fi
 
 [ "$FAILED" -eq 0 ] && echo && echo "ALL REQUIRED GREEN" || { echo; echo "SOMETHING REQUIRED FAILED"; }

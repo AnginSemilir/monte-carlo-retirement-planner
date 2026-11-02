@@ -21,6 +21,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { cpuNs } from './cpu-time.mjs';
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
@@ -324,12 +325,11 @@ console.log('=========== G. SPEED, WHICH IS THE POINT OF HAVING IT ===========')
   const m = M.prepare(E, plan);
   const action = M.actionFromContext(m.ctx);
   const reps = 200;
-  let t0 = Date.now();
-  for (let i = 0; i < reps; i++) E.simulateDeterministic(plan, 'expected');
-  const engMs = (Date.now() - t0) / reps;
-  t0 = Date.now();
-  for (let i = 0; i < reps; i++) M.runFixed(m, action);
-  const redMs = (Date.now() - t0) / reps;
+  // each timed once, as before, but on this thread's CPU clock (cpu-time.mjs), not the wall clock, which reads the other work
+  // sharing the cores too. SOLVER_MODEL_PLANT=slow runs the reduced model four times a repetition, a slowdown G1 must catch.
+  const times = process.env.SOLVER_MODEL_PLANT === 'slow' ? 4 : 1;
+  const engMs = cpuNs(() => { for (let i = 0; i < reps; i++) E.simulateDeterministic(plan, 'expected'); }, reps, 1).first / 1e6;
+  const redMs = cpuNs(() => { for (let i = 0; i < reps; i++) for (let k = 0; k < times; k++) M.runFixed(m, action); }, reps, 1).first / 1e6;
   console.log(`      a ${m.ctx.totalYears}-year run: engine ${engMs.toFixed(2)}ms, reduced model ${redMs.toFixed(2)}ms (${(engMs / redMs).toFixed(1)}x)`);
   ok('G1  the reduced model is no slower than the engine', redMs <= engMs * 1.05, `${redMs.toFixed(2)}ms vs ${engMs.toFixed(2)}ms`);
   console.log('      (this is fidelity-first: the tax tables and the flat state that make it fast are');

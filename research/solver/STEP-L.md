@@ -112,6 +112,17 @@ its MINORs reported to the maintainer: the cost year's tax (a lead, not a cause:
 S368's early cells uninformative (the cost before pension access sinks it under either policy), and no `runPolicy` check;
 a second run of `audit-costs.mjs` records the cost year's draws by account and runs `runPolicy` beside the engine.
 
+The cost-year trace (2 Nov, EXPLORATORY, the maintainer's go-ahead; `trace-costs.mjs`, `results-trace-costs.txt`): S368
+c30y10 and S188 c30y3 re-run as L5 ran them, 45 points, 3,000 paths, the cost year recorded by wrapper from a copy of the
+engine hooked in its cost loop (the same as the engine on every path of both arms). `runPolicy` against the engine on
+CANDD's first 1,000 paths: no path differs in either cell (MINOR 3). What paid the cost, on the paths where both arms
+survive: arm A takes the lump sum at access and holds it in cash, and pays the cost almost wholly from that cash; the
+candidate, with no lump-sum route (B12), holds little cash, empties its ISA, GIA and cash first, and draws the rest from
+the pension in that one year, a quarter of each draw tax-free, so its cost-year tax is the higher. A separate cost order
+(M12's remedy) would not reach either cell: the candidate already pays from every wrapper outside the pension before the
+pension. Beside it, a lead and nothing more: on S368 the candidate's move in the cost year is a 110% spending year on most
+paths, paid at that year's top rates; on S188 it is mostly the floor.
+
 ## Batches and the gate
 
 Each unit runs through `research/solver/run-unit.sh`: at low priority (`nice -n 19`), waiting while the gate's pause file

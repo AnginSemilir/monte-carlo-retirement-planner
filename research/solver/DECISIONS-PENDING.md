@@ -12,9 +12,9 @@ D51 to D54.
   d71f65ae871e with the floor at 80% of target (B2) and the dial's positions on its locked tiers (B3, D54).
 - **Part C** (`PART-C-PLAN.md`, single households only, D42), in the launch plan's order:
   - Phase 7, the plumbing (`PHASE-7.md`), is merged to `main` (pull request 2).
-  - Step 0 (CI and the hooks, B14) is being built.
-  - Phase 8, the Config tab (`PHASE-8.md`), is built on the branch; it merges on B1's gate once `run-all.sh --solver`
-    exists and passes.
+  - Step 0 (CI and the hooks, B14) is accepted.
+  - Phase 8, the Config tab (`PHASE-8.md`), is on `release/phase-8` (28ec7a9), both CI tiers green on it; it merges on
+    B1's gate when the gate's switch-off engine suites pass (`STATE.md` section 5).
   - Then step L, Phases 9 and 10, step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
 - **Research options built, off by default, not run** (EXPLORATORY): the windfall split (`WINDFALL-SPLIT.md`), the
   savings split (`SAVINGS-SPLIT.md`), the age weights and the candidate's tiers (D48, wired by L2 under B3).
@@ -34,7 +34,7 @@ D51 to D54.
 | 9 | Couples in the solver | B9 (D51): Part D, built during the singles' beta; D4's registration to the maintainer before its run. |
 | 10 | Cross-origin isolation in production | B5 (D51): a service worker on GitHub Pages, in Phase 10; the one-worker fallback kept. |
 | 11 | Held unless asked (D44 (3)) | B12 (D51): set aside. |
-| 12 | The nightly run has never fired | B14 (D51): no nightly run; the full tier on every push in its own workflow (two shards, one run at a time per branch), weekly on `main`, and a watchdog at the session start. |
+| 12 | The nightly run has never fired | B14 (D51): no nightly run; the full tier on every push in its own workflow (two shards, one run at a time per branch), weekly on `main`, and a watchdog at the session start. Since: it fired once, after this was written (Verify 138 on `main` at 899e5f0, created 1 Nov 09:18 UTC, seven hours after its 02:17 cron; green; the suite 1 h 58 min of the 300-minute cap, on a `main` without the tests added since, the gaps sweep among them); none on 2 Nov by 07:37 UTC. The schedule leaves `main` with Phase 8's merge. |
 
 Also decided on 1 Nov: B2 (the floor at 80%), B3 with B3a (the dial's positions, the age weights: D54), B6 (a per-browser
 opt-in for the beta), B10 (the phone at 45 points), B11 (the age dial on request), B13 (the bridge safety margin hidden

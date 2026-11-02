@@ -15,7 +15,8 @@ D51 to D54.
   - Step 0 (CI and the hooks, B14) is accepted.
   - Phase 8, the Config tab (`PHASE-8.md`), is merged to `main` (pull request 3, 8b54321) on B1's gate (D55: the
     browser harnesses in both modes, the engine suites in CI).
-  - Then step L, Phases 9 and 10, step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
+  - Step L (the levers; L4 and L5 read) is merged to `main` (pull request 4, 3370960) on B1's gate.
+  - Then Phases 9 and 10, step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
 - **Research options built, off by default, not run** (EXPLORATORY): the windfall split (`WINDFALL-SPLIT.md`), the
   savings split (`SAVINGS-SPLIT.md`), the age weights and the candidate's tiers (D48, wired by L2 under B3).
 

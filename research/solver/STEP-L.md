@@ -83,6 +83,13 @@ variant (the base solved once for its three positions). Reported: survival, the 
 1 to 5 at the floor, the equity at years 1, 5, 10 and 20, the estate. R1 picks the variant; R2's direction check settles the
 positions. `reduce-levers.mjs --planted` reads five planted cases as planted.
 
+The read (2 Nov, `results-levers.txt`): fair; all 56 arms of the 16 units. R1: at each of positions 3, 6 and 10, B3a's
+spending in years 1 to 5, pooled over the eight households and paired, is above B3b's (the interval above 0) and its
+survival is not below B3b's by more than a quarter point (the interval's lower end above it): B3a ships at 3, 6 and 10. R2:
+the direction check on B3a (24 tests: eight households, three steps) reverses nowhere, so the dial at launch is B3a at 1, 3,
+6 and 10; B3b's check, reported, reverses nowhere either. The code already runs B3a (`APP_DIAL_VARIANT`): nothing in it
+changes.
+
 ## L5. One-off costs on singles (EXPLORATORY, seed 7002)
 
 `audit-costs.mjs`, `batch-costs.sh`, `reduce-costs.mjs`: the eight households, a cost of 10% or 30% of the opening wealth in

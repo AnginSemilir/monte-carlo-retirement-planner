@@ -1,0 +1,14 @@
+L4, THE DIAL'S POSITIONS IN BOTH VARIANTS (EXPLORATORY; read by D52's R1 and R2): 8 households, 56 units; seed 7002, 4000 paths, code 9273130d7c86, audit 73d7d3bebf6e
+The gate: fair.
+Per arm (survival; the retirees' first year and years 1-5 (% of target); every household's years 1-5; the retired years 1-5 at the floor; the equity held at years 1, 5, 10, 20, the retirees; the estate, the households' mean):
+  CANDD  96.63%; first 80.0, 1-5 80.8; all 1-5 86.5; at the floor 75.8%; equity 24.7 / 24.6 / 41.1 / 57.6; estate £3,207,266
+  A3     96.29%; first 82.5, 1-5 86.7; all 1-5 91.2; at the floor 32.9%; equity 24.7 / 24.5 / 38.7 / 55.7; estate £3,150,937
+  A6     95.70%; first 90.0, 1-5 90.7; all 1-5 94.0; at the floor 10.4%; equity 24.7 / 24.7 / 37.9 / 54.3; estate £3,108,963
+  A10    95.07%; first 93.8, 1-5 92.8; all 1-5 95.4; at the floor 5.3%; equity 24.7 / 24.8 / 37.6 / 53.4; estate £3,082,186
+  B3     96.30%; first 82.5, 1-5 85.7; all 1-5 90.2; at the floor 39.7%; equity 24.7 / 24.6 / 38.7 / 55.7; estate £3,144,741
+  B6     95.71%; first 87.5, 1-5 89.7; all 1-5 93.0; at the floor 16.5%; equity 24.7 / 25.0 / 37.9 / 54.7; estate £3,111,096
+  B10    95.07%; first 91.3, 1-5 91.7; all 1-5 94.3; at the floor 8.3%; equity 24.7 / 25.4 / 37.7 / 54.7; estate £3,092,377
+R1, B3a less B3b pooled over 8 households, paired: position 3: years 1-5 +0.98 (+0.96 to +1.00, se 0.008) points of target, survival -0.006 (-0.048 to +0.035, se 0.0212) points (holds); position 6: years 1-5 +1.04 (+1.03 to +1.06, se 0.007) points of target, survival -0.003 (-0.059 to +0.053, se 0.0285) points (holds); position 10: years 1-5 +1.09 (+1.08 to +1.11, se 0.007) points of target, survival -0.003 (-0.075 to +0.069, se 0.0368) points (holds). R1: B3a SHIPS at positions 3, 6 and 10.
+The direction check on B3a (R2 applies): 24 tests a measure in the first round; no reversal; the positions kept: 1, 3, 6, 10.
+R2: THE DIAL AT LAUNCH: B3a at 1, 3, 6, 10.
+The direction check on B3b (reported): 24 tests a measure in the first round; no reversal; the positions kept: 1, 3, 6, 10.

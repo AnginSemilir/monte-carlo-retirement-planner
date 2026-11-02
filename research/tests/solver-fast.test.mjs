@@ -109,7 +109,11 @@ console.log('=========== C. SPEED, WHICH IS WHY THE FILE EXISTS ===========');
   const fastNs = fast.best, modelNs = model.first;
   console.log(`      per year: exact model ${modelNs.toFixed(0)}ns, fast flow ${fastNs.toFixed(0)}ns at best (${(modelNs / fastNs).toFixed(1)}x), ${fast.first.toFixed(0)}ns cold`);
   ok('C1  the fast flow is at least five times the exact model', modelNs / fastNs >= 5, `${(modelNs / fastNs).toFixed(1)}x`);
-  ok('C2  ...and under a microsecond a year', fastNs < 1000, `${fastNs.toFixed(0)}ns`);
+  // C2's limit, from 2 Nov (the maintainer's unlock for C2 and G1): CPU time leaves out the wait for a core but not a
+  // neighbour's cache and memory traffic, so the best run read 760 to 900 ns a year with four batch units beside it and up
+  // to about 930 with six processes on four cores, where the old limit of 1,000 failed once in the gate on 28ec7a9 (830
+  // alone). At 1,500 it fails a flow about 1.8 times as slow as the quiet reading, and the plant's four times.
+  ok('C2  ...and under one and a half microseconds a year', fastNs < 1500, `${fastNs.toFixed(0)}ns`);
 }
 
 console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT MODEL (plan 2d) ===========');

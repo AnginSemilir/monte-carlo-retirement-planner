@@ -13,8 +13,8 @@ D51 to D54.
 - **Part C** (`PART-C-PLAN.md`, single households only, D42), in the launch plan's order:
   - Phase 7, the plumbing (`PHASE-7.md`), is merged to `main` (pull request 2).
   - Step 0 (CI and the hooks, B14) is accepted.
-  - Phase 8, the Config tab (`PHASE-8.md`), is on `release/phase-8` (28ec7a9), both CI tiers green on it; it merges on
-    B1's gate when the gate's switch-off engine suites pass (`STATE.md` section 5).
+  - Phase 8, the Config tab (`PHASE-8.md`), is on `release/phase-8` (bfe297c, with D55's gate: the browser harnesses in
+    both modes, the engine suites in CI); it merges on B1's gate (`STATE.md` section 5).
   - Then step L, Phases 9 and 10, step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
 - **Research options built, off by default, not run** (EXPLORATORY): the windfall split (`WINDFALL-SPLIT.md`), the
   savings split (`SAVINGS-SPLIT.md`), the age weights and the candidate's tiers (D48, wired by L2 under B3).

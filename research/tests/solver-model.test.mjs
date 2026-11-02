@@ -325,11 +325,18 @@ console.log('=========== G. SPEED, WHICH IS THE POINT OF HAVING IT ===========')
   const m = M.prepare(E, plan);
   const action = M.actionFromContext(m.ctx);
   const reps = 200;
-  // each timed once, as before, but on this thread's CPU clock (cpu-time.mjs), not the wall clock, which reads the other work
-  // sharing the cores too. SOLVER_MODEL_PLANT=slow runs the reduced model four times a repetition, a slowdown G1 must catch.
+  // timed on this thread's CPU clock (cpu-time.mjs), not the wall clock, which reads the other work sharing the cores too.
+  // From 2 Nov (the maintainer's unlock for C2 and G1) each is run five times, the two in turn, and their best runs compared:
+  // a neighbour only ever slows a run, and taking turns gives the two the same neighbours, where one run of each let a burst
+  // on the one and not the other read as a change of speed. The reduced model's best is about half the engine's.
+  // SOLVER_MODEL_PLANT=slow runs the reduced model four times a repetition, a slowdown G1 must catch.
   const times = process.env.SOLVER_MODEL_PLANT === 'slow' ? 4 : 1;
-  const engMs = cpuNs(() => { for (let i = 0; i < reps; i++) E.simulateDeterministic(plan, 'expected'); }, reps, 1).first / 1e6;
-  const redMs = cpuNs(() => { for (let i = 0; i < reps; i++) for (let k = 0; k < times; k++) M.runFixed(m, action); }, reps, 1).first / 1e6;
+  let engNs = Infinity, redNs = Infinity;
+  for (let k = 0; k < 5; k++) {
+    engNs = Math.min(engNs, cpuNs(() => { for (let i = 0; i < reps; i++) E.simulateDeterministic(plan, 'expected'); }, reps, 1).first);
+    redNs = Math.min(redNs, cpuNs(() => { for (let i = 0; i < reps; i++) for (let k2 = 0; k2 < times; k2++) M.runFixed(m, action); }, reps, 1).first);
+  }
+  const engMs = engNs / 1e6, redMs = redNs / 1e6;
   console.log(`      a ${m.ctx.totalYears}-year run: engine ${engMs.toFixed(2)}ms, reduced model ${redMs.toFixed(2)}ms (${(engMs / redMs).toFixed(1)}x)`);
   ok('G1  the reduced model is no slower than the engine', redMs <= engMs * 1.05, `${redMs.toFixed(2)}ms vs ${engMs.toFixed(2)}ms`);
   console.log('      (this is fidelity-first: the tax tables and the flat state that make it fast are');

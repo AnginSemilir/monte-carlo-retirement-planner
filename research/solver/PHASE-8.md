@@ -71,8 +71,8 @@ nothing is solved: `useSolverState` is handed `SOLVER && !isCouple`.
 `PART-C-PLAN.md` asks for ALL REQUIRED GREEN "with the switch off and, from Phase 8 on, with it on as well".
 `run-all.sh 4173 --solver` builds the site with the plugin above at the harnesses' light settings into `dist-solver`,
 serves it, and runs every REQUIRED harness against it. A harness that tests what the switch replaces is listed in the
-script's `SWITCH_OFF_ONLY` with what covers it with the switch on. The engine suites do not read the switch and run in the
-default mode only.
+script's `SWITCH_OFF_ONLY` with what covers it with the switch on. `--both` runs the two modes under one batch pause. The
+engine suites run in CI on every push, not in the gate (D55: here only under `--engine`, in the default mode).
 
 ### On a phone (the launch plan's B10)
 

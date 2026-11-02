@@ -73,7 +73,11 @@ a solve that failed (F16).
   points on 300 paths. S116 (61, the state pension at 67) draws the pension to the personal allowance and re-wraps it, and
   cuts its spending to 80%: skipping the re-wrap lost 3 paths and saved none, the cut 4 and none. The harness (section 2b):
   the page's skip costs Node's, the re-wrap's above 0 and the costs not all 0, a planted dominated action (the year's move at
-  its highest spending level) at least 0. Its plant (`STRATEGY_SKIP_FIXTURE=S126`, a household whose skips all cost 0): running.
+  its highest spending level) at least 0. Its plant (`STRATEGY_SKIP_FIXTURE=S126`, a household whose skips all cost 0) fails the costly
+  check ("no re-wrap in the first move"). It also failed the dominated check: on S126 the year's move forced to spend 110%
+  lost no path and saved one of 300 (-0.33 points). A first year's move is not dominated path by path, since the table's
+  later choices follow from where it leaves the plan; the check holds on S116 (4 lost, 2 saved) and can fail by chance on
+  another household or seed.
 - **The budgets, measured on this machine: NOT MET** (`budget-strategy.mjs`, `results-budget-strategy.txt`; four
   households at the app's settings, split four ways, nothing else running). The headline on 2,000 paths 74 to 121 s after the
   solve, against 60; the skip costs 33 to 173 s more, against 120 (in one worker before the split, 64 to 360). The cause: a

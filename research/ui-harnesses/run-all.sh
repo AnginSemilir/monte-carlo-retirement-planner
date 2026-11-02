@@ -43,7 +43,8 @@ REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sa
 OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)
 
 # batches pause for the gate (the launch plan, section 5): no new unit starts while the pause file is there
-# (research/solver/run-unit.sh), and the gate waits for the units in flight, so a timing harness never runs beside one
+# (research/solver/run-unit.sh), and the gate waits for the units in flight, so a timing harness never runs beside one,
+# nor do the engine suites' speed checks: the file stays until the gate exits
 # (in the main working tree, where the batches' results are, whichever worktree the gate runs in)
 MAIN="$(cd "$(git rev-parse --git-common-dir 2>/dev/null || echo .git)/.." 2>/dev/null && pwd || pwd)"
 PAUSE="$MAIN/research/solver/results/.pause"; RUNNING="$MAIN/research/solver/results/.running"
@@ -118,8 +119,10 @@ for i in "${!NAMES[@]}"; do
   printf '%-22s %-9s %s\n' "${NAMES[$i]}" "${KINDS[$i]}" "$r"
 done
 
-# the timing harnesses are done: the batches may go on beside the engine suites, at their low priority
-rm -f "$PAUSE"
+# the pause holds through the engine suites too: they carry speed checks (solver-fast.test.mjs C1 and C2,
+# solver-model.test.mjs G1) that time the thread's CPU, which a neighbour's cache and memory traffic still slows; on
+# 2 Nov, with L4's four units beside them, C2 read up to about 930 ns against its 1,000 and failed once in the gate on
+# 28ec7a9 (138 of 139 files passed). The batches go on when the gate exits (the trap above removes the file).
 echo
 echo "== engine suites =="
 if [ "$MODE" = solver ]; then

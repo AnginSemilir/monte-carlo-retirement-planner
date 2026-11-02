@@ -17,13 +17,13 @@
  * A solve that failed shows the line and "try again"; the tab below it keeps the app's rules (App.jsx shows the tournament).
  */
 import React, { useEffect, useState } from 'react';
-import { headlineWords, explanationWords, raiseWords, actionWords, aheadWords, COME_BACK } from './solverWords.js';
+import { headlineWords, explanationWords, raiseWords, actionWords, aheadWords, ruleWords, COME_BACK } from './solverWords.js';
 
 export const STEPS = [2000, 5000];
 
 export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSolveRequest = null, steps = STEPS, actionsN = 1000 }) {
   const [view, setView] = useState({ key: null, strategy: null, error: null });
-  const [more, setMore] = useState({ key: null, actions: null, ahead: null });
+  const [more, setMore] = useState({ key: null, actions: null, ahead: null, distil: null });
   const solved = solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error && solve.ask;
   useEffect(() => {
     if (!solved) return undefined;
@@ -45,7 +45,10 @@ export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSol
       try {
         const { actions } = await solve.ask('actions', { plan, seed, n: actionsN });
         if (live) setMore(m => ({ ...m, key: solve.key, actions }));
-      } catch (e) { /* the actions are extra; the headline stands without them */ }
+        // the rule of thumb after the skip costs (the launch plan's order)
+        const { distil } = await solve.ask('distil', { plan, seed, n: actionsN });
+        if (live) setMore(m => ({ ...m, key: solve.key, distil }));
+      } catch (e) { /* the actions and the rule are extra; the headline stands without them */ }
     })();
     return () => { live = false; };
   }, [solved, solve.key, plan, seed]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -114,6 +117,12 @@ export function SolverStrategy({ plan, solve, seed, fmt, isPhone, onRetry, onSol
                     <div className="text-slate-800 font-medium">{t.what}</div><div className="text-[11px] text-slate-500">{t.cost}</div>
                   </div>); })}
           </div>
+          {mine.distil && (mine.distil.show ? (() => { const t = ruleWords(mine.distil, ctx); return (
+            <div className="p-4 bg-surface border border-slate-200/90 rounded-xl space-y-1.5" data-strategy-rule="shown" data-strategy-rule-cost={mine.distil.cost}>
+              <div className="text-xs font-semibold text-slate-900">{t.title}</div>
+              {t.lines.map((l, i) => <p key={i} className="text-xs text-slate-800">{l}</p>)}
+              <p className="text-[11px] text-slate-500">{t.note}</p>
+            </div>); })() : <div hidden data-strategy-rule="hidden" data-strategy-rule-cost={mine.distil.cost} />)}
           {mine.ahead && (
             <div className="p-4 bg-surface border border-slate-200/90 rounded-xl" data-strategy-ahead={mine.ahead.rows.length}>
               <div className="text-xs font-semibold text-slate-900 mb-2">The next ten years on a typical run of the markets</div>

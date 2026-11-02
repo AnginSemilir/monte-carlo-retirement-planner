@@ -29,6 +29,8 @@
  *                                                       it on n paired paths (the plan's own runs reused): { id, actions }
  *   ahead     { id, plan, seed, years }                 the next years' moves on the median path of the strategy's runs so far:
  *                                                       { id, ahead }
+ *   distil    { id, plan, seed, n }                     the rule of thumb (src/solverDistil.js): its tree, rules, fidelity and
+ *                                                       the paired cost of following it on n paths: { id, distil }
  *   digest    { id }                                    the tables' fingerprint (src/solverDigest.js): { id, digest, values, bytes }
  *
  * Imports the engine from App.jsx, as mcWorker.js does, with the two shims first.
@@ -42,6 +44,7 @@ import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
 import { strategyRuns, joinRuns, strategySummary, actionsOf, aheadOf } from './solverStrategy.js';
+import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord } from './solverCache.js';
 
 // the engine as the solver reads it: App.jsx's exports and its E namespace (research/engine.mjs is the same union)
@@ -120,6 +123,11 @@ self.onmessage = async ({ data }) => {
       if (data.runs && data.runs.length) runs.runs = joinRuns([runs.runs, ...data.runs]);
       if (data.upto > runs.runs.to) runs.runs = joinRuns([runs.runs, strategyRuns(E, solved, data.plan, { seed, from: runs.runs.to, to: data.upto })]);
       self.postMessage({ id, strategy: strategySummary(E, solved, runs.runs) });
+      return;
+    }
+    if (kind === 'distil') {
+      const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
+      self.postMessage({ id, distil: distilOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null }) });
       return;
     }
     if (kind === 'actions' || kind === 'ahead') {

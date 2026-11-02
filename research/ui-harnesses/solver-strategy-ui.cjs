@@ -8,7 +8,9 @@
  *      - its figures, once all its paths are in, are Node's (src/solverStrategy.js strategyOf on the saved plan, solved at the
  *        same light settings, on the projection's seed): the solved plan's bit for bit (the headline, its comparison column,
  *        the raise), your plan's within a relative 1e-12 (the app's own rules round in the last place differently in Chromium);
- *      - the words on the card are the wording table's for that case (src/solverWords.js).
+ *      - the words on the card are the wording table's for that case (src/solverWords.js);
+ *      - this year's actions come in, then the rule of thumb (src/solverDistil.js), shown exactly when following it costs
+ *        under half a point of survival (the harness's light settings: 300 paired paths).
  * 3. The wording's four cases (B4), each on a library household that reads so at these settings: starting at the target,
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; the tab says so, offers "try again",
@@ -26,7 +28,7 @@ const { pathToFileURL } = require('node:url');
 const PORT = process.argv[2] || '4173', PREVIEW_PORT = String(Number(PORT) + 8);
 const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
-const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500] };
+const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 // a household for each of the wording's cases at these settings (research/ui-harnesses' own scan, 1 Nov), the main one first
 const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', never: 'S364' };
 let fails = 0;
@@ -118,6 +120,12 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
         const rel = done ? Math.max(...Object.keys(node.compare.yours).map(k => Math.abs(figs.compare.yours[k] - node.compare.yours[k]) / Math.max(1, Math.abs(node.compare.yours[k])))) : Infinity;
         ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's within a relative 1e-12`, solvedSame && rel <= 1e-12, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}% (Node ${node.headline.survival.toFixed(1)}%), yours ${figs.compare.yours.survival.toFixed(1)}% (largest relative gap ${rel.toExponential(1)}); ${diffs(figs, node).slice(0, 2).join('; ') || 'every figure the same'}` : 'not done');
         ok(`${id}: the tab came as its own chunk`, urls.some(u => /SolverStrategy/.test(u)));
+        // this year's actions, then the rule of thumb, shown exactly when following it costs under half a point
+        let more = true;
+        try { await p.waitForSelector('[data-strategy-rule]', { timeout: 900000, state: 'attached' }); } catch (e) { more = false; }
+        const acts = await p.getAttribute('[data-strategy-actions]', 'data-strategy-actions').catch(() => null);
+        const rule = more ? await p.$eval('[data-strategy-rule]', el => ({ shown: el.dataset.strategyRule, cost: Number(el.dataset.strategyRuleCost) })) : null;
+        ok(`${id}: this year's actions in, and the rule of thumb ${rule ? rule.shown : 'missing'} at a cost of ${rule ? rule.cost.toFixed(2) : '-'} points (shown only under 0.5)`, more && acts === 'done' && (rule.shown === 'shown') === (rule.cost < 0.5), `actions ${acts}`);
       }
       if (done) {
         const w = headlineWords(figs.headline, fmt), x = explanationWords(figs.headline);

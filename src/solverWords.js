@@ -80,3 +80,9 @@ export function aheadWords(row, { fmt }) {
   return { when: `${row.year} (age ${row.age})`, spend: row.spend > 0 ? `${fmt(row.spend)} (${pct(100 * p.level)})` : 'still working', notes: notes.join('; ') || 'as the year before' };
 }
 export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';
+
+/* the rule of thumb (item 7): shown only where following it costs under half a point (src/solverDistil.js SHOW_BELOW) */
+export function ruleWords(d, { target, fmt }) {
+  const lines = d.rules.map(r => `${r.when.length ? `If ${r.when.join(' and ')}: ` : ''}spend ${fmt(r.level * target)} (${pct(100 * r.level)} of your target).`);
+  return { title: 'A rule of thumb', lines, note: `It matches the plan's own choice in ${pct(100 * d.fidelity)} of years; following it instead costs ${d.cost > 0 ? `${d.cost.toFixed(1)} points` : 'no points'} of survival on ${d.n.toLocaleString()} markets.` };
+}

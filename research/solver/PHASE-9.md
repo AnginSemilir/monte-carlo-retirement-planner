@@ -24,9 +24,16 @@ a solve that failed (F16).
     tier), each part's skip the best-scoring move this year that differs in that part (the table's own ranking at the
     opening position), then the plan; its cost the paired survival on n paths, in points.
   - `aheadOf`: the next ten years' moves on the median path (the path at the median of the pot left).
+- `src/solverDistil.js`, the rule of thumb (item 7; outside `src/solver`, so the e3pcls pin does not move): the solved
+  plan's spending level in each retired year of its own paths, learnt as a tree of at most three questions (the years of
+  spending the savings hold, the age, the pension's share), on paths apart from those it is judged on; its fidelity the
+  share of decisions it gives; its cost the paired survival of following it (the solved plan's move each year with the
+  tree's level) against the solved plan; shown only under half a point. On S126 at light settings: 97% of 6,000 decisions,
+  shown (it lost no path on 200).
 - `src/solverWords.js`: the table of strings (B4): the headline's words by case, the short note and the full text, the late
   raise, the actions in the playbook's words, the next years, "come back next year".
-- `src/solverWorker.js`: `strategy` (the paths kept and added to, so 2,000 then 5,000 costs 5,000), `actions`, `ahead`, and
+- `src/solverWorker.js`: `strategy` (the paths kept and added to, so 2,000 then 5,000 costs 5,000), `actions`, `ahead`,
+  `distil`, and
   `runs` (a part's share of the paths). The split simulation (`src/solverClient.js` `strategy`): a split solve keeps its
   parts, each holding the solve; the paths not yet run are shared out evenly, the owner taking the first share, and the owner
   joins them in path order. Without parts (a page not isolated, or a restored solve) the owner runs them all.
@@ -46,16 +53,27 @@ a solve that failed (F16).
 - `research/tests/sim-split.test.mjs` (the fast tier, D53's `FAST_JOINING`): on Node's worker threads, S126 solved split two
   ways on the arena, each part running its share of the paths: every figure the whole run's; planted, a part leaving out
   its first path is refused (three ways checked once by hand: the same).
-- `research/ui-harnesses/solver-strategy-ui.cjs` (REQUIRED): the switch off as today; the preview build's figures Node's bit
-  for bit; the words by case on a household for each of the four; a failed solve (the worker planted to fail) with "try
+- `research/tests/solver-distil.test.mjs` (the full tier): a known rule of two questions found exactly (planted, one question
+  gives fewer); one range per question in its rules; on S126 its decisions, fidelity, paired cost and the half-point rule.
+- `research/ui-harnesses/solver-strategy-ui.cjs` (REQUIRED): the switch off as today; the preview build's figures Node's (the
+  solved plan's bit for bit, your plan's within a relative 1e-12); this year's actions and the rule of thumb shown exactly
+  when under half a point; the words by case on a household for each of the four; a failed solve (the worker planted to fail) with "try
   again" and the tournament below; a couple.
 
 ## Still to build in Phase 9
 
-- The skip costs' harness fixture (a known costly action: the pension drawn to the basic-rate limit in a bridge year) and a
-  planted dominated action.
-- The rule of thumb (`src/solverDistil.js`), which may slip to after the beta without holding anything up.
+- The skip costs' harness fixture (a known costly action: the pension drawn to the basic-rate limit in a bridge year). A
+  scan of ten bridge-year households at light settings (2 Nov) found every first-year action's skip within noise of no
+  cost on 300 paths (-0.67 to +0.67 points, at most three paths either way): one year's departure rarely decides survival.
+  A fixture built to make it decide is still to come. The planted dominated action is in the test (it costs at least 0).
 - The budgets measured on this machine: the headline within 60 seconds of the solve split four ways, the skip costs within
   two minutes more.
+
+## Seen on the way
+
+- The harness's households were picked at its light settings (4 wealth points). There S380 started at 110% of its target
+  while surviving 63%, a "safe starting spend" above the target on a plan that often fails; at the app's own settings
+  (45 points, 2,000 paths) it starts at 80% and survives 73.9% (your plan 40.2%), the long dip's case. A coarse table's
+  artefact, not the app's; the headline's words were not changed for it.
 
 Box: three days (the launch plan), from 1 Nov 23:00 UK.

@@ -3111,6 +3111,7 @@
    "research/ui-harnesses/solver-config-ui.cjs",
    "research/ui-harnesses/solver-isolation-ui.cjs",
    "research/ui-harnesses/solver-progress-ui.cjs",
+   "research/ui-harnesses/solver-projection-ui.cjs",
    "research/ui-harnesses/solver-strategy-ui.cjs",
    "research/ui-harnesses/tournament-ui.cjs",
    "research/ui-harnesses/tradeoffs-ui.cjs",

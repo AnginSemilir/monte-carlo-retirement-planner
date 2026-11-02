@@ -17,7 +17,8 @@
  *                                                       solved (src/solverCache.js), and a new one stored: { id, stored, why };
  *                                                       with baseKey, solved on the held base of that key
  *   probe     { id, key }                               whether a solve of the key is stored for this code: { id, hit }
- *   simulate  { id, trials, seed }                      the solved plan through the engine's monteCarlo: { id, stats }
+ *   simulate  { id, trials, seed, collectPaths }        the solved plan through the engine's monteCarlo: { id, stats } (with the
+ *                                                       paths for the projection's fan when asked, Phase 10)
  *   runs      { id, plan, seed, from, to }              paths from..to-1 through both arms (src/solverStrategy.js strategyRuns): the
  *                                                       share of a split solve's part, which keeps its solve after it: { id, runs }
  *   strategy  { id, plan, seed, upto, runs }            the Strategy tab's figures (Phase 9, src/solverStrategy.js) on paths 0 to
@@ -109,7 +110,7 @@ self.onmessage = async ({ data }) => {
     if (!solved) throw new Error(`solverWorker: '${kind}' asked before a solve finished`);
     if (kind === 'simulate') {
       const ctx = E.buildContext(withTable(solved.m.ctx.plan, solved));
-      self.postMessage({ id, stats: E.monteCarlo(ctx, { trials: data.trials, seed: data.seed }) });
+      self.postMessage({ id, stats: E.monteCarlo(ctx, { trials: data.trials, seed: data.seed, collectPaths: !!data.collectPaths }) });
       return;
     }
     if (kind === 'runs') {

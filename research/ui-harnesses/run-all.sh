@@ -32,11 +32,12 @@ LIGHT='{"points":4,"research":{"adaptiveLattice":{"na":48,"nb":9,"nz":32,"foot":
 SWITCH_OFF_ONLY=("solver-config:itself, against the switch-on preview it builds"
   "solver-strategy:itself, against the switch-on preview it builds"
   "solver-isolation:itself, against the switch-on build it serves without headers, as GitHub Pages does"
+  "solver-projection:itself, against the switch-on preview it builds"
   "tournament:solver-strategy (for a single household the Strategy tab is the solved plan under the switch; a couple's keeps the tournament, which solver-strategy checks)"
   "tradeoffs:solver-config (for a single household the policy search and its trade-offs are hidden under the switch; the solver's aims replace them)"
   "priorities:solver-config (for a single household the priority list is hidden under the switch; the solver's aims replace it)")
 
-REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament solver-progress solver-config solver-strategy solver-isolation)
+REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament solver-progress solver-config solver-strategy solver-isolation solver-projection)
 # closecall-ui.cjs is not in either list: it takes a plans.json written by hand, not a port, and
 # exists to investigate one household rather than to guard a behaviour.
 OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)

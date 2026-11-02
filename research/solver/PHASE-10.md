@@ -26,9 +26,23 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   the site): the isolation and the split fail.
 - Other browsers (Safari, Firefox) are checked in Phase 12's solves; where isolation does not hold, that browser solves whole.
 
+## 2. The projection runs the solved plan: built (its first part)
+
+- `App.jsx` `runStageTest`: under the switch, a single household with a solve in hand runs the projection's paths through the
+  solved plan (the worker's `simulate`, with the paths for the fan), its survival tile headed "The solved plan" with your
+  plan's survival beside it ("as you are now", the same paths and seed) and the typical spending. Where the solved plan's run
+  fails, your plan's figures stand. The run goes stale when the plan's solve lands ("The solved plan is ready since this
+  run", told apart from changed inputs). With the switch off nothing changes.
+- `research/ui-harnesses/solver-projection-ui.cjs` (REQUIRED, switch-off only as it builds its own switch-on preview): the
+  switch off shows your plan with no solver line; switch on, a run before the solve lands is your plan's and goes stale when
+  it lands; re-run, the solved plan's survival is Node's (98.82% on S126 at light settings) and your plan's beside it Node's
+  (94.72%). Shown failing first: the stale note looked for in the wrong view.
+- Still to come under this item: the projection's second stage (the most you could spend at the chosen survival) still
+  answers for your plan's rules under the switch; item 5's search over solves replaces it. The spending delivered beside
+  every survival figure elsewhere on the tab.
+
 ## Still to build
 
-2. The projection runs the solved plan, your plan's survival beside it, the spending delivered beside every survival figure.
 3. The quick dials re-solve (the base cached, a position one more solve), the live line on request, nearest first.
 4. The retirement-age dial (B11): on request, one solve an age.
 5. The Simple page's safe spend and safe age: a search over solves on request, its progress shown and answers kept,

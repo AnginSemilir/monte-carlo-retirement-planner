@@ -5,17 +5,21 @@
  *   const key = await keyOf(engine, plan, opts);          // what the solve depends on (src/solverKey.js); the engine is
  *                                                         // App.jsx's, handed in (importing App.jsx here would split the
  *                                                         // page's own first-load code into another chunk)
- *   const job = startSolve(plan, { key, parts, lambda, points, research, onProgress, onStored });
- *   const { meta, secs, parts, restored } = await job.done;   // rejects with 'cancelled' after job.cancel()
+ *   const job = startSolve(plan, { key, base, parts, lambda, points, research, onProgress, onStored });
+ *   const { meta, secs, parts, restored, base } = await job.done;   // rejects with 'cancelled' after job.cancel()
  *   await job.ask('simulate', { trials, seed });          // the owner worker's answers (src/solverWorker.js)
  *   job.close();                                          // the owner worker, and the solved tables with it, let go
  *
  * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored in that
  * one worker; otherwise the plan is solved, split across workers where the page is cross-origin isolated (src/solverPool.js),
  * and stored. Elsewhere the solve runs whole in one worker.
+ * A dial position above 1 (step L2) names its base ({ plan, key }: baseOf): the owner first restores or solves the base and
+ * keeps it, then solves the position on it; a split position's parts each restore the base from one shared copy. The store
+ * keeps the base beside the latest position (src/solverCache.js), so another position of the same plan costs one solve.
  */
 import { arenaFor, failArena } from './solverPool.js';
 import { solveKey } from './solverKey.js';
+import { dialBase } from './solverSettings.js';
 
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
@@ -24,8 +28,13 @@ export const defaultParts = () => (canSplit() ? Math.max(1, Math.min(4, (typeof 
 const newWorker = () => new Worker(new URL('./solverWorker.js', import.meta.url), { type: 'module' });
 /* the solve's key on the page: the plan as the solver takes it and the settings (the code is checked by the worker) */
 export const keyOf = (engine, plan, opts = {}) => solveKey(engine, plan, opts);
+/* a dial position's base as startSolve takes it ({ plan, key }), or null at position 1 */
+export async function baseOf(engine, plan, opts = {}) {
+  const bp = dialBase(engine.normalizePlan(plan));
+  return bp ? { plan: bp, key: await solveKey(engine, bp, opts) } : null;
+}
 
-export function startSolve(plan, { key = null, parts = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+export function startSolve(plan, { key = null, base = null, parts = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
   const owner = newWorker(), workers = [owner], pending = new Map();
   let seq = 0, finished = false, rejectDone = null, arena = null, n = 1;
   const stop = () => { if (arena) failArena(arena); workers.forEach(w => w.terminate()); };
@@ -38,7 +47,7 @@ export function startSolve(plan, { key = null, parts = defaultParts(), onProgres
       return;
     }
     if (data.progress) { if (onProgress) onProgress(data.progress); return; }
-    if (data.stored !== undefined) { if (onStored) onStored(data.stored); return; }
+    if (data.stored !== undefined) { if (onStored) onStored(data.stored, data.why || null); return; }
     if (onMain) onMain(data);
   };
   const ask = (kind, extra = {}) => {
@@ -48,31 +57,40 @@ export function startSolve(plan, { key = null, parts = defaultParts(), onProgres
 
   const done = new Promise((resolve, reject) => {
     rejectDone = reject;
-    (async () => {
-      const hit = key ? (await ask('probe', { key })).hit : false;
-      if (finished) return;
+    // one solve: the base of a dial position ('base') or the plan itself ('solve'), restored when stored, else split where it can be
+    const phase = async (kind, phasePlan, phaseKey, baseKey) => {
+      const hit = phaseKey ? (await ask('probe', { key: phaseKey })).hit : false;
+      if (finished) return null;
+      n = 1; arena = null;
       if (!hit && parts > 1 && canSplit()) { arena = arenaFor(); if (arena) n = parts; }
+      // a split position's parts each restore its base, shared once by the owner that holds it
+      const partBase = n > 1 && baseKey ? { plan: base.plan, rec: (await ask('share')).rec } : null;
       const ends = [];
       for (let i = 1; i < n; i++) {
         const w = newWorker(); workers.push(w);
         ends.push(new Promise((res, rej) => {
           w.onmessage = ({ data }) => (data.error ? rej(new Error(data.error)) : res());
           w.onerror = e => rej(new Error((e && e.message) || `solver part ${i} failed`));
-          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan, opts });
+          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts, ...(partBase ? { base: partBase } : {}) });
         }));
       }
       const main = new Promise((res, rej) => {
         onMain = data => (data.error ? rej(new Error(data.error)) : res(data));
         owner.onerror = e => rej(new Error((e && e.message) || 'the solver failed'));
-        owner.postMessage({ id: 0, kind: 'solve', plan, opts, parts: n, arena, key });
+        owner.postMessage({ id: 0, kind, plan: phasePlan, opts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
-      if (finished) return; finished = true;
-      workers.slice(1).forEach(w => w.terminate());
-      resolve({ meta: m.meta, secs: m.secs, parts: n, restored: !!m.restored });
+      workers.splice(1).forEach(w => w.terminate());
+      return m;
+    };
+    (async () => {
+      const b = base ? await phase('base', base.plan, base.key, null) : null;
+      if (finished || (base && !b)) return;
+      const m = await phase('solve', plan, key, base ? base.key : null);
+      if (finished || !m) return; finished = true;
+      resolve({ meta: m.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: b ? { restored: b.restored || false, secs: b.secs } : null });
     })().catch(err => { if (finished) return; finished = true; stop(); reject(err); });
   });
-
   return {
     done,
     get parts() { return n; },

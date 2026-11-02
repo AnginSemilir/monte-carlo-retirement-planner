@@ -333,3 +333,5 @@
 29 Oct 21:40 UK | main | none: EXPLORATORY, the dislike of cuts on the candidate (D44) | code dc14b41369ef | 8a02258 | load 1.16 1.20 1.54 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-curve-dial.sh
 29 Oct 23:23 UK | main | research/solver/registrations/fail-delivered.md | code dc14b41369ef | 5df83cd | load 0.73 1.38 2.42 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-fail-delivered.sh
 30 Oct 10:51 UK | main | none: EXPLORATORY, paying where one pays and the dial at six times (D46) | code 0fbe5e9a22d3 | f2345c8 | load 2.21 2.57 2.24 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-curve-pay.sh
+01 Nov 15:57 UK | main | none: EXPLORATORY, L5: one-off costs on singles (D51 step L5, D52 R3) | code 9273130d7c86 | bebbd8e | load 3.13 3.47 4.12 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-costs.sh
+01 Nov 22:22 UK | main | none: EXPLORATORY, L4: the dial's positions in both variants (D51 B3, D52 R1 R2) | code 9273130d7c86 | 1a4c759 | load 4.67 5.82 6.08 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-levers.sh

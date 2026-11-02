@@ -33,15 +33,38 @@ export const APP_DIAL = Object.freeze([1, 3, 6, 10]);
  *   riskConsent  false: the plan's own tiers, no tier move (D39).
  * The minimum pot is the plan's own field (`config.solvencyFloor`), read by solvePlan as before. research/tests/solver-aims.test.mjs.
  */
-export function aimsOptions(plan) {
-  const a = (plan && plan.solver && plan.solver.aims) || {};
+/*
+ * THE DIAL'S POSITIONS ABOVE THE DEFAULT (the launch plan's step L2, B3, D54): positions 3, 6 and 10 are lambda times the
+ * position, solved on the tiers of the base (the same plan at position 1, every other aim the same: dialBase) through
+ * `lockTiers` (the layer loop, `tsOnce: false`, and the base's own decision on the tier above), so the dial changes how
+ * spending moves and not the risk taken (LOCK.md section 4). Variant 'B3a' adds the age weights (`ageWeight`, a cut's cost
+ * weighed by a Gompertz chance of being alive; survival still counted to the plan's fixed age: D54); 'B3b' is the lock
+ * alone. L4 measured both and R1 (D52) decided on its read of 2 Nov (results-levers.txt): B3a ships at 3, 6 and 10, and R2
+ * keeps all four positions. Where the base has no
+ * tier state (consent withdrawn, or a ceiling that leaves one pair) there is nothing to lock, and lambda and the weights
+ * still apply. Position 1 is the candidate unchanged. src/solverApp.js solveForApp solves the base first where none is given.
+ */
+export const APP_DIAL_VARIANT = 'B3a';
+export const APP_AGE_WEIGHT = Object.freeze({ mode: 90, disp: 9 });
+export const dialOf = plan => { const a = (plan && plan.solver && plan.solver.aims) || {}; return APP_DIAL.includes(a.cuts) ? a.cuts : 1; };
+export function aimsOptions(plan, variant = APP_DIAL_VARIANT) {
+  const a = (plan && plan.solver && plan.solver.aims) || {}, pos = dialOf(plan);
+  if (pos > 1 && variant !== 'B3a' && variant !== 'B3b') throw new Error(`aimsOptions: the dial's variant is B3a or B3b, not ${variant}`);
   return {
-    lambda: APP_LAMBDA * (APP_DIAL.includes(a.cuts) ? a.cuts : 1),
+    lambda: APP_LAMBDA * pos,
+    ...(pos > 1 ? { tsOnce: false, ...(variant === 'B3a' ? { ageWeight: APP_AGE_WEIGHT } : {}) } : {}),
     ...(a.estate === 'lower' ? { bequestWeight: 0.01 } : {}),
     ...(a.raises === 'blocked' ? { raiseCap: 1 } : {}),
     ...(a.riskConsent === false ? { riskConsent: false } : {})
   };
 }
+/* the base a dial position is locked to: the same plan at position 1, every other aim the same; null at position 1 */
+export function dialBase(plan) {
+  if (dialOf(plan) === 1) return null;
+  return { ...plan, solver: { ...plan.solver, aims: { ...plan.solver.aims, cuts: 1 } } };
+}
+/* what a dial position adds to the solve's key beyond lambda (src/solverKey.js): nothing at position 1 */
+export const dialSettings = (plan, variant = APP_DIAL_VARIANT) => (dialOf(plan) > 1 ? { dial: { variant, lock: 'base', ...(variant === 'B3a' ? { ageWeight: APP_AGE_WEIGHT } : {}) } } : {});
 
 /* the plan with each blended tier's real at its blend median; riskSource '' so normalizePlan keeps them (candidate.mjs) */
 export function appPlan(E, plan) {
@@ -81,13 +104,19 @@ export function lockedPlan(E, plan) {
   return { plan: p, riskAbove: binds ? false : undefined };
 }
 
+/* the solver's spending floor where the plan sets none, as a share of the target (B2, D51): every test of the candidate set it */
+export const APP_FLOOR = 0.8;
 /*
  * The plan as the solver takes it: the locks applied (lockedPlan), guardrails and the one-off cost lookahead off (a solved table is the spending rule, and
- * the engine refuses a table with either on; src/solver/bridge.js withTable), normalised, the MPAA resolved. Twice is once:
- * the same plan back on every one of the library's 420 households (30 Oct).
+ * the engine refuses a table with either on; src/solver/bridge.js withTable), the floor at APP_FLOOR of the target where the
+ * plan's is 0 (rounded as research/solver/phase4-panel.mjs rounds it; without it the menu's levels are the target and the
+ * raise alone, and the solve cannot cut: the launch plan's F1), normalised, the MPAA resolved. The engine that runs the
+ * solved plan reads this plan; "your plan" under the app's rules keeps its own. Twice is once: the same plan back on every
+ * one of the library's 420 households (30 Oct; research/tests/solver-floor.test.mjs).
  */
 export function prepareForSolve(E, plan) {
-  const p = lockedPlan(E, E.normalizePlan(plan)).plan;
-  return E.resolveMpaa(E.normalizePlan({ ...p, config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
+  const p = lockedPlan(E, E.normalizePlan(plan)).plan, sp = p.spending || {};
+  const spending = E.num(sp.floorSpend, 0) > 0 ? sp : { ...sp, floorSpend: Math.round(APP_FLOOR * E.num(sp.targetSpend, 0)) };
+  return E.resolveMpaa(E.normalizePlan({ ...p, spending, config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
 }
 

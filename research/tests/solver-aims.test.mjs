@@ -7,7 +7,8 @@
  *      and both solve to the same tables as the plan without aims; the 420 library households normalise with no solver key;
  *      App.jsx's dial positions are APP_DIAL's (every value from 0 to 12 by halves kept only where the dial has it);
  *   2. each lever is the option it names, to the bit: the plan with the aim solves to the tables of the plan without it and
- *      that option given explicitly, and to other tables than the default's; raises blocked, no year above target on 200
+ *      that option given explicitly, and to other tables than the default's (the dial at 3: lambda times three on the
+ *      base's locked tiers, with the age weights under B3a; step L2); raises blocked, no year above target on 200
  *      paths where the default has some; consent withdrawn, the plan's own tiers every year where the default moves them.
  *      Planted, the aim lost on its way (set off its positions, so it reads as the default): the check fails;
  *   3. normalisation: values off the positions read as the defaults; locks without aims are kept as before (no aims key);
@@ -18,7 +19,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { withTable } from '../../src/solver/bridge.js';
-import { solveForApp, aimsOptions, APP_LAMBDA, APP_DIAL } from '../../src/solverApp.js';
+import { solveForApp, aimsOptions, APP_LAMBDA, APP_DIAL, APP_AGE_WEIGHT, APP_DIAL_VARIANT } from '../../src/solverApp.js';
 import { solveKey } from '../../src/solverKey.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
 import { CANDIDATE_OPTS } from '../solver/candidate.mjs';
@@ -61,8 +62,11 @@ const base = solve(plan), d0 = await digest(base);
   ok(miss.length === 0, `1. App.jsx keeps the dial's positions, ${APP_DIAL.join(', ')}, and reads every other value from 0 to 12 by halves as 1${miss.length ? `: wrong at ${miss}` : ''}`); }
 
 // 2. each lever is its option, and the solve sees it
+// the dial at 3 (step L2, B3): lambda times three, the layer loop, the age weights under B3a, on the base's tiers (the
+// default's solve is the base: every other aim at its default) with the base's decision on the tier above
+const aboveOf = r => String(r.meta.riskAbove && r.meta.riskAbove.decision).startsWith('on');
 const LEVERS = [
-  ['cuts 3', { cuts: 3 }, { lambda: 3 * APP_LAMBDA }, { cuts: 4 }],
+  ['cuts 3', { cuts: 3 }, { lambda: 3 * APP_LAMBDA, research: { tsOnce: false, ...(APP_DIAL_VARIANT === 'B3a' ? { ageWeight: APP_AGE_WEIGHT } : {}), lockTiers: base, riskAbove: aboveOf(base) } }, { cuts: 4 }],
   ['estate lower', { estate: 'lower' }, { research: { bequestWeight: 0.01 } }, { estate: 'less' }],
   ['raises blocked', { raises: 'blocked' }, { research: { raiseCap: 1 } }, { raises: 'never' }],
   ['consent withdrawn', { riskConsent: false }, { research: { riskConsent: false } }, { riskConsent: 'no' }]
@@ -71,7 +75,7 @@ const solved = {};
 for (const [name, aims, explicit, lost] of LEVERS) {
   const r = solve(withAims(plan, aims)), dA = await digest(r), dX = await digest(solve(plan, explicit)), dL = await digest(solve(withAims(plan, lost)));
   solved[name] = r;
-  ok(dA === dX && dA !== d0, `2. ${name}: the tables of ${JSON.stringify(explicit)} given explicitly (${dA.slice(0, 16)}), not the default's`);
+  ok(dA === dX && dA !== d0, `2. ${name}: the tables of ${JSON.stringify(explicit, (k, v) => (k === 'lockTiers' ? 'the base' : v))} given explicitly (${dA.slice(0, 16)}), not the default's`);
   ok(!(dL === dX && dL !== d0), `2. planted, the aim lost on its way (${JSON.stringify(lost)}, read as the default): the check fails`);
 }
 { const above = paths => paths.reduce((s, p) => s + p.filter(y => y.level > 1 + 1e-9).length, 0);

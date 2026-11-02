@@ -1,16 +1,24 @@
 /*
- * THE SOLVED TABLES, KEPT ACROSS VISITS (Part C Phase 7b, research/solver/PHASE-7.md). A candidate solve is minutes of four
- * cores, so the worker that solved a plan stores its tables in IndexedDB under the solve's key (src/solverKey.js: the plan
- * as the solver takes it, the settings and the solver's own code), and a later visit with the same key restores them in
- * seconds (solve.js `opts.restore`) instead of solving again. The latest plan only: a candidate solve at 45 points is about
- * 261 MB of tables (results-n7-check.txt), so each store replaces the one before. Any failure (no IndexedDB, a private
- * window, the quota) is a miss: the plan is solved, never refused.
+ * THE SOLVED TABLES, KEPT ACROSS VISITS (Part C Phase 7b, research/solver/PHASE-7.md; two entries from step L2 of the launch
+ * plan). A candidate solve is minutes of four cores, so the worker that solved a plan stores its tables in IndexedDB under
+ * the solve's key (src/solverKey.js: the plan as the solver takes it, the settings and the solver's own code), and a later
+ * visit with the same key restores them in seconds (solve.js `opts.restore`) instead of solving again.
+ * Two solves at most, the base and the latest dial position (a position is solved on its base's tiers, so it needs the base
+ * beside it), within CACHE_BUDGET bytes (two solves of S370 are 530 MB: results-app-timing.txt on the review's branch). A
+ * store evicts the least recently used solve first, never the one it names to keep (the position's base); a solve that
+ * cannot fit beside it is not stored; a solve of other code is dropped, since it can never be restored. Any failure (no
+ * IndexedDB, a private window, the quota) is a miss and says why: the plan is solved, never refused. The rule itself is
+ * storePlan, a pure function; research/tests/solve-store.test.mjs drives the store on an in-memory IndexedDB.
  */
+export const CACHE_MAX = 2, CACHE_BUDGET = 600e6;
+let idb = typeof indexedDB === 'undefined' ? undefined : indexedDB;
+/* tests only: another IndexedDB (an in-memory one in Node) */
+export const useIndexedDB = f => { idb = f; };
 const DB = 'rp-solver', STORE = 'solves';
 
 const open = () => new Promise((resolve, reject) => {
-  if (typeof indexedDB === 'undefined') { reject(new Error('no IndexedDB')); return; }
-  const q = indexedDB.open(DB, 1);
+  if (!idb) { reject(new Error('no IndexedDB')); return; }
+  const q = idb.open(DB, 1);
   q.onupgradeneeded = () => q.result.createObjectStore(STORE);
   q.onsuccess = () => resolve(q.result);
   q.onerror = () => reject(q.error);
@@ -25,40 +33,108 @@ const tx = (db, mode, fn) => new Promise((resolve, reject) => {
 });
 const req = q => new Promise((resolve, reject) => { q.onsuccess = () => resolve(q.result); q.onerror = () => reject(q.error); });
 
-/* whether a solve of this key, made by this code, is stored: the small record beside it, so asking loads no tables */
+/*
+ * The store's rule: given what is stored ([{ key, bytes, used }]) and a new solve ({ key, bytes }), which to evict, or that it
+ * is not stored: at most `max` solves and `budget` bytes, the least recently used evicted first, never `keep`.
+ */
+export function storePlan(index, entry, { max = CACHE_MAX, budget = CACHE_BUDGET, keep = null } = {}) {
+  if (!(entry.bytes <= budget)) return { store: false, evict: [], why: `the solve's ${(entry.bytes / 1e6).toFixed(1)} MB is over the store's ${(budget / 1e6).toFixed(1)} MB` };
+  const rest = index.filter(e => e.key !== entry.key).sort((a, b) => a.used - b.used), evict = [];
+  const over = () => rest.length + 1 > max || rest.reduce((t, e) => t + e.bytes, 0) + entry.bytes > budget;
+  while (over()) { const i = rest.findIndex(e => e.key !== keep); if (i < 0) break; evict.push(rest[i].key); rest.splice(i, 1); }
+  return over() ? { store: false, evict: [], why: 'no room for it beside the solve it keeps' } : { store: true, evict };
+}
+/* a stored record's bytes: its typed arrays' */
+export function recordBytes(rec) {
+  let n = 0;
+  const walk = v => { if (ArrayBuffer.isView(v)) n += v.byteLength; else if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') Object.values(v).forEach(walk); };
+  walk(rec);
+  return n;
+}
+const readIndex = s => req(s.get('index')).then(x => (Array.isArray(x) ? x : []));
+/* whether a solve of this key, made by this code, is stored: the small index beside the solves, so asking loads no tables */
 export async function probeSolve(key, code) {
   try {
     const db = await open();
-    const k = await tx(db, 'readonly', s => req(s.get('latestKey')));
+    const ix = await tx(db, 'readonly', s => readIndex(s));
     db.close();
-    return !!(k && k.key === key && k.code === code);
+    return ix.some(e => e.key === key && e.code === code);
   } catch { return false; }
 }
-
-/* the stored solve for this key, made by this code (the worker's own fingerprinted URL), or null */
+/* the stored solve for this key, made by this code (the worker's own fingerprinted URL), or null; using it makes it the most
+   recently used */
 export async function loadSolve(key, code) {
   try {
     const db = await open();
-    const rec = await tx(db, 'readonly', s => req(s.get('latest')));
+    const rec = await tx(db, 'readwrite', async s => {
+      const ix = await readIndex(s), e = ix.find(x => x.key === key && x.code === code);
+      if (!e) return null;
+      const r = await req(s.get(`solve:${key}`));
+      if (r) { e.used = Date.now(); s.put(ix, 'index'); }
+      return r || null;
+    });
     db.close();
     return rec && rec.key === key && rec.code === code ? rec : null;
   } catch { return null; }
 }
-
-/* store this solve as the latest, with the code that made it; resolves to true when written */
-export async function storeSolve(key, code, record) {
+/* mark a stored solve as just used (the base, when a position is solved on it), so a store evicts it last */
+export async function touchSolve(key, code) {
   try {
     const db = await open();
-    await tx(db, 'readwrite', s => { s.clear(); s.put({ ...record, key, code, stored: Date.now() }, 'latest'); s.put({ key, code }, 'latestKey'); });
+    await tx(db, 'readwrite', async s => { const ix = await readIndex(s), e = ix.find(x => x.key === key && x.code === code); if (e) { e.used = Date.now(); s.put(ix, 'index'); } });
     db.close();
     return true;
   } catch { return false; }
 }
-
+/* store this solve, with the code that made it, by storePlan's rule; { stored, why } (why: the reason it was not) */
+export async function storeSolveWhy(key, code, record, { keep = null, max = CACHE_MAX, budget = CACHE_BUDGET } = {}) {
+  let db = null;
+  try {
+    db = await open();
+    const bytes = recordBytes(record);
+    const out = await tx(db, 'readwrite', async s => {
+      const all = await readIndex(s), stale = all.filter(e => e.code !== code), ix = all.filter(e => e.code === code);
+      const p = storePlan(ix, { key, bytes }, { keep, max, budget });
+      if (!p.store) return p;
+      for (const e of stale) s.delete(`solve:${e.key}`);
+      for (const k of p.evict) s.delete(`solve:${k}`);
+      const now = Date.now(), kept = ix.filter(e => e.key !== key && !p.evict.includes(e.key));
+      s.put({ ...record, key, code, stored: now }, `solve:${key}`);
+      s.put([...kept, { key, code, bytes, used: now }], 'index');
+      return p;
+    });
+    db.close();
+    return out.store ? { stored: true, why: null } : { stored: false, why: out.why };
+  } catch (e) {
+    if (db) db.close();
+    const quota = e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message || '')));
+    return { stored: false, why: quota ? "the browser's storage for this site is full" : `the store failed (${(e && (e.name || e.message)) || e})` };
+  }
+}
+export async function storeSolve(key, code, record, opts) { return (await storeSolveWhy(key, code, record, opts)).stored; }
 export async function clearSolves() {
   try { const db = await open(); await tx(db, 'readwrite', s => { s.clear(); }); db.close(); return true; } catch { return false; }
 }
-
+/*
+ * A stored solve as shared memory: every typed array of the record copied once into one SharedArrayBuffer, the same shape
+ * of views (step L2: a split dial position's parts each restore its base from it, with no copy per message). Where shared
+ * memory is missing, the record itself.
+ */
+export function shareRecord(rec) {
+  if (typeof SharedArrayBuffer === 'undefined') return rec;
+  let n = 0;
+  const size = v => { if (ArrayBuffer.isView(v)) n = Math.ceil(n / 8) * 8 + v.byteLength; else if (Array.isArray(v)) v.forEach(size); else if (v && typeof v === 'object') Object.values(v).forEach(size); };
+  size(rec);
+  const buf = new SharedArrayBuffer(Math.max(8, n));
+  let off = 0;
+  const copy = v => {
+    if (ArrayBuffer.isView(v)) { off = Math.ceil(off / 8) * 8; const a = new v.constructor(buf, off, v.length); a.set(v); off += v.byteLength; return a; }
+    if (Array.isArray(v)) return v.map(copy);
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, copy(x)]));
+    return v;
+  };
+  return copy(rec);
+}
 /*
  * What a solve keeps for its restore (solve.js `opts.restore`): every world's tier layers, their surv, beq, resil, pol and
  * short by year; the adaptive reference's arrays and counts; which solve the 'auto' risk rule kept (a restore solves the same

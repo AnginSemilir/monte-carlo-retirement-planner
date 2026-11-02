@@ -10,7 +10,7 @@
  * change re-solves (src/useSolver.js). Every position offered has been measured (PHASE-8.md); the defaults are the candidate's.
  */
 import React from 'react';
-import { APP_DIAL } from './solverSettings.js';
+import { APP_DIAL, APP_FLOOR } from './solverSettings.js';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
@@ -30,6 +30,13 @@ const patchSolver = (setPlan, part, patch) => setPlan(prev => {
   const s = prev.solver || {}, base = part === 'aims' ? AIMS_DEFAULT : LOCKS_FREE;
   return { ...prev, solver: { ...s, [part]: { ...base, ...(s[part] || {}), ...patch } } };
 });
+
+/* the floor the solver plans with (src/solverSettings.js prepareForSolve: the plan's own, else APP_FLOOR of the target; B2) */
+function floorLine(plan) {
+  const sp = plan.spending || {}, target = Number(sp.targetSpend) || 0, own = Number(sp.floorSpend) || 0;
+  const pct = own > 0 && target > 0 ? Math.round((100 * Math.min(own, target)) / target) : Math.round(100 * APP_FLOOR);
+  return `In a bad year the plan may spend as little as ${pct}% of your target${own > 0 ? ' (the floor in your plan)' : ''}; it never plans below that.`;
+}
 
 function Choice({ name, options, value, onChange, isPhone }) {
   return (
@@ -55,12 +62,14 @@ function Row({ title, children, help, isPhone, Fine }) {
 /* the solve's state, in a line: what the solver is doing with the plan on screen; on a phone, until asked, a button that asks
    (the launch plan's B10: the phone solves on request) */
 function SolveLine({ solve, onRequest }) {
-  const { solveState, solveMeta, progress, key } = solve || {};
+  const { solveState, solveMeta, progress, key, storeNote } = solve || {};
   const pct = progress && progress.total ? Math.round((100 * progress.done) / progress.total) : null;
+  // a dial position above Low solves the plan at Low first (its base, step L2), then at the position, on the base's investments
+  const stage = progress && progress.stage === 'base' ? ' at the Low setting first' : progress && progress.stage === 'position' ? ' at your setting' : '';
   const text = solveMeta && solveMeta.error ? `The solver could not solve this plan: ${solveMeta.error}`
-    : solveState === 'solving' ? `Solving your plan${progress ? `: ${progress.phase === 'years' ? 'year by year' : 'the years before your pension opens'}, ${pct}%` : '…'}`
+    : solveState === 'solving' ? `Solving your plan${stage}${progress ? `: ${progress.phase === 'years' ? 'year by year' : 'the years before your pension opens'}, ${pct}%` : '…'}`
     : solveState === 'stale' ? 'Your plan changed; solving it again…'
-    : solveState === 'solved' ? `Solved${solveMeta && solveMeta.restored ? ', from the last time it was solved' : solveMeta && solveMeta.secs ? ` in ${Math.round(solveMeta.secs)} seconds` : ''}.`
+    : solveState === 'solved' ? `Solved${solveMeta && solveMeta.restored ? ', from the last time it was solved' : solveMeta && solveMeta.secs ? ` in ${Math.round(solveMeta.secs)} seconds` : ''}.${storeNote ? ` It is not kept on this device (${storeNote}), so it solves again next visit.` : ''}`
     : onRequest ? 'On a phone the solver runs when you ask, and it can take several minutes.'
     : 'Waiting to solve your plan.';
   return (
@@ -111,6 +120,9 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
         help={`The least the plan aims to end with. Left at 0, the solver keeps one year of your target spending (${fmt(target)}). The same figure as the minimum pot in Plan Inputs.`}>
         <MoneyInput data-solver-minpot min="0" step="5000" placeholder="0" value={plan.config && plan.config.solvencyFloor !== undefined ? plan.config.solvencyFloor : ''}
           onChange={e => updateConfig('solvencyFloor', e.target.value)} className={`${fieldCls} max-w-[12rem]`} />
+      </Row>
+      <Row Fine={ui.Fine} title="The lowest spending in a bad year" isPhone={isPhone}>
+        <p data-solver-floor className="text-xs text-slate-700">{floorLine(plan)}</p>
       </Row>
       </PhoneCollapse>
       <SolveLine solve={solve} onRequest={onSolveRequest} />

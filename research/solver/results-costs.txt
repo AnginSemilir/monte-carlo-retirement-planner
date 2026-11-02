@@ -1,0 +1,35 @@
+L5, ONE-OFF COSTS ON SINGLES (EXPLORATORY; read by D52's R3): 32 cells; seed 7002, 3000 paths, code 9273130d7c86, audit a48ff1aa6dcf
+The gate: fair.
+  S030 c10y10: survival CANDD less APP +11.733 points (352 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -1716 (-1808 to -1625) £ a path
+  S030 c10y3: survival CANDD less APP +10.500 points (315 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -6567 (-6620 to -6514) £ a path
+  S030 c30y10: survival CANDD less APP +21.100 points (633 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -4768 (-5081 to -4455) £ a path
+  S030 c30y3: survival CANDD less APP +15.367 points (461 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -6451 (-6509 to -6393) £ a path
+  S050 c10y10: survival CANDD less APP +18.967 points (569 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +256 (+243 to +270) £ a path
+  S050 c10y3: survival CANDD less APP +14.000 points (420 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +15 (+13 to +18) £ a path
+  S050 c30y10: survival CANDD less APP +26.867 points (806 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +189 (+179 to +199) £ a path
+  S050 c30y3: survival CANDD less APP +18.300 points (549 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +319 (+302 to +336) £ a path
+  S090 c10y10: survival CANDD less APP +11.133 points (336 saved, 2 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -634 (-700 to -567) £ a path
+  S090 c10y3: survival CANDD less APP +10.833 points (327 saved, 2 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -6577 (-6629 to -6525) £ a path
+  S090 c30y10: survival CANDD less APP +18.167 points (545 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -1936 (-2114 to -1758) £ a path
+  S090 c30y3: survival CANDD less APP +14.467 points (435 saved, 1 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -4290 (-4334 to -4246) £ a path
+  S188 c10y10: survival CANDD less APP +15.833 points (475 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +373 (+322 to +424) £ a path
+  S188 c10y3: survival CANDD less APP +15.767 points (473 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +1007 (+889 to +1125) £ a path
+  S188 c30y10: survival CANDD less APP +15.633 points (469 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -5916 (-6397 to -5435) £ a path
+  S188 c30y3: survival CANDD less APP +15.067 points (454 saved, 2 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +19024 (+18551 to +19497) £ a path
+  S304F c10y10: survival CANDD less APP +11.867 points (356 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +2785 (+2620 to +2949) £ a path
+  S304F c10y3: survival CANDD less APP +18.667 points (560 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -372 (-406 to -338) £ a path
+  S304F c30y10: survival CANDD less APP +10.400 points (312 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +828 (+605 to +1052) £ a path
+  S304F c30y3: survival CANDD less APP +15.800 points (474 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -322 (-358 to -286) £ a path
+  S328F c10y10: survival CANDD less APP +9.133 points (274 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +3495 (+3370 to +3619) £ a path
+  S328F c10y3: survival CANDD less APP +8.467 points (255 saved, 1 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +2927 (+2818 to +3036) £ a path
+  S328F c30y10: survival CANDD less APP +10.333 points (310 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +2667 (+2382 to +2952) £ a path
+  S328F c30y3: survival CANDD less APP +9.900 points (297 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -194 (-385 to -2) £ a path
+  S340F c10y10: survival CANDD less APP +10.433 points (313 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +3864 (+3615 to +4114) £ a path
+  S340F c10y3: survival CANDD less APP +10.600 points (318 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -2613 (-2701 to -2525) £ a path
+  S340F c30y10: survival CANDD less APP +11.967 points (359 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +2714 (+2459 to +2968) £ a path
+  S340F c30y3: survival CANDD less APP +12.167 points (366 saved, 1 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax -2818 (-2911 to -2725) £ a path
+  S368 c10y10: survival CANDD less APP +14.800 points (444 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +7851 (+7678 to +8025) £ a path
+  S368 c10y3: survival CANDD less APP +3.067 points (92 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +82 (+72 to +93) £ a path
+  S368 c30y10: survival CANDD less APP +20.000 points (600 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +63237 (+62172 to +64301) £ a path
+  S368 c30y3: survival CANDD less APP +0.000 points (0 saved, 0 lost; one-sided p 1.00e+0, Holm 1.00e+0); the cost year's tax +331 (+311 to +350) £ a path
+R3: NO CELL LOSES SURVIVAL BEYOND NOISE: plans with a one-off cost run the candidate under the switch.

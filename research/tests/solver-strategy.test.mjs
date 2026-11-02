@@ -15,7 +15,8 @@
  *    in two parts and joined in path order give the whole run's figures, and a part missing a path is refused.
  * 6. This year's actions on S126 (retired, its first move a cut): the move as the engine takes it rebuilt from the table's
  *    index is the engine's own, field for field; each skip differs from the move in its part, and its cost is the paired
- *    count on the same paths; forcing the chosen move itself is the plan path for path (no cost); the next years on the
+ *    count on the same paths; forcing the chosen move itself is the plan path for path (no cost); a dominated action (the
+ *    year's move at its highest spending level) costs at least 0 against the plan; the next years on the
  *    median path start with the first move and are the median of the pots left.
  * Each rule's plant: the dip's edge moved (three years long), the quantile taken from the top, a failed path counted as
  * back, the raise read on every path whatever its end.
@@ -123,6 +124,14 @@ console.log('=========== 6. THIS YEAR\'S ACTIONS AND THE NEXT YEARS ==========='
   const planted = { ...sc, policyOverride: { ...f.base, choose: (st, t, held) => (t === 0 ? moveOf(r, (f.mv.index + 1) % r.actions.length, f.mv) : f.base.choose(st, t, held)) } };
   const diffP = paths.filter(zs => runPath(E, sc, zs).terminalPot !== runPath(E, planted, zs).terminalPot).length;
   ok(diffP > 0, `planted: another move forced in the first year parts the paths (${diffP} of ${N})`);
+  // a planted dominated action (the launch plan's Phase 9): the year's move forced to its highest spending level, the rest
+  // of it unchanged, costs at least 0 against the plan on the same paths
+  const top = Math.max(...r.actions.map(x => x.spendLevel || 1));
+  const domAi = r.actions.findIndex((x, ai) => { const p = partsOf(x, r.c.acts[ai]), q = partsOf(r.actions[f.mv.index], r.c.acts[f.mv.index]); return p.level === top && p.draw === q.draw && p.isaFirst === q.isaFirst && p.harvest === q.harvest && p.tierPen === q.tierPen && p.tierIsa === q.tierIsa; });
+  const dom = { ...sc, policyOverride: { ...f.base, choose: (st, t, held) => (t === 0 ? moveOf(r, domAi, f.mv) : f.base.choose(st, t, held)) } };
+  let dl = 0, ds = 0;
+  for (const zs of paths) { const x = runPath(E, sc, zs).survived, y = runPath(E, dom, zs).survived; if (x && !y) dl++; else if (!x && y) ds++; }
+  ok(domAi >= 0 && domAi !== f.mv.index && dl - ds >= 0, `6. ${id}: the year's move forced to spend ${Math.round(100 * top)}% (a dominated action) costs ${((100 * (dl - ds)) / N).toFixed(2)} points against the plan (${dl} lost, ${ds} saved): at least 0`);
   const runs = strategyRuns(E, r, plan, { seed: SEED, from: 0, to: N }), ah = aheadOf(E, r, plan, runs, { years: 10 });
   const pots = runs.solved.map(x => x.terminalPot).sort((x, y) => x - y);
   ok(ah.rows.length === 10 && JSON.stringify(ah.rows[0].parts) === JSON.stringify(partsOf(r.actions[f.mv.index], r.c.acts[f.mv.index])) && runs.solved[ah.path].terminalPot === pots[Math.floor(N / 2)],

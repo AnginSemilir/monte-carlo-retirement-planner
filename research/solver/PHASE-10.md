@@ -26,7 +26,7 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   the site): the isolation and the split fail.
 - Other browsers (Safari, Firefox) are checked in Phase 12's solves; where isolation does not hold, that browser solves whole.
 
-## 2. The projection runs the solved plan: built (its first part)
+## 2. The projection runs the solved plan: built, through the harness
 
 - `App.jsx` `runStageTest`: under the switch, a single household with a solve in hand runs the projection's paths through the
   solved plan (the worker's `simulate`, with the paths for the fan), its survival tile headed "The solved plan" with your
@@ -37,9 +37,7 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   switch off shows your plan with no solver line; switch on, a run before the solve lands is your plan's and goes stale when
   it lands; re-run, the solved plan's survival is Node's (98.82% on S126 at light settings) and your plan's beside it Node's
   (94.72%). Shown failing first: the stale note looked for in the wrong view.
-- Still to come under this item: the projection's second stage (the most you could spend at the chosen survival) still
-  answers for your plan's rules under the switch; item 5's search over solves replaces it. The spending delivered beside
-  every survival figure elsewhere on the tab.
+- The rest of the item (the second stage and the spending beside every survival figure): "2, the rest" below.
 
 ## 7. The audit table and history: built
 
@@ -65,7 +63,7 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   before. Planted (`PROJECTION_PLANT=histexp`, the page asking history for the expected path), the history check fails
   (the pot left 2,308,141 against Node's 2,610,942) and nothing else does.
 
-## 3 and 4. The dial's live line and the age dial: built (their harness sections to run)
+## 3 and 4. The dial's live line and the age dial: built, through the harness
 
 - `src/solverClient.js` `startFigures`: a variant of the plan solved in workers of its own, the Strategy tab's headline and
   comparison run on the plan's own paths and seed, and the workers let go, so only the figures are kept (the launch plan's
@@ -99,11 +97,15 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
     `withAims`; `AIMS_DEFAULT` moved to `src/solverSettings.js`). `solver-figures.test.mjs` section 8: the key the same after
     any setting is chosen from a plan with no aims, some or all, and changed by the estate's weight, the raises and the
     target; planted (`PLANT` 'rawsig', the key from the plan as stored), caught.
-- `solver-projection-ui.cjs` sections 4 and 5 (to run): the dial's line Node's, the four settings filled nearest first, each
-  Node's, choosing Medium giving the figure the list showed and keeping the others; the age dial on S188 the same way.
-  Planted (`PROJECTION_PLANT=dialfar`, the settings solved farthest first), the order check is to fail.
+- `solver-projection-ui.cjs` sections 4 and 5 (`results-projection-ui.txt`, run h3): on S126 the dial's line at the plan's
+  setting Node's (98.9%), the four settings filled 3, 6, 10, each Node's (1: 98.9%, 3: 99.05%, 6: 98.75%, 10: 98.6%), and
+  choosing Medium giving the 99.05% the list showed with the other three kept; S126, retired, has no age dial; on S188 the
+  age dial's line at 60 Node's (61.4%), the ages filled 59, 61, 58, 62, 57, 63, each Node's (from 45.85% at 57 to 74.05% at
+  63). Planted (`results-projection-ui-plants.txt`): 'dialfar' (the settings solved farthest first) fails the order check
+  (filled 10, 6, 3) and 'agelate' (the later age first on a tie) the ages' order (61, 59, 62, 58, 63, 57), each line still
+  Node's.
 
-## 5. The Simple page's answers from the solver: built (its harness section to run)
+## 5. The Simple page's answers from the solver: built, through the harness
 
 - `src/solverSearch.js`: `highestTarget` (from the page's own answer, up or down a fifth at a time to a bracket, then halving
   it to £500; at most 8 solves) and `earliestAge` (from the plan's age, a year at a time; never at or before today's age;
@@ -117,19 +119,22 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   on; an edit drops a search in flight. Named apart from the Strategy tab's safe starting spend (F12): "Highest target the
   solved plan keeps at 90%" and "Earliest retirement the solved plan keeps at 90%". With the switch off the page is as
   before.
-- `solver-projection-ui.cjs` section 6 (to run): the page's answers, and every target and age it tried, Node's search over the
-  same solves; section 1 the switch off with no card. Planted (`PROJECTION_PLANT=simpleseed`, the card on another seed), the
-  check is to fail.
+- `solver-projection-ui.cjs` section 6 (`results-projection-ui.txt`, run h4): from the page's £26,000, the highest target
+  £31,000 and the earliest age 57, each Node's, every target tried (26,000, 31,000, 37,000, 34,000, 32,500, 32,000, 31,500)
+  and every age (60, 59, 58, 57) the same as Node's search; section 1, the switch off, on the Simple page with no card.
+  Planted (`results-projection-ui-plants.txt`): 'simpleseed' (the card on another seed) fails it, its target search ending at
+  £30,500 against Node's £31,000.
 
-## 6. Scenarios each carry a solve: built (its harness section to run)
+## 6. Scenarios each carry a solve: built, through the harness
 
 - `src/SolverFigures.jsx` `SolverScenarios`, under the scenario comparison on the Projection tab: the plan on screen's line
   from the solve in hand, and "Solve this scenario" for each scenario compared, one solve a scenario in workers of its own,
   its figures kept for the visit by the scenario's plan; a couple's scenario keeps the app's rules (D42).
-- `solver-projection-ui.cjs` section 7 (to run): S126 and a saved scenario spending £2,000 more, both lines Node's. Planted
-  (`PROJECTION_PLANT=scenseed`, the scenario solved on another seed), the check is to fail.
+- `solver-projection-ui.cjs` section 7 (`results-projection-ui.txt`, run h3): S126 and a saved scenario spending £2,000 more,
+  the plan's line 98.9% and the scenario's 98.9%, each Node's. Planted (`results-projection-ui-plants.txt`): 'scenseed' (the
+  scenario solved on another seed) fails it, the scenario at 98.55% against Node's 98.9%.
 
-## 2, the rest: the second stage and the spending beside survival: built (its harness checks to run)
+## 2, the rest: the second stage and the spending beside survival: built, through the harness
 
 - The "Spend and date" step keeps its figures under your plan's rules, now said so, and offers the solved plan's own: the
   Simple page's search (`src/SolverSimple.jsx` `SolverPlanAnswers`, the same `SolverAnswers` card) on the plan on screen at
@@ -139,8 +144,21 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
 - The spending delivered beside every survival figure under the switch: your plan's typical spending beside "as you are
   now" on the survival tile, a "Typical spending" row in the methods table and a tile on the dashboard (the solved plan's,
   with your plan's beside it), and the second stage's and the sandbox's typical spending beside their survival.
-- `solver-projection-ui.cjs` (to run): your plan's typical spending beside "as you are now" Node's (planted,
-  `PROJECTION_PLANT=yoursdeliv`, it is to fail); the "Spend and date" step's card from the page's safe maximum.
+- `solver-projection-ui.cjs` (`results-projection-ui.txt`): your plan's typical spending beside "as you are now" Node's
+  (29,000; run h3), and the "Spend and date" step's card from the page's safe maximum (£33,000; run h4). Planted
+  (`results-projection-ui-plants.txt`): 'yoursdeliv' (the figure taken from another field) fails the spending check.
 
 The harness `solver-projection-ui.cjs` covers the projection, the dials, the Simple page's request and the scenarios;
 `PROJECTION_PLANT` takes several plants at once and `PROJECTION_SECTIONS` a subset of the switch-on sections.
+
+## The harness's runs (3 Nov)
+
+- Run h3, the whole harness on the fixed code: every check passed but two, both the harness's own faults: section 2b opened
+  the step by the phone's deck bar, hidden at desktop width (d39bbba: the desktop pill, then the safe maximum awaited); and
+  sections 1 and 6 stored the page key JSON-quoted where the Shell reads it raw, so they opened the full planner (cd794b9),
+  which section 1's switch-off check had passed without testing anything; it now checks the Simple page is up first
+  (60de7bd). Run h4, sections 2b and 6 on the fixed harness: both pass (`results-projection-ui.txt`, both runs whole).
+- The plants in one run (`results-projection-ui-plants.txt`, on 60de7bd): yoursdeliv, dialfar, agelate, simpleseed and
+  scenseed, exactly five checks failed, each its plant's, and every other check passed, section 1 among them; the sixth
+  plant, histexp, was shown failing alone (item 7).
+- The whole harness runs again on the release head in B1's gate, both modes.

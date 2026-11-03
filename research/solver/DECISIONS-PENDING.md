@@ -18,7 +18,8 @@ D51 to D54.
   - Step L (the levers; L4 and L5 read) is merged to `main` (pull request 4, 3370960) on B1's gate.
   - Phase 9, the Strategy tab (`PHASE-9.md`), is merged to `main` (pull request 5, 725c661) on B1's gate, its budgets
     recorded as not met (D56), step P taking the chooser's cost per path first.
-  - Phase 10 (`PHASE-10.md`): its seven items built on the branch, their harness runs in progress.
+  - Phase 10 (`PHASE-10.md`): its seven items built and through their harnesses, each plant caught; its pull request
+    on B1's gate next.
   - Then step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime

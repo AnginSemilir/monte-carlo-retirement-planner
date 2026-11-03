@@ -1,0 +1,59 @@
+solver-projection-ui.cjs (REQUIRED; Part C Phase 10), on the fixed code (f459f7c: the figure asks queued, the dial's key from the plan
+with its aims filled in). Two runs, each its output whole below. The whole harness on the release head runs again in B1's gate.
+
+Run h3: the whole harness, launched 3 Nov 06:02 UTC on 78278f2. 24 ok, 2 FAILED, both the harness's own faults, fixed after:
+  2b 'no card': it opened the step by the phone's deck bar, hidden at desktop width (d39bbba: the desktop pill, then the
+     safe maximum awaited);
+  6 'card false, done false': it stored the page key JSON-quoted, which the Shell reads raw, so the full planner loaded
+     (cd794b9; section 1's switch-off check had passed on the wrong page, and now checks the Simple page is up first, 60de7bd).
+Run h4: sections 2b and 6 (section 1 and section 2's base always run), launched 09:19 UTC on the harness of cd794b9. Both pass.
+  Its one FAIL is section 1's new Simple-page marker ('Lucky pot', the Monte Carlo view's alone), replaced in 60de7bd by the
+  Shell's 'Open the full planner' and the page's 'Pot at retirement'; on 60de7bd section 1 reads 'on the Simple page true, the
+  card false' (results-projection-ui-plants.txt).
+
+=========== h3 (06:02 UTC, 78278f2) ===========
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  ok    switch off: the Simple page has no answers from the solver
+  ok    the preview build (the switch on) is served   port 4183
+  ok    a run before the solve landed is your plan's, and goes stale when it lands   solved true, early solver line false, stale note true
+  ok    re-run, the projection is the solved plan's: its survival Node's, your plan's beside it Node's, the typical spending shown   solved 98.82% (Node 98.82%), as you are now 94.72% (Node 94.72%)
+  ok    beside "as you are now", your plan's typical spending, Node's   29000 (Node 29000)
+  FAIL  the "Spend and date" step offers the solved plan's own answers on request, from the page's safe maximum, at 90%, the figures beside it your plan's rules   no card
+  ok    the audit table is the solved plan's ledger: every year's total Node's, and every year's action Node's move   solved ledger true, 40 rows (Node 40), totals differing 0, actions differing 0; year 1 "spend 80%"
+  ok    "Your plan" gives your plan's ledger, Node's, with no action column   your ledger true, 40 rows, action cells 0
+  ok    history is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node's, your plan's verdict beside it Node's   from 1965: the solved plan survived, the pot left 2610942 (Node 2610942, survived); your plan survived (Node survived)
+  ok    under the dial, the line at your setting is the headline's figures, Node's   "At this setting: start at £23,200 (80% of target), back at target by 2027; chance your money lasts 99%." (Node 98.9%)
+  ok    "Show the four settings" works the other three out nearest first along the dial   filled in 3, 6, 10 (nearest first 3, 6, 10)
+  ok    each setting's line is Node's for the plan at that setting   1: 98.9% (Node 98.9%), 3: 99.05% (Node 99.05%), 6: 98.75% (Node 98.75%), 10: 98.6% (Node 98.6%)
+  ok    choosing Medium re-solves the plan there: its line the figure the list showed, and the other settings' figures kept   Medium 99.05% (listed 99.05%); kept 1: 98.9%, 6: 98.75%, 10: 98.6%
+  ok    S126, retired, has no age dial
+  ok    switch on: no page errors
+  ok    the age dial's line at the plan's own age is the headline's figures, Node's   "Retiring at 60, as planned: start at £57,200 (80% of target), back at target by 2058; chance your money lasts 61%." (Node 61.4%)
+  ok    "Solve retiring at ..." works the ages out nearest first, the earlier first on a tie   filled in 59, 61, 58, 62, 57, 63 (expected 59, 61, 58, 62, 57, 63)
+  ok    each age's line is Node's for the plan retiring at that age   57: 45.85% (Node 45.85%), 58: 51.8% (Node 51.8%), 59: 56.5% (Node 56.5%), 60: 61.4% (Node 61.4%), 61: 65.95% (Node 65.95%), 62: 70.15% (Node 70.15%), 63: 74.05% (Node 74.05%)
+  ok    switch on, S188: no page errors
+  FAIL  the Simple page's answers from the solver are Node's search over the same solves, every setting tried the same, named apart from the safe starting spend   card false, done false
+  ok    switch on, the Simple page: no page errors
+  ok    under the scenario comparison, the plan on screen's line is Node's, and "Solve this scenario" gives the scenario's, Node's   the plan 98.9% (Node 98.9%), the scenario 98.9% (Node 98.9%): "Spend 2000 more:start at £24,800 (80% of target), back at target by 2027; chance your money lasts 99%."
+  ok    switch on, the scenarios: no page errors
+
+2 FAILED
+
+=========== h4 (09:19 UTC, sections 2b and 6, cd794b9) ===========
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  FAIL  switch off: the Simple page has no answers from the solver   on the Simple page false, the card false
+  ok    the preview build (the switch on) is served   port 4183
+  ok    a run before the solve landed is your plan's, and goes stale when it lands   solved true, early solver line false, stale note true
+  ok    re-run, the projection is the solved plan's: its survival Node's, your plan's beside it Node's, the typical spending shown   solved 98.82% (Node 98.82%), as you are now 94.72% (Node 94.72%)
+  ok    beside "as you are now", your plan's typical spending, Node's   29000 (Node 29000)
+  ok    the "Spend and date" step offers the solved plan's own answers on request, from the page's safe maximum, at 90%, the figures beside it your plan's rules   from £33000 (the page's safe maximum £33000): "The solved plan's answersThe figures above follow your plan's rules. The solver works the …"
+  ok    S126, retired, has no age dial
+  ok    switch on: no page errors
+  ok    the Simple page's answers from the solver are Node's search over the same solves, every setting tried the same, named apart from the safe starting spend   from £26000: the highest target £31000 (Node £31000; tried 26000, 31000, 37000, 34000, 32500, 32000, 31500 / 26000, 31000, 37000, 34000, 32500, 32000, 31500), the earliest age 57 (Node 57; tried 60, 59, 58, 57 / 60, 59, 58, 57)
+  ok    switch on, the Simple page: no page errors
+
+1 FAILED

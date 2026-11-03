@@ -2845,6 +2845,7 @@
    "research/solver/results-prng-check.txt",
    "research/solver/results-probe-tailm.txt",
    "research/solver/results-probes-e1-unimodal.txt",
+   "research/solver/results-projection-ui.txt",
    "research/solver/results-quadref-exact.txt",
    "research/solver/results-quadref.txt",
    "research/solver/results-ranking.txt",

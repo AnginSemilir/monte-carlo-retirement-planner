@@ -1,0 +1,29 @@
+=========== 1 AND 3. THE ANSWERS ===========
+  ok  1. from below: £24000 in 7 solves (20000, 24000, 29000, 26500, 25500, 25000, 24500), the bracket 24000 to 24500
+  ok  1. from above: £24000 in 6 solves (30000, 25000, 21000, 23000, 24000, 24500)
+  ok  3. from a passing age: 60 (62, 61, 60, 59)
+  ok  3. from a failing age: 60 (58, 59, 60)
+=========== 2. THE CAP ===========
+  ok  2. three solves allowed: the highest pass so far £24000, capped (20000, 24000, 29000, the bracket 24000 to 29000)
+  ok  2. nothing passing: no answer (8 solves, down to £5500)
+=========== 3. THE AGE'S BOUNDS ===========
+  ok  3. aged 60.5: 61, never at or before today's age (62, 61)
+  ok  3. none passing by the last age: none (55, 56, 57, 58)
+=========== 4. EACH SOLVE REPORTED ===========
+  ok  4. onStep: 7 reports, in order, each solve's own figures
+=========== THE PLANTS ===========
+  -- planted: a survival at exactly the goal counted as failing (expected to FAIL) --
+  FAIL 1 [gt]. from below: £23500 in 5 solves (20000, 24000, 22000, 23000, 23500), the bracket 23500 to 24000
+  FAIL 1 [gt]. from above: £23500 in 6 solves (30000, 25000, 21000, 23000, 24000, 23500)
+  FAIL 3 [gt]. from a passing age: 61 (62, 61, 60)
+  FAIL 3 [gt]. from a failing age: 61 (58, 59, 60, 61)
+  ok  the plant 'gt' (a survival at exactly the goal counted as failing) is caught: 4 checks failed
+  -- planted: the bracket not halved (expected to FAIL) --
+  FAIL 1 [nohalve]. from below: £24000 in 3 solves (20000, 24000, 29000), the bracket 24000 to 29000
+  FAIL 1 [nohalve]. from above: £21000 in 3 solves (30000, 25000, 21000)
+  ok  3 [nohalve]. from a passing age: 60 (62, 61, 60, 59)
+  ok  3 [nohalve]. from a failing age: 60 (58, 59, 60)
+  ok  the plant 'nohalve' (the bracket not halved) is caught: 2 checks failed
+EDGES: a survival at exactly the goal, a search out of solves, nothing passing, today's age between two whole ages, the last age
+
+ALL PASS: 11

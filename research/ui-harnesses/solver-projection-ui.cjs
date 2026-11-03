@@ -8,6 +8,9 @@
  *      - re-run, it is the solved plan's: its survival Node's (the engine's monteCarlo of the solved plan at the same light
  *        settings, the projection's own paths and seed), with your plan's survival beside it ("as you are now"), Node's for
  *        the plan as entered, and the typical spending beside them.
+ *    Item 2's rest: beside "as you are now", your plan's typical spending, Node's (planted, PROJECTION_PLANT=yoursdeliv, the
+ *    spending taken from another figure, it fails); the "Spend and date" step offers the solved plan's own answers (the Simple page's search, section 6, on
+ *    the plan on screen at the step's survival), starting from the page's own safe maximum.
  * 3. Item 7, the same preview: the audit table is the solved plan's expected-return ledger, its totals Node's year for year
  *    (rowsOf, src/solverStrategy.js) and each year's action Node's move; "Your plan" gives your plan's ledger, Node's, with
  *    no action column. History is the solved plan through real history, labelled the out-of-model check: its verdict and
@@ -23,6 +26,16 @@
  * 5. Item 4, the same preview, S188 (working, retiring at its plan's age), the Strategy tab: the age dial's line at the plan's
  *    own age is the headline's figures, Node's; "Solve retiring at ..." works out the ages three either side, nearest first,
  *    the earlier first on a tie, each line's survival Node's for the plan retiring at that age. S126, retired, has no age dial.
+ *    Planted once (PROJECTION_PLANT=agelate: the later age first on a tie), the order check fails.
+ * 6. Item 5, the same preview, the Simple page (one person): "Find the solved plan's answers" searches over solves for the
+ *    highest target the solved plan keeps at 90% and the earliest retirement it keeps there (src/solverSearch.js), each
+ *    solve's survival the engine's run of the solved plan; the page's answers and every setting it tried are Node's, the
+ *    same search over the same solves. Planted once (PROJECTION_PLANT=simpleseed: the card's paths from another seed), the
+ *    answers check fails.
+ * 7. Item 6, the same preview, the full app with S126 and a saved scenario spending £2,000 more: under the scenario
+ *    comparison, the plan on screen's line is the headline's figures, Node's; "Solve this scenario" solves the scenario in
+ *    workers of its own, its line Node's for that plan. Planted once (PROJECTION_PLANT=scenseed: the scenario solved on
+ *    another seed), the scenario check fails.
  *
  *   node research/ui-harnesses/solver-projection-ui.cjs [port]      (the preview build is served on port + 10)
  */
@@ -33,8 +46,12 @@ const { mkdtempSync, rmSync, readdirSync, readFileSync, writeFileSync } = requir
 const { tmpdir } = require('node:os');
 const { pathToFileURL } = require('node:url');
 const PORT = process.argv[2] || '4173', PREVIEW_PORT = String(Number(PORT) + 10);
+// PROJECTION_PLANT: one plant or several, comma-separated (each breaks a different check); PROJECTION_SECTIONS: the switch-on
+// sections to run beyond 1 and 2 (e.g. "4,5"), all when unset
+const PLANTS = new Set((process.env.PROJECTION_PLANT || '').split(',').filter(Boolean));
+const ONLY = process.env.PROJECTION_SECTIONS ? new Set(process.env.PROJECTION_SECTIONS.split(',')) : null, want = n => !ONLY || ONLY.has(String(n));
 const ROOT = join(__dirname, '../..');
-const STORE = 'rp_plan_full_v28', SEED = 12345, TRIALS = 5000;
+const STORE = 'rp_plan_full_v28', SEED = 12345, TRIALS = 5000, UPTO = 2000;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
@@ -75,12 +92,18 @@ const runProjection = async p => {
     ok('switch off: the audit table is your plan\'s ledger with no action column, and history has no out-of-model check', ledger === 'yours' && acts.length === 0 && !oom, `ledger ${ledger}, action cells ${acts.length}, out-of-model ${!!oom}`);
     ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close(); }
+  { const { SIMPLE_BLANK } = await load('src/simplePlan.js');
+    const c = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await c.newPage();
+    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', JSON.stringify('simple')); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
+    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
+    ok('switch off: the Simple page has no answers from the solver', !(await p.$('[data-simple-solver]')) && /stop working|spend/i.test(await p.textContent('body')));
+    await c.close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-projection-'));
   let server = null;
   try {
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT) } });
-    if (process.env.PROJECTION_PLANT === 'histexp') {
+    if (PLANTS.has('histexp')) {
       // the plant: the page asks history for the expected path instead (item 7's history check must fail)
       const dir = join(OUT, 'assets'); let hit = 0;
       for (const f of readdirSync(dir).filter(x => x.endsWith('.js'))) {
@@ -89,7 +112,40 @@ const runProjection = async p => {
       }
       ok('PLANTED: the page asks history for the expected path (the history check below must FAIL)', hit === 1, `${hit} place patched`);
     }
-    if (process.env.PROJECTION_PLANT === 'dialfar') {
+    if (PLANTS.has('yoursdeliv')) {
+      // your plan's spending taken from another figure (item 2's spending check must fail)
+      const dir = join(OUT, 'assets'); let hit = 0;
+      for (const f of readdirSync(dir).filter(x => x.endsWith('.js'))) {
+        const src = readFileSync(join(dir, f), 'utf8'), out = src.replace(/p10Terminal:([\w$]+)\.p10Terminal,medianRealisedSpend:\1\.medianRealisedSpend/, (m, v) => { hit++; return `p10Terminal:${v}.p10Terminal,medianRealisedSpend:${v}.p10Terminal`; });
+        if (out !== src) writeFileSync(join(dir, f), out);
+      }
+      ok('PLANTED: your plan\'s spending from another figure (the spending check below must FAIL)', hit >= 1, `${hit} place(s) patched`);
+    }
+    if (PLANTS.has('scenseed')) {
+      // the scenarios card asks its scenario's figures on another seed (item 6's scenario check must fail)
+      const dir = join(OUT, 'assets'); let hit = 0;
+      for (const f of readdirSync(dir).filter(x => x.endsWith('.js'))) {
+        const src = readFileSync(join(dir, f), 'utf8');
+        if (!/data-solver-scenarios/.test(src)) continue;
+        const out = src.replace(/startFigures\(([\w$]+),([\w$]+),\{\.\.\.([\w$]+)\|\|\{\},seed:([\w$]+),upto:([\w$]+)\}\)/, (m, a, b, c, d, e) => { hit++; return `startFigures(${a},${b},{...${c}||{},seed:${d}+1,upto:${e}})`; });
+        if (out !== src) writeFileSync(join(dir, f), out);
+      }
+      ok('PLANTED: the scenarios card on another seed (the scenario check below must FAIL)', hit >= 1, `${hit} place(s) patched`);
+    }
+    for (const plantName of ['agelate', 'simpleseed'].filter(x => PLANTS.has(x))) {
+      const dir = join(OUT, 'assets'); let hit = 0;
+      for (const f of readdirSync(dir).filter(x => x.endsWith('.js'))) {
+        const src = readFileSync(join(dir, f), 'utf8');
+        const out = plantName === 'agelate'
+          // the age dial's tie-break turned round: the later age first (item 4's order check must fail)
+          ? src.replace(/\.sort\(\(([\w$]+),([\w$]+)\)=>Math\.abs\(\1-([\w$]+)\)-Math\.abs\(\2-\3\)\|\|\1-\2\)/, (m, a, b, c) => { hit++; return `.sort((${a},${b})=>Math.abs(${a}-${c})-Math.abs(${b}-${c})||${b}-${a})`; })
+          // the Simple card's paths from another seed (item 5's answers check must fail)
+          : (/data-simple-solver/.test(src) ? src.replace(/seed:([\w$]+)=12345\b/g, (m, v) => { hit++; return `seed:${v}=12346`; }) : src);
+        if (out !== src) writeFileSync(join(dir, f), out);
+      }
+      ok(`PLANTED: ${plantName === 'agelate' ? 'the later age first on a tie (the age order check below must FAIL)' : 'the Simple card on another seed (its answers check below must FAIL)'}`, hit >= 1, `${hit} place(s) patched`);
+    }
+    if (PLANTS.has('dialfar')) {
       // the plant: the page solves the dial's other settings farthest first (item 3's order check must fail)
       const dir = join(OUT, 'assets'); let hit = 0;
       for (const f of readdirSync(dir).filter(x => x.endsWith('.js'))) {
@@ -125,6 +181,22 @@ const runProjection = async p => {
     ok('re-run, the projection is the solved plan\'s: its survival Node\'s, your plan\'s beside it Node\'s, the typical spending shown', got && got.survival === nodeSolved && got.yours === nodeYours && /The solved plan/.test(text) && !!(await p.$('[data-solver-delivered]')),
       got ? `solved ${got.survival}% (Node ${nodeSolved}%), as you are now ${got.yours}% (Node ${nodeYours}%)` : 'no solver line');
 
+    // item 2's rest: your plan's spending beside its survival ("as you are now"), Node's for the plan as entered
+    const yd = await p.$eval('[data-solver-yours-delivered]', el => Number(el.dataset.solverYoursDelivered)).catch(() => null);
+    const nodeYoursSpend = E.monteCarlo(yourContext(E, saved), { trials: TRIALS, seed: SEED }).medianRealisedSpend;
+    ok('beside "as you are now", your plan\'s typical spending, Node\'s', yd !== null && yd === nodeYoursSpend, `${yd} (Node ${nodeYoursSpend})`);
+    if (want('2b')) {
+    // item 2's rest: the "Spend and date" step offers the solved plan's own answers, from the page's own safe maximum, at the
+    // survival the step is set to; the figures beside it are your plan's rules
+    await p.evaluate(() => { const x = document.querySelector('[data-deck-step="2"]'); if (x) x.click(); });
+    const fullCard = await p.waitForSelector('[data-solver-answers="full"]', { timeout: 60000 }).then(() => true, () => false);
+    const fc = fullCard ? await p.$eval('[data-solver-answers="full"]', el => ({ from: Number(el.dataset.simpleSolverFrom), text: el.textContent })) : null;
+    const pageMax = await p.evaluate(() => { const t = [...document.querySelectorAll('span')].find(x => x.textContent.trim() === 'Safe maximum'); const v = t && t.nextElementSibling ? t.nextElementSibling.textContent : ''; return Number(v.replace(/[^0-9.]/g, '')) || null; });
+    ok('the "Spend and date" step offers the solved plan\'s own answers on request, from the page\'s safe maximum, at 90%, the figures beside it your plan\'s rules',
+      !!fc && fc.from === pageMax && /keeps at 90%|Find the solved plan/.test(fc.text) && /follow your plan's rules/.test(fc.text), fc ? `from £${fc.from} (the page's safe maximum £${pageMax}): "${fc.text.trim().slice(0, 90)}…"` : 'no card');
+
+    }
+    if (want('3')) {
     // 3. item 7: the audit table and history
     const sc = solvedContext(E, r), yc = yourContext(E, saved);
     const x = rowsOf(E, r, 'expected');
@@ -147,8 +219,9 @@ const runProjection = async p => {
       !!h && /out-of-model check/i.test(h.text) && h.terminal === nh.verdict.terminalPot && h.survived === (nh.verdict.survived ? 'survived' : 'failed') && h.yours === (ny.survived ? 'survived' : 'failed'),
       h ? `from ${h.start}: the solved plan ${h.survived}, the pot left ${Math.round(h.terminal)} (Node ${Math.round(nh.verdict.terminalPot)}, ${nh.verdict.survived ? 'survived' : 'failed'}); your plan ${h.yours} (Node ${ny.survived ? 'survived' : 'failed'})` : 'no out-of-model check');
 
+    }
+    if (want('4')) {
     // 4. item 3: the dial's live line and the four settings
-    const UPTO = 2000;
     await tab(p, /Config/);
     const line = await p.waitForSelector('[data-figures="dial"] [data-figures-line]', { timeout: 300000 }).then(() => true, () => false);
     const at = line ? await p.$eval('[data-figures="dial"] [data-figures-line]', el => ({ at: Number(el.dataset.figuresAt), survival: Number(el.dataset.figuresSurvival), text: el.textContent })) : null;
@@ -179,11 +252,13 @@ const runProjection = async p => {
     const kept = Object.fromEntries(await p.$$eval('[data-figures="dial"] [data-figures-pos]', els => els.map(el => [el.dataset.figuresPos, el.dataset.figuresSurvival === '' ? null : Number(el.dataset.figuresSurvival)])));
     ok('choosing Medium re-solves the plan there: its line the figure the list showed, and the other settings\' figures kept', moved && after === listed[3] && [1, 6, 10].every(x => kept[x] === listed[x]),
       `Medium ${after}% (listed ${listed[3]}%); kept ${[1, 6, 10].map(x => `${x}: ${kept[x]}%`).join(', ')}`);
+    }
     await tab(p, /Strategy/); await p.waitForTimeout(1500);
     ok('S126, retired, has no age dial', !(await p.$('[data-solver-ages]')));
     ok('switch on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
 
+    if (want('5')) {
     // 5. item 4: the age dial, on a household still working
     {
       const plan188 = buildScenarios().find(x => x.id === 'S188').plan;
@@ -213,6 +288,64 @@ const runProjection = async p => {
       ok('each age\'s line is Node\'s for the plan retiring at that age', !!ao && ao.order.every(a => listedA[a] === nodeA[a]), ao ? ao.ages.map(a => `${a}: ${listedA[a]}% (Node ${a === ao.own ? own.survival : nodeA[a]}%)`).join(', ') : 'no ages');
       ok('switch on, S188: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await ctx.close();
+    }
+
+    }
+    if (want('6')) {
+    // 6. item 5: the Simple page's answers from the solver
+    {
+      const { SIMPLE_BLANK, toFullPlan } = await load('src/simplePlan.js');
+      const { highestTarget, earliestAge } = await load('src/solverSearch.js');
+      const simple = { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000, statePensionSelf: 11500 };
+      const ctxS = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctxS.newPage(), errs = [];
+      p.on('pageerror', e => errs.push(e.message));
+      await ctxS.addInitScript(sp => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', JSON.stringify('simple')); sessionStorage.setItem('seeded', '1'); } }, simple);
+      await p.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
+      const card = await p.waitForFunction(() => { const el = document.querySelector('[data-simple-solver]'); return el && el.dataset.simpleSolverFrom !== ''; }, null, { timeout: 300000 }).then(() => true, () => false);
+      const from = card ? await p.$eval('[data-simple-solver]', el => Number(el.dataset.simpleSolverFrom)) : null;
+      await p.evaluate(() => { const b = document.querySelector('[data-simple-solver-ask]'); if (b) b.click(); });
+      const done = await p.waitForSelector('[data-simple-solver="done"]', { timeout: 3600000 }).then(() => true, () => false);
+      const got = done ? await p.$eval('[data-simple-solver]', el => ({ spend: el.dataset.simpleSolverSpend, age: el.dataset.simpleSolverAge, tried: JSON.parse(el.dataset.simpleSolverTried), text: el.textContent })) : null;
+      const evalAt = make => async x => { const pl = toFullPlan(make(x)); return strategyOf(E, solveForApp(E, M, pl, LIGHT), pl, { trials: UPTO, seed: SEED }).headline.survival; };
+      const nt = from ? await highestTarget(evalAt(x => ({ ...simple, spend: x })), { from }) : null;
+      const na = from ? await earliestAge(evalAt(a => ({ ...simple, retireSelf: a })), { from: simple.retireSelf, after: simple.ageSelf, last: simple.terminalAge - 1 }) : null;
+      const same = got && nt && na && String(nt.spend ?? '') === got.spend && String(na.age ?? '') === got.age
+        && got.tried.spend.join(',') === nt.tried.map(t => t.x).join(',') && got.tried.age.join(',') === na.tried.map(t => t.x).join(',');
+      ok('the Simple page\'s answers from the solver are Node\'s search over the same solves, every setting tried the same, named apart from the safe starting spend',
+        card && done && same && /Highest target the solved plan keeps at 90%/.test(got.text) && /Earliest retirement the solved plan keeps at 90%/.test(got.text),
+        got && nt && na ? `from £${from}: the highest target £${got.spend} (Node £${nt.spend}; tried ${got.tried.spend.join(', ')} / ${nt.tried.map(t => t.x).join(', ')}), the earliest age ${got.age} (Node ${na.age}; tried ${got.tried.age.join(', ')} / ${na.tried.map(t => t.x).join(', ')})` : `card ${card}, done ${done}`);
+      ok('switch on, the Simple page: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await ctxS.close();
+    }
+
+    }
+    if (want('7')) {
+    // 7. item 6: scenarios each carry a solve, on request
+    {
+      const planB = { ...plan, spending: { ...plan.spending, targetSpend: Number(plan.spending.targetSpend) + 2000 } };
+      const ctx7 = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctx7.newPage(), errs = [];
+      p.on('pageerror', e => errs.push(e.message));
+      await ctx7.addInitScript(([k, pl, pb]) => { if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full'));
+        localStorage.setItem('rp_saved_scenarios_v3', JSON.stringify([{ id: 's1', name: 'Scenario 1', data: pl }, { id: 's2', name: 'Spend 2000 more', data: pb }]));
+        sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planB]);
+      await p.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
+      await tab(p, /Config/);
+      const solved7 = await p.waitForSelector('[data-solve-state="solved"]', { timeout: 900000 }).then(() => true, () => false);
+      await tab(p, /Projection/); await p.waitForTimeout(800);
+      await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Spend 2000 more/.test(b.textContent)); if (x) x.click(); });
+      const card = await p.waitForFunction(() => { const el = document.querySelector('[data-solver-scenario="__current__"]'); return el && el.dataset.solverScenarioSurvival !== ''; }, null, { timeout: 300000 }).then(() => true, () => false);
+      const base = card ? await p.$eval('[data-solver-scenario="__current__"]', el => Number(el.dataset.solverScenarioSurvival)) : null;
+      await p.evaluate(() => { const x = document.querySelector('[data-solver-scenario="s2"] [data-solver-scenario-ask]'); if (x) x.click(); });
+      const got = await p.waitForFunction(() => { const el = document.querySelector('[data-solver-scenario="s2"]'); return el && el.dataset.solverScenarioSurvival !== ''; }, null, { timeout: 900000 }).then(() => true, () => false);
+      const sv = got ? await p.$eval('[data-solver-scenario="s2"]', el => ({ survival: Number(el.dataset.solverScenarioSurvival), text: el.textContent })) : null;
+      const nodeBase = strategyOf(E, solveForApp(E, M, plan, LIGHT), plan, { trials: UPTO, seed: SEED }).headline.survival;
+      const nodeB = strategyOf(E, solveForApp(E, M, planB, LIGHT), planB, { trials: UPTO, seed: SEED }).headline.survival;
+      ok('under the scenario comparison, the plan on screen\'s line is Node\'s, and "Solve this scenario" gives the scenario\'s, Node\'s', solved7 && card && base === nodeBase && !!sv && sv.survival === nodeB,
+        `the plan ${base}% (Node ${nodeBase}%), the scenario ${sv ? sv.survival : '-'}% (Node ${nodeB}%)${sv ? `: "${sv.text.trim()}"` : ''}`);
+      ok('switch on, the scenarios: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await ctx7.close();
+    }
     }
   } finally {
     if (server) server.kill();

@@ -6927,6 +6927,8 @@ const SOLVER = false;
 // the solve's settings beside the switch: null in the app; a harness's light settings in a preview build only (vite.config.js
 // solver-preview, research/solver/PHASE-8.md), so the site's own build never reads anything else here
 const SOLVER_OPTS = null;
+// the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5)
+export const solverSwitch = () => ({ on: SOLVER, opts: SOLVER_OPTS });
 // the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
 // the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
 if (typeof window !== 'undefined') window.__solverEngine = E;
@@ -6940,6 +6942,10 @@ const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
 // Phase 10, item 4: the retirement-age dial under the switch (B11), loaded with the solver's other cards
 const SolverAgesCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverAges })));
+// Phase 10, item 6: each scenario compared carries a solve, on request
+const SolverScenariosCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverScenarios })));
+// Phase 10, item 2's rest: the solved plan's highest target and earliest age on the "Spend and date" step, on request
+const SolverPlanAnswersCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverPlanAnswers })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
 // Part C Phase 9's Strategy tab (src/SolverStrategy.jsx), fetched only when the switch is on for a single household
 const SolverStrategyCard = /* @__PURE__ */ lazy(() => import('./SolverStrategy.jsx').then(m => ({ default: m.SolverStrategy })));
@@ -9659,7 +9665,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       extras: [
         { label: `Median pot at retirement (${ctx.owners[0].retireAge})`, rate: formatGBP(atRetire(rateCurves.mid)?.totalCombined ?? 0), mc: mcRetire ? formatGBP(mcRetire.p50) : '—', note: 'expected path vs simulated median' },
         { label: `Survives to ${ctx.terminalAge}`, rate: `${smoothRate.toFixed(1)}%`, mc: `${simResult.successRate.toFixed(1)}%`, note: smoothRate >= simResult.successRate ? `flattered by ${(smoothRate - simResult.successRate).toFixed(1)} pts` : '' },
-        { label: `Stranded before ${nmpa}`, rate: deterministicVerdict.failReason === 'pre-access' ? 'yes' : 'no', mc: `${simResult.preNmpaFailRate.toFixed(1)}% of paths`, note: 'pension locked, bridge spent' }
+        { label: `Stranded before ${nmpa}`, rate: deterministicVerdict.failReason === 'pre-access' ? 'yes' : 'no', mc: `${simResult.preNmpaFailRate.toFixed(1)}% of paths`, note: 'pension locked, bridge spent' },
+        // under the switch the simulated column is the solved plan's, and its survival comes with the spending it delivered
+        ...(simResult.yours ? [{ label: 'Typical spending', rate: '—', mc: formatGBP(simResult.medianRealisedSpend), note: 'the solved plan, a year, beside its survival' }] : [])
       ]
     };
   }, [simResult, rateCurves, resolvedPlan, ctx, deterministicVerdict, fanData, nmpa]);
@@ -10246,7 +10254,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     if (solverRules && solve.solveState === 'solved' && solve.ask && solve.solveMeta && !solve.solveMeta.error) {
       try {
         const { stats: solvedStats } = await solve.ask('simulate', { trials: MC_TRIALS, seed: mcSeed, collectPaths: true });
-        if (!mcCancelRef.current && solvedStats) res = { ...solvedStats, spend: ctx.targetSpend, solvedKey: solve.key, yours: { successRate: stats.successRate, medianTerminal: stats.medianTerminal, p10Terminal: stats.p10Terminal } };
+        if (!mcCancelRef.current && solvedStats) res = { ...solvedStats, spend: ctx.targetSpend, solvedKey: solve.key, yours: { successRate: stats.successRate, medianTerminal: stats.medianTerminal, p10Terminal: stats.p10Terminal, medianRealisedSpend: stats.medianRealisedSpend } };
       } catch (err) { /* the solved plan's run failed: your plan's figures stand */ }
     }
     setSimResult(res);
@@ -11108,7 +11116,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {sandboxMcBusy
         ? <span className="flex items-center gap-1.5 text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
         : sandboxMcOn && sandboxMc
-          ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
+          ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>{solverRules && sandboxMc.medianRealisedSpend > 0 && <>, typical spending {formatGBP(sandboxMc.medianRealisedSpend)}</>}, median path drawn</span>
           : sandboxMcOn
             ? <span className="text-slate-400">change something to simulate it</span>
             : <span className="text-slate-400">Monte Carlo takes longer to load</span>}
@@ -11169,7 +11177,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
        * the tile that says what it lived on sits right beside the rate. Absent when the rule is off:
        * then the figure would only repeat the plan.
        */
-      ...(ctx.guardrails ? [dashTile('Spending after guardrails', dashMoney(st.medianRealisedSpend),
+      // under the switch the run is the solved plan's (no guardrails under a table): its spending beside its survival
+      ...(st.yours ? [dashTile('Typical spending', dashMoney(st.medianRealisedSpend),
+        `${Math.round((100 * E.num(st.medianRealisedSpend, 0)) / Math.max(1, E.num(ctx.targetSpend, 0)))}% of target · as you are now ${dashMoney(st.yours.medianRealisedSpend)}`, 'flat')] : []),
+      ...(!st.yours && ctx.guardrails ? [dashTile('Spending after guardrails', dashMoney(st.medianRealisedSpend),
         `unlucky tenth ${dashMoney(st.p10RealisedSpend)} · ${E.num(st.cutPathShare, 0).toFixed(0)}% of runs cut`,
         E.num(st.p10RealisedSpend, 0) < E.num(ctx.targetSpend, 0) * 0.85 ? 'bad' : 'flat')] : []),
       dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
@@ -11866,6 +11877,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * what a 390px screen has room for. Same contents either way - written here rather than twice, because
    * the version that is edited is never the one somebody is reading.
    */
+  // Part C Phase 10, item 2's rest: under the switch, the solved plan's own highest target and earliest age at the survival
+  // this step is set to, searched for over solves when asked (src/SolverSimple.jsx SolverPlanAnswers); the figures beside it
+  // follow your plan's rules
+  const solverAnswersCard = () => (solvedInHand && simResult ? (
+    <Suspense fallback={null}>
+      <SolverPlanAnswersCard plan={plan} fromSpend={safeMaxResult ? safeMaxResult.spend : null} goal={targetSurvivalRate} ageNow={ctx.owners[0].age0}
+        last={terminalAge - 1} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+    </Suspense>
+  ) : null);
   const safeSpendCard = () => (
     <>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -11883,7 +11903,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span>{solverRules && safeMaxResult.stats.medianRealisedSpend > 0 && <span data-safe-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(safeMaxResult.stats.medianRealisedSpend)}, your plan&apos;s rules</span>}</div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -11897,6 +11917,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
+                  {solverAnswersCard()}
     </>
   );
   const safeRetireCard = () => (
@@ -14000,7 +14021,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(slideNo('topline'), simResult.yours ? 'The solved plan' : 'Your plan as entered', simResult.yours ? `Your target of ${formatGBP(simResult.spend)} a year to age ${terminalAge}, the solver choosing each year's spending and moves.` : `Spending ${formatGBP(simResult.spend)} a year to age ${terminalAge}.`)}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-semibold font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span>{simResult.yours && <span data-solver-yours={simResult.yours.successRate} data-solver-survival={simResult.successRate} className="text-[10px] text-slate-500 block mt-0.5">as you are now: {simResult.yours.successRate.toFixed(1)}%</span>}{simResult.yours && simResult.spend > 0 && <span data-solver-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(simResult.medianRealisedSpend)} a year ({Math.round((100 * simResult.medianRealisedSpend) / simResult.spend)}% of target)</span>}</div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-semibold font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span>{simResult.yours && <span data-solver-yours={simResult.yours.successRate} data-solver-survival={simResult.successRate} className="text-[10px] text-slate-500 block mt-0.5">as you are now: {simResult.yours.successRate.toFixed(1)}%{simResult.yours.medianRealisedSpend > 0 && <span data-solver-yours-delivered={simResult.yours.medianRealisedSpend}>, typical spending {formatGBP(simResult.yours.medianRealisedSpend)}</span>}</span>}{simResult.yours && simResult.spend > 0 && <span data-solver-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(simResult.medianRealisedSpend)} a year ({Math.round((100 * simResult.medianRealisedSpend) / simResult.spend)}% of target)</span>}</div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pot at retirement</span><span className="text-xl font-semibold text-indigo-700">{formatGBP(timelineData.find(r => r.ageSelf === ctx.owners[0].retireAge)?.totalCombined)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">age {ctx.owners[0].retireAge}, expected path</span></div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(simResult.medianTerminal)}</span>{ctx.pensionDeathTaxRate > 0 && <span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">net of death tax {formatGBP(simResult.medianTerminalNet)}</span>}</div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Unlucky pot @ {terminalAge}</span><span className="text-xl font-semibold text-rose-700">{formatGBP(simResult.p10Terminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">one plan in ten ends below</span></div>
@@ -14052,7 +14073,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span>{solverRules && safeMaxResult.stats.medianRealisedSpend > 0 && <span data-safe-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(safeMaxResult.stats.medianRealisedSpend)}, your plan&apos;s rules</span>}</div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -14066,6 +14087,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
+                  {solverAnswersCard()}
                     </div>
                     <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="retire">
                       <h3 className="text-sm font-semibold text-slate-900">The earliest you could retire</h3>
@@ -14360,6 +14382,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </tbody>
                   </table>
                 </div>
+                {/* Part C Phase 10, item 6: under the switch, the solved plan's figures for the plan on screen and, when asked, for
+                    each scenario compared (src/SolverFigures.jsx SolverScenarios) */}
+                {solvedInHand && (
+                  <Suspense fallback={null}>
+                    <SolverScenariosCard rows={[{ id: '__current__', name: 'Current plan', isBase: true, plan }, ...selectedCompare.map(sc => ({ id: sc.id, name: sc.name, plan: sc.data }))]}
+                      plan={plan} solve={solve} seed={mcSeed} upto={SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps[0] : 2000} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+                  </Suspense>
+                )}
                 <Fine isPhone={isPhone} label="How these are ranked">
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
                 </Fine>

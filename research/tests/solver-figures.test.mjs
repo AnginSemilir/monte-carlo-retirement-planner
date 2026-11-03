@@ -22,13 +22,16 @@
  *    atAge moves the retirement age alone, and every age's plan at age 0 is one plan (the key its figures are kept under).
  *    Planted, the later first on a tie is caught. On S188 (working) at light settings, an age's figures as its job gets them
  *    are the solve's of the plan at that age.
+ * 7. The full planner's search (item 2's rest; src/SolverSimple.jsx SolverPlanAnswers): atSpend's plan, its spending bands
+ *    scaled, runs path for path as the engine's own spend override of the plan as entered (the second stage's), on a plan
+ *    with bands and one without. Planted, the bands left unscaled is caught.
  *   node research/tests/solver-figures.test.mjs
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { solveForApp } from '../../src/solverApp.js';
-import { APP_DIAL, dialOrder, atDial, dialBase, ageOptions, atAge, AGE_SPAN } from '../../src/solverSettings.js';
+import { APP_DIAL, dialOrder, atDial, dialBase, ageOptions, atAge, AGE_SPAN, atSpend } from '../../src/solverSettings.js';
 import { strategyRuns, joinRuns, strategySummary, strategyOf, headRuns } from '../../src/solverStrategy.js';
 import { cacheOf } from '../../src/solverCache.js';
 import { dialLineWords } from '../../src/solverWords.js';
@@ -111,6 +114,20 @@ console.log('=========== 6. THE AGE DIAL ===========');
   const r = solveForApp(E, M, atAge(p188, a), LIGHT), job = solveForApp(E, M, atAge(p188, a), { ...LIGHT });
   const f1 = strategyOf(E, r, atAge(p188, a), { trials: N, seed: SEED }).headline, f2 = strategyOf(E, job, atAge(p188, a), { trials: N, seed: SEED }).headline;
   ok(JSON.stringify(f1) === JSON.stringify(f2), `6. S188 retiring at ${a} (its plan ${own}): the job's figures are the solve's (survival ${f1.survival.toFixed(2)}%, start ${f1.startLevel}%; ${((Date.now() - t2) / 1000).toFixed(0)} s)`);
+}
+
+console.log('=========== 7. THE SPEND VARIANT ===========');
+{
+  const banded = { ...plan0, spending: { ...plan0.spending, targetSpend: 24000, spendBands: [{ fromAge: 0, toAge: 74, amount: 24000 }, { fromAge: 75, toAge: 120, amount: 19000 }] } };
+  const flat = { ...plan0, spending: { ...plan0.spending, spendBands: [] } };
+  const run = (p, x, viaOverride) => {
+    const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(p))), paths = E.pathsForSeed(SEED, 200, ctx.totalYears);
+    return paths.map(zs => { const r = E.runTrial(ctx, zs, viaOverride ? x : null); return `${r.survived ? 1 : 0}:${r.terminalPot.toFixed(6)}`; }).join('|');
+  };
+  const check = (p, at = atSpend) => { const x = Math.round(Number(p.spending.targetSpend) * 1.15); return run(at(p, x), x, false) === run(p, x, true); };
+  ok(check(banded) && check(flat), '7. atSpend\'s plan is the engine\'s spend override path for path (200 paths), with spending bands and without');
+  const unscaled = (p, x) => ({ ...p, spending: { ...p.spending, targetSpend: x } });
+  ok(!check(banded, unscaled), '7. planted, the bands left unscaled is caught on the banded plan');
 }
 
 console.log(fail ? `\nFAILED: ${fail} of ${pass + fail}` : `\nALL PASS: ${pass}`);

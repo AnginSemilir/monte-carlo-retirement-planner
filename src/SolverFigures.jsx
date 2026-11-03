@@ -10,6 +10,7 @@
  *                 them and any other edit drops them.
  *   SolverAges    the retirement-age dial (B11), on the Strategy tab: the solved plan at the ages either side of the plan's
  *                 own, on request.
+ *   SolverScenarios  under the scenario comparison: the solved plan's figures for each scenario, a solve each on request.
  *
  * The dial's line on the Config tab (src/SolverConfig.jsx) is a FiguresList over the dial's four settings.
  */
@@ -90,6 +91,68 @@ export function SolverAges({ plan, solve, ageNow, seed, upto, engine, opts, fmt 
       <FiguresList plan={plan} solve={solve} own={ao.own} options={ao.ages.map(a => ({ id: a, label: `Retire at ${a}`, plan: atAge(plan, a) }))} order={ao.order} sig={sig}
         seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="ages" showLabel={`Solve retiring at ${ao.ages[0]} to ${ao.ages[ao.ages.length - 1]}`}
         ownLabel={`Retiring at ${ao.own}, as planned`} ownTag=" (your plan)" />
+    </div>
+  );
+}
+
+/*
+ * SCENARIOS EACH CARRY A SOLVE, ON REQUEST (item 6): under the scenario comparison, the solved plan's figures for the plan on
+ * screen (the solve in hand) and, when asked, for each scenario compared, one solve a scenario in workers of its own, its
+ * tables let go and its figures kept for the page's visit (by the scenario's plan, so a scenario saved again solves again).
+ * A couple's scenario keeps the app's rules (D42).
+ */
+const scenarioFigs = new Map();   // the plan (as JSON) -> { h } | { error }
+export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, fmt }) {
+  const solved = !!(solve && solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error && solve.ask);
+  const [, bump] = useState(0);
+  const [here, setHere] = useState({ key: null, h: null });
+  const [working, setWorking] = useState(null);
+  const job = React.useRef(null);
+  useEffect(() => {
+    if (!solved) return undefined;
+    let live = true;
+    (async () => {
+      try {
+        const { strategy } = solve.strategy ? await solve.strategy(plan, seed, upto, { exact: true }) : await solve.ask('strategy', { plan, seed, upto, exact: true });
+        if (live) setHere({ key: solve.key, h: strategy.headline });
+      } catch (e) { /* waits for the next solve */ }
+    })();
+    return () => { live = false; };
+  }, [solved, solve && solve.key, seed, upto]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (job.current) job.current.cancel(); }, []);
+  const ask = async (id, p) => {
+    const k = JSON.stringify(p);
+    setWorking(id);
+    try {
+      const client = await import('./solverClient.js');
+      job.current = client.startFigures(engine, p, { ...(opts || {}), seed, upto });
+      const f = await job.current.done;
+      scenarioFigs.set(k, { h: f.headline });
+    } catch (e) { if (e.message !== 'cancelled' && e.message !== 'closed') scenarioFigs.set(k, { error: e.message }); }
+    job.current = null;
+    setWorking(null); bump(x => x + 1);
+  };
+  if (!solved) return null;
+  return (
+    <div data-solver-scenarios className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-1">
+      <div className="text-xs font-semibold text-slate-800">The solved plan, scenario by scenario</div>
+      <ul className="space-y-0.5">
+        {rows.map(r => {
+          const couple = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple';
+          const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
+          return (
+            <li key={r.id} data-solver-scenario={r.id} data-solver-scenario-survival={f && f.h ? f.h.survival : ''} className="flex flex-wrap items-center gap-x-2">
+              <span className="font-semibold text-slate-800">{r.name}:</span>
+              {couple ? <span>a couple&apos;s plan keeps the app&apos;s rules for now.</span>
+                : f && f.h ? <span>{dialLineWords(f.h, fmt)}.</span>
+                  : f && f.error ? <span>could not be worked out ({f.error}).</span>
+                    : r.isBase ? <span>working it out…</span>
+                      : working === r.id ? <span>solving it…</span>
+                        : <button type="button" data-solver-scenario-ask disabled={!!working} onClick={() => ask(r.id, r.plan)} className="px-2 py-0.5 min-h-7 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 font-semibold text-slate-700 cursor-pointer disabled:opacity-50">Solve this scenario</button>}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

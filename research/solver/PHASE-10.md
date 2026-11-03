@@ -91,9 +91,44 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   Node's, choosing Medium giving the figure the list showed and keeping the others; the age dial on S188 the same way.
   Planted (`PROJECTION_PLANT=dialfar`, the settings solved farthest first), the order check is to fail.
 
-## Still to build
+## 5. The Simple page's answers from the solver: built (its harness section to run)
 
-5. The Simple page's safe spend and safe age: a search over solves on request, its progress shown and answers kept,
-   renamed apart from the headline (F12).
-6. Scenarios each carry a solve, on request.
-The harness `solver-projection-ui.cjs` covers the projection, the dials, the Simple page's request and the scenarios.
+- `src/solverSearch.js`: `highestTarget` (from the page's own answer, up or down a fifth at a time to a bracket, then halving
+  it to £500; at most 8 solves) and `earliestAge` (from the plan's age, a year at a time; never at or before today's age;
+  at most 6 solves), each solve's survival read through an evaluator, each reported as it lands, a survival at exactly the
+  goal counted as passing. `research/tests/solver-search.test.mjs` (the full tier): on evaluators with known edges, both
+  searches from either side, the cap, nothing passing, the age's bounds, the reports; plants 'gt' and 'nohalve' each
+  caught. ALL PASS 11.
+- `src/SolverSimple.jsx`, on the Simple page under the switch for one person (App.jsx `solverSwitch`, below the engine's
+  export line): "Find the solved plan's answers" runs both searches over solves (`startFigures` on the page's plan at each
+  target and age), shows the solve in hand and the last one's survival, and keeps the answers for the inputs they were found
+  on; an edit drops a search in flight. Named apart from the Strategy tab's safe starting spend (F12): "Highest target the
+  solved plan keeps at 90%" and "Earliest retirement the solved plan keeps at 90%". With the switch off the page is as
+  before.
+- `solver-projection-ui.cjs` section 6 (to run): the page's answers, and every target and age it tried, Node's search over the
+  same solves; section 1 the switch off with no card. Planted (`PROJECTION_PLANT=simpleseed`, the card on another seed), the
+  check is to fail.
+
+## 6. Scenarios each carry a solve: built (its harness section to run)
+
+- `src/SolverFigures.jsx` `SolverScenarios`, under the scenario comparison on the Projection tab: the plan on screen's line
+  from the solve in hand, and "Solve this scenario" for each scenario compared, one solve a scenario in workers of its own,
+  its figures kept for the visit by the scenario's plan; a couple's scenario keeps the app's rules (D42).
+- `solver-projection-ui.cjs` section 7 (to run): S126 and a saved scenario spending £2,000 more, both lines Node's. Planted
+  (`PROJECTION_PLANT=scenseed`, the scenario solved on another seed), the check is to fail.
+
+## 2, the rest: the second stage and the spending beside survival: built (its harness checks to run)
+
+- The "Spend and date" step keeps its figures under your plan's rules, now said so, and offers the solved plan's own: the
+  Simple page's search (`src/SolverSimple.jsx` `SolverPlanAnswers`, the same `SolverAnswers` card) on the plan on screen at
+  the survival the step is set to, from the page's own safe maximum. `atSpend` scales the spending bands with the target as
+  the engine's own spend override scales its schedule (`solver-figures.test.mjs` section 7: path for path on a banded plan
+  and a flat one; planted, the bands left unscaled is caught).
+- The spending delivered beside every survival figure under the switch: your plan's typical spending beside "as you are
+  now" on the survival tile, a "Typical spending" row in the methods table and a tile on the dashboard (the solved plan's,
+  with your plan's beside it), and the second stage's and the sandbox's typical spending beside their survival.
+- `solver-projection-ui.cjs` (to run): your plan's typical spending beside "as you are now" Node's (planted,
+  `PROJECTION_PLANT=yoursdeliv`, it is to fail); the "Spend and date" step's card from the page's safe maximum.
+
+The harness `solver-projection-ui.cjs` covers the projection, the dials, the Simple page's request and the scenarios;
+`PROJECTION_PLANT` takes several plants at once and `PROJECTION_SECTIONS` a subset of the switch-on sections.

@@ -82,6 +82,12 @@ export function ageOptions(plan, ageNow) {
   const order = ages.filter(a => a !== own).sort((a, b) => Math.abs(a - own) - Math.abs(b - own) || a - b);
   return { own, ages, order };
 }
+/* the plan at another target spend, its spending bands scaled with it (as the engine's spend override scales the schedule:
+   App.jsx stepYear), every other input its own */
+export function atSpend(plan, x) {
+  const sp = (plan && plan.spending) || {}, t = Number(sp.targetSpend) || 0, k = t > 0 ? x / t : 1;
+  return { ...plan, spending: { ...sp, targetSpend: x, ...(Array.isArray(sp.spendBands) ? { spendBands: sp.spendBands.map(b => ({ ...b, amount: Number(b.amount) * k })) } : {}) } };
+}
 /* the plan retiring at another age, every other input its own */
 export const atAge = (plan, a) => ({ ...plan, demographics: { ...plan.demographics, retireAgeSelf: a } });
 /* what a dial position adds to the solve's key beyond lambda (src/solverKey.js): nothing at position 1 */

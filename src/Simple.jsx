@@ -1,9 +1,9 @@
-import { Fragment, useState, useMemo, useEffect, useRef } from 'react';
+import { Fragment, useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2, ChevronRight, SlidersHorizontal, LineChart, Table2 } from 'lucide-react';
 import {
   resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
-  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, formatGBP, parseFormatted
+  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, formatGBP, parseFormatted, E as ENGINE, solverSwitch
 } from './App.jsx';
 import { RISK_SHORT, parseTierLabel } from './ui.js';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
@@ -12,6 +12,9 @@ import { SimpleTabs } from './nav.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { Hint } from './glossary.jsx';
 
+// Part C Phase 10, item 5: under the solver's switch, for one person, the solved plan's own answers, searched for when asked
+// (src/SolverSimple.jsx), fetched only then
+const SolverSimpleCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverSimple })));
 // every curve the page can show: the expected path and both edges of each band, computed together
 const CURVE_ZS = [...new Set([0, ...Object.values(BAND_QUANTILES).flatMap(v => (v.z ? [-v.z, v.z] : []))])];
 
@@ -1440,6 +1443,11 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-900', !mc)}
               </>}
             </div>
+            {solverSwitch().on && !s.couple && (
+              <Suspense fallback={null}>
+                <SolverSimpleCard s={s} toFull={toFullPlan} fromSpend={ss && ss.spend ? ss.spend : null} engine={ENGINE} opts={solverSwitch().opts} fmt={GBP} />
+              </Suspense>
+            )}
             {/* the export is the year-by-year projection, which both views are drawn from */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
               {!isPhone && runNotes()}

@@ -1,0 +1,4 @@
+# node headline-words.mjs results-figures-S224.txt: the headline's back line, today and proposed (LAYOUT.md section 8)
+case: long; the headline on 5000 paths
+today: On a typical run of the markets you are back at your full target by 2051 (20 years in).
+proposed: In half the markets you are back at your full target by 2051 (20 years in).

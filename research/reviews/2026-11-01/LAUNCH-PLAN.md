@@ -20,6 +20,14 @@ documents. Its points that held are folded in, each verified against its source.
 
 ## 0. In one page
 
+**Updated 3 Nov** (the maintainer: "draft the new design fully, enough to provide prescriptive details in the updated
+plan"):
+- step U, the new planner, goes between step P and Phase 11 (section 4; its spec `2026-11-03/LAYOUT.md`);
+- Phase 11 and Phase 12 are recast for it;
+- the calendar below is redone from the merges so far.
+
+The rest of this section is as written on 1 Nov.
+
 **Where it stands.**
 - **The candidate.** It is d71f65ae871e: Phase 4's candidate (fcd8096217b7, which passed Phase 4), plus the failure year
   charged at what it can pay (D43). The maintainer kept that addition after its own held-out read missed its predictions
@@ -72,22 +80,22 @@ spending** (F1).
 9. **The research track cannot change the launch candidate.** A gain opens a v2 registration after the launch, and a
    harm goes to the maintainer at once.
 
-**The calendar** (an estimate; the time boxes rule):
+**The calendar**, redone 3 Nov from the merges on `main` (an estimate; the time boxes rule):
 
 | step | done by |
 |---|---|
-| Step 0, CI and hooks (after the unlock) | 2 Nov |
-| Phase 8, with the switch-on gate, merged | 3 Nov |
-| Step L built; L4 and L5 running as soon as L's code is green | 4 Nov |
-| Phase 9 | 7 Nov |
-| Phase 10 | 11 Nov |
-| Step P | 13 Nov |
-| Phase 11 | 15 Nov |
-| Phase 12 ready | 17 Nov |
-| The singles' beta | 17 Nov to 1 Dec, then on by default at the maintainer's word |
-| Couples: D1 to D3 | 17 to 23 Nov |
-| Couples: D4's pilot, registration and run | from 24 Nov; 2 to 4 days on four cores, 4 to 8 on two (the pilot sizes it) |
-| Couples: D5, then the couples' beta | after D4's read; the beta about mid-December, for two weeks |
+| Step 0 and Phase 8 | merged 2 Nov 15:01 UK (pull request 3, 8b54321) |
+| Step L, with L4 and L5 read | merged 2 Nov 19:13 UK (pull request 4, 3370960) |
+| Phase 9 | merged 3 Nov 04:14 UK (pull request 5, 725c661) |
+| Phase 10 | 4 Nov (its gate on the release head) |
+| Step P | 6 Nov (box two days) |
+| Step U, the new planner | 10 Nov (box four days) |
+| Phase 11, the phone on the new planner | 11 Nov (box one day) |
+| Phase 12 ready | 13 Nov (box two days) |
+| The singles' beta | 13 to 27 Nov, then on by default at the maintainer's word |
+| Couples: D1 to D3 | 13 to 19 Nov |
+| Couples: D4's pilot, registration and run | from 20 Nov; 2 to 4 days on four cores, 4 to 8 on two (the pilot sizes it) |
+| Couples: D5 (the couples' screens in the new planner), then the couples' beta | after D4's read; the beta about early December, for two weeks |
 
 ## 1. Where it stands (the repo check, 1 Nov)
 
@@ -595,31 +603,81 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
   - Every exact cut is bit for bit, and gate 5 is re-measured on the split candidate.
 - **Box:** two days.
 
-### Phase 11: the phone
+### Step U: the new planner (new, 3 Nov; after step P, before Phase 11)
 
-1. **The grid (B10):** 45 points, the solve on request ("Solve my plan", with the expected time). Rule R4 decides any
-   coarser grid, from the real phone's solve (item 2).
+The full spec is `research/reviews/2026-11-03/LAYOUT.md`, and where it and this section differ, it holds.
+
+**Why.** Phases 8 to 10 put the solver's pieces into tabs built for the app's rules. The answer is on the fifth tab and
+its levers on the third. Each view waits on the solve on its own, and a changed plan blanks the answer for the solve's
+minutes (LAYOUT.md section 1).
+
+**What.** A new planner in four places, the answer first:
+- **Your plan:** the answer, why, the outlook, and the levers beside it; this year, the next ten years, and the
+  comparison with your current approach;
+- **You:** the inputs, then the limits on the solver, then your current approach;
+- **What if:** the age and target dials, the solved plan's limits, scenarios;
+- **Details:** year by year, the history check, assumptions, how the solver decides.
+
+**Two planners.**
+- The new planner is the solver's, for single households, behind B6's opt-in.
+- The classic planner is today's tabs exactly as with the switch off. It is for couples (D42), and its rules are "your
+  current approach".
+- The Phase 8 to 10 components move into the new places, unchanged but for the words in LAYOUT.md section 8.
+
+**The items** (LAYOUT.md section 12), each with its test:
+
+| # | item |
+|---|---|
+| U1 | the two planners and the switch between them |
+| U2 | Your plan, with the outlook's two charts from the headline's own runs |
+| U3 | one status strip; the phone's request per version of the plan |
+| U4 | You, with the limits and your current approach |
+| U5 | What if, with the new target dial |
+| U6 | Details |
+| U7 | the quick start (the Simple page folded in), the couples card, the failure view |
+| U8 | the phone: four places, Your plan as a deck, the levers in a sheet |
+| U9 | the words, two lines of B4's headline among them (L12), by the maintainer's word (section 7a) |
+| U10 | the harnesses |
+
+**The harness:** `solver-planner-ui.cjs`, REQUIRED, with its plants in one run.
+- The switch-on harnesses move to the new places.
+- The classic harnesses run against the classic planner in both modes.
+
+**Acceptance:**
+- B1's gate, with solver-planner-ui REQUIRED;
+- each new check failing on its plant;
+- screenshots in the pull request;
+- a report to the maintainer when it merges, not a stop. The new planner stays behind `SOLVER` until Phase 12.
+
+**Box:** four days.
+
+### Phase 11: the phone (recast 3 Nov: on the new planner)
+
+Step U builds the phone's layout: the four places, Your plan as a deck, the levers in a sheet, the status line and the
+request per version. Phase 11 keeps what needs the solve itself on a phone:
+1. **The grid (B10):** 45 points, the solve on request ("Solve my plan", with the expected time once item 2 has
+   measured it). Rule R4 decides any coarser grid, from the real phone's solve (item 2).
 2. **Memory.**
    - The phone holds the solve on show, and for a locked position its base (F5), after step P's cuts.
    - Throttling cannot model a phone's memory limit, so one solve runs on the maintainer's phone (PART-C-PLAN.md: "measured
      on a phone"). The diagnostic records whether it completed, and its time.
-3. **The rest:** the progress bar, the Strategy tab as the deck's slides, and the locks card folded.
-4. **The harness:** the phone harness at four times CPU throttle, with the bytes recorded.
+3. **The harness:** the phone harness at four times CPU throttle, with the bytes recorded, against the new planner.
 
-**Box:** two days.
+**Box:** one day.
 
-### Phase 12: the rollout (singles)
+### Phase 12: the rollout (singles; recast 3 Nov for the two planners)
 
 1. **The rename pass.**
-   - The tournament's words leave the singles' screens. The couples' screens keep them until Part D.
-   - Docs gains "How the solver decides", and the coverage card lists the solver's approximations.
-   - The glossary gains "solved plan", "your plan", "locks" and "rule of thumb".
+   - The tournament's words never reach the new planner. The classic planner keeps them.
+   - Docs gains "How the solver decides", shown in Details, and the coverage card lists the solver's approximations.
+   - The glossary is LAYOUT.md section 8's: "the solved plan", "your current approach", "limits" and "a rule of thumb".
 2. **The harnesses.**
-   - Tournament, tradeoffs and priorities point at a couple's plan (F14). They are not retired.
-3. **The opt-in (B6).**
-   - `SOLVER` becomes true.
+   - Tournament, tradeoffs and priorities run on the classic planner, in both modes (F14). They are not retired.
+3. **The opt-in (B6): it switches between the two planners** (LAYOUT.md section 2.1).
+   - `SOLVER` and `PLANNER_BETA` become true. `rp_planner` defaults to `'classic'`.
+   - "Try the new planner (beta)" in the classic planner's header, and "Classic planner" in the new one's.
    - The preview plugin retires.
-   - The gate's two modes become the opt-in on and off.
+   - The gate's two modes become `rp_planner` classic and new.
 4. **The diagnostic (F17).**
    - A whitelist of fields: the code version, the key's hash, the levers' positions, the grid, the times, the error
      text.
@@ -639,7 +697,7 @@ Profile first, then the exact cuts, then the measured options. Nothing inexact s
      - Its figures must sit within the Chromium solve's sampling noise.
      - Bit for bit is not required across engines, whose `Math` functions may differ in the last bit;
    - old exports import;
-   - the isolation, failure-path and phone harnesses green;
+   - the isolation, failure-path, phone and new-planner (`solver-planner-ui.cjs`) harnesses green;
    - the opt-in switched on and off without losing a plan.
 6. **The beta.**
    - The opt-in goes on `main`, off by default, when the checklist prints all PASS (R6). The two weeks start then.
@@ -734,6 +792,7 @@ Each run:
 | The failure path | Phase 9 |
 | The isolation harness against a server with no headers | Phase 10 |
 | The profile | P0 |
+| The new planner's harness, its plants in one run; the classic planner fetching no solver code | step U |
 | One solve on a real phone | Phase 11 |
 | The diagnostic's whitelist | Phase 12 |
 | The full-scale browser solve | Phase 12 |
@@ -814,11 +873,12 @@ It was measured once, under the old objective, on 19 couples.
   - the registration is committed and goes to the maintainer.
 - **The run and its read:** launched through the launcher and read once. The `deep-reviewer` follows the read.
 
-**D5. The couples' screens under the switch** (two days).
-- the Config tab per person;
-- Phase 9's actions per person;
+**D5. The couples' screens in the new planner** (two days; recast 3 Nov for step U).
+- "What matters to you" and the limits per person;
+- this year's actions per person, on Your plan;
 - the wording for a household;
-- the harnesses with a couple.
+- the couples card (LAYOUT.md section 6) retired;
+- `solver-planner-ui.cjs` with a couple.
 
 **D6. The couples' beta.**
 - The same opt-in, for two weeks.
@@ -860,6 +920,28 @@ naming L4, L5, P2 and the beta's start).
 6. Part D when the singles' beta starts. D4's registration comes to me before its run.
 7. The research queue whenever cores are free, at low priority, in its order (B7), pausing for the gate and for timing
    runs. It decides nothing.
+
+Stop only at section 5's stops.
+```
+
+### 7a. The prompt of 3 Nov: step U
+
+The maintainer sends it. Step 1 adopts LAYOUT.md section 8's words, two lines of B4's headline among them (L12): strike
+"the headline's back line included" to keep B4's two lines as they are.
+
+```
+Read research/reviews/2026-11-03/LAYOUT.md, and in research/reviews/2026-11-01/LAUNCH-PLAN.md step U, the recast
+Phases 11 and 12 and D5, on review/external-2026-10-21 at its head.
+
+1. Record as D58: step U, the new planner as LAYOUT.md specifies it, after step P and before Phase 11; Phases 11 and
+   12 and D5 as recast; LAYOUT.md section 8's words, the headline's back line included. Move the launch plan's pin in
+   STATE.md and CLAUDE.md to that commit.
+2. Finish Phase 10 on B1's gate, then step P, as planned.
+3. Then step U by LAYOUT.md section 12, U1 to U10, each with its test; solver-planner-ui.cjs REQUIRED, its plants in
+   one run. Merge on B1's gate. When it merges, send me the preview link and the screenshots: a report, not a stop.
+4. Then Phase 11 and Phase 12 as recast, each on B1's gate.
+5. Where LAYOUT.md and the code disagree on a fact, the code holds: say so in the pull request and carry on. A change
+   that would move a figure or a default is a stop.
 
 Stop only at section 5's stops.
 ```

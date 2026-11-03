@@ -1,4 +1,4 @@
-# The external reviews: which document is current (1 Nov)
+# The external reviews: which document is current (3 Nov)
 
 This branch (`review/external-2026-10-21`) holds the external reviewer's work. It is not for merging. Each review is a
 dated record, and the agent cites them by commit.
@@ -10,6 +10,12 @@ dated record, and the agent cites them by commit.
   R6). The agent records them as D51 onward.
 - Where it differs from the agent's `research/solver/PART-C-PLAN.md`, LAUNCH-PLAN.md holds.
 - Its figures: `2026-11-01/launch/`.
+- **Updated 3 Nov:** step U between step P and Phase 11; Phases 11 and 12 recast; the calendar redone.
+
+**The new planner, step U's spec: `2026-11-03/LAYOUT.md`.**
+- The solver-first layout: four places (Your plan, You, What if, Details), and the classic planner kept for couples.
+- Where it and the launch plan's step U differ, LAYOUT.md holds.
+- Its figures: `2026-11-03/layout/`. The design's canvas is the maintainer's to share.
 
 ## The evidence the plan rests on
 

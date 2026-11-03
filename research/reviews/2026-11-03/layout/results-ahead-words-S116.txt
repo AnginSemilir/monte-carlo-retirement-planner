@@ -1,0 +1,11 @@
+# node ahead-words.mjs results-figures-S116.txt: the next ten years in the proposed words (LAYOUT.md section 8)
+proposed: 2026 (age 61) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension and ISA 3 steps lower in risk
+proposed: 2027 (age 62) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2028 (age 63) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2029 (age 64) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2030 (age 65) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2031 (age 66) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2032 (age 67) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2033 (age 68) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2034 (age 69) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2035 (age 70) | £46,800 (90%) | Move pension money into your ISA, up to your personal allowance; Move your pension and ISA 1 step back up in risk (2 below the risk you chose)

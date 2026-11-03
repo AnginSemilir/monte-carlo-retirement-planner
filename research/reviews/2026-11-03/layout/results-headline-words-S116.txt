@@ -1,0 +1,5 @@
+# node headline-words.mjs results-figures-S116.txt results-extra-S116.txt: the headline's back line, today and proposed (LAYOUT.md section 8)
+case: long; the headline on 5000 paths
+today: On a typical run of the markets you are back at your full target by 2043 (17 years in).
+proposed: In half the markets you are back at your full target by 2043 (17 years in).
+the typical run (the next ten years' path) is back at target first at: age 73 (2038)

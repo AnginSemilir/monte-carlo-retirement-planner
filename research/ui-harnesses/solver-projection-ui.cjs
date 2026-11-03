@@ -188,8 +188,11 @@ const runProjection = async p => {
     if (want('2b')) {
     // item 2's rest: the "Spend and date" step offers the solved plan's own answers, from the page's own safe maximum, at the
     // survival the step is set to; the figures beside it are your plan's rules
-    await p.evaluate(() => { const x = document.querySelector('[data-deck-step="2"]'); if (x) x.click(); });
+    // the step by its pill on a desktop (the harness's width), by the phone's step bar where there is no pill
+    await p.evaluate(() => { const x = document.querySelector('[data-slide-pill="2"]') || document.querySelector('[data-deck-step="2"]'); if (x) x.click(); });
     const fullCard = await p.waitForSelector('[data-solver-answers="full"]', { timeout: 60000 }).then(() => true, () => false);
+    // the card starts from the page's own safe maximum, so read it once the page has worked that out
+    await p.waitForFunction(() => [...document.querySelectorAll('span')].some(x => x.textContent.trim() === 'Safe maximum'), null, { timeout: 240000 }).catch(() => {});
     const fc = fullCard ? await p.$eval('[data-solver-answers="full"]', el => ({ from: Number(el.dataset.simpleSolverFrom), text: el.textContent })) : null;
     const pageMax = await p.evaluate(() => { const t = [...document.querySelectorAll('span')].find(x => x.textContent.trim() === 'Safe maximum'); const v = t && t.nextElementSibling ? t.nextElementSibling.textContent : ''; return Number(v.replace(/[^0-9.]/g, '')) || null; });
     ok('the "Spend and date" step offers the solved plan\'s own answers on request, from the page\'s safe maximum, at 90%, the figures beside it your plan\'s rules',

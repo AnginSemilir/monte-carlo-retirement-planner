@@ -97,8 +97,8 @@ const runProjection = async p => {
     // the page is chosen by the key read raw (src/Shell.jsx: getItem('rp_which_app') === 'simple'), not as JSON
     await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
-    // the Simple page itself, with its figures drawn ("Lucky pot" is the Simple page's own figure), before the card's absence means anything
-    const onSimple = await p.waitForFunction(() => /Lucky pot @/.test(document.body.textContent), null, { timeout: 120000 }).then(() => true, () => false);
+    // the Simple page itself (the Shell offers "Open the full planner" on it alone), its figures drawn, before the card's absence means anything
+    const onSimple = await p.waitForFunction(() => /Open the full planner/.test(document.body.textContent) && /Pot at retirement/.test(document.body.textContent), null, { timeout: 120000 }).then(() => true, () => false);
     ok('switch off: the Simple page has no answers from the solver', onSimple && !(await p.$('[data-simple-solver]')), `on the Simple page ${onSimple}, the card ${!!(await p.$('[data-simple-solver]'))}`);
     await c.close(); }
 

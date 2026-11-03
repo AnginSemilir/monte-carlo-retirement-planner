@@ -3,7 +3,7 @@
 An index for finalising the plan. Each item names the file that holds its detail. Where the work stands in full is
 `STATE.md`; the rules are `CHECKLIST.md`. The plan from 1 Nov is the launch plan
 (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on review/external-2026-10-21 at 0e24e1b), adopted by the maintainer as
-D51 to D54.
+D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 recast).
 
 ## Where it stands
 
@@ -20,7 +20,8 @@ D51 to D54.
     recorded as not met (D56), step P taking the chooser's cost per path first.
   - Phase 10 (`PHASE-10.md`): its seven items built and through their harnesses, each plant caught; its pull request
     on B1's gate next.
-  - Then step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
+  - Then step P; then step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10); then
+    Phases 11 and 12 as recast; couples as Part D during the singles' beta (B9), D5 the couples' screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
   spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.

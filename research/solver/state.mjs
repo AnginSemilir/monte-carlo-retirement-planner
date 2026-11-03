@@ -239,7 +239,21 @@ const BLOCKS = {
         if (t === null) return '| GAIN-BUCKET | pending: results-gia-look.txt | | | open |';
         const blocks = t.split(/^== code /m).slice(1).map(b => ({ code: b.slice(0, 7), interp: /gainInterp/.test(b), sw: [...b.matchAll(/^  gain (0|0\.4): ([\d.]+) GIA switches/gm)].map(m => m[2]) }));
         const at = (code, interp) => { const b = blocks.find(x => x.code === code && x.interp === interp); if (!b || b.sw.length !== 2) throw new Error(`state: results-gia-look.txt has no block for ${code}${interp ? ' interpolated' : ''}`); return `${b.sw[0]} / ${b.sw[1]}`; };
-        return `| GAIN-BUCKET | the taxable account's gain share read at its nearest bucket (5, 25, 55%): a move that changes the share can flip the read across a bucket's edge, and since 136c477 taxes the sweep's gains the tables weigh the bucket more (D47's look) | giaTiers (research, off) on S330, the taxable account's switches a path with no gain / a 40% gain: the branch ${at('cfd4530', false)}, interpolated ${at('cfd4530', true)}; before 136c477 ${at('8bea086', false)} (\`results-gia-look.txt\`); the candidate's and the product's harvest moves: not measured | the candidate with and without gainInterp on the panel's households with a taxable account, sized after D48's port and brought to the maintainer before it runs (D49) | open |`;
+        // GAIN-BUCKET's read (reduce-gainbucket.mjs): the panel's survival and spending, the taxable account's moves, the solve, the verdict
+        const g = read(`${S}results-gainbucket.txt`);
+        const gb = g === null ? null : (() => {
+          const need = (re, what) => { const m = g.match(re); if (!m) throw new Error(`state: results-gainbucket.txt has no ${what}`); return m; };
+          const head = need(/on (\d+) households.*?; seed (\d+), (\d+) paths, code (\w+)/, 'header'), gate = need(/^The gate: (.+?)\.?$/m, 'gate');
+          const pan = need(/^Survival, CANDGI less CANDD, the panel \(\d+ households\): (.+?); lifetime spending delivered (.+?)\.$/m, 'panel line');
+          const tax = need(/^The taxable account, a path on the panel \(CANDD \/ CANDGI\): (.+?)\.$/m, 'taxable account line');
+          const solve = need(/^The solve, CANDGI against CANDD: the median (x[\d.]+ \(x[\d.]+ to x[\d.]+\))\. runPolicy beside the engine: the engine alone (\d+), runPolicy alone (\d+), of (\d+) paths\./m, 'solve line');
+          const verdict = need(/^VERDICT: (.+)$/m, 'verdict')[1];
+          const lost = [...g.matchAll(/^  (S\w+): survival [+-][\d.]+ points \((\d+) saved, (\d+) lost of \d+; Holm one-sided: harm ([\d.e+-]+), gain ([\d.e+-]+)\)/gm)];
+          if (lost.length !== Number(head[1])) throw new Error(`state: results-gainbucket.txt has ${lost.length} household lines, not ${head[1]}`);
+          const beyond = lost.filter(m => Number(m[4]) < 0.05 || Number(m[5]) < 0.05).map(m => m[1]);
+          return { verdict, effect: `GAIN-BUCKET's read (seed ${head[2]}, ${head[3]} paths, ${head[1]} households, code ${head[4]}; the gate ${gate[1]}): CANDGI less CANDD, survival ${pan[1]}, lifetime spending delivered ${pan[2]}; a household beyond noise either way (Holm, 5%): ${beyond.length ? beyond.join(', ') : 'none'}; the taxable account a path (CANDD / CANDGI): ${tax[1]}; the solve ${solve[1]}; runPolicy beside the engine: ${solve[2]} / ${solve[3]} of ${solve[4]} paths differ (\`results-gainbucket.txt\`)` };
+        })();
+        return `| GAIN-BUCKET | the taxable account's gain share read at its nearest bucket (5, 25, 55%): a move that changes the share can flip the read across a bucket's edge, and since 136c477 taxes the sweep's gains the tables weigh the bucket more (D47's look) | giaTiers (research, off) on S330, the taxable account's switches a path with no gain / a 40% gain: the branch ${at('cfd4530', false)}, interpolated ${at('cfd4530', true)}; before 136c477 ${at('8bea086', false)} (\`results-gia-look.txt\`); ${gb === null ? 'the candidate\'s and the product\'s harvest moves: not measured' : gb.effect} | the candidate with and without gainInterp on the panel's households with a taxable account (D49; B7, EXPLORATORY, deciding nothing)${gb === null ? '' : `: ${gb.verdict}`} | ${gb === null ? 'open' : (/NO EFFECT/.test(gb.verdict) ? 'closed, reported' : 'to the maintainer')} |`;
       })(),
       '| T-GAPS | gaps between a table and simulation (sizes in the next block) | none measured on simulated outcomes | known limitations; 7u-F\'s by-world item reports them, and V3 and V4 measure what matters | not gates (D2) |'
     ];

@@ -94,9 +94,12 @@ const runProjection = async p => {
     await ctx.close(); }
   { const { SIMPLE_BLANK } = await load('research/simplePlan.mjs');
     const c = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await c.newPage();
-    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', JSON.stringify('simple')); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
-    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
-    ok('switch off: the Simple page has no answers from the solver', !(await p.$('[data-simple-solver]')) && /stop working|spend/i.test(await p.textContent('body')));
+    // the page is chosen by the key read raw (src/Shell.jsx: getItem('rp_which_app') === 'simple'), not as JSON
+    await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
+    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+    // the Simple page itself, with its figures drawn ("Lucky pot" is the Simple page's own figure), before the card's absence means anything
+    const onSimple = await p.waitForFunction(() => /Lucky pot @/.test(document.body.textContent), null, { timeout: 120000 }).then(() => true, () => false);
+    ok('switch off: the Simple page has no answers from the solver', onSimple && !(await p.$('[data-simple-solver]')), `on the Simple page ${onSimple}, the card ${!!(await p.$('[data-simple-solver]'))}`);
     await c.close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-projection-'));
@@ -302,7 +305,7 @@ const runProjection = async p => {
       const simple = { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000, statePensionSelf: 11500 };
       const ctxS = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctxS.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));
-      await ctxS.addInitScript(sp => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', JSON.stringify('simple')); sessionStorage.setItem('seeded', '1'); } }, simple);
+      await ctxS.addInitScript(sp => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', 'simple'); sessionStorage.setItem('seeded', '1'); } }, simple);
       await p.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
       const card = await p.waitForFunction(() => { const el = document.querySelector('[data-simple-solver]'); return el && el.dataset.simpleSolverFrom !== ''; }, null, { timeout: 300000 }).then(() => true, () => false);
       const from = card ? await p.$eval('[data-simple-solver]', el => Number(el.dataset.simpleSolverFrom)) : null;

@@ -1,0 +1,31 @@
+# started 03 Nov 19:15:47 UK, on the review's container (two cores; beside it, S116's run, after S224's)
+# node figures.mjs S090 (the agent's code at c5370be9f7d3; seed 7002; EXPLORATORY, deciding nothing)
+household: S090: age 61, retiring at 60, pension access 58, state pension £11,976 a year from 68, the plan to age 96; tax region ruk; salary £0
+money: pension £285,000 (High Risk), ISA £142,500 (Medium/High Risk), taxable £427,500 (Medium Risk), cash £95,000, cash ISA £0
+spending: target £28,500 a year; the plan's own floor £0, so the solver's 80% (£22,800); minimum pot £0; your current approach: the policy Bracket Fill Basic, Phased Drawdown, guardrails off
+solve: 392 s; the spending levels on its menu [1,1.1,0.95,0.9,0.8]; the tier above off: no tier above the plan
+simulate: 353 s for 5000 paths through both arms
+headline (first 2000): {"startLevel":110,"startSpend":31350,"target":28500,"retireT":0,"retired":true,"backT":0,"backYear":2026,"backIn":0,"dip":0,"survival":99.95,"delivered":109.84812108794252,"case":"atTarget"}
+headline words (first 2000): {"title":"Your safe starting spend","amount":"£31,350 a year, above your £28,500 target","share":null,"back":null,"chance":"Chance your money lasts: 100%","delivered":"Spending delivered over the plan: 110% of your target"}
+explanation (first 2000): null
+raise (first 2000): If markets do well, you could spend up to 10% above your target from about age 61.
+dial line (first 2000): start at your full target, £31,350; chance your money lasts 100%
+compare (first 2000): survival 99.6% / 100.0%; median pot £2,367,292 / £3,413,356; unlucky tenth £628,951 / £600,670; lifetime tax £123,859 / £54,400; estate £2,367,292 / £3,413,356 (your plan / solved)
+headline (all 5000): {"startLevel":110,"startSpend":31350,"target":28500,"retireT":0,"retired":true,"backT":0,"backYear":2026,"backIn":0,"dip":0,"survival":99.98,"delivered":109.86222065739925,"case":"atTarget"}
+headline words (all 5000): {"title":"Your safe starting spend","amount":"£31,350 a year, above your £28,500 target","share":null,"back":null,"chance":"Chance your money lasts: 100%","delivered":"Spending delivered over the plan: 110% of your target"}
+explanation (all 5000): null
+raise (all 5000): If markets do well, you could spend up to 10% above your target from about age 61.
+dial line (all 5000): start at your full target, £31,350; chance your money lasts 100%
+compare (all 5000): survival 99.7% / 100.0%; median pot £2,376,448 / £3,455,767; unlucky tenth £627,732 / £602,511; lifetime tax £124,215 / £53,768; estate £2,376,448 / £3,455,767 (your plan / solved)
+ahead path: 1279
+ahead: 2026 (age 61) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2027 (age 62) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2028 (age 63) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2029 (age 64) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2030 (age 65) | £31,350 (110%) | as the year before | ledger: spend 110%
+ahead: 2031 (age 66) | £31,350 (110%) | as the year before | ledger: spend 110%
+ahead: 2032 (age 67) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2033 (age 68) | £31,350 (110%) | Move pension money into your ISA, up to your personal allowance | ledger: spend 110% · pension to ISA, to the personal allowance
+ahead: 2034 (age 69) | £31,350 (110%) | Take from your pension first, up to your personal allowance | ledger: spend 110% · pension first, to the personal allowance
+ahead: 2035 (age 70) | £31,350 (110%) | Take from your pension first, up to your personal allowance | ledger: spend 110% · pension first, to the personal allowance
+come back: Come back next year: the plan is worked out again from where your money then stands.

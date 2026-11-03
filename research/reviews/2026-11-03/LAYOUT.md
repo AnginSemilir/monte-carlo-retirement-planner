@@ -228,7 +228,9 @@ check where they are by it.
 
 1. **The answer card** (`data-plan-answer`, its state as section 4.2).
    - The eyebrow: `headlineWords.title`, "Your safe starting spend" or "… when you retire".
-   - The amount: `headlineWords.amount`, in the display face (section 7), with tabular figures.
+   - The amount: `headlineWords.amount`, in the display face (section 7), with tabular figures. The figure and "a
+     year" are set large; on a plan above its target, the rest of the string (", above your £28,500 target") becomes
+     the line under it ("Above your £28,500 target."), as the canvas's S090 card shows.
    - The share and the back line, when the plan starts below target: `share` then `back`.
    - **The chance:** "Chance your money lasts" with its figure large.
    - **The spending delivered:** `headlineWords.delivered`, smaller.

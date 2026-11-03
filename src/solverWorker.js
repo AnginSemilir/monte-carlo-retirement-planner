@@ -46,7 +46,7 @@ import { withTable } from './solver/bridge.js';
 import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
-import { strategyRuns, joinRuns, strategySummary, actionsOf, skipRuns, aheadOf, rowsOf, headRuns } from './solverStrategy.js';
+import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadOf, rowsOf } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord } from './solverCache.js';
 
@@ -124,13 +124,10 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'strategy') {
-      const planKey = JSON.stringify(data.plan), seed = data.seed;
-      if (!runs || runs.r !== solved || runs.plan !== planKey || runs.runs.seed !== seed) runs = { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
       // the paths the split solve's parts ran (src/solverClient.js strategy), joined in path order to those kept here
-      if (data.runs && data.runs.length) runs.runs = joinRuns([runs.runs, ...data.runs]);
-      if (data.upto > runs.runs.to) runs.runs = joinRuns([runs.runs, strategyRuns(E, solved, data.plan, { seed, from: runs.runs.to, to: data.upto })]);
-      // exact: the figures of the first `upto` paths alone, though more have been run (the dial's line, Phase 10)
-      self.postMessage({ id, strategy: strategySummary(E, solved, data.exact ? headRuns(runs.runs, data.upto) : runs.runs) });
+      const a = strategyAnswer(E, solved, runs, data);
+      runs = a.held;
+      self.postMessage({ id, strategy: a.strategy });
       return;
     }
     if (kind === 'distil') {

@@ -27,6 +27,7 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 
+export const PLANT = { rule: '' };   // research/tests/solver-client.test.mjs only: 'noqueue' lets two figures' asks run at once
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -97,8 +98,8 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
    * paths not yet run are shared out evenly, the owner taking the first share, and the owner joins them in path order, so
    * the figures are the whole run's (research/tests/sim-split.test.mjs). Without parts, the owner runs them all.
    */
-  let have = 0, haveKey = null;
-  const strategy = async (plan, seed, upto, { exact = false } = {}) => {
+  let have = 0, haveKey = null, line = Promise.resolve();
+  const strategyNow = async (plan, seed, upto, { exact = false } = {}) => {
     const k = JSON.stringify([seed, plan]);
     if (k !== haveKey) { have = 0; haveKey = k; }
     if (!kept.length || upto <= have) { const r = await ask('strategy', { plan, seed, upto, exact }); have = Math.max(have, upto); return r; }
@@ -107,6 +108,13 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
     const got = await Promise.all(all.map((a, i) => a('runs', { plan, seed, from: share(i)[0], to: share(i)[1] })));
     const r = await ask('strategy', { plan, seed, upto, exact, runs: got.map(g => g.runs) });
     have = upto;
+    return r;
+  };
+  // one at a time (Phase 10): the Strategy tab, the age dial, the dial's line and the scenarios each ask for figures of the one
+  // solve, and two asks at once would share out the same next paths, which the owner refuses to join twice
+  const strategy = (...args) => {
+    const r = PLANT.rule === 'noqueue' ? strategyNow(...args) : line.then(() => strategyNow(...args));
+    line = r.catch(() => {});
     return r;
   };
 

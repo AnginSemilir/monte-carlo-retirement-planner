@@ -10,13 +10,12 @@
  * change re-solves (src/useSolver.js). Every position offered has been measured (PHASE-8.md); the defaults are the candidate's.
  */
 import React from 'react';
-import { APP_DIAL, APP_FLOOR, dialOrder, atDial } from './solverSettings.js';
+import { APP_DIAL, APP_FLOOR, AIMS_DEFAULT, dialOrder, dialSig, atDial } from './solverSettings.js';
 import { FiguresList } from './SolverFigures.jsx';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
 
-const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 const LOCKS_FREE = Object.freeze({ pensionBefore: null, tierCeiling: Object.freeze({ pen: null, isa: null }), lumpSum: 'free' });
 const DIAL_LABELS = { 1: 'Low', 3: 'Medium', 6: 'High', 10: 'Very high' };
 const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
@@ -95,7 +94,7 @@ function SolveLine({ solve, onRequest }) {
 function DialLive({ plan, solve, cuts, seed, upto, engine, opts, fmt }) {
   return (
     <FiguresList plan={plan} solve={solve} own={cuts} options={APP_DIAL.map(x => ({ id: x, label: DIAL_LABELS[x], plan: atDial(plan, x) }))} order={dialOrder(cuts)}
-      sig={JSON.stringify(atDial(plan, 1))} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="dial" showLabel="Show the four settings" keyedId={1} />
+      sig={dialSig(plan)} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="dial" showLabel="Show the four settings" keyedId={1} />
   );
 }
 

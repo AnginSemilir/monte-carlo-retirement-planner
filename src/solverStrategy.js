@@ -143,6 +143,22 @@ export function joinRuns(parts) {
   for (let i = 1; i < ps.length; i++) if (ps[i].from !== ps[i - 1].to || ps[i].seed !== ps[0].seed) throw new Error('joinRuns: the parts do not meet in path order on one seed');
   return { seed: ps[0].seed, from: ps[0].from, to: ps[ps.length - 1].to, solved: ps.flatMap(p => p.solved), yours: ps.flatMap(p => p.yours) };
 }
+/*
+ * The owner's answer to 'strategy' (src/solverWorker.js; here so a test runs the same code, research/tests/solver-client.test.mjs):
+ * `held` the paths run so far ({ r, plan, runs }, or null), `data` the ask ({ plan, seed, upto, exact, runs }). The paths held
+ * for this solve, plan and seed are kept and only the rest run; the parts' shares (`runs`) are joined in path order first,
+ * and a share that does not start where the held paths end is refused (joinRuns), never joined twice. Returns the paths
+ * held after it and the figures; on a refusal the paths held before stay as they were.
+ */
+export function strategyAnswer(E, solved, held, data) {
+  const planKey = JSON.stringify(data.plan), seed = data.seed;
+  let h = held && held.r === solved && held.plan === planKey && held.runs.seed === seed ? held
+    : { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
+  if (data.runs && data.runs.length) h = { ...h, runs: joinRuns([h.runs, ...data.runs]) };
+  if (data.upto > h.runs.to) h = { ...h, runs: joinRuns([h.runs, strategyRuns(E, solved, data.plan, { seed, from: h.runs.to, to: data.upto })]) };
+  // exact: the figures of the first `upto` paths alone, though more have been run (the dial's line, Phase 10)
+  return { held: h, strategy: strategySummary(E, solved, data.exact ? headRuns(h.runs, data.upto) : h.runs) };
+}
 /* the first n paths of runs gathered from path 0 (Phase 10: the dial's line reads exactly the paths its other settings run,
    whatever the Strategy tab has run since) */
 export const headRuns = (runs, n) => (runs.from !== 0 ? (() => { throw new Error('headRuns: the runs do not start at path 0'); })()

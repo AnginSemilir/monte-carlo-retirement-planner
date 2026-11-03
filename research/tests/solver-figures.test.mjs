@@ -25,13 +25,17 @@
  * 7. The full planner's search (item 2's rest; src/SolverSimple.jsx SolverPlanAnswers): atSpend's plan, its spending bands
  *    scaled, runs path for path as the engine's own spend override of the plan as entered (the second stage's), on a plan
  *    with bands and one without. Planted, the bands left unscaled is caught.
+ * 8. The dial's figures kept across a choice (the projection harness, 3 Nov: choosing Medium dropped the other settings'
+ *    figures, since the choice writes every aim with its default and the key was the plan as stored): dialSig is the same
+ *    after any setting is chosen, from a plan with no aims, some or all, and changes with the estate's weight, the raises and
+ *    the target. Planted, the key from the plan as stored is caught.
  *   node research/tests/solver-figures.test.mjs
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { solveForApp } from '../../src/solverApp.js';
-import { APP_DIAL, dialOrder, atDial, dialBase, ageOptions, atAge, AGE_SPAN, atSpend } from '../../src/solverSettings.js';
+import { APP_DIAL, dialOrder, atDial, dialBase, ageOptions, atAge, AGE_SPAN, atSpend, AIMS_DEFAULT, withAims, dialSig, PLANT as SETTINGS_PLANT } from '../../src/solverSettings.js';
 import { strategyRuns, joinRuns, strategySummary, strategyOf, headRuns } from '../../src/solverStrategy.js';
 import { cacheOf } from '../../src/solverCache.js';
 import { dialLineWords } from '../../src/solverWords.js';
@@ -128,6 +132,23 @@ console.log('=========== 7. THE SPEND VARIANT ===========');
   ok(check(banded) && check(flat), '7. atSpend\'s plan is the engine\'s spend override path for path (200 paths), with spending bands and without');
   const unscaled = (p, x) => ({ ...p, spending: { ...p.spending, targetSpend: x } });
   ok(!check(banded, unscaled), '7. planted, the bands left unscaled is caught on the banded plan');
+}
+
+console.log('=========== 8. THE DIAL\'S FIGURES KEPT ACROSS A CHOICE ===========');
+{
+  // a choice on the Config tab writes every aim, the defaults filled in (SolverConfig.jsx patchSolver: withAims); the dial's
+  // figures are keyed on dialSig, so choosing another setting keeps them whatever the plan held before, and any other edit drops them
+  const bare = { ...plan0 }; delete bare.solver;
+  const some = { ...plan0, solver: { aims: { estate: 'standard' } } }, full = withAims(plan0, { cuts: 6 });
+  const keeps = () => [bare, some, full].every(p => APP_DIAL.every(x => dialSig(withAims(p, { cuts: x })) === dialSig(p)));
+  ok(keeps(), `8. choosing each setting keeps the dial's key, from a plan with no aims, with some and with all (${APP_DIAL.join(', ')})`);
+  const drops = dialSig(withAims(bare, { estate: 'lower' })) !== dialSig(bare) && dialSig(atSpend(bare, 30000)) !== dialSig(bare) && dialSig(withAims(bare, { raises: 'blocked' })) !== dialSig(bare);
+  ok(drops, '8. the estate\'s weight, the raises and the target each change it');
+  ok(same(withAims(bare, { cuts: 3 }).solver.aims, { ...AIMS_DEFAULT, cuts: 3 }) && withAims(some, {}).solver.aims.estate === 'standard', '8. withAims fills the defaults beneath what the plan holds, and the patch above it');
+  SETTINGS_PLANT.rule = 'rawsig';
+  const caught = !keeps();
+  SETTINGS_PLANT.rule = '';
+  ok(caught, '8. planted, the key taken from the plan as stored (the defaults not filled in): caught on the plan with no aims');
 }
 
 console.log(fail ? `\nFAILED: ${fail} of ${pass + fail}` : `\nALL PASS: ${pass}`);

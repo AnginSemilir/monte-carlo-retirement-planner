@@ -87,6 +87,18 @@ GitHub Pages cannot send COOP and COEP, and a solve splits across workers only o
   first on a tie); atDial and atAge move one input alone; the exact read is a run of that many paths field for field; a
   setting's figures as its job gets them (the base restored from the store's record, then the setting solved on it) are the
   solve in hand's, at Medium and at Low on S126, and an age's on S188; the words. ALL PASS 19.
+- Two defects the harness's first run of sections 4 and 5 found (3 Nov), each fixed with a test that catches its class:
+  - Two asks for figures at once on one split solve (the Strategy tab and the age dial beside it) both shared out the same
+    next paths, and the owner refused the second join (`joinRuns`), which the age dial swallowed: it never drew its line.
+    The client now takes the asks one at a time (`src/solverClient.js` `strategy`), and the owner's answer is one function
+    (`src/solverStrategy.js` `strategyAnswer`). `research/tests/solver-client.test.mjs` (the full tier): two and three asks
+    at once on S126 split two ways, every answer Node's; a share offered twice refused with the paths held kept; planted
+    (`PLANT` 'noqueue', the asks at once), the second ask is refused and the check fails.
+  - Choosing Medium dropped the other settings' figures: a choice writes every aim with its default (`patchSolver`), and the
+    figures were kept under the plan as stored. They are now kept under `dialSig` (the plan at Low with its aims filled in,
+    `withAims`; `AIMS_DEFAULT` moved to `src/solverSettings.js`). `solver-figures.test.mjs` section 8: the key the same after
+    any setting is chosen from a plan with no aims, some or all, and changed by the estate's weight, the raises and the
+    target; planted (`PLANT` 'rawsig', the key from the plan as stored), caught.
 - `solver-projection-ui.cjs` sections 4 and 5 (to run): the dial's line Node's, the four settings filled nearest first, each
   Node's, choosing Medium giving the figure the list showed and keeping the others; the age dial on S188 the same way.
   Planted (`PROJECTION_PLANT=dialfar`, the settings solved farthest first), the order check is to fail.

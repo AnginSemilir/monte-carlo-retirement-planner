@@ -71,6 +71,13 @@ export const dialOrder = current => {
 };
 /* the plan at another of the dial's positions, every other aim its own */
 export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...((plan.solver && plan.solver.aims) || {}), cuts: x } } });
+/* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
+export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
+export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
+export const PLANT = { rule: '' };   // research/tests/solver-figures.test.mjs only: 'rawsig' keys the dial's figures on the plan as stored
+/* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
+   position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
+export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));
 /* the retirement-age dial (Phase 10, item 4; B11): the ages either side of the plan's own, the nearest first, the earlier first
    where two are as near; none at or before today's age, and none for a household already retired */
 export const AGE_SPAN = 3;

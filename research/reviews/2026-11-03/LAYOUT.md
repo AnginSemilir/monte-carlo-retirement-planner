@@ -20,6 +20,7 @@ states. Where the canvas and this document differ, this document holds.
   (`layout/results-extra-S116.txt`).
 - `layout/chart-paths.mjs` scales S116's bands and typical run into the canvas's chart paths
   (`layout/results-chart-paths-S116.txt`).
+- `layout/costs.mjs` prints the cards' "what asking costs" lines from those files' timings (`layout/results-costs.txt`).
 - Seed 7002; EXPLORATORY: a render of the screens' content, deciding nothing.
 - S116's and S224's runs printed their household lines before figures.mjs added the current approach's rules to them
   (S090's has them). S116's rules, from the library's plan: the decumulation policy "Bracket Fill Basic" (shown as Tax
@@ -309,7 +310,7 @@ With four changes:
   - Under it: "Each on the same 2,000 simulated markets, so they compare fairly. The answer uses 5,000."
   - The row being solved says "working it out…"; the rows queued say "waiting its turn" (L11).
   - Under the button, before it is pressed, its cost: "Three more solves, about M minutes on this device" (section
-    3.3's rule; on S116's 357-second solve, about 18 minutes).
+    3.3's rule; on S116 about 31 minutes, `layout/results-costs.txt`).
   - `FiguresList` keeps its logic and gains a `table` presentation; the age and target cards keep the list.
 
 **The print sheet.** `actionPlan.js` gains the solved plan's page, with the same print stylesheet. It holds:
@@ -367,8 +368,11 @@ With four changes:
 - **Phone:** the cards stacked.
 
 **The cards.** Each solves only when asked, and says first what asking costs: "N solves, about M minutes on this
-device". M is N times this device's last solve (`solveMeta.secs`). When the solve in hand was restored, so no time is
-known, it says "several minutes each". Each list ends: "Nearest first. Each on the same 2,000 simulated markets; your
+device". M is N times one setting's cost: this device's last solve (`solveMeta.secs`) plus the time its first 2,000
+paths took, both as measured here, with the paths' time twice over for a dial position above Low (a locked position's
+simulation runs 1.80 to 1.99 times the base's: `2026-11-01/launch/results-app-timing.txt`). The solve alone
+undercounts: on S116 a setting is 491 seconds, of which the solve is 357 (`layout/results-costs.txt`). When the solve
+in hand was restored, so no time is known, it says "several minutes each". Each list ends: "Nearest first. Each on the same 2,000 simulated markets; your
 plan's answer uses 5,000." (L10).
 
 1. **"Retiring earlier or later"** (`data-solver-ages`): `SolverAges` as built. The plan's own age comes first; up to

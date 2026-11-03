@@ -1,0 +1,5 @@
+# node costs.mjs results-figures-S116.txt results-figures-S224.txt: what asking costs, by LAYOUT.md section 3.3's rule
+S116: one solve 357 s; its first 2,000 paths 134 s (from 336 s for 5000); a setting 491 s, a dial position above Low 626 s
+S116: the dial's other three settings: about 31 minutes; the target card's four: about 33 minutes; the limits' fourteen at most: about 2 hours; one scenario: about 8 minutes; the age card's six: about 49 minutes
+S224: one solve 377 s; its first 2,000 paths 120 s (from 299 s for 5000); a setting 497 s, a dial position above Low 616 s
+S224: the dial's other three settings: about 31 minutes; the target card's four: about 33 minutes; the limits' fourteen at most: about 2 hours; one scenario: about 8 minutes; the age card's six: about 50 minutes

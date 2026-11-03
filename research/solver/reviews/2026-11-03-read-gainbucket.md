@@ -116,3 +116,86 @@ Checked and sound (claim 4, and the rest of claims 1 and 3):
 - Survival levels run from 92.9% to 98.4%, so the survival null is not a ceiling. With discordance at most 2 of 4,000,
   a true quarter-point loss (10 paths lost, 0 saved) would give an exact p of 9.8e-4, times 17 = 0.017. A real
   survival loss of that size would have read.
+
+## Re-review
+
+Subject: the read redone at 59664c9 on claude/project-access-i58m0x, after the FAIL above. cd794b9 after it touches only
+`research/ui-harnesses/solver-projection-ui.cjs` (`git diff 59664c9 HEAD --stat`).
+
+What I read (blobs at 59664c9): `research/solver/reduce-gainbucket.mjs` f7b4e88f1fe9 (the diff from 688f28b6cc30 whole),
+`research/solver/results-gainbucket.txt` daa8536937dd, `research/solver/state.mjs` 24355509bb11, `research/solver/STATE.md`
+93de432c7c4a (the GAIN-BUCKET row, section 5), `research/solver/DECISIONS-PENDING.md` f9f2d0e4e87f;
+`research/solver/audit-gainbucket.mjs` unchanged (83805ae6d96f).
+
+What I ran:
+- `LAUNCH_REV=dab55c7 node research/solver/reduce-gainbucket.mjs`: output byte for byte the committed results file.
+  Without LAUNCH_REV it exits 2 with "the units' audit 691ff7c88659 is not the files' a139e1dc54b8", as strict as before.
+- `node research/solver/reduce-gainbucket.mjs --planted`: ALL PASS: 17.
+- `node research/solver/check-state.mjs`: passes.
+- The launch reducer (`git show dab55c7:research/solver/reduce-gainbucket.mjs`) on the new plants: P1 with P3 (spending up
+  on 40 paths) and P4 (down on 40) reads "VERDICT: NO EFFECT beyond noise", and its gate passes P3 outside a measured set
+  of P1 alone (`[]`). So each new plant fails on the code before the fix.
+- The reducer's own `flipTest` at 200,000 flips on three other seeds:
+  - S272, loss: p 1.11e-3 to 1.18e-3 (the read's 20,000 flips: 1.0e-3, Holm 1.70e-2);
+  - S326F, gain: p 4.34e-3 to 4.49e-3 (Holm about 0.065 to 0.067; the read 6.82e-2);
+  - S164 and S096, gain: about 1.6e-2 and 2.0e-2;
+  - S026 and S384: at the resolution floor.
+  The households on each side of 0.05 do not depend on the flip seed.
+- An exact sign test with Holm over the units, to check the reason given for not using it: see finding 1.
+
+Verdict: PASS
+
+Against the first review's findings:
+- Finding 1 is fixed.
+  - Each household's spending is tested each way, by a sign-flip test of the paired sum, the reported mean's own test.
+    `flipTest` is mulberry32, seeded per household (FNV-1a of the id) and one-sided both ways; its p is (count + 1) /
+    (B + 1), so 5.0e-5 at least, and Holm at least 8.5e-4.
+  - Holm runs over the 17 households in each direction. The panel's spending is tested both ways.
+  - `verdict()` names every effect, survival and spending, gains and losses together. A gain goes to the maintainer
+    (B7), and state.mjs prints the status from the verdict.
+  - The up / down tolerance (a millionth of the path's lifetime spending, above the Float32 grain of 1.2e-7) drops no
+    differing path on the households I checked (kept = nonzero on all six).
+  - The figures match my own: up on S026 and S384, down on S272.
+  - The row, section 5 and DECISIONS-PENDING carry the sizes ("each under a fiftieth of a percent") and the choice (a v2
+    test after the launch, or declined as immaterial), with the survival interval for the null.
+- Finding 2 is fixed: the gate refuses a household outside the measured set, and a plant shows it.
+- Finding 3 is fixed: STATE.md section 5 says "seventeen households, not D51's twenty".
+- Finding 4 is fixed: the labels say what is counted, and that the tier switches and the ISA sweeps are not.
+- Finding 5 is fixed: STATE.md section 5 and DECISIONS-PENDING report about twice the pilot's core-hours, past the quarter.
+- The binomial tail is now taken in logs. tail(2000, 4000) is 0.5063, as it should be (0.5 + P(X = 2000)/2). The old
+  tail was not wrong on this read, since n = saved + lost <= 2.
+
+The LAUNCH_REV route is sound for this read. It does not weaken the gate in a way the rules forbid.
+- What it checks: the hash is taken over STAMP_FILES, with the reducer at LAUNCH_REV and every other file as it is now.
+  That hash equals the units' own audit (691ff7c88659). Under SHA-256, that proves the audit, the panel, the candidate and
+  the other stamped files are byte for byte as launched. It also proves the reducer taken is the launch reducer: no other
+  revision's reducer would match, so the revision cannot be chosen to suit.
+- What changed: only the reader of the units. The reducer cannot change a unit, the pairing or the recorded settings, and
+  the gate's checks on those all still run.
+- What the route gives up: the read is no longer tied to the reducer as launched. That tie is what enforces "read once,
+  by the registered rule" (CHECKLIST 2). This read is EXPLORATORY and decides nothing, so CHECKLIST 1 sets no rule here.
+- Why it cannot reach a registered run: this reducer calls requireFairLogs with 'none' only, so logs from a registered
+  launch are refused before the gate.
+- Disclosure: the gate line names both reducer blobs (688f28b6cc30, f7b4e88f1fe9), and the STATE row says the reducer
+  changed after the run. fair-gate.mjs's declared-correction route already accepts a declared change to the reducer for a
+  registered prediction.
+- What the change did to the verdict: made it stricter, from closed to "to the maintainer".
+- The route should not be copied into a reducer that reads a registered run without the maintainer's ruling.
+
+Findings:
+
+1. MINOR. The count of households depends on which test reads them, and the test was chosen after the data was seen.
+   - An exact sign test with Holm over the 17 flags seven:
+     - S026 up (187 / 79), S096 up (118 / 66), S344F up (55 / 26), S384 up (33 / 5);
+     - S030 down (62 / 109), S272 down (27 / 59), S334F down (67 / 107), with S334F's mean up (+0.0027%).
+   - The sign-flip test of the mean flags three.
+   - The mean's test is the right one for the figure reported, and P5 plants the reason. The choice cut the count rather
+     than raising it, and the verdict class is the same under either test (a gain, to the maintainer).
+   - But DECISIONS-PENDING says "spending up on two households and down on one", and nothing tells the maintainer that
+     the typical path moves on seven. That matters to a judgement of materiality. One line beside the proposal would do
+     (for example "the median path moves on seven households, each as tiny").
+
+Correction to the first review: there I gave S272's sign-flip p as 5.8e-4 ("times 17, about 0.01"). It came from a scratch
+generator whose products exceed 2^53 in floating point, a faulty generator. The reducer's figure is the right one: 1.0e-3
+at 20,000 flips, and 1.11e-3 to 1.18e-3 at 200,000 on three seeds, Holm about 0.02. The conclusion, beyond noise with
+CANDGI lower, stands.

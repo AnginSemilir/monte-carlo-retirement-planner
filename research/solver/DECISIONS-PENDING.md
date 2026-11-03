@@ -60,4 +60,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
 - **Open now: GAIN-BUCKET's v2 proposal (B7).** The gain axis interpolated (`gainInterp`) against the candidate's nearest
   bucket: survival no effect beyond noise; spending up on two households and down on one, each tiny (`results-gainbucket.txt`;
   the read's review, `reviews/2026-11-03-read-gainbucket.md`). The choice: a registered v2 test after the launch, or
-  declined as immaterial. Also reported: the run took about twice its pilot's core-hours.
+  declined as immaterial. Beside it (the re-review's MINOR): the count depends on the test, chosen after seeing the data. The
+  sign-flip test of the mean, the figure reported, flags three households; an exact sign test, which reads the typical path,
+  flags seven, four up and three down, one of them down although its mean is up. The verdict is a gain under either. Also
+  reported: the run took about twice its pilot's core-hours.

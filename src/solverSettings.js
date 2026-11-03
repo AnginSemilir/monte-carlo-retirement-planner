@@ -63,6 +63,27 @@ export function dialBase(plan) {
   if (dialOf(plan) === 1) return null;
   return { ...plan, solver: { ...plan.solver, aims: { ...plan.solver.aims, cuts: 1 } } };
 }
+/* the dial's other positions in the order the live line solves them (Phase 10, item 3: "nearest first"): by their distance
+   along the dial from the plan's own, the lower first where two are as near */
+export const dialOrder = current => {
+  const i = Math.max(0, APP_DIAL.indexOf(current));
+  return APP_DIAL.map((x, j) => [x, Math.abs(j - i), j]).filter(([, d]) => d > 0).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(([x]) => x);
+};
+/* the plan at another of the dial's positions, every other aim its own */
+export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...((plan.solver && plan.solver.aims) || {}), cuts: x } } });
+/* the retirement-age dial (Phase 10, item 4; B11): the ages either side of the plan's own, the nearest first, the earlier first
+   where two are as near; none at or before today's age, and none for a household already retired */
+export const AGE_SPAN = 3;
+export function ageOptions(plan, ageNow) {
+  const own = Number(plan && plan.demographics && plan.demographics.retireAgeSelf);
+  if (!Number.isFinite(own) || own <= ageNow) return null;
+  const ages = [];
+  for (let a = own - AGE_SPAN; a <= own + AGE_SPAN; a++) if (a > ageNow) ages.push(a);
+  const order = ages.filter(a => a !== own).sort((a, b) => Math.abs(a - own) - Math.abs(b - own) || a - b);
+  return { own, ages, order };
+}
+/* the plan retiring at another age, every other input its own */
+export const atAge = (plan, a) => ({ ...plan, demographics: { ...plan.demographics, retireAgeSelf: a } });
 /* what a dial position adds to the solve's key beyond lambda (src/solverKey.js): nothing at position 1 */
 export const dialSettings = (plan, variant = APP_DIAL_VARIANT) => (dialOf(plan) > 1 ? { dial: { variant, lock: 'base', ...(variant === 'B3a' ? { ageWeight: APP_AGE_WEIGHT } : {}) } } : {});
 

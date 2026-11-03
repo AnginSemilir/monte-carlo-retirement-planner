@@ -52,6 +52,13 @@ export function explanationWords(h) {
 
 export const raiseWords = r => (r ? WORDS.raise(r) : null);
 
+/* the dial's live line (PART-C-WORDING.md section 3; Phase 10, item 3): the headline's figures at one of its settings */
+export function dialLineWords(h, fmt) {
+  const start = h.case === 'atTarget' ? `start at your full target, ${fmt(h.startSpend)}` : `start at ${fmt(h.startSpend)} (${pct(h.startLevel)} of target)`;
+  const back = h.case === 'atTarget' ? '' : h.case === 'never' ? ', below target on a typical run' : `, back at target by ${h.backYear}`;
+  return `${start}${back}; chance your money lasts ${pct(h.survival)}`;
+}
+
 /* this year's actions and the next years', in the playbook's words (the launch plan's Phase 9, items 4 and 5) */
 const DRAW = { 'pa-half': 'up to half your personal allowance', pa: 'up to your personal allowance', 'basic-mid': 'up to the middle of the basic-rate band', basic: 'up to the basic-rate limit', hr: 'up to the higher-rate taper threshold' };
 const WRAP = { pa: 'your personal allowance', basic: 'the basic-rate limit', hr: 'the higher-rate taper threshold', pam: 'half your personal allowance', bm: 'the middle of the basic-rate band' };
@@ -78,6 +85,20 @@ export function aheadWords(row, { fmt }) {
   if (p.tierPen) notes.push(PART_WORDS.tierPen(p.tierPen));
   if (p.tierIsa) notes.push(PART_WORDS.tierIsa(p.tierIsa));
   return { when: `${row.year} (age ${row.age})`, spend: row.spend > 0 ? `${fmt(row.spend)} (${pct(100 * p.level)})` : 'still working', notes: notes.join('; ') || 'as the year before' };
+}
+/* the audit table's action column (Phase 10, item 7): one year's move, short, the spending first where the year has a target;
+   null in a year the table chose no move */
+const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
+const SHORT_WRAP = { pa: 'the personal allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
+export function ledgerWords(p, spending) {
+  if (!p) return null;
+  const w = [];
+  if (spending) w.push(`spend ${pct(100 * p.level)}`);
+  if (p.draw !== 'none') w.push(p.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[p.draw] || p.draw}`);
+  if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
+  if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);
+  if (p.tierIsa) w.push(`ISA ${steps(p.tierIsa)} safer`);
+  return w.join(' · ') || 'as planned';
 }
 export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';
 

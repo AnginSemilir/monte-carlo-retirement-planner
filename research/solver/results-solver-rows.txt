@@ -1,0 +1,42 @@
+=========== S126 (solved in 72 s) ===========
+  ok  1. S126: 'expected' is simulateDeterministic of the solved plan, 40 rows field for field
+  ok  1. S126: its verdict is evaluateRows on the solved plan's context (survived true, the pot left 2101829)
+  ok  1. S126: history from 1929 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  ok  1. S126: history from 1966 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  ok  2. S126: each year's spending level is the engine row's (40 years with a move, 0 without; 0 differ)
+  ok  2. S126: each year's tiers are those the row holds after the move (0 differ)
+  ok  3. S126: the result crosses to the page whole (structuredClone)
+=========== S188 (solved in 70 s) ===========
+  ok  1. S188: 'expected' is simulateDeterministic of the solved plan, 41 rows field for field
+  ok  1. S188: its verdict is evaluateRows on the solved plan's context (survived true, the pot left 260631)
+  ok  1. S188: history from 1929 is simulateHistorical of the solved plan, row for row, with its verdict (survived false)
+  ok  1. S188: history from 1966 is simulateHistorical of the solved plan, row for row, with its verdict (survived false)
+  ok  2. S188: each year's spending level is the engine row's (41 years with a move, 0 without; 0 differ)
+  ok  2. S188: each year's tiers are those the row holds after the move (0 differ)
+  ok  3. S188: the result crosses to the page whole (structuredClone)
+=========== 4. THE WORDS ===========
+  ok  4. S126's levels move over the years on the expected path (80%, 110%), so a plant that repeats year 0 shows
+  ok  4. a retired year's words lead with its spending level ("spend 80% · pension 3 steps safer · ISA 3 steps safer")
+  ok  4. a working year's words do not speak of spending ("as planned")
+  ok  4. no move gives no words; a move doing nothing beyond the plan reads "as planned"
+=========== THE PLANTS ===========
+  -- planted: the first year's move given for every year (expected to FAIL) --
+  ok  1. S126 [rowsfirst]: 'expected' is simulateDeterministic of the solved plan, 40 rows field for field
+  ok  1. S126 [rowsfirst]: its verdict is evaluateRows on the solved plan's context (survived true, the pot left 2101829)
+  ok  1. S126 [rowsfirst]: history from 1929 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  ok  1. S126 [rowsfirst]: history from 1966 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  FAIL 2. S126 [rowsfirst]: each year's spending level is the engine row's (40 years with a move, 0 without; 39 differ)
+  FAIL 2. S126 [rowsfirst]: each year's tiers are those the row holds after the move (1 differ)
+  ok  3. S126 [rowsfirst]: the result crosses to the page whole (structuredClone)
+  ok  the plant 'rowsfirst' (the first year's move given for every year) is caught: 2 checks failed
+  -- planted: the market ignored for the expected path (expected to FAIL) --
+  ok  1. S126 [rowsexp]: 'expected' is simulateDeterministic of the solved plan, 40 rows field for field
+  ok  1. S126 [rowsexp]: its verdict is evaluateRows on the solved plan's context (survived true, the pot left 2101829)
+  FAIL 1. S126 [rowsexp]: history from 1929 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  FAIL 1. S126 [rowsexp]: history from 1966 is simulateHistorical of the solved plan, row for row, with its verdict (survived true)
+  ok  2. S126 [rowsexp]: each year's spending level is the engine row's (40 years with a move, 0 without; 0 differ)
+  ok  2. S126 [rowsexp]: each year's tiers are those the row holds after the move (0 differ)
+  ok  3. S126 [rowsexp]: the result crosses to the page whole (structuredClone)
+  ok  the plant 'rowsexp' (the market ignored for the expected path) is caught: 2 checks failed
+
+ALL PASS: 20

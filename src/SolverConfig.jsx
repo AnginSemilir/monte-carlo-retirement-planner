@@ -10,7 +10,8 @@
  * change re-solves (src/useSolver.js). Every position offered has been measured (PHASE-8.md); the defaults are the candidate's.
  */
 import React from 'react';
-import { APP_DIAL, APP_FLOOR } from './solverSettings.js';
+import { APP_DIAL, APP_FLOOR, dialOrder, atDial } from './solverSettings.js';
+import { FiguresList } from './SolverFigures.jsx';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
@@ -85,7 +86,20 @@ function SolveLine({ solve, onRequest }) {
   );
 }
 
-export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge, onSolveRequest = null, ui }) {
+/*
+ * THE DIAL'S LIVE LINE (Part C Phase 10, item 3; PART-C-WORDING.md section 3): under the dial, the headline's figures at the
+ * plan's own setting, from the solve in hand; on request ("Show the four settings") the other settings worked out in the
+ * background, nearest first along the dial (src/SolverFigures.jsx FiguresList; a setting's base comes from the store, so a
+ * setting costs one solve). The figures belong to the plan at the Low setting, so choosing another setting keeps them.
+ */
+function DialLive({ plan, solve, cuts, seed, upto, engine, opts, fmt }) {
+  return (
+    <FiguresList plan={plan} solve={solve} own={cuts} options={APP_DIAL.map(x => ({ id: x, label: DIAL_LABELS[x], plan: atDial(plan, x) }))} order={dialOrder(cuts)}
+      sig={JSON.stringify(atDial(plan, 1))} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="dial" showLabel="Show the four settings" keyedId={1} />
+  );
+}
+
+export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge, onSolveRequest = null, ui, seed = 12345, upto = 2000, engine = null, opts = null }) {
   const { PhoneCollapse, MoneyInput, fieldCls } = ui;
   const a = { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}) };
   const set = patch => patchSolver(setPlan, 'aims', patch);
@@ -100,6 +114,7 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
       <Row Fine={ui.Fine} title="How much do you dislike cuts?" isPhone={isPhone}
         help="Low: protect against running out, even if spending dips for a while. High: keep spending steadier, accepting a higher chance of running out. Low is the default.">
         <Choice isPhone={isPhone} name="cuts" value={a.cuts} onChange={v => set({ cuts: v })} options={APP_DIAL.map(x => [x, DIAL_LABELS[x] || `${x}x`])} />
+        {engine && <DialLive plan={plan} solve={solve} cuts={APP_DIAL.includes(a.cuts) ? a.cuts : 1} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} />}
       </Row>
       <Row Fine={ui.Fine} title="How much the estate matters" isPhone={isPhone}
         help="The solver weighs what you leave against what you spend. Lower gives the estate half the weight, so the plan spends a little more and leaves a little less.">

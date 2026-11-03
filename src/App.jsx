@@ -8742,10 +8742,24 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const scrollToDocSection = (id) => {
     const el = document.getElementById(id); if (!el) return;
     el.scrollIntoView({ behavior: 'smooth' });
-    // The Documentation tab fills in its contents list after first paint, which pushes every card down
-    // by the list's height once the scroll is already under way, so a link could land 200px short of
-    // its card. Look once more when the list is in, and correct if the card moved.
-    setTimeout(() => { const e = document.getElementById(id); if (e && Math.abs(e.getBoundingClientRect().top) > 24) e.scrollIntoView({ behavior: 'auto' }); }, 700);
+    // The Documentation tab fills in its contents list after first paint, which moves every card once the
+    // scroll is already under way, and when that happens depends on how fast the page loads: one look at
+    // 700ms left the card 30 to 40px past the top on a slow machine (4x CPU throttling, 2 runs in 6). So
+    // for the next two and a half seconds, each time the card has come to rest away from the top, put it
+    // back; a wheel, touch or key from the reader ends it.
+    let stop = false, last = null, n = 0;
+    const quit = () => { stop = true; };
+    const evs = ['wheel', 'touchstart', 'keydown'];
+    evs.forEach(t => window.addEventListener(t, quit, { passive: true }));
+    const look = () => {
+      const e = document.getElementById(id);
+      if (stop || !e || ++n > 25) { evs.forEach(t => window.removeEventListener(t, quit)); return; }
+      const top = Math.round(e.getBoundingClientRect().top);
+      if (top === last && Math.abs(top) > 2) e.scrollIntoView({ behavior: 'auto' });
+      last = top;
+      setTimeout(look, 100);
+    };
+    setTimeout(look, 300);
   };
   /*
    * WHAT IS IN THE REFERENCE, BEFORE YOU SCROLL THROUGH IT.

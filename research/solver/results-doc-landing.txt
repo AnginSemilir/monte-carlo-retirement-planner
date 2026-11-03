@@ -1,0 +1,21 @@
+Where the lookahead's Documentation link lands (desktop-reach-ui.cjs's check: the card's top in [-24, 260) px), 3 Nov.
+
+B1's gate on c5370be (18:16 UTC), its switch-off pass: desktop-reach FAILED that one check, "Preparing for a One-off Cost
+at -36px". Three re-runs of desktop-reach against the gate's own build straight after: -21, -15, -21px (pass). The run was
+stopped at 18:45: it could no longer print ALL REQUIRED GREEN.
+
+The cause: scrollToDocSection (src/App.jsx) smooth-scrolls to the card and corrects once, at 700ms; the Documentation tab
+fills in its contents list after first paint, and when it does depends on how fast the page loads, so on a slow page the card
+moved after the one correction. Reproduced by research/ui-harnesses/doc-landing.cjs (desktop-reach's steps before the click
+repeated, the page's CPU throttled 4 times, the switch off):
+
+c5370be's build, unthrottled (6 runs): -15, 0, 0, 0, 0, 0
+c5370be's build, 4x (6 runs):          0, -20, -44, 0, -3, -32   (2 of 6 outside)
+c5370be's build, 4x (8 runs, the committed script):  tops -32, -38, 0, -36, 0, 0, 0, 0; outside [-24, 260): 3 of 8
+
+The fix: for two and a half seconds after the click, each time the card has come to rest away from the top it is put back; a
+wheel, touch or key from the reader ends it.
+
+the fix, 4x (10 runs):    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+the fix, unthrottled (6): 0, 0, 0, 0, 0, 0
+the fix, 4x (8 runs, the committed script):  tops 0, 0, 0, 0, 0, 0, 0, 0; outside [-24, 260): 0 of 8

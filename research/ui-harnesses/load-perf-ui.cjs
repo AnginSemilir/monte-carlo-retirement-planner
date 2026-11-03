@@ -55,7 +55,15 @@ const BEFORE = { content: 2203, js: 214 };
  * is engine code the app will use, not a dependency, so the ceiling moves to the new figure plus the
  * same headroom. The solver itself stays a lazy chunk (Part C), and this line is where it is checked.
  */
-const JS_CEILING = 226;
+/*
+ * RAISED TO 228 on 3 Nov 2026, the maintainer's call (D57): Part C Phase 10's switch-on build read 229KB at B1's gate. Most of
+ * that was the regression this exists for - App.jsx's static import of ledgerWords had pulled the solver's wording table into
+ * the entry - fixed by loading it with the solved ledger (229 to 227). The last kilobyte is Phase 10's own switch-on code in
+ * App.jsx (the solved ledger's toggle, the lazy cards' wiring, the spending beside survival); Phase 9 already sat at 226. The
+ * byte count is deterministic, so the ceiling is the measured 227 plus one: the solver's cards stay lazy chunks, and a
+ * dependency pulled into the entry still fails here.
+ */
+const JS_CEILING = 228;
 /*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so

@@ -162,3 +162,16 @@ The harness `solver-projection-ui.cjs` covers the projection, the dials, the Sim
   scenseed, exactly five checks failed, each its plant's, and every other check passed, section 1 among them; the sixth
   plant, histexp, was shown failing alone (item 7).
 - The whole harness runs again on the release head in B1's gate, both modes.
+
+## B1's gate on b307f02 (3 Nov, 13:39 to 17:20 UTC)
+
+- The switch off: ALL REQUIRED GREEN, the projection harness among them. The switch on: two REQUIRED failed. `phone`: on an
+  iPhone 13 the Simple page's Figures tab ran 115px past its pane, the solved plan's answers card inline on a tab that is one
+  screen with no scroll. `load-perf`: 229KB of javascript against the 226KB ceiling, App.jsx's static import of `ledgerWords`
+  having pulled the whole wording table into the page's entry.
+- Fixed in d04b443 (`results-phone-sheet.txt`): on a phone the answers open in a sheet from a button beside the export, the
+  export's height, the sheet kept mounted so a search carries on (a desktop keeps the card inline); the phone harness checks
+  it in both modes, all ok, and fails on its plant (the button doing nothing) on all four device-theme runs and nowhere else.
+  The ledger's words load with the solved ledger and the history note is a lazy card: 227KB. The last kilobyte is Phase 10's
+  own switch-on code; the maintainer moved the ceiling to 228 (D57).
+- The gate again on the new release head, both modes.

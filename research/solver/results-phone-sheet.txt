@@ -34,3 +34,6 @@ phone-ui.cjs's new check (the Simple page, both device profiles, both themes):
       FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
       FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
     4 FAILED
+
+D57 (3 Nov, the maintainer): load-perf's javascript ceiling moved to 228KB (the measured 227 plus one), with a dated note in
+load-perf-ui.cjs; the gate runs again on the new release head.

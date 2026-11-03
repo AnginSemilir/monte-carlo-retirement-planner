@@ -92,7 +92,7 @@ const runProjection = async p => {
     ok('switch off: the audit table is your plan\'s ledger with no action column, and history has no out-of-model check', ledger === 'yours' && acts.length === 0 && !oom, `ledger ${ledger}, action cells ${acts.length}, out-of-model ${!!oom}`);
     ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close(); }
-  { const { SIMPLE_BLANK } = await load('src/simplePlan.js');
+  { const { SIMPLE_BLANK } = await load('research/simplePlan.mjs');
     const c = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await c.newPage();
     await c.addInitScript(sp => { localStorage.setItem('rp_simple_v1', JSON.stringify(sp)); localStorage.setItem('rp_which_app', JSON.stringify('simple')); }, { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000 });
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
@@ -294,7 +294,7 @@ const runProjection = async p => {
     if (want('6')) {
     // 6. item 5: the Simple page's answers from the solver
     {
-      const { SIMPLE_BLANK, toFullPlan } = await load('src/simplePlan.js');
+      const { SIMPLE_BLANK, toFullPlan } = await load('research/simplePlan.mjs');
       const { highestTarget, earliestAge } = await load('src/solverSearch.js');
       const simple = { ...SIMPLE_BLANK, ageSelf: 56, retireSelf: 60, spend: 26000, pen: 420000, isa: 90000, cash: 15000, statePensionSelf: 11500 };
       const ctxS = await b.newContext({ viewport: { width: 1400, height: 1100 } }), p = await ctxS.newPage(), errs = [];

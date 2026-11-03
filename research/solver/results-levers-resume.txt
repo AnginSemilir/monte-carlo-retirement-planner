@@ -1,0 +1,4 @@
+PASS  1. an empty folder: 16 units to run
+PASS  2. RESUME=1: units 1 2 3 4 5 6 7 9 10 11 12 13 14 15 to run (kept: the whole B3a unit 0 and B3b unit 8; run again: 1 and 9 without their last arm, 2 under another stamp, the rest with no log)
+PASS  3. planted, any three done lines: unit 1 (B3a without its last arm) kept; units 2 3 4 5 6 7 9 10 11 12 13 14 15 to run
+ALL PASS: 3 checks

@@ -1,0 +1,5 @@
+PASS  1. split 2 ways, each part running the skips on its share of 120 paths: every skip and cost the whole run's (level 0.8 (skip 12: 0.00, lost 1, saved 1))
+PASS  1. split 3 ways, each part running the skips on its share of 120 paths: every skip and cost the whole run's (level 0.8 (skip 12: 0.00, lost 1, saved 1))
+PASS  2. planted, part 1 leaving out its first path: refused (joinSkipRuns: a part ran other than its paths, so they do not meet in path order)
+
+ALL PASS: 3

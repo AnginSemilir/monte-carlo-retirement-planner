@@ -1,0 +1,96 @@
+L5'S COST-YEAR TRACE (EXPLORATORY): S368 c30y10; seed 7002, 3000 paths, 45 points; code 9273130d7c86, candidate d71f65ae871e
+
+S368 c30y10: a cost of £285,000 (30% of £950,000) in year 9; APP "ISA First, lump sum", cost order cash > other > isa > penAny; CANDD solved in 896 s
+  APP: the traced engine the same as the engine on 3000 of 3000 paths; survival 79.47%
+  CANDD: the traced engine the same as the engine on 3000 of 3000 paths; survival 99.47%
+  runPolicy beside the engine on CANDD's first 1000 paths: the engine alone 0, runPolicy alone 0
+  Paths where both arms survive: 2384 of 3000
+    APP:
+      the year before, at its end: pension £1,322,043 (median £1,077,064, 10th to 90th £532,573 to £2,435,812); ISAs £9,900 (median £8,406, 10th to 90th £0 to £22,381); the GIA £13,647 (median £10,266, 10th to 90th £2,655 to £30,614); cash £247,909 (median £262,109, 10th to 90th £193,647 to £268,910)
+      the cost paid from cash: £247,804 (median £262,109, 10th to 90th £193,647 to £268,910)
+      the cost paid from other: £10,275 (median £9,863, 10th to 90th £2,392 to £18,966)
+      the cost paid from isa: £9,800 (median £8,174, 10th to 90th £0 to £22,265)
+      the cost paid from penAny: £17,121 (median £5,644, 10th to 90th £0 to £64,253); its gross pension draw £23,899 (median £5,644, 10th to 90th £0 to £90,882)
+      the cost unpaid: £0 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £46,309 (median £28,689, 10th to 90th £12,570 to £128,861), its taxable part £46,309 (median £28,689, 10th to 90th £12,570 to £128,861); income tax and CGT £11,931 (median £3,301, 10th to 90th £1,253 to £49,487)
+    CANDD:
+      the year before, at its end: pension £1,060,654 (median £1,018,476, 10th to 90th £771,207 to £1,393,006); ISAs £24,441 (median £21,506, 10th to 90th £19,583 to £35,020); the GIA £96,990 (median £96,214, 10th to 90th £61,120 to £131,596); cash £9,581 (median £9,576, 10th to 90th £9,412 to £9,757)
+      the cost paid from isa: £24,431 (median £21,497, 10th to 90th £19,580 to £35,020)
+      the cost paid from cash: £9,581 (median £9,576, 10th to 90th £9,412 to £9,757)
+      the cost paid from other: £96,835 (median £96,214, 10th to 90th £61,120 to £131,546)
+      the cost paid from penPA: £16,760 (median £16,760, 10th to 90th £16,760 to £16,760); its gross pension draw £16,760 (median £16,760, 10th to 90th £16,760 to £16,760)
+      the cost paid from penBasic: £35,131 (median £35,136, 10th to 90th £35,136 to £35,136); its gross pension draw £41,451 (median £41,456, 10th to 90th £41,456 to £41,456)
+      the cost paid from penHR: £50,464 (median £50,705, 10th to 90th £50,705 to £50,705); its gross pension draw £74,754 (median £75,117, 10th to 90th £75,117 to £75,117)
+      the cost paid from penAny: £51,798 (median £54,199, 10th to 90th £17,242 to £80,710); its gross pension draw £88,164 (median £92,345, 10th to 90th £34,600 to £133,769)
+      the cost unpaid: £0 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £257,600 (median £260,641, 10th to 90th £210,550 to £299,587), its taxable part £193,200 (median £195,481, 10th to 90th £157,913 to £224,690); income tax and CGT £82,846 (median £82,870, 10th to 90th £69,716 to £95,916)
+      the moves chosen in the cost year (the five most common, of 2384): C 110% t11 1185; C 110% t33 424; C 110% t22 399; I 110% t11 116; PPA 110% t11 100
+  Paths where both alive at the cost year (no shortfall before year 9): 2564 of 3000
+    APP:
+      the year before, at its end: pension £1,254,571 (median £1,009,604, 10th to 90th £466,114 to £2,400,362); ISAs £10,595 (median £9,606, 10th to 90th £0 to £22,505); the GIA £12,956 (median £9,615, 10th to 90th £2,161 to £29,497); cash £240,368 (median £261,418, 10th to 90th £170,062 to £268,669)
+      the cost paid from cash: £240,270 (median £261,418, 10th to 90th £170,062 to £268,669)
+      the cost paid from other: £9,822 (median £9,257, 10th to 90th £1,977 to £18,688)
+      the cost paid from isa: £10,501 (median £9,446, 10th to 90th £0 to £22,381)
+      the cost paid from penAny: £24,154 (median £6,331, 10th to 90th £0 to £88,153); its gross pension draw £36,363 (median £6,331, 10th to 90th £0 to £145,746)
+      the cost unpaid: £253 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £58,981 (median £29,545, 10th to 90th £12,570 to £173,592), its taxable part £58,981 (median £29,545, 10th to 90th £12,570 to £173,592); income tax and CGT £17,863 (median £3,471, 10th to 90th £1,301 to £70,959)
+    CANDD:
+      the year before, at its end: pension £1,031,294 (median £994,303, 10th to 90th £725,497 to £1,381,775); ISAs £24,808 (median £21,632, 10th to 90th £19,613 to £35,341); the GIA £94,480 (median £93,738, 10th to 90th £57,683 to £130,414); cash £9,574 (median £9,568, 10th to 90th £9,403 to £9,753)
+      the cost paid from isa: £24,799 (median £21,629, 10th to 90th £19,608 to £35,341)
+      the cost paid from cash: £9,574 (median £9,568, 10th to 90th £9,403 to £9,753)
+      the cost paid from other: £94,335 (median £93,738, 10th to 90th £57,683 to £130,289)
+      the cost paid from penPA: £16,760 (median £16,760, 10th to 90th £16,760 to £16,760); its gross pension draw £16,760 (median £16,760, 10th to 90th £16,760 to £16,760)
+      the cost paid from penBasic: £35,132 (median £35,136, 10th to 90th £35,136 to £35,136); its gross pension draw £41,451 (median £41,456, 10th to 90th £41,456 to £41,456)
+      the cost paid from penHR: £50,481 (median £50,705, 10th to 90th £50,705 to £50,705); its gross pension draw £74,780 (median £75,117, 10th to 90th £75,117 to £75,117)
+      the cost paid from penAny: £53,919 (median £56,454, 10th to 90th £18,208 to £83,226); its gross pension draw £91,509 (median £95,869, 10th to 90th £36,110 to £137,701)
+      the cost unpaid: £0 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £260,314 (median £263,594, 10th to 90th £211,970 to £302,074), its taxable part £195,236 (median £197,696, 10th to 90th £158,977 to £226,555); income tax and CGT £83,651 (median £83,945, 10th to 90th £70,114 to £96,632)
+      the moves chosen in the cost year (the five most common, of 2564): C 110% t11 1191; C 110% t33 456; C 110% t22 409; I 110% t11 117; PPA 110% t11 101
+
+
+S188 c30y3: a cost of £285,000 (30% of £950,000) in year 7; APP "Bracket Fill, lump sum", cost order cash > other > isa > penAny; CANDD solved in 660 s
+  APP: the traced engine the same as the engine on 3000 of 3000 paths; survival 69.80%
+  CANDD: the traced engine the same as the engine on 3000 of 3000 paths; survival 84.87%
+  runPolicy beside the engine on CANDD's first 1000 paths: the engine alone 0, runPolicy alone 0
+  Paths where both arms survive: 2092 of 3000
+    APP:
+      the year before, at its end: pension £1,246,035 (median £1,078,494, 10th to 90th £650,772 to £2,056,647); ISAs £164,552 (median £153,880, 10th to 90th £110,605 to £232,776); the GIA £29,193 (median £27,910, 10th to 90th £21,415 to £38,691); cash £248,303 (median £257,308, 10th to 90th £201,806 to £276,680)
+      the cost paid from cash: £248,084 (median £257,308, 10th to 90th £201,806 to £276,680)
+      the cost paid from other: £20,782 (median £22,332, 10th to 90th £8,320 to £29,635)
+      the cost paid from isa: £16,003 (median £0, 10th to 90th £0 to £60,695)
+      the cost paid from penAny: £131 (median £0, 10th to 90th £0 to £0); its gross pension draw £138 (median £0, 10th to 90th £0 to £0)
+      the cost unpaid: £0 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £13,804 (median £12,570, 10th to 90th £12,570 to £12,570), its taxable part £13,804 (median £12,570, 10th to 90th £12,570 to £12,570); income tax and CGT £1,060 (median £508, 10th to 90th £0 to £2,464)
+    CANDD:
+      the year before, at its end: pension £1,084,464 (median £1,061,247, 10th to 90th £866,805 to £1,340,345); ISAs £171,360 (median £169,923, 10th to 90th £151,168 to £196,069); the GIA £70,986 (median £59,392, 10th to 90th £44,418 to £125,656); cash £22,722 (median £22,715, 10th to 90th £22,309 to £23,142)
+      the cost paid from cash: £22,525 (median £22,694, 10th to 90th £22,263 to £23,126)
+      the cost paid from other: £53,897 (median £54,545, 10th to 90th £26,686 to £76,788)
+      the cost paid from isa: £169,813 (median £168,892, 10th to 90th £149,712 to £191,103)
+      the cost paid from penPA: £14,585 (median £16,760, 10th to 90th £2,514 to £16,760); its gross pension draw £14,585 (median £16,760, 10th to 90th £2,514 to £16,760)
+      the cost paid from penBasic: £20,940 (median £26,456, 10th to 90th £0 to £35,136); its gross pension draw £24,682 (median £31,154, 10th to 90th £0 to £41,456)
+      the cost paid from penHR: £3,240 (median £0, 10th to 90th £0 to £13,474); its gross pension draw £4,737 (median £0, 10th to 90th £0 to £19,671)
+      the cost paid from penAny: £0 (median £0, 10th to 90th £0 to £0); its gross pension draw £0 (median £0, 10th to 90th £0 to £0)
+      the cost unpaid: £0 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £84,522 (median £83,727, 10th to 90th £41,446 to £131,234), its taxable part £63,391 (median £62,795, 10th to 90th £31,085 to £98,425); income tax and CGT £17,231 (median £15,585, 10th to 90th £7,188 to £30,023)
+      the moves chosen in the cost year (the five most common, of 2092): C 80% t33 1230; PPA 110% t33 241; I 80% t33 177; PPA 80% t33 175; C 110% t33 87
+  Paths where both alive at the cost year (no shortfall before year 7): 3000 of 3000
+    APP:
+      the year before, at its end: pension £1,046,365 (median £894,794, 10th to 90th £449,740 to £1,851,393); ISAs £148,998 (median £137,227, 10th to 90th £97,719 to £216,739); the GIA £26,403 (median £25,304, 10th to 90th £17,784 to £36,590); cash £228,217 (median £247,617, 10th to 90th £151,416 to £273,546)
+      the cost paid from cash: £228,064 (median £247,617, 10th to 90th £151,416 to £273,546)
+      the cost paid from other: £20,468 (median £21,063, 10th to 90th £11,319 to £28,616)
+      the cost paid from isa: £33,089 (median £10,478, 10th to 90th £0 to £101,057)
+      the cost paid from penAny: £3,354 (median £0, 10th to 90th £0 to £7,039); its gross pension draw £4,291 (median £0, 10th to 90th £0 to £7,039)
+      the cost unpaid: £25 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £24,456 (median £12,570, 10th to 90th £12,570 to £59,653), its taxable part £24,456 (median £12,570, 10th to 90th £12,570 to £59,653); income tax and CGT £4,723 (median £610, 10th to 90th £0 to £13,036)
+    CANDD:
+      the year before, at its end: pension £996,354 (median £983,852, 10th to 90th £748,496 to £1,280,947); ISAs £162,752 (median £163,447, 10th to 90th £133,054 to £191,314); the GIA £63,599 (median £55,110, 10th to 90th £37,671 to £115,903); cash £22,622 (median £22,621, 10th to 90th £22,170 to £23,093)
+      the cost paid from cash: £22,460 (median £22,607, 10th to 90th £22,132 to £23,078)
+      the cost paid from other: £51,557 (median £51,239, 10th to 90th £27,950 to £74,989)
+      the cost paid from isa: £161,553 (median £162,207, 10th to 90th £131,876 to £186,657)
+      the cost paid from penPA: £15,190 (median £16,760, 10th to 90th £10,649 to £16,760); its gross pension draw £15,190 (median £16,760, 10th to 90th £10,649 to £16,760)
+      the cost paid from penBasic: £24,577 (median £35,136, 10th to 90th £0 to £35,136); its gross pension draw £28,978 (median £41,456, 10th to 90th £0 to £41,456)
+      the cost paid from penHR: £9,077 (median £0, 10th to 90th £0 to £31,526); its gross pension draw £13,327 (median £0, 10th to 90th £0 to £46,168)
+      the cost paid from penAny: £583 (median £0, 10th to 90th £0 to £0); its gross pension draw £1,078 (median £0, 10th to 90th £0 to £0)
+      the cost unpaid: £2 (median £0, 10th to 90th £0 to £0)
+      the year: gross pension drawn £103,738 (median £101,473, 10th to 90th £48,818 to £166,236), its taxable part £77,803 (median £76,105, 10th to 90th £36,613 to £124,677); income tax and CGT £23,747 (median £20,344, 10th to 90th £7,708 to £47,389)
+      the moves chosen in the cost year (the five most common, of 3000): C 80% t33 1637; I 80% t33 255; PPA 110% t33 241; PPA 80% t33 230; C 80% 161

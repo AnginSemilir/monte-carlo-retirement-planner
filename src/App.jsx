@@ -6938,6 +6938,8 @@ const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
 const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
+// Part C Phase 9's Strategy tab (src/SolverStrategy.jsx), fetched only when the switch is on for a single household
+const SolverStrategyCard = /* @__PURE__ */ lazy(() => import('./SolverStrategy.jsx').then(m => ({ default: m.SolverStrategy })));
 /*
  * THE TABS, ONCE.
  *
@@ -8490,8 +8492,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * the head of the deck says when the inputs have moved on.
    */
   const [runPlanSig, setRunPlanSig] = useState(null);
-  const planSig = useMemo(() => { try { return JSON.stringify(plan); } catch { return null; } }, [plan]);
+  // under the switch a single household's figures also go stale when the plan's solve lands (Part C Phase 10, item 2)
+  const planSig = useMemo(() => { try { return JSON.stringify(plan) + (solverRules ? `|${solve.solveState === 'solved' ? solve.key : 'unsolved'}` : ''); } catch { return null; } }, [plan, solverRules, solve.solveState, solve.key]);
   const resultsStale = !!simResult && !!runPlanSig && runPlanSig !== planSig;
+  // stale only because the plan's solve has landed since the run (the plan itself unchanged): said so, not as changed inputs
+  const sigBase = sg => (sg && solverRules ? sg.slice(0, sg.lastIndexOf('|')) : sg);
+  const staleBySolve = resultsStale && solverRules && sigBase(runPlanSig) === sigBase(planSig);
   const [safeMaxResult, setSafeMaxResult] = useState(null);
   const [safeRetireResult, setSafeRetireResult] = useState(null);
   const [isSolvingRetire, setIsSolvingRetire] = useState(false);
@@ -10181,7 +10187,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const rerunNote = () => {
     const parts = [];
-    if (resultsStale) parts.push('Re-run: changed plan inputs');
+    if (resultsStale) parts.push(staleBySolve ? 'Re-run: the solved plan is ready' : 'Re-run: changed plan inputs');
     if (isSandboxModified) parts.push('Sandbox simulated on its own \u00b7 Apply to plan to fold it into these figures');
     if (!parts.length) return null;
     return (
@@ -10204,7 +10210,15 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       onProgress: (f) => setSimProgress({ label, value: scale.from + (scale.to - scale.from) * f })
     });
     if (mcCancelRef.current || !stats) return null;
-    const res = { ...stats, spend: ctx.targetSpend };
+    let res = { ...stats, spend: ctx.targetSpend };
+    // Part C Phase 10, item 2: under the switch a single household's projection is the solved plan, on the same paths, with
+    // your plan's survival beside it; where the solved plan's run fails the projection keeps your plan's (F16)
+    if (solverRules && solve.solveState === 'solved' && solve.ask && solve.solveMeta && !solve.solveMeta.error) {
+      try {
+        const { stats: solvedStats } = await solve.ask('simulate', { trials: MC_TRIALS, seed: mcSeed, collectPaths: true });
+        if (!mcCancelRef.current && solvedStats) res = { ...solvedStats, spend: ctx.targetSpend, solvedKey: solve.key, yours: { successRate: stats.successRate, medianTerminal: stats.medianTerminal, p10Terminal: stats.p10Terminal } };
+      } catch (err) { /* the solved plan's run failed: your plan's figures stand */ }
+    }
     setSimResult(res);
     return res;
   };
@@ -13866,7 +13880,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
-                  {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
+                  {resultsStale && staleBySolve && <span data-stale-results="solve" className="block text-[11px] font-semibold text-amber-700 mb-0.5">The solved plan is ready since this run: run again to see it.</span>}
+                  {resultsStale && !staleBySolve && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
                   {/* The deck is three steps on a desktop and eight on a phone, so this sentence cannot
                       be written once and be true - it counts them. On a phone it also says where the
                       steps are, because they are in a bar above the navigation rather than on the card.
@@ -13952,9 +13967,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* ---------------- 1. TOPLINE ---------------- */}
               {showKey('topline') && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(slideNo('topline'), 'Your plan as entered', `Spending ${formatGBP(simResult.spend)} a year to age ${terminalAge}.`)}
+                  {slideHead(slideNo('topline'), simResult.yours ? 'The solved plan' : 'Your plan as entered', simResult.yours ? `Your target of ${formatGBP(simResult.spend)} a year to age ${terminalAge}, the solver choosing each year's spending and moves.` : `Spending ${formatGBP(simResult.spend)} a year to age ${terminalAge}.`)}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-semibold font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-semibold font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span>{simResult.yours && <span data-solver-yours={simResult.yours.successRate} data-solver-survival={simResult.successRate} className="text-[10px] text-slate-500 block mt-0.5">as you are now: {simResult.yours.successRate.toFixed(1)}%</span>}{simResult.yours && simResult.spend > 0 && <span data-solver-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(simResult.medianRealisedSpend)} a year ({Math.round((100 * simResult.medianRealisedSpend) / simResult.spend)}% of target)</span>}</div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pot at retirement</span><span className="text-xl font-semibold text-indigo-700">{formatGBP(timelineData.find(r => r.ageSelf === ctx.owners[0].retireAge)?.totalCombined)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">age {ctx.owners[0].retireAge}, expected path</span></div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(simResult.medianTerminal)}</span>{ctx.pensionDeathTaxRate > 0 && <span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">net of death tax {formatGBP(simResult.medianTerminalNet)}</span>}</div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Unlucky pot @ {terminalAge}</span><span className="text-xl font-semibold text-rose-700">{formatGBP(simResult.p10Terminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">one plan in ten ends below</span></div>
@@ -14426,8 +14441,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
-        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is */}
-        {activeTab === 'strategy' && (
+        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is. Under the switch a single household's
+            tab is the solved plan (Part C Phase 9, src/SolverStrategy.jsx); a couple's plan, and a solve that failed, keep the
+            tournament below (D42; the launch plan's F16) */}
+        {activeTab === 'strategy' && solverRules && (
+          <Suspense fallback={<div data-solver-strategy data-strategy-state="loading" className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600">Loading your plan&hellip;</div>}>
+            <SolverStrategyCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} onRetry={() => setPlan(p => ({ ...p }))} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} {...(SOLVER_OPTS && SOLVER_OPTS.strategySteps ? { steps: SOLVER_OPTS.strategySteps } : {})} {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})} />
+          </Suspense>
+        )}
+        {activeTab === 'strategy' && SOLVER && !solverRules && (
+          <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the strategy tournament below.</p>
+        )}
+        {activeTab === 'strategy' && (!solverRules || (solve.solveMeta && solve.solveMeta.error)) && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
               <Fine isPhone={isPhone} label="What this is"

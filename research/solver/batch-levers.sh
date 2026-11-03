@@ -7,15 +7,26 @@
 #   PREDICTION="none:EXPLORATORY, L4: the dial's positions in both variants (D51 B3, D52 R1 R2)" research/solver/run-from-snapshot.sh bash research/solver/batch-levers.sh
 set -u
 SEED=7002
-OUT=research/solver/results/levers-$SEED
+OUT=${LEVERS_OUT:-research/solver/results/levers-$SEED}; export LEVERS_OUT="$OUT"   # LEVERS_OUT: levers-resume.test.mjs's scratch folder
 # A launch needs an empty folder; RESUME=1 (after a container restart) keeps a unit only when its log's stamp names this code
-# and these files and the log holds the unit's last done line, re-running every other unit.
+# and these files and the log holds a done line for every arm of the unit (audit-levers.mjs GROUPS: a B3a unit four, a B3b
+# unit three; before 2 Nov any three, the reviewer at L4's read, MINOR 2), re-running every other unit. TODO_ONLY=1 prints
+# the stamp and the units to run, and stops (levers-resume.test.mjs).
 mkdir -p "$OUT"
 if [ -n "$(ls -A "$OUT")" ] && [ "${RESUME:-0}" != 1 ]; then echo "$0: $OUT is not empty; a launch needs an empty folder (RESUME=1 keeps the units done on this code)"; exit 2; fi
 CODE=$(node research/solver/code-id.mjs)
 AUDIT=$(cd research/solver && cat audit-levers.mjs reduce-levers.mjs audit-curve.mjs reduce-curve.mjs audit-phase4.mjs phase4-panel.mjs select-phase4.mjs candidate.mjs candidate.json phase4-panel.json | sha256sum | cut -c1-12)   # audit-levers.mjs's STAMP_FILES, in order
 NU=$(node research/solver/audit-levers.mjs --units | tail -1)
-TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && [ "$(grep -cE '^ +done ' "$f")" -ge 3 ]; } || echo "$k"; done)
+ARMS_OF=$(node --input-type=module -e "
+import { unitsOf, GROUPS } from './research/solver/audit-levers.mjs'; import { HOUSEHOLDS } from './research/solver/audit-curve.mjs';
+const only = process.env.LEVERS_ONLY ? new Set(process.env.LEVERS_ONLY.split(',')) : null;
+unitsOf(HOUSEHOLDS.filter(id => !only || only.has(id))).forEach(([, g], k) => console.log(k + ' ' + GROUPS[g].join(' ')));")
+[ "$(printf '%s\n' "$ARMS_OF" | grep -c .)" = "$NU" ] || { echo "$0: the units' arms ($(printf '%s\n' "$ARMS_OF" | grep -c .)) are not the audit's $NU units"; exit 2; }
+TODO=$(printf '%s\n' "$ARMS_OF" | while read -r k arms; do f="$OUT/case$k.txt"; keep=0
+  [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && keep=1
+  for a in $arms; do [ $keep = 1 ] && grep -qE "^ +done $a secs " "$f" || keep=0; done
+  [ $keep = 1 ] || echo "$k"; done)
+if [ "${TODO_ONLY:-0}" = 1 ]; then echo "stamp: code $CODE audit $AUDIT"; echo "todo: $(echo $TODO)"; exit 0; fi
 echo "L4, the dial's positions (EXPLORATORY): $NU units on seed $SEED (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, ${JOBS:-4} at a time, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
 printf '%s\n' $TODO | grep . | xargs -P "${JOBS:-4}" -I{} sh -c \
   "research/solver/run-unit.sh node research/solver/audit-levers.mjs 4000 part {}/$NU $SEED > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""

@@ -89,6 +89,15 @@ survival is not below B3b's by more than a quarter point (the interval's lower e
 the direction check on B3a (24 tests: eight households, three steps) reverses nowhere, so the dial at launch is B3a at 1, 3,
 6 and 10; B3b's check, reported, reverses nowhere either. The code already runs B3a (`APP_DIAL_VARIANT`): nothing in it
 changes.
+The `reviewer` at the read: PASS (`reviews/2026-11-02-read-L4.md`), two MINORs, fixed on the working branch (they reach
+`main` with the next pull request): (1) no test pinned the variant or the age weights, every test building its expected
+value from the constants: `dial-variant.test.mjs` (the full tier) reads R1's and R2's verdicts from `results-levers.txt`
+and the weights from `audit-levers.mjs`, and fails on a copy of the settings with 'B3b' and on one with the mode at 91
+(`results-dial-variant.txt`); the decided-defaults block and a FAST pin need an unlock (D53), offered to the maintainer;
+(2) `batch-levers.sh`'s resume kept a log with any three done lines, so a B3a unit stopped after its third arm would have
+been kept (not hit: every B3a log holds four): a unit is now kept only with a done line for every one of its arms, and
+`levers-resume.test.mjs` (the full tier) shows it, the rule before failing (`results-levers-resume.txt`). The pattern
+search: every other batch keeps a unit on one done line, and each of their units runs one arm.
 
 ## L5. One-off costs on singles (EXPLORATORY, seed 7002)
 
@@ -102,6 +111,17 @@ candidate under the switch and M12's remedy is not built. The `reviewer` at the 
 its MINORs reported to the maintainer: the cost year's tax (a lead, not a cause: the audit records no draws by account),
 S368's early cells uninformative (the cost before pension access sinks it under either policy), and no `runPolicy` check;
 a second run of `audit-costs.mjs` records the cost year's draws by account and runs `runPolicy` beside the engine.
+
+The cost-year trace (2 Nov, EXPLORATORY, the maintainer's go-ahead; `trace-costs.mjs`, `results-trace-costs.txt`): S368
+c30y10 and S188 c30y3 re-run as L5 ran them, 45 points, 3,000 paths, the cost year recorded by wrapper from a copy of the
+engine hooked in its cost loop (the same as the engine on every path of both arms). `runPolicy` against the engine on
+CANDD's first 1,000 paths: no path differs in either cell (MINOR 3). What paid the cost, on the paths where both arms
+survive: arm A takes the lump sum at access and holds it in cash, and pays the cost almost wholly from that cash; the
+candidate, with no lump-sum route (B12), holds little cash, empties its ISA, GIA and cash first, and draws the rest from
+the pension in that one year, a quarter of each draw tax-free, so its cost-year tax is the higher. A separate cost order
+(M12's remedy) would not reach either cell: the candidate already pays from every wrapper outside the pension before the
+pension. Beside it, a lead and nothing more: on S368 the candidate's move in the cost year is a 110% spending year on most
+paths, paid at that year's top rates; on S188 it is mostly the floor.
 
 ## Batches and the gate
 

@@ -5,7 +5,9 @@
  *                                                                                   // opts: null in the app (a harness's light
  *                                                                                   // settings in a preview build, PHASE-8.md)
  *
- * key: the key of the solve in hand (Phase 8's state line carries it, for its harness). storeNote: why the solve in hand was
+ * key: the key of the solve in hand (Phase 8's state line carries it, for its harness). ask(kind, extra): the question to the
+ * worker that holds the solve in hand (src/solverWorker.js: 'strategy', for the Strategy tab, Phase 9), present once solved;
+ * strategy(plan, seed, upto) the same figures with the paths shared across a split solve's parts (src/solverClient.js). storeNote: why the solve in hand was
  * not kept on this device (the store's quota, say; src/solverCache.js), or null. A dial position above 1 solves its base
  * first (step L2; src/solverClient.js baseOf).
  * solveState: 'idle' (the switch off, or nothing solved yet), 'solving', 'solved', or 'stale' (the plan changed since its
@@ -23,6 +25,7 @@ export const loadSolverClient = () => import('./solverClient.js');
 if (typeof window !== 'undefined') window.__solverHarness = loadSolverClient;
 
 const QUIET_MS = 800;
+let isolationAsked = false;
 
 export function useSolver(plan, enabled, engine, opts = null) {
   const [state, setState] = useState({ solveState: 'idle', solveMeta: null, progress: null, key: null, storeNote: null });
@@ -32,6 +35,9 @@ export function useSolver(plan, enabled, engine, opts = null) {
     let live = true;
     const timer = setTimeout(async () => {
       const client = await loadSolverClient();
+      // with the first solve the page asks for cross-origin isolation, so later solves can split (Phase 10, B5): where the
+      // host sends no headers, a service worker adds them and the page reloads once (src/isolation.js)
+      if (!isolationAsked) { isolationAsked = true; client.ensureIsolation(); }
       const key = await client.keyOf(engine, plan, opts || {});
       if (!live || key === jobKey.current) return;
       setState(s => (s.solveState === 'idle' && !s.solveMeta ? s : { ...s, solveState: 'stale' }));
@@ -44,7 +50,7 @@ export function useSolver(plan, enabled, engine, opts = null) {
       setState(s => ({ ...s, solveState: 'solving', progress: null, key, storeNote: null }));
       try {
         const res = await h.done;
-        if (job.current === h) setState({ solveState: 'solved', solveMeta: { ...res, key }, progress: null, key, storeNote: kept });
+        if (job.current === h) setState({ solveState: 'solved', solveMeta: { ...res, key }, progress: null, key, storeNote: kept, ask: (kind, extra) => h.ask(kind, extra), strategy: (pl, seed, upto) => h.strategy(pl, seed, upto), actions: (pl, seed, n) => h.actions(pl, seed, n) });
       } catch (e) {
         if (job.current === h && e.message !== 'cancelled') { jobKey.current = null; setState({ solveState: 'idle', solveMeta: { error: e.message }, progress: null, key }); }
       }

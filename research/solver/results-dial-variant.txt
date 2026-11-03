@@ -1,0 +1,23 @@
+== DIAL_VARIANT_PLANT=
+PASS  1. the dial's variant B3a; R1 and R2 decided B3a
+PASS  2. the dial's positions 1, 3, 6, 10; R2 kept 1, 3, 6, 10
+PASS  3. the age weights {"mode":90,"disp":9}; L4's B3a arms ran {"mode":90,"disp":9}
+PASS  4. aimsOptions at 3, 6, 10: lambda times the position, the layer loop, the age weights {"mode":90,"disp":9}
+PASS  5. the key's dial part at 3, 6, 10: B3a, locked to the base, the age weights {"mode":90,"disp":9}; nothing at 1
+ALL PASS: 5 checks
+== DIAL_VARIANT_PLANT=b3b
+(planted: b3b)
+FAIL  1. the dial's variant B3b; R1 and R2 decided B3a
+PASS  2. the dial's positions 1, 3, 6, 10; R2 kept 1, 3, 6, 10
+PASS  3. the age weights {"mode":90,"disp":9}; L4's B3a arms ran {"mode":90,"disp":9}
+FAIL  4. aimsOptions at 3, 6, 10: lambda times the position, the layer loop, the age weights {"mode":90,"disp":9}; differs at 3 {"lambda":0.06708203932499371,"tsOnce":false}; 6 {"lambda":0.13416407864998742,"tsOnce":false}; 10 {"lambda":0.223606797749979,"tsOnce":false}
+FAIL  5. the key's dial part at 3, 6, 10: B3a, locked to the base, the age weights {"mode":90,"disp":9}; nothing at 1; differs at 3 {"variant":"B3b","lock":"base"}; 6 {"variant":"B3b","lock":"base"}; 10 {"variant":"B3b","lock":"base"}
+FAILED: 3 of 5 checks
+== DIAL_VARIANT_PLANT=weight
+(planted: weight)
+PASS  1. the dial's variant B3a; R1 and R2 decided B3a
+PASS  2. the dial's positions 1, 3, 6, 10; R2 kept 1, 3, 6, 10
+FAIL  3. the age weights {"mode":91,"disp":9}; L4's B3a arms ran {"mode":90,"disp":9}
+FAIL  4. aimsOptions at 3, 6, 10: lambda times the position, the layer loop, the age weights {"mode":90,"disp":9}; differs at 3 {"lambda":0.06708203932499371,"tsOnce":false,"ageWeight":{"mode":91,"disp":9}}; 6 {"lambda":0.13416407864998742,"tsOnce":false,"ageWeight":{"mode":91,"disp":9}}; 10 {"lambda":0.223606797749979,"tsOnce":false,"ageWeight":{"mode":91,"disp":9}}
+FAIL  5. the key's dial part at 3, 6, 10: B3a, locked to the base, the age weights {"mode":90,"disp":9}; nothing at 1; differs at 3 {"variant":"B3a","lock":"base","ageWeight":{"mode":91,"disp":9}}; 6 {"variant":"B3a","lock":"base","ageWeight":{"mode":91,"disp":9}}; 10 {"variant":"B3a","lock":"base","ageWeight":{"mode":91,"disp":9}}
+FAILED: 3 of 5 checks

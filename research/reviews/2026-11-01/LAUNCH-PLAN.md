@@ -928,13 +928,18 @@ Stop only at section 5's stops.
 
 ### 7a. The prompt of 3 Nov: step U
 
-The maintainer sends it. The two lines under "The maintainer's answers" are the maintainer's own words, each to keep or
-strike:
+The maintainer sends it, now or once Phase 10 has merged, and before step P ends: after P the agent would start Phase
+11 as first planned. The lines under "The maintainer's answers" are the maintainer's own words:
 - **The first** adopts the headline's two back lines (L12). Struck, B4's two lines stay as they are; the rest of
   LAYOUT.md section 8 applies either way.
 - **The second** sets load-perf's ceilings for step U (LAYOUT.md section 11.2). Struck, every run is held at 228KB.
   The new planner's first load fetches Your plan's chunk, so it will likely be over that, and step U would stop at its
   gate.
+- **The third** lets the agent move the pin in CLAUDE.md, a protected file. The pre-tool hook honours it only while it
+  is the maintainer's latest message, so a message sent before step 2 means the agent asks again.
+
+Step 1 holds every other push until Phase 10 merges. Full runs one at a time per branch, and a later push replaces the
+run waiting on the gate's commit (`.github/workflows/full.yml`), which would put the merge back by hours.
 
 ```
 Read research/reviews/2026-11-03/LAYOUT.md, and in research/reviews/2026-11-01/LAUNCH-PLAN.md step U, the recast
@@ -944,15 +949,19 @@ The maintainer's answers:
 - The headline's two back lines change to LAYOUT.md section 8's words (L12).
 - load-perf on step U's build: a classic run over 228KB moves its ceiling to the measured figure plus one, up to
   232KB; the new planner's first load gets its own ceiling the same way, its measured figure plus one.
+- Unlock enforcement for exactly the launch plan's pin in CLAUDE.md.
 
-1. Record as D58: the maintainer's answers above; step U, the new planner as LAYOUT.md specifies it, after step P and
-   before Phase 11, with B4's two back lines and load-perf's ceilings changed only where an answer above says so;
-   Phases 11 and 12 and Part D's D5 as recast. Move the launch plan's pin in STATE.md and CLAUDE.md to that commit.
-2. Finish Phase 10 on B1's gate, then step P, as planned.
-3. Then step U by LAYOUT.md section 12, U1 to U10, each with its test; solver-planner-ui.cjs REQUIRED, its plants in
+1. Finish Phase 10 on B1's gate as planned. Until it merges, push nothing to the branch but Phase 10's own fixes: a
+   later push replaces the Full run waiting on the gate's commit (full.yml).
+2. Then record as D58: the maintainer's answers above; step U, the new planner as LAYOUT.md specifies it, after step P
+   and before Phase 11, with B4's two back lines and load-perf's ceilings changed only where an answer above says so;
+   Phases 11 and 12 and Part D's D5 as recast. Move the launch plan's pin in STATE.md and CLAUDE.md to the review
+   branch's head you read.
+3. Then step P, as planned.
+4. Then step U by LAYOUT.md section 12, U1 to U10, each with its test; solver-planner-ui.cjs REQUIRED, its plants in
    one run. Merge on B1's gate. When it merges, send me the preview link and the screenshots: a report, not a stop.
-4. Then Phase 11 and Phase 12 as recast, each on B1's gate.
-5. Where LAYOUT.md and the code disagree on a fact, the code holds: say so in the pull request and carry on. A change
+5. Then Phase 11 and Phase 12 as recast, each on B1's gate.
+6. Where LAYOUT.md and the code disagree on a fact, the code holds: say so in the pull request and carry on. A change
    LAYOUT.md does not specify that would move a figure or a default is a stop.
 
 Stop only at section 5's stops.

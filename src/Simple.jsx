@@ -15,6 +15,8 @@ import { Hint } from './glossary.jsx';
 // Part C Phase 10, item 5: under the solver's switch, for one person, the solved plan's own answers, searched for when asked
 // (src/SolverSimple.jsx), fetched only then
 const SolverSimpleCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverSimple })));
+// on a phone, the same card in a sheet opened from beside the export (the Figures tab has no room for it)
+const SolverSimpleSheet = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverSimpleSheet })));
 // every curve the page can show: the expected path and both edges of each band, computed together
 const CURVE_ZS = [...new Set([0, ...Object.values(BAND_QUANTILES).flatMap(v => (v.z ? [-v.z, v.z] : []))])];
 
@@ -1062,6 +1064,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   };
 
   const mc = res?.mc, ss = res?.safeSpend, sa = res?.safeAge;
+  // on a phone under the switch, for one person, the solved plan's answers open in a sheet from beside the export
+  const phoneSheet = isPhone && solverSwitch().on && !s.couple;
   /*
    * The rate-based chart has its own end-of-plan figures and CANNOT produce the Monte Carlo ones: a
    * survival rate, a safe spend and an earliest retirement age are all counts over simulated paths, and
@@ -1443,19 +1447,25 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-900', !mc)}
               </>}
             </div>
-            {solverSwitch().on && !s.couple && (
+            {solverSwitch().on && !s.couple && !isPhone && (
               <Suspense fallback={null}>
                 <SolverSimpleCard s={s} toFull={toFullPlan} fromSpend={ss && ss.spend ? ss.spend : null} engine={ENGINE} opts={solverSwitch().opts} fmt={GBP} />
               </Suspense>
             )}
-            {/* the export is the year-by-year projection, which both views are drawn from */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+            {/* the export is the year-by-year projection, which both views are drawn from; on a phone under the switch the
+                solved plan's answers sit beside it, in one row the export's height, and open in a sheet */}
+            <div className={`flex items-center text-[11px] text-slate-500 ${phoneSheet ? 'gap-2' : 'flex-wrap gap-x-4 gap-y-1'}`}>
               {!isPhone && runNotes()}
               <button type="button" onClick={exportCsv} disabled={!timeline}
                 className={`flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40 ${
-                  isPhone ? 'w-full justify-center min-h-11 text-xs' : 'ml-auto px-2.5 py-1'}`}>
-                <Download className="w-3 h-3" /> Export the year-by-year figures
+                  phoneSheet ? 'flex-1 min-w-0 justify-center min-h-11 text-xs text-center leading-tight px-2' : isPhone ? 'w-full justify-center min-h-11 text-xs' : 'ml-auto px-2.5 py-1'}`}>
+                <Download className="w-3 h-3 shrink-0" /> Export the year-by-year figures
               </button>
+              {phoneSheet && (
+                <Suspense fallback={null}>
+                  <SolverSimpleSheet s={s} toFull={toFullPlan} fromSpend={ss && ss.spend ? ss.spend : null} engine={ENGINE} opts={solverSwitch().opts} fmt={GBP} />
+                </Suspense>
+              )}
             </div>
 
             <Fine isPhone={isPhone} dot label="Tax, how the money is drawn, and the small print">

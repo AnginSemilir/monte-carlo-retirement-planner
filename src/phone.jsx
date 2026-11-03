@@ -18,6 +18,10 @@ import { TermPlain } from './glossary.jsx';
 import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 
+// a portal to the body for a lazy chunk's sheet, so the chunk need not import react-dom itself (which splits it out of the
+// page's entry into a request of its own)
+export const toBody = node => createPortal(node, document.body);
+
 /*
  * A CHART, AS BIG AS THE SCREEN GETS.
  *

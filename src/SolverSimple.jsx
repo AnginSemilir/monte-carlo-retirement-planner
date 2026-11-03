@@ -12,6 +12,7 @@
  * same of its own plan, at the survival it is set to (src/App.jsx; item 2's rest).
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { toBody } from './phone.jsx';
 import { highestTarget, earliestAge, SEARCH_MOST, SEARCH_GOAL } from './solverSearch.js';
 import { atSpend, atAge } from './solverSettings.js';
 
@@ -91,6 +92,44 @@ export function SolverSimple({ s, toFull, fromSpend, engine, opts, fmt, seed = 1
     <SolverAnswers sig={JSON.stringify(s)} atSpend={x => toFull({ ...s, spend: x })} atAge={a => toFull({ ...s, retireSelf: a })}
       fromSpend={fromSpend || Number(s.spend) || 20000} fromAge={Number(s.retireSelf)} after={Number(s.ageSelf)} last={Number(s.terminalAge || 95) - 1}
       engine={engine} opts={opts} fmt={fmt} seed={seed} name="simple" />
+  );
+}
+
+/*
+ * On a phone the Simple page's Figures tab is one screen with no scroll, and it has no room for the card (on a 664px iPhone
+ * it ran 115px past its pane). So there the card is a button beside the export, the same height as it, and the card opens in
+ * a sheet of its own. The sheet stays mounted once opened, hidden when closed, so a search in flight carries on and its
+ * answers are there when it is opened again.
+ */
+export function SolverSimpleSheet(props) {
+  const [open, setOpen] = useState(false);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = e => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+  return (
+    <>
+      <button type="button" data-simple-solver-open aria-expanded={open} onClick={() => { setSeen(true); setOpen(true); }}
+        className="shrink-0 flex items-center justify-center px-3 min-h-11 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 text-xs font-semibold cursor-pointer">
+        The solved plan&apos;s answers
+      </button>
+      {seen && toBody(
+        <div role="dialog" aria-modal="true" aria-label="The solved plan's answers" data-simple-solver-sheet={open ? 'open' : 'closed'}
+          className={`fixed inset-0 z-[55] bg-surface fill-viewport flex flex-col ${open ? '' : 'hidden'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-200 shrink-0">
+            <span className="text-sm font-semibold text-slate-900 truncate">The solved plan&apos;s answers</span>
+            <button type="button" data-simple-solver-close onClick={() => setOpen(false)} aria-label="Close the solved plan's answers"
+              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 cursor-pointer shrink-0 text-lg leading-none">
+              &times;
+            </button>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto p-3"><SolverSimple {...props} /></div>
+        </div>
+      )}
+    </>
   );
 }
 

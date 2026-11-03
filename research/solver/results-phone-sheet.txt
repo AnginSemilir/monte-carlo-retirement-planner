@@ -1,0 +1,36 @@
+B1's gate on b307f02 (3 Nov, 13:39 to 17:20 UTC): the switch off ALL REQUIRED GREEN; the switch on, two REQUIRED failed:
+  phone      FAIL (1): the Simple page's Figures tab on the iPhone 13 (390x664), 115px past the pane, light and dark: the
+             solved plan's answers card (126px) inline on a one-screen tab with 11px to spare
+  load-perf  FAIL (1): 229KB of javascript over the wire against the 226KB ceiling: App.jsx's static import of ledgerWords
+             pulled the whole of solverWords.js into the page's entry (the Strategy tab's chunk 4008 bytes gzipped on Phase
+             9's build, 2532 on b307f02's)
+
+The fixes (the working branch, uncommitted when measured):
+  - on a phone the card opens in a sheet from a button beside the export, the export's height (src/SolverSimple.jsx
+    SolverSimpleSheet, the portal through phone.jsx's toBody so the chunk does not split react-dom out of the entry); on a
+    desktop the card stays inline as before
+  - the ledger's action words computed when the solved ledger arrives, solverWords.js loaded then (its own chunk)
+  - the history tab's out-of-model check a lazy card (src/SolverFigures.jsx SolverHistory)
+
+The page's entry, gzip -9 bytes of index.js (the switch on, the harnesses' light settings):
+  Phase 9 (725c661) 226361; b307f02 229796; fixed 227908
+load-perf on the fixed switch-on build: 227KB over the wire over 3 script/style requests (ceiling 226): still FAILS by 1KB,
+  the rest being Phase 10's own switch-on code in App.jsx (to the maintainer: the ceiling)
+
+phone-ui.cjs's new check (the Simple page, both device profiles, both themes):
+  the fixed switch-on build:  672 ok, 0 FAIL (all ok)
+      ok    the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":true,"closed":true}
+      ok    the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":true,"closed":true}
+      ok    the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":true,"closed":true}
+      ok    the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":true,"closed":true}
+  the fixed switch-off build: 672 ok, 0 FAIL (all ok)
+      ok    the switch off: the Simple page offers no solved plan's answers   {"btn":false,"inline":false}
+      ok    the switch off: the Simple page offers no solved plan's answers   {"btn":false,"inline":false}
+      ok    the switch off: the Simple page offers no solved plan's answers   {"btn":false,"inline":false}
+      ok    the switch off: the Simple page offers no solved plan's answers   {"btn":false,"inline":false}
+  the plant (the switch on, the sheet's button doing nothing): 4 FAILED, each the new check and nothing else
+      FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
+      FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
+      FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
+      FAIL  the switch on: the solved plan's answers open from beside the export, in a sheet that keeps them when closed   {"btn":true,"h":44,"row":true,"inline":false,"opened":false,"closed":false}
+    4 FAILED

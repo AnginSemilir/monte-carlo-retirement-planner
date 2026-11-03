@@ -157,6 +157,7 @@ const navigate = async (page, label, short) => {
       console.log(`\n${devName} @ ${theme} (${desc.viewport.width}x${desc.viewport.height})`);
       ok('the pointer is coarse', await p.evaluate(() => matchMedia('(pointer: coarse)').matches));
 
+      let solverOn = false; // the switch on, read from the Strategy tab (its solved plan's card): the Simple page's check below
       for (const [label, offMarker, short, onMarker] of TABS) {
         const via = await navigate(p, label, short);
         // 'top' means it fell back to the hidden desktop strip: the phone route is broken.
@@ -167,6 +168,7 @@ const navigate = async (page, label, short) => {
         if (onMarker) await p.waitForFunction(() => !!document.querySelector('[data-solver-strategy]') || /tournament/i.test(document.body.innerText), null, { timeout: 5000 }).catch(() => {});
         const text = await p.evaluate(() => document.body.innerText);
         const marker = onMarker && await p.evaluate(() => !!document.querySelector('[data-solver-strategy]')) ? onMarker : offMarker;
+        if (onMarker && marker === onMarker) solverOn = true;
         ok(`${label}: renders its own content`, marker.test(text), marker.test(text) ? '' : text.slice(0, 50).replace(/\n/g, ' '));
         const over = await p.evaluate(OVERFLOW_PROBE);
         ok(`${label}: no sideways scroll`, over <= 1, `${over}px`);
@@ -604,6 +606,33 @@ const navigate = async (page, label, short) => {
         const b = [...document.querySelectorAll('button')].find(x => /Export the year-by-year/.test(x.textContent));
         return !!b && !b.closest('details') && b.getBoundingClientRect().height >= 44;
       }), '');
+      /*
+       * Part C Phase 10, item 5, on a phone: the Figures tab has no room for the solved plan's answers (the card ran 115px past
+       * the 664px pane), so with the switch on they open from a button beside the export, its height, in a sheet of their own
+       * that keeps a search going when closed. With the switch off there is no such button.
+       */
+      const sheet = await p.evaluate(async () => {
+        const btn = document.querySelector('[data-simple-solver-open]');
+        if (!btn) return { btn: false, inline: !!document.querySelector('[data-simple-solver]') };
+        const exp = [...document.querySelectorAll('button')].find(x => /Export the year-by-year/.test(x.textContent));
+        const rb = btn.getBoundingClientRect(), re = exp ? exp.getBoundingClientRect() : null;
+        const inline = !!document.querySelector('[data-simple-solver]');
+        btn.click();
+        await new Promise(r => setTimeout(r, 800));
+        const sh = document.querySelector('[data-simple-solver-sheet]');
+        const opened = !!sh && sh.dataset.simpleSolverSheet === 'open' && sh.getBoundingClientRect().height > 0 && !!sh.querySelector('[data-simple-solver] [data-simple-solver-ask]');
+        const close = document.querySelector('[data-simple-solver-close]');
+        if (close) close.click();
+        await new Promise(r => setTimeout(r, 400));
+        const closed = !!sh && sh.dataset.simpleSolverSheet === 'closed' && sh.getBoundingClientRect().height === 0 && !!sh.querySelector('[data-simple-solver]');
+        return { btn: true, h: Math.round(rb.height), row: !!re && Math.abs(rb.top - re.top) < 2, inline, opened, closed };
+      });
+      if (solverOn) {
+        ok('the switch on: the solved plan\'s answers open from beside the export, in a sheet that keeps them when closed',
+          sheet.btn && sheet.h >= 44 && sheet.row && !sheet.inline && sheet.opened && sheet.closed, JSON.stringify(sheet));
+      } else {
+        ok('the switch off: the Simple page offers no solved plan\'s answers', !sheet.btn && !sheet.inline, JSON.stringify(sheet));
+      }
       // textContent, not innerText: it sits inside the fold, and innerText leaves closed details out
       ok('...and the beta notice with the numbers it qualifies',
          /not financial advice/.test(await p.evaluate(() => document.body.textContent)), '');

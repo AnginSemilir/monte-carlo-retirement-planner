@@ -156,3 +156,18 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
     </div>
   );
 }
+
+/*
+ * Phase 10, item 7: under the switch the backtest runs the solved plan, and says what it is: the check outside the model the
+ * plan was solved in, with your plan's verdict on the same history beside it. Its own chunk, with the solver's other cards,
+ * not the page's entry.
+ */
+export function SolverHistory({ verdict, start, yours, floor, fmt }) {
+  return (
+    <div className="p-4 bg-surface border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-1" data-history-solved={verdict.survived ? 'survived' : 'failed'} data-history-start={start} data-history-terminal={verdict.terminalPot} data-history-yours={yours && yours.survived ? 'survived' : 'failed'}>
+      <div className="font-bold text-indigo-900 text-sm">The out-of-model check: the solved plan through real history</div>
+      <p>The solver worked your plan out on the model&apos;s markets. This runs the solved plan through what markets actually did from {start} instead, outside that model: a check on the plan, not a forecast.</p>
+      {yours && <p>Your plan as you are now, on the same history: {yours.survived ? <strong>the money lasts</strong> : <strong>{yours.failReason === 'floor' ? `ends below the ${fmt(floor)} floor` : `runs short at age ${yours.failAge}`}</strong>}, ending with {fmt(yours.terminalPot)}.</p>}
+    </div>
+  );
+}

@@ -35,7 +35,6 @@ import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
 import EditMode from './EditMode.jsx';
 import { useSolverState } from './solverState.js';
-import { ledgerWords } from './solverWords.js';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
 // The engine section is framework-free and unit-tested; the UI section starts at "export default function App".
@@ -6944,6 +6943,8 @@ const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').t
 const SolverAgesCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverAges })));
 // Phase 10, item 6: each scenario compared carries a solve, on request
 const SolverScenariosCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverScenarios })));
+// Phase 10, item 7: the history tab's out-of-model check, loaded when there is a solved plan's run through history to show
+const SolverHistoryCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverHistory })));
 // Phase 10, item 2's rest: the solved plan's highest target and earliest age on the "Spend and date" step, on request
 const SolverPlanAnswersCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverPlanAnswers })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
@@ -8919,7 +8920,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const key = solve.key, want = activeTab === 'audit' ? 'expected' : activeTab === 'historical' ? activeHistoricalStartYear : null;
     if (want === null || (solvedRows.key === key && (want === 'expected' ? solvedRows.expected : solvedRows.hist[want]))) return undefined;
     let live = true;
-    solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } })
+    // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
+    const asked = solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } });
+    (want === 'expected'
+      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0)) } }))
+      : asked)
       .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
       .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });
     return () => { live = false; };
@@ -10209,7 +10214,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const handleExportCSV = () => {
     if (!auditRows.length) return;
     const headers = ['Year', 'Age (Myself)', 'Age (Partner)', 'Working (Myself)', 'Working (Partner)', 'Target Spend (£)', 'Net Guaranteed Income (£)', 'Working Partner Take-home (£)', 'State Pension (Myself £)', 'State Pension (Partner £)', 'Net Drawdown Demand (£)', 'Pension Withdrawals Gross (£)', 'PA Harvested (£)', 'Income Tax (£)', 'CGT (£)', 'Realised Gains (£)', 'Pensions (£)', 'ISAs (£)', 'Other Investments (£)', 'Cash Savings (£)', 'Total Combined Pot (£)', 'Pre-SIPP access Liquid (£)', 'Unmet (£)', 'Status', ...(auditRun ? ['Action (the solved plan)'] : [])];
-    const rows = auditRows.map((r, i) => [r.year, r.ageSelf, isCouple ? r.agePart : 'N/A', r.workingSelf ? 'Yes' : 'No', isCouple ? (r.workingPart ? 'Yes' : 'No') : 'N/A', r.targetSpend.toFixed(0), r.netGuaranteed.toFixed(0), r.workingTakeHome.toFixed(0), r.spSelf.toFixed(0), isCouple ? r.spPart.toFixed(0) : '0', r.netDrawdown.toFixed(0), r.drawdownPensions.toFixed(0), r.harvested.toFixed(0), r.taxPaid.toFixed(0), (r.cgtPaid || 0).toFixed(0), (r.realisedGains || 0).toFixed(0), r.pensions.toFixed(0), r.isas.toFixed(0), r.other.toFixed(0), r.cash.toFixed(0), r.totalCombined.toFixed(0), r.preNmpaLiquid.toFixed(0), r.unmetDemand.toFixed(0), r.preNmpaInsolvent ? 'Pre-SIPP access gap' : r.unmetDemand > E.FAIL_TOLERANCE ? 'Shortfall' : 'Solvent', ...(auditRun ? [`"${ledgerWords(auditRun.parts[i], r.targetSpend > 0) || ''}"`] : [])]);
+    const rows = auditRows.map((r, i) => [r.year, r.ageSelf, isCouple ? r.agePart : 'N/A', r.workingSelf ? 'Yes' : 'No', isCouple ? (r.workingPart ? 'Yes' : 'No') : 'N/A', r.targetSpend.toFixed(0), r.netGuaranteed.toFixed(0), r.workingTakeHome.toFixed(0), r.spSelf.toFixed(0), isCouple ? r.spPart.toFixed(0) : '0', r.netDrawdown.toFixed(0), r.drawdownPensions.toFixed(0), r.harvested.toFixed(0), r.taxPaid.toFixed(0), (r.cgtPaid || 0).toFixed(0), (r.realisedGains || 0).toFixed(0), r.pensions.toFixed(0), r.isas.toFixed(0), r.other.toFixed(0), r.cash.toFixed(0), r.totalCombined.toFixed(0), r.preNmpaLiquid.toFixed(0), r.unmetDemand.toFixed(0), r.preNmpaInsolvent ? 'Pre-SIPP access gap' : r.unmetDemand > E.FAIL_TOLERANCE ? 'Shortfall' : 'Solvent', ...(auditRun ? [`"${auditRun.words[i] || ''}"`] : [])]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const link = document.createElement('a'); link.setAttribute('href', encodeURI(csvContent)); link.setAttribute('download', `retirement_audit_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link); link.click(); link.remove();
@@ -15910,11 +15915,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {/* Part C Phase 10, item 7: under the switch the backtest runs the solved plan, and says what it is: the check outside
                 the model the plan was solved in, with your plan's verdict on the same history beside it */}
             {solvedHistory && (
-              <div className="p-4 bg-surface border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-1" data-history-solved={solvedHistory.verdict.survived ? 'survived' : 'failed'} data-history-start={activeHistoricalStartYear} data-history-terminal={solvedHistory.verdict.terminalPot} data-history-yours={yourHistoricalVerdict && yourHistoricalVerdict.survived ? 'survived' : 'failed'}>
-                <div className="font-bold text-indigo-900 text-sm">The out-of-model check: the solved plan through real history</div>
-                <p>The solver worked your plan out on the model's markets. This runs the solved plan through what markets actually did from {activeHistoricalStartYear} instead, outside that model: a check on the plan, not a forecast.</p>
-                {yourHistoricalVerdict && <p>Your plan as you are now, on the same history: {yourHistoricalVerdict.survived ? <strong>the money lasts</strong> : <strong>{yourHistoricalVerdict.failReason === 'floor' ? `ends below the ${formatGBP(ctx.solvencyFloor)} floor` : `runs short at age ${yourHistoricalVerdict.failAge}`}</strong>}, ending with {formatGBP(yourHistoricalVerdict.terminalPot)}.</p>}
-              </div>
+              <Suspense fallback={null}>
+                <SolverHistoryCard verdict={solvedHistory.verdict} start={activeHistoricalStartYear} yours={yourHistoricalVerdict} floor={ctx.solvencyFloor} fmt={formatGBP} />
+              </Suspense>
             )}
             {/* One column of four cards is 470px on a phone for three numbers and a verdict. The verdict
                 keeps the full width - it is a sentence - and the three figures go three across, which is
@@ -15965,7 +15968,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <td className="p-2 font-sans font-medium text-slate-700">{formatGBP(r.targetSpend)}</td>
                       {/* the solved plan's action this year (Phase 10, item 7): the spending level where the year has a target,
                           then what the move does beyond it, in the Strategy tab's words, shortened */}
-                      {auditRun && <td className="p-2 font-sans text-slate-700 min-w-[12rem]" data-audit-action={auditRun.parts[i] ? JSON.stringify(auditRun.parts[i]) : ''}>{ledgerWords(auditRun.parts[i], r.targetSpend > 0) || <span className="text-slate-300">&mdash;</span>}</td>}
+                      {auditRun && <td className="p-2 font-sans text-slate-700 min-w-[12rem]" data-audit-action={auditRun.parts[i] ? JSON.stringify(auditRun.parts[i]) : ''}>{auditRun.words[i] || <span className="text-slate-300">&mdash;</span>}</td>}
                       {/* What the spending rule did this year, and the multiplier it has left on the draw. Only
                           the rows where it acted carry a label, so the column reads as a list of events. */}
                       {!auditRun && !!plan?.config?.guardrails && <td className="p-2 font-sans" data-guardrail-cell>

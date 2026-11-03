@@ -20,7 +20,9 @@ D51 to D54.
     recorded as not met (D56), step P taking the chooser's cost per path first.
   - Phase 10 (`PHASE-10.md`): its seven items built on the branch, their harness runs in progress.
   - Then step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
-- **The research queue** (B7, EXPLORATORY): GAIN-BUCKET running (D49).
+- **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
+  unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
+  spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.
 - **Research options built, off by default, not run** (EXPLORATORY): the windfall split (`WINDFALL-SPLIT.md`), the
   savings split (`SAVINGS-SPLIT.md`), the age weights and the candidate's tiers (D48, wired by L2 under B3).
 
@@ -55,3 +57,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   at once.
 - A time box running out; a red CI not fixed within a session.
 - The reads of L4 and L5 (as reports; R1 to R3 decide them), and what R2 leaves off the dial.
+- **Open now: GAIN-BUCKET's v2 proposal (B7).** The gain axis interpolated (`gainInterp`) against the candidate's nearest
+  bucket: survival no effect beyond noise; spending up on two households and down on one, each tiny (`results-gainbucket.txt`;
+  the read's review, `reviews/2026-11-03-read-gainbucket.md`). The choice: a registered v2 test after the launch, or
+  declined as immaterial. Also reported: the run took about twice its pilot's core-hours.

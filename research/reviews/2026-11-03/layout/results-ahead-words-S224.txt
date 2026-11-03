@@ -1,11 +1,11 @@
-# node ahead-words.mjs results-figures-S224.txt: the next ten years in the proposed words (LAYOUT.md section 8)
+# node ahead-words.mjs results-extra-S224.txt: the next ten years in the proposed words (LAYOUT.md section 8)
 proposed: 2026 (age 55) | still working | nothing to change
-proposed: 2027 (age 56) | still working | nothing to change
+proposed: 2027 (age 56) | still working | Move your pension and ISA 1 step lower in risk
 proposed: 2028 (age 57) | still working | nothing to change
 proposed: 2029 (age 58) | still working | nothing to change
-proposed: 2030 (age 59) | still working | nothing to change
+proposed: 2030 (age 59) | still working | Move your pension and ISA 1 step further down in risk (2 below the risk you chose)
 proposed: 2031 (age 60) | £56,000 (80%) | Move pension money into your ISA, up to your personal allowance
-proposed: 2032 (age 61) | £56,000 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension and ISA 1 step lower in risk
-proposed: 2033 (age 62) | £56,000 (80%) | Take from your pension first, up to your personal allowance; Move your pension and ISA 1 step further down in risk (2 below the risk you chose)
-proposed: 2034 (age 63) | £56,000 (80%) | Move pension money into your ISA, up to your personal allowance
-proposed: 2035 (age 64) | £56,000 (80%) | Move pension money into your ISA, up to your personal allowance
+proposed: 2032 (age 61) | £56,000 (80%) | Take from your pension first, up to your personal allowance
+proposed: 2033 (age 62) | £56,000 (80%) | Take from your pension first, up to your personal allowance
+proposed: 2034 (age 63) | £56,000 (80%) | Take from your pension first, up to your personal allowance; Move pension money into your ISA, up to the basic-rate limit
+proposed: 2035 (age 64) | £56,000 (80%) | Take from your pension first, up to your personal allowance

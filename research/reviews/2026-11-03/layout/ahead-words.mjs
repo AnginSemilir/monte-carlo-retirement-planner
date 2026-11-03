@@ -1,8 +1,9 @@
 /*
- * THE NEXT TEN YEARS IN THE PROPOSED WORDS (LAYOUT.md section 8, finding L9): reads the "ahead:" lines figures.mjs printed
+ * THE NEXT TEN YEARS IN THE PROPOSED WORDS (LAYOUT.md section 8, finding L9): reads the "ahead:" lines of a results file
  * (each year's spending and its ledger words, src/solverWords.js ledgerWords) and prints each year as the proposed aheadWords
- * would say it. Nothing is computed beyond the words: the spending and every part are the lines' own.
- *   node ahead-words.mjs results-figures-S116.txt
+ * would say it. Nothing is computed beyond the words: the spending and every part are the lines' own. extra.mjs's lines are
+ * the path a first visit follows (picked over the first 2,000); figures.mjs's are picked over all its paths.
+ *   node ahead-words.mjs results-extra-S116.txt
  *
  * Today aheadWords says a wrapper's tier ("Move your pension 3 steps lower in risk") in every year it is below the plan's
  * own, so a tier held for nine years reads as nine moves, and a step back up reads as a further step down. The proposal says

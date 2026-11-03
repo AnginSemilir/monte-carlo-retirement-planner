@@ -11,7 +11,9 @@
  *     target by prepareForSolve, as the app solves a plan with none);
  *   - the Strategy tab's figures as the worker asks for them: src/solverStrategy.js strategyRuns over both arms on paths 0 to
  *     --paths, strategySummary on the first 2,000 (the first figures shown) and on all of them, aheadOf on those runs (ten
- *     years), actionsOf on 1,000 paths, src/solverDistil.js distilOf on 1,000;
+ *     years), actionsOf on 1,000 paths, src/solverDistil.js distilOf on 1,000. Note (3 Nov, after the run): the "ahead:"
+ *     lines pick the typical path over all --paths, the pick a later visit makes; a first visit picks over the first
+ *     2,000 (the Strategy tab asks after its first step), which extra.mjs prints, and the canvas uses extra.mjs's;
  *   - each put into words by src/solverWords.js, with the app's money format (App.jsx formatGBP: en-GB, pounds, no pence);
  *   - the outlook: the engine's monteCarlo with its paths (the bands the projection's fan draws), for the solved plan and for
  *     your plan, on 2,000 paths;

@@ -14,17 +14,21 @@ states. Where the canvas and this document differ, this document holds.
   - S116: 61, retired, the main example;
   - S224: 55, still working, for the age dial;
   - S090: 61, retired, at target.
-- `layout/ahead-words.mjs` prints the next ten years in section 8's proposed words, from those files' ledger lines;
+- `layout/extra.mjs` prints the typical run, the path the next ten years follow, picked as the app picks it on a first
+  visit: over the first 2,000 paths (`--ahead 2000`). It prints that path's levels year by year, its ten years
+  ("ahead:" lines) and the ledger on the expected returns: `layout/results-extra-S116.txt` and `-S224.txt`.
+  `layout/results-extra-S116-all5000.txt` is the pick a later visit makes, over all 5,000 (finding L12).
+  figures.mjs's own "ahead:" lines are picked over all 5,000, so the canvas does not use them.
+- `layout/ahead-words.mjs` prints the next ten years in section 8's proposed words, from extra.mjs's "ahead:" lines;
   `layout/headline-words.mjs` prints the headline's back line, today's and proposed.
-- `layout/extra.mjs` prints S116's typical run, year by year, and its ledger on the expected returns
-  (`layout/results-extra-S116.txt`).
 - `layout/chart-paths.mjs` scales S116's bands and typical run into the canvas's chart paths
   (`layout/results-chart-paths-S116.txt`).
 - `layout/costs.mjs` prints the cards' "what asking costs" lines from those files' timings (`layout/results-costs.txt`).
+- `layout/target-options.mjs` prints the target card's options and each example's current approach, from the library's
+  plans with no solve (`layout/results-target-options.txt`). S116, S224 and S090 run "Bracket Fill Basic" (shown as Tax
+  Smoothing), phased drawdown, guardrails off, the lookahead 5 years and the 0% harvest on; S090 also has an Auto
+  deposit.
 - Seed 7002; EXPLORATORY: a render of the screens' content, deciding nothing.
-- S116's and S224's runs printed their household lines before figures.mjs added the current approach's rules to them
-  (S090's has them). S116's rules, from the library's plan: the decumulation policy "Bracket Fill Basic" (shown as Tax
-  Smoothing), phased drawdown, guardrails off.
 - The canvas's buttons, labels and help texts are this document's words (section 8).
 
 **The main example, S116** (`results-figures-S116.txt`, the lines "headline words (all 5000)" and "compare (all
@@ -34,8 +38,8 @@ states. Where the canvas and this document differ, this document holds.
 - Chance your money lasts: 90%. Spending delivered over the plan: 92% of your target.
 - Against its current approach on the same 5,000 markets: survival 89.5% against 41.4%.
 - The canvas shows the back line in section 8's proposed words: "In half the markets you are back at your full target
-  by 2043 (17 years in)." (`results-headline-words-S116.txt`). Those two lines of B4's wording change only when the
-  maintainer adopts this document.
+  by 2043 (17 years in)." (`results-headline-words-S116.txt`). The headline's two back lines are B4's wording, so they
+  change only by the maintainer's word (the launch plan's section 7a).
 
 ## 0. In one page
 
@@ -60,8 +64,8 @@ of minutes on its own, with its own line.
 
 **Two planners.**
 - **The new planner** is the solver's, for a single household, behind B6's opt-in.
-- **The classic planner** is today's nine tabs, exactly as they are with the switch off: the app's rules, the
-  tournament, the sandbox. It is for couples (D42), for anyone who prefers it, and it is the yardstick: "your current
+- **The classic planner** is today's eight tabs (a ninth, Inheritance, is hidden), exactly as they are with the switch
+  off: the app's rules, the tournament, the sandbox. It is for couples (D42), for anyone who prefers it, and it is the yardstick: "your current
   approach" is its rules.
 - So the Phase 8 to 10 pieces leave the classic tabs and move into the new places. Every component stays: SolverAims,
   SolverLocks, SolverStrategy's parts, FiguresList, SolverAges, SolverAnswers, SolverScenarios, SolverHistory and the
@@ -84,11 +88,13 @@ of minutes on its own, with its own line.
    - Phase 9's full text pointing beside the answer, where the dial now is, not to "Settings";
    - three things that only show once the pieces sit side by side (L10 to L12): the dial's line and the headline on
      different path counts, rows waiting that read as working, and the headline's "typical run", which is not the
-     ten-year table's. The last needs two lines of B4's wording changed, for the maintainer to adopt or strike;
+     ten-year table's. The last needs the headline's two back lines (B4's wording) changed, for the maintainer to adopt
+     or strike;
    - the next ten years saying a held tier once, not every year (L9).
 
 **Step U builds it.** It is new, and goes after step P and before Phase 11.
-- Its harness, `solver-planner-ui.cjs`, is REQUIRED. The switch-on harnesses move to the new places.
+- Its harness, `solver-planner-ui.cjs`, is REQUIRED. The solver's harnesses opt in to the new places; the others run
+  on the classic planner, the default.
 - **Box:** four days.
 - **Phase 11** becomes the phone's grid, memory and real-phone solve, on the new planner.
 - **Phase 12's opt-in** switches between the two planners.
@@ -107,10 +113,10 @@ Each finding names its source in the agent's code at c5370be.
 | L6 | The full text sends the reader to a tab that does not exist: "turn up How much do you dislike cuts? in Settings". The tab is "Config & Assumptions". | solverWords.js `WORDS.full[1]` |
 | L7 | Under the switch the classic tabs keep the app's machinery beside the solver's, so one screen gives two answers: the sandbox's instant survival under the app's rules, the guardrails "your plan only", the policy search hidden. | App.jsx `solverRules` branches (lines 13342 to 13612, 11124) |
 | L8 | Two pages ask one question. Under the switch the Simple page's answers come from the solver only on request, and its own figures from the app's rules. | SolverSimple.jsx `SolverSimple` |
-| L9 | The next ten years repeat a held tier as a move each year. On S116 every year from 2026 to 2034 reads "Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk", one move made once and then held. In 2035, a step back up to two below the plan's own tier reads "Move your pension 2 steps lower in risk". A year with nothing to say reads "as the year before", even in the first year and in a working year. | solverWords.js `aheadWords` (it says `tierPen`, the year's tier against the plan's own, whenever it is not 0); `layout/results-figures-S116.txt` and `-S224.txt`, the "ahead:" lines |
+| L9 | The next ten years repeat a held tier as a move each year. On S116 all ten years read "Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk": one move, made in 2026 and then held. On the path a later visit picks (L12), 2035 steps back up to two below the plan's own tier, and reads "Move your pension 2 steps lower in risk": a step up worded as a step down. A year with nothing to say reads "as the year before", even in the first year and in a working year. | solverWords.js `aheadWords` (it says `tierPen`, the year's tier against the plan's own, whenever it is not 0); the "ahead:" lines of `layout/results-extra-S116.txt`, `-S116-all5000.txt` and `-S224.txt` |
 | L10 | Side by side, the dial's line and the headline disagree. The dial's live line reads the first 2,000 paths, so that it compares exactly with the other settings, each run on 2,000; the headline reads 5,000. On S116 the line says "chance your money lasts 89%" beside the headline's 90%. On separate tabs nobody saw it. | SolverConfig.jsx `DialLive` (FiguresList, `upto` 2,000, `exact`); `layout/results-figures-S116.txt`, "dial line (first 2000)" and "headline words (all 5000)" |
 | L11 | A setting waiting its turn reads like the one being worked out: every row not yet in says "working it out…", one at a time or not. | SolverFigures.jsx `FiguresList` (`mine.at[o.id] \|\| { working: true }`) |
-| L12 | One page, three "typicals". The headline's back year is the median over the paths of each path's first year at target: 2043 on S116. The next ten years follow one path, the one at the median of the pot left at the end: that path is first back at target in 2038 (age 73), and back down at 80% from 77 to 80. Each year's median level is above 100% only from 2045 (age 80). Yet the headline calls its figure "a typical run of the markets", the ten-year table's words for its one path. | solverStrategy.js `headlineOf`, `aheadOf`; `layout/results-figures-S116.txt` (the headline, "spend solved all"); `layout/results-extra-S116.txt` ("typical run levels", "typical run back at target"); `layout/results-headline-words-S116.txt` |
+| L12 | One page, three "typicals". The headline's back year is the median over the paths of each path's first year at target: 2043 on S116. The next ten years follow one path, the one at the median of the pot left at the end, picked over the paths the worker holds when it is asked. On a first visit that is the first 2,000, and the path stays at 80% for all ten years: it is first back at target in 2050 (age 85). On a later visit, with 5,000 held, it is another path, first back in 2038 (age 73). So the same plan's table changes between visits. Each year's median level is above 100% only from 2045 (age 80). Yet the headline calls its figure "a typical run of the markets", the ten-year table's words for its one path. This layout keeps `aheadOf`'s path, fixes its pick (3.1) and says what each figure is. Following instead a path first back in the headline's year would make the two agree; that changes Phase 9's figures, so it is the maintainer's to ask for. | solverStrategy.js `headlineOf`, `aheadOf`; solverWorker.js `'ahead'` (aheadOf over every path held); SolverStrategy.jsx (it asks after its first step); `layout/results-figures-S116.txt` (the headline, "spend solved all"); `layout/results-extra-S116.txt` and `-S116-all5000.txt` ("typical run levels", "typical run back at target"); `layout/results-headline-words-S116.txt` |
 | L13 | A plan that starts above its target repeats the headline in the raise line. S090's headline reads "£31,350 a year, above your £28,500 target", and under it "If markets do well, you could spend up to 10% above your target from about age 61", its first year. | solverWords.js `raiseWords`; `layout/results-figures-S090.txt`, "headline words (all 5000)" and "raise (all 5000)" |
 
 ## 2. The structure
@@ -120,8 +126,10 @@ Each finding names its source in the agent's code at c5370be.
 **The switches.**
 - `SOLVER`, the build switch: false on `main` until Phase 12.
 - `rp_planner`, a new localStorage key, B6's opt-in: `'new'` or `'classic'`. It is read only when `SOLVER` is true.
-  - **Before Phase 12**, in the preview build only: `'new'` unless set.
-  - **From Phase 12:** `'classic'` unless the visitor opts in (R6: off by default).
+  - **`'classic'` unless set**, in every build and from the start (R6: off by default). The visitor opts in with "Try
+    the new planner (beta)".
+  - So every harness that does not opt in sees the classic planner. The solver's harnesses and solver-planner-ui opt
+    in by setting it to `'new'` (section 11.2).
 - `PLANNER_BETA`, a new constant: false hides the opt-in and gives everyone the classic planner. This is B6's "one
   deploy turns it off for everyone". The preview build sets it true, as it sets `SOLVER`; on `main` it is false until
   Phase 12.
@@ -136,14 +144,16 @@ const tabs = solverOn ? PLANNER_TABS : visibleTabs();
 **The classic planner** is the app with the switch off, bit for bit, whatever `SOLVER` says:
 - every `solverRules` branch in the classic tabs is false;
 - none of the solver's chunks is fetched;
-- load-perf's switch-off ceiling holds.
+- load-perf's switch-off ceiling holds. With `SOLVER` false the build drops what only `solverOn` reaches
+  (`PLANNER_TABS`, the places, `solveStatus.js`), as it drops the solver's chunks today; load-perf's switch-off run is
+  the test.
 
 **A couple's plan in the new planner** shows the couples card on Your plan, What if and Details (section 6). You works as
 for anyone.
 
 **The Simple page.**
 - In the new planner, the Shell's `rp_which_app` value `'simple'` opens the new planner. An empty plan lands on the
-  quick start (section 5).
+  quick start (section 5), its fields filled from the Simple page's saved inputs.
 - In the classic planner it is unchanged.
 
 **The crossover.**
@@ -168,9 +178,12 @@ const PLANNER_TABS = [
 - Both stay at the top as the page scrolls.
 
 **Phone.**
-- The top bar (44px, the Shell's `PhoneBar`): the name, the theme control in `extra`, and "Classic planner".
+- The top bar (44px, the Shell's `PhoneBar`): the name, the theme control in `extra`, and "Classic" (section 9).
 - The status line (32px) under it.
-- The bottom bar with all four places (`PHONE_PRIMARY` = the four), and no More sheet.
+- The bottom bar with all four places, and no More sheet.
+  - A new `PLANNER_PRIMARY` (the four ids). `PHONE_PRIMARY` stays the classic planner's.
+  - nav.jsx's `BottomNav` is five columns with More always (`grid-cols-5`). It gains a four-column form without More
+    (`more={false}`: `grid-cols-4`, no More button), which the new planner uses.
   - Export and import move to Details' "Print and export".
   - The number format moves to Details' Assumptions, under Display.
 
@@ -178,11 +191,14 @@ const PLANNER_TABS = [
 - Your plan, when the plan has inputs.
 - The quick start, when it has none (`planStarted` false).
 
-**Classic ids.** A classic tab id read from the session in the new planner maps to its new place:
+**Classic ids.** The active tab is not stored: it starts at `'inputs'` with a saved plan, else `'home'` (App.jsx line
+8378). But code the two planners share calls `setActiveTab` with classic ids. In the new planner `setActiveTab` maps
+each to its place:
 
 | classic id | new place |
 |---|---|
 | home, strategy, projection, config | plan |
+| inheritance (hidden: `SHOW_INHERITANCE` false; the tournament's text names it) | plan |
 | inputs | you |
 | historical, audit, docs | details |
 
@@ -199,12 +215,12 @@ check where they are by it.
 | Strategy | the age dial (`SolverAges`) | What if | none |
 | Config | `SolverAims` | Your plan: "What matters to you", beside the answer | retitled; no `SolveLine` |
 | Config | `SolverLocks` | You: "Limits on the solver", after the inputs | none |
-| Config | decumulation policy, drawdown strategy, guardrails, the 0% harvest | You: "Your current approach" | labelled as the comparison's rules (3.2) |
-| Config | CGT on the GIA; where you pay tax | Details: Assumptions; You, section 1 | the tax rule both plans run under; a fact about the person |
+| Config | decumulation policy, drawdown strategy, guardrails, the 0% harvest, the one-off cost lookahead (`config-lookahead`) | You: "Your current approach" | labelled as the comparison's rules, each saying whether it re-solves (3.2) |
+| Config | CGT on the GIA; "Tax cash interest"; where you pay tax | Details: Assumptions (the first two); You, section 1 (the last) | tax rules both plans run under; a fact about the person |
 | Config | general assumptions, tax bands, returns and volatility, number format | Details: Assumptions | none; the bridge safety margin stays hidden (B13) |
 | Config | the policy search | the classic planner only | — |
 | Projection | the fan, under the solved plan | Your plan: "What you would have" | from the headline's runs (3.1) |
-| Projection | "Spend and date" (`SolverPlanAnswers`) | What if: "The solved plan's limits" | `SolverAnswers` named `'whatif'` |
+| Projection | "Spend and date" (`SolverPlanAnswers`) | What if: "The solved plan's limits" | none: `SolverPlanAnswers` as built, its `data-solver-answers="full"` kept (solver-projection reads it) |
 | Projection | the scenario comparison, `SolverScenarios` | What if: "Your scenarios" | none |
 | Projection | the sandbox | the classic planner only | — (L7) |
 | Audit | the ledger with the action column | Details: Year by year | the solved ledger first |
@@ -246,6 +262,9 @@ check where they are by it.
      - the 10th to 90th percentile band and the 25th to 75th band;
      - **the line is the typical run**, the one path the next ten years follow (`aheadOf`'s), and not each year's median
        (L12). So the chart and the table under it agree;
+     - **the typical run is picked once, on the strategy's first step of paths** (2,000; 200 at the harnesses' light
+       settings). The page asks `'ahead'` with `upto: steps[0]`, and the worker takes `headRuns(held, upto)`. So a later
+       visit, with 5,000 held, follows the same path. Today the worker picks over every path it holds (L12);
      - **a mark at the headline's back year**, labelled "half the markets back at your target by 2043". So the chart and
        the headline agree;
      - the target at 100%, and the floor at its share ("the lowest it plans": 80% under B2, or the plan's own floor);
@@ -263,19 +282,24 @@ check where they are by it.
      as the headline and the comparison:
      - `spendBandsOf(runs)`: the levels runPath already records;
      - `typicalOf(runs, k)`: the typical run's levels, `runs.solved[k].level`, where k is `aheadOf`'s path;
-     - `wealthBandsOf(runs)`: runPath records each year's `totalCombined` beside its level (a Float32Array a path; 5,000
-       paths of 36 years is 0.7 MB);
+     - `wealthBandsOf(runs)`: runPath records each year's `totalCombined` beside its level, in a Float64Array a path,
+       so the bands can equal the engine's bit for bit (section 11.3). 5,000 paths of 36 years is 1.44 MB an arm;
      - each uses summarizeTrials's quantile;
      - each goes into `strategySummary`'s answer, so a split simulation joins them as it joins the rest (`joinRuns`).
-     - **Why not the projection's fan:** the canvas draws S116's money from the engine's own `monteCarlo` on 2,000
-       paths, as the projection would. There the typical pot at 96 is £274,378, against the comparison's £283,291 on
-       the headline's 5,000 (`results-figures-S116.txt`, "fan solved" and "compare (all 5000)"). Drawn from the
-       headline's runs, the chart and the table cannot disagree.
-   - **States:** pending until the headline's first 2,000 paths are in; refined with the headline at 5,000.
+     - **Why not the projection's fan:** it is the same paths, simulated a second time. The projection runs 5,000 paths
+       of the same seed (`MC_TRIALS`; App.jsx line 10261 under the switch), and only when its button is pressed. On the
+       paths they share, its figures are the headline's: on S116 the fan's 10th percentile at 96, £13,981, is the
+       comparison's unlucky tenth on the first 2,000, and the fan's median there, £274,378, is their median pot
+       (`results-figures-S116.txt`, "fan solved" and "compare (first 2000)"). Drawn from the headline's runs, the charts
+       cost no second run, and the chart and the table cannot disagree.
+     - The canvas's money chart is that fan on the first 2,000 paths, the filling state's (4.2). On all 5,000 the
+       median pot at 96 is £283,291 ("compare (all 5000)").
+   - **States:** pending until the headline's first 2,000 paths are in; at 5,000 the bands refine, and the typical run's
+     line stays where it is.
    - **Accessibility:** each chart is `role="img"` with a short label made from its figures. The canvas's, for S116
-     (from `results-extra-S116.txt` and `results-figures-S116.txt`): "On a typical run: 80% of your target to 69, up to
-     110% at 73, down to 80% from 77 to 80, and 110% from 84. Half the markets are back at your target by 2043. In good
-     markets, up to 110% from about 73."
+     (from `results-extra-S116.txt` and `results-figures-S116.txt`): "On a typical run: 80% of your target to 81, 90%
+     from 82 to 84, and 110% from 85. Half the markets are back at your target by 2043. In good markets, up to 110% from
+     about 73."
 4. **This year** (`data-strategy-actions`): "This year", or "This year, before you retire".
    - Each action is a numbered row: `actionWords.what` (14px, medium) and `actionWords.cost` (12px, muted).
    - The skip costs come in after the headline: "Working out what each of this year's steps is worth…".
@@ -284,8 +308,8 @@ check where they are by it.
 6. **The next ten years** (`data-strategy-ahead`): a table on a desktop, a list on a phone.
    - The columns: year (age), spending (level), the year's move.
    - Each of a year's moves on its own line in the cell, not joined with "; ".
-   - Consecutive years with the same spending and the same words make one row: "2027 to 2034 (ages 62 to 69)", its
-     words ending ", each year". On S116 the ten years are three rows.
+   - Consecutive years with the same spending and the same words make one row: "2027 to 2035 (ages 62 to 70)", its
+     words ending ", each year". On S116 the ten years are two rows (`layout/results-ahead-words-S116.txt`).
    - Under it, `COME_BACK`.
 7. **The solved plan against your current approach** (`data-strategy-compare`), on the same 5,000 markets.
    - The columns: "Your current approach", "Solved".
@@ -299,7 +323,9 @@ check where they are by it.
 - the floor's line.
 
 With four changes:
-- its title is "What matters to you" (it was "What the solver aims for"); its first line is unchanged;
+- its title is "What matters to you" (it was "What the solver aims for"). Its first line is unchanged on a desktop. On a
+  phone a change waits for "Solve again" (4.1), so there the line ends "A change is worked out when you tap Solve
+  again." (section 8);
 - no `SolveLine` (a `solveLine={false}` prop): the status strip carries the state, `data-solve-state` with it;
 - each choice is a segmented control the panel's full width, 36px tall (44px on a phone);
 - **the dial's live line becomes a table, on request** (L10).
@@ -307,6 +333,8 @@ With four changes:
   - "Compare the four settings" (it was "Show the four settings") runs the others as today, nearest first.
   - The result is a table: the setting, where it starts, when it is back at target, and the chance the money lasts.
     Every row is on the same first 2,000 paths, the plan's own setting included, marked "(yours)".
+  - A row that is P2's 30-point preview (R5 (a)) reads "about" before its figures. The plan's own row is its 45-point
+    solve.
   - Under it: "Each on the same 2,000 simulated markets, so they compare fairly. The answer uses 5,000."
   - The row being solved says "working it out…"; the rows queued say "waiting its turn" (L11).
   - Under the button, before it is pressed, its cost: "Three more solves, about M minutes on this device" (section
@@ -326,7 +354,8 @@ With four changes:
 **The layout.**
 - **Desktop:** a section list on the left (sticky, 220px), the sections stacked on the right, the content at most
   1,280px wide. A section in the list scrolls to its card.
-- **Phone:** the section tabs as today (`SectionTabs`, swipe between them), with the two new sections added.
+- **Phone:** the section tabs as today (`SectionTabs`, swipe between them), with the one new section, Limits, added.
+  Your current approach is a card in Advanced, not a section.
 
 **The sections, in order.**
 1. **You:** today's section 1 (`showSection('you')`), the demographics, the target and the minimum pot. Also "Where you
@@ -338,24 +367,31 @@ With four changes:
 6. **Limits on the solver** (`data-solver-locks`): `SolverLocks` as built. Its own title, "What the solver may
    change", becomes the first words of its line under the section's name.
 7. **Advanced:** today's advanced inputs, then **"Your current approach"** (`data-current-approach`), a new card
-   holding the controls that today sit in Config's "Spending & tax settings" and set the app's rules:
-   - the decumulation policy, the pension drawdown strategy, the spending guardrails, and the unused 0% allowance's
-     harvest;
-   - not "Capital gains tax on the GIA": it is a tax rule both plans run under, so it goes to Details' Assumptions;
+   holding the controls that today sit in Config and set the app's rules:
+   - the decumulation policy, the pension drawdown strategy, the spending guardrails, the unused 0% allowance's
+     harvest, and the one-off cost lookahead (`config-lookahead`, `lookaheadYears`);
+   - not "Capital gains tax on the GIA" or "Tax cash interest": they are tax rules both plans run under, so they go
+     to Details' Assumptions;
    - its line: "The app's own rules for your plan. The solved plan is compared with them (Your plan, the last card).
-     The solver makes its own choices."
+     The solver makes its own choices, but it also works from some of these."
 
-**Your current approach must not re-solve.**
-- A change there re-runs the comparison, and nothing else.
-- Today the solve's key is the plan as the solver takes it (`solverKey.js`, `prepareForSolve`). That already sets the
-  guardrails and the lookahead off, so they cannot move the key. The policy's name and the 0% harvest may still move
-  it.
-- **The test,** per control: plant a change, read the key.
-  - Where the key moves and the solve does not read the field (an identity test on the tables), the key drops the
-    field.
-  - Where the solve does read it, the control is an input of the solved plan too, and stays in section 2 or 7 with a
-    line saying so. The drawdown strategy is one: the lump-sum lock's "Free" reads it.
-- A control is moved only once its test is written.
+**Which of its controls re-solve.** The solve's key is the plan as the solver takes it (`solverKey.js`:
+`prepareForSolve` sets the guardrails and the lookahead off and keeps the rest). Step U drops no field from the key: a
+field the solve does not read on one household may be read on another, and an identity test on a few cannot show that
+it is never read.
+- **The decumulation policy re-solves.** The key holds it, and the solve reads it: an Auto deposit lands where the
+  policy's deposit order puts it (App.jsx lines 1757 to 1760; Windfall to ISA has its own order), and the solved plan
+  runs on that context.
+- **The drawdown strategy re-solves.** The lump-sum lock's "Free" reads it.
+- **The 0% harvest re-solves.** The key holds it.
+- **The guardrails and the lookahead keep the solve.** The key does not move, but the strategy's paths run again for
+  both arms, since they are held per plan (`strategyAnswer`); then this year's actions, the ten years and the rule. The
+  solved plan's figures come back the same, and the comparison's column changes. What if's figures drop, as any edit
+  drops them (`FiguresList`).
+- **Each control says which.** Under the first three: "Changing this works your plan out again: the solved plan uses
+  it too." Under the guardrails and the lookahead: "The solved plan does not use this: changing it re-runs the
+  comparison."
+- Check 7 tests both kinds (section 11.1).
 
 **At the top of the page:**
 - "Save as a scenario": it saves a copy of the plan, listed on What if;
@@ -372,8 +408,9 @@ device". M is N times one setting's cost: this device's last solve (`solveMeta.s
 paths took, both as measured here, with the paths' time twice over for a dial position above Low (a locked position's
 simulation runs 1.80 to 1.99 times the base's: `2026-11-01/launch/results-app-timing.txt`). The solve alone
 undercounts: on S116 a setting is 491 seconds, of which the solve is 357 (`layout/results-costs.txt`). When the solve
-in hand was restored, so no time is known, it says "several minutes each". Each list ends: "Nearest first. Each on the same 2,000 simulated markets; your
-plan's answer uses 5,000." (L10).
+in hand was restored, so no time is known, it says "several minutes each". Each list ends: "Nearest first. Each on the
+same 2,000 simulated markets; your plan's answer uses 5,000." (L10). A figure that is P2's 30-point preview (R5 (a): the
+dial's line and the search's bracket) reads "about"; the canvas shows 45-point figures.
 
 1. **"Retiring earlier or later"** (`data-solver-ages`): `SolverAges` as built. The plan's own age comes first; up to
    three ages each way are offered. It is shown only for a household still working (`ageOptions` returns none
@@ -382,10 +419,11 @@ plan's answer uses 5,000." (L10).
    - It is `FiguresList` over the target: the target times 0.8, 0.9, 1.1 and 1.2, each rounded to £500, nearest first
      (0.9, 1.1, 0.8, 1.2).
    - Each is `atSpend(plan, x)`, one solve each, the headline on the first 2,000 paths.
-   - The button: "Solve £41,500 to £62,500 a year".
-   - Each line: "Spend £47,000 a year: " then `dialLineWords` (S116's options: £41,500, £47,000, £57,000, £62,500).
+   - The button: "Solve £41,500 to £62,500 a year" on S116, whose options are £47,000, £57,000, £41,500 and £62,500;
+     the canvas shows S224's, £56,000 to £84,000 (`layout/results-target-options.txt`).
+   - Each line: "Spend £47,000 a year: " then `dialLineWords`.
    - The figures belong to the plan with every other input as it is, as the age dial's do.
-3. **"The solved plan's limits"** (`data-solver-answers="whatif"`): `SolverAnswers`.
+3. **"The solved plan's limits"** (`data-solver-answers="full"`): `SolverPlanAnswers` as built.
    - The goal is an input, 90% by default (`SEARCH_GOAL`).
    - Its cost line counts the most it can take: "Up to 14 solves (8 for the target, 6 for the age)", from
      `SEARCH_MOST`.
@@ -416,8 +454,8 @@ Assumptions, How the solver decides. At the right: "Print this plan", "Export pl
    and its wealth path.
 3. **Assumptions** (`data-assumptions`): today's Config cards, unchanged:
    - general assumptions (the valuation date, inflation, the access ages, the death-tax haircut, the seed);
-   - the tax bands and rates (the region's select moves to You, section 1), and "Capital gains tax on the GIA" (from
-     Config's spending and tax card);
+   - the tax bands and rates (the region's select moves to You, section 1), "Capital gains tax on the GIA" and "Tax
+     cash interest" (`cashInterestTaxed`; the solver's model reads it, so a change re-solves);
    - the risk tiers' returns and volatility;
    - the cash buffer.
 
@@ -438,7 +476,9 @@ Assumptions, How the solver decides. At the right: "Print this plan", "Export pl
 
 One component for the whole planner. It carries `data-solve-state` and `data-solve-key`, which move here from
 `SolveLine`. Its words go in a small module of the page's entry (`src/solveStatus.js`, a few hundred bytes), since it
-shows before any of the solver's chunks arrive.
+shows before any of the solver's chunks arrive. The entry gains only this, `PLANNER_TABS` with its three new icons
+(Target, User, GitBranch: App.jsx already imports BookOpen) and the place names. Everything else of the new planner
+comes in lazy chunks (section 11.2, load-perf).
 
 | state | the desktop strip | the phone line |
 |---|---|---|
@@ -466,6 +506,16 @@ worked out" (on its place: "here"), so the person knows something is still runni
 - Today `solveAsked` stays true for the session after the first request (App.jsx line 8388), so every later edit
   starts a solve of minutes on the phone at once.
 - B10's "on request" is kept for each version: `solveAsked` resets on an edit.
+- **The page knows the plan changed without solving it.** Today the hook does nothing while it is not enabled
+  (`useSolver.js`: `if (!enabled) return undefined;`), so a phone that has not asked would keep showing "solved" for
+  the old plan. `useSolver` gains a `hold` option, which App.jsx sets on a phone until the request:
+  - with `hold` and a solve in hand, each change still takes its key (`client.keyOf`, `solverKey.js`, as now). A key
+    other than the solve's sets `solveState: 'stale'` and starts nothing;
+  - with `hold` and no solve in hand, nothing runs, and no solver code is fetched (B10's first visit);
+  - "Solve again" lifts `hold`, and the solve starts as today.
+- **While stale, nothing asks the worker about the plan as it now is.** The worker holds the old plan's tables, so a
+  `strategy`, `actions` or `ahead` asked with the new plan would run the old tables on the new plan's inputs. Every
+  view asks only in `'solved'`, and the kept answer shows under its band (4.2).
 
 ### 4.2 The answer card in each state
 
@@ -474,8 +524,8 @@ worked out" (on its place: "here"), so the person knows something is still runni
 | **first solve** (no answer yet) | the eyebrow; "Working out your plan"; three lines: what the solver does, about how long, and that the other places can be read meanwhile |
 | **filling** (the first 2,000 paths in) | the figures, with "On 2,000 simulated markets so far"; this year's "Working out…"; the outlook from the same paths |
 | **done** | everything; "On 5,000 simulated markets." |
-| **stale** | the last answer at 55% opacity, behind an amber band: "Before your last change. Working out the new plan: 42%". Print is hidden. The levers stay live. |
-| **failed** | an amber card: "The solver could not finish this plan.", the error in small type, "Try again", and "Meanwhile the classic planner shows your plan under the app's own rules" with "Open the classic planner" (F16). Below it, your current approach's figures: the chance your money lasts and the money fan, from the projection's run of your plan. |
+| **stale** | the last answer at 55% opacity, behind an amber band: "Before your last change. Working out the new plan: 42%". On a phone, until asked: "Before your last change." and "Solve again". Print is hidden. The levers stay live. |
+| **failed** | an amber card: "The solver could not finish this plan.", the error in small type, "Try again", and "Meanwhile the classic planner shows your plan under the app's own rules" with "Open the classic planner" (F16). Below it, your current approach's figures: the chance your money lasts and the money fan. Nothing else in the new planner runs the projection, so the failure view starts its first stage once when it shows (`runStageTest`, handleRunAll's stage 1: your plan under the app's rules on 5,000 paths, with its fan); with the solve failed it skips the solved plan's run, as today. |
 | **couple** | section 6's card |
 | **phone, not asked** | "Solve my plan" (B10) with the expected time: "It can take several minutes on a phone" until Phase 11 measures it, then the measured time |
 
@@ -483,6 +533,7 @@ worked out" (on its place: "here"), so the person knows something is still runni
 - The strategy view keeps the previous `{ key, strategy, more }` and shows it under the stale band until the new key's
   first figures arrive.
 - It is never shown as current: the band, the opacity and `data-plan-answer="stale"` go together.
+- It is never refreshed while stale: the worker is asked nothing until the new key is solved (4.1).
 - What if's figures follow their own rule (`FiguresList`: any other edit drops them) and show their "working it out"
   lines.
 
@@ -498,6 +549,10 @@ Your plan (`data-quick-start`).
   - your age; when you stop working; what you want to spend a year (today's money); where you pay tax;
   - pensions; ISAs; other savings and investments; cash;
   - your State Pension a year, its placeholder the full new State Pension as today.
+- **They fill from the Simple page's saved inputs** (`rp_simple_v1`, Shell.jsx `SIMPLE_KEY`) where those have input
+  (`simpleHasInput`), so a visitor coming from the Simple page loses nothing. That key is left as it is (the Shell's
+  rule: the plan left behind is not touched).
+- **Its code and words are its own lazy chunk**, not `solverWords.js`, which loads with the solved ledger.
 - **"Work out my plan"** waits for `readiness(s)`: your age, when you stop working, what you want to spend, and what you
   have saved. It builds the plan with `toFullPlan`, then solves.
   - Under it: "It takes a few minutes. The other places fill in as it works."
@@ -515,8 +570,8 @@ Your plan (`data-quick-start`).
   follows the app's own rules in the classic planner. Your inputs are kept either way."
 - **"Open the classic planner"**, and "Change to a plan for one person", which goes to You's planning mode.
 
-**The classic planner is untouched.** Its harnesses run against it in both modes (section 11.2). Part D (D5) brings
-couples into the new planner later.
+**The classic planner is untouched.** Its harnesses run against it in both modes (section 11.2). Part D's D5 (the
+launch plan's section 6) brings couples into the new planner later.
 
 ## 7. The look
 
@@ -527,6 +582,9 @@ tokens (`slate-*`, `surface`, `accent`, `indigo-*`, `emerald-*`, `amber-*`), so 
 - IBM Plex Sans for words, IBM Plex Mono for table figures;
 - Newsreader (`font-display`) for the answer's amount and the quick start's title alone: the amount 52px on a desktop
   and 40px on a phone, weight 500, "a year" beside it at half the size;
+  - main.jsx loads Newsreader only in 600 and 700 italic. The roman 500 (`@fontsource/newsreader/latin-500.css`) is
+    imported by Your plan's chunk and the quick start's, not the entry, so the entry does not grow. Until it arrives
+    the amount shows in `font-display`'s fallback (Georgia; fontsource's `font-display: swap`);
 - place titles 22px semibold; card titles 15px semibold;
 - body 14px on a desktop (today's 12px is kept for secondary lines); secondary 12px in `slate-500`.
 
@@ -550,8 +608,9 @@ tokens (`slate-*`, `surface`, `accent`, `indigo-*`, `emerald-*`, `amber-*`), so 
 
 ## 8. The words
 
-All of them go in `solverWords.js`'s table (B4), except the status strip's, which go in `solveStatus.js` (section
-4.1). Each change below is one line.
+All of them go in `solverWords.js`'s table (B4), except three sets: the status strip's (`solveStatus.js`, section 4.1)
+and the place names, both in the entry; and the quick start's, in its own chunk (section 5). Each change below is one
+line.
 
 **Changed:**
 
@@ -561,6 +620,7 @@ All of them go in `solverWords.js`'s table (B4), except the status strip's, whic
 | the comparison's title | "Your plan against the solved plan, on the same N markets" | "The solved plan against your current approach, on the same N markets" |
 | the comparison's column | "Your plan" | "Your current approach" |
 | SolverAims' title | "What the solver aims for" | "What matters to you" |
+| SolverAims' first line, on a phone | "… what you want from the rest, and each one solves your plan again." | "… what you want from the rest. A change is worked out when you tap Solve again." (a desktop keeps today's) |
 | SolverHistory | "Your plan as you are now, on the same history" | "Your current approach, on the same history" |
 | the audit toggle | "The solved plan", "Your plan" | "The solved plan", "Your current approach" |
 | the audit's action column | "Action" | "The year's move", as on Your plan |
@@ -573,9 +633,11 @@ All of them go in `solverWords.js`'s table (B4), except the status strip's, whic
 | `FiguresList`, a row queued (L11) | "working it out…" | "waiting its turn" (the row being solved keeps "working it out…") |
 
 The proposed `aheadWords` on S116 and S224 is printed by `layout/ahead-words.mjs` from their ledger lines
-(`layout/results-ahead-words-S116.txt`, `-S224.txt`). Its test: on S116 the tier is said in 2026 and 2035 only, and a
-plant that says it every year fails. This year's actions keep today's words, since the first year's move is from the
-plan's own tier.
+(`layout/results-ahead-words-S116.txt`, `-S224.txt`). Its test is a property, over the ten rows of every fixture: a
+tier is said only in a year whose tier differs from the year before's (the first year's against the plan's own), and
+said as a step down, a step up or a return to the plan's own by the sign of that difference. A plant that says it
+every year fails, and so does one that words a step up as a step down. This year's actions keep today's words, since
+the first year's move is from the plan's own tier.
 
 **New** (the canvas has each in place):
 - the place names;
@@ -590,10 +652,13 @@ plan's own tier.
 - the couples card (section 6);
 - "Spending more or less" and its button;
 - the What if cards' cost line;
-- "Your current approach" and its line;
+- "Your current approach", its line, and its controls' two lines (section 3.2);
+- You's first line: "Who you are, what you have and what you want to spend. Changes here work your plan out again,
+  unless the control says otherwise.";
 - the comparison's line under the table;
 - the outlook's titles: "What you could spend" and "What you would have";
-- the charts' labels: "your target, £52,000", "the lowest it plans, 80%", "the typical run", "half the markets",
+- the charts' labels: "your target, £52,000", "the lowest it plans, 80%", "a typical run (the next ten years follow
+  it)" ("a typical run" on a phone), "half the markets",
   "eight in ten", "the solved plan, typical", "your current approach, typical", and the mark "Half the markets back at
   your target by 2043";
 - the dial's table footnote: "Each on the same 2,000 simulated markets, so they compare fairly. The answer uses 5,000."
@@ -646,32 +711,42 @@ stays mounted once opened, and `SolverAims` sits inside. A change solves again o
 
 ### 11.1 The new harness: `solver-planner-ui.cjs` (REQUIRED)
 
-It runs against the switch-on preview at the light settings, on a desktop viewport (1,440 by 900) and an iPhone 13. Its
-checks:
+It builds its own switch-on preview at the light settings (as solver-strategy does), opts in (`rp_planner` `'new'`),
+and runs on a desktop viewport (1,440 by 900) and an iPhone 13. Each case's fixture is a library household chosen
+because it reads so at the light settings, named in the harness with why, as solver-strategy names its
+`SKIP_FIXTURE`: S116's figures here are the canvas's, at full scale, not the harness's. Its checks:
 1. **The places.** Four places in order, each with its `data-place`. None of the classic labels shows (Strategy, Config
    & Assumptions, Audit Data Table, Historical Backtest).
 2. **The first solve.** The strip goes idle, then solving with its percentage rising, then simulating, then solved.
-   The answer card goes solving, then filling, then done. Its figures equal `data-strategy-figures` (the worker's).
+   The answer card goes solving, then filling, then done. Its figures, once all its paths are in, are Node's
+   (`strategyOf` on the saved plan, solved at the same light settings, on the same seed): the solved plan's bit for
+   bit, your current approach's within a relative 1e-12, as solver-strategy checks them.
 3. **Beside the answer.** On a desktop the levers panel's left edge is right of the answer card's right edge, and its
    top within 40px of the card's top. No line under the dial repeats the answer's figures. "Compare the four settings"
-   gives four rows, each on the first 2,000 paths, the plan's own marked, a queued row saying "waiting its turn".
+   gives four rows, each on the strategy's first step of paths, the plan's own marked, a queued row saying "waiting its
+   turn".
 4. **A lever.**
    - A dial change moves `data-solve-key`.
    - The card goes stale with the band and its percentage, the old figures still readable.
    - Then the new answer, with the band gone.
-5. **The outlook.**
+5. **The outlook**, read from the drawing: each mark carries the figures it was drawn from (`data-x`, `data-y` on its
+   points, in the chart's own units), and the check compares them with the worker's, so a fault in the drawing fails it.
    - Both charts drawn.
    - Their bands equal `data-outlook-bands` (from the worker).
    - The spending chart's line is the typical run's levels (`data-outlook-typical`), and its first ten years are the
-     ten-year table's spending.
+     ten-year table's spending. Once all the paths are in, the line has not moved.
    - The back mark sits at the headline's back year.
    - The raise line present when the strategy has a raise that adds to the headline, and absent otherwise: none on a
-     plan like S090's, which starts at its raise (L13).
+     plan that starts at its raise, as S090 does (L13).
 6. **This year, the rule, ten years, the comparison** read as solver-strategy-ui reads them today, with the
    comparison's new title and column.
 7. **You.** Seven sections in order, Limits sixth, Your current approach in the seventh.
    - An input change makes the plan stale.
-   - A change in Your current approach leaves `data-solve-key` the same, and re-runs the comparison.
+   - A guardrails change leaves `data-solve-key` the same, and re-runs the comparison: its column changes, the solved
+     plan's figures are the same bit for bit.
+   - A policy change moves `data-solve-key`, on a household with an Auto deposit, where the policy routes it (S090 or
+     S290, `layout/results-target-options.txt`).
+   - Each control shows its line (3.2).
 8. **What if.**
    - The age card for a working household, and none for a retired one.
    - The target card's five options.
@@ -681,14 +756,15 @@ checks:
    settings; the docs section.
 10. **A couple.** The couples card on three places. "Open the classic planner" shows the classic tabs, and a reload keeps
     them (`rp_planner`).
-11. **A failure.** A planted throw shows the failure card with "Try again" and the classic link, and the levers stay
-    usable.
+11. **A failure.** A planted throw shows the failure card with "Try again" and the classic link, your current
+    approach's figures arrive under it (the projection's first stage, run once), and the levers stay usable.
 12. **The phone.**
     - The bottom bar with four places, each target 44px or more.
     - No horizontal scroll on any place.
-    - Nothing solves until "Solve my plan".
+    - Nothing solves, and no solver chunk is fetched, until "Solve my plan".
     - The six slides, reached by swipe and by the step bar.
-    - The levers sheet opens and closes with Escape. A change in it makes the plan stale and waits for "Solve again".
+    - The levers sheet opens and closes with Escape. A change in it makes the plan stale (`data-solve-key` unchanged
+      until asked) and waits for "Solve again"; until then the worker is asked nothing.
 13. **The quick start.**
     - An empty plan shows it.
     - "Work out my plan" waits for the four readiness fields.
@@ -698,33 +774,46 @@ checks:
 **Its plants**, each failing exactly its checks, in one run (`results-planner-ui-plants.txt`):
 - the levers panel moved under the answer (check 3);
 - a fifth place added (check 1);
+- the headline's figures taken over one path fewer (check 2);
 - the stale band dropped (check 4);
-- the outlook's bands a year out (check 5);
-- Your current approach's policy moving the key (check 7);
+- the spending chart drawn a year out, in the drawing code, its data untouched (check 5);
+- the key made to read the guardrails (check 7);
 - the couples card removed (check 10);
 - the phone solving before the request (check 12);
+- the phone asking the worker for the strategy while stale (check 12);
 - a 40px target on the bottom bar (check 12);
-- the classic planner importing the solver's chunk (check 14).
+- the classic planner fetching a solver chunk by a dynamic import at its first render (check 14).
 
 ### 11.2 The other harnesses
 
-**The switch-on harnesses move to the new places.** Their checks and their `data-*` attributes stay; only how each
-reaches its card changes. Each is shown failing on its own plants again.
+**`rp_planner` is `'classic'` unless set** (2.1), so every harness sees the classic planner unless it opts in. The
+solver's harnesses opt in. Their checks and their `data-*` attributes stay; only how each reaches its card changes.
+Each is shown failing on its own plants again.
 
-| harness | in the new planner |
+| harness | in step U |
 |---|---|
-| solver-config | Your plan's levers panel; You's Limits |
-| solver-strategy | Your plan |
-| solver-projection | Your plan's outlook; What if's dials, limits and scenarios; Details' year by year and history check |
-| solver-progress | the status strip |
-| solver-isolation | unchanged: it reads the solve, not the layout |
+| solver-config | opts in on the preview it builds; Your plan's levers panel, You's Limits; in `SWITCH_OFF_ONLY` as now |
+| solver-strategy | opts in; Your plan; in `SWITCH_OFF_ONLY` as now |
+| solver-projection | opts in; Your plan's outlook, What if's dials, limits and scenarios, Details' year by year and history check; in `SWITCH_OFF_ONLY` as now |
+| solver-isolation | opts in, since only the new planner solves and asks for isolation; otherwise unchanged; in `SWITCH_OFF_ONLY` as now |
+| solver-planner-ui | new, REQUIRED; builds its own preview and opts in; joins `SWITCH_OFF_ONLY` like the others |
+| solver-progress | unchanged: it reaches the plumbing through `window.__solverHarness`, not the page, and with the classic planner the default its "no solver code on the first load" stays true in both modes |
+| tournament, tradeoffs, priorities | leave `SWITCH_OFF_ONLY`: in switch-on mode they run against the classic planner, the default |
+| load-perf | its runs as now, on the classic planner; plus one opted-in run (below) |
+| phone-perf | unchanged, on the classic planner: Phase 11's throttled harness measures the new planner on a phone |
+| the others | unchanged, on the classic planner in both modes |
 
-**The classic harnesses in switch-on mode** run against the classic planner. `lib/probes.cjs` sets `rp_planner` to
-`'classic'` for every harness that is not a `solver-*` one. In switch-off mode they are unchanged. So tournament,
-tradeoffs and priorities can run in both modes, and leave `SWITCH_OFF_ONLY`.
-
-**load-perf and phone-perf** in switch-on mode measure the new planner's first load. The four places' code is fetched
-lazily, so the entry stays under D57's 228KB.
+**load-perf.** It counts every script transferred by first content, against D57's 228KB, the measured 227 plus one.
+- The entry grows only by section 4.1's list: `solveStatus.js`, `PLANNER_TABS` with three icons, and the place
+  names. Moving the solver's branches out of the classic tabs (U1) takes code out of the entry. The net is measured,
+  not assumed.
+- **The opted-in run** measures the new planner's first load: `rp_planner` `'new'`, a saved single plan, until the
+  answer card shows its first state, and an empty plan until the quick start shows. Your plan's chunk loads by then,
+  so this run is above the entry's figure.
+- **The ceilings** are the maintainer's line in the launch plan's section 7a. With it, a classic run over 228KB moves
+  its ceiling to the measured figure plus one, up to 232KB, and the opted-in run gets its own ceiling the same way, its
+  measured figure plus one, each with a dated note. Without it, every run is held at 228KB, and a run over it stops
+  step U at its gate.
 
 ### 11.3 The Node tests
 
@@ -734,9 +823,12 @@ lazily, so the entry stays under D57's 228KB.
 - **The spending bands** use summarizeTrials's quantile, over the paths still going. Checked against a hand count on 20
   paths.
 - **A split simulation's bands** equal the whole run's, bit for bit (`joinRuns`).
-- **The typical run** is `aheadOf`'s path. Its first ten levels are the ten-year rows' spending over their targets.
+- **The typical run** is `aheadOf`'s path over the first step's paths (`headRuns(held, steps[0])`), and the same path
+  whether the worker then holds that many or 5,000. Its first ten levels are the ten-year rows' spending over their
+  targets.
+- **The money's records** are Float64: a Float32 record cannot equal the engine's doubles bit for bit.
 - **Its plants:** the bands a year out; the arms swapped; a failed path counted after it fails; the typical run taken as
-  each year's median.
+  each year's median; the typical run picked over every path held; the money recorded as Float32.
 
 ## 12. Step U: the order, the acceptance and the box
 
@@ -752,8 +844,8 @@ lazily, so the entry stays under D57's 228KB.
 | U6 | Details: year by year, history check, assumptions, how the solver decides, print and export | check 9 |
 | U7 | The quick start; the couples card; the failure view | checks 10, 11, 13 |
 | U8 | The phone: the bottom bar, the status line, the deck, the levers sheet, the section tabs | check 12 |
-| U9 | The words (section 8), two lines of B4's headline among them (L12), once the maintainer adopts them | read by checks 2 to 13 |
-| U10 | The harnesses: solver-planner-ui with its plants; the switch-on harnesses moved; the classic ones on the classic planner; load-perf and phone-perf | the gate |
+| U9 | The words (section 8), the headline's two back lines among them (L12), by the maintainer's word (the launch plan's section 7a) | read by checks 2 to 13 |
+| U10 | The harnesses (section 11.2): solver-planner-ui with its plants, in `SWITCH_OFF_ONLY`; the solver harnesses opted in; tournament, tradeoffs and priorities out of `SWITCH_OFF_ONLY`; load-perf's opted-in run | the gate |
 
 **The acceptance:**
 - `bash research/ui-harnesses/run-all.sh 4173 --both` prints ALL REQUIRED GREEN IN BOTH MODES, with solver-planner-ui
@@ -789,10 +881,10 @@ and the locks folded (now You's Limits section).
   glossary land in Details.
 - **The harnesses:** tournament, tradeoffs and priorities run on the classic planner.
 - **The opt-in (B6):**
-  - `SOLVER` and `PLANNER_BETA` become true, and `rp_planner` defaults to `'classic'`;
+  - `SOLVER` and `PLANNER_BETA` become true; `rp_planner` stays `'classic'` unless set;
   - "Try the new planner (beta)" in the classic planner's header, and "Classic planner" in the new one's;
   - the gate's two modes become `rp_planner` classic and new.
 - **The readiness checklist:** its harness line gains solver-planner-ui. Its line on the opt-in switched both ways
   without losing a plan stands as it is.
 
-**Couples (D5)** become the couples' screens in the new planner, in place of the classic tabs' cards.
+**Couples (Part D's D5)** become the couples' screens in the new planner, in place of the classic tabs' cards.

@@ -1,9 +1,20 @@
-# started 03 Nov 19:01:32 UK, on the review's container (two cores; beside it, S116's dial run and S224's age run)
-# node extra.mjs S116 (the agent's code at c5370be9f7d3; seed 7002; EXPLORATORY, deciding nothing)
-solve: 520 s
-runs: 488 s; the typical run is path 2682 (the median of the pot at the end over 5000 paths); it lasts
-typical run levels: [[61,80],[62,80],[63,80],[64,80],[65,80],[66,80],[67,80],[68,80],[69,80],[70,90],[71,80],[72,80],[73,110],[74,110],[75,110],[76,110],[77,80],[78,80],[79,80],[80,80],[81,90],[82,80],[83,90],[84,110],[85,110],[86,110],[87,110],[88,110],[89,110],[90,110],[91,110],[92,110],[93,110],[94,110],[95,110],[96,110]]
-typical run back at target: age 73 (2038)
+# started 03 Nov 19:52:16 UK, on the review's container (two cores, nothing else running)
+# node extra.mjs S116 --ahead 2000 (the agent's code at c5370be9f7d3; seed 7002; EXPLORATORY, deciding nothing)
+current approach: the policy Bracket Fill Basic, Phased Drawdown, guardrails off, the lookahead 5 years
+solve: 359 s
+runs: 133 s; the typical run is path 1181 (the median of the pot at the end over 2000 paths); it lasts
+typical run levels: [[61,80],[62,80],[63,80],[64,80],[65,80],[66,80],[67,80],[68,80],[69,80],[70,80],[71,80],[72,80],[73,80],[74,80],[75,80],[76,80],[77,80],[78,80],[79,80],[80,80],[81,80],[82,90],[83,90],[84,90],[85,110],[86,110],[87,110],[88,110],[89,110],[90,110],[91,110],[92,110],[93,110],[94,110],[95,110],[96,110]]
+typical run back at target: age 85 (2050)
+ahead: 2026 (age 61) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2027 (age 62) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2028 (age 63) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2029 (age 64) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2030 (age 65) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2031 (age 66) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2032 (age 67) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2033 (age 68) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2034 (age 69) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
+ahead: 2035 (age 70) | £41,600 (80%) | Move pension money into your ISA, up to your personal allowance; Move your pension 3 steps lower in risk; Move your ISA 3 steps lower in risk | ledger: spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer
 ledger verdict: {"survived":true,"failAge":null,"failYear":null,"failReason":null,"preNmpaFailed":false,"terminalPot":382424.78259070584,"terminalPension":382424.78259070584,"terminalPotNet":382424.78259070584,"minPot":382424.78259070584,"lifetimeTax":60813.15939753599}
 ledger: 2026 | age 61 | target £41,600 | spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer | net drawdown £41,600 | pension draw £16,760 | tax £0 | CGT £0 | pensions £326,458 | ISAs £163,410 | other £424,429 | cash £26,263 | total £940,560
 ledger: 2027 | age 62 | target £41,600 | spend 80% · pension to ISA, to the personal allowance · pension 3 steps safer · ISA 3 steps safer | net drawdown £41,600 | pension draw £16,760 | tax £0 | CGT £0 | pensions £320,693 | ISAs £185,143 | other £399,105 | cash £26,263 | total £931,203
@@ -19,4 +30,3 @@ ledger: 2036 | age 71 | target £41,600 | spend 80% · pension to ISA, to the pe
 ledger: 2037 | age 72 | target £41,600 | spend 80% · pension first, to the personal allowance · pension 3 steps safer · ISA 3 steps safer | net drawdown £29,921 | pension draw £792 | tax £297 | CGT £343 | pensions £339,246 | ISAs £350,835 | other £144,643 | cash £26,263 | total £860,987
 ledger row keys: year t ageSelf agePart histYear histStockReturn histBondReturn workingSelf workingPart targetSpend spSelf spPart netGuaranteed workingTakeHome netDrawdown totalSelf totalPart totalCombined pots pensions isas other cash preNmpaLiquid drawdownPensions taxablePensionSelf taxablePensionPart harvested taxPaid cgtPaid otherTaxableSelf otherTaxablePart savingsInterest savingsTax giaDividends dividendTax cashIsa realisedGains preNmpaInsolvent unmetDemand guardrail spendMult reserved reservedFor oneOffCost action spendLevel tierPen tierIsa switchPaid tierPenName tierIsaName
 # done
-# ended 03 Nov 19:18:22 UK

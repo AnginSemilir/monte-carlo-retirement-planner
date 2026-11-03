@@ -1,0 +1,10 @@
+# node target-options.mjs S116 S224 S090 S290 (the agent's code at c5370be9f7d3; no solve; EXPLORATORY, deciding nothing)
+S116: target £52,000; the options, nearest first: £47,000, £57,000, £41,500, £62,500; the button: "Solve £41,500 to £62,500 a year"
+S116: current approach: the decumulation policy "Bracket Fill Basic" (shown as Tax Smoothing); the drawdown strategy Phased Drawdown; guardrails off; the lookahead 5 years; the 0% harvest on; an Auto deposit none (App.jsx AUTO_DEPOSIT)
+S224: target £70,000; the options, nearest first: £63,000, £77,000, £56,000, £84,000; the button: "Solve £56,000 to £84,000 a year"
+S224: current approach: the decumulation policy "Bracket Fill Basic" (shown as Tax Smoothing); the drawdown strategy Phased Drawdown; guardrails off; the lookahead 5 years; the 0% harvest on; an Auto deposit none (App.jsx AUTO_DEPOSIT)
+S090: target £28,500; the options, nearest first: £25,500, £31,500, £23,000, £34,000; the button: "Solve £23,000 to £34,000 a year"
+S090: current approach: the decumulation policy "Bracket Fill Basic" (shown as Tax Smoothing); the drawdown strategy Phased Drawdown; guardrails off; the lookahead 5 years; the 0% harvest on; an Auto deposit yes (App.jsx AUTO_DEPOSIT)
+S290: target £27,000; the options, nearest first: £24,500, £29,500, £21,500, £32,500; the button: "Solve £21,500 to £32,500 a year"
+S290: current approach: the decumulation policy "Bracket Fill Basic" (shown as Tax Smoothing); the drawdown strategy Phased Drawdown; guardrails off; the lookahead 5 years; the 0% harvest on; an Auto deposit yes (App.jsx AUTO_DEPOSIT)
+# done

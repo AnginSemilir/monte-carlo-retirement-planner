@@ -12,9 +12,11 @@ import * as F from '../../src/solver/fast.js';
 import { solve, runPolicy, buildActions, tierCombos } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { cpuNs } from './cpu-time.mjs';
 
 let pass = 0, fail = 0;
-const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
+const failed = [];   // named again on the last line: the full tier's log keeps only a failing file's last three lines
+const ok = (n, c, extra = '') => { c ? pass++ : (fail++, failed.push(`${n.split(/\s+/)[0]}${extra ? ` (${extra})` : ''}`)); console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const prep = (p) => E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(p)), config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
 
@@ -66,16 +68,23 @@ console.log('=========== C. THE SOLVE WITH TIERS ON: NO WORSE, AND ITS COST ====
 {
   const picks = [singles[3], singles[Math.floor(singles.length * 0.6)]];
   let worse = 0, ratioMax = 0, used = 0;
+  // C2 is about the solve's own cost, so each solve is timed on this thread's CPU clock (cpu-time.mjs), one cold run as
+  // before: the full tier runs two files at once (run-shard.mjs -j 2), and on the wall clock a neighbour's load landing on
+  // one solve and not the other moved the ratio (Full 63, 3 Nov: the only check of the file that can differ between runs of
+  // the same code, it failed where Full 61 had passed). SOLVER_TIERS_PLANT=slow solves the tier problem three times inside
+  // its timing, a slowdown C2 must catch.
+  const again = process.env.SOLVER_TIERS_PLANT === 'slow' ? 3 : 1;
   for (const sc of picks) {
     const plan = prep(sc.plan);
-    const t0 = Date.now(); const a = solve(E, M, plan, { points: 16, skipLump: true }); const tA = Date.now() - t0;
-    const t1 = Date.now(); const b = solve(E, M, plan, { points: 16, skipLump: true, tiers: true }); const tB = Date.now() - t1;
+    let a, b;
+    const tA = Math.round(cpuNs(() => { a = solve(E, M, plan, { points: 16, skipLump: true }); }, 1, 1).first / 1e6);
+    const tB = Math.round(cpuNs(() => { for (let k = 0; k < again; k++) b = solve(E, M, plan, { points: 16, skipLump: true, tiers: true }); }, 1, 1).first / 1e6);
     const va = a.value(M.initialState(a.m), 0).score, vb = b.value(M.initialState(b.m), 0).score;
     if (vb < va - 1e-9) worse++;
     ratioMax = Math.max(ratioMax, tB / tA);
     const rs = E.pathsForSeed(31, 200, b.m.ctx.totalYears).map(z => runPolicy(b, z));
     used += rs.reduce((x, r) => x + r.tierPenYears + r.tierIsaYears, 0) / rs.length;
-    console.log(`      ${sc.id} ${sc.name.slice(0, 30)}: value ${va.toFixed(4)} -> ${vb.toFixed(4)}, ${tA}ms -> ${tB}ms (${b.actions.length} moves), tier-down years ${ (rs.reduce((x, r) => x + r.tierPenYears, 0) / rs.length).toFixed(1)} pension / ${(rs.reduce((x, r) => x + r.tierIsaYears, 0) / rs.length).toFixed(1)} ISA a run`);
+    console.log(`      ${sc.id} ${sc.name.slice(0, 30)}: value ${va.toFixed(4)} -> ${vb.toFixed(4)}, ${tA}ms -> ${tB}ms of CPU (${b.actions.length} moves), tier-down years ${ (rs.reduce((x, r) => x + r.tierPenYears, 0) / rs.length).toFixed(1)} pension / ${(rs.reduce((x, r) => x + r.tierIsaYears, 0) / rs.length).toFixed(1)} ISA a run`);
   }
   ok('C1  on the same grid, more moves never lower the opening value', worse === 0);
   ok('C2  the joint tier moves cost less than two and a half times the phase 2 solve (the flow is shared)', ratioMax < 2.5, `worst ${ratioMax.toFixed(2)}x; the gate\'s 1.5x is judged in the plan`);
@@ -116,5 +125,5 @@ console.log('=========== D. WHAT A TIER CHANGE COSTS ===========');
   ok('D9  ...and gives up no survival for it beyond sampling error', sv(rc) >= sv(rn) - 1.5, `${sv(rn).toFixed(1)} -> ${sv(rc).toFixed(1)} on ${rc.length} paths`);
 }
 
-console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
+console.log(`\n=========== ${pass} passed, ${fail} failed${failed.length ? `: ${failed.join('; ')}` : ''} ===========`);
 process.exit(fail ? 1 : 0);

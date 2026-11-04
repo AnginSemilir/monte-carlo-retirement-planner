@@ -1,0 +1,4 @@
+C2's measurement with a neighbour's load on the tier solve only (EXPLORATORY, a diagnostic): S006, S252, 16 points; 8 busy processes on 4 cores (Intel(R) Xeon(R) Processor @ 2.80GHz) during the tier solve; code 9273130d7c86
+  S006: the plain solve 6843 ms on the wall clock, 6693 ms of CPU; the tier solve under the load 22719 ms on the wall clock, 9725 ms of CPU; the ratio on the wall clock 3.32x (OVER 2.5), on the CPU 1.45x (under 2.5)
+  S252: the plain solve 8883 ms on the wall clock, 8757 ms of CPU; the tier solve under the load 28560 ms on the wall clock, 12388 ms of CPU; the ratio on the wall clock 3.21x (OVER 2.5), on the CPU 1.41x (under 2.5)
+VERDICT: C2 on the wall clock would fail on 2 of 2 households under this load; on the thread's CPU, 0 of 2

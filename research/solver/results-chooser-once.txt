@@ -1,0 +1,11 @@
+PASS  1  S224 SHIP: every world's score, tax and estate of every move at every decision of 20 paths the same bit for bit as scoreMoves's, the repeats found once a decision at 820 decisions, 0 falling back (885600 scores checked; 197118 scored, 589338 repeats)
+PASS  2  S224 SHIP: the engine's outcomes on 200 paths with the repeats found once a world and once a decision, f19cbba743ac86b6 / f19cbba743ac86b6 (survives 136); 18.5 and 16.4 ms of CPU a path
+PASS  3  S224 SHIP: the worlds taken to part the moves differently: each world's own memo at all 8200 decisions, the outcomes f19cbba743ac86b6
+PASS  1  S224 CAND: every world's score, tax and estate of every move at every decision of 20 paths the same bit for bit as scoreMoves's, the repeats found once a decision at 820 decisions, 0 falling back (1968000 scores checked; 337224 scored, 1400856 repeats)
+PASS  2  S224 CAND: the engine's outcomes on 200 paths with the repeats found once a world and once a decision, 0d76285e6d5cc782 / 0d76285e6d5cc782 (survives 130); 44.3 and 37.4 ms of CPU a path
+PASS  3  S224 CAND: the worlds taken to part the moves differently: each world's own memo at all 8200 decisions, the outcomes 0d76285e6d5cc782
+PASS  1  S370 CAND: every world's score, tax and estate of every move at every decision of 20 paths the same bit for bit as scoreMoves's, the repeats found once a decision at 920 decisions, 0 falling back (2208000 scores checked; 262236 scored, 1666884 repeats)
+PASS  2  S370 CAND: the engine's outcomes on 200 paths with the repeats found once a world and once a decision, 9bcd24fd66f7e903 / 9bcd24fd66f7e903 (survives 150); 46.8 and 38.9 ms of CPU a path
+PASS  3  S370 CAND: the worlds taken to part the moves differently: each world's own memo at all 9200 decisions, the outcomes 9bcd24fd66f7e903
+PASS  4  planted, S224 CAND: each repeat scored at the next repeat's first move: the check throws (share check: year 0, world 0, move 0: 0.07439158926307352 0.)
+=========== 10 passed, 0 failed ===========

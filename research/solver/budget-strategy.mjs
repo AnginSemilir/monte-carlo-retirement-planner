@@ -49,14 +49,18 @@ for (const id of ids) {
   await Promise.all(solvedP);
   const solveS = secs(t0), tEnd = performance.now();
   // the headline: the paths shared out, the owner taking the first share, joined in path order
-  const stage = async (a, b) => { const sh = share(a, b), got = await Promise.all(sh.slice(1).map(([f, t], k) => ask(k + 1, f, t))); return [strategyRuns(E, r, plan, { seed: SEED, from: sh[0][0], to: sh[0][1] }), ...got]; };
+  // the owner runs its share while the parts run theirs, as the page does (src/solverClient.js strategyNow asks every part at
+  // once, the owner among them); before 4 Nov the owner ran its share only after the parts had answered, so a stage took two
+  // shares' time
+  const stage = async (a, b) => { const sh = share(a, b), pending = Promise.all(sh.slice(1).map(([f, t], k) => ask(k + 1, f, t))); const mine = strategyRuns(E, r, plan, { seed: SEED, from: sh[0][0], to: sh[0][1] }); return [mine, ...(await pending)]; };
   let runs = joinRuns(await stage(0, FIRST));
   const h1 = strategySummary(E, r, runs), headS = secs(tEnd);
   runs = joinRuns([runs, ...(await stage(FIRST, MORE))]);
   const h2 = strategySummary(E, r, runs), moreS = secs(tEnd);
   // the skip costs split the same way (src/solverClient.js actions), joined against the plan's runs the owner holds
   const t2 = performance.now(), sh = share(0, SKIP_N);
-  const parts = [skipRuns(E, r, { seed: SEED, from: sh[0][0], to: sh[0][1] }), ...(await Promise.all(sh.slice(1).map(([f, t], k) => ask(k + 1, f, t, true))))];
+  const pendingSkips = Promise.all(sh.slice(1).map(([f, t], k) => ask(k + 1, f, t, true)));
+  const parts = [skipRuns(E, r, { seed: SEED, from: sh[0][0], to: sh[0][1] }), ...(await pendingSkips)];
   const a = actionsOf(E, r, plan, { seed: SEED, n: SKIP_N, base: runs.solved, parts }), skipS = secs(t2);
   workers.forEach(w => w.postMessage('stop'));
   await Promise.all(workers.map(w => w.terminate()));

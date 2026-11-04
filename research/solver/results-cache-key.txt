@@ -1,0 +1,6 @@
+F19'S CHECK (the launch plan's step P1 (g); research/reviews/2026-11-01/launch/cache-key.sh on review/external-2026-10-21 at 90fcb10), run 4 Nov on release/phase-10 at 1604ac5 in a clean worktree:
+# bash cache-key.sh at 1604ac5 solver-tiers C2 times the two solves on the thread's CPU, and names a fa
+as committed: the solver's worker built as solverWorker-DvVMlKIV.js ; the engine slice sha256 2ad87adc2344
+the Reseed button's text changed (a screen only): the solver's worker built as solverWorker-DQ434n9l.js ; the engine slice sha256 2ad87adc2344
+src/App.jsx restored
+VERDICT: F19 CONFIRMED: a change to a screen alone gives the worker a new URL, and so every stored solve a new key (src/solverWorker.js keys them on self.location.href), the engine slice the same; P1 (g) goes first.

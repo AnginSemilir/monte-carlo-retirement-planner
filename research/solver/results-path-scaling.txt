@@ -1,0 +1,9 @@
+HOW THE SOLVED PLAN'S PATHS SCALE ACROSS THREADS (step P, D56; EXPLORATORY): S002; split 4 ways; 60 paths of seed 12345 a part a stage; code 9273130d7c86; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.51 0.77 0.53 at the start
+the solve split 4 ways: 53.2 s
+1. the owner alone: 38.37, 35.10 ms a path (each part, both rounds); mean 36.73
+1. a worker part alone: 36.30, 37.23 ms a path (each part, both rounds); mean 36.76
+2. two parts at once: 42.23, 40.61, 38.57, 36.94 ms a path (each part, both rounds); mean 39.59
+3. four parts at once: 37.05, 38.10, 40.52, 41.23, 37.65, 39.39, 37.65, 36.29 ms a path (each part, both rounds); mean 38.48
+a path at once against alone: two parts x1.08, four parts x1.05; so four parts run 3.82 times as many paths as one in the same time
+
+EXPLORATORY: a measurement for step P (D56), deciding nothing.

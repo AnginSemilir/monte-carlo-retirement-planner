@@ -1,0 +1,54 @@
+== before the repeats were found once a decision (the code as Phase 10 left it), 4 Nov 04:30 UTC
+WHERE A SOLVED PLAN'S PATH GOES (step P, D56; EXPLORATORY): S002; 40 paths of seed 12345 on one thread, the first 20 run untimed first; 5 paths' decisions replayed; code 9273130d7c86; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.38 0.73 0.44 at the start
+
+== S002: solved at the app's settings in 183.8 s on one thread (total 45 x 6 x 6 points); 28 years a path; the chooser: 800 moves a decision, 5 spending levels, 3 worlds, the shared year on
+1. a path: your plan's 0.27 ms (survival 100.0%), the solved plan's 34.96 ms (survival 100.0%), 130.3 times; both arms (the Strategy tab's runs) 35.23 ms, so 2,000 paths 70.5 s on one thread
+2. the solved plan's path: the table's choice 34.21 ms (97.8%), the rest of the engine's years 0.75 ms; 28.0 decisions a path, 1221.8 us a decision, 1.53 us a move scored
+3. replayed, 140 decisions of the first 5 paths: the position's vector 1.3 us a decision, chooseAction 1178.9 us a decision
+   a decision, over its worlds: 475.6 moves scored afresh, 1924.4 answered by the memo (the same position after the move), 0.0 failing; 5 quadrature nodes; the position 14 numbers; the step read on
+4. chooseAction replayed five times under the sampling profiler (1038.2 ms sampled), self time by function, the top 15:
+      31.7%  scoreMovesShared src/solver/solve.js:2025
+      23.6%  readValues src/solver/grid.js:322
+       7.0%  grossForNet src/solver/fast.js:694
+       6.3%  decisionFlows src/solver/solve.js:1963
+       6.2%  expit src/solver/grid.js:41
+       6.0%  locInto src/solver/grid.js:309
+       5.4%  flow src/solver/fast.js:395
+       2.7%  grow src/solver/fast.js:727
+       1.5%  (garbage collector)
+       1.4%  (anonymous) src/solver/solve.js:1772
+       1.2%  (anonymous) src/solver/fast.js:713
+       1.2%  realAt src/solver/solve.js:211
+       1.1%  drawPension src/solver/fast.js:467
+       1.0%  chargeSwitch src/solver/fast.js:159
+       1.0%  params.dividendTax research/engine.mjs:1265
+
+EXPLORATORY: a measurement for step P (D56), deciding nothing; the budgets are measured again once its cuts are in.
+
+== the repeats found once a decision (solve.js decisionRepeats, scoreWorldOnce; chooser-once.test.mjs), 4 Nov 05:02 UTC
+WHERE A SOLVED PLAN'S PATH GOES (step P, D56; EXPLORATORY): S002; 40 paths of seed 12345 on one thread, the first 20 run untimed first; 5 paths' decisions replayed; code 24da0cb467e1; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.95 1.10 1.02 at the start
+
+== S002: solved at the app's settings in 181.0 s on one thread (total 45 x 6 x 6 points); 28 years a path; the chooser: 800 moves a decision, 5 spending levels, 3 worlds, the shared year on
+1. a path: your plan's 0.23 ms (survival 100.0%), the solved plan's 31.06 ms (survival 100.0%), 133.6 times; both arms (the Strategy tab's runs) 31.29 ms, so 2,000 paths 62.6 s on one thread
+2. the solved plan's path: the table's choice 30.27 ms (97.5%), the rest of the engine's years 0.79 ms; 28.0 decisions a path, 1081.1 us a decision, 1.35 us a move scored
+3. replayed, 140 decisions of the first 5 paths: the position's vector 1.5 us a decision, chooseAction 1063.4 us a decision
+   a decision, over its worlds: 475.6 moves scored afresh, 1924.4 answered by the memo (the same position after the move), 0.0 failing; 5 quadrature nodes; the position 14 numbers; the step read on
+4. chooseAction replayed five times under the sampling profiler (847.6 ms sampled), self time by function, the top 15:
+      30.0%  readValues src/solver/grid.js:322
+      10.7%  scoreWorldOnce src/solver/solve.js:2137
+       8.0%  grossForNet src/solver/fast.js:694
+       8.0%  expit src/solver/grid.js:41
+       7.7%  decisionFlows src/solver/solve.js:1965
+       6.9%  decisionRepeats src/solver/solve.js:2117
+       6.4%  flow src/solver/fast.js:395
+       5.0%  locInto src/solver/grid.js:309
+       2.9%  grow src/solver/fast.js:727
+       1.8%  chargeSwitch src/solver/fast.js:159
+       1.5%  (anonymous) src/solver/fast.js:713
+       1.4%  (garbage collector)
+       1.4%  realAt src/solver/solve.js:211
+       1.3%  params.dividendTax research/engine.mjs:1265
+       1.2%  drawPension src/solver/fast.js:467
+
+EXPLORATORY: a measurement for step P (D56), deciding nothing; the budgets are measured again once its cuts are in.
+

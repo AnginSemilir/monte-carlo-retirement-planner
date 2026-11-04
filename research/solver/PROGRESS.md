@@ -21,7 +21,7 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 8, the Config tab | to 3 Nov | 1 | merged (pull request 3) | 1 |
 | Step L, the levers | to 4 Nov | 1 | merged (pull request 4); L4 and L5 read | 1 |
 | Phase 9, the Strategy tab | to 7 Nov | 3 | merged (pull request 5), its budgets recorded as not met (D56) | 3 |
-| Phase 10, isolation and the projection | to 11 Nov | 4 | all seven items built and through their harnesses, each plant caught; the merge to come (7 of 8) | 3.5 |
+| Phase 10, isolation and the projection | to 11 Nov | 4 | merged (pull request 6) | 4 |
 | Step P, cutting the cost | to 6 Nov | 2 | not begun | 0 |
 | Step U, the new planner (D58) | to 10 Nov | 4 | not begun | 0 |
 | Phase 11, the phone on the new planner | to 11 Nov | 1 | not begun | 0 |
@@ -29,9 +29,9 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Couples D1 to D3 | 13 to 19 Nov | 6 | not begun | 0 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | not begun | 0 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **37** | | **9.5 (26%)** |
+| **Total** | | **37** | | **10 (27%)** |
 
-The singles' launch alone, Phase 12 ready, is the first 19 days: 9.5 of them, 50%.
+The singles' launch alone, Phase 12 ready, is the first 19 days: 10 of them, 53%.
 
 ## The figure after each job
 
@@ -41,3 +41,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: 9.5 of them, 50
 | 3 Nov 04:16 UTC | Phase 9 merged (pull request 5); Phase 10's seven items built | 21% | 45% |
 | 3 Nov 13:30 UTC | Phase 10 through its harnesses, each plant caught | 28% | 59% |
 | 3 Nov 21:00 UTC | D58 recorded: step U added and Phase 11 cut, the plan 37 days (no work undone) | 26% | 50% |
+| 4 Nov 05:02 UTC | Phase 10 merged (pull request 6) | 27% | 53% |

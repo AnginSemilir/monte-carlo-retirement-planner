@@ -18,8 +18,8 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
   - Step L (the levers; L4 and L5 read) is merged to `main` (pull request 4, 3370960) on B1's gate.
   - Phase 9, the Strategy tab (`PHASE-9.md`), is merged to `main` (pull request 5, 725c661) on B1's gate, its budgets
     recorded as not met (D56), step P taking the chooser's cost per path first.
-  - Phase 10 (`PHASE-10.md`): its seven items built and through their harnesses, each plant caught; its pull request
-    on B1's gate next.
+  - Phase 10, isolation and the projection (`PHASE-10.md`), is merged to `main` (pull request 6, 08dcff6) on B1's
+    gate.
   - Then step P; then step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10); then
     Phases 11 and 12 as recast; couples as Part D during the singles' beta (B9), D5 the couples' screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival

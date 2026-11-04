@@ -8,9 +8,11 @@
  *   const job = startSolve(plan, { key, base, parts, lambda, points, research, onProgress, onStored });
  *   const { meta, secs, parts, restored, base } = await job.done;   // rejects with 'cancelled' after job.cancel()
  *   await job.ask('simulate', { trials, seed });          // the owner worker's answers (src/solverWorker.js)
- *   await job.strategy(plan, seed, upto);                 // the Strategy tab's figures, split across the solve's parts
+ *   await job.strategy(plan, seed, upto, { exact });      // the Strategy tab's figures, split across the solve's parts (exact:
+ *                                                         // the first `upto` paths alone, though more have been run)
  *   await job.actions(plan, seed, n);                     // this year's skip costs, split the same way
  *   job.close();                                          // the owner worker, and the solved tables with it, let go
+ *   const f = startFigures(engine, plan, { seed, upto });  // a variant's figures, its tables let go (Phase 10, F6)
  *
  * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored in that
  * one worker; otherwise the plan is solved, split across workers where the page is cross-origin isolated (src/solverPool.js),
@@ -25,6 +27,7 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 
+export const PLANT = { rule: '' };   // research/tests/solver-client.test.mjs only: 'noqueue' lets two figures' asks run at once
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -36,6 +39,30 @@ export const keyOf = (engine, plan, opts = {}) => solveKey(engine, plan, opts);
 export async function baseOf(engine, plan, opts = {}) {
   const bp = dialBase(engine.normalizePlan(plan));
   return bp ? { plan: bp, key: await solveKey(engine, bp, opts) } : null;
+}
+
+/*
+ * A PLAN'S FIGURES WITHOUT ITS TABLES (Part C Phase 10; the launch plan's F6: "a position not chosen keeps only its figures").
+ * A variant of the plan on screen (another of the dial's positions, another retirement age, a scenario, a step of a search)
+ * solved in workers of its own, the Strategy tab's headline and comparison run on the paths and seed the plan's own use,
+ * and the workers let go: only the figures are kept. A dial position's base is restored from the store where it is kept
+ * (the store keeps the base beside the latest position), so a position costs one solve. The variant itself is neither
+ * restored nor stored unless `keyed` (the dial's position 1 is that base, restored by its key).
+ *   const f = startFigures(engine, plan, { seed, upto, ...opts });   const { headline, compare } = await f.done;   f.cancel();
+ */
+export function startFigures(engine, plan, { seed, upto, keyed = false, parts = defaultParts(), ...opts } = {}) {
+  let job = null, cancelled = false;
+  const done = (async () => {
+    const base = await baseOf(engine, plan, opts), key = keyed ? await keyOf(engine, plan, opts) : null;
+    if (cancelled) throw new Error('cancelled');
+    job = startSolve(plan, { ...opts, key, base, parts });
+    try {
+      await job.done;
+      const { strategy } = await job.strategy(plan, seed, upto, { exact: true });
+      return { headline: strategy.headline, compare: strategy.compare };
+    } finally { job.close(); }
+  })();
+  return { done, cancel() { cancelled = true; if (job) { job.cancel(); job.close(); } } };
 }
 
 export function startSolve(plan, { key = null, base = null, parts = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
@@ -71,16 +98,23 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
    * paths not yet run are shared out evenly, the owner taking the first share, and the owner joins them in path order, so
    * the figures are the whole run's (research/tests/sim-split.test.mjs). Without parts, the owner runs them all.
    */
-  let have = 0, haveKey = null;
-  const strategy = async (plan, seed, upto) => {
+  let have = 0, haveKey = null, line = Promise.resolve();
+  const strategyNow = async (plan, seed, upto, { exact = false } = {}) => {
     const k = JSON.stringify([seed, plan]);
     if (k !== haveKey) { have = 0; haveKey = k; }
-    if (!kept.length || upto <= have) { const r = await ask('strategy', { plan, seed, upto }); have = Math.max(have, upto); return r; }
+    if (!kept.length || upto <= have) { const r = await ask('strategy', { plan, seed, upto, exact }); have = Math.max(have, upto); return r; }
     const all = [ask, ...kept], n = all.length, span = upto - have;
     const share = i => [have + Math.floor((i * span) / n), have + Math.floor(((i + 1) * span) / n)];
     const got = await Promise.all(all.map((a, i) => a('runs', { plan, seed, from: share(i)[0], to: share(i)[1] })));
-    const r = await ask('strategy', { plan, seed, upto, runs: got.map(g => g.runs) });
+    const r = await ask('strategy', { plan, seed, upto, exact, runs: got.map(g => g.runs) });
     have = upto;
+    return r;
+  };
+  // one at a time (Phase 10): the Strategy tab, the age dial, the dial's line and the scenarios each ask for figures of the one
+  // solve, and two asks at once would share out the same next paths, which the owner refuses to join twice
+  const strategy = (...args) => {
+    const r = PLANT.rule === 'noqueue' ? strategyNow(...args) : line.then(() => strategyNow(...args));
+    line = r.catch(() => {});
     return r;
   };
 

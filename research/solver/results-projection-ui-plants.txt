@@ -1,0 +1,41 @@
+solver-projection-ui.cjs with five plants at once (Part C Phase 10), launched 3 Nov 10:40 UTC on 60de7bd, ended 13:16 UTC:
+  PROJECTION_PLANT=yoursdeliv,dialfar,agelate,simpleseed,scenseed PROJECTION_SECTIONS=4,5,6,7
+(sections 1 and 2's base always run; the five patched into the switch-on preview build). Expected: exactly five FAILs, each
+its plant's check, and every other check ok. Read: 22 ok, 5 FAILED, each the planted check:
+  yoursdeliv (your plan's spending from another figure): the spending beside 'as you are now';
+  dialfar (the dial's settings solved farthest first): the four settings' order;
+  agelate (the later age first on a tie): the ages' order;
+  simpleseed (the Simple card on another seed): the Simple page's answers, its target search off Node's;
+  scenseed (the scenario solved on another seed): the scenario's line.
+Section 1 (the switch off) on 60de7bd's Simple-page check: on the Simple page, no card. The sixth plant, histexp (section 3's
+history check), was shown failing alone earlier (PHASE-10.md item 7).
+
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  ok    switch off: the Simple page has no answers from the solver   on the Simple page true, the card false
+  ok    PLANTED: your plan's spending from another figure (the spending check below must FAIL)   1 place(s) patched
+  ok    PLANTED: the scenarios card on another seed (the scenario check below must FAIL)   1 place(s) patched
+  ok    PLANTED: the later age first on a tie (the age order check below must FAIL)   1 place(s) patched
+  ok    PLANTED: the Simple card on another seed (its answers check below must FAIL)   3 place(s) patched
+  ok    PLANTED: the page solves the dial's settings farthest first (the order check below must FAIL)   1 place(s) patched
+  ok    the preview build (the switch on) is served   port 4183
+  ok    a run before the solve landed is your plan's, and goes stale when it lands   solved true, early solver line false, stale note true
+  ok    re-run, the projection is the solved plan's: its survival Node's, your plan's beside it Node's, the typical spending shown   solved 98.82% (Node 98.82%), as you are now 94.72% (Node 94.72%)
+  FAIL  beside "as you are now", your plan's typical spending, Node's   207623.2415361611 (Node 29000)
+  ok    under the dial, the line at your setting is the headline's figures, Node's   "At this setting: start at £23,200 (80% of target), back at target by 2027; chance your money lasts 99%." (Node 98.9%)
+  FAIL  "Show the four settings" works the other three out nearest first along the dial   filled in 10, 6, 3 (nearest first 3, 6, 10)
+  ok    each setting's line is Node's for the plan at that setting   1: 98.9% (Node 98.9%), 3: 99.05% (Node 99.05%), 6: 98.75% (Node 98.75%), 10: 98.6% (Node 98.6%)
+  ok    choosing Medium re-solves the plan there: its line the figure the list showed, and the other settings' figures kept   Medium 99.05% (listed 99.05%); kept 1: 98.9%, 6: 98.75%, 10: 98.6%
+  ok    S126, retired, has no age dial
+  ok    switch on: no page errors
+  ok    the age dial's line at the plan's own age is the headline's figures, Node's   "Retiring at 60, as planned: start at £57,200 (80% of target), back at target by 2058; chance your money lasts 61%." (Node 61.4%)
+  FAIL  "Solve retiring at ..." works the ages out nearest first, the earlier first on a tie   filled in 61, 59, 62, 58, 63, 57 (expected 59, 61, 58, 62, 57, 63)
+  ok    each age's line is Node's for the plan retiring at that age   57: 45.85% (Node 45.85%), 58: 51.8% (Node 51.8%), 59: 56.5% (Node 56.5%), 60: 61.4% (Node 61.4%), 61: 65.95% (Node 65.95%), 62: 70.15% (Node 70.15%), 63: 74.05% (Node 74.05%)
+  ok    switch on, S188: no page errors
+  FAIL  the Simple page's answers from the solver are Node's search over the same solves, every setting tried the same, named apart from the safe starting spend   from £26000: the highest target £30500 (Node £31000; tried 26000, 31000, 28500, 30000, 30500 / 26000, 31000, 37000, 34000, 32500, 32000, 31500), the earliest age 57 (Node 57; tried 60, 59, 58, 57 / 60, 59, 58, 57)
+  ok    switch on, the Simple page: no page errors
+  FAIL  under the scenario comparison, the plan on screen's line is Node's, and "Solve this scenario" gives the scenario's, Node's   the plan 98.9% (Node 98.9%), the scenario 98.55% (Node 98.9%): "Spend 2000 more:start at £24,800 (80% of target), back at target by 2027; chance your money lasts 99%."
+  ok    switch on, the scenarios: no page errors
+
+5 FAILED

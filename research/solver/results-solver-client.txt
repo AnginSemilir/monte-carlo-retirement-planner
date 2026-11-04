@@ -1,0 +1,15 @@
+=========== 1. TWO ASKS AT ONCE ===========
+  ok  1. two asks at once on the solve split 2 ways: both answered, Node's figures (160 paths; 160 paths)
+  ok  1. then 320 paths, and an exact 160 after it: Node's (320 paths; 160 paths)
+=========== 2. THREE ASKS AT ONCE ===========
+  ok  2. 160, 320 and an exact 160 at once: each Node's (160 paths; 320 paths; 160 paths)
+=========== 3. A REFUSED SHARE KEEPS THE PATHS HELD ===========
+  ok  3. the paths 0 to 160 offered again: refused (joinRuns: the parts do not meet in path order on one seed); the 160 held kept, and the next ask Node's at 320
+=========== THE PLANT ===========
+  -- planted: the asks run at once (expected to FAIL) --
+  FAIL 1 [noqueue]. two asks at once on the solve split 2 ways: both answered, Node's figures (160 paths; refused (joinRuns: the parts do not meet in path order on one seed))
+  ok  1 [noqueue]. then 320 paths, and an exact 160 after it: Node's (320 paths; 160 paths)
+  ok  the plant 'noqueue' (the asks run at once) is caught: 1 check failed
+EDGES: two asks for the same paths, an ask for fewer paths than are held, a share offered twice
+
+ALL PASS: 5

@@ -63,6 +63,40 @@ export function dialBase(plan) {
   if (dialOf(plan) === 1) return null;
   return { ...plan, solver: { ...plan.solver, aims: { ...plan.solver.aims, cuts: 1 } } };
 }
+/* the dial's other positions in the order the live line solves them (Phase 10, item 3: "nearest first"): by their distance
+   along the dial from the plan's own, the lower first where two are as near */
+export const dialOrder = current => {
+  const i = Math.max(0, APP_DIAL.indexOf(current));
+  return APP_DIAL.map((x, j) => [x, Math.abs(j - i), j]).filter(([, d]) => d > 0).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(([x]) => x);
+};
+/* the plan at another of the dial's positions, every other aim its own */
+export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...((plan.solver && plan.solver.aims) || {}), cuts: x } } });
+/* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
+export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
+export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
+export const PLANT = { rule: '' };   // research/tests/solver-figures.test.mjs only: 'rawsig' keys the dial's figures on the plan as stored
+/* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
+   position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
+export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));
+/* the retirement-age dial (Phase 10, item 4; B11): the ages either side of the plan's own, the nearest first, the earlier first
+   where two are as near; none at or before today's age, and none for a household already retired */
+export const AGE_SPAN = 3;
+export function ageOptions(plan, ageNow) {
+  const own = Number(plan && plan.demographics && plan.demographics.retireAgeSelf);
+  if (!Number.isFinite(own) || own <= ageNow) return null;
+  const ages = [];
+  for (let a = own - AGE_SPAN; a <= own + AGE_SPAN; a++) if (a > ageNow) ages.push(a);
+  const order = ages.filter(a => a !== own).sort((a, b) => Math.abs(a - own) - Math.abs(b - own) || a - b);
+  return { own, ages, order };
+}
+/* the plan at another target spend, its spending bands scaled with it (as the engine's spend override scales the schedule:
+   App.jsx stepYear), every other input its own */
+export function atSpend(plan, x) {
+  const sp = (plan && plan.spending) || {}, t = Number(sp.targetSpend) || 0, k = t > 0 ? x / t : 1;
+  return { ...plan, spending: { ...sp, targetSpend: x, ...(Array.isArray(sp.spendBands) ? { spendBands: sp.spendBands.map(b => ({ ...b, amount: Number(b.amount) * k })) } : {}) } };
+}
+/* the plan retiring at another age, every other input its own */
+export const atAge = (plan, a) => ({ ...plan, demographics: { ...plan.demographics, retireAgeSelf: a } });
 /* what a dial position adds to the solve's key beyond lambda (src/solverKey.js): nothing at position 1 */
 export const dialSettings = (plan, variant = APP_DIAL_VARIANT) => (dialOf(plan) > 1 ? { dial: { variant, lock: 'base', ...(variant === 'B3a' ? { ageWeight: APP_AGE_WEIGHT } : {}) } } : {});
 

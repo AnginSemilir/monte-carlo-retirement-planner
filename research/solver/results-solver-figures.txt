@@ -1,0 +1,36 @@
+=========== 1. THE ORDER ===========
+  ok  1. dialOrder: 1: 3, 6, 10; 3: 1, 6, 10; 6: 3, 10, 1; 10: 6, 3, 1 (nearest along the dial, the lower first on a tie)
+  ok  1. planted, the higher first on a tie is caught at 3, 6 (3: 6, 1, 10; 6: 10, 3, 1)
+=========== 2. THE PLAN AT EACH SETTING ===========
+  ok  2. atDial moves the dislike of cuts alone; every setting's plan at Low is one plan (the line's figures are kept under it)
+  ok  2. the plan's own setting gives the plan back, and Low gives the base a setting is solved on
+=========== 3. THE EXACT READ ===========
+      S126 at Low solved in 80 s
+  ok  3. the first 400 paths of 800 give a run of 400 alone, field for field
+  ok  3. asked for more paths than were run, the runs are given whole
+  ok  3. runs that do not start at path 0 are refused
+=========== 4. A SETTING'S FIGURES AS ITS JOB GETS THEM ===========
+  ok  4. Medium: the job's figures are the solve in hand's (survival 100.00%, start 80% of target; 385 s)
+  ok  4. Low: restored by its key, the figures are the solve's (survival 100.00%)
+  ok  4. Medium starts at or above Low (80% against 80%): the dial's direction
+=========== 5. THE WORDS ===========
+  ok  5. a dip: "start at £24,000 (80% of target), back at target by 2032; chance your money lasts 97%"
+  ok  5. never back: below target on a typical run
+  ok  5. at the target: no dip to speak of
+=========== 6. THE AGE DIAL ===========
+  ok  6. retiring at 60, aged 55: the ages 57, 58, 59, 60, 61, 62, 63, solved in the order 59, 61, 58, 62, 57, 63 (3 either side, the nearest first, the earlier first)
+  ok  6. aged 58: none at or before today's age (59, 60, 61, 62, 63)
+  ok  6. already retired, or no retirement age: no age dial
+  ok  6. planted, the later first on a tie is caught (61, 59, 62, 58, 63, 57)
+  ok  6. atAge moves the retirement age alone; every age's plan at age 0 is one plan
+  ok  6. S188 retiring at 61 (its plan 60): the job's figures are the solve's (survival 75.25%, start 80%; 231 s)
+=========== 7. THE SPEND VARIANT ===========
+  ok  7. atSpend's plan is the engine's spend override path for path (200 paths), with spending bands and without
+  ok  7. planted, the bands left unscaled is caught on the banded plan
+=========== 8. THE DIAL'S FIGURES KEPT ACROSS A CHOICE ===========
+  ok  8. choosing each setting keeps the dial's key, from a plan with no aims, with some and with all (1, 3, 6, 10)
+  ok  8. the estate's weight, the raises and the target each change it
+  ok  8. withAims fills the defaults beneath what the plan holds, and the patch above it
+  ok  8. planted, the key taken from the plan as stored (the defaults not filled in): caught on the plan with no aims
+
+ALL PASS: 25

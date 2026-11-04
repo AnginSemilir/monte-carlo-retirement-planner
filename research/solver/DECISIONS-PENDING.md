@@ -16,9 +16,14 @@ D51 to D54.
   - Phase 8, the Config tab (`PHASE-8.md`), is merged to `main` (pull request 3, 8b54321) on B1's gate (D55: the
     browser harnesses in both modes, the engine suites in CI).
   - Step L (the levers; L4 and L5 read) is merged to `main` (pull request 4, 3370960) on B1's gate.
-  - Phase 9, the Strategy tab (`PHASE-9.md`), is built; its budgets are measured and not met, and by D56 it merges with
-    them recorded, step P taking the chooser's cost per path first.
-  - Then Phase 10, step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
+  - Phase 9, the Strategy tab (`PHASE-9.md`), is merged to `main` (pull request 5, 725c661) on B1's gate, its budgets
+    recorded as not met (D56), step P taking the chooser's cost per path first.
+  - Phase 10 (`PHASE-10.md`): its seven items built and through their harnesses, each plant caught; its pull request
+    on B1's gate next.
+  - Then step P, Phases 11 and 12; couples as Part D during the singles' beta (B9).
+- **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
+  unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
+  spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.
 - **Research options built, off by default, not run** (EXPLORATORY): the windfall split (`WINDFALL-SPLIT.md`), the
   savings split (`SAVINGS-SPLIT.md`), the age weights and the candidate's tiers (D48, wired by L2 under B3).
 
@@ -53,3 +58,10 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   at once.
 - A time box running out; a red CI not fixed within a session.
 - The reads of L4 and L5 (as reports; R1 to R3 decide them), and what R2 leaves off the dial.
+- **Open now: GAIN-BUCKET's v2 proposal (B7).** The gain axis interpolated (`gainInterp`) against the candidate's nearest
+  bucket: survival no effect beyond noise; spending up on two households and down on one, each tiny (`results-gainbucket.txt`;
+  the read's review, `reviews/2026-11-03-read-gainbucket.md`). The choice: a registered v2 test after the launch, or
+  declined as immaterial. Beside it (the re-review's MINOR): the count depends on the test, chosen after seeing the data. The
+  sign-flip test of the mean, the figure reported, flags three households; an exact sign test, which reads the typical path,
+  flags seven, four up and three down, one of them down although its mean is up. The verdict is a gain under either. Also
+  reported: the run took about twice its pilot's core-hours.

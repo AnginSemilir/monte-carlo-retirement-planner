@@ -50,7 +50,7 @@ export function useSolver(plan, enabled, engine, opts = null) {
       setState(s => ({ ...s, solveState: 'solving', progress: null, key, storeNote: null }));
       try {
         const res = await h.done;
-        if (job.current === h) setState({ solveState: 'solved', solveMeta: { ...res, key }, progress: null, key, storeNote: kept, ask: (kind, extra) => h.ask(kind, extra), strategy: (pl, seed, upto) => h.strategy(pl, seed, upto), actions: (pl, seed, n) => h.actions(pl, seed, n) });
+        if (job.current === h) setState({ solveState: 'solved', solveMeta: { ...res, key }, progress: null, key, storeNote: kept, ask: (kind, extra) => h.ask(kind, extra), strategy: (pl, seed, upto, o) => h.strategy(pl, seed, upto, o), actions: (pl, seed, n) => h.actions(pl, seed, n) });
       } catch (e) {
         if (job.current === h && e.message !== 'cancelled') { jobKey.current = null; setState({ solveState: 'idle', solveMeta: { error: e.message }, progress: null, key }); }
       }

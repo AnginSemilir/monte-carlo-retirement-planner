@@ -15,6 +15,8 @@
  *   actionsOf(E, solved, plan, { seed, n, base, parts })   this year's move, part by part, each with the survival cost of
  *                                                    skipping it; skipRuns and joinSkipRuns its paths split across parts
  *   aheadOf(E, solved, runs, { years })             the next years' moves on the median path
+ *   rowsOf(E, solved, market)                       one market's run year by year, each year's move taken apart (Phase 10:
+ *                                                    the audit table's 'expected' ledger, history's out-of-model check)
  *
  * "Your plan" is D18's baseline: the plan as entered, with the policy it carries (its own withdrawal policy, guardrails and
  * lookahead), else the plain draw order the engine runs. Both arms run on pathsForSeed(seed, trials, years), path for path.
@@ -27,7 +29,8 @@ import { vecOf } from './solver/grid.js';
 export const DIP_YEARS = 3;
 export const CASES = ['atTarget', 'short', 'long', 'never'];
 /* research/tests/solver-strategy.test.mjs only: a planted fault in one rule ('dip' the edge a year early, 'topq' the quantile
-   from the top, 'failback' a failed path counted as back, 'raiseall' the raise on every path whatever its end) */
+   from the top, 'failback' a failed path counted as back, 'raiseall' the raise on every path whatever its end; rowsOf's
+   'rowsfirst' the first year's move given for every year, 'rowsexp' the market ignored for the expected path) */
 export const PLANT = { rule: '' };
 
 /* the plan as entered, as the projection runs it (src/mcWorker.js: resolveMpaa, then buildContext) */
@@ -140,6 +143,26 @@ export function joinRuns(parts) {
   for (let i = 1; i < ps.length; i++) if (ps[i].from !== ps[i - 1].to || ps[i].seed !== ps[0].seed) throw new Error('joinRuns: the parts do not meet in path order on one seed');
   return { seed: ps[0].seed, from: ps[0].from, to: ps[ps.length - 1].to, solved: ps.flatMap(p => p.solved), yours: ps.flatMap(p => p.yours) };
 }
+/*
+ * The owner's answer to 'strategy' (src/solverWorker.js; here so a test runs the same code, research/tests/solver-client.test.mjs):
+ * `held` the paths run so far ({ r, plan, runs }, or null), `data` the ask ({ plan, seed, upto, exact, runs }). The paths held
+ * for this solve, plan and seed are kept and only the rest run; the parts' shares (`runs`) are joined in path order first,
+ * and a share that does not start where the held paths end is refused (joinRuns), never joined twice. Returns the paths
+ * held after it and the figures; on a refusal the paths held before stay as they were.
+ */
+export function strategyAnswer(E, solved, held, data) {
+  const planKey = JSON.stringify(data.plan), seed = data.seed;
+  let h = held && held.r === solved && held.plan === planKey && held.runs.seed === seed ? held
+    : { r: solved, plan: planKey, runs: strategyRuns(E, solved, data.plan, { seed, from: 0, to: 0 }) };
+  if (data.runs && data.runs.length) h = { ...h, runs: joinRuns([h.runs, ...data.runs]) };
+  if (data.upto > h.runs.to) h = { ...h, runs: joinRuns([h.runs, strategyRuns(E, solved, data.plan, { seed, from: h.runs.to, to: data.upto })]) };
+  // exact: the figures of the first `upto` paths alone, though more have been run (the dial's line, Phase 10)
+  return { held: h, strategy: strategySummary(E, solved, data.exact ? headRuns(h.runs, data.upto) : h.runs) };
+}
+/* the first n paths of runs gathered from path 0 (Phase 10: the dial's line reads exactly the paths its other settings run,
+   whatever the Strategy tab has run since) */
+export const headRuns = (runs, n) => (runs.from !== 0 ? (() => { throw new Error('headRuns: the runs do not start at path 0'); })()
+  : runs.to <= n ? runs : { ...runs, to: n, solved: runs.solved.slice(0, n), yours: runs.yours.slice(0, n) });
 export function strategySummary(E, solved, runs) {
   const sc = solvedContext(E, solved), retireT = retireYearOf(sc);
   return { trials: runs.solved.length, seed: runs.seed, headline: headlineOf(E, sc, runs.solved, retireT), compare: { yours: compareOf(runs.yours), solved: compareOf(runs.solved) }, raise: raiseOf(sc, runs.solved, retireT) };
@@ -259,4 +282,19 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined) });
   }
   return { path: k, rows };
+}
+
+/*
+ * ONE MARKET'S RUN OF THE SOLVED PLAN, YEAR BY YEAR (Part C Phase 10, item 7): the engine's own rows (E.stepYear with the
+ * table as the plan's policy, as E.simulateDeterministic and E.simulateHistorical step them) and each year's move taken
+ * apart (partsOf), for the audit table's expected-return ledger (market 'expected') and the history tab's out-of-model check
+ * (market { historical: true, startYear }). parts[t] is null in a year the table chose no move; verdict is E.evaluateRows on the
+ * solved plan's own context (its minimum pot), as the history tab reads a run.
+ */
+export function rowsOf(E, solved, market) {
+  const sc = solvedContext(E, solved), base = sc.policyOverride, moves = [];
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = base.choose(st, t, held); moves[t] = mv ? partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) : null; return mv; } } };
+  const state = E.freshState(ctx), rows = [], m = PLANT.rule === 'rowsexp' ? 'expected' : market;
+  for (let t = 0; t <= ctx.totalYears; t++) rows.push(E.stepYear(ctx, state, t, m));
+  return { rows, parts: rows.map((_, t) => (PLANT.rule === 'rowsfirst' ? moves[0] : moves[t]) || null), verdict: E.evaluateRows(ctx, rows) };
 }

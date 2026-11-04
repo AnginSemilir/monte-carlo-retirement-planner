@@ -1,10 +1,11 @@
 /*
- * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; src/SolverStrategy.jsx). REQUIRED.
+ * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; since step U, the new planner's Your plan, src/PlannerPlan.jsx). REQUIRED.
  *
  * 1. The site as built (the switch off): the Strategy tab is the tournament as today, and no solver code is fetched.
  * 2. A preview build with the switch on at this harness's light settings (vite.config.js solver-preview; the strategy's
- *    steps 200 then 500 paths), a single household from the research library (never anybody's own plan):
- *      - the tab is the solved plan, not the tournament, and comes as its own chunk;
+ *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
+ *    household from the research library (never anybody's own plan):
+ *      - Your plan is the solved plan, and comes as its own chunk;
  *      - its figures, once all its paths are in, are Node's (src/solverStrategy.js strategyOf on the saved plan, solved at the
  *        same light settings, on the projection's seed): the solved plan's bit for bit (the headline, its comparison column,
  *        the raise), your plan's within a relative 1e-12 (the app's own rules round in the last place differently in Chromium);
@@ -15,9 +16,9 @@
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
  *    And the skip costs on their fixture (SKIP_FIXTURE): the page's Node's, a known costly action above 0, the costs not all
  *    0, and a planted dominated action at least 0.
- * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; the tab says so, offers "try again",
- *    and keeps the tournament (the app's rules) below.
- * 5. A couple under the switch (D42): the tournament, with the solver's line.
+ * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
+ *    and the classic planner (the app's rules).
+ * 5. A couple under the switch (D42): the couples card, nothing solved.
  *
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
@@ -45,7 +46,7 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 
-async function open(b, port, plan, { plantFail = false } = {}) {
+async function open(b, port, plan, { plantFail = false, planner = 'new' } = {}) {
   // the planted failure: the page's solver worker answers every question with an error (no change to the app's code: the
   // page's Worker constructor is wrapped for the solver's script; a route on the worker's own request is not honoured)
   const ctx = await b.newContext({ viewport: { width: 1400, height: 1100 } });
@@ -61,9 +62,10 @@ async function open(b, port, plan, { plantFail = false } = {}) {
   const errs = [], urls = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('request', q => urls.push(q.url()));
-  await p.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
+  await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /Strategy/.test(b.textContent)); if (x) x.click(); });
+  // the switch off (the site's build): the classic Strategy tab; opted in: Your plan, where the new planner lands
+  await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /^Strategy$|Your plan/.test(b.textContent.trim())); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
 }
@@ -71,7 +73,7 @@ const saved = p => p.evaluate(k => JSON.parse(localStorage.getItem(k)), STORE);
 const tab = p => p.evaluate(() => ({
   tournament: !!document.querySelector('[data-tournament]') || [...document.querySelectorAll('div')].some(d => /Strategy Tournament/.test(d.textContent) && d.children.length < 4),
   strategy: !!document.querySelector('[data-solver-strategy]'),
-  couple: !!document.querySelector('[data-solver-couple]'),
+  couple: !!document.querySelector('[data-solver-couple]') || !!document.querySelector('[data-planner-couple]'),
   state: (document.querySelector('[data-solver-strategy]') || {}).dataset ? document.querySelector('[data-solver-strategy]').dataset.strategyState : null
 }));
 const diffs = (a, b, at = '') => {
@@ -114,21 +116,24 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     const only = process.env.STRATEGY_CASES ? process.env.STRATEGY_CASES.split(',') : null;
     for (const [which, id] of Object.entries(CASES).filter(([w]) => !only || only.includes(w))) {
       const { p, errs, urls } = await open(b, PREVIEW_PORT, planOf(id)), s = await tab(p);
-      if (which === 'main') ok(`switch on, ${id}: the tab is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
+      if (which === 'main') ok(`switch on, opted in, ${id}: Your plan is the solved plan, not the tournament`, s.strategy && !s.tournament && !s.couple, JSON.stringify(s));
       let done = true;
       try { await waitDone(p); } catch (e) { done = false; }
       const figs = done ? JSON.parse(await p.getAttribute('[data-solver-strategy]', 'data-strategy-figures')) : null;
       const text = done ? await p.textContent('[data-solver-strategy]') : '';
       const node = done ? nodeStrategy(await saved(p)) : null;
       if (which === 'main') {
-        // the solved plan's figures bit for bit (the headline, its comparison column, the raise). Your plan's differ in the last
+        // the solved plan's figures bit for bit (the headline, its comparison column, the raise, the outlook). Your plan's differ in the last
         // place on S126 (2 Nov: the median pot 3338600.275849318 in the page against ...319 in Node) where the solved plan's, on
         // the same engine, do not; not traced: the likely cause is the app's own rules (its guardrails, the lookahead), which
         // the solved plan does not run, rounding differently in Chromium's V8. Held within a relative 1e-12
-        const solvedSame = done && JSON.stringify({ ...figs, compare: { solved: figs.compare.solved } }) === JSON.stringify({ ...node, compare: { solved: node.compare.solved } });
-        const rel = done ? Math.max(...Object.keys(node.compare.yours).map(k => Math.abs(figs.compare.yours[k] - node.compare.yours[k]) / Math.max(1, Math.abs(node.compare.yours[k])))) : Infinity;
+        const only = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: o.outlook && { ...o.outlook, wealth: { solved: o.outlook.wealth.solved } } });
+        const solvedSame = done && JSON.stringify(only(figs)) === JSON.stringify(only(node));
+        const rd = (x, y) => Math.abs(x - y) / Math.max(1, Math.abs(y));
+        const rel = done ? Math.max(...Object.keys(node.compare.yours).map(k => rd(figs.compare.yours[k], node.compare.yours[k])),
+          ...node.outlook.wealth.yours.flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => rd(figs.outlook.wealth.yours[t][k], bd[k])))) : Infinity;
         ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's within a relative 1e-12`, solvedSame && rel <= 1e-12, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}% (Node ${node.headline.survival.toFixed(1)}%), yours ${figs.compare.yours.survival.toFixed(1)}% (largest relative gap ${rel.toExponential(1)}); ${diffs(figs, node).slice(0, 2).join('; ') || 'every figure the same'}` : 'not done');
-        ok(`${id}: the tab came as its own chunk`, urls.some(u => /SolverStrategy/.test(u)));
+        ok(`${id}: Your plan came as its own chunk`, urls.some(u => /PlannerPlan/.test(u)));
         // this year's actions, then the rule of thumb, shown exactly when following it costs under half a point
         let more = true;
         try { await p.waitForSelector('[data-strategy-rule]', { timeout: 900000, state: 'attached' }); } catch (e) { more = false; }
@@ -177,8 +182,8 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     { const { p, errs } = await open(b, PREVIEW_PORT, planOf(CASES.main), { plantFail: true });
       let failed = true;
       try { await p.waitForSelector('[data-solver-strategy][data-strategy-state="failed"]', { timeout: 60000 }); } catch (e) { failed = false; }
-      const s = await tab(p), retry = await p.$('[data-strategy-retry]');
-      ok('planted, the solver failing: the tab says so, offers "try again", and keeps the tournament (the app\'s rules) below', failed && !!retry && s.tournament, JSON.stringify(s));
+      const retry = await p.$('[data-strategy-retry]'), classic = await p.$('[data-plan-answer="failed"] [data-open-classic]');
+      ok('planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app\'s rules)', failed && !!retry && !!classic);
       ok('planted: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
@@ -186,7 +191,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     if (!couple) ok('a couple in the library to test with', false);
     else { const { p, errs, urls } = await open(b, PREVIEW_PORT, couple.plan), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, a couple (${couple.id}): the tournament, with the solver's line, and nothing solved`, s.tournament && s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, opted in, a couple (${couple.id}): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

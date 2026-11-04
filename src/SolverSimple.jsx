@@ -15,13 +15,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { toBody } from './phone.jsx';
 import { highestTarget, earliestAge, SEARCH_MOST, SEARCH_GOAL } from './solverSearch.js';
 import { atSpend, atAge } from './solverSettings.js';
+import { moreJob } from './solveStatus.js';
 
 /*
  * The search card itself, for any page: `atSpend(x)` and `atAge(a)` give the plan to solve at a target and at an age (the
  * Simple page's inputs widened by toFullPlan; the full planner's plan with its spending bands scaled), `sig` the inputs the
  * answers belong to. `name` tells the two pages' cards apart for the harness.
  */
-export function SolverAnswers({ sig, atSpend, atAge, fromSpend, fromAge, after, last, goal = SEARCH_GOAL, engine, opts, fmt, seed = 12345, name = 'simple', hint = null }) {
+// step U: `title` and `cost` for What if's card ("The solved plan's limits"), `place` for the status strip's count of solves running
+export function SolverAnswers({ sig, atSpend, atAge, fromSpend, fromAge, after, last, goal = SEARCH_GOAL, engine, opts, fmt, seed = 12345, name = 'simple', hint = null, title = null, cost = null, place = null }) {
   const kept = useRef(new Map());            // the answers found, by the inputs they were found on
   const [run, setRun] = useState({ sig: null, state: 'idle', step: null, spend: null, age: null, error: null });
   const job = useRef(null), live = useRef(0);
@@ -36,8 +38,8 @@ export function SolverAnswers({ sig, atSpend, atAge, fromSpend, fromAge, after, 
     const evalAt = make => async x => {
       if (live.current !== token) throw new Error('cancelled');
       job.current = client.startFigures(engine, make(x), { ...(opts || {}), seed, upto });
-      const f = await job.current.done;
-      return f.headline.survival;
+      if (place) moreJob(place, 1);
+      try { const f = await job.current.done; return f.headline.survival; } finally { if (place) moreJob(place, -1); }
     };
     const show = patch => { if (live.current === token) setRun(r => ({ ...(r.sig === here ? r : { sig: here, state: 'idle', step: null, spend: null, age: null, error: null }), ...patch })); };
     try {
@@ -60,11 +62,12 @@ export function SolverAnswers({ sig, atSpend, atAge, fromSpend, fromAge, after, 
     <div data-solver-answers={name} data-simple-solver={mine.state} data-simple-solver-from={fromSpend || ''} data-simple-solver-spend={target && target.spend !== null ? target.spend : ''}
       data-simple-solver-age={age && age.age !== null ? age.age : ''} data-simple-solver-tried={JSON.stringify({ spend: target ? target.tried.map(t => t.x) : [], age: age ? age.tried.map(t => t.x) : [] })}
       className="p-3 rounded-xl border border-slate-200 bg-surface text-xs text-slate-700 space-y-1.5">
-      <div className="text-sm font-semibold text-slate-900">The solved plan&apos;s answers</div>
+      {title ? <h3 className="text-[15px] font-semibold text-slate-900">{title}</h3> : <div className="text-sm font-semibold text-slate-900">The solved plan&apos;s answers</div>}
       {mine.state === 'idle' && (
         <>
           <p className="text-[11px] text-slate-500">{hint || 'The solver works your plan out again at a few targets and ages to find these. It takes several minutes.'}</p>
           <button type="button" data-simple-solver-ask onClick={ask} className="px-3 py-1.5 min-h-9 rounded-lg bg-accent hover:bg-accent-hover text-onaccent font-semibold cursor-pointer">Find the solved plan&apos;s answers</button>
+          {cost && <p data-figures-cost className="text-[11px] text-slate-500">{cost}</p>}
         </>
       )}
       {(mine.state === 'target' || mine.state === 'age') && (
@@ -135,12 +138,27 @@ export function SolverSimpleSheet(props) {
 
 /* the full planner's card, on its "Spend and date" step under the switch (item 2's rest): the plan on screen at each target
    (its bands scaled) and each age, at the survival the step is set to */
-export function SolverPlanAnswers({ plan, fromSpend, goal, ageNow, last, engine, opts, fmt, seed = 12345 }) {
+// step U (LAYOUT.md section 3.3): on What if, "The solved plan's limits", its goal an input (90% by default), its cost the most
+// the search can take; the card as built, its data-solver-answers="full" kept
+export function SolverPlanAnswers({ plan, fromSpend, goal: goal0 = SEARCH_GOAL, ageNow, last, engine, opts, fmt, seed = 12345, whatIf = false }) {
   const own = Number(plan && plan.demographics && plan.demographics.retireAgeSelf);
+  const [g, setG] = useState(goal0);
+  const goal = whatIf ? g : goal0;
+  const most = SEARCH_MOST.target + (own > ageNow ? SEARCH_MOST.age : 0);
   return (
-    <SolverAnswers sig={JSON.stringify([plan, goal])} atSpend={x => atSpend(plan, x)} atAge={a => atAge(plan, a)}
-      fromSpend={fromSpend || Number(plan && plan.spending && plan.spending.targetSpend) || 20000} fromAge={own} after={ageNow} last={last}
-      goal={goal} engine={engine} opts={opts} fmt={fmt} seed={seed} name="full"
-      hint="The figures above follow your plan's rules. The solver works the plan out again at a few targets and ages to find its own; it takes several minutes." />
+    <div className="space-y-2">
+      {whatIf && (
+        <label className="flex items-center gap-2 text-xs text-slate-700">The chance your money lasts, at least
+          <input type="number" min="50" max="99" step="1" data-limits-goal value={g} onChange={e => setG(Math.max(50, Math.min(99, Number(e.target.value) || SEARCH_GOAL)))}
+            className="w-16 p-1.5 bg-surface border border-slate-300 rounded-lg text-xs font-bold text-slate-800" />%</label>
+      )}
+      <SolverAnswers sig={JSON.stringify([plan, goal])} atSpend={x => atSpend(plan, x)} atAge={a => atAge(plan, a)}
+        fromSpend={fromSpend || Number(plan && plan.spending && plan.spending.targetSpend) || 20000} fromAge={own} after={ageNow} last={last}
+        goal={goal} engine={engine} opts={opts} fmt={fmt} seed={seed} name="full"
+        title={whatIf ? 'The solved plan\'s limits' : null} place={whatIf ? 'whatif' : null}
+        cost={whatIf ? `Up to ${most} solves (${SEARCH_MOST.target} for the target${own > ageNow ? `, ${SEARCH_MOST.age} for the age` : ''})` : null}
+        hint={whatIf ? 'The highest target the solved plan keeps at that chance, at your retirement age, and the earliest retirement it keeps there, at your spending. Not your safe starting spend: the solver works the plan out again at a few targets and ages to find them.'
+          : 'The figures above follow your plan\'s rules. The solver works the plan out again at a few targets and ages to find its own; it takes several minutes.'} />
+    </div>
   );
 }

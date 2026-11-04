@@ -7,20 +7,31 @@ const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Em
 
 /*
  * THE SOLVER'S SWITCH, TURNED ON FOR A HARNESS'S BUILD ONLY (research/solver/PHASE-8.md). Inert unless the build runs with
- * SOLVER_PREVIEW=1: then src/App.jsx's `const SOLVER = false;` reads true, and `const SOLVER_OPTS = null;` reads the JSON in
- * SOLVER_PREVIEW_OPTS (a harness's light settings). Either line moved stops the build, so a harness can never pass on a
- * build whose switch stayed off. The site's own build is untouched: the switch stays the one line Phase 12 turns on.
+ * SOLVER_PREVIEW=1: then src/App.jsx's `const SOLVER = false;` reads true, `const SOLVER_OPTS = null;` reads the JSON in
+ * SOLVER_PREVIEW_OPTS (a harness's light settings) and `const PLANNER_BETA = false;` reads true (step U). Any of the lines
+ * moved stops the build, so a harness can never pass on a build whose switch stayed off. The site's own build is untouched: the switch stays the one line Phase 12 turns on.
  */
 const SWITCH = '\nconst SOLVER = false;\n', OPTS = '\nconst SOLVER_OPTS = null;\n';
+// step U (research/reviews/2026-11-03/LAYOUT.md section 2.1): the preview build sets B6's beta switch true with SOLVER, so a
+// harness that opts in (rp_planner 'new') reaches the new planner; a harness that does not sees the classic planner
+const BETA = '\nconst PLANNER_BETA = false;\n';
 const solverPreview = () => ({
   name: 'solver-preview',
   enforce: 'pre',
   transform(code, id) {
-    if (process.env.SOLVER_PREVIEW !== '1' || !/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
-    if (!code.includes(SWITCH) || !code.includes(OPTS)) this.error('solver-preview: the switch lines in src/App.jsx have moved');
+    if (process.env.SOLVER_PREVIEW !== '1') return null;
+    // step U's planted faults (src/plannerPlant.js): a harness's preview only, named in PLANNER_PLANT (comma-separated)
+    if (/[\\/]src[\\/]plannerPlant\.js$/.test(id)) {
+      const list = process.env.PLANNER_PLANT || '';
+      if (!/^[a-z0-9,]*$/.test(list)) this.error('solver-preview: PLANNER_PLANT is a comma-separated list of plant names');
+      if (!code.includes("const LIST = '';")) this.error('solver-preview: the plant line in src/plannerPlant.js has moved');
+      return { code: code.replace("const LIST = '';", `const LIST = '${list}';`), map: null };
+    }
+    if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
+    if (!code.includes(SWITCH) || !code.includes(OPTS) || !code.includes(BETA)) this.error('solver-preview: the switch lines in src/App.jsx have moved');
     const opts = process.env.SOLVER_PREVIEW_OPTS || 'null';
     JSON.parse(opts);
-    return { code: code.replace(SWITCH, '\nconst SOLVER = true;\n').replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`), map: null };
+    return { code: code.replace(SWITCH, '\nconst SOLVER = true;\n').replace(BETA, '\nconst PLANNER_BETA = true;\n').replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`), map: null };
   }
 });
 

@@ -19,14 +19,16 @@ export const WORDS = {
   atTarget: (h, fmt) => (h.startLevel > 100 ? `${fmt(h.startSpend)} a year, above your ${fmt(h.target)} target` : `${fmt(h.startSpend)} a year, your full target`),
   below: (h, fmt) => `${fmt(h.startSpend)} a year`,
   share: (h, fmt) => `That is ${pct(h.startLevel)} of your ${fmt(h.target)} target.`,
-  back: (h) => `On a typical run of the markets you are back at your full target by ${h.backYear} (${h.backIn} ${years(h.backIn)} in).`,
-  never: () => 'On a typical run of the markets you stay below your target; see why below.',
+  // the headline's two back lines in LAYOUT.md section 8's words (D58 (1), finding L12): the figure is the median over the
+  // paths of each one's first year back at target, so the words say so
+  back: (h) => `In half the markets you are back at your full target by ${h.backYear} (${h.backIn} ${years(h.backIn)} in).`,
+  never: () => 'In more than half the markets you stay below your target; see why below.',
   chance: (h) => `Chance your money lasts: ${pct(h.survival)}`,
   delivered: (h) => `Spending delivered over the plan: ${pct(h.delivered)} of your target`,
   fullTitle: 'Why your plan starts below your target',
   full: [
     'Your target is high for what you have saved, so the plan puts not running out first. It spends less in the early years, when a bad run in the markets would do the most damage, and moves back up as your savings allow. Expect to spend below your target for a while; if markets are kind, you will get back to it sooner.',
-    'If steady spending matters more to you than the last few points of safety, turn up How much do you dislike cuts? in Settings. Your spending will stay closer to your target, and your chance of running out will rise. The two figures move together as you change it, so you can see the trade before you choose.'
+    'If steady spending matters more to you than the last few points of safety, turn up How much do you dislike cuts? under What matters to you. Your spending will stay closer to your target, and your chance of running out will rise. The two figures move together as you change it, so you can see the trade before you choose.'
   ],
   short: (h) => `The plan starts a little below your target for the first ${NUM[h.dip] || h.dip} ${years(h.dip)}, to protect you against a bad start in the markets.`,
   raise: (r) => `If markets do well, you could spend up to ${Math.round(r.level - 100)}% above your target from about age ${r.age}.`
@@ -77,14 +79,44 @@ export function actionWords(x, ctx) {
       : `Skipping it costs no survival on ${x.n.toLocaleString()} markets.`;
   return { what, cost };
 }
-/* one year of the median path: the spending and what the year's move does beyond it */
-export function aheadWords(row, { fmt }) {
-  const p = row.parts, notes = [];
-  if (p.draw !== 'none') notes.push(PART_WORDS.draw(p.draw));
-  if (p.harvest) notes.push(PART_WORDS.harvest(p.harvest));
-  if (p.tierPen) notes.push(PART_WORDS.tierPen(p.tierPen));
-  if (p.tierIsa) notes.push(PART_WORDS.tierIsa(p.tierIsa));
-  return { when: `${row.year} (age ${row.age})`, spend: row.spend > 0 ? `${fmt(row.spend)} (${pct(100 * p.level)})` : 'still working', notes: notes.join('; ') || 'as the year before' };
+/*
+ * One year of the median path: the spending and what the year's move does beyond it, each move a line (step U, LAYOUT.md
+ * section 8, finding L9). A wrapper's tier is said only in the year it changes, against the year before (`prev`; the first
+ * year's against the plan's own tier), as a step down, a step back up or a return to the risk you chose, the pension and the
+ * ISA named together where they move alike; a year with nothing to say reads "nothing to change".
+ * research/tests/planner-figures.test.mjs plants: 'tiereach' the tier said every year it is held, 'tierdown' a step up worded as
+ * a step down.
+ */
+export const WORDS_PLANT = { rule: '' };
+const tierWords = (what, was, now) => (now === was && WORDS_PLANT.rule !== 'tiereach' ? null
+  : now === was ? (now ? `Move your ${what} ${steps(now)} lower in risk` : null)
+    : was === 0 ? `Move your ${what} ${steps(now)} lower in risk`
+      : now === 0 ? `Move your ${what} back to the risk you chose`
+        : now < was && WORDS_PLANT.rule !== 'tierdown' ? `Move your ${what} ${steps(was - now)} back up in risk (${now} below the risk you chose)`
+          : `Move your ${what} ${steps(Math.abs(now - was))} further down in risk (${now} below the risk you chose)`);
+export function aheadWords(row, { fmt }, prev = null) {
+  const p = row.parts, lines = [];
+  if (p.draw !== 'none') lines.push(PART_WORDS.draw(p.draw));
+  if (p.harvest) lines.push(PART_WORDS.harvest(p.harvest));
+  const pen = p.tierPen || 0, isa = p.tierIsa || 0, wp = prev ? prev.tierPen || 0 : 0, wi = prev ? prev.tierIsa || 0 : 0;
+  if (pen === isa && wp === wi) { const w = tierWords('pension and ISA', wp, pen); if (w) lines.push(w); }
+  else for (const w of [tierWords('pension', wp, pen), tierWords('ISA', wi, isa)]) if (w) lines.push(w);
+  if (!lines.length) lines.push('nothing to change');
+  return { when: `${row.year} (age ${row.age})`, spend: row.spend > 0 ? `${fmt(row.spend)} (${pct(100 * p.level)})` : 'still working', lines, notes: lines.join('; ') };
+}
+/* the ten years as the table shows them: consecutive years with the same spending and the same words make one row, "2027 to
+   2035 (ages 62 to 70)", its words ending ", each year" */
+export function aheadRowsWords(rows, ctx) {
+  const out = [];
+  rows.forEach((r, i) => {
+    const w = aheadWords(r, ctx, i ? rows[i - 1].parts : null), last = out[out.length - 1];
+    if (last && last.spend === w.spend && last.notes === w.notes) { last.to = r; return; }
+    out.push({ ...w, from: r, to: r });
+  });
+  return out.map(g => (g.from === g.to ? g : {
+    ...g, when: `${g.from.year} to ${g.to.year} (ages ${g.from.age} to ${g.to.age})`,
+    lines: g.lines.map((l, j) => (j === g.lines.length - 1 ? `${l}, each year` : l))
+  }));
 }
 /* the audit table's action column (Phase 10, item 7): one year's move, short, the spending first where the year has a target;
    null in a year the table chose no move */

@@ -19,6 +19,53 @@
  * beside the engine, App.jsx is what imports this, and a module that imported back would be a cycle.
  */
 
+// the print stylesheet, shared by the tournament's sheet and the solved plan's (step U)
+const STYLE = `  :root { --ink: #16202b; --soft: #5b6878; --rule: #d8dee6; --tint: #f4f6f9; --good: #10603f; --bad: #9c2b3a; --accent: #1f4ea8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 36px 48px; font: 11.5pt/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; color: var(--ink); background: #fff; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { border-bottom: 2.5px solid var(--ink); padding-bottom: 14px; margin-bottom: 26px; }
+  h1 { margin: 0 0 4px; font-size: 22pt; line-height: 1.15; letter-spacing: -0.01em; }
+  .meta { font-size: 9pt; color: var(--soft); font-family: ui-sans-serif, system-ui, sans-serif; }
+  h2 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11pt; letter-spacing: 0.06em; text-transform: uppercase;
+       color: var(--accent); margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--rule); }
+  p { margin: 0 0 10px; }
+  .lead { font-size: 12.5pt; }
+  .none { color: var(--soft); font-style: italic; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 4px; font-size: 10.5pt; }
+  th { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.05em;
+       color: var(--soft); text-align: left; padding: 0 8px 6px; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tbody tr:nth-child(odd) td { background: var(--tint); }
+  .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sub { display: block; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8.5pt; color: var(--soft); font-weight: 400; }
+  td.up { color: var(--good); font-weight: 700; } td.down { color: var(--bad); font-weight: 700; }
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 14px 40px; margin: 0; break-inside: avoid; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--ink); color: #fff; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10pt; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; }
+  ol.steps h3 { margin: 3px 0 4px; font-size: 12pt; }
+  ol.steps p { margin: 0 0 4px; }
+  table.funding { width: auto; min-width: 58%; margin: 6px 0 10px; }
+  table.funding td { border-bottom: 1px solid var(--rule); padding: 5px 10px 5px 0; }
+  table.funding td.tot { border-bottom: none; border-top: 1.5px solid var(--ink); }
+  h3.fund-h { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10pt; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; }
+  p.fund { color: var(--soft); font-size: 10.5pt; margin: 0 0 6px; }
+  .policy { break-inside: avoid; margin-bottom: 14px; padding-left: 14px; border-left: 3px solid var(--rule); }
+  .policy h3 { margin: 0 0 3px; font-size: 11.5pt; }
+  .policy .detail { color: var(--soft); font-size: 10pt; }
+  footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 9pt; color: var(--soft);
+           font-family: ui-sans-serif, system-ui, sans-serif; }
+  .noprint { position: fixed; top: 14px; right: 14px; display: flex; gap: 8px; }
+  .noprint button { font: 600 13px ui-sans-serif, system-ui, sans-serif; padding: 9px 16px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--ink); background: var(--ink); color: #fff; }
+  .noprint button.ghost { background: #fff; color: var(--ink); }
+  @media print { .noprint { display: none; } body { padding: 0; } h2 { break-after: avoid; } table { break-inside: auto; } tr { break-inside: avoid; } }
+  @page { margin: 16mm; }
+`;
+
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -266,51 +313,7 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <style>
-  :root { --ink: #16202b; --soft: #5b6878; --rule: #d8dee6; --tint: #f4f6f9; --good: #10603f; --bad: #9c2b3a; --accent: #1f4ea8; }
-  * { box-sizing: border-box; }
-  body { margin: 0; padding: 32px 36px 48px; font: 11.5pt/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; color: var(--ink); background: #fff; }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  header { border-bottom: 2.5px solid var(--ink); padding-bottom: 14px; margin-bottom: 26px; }
-  h1 { margin: 0 0 4px; font-size: 22pt; line-height: 1.15; letter-spacing: -0.01em; }
-  .meta { font-size: 9pt; color: var(--soft); font-family: ui-sans-serif, system-ui, sans-serif; }
-  h2 { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11pt; letter-spacing: 0.06em; text-transform: uppercase;
-       color: var(--accent); margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--rule); }
-  p { margin: 0 0 10px; }
-  .lead { font-size: 12.5pt; }
-  .none { color: var(--soft); font-style: italic; }
-  table { width: 100%; border-collapse: collapse; margin: 6px 0 4px; font-size: 10.5pt; }
-  th { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.05em;
-       color: var(--soft); text-align: left; padding: 0 8px 6px; border-bottom: 1px solid var(--rule); font-weight: 600; }
-  td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  tbody tr:nth-child(odd) td { background: var(--tint); }
-  .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .sub { display: block; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 8.5pt; color: var(--soft); font-weight: 400; }
-  td.up { color: var(--good); font-weight: 700; } td.down { color: var(--bad); font-weight: 700; }
-  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
-  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 14px 40px; margin: 0; break-inside: avoid; }
-  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%;
-      background: var(--ink); color: #fff; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10pt; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; }
-  ol.steps h3 { margin: 3px 0 4px; font-size: 12pt; }
-  ol.steps p { margin: 0 0 4px; }
-  table.funding { width: auto; min-width: 58%; margin: 6px 0 10px; }
-  table.funding td { border-bottom: 1px solid var(--rule); padding: 5px 10px 5px 0; }
-  table.funding td.tot { border-bottom: none; border-top: 1.5px solid var(--ink); }
-  h3.fund-h { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10pt; letter-spacing: .06em;
-      text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; }
-  p.fund { color: var(--soft); font-size: 10.5pt; margin: 0 0 6px; }
-  .policy { break-inside: avoid; margin-bottom: 14px; padding-left: 14px; border-left: 3px solid var(--rule); }
-  .policy h3 { margin: 0 0 3px; font-size: 11.5pt; }
-  .policy .detail { color: var(--soft); font-size: 10pt; }
-  footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 9pt; color: var(--soft);
-           font-family: ui-sans-serif, system-ui, sans-serif; }
-  .noprint { position: fixed; top: 14px; right: 14px; display: flex; gap: 8px; }
-  .noprint button { font: 600 13px ui-sans-serif, system-ui, sans-serif; padding: 9px 16px; border-radius: 8px; cursor: pointer;
-      border: 1px solid var(--ink); background: var(--ink); color: #fff; }
-  .noprint button.ghost { background: #fff; color: var(--ink); }
-  @media print { .noprint { display: none; } body { padding: 0; } h2 { break-after: avoid; } table { break-inside: auto; } tr { break-inside: avoid; } }
-  @page { margin: 16mm; }
-</style></head>
+${STYLE}</style></head>
 <body>
 <div class="noprint">
   <button class="ghost" onclick="window.close()">Close</button>
@@ -370,4 +373,46 @@ export function openActionPlan(html) {
   w.document.write(html);
   w.document.close();
   return true;
+}
+
+/*
+ * THE SOLVED PLAN'S SHEET (step U, research/reviews/2026-11-03/LAYOUT.md section 3.1): Your plan taken away, with the same print
+ * stylesheet: the answer and the explanation, this year's steps with their costs, the next ten years, the rule of thumb where it
+ * is shown, the comparison, and the levers' positions, the date and the code version. Its words come worded (src/solverWords.js,
+ * by the caller), so this module stays free of them.
+ */
+export function buildSolvedPlanHtml(d) {
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const a = d.answer;
+  const rows = (cells, cls = '') => `<tr>${cells.map((c, i) => `<td${i && cls ? ` class="${cls}"` : ''}>${esc(c)}</td>`).join('')}</tr>`;
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)}</title>
+<style>${STYLE}</style></head>
+<body>
+<div class="noprint">
+  <button class="ghost" onclick="window.close()">Close</button>
+  <button onclick="window.print()">Print or save as PDF</button>
+</div>
+<div class="wrap" data-solved-sheet>
+  <header>
+    <h1>${esc(a.title)}: ${esc(a.amount)}</h1>
+    <div class="meta">${esc(today)} · ${esc(d.code)} · ${esc(d.levers)}</div>
+  </header>
+  <p class="lead">${esc([a.share, a.back].filter(Boolean).join(' '))}</p>
+  <p>${esc(a.chance)}. ${esc(a.delivered)}. On ${esc(d.trials)} simulated markets.</p>
+  ${d.explanation ? `<h2>${esc(d.explanation.title || 'Why')}</h2>${d.explanation.paras.map(t => `<p>${esc(t)}</p>`).join('')}` : ''}
+  <h2>${esc(d.thisYearTitle)}</h2>
+  ${d.actions.length ? `<ol class="steps">${d.actions.map(x => `<li><h3>${esc(x.what)}</h3><p class="meta">${esc(x.cost)}</p></li>`).join('')}</ol>` : '<p class="none">Nothing to change this year: keep to your plan as it stands.</p>'}
+  ${d.rule ? `<h2>${esc(d.rule.title)}</h2>${d.rule.lines.map(l => `<p>${esc(l)}</p>`).join('')}<p class="meta">${esc(d.rule.note)}</p>` : ''}
+  <h2>The next ten years on a typical run of the markets</h2>
+  <table><thead><tr><th>Year (age)</th><th>Spending (level)</th><th>The year's move</th></tr></thead>
+  <tbody>${d.ahead.map(g => `<tr><td>${esc(g.when)}</td><td class="n">${esc(g.spend)}</td><td>${g.lines.map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>
+  <p class="meta">${esc(d.comeBack)}</p>
+  <h2>${esc(d.compare.title)}</h2>
+  <table><thead><tr><th></th><th class="n">Your current approach</th><th class="n">Solved</th></tr></thead>
+  <tbody>${d.compare.rows.map(r => rows(r, 'n')).join('')}</tbody></table>
+  <p class="meta">${esc(d.compare.line)}</p>
+  <footer>Educational and illustrative only. This is not financial advice. The figures are the app's simulation of the plan as worked out on ${esc(today)}; come back next year, when the plan is worked out again from where your money then stands.</footer>
+</div>
+</body></html>`;
 }

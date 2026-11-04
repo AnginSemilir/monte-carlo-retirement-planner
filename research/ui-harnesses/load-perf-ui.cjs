@@ -98,13 +98,22 @@ const JS_CEILING = 228;
  * slower.
  */
 const CEILING = 3800;
+/*
+ * THE NEW PLANNER'S FIRST LOAD (step U, research/reviews/2026-11-03/LAYOUT.md section 11.2; D58 (2), the maintainer's line in the
+ * launch plan's section 7a): opted in (rp_planner 'new'), a saved single plan until the answer card shows its first state, and
+ * an empty plan until the quick start shows. Your plan's chunk loads by then, so it is above the entry's figure; its own
+ * ceiling is its measured figure plus one, with a dated note. On the site's own build (the switch off) the new planner is not
+ * there, and the run says so rather than measuring the classic planner twice.
+ */
+const PLANNER_JS_CEILING = 250;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 
-async function measure(b, label) {
+async function measure(b, label, planner = null) {
   const ctx = await b.newContext({ ...devices['Pixel 7'] });
   const page = await ctx.newPage();
+  if (planner) await page.addInitScript(([pl]) => { if (pl) localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); else localStorage.removeItem('rp_plan_full_v28'); localStorage.setItem('rp_which_app', 'full'); localStorage.setItem('rp_planner', 'new'); }, [planner.plan]);
   const bytes = { js: 0, css: 0, requests: 0 };
   page.on('response', async (r) => {
     const t = r.request().resourceType();
@@ -121,8 +130,10 @@ async function measure(b, label) {
   const t0 = Date.now();
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'commit' });
   // "there" means the app's own content, not an empty shell that has painted a background
-  await page.waitForFunction(() => /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
+  if (planner) await page.waitForFunction(() => !!document.querySelector('[data-plan-answer], [data-quick-start]') || /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
+  else await page.waitForFunction(() => /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
   const content = Date.now() - t0;
+  const opted = planner ? await page.evaluate(() => !!document.querySelector('[data-place]')) : null;
   // getEntriesByName misses it: the paint timeline is its own entry type, and asking for the name alone
   // returned null on every run while the paint had plainly happened.
   // What crossed the wire, which is what a phone waits for. page.on('response') hands back the DECODED
@@ -133,8 +144,17 @@ async function measure(b, label) {
     return { transfer: js.reduce((t, r) => t + (r.transferSize || r.encodedBodySize || 0), 0), n: js.length };
   });
   await ctx.close();
-  return { label, content, js: Math.round(wire.transfer / 1024), raw: Math.round(bytes.js / 1024), css: Math.round(bytes.css / 1024), requests: bytes.requests };
+  return { label, content, js: Math.round(wire.transfer / 1024), raw: Math.round(bytes.js / 1024), css: Math.round(bytes.css / 1024), requests: bytes.requests, opted };
 }
+// a single person's plan for the new planner's first load: round, made-up figures, as COUPLE's below (never anybody's plan)
+const SINGLE = {
+  demographics: { planningMode: 'single', currentAgeSelf: 61, retireAgeSelf: 61, statePensionAge: 67, privatePensionAge: 57, statePensionSelf: 11000, terminalAge: 95 },
+  spending: { targetSpend: 40000, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+  accounts: [
+    { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 500000, contrib: 0, growth: 0, risk: 'High Risk' },
+    { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 150000, contrib: 0, growth: 0, risk: 'High Risk' },
+    { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 30000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
+  otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' } };
 
 /*
  * TYPING, WHICH IS THE OTHER HALF OF "FAST".
@@ -237,6 +257,15 @@ async function typingLatency(b) {
   ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= JS_CEILING,
     `${runs[0].js}KB over the wire, ceiling ${JS_CEILING}KB (${BEFORE.js}KB before the loading work)`);
   ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
+
+  // the new planner's first load (step U): a saved single plan to the answer card's first state, an empty one to the quick start
+  console.log('the new planner\'s first load, opted in (rp_planner new), Pixel 7');
+  const np = [await measure(b, 'a saved plan', { plan: SINGLE }), await measure(b, 'an empty plan', { plan: null })];
+  for (const r of np) console.log(`  ${r.label}: content ${r.content}ms, ${r.js}KB${r.opted ? '' : ' (the new planner is not in this build: the switch is off)'}`);
+  if (np.every(r => r.opted)) {
+    const top = Math.max(...np.map(r => r.js));
+    ok('the new planner\'s first load: no more javascript than its own ceiling allows', top > 0 && top <= PLANNER_JS_CEILING, `${np.map(r => `${r.label} ${r.js}KB`).join(', ')}, ceiling ${PLANNER_JS_CEILING}KB`);
+  } else console.log('  not measured against its ceiling: the switch is off in this build (the classic planner, measured above)');
 
   /*
    * NOTHING LEAVES THIS ORIGIN.

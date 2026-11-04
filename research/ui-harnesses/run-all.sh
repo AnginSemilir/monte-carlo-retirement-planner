@@ -36,15 +36,16 @@ cd "$(dirname "$0")/../.."
 # the light settings a switch-on build solves at (solver-config-ui.cjs's LIGHT)
 LIGHT='{"points":4,"research":{"adaptiveLattice":{"na":48,"nb":9,"nz":32,"foot":true,"stepAll":true}}}'
 # harnesses that test what the switch replaces, each with what covers it with the switch on (name:what covers it)
-SWITCH_OFF_ONLY=("solver-config:itself, against the switch-on preview it builds"
-  "solver-strategy:itself, against the switch-on preview it builds"
-  "solver-isolation:itself, against the switch-on build it serves without headers, as GitHub Pages does"
-  "solver-projection:itself, against the switch-on preview it builds"
-  "tournament:solver-strategy (for a single household the Strategy tab is the solved plan under the switch; a couple's keeps the tournament, which solver-strategy checks)"
-  "tradeoffs:solver-config (for a single household the policy search and its trade-offs are hidden under the switch; the solver's aims replace them)"
-  "priorities:solver-config (for a single household the priority list is hidden under the switch; the solver's aims replace it)")
+# step U (research/reviews/2026-11-03/LAYOUT.md section 11.2): rp_planner is 'classic' unless set, so with the switch on every
+# harness that does not opt in runs against the classic planner, the app with the switch off; the solver's harnesses opt in to
+# the new planner on the previews they build, and tournament, tradeoffs and priorities run in both modes again
+SWITCH_OFF_ONLY=("solver-config:itself, against the switch-on preview it builds (opted in to the new planner)"
+  "solver-strategy:itself, against the switch-on preview it builds (opted in to the new planner)"
+  "solver-isolation:itself, against the switch-on build it serves without headers, as GitHub Pages does (opted in)"
+  "solver-projection:itself, against the switch-on preview it builds (opted in to the new planner)"
+  "solver-planner:itself, against the switch-on preview it builds (opted in to the new planner)")
 
-REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament solver-progress solver-config solver-strategy solver-isolation solver-projection)
+REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament solver-progress solver-config solver-strategy solver-isolation solver-projection solver-planner)
 # closecall-ui.cjs is not in either list: it takes a plans.json written by hand, not a port, and
 # exists to investigate one household rather than to guard a behaviour.
 OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)

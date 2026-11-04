@@ -24,6 +24,7 @@
 import { withTable, modelStateOf } from './solver/bridge.js';
 import { rankActions } from './solver/solve.js';
 import { vecOf } from './solver/grid.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 /* the wording's cases (PART-C-WORDING.md sections 1 and 2; B4: the length of the dip, three years) */
 export const DIP_YEARS = 3;
@@ -45,9 +46,13 @@ export const solvedContext = (E, solved) => E.buildContext(withTable(solved.m.ct
 export function runPath(E, ctx, zs) {
   const state = E.freshState(ctx), T = ctx.totalYears, Y = T + 1, zPath = zs.length > Y ? zs[Y] : 0;
   const level = new Uint16Array(Y);
+  // the money each year, all wrappers, as runTrial's kept path records it (Math.max(0, totalCombined), in doubles), so the
+  // outlook's money bands are the engine's monteCarlo bands bit for bit (step U, LAYOUT.md section 11.3)
+  const wealth = PLANT.rule === 'f32' ? new Float32Array(Y) : new Float64Array(Y);
   let failed = false, failT = -1, tax = 0, delivered = 0, target = 0, last = null;
   for (let t = 0; t <= T; t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
+    wealth[t] = Math.max(0, row.totalCombined);
     tax += row.taxPaid + (row.cgtPaid || 0);
     const unmet = Math.max(0, row.unmetDemand || 0);
     if (row.targetSpend > 0) {
@@ -60,7 +65,7 @@ export function runPath(E, ctx, zs) {
   const terminalPot = Math.max(0, last.totalCombined);
   if (!failed && ctx.solvencyFloor > 0 && terminalPot < ctx.solvencyFloor) { failed = true; failT = T; }
   const terminalPotNet = Math.max(0, terminalPot - Math.max(0, last.pensions) * ctx.pensionDeathTaxRate);
-  return { survived: !failed, failT, terminalPot, terminalPotNet, lifetimeTax: tax, delivered, target, level };
+  return { survived: !failed, failT, terminalPot, terminalPotNet, lifetimeTax: tax, delivered, target, level, wealth };
 }
 
 /* summarizeTrials's quantile, so a figure here is the same number the projection would print */
@@ -128,6 +133,48 @@ export function raiseOf(ctx, rs, retireT) {
 }
 
 /*
+ * THE OUTLOOK (step U, LAYOUT.md section 3.1): Your plan's two charts, from the headline's own runs, so they cost no second
+ * simulation and sit on the same paths as the headline and the comparison. Each uses summarizeTrials's quantile (q above).
+ *   spendBandsOf(ctx, rs, retireT)  each retired year's spending as a share of its target, over the paths still going in it
+ *                                   (not failed by then, as raiseOf counts them): { t, age, n, p10, p25, p50, p75, p90 }
+ *   typicalOf(runs, k)              the typical run's levels, path k's (aheadOf's path, picked over the first step's paths)
+ *   wealthBandsOf(rs)               the money each year over every path, failed ones at zero: monteCarlo's bands, bit for bit
+ * research/tests/planner-figures.test.mjs plants: 'bandyear' the money's bands read a year out, 'armswap' the arms' money
+ * swapped, 'failcount' a failed path's spending counted after it fails, 'typmedian' the typical run as each year's median,
+ * 'f32' the money recorded as Float32 (in runPath); the worker's 'typall' the typical run picked over every path held.
+ */
+export function spendBandsOf(ctx, rs, retireT) {
+  const out = [];
+  for (let t = retireT; t <= ctx.totalYears; t++) {
+    const alive = PLANT.rule === 'failcount' ? rs : rs.filter(r => r.failT < 0 || r.failT > t);
+    if (!alive.length) break;
+    const lv = sortedOf(alive, r => r.level[t]);
+    out.push({ t, age: ctx.ageSelf0 + t, n: alive.length, p10: q(lv, 0.1), p25: q(lv, 0.25), p50: q(lv, 0.5), p75: q(lv, 0.75), p90: q(lv, 0.9) });
+  }
+  return out;
+}
+export const typicalOf = (runs, k) => (PLANT.rule === 'typmedian'
+  ? Array.from(runs.solved[0].level, (_, t) => q(sortedOf(runs.solved, r => r.level[t]), 0.5))
+  : Array.from(runs.solved[k].level));
+export function wealthBandsOf(rs) {
+  const n = rs.length;
+  if (!n) return [];
+  const years = rs[0].wealth.length, col = new Float64Array(n), out = [];
+  for (let t = 0; t < years; t++) {
+    const tt = PLANT.rule === 'bandyear' ? Math.min(years - 1, t + 1) : t;
+    for (let i = 0; i < n; i++) col[i] = rs[i].wealth[tt];
+    col.sort();
+    out.push({ t, p10: q(col, 0.10), p25: q(col, 0.25), p50: q(col, 0.50), p75: q(col, 0.75), p90: q(col, 0.90) });
+  }
+  return out;
+}
+export function outlookOf(ctx, runs, retireT) {
+  // the browser's plant (research/ui-harnesses/solver-projection-ui.cjs, PROJECTION_PLANT=outlookswap) is the Node test's armswap
+  const [a, b] = PLANT.rule === 'armswap' || PLANNER_PLANT.has('outlookswap') ? [runs.yours, runs.solved] : [runs.solved, runs.yours];
+  return { spend: spendBandsOf(ctx, runs.solved, retireT), wealth: { solved: wealthBandsOf(a), yours: wealthBandsOf(b) } };
+}
+
+/*
  * The paths from..to-1 of `seed` (pathsForSeed's: path i is the same whatever the count asked), through both arms. The
  * worker keeps these and adds to them (the headline on 2,000 paths, then 5,000: the launch plan), and a split simulation
  * gathers them from the parts in path order (joinRuns), so the figures are the whole run's bit for bit.
@@ -165,7 +212,7 @@ export const headRuns = (runs, n) => (runs.from !== 0 ? (() => { throw new Error
   : runs.to <= n ? runs : { ...runs, to: n, solved: runs.solved.slice(0, n), yours: runs.yours.slice(0, n) });
 export function strategySummary(E, solved, runs) {
   const sc = solvedContext(E, solved), retireT = retireYearOf(sc);
-  return { trials: runs.solved.length, seed: runs.seed, headline: headlineOf(E, sc, runs.solved, retireT), compare: { yours: compareOf(runs.yours), solved: compareOf(runs.solved) }, raise: raiseOf(sc, runs.solved, retireT) };
+  return { trials: runs.solved.length, seed: runs.seed, headline: headlineOf(E, sc, runs.solved, retireT), compare: { yours: compareOf(runs.yours), solved: compareOf(runs.solved) }, raise: raiseOf(sc, runs.solved, retireT), outlook: outlookOf(sc, runs, retireT) };
 }
 /* the whole tab's first figures, on `trials` paths of `seed` */
 export const strategyOf = (E, solved, plan, { trials = 2000, seed = 12345 } = {}) => strategySummary(E, solved, strategyRuns(E, solved, plan, { seed, from: 0, to: trials }));
@@ -268,8 +315,12 @@ export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null
 
 /*
  * THE NEXT YEARS' ACTIONS (item 5): the moves on the median path, the path at the median of the pot left at the end (by
- * summarizeTrials's quantile over the runs the headline used), from its first year, each year's spending and parts.
+ * summarizeTrials's quantile over the runs given), from its first year, each year's spending and parts, and the path's levels
+ * (the outlook's typical run, typicalOf). The page asks over the strategy's first step of paths (aheadAnswer, `upto`: step U,
+ * LAYOUT.md finding L12), so a later visit, with more paths held, follows the same path.
  */
+export const aheadAnswer = (E, solved, plan, held, { years = 10, upto = 0 } = {}) =>
+  aheadOf(E, solved, plan, upto > 0 && PLANT.rule !== 'typall' ? headRuns(held, upto) : held, { years });
 export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
   const sc = solvedContext(E, solved), base = sc.policyOverride, n = runs.solved.length;
   const order = runs.solved.map((r, k) => [r.terminalPot, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -281,7 +332,7 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined) });
   }
-  return { path: k, rows };
+  return { path: k, rows, typical: typicalOf(runs, k) };
 }
 
 /*

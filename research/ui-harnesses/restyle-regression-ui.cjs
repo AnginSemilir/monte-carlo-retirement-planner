@@ -40,12 +40,11 @@ const plan = {
 const TABS = [
   ['Start Here', /What each tab is for/i],
   ['Plan Inputs', /With partner/i],
-  // with the solver's switch on (run-all.sh --solver) a single household's tab leads with the solver's cards, the policy hidden
-  ['Config & Assumptions', /Decumulation|Spending & tax settings/i],
+  // the classic planner in both modes (step U): the app's rules
+  ['Config & Assumptions', /Decumulation/i],
   ['Projection', /Run the projection/i],
-  // with the switch on a single household's tab is the solved plan (src/SolverStrategy.jsx), not the tournament: read from the
-  // page (its [data-solver-strategy] card), so the switch off still demands the tournament
-  ['Strategy', /tournament/i, /Loading your plan|Working out your plan|Running your plan through|worked out when you ask|Chance the money lasts|could not finish this plan/i],
+  // step U: with the switch on too, this harness sees the classic planner (rp_planner is 'classic' unless set), so the tournament
+  ['Strategy', /tournament/i],
   ['Historical Backtest', /1928|backtest/i],
   ['Audit Data Table', /audit|year-by-year|Age/i],
   ['Documentation', /methodology|documentation|priorit/i],

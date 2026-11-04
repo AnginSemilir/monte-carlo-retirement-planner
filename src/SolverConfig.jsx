@@ -12,6 +12,7 @@
 import React from 'react';
 import { APP_DIAL, APP_FLOOR, AIMS_DEFAULT, dialOrder, dialSig, atDial } from './solverSettings.js';
 import { FiguresList } from './SolverFigures.jsx';
+import { costWords } from './solveStatus.js';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
@@ -38,12 +39,15 @@ function floorLine(plan) {
   return `In a bad year the plan may spend as little as ${pct}% of your target${own > 0 ? ' (the floor in your plan)' : ''}; it never plans below that.`;
 }
 
+// each choice a segmented control the panel's full width, 36px tall, 44px on a phone (step U, LAYOUT.md section 3.1)
+// in the phone's levers sheet the panel is shown whole, not folded
+const Plain = ({ children }) => children;
 function Choice({ name, options, value, onChange, isPhone }) {
   return (
-    <div role="radiogroup" aria-label={name} data-solver-choice={name} className="flex flex-wrap gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 w-fit text-[11px] font-bold">
+    <div role="radiogroup" aria-label={name} data-solver-choice={name} className="grid grid-flow-col auto-cols-fr gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 w-full text-[11px] font-bold">
       {options.map(([v, label]) => (
         <button key={String(v)} type="button" role="radio" aria-checked={value === v} data-value={String(v)} onClick={() => onChange(v)}
-          className={`px-2.5 py-1 rounded-md cursor-pointer transition-colors ${isPhone ? 'min-w-11 min-h-11' : ''} ${value === v ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+          className={`px-2 rounded-md cursor-pointer transition-colors ${isPhone ? 'min-h-11' : 'min-h-9'} ${value === v ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
       ))}
     </div>
   );
@@ -91,15 +95,21 @@ function SolveLine({ solve, onRequest }) {
  * background, nearest first along the dial (src/SolverFigures.jsx FiguresList; a setting's base comes from the store, so a
  * setting costs one solve). The figures belong to the plan at the Low setting, so choosing another setting keeps them.
  */
+// step U (finding L10): the answer card beside the panel already shows the plan's own setting on 5,000 paths, so the panel does
+// not repeat it; on request a table of the four, every row on the same first 2,000 paths, the plan's own marked
 function DialLive({ plan, solve, cuts, seed, upto, engine, opts, fmt }) {
+  const others = APP_DIAL.filter(x => x !== cuts).length;
   return (
     <FiguresList plan={plan} solve={solve} own={cuts} options={APP_DIAL.map(x => ({ id: x, label: DIAL_LABELS[x], plan: atDial(plan, x) }))} order={dialOrder(cuts)}
-      sig={dialSig(plan)} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="dial" showLabel="Show the four settings" keyedId={1} />
+      sig={dialSig(plan)} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="dial" showLabel="Compare the four settings" keyedId={1}
+      table ownLine={false} place="plan" cost={costWords(others, { locked: true, more: true })}
+      foot={`Each on the same ${upto.toLocaleString('en-GB')} simulated markets, so they compare fairly. The answer uses 5,000.`} />
   );
 }
 
-export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge, onSolveRequest = null, ui, seed = 12345, upto = 2000, engine = null, opts = null }) {
-  const { PhoneCollapse, MoneyInput, fieldCls } = ui;
+export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, terminalAge, onSolveRequest = null, ui, seed = 12345, upto = 2000, engine = null, opts = null, solveLine = true, collapse = true }) {
+  const { MoneyInput, fieldCls } = ui;
+  const PhoneCollapse = collapse ? ui.PhoneCollapse : Plain;
   const a = { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}) };
   const set = patch => patchSolver(setPlan, 'aims', patch);
   const target = Number(plan.spending && plan.spending.targetSpend) || 0;
@@ -107,8 +117,9 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
     <section data-solver-aims className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
       <PhoneCollapse isPhone={isPhone}>
       <div>
-        <h2 className="text-base font-semibold text-slate-900">What the solver aims for</h2>
-        <p className="text-xs text-slate-500 mt-1">Not running out comes first. These choices tell the solver what you want from the rest, and each one solves your plan again.</p>
+        <h2 className="text-[15px] font-semibold text-slate-900">What matters to you</h2>
+        <p className="text-xs text-slate-500 mt-1">{isPhone ? 'Not running out comes first. These choices tell the solver what you want from the rest. A change is worked out when you tap Solve again.'
+          : 'Not running out comes first. These choices tell the solver what you want from the rest, and each one solves your plan again.'}</p>
       </div>
       <Row Fine={ui.Fine} title="How much do you dislike cuts?" isPhone={isPhone}
         help="Low: protect against running out, even if spending dips for a while. High: keep spending steadier, accepting a higher chance of running out. Low is the default.">
@@ -139,7 +150,7 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
         <p data-solver-floor className="text-xs text-slate-700">{floorLine(plan)}</p>
       </Row>
       </PhoneCollapse>
-      <SolveLine solve={solve} onRequest={onSolveRequest} />
+      {solveLine && <SolveLine solve={solve} onRequest={onSolveRequest} />}
     </section>
   );
 }

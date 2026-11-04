@@ -3,7 +3,8 @@
  * src/isolation.js). REQUIRED.
  *
  * 1. The site as built (the switch off): no service worker registered, no isolation code fetched.
- * 2. A preview build with the switch on at light settings, served the way GitHub Pages serves it, with no headers at all
+ * 2. A preview build with the switch on at light settings, opted in to the new planner (only it solves; step U), served the
+ *    way GitHub Pages serves it, with no headers at all
  *    (this harness's own static server), a single household from the research library:
  *      - the first load registers the worker and reloads once; then the page is cross-origin isolated;
  *      - a plan saved before the worker existed still loads (the plan seeded before the first load is the plan on screen);
@@ -47,7 +48,7 @@ function bareServer(dir) {
   });
   return { server, state };
 }
-const seed = async (ctx, plan) => ctx.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
+const seed = async (ctx, plan) => ctx.addInitScript(([k, pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); localStorage.setItem('rp_planner', 'new'); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan]);
 /* the page's isolation, read across the reload the worker asks for */
 async function isolatedWithin(p, ms) {
   const t0 = Date.now();

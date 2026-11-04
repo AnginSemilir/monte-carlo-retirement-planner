@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2, Loader2, FileText, ArrowRight
+  GripVertical, Maximize2, Loader2, FileText, ArrowRight, Target, User, GitBranch
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -27,9 +27,13 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T, Hint } from './glossary.jsx';
 import { Boundary } from './boundary.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
+// step U: the new planner's status strip and its words, in the entry (they show before any solver chunk arrives)
+import { StatusStrip } from './StatusStrip.jsx';
+import { timings } from './solveStatus.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput, toBody } from './phone.jsx';
 import { fieldCls as inputCls, smallFieldCls as smallInputCls, parseTierLabel } from './ui.js';
-import { buildActionPlanHtml, openActionPlan } from './actionPlan.js';
+import { buildActionPlanHtml, openActionPlan, buildSolvedPlanHtml } from './actionPlan.js';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -6923,11 +6927,23 @@ const SHOW_INHERITANCE = false;
  * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
  */
 const SOLVER = false;
+// B6's beta switch (step U, the new planner: research/reviews/2026-11-03/LAYOUT.md section 2.1). False hides the opt-in and
+// gives everyone the classic planner whatever rp_planner says; the preview build sets it true with SOLVER (vite.config.js)
+const PLANNER_BETA = false;
 // the solve's settings beside the switch: null in the app; a harness's light settings in a preview build only (vite.config.js
 // solver-preview, research/solver/PHASE-8.md), so the site's own build never reads anything else here
 const SOLVER_OPTS = null;
-// the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5)
-export const solverSwitch = () => ({ on: SOLVER, opts: SOLVER_OPTS });
+/*
+ * WHICH PLANNER A VISITOR SEES (step U; LAYOUT.md section 2.1). rp_planner, read only when SOLVER is true: 'new' opts in to the
+ * new planner (the solver's, four places), anything else is the classic planner, the app with the switch off bit for bit.
+ * Classic unless set, in every build (R6: off by default).
+ */
+export const PLANNER_KEY = 'rp_planner';
+const readPlanner = () => { try { return localStorage.getItem(PLANNER_KEY) === 'new' ? 'new' : 'classic'; } catch (e) { return 'classic'; } };
+const plannerOn = planner => SOLVER && PLANNER_BETA && planner === 'new';
+// the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5): on only
+// in the new planner, where the Simple page is folded into the quick start (LAYOUT.md section 2.1)
+export const solverSwitch = () => ({ on: plannerOn(readPlanner()), opts: SOLVER_OPTS });
 // the engine the solve's key reads, for the harness's way in (research/ui-harnesses/solver-progress-ui.cjs); the hook gets it from
 // the planner (src/useSolver.js). Below the export line, so research/build-engine.py leaves it out of the engine.
 if (typeof window !== 'undefined') window.__solverEngine = E;
@@ -6948,8 +6964,11 @@ const SolverHistoryCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx
 // Phase 10, item 2's rest: the solved plan's highest target and earliest age on the "Spend and date" step, on request
 const SolverPlanAnswersCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverPlanAnswers })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
-// Part C Phase 9's Strategy tab (src/SolverStrategy.jsx), fetched only when the switch is on for a single household
-const SolverStrategyCard = /* @__PURE__ */ lazy(() => import('./SolverStrategy.jsx').then(m => ({ default: m.SolverStrategy })));
+// step U: Your plan, the new planner's first place (src/PlannerPlan.jsx), its What if target card and its quick start, each
+// fetched only in the new planner
+const PlannerPlanCard = /* @__PURE__ */ lazy(() => import('./PlannerPlan.jsx').then(m => ({ default: m.PlannerPlan })));
+const SolverTargetsCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverTargets })));
+const QuickStartCard = /* @__PURE__ */ lazy(() => import('./PlannerStart.jsx').then(m => ({ default: m.QuickStart })));
 /*
  * THE TABS, ONCE.
  *
@@ -7001,7 +7020,33 @@ const INPUT_SECTIONS = [
   { id: 'advanced', short: 'Advanced', title: 'Advanced inputs' },
 ];
 const INPUT_SECTION_KEY = 'rp_input_section';
+// You, in the new planner (step U, LAYOUT.md section 3.2): the same sections, Limits on the solver added before Advanced
+// the new planner's names for You's sections (the desktop's list beside them says the same: YOU_NAMES below)
+const PLANNER_SECTIONS = [...INPUT_SECTIONS.filter(x => x.id !== 'advanced').map(x => (x.id === 'money' ? { ...x, short: 'Your money' } : x)), { id: 'limits', short: 'Limits', title: 'Limits on the solver' }, INPUT_SECTIONS.find(x => x.id === 'advanced')];
 const PHONE_PRIMARY = ['home', 'inputs', 'projection', 'strategy'];
+/*
+ * THE NEW PLANNER'S FOUR PLACES (step U; LAYOUT.md section 2.2), the answer first. All four sit on a phone's bottom bar, with no
+ * More. Code the two planners share still calls setActiveTab with the classic ids, so the new planner maps each to its place.
+ */
+const PLANNER_TABS = [
+  { id: 'plan',    Icon: Target,    label: 'Your plan', short: 'Your plan' },
+  { id: 'you',     Icon: User,      label: 'You',       short: 'You' },
+  { id: 'whatif',  Icon: GitBranch, label: 'What if',   short: 'What if' },
+  { id: 'details', Icon: BookOpen,  label: 'Details',   short: 'Details' },
+];
+const PLANNER_PRIMARY = PLANNER_TABS.map(t => t.id);
+const PLACE_OF = { home: 'plan', strategy: 'plan', projection: 'plan', config: 'plan', inheritance: 'plan', inputs: 'you', historical: 'details', audit: 'details', docs: 'details' };
+// and back, when "Classic planner" leaves a place
+const CLASSIC_OF = { plan: 'inputs', you: 'inputs', whatif: 'projection', details: 'audit' };
+// a place's root (LAYOUT.md section 10: each place a <main>), with You's section list beside it on a desktop; off, the children as
+// they are, so the classic tab renders exactly as it did
+function PlaceFrame({ on, place, nav, children }) {
+  if (!on) return children;
+  return <main data-place={place} className={nav ? 'grid grid-cols-[220px_minmax(0,1fr)] gap-6 items-start' : 'space-y-6'}>{nav}{children}</main>;
+}
+const YOU_NAMES = { you: 'You', money: 'Your money', income: 'Income', deposits: 'One-off deposits', costs: 'One-off costs', limits: 'Limits on the solver', advanced: 'Advanced' };
+const DETAILS_SECTIONS = [{ id: 'ledger', short: 'Year by year' }, { id: 'history', short: 'History check' }, { id: 'assumptions', short: 'Assumptions' }, { id: 'docs', short: 'How the solver decides' }];
+const DIAL_NAMES = { 1: 'Low', 3: 'Medium', 6: 'High', 10: 'Very high' };
 const MC_TRIALS = 5000;
 /*
  * HOW MANY PATHS EVERY PLAYER IN A SEARCH RUNS ON.
@@ -8373,9 +8418,23 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
  */
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
-  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null }) {
+  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null, onPlanner = null }) {
+  // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
+  const [planner, setPlannerState] = useState(readPlanner);
+  // SOLVER && PLANNER_BETA spelled out, not left to plannerOn: with either line false the bundler folds solverOn to false and
+  // drops the solver's cards, so the engine's workers (which import this file) never reach the solver client and its worker
+  const solverOn = SOLVER && PLANNER_BETA && plannerOn(planner);
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
-  const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
+  const [activeTab, setActiveTabRaw] = useState(() => (plannerOn(readPlanner()) ? 'plan' : safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
+  // in the new planner a classic id names its place (LAYOUT.md section 2.2's table)
+  const setActiveTab = useCallback(id => setActiveTabRaw(solverOn ? (PLACE_OF[id] || id) : (CLASSIC_OF[id] || id)), [solverOn]);
+  // the crossover: the same app and the same saved plan, so nothing is carried and nothing is lost
+  const setPlanner = useCallback(p => {
+    safeStorageSet(PLANNER_KEY, p);
+    setPlannerState(p);
+    setActiveTabRaw(t => (plannerOn(p) ? (PLACE_OF[t] || t) : (CLASSIC_OF[t] || t)));
+    if (onPlanner) onPlanner(p);
+  }, [onPlanner]);
   const [isEditingRisk, setIsEditingRisk] = useState(false);
   const [selectedHistoricalYear, setSelectedHistoricalYear] = useState(1965);
   const [mcSeed, setMcSeed] = useState(12345);
@@ -8383,10 +8442,34 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). Single households only (D42):
   // a couple's plan keeps the app's rules and is not solved
-  const solverRules = SOLVER && plan?.demographics?.planningMode === 'single';
-  // on a phone the solve runs when asked (the launch plan's B10; Phase 11 adds its expected time), and then follows the plan
-  const [solveAsked, setSolveAsked] = useState(false);
-  const solve = useSolverState(plan, solverRules && (!isPhone || solveAsked), E, SOLVER_OPTS);
+  const solverRules = solverOn && plan?.demographics?.planningMode === 'single';
+  // the navigation: the new planner's four places, or the classic tabs
+  const navTabs = solverOn ? (PLANNER_PLANT.has('fifthplace') ? [...PLANNER_TABS, { id: 'more', Icon: Layers, label: 'More', short: 'More' }] : PLANNER_TABS) : visibleTabs();
+  // step U's plant 'classicfetch' (solver-planner-ui check 14): the classic planner fetching a solver chunk at its first render
+  // (through the page's own hook, src/useSolver.js: App.jsx cannot import the solver's client, which the engine's workers would bundle)
+  useEffect(() => { if (PLANNER_PLANT.has('classicfetch') && !solverOn && typeof window !== 'undefined' && window.__solverHarness) window.__solverHarness(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  const youOn = solverOn && activeTab === 'you';
+  // Your plan's paths in two steps (a harness's light settings may name fewer), and whether they are in (the strip's simulating)
+  const plannerSteps = SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps : [2000, 5000];
+  const [planPhase, setPlanPhase] = useState({ simulating: false, trials: 5000 });
+  const [planFigures, setPlanFigures] = useState(null);
+  const [leversOpen, setLeversOpen] = useState(false);
+  const [leversSeen, setLeversSeen] = useState(false);
+  const [detailsSection, setDetailsSection] = useState('ledger');
+  const [docsOpen, setDocsOpen] = useState(false);
+  // on a phone the solve runs when asked (the launch plan's B10), and the request is per version of the plan (step U, LAYOUT.md
+  // section 4.1): an edit after it holds the solver, which marks the solve in hand stale and starts nothing until asked again
+  const [askedPlan, setAskedPlan] = useState(null);
+  const asked = !isPhone || askedPlan === plan;
+  const askSolve = useCallback(() => setAskedPlan(plan), [plan]);
+  const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS, solverRules && !asked && !PLANNER_PLANT.has('phonesolve'));
+  // the cards' cost lines read this device's last solve (src/solveStatus.js timings)
+  useEffect(() => {
+    if (solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error) { timings.restored = !!solve.solveMeta.restored; timings.solve = solve.solveMeta.restored ? null : solve.solveMeta.secs || null; }
+  }, [solve.solveState, solve.key]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // a failed solve tries again on a copy of the plan (the hook takes it as a change); on a phone, asked for at once
+  const retrySolve = () => setPlan(p => { const q = { ...p }; if (isPhone) setAskedPlan(q); return q; });
+  const stripAction = a => (a === 'retry' ? retrySolve() : askSolve());
 
   const [scenarios, setScenarios] = useState(() => {
     try {
@@ -8502,12 +8585,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * the head of the deck says when the inputs have moved on.
    */
   const [runPlanSig, setRunPlanSig] = useState(null);
-  // under the switch a single household's figures also go stale when the plan's solve lands (Part C Phase 10, item 2)
-  const planSig = useMemo(() => { try { return JSON.stringify(plan) + (solverRules ? `|${solve.solveState === 'solved' ? solve.key : 'unsolved'}` : ''); } catch { return null; } }, [plan, solverRules, solve.solveState, solve.key]);
+  const planSig = useMemo(() => { try { return JSON.stringify(plan); } catch { return null; } }, [plan]);
   const resultsStale = !!simResult && !!runPlanSig && runPlanSig !== planSig;
-  // stale only because the plan's solve has landed since the run (the plan itself unchanged): said so, not as changed inputs
-  const sigBase = sg => (sg && solverRules ? sg.slice(0, sg.lastIndexOf('|')) : sg);
-  const staleBySolve = resultsStale && solverRules && sigBase(runPlanSig) === sigBase(planSig);
   const [safeMaxResult, setSafeMaxResult] = useState(null);
   const [safeRetireResult, setSafeRetireResult] = useState(null);
   const [isSolvingRetire, setIsSolvingRetire] = useState(false);
@@ -8706,7 +8785,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * so a fresh visit starts at You. `showSection` is true for everything on a desktop.
    */
   const [inputSection, setInputSection] = useState(() => {
-    try { const v = sessionStorage.getItem(INPUT_SECTION_KEY); return INPUT_SECTIONS.some(x => x.id === v) ? v : 'you'; }
+    try { const v = sessionStorage.getItem(INPUT_SECTION_KEY); return PLANNER_SECTIONS.some(x => x.id === v) ? v : 'you'; }
     catch { return 'you'; }
   });
   const selectSection = (id) => {
@@ -8727,12 +8806,13 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setTimeout(() => { const el = document.getElementById('advanced-inputs'); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
   };
   const stepSection = (by) => {
-    const i = INPUT_SECTIONS.findIndex(x => x.id === inputSection);
-    const j = Math.min(INPUT_SECTIONS.length - 1, Math.max(0, i + by));
-    if (j !== i) selectSection(INPUT_SECTIONS[j].id);
+    const list = youOn ? PLANNER_SECTIONS : INPUT_SECTIONS;   // You, in the new planner, has Limits too (step U)
+    const i = list.findIndex(x => x.id === inputSection);
+    const j = Math.min(list.length - 1, Math.max(0, i + by));
+    if (j !== i) selectSection(list[j].id);
   };
   const inputsSwipeRef = useRef(null);
-  useSwipe(inputsSwipeRef, { enabled: isPhone && activeTab === 'inputs', onLeft: () => stepSection(1), onRight: () => stepSection(-1) });
+  useSwipe(inputsSwipeRef, { enabled: isPhone && (activeTab === 'inputs' || youOn), onLeft: () => stepSection(1), onRight: () => stepSection(-1) });
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
   const [expandedOneOff, setExpandedOneOff] = useState(() => new Set());
   const toggleOneOffExpand = (id) => setExpandedOneOff(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -8780,6 +8860,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   }, []);
   // the tab is a lazy chunk, so on its first opening the card may not exist for a moment: keep looking
   const goToDoc = (id) => {
+    // in the new planner the documentation opens inside Details' "How the solver decides" (step U)
+    if (solverOn) { setDetailsSection('docs'); setDocsOpen(true); }
     setActiveTab('docs');
     let tries = 0;
     const attempt = () => { if (document.getElementById(id)) scrollToDocSection(id); else if (tries++ < 25) setTimeout(attempt, 80); };
@@ -8788,9 +8870,10 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it (under the solver's switch,
   // after the solver's cards, which load on their own and would push the setting down after the scroll)
   const goToConfig = (id) => {
-    setActiveTab('config');
+    // in the new planner the app's rules are You's last card (Your current approach, in Advanced: step U)
+    if (solverOn) { setActiveTab('you'); selectSection('advanced'); } else setActiveTab('config');
     let tries = 0;
-    const attempt = () => { const el = document.getElementById(id), ready = el && (!solverRules || document.querySelector('[data-solver-locks]')); if (ready) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
+    const attempt = () => { const el = document.getElementById(id), ready = !!el; if (ready) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
 
@@ -8929,9 +9012,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const [solvedRows, setSolvedRows] = useState({ key: null, expected: null, hist: {} });
   const solvedInHand = solverRules && solve.solveState === 'solved' && !!solve.ask && !!solve.solveMeta && !solve.solveMeta.error;
+  const haveExpected = solvedRows.key === solve.key && !!solvedRows.expected;
   useEffect(() => {
     if (!solvedInHand) return undefined;
-    const key = solve.key, want = activeTab === 'audit' ? 'expected' : activeTab === 'historical' ? activeHistoricalStartYear : null;
+    // Details (step U) shows the ledger and the history check together: the ledger first, then the start year's run
+    const inDetails = activeTab === 'details';
+    const key = solve.key, want = activeTab === 'audit' || (inDetails && !haveExpected) ? 'expected' : activeTab === 'historical' || inDetails ? activeHistoricalStartYear : null;
     if (want === null || (solvedRows.key === key && (want === 'expected' ? solvedRows.expected : solvedRows.hist[want]))) return undefined;
     let live = true;
     // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
@@ -8942,7 +9028,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
       .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });
     return () => { live = false; };
-  }, [solvedInHand, solve.key, activeTab, activeHistoricalStartYear]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [solvedInHand, solve.key, activeTab, activeHistoricalStartYear, haveExpected]); // eslint-disable-line react-hooks/exhaustive-deps
   const solvedLedger = solvedInHand && solvedRows.key === solve.key ? solvedRows.expected : null;
   const solvedHistory = solvedInHand && solvedRows.key === solve.key ? solvedRows.hist[activeHistoricalStartYear] || null : null;
   // the audit table: the solved plan's ledger where one is in hand (your plan's a click away), else your plan's
@@ -10244,7 +10330,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const rerunNote = () => {
     const parts = [];
-    if (resultsStale) parts.push(staleBySolve ? 'Re-run: the solved plan is ready' : 'Re-run: changed plan inputs');
+    if (resultsStale) parts.push('Re-run: changed plan inputs');
     if (isSandboxModified) parts.push('Sandbox simulated on its own \u00b7 Apply to plan to fold it into these figures');
     if (!parts.length) return null;
     return (
@@ -10267,18 +10353,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       onProgress: (f) => setSimProgress({ label, value: scale.from + (scale.to - scale.from) * f })
     });
     if (mcCancelRef.current || !stats) return null;
-    let res = { ...stats, spend: ctx.targetSpend };
-    // Part C Phase 10, item 2: under the switch a single household's projection is the solved plan, on the same paths, with
-    // your plan's survival beside it; where the solved plan's run fails the projection keeps your plan's (F16)
-    if (solverRules && solve.solveState === 'solved' && solve.ask && solve.solveMeta && !solve.solveMeta.error) {
-      try {
-        const { stats: solvedStats } = await solve.ask('simulate', { trials: MC_TRIALS, seed: mcSeed, collectPaths: true });
-        if (!mcCancelRef.current && solvedStats) res = { ...solvedStats, spend: ctx.targetSpend, solvedKey: solve.key, yours: { successRate: stats.successRate, medianTerminal: stats.medianTerminal, p10Terminal: stats.p10Terminal, medianRealisedSpend: stats.medianRealisedSpend } };
-      } catch (err) { /* the solved plan's run failed: your plan's figures stand */ }
-    }
+    const res = { ...stats, spend: ctx.targetSpend };
     setSimResult(res);
     return res;
   };
+
+  // the new planner's failure view: your current approach under the app's own rules, the projection's first stage, run once
+  const solveFailed = solverRules && !!(solve.solveMeta && solve.solveMeta.error);
+  useEffect(() => { if (solveFailed && !simResult) runStageTest(); }, [solveFailed]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
    * Stage 2: the same engine run backwards. Stage 1 fixes the spending and reports the risk; this fixes
@@ -11135,7 +11217,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {sandboxMcBusy
         ? <span className="flex items-center gap-1.5 text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
         : sandboxMcOn && sandboxMc
-          ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>{solverRules && sandboxMc.medianRealisedSpend > 0 && <>, typical spending {formatGBP(sandboxMc.medianRealisedSpend)}</>}, median path drawn</span>
+          ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
           : sandboxMcOn
             ? <span className="text-slate-400">change something to simulate it</span>
             : <span className="text-slate-400">Monte Carlo takes longer to load</span>}
@@ -11899,12 +11981,508 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   // Part C Phase 10, item 2's rest: under the switch, the solved plan's own highest target and earliest age at the survival
   // this step is set to, searched for over solves when asked (src/SolverSimple.jsx SolverPlanAnswers); the figures beside it
   // follow your plan's rules
-  const solverAnswersCard = () => (solvedInHand && simResult ? (
+  /*
+   * THE CONFIG TAB'S CONTROLS AS PIECES (step U): the classic Config tab renders them where they always were; the new planner
+   * renders the app's rules for the plan in You (Your current approach) and the tax rules in Details (Assumptions).
+   */
+  const ctlPolicy = () => (
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
+                  <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                    {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                  </select>
+                  <Fine isPhone={isPhone} label="What this policy does">
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      {(E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy]?.blurb || (() => ''))(P)}
+                    </span>
+                  </Fine>
+                </div>
+                
+  );
+  const ctlDrawdown = () => (
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
+                  <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                    <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
+                    <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
+                  </select>
+                  <Fine isPhone={isPhone} label="What each one does">
+                    <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
+                  </Fine>
+                </div>
+                
+  );
+  const ctlGuardrails = () => (
+                <div id="config-guardrails">
+                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails</label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" data-guardrails-toggle checked={!!plan?.config?.guardrails} onChange={(e) => updateConfig('guardrails', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Let simulated spending react to the pots (Guyton-Klinger): cut {Math.round(E.GUARDRAILS.cut * 100)}% when the withdrawal rate drifts {Math.round(E.GUARDRAILS.band * 100)}% above where it started, raise {Math.round(E.GUARDRAILS.raise * 100)}% when it drifts that far below, and skip the inflation rise after a losing year.</span>
+                  </label>
+                  <Fine isPhone={isPhone} label="What it changes">
+                    <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
+                  </Fine>
+                </div>
+  );
+  const ctlLookahead = () => (
+                <div id="config-lookahead">
+                  <label htmlFor="config-lookahead-years" className="text-slate-600 font-semibold block mb-1">Prepare for one-off costs, years ahead</label>
+                  <input id="config-lookahead-years" type="number" min="0" max="15" step="1" data-lookahead-years value={plan?.config?.lookaheadYears ?? 0} onChange={(e) => updateConfig('lookaheadYears', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold" />
+                  <Fine isPhone={isPhone} label="What it changes">
+                    <span className="text-[10px] text-slate-400 mt-1 block">0 is off: a one-off cost is met in its own year, and whatever the liquid wrappers cannot cover comes out of the pension in one go, through the higher bands. From this many years ahead the plan instead draws the shortfall a share at a time, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)}), and parks it in the ISA then cash to pay the cost when it lands. Only once retired and past the pension access age; the Audit Data Table shows the years it acted. <button type="button" onClick={() => goToDoc('doc-lookahead')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
+                  </Fine>
+                </div>
+                
+  );
+  const ctlHarvest = () => (
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" checked={!!plan?.config?.harvestPersonalAllowance} onChange={(e) => updateConfig('harvestPersonalAllowance', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Draw pension beyond what the year needs and re-wrap it; proceeds fill the ISA first, then the GIA.</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Applies to the two bracket-fill policies once retired and past the access age.</span>
+                  {/* How far up the bands that harvest runs. The second setting is a bequest trade, not a
+                      spending one, so it is offered here rather than assumed by a policy. */}
+                  <label className="text-slate-600 font-semibold block mb-1 mt-2">…and draw up to</label>
+                  <select aria-label="Harvest ceiling" value={plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa'} onChange={(e) => updateConfig('harvestCeiling', e.target.value)} disabled={!plan?.config?.harvestPersonalAllowance} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold cursor-pointer disabled:opacity-50">
+                    <option value="pa">the tax-free personal allowance ({formatGBP(P.pa)}) — costs nothing</option>
+                    <option value="basic">the basic-rate limit ({formatGBP(P.higherRateStartsAt)}) — pays 20% now</option>
+                  </select>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
+                </div>
+                
+  );
+  const ctlTaxRules = () => (
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" checked={!!plan?.config?.cgtEnabled} onChange={(e) => updateConfig('cgtEnabled', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Tax gains realised when Other Investments are sold, using the cost basis of each holding.</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Off treats the GIA as tax-free. Gains are wiped on death, so nothing is charged at the terminal age.</span>
+                  <label className="text-slate-600 font-semibold block mb-1 mt-3">Tax cash interest</label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" checked={plan?.config?.cashInterestTaxed !== false} onChange={(e) => updateConfig('cashInterestTaxed', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Tax the nominal interest on Cash Savings as savings income above the starting rate and the personal savings allowance.</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Off treats all cash as a cash ISA. The allowances are set below.</span>
+                  <button type="button" onClick={() => goToDoc('doc-cgt')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-1"><HelpCircle className="w-3.5 h-3.5" /> How capital gains are tracked &amp; taxed &rarr;</button>
+                </div>
+  );
+  /*
+   * THE NEW PLANNER'S PIECES (step U; research/reviews/2026-11-03/LAYOUT.md). Rendered only in the new planner; the solver's own
+   * cards in them come in lazy chunks.
+   */
+  const pctOf = (x, y) => (y > 0 ? Math.round((100 * x) / y) : 0);
+  const floorShare = (() => { const t = E.num(plan?.spending?.targetSpend, 0), f = E.num(plan?.spending?.floorSpend, 0); return f > 0 && t > 0 ? Math.min(f, t) / t : 0.8; })();
+  const aims = (plan && plan.solver && plan.solver.aims) || {};
+  const leversSummary = `Dislike of cuts: ${DIAL_NAMES[aims.cuts] || 'Low'} · Estate: ${aims.estate === 'lower' ? 'lower' : 'standard'} · Raises: ${aims.raises === 'blocked' ? 'never above target' : 'up to 10%'} · Risk: ${aims.riskConsent === false ? 'kept as you chose' : 'may change'}`;
+  const policyName = (E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy] || {}).label || 'the plain draw order';
+  const rulesLine = `Your current approach is your plan run by the app's own rules: ${policyName}, guardrails ${plan?.config?.guardrails ? 'on' : 'off'}. Change them in You, under Your current approach.`;
+  const openLevers = () => { setLeversSeen(true); setLeversOpen(true); };
+  // the solved plan's sheet (LAYOUT.md section 3.1), from Your plan's own figures, its words from the table (a chunk of its own)
+  const printSolvedPlan = async () => {
+    if (!planFigures) return;
+    const W = await import('./solverWords.js');
+    const st = planFigures.strategy, m = planFigures.more || {}, h = st.headline, wctx = { target: h.target, fmt: formatGBP }, a = W.headlineWords(h, formatGBP), c = st.compare;
+    const ok = openActionPlan(buildSolvedPlanHtml({
+      answer: a, explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers: leversSummary, code: APP_VERSION,
+      thisYearTitle: h.retired ? 'This year' : 'This year, before you retire',
+      actions: m.actions ? m.actions.actions.map(x => W.actionWords(x, wctx)) : [],
+      rule: m.distil && m.distil.show ? W.ruleWords(m.distil, wctx) : null,
+      ahead: m.ahead ? W.aheadRowsWords(m.ahead.rows, wctx) : [], comeBack: W.COME_BACK,
+      compare: {
+        title: `The solved plan against your current approach, on the same ${st.trials.toLocaleString('en-GB')} markets`, line: rulesLine,
+        rows: [['Chance the money lasts', `${c.yours.survival.toFixed(1)}%`, `${c.solved.survival.toFixed(1)}%`], ['Pot left at the end, typical', formatGBP(c.yours.medianPot), formatGBP(c.solved.medianPot)],
+          ['Pot left at the end, unlucky tenth', formatGBP(c.yours.p10Pot), formatGBP(c.solved.p10Pot)], ['Tax over your lifetime, typical', formatGBP(c.yours.lifetimeTax), formatGBP(c.solved.lifetimeTax)],
+          ['Estate after the pension\'s death tax, typical', formatGBP(c.yours.estate), formatGBP(c.solved.estate)]]
+      }
+    }));
+    if (!ok) flash('The browser blocked the new window: allow pop-ups for this site to print the plan.');
+  };
+  useEffect(() => {
+    if (!leversOpen) return undefined;
+    const onKey = e => { if (e.key === 'Escape') setLeversOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [leversOpen]);
+  const aimsPanel = (inSheet = false) => (
     <Suspense fallback={null}>
-      <SolverPlanAnswersCard plan={plan} fromSpend={safeMaxResult ? safeMaxResult.spend : null} goal={targetSurvivalRate} ageNow={ctx.owners[0].age0}
-        last={terminalAge - 1} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+      <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} ui={SOLVER_UI}
+        seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} solveLine={false} collapse={!inSheet} />
     </Suspense>
-  ) : null);
+  );
+  const couplesCard = () => (PLANNER_PLANT.has('nocouple') ? null :
+    <section data-planner-couple className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
+      <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" data-open-classic onClick={() => setPlanner('classic')} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Open the classic planner</button>
+        <button type="button" onClick={() => { setActiveTab('you'); selectSection('you'); }} className={`px-4 rounded-lg border border-slate-300 bg-surface text-sm font-semibold text-slate-800 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Change to a plan for one person</button>
+      </div>
+    </section>
+  );
+  const youNav = () => (
+    <nav aria-label="The sections of You" className="sticky top-32 space-y-0.5">
+      {PLANNER_SECTIONS.map(x => (
+        <button key={x.id} type="button" data-you-nav={x.id} onClick={() => { const el = document.querySelector(`[data-section="${x.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+          className="block w-full text-left px-3 min-h-9 rounded-lg text-sm text-slate-700 hover:bg-slate-100 cursor-pointer">{YOU_NAMES[x.id] || x.short}</button>
+      ))}
+    </nav>
+  );
+  const youHeader = () => (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="text-[22px] font-semibold text-slate-900">You</h1>
+        <p className="text-sm text-slate-600 mt-1">Who you are, what you have and what you want to spend. Changes here work your plan out again, unless the control says otherwise.</p>
+      </div>
+      <button type="button" data-save-scenario onClick={handleSaveAsNewScenario} className={`px-3 rounded-lg border border-slate-300 bg-surface text-xs font-semibold text-slate-800 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Bookmark className="w-3.5 h-3.5" /> Save as a scenario</button>
+    </div>
+  );
+  // You's last card (LAYOUT.md section 3.2): the app's rules for the plan, each control saying whether it works the plan out again
+  const RESOLVES = 'Changing this works your plan out again: the solved plan uses it too.';
+  const KEEPS = 'The solved plan does not use this: changing it re-runs the comparison.';
+  const currentApproachCard = () => (
+    <section data-current-approach className="pt-4 border-t border-slate-100 space-y-3">
+      <div>
+        <h3 className="text-[15px] font-semibold text-slate-900">Your current approach</h3>
+        <p className="text-xs text-slate-500 mt-1">The app&apos;s own rules for your plan. The solved plan is compared with them (Your plan, the last card). The solver makes its own choices, but it also works from some of these.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        {[['policy', ctlPolicy, RESOLVES], ['drawdown', ctlDrawdown, RESOLVES], ['harvest', ctlHarvest, RESOLVES], ['guardrails', ctlGuardrails, KEEPS], ['lookahead', ctlLookahead, KEEPS]].map(([k, ctl, line]) => (
+          <div key={k} data-approach-control={k} data-approach-resolves={line === RESOLVES ? 'yes' : 'no'} className="space-y-1">
+            {ctl()}
+            <p className="text-[11px] text-slate-600">{line}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+  // What if's scenarios (LAYOUT.md section 3.3): the current plan first, each saved one with what differs, its solved line, Load
+  // and Delete; a couple's keeps the app's rules
+  const scenarioDiff = d => {
+    const out = [], a = E.normalizePlan(d), t = E.num(a.spending.targetSpend, 0), r = E.num(a.demographics.retireAgeSelf, 0);
+    if (t !== E.num(plan.spending.targetSpend, 0)) out.push(`spends ${formatGBP(t)} a year`);
+    if (r !== E.num(plan.demographics.retireAgeSelf, 0)) out.push(`retires at ${r}`);
+    const tot = x => (x.accounts || []).reduce((s2, ac) => s2 + E.num(ac.balance, 0), 0);
+    if (Math.round(tot(a)) !== Math.round(tot(plan))) out.push(`holds ${formatGBP(tot(a))}`);
+    return out.length ? out.join(', ') : 'the same as your plan on these figures';
+  };
+  const scenariosCard = () => (
+    <section data-whatif-scenarios className="p-4 rounded-xl border border-slate-200/90 bg-surface space-y-2">
+      <h3 className="text-[15px] font-semibold text-slate-900">Your scenarios</h3>
+      <p className="text-xs text-slate-500">A change to try is a scenario: save one in You, then edit it. Each is solved only when you ask: one solve a scenario.</p>
+      <ul className="space-y-1.5 text-xs">
+        {scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => (
+          <li key={sc.id} data-scenario-row={sc.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 pt-1.5">
+            <span className="font-semibold text-slate-800">{sc.name}</span><span className="text-slate-500">{scenarioDiff(sc.data)}</span>
+            <span className="flex-1" />
+            <button type="button" onClick={() => handleSelectScenario(sc.id)} className={`px-2 rounded border border-slate-200 bg-slate-50 font-semibold text-slate-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-7'}`}>Load</button>
+            <button type="button" onClick={() => handleDeleteScenario(sc.id)} className={`px-2 rounded border border-slate-200 bg-slate-50 font-semibold text-rose-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-7'}`}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      <Suspense fallback={null}>
+        <SolverScenariosCard rows={[{ id: '__current__', name: 'Current plan', isBase: true, plan }, ...scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => ({ id: sc.id, name: sc.name, plan: sc.data }))]}
+          plan={plan} solve={solve} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+      </Suspense>
+    </section>
+  );
+  const solverSettingsCard = () => (
+    <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
+      <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
+      <p>{(SOLVER_OPTS && SOLVER_OPTS.points) || 45} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {plannerSteps[plannerSteps.length - 1].toLocaleString('en-GB')} simulated markets. The candidate d71f65ae871e.</p>
+    </section>
+  );
+  const docsSolverCard = () => (
+    <section data-docs-solver className="p-4 bg-surface border border-slate-200/90 rounded-xl text-sm text-slate-700 space-y-3">
+      <h3 className="text-[15px] font-semibold text-slate-900">How the solver decides</h3>
+      <p>Each year the solver chooses how much to spend, which pot to draw from and how to invest, by working backwards from the end of your plan over thousands of simulated markets. Not running out comes first; what matters to you decides the rest.</p>
+      <dl className="grid gap-2 text-xs">
+        <div><dt className="font-semibold text-slate-900">The solved plan</dt><dd>What the solver works out for your money, year by year.</dd></div>
+        <div><dt className="font-semibold text-slate-900">Your current approach</dt><dd>Your plan run by the app&apos;s own rules; the yardstick.</dd></div>
+        <div><dt className="font-semibold text-slate-900">Limits</dt><dd>What the solver may not change (the locks).</dd></div>
+        <div><dt className="font-semibold text-slate-900">A rule of thumb</dt><dd>The plan&apos;s own choices in three lines, shown where following it costs under half a point.</dd></div>
+      </dl>
+      <p className="text-xs text-slate-500">What this model will not tell you: it is a model of markets, tax and your plan, not a forecast. Educational and illustrative only. This is not financial advice.</p>
+      {!docsOpen ? <button type="button" data-docs-open onClick={() => setDocsOpen(true)} className={`text-xs font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Read the full documentation</button> : (
+        <Suspense fallback={<div className="text-sm text-slate-400">Loading the documentation&hellip;</div>}>
+          <Docs E={E} P={P} plan={plan} nmpa={nmpa} terminalAge={terminalAge} activeRiskMatrix={activeRiskMatrix} isPhone={isPhone}
+            docSections={docSections} onSections={onDocSections} scrollToDocSection={scrollToDocSection}
+            MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum} />
+        </Suspense>
+      )}
+    </section>
+  );
+  // the history and audit tabs as pieces (step U): the classic tabs render them as before, the new planner's Details too
+  const historyView = () => (
+          <div className="space-y-6">
+            <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-2">
+              <Fine isPhone={isPhone} label="How the backtest works"
+                head={<div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>}>
+              <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
+              <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
+              <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
+              </Fine>
+            </div>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
+                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input aria-label="Start year" type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                {HISTORICAL_PRESETS.map(p => {
+                  const isValid = p.year <= maxHistoricalStartYear;
+                  return (
+                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-400 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-accent text-onaccent border-accent cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
+                      <div className="flex items-center justify-between"><span className="font-bold text-xs">{p.year}</span>{!isValid && <span className="text-[9px] text-slate-400 font-sans">Over {E.HISTORICAL_LAST_YEAR}</span>}</div>
+                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-400' : activeHistoricalStartYear === p.year ? 'text-onaccent' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input aria-label="Start year" type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
+            </div>
+            {/* Part C Phase 10, item 7: under the switch the backtest runs the solved plan, and says what it is: the check outside
+                the model the plan was solved in, with your plan's verdict on the same history beside it */}
+            {solvedHistory && (
+              <Suspense fallback={null}>
+                <SolverHistoryCard verdict={solvedHistory.verdict} start={activeHistoricalStartYear} yours={yourHistoricalVerdict} floor={ctx.solvencyFloor} fmt={formatGBP} />
+              </Suspense>
+            )}
+            {/* One column of four cards is 470px on a phone for three numbers and a verdict. The verdict
+                keeps the full width - it is a sentence - and the three figures go three across, which is
+                what they are: a row of readings. */}
+            {historicalMetrics && (
+              <div className={`grid grid-cols-1 sm:grid-cols-4 ${isPhone ? 'gap-2' : 'gap-4'}`}>
+                <div className={`p-4 rounded-xl border ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Backtest verdict</span>
+                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
+                    : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
+                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
+                </div>
+                <div className={isPhone ? 'col-span-1 grid grid-cols-3 gap-2' : 'contents'}>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Starting balance</span><div className={`font-bold font-mono text-slate-900 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.startVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span>}</div>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Lowest trough</span><div className={`font-bold font-mono text-amber-700 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.minVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Lowest total experienced</span>}</div>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Pot @ {terminalAge}</span><div className={`font-bold font-mono mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'} ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span>}</div>
+                </div>
+              </div>
+            )}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and <T k="decumulation">decumulation</T></span></div>
+            {renderHistoricalChart()}
+            </div>
+          </div>
+        
+  );
+  const auditCard = () => (
+          <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> {auditRun ? 'Year by year, on the expected returns' : solverOn ? 'Your current approach, year by year, on the expected returns' : <>Year-by-Year Cash Flow &amp; Wrapper Ledger</>}</h2>{solverOn && solvedInHand && !solvedLedger && <p data-audit-wait className="text-xs text-slate-600 mt-1">The solved plan&apos;s year by year is being worked out; your current approach&apos;s is shown until it is in.</p>}<span className="text-xs text-slate-500">{auditRun ? <>One steady market, not a forecast: every year&apos;s figures as raw numbers, so you can check the arithmetic.</> : <>Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</>}</span>
+                {solvedLedger && <div className="mt-2 inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs" role="group" aria-label="Whose ledger" data-audit-view={auditView}>
+                  {[['solved', 'The solved plan'], ['yours', 'Your current approach']].map(([v, l]) => <button key={v} type="button" aria-pressed={auditView === v} onClick={() => setAuditView(v)} className={`px-3 py-1.5 min-h-9 font-semibold cursor-pointer ${auditView === v ? 'bg-accent text-onaccent' : 'bg-surface text-slate-600 hover:bg-slate-100'}`}>{l}</button>)}
+                </div>}</div>
+              <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV spreadsheet</button>
+            </div>
+            {/* A fifty-year ledger is 2,160px of table, and on a phone that was 2,160px of PAGE: the head
+                of the tab scrolled away and the column names with it. Capped at 60% of the screen with
+                its own scroll and a stuck header, the tab is one screen and the table is still all there
+                - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
+            <div tabIndex={0} className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
+              <table className="w-full text-left text-xs border-collapse" data-audit-ledger={auditRun ? 'solved' : 'yours'}>
+                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th>{auditRun && <th className="p-2.5">The year&apos;s move</th>}{!auditRun && !!plan?.config?.guardrails && <th className="p-2.5">Guardrail</th>}{!auditRun && plan?.config?.lookaheadYears > 0 && <th className="p-2.5">Set aside</th>}<th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
+                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                  {auditRows.map((r, i) => (
+                    <tr key={r.year} className="hover:bg-slate-50/80 transition-colors" data-audit-total={r.totalCombined}>
+                      <td className="p-2 font-bold text-slate-800">{r.year}</td><td className="p-2">{r.ageSelf}</td>{isCouple && <td className="p-2">{r.agePart}</td>}
+                      <td className="p-2 font-sans font-medium text-slate-700">{formatGBP(r.targetSpend)}</td>
+                      {/* the solved plan's action this year (Phase 10, item 7): the spending level where the year has a target,
+                          then what the move does beyond it, in the Strategy tab's words, shortened */}
+                      {auditRun && <td className="p-2 font-sans text-slate-700 min-w-[12rem]" data-audit-action={auditRun.parts[i] ? JSON.stringify(auditRun.parts[i]) : ''}>{auditRun.words[i] || <span className="text-slate-300">&mdash;</span>}</td>}
+                      {/* What the spending rule did this year, and the multiplier it has left on the draw. Only
+                          the rows where it acted carry a label, so the column reads as a list of events. */}
+                      {!auditRun && !!plan?.config?.guardrails && <td className="p-2 font-sans" data-guardrail-cell>
+                        {r.guardrail
+                          ? <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${/cut/.test(r.guardrail) ? 'bg-rose-100 text-rose-800' : /raise/.test(r.guardrail) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{r.guardrail}</span>
+                          : <span className="text-slate-300">&mdash;</span>}
+                        {r.spendMult !== 1 && <span className="text-[9px] text-slate-400 block">draw &times;{r.spendMult.toFixed(2)}</span>}
+                      </td>}
+                      {/* Pension drawn at the basic rate ahead of a known cost and parked to pay it. Only the
+                          years it acted carry a figure, each naming the cost year it is for. */}
+                      {!auditRun && plan?.config?.lookaheadYears > 0 && <td className="p-2 font-sans" data-lookahead-cell>
+                        {r.reserved > 0
+                          ? <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800">{formatGBP(r.reserved)} <span className="font-normal">for {r.reservedFor}</span></span>
+                          : <span className="text-slate-300">&mdash;</span>}
+                      </td>}
+                      <td className="p-2 text-emerald-700">{formatGBP(r.netGuaranteed + r.workingTakeHome)}</td>
+                      <td className="p-2 text-rose-600 font-medium">{formatGBP(r.netDrawdown)}</td>
+                      <td className="p-2 text-sky-700">{formatGBP(r.drawdownPensions)}{r.harvested > 0 && <span className="text-[9px] text-slate-400 block">incl. {formatGBP(r.harvested)} harvested</span>}</td>
+                      <td className="p-2 text-slate-600">{formatGBP(r.taxPaid)}</td>
+                      {P.cgtEnabled && <td className="p-2 text-amber-700">{formatGBP(r.cgtPaid || 0)}{r.realisedGains > 0 && <span className="text-[9px] text-slate-400 block">on {formatGBP(r.realisedGains)} gains</span>}</td>}
+                      <td className="p-2 text-sky-700">{formatGBP(r.pensions)}</td><td className="p-2 text-teal-700">{formatGBP(r.isas)}</td><td className="p-2 text-amber-700">{formatGBP(r.other)}</td><td className="p-2 text-slate-700">{formatGBP(r.cash)}</td>
+                      <td className="p-2 font-bold text-blue-700">{formatGBP(r.totalCombined)}</td><td className="p-2 text-slate-600">{formatGBP(r.preNmpaLiquid)}</td>
+                      <td className="p-2 text-right">{r.preNmpaInsolvent ? <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-sans text-[10px] font-bold">Pre-SIPP access Gap</span> : r.unmetDemand > E.FAIL_TOLERANCE ? <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-sans text-[10px] font-bold">Shortfall {formatGBP(r.unmetDemand)}</span> : <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-sans text-[10px] font-bold">Solvent</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        
+  );
+  // Config's reference cards as a piece (step U): the classic Config tab as before; the new planner's Details (Assumptions),
+  // where the region's select is in You instead (a fact about the person)
+  const ctlRegion = () => (
+              <div className="pb-1">
+                <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
+                <select aria-label="Where you pay tax" value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                  {Object.entries(E.TAX_REGION_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+                </select>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  {plan?.config?.taxRegion === 'scotland'
+                    ? 'Scotland sets six bands, and its higher rate starts at £43,662 rather than £50,270. Only income tax is devolved: National Insurance, capital gains tax, the personal allowance and its taper are the same everywhere, and relief at source on a pension contribution is 20% for everyone.'
+                    : plan?.config?.taxRegion === 'wales'
+                      ? 'Wales can vary its rates under the Welsh Rates of Income Tax but has set them equal to England and Northern Ireland every year so far, so this returns the same figures. It is here so the answer is confirmed rather than assumed.'
+                      : 'Three bands at 20, 40 and 45%. Choose Scotland for its six-band set, or Wales, whose rates currently match these.'}
+                </span>
+              </div>
+  );
+  const assumptionCards = (withRegion = true) => (<>
+            <CollapsibleCard icon={Settings} title="Global Economic & Calculation Configuration"
+              subtitle="Valuation date, inflation, access ages, the pension death-tax haircut and the Monte Carlo seed.">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
+                <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation <T k="CPI">CPI</T> (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (<T k="NMPA">NMPA</T>)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">State Pension start age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (<T k="IHT">IHT</T> from April 2027 / beneficiary income tax).</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1"><T k="Monte Carlo">Monte Carlo</T> seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
+              </div>
+            </CollapsibleCard>
+
+            <CollapsibleCard title="Asset allocations, return matrix & volatilities (σ)"
+              subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
+              <div tabIndex={0} className="overflow-x-auto space-y-4">
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; <T k="Monte Carlo">Monte Carlo</T> paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
+                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
+              </div>
+
+              {/*
+                  ONE SET OF ASSUMPTIONS, NAMED.
+                  There was a picker here offering the house figures alongside the published set. It was a
+                  choice nobody could make well - the two differ in whether a forecast-uncertainty term
+                  exists at all, which is not a preference - and it let a plan sit on undated figures
+                  without saying so. The published set is simply what the model runs on now, and this says
+                  where it came from and when it needs refreshing. Editing any cell still makes the table
+                  your own, and the note below says so once that happens.
+              */}
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-1 text-[11px] text-slate-500">
+                <span className="text-xs text-slate-600 font-semibold whitespace-nowrap">Source:</span>
+                {plan?.riskSource && E.CMA_PRESETS[plan.riskSource] ? (
+                  <span>
+                    <strong className="text-slate-700">{E.CMA_PRESETS[plan.riskSource].name}</strong> &mdash; {E.CMA_PRESETS[plan.riskSource].detail},
+                    published {E.CMA_PRESETS[plan.riskSource].published}. {E.CMA_PRESETS[plan.riskSource].note} Published
+                    figures are nominal and are shown here deflated at your {E.num(plan?.config?.inflation, 2.5)}% inflation
+                    setting, so changing that changes these. <strong className="text-slate-700">Expires {E.CMA_PRESETS[plan.riskSource].expires}</strong> &mdash;
+                    refresh from the source after that. Editing any cell below makes the table your own.
+                  </span>
+                ) : (
+                  <span>
+                    <strong className="text-slate-700">Your own figures.</strong> These started as the {E.CMA_PRESETS[E.DEFAULT_RISK_SOURCE].name} set
+                    and have been edited, so they are no longer that source and no longer track your inflation setting.
+                    <button type="button" onClick={() => applyRiskPreset(E.DEFAULT_RISK_SOURCE)}
+                      className="ml-1.5 font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer">Restore the published figures</button>
+                  </span>
+                )}
+              </div>
+              <table className="w-full text-left text-xs border-collapse">
+                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation category</th><th className="pb-2">Expected real return (% pa)</th><th className="pb-2">Unlucky, 10th <T k="percentile">%ile</T> (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal return (% pa)</th><th className="pb-2">Annual <T k="volatility">Volatility</T> (σ % pa)</th><th className="pb-2">Forecast uncertainty (% pa)</th></tr></thead>
+                <tbody className="divide-y divide-slate-100 font-mono">
+                  {Object.entries(activeRiskMatrix).map(([key, val]) => {
+                    // totalYears + 1, not totalYears: stepYear runs t = 0..totalYears inclusive, so the plan
+                    // compounds one more time than its stated length. Matching it here is what lets the rate
+                    // in this column actually compound to the pot quoted under the Monte Carlo fan.
+                    const band = E.luckyBand(E.num(val.real, 0) / 100, E.num(val.volatility, 12) / 100, ctx.totalYears + 1, E.num(val.sigmaParam, 0) / 100);
+                    return (
+                    <tr key={key} className="hover:bg-slate-50/80">
+                      <td className="py-2.5 font-sans font-bold text-slate-800">{val.label || key}</td>
+                      {[['real', 'text-blue-700', 0.05], ['unlucky', 'text-rose-700', 0.05], ['lucky', 'text-emerald-700', 0.05], ['nominal', 'text-purple-700', 0.05], ['volatility', 'text-amber-700', 0.5], ['sigmaParam', 'text-slate-600', 0.05]].map(([field, color, step]) => (
+                        <td key={field} className="py-2.5">
+                          {field === 'lucky' || field === 'unlucky' ? (
+                            <span className={`${color} font-bold`}>{(band[field] * 100).toFixed(2)}%</span>
+                          ) : isEditingRisk ? (
+                            <input type="number" step={step} min={field === 'volatility' || field === 'sigmaParam' ? 0 : undefined} onFocus={handleFocus} value={val[field] ?? ''} onChange={(e) => updateRiskField(key, field, e.target.value)} className={`w-20 p-1 bg-surface border border-slate-300 rounded font-mono ${color} font-bold focus:bg-surface focus:ring-1 focus:ring-blue-500`} />
+                          ) : <span className={`${color} font-bold`}>{E.num(val[field], 0).toFixed(field === 'volatility' ? 1 : 2)}%</span>}
+                        </td>
+                      ))}
+                    </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              </div>
+            </CollapsibleCard>
+
+            <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
+              subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
+              {withRegion && ctlRegion()}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
+                {[
+                  ['personalAllowance', 'Personal Allowance (£)'], ['paTaperThreshold', 'PA Taper Threshold (£)'], ['paTaperRate', 'PA Taper Rate (% of excess)'],
+                  ...(plan?.config?.taxRegion === 'scotland' ? [
+                    ['scotStarterRate', 'Starter Rate (%)'], ['scotStarterLimit', 'Basic Rate Starts At (£ income)'],
+                    ['scotBasicRate', 'Basic Rate (%)'], ['scotBasicLimit', 'Intermediate Rate Starts At (£ income)'],
+                    ['scotIntermediateRate', 'Intermediate Rate (%)'], ['scotIntermediateLimit', 'Higher Rate Starts At (£ income)'],
+                    ['scotHigherRate', 'Higher Rate (%)'], ['scotHigherLimit', 'Advanced Rate Starts At (£ income)'],
+                    ['scotAdvancedRate', 'Advanced Rate (%)'], ['scotAdvancedLimit', 'Top Rate Starts At (£ income)'],
+                    ['scotTopRate', 'Top Rate (%)']
+                  ] : [
+                    ['basicBandLimit', 'Higher Rate Starts At (£ income)'], ['basicTaxRate', 'Basic Rate (%)'],
+                    ['higherBandLimit', 'Additional Rate Starts At (£ income)'], ['higherTaxRate', 'Higher Rate (%)'], ['additionalTaxRate', 'Additional Rate (%)']
+                  ]),
+                  ['nicPrimaryThreshold', 'NIC Primary Threshold (£)'], ['nicUpperEarningsLimit', 'NIC Upper Earnings Limit (£)'], ['nicMainRate', 'NIC Main Rate (%)'], ['nicUpperRate', 'NIC Upper Rate (%)'],
+                  ['class4MainRate', 'Class 4 Main Rate (%, self-employed)'], ['class4UpperRate', 'Class 4 Upper Rate (%, self-employed)'],
+                  ['employerNicRate', 'Employer NIC Rate (%)'], ['pclsProportion', 'PCLS Tax-Free (%)'], ['pclsMaxCap', 'Lump Sum Allowance (£ LSA)'],
+                  ['isaAnnualAllowance', 'ISA Allowance (£/person/yr)'], ['pensionAnnualAllowance', 'Pension Annual Allowance (£/person/yr)'], ['pensionNoEarningsLimit', 'Pension Limit With No Earnings (£/person/yr)'], ['mpaaLimit', 'Money Purchase Annual Allowance (£/person/yr)'], ['pensionTaperThreshold', 'Annual Allowance Taper Threshold (£ earnings)'], ['pensionTaperRate', 'Annual Allowance Taper Rate (%)'], ['pensionTaperFloor', 'Tapered Annual Allowance Floor (£)'], ['cgtAnnualExempt', 'CGT Annual Exempt Amount (£/person/yr)'], ['cgtBasicRate', 'CGT Rate: Basic Band (%)'], ['cgtHigherRate', 'CGT Rate: Higher/Additional Band (%)'],
+                  ['savingsAllowanceBasic', 'Personal Savings Allowance: Basic Rate (£)'], ['savingsAllowanceHigher', 'Personal Savings Allowance: Higher Rate (£)'], ['startingRateSavingsBand', 'Starting Rate for Savings Band (£)'], ['cashIsaAllowance', 'Cash ISA Cap (£/person/yr)'], ['cashIsaAllowanceUnder65', 'Cash ISA Cap Under 65 (£, from the year below)'], ['cashIsaAllowanceUnder65From', 'Cash ISA Under-65 Cap Applies From (year)'],
+                  ['giaDividendYield', 'GIA Dividend Yield (% of value a year, 0 = off)'], ['dividendAllowance', 'Dividend Allowance (£)'], ['dividendBasicRate', 'Dividend Rate: Basic Band (%)'], ['dividendHigherRate', 'Dividend Rate: Higher Band (%)'], ['dividendAdditionalRate', 'Dividend Rate: Additional Band (%)']
+                ].map(([field, label]) => (
+                  <div key={field}><span className="text-slate-600 font-sans font-semibold block mb-1">{label}</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG[field])} onFocus={handleFocus} value={plan?.config?.[field] ?? ''} onChange={(e) => updateConfig(field, e.target.value)} className={smallInputCls} /></div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => setShowAdvancedConfig(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
+                  <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvancedConfig ? '▾' : '▸'}
+                  <span className="font-normal normal-case tracking-normal text-slate-400">(niche settings most plans leave at the default)</span>
+                </button>
+                {showAdvancedConfig && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono mt-3">
+                    <div><span className="text-slate-600 font-sans font-semibold block mb-1">Employer NIC passed to pension (%)</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG.employerNicPassThrough)} onFocus={handleFocus} value={plan?.config?.employerNicPassThrough ?? ''} onChange={(e) => updateConfig('employerNicPassThrough', e.target.value)} className={smallInputCls} /><span className="text-[10px] text-slate-400 font-sans mt-1 block">Share of the employer's NIC saving added to a salary-sacrifice contribution.</span></div>
+                  </div>
+                )}
+              </div>
+            </CollapsibleCard>
+  </>);
+  const numberFormatCard = () => (
+            <div data-number-format className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Decimal choice</h2>
+                <p className="text-xs text-slate-500 mt-1">Applies everywhere, to what is shown and to what you type. Amounts group in thousands either way; this is only which mark does the grouping and which the decimal.</p>
+              </div>
+              <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0">
+                {Object.values(NUMBER_FORMATS).map(f => (
+                  <button key={f.id} type="button" onClick={() => setNumFormat(f.id)} aria-pressed={numFormat === f.id}
+                    title={f.label}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold tabular-nums cursor-pointer transition-colors ${numFormat === f.id ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>
+                    {f.sample}
+                  </button>
+                ))}
+              </div>
+            </div>
+  );
   const safeSpendCard = () => (
     <>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -11922,7 +12500,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span>{solverRules && safeMaxResult.stats.medianRealisedSpend > 0 && <span data-safe-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(safeMaxResult.stats.medianRealisedSpend)}, your plan&apos;s rules</span>}</div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -11936,7 +12514,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
-                  {solverAnswersCard()}
     </>
   );
   const safeRetireCard = () => (
@@ -12539,7 +13116,40 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         * cap is kept for Documentation alone, the one tab that is a column of text, and every other
         * screen runs to the page's own gutter and grows with the monitor.
         */}
-      <div data-app-content className={`${activeTab === 'docs' ? 'max-w-7xl' : 'max-w-none'} mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
+      <div data-app-content className={`${activeTab === 'docs' || solverOn ? 'max-w-7xl' : 'max-w-none'} mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
+        {/* THE NEW PLANNER'S HEADER (step U, LAYOUT.md section 2.2): the name, the beta mark, "Classic planner" and the theme;
+            under it the four places and, at the strip's right end, the status strip; both stay at the top as the page scrolls.
+            On a phone: the top bar (the name, the theme, "Classic") and the status line under it. */}
+        {solverOn && !isPhone && (
+          <div data-planner-header className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8 px-4 sm:px-6 lg:px-8 bg-slate-50/95 backdrop-blur border-b border-slate-200">
+            <div className="h-14 flex items-center gap-3">
+              <span className="text-base font-bold tracking-tight text-slate-900">Monte Carlo Retirement Planner</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">Beta</span>
+              <span className="flex-1" />
+              <button type="button" data-crossover-planner onClick={() => setPlanner('classic')} className="min-h-9 px-3 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">Classic planner</button>
+              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
+            </div>
+            <nav data-tabbar aria-label="Places" className="h-12 flex items-end gap-1">
+              {navTabs.map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+              <span className="flex-1" />
+              <div className="self-center min-w-0 max-w-[55%]">
+                <StatusStrip solve={solve} isPhone={false} asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} />
+              </div>
+            </nav>
+          </div>
+        )}
+        {solverOn && isPhone && (
+          <div data-planner-phonebar className="sticky top-0 z-30 -mx-4 -mt-4">
+            <header data-phone-bar className="flex items-center gap-1 pl-3 pr-1 h-11 bg-surface border-b border-slate-200">
+              <span className="text-[13px] font-bold tracking-tight text-slate-900">Retirement planner</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Beta</span>
+              <span className="flex-1" />
+              <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+              <button type="button" data-crossover-planner aria-label="Open the classic planner" onClick={() => setPlanner('classic')} className="min-h-11 px-2 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">Classic</button>
+            </header>
+            {solverRules && <StatusStrip solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} />}
+          </div>
+        )}
 
         {/* Header Bar.
             ON A PHONE, ONLY ON START HERE. The bottom bar names the screen you are on, so the app's own
@@ -12551,7 +13161,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             from the phone build entirely now: the bar across the top names the planner, the version sits
             at the foot of the More sheet, the theme in it, and the today's-money line is rendered with
             the fields it qualifies on Plan Inputs. */}
-        {!isPhone && (
+        {!isPhone && !solverOn && (
         /*
          * TIGHTER WHEN THE DASHBOARD IS ON SCREEN.
          *
@@ -12592,11 +13202,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   Chromebook at 683 CSS pixels is a desktop with a narrow window, and a tab strip hidden
                   by a media query would have left it with no tabs at all. */}
               <div data-tabbar className={`items-end gap-1 border-b border-slate-200 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
-                {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+                {navTabs.map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
               {/* Not hidden on the dashboard any more. It was, to buy 40px of height, and the dashboard is
                   where you stay - so the theme became unreachable for as long as you were reading it,
                   which is the whole session. */}
+              {SOLVER && PLANNER_BETA && <button type="button" data-try-planner onClick={() => setPlanner('new')} className="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer">Try the new planner (beta)</button>}
               <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
@@ -12626,7 +13237,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           */}
         {isPhone && (
           <div data-tabbar className="hidden">
-            {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+            {navTabs.map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
           </div>
         )}
         {/*
@@ -12821,11 +13432,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         )}
 
         {/* TAB 1: PLAN INPUTS */}
-        {activeTab === 'inputs' && (
+        {(activeTab === 'inputs' || youOn) && (
+          <PlaceFrame on={youOn} place="you" nav={youOn && !isPhone ? youNav() : null}>
           <div ref={inputsSwipeRef} className={`${isPhone ? 'space-y-3 swipe-x' : 'space-y-6'}`}>
+            {youOn && youHeader()}
             {/* Last, not first. It draws nothing, but as the first child of a `space-y` container it
                 still took the strip below it off the top of the screen by a row's worth of margin. */}
-            {!isPhone && (
+            {!isPhone && !youOn && (
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">User inputs &amp; wrapper portfolios</h2>
@@ -12861,7 +13474,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               * bottom: anything that changes either number fails there rather than on somebody's screen.
               */}
             {isPhone && (
-              <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} className="-mt-7" />
+              <SectionTabs sections={youOn ? PLANNER_SECTIONS : INPUT_SECTIONS} active={inputSection} onSelect={selectSection} className={youOn ? '' : '-mt-7'} {...(youOn ? { top: 'top-[76px]' } : {})} />
             )}
             <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
             {/* Demographics & Targets */}
@@ -12962,10 +13575,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
               </div>
 
-              {!isPhone && renderAdvancedInputs()}
+              {!isPhone && !youOn && renderAdvancedInputs()}
+              {youOn && <div data-tax-region-you className="pt-3 border-t border-slate-100 text-xs">{ctlRegion()}</div>}
             </div>
             )}
-            {isPhone && showSection('advanced') && (
+            {isPhone && !youOn && showSection('advanced') && (
             <div data-section="advanced" className="bg-surface border border-slate-200/90 p-3 rounded-xl">
               {renderAdvancedInputs(true)}
             </div>
@@ -13296,24 +13910,27 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               )}
             </div>
+            {youOn && showSection('limits') && (
+              <div data-section="limits" className="space-y-2">
+                <Suspense fallback={null}>
+                  <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} ui={SOLVER_UI} />
+                </Suspense>
+              </div>
+            )}
+            {youOn && showSection('advanced') && (
+              <div data-section="advanced" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
+                {!isPhone && <h3 className="text-sm font-semibold text-slate-900">7. Advanced inputs</h3>}
+                {renderAdvancedInputs(isPhone)}
+                {currentApproachCard()}
+              </div>
+            )}
           </div>
+          </PlaceFrame>
         )}
 
         {/* TAB 2: CONFIG */}
         {activeTab === 'config' && (
           <div className="space-y-6">
-            {/* Part C Phase 8 (research/solver/PHASE-8.md): with the switch on, what the solver aims for and what it may change,
-                at the top; a couple's plan keeps the app's rules (D42), and says so */}
-            {solverRules && (
-              <Suspense fallback={null}>
-                <SolverAimsCard plan={plan} setPlan={setPlan} solve={solve} isPhone={isPhone} fmt={formatGBP} updateConfig={updateConfig} terminalAge={terminalAge} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} ui={SOLVER_UI}
-                  seed={mcSeed} upto={SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps[0] : 2000} engine={E} opts={SOLVER_OPTS} />
-                <SolverLocksCard plan={plan} setPlan={setPlan} isPhone={isPhone} ui={SOLVER_UI} />
-              </Suspense>
-            )}
-            {SOLVER && !solverRules && (
-              <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the withdrawal rules below.</p>
-            )}
             {/*
               * HOW NUMBERS ARE WRITTEN, WHICH IS NOT THE SAME QUESTION AS WHAT THEY ARE.
               *
@@ -13323,21 +13940,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               * beside the theme and does not travel in an exported plan: a plan is the same plan however
               * its owner likes their separators written.
               */}
-            <div data-number-format className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Decimal choice</h2>
-                <p className="text-xs text-slate-500 mt-1">Applies everywhere, to what is shown and to what you type. Amounts group in thousands either way; this is only which mark does the grouping and which the decimal.</p>
-              </div>
-              <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0">
-                {Object.values(NUMBER_FORMATS).map(f => (
-                  <button key={f.id} type="button" onClick={() => setNumFormat(f.id)} aria-pressed={numFormat === f.id}
-                    title={f.label}
-                    className={`px-3 py-1.5 rounded-md text-xs font-bold tabular-nums cursor-pointer transition-colors ${numFormat === f.id ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>
-                    {f.sample}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {numberFormatCard()}
             {/*
               * THE WHOLE PANEL FOLDS ON A PHONE.
               *
@@ -13353,17 +13956,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               */}
             <div className={isPhone ? 'bg-surface border border-slate-200/90 rounded-xl px-4 py-1' : ''}>
             <PhoneCollapse isPhone={isPhone}>
-            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; withdrawal</>}</h2>}
+            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; withdrawal</h2>}
             <div className={isPhone ? 'space-y-3 pb-2' : 'bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4'}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> {solverRules ? <>Spending &amp; tax settings</> : <><T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</>}</h2>
-                  {solverRules ? <p data-solver-rules-note className="text-xs text-slate-500 mt-1">The solver chooses each year&apos;s withdrawals, the pension&apos;s tax-free cash and the investment tiers, by what it aims for above. The guardrails apply to your own plan only, the one the solved plan is compared with; the tax settings apply to both.</p> : (
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
-                  )}
                   {/* The size of the search, said plainly: a button that thinks for thirty seconds should
                       account for the time, and the numbers are derived so they cannot go stale. */}
-                  {!solverRules && (
+                  {(
                   <Fine isPhone={isPhone} label="How big the search is">
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
                     Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
@@ -13376,7 +13977,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </Fine>
                   )}
                 </div>
-                {!solverRules && (
+                {(
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
                     className="px-3.5 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -13394,17 +13995,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 )}
               </div>
-              {!solverRules && policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
+              {policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
 
               {/* What used to be six draggable priorities is now a recommendation plus priced trade-offs
                   (rendered with the results below). The ranking still exists, folded, for anyone who
                   genuinely has an order: measured across 420 households, promoting the pot to first
                   changes the recommendation for 75% of them, so it is a real control, just not the
                   one most people should be asked to operate cold. */}
-              {!solverRules && !policyResults && !isPolicySearching && (
+              {!policyResults && !isPolicySearching && (
                 <p className="text-[11px] text-slate-600 leading-relaxed">Run the policy search to see the recommended settings, and any alternatives that would trade some safety for a materially better result on something else.</p>
               )}
-              {!solverRules && (
+              {(
               <details className="pt-1 text-xs">
                 <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: rank the priorities yourself</summary>
               <div className="mt-2">
@@ -13520,83 +14121,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
-                {!solverRules && (
-                <div>
-                  <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
-                  <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                    {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                  </select>
-                  <Fine isPhone={isPhone} label="What this policy does">
-                    <span className="text-[10px] text-slate-400 mt-1 block">
-                      {(E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy]?.blurb || (() => ''))(P)}
-                    </span>
-                  </Fine>
-                </div>
-                )}
-                {!solverRules && (
-                <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
-                  <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                    <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
-                    <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
-                  </select>
-                  <Fine isPhone={isPhone} label="What each one does">
-                    <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
-                  </Fine>
-                </div>
-                )}
-                <div id="config-guardrails">
-                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails{solverRules ? <span data-guardrails-own className="font-normal text-slate-500">: your plan only</span> : null}</label>
-                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
-                    <input type="checkbox" data-guardrails-toggle checked={!!plan?.config?.guardrails} onChange={(e) => updateConfig('guardrails', e.target.checked)} className="accent-blue-600" />
-                    <span className="text-slate-700 font-semibold">Let simulated spending react to the pots (Guyton-Klinger): cut {Math.round(E.GUARDRAILS.cut * 100)}% when the withdrawal rate drifts {Math.round(E.GUARDRAILS.band * 100)}% above where it started, raise {Math.round(E.GUARDRAILS.raise * 100)}% when it drifts that far below, and skip the inflation rise after a losing year.</span>
-                  </label>
-                  <Fine isPhone={isPhone} label="What it changes">
-                    <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
-                  </Fine>
-                </div>
-                {!solverRules && (
-                <div id="config-lookahead">
-                  <label htmlFor="config-lookahead-years" className="text-slate-600 font-semibold block mb-1">Prepare for one-off costs, years ahead</label>
-                  <input id="config-lookahead-years" type="number" min="0" max="15" step="1" data-lookahead-years value={plan?.config?.lookaheadYears ?? 0} onChange={(e) => updateConfig('lookaheadYears', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold" />
-                  <Fine isPhone={isPhone} label="What it changes">
-                    <span className="text-[10px] text-slate-400 mt-1 block">0 is off: a one-off cost is met in its own year, and whatever the liquid wrappers cannot cover comes out of the pension in one go, through the higher bands. From this many years ahead the plan instead draws the shortfall a share at a time, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)}), and parks it in the ISA then cash to pay the cost when it lands. Only once retired and past the pension access age; the Audit Data Table shows the years it acted. <button type="button" onClick={() => goToDoc('doc-lookahead')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
-                  </Fine>
-                </div>
-                )}
-                {!solverRules && (
-                <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
-                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
-                    <input type="checkbox" checked={!!plan?.config?.harvestPersonalAllowance} onChange={(e) => updateConfig('harvestPersonalAllowance', e.target.checked)} className="accent-blue-600" />
-                    <span className="text-slate-700 font-semibold">Draw pension beyond what the year needs and re-wrap it; proceeds fill the ISA first, then the GIA.</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Applies to the two bracket-fill policies once retired and past the access age.</span>
-                  {/* How far up the bands that harvest runs. The second setting is a bequest trade, not a
-                      spending one, so it is offered here rather than assumed by a policy. */}
-                  <label className="text-slate-600 font-semibold block mb-1 mt-2">…and draw up to</label>
-                  <select aria-label="Harvest ceiling" value={plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa'} onChange={(e) => updateConfig('harvestCeiling', e.target.value)} disabled={!plan?.config?.harvestPersonalAllowance} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold cursor-pointer disabled:opacity-50">
-                    <option value="pa">the tax-free personal allowance ({formatGBP(P.pa)}) — costs nothing</option>
-                    <option value="basic">the basic-rate limit ({formatGBP(P.higherRateStartsAt)}) — pays 20% now</option>
-                  </select>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
-                </div>
-                )}
-                <div>
-                  <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
-                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
-                    <input type="checkbox" checked={!!plan?.config?.cgtEnabled} onChange={(e) => updateConfig('cgtEnabled', e.target.checked)} className="accent-blue-600" />
-                    <span className="text-slate-700 font-semibold">Tax gains realised when Other Investments are sold, using the cost basis of each holding.</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Off treats the GIA as tax-free. Gains are wiped on death, so nothing is charged at the terminal age.</span>
-                  <label className="text-slate-600 font-semibold block mb-1 mt-3">Tax cash interest</label>
-                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
-                    <input type="checkbox" checked={plan?.config?.cashInterestTaxed !== false} onChange={(e) => updateConfig('cashInterestTaxed', e.target.checked)} className="accent-blue-600" />
-                    <span className="text-slate-700 font-semibold">Tax the nominal interest on Cash Savings as savings income above the starting rate and the personal savings allowance.</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Off treats all cash as a cash ISA. The allowances are set below.</span>
-                  <button type="button" onClick={() => goToDoc('doc-cgt')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-1"><HelpCircle className="w-3.5 h-3.5" /> How capital gains are tracked &amp; taxed &rarr;</button>
-                </div>
+                {ctlPolicy()}
+                {ctlDrawdown()}
+                {ctlGuardrails()}
+                {ctlLookahead()}
+                {ctlHarvest()}
+                {ctlTaxRules()}
               </div>
 
               {/* Generated from the policy definition, never written per policy: hand-written copy drifts,
@@ -13604,7 +14134,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Open on a desktop, where it is the payoff of the card. Shut on a phone, where its ten
                   numbered steps are 1,015px - a screen and a half of instructions above the settings the
                   reader came to change. */}
-              {!solverRules && (
+              {(
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
@@ -13623,7 +14153,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </details>
               )}
 
-              {!solverRules && policyResults && (
+              {policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
@@ -13794,134 +14324,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </PhoneCollapse>
             </div>
 
-            <CollapsibleCard icon={Settings} title="Global Economic & Calculation Configuration"
-              subtitle="Valuation date, inflation, access ages, the pension death-tax haircut and the Monte Carlo seed.">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
-                <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation <T k="CPI">CPI</T> (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (<T k="NMPA">NMPA</T>)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">State Pension start age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (<T k="IHT">IHT</T> from April 2027 / beneficiary income tax).</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1"><T k="Monte Carlo">Monte Carlo</T> seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
-              </div>
-            </CollapsibleCard>
-
-            <CollapsibleCard title="Asset allocations, return matrix & volatilities (σ)"
-              subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
-              <div tabIndex={0} className="overflow-x-auto space-y-4">
-              <div className="flex justify-between items-start gap-3">
-                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; <T k="Monte Carlo">Monte Carlo</T> paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
-                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
-              </div>
-
-              {/*
-                  ONE SET OF ASSUMPTIONS, NAMED.
-                  There was a picker here offering the house figures alongside the published set. It was a
-                  choice nobody could make well - the two differ in whether a forecast-uncertainty term
-                  exists at all, which is not a preference - and it let a plan sit on undated figures
-                  without saying so. The published set is simply what the model runs on now, and this says
-                  where it came from and when it needs refreshing. Editing any cell still makes the table
-                  your own, and the note below says so once that happens.
-              */}
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-1 text-[11px] text-slate-500">
-                <span className="text-xs text-slate-600 font-semibold whitespace-nowrap">Source:</span>
-                {plan?.riskSource && E.CMA_PRESETS[plan.riskSource] ? (
-                  <span>
-                    <strong className="text-slate-700">{E.CMA_PRESETS[plan.riskSource].name}</strong> &mdash; {E.CMA_PRESETS[plan.riskSource].detail},
-                    published {E.CMA_PRESETS[plan.riskSource].published}. {E.CMA_PRESETS[plan.riskSource].note} Published
-                    figures are nominal and are shown here deflated at your {E.num(plan?.config?.inflation, 2.5)}% inflation
-                    setting, so changing that changes these. <strong className="text-slate-700">Expires {E.CMA_PRESETS[plan.riskSource].expires}</strong> &mdash;
-                    refresh from the source after that. Editing any cell below makes the table your own.
-                  </span>
-                ) : (
-                  <span>
-                    <strong className="text-slate-700">Your own figures.</strong> These started as the {E.CMA_PRESETS[E.DEFAULT_RISK_SOURCE].name} set
-                    and have been edited, so they are no longer that source and no longer track your inflation setting.
-                    <button type="button" onClick={() => applyRiskPreset(E.DEFAULT_RISK_SOURCE)}
-                      className="ml-1.5 font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer">Restore the published figures</button>
-                  </span>
-                )}
-              </div>
-              <table className="w-full text-left text-xs border-collapse">
-                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation category</th><th className="pb-2">Expected real return (% pa)</th><th className="pb-2">Unlucky, 10th <T k="percentile">%ile</T> (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal return (% pa)</th><th className="pb-2">Annual <T k="volatility">Volatility</T> (σ % pa)</th><th className="pb-2">Forecast uncertainty (% pa)</th></tr></thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
-                  {Object.entries(activeRiskMatrix).map(([key, val]) => {
-                    // totalYears + 1, not totalYears: stepYear runs t = 0..totalYears inclusive, so the plan
-                    // compounds one more time than its stated length. Matching it here is what lets the rate
-                    // in this column actually compound to the pot quoted under the Monte Carlo fan.
-                    const band = E.luckyBand(E.num(val.real, 0) / 100, E.num(val.volatility, 12) / 100, ctx.totalYears + 1, E.num(val.sigmaParam, 0) / 100);
-                    return (
-                    <tr key={key} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 font-sans font-bold text-slate-800">{val.label || key}</td>
-                      {[['real', 'text-blue-700', 0.05], ['unlucky', 'text-rose-700', 0.05], ['lucky', 'text-emerald-700', 0.05], ['nominal', 'text-purple-700', 0.05], ['volatility', 'text-amber-700', 0.5], ['sigmaParam', 'text-slate-600', 0.05]].map(([field, color, step]) => (
-                        <td key={field} className="py-2.5">
-                          {field === 'lucky' || field === 'unlucky' ? (
-                            <span className={`${color} font-bold`}>{(band[field] * 100).toFixed(2)}%</span>
-                          ) : isEditingRisk ? (
-                            <input type="number" step={step} min={field === 'volatility' || field === 'sigmaParam' ? 0 : undefined} onFocus={handleFocus} value={val[field] ?? ''} onChange={(e) => updateRiskField(key, field, e.target.value)} className={`w-20 p-1 bg-surface border border-slate-300 rounded font-mono ${color} font-bold focus:bg-surface focus:ring-1 focus:ring-blue-500`} />
-                          ) : <span className={`${color} font-bold`}>{E.num(val[field], 0).toFixed(field === 'volatility' ? 1 : 2)}%</span>}
-                        </td>
-                      ))}
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              </div>
-            </CollapsibleCard>
-
-            <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
-              subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
-              <div className="pb-1">
-                <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
-                <select aria-label="Where you pay tax" value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-                  {Object.entries(E.TAX_REGION_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
-                </select>
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  {plan?.config?.taxRegion === 'scotland'
-                    ? 'Scotland sets six bands, and its higher rate starts at £43,662 rather than £50,270. Only income tax is devolved: National Insurance, capital gains tax, the personal allowance and its taper are the same everywhere, and relief at source on a pension contribution is 20% for everyone.'
-                    : plan?.config?.taxRegion === 'wales'
-                      ? 'Wales can vary its rates under the Welsh Rates of Income Tax but has set them equal to England and Northern Ireland every year so far, so this returns the same figures. It is here so the answer is confirmed rather than assumed.'
-                      : 'Three bands at 20, 40 and 45%. Choose Scotland for its six-band set, or Wales, whose rates currently match these.'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-                {[
-                  ['personalAllowance', 'Personal Allowance (£)'], ['paTaperThreshold', 'PA Taper Threshold (£)'], ['paTaperRate', 'PA Taper Rate (% of excess)'],
-                  ...(plan?.config?.taxRegion === 'scotland' ? [
-                    ['scotStarterRate', 'Starter Rate (%)'], ['scotStarterLimit', 'Basic Rate Starts At (£ income)'],
-                    ['scotBasicRate', 'Basic Rate (%)'], ['scotBasicLimit', 'Intermediate Rate Starts At (£ income)'],
-                    ['scotIntermediateRate', 'Intermediate Rate (%)'], ['scotIntermediateLimit', 'Higher Rate Starts At (£ income)'],
-                    ['scotHigherRate', 'Higher Rate (%)'], ['scotHigherLimit', 'Advanced Rate Starts At (£ income)'],
-                    ['scotAdvancedRate', 'Advanced Rate (%)'], ['scotAdvancedLimit', 'Top Rate Starts At (£ income)'],
-                    ['scotTopRate', 'Top Rate (%)']
-                  ] : [
-                    ['basicBandLimit', 'Higher Rate Starts At (£ income)'], ['basicTaxRate', 'Basic Rate (%)'],
-                    ['higherBandLimit', 'Additional Rate Starts At (£ income)'], ['higherTaxRate', 'Higher Rate (%)'], ['additionalTaxRate', 'Additional Rate (%)']
-                  ]),
-                  ['nicPrimaryThreshold', 'NIC Primary Threshold (£)'], ['nicUpperEarningsLimit', 'NIC Upper Earnings Limit (£)'], ['nicMainRate', 'NIC Main Rate (%)'], ['nicUpperRate', 'NIC Upper Rate (%)'],
-                  ['class4MainRate', 'Class 4 Main Rate (%, self-employed)'], ['class4UpperRate', 'Class 4 Upper Rate (%, self-employed)'],
-                  ['employerNicRate', 'Employer NIC Rate (%)'], ['pclsProportion', 'PCLS Tax-Free (%)'], ['pclsMaxCap', 'Lump Sum Allowance (£ LSA)'],
-                  ['isaAnnualAllowance', 'ISA Allowance (£/person/yr)'], ['pensionAnnualAllowance', 'Pension Annual Allowance (£/person/yr)'], ['pensionNoEarningsLimit', 'Pension Limit With No Earnings (£/person/yr)'], ['mpaaLimit', 'Money Purchase Annual Allowance (£/person/yr)'], ['pensionTaperThreshold', 'Annual Allowance Taper Threshold (£ earnings)'], ['pensionTaperRate', 'Annual Allowance Taper Rate (%)'], ['pensionTaperFloor', 'Tapered Annual Allowance Floor (£)'], ['cgtAnnualExempt', 'CGT Annual Exempt Amount (£/person/yr)'], ['cgtBasicRate', 'CGT Rate: Basic Band (%)'], ['cgtHigherRate', 'CGT Rate: Higher/Additional Band (%)'],
-                  ['savingsAllowanceBasic', 'Personal Savings Allowance: Basic Rate (£)'], ['savingsAllowanceHigher', 'Personal Savings Allowance: Higher Rate (£)'], ['startingRateSavingsBand', 'Starting Rate for Savings Band (£)'], ['cashIsaAllowance', 'Cash ISA Cap (£/person/yr)'], ['cashIsaAllowanceUnder65', 'Cash ISA Cap Under 65 (£, from the year below)'], ['cashIsaAllowanceUnder65From', 'Cash ISA Under-65 Cap Applies From (year)'],
-                  ['giaDividendYield', 'GIA Dividend Yield (% of value a year, 0 = off)'], ['dividendAllowance', 'Dividend Allowance (£)'], ['dividendBasicRate', 'Dividend Rate: Basic Band (%)'], ['dividendHigherRate', 'Dividend Rate: Higher Band (%)'], ['dividendAdditionalRate', 'Dividend Rate: Additional Band (%)']
-                ].map(([field, label]) => (
-                  <div key={field}><span className="text-slate-600 font-sans font-semibold block mb-1">{label}</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG[field])} onFocus={handleFocus} value={plan?.config?.[field] ?? ''} onChange={(e) => updateConfig(field, e.target.value)} className={smallInputCls} /></div>
-                ))}
-              </div>
-              <div className="pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowAdvancedConfig(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
-                  <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvancedConfig ? '▾' : '▸'}
-                  <span className="font-normal normal-case tracking-normal text-slate-400">(niche settings most plans leave at the default)</span>
-                </button>
-                {showAdvancedConfig && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono mt-3">
-                    <div><span className="text-slate-600 font-sans font-semibold block mb-1">Employer NIC passed to pension (%)</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG.employerNicPassThrough)} onFocus={handleFocus} value={plan?.config?.employerNicPassThrough ?? ''} onChange={(e) => updateConfig('employerNicPassThrough', e.target.value)} className={smallInputCls} /><span className="text-[10px] text-slate-400 font-sans mt-1 block">Share of the employer's NIC saving added to a salary-sacrifice contribution.</span></div>
-                  </div>
-                )}
-              </div>
-            </CollapsibleCard>
+            {assumptionCards()}
           </div>
         )}
 
@@ -13951,8 +14354,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
-                  {resultsStale && staleBySolve && <span data-stale-results="solve" className="block text-[11px] font-semibold text-amber-700 mb-0.5">The solved plan is ready since this run: run again to see it.</span>}
-                  {resultsStale && !staleBySolve && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
+                  {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
                   {/* The deck is three steps on a desktop and eight on a phone, so this sentence cannot
                       be written once and be true - it counts them. On a phone it also says where the
                       steps are, because they are in a bar above the navigation rather than on the card.
@@ -14092,7 +14494,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span>{solverRules && safeMaxResult.stats.medianRealisedSpend > 0 && <span data-safe-delivered className="text-[10px] text-slate-500 block">typical spending {formatGBP(safeMaxResult.stats.medianRealisedSpend)}, your plan&apos;s rules</span>}</div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -14106,7 +14508,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
-                  {solverAnswersCard()}
                     </div>
                     <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="retire">
                       <h3 className="text-sm font-semibold text-slate-900">The earliest you could retire</h3>
@@ -14401,14 +14802,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </tbody>
                   </table>
                 </div>
-                {/* Part C Phase 10, item 6: under the switch, the solved plan's figures for the plan on screen and, when asked, for
-                    each scenario compared (src/SolverFigures.jsx SolverScenarios) */}
-                {solvedInHand && (
-                  <Suspense fallback={null}>
-                    <SolverScenariosCard rows={[{ id: '__current__', name: 'Current plan', isBase: true, plan }, ...selectedCompare.map(sc => ({ id: sc.id, name: sc.name, plan: sc.data }))]}
-                      plan={plan} solve={solve} seed={mcSeed} upto={SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps[0] : 2000} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
-                  </Suspense>
-                )}
                 <Fine isPhone={isPhone} label="How these are ranked">
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
                 </Fine>
@@ -14521,26 +14914,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
-        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is. Under the switch a single household's
-            tab is the solved plan (Part C Phase 9, src/SolverStrategy.jsx); a couple's plan, and a solve that failed, keep the
-            tournament below (D42; the launch plan's F16) */}
-        {activeTab === 'strategy' && solverRules && (<>
-          <Suspense fallback={<div data-solver-strategy data-strategy-state="loading" className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600">Loading your plan&hellip;</div>}>
-            <SolverStrategyCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} onRetry={() => setPlan(p => ({ ...p }))} onSolveRequest={isPhone && !solveAsked ? () => setSolveAsked(true) : null} {...(SOLVER_OPTS && SOLVER_OPTS.strategySteps ? { steps: SOLVER_OPTS.strategySteps } : {})} {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})} />
-          </Suspense>
-          {/* Part C Phase 10, item 4 (B11): the solved plan at the ages either side of the plan's own, worked out when asked, one
-              solve an age, each keeping its figures */}
-          {solvedInHand && (
-            <Suspense fallback={null}>
-              <SolverAgesCard plan={plan} solve={solve} ageNow={ctx.owners[0].age0} seed={mcSeed}
-                upto={SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps[0] : 2000} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
-            </Suspense>
-          )}
-        </>)}
-        {activeTab === 'strategy' && SOLVER && !solverRules && (
-          <p data-solver-couple className="text-xs text-slate-600 bg-surface border border-slate-200/90 p-4 rounded-xl">The solver plans for one person for now. A couple&apos;s plan keeps the strategy tournament below.</p>
-        )}
-        {activeTab === 'strategy' && (!solverRules || (solve.solveMeta && solve.solveMeta.error)) && (
+        {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is. The classic planner's, the
+            tournament, in both modes: the solved plan is the new planner's Your plan (step U, src/PlannerPlan.jsx) */}
+        {activeTab === 'strategy' && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
               <Fine isPhone={isPhone} label="What this is"
@@ -15898,120 +16274,88 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
-        {activeTab === 'historical' && (
-          <div className="space-y-6">
-            <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-2">
-              <Fine isPhone={isPhone} label="How the backtest works"
-                head={<div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>}>
-              <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
-              <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
-              <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
-              </Fine>
-            </div>
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
-                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input aria-label="Start year" type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                {HISTORICAL_PRESETS.map(p => {
-                  const isValid = p.year <= maxHistoricalStartYear;
-                  return (
-                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-400 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-accent text-onaccent border-accent cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
-                      <div className="flex items-center justify-between"><span className="font-bold text-xs">{p.year}</span>{!isValid && <span className="text-[9px] text-slate-400 font-sans">Over {E.HISTORICAL_LAST_YEAR}</span>}</div>
-                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-400' : activeHistoricalStartYear === p.year ? 'text-onaccent' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input aria-label="Start year" type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
-            </div>
-            {/* Part C Phase 10, item 7: under the switch the backtest runs the solved plan, and says what it is: the check outside
-                the model the plan was solved in, with your plan's verdict on the same history beside it */}
-            {solvedHistory && (
-              <Suspense fallback={null}>
-                <SolverHistoryCard verdict={solvedHistory.verdict} start={activeHistoricalStartYear} yours={yourHistoricalVerdict} floor={ctx.solvencyFloor} fmt={formatGBP} />
-              </Suspense>
-            )}
-            {/* One column of four cards is 470px on a phone for three numbers and a verdict. The verdict
-                keeps the full width - it is a sentence - and the three figures go three across, which is
-                what they are: a row of readings. */}
-            {historicalMetrics && (
-              <div className={`grid grid-cols-1 sm:grid-cols-4 ${isPhone ? 'gap-2' : 'gap-4'}`}>
-                <div className={`p-4 rounded-xl border ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Backtest verdict</span>
-                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
-                    : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
-                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
-                </div>
-                <div className={isPhone ? 'col-span-1 grid grid-cols-3 gap-2' : 'contents'}>
-                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Starting balance</span><div className={`font-bold font-mono text-slate-900 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.startVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span>}</div>
-                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Lowest trough</span><div className={`font-bold font-mono text-amber-700 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.minVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Lowest total experienced</span>}</div>
-                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Pot @ {terminalAge}</span><div className={`font-bold font-mono mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'} ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span>}</div>
-                </div>
-              </div>
-            )}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and <T k="decumulation">decumulation</T></span></div>
-            {renderHistoricalChart()}
-            </div>
-          </div>
-        )}
+        {activeTab === 'historical' && historyView()}
 
         {/* TAB 6: AUDIT */}
-        {activeTab === 'audit' && (
-          <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">{auditRun ? <>The solved plan on the expected-return path: each year's action, then contributions, guaranteed income, <T k="decumulation">decumulation</T>, tax and wrapper balances (end of year).</> : <>Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</>}</span>
-                {solvedLedger && <div className="mt-2 inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs" role="group" aria-label="Whose ledger" data-audit-view={auditView}>
-                  {[['solved', 'The solved plan'], ['yours', 'Your plan']].map(([v, l]) => <button key={v} type="button" aria-pressed={auditView === v} onClick={() => setAuditView(v)} className={`px-3 py-1.5 min-h-9 font-semibold cursor-pointer ${auditView === v ? 'bg-accent text-onaccent' : 'bg-surface text-slate-600 hover:bg-slate-100'}`}>{l}</button>)}
-                </div>}</div>
-              <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV spreadsheet</button>
+        {activeTab === 'audit' && auditCard()}
+
+        {/* ---------------- THE NEW PLANNER'S PLACES (step U; LAYOUT.md section 3) ---------------- */}
+        {solverOn && activeTab === 'plan' && (
+          <main data-place="plan" className="space-y-6">
+            <h1 className="sr-only">Your plan</h1>
+            {!planStarted ? (
+              <Suspense fallback={null}>
+                <QuickStartCard onStart={p => { setPlan(p); setAskedPlan(p); }} onFillAll={() => { setActiveTab('you'); selectSection('you'); }} onClassic={() => setPlanner('classic')}
+                  isPhone={isPhone} regions={E.TAX_REGION_LABELS} statePensionFull={E.STATE_PENSION_FULL} fmt={formatGBP} />
+              </Suspense>
+            ) : isCouple ? couplesCard() : (
+              <Suspense fallback={<div data-plan-answer="loading" className="p-5 bg-surface border border-indigo-200 rounded-xl text-sm text-slate-600">Loading your plan&hellip;</div>}>
+                <PlannerPlanCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} steps={plannerSteps}
+                  {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})}
+                  aside={isPhone ? null : aimsPanel()} onPhase={setPlanPhase} onRetry={retrySolve} onOpenClassic={() => setPlanner('classic')}
+                  onSolveRequest={isPhone && !asked ? askSolve : null} failedFigures={simResult ? { survival: simResult.successRate, bands: simResult.bands, age0: ctx.owners[0].age0 } : null}
+                  rulesLine={rulesLine} onPrint={planFigures ? printSolvedPlan : null} levers={leversSummary} onOpenLevers={openLevers}
+                  floorShare={floorShare} minPot={E.num(plan?.config?.solvencyFloor, 0)} onFigures={setPlanFigures} />
+              </Suspense>
+            )}
+          </main>
+        )}
+        {solverOn && activeTab === 'whatif' && (
+          <main data-place="whatif" className="space-y-6">
+            <h1 className="text-[22px] font-semibold text-slate-900">What if</h1>
+            {!planStarted ? <p className="text-sm text-slate-600">Fill in your plan first, on Your plan or in You.</p>
+              : isCouple ? couplesCard() : (
+                <div className="grid gap-6 min-[1100px]:grid-cols-2 items-start">
+                  {!solvedInHand && <p data-whatif-wait className="text-sm text-slate-600 min-[1100px]:col-span-2">Each card here works your plan out again at another setting, once your plan itself is worked out.</p>}
+                  <Suspense fallback={null}>
+                    <SolverAgesCard plan={plan} solve={solve} ageNow={ctx.owners[0].age0} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+                    <SolverTargetsCard plan={plan} solve={solve} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
+                    <div data-whatif-limits className="p-4 rounded-xl border border-slate-200/90 bg-surface">
+                      {solvedInHand ? <SolverPlanAnswersCard plan={plan} fromSpend={null} ageNow={ctx.owners[0].age0} last={terminalAge - 1} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} whatIf />
+                        : <><h3 className="text-[15px] font-semibold text-slate-900">The solved plan&apos;s limits</h3><p className="text-xs text-slate-500 mt-1">The highest target and the earliest retirement the solved plan keeps at the chance you choose, once your plan is worked out.</p></>}
+                    </div>
+                  </Suspense>
+                  {scenariosCard()}
+                </div>
+              )}
+          </main>
+        )}
+        {solverOn && activeTab === 'details' && (
+          <main data-place="details" className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h1 className="text-[22px] font-semibold text-slate-900">Details</h1>
+              <div className="flex flex-wrap gap-2">
+                {planFigures && <button type="button" data-details-print onClick={printSolvedPlan} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Print this plan</button>}
+                <button type="button" onClick={handleExportJSON} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Download className="w-3.5 h-3.5" /> Export plan (JSON)</button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Upload className="w-3.5 h-3.5" /> Import plan (JSON)</button>
+                <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
+              </div>
             </div>
-            {/* A fifty-year ledger is 2,160px of table, and on a phone that was 2,160px of PAGE: the head
-                of the tab scrolled away and the column names with it. Capped at 60% of the screen with
-                its own scroll and a stuck header, the tab is one screen and the table is still all there
-                - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
-            <div tabIndex={0} className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
-              <table className="w-full text-left text-xs border-collapse" data-audit-ledger={auditRun ? 'solved' : 'yours'}>
-                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th>{auditRun && <th className="p-2.5">Action</th>}{!auditRun && !!plan?.config?.guardrails && <th className="p-2.5">Guardrail</th>}{!auditRun && plan?.config?.lookaheadYears > 0 && <th className="p-2.5">Set aside</th>}<th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
-                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                  {auditRows.map((r, i) => (
-                    <tr key={r.year} className="hover:bg-slate-50/80 transition-colors" data-audit-total={r.totalCombined}>
-                      <td className="p-2 font-bold text-slate-800">{r.year}</td><td className="p-2">{r.ageSelf}</td>{isCouple && <td className="p-2">{r.agePart}</td>}
-                      <td className="p-2 font-sans font-medium text-slate-700">{formatGBP(r.targetSpend)}</td>
-                      {/* the solved plan's action this year (Phase 10, item 7): the spending level where the year has a target,
-                          then what the move does beyond it, in the Strategy tab's words, shortened */}
-                      {auditRun && <td className="p-2 font-sans text-slate-700 min-w-[12rem]" data-audit-action={auditRun.parts[i] ? JSON.stringify(auditRun.parts[i]) : ''}>{auditRun.words[i] || <span className="text-slate-300">&mdash;</span>}</td>}
-                      {/* What the spending rule did this year, and the multiplier it has left on the draw. Only
-                          the rows where it acted carry a label, so the column reads as a list of events. */}
-                      {!auditRun && !!plan?.config?.guardrails && <td className="p-2 font-sans" data-guardrail-cell>
-                        {r.guardrail
-                          ? <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${/cut/.test(r.guardrail) ? 'bg-rose-100 text-rose-800' : /raise/.test(r.guardrail) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{r.guardrail}</span>
-                          : <span className="text-slate-300">&mdash;</span>}
-                        {r.spendMult !== 1 && <span className="text-[9px] text-slate-400 block">draw &times;{r.spendMult.toFixed(2)}</span>}
-                      </td>}
-                      {/* Pension drawn at the basic rate ahead of a known cost and parked to pay it. Only the
-                          years it acted carry a figure, each naming the cost year it is for. */}
-                      {!auditRun && plan?.config?.lookaheadYears > 0 && <td className="p-2 font-sans" data-lookahead-cell>
-                        {r.reserved > 0
-                          ? <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800">{formatGBP(r.reserved)} <span className="font-normal">for {r.reservedFor}</span></span>
-                          : <span className="text-slate-300">&mdash;</span>}
-                      </td>}
-                      <td className="p-2 text-emerald-700">{formatGBP(r.netGuaranteed + r.workingTakeHome)}</td>
-                      <td className="p-2 text-rose-600 font-medium">{formatGBP(r.netDrawdown)}</td>
-                      <td className="p-2 text-sky-700">{formatGBP(r.drawdownPensions)}{r.harvested > 0 && <span className="text-[9px] text-slate-400 block">incl. {formatGBP(r.harvested)} harvested</span>}</td>
-                      <td className="p-2 text-slate-600">{formatGBP(r.taxPaid)}</td>
-                      {P.cgtEnabled && <td className="p-2 text-amber-700">{formatGBP(r.cgtPaid || 0)}{r.realisedGains > 0 && <span className="text-[9px] text-slate-400 block">on {formatGBP(r.realisedGains)} gains</span>}</td>}
-                      <td className="p-2 text-sky-700">{formatGBP(r.pensions)}</td><td className="p-2 text-teal-700">{formatGBP(r.isas)}</td><td className="p-2 text-amber-700">{formatGBP(r.other)}</td><td className="p-2 text-slate-700">{formatGBP(r.cash)}</td>
-                      <td className="p-2 font-bold text-blue-700">{formatGBP(r.totalCombined)}</td><td className="p-2 text-slate-600">{formatGBP(r.preNmpaLiquid)}</td>
-                      <td className="p-2 text-right">{r.preNmpaInsolvent ? <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-sans text-[10px] font-bold">Pre-SIPP access Gap</span> : r.unmetDemand > E.FAIL_TOLERANCE ? <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-sans text-[10px] font-bold">Shortfall {formatGBP(r.unmetDemand)}</span> : <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-sans text-[10px] font-bold">Solvent</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            {isPhone ? <SectionTabs sections={DETAILS_SECTIONS} active={detailsSection} onSelect={setDetailsSection} top="top-[76px]" /> : (
+              <div role="group" aria-label="The sections of Details" data-details-control className="inline-flex flex-wrap gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs font-semibold">
+                {DETAILS_SECTIONS.map(x => <button key={x.id} type="button" onClick={() => { setDetailsSection(x.id); const el = document.querySelector(`[data-details="${x.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                  aria-pressed={detailsSection === x.id} className={`px-3 min-h-9 rounded-md cursor-pointer ${detailsSection === x.id ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{x.short}</button>)}
+              </div>
+            )}
+            {isCouple && couplesCard()}
+            {(!isPhone || detailsSection === 'ledger') && <section data-details="ledger" className="scroll-mt-32">{auditCard()}</section>}
+            {(!isPhone || detailsSection === 'history') && <section data-details="history" className="scroll-mt-32 space-y-6">{historyView()}</section>}
+            {(!isPhone || detailsSection === 'assumptions') && (
+              <section data-details="assumptions" data-assumptions className="scroll-mt-32 space-y-4">
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl text-xs">{ctlTaxRules()}</div>
+                {assumptionCards(false)}
+                <div data-display className="space-y-2">
+                  <div className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                    <div><h2 className="text-base font-semibold text-slate-900">Display</h2><p className="text-xs text-slate-500 mt-1">The theme, and how numbers are written.</p></div>
+                    <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
+                  </div>
+                  {numberFormatCard()}
+                </div>
+                {solverSettingsCard()}
+              </section>
+            )}
+            {(!isPhone || detailsSection === 'docs') && <section data-details="docs" className="scroll-mt-32">{docsSolverCard()}</section>}
+          </main>
         )}
 
         {/* TAB 7: DOCS */}
@@ -16054,12 +16398,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {/* The bar is only rendered on a phone, and is ALSO md:hidden. Belt and braces on purpose: the
           JS boundary and the CSS boundary are the same 767px, and if they ever drift the CSS wins, which
           is the safer failure - a bar that hides itself rather than two navigations at once. */}
+      {/* the phone's levers sheet (LAYOUT.md section 9): full screen, "Close" and Escape shut it, kept mounted once opened */}
+      {isPhone && solverOn && leversSeen && toBody(
+        <div role="dialog" aria-modal="true" aria-label="What matters to you" data-levers-sheet={leversOpen ? 'open' : 'closed'}
+          className={`fixed inset-0 z-[55] bg-surface flex flex-col ${leversOpen ? '' : 'hidden'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="flex items-center justify-between gap-2 px-3 py-1 border-b border-slate-200 shrink-0">
+            <span className="text-sm font-semibold text-slate-900">What matters to you</span>
+            <button type="button" data-levers-close onClick={() => setLeversOpen(false)} className="min-h-11 px-3 text-sm font-semibold text-slate-700 cursor-pointer">Close</button>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto p-3">{aimsPanel(true)}</div>
+        </div>
+      )}
       {isPhone && (
         <>
-          <BottomNav tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
+          <BottomNav tabs={navTabs} primaryIds={solverOn ? PLANNER_PRIMARY : PHONE_PRIMARY} activeTab={activeTab} more={!solverOn}
             onSelect={(id) => { setActiveTab(id); setMoreOpen(false); window.scrollTo(0, 0); }}
             onMore={() => setMoreOpen(v => !v)} moreOpen={moreOpen} />
-          <MoreSheet open={moreOpen} tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
+          <MoreSheet open={moreOpen && !solverOn} tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
             onSelect={(id) => { setActiveTab(id); window.scrollTo(0, 0); }} onClose={() => setMoreOpen(false)}
             foot={APP_VERSION}
             extras={
@@ -16077,6 +16432,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <button type="button" onClick={() => { setMoreOpen(false); onCross(); }} data-crossover
                     className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer">
                     <ArrowRight className="w-4 h-4 shrink-0" /> Open the simple planner
+                  </button>
+                )}
+                {/* step U's crossover on a phone, where the beta is on (LAYOUT.md section 2.1) */}
+                {SOLVER && PLANNER_BETA && (
+                  <button type="button" data-try-planner onClick={() => { setMoreOpen(false); setPlanner('new'); }}
+                    className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-indigo-700 hover:bg-indigo-50 cursor-pointer">
+                    <ArrowRight className="w-4 h-4 shrink-0" /> Try the new planner (beta)
                   </button>
                 )}
                 {activeTab === 'inputs' && (

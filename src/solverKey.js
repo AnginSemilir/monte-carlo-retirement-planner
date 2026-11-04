@@ -8,6 +8,7 @@
  * and the cash buffer read the opening balances too, so every balance moves the tables (solver-cache.test.mjs shows it).
  */
 import { prepareForSolve, aimsOptions, dialSettings, APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT } from './solverSettings.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 const canonical = v => {
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
@@ -21,7 +22,8 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, 
 export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT } = {}, code = '') {
   const p = prepareForSolve(E, plan);
   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
-  const body = canonical({ plan: p, settings: { candidate: APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ...dialSettings(p, variant) }, code });
+  // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
+  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ...dialSettings(p, variant) }, code });
   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
 }
 export { canonical };

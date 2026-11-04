@@ -8,4 +8,4 @@
 const IDLE = Object.freeze({ solveState: 'idle', solveMeta: null, progress: null, key: null, storeNote: null });
 let impl = () => IDLE;
 export const installSolver = (hook) => { impl = hook; };
-export const useSolverState = (plan, enabled, engine, opts = null) => impl(plan, enabled, engine, opts);
+export const useSolverState = (plan, enabled, engine, opts = null, hold = false) => impl(plan, enabled, engine, opts, hold);

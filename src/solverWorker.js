@@ -28,7 +28,8 @@
  *                                                       the parts' shares of the next paths, joined in path order first
  *   actions   { id, plan, seed, n }                     this year's move, part by part, each with the survival cost of skipping
  *                                                       it on n paired paths (the plan's own runs reused): { id, actions }
- *   ahead     { id, plan, seed, years }                 the next years' moves on the median path of the strategy's runs so far:
+ *   ahead     { id, plan, seed, years, upto }           the next years' moves on the median path of the strategy's first upto paths
+ *                                                       (every path held when upto is 0; step U picks over the first step's):
  *                                                       { id, ahead }
  *   distil    { id, plan, seed, n }                     the rule of thumb (src/solverDistil.js): its tree, rules, fidelity and
  *                                                       the paired cost of following it on n paths: { id, distil }
@@ -46,7 +47,7 @@ import { withTable } from './solver/bridge.js';
 import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
-import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadOf, rowsOf } from './solverStrategy.js';
+import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf } from './solverCache.js';
 
@@ -147,7 +148,7 @@ self.onmessage = async ({ data }) => {
       if (kind === 'actions') self.postMessage({ id, actions: actionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null, parts: data.parts || null }) });
       else {
         if (!same) throw new Error('solverWorker: \'ahead\' asked before the strategy\'s runs');
-        self.postMessage({ id, ahead: aheadOf(E, solved, data.plan, same, { years: data.years }) });
+        self.postMessage({ id, ahead: aheadAnswer(E, solved, data.plan, same, { years: data.years, upto: data.upto || 0 }) });
       }
       return;
     }

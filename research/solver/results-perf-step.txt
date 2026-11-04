@@ -1,0 +1,87 @@
+STEP P'S ACCEPTANCE, BEFORE AGAINST AFTER (EXPLORATORY): before code 9273130d7c86 (load 0.87 1.26 1.46 at its start), after code bf6398dac4b1 (load 0.68 2.12 2.19); 4 households
+
+== bridge 4
+   one worker: the solve 385.2 to 382.3 s (x0.99); the Strategy tab's paths 62.5 to 51.3 ms a path (x0.82); an edit to a solved and simulated plan 11.6 to 10.6 min (x0.91)
+   split 4 ways: the solve 101.5 to 105.7 s (x1.04); 2,000 paths 31.9 to 27.1 s (x0.85); 5,000 75.8 to 66.1 s (x0.87); an edit to a solved and simulated plan 3.0 to 2.9 min (x0.97), to the first figures 2.2 to 2.2 min (x1.00)
+   the dial at 10 on the base's tiers, one worker: the solve 349.6 to 344.4 s (x0.99); its paths 121.4 to 105.2 ms a path (x0.87); the position from its base 15.9 to 14.5 min (x0.91)
+   the memory: the base's tables 240 to 240 MB, with the position's 480 to 480 MB; the peak resident set so far 1798 to 1713 MB
+   bit for bit: the base's tables the same, the position's the same, the solved plan's 5,000 outcomes the same; survival 99.94% to 99.94% on 5,000
+
+== S126
+   one worker: the solve 357.7 to 367.3 s (x1.03); the Strategy tab's paths 61.9 to 50.3 ms a path (x0.81); an edit to a solved and simulated plan 11.1 to 10.3 min (x0.93)
+   split 4 ways: the solve 96.8 to 99.7 s (x1.03); 2,000 paths 29.8 to 26.7 s (x0.90); 5,000 75.1 to 64.0 s (x0.85); an edit to a solved and simulated plan 2.9 to 2.7 min (x0.93), to the first figures 2.1 to 2.1 min (x1.00)
+   the dial at 10 on the base's tiers, one worker: the solve 320.8 to 316.1 s (x0.99); its paths 124.7 to 99.1 ms a path (x0.79); the position from its base 15.7 to 13.5 min (x0.86)
+   the memory: the base's tables 227 to 227 MB, with the position's 455 to 455 MB; the peak resident set so far 2669 to 2624 MB
+   bit for bit: the base's tables the same, the position's the same, the solved plan's 5,000 outcomes the same; survival 99.82% to 99.82% on 5,000
+
+== S370
+   one worker: the solve 501.5 to 504.3 s (x1.01); the Strategy tab's paths 74.0 to 61.7 ms a path (x0.83); an edit to a solved and simulated plan 14.5 to 13.5 min (x0.93)
+   split 4 ways: the solve 132.3 to 133.1 s (x1.01); 2,000 paths 38.3 to 33.5 s (x0.87); 5,000 92.1 to 77.4 s (x0.84); an edit to a solved and simulated plan 3.7 to 3.5 min (x0.95), to the first figures 2.8 to 2.8 min (x1.00)
+   the dial at 10 on the base's tiers, one worker: the solve 454.9 to 362.0 s (x0.80); its paths 136.0 to 115.6 ms a path (x0.85); the position from its base 18.9 to 15.7 min (x0.83)
+   the memory: the base's tables 265 to 265 MB, with the position's 529 to 529 MB; the peak resident set so far 3031 to 3004 MB
+   bit for bit: the base's tables the same, the position's the same, the solved plan's 5,000 outcomes the same; survival 84.08% to 84.08% on 5,000
+
+== share 0.50
+   one worker: the solve 362.1 to 364.5 s (x1.01); the Strategy tab's paths 69.7 to 59.6 ms a path (x0.86); an edit to a solved and simulated plan 11.8 to 11.0 min (x0.93)
+   split 4 ways: the solve 101.5 to 95.2 s (x0.94); 2,000 paths 35.9 to 31.0 s (x0.86); 5,000 87.9 to 73.7 s (x0.84); an edit to a solved and simulated plan 3.2 to 2.8 min (x0.87), to the first figures 2.3 to 2.1 min (x0.91)
+   the dial at 10 on the base's tiers, one worker: the solve 322.7 to 323.0 s (x1.00); its paths 140.3 to 117.4 ms a path (x0.84); the position from its base 17.1 to 15.2 min (x0.89)
+   the memory: the base's tables 227 to 227 MB, with the position's 455 to 455 MB; the peak resident set so far 3160 to 3212 MB
+   bit for bit: the base's tables the same, the position's the same, the solved plan's 5,000 outcomes the same; survival 99.84% to 99.84% on 5,000
+
+The median ratio, after over before, over the 4 households: one worker's solve x1.01, its paths x0.83, its edit x0.93; split, the solve x1.02, 2,000 paths x0.87, 5,000 x0.85, the edit x0.94; the dial's solve x0.99, its paths x0.84, from its base x0.87
+VERDICT (the exact cuts): EXACT: every table, position and outcome the same bit for bit
+EXPLORATORY: a measurement for step P, deciding nothing.
+
+---------- before (perf-before.txt) ----------
+Wed Nov  4 11:02:23 UTC 2026
+STEP P'S ACCEPTANCE (EXPLORATORY): bridge 4, S126, S370, share 0.50; the floor at 80%; seed 12345; one-worker paths 500 (scaled to 5,000); split 4 ways; code 9273130d7c86; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.87 1.26 1.46 at the start
+
+== bridge 4: one worker: the solve 385.2 s (380.4 s of CPU); the Strategy tab's paths 62.5 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 11.6 min; the tables 240 MB, digest a1355c1d89b9cb99
+   split 4 ways: the solve 101.5 s; then the Strategy tab's 2,000 paths 31.9 s, 5,000 75.8 s; so an edit to a solved and simulated plan 3.0 min (to the first figures 2.2 min); survival 99.95% on 2,000, 99.94% on 5,000; the solved plan's 5,000 outcomes 151a1851932ccaf0
+   the dial at 10 (on the base's tiers), one worker: the solve 349.6 s (345.5 s of CPU; x0.91 the base's); the paths 121.4 ms a path (x1.94 the base's); so the position from its base 15.9 min; its tables 240 MB beside the base's, digest e124d187c20b9926
+   the memory: the base's tables and the position's 480 MB; the process's peak resident set so far 1798 MB
+
+== S126: one worker: the solve 357.7 s (353.8 s of CPU); the Strategy tab's paths 61.9 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 11.1 min; the tables 227 MB, digest 6b405f4631ca86b7
+   split 4 ways: the solve 96.8 s; then the Strategy tab's 2,000 paths 29.8 s, 5,000 75.1 s; so an edit to a solved and simulated plan 2.9 min (to the first figures 2.1 min); survival 99.85% on 2,000, 99.82% on 5,000; the solved plan's 5,000 outcomes 5edfdf9c94d19be4
+   the dial at 10 (on the base's tiers), one worker: the solve 320.8 s (316.9 s of CPU; x0.90 the base's); the paths 124.7 ms a path (x2.01 the base's); so the position from its base 15.7 min; its tables 227 MB beside the base's, digest 6bf650b9ded752a6
+   the memory: the base's tables and the position's 455 MB; the process's peak resident set so far 2669 MB
+
+== S370: one worker: the solve 501.5 s (495.7 s of CPU); the Strategy tab's paths 74.0 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 14.5 min; the tables 265 MB, digest b77c305797703a83
+   split 4 ways: the solve 132.3 s; then the Strategy tab's 2,000 paths 38.3 s, 5,000 92.1 s; so an edit to a solved and simulated plan 3.7 min (to the first figures 2.8 min); survival 84.50% on 2,000, 84.08% on 5,000; the solved plan's 5,000 outcomes d761ba4847caebf9
+   the dial at 10 (on the base's tiers), one worker: the solve 454.9 s (450.6 s of CPU; x0.91 the base's); the paths 136.0 ms a path (x1.84 the base's); so the position from its base 18.9 min; its tables 265 MB beside the base's, digest 41d2f8d9a61bdff5
+   the memory: the base's tables and the position's 529 MB; the process's peak resident set so far 3031 MB
+
+== share 0.50: one worker: the solve 362.1 s (358.6 s of CPU); the Strategy tab's paths 69.7 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 11.8 min; the tables 227 MB, digest 8aec83fa1494c127
+   split 4 ways: the solve 101.5 s; then the Strategy tab's 2,000 paths 35.9 s, 5,000 87.9 s; so an edit to a solved and simulated plan 3.2 min (to the first figures 2.3 min); survival 99.85% on 2,000, 99.84% on 5,000; the solved plan's 5,000 outcomes 29bfffdb369fbfdc
+   the dial at 10 (on the base's tiers), one worker: the solve 322.7 s (319.6 s of CPU; x0.89 the base's); the paths 140.3 ms a path (x2.01 the base's); so the position from its base 17.1 min; its tables 227 MB beside the base's, digest 7bea71109a69f635
+   the memory: the base's tables and the position's 455 MB; the process's peak resident set so far 3160 MB
+
+EXPLORATORY: a measurement for step P, deciding nothing.
+Wed Nov  4 12:12:41 UTC 2026
+
+---------- after (perf-after.txt) ----------
+Wed Nov  4 09:52:05 UTC 2026
+STEP P'S ACCEPTANCE (EXPLORATORY): bridge 4, S126, S370, share 0.50; the floor at 80%; seed 12345; one-worker paths 500 (scaled to 5,000); split 4 ways; code bf6398dac4b1; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.68 2.12 2.19 at the start
+
+== bridge 4: one worker: the solve 382.3 s (377.5 s of CPU); the Strategy tab's paths 51.3 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 10.6 min; the tables 240 MB, digest a1355c1d89b9cb99
+   split 4 ways: the solve 105.7 s; then the Strategy tab's 2,000 paths 27.1 s, 5,000 66.1 s; so an edit to a solved and simulated plan 2.9 min (to the first figures 2.2 min); survival 99.95% on 2,000, 99.94% on 5,000; the solved plan's 5,000 outcomes 151a1851932ccaf0
+   the dial at 10 (on the base's tiers), one worker: the solve 344.4 s (340.7 s of CPU; x0.90 the base's); the paths 105.2 ms a path (x2.05 the base's); so the position from its base 14.5 min; its tables 240 MB beside the base's, digest e124d187c20b9926
+   the memory: the base's tables and the position's 480 MB; the process's peak resident set so far 1713 MB
+
+== S126: one worker: the solve 367.3 s (363.4 s of CPU); the Strategy tab's paths 50.3 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 10.3 min; the tables 227 MB, digest 6b405f4631ca86b7
+   split 4 ways: the solve 99.7 s; then the Strategy tab's 2,000 paths 26.7 s, 5,000 64.0 s; so an edit to a solved and simulated plan 2.7 min (to the first figures 2.1 min); survival 99.85% on 2,000, 99.82% on 5,000; the solved plan's 5,000 outcomes 5edfdf9c94d19be4
+   the dial at 10 (on the base's tiers), one worker: the solve 316.1 s (313.4 s of CPU; x0.86 the base's); the paths 99.1 ms a path (x1.97 the base's); so the position from its base 13.5 min; its tables 227 MB beside the base's, digest 6bf650b9ded752a6
+   the memory: the base's tables and the position's 455 MB; the process's peak resident set so far 2624 MB
+
+== S370: one worker: the solve 504.3 s (498.8 s of CPU); the Strategy tab's paths 61.7 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 13.5 min; the tables 265 MB, digest b77c305797703a83
+   split 4 ways: the solve 133.1 s; then the Strategy tab's 2,000 paths 33.5 s, 5,000 77.4 s; so an edit to a solved and simulated plan 3.5 min (to the first figures 2.8 min); survival 84.50% on 2,000, 84.08% on 5,000; the solved plan's 5,000 outcomes d761ba4847caebf9
+   the dial at 10 (on the base's tiers), one worker: the solve 362.0 s (358.0 s of CPU; x0.72 the base's); the paths 115.6 ms a path (x1.87 the base's); so the position from its base 15.7 min; its tables 265 MB beside the base's, digest 41d2f8d9a61bdff5
+   the memory: the base's tables and the position's 529 MB; the process's peak resident set so far 3004 MB
+
+== share 0.50: one worker: the solve 364.5 s (360.3 s of CPU); the Strategy tab's paths 59.6 ms a path (500 paths); so an edit to a solved and simulated plan (the solve and 5,000 paths at that rate) 11.0 min; the tables 227 MB, digest 8aec83fa1494c127
+   split 4 ways: the solve 95.2 s; then the Strategy tab's 2,000 paths 31.0 s, 5,000 73.7 s; so an edit to a solved and simulated plan 2.8 min (to the first figures 2.1 min); survival 99.85% on 2,000, 99.84% on 5,000; the solved plan's 5,000 outcomes 29bfffdb369fbfdc
+   the dial at 10 (on the base's tiers), one worker: the solve 323.0 s (319.8 s of CPU; x0.89 the base's); the paths 117.4 ms a path (x1.97 the base's); so the position from its base 15.2 min; its tables 227 MB beside the base's, digest 7bea71109a69f635
+   the memory: the base's tables and the position's 455 MB; the process's peak resident set so far 3212 MB
+
+EXPLORATORY: a measurement for step P, deciding nothing.
+Wed Nov  4 10:59:00 UTC 2026

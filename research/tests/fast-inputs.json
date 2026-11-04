@@ -2864,6 +2864,7 @@
    "research/solver/results-path-scaling.txt",
    "research/solver/results-pause.txt",
    "research/solver/results-pause128.txt",
+   "research/solver/results-perf-step.txt",
    "research/solver/results-phase-v-raw.txt",
    "research/solver/results-phase-v.txt",
    "research/solver/results-phase4-audit-test.txt",

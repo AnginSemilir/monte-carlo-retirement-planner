@@ -13,7 +13,7 @@
  *   6. the worker reads the key, and falls back to its URL only where no build wrote one (codeOf);
  *   7. the plugin's engine slice is research/build-engine.py's (the head of research/engine.mjs).
  *   CACHE_KEY_PLANT=url builds with the placeholder left in (the URL fallback): checks 1 and 2 fail.
- * The full tier (about a minute: five builds).
+ * The full tier (about a minute: five builds; on a runner with no packages installed, the copy installs them first).
  */
 import { mkdtempSync, cpSync, symlinkSync, readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -31,8 +31,16 @@ const ok = (n, c, extra = '') => { c ? pass++ : (fail++, failed.push(n.split(/\s
 
 const W = mkdtempSync(join(tmpdir(), 'cache-key-'));
 for (const f of INPUTS) if (existsSync(join(ROOT, f))) cpSync(join(ROOT, f), join(W, f), { recursive: true });
-symlinkSync(join(ROOT, 'node_modules'), join(W, 'node_modules'), 'dir');
-const VITE = join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
+// the project's own packages where they are installed (a working copy); where they are not (the full tier's runner, which
+// installs none), the copy installs them from the lockfile, so the check runs there too (CACHE_KEY_INSTALL=1 forces it)
+if (existsSync(join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js')) && !process.env.CACHE_KEY_INSTALL) symlinkSync(join(ROOT, 'node_modules'), join(W, 'node_modules'), 'dir');
+else {
+  cpSync(join(ROOT, 'package-lock.json'), join(W, 'package-lock.json'));
+  const t = Date.now();
+  execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: W, stdio: ['ignore', 'ignore', 'inherit'] });
+  console.log(`(the packages installed in the copy from package-lock.json, ${((Date.now() - t) / 1000).toFixed(0)} s)`);
+}
+const VITE = join(W, 'node_modules', 'vite', 'bin', 'vite.js');
 
 // one build: the worker's key, or, where the build wrote none, its URL's file name (what the worker would key on)
 function build(label) {

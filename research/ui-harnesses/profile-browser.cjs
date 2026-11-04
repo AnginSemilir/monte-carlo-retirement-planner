@@ -8,8 +8,9 @@
  * app's settings (45 points, the candidate), on gate 5's four households (bridge 4, S126, S370, share 0.50), S090 and S188
  * with its pension one tier lower (profile-solve.mjs's thin plan, which the 'auto' rule solves twice),
  * each with its floor at 80% of its target:
- *   1. one worker: from the ask to the worker's first report (its start-up and first step), the reference's build and the
- *      backward pass by the solve's own reports, the whole solve, and the store (IndexedDB) after it;
+ *   1. one worker: from the ask to the worker's first report (its start-up, the solve's setup and its last year), the
+ *      backward pass and the reference's build inside it by the solve's own reports, the whole solve, and the store
+ *      (IndexedDB) after it;
  *   2. after a reload, the same key: the restore, from the ask to the restored tables;
  *   3. split four ways (the page isolated): the solve;
  *   4. the engine's simulation of the solved plan in the worker that owns it (300 paths), ms a path.
@@ -73,15 +74,23 @@ const f1 = x => x.toFixed(1);
         job.close();
         return { secs, prog, wasStored, storeS, simMs, surv: st.stats.successRate, meta: { points: done.meta && done.meta.points, riskAbove: done.meta && done.meta.riskAbove ? String(done.meta.riskAbove.decision || '') : '' } };
       }, { plan, sim: SIM });
-      const first = whole.prog.length ? whole.prog[0].at / 1000 : NaN;
+      // each stretch between two reports is the work of the report that ends it (profile-solve.mjs's rule): the reference is
+      // built inside the backward pass, so its reports fall between two years'; the first stretch is the start-up, the setup
+      // and the last year; a pass's first stretch after another pass is the 'auto' rule's test
       const passes = [...new Set(whole.prog.map(x => x.pass || 1))];
+      let prev = 0;
+      const spans = whole.prog.map(x => { const d = x.at - prev; prev = x.at; return { ...x, d }; });
+      const between = spans.filter((s, i) => i && (s.pass || 1) !== (spans[i - 1].pass || 1)).map(s => s.d);
       const lines = passes.map(pass => {
-        const ms = whole.prog.filter(x => (x.pass || 1) === pass), ref = ms.filter(x => x.phase === 'reference'), yrs = ms.filter(x => x.phase === 'years');
-        const refEnd = ref.length ? ref[ref.length - 1].at : (ms[0] ? ms[0].at : 0), yrEnd = yrs.length ? yrs[yrs.length - 1].at : refEnd;
-        const yrT = yrs.map((x, i) => x.at - (i ? yrs[i - 1].at : refEnd)).sort((a, b) => a - b);
-        return `pass ${pass}: the reference's build to ${f1(refEnd / 1000)} s, the backward pass ${f1((yrEnd - refEnd) / 1000)} s over ${yrs.length} years (a year ${(yrT[0] / 1000).toFixed(2)} to ${(yrT[yrT.length - 1] / 1000).toFixed(2)} s)`;
+        const ms = spans.filter((s, i) => (s.pass || 1) === pass && i && (spans[i - 1].pass || 1) === pass);
+        const refMs = ms.filter(s => s.phase === 'reference').reduce((a, s) => a + s.d, 0);
+        const byYear = []; let acc = 0;
+        for (const s of ms) { if (s.phase === 'years') { byYear.push(acc + s.d); acc = 0; } else if (s.phase !== 'reference') acc += s.d; }
+        const sum = byYear.reduce((a, b) => a + b, 0), sorted = [...byYear].sort((a, b) => a - b);
+        return `pass ${pass}: the backward pass after its first report ${f1(sum / 1000)} s over ${byYear.length} more years (a year ${(sorted[0] / 1000).toFixed(2)} to ${(sorted[sorted.length - 1] / 1000).toFixed(2)} s), the reference's build inside it ${f1(refMs / 1000)} s`;
       });
-      console.log(`\n== ${id}: one worker: the first report ${first.toFixed(2)} s after the ask; ${lines.join('; ')}; the whole solve ${f1(whole.secs)} s; stored ${whole.wasStored && whole.wasStored.stored !== undefined ? whole.wasStored.stored : whole.wasStored} ${f1(whole.storeS)} s after; the simulation ${whole.simMs.toFixed(1)} ms a path (survival ${whole.surv}); the tier above ${whole.meta.riskAbove || 'none'}`);
+      const first = spans.length ? spans[0].d / 1000 : NaN;
+      console.log(`\n== ${id}: one worker: the first report (the start-up, the setup and the last year) ${first.toFixed(2)} s after the ask; ${lines.join('; ')}${between.length ? `; between the passes (the 'auto' rule's test) ${f1(between[0] / 1000)} s` : ''}; the whole solve ${f1(whole.secs)} s; stored ${whole.wasStored && whole.wasStored.stored !== undefined ? whole.wasStored.stored : whole.wasStored} ${f1(whole.storeS)} s after; the simulation ${whole.simMs.toFixed(1)} ms a path (survival ${whole.surv}); the tier above ${whole.meta.riskAbove || 'none'}`);
       // 2. after a reload, the restore
       await p.reload({ waitUntil: 'networkidle' });
       const again = await p.evaluate(async ({ plan }) => {

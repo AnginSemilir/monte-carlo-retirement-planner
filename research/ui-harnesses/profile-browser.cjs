@@ -5,7 +5,8 @@
  *
  * Builds the site as it is into a scratch folder, serves it with the preview server's isolation headers, and drives the
  * solver through the page's own client (window.__solverHarness, src/solverClient.js), as solver-progress-ui.cjs does, at the
- * app's settings (45 points, the candidate), on gate 5's four households (bridge 4, S126, S370, share 0.50), S090 and S188,
+ * app's settings (45 points, the candidate), on gate 5's four households (bridge 4, S126, S370, share 0.50), S090 and S188
+ * with its pension one tier lower (profile-solve.mjs's thin plan, which the 'auto' rule solves twice),
  * each with its floor at 80% of its target:
  *   1. one worker: from the ask to the worker's first report (its start-up and first step), the reference's build and the
  *      backward pass by the solve's own reports, the whole solve, and the store (IndexedDB) after it;
@@ -24,7 +25,7 @@ const { pathToFileURL } = require('node:url');
 const argv = process.argv.slice(2), PORT = /^\d+$/.test(argv[0] || '') ? argv.shift() : '4174';
 const ROOT = join(__dirname, '../..');
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
-const IDS = argv.length ? argv : ['bridge 4', 'S126', 'S370', 'share 0.50', 'S090', 'S188'];
+const IDS = argv.length ? argv : ['bridge 4', 'S126', 'S370', 'share 0.50', 'S090', 'S188 pension one tier down'];
 const SIM = { trials: 300, seed: 12345 };
 const f1 = x => x.toFixed(1);
 
@@ -43,7 +44,9 @@ const f1 = x => x.toFixed(1);
     return { id: name, plan: p };
   };
   const BUILT = { 'bridge 4': { bridge: 4 }, 'share 0.50': { a0: 0.5 } };
-  const planOf = id => { const c = BUILT[id] ? variant(id, BUILT[id]) : all.find(s => s.id === id); const p = c.plan; return E.normalizePlan({ ...p, spending: { ...p.spending, floorSpend: Math.round(0.8 * E.num(p.spending.targetSpend, 0)) } }); };
+  // profile-solve.mjs's thin plan with a tier above: S188 with its pension one tier lower, so the 'auto' rule solves it twice
+  const s188down = () => { const p = JSON.parse(JSON.stringify(all.find(s => s.id === 'S188').plan)); p.accounts = p.accounts.map(a => (/^Pensions/.test(a.category) ? { ...a, risk: 'Medium/High Risk' } : a)); return { id: 'S188 pension one tier down', plan: p }; };
+  const planOf = id => { const c = id === 'S188 pension one tier down' ? s188down() : BUILT[id] ? variant(id, BUILT[id]) : all.find(s => s.id === id); const p = c.plan; return E.normalizePlan({ ...p, spending: { ...p.spending, floorSpend: Math.round(0.8 * E.num(p.spending.targetSpend, 0)) } }); };
 
   const out = mkdtempSync(join(tmpdir(), 'profile-browser-'));
   execFileSync(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'] });

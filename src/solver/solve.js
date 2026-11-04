@@ -2663,7 +2663,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     const cA = F.compile(m, actions);
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
-    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : refFromOf(opts, cs.length, g.gain.length) });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
     g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {
@@ -2674,6 +2674,25 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
       return f;
     },
   };
+}
+/*
+ * A DIAL POSITION'S REFERENCE IS ITS BASE'S (the launch plan's step P1 (b)). The adaptive reference reads the worlds, the
+ * moves' flows, the bridge's bills, the gains and its lattice; no lambda and no age weights. A dial position above 1 is
+ * solved on its base's tiers (lockTiers), the same plan and menu (lockSetup checks the grid and the menu), so its reference
+ * is the base's: solveForApp hands the base over as `refFrom`, and its arrays are taken as a stored solve's are
+ * (adaptive.js `restore`) in place of building them again. A base built on another lattice, or another number of worlds or
+ * gain buckets, is refused. REFSHARE.on false builds it afresh (lock-ref.test.mjs: the tables the same bit for bit either
+ * way, unsplit and split); REFSHARE.plant 'nudge' takes the base's arrays with its first step moved a hundredth (the test's
+ * plant: the tables part).
+ */
+export const REFSHARE = { on: true, plant: '' };
+function refFromOf(opts, K, NG) {
+  const src = REFSHARE.on && opts.refFrom && opts.refFrom.g && opts.refFrom.g.reader && opts.refFrom.g.reader.adaptive;
+  if (!src || !src.ref) return null;
+  const L = opts.adaptiveLattice || {}, want = { na: L.na || 160, nb: L.nb || 41, nz: L.nz || 128, ng: NG, ...(L.foot ? { foot: true } : {}), ...(L.stepAll ? { stepAll: true } : {}) };
+  if (JSON.stringify(src.lattice) !== JSON.stringify(want) || src.ref.arrays().V.length !== K) throw new Error(`refFrom: the base's reference was built on ${JSON.stringify(src.lattice)} over ${src.ref.arrays().V.length} worlds, this solve's would be ${JSON.stringify(want)} over ${K}`);
+  const { V, MV, V0, MV0, AST, ASTY } = src.ref.arrays();
+  return { AST: REFSHARE.plant === 'nudge' ? AST.map((x, i) => (i === 0 ? x * 1.01 + 1 : x)) : AST, ASTY, V, MV, V0, MV0, nonMono: src.ref.nonMono, footLive: src.ref.footLive || 0 };
 }
 /*
  * PR31, THE CHOOSER'S SPLIT UNDER THE ADAPTIVE REFERENCE'S EXACT STEPS (`adaptiveLattice.stepAll`, research only; PLAN.md

@@ -35,7 +35,8 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   const bp = dialBase(norm);
   if (bp) {
     const b = base || solveForApp(E, M, bp, { points, research, variant });
-    if (b.meta.tierState) lock = { lockTiers: b, riskAbove: aboveOf(b) };
+    // step P1 (b): the position's adaptive reference taken from its base's (solve.js refFromOf), not built again
+    if (b.meta.tierState) lock = { lockTiers: b, riskAbove: aboveOf(b), refFrom: b };
   }
   const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref: restore.ref } } : {};
   const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });

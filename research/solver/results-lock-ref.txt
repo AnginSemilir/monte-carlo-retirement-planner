@@ -1,0 +1,7 @@
+PASS  1  S370 at ten on its base: every table and the reference the same bit for bit, the reference taken and built afresh  -- tables dbe5f123d9230f60 / dbe5f123d9230f60; reference 33f8d33882a9a518 / 33f8d33882a9a518 (the base's 33f8d33882a9a518); its build 0.00 s taken, 1.92 s built
+PASS  2  the engine's outcomes on 200 paths the same either way  -- 75a74fbd3911fe30 / 75a74fbd3911fe30
+PASS  3  split two ways, each part on its own base: the tables the same as unsplit, the reference taken and built  -- dbe5f123d9230f60 / dbe5f123d9230f60 against dbe5f123d9230f60
+PASS  4  a base solved on another lattice is refused, never read  -- refFrom: the base's reference was built on {"na":40,"nb":9,"nz":32,"ng":3,"foot":true,"stepAll":true
+PASS  5  S090 (no bridge): no reference taken or built, the position the same either way  -- be36fa38afe35ec6 / be36fa38afe35ec6
+PASS  6  planted, the base's first step moved a hundredth: the tables part  -- 9f759917986e6cfd against dbe5f123d9230f60
+=========== 6 passed, 0 failed ===========

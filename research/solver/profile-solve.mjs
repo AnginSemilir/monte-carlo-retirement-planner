@@ -5,7 +5,7 @@
  * profile-browser.cjs times the same solves in the container's Chromium, one worker and split, with the browser's store.
  *
  * On gate 5's four households (bridge 4, S126, S370, share 0.50) and S090, each with its floor at 80% of its target, and
- * S188 (a thin plan: the 'auto' rule on the tier above solves it twice where its first pass falls short), at the app's
+ * S188, and S188 with its pension one tier lower (a thin plan with a tier above, so the 'auto' rule solves it twice), at the app's
  * settings (solveForApp, 45 points), on one thread:
  *   1. the solve, its phases timed by its own progress reports (the reference's build; the backward pass, each year; each
  *      pass where the 'auto' rule solves twice), and under V8's sampling profiler its self time put into the parts the plan
@@ -33,7 +33,7 @@ import { codeId } from './code-id.mjs';
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); if (i < 0) return d; const v = Number(args[i + 1]); args.splice(i, 2); return v; };
 const N = opt('--paths', 200), SEED = 12345, TOP = 8;
-const ids = args.length ? args : ['bridge 4', 'S126', 'S370', 'share 0.50', 'S090', 'S188'];
+const ids = args.length ? args : ['bridge 4', 'S126', 'S370', 'share 0.50', 'S090', 'S188', 'S188 pension one tier down'];
 const cid = codeId();
 const now = () => performance.now();
 console.log(`P0, THE PROFILE, ITS NODE HALF (step P; EXPLORATORY): ${ids.join(', ')}; the floor at 80%; one thread; ${N} paths of seed ${SEED}; code ${cid ? cid.hash : 'unknown'}; ${cpus().length} cores (${cpus()[0].model}), load ${loadavg().map(x => x.toFixed(2)).join(' ')} at the start`);
@@ -57,7 +57,10 @@ function variant(name, { a0 = 0.85, bridge = 2 } = {}) {
   return { id: name, plan: p };
 }
 const BUILT = { 'bridge 4': { bridge: 4 }, 'share 0.50': { a0: 0.5 } };
-const caseOf = id => (BUILT[id] ? variant(id, BUILT[id]) : all.find(s => s.id === id));
+// the thin plan where the 'auto' rule solves twice: no single household of the library has a tier above its pension at the
+// app's settings, so S188 (a thin plan) with its pension one tier lower, Medium/High Risk
+const S188_DOWN = () => { const p = JSON.parse(JSON.stringify(all.find(s => s.id === 'S188').plan)); p.accounts = p.accounts.map(a => (/^Pensions/.test(a.category) ? { ...a, risk: 'Medium/High Risk' } : a)); return { id: 'S188 pension one tier down', plan: p }; };
+const caseOf = id => (id === 'S188 pension one tier down' ? S188_DOWN() : BUILT[id] ? variant(id, BUILT[id]) : all.find(s => s.id === id));
 const withFloor = p => E.normalizePlan({ ...p, spending: { ...p.spending, floorSpend: Math.round(0.8 * E.num(p.spending.targetSpend, 0)) } });
 
 // the parts the plan names, by the file and function the time was spent in
@@ -107,14 +110,21 @@ for (const id of ids) {
   const passes = [...new Set(marks.map(m => m.pass || 1))];
   const ra = r.meta.riskAbove ? (r.meta.riskAbove.decision || JSON.stringify(r.meta.riskAbove)).toString().slice(0, 60) : 'none';
   console.log(`\n== ${id}: the solve ${(solveMs / 1000).toFixed(1)} s on one thread; ${passes.length} pass${passes.length > 1 ? 'es' : ''} (the tier above: ${ra}); the moves ${r.actions.length}`);
+  // each stretch between two reports is the work of the report that ends it: the reference is built inside the backward pass,
+  // on its first bridge year, so its reports fall between two years' (the year it falls in keeps only its own stretches)
+  let prev = 0;
+  const spans = marks.map(m => { const d = m.at - prev; prev = m.at; return { ...m, d }; });
+  const between = passes.length > 1 ? spans.filter((s, i) => i && (s.pass || 1) !== (spans[i - 1].pass || 1)).map(s => s.d) : [];
   for (const pass of passes) {
-    const ms = marks.filter(m => (m.pass || 1) === pass);
-    const ref = ms.filter(m => m.phase === 'reference'), yrs = ms.filter(m => m.phase === 'years');
-    const start = ms.length ? ms[0].at : 0, refEnd = ref.length ? ref[ref.length - 1].at : start;
-    const yrT = yrs.map((m, i) => m.at - (i ? yrs[i - 1].at : refEnd));
-    const sorted = [...yrT].sort((a, b) => a - b), sum = yrT.reduce((a, b) => a + b, 0);
-    console.log(`   pass ${pass}: the reference's build to ${(refEnd / 1000).toFixed(1)} s (${ref.length} steps); the backward pass ${(sum / 1000).toFixed(1)} s over ${yrs.length} years, a year ${(sorted[0] / 1000).toFixed(2)} to ${(sorted[sorted.length - 1] / 1000).toFixed(2)} s (median ${(sorted[Math.floor(sorted.length / 2)] / 1000).toFixed(2)}); its first five years from the end ${yrT.slice(0, 5).map(x => (x / 1000).toFixed(2)).join(', ')} s, its last five ${yrT.slice(-5).map(x => (x / 1000).toFixed(2)).join(', ')} s`);
+    // a pass's first stretch after another pass is the 'auto' rule's test, printed on its own below, not a year
+    const ms = spans.filter((m, i) => (m.pass || 1) === pass && !(i && (spans[i - 1].pass || 1) !== pass));
+    const ref = ms.filter(m => m.phase === 'reference'), refMs = ref.reduce((a, m) => a + m.d, 0);
+    const byYear = []; let acc = 0;
+    for (const m of ms) { if (m.phase === 'years') { byYear.push(acc + m.d); acc = 0; } else if (m.phase !== 'reference') acc += m.d; }
+    const sorted = [...byYear].sort((a, b) => a - b), sum = byYear.reduce((a, b) => a + b, 0);
+    console.log(`   pass ${pass}: the backward pass ${(sum / 1000).toFixed(1)} s over ${byYear.length} years, a year ${(sorted[0] / 1000).toFixed(2)} to ${(sorted[sorted.length - 1] / 1000).toFixed(2)} s (median ${(sorted[Math.floor(sorted.length / 2)] / 1000).toFixed(2)}); the reference's build inside it ${(refMs / 1000).toFixed(1)} s (${ref.length} reports)`);
   }
+  if (between.length) console.log(`   between the passes (the first pass's 1,000 simulated paths, the 'auto' rule's test): ${(between[0] / 1000).toFixed(1)} s`);
   console.log(`   the solve's self time by part (${(pr.total / 1000).toFixed(1)} s sampled): ${[...pr.parts.entries()].map(([k, v]) => `${k} ${pc(v, pr.total)}`).join('; ')}; the rest ${pc(pr.rest, pr.total)}`);
   console.log(`   its top functions: ${pr.top.map(([k, v]) => `${k.split(' ')[0]} ${pc(v, pr.total)}`).join(', ')}`);
   // 2. the store and the restore

@@ -1,0 +1,12 @@
+solve-key.test.mjs (Phase 11, found by phone-memory.cjs; the full tier), 5 Nov:
+
+  ok   1. what the solver takes from the aims is the same with them absent and at their defaults   the same on all 210
+  ok   2. the plan as the quick start leaves it keys as the plan with the default aims, the default locks and both   the same key on all 210
+  ok   3. a dial position's base (the plan at 3, 6 and 10 as the dial writes it) keys as the plan before the dial was touched   the same key on all 210
+  ok   4. a choice made and taken back (the estate lower then standard, raises capped) keys as before it, and the choice itself moves it   right on all 210
+  ok   5. the view of whose money ('Myself', 'Partner') keys as 'Combined'   the same key on all 210
+
+5 passed, 0 failed (210 single households)
+
+plant 'raw': checks failing 2, 3, 4, 5 (its own: 2, 3, 4, 5) ok
+PLANTS: all 1 fail exactly their own checks

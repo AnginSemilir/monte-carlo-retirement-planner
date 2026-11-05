@@ -34,6 +34,15 @@ the phone's layout (the four places, Your plan as a deck, the levers in a sheet,
 
 ## 4. Found on the way, fixed here
 
+- **One solve keyed twice** (found by item 2's run): a solve's key (`src/solverKey.js`) read the plan's aims and locks as
+  stored, so the quick start's plan (no `solver` section) and the same plan once the dial, a Config choice or the limits
+  card had written the defaults beside it keyed apart, though the solver reads them the same. The first touch of the dial
+  solved the plan again, and a dial position never found its base in the store: S116 at 45 points, the dial at 3 solved its
+  base again before the position (`results-phone-memory.txt`, the first run, on the code before the fix). The key now fills the
+  aims and locks with their defaults and leaves out the view of whose money (a couple's display).
+  `research/tests/solve-key.test.mjs` (the full tier), over all 210 single households, plant `raw` (the key as before) failing
+  checks 2 to 5 (`results-solve-key.txt`).
+
 - **The failure view's money chart** named your current approach's bands as the solved plan's as well (step U's
   screenshots): it now draws them alone, as your current approach's. `solver-planner-ui` check 11, plant `failboth`
   (`results-planner-failchart.txt`).

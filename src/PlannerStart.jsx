@@ -10,6 +10,7 @@
 import React, { useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
 import { SIMPLE_BLANK, toFullPlan, readiness, simpleHasInput } from './simplePlan.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 const SIMPLE_KEY = 'rp_simple_v1';
 const saved = () => { try { const s = JSON.parse(localStorage.getItem(SIMPLE_KEY) || 'null'); return simpleHasInput(s) ? { ...SIMPLE_BLANK, ...s } : null; } catch (e) { return null; } };
@@ -53,6 +54,7 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
           <input data-quick-field="statePensionSelf" type="number" min="0" step="100" inputMode="numeric" placeholder={fmt ? fmt(statePensionFull) : String(statePensionFull)} value={s.statePensionSelf} onChange={e => set('statePensionSelf', e.target.value)} className={field} />
         </label>
       </div>
+      {!PLANNER_PLANT.has('nocontribhint') && <p data-quick-contrib className="text-xs text-slate-600">Paying into any of these each year? Add what you pay in, and how much it rises each year, in You, under Your money: it is there for each pot.</p>}
       <div className="space-y-1">
         <button type="button" data-quick-go disabled={!r.ready} onClick={() => onStart(toFullPlan(s))}
           className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${isPhone ? 'w-full min-h-11' : 'min-h-9'}`}>Work out my plan</button>

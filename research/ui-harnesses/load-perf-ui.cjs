@@ -70,8 +70,10 @@ const JS_CEILING = 228;
  * planner is unchanged at 226KB and keeps the 228 above. On a switch-on build its first load carries the new planner's header,
  * its status strip's wiring and the places' names (LAYOUT.md section 11.2), the places themselves in chunks of their own: the
  * first measure read 236KB with What if, Details and their cards inline, and 231KB once they moved to src/PlannerCards.jsx,
- * the print sheet to src/solvedSheet.js and the strip to its own chunk. The byte count is deterministic, so the ceiling is the
- * measured 231 plus one, D58's limit. A switch-on build is one where the opted-in runs below reach the new planner.
+ * the print sheet to src/solvedSheet.js and the strip to its own chunk, then 232KB with Details' <main> drawn by App.jsx again (LAYOUT.md
+ * section 10). The byte count is deterministic. The measured figure plus one would be 233, past D58's limit, so the ceiling
+ * is the limit itself, 232, with no headroom left: the next kilobyte on a switch-on build's first load goes to the
+ * maintainer. A switch-on build is one where the opted-in runs below reach the new planner.
  */
 const JS_CEILING_SWITCH_ON = 232;
 /*
@@ -115,7 +117,7 @@ const CEILING = 3800;
  * ceiling is its measured figure plus one, with a dated note. On the site's own build (the switch off) the new planner is not
  * there, and the run says so rather than measuring the classic planner twice.
  */
-// 5 Nov 2026 (D58 (2)): measured 231KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
+// 5 Nov 2026 (D58 (2)): measured 232KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
 const PLANNER_JS_CEILING = 234;
 
 let fails = 0;

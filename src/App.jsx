@@ -16245,6 +16245,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </main>
         )}
         {solverOn && activeTab === 'details' && (
+          <main data-place="details" className="space-y-6">
           <Suspense fallback={null}>
             <PlannerDetails isPhone={isPhone} sections={DETAILS_SECTIONS} section={detailsSection} onSection={setDetailsSection}
               onPrint={planFigures ? printSolvedPlan : null} onExport={handleExportJSON} onImport={() => fileInputRef.current?.click()}
@@ -16253,6 +16254,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               theme={<ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />} numberFormat={numberFormatCard}
               settings={solverSettingsCard} docs={docsSolverCard} />
           </Suspense>
+          </main>
         )}
 
         {/* TAB 7: DOCS */}

@@ -103,12 +103,12 @@ export function DocsSolver({ isPhone, open, onOpen, children }) {
   );
 }
 
-/* Details (LAYOUT.md section 3.4): print and export, then year by year, the history check, Assumptions (with Display and the
+/* Details (LAYOUT.md section 3.4), inside the place's <main> (App.jsx): print and export, then year by year, the history check, Assumptions (with Display and the
    solver's settings) and how the solver decides; on a phone one section at a time. Its contents come from the page, as render
    functions, so each is drawn only where it shows */
 export function Details({ isPhone, sections, section, onSection, onPrint, onExport, onImport, fileInput, couple, ledger, history, taxRules, assumptions, theme, numberFormat, settings, docs }) {
   return (
-    <main data-place="details" className="space-y-6">
+    <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[22px] font-semibold text-slate-900">Details</h1>
         <div className="flex flex-wrap gap-2">
@@ -142,7 +142,7 @@ export function Details({ isPhone, sections, section, onSection, onPrint, onExpo
         </section>
       )}
       {(!isPhone || section === 'docs') && <section data-details="docs" className="scroll-mt-32">{docs()}</section>}
-    </main>
+    </>
   );
 }
 

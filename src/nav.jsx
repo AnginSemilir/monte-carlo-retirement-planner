@@ -43,6 +43,7 @@ export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreO
           return (
             <button key={t.id} type="button" onClick={() => onSelect(t.id)}
               aria-current={active ? 'page' : undefined}
+              style={!more && PLANNER_PLANT.has('navtarget40') ? { minHeight: 0, height: 40 } : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 h-full px-1 text-[10px] font-semibold cursor-pointer transition-colors ${tone(active, t.accent)}`}>
               <t.Icon className="w-5 h-5 shrink-0" />
               <span className="truncate max-w-full">{t.short}</span>

@@ -104,9 +104,15 @@ const goPlace = async (p, label) => { await p.evaluate(l => { const x = [...docu
 const saved = p => p.evaluate(k => JSON.parse(localStorage.getItem(k)), STORE);
 const strip = p => p.evaluate(() => { const el = document.querySelector('[data-solve-status]'); return el ? { state: el.dataset.stripState, solve: el.dataset.solveState, key: el.dataset.solveKey, text: el.textContent } : null; });
 const card = p => p.evaluate(() => { const el = document.querySelector('[data-plan-answer]'); return el ? el.dataset.planAnswer : null; });
-const waitCard = (p, state, ms = 900000) => p.waitForSelector(`[data-plan-answer="${state}"]`, { timeout: ms }).then(() => true, () => false);
+// how long a wait for the page may take: fifteen minutes on a clean build (a light-settings solve takes under half a minute),
+// two and a half in the plants run, where 'onefewer' keeps the card from ever reaching 'done' and each wait would run out
+const WAIT_MS = PLANTS_RUN ? 150000 : 900000;
+const waitCard = (p, state, ms = WAIT_MS) => p.waitForSelector(`[data-plan-answer="${state}"]`, { timeout: ms }).then(() => true, () => false);
 const figs = p => p.evaluate(() => { const el = document.querySelector('[data-strategy-figures]'); return el ? JSON.parse(el.dataset.strategyFigures) : null; });
 const box = (p, sel) => p.evaluate(s => { const el = document.querySelector(s); if (!el) return null; const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, h: r.height }; }, sel);
+// an element's text now, '' when it is not there: p.textContent waits for the element (30 s), which a plant that removes it
+// (noband) turned into a long hang inside a loop
+const textNow = (p, sel) => p.evaluate(q => { const el = document.querySelector(q); return el ? el.textContent : ''; }, sel);
 const relDiff = (a, b) => Math.abs(a - b) / Math.max(1, Math.abs(b));
 // where two figure sets first part, for a failing check's line: the path to it and the two values
 const firstDiff = (a, b, at = '') => {
@@ -160,7 +166,7 @@ const firstDiff = (a, b, at = '') => {
       // 2. the first solve: the strip's and the card's states as they pass
       const stripSeen = [], cardSeen = [], pcts = [];
       let typAtFilling = null;
-      for (let i = 0; i < 4500; i++) {
+      for (let i = 0; i < WAIT_MS / 200; i++) {
         const [st, cd] = await Promise.all([strip(p), card(p)]);
         if (st && stripSeen[stripSeen.length - 1] !== st.state) stripSeen.push(st.state);
         if (cd && cardSeen[cardSeen.length - 1] !== cd) cardSeen.push(cd);
@@ -227,7 +233,7 @@ const firstDiff = (a, b, at = '') => {
 
       // 6. this year, the rule, ten years, the comparison
       let more = true;
-      try { await p.waitForSelector('[data-strategy-rule]', { timeout: 900000, state: 'attached' }); } catch (e) { more = false; }
+      try { await p.waitForSelector('[data-strategy-rule]', { timeout: WAIT_MS, state: 'attached' }); } catch (e) { more = false; }
       const six = await p.evaluate(() => ({
         acts: (document.querySelector('[data-strategy-actions]') || { dataset: {} }).dataset.strategyActions,
         rule: (() => { const el = document.querySelector('[data-strategy-rule]'); return el ? { shown: el.dataset.strategyRule, cost: Number(el.dataset.strategyRuleCost) } : null; })(),
@@ -240,16 +246,16 @@ const firstDiff = (a, b, at = '') => {
         && /^The solved plan against your current approach, on the same/.test(six.title) && six.cols.includes('Your current approach') && /Your current approach is your plan run by the app's own rules/.test(six.rules), JSON.stringify(six).slice(0, 220));
 
       // 4. a lever: the dial to Medium
-      const k0 = (await strip(p)).key, amount0 = await p.textContent('[data-plan-amount]').catch(() => '');
+      const k0 = (await strip(p)).key, amount0 = await textNow(p, '[data-plan-amount]');
       await p.click('[data-solver-choice="cuts"] [data-value="3"]');
       let stale = null;
       for (let i = 0; i < 100 && !stale; i++) {
         const st = await strip(p), c = await card(p);
-        if (c === 'stale' && st.key !== k0) stale = { band: await p.textContent('[data-stale-band]').catch(() => ''), amount: await p.textContent('[data-plan-amount]').catch(() => ''), key: st.key };
+        if (c === 'stale' && st.key !== k0) stale = { band: await textNow(p, '[data-stale-band]'), amount: await textNow(p, '[data-plan-amount]'), key: st.key };
         await p.waitForTimeout(150);
       }
       let sawPct = false;
-      for (let i = 0; i < 200 && stale && !sawPct; i++) { const t = await p.textContent('[data-stale-band]').catch(() => ''); if (/\d+%/.test(t)) sawPct = true; else await p.waitForTimeout(200); }
+      for (let i = 0; i < 200 && stale && !sawPct; i++) { const t = await textNow(p, '[data-stale-band]'); if (/\d+%/.test(t)) sawPct = true; else await p.waitForTimeout(200); }
       ok(4, 'the dial moves data-solve-key; the card stale behind its band, with its percentage, the old figures still readable', !!stale && /Before your last change/.test(stale.band) && sawPct && stale.amount === amount0, stale ? `band "${stale.band.slice(0, 60)}"; amount ${stale.amount}` : 'never stale');
       const back = await waitCard(p, 'done');
       ok(4, 'then the new answer, the band gone', back && !(await p.$('[data-stale-band]')));
@@ -280,7 +286,7 @@ const firstDiff = (a, b, at = '') => {
 
       // 9. Details (on this solve, as it now stands)
       await goPlace(p, 'Details');
-      await p.waitForSelector('[data-place="details"] [data-audit-ledger="solved"]', { timeout: 900000 }).catch(() => {});
+      await p.waitForSelector('[data-place="details"] [data-audit-ledger="solved"]', { timeout: WAIT_MS }).catch(() => {});
       const d9 = await p.evaluate(() => ({
         ledger: !!document.querySelector('[data-place="details"] [data-audit-ledger="solved"]'),
         move: [...document.querySelectorAll('[data-place="details"] [data-audit-ledger] th')].some(t => /The year.s move/.test(t.textContent)),
@@ -313,7 +319,7 @@ const firstDiff = (a, b, at = '') => {
     { const { p, errs } = await open(b, planOf(FIX.work));
       await waitCard(p, 'filling');
       await goPlace(p, 'What if');
-      await p.waitForSelector('[data-solver-ages] [data-figures-show]', { timeout: 900000 }).catch(() => {});
+      await p.waitForSelector('[data-solver-ages] [data-figures-show]', { timeout: WAIT_MS }).catch(() => {});
       const ages = await p.$('[data-solver-ages] [data-figures-cost]');
       ok(8, `${FIX.work} (working): the age card, its cost said before it is asked`, !!ages);
       ok(8, `${FIX.work}: no page errors`, errs.length === 0, errs.slice(0, 2).join(' | '));

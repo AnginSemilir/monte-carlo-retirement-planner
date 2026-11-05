@@ -99,6 +99,9 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
     const { p, errs, urls } = await open(b, PREVIEW_PORT, single, 'new'), s = await tabState(p);
     ok('switch on, opted in, a single household: the levers on Your plan, no policy search or priorities there', s.aims && !s.search && !s.priorities && !s.couple, JSON.stringify(s));
     await goPlace(p, 'You');
+    // the limits card is a lazy chunk (src/SolverConfig.jsx), drawn once it has loaded: about a quarter of a second on a quiet
+    // machine, past goPlace's 600ms under the gate's load
+    await p.waitForSelector('[data-solver-locks]', { timeout: 20000, state: 'attached' }).catch(() => {});
     const y = await tabState(p);
     ok('switch on: the limits in You, and the app\'s rules in You\'s current approach (the policy, drawdown, lookahead, harvest and guardrails; no policy search)', y.locks && y.approach && y.policy && y.drawdown && y.lookahead && y.harvest && y.guardrails && !y.search, JSON.stringify(y));
     await goPlace(p, 'Your plan');

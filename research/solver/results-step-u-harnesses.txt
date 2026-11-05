@@ -158,3 +158,38 @@ all ok
   ok    switch on: no page errors
 
 1 FAILED
+
+7. solver-config-ui.cjs clean (10:50 UTC), after its wait for the limits card in You (the card is a lazy chunk, about a
+   quarter of a second on a quiet machine; the gate's switch-off pass on f178e3b read You at 600ms and missed it)
+
+  ok    switch off: the Config tab keeps its policy search, policy, drawdown, lookahead, harvest and playbook   {"search":true,"policy":true,"drawdown":true,"lookahead":true,"harvest":true,"playbook":true,"priorities":true,"guardrails":true,"guardOwn":false,"aims":false,"locks":false,"couple":false,"note":false,"approach":false}
+  ok    switch off: neither solver card nor the solver's line, the guardrails unmarked
+  ok    switch off: no solver code fetched   11 requests
+  ok    switch off: no page errors
+  ok    the preview build (the switch on) is served   port 4180
+  ok    switch on, opted in, a single household: the levers on Your plan, no policy search or priorities there   {"search":false,"policy":false,"drawdown":false,"lookahead":false,"harvest":false,"playbook":false,"priorities":false,"guardrails":false,"guardOwn":false,"aims":true,"locks":false,"couple":false,"note":false,"approach":false}
+  ok    switch on: the limits in You, and the app's rules in You's current approach (the policy, drawdown, lookahead, harvest and guardrails; no policy search)   {"search":false,"policy":true,"drawdown":true,"lookahead":true,"harvest":true,"playbook":false,"priorities":false,"guardrails":true,"guardOwn":false,"aims":false,"locks":true,"couple":false,"note":false,"approach":true}
+  ok    switch on: the floor the solver plans with is stated, 80% of the target (step L1, B2)   In a bad year the plan may spend as little as 80% of your target; it never plans below that.
+  ok    the plan on screen solves, under Node's key for the saved plan   312489625a22cf7d against 312489625a22cf7d
+  ok    the dial at 3: the saved plan carries it, and the solve's key moves to Node's for it   949033bdc476f297 against 949033bdc476f297
+  ok    the estate lower: the saved plan carries it, and the solve's key moves to Node's for it   852278b5eff47c8d against 852278b5eff47c8d
+  ok    raises blocked: the saved plan carries it, and the solve's key moves to Node's for it   5b735cf5d5afee5c against 5b735cf5d5afee5c
+  ok    consent withdrawn: the saved plan carries it, and the solve's key moves to Node's for it   46bcb66a26beaa33 against 46bcb66a26beaa33
+  ok    the minimum pot at 40,000: the saved plan carries it, and the solve's key moves to Node's for it   008cf3226b560f78 against 008cf3226b560f78
+  ok    no pension before 63: the saved plan carries it, and the solve's key moves to Node's for it   da71d89de410f459 against da71d89de410f459
+  ok    the pension's tier at most Medium/Low: the saved plan carries it, and the solve's key moves to Node's for it   e263669f6589bed7 against e263669f6589bed7
+  ok    the lump sum never: the saved plan carries it, and the solve's key moves to Node's for it   24a79dd711dfd172 against 24a79dd711dfd172
+  ok    after the last change the plan re-solves to solved, under the last key   24a79dd711dfd172
+  ok    the dial at 3: the store holds its base and the position, and nothing else (step L2)   7c15c0388f03, 24a79dd711df; the base 7c15c0388f03
+  ok    the policy fields are unchanged in the saved plan by the levers and limits   ["Bracket Fill Basic","Phased Drawdown",["survive","downside","bequest","bridge","pot","tax"],5,true,"pa",false,null]
+  ok    the saved plan keeps the household's own floor, the solver's 80% never written back (step L1)   undefined / undefined against undefined
+  ok    switch on: no page errors
+  ok    switch on: the solver cards came as their own chunk
+  ok    a phone: the solver waits for its request (no solver worker started, a "Solve my plan" button)   0 solver workers; button true
+  ok    a phone: asked, the plan solves
+  ok    a phone: no page errors
+  ok    switch on, opted in, a couple (S001): the couples card and no solver card   {"search":false,"policy":false,"drawdown":false,"lookahead":false,"harvest":false,"playbook":false,"priorities":false,"guardrails":false,"guardOwn":false,"aims":false,"locks":false,"couple":true,"note":false,"approach":false}
+  ok    a couple: nothing solved, no solver code fetched   none
+  ok    a couple: no page errors
+
+all ok

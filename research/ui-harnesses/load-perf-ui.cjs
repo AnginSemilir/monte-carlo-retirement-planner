@@ -143,7 +143,10 @@ async function measure(b, label, planner = null) {
   const t0 = Date.now();
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'commit' });
   // "there" means the app's own content, not an empty shell that has painted a background
-  if (planner) await page.waitForFunction(() => !!document.querySelector('[data-plan-answer], [data-quick-start]') || /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
+  // opted in: the new planner's answer card or quick start; on a build without it (the site's), the classic planner, whose
+  // full planner opens a saved plan on Plan Inputs with neither phrase below, so its tab bar with no place of the new
+  // planner's counts too (the new planner draws its places with its tab bar, so that never ends its wait early)
+  if (planner) await page.waitForFunction(() => !!document.querySelector('[data-plan-answer], [data-quick-start]') || (!!document.querySelector('[data-tabbar]') && !document.querySelector('[data-place]')) || /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
   else await page.waitForFunction(() => /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
   const content = Date.now() - t0;
   const opted = planner ? await page.evaluate(() => !!document.querySelector('[data-place]')) : null;

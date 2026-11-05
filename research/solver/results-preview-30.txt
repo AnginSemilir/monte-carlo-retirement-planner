@@ -1,0 +1,12 @@
+P2 (a), THE 30-POINT PREVIEW AGAINST THE 45-POINT SOLVE (R5 (a); EXPLORATORY): 8 households; code bf6398dac4b1; seed/paths 12345/2000
+S050: 45 points 98.95%, 30 points 98.25%, the preview less the solve -0.70 points (15 paths lost, 1 saved of 2000); the solve 230 s at 45 points, 146 s at 30 (x0.64)
+S030: 45 points 95.95%, 30 points 95.30%, the preview less the solve -0.65 points (15 paths lost, 2 saved of 2000); the solve 248 s at 45 points, 159 s at 30 (x0.64)
+S090: 45 points 95.20%, 30 points 94.50%, the preview less the solve -0.70 points (16 paths lost, 2 saved of 2000); the solve 306 s at 45 points, 198 s at 30 (x0.65)
+S368: 45 points 99.65%, 30 points 99.65%, the preview less the solve +0.00 points (0 paths lost, 0 saved of 2000); the solve 430 s at 45 points, 300 s at 30 (x0.70)
+S188: 45 points 97.60%, 30 points 96.95%, the preview less the solve -0.65 points (15 paths lost, 2 saved of 2000); the solve 316 s at 45 points, 210 s at 30 (x0.66)
+S304F: 45 points 97.70%, 30 points 97.55%, the preview less the solve -0.15 points (8 paths lost, 5 saved of 2000); the solve 420 s at 45 points, 296 s at 30 (x0.71)
+S328F: 45 points 93.20%, 30 points 92.85%, the preview less the solve -0.35 points (14 paths lost, 7 saved of 2000); the solve 415 s at 45 points, 290 s at 30 (x0.70)
+S340F: 45 points 95.10%, 30 points 94.75%, the preview less the solve -0.35 points (15 paths lost, 8 saved of 2000); the solve 418 s at 45 points, 291 s at 30 (x0.70)
+the gate: fair
+VERDICT (R5 (a)): the largest difference -0.70 points on S050; NOT within 0.5 points on every household: the preview does not ship
+EXPLORATORY: R5 (a) decides on it (D52).

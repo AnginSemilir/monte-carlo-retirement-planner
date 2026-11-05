@@ -1,7 +1,8 @@
 # Part C: the solver in the app, behind a switch (the build plan, approved: D41, D42)
 
 > **Superseded where they differ (1 Nov, D51).** The launch plan (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on
-> review/external-2026-10-21 at 0e24e1b; its section 4 the order, section 5 the stops, section 3 the decisions) holds
+> review/external-2026-10-21 at 0e24e1b, and at 90fcb10 since D58: step U, the new planner, added; its section 4 the order,
+> section 5 the stops, section 3 the decisions) holds
 > wherever it and this page differ. The points where they do:
 > - **The order.** Step 0 (CI and the hooks, B14) comes first; step L (the levers: the floor at `80%`, the dial's positions
 >   and their cache, the lever matrix) between Phase 8 and Phase 9; step P (the further performance work) after Phase 10

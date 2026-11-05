@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import inlineEdit from './vite-plugin-inline-edit.js';
+import solverCode from './vite-plugin-solver-code.js';
 
 const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
 
@@ -42,7 +43,11 @@ export default defineConfig({
    * reaches EditMode.jsx and its virtual:editable-copy module - so without this the worker build fails
    * to resolve an import the main build resolves fine.
    */
-  worker: { format: 'es', plugins: () => [react(), inlineEdit()] },
+  /*
+   * solverCode names the solver worker's code by its module graph, for the stored solves' key (vite-plugin-solver-code.js;
+   * step P1 (g)); it acts in the solver worker's build only.
+   */
+  worker: { format: 'es', plugins: () => [react(), inlineEdit(), solverCode()] },
   /*
    * Cross-origin isolation on the local servers, so the solver can split a solve across workers (src/solverPool.js needs
    * SharedArrayBuffer, which a page has only when isolated; research/solver/PHASE-7.md). Local only: the deployed site sends

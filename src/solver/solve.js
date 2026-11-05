@@ -1769,9 +1769,11 @@ export function chooseAction(r, s, t, held = null) {
     // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
     // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
     const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
+    // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike
+    const O = D && CHOOSER.once ? decisionRepeats(r, s, t, D) : null;
     r.mix.tables.forEach((tab, k) => {
       if (D) {
-        scoreMovesShared(tab, s, t, S2, T2, B2, D);
+        if (O) scoreWorldOnce(tab, s, t, S2, T2, B2, D, O); else scoreMovesShared(tab, s, t, S2, T2, B2, D);
         if (CHOOSER.check) {
           const S3 = new Float64Array(n), T3 = new Float64Array(n), B3 = new Float64Array(n);
           scoreMoves(tab, s, t, S3, T3, B3, held);
@@ -1958,8 +1960,8 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
  * a state under seven slots, Richardson's second table, a reader probe and the log-odds blend (both count every read), and
  * scoreMoves stays the reference that probes and rankActions use.
  */
-export const CHOOSER = { share: true, check: false, plant: '' };
-export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0 };
+export const CHOOSER = { share: true, check: false, plant: '', once: true };
+export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0, once: 0, onceOff: 0 };
 function decisionFlows(r, s, t, held) {
   const c = r.c, actions = r.actions, n = actions.length, L = s.length;
   let D = r._dec;
@@ -2088,6 +2090,114 @@ function scoreMovesShared(r, s, t, SC, TX, BQ, D) {
       }
       val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
     }
+    if (rz) h += rz * sv;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
+  }
+}
+
+/*
+ * THE MOVES' REPEATS, ONCE A DECISION (the launch plan's step P1; D56: the chooser's cost per path). scoreMovesShared finds,
+ * in each world, the moves that leave the same position in the same growth class and layer, and scores each such position
+ * once (its memo). The position after a move (D.cpost) and the layer are the same in every world; the class is each world's
+ * own, but where every world parts the moves into the same classes (classesOf, the same ids in the same order) the repeats
+ * are the same in every world, so they are found here once, in world 0's classes, and each world then scores only the first
+ * move of each repeat (scoreWorldOnce). Where the worlds part them differently this returns null and each world keeps its own
+ * memo. Nothing is rounded or reordered: each world's score of every move is scoreMovesShared's, bit for bit
+ * (chooser-once.test.mjs; CHOOSER.check compares each against scoreMoves as before).
+ */
+function sameClassesAt(r, t) {
+  if (CHOOSER.plant === 'oncediff') return false;   // the test's: the worlds taken to part the moves differently
+  const memo = r._sameCls || (r._sameCls = []);
+  if (memo[t] !== undefined) return memo[t];
+  const tabs = r.mix.tables, c0 = classesOf(tabs[0], t);
+  let same = true;
+  for (let k = 1; same && k < tabs.length; k++) { const ck = classesOf(tabs[k], t); for (let ai = 0; ai < c0.length; ai++) if (ck[ai] !== c0[ai]) { same = false; break; } }
+  return (memo[t] = same);
+}
+function decisionRepeats(r, s, t, D) {
+  // a menu whose moves vary by year (the research splits' copies, movesAt) keeps each world's memo
+  if (r.nAt || !sameClassesAt(r, t)) { SHARE_CHECKED.onceOff++; return null; }
+  SHARE_CHECKED.once++;
+  const tab0 = r.mix.tables[0], n = r.actions.length, L = D.L;
+  const cls = classesOf(tab0, t), plant = CHOOSER.plant, final = t >= r.m.ctx.totalYears;
+  let O = r._once;
+  if (!O || O.L !== L || O.n !== n) O = r._once = { L, n, M: makeMemo(n, 2 * L, 1), of: new Int32Array(n), rep: new Int32Array(n), nU: 0 };
+  const M = O.M, cU = D.cU, nT = movesAt(r, t);
+  M.reset();
+  for (let ai = 0; ai < nT; ai++) {
+    if (D.fail[ai]) { O.of[ai] = -1; continue; }
+    const lj = !final && tab0.tsLayers ? tab0.tsLayerOf[ai] + 1 : 0, cl = plant === 'nocls' ? 0 : cls[ai];
+    const f = M.find(cU, ai * L * 2, cl, lj);
+    if (f >= 0) O.of[ai] = f;
+    else { const e = M.put(~f, cU, ai * L * 2, cl, lj); O.of[ai] = e; O.rep[e] = ai; }
+  }
+  O.nU = M.n;
+  return O;
+}
+function scoreWorldOnce(r, s, t, SC, TX, BQ, D, O) {
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
+  const nodeRealOf = nodeRealOfAt[t], n = actions.length, L = D.L;
+  const grown = r._grownS && r._grownS.length === Math.max(7, s.length) ? r._grownS : (r._grownS = new Float64Array(Math.max(7, s.length)));
+  const rd = r._rd || (r._rd = new Float64Array(4));
+  const spendYear = c.yr.spend[t] > 0;
+  const QW = r.quadWeights || WEIGHTS, NQ = QW.length;
+  const final = t >= r.m.ctx.totalYears;
+  const stepAt = !final && r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
+  const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
+  const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
+  let V = r._onceV;
+  if (!V || V.n !== n || V.NQ !== NQ) V = r._onceV = { n, NQ, val: new Float64Array(n * 3), hv: new Float64Array(n * NQ), mode: new Uint8Array(n) };
+  const { val, hv, mode } = V, nU = O.nU, rep = O.rep, of = O.of, plant = CHOOSER.plant;
+  // each repeat's first move, scored as scoreMovesShared scores a move its memo has not seen
+  for (let e = 0; e < nU; e++) {
+    const ai = plant === 'oncerep' && e + 1 < nU ? rep[e + 1] : rep[e], o = ai * L, post = D.cpost.subarray(o, o + L);
+    const vb = e * 3, hb = e * NQ, nr = nodeRealOf[ai];
+    let sv = 0, bq = 0, rs = 0;
+    if (final) {
+      const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
+      if (r.finalIntegral) { finalYearExact(c, t, post, c.acts[ai], r.terminal, grown, fxR, fx); sv = fx[0]; bq = fx[1]; rs = fx[2]; }
+      else for (let zi = 0; zi < QW.length; zi++) {
+        grown.set(post);
+        F.grow(c, t, grown, nr[zi]);
+        const total = grown[0] + grown[1] + grown[2];
+        const alive = !(floor > 0 && total < floor);
+        const net = Math.max(0, total - grown[0] * deathTax);
+        sv += QW[zi] * (alive ? 1 : 0);
+        rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+        bq += QW[zi] * (alive ? beqOf(net) : 0);
+      }
+      mode[e] = 0;
+    } else {
+      const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
+      const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
+      if (stepAt !== null && stepExpect(c, g, t, post, c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; hv[hb] = sx[3]; mode[e] = 1; }
+      else {
+        for (let zi = 0; zi < NQ; zi++) {
+          grown.set(post);
+          F.grow(c, t, grown, nr[zi]);
+          readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+          sv += QW[zi] * rd[0];
+          bq += QW[zi] * rd[1];
+          rs += QW[zi] * rd[2];
+          hv[hb + zi] = QW[zi] * rd[3];
+        }
+        mode[e] = 2;
+      }
+    }
+    val[vb] = sv; val[vb + 1] = bq; val[vb + 2] = rs;
+  }
+  // every move, from its repeat's values, its own spending cost and drift added in scoreMovesShared's order
+  const nT = movesAt(r, t, SC, BQ);
+  for (let ai = 0; ai < nT; ai++) {
+    TX[ai] = D.tx[ai];
+    if (D.fail[ai]) { SC[ai] = -Infinity; BQ[ai] = 0; SHARE_CHECKED.fails++; continue; }
+    const e = of[ai], vb = e * 3, hb = e * NQ;
+    if (rep[e] === ai) SHARE_CHECKED.miss++; else SHARE_CHECKED.hits++;
+    const cst = spendYear ? r.costOf(levelOf[ai], t) : 0;
+    const rz = r.raiseSurvival && cst < 0 ? cst : 0;
+    const sv = val[vb], bq = val[vb + 1], rs = val[vb + 2];
+    let h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+    if (mode[e] === 1) h += hv[hb]; else if (mode[e] === 2) for (let zi = 0; zi < NQ; zi++) h += hv[hb + zi];
     if (rz) h += rz * sv;
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq; if (SC[ai] - SC[ai] !== 0) nonFiniteScore('the chooser', t, 'at the position', '-', ai, sv, bq, rs, h);
   }
@@ -2553,7 +2663,7 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
     const cA = F.compile(m, actions);
     if (zLast === undefined) delete m.shiftZ; else m.shiftZ = zLast;
     const billsOf = (tt) => { const bl = []; for (let j = tt; j < Math.min(B.accessAt, T + 1); j++) bl.push(B.needY[j] - B.inY[j]); return bl; };
-    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : null });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
+    built = adaptiveReference({ cs, flowCtx: cA, actions, levelOf, weights: JW, years, billsOf, gains: Array.from(g.gain), realAt, PhiInv, ...(opts.adaptiveLattice || {}), dupMoves: opts.arefDupMoves !== false, e2: opts.e2 && opts.e2.parts > 1 ? opts.e2 : null, progress: opts.progress && (!opts.e2 || opts.e2.part === 0) ? opts.progress : null, restore: opts.restore ? opts.restore.ref || null : refFromOf(opts, cs.length, g.gain.length) });   // dupMoves: S3, on unless turned off (D24); not a lattice setting, so the candidate's adaptiveLattice and its hash do not move. e2: the build split across E2's parts (instruction 6, D25; adaptive.js)
     g.reader.adaptive = { moves: built.moves, nonMono: built.nonMono, secs: built.secs, lattice: built.lattice, TL: built.TL, ref: built };
   };
   return {
@@ -2564,6 +2674,25 @@ function adaptiveFor({ opts, JOINT, JW, m, shifts, centre, cs, actions, levelOf,
       return f;
     },
   };
+}
+/*
+ * A DIAL POSITION'S REFERENCE IS ITS BASE'S (the launch plan's step P1 (b)). The adaptive reference reads the worlds, the
+ * moves' flows, the bridge's bills, the gains and its lattice; no lambda and no age weights. A dial position above 1 is
+ * solved on its base's tiers (lockTiers), the same plan and menu (lockSetup checks the grid and the menu), so its reference
+ * is the base's: solveForApp hands the base over as `refFrom`, and its arrays are taken as a stored solve's are
+ * (adaptive.js `restore`) in place of building them again. A base built on another lattice, or another number of worlds or
+ * gain buckets, is refused. REFSHARE.on false builds it afresh (lock-ref.test.mjs: the tables the same bit for bit either
+ * way, unsplit and split); REFSHARE.plant 'nudge' takes the base's arrays with its first step moved a hundredth (the test's
+ * plant: the tables part).
+ */
+export const REFSHARE = { on: true, plant: '' };
+function refFromOf(opts, K, NG) {
+  const src = REFSHARE.on && opts.refFrom && opts.refFrom.g && opts.refFrom.g.reader && opts.refFrom.g.reader.adaptive;
+  if (!src || !src.ref) return null;
+  const L = opts.adaptiveLattice || {}, want = { na: L.na || 160, nb: L.nb || 41, nz: L.nz || 128, ng: NG, ...(L.foot ? { foot: true } : {}), ...(L.stepAll ? { stepAll: true } : {}) };
+  if (JSON.stringify(src.lattice) !== JSON.stringify(want) || src.ref.arrays().V.length !== K) throw new Error(`refFrom: the base's reference was built on ${JSON.stringify(src.lattice)} over ${src.ref.arrays().V.length} worlds, this solve's would be ${JSON.stringify(want)} over ${K}`);
+  const { V, MV, V0, MV0, AST, ASTY } = src.ref.arrays();
+  return { AST: REFSHARE.plant === 'nudge' ? AST.map((x, i) => (i === 0 ? x * 1.01 + 1 : x)) : AST, ASTY, V, MV, V0, MV0, nonMono: src.ref.nonMono, footLive: src.ref.footLive || 0 };
 }
 /*
  * PR31, THE CHOOSER'S SPLIT UNDER THE ADAPTIVE REFERENCE'S EXACT STEPS (`adaptiveLattice.stepAll`, research only; PLAN.md

@@ -1,0 +1,110 @@
+P0, THE PROFILE (step P; the launch plan's P0; EXPLORATORY, deciding nothing): where a solve's and a solved plan's time goes,
+before step P's cuts and on them. Three runs, each printed whole below, each on a machine running nothing else:
+- the Node half (research/solver/profile-solve.mjs), 4 Nov 06:49 UTC, code 24da0cb467e1 (before step P's cuts): six of its
+  seven households; its seventh, the thin plan (S188 pension one tier down), is the rerun below, since this run's second
+  pass counted the 'auto' rule's test (the first pass's simulated paths) as one of its years (profile-browser.cjs's phase
+  lines were fixed the same way in 943a34f);
+- the Node half's thin plan again, 4 Nov 19:49 UTC, on step P's code (bf6398dac4b1, the cuts in; the solve's tables the
+  same bit for bit: results-perf-step.txt);
+- the browser half (research/ui-harnesses/profile-browser.cjs), 4 Nov 20:03 UTC, on step P's code, with each stretch
+  between two reports given to the report that ends it.
+Each figure is the scripts' own, in the output below: the solve's time by part and by function, the store, the simulated
+path's time by part, the workers' start-up, and in the browser each solve's reports, its restore and its split.
+
+========== THE NODE HALF, BEFORE THE CUTS (code 24da0cb467e1) ==========
+Wed Nov  4 06:49:48 UTC 2026
+P0, THE PROFILE, ITS NODE HALF (step P; EXPLORATORY): bridge 4, S126, S370, share 0.50, S090, S188, S188 pension one tier down; the floor at 80%; one thread; 200 paths of seed 12345; code 24da0cb467e1; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 0.17 0.73 1.06 at the start
+
+== bridge 4: the solve 430.7 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 402.3 s over 42 years, a year 0.07 to 16.94 s (median 9.78); the reference's build inside it 28.5 s (3 reports)
+   the solve's self time by part (433.1 s sampled): the reference (adaptive.js) 4.7%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 47.0%; the moves' flows (fast.js) 18.3%; the chooser's scoring and best move (solve.js) 26.8%; the engine (engine.mjs) 0.9%; the garbage collector 1.8%; the rest 0.5%
+   its top functions: solve 24.8%, readValues 23.5%, locInto 8.0%, grossForNet 7.9%, flow 6.9%, expit 6.7%, grow 5.7%, readV 2.5%
+   the store: the record 240 MB, made in 208 ms, copied (structuredClone, as postMessage does) in 433 ms; the restore: a solve from it 2.20 s (0.5% of the solve)
+   the simulation: 212.7 ms a path, 5.06 ms a year: the table's choice 5.02 ms (99.1%), the engine's step 0.043 ms; 42.0 decisions a path
+
+== S126: the solve 401.2 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 395.8 s over 40 years, a year 0.03 to 17.84 s (median 10.10); the reference's build inside it 5.4 s (1 reports)
+   the solve's self time by part (403.2 s sampled): the reference (adaptive.js) 0.3%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 49.6%; the moves' flows (fast.js) 19.3%; the chooser's scoring and best move (solve.js) 27.6%; the engine (engine.mjs) 0.9%; the garbage collector 1.9%; the rest 0.5%
+   its top functions: readValues 26.2%, solve 25.9%, locInto 8.6%, grossForNet 8.4%, flow 7.2%, expit 6.9%, grow 5.6%, (garbage 1.9%
+   the store: the record 227 MB, made in 1019 ms, copied (structuredClone, as postMessage does) in 1354 ms; the restore: a solve from it 2.13 s (0.5% of the solve)
+   the simulation: 50.2 ms a path, 1.26 ms a year: the table's choice 1.23 ms (98.1%), the engine's step 0.023 ms; 40.0 decisions a path
+
+== S370: the solve 581.6 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 463.3 s over 46 years, a year 0.07 to 18.48 s (median 10.45); the reference's build inside it 118.3 s (7 reports)
+   the solve's self time by part (585.2 s sampled): the reference (adaptive.js) 16.7%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 44.6%; the moves' flows (fast.js) 12.1%; the chooser's scoring and best move (solve.js) 23.1%; the engine (engine.mjs) 0.8%; the garbage collector 2.1%; the rest 0.6%
+   its top functions: readValues 22.3%, solve 21.4%, locInto 7.1%, flow 6.4%, readV 5.8%, expit 5.5%, grow 5.4%, realAt 3.7%
+   the store: the record 265 MB, made in 198 ms, copied (structuredClone, as postMessage does) in 1486 ms; the restore: a solve from it 2.69 s (0.5% of the solve)
+   the simulation: 65.8 ms a path, 1.43 ms a year: the table's choice 1.40 ms (98.0%), the engine's step 0.029 ms; 46.0 decisions a path
+
+== share 0.50: the solve 396.9 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 391.4 s over 40 years, a year 0.03 to 17.02 s (median 9.90); the reference's build inside it 5.6 s (1 reports)
+   the solve's self time by part (399.0 s sampled): the reference (adaptive.js) 0.3%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 49.2%; the moves' flows (fast.js) 19.5%; the chooser's scoring and best move (solve.js) 28.1%; the engine (engine.mjs) 0.8%; the garbage collector 1.6%; the rest 0.5%
+   its top functions: solve 26.6%, readValues 25.8%, locInto 8.7%, grossForNet 8.3%, flow 7.7%, expit 7.0%, grow 5.4%, (garbage 1.6%
+   the store: the record 227 MB, made in 155 ms, copied (structuredClone, as postMessage does) in 1182 ms; the restore: a solve from it 1.92 s (0.5% of the solve)
+   the simulation: 61.2 ms a path, 1.53 ms a year: the table's choice 1.51 ms (98.5%), the engine's step 0.023 ms; 40.0 decisions a path
+
+== S090: the solve 373.6 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 373.6 s over 36 years, a year 8.81 to 16.69 s (median 10.08); the reference's build inside it 0.0 s (0 reports)
+   the solve's self time by part (375.5 s sampled): the reference (adaptive.js) 0.0%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 49.9%; the moves' flows (fast.js) 19.6%; the chooser's scoring and best move (solve.js) 27.5%; the engine (engine.mjs) 0.8%; the garbage collector 1.7%; the rest 0.5%
+   its top functions: readValues 26.7%, solve 26.1%, locInto 8.7%, grossForNet 8.7%, flow 7.4%, expit 7.0%, grow 5.5%, (garbage 1.7%
+   the store: the record 204 MB, made in 129 ms, copied (structuredClone, as postMessage does) in 1034 ms; the restore: a solve from it 1.63 s (0.4% of the solve)
+   the simulation: 69.7 ms a path, 1.94 ms a year: the table's choice 1.91 ms (98.6%), the engine's step 0.026 ms; 36.0 decisions a path
+
+== S188: the solve 380.0 s on one thread; 1 pass (the tier above: off: no tier above the plan); the moves 800
+   pass without the tier above: the backward pass 380.0 s over 41 years, a year 2.83 to 17.41 s (median 9.79); the reference's build inside it 0.0 s (0 reports)
+   the solve's self time by part (381.6 s sampled): the reference (adaptive.js) 0.0%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 51.6%; the moves' flows (fast.js) 16.6%; the chooser's scoring and best move (solve.js) 29.0%; the engine (engine.mjs) 0.8%; the garbage collector 1.6%; the rest 0.4%
+   its top functions: solve 27.4%, readValues 27.4%, locInto 9.0%, flow 7.7%, expit 7.3%, grossForNet 5.6%, grow 5.6%, (garbage 1.6%
+   the store: the record 233 MB, made in 130 ms, copied (structuredClone, as postMessage does) in 1359 ms; the restore: a solve from it 1.89 s (0.5% of the solve)
+   the simulation: 49.8 ms a path, 1.21 ms a year: the table's choice 1.19 ms (98.3%), the engine's step 0.021 ms; 41.0 decisions a path
+
+the workers' start-up (a worker thread loading the engine and the solver, to its first message), four in turn: 135, 52, 100, 58 ms
+
+EXPLORATORY: a measurement for step P, deciding nothing.
+Wed Nov  4 07:51:42 UTC 2026
+
+
+========== THE NODE HALF, THE THIN PLAN AGAIN, ON STEP P'S CODE (bf6398dac4b1) ==========
+Wed Nov  4 19:49:28 UTC 2026
+P0, THE PROFILE, ITS NODE HALF (step P; EXPLORATORY): S188 pension one tier down; the floor at 80%; one thread; 200 paths of seed 12345; code bf6398dac4b1; 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), load 2.89 2.67 1.96 at the start
+
+== S188 pension one tier down: the solve 810.6 s on one thread; 2 passes (the tier above: on: thin, and no worse on the same paths); the moves 1000
+   pass without the tier above: the backward pass 319.7 s over 41 years, a year 2.44 to 14.29 s (median 8.24); the reference's build inside it 0.0 s (0 reports)
+   pass with the tier above: the backward pass 377.2 s over 40 years, a year 2.94 to 11.44 s (median 10.30); the reference's build inside it 0.0 s (0 reports)
+   between the passes (the first pass's 1,000 simulated paths, the 'auto' rule's test): 58.9 s
+   the solve's self time by part (813.7 s sampled): the reference (adaptive.js) 0.0%; the bridge reader (reader.js) 0.0%; the expectation (grid.js reads, growth) 52.9%; the moves' flows (fast.js) 14.6%; the chooser's scoring and best move (solve.js) 30.2%; the engine (engine.mjs) 0.7%; the garbage collector 1.3%; the rest 0.4%
+   its top functions: readValues 27.2%, solve 24.9%, locInto 9.6%, expit 8.3%, flow 6.4%, grow 5.8%, grossForNet 4.9%, drawPension 1.5%
+   the store: the record 291 MB, made in 1098 ms, copied (structuredClone, as postMessage does) in 2639 ms; the restore: a solve from it 3.16 s (0.4% of the solve)
+   the simulation: 55.7 ms a path, 1.36 ms a year: the table's choice 1.33 ms (98.1%), the engine's step 0.026 ms; 41.0 decisions a path
+
+the workers' start-up (a worker thread loading the engine and the solver, to its first message), four in turn: 90, 54, 70, 88 ms
+
+EXPLORATORY: a measurement for step P, deciding nothing.
+Wed Nov  4 20:03:19 UTC 2026
+
+
+========== THE BROWSER HALF, ON STEP P'S CODE ==========
+Wed Nov  4 20:03:19 UTC 2026
+P0, THE PROFILE, ITS BROWSER HALF (step P; EXPLORATORY): bridge 4, S126, S370, share 0.50, S090, S188 pension one tier down; the floor at 80%; the app's settings; Chrome/141.0.0.0, 4 cores, isolated true
+
+== bridge 4: one worker: the first report (the start-up, the setup and the last year) 13.46 s after the ask; pass without the tier above: the backward pass after its first report 321.5 s over 41 more years (a year 0.05 to 10.46 s), the reference's build inside it 24.2 s; the whole solve 359.1 s; stored true 1.0 s after; the simulation 54.8 ms a path (survival 100); the tier above off: no tier above the plan
+   after a reload: restored true in 2.4 s (0.7% of the solve); split four ways: 4 parts, 111.0 s (x3.24 the one worker's speed)
+
+== S126: one worker: the first report (the start-up, the setup and the last year) 12.93 s after the ask; pass without the tier above: the backward pass after its first report 319.3 s over 39 more years (a year 0.06 to 20.06 s), the reference's build inside it 3.8 s; the whole solve 336.1 s; stored true 1.1 s after; the simulation 46.0 ms a path (survival 100); the tier above off: no tier above the plan
+   after a reload: restored true in 1.9 s (0.6% of the solve); split four ways: 4 parts, 93.5 s (x3.59 the one worker's speed)
+
+== S370: one worker: the first report (the start-up, the setup and the last year) 13.94 s after the ask; pass without the tier above: the backward pass after its first report 346.6 s over 45 more years (a year 0.06 to 9.41 s), the reference's build inside it 69.0 s; the whole solve 429.6 s; stored true 1.0 s after; the simulation 54.5 ms a path (survival 84.33333333333334); the tier above off: no tier above the plan
+   after a reload: restored true in 2.5 s (0.6% of the solve); split four ways: 4 parts, 127.8 s (x3.36 the one worker's speed)
+
+== share 0.50: one worker: the first report (the start-up, the setup and the last year) 13.90 s after the ask; pass without the tier above: the backward pass after its first report 302.6 s over 39 more years (a year 0.06 to 9.88 s), the reference's build inside it 4.0 s; the whole solve 320.5 s; stored true 0.9 s after; the simulation 59.3 ms a path (survival 100); the tier above off: no tier above the plan
+   after a reload: restored true in 1.9 s (0.6% of the solve); split four ways: 4 parts, 97.8 s (x3.28 the one worker's speed)
+
+== S090: one worker: the first report (the start-up, the setup and the last year) 13.84 s after the ask; pass without the tier above: the backward pass after its first report 293.6 s over 35 more years (a year 7.74 to 9.86 s), the reference's build inside it 0.0 s; the whole solve 307.5 s; stored true 0.9 s after; the simulation 62.7 ms a path (survival 100); the tier above off: no tier above the plan
+   after a reload: restored true in 1.7 s (0.6% of the solve); split four ways: 4 parts, 90.8 s (x3.39 the one worker's speed)
+
+== S188 pension one tier down: one worker: the first report (the start-up, the setup and the last year) 14.58 s after the ask; pass without the tier above: the backward pass after its first report 305.2 s over 40 more years (a year 2.40 to 9.92 s), the reference's build inside it 0.0 s; pass with the tier above: the backward pass after its first report 373.7 s over 40 more years (a year 3.03 to 10.84 s), the reference's build inside it 0.0 s; between the passes (the 'auto' rule's test) 60.1 s; the whole solve 807.4 s; stored true 1.7 s after; the simulation 53.2 ms a path (survival 72.66666666666667); the tier above on: thin, and no worse on the same paths
+   after a reload: restored true in 2.3 s (0.3% of the solve); split four ways: 4 parts, 306.1 s (x2.64 the one worker's speed)
+
+no page errors
+
+EXPLORATORY: a measurement for step P, deciding nothing.
+Wed Nov  4 21:02:01 UTC 2026

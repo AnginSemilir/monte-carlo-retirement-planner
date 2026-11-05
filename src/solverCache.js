@@ -51,6 +51,9 @@ export function recordBytes(rec) {
   walk(rec);
   return n;
 }
+/* the code a stored solve is kept for (step P1 (g)): the solver worker's module-graph key when a build wrote it over the
+ * placeholder (vite-plugin-solver-code.js), else the worker's URL */
+export const codeOf = (k, loc) => (/^solver-code:[0-9a-f]{16}$/.test(k) ? k : loc ? loc.href : 'unknown');
 const readIndex = s => req(s.get('index')).then(x => (Array.isArray(x) ? x : []));
 /* whether a solve of this key, made by this code, is stored: the small index beside the solves, so asking loads no tables */
 export async function probeSolve(key, code) {

@@ -48,14 +48,15 @@ import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
 import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadOf, rowsOf } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
-import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord } from './solverCache.js';
+import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf } from './solverCache.js';
 
 // the engine as the solver reads it: App.jsx's exports and its E namespace (research/engine.mjs is the same union)
 const E = { ...App, ...App.E };
 let solved = null, held = null;   // held: { key, r }, the base a dial position is solved on, kept between solves
 let runs = null;                  // the Strategy tab's paths run so far: { r, plan, runs } (src/solverStrategy.js)
-// the code that solves, for the cache: this worker's own URL, which a build fingerprints with its contents
-const CODE = self.location ? self.location.href : 'unknown';
+// the code that solves, for the cache: in a build, its module graph's key, which vite-plugin-solver-code.js writes over the
+// placeholder (a screen change keeps it; step P1 (g)); under `vite dev`, this worker's own URL, as before
+const CODE = codeOf('__SOLVER_CODE_KEY__', self.location);
 const plainMeta = r => JSON.parse(JSON.stringify(r.meta));
 
 self.onmessage = async ({ data }) => {

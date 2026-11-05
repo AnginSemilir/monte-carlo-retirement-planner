@@ -338,3 +338,4 @@
 02 Nov 00:39 UK | main | none: EXPLORATORY, L4: the dial's positions in both variants (D51 B3, D52 R1 R2) | code 9273130d7c86 | 3473440 | load 4.13 3.23 3.30 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-levers.sh
 02 Nov 12:52 UK | main | none: EXPLORATORY, L4: the dial's positions in both variants (D51 B3, D52 R1 R2) | code 9273130d7c86 | 0bf816b | load 2.44 4.99 4.41 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-levers.sh
 03 Nov 02:43 UK | main | none: EXPLORATORY measurement (D49, B7): GAIN-BUCKET | code 9273130d7c86 | dab55c7 | load 3.18 3.35 3.56 | host Intel(R) Xeon(R) Processor @ 2.80GHz x4 | bash research/solver/batch-gainbucket.sh
+04 Nov 12:21 UK | main | none: gate 5 re-measured for step P | code bf6398dac4b1 | 19a4837 | load 1.13 1.18 1.35 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-gate5.sh

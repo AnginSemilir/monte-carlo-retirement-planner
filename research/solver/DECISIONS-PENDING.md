@@ -20,7 +20,9 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
     recorded as not met (D56), step P taking the chooser's cost per path first.
   - Phase 10, isolation and the projection (`PHASE-10.md`), is merged to `main` (pull request 6, 08dcff6) on B1's
     gate.
-  - Then step P; then step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10); then
+  - Step P, the cost (the cuts exact, Phase 9's budgets met again, gate 5 MET; the 30-point preview not shipped by R5 (a)),
+    is merged to `main` (pull request 7, 6e3e4e0) on B1's gate.
+  - Then step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), under way; then
     Phases 11 and 12 as recast; couples as Part D during the singles' beta (B9), D5 the couples' screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime

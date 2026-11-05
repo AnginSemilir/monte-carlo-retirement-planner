@@ -16,7 +16,7 @@ import App from './App.jsx';
 const Simple = lazy(() => import('./Simple.jsx'));
 import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simplePlan.js';
 import { useTheme, ThemeToggle } from './theme.jsx';
-import { setNumberFormat, DEFAULT_NUMBER_FORMAT, NUMBER_FORMATS } from './App.jsx';
+import { setNumberFormat, DEFAULT_NUMBER_FORMAT, NUMBER_FORMATS, solverSwitch } from './App.jsx';
 import { useViewport } from './viewport.js';
 import { Boundary } from './boundary.jsx';
 
@@ -207,7 +207,12 @@ export default function Shell() {
 
   const { isPhone, isCoarse, width, height } = useViewport();
   const viewport = { width, height };
-  const other = OTHER[which];
+  // the new planner (step U, LAYOUT.md section 2.1): the Simple page is folded into its quick start, so 'simple' opens the new
+  // planner and the way across to the Simple page is not offered; App tells the shell when the visitor changes planner
+  const [, onPlanner] = useState(0);
+  const newPlanner = solverSwitch().on;
+  const shown = newPlanner ? 'full' : which;
+  const other = OTHER[shown];
   // carryAcross is what copies the plan between the two pages; its return value (what could not come
   // along) used to be shown as a banner and is not any more. The copy still happens.
   const cross = () => { carryAcross(which); setWhich(other.to); };
@@ -227,7 +232,7 @@ export default function Shell() {
    * page title goes: "Simple planner" beside "Full planner" says the same thing in the space of a line,
    * and the footer's beta notice moves to the foot of the Figures tab, beside the numbers it qualifies.
    */
-  if (isPhone && which === 'simple') return (
+  if (isPhone && shown === 'simple') return (
     <div className="h-dvh flex flex-col overflow-hidden bg-slate-50 text-slate-900 font-sans">
       <PhoneBar title="Simple planner" cta="Full planner" onCross={cross}
         extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
@@ -251,7 +256,7 @@ export default function Shell() {
         * The simple page keeps its bar: it is one fixed-height screen with no More sheet to put either
         * of those in. A desktop keeps the full sentence, which it has the width for.
         */}
-      {isPhone ? null : (
+      {isPhone || newPlanner ? null : (
       <div className={`px-4 sm:px-6 lg:px-8 ${chrome === 'compact' ? 'pt-3' : 'pt-4 sm:pt-6 lg:pt-8'}`}>
         {/* Uncapped, like every screen under it bar Documentation: the bar has to sit on the same
             margin as the page it tops, or it reads as a different page. */}
@@ -272,8 +277,8 @@ export default function Shell() {
 
       {/* One boundary round each planner, so a render error inside either leaves this bar - and the way
           across to the other planner - standing. Keyed on the planner so switching gives a clean start. */}
-      {which === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
-        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} onCross={cross} /></Boundary> : (
+      {shown === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} onCross={cross} onPlanner={() => onPlanner(x => x + 1)} /></Boundary> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">

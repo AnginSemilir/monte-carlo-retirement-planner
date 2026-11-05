@@ -65,6 +65,18 @@ const BEFORE = { content: 2203, js: 214 };
  */
 const JS_CEILING = 228;
 /*
+ * THE CLASSIC PLANNER ON A SWITCH-ON BUILD, 232 on 5 Nov 2026 (step U; D58 (2), the maintainer's line: "a classic run over
+ * 228KB moves its ceiling to the measured figure plus one, up to 232KB"). On the site's own build (the switch off) the classic
+ * planner is unchanged at 226KB and keeps the 228 above. On a switch-on build its first load carries the new planner's header,
+ * its status strip's wiring and the places' names (LAYOUT.md section 11.2), the places themselves in chunks of their own: the
+ * first measure read 236KB with What if, Details and their cards inline, and 231KB once they moved to src/PlannerCards.jsx,
+ * the print sheet to src/solvedSheet.js and the strip to its own chunk, then 232KB with Details' <main> drawn by App.jsx again (LAYOUT.md
+ * section 10). The byte count is deterministic. The measured figure plus one would be 233, past D58's limit, so the ceiling
+ * is the limit itself, 232, with no headroom left: the next kilobyte on a switch-on build's first load goes to the
+ * maintainer. A switch-on build is one where the opted-in runs below reach the new planner.
+ */
+const JS_CEILING_SWITCH_ON = 232;
+/*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so
  * a threshold placed between the two medians would fail on noise as often as on a regression. The bytes
@@ -98,13 +110,23 @@ const JS_CEILING = 228;
  * slower.
  */
 const CEILING = 3800;
+/*
+ * THE NEW PLANNER'S FIRST LOAD (step U, research/reviews/2026-11-03/LAYOUT.md section 11.2; D58 (2), the maintainer's line in the
+ * launch plan's section 7a): opted in (rp_planner 'new'), a saved single plan until the answer card shows its first state, and
+ * an empty plan until the quick start shows. Your plan's chunk loads by then, so it is above the entry's figure; its own
+ * ceiling is its measured figure plus one, with a dated note. On the site's own build (the switch off) the new planner is not
+ * there, and the run says so rather than measuring the classic planner twice.
+ */
+// 5 Nov 2026 (D58 (2)): measured 232KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
+const PLANNER_JS_CEILING = 234;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 
-async function measure(b, label) {
+async function measure(b, label, planner = null) {
   const ctx = await b.newContext({ ...devices['Pixel 7'] });
   const page = await ctx.newPage();
+  if (planner) await page.addInitScript(([pl]) => { if (pl) localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); else localStorage.removeItem('rp_plan_full_v28'); localStorage.setItem('rp_which_app', 'full'); localStorage.setItem('rp_planner', 'new'); }, [planner.plan]);
   const bytes = { js: 0, css: 0, requests: 0 };
   page.on('response', async (r) => {
     const t = r.request().resourceType();
@@ -121,8 +143,13 @@ async function measure(b, label) {
   const t0 = Date.now();
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'commit' });
   // "there" means the app's own content, not an empty shell that has painted a background
-  await page.waitForFunction(() => /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
+  // opted in: the new planner's answer card or quick start; on a build without it (the site's), the classic planner, whose
+  // full planner opens a saved plan on Plan Inputs with neither phrase below, so its tab bar with no place of the new
+  // planner's counts too (the new planner draws its places with its tab bar, so that never ends its wait early)
+  if (planner) await page.waitForFunction(() => !!document.querySelector('[data-plan-answer], [data-quick-start]') || (!!document.querySelector('[data-tabbar]') && !document.querySelector('[data-place]')) || /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
+  else await page.waitForFunction(() => /What each tab is for|Can I retire/i.test(document.body.innerText), null, { timeout: 120000 });
   const content = Date.now() - t0;
+  const opted = planner ? await page.evaluate(() => !!document.querySelector('[data-place]')) : null;
   // getEntriesByName misses it: the paint timeline is its own entry type, and asking for the name alone
   // returned null on every run while the paint had plainly happened.
   // What crossed the wire, which is what a phone waits for. page.on('response') hands back the DECODED
@@ -133,8 +160,17 @@ async function measure(b, label) {
     return { transfer: js.reduce((t, r) => t + (r.transferSize || r.encodedBodySize || 0), 0), n: js.length };
   });
   await ctx.close();
-  return { label, content, js: Math.round(wire.transfer / 1024), raw: Math.round(bytes.js / 1024), css: Math.round(bytes.css / 1024), requests: bytes.requests };
+  return { label, content, js: Math.round(wire.transfer / 1024), raw: Math.round(bytes.js / 1024), css: Math.round(bytes.css / 1024), requests: bytes.requests, opted };
 }
+// a single person's plan for the new planner's first load: round, made-up figures, as COUPLE's below (never anybody's plan)
+const SINGLE = {
+  demographics: { planningMode: 'single', currentAgeSelf: 61, retireAgeSelf: 61, statePensionAge: 67, privatePensionAge: 57, statePensionSelf: 11000, terminalAge: 95 },
+  spending: { targetSpend: 40000, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+  accounts: [
+    { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 500000, contrib: 0, growth: 0, risk: 'High Risk' },
+    { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 150000, contrib: 0, growth: 0, risk: 'High Risk' },
+    { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 30000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
+  otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' } };
 
 /*
  * TYPING, WHICH IS THE OTHER HALF OF "FAST".
@@ -234,9 +270,19 @@ async function typingLatency(b) {
   // Thresholds sit above the measured figures with headroom, so this fails on a real regression rather
   // than on the noise between two runs of the same build.
   ok('the page is usable promptly on a throttled phone', content < CEILING, `${content}ms, ceiling ${CEILING}ms`);
-  ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= JS_CEILING,
-    `${runs[0].js}KB over the wire, ceiling ${JS_CEILING}KB (${BEFORE.js}KB before the loading work)`);
+  // the new planner's first load (step U): a saved single plan to the answer card's first state, an empty one to the quick start;
+  // measured before the classic planner's bytes are judged, since whether it is there says which ceiling the classic run has
+  console.log('the new planner\'s first load, opted in (rp_planner new), Pixel 7');
+  const np = [await measure(b, 'a saved plan', { plan: SINGLE }), await measure(b, 'an empty plan', { plan: null })];
+  for (const r of np) console.log(`  ${r.label}: content ${r.content}ms, ${r.js}KB${r.opted ? '' : ' (the new planner is not in this build: the switch is off)'}`);
+  const switchOn = np.every(r => r.opted), jsCeiling = switchOn ? JS_CEILING_SWITCH_ON : JS_CEILING;
+  ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= jsCeiling,
+    `${runs[0].js}KB over the wire, ceiling ${jsCeiling}KB (${switchOn ? 'a switch-on build, D58 (2)' : 'the site\'s build'}; ${BEFORE.js}KB before the loading work)`);
   ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
+  if (switchOn) {
+    const top = Math.max(...np.map(r => r.js));
+    ok('the new planner\'s first load: no more javascript than its own ceiling allows', top > 0 && top <= PLANNER_JS_CEILING, `${np.map(r => `${r.label} ${r.js}KB`).join(', ')}, ceiling ${PLANNER_JS_CEILING}KB`);
+  } else console.log('  not measured against its ceiling: the switch is off in this build (the classic planner, measured above)');
 
   /*
    * NOTHING LEAVES THIS ORIGIN.

@@ -1,0 +1,41 @@
+phone-perf's long tasks, alternated on one quiet machine (5 Nov, 11:03 to 11:11 UTC): main's site build (6e3e4e0, step P
+merged) and step U's (42f888c), six runs each, the same harness (research/ui-harnesses/phone-perf-ui.cjs, unchanged
+between them), each build served on 4173 in turn. Its ceiling is 2,200ms (set 30 Oct on the maintainer's call).
+
+Why: the gate's switch-off pass on 42f888c read 2,385ms on step U's site build (the pass started 10:54), where the same bytes passed in
+the f178e3b pass (started 08:46; f8b9fc4, f178e3b and 42f888c changed harnesses and records only, the site's build the same byte for
+byte). The runs below put step U's build at or below main's: main's own build is over the ceiling on three of its six runs.
+Moving the ceiling is the maintainer's call, as on 30 Oct; the gate is run again.
+
+The script (pp-alt.sh in the session's scratchpad):
+    #!/bin/bash
+    # phone-perf's long tasks, alternated on one quiet machine: main's site build (6e3e4e0, step P merged) and step U's (42f888c),
+    # six runs each, the same harness (research/ui-harnesses/phone-perf-ui.cjs, unchanged between them)
+    S=/tmp/claude-0/-home-user-vitejs-vite-kdvuf9qw/2a53f41c-129c-59b0-b644-606b6facdf9e/scratchpad
+    cd /home/user/vitejs-vite-kdvuf9qw || exit 1
+    for i in 1 2 3 4 5 6; do
+      for side in main u; do
+        node node_modules/vite/bin/vite.js preview --outDir $S/pp-$side --port 4173 --strictPort > /dev/null 2>&1 &
+        PV=$!
+        for _ in $(seq 1 40); do curl -sf -o /dev/null http://localhost:4173/ && break; sleep 1; done
+        out=$(node research/ui-harnesses/phone-perf-ui.cjs 4173 2>&1)
+        lt=$(echo "$out" | grep -o "long tasks [0-9]*ms" | head -1); fails=$(echo "$out" | grep -c "^  FAIL")
+        echo "$(date -u +%H:%M) run $i $side: $lt; fails $fails"
+        kill $PV; wait $PV 2>/dev/null
+      done
+    done
+
+Its output:
+
+11:03 run 1 main: long tasks 2291ms; fails 1
+11:04 run 1 u: long tasks 1587ms; fails 0
+11:04 run 2 main: long tasks 2304ms; fails 1
+11:05 run 2 u: long tasks 1573ms; fails 0
+11:06 run 3 main: long tasks 1694ms; fails 0
+11:06 run 3 u: long tasks 1368ms; fails 0
+11:07 run 4 main: long tasks 1632ms; fails 0
+11:08 run 4 u: long tasks 1982ms; fails 0
+11:09 run 5 main: long tasks 2656ms; fails 1
+11:09 run 5 u: long tasks 1455ms; fails 0
+11:10 run 6 main: long tasks 1979ms; fails 0
+11:11 run 6 u: long tasks 1556ms; fails 0

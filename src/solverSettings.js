@@ -95,6 +95,16 @@ export function atSpend(plan, x) {
   const sp = (plan && plan.spending) || {}, t = Number(sp.targetSpend) || 0, k = t > 0 ? x / t : 1;
   return { ...plan, spending: { ...sp, targetSpend: x, ...(Array.isArray(sp.spendBands) ? { spendBands: sp.spendBands.map(b => ({ ...b, amount: Number(b.amount) * k })) } : {}) } };
 }
+/* What if's target card (step U, LAYOUT.md section 3.3): the target times 0.8, 0.9, 1.1 and 1.2, each rounded to £500, shown in
+   order with the plan's own, solved nearest first (0.9, 1.1, 0.8, 1.2) */
+export const TARGET_STEPS = Object.freeze([0.9, 1.1, 0.8, 1.2]);
+export function targetOptions(plan) {
+  const own = Number(plan && plan.spending && plan.spending.targetSpend);
+  if (!Number.isFinite(own) || own <= 0) return null;
+  const at = k => Math.round((own * k) / 500) * 500;
+  const order = [...new Set(TARGET_STEPS.map(at))].filter(x => x !== own && x > 0);
+  return { own, targets: [...order, own].sort((a, b) => a - b), order };
+}
 /* the plan retiring at another age, every other input its own */
 export const atAge = (plan, a) => ({ ...plan, demographics: { ...plan.demographics, retireAgeSelf: a } });
 /* what a dial position adds to the solve's key beyond lambda (src/solverKey.js): nothing at position 1 */

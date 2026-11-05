@@ -1,0 +1,49 @@
+load-perf-ui.cjs in both modes (step U, D58 (2)), each output whole, 5 Nov. The site's build (the switch off) and a switch-on
+build (vite.config.js solver-preview at the harnesses' light settings), each served on 4173 in turn, the machine quiet.
+
+An earlier run (04:17 UTC, on 524f63b's harness) was read through a filter that hid the switch-off half's error: on the
+site's build the opted-in runs met the classic planner, whose full planner opens a saved plan on Plan Inputs with neither
+phrase the wait looked for, and the wait ran out (a TimeoutError). The gate's switch-off pass on f178e3b failed the same
+way. The harness now also counts the classic planner's tab bar with no place of the new planner's; the runs below are on it.
+
+=== the site's build (the switch off), 10:49 UTC ===
+Pixel 7, 4x CPU throttle, slow 4G, cold cache
+  run 1: content 3369ms, 226KB
+  run 2: content 3512ms, 226KB
+  run 3: content 3486ms, 226KB
+  median content on screen      3486ms (was 2203ms)
+  javascript over the wire      226KB (756KB decoded) over 2 script/style requests
+  ok    the page is usable promptly on a throttled phone   3486ms, ceiling 3800ms
+the new planner's first load, opted in (rp_planner new), Pixel 7
+  a saved plan: content 2770ms, 226KB (the new planner is not in this build: the switch is off)
+  an empty plan: content 3777ms, 226KB (the new planner is not in this build: the switch is off)
+  ok    ...and no more javascript than the ceiling allows   226KB over the wire, ceiling 228KB (the site's build; 214KB before the loading work)
+  ok    ...and the streamlined page is not among it   2 script/style requests
+  not measured against its ceiling: the switch is off in this build (the classic planner, measured above)
+every request the page makes, Pixel 7
+  ok    the page calls no host but its own   localhost:4173 only
+typing into a plan field, Pixel 7 at 4x throttle
+  ok    a typed character appears without waiting for the engine   39ms median, [50,39,35,71,27,28], ceiling 60ms
+
+all ok
+
+=== a switch-on build, 10:53 UTC ===
+Pixel 7, 4x CPU throttle, slow 4G, cold cache
+  run 1: content 3525ms, 232KB
+  run 2: content 3553ms, 232KB
+  run 3: content 3573ms, 232KB
+  median content on screen      3553ms (was 2203ms)
+  javascript over the wire      232KB (771KB decoded) over 3 script/style requests
+  ok    the page is usable promptly on a throttled phone   3553ms, ceiling 3800ms
+the new planner's first load, opted in (rp_planner new), Pixel 7
+  a saved plan: content 3134ms, 232KB
+  an empty plan: content 4612ms, 233KB
+  ok    ...and no more javascript than the ceiling allows   232KB over the wire, ceiling 232KB (a switch-on build, D58 (2); 214KB before the loading work)
+  ok    ...and the streamlined page is not among it   3 script/style requests
+  ok    the new planner's first load: no more javascript than its own ceiling allows   a saved plan 232KB, an empty plan 233KB, ceiling 234KB
+every request the page makes, Pixel 7
+  ok    the page calls no host but its own   localhost:4173 only
+typing into a plan field, Pixel 7 at 4x throttle
+  ok    a typed character appears without waiting for the engine   41ms median, [64,41,48,31,25,27], ceiling 60ms
+
+all ok

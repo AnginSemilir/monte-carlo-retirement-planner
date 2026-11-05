@@ -71,12 +71,11 @@ const SCREEN_CAP = {
 const TABS = [
   ['Start Here', /What each tab is for/i, 'Start'],
   ['Plan Inputs', /With partner/i, 'Inputs'],
-  // with the solver's switch on (run-all.sh --solver) a single household's tab leads with the solver's cards, the policy hidden
-  ['Config & Assumptions', /Decumulation|Spending & tax settings/i, 'Config'],
+  // the classic planner in both modes (step U): the app's rules
+  ['Config & Assumptions', /Decumulation/i, 'Config'],
   ['Projection', /Run the projection/i, 'Projection'],
-  // with the switch on a single household's tab is the solved plan (src/SolverStrategy.jsx), on a phone solved when asked
-  // (B10), not the tournament: read from the page (its [data-solver-strategy] card), so the switch off still demands the tournament
-  ['Strategy', /tournament/i, 'Strategy', /Loading your plan|Working out your plan|Running your plan through|worked out when you ask|Chance the money lasts|could not finish this plan/i],
+  // step U: with the switch on too, this harness sees the classic planner (rp_planner is 'classic' unless set), so the tournament
+  ['Strategy', /tournament/i, 'Strategy'],
   ['Historical Backtest', /1928|backtest/i, 'Backtest'],
   ['Audit Data Table', /audit|year-by-year|Age/i, 'Audit'],
   ['Documentation', /methodology|documentation|priorit/i, 'Docs'],

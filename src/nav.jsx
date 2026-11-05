@@ -20,12 +20,14 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreHorizontal } from 'lucide-react';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 const tone = (active, accent) => active
   ? (accent === 'indigo' ? 'text-indigo-600' : 'text-blue-600')
   : 'text-slate-500';
 
-export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreOpen }) {
+// `more={false}`: the new planner's form (step U, LAYOUT.md section 2.2), its four places in four columns and no More
+export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreOpen, more = true }) {
   const primary = primaryIds.map(id => tabs.find(t => t.id === id)).filter(Boolean);
   const overflow = tabs.filter(t => !primaryIds.includes(t.id));
   const inOverflow = overflow.some(t => t.id === activeTab);
@@ -35,12 +37,13 @@ export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreO
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* h-14 not min-h: the global .touch-ui min-height rule out-specifies a Tailwind min-h class
           and would quietly shrink this bar to 44px. A fixed row height is not overridable that way. */}
-      <div className="grid grid-cols-5 h-14">
+      <div className={`grid ${more ? 'grid-cols-5' : 'grid-cols-4'} ${!more && PLANNER_PLANT.has('navtarget40') ? 'h-10' : 'h-14'}`}>
         {primary.map(t => {
           const active = activeTab === t.id;
           return (
             <button key={t.id} type="button" onClick={() => onSelect(t.id)}
               aria-current={active ? 'page' : undefined}
+              style={!more && PLANNER_PLANT.has('navtarget40') ? { minHeight: 0, height: 40 } : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 h-full px-1 text-[10px] font-semibold cursor-pointer transition-colors ${tone(active, t.accent)}`}>
               <t.Icon className="w-5 h-5 shrink-0" />
               <span className="truncate max-w-full">{t.short}</span>
@@ -49,13 +52,13 @@ export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreO
         })}
         {/* More carries the active dot when the tab you are on lives inside it, so the bar never looks
             as though nothing is selected. */}
-        <button type="button" onClick={onMore}
+        {more && <button type="button" onClick={onMore}
           aria-haspopup="dialog" aria-expanded={moreOpen} aria-label="More sections"
           className={`relative flex flex-col items-center justify-center gap-0.5 h-full px-1 text-[10px] font-semibold cursor-pointer transition-colors ${tone(inOverflow || moreOpen, 'blue')}`}>
           <MoreHorizontal className="w-5 h-5 shrink-0" />
           <span>More</span>
           {inOverflow && <span className="absolute top-1.5 right-1/2 translate-x-3 w-1.5 h-1.5 rounded-full bg-blue-600" />}
-        </button>
+        </button>}
       </div>
     </nav>
   );

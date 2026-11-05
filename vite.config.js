@@ -12,6 +12,11 @@ const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Em
  * moved stops the build, so a harness can never pass on a build whose switch stayed off. The site's own build is untouched: the switch stays the one line Phase 12 turns on.
  */
 const SWITCH = '\nconst SOLVER = false;\n', OPTS = '\nconst SOLVER_OPTS = null;\n';
+// A Vercel preview deployment (VERCEL_ENV 'preview': a pull request's or a branch's preview link; never the site, which GitHub
+// Pages serves, nor Vercel's production deployment) builds with the switch and the beta on at the app's own settings, so a
+// preview link shows the new planner to whoever opts in with "Try the new planner (beta)" (step U's report to the maintainer).
+// Every other build, the harnesses' and the site's, reads SOLVER_PREVIEW as it is set.
+if (process.env.VERCEL_ENV === 'preview' && process.env.SOLVER_PREVIEW === undefined) process.env.SOLVER_PREVIEW = '1';
 // step U (research/reviews/2026-11-03/LAYOUT.md section 2.1): the preview build sets B6's beta switch true with SOLVER, so a
 // harness that opts in (rp_planner 'new') reaches the new planner; a harness that does not sees the classic planner
 const BETA = '\nconst PLANNER_BETA = false;\n';

@@ -375,44 +375,5 @@ export function openActionPlan(html) {
   return true;
 }
 
-/*
- * THE SOLVED PLAN'S SHEET (step U, research/reviews/2026-11-03/LAYOUT.md section 3.1): Your plan taken away, with the same print
- * stylesheet: the answer and the explanation, this year's steps with their costs, the next ten years, the rule of thumb where it
- * is shown, the comparison, and the levers' positions, the date and the code version. Its words come worded (src/solverWords.js,
- * by the caller), so this module stays free of them.
- */
-export function buildSolvedPlanHtml(d) {
-  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  const a = d.answer;
-  const rows = (cells, cls = '') => `<tr>${cells.map((c, i) => `<td${i && cls ? ` class="${cls}"` : ''}>${esc(c)}</td>`).join('')}</tr>`;
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>${esc(a.title)}</title>
-<style>${STYLE}</style></head>
-<body>
-<div class="noprint">
-  <button class="ghost" onclick="window.close()">Close</button>
-  <button onclick="window.print()">Print or save as PDF</button>
-</div>
-<div class="wrap" data-solved-sheet>
-  <header>
-    <h1>${esc(a.title)}: ${esc(a.amount)}</h1>
-    <div class="meta">${esc(today)} · ${esc(d.code)} · ${esc(d.levers)}</div>
-  </header>
-  <p class="lead">${esc([a.share, a.back].filter(Boolean).join(' '))}</p>
-  <p>${esc(a.chance)}. ${esc(a.delivered)}. On ${esc(d.trials)} simulated markets.</p>
-  ${d.explanation ? `<h2>${esc(d.explanation.title || 'Why')}</h2>${d.explanation.paras.map(t => `<p>${esc(t)}</p>`).join('')}` : ''}
-  <h2>${esc(d.thisYearTitle)}</h2>
-  ${d.actions.length ? `<ol class="steps">${d.actions.map(x => `<li><h3>${esc(x.what)}</h3><p class="meta">${esc(x.cost)}</p></li>`).join('')}</ol>` : '<p class="none">Nothing to change this year: keep to your plan as it stands.</p>'}
-  ${d.rule ? `<h2>${esc(d.rule.title)}</h2>${d.rule.lines.map(l => `<p>${esc(l)}</p>`).join('')}<p class="meta">${esc(d.rule.note)}</p>` : ''}
-  <h2>The next ten years on a typical run of the markets</h2>
-  <table><thead><tr><th>Year (age)</th><th>Spending (level)</th><th>The year's move</th></tr></thead>
-  <tbody>${d.ahead.map(g => `<tr><td>${esc(g.when)}</td><td class="n">${esc(g.spend)}</td><td>${g.lines.map(esc).join('<br>')}</td></tr>`).join('')}</tbody></table>
-  <p class="meta">${esc(d.comeBack)}</p>
-  <h2>${esc(d.compare.title)}</h2>
-  <table><thead><tr><th></th><th class="n">Your current approach</th><th class="n">Solved</th></tr></thead>
-  <tbody>${d.compare.rows.map(r => rows(r, 'n')).join('')}</tbody></table>
-  <p class="meta">${esc(d.compare.line)}</p>
-  <footer>Educational and illustrative only. This is not financial advice. The figures are the app's simulation of the plan as worked out on ${esc(today)}; come back next year, when the plan is worked out again from where your money then stands.</footer>
-</div>
-</body></html>`;
-}
+// the stylesheet and the escape, for the solved plan's sheet (src/solvedSheet.js, a chunk of its own, built on Print)
+export { STYLE, esc };

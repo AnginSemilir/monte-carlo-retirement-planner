@@ -28,12 +28,10 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 import { Term as T, Hint } from './glossary.jsx';
 import { Boundary } from './boundary.jsx';
 // step U: the new planner's status strip and its words, in the entry (they show before any solver chunk arrives)
-import { StatusStrip } from './StatusStrip.jsx';
-import { timings } from './solveStatus.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput, toBody } from './phone.jsx';
 import { fieldCls as inputCls, smallFieldCls as smallInputCls, parseTierLabel } from './ui.js';
-import { buildActionPlanHtml, openActionPlan, buildSolvedPlanHtml } from './actionPlan.js';
+import { buildActionPlanHtml, openActionPlan } from './actionPlan.js';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs, DeckBar } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -6955,19 +6953,22 @@ const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
 // the page's own pieces the solver's cards use, handed in rather than imported there (src/SolverConfig.jsx says why)
 const SOLVER_UI = { Fine, PhoneCollapse, MoneyInput, fieldCls: inputCls };
 const SolverAimsCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverAims })));
-// Phase 10, item 4: the retirement-age dial under the switch (B11), loaded with the solver's other cards
-const SolverAgesCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverAges })));
-// Phase 10, item 6: each scenario compared carries a solve, on request
-const SolverScenariosCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverScenarios })));
 // Phase 10, item 7: the history tab's out-of-model check, loaded when there is a solved plan's run through history to show
 const SolverHistoryCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverHistory })));
-// Phase 10, item 2's rest: the solved plan's highest target and earliest age on the "Spend and date" step, on request
-const SolverPlanAnswersCard = /* @__PURE__ */ lazy(() => import('./SolverSimple.jsx').then(m => ({ default: m.SolverPlanAnswers })));
 const SolverLocksCard = /* @__PURE__ */ lazy(() => import('./SolverConfig.jsx').then(m => ({ default: m.SolverLocks })));
-// step U: Your plan, the new planner's first place (src/PlannerPlan.jsx), its What if target card and its quick start, each
-// fetched only in the new planner
+// step U: Your plan, the new planner's first place (src/PlannerPlan.jsx), its other cards (src/PlannerCards.jsx: the couples
+// card, What if with the age, target and limits cards and the scenarios, the solver's settings, how it decides) and its quick
+// start, each fetched only in the new planner
 const PlannerPlanCard = /* @__PURE__ */ lazy(() => import('./PlannerPlan.jsx').then(m => ({ default: m.PlannerPlan })));
-const SolverTargetsCard = /* @__PURE__ */ lazy(() => import('./SolverFigures.jsx').then(m => ({ default: m.SolverTargets })));
+const PlannerCouples = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.Couples })));
+const PlannerWhatIf = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.WhatIf })));
+const PlannerSettings = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.SolverSettings })));
+const PlannerDocs = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.DocsSolver })));
+const PlannerDetails = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.Details })));
+const PlannerYouNav = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.YouNav })));
+const PlannerYouHeader = /* @__PURE__ */ lazy(() => import('./PlannerCards.jsx').then(m => ({ default: m.YouHeader })));
+// the status strip (src/StatusStrip.jsx and its src/solveStatus.js), shown only in the new planner
+const StatusStripCard = /* @__PURE__ */ lazy(() => import('./StatusStrip.jsx').then(m => ({ default: m.StatusStrip })));
 const QuickStartCard = /* @__PURE__ */ lazy(() => import('./PlannerStart.jsx').then(m => ({ default: m.QuickStart })));
 /*
  * THE TABS, ONCE.
@@ -8465,7 +8466,10 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const solve = useSolverState(plan, solverRules, E, SOLVER_OPTS, solverRules && !asked && !PLANNER_PLANT.has('phonesolve'));
   // the cards' cost lines read this device's last solve (src/solveStatus.js timings)
   useEffect(() => {
-    if (solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error) { timings.restored = !!solve.solveMeta.restored; timings.solve = solve.solveMeta.restored ? null : solve.solveMeta.secs || null; }
+    if (solve.solveState === 'solved' && solve.solveMeta && !solve.solveMeta.error) {
+      const { restored, secs } = solve.solveMeta;
+      import('./solveStatus.js').then(({ timings }) => { timings.restored = !!restored; timings.solve = restored ? null : secs || null; });
+    }
   }, [solve.solveState, solve.key]);   // eslint-disable-line react-hooks/exhaustive-deps
   // a failed solve tries again on a copy of the plan (the hook takes it as a change); on a phone, asked for at once
   const retrySolve = () => setPlan(p => { const q = { ...p }; if (isPhone) setAskedPlan(q); return q; });
@@ -12084,21 +12088,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   // the solved plan's sheet (LAYOUT.md section 3.1), from Your plan's own figures, its words from the table (a chunk of its own)
   const printSolvedPlan = async () => {
     if (!planFigures) return;
-    const W = await import('./solverWords.js');
-    const st = planFigures.strategy, m = planFigures.more || {}, h = st.headline, wctx = { target: h.target, fmt: formatGBP }, a = W.headlineWords(h, formatGBP), c = st.compare;
-    const ok = openActionPlan(buildSolvedPlanHtml({
-      answer: a, explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers: leversSummary, code: APP_VERSION,
-      thisYearTitle: h.retired ? 'This year' : 'This year, before you retire',
-      actions: m.actions ? m.actions.actions.map(x => W.actionWords(x, wctx)) : [],
-      rule: m.distil && m.distil.show ? W.ruleWords(m.distil, wctx) : null,
-      ahead: m.ahead ? W.aheadRowsWords(m.ahead.rows, wctx) : [], comeBack: W.COME_BACK,
-      compare: {
-        title: `The solved plan against your current approach, on the same ${st.trials.toLocaleString('en-GB')} markets`, line: rulesLine,
-        rows: [['Chance the money lasts', `${c.yours.survival.toFixed(1)}%`, `${c.solved.survival.toFixed(1)}%`], ['Pot left at the end, typical', formatGBP(c.yours.medianPot), formatGBP(c.solved.medianPot)],
-          ['Pot left at the end, unlucky tenth', formatGBP(c.yours.p10Pot), formatGBP(c.solved.p10Pot)], ['Tax over your lifetime, typical', formatGBP(c.yours.lifetimeTax), formatGBP(c.solved.lifetimeTax)],
-          ['Estate after the pension\'s death tax, typical', formatGBP(c.yours.estate), formatGBP(c.solved.estate)]]
-      }
-    }));
+    const { solvedSheetHtml } = await import('./solvedSheet.js');
+    const ok = openActionPlan(solvedSheetHtml(planFigures, { fmt: formatGBP, levers: leversSummary, rulesLine, code: APP_VERSION }));
     if (!ok) flash('The browser blocked the new window: allow pop-ups for this site to print the plan.');
   };
   useEffect(() => {
@@ -12113,33 +12104,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} solveLine={false} collapse={!inSheet} />
     </Suspense>
   );
-  const couplesCard = () => (PLANNER_PLANT.has('nocouple') ? null :
-    <section data-planner-couple className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
-      <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
-      <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
-      <div className="flex flex-wrap gap-2">
-        <button type="button" data-open-classic onClick={() => setPlanner('classic')} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Open the classic planner</button>
-        <button type="button" onClick={() => { setActiveTab('you'); selectSection('you'); }} className={`px-4 rounded-lg border border-slate-300 bg-surface text-sm font-semibold text-slate-800 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Change to a plan for one person</button>
-      </div>
-    </section>
+  // the new planner's cards come in a chunk of their own (src/PlannerCards.jsx; LAYOUT.md section 11.2)
+  const couplesCard = () => (
+    <Suspense fallback={null}><PlannerCouples isPhone={isPhone} onClassic={() => setPlanner('classic')} onOnePerson={() => { setActiveTab('you'); selectSection('you'); }} /></Suspense>
   );
-  const youNav = () => (
-    <nav aria-label="The sections of You" className="sticky top-32 space-y-0.5">
-      {PLANNER_SECTIONS.map(x => (
-        <button key={x.id} type="button" data-you-nav={x.id} onClick={() => { const el = document.querySelector(`[data-section="${x.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-          className="block w-full text-left px-3 min-h-9 rounded-lg text-sm text-slate-700 hover:bg-slate-100 cursor-pointer">{YOU_NAMES[x.id] || x.short}</button>
-      ))}
-    </nav>
-  );
-  const youHeader = () => (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h1 className="text-[22px] font-semibold text-slate-900">You</h1>
-        <p className="text-sm text-slate-600 mt-1">Who you are, what you have and what you want to spend. Changes here work your plan out again, unless the control says otherwise.</p>
-      </div>
-      <button type="button" data-save-scenario onClick={handleSaveAsNewScenario} className={`px-3 rounded-lg border border-slate-300 bg-surface text-xs font-semibold text-slate-800 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Bookmark className="w-3.5 h-3.5" /> Save as a scenario</button>
-    </div>
-  );
+  const youNav = () => <Suspense fallback={null}><PlannerYouNav sections={PLANNER_SECTIONS} names={YOU_NAMES} /></Suspense>;
+  const youHeader = () => <Suspense fallback={null}><PlannerYouHeader isPhone={isPhone} onSave={handleSaveAsNewScenario} /></Suspense>;
   // You's last card (LAYOUT.md section 3.2): the app's rules for the plan, each control saying whether it works the plan out again
   const RESOLVES = 'Changing this works your plan out again: the solved plan uses it too.';
   const KEEPS = 'The solved plan does not use this: changing it re-runs the comparison.';
@@ -12161,59 +12131,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
   // What if's scenarios (LAYOUT.md section 3.3): the current plan first, each saved one with what differs, its solved line, Load
   // and Delete; a couple's keeps the app's rules
-  const scenarioDiff = d => {
-    const out = [], a = E.normalizePlan(d), t = E.num(a.spending.targetSpend, 0), r = E.num(a.demographics.retireAgeSelf, 0);
-    if (t !== E.num(plan.spending.targetSpend, 0)) out.push(`spends ${formatGBP(t)} a year`);
-    if (r !== E.num(plan.demographics.retireAgeSelf, 0)) out.push(`retires at ${r}`);
-    const tot = x => (x.accounts || []).reduce((s2, ac) => s2 + E.num(ac.balance, 0), 0);
-    if (Math.round(tot(a)) !== Math.round(tot(plan))) out.push(`holds ${formatGBP(tot(a))}`);
-    return out.length ? out.join(', ') : 'the same as your plan on these figures';
-  };
-  const scenariosCard = () => (
-    <section data-whatif-scenarios className="p-4 rounded-xl border border-slate-200/90 bg-surface space-y-2">
-      <h3 className="text-[15px] font-semibold text-slate-900">Your scenarios</h3>
-      <p className="text-xs text-slate-500">A change to try is a scenario: save one in You, then edit it. Each is solved only when you ask: one solve a scenario.</p>
-      <ul className="space-y-1.5 text-xs">
-        {scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => (
-          <li key={sc.id} data-scenario-row={sc.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-slate-100 pt-1.5">
-            <span className="font-semibold text-slate-800">{sc.name}</span><span className="text-slate-500">{scenarioDiff(sc.data)}</span>
-            <span className="flex-1" />
-            <button type="button" onClick={() => handleSelectScenario(sc.id)} className={`px-2 rounded border border-slate-200 bg-slate-50 font-semibold text-slate-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-7'}`}>Load</button>
-            <button type="button" onClick={() => handleDeleteScenario(sc.id)} className={`px-2 rounded border border-slate-200 bg-slate-50 font-semibold text-rose-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-7'}`}>Delete</button>
-          </li>
-        ))}
-      </ul>
-      <Suspense fallback={null}>
-        <SolverScenariosCard rows={[{ id: '__current__', name: 'Current plan', isBase: true, plan }, ...scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => ({ id: sc.id, name: sc.name, plan: sc.data }))]}
-          plan={plan} solve={solve} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
-      </Suspense>
-    </section>
-  );
   const solverSettingsCard = () => (
-    <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
-      <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
-      <p>{(SOLVER_OPTS && SOLVER_OPTS.points) || 45} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {plannerSteps[plannerSteps.length - 1].toLocaleString('en-GB')} simulated markets. The candidate d71f65ae871e.</p>
-    </section>
+    <Suspense fallback={null}><PlannerSettings points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45} paths={plannerSteps[plannerSteps.length - 1]} /></Suspense>
   );
   const docsSolverCard = () => (
-    <section data-docs-solver className="p-4 bg-surface border border-slate-200/90 rounded-xl text-sm text-slate-700 space-y-3">
-      <h3 className="text-[15px] font-semibold text-slate-900">How the solver decides</h3>
-      <p>Each year the solver chooses how much to spend, which pot to draw from and how to invest, by working backwards from the end of your plan over thousands of simulated markets. Not running out comes first; what matters to you decides the rest.</p>
-      <dl className="grid gap-2 text-xs">
-        <div><dt className="font-semibold text-slate-900">The solved plan</dt><dd>What the solver works out for your money, year by year.</dd></div>
-        <div><dt className="font-semibold text-slate-900">Your current approach</dt><dd>Your plan run by the app&apos;s own rules; the yardstick.</dd></div>
-        <div><dt className="font-semibold text-slate-900">Limits</dt><dd>What the solver may not change (the locks).</dd></div>
-        <div><dt className="font-semibold text-slate-900">A rule of thumb</dt><dd>The plan&apos;s own choices in three lines, shown where following it costs under half a point.</dd></div>
-      </dl>
-      <p className="text-xs text-slate-500">What this model will not tell you: it is a model of markets, tax and your plan, not a forecast. Educational and illustrative only. This is not financial advice.</p>
-      {!docsOpen ? <button type="button" data-docs-open onClick={() => setDocsOpen(true)} className={`text-xs font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Read the full documentation</button> : (
-        <Suspense fallback={<div className="text-sm text-slate-400">Loading the documentation&hellip;</div>}>
-          <Docs E={E} P={P} plan={plan} nmpa={nmpa} terminalAge={terminalAge} activeRiskMatrix={activeRiskMatrix} isPhone={isPhone}
-            docSections={docSections} onSections={onDocSections} scrollToDocSection={scrollToDocSection}
-            MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum} />
-        </Suspense>
-      )}
-    </section>
+    <Suspense fallback={null}>
+      <PlannerDocs isPhone={isPhone} open={docsOpen} onOpen={() => setDocsOpen(true)}>
+        {docsOpen && (
+          <Suspense fallback={<div className="text-sm text-slate-400">Loading the documentation&hellip;</div>}>
+            <Docs E={E} P={P} plan={plan} nmpa={nmpa} terminalAge={terminalAge} activeRiskMatrix={activeRiskMatrix} isPhone={isPhone}
+              docSections={docSections} onSections={onDocSections} scrollToDocSection={scrollToDocSection}
+              MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum} />
+          </Suspense>
+        )}
+      </PlannerDocs>
+    </Suspense>
   );
   // the history and audit tabs as pieces (step U): the classic tabs render them as before, the new planner's Details too
   const historyView = () => (
@@ -13133,7 +13065,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {navTabs.map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               <span className="flex-1" />
               <div className="self-center min-w-0 max-w-[55%]">
-                <StatusStrip solve={solve} isPhone={false} asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} />
+                <Suspense fallback={null}><StatusStripCard solve={solve} isPhone={false} asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>
               </div>
             </nav>
           </div>
@@ -13147,7 +13079,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
               <button type="button" data-crossover-planner aria-label="Open the classic planner" onClick={() => setPlanner('classic')} className="min-h-11 px-2 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">Classic</button>
             </header>
-            {solverRules && <StatusStrip solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} />}
+            {solverRules && <Suspense fallback={null}><StatusStripCard solve={solve} isPhone asked={asked} simulating={planPhase.simulating} trials={planPhase.trials} place={activeTab} onAction={stripAction} /></Suspense>}
           </div>
         )}
 
@@ -16305,57 +16237,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <h1 className="text-[22px] font-semibold text-slate-900">What if</h1>
             {!planStarted ? <p className="text-sm text-slate-600">Fill in your plan first, on Your plan or in You.</p>
               : isCouple ? couplesCard() : (
-                <div className="grid gap-6 min-[1100px]:grid-cols-2 items-start">
-                  {!solvedInHand && <p data-whatif-wait className="text-sm text-slate-600 min-[1100px]:col-span-2">Each card here works your plan out again at another setting, once your plan itself is worked out.</p>}
-                  <Suspense fallback={null}>
-                    <SolverAgesCard plan={plan} solve={solve} ageNow={ctx.owners[0].age0} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
-                    <SolverTargetsCard plan={plan} solve={solve} seed={mcSeed} upto={plannerSteps[0]} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} />
-                    <div data-whatif-limits className="p-4 rounded-xl border border-slate-200/90 bg-surface">
-                      {solvedInHand ? <SolverPlanAnswersCard plan={plan} fromSpend={null} ageNow={ctx.owners[0].age0} last={terminalAge - 1} engine={E} opts={SOLVER_OPTS} fmt={formatGBP} whatIf />
-                        : <><h3 className="text-[15px] font-semibold text-slate-900">The solved plan&apos;s limits</h3><p className="text-xs text-slate-500 mt-1">The highest target and the earliest retirement the solved plan keeps at the chance you choose, once your plan is worked out.</p></>}
-                    </div>
-                  </Suspense>
-                  {scenariosCard()}
-                </div>
+                <Suspense fallback={null}>
+                  <PlannerWhatIf solvedInHand={solvedInHand} plan={plan} solve={solve} ageNow={ctx.owners[0].age0} last={terminalAge - 1} seed={mcSeed} upto={plannerSteps[0]}
+                    engine={E} opts={SOLVER_OPTS} fmt={formatGBP} scenarios={{ scenarios, activeScenarioId, isPhone, onLoad: handleSelectScenario, onDelete: handleDeleteScenario }} />
+                </Suspense>
               )}
           </main>
         )}
         {solverOn && activeTab === 'details' && (
-          <main data-place="details" className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="text-[22px] font-semibold text-slate-900">Details</h1>
-              <div className="flex flex-wrap gap-2">
-                {planFigures && <button type="button" data-details-print onClick={printSolvedPlan} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Print this plan</button>}
-                <button type="button" onClick={handleExportJSON} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Download className="w-3.5 h-3.5" /> Export plan (JSON)</button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} className={`px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer flex items-center gap-1.5 ${isPhone ? 'min-h-11' : 'min-h-9'}`}><Upload className="w-3.5 h-3.5" /> Import plan (JSON)</button>
-                <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
-              </div>
-            </div>
-            {isPhone ? <SectionTabs sections={DETAILS_SECTIONS} active={detailsSection} onSelect={setDetailsSection} top="top-[76px]" /> : (
-              <div role="group" aria-label="The sections of Details" data-details-control className="inline-flex flex-wrap gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs font-semibold">
-                {DETAILS_SECTIONS.map(x => <button key={x.id} type="button" onClick={() => { setDetailsSection(x.id); const el = document.querySelector(`[data-details="${x.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                  aria-pressed={detailsSection === x.id} className={`px-3 min-h-9 rounded-md cursor-pointer ${detailsSection === x.id ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>{x.short}</button>)}
-              </div>
-            )}
-            {isCouple && couplesCard()}
-            {(!isPhone || detailsSection === 'ledger') && <section data-details="ledger" className="scroll-mt-32">{auditCard()}</section>}
-            {(!isPhone || detailsSection === 'history') && <section data-details="history" className="scroll-mt-32 space-y-6">{historyView()}</section>}
-            {(!isPhone || detailsSection === 'assumptions') && (
-              <section data-details="assumptions" data-assumptions className="scroll-mt-32 space-y-4">
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl text-xs">{ctlTaxRules()}</div>
-                {assumptionCards(false)}
-                <div data-display className="space-y-2">
-                  <div className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                    <div><h2 className="text-base font-semibold text-slate-900">Display</h2><p className="text-xs text-slate-500 mt-1">The theme, and how numbers are written.</p></div>
-                    <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
-                  </div>
-                  {numberFormatCard()}
-                </div>
-                {solverSettingsCard()}
-              </section>
-            )}
-            {(!isPhone || detailsSection === 'docs') && <section data-details="docs" className="scroll-mt-32">{docsSolverCard()}</section>}
-          </main>
+          <Suspense fallback={null}>
+            <PlannerDetails isPhone={isPhone} sections={DETAILS_SECTIONS} section={detailsSection} onSection={setDetailsSection}
+              onPrint={planFigures ? printSolvedPlan : null} onExport={handleExportJSON} onImport={() => fileInputRef.current?.click()}
+              fileInput={<input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />}
+              couple={isCouple ? couplesCard : null} ledger={auditCard} history={historyView} taxRules={ctlTaxRules} assumptions={() => assumptionCards(false)}
+              theme={<ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />} numberFormat={numberFormatCard}
+              settings={solverSettingsCard} docs={docsSolverCard} />
+          </Suspense>
         )}
 
         {/* TAB 7: DOCS */}

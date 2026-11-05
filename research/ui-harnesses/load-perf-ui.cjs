@@ -65,6 +65,16 @@ const BEFORE = { content: 2203, js: 214 };
  */
 const JS_CEILING = 228;
 /*
+ * THE CLASSIC PLANNER ON A SWITCH-ON BUILD, 232 on 5 Nov 2026 (step U; D58 (2), the maintainer's line: "a classic run over
+ * 228KB moves its ceiling to the measured figure plus one, up to 232KB"). On the site's own build (the switch off) the classic
+ * planner is unchanged at 226KB and keeps the 228 above. On a switch-on build its first load carries the new planner's header,
+ * its status strip's wiring and the places' names (LAYOUT.md section 11.2), the places themselves in chunks of their own: the
+ * first measure read 236KB with What if, Details and their cards inline, and 231KB once they moved to src/PlannerCards.jsx,
+ * the print sheet to src/solvedSheet.js and the strip to its own chunk. The byte count is deterministic, so the ceiling is the
+ * measured 231 plus one, D58's limit. A switch-on build is one where the opted-in runs below reach the new planner.
+ */
+const JS_CEILING_SWITCH_ON = 232;
+/*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so
  * a threshold placed between the two medians would fail on noise as often as on a regression. The bytes
@@ -105,7 +115,8 @@ const CEILING = 3800;
  * ceiling is its measured figure plus one, with a dated note. On the site's own build (the switch off) the new planner is not
  * there, and the run says so rather than measuring the classic planner twice.
  */
-const PLANNER_JS_CEILING = 250;
+// 5 Nov 2026 (D58 (2)): measured 231KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
+const PLANNER_JS_CEILING = 234;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
@@ -254,15 +265,16 @@ async function typingLatency(b) {
   // Thresholds sit above the measured figures with headroom, so this fails on a real regression rather
   // than on the noise between two runs of the same build.
   ok('the page is usable promptly on a throttled phone', content < CEILING, `${content}ms, ceiling ${CEILING}ms`);
-  ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= JS_CEILING,
-    `${runs[0].js}KB over the wire, ceiling ${JS_CEILING}KB (${BEFORE.js}KB before the loading work)`);
-  ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
-
-  // the new planner's first load (step U): a saved single plan to the answer card's first state, an empty one to the quick start
+  // the new planner's first load (step U): a saved single plan to the answer card's first state, an empty one to the quick start;
+  // measured before the classic planner's bytes are judged, since whether it is there says which ceiling the classic run has
   console.log('the new planner\'s first load, opted in (rp_planner new), Pixel 7');
   const np = [await measure(b, 'a saved plan', { plan: SINGLE }), await measure(b, 'an empty plan', { plan: null })];
   for (const r of np) console.log(`  ${r.label}: content ${r.content}ms, ${r.js}KB${r.opted ? '' : ' (the new planner is not in this build: the switch is off)'}`);
-  if (np.every(r => r.opted)) {
+  const switchOn = np.every(r => r.opted), jsCeiling = switchOn ? JS_CEILING_SWITCH_ON : JS_CEILING;
+  ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= jsCeiling,
+    `${runs[0].js}KB over the wire, ceiling ${jsCeiling}KB (${switchOn ? 'a switch-on build, D58 (2)' : 'the site\'s build'}; ${BEFORE.js}KB before the loading work)`);
+  ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
+  if (switchOn) {
     const top = Math.max(...np.map(r => r.js));
     ok('the new planner\'s first load: no more javascript than its own ceiling allows', top > 0 && top <= PLANNER_JS_CEILING, `${np.map(r => `${r.label} ${r.js}KB`).join(', ')}, ceiling ${PLANNER_JS_CEILING}KB`);
   } else console.log('  not measured against its ceiling: the switch is off in this build (the classic planner, measured above)');

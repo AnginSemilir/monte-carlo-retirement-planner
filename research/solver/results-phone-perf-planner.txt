@@ -1,0 +1,101 @@
+phone-perf-ui.cjs section 5 (Phase 11 item 3; B10, D59): the new planner on a phone, Pixel 7 at 4x CPU throttle, "Solve my
+plan" to every path in, on a switch-on build at the harnesses' light settings (run-all's), 5 Nov, the machine quiet.
+
+1. Ten runs (PHONE_PERF_ONLY=planner), the ceiling then 2,200ms (the first three before the bytes were counted right: a
+   worker's script has no frame and no body size in Playwright's sizes, so it is counted from its body, gzipped):
+== run 1 20:16
+  solved and filled in 160.1s; long tasks 1052ms; bytes fetched: the page 254KB, the workers 0KB (12 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  ok    ...the main thread stays free while it solves and fills in   1052ms of long tasks, ceiling 2200ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+all ok
+== run 2 20:19
+  solved and filled in 159.4s; long tasks 322ms; bytes fetched: the page 254KB, the workers 0KB (12 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  ok    ...the main thread stays free while it solves and fills in   322ms of long tasks, ceiling 2200ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+all ok
+== run 3 20:21
+  solved and filled in 153.5s; long tasks 1657ms; bytes fetched: the page 254KB, the workers 0KB (12 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  ok    ...the main thread stays free while it solves and fills in   1657ms of long tasks, ceiling 2200ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+all ok
+== run 4 20:27
+  solved and filled in 172.1s; long tasks 1812ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+== run 5 20:30
+  solved and filled in 160.3s; long tasks 312ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+== run 6 20:33
+  solved and filled in 152.8s; long tasks 2523ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+  FAIL  ...the main thread stays free while it solves and fills in   2523ms of long tasks, ceiling 2200ms
+1 FAILED
+== run 7 20:36
+  solved and filled in 146.5s; long tasks 871ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+== run 8 20:38
+  solved and filled in 148.5s; long tasks 327ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+== run 9 20:41
+  solved and filled in 148.4s; long tasks 4627ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+  FAIL  ...the main thread stays free while it solves and fills in   4627ms of long tasks, ceiling 2200ms
+1 FAILED
+
+   the scripts fetched (PHONE_PERF_LIST=1), before the worker's bytes were counted from its body:
+the new planner, opted in, Pixel 7 at 4x CPU throttle: "Solve my plan" to every path in
+    page   4KB jsx-runtime-B-hcVAMW.js
+    page   228KB index-BbdUBCRy.js
+    page   2KB StatusStrip-ZxcYWieE.js
+    page   2KB solveStatus-CKQ5rR0B.js
+    page   9KB PlannerPlan-r-PT4miC.js
+    page   3KB solverWords-DeBD2Kdf.js
+    page   2KB solverSettings-BYZ2L2yx.js
+    page   3KB solverClient-KIG2l4A2.js
+    page   0KB solverWorker-DQFoC_aX.js
+    page   0KB solverWorker-DQFoC_aX.js
+    page   0KB solverWorker-DQFoC_aX.js
+    page   0KB solverWorker-DQFoC_aX.js
+  solved and filled in 154.9s; long tasks 1472ms; bytes fetched: the page 254KB, the workers 0KB (12 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  ok    ...the main thread stays free while it solves and fills in   1472ms of long tasks, ceiling 2200ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+
+all ok
+
+2. Planted (PHONE_PERF_PLANT=hogmain: the main thread held a third of a second on every message from the solver's workers):
+  solved and filled in 152.4s; long tasks 22652ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  FAIL  ...the main thread stays free while it solves and fills in   22652ms of long tasks, ceiling 2200ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+1 FAILED
+
+3. A devtools timeline trace of one run (trace.cjs in the session's scratchpad):
+the main thread, tasks over 50ms: 21, 1591ms in all; by the largest event inside each: MajorGC 3 (343ms), HandlePostMessage 2 (195ms), (none attributed) 7 (449ms), Commit 1 (106ms), Paint 3 (205ms), UpdateLayoutTree 3 (190ms), Layout 1 (52ms), FunctionCall 1 (52ms)
+
+   The ceiling set from these: 7,000ms, above the worst of the ten (4,627) by more than half their spread (4,315), as the
+   projection's line sits; the plant reads 22,652.
+
+4. The whole harness on the switch-on build, sections 1 to 5:
+Pixel 7 at 4x CPU throttle
+  run finished in 12.8s; long tasks 1397ms (was 28398ms)
+  ok    the main thread stays free during the projection   1397ms of long tasks, ceiling 2200ms
+  ok    ...and a worker actually ran   1 worker(s)
+  ok    no page errors
+  ok    ...with no worker, as asked   0 worker(s)
+  ok    the worker's survival is the main thread's answer   86.6% vs 86.6%
+  ok    the worker's pot is the main thread's answer   £1,603,573 vs £1,603,573
+  ok    the worker's safeMax is the main thread's answer   £36,250 vs £36,250
+  ok    the worker's achieved is the main thread's answer   90.1% vs 90.1%
+  ok    the run was still going when Stop was pressed
+  ok    ...and Stop ends it promptly   117ms
+  ok    ...leaving the page usable
+the new planner, opted in, Pixel 7 at 4x CPU throttle: "Solve my plan" to every path in
+  solved and filled in 208.6s; long tasks 1859ms; bytes fetched: the page's scripts 252KB, the workers' 219KB gzipped (9 scripts)
+  ok    the new planner on a phone: "Solve my plan" asked, solved, every path in   asked true, done true
+  ok    ...the main thread stays free while it solves and fills in   1859ms of long tasks, ceiling 7000ms
+  ok    ...the solve ran in the solver's workers   4 solver worker(s)
+  ok    ...no page errors
+
+all ok

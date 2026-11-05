@@ -8,8 +8,9 @@
  *      - Your plan is the solved plan, and comes as its own chunk;
  *      - its figures, once all its paths are in, are Node's (src/solverStrategy.js strategyOf on the saved plan, solved at the
  *        same light settings, on the projection's seed): the solved plan's bit for bit (the headline, its comparison column,
- *        the raise), your plan's within a relative 1e-12 (the app's own rules round in the last place differently in Chromium);
- *      - the words on the card are the wording table's for that case (src/solverWords.js);
+ *        the raise), your plan's and both arms' money bands within a relative 1e-12 (Node's Math.pow and Chromium's round in
+ *        the last place differently: research/ui-harnesses/pow-probe.cjs);
+ *      - the words on the card and the explanation under it are the wording table's for that case (src/solverWords.js);
  *      - this year's actions come in, then the rule of thumb (src/solverDistil.js), shown exactly when following it costs
  *        under half a point of survival (the harness's light settings: 300 paired paths).
  * 3. The wording's four cases (B4), each on a library household that reads so at these settings: starting at the target,
@@ -120,19 +121,22 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       let done = true;
       try { await waitDone(p); } catch (e) { done = false; }
       const figs = done ? JSON.parse(await p.getAttribute('[data-solver-strategy]', 'data-strategy-figures')) : null;
-      const text = done ? await p.textContent('[data-solver-strategy]') : '';
+      // the card's words and the explanation beside it: in the new planner the explanation sits under the card in Your plan
+      // (src/PlannerPlan.jsx), no longer inside it
+      const text = done ? await p.evaluate(() => { const c = document.querySelector('[data-solver-strategy]'), x = document.querySelector('[data-place="plan"] [data-strategy-explanation]'); return (c ? c.textContent : '') + ' ' + (x ? x.textContent : ''); }) : '';
       const node = done ? nodeStrategy(await saved(p)) : null;
       if (which === 'main') {
-        // the solved plan's figures bit for bit (the headline, its comparison column, the raise, the outlook). Your plan's differ in the last
-        // place on S126 (2 Nov: the median pot 3338600.275849318 in the page against ...319 in Node) where the solved plan's, on
-        // the same engine, do not; not traced: the likely cause is the app's own rules (its guardrails, the lookahead), which
-        // the solved plan does not run, rounding differently in Chromium's V8. Held within a relative 1e-12
-        const only = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: o.outlook && { ...o.outlook, wealth: { solved: o.outlook.wealth.solved } } });
+        // the solved plan's figures bit for bit (the headline, its comparison column, the raise, the outlook's spending), your
+        // plan's and both arms' money bands within a relative 1e-12: Node's Math.pow and Chromium's round differently in the
+        // last place (research/ui-harnesses/pow-probe.cjs, results-pow-probe.txt), and the money passes through it (your plan's
+        // median pot on S126 1 ulp apart since 2 Nov; step U's outlook, the solved plan's money bands, a few years 1 ulp apart),
+        // where the counts (survival, the headline's levels and years) do not move
+        const only = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: o.outlook && { ...o.outlook, wealth: null } });
         const solvedSame = done && JSON.stringify(only(figs)) === JSON.stringify(only(node));
         const rd = (x, y) => Math.abs(x - y) / Math.max(1, Math.abs(y));
         const rel = done ? Math.max(...Object.keys(node.compare.yours).map(k => rd(figs.compare.yours[k], node.compare.yours[k])),
-          ...node.outlook.wealth.yours.flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => rd(figs.outlook.wealth.yours[t][k], bd[k])))) : Infinity;
-        ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's within a relative 1e-12`, solvedSame && rel <= 1e-12, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}% (Node ${node.headline.survival.toFixed(1)}%), yours ${figs.compare.yours.survival.toFixed(1)}% (largest relative gap ${rel.toExponential(1)}); ${diffs(figs, node).slice(0, 2).join('; ') || 'every figure the same'}` : 'not done');
+          ...['yours', 'solved'].flatMap(arm => node.outlook.wealth[arm].flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => rd(figs.outlook.wealth[arm][t][k], bd[k]))))) : Infinity;
+        ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's and the money bands within a relative 1e-12`, solvedSame && rel <= 1e-12, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}% (Node ${node.headline.survival.toFixed(1)}%), yours ${figs.compare.yours.survival.toFixed(1)}% (largest relative gap ${rel.toExponential(1)}); ${diffs(only(figs), only(node)).slice(0, 2).join('; ') || 'every other figure the same'}` : 'not done');
         ok(`${id}: Your plan came as its own chunk`, urls.some(u => /PlannerPlan/.test(u)));
         // this year's actions, then the rule of thumb, shown exactly when following it costs under half a point
         let more = true;
@@ -143,8 +147,11 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       }
       if (done) {
         const w = headlineWords(figs.headline, fmt), x = explanationWords(figs.headline);
-        const words = [w.title, w.amount, w.share, w.back, ...(x ? x.paras : [])].filter(Boolean).every(t => text.includes(t));
-        const kind = await p.$eval('[data-solver-strategy]', el => { const x = el.querySelector('[data-strategy-explanation]'); return x ? x.dataset.strategyExplanation : null; });
+        // the amount as LAYOUT.md section 3.1 sets it: the figure and "a year" large, and on a plan above its target the rest of
+        // the string the line under it (", above your £5,000 target" -> "Above your £5,000 target.")
+        const am = /^(.*?) a year(?:, (.*))?$/.exec(w.amount), amount = am ? [`${am[1]} a year`, am[2] ? `${am[2][0].toUpperCase()}${am[2].slice(1)}.` : null] : [w.amount];
+        const words = [w.title, ...amount, w.share, w.back, ...(x ? x.paras : [])].filter(Boolean).every(t => text.includes(t));
+        const kind = await p.evaluate(() => { const x = document.querySelector('[data-place="plan"] [data-strategy-explanation]'); return x ? x.dataset.strategyExplanation : null; });
         const wantKind = which === 'atTarget' ? null : which === 'short' ? 'short' : which === 'main' ? (x ? x.kind : null) : 'full';
         ok(`${which === 'main' ? id : `the case '${which}' (${id})`}: reads ${figs.headline.case}, the wording table's words on the card, the explanation ${kind || 'none'}`, (which === 'main' || figs.headline.case === which) && words && kind === wantKind, `${w.amount}${w.back ? ' / ' + w.back : ''}`);
       } else ok(`the case '${which}' (${id}): its figures came in`, false);

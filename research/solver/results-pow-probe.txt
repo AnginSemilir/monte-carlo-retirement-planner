@@ -1,0 +1,8 @@
+Node v22.22.0 (V8 12.4.254.21-node.33) against Chromium 141.0.7390.37, 200000 inputs (x in [0.5, 1.5), y in [-3, 3))
+  pow: 17947 of 200000 differ; the first: pow(0.8115626205690205, -2.957576269749552): Node 1.8543298739656415, Chromium 1.8543298739656418
+  exp: 0 of 200000 differ
+  log: 0 of 200000 differ
+  sqrt: 0 of 200000 differ
+  cbrt: 0 of 200000 differ
+  expm1: 0 of 200000 differ
+  log1p: 0 of 200000 differ

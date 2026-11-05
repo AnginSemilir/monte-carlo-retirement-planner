@@ -25,18 +25,28 @@ const solverPreview = () => ({
   enforce: 'pre',
   transform(code, id) {
     if (process.env.SOLVER_PREVIEW !== '1') return null;
-    // step U's planted faults (src/plannerPlant.js): a harness's preview only, named in PLANNER_PLANT (comma-separated)
-    if (/[\\/]src[\\/]plannerPlant\.js$/.test(id)) {
-      const list = process.env.PLANNER_PLANT || '';
-      if (!/^[a-z0-9,]*$/.test(list)) this.error('solver-preview: PLANNER_PLANT is a comma-separated list of plant names');
-      if (!code.includes("const LIST = '';")) this.error('solver-preview: the plant line in src/plannerPlant.js has moved');
-      return { code: code.replace("const LIST = '';", `const LIST = '${list}';`), map: null };
-    }
     if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
     if (!code.includes(SWITCH) || !code.includes(OPTS) || !code.includes(BETA)) this.error('solver-preview: the switch lines in src/App.jsx have moved');
     const opts = process.env.SOLVER_PREVIEW_OPTS || 'null';
     JSON.parse(opts);
     return { code: code.replace(SWITCH, '\nconst SOLVER = true;\n').replace(BETA, '\nconst PLANNER_BETA = true;\n').replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`), map: null };
+  }
+});
+
+// step U's planted faults (src/plannerPlant.js): a harness's preview only (SOLVER_PREVIEW), named in PLANNER_PLANT
+// (comma-separated). In the page's bundle and the workers' alike: the outlook's arms are drawn in the solver's worker
+// (src/solverStrategy.js outlookOf, the plant 'outlookswap'), which the page's plugins do not reach. With PLANNER_PLANT unset
+// it leaves the module as it is, so every other build is the same byte for byte.
+const plannerPlant = () => ({
+  name: 'planner-plant',
+  enforce: 'pre',
+  transform(code, id) {
+    if (process.env.SOLVER_PREVIEW !== '1' || !process.env.PLANNER_PLANT) return null;
+    if (!/[\\/]src[\\/]plannerPlant\.js$/.test(id)) return null;
+    const list = process.env.PLANNER_PLANT;
+    if (!/^[a-z0-9,]*$/.test(list)) this.error('planner-plant: PLANNER_PLANT is a comma-separated list of plant names');
+    if (!code.includes("const LIST = '';")) this.error('planner-plant: the plant line in src/plannerPlant.js has moved');
+    return { code: code.replace("const LIST = '';", `const LIST = '${list}';`), map: null };
   }
 });
 
@@ -53,7 +63,7 @@ export default defineConfig({
   base: './',
   // inlineEdit supplies the manifest of editable copy, and under `vite dev` an endpoint that writes
   // edits back to source. A production build gets the manifest only — there is no server to write with.
-  plugins: [solverPreview(), react(), inlineEdit()],
+  plugins: [solverPreview(), plannerPlant(), react(), inlineEdit()],
   /*
    * The worker bundle needs the same plugins. src/simWorker.js imports the engine from App.jsx, which
    * reaches EditMode.jsx and its virtual:editable-copy module - so without this the worker build fails
@@ -63,7 +73,7 @@ export default defineConfig({
    * solverCode names the solver worker's code by its module graph, for the stored solves' key (vite-plugin-solver-code.js;
    * step P1 (g)); it acts in the solver worker's build only.
    */
-  worker: { format: 'es', plugins: () => [react(), inlineEdit(), solverCode()] },
+  worker: { format: 'es', plugins: () => [plannerPlant(), react(), inlineEdit(), solverCode()] },
   /*
    * Cross-origin isolation on the local servers, so the solver can split a solve across workers (src/solverPool.js needs
    * SharedArrayBuffer, which a page has only when isolated; research/solver/PHASE-7.md). Local only: the deployed site sends

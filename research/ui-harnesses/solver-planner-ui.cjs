@@ -180,9 +180,10 @@ const firstDiff = (a, b, at = '') => {
       ok(2, 'the strip: solving with its percentage rising, then simulating, then solved', order(stripSeen, ['solving', 'simulating', 'solved']) && rising, `${stripSeen.join(' > ')}; ${pcts[0]}% to ${pcts[pcts.length - 1]}%`);
       ok(2, 'the card: solving, then filling, then done', order(cardSeen, ['solving', 'filling', 'done']), cardSeen.join(' > '));
       const page = await figs(p), pl = await saved(p), node = nodeOf(pl);
-      // the money bands come out of the engine's sums, which Chromium's V8 rounds in the last place differently from Node's on
-      // some paths (an unminified build parts at the same figure: S116's year-19 median, 1 ulp), for the solved plan as for your
-      // current approach (solver-strategy-ui's note); so they are held within a relative 1e-12, every other figure bit for bit
+      // the money passes through Math.pow, which Chromium's V8 and Node's round differently in the last place on some inputs
+      // (research/ui-harnesses/pow-probe.cjs; an unminified build parts at the same figure: S116's year-19 median, 1 ulp), for
+      // the solved plan as for your current approach; so the money bands are held within a relative 1e-12, every other figure
+      // bit for bit
       const strip2 = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: { ...o.outlook, wealth: null } });
       const solvedSame = page && JSON.stringify(strip2(page)) === JSON.stringify(strip2(node.s));
       const yoursRel = page ? Math.max(...Object.keys(node.s.compare.yours).map(k => relDiff(page.compare.yours[k], node.s.compare.yours[k])),

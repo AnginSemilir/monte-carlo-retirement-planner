@@ -5,8 +5,9 @@
  * 1. The site as built (the switch off): the projection is your plan's, with no solver line on it.
  * 2. A preview build with the switch on at light settings (vite.config.js solver-preview), opted in to the new planner
  *    (rp_planner 'new'; step U, research/reviews/2026-11-03/LAYOUT.md section 11.2), S126 from the research library: Your
- *    plan's outlook, drawn from the headline's own runs, its money bands the engine's monteCarlo bands for the solved plan bit
- *    for bit on the same paths and seed, your current approach's within a relative 1e-12, the spending bands Node's.
+ *    plan's outlook, drawn from the headline's own runs, its money bands the engine's monteCarlo bands on the same paths and
+ *    seed within a relative 1e-12 for each arm (Node's Math.pow and Chromium's round in the last place differently:
+ *    research/ui-harnesses/pow-probe.cjs), the spending bands Node's bit for bit.
  *    Planted once (PROJECTION_PLANT=outlookswap: the outlook's two arms swapped), the outlook check fails.
  * 3. Item 7, the same preview, Details: the year by year ledger is the solved plan's expected-return ledger, its totals
  *    Node's year for year (rowsOf, src/solverStrategy.js) and each year's move Node's; "Your current approach" gives your
@@ -151,18 +152,20 @@ const runProjection = async p => {
 
     const { p, errs, ctx } = await open(b, PREVIEW_PORT, plan, 'new');
     // 2. Your plan's outlook (item 2, in the new planner: step U, LAYOUT.md section 3.1): from the headline's own runs, its
-    // money bands the engine's monteCarlo bands for the solved plan bit for bit on the same paths and seed, your current
-    // approach's within a relative 1e-12, and the spending bands Node's
+    // money bands the engine's monteCarlo bands on the same paths and seed within a relative 1e-12 for each arm (the money
+    // passes through Math.pow, which Node and Chromium round differently in the last place: pow-probe.cjs), and the spending
+    // bands Node's bit for bit
     const done2 = await p.waitForSelector('[data-plan-answer="done"]', { timeout: 900000 }).then(() => true, () => false);
     const saved = await p.evaluate(k => JSON.parse(localStorage.getItem(k)), STORE);
     const r = solveForApp(E, M, saved, LIGHT);
     const pageOut = done2 ? await p.evaluate(() => ({ spend: JSON.parse(document.querySelector('[data-outlook="spend"]').dataset.outlookBands), wealth: JSON.parse(document.querySelector('[data-outlook="wealth"]').dataset.outlookBands) })) : null;
     const mcS = E.monteCarlo(solvedContext(E, r), { trials: TRIALS, seed: SEED, collectPaths: true }).bands, mcY = E.monteCarlo(yourContext(E, saved), { trials: TRIALS, seed: SEED, collectPaths: true }).bands;
     const nodeOut = strategyOf(E, r, saved, { trials: TRIALS, seed: SEED }).outlook;
-    const relY = pageOut ? Math.max(...mcY.flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => Math.abs(pageOut.wealth.yours[t][k] - bd[k]) / Math.max(1, Math.abs(bd[k]))))) : Infinity;
-    ok('Your plan\'s outlook: the money bands the engine\'s monteCarlo bands for the solved plan bit for bit, your current approach\'s within 1e-12, the spending bands Node\'s',
-      !!pageOut && JSON.stringify(pageOut.wealth.solved) === JSON.stringify(mcS) && relY <= 1e-12 && JSON.stringify(pageOut.spend) === JSON.stringify(nodeOut.spend),
-      pageOut ? `${pageOut.wealth.solved.length} years; the median at the end ${Math.round(pageOut.wealth.solved[pageOut.wealth.solved.length - 1].p50)} (the engine ${Math.round(mcS[mcS.length - 1].p50)}); yours within ${relY.toExponential(1)}` : 'no outlook');
+    const relOf = (arm, mc) => mc.length === pageOut.wealth[arm].length ? Math.max(...mc.flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => Math.abs(pageOut.wealth[arm][t][k] - bd[k]) / Math.max(1, Math.abs(bd[k]))))) : Infinity;
+    const relS = pageOut ? relOf('solved', mcS) : Infinity, relY = pageOut ? relOf('yours', mcY) : Infinity;
+    ok('Your plan\'s outlook: the money bands the engine\'s monteCarlo bands for each arm within 1e-12, the spending bands Node\'s',
+      !!pageOut && relS <= 1e-12 && relY <= 1e-12 && JSON.stringify(pageOut.spend) === JSON.stringify(nodeOut.spend),
+      pageOut ? `${pageOut.wealth.solved.length} years; the median at the end ${Math.round(pageOut.wealth.solved[pageOut.wealth.solved.length - 1].p50)} (the engine ${Math.round(mcS[mcS.length - 1].p50)}); the solved plan's within ${relS.toExponential(1)}, yours within ${relY.toExponential(1)}` : 'no outlook');
 
     if (want('3')) {
     // 3. item 7, in Details: the year by year ledger and the history check

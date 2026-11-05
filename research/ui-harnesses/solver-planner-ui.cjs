@@ -32,7 +32,7 @@
  *      settings; the docs section;
  *  10  a couple: the couples card on three places; "Open the classic planner" shows the classic tabs, and a reload keeps them;
  *  11  a failure (the worker planted to fail every question): the failure card, "Try again", the classic link, your current
- *      approach's figures under it, the levers still usable;
+ *      approach's figures under it, its money chart named as yours alone (there is no solved plan), the levers still usable;
  *  12  the phone: the four places each 44px or more; no horizontal scroll on any place; nothing solved and no solver chunk
  *      fetched until "Solve my plan"; the six slides by the step bar and by swipe; the levers sheet opened and shut with Escape;
  *      a change in it makes the plan stale (data-solve-key unchanged until asked), and the worker is asked nothing until
@@ -42,7 +42,8 @@
  *  14  the classic planner, the switch on, fetches none of the solver's chunks.
  * Its plants (PLANNER_PLANT, built into the preview: src/plannerPlant.js), each failing exactly its own check, all in one
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
- * keyguard (7), nocouple (10), phonesolve (12), staleask (12), navtarget40 (12), classicfetch (14).
+ * keyguard (7), nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named),
+ * phonesolve (12), staleask (12), navtarget40 (12), classicfetch (14).
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the preview is served on port + 11)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
@@ -57,8 +58,8 @@ const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'nocouple', 'phonesolve', 'staleask', 'navtarget40', 'classicfetch'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, nocouple: 10, phonesolve: 12, staleask: 12, navtarget40: 12, classicfetch: 14 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'classicfetch'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, classicfetch: 14 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -346,11 +347,14 @@ const firstDiff = (a, b, at = '') => {
       const f = await waitCard(p, 'failed', 120000);
       const parts = await p.evaluate(() => ({ retry: !!document.querySelector('[data-plan-answer="failed"] [data-strategy-retry]'), classic: !!document.querySelector('[data-plan-answer="failed"] [data-open-classic]') }));
       const yours = await p.waitForSelector('[data-failed-current="in"]', { timeout: 300000 }).then(() => true, () => false);
+      // the money chart under it is your current approach's alone: named so, and nowhere the solved plan's (there is none)
+      const chart = await p.evaluate(() => { const c = document.querySelector('[data-failed-current] svg[data-chart="wealth"]'); return c ? { text: c.textContent, aria: c.getAttribute('aria-label') || '' } : null; });
+      const alone = !!chart && /your current approach/i.test(chart.text) && !/solved plan/i.test(chart.text) && /^Your current approach's money/.test(chart.aria) && !/solved plan/i.test(chart.aria);
       const c0 = await p.$eval('[data-solver-choice="cuts"] [aria-checked="true"]', el => el.dataset.value).catch(() => null);
       await p.click('[data-solver-choice="cuts"] [data-value="6"]').catch(() => {});
       await p.waitForTimeout(400);
       const c1 = await p.$eval('[data-solver-choice="cuts"] [aria-checked="true"]', el => el.dataset.value).catch(() => null);
-      ok(11, 'planted, the solver failing: the failure card with "Try again" and the classic link, your current approach\'s figures under it, the levers usable', f && parts.retry && parts.classic && yours && c0 !== c1 && c1 === '6', `${JSON.stringify(parts)}; yours ${yours}; dial ${c0} to ${c1}`);
+      ok(11, 'planted, the solver failing: the failure card with "Try again" and the classic link, your current approach\'s figures under it (its money chart named as yours alone), the levers usable', f && parts.retry && parts.classic && yours && alone && c0 !== c1 && c1 === '6', `${JSON.stringify(parts)}; yours ${yours}; the chart ${chart ? `"${chart.text.replace(/\s+/g, ' ').slice(-60)}"` : 'none'}; dial ${c0} to ${c1}`);
       ok(11, 'a failure: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 

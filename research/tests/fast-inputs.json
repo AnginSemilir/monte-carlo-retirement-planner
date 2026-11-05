@@ -2879,6 +2879,7 @@
    "research/solver/results-phase4.txt",
    "research/solver/results-phone-perf-step-u.txt",
    "research/solver/results-phone-sheet.txt",
+   "research/solver/results-planner-failchart.txt",
    "research/solver/results-planner-figures.txt",
    "research/solver/results-planner-ui.txt",
    "research/solver/results-pmap.txt",

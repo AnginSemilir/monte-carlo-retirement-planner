@@ -147,7 +147,7 @@ function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, o
         <div data-failed-current={failedFigures ? 'in' : 'pending'} className="pt-2 border-t border-amber-200 space-y-2 text-slate-700">
           {!failedFigures ? <p className="text-xs">Running your current approach through 5,000 markets…</p> : (<>
             <p className="text-sm">Your current approach: chance your money lasts <strong className="tabular-nums">{pct(failedFigures.survival)}</strong></p>
-            {failedFigures.bands && failedFigures.bands.length > 1 && <WealthChart pts={failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t }))} yours={failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t }))} minPot={0} fmt={fmt} isPhone={isPhone} />}
+            {failedFigures.bands && failedFigures.bands.length > 1 && <WealthChart pts={failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t }))} yours={PLANNER_PLANT.has('failboth') ? failedFigures.bands.map(b => ({ ...b, at: (failedFigures.age0 || 0) + b.t })) : null} minPot={0} fmt={fmt} isPhone={isPhone} />}
           </>)}
         </div>
       </div>
@@ -314,8 +314,10 @@ function SpendChart({ pts, typical, floorShare, target, backAge, backYear, fmt, 
   );
 }
 
-function WealthChart({ pts, yours, minPot, fmt, isPhone }) {
+// `yours` null: the bands are your current approach's alone (the failure view, where there is no solved plan), named so
+function WealthChart({ pts, yours: yoursIn, minPot, fmt, isPhone }) {
   if (!pts.length) return null;
+  const alone = !yoursIn, yours = yoursIn || pts;
   const a0 = pts[0].at, a1 = pts[pts.length - 1].at;
   const ymax = Math.max(1, ...pts.map(p => p.p90), ...yours.map(p => p.p50));
   const x = lin(a0, a1, PAD.l + 14, W - PAD.r), y = lin(0, ymax * 1.05, H - PAD.b, PAD.t);
@@ -324,16 +326,17 @@ function WealthChart({ pts, yours, minPot, fmt, isPhone }) {
   // clear of the other's where the two ends meet
   const yy = Math.min(y(yours[yours.length - 1].p50) + 12, H - PAD.b - 4), ys0 = y(pts[pts.length - 1].p50) - 6;
   const endY = { yours: yy, solved: Math.abs(ys0 - yy) < 12 ? yy - 12 : ys0 };
-  const label = `The solved plan's money, typical: ${fmt(pts[0].p50)} now, ${fmt(pts[Math.floor(pts.length / 2)].p50)} at ${pts[Math.floor(pts.length / 2)].at}, ${fmt(pts[pts.length - 1].p50)} at ${a1}; your current approach, typical, ${fmt(yours[yours.length - 1].p50)} at ${a1}.`;
+  const along = `${fmt(pts[0].p50)} now, ${fmt(pts[Math.floor(pts.length / 2)].p50)} at ${pts[Math.floor(pts.length / 2)].at}, ${fmt(pts[pts.length - 1].p50)} at ${a1}`;
+  const label = alone ? `Your current approach's money, typical: ${along}.` : `The solved plan's money, typical: ${along}; your current approach, typical, ${fmt(yours[yours.length - 1].p50)} at ${a1}.`;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={label} data-chart="wealth">
       {ticks.map(v => <g key={v}><line x1={PAD.l + 14} x2={W - PAD.r} y1={y(v)} y2={y(v)} className="stroke-slate-200" /><text x={PAD.l + 10} y={y(v) + 3} textAnchor="end" className="fill-slate-500 text-[10px]">{v >= 1e6 ? `£${(v / 1e6).toFixed(1)}m` : `£${Math.round(v / 1000)}k`}</text></g>)}
-      <path d={area(pts, 'p10', 'p90', x, y)} className="fill-indigo-100" />
-      <path d={area(pts, 'p25', 'p75', x, y)} className="fill-indigo-200" />
-      <path d={path(pts, 'p50', x, y)} className="stroke-indigo-700 fill-none" strokeWidth="2.5" />
-      <path d={path(yours, 'p50', x, y)} className="stroke-slate-500 fill-none" strokeWidth="1.5" strokeDasharray="6 4" />
-      <text x={x(a1)} y={endY.solved} textAnchor="end" className="fill-indigo-800 text-[10px]">the solved plan, typical</text>
-      <text x={x(a1)} y={endY.yours} textAnchor="end" className="fill-slate-600 text-[10px]">{isPhone ? 'current approach' : 'your current approach, typical'}</text>
+      <path d={area(pts, 'p10', 'p90', x, y)} className={alone ? 'fill-slate-100' : 'fill-indigo-100'} />
+      <path d={area(pts, 'p25', 'p75', x, y)} className={alone ? 'fill-slate-200' : 'fill-indigo-200'} />
+      <path d={path(pts, 'p50', x, y)} className={`${alone ? 'stroke-slate-600' : 'stroke-indigo-700'} fill-none`} strokeWidth="2.5" />
+      {!alone && <path d={path(yours, 'p50', x, y)} className="stroke-slate-500 fill-none" strokeWidth="1.5" strokeDasharray="6 4" />}
+      {!alone && <text x={x(a1)} y={endY.solved} textAnchor="end" className="fill-indigo-800 text-[10px]">the solved plan, typical</text>}
+      <text x={x(a1)} y={alone ? ys0 : endY.yours} textAnchor="end" className="fill-slate-600 text-[10px]">{isPhone ? 'current approach' : 'your current approach, typical'}</text>
       {minPot > 0 && <line x1={PAD.l + 14} x2={W - PAD.r} y1={y(minPot)} y2={y(minPot)} className="stroke-amber-700" strokeDasharray="1 3" data-outlook-minpot />}
       <g data-points="bands">{pts.map(p => <circle key={p.at} r="0" cx={x(p.at)} cy={y(p.p50)} data-x={x.invert(x(p.at))} data-p10={y.invert(y(p.p10))} data-p50={y.invert(y(p.p50))} data-p90={y.invert(y(p.p90))} />)}</g>
       {[a0, Math.round((a0 + a1) / 2), a1].map(v => <text key={v} x={x(v)} y={H - 8} textAnchor="middle" className="fill-slate-500 text-[10px]">{v}</text>)}

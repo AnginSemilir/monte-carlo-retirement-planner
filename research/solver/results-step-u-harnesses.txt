@@ -1,0 +1,160 @@
+Step U: the solver's harnesses as reworked for the new planner (opted in), their plants and the runs that found what
+f8b9fc4 fixes, 5 Nov. Each run's output below is whole. The gate runs each harness clean on the release branch.
+
+1. solver-projection-ui.cjs with its six plants at once (04:21 to 06:36 UTC, on 524f63b's code), every section:
+   PROJECTION_PLANT=outlookswap,histexp,dialfar,agelate,simpleseed,scenseed
+   Six FAILs, one in each planted check. The outlook's was not its plant's doing: the plant's line reached the page's bundle
+   only, and the outlook is drawn in the solver's worker; the check failed on the solved plan's money bands 1 ulp from
+   Node's (Math.pow, results-pow-probe.txt). f8b9fc4 holds the bands within 1e-12 and puts the plant's line in the workers'
+   bundles too; run 6 shows the plant failing the check, run 5 the check passing clean.
+
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  ok    switch off: the Simple page has no answers from the solver   on the Simple page true, the card false
+  ok    PLANTED: the page asks history for the expected path (the history check below must FAIL)   1 place patched
+  ok    PLANTED: the scenarios card on another seed (the scenario check below must FAIL)   1 place(s) patched
+  ok    PLANTED: the later age first on a tie (the age order check below must FAIL)   1 place(s) patched
+  ok    PLANTED: the Simple card on another seed (its answers check below must FAIL)   3 place(s) patched
+  ok    PLANTED: the page solves the dial's settings farthest first (the order check below must FAIL)   1 place(s) patched
+  ok    the preview build (the switch on) is served   port 4183
+  FAIL  Your plan's outlook: the money bands the engine's monteCarlo bands for the solved plan bit for bit, your current approach's within 1e-12, the spending bands Node's   40 years; the median at the end 2285460 (the engine 2285460); yours within 2.7e-15
+  ok    Details' year by year is the solved plan's ledger: every year's total Node's, and every year's move Node's   solved ledger true, 40 rows (Node 40), totals differing 0, moves differing 0
+  ok    "Your current approach" gives your plan's ledger, Node's, with no move column   your ledger true, 40 rows, move cells 0
+  FAIL  the history check is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node's, your current approach's verdict beside it Node's   from 1965: the solved plan survived, the pot left 2308141 (Node 2610942); yours survived (Node survived)
+  FAIL  "Compare the four settings" works the other three out nearest first along the dial   filled in 10, 6, 3 (nearest first 3, 6, 10)
+  ok    each setting's row is Node's for the plan at that setting, the plan's own the headline on the first paths   1: 98.9% (Node 98.9%), 3: 99.05% (Node 99.05%), 6: 98.75% (Node 98.75%), 10: 98.6% (Node 98.6%)
+  ok    choosing Medium re-solves the plan there: its row the figure the table showed, the other settings' figures kept   Medium 99.05% (listed 99.05%); kept 1: 98.9%, 6: 98.75%, 10: 98.6%
+  ok    S126, retired, has no age card on What if
+  ok    switch on: no page errors
+  ok    the age card's line at the plan's own age is the headline's figures, Node's   "Retiring at 60, as planned: start at £57,200 (80% of target), back at target by 2058; chance your money lasts 61%." (Node 61.4%)
+  FAIL  "Solve retiring at ..." works the ages out nearest first, the earlier first on a tie   filled in 61, 59, 62, 58, 63, 57 (expected 59, 61, 58, 62, 57, 63)
+  ok    each age's line is Node's for the plan retiring at that age   57: 45.85% (Node 45.85%), 58: 51.8% (Node 51.8%), 59: 56.5% (Node 56.5%), 60: 61.4% (Node 61.4%), 61: 65.95% (Node 65.95%), 62: 70.15% (Node 70.15%), 63: 74.05% (Node 74.05%)
+  FAIL  What if's limits are Node's search over the same solves, every setting tried the same, named apart from the safe starting spend   the highest target £50000 (Node £49500; tried 71500, 59500, 49500, 54500, 52000, 51000, 50500, 50000), the earliest age  (Node null)
+  ok    switch on, S188: no page errors
+  FAIL  on What if, the current plan's line is Node's, and "Solve this scenario" gives the scenario's, Node's   the plan 98.9% (Node 98.9%), the scenario 98.55% (Node 98.9%)
+  ok    switch on, the scenarios: no page errors
+
+6 FAILED
+
+2. solver-isolation-ui.cjs, ISOLATION_PLANT=nosw (06:36 UTC): the worker's script left out, the isolation and the split fail
+
+  ok    switch off: no service worker registered, no isolation code fetched   0 registrations; none fetched
+  ok    switch off: no page errors
+  ok    the switch-on build served with no isolation headers, as GitHub Pages serves it   port 4182
+  FAIL  switch on, no headers: the first load registers the worker and reloads once; then the page is cross-origin isolated   1 loads, 0 registration, isolated false
+  ok    a plan saved before the worker existed still loads   target 29000, the app drawn true
+  FAIL  in the isolated page a solve split across two workers gives the whole solve's tables, Node's bit for bit   1 parts, 3115746 values, 5ae122e927620cd1 against 5ae122e927620cd1
+  ok    switch on: no page errors
+  FAIL  the switch file served: the worker unregistered, the page reloaded once without it, no longer isolated   1 loads after the switch, 0 registrations, isolated false
+  FAIL  the switch file still served: nothing registers again, and no further reload of its own   2 loads, 0 registrations
+  ok    service workers blocked: the page is not isolated, and the solve runs whole in one worker, the same tables   isolated false, 1 part, 5ae122e927620cd1
+  ok    service workers blocked: no page errors
+
+4 FAILED
+
+3. solver-strategy-ui.cjs, STRATEGY_SKIP_FIXTURE=S126 (06:40 UTC): the costly check fails ("no re-wrap in the first move"),
+   and the dominated check as PHASE-9.md records for S126 (-0.33 points, one path saved of 300). The figures check and the
+   five words checks failed too, not by the plant: the money bands 1 ulp from Node's, the explanation now under the card
+   and the amount set as LAYOUT.md section 3.1 sets it, all fixed in f8b9fc4 (run 4).
+
+  ok    switch off: the Strategy tab is the tournament, without the solver's view   {"tournament":true,"strategy":false,"couple":false,"state":null}
+  ok    switch off: no solver code fetched   11 requests
+  ok    switch off: no page errors
+  ok    the preview build (the switch on) is served   port 4181
+  ok    switch on, opted in, S126: Your plan is the solved plan, not the tournament   {"tournament":false,"strategy":true,"couple":false,"state":"solving"}
+  FAIL  S126: all 500 paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's within a relative 1e-12   short, start 80%, survival 98.8% (Node 98.8%), yours 94.8% (largest relative gap 1.3e-15); .compare.yours.medianPot: 3338600.275849318 against 3338600.275849319; .compare.yours.estate: 3338600.275849318 against 3338600.275849319
+  ok    S126: Your plan came as its own chunk
+  ok    S126: this year's actions in, and the rule of thumb hidden at a cost of 1.33 points (shown only under 0.5)   actions done
+  FAIL  S126: reads short, the wording table's words on the card, the explanation none   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S126: no page errors
+  FAIL  the case 'atTarget' (S000): reads atTarget, the wording table's words on the card, the explanation none   £5,500 a year, above your £5,000 target
+  ok    S000: no page errors
+  FAIL  the case 'short' (S162): reads short, the wording table's words on the card, the explanation none   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S162: no page errors
+  FAIL  the case 'long' (S054): reads long, the wording table's words on the card, the explanation none   £22,800 a year / In half the markets you are back at your full target by 2035 (9 years in).
+  ok    S054: no page errors
+  FAIL  the case 'never' (S364): reads never, the wording table's words on the card, the explanation none   £14,800 a year / In more than half the markets you stay below your target; see why below.
+  ok    S364: no page errors
+  ok    S126: this year's skip costs in, the page's Node's (300 paired paths)   level 0.00
+  FAIL  S126: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   no re-wrap in the first move
+  FAIL  S126: the year's move forced to spend 110% (a planted dominated action) costs at least 0   -0.33 points (lost 0, saved 1)
+  ok    S126: no page errors
+  ok    planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app's rules)
+  ok    planted: no page errors
+  ok    switch on, opted in, a couple (S001): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+8 FAILED
+
+4. solver-strategy-ui.cjs clean on f8b9fc4's harness (07:17 UTC; every check passing but the at-target case's words, then fixed and rerun with STRATEGY_CASES=atTarget,short at 07:33)
+
+  ok    switch off: the Strategy tab is the tournament, without the solver's view   {"tournament":true,"strategy":false,"couple":false,"state":null}
+  ok    switch off: no solver code fetched   11 requests
+  ok    switch off: no page errors
+  ok    the preview build (the switch on) is served   port 4181
+  ok    switch on, opted in, S126: Your plan is the solved plan, not the tournament   {"tournament":false,"strategy":true,"couple":false,"state":"solving"}
+  ok    S126: all 500 paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's and the money bands within a relative 1e-12   short, start 80%, survival 98.8% (Node 98.8%), yours 94.8% (largest relative gap 1.3e-15); every other figure the same
+  ok    S126: Your plan came as its own chunk
+  ok    S126: this year's actions in, and the rule of thumb hidden at a cost of 1.33 points (shown only under 0.5)   actions done
+  ok    S126: reads short, the wording table's words on the card, the explanation short   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S126: no page errors
+  FAIL  the case 'atTarget' (S000): reads atTarget, the wording table's words on the card, the explanation none   £5,500 a year, above your £5,000 target
+  ok    S000: no page errors
+  ok    the case 'short' (S162): reads short, the wording table's words on the card, the explanation short   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S162: no page errors
+  ok    the case 'long' (S054): reads long, the wording table's words on the card, the explanation full   £22,800 a year / In half the markets you are back at your full target by 2035 (9 years in).
+  ok    S054: no page errors
+  ok    the case 'never' (S364): reads never, the wording table's words on the card, the explanation full   £14,800 a year / In more than half the markets you stay below your target; see why below.
+  ok    S364: no page errors
+  ok    S116: this year's skip costs in, the page's Node's (300 paired paths)   level 1.33; harvest 1.00
+  ok    S116: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   the re-wrap 1.00 points (lost 3, saved 0)
+  ok    S116: the year's move forced to spend 110% (a planted dominated action) costs at least 0   0.67 points (lost 4, saved 2)
+  ok    S116: no page errors
+  ok    planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app's rules)
+  ok    planted: no page errors
+  ok    switch on, opted in, a couple (S001): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+1 FAILED
+
+  ok    switch off: the Strategy tab is the tournament, without the solver's view   {"tournament":true,"strategy":false,"couple":false,"state":null}
+  ok    switch off: no solver code fetched   11 requests
+  ok    switch off: no page errors
+  ok    the preview build (the switch on) is served   port 4181
+  ok    the case 'atTarget' (S000): reads atTarget, the wording table's words on the card, the explanation none   £5,500 a year, above your £5,000 target
+  ok    S000: no page errors
+  ok    the case 'short' (S162): reads short, the wording table's words on the card, the explanation short   £23,200 a year / In half the markets you are back at your full target by 2027 (1 year in).
+  ok    S162: no page errors
+  ok    planted, the solver failing: Your plan says so, offers "try again" and the classic planner (the app's rules)
+  ok    planted: no page errors
+  ok    switch on, opted in, a couple (S001): the couples card, and nothing solved   {"tournament":false,"strategy":false,"couple":true,"state":null}
+  ok    a couple: no page errors
+
+all ok
+
+5. solver-projection-ui.cjs, sections 1 and 2, clean on f8b9fc4's harness (PROJECTION_SECTIONS=2)
+
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  ok    switch off: the Simple page has no answers from the solver   on the Simple page true, the card false
+  ok    the preview build (the switch on) is served   port 4183
+  ok    Your plan's outlook: the money bands the engine's monteCarlo bands for each arm within 1e-12, the spending bands Node's   40 years; the median at the end 2285460 (the engine 2285460); the solved plan's within 2.7e-16, yours within 2.7e-15
+  ok    S126, retired, has no age card on What if
+  ok    switch on: no page errors
+
+all ok
+
+6. the same, planted (PROJECTION_PLANT=outlookswap; 08:30 UTC), the plant's line in the workers' bundles (f8b9fc4's vite.config.js)
+
+  ok    switch off: the projection is your plan's, with no solver line
+  ok    switch off: the audit table is your plan's ledger with no action column, and history has no out-of-model check   ledger yours, action cells 0, out-of-model false
+  ok    switch off: no page errors
+  ok    switch off: the Simple page has no answers from the solver   on the Simple page true, the card false
+  ok    the preview build (the switch on) is served   port 4183
+  FAIL  Your plan's outlook: the money bands the engine's monteCarlo bands for each arm within 1e-12, the spending bands Node's   40 years; the median at the end 3379438 (the engine 2285460); the solved plan's within 8.8e-1, yours within 9.2e-1
+  ok    S126, retired, has no age card on What if
+  ok    switch on: no page errors
+
+1 FAILED

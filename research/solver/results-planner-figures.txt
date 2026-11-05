@@ -1,0 +1,34 @@
+planner-figures.test.mjs (step U: the outlook's figures and the ten years' words; the full tier), on 524f63b's code, 5 Nov:
+
+=========== THE SOLVE (S116, the light settings) ===========
+      solved and run on 500 paths in 121 s; retired from year 0; survival 84.8%
+=========== 1. THE MONEY BANDS ARE THE ENGINE'S ===========
+  ok  1. solved: the money bands on 500 paths are monteCarlo's bit for bit (36 years; 0 differ; the median at the end 473034, the engine's 473034)
+  ok  1. yours: the money bands on 500 paths are monteCarlo's bit for bit (36 years; 0 differ; the median at the end 0, the engine's 0)
+=========== 2. THE SPENDING BANDS, BY HAND ===========
+  ok  2. the spending bands on 20 made-up paths, years 1 to 9, against a hand count over the paths still going (0 years differ; 9 years given)
+  ok  2. S116's spending bands start at its first retired year (0) and are ordered in every year (36 years; year one 10-90 80 to 80)
+=========== 3. A SPLIT SIMULATION'S BANDS ===========
+  ok  3. two parts (paths 0 to 169 and 170 to 499) joined give the whole run's outlook bit for bit
+=========== 4. THE TYPICAL RUN ===========
+  ok  4. the typical run is aheadOf's path over the first 200 paths, every year its own level (path 106)
+  ok  4. the same path with 500 paths held as with 200 (path 106 against 106)
+  ok  4. its first ten levels are the ten-year rows' spending over their targets (80 80 80 80 80 80 80 80 80 80)
+=========== 5. THE MONEY RECORDED IN DOUBLES ===========
+  ok  5. every path's money record is a Float64Array, in both arms
+=========== 6. THE NEXT TEN YEARS' WORDS ===========
+  ok  6. S116: over its ten rows a tier is said only where it changes, as a step down, a step back up or a return (8 changes said; 0 rows wrong)
+  ok  6. S224: over its ten rows a tier is said only where it changes, as a step down, a step back up or a return (2 changes said; 0 rows wrong)
+  ok  6. six made-up years read as LAYOUT.md section 8 words them (Move your pension and ISA 3 steps lower in risk | nothing to change | Move your pension and ISA 1 step back up in risk (2 below the risk you chose) | Move your pension and ISA 1 step further down in risk (3 below the risk you chose) | Move your pension and ISA back to the risk you chose | Move your pension 1 step lower in risk)
+
+12 passed, 0 failed
+
+plant 'bandyear': checks failing 1 (its own: 1) ok
+plant 'armswap': checks failing 1 (its own: 1) ok
+plant 'failcount': checks failing 2 (its own: 2) ok
+plant 'typmedian': checks failing 4 (its own: 4) ok
+plant 'typall': checks failing 4 (its own: 4) ok
+plant 'f32': checks failing 1, 5 (its own: 1, 5) ok
+plant 'tiereach': checks failing 6 (its own: 6) ok
+plant 'tierdown': checks failing 6 (its own: 6) ok
+PLANTS: all 8 fail exactly their own checks

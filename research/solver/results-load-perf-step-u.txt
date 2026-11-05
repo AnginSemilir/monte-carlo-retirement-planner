@@ -1,0 +1,24 @@
+load-perf-ui.cjs in both modes (step U, D58 (2)), on 524f63b's code, 5 Nov 04:17 UTC: the site's build on its port, then a switch-on build's (the classic planner and, opted in, the new planner's first load). loadperf-both.sh ran the two.
+
+=== switch off ===
+  run 1: content 3428ms, 226KB
+  run 2: content 3198ms, 226KB
+  run 3: content 3369ms, 226KB
+  median content on screen      3369ms (was 2203ms)
+  javascript over the wire      226KB (756KB decoded) over 2 script/style requests
+  ok    the page is usable promptly on a throttled phone   3369ms, ceiling 3800ms
+=== switch on ===
+  run 1: content 3342ms, 232KB
+  run 2: content 3138ms, 232KB
+  run 3: content 3166ms, 232KB
+  median content on screen      3166ms (was 2203ms)
+  javascript over the wire      232KB (771KB decoded) over 3 script/style requests
+  ok    the page is usable promptly on a throttled phone   3166ms, ceiling 3800ms
+  a saved plan: content 3151ms, 232KB
+  an empty plan: content 3568ms, 233KB
+  ok    ...and no more javascript than the ceiling allows   232KB over the wire, ceiling 232KB (a switch-on build, D58 (2); 214KB before the loading work)
+  ok    ...and the streamlined page is not among it   3 script/style requests
+  ok    the new planner's first load: no more javascript than its own ceiling allows   a saved plan 232KB, an empty plan 233KB, ceiling 234KB
+  ok    the page calls no host but its own   localhost:4173 only
+  ok    a typed character appears without waiting for the engine   35ms median, [51,35,39,28,28,27], ceiling 60ms
+all ok

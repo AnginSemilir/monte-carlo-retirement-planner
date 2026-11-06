@@ -1,0 +1,13 @@
+the code: code-stamp:c68b09c6d7aab6cf; 210 single households, the light settings {"points":4,"research":{"adaptiveLattice":{"na":48,"nb":9,"nz":32,"foot":true,"stepAll":true}}}
+    30 of 210, 430s
+    60 of 210, 960s
+    90 of 210, 1567s
+    120 of 210, 2167s
+    150 of 210, 2902s
+    180 of 210, 3687s
+    210 of 210, 4415s
+  ok   1. all 210 single households normalise, key and solve at the light settings without a throw   210 solved, 4415s
+  ok   2. a sample of 21, every lever off its default (the dial at 3, 6 or 10, the estate lower, raises blocked, no risk consent, the pension two years later, both tiers capped, the lump sum locked, the floor at 70%), solves without a throw and keys apart   21 solved
+  ok   3. old exports: 11 households in four older shapes each pass the import's test, migrate as they should and solve without a throw   44 imported and solved
+
+3 passed, 0 failed; 264 solves, 5332s

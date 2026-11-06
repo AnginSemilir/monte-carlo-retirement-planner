@@ -2813,6 +2813,7 @@
    "research/solver/results-launch-ready.txt",
    "research/solver/results-levers-resume.txt",
    "research/solver/results-levers.txt",
+   "research/solver/results-library-sweep.txt",
    "research/solver/results-load-perf-step-u.txt",
    "research/solver/results-lock-check.txt",
    "research/solver/results-lock-ref.txt",

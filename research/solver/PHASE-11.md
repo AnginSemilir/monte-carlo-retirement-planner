@@ -49,6 +49,15 @@ the phone's layout (the four places, Your plan as a deck, the levers in a sheet,
   record go once the solve is done, the caller's record left as it was. `research/tests/restore-memory.test.mjs` (the full
   tier): a weak reference to every array of the record, none left after the restore on S116 and S370; the restored solve
   the fresh one's bit for bit; plant `holdrecord` failing check 1 (`results-restore-memory.txt`).
+- **A solve let go kept its shared memory** (found by item 2's fourth run, the page's processes read from the operating
+  system): when the plan changes the page cancels and closes the job, but an earlier state of the page holds its handle, and
+  the handle kept the split solve's arena and, through the handlers its phases set on the workers, a dial position's base
+  shared out to its parts. Back at the dial's default, with one solve on show, the page held what it held at the locked
+  position (`results-phone-memory.txt`, the fourth and sixth runs). The client now drops them when a job is closed or
+  cancelled, and the page lets its copy of the shared base go once the parts have it. `research/tests/solver-close.test.mjs`
+  (the full tier): a weak reference to every shared buffer the client makes; a split solve in use keeps its arena, a closed,
+  a cancelled and a dial position's job keep none, their handles still held; plant `keepshared` failing checks 2 to 4
+  (`results-solver-close.txt`).
 
 - **The failure view's money chart** named your current approach's bands as the solved plan's as well (step U's
   screenshots): it now draws them alone, as your current approach's. `solver-planner-ui` check 11, plant `failboth`

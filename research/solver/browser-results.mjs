@@ -9,6 +9,8 @@
  *   no more than 1.96 standard errors of a difference between two independent estimates on 5,000 markets, sqrt(2 p (1 - p) / n)
  *   (a bound: the two run on the same markets, so the true noise is smaller). Its tables' fingerprint is reported, not required.
  *   node research/solver/browser-results.mjs <chromium-output.txt> <pasted-block.txt> [...] > research/solver/results-browsers.txt
+ * Unused since D60 (6 Nov: the maintainer excluded the Safari and Firefox checks from the readiness checklist), kept with the
+ * page for a later check of another browser.
  */
 import { readFileSync } from 'node:fs';
 

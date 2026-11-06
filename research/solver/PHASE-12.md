@@ -80,7 +80,9 @@ singles (the maintainer's), after which only couples meet the tournament (D42). 
 
 `research/solver/launch-ready.mjs` prints each line PASS or FAIL from results files, on the release commit: each file names
 the code it ran on by a stamp of the files that make the site (`launch-stamp.mjs`), so a result on other code never counts.
-Its own test (`launch-ready.test.mjs`): a clean release's files all PASS; seven planted faults each fail exactly their lines.
+Its own test (`launch-ready.test.mjs`): a clean release's files all PASS; six planted faults each fail exactly their lines.
+The launch plan's ninth line, a solve in Safari and in Firefox, is excluded by the maintainer (D60, 6 Nov: "exclude safari
+and firefox checks"), so the checklist has eight.
 
 | line | results file | made by |
 |---|---|---|
@@ -89,13 +91,14 @@ Its own test (`launch-ready.test.mjs`): a clean release's files all PASS; seven 
 | 3. the full-scale browser solve | `results-fullscale.txt` | `solver-fullscale-ui.cjs`: S116 at 45 points, the site as it ships, Node's tables bit for bit, the times |
 | 4. the library sweep | `results-library-sweep.txt` | `library-sweep.test.mjs` checks 1 and 2 (plants `needsolver`, `lumpthrow`) |
 | 5. L4 and L5 read, R1 to R3, the reports | `results-levers.txt`, `results-costs.txt`, their reviews, STATE.md | the reads of 1 and 2 Nov |
-| 6. Safari and Firefox | `results-browsers.txt` | `browser-results.mjs` from `browser-check-ui.cjs` (Chromium) and the maintainer's pasted blocks |
-| 7. old exports import | `results-library-sweep.txt` | `library-sweep.test.mjs` check 3 |
-| 8. the isolation, failure-path, phone and new-planner harnesses | the gate's files | solver-isolation, solver-planner (check 11), phone, phone-perf |
-| 9. the opt-in on and off without losing a plan | the gate's files | solver-planner (check 15) |
+| 6. old exports import | `results-library-sweep.txt` | `library-sweep.test.mjs` check 3 |
+| 7. the isolation, failure-path, phone and new-planner harnesses | the gate's files | solver-isolation, solver-planner (check 11), phone, phone-perf |
+| 8. the opt-in on and off without losing a plan | the gate's files | solver-planner (check 15) |
 
-**Safari and Firefox.** WebKit and Firefox cannot be installed here (Playwright's own builds are not to be installed; Ubuntu's
-Firefox is a snap), so line 6 is the maintainer's devices, as the launch plan allows. `public/browser-check.html`, copied into
+**Safari and Firefox: excluded (D60).** WebKit and Firefox cannot be installed here (Playwright's own builds are not to be
+installed; Ubuntu's Firefox is a snap), so the line was to be the maintainer's devices, as the launch plan allows; the
+maintainer excluded it. What was built for it stays, unused: the page is in the release's code, and removing it is a later
+change of the site's code with its own gate. `public/browser-check.html`, copied into
 the build as it is (the app's pages carry none of it), loads the app in a hidden frame and solves one library household (S116)
 at the app's own settings through the harnesses' way in, without a key, so nothing is stored and the visitor's plan and choice
 of planner are left as they were; it shows a block to copy back. `browser-results.mjs` reads each block against the same page's
@@ -105,5 +108,5 @@ difference; the tables' fingerprint reported, not required).
 ## 6. The beta
 
 The opt-in goes on `main` with this phase's pull request, so by R6 that merge waits for the checklist's all PASS on the release
-commit, its Safari and Firefox line included. Then the two weeks; go or no-go is the maintainer's list (no open defect that
+commit (its eight lines, D60). Then the two weeks; go or no-go is the maintainer's list (no open defect that
 changes a figure, the checklist green on the final commit); on by default and the switch's removal stay the maintainer's.

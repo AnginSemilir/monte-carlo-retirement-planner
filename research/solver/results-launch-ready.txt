@@ -1,12 +1,11 @@
-research/tests/launch-ready.test.mjs (Phase 12 item 5), code-stamp:bbd259ce464e0648, 06 Nov 08:03 UTC
+research/tests/launch-ready.test.mjs (Phase 12 item 5; eight lines since D60), code-stamp:c68b09c6d7aab6cf, 06 Nov 09:28 UTC
 
   ok   1. a clean release's files: every line PASS, exit 0   all PASS
-  ok   2. planted 'gatered': exactly lines 1, 8, 9 FAIL, exit 1   failing 1, 8, 9
+  ok   2. planted 'gatered': exactly lines 1, 7, 8 FAIL, exit 1   failing 1, 7, 8
   ok   2. planted 'cired': exactly lines 2 FAIL, exit 1   failing 2
   ok   2. planted 'stale': exactly lines 3 FAIL, exit 1   failing 3
   ok   2. planted 'sweepfail': exactly lines 4 FAIL, exit 1   failing 4
-  ok   2. planted 'nobrowser': exactly lines 6 FAIL, exit 1   failing 6
-  ok   2. planted 'oldfail': exactly lines 7 FAIL, exit 1   failing 7
-  ok   2. planted 'isofail': exactly lines 1, 8 FAIL, exit 1   failing 1, 8
+  ok   2. planted 'oldfail': exactly lines 6 FAIL, exit 1   failing 6
+  ok   2. planted 'isofail': exactly lines 1, 7 FAIL, exit 1   failing 1, 7
 
-8 passed, 0 failed
+7 passed, 0 failed

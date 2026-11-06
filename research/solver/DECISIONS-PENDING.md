@@ -76,10 +76,8 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   below main's, and main's own build over the ceiling on three of its six (`results-phone-perf-step-u.txt`): the ceiling sits
   inside main's spread on this machine, so a gate can fail it by chance. The choice: move it, as on 30 Oct, or keep it and
   re-measure when it fails. Kept until then.
-- **Open now: the Safari and Firefox solve** (the readiness checklist's line 6; Phase 12). WebKit and Firefox cannot be installed
-  here, so it is your devices, as the launch plan allows: open `browser-check.html` on Phase 12's preview link in Safari and in
-  Firefox, press Start, and send back the block it shows (a sample household, not yours; your plan is not touched). By R6 the
-  opt-in goes on `main` only when this line passes with the rest.
+- **Closed: the Safari and Firefox solve**, excluded from the readiness checklist by D60 (6 Nov). The browser check page
+  (`public/browser-check.html`) stays in Phase 12's release, unused; removing it is a later change of the site's code.
 - **Reported from Phase 11: the phone's budget** (two parts for a solve with a base on a touch device, set in the harness's
   browser, not on a phone: `results-phone-memory.txt`), yours to move; and **a restored solve's paths run on one worker**
   (back at the dial's default the figures take longer than after a fresh split solve), not changed.

@@ -11,11 +11,12 @@
  *      lever off its default (results-library-sweep.txt, library-sweep.test.mjs checks 1 and 2);
  *   5. L4 and L5 read, R1 to R3 applied, and the reads sent to the maintainer (results-levers.txt, results-costs.txt, their
  *      reviews, and STATE.md's record of each read and its report);
- *   6. a solve in Safari and in Firefox, its figures within the Chromium solve's sampling noise (results-browsers.txt);
- *   7. old exports import (results-library-sweep.txt, check 3);
- *   8. the isolation, failure-path, phone and new-planner harnesses green (the gate's files: solver-isolation, solver-planner
+ *   6. old exports import (results-library-sweep.txt, check 3);
+ *   7. the isolation, failure-path, phone and new-planner harnesses green (the gate's files: solver-isolation, solver-planner
  *      (its check 11, the failure path), phone and phone-perf, each a pass in its mode);
- *   9. the opt-in switched on and off without losing a plan (the gate's solver-planner pass, whose check 15 it is).
+ *   8. the opt-in switched on and off without losing a plan (the gate's solver-planner pass, whose check 15 it is).
+ * The launch plan's line on a solve in Safari and in Firefox is not here: the maintainer excluded it (D60, 6 Nov: "exclude
+ * safari and firefox checks").
  *   node research/solver/launch-ready.mjs [--dir <results dir>] [--stamp <stamp>]     (the two options for its own test only)
  * Exit 0 only when every line is PASS.
  */
@@ -66,19 +67,13 @@ line(4, 'the library sweep: every single, and a sample with every lever off its 
   const ok = !!lev && !!cost && rev('2026-11-02-read-L4.md') && rev('2026-11-01-read-L5.md') && /L4 read/.test(state) && /L5 read/.test(state) && /by R1 B3a ships/.test(state) && /by R3 no cell loses survival/.test(state);
   line(5, 'L4 and L5 read, R1 to R3 applied, the reads sent to the maintainer', ok, ok ? 'results-levers.txt, results-costs.txt, their reviews PASS, STATE.md records R1 to R3 and the reports' : 'a read, its review or its record missing'); }
 
-// 6. Safari and Firefox
-{ const t = read('results-browsers.txt'), why = fresh(t, 'results-browsers.txt');
-  const within = b => new RegExp(`^${b} .*: within the Chromium solve's sampling noise$`, 'm').test(t || '');
-  line(6, 'a solve in Safari and in Firefox, its figures within the Chromium solve\'s sampling noise', !why && within('Safari') && within('Firefox'),
-    why ? `${why} (no WebKit or Firefox can be installed here: the maintainer's devices)` : `Safari ${within('Safari') ? 'within' : 'NOT within'}, Firefox ${within('Firefox') ? 'within' : 'NOT within'}`); }
+line(6, 'old exports import', !swWhy && /^ {2}ok {3}3\. /m.test(sw), swWhy || ((sw.match(/^ {2}(ok {2}|FAIL) 3\. .*$/m) || [''])[0].slice(0, 80)));
 
-line(7, 'old exports import', !swWhy && /^ {2}ok {3}3\. /m.test(sw), swWhy || ((sw.match(/^ {2}(ok {2}|FAIL) 3\. .*$/m) || [''])[0].slice(0, 80)));
-
-// 8 and 9. the harnesses, from the gate's files
+// 7 and 8. the harnesses, from the gate's files
 { const why = fresh(gc, 'results-gate-classic.txt') || fresh(gn, 'results-gate-new.txt');
   const r = { isolation: row(gn, 'solver-isolation'), planner: row(gn, 'solver-planner'), phone: row(gc, 'phone'), perfClassic: row(gc, 'phone-perf'), perfNew: row(gn, 'phone-perf') };
-  line(8, 'the isolation, failure-path, phone and new-planner harnesses green', !why && Object.values(r).every(x => x === 'pass'), why || Object.entries(r).map(([k, v]) => `${k} ${v}`).join(', '));
-  line(9, 'the opt-in switched on and off without losing a plan (solver-planner check 15)', !why && r.planner === 'pass', why || `solver-planner ${r.planner}`); }
+  line(7, 'the isolation, failure-path, phone and new-planner harnesses green', !why && Object.values(r).every(x => x === 'pass'), why || Object.entries(r).map(([k, v]) => `${k} ${v}`).join(', '));
+  line(8, 'the opt-in switched on and off without losing a plan (solver-planner check 15)', !why && r.planner === 'pass', why || `solver-planner ${r.planner}`); }
 
 console.log(`THE READINESS CHECKLIST, the code ${STAMP}`);
 for (const l of lines) console.log(`${l.pass ? 'PASS' : 'FAIL'}  ${l.n}. ${l.label}${l.why ? `   (${l.why})` : ''}`);

@@ -1,5 +1,6 @@
 /*
- * THE BROWSER CHECK IN CHROMIUM (Phase 12 item 5; public/browser-check.html). The page the maintainer opens in Safari and in
+ * THE BROWSER CHECK IN CHROMIUM (Phase 12 item 5; public/browser-check.html). Unused since D60 (6 Nov: the maintainer excluded
+ * the Safari and Firefox checks from the readiness checklist); kept with the page, for a later check of another browser. The page the maintainer opens in Safari and in
  * Firefox, run here in Chromium on the site exactly as it ships, its block printed under the code's stamp
  * (research/solver/launch-stamp.mjs): the reference research/solver/browser-results.mjs reads the other browsers' blocks against.
  * Also a check of the page itself: it loads, solves S116 at the app's 45 points, and leaves the visitor's saved plan and their

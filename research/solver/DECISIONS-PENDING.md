@@ -25,8 +25,9 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
   - Step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), is merged to
     `main` (pull request 8, d3e9fe8) on B1's gate, behind the beta.
   - Phase 11, the phone on the new planner (`PHASE-11.md`), is merged to `main` (pull request 9, 9407889) on B1's gate.
-  - Then Phase 12 as recast (under way, `PHASE-12.md`); couples as Part D during the singles' beta (B9), D5 the couples'
-    screens in the new planner.
+  - Phase 12, the opt-in between the two planners (`PHASE-12.md`), is merged to `main` (pull request 10, 0ee3a3b) on
+    B1's gate, its readiness checklist all PASS (eight lines, D60): the beta started (R6). Then couples as Part D during
+    the singles' beta (B9), D5 the couples' screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
   spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.

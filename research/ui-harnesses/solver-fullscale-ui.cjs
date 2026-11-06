@@ -20,8 +20,11 @@ const { mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { pathToFileURL } = require('node:url');
 const args = process.argv.slice(2);
-const PORT = args.find(a => /^\d+$/.test(a)) || '4173', SITE_PORT = String(Number(PORT) + 13);
-const PARTS = Number((args[args.indexOf('--parts') + 1] || '').match(/^\d+$/) ? args[args.indexOf('--parts') + 1] : 4);
+// --parts N only when given (6 Nov: read at its index plus one without the check, a run with the port alone split the solve
+// 4,173 ways; research/tests/cli-options.test.mjs); the port is the first number that is not its value
+const partsAt = args.indexOf('--parts');
+const PARTS = partsAt >= 0 && /^\d+$/.test(args[partsAt + 1] || '') ? Number(args[partsAt + 1]) : 4;
+const PORT = args.find((a, i) => /^\d+$/.test(a) && !(partsAt >= 0 && i === partsAt + 1)) || '4173', SITE_PORT = String(Number(PORT) + 13);
 const ROOT = join(__dirname, '../..'), VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 const PLANT = process.env.FULLSCALE_PLANT || '';
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);

@@ -95,6 +95,13 @@ and firefox checks"), so the checklist has eight.
 | 7. the isolation, failure-path, phone and new-planner harnesses | the gate's files | solver-isolation, solver-planner (check 11), phone, phone-perf |
 | 8. the opt-in on and off without losing a plan | the gate's files | solver-planner (check 15) |
 
+**What the full-scale run found, fixed (6 Nov).** Its first run on the release's code stopped with "solver part 2710 failed":
+the harness read `--parts` at its index plus one without checking it was given, so run with the port alone it read the port
+and told the page to split the solve 4,173 ways. The harness reads it only when given now, and `cli-options.test.mjs` (the
+full tier) scans every research script for the class: on the code before the fix it names the harness's line, on the fix
+none (`results-cli-options.txt`). The site's code is not touched. Run again: the page's tables Node's bit for bit, 86 s
+split four ways against Node's 306 s on one core (`results-fullscale.txt`).
+
 **Safari and Firefox: excluded (D60).** WebKit and Firefox cannot be installed here (Playwright's own builds are not to be
 installed; Ubuntu's Firefox is a snap), so the line was to be the maintainer's devices, as the launch plan allows; the
 maintainer excluded it. What was built for it stays, unused: the page is in the release's code, and removing it is a later

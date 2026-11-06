@@ -1,0 +1,13 @@
+cli-options.test.mjs on the code before the fix (release/phase-12 at c48317d):
+  ok   1. the scan catches each planted unguarded read and passes each guarded form   caught 2/1/1; guarded flagged 0/0/0/0/0
+  FAIL 2. no research script reads an option's value without checking the option is there (757 scripts)   research/ui-harnesses/solver-fullscale-ui.cjs:24 (--parts); research/ui-harnesses/solver-fullscale-ui.cjs:24 (--parts)
+
+1 passed, 1 failed
+exit 1
+
+on the fix (the working tree):
+  ok   1. the scan catches each planted unguarded read and passes each guarded form   caught 2/1/1; guarded flagged 0/0/0/0/0
+  ok   2. no research script reads an option's value without checking the option is there (757 scripts)
+
+2 passed, 0 failed
+exit 0

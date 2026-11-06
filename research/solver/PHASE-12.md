@@ -23,6 +23,11 @@ all PASS. Where the plan and the code differ, the code holds; each such place is
 - **The test:** `solver-planner-ui` check 17: no tournament word ("tournament", "recommended policy", "bridge safety margin")
   and no classic tab's name on any of the four places with the full documentation open; the documentation leads with how the
   solver decides; the coverage card lists the approximations; the glossary's four words. Plant `tournamentdocs`.
+- **What its first run found, fixed:** the tournament's bridge safety margin and its line on the emergency buffer in Details'
+  Assumptions (B13 and LAYOUT.md section 3.4 have it hidden in the new planner; step U had left it showing); the levers'
+  two help lines naming Plan Inputs (now You); You's harvest line sending the reader to the estate optimiser on the Strategy
+  tab (the clause left out in the new planner); and the documentation's one-off cost section naming the Strategy tab's
+  instruction sheet (in the new planner, Details' year by year). The classic planner's words are unchanged.
 
 ## 2. The harnesses
 

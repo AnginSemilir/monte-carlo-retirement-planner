@@ -1,8 +1,8 @@
 /*
  * PART C PHASE 7: THE SOLVER'S PLUMBING IN THE BUILT SITE (research/solver/PHASE-7.md step 7a). REQUIRED.
  *
- * The switch (`const SOLVER = false` in src/App.jsx) is off, so the app must be the app of today: its first load fetches no
- * solver code and nothing on the page solves. The plumbing behind it is reached through the lazy chunk's one way in
+ * The classic planner (every visitor's unless they opt in; since Phase 12 the switch is on and the classic planner is the app
+ * with it off, bit for bit) must be the app of today: its first load fetches no solver code and nothing on the page solves. The plumbing behind it is reached through the lazy chunk's one way in
  * (window.__solverHarness, src/useSolver.js), and checked against Node on the same household and settings:
  *   - a solve in the page's worker reports its progress, each phase rising year by year to its end;
  *   - its tables are Node's bit for bit (src/solverDigest.js, the same SHA-256 fingerprint in both);
@@ -54,7 +54,7 @@ const progressOk = calls => {
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
   await p.waitForTimeout(1500);
   const solverUrls = urls.filter(u => /solver(Client|Worker)/.test(u));
-  ok('with the switch off, the first load fetches no solver code', solverUrls.length === 0, solverUrls.join(', ') || `${urls.length} requests`);
+  ok('in the classic planner, the first load fetches no solver code', solverUrls.length === 0, solverUrls.join(', ') || `${urls.length} requests`);
   ok('the full planner renders', await p.evaluate(() => /Plan Inputs/.test(document.body.innerText)));
 
   const whole = await p.evaluate(async ({ plan, opts, sim }) => {

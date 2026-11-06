@@ -135,14 +135,14 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
         <Choice isPhone={isPhone} name="raises" value={a.raises} onChange={v => set({ raises: v })} options={[['capped', 'Up to 10% above target'], ['blocked', 'Never above target']]} />
       </Row>
       <Row Fine={ui.Fine} title="Investment risk" isPhone={isPhone}
-        help="On, the solver may move your pension and ISA to a safer or riskier tier as the years go by. Off, each keeps the tier you chose in Plan Inputs.">
+        help="On, the solver may move your pension and ISA to a safer or riskier tier as the years go by. Off, each keeps the tier you chose in You.">
         <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer w-fit">
           <input type="checkbox" data-solver-consent checked={a.riskConsent} onChange={e => set({ riskConsent: e.target.checked })} className="accent-blue-600" />
           The solver may change how your pension and ISA are invested
         </label>
       </Row>
       <Row Fine={ui.Fine} title={`Minimum pot at ${terminalAge}`} isPhone={isPhone}
-        help={`The least the plan aims to end with. Left at 0, the solver keeps one year of your target spending (${fmt(target)}). The same figure as the minimum pot in Plan Inputs.`}>
+        help={`The least the plan aims to end with. Left at 0, the solver keeps one year of your target spending (${fmt(target)}). The same figure as the minimum pot in You.`}>
         <MoneyInput data-solver-minpot min="0" step="5000" placeholder="0" value={plan.config && plan.config.solvencyFloor !== undefined ? plan.config.solvencyFloor : ''}
           onChange={e => updateConfig('solvencyFloor', e.target.value)} className={`${fieldCls} max-w-[12rem]`} />
       </Row>

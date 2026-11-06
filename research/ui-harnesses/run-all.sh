@@ -14,14 +14,20 @@
 # the Inheritance tab, which sits behind SHOW_INHERITANCE=false and so cannot pass today. Reporting them
 # rather than deleting them keeps the fact visible.
 #
-#   Usage: research/ui-harnesses/run-all.sh [port] [--solver | --both] [--engine]
+#   Usage: research/ui-harnesses/run-all.sh [port] [--new | --both] [--engine]
 #
-# --solver (the switch-on gate; PART-C-PLAN.md, D41: ALL REQUIRED GREEN "with the switch off and, from Phase 8 on, with
-# it on as well"; the launch plan's F7 and B1): the site is built with the solver's switch on (vite.config.js
-# solver-preview: SOLVER_PREVIEW=1, the harnesses' light settings) into dist-solver, served, and every REQUIRED harness
-# runs against it, but those in SWITCH_OFF_ONLY, each named with what covers it with the switch on. The engine suites
-# do not read the switch. B1's gate is both modes green; --both runs the two, one after the other, under one batch pause
-# (two runs leave a gap between them in which a waiting unit starts, and the second run then waits for it).
+# THE GATE'S TWO MODES ARE THE OPT-IN'S TWO STATES (Phase 12; the launch plan's B6 and Phase 12 item 3; research/solver/
+# PHASE-12.md). Since Phase 12 the solver's switch and B6's beta are on in the source, so there is no switch-off build any
+# more: every visitor sees the classic planner (rp_planner 'classic' unless set, the app with the switch off bit for bit) until
+# they opt in to the new planner. B1's gate is both states green, each harness run in the state it tests:
+#   classic (the default): the site exactly as it ships (`npm run build`), served; the harnesses of the classic planner and of
+#     what every visitor loads (CLASSIC below), phone-perf's classic sections (PHONE_PERF_ONLY=classic), and load-perf, whose
+#     one run measures the classic first load and the opted-in one on the site's own build;
+#   new (--new): the same source at the harnesses' light settings (vite.config.js solver-harness: SOLVER_HARNESS=1), served;
+#     the new planner's harnesses (NEW below), each opting in (rp_planner 'new') on the build it makes, and phone-perf's section
+#     5, the new planner on a throttled phone (PHONE_PERF_ONLY=planner), against the served build.
+# A harness not run in a mode is listed with the mode that runs it. --both runs the two, one after the other, under one batch
+# pause (two runs leave a gap between them in which a waiting unit starts, and the second run then waits for it).
 #
 # The engine suites (research/tests, `npm run test:engine`) are not run here unless --engine asks (2 Nov, D55): CI runs
 # every one of them on each push (Verify's fast tier, Full's two shards), and B1's gate reads them there, green on the
@@ -29,21 +35,24 @@
 # and repeated what CI had already run on the same commit; their speed checks beside a batch failed the gate on 28ec7a9.
 #
 set -uo pipefail
-PORT=4173; MODE=off; BOTH=0; ENGINE=0
-for a in "$@"; do case "$a" in --solver) MODE=solver ;; --both) BOTH=1 ;; --engine) ENGINE=1 ;; *) PORT="$a" ;; esac; done
+PORT=4173; MODE=classic; BOTH=0; ENGINE=0
+for a in "$@"; do case "$a" in --new) MODE=new ;; --both) BOTH=1 ;; --engine) ENGINE=1 ;; --solver) echo "--solver retired with Phase 12: the modes are classic (the default) and --new"; exit 2 ;; *) PORT="$a" ;; esac; done
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/../.."
-# the light settings a switch-on build solves at (solver-config-ui.cjs's LIGHT)
+# the light settings the new mode's build solves at (solver-config-ui.cjs's LIGHT)
 LIGHT='{"points":4,"research":{"adaptiveLattice":{"na":48,"nb":9,"nz":32,"foot":true,"stepAll":true}}}'
-# harnesses that test what the switch replaces, each with what covers it with the switch on (name:what covers it)
-# step U (research/reviews/2026-11-03/LAYOUT.md section 11.2): rp_planner is 'classic' unless set, so with the switch on every
-# harness that does not opt in runs against the classic planner, the app with the switch off; the solver's harnesses opt in to
-# the new planner on the previews they build, and tournament, tradeoffs and priorities run in both modes again
-SWITCH_OFF_ONLY=("solver-config:itself, against the switch-on preview it builds (opted in to the new planner)"
-  "solver-strategy:itself, against the switch-on preview it builds (opted in to the new planner)"
-  "solver-isolation:itself, against the switch-on build it serves without headers, as GitHub Pages does (opted in)"
-  "solver-projection:itself, against the switch-on preview it builds (opted in to the new planner)"
-  "solver-planner:itself, against the switch-on preview it builds (opted in to the new planner)")
+# each harness and the state it tests (name:what it tests): the classic planner and what every visitor loads, or the new planner;
+# phone-perf tests both, its classic sections in the classic mode and its section 5 in the new
+CLASSIC=("restyle-regression:the classic planner's look" "phone:the classic planner on a phone" "desktop-reach:the classic planner on a desktop"
+  "numbers:the classic planner's figures" "load-perf:the first load, the classic planner's and the opted-in one, on the site's own build"
+  "sandbox-step:the classic planner" "simple-extras:the Simple page" "mc-reveal:the classic planner" "crossover:the Simple page and the classic planner"
+  "production-build:the site as it ships" "tradeoffs:the classic planner's tournament (D42 keeps it)" "priorities:the classic planner's tournament"
+  "simple-closecall:the Simple page" "tournament:the classic planner's tournament" "solver-progress:the plumbing every visitor's page carries")
+NEW=("solver-config:the new planner's levers and limits, opted in on the build it makes" "solver-strategy:the new planner's Your plan, opted in on the build it makes"
+  "solver-isolation:the new planner's isolation, opted in on the build it serves without headers, as GitHub Pages does"
+  "solver-projection:the new planner's outlook, dials and Details, opted in on the build it makes"
+  "solver-planner:the new planner, opted in on the build it makes")
+BOTHSTATES=(phone-perf)
 
 REQUIRED=(restyle-regression phone phone-perf desktop-reach numbers load-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament solver-progress solver-config solver-strategy solver-isolation solver-projection solver-planner)
 # closecall-ui.cjs is not in either list: it takes a plans.json written by hand, not a port, and
@@ -65,12 +74,15 @@ trap unpause EXIT
 if [ "$BOTH" = 1 ]; then
   ENG=(); [ "$ENGINE" = 1 ] && ENG=(--engine)
   bash "$SELF" "$PORT" "${ENG[@]}"; OFFCODE=$?
-  echo; bash "$SELF" "$PORT" --solver; ONCODE=$?
+  echo; bash "$SELF" "$PORT" --new; ONCODE=$?
   word() { [ "$1" -eq 0 ] && echo green || echo FAILED; }
-  echo; echo "== both modes: the switch off $(word "$OFFCODE"), the switch on $(word "$ONCODE") =="
+  echo; echo "== both modes: the classic planner $(word "$OFFCODE"), the new planner $(word "$ONCODE") =="
   if [ "$OFFCODE" -eq 0 ] && [ "$ONCODE" -eq 0 ]; then echo "ALL REQUIRED GREEN IN BOTH MODES"; exit 0; fi
   echo "SOMETHING REQUIRED FAILED"; exit 1
 fi
+# the code this gate runs on (research/solver/launch-stamp.mjs), for the readiness checklist (launch-ready.mjs), which counts a gate
+# only on the release's own code
+echo "the code: $(node research/solver/launch-stamp.mjs); the $MODE planner's mode"
 for m in "$RUNNING"/*; do [ -e "$m" ] && ! kill -0 "${m##*/}" 2>/dev/null && rm -f "$m"; done
 if [ -n "$(ls -A "$RUNNING" 2>/dev/null)" ]; then
   echo "== waiting for the batch units in flight ($(ls "$RUNNING" | wc -l)) =="
@@ -78,13 +90,13 @@ if [ -n "$(ls -A "$RUNNING" 2>/dev/null)" ]; then
 fi
 
 OUT=dist
-if [ "$MODE" = solver ]; then
-  OUT=dist-solver
-  echo "== build, the solver's switch on (SOLVER_PREVIEW=1, into $OUT) =="
-  SOLVER_PREVIEW=1 SOLVER_PREVIEW_OPTS="$LIGHT" npx vite build --outDir "$OUT" --emptyOutDir >/tmp/run-all-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/run-all-build.log; exit 1; }
+if [ "$MODE" = new ]; then
+  OUT=dist-new
+  echo "== build, the harnesses' light settings (SOLVER_HARNESS=1, into $OUT) =="
+  SOLVER_HARNESS=1 SOLVER_HARNESS_OPTS="$LIGHT" npx vite build --outDir "$OUT" --emptyOutDir >/tmp/run-all-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/run-all-build.log; exit 1; }
 else
-  echo "== build =="
-  npm run build >/tmp/run-all-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/run-all-build.log; exit 1; }
+  echo "== build, the site as it ships =="
+  env -u SOLVER_HARNESS -u SOLVER_HARNESS_OPTS -u PLANNER_BETA_OFF -u PLANNER_PLANT npm run build >/tmp/run-all-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/run-all-build.log; exit 1; }
 fi
 echo "   ok"
 
@@ -103,19 +115,23 @@ curl -sf "http://localhost:$PORT/" | cmp -s - "$OUT/index.html" || { echo "THE S
 echo "   ok"
 
 declare -a NAMES=() CODES=() KINDS=() COVER=()
-run_one() {   # name kind
-  local f="research/ui-harnesses/$1-ui.cjs"
-  if [ ! -f "$f" ]; then NAMES+=("$1"); CODES+=("skip"); KINDS+=("$2"); return; fi
-  local out; out=$(node "$f" "$PORT" 2>&1); local code=$?
-  NAMES+=("$1"); CODES+=("$code"); KINDS+=("$2")
+run_one() {   # name kind [VAR=value ...]: the harness, with what its mode tells it
+  local f="research/ui-harnesses/$1-ui.cjs" n="$1" k="$2"; shift 2
+  if [ ! -f "$f" ]; then NAMES+=("$n"); CODES+=("skip"); KINDS+=("$k"); return; fi
+  local out; out=$(env "$@" node "$f" "$PORT" 2>&1); local code=$?
+  NAMES+=("$n"); CODES+=("$code"); KINDS+=("$k")
   # every failing line, then the tail: a harness with twelve failures used to show the last three
-  if [ "$code" -ne 0 ]; then echo "--- $1 ---"; echo "$out" | grep -E '^\s*FAIL|^[A-Za-z].*@' | head -40; echo "   ..."; echo "$out" | tail -6; fi
+  if [ "$code" -ne 0 ]; then echo "--- $n ---"; echo "$out" | grep -E '^\s*FAIL|^[A-Za-z].*@' | head -40; echo "   ..."; echo "$out" | tail -6; fi
 }
 
-offonly() { for e in "${SWITCH_OFF_ONLY[@]}"; do [ "${e%%:*}" = "$1" ] && { echo "${e#*:}"; return 0; }; done; return 1; }
-echo "== harnesses${MODE:+ (switch $MODE)} =="
+stateOf() { local -n L="$1"; for e in "${L[@]}"; do [ "${e%%:*}" = "$2" ] && { echo "${e#*:}"; return 0; }; done; return 1; }
+echo "== harnesses (the $MODE planner) =="
 for n in "${REQUIRED[@]}"; do
-  if [ "$MODE" = solver ] && cover="$(offonly "$n")"; then NAMES+=("$n"); CODES+=("offonly"); KINDS+=("required"); COVER+=("$cover"); continue; fi
+  if [[ " ${BOTHSTATES[*]} " == *" $n "* ]]; then
+    run_one "$n" required PHONE_PERF_ONLY="$([ "$MODE" = new ] && echo planner || echo classic)"; COVER+=(""); continue
+  fi
+  if [ "$MODE" = new ] && what="$(stateOf CLASSIC "$n")"; then NAMES+=("$n"); CODES+=("other"); KINDS+=("required"); COVER+=("the classic mode: $what"); continue; fi
+  if [ "$MODE" = classic ] && what="$(stateOf NEW "$n")"; then NAMES+=("$n"); CODES+=("other"); KINDS+=("required"); COVER+=("the new mode: $what"); continue; fi
   run_one "$n" required; COVER+=("")
 done
 # the optional harnesses cover a tab that is switched off in the source; running them is ten minutes of
@@ -132,7 +148,7 @@ FAILED=0
 for i in "${!NAMES[@]}"; do
   c="${CODES[$i]}"
   if   [ "$c" = "skip" ]; then r="NOT PRESENT"; [ "${KINDS[$i]}" = required ] && FAILED=1
-  elif [ "$c" = "offonly" ]; then r="switch-off only: covered by ${COVER[$i]}"
+  elif [ "$c" = "other" ]; then r="run in ${COVER[$i]}"
   elif [ "$c" = "off" ];  then r="not run: SHOW_INHERITANCE is off"
   elif [ "$c" -eq 0 ];   then r="pass"
   else r="FAIL ($c)"; [ "${KINDS[$i]}" = required ] && FAILED=1
@@ -145,8 +161,8 @@ done
 # memory traffic still slows (2 Nov: C2 failed once in the gate on 28ec7a9 beside L4's four units).
 echo
 echo "== engine suites =="
-if [ "$MODE" = solver ]; then
-  echo "   not run with the switch on: they do not read it"
+if [ "$MODE" = new ]; then
+  echo "   not run in the new mode: they do not read the planner"
 elif [ "$ENGINE" = 1 ]; then
 npm run test:engine >/tmp/run-all-engine.log 2>&1 \
   && echo "   $(grep -c '^PASS' /tmp/run-all-engine.log) assertions passed" \

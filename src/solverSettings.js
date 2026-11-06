@@ -74,7 +74,7 @@ export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}),
 /* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
 export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
-export const PLANT = { rule: '' };   // research/tests/solver-figures.test.mjs only: 'rawsig' keys the dial's figures on the plan as stored
+export const PLANT = { rule: '' };   // tests only: 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve)
 /* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
    position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
 export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));
@@ -159,6 +159,10 @@ export const APP_FLOOR = 0.8;
  * one of the library's 420 households (30 Oct; research/tests/solver-floor.test.mjs).
  */
 export function prepareForSolve(E, plan) {
+  // research/tests/library-sweep.test.mjs only: 'needsolver' throws on a plan without a solver section (an old export, or the
+  // quick start's plan); 'lumpthrow' throws on the lump sum locked to 'now'
+  if (PLANT.rule === 'needsolver' && !(plan && plan.solver)) throw new Error('planted: a plan without a solver section');
+  if (PLANT.rule === 'lumpthrow' && plan && plan.solver && plan.solver.locks && plan.solver.locks.lumpSum === 'now') throw new Error('planted: the lump sum locked now');
   const p = lockedPlan(E, E.normalizePlan(plan)).plan, sp = p.spending || {};
   const spending = E.num(sp.floorSpend, 0) > 0 ? sp : { ...sp, floorSpend: Math.round(APP_FLOOR * E.num(sp.targetSpend, 0)) };
   return E.resolveMpaa(E.normalizePlan({ ...p, spending, config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));

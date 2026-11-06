@@ -102,7 +102,7 @@ const runProjection = async p => {
   const OUT = mkdtempSync(join(tmpdir(), 'solver-projection-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTS.has('outlookswap') ? 'outlookswap' : '' } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTS.has('outlookswap') ? 'outlookswap' : '' } });
     if (PLANTS.has('histexp')) {
       // the plant: the page asks history for the expected path instead (item 7's history check must fail)
       const dir = join(OUT, 'assets'); let hit = 0;

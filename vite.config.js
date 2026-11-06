@@ -6,34 +6,51 @@ import solverCode from './vite-plugin-solver-code.js';
 const ISOLATED = { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' };
 
 /*
- * THE SOLVER'S SWITCH, TURNED ON FOR A HARNESS'S BUILD ONLY (research/solver/PHASE-8.md). Inert unless the build runs with
- * SOLVER_PREVIEW=1: then src/App.jsx's `const SOLVER = false;` reads true, `const SOLVER_OPTS = null;` reads the JSON in
- * SOLVER_PREVIEW_OPTS (a harness's light settings) and `const PLANNER_BETA = false;` reads true (step U). Any of the lines
- * moved stops the build, so a harness can never pass on a build whose switch stayed off. The site's own build is untouched: the switch stays the one line Phase 12 turns on.
+ * A HARNESS'S BUILD (research/solver/PHASE-12.md item 3). The solver's switch and B6's beta are on in src/App.jsx since Phase 12,
+ * so the site's own build is the one the beta ships, and the preview plugin that turned them on for a preview retired with it
+ * (the launch plan's F9: once the switch read true it would have stopped every build). What is left acts only in a harness's
+ * build, with SOLVER_HARNESS=1:
+ *   - SOLVER_HARNESS_OPTS (JSON): `const SOLVER_OPTS = null;` reads it, the harness's light settings, so its solves are quick;
+ *     unset, the page solves at the app's own settings, as the site does;
+ *   - PLANNER_BETA_OFF=1: `const PLANNER_BETA = true;` reads false, the rollback ("one deploy turns it off for everyone"), which
+ *     solver-planner-ui check 16 builds to see it give everyone the classic planner.
+ * Either line moved stops the build, so a harness can never pass on a build that ignored what it asked for.
  */
-const SWITCH = '\nconst SOLVER = false;\n', OPTS = '\nconst SOLVER_OPTS = null;\n';
-// A Vercel preview deployment (VERCEL_ENV 'preview': a pull request's or a branch's preview link; never the site, which GitHub
-// Pages serves, nor Vercel's production deployment) builds with the switch and the beta on at the app's own settings, so a
-// preview link shows the new planner to whoever opts in with "Try the new planner (beta)" (step U's report to the maintainer).
-// Every other build, the harnesses' and the site's, reads SOLVER_PREVIEW as it is set.
-if (process.env.VERCEL_ENV === 'preview' && process.env.SOLVER_PREVIEW === undefined) process.env.SOLVER_PREVIEW = '1';
-// step U (research/reviews/2026-11-03/LAYOUT.md section 2.1): the preview build sets B6's beta switch true with SOLVER, so a
-// harness that opts in (rp_planner 'new') reaches the new planner; a harness that does not sees the classic planner
-const BETA = '\nconst PLANNER_BETA = false;\n';
-const solverPreview = () => ({
-  name: 'solver-preview',
+const OPTS = '\nconst SOLVER_OPTS = null;\n', BETA = '\nconst PLANNER_BETA = true;\n';
+const solverHarness = () => ({
+  name: 'solver-harness',
   enforce: 'pre',
   transform(code, id) {
-    if (process.env.SOLVER_PREVIEW !== '1') return null;
+    if (process.env.SOLVER_HARNESS !== '1') return null;
     if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
-    if (!code.includes(SWITCH) || !code.includes(OPTS) || !code.includes(BETA)) this.error('solver-preview: the switch lines in src/App.jsx have moved');
-    const opts = process.env.SOLVER_PREVIEW_OPTS || 'null';
+    if (!code.includes(OPTS) || !code.includes(BETA)) this.error('solver-harness: the settings or beta lines in src/App.jsx have moved');
+    const opts = process.env.SOLVER_HARNESS_OPTS || 'null';
     JSON.parse(opts);
-    return { code: code.replace(SWITCH, '\nconst SOLVER = true;\n').replace(BETA, '\nconst PLANNER_BETA = true;\n').replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`), map: null };
+    let out = code.replace(OPTS, `\nconst SOLVER_OPTS = ${opts};\n`);
+    if (process.env.PLANNER_BETA_OFF === '1') out = out.replace(BETA, '\nconst PLANNER_BETA = false;\n');
+    return { code: out, map: null };
   }
 });
 
-// step U's planted faults (src/plannerPlant.js): a harness's preview only (SOLVER_PREVIEW), named in PLANNER_PLANT
+/*
+ * THE WORKERS READ THE SWITCH OFF (Phase 12). The engine's workers (src/simWorker.js, src/mcWorker.js) import src/App.jsx for
+ * the engine, never for its screens. With the switch on in the source they would reach the solver's client and, through it,
+ * the solver's worker, which imports the engine's: a circular worker import Vite refuses. Before Phase 12 every worker build
+ * read `const SOLVER = false;` (the preview plugin acted in the page's build only), so App.jsx's solver branches folded away
+ * in them; this keeps that, the workers' bundles as they were. The page's own build reads the switch as the source has it.
+ */
+const SWITCH_ON = '\nconst SOLVER = true;\n';
+const workerSolverOff = () => ({
+  name: 'worker-solver-off',
+  enforce: 'pre',
+  transform(code, id) {
+    if (!/[\\/]src[\\/]App\.jsx$/.test(id)) return null;
+    if (!code.includes(SWITCH_ON)) this.error('worker-solver-off: the switch line in src/App.jsx has moved');
+    return { code: code.replace(SWITCH_ON, '\nconst SOLVER = false;\n'), map: null };
+  }
+});
+
+// step U's planted faults (src/plannerPlant.js): a harness's build only (SOLVER_HARNESS), named in PLANNER_PLANT
 // (comma-separated). In the page's bundle and the workers' alike: the outlook's arms are drawn in the solver's worker
 // (src/solverStrategy.js outlookOf, the plant 'outlookswap'), which the page's plugins do not reach. With PLANNER_PLANT unset
 // it leaves the module as it is, so every other build is the same byte for byte.
@@ -41,7 +58,7 @@ const plannerPlant = () => ({
   name: 'planner-plant',
   enforce: 'pre',
   transform(code, id) {
-    if (process.env.SOLVER_PREVIEW !== '1' || !process.env.PLANNER_PLANT) return null;
+    if (process.env.SOLVER_HARNESS !== '1' || !process.env.PLANNER_PLANT) return null;
     if (!/[\\/]src[\\/]plannerPlant\.js$/.test(id)) return null;
     const list = process.env.PLANNER_PLANT;
     if (!/^[a-z0-9,]*$/.test(list)) this.error('planner-plant: PLANNER_PLANT is a comma-separated list of plant names');
@@ -63,7 +80,7 @@ export default defineConfig({
   base: './',
   // inlineEdit supplies the manifest of editable copy, and under `vite dev` an endpoint that writes
   // edits back to source. A production build gets the manifest only — there is no server to write with.
-  plugins: [solverPreview(), plannerPlant(), react(), inlineEdit()],
+  plugins: [solverHarness(), plannerPlant(), react(), inlineEdit()],
   /*
    * The worker bundle needs the same plugins. src/simWorker.js imports the engine from App.jsx, which
    * reaches EditMode.jsx and its virtual:editable-copy module - so without this the worker build fails
@@ -73,12 +90,12 @@ export default defineConfig({
    * solverCode names the solver worker's code by its module graph, for the stored solves' key (vite-plugin-solver-code.js;
    * step P1 (g)); it acts in the solver worker's build only.
    */
-  worker: { format: 'es', plugins: () => [plannerPlant(), react(), inlineEdit(), solverCode()] },
+  worker: { format: 'es', plugins: () => [workerSolverOff(), plannerPlant(), react(), inlineEdit(), solverCode()] },
   /*
    * Cross-origin isolation on the local servers, so the solver can split a solve across workers (src/solverPool.js needs
-   * SharedArrayBuffer, which a page has only when isolated; research/solver/PHASE-7.md). Local only: the deployed site sends
-   * no such headers until Phase 12 settles how (GitHub Pages cannot send them), and with the solver switched off nothing
-   * in the app reads them. Every asset the app loads is its own, so `require-corp` blocks nothing.
+   * SharedArrayBuffer, which a page has only when isolated; research/solver/PHASE-7.md). Local only: GitHub Pages cannot send
+   * them, so the deployed site gets them from a service worker once the new planner first solves (src/isolation.js, Phase 10,
+   * B5). Every asset the app loads is its own, so `require-corp` blocks nothing.
    */
   server: { headers: ISOLATED },
   preview: { headers: ISOLATED },

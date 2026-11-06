@@ -131,8 +131,9 @@ async function figures(page) {
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
-  // PHONE_PERF_ONLY=planner (a measuring run's narrowing; the gate runs every section): section 5 alone
-  const only = process.env.PHONE_PERF_ONLY === 'planner';
+  // PHONE_PERF_ONLY (run-all.sh's two modes, Phase 12): 'classic', sections 1 to 4, the classic planner on the site as it
+  // ships; 'planner', section 5 alone, the new planner on the light settings' build. Unset, every section.
+  const only = process.env.PHONE_PERF_ONLY === 'planner', classicOnly = process.env.PHONE_PERF_ONLY === 'classic';
   if (!only) {
   // ---- 1 & 2: the throttled run, off the main thread ----
   console.log(`Pixel 7 at ${THROTTLE}x CPU throttle`);
@@ -183,8 +184,9 @@ async function figures(page) {
   // stays free throughout, as the projection's must. Measured from the press to the card's "done" (every path in), at the
   // build's own settings (run-all's switch-on build: the harnesses' light settings). The bytes the page and its workers
   // fetched are recorded. On the site's own build the new planner is not there, and the run says so.
+  if (classicOnly) console.log('the new planner on a phone: run in the new mode (PHONE_PERF_ONLY=planner), on the light settings\' build');
+  else {
   console.log(`the new planner, opted in, Pixel 7 at ${THROTTLE}x CPU throttle: "Solve my plan" to every path in`);
-  {
     const ctx = await b.newContext({ ...devices['Pixel 7'] });
     const page = await ctx.newPage();
     const st = { errs: [], solverWorkers: 0, bytes: { page: 0, workers: 0, n: 0 }, seen: new Set() };

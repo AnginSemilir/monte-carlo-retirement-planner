@@ -2,8 +2,9 @@
  * PART C PHASE 10: THE PAGE'S ISOLATION WHERE THE HOST SENDS NO HEADERS (the launch plan's B5; public/coi-sw.js,
  * src/isolation.js). REQUIRED.
  *
- * 1. The site as built (the switch off): no service worker registered, no isolation code fetched.
- * 2. A preview build with the switch on at light settings, opted in to the new planner (only it solves; step U), served the
+ * 1. The site as built, the classic planner (the switch-off app bit for bit, Phase 12): no service worker registered, no
+ *    isolation code fetched.
+ * 2. A harness's build at light settings (vite.config.js solver-harness), opted in to the new planner (only it solves; step U), served the
  *    way GitHub Pages serves it, with no headers at all
  *    (this harness's own static server), a single household from the research library:
  *      - the first load registers the worker and reloads once; then the page is cross-origin isolated;
@@ -74,20 +75,20 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
   const nodeDigest = await D.digestOf(D.tablesOf(solveForApp(E, M, plan, LIGHT)));
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
-  // 1. the switch off
+  // 1. the site as built: the classic planner
   { const ctx = await b.newContext(), p = await ctx.newPage(), urls = [], errs = [];
     p.on('request', q => urls.push(q.url())); p.on('pageerror', e => errs.push(e.message));
     await seed(ctx, plan);
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
     const s = await state(p), got = urls.filter(u => /isolation|coi-sw/.test(u));
-    ok('switch off: no service worker registered, no isolation code fetched', s.regs === 0 && got.length === 0, `${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
-    ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+    ok('the classic planner: no service worker registered, no isolation code fetched', s.regs === 0 && got.length === 0, `${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
+    ok('the classic planner: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-isolation-'));
   const { server, state: srv } = bareServer(OUT);
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
     // ISOLATION_PLANT=nosw (a planted fault, run once by hand): the worker's script left out of the site served
     if (process.env.ISOLATION_PLANT === 'nosw') rmSync(join(OUT, 'coi-sw.js'));
     await new Promise(res => server.listen(BARE_PORT, res));

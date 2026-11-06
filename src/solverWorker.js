@@ -83,7 +83,7 @@ self.onmessage = async ({ data }) => {
       const isBase = kind === 'base', t0 = performance.now();
       if (isBase && held && held.key === data.key) {
         if (data.key) await touchSolve(data.key, CODE);
-        self.postMessage({ id, done: true, meta: plainMeta(held.r), secs: 0, restored: 'held' });
+        self.postMessage({ id, done: true, meta: plainMeta(held.r), secs: 0, restored: 'held', code: CODE });
         return;
       }
       if (isBase) held = null; else solved = null;
@@ -98,7 +98,7 @@ self.onmessage = async ({ data }) => {
       if (rec) {
         const r = solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(base ? { base } : {}) });
         keep(r);
-        self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: true });
+        self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: true, code: CODE });
         return;
       }
       const pool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
@@ -106,7 +106,7 @@ self.onmessage = async ({ data }) => {
       try { r = solveForApp(E, M, data.plan, { ...data.opts, ...(pool ? { e2: pool } : {}), progress, ...(base ? { base } : {}) }); }
       catch (e) { if (pool) pool.fail(); throw e; }
       keep(r);
-      self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: false });
+      self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: false, code: CODE });
       if (data.key) { const st = await storeSolveWhy(data.key, CODE, cacheOf(r), { keep: data.baseKey || null }); self.postMessage({ id, stored: st.stored, why: st.why }); }
       return;
     }

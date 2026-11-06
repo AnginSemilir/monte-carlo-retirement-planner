@@ -48,6 +48,8 @@
  */
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
+// couple-quick.test.mjs only ('' everywhere else): 'nolevel' spends the target whatever the move's level, as before D1
+export const MODEL = { plant: '' };
 
 /*
  * The cash buffer for the household in projection year `t`, in full-year terms: months of the year's
@@ -366,6 +368,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   if (anyRetired) {
     const scheduled = E.spendTargetAtAge(ctx, ageSelf);
     annualLivingTarget = scheduled;
+    // a solved move may spend below the target (a cut) or above it (a raise) this year, as the engine's year does (its line
+    // "a solved table may spend below the target"); Part D, D1: before it this model spent the target whatever the move's
+    // level, so a couple's rollout chose a level its own year ignored (couple-quick.test.mjs; MODEL.plant 'nolevel' puts it back)
+    if (MODEL.plant !== 'nolevel' && action.spendLevel !== undefined && action.spendLevel !== 1) annualLivingTarget = scheduled * action.spendLevel;
     if (ctx.guardrails) {
       if (!state.guard) state.guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
       const g = ctx.guardrails, gs = state.guard;

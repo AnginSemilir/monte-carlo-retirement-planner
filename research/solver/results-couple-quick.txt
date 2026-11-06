@@ -1,0 +1,29 @@
+PART D, D1: the couples' rollout's three gaps (couple-quick.test.mjs), on the working branch's D1 code (the e3pcls pin 879271bb253cb33f)
+
+== node research/tests/couple-quick.test.mjs
+S007: two tables at 6 points, levels 1/1.2/1.1/0.95/0.9/0.8, lambda 0.05, 7 nodes, solved in 17.2s
+  ok   1. the exact model spends the scheduled target times the move's level, as the engine's year does   year 2: target £41000; at 1 £41000, at 0.9 £36900, at 1.1 £45100
+  ok   2. the expectation takes the tables' own 7 nodes, not five fixed ones   40 positions: against the 7-node oracle, the largest relative gap 0.00e+0; the five-node oracle apart by up to 2.87e-3
+  ok   3. the cut term: this year's cut at the tables' own curve, the years ahead from their cut tables, in the value and the score   year 1: the curve by hand at 6 levels 6/6; the value against the oracle 0.00e+0, its cut ahead up to 1.46e-2; the score against the oracle 0.00e+0 (84 decisions)
+  ok   4. the household's level from either person's ranked move: the rollout's pick is the best of every candidate, both levels tried   84 of 84 decisions the oracle's pick; 22 take a level only the second person's moves proposed
+  ok   5. a single's tables are the code before D1's, bit for bit   S116 at the sweep's light settings: b12130607dc6ceb4 (2799360 values, 30.5s) against b12130607dc6ceb4
+  ok   6. the dial reaches couples: with the cut term the household spends higher than without it   the mean level 1.025 with the term, 0.978 without (84 decisions)
+
+6 passed, 0 failed
+
+== node research/tests/couple-quick.test.mjs --plants (each plant the code before D1's rule for one gap)
+  plant nolevel    fails 1 (expected 1): exact
+  plant fivenodes  fails 2, 3, 4 (expected 2, 3, 4): exact
+  plant nocut      fails 3, 4, 6 (expected 3, 4, 6): exact
+  plant firstlevel fails 4, 6 (expected 4, 6): exact
+
+all plants exact
+
+== the four plants together against the code before D1 (b4ea006): the couples' rollout on S007, the fixture's settings, 60 paths of seed 31
+the code before D1: 60 paths, survived 59, outcomes 2cfe28cb6a2f6bdf
+new, every plant: 60 paths, survived 59, outcomes 2cfe28cb6a2f6bdf
+
+== solver-couple.test.mjs (no dial, one level: the rollout as before)
+PASS  C3  the rollout is no worse than the plan's own rule on the same paths (policy improvement)  -- rollout 94.3, own rule 94.3, best of the menu 97.3
+PASS  C4  the split is used: not every year is even  -- 25.6 uneven years a run, mean split 0.69
+=========== 12 passed, 0 failed ===========

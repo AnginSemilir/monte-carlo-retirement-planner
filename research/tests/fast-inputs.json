@@ -206,6 +206,28 @@
   "spawns": [],
   "nodeModules": false
  },
+ "couple-quick.test.mjs": {
+  "read": [
+   "research/engine.mjs",
+   "research/policy-study/scenarios.mjs",
+   "research/tests/couple-quick.test.mjs",
+   "src/solver/adaptive.js",
+   "src/solver/couple.js",
+   "src/solver/fast.js",
+   "src/solver/grid.js",
+   "src/solver/model.js",
+   "src/solver/reader.js",
+   "src/solver/solve.js",
+   "src/solverApp.js",
+   "src/solverDigest.js",
+   "src/solverSettings.js"
+  ],
+  "probe": [],
+  "list": [],
+  "outdirs": [],
+  "spawns": [],
+  "nodeModules": false
+ },
  "diff.test.mjs": {
   "read": [
    "research/engine.mjs",
@@ -723,6 +745,7 @@
    "research/tests/claims.test.mjs",
    "research/tests/cli-options.test.mjs",
    "research/tests/clock-checks.test.mjs",
+   "research/tests/couple-quick.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
    "research/tests/crossover.test.mjs",
@@ -2153,6 +2176,7 @@
    "research/tests/claims.test.mjs",
    "research/tests/cli-options.test.mjs",
    "research/tests/clock-checks.test.mjs",
+   "research/tests/couple-quick.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
    "research/tests/crossover.test.mjs",
@@ -2418,6 +2442,7 @@
    "research/solver/MORNING-SUMMARY-24SEP.md",
    "research/solver/PART-C-PLAN.md",
    "research/solver/PART-C-WORDING.md",
+   "research/solver/PART-D.md",
    "research/solver/PHASE-10.md",
    "research/solver/PHASE-11.md",
    "research/solver/PHASE-12.md",
@@ -2664,6 +2689,7 @@
    "research/solver/results-copyx-years.txt",
    "research/solver/results-copyx.txt",
    "research/solver/results-costs.txt",
+   "research/solver/results-couple-quick.txt",
    "research/solver/results-covb.txt",
    "research/solver/results-covedge.txt",
    "research/solver/results-covflow.txt",

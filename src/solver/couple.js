@@ -13,12 +13,28 @@
  * The tables are solved with an even split and value the future as if it stays even, so the split is a
  * one-year deviation valued against a base policy, which is what a rollout is. Tiers are off for couples
  * in this pilot; the raise and the floor are the single solver's and pass through the single plans.
+ *
+ * PART D, D1 (the launch plan's section 6; the archive's M4, its three gaps), each scored as the single chooser
+ * (solve.js scoreMoves) scores a move:
+ *   - THE CUT TERM. A move's value now charges the household's cut: this year's, the two tables' own cut cost at the
+ *     household's level averaged (one cut, costOf: lambda x shortOf, age-weighted under ageWeight; a raise's credit weighted
+ *     by the survival it leads to, as raiseSurvival does), and the years ahead, the two tables' expected future cut cost
+ *     (each table's `short`, read where its survival is read) averaged: the household spends at one level, so a cut is
+ *     counted once, not once a person. So the dial (lambda) reaches couples.
+ *   - THE HOUSEHOLD'S LEVEL. Each joint candidate tries the level of either person's ranked move, not the first person's
+ *     alone, and both tables value where it leaves them.
+ *   - THE QUADRATURE. The expectation takes the tables' own nodes and weights (`quadNodes`), not five fixed ones; unset,
+ *     they are the five, so nothing changes there.
+ * COUPLE.plant (couple-quick.test.mjs only; '' everywhere else): 'nocut', 'firstlevel' and 'fivenodes', alone or joined by
+ * commas, put each gap back as the code before D1 had it (with model.js's MODEL.plant 'nolevel', all four are that code).
  */
 import { solve, solveMixture, rankActions, NODES, WEIGHTS } from './solve.js';
 import { foldedVol } from './fast.js';
-import { vecOf } from './grid.js';
+import { vecOf, readValues } from './grid.js';
 
 export const SPLITS = [0, 0.25, 0.5, 0.75, 1];
+export const COUPLE = { plant: '' };
+const planted = (k) => COUPLE.plant !== '' && COUPLE.plant.split(',').includes(k);
 
 /* One person's plan, cut from the couple's: their wrappers and incomes, `share` of the household's spending. */
 export function singlePlanFor(plan, who, share = 0.5) {
@@ -75,28 +91,57 @@ export function solveCouple(E, M, plan, opts = {}) {
   return { E, M, m, plans, tables, share, splits: opts.splits || SPLITS, topK: opts.topK || 2, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points } };
 }
 
-/* The value of a post-decision couple state: the two tables read after one year's growth, averaged over the market. */
-function expectedValue(cp, post, t) {
+/* One table's expected future cut cost at a position, read as the single chooser reads it (scoreMoves: readValues' fourth
+ * output, the `short` table over the same corners as survival). */
+const CUT_RD = new Float64Array(4);
+function cutAhead(tab, s, t) {
+  const k = Math.min(t, tab.m.ctx.totalYears);
+  readValues(tab.g, tab.lsurv[k], tab.beq[k], s, CUT_RD, tab.lresil[k], tab.short[k], k);
+  return CUT_RD[3];
+}
+
+/* The household's cut cost this year at spending level `level`: the two tables' own costOf, averaged (one cut, counted once);
+ * nothing for a person in a year with no spending. Below 1 a cost, above it a raise's credit (negative). */
+export function cutCostOf(cp, level, t) {
+  const A = cp.tables.self, B = cp.tables.part;
+  const ca = A.c.yr.spend[t] > 0 ? A.costOf(level, t) : 0, cb = B.c.yr.spend[t] > 0 ? B.costOf(level, t) : 0;
+  return (ca + cb) / 2;
+}
+
+/*
+ * The value of a post-decision couple state: the two tables read after one year's growth, averaged over the market, less the
+ * household's expected future cut cost (D1). `out`, when given, receives the expected chance both last (out[0]) and that
+ * cut cost (out[1]). Exported for couple-quick.test.mjs.
+ */
+export function expectedValue(cp, post, t, out = null) {
   const { m, M, tables } = cp;
   const A = tables.self, B = tables.part;
   const mixA = A.mix ? A.mix.tables : [A], mixB = B.mix ? B.mix.tables : [B];
   const shifts = A.mix ? A.mix.nodes : [0], wJ = A.mix ? A.mix.weights : [1];
   const T = m.ctx.totalYears;
-  let total = 0;
+  const five = planted('fivenodes'), QZ = five ? NODES : (A.quadNodes || NODES), QW = five ? WEIGHTS : (A.quadWeights || WEIGHTS);
+  const cut = !planted('nocut');
+  let total = 0, both = 0, ahead = 0;
   for (let j = 0; j < shifts.length; j++) {
-    for (let k = 0; k < 5; k++) {
+    for (let k = 0; k < QW.length; k++) {
       const rates = {};
       m.ctx.accounts.forEach(a => {
         const vol = A.c.shiftMode ? a.vol : foldedVol(a.vol, a.sigmaParam, T - t + 1);
-        rates[a.id] = Math.exp(Math.log(1 + a.real) + (A.c.shiftMode ? a.sigmaParam * shifts[j] : 0) + vol * NODES[k]) - 1;
+        rates[a.id] = Math.exp(Math.log(1 + a.real) + (A.c.shiftMode ? a.sigmaParam * shifts[j] : 0) + vol * QZ[k]) - 1;
       });
       const g = M.cloneState(post);
       M.grow(m, g, t, rates);
-      const vA = mixA[j].value(ownerState(g, 'self'), t + 1), vB = mixB[j].value(ownerState(g, 'part'), t + 1);
-      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's
-      total += wJ[j] * WEIGHTS[k] * (vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + A.wB * (vA.bequest + vB.bequest));
+      const sA = vecOf(mixA[j].m, ownerState(g, 'self')), sB = vecOf(mixB[j].m, ownerState(g, 'part'));
+      const vA = mixA[j].value(sA, t + 1), vB = mixB[j].value(sB, t + 1);
+      const h = cut ? (cutAhead(mixA[j], sA, t + 1) + cutAhead(mixB[j], sB, t + 1)) / 2 : 0;
+      const w = wJ[j] * QW[k];
+      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's; one cut, counted once
+      total += w * (vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + A.wB * (vA.bequest + vB.bequest) - h);
+      both += w * vA.survival * vB.survival;
+      ahead += w * h;
     }
   }
+  if (out) { out[0] = both; out[1] = ahead; }
   return total;
 }
 
@@ -106,25 +151,39 @@ export function chooseJoint(cp, state, t) {
   const T = m.ctx.totalYears;
   const sA = vecOf(tables.self.m, ownerState(state, 'self')), sB = vecOf(tables.part.m, ownerState(state, 'part'));
   const kA = rankActions(tables.self, sA, t, null, topK), kB = rankActions(tables.part, sB, t, null, topK);
+  const lvl = (tab, i) => (tab.levelOf ? tab.levelOf[i] : tab.actions[i].spendLevel !== undefined ? tab.actions[i].spendLevel : 1);
+  const first = planted('firstlevel'), cut = !planted('nocut'), raiseSurv = !!tables.self.raiseSurvival;
+  const ev = new Float64Array(2);
   let best = null, bestScore = -Infinity;
   for (const split of splits) for (const ia of kA) for (const ib of kB) {
     const aA = tables.self.actions[ia], aB = tables.part.actions[ib];
-    const joint = {
-      steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null,
-      spendLevel: aA.spendLevel, split,
-      perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa' }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa' } },
-      ia, ib
-    };
-    const st = M.cloneState(state);
-    const row = M.step(m, st, joint, t, null, true);
-    if (row.unmetDemand > 1 || row.preNmpaInsolvent) continue;
-    const score = t >= T
-      ? (Object.values(st.pots).reduce((a, b) => a + b, 0) >= (m.ctx.solvencyFloor || 0) ? 1 : 0) + 1e-9 * Object.values(st.pots).reduce((a, b) => a + b, 0)
-      : expectedValue(cp, st, t);
-    // a move that funds the year reads finite tables, so a non-finite score is a bug: it would never win, and the year would
-    // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
-    if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
-    if (score > bestScore) { bestScore = score; best = joint; }
+    // D1: the household's level from either person's ranked move (the first person's first), each valued by both tables
+    const levels = first ? [aA.spendLevel] : [...new Set([lvl(tables.self, ia), lvl(tables.part, ib)])];
+    for (const level of levels) {
+      const joint = {
+        steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null,
+        spendLevel: level, split,
+        perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa' }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa' } },
+        ia, ib
+      };
+      const st = M.cloneState(state);
+      const row = M.step(m, st, joint, t, null, true);
+      if (row.unmetDemand > 1 || row.preNmpaInsolvent) continue;
+      // D1: this year's cut, counted once for the household; a raise's credit weighted by the chance both last (raiseSurvival)
+      const cst = cut ? cutCostOf(cp, level !== undefined ? level : 1, t) : 0, rz = raiseSurv && cst < 0;
+      let score;
+      if (t >= T) {
+        const total = Object.values(st.pots).reduce((a, b) => a + b, 0), alive = total >= (m.ctx.solvencyFloor || 0) ? 1 : 0;
+        score = alive + 1e-9 * total - (rz ? cst * alive : cst);
+      } else {
+        const v = expectedValue(cp, st, t, ev);
+        score = v - (rz ? cst * ev[0] : cst);
+      }
+      // a move that funds the year reads finite tables, so a non-finite score is a bug: it would never win, and the year would
+      // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
+      if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
+      if (score > bestScore) { bestScore = score; best = joint; best.score = score; }
+    }
   }
   if (!best) {
     // nothing funds the year: the even split with each person's first-ranked move, and the year fails on its own terms

@@ -1,0 +1,23 @@
+phone-budget.test.mjs (Phase 11 item 2: the phone's budget, the launch plan's F5; the full tier), 6 Nov:
+
+  ok   1. on a touch device, the plan at the dial's 3 (its base first), asked to split four ways, splits two   2 ways (its parts told 2)
+  ok   2. on a touch device, the plan at the dial's default (no base), asked four ways, splits four   4 ways
+  ok   3. on a device with a mouse, the plan at the dial's 3, asked four ways, splits four   4 ways
+  ok   4. on a touch device, the dial's line working out the plan at 6: every solve in it split two ways at most   the parts told 2, 2
+  ok   5. on a touch device, a solve asked to split one way is not split   1 way, 0 parts sent
+
+5 passed, 0 failed
+
+planted (phoneparts: the budget lifted):
+  FAIL 1. on a touch device, the plan at the dial's 3 (its base first), asked to split four ways, splits two   4 ways (its parts told 4)
+  ok   2. on a touch device, the plan at the dial's default (no base), asked four ways, splits four   4 ways
+  ok   3. on a device with a mouse, the plan at the dial's 3, asked four ways, splits four   4 ways
+  FAIL 4. on a touch device, the dial's line working out the plan at 6: every solve in it split two ways at most   the parts told 4, 4, 4, 4, 4, 4
+  ok   5. on a touch device, a solve asked to split one way is not split   1 way, 0 parts sent
+
+3 passed, 2 failed (planted: phoneparts)
+
+plant 'phoneparts': checks failing 1, 4 (its own: 1, 4) ok
+PLANTS: all 1 fail exactly their own checks
+
+Beside it, on the change: solver-client.test.mjs ALL PASS 5, solver-close.test.mjs 4 passed.

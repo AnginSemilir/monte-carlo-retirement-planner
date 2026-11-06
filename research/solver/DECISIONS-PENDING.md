@@ -22,8 +22,10 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
     gate.
   - Step P, the cost (the cuts exact, Phase 9's budgets met again, gate 5 MET; the 30-point preview not shipped by R5 (a)),
     is merged to `main` (pull request 7, 6e3e4e0) on B1's gate.
-  - Then step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), under way; then
-    Phases 11 and 12 as recast; couples as Part D during the singles' beta (B9), D5 the couples' screens in the new planner.
+  - Step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), is merged to
+    `main` (pull request 8, d3e9fe8) on B1's gate, behind the beta.
+  - Then Phases 11 and 12 as recast (Phase 11 under way); couples as Part D during the singles' beta (B9), D5 the couples'
+    screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
   spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.
@@ -68,3 +70,10 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   sign-flip test of the mean, the figure reported, flags three households; an exact sign test, which reads the typical path,
   flags seven, four up and three down, one of them down although its mean is up. The verdict is a gain under either. Also
   reported: the run took about twice its pilot's core-hours.
+- **Open now: phone-perf's long-task ceiling** (2,200ms, set 30 Oct on the maintainer's call). Step U's gate read one
+  pass over it on bytes that had passed hours before. Twelve alternated runs on a quiet machine put step U's site build at or
+  below main's, and main's own build over the ceiling on three of its six (`results-phone-perf-step-u.txt`): the ceiling sits
+  inside main's spread on this machine, so a gate can fail it by chance. The choice: move it, as on 30 Oct, or keep it and
+  re-measure when it fails. Kept until then.
+- **Noted: load-perf's switch-on ceiling** is at D58 (2)'s limit (`results-load-perf-step-u.txt`): the next kilobyte on a
+  switch-on build's classic first load comes to the maintainer.

@@ -12,6 +12,8 @@
 import { solvePlan } from './solver/solve.js';
 import { APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
 
+export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs only: 'holdrecord' keeps a restored solve's record
+
 export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
 
 /*
@@ -38,8 +40,17 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
     // step P1 (b): the position's adaptive reference taken from its base's (solve.js refFromOf), not built again
     if (b.meta.tierState) lock = { lockTiers: b, riskAbove: aboveOf(b), refFrom: b };
   }
-  const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref: restore.ref } } : {};
+  // the record's reference handed over in a wrapper of its own: adaptive.js keeps what it is given (its `rebuild` holds its input)
+  const ref = restore && restore.ref ? { ...restore.ref } : null;
+  const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref } } : {};
   const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
-  if (restore) Object.assign(r.meta, restore.meta, { restored: true });
+  // the stored record's tables and reference are copied into the solve's own as it runs (solve.js `opts.restore`, adaptive.js
+  // `restore`), and the solve keeps its options and the reference its input: let the record go once the solve is done, so a
+  // restored solve holds its tables once and not beside the record (Phase 11, phone-memory.cjs; restore-memory.test.mjs). The
+  // caller's record is left as it was (a test restores from it again).
+  if (restore) {
+    if (PLANT.rule !== 'holdrecord') { again.restore.layers = null; if (ref) for (const k of Object.keys(ref)) ref[k] = null; }
+    Object.assign(r.meta, restore.meta, { restored: true });
+  }
   return r;
 }

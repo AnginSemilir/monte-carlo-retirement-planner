@@ -8450,6 +8450,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // (through the page's own hook, src/useSolver.js: App.jsx cannot import the solver's client, which the engine's workers would bundle)
   useEffect(() => { if (PLANNER_PLANT.has('classicfetch') && !solverOn && typeof window !== 'undefined' && window.__solverHarness) window.__solverHarness(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const youOn = solverOn && activeTab === 'you';
+  // You's money in the new planner: each pot's contribution styled like its balance and its increase named as the contribution's
+  const youMoney = youOn && !PLANNER_PLANT.has('contribold');
   // Your plan's paths in two steps (a harness's light settings may name fewer), and whether they are in (the strip's simulating)
   const plannerSteps = SOLVER_OPTS && SOLVER_OPTS.strategySteps ? SOLVER_OPTS.strategySteps : [2000, 5000];
   const [planPhase, setPlanPhase] = useState({ simulating: false, trials: 5000 });
@@ -13572,7 +13574,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }}
                             className={`${inputCls} text-right ${over ? 'border-rose-400 text-rose-700' : ''}`} />
                         </FieldRow>
-                        <FieldRow label="Percentage increase" hint="How much the annual contribution rises each year, in real terms.">
+                        <FieldRow label={youMoney ? 'Contribution increase' : 'Percentage increase'} hint="How much the annual contribution rises each year, in real terms.">
                           <PercentInput value={acc.growth ?? ''} onChange={(v) => updateAccountField(acc.id, 'growth', v)} className={`${inputCls} text-right`} />
                         </FieldRow>
                         <div className="pb-1">
@@ -13588,7 +13590,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
-                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Percentage increase (%/yr)</th><th className="pb-2">Asset allocation (<T k="volatility">risk tier</T>)</th>
+                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">{youMoney ? 'Contribution increase (%/yr)' : 'Percentage increase (%/yr)'}</th><th className="pb-2">Asset allocation (<T k="volatility">risk tier</T>)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
@@ -13611,7 +13613,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             </button>
                           )}
                         </td>
-                        <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
+                        <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 ${youMoney ? 'bg-surface' : 'bg-slate-50'} border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
                         <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5">
                           {acc.id.startsWith('cashIsa') ? <span className="text-[11px] text-slate-500">as Cash Savings; interest tax-free</span> : <select aria-label={`${acc.category} risk tier`} value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-surface border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">

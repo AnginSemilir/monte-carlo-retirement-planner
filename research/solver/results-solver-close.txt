@@ -1,0 +1,21 @@
+solver-close.test.mjs (Phase 11 item 2, found by phone-memory.cjs; the full tier), 6 Nov:
+
+  ok   1. a split solve done and in use keeps its arena   split 2 ways; 4 of 4 shared buffers alive
+  ok   2. a job closed, its handle still held: none of its shared buffers left   0 of 4 alive after the close
+  ok   3. a job cancelled while it solves, its handle still held: none of its shared buffers left   4 made before the cancel, the job solving then cancelled; 0 alive after it
+  ok   4. a dial position's job closed, its handle still held: none of its shared buffers left, the shared base among them   split 2 ways, 9 shared buffers made, the base shared out 1 time(s); after the close 0 alive, the shared base let go
+
+4 passed, 0 failed
+
+planted (keepshared: what a job held kept after it is let go, as before the fix):
+  ok   1. a split solve done and in use keeps its arena   split 2 ways; 4 of 4 shared buffers alive
+  FAIL 2. a job closed, its handle still held: none of its shared buffers left   4 of 4 alive after the close
+  FAIL 3. a job cancelled while it solves, its handle still held: none of its shared buffers left   4 made before the cancel, the job solving then cancelled; 4 alive after it
+  FAIL 4. a dial position's job closed, its handle still held: none of its shared buffers left, the shared base among them   split 2 ways, 9 shared buffers made, the base shared out 1 time(s); after the close 5 alive, the shared base kept
+
+1 passed, 3 failed (planted: keepshared)
+
+plant 'keepshared': checks failing 2, 3, 4 (its own: 2, 3, 4) ok
+PLANTS: all 1 fail exactly their own checks
+
+Beside it, on the fix: solver-client.test.mjs ALL PASS 5.

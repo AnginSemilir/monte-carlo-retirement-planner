@@ -1,0 +1,13 @@
+phone-grid.test.mjs (Phase 11 item 1; D59), 5 Nov (again after the key's fix, solve-key.test.mjs):
+
+  ok   1. the app solves at 45 wealth points (src/solverSettings.js APP_POINTS)   APP_POINTS 45
+  ok   2. the site's page passes the solver no options (App.jsx `const SOLVER_OPTS = null;`), so the worker solves at APP_POINTS   SOLVER_OPTS null
+  ok   3. no line under src/ sets points from the device (57 files searched)
+  ok   4. a plan keyed with the default options keys as at 45 points and not as at 30 (S116)   default ab081967455b, 45 ab081967455b, 30 134b196016a4
+
+4 passed, 0 failed
+
+plant 'points30': checks failing 1 (its own: 1) ok
+plant 'opts': checks failing 2 (its own: 2) ok
+plant 'phone30': checks failing 3 (its own: 3) ok
+PLANTS: all 3 fail exactly their own checks

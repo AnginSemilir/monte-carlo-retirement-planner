@@ -1,0 +1,17 @@
+restore-memory.test.mjs (Phase 11 item 2, found by phone-memory.cjs; the full tier), 6 Nov:
+
+  ok   1. a restored solve keeps none of its record once the caller lets it go (every array of the record collected)   S116 0 of the record's 2160 arrays kept (27.2MB); held beside the fresh solve -1.1MB, reported; S370 0 of the record's 2824 arrays kept (35.0MB); held beside the fresh solve -49.0MB, reported
+  ok   2. the restored solve is the fresh one's: its tables bit for bit, the engine's run of 200 paths the same   S116 the same (5f12484edafb); S370 the same (3cbc33acfddc)
+
+2 passed, 0 failed
+
+planted (holdrecord: the record kept, as before the fix):
+  FAIL 1. a restored solve keeps none of its record once the caller lets it go (every array of the record collected)   S116 2160 of the record's 2160 arrays kept (27.2MB); held beside the fresh solve +26.6MB, reported; S370 2824 of the record's 2824 arrays kept (35.0MB); held beside the fresh solve -41.9MB, reported
+  ok   2. the restored solve is the fresh one's: its tables bit for bit, the engine's run of 200 paths the same   S116 the same (5f12484edafb); S370 the same (3cbc33acfddc)
+
+1 passed, 1 failed (planted: holdrecord)
+
+plant 'holdrecord': checks failing 1 (its own: 1) ok
+PLANTS: all 1 fail exactly their own checks
+
+Beside it, on the fix: solver-cache 12, solver-figures 25, lock-split 6, solver-app 12 checks, all pass.

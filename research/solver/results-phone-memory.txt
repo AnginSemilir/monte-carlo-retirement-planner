@@ -1,0 +1,301 @@
+phone-memory.cjs (Phase 11 item 2; D59: the memory measured in the harness's browser, no solve on the maintainer's phone),
+EXPLORATORY, a measurement, not a gate. S116 (a library household) at the app's own settings (45 wealth points, the
+candidate), a Pixel 7's screen, this container's Chromium on four cores, 5 and 6 Nov: the solve on show (the dial at its
+default), a locked position (the dial at 3: its base and the position) and back at the default, each asked for as a phone
+asks ("Solve my plan", "Solve again"). Each run's output is whole below, under the code it ran on. Runs 1 to 3 report the
+page's own count only (performance.measureUserAgentSpecificMemory, which reached the solver's workers on some readings and
+not on others); from run 4 the page's processes as the operating system counts them (PSS of Chromium's renderers, which run
+the page and every worker), now and at their peak while they worked, lead. A real phone's limit cannot be modelled here.
+
+== run 1, on d0d6918 (before the fixes), the page's own count taken at once (ForceEagerMeasureMemory), a fresh context
+
+Chromium 141.0.7390.37, a Pixel 7's screen, the app's own settings (45 wealth points)
+
+S116 (cross-origin isolated true):
+  before the solve: 4.7MB (Window 4.3MB, other 0.4MB)
+  the solve on show (the dial at its default): 306.6MB (Window 306.1MB, other 0.5MB); solved and filled in 280s
+  a locked position (the dial at 3: the solve on show and its base): 812.3MB (other 0.6MB, Window 811.7MB); solved and filled in 533s
+  back at the default: 512.1MB (other 1.5MB, Window 510.6MB); solved and filled in 418s
+  page errors: none
+exit 0
+
+== run 2, on the key's fix (7ff5eba), the page's own count after a collection, the status line's words and the store; a profile of its own, then a fresh context (the profile's first solve ran beside the commit's fast tier)
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a browser profile of its own
+
+S116 (cross-origin isolated true):
+  before the solve: 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line: "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 154811.8MB
+  the solve on show (the dial at its default): 306.6MB (other 0.5MB, Window 306.1MB); solved and filled in 502s
+    the status line: "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > "Working out your planWorking out: …" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 154811.8MB
+  a locked position (the dial at 3: the solve on show and its base): 812.3MB (Window 811.7MB, other 0.6MB); solved and filled in 477s
+    the status line: "Worked outWorked out" > "Your plan changed: working it out againYour plan changed: working it out again" > "Working out your planWorking out at the Low setting first: N%" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  back at the default: 512.3MB (Window 511.6MB, other 0.6MB); solved and filled in 417s
+    the status line: "Worked outWorked out" > "Your plan changedYour plan changedSolve again" > "Working out your planWorking out: …" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  page errors: none
+exit 0
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window)
+
+S116 (cross-origin isolated true):
+  before the solve: 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line: "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 914.1MB
+  the solve on show (the dial at its default): 306.5MB (other 0.5MB, Window 306.1MB); solved and filled in 282s
+    the status line: "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > "Working out your planWorking out: …" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 914.1MB
+  a locked position (the dial at 3: the solve on show and its base): 812.4MB (other 0.6MB, Window 811.7MB); solved and filled in 373s
+    the status line: "Worked outWorked out" > "Working out your planWorking out: …" > "Working out your planWorking out at the Low setting first: N%" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 914.1MB
+  back at the default: 512.2MB (other 2.2MB, Window 510.1MB); solved and filled in 417s
+    the status line: "Worked outWorked out" > "Your plan changedYour plan changedSolve again" > "Working out your planWorking out: …" > "Working out your planWorking out: N%" > "Running 5,000 markets…Running 5,000 markets…" > "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 914.1MB
+  page errors: none
+exit 0
+
+== run 3, on the key's and the restore's fixes (083f4b9), the status line timed from each request
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a browser profile of its own
+
+S116 (cross-origin isolated true):
+  before the solve: 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 154811.8MB
+  the solve on show (the dial at its default): 1552.1MB (other 1.0MB, DedicatedWorkerGlobalScope 1245.3MB, Window 305.8MB); solved and filled in 154s
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 9s "Working out your planWorking out: N%" > 85s "Running 5,000 markets…Running 5,000 markets…" > 155s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 154811.8MB
+  a locked position (the dial at 3: the solve on show and its base): 812.6MB (Window 811.0MB, other 1.6MB); solved and filled in 215s
+    the status line (seconds from the request): 159s "Worked outWorked out" > 1s "Working out your planWorking out: …" > 3s "Working out your planWorking out at the Low setting first: N%" > 15s "Working out your planWorking out: N%" > 79s "Running 5,000 markets…Running 5,000 markets…" > 215s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  back at the default: 512.1MB (other 0.6MB, Window 511.5MB); solved and filled in 243s
+    the status line (seconds from the request): 219s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 2s "Working out your planWorking out: N%" > 4s "Running 5,000 markets…Running 5,000 markets…" > 244s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  page errors: none
+exit 0
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window)
+
+S116 (cross-origin isolated true):
+  before the solve: 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 931.6MB
+  the solve on show (the dial at its default): 1236.0MB (DedicatedWorkerGlobalScope 929.0MB, other 1.3MB, Window 305.8MB); solved and filled in 152s
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 2s "Working out your planWorking out: …" > 10s "Working out your planWorking out: N%" > 84s "Running 5,000 markets…Running 5,000 markets…" > 154s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 931.6MB
+  a locked position (the dial at 3: the solve on show and its base): 812.3MB (other 0.6MB, Window 811.7MB); solved and filled in 221s
+    the status line (seconds from the request): 156s "Worked outWorked out" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out at the Low setting first: N%" > 14s "Working out your planWorking out: N%" > 78s "Running 5,000 markets…Running 5,000 markets…" > 222s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 931.6MB
+  back at the default: 512.2MB (other 0.7MB, Window 511.5MB); solved and filled in 252s
+    the status line (seconds from the request): 226s "Worked outWorked out" > 4s "Your plan changedYour plan changedSolve again" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out: N%" > 4s "Running 5,000 markets…Running 5,000 markets…" > 252s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 931.6MB
+  page errors: none
+exit 0
+
+== run 4, on 279f587, the page's processes read from the operating system
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a browser profile of its own
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 111.7MB (PSS), their peak since the last step 111.9MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 154811.8MB
+  the solve on show (the dial at its default): the page's processes 652.5MB (PSS), their peak since the last step 1211.1MB; solved and filled in 156s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 623.1MB (other 0.6MB, Window 306.2MB, DedicatedWorkerGlobalScope 316.4MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 9s "Working out your planWorking out: N%" > 85s "Running 5,000 markets…Running 5,000 markets…" > 157s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 154811.8MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 2412.6MB (PSS), their peak since the last step 2737.2MB; solved and filled in 218s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 812.3MB (other 0.8MB, Window 811.5MB)
+    the status line (seconds from the request): 159s "Worked outWorked out" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out at the Low setting first: N%" > 12s "Working out your planWorking out: N%" > 78s "Running 5,000 markets…Running 5,000 markets…" > 218s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  back at the default: the page's processes 1281.0MB (PSS), their peak since the last step 2411.7MB; solved and filled in 251s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 512.2MB (other 0.7MB, Window 511.5MB)
+    the status line (seconds from the request): 222s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 2s "Working out your planWorking out: N%" > 4s "Running 5,000 markets…Running 5,000 markets…" > 252s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 154811.8MB
+  page errors: none
+exit 0
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window)
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.7MB (PSS), their peak since the last step 96.1MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 874.1MB
+  the solve on show (the dial at its default): the page's processes 635.8MB (PSS), their peak since the last step 759.1MB; solved and filled in 146s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 1235.6MB (other 0.6MB, DedicatedWorkerGlobalScope 928.9MB, Window 306.1MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 2s "Working out your planWorking out: …" > 10s "Working out your planWorking out: N%" > 82s "Running 5,000 markets…Running 5,000 markets…" > 148s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 874.1MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 2394.1MB (PSS), their peak since the last step 2862.9MB; solved and filled in 210s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 812.4MB (other 1.4MB, Window 811.0MB)
+    the status line (seconds from the request): 150s "Worked outWorked out" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out at the Low setting first: N%" > 12s "Working out your planWorking out: N%" > 74s "Running 5,000 markets…Running 5,000 markets…" > 210s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 874.1MB
+  back at the default: the page's processes 1261.3MB (PSS), their peak since the last step 2390.2MB; solved and filled in 248s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 512.1MB (other 1.6MB, Window 510.5MB)
+    the status line (seconds from the request): 214s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 2s "Working out your planWorking out: N%" > 4s "Running 5,000 markets…Running 5,000 markets…" > 248s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 874.1MB
+  page errors: none
+exit 0
+
+== run 5, on 89b323d, the page told it has one core, then two (the solves split one and two ways)
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the page told it has 1 core
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.7MB (PSS), their peak since the last step 95.9MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (Window 4.3MB, other 0.4MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 881.3MB
+  the solve on show (the dial at its default): the page's processes 722.2MB (PSS), their peak since the last step 726.8MB; solved and filled in 529s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 6.3MB (Window 2.9MB, other 3.4MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 15s "Working out your planWorking out: N%" > 279s "Running 5,000 markets…Running 5,000 markets…" > 529s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 881.3MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 979.7MB (PSS), their peak since the last step 1164.2MB; solved and filled in 738s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.2MB (Window 6.6MB, other 0.6MB)
+    the status line (seconds from the request): 533s "Worked outWorked out" > 1s "Your plan changed: working it out againYour plan changed: working it out again" > 3s "Working out your planWorking out at the Low setting first: N%" > 17s "Working out your planWorking out: N%" > 247s "Running 5,000 markets…Running 5,000 markets…" > 739s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 881.3MB
+  back at the default: the page's processes 457.1MB (PSS), their peak since the last step 998.6MB; solved and filled in 253s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.4MB (Window 6.1MB, other 1.3MB)
+    the status line (seconds from the request): 743s "Worked outWorked out" > 4s "Your plan changedYour plan changedSolve again" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out: N%" > 4s "Running 5,000 markets…Running 5,000 markets…" > 254s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 881.3MB
+  page errors: none
+exit 0
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the page told it has 2 cores
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 96.0MB (PSS), their peak since the last step 96.2MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 921.9MB
+  the solve on show (the dial at its default): the page's processes 569.8MB (PSS), their peak since the last step 732.5MB; solved and filled in 273s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 306.5MB (Window 306.1MB, other 0.4MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 9s "Working out your planWorking out: N%" > 147s "Running 5,000 markets…Running 5,000 markets…" > 273s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 921.9MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 1675.0MB (PSS), their peak since the last step 2098.6MB; solved and filled in 388s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 812.2MB (other 0.6MB, Window 811.6MB)
+    the status line (seconds from the request): 277s "Worked outWorked out" > 1s "Working out your planWorking out: …" > 3s "Working out your planWorking out at the Low setting first: N%" > 11s "Working out your planWorking out: N%" > 129s "Running 5,000 markets…Running 5,000 markets…" > 389s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 921.9MB
+  back at the default: the page's processes 1261.9MB (PSS), their peak since the last step 1672.4MB; solved and filled in 249s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 512.2MB (Window 511.5MB, other 0.7MB)
+    the status line (seconds from the request): 391s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out: …" > 3s "Running 5,000 markets…Running 5,000 markets…" > 249s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 921.9MB
+  page errors: none
+exit 0
+
+== run 6, on the close's first fix (the arena dropped; c76a159 without the shared base's), four cores
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the machine's own cores
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.5MB (PSS), their peak since the last step 95.7MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 814.8MB
+  the solve on show (the dial at its default): the page's processes 641.8MB (PSS), their peak since the last step 754.4MB; solved and filled in 149s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 1235.6MB (other 1.4MB, DedicatedWorkerGlobalScope 928.9MB, Window 305.3MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 9s "Working out your planWorking out: N%" > 83s "Running 5,000 markets…Running 5,000 markets…" > 151s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 814.8MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 2096.4MB (PSS), their peak since the last step 2416.5MB; solved and filled in 210s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 512.0MB (Window 511.3MB, other 0.7MB)
+    the status line (seconds from the request): 153s "Worked outWorked out" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out at the Low setting first: N%" > 12s "Working out your planWorking out: N%" > 76s "Running 5,000 markets…Running 5,000 markets…" > 210s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 814.8MB
+  back at the default: the page's processes 962.4MB (PSS), their peak since the last step 2088.9MB; solved and filled in 246s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 211.6MB (other 0.7MB, Window 211.0MB)
+    the status line (seconds from the request): 214s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out: …" > 3s "Running 5,000 markets…Running 5,000 markets…" > 247s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 814.8MB
+  page errors: none
+exit 0
+
+== run 7, on the close's fix (c76a159), four cores
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the machine's own cores
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.8MB (PSS), their peak since the last step 96.1MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (Window 4.3MB, other 0.4MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 1047.9MB
+  the solve on show (the dial at its default): the page's processes 633.8MB (PSS), their peak since the last step 755.4MB; solved and filled in 154s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 1235.7MB (other 0.6MB, Window 306.2MB, DedicatedWorkerGlobalScope 928.9MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 11s "Working out your planWorking out: N%" > 85s "Running 5,000 markets…Running 5,000 markets…" > 155s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 1047.9MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 1860.0MB (PSS), their peak since the last step 2450.4MB; solved and filled in 214s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 307.5MB (other 0.5MB, Window 307.0MB)
+    the status line (seconds from the request): 159s "Worked outWorked out" > 2s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out at the Low setting first: N%" > 11s "Working out your planWorking out: N%" > 77s "Running 5,000 markets…Running 5,000 markets…" > 213s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 1047.9MB
+  back at the default: the page's processes 756.2MB (PSS), their peak since the last step 1865.4MB; solved and filled in 245s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.3MB (other 0.6MB, Window 6.7MB)
+    the status line (seconds from the request): 217s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out: N%" > 3s "Running 5,000 markets…Running 5,000 markets…" > 245s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 1047.9MB
+  page errors: none
+exit 0
+
+== run 8, on c76a159, the page told it has one core, then two
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the page told it has 1 core
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.3MB (PSS), their peak since the last step 95.6MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 846.3MB
+  the solve on show (the dial at its default): the page's processes 722.6MB (PSS), their peak since the last step 722.8MB; solved and filled in 534s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 6.3MB (other 2.0MB, Window 4.4MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 15s "Working out your planWorking out: N%" > 289s "Running 5,000 markets…Running 5,000 markets…" > 535s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 846.3MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 979.5MB (PSS), their peak since the last step 1010.7MB; solved and filled in 770s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.2MB (other 1.6MB, Window 5.6MB)
+    the status line (seconds from the request): 537s "Worked outWorked out" > 2s "Your plan changedYour plan changedSolve again" > 2s "Working out your planWorking out at the Low setting first: N%" > 18s "Working out your planWorking out: N%" > 258s "Running 5,000 markets…Running 5,000 markets…" > 772s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 846.3MB
+  back at the default: the page's processes 456.6MB (PSS), their peak since the last step 997.1MB; solved and filled in 253s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.4MB (other 1.5MB, Window 6.0MB)
+    the status line (seconds from the request): 774s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out: N%" > 3s "Running 5,000 markets…Running 5,000 markets…" > 253s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 846.3MB
+  page errors: none
+exit 0
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the page told it has 2 cores
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.7MB (PSS), their peak since the last step 95.9MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (other 0.4MB, Window 4.3MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 903.5MB
+  the solve on show (the dial at its default): the page's processes 569.8MB (PSS), their peak since the last step 955.3MB; solved and filled in 279s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 306.7MB (other 0.5MB, Window 306.2MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 11s "Working out your planWorking out: N%" > 153s "Running 5,000 markets…Running 5,000 markets…" > 279s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 903.5MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 1199.3MB (PSS), their peak since the last step 1559.3MB; solved and filled in 375s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 307.5MB (other 0.5MB, Window 307.0MB)
+    the status line (seconds from the request): 283s "Worked outWorked out" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Working out your planWorking out at the Low setting first: N%" > 12s "Working out your planWorking out: N%" > 124s "Running 5,000 markets…Running 5,000 markets…" > 376s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 903.5MB
+  back at the default: the page's processes 757.8MB (PSS), their peak since the last step 1199.6MB; solved and filled in 244s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.5MB (other 0.6MB, Window 6.9MB)
+    the status line (seconds from the request): 380s "Worked outWorked out" > 2s "Your plan changedYour plan changedSolve again" > 0s "Your plan changed: working it out againYour plan changed: working it out again" > 2s "Running 5,000 markets…Running 5,000 markets…" > 245s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 903.5MB
+  page errors: none
+exit 0
+
+== run 9, on the phone's budget (a solve with a base split two ways at most on a touch device, as a Pixel 7's screen is), four cores: as a phone runs now
+
+Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), a fresh context (a private window), the machine's own cores
+
+S116 (cross-origin isolated true):
+  before the solve: the page's processes 95.5MB (PSS), their peak since the last step 95.7MB
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 4.7MB (Window 4.3MB, other 0.4MB)
+    the status line (seconds from the request): 2s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan"
+    the store: nothing; the site's storage 0.0MB of 922.2MB
+  the solve on show (the dial at its default): the page's processes 637.4MB (PSS), their peak since the last step 755.3MB; solved and filled in 148s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 1236.1MB (DedicatedWorkerGlobalScope 928.9MB, other 1.2MB, Window 305.9MB)
+    the status line (seconds from the request): 4s "Not worked out on this phone yetNot worked out on this phone yetSolve my plan" > 1s "Working out your planWorking out: …" > 9s "Working out your planWorking out: N%" > 83s "Running 5,000 markets…Running 5,000 markets…" > 149s "Worked outWorked out"
+    the store: ab081967 204.2MB; the site's storage 78.5MB of 922.2MB
+  a locked position (the dial at 3: the solve on show and its base): the page's processes 1164.0MB (PSS), their peak since the last step 1809.6MB; solved and filled in 368s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 307.5MB (other 0.5MB, Window 307.0MB)
+    the status line (seconds from the request): 151s "Worked outWorked out" > 2s "Your plan changedYour plan changedSolve again" > 2s "Working out your planWorking out at the Low setting first: N%" > 12s "Working out your planWorking out: N%" > 124s "Running 5,000 markets…Running 5,000 markets…" > 370s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 922.2MB
+  back at the default: the page's processes 758.0MB (PSS), their peak since the last step 1175.5MB; solved and filled in 239s
+    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): 7.5MB (other 1.4MB, Window 6.1MB)
+    the status line (seconds from the request): 372s "Worked outWorked out" > 3s "Your plan changedYour plan changedSolve again" > 1s "Working out your planWorking out: …" > 3s "Running 5,000 markets…Running 5,000 markets…" > 239s "Worked outWorked out"
+    the store: ab081967 204.2MB, c0864ba5 204.2MB; the site's storage 157.0MB of 922.2MB
+  page errors: none
+exit 0

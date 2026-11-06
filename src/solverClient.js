@@ -27,11 +27,21 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // research/tests/solver-client.test.mjs only: 'noqueue' lets two figures' asks run at once
+export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phoneparts' lifts the phone's budget (phone-budget.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
 export const defaultParts = () => (canSplit() ? Math.max(1, Math.min(4, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 1)) : 1);
+/*
+ * THE PHONE'S BUDGET (Phase 11 item 2; the launch plan's F5: "Phase 11 ... sets the phone's budget from the result"). A dial
+ * position solves its base first, and each part of its split solve restores the base (L2), so its peak memory grows with the
+ * parts; the solve on show peaks at about the same split any way (results-phone-memory.txt). On a touch device (no fine,
+ * hovering pointer: a phone or a tablet, in either orientation) a solve with a base splits TOUCH_BASE_PARTS ways at most;
+ * every other solve, and every solve elsewhere, splits as before (research/tests/phone-budget.test.mjs).
+ */
+export const TOUCH_BASE_PARTS = 2;
+export const touchDevice = () => typeof window !== 'undefined' && !!window.matchMedia && !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+export const partsFor = (parts, base) => (base && touchDevice() && PLANT.rule !== 'phoneparts' ? Math.min(parts, TOUCH_BASE_PARTS) : parts);
 const newWorker = () => new Worker(new URL('./solverWorker.js', import.meta.url), { type: 'module' });
 /* the solve's key on the page: the plan as the solver takes it and the settings (the code is checked by the worker) */
 export const keyOf = (engine, plan, opts = {}) => solveKey(engine, plan, opts);
@@ -65,10 +75,15 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
   return { done, cancel() { cancelled = true; if (job) { job.cancel(); job.close(); } } };
 }
 
-export function startSolve(plan, { key = null, base = null, parts = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+  const parts = partsFor(asked, base);
   const owner = newWorker(), workers = [owner], pending = new Map();
   let seq = 0, finished = false, rejectDone = null, arena = null, n = 1;
-  const stop = () => { if (arena) failArena(arena); workers.forEach(w => w.terminate()); };
+  // a job let go keeps none of its shared memory (Phase 11, phone-memory.cjs): its handle can outlive it (an earlier state of
+  // the page holds its asks), so the arena is dropped here and not left to the handle (research/tests/solver-close.test.mjs)
+  // so are the workers' handlers, which the solve's phases set and which close over what a phase held (a position's shared base)
+  const release = () => { if (PLANT.rule === 'keepshared') return; arena = null; for (const w of workers) { w.onmessage = null; w.onerror = null; } };
+  const stop = () => { if (arena) failArena(arena); workers.forEach(w => w.terminate()); release(); };
   // the owner's answers: ask() replies by id, the solve's own messages under id 0
   let onMain = null;
   owner.onmessage = ({ data }) => {
@@ -140,7 +155,7 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
       n = 1; arena = null;
       if (!hit && parts > 1 && canSplit()) { arena = arenaFor(); if (arena) n = parts; }
       // a split position's parts each restore its base, shared once by the owner that holds it
-      const partBase = n > 1 && baseKey ? { plan: base.plan, rec: (await ask('share')).rec } : null;
+      let partBase = n > 1 && baseKey ? { plan: base.plan, rec: (await ask('share')).rec } : null;
       const ends = [];
       for (let i = 1; i < n; i++) {
         const w = newWorker(); workers.push(w);
@@ -156,6 +171,8 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
         owner.postMessage({ id: 0, kind, plan: phasePlan, opts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
+      // the parts hold the base they were sent: the page lets its copy go (solver-close.test.mjs)
+      if (PLANT.rule !== 'keepshared') partBase = null;
       // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9);
       // a dial position's base lets them go
       if (kind === 'solve') kept = workers.slice(1).map(askerOf); else workers.splice(1).forEach(w => w.terminate());
@@ -180,6 +197,6 @@ export function startSolve(plan, { key = null, base = null, parts = defaultParts
     ask,
     strategy,
     actions,
-    close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); }
+    close() { owner.terminate(); kept.forEach((_, i) => workers[i + 1] && workers[i + 1].terminate()); workers.splice(1).forEach(w => w.terminate()); kept = []; for (const p of pending.values()) p.reject(new Error('closed')); pending.clear(); release(); }
   };
 }

@@ -25,24 +25,29 @@
  *   6  this year, the rule, ten years, the comparison, with the comparison's new title and column;
  *   7  You: seven sections in order, Limits sixth, Your current approach in the seventh, each control's line; a guardrails
  *      change keeps data-solve-key and re-runs the comparison (its column moves, the solved plan's figures the same bit for
- *      bit); an input change makes the plan stale; on S090 a policy change moves the key;
+ *      bit); an input change makes the plan stale; Your money gives each pot's annual contribution and its yearly increase,
+ *      editable, named so and drawn like its balance, a contribution typed in reaching the plan; on S090 a policy change
+ *      moves the key;
  *   8  What if: the age card for a working household and none for a retired one; the target card's five options; the limits
  *      card and the scenarios card; each saying its cost before it is asked;
  *   9  Details: the solved ledger with its action column; the history check; Assumptions with Display and the solver's
  *      settings; the docs section;
  *  10  a couple: the couples card on three places; "Open the classic planner" shows the classic tabs, and a reload keeps them;
  *  11  a failure (the worker planted to fail every question): the failure card, "Try again", the classic link, your current
- *      approach's figures under it, the levers still usable;
+ *      approach's figures under it, its money chart named as yours alone (there is no solved plan), the levers still usable;
  *  12  the phone: the four places each 44px or more; no horizontal scroll on any place; nothing solved and no solver chunk
  *      fetched until "Solve my plan"; the six slides by the step bar and by swipe; the levers sheet opened and shut with Escape;
  *      a change in it makes the plan stale (data-solve-key unchanged until asked), and the worker is asked nothing until
  *      "Solve again";
  *  13  the quick start: an empty plan shows it; "Work out my plan" waits for the four readiness fields; filled, it builds
- *      the plan and solves;
+ *      the plan and solves; it points to where each pot's contributions are set (You, Your money);
  *  14  the classic planner, the switch on, fetches none of the solver's chunks.
  * Its plants (PLANNER_PLANT, built into the preview: src/plannerPlant.js), each failing exactly its own check, all in one
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
- * keyguard (7), nocouple (10), phonesolve (12), staleask (12), navtarget40 (12), classicfetch (14).
+ * keyguard (7), contribold (7: Your money's contributions drawn grey and their increase named as the classic table names it),
+ * nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
+ * staleask (12), navtarget40 (12), nocontribhint (13: the quick start without its pointer to the contributions),
+ * classicfetch (14).
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the preview is served on port + 11)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
@@ -57,8 +62,8 @@ const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'nocouple', 'phonesolve', 'staleask', 'navtarget40', 'classicfetch'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, nocouple: 10, phonesolve: 12, staleask: 12, navtarget40: 12, classicfetch: 14 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'nocontribhint', 'classicfetch'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, nocontribhint: 13, classicfetch: 14 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -283,6 +288,23 @@ const firstDiff = (a, b, at = '') => {
       let inStale = false;
       for (let i = 0; i < 40 && !inStale; i++) { const st = await strip(p); inStale = st.solve === 'stale' || (st.solve === 'solving' && st.key !== kI); await p.waitForTimeout(150); }
       ok(7, 'an input change in You makes the plan stale', inStale);
+      // Your money: each pot's annual contribution and how much it rises a year, editable, named so, and drawn like its balance
+      // (the maintainer, 5 Nov: the contributions looked locked, the increase not said to be the contribution's); typed in, a
+      // contribution reaches the plan
+      await p.evaluate(() => { const x = document.querySelector('[data-place="you"] [data-section="money"]'); if (x) x.scrollIntoView(); });
+      const money = await p.evaluate(() => {
+        const sec = document.querySelector('[data-place="you"] [data-section="money"]');
+        if (!sec) return null;
+        const rows = [...sec.querySelectorAll('tbody tr')].map(tr => [...tr.querySelectorAll('input')].map(i => ({ off: i.disabled || i.readOnly, bg: getComputedStyle(i).backgroundColor })));
+        return { heads: [...sec.querySelectorAll('th')].map(t => t.textContent.trim()), rows };
+      });
+      const moneyOk = !!money && money.heads.includes('Annual contribution (£)') && money.heads.includes('Contribution increase (%/yr)') && money.rows.length >= 4
+        && money.rows.every(r => r.length >= 3 && !r[1].off && !r[2].off && r[1].bg === r[0].bg);
+      await p.fill('[data-place="you"] [data-section="money"] tbody tr:first-child td:nth-child(3) input', '7000').catch(() => {});
+      await p.waitForTimeout(600);
+      const typed = await saved(p).then(pl => { const a = (pl.accounts || []).find(x => x.id === 'pen_self'); return a ? String(a.contrib) : null; });
+      ok(7, 'Your money: each pot\'s annual contribution and its yearly increase editable, named so and drawn like its balance; a contribution typed in reaches the plan', moneyOk && typed === '7000',
+        money ? `heads ${money.heads.slice(1, 4).join(' | ')}; ${money.rows.length} pots; contribution like its balance on ${money.rows.filter(r => r[1] && r[0] && r[1].bg === r[0].bg).length}; the pension's contribution saved as ${typed}` : 'no money section');
       ok(1, 'the main fixture: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
 
       // 9. Details (on this solve, as it now stands)
@@ -346,11 +368,14 @@ const firstDiff = (a, b, at = '') => {
       const f = await waitCard(p, 'failed', 120000);
       const parts = await p.evaluate(() => ({ retry: !!document.querySelector('[data-plan-answer="failed"] [data-strategy-retry]'), classic: !!document.querySelector('[data-plan-answer="failed"] [data-open-classic]') }));
       const yours = await p.waitForSelector('[data-failed-current="in"]', { timeout: 300000 }).then(() => true, () => false);
+      // the money chart under it is your current approach's alone: named so, and nowhere the solved plan's (there is none)
+      const chart = await p.evaluate(() => { const c = document.querySelector('[data-failed-current] svg[data-chart="wealth"]'); return c ? { text: c.textContent, aria: c.getAttribute('aria-label') || '' } : null; });
+      const alone = !!chart && /your current approach/i.test(chart.text) && !/solved plan/i.test(chart.text) && /^Your current approach's money/.test(chart.aria) && !/solved plan/i.test(chart.aria);
       const c0 = await p.$eval('[data-solver-choice="cuts"] [aria-checked="true"]', el => el.dataset.value).catch(() => null);
       await p.click('[data-solver-choice="cuts"] [data-value="6"]').catch(() => {});
       await p.waitForTimeout(400);
       const c1 = await p.$eval('[data-solver-choice="cuts"] [aria-checked="true"]', el => el.dataset.value).catch(() => null);
-      ok(11, 'planted, the solver failing: the failure card with "Try again" and the classic link, your current approach\'s figures under it, the levers usable', f && parts.retry && parts.classic && yours && c0 !== c1 && c1 === '6', `${JSON.stringify(parts)}; yours ${yours}; dial ${c0} to ${c1}`);
+      ok(11, 'planted, the solver failing: the failure card with "Try again" and the classic link, your current approach\'s figures under it (its money chart named as yours alone), the levers usable', f && parts.retry && parts.classic && yours && alone && c0 !== c1 && c1 === '6', `${JSON.stringify(parts)}; yours ${yours}; the chart ${chart ? `"${chart.text.replace(/\s+/g, ' ').slice(-60)}"` : 'none'}; dial ${c0} to ${c1}`);
       ok(11, 'a failure: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
@@ -400,6 +425,7 @@ const firstDiff = (a, b, at = '') => {
     // ---------------------------------------------------------------- 13. the quick start
     { const { p, errs } = await open(b, null);
       const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
+      const hint = await p.$eval('[data-quick-start] [data-quick-contrib]', el => el.textContent).catch(() => null);
       const dis0 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
       for (const [k, v] of [['ageSelf', '60'], ['retireSelf', '60'], ['spend', '30000']]) await p.fill(`[data-quick-field="${k}"]`, v);
       const dis1 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
@@ -411,6 +437,7 @@ const firstDiff = (a, b, at = '') => {
       const pl = await saved(p);
       ok(13, 'an empty plan shows the quick start; "Work out my plan" waits for the four readiness fields; filled, it builds the plan and solves', shown && dis0 === true && dis1 === true && dis2 === false && solving && pl && Number(pl.spending.targetSpend) === 30000,
         `shown ${shown}; disabled ${dis0}, ${dis1}, ${dis2}; solving ${solving}`);
+      ok(13, 'the quick start points to where each pot\'s contributions and their yearly increase are set (You, Your money)', !!hint && /Your money/.test(hint) && /each year/.test(hint), hint ? `"${hint.slice(0, 80)}..."` : 'no hint');
       ok(13, 'the quick start: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

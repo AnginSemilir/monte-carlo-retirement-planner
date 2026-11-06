@@ -1,0 +1,6 @@
+CI runs, as GitHub reports them (research/solver/ci-record.mjs)
+Verify run 261 on 83a8c98aaded4d8dbeec4cb6a17a404c13805ef8: success
+Verify run 260 on 83a8c98aaded4d8dbeec4cb6a17a404c13805ef8: success
+Verify run 259 on 83a8c98aaded4d8dbeec4cb6a17a404c13805ef8: success
+Full run 112 on 83a8c98aaded4d8dbeec4cb6a17a404c13805ef8: success
+Full run 111 on 83a8c98aaded4d8dbeec4cb6a17a404c13805ef8: success

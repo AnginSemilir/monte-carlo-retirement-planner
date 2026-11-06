@@ -1,0 +1,11 @@
+THE READINESS CHECKLIST, the code code-stamp:c68b09c6d7aab6cf
+PASS  1. run-all.sh ALL REQUIRED GREEN in both modes (the classic planner, the new)   (classic green, new green)
+PASS  2. both CI tiers green on the release commit   (Verify 261 success, 260 success, 259 success; Full 112 success, 111 success)
+PASS  3. the full-scale browser solve: 45 points, the real settings, the floor at 80%, its tables Node's bit for bit, its time recorded   (S116 in 86.1 s split 4 ways)
+PASS  4. the library sweep: every single, and a sample with every lever off its default, solves at light settings without a throw   (  ok   1. all 210 single households normalise, key and solve |   ok   2. a sample of 21, every lever off its default (the d)
+PASS  5. L4 and L5 read, R1 to R3 applied, the reads sent to the maintainer   (results-levers.txt, results-costs.txt, their reviews PASS, STATE.md records R1 to R3 and the reports)
+PASS  6. old exports import   (  ok   3. old exports: 11 households in four older shapes each pass the import's)
+PASS  7. the isolation, failure-path, phone and new-planner harnesses green   (isolation pass, planner pass, phone pass, perfClassic pass, perfNew pass)
+PASS  8. the opt-in switched on and off without losing a plan (solver-planner check 15)   (solver-planner pass)
+
+ALL PASS: the opt-in may go on main, off by default (R6)

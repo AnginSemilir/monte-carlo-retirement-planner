@@ -27,11 +27,21 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phoneparts' lifts the phone's budget (phone-budget.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
 export const defaultParts = () => (canSplit() ? Math.max(1, Math.min(4, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 1)) : 1);
+/*
+ * THE PHONE'S BUDGET (Phase 11 item 2; the launch plan's F5: "Phase 11 ... sets the phone's budget from the result"). A dial
+ * position solves its base first, and each part of its split solve restores the base (L2), so its peak memory grows with the
+ * parts; the solve on show peaks at about the same split any way (results-phone-memory.txt). On a touch device (no fine,
+ * hovering pointer: a phone or a tablet, in either orientation) a solve with a base splits TOUCH_BASE_PARTS ways at most;
+ * every other solve, and every solve elsewhere, splits as before (research/tests/phone-budget.test.mjs).
+ */
+export const TOUCH_BASE_PARTS = 2;
+export const touchDevice = () => typeof window !== 'undefined' && !!window.matchMedia && !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+export const partsFor = (parts, base) => (base && touchDevice() && PLANT.rule !== 'phoneparts' ? Math.min(parts, TOUCH_BASE_PARTS) : parts);
 const newWorker = () => new Worker(new URL('./solverWorker.js', import.meta.url), { type: 'module' });
 /* the solve's key on the page: the plan as the solver takes it and the settings (the code is checked by the worker) */
 export const keyOf = (engine, plan, opts = {}) => solveKey(engine, plan, opts);
@@ -65,7 +75,8 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
   return { done, cancel() { cancelled = true; if (job) { job.cancel(); job.close(); } } };
 }
 
-export function startSolve(plan, { key = null, base = null, parts = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+  const parts = partsFor(asked, base);
   const owner = newWorker(), workers = [owner], pending = new Map();
   let seq = 0, finished = false, rejectDone = null, arena = null, n = 1;
   // a job let go keeps none of its shared memory (Phase 11, phone-memory.cjs): its handle can outlive it (an earlier state of

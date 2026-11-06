@@ -18,10 +18,28 @@ the phone's layout (the four places, Your plan as a deck, the levers in a sheet,
 ## 2. Memory (D59: in the harness's browser)
 
 - `research/ui-harnesses/phone-memory.cjs` (a measurement, EXPLORATORY, not a gate): the switch-on site at the app's own
-  settings, a Pixel 7's screen, a library household; the page's and its workers' memory
-  (`performance.measureUserAgentSpecificMemory`, which the page's isolation allows) before the solve, with the solve on show,
-  with a locked position (the dial at 3: the solve on show and its base) and back at the default
-  (`results-phone-memory.txt`).
+  settings, a Pixel 7's screen, a library household (S116), each solve asked for as a phone asks; before the solve, with the
+  solve on show, with a locked position (the dial at 3: its base and the position) and back at the default. It reads the
+  page's processes as the operating system counts them (the PSS of Chromium's renderers, which run the page and every
+  worker), now and at their peak while they work, the page's own count beside it (`measureUserAgentSpecificMemory`, which
+  reaches the workers only on some readings), the status line's words timed from each request, the store and the site's
+  storage. `--parts N` tells the page how many cores it has; `--private` runs in a fresh context. Nine runs, each whole
+  under the code it ran on (`results-phone-memory.txt`): the first found the three faults in section 4, each fixed with its
+  test, and the later ones measure the memory against the parts.
+- **The phone's budget** (the launch plan's F5: "Phase 11 ... sets the phone's budget from the result"). A dial position
+  solves its base first and each part of its split solve restores the base (L2, by design), so its peak grows with the
+  parts, where the solve on show peaks at about the same at any split (runs 7 and 8). On a touch device (no fine, hovering
+  pointer: a phone or a tablet, in either orientation) a solve with a base, the plan's own position or one the dial's line
+  works out, splits two ways at most; every other solve, and every solve on a computer, splits as before
+  (`src/solverClient.js` TOUCH_BASE_PARTS). It trades the position's time for its peak (run 8: one, two and four ways), and run 9
+  measures the page as a phone runs it now. `research/tests/phone-budget.test.mjs` (the full tier): on a touch device a
+  position split two ways, a plan at the default and a position on a computer four, the dial's line two, a one-way solve
+  not split; plant `phoneparts` (the budget lifted) failing checks 1 and 4 (`results-phone-budget.txt`). A phone's own limit
+  cannot be read here (D59): the figures go to the maintainer, who can move the budget.
+- **Not changed here, reported:** a solve restored from the store runs its figures' paths on one worker, where a fresh split
+  solve shares them among its parts, so back at the default the paths take longer than after a fresh solve (runs 3 to 9,
+  the status line's times). Sharing a restored solve's paths would mean each part restoring the solve, the memory this
+  budget holds down; it waits for the maintainer.
 
 ## 3. The harness: the phone at four times CPU throttle, the bytes recorded
 

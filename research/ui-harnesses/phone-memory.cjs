@@ -12,8 +12,8 @@
  * phone's limit cannot be modelled here, and D59 skips the device run. Library households only (never anybody's own plan).
  * A browser profile of its own by default, as a phone's browser keeps one; --private runs in a fresh context, as a private
  * window does (its storage quota about 1GB here).
- *   node research/ui-harnesses/phone-memory.cjs [--private] [household ...]      (default S116; builds the switch-on site at
- *                                                                                  the app's own settings, serves it on 4199)
+ *   node research/ui-harnesses/phone-memory.cjs [--private] [--parts N] [household ...]   (default S116; builds the switch-on
+ *                                                                    site at the app's own settings, serves it on 4199)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
 const { execFileSync, spawn } = require('node:child_process');
@@ -23,7 +23,10 @@ const { tmpdir } = require('node:os');
 const { pathToFileURL } = require('node:url');
 const ROOT = join(__dirname, '../..'), VITE = join(ROOT, 'node_modules/vite/bin/vite.js'), PORT = 4199;
 const argv = process.argv.slice(2), PRIVATE = argv.includes('--private');
-const IDS = argv.filter(a => !a.startsWith('--')).length ? argv.filter(a => !a.startsWith('--')) : ['S116'];
+// --parts N: the cores the page reads (navigator.hardwareConcurrency), so the solves split N ways at most (src/solverClient.js
+// defaultParts: four at most); unset, the machine's own
+const PARTS = argv.includes('--parts') ? Number(argv[argv.indexOf('--parts') + 1]) : null;
+const IDS = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--parts').length ? argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--parts') : ['S116'];
 const MB = n => `${(n / 1048576).toFixed(1)}MB`;
 const fs = require('node:fs');
 /* the browser's page processes (Chromium's renderers, which run the page and every one of its workers), found among this
@@ -60,7 +63,7 @@ const pagePss = () => renderers().reduce((t, p) => t + pssOf(p.pid), 0);
   const b = PRIVATE ? await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' }) : null;
   const profiles = [];
   try {
-    console.log(`Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), ${PRIVATE ? 'a fresh context (a private window)' : 'a browser profile of its own'}`);
+    console.log(`Chromium, a Pixel 7's screen, the app's own settings (45 wealth points), ${PRIVATE ? 'a fresh context (a private window)' : 'a browser profile of its own'}, ${PARTS ? `the page told it has ${PARTS} core${PARTS > 1 ? 's' : ''}` : 'the machine\'s own cores'}`);
     for (const id of IDS) {
       const plan = all.find(s => s.id === id).plan;
       let ctx;
@@ -68,6 +71,7 @@ const pagePss = () => renderers().reduce((t, p) => t + pssOf(p.pid), 0);
       else { const dir = mkdtempSync(join(tmpdir(), 'phone-memory-profile-')); profiles.push(dir); ctx = await chromium.launchPersistentContext(dir, { ...devices['Pixel 7'], executablePath: '/opt/pw-browsers/chromium' }); }
       const p = await ctx.newPage(), errs = [];
       p.on('pageerror', e => errs.push(e.message));
+      if (PARTS) await p.addInitScript(n => { Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => n, configurable: true }); }, PARTS);
       await p.addInitScript(([pl]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); localStorage.setItem('rp_planner', 'new'); sessionStorage.setItem('seeded', '1'); } }, [plan]);
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
       const iso = await p.evaluate(() => self.crossOriginIsolated);

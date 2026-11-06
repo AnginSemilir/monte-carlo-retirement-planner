@@ -2,8 +2,10 @@
  * THE PHONE'S MEMORY, MEASURED IN THE HARNESS'S BROWSER (Phase 11 item 2; D59: no solve on the maintainer's phone). The
  * launch plan: "The phone holds the solve on show, and for a locked position its base (F5), after step P's cuts." This reads
  * how much that is, at the app's own settings (45 wealth points, the real candidate), in Chromium with a Pixel 7's screen:
- * the page and its workers' memory (performance.measureUserAgentSpecificMemory, which the page's cross-origin isolation
- * allows; taken after a garbage collection, so what is held), after the solve on show (the dial at its default), after a
+ * the memory of the page's processes (Chromium's renderers, which run the page and all its workers: their proportional share,
+ * PSS, from /proc, now and at its peak while it worked) and, beside it, the page's own count
+ * (performance.measureUserAgentSpecificMemory, which the page's cross-origin isolation allows, taken after a garbage
+ * collection; it counts a worker only where it reaches it), after the solve on show (the dial at its default), after a
  * locked position (the dial at 3: the solve on show and its base), and back at the default. Beside each: the time to solve
  * and fill in, what the status line said on the way (a base solved again says "at the Low setting first"), the solves the
  * store keeps on this device (src/solverCache.js) and the site's storage used. A measurement, not a gate (EXPLORATORY): a
@@ -23,6 +25,27 @@ const ROOT = join(__dirname, '../..'), VITE = join(ROOT, 'node_modules/vite/bin/
 const argv = process.argv.slice(2), PRIVATE = argv.includes('--private');
 const IDS = argv.filter(a => !a.startsWith('--')).length ? argv.filter(a => !a.startsWith('--')) : ['S116'];
 const MB = n => `${(n / 1048576).toFixed(1)}MB`;
+const fs = require('node:fs');
+/* the browser's page processes (Chromium's renderers, which run the page and every one of its workers), found among this
+   script's descendants, and their proportional share of memory (PSS, /proc/<pid>/smaps_rollup): what the operating system
+   counts against the page, shared memory split between the processes that map it */
+const procs = () => {
+  const out = [];
+  for (const d of fs.readdirSync('/proc')) {
+    if (!/^\d+$/.test(d)) continue;
+    try { const st = fs.readFileSync(`/proc/${d}/stat`, 'utf8'), ppid = Number(st.slice(st.lastIndexOf(')') + 2).split(' ')[1]); out.push({ pid: Number(d), ppid, cmd: fs.readFileSync(`/proc/${d}/cmdline`, 'utf8') }); } catch { /* gone */ }
+  }
+  return out;
+};
+const renderers = () => {
+  const ps = procs(), kids = new Map(), mine = [];
+  for (const p of ps) { if (!kids.has(p.ppid)) kids.set(p.ppid, []); kids.get(p.ppid).push(p); }
+  const walk = pid => (kids.get(pid) || []).forEach(c => { mine.push(c); walk(c.pid); });
+  walk(process.pid);
+  return mine.filter(p => p.cmd.includes('--type=renderer'));
+};
+const pssOf = pid => { try { const m = /\nPss:\s+(\d+) kB/.exec(fs.readFileSync(`/proc/${pid}/smaps_rollup`, 'utf8')); return m ? Number(m[1]) * 1024 : 0; } catch { return 0; } };
+const pagePss = () => renderers().reduce((t, p) => t + pssOf(p.pid), 0);
 
 (async () => {
   const OUT = mkdtempSync(join(tmpdir(), 'phone-memory-'));
@@ -60,6 +83,9 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
       const said = [];
       let t0 = Date.now();
       const watch = setInterval(async () => { try { const t = await p.evaluate(() => { const s = document.querySelector('[data-solve-status]'); return s ? s.textContent.replace(/\s+/g, ' ').replace(/\d+%/, 'N%').trim() : ''; }); if (t && (!said.length || said[said.length - 1].t !== t)) said.push({ t, at: Math.round((Date.now() - t0) / 1000) }); } catch { /* the page is busy */ } }, 2000);
+      // the page processes' memory every two seconds, its peak kept since the last step
+      let peak = 0;
+      const sampler = setInterval(() => { peak = Math.max(peak, pagePss()); }, 2000);
       const done = async ms => { const t0 = Date.now(); await p.waitForSelector('[data-plan-answer="done"]', { timeout: ms }); return Date.now() - t0; };
       // the dial is in the levers sheet on a phone: open it, choose, close it; then the card's "Solve again" (a phone asks)
       const dial = async v => {
@@ -71,7 +97,7 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
       };
       const ask = async () => { await p.click('[data-plan-answer] [data-solve-request]', { timeout: 120000 }); t0 = Date.now(); };
       const rows = [];
-      const step = async (label, t) => { await p.waitForTimeout(3000); const words = said.splice(0); rows.push([label, await mem(), t, await store(), words]); t0 = Date.now(); };
+      const step = async (label, t) => { await p.waitForTimeout(3000); const words = said.splice(0), now = pagePss(); rows.push([label, await mem(), t, await store(), words, { now, peak: Math.max(peak, now) }]); peak = 0; t0 = Date.now(); };
       await step('before the solve', 0);
       await ask();
       await step('the solve on show (the dial at its default)', await done(3600000));
@@ -83,10 +109,11 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
       await p.waitForTimeout(3000);
       if (await p.$('[data-plan-answer] [data-solve-request]')) await ask();
       await step('back at the default', await done(3600000));
-      clearInterval(watch);
+      clearInterval(watch); clearInterval(sampler);
       console.log(`\n${id} (cross-origin isolated ${iso}):`);
-      for (const [label, m, t, st, words] of rows) {
-        console.log(`  ${label}: ${m ? `${MB(m.total)} (${Object.entries(m.by).map(([k, v]) => `${k} ${MB(v)}`).join(', ')})` : 'not measurable here'}${t ? `; solved and filled in ${(t / 1000).toFixed(0)}s` : ''}`);
+      for (const [label, m, t, st, words, os] of rows) {
+        console.log(`  ${label}: the page's processes ${MB(os.now)} (PSS), their peak since the last step ${MB(os.peak)}${t ? `; solved and filled in ${(t / 1000).toFixed(0)}s` : ''}`);
+        console.log(`    the page's own count (measureUserAgentSpecificMemory; a worker counted only where it reaches it): ${m ? `${MB(m.total)} (${Object.entries(m.by).map(([k, v]) => `${k} ${MB(v)}`).join(', ')})` : 'not measurable here'}`);
         if (words.length) console.log(`    the status line (seconds from the request): ${words.map(w => `${w.at}s "${w.t}"`).join(' > ')}`);
         console.log(`    the store: ${st.ix.length ? st.ix.map(e => `${e.key} ${MB(e.bytes)}`).join(', ') : 'nothing'}; the site's storage ${MB(st.usage)} of ${MB(st.quota)}`);
       }

@@ -58,7 +58,8 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
       });
       // the status line's words while it works, each once in order
       const said = [];
-      const watch = setInterval(async () => { try { const t = await p.evaluate(() => { const s = document.querySelector('[data-solve-status]'); return s ? s.textContent.replace(/\s+/g, ' ').replace(/\d+%/, 'N%').trim() : ''; }); if (t && said[said.length - 1] !== t) said.push(t); } catch { /* the page is busy */ } }, 2000);
+      let t0 = Date.now();
+      const watch = setInterval(async () => { try { const t = await p.evaluate(() => { const s = document.querySelector('[data-solve-status]'); return s ? s.textContent.replace(/\s+/g, ' ').replace(/\d+%/, 'N%').trim() : ''; }); if (t && (!said.length || said[said.length - 1].t !== t)) said.push({ t, at: Math.round((Date.now() - t0) / 1000) }); } catch { /* the page is busy */ } }, 2000);
       const done = async ms => { const t0 = Date.now(); await p.waitForSelector('[data-plan-answer="done"]', { timeout: ms }); return Date.now() - t0; };
       // the dial is in the levers sheet on a phone: open it, choose, close it; then the card's "Solve again" (a phone asks)
       const dial = async v => {
@@ -68,9 +69,9 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
         await p.keyboard.press('Escape');
         await p.waitForTimeout(800);
       };
-      const ask = async () => { await p.click('[data-plan-answer] [data-solve-request]', { timeout: 120000 }); };
+      const ask = async () => { await p.click('[data-plan-answer] [data-solve-request]', { timeout: 120000 }); t0 = Date.now(); };
       const rows = [];
-      const step = async (label, t) => { await p.waitForTimeout(3000); const words = said.splice(0); rows.push([label, await mem(), t, await store(), words]); };
+      const step = async (label, t) => { await p.waitForTimeout(3000); const words = said.splice(0); rows.push([label, await mem(), t, await store(), words]); t0 = Date.now(); };
       await step('before the solve', 0);
       await ask();
       await step('the solve on show (the dial at its default)', await done(3600000));
@@ -86,7 +87,7 @@ const MB = n => `${(n / 1048576).toFixed(1)}MB`;
       console.log(`\n${id} (cross-origin isolated ${iso}):`);
       for (const [label, m, t, st, words] of rows) {
         console.log(`  ${label}: ${m ? `${MB(m.total)} (${Object.entries(m.by).map(([k, v]) => `${k} ${MB(v)}`).join(', ')})` : 'not measurable here'}${t ? `; solved and filled in ${(t / 1000).toFixed(0)}s` : ''}`);
-        if (words.length) console.log(`    the status line: ${words.map(w => `"${w}"`).join(' > ')}`);
+        if (words.length) console.log(`    the status line (seconds from the request): ${words.map(w => `${w.at}s "${w.t}"`).join(' > ')}`);
         console.log(`    the store: ${st.ix.length ? st.ix.map(e => `${e.key} ${MB(e.bytes)}`).join(', ') : 'nothing'}; the site's storage ${MB(st.usage)} of ${MB(st.quota)}`);
       }
       console.log(`  page errors: ${errs.length ? errs.slice(0, 2).join(' | ') : 'none'}`);

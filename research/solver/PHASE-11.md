@@ -42,6 +42,13 @@ the phone's layout (the four places, Your plan as a deck, the levers in a sheet,
   aims and locks with their defaults and leaves out the view of whose money (a couple's display).
   `research/tests/solve-key.test.mjs` (the full tier), over all 210 single households, plant `raw` (the key as before) failing
   checks 2 to 5 (`results-solve-key.txt`).
+- **A restored solve held its record beside its tables** (found by item 2's second run): a solve restored from the store
+  copies the record's tables and reference into its own, but kept the record through its options (solve.js) and the
+  reference's input (adaptive.js `rebuild`), so it held its tables twice: back at the dial's default, one solve on show held
+  far more than after the same solve made fresh (`results-phone-memory.txt`, the second run). `solveForApp` now lets the
+  record go once the solve is done, the caller's record left as it was. `research/tests/restore-memory.test.mjs` (the full
+  tier): a weak reference to every array of the record, none left after the restore on S116 and S370; the restored solve
+  the fresh one's bit for bit; plant `holdrecord` failing check 1 (`results-restore-memory.txt`).
 
 - **The failure view's money chart** named your current approach's bands as the solved plan's as well (step U's
   screenshots): it now draws them alone, as your current approach's. `solver-planner-ui` check 11, plant `failboth`

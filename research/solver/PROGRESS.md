@@ -24,14 +24,14 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 10, isolation and the projection | to 11 Nov | 4 | merged (pull request 6) | 4 |
 | Step P, cutting the cost | to 6 Nov | 2 | merged (pull request 7) | 2 |
 | Step U, the new planner (D58) | to 10 Nov | 4 | merged (pull request 8) | 4 |
-| Phase 11, the phone on the new planner | to 11 Nov | 1 | not begun | 0 |
-| Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | not begun | 0 |
+| Phase 11, the phone on the new planner | to 11 Nov | 1 | merged (pull request 9) | 1 |
+| Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | under way | 0 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | not begun | 0 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | not begun | 0 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **37** | | **16 (43%)** |
+| **Total** | | **37** | | **17 (46%)** |
 
-The singles' launch alone, Phase 12 ready, is the first 19 days: 16 of them, 84%.
+The singles' launch alone, Phase 12 ready, is the first 19 days: 17 of them, 89%.
 
 ## The figure after each job
 
@@ -44,3 +44,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: 16 of them, 84%
 | 4 Nov 05:02 UTC | Phase 10 merged (pull request 6) | 27% | 53% |
 | 5 Nov 03:08 UTC | Step P merged (pull request 7); step U built, its plants caught | 35% | 67% |
 | 5 Nov 17:26 UTC | Step U merged (pull request 8) | 43% | 84% |
+| 6 Nov 07:52 UTC | Phase 11 merged (pull request 9) | 46% | 89% |

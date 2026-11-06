@@ -1,0 +1,40 @@
+the code: code-stamp:c68b09c6d7aab6cf; the classic planner's mode
+== build, the site as it ships ==
+   ok
+== serve on :4173 ==
+   ok
+== harnesses (the classic planner) ==
+
+HARNESS                KIND      RESULT
+restyle-regression     required  pass
+phone                  required  pass
+phone-perf             required  pass
+desktop-reach          required  pass
+numbers                required  pass
+load-perf              required  pass
+sandbox-step           required  pass
+simple-extras          required  pass
+mc-reveal              required  pass
+crossover              required  pass
+production-build       required  pass
+tradeoffs              required  pass
+priorities             required  pass
+simple-closecall       required  pass
+tournament             required  pass
+solver-progress        required  pass
+solver-config          required  run in the new mode: the new planner's levers and limits, opted in on the build it makes
+solver-strategy        required  run in the new mode: the new planner's Your plan, opted in on the build it makes
+solver-isolation       required  run in the new mode: the new planner's isolation, opted in on the build it serves without headers, as GitHub Pages does
+solver-projection      required  run in the new mode: the new planner's outlook, dials and Details, opted in on the build it makes
+solver-planner         required  run in the new mode: the new planner, opted in on the build it makes
+beneficiary-inputs     optional  not run: SHOW_INHERITANCE is off
+estate-assets          optional  not run: SHOW_INHERITANCE is off
+estate-deck            optional  not run: SHOW_INHERITANCE is off
+estate-optimiser       optional  not run: SHOW_INHERITANCE is off
+inheritance            optional  not run: SHOW_INHERITANCE is off
+
+== engine suites ==
+   not run here: CI runs every one of them on each push (Verify, Full); B1's gate reads them there, green on the
+   commit it merges (--engine runs them here too)
+
+ALL REQUIRED GREEN

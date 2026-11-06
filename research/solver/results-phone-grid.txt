@@ -1,13 +1,20 @@
-phone-grid.test.mjs (Phase 11 item 1; D59), 5 Nov (again after the key's fix, solve-key.test.mjs):
+phone-grid.test.mjs (Phase 11 item 1; D59), 6 Nov: check 3 read by the expression that sets points, and check 5, the scan itself.
 
+On release/phase-12 at c48317d with the check as it was (the Full tier's run 106 on 637e366 failed it alike):
+  FAIL 3. no line under src/ sets points from the device (60 files searched)   src/App.jsx:12142: <Suspense fallback={null}><PlannerSettings points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45} paths={plannerSteps[planne | src/App.jsx:12146: <PlannerDocs isPhone={isPhone} open={docsOpen} onOpen={() => setDocsOpen(true)} points={(SOLVER_OPTS && SOLVER_OPTS.poin | src/App.jsx:16236: aside={isPhone ? null : aimsPanel()} onPhase={setPlanPhase} onRetry={retrySolve} onOpenClassic={() => setPlanner('classi
+3 passed, 1 failed
+
+On the reworked check (the site's code the same, c68b09c6d7aab6cf):
   ok   1. the app solves at 45 wealth points (src/solverSettings.js APP_POINTS)   APP_POINTS 45
   ok   2. the site's page passes the solver no options (App.jsx `const SOLVER_OPTS = null;`), so the worker solves at APP_POINTS   SOLVER_OPTS null
-  ok   3. no line under src/ sets points from the device (57 files searched)
+  ok   3. nothing under src/ sets points from the device (60 files searched)
   ok   4. a plan keyed with the default options keys as at 45 points and not as at 30 (S116)   default ab081967455b, 45 ab081967455b, 30 134b196016a4
+  ok   5. the scan flags each planted read of the device (directly, through a name, a prop, an assignment) and passes a fixed points beside it   flagged 1/1/1/1/1; fixed flagged 0/0/0/0
 
-4 passed, 0 failed
+5 passed, 0 failed
 
 plant 'points30': checks failing 1 (its own: 1) ok
 plant 'opts': checks failing 2 (its own: 2) ok
 plant 'phone30': checks failing 3 (its own: 3) ok
-PLANTS: all 3 fail exactly their own checks
+plant 'phone30via': checks failing 3 (its own: 3) ok
+PLANTS: all 4 fail exactly their own checks

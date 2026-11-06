@@ -1,9 +1,10 @@
 /*
  * PART C PHASE 8: THE CONFIG TAB UNDER THE SOLVER'S SWITCH (research/solver/PHASE-8.md). REQUIRED.
  *
- * 1. The site as built (the switch off, `const SOLVER = false` in src/App.jsx): the Config tab as today, its policy search,
+ * 1. The site as built, the classic planner (every visitor's unless they opt in; the app with the switch off bit for bit, Phase
+ *    12): the Config tab as today, its policy search,
  *    policy, drawdown, lookahead, harvest and playbook all there, neither solver card, and no solver code fetched.
- * 2. A preview build beside it with the switch on (vite.config.js solver-preview: SOLVER_PREVIEW=1, this harness's light
+ * 2. A harness's build beside it (vite.config.js solver-harness: SOLVER_HARNESS=1, this harness's light
  *    settings), opted in to the new planner (rp_planner 'new'; step U, LAYOUT.md section 11.2), a single household (S126 from
  *    the research library, never anybody's own plan):
  *      - the levers on Your plan ("What matters to you"), the limits in You, and the app's rules for the plan in You's
@@ -76,20 +77,20 @@ const POLICY = ['search', 'policy', 'drawdown', 'lookahead', 'harvest', 'playboo
   const nodeKey = plan => solveKey(E, plan, LIGHT);
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
-  // 1. the site as built: the switch off
+  // 1. the site as built: the classic planner (the switch-off app, bit for bit)
   { const { p, errs, urls } = await open(b, PORT, single), s = await tabState(p);
-    ok('switch off: the Config tab keeps its policy search, policy, drawdown, lookahead, harvest and playbook', POLICY.every(k => s[k]), JSON.stringify(s));
-    ok('switch off: neither solver card nor the solver\'s line, the guardrails unmarked', !s.aims && !s.locks && !s.couple && !s.note && s.guardrails && !s.guardOwn);
+    ok('the classic planner: the Config tab keeps its policy search, policy, drawdown, lookahead, harvest and playbook', POLICY.every(k => s[k]), JSON.stringify(s));
+    ok('the classic planner: neither solver card nor the solver\'s line, the guardrails unmarked', !s.aims && !s.locks && !s.couple && !s.note && s.guardrails && !s.guardOwn);
     const got = urls.filter(u => SOLVER_URL.test(u));
-    ok('switch off: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
-    ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+    ok('the classic planner: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
+    ok('the classic planner: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await p.close(); }
 
   // 2. the preview build, the switch on
   const OUT = mkdtempSync(join(tmpdir(), 'solver-preview-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
     // vite itself, not through npx, so the one child is the server and stopping it stops the server
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;

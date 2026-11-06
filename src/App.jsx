@@ -6920,16 +6920,20 @@ const APP_VERSION = 'v0.8 beta';
  */
 const SHOW_INHERITANCE = false;
 /*
- * THE SOLVER IN THE APP (Part C, research/solver/PART-C-PLAN.md; Phase 7, research/solver/PHASE-7.md). Off, the app is the app
- * of today and its first load fetches no solver code. On (for beta, Phase 12), the plan on screen is solved in the background
- * by the research candidate (src/solverApp.js) and its solve state kept beside it (src/useSolver.js); Phases 8 to 10 show it.
+ * THE SOLVER IN THE APP (Part C, research/solver/PART-C-PLAN.md; Phase 7, research/solver/PHASE-7.md). On since Phase 12 (the
+ * launch plan's B6: the beta's opt-in): the plan on screen is solved by the research candidate (src/solverApp.js), its solve state
+ * kept beside it (src/useSolver.js), in the new planner only. The classic planner, every visitor's unless they opt in, is the app
+ * with the switch off bit for bit, and its first load fetches no solver code (research/solver/PHASE-12.md).
  */
-const SOLVER = false;
-// B6's beta switch (step U, the new planner: research/reviews/2026-11-03/LAYOUT.md section 2.1). False hides the opt-in and
-// gives everyone the classic planner whatever rp_planner says; the preview build sets it true with SOLVER (vite.config.js)
-const PLANNER_BETA = false;
-// the solve's settings beside the switch: null in the app; a harness's light settings in a preview build only (vite.config.js
-// solver-preview, research/solver/PHASE-8.md), so the site's own build never reads anything else here
+const SOLVER = true;
+// B6's beta switch (step U, the new planner: research/reviews/2026-11-03/LAYOUT.md section 2.1), true since Phase 12. False is
+// the rollback, "one deploy turns it off for everyone": it hides the opt-in and gives everyone the classic planner whatever
+// rp_planner says (research/ui-harnesses/solver-planner-ui.cjs check 16 builds it so: vite.config.js solver-harness)
+const PLANNER_BETA = true;
+// the beta's switch as the page reads it; the plant 'betaignored' (check 16 only) reads rp_planner whatever the switch says
+const BETA_ON = PLANNER_BETA || PLANNER_PLANT.has('betaignored');
+// the solve's settings beside the switch: null in the app; a harness's light settings in a harness's build only (vite.config.js
+// solver-harness, research/solver/PHASE-8.md), so the site's own build never reads anything else here
 const SOLVER_OPTS = null;
 /*
  * WHICH PLANNER A VISITOR SEES (step U; LAYOUT.md section 2.1). rp_planner, read only when SOLVER is true: 'new' opts in to the
@@ -6938,7 +6942,7 @@ const SOLVER_OPTS = null;
  */
 export const PLANNER_KEY = 'rp_planner';
 const readPlanner = () => { try { return localStorage.getItem(PLANNER_KEY) === 'new' ? 'new' : 'classic'; } catch (e) { return 'classic'; } };
-const plannerOn = planner => SOLVER && PLANNER_BETA && planner === 'new';
+const plannerOn = planner => SOLVER && BETA_ON && planner === 'new';
 // the switch and its settings, for the Simple page's answers from the solver (src/Simple.jsx; Part C Phase 10, item 5): on only
 // in the new planner, where the Simple page is folded into the quick start (LAYOUT.md section 2.1)
 export const solverSwitch = () => ({ on: plannerOn(readPlanner()), opts: SOLVER_OPTS });
@@ -8422,15 +8426,16 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null, onPlanner = null }) {
   // which planner (step U): the new planner lands on Your plan (the quick start there for an empty plan); the classic as before
   const [planner, setPlannerState] = useState(readPlanner);
-  // SOLVER && PLANNER_BETA spelled out, not left to plannerOn: with either line false the bundler folds solverOn to false and
-  // drops the solver's cards, so the engine's workers (which import this file) never reach the solver client and its worker
-  const solverOn = SOLVER && PLANNER_BETA && plannerOn(planner);
+  // SOLVER spelled out, not left to plannerOn: with the line false the bundler folds solverOn to false and drops the solver's
+  // cards, so the engine's workers (which import this file) never reach the solver client and its worker
+  const solverOn = SOLVER && BETA_ON && plannerOn(planner);
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTabRaw] = useState(() => (plannerOn(readPlanner()) ? 'plan' : safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   // in the new planner a classic id names its place (LAYOUT.md section 2.2's table)
   const setActiveTab = useCallback(id => setActiveTabRaw(solverOn ? (PLACE_OF[id] || id) : (CLASSIC_OF[id] || id)), [solverOn]);
   // the crossover: the same app and the same saved plan, so nothing is carried and nothing is lost
   const setPlanner = useCallback(p => {
+    if (PLANNER_PLANT.has('optinloses')) setPlan(E.normalizePlan(null));   // the plant (check 15 only): the switch loses the plan
     safeStorageSet(PLANNER_KEY, p);
     setPlannerState(p);
     setActiveTabRaw(t => (plannerOn(p) ? (PLACE_OF[t] || t) : (CLASSIC_OF[t] || t)));
@@ -12055,7 +12060,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <option value="pa">the tax-free personal allowance ({formatGBP(P.pa)}) — costs nothing</option>
                     <option value="basic">the basic-rate limit ({formatGBP(P.higherRateStartsAt)}) — pays 20% now</option>
                   </select>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one{solverOn ? '.' : ', so let the estate optimiser on the Strategy tab decide it rather than guessing.'}</span>
                 </div>
                 
   );
@@ -12134,16 +12139,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   // What if's scenarios (LAYOUT.md section 3.3): the current plan first, each saved one with what differs, its solved line, Load
   // and Delete; a couple's keeps the app's rules
   const solverSettingsCard = () => (
-    <Suspense fallback={null}><PlannerSettings points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45} paths={plannerSteps[plannerSteps.length - 1]} /></Suspense>
+    <Suspense fallback={null}><PlannerSettings points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45} paths={plannerSteps[plannerSteps.length - 1]} solve={solve} plan={plan} isPhone={isPhone} /></Suspense>
   );
   const docsSolverCard = () => (
     <Suspense fallback={null}>
-      <PlannerDocs isPhone={isPhone} open={docsOpen} onOpen={() => setDocsOpen(true)}>
+      <PlannerDocs isPhone={isPhone} open={docsOpen} onOpen={() => setDocsOpen(true)} points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45} paths={plannerSteps[plannerSteps.length - 1]} comparePaths={plannerSteps[0]}>
         {docsOpen && (
           <Suspense fallback={<div className="text-sm text-slate-400">Loading the documentation&hellip;</div>}>
             <Docs E={E} P={P} plan={plan} nmpa={nmpa} terminalAge={terminalAge} activeRiskMatrix={activeRiskMatrix} isPhone={isPhone}
               docSections={docSections} onSections={onDocSections} scrollToDocSection={scrollToDocSection}
-              MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum} />
+              MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum}
+              planner="new" solverFacts={{ points: (SOLVER_OPTS && SOLVER_OPTS.points) || 45, paths: plannerSteps[plannerSteps.length - 1], comparePaths: plannerSteps[0] }} />
           </Suspense>
         )}
       </PlannerDocs>
@@ -12290,7 +12296,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation <T k="CPI">CPI</T> (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (<T k="NMPA">NMPA</T>)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">State Pension start age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
+                {/* the tournament's own setting: hidden in the new planner, which reads the bridge itself (B13, LAYOUT.md section 3.4) */}
+                {!solverOn && <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (<T k="IHT">IHT</T> from April 2027 / beneficiary income tax).</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1"><T k="Monte Carlo">Monte Carlo</T> seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
@@ -13141,7 +13148,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Not hidden on the dashboard any more. It was, to buy 40px of height, and the dashboard is
                   where you stay - so the theme became unreachable for as long as you were reading it,
                   which is the whole session. */}
-              {SOLVER && PLANNER_BETA && <button type="button" data-try-planner onClick={() => setPlanner('new')} className="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer">Try the new planner (beta)</button>}
+              {SOLVER && BETA_ON && <button type="button" data-try-planner onClick={() => setPlanner('new')} className="min-h-9 px-3 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer">Try the new planner (beta)</button>}
               <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
@@ -16226,7 +16233,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <Suspense fallback={<div data-plan-answer="loading" className="p-5 bg-surface border border-indigo-200 rounded-xl text-sm text-slate-600">Loading your plan&hellip;</div>}>
                 <PlannerPlanCard plan={plan} solve={solve} seed={mcSeed} fmt={formatGBP} isPhone={isPhone} steps={plannerSteps}
                   {...(SOLVER_OPTS && SOLVER_OPTS.strategyActionsN ? { actionsN: SOLVER_OPTS.strategyActionsN } : {})}
-                  aside={isPhone ? null : aimsPanel()} onPhase={setPlanPhase} onRetry={retrySolve} onOpenClassic={() => setPlanner('classic')}
+                  aside={isPhone ? null : aimsPanel()} onPhase={setPlanPhase} onRetry={retrySolve} onOpenClassic={() => setPlanner('classic')} points={(SOLVER_OPTS && SOLVER_OPTS.points) || 45}
                   onSolveRequest={isPhone && !asked ? askSolve : null} failedFigures={simResult ? { survival: simResult.successRate, bands: simResult.bands, age0: ctx.owners[0].age0 } : null}
                   rulesLine={rulesLine} onPrint={planFigures ? printSolvedPlan : null} levers={leversSummary} onOpenLevers={openLevers}
                   floorShare={floorShare} minPot={E.num(plan?.config?.solvencyFloor, 0)} onFigures={setPlanFigures} />
@@ -16336,7 +16343,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </button>
                 )}
                 {/* step U's crossover on a phone, where the beta is on (LAYOUT.md section 2.1) */}
-                {SOLVER && PLANNER_BETA && (
+                {SOLVER && BETA_ON && (
                   <button type="button" data-try-planner onClick={() => { setMoreOpen(false); setPlanner('new'); }}
                     className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-indigo-700 hover:bg-indigo-50 cursor-pointer">
                     <ArrowRight className="w-4 h-4 shrink-0" /> Try the new planner (beta)

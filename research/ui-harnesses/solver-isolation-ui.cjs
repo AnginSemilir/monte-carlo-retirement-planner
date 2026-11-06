@@ -2,8 +2,9 @@
  * PART C PHASE 10: THE PAGE'S ISOLATION WHERE THE HOST SENDS NO HEADERS (the launch plan's B5; public/coi-sw.js,
  * src/isolation.js). REQUIRED.
  *
- * 1. The site as built (the switch off): no service worker registered, no isolation code fetched.
- * 2. A preview build with the switch on at light settings, opted in to the new planner (only it solves; step U), served the
+ * 1. The site as built, the classic planner (the switch-off app bit for bit, Phase 12): no service worker registered, no
+ *    isolation code fetched.
+ * 2. A harness's build at light settings (vite.config.js solver-harness), opted in to the new planner (only it solves; step U), served the
  *    way GitHub Pages serves it, with no headers at all
  *    (this harness's own static server), a single household from the research library:
  *      - the first load registers the worker and reloads once; then the page is cross-origin isolated;
@@ -74,20 +75,20 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
   const nodeDigest = await D.digestOf(D.tablesOf(solveForApp(E, M, plan, LIGHT)));
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
-  // 1. the switch off
+  // 1. the site as built: the classic planner
   { const ctx = await b.newContext(), p = await ctx.newPage(), urls = [], errs = [];
     p.on('request', q => urls.push(q.url())); p.on('pageerror', e => errs.push(e.message));
     await seed(ctx, plan);
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
     const s = await state(p), got = urls.filter(u => /isolation|coi-sw/.test(u));
-    ok('switch off: no service worker registered, no isolation code fetched', s.regs === 0 && got.length === 0, `${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
-    ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+    ok('the classic planner: no service worker registered, no isolation code fetched', s.regs === 0 && got.length === 0, `${s.regs} registrations; ${got.join(', ') || 'none fetched'}`);
+    ok('the classic planner: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-isolation-'));
   const { server, state: srv } = bareServer(OUT);
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
     // ISOLATION_PLANT=nosw (a planted fault, run once by hand): the worker's script left out of the site served
     if (process.env.ISOLATION_PLANT === 'nosw') rmSync(join(OUT, 'coi-sw.js'));
     await new Promise(res => server.listen(BARE_PORT, res));
@@ -104,8 +105,9 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
       ok('switch on, no headers: the first load registers the worker and reloads once; then the page is cross-origin isolated', iso && s.regs === 1 && s.controlled && s.tried === '1' && navs.length === 2, `${navs.length} loads, ${s.regs} registration, isolated ${s.isolated}`);
       const savedPlan = await p.evaluate(k => JSON.parse(localStorage.getItem(k)), STORE);
       // the page isolated is the reloaded document, not yet the app drawn in it: wait for the app (2 Nov: read at once, it
-      // failed once in the gate with the plan in place, the tabs not yet on the page)
-      const drawn = await p.waitForFunction(() => /Plan Inputs|Projection/.test(document.body.innerText), null, { timeout: 15000 }).then(() => true, () => false);
+      // failed once in the gate with the plan in place, the tabs not yet on the page), the new planner's place on the page (Phase
+      // 12: it opts in, and since the rename pass the new planner names no classic tab, which this check had waited for)
+      const drawn = await p.waitForFunction(() => !!document.querySelector('[data-place]'), null, { timeout: 15000 }).then(() => true, () => false);
       ok('a plan saved before the worker existed still loads', savedPlan && savedPlan.spending && Number(savedPlan.spending.targetSpend) === Number(plan.spending.targetSpend) && drawn, `target ${savedPlan && savedPlan.spending && savedPlan.spending.targetSpend}, the app drawn ${drawn}`);
       const split = await solveIn(p, plan, LIGHT, 2);
       ok('in the isolated page a solve split across two workers gives the whole solve\'s tables, Node\'s bit for bit', split.canSplit && split.parts === 2 && split.digest === nodeDigest, `${split.parts} parts, ${split.values} values, ${split.digest.slice(0, 16)} against ${nodeDigest.slice(0, 16)}`);

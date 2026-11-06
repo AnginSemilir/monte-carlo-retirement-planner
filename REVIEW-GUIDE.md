@@ -37,7 +37,7 @@ The repository holds two things:
 | `research/solver/reviews/` | The reviewer agents' verdicts |
 | `research/solver/archive/` | Everything before 21 Oct, unchanged: the plan and its history, the review logs, the lessons, the predictions, the rules of the old regimen and its retired tools |
 | `research/policy-study/scenarios.mjs` | The household library the tests use |
-| `research/ui-harnesses/` | The app's browser harnesses; `run-all.sh 4173` (switch off) and `run-all.sh 4173 --solver` (switch on) must both print ALL REQUIRED GREEN before a merge to `main` |
+| `research/ui-harnesses/` | The app's browser harnesses; `run-all.sh 4173` (the classic planner) and `run-all.sh 4173 --new` (the new planner, opted in) must both print ALL REQUIRED GREEN before a merge to `main` (`--both` runs the two) |
 | `.claude/`, `.githooks/`, `.github/workflows/` | The agent's reviewers and procedure, and the hooks and CI: `verify.yml` the fast tier on every push, `full.yml` the full tier on every push (two shards, one run at a time per branch) and weekly on `main` |
 
 ## Running things
@@ -47,7 +47,8 @@ npm install
 python3 research/build-engine.py           # generates research/engine.mjs
 node research/tests/run-all.mjs fast -j 2  # the verification suite (about half an hour: 31 minutes on CI, 1 Nov)
 node research/tests/run-all.mjs all -j 2   # every test (hours: the full tier runs in two shards on CI)
-bash research/ui-harnesses/run-all.sh 4173            # the app's harnesses, the switch off
-bash research/ui-harnesses/run-all.sh 4173 --solver   # and on
+bash research/ui-harnesses/run-all.sh 4173            # the app's harnesses, the classic planner (every visitor's)
+bash research/ui-harnesses/run-all.sh 4173 --new      # and the new planner, opted in (Phase 12)
+node research/solver/launch-ready.mjs      # the readiness checklist (Phase 12), from the results files
 node research/solver/check-state.mjs       # STATE.md's own check
 ```

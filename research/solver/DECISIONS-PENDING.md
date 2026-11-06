@@ -24,7 +24,8 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
     is merged to `main` (pull request 7, 6e3e4e0) on B1's gate.
   - Step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), is merged to
     `main` (pull request 8, d3e9fe8) on B1's gate, behind the beta.
-  - Then Phases 11 and 12 as recast (Phase 11 under way); couples as Part D during the singles' beta (B9), D5 the couples'
+  - Phase 11, the phone on the new planner (`PHASE-11.md`), is merged to `main` (pull request 9, 9407889) on B1's gate.
+  - Then Phase 12 as recast (under way, `PHASE-12.md`); couples as Part D during the singles' beta (B9), D5 the couples'
     screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
@@ -75,5 +76,12 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   below main's, and main's own build over the ceiling on three of its six (`results-phone-perf-step-u.txt`): the ceiling sits
   inside main's spread on this machine, so a gate can fail it by chance. The choice: move it, as on 30 Oct, or keep it and
   re-measure when it fails. Kept until then.
+- **Closed: the Safari and Firefox solve**, excluded from the readiness checklist by D60 (6 Nov). The browser check page
+  (`public/browser-check.html`) stays in Phase 12's release, unused; removing it is a later change of the site's code.
+- **Reported from Phase 11: the phone's budget** (two parts for a solve with a base on a touch device, set in the harness's
+  browser, not on a phone: `results-phone-memory.txt`), yours to move; and **a restored solve's paths run on one worker**
+  (back at the dial's default the figures take longer than after a fresh split solve), not changed.
+- **Open now: the contribution fields in the quick start** (your report on step U's preview): they are in You, Your money, and
+  the quick start now points there; asking for them in the quick start itself goes beyond LAYOUT.md, so it is your call.
 - **Noted: load-perf's switch-on ceiling** is at D58 (2)'s limit (`results-load-perf-step-u.txt`): the next kilobyte on a
   switch-on build's classic first load comes to the maintainer.

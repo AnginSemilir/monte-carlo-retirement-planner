@@ -1,0 +1,8 @@
+the code: code-stamp:c68b09c6d7aab6cf; S116 at the app's own settings (45 wealth points, the floor at 80% of the target)
+  Node: solved in 306.3 s on one core, 31492800 values (204 MB), digest 79045f8556a49f14
+  the page: solved in 86.1 s, split 4 ways, cross-origin isolated, 31492800 values, digest 79045f8556a49f14
+  ok    the site as it ships solves S116 at 45 wealth points, its tables Node's bit for bit   79045f8556a49f14 against Node's 79045f8556a49f14; 31492800 values against 31492800
+  ok    the times recorded   the page 86.1 s split 4 ways, Node 306.3 s on one core
+  ok    no page errors
+
+all ok

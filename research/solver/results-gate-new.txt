@@ -1,0 +1,39 @@
+the code: code-stamp:c68b09c6d7aab6cf; the new planner's mode
+== build, the harnesses' light settings (SOLVER_HARNESS=1, into dist-new) ==
+   ok
+== serve on :4173 ==
+   ok
+== harnesses (the new planner) ==
+
+HARNESS                KIND      RESULT
+restyle-regression     required  run in the classic mode: the classic planner's look
+phone                  required  run in the classic mode: the classic planner on a phone
+phone-perf             required  pass
+desktop-reach          required  run in the classic mode: the classic planner on a desktop
+numbers                required  run in the classic mode: the classic planner's figures
+load-perf              required  run in the classic mode: the first load, the classic planner's and the opted-in one, on the site's own build
+sandbox-step           required  run in the classic mode: the classic planner
+simple-extras          required  run in the classic mode: the Simple page
+mc-reveal              required  run in the classic mode: the classic planner
+crossover              required  run in the classic mode: the Simple page and the classic planner
+production-build       required  run in the classic mode: the site as it ships
+tradeoffs              required  run in the classic mode: the classic planner's tournament (D42 keeps it)
+priorities             required  run in the classic mode: the classic planner's tournament
+simple-closecall       required  run in the classic mode: the Simple page
+tournament             required  run in the classic mode: the classic planner's tournament
+solver-progress        required  run in the classic mode: the plumbing every visitor's page carries
+solver-config          required  pass
+solver-strategy        required  pass
+solver-isolation       required  pass
+solver-projection      required  pass
+solver-planner         required  pass
+beneficiary-inputs     optional  not run: SHOW_INHERITANCE is off
+estate-assets          optional  not run: SHOW_INHERITANCE is off
+estate-deck            optional  not run: SHOW_INHERITANCE is off
+estate-optimiser       optional  not run: SHOW_INHERITANCE is off
+inheritance            optional  not run: SHOW_INHERITANCE is off
+
+== engine suites ==
+   not run in the new mode: they do not read the planner
+
+ALL REQUIRED GREEN

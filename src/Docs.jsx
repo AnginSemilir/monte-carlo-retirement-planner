@@ -15,9 +15,21 @@ import { useEffect } from 'react';
 import { Zap, Sliders, ShieldCheck, Wallet, Trophy, Plus, HelpCircle, Gift, Dices, Coins, BookOpen } from 'lucide-react';
 import { PhoneCollapse } from './phone.jsx';
 import { Term as T } from './glossary.jsx';
+import { solverApproximations } from './solverApproximations.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, isPhone, docSections, onSections,
-  scrollToDocSection, MC_TRIALS, TOURNAMENT_TRIALS, SHOW_INHERITANCE, formatGBP, fmtNum }) {
+  scrollToDocSection, MC_TRIALS, TOURNAMENT_TRIALS, SHOW_INHERITANCE, formatGBP, fmtNum, planner = 'classic', solverFacts = {} }) {
+  /*
+   * In the new planner (Details, "How the solver decides"; Phase 12 item 1, the rename pass) the documentation leaves out what
+   * only the classic planner has, the Projection tab's three stages, the tournament and its recommended policy, so the
+   * tournament's words never reach the new planner; it starts with how the solver decides, its coverage section lists the
+   * solver's approximations, and where the prose names a classic tab it names the new planner's place. The classic planner
+   * keeps every word as it was.
+   */
+  const isNew = planner === 'new';
+  // the classic planner's own sections; the plant 'tournamentdocs' (solver-planner-ui check 17 only) keeps them in the new planner
+  const classicDocs = !isNew || PLANNER_PLANT.has('tournamentdocs');
   /*
    * The contents list is read off the rendered cards rather than kept as a second hand-written list: a
    * new card joins the contents by itself, and one that stops leading with a heading goes visibly
@@ -46,6 +58,22 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
           </ol>
         </nav>
       )}
+      {isNew && (
+      <div id="doc-solver" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+        <PhoneCollapse isPhone={isPhone}>
+        <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> How the solver decides</h2>
+        <p className="text-xs text-slate-600 leading-relaxed">The solved plan is worked out backwards, from the last year of your plan to this one. For each year, and for each amount of money you might have by then, the solver weighs every move open to it: how much to spend, which pot to draw from, whether to move money between pots, and how much risk to take. It keeps the move that does best over the markets that year could bring, given the best it has already found for every year after.</p>
+        <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Not running out comes first.</strong> Then spending: it aims at your target, spends up to 110% of it when the money allows, and plans no less than {Math.round(100 * (solverFacts.floor || 0.8))}% of it where you set no lower limit; how much you dislike cuts decides how readily it trims. A small weight goes to what you leave behind.</p>
+        <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Every figure comes from simulating the solved plan</strong> with the app&rsquo;s own engine, the same engine that runs your current approach, on the same simulated markets, so the two compare fairly. Your current approach is your plan run by the app&rsquo;s own rules: the yardstick. Your limits are what the solver may not change. A rule of thumb sums up the plan&rsquo;s own choices in three lines, shown where following it costs under half a point.</p>
+        <h3 className="text-sm font-semibold text-slate-800 pt-1">The solver&rsquo;s approximations</h3>
+        <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
+          {solverApproximations(solverFacts).map((x, i) => <li key={i}>{x}</li>)}
+        </ul>
+        </PhoneCollapse>
+      </div>
+      )}
+
+      {classicDocs && (
       <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a <T k="Monte Carlo">Monte Carlo</T> Run</h2>
@@ -81,7 +109,9 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
         <p className="text-[11px] text-slate-500 leading-relaxed">No stage changes your plan on its own. Applying a strategy from stage 3 is a separate, deliberate click.</p>
         </PhoneCollapse>
       </div>
+      )}
 
+      {classicDocs && (
       <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
@@ -94,6 +124,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
         </div>
         </PhoneCollapse>
       </div>
+      )}
 
       <div id="doc-decumulation" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
@@ -112,7 +143,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
       <div id="doc-guardrails" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> Spending Guardrails (Guyton-Klinger)</h2>
-        <p className="text-xs text-slate-600 leading-relaxed">The decumulation policy above decides <strong>where</strong> each year's money comes from. Guardrails decide <strong>how much</strong> to take, and they are a separate switch on the Config tab, off by default. With them off, every simulated year spends the plan whatever the markets did. That is the strict test, and the one every figure in this app was built on. With them on, spending reacts to the pots the way a real household's would, following the rules Jonathan Guyton and William Klinger set out in 2006, translated into this model's terms:</p>
+        <p className="text-xs text-slate-600 leading-relaxed">The decumulation policy above decides <strong>where</strong> each year's money comes from. Guardrails decide <strong>how much</strong> to take, and they are a separate switch {isNew ? 'in You, under Your current approach' : 'on the Config tab'}, off by default. With them off, every simulated year spends the plan whatever the markets did. That is the strict test, and the one every figure in this app was built on. With them on, spending reacts to the pots the way a real household's would, following the rules Jonathan Guyton and William Klinger set out in 2006, translated into this model's terms:</p>
         <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
           <li><strong>The rails.</strong> The first year the pots are drawn on, the withdrawal rate is recorded: that year's draw over the combined pot. Every later year the current rate is compared to it. More than {Math.round(E.GUARDRAILS.band * 100)}% above, the draw is cut by {Math.round(E.GUARDRAILS.cut * 100)}%. More than {Math.round(E.GUARDRAILS.band * 100)}% below, it is raised by {Math.round(E.GUARDRAILS.raise * 100)}%. A 5% start has its rails at 4% and 6%.</li>
           <li><strong>The draw, not the spend.</strong> The rate is measured on what the pots are asked for after the State Pension and any other guaranteed income, because that is what a withdrawal rate means. The cut and the rise apply to that draw. A household living entirely on guaranteed income is never touched by the rule.</li>
@@ -121,21 +152,21 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
           <li><strong>The rails follow your plan.</strong> When the plan itself changes what it asks of the pots, because the State Pension starts, a spending band begins, or an income stream ends, the rails are re-set on that new footing with every cut and rise so far carried into them. Without this the rule would read your own choices as market news: on a perfectly smooth path it raised spending to more than double by age 80, undoing a reduction the household had planned on purpose.</li>
         </ul>
         <p className="text-xs text-slate-600 leading-relaxed"><strong>What it does to the numbers, and why it is off by default.</strong> A path that survives by cutting three times still counts as a survival, so switching the rule on makes the survival rate rise for a reason the rate cannot show on its own. Two figures appear beside it to say what that cost: the spending a typical run actually lived on, and what the unlucky tenth lived on. Read the rate with those or it will flatter the plan. The safe-spend solver's answer becomes a safe <em>starting</em> spend, and it is never lower with the rule on than off, because the option to cut can only widen what a starting figure survives. The four parameters are held constant rather than exposed: the switch is one decision, and four numbers under it would turn it into a tuning exercise.</p>
-        <p className="text-xs text-slate-500 leading-relaxed"><strong>Seeing where it acts.</strong> The Audit Data Table gains a column when the rule is on, naming what it did in each year of the expected path (a cut, a rise, a skipped inflation rise, or the rails being re-set) and the multiplier it has left on the draw. The expected path is smooth, so most of what it shows there is rises and re-sets; the cuts happen in the simulated bad runs, which is where the Monte Carlo figures come from. The instruction sheet from the Strategy tab includes the rule as a step, since it is a rule the household follows, not only one the simulation does.</p>
+        <p className="text-xs text-slate-500 leading-relaxed"><strong>Seeing where it acts.</strong> The Audit Data Table gains a column when the rule is on, naming what it did in each year of the expected path (a cut, a rise, a skipped inflation rise, or the rails being re-set) and the multiplier it has left on the draw. The expected path is smooth, so most of what it shows there is rises and re-sets; the cuts happen in the simulated bad runs, which is where the Monte Carlo figures come from.{!isNew && ' The instruction sheet from the Strategy tab includes the rule as a step, since it is a rule the household follows, not only one the simulation does.'}</p>
         </PhoneCollapse>
       </div>
 
       <div id="doc-lookahead" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-sky-600" /> Preparing for a One-off Cost</h2>
-        <p className="text-xs text-slate-600 leading-relaxed">A one-off cost you enter on Plan Inputs is a cost the plan can see coming, but until this setting it was met as if it were a surprise: read in its own year and paid by the cost order, cash then GIA then ISA and finally the pension, with no ceiling on the pension draw. A cost larger than the liquid wrappers therefore landed on the pension in one year and went through the higher and additional bands, when the same money drawn over the years before would have come out at the basic rate. The setting is <strong>Prepare for one-off costs, years ahead</strong> on the Config tab; the default is {E.DEFAULT_CONFIG.lookaheadYears === 0 ? 'off (0)' : `${E.DEFAULT_CONFIG.lookaheadYears} years`}.</p>
+        <p className="text-xs text-slate-600 leading-relaxed">A one-off cost you enter {isNew ? 'in You' : 'on Plan Inputs'} is a cost the plan can see coming, but until this setting it was met as if it were a surprise: read in its own year and paid by the cost order, cash then GIA then ISA and finally the pension, with no ceiling on the pension draw. A cost larger than the liquid wrappers therefore landed on the pension in one year and went through the higher and additional bands, when the same money drawn over the years before would have come out at the basic rate. The setting is <strong>Prepare for one-off costs, years ahead</strong> {isNew ? 'in You, under Your current approach' : 'on the Config tab'}; the default is {E.DEFAULT_CONFIG.lookaheadYears === 0 ? 'off (0)' : `${E.DEFAULT_CONFIG.lookaheadYears} years`}.</p>
         <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
           <li><strong>What it does.</strong> From that many years ahead, each year the plan sets the liquid wrappers, grown at the rate they earn, against every known cost inside the window. Whatever would still be short is divided by the years left until the cost lands, and that share is drawn from the pension on top of the living draw, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)} of total taxable income). The proceeds go to the ISA up to the allowance and then to cash, not the GIA, because money for spending within a few years should not realise a gain on the way out.</li>
           <li><strong>Where it cannot act.</strong> Only once retired and past the pension access age, since before that the pension cannot be drawn. A household whose living draw already reaches the basic-rate limit has no room under the ceiling, and the rule correctly does nothing rather than draw at 40%. A cost the liquid wrappers will cover on their own leaves it idle too.</li>
           <li><strong>Self-correcting, not scheduled.</strong> It is recomputed from the balances every year: a rise in the markets shrinks the shortfall and the reserve stops growing, a fall widens it and the next year draws more. Nothing is earmarked, because the cost order spends the liquid wrappers first when the year comes.</li>
           <li><strong>What it costs.</strong> Money leaves the pension's tax-free growth a few years early and part of it sits in cash meanwhile. That is the trade against twenty or more points of tax on the year the cost lands.</li>
         </ul>
-        <p className="text-xs text-slate-500 leading-relaxed"><strong>What the study found.</strong> Over the scenario library with a cost of a quarter or a half of the household's wealth placed six years into retirement, the rule was idle for most households, whose liquid wrappers covered the cost anyway. Where it acted, the cost-year pension draw fell by a hundred thousand pounds or more, lifetime tax fell by twenty to seventy thousand, the median terminal pot rose rather than fell, and survival rose by up to three points with no household worse by more than a point. The Audit Data Table gains a <strong>Set aside</strong> column when the setting is on, showing the years it acted and the cost year each draw was for; the instruction sheet on the Strategy tab includes it as a step.</p>
+        <p className="text-xs text-slate-500 leading-relaxed"><strong>What the study found.</strong> Over the scenario library with a cost of a quarter or a half of the household's wealth placed six years into retirement, the rule was idle for most households, whose liquid wrappers covered the cost anyway. Where it acted, the cost-year pension draw fell by a hundred thousand pounds or more, lifetime tax fell by twenty to seventy thousand, the median terminal pot rose rather than fell, and survival rose by up to three points with no household worse by more than a point. {isNew ? 'Your current approach\'s year by year (Details) gains a ' : 'The Audit Data Table gains a '}<strong>Set aside</strong> column when the setting is on, showing the years it acted and the cost year each draw was for{isNew ? '.' : '; the instruction sheet on the Strategy tab includes it as a step.'}</p>
         </PhoneCollapse>
       </div>
 
@@ -153,19 +184,26 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
           <li><strong>The annual allowance taper keys off earnings.</strong> HMRC tapers on adjusted income, which adds employer contributions; the model only knows earnings, so the taper is approximate for anyone near the £{fmtNum(P.aaTaperThr)} threshold.</li>
           <li><strong>A blank salary means "unknown", not "zero".</strong> While you are still working, leaving salary empty leaves the pension allowance unconstrained rather than dropping it to £{fmtNum(P.pensionNoEarningsLimit)}. Enter a salary for an accurate limit.</li>
           <li><strong>CGT is realisation-based.</strong> Gains are booked only when the GIA is actually sold, using a running cost basis. Gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age.</li>
-          <li><strong>The tournament holds contributions equal.</strong> Every strategy is re-priced to cost the same total over the accumulation years as your current plan, by solving its contribution escalation. Without this a strategy could win simply by asking you to pay in more.</li>
+          {!isNew && (<li><strong>The tournament holds contributions equal.</strong> Every strategy is re-priced to cost the same total over the accumulation years as your current plan, by solving its contribution escalation. Without this a strategy could win simply by asking you to pay in more.</li>)}
           <li><strong>Allowance harvesting is a bequest tool.</strong> It never improves survival. It moves money from a pot taxed on death into one that is not. It is worth nothing unless you set a pension death tax rate, and close calls are broken on the pot left <em>after</em> that tax.</li>
           <li><strong>The self-employed get income tax relief only.</strong> A sole trader cannot salary sacrifice, so a personal contribution saves income tax at the marginal rate but no NIC, and no employer NIC can be passed through. That is 40% relief for a higher-rate trader against 42% for an employee, and 20% against 28% in the basic band. Set the employment type per person in Advanced inputs.</li>
-          <li><strong>Allowances are frozen in real terms</strong> at the Config figures. Any future rise in the ISA or pension allowance is not modelled, so long staging schedules are deliberately cautious.</li>
+          <li><strong>Allowances are frozen in real terms</strong> at the {isNew ? 'figures in Details, Assumptions' : 'Config figures'}. Any future rise in the ISA or pension allowance is not modelled, so long staging schedules are deliberately cautious.</li>
         </ul>
 
         <h3 className="text-sm font-semibold text-slate-800 pt-1">Modelled</h3>
         <p className="text-xs text-slate-600 leading-relaxed">Income tax including the personal-allowance taper, employee Class 1 NIC and self-employed Class 4 NIC, the {Math.round(P.pclsProp * 100)}% tax-free element capped at the £{fmtNum(P.lsa)} Lump Sum Allowance, the £{fmtNum(P.pensionAllowance)} annual allowance with taper and three-year carry-forward, the relevant-earnings limit, the MPAA, ISA allowances, realisation-based CGT with its annual exempt amount and band split, state pension timing, the pre-SIPP access bridge, one-off deposits with multi-year staging, one-off costs, spending bands by age, salary-sacrifice relief including any employer NIC pass-through, and relief at source for the self-employed.</p>
 
+        {isNew && (<>
+        <h3 className="text-sm font-semibold text-slate-800 pt-1">The solver&rsquo;s approximations</h3>
+        <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
+          {solverApproximations(solverFacts).map((x, i) => <li key={i}>{x}</li>)}
+        </ul>
+        </>)}
+
         <h3 className="text-sm font-semibold text-slate-800 pt-1">Not modelled yet</h3>
         <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
           <li><strong>Lumpy self-employed profits.</strong> Trading profit is carried as a single figure that grows at a steady rate, exactly like a salary. Real self-employment swings year to year, and a bad year can waste an annual allowance that carry-forward only partly recovers. <strong>Class 2 NIC</strong> is also not charged: it stopped being mandatory above the Small Profits Threshold in 2024, and the voluntary route for those below it does not change a projection. Payments on account, the trading allowance, capital allowances and incorporation are all out of scope.</li>
-          <li><strong>Devolved income tax:</strong> covered. Set where you pay tax in Config. Scotland uses its own six bands, Wales
+          <li><strong>Devolved income tax:</strong> covered. Set where you pay tax {isNew ? 'in You' : 'in Config'}. Scotland uses its own six bands, Wales
             is offered but currently matches England and Northern Ireland. Only the bands are devolved: National Insurance, capital gains
             tax, the personal allowance and its taper apply unchanged, and relief at source on a pension contribution stays at 20%.
             Note that the region only shows up where the model actually routes income through the tax calculation - pension drawdown,
@@ -184,7 +222,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
       <div id="doc-taper" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-blue-600" /> Spending by Age</h2>
-        <p className="text-xs text-slate-600 leading-relaxed">Retirement spending often isn't flat. Set what a stretch of years actually costs in Plan Inputs as bands: a start age, an end age and what those years cost in today's money. A band that names ages 58 to 67 at {formatGBP(45000)}, then 68 to 79 at {formatGBP(34000)}, then 80 onwards at {formatGBP(40000)}, says exactly that, including the rise at the end for care. Ages are "Myself" ages.</p>
+        <p className="text-xs text-slate-600 leading-relaxed">Retirement spending often isn't flat. Set what a stretch of years actually costs {isNew ? 'in You' : 'in Plan Inputs'} as bands: a start age, an end age and what those years cost in today's money. A band that names ages 58 to 67 at {formatGBP(45000)}, then 68 to 79 at {formatGBP(34000)}, then 80 onwards at {formatGBP(40000)}, says exactly that, including the rise at the end for care. Ages are "Myself" ages.</p>
         <p className="text-xs text-slate-600 leading-relaxed">Bands only override the years they cover. Any year outside every band falls back to the headline living spend, so naming a single expensive stretch is enough; you do not have to describe the whole retirement. Leave the end age blank to run a band to the terminal age. If two bands overlap the earlier one wins for the shared years, and the model says so in the warnings rather than picking silently.</p>
         <p className="text-xs text-slate-500 leading-relaxed">Bands replaced an older pair of percentage "tapers" that could only step spending down at two fixed ages. Any saved plan still carrying tapers is converted to the equivalent bands when it loads, so its projection is unchanged. The safe-spend solver scales the whole shape at once: it finds the multiple of your headline spend that survives, and every band moves with it in proportion.</p>
         </PhoneCollapse>
@@ -303,6 +341,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
       </div>
       )}
 
+      {classicDocs && (
       <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
@@ -346,6 +385,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
         <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
         </PhoneCollapse>
       </div>
+      )}
 
       <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
@@ -358,7 +398,7 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
 
         <h3 className="text-sm font-semibold text-slate-800 pt-1">Rates and allowances</h3>
         <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
-          <li>Each person has a {formatGBP(P.cgtAnnualExempt)} annual exempt amount. If you have already realised gains this tax year, enter them in Plan Inputs so the current year's exemption is reduced; leaving it blank assumes the full allowance is available.</li>
+          <li>Each person has a {formatGBP(P.cgtAnnualExempt)} annual exempt amount. If you have already realised gains this tax year, enter them {isNew ? 'in You' : 'in Plan Inputs'} so the current year's exemption is reduced; leaving it blank assumes the full allowance is available.</li>
           <li>Gains stack on top of that year's income: the part falling in your remaining basic-rate band is taxed at {Math.round(P.cgtBasicRate * 100)}%, anything above at {Math.round(P.cgtHigherRate * 100)}%.</li>
           <li>The bill is settled from cash, then the GIA, then ISAs, then an accessible pension. This is the same order used for one-off costs. Selling to pay the bill realises a little more gain, which is carried into the next year, mirroring the fact that CGT is due the January after the tax year.</li>
         </ul>

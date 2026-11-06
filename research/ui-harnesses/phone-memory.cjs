@@ -52,9 +52,10 @@ const pagePss = () => renderers().reduce((t, p) => t + pssOf(p.pid), 0);
 
 (async () => {
   const OUT = mkdtempSync(join(tmpdir(), 'phone-memory-'));
-  // the switch on at the app's own settings: SOLVER_PREVIEW_OPTS unset, so the page passes the solver no options
-  const env = { ...process.env, SOLVER_PREVIEW: '1' };
-  delete env.SOLVER_PREVIEW_OPTS;
+  // the site's own build (the switch on since Phase 12) at the app's own settings: no harness options, so the page passes the
+  // solver none
+  const env = { ...process.env };
+  for (const k of ['SOLVER_HARNESS', 'SOLVER_HARNESS_OPTS', 'PLANNER_BETA_OFF', 'PLANNER_PLANT']) delete env[k];
   execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: 'inherit', env });
   const server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
   await new Promise(r => setTimeout(r, 2500));

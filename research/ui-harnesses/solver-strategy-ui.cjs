@@ -1,7 +1,8 @@
 /*
  * PART C PHASE 9: THE STRATEGY TAB UNDER THE SOLVER'S SWITCH (the launch plan section 4; since step U, the new planner's Your plan, src/PlannerPlan.jsx). REQUIRED.
  *
- * 1. The site as built (the switch off): the Strategy tab is the tournament as today, and no solver code is fetched.
+ * 1. The served build, not opted in (rp_planner unset: the classic planner, the switch-off app bit for bit since Phase 12): the
+ *    Strategy tab is the tournament as today, and no solver code is fetched.
  * 2. A preview build with the switch on at this harness's light settings (vite.config.js solver-preview; the strategy's
  *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
  *    household from the research library (never anybody's own plan):
@@ -65,7 +66,7 @@ async function open(b, port, plan, { plantFail = false, planner = 'new' } = {}) 
   p.on('request', q => urls.push(q.url()));
   await p.addInitScript(([k, pl, pick]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); if (pick) localStorage.setItem('rp_planner', pick); sessionStorage.setItem('seeded', '1'); } }, [STORE, plan, planner]);
   await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
-  // the switch off (the site's build): the classic Strategy tab; opted in: Your plan, where the new planner lands
+  // not opted in: the classic Strategy tab; opted in: Your plan, where the new planner lands
   await p.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /^Strategy$|Your plan/.test(b.textContent.trim())); if (x) x.click(); });
   await p.waitForTimeout(1200);
   return { p, errs, urls };
@@ -95,18 +96,19 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
   const nodeStrategy = pl => strategyOf(E, solveForApp(E, M, pl, LIGHT), pl, { trials: LIGHT.strategySteps[LIGHT.strategySteps.length - 1], seed: SEED });
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
-  // 1. the switch off
-  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main)), s = await tab(p);
-    ok('switch off: the Strategy tab is the tournament, without the solver\'s view', s.tournament && !s.strategy && !s.couple, JSON.stringify(s));
+  // 1. not opted in (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
+  // gate's served build, either mode's)
+  { const { p, errs, urls } = await open(b, PORT, planOf(CASES.main), { planner: null }), s = await tab(p);
+    ok('not opted in (the classic planner): the Strategy tab is the tournament, without the solver\'s view', s.tournament && !s.strategy && !s.couple, JSON.stringify(s));
     const got = urls.filter(u => /SolverStrategy|solverClient|solverWorker/.test(u));
-    ok('switch off: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
-    ok('switch off: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+    ok('not opted in: no solver code fetched', got.length === 0, got.join(', ') || `${urls.length} requests`);
+    ok('not opted in: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
     await p.context().close(); }
 
   const OUT = mkdtempSync(join(tmpdir(), 'solver-strategy-'));
   let server = null;
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT) } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir'], { cwd: ROOT, stdio: 'ignore', env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }

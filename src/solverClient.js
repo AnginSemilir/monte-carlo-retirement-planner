@@ -183,7 +183,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
       if (finished || (base && !b)) return;
       const m = await phase('solve', plan, key, base ? base.key : null);
       if (finished || !m) return; finished = true;
-      resolve({ meta: m.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: b ? { restored: b.restored || false, secs: b.secs } : null });
+      resolve({ meta: m.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: b ? { restored: b.restored || false, secs: b.secs } : null, code: m.code || null });
     })().catch(err => { if (finished) return; finished = true; stop(); reject(err); });
   });
   return {

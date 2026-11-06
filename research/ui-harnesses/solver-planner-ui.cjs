@@ -1,8 +1,8 @@
 /*
  * STEP U: THE NEW PLANNER (research/reviews/2026-11-03/LAYOUT.md section 11.1; the launch plan's step U). REQUIRED.
  *
- * Builds its own switch-on preview at the light settings (as solver-strategy does: vite.config.js solver-preview, PLANNER_BETA
- * true with it), opts in (rp_planner 'new'), and runs on a desktop viewport (1,440 by 900) and an iPhone 13. Each case's fixture
+ * Builds its own harness build at the light settings (as solver-strategy does: vite.config.js solver-harness; the switch and
+ * PLANNER_BETA on in the source since Phase 12), opts in (rp_planner 'new'), and runs on a desktop viewport (1,440 by 900) and an iPhone 13. Each case's fixture
  * is a library household chosen because it reads so at the light settings (never anybody's own plan):
  *   MAIN  S116: 61, retired, a plan that starts below its target (a dip), the canvas's main example at full scale;
  *   RAISE S090: 61, retired, at its target from the first year, with an Auto deposit (the raise line absent: L13; the policy
@@ -41,14 +41,27 @@
  *      "Solve again";
  *  13  the quick start: an empty plan shows it; "Work out my plan" waits for the four readiness fields; filled, it builds
  *      the plan and solves; it points to where each pot's contributions are set (You, Your money);
- *  14  the classic planner, the switch on, fetches none of the solver's chunks.
+ *  14  the classic planner, the switch on, fetches none of the solver's chunks;
+ *  15  the opt-in both ways (Phase 12 item 3; the readiness checklist's "switched on and off without losing a plan"): from the
+ *      classic planner "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, each time with
+ *      the saved plan as it was and rp_planner as chosen, and a reload keeping the choice;
+ *  16  the rollback (B6: "one deploy turns it off for everyone"): a build with PLANNER_BETA false (vite.config.js
+ *      solver-harness, PLANNER_BETA_OFF=1) shows a visitor who opted in the classic planner, with no opt-in;
+ *  17  the rename pass (Phase 12 item 1): no tournament word ("tournament", "recommended policy", "bridge safety margin") and
+ *      no classic tab's name on any of the four places, Details' full documentation open; the documentation leads with how the
+ *      solver decides, the coverage card lists the solver's approximations, the glossary gives its four words;
+ *  18  the diagnostic (Phase 12 item 4, F17): "Copy the details for a bug report" in Details on a solved plan gives the
+ *      whitelist's fields in order and no number of 100 or more outside the lines of counts, seconds, versions and hex; on the
+ *      failure card, not completed and the error's words.
  * Its plants (PLANNER_PLANT, built into the preview: src/plannerPlant.js), each failing exactly its own check, all in one
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
  * keyguard (7), contribold (7: Your money's contributions drawn grey and their increase named as the classic table names it),
  * nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
  * staleask (12), navtarget40 (12), nocontribhint (13: the quick start without its pointer to the contributions),
- * classicfetch (14).
- *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the preview is served on port + 11)
+ * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
+ * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
+ * planner), diagwhole (18: the diagnostic appends the solve's record whole).
+ *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
 const { execFileSync, spawn } = require('node:child_process');
@@ -57,13 +70,13 @@ const { mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { pathToFileURL } = require('node:url');
 const args = process.argv.slice(2), PLANTS_RUN = args.includes('--plants');
-const PORT = args.find(a => /^\d+$/.test(a)) || '4173', PREVIEW_PORT = String(Number(PORT) + 11);
+const PORT = args.find(a => /^\d+$/.test(a)) || '4173', PREVIEW_PORT = String(Number(PORT) + 11), ROLLBACK_PORT = String(Number(PORT) + 12);
 const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'nocontribhint', 'classicfetch'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, nocontribhint: 13, classicfetch: 14 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'nocontribhint', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, nocontribhint: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -71,11 +84,13 @@ const ok = (n, l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${n}. $
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
 const VITE = join(ROOT, 'node_modules/vite/bin/vite.js');
 const CLASSIC_LABELS = ['Strategy', 'Config & Assumptions', 'Audit Data Table', 'Historical Backtest'];
+// the tournament's words and the classic tabs' names (Phase 12 item 1, the rename pass: they never reach the new planner)
+const TOURNAMENT_WORDS = [/tournament/i, /recommended polic/i, /bridge safety margin/i, /\bStrategy tab\b/, /\bConfig tab\b/, /\bProjection tab\b/, /\bPlan Inputs\b/];
 const PLACES = [['plan', 'Your plan'], ['you', 'You'], ['whatif', 'What if'], ['details', 'Details']];
 
 // a page with the plan saved (or none), the planner chosen, and the solver's worker watched: each message the page sends it,
 // with the strip's state at the time (check 12), and, planted, every question answered with an error (check 11)
-async function open(b, plan, { phone = false, planner = 'new', plantFail = false } = {}) {
+async function open(b, plan, { phone = false, planner = 'new', plantFail = false, port = PREVIEW_PORT } = {}) {
   const ctx = await b.newContext(phone ? { ...devices['iPhone 13'] } : { viewport: { width: 1440, height: 900 } });
   await ctx.addInitScript(([fail]) => {
     window.__asks = [];
@@ -102,7 +117,7 @@ async function open(b, plan, { phone = false, planner = 'new', plantFail = false
     if (pick) localStorage.setItem('rp_planner', pick); else localStorage.removeItem('rp_planner');
     sessionStorage.setItem('seeded', '1');
   }, [STORE, plan, planner]);
-  await p.goto(`http://localhost:${PREVIEW_PORT}/`, { waitUntil: 'networkidle' });
+  await p.goto(`http://localhost:${port}/`, { waitUntil: 'networkidle' });
   return { p, errs, urls };
 }
 const goPlace = async (p, label) => { await p.evaluate(l => { const x = [...document.querySelectorAll('[data-tabbar] button, [data-bottomnav] button')].find(b => b.textContent.trim() === l); if (x) x.click(); }, label); await p.waitForTimeout(500); };
@@ -119,6 +134,17 @@ const box = (p, sel) => p.evaluate(s => { const el = document.querySelector(s); 
 // (noband) turned into a long hang inside a loop
 const textNow = (p, sel) => p.evaluate(q => { const el = document.querySelector(q); return el ? el.textContent : ''; }, sel);
 const relDiff = (a, b) => Math.abs(a - b) / Math.max(1, Math.abs(b));
+// the diagnostic (check 18): press "Copy the details for a bug report" inside `scope`, read the text shown; its fields; and every
+// number of 100 or more outside the lines that carry counts, seconds, versions and hex (grid, times, browser, key, code)
+const diagnosticIn = async (p, scope) => {
+  await p.click(`${scope} [data-diagnostic-copy]`).catch(() => {});
+  const text = await p.waitForSelector(`${scope} [data-diagnostic]`, { timeout: 10000 }).then(el => el.textContent(), () => null);
+  if (!text) return null;
+  const lines = text.split('\n').slice(1), fields = lines.map(l => l.split(':')[0]);
+  const big = lines.filter(l => !/^(grid|times|browser|key|code): /.test(l)).flatMap(l => (l.match(/\d[\d,.]*/g) || []).filter(n => Number(n.replace(/,/g, '')) >= 100));
+  return { fields, big, at: Object.fromEntries(lines.map(l => [l.split(':')[0], l.slice(l.indexOf(':') + 2)])) };
+};
+const DIAG_FIELDS = ['code', 'key', 'state', 'completed', 'dial', 'aims', 'limits', 'floor', 'grid', 'times', 'parts', 'isolated', 'browser', 'error'];
 // where two figure sets first part, for a failing check's line: the path to it and the two values
 const firstDiff = (a, b, at = '') => {
   if (JSON.stringify(a) === JSON.stringify(b)) return null;
@@ -142,11 +168,11 @@ const firstDiff = (a, b, at = '') => {
   let server = null;
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   try {
-    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_PREVIEW: '1', SOLVER_PREVIEW_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTED.join(',') } });
+    execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTED.join(',') } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
     for (let i = 0; i < 40 && !up; i++) { try { const r = await fetch(`http://localhost:${PREVIEW_PORT}/`); up = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
-    console.log(`the preview (the switch on, PLANNER_BETA on${PLANTED.length ? `, planted: ${PLANTED.join(', ')}` : ''}) served: ${up}`);
+    console.log(`the harness's build (the switch and PLANNER_BETA on, as the source has them${PLANTED.length ? `; planted: ${PLANTED.join(', ')}` : ''}) served: ${up}`);
 
     // ---------------------------------------------------------------- 14. the classic planner fetches no solver chunk
     { const { p, errs, urls } = await open(b, planOf(FIX.main), { planner: null });
@@ -317,6 +343,27 @@ const firstDiff = (a, b, at = '') => {
         docs: !!document.querySelector('[data-place="details"] [data-docs-solver]')
       }));
       ok(9, 'Details: the solved ledger with its action column, the history check, Assumptions with Display and the solver\'s settings, the docs section', d9.ledger && d9.move && d9.hist && d9.assumptions && d9.docs, JSON.stringify(d9));
+
+      // 17. the rename pass: every place, Details' full documentation open, without the tournament's words or a classic tab's name
+      await p.click('[data-place="details"] [data-docs-open]').catch(() => {});
+      await p.waitForSelector('[data-place="details"] #doc-solver', { timeout: 30000 }).catch(() => {});
+      const found = [];
+      for (const [id, label] of PLACES) {
+        await goPlace(p, label);
+        const text = await p.evaluate(i => { const el = document.querySelector(`[data-place="${i}"]`); return el ? el.textContent : ''; }, id);
+        for (const w of TOURNAMENT_WORDS) { const m = text.match(w); if (m) found.push(`${id}: "${m[0]}"`); }
+      }
+      await goPlace(p, 'Details');
+      const d17 = await p.evaluate(() => ({ solver: !!document.querySelector('[data-place="details"] #doc-solver'), approx: document.querySelectorAll('[data-place="details"] [data-solver-approximations] li').length,
+        coverage: !!document.querySelector('[data-place="details"] #doc-coverage'), glossary: ['The solved plan', 'Your current approach', 'Limits', 'A rule of thumb'].every(w => [...document.querySelectorAll('[data-place="details"] [data-docs-solver] dt')].some(d => d.textContent.trim() === w)) }));
+      ok(17, 'the rename pass: no tournament word or classic tab name on any place, the full documentation open; Docs leads with how the solver decides, the coverage card lists the solver\'s approximations, the glossary\'s four words',
+        found.length === 0 && d17.solver && d17.approx >= 8 && d17.coverage && d17.glossary, `${found.slice(0, 6).join('; ') || 'none found'}; ${JSON.stringify(d17)}`);
+
+      // 18. the diagnostic on a solved plan (Details' solver settings): the whitelist's fields, no amount
+      const g18 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
+      ok(18, 'the details for a bug report, on a solved plan: the whitelist\'s fields in order, completed, the grid and the solver\'s code named, and no number of 100 or more outside the counts\' lines',
+        !!g18 && JSON.stringify(g18.fields) === JSON.stringify(DIAG_FIELDS) && g18.big.length === 0 && g18.at.completed === 'yes' && /^solver-code:[0-9a-f]{16}$/.test(g18.at.code) && /^\d+ wealth points, \d+ paths$/.test(g18.at.grid),
+        g18 ? `fields ${g18.fields.length}${g18.fields.length !== DIAG_FIELDS.length ? ` (${g18.fields.join(', ').slice(0, 120)})` : ''}; numbers of 100 or more ${g18.big.slice(0, 4).join(', ') || 'none'}; completed ${g18.at.completed}; code ${g18.at.code}` : 'no diagnostic shown');
       void urls;
       await p.context().close(); }
 
@@ -363,9 +410,51 @@ const firstDiff = (a, b, at = '') => {
       ok(10, 'a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
 
+    // ---------------------------------------------------------------- 15. the opt-in both ways keeps the plan
+    { const { p, errs } = await open(b, planOf(FIX.main), { planner: null });
+      await p.waitForSelector('[data-tabbar]', { timeout: 60000 }).catch(() => {});
+      const before = JSON.stringify(await saved(p)), pick = () => p.evaluate(() => localStorage.getItem('rp_planner'));
+      const tried = await p.$('[data-try-planner]');
+      if (tried) await tried.click();
+      await p.waitForSelector('[data-place]', { timeout: 60000 }).catch(() => {});
+      const inNew = { place: !!(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
+      await p.click('[data-crossover-planner]').catch(() => {});
+      await p.waitForTimeout(800);
+      const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
+      const back = { classic: tabs.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before, pick: await pick() };
+      await p.reload({ waitUntil: 'networkidle' });
+      const tabs2 = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
+      const again = { classic: tabs2.includes('Plan Inputs') && !(await p.$('[data-place]')), plan: JSON.stringify(await saved(p)) === before };
+      ok(15, 'the opt-in both ways: "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, the saved plan as it was each time, rp_planner as chosen, a reload keeping it',
+        !!tried && inNew.place && inNew.plan && inNew.pick === 'new' && back.classic && back.plan && back.pick === 'classic' && again.classic && again.plan,
+        `the button ${tried ? 'there' : 'missing'}; new planner ${JSON.stringify(inNew)}; back ${JSON.stringify(back)}; after a reload ${JSON.stringify(again)}`);
+      ok(15, 'the opt-in both ways: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await p.context().close(); }
+
+    // ---------------------------------------------------------------- 16. the rollback: PLANNER_BETA false
+    { const OUT2 = mkdtempSync(join(tmpdir(), 'solver-planner-rollback-'));
+      let server2 = null;
+      try {
+        execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT2, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_BETA_OFF: '1', PLANNER_PLANT: PLANTED.join(',') } });
+        server2 = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT2, '--port', ROLLBACK_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
+        let up2 = false;
+        for (let i = 0; i < 40 && !up2; i++) { try { const r = await fetch(`http://localhost:${ROLLBACK_PORT}/`); up2 = r.ok; } catch (e) { await new Promise(res => setTimeout(res, 500)); } }
+        const { p, errs } = await open(b, planOf(FIX.main), { planner: 'new', port: ROLLBACK_PORT });
+        await p.waitForSelector('[data-tabbar], [data-place]', { timeout: 60000 }).catch(() => {});
+        const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
+        const s = { served: up2, classic: tabs.includes('Plan Inputs'), place: !!(await p.$('[data-place]')), optIn: !!(await p.$('[data-try-planner]')), pick: await p.evaluate(() => localStorage.getItem('rp_planner')) };
+        ok(16, 'the rollback (PLANNER_BETA false): a visitor who opted in sees the classic planner, with no opt-in', s.served && s.classic && !s.place && !s.optIn, JSON.stringify(s));
+        ok(16, 'the rollback: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+        await p.context().close();
+      } finally { if (server2) server2.kill(); rmSync(OUT2, { recursive: true, force: true }); } }
+
     // ---------------------------------------------------------------- 11. a failure
     { const { p, errs } = await open(b, planOf(FIX.main), { plantFail: true });
       const f = await waitCard(p, 'failed', 120000);
+      const g18 = await diagnosticIn(p, '[data-plan-answer="failed"]');
+      ok(18, 'the details for a bug report, on the failure card: the whitelist\'s fields, not completed, the error\'s words',
+        !!g18 && DIAG_FIELDS.every(k => g18.fields.includes(k)) && g18.at.completed === 'no' && /planted: the solver failed/.test(g18.at.error || ''),
+        g18 ? `completed ${g18.at.completed}; error "${g18.at.error}"` : 'no diagnostic shown');
       const parts = await p.evaluate(() => ({ retry: !!document.querySelector('[data-plan-answer="failed"] [data-strategy-retry]'), classic: !!document.querySelector('[data-plan-answer="failed"] [data-open-classic]') }));
       const yours = await p.waitForSelector('[data-failed-current="in"]', { timeout: 300000 }).then(() => true, () => false);
       // the money chart under it is your current approach's alone: named so, and nowhere the solved plan's (there is none)

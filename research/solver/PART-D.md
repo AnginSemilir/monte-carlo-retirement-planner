@@ -75,9 +75,39 @@ case planted, and the singles' tables and the pin unchanged. In parts, each with
   single under a tiered table the code before D2's bit for bit; check 5, every library couple's per-person lists that
   person's own table's (`tiersFor`), with one couple made where the two people take the third step differently (no
   library couple does). The plant `notier` fails checks 1 and 2; the engines of c6f9456 and a82c904 fail checks 1 and 5.
-- **D2.3, the tables at the candidate's settings**, each person's built as `solvePlan` builds a single's; the rollout
-  reading each person's tier layer and charging the switch.
-- **D2.4, the bridge reader with the household's money** (O11), and its planted case.
+- **D2.3, the tables at the candidate's settings** (done). `solveCouple`'s `solveOne` solves each person's plan as a
+  single's is solved (`solveForApp`: the tier state three steps below, HR, the table without the dealing cost, the
+  failure year at what it can pay, the floor at 80% of their share), the two side by side. The rollout ranks each
+  person's moves with the tiers they hold, as their own chooser does (`rankFor`: the round trip in the flows, a move that
+  leaves the tiers held paying `switchCharge`, the mixture's worlds weighted), charges each person's switch in the joint
+  score, and reads each person at the tier pair their move goes to (`solve.js` `value(s, t, layer)`, the tier state's
+  layer). The engine runs a solved couple (`couplePolicy`, `withCouple`: its state read as the model's). **Found on the
+  way:** each person's plan carried the household's whole minimum pot (`singlePlanFor`; 84 of the library's 210 couples
+  set one), and a household whose plan sets none was judged against none while each person's table set one
+  (`solvePlan`'s `minPotYears`); the two now add up. **Its test:** `couple-tables.test.mjs` (the full tier), S007 and
+  S105 at the library sweep's light settings: (1) each table a single's at the candidate's settings, the two minimum
+  pots the household's; (2) on every library couple and one made, the two plans add back to the household's on every
+  money amount; (3) the layer reads against grid.js's own reads of that layer, world views too, and the expectation
+  against an oracle that reads each person's layer by hand; (4) each person's candidates their chooser's pick, the joint
+  score against an oracle with each switch charged, the chosen move the best; (5) the engine under the solved couple and
+  the rollout, the same joint move every year and the same end; (6) S116's and S224's tables, value reads and runs the
+  code before D2.3's bit for bit. Plants: `fullfloor` fails checks 1 and 2, `nohhfloor` 1, `baselayer` 3 and 4, `nocharge` 4,
+  `noheld` 5 (`results-couple-tables.txt`).
+- **D2.4, the bridge with the household's money** (the archive's O11, done). Each person's table reads their bridge as
+  paid from their own ISA, taxable account and cash (the bridge reader's chance). In a year either person's table reads
+  as a bridge year, the rollout reads the two people with their accessible money shared between them as best serves both
+  (`shareBridge`): x moved from one to the other, each wrapper to the same wrapper (the taxable account with its share of
+  the basis), x at most what the giver holds and the receiver's floor bills ahead to their access (`bridgeTable`'s
+  need), x = 0 always among those tried (nine points, then a golden-section refinement). Pensions never move. Two limits,
+  for D4 to measure: the giver's pension, where they can draw it, is not counted, and a year before a bridge starts still
+  reads it on the person's own money (only bridge years are read with the household's). **Its test:**
+  `couple-tables.test.mjs` checks 7 and 8, on a planted O11 couple (made from S105: the second person retired at 50,
+  eight years from their pension, with £40,000 they can reach; the first past access with a large ISA): (7) the share
+  within its bounds, the read at it the best the search tried, never below the own-money read and above it at every
+  bridge decision, short of a 41-point scan by nothing, each wrapper's household total, the pensions, the basis and the
+  giver's gain share kept, and after the bridge the expectation the own-money one bit for bit; (8) the year-0 read of
+  both lasting with the household's money within 10 points of the household's simulated survival, on each person's own
+  money more than 50 points below it. Plant `ownmoney` fails both (`results-couple-tables.txt`).
 
 ## D3
 

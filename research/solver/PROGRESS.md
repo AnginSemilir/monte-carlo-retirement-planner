@@ -26,10 +26,10 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Step U, the new planner (D58) | to 10 Nov | 4 | merged (pull request 8) | 4 |
 | Phase 11, the phone on the new planner | to 11 Nov | 1 | merged (pull request 9) | 1 |
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
-| Couples D1 to D3 | 13 to 19 Nov | 6 | under way (`PART-D.md`): D1 built, on the working branch | 1 |
+| Couples D1 to D3 | 13 to 19 Nov | 6 | under way (`PART-D.md`): D1 and D2 built, on the working branch | 4 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | not begun | 0 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **37** | | **20 (54%)** |
+| **Total** | | **37** | | **23 (62%)** |
 
 The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them, 100%.
 
@@ -47,3 +47,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them,
 | 6 Nov 07:52 UTC | Phase 11 merged (pull request 9) | 46% | 89% |
 | 6 Nov 19:35 UTC | Phase 12 merged (pull request 10): the readiness checklist all PASS, the beta started | 51% | 100% |
 | 6 Nov 20:40 UTC | Part D's D1 built: the couples' rollout's three gaps, and its year at the move's level | 54% | 100% |
+| 7 Nov 12:19 UTC | Part D's D2 built: a couple's tables at the candidate's settings, tiers per person, the engine running a solved couple, the bridge with the household's money (O11) | 62% | 100% |

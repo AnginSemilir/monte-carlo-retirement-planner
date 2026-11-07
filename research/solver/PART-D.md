@@ -43,7 +43,33 @@ Plants (`--plants`), each the old rule: `nolevel` (model.js) fails check 1; `fiv
 S007, 60 paths, the same outcomes as on b4ea006. The old couples test (`solver-couple.test.mjs`, no dial and one level)
 reads exactly as before. The results: `results-couple-quick.txt`.
 
-## D2 and D3
+## D2. The candidate's features on two tables (box three days, from 7 Nov 07:30 UTC)
 
-D2, the candidate's features on two tables (three days); D3, the levers for couples (one day): as the launch plan's
-section 6 gives them, after D1.
+The launch plan's D2: each person's table at the candidate's settings (the tier state per person, three steps below,
+HR, the table without the dealing cost, the failure year at what it can pay, the floor), the bridge reader with the
+household's money (O11), the two tables solved side by side; tested by the engine and the couples' year in step, O11's
+case planted, and the singles' tables and the pin unchanged. In parts, each with its test:
+
+- **D2.1, the engine executes a couple's joint move** (done). A solved couple's year needs the engine (`src/App.jsx`
+  `stepYear`, under a table's move) to carry what the joint move says: the share of the net need the first person funds
+  and each person's own draw order, harvest and ceiling, as the exact model's year (`model.js` `step`) applies them. Before
+  it the engine split a couple's need evenly in one order whatever the move. A single's move, and a couple's year with no
+  table, run as before. **Found on the way:** the exact model's couple year had no case for N4's pension ceilings
+  (`menuPlus: ['hr']`, the candidate's): a `penHR` step in a couple's order or one-off cost order reached `drawPot` with no
+  pot id and threw a TypeError, and an `hr` harvest ceiling fell to the personal allowance. Both now draw as the engine
+  draws (the engine's own `N4_PEN` and `N4_HARVEST`), and any other step the year knows nothing of throws by name.
+  **Its test:** `couple-lockstep.test.mjs` (the full tier): eight library couples, three paths each, every year a random
+  joint move from the candidate's menu (an uneven split, two orders, HR's ceilings, every spending level, now and then the
+  lump sum): the engine and the model within a pound on every pot, basis, gain carried, tax-free cash, cash ISA, lump-sum
+  flag and the year's flows; the engine's years with no table and a single's years under a solved table the code before
+  D2's bit for bit; an unknown step throws by name. The plant `non4` (the model before D2) fails checks 1 and 4; the
+  engine of c6f9456 fails check 1 (`results-couple-lockstep.txt`).
+- **D2.2, tiers per person** (next): the engine's tier state, switch charge and growth at the held tier for each person
+  (today `self` only, its third-step rule read from the first person's accounts), the model's the same.
+- **D2.3, the tables at the candidate's settings**, each person's built as `solvePlan` builds a single's; the rollout
+  reading each person's tier layer and charging the switch.
+- **D2.4, the bridge reader with the household's money** (O11), and its planted case.
+
+## D3
+
+D3, the levers for couples (one day): as the launch plan's section 6 gives them, after D2.

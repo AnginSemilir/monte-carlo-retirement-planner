@@ -2017,11 +2017,16 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    */
   const table = ctxBase.policyOverride;
   const chosen = table ? table.choose(state, t, state.tierHeld ? state.tierHeld.self : null) : null;
+  // a couple's joint move (Part D, D2; src/solver/couple.js chooseJoint): the share of the year's net need the first person
+  // funds and each person's own draw order, harvest and ceiling, applied as the exact model's year (src/solver/model.js step)
+  // applies them; a single's move, and a couple's year with no table, run as before
+  const joint = chosen && chosen.perOwner && ctxBase.isCouple ? { split: chosen.split, perOwner: chosen.perOwner } : null;
   const ctx = chosen ? {
     ...ctxBase,
     policySteps: chosen.steps || ctxBase.policySteps, costSteps: chosen.costSteps || ctxBase.costSteps,
-    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : N4_HARVEST[chosen.harvestCeil] ? chosen.harvestCeil : 'pa',
-    fullLumpSum: !!chosen.lump
+    harvestPA: !!chosen.harvest || (!!joint && ctxBase.owners.some(o => joint.perOwner[o.key] && joint.perOwner[o.key].harvest)),
+    harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : N4_HARVEST[chosen.harvestCeil] ? chosen.harvestCeil : 'pa',
+    fullLumpSum: !!chosen.lump, joint
   } : ctxBase;
   const { P, owners, acc } = ctx;
   const pots = state.pots;
@@ -2364,6 +2369,25 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
         pots[o.ids.cash] = bufferEach + excess; // remainder stays in cash once the ISA allowance is used
       }
     });
+  } else if (netDemand > 0 && ctx.joint) {
+    /*
+     * A couple's joint move (Part D, D2): the first person funds `split` of the net need, the second the rest; at each step
+     * index each draws their own k-th pot for their own need, then covers the other's shortfall from it, each in their own
+     * order. With both orders the household's and an even split this is the year below exactly.
+     */
+    const J = ctx.joint;
+    const shareOf = (o) => (J.split !== undefined && owners.length === 2 ? (o.key === 'self' ? J.split : 1 - J.split) : 1 / owners.length);
+    owners.forEach(o => { demand[o.key] = netDemand * shareOf(o); });
+    const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
+    const stepsOf = (o) => (J.perOwner[o.key] && J.perOwner[o.key].steps ? J.perOwner[o.key].steps : ctx.policySteps);
+    const drawFrom = (o, cat, need) => (cat === 'penPA' ? drawPension(o.key, need, P.pa) : cat === 'penBasic' ? drawPension(o.key, need, P.higherRateStartsAt)
+      : cat === 'penAny' ? drawPension(o.key, need, Infinity) : N4_PEN[cat] ? drawPension(o.key, need, N4_PEN[cat](P)) : drawPot(o.ids[cat], need));
+    const K = Math.max(...owners.map(o => stepsOf(o).length));
+    for (let k = 0; k < K; k++) {
+      if (remaining() <= 0.005) break;
+      owners.forEach(o => { const cat = stepsOf(o)[k]; if (cat && demand[o.key] > 0) demand[o.key] = Math.max(0, demand[o.key] - drawFrom(o, cat, demand[o.key])); });
+      owners.forEach(o => owners.forEach(x => { const cat = stepsOf(o)[k]; if (cat && x.key !== o.key && demand[x.key] > 0) demand[x.key] = Math.max(0, demand[x.key] - drawFrom(o, cat, demand[x.key])); }));
+    }
   } else if (netDemand > 0) {
     owners.forEach(o => { demand[o.key] = netDemand / owners.length; });
     const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
@@ -2462,11 +2486,16 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    * where leaving tens of thousands a year in cash would understate the strategy by its own drag.
    */
   if (ctx.harvestPA && anyRetired) {
-    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : N4_HARVEST[ctx.harvestCeiling] ? N4_HARVEST[ctx.harvestCeiling](P) : P.pa;
+    const ceilOf = (c) => (c === 'basic' ? P.higherRateStartsAt : N4_HARVEST[c] ? N4_HARVEST[c](P) : P.pa);
+    const harvestCeil = ceilOf(ctx.harvestCeiling);
     owners.forEach(o => {
+      // a couple's joint move (Part D, D2): each person's own harvest switch and ceiling, as the exact model's year
+      const own = ctx.joint && ctx.joint.perOwner[o.key] ? ctx.joint.perOwner[o.key] : null;
+      if (own && !own.harvest) return;
+      const ceil = own ? ceilOf(own.harvestCeil) : harvestCeil;
       if (working[o.key] || !access[o.key]) return;
-      if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
-      const net = drawPension(o.key, 1e12, harvestCeil);
+      if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= ceil) return;
+      const net = drawPension(o.key, 1e12, ceil);
       if (net > 0) {
         const isaRoom = Math.max(0, P.isaAllowance - isaContribThisYear[o.key]);
         const toIsa = Math.min(net, isaRoom);

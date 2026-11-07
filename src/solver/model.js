@@ -48,7 +48,8 @@
  */
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
-// couple-quick.test.mjs only ('' everywhere else): 'nolevel' spends the target whatever the move's level, as before D1
+// tests only ('' everywhere else): 'nolevel' spends the target whatever the move's level, as before D1 (couple-quick.test.mjs);
+// 'non4' draws and harvests a couple's year without N4's ceilings, as before D2 (couple-lockstep.test.mjs)
 export const MODEL = { plant: '' };
 
 /*
@@ -358,6 +359,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (s === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
       else if (s === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
       else if (s === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
+      // N4's ceilings as the engine's cost draw (Part D, D2: before it a penHR cost step reached drawPot with no pot id and threw a
+      // TypeError); any other step this year knows nothing of throws by name
+      else if (E.N4_PEN && E.N4_PEN[s] && MODEL.plant !== 'non4') { const cap = E.N4_PEN[s](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
+      else if (MODEL.plant !== 'non4' && (!owners.every(o => s in o.ids) || s === 'pen')) throw new Error(`model.step: no draw for the cost step ${s}`);
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[s], rem); } }
     }
     unmetCost = Math.max(0, rem);
@@ -436,7 +441,17 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     owners.forEach(o => { demand[o.key] = netDemand * shareOf(o); });
     const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
     const stepsOf = (o) => (action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key].steps : action.steps);
-    const drawFrom = (o, cat, need) => (cat === 'penPA' ? drawPension(o.key, need, P.pa) : cat === 'penBasic' ? drawPension(o.key, need, P.higherRateStartsAt) : cat === 'penAny' ? drawPension(o.key, need, Infinity) : drawPot(o.ids[cat], need));
+    // N4's pension ceilings (penHR, penPAm, penBm: the engine's N4_PEN) as the engine draws them (Part D, D2: before it a couple's
+    // penHR step reached drawPot with no pot id and threw a TypeError); any other step this year knows nothing of throws by name
+    const drawFrom = (o, cat, need) => {
+      if (cat === 'penPA') return drawPension(o.key, need, P.pa);
+      if (cat === 'penBasic') return drawPension(o.key, need, P.higherRateStartsAt);
+      if (cat === 'penAny') return drawPension(o.key, need, Infinity);
+      if (MODEL.plant === 'non4') return drawPot(o.ids[cat], need);   // the code before D2
+      if (E.N4_PEN && E.N4_PEN[cat]) return drawPension(o.key, need, E.N4_PEN[cat](P));
+      if (!(cat in o.ids) || cat === 'pen') throw new Error(`model.step: no draw for the step ${cat}`);
+      return drawPot(o.ids[cat], need);
+    };
     const K = Math.max(...owners.map(o => stepsOf(o).length));
     for (let k = 0; k < K; k++) {
       if (remaining() <= 0.005) break;
@@ -452,7 +467,8 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       // each person's own harvest switch and ceiling when the action carries them (a couple's year)
       const own = action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key] : action;
       if (!own.harvest) return;
-      const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa;
+      // N4's harvest ceilings (hr, pam, bm: the engine's N4_HARVEST) as the engine's year (Part D, D2)
+      const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : E.N4_HARVEST && E.N4_HARVEST[own.harvestCeil] && MODEL.plant !== 'non4' ? E.N4_HARVEST[own.harvestCeil](P) : P.pa;
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
       const net = drawPension(o.key, 1e12, harvestCeil);

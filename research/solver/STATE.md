@@ -295,5 +295,5 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct 
 ## 6. The next three actions
 Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
 1. The beta's two weeks, from 6 Nov (the go or no-go list the maintainer's: no open defect that changes a figure, the checklist green on the final commit; on by default and the switch's removal the maintainer's).
-2. Part D during it (`PART-D.md`): D1 to D3 built; D4 built, registered, ruled and its seed reserved (D61); its run from a worktree at the launch commit (relaunched under `RESUME=1` at each 12-hour limit), its read once, the reviewer and the deep-reviewer; D5 meanwhile.
+2. Part D during it (`PART-D.md`): D1 to D3 built; D4 built, registered, ruled and its seed reserved (D61); its run from a worktree at the launch commit (relaunched under `RESUME=1` at each 12-hour limit), its read once, the reviewer and the deep-reviewer; then D5 (after D4's read, the launch plan's order).
 3. The research queue (B7: the windfall factorial, then the savings factorial) whenever cores are free. What remains for the maintainer: `DECISIONS-PENDING.md`.

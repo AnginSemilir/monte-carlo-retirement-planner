@@ -1,0 +1,20 @@
+D4'S PILOT, EXPLORATORY (results/d4-pilot): S011, S301F; seed 7002, 1000 paths a unit; not the registered read
+each couple's five units on one inputs hash: yes
+W0.02: A1 survival CANDC less APP +9.450 (8.038 to 10.862, se 0.7202) points: PASSES; A2 spending delivered +2.600 (2.386 to 2.813, se 0.1090)%: PASSES; S1 survival CANDC less SHIPC +1.300 (0.751 to 1.849, se 0.2800) points: PASSES (spending delivered CANDC less SHIPC -0.267 (-0.397 to -0.137, se 0.0661)%)
+W0.01: A1 survival CANDC less APP +9.300 (7.895 to 10.705, se 0.7170) points: PASSES; A2 spending delivered +3.582 (3.365 to 3.798, se 0.1104)%: PASSES; S1 survival CANDC less SHIPC +1.300 (0.769 to 1.831, se 0.2709) points: PASSES (spending delivered CANDC less SHIPC +0.126 (-0.016 to 0.267, se 0.0723)%)
+OUTCOME: PASS: the candidate for couples goes to the maintainer, who decides whether couples run it under Part C's switch
+
+FLAGS (D34: for investigation, none blocking on its own)
+  none
+
+REPORTED
+W0.02 the cost years (2 couples): spending delivered in them CANDC less APP -0.287 (-0.696 to 0.123, se 0.2090)%, less SHIPC -0.140 (-0.439 to 0.160, se 0.1527)%
+W0.02 where arm A takes the lump sum (2): A1 +9.450 (8.038 to 10.862, se 0.7202) points, A2 +2.600 (2.386 to 2.813, se 0.1090)%
+W0.02 S1 over the library cohort (1): +0.900 (0.252 to 1.548, se 0.3306) points (spending -1.124 (-1.275 to -0.974, se 0.0768)%)
+W0.02 S1 over the younger cohort (1): +1.700 (0.898 to 2.502, se 0.4090) points (spending +0.590 (0.387 to 0.794, se 0.1038)%)
+W0.01 the cost years (2 couples): spending delivered in them CANDC less APP +0.981 (0.551 to 1.410, se 0.2192)%, less SHIPC +0.443 (0.253 to 0.634, se 0.0970)%
+W0.01 where arm A takes the lump sum (2): A1 +9.300 (7.895 to 10.705, se 0.7170) points, A2 +3.582 (3.365 to 3.798, se 0.1104)%
+W0.01 S1 over the library cohort (1): +0.600 (-0.019 to 1.219, se 0.3158) points (spending -0.595 (-0.744 to -0.446, se 0.0758)%)
+W0.01 S1 over the younger cohort (1): +2.000 (1.132 to 2.868, se 0.4429) points (spending +0.846 (0.599 to 1.093, se 0.1260)%)
+the couples' rollout in the model beside the engine: 4000 paths, the engine alone surviving 0, the model alone 0
+the units' core-hours 3.4 (the solves 0.9); the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz

@@ -135,3 +135,26 @@ the base and its lock), each person's pair the base's at every decision of 20 pa
 raises blocked and each lock held for each person; (3) the age weights by hand; (4) plants: the lock dropped in the
 rollout (`nolock`, the code before D3), the age weights each person's own (before D3), the base with the other estate
 weight, the floor at 0 (`results-couple-levers.txt`).
+
+## D4. The registered held-out test (built as Phase 4's; its registration to the maintainer before its run)
+
+The launch plan's D4, its arms, panel and rule as given there; the build, from 7 Nov 15:00 UTC:
+
+- **The panel** (`couple-panel.mjs`, `couples-panel.json`): the held-out scan (`held-out.mjs` touchedAll: this branch's
+  results, the archive, the old manifest, the tests and the review branch's reviews), and the couples the tests take by
+  their place in the library rather than by name (couple-lockstep's eight couples and twelve households, engine-side checks
+  only, left out all the same), frozen once in `couples-orders.json`; 20 library couples whose first person is older than
+  44, taken evenly, and 20 whose first person is 44 or under, each person retiring at 52 (the id with an F); each landed
+  so the app's rules (arm A, searched on seed 7001, no tournament) survive 85 +/- 1% on 1,000 paths of seed 7005; the floor
+  at 80%, the minimum pot the couple's own or one year's target, the one-off costs as the library has them, the
+  candidate's return assumptions on every arm.
+- **The arms** (`audit-couples.mjs`): APP as Phase 4's; CANDC, each person's table solved as the app solves a single's
+  (`solveForApp`, 45 points, the estate aim at 0.02 or 0.01) and the couples' rollout of D1 to D3; SHIPC, each person's
+  table at the product's settings (30 points) and the same rollout; each executed by the engine, a couple's five units on
+  one inputs hash; the rollout in the exact model beside the engine on 500 paths of each solver unit.
+- **The read** (`reduce-couples.mjs`): Phase 4's rule, A1, A2 and S1 at both estate weights; D34's harm flags, each
+  couple's threshold from its own realised discordance at its paths (a two-couple pilot cannot size forty couples one by
+  one, `size-couples.mjs`); the cost years' spending delivered apart.
+- **The seed:** 7021, used by no run before (the held-out scan of seeds: no file in the tree or the review branch names
+  it as a seed); reserving it in `check-prediction.mjs`'s registry is a protected edit, asked of the maintainer with the
+  registration.

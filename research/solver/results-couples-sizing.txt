@@ -10,13 +10,19 @@ D4's sizing from the pilot (results/d4-pilot; 2 couples, seed 7002, 1000 paths a
     CANDC less APP/0.01   discordant 90 of 1000 (9.00%, upper 95% 10.95%): threshold 0.6647 points at 17000, false alarm at a quarter-point loss 0.0499, a 1-point loss read 0.9050; the normal check's threshold 0.6674, paths 16639
     CANDC less SHIPC/0.01 discordant 20 of 1000 (2.00%, upper 95% 3.07%): threshold 0.4706 points at 17000, false alarm at a quarter-point loss 0.0482, a 1-point loss read 1.0000; the normal check's threshold 0.4711, paths 4670
   the run: every couple at 19000 paths (the larger of the pilot couples'); each couple's thresholds at the read from its own realised discordance at 19000, by the same exact rates
-  APP/-       a unit 0.00 core-hours (the solve 0 s, the engine 0.5 ms a path)
-  CANDC/0.01  a unit 6.50 core-hours (the solve 590 s, the engine 1174.2 ms a path)
-  CANDC/0.02  a unit 6.48 core-hours (the solve 589 s, the engine 1172.2 ms a path)
-  SHIPC/0.01  a unit 2.29 core-hours (the solve 220 s, the engine 413.6 ms a path)
-  SHIPC/0.02  a unit 2.27 core-hours (the solve 219 s, the engine 410.7 ms a path)
-  the budget at 19000 paths over 40 couples: 701.8 core-hours, about 175.4 hours on four cores (the solves 18.0, the engine 669.5, the rollout beside it 14.3)
-    at 4000 paths a unit: 173.3 core-hours, about 43.3 hours on four cores; a true 1-point loss read as harm: S011 APP/0.02 0.38, S011 SHIPC/0.02 0.95, S011 APP/0.01 0.38, S011 SHIPC/0.01 0.97, S301F APP/0.02 0.41, S301F SHIPC/0.02 0.89, S301F APP/0.01 0.41, S301F SHIPC/0.01 0.85
-    at 8000 paths a unit: 314.2 core-hours, about 78.6 hours on four cores; a true 1-point loss read as harm: S011 APP/0.02 0.61, S011 SHIPC/0.02 1.00, S011 APP/0.01 0.61, S011 SHIPC/0.01 1.00, S301F APP/0.02 0.64, S301F SHIPC/0.02 0.99, S301F APP/0.01 0.64, S301F SHIPC/0.01 0.98
-    at 16000 paths a unit: 596.1 core-hours, about 149.0 hours on four cores; a true 1-point loss read as harm: S011 APP/0.02 0.86, S011 SHIPC/0.02 1.00, S011 APP/0.01 0.86, S011 SHIPC/0.01 1.00, S301F APP/0.02 0.89, S301F SHIPC/0.02 1.00, S301F APP/0.01 0.89, S301F SHIPC/0.01 1.00
+  at 19000 paths a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 12.45%; above it the rate falls (at 15%: 0.846, at 20%: 0.744)
+  at 8000 paths a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 5.18%; above it the rate falls (at 15%: 0.529, at 20%: 0.435)
+  pilot S011 (28 years): APP/- the solve 0 s, the engine 0.4 ms a path; CANDC/0.01 the solve 472 s, the engine 542.1 ms a path, beside 210 s; CANDC/0.02 the solve 471 s, the engine 539.0 ms a path, beside 204 s; SHIPC/0.01 the solve 170 s, the engine 288.7 ms a path, beside 108 s; SHIPC/0.02 the solve 170 s, the engine 289.8 ms a path, beside 110 s
+  pilot S301F (61 years): APP/- the solve 0 s, the engine 0.6 ms a path; CANDC/0.01 the solve 709 s, the engine 1806.2 ms a path, beside 768 s; CANDC/0.02 the solve 708 s, the engine 1805.3 ms a path, beside 763 s; SHIPC/0.01 the solve 271 s, the engine 538.4 ms a path, beside 210 s; SHIPC/0.02 the solve 267 s, the engine 531.6 ms a path, beside 208 s
+  the younger pilot couple's candidate engine 3.35 times the library one's a path (61 years against 28: 2.18 times the years)
+  the horizons: library 28 to 52 years (mean 40.3; the pilot's 28), younger 61 to 61 (the pilot's 61); each unit scaled from its cohort's pilot couple by its years
+  the budget at 19000 paths over 40 couples, 520 units (CANDC in 4 chunks, SHIPC in 2, APP whole): 835.4 core-hours (the solves 73.0, a solve in each chunk; the engine 746.4; the rollout beside it 15.9); CANDC 618.9, SHIPC 216.3, APP 0.1
+    the longest unit 2.79 hours (S301F CANDC/0.01 chunk 0); at a fifth slower 3.35, inside the 12-hour limit; on four cores in 12-hour windows: 20 windows, about 231 hours (9.6 days), 88.9 core-hours cut off at a window's end and run again
+  the budget at 8000 paths over 40 couples, 520 units (CANDC in 4 chunks, SHIPC in 2, APP whole): 403.2 core-hours (the solves 73.0, a solve in each chunk; the engine 314.3; the rollout beside it 15.9); CANDC 303.1, SHIPC 100.0, APP 0.1
+    the longest unit 1.41 hours (S301F CANDC/0.01 chunk 0); at a fifth slower 1.70, inside the 12-hour limit; on four cores in 12-hour windows: 9 windows, about 105 hours (4.4 days), 17.1 core-hours cut off at a window's end and run again
+  W0.02 the pilot's se (2 couples, 1000 paths): S1 0.2800, A1 0.7202 points, A2 0.1090%; over 40 couples, S1's at 19000 paths from 0.014 to 0.064, at 8000 paths from 0.022 to 0.099 (against its bar of -0.1)
+  W0.01 the pilot's se (2 couples, 1000 paths): S1 0.2709, A1 0.7170 points, A2 0.1104%; over 40 couples, S1's at 19000 paths from 0.014 to 0.062, at 8000 paths from 0.021 to 0.096 (against its bar of -0.1)
+    at 4000 paths a unit, a true 1-point loss read as harm: S011 APP/0.02 0.38, S011 SHIPC/0.02 0.95, S011 APP/0.01 0.38, S011 SHIPC/0.01 0.97, S301F APP/0.02 0.41, S301F SHIPC/0.02 0.89, S301F APP/0.01 0.41, S301F SHIPC/0.01 0.85
+    at 8000 paths a unit, a true 1-point loss read as harm: S011 APP/0.02 0.61, S011 SHIPC/0.02 1.00, S011 APP/0.01 0.61, S011 SHIPC/0.01 1.00, S301F APP/0.02 0.64, S301F SHIPC/0.02 0.99, S301F APP/0.01 0.64, S301F SHIPC/0.01 0.98
+    at 16000 paths a unit, a true 1-point loss read as harm: S011 APP/0.02 0.86, S011 SHIPC/0.02 1.00, S011 APP/0.01 0.86, S011 SHIPC/0.01 1.00, S301F APP/0.02 0.89, S301F SHIPC/0.02 1.00, S301F APP/0.01 0.89, S301F SHIPC/0.01 1.00
   written: couples-paths.json (40 couples at 19000)

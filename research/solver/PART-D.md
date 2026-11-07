@@ -99,8 +99,9 @@ case planted, and the singles' tables and the pin unchanged. In parts, each with
   (`shareBridge`): x moved from one to the other, each wrapper to the same wrapper (the taxable account with its share of
   the basis), x at most what the giver holds and the receiver's floor bills ahead to their access (`bridgeTable`'s
   need), x = 0 always among those tried (nine points, then a golden-section refinement). Pensions never move. Two limits,
-  for D4 to measure: the giver's pension, where they can draw it, is not counted, and a year before a bridge starts still
-  reads it on the person's own money (only bridge years are read with the household's). **Its test:**
+  which no test isolates: the giver's pension, where they can draw it, is not counted, and a year before a bridge starts still
+  reads it on the person's own money (only bridge years are read with the household's); D4 reports A1 and S1 over the couples
+  either of whose candidate tables reads a bridge year, a measure of the bridge's handling as a whole, not of either limit. **Its test:**
   `couple-tables.test.mjs` checks 7 and 8, on a planted O11 couple (made from S105: the second person retired at 50,
   eight years from their pension, with £40,000 they can reach; the first past access with a large ISA): (7) the share
   within its bounds, the read at it the best the search tried, never below the own-money read and above it at every

@@ -23,6 +23,9 @@
  *   node research/solver/couple-panel.mjs list                   the two cohorts' orders
  *   node research/solver/couple-panel.mjs land <lib|young> <k>   land candidate k of that order (results/d4-land/<id>.json)
  *   node research/solver/couple-panel.mjs combine                couples-panel.json from the landings so far
+ *   node research/solver/couple-panel.mjs summary > results-couples-panel.txt   the panel as built: each couple's landing,
+ *                                                                horizon, ages and cost years, the lump-sum count, and the
+ *                                                                panel's couples named outside the scan (PRIOR_FILES)
  *   node research/solver/couple-panel.mjs --planted              the checks on planted inputs
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -41,6 +44,8 @@ import { codeId } from './code-id.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = process.env.D4_LAND_OUT || join(HERE, 'results', 'd4-land');
+/* files that name library households the held-out scan does not read (the app's side; the design review of 7 Nov, MINOR 7) */
+export const PRIOR_FILES = ['../policy-study/confirmed-results.json'];
 export const PANEL_FILE = process.env.D4_PANEL || join(HERE, 'couples-panel.json'), ORDERS_FILE = join(HERE, 'couples-orders.json');
 export { appPlan };
 
@@ -138,6 +143,29 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const cid = codeId(), head = execSync('git rev-parse --short=12 HEAD', { cwd: HERE }).toString().trim();
     writeFileSync(join(OUT, `${id}.json`), JSON.stringify({ id, base: h.id, cohort, k, name: h.name, libraryTarget: E.num(h.plan.spending.targetSpend, 0), ...r, label, code: cid ? cid.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }));
     console.log(`${cohort.padEnd(5)} ${String(k).padStart(3)} ${id.padEnd(6)} target ${r.target} (library ${E.num(h.plan.spending.targetSpend, 0)}) arm A ${r.survival.toFixed(1)} ${r.landed ? 'LANDED' : 'NOT LANDED'} in ${r.steps.length} steps, ${label}; ${Math.round((Date.now() - t0) / 1000)} s`);
+  }
+  if (mode === 'summary') {
+    const j = JSON.parse(readFileSync(PANEL_FILE, 'utf8')), { lib, young } = orders(), panel = readPanel();
+    const lands = Object.fromEntries([...lib.map(h => idOf(h, 'lib')), ...young.map(h => idOf(h, 'young'))].filter(id => existsSync(join(OUT, `${id}.json`))).map(id => [id, JSON.parse(readFileSync(join(OUT, `${id}.json`), 'utf8'))]));
+    const prior = Object.fromEntries(PRIOR_FILES.map(f => [f, new Set(readFileSync(join(HERE, f), 'utf8').match(/S\d{3}/g) || [])]));
+    console.log(`D4's panel (couples-panel.json, built ${j.built}; the scan ${j.touched.count} ids, hash ${j.touched.hash})`);
+    for (const [co, list] of [['lib', lib], ['young', young]]) {
+      const ids = list.map(h => idOf(h, co)), firstOut = ids.findIndex(id => !lands[id]), tried = ids.slice(0, firstOut < 0 ? ids.length : firstOut), inPanel = panel.filter(h => h.cohort === co);
+      const before = tried.slice(0, tried.indexOf(inPanel[inPanel.length - 1].id) + 1);
+      console.log(`${co === 'lib' ? 'library' : 'younger'}: ${inPanel.length} in the panel; ${tried.length} candidates landed in order (${tried.filter(id => lands[id].landed).length} landed, ${tried.filter(id => !lands[id].landed).length} not), ${before.filter(id => !lands[id].landed).length} passed over before the panel's last; arm A from ${Math.min(...inPanel.map(h => h.survival)).toFixed(1)}% to ${Math.max(...inPanel.map(h => h.survival)).toFixed(1)}%`);
+    }
+    const lump = panel.filter(h => /lump sum/.test(h.label));
+    console.log(`arm A's pick takes the full lump sum on ${lump.length} of ${panel.length} (by its label)`);
+    let retired = 0;
+    for (const h of panel) {
+      const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(h.plan))), cy = [...(ctx.oneOffCosts instanceof Map ? ctx.oneOffCosts.keys() : [])].map(y => Number(y) - ctx.baseYear).filter(t => t >= 0 && t <= ctx.totalYears).sort((a, b) => a - b);
+      const ret = cy.map(t => ctx.owners.some(o => o.age0 + t >= o.retireAge)); if (ret.some(Boolean)) retired++;
+      const named = Object.entries(prior).filter(([, s]) => s.has(h.base)).map(([f]) => f.replace(/.*\//, ''));
+      console.log(`  ${h.cohort.padEnd(5)} ${h.id.padEnd(6)} target ${h.target} arm A ${h.survival.toFixed(1)}% (${h.label}); ${ctx.totalYears + 1} years, ages ${ctx.owners.map(o => `${o.age0} retiring at ${o.retireAge}`).join(' and ')}; cost years ${cy.map((t, q) => `${t}${ret[q] ? '' : ' (no one retired)'}`).join(', ') || 'none'}${named.length ? `; named in ${named.join(', ')} (as ${h.base})` : ''}`);
+    }
+    const named = panel.filter(h => Object.values(prior).some(s => s.has(h.base)));
+    console.log(`someone retired in a cost year: ${retired} of ${panel.length}`);
+    console.log(`named outside the scan (${PRIOR_FILES.join(', ')}): ${named.length} of ${panel.length}, ${named.map(h => (h.id === h.base ? h.id : `${h.id} (as ${h.base})`)).join(', ')}`);
   }
   if (mode === 'combine') {
     const { used, touchedHash, lib, young } = orders();

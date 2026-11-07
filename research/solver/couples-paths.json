@@ -1,5 +1,5 @@
 {
- "built": "2026-11-07T16:33:15.476Z",
+ "built": "2026-11-07T17:14:20.893Z",
  "N": 19000,
  "rule": "every couple at N; thresholds at the read from each couple's realised discordance (Clopper-Pearson upper 95%) by size-phase4.mjs thresholdFor",
  "paths": {

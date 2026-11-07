@@ -109,6 +109,29 @@ case planted, and the singles' tables and the pin unchanged. In parts, each with
   both lasting with the household's money within 10 points of the household's simulated survival, on each person's own
   money more than 50 points below it. Plant `ownmoney` fails both (`results-couple-tables.txt`).
 
-## D3
+## D3. The levers for couples (box one day, from 7 Nov 12:25 UTC)
 
-D3, the levers for couples (one day): as the launch plan's section 6 gives them, after D2.
+Each person's table is a single's solved by `solveForApp` on their own plan (D2.3), so the plan's aims and locks reach
+both tables as they reach a single's; D3 makes each lever hold for the household:
+
+- **The dial**, through D1's cut term: each table at lambda times the position, the household's cut counted once.
+- **B3a's age weights on the chance that at least one partner is alive.** A single's weights are the Gompertz chance of
+  being alive at each year. A couple spends while either lives, so each person's table now weighs a cut by
+  1 - (1 - w_self)(1 - w_other), the other person's age given to the solve (`solveForApp`'s `ageWith`, `solve.js`
+  `ageWeighted`'s `with`); the two tables' weights are the same. A single's are as before.
+- **The candidate's tiers locked per person.** Each person's table above position 1 is solved on their own base (their
+  plan at position 1), and the rollout now keeps each person to the tier pair their base's chooser picks where they
+  stand (`rankFor`, as `chooseAction`'s `lockMask` does a single's). Before D3 the rollout ranked each person's moves
+  unlocked.
+- **Consent** withdrawn: each table one tier pair, so neither person's tiers move.
+- **The locks, for each person.** The plan's locks are the household's (the pension age, the tier ceiling on every
+  pension and ISA, the lump sum), applied to both people's plans and the household's; each is checked on each person.
+  Locks that differ between the two people wait on D5's screens ("the limits per person").
+
+**Its test:** `couple-levers.test.mjs` (the full tier), the singles' all-pairs design (`lever-matrix.mjs`) on two
+library couples (S007, S127), each person's table at the library sweep's light settings: (1) the design covers every
+pair; (2) each combination solves, each person's run record (lambda, the age weights with the other's age, the floor,
+the base and its lock), each person's pair the base's at every decision of 20 paths, and on 100 engine paths consent,
+raises blocked and each lock held for each person; (3) the age weights by hand; (4) plants: the lock dropped in the
+rollout (`nolock`, the code before D3), the age weights each person's own (before D3), the base with the other estate
+weight, the floor at 0 (`results-couple-levers.txt`).

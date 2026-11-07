@@ -29,9 +29,12 @@ export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FL
  * `variant` is the dial's (APP_DIAL_VARIANT unless a test or L4 names the other).
  */
 const aboveOf = r => { const d = r.meta.riskAbove && r.meta.riskAbove.decision; return typeof d === 'string' && d.startsWith('on'); };
-export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINTS, e2 = null, progress = null, research = null, restore = null, base = null, variant = APP_DIAL_VARIANT } = {}) {
+export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINTS, e2 = null, progress = null, research = null, restore = null, base = null, variant = APP_DIAL_VARIANT, ageWith = undefined } = {}) {
   // a tier ceiling (a lock) switches the tier above off; a restore solves the way its stored solve was chosen
-  const norm = E.normalizePlan(plan), aims = aimsOptions(norm, variant);
+  const norm = E.normalizePlan(plan), aims0 = aimsOptions(norm, variant);
+  // `ageWith` (Part D, D3): one person's table in a couple, the other's age today: B3a's age weights then read the chance that
+  // at least one of the two is alive (solve.js ageWeighted). Unset, a single's, as before
+  const aims = ageWith !== undefined && aims0.ageWeight ? { ...aims0, ageWeight: { ...aims0.ageWeight, with: ageWith } } : aims0;
   const locked = lockedPlan(E, norm).riskAbove === false ? { riskAbove: false } : {};
   let lock = {};
   const bp = dialBase(norm);

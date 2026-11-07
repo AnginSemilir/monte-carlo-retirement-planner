@@ -2737,10 +2737,13 @@ function nonFiniteScore(where, t, cell, k, ai, s, b, rs, h) {
 function ageWeighted(AW, m, T, base) {
   if (!AW) return base;
   if (!(AW.disp > 0) || !Number.isFinite(AW.mode)) throw new Error('ageWeight needs a mode and a dispersion above nothing');
-  const a0 = m.ctx.ageSelf0, w = new Float64Array(T + 2);
-  for (let t = 0; t <= T + 1; t++) w[t] = Math.exp(-Math.exp((a0 - AW.mode) / AW.disp) * (Math.exp(t / AW.disp) - 1));
+  // `with` (Part D, D3: one person's table in a couple): the other person's age today, and the weight the chance that at least
+  // one of the two is alive, 1 - (1 - w_self)(1 - w_with): the household spends while either lives. Unset, a single's, as before
+  if (AW.with !== undefined && !Number.isFinite(AW.with)) throw new Error(`ageWeight's partner age ${AW.with} is not a number`);
+  const a0 = m.ctx.ageSelf0, w = new Float64Array(T + 2), alive = (a, t) => Math.exp(-Math.exp((a - AW.mode) / AW.disp) * (Math.exp(t / AW.disp) - 1));
+  for (let t = 0; t <= T + 1; t++) w[t] = AW.with === undefined ? alive(a0, t) : 1 - (1 - alive(a0, t)) * (1 - alive(AW.with, t));
   const costOf = (level, t) => w[t] * base(level);
-  costOf.w = w; costOf.meta = { mode: AW.mode, disp: AW.disp };
+  costOf.w = w; costOf.meta = { mode: AW.mode, disp: AW.disp, ...(AW.with !== undefined ? { with: AW.with } : {}) };
   return costOf;
 }
 

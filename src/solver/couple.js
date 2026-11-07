@@ -34,9 +34,10 @@
  * COUPLE.plant (tests only; '' everywhere else), alone or joined by commas: 'nocut', 'firstlevel' and 'fivenodes'
  * (couple-quick.test.mjs) put each D1 gap back as the code before D1 had it (with model.js's MODEL.plant 'nolevel', all four
  * are that code); 'fullfloor', 'nohhfloor', 'baselayer', 'nocharge' and 'noheld' (couple-tables.test.mjs) each D2.3 gap it
- * names; 'ownmoney' D2.4's (each person's bridge read on their own money).
+ * names; 'ownmoney' D2.4's (each person's bridge read on their own money); 'nolock' D3's (couple-levers.test.mjs: the rollout
+ * unlocked from each person's base).
  */
-import { solve, solveMixture, rankActions, scoreMoves, NODES, WEIGHTS } from './solve.js';
+import { solve, solveMixture, rankActions, scoreMoves, chooseAction, NODES, WEIGHTS } from './solve.js';
 import { foldedVol } from './fast.js';
 import { vecOf, readValues, bridgeTable } from './grid.js';
 import { profileOf as M_profileOf } from './model.js';
@@ -106,7 +107,8 @@ export function solveCouple(E, M, plan, opts = {}) {
     return opts.mix ? solveMixture(E, M, p, o) : solve(E, M, p, o);
   });
   const t0 = Date.now();
-  const tables = { self: solveOne(plans.self), part: solveOne(plans.part) };
+  // each person's solve told who they are and the other's age today (D3: B3a's age weights on the chance that either lives)
+  const tables = { self: solveOne(plans.self, { who: 'self', partnerAge0: m0.ctx.agePart0 }), part: solveOne(plans.part, { who: 'part', partnerAge0: m0.ctx.ageSelf0 }) };
   const tiersBelow = tables.self.meta.tiersBelow === 3 || tables.part.meta.tiersBelow === 3 ? 3 : 2;
   // the household's minimum pot where its plan sets none: the two tables' together (a single's solve sets one where the plan
   // has none, solve.js solvePlan's minPotYears; before D2.3 the household's year ended judged against none); plant 'nohhfloor'
@@ -269,7 +271,10 @@ export function expectedValue(cp, post, t, out = null, pick = null) {
  */
 export function rankFor(tab, s, t, held, K) {
   const sc = held && !planted('nocharge') ? tab.switchCharge || 0 : 0;
-  if (!(sc > 0)) return rankActions(tab, s, t, held, K);
+  // D3: a dial position solved on its base's tiers (lockTiers) keeps each person to the pair their base's own chooser picks
+  // where they stand, as chooseAction's lockMask does a single's; where every move there fails, the base's own move. Plant 'nolock'
+  const LK = tab.lockTiers && held && !planted('nolock') ? tab.lockTiers : null;
+  if (!(sc > 0) && !LK) return rankActions(tab, s, t, held, K);
   const n = tab.actions.length, SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n), acts = tab.c.acts;
   const tt = tab.finalExact ? t : Math.min(t, tab.m.ctx.totalYears - 1);
   if (tab.mix) {
@@ -281,6 +286,12 @@ export function rankFor(tab, s, t, held, K) {
       for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; }
     });
   } else scoreMoves(tab, s, tt, SC, TX, BQ, held);
+  if (LK) {
+    const ac = chooseAction(LK.rc, s, t, held), lj = tab.tsLayerOf[ac];
+    let any = false;
+    for (let ai = 0; ai < n; ai++) { if (tab.tsLayerOf[ai] !== lj) SC[ai] = -Infinity; else if (SC[ai] > -Infinity) any = true; }
+    if (!any) return [ac];
+  }
   const idx = [];
   for (let ai = 0; ai < n; ai++) {
     if (!(SC[ai] > -Infinity)) continue;

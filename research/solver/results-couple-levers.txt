@@ -1,0 +1,24 @@
+PART D, D3: the levers for couples (couple-levers.test.mjs), the singles' all-pairs design on two library couples, each person's table at the library sweep's light settings, on the working branch's code (the e3pcls pin 215470524812fd0e)
+
+== node research/tests/couple-levers.test.mjs
+PASS  1. the design: 14 combinations, every pair of settings covered
+PASS  2. [0] S127 dial 10 B3b, estate standard, raises capped, consent yes, min pot 80000, pension later, ceiling none, lump never: every check holds (688 engine years, 450 person-years off the plan's own tiers; 132 s)
+PASS  2. [1] S007 dial 10 B3a, estate lower, raises blocked, consent no, min pot 0, pension free, ceiling Medium/Low Risk, lump now: every check holds (2800 engine years, 0 person-years off the plan's own tiers; 38 s)
+PASS  2. [2] S127 dial 1, estate lower, raises blocked, consent no, min pot 80000, pension later, ceiling none, lump free: every check holds (616 engine years, 0 person-years off the plan's own tiers; 45 s)
+PASS  2. [3] S007 dial 3 B3b, estate standard, raises capped, consent no, min pot 0, pension free, ceiling Medium/Low Risk, lump free: every check holds (2800 engine years, 0 person-years off the plan's own tiers; 46 s)
+PASS  2. [4] S007 dial 6 B3a, estate lower, raises capped, consent yes, min pot 80000, pension free, ceiling Medium/Low Risk, lump never: every check holds (2800 engine years, 0 person-years off the plan's own tiers; 106 s)
+PASS  2. [5] S127 dial 6 B3b, estate standard, raises blocked, consent yes, min pot 0, pension later, ceiling Medium/Low Risk, lump now: every check holds (796 engine years, 217 person-years off the plan's own tiers; 97 s)
+PASS  2. [6] S007 dial 1, estate standard, raises capped, consent yes, min pot 0, pension free, ceiling none, lump now: every check holds (2800 engine years, 3613 person-years off the plan's own tiers; 65 s)
+PASS  2. [7] S127 dial 3 B3a, estate lower, raises blocked, consent no, min pot 0, pension free, ceiling none, lump never: every check holds (4000 engine years, 0 person-years off the plan's own tiers; 80 s)
+PASS  2. [8] S007 dial 3 B3a, estate standard, raises capped, consent yes, min pot 80000, pension later, ceiling Medium/Low Risk, lump free: every check holds (2800 engine years, 151 person-years off the plan's own tiers; 137 s)
+PASS  2. [9] S127 dial 1, estate lower, raises capped, consent yes, min pot 80000, pension later, ceiling Medium/Low Risk, lump now: every check holds (688 engine years, 198 person-years off the plan's own tiers; 72 s)
+PASS  2. [10] S007 dial 6 B3a, estate standard, raises blocked, consent no, min pot 0, pension later, ceiling none, lump free: every check holds (2800 engine years, 0 person-years off the plan's own tiers; 77 s)
+PASS  2. [11] S127 dial 1, estate standard, raises capped, consent yes, min pot 80000, pension later, ceiling none, lump never: every check holds (652 engine years, 459 person-years off the plan's own tiers; 80 s)
+PASS  2. [12] S127 dial 3 B3a, estate standard, raises blocked, consent no, min pot 0, pension free, ceiling Medium/Low Risk, lump now: every check holds (4000 engine years, 0 person-years off the plan's own tiers; 88 s)
+PASS  2. [13] S127 dial 10 B3a, estate standard, raises blocked, consent yes, min pot 80000, pension later, ceiling Medium/Low Risk, lump free: every check holds (724 engine years, 120 person-years off the plan's own tiers; 105 s)
+PASS  3. [1] the age weights the chance either lives: against the hand formula 0.00e+0, the two tables apart 0.00e+0; at the last year 0.4378 where the first person's own would be 0.1909
+PASS  4. [0] planted, the lock dropped in the rollout: 20 of 160 decisions off the base's tier pair
+PASS  4. [4] planted, the age weights each person's own: self: ageWeight {"mode":90,"disp":9} where {"mode":90,"disp":9,"with":65}; part: ageWeight {"mode":90,"disp":9} where {"mode":90,"disp":9,"with":68}
+PASS  4. [4] planted, the base solved with the other estate weight: self: the base's estate weight 0.02, the position's 0.01; part: the base's estate weight 0.02, the position's 0.01
+PASS  4. [0] planted, the floor at 0: self: spendLevels [1,1.1] without the floor; self: no lock on the base; part: spendLevels [1,1.1] without the floor; part: no lock on the base
+ALL PASS: 20 passed, 0 failed (1462s)

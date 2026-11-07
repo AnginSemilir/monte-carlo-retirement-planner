@@ -1,28 +1,49 @@
-PART D, D2.1: the engine and the couples' year in step under a couple's joint moves (couple-lockstep.test.mjs), on the working branch's D2.1 code (the e3pcls pin d5f5bda0d11a1260)
+PART D, D2: the engine and the couples' year in step under a couple's joint moves, tiers per person included (couple-lockstep.test.mjs), on the working branch's code (the e3pcls pin 28cf7cf86dba4a83)
 
 == node research/tests/couple-lockstep.test.mjs
-  ok   1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £1.49e-8
-  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum   years drawing with an uneven split 536, two orders 594, an HR step or ceiling 676; a level off the target 714; the lump sum asked 138
-  ok   3. the engine's year with no table, and a single's years under a solved table, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6)
+  ok   1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £3.73e-9
+  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum, each person's tier switches   years drawing with an uneven split 528, two orders 593, an HR step or ceiling 663; a level off the target 721; the lump sum asked 132; tier switches, the first person 397, the second 373; years holding the third step down 328
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6); 2 more under a tiered table b57bdf151a05a48a (before b57bdf151a05a48a), switches charged in 26 years
   ok   4. a step the couples' year knows nothing of throws by name   S053 year 0: model.step: no draw for the step penXX
+  ok   5. each person's tier lists in a couple's engine are that person's own table's lists (the third step down)   844 pension and ISA lists over 210 library couples and one made, 0 apart; couples whose two people take the third step differently 1
 
-4 passed, 0 failed
+5 passed, 0 failed
 
 == COUPLE_PLANT=non4 (the model's couple year without N4's ceilings, as before D2)
-  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   338 household-years; the largest gap £Infinity at S365 path 2: threw Cannot read properties of undefined (reading 'startsWith')
-  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum   years drawing with an uneven split 128, two orders 143, an HR step or ceiling 160; a level off the target 201; the lump sum asked 42
-  ok   3. the engine's year with no table, and a single's years under a solved table, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6)
+  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   405 household-years; the largest gap £Infinity at S365 path 2: threw Cannot read properties of undefined (reading 'startsWith')
+  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum, each person's tier switches   years drawing with an uneven split 123, two orders 143, an HR step or ceiling 158; a level off the target 235; the lump sum asked 52; tier switches, the first person 164, the second 157; years holding the third step down 67
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6); 2 more under a tiered table b57bdf151a05a48a (before b57bdf151a05a48a), switches charged in 26 years
   FAIL 4. a step the couples' year knows nothing of throws by name   S053 year 0: Cannot read properties of undefined (reading 'startsWith')
+  ok   5. each person's tier lists in a couple's engine are that person's own table's lists (the third step down)   844 pension and ISA lists over 210 library couples and one made, 0 apart; couples whose two people take the third step differently 1
 
-2 passed, 2 failed (planted: non4)
+3 passed, 2 failed (planted: non4)
 
-== the engine of c6f9456 (the code before D2, which split a couple's need evenly in one order whatever the move), with D2.1's model and this test
-  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £Infinity at S053 path 2 year 4: lump part
-  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum   years drawing with an uneven split 536, two orders 594, an HR step or ceiling 676; a level off the target 714; the lump sum asked 138
-  ok   3. the engine's year with no table, and a single's years under a solved table, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6)
+== COUPLE_PLANT=notier (the model leaves a couple's tiers where they are)
+  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £Infinity at S001 path 0 year 1: tier held part pen
+  FAIL 2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum, each person's tier switches   years drawing with an uneven split 528, two orders 593, an HR step or ceiling 663; a level off the target 721; the lump sum asked 132; tier switches, the first person 0, the second 0; years holding the third step down 0
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6); 2 more under a tiered table b57bdf151a05a48a (before b57bdf151a05a48a), switches charged in 26 years
   ok   4. a step the couples' year knows nothing of throws by name   S053 year 0: model.step: no draw for the step penXX
+  ok   5. each person's tier lists in a couple's engine are that person's own table's lists (the third step down)   844 pension and ISA lists over 210 library couples and one made, 0 apart; couples whose two people take the third step differently 1
 
-3 passed, 1 failed
+3 passed, 2 failed (planted: notier)
+
+== the engine of c6f9456 (the code before D2: a couple's need split evenly in one order whatever the move), with this code's model and test
+  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £Infinity at S001 path 0 year 1: tier held part pen
+  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum, each person's tier switches   years drawing with an uneven split 529, two orders 595, an HR step or ceiling 665; a level off the target 721; the lump sum asked 132; tier switches, the first person 397, the second 373; years holding the third step down 328
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6); 2 more under a tiered table b57bdf151a05a48a (before b57bdf151a05a48a), switches charged in 26 years
+  ok   4. a step the couples' year knows nothing of throws by name   S053 year 0: model.step: no draw for the step penXX
+  FAIL 5. each person's tier lists in a couple's engine are that person's own table's lists (the third step down)   844 pension and ISA lists over 210 library couples and one made, 2 apart (first S001 (the first person at Medium Risk) part pen: table High Risk/Medium/High Risk/Medium Risk/Medium/Low Risk engine High Risk/Medium/High Risk/Medium Risk); couples whose two people take the third step differently 1
+
+3 passed, 2 failed
+
+== the engine of a82c904 (the joint move's split and orders, but tiers for the first person only and its lists by the first person's rule), with this code's model and test
+  FAIL 1. the engine and the couples' year in step under a couple's joint moves (8 couples, 3 paths each)   996 household-years; the largest gap £Infinity at S001 path 0 year 1: tier held part pen
+  ok   2. the moves that matter were made: an uneven split, two orders, HR's ceilings, a level off the target, the lump sum, each person's tier switches   years drawing with an uneven split 529, two orders 595, an HR step or ceiling 665; a level off the target 721; the lump sum asked 132; tier switches, the first person 397, the second 373; years holding the third step down 328
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table a90aae26ebf1e021 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 9f1e5192e6e593f6 (before 9f1e5192e6e593f6); 2 more under a tiered table b57bdf151a05a48a (before b57bdf151a05a48a), switches charged in 26 years
+  ok   4. a step the couples' year knows nothing of throws by name   S053 year 0: model.step: no draw for the step penXX
+  FAIL 5. each person's tier lists in a couple's engine are that person's own table's lists (the third step down)   844 pension and ISA lists over 210 library couples and one made, 2 apart (first S001 (the first person at Medium Risk) part pen: table High Risk/Medium/High Risk/Medium Risk/Medium/Low Risk engine High Risk/Medium/High Risk/Medium Risk); couples whose two people take the third step differently 1
+
+3 passed, 2 failed
 
 == solver-model.test.mjs (the golden test: the model against the engine under fixed moves, singles and couples)
 =========== 36 passed, 0 failed ===========

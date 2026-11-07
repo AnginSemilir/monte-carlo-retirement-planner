@@ -49,7 +49,8 @@
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
 // tests only ('' everywhere else): 'nolevel' spends the target whatever the move's level, as before D1 (couple-quick.test.mjs);
-// 'non4' draws and harvests a couple's year without N4's ceilings, as before D2 (couple-lockstep.test.mjs)
+// 'non4' draws and harvests a couple's year without N4's ceilings, as before D2; 'notier' leaves a couple's tiers where they
+// are whatever the move (couple-lockstep.test.mjs)
 export const MODEL = { plant: '' };
 
 /*
@@ -82,7 +83,10 @@ export function cashAt(m, t, taxPot) {
  * once per solve; `step` may then allocate nothing.
  */
 export function prepare(E, rawPlan, opts = {}) {
-  const ctx = E.buildContext(E.resolveMpaa ? E.resolveMpaa(rawPlan) : rawPlan);
+  // `tiersBelow` (Part D, D2): the tier lists the engine builds under a table solved with that many steps below (App.jsx
+  // buildContext), so a couple's year takes each person's tier by the same list; the override chooses nothing here
+  const planned = opts.tiersBelow === 3 ? { ...rawPlan, spending: { ...rawPlan.spending, policyOverride: { kind: 'table', choose: () => null, tiersBelow: 3 } } } : rawPlan;
+  const ctx = E.buildContext(E.resolveMpaa ? E.resolveMpaa(planned) : planned);
   const reasons = [];
   // the spending guardrails are carried exactly since phase 2d; only the one-off cost lookahead is still refused
   if (ctx.lookaheadYears > 0) reasons.push('the one-off cost lookahead is on');
@@ -110,14 +114,18 @@ export function initialState(m) {
   // the guardrails' memory, as the engine keeps it: the rate the rails were set from, the multiplier so far,
   // whether last year lost money, and the draw the rails were last set against
   const guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
-  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa, guard };
+  // the tier each person's pension and ISA holds (index into the engine's list, 0 the plan's own), as the engine's state
+  const tierHeld = {};
+  ctx.owners.forEach(o => { tierHeld[o.key] = { pen: 0, isa: 0 }; });
+  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa, guard, tierHeld };
 }
 
 export function cloneState(s) {
   return {
     pots: { ...s.pots }, basis: { ...s.basis }, cgtCarry: { ...s.cgtCarry },
     cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) },
-    guard: s.guard ? { ...s.guard } : { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 }
+    guard: s.guard ? { ...s.guard } : { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 },
+    ...(s.tierHeld ? { tierHeld: Object.fromEntries(Object.entries(s.tierHeld).map(([k, v]) => [k, { ...v }])) } : {})
   };
 }
 
@@ -573,7 +581,30 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     const move = Math.min(room, Math.max(0, cashNow - state.cashIsa[o.key]));
     if (move > 0) { state.cashIsa[o.key] += move; isaContribThisYear[o.key] += move; cashIsaSubscribed[o.key] += move; }
   });
-  if (!skipGrowth) grow(m, state, t, rates);
+  /*
+   * 7f. THE TIER, under a couple's joint move (Part D, D2): each person's pension and ISA move to the tier their move holds,
+   * charged the round trip on the slice traded (the difference in equity weight, times the wrapper, times `switchCost`), as
+   * the engine's year (its 7f); then they grow at it. A move without `perOwner` holds the plan's tiers, as before.
+   */
+  let switchPaid = 0;
+  if (action.perOwner && state.tierHeld && MODEL.plant !== 'notier') {
+    const rate = action.switchCost || 0;
+    owners.forEach(o => {
+      const mv = action.perOwner[o.key], held = state.tierHeld[o.key]; if (!mv || !held) return;
+      for (const cat of ['pen', 'isa']) {
+        const id = o.ids[cat], profs = ctx.tierProfiles && ctx.tierProfiles[id]; if (!profs) continue;
+        const k = Math.min(cat === 'pen' ? (mv.tierPen || 0) : (mv.tierIsa || 0), profs.length - 1), name = cat === 'pen' ? mv.tierPenName : mv.tierIsaName;
+        if (name != null && profs[k].name !== name) throw new Error(`model.step: tier ${k} of ${id} is ${profs[k].name} here but ${name} in the move`);
+        if (k !== held[cat]) {
+          const d = Math.abs(profs[k].equityWeight - profs[held[cat]].equityWeight);
+          const x = (pots[id] || 0) * rate * d;
+          pots[id] = Math.max(0, (pots[id] || 0) - x); switchPaid += x; held[cat] = k;
+        }
+      }
+    });
+  }
+  // `rates` a map of account id to real rate, or a function of the state after the switch giving one (the tier held)
+  if (!skipGrowth) grow(m, state, t, typeof rates === 'function' ? rates(state) : rates);
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
@@ -587,8 +618,16 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     totalCombined: byCat.pen + byCat.isa + byCat.other + byCat.cash,
     drawdownPensions, harvested, taxPaid, cgtPaid,
     taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part,
-    unmetDemand, preNmpaInsolvent, oneOffCost: cost
+    unmetDemand, preNmpaInsolvent, oneOffCost: cost, switchPaid
   };
+}
+
+/* The profile an account grows at: its person's tier held (the engine's list) for a pension or ISA, else the account's own. */
+export function profileOf(m, state, a) {
+  if ((a.cat !== 'pen' && a.cat !== 'isa') || !state || !state.tierHeld || !m.ctx.tierProfiles) return a;
+  const profs = m.ctx.tierProfiles[a.id], held = state.tierHeld[a.owner];
+  if (!profs || !held) return a;
+  return profs[Math.min(held[a.cat] || 0, profs.length - 1)];
 }
 
 /* Apply one year's growth. `rates` is a map of account id to real rate, or null for the plan's own. */

@@ -1915,9 +1915,12 @@ function buildContext(rawPlan) {
   // the table's steps below (D28: 3 under `tiersBelow: 3`), the household's own: two where the person's pension or ISA cannot
   // take the third step, a step beyond the second never stepping into Cash Equivalents (fast.js tiersFor, the same rule)
   const stepOk = (k0, d) => k0 >= 0 && k0 + d < TIER_ORDER.length && !(d > 2 && TIER_ORDER[k0 + d] === 'Cash Equivalents');
-  let below = tableOverride && tableOverride.tiersBelow === 3 ? 3 : 2;
-  if (below > 2 && accounts.some(a => a.owner === 'self' && (a.cat === 'pen' || a.cat === 'isa') && !stepOk(TIER_ORDER.indexOf(a.risk), below))) below = 2;
+  // each person by their own wrappers (Part D, D2: a couple's two tables each take the rule on their own person; before it the
+  // second person's lists took the first person's); a single's lists as before
+  const wanted = tableOverride && tableOverride.tiersBelow === 3 ? 3 : 2;
+  const belowOf = (owner) => (wanted > 2 && accounts.some(a => a.owner === owner && (a.cat === 'pen' || a.cat === 'isa') && !stepOk(TIER_ORDER.indexOf(a.risk), wanted)) ? 2 : wanted);
   accounts.forEach(a => {
+    const below = belowOf(a.owner);
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
     const tierAt = (name) => { const prof = riskOf(name); return { name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' }; };
@@ -2609,23 +2612,29 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    * and then grows at the tier it now holds; the tiers held are remembered for next year's charge.
    */
   let switchPaid = 0;
+  // whose tiers a wrapper takes: a single's move for the first person; a couple's joint move each person's own (Part D, D2)
+  const tierMoveOf = (owner) => (joint ? joint.perOwner[owner] || null : owner === 'self' ? chosen : null);
   const tierOf = (a) => {
-    if (!chosen || a.owner !== 'self' || (a.cat !== 'pen' && a.cat !== 'isa')) return a;
+    if (!chosen || (a.cat !== 'pen' && a.cat !== 'isa')) return a;
+    const mv = tierMoveOf(a.owner); if (!mv) return a;
     const profs = ctx.tierProfiles[a.id]; if (!profs) return a;
-    const k = a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), name = a.cat === 'pen' ? chosen.tierPenName : chosen.tierIsaName;
+    const k = a.cat === 'pen' ? (mv.tierPen || 0) : (mv.tierIsa || 0), name = a.cat === 'pen' ? mv.tierPenName : mv.tierIsaName;
     const p = profs[Math.min(k, profs.length - 1)];
     if (name != null && p.name !== name) throw new Error(`table move: tier ${k} of ${a.id} is ${p.name} in the engine but ${name} in the table`);
     return p;
   };
   if (chosen && state.tierHeld) {
-    const o = ownerByKey.self, held = state.tierHeld.self, rate = table.switchCost || 0;
-    for (const cat of ['pen', 'isa']) {
-      const id = o.ids[cat], profs = ctx.tierProfiles[id]; if (!profs) continue;
-      const k = Math.min(cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), profs.length - 1);
-      if (k !== held[cat]) {
-        const d = Math.abs(profs[k].equityWeight - profs[held[cat]].equityWeight);
-        const x = (pots[id] || 0) * rate * d;
-        pots[id] = Math.max(0, (pots[id] || 0) - x); switchPaid += x; held[cat] = k;
+    const rate = table.switchCost || 0;
+    for (const o of (joint ? owners : [ownerByKey.self])) {
+      const mv = tierMoveOf(o.key), held = state.tierHeld[o.key]; if (!mv || !held) continue;
+      for (const cat of ['pen', 'isa']) {
+        const id = o.ids[cat], profs = ctx.tierProfiles[id]; if (!profs) continue;
+        const k = Math.min(cat === 'pen' ? (mv.tierPen || 0) : (mv.tierIsa || 0), profs.length - 1);
+        if (k !== held[cat]) {
+          const d = Math.abs(profs[k].equityWeight - profs[held[cat]].equityWeight);
+          const x = (pots[id] || 0) * rate * d;
+          pots[id] = Math.max(0, (pots[id] || 0) - x); switchPaid += x; held[cat] = k;
+        }
       }
     }
   }

@@ -64,8 +64,17 @@ case planted, and the singles' tables and the pin unchanged. In parts, each with
   flag and the year's flows; the engine's years with no table and a single's years under a solved table the code before
   D2's bit for bit; an unknown step throws by name. The plant `non4` (the model before D2) fails checks 1 and 4; the
   engine of c6f9456 fails check 1 (`results-couple-lockstep.txt`).
-- **D2.2, tiers per person** (next): the engine's tier state, switch charge and growth at the held tier for each person
-  (today `self` only, its third-step rule read from the first person's accounts), the model's the same.
+- **D2.2, tiers per person** (done). Under a couple's joint move each person's pension and ISA move to the tier their own
+  move holds, are charged the round trip on the slice traded, and grow at it, in the engine (before it, `self` only) and in
+  the exact model (before it, none: `model.js` gains each person's `tierHeld`, the switch at the engine's place, after the
+  cash ISA and before growth, and `profileOf`, the profile a pot grows at; `prepare` takes `tiersBelow`, so the model's
+  lists are the engine's). couple.js grows each pot at its person's tier held, in the forward run and the rollout's
+  expectation. And each person's tier lists take the third step down by their own wrappers: before it the engine built the
+  second person's lists by the first person's rule. **Its test:** `couple-lockstep.test.mjs` as above, each person's tiers
+  switched at random (the third step down on half the couples) and the tiers held and the switch charged compared too; a
+  single under a tiered table the code before D2's bit for bit; check 5, every library couple's per-person lists that
+  person's own table's (`tiersFor`), with one couple made where the two people take the third step differently (no
+  library couple does). The plant `notier` fails checks 1 and 2; the engines of c6f9456 and a82c904 fail checks 1 and 5.
 - **D2.3, the tables at the candidate's settings**, each person's built as `solvePlan` builds a single's; the rollout
   reading each person's tier layer and charging the switch.
 - **D2.4, the bridge reader with the household's money** (O11), and its planted case.

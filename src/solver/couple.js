@@ -31,6 +31,7 @@
 import { solve, solveMixture, rankActions, NODES, WEIGHTS } from './solve.js';
 import { foldedVol } from './fast.js';
 import { vecOf, readValues } from './grid.js';
+import { profileOf as M_profileOf } from './model.js';
 
 export const SPLITS = [0, 0.25, 0.5, 0.75, 1];
 export const COUPLE = { plant: '' };
@@ -125,9 +126,10 @@ export function expectedValue(cp, post, t, out = null) {
   for (let j = 0; j < shifts.length; j++) {
     for (let k = 0; k < QW.length; k++) {
       const rates = {};
-      m.ctx.accounts.forEach(a => {
+      m.ctx.accounts.forEach(a0 => {
+        const a = M_profileOf(m, post, a0);   // each pension and ISA at its person's tier held after the move (D2)
         const vol = A.c.shiftMode ? a.vol : foldedVol(a.vol, a.sigmaParam, T - t + 1);
-        rates[a.id] = Math.exp(Math.log(1 + a.real) + (A.c.shiftMode ? a.sigmaParam * shifts[j] : 0) + vol * QZ[k]) - 1;
+        rates[a0.id] = Math.exp(Math.log(1 + a.real) + (A.c.shiftMode ? a.sigmaParam * shifts[j] : 0) + vol * QZ[k]) - 1;
       });
       const g = M.cloneState(post);
       M.grow(m, g, t, rates);
@@ -193,14 +195,17 @@ export function chooseJoint(cp, state, t) {
   return best;
 }
 
-/* The engine's own market for a couple's forward run: one yearly draw for every wrapper, one held shift per path. */
-export function ratesFor(m, zs, t) {
+/* The engine's own market for a couple's forward run: one yearly draw for every wrapper, one held shift per path; each pension
+ * and ISA at its person's tier held when `state` is given (Part D, D2: the profile the engine grows it at). */
+export function ratesFor(m, zs, t, state = null) {
   const T = m.ctx.totalYears;
   const zp = zs.length > T + 1 ? zs[T + 1] : 0;
   const rates = {};
-  m.ctx.accounts.forEach(a => { rates[a.id] = Math.exp(Math.log(1 + a.real) + a.sigmaParam * zp + a.vol * zs[t]) - 1; });
+  m.ctx.accounts.forEach(a => { const p = state ? M_profileOf(m, state, a) : a; rates[a.id] = Math.exp(Math.log(1 + p.real) + p.sigmaParam * zp + p.vol * zs[t]) - 1; });
   return rates;
 }
+/* The same as a function of the state after the year's switch, for model.js step (which grows at the tier then held). */
+export const ratesAt = (m, zs, t) => (state) => ratesFor(m, zs, t, state);
 
 /* One path under the rollout policy, in the exact reduced model. */
 export function runCouplePolicy(cp, zs) {
@@ -210,7 +215,7 @@ export function runCouplePolicy(cp, zs) {
   let tax = 0, splitSum = 0, splitYears = 0, uneven = 0;
   for (let t = 0; t <= T; t++) {
     const joint = chooseJoint(cp, state, t);
-    const row = M.step(m, state, joint, t, ratesFor(m, zs, t));
+    const row = M.step(m, state, joint, t, ratesAt(m, zs, t));
     tax += row.taxPaid + row.cgtPaid;
     if (row.netDrawdown > 0) { splitSum += joint.split; splitYears++; if (Math.abs(joint.split - 0.5) > 1e-9) uneven++; }
     if (row.unmetDemand > 1 || row.preNmpaInsolvent) return { survived: false, preAccess: !!row.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, splitMean: splitYears ? splitSum / splitYears : 0.5, unevenYears: uneven };

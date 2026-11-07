@@ -8,9 +8,9 @@ configuration hash or settings are not those below. Launched only as
 `PREDICTION=research/solver/registrations/couples-d4.md research/solver/run-from-snapshot.sh bash research/solver/batch-couples.sh`,
 from a git worktree at the launch commit (`git worktree add`), where every relaunch under `RESUME=1` and the read also run
 (the working branch moves during the run; a relaunch keeps a chunk only on the read's whole stamp: the code, the audit, this
-registration's blob and the Node version), and only after the maintainer has seen this registration and its budget (the
-launch plan's D4), has ruled on the paths and on the rule for a comparison past D34's limit (Paths; the ruling recorded in
-STATE.md's decisions), and has reserved the seed.
+registration's blob and the Node version). The maintainer saw this registration and its budget and ruled on the paths and
+on the rule for a comparison past D34's limit on 7 Nov ("Go with your recommendations": STATE.md D61); launched only once
+seed 7021 is reserved.
 
 - **Question:** Does the candidate for couples (each person's table at the candidate's settings, the two run by the couples'
   rollout of Part D's D1 to D3), executed by the app's own engine, keep more held-out couples solvent than the app's own
@@ -56,8 +56,8 @@ STATE.md's decisions), and has reserved the seed.
   0.846, at 20% 0.744). The read prints all 160 comparisons with their discordance, bound, threshold and both rates, and
   names each whose 1-point rate is below 0.90; such a comparison is reported as below D34's rate, with its rate, and gets no
   more paths. This departs from D34 (2) (a household above the limit given more paths, as the simulation sizes it) and (4)
-  (each household's paths, threshold and rates in the registration), and needs the maintainer's ruling before launch; the
-  alternative is a second stage, the couples with a comparison past the limit run on 7021's next paths (paired) to sizeFor's
+  (each household's paths, threshold and rates in the registration), and is the maintainer's ruling for D4 (7 Nov, D61); not
+  chosen, a second stage, the couples with a comparison past the limit run on 7021's next paths (paired) to sizeFor's
   size at their realised bounds, the flags read on all their paths and the decision on the first 19,000 of every couple (on
   Phase 4's pilot 27 of 80 comparisons against APP were past the limit). At 8,000 paths the limit is 5.18%, and every
   comparison against APP on the pilot's discordances falls below it (a 1-point loss read 0.61 to 0.64); the pooled items are
@@ -99,6 +99,6 @@ STATE.md's decisions), and has reserved the seed.
   (3.35 on a host a fifth slower), so every unit finishes inside the harness's 12-hour limit; in 12-hour windows under
   `RESUME=1`, 20 windows, about 231 hours (9.6 days) on four cores, 88.9 core-hours of units cut off at a window's end and
   run again. At 8,000 paths: 403.2 core-hours, 9 windows, about 105 hours (4.4 days; at the younger couple's rate 425.8).
-  Both past the launch plan's assumption (2 to 4 days on four cores): the paths are the maintainer's call; this registration
-  is written at D34's size.
+  Both past the launch plan's assumption (2 to 4 days on four cores); 19,000, D34's size, by the maintainer's ruling (7 Nov,
+  D61).
 - **Design review:** research/solver/reviews/2026-11-07-couples-d4-design-2.md (the first, -design.md: FAIL, three BLOCKING)

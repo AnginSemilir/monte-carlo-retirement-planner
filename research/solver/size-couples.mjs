@@ -18,6 +18,7 @@
  *     a unit not done when its window closes run again whole in the next (RESUME=1): the windows, the wall-clock, the
  *     core-hours lost to units cut off, and the longest unit (a chunk).
  *   node research/solver/size-couples.mjs [pilot dir] > research/solver/results-couples-sizing.txt   (writes couples-paths.json)
+ *   D4_N=8000 node research/solver/size-couples.mjs ...   the same at the paths the maintainer rules, if not D34's size
  *   node research/solver/size-couples.mjs --planted
  */
 import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
@@ -134,13 +135,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const dir = process.argv[2] || join(HERE, 'results', 'd4-pilot'), U = unitsIn(dir), S = sizePilot(U);
   const missing = Object.entries(S).filter(([, s]) => s.missing);
   if (missing.length) { console.log(`size-couples: units missing: ${missing.map(([id, s]) => `${id} ${s.missing.join(',')}`).join('; ')}`); process.exit(1); }
-  const N = Math.max(...Object.values(S).map(s => s.N)), panel = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel;
+  const N = Number(process.env.D4_N) || Math.max(...Object.values(S).map(s => s.N)), panel = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel;
   console.log(`D4's sizing from the pilot (${dir.replace(/.*research\/solver\//, '')}; ${Object.keys(U).length} couples, seed ${Object.values(Object.values(U)[0])[0].seed}, ${Object.values(Object.values(U)[0])[0].N} paths a unit; ${cpus()[0].model})`);
   for (const [id, s] of Object.entries(S)) {
     console.log(`  ${id}: sized at ${s.N} paths`);
     for (const [i, c] of s.comps.entries()) { const r = s.rows[i], nc = normalCheck(r.d, s.N); console.log(`    CANDC less ${c.cmp.padEnd(10)} discordant ${c.k} of ${c.n} (${(100 * c.dHat).toFixed(2)}%, upper 95% ${(100 * c.dUp).toFixed(2)}%): threshold ${r.t.toFixed(4)} points at ${s.N}, false alarm at a quarter-point loss ${r.fp.toFixed(4)}, a 1-point loss read ${r.tp.toFixed(4)}; the normal check's threshold ${nc.t.toFixed(4)}, paths ${nc.nNeeded}`); }
   }
-  console.log(`  the run: every couple at ${N} paths (the larger of the pilot couples'); each couple's thresholds at the read from its own realised discordance at ${N}, by the same exact rates`);
+  console.log(`  the run: every couple at ${N} paths (${process.env.D4_N ? 'the maintainer\'s ruling; D34\'s size the larger of the pilot couples\', ' + Math.max(...Object.values(S).map(s => s.N)) : 'the larger of the pilot couples\''}); each couple's thresholds at the read from its own realised discordance at ${N}, by the same exact rates`);
   for (const n of [N, 8000]) console.log(`  at ${n} paths a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * tpLimit(n)).toFixed(2)}%; above it the rate falls (at 15%: ${harmRate(0.15, n, thresholdFor(0.15, n), 1).toFixed(3)}, at 20%: ${harmRate(0.2, n, thresholdFor(0.2, n), 1).toFixed(3)})`);
   // the pilot couples' own times, each arm, and the horizons that scale them
   const { readPanel } = await import('./couple-panel.mjs'), E = await import('../engine.mjs');
@@ -153,6 +154,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const n of [N, 8000]) {
     const C = chunkSecs(U, full, n, pilotOf, years), B = budgetOf(C), S = scheduleOf(C), long = C.reduce((m, c) => (c.secs > m.secs ? c : m));
     console.log(`  the budget at ${n} paths over ${PANEL_N} couples, ${C.length} units (CANDC in ${CHUNKS_OF.CANDC} chunks, SHIPC in ${CHUNKS_OF.SHIPC}, APP whole): ${(B.total / 3600).toFixed(1)} core-hours (the solves ${(B.solve / 3600).toFixed(1)}, a solve in each chunk; the engine ${(B.engine / 3600).toFixed(1)}; the rollout beside it ${(B.beside / 3600).toFixed(1)}); ${Object.entries(B.arms).map(([k, a]) => `${k} ${(a.secs / 3600).toFixed(1)}`).join(', ')}`);
+    // the budget's spread: every couple at the younger pilot couple's rate a year (the library pilot couple reads no bridge
+    // year, the younger one six a person), and the pilot's engine time with E.runTrial's check on its first 200 paths in it
+    { const Cy = chunkSecs(U, full, n, { lib: pilotOf.young, young: pilotOf.young }, years), By = budgetOf(Cy), Sy = scheduleOf(Cy), u0 = U[pilotOf.lib]['CANDC/0.02'], chk = (Math.min(200, u0.N) + u0.N) / u0.N;
+      console.log(`    its spread: at the younger pilot couple's rate a year for every couple ${(By.total / 3600).toFixed(1)} core-hours, ${Sy.windows} windows, about ${Sy.hours.toFixed(0)} hours; the pilot's engine times include E.runTrial on ${Math.min(200, u0.N)} of its ${u0.N} paths, up to ${chk.toFixed(2)} times the engine's alone if the check costs a path's run (the engine's part then ${(B.engine / chk / 3600).toFixed(1)} core-hours)`); }
     console.log(`    the longest unit ${(long.secs / 3600).toFixed(2)} hours (${long.id} ${long.arm}/${long.w} chunk ${long.j}); at a fifth slower ${(1.2 * long.secs / 3600).toFixed(2)}, inside the 12-hour limit; on four cores in 12-hour windows: ${S.windows} windows, about ${S.hours.toFixed(0)} hours (${(S.hours / 24).toFixed(1)} days), ${(S.lost / 3600).toFixed(1)} core-hours cut off at a window's end and run again`);
   }
   // the pooled items' se at the run's size, from the pilot's (its two couples, its paths): between the couples' paths moving

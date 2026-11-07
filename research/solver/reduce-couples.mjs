@@ -152,7 +152,11 @@ export function gate(U, panel, paths, logs = null, files = null) {
     for (const arm of ['CANDC', 'SHIPC']) { const a = u[`${arm}/0.02`], b = u[`${arm}/0.01`]; if (!a || !b) continue; for (const who of ['self', 'part']) { const x = bare(a.ran, who), y = bare(b.ran, who); for (const f of new Set([...Object.keys(x), ...Object.keys(y)])) if (x[f] !== y[f]) P.push(`${h.id} ${arm} ${who}: its two weights differ in ${f} (${x[f]}, ${y[f]})`); } }
     for (const w of WEIGHTS) { const c = u[`CANDC/${w}`], s = u[`SHIPC/${w}`]; if (!c || !s) continue; for (const who of ['self', 'part']) { const x = personOf(c.ran, who), y = personOf(s.ran, who); for (const f of FAIR) if (x[f] !== y[f]) P.push(`${h.id} W${w} ${who}: CANDC and SHIPC differ in ${f} (${x[f]}, ${y[f]})`); } }
   }
-  if (stamps.size > 1) P.push(`${stamps.size} stamps across the units (one code, audit, registration and Node version wanted)`);
+  if (stamps.size > 1) {
+    const by = {};
+    for (const h of panel) for (const k of ARMS) { const x = (U[h.id] || {})[k]; if (x) (by[JSON.stringify(x.stamp)] ||= []).push(`${h.id} ${k}`); }
+    P.push(`${stamps.size} stamps across the units (one code, audit, registration and Node version wanted): ${Object.entries(by).map(([s, us]) => `${s} on ${us.length} (${us.slice(0, 3).join(', ')}${us.length > 3 ? ', ...' : ''})`).join('; ')}`);
+  }
   return P;
 }
 /* the outcome from the items (A1, A2, S1 at each weight) */

@@ -63,8 +63,9 @@ export const LATTICE = '160x41x128+foot+stepAll';
 export const PATHS_FILE = join(HERE, 'couples-paths.json'), REGISTRATION = 'research/solver/registrations/couples-d4.md';
 /* the files the stamp hashes, in this order (batch-couples.sh's AUDIT hashes the same list): this audit, the panel's code and arm
    A's, the code it borrows from Phase 4, the app's solve and its settings (CANDC's whole configuration), the candidate's hash,
-   the frozen orders, the panel, the paths, and the read with the code it borrows (the design review of 7 Nov, BLOCKING 2) */
-export const STAMP_FILES = ['audit-couples.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', '../../src/solverApp.js', '../../src/solverSettings.js', 'candidate.mjs', 'research-opts.mjs', 'couples-orders.json', 'couples-panel.json', 'couples-paths.json', 'reduce-couples.mjs', 'reduce-phase4.mjs', 'size-phase4.mjs', 'size-couples.mjs', 'stats.mjs'];
+   the frozen orders, the panel, the paths, and the read with the code it borrows, its provenance check (fair-gate.mjs) and
+   audit-phase4.mjs's own import (the design reviews of 7 Nov: the first's BLOCKING 2, the second's MINOR 3) */
+export const STAMP_FILES = ['audit-couples.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', '../../src/solverApp.js', '../../src/solverSettings.js', 'candidate.mjs', 'research-opts.mjs', 'couples-orders.json', 'couples-panel.json', 'couples-paths.json', 'reduce-couples.mjs', 'reduce-phase4.mjs', 'size-phase4.mjs', 'size-couples.mjs', 'stats.mjs', 'fair-gate.mjs', 'audit-7uf-checks.mjs'];
 /* each solver arm's configuration, hashed as state.mjs prints it: CANDC the candidate (candidate.mjs hashOf over the app's own
    settings, APP_CANDIDATE), SHIPC the product's settings (sha256 of PRODUCT_BASELINE); the audit refuses any other */
 export const CONFIG = { CANDC: 'd71f65ae871e', SHIPC: '07c069b6e330' };

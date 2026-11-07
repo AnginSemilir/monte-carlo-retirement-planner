@@ -27,9 +27,9 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 11, the phone on the new planner | to 11 Nov | 1 | merged (pull request 9) | 1 |
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | built (`PART-D.md`), on the working branch | 6 |
-| Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | not begun | 0 |
+| Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built and registered (the design review's PASS), with the maintainer before its run: 4 of its 6 items (the panel, the pilot, the sizing, the registration; the run and the read to come) | 4.7 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **37** | | **25 (68%)** |
+| **Total** | | **37** | | **29.7 (80%)** |
 
 The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them, 100%.
 
@@ -49,3 +49,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them,
 | 6 Nov 20:40 UTC | Part D's D1 built: the couples' rollout's three gaps, and its year at the move's level | 54% | 100% |
 | 7 Nov 12:19 UTC | Part D's D2 built: a couple's tables at the candidate's settings, tiers per person, the engine running a solved couple, the bridge with the household's money (O11) | 62% | 100% |
 | 7 Nov 14:22 UTC | Part D's D3 built: the levers for couples, the lever matrix on two couples | 68% | 100% |
+| 7 Nov 18:20 UTC | Part D's D4 built and registered, the design re-review's PASS: to the maintainer before its run | 80% | 100% |

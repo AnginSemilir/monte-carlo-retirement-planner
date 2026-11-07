@@ -15,9 +15,13 @@ OUT=research/solver/results/d4-run
 mkdir -p "$OUT"
 if [ -n "$(ls -A "$OUT")" ] && [ "${RESUME:-0}" != 1 ]; then echo "batch-couples: $OUT is not empty; a launch needs an empty folder (RESUME=1 keeps the units done on this code)"; exit 2; fi
 CODE=$(node research/solver/code-id.mjs)
-AUDIT=$(cd research/solver && cat audit-couples.mjs couple-panel.mjs select-phase4.mjs audit-phase4.mjs phase4-panel.mjs ../../src/solverApp.js ../../src/solverSettings.js candidate.mjs research-opts.mjs couples-orders.json couples-panel.json couples-paths.json reduce-couples.mjs reduce-phase4.mjs size-phase4.mjs size-couples.mjs stats.mjs | sha256sum | cut -c1-12)   # audit-couples.mjs's own stamp (its STAMP_FILES, in order)
+AUDIT=$(cd research/solver && cat audit-couples.mjs couple-panel.mjs select-phase4.mjs audit-phase4.mjs phase4-panel.mjs ../../src/solverApp.js ../../src/solverSettings.js candidate.mjs research-opts.mjs couples-orders.json couples-panel.json couples-paths.json reduce-couples.mjs reduce-phase4.mjs size-phase4.mjs size-couples.mjs stats.mjs fair-gate.mjs audit-7uf-checks.mjs | sha256sum | cut -c1-12)   # audit-couples.mjs's own stamp (its STAMP_FILES, in order)
 NU=$(node research/solver/audit-couples.mjs --units | tail -1)
-TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && head -1 "$f" | grep -q "^stamp: code $CODE audit $AUDIT " && grep -qE '^ +done ' "$f"; } || echo "$k"; done)
+# a chunk is kept only on the whole stamp the read requires: this code and audit, this registration and its blob, this Node
+# (the design review of 7 Nov, its second's MINOR 1: the read refuses more than one stamp across the units)
+STAMPLINE="stamp: code $CODE audit $AUDIT prediction ${PREDICTION_FILE:-NOT-LAUNCHED} sha ${PREDICTION_SHA:--}"
+NODEV=$(node --version)
+TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && [ "$(head -1 "$f")" = "$STAMPLINE" ] && sed -n 2p "$f" | grep -q "; node $NODEV\$" && grep -qE '^ +done ' "$f"; } || echo "$k"; done)
 echo "D4: $NU units on seed 7021 (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
 printf '%s\n' $TODO | grep . | xargs -P 4 -I{} sh -c \
   "D4_OUT=$OUT node research/solver/audit-couples.mjs registered part {}/$NU > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""

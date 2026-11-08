@@ -65,24 +65,16 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   at once.
 - A time box running out; a red CI not fixed within a session.
 - The reads of L4 and L5 (as reports; R1 to R3 decide them), and what R2 leaves off the dial.
-- **Open now: GAIN-BUCKET's v2 proposal (B7).** The gain axis interpolated (`gainInterp`) against the candidate's nearest
-  bucket: survival no effect beyond noise; spending up on two households and down on one, each tiny (`results-gainbucket.txt`;
-  the read's review, `reviews/2026-11-03-read-gainbucket.md`). The choice: a registered v2 test after the launch, or
-  declined as immaterial. Beside it (the re-review's MINOR): the count depends on the test, chosen after seeing the data. The
-  sign-flip test of the mean, the figure reported, flags three households; an exact sign test, which reads the typical path,
-  flags seven, four up and three down, one of them down although its mean is up. The verdict is a gain under either. Also
-  reported: the run took about twice its pilot's core-hours.
-- **Open now: phone-perf's long-task ceiling** (2,200ms, set 30 Oct on the maintainer's call). Step U's gate read one
-  pass over it on bytes that had passed hours before. Twelve alternated runs on a quiet machine put step U's site build at or
-  below main's, and main's own build over the ceiling on three of its six (`results-phone-perf-step-u.txt`): the ceiling sits
-  inside main's spread on this machine, so a gate can fail it by chance. The choice: move it, as on 30 Oct, or keep it and
-  re-measure when it fails. Kept until then.
-- **Closed: the Safari and Firefox solve**, excluded from the readiness checklist by D60 (6 Nov). The browser check page
-  (`public/browser-check.html`) stays in Phase 12's release, unused; removing it is a later change of the site's code.
-- **Reported from Phase 11: the phone's budget** (two parts for a solve with a base on a touch device, set in the harness's
-  browser, not on a phone: `results-phone-memory.txt`), yours to move; and **a restored solve's paths run on one worker**
-  (back at the dial's default the figures take longer than after a fresh split solve), not changed.
-- **Open now: the contribution fields in the quick start** (your report on step U's preview): they are in You, Your money, and
-  the quick start now points there; asking for them in the quick start itself goes beyond LAYOUT.md, so it is your call.
-- **Noted: load-perf's switch-on ceiling** is at D58 (2)'s limit (`results-load-perf-step-u.txt`): the next kilobyte on a
-  switch-on build's classic first load comes to the maintainer.
+- **Closed on 8 Nov (D62), the seven items left open on 7 Nov**, the maintainer: "1,2 ho with your recommendations, 3b, 4b,
+  5,6,7 your recommendations". (1) GAIN-BUCKET's v2 test declined as immaterial (B7): survival unchanged, spending beyond
+  noise on three households, two up and one down, each under a fiftieth of a percent of lifetime spending (`results-gainbucket.txt`);
+  `gainInterp` stays a research option, off. (2) phone-perf's long-task ceiling moved from 2,200ms to 2,700ms, above main's
+  own worst in twelve alternated runs (`results-phone-perf-step-u.txt`). (3) The quick start asks each pot's annual
+  contribution and the contribution's yearly increase, beside its balance (beyond LAYOUT.md section 5, which pointed to You,
+  Your money). (4) The phone's budget lifted: a solve with a base splits four ways on a touch device, as on any other
+  (faster, at more memory; set in the harness's browser, not on a phone: `results-phone-memory.txt`). (5) A restored solve's
+  paths stay on one worker for the beta (speed only, never a figure). (6) The browser check page
+  (`public/browser-check.html`) removed, with its Chromium harness and its reader. (7) load-perf's switch-on ceiling at D58
+  (2)'s limit, noted: the next kilobyte on a switch-on build's classic first load comes to the maintainer. Items 2, 3, 4 and
+  6 are one change of the site's code, from a release branch cut from `main` (Part D's code stays off it), merged on B1's
+  gate.

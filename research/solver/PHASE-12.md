@@ -110,7 +110,9 @@ the build as it is (the app's pages carry none of it), loads the app in a hidden
 at the app's own settings through the harnesses' way in, without a key, so nothing is stored and the visitor's plan and choice
 of planner are left as they were; it shows a block to copy back. `browser-results.mjs` reads each block against the same page's
 Chromium run (same solver code, 45 points, the same seed and 5,000 markets; survival within 1.96 standard errors of a
-difference; the tables' fingerprint reported, not required).
+difference; the tables' fingerprint reported, not required). Removed on 8 Nov by the maintainer's ruling (D62), the page
+with its Chromium harness (`browser-check-ui.cjs`) and its reader (`browser-results.mjs`), in the site change that carried
+D62's other items through B1's gate; they are in git at 0ee3a3b for a later check of another browser.
 
 ## 6. The beta
 

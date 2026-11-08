@@ -1,0 +1,107 @@
+solver-planner-ui.cjs (step U's harness, REQUIRED) on D62's site change (8 Nov): check 13, the quick start asking each pot's
+balance, annual contribution and contribution increase, and the plan it builds carrying them; its plant noquickcontrib (the
+plan built without them) in place of nocontribhint. Run beside D4's batch at nice 19, so its times are not a measurement.
+
+=========== clean: node research/ui-harnesses/solver-planner-ui.cjs 4273 ===========
+the harness's build (the switch and PLANNER_BETA on, as the source has them) served: true
+  ok    14. the classic planner under SOLVER true: its own tabs, none of the solver's chunks fetched   12 requests
+  ok    14. the classic planner: no page errors
+  ok    1. four places in order, each with its data-place, none of the classic labels   Your plan | You | What if | Details; reached plan, you, whatif, details
+  ok    2. the strip: solving with its percentage rising, then simulating, then solved   solving > simulating > solved; 3% to 97%
+  ok    2. the card: solving, then filling, then done   solving > filling > done
+  ok    2. all 500 paths in, the figures Node's: the solved plan's bit for bit, your current approach's and both arms' money bands within a relative 1e-12   start 80%, survival 81.60% (Node 81.60%), trials 500; yours and the money within 1.1e-15
+  ok    3. the levers panel beside the answer: its left edge right of the card, its top within 40px   card 80 to 956, panel from 980; tops 129, 129
+  ok    3. "Compare the four settings": four rows on the first step's paths, the plan's own marked, a queued row "waiting its turn", no line repeating the answer   4 rows; queued true; own 80 against Node's first step 80
+  ok    5. both charts drawn, every mark at the worker's figures (the bands, the money's bands, the typical run)   36 band marks, 36 typical marks, 36 money marks
+  ok    5. the line's first ten years are the ten-year rows' spending, and it has not moved since the first step   80 80 80 80 80 80 80 80 80 90 against 80 80 80 80 80 80 80 80 80 90
+  ok    5. the back mark at the headline's back year (2043) and the raise line shown   mark at 78; raise shown
+  ok    6. this year in, the rule shown exactly under half a point, the ten years, and the comparison retitled with its new column   {"acts":"done","rule":{"shown":"hidden","cost":2.6666666666666665},"ahead":true,"title":"The solved plan against your current approach, on the same 500 markets","cols":["","Your current approach","Solved"],"rules":"Your 
+  ok    4. the dial moves data-solve-key; the card stale behind its band, with its percentage, the old figures still readable   band "Before your last change. Working out the new plan…"; amount £41,600 a year
+  ok    4. then the new answer, the band gone
+  ok    7. seven sections in order, Limits sixth, Your current approach in the seventh, each control with its line   you money income deposits costs limits advanced; policy drawdown harvest guardrails lookahead
+  ok    7. a guardrails change keeps the key and re-runs the comparison: its column moves, the solved plan's figures the same bit for bit   key kept; your survival 40 to 93.6
+  ok    7. an input change in You makes the plan stale
+  ok    7. Your money: each pot's annual contribution and its yearly increase editable, named so and drawn like its balance; a contribution typed in reaches the plan   heads Balance today (£) | Annual contribution (£) | Contribution increase (%/yr); 5 pots; contribution like its balance on 5; the pension's contribution saved as 7000
+  ok    1. the main fixture: no page errors
+  ok    9. Details: the solved ledger with its action column, the history check, Assumptions with Display and the solver's settings, the docs section   {"ledger":true,"move":true,"hist":true,"assumptions":true,"docs":true}
+  ok    17. the rename pass: no tournament word or classic tab name on any place, the full documentation open; Docs leads with how the solver decides, the coverage card lists the solver's approximations, the glossary's four words   none found; {"solver":true,"approx":8,"coverage":true,"glossary":true}
+  ok    18. the details for a bug report, on a solved plan: the whitelist's fields in order, completed, the grid and the solver's code named, and no number of 100 or more outside the counts' lines   fields 14; numbers of 100 or more none; completed yes; code solver-code:caab59d81ccac89e
+  ok    5. S090: starting at its raise, no raise line under the chart (L13)   raise none
+  ok    8. S090 (retired): no age card; the target card's five options; the limits and scenarios cards; each saying its cost before it is asked   {"ages":false,"targets":5,"limits":true,"scen":true,"costs":2}
+  ok    7. S090 (an Auto deposit the policy routes): a policy change moves the key
+  ok    8. S090: no page errors
+  ok    8. S224 (working): the age card, its cost said before it is asked
+  ok    8. S224: no page errors
+  ok    10. S001: the couples card on Your plan, What if and Details; "Open the classic planner" shows the classic tabs, and a reload keeps them   card on plan, whatif, details; tabs Start Here, Plan Inputs, Config & Assumptions; after a reload Start Here, Plan Inputs, Config & Assumptions
+  ok    10. a couple: no page errors
+  ok    15. the opt-in both ways: "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, the saved plan as it was each time, rp_planner as chosen, a reload keeping it   the button there; new planner {"place":true,"plan":true,"pick":"new"}; back {"classic":true,"plan":true,"pick":"classic"}; after a reload {"classic":true,"plan":true}
+  ok    15. the opt-in both ways: no page errors
+  ok    16. the rollback (PLANNER_BETA false): a visitor who opted in sees the classic planner, with no opt-in   {"served":true,"classic":true,"place":false,"optIn":false,"pick":"new"}
+  ok    16. the rollback: no page errors
+  ok    18. the details for a bug report, on the failure card: the whitelist's fields, not completed, the error's words   completed no; error "planted: the solver failed"
+  ok    11. planted, the solver failing: the failure card with "Try again" and the classic link, your current approach's figures under it (its money chart named as yours alone), the levers usable   {"retry":true,"classic":true}; yours true; the chart "£0k£1.0m£2.0myour current approach, typical617996"; dial 1 to 6
+  ok    11. a failure: no page errors
+  ok    12. the phone's bottom bar: the four places, each 44px or more   Your plan 56px, You 56px, What if 56px, Details 56px
+  ok    12. no horizontal scroll on any place at 390px
+  ok    12. nothing solved and no solver chunk fetched until "Solve my plan"   0 solver requests; idle
+  ok    12. the six slides, by the step bar and by swipe   6 steps; slide 3 true; swiped to 4 true
+  ok    12. the levers sheet opens and shuts with Escape; a change in it makes the plan stale, the key unchanged and the worker asked nothing until "Solve again"   opened true, shut true; stale, key kept; asked nothing
+  ok    12. "Solve again" solves it
+  ok    12. the phone: no page errors
+  ok    13. an empty plan shows the quick start; "Work out my plan" waits for the four readiness fields; filled, it builds the plan and solves   shown true; disabled true, true, false; solving true
+  ok    13. the quick start asks each pot's balance, annual contribution and contribution increase, and the plan it builds carries them (D62)   fields pen, penC, penG, isa, isaC, isaG, gia, giaC, giaG, cash, cashC, cashG; pension 12000 rising 2%, ISA 4000, other 0, cash 0
+  ok    13. the quick start: no page errors
+
+all ok
+
+=========== its plants in one run: node research/ui-harnesses/solver-planner-ui.cjs 4273 --plants ===========
+the harness's build (the switch and PLANNER_BETA on, as the source has them; planted: leversunder, fifthplace, onefewer, noband, chartyear, keyguard, contribold, nocouple, failboth, phonesolve, staleask, navtarget40, noquickcontrib, classicfetch, optinloses, betaignored, tournamentdocs, diagwhole) served: true
+  FAIL  14. the classic planner under SOLVER true: its own tabs, none of the solver's chunks fetched   http://localhost:4284/assets/solverClient-C_YLUZBt.js
+  ok    14. the classic planner: no page errors
+  FAIL  1. four places in order, each with its data-place, none of the classic labels   Your plan | You | What if | Details | More; reached plan, you, whatif, details
+  FAIL  2. the strip: solving with its percentage rising, then simulating, then solved   solving > simulating; 3% to 97%
+  FAIL  2. the card: solving, then filling, then done   solving > filling
+  FAIL  2. all 500 paths in, the figures Node's: the solved plan's bit for bit, your current approach's and both arms' money bands within a relative 1e-12   start 80%, survival 81.56% (Node 81.60%), trials 499; yours and the money within 1.0e+0; first apart at .trials: page 499 against Node 500
+  FAIL  3. the levers panel beside the answer: its left edge right of the card, its top within 40px   card 80 to 956, panel from 80; tops 129, 646
+  ok    3. "Compare the four settings": four rows on the first step's paths, the plan's own marked, a queued row "waiting its turn", no line repeating the answer   4 rows; queued true; own 80 against Node's first step 80
+  FAIL  5. both charts drawn, every mark at the worker's figures (the bands, the money's bands, the typical run)   36 band marks, 36 typical marks, 36 money marks
+  ok    5. the line's first ten years are the ten-year rows' spending, and it has not moved since the first step   80 80 80 80 80 80 80 80 80 90 against 80 80 80 80 80 80 80 80 80 90
+  FAIL  5. the back mark at the headline's back year (2043) and the raise line shown   mark at 79; raise shown
+  ok    6. this year in, the rule shown exactly under half a point, the ten years, and the comparison retitled with its new column   {"acts":"done","rule":{"shown":"hidden","cost":2.6666666666666665},"ahead":true,"title":"The solved plan against your current approach, on the same 499 markets","cols":["","Your current approach","Solved"],"rules":"Your 
+  FAIL  4. the dial moves data-solve-key; the card stale behind its band, with its percentage, the old figures still readable   band ""; amount £41,600 a year
+  FAIL  4. then the new answer, the band gone
+  ok    7. seven sections in order, Limits sixth, Your current approach in the seventh, each control with its line   you money income deposits costs limits advanced; policy drawdown harvest guardrails lookahead
+  FAIL  7. a guardrails change keeps the key and re-runs the comparison: its column moves, the solved plan's figures the same bit for bit   key moved; your survival 39.879759519038075 to 93
+  ok    7. an input change in You makes the plan stale
+  FAIL  7. Your money: each pot's annual contribution and its yearly increase editable, named so and drawn like its balance; a contribution typed in reaches the plan   heads Balance today (£) | Annual contribution (£) | Percentage increase (%/yr); 5 pots; contribution like its balance on 0; the pension's contribution saved as 7000
+  ok    1. the main fixture: no page errors
+  ok    9. Details: the solved ledger with its action column, the history check, Assumptions with Display and the solver's settings, the docs section   {"ledger":true,"move":true,"hist":true,"assumptions":true,"docs":true}
+  FAIL  17. the rename pass: no tournament word or classic tab name on any place, the full documentation open; Docs leads with how the solver decides, the coverage card lists the solver's approximations, the glossary's four words   details: "Tournament"; details: "Recommended Polic"; details: "Strategy tab"; details: "Projection tab"; details: "Plan Inputs"; {"solver":true,"approx":8,"coverage":true,"glossary":true}
+  FAIL  18. the details for a bug report, on a solved plan: the whitelist's fields in order, completed, the grid and the solver's code named, and no number of 100 or more outside the counts' lines   fields 15 (code, key, state, completed, dial, aims, limits, floor, grid, times, parts, isolated, browser, error, record); numbers of 100 or more 11889,, 1296,, 800,, 305600,; completed yes; code solver-code:2224c3387f737430
+  ok    5. S090: starting at its raise, no raise line under the chart (L13)   raise none
+  ok    8. S090 (retired): no age card; the target card's five options; the limits and scenarios cards; each saying its cost before it is asked   {"ages":false,"targets":5,"limits":true,"scen":true,"costs":2}
+  ok    7. S090 (an Auto deposit the policy routes): a policy change moves the key
+  ok    8. S090: no page errors
+  ok    8. S224 (working): the age card, its cost said before it is asked
+  ok    8. S224: no page errors
+  FAIL  10. S001: the couples card on Your plan, What if and Details; "Open the classic planner" shows the classic tabs, and a reload keeps them   card on none; tabs Your plan, You, What if; after a reload Your plan, You, What if
+  ok    10. a couple: no page errors
+  FAIL  15. the opt-in both ways: "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, the saved plan as it was each time, rp_planner as chosen, a reload keeping it   the button there; new planner {"place":true,"plan":false,"pick":"new"}; back {"classic":true,"plan":false,"pick":"classic"}; after a reload {"classic":true,"plan":false}
+  ok    15. the opt-in both ways: no page errors
+  FAIL  16. the rollback (PLANNER_BETA false): a visitor who opted in sees the classic planner, with no opt-in   {"served":true,"classic":false,"place":true,"optIn":false,"pick":"new"}
+  ok    16. the rollback: no page errors
+  ok    18. the details for a bug report, on the failure card: the whitelist's fields, not completed, the error's words   completed no; error "planted: the solver failed"
+  FAIL  11. planted, the solver failing: the failure card with "Try again" and the classic link, your current approach's figures under it (its money chart named as yours alone), the levers usable   {"retry":true,"classic":true}; yours true; the chart "the solved plan, typicalyour current approach, typical617996"; dial 1 to 6
+  ok    11. a failure: no page errors
+  FAIL  12. the phone's bottom bar: the four places, each 44px or more   Your plan 40px, You 40px, What if 40px, Details 40px
+  ok    12. no horizontal scroll on any place at 390px
+  FAIL  12. nothing solved and no solver chunk fetched until "Solve my plan"   5 solver requests; solving
+  FAIL  12. the six slides, by the step bar and by swipe   6 steps; slide 3 true; swiped to 4 true
+  FAIL  12. the levers sheet opens and shuts with Escape; a change in it makes the plan stale, the key unchanged and the worker asked nothing until "Solve again"   opened true, shut true; solving, key moved; asked strategy
+  ok    12. "Solve again" solves it
+  ok    12. the phone: no page errors
+  ok    13. an empty plan shows the quick start; "Work out my plan" waits for the four readiness fields; filled, it builds the plan and solves   shown true; disabled true, true, false; solving true
+  FAIL  13. the quick start asks each pot's balance, annual contribution and contribution increase, and the plan it builds carries them (D62)   fields pen, penC, penG, isa, isaC, isaG, gia, giaC, giaG, cash, cashC, cashG; pension 0 rising 0%, ISA 0, other 0, cash 0
+  ok    13. the quick start: no page errors
+
+PLANTED (leversunder, fifthplace, onefewer, noband, chartyear, keyguard, contribold, nocouple, failboth, phonesolve, staleask, navtarget40, noquickcontrib, classicfetch, optinloses, betaignored, tournamentdocs, diagwhole): checks failing 1, 2, 3, 4, 5, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18; their own 1, 2, 3, 4, 5, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18: EACH PLANT FAILS EXACTLY ITS OWN CHECKS

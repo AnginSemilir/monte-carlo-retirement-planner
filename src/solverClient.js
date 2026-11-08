@@ -27,7 +27,7 @@ export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phoneparts' lifts the phone's budget (phone-budget.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -37,11 +37,14 @@ export const defaultParts = () => (canSplit() ? Math.max(1, Math.min(4, (typeof 
  * position solves its base first, and each part of its split solve restores the base (L2), so its peak memory grows with the
  * parts; the solve on show peaks at about the same split any way (results-phone-memory.txt). On a touch device (no fine,
  * hovering pointer: a phone or a tablet, in either orientation) a solve with a base splits TOUCH_BASE_PARTS ways at most;
- * every other solve, and every solve elsewhere, splits as before (research/tests/phone-budget.test.mjs).
+ * every other solve, and every solve elsewhere, splits as before (research/tests/phone-budget.test.mjs). Two from Phase 11;
+ * four from 8 Nov, the maintainer's ruling (D62: faster, at more memory: about 2.5GB at the dial's 3 in the harness's
+ * browser, where two ways peaked at about 1.6GB), so a touch device splits as any other does, at gate 5's four cores at most;
+ * the cap stays, one figure to move if a phone runs short of memory.
  */
-export const TOUCH_BASE_PARTS = 2;
+export const TOUCH_BASE_PARTS = 4;
 export const touchDevice = () => typeof window !== 'undefined' && !!window.matchMedia && !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-export const partsFor = (parts, base) => (base && touchDevice() && PLANT.rule !== 'phoneparts' ? Math.min(parts, TOUCH_BASE_PARTS) : parts);
+export const partsFor = (parts, base) => (base && touchDevice() ? Math.min(parts, PLANT.rule === 'phonetwo' ? 2 : TOUCH_BASE_PARTS) : parts);
 const newWorker = () => new Worker(new URL('./solverWorker.js', import.meta.url), { type: 'module' });
 /* the solve's key on the page: the plan as the solver takes it and the settings (the code is checked by the worker) */
 export const keyOf = (engine, plan, opts = {}) => solveKey(engine, plan, opts);

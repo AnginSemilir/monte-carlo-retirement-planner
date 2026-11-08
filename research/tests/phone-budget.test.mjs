@@ -4,26 +4,26 @@
  * parts, where the solve on show peaks at about the same split any way: S116 at 45 points in the harness's browser, the
  * locked position peaked at about 1.0, 1.6 and 2.5GB split one, two and four ways (results-phone-memory.txt, run 8 and run 7).
  * On a touch device (src/solverClient.js touchDevice: no fine, hovering pointer, so a phone or a tablet in either orientation)
- * a solve with a base splits two ways at most (TOUCH_BASE_PARTS); every other solve, and every solve on a device with a
- * mouse, splits as before. The full tier.
+ * a solve with a base splits TOUCH_BASE_PARTS ways at most: two from Phase 11, four from 8 Nov by the maintainer's ruling
+ * (D62: faster, at more memory), so a touch device now splits as one with a mouse does. The full tier.
  *
  * On S126 at light settings, its workers run in this process (as solver-client.test.mjs runs them), the device told by
  * window.matchMedia:
- *   1. on a touch device, the plan at the dial's 3 (its base first), asked to split four ways: two;
+ *   1. on a touch device, the plan at the dial's 3 (its base first), asked to split four ways: four;
  *   2. on a touch device, the plan at the dial's default (no base), asked four ways: four;
  *   3. on a device with a mouse, the plan at the dial's 3, asked four ways: four;
  *   4. on a touch device, the dial's line working out the plan at 6 (startFigures, the base and the position): every solve
- *      in it split two ways at most, counted by the parts its workers were sent;
+ *      in it split four ways, counted by the parts its workers were sent;
  *   5. on a touch device, a solve asked to split one way is not split.
- * The plant (the client's PLANT 'phoneparts': the budget lifted) fails checks 1 and 4.
- *   node research/tests/phone-budget.test.mjs [--plant phoneparts]
+ * The plant (the client's PLANT 'phonetwo': the budget held at two, as before D62) fails checks 1 and 4.
+ *   node research/tests/phone-budget.test.mjs [--plant phonetwo]
  *   node research/tests/phone-budget.test.mjs --plants
  */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2), self = fileURLToPath(import.meta.url);
-const PLANTS = { phoneparts: [1, 4] };
+const PLANTS = { phonetwo: [1, 4] };
 if (args[0] === '--plants') {
   let bad = 0;
   for (const [name, want] of Object.entries(PLANTS)) {
@@ -93,7 +93,7 @@ const solveAt = async (x, parts) => {
 };
 
 mouse = false;
-{ const r = await solveAt(3, 4); ok(1, 'on a touch device, the plan at the dial\'s 3 (its base first), asked to split four ways, splits two', r.parts === 2, `${r.parts} ways (its parts told ${[...new Set(r.sent)].join(', ') || 'none'})`); }
+{ const r = await solveAt(3, 4); ok(1, 'on a touch device, the plan at the dial\'s 3 (its base first), asked to split four ways, splits four', r.parts === 4, `${r.parts} ways (its parts told ${[...new Set(r.sent)].join(', ') || 'none'})`); }
 { const r = await solveAt(1, 4); ok(2, 'on a touch device, the plan at the dial\'s default (no base), asked four ways, splits four', r.parts === 4, `${r.parts} ways`); }
 mouse = true;
 { const r = await solveAt(3, 4); ok(3, 'on a device with a mouse, the plan at the dial\'s 3, asked four ways, splits four', r.parts === 4, `${r.parts} ways`); }
@@ -101,7 +101,7 @@ mouse = false;
 { partsSent = [];
   const f = C.startFigures(E, at(6), { ...opts, seed: 12345, upto: 40, parts: 4 });
   const fig = await f.done;
-  ok(4, 'on a touch device, the dial\'s line working out the plan at 6: every solve in it split two ways at most', !!fig.headline && partsSent.length > 0 && partsSent.every(n => n <= 2), `the parts told ${partsSent.join(', ')}`); }
+  ok(4, 'on a touch device, the dial\'s line working out the plan at 6: every solve in it split four ways', !!fig.headline && partsSent.length > 0 && partsSent.every(n => n === 4), `the parts told ${partsSent.join(', ')}`); }
 { const r = await solveAt(3, 1); ok(5, 'on a touch device, a solve asked to split one way is not split', r.parts === 1 && r.sent.length === 0, `${r.parts} way, ${r.sent.length} parts sent`); }
 
 console.log(`\n${passed} passed, ${failed} failed${PLANT_NAME ? ` (planted: ${PLANT_NAME})` : ''}`);

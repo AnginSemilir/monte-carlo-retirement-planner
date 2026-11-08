@@ -38,9 +38,13 @@ const BEFORE_MS = 28398;  // this harness, this plan, the build before the worke
  * 20 Sep (d9b9491) 941 to 1,105. The difference is engine work, not the runner: bisected to 969669a (tax on
  * savings interest and on dividends, two more income-tax calls a person a year), which measured 1,372 and
  * 1,461. 2,200 sits about 335ms above the worst of them, more than half the spread, and still catches a page
- * frozen for the 28 seconds this harness exists to prevent, twelve times over.
+ * frozen for the 28 seconds this harness exists to prevent, twelve times over. RAISED TO 2,700 on 8 Nov, on the
+ * maintainer's call (D62), after step U's gate read one pass over 2,200 on bytes that had passed hours before: twelve
+ * alternated runs on a quiet machine read main's build before step U 1,632 to 2,656, over 2,200 on three of its six, and
+ * step U's 1,368 to 1,982 (results-phone-perf-step-u.txt), so the old line sat inside main's own spread. 2,700 sits above
+ * main's worst and catches the frozen page ten times over.
  */
-const LONG_TASK_CEILING = 2200;
+const LONG_TASK_CEILING = 2700;
 /*
  * The new planner's line (Phase 11, 5 Nov): the long tasks from pressing "Solve my plan" on a phone to every path in, about
  * two and a half minutes at the harnesses' light settings, the solve in the solver's workers. Ten runs on a switch-on build

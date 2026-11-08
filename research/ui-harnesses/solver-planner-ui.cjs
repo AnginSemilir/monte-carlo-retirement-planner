@@ -40,7 +40,8 @@
  *      a change in it makes the plan stale (data-solve-key unchanged until asked), and the worker is asked nothing until
  *      "Solve again";
  *  13  the quick start: an empty plan shows it; "Work out my plan" waits for the four readiness fields; filled, it builds
- *      the plan and solves; it points to where each pot's contributions are set (You, Your money);
+ *      the plan and solves; it asks each pot's annual contribution and the contribution's yearly increase, and the plan it
+ *      builds carries them (D62, 8 Nov; before it, a pointer to You, Your money);
  *  14  the classic planner, the switch on, fetches none of the solver's chunks;
  *  15  the opt-in both ways (Phase 12 item 3; the readiness checklist's "switched on and off without losing a plan"): from the
  *      classic planner "Try the new planner (beta)" opens the new planner and "Classic planner" comes back, each time with
@@ -57,7 +58,7 @@
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
  * keyguard (7), contribold (7: Your money's contributions drawn grey and their increase named as the classic table names it),
  * nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
- * staleask (12), navtarget40 (12), nocontribhint (13: the quick start without its pointer to the contributions),
+ * staleask (12), navtarget40 (12), noquickcontrib (13: the plan the quick start builds without the contributions it was given),
  * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
  * planner), diagwhole (18: the diagnostic appends the solve's record whole).
@@ -75,8 +76,8 @@ const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'nocontribhint', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, nocontribhint: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -514,19 +515,25 @@ const firstDiff = (a, b, at = '') => {
     // ---------------------------------------------------------------- 13. the quick start
     { const { p, errs } = await open(b, null);
       const shown = !!(await p.$('[data-place="plan"] [data-quick-start]'));
-      const hint = await p.$eval('[data-quick-start] [data-quick-contrib]', el => el.textContent).catch(() => null);
+      const potFields = await p.$$eval('[data-quick-start] [data-quick-pot] [data-quick-field]', els => els.map(el => el.getAttribute('data-quick-field'))).catch(() => []);
       const dis0 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
       for (const [k, v] of [['ageSelf', '60'], ['retireSelf', '60'], ['spend', '30000']]) await p.fill(`[data-quick-field="${k}"]`, v);
       const dis1 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
       await p.fill('[data-quick-field="pen"]', '600000');
       const dis2 = await p.$eval('[data-quick-go]', el => el.disabled).catch(() => null);
+      for (const [k, v] of [['penC', '12000'], ['penG', '2'], ['isaC', '4000']]) await p.fill(`[data-quick-field="${k}"]`, v).catch(() => {});
       await p.click('[data-quick-go]').catch(() => {});
       let solving = false;
       for (let i = 0; i < 80 && !solving; i++) { const st = await strip(p); solving = !!st && (st.solve === 'solving' || st.solve === 'solved'); await p.waitForTimeout(150); }
       const pl = await saved(p);
       ok(13, 'an empty plan shows the quick start; "Work out my plan" waits for the four readiness fields; filled, it builds the plan and solves', shown && dis0 === true && dis1 === true && dis2 === false && solving && pl && Number(pl.spending.targetSpend) === 30000,
         `shown ${shown}; disabled ${dis0}, ${dis1}, ${dis2}; solving ${solving}`);
-      ok(13, 'the quick start points to where each pot\'s contributions and their yearly increase are set (You, Your money)', !!hint && /Your money/.test(hint) && /each year/.test(hint), hint ? `"${hint.slice(0, 80)}..."` : 'no hint');
+      const want = ['pen', 'penC', 'penG', 'isa', 'isaC', 'isaG', 'gia', 'giaC', 'giaG', 'cash', 'cashC', 'cashG'];
+      const acc = id => ((pl && pl.accounts) || []).find(a => a.id === id) || {}, num = v => Number(v || 0);
+      const carried = [[acc('pen_self'), 600000, 12000, 2], [acc('isa_self'), 0, 4000, 0], [acc('other_self'), 0, 0, 0], [acc('cash_self'), 0, 0, 0]];
+      ok(13, 'the quick start asks each pot\'s balance, annual contribution and contribution increase, and the plan it builds carries them (D62)',
+        JSON.stringify(potFields) === JSON.stringify(want) && carried.every(([a, b, c, g]) => num(a.balance) === b && num(a.contrib) === c && num(a.growth) === g),
+        `fields ${potFields.join(', ') || 'none'}; pension ${num(acc('pen_self').contrib)} rising ${num(acc('pen_self').growth)}%, ISA ${num(acc('isa_self').contrib)}, other ${num(acc('other_self').contrib)}, cash ${num(acc('cash_self').contrib)}`);
       ok(13, 'the quick start: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

@@ -6,6 +6,10 @@
  * Its fields are the Simple page's, as src/simplePlan.js names them, filled from the Simple page's saved inputs where those
  * have any (rp_simple_v1; that key is left as it is). "Work out my plan" waits for readiness: your age, when you stop working,
  * what you want to spend and what you have saved; then it builds the plan with toFullPlan and hands it over, which solves it.
+ * Each pot asks its balance today, its annual contribution and the contribution's yearly increase (the maintainer's ruling of
+ * 8 Nov, D62; before it the quick start pointed to You, Your money for the two), the Simple page's penC and penG and their
+ * kin, which toFullPlan already carries into each account's contrib and growth: left blank, a pot is paid nothing, so a plan
+ * with none of them entered is the plan the quick start built before.
  */
 import React, { useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
@@ -18,12 +22,12 @@ const saved = () => { try { const s = JSON.parse(localStorage.getItem(SIMPLE_KEY
 const FIELDS = [
   ['ageSelf', 'Your age', 'number', ''],
   ['retireSelf', 'When you stop working (age)', 'number', ''],
-  ['spend', 'What you want to spend a year, in today\'s money', 'money', ''],
-  ['pen', 'Pensions', 'money', ''],
-  ['isa', 'ISAs', 'money', ''],
-  ['gia', 'Other savings and investments', 'money', ''],
-  ['cash', 'Cash', 'money', '']
+  ['spend', 'What you want to spend a year, in today\'s money', 'money', '']
 ];
+// each pot: its balance key, as simplePlan.js names it; its annual contribution is key + 'C', the contribution's yearly increase key + 'G'
+const POTS = [['pen', 'Pensions'], ['isa', 'ISAs'], ['gia', 'Other savings and investments'], ['cash', 'Cash']];
+// the planted fault (solver-planner-ui.cjs check 13): the plan built without the contributions the quick start was given
+const noContribs = s => ({ ...s, ...Object.fromEntries(POTS.flatMap(([k]) => [[k + 'C', ''], [k + 'G', '']])) });
 
 export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, statePensionFull, fmt }) {
   const [s, setS] = useState(() => ({ ...(saved() || SIMPLE_BLANK), couple: false }));
@@ -54,9 +58,23 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
           <input data-quick-field="statePensionSelf" type="number" min="0" step="100" inputMode="numeric" placeholder={fmt ? fmt(statePensionFull) : String(statePensionFull)} value={s.statePensionSelf} onChange={e => set('statePensionSelf', e.target.value)} className={field} />
         </label>
       </div>
-      {!PLANNER_PLANT.has('nocontribhint') && <p data-quick-contrib className="text-xs text-slate-600">Paying into any of these each year? Add what you pay in, and how much it rises each year, in You, under Your money: it is there for each pot.</p>}
+      <fieldset data-quick-pots className="space-y-3">
+        <legend className="text-xs font-semibold text-slate-800">What you have saved, and what you pay in</legend>
+        <p data-quick-contrib className="text-xs text-slate-600">For each pot, what is in it today, what you pay in each year until you stop working, and how much that rises each year. Leave a box blank for nothing.</p>
+        {POTS.map(([k, label]) => (
+          <div key={k} data-quick-pot={k} className="grid grid-cols-3 gap-2 items-end">
+            <span className="col-span-3 text-xs font-semibold text-slate-800">{label}</span>
+            {[[k, 'Balance today (\u00a3)', 1000], [k + 'C', 'Annual contribution (\u00a3)', 500], [k + 'G', 'Contribution increase (%)', 0.5]].map(([f, l, step]) => (
+              <label key={f} className="text-xs text-slate-600 space-y-1 block min-w-0">
+                <span className="block leading-tight">{l}</span>
+                <input data-quick-field={f} type="number" min="0" step={step} inputMode={f === k + 'G' ? 'decimal' : 'numeric'} aria-label={`${label}: ${l}`} value={s[f]} onChange={e => set(f, e.target.value)} className={`${field} min-w-0`} />
+              </label>
+            ))}
+          </div>
+        ))}
+      </fieldset>
       <div className="space-y-1">
-        <button type="button" data-quick-go disabled={!r.ready} onClick={() => onStart(toFullPlan(s))}
+        <button type="button" data-quick-go disabled={!r.ready} onClick={() => onStart(toFullPlan(PLANNER_PLANT.has('noquickcontrib') ? noContribs(s) : s))}
           className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${isPhone ? 'w-full min-h-11' : 'min-h-9'}`}>Work out my plan</button>
         <p className="text-xs text-slate-500">{r.ready ? 'It takes a few minutes. The other places fill in as it works.' : `Still needed: ${r.missing.join(', ')}.`}</p>
       </div>

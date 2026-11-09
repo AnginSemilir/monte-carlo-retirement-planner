@@ -27,7 +27,7 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 11, the phone on the new planner | to 11 Nov | 1 | merged (pull request 9) | 1 |
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | built (`PART-D.md`), on the working branch | 6 |
-| Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built, registered (the design review's PASS) and ruled (D61), running since 7 Nov 18:38 UK: 4 of its 6 items (the panel, the pilot, the sizing, the registration; the run and the read to come) | 4.7 |
+| Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built, registered (the design review's PASS) and ruled (D61), running since 7 Nov 18:38 UK, again from its first chunk since 9 Nov 07:46 UK after a reprovision wiped the machine (its finished chunks backed up since, D63): 4 of its 6 items (the panel, the pilot, the sizing, the registration; the run and the read to come) | 4.7 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
 | **Total** | | **37** | | **29.7 (80%)** |
 

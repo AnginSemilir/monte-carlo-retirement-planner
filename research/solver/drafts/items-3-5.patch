@@ -1,0 +1,1615 @@
+# Items 3, 4 and 5 of the review of 9 Nov, uncommitted (D69: kept on the remote until they are committed).
+# The working tree's changes on cc54b520, new files included. Apply on that commit: git apply research/solver/drafts/items-3-5.patch
+# Then: python3 research/build-engine.py; node research/tests/solver-e3pcls.test.mjs 4 --pin.
+diff --git a/research/solver/e3pcls-pin.json b/research/solver/e3pcls-pin.json
+index e153b025..6a334a87 100644
+--- a/research/solver/e3pcls-pin.json
++++ b/research/solver/e3pcls-pin.json
+@@ -1,6 +1,6 @@
+ {
+-  "fingerprint": "0656d1822d243408",
+-  "at": "10 Nov, 09:09 UK",
++  "fingerprint": "e5e397ff0f8fa25b",
++  "at": "10 Nov, 15:58 UK",
+   "points": 4,
+   "passed": 27,
+   "test": "research/tests/solver-e3pcls.test.mjs",
+diff --git a/research/tests/engine-hmrc.test.mjs b/research/tests/engine-hmrc.test.mjs
+new file mode 100644
+index 00000000..837b8bd0
+--- /dev/null
++++ b/research/tests/engine-hmrc.test.mjs
+@@ -0,0 +1,210 @@
++/*
++ * THE ENGINE'S YEAR AGAINST HMRC'S ORDER (the external review of 9 Nov, Review 1; EXPERIMENTS-AND-PORTS.md item 3).
++ *
++ * The other tax tests pin each published figure (tax-2026, scottax, savings-tax). This one pins how a person's incomes
++ * are STACKED within a year, which no test did: the solver's model repeats the engine's stacking line for line, so the two
++ * agree with each other and can both differ from HMRC.
++ *
++ * `hmrcYear` below is an independent statement of the order (ITA 2007 s23, as GOV.UK describes it): the personal allowance
++ * (tapered on ALL the year's income) against non-savings income first, then interest, then dividends; non-savings income on
++ * the region's ladder; interest and dividends on the UK's bands above it; the starting rate band (£5,000 less taxable
++ * non-savings income) and the savings allowance at 0% at the bottom of the TAXABLE interest; £500 at 0% at the bottom of the
++ * TAXABLE dividends.
++ *   A. `hmrcYear` itself, against twelve years worked by hand in the comments;
++ *   B. the engine's two functions (taxParams' savingsTax, dividendTax) against it over a grid;
++ *   C. whole years: each fixture's plan run on the expected path, and every year's `taxPaid` against `hmrcYear` on that
++ *      row's own incomes (a worker's pay included: the row's tax is the person's whole bill less the tax on the pay alone,
++ *      which the take-home already paid).
++ * The review of 9 Nov's test (research/reviews/2026-11-09/tests/ on review/external-2026-10-21 at f77ca16c), ported with item 3
++ * (D66): on the engine before the port it printed 12 passed, 10 failed (research/tests/results-engine-hmrc-before.txt, the
++ * test shown failing, CHECKLIST 7). Here section C reads each row's taxable pay (after the year's pension contribution) and,
++ * per person, its interest and dividends, so it also runs C4 and C5 with the library's saving left on and C6 with cash and a
++ * taxable account split between the two.
++ *   D. the solver's memo (fast.js KNOCK.memo, step 2's remedy for the solve's time): each income level's bill and each gross
++ *      draw worked once a decision; S116's tables at light settings the same to the bit with it on and off.
++ * The plants (--planted reads both): ENGINE_HMRC_PLANT=nopaydiv, the pay dropped from the dividends' stack in a patched copy
++ * of the engine, must fail C5; ENGINE_HMRC_PLANT=noceiling, the draw's ceiling left out of the memo's key, must fail D1.
++ *   node research/tests/engine-hmrc.test.mjs [--planted]
++ */
++import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
++import { spawnSync } from 'node:child_process';
++import { tmpdir } from 'node:os';
++import { dirname, join } from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++
++const HERE = dirname(fileURLToPath(import.meta.url)), SELF = fileURLToPath(import.meta.url);
++// --planted: this test again on the planted engine, read for which checks fail (C5 must, among them)
++if (process.argv.includes('--planted')) {
++  let bad = 0;
++  for (const [plant, want] of [['nopaydiv', ['C5', 'C5S']], ['noceiling', ['D1']]]) {
++    const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, ENGINE_HMRC_PLANT: plant }, encoding: 'utf8' });
++    const failed = [...r.stdout.matchAll(/^FAIL {2}(\S+)/gm)].map(m => m[1]);
++    const ok = want.every(w => failed.includes(w));
++    if (!ok) bad++;
++    console.log(`planted ${plant}: the checks that fail: ${failed.join(', ') || 'none'}; ${want.join(' and ')} among them: ${ok ? 'yes' : 'NO'}`);
++  }
++  process.exit(bad ? 1 : 0);
++}
++// the plant: the pay dropped from the dividends' stack (each person's bill with the dividends taxed as if there were no pay)
++const PLANT = process.env.ENGINE_HMRC_PLANT || '';
++let E, tmp = null;
++if (PLANT === 'nopaydiv') {
++  const src = readFileSync(join(HERE, '../engine.mjs'), 'utf8');
++  const anchor = "const billOf = (key) => P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] });";
++  if (src.split(anchor).length !== 2) throw new Error('engine-hmrc: the plant\'s anchor is not in research/engine.mjs once');
++  const planted = "const billOf = (key) => { const b = P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] }); const d = P.personTax({ nonSavings: taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] }).onDividends; return { ...b, onDividends: d, total: b.onNonSavings + b.onInterest + d }; };";
++  tmp = mkdtempSync(join(tmpdir(), 'engine-hmrc-'));
++  writeFileSync(join(tmp, 'engine.mjs'), src.replace(anchor, planted));
++  E = await import(join(tmp, 'engine.mjs'));
++} else E = await import('../engine.mjs');
++
++let passed = 0, failed = 0;
++const ok = (name, cond, note = '') => { if (cond) passed++; else failed++; console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${note ? '  -- ' + note : ''}`); };
++const near = (a, b, tol = 0.5) => Math.abs(a - b) <= tol;
++const gbp = v => `£${(Math.round(v * 100) / 100).toLocaleString('en-GB')}`;
++
++/* ---------------------------------------------------------------- the reference: one person's year, by HMRC's order */
++const UK_BANDS = [37700, 125140];                                     // taxable income: basic to 37,700, higher to 125,140
++const SCOT_2026 = [[3967, 0.19], [16956, 0.20], [31092, 0.21], [62430, 0.42], [125140, 0.45], [Infinity, 0.48]];   // gov.scot, 2026 to 2027
++const RUK = [[UK_BANDS[0], 0.20], [UK_BANDS[1], 0.40], [Infinity, 0.45]];
++const bandTax = (lo, hi, bands) => { let t = 0, a = 0; for (const [top, r] of bands) { const w = Math.min(hi, top) - Math.max(lo, a); if (w > 0) t += w * r; a = top; } return t; };
++export function hmrcYear({ nonSavings = 0, interest = 0, dividends = 0, scottish = false }) {
++  const total = nonSavings + interest + dividends;
++  const pa = Math.max(0, 12570 - Math.max(0, total - 100000) / 2);
++  let left = pa;
++  const tns = Math.max(0, nonSavings - left); left = Math.max(0, left - nonSavings);
++  const ti = Math.max(0, interest - left); left = Math.max(0, left - interest);
++  const td = Math.max(0, dividends - left);
++  const onNonSavings = bandTax(0, tns, scottish ? SCOT_2026 : RUK);
++  const all = tns + ti + td;
++  const psa = all <= UK_BANDS[0] ? 1000 : all <= UK_BANDS[1] ? 500 : 0;
++  const zeroI = Math.min(ti, Math.max(0, 5000 - tns) + psa);
++  const onInterest = bandTax(tns + zeroI, tns + ti, RUK);
++  const zeroD = Math.min(td, 500);
++  const onDividends = bandTax(tns + ti + zeroD, tns + ti + td, [[UK_BANDS[0], 0.1075], [UK_BANDS[1], 0.3575], [Infinity, 0.3935]]);
++  return { pa, onNonSavings, onInterest, onDividends, total: onNonSavings + onInterest + onDividends };
++}
++
++console.log('=========== A. THE REFERENCE, AGAINST YEARS WORKED BY HAND ===========');
++// A1  £30,000 of pension, nothing else: (30,000 - 12,570) x 20% = 3,486
++ok('A1  a pension of £30,000', near(hmrcYear({ nonSavings: 30000 }).total, 3486));
++// A2  £8,000 of pension and £9,000 of interest: the allowance covers the 8,000 and 4,570 of the interest; the other 4,430 is
++//     inside the £5,000 starting rate band. Nothing to pay.
++ok('A2  £8,000 and £9,000 of interest: nothing', near(hmrcYear({ nonSavings: 8000, interest: 9000 }).total, 0));
++// A3  £10,000 and £10,000 of interest: the allowance covers 10,000 + 2,570; of the 7,430 left, 5,000 starting rate, 1,000
++//     savings allowance, 1,430 x 20% = 286
++ok('A3  £10,000 and £10,000 of interest: £286', near(hmrcYear({ nonSavings: 10000, interest: 10000 }).total, 286));
++// A4  GOV.UK's own example: wages £16,000, interest £200. Wages above the allowance, 3,430, cut the starting rate band to
++//     1,570, which covers the interest. Tax: 3,430 x 20% = 686, all on the wages.
++{ const r = hmrcYear({ nonSavings: 16000, interest: 200 }); ok('A4  GOV.UK: wages £16,000, interest £200', near(r.total, 686) && near(r.onInterest, 0)); }
++// A5  a pension drawn to the allowance (£12,570) and £8,489 of dividends: (8,489 - 500) x 10.75% = 858.82
++ok('A5  a draw to the allowance and £8,489 of dividends: £858.82', near(hmrcYear({ nonSavings: 12570, dividends: 8489 }).total, 858.82, 0.01));
++// A6  £12,070 and £1,500 of dividends: the allowance covers 500 of them, the next 500 are at 0%, 500 x 10.75% = 53.75
++ok('A6  £12,070 and £1,500 of dividends: £53.75', near(hmrcYear({ nonSavings: 12070, dividends: 1500 }).total, 53.75, 0.01));
++// A7  pay £60,000 and a pension of £12,929: on 72,929, 37,700 x 20% + 22,659 x 40% = 16,603.60; on the pay alone,
++//     37,700 x 20% + 9,730 x 40% = 11,432; the pension's tax is the difference, 5,171.60
++ok('A7  a pension of £12,929 on top of pay of £60,000: £5,171.60', near(hmrcYear({ nonSavings: 72929 }).total - hmrcYear({ nonSavings: 60000 }).total, 5171.6, 0.01));
++// A8  pay £142,500, interest £3,825.32, dividends £22,397.04: no allowance, no savings allowance; the interest at 45% =
++//     1,721.39; the dividends, (22,397.04 - 500) x 39.35% = 8,616.49
++{ const r = hmrcYear({ nonSavings: 142500, interest: 3825.32, dividends: 22397.04 }); ok('A8  pay £142,500: interest at 45%, dividends at 39.35%', near(r.onInterest, 1721.39, 0.01) && near(r.onDividends, 8616.49, 0.01)); }
++// A9  a state pension of £12,000, a taxable draw of £45,000 and £10,000 of dividends: taxable non-savings 44,430, past the
++//     basic band, so the dividends are all in the higher band: (10,000 - 500) x 35.75% = 3,396.25
++ok('A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends', near(hmrcYear({ nonSavings: 57000, dividends: 10000 }).onDividends, 3396.25, 0.01));
++// A10 Scotland, £30,000: taxable 17,430: 3,967 x 19% + 12,989 x 20% + 474 x 21% = 753.73 + 2,597.80 + 99.54 = 3,451.07.
++//     Scotland, £20,000 and £5,000 of interest: taxable 7,430 = 3,967 x 19% + 3,463 x 20% = 1,446.33; no starting rate band
++//     left; the interest, (5,000 - 1,000) x 20% (the UK's rate) = 800
++ok('A10 Scotland: £30,000; £20,000 with £5,000 of interest', near(hmrcYear({ nonSavings: 30000, scottish: true }).total, 3451.07, 0.01) && near(hmrcYear({ nonSavings: 20000, interest: 5000, scottish: true }).total, 2246.33, 0.01));
++// A11 the taper, £110,000: allowance 7,570; taxable 102,430: 37,700 x 20% + 64,730 x 40% = 33,432. And the taper counts ALL
++//     income: £95,000 with £20,000 of dividends leaves an allowance of 5,070, so 7,500 more of the 95,000 is taxed at 40%
++ok('A11 the taper on all income', near(hmrcYear({ nonSavings: 110000 }).total, 33432) && near(hmrcYear({ nonSavings: 95000, dividends: 20000 }).onNonSavings - hmrcYear({ nonSavings: 95000 }).onNonSavings, 3000));
++// A12 £49,000 and £3,000 of interest: taxable 36,430 + 3,000 passes 37,700, so the savings allowance is 500: 500 at 0%,
++//     770 x 20% = 154, 1,730 x 40% = 692; 846
++ok('A12 interest across the higher-rate line: £846', near(hmrcYear({ nonSavings: 49000, interest: 3000 }).onInterest, 846));
++
++console.log('=========== B. THE ENGINE\'S savingsTax AND dividendTax AGAINST THE REFERENCE ===========');
++{
++  const P = E.taxParams(E.DEFAULT_CONFIG);
++  const NS = [0, 4000, 8000, 10000, 12070, 12570, 15000, 17570, 30000, 49000, 60000, 130000], I = [0, 500, 3980, 9000, 20000], D = [0, 400, 1500, 8489, 30000];
++  let nI = 0, badI = 0, worstI = null, nD = 0, badD = 0, worstD = null;
++  for (const ns of NS) for (const i of I) {
++    if (i > 0) { const got = P.savingsTax(ns, i), want = hmrcYear({ nonSavings: ns, interest: i }).onInterest; nI++; if (!near(got, want)) { badI++; if (!worstI || Math.abs(got - want) > Math.abs(worstI.got - worstI.want)) worstI = { ns, i, got, want }; } }
++    for (const d of D) if (d > 0) { const got = P.dividendTax(ns, i, d), want = hmrcYear({ nonSavings: ns, interest: i, dividends: d }).onDividends; nD++; if (!near(got, want)) { badD++; if (!worstD || Math.abs(got - want) > Math.abs(worstD.got - worstD.want)) worstD = { ns, i, d, got, want }; } }
++  }
++  ok(`B1  savingsTax: ${nI} cases`, badI === 0, badI ? `${badI} differ; the worst: other income ${gbp(worstI.ns)}, interest ${gbp(worstI.i)}: the engine ${gbp(worstI.got)}, HMRC ${gbp(worstI.want)}` : '');
++  ok(`B2  dividendTax: ${nD} cases`, badD === 0, badD ? `${badD} differ; the worst: other income ${gbp(worstD.ns)}, interest ${gbp(worstD.i)}, dividends ${gbp(worstD.d)}: the engine ${gbp(worstD.got)}, HMRC ${gbp(worstD.want)}` : '');
++  ok('B3  the review\'s 1.3: £8,000 and £9,000 of interest is untaxed', near(P.savingsTax(8000, 9000), 0), `the engine ${gbp(P.savingsTax(8000, 9000))}`);
++}
++
++console.log('=========== C. WHOLE YEARS: EVERY ROW\'S taxPaid AGAINST THE REFERENCE ON THE ROW\'S OWN INCOMES ===========');
++const lib = buildScenarios();
++const planOf = (id) => JSON.parse(JSON.stringify(lib.find(s => s.id === id).plan));
++const setBal = (plan, id, balance, extra = {}) => { const a = plan.accounts.find(x => x.id === id); if (!a) throw new Error(`no account ${id}`); Object.assign(a, { balance, ...extra }); };
++const noSaving = (plan) => { plan.accounts.forEach(a => { a.contrib = 0; if ('employerContrib' in a) a.employerContrib = 0; }); return plan; };
++// the plan's rules drawing the pension to the allowance first and re-wrapping it: the move every solved plan favours
++const PA_FIRST = { steps: ['penPA', 'cash', 'other', 'isa', 'penBasic', 'penAny'], harvest: true };
++const FIXTURES = [
++  ['C1  S116 as the library has it (retired, Scotland)', () => planOf('S116')],
++  ['C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2)', () => { const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c); p.spending.policyOverride = PA_FIRST; return p; }],
++  ['C3  the same in England', () => { const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c); p.spending.policyOverride = PA_FIRST; p.config = { ...p.config, taxRegion: 'ruk' }; return p; }],
++  ['C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1)', () => noSaving(planOf('S210'))],
++  ['C5  S214, no saving (working to 60 on £142,500) (1.1)', () => noSaving(planOf('S214'))],
++  ['C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1)', () => {
++    const p = planOf('S021'); Object.assign(p.demographics, { currentAgePart: 60, retireAgePart: 66, salaryPart: 60000 });
++    p.accounts.forEach(a => { if (a.id === 'pen_part') Object.assign(a, { balance: 600000, contrib: 0 }); else if (/^(pen|isa|other|cash|cashIsa)_/.test(a.id)) a.balance = 0; });
++    return noSaving(p);
++  }],
++  // with the library's saving left on: the taxable pay is the salary less the year's pension contribution
++  ['C4S S210 with its saving (the taxable pay after contributions)', () => planOf('S210')],
++  ['C5S S214 with its saving (the taxable pay after contributions)', () => planOf('S214')],
++  // C6's couple with £200,000 of cash and a £300,000 taxable account, split 60/40 between the two (the row's split by person)
++  ['C6S C6 with £200,000 of cash and a £300,000 taxable account split between the two', () => {
++    const p = planOf('S021'); Object.assign(p.demographics, { currentAgePart: 60, retireAgePart: 66, salaryPart: 60000 });
++    p.accounts.forEach(a => { if (a.id === 'pen_part') Object.assign(a, { balance: 600000, contrib: 0 }); else if (/^(pen|isa|cashIsa)_/.test(a.id)) a.balance = 0; });
++    setBal(p, 'cash_self', 120000); setBal(p, 'cash_part', 80000); setBal(p, 'other_self', 180000); setBal(p, 'other_part', 120000);
++    return noSaving(p);
++  }],
++  // the allowance tapers on ALL the year's income (A11).
++  ['C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income', () => {
++    const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c);
++    p.config = { ...p.config, taxRegion: 'ruk' };
++    p.otherIncomes = [{ id: 'db1', owner: 'Myself', name: 'DB', type: 'otherTaxable', amount: 95000, startAge: Number(p.demographics.currentAgeSelf), endAge: 120 }];
++    return p;
++  }]
++];
++for (const [name, make] of FIXTURES) {
++  const plan = E.resolveMpaa(E.normalizePlan(make()));
++  const ctx = E.buildContext(plan), rows = E.simulateDeterministic(ctx, 'expected');
++  const scottish = (plan.config || {}).taxRegion === 'scotland', couple = ctx.owners.length > 1;
++  let bad = 0, worst = null, under = 0, over = 0;
++  rows.forEach((x, t) => {
++    const frac = t === 0 ? ctx.yf : 1;
++    let want = 0;
++    ctx.owners.forEach((o, k) => {
++      const key = k === 0 ? 'Self' : 'Part';
++      // the row's taxable pay (the salary less the year's pension contribution given up), interest and dividends, per person
++      const pay = x[`taxablePay${key}`];
++      if (!(pay >= 0) || (pay > 0 && !x[`working${key}`])) throw new Error(`${name}: year ${x.year}: the row's taxable pay ${pay} (working ${x[`working${key}`]})`);
++      const mine = { nonSavings: pay + x[`otherTaxable${key}`] + x[`taxablePension${key}`], interest: x[`savingsInterest${key}`], dividends: x[`giaDividends${key}`], scottish };
++      want += hmrcYear(mine).total - (pay > 0 ? hmrcYear({ nonSavings: pay, scottish }).total : 0);
++    });
++    const gap = x.taxPaid - want;
++    if (Math.abs(gap) > 1) { bad++; if (gap < 0) under -= gap; else over += gap; if (!worst || Math.abs(gap) > Math.abs(worst.gap)) worst = { year: x.year, gap, got: x.taxPaid, want }; }
++  });
++  ok(`${name}: ${rows.length} years`, bad === 0, bad ? `${bad} years differ by over £1: the engine ${gbp(under)} under and ${gbp(over)} over across the plan; the worst, ${worst.year}: the engine ${gbp(worst.got)}, HMRC ${gbp(worst.want)}` : '');
++}
++
++console.log('=========== D. THE SOLVER\'S MEMO OF THE YEAR\'S INTEREST AND DIVIDENDS TAX ===========');
++if (PLANT !== 'nopaydiv') {
++  const M = await import('../../src/solver/model.js'), F = await import('../../src/solver/fast.js');
++  const { solveForApp } = await import('../../src/solverApp.js'), { tablesOf, digestOf } = await import('../../src/solverDigest.js');
++  const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++  const plan = E.normalizePlan(planOf('S116'));
++  const tablesWith = async (memo) => { F.KNOCK.memo = memo; F.KNOCK.plant = memo && PLANT === 'noceiling' ? 'noceiling' : ''; const r = solveForApp(E, M, plan, LIGHT); return digestOf(tablesOf(r)); };
++  const off = await tablesWith(false), on = await tablesWith(true);
++  F.KNOCK.memo = true; F.KNOCK.plant = '';
++  ok('D1  S116 at light settings: every table the same to the bit with the memo on and off', off === on, `off ${off.slice(0, 12)}, on ${on.slice(0, 12)}`);
++}
++if (tmp) rmSync(tmp, { recursive: true, force: true });
++console.log(`\n${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);
++process.exit(failed ? 1 : 0);
+diff --git a/research/tests/gaps-sweep.test.mjs b/research/tests/gaps-sweep.test.mjs
+index a6ce3000..71ee46f6 100644
+--- a/research/tests/gaps-sweep.test.mjs
++++ b/research/tests/gaps-sweep.test.mjs
+@@ -68,8 +68,12 @@ const GIA = 'Other Investments (e.g. GIA)';
+ const totalOf = p => p.accounts.filter(a => a.owner === 'Myself').reduce((s, a) => s + E.num(a.balance, 0), 0);
+ const inc = (name, type, amount, startAge, endAge = '') => ({ id: name, name, owner: 'Myself', incomeType: type, amount, startAge, endAge });
+ const CASES = [];
+-const add = (name, base, edit, live, plant) => CASES.push({ name, base, edit, live, plant });
++const add = (name, base, edit, live, plant, opts = null) => CASES.push({ name, base, edit, live, plant, opts });
+ for (const b of Object.keys(BASES)) add(`control ${b}`, b, () => {}, 'years', 'spend');
++// (a base for one case, no control of its own: S116 holds £386,163 in its cash ISA, £359,900 above its buffer in year 0)
++BASES.S116 = () => lib('S116');
++// the review of 9 Nov, item 5: the sweep's cash ISA money to the stocks and shares ISA (a solve option, research, off)
++add('the sweep\'s cash ISA money to the ISA (sweepCashIsaTo \'isa\')', 'S116', () => {}, 'sweepIsa', 'sweepIsa', { sweepCashIsaTo: 'isa' });
+ for (const k of Object.keys(E.DECUMULATION_POLICIES)) add(`policy ${k}, an Auto deposit routed by it`, 'S370', p => { p.spending.decumulationPolicy = k; }, 'deposit', 'dep');
+ add('policy Windfall to ISA, an Auto deposit while working', 'S224', p => { p.spending.decumulationPolicy = 'Windfall to ISA'; p.oneOffContributions = [dep('dW', 2, E.AUTO_DEPOSIT, 150000)]; }, 'deposit', 'dep');
+ add('deposit into the ISA, the surplus staged into it', 'S380', p => { p.oneOffContributions = [dep('dI', 2, 'S&S ISAs', 100000)]; }, 'drip', 'drip');
+@@ -135,6 +139,8 @@ const PLANTS = {
+   // parts (S224 on 82e4ad6: £1.9e-9)
+   cashisa: c => { const v = c.cashIsaContrib; c.cashIsaContrib = 0; const u = fill(c.yr.cashIsaCap, () => 0); return () => { c.cashIsaContrib = v; u(); }; },
+   con: c => fill(c.yr.con[0], v => v * 0.5),
++  // the forward run sweeping the cash ISA money to the taxable account, as without the option
++  sweepIsa: c => { const old = c.acts.map(a => a.sweepIsa); c.acts.forEach(a => { a.sweepIsa = 0; }); return () => c.acts.forEach((a, i) => { a.sweepIsa = old[i]; }); },
+   // the generic plant (controls and settings with no data of their own): every spending year 5% dearer
+   spend: c => { const u1 = fill(c.yr.spend, v => v * 1.05), u2 = fill(c.yr.scheduled, v => v * 1.05); return () => { u1(); u2(); }; }
+ };
+@@ -157,7 +163,8 @@ const LIVE = {
+   // the effective forms: a tranche counted only when the GIA holds money at the top of its year; a cash-ISA subscription only
+   // in a working year with unsheltered cash at its top
+   dripEff: (ctx, row, pre) => ctx.stagedTransfers.has(row.year) && pre.gia > 0,
+-  cashisaEff: (ctx, row, pre) => row.workingSelf === 1 && pre.unsheltered > 0
++  cashisaEff: (ctx, row, pre) => row.workingSelf === 1 && pre.unsheltered > 0,
++  sweepIsa: (ctx, row) => row.sweptToIsa > 0
+ };
+ 
+ // ---------------------------------------------------------------- the lockstep (the state check's, one household)
+@@ -174,14 +181,14 @@ const gapsOf = (e, f, he, hf) => {
+ const moveOf = (r, ai, code) => {
+   const a = r.actions[ai], ca = r.c.acts[ai];
+   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
+-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
++    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
+ };
+ 
+ function runCase(cs) {
+   const raw = BASES[cs.base](); cs.edit(raw);
+   const plan = planOf(raw), t0 = Date.now();
+-  const r = solveCandidate(E, M, plan, LIGHT);
++  const r = solveCandidate(E, M, plan, cs.opts ? { ...LIGHT, ...cs.opts } : LIGHT);
+   const solveSecs = (Date.now() - t0) / 1000;
+   if (r.c.tiers.gia) throw new Error('sweep: the taxable account carries a tier, which moveOf does not hand to the engine');
+   const T = r.m.ctx.totalYears, paths = E.pathsForSeed(SEED, NP, T).map(z => Float64Array.from(z));
+diff --git a/research/tests/sweep-words.test.mjs b/research/tests/sweep-words.test.mjs
+new file mode 100644
+index 00000000..b0da507d
+--- /dev/null
++++ b/research/tests/sweep-words.test.mjs
+@@ -0,0 +1,82 @@
++/*
++ * THE PAGES SHOW THE SWEEP (the review of 9 Nov, item 5, part 1; D66). Under a solved table the engine keeps cash at its buffer
++ * (stepYear 7d): cash above it moves to the taxable account, a shortfall is topped up from it. The estate the pages show already
++ * assumes the move; now every listing of the solved plan's actions says so, to the pound: this year's actions
++ * (solverStrategy.js actionsOf's `sweep`, PlannerPlan.jsx and the printed sheet), the next ten years (aheadOf's rows) and the
++ * audit table's action column (ledgerWords). S116 (£359,900 of cash above its buffer in its first year) at light settings:
++ *   1. this year's sweep is the engine's own: the first year's row on three random paths moves the same amount, and actionsOf
++ *      carries it (the year's flows before the sweep take no market);
++ *   2. the words name the move, its accounts and its amount to the pound;
++ *   3. the next ten years: each year's row on the median path carries the engine's sweep for that year, and its words name it
++ *      (a move out in year 0, the buffer topped up after); the grouping keeps years whose amounts and moves match;
++ *   4. the audit column names the year's sweep with its amount.
++ * The plants (WORDS_PLANT.rule): 'sweepround' (the amount to the nearest £1,000) fails 2 and 3; 'sweepback' (a top-up worded as
++ * a move out) fails 3. --plants runs both.
++ *   node research/tests/sweep-words.test.mjs [--plants]
++ */
++import { spawnSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp } from '../../src/solverApp.js';
++import { actionsOf, aheadOf, strategyRuns, rowsOf } from '../../src/solverStrategy.js';
++import { sweepWords, aheadRowsWords, ledgerWords, WORDS_PLANT } from '../../src/solverWords.js';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++
++const SELF = fileURLToPath(import.meta.url);
++const PLANTS = { sweepround: [2, 3], sweepback: [3] };
++if (process.argv.includes('--plants')) {
++  let bad = 0;
++  for (const [p, want] of Object.entries(PLANTS)) {
++    const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, SWEEP_WORDS_PLANT: p }, encoding: 'utf8' });
++    const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => Number(m[1])))];
++    const exact = failed.length === want.length && want.every(n => failed.includes(n));
++    if (!exact) bad++;
++    console.log(`plant ${p.padEnd(10)} fails ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
++    if (!exact) console.log(r.stdout + r.stderr);
++  }
++  process.exit(bad ? 1 : 0);
++}
++WORDS_PLANT.rule = process.env.SWEEP_WORDS_PLANT || '';
++let passed = 0, failed = 0;
++const ok = (n, label, c, detail = '') => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}  ${label}${detail ? '  -- ' + detail : ''}`); if (c) passed++; else failed++; };
++const fmt = E.formatGBP, pound = x => fmt(x);
++const plan = E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan);
++const solved = solveForApp(E, M, plan, { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
++console.log(`sweep-words: the sweep in the solved plan's listings, S116 at light settings${WORDS_PLANT.rule ? `; planted: ${WORDS_PLANT.rule}` : ''}`);
++
++// 1. this year's sweep, the engine's own on any path
++const acts = actionsOf(E, solved, plan, { n: 40 });
++const { rows: rowsExp } = rowsOf(E, solved, 'expected');
++const onPaths = E.pathsForSeed(7002, 3, solved.m.ctx.totalYears).map(zs => {
++  const { rows } = rowsOf(E, solved, { z: zs[0], zPath: zs.length > solved.m.ctx.totalYears + 1 ? zs[solved.m.ctx.totalYears + 1] : 0 });
++  return rows[0].sweptToGia;
++});
++ok(1, 'this year\'s sweep is the engine\'s first year, the same on every path', acts.sweep.toGia > 0 && onPaths.every(x => x === acts.sweep.toGia) && rowsExp[0].sweptToGia === acts.sweep.toGia,
++  `actionsOf: £${acts.sweep.toGia.toFixed(2)} to the taxable account, £${acts.sweep.fromGia.toFixed(2)} back; the first year on three paths ${onPaths.map(x => x.toFixed(2)).join(', ')}`);
++
++// 2. its words, to the pound
++const w = sweepWords(acts.sweep, { fmt });
++ok(2, 'the words name the move, its accounts and its amount to the pound', !!w && w.includes(pound(acts.sweep.toGia)) && /cash/.test(w) && /taxable account/.test(w), `"${w}" (the amount ${pound(acts.sweep.toGia)})`);
++
++// 3. the next ten years
++const runs = strategyRuns(E, solved, plan, { seed: 12345, from: 0, to: 200 });
++const ahead = aheadOf(E, solved, plan, runs, { years: 10 });
++const groups = aheadRowsWords(ahead.rows, { target: plan.spending.targetSpend, fmt });
++let named = 0, moved = 0, wrong = [];
++for (const r of ahead.rows) {
++  const sw = r.swept, any = sw && (sw.toGia >= 0.5 || sw.fromGia >= 0.5);
++  if (!any) continue;
++  moved++;
++  const g = groups.find(x => x.from.t <= r.t && r.t <= x.to.t), want = sw.toGia >= 0.5 ? `Move ${pound(sw.toGia)} of cash above your buffer` : `Top your cash buffer up with ${pound(sw.fromGia)}`;
++  if (g && g.lines.some(l => l.startsWith(want))) named++; else wrong.push(`${r.year}: wanted "${want}", got "${g ? g.lines.join('; ') : 'no group'}"`);
++}
++ok(3, 'the next ten years: each year\'s sweep on the median path named with its amount and direction', moved > 1 && named === moved,
++  `${named} of ${moved} years with a sweep named; ${groups.length} rows for ${ahead.rows.length} years${wrong.length ? `; ${wrong.slice(0, 2).join(' | ')}` : ''}; the first: ${groups[0].lines.join('; ')}`);
++
++// 4. the audit column
++const lw = ledgerWords(rowsOf(E, solved, 'expected').parts[0], true, rowsExp[0]);
++ok(4, 'the audit table\'s action column names the year\'s sweep with its amount', lw.includes(`cash ${Math.round(rowsExp[0].sweptToGia).toLocaleString('en-GB')} to taxable`), `"${lw}"`);
++
++console.log(`\nsweep-words: ${passed} passed, ${failed} failed${WORDS_PLANT.rule ? ` (planted: ${WORDS_PLANT.rule})` : ''}`);
++process.exit(failed ? 1 : 0);
+diff --git a/research/tests/windfall-relief.test.mjs b/research/tests/windfall-relief.test.mjs
+new file mode 100644
+index 00000000..5e128ffe
+--- /dev/null
++++ b/research/tests/windfall-relief.test.mjs
+@@ -0,0 +1,133 @@
++/*
++ * RELIEF ON MONEY THE PLAN PAYS INTO A PENSION (the review of 9 Nov, item 4; D66). Money the plan itself routes into a
++ * pension from the household's own funds (the windfall split's pension-first variant, an Auto deposit the policy puts in a
++ * pension, a staged transfer out of the taxable account) is relieved at source, through one function shared with
++ * bedAndSippFor (App.jsx pensionRelief): the room taken gross, the money paying the net (gross x 0.8), a payer above the basic
++ * band refunded the rest of their relief to cash. A deposit typed into a pension lands as typed (M3). Each case by hand, on a
++ * single person in England holding a pension, an ISA, a taxable account and cash, an Auto deposit in 2028:
++ *   1. no earnings (66, retired at 60), a £10,000 windfall, room £3,600 (the no-earnings limit): split 1 puts £3,600 in the
++ *      pension for £2,880 (£3,600 x 0.8); the other £7,120 goes on, to the ISA (its room £20,000). The plan's own routing (the
++ *      policy's order, the pension first) the same: £3,600 for £2,880, £7,120 to the taxable account;
++ *   2. pay £40,000 (50, working to 67), a £20,000 windfall, room £40,000 (the earnings): the pension gains £25,000 for £20,000
++ *      (£20,000 / 0.8); no refund: the relief due, the tax on £40,000 less the tax on £15,000 (£5,486 - £486 = £5,000), is all
++ *      given at source (£25,000 x 0.2);
++ *   3. pay £80,000, the same windfall: the pension gains £25,000 for £20,000, and £5,000 comes back to cash: the tax on
++ *      £80,000 (£7,540 + £29,730 x 0.4 = £19,432) less the tax on £55,000 (£7,540 + £4,730 x 0.4 = £9,432) is £10,000, £5,000
++ *      of it at source;
++ *   4. the MPAA triggered (58, accessed at 57, pay £40,000): room £10,000, so the pension gains £10,000 for £8,000; £12,000
++ *      goes on, to the ISA;
++ *   5. a staged transfer: case 1's household with a £20,000 deposit typed into the pension: £3,600 lands now as typed (M3),
++ *      £16,400 waits in the taxable account, and each later year the transfer takes £2,880 from it and lands £3,600 (its
++ *      uplift 1.25, no refund), until the last, smaller one; the engine's year (stepYear, the expected returns) moves the
++ *      pension by 1.25 times what the transfer sold from the taxable account, against the same year without the transfer;
++ *   6. with no windfall split on the move and no Auto deposit or staged transfer, every figure as before, bit for bit: S116
++ *      and S210 at light settings, their tables the code before this item's (item 3's code, ITEM3 below).
++ * The plant (WINDFALL_RELIEF_PLANT=norelief, in a patched copy of the engine: the money landing at face value, pensionRelief's
++ * net the gross and the routes sizing the gross at no relief) fails cases 1 to 5. --planted runs it and reads which checks fail.
++ *   node research/tests/windfall-relief.test.mjs [--planted]
++ */
++import { readFileSync, writeFileSync, rmSync } from 'node:fs';
++import { spawnSync } from 'node:child_process';
++import { join, dirname } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const SELF = fileURLToPath(import.meta.url), HERE = dirname(SELF);
++if (process.argv.includes('--planted')) {
++  const want = ['1', '2', '3', '4', '5'];
++  const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, WINDFALL_RELIEF_PLANT: 'norelief' }, encoding: 'utf8' });
++  const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => m[1]))];
++  const exact = failed.length === want.length && want.every(n => failed.includes(n));
++  console.log(`plant norelief fails cases ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
++  if (!exact) console.log(r.stdout + r.stderr);
++  process.exit(exact ? 0 : 1);
++}
++const PLANT = process.env.WINDFALL_RELIEF_PLANT || '';
++let E, tmp = null;
++if (PLANT === 'norelief') {
++  // the engine with the relief dropped: a patched copy beside the real one, so its own imports resolve
++  // (the money landing at face value: pensionRelief's net the gross, and the routes sizing the gross at no relief)
++  const src = readFileSync(join(HERE, '../engine.mjs'), 'utf8');
++  const swaps = [['  const net = gross * (1 - P.reliefAtSource);\n  const reliefTotal', '  const net = gross;\n  const reliefTotal'], ['const relief = { rate: P.reliefAtSource, of:', 'const relief = { rate: 0, of:']];
++  let planted = src;
++  for (const [a, b] of swaps) { if (planted.split(a).length !== 2) throw new Error(`windfall-relief: the plant's anchor is not unique: ${a}`); planted = planted.replace(a, b); }
++  tmp = join(HERE, '../engine-norelief.tmp.mjs');
++  writeFileSync(tmp, planted);
++  E = await import(pathToFileURL(tmp).href);
++} else E = await import('../engine.mjs');
++
++let passed = 0, failed = 0;
++const ok = (n, label, c, detail = '') => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}  ${label}${detail ? '  -- ' + detail : ''}`); if (c) passed++; else failed++; };
++const near = (a, b, tol = 0.005) => Math.abs(a - b) <= tol;
++const Y = 2028;
++const planOf = (salary, age, retire, deposit, extra = {}) => E.resolveMpaa(E.normalizePlan({
++  demographics: { planningMode: 'single', currentAgeSelf: age, retireAgeSelf: retire, statePensionAge: 67, privatePensionAge: 57, statePensionSelf: 11976, terminalAge: 95, salarySelf: salary, ...extra },
++  accounts: [{ id: 'pen_self', owner: 'Myself', balance: 100000, risk: 'Medium Risk' }, { id: 'isa_self', owner: 'Myself', balance: 50000, risk: 'Medium Risk' }, { id: 'other_self', owner: 'Myself', balance: 20000, risk: 'Medium Risk' }, { id: 'cash_self', owner: 'Myself', balance: 20000, risk: 'Cash Equivalents' }],
++  oneOffContributions: [{ id: 'w', owner: 'Myself', category: E.AUTO_DEPOSIT, amount: 0, year: Y, transferredFrom: 'External', ...deposit }],
++  spending: { targetSpend: 30000 }, config: { ...E.DEFAULT_CONFIG }
++}));
++const byId = entries => entries.reduce((o, x) => ({ ...o, [x.id.replace('_self', '')]: (o[x.id.replace('_self', '')] || 0) + x.amount }), {});
++const show = o => Object.entries(o).map(([k, v]) => `${k} £${v.toFixed(2)}`).join(', ');
++// what split 1 lands, and what the windfall pays for the pension (the windfall less what lands elsewhere)
++function splitOne(ctx, A) {
++  const e = ctx.autoSplit.get(Y), v = byId(e.variants[1]);
++  return { v, net: A - (v.isa || 0) - (v.other || 0), refund: v.cash || 0 };
++}
++
++console.log(`windfall-relief: relief on the plan's own pension routes (the review of 9 Nov, item 4)${PLANT ? `; planted: ${PLANT}` : ''}`);
++{
++  const ctx = E.buildContext(planOf(0, 66, 60, { amount: 10000 })), s = splitOne(ctx, 10000), own = byId(ctx.oneOffContribs.get(Y));
++  ok(1, 'no earnings, £10,000, room £3,600: split 1 puts £3,600 in the pension for £2,880, £7,120 goes on to the ISA; the plan\'s own routing the same, the rest taxable',
++    near(s.v.pen, 3600) && near(s.net, 2880) && near(s.v.isa, 7120) && !s.refund && near(own.pen, 3600) && near(own.other, 7120) && !own.cash,
++    `split 1: ${show(s.v)} (the pension costing £${s.net.toFixed(2)}); the plan's routing: ${show(own)}`);
++}
++{
++  const ctx = E.buildContext(planOf(40000, 50, 67, { amount: 20000 })), s = splitOne(ctx, 20000);
++  ok(2, 'pay £40,000, £20,000, room £40,000: the pension gains £25,000 for £20,000, no refund', near(s.v.pen, 25000) && near(s.net, 20000) && !s.refund, `split 1: ${show(s.v)}`);
++}
++{
++  const ctx = E.buildContext(planOf(80000, 50, 67, { amount: 20000 })), s = splitOne(ctx, 20000);
++  ok(3, 'pay £80,000 in England, £20,000: the pension gains £25,000 for £20,000, and £5,000 comes back to cash', near(s.v.pen, 25000) && near(s.net, 20000) && near(s.refund, 5000), `split 1: ${show(s.v)}`);
++}
++{
++  const ctx = E.buildContext(planOf(40000, 58, 67, { amount: 20000 }, { mpaaAgeSelf: 57 })), s = splitOne(ctx, 20000), room = ctx.autoSplit.get(Y).room[0].pen;
++  ok(4, 'the MPAA triggered, room £10,000: the pension gains £10,000 for £8,000, £12,000 goes on to the ISA', near(room, 10000) && near(s.v.pen, 10000) && near(s.net, 8000) && near(s.v.isa, 12000), `room £${room.toFixed(2)}; split 1: ${show(s.v)}`);
++}
++{
++  const plan = planOf(0, 66, 60, { amount: 20000, category: 'Pensions' }), ctx = E.buildContext(plan);
++  const now = byId(ctx.oneOffContribs.get(Y)), drips = [...ctx.stagedTransfers.entries()].sort((a, b) => a[0] - b[0]);
++  const first = drips.length ? drips[0][1][0] : null, moved = drips.reduce((s, [, xs]) => s + xs.reduce((t, x) => t + x.amount, 0), 0);
++  const landed = drips.reduce((s, [, xs]) => s + xs.reduce((t, x) => t + x.amount * (x.uplift || 1), 0), 0);
++  // the engine's year: the drip year's step, with the GIA full and then short of the transfer, its pension against the same
++  // year with the transfer taken out (the move, and its uplift on it, are all that differ before growth)
++  const dy = drips.length ? drips[0][0] : null, t = dy - ctx.baseYear;
++  const yearOf = (cx) => { const st = E.freshState(cx); for (let k = 0; k <= t; k++) E.stepYear(cx, st, k, 'expected'); return { st }; };
++  let engine = 'not run';
++  let engineOk = false;
++  if (first) {
++    const ctxNo = { ...ctx, stagedTransfers: new Map([...ctx.stagedTransfers].filter(([y]) => y !== dy)) };
++    const full = yearOf(ctx), none = yearOf(ctxNo);
++    const gain = full.st.pots.pen_self - none.st.pots.pen_self, sold = none.st.pots.other_self - full.st.pots.other_self;
++    engine = `the drip year ${dy}: the pension £${gain.toFixed(2)} higher for £${sold.toFixed(2)} more sold from the GIA`;
++    engineOk = sold > 0 && Math.abs(gain / sold - 1.25) < 0.02;
++  }
++  ok(5, 'a £20,000 deposit typed into the pension, room £3,600: £3,600 now as typed, £16,400 parked; each later transfer takes £2,880 and lands £3,600; the engine\'s year books it grossed up',
++    near(now.pen, 3600) && near(now.other, 16400) && first && near(first.amount, 2880) && near(first.amount * first.uplift, 3600) && !(first.refundPer > 0) && near(moved, 16400, 0.01) && near(landed, 20500, 0.01) && engineOk,
++    `now ${show(now)}; ${drips.length} transfers, the first ${dy}: £${first ? first.amount.toFixed(2) : '-'} landing £${first ? (first.amount * (first.uplift || 1)).toFixed(2) : '-'}; in all £${moved.toFixed(2)} moved, £${landed.toFixed(2)} landed; ${engine}`);
++}
++{
++  // 6. no split, no Auto deposit, no transfer: the tables as on item 3's code (the code before this item), bit for bit
++  const ITEM3 = { S116: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4', S210: 'f43d4dfade269f0c9840efc8691d452565ab28ebee9da1ee55385086f011da0c' };   // taken on item 3's code alone
++  if (PLANT) ok(6, 'S116 and S210 as before (not run under the plant)', true);
++  else {
++    const M = await import('../../src/solver/model.js'), { solveForApp } = await import('../../src/solverApp.js'), { tablesOf, digestOf } = await import('../../src/solverDigest.js');
++    const { buildScenarios } = await import('../policy-study/scenarios.mjs');
++    const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
++    const got = {};
++    for (const id of Object.keys(ITEM3)) got[id] = await digestOf(tablesOf(solveForApp(E, M, E.normalizePlan(buildScenarios().find(s => s.id === id).plan), LIGHT)));
++    const same = Object.keys(ITEM3).every(id => got[id] === ITEM3[id]);
++    ok(6, 'no split on the move, no Auto deposit, no transfer: S116 and S210 at light settings, every table as on item 3\'s code, bit for bit', same, Object.keys(ITEM3).map(id => `${id} ${got[id].slice(0, 16)} (item 3's ${ITEM3[id] ? ITEM3[id].slice(0, 16) : 'not pinned'})`).join('; '));
++  }
++}
++if (tmp) rmSync(tmp, { force: true });
++console.log(`\nwindfall-relief: ${passed} passed, ${failed} failed${PLANT ? ` (planted: ${PLANT})` : ''}`);
++process.exit(failed ? 1 : 0);
+diff --git a/research/tests/windfall-split.test.mjs b/research/tests/windfall-split.test.mjs
+index be75b1d0..ca37e3eb 100644
+--- a/research/tests/windfall-split.test.mjs
++++ b/research/tests/windfall-split.test.mjs
+@@ -6,7 +6,8 @@
+  *   1. OFF: with the option unset, every table of every layer, world and year, 40 forward runs and the run record the same
+  *      as the code before the option (BASE, checked out into a temporary worktree and its engine built there), on two
+  *      windfall households and one without a deposit.
+- *   2. THE ROUTING against a hand calculation (the engine's context): S026's Auto deposit larger than both rooms; the same
++ *   2. THE ROUTING against a hand calculation (the engine's context; split 1's pension relieved since the review of 9 Nov,
++ *      item 4: its room gross for the net, any refund to cash): S026's Auto deposit larger than both rooms; the same
+  *      deposit smaller than the pension's room; and with a plain ISA deposit the same year, which takes its share of the
+  *      allowance first. Planted: the room computed without giving back the Auto deposit's own claim fails the check.
+  *   3. IN STEP: the engine and the forward run, each split forced in the deposit year (runPolicy's choose; the engine takes
+@@ -112,17 +113,30 @@ try {
+ 
+   // -------------------------------------------------------------------------------------------------- 2. THE ROUTING
+   console.log('=========== 2. THE ROUTING AGAINST A HAND CALCULATION ===========');
+-  // the hand calculation: the room is each wrapper's headroom this year less what every deposit but the Auto ones claims
++  // the hand calculation: the room is each wrapper's headroom this year less what every deposit but the Auto ones claims;
++  // split 1's pension relieved (the review of 9 Nov, item 4): its room taken gross for the net the windfall pays (gross x
++  // (1 - relief at source)), a payer above the basic band refunded the rest of their relief (the tax on their earnings less
++  // the tax on their earnings less the gross) to cash
++  const reliefOf = (ctx, t, gross) => {
++    const P = ctx.P, r = P.reliefAtSource, earnings = E.relevantEarningsAtYear(ctx, ctx.owners[0], t);
++    const total = earnings > 0 ? E.incomeTax(earnings, P) - E.incomeTax(Math.max(0, earnings - gross), P) : gross * r;
++    return { net: gross * (1 - r), refund: Math.max(0, total - gross * r) };
++  };
++  const split1 = (ctx, t, A, penRoom, isaRoom) => {
++    const gross = Math.min(penRoom, A / (1 - ctx.P.reliefAtSource)), rel = gross > 0 ? reliefOf(ctx, t, gross) : { net: 0, refund: 0 };
++    const net = Math.min(A, rel.net), isa1 = Math.min(A - net, isaRoom);
++    return { pen: gross, isa: isa1, other: A - net - isa1, cash: rel.refund };
++  };
+   const handOf = (ctx, y, others) => {
+     const t = y - ctx.baseYear, A = ctx.autoSplit.get(y).room.reduce((s, e) => s + e.amount, 0);
+     const room = cat => Math.max(0, E.wrapperHeadroomAtYear(ctx, 'self', cat, t) - (others[cat] || 0));
+-    const pen = Math.min(A, room('pen')), isa1 = Math.min(A - pen, room('isa')), isa2 = Math.min(A, room('isa'));
+-    return { A, rooms: [room('pen'), room('isa')], v: [null, { pen, isa: isa1, other: A - pen - isa1 }, { pen: 0, isa: isa2, other: A - isa2 }, { pen: 0, isa: 0, other: A }] };
++    const isa2 = Math.min(A, room('isa'));
++    return { A, rooms: [room('pen'), room('isa')], v: [null, split1(ctx, t, A, room('pen'), room('isa')), { pen: 0, isa: isa2, other: A - isa2, cash: 0 }, { pen: 0, isa: 0, other: A, cash: 0 }] };
+   };
+-  const byCat = (ctx, entries) => { const o = ctx.owners[0].ids, out = { pen: 0, isa: 0, other: 0 }; for (const x of entries) { const cat = Object.keys(o).find(k => o[k] === x.id); out[cat] = (out[cat] || 0) + x.amount; } return out; };
++  const byCat = (ctx, entries) => { const o = ctx.owners[0].ids, out = { pen: 0, isa: 0, other: 0, cash: 0 }; for (const x of entries) { const cat = Object.keys(o).find(k => o[k] === x.id); out[cat] = (out[cat] || 0) + x.amount; } return out; };
+   const routingGap = (ctx, y, hand, variants) => {
+     let worst = 0;
+-    for (let v = 1; v <= 3; v++) { const got = byCat(ctx, variants[v]); for (const cat of ['pen', 'isa', 'other']) worst = Math.max(worst, Math.abs((got[cat] || 0) - hand.v[v][cat])); }
++    for (let v = 1; v <= 3; v++) { const got = byCat(ctx, variants[v]); for (const cat of ['pen', 'isa', 'other', 'cash']) worst = Math.max(worst, Math.abs((got[cat] || 0) - hand.v[v][cat])); }
+     return worst;
+   };
+   const Y = 2030;
+@@ -149,9 +163,9 @@ try {
+     const ctx = plantCtx, e = ctx.autoSplit.get(Y), t = Y - ctx.baseYear, A = e.room[0].amount;
+     const own = byCat(ctx, (ctx.oneOffContribs.get(Y) || []).filter(x => x.auto));
+     const roomOf = cat => Math.max(0, E.wrapperHeadroomAtYear(ctx, 'self', cat, t) - (own[cat] || 0));
+-    const penRoom = roomOf('pen'), isaRoom = roomOf('isa');
+-    const pen = Math.min(A, penRoom), isa1 = Math.min(A - pen, isaRoom), isa2 = Math.min(A, isaRoom), id = ctx.owners[0].ids;
+-    const planted = [null, [{ id: id.pen, amount: pen }, { id: id.isa, amount: isa1 }, { id: id.other, amount: A - pen - isa1 }], [{ id: id.isa, amount: isa2 }, { id: id.other, amount: A - isa2 }], [{ id: id.other, amount: A }]];
++    const penRoom = roomOf('pen'), isaRoom = roomOf('isa'), s1 = split1(ctx, t, A, penRoom, isaRoom);
++    const isa2 = Math.min(A, isaRoom), id = ctx.owners[0].ids;
++    const planted = [null, [{ id: id.pen, amount: s1.pen }, { id: id.isa, amount: s1.isa }, { id: id.other, amount: s1.other }, { id: id.cash, amount: s1.cash }], [{ id: id.isa, amount: isa2 }, { id: id.other, amount: A - isa2 }], [{ id: id.other, amount: A }]];
+     const gap = routingGap(ctx, Y, handOf(ctx, Y, {}), planted);
+     ok(gap > 1, `2. planted: the rooms left without the Auto deposit's own claims given back (its claims pension £${Math.round(own.pen || 0)}, ISA £${Math.round(own.isa || 0)}) part from the hand calculation by £${Math.round(gap)}, and the check fails`);
+   }
+diff --git a/src/App.jsx b/src/App.jsx
+index 0f588602..1e54947e 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1284,48 +1284,50 @@ function taxParams(cfgIn) {
+   // Relief at source is given at the statutory 20% to everyone, including a Scottish starter-rate payer.
+   const reliefAtSource = clamp(num(DEFAULT_CONFIG.basicTaxRate), 0, 99) / 100;
+ 
+-  /*
+-   * Tax on savings interest, stacked on top of non-savings income as HMRC stacks it. The starting rate
+-   * for savings covers interest up to `srBand` above the allowance where non-savings income leaves room;
+-   * the personal savings allowance then covers the next slice, its size set by the band the household's
+-   * total income ends in. Both exempt slices sit at the bottom of the interest, so what remains is taxed
+-   * at the rates that apply above them: the whole-income tax less the tax with only the exempt interest.
+-   */
+-  const psaAt = (total) => total <= basicLimit ? psaBasic : (total <= higherLimit ? psaHigher : 0);
+-  const params = { __isParams: true, pa, thr, taperRate, basicLimit, higherLimit, basicRate, higherRate, addRate, nicPT, nicUEL, nicMain, nicUpper, c4Main, c4Upper, erNic, erPass, pclsProp, lsa, isaAllowance, pensionAllowance, pensionNoEarningsLimit, mpaaLimit, aaTaperThr, aaTaperRate, aaTaperFloor, aaAt, cgtEnabled, cgtAnnualExempt, cgtBasicRate, cgtHigherRate, paAt, basicWidth, higherTop, taperEnd, region, ladder, grossLimits, higherRateStartsAt, cgtBandWidth, reliefAtSource, cashInterestTaxed, psaBasic, psaHigher, srBand, psaAt, giaDividendYield, divAllowance, divBasic, divHigher, divAdditional, cashIsaCap, cashIsaCapU65, cashIsaU65From, cashIsaCapAt };
+-  /*
+-   * Tax on dividends, the top slice of income: above non-savings income and savings interest, the first
+-   * `divAllowance` at 0% (it still uses up band space), the rest at the dividend rate of the band it sits
+-   * in. Dividend rates are UK-wide, so the bands here are the UK basic and higher limits in taxable
+-   * income whatever the region's own ladder says.
+-   */
+-  params.dividendTax = (nonSavings, interest, dividends) => {
+-    if (!(dividends > 0)) return 0;
+-    const base = Math.max(0, nonSavings) + Math.max(0, interest);
+-    const hi = base + dividends, lo = Math.min(hi, base + divAllowance);
+-    if (hi <= lo) return 0;
+-    const allowance = paAt(hi);
+-    const tl = Math.max(0, lo - allowance), th = Math.max(0, hi - allowance);
+-    const bands = [[0, basicWidth, divBasic], [basicWidth, higherTop, divHigher], [higherTop, Infinity, divAdditional]];
+-    let tax = 0;
+-    for (const [a, b, r] of bands) { const w = Math.min(th, b) - Math.max(tl, a); if (w > 0) tax += w * r; }
+-    return tax;
+-  };
+-  // Savings interest is taxed at the UK rates and bands whatever the region (they are not devolved), as dividends are:
+-  // a Scottish taxpayer's interest was charged on the Scottish ladder before 21 Oct (42% where the UK charges 20%).
+-  const ukParams = region === 'scotland' ? { ...params, ladder: [[basicLimit, basicRate], [higherLimit, higherRate], [Infinity, addRate]].reduce((acc, [l, r]) => {
++  const params = { __isParams: true, pa, thr, taperRate, basicLimit, higherLimit, basicRate, higherRate, addRate, nicPT, nicUEL, nicMain, nicUpper, c4Main, c4Upper, erNic, erPass, pclsProp, lsa, isaAllowance, pensionAllowance, pensionNoEarningsLimit, mpaaLimit, aaTaperThr, aaTaperRate, aaTaperFloor, aaAt, cgtEnabled, cgtAnnualExempt, cgtBasicRate, cgtHigherRate, paAt, basicWidth, higherTop, taperEnd, region, ladder, grossLimits, higherRateStartsAt, cgtBandWidth, reliefAtSource, cashInterestTaxed, psaBasic, psaHigher, srBand, giaDividendYield, divAllowance, divBasic, divHigher, divAdditional, cashIsaCap, cashIsaCapU65, cashIsaU65From, cashIsaCapAt };
++  // Savings interest and dividends are taxed at the UK's rates and bands whatever the region (they are not devolved): a
++  // Scottish taxpayer's interest was charged on the Scottish ladder before 21 Oct (42% where the UK charges 20%).
++  const ukLadder = region === 'scotland' ? [[basicLimit, basicRate], [higherLimit, higherRate], [Infinity, addRate]].reduce((acc, [l, r]) => {
+     const top = Number.isFinite(l) ? Math.max(acc.running, l - paAt(l)) : Infinity;
+     if (Number.isFinite(top)) acc.running = top;
+     acc.list.push({ top, rate: r });
+     return acc;
+-  }, { running: 0, list: [] }).list } : params;
+-  params.savingsTax = (nonSavings, interest) => {
+-    if (!cashInterestTaxed || !(interest > 0)) return 0;
+-    const ns = Math.max(0, nonSavings), i = interest;
+-    const starting = Math.max(0, Math.min(srBand, pa + srBand - ns));
+-    const exempt = Math.min(i, starting + psaAt(ns + i));
+-    return Math.max(0, incomeTax(ns + i, ukParams) - incomeTax(ns + exempt, ukParams));
++  }, { running: 0, list: [] }).list : ladder;
++  const divLadder = [{ top: basicWidth, rate: divBasic }, { top: higherTop, rate: divHigher }, { top: Infinity, rate: divAdditional }];
++  // the tax on the slice of taxable income from `lo` to `hi` on a ladder of band tops
++  const sliceTax = (lo, hi, lad) => {
++    let tax = 0, a = 0;
++    for (const b of lad) { const w = Math.min(hi, b.top) - Math.max(lo, a); if (w > 0) tax += w * b.rate; a = b.top; if (a >= hi) break; }
++    return tax;
+   };
++  /*
++   * ONE PERSON'S YEAR IN HMRC'S ORDER (ITA 2007 s23; the review of 9 Nov, item 3, D66). The allowance, tapered on ALL the
++   * year's income, is set against non-savings income first (pay, pensions, rent), then interest, then dividends. Non-savings
++   * income is taxed on the region's ladder, interest and dividends on the UK's bands above it. The starting rate band
++   * (`srBand` less the taxable non-savings income) and the savings allowance (by the band the whole taxable income ends in)
++   * are 0% at the bottom of the TAXABLE interest, and the dividend allowance 0% at the bottom of the TAXABLE dividends; both
++   * still use band space. Before it, interest and dividends were taxed on what was known before the year's pension draw and
++   * a worker's pay, the two 0% slices were placed over unused allowance, and the taper read non-savings income alone.
++   * research/tests/engine-hmrc.test.mjs holds it to a reference written apart from it.
++   */
++  params.personTax = ({ nonSavings = 0, interest = 0, dividends = 0 } = {}) => {
++    const ns = Math.max(0, nonSavings), i = Math.max(0, interest), d = Math.max(0, dividends);
++    const allowance = paAt(ns + i + d);
++    let left = allowance;
++    const tns = Math.max(0, ns - left); left = Math.max(0, left - ns);
++    const ti = Math.max(0, i - left); left = Math.max(0, left - i);
++    const td = Math.max(0, d - left);
++    const all = tns + ti + td;
++    const onNonSavings = sliceTax(0, tns, ladder);
++    const psa = all <= basicWidth ? psaBasic : (all <= higherTop ? psaHigher : 0);
++    const zeroI = cashInterestTaxed ? Math.min(ti, Math.max(0, srBand - tns) + psa) : ti;
++    const onInterest = sliceTax(tns + zeroI, tns + ti, ukLadder);
++    const onDividends = sliceTax(tns + ti + Math.min(td, divAllowance), all, divLadder);
++    return { allowance, onNonSavings, onInterest, onDividends, total: onNonSavings + onInterest + onDividends };
++  };
++  // the tax on the year's interest and on its dividends, each with the person's non-savings income below them
++  params.savingsTax = (nonSavings, interest) => (!cashInterestTaxed || !(interest > 0) ? 0 : params.personTax({ nonSavings, interest }).onInterest);
++  params.dividendTax = (nonSavings, interest, dividends) => (!(dividends > 0) ? 0 : params.personTax({ nonSavings, interest, dividends }).onDividends);
+   return params;
+ }
+ 
+@@ -1420,6 +1422,16 @@ function netCostOfPensionContrib(contrib, salaryInput, cfg, selfEmployed = false
+   const passFactor = passThroughFactor(p, selfEmployed);
+   return calculateMarginalRelief(salaryInput, Math.max(0, num(contrib, 0)) / passFactor, cfg, selfEmployed).netCost;
+ }
++/*
++ * The pay income tax is charged on (the review of 9 Nov, item 3, D66): the salary less what is given up to the pension, as
++ * calculateMarginalRelief prices either route (an employee's sacrifice, the self-employed's relief at source), never below
++ * nothing. It sits at the bottom of the person's stack (stepYear step 4); the solver's model takes the same rule.
++ */
++function taxablePayOf(pay, penContrib, cfg, selfEmployed = false) {
++  const g = num(pay, 0);
++  if (!(g > 0)) return 0;
++  return Math.max(0, g - Math.min(Math.max(0, num(penContrib, 0)) / passThroughFactor(taxParams(cfg), selfEmployed), g));
++}
+ // Pension credit obtainable for a given net take-home cost (inverse of the above), capped at maxCredit.
+ function grossUpNet(netAmount, salaryInput, cfg, maxCredit = Infinity, selfEmployed = false) {
+   const net = Math.max(0, num(netAmount, 0));
+@@ -1471,11 +1483,14 @@ function grossUpNetIncremental(netAmount, salaryInput, cfg, baseCredit = 0, maxA
+  * which is taxed on top of `otherTaxable`. The taxable part may not push income above `ceiling`.
+  * Returns the smallest G that delivers `target` net, or the largest G allowed by the ceiling if the target
+  * cannot be reached within it. Exact (piecewise-linear) and cheap.
++ * `above` ({ interest, dividends }, the review of 9 Nov's item 3): the year's interest and dividends, which HMRC stacks above
++ * the draw; the draw then pays for the rise in their tax and the taper's (grossWithSavingsAbove), in the same one pass.
+  */
+-function grossPensionNeededForNet(netTarget, otherTaxableIncome = 0, cfg, isFullyCrystallized = false, pclsHeadroom = Infinity, maxTaxableCeiling = Infinity) {
++function grossPensionNeededForNet(netTarget, otherTaxableIncome = 0, cfg, isFullyCrystallized = false, pclsHeadroom = Infinity, maxTaxableCeiling = Infinity, above = null) {
+   const target = num(netTarget, 0);
+   if (target <= 0) return 0;
+   const p = taxParams(cfg);
++  if (above && (above.interest > 0 || above.dividends > 0)) return grossWithSavingsAbove(target, Math.max(0, num(otherTaxableIncome, 0)), p, isFullyCrystallized, pclsHeadroom, maxTaxableCeiling, above.interest || 0, above.dividends || 0, above.billAt || null);
+   const T0 = Math.max(0, num(otherTaxableIncome, 0));
+   const headroom = isFullyCrystallized ? 0 : Math.max(0, num(pclsHeadroom, 0));
+   const prop = isFullyCrystallized ? 0 : p.pclsProp;
+@@ -1532,6 +1547,56 @@ function grossPensionNeededForNet(netTarget, otherTaxableIncome = 0, cfg, isFull
+   return Number.isFinite(Gmax) ? Math.min(G, Gmax) : G;
+ }
+ 
++/*
++ * The gross draw that delivers `target` net with the year's interest `i` and dividends `d` stacked above it (HMRC's order, the
++ * review of 9 Nov's item 3): the net is the tax-free part plus the rise in the person's net income, every tax of the year in
++ * it (taxParams' personTax: the draw's own income tax, the taper on all income, and the interest's and dividends' tax moving
++ * up). That net has kinks wherever a slice of the year crosses an edge (the allowance, the starting rate band, a band's top,
++ * the taper), each met by the non-savings income alone, with the interest, and with the dividends; and it steps down where
++ * the savings allowance halves at the basic band's top. The edges bracket it; inside a bracket the low end always delivers
++ * less than the target and the high end at least it, so the high end is returned: never less than asked, and the smallest
++ * gross that delivers it.
++ */
++function grossWithSavingsAbove(target, T0, p, isFullyCrystallized, pclsHeadroom, maxTaxableCeiling, i, d, billAt = null) {
++  const headroom = isFullyCrystallized ? 0 : Math.max(0, num(pclsHeadroom, 0));
++  const prop = isFullyCrystallized ? 0 : p.pclsProp;
++  const room = Math.max(0, num(maxTaxableCeiling, Infinity) - T0);
++  if (!(room > 0) && (prop <= 0 || headroom <= 0)) return 0;
++  const Gh = prop > 0 ? headroom / prop : Infinity;
++  const taxFreeOf = (G) => Math.min(prop * G, headroom);
++  const gMaxForTaxable = (x) => { if (prop >= 1) return Gh + x; const g1 = x / (1 - prop); return g1 <= Gh ? g1 : headroom + x; };
++  // `billAt` (a caller's memo of personTax at this interest and these dividends, fast.js) or personTax itself
++  const netAt = (N) => N - (billAt ? billAt(N) : p.personTax({ nonSavings: N, interest: i, dividends: d })).total;
++  const netBase = netAt(T0);
++  const f = (G) => taxFreeOf(G) + netAt(T0 + G - taxFreeOf(G)) - netBase;
++  const Gmax = Number.isFinite(room) ? gMaxForTaxable(room) : Infinity;
++  if (Number.isFinite(Gmax) && f(Gmax) <= target) return Gmax;
++  const levels = new Set();
++  for (const B of [...taxBreakpoints(p), p.pa + p.srBand]) for (const off of [0, i, i + d, i + Math.min(d, p.divAllowance)]) { const n = B - off; if (n > T0) levels.add(n); }
++  const bps = [];
++  if (Number.isFinite(Gh)) bps.push(Gh);
++  for (const n of levels) bps.push(gMaxForTaxable(n - T0));
++  bps.push(Number.isFinite(Gmax) ? Gmax : Math.max(target * 4, 1000));
++  bps.sort((a, b) => a - b);
++  let lo = 0, flo = 0, hi = NaN, fhi = NaN;
++  for (const gb of bps) {
++    if (gb <= lo) continue;
++    const fb = f(gb);
++    if (fb >= target) { hi = gb; fhi = fb; break; }
++    lo = gb; flo = fb;
++  }
++  // past the last edge the net rises at a constant rate: step out until it reaches the target
++  if (!(hi > lo)) { hi = Math.max(lo * 2, lo + 1000); fhi = f(hi); for (let k = 0; k < 60 && fhi < target; k++) { lo = hi; flo = fhi; hi *= 2; fhi = f(hi); } }
++  // secant steps inside the bracket, every third a halving, so a kink or the allowance's step cannot stall it
++  for (let k = 0; k < 80 && hi - lo > 1e-9 * Math.max(1, hi); k++) {
++    const sec = fhi > flo ? lo + (target - flo) * (hi - lo) / (fhi - flo) : (lo + hi) / 2;
++    const G = k % 3 === 2 || !(sec > lo && sec < hi) ? (lo + hi) / 2 : sec;
++    const fg = f(G);
++    if (fg >= target) { hi = G; fhi = fg; if (fg - target < 1e-7) break; } else { lo = G; flo = fg; }
++  }
++  return Number.isFinite(Gmax) ? Math.min(hi, Gmax) : hi;
++}
++
+ // ---------------------------------------------------------------- seeded randomness
+ function mulberry32(seed) {
+   let a = (seed >>> 0) || 0x9E3779B9;
+@@ -1732,6 +1797,8 @@ function buildContext(rawPlan) {
+     // the windfall split (research, D37): what the Auto deposits claimed in their own year, and their amounts by year
+     const autoClaimed = new Map(), autoAmt = new Map();
+     const headroomCtx = { P, owners, acc, otherIncomes };
++    // relief on the pension routes the plan makes from the household's own money (the review of 9 Nov, item 4; pensionRelief)
++    const relief = { rate: P.reliefAtSource, of: (ownerKey, t, gross) => pensionRelief(P, relevantEarningsAtYear(headroomCtx, owners.find(o => o.key === ownerKey), t), gross) };
+     const claim = (ownerKey, cat, t, want, auto = false) => {
+       const key = `${ownerKey}|${cat}|${t}`;
+       const already = claimed.get(key) || 0;
+@@ -1791,18 +1858,23 @@ function buildContext(rawPlan) {
+       // yearHeadroom is this year's raw allowance (before other deposits' claims), shown on the row
+       const yearHeadroom = wrapperHeadroomAtYear(headroomCtx, ownerKey, targetCat, t);
+       const isAuto = x.category === AUTO_DEPOSIT;
+-      const H0 = claim(ownerKey, targetCat, t, amt, isAuto);
++      // an Auto deposit the policy puts in a pension is the plan's own route, relieved: its room taken gross for the net it
++      // costs, any refund to cash. A deposit typed into a pension lands as typed (M3)
++      const relieved = isAuto && targetCat === 'pen';
++      const H0 = relieved ? claim(ownerKey, targetCat, t, amt / (1 - relief.rate), true) : claim(ownerKey, targetCat, t, amt, isAuto);
++      const rel0 = relieved ? relief.of(ownerKey, t, H0) : null, net0 = relieved ? Math.min(amt, rel0.net) : H0;
+       if (!oneOffContribs.has(y)) oneOffContribs.set(y, []);
+       // an Auto deposit's own entries are marked, so a table's move can put that money elsewhere (the windfall split)
+       const entry = (id, amount) => (isAuto ? { id, amount, auto: true } : { id, amount });
++      if (relieved && rel0.refund > 0) oneOffContribs.get(y).push(entry(accountId('cash', ownerKey), rel0.refund));
+       if (isAuto) autoAmt.set(`${y}|${ownerKey}`, (autoAmt.get(`${y}|${ownerKey}`) || 0) + amt);
+-      if (amt <= H0 + 1e-6) {
+-        oneOffContribs.get(y).push(entry(targetId, amt));
+-        oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0 });
++      if (amt <= net0 + 1e-6) {
++        oneOffContribs.get(y).push(entry(targetId, relieved ? H0 : amt));
++        oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: relieved ? H0 : amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0, ...(relieved ? { relief: { gross: H0, net: net0, refund: rel0.refund } } : {}) });
+         return;
+       }
+ 
+-      const surplus0 = amt - H0;
++      const surplus0 = amt - net0;
+       if (H0 > 0) oneOffContribs.get(y).push(entry(targetId, H0));
+       oneOffContribs.get(y).push(entry(otherId, surplus0));
+ 
+@@ -1812,6 +1884,18 @@ function buildContext(rawPlan) {
+       let remaining = surplus0;
+       if (stagedCat !== 'other') {
+         for (let dt = t + 1; dt <= totalYears && remaining > 0.005; dt++) {
++          // a transfer into a pension is relieved (the review of 9 Nov, item 4): the room taken gross, the taxable account
++          // paying the net; the move the engine makes is grossed up by `uplift`, and a refund paid to cash pro rata
++          if (stagedCat === 'pen') {
++            const gross = claim(ownerKey, stagedCat, dt, remaining / (1 - relief.rate));
++            if (gross <= 0) continue;
++            const rel = relief.of(ownerKey, dt, gross), net = Math.min(remaining, rel.net), dy = baseYear + dt;
++            if (!stagedTransfers.has(dy)) stagedTransfers.set(dy, []);
++            stagedTransfers.get(dy).push({ fromId: otherId, toId: stagedId, amount: net, uplift: 1 / (1 - relief.rate), refundId: accountId('cash', ownerKey), refundPer: rel.refund / net });
++            tranches.push({ year: dy, amount: net, gross, refund: rel.refund });
++            remaining -= net;
++            continue;
++          }
+           const tranche = claim(ownerKey, stagedCat, dt, remaining);
+           if (tranche <= 0) continue;
+           const dy = baseYear + dt;
+@@ -1828,7 +1912,7 @@ function buildContext(rawPlan) {
+       );
+       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
+     });
+-    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t) });
++    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t), relief });
+     saveSplitAt = saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears });
+   }
+   const oneOffCosts = new Map();
+@@ -2097,7 +2181,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+   if (drips) drips.forEach(x => {
+     const move = sellGia(x.fromId, x.amount);
+     if (move <= 0) return;
+-    pots[x.toId] = (pots[x.toId] || 0) + move;
++    // a transfer into a pension lands grossed up, its refund to cash in proportion to what moved (the review's item 4)
++    pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
++    if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
+     if (cgtOn && x.toId.startsWith('other_')) giaAddBasis(state, ownerOfId(x.toId), move);
+   });
+ 
+@@ -2151,14 +2237,27 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+   });
+   const statePension = { self: 0, part: 0 };
+   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
++  /*
++   * The taxable pay of each person still working (the review of 9 Nov, item 3): the pay the take-home below taxes, after
++   * salary sacrifice or a net-pay contribution (calculateMarginalRelief's sacrifice), at the bottom of the person's stack.
++   * Every other tax of the year stands on it: the interest and dividends, a pension draw and its ceiling, the gains' band.
++   * The take-home pays the tax on it, so `taxPaid` is the person's whole bill less the tax on the pay alone.
++   */
++  const taxablePay = { self: 0, part: 0 };
++  owners.forEach(o => {
++    if (!working[o.key] || !(o.salary > 0)) return;
++    const pen = acc[o.ids.pen];
++    const penContrib = pen ? (sv && pen.id in sv ? sv[pen.id] : contribAtYear(pen, t)) : 0;
++    taxablePay[o.key] = taxablePayOf(salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
++  });
+   /*
+    * 4a. Tax on the year's savings interest. Cash Savings grows at its real rate in step 8 as it always
+    * has (that growth IS the interest, net of inflation); what is new is that HMRC taxes the NOMINAL
+    * interest - real plus inflation - as savings income above the starting rate and the personal savings
+    * allowance. Measured on the cash held at this point in the year, before any draw, so it is knowable
+    * when the draws are sized, and charged as a cost the year must fund like any other bill. Interest is
+-   * savings income, stacked on top of the non-savings income known here; a pension draw later in the year
+-   * can push it up a band, and that second-order shift is deliberately not chased.
++   * savings income, stacked on top of the non-savings income known here (the taxable pay among it); a pension
++   * draw later in the year re-prices it in HMRC's order (drawPension, taxParams' personTax).
+    */
+   const savingsInterest = { self: 0, part: 0 }, savingsTax = { self: 0, part: 0 };
+   if (P.cashInterestTaxed) owners.forEach(o => {
+@@ -2166,7 +2265,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+     if (!a) return;
+     const nominal = (1 + a.real) * (1 + ctx.inflation) - 1;
+     savingsInterest[o.key] = Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac);
+-    savingsTax[o.key] = P.savingsTax(taxable[o.key], savingsInterest[o.key]);
++    savingsTax[o.key] = P.savingsTax(taxablePay[o.key] + taxable[o.key], savingsInterest[o.key]);
+   });
+   /*
+    * 4b. Tax on the year's dividends inside the GIA, on the same footing: the GIA is assumed to pay its
+@@ -2177,7 +2276,7 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+   const giaDividends = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+   if (P.giaDividendYield > 0) owners.forEach(o => {
+     giaDividends[o.key] = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac);
+-    dividendTax[o.key] = P.dividendTax(taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
++    dividendTax[o.key] = P.dividendTax(taxablePay[o.key] + taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
+     // the dividends are reinvested (the GIA's total return includes them), so they buy units at cost (F0a, 21 Oct)
+     if (cgtOn && giaDividends[o.key] > 0) giaAddBasis(state, o.key, giaDividends[o.key]);
+   });
+@@ -2190,7 +2289,15 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+    * Without it the tab can only say "up to whatever is left" and leave the household to guess.
+    */
+   const otherTaxable = { self: taxable.self, part: taxable.part };
+-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
++  // the tax on the guaranteed income with the pay below it and the year's interest and dividends above it (the taper too)
++  const billOf = (key) => P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] });
++  const payTax = (key) => (taxablePay[key] > 0 ? incomeTax(taxablePay[key], P) : 0);
++  // the interest and the dividends each priced with the whole year in the stack: the savings allowance reads the whole taxable
++  // income and the taper all of it, so 4a's interest is re-priced once 4b's dividends are known
++  owners.forEach(o => { const b = billOf(o.key); savingsTax[o.key] = b.onInterest; dividendTax[o.key] = b.onDividends; });
++  // (written as the old net less a correction that is exactly 0 with no pay, interest or dividends, so such a year is the
++  // same to the bit as before: calculateUKNetIncome and personTax take the same steps there)
++  owners.forEach(o => { const b = billOf(o.key); netGuaranteed[o.key] = taxFreeIncome[o.key] + calculateUKNetIncome(taxable[o.key], P) - ((b.onNonSavings - payTax(o.key)) - incomeTax(taxable[o.key], P)) - savingsTax[o.key] - dividendTax[o.key]; });
+   let totalNetGuaranteed = owners.reduce((sum, o) => sum + netGuaranteed[o.key], 0);
+   // take-home of a partner who is still working after the household has started drawing (offsets living costs)
+   let workingTakeHome = 0;
+@@ -2223,8 +2330,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+     if (pot <= 0) return 0;
+     const fully = ctx.fullLumpSum && state.lumpSumTaken[oKey];
+     const headroom = fully ? 0 : pclsHeadroom(oKey);
+-    if (taxable[oKey] >= ceiling) return 0;
+-    const grossNeeded = grossPensionNeededForNet(netNeeded, taxable[oKey], P, fully, headroom, ceiling);
++    const T0 = taxablePay[oKey] + taxable[oKey];
++    if (T0 >= ceiling) return 0;
++    const grossNeeded = grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
+     const gross = Math.min(pot, grossNeeded);
+     if (gross <= 0) return 0;
+     pots[o.ids.pen] = pot - gross;
+@@ -2233,10 +2341,13 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+     state.cumPcls[oKey] += taxFree;
+     const taxablePart = gross - taxFree;
+     taxablePensionDrawn[oKey] += taxablePart;
+-    const before = calculateUKNetIncome(taxable[oKey], P);
++    // the net it delivers: the tax-free part and the rise in the person's net income, every tax of the year in it (the old
++    // net less a correction that is exactly 0 with no pay, interest or dividends, so such a draw is the same to the bit)
++    const was = billOf(oKey), before = calculateUKNetIncome(taxable[oKey], P), taxBefore = incomeTax(taxable[oKey], P);
+     taxable[oKey] += taxablePart;
+-    const after = calculateUKNetIncome(taxable[oKey], P);
+-    return taxFree + (after - before);
++    const now = billOf(oKey), after = calculateUKNetIncome(taxable[oKey], P), taxAfter = incomeTax(taxable[oKey], P);
++    savingsTax[oKey] = now.onInterest; dividendTax[oKey] = now.onDividends;
++    return taxFree + (after - before) - ((now.total - was.total) - (taxAfter - taxBefore));
+   };
+   const drawPot = (id, need) => {
+     if (need <= 0) return 0;
+@@ -2543,7 +2654,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+       if (taxableGain <= 0) return;
+       // Unused personal allowance cannot be set against capital gains, so the band available to gains is
+       // the basic-rate width less TAXABLE income (income after PA) — never the full gross-income headroom.
+-      const taxableIncome = Math.max(0, taxable[o.key] - P.paAt(taxable[o.key]));
++      const allIncome = taxablePay[o.key] + taxable[o.key] + savingsInterest[o.key] + giaDividends[o.key];
++      const taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
+       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
+       const atBasic = Math.min(taxableGain, basicRoom);
+       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
+@@ -2570,6 +2682,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+    * this year's level) and the rest sits in the GIA at cost; a shortfall is topped up from the GIA and
+    * books its gain like any disposal, into next year's tally since this year's bill is settled.
+    */
++  // what the sweep moved, by owner, for the pages (the review of 9 Nov, item 5, part 1): cash to the taxable account, and back
++  const swept = { toGia: { self: 0, part: 0 }, fromGia: { self: 0, part: 0 }, toIsa: { self: 0, part: 0 } };
+   if (chosen && chosen.sweepCash) {
+     const bufferEach = spendTargetAtAge(ctx, ageSelf) * ctx.cashBufferYears / owners.length;
+     owners.forEach(o => {
+@@ -2577,13 +2691,25 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+       if (cash > bufferEach) {
+         const excess = cash - bufferEach;
+         pots[o.ids.cash] = bufferEach;
+-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+-        if (cgtOn) giaAddBasis(state, o.key, excess);
++        // the sweepCashIsaTo option ('isa'; research, off; the review of 9 Nov, item 5): the part of the excess that is cash ISA
++        // money (the buffer keeps the sheltered cash first, as 7e does) transfers to the stocks and shares ISA where the person
++        // holds one, which uses no allowance; the rest goes to the taxable account
++        const fromIsa = chosen.sweepIsa && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
++        if (fromIsa > 0) {
++          pots[o.ids.isa] += fromIsa;
++          pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
++          if (cgtOn) giaAddBasis(state, o.key, excess - fromIsa);
++        } else {
++          pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
++          if (cgtOn) giaAddBasis(state, o.key, excess);
++        }
++        swept.toGia[o.key] = excess - fromIsa; swept.toIsa[o.key] = fromIsa;
+       } else if (cash < bufferEach) {
+         const before = realisedGains[o.key];
+         const got = sellGia(o.ids.other, bufferEach - cash);
+         pots[o.ids.cash] = cash + got;
+         state.cgtCarry[o.key] += realisedGains[o.key] - before;
++        swept.fromGia[o.key] = got;
+       }
+     });
+   }
+@@ -2667,7 +2793,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+   const totalSelf = sumOwner(ownerByKey.self);
+   const totalPart = ctx.isCouple ? sumOwner(ownerByKey.part) : 0;
+   const totalCombined = totalSelf + totalPart;
+-  const taxPaid = owners.reduce((s, o) => s + incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
++  const incomeTaxOf = {};
++  owners.forEach(o => { incomeTaxOf[o.key] = billOf(o.key).total - payTax(o.key); });
++  const taxPaid = owners.reduce((s, o) => s + incomeTaxOf[o.key], 0);
+   const byCat = {};
+   CATEGORIES.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
+ 
+@@ -2686,6 +2814,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+     drawdownPensions, taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part, harvested, taxPaid, cgtPaid,
+     otherTaxableSelf: otherTaxable.self, otherTaxablePart: otherTaxable.part,
+     savingsInterest: savingsInterest.self + savingsInterest.part, savingsTax: savingsTax.self + savingsTax.part,
++    taxablePaySelf: taxablePay.self, taxablePayPart: taxablePay.part, savingsInterestSelf: savingsInterest.self, savingsInterestPart: savingsInterest.part,
++    giaDividendsSelf: giaDividends.self, giaDividendsPart: giaDividends.part, incomeTaxSelf: incomeTaxOf.self || 0, incomeTaxPart: incomeTaxOf.part || 0,
+     giaDividends: giaDividends.self + giaDividends.part, dividendTax: dividendTax.self + dividendTax.part,
+     cashIsa: owners.reduce((s2, o) => s2 + state.cashIsa[o.key], 0),
+     realisedGains: realisedGains.self + realisedGains.part,
+@@ -2699,7 +2829,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null)
+     // under a solved table: what it chose this year, the tiers held, and what a tier change cost
+     action: chosen ? (chosen.code || null) : null, spendLevel: chosen && chosen.spendLevel !== undefined ? chosen.spendLevel : 1,
+     tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid,
+-    tierPenName: grownAt.pen, tierIsaName: grownAt.isa
++    tierPenName: grownAt.pen, tierIsaName: grownAt.isa,
++    // the year's sweep (7d): cash above the buffer moved to the taxable account, and a shortfall topped up from it
++    sweptToGia: swept.toGia.self + swept.toGia.part, sweptFromGia: swept.fromGia.self + swept.fromGia.part, sweptToIsa: swept.toIsa.self + swept.toIsa.part
+   };
+ }
+ 
+@@ -3305,12 +3437,13 @@ function suggestOneOffDestination(ctx, ownerKey, t, amount) {
+ /*
+  * THE WINDFALL SPLIT (research, off unless a table's move asks for it; STATE.md D37, research/solver/WINDFALL-SPLIT.md).
+  * For each year with Auto deposits, where splits 1 to 3 put that year's Auto money, by owner: 1 the pension up to its room,
+- * then the ISA up to its allowance, the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
++ * relieved (pensionRelief: its room gross, the windfall paying the net, any refund to cash), then the ISA up to its allowance,
++ * the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
+  * room is what the claim ledger left this year once every other deposit, transfer and contribution claimed, the Auto
+  * deposits' own claims for the year given back. A wrapper the household does not hold takes nothing. Split 0 is the plan's
+  * own routing (the marked entries in oneOffContribs), so nothing here changes a year whose move carries no split.
+  */
+-function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room }) {
++function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room, relief }) {
+   autoAmt.forEach((A, key) => {
+     const [ys, ownerKey] = key.split('|');
+     const y = Number(ys), t = y - baseYear;
+@@ -3320,13 +3453,16 @@ function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, ro
+       return Math.max(0, room(ownerKey, cat, t) - ((claimed.get(k) || 0) - (autoClaimed.get(k) || 0)));
+     };
+     const penRoom = left('pen'), isaRoom = left('isa');
+-    const pen1 = Math.min(A, penRoom), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
++    // split 1's pension is relieved (the review of 9 Nov, item 4): its room taken gross, for the net it costs the windfall,
++    // a higher-rate payer's refund to their cash
++    const penGross = Math.min(penRoom, A / (1 - relief.rate)), rel = penGross > 0 ? relief.of(ownerKey, t, penGross) : { net: 0, refund: 0 };
++    const pen1 = Math.min(A, rel.net), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
+     // the rest goes to the taxable account, or to cash where the household holds no taxable account
+     const restId = acc[accountId('other', ownerKey)] ? accountId('other', ownerKey) : accountId('cash', ownerKey);
+     const ent = pairs => pairs.filter(([, a]) => a > 0).map(([id, a]) => ({ id, amount: a }));
+     if (!out.has(y)) out.set(y, { variants: [null, [], [], []], room: [] });
+     const e = out.get(y);
+-    e.variants[1].push(...ent([[accountId('pen', ownerKey), pen1], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1]]));
++    e.variants[1].push(...ent([[accountId('pen', ownerKey), penGross], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1], [accountId('cash', ownerKey), rel.refund]]));
+     e.variants[2].push(...ent([[accountId('isa', ownerKey), isa2], [restId, A - isa2]]));
+     e.variants[3].push(...ent([[restId, A]]));
+     e.room.push({ owner: ownerKey, amount: A, pen: penRoom, isa: isaRoom });
+@@ -3690,10 +3826,22 @@ function bedAndSippFor(ctx, alloc, spare, scope) {
+   const aaRoom = Math.max(0, cap - alloc.penByOwner[0]);
+   const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
+   if (!(gross > 250)) return null;
++  const { net, refund } = pensionRelief(P, earnings, gross);
++  return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
++}
++
++/*
++ * RELIEF ON A PERSONAL PENSION CONTRIBUTION (the review of 9 Nov, item 4): money a person pays into a pension from their own
++ * funds is relieved at source at the basic rate (£80 buys £100); a payer above the basic band gets the rest of their relief
++ * back (`refund`, paid to their cash), worked on the contribution's gross against the year's relevant earnings. A non-earner
++ * gets the basic rate at source and nothing to reclaim. Shared by bedAndSippFor and every route the plan itself makes into a
++ * pension (an Auto deposit, the windfall split's pension-first variant, a staged transfer); the room the gross may take is the
++ * caller's (wrapperHeadroomAtYear). A deposit typed into a pension stays at face value (M3: the maintainer's wording question).
++ */
++function pensionRelief(P, earnings, gross) {
+   const net = gross * (1 - P.reliefAtSource);
+   const reliefTotal = earnings > 0 ? incomeTax(earnings, P) - incomeTax(Math.max(0, earnings - gross), P) : gross * P.reliefAtSource;
+-  const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
+-  return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
++  return { net, refund: Math.max(0, reliefTotal - gross * P.reliefAtSource) };
+ }
+ 
+ function accumulationEnv(ctx, { emergencyFloor = 25000, scope = 'contributions', netBudgetOverride = null, balance = 'proportional' } = {}) {
+@@ -6926,7 +7074,7 @@ function frontierSpend(row, targetRate = 90) {
+ }
+ 
+ // Namespace used by the UI (mirrors the modular engine.js exports)
+-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
++const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+ /*
+  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
+  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
+@@ -9072,7 +9220,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
+     // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
+     const asked = solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } });
+     (want === 'expected'
+-      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0)) } }))
++      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0, a.rows.rows[i])) } }))
+       : asked)
+       .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
+       .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });
+@@ -13840,7 +13988,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
+                               <div className="space-y-0.5 text-slate-600">
+                                 <div>Year {c.year}: £{fmtNum(Math.round(st.H0))} direct to {c.category} + £{fmtNum(Math.round(st.surplus0))} parked in Other Investments</div>
+                                 {st.tranches.map((tr, i) => (
+-                                  <div key={i}>Year {tr.year}: £{fmtNum(Math.round(tr.amount))} transferred to {c.stagedTargetWrapper}</div>
++                                  <div key={i}>Year {tr.year}: £{fmtNum(Math.round(tr.amount))} transferred to {c.stagedTargetWrapper}{tr.gross ? `, £${fmtNum(Math.round(tr.gross))} with tax relief` : ''}</div>
+                                 ))}
+                                 {st.unresolvedRemainder > 0 && (
+                                   <div className="text-amber-700">£{fmtNum(Math.round(st.unresolvedRemainder))} remains parked in Other Investments beyond the plan horizon.</div>
+diff --git a/src/PlannerPlan.jsx b/src/PlannerPlan.jsx
+index 2b85c40e..0d47c2e9 100644
+--- a/src/PlannerPlan.jsx
++++ b/src/PlannerPlan.jsx
+@@ -13,7 +13,7 @@
+  */
+ import React, { useEffect, useRef, useState } from 'react';
+ import '@fontsource/newsreader/latin-500.css';
+-import { headlineWords, explanationWords, raiseWords, actionWords, aheadRowsWords, ruleWords, COME_BACK } from './solverWords.js';
++import { headlineWords, explanationWords, raiseWords, actionWords, sweepWords, aheadRowsWords, ruleWords, COME_BACK } from './solverWords.js';
+ import { useSwipe } from './swipe.js';
+ import { PLANNER_PLANT } from './plannerPlant.js';
+ import { timings } from './solveStatus.js';
+@@ -363,12 +363,14 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
+       <h3 className="text-[15px] font-semibold text-slate-900">{h.retired ? 'This year' : 'This year, before you retire'}</h3>
+       {isPhone && <p className="text-xs text-slate-500">Each shows what skipping it, this year only, would cost.</p>}
+       {!mine.actions ? <p className="text-xs text-slate-500">Working out what each of this year&apos;s steps is worth…</p>
+-        : !mine.actions.actions.length ? <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>
++        : !mine.actions.actions.length ? (sweepWords(mine.actions.sweep, ctx) ? null : <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>)
+           : <ol className="space-y-2">{mine.actions.actions.map((x, i) => { const t = actionWords(x, ctx); return (
+             <li key={x.part} className="flex gap-3" data-strategy-action={x.part} data-strategy-cost={x.cost === null ? '' : x.cost}>
+               <span className="text-xs font-semibold text-indigo-700 tabular-nums">{i + 1}</span>
+               <div><div className="text-sm font-medium text-slate-800">{t.what}</div><div className="text-xs text-slate-500">{t.cost}</div></div>
+             </li>); })}</ol>}
++      {mine.actions && sweepWords(mine.actions.sweep, ctx) && (
++        <p className="text-sm text-slate-700" data-strategy-sweep={Math.round(mine.actions.sweep.toGia || mine.actions.sweep.fromGia)}>{sweepWords(mine.actions.sweep, ctx)}, as the plan keeps cash at its buffer.</p>)}
+     </div>
+   );
+   const rule = mine.distil && (mine.distil.show ? (() => { const t = ruleWords(mine.distil, ctx); return (
+diff --git a/src/solvedSheet.js b/src/solvedSheet.js
+index e848cb1b..7611fc15 100644
+--- a/src/solvedSheet.js
++++ b/src/solvedSheet.js
+@@ -13,7 +13,7 @@ export function solvedSheetHtml(figures, { fmt, levers, rulesLine, code }) {
+   return buildSolvedPlanHtml({
+     answer: W.headlineWords(h, fmt), explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers, code,
+     thisYearTitle: h.retired ? 'This year' : 'This year, before you retire',
+-    actions: m.actions ? m.actions.actions.map(x => W.actionWords(x, wctx)) : [],
++    actions: m.actions ? [...m.actions.actions.map(x => W.actionWords(x, wctx)), ...(W.sweepWords(m.actions.sweep, wctx) ? [{ what: W.sweepWords(m.actions.sweep, wctx), cost: 'As the plan keeps cash at its buffer.' }] : [])] : [],
+     rule: m.distil && m.distil.show ? W.ruleWords(m.distil, wctx) : null,
+     ahead: m.ahead ? W.aheadRowsWords(m.ahead.rows, wctx) : [], comeBack: W.COME_BACK,
+     compare: {
+diff --git a/src/solver/bridge.js b/src/solver/bridge.js
+index 0e7df8bd..c8a620c8 100644
+--- a/src/solver/bridge.js
++++ b/src/solver/bridge.js
+@@ -38,7 +38,7 @@ export function tablePolicy(r) {
+       const a = actions[ai], ca = c.acts[ai];
+       return {
+         steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa',
+-        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}),
++        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}),
+         ...(a.windfall ? { windfall: a.windfall } : {}),   // the windfall split (research, D37): where the year's Auto money lands
+         ...(a.save ? { save: a.save } : {}),   // the savings split (research, D38 (4)): where the year's pension and ISA saving goes
+         tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca),
+diff --git a/src/solver/fast.js b/src/solver/fast.js
+index 44d9f1f8..22a05a0a 100644
+--- a/src/solver/fast.js
++++ b/src/solver/fast.js
+@@ -32,6 +32,9 @@ export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa:
+ const N4_TOKENS = ['penHR', 'penPAm', 'penBm'];
+ // N4's plants, for its test only (research/tests/n4-menu.test.mjs): 'hrtop' the taper ceiling read as the higher band's top,
+ // 'midband' the basic band's midpoint read as the higher band's, 'nobasis' the CGT sale's buy-back left at no cost; '' none
++/* The year's interest and dividends tax memo (the review of 9 Nov's item 3, step 2): `memo` on (tests compare it off); `plant` 'noceiling'
++   (engine-hmrc.test.mjs) leaves the draw's ceiling out of its key. */
++export const KNOCK = { memo: true, plant: '' };
+ export const N4 = { plant: '' };
+ const CATS = ['pen', 'isa', 'other', 'cash'];
+ 
+@@ -201,8 +204,8 @@ export function compile(m, actions) {
+     cost: new Float64Array(T + 1), buffer: new Float64Array(T + 1),
+     // by pot, in CATS order: dated deposits, deductions, scheduled contributions (full-year, before frac)
+     dep: CATS.map(() => new Float64Array(T + 1)), ded: CATS.map(() => new Float64Array(T + 1)), con: CATS.map(() => new Float64Array(T + 1)),
+-    // staged transfers out of the GIA into a pot, by target pot
+-    drip: CATS.map(() => new Float64Array(T + 1)),
++    // staged transfers out of the GIA into a pot, by target pot; into a pension, what they land (relieved) and their refund
++    drip: CATS.map(() => new Float64Array(T + 1)), dripLand: CATS.map(() => new Float64Array(T + 1)), dripRefund: CATS.map(() => new Float64Array(T + 1)),
+     cgtExempt: new Float64Array(T + 1),
+     // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
+     cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1),
+@@ -214,7 +217,10 @@ export function compile(m, actions) {
+     splitYear: new Uint8Array(T + 1),
+     // the savings split (research, D38 (4)): where saves 1 and 2 put the year's contributions, by pot (index 0 unused), and
+     // whether the year has a choice; filled only when the menu carries save copies
+-    saveCon: [null, 1, 2].map(v => v && CATS.map(() => new Float64Array(T + 1))), saveYear: new Uint8Array(T + 1)
++    saveCon: [null, 1, 2].map(v => v && CATS.map(() => new Float64Array(T + 1))), saveYear: new Uint8Array(T + 1),
++    // the taxable pay while working (E.taxablePayOf: the pay less what the year's pension contribution gives up), at the bottom
++    // of the year's stack (the review of 9 Nov, item 3); and under each savings variant, whose pension contribution differs
++    pay: new Float64Array(T + 1), paySave: [null, 1, 2].map(v => v && new Float64Array(T + 1))
+   };
+   const saveOn = !!(actions && actions.some(a => a.save) && ctx.saveSplitAt);
+   for (let t = 0; t <= T; t++) {
+@@ -236,9 +242,17 @@ export function compile(m, actions) {
+     if (sp) { yr.splitYear[t] = 1; for (let v = 1; v <= 3; v++) sp.variants[v].forEach(x => { const c = catOfId[x.id]; if (c) yr.splitDep[v][CATS.indexOf(c)][t] += x.amount; }); }
+     (ctx.oneOffDeductions.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c) yr.ded[CATS.indexOf(c)][t] += x.amount; });
+     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other) yr.drip[CATS.indexOf(c)][t] += x.amount; });
++    // a transfer into a pension relieved (the review of 9 Nov, item 4): what it lands and its refund to cash, as planned; a
++    // move short of the plan lands and refunds in proportion (the engine's 1.5)
++    (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other && x.uplift) { const i = CATS.indexOf(c); yr.dripLand[i][t] += x.amount * x.uplift; if (x.refundPer > 0 && x.refundId === idOf.cash) yr.dripRefund[i][t] += x.amount * x.refundPer; } });
+     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
+     const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
+     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
++    if (yr.working[t] && o.salary > 0) {
++      const salary = E.salaryAtYear(o, t);
++      yr.pay[t] = E.taxablePayOf(salary, yr.con[0][t], P, o.selfEmployed) * yr.frac[t];
++      if (yr.saveYear[t]) for (let v = 1; v <= 2; v++) yr.paySave[v][t] = E.taxablePayOf(salary, yr.saveCon[v][0][t], P, o.selfEmployed) * yr.frac[t];
++    }
+     yr.cgtExempt[t] = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
+     yr.cashIsaCap[t] = P.cashIsaCapAt(age, year);
+   }
+@@ -333,7 +347,7 @@ export function compile(m, actions) {
+       steps: Int8Array.from(a.steps.map(codeOf)),
+       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
+       harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
+-      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, windfall: a.windfall || 0, save: a.save || 0,
++      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, sweepIsa: a.sweepIsa ? 1 : 0, windfall: a.windfall || 0, save: a.save || 0,
+       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
+       level: a.spendLevel !== undefined ? a.spendLevel : 1,
+       tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
+@@ -349,7 +363,7 @@ export function compile(m, actions) {
+     return variants.get(key);
+   };
+   return {
+-    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, n4cap, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
++    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, n4cap, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0, hasIsa: !!acc[idOf.isa],
+     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
+     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, raiseCapFrac: ctx.raiseCapFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
+     real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
+@@ -393,7 +407,7 @@ export function cashSplit(c, t, tax) {
+  * that per quadrature node from the post-decision state, and `grow` below does it.
+  */
+ export function flow(c, t, ai, s) {
+-  const { P, tb, yr } = c;
++  const { E, P, tb, yr } = c;
+   const a = c.acts[ai];
+   const frac = yr.frac[t];
+   const working = yr.working[t] === 1, access = yr.access[t] === 1;
+@@ -413,6 +427,7 @@ export function flow(c, t, ai, s) {
+   let cashIsa = s.length > 6 ? Math.min(cash, s[6] >= 0 ? s[6] : yr.cashIsaTypical[t]) : 0;
+   let realised = s.length > 11 ? s[11] : 0, booked = 0;   // gains booked this year, from a forward run's carry (slot 11) on
+   let taxable = yr.taxable0[t];
++  const pay = a.save && yr.saveYear[t] ? yr.paySave[a.save][t] : yr.pay[t];
+   let taxPaid = 0, cgtPaid = 0, unmet = 0, drawdown = 0, harvested = 0;
+   const cgtOn = P.cgtEnabled;
+ 
+@@ -436,7 +451,11 @@ export function flow(c, t, ai, s) {
+     // the windfall split (research, D37): in a year with Auto money, a move's split replaces the plan's Auto entries
+     const p = a.windfall && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.windfall][i][t] : yr.dep[i][t];
+     if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
+-    const dr = yr.drip[i][t]; if (dr > 0) { const mv = sellGia(dr); if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv; }
++    const dr = yr.drip[i][t]; if (dr > 0) {
++      const mv0 = sellGia(dr), mv = yr.dripLand[i][t] > 0 ? mv0 * (yr.dripLand[i][t] / dr) : mv0;
++      if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv;
++      if (yr.dripRefund[i][t] > 0) cash += mv0 * (yr.dripRefund[i][t] / dr);
++    }
+   }
+   // 2. contributions while working
+   let isaContrib = 0, cashIsaSubscribed = 0;
+@@ -459,25 +478,54 @@ export function flow(c, t, ai, s) {
+   }
+   // 4. guaranteed income, less the tax on this year's savings interest (taxable cash only) and GIA dividends (engine 4a, 4b)
+   const interest = c.cashNominal > 0 && cash > cashIsa ? (cash - cashIsa) * c.cashNominal * frac : 0;
+-  const savingsTax = interest > 0 ? P.savingsTax(taxable, interest) : 0;
+-  const dividendTax = P.giaDividendYield > 0 && gia > 0 ? P.dividendTax(taxable, interest, gia * P.giaDividendYield * frac) : 0; if (cgtOn && P.giaDividendYield > 0 && gia > 0) basis += gia * P.giaDividendYield * frac;   // reinvested at cost (F0a)
+-  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - savingsTax - dividendTax;
++  const dividends = P.giaDividendYield > 0 && gia > 0 ? gia * P.giaDividendYield * frac : 0;
++  if (cgtOn && dividends > 0) basis += dividends;   // reinvested at cost (F0a)
++  // the year in HMRC's order (the engine's step 4, the review of 9 Nov's item 3): the taxable pay at the bottom, the interest
++  // and dividends above the rest, every tax of the year in the person's one bill; with none of the three the year takes the
++  // old arithmetic, to the bit
++  const stack = pay > 0 || interest > 0 || dividends > 0;
++  // KNOCK.memo (exact; step 2's remedy, the solve 20% slower without it): every move at one decision shares the year's interest
++  // and dividends, so each income level's bill and each gross draw is worked once, kept on the compiled household until the
++  // interest or dividends change. Keyed on everything the two read; plant 'noceiling' leaves the ceiling out of the draw's key
++  // (numeric keys, a draw's by its need and then its starting income; the year's functions made only in a year that needs them)
++  let K = null, billAt = null, grossKnock = null, billOf = null;
++  if (stack) {
++    if (KNOCK.memo) { K = c.knock; if (!K || K.i !== interest || K.d !== dividends) K = c.knock = { i: interest, d: dividends, bill: new Map(), gross: new Map() }; }
++    billAt = (N) => { if (!K) return P.personTax({ nonSavings: N, interest, dividends }); let b = K.bill.get(N); if (b === undefined) { b = P.personTax({ nonSavings: N, interest, dividends }); K.bill.set(N, b); } return b; };
++    grossKnock = (need, T0, fully, headroom, ceiling) => {
++      if (!K) return E.grossPensionNeededForNet(need, T0, P, fully, headroom, ceiling, { interest, dividends });
++      let byT = K.gross.get(need); if (byT === undefined) { byT = new Map(); K.gross.set(need, byT); }
++      let list = byT.get(T0); if (list === undefined) { list = []; byT.set(T0, list); }
++      const cKey = KNOCK.plant === 'noceiling' ? 0 : ceiling;
++      for (let j = 0; j < list.length; j += 4) if (list[j] === fully && list[j + 1] === headroom && list[j + 2] === cKey) return list[j + 3];
++      const g = E.grossPensionNeededForNet(need, T0, P, fully, headroom, ceiling, { interest, dividends, billAt });
++      list.push(fully, headroom, cKey, g);
++      return g;
++    };
++    billOf = () => billAt(pay + taxable);
++  }
++  const payTax = pay > 0 ? E.incomeTax(pay, P) : 0;
++  let bill = stack ? billOf() : null, savingsTax = stack ? bill.onInterest : 0, dividendTax = stack ? bill.onDividends : 0;
++  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - (stack ? (bill.onNonSavings - payTax) - E.incomeTax(taxable, P) : 0) - savingsTax - dividendTax;
++  // a draw's taxable part added to the stack: the interest's and dividends' tax re-priced, and what the old net misses of it
++  const restack = stack ? (taxBefore) => { const was = bill; bill = billOf(); savingsTax = bill.onInterest; dividendTax = bill.onDividends; return (bill.total - was.total) - (E.incomeTax(taxable, P) - taxBefore); } : null;
+ 
+   /* Draw `need` net from the pension without taking taxable income past `ceiling`. */
+   const drawPension = (need, ceiling) => {
+     if (need <= 0 || !access || pen <= 0) return 0;
+     const fully = a.lump && lumpTaken;
+     const headroom = fully ? 0 : Math.max(0, P.lsa - cumPcls);
+-    if (taxable >= ceiling) return 0;
+-    const gross = Math.min(pen, grossForNet(c, need, taxable, fully, headroom, ceiling));
++    const T0 = pay + taxable;
++    if (T0 >= ceiling) return 0;
++    const gross = Math.min(pen, stack ? grossKnock(need, T0, fully, headroom, ceiling) : grossForNet(c, need, T0, fully, headroom, ceiling));
+     if (gross <= 0) return 0;
+     pen -= gross; drawdown += gross;
+     const taxFree = fully ? 0 : Math.min(gross * P.pclsProp, headroom);
+     cumPcls += taxFree;
+     const tp = gross - taxFree;
+-    const before = netOf(tb, taxable);
++    const before = netOf(tb, taxable), taxBefore = stack ? E.incomeTax(taxable, P) : 0;
+     taxable += tp;
+-    return taxFree + (netOf(tb, taxable) - before);
++    return taxFree + (netOf(tb, taxable) - before) - (stack ? restack(taxBefore) : 0);
+   };
+   const drawStep = (step, need) => {
+     if (need <= 0) return 0;
+@@ -596,9 +644,9 @@ export function flow(c, t, ai, s) {
+       pen -= gross; drawdown += gross;
+       const taxFree = Math.min(gross * P.pclsProp, headroom);
+       cumPcls += taxFree;
+-      const before = netOf(tb, taxable);
++      const before = netOf(tb, taxable), taxBefore = stack ? E.incomeTax(taxable, P) : 0;
+       taxable += gross - taxFree;
+-      const net = taxFree + (netOf(tb, taxable) - before);
++      const net = taxFree + (netOf(tb, taxable) - before) - (stack ? restack(taxBefore) : 0);
+       const room = Math.max(0, P.isaAllowance - isaContrib);
+       const toIsa = Math.min(net, room);
+       isa += toIsa; isaContrib += toIsa; addGia(net - toIsa);
+@@ -620,7 +668,7 @@ export function flow(c, t, ai, s) {
+   if (cgtOn) {
+     const taxableGain = Math.max(0, realised - yr.cgtExempt[t]);
+     if (taxableGain > 0) {
+-      const taxableIncome = Math.max(0, taxable - P.paAt(taxable));
++      const allIncome = pay + taxable + interest + dividends, taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
+       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
+       const atBasic = Math.min(taxableGain, basicRoom);
+       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
+@@ -638,7 +686,12 @@ export function flow(c, t, ai, s) {
+   // 7d. the sweep: cash to the buffer, both ways
+   if (a.sweep) {
+     const bufferEach = yr.buffer[t];
+-    if (cash > bufferEach) { addGia(cash - bufferEach); cash = bufferEach; }
++    if (cash > bufferEach) {
++      // the sweepCashIsaTo option ('isa'; the engine's 7d): the cash ISA money above the buffer to the stocks and shares ISA
++      const fromIsa = a.sweepIsa && c.hasIsa ? Math.min(cash - bufferEach, Math.max(0, cashIsa - bufferEach)) : 0;
++      if (fromIsa > 0) { isa += fromIsa; addGia(cash - bufferEach - fromIsa); } else addGia(cash - bufferEach);
++      cash = bufferEach;
++    }
+     else if (cash < bufferEach) { const got = sellGia(bufferEach - cash); cash += got; }
+   }
+   /*
+@@ -650,7 +703,8 @@ export function flow(c, t, ai, s) {
+    */
+   const late = cgtOn ? Math.max(0, realised - booked) : 0;
+   if (s.length <= 11 && late > 0) {
+-    const exemptLeft = Math.max(0, yr.cgtExempt[t] - booked), taxableIncome = Math.max(0, taxable - P.paAt(taxable));
++    const allIncome = pay + taxable + interest + dividends;
++    const exemptLeft = Math.max(0, yr.cgtExempt[t] - booked), taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
+     const basicLeft = Math.max(0, P.cgtBandWidth - taxableIncome - Math.max(0, booked - yr.cgtExempt[t]));
+     const g2 = Math.max(0, late - exemptLeft), at2 = Math.min(g2, basicLeft), bill = at2 * P.cgtBasicRate + (g2 - at2) * P.cgtHigherRate;
+     if (bill > 0) {
+@@ -670,7 +724,7 @@ export function flow(c, t, ai, s) {
+     const move = Math.min(room, Math.max(0, cash - cashIsa));
+     if (move > 0) { cashIsa += move; isaContrib += move; }
+   }
+-  taxPaid = taxOf(tb, taxable) + savingsTax + dividendTax;
++  taxPaid = stack ? billOf().total - payTax : taxOf(tb, taxable) + savingsTax + dividendTax;
+   const preNmpaInsolvent = unmet > 1 && !access;      // the engine's test, with one owner
+ 
+   s[0] = pen; s[1] = isa; s[2] = gia + cash;
+@@ -682,7 +736,8 @@ export function flow(c, t, ai, s) {
+   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
+   if (c.tiers.gia && cgtOn) {
+     c.last.cgtExemptLeft = Math.max(0, yr.cgtExempt[t] - realised);
+-    c.last.cgtBasicLeft = Math.max(0, P.cgtBandWidth - Math.max(0, taxable - P.paAt(taxable)) - Math.max(0, realised - yr.cgtExempt[t]));
++    const allIncome = pay + taxable + interest + dividends;
++    c.last.cgtBasicLeft = Math.max(0, P.cgtBandWidth - Math.max(0, allIncome - P.paAt(allIncome)) - Math.max(0, realised - yr.cgtExempt[t]));
+   }
+   return unmet;
+ }
+diff --git a/src/solver/model.js b/src/solver/model.js
+index 616d57b2..de43d0a3 100644
+--- a/src/solver/model.js
++++ b/src/solver/model.js
+@@ -233,7 +233,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+   if (drips) drips.forEach(x => {
+     const move = sellGia(x.fromId, x.amount);
+     if (move <= 0) return;
+-    pots[x.toId] = (pots[x.toId] || 0) + move;
++    // into a pension grossed up, its refund to cash in proportion to what moved (the engine's 1.5; the review's item 4)
++    pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
++    if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
+     if (x.toId.startsWith('other_')) addBasis(ownerOfId(x.toId), move);
+   });
+ 
+@@ -294,18 +296,33 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+   });
+   const statePension = { self: 0, part: 0 };
+   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
++  // the taxable pay of each person still working, at the bottom of their stack (the engine's step 4, the review of 9 Nov's
++  // item 3): the pay less what is given up to the pension (E.taxablePayOf), the pension contribution the take-home below takes
++  const taxablePay = { self: 0, part: 0 };
++  owners.forEach(o => {
++    if (!working[o.key] || !(o.salary > 0)) return;
++    const pen = ctx.acc[o.ids.pen];
++    const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
++    taxablePay[o.key] = E.taxablePayOf(E.salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
++  });
+   // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
+   if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
+   const savingsTax = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
++  const savingsInterest = { self: 0, part: 0 }, giaDividends = { self: 0, part: 0 };
+   owners.forEach(o => {
+     const a = ctx.acc[o.ids.cash];
+     const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
+     const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
+-    savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
+-    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
++    savingsInterest[o.key] = interest;
++    savingsTax[o.key] = P.savingsTax(taxablePay[o.key] + taxable[o.key], interest);
++    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); giaDividends[o.key] = div; dividendTax[o.key] = P.dividendTax(taxablePay[o.key] + taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
+   });
++  // the person's whole year in HMRC's order (the engine's billOf), and the tax on the pay alone, which the take-home paid
++  const billOf = (key) => P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] });
++  const payTax = (key) => (taxablePay[key] > 0 ? E.incomeTax(taxablePay[key], P) : 0);
++  owners.forEach(o => { const b = billOf(o.key); savingsTax[o.key] = b.onInterest; dividendTax[o.key] = b.onDividends; });   // the whole year in the stack
+   const netGuaranteed = {};
+-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
++  owners.forEach(o => { const b = billOf(o.key); netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - ((b.onNonSavings - payTax(o.key)) - E.incomeTax(taxable[o.key], P)) - savingsTax[o.key] - dividendTax[o.key]; });
+   const totalNetGuaranteed = owners.reduce((s, o) => s + netGuaranteed[o.key], 0);
+   let workingTakeHome = 0;
+   if (anyRetired) {
+@@ -333,8 +350,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+     if (pot <= 0) return 0;
+     const fully = action.lump && state.lumpTaken[oKey];
+     const headroom = fully ? 0 : pclsHeadroom(oKey);
+-    if (taxable[oKey] >= ceiling) return 0;
+-    const grossNeeded = E.grossPensionNeededForNet(netNeeded, taxable[oKey], P, fully, headroom, ceiling);
++    const T0 = taxablePay[oKey] + taxable[oKey];
++    if (T0 >= ceiling) return 0;
++    const grossNeeded = E.grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
+     const gross = Math.min(pot, grossNeeded);
+     if (gross <= 0) return 0;
+     pots[o.ids.pen] = pot - gross;
+@@ -343,10 +361,12 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+     state.cumPcls[oKey] += taxFree;
+     const taxablePart = gross - taxFree;
+     taxablePensionDrawn[oKey] += taxablePart;
+-    const before = E.calculateUKNetIncome(taxable[oKey], P);
++    // the net it delivers, every tax of the year in it, as the engine's draw (exactly the old net with no pay, interest or dividends)
++    const was = billOf(oKey), before = E.calculateUKNetIncome(taxable[oKey], P), taxBefore = E.incomeTax(taxable[oKey], P);
+     taxable[oKey] += taxablePart;
+-    const after = E.calculateUKNetIncome(taxable[oKey], P);
+-    return taxFree + (after - before);
++    const now = billOf(oKey), after = E.calculateUKNetIncome(taxable[oKey], P), taxAfter = E.incomeTax(taxable[oKey], P);
++    savingsTax[oKey] = now.onInterest; dividendTax[oKey] = now.onDividends;
++    return taxFree + (after - before) - ((now.total - was.total) - (taxAfter - taxBefore));
+   };
+   const drawPot = (id, need) => {
+     if (need <= 0) return 0;
+@@ -500,7 +520,8 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+       const exempt = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
+       const taxableGain = Math.max(0, realisedGains[o.key] - exempt);
+       if (taxableGain <= 0) return;
+-      const taxableIncome = Math.max(0, taxable[o.key] - P.paAt(taxable[o.key]));
++      const allIncome = taxablePay[o.key] + taxable[o.key] + savingsInterest[o.key] + giaDividends[o.key];
++      const taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
+       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
+       const atBasic = Math.min(taxableGain, basicRoom);
+       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
+@@ -544,8 +565,16 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+       if (cash > bufferEach) {
+         const excess = cash - bufferEach;
+         pots[o.ids.cash] = bufferEach;
+-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+-        addBasis(o.key, excess);                      // moved at cost, so no gain is created
++        // the sweepCashIsaTo option ('isa'; the engine's 7d): the cash ISA money above the buffer to the stocks and shares ISA
++        const fromIsa = action.sweepIsa && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
++        if (fromIsa > 0) {
++          pots[o.ids.isa] += fromIsa;
++          pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
++          addBasis(o.key, excess - fromIsa);
++        } else {
++          pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
++          addBasis(o.key, excess);                      // moved at cost, so no gain is created
++        }
+       } else if (cash < bufferEach) {
+         // topping the buffer back up is a sale, so it books its gain like any other disposal - into next year's tally,
+         // since this year's bill is settled (the engine's 7d; before 21 Oct it was booked here and never taxed, F0)
+@@ -608,7 +637,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
+ 
+   const byCat = {};
+   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
+-  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
++  const taxPaid = owners.reduce((s, o) => s + (billOf(o.key).total - payTax(o.key)), 0);
+ 
+   return {
+     year, t, ageSelf, agePart,
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index 178b5333..ef41126e 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -402,7 +402,7 @@ export function solve(E, M, plan, opts = {}) {
+     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
+     tierList = [[hp, hi]];
+   }
+-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts), saveSplit: saveOn(m, opts) })).map(a => ({ ...a, lump: !!opts.lump }));
++  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts), saveSplit: saveOn(m, opts) })).map(a => menuMove(a, opts));
+   /*
+    * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
+    * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
+@@ -2777,10 +2777,18 @@ function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
+ }
+ // at the end of the solve: the two options recorded in the run record, and the lock's other settings checked (the layer loop,
+ // no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
++/* a move as the solve takes it: the lump sum as asked, and the sweep's cash ISA money to the ISA where `sweepCashIsaTo` is 'isa'
++   (research, off; the review of 9 Nov, item 5; 'gia', the default, is the engine as before) */
++function menuMove(a, opts) {
++  if (opts.sweepCashIsaTo === undefined || opts.sweepCashIsaTo === 'gia') return { ...a, lump: !!opts.lump };
++  if (opts.sweepCashIsaTo !== 'isa') throw new Error(`sweepCashIsaTo ${opts.sweepCashIsaTo}: 'isa' or 'gia'`);
++  return { ...a, lump: !!opts.lump, sweepIsa: true };
++}
+ function researchFinish(r, LK, opts) {
+   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
+   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
+   if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
++  if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
+   if (r.actions.some(a => a.windfall || a.save)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
+   if (!LK) return;
+   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');
+diff --git a/src/solverStrategy.js b/src/solverStrategy.js
+index 4c011e7f..ed2787ef 100644
+--- a/src/solverStrategy.js
++++ b/src/solverStrategy.js
+@@ -244,7 +244,7 @@ export function moveOf(r, ai, like) {
+     sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0,
+     index: ai, tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name
+   };
+-  for (const k of ['cgtSale', 'windfall', 'save']) { if (a[k]) m[k] = a[k]; else delete m[k]; }
++  for (const k of ['cgtSale', 'windfall', 'save', 'sweepIsa']) { if (a[k]) m[k] = a[k]; else delete m[k]; }
+   return m;
+ }
+ /* the first year's move as the engine chose it, the position it was chosen at, and the table policy's own object */
+@@ -310,7 +310,13 @@ export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null
+     for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
+     return { part: x.part, value: x.value, skip: { index: x.skip, parts: partsOf(solved.actions[x.skip], solved.c.acts[x.skip]) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
+   });
+-  return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0 };
++  return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };
++}
++/* the first year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1): cash above the buffer to the taxable account,
++   or a shortfall topped up from it. The year's flows before it take no market, so every path sweeps the same amount */
++export function firstSweep(E, sc) {
++  const row = E.stepYear(sc, E.freshState(sc), 0, 'expected');
++  return { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 };
+ }
+ 
+ /*
+@@ -330,7 +336,7 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
+   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
+   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
+     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
+-    if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined) });
++    if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
+   }
+   return { path: k, rows, typical: typicalOf(runs, k) };
+ }
+diff --git a/src/solverWords.js b/src/solverWords.js
+index 71a0a68a..022da14f 100644
+--- a/src/solverWords.js
++++ b/src/solverWords.js
+@@ -72,6 +72,17 @@ export const PART_WORDS = {
+   tierPen: k => `Move your pension ${steps(k)} lower in risk`,
+   tierIsa: k => `Move your ISA ${steps(k)} lower in risk`
+ };
++/* the year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1), to the pound: null in a year it moves nothing */
++export function sweepWords(sw, { fmt }) {
++  if (!sw) return null;
++  // research/tests/sweep-words.test.mjs plants: 'sweepround' the amount to the nearest £1,000, 'sweepback' the top-up worded as the move out
++  const amt = x => fmt(WORDS_PLANT.rule === 'sweepround' ? Math.round(x / 1000) * 1000 : x);
++  // under sweepCashIsaTo 'isa' (research, off) the cash ISA money above the buffer goes to the stocks and shares ISA
++  if (sw.toIsa >= 0.5) return `Move ${amt(sw.toIsa)} of cash ISA money above your buffer to your stocks and shares ISA${sw.toGia >= 0.5 ? `, and ${amt(sw.toGia)} of other cash to your taxable account` : ''}`;
++  if (sw.toGia >= 0.5 || (WORDS_PLANT.rule === 'sweepback' && sw.fromGia >= 0.5)) return `Move ${amt(sw.toGia || sw.fromGia)} of cash above your buffer to your taxable account`;
++  if (sw.fromGia >= 0.5) return `Top your cash buffer up with ${amt(sw.fromGia)} from your taxable account`;
++  return null;
++}
+ export function actionWords(x, ctx) {
+   const what = PART_WORDS[x.part] ? PART_WORDS[x.part](x.value, ctx) : `${x.part} ${x.value}`;
+   const cost = x.cost === null ? 'No other move this year differs here.'
+@@ -98,6 +109,8 @@ export function aheadWords(row, { fmt }, prev = null) {
+   const p = row.parts, lines = [];
+   if (p.draw !== 'none') lines.push(PART_WORDS.draw(p.draw));
+   if (p.harvest) lines.push(PART_WORDS.harvest(p.harvest));
++  const sw = sweepWords(row.swept, { fmt });
++  if (sw) lines.push(sw);
+   const pen = p.tierPen || 0, isa = p.tierIsa || 0, wp = prev ? prev.tierPen || 0 : 0, wi = prev ? prev.tierIsa || 0 : 0;
+   if (pen === isa && wp === wi) { const w = tierWords('pension and ISA', wp, pen); if (w) lines.push(w); }
+   else for (const w of [tierWords('pension', wp, pen), tierWords('ISA', wi, isa)]) if (w) lines.push(w);
+@@ -122,7 +135,7 @@ export function aheadRowsWords(rows, ctx) {
+    null in a year the table chose no move */
+ const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
+ const SHORT_WRAP = { pa: 'the personal allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
+-export function ledgerWords(p, spending) {
++export function ledgerWords(p, spending, row = null) {
+   if (!p) return null;
+   const w = [];
+   if (spending) w.push(`spend ${pct(100 * p.level)}`);
+@@ -130,6 +143,9 @@ export function ledgerWords(p, spending) {
+   if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
+   if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);
+   if (p.tierIsa) w.push(`ISA ${steps(p.tierIsa)} safer`);
++  if (row && row.sweptToIsa >= 0.5) w.push(`cash ISA ${Math.round(row.sweptToIsa).toLocaleString('en-GB')} to ISA`);
++  if (row && row.sweptToGia >= 0.5) w.push(`cash ${Math.round(row.sweptToGia).toLocaleString('en-GB')} to taxable`);
++  else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
+   return w.join(' · ') || 'as planned';
+ }
+ export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';

@@ -20,10 +20,13 @@ engine against HMRC's order, the switch-off identity, the couples' planted fault
 - Review 3's "no change to the registration" was too strong. The registration says how D4 is launched, and running
   it any other way is a departure from that wording even though no stamp changes. The row now says who rules on it.
 - Review 3's rented machine is withdrawn. The maintainer works only through cloud sessions, whose machines are a
-  fixed size, so the row and item 1 now split D4's units between more sessions. Item 1's first version, pushed
+  fixed size, so more cores now means more sessions, the units split between them. Item 1's first version, pushed
   earlier on 10 Nov, also compared two hosts by hashing whole arrays files. Those hold the seconds taken and the
   CPU's name, so the hashes would always have differed. The check now sets those aside, and runs on a preflight, not
   on a D4 chunk.
+- Review 3 first advised finishing D4 faster. On the maintainer's question later on 10 Nov (is D4 still worth
+  running at all?), the advice is to stop it unread and run it once on the code that ships. Review 3 now opens with
+  that, and item 1 of `EXPERIMENTS-AND-PORTS.md` is how.
 
 **Households I touched, for the held-out books.** `held-out.mjs` reads every id named under this folder, so this
 commit marks them by itself.
@@ -65,10 +68,11 @@ commit marks them by itself.
    path bit for bit the same, by ranking each person through the single chooser's shared scoring. A single's path
    runs 3 to 10 times faster on a shortlist of the moves the tables already stored, with no survival loss visible
    on 4,000 paths.
-4. **D4 as registered can finish in about two days, not eight, on four more cloud sessions** (Review 3). The units
-   are split between the sessions and no stamp moves; the registration's launch wording is the reviewer's to check and
-   the maintainer's to rule on. Later runs can keep D34's error rates with a two-stage rule that spends about a
-   quarter of the paths on any couple gaining 2 points or more (simulated).
+4. **D4 is better stopped unread and run once on the code that ships** (Review 3; advised on 10 Nov, on the
+   maintainer's question). It is frozen on the engine with the tax defect of point 2. About 700 core-hours remain,
+   where a whole re-run costs about 400 with the exact cut of point 3, and about 160 with a two-stage rule that keeps
+   D34's error rates (simulated). Stopping unread keeps the 40 couples and the seed for it; the younger cohort has
+   only 6 held-out couples beyond D4's 20.
 5. **The published figures in the engine are right.** Bands (Scotland included), the allowance taper, the lump sum,
    the ISA allowance and CGT all matched by hand. The errors are in how incomes are stacked, not in the figures.
 
@@ -331,9 +335,25 @@ path saved or lost of 100, the mean pot left 0.5% lower), which needs its own pa
 
 ## Review 3: does D4 have to run this way?
 
+**The advice of 10 Nov: stop D4 now, unread, and run it once on the code that ships.**
+- D4 is frozen at e09ac60, on the engine with 1.1 to 1.3's defect. Couples cannot go live before that is fixed, and
+  the fix re-solves every table, so D4's read would be evidence about a predecessor of what ships.
+- About 700 core-hours remain. With 2.2's exact cut a whole D4 is about 400 core-hours, and about 160 with the
+  two-stage rule below. A whole re-run costs less than finishing.
+- Nothing has been read, so the same 40 couples and seed 7021 serve the re-run. `couples-orders.json`'s younger order
+  holds 26 couples and D4 has 20 of them: there is no second held-out panel of young couples.
+- D4 cannot see 4.1's fault, and a pass could not turn couples on before the engine fix and 4.1's guard exist.
+
+What is given up: an answer this week (the re-run reads about a week later, if the engine fix keeps to its time box),
+the units finished so far, and about a day to register again. The case for letting it run is an early kill signal, if
+the pilot left real doubt that couples gain at all. I have not read the pilot. The one library-like couple I ran at 45
+points gained 8.7 points on 300 paths.
+
+The table below is what was found before that advice. Its rows now apply to the re-run.
+
 | Change | Saves | D4 now? |
 |---|---|---|
-| **More cores, by more cloud sessions.** The 520 units are independent, path i is the seed's path i wherever it runs, and a unit's stamp (code, audit, registration blob, Node version) holds neither the host nor the commit. A cloud session's machine is a fixed size (about 4 vCPUs), but every session has its own | about 745 core-hours remained at 56 of 520. Four more sessions finish it in about two days and eight in about one, at no charge for the machines, and the main session's cores come free. Each session still loses its units in flight at each 12-hour limit | **The maintainer's ruling, after the reviewer checks it.** The registration says D4 is "launched only as" the batch through the launcher, from a worktree at the launch commit. Splitting the units between sessions takes one edit to `batch-couples.sh` (`D4_SHARD=i/n`, `prototype/d4-shard.diff`). At the launch commit e09ac60 the code hash, the audit hash and the smoke stamp are the same with it and without (`results/out-d4-shard.txt`). It is still an edit to a file of the frozen launch commit, and more than one worktree, so it is a departure to record, not a free change. The steps are item 1 of `EXPERIMENTS-AND-PORTS.md` |
+| **More cores, by more cloud sessions.** The 520 units are independent, path i is the seed's path i wherever it runs, and a unit's stamp (code, audit, registration blob, Node version) holds neither the host nor the commit. A cloud session's machine is a fixed size (about 4 vCPUs), but every session has its own | about 745 core-hours remained at 56 of 520. Four more sessions finish it in about two days and eight in about one, at no charge for the machines, and the main session's cores come free. Each session still loses its units in flight at each 12-hour limit | **For the re-run, registered from the start.** Splitting the units between sessions takes one edit to `batch-couples.sh` (`D4_SHARD=i/n`, `prototype/d4-shard.diff`). At the launch commit e09ac60 the code hash, the audit hash and the smoke stamp are the same with it and without (`results/out-d4-shard.txt`). On D4 as launched it would be a departure from the registration, which says D4 is "launched only as" the batch from a worktree at the launch commit. In the re-run's registration it is part of the design. The steps are item 1, part 3, of `EXPERIMENTS-AND-PORTS.md` |
 | **A two-stage rule.** (D4's registration records a different second stage, more paths for a comparison past D34's limit, as not chosen: D61. This one stops early, and is for the runs after D4.) After 5,000 paths a couple stops, unflagged, when its observed change against APP is +0.5 points or more; otherwise it runs to 19,000 and is read as now. 5,000 already covers every comparison against SHIPC (they size at 2,800 to 4,700) | simulated (`twostage.py`, 400,000 runs a case): a true 1-point loss is flagged 0.9647 of the time against 0.9648 with one stage at 9% discordance, and 0.9005 against 0.9010 at 12.45%; the quarter-point false alarm is unchanged at 0.050. A couple gaining 2 points or more uses 26% of the paths, one gaining 1 point 36%, one gaining nothing 90%. Singles gained 10.7 points in Phase 4 | No: new registration. The pooled items were already judged decisive at 8,000 |
 | **Rank each person through the shared scoring** (Review 2.2) | the engine's 746 core-hours fall by the path's 2.4 times, with every number the same | No: D4's code is frozen. Every run after it |
 | Reuse a couple's solve across its chunks | about 50 of the 73 solve core-hours (6%) | No: chunking is in the stamp |

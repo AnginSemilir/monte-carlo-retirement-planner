@@ -24,7 +24,8 @@ as the next D-line, in this form:
   frozen order. `held-out.mjs` reads this folder, and now adds S021, S085, S091 and S261 to `touched()` (`REVIEW.md`'s
   note; S301, which the review also names, was there already). Fetch the review branch before any panel is built.
 - **D4 is not touched** by anything here except item 1: not its worktree, its registration, seed 7021, its results or
-  `d4-backup`. No D4 result is read or estimated before its registered read, by the agent or by a worker.
+  `d4-backup`. No D4 result, the stopped run's or the re-run's, is read or estimated before the re-run's registered
+  read, by the agent or by a worker.
 - Times are measured on one core of the review's machine: a single's solve at 45 points 400 to 510 s, its path on the
   whole menu 47 to 56 ms; a couple's solve 530 to 770 s, its path 390 to 610 ms.
 
@@ -36,126 +37,133 @@ gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths
 
 | # | Item | Kind | The agent's time | The machine's time | Moves a figure? |
 |---|---|---|---|---|---|
-| 1 | D4 on more cloud sessions | the maintainer's ruling, then a procedure | half a day | about two days on four more sessions | no |
+| 1 | D4 stopped unread, and run once on the code that ships | the maintainer's ruling; a stop now, a registration later | an hour now, a day later | 160 to 400 core-hours, later | no |
 | 2 | A couple's path 2.4 times faster, exactly | port with an identity test | 3 hours | minutes | no |
-| 3 | The engine's year in HMRC's order | a defect: test first, port, sizing | 2.5 days | 6 core-hours | **yes, every household's** |
+| 3 | The engine's year in HMRC's order | a defect: test first, port, sizing | 2.5 days | 4 core-hours | **yes, every household's** |
 | 4 | Relief on money the plan pays into a pension | port with a test; before the windfall factorial | 4 hours | minutes | only with the windfall split |
 | 5 | The sweep keeps cash ISA money in an ISA, and the pages show the sweep | port, then an experiment | 1 day | 5 core-hours | yes |
 | 6 | Couples who hold their money unevenly | A an experiment, B a port, C a registered test | 1.5 days over the three | A 25 core-hours; C about 60 | couples only |
 | 7 | The chooser's shortlist (a single's path 3 times faster, approximately) | an experiment, then a port | 1 day | 4 core-hours | by under 0.1 points if it passes |
 | 8 | What the library never contains; the dated rules | units in item 6C's panel; one caption now | 2 hours | with 6C | no |
-| 9 | A two-stage rule for the registered runs after D4 | registration text and its sizing | half a day | none | no |
+| 9 | A two-stage rule for the couples' registered runs | registration text and its sizing | half a day | none | no |
 
 Why this order:
-1. **Item 1 first** because D4 holds the main session's four cores for about eight more days (745 core-hours remained
-   at 56 of 520 units on 9 Nov), and every machine-time item below waits behind it. Moved to its own sessions, D4
-   finishes in about two days and the main session's cores are free.
+1. **Item 1's stop first** because it frees the main session's four cores at once, and every machine-time item below
+   was waiting behind D4.
 2. **Item 2 next** because it is exact, takes three hours, and makes every couples' run after it 2.4 times cheaper,
-   item 6's among them.
-3. **Item 6's stage A is launched as soon as item 2 is in**, at low priority. It runs on the machine while the agent
-   ports item 3. Its fault is large (32 points on the one couple run at 45 points) and does not depend on the tax fix.
+   item 6's and the re-run among them.
+3. **Item 6's stage A is launched as soon as item 2 is in.** It runs on the machine while the agent ports item 3. Its
+   fault is large (32 points on the one couple run at 45 points) and does not depend on the tax fix.
 4. **Item 3 is the largest piece of work and the only defect.** Items 4 and 5 touch the same files and re-pin the same
    tables, so they go in the same engine round, in that order.
-5. **Item 7's experiment waits for item 3**, so the shortlist is measured once, on the tables that will ship.
-6. **Item 6's stages B and C wait for D4's read.** If D4 does not turn the couples' solver on, they have nothing to
+5. **Item 9, then item 1's registration,** once that round is in: the couples' run then tests the code that ships.
+6. **Item 7's experiment waits for item 3**, so the shortlist is measured once, on the tables that will ship.
+7. **Item 6's stage C waits for the re-run's read.** If that does not turn the couples' solver on, it has nothing to
    fix.
 
 ---
 
-## Item 1. D4 on more cloud sessions
+## Item 1. D4 stopped unread, and run once on the code that ships
 
-**Found.** `batch-couples.sh` runs D4's 520 units four at a time, on the four cores of the one session it runs in. The
-units are independent: path i of seed 7021 is drawn from 7021 + 7919 i wherever it runs. A unit's stamp is the code
-hash, the audit hash, the registration's blob and the Node version (`audit-couples.mjs` line 156): it holds neither the
-host nor the commit. A cloud session's machine is a fixed size (about 4 vCPUs, 16 GB, 30 GB of disk) and cannot be made
-larger, but every session has its own. So more sessions are more cores.
+**The question.** The maintainer, 10 Nov: is D4 still worth running at all? The review's advice is to stop it now,
+unread, and run it once more after the engine fix.
 
-**Withdrawn.** This item first said "rented cores". The maintainer works only through cloud sessions (10 Nov), so
-there is no machine to rent. Its check that two hosts agree was also wrong: it compared `sha256sum` of whole arrays
-files, and those hold the seconds taken and the CPU's name, so any two runs differ. Both are corrected below.
+**Why.**
+- **It tests code that will not ship.** D4 is frozen at e09ac60, on the engine with item 3's defect. Couples cannot
+  go live before that fix, and the fix re-solves every table. D4's read would be evidence about a predecessor.
+- **A whole re-run costs less than finishing.** About 700 core-hours remain (745 at 56 of 520 units on 9 Nov). With
+  item 2 in, a whole D4 is about 400 core-hours, and about 160 with item 9's two-stage rule. Both are the review's
+  estimates from D4's own budget and its measured 2.4 times.
+- **Stopping unread keeps the panel and the seed.** No result has been read, so the same 40 couples and seed 7021
+  serve the re-run. The registry gives 7021 to `couples-d4*.md`, so a registration named `couples-d4b.md` owns it
+  with no protected edit. `couples-orders.json`'s younger order holds 26 couples and D4 has 20 of them: a second
+  held-out panel of young couples does not exist, and reading D4 on the old code would spend the only one.
+- **Its read is not on the critical path.** A pass could not turn couples on before item 3 and item 6's guard exist.
 
-**The change.** One edit to `batch-couples.sh`, `prototype/d4-shard.diff`: with `D4_SHARD=i/n` set, a launch runs only
-the units still to do whose number leaves i when divided by n. Unset, it runs all of them, as registered. Checked on
-the launch commit e09ac60 (`results/out-d4-shard.txt`; no unit was launched):
-- the code hash, the audit hash and the smoke stamp are the same with the patch and without (a8d0e9568319,
-  3b700ddd7940, 07f96d05c3e1), and the launcher's seed registry passes on the patched batch;
-- unset, the list of units to do is unchanged, in order; for n from 1 to 9, every unit is in exactly one shard, on a
-  full list and on one with gaps; a value that is not i/n with i below n is refused (`scripts/d4-shard-test.sh`; its
-  plant fails it).
+**What is given up.** An early answer (the re-run reads about a week from now, and only if item 3 keeps to its time
+box); the units finished so far; about a day of the agent's time to register again.
 
-**What it is not.** It is not free of the registration. That says D4 is "launched only as" the batch through the
-launcher, "from a git worktree at the launch commit ... where every relaunch under `RESUME=1` and the read also run".
-Here one file of that commit gains seven lines, the relaunches run in several worktrees in several sessions, and D63's
-backup goes to more than one branch. No stamp moves, and the read still runs once at e09ac60. It is a departure the
-maintainer rules on, not a mechanical step.
+**The ruling asked (M1).** "D4 as registered stops now, unread. Its finished chunks stay on `d4-backup`, unread,
+until the re-run reads. It runs once more on the same 40 couples and seed 7021, on the code after items 2 to 5."
+Without it, D4 runs on as it is and this item is skipped; items 3's and 6's references to "the re-run" then mean D4.
 
-**The ruling asked (M1).** "D4's remaining units run in more cloud sessions, the batch split between them by
-`D4_SHARD` and nothing else changed, each session's finished chunks backed up to its own branch as D63 has it; the
-read as registered." Without it, skip this item: D4 finishes in the session it is in, and the rest of this document
-stands, with its machine time at low priority beside D4.
+### Part 1. The stop (now; one hour)
 
-**The procedure, if ruled.** STOP at any step that does not hold. "The main session" is the agent's own, where D4
-runs now. A "worker" is a new cloud session that does nothing but run one shard.
-1. **The reviewer's four checks**, written up as `research/solver/reviews/<date>-d4-sessions.md`:
-   - at e09ac60, `batch-couples.sh` is in neither `code-id.mjs`'s files nor `audit-couples.mjs`'s `STAMP_FILES`, and
-     names no script the smoke stamp does not already hold;
-   - `reduce-couples.mjs`'s gate reads no host, commit, core count or finishing order;
-   - no unit's paths depend on which other units run beside it, or in which session;
-   - with `D4_SHARD` unset the patched batch computes the list the unpatched one does
-     (`scripts/d4-shard-test.sh <the patched batch>` prints ALL PASS, and FAILED under `PLANT=1`).
-2. **The edit:** one commit on a branch cut at e09ac60 (`d4-shard`), `prototype/d4-shard.diff` and nothing else,
-   pushed. In a worktree at that commit, `node research/solver/code-id.mjs` and the batch's `AUDIT` line print the two
-   hashes on the finished logs' stamp line. Print a log's first line only. Print nothing else of a log: its "beside"
-   lines are results.
-3. **Two sessions agree, shown without touching a D4 chunk.** D63 has nothing on `d4-backup` read before all 520
-   units are in, so this runs on a preflight (the audit's own mode): one of the pilot's two couples, APP and CANDC at
-   one estate weight, 200 paths of seed 7002, the same command in the main session and in the first worker. Then
-   `node scripts/d4-same.mjs <the main session's arrays file> <the worker's>`, once for each arm. It sets aside the
-   seconds and the CPU's name, compares the rest whole, and prints two hashes and no value. It must print "the same"
-   for both. `DIFFERENT`: STOP, and no worker runs a D4 unit. Both sessions also print `node --version`: it must be
-   the version on the finished logs' second line, or a worker's chunks would carry a second stamp.
-4. **The first worker, alone.** Start one worker with the worker prompt below, as shard 0 of n. If the main session
-   can start a cloud session itself (a scheduled task run once), it does; if not, it sends the maintainer the prompt
-   to paste into a new session. A session with nothing but a tracked batch running may be paused as idle. So the
-   worker pushes a heartbeat with every backup (the time, and the numbers of the units in flight), and the rest of the
-   workers start only when the first one's branch has moved three times, 30 minutes apart, with no one prompting it.
-   If it stops moving: STOP. Workers cannot be left alone, and D4 stays in the main session.
-5. **The main session lets go.** At its window's end it stops its own D4 batch and launches no D4 unit again. Its
-   finished chunks are on `d4-backup` already. Its four cores are then free for items 2 to 7.
-6. **Each worker**, by the worker prompt:
-   - a worktree on the branch `d4-shard`, the engine built, `node --version` as step 3 has it;
-   - the finished chunks of `d4-backup` and of every `d4-backup-w*` branch copied into its results folder, byte for
-     byte and unread, so `RESUME=1` skips them;
-   - `RESUME=1 D4_SHARD=<i>/<n> PREDICTION=research/solver/registrations/couples-d4.md
-     research/solver/run-from-snapshot.sh bash research/solver/batch-couples.sh`, as a tracked task, relaunched the
-     same way at each 12-hour limit;
-   - every 30 minutes, each finished chunk (its log and its arrays, byte for byte) and the heartbeat pushed to its own
-     orphan branch `d4-backup-w<i>`, by a loop inside the tracked task, not by a turn of the model;
-   - when the batch prints `0 to run`, one last push, a report, and nothing more.
-7. **The gather and the read.** When every worker has reported, the main session copies every chunk on `d4-backup`
-   and on each `d4-backup-w<i>` into the results folder of its worktree at e09ac60, byte for byte and unread. A unit
-   found on two branches keeps one copy; list such units by number. Then the registered command, unedited, under
-   `RESUME=1` there: it must print `0 to run`. If it prints more, it runs them, as registered. Then the read, once, as
-   registered, and the backup branches go as D63 has it.
+1. Stop the tracked D4 batch now. Nothing waits for a window's end: the units in flight will not be used.
+2. One last push of the finished chunks to `d4-backup`, as D63 has it, and the backup stops. Nothing on that branch
+   is read or printed, now or later. It stays until the re-run's read, then goes as D63 has it.
+3. The worktree at e09ac60 and its results folder stay as they are. They are the fallback below.
+4. Record in STATE.md, with the D-line: how many units had finished (the count only), and this statement, which the
+   reviewer checks against `runs.log` and the receipts: no arrays file of D4 has been opened, and nothing of a
+   unit's log has been read or printed by anyone beyond its stamp line, its second line and whether it holds a done
+   line. **If that cannot be stated: STOP.** The re-run then needs a new seed and couples the scan does not list, and
+   the maintainer rules on the panel.
 
-**The worker prompt.** The same for each, but for its number.
+### Part 2. The re-run's registration (after items 2 to 5 and item 9; one day)
+
+`registrations/couples-d4b.md`. It is `couples-d4.md` in its question, its arms, its 40 couples, its seed, its primary
+metric, its decision rule and its outcomes. It differs only in these, each stated in it:
+1. **The code:** the working branch after items 2, 3 and 4, with item 5's default as the maintainer has ruled by
+   then; each arm's configuration hash as that code gives it.
+2. **The targets, landed again.** D4's couples were landed so arm A survives 85% within a point on the old engine.
+   The fix moves a couple's survival under the rules by 0.2 points on average and up to 1.7 (the review's sizing on
+   38 library couples as entered). So each of the 40 is
+   landed again on the fixed engine, by `couple-panel.mjs` as before (seed 7005), before the seed is read. The couples
+   and their order do not change.
+3. **The paths:** item 9's two-stage rule, if its exact rates are in and design-reviewed. If not, 19,000 a unit in
+   one stage, as D61 ruled.
+4. **Where it runs:** its batch carries `D4_SHARD` (`prototype/d4-shard.diff`) from its launch commit, and the
+   registration says the units may run in up to four cloud sessions, each backing its finished chunks up to its own
+   branch, the read in one worktree. Registered so, more sessions are no departure. Part 3 is how.
+5. **What became of D4:** stopped unread on the maintainer's ruling, with part 1's statement.
+
+The design review reads it, and it comes to the maintainer before its run (the launch plan's stop). When it
+launches, `couples-d4.md` is marked superseded.
+
+### Part 3. The run, in one session or several
+
+In one session it runs as D4 did. To use more, a "worker" is a new cloud session that does nothing but run one shard.
+STOP at any step that does not hold.
+1. **Two sessions agree, shown on a preflight** (the audit's own mode): one of the pilot's two couples, APP and CANDC
+   at one estate weight, 200 paths of seed 7002, the same command in the main session and in the first worker. Then
+   `node scripts/d4-same.mjs <the main session's arrays file> <the worker's>`, once for each arm. An arrays file holds
+   the seconds taken and the CPU's name, so two runs never match byte for byte; the script sets those aside, compares
+   the rest whole, and prints two hashes and no value. It must print "the same" for both. Both sessions also print
+   `node --version`, which must be the same.
+2. **The first worker, alone,** as shard 0 of n, by the worker prompt below. If the main session can start a cloud
+   session itself (a scheduled task run once), it does; if not, it sends the maintainer the prompt to paste. A
+   session with nothing but a tracked batch running may be paused as idle. So a worker pushes a heartbeat with every
+   backup (the time, and the numbers of the units in flight), and the other workers start only when the first one's
+   branch has moved three times, 30 minutes apart, with no one prompting it. If it stops moving: the run stays in
+   the main session.
+3. **Each worker:** a worktree on the launch commit's branch, the engine built; the finished chunks of every backup
+   branch copied into its results folder, byte for byte and unread; `RESUME=1 D4_SHARD=<i>/<n>` before the registered
+   command, as a tracked task, relaunched the same way at each 12-hour limit; every 30 minutes each finished chunk and
+   the heartbeat pushed to its own orphan branch, by a loop inside the tracked task and not by a turn of the model;
+   when the batch prints `0 to run`, one last push, a report, and nothing more.
+4. **The gather and the read.** The main session copies every chunk on every backup branch into its worktree's
+   results folder, byte for byte and unread; a unit found on two branches keeps one copy. The registered command
+   under `RESUME=1` with `D4_SHARD` unset must print `0 to run`. Then the read, once, as registered.
 
 ```
-You are worker <i> of <n> for D4's registered run. Fetch review/external-2026-10-21 and claude/project-access-i58m0x.
-Read item 1 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md on the first, and D63 and D61 in
-research/solver/STATE.md on the second. Do item 1's step 6 with D4_SHARD=<i>/<n>, and step 3's preflight if you are
-worker 0. Do nothing else: no other work, no edit to any file, and no D4 result read, printed or estimated. Report
-when your shard has nothing left to run, or at once if a step does not hold.
+You are worker <i> of <n> for the couples' registered run. Fetch review/external-2026-10-21 and
+claude/project-access-i58m0x. Read item 1, part 3, of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md on the
+first, and research/solver/registrations/couples-d4b.md on the second. Do part 3's step 3 with D4_SHARD=<i>/<n>, and
+step 1's preflight if you are worker 0. Do nothing else: no other work, no edit to any file, and no result of the run
+read, printed or estimated. Report when your shard has nothing left to run, or at once if a step does not hold.
 ```
 
-**Size.** About 745 core-hours remained at 56 of 520 units on 9 Nov. Four workers are 16 cores: about two days. Eight
-are 32: about one. Each worker still loses its units in flight at each 12-hour limit, as the one session does now. The
-machines cost nothing extra, but every session draws on the same plan's usage limits; a worker that only waits on its
-batch and pushes from a loop draws little.
+`prototype/d4-shard.diff` was checked on D4's launch commit without launching a unit (`results/out-d4-shard.txt`):
+the code hash, the audit hash and the smoke stamp are the same with it and without; unset, the list of units is
+unchanged; for n from 1 to 9 every unit is in exactly one shard; its plant fails `scripts/d4-shard-test.sh`.
 
-**Report back:** the review file, the two stamp lines, step 3's two lines from `d4-same.mjs`, the first worker's three
-heartbeats, and at the end the count of units from each branch.
-**Time box:** half a day of the agent's time, apart from the run.
+**The fallback.** If item 3's tests have not passed two days after its time box: STOP. The maintainer chooses between
+waiting and resuming D4 as registered, at e09ac60 under `RESUME=1`, its chunks intact on `d4-backup`.
+
+**Size.** One stage, about 400 core-hours: four days on the main session's four cores, about a day on four more
+sessions. Two stages, about 160: under two days, or about half a day.
+
+**Report back:** part 1's count and statement; the registration; at the end, the count of units from each branch.
 
 ---
 
@@ -203,8 +211,8 @@ its plant (CHECKLIST 5).
 **If it fails.** Any ranking that differs: STOP. Report the first one: the couple, the year, the person, the state,
 the two rankings and the two score vectors. Do not widen the guard to make it pass.
 
-**If it passes.** `COUPLE.fast` on in code. D5's time budget for a couple is measured on it. Every registered
-couples' run after D4 takes it through its code hash. D4 does not: its code is frozen.
+**If it passes.** `COUPLE.fast` on in code. D5's time budget for a couple is measured on it. Item 1's re-run and
+every registered couples' run after it take it through their code hash.
 
 **Report back:** the identity counts, the planted failures, the two timings. **Time box:** three hours.
 
@@ -312,10 +320,9 @@ tool, switched by three globals; the port is cleaner and has no switches.
    engine before and again on the engine after, 4,000 paths. Report, for each: survival before and after, the margin
    over the rules before and after, the expected path's tax. STOP if the pooled margin over the rules falls by more
    than 2 points: the solver was leaning on the mispricing more than the three households here suggest.
-3. **Does D4's read carry to the fixed engine?** After D4's read, on D4's two pilot couples (already used, seed
-   7002), CANDC less APP at 4,000 paths on the engine before and after. If the difference between the two differences
-   is within 1.5 points on both, D4's read carries. If not, STOP: the maintainer rules whether part of D4 is run
-   again.
+3. **Couples** need no carry-over check: item 1 runs D4 again on this engine. If the maintainer struck item 1's
+   ruling and D4 ran on, then after its read, on D4's two pilot couples (seed 7002), CANDC less APP at 4,000 paths on
+   the engine before and after; a difference between the two differences of over 1.5 points on either is a STOP.
 
 **If a step-3 test cannot be made to pass.** STOP with the failing row: the fixture, the year, the engine's tax, the
 reference's, and each income. Either the engine or the reference is wrong, and that is found by hand on that one
@@ -327,7 +334,7 @@ a pension withdrawal. Most plans change by less than half a point. Plans with a 
 change by up to four."
 
 **Report back:** `results-engine-hmrc-before.txt` and `results-engine-hmrc.txt`; the pinned figures that moved; step
-4's three reads; the solve's time before and after.
+4's reads; the solve's time before and after.
 **Time box:** two days for steps 0 to 3; half a day for step 4.
 
 ---
@@ -466,9 +473,9 @@ paired.
 - **1 fails:** the review's finding did not hold at 45 points on other couples. Report, and stop this item.
 - **1 holds, 2 or 3 fails:** the guard alone (below), and report which couples and holdings failed. A better remedy
   (one table for the couple, or a search over `share`) is a new design for the maintainer, not this port.
-- **All three hold:** stages B and C, after D4's read.
+- **All three hold:** stage B now, and stage C after item 1's re-run reads.
 
-**The guard, in either case (M4).** When D4's read turns the couples' solver on, a couple whose first person holds
+**The guard, in either case (M4).** When the re-run's read turns the couples' solver on, a couple whose first person holds
 less than 0.40 or more than 0.60 of the pots keeps the app's rules, and the page says why, until stage C reads. It is
 one test where D5 decides whether a couple gets the solver, with its own check: a 90/10 couple gets the rules.
 
@@ -488,7 +495,7 @@ one test where D5 decides whether a couple gets the solver, with its own check: 
 
 **Time box:** four hours.
 
-### Stage C. The registered test (CONFIRMATORY; after D4's read says the couples' solver ships)
+### Stage C. The registered test (CONFIRMATORY; after item 1's re-run says the couples' solver ships)
 
 `registrations/couples-share.md`, design-reviewed before launch, its seed reserved by the maintainer.
 - **Question:** does the couples' solver with `shareRule: 'pots'` keep more couples solvent than the app's rules,
@@ -596,17 +603,17 @@ household.
 
 ---
 
-## Item 9. A two-stage rule for the registered runs after D4
+## Item 9. A two-stage rule for the couples' registered runs
 
 **Found** (`REVIEW.md`, Review 3; `scripts/twostage.py`, `results/out-twostage.txt`). D4's registration records a
-second stage, more paths for a comparison past D34's limit, as not chosen (D61). This is a different one, and it is
-for the runs after D4. After 5,000 paths a unit stops, unflagged, when its observed change against the app's rules
+second stage, more paths for a comparison past D34's limit, as not chosen (D61). This is a different one, for item
+1's re-run and the runs after it. After 5,000 paths a unit stops, unflagged, when its observed change against the app's rules
 is +0.5 points or more; otherwise it runs to its full paths and is read as now. Simulated at 400,000 runs a case: a
 true 1-point loss is flagged 0.9647 of the time against 0.9648 with one stage at 9% discordance, and 0.9005 against
 0.9010 at 12.45%; the quarter-point false alarm stays at 0.050. A couple gaining 2 points or more uses 26% of the
 paths.
 
-**Kind.** A design for a registration's Paths field. It changes no code default and is used first in item 6C.
+**Kind.** A design for a registration's Paths field. It changes no code default and is used first in item 1's re-run.
 
 1. **Exact, not simulated.** Extend `size-phase4.mjs`'s exact rates to the two-stage rule (the first stage's count
    and the second's are independent given the chances of a path saved and a path lost). The simulation is the check on
@@ -627,7 +634,7 @@ paths.
 
 | | The question | What I would do |
 |---|---|---|
-| M1 | D4's remaining units in more cloud sessions (item 1)? | Yes, four of them, after the reviewer's four checks. It saves about six days, frees the main session's cores, costs nothing for the machines and changes no number. |
+| M1 | Stop D4 unread and run it once on the code that ships (item 1)? | Yes. It tests code that will not ship, a whole re-run costs less than finishing it, and stopping unread keeps the only held-out panel of young couples. What is given up: an answer this week. |
 | M2 | Item 3 moves every household's figure. Merge during the beta, or at its end? | At its end, before on by default, which is what B9 and the go or no-go list already say. It needs no new ruling. Sooner only if a beta user's decision is resting on a figure it moves by points. |
 | M3 | Is an amount typed as a one-off pension deposit what the household pays, or what arrives? | Ask in the input's label. Until then leave typed deposits as they are and fix only the plan's own routing (item 4). |
 | M4 | Couples outside the 40 to 60 band keep the app's rules until item 6C reads? | Yes. |
@@ -638,9 +645,9 @@ paths.
 
 The maintainer sends it. The lines under "The maintainer's answers" are the maintainer's own words, and each can be
 struck:
-- **The first** is M1. Struck, step 2 is skipped and D4 stays in the session it is in.
+- **The first** is M1. Struck, D4 runs on as it is, step 1 loses its stop and step 6 its registration.
 - **The second** is M4. Struck, there is no guard, and a couple who hold their money unevenly gets the solver as soon
-  as D4's read turns it on.
+  as the re-run's read turns it on.
 - **The third** lets the agent add the new tests' names to the fast tier's joining list in one edit, so each joins
   when its file exists. The pre-tool hook honours an unlock only while it is the maintainer's latest message, so the
   agent makes that edit first. The later protected edits (a pinned figure in a FAST test, `fair-variables.mjs`, the
@@ -653,34 +660,32 @@ Read research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md and REVIEW.md on revie
 Fetch that branch first: held-out.mjs reads it, and it now adds S021, S085, S091 and S261 to touched().
 
 The maintainer's answers:
-- D4's remaining units run in four more cloud sessions as item 1 sets out, the batch split between them by D4_SHARD
-  and nothing else changed, each session's finished chunks backed up to its own branch as D63 has it, the read as
-  registered.
-- When D4's read turns the couples' solver on, a couple whose first person holds less than 0.40 or more than 0.60 of
-  the pots keeps the app's rules until item 6's registered test reads.
+- D4 as registered stops now, unread. Its finished chunks stay on d4-backup, unread, until the re-run reads. It runs
+  once more as item 1 sets out, on the same 40 couples and seed 7021, on the code after items 2 to 5.
+- When the re-run's read turns the couples' solver on, a couple whose first person holds less than 0.40 or more than
+  0.60 of the pots keeps the app's rules until item 6's registered test reads.
 - Unlock enforcement for exactly: couple-rank.test.mjs, engine-hmrc.test.mjs, windfall-relief.test.mjs,
   couple-share.test.mjs and chooser-shortlist.test.mjs added to FAST_JOINING in research/tests/run-all.mjs.
 
-1. Make the FAST_JOINING edit first. Then record the document as the next D-line in STATE.md, with my answers, and
-   item 3 as an open defect that changes a figure. Put M3 and M6 in DECISIONS-PENDING.md.
-2. Item 1: the reviewer's four checks and the one commit on its branch. Send me the review file. Then the first
-   worker: start it yourself if you can, or send me its prompt to paste. When its branch has moved three times, the
-   other three. Stop this session's own D4 batch at its window's end.
-3. Item 2: the port and its test. Three hours.
-4. Launch item 6's stage A at low priority (EXPLORATORY, seed 7002), its decision rule committed first. It decides
-   nothing. Send me its read as a report.
-5. Item 3: the test shown failing from the review's copy, then the engine, the model and the tests, then its sizing.
+1. Make the FAST_JOINING edit first. Then item 1's part 1: stop D4, the last backup, the count and the statement.
+   Record the document as the next D-line in STATE.md, with my answers, and item 3 as an open defect that changes a
+   figure. Put M3 and M6 in DECISIONS-PENDING.md.
+2. Item 2: the port and its test. Three hours.
+3. Launch item 6's stage A (EXPLORATORY, seed 7002), its decision rule committed first. It decides nothing. Send me
+   its read as a report. If it passes, stage B.
+4. Item 3: the test shown failing from the review's copy, then the engine, the model and the tests, then its sizing.
    It does not merge to main before the beta's two weeks end. Ask me for the unlock when a FAST test's pinned figure
    has to move, naming the test, the old figure, the new figure and the working.
-6. Items 4 and 5 in the same engine round: item 4 before the windfall factorial runs; item 5's part 1, then its
-   option and its experiment.
-7. Item 7's stage A on the tables after item 3 (EXPLORATORY, seed 7002). Send me the read. No default changes
-   without my ruling naming the run.
-8. After D4's read: item 6's stages B and C, with item 8's features in its panel and item 9's rule in its paths.
-   Stage C's registration comes to me before its run. Item 8's caption can go in any time.
+5. Items 4 and 5 in the same engine round: item 4 before the windfall factorial runs; item 5's part 1, then its
+   option and its experiment. Send me the experiment's read.
+6. Item 9, then item 1's part 2: the re-run's registration, its targets landed again. It comes to me before its run.
+7. Item 7's stage A on the tables after item 3, when cores are free (EXPLORATORY, seed 7002). Send me the read. No
+   default changes without my ruling naming the run.
+8. After the re-run's read: item 6's stage C, with item 8's features in its panel. Its registration comes to me
+   before its run. Item 8's caption can go in any time.
 
-Nothing here touches D4 except item 1: not its worktree, its registration, seed 7021, its results or d4-backup. Do
-not read or estimate a D4 result before its registered read.
+No result of D4, the stopped run's or the re-run's, is read, printed or estimated before the re-run's registered
+read. d4-backup is not opened.
 
 Stop at each STOP the document names and at the launch plan's section 5 stops. Each item has a time box: when one
 runs out, stop and report.

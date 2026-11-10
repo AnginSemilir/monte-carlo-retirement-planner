@@ -7,6 +7,7 @@
  *   1. the pooled mean of d over the households, its 95% interval from the households' paired variances: lower end above -0.2;
  *   2. no household's paired 95% interval (survivalChangeU) wholly below -0.5;
  *   3. the households' mean pot left under ISA, averaged over households, not lower than under GIA.
+ * Beside, deciding nothing (D69): the same pooled figures without S116.
  *   node research/solver/reduce-isasweep.mjs [dir] > research/solver/results-isasweep.txt
  *   node research/solver/reduce-isasweep.mjs --planted
  */
@@ -135,6 +136,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`  1. pooled survival, the mean of d over ${R.H.length} households: ${f(R.pooled)} (95% ${f(R.lo)} to ${f(R.hi)}, se ${R.se.toFixed(4)}); its lower end above ${RULE.pooledLo}: ${R.part1 ? 'HOLDS' : 'FAILS'}`);
   console.log(`  2. no household's interval wholly below ${RULE.household}: ${R.harmed.length ? R.harmed.map(h => `${h.id} (${f(h.p.lo)} to ${f(h.p.hi)})`).join(', ') : 'none'}: ${R.part2 ? 'HOLDS' : 'FAILS'}`);
   console.log(`  3. the mean pot left, ISA less GIA averaged over households: ${R.potDiff >= 0 ? '+' : '-'}£${Math.abs(Math.round(R.potDiff)).toLocaleString('en-GB')}; not lower: ${R.part3 ? 'HOLDS' : 'FAILS'}`);
+  // beside, deciding nothing (D69 (4)): the rule's pooled figures again without S116, the household the effect was found on
+  const R12 = rule(units.filter(u => u.id !== 'S116'));
+  console.log(`  beside, deciding nothing (D69): without S116, over ${R12.H.length}: pooled survival ${f(R12.pooled)} (95% ${f(R12.lo)} to ${f(R12.hi)}), its lower end above ${RULE.pooledLo} ${R12.part1 ? 'yes' : 'no'}; no household wholly below ${RULE.household} ${R12.part2 ? 'yes' : 'no'}; the mean pot left ${R12.potDiff >= 0 ? '+' : '-'}£${Math.abs(Math.round(R12.potDiff)).toLocaleString('en-GB')}, not lower ${R12.part3 ? 'yes' : 'no'}`);
   console.log(`  beside: spending delivered, ISA less GIA averaged over households ${f(R.H.reduce((s, h) => s + h.delI - h.delG, 0) / R.H.length, 4)} points of the target; the expected path's tax £${Math.round(raw.reduce((s, u) => s + u.arms.ISA.expTax - u.arms.GIA.expTax, 0) / raw.length).toLocaleString('en-GB')} a household`);
   console.log(`OUTCOME: ${R.outcome}`);
   const secs = raw.flatMap(u => Object.values(u.arms).map(a => a.solveSecs + a.secs));

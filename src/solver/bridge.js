@@ -38,7 +38,7 @@ export function tablePolicy(r) {
       const a = actions[ai], ca = c.acts[ai];
       return {
         steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa',
-        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}),
+        lump: !!a.lump, sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}),
         ...(a.windfall ? { windfall: a.windfall } : {}),   // the windfall split (research, D37): where the year's Auto money lands
         ...(a.save ? { save: a.save } : {}),   // the savings split (research, D38 (4)): where the year's pension and ISA saving goes
         tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: codeOf(a, ca),

@@ -337,9 +337,11 @@ for (const f of FIX) {
   // taken on 08de944, the code before D2.3 (S116 tables b12130607dc6, runs 83348278687d, reads da5fd63b56e0; S224 130e93bbc22f,
   // 16c14981a6f9, 3224079fcac5); re-taken on the review of 9 Nov's item 3 (D69): both singles hold cash and a taxable account,
   // whose interest and dividends item 3 prices above the year's income (with none, the code before and item 3 give the same tables)
+  // runs re-taken on item 5's code, whose row gains the year's sweep (sweptToGia, sweptFromGia, sweptToIsa): with those three
+  // stripped, each is item 4's to the bit; the tables and value reads unchanged
   const BEFORE = {
-    S116: { tables: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4', runs: '8ab549f8d7580126c5a941766a3bcc1103557f9a628e99ef821559287d2ff0da', reads: 'a0d64da0839c6b4303ba7891607e0c5c7e0916a77d906f35b4dfab375177a7e1' },
-    S224: { tables: '4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08', runs: 'f98013541051f3fdaa0bc1ded40ca4aae786d4adb087fe74a3e5e80942ff1c04', reads: '4d7ef15fabca2aaa35aca6c21fe61c031f189dc8b7ab6777a934efd787343410' }
+    S116: { tables: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4', runs: '36c5ce5e9062fdee78212e51475a6c04d3bac29a73cc8b55ba789a20d1a5e83e', reads: 'a0d64da0839c6b4303ba7891607e0c5c7e0916a77d906f35b4dfab375177a7e1' },
+    S224: { tables: '4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08', runs: '099e73f40cfcd918c7eeaadca94382c2e5a4551ac5267e777b7d63da30dc467f', reads: '4d7ef15fabca2aaa35aca6c21fe61c031f189dc8b7ab6777a934efd787343410' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];

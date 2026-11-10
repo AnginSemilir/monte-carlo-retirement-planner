@@ -244,7 +244,7 @@ export function moveOf(r, ai, like) {
     sweepCash: a.sweepCash !== false, spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0,
     index: ai, tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name
   };
-  for (const k of ['cgtSale', 'windfall', 'save']) { if (a[k]) m[k] = a[k]; else delete m[k]; }
+  for (const k of ['cgtSale', 'windfall', 'save', 'sweepIsa']) { if (a[k]) m[k] = a[k]; else delete m[k]; }
   return m;
 }
 /* the first year's move as the engine chose it, the position it was chosen at, and the table policy's own object */
@@ -310,7 +310,13 @@ export function actionsOf(E, solved, plan, { seed = 12345, n = 1000, base = null
     for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
     return { part: x.part, value: x.value, skip: { index: x.skip, parts: partsOf(solved.actions[x.skip], solved.c.acts[x.skip]) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
   });
-  return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0 };
+  return { move: { index: ai0, parts: p0, label: solved.actions[ai0].label }, actions: out, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };
+}
+/* the first year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1): cash above the buffer to the taxable account,
+   or a shortfall topped up from it. The year's flows before it take no market, so every path sweeps the same amount */
+export function firstSweep(E, sc) {
+  const row = E.stepYear(sc, E.freshState(sc), 0, 'expected');
+  return { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 };
 }
 
 /*
@@ -330,7 +336,7 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
-    if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined) });
+    if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
   }
   return { path: k, rows, typical: typicalOf(runs, k) };
 }

@@ -347,7 +347,7 @@ export function compile(m, actions) {
       steps: Int8Array.from(a.steps.map(codeOf)),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(codeOf)),
       harvest: a.harvest ? 1 : 0, harvestCeil: harvestCeilOf(a.harvestCeil), cgtSale: a.cgtSale ? 1 : 0,
-      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, windfall: a.windfall || 0, save: a.save || 0,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1, sweepIsa: a.sweepIsa ? 1 : 0, windfall: a.windfall || 0, save: a.save || 0,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
       tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
@@ -363,7 +363,7 @@ export function compile(m, actions) {
     return variants.get(key);
   };
   return {
-    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, n4cap, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
+    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, n4cap, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0, hasIsa: !!acc[idOf.isa],
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, raiseCapFrac: ctx.raiseCapFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
@@ -686,7 +686,12 @@ export function flow(c, t, ai, s) {
   // 7d. the sweep: cash to the buffer, both ways
   if (a.sweep) {
     const bufferEach = yr.buffer[t];
-    if (cash > bufferEach) { addGia(cash - bufferEach); cash = bufferEach; }
+    if (cash > bufferEach) {
+      // the sweepCashIsaTo option ('isa'; the engine's 7d): the cash ISA money above the buffer to the stocks and shares ISA
+      const fromIsa = a.sweepIsa && c.hasIsa ? Math.min(cash - bufferEach, Math.max(0, cashIsa - bufferEach)) : 0;
+      if (fromIsa > 0) { isa += fromIsa; addGia(cash - bufferEach - fromIsa); } else addGia(cash - bufferEach);
+      cash = bufferEach;
+    }
     else if (cash < bufferEach) { const got = sellGia(bufferEach - cash); cash += got; }
   }
   /*

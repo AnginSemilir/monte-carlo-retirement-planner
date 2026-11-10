@@ -132,8 +132,9 @@ ok(2, 'the moves that matter were made: an uneven split, two orders, HR\'s ceili
   // review of 9 Nov's item 3 (D69): the year in HMRC's order moves the taxes of every household with pay, interest or dividends,
   // and the row gains each person's taxable pay, interest, dividends and income tax; rows and tiered again on item 4's (relief
   // on an Auto deposit the plan routes into a pension: S035, S070, S175, S210, S315 and S350 of the twelve, and S370, have one;
-  // S116 and S224 do not)
-  const BEFORE = { rows: '03cbe34b1579e5a411937eff8251b1496ec3e8cd26c02a1c089995063b5fd0a6', table: '0823389b94023f4b25279cc7dbdb413f86e7466104cb047ca291edfe2b2871d1', tiered: '1e0871910dc5f378d611c7544ed6ac25c139dd6e6816044360dace22d3b47540' };
+  // S116 and S224 do not); all three again on item 5's, whose row gains the year's sweep (sweptToGia, sweptFromGia, sweptToIsa):
+  // with those three stripped, each is item 4's to the bit
+  const BEFORE = { rows: 'a044fb81cf6a2ec24843fc1a63b8a89a615cd9a808a1901eab21e73bbbce7a46', table: '32b7644cdc8ad96dc7e4c3d2507b3672cdae36fb1e2eb7d11860dbd36c48533a', tiered: '30ab75647c245fc40be760555933f46b00f2761a9212e58d04c28c5354249b42' };
   const spread = library.filter((_, i) => i % Math.floor(library.length / 12) === 0).slice(0, 12);
   const rows = spread.map(sc => E.simulateDeterministic(prep(sc.plan), 'expected'));
   const singles = ['S116', 'S224'].map(id => library.find(s => s.id === id));

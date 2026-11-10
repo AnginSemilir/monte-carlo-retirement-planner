@@ -45,7 +45,8 @@ Write d for a household's survival under ISA less under GIA, in points, paired o
 3. **The pot left:** the thirteen households' mean pot left at the end under ISA, averaged over households, not lower than
    under GIA (the point estimate: ISA less GIA at or above 0).
 
-The option passes if all three hold.
+The option passes if all three hold. Beside them, deciding nothing (D69): the same pooled figures without S116, the household
+the effect was found on, so the read shows whether it hangs on it.
 
 ## The outcomes
 

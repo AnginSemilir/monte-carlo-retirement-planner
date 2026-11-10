@@ -2682,6 +2682,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
    * this year's level) and the rest sits in the GIA at cost; a shortfall is topped up from the GIA and
    * books its gain like any disposal, into next year's tally since this year's bill is settled.
    */
+  // what the sweep moved, by owner, for the pages (the review of 9 Nov, item 5, part 1): cash to the taxable account, and back
+  const swept = { toGia: { self: 0, part: 0 }, fromGia: { self: 0, part: 0 }, toIsa: { self: 0, part: 0 } };
   if (chosen && chosen.sweepCash) {
     const bufferEach = spendTargetAtAge(ctx, ageSelf) * ctx.cashBufferYears / owners.length;
     owners.forEach(o => {
@@ -2689,13 +2691,25 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       if (cash > bufferEach) {
         const excess = cash - bufferEach;
         pots[o.ids.cash] = bufferEach;
-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
-        if (cgtOn) giaAddBasis(state, o.key, excess);
+        // the sweepCashIsaTo option ('isa'; research, off; the review of 9 Nov, item 5): the part of the excess that is cash ISA
+        // money (the buffer keeps the sheltered cash first, as 7e does) transfers to the stocks and shares ISA where the person
+        // holds one, which uses no allowance; the rest goes to the taxable account
+        const fromIsa = chosen.sweepIsa && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
+        if (fromIsa > 0) {
+          pots[o.ids.isa] += fromIsa;
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
+          if (cgtOn) giaAddBasis(state, o.key, excess - fromIsa);
+        } else {
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+          if (cgtOn) giaAddBasis(state, o.key, excess);
+        }
+        swept.toGia[o.key] = excess - fromIsa; swept.toIsa[o.key] = fromIsa;
       } else if (cash < bufferEach) {
         const before = realisedGains[o.key];
         const got = sellGia(o.ids.other, bufferEach - cash);
         pots[o.ids.cash] = cash + got;
         state.cgtCarry[o.key] += realisedGains[o.key] - before;
+        swept.fromGia[o.key] = got;
       }
     });
   }
@@ -2815,7 +2829,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     // under a solved table: what it chose this year, the tiers held, and what a tier change cost
     action: chosen ? (chosen.code || null) : null, spendLevel: chosen && chosen.spendLevel !== undefined ? chosen.spendLevel : 1,
     tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid,
-    tierPenName: grownAt.pen, tierIsaName: grownAt.isa
+    tierPenName: grownAt.pen, tierIsaName: grownAt.isa,
+    // the year's sweep (7d): cash above the buffer moved to the taxable account, and a shortfall topped up from it
+    sweptToGia: swept.toGia.self + swept.toGia.part, sweptFromGia: swept.fromGia.self + swept.fromGia.part, sweptToIsa: swept.toIsa.self + swept.toIsa.part
   };
 }
 
@@ -9212,7 +9228,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     // the ledger's action words come with it: solverWords.js loads then, in a chunk of its own, not with the page
     const asked = solve.ask('rows', { market: want === 'expected' ? 'expected' : { historical: true, startYear: want } });
     (want === 'expected'
-      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0)) } }))
+      ? Promise.all([asked, import('./solverWords.js')]).then(([a, w]) => ({ ...a, rows: a.rows && { ...a.rows, words: a.rows.parts.map((pt, i) => w.ledgerWords(pt, a.rows.rows[i].targetSpend > 0, a.rows.rows[i])) } }))
       : asked)
       .then(({ rows: run }) => { if (live && run) setSolvedRows(s => { const kept = s.key === key ? s : { key, expected: null, hist: {} }; return want === 'expected' ? { ...kept, expected: run } : { ...kept, hist: { ...kept.hist, [want]: run } }; }); })
       .catch(() => { /* the solved plan's run failed: your plan's figures stand */ });

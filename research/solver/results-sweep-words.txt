@@ -1,0 +1,32 @@
+# ITEM 5: THE PAGES SHOW THE SWEEP, AND THE SWEEP'S CASH ISA MONEY TO THE ISA AS A RESEARCH OPTION (the review of 9 Nov, item 5;
+# D66). Part 1 (the pages) changes no figure; part 2's option (sweepCashIsaTo 'isa') is off, its experiment ISA-SWEEP.md.
+# Every output below is the command's own, on this commit's tree.
+
+## Part 1: node research/tests/sweep-words.test.mjs, then --plants
+sweep-words: the sweep in the solved plan's listings, S116 at light settings
+PASS  1  this year's sweep is the engine's first year, the same on every path  -- actionsOf: £359900.00 to the taxable account, £0.00 back; the first year on three paths 359900.00, 359900.00, 359900.00
+PASS  2  the words name the move, its accounts and its amount to the pound  -- "Move £359,900 of cash above your buffer to your taxable account" (the amount £359,900)
+PASS  3  the next ten years: each year's sweep on the median path named with its amount and direction  -- 10 of 10 years with a sweep named; 6 rows for 10 years; the first: Move pension money into your ISA, up to your personal allowance; Move £359,900 of cash above your buffer to your taxable account
+PASS  4  the audit table's action column names the year's sweep with its amount  -- "spend 80% · pension to ISA, to the personal allowance · cash 359,900 to taxable"
+
+sweep-words: 4 passed, 0 failed
+plant sweepround fails 2, 3 (expected 2, 3): exact
+plant sweepback  fails 3 (expected 3): exact
+
+## Part 2's option in step: the engine, the exact model and the forward run (gaps-sweep.test.mjs, the full tier), its case and the verdict
+THE GAPS SWEEP: code 52025255e87b, the light candidate, 20 paths each of seed 99001; 59 cases
+PASS  the sweep's cash ISA money to the ISA (sweepCashIsaTo 'isa') [S116, 36 years, solve 28 s]: 695 household-years in step, the change live in 20; worst gap £8.0e-11 (ISA), lump flag and tiers exact; picks differ in 0 years (the largest score gap none, ties); mismatched moves 0; planted (sweepIsa): parts by £597946.31; the forward run survives 17 of 20
+SWEEP: ALL 59 cases PASS
+
+## The pins that move: the engine's row gains the year's sweep (sweptToGia, sweptFromGia, sweptToIsa) and nothing else
+## couple-lockstep check 3 and couple-tables check 6, each digest with those three fields stripped against item 4's pin (item5-additive.mjs):
+rows: with the three sweep fields stripped 03cbe34b1579e5a4 against item 4's pin 03cbe34b1579e5a4: THE SAME; whole a044fb81cf6a2ec2
+table: with the three sweep fields stripped 0823389b94023f4b against item 4's pin 0823389b94023f4b: THE SAME; whole 32b7644cdc8ad96d
+tiered: with the three sweep fields stripped 1e0871910dc5f378 against item 4's pin 1e0871910dc5f378: THE SAME; whole 30ab75647c245fc4
+the row's last keys: sweptToGia, sweptFromGia, sweptToIsa
+S116 runs, the three sweep fields stripped: 8ab549f8d7580126 against item 4's pin 8ab549f8d7580126: THE SAME
+S224 runs, the three sweep fields stripped: f98013541051f3fd against item 4's pin f98013541051f3fd: THE SAME
+With the pins re-taken: couple-lockstep 5 passed, 0 failed; couple-tables ALL PASS: 8 passed, 0 failed (252s)
+
+## Part 2's experiment: ISA-SWEEP.md (EXPLORATORY, seed 7002), launched on this commit; its read to results-isasweep.txt
+## Part 1's screenshot: to the maintainer with the experiment's read

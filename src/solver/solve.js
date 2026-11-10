@@ -402,7 +402,7 @@ export function solve(E, M, plan, opts = {}) {
     if (!tierList || !tierList.some(([p, i]) => p === hp && i === hi)) throw new Error(`holdTier ${hp}/${hi} is not on this household's tier menu (${tierList ? tierList.map(x => x.join('/')).join(', ') : 'no tiers'})`);
     tierList = [[hp, hi]];
   }
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts), saveSplit: saveOn(m, opts) })).map(a => ({ ...a, lump: !!opts.lump }));
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: tierList, menuPlus: opts.menuPlus, windfallSplit: splitOn(m, opts), saveSplit: saveOn(m, opts) })).map(a => menuMove(a, opts));
   /*
    * ONE TIER PAIR (the deep review after Phase 4, section 8 item 5; research/tests/risk-consent.test.mjs). The tier state,
    * its switch charge and the table without the dealing cost track which tier pair is held, so they mean something only
@@ -2777,10 +2777,18 @@ function lockSetup(opts, g, tsPairs, tsLayerOf, actions) {
 }
 // at the end of the solve: the two options recorded in the run record, and the lock's other settings checked (the layer loop,
 // no switch margin, no taxable-account tiers); a lock solved anywhere else throws before its result is used
+/* a move as the solve takes it: the lump sum as asked, and the sweep's cash ISA money to the ISA where `sweepCashIsaTo` is 'isa'
+   (research, off; the review of 9 Nov, item 5; 'gia', the default, is the engine as before) */
+function menuMove(a, opts) {
+  if (opts.sweepCashIsaTo === undefined || opts.sweepCashIsaTo === 'gia') return { ...a, lump: !!opts.lump };
+  if (opts.sweepCashIsaTo !== 'isa') throw new Error(`sweepCashIsaTo ${opts.sweepCashIsaTo}: 'isa' or 'gia'`);
+  return { ...a, lump: !!opts.lump, sweepIsa: true };
+}
 function researchFinish(r, LK, opts) {
   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
   if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
+  if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
   if (r.actions.some(a => a.windfall || a.save)) r.nAt = splitCounts(r.c, r.actions, r.m.ctx.totalYears);   // the chooser's moves a year (movesAt)
   if (!LK) return;
   if (r.meta.tsOnce || !r.meta.tierState || !opts.jointWorlds || r.switchMargin > 0 || r.c.tiers.gia) throw new Error('lockTiers runs on the tier state with joint worlds and the layer loop (tsOnce: false), with no switch margin and no taxable-account tiers');

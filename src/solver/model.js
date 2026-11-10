@@ -565,8 +565,16 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (cash > bufferEach) {
         const excess = cash - bufferEach;
         pots[o.ids.cash] = bufferEach;
-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
-        addBasis(o.key, excess);                      // moved at cost, so no gain is created
+        // the sweepCashIsaTo option ('isa'; the engine's 7d): the cash ISA money above the buffer to the stocks and shares ISA
+        const fromIsa = action.sweepIsa && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
+        if (fromIsa > 0) {
+          pots[o.ids.isa] += fromIsa;
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
+          addBasis(o.key, excess - fromIsa);
+        } else {
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+          addBasis(o.key, excess);                      // moved at cost, so no gain is created
+        }
       } else if (cash < bufferEach) {
         // topping the buffer back up is a sale, so it books its gain like any other disposal - into next year's tally,
         // since this year's bill is settled (the engine's 7d; before 21 Oct it was booked here and never taxed, F0)

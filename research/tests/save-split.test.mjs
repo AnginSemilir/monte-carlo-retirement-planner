@@ -76,10 +76,11 @@ const SAVERS = ['S188', 'S244'];   // an employee taxed in Scotland, five workin
  */
 const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B === '1';
 const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
-const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings
+const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings; S026's and S090's again on item 4's (each
+  // has an Auto deposit in 2030 the plan routes into its pension: the same £3,600 now lands for £2,880, £720 more kept taxable)
   S188: '847a1cbc6947bba10f8b17db2acae94497a7b25e5de571a74795d66955ab8d54',
   S244: '2fcb676ee98a867e781c3d9ce91f9cb7a56655d61a495503d83e53e23157a56c',
-  [RETIRED]: 'ccff7c1ac433d182dcd829a643f279fd53da5e521e908130f51b9b579561e2da'
+  [RETIRED]: 'dc4b42a7ce29f5fe5f8626135a429bc422f0d66435d7c451b8accd5c934e7fcd'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');
 const { createHash } = await import('node:crypto');

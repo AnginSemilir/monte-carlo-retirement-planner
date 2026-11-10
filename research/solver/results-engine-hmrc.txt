@@ -213,6 +213,33 @@ item 3's sizing, the plan's own rules (EXPLORATORY): 237 households of the two t
 THE STEP'S STOP (a household moving by more than 6 points, or the mean by more than 1): not met
 
 ## Step 4.2: the review's eight solved at 45 points, 4,000 paths (size-hmrc.mjs solved, then read)
-running at this commit: to follow
+(EXPLORATORY; run on item 3's code alone, after its commit; the solve's seconds, before and after, per household)
+S030 before: solved 95.60%, the rules (Bracket Fill Basic, lump sum) 86.88%; solve 279 s
+S030 after: solved 95.60%, the rules (Bracket Fill Basic) 86.00%; solve 299 s
+S050 before: solved 98.80%, the rules (ISA First) 84.80%; solve 258 s
+S050 after: solved 98.83%, the rules (ISA First, lump sum) 83.83%; solve 274 s
+S090 before: solved 94.75%, the rules (Bracket Fill Basic) 86.47%; solve 357 s
+S090 after: solved 94.65%, the rules (Bracket Fill Basic) 85.95%; solve 364 s
+S368 before: solved 99.85%, the rules (ISA First) 84.42%; solve 500 s
+S368 after: solved 99.85%, the rules (ISA First) 84.42%; solve 521 s
+S188 before: solved 97.55%, the rules (Bracket Fill Basic, lump sum) 83.67%; solve 382 s
+S188 after: solved 97.58%, the rules (Bracket Fill Basic, lump sum) 83.38%; solve 413 s
+S304F before: solved 98.28%, the rules (Bracket Fill Basic) 86.30%; solve 521 s
+S304F after: solved 98.25%, the rules (Bracket Fill Basic) 86.30%; solve 541 s
+S328F before: solved 93.10%, the rules (Bracket Fill, lump sum) 84.95%; solve 477 s
+S328F after: solved 92.92%, the rules (Bracket Fill, lump sum) 84.25%; solve 504 s
+S340F before: solved 95.08%, the rules (Bracket Fill Basic) 85.30%; solve 549 s
+S340F after: solved 95.03%, the rules (Bracket Fill Basic) 85.20%; solve 535 s
+item 3's sizing, the solved plans (EXPLORATORY): 8 households at 45 points, seed 7002; survival, the margin over the rules, the expected path's tax (before -> after)
+  S030: solved 95.60% -> 95.60%; the rules 86.88% -> 86.00%; the margin +8.72 -> +9.60; the solved plan's tax £60,937 -> £58,574 (4000 paths)
+  S050: solved 98.80% -> 98.83%; the rules 84.80% -> 83.83%; the margin +14.00 -> +15.00; the solved plan's tax £0 -> £11 (4000 paths)
+  S090: solved 94.75% -> 94.65%; the rules 86.47% -> 85.95%; the margin +8.28 -> +8.70; the solved plan's tax £25,138 -> £31,972 (4000 paths)
+  S188: solved 97.55% -> 97.58%; the rules 83.67% -> 83.38%; the margin +13.88 -> +14.20; the solved plan's tax £256,239 -> £257,375 (4000 paths)
+  S304F: solved 98.28% -> 98.25%; the rules 86.30% -> 86.30%; the margin +11.98 -> +11.95; the solved plan's tax £49,521 -> £50,145 (4000 paths)
+  S328F: solved 93.10% -> 92.92%; the rules 84.95% -> 84.25%; the margin +8.15 -> +8.67; the solved plan's tax £22,399 -> £33,418 (4000 paths)
+  S340F: solved 95.08% -> 95.03%; the rules 85.30% -> 85.20%; the margin +9.78 -> +9.83; the solved plan's tax £43,522 -> £47,799 (4000 paths)
+  S368: solved 99.85% -> 99.85%; the rules 84.42% -> 84.42%; the margin +15.42 -> +15.42; the solved plan's tax £37,465 -> £37,475 (4000 paths)
+  pooled margin over the rules +11.28 -> +11.67 points (after less before +0.40)
+THE STEP'S STOP (the pooled margin over the rules falling by more than 2 points): not met
 
 ## Step 5: the pages' line, in the maintainer's words (not yet given). The review's draft: "We corrected how income tax is worked out when you have a salary, savings interest or dividends in the same year as ..."

@@ -204,8 +204,8 @@ export function compile(m, actions) {
     cost: new Float64Array(T + 1), buffer: new Float64Array(T + 1),
     // by pot, in CATS order: dated deposits, deductions, scheduled contributions (full-year, before frac)
     dep: CATS.map(() => new Float64Array(T + 1)), ded: CATS.map(() => new Float64Array(T + 1)), con: CATS.map(() => new Float64Array(T + 1)),
-    // staged transfers out of the GIA into a pot, by target pot
-    drip: CATS.map(() => new Float64Array(T + 1)),
+    // staged transfers out of the GIA into a pot, by target pot; into a pension, what they land (relieved) and their refund
+    drip: CATS.map(() => new Float64Array(T + 1)), dripLand: CATS.map(() => new Float64Array(T + 1)), dripRefund: CATS.map(() => new Float64Array(T + 1)),
     cgtExempt: new Float64Array(T + 1),
     // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
     cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1),
@@ -242,6 +242,9 @@ export function compile(m, actions) {
     if (sp) { yr.splitYear[t] = 1; for (let v = 1; v <= 3; v++) sp.variants[v].forEach(x => { const c = catOfId[x.id]; if (c) yr.splitDep[v][CATS.indexOf(c)][t] += x.amount; }); }
     (ctx.oneOffDeductions.get(year) || []).forEach(x => { const c = catOfId[x.id]; if (c) yr.ded[CATS.indexOf(c)][t] += x.amount; });
     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other) yr.drip[CATS.indexOf(c)][t] += x.amount; });
+    // a transfer into a pension relieved (the review of 9 Nov, item 4): what it lands and its refund to cash, as planned; a
+    // move short of the plan lands and refunds in proportion (the engine's 1.5)
+    (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other && x.uplift) { const i = CATS.indexOf(c); yr.dripLand[i][t] += x.amount * x.uplift; if (x.refundPer > 0 && x.refundId === idOf.cash) yr.dripRefund[i][t] += x.amount * x.refundPer; } });
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
     const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
@@ -448,7 +451,11 @@ export function flow(c, t, ai, s) {
     // the windfall split (research, D37): in a year with Auto money, a move's split replaces the plan's Auto entries
     const p = a.windfall && yr.splitYear[t] ? yr.depNoAuto[i][t] + yr.splitDep[a.windfall][i][t] : yr.dep[i][t];
     if (p > 0) { if (i === 0) pen += p; else if (i === 1) isa += p; else if (i === 2) addGia(p); else cash += p; }
-    const dr = yr.drip[i][t]; if (dr > 0) { const mv = sellGia(dr); if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv; }
+    const dr = yr.drip[i][t]; if (dr > 0) {
+      const mv0 = sellGia(dr), mv = yr.dripLand[i][t] > 0 ? mv0 * (yr.dripLand[i][t] / dr) : mv0;
+      if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv;
+      if (yr.dripRefund[i][t] > 0) cash += mv0 * (yr.dripRefund[i][t] / dr);
+    }
   }
   // 2. contributions while working
   let isaContrib = 0, cashIsaSubscribed = 0;

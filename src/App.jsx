@@ -1797,6 +1797,8 @@ function buildContext(rawPlan) {
     // the windfall split (research, D37): what the Auto deposits claimed in their own year, and their amounts by year
     const autoClaimed = new Map(), autoAmt = new Map();
     const headroomCtx = { P, owners, acc, otherIncomes };
+    // relief on the pension routes the plan makes from the household's own money (the review of 9 Nov, item 4; pensionRelief)
+    const relief = { rate: P.reliefAtSource, of: (ownerKey, t, gross) => { const o = owners.find(x => x.key === ownerKey); return pensionRelief(P, relevantEarningsAtYear(headroomCtx, o, t), gross, o.age0 + t); } };
     const claim = (ownerKey, cat, t, want, auto = false) => {
       const key = `${ownerKey}|${cat}|${t}`;
       const already = claimed.get(key) || 0;
@@ -1856,18 +1858,23 @@ function buildContext(rawPlan) {
       // yearHeadroom is this year's raw allowance (before other deposits' claims), shown on the row
       const yearHeadroom = wrapperHeadroomAtYear(headroomCtx, ownerKey, targetCat, t);
       const isAuto = x.category === AUTO_DEPOSIT;
-      const H0 = claim(ownerKey, targetCat, t, amt, isAuto);
+      // an Auto deposit the policy puts in a pension is the plan's own route, relieved: its room taken gross for the net it
+      // costs, any refund to cash. A deposit typed into a pension lands as typed (M3)
+      const relieved = isAuto && targetCat === 'pen';
+      const H0 = relieved ? claim(ownerKey, targetCat, t, amt / (1 - relief.rate), true) : claim(ownerKey, targetCat, t, amt, isAuto);
+      const rel0 = relieved ? relief.of(ownerKey, t, H0) : null, net0 = relieved ? Math.min(amt, rel0.net) : H0;
       if (!oneOffContribs.has(y)) oneOffContribs.set(y, []);
       // an Auto deposit's own entries are marked, so a table's move can put that money elsewhere (the windfall split)
       const entry = (id, amount) => (isAuto ? { id, amount, auto: true } : { id, amount });
+      if (relieved && rel0.refund > 0) oneOffContribs.get(y).push(entry(accountId('cash', ownerKey), rel0.refund));
       if (isAuto) autoAmt.set(`${y}|${ownerKey}`, (autoAmt.get(`${y}|${ownerKey}`) || 0) + amt);
-      if (amt <= H0 + 1e-6) {
-        oneOffContribs.get(y).push(entry(targetId, amt));
-        oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0 });
+      if (amt <= net0 + 1e-6) {
+        oneOffContribs.get(y).push(entry(targetId, relieved ? H0 : amt));
+        oneOffStaging.set(x.id, { direct: true, targetId, otherId, stagedId: targetId, amount: amt, H0: relieved ? H0 : amt, yearHeadroom, surplus0: 0, tranches: [], unresolvedRemainder: 0, ...(relieved ? { relief: { gross: H0, net: net0, refund: rel0.refund } } : {}) });
         return;
       }
 
-      const surplus0 = amt - H0;
+      const surplus0 = amt - net0;
       if (H0 > 0) oneOffContribs.get(y).push(entry(targetId, H0));
       oneOffContribs.get(y).push(entry(otherId, surplus0));
 
@@ -1877,6 +1884,18 @@ function buildContext(rawPlan) {
       let remaining = surplus0;
       if (stagedCat !== 'other') {
         for (let dt = t + 1; dt <= totalYears && remaining > 0.005; dt++) {
+          // a transfer into a pension is relieved (the review of 9 Nov, item 4): the room taken gross, the taxable account
+          // paying the net; the move the engine makes is grossed up by `uplift`, and a refund paid to cash pro rata
+          if (stagedCat === 'pen') {
+            const gross = claim(ownerKey, stagedCat, dt, remaining / (1 - relief.rate));
+            if (gross <= 0) continue;
+            const rel = relief.of(ownerKey, dt, gross), net = Math.min(remaining, rel.net), dy = baseYear + dt;
+            if (!stagedTransfers.has(dy)) stagedTransfers.set(dy, []);
+            stagedTransfers.get(dy).push({ fromId: otherId, toId: stagedId, amount: net, uplift: 1 / (1 - relief.rate), refundId: accountId('cash', ownerKey), refundPer: rel.refund / net });
+            tranches.push({ year: dy, amount: net, gross, refund: rel.refund });
+            remaining -= net;
+            continue;
+          }
           const tranche = claim(ownerKey, stagedCat, dt, remaining);
           if (tranche <= 0) continue;
           const dy = baseYear + dt;
@@ -1893,7 +1912,7 @@ function buildContext(rawPlan) {
       );
       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
     });
-    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t) });
+    autoSplitRoutes(autoSplit, autoAmt, { baseYear, acc, claimed, autoClaimed, room: (o, cat, t) => wrapperHeadroomAtYear(headroomCtx, o, cat, t), relief });
     saveSplitAt = saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, totalYears });
   }
   const oneOffCosts = new Map();
@@ -2162,7 +2181,9 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
   if (drips) drips.forEach(x => {
     const move = sellGia(x.fromId, x.amount);
     if (move <= 0) return;
-    pots[x.toId] = (pots[x.toId] || 0) + move;
+    // a transfer into a pension lands grossed up, its refund to cash in proportion to what moved (the review's item 4)
+    pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
+    if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
     if (cgtOn && x.toId.startsWith('other_')) giaAddBasis(state, ownerOfId(x.toId), move);
   });
 
@@ -3400,12 +3421,13 @@ function suggestOneOffDestination(ctx, ownerKey, t, amount) {
 /*
  * THE WINDFALL SPLIT (research, off unless a table's move asks for it; STATE.md D37, research/solver/WINDFALL-SPLIT.md).
  * For each year with Auto deposits, where splits 1 to 3 put that year's Auto money, by owner: 1 the pension up to its room,
- * then the ISA up to its allowance, the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
+ * relieved (pensionRelief: its room gross, the windfall paying the net, any refund to cash), then the ISA up to its allowance,
+ * the rest taxable; 2 the ISA up to its allowance, the rest taxable; 3 all taxable. The
  * room is what the claim ledger left this year once every other deposit, transfer and contribution claimed, the Auto
  * deposits' own claims for the year given back. A wrapper the household does not hold takes nothing. Split 0 is the plan's
  * own routing (the marked entries in oneOffContribs), so nothing here changes a year whose move carries no split.
  */
-function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room }) {
+function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, room, relief }) {
   autoAmt.forEach((A, key) => {
     const [ys, ownerKey] = key.split('|');
     const y = Number(ys), t = y - baseYear;
@@ -3415,13 +3437,16 @@ function autoSplitRoutes(out, autoAmt, { baseYear, acc, claimed, autoClaimed, ro
       return Math.max(0, room(ownerKey, cat, t) - ((claimed.get(k) || 0) - (autoClaimed.get(k) || 0)));
     };
     const penRoom = left('pen'), isaRoom = left('isa');
-    const pen1 = Math.min(A, penRoom), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
+    // split 1's pension is relieved (the review of 9 Nov, item 4): its room taken gross, for the net it costs the windfall,
+    // a higher-rate payer's refund to their cash
+    const penGross = Math.min(penRoom, A / (1 - relief.rate)), rel = penGross > 0 ? relief.of(ownerKey, t, penGross) : { net: 0, refund: 0 };
+    const pen1 = Math.min(A, rel.net), isa1 = Math.min(A - pen1, isaRoom), isa2 = Math.min(A, isaRoom);
     // the rest goes to the taxable account, or to cash where the household holds no taxable account
     const restId = acc[accountId('other', ownerKey)] ? accountId('other', ownerKey) : accountId('cash', ownerKey);
     const ent = pairs => pairs.filter(([, a]) => a > 0).map(([id, a]) => ({ id, amount: a }));
     if (!out.has(y)) out.set(y, { variants: [null, [], [], []], room: [] });
     const e = out.get(y);
-    e.variants[1].push(...ent([[accountId('pen', ownerKey), pen1], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1]]));
+    e.variants[1].push(...ent([[accountId('pen', ownerKey), penGross], [accountId('isa', ownerKey), isa1], [restId, A - pen1 - isa1], [accountId('cash', ownerKey), rel.refund]]));
     e.variants[2].push(...ent([[accountId('isa', ownerKey), isa2], [restId, A - isa2]]));
     e.variants[3].push(...ent([[restId, A]]));
     e.room.push({ owner: ownerKey, amount: A, pen: penRoom, isa: isaRoom });
@@ -3483,11 +3508,16 @@ function saveSplitRoutes({ P, owners, acc, otherIncomes, claimed, baseYear, tota
   return t => { if (!memo.has(t)) memo.set(t, at(t)); return memo.get(t); };
 }
 
+// relief on a person's own pension contributions stops at their 75th birthday (the review of 9 Nov, item 4; D69)
+const PENSION_RELIEF_TO_AGE = 75;
 function wrapperHeadroomAtYear(ctx, ownerKey, category, t) {
   const { P, acc, owners } = ctx;
   if (category === 'other' || category === 'cash') return Infinity;
   const o = owners.find(x => x.key === ownerKey);
   if (!o) return 0;
+  // relief on a person's own pension contributions stops at 75 (the review of 9 Nov, item 4; D69): from then a one-off deposit
+  // has no room in the pension, so an Auto deposit's route walks on to the ISA
+  if (category === 'pen' && o.age0 + t >= PENSION_RELIEF_TO_AGE) return 0;
   const a = acc[o.ids[category]];
   // regular contributions stop at retirement (mirrors stepYear), so they only consume headroom while working
   const retired = (o.age0 + t) >= o.retireAge;
@@ -3776,6 +3806,8 @@ function bedAndSippFor(ctx, alloc, spare, scope) {
   const { P, owners, acc } = ctx;
   if (scope !== 'full' || !(spare > 0)) return null;
   const o = owners[0];
+  // no relief on a person's own contributions from 75 (D69), so no Bed and SIPP: before, it moved the ISA in, relieved
+  if (o.age0 >= PENSION_RELIEF_TO_AGE) return null;
   const isaSelfBal = acc[o.ids.isa] ? acc[o.ids.isa].balance : 0;
   // relief is due on contributions up to the person's relevant UK earnings, or the no-earnings limit where they have less
   // (wrapperHeadroomAtYear's rule; a blank salary while still working leaves it unconstrained); a non-earner gets the
@@ -3785,10 +3817,23 @@ function bedAndSippFor(ctx, alloc, spare, scope) {
   const aaRoom = Math.max(0, cap - alloc.penByOwner[0]);
   const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
   if (!(gross > 250)) return null;
+  const { net, refund } = pensionRelief(P, earnings, gross, o.age0);
+  return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
+}
+
+/*
+ * RELIEF ON A PERSONAL PENSION CONTRIBUTION (the review of 9 Nov, item 4): money a person pays into a pension from their own
+ * funds is relieved at source at the basic rate (£80 buys £100); a payer above the basic band gets the rest of their relief
+ * back (`refund`, paid to their cash), worked on the contribution's gross against the year's relevant earnings. A non-earner
+ * gets the basic rate at source and nothing to reclaim. Shared by bedAndSippFor and every route the plan itself makes into a
+ * pension (an Auto deposit, the windfall split's pension-first variant, a staged transfer); the room the gross may take is the
+ * caller's (wrapperHeadroomAtYear). A deposit typed into a pension stays at face value (M3: the maintainer's wording question).
+ */
+function pensionRelief(P, earnings, gross, age = 0) {
+  if (age >= PENSION_RELIEF_TO_AGE) return { net: gross, refund: 0 };   // none from 75 (wrapperHeadroomAtYear gives no room either)
   const net = gross * (1 - P.reliefAtSource);
   const reliefTotal = earnings > 0 ? incomeTax(earnings, P) - incomeTax(Math.max(0, earnings - gross), P) : gross * P.reliefAtSource;
-  const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
-  return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
+  return { net, refund: Math.max(0, reliefTotal - gross * P.reliefAtSource) };
 }
 
 function accumulationEnv(ctx, { emergencyFloor = 25000, scope = 'contributions', netBudgetOverride = null, balance = 'proportional' } = {}) {
@@ -13935,7 +13980,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                               <div className="space-y-0.5 text-slate-600">
                                 <div>Year {c.year}: £{fmtNum(Math.round(st.H0))} direct to {c.category} + £{fmtNum(Math.round(st.surplus0))} parked in Other Investments</div>
                                 {st.tranches.map((tr, i) => (
-                                  <div key={i}>Year {tr.year}: £{fmtNum(Math.round(tr.amount))} transferred to {c.stagedTargetWrapper}</div>
+                                  <div key={i}>Year {tr.year}: £{fmtNum(Math.round(tr.amount))} transferred to {c.stagedTargetWrapper}{tr.gross ? `, £${fmtNum(Math.round(tr.gross))} with tax relief` : ''}</div>
                                 ))}
                                 {st.unresolvedRemainder > 0 && (
                                   <div className="text-amber-700">£{fmtNum(Math.round(st.unresolvedRemainder))} remains parked in Other Investments beyond the plan horizon.</div>

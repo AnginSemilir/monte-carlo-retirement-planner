@@ -68,9 +68,10 @@ const LOOP = { tsOnce: false }, AW = { mode: 90, disp: 9 }, D10M = { lambda: 10 
  */
 const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B === '1';
 const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
-const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings
-  'S090 e5': '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
-  'S090 loop': '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
+const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings; S026's and S090's again on item 4's (each
+  // has an Auto deposit in 2030 the plan routes into its pension: the same £3,600 now lands for £2,880, £720 more kept taxable)
+  'S090 e5': 'f1e1167100e2f43b8b80aeeb9bbab5e9fa92895936a3a53a09f27938361483fa',
+  'S090 loop': 'f1e1167100e2f43b8b80aeeb9bbab5e9fa92895936a3a53a09f27938361483fa',
   'S328F e5': '7f0bb15e4811424cb0ecaf50ae0d15479681265f25c217079dc34d95f163e8ad',
   'S328F loop': '7f0bb15e4811424cb0ecaf50ae0d15479681265f25c217079dc34d95f163e8ad'
 };

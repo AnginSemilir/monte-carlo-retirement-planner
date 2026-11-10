@@ -6,7 +6,8 @@
  *   1. OFF: with the option unset, every table of every layer, world and year, 40 forward runs and the run record the same
  *      as the code before the option (BASE, checked out into a temporary worktree and its engine built there), on two
  *      windfall households and one without a deposit.
- *   2. THE ROUTING against a hand calculation (the engine's context): S026's Auto deposit larger than both rooms; the same
+ *   2. THE ROUTING against a hand calculation (the engine's context; split 1's pension relieved since the review of 9 Nov,
+ *      item 4: its room gross for the net, any refund to cash): S026's Auto deposit larger than both rooms; the same
  *      deposit smaller than the pension's room; and with a plain ISA deposit the same year, which takes its share of the
  *      allowance first. Planted: the room computed without giving back the Auto deposit's own claim fails the check.
  *   3. IN STEP: the engine and the forward run, each split forced in the deposit year (runPolicy's choose; the engine takes
@@ -76,9 +77,10 @@ const WIND = ['S026', 'S090'];
  */
 const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B === '1';
 const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
-const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings
-  S026: 'ccff7c1ac433d182dcd829a643f279fd53da5e521e908130f51b9b579561e2da',
-  S090: '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
+const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings; S026's and S090's again on item 4's (each
+  // has an Auto deposit in 2030 the plan routes into its pension: the same £3,600 now lands for £2,880, £720 more kept taxable)
+  S026: 'dc4b42a7ce29f5fe5f8626135a429bc422f0d66435d7c451b8accd5c934e7fcd',
+  S090: 'f1e1167100e2f43b8b80aeeb9bbab5e9fa92895936a3a53a09f27938361483fa',
   [NODEP]: '4adc22e273e981c7b38bc893ce22d1793b6d49c1c52a2b15c83834d91377af50'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');
@@ -136,17 +138,30 @@ try {
 
   // -------------------------------------------------------------------------------------------------- 2. THE ROUTING
   console.log('=========== 2. THE ROUTING AGAINST A HAND CALCULATION ===========');
-  // the hand calculation: the room is each wrapper's headroom this year less what every deposit but the Auto ones claims
+  // the hand calculation: the room is each wrapper's headroom this year less what every deposit but the Auto ones claims;
+  // split 1's pension relieved (the review of 9 Nov, item 4): its room taken gross for the net the windfall pays (gross x
+  // (1 - relief at source)), a payer above the basic band refunded the rest of their relief (the tax on their earnings less
+  // the tax on their earnings less the gross) to cash
+  const reliefOf = (ctx, t, gross) => {
+    const P = ctx.P, r = P.reliefAtSource, earnings = E.relevantEarningsAtYear(ctx, ctx.owners[0], t);
+    const total = earnings > 0 ? E.incomeTax(earnings, P) - E.incomeTax(Math.max(0, earnings - gross), P) : gross * r;
+    return { net: gross * (1 - r), refund: Math.max(0, total - gross * r) };
+  };
+  const split1 = (ctx, t, A, penRoom, isaRoom) => {
+    const gross = Math.min(penRoom, A / (1 - ctx.P.reliefAtSource)), rel = gross > 0 ? reliefOf(ctx, t, gross) : { net: 0, refund: 0 };
+    const net = Math.min(A, rel.net), isa1 = Math.min(A - net, isaRoom);
+    return { pen: gross, isa: isa1, other: A - net - isa1, cash: rel.refund };
+  };
   const handOf = (ctx, y, others) => {
     const t = y - ctx.baseYear, A = ctx.autoSplit.get(y).room.reduce((s, e) => s + e.amount, 0);
     const room = cat => Math.max(0, E.wrapperHeadroomAtYear(ctx, 'self', cat, t) - (others[cat] || 0));
-    const pen = Math.min(A, room('pen')), isa1 = Math.min(A - pen, room('isa')), isa2 = Math.min(A, room('isa'));
-    return { A, rooms: [room('pen'), room('isa')], v: [null, { pen, isa: isa1, other: A - pen - isa1 }, { pen: 0, isa: isa2, other: A - isa2 }, { pen: 0, isa: 0, other: A }] };
+    const isa2 = Math.min(A, room('isa'));
+    return { A, rooms: [room('pen'), room('isa')], v: [null, split1(ctx, t, A, room('pen'), room('isa')), { pen: 0, isa: isa2, other: A - isa2, cash: 0 }, { pen: 0, isa: 0, other: A, cash: 0 }] };
   };
-  const byCat = (ctx, entries) => { const o = ctx.owners[0].ids, out = { pen: 0, isa: 0, other: 0 }; for (const x of entries) { const cat = Object.keys(o).find(k => o[k] === x.id); out[cat] = (out[cat] || 0) + x.amount; } return out; };
+  const byCat = (ctx, entries) => { const o = ctx.owners[0].ids, out = { pen: 0, isa: 0, other: 0, cash: 0 }; for (const x of entries) { const cat = Object.keys(o).find(k => o[k] === x.id); out[cat] = (out[cat] || 0) + x.amount; } return out; };
   const routingGap = (ctx, y, hand, variants) => {
     let worst = 0;
-    for (let v = 1; v <= 3; v++) { const got = byCat(ctx, variants[v]); for (const cat of ['pen', 'isa', 'other']) worst = Math.max(worst, Math.abs((got[cat] || 0) - hand.v[v][cat])); }
+    for (let v = 1; v <= 3; v++) { const got = byCat(ctx, variants[v]); for (const cat of ['pen', 'isa', 'other', 'cash']) worst = Math.max(worst, Math.abs((got[cat] || 0) - hand.v[v][cat])); }
     return worst;
   };
   const Y = 2030;
@@ -173,9 +188,9 @@ try {
     const ctx = plantCtx, e = ctx.autoSplit.get(Y), t = Y - ctx.baseYear, A = e.room[0].amount;
     const own = byCat(ctx, (ctx.oneOffContribs.get(Y) || []).filter(x => x.auto));
     const roomOf = cat => Math.max(0, E.wrapperHeadroomAtYear(ctx, 'self', cat, t) - (own[cat] || 0));
-    const penRoom = roomOf('pen'), isaRoom = roomOf('isa');
-    const pen = Math.min(A, penRoom), isa1 = Math.min(A - pen, isaRoom), isa2 = Math.min(A, isaRoom), id = ctx.owners[0].ids;
-    const planted = [null, [{ id: id.pen, amount: pen }, { id: id.isa, amount: isa1 }, { id: id.other, amount: A - pen - isa1 }], [{ id: id.isa, amount: isa2 }, { id: id.other, amount: A - isa2 }], [{ id: id.other, amount: A }]];
+    const penRoom = roomOf('pen'), isaRoom = roomOf('isa'), s1 = split1(ctx, t, A, penRoom, isaRoom);
+    const isa2 = Math.min(A, isaRoom), id = ctx.owners[0].ids;
+    const planted = [null, [{ id: id.pen, amount: s1.pen }, { id: id.isa, amount: s1.isa }, { id: id.other, amount: s1.other }, { id: id.cash, amount: s1.cash }], [{ id: id.isa, amount: isa2 }, { id: id.other, amount: A - isa2 }], [{ id: id.other, amount: A }]];
     const gap = routingGap(ctx, Y, handOf(ctx, Y, {}), planted);
     ok(gap > 1, `2. planted: the rooms left without the Auto deposit's own claims given back (its claims pension £${Math.round(own.pen || 0)}, ISA £${Math.round(own.isa || 0)}) part from the hand calculation by £${Math.round(gap)}, and the check fails`);
   }

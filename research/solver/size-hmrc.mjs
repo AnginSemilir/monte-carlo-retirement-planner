@@ -87,7 +87,7 @@ if (mode === 'library') {
   }
   if (units.length) {
     const fall = (mB - mA) / units.length;
-    console.log(`  pooled margin over the rules ${f1(mB / units.length)} -> ${f1(mA / units.length)} points (a fall of ${f1(fall)})`);
+    console.log(`  pooled margin over the rules ${f1(mB / units.length)} -> ${f1(mA / units.length)} points (after less before ${f1(-fall)})`);
     console.log(`THE STEP'S STOP (the pooled margin over the rules falling by more than 2 points): ${fall > 2 ? 'STOP' : 'not met'}`);
   }
 } else { console.error('size-hmrc: library | solved <id> | read'); process.exit(2); }

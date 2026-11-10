@@ -76,10 +76,11 @@ const hashes = r => ({ table: arraysHash(r.mix.tables, 3), layer: arraysHash([r.
 const same = (a, b) => ['table', 'layer', 'aref', 'run'].every(k => a[k] === b[k]);
 const tablesOnly = r => `${arraysHash(r.mix.tables, 3)}/${arraysHash([r.tablesW], 99)}`;
 
-// 1. identity, the option unset: the code before the port (0021898), recorded there with --record; re-recorded on item 3's code (D69)
+// 1. identity, the option unset: the code before the port (0021898), recorded there with --record; re-recorded on item 3's code (D69),
+// and S370's again on item 4's (its Auto deposit, routed into the pension, relieved)
 const WANT = {
-  quick: {"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"5d1db7e3976d8539","layer":"a57025bfad98fa0f","aref":"-","run":"7590b06881d951aa"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e1e8d5665f5868b5","layer":"08633d4b1ed6c481","aref":"26a9868a554fdb23","run":"23f06bbe4832b4d2"}},
-  full: {"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"c05ac829b37dd28d","layer":"430ecadff067a9be","aref":"-","run":"fe29b7fdbe5408bc"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"05b6173d2e1bb06f","layer":"f61589710165f884","aref":"35b72dc2dc22750d","run":"26fca04b1ecc49df"}}
+  quick: {"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"572feb4a3c0c129e","layer":"219ee6ebe2370504","aref":"-","run":"727a78e82d66f90a"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e9852794d9c407ef","layer":"b8274efd10337928","aref":"bf852694ed07cef1","run":"68e2cee1fc7bee8a"}},
+  full: {"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"7bac7b3333a0d666","layer":"7d42f25fd016b17d","aref":"-","run":"b0369498b5f5f0b1"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"78aebbb838f596e3","layer":"26f82baf4fa996fb","aref":"54e184b7e46e15d4","run":"9f1770179ada36d1"}}
 };
 const got = {}, solved = {};
 for (const [id, arm] of [['S224', 'SHIP'], ['S370', 'SHIP'], ['S224', 'CAND'], ['S370', 'CAND']]) { const r = solve(id, arm); solved[`${id} ${arm}`] = r; got[`${id} ${arm}`] = hashes(r); }

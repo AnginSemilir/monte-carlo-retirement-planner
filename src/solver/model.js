@@ -233,7 +233,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   if (drips) drips.forEach(x => {
     const move = sellGia(x.fromId, x.amount);
     if (move <= 0) return;
-    pots[x.toId] = (pots[x.toId] || 0) + move;
+    // into a pension grossed up, its refund to cash in proportion to what moved (the engine's 1.5; the review's item 4)
+    pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
+    if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
     if (x.toId.startsWith('other_')) addBasis(ownerOfId(x.toId), move);
   });
 

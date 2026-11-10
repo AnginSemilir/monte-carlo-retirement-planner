@@ -178,4 +178,39 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     writeFileSync(PANEL_FILE, JSON.stringify({ built: new Date().toISOString(), touched: { count: used.size, hash: touchedHash }, panel }, null, 1) + '\n');
     console.log(`panel: ${panel.length} couples to ${PANEL_FILE}; arm A from ${Math.min(...panel.map(p => p.survival)).toFixed(1)}% to ${Math.max(...panel.map(p => p.survival)).toFixed(1)}%`);
   }
+  /*
+   * THE RE-RUN'S TARGETS (the review of 9 Nov, item 1, part 2; D66, D67): D4's 40 couples, in its panel's order, each landed
+   * again by the same procedure (landTarget from the library's target, arm A searched anew at each step, 85 +/- 1% on 1,000
+   * paths of seed 7005) on the code after items 2 to 5. The couples and their order do not change: a couple that does not
+   * land is reported, not passed over (a STOP). Each landing to results/d4b-land/<id>.json; `reland combine` writes
+   * couples-panel-d4b.json (couples-panel.json stays D4's).
+   *   node research/solver/couple-panel.mjs reland <k>         land again the panel's couple k (0..39)
+   *   node research/solver/couple-panel.mjs reland combine     couples-panel-d4b.json, once all 40 are in
+   */
+  if (mode === 'reland') {
+    const D4 = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel, OUTB = process.env.D4B_LAND_OUT || join(HERE, 'results', 'd4b-land');
+    if (process.argv[3] === 'combine') {
+      const got = D4.map(r => { const f = join(OUTB, `${r.id}.json`); return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null; });
+      const missing = D4.filter((r, i) => !got[i]).map(r => r.id), unlanded = got.filter(x => x && !x.landed).map(x => x.id), codes = [...new Set(got.filter(Boolean).map(x => x.code))];
+      if (missing.length || unlanded.length || codes.length !== 1) { console.log(`reland: NOT COMPLETE: missing ${missing.join(', ') || 'none'}; not landed ${unlanded.join(', ') || 'none'}; codes ${codes.join(', ')}`); process.exit(1); }
+      const { used, touchedHash } = orders();
+      const panel = got.map(x => ({ id: x.id, base: x.base, cohort: x.cohort, target: x.target, survival: x.survival, label: x.label, d4Target: x.d4Target }));
+      const file = join(HERE, 'couples-panel-d4b.json');
+      writeFileSync(file, JSON.stringify({ built: new Date().toISOString(), code: codes[0], from: 'couples-panel.json (D4), each couple landed again', touched: { count: used.size, hash: touchedHash }, panel }, null, 1) + '\n');
+      console.log(`reland: ${panel.length} couples to ${file} on code ${codes[0]}; arm A from ${Math.min(...panel.map(p => p.survival)).toFixed(1)}% to ${Math.max(...panel.map(p => p.survival)).toFixed(1)}%; the targets against D4's: ${panel.map(p => `${p.id} ${p.d4Target} to ${p.target}`).join(', ')}`);
+    } else {
+      const k = Number(process.argv[3]);
+      if (!(k >= 0 && k < D4.length)) { console.error(`couple-panel: reland k must be 0..${D4.length - 1}`); process.exit(2); }
+      const r0 = D4[k], h = byId[r0.base], t0 = Date.now();
+      let label = null;
+      const survivalAt = T => { const a = armAAt(h, r0.cohort, T); label = a.label; return a.survival; };
+      const r = landTarget(survivalAt, E.num(h.plan.spending.targetSpend, 0));
+      const last = r.steps[r.steps.length - 1];
+      if (last.target !== r.target) survivalAt(r.target);
+      mkdirSync(OUTB, { recursive: true });
+      const cid = codeId(), head = execSync('git rev-parse --short=12 HEAD', { cwd: HERE }).toString().trim();
+      writeFileSync(join(OUTB, `${r0.id}.json`), JSON.stringify({ id: r0.id, base: r0.base, cohort: r0.cohort, k, d4Target: r0.target, libraryTarget: E.num(h.plan.spending.targetSpend, 0), ...r, label, code: cid ? cid.hash : 'unknown', head, secs: (Date.now() - t0) / 1000 }));
+      console.log(`reland ${String(k).padStart(2)} ${r0.id.padEnd(6)} target ${r.target} (D4's ${r0.target}) arm A ${r.survival.toFixed(1)} ${r.landed ? 'LANDED' : 'NOT LANDED (a STOP)'} in ${r.steps.length} steps, ${label}; ${Math.round((Date.now() - t0) / 1000)} s`);
+    }
+  }
 }

@@ -21,8 +21,8 @@ as the next D-line, in this form:
   the run.
 - **STOP** means stop and report to the maintainer. Each is also one of the launch plan's section 5 stops.
 - Experiments use only households already in a `touched` list. A registered test takes the next untouched ones in a
-  frozen order. `held-out.mjs` reads this folder, so S021, S085, S091 and S301 are now in its scan (`REVIEW.md`'s
-  note). Fetch the review branch before any panel is built.
+  frozen order. `held-out.mjs` reads this folder, and now adds S021, S085, S091 and S261 to `touched()` (`REVIEW.md`'s
+  note; S301, which the review also names, was there already). Fetch the review branch before any panel is built.
 - **D4 is not touched** by anything here except item 1: not its worktree, its registration, seed 7021, its results or
   `d4-backup`. No D4 result is read or estimated before its registered read.
 - Times are measured on one core of the review's machine: a single's solve at 45 points 400 to 510 s, its path on the
@@ -600,7 +600,7 @@ struck:
 
 ```
 Read research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md and REVIEW.md on review/external-2026-10-21 at its head.
-Fetch that branch first: held-out.mjs reads it, and the review used S021, S085, S091 and S301.
+Fetch that branch first: held-out.mjs reads it, and it now adds S021, S085, S091 and S261 to touched().
 
 The maintainer's answers:
 - D4's remaining units run on rented cores as item 1 sets out, the batch's parallelism raised and nothing else, the

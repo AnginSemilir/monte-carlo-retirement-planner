@@ -21,7 +21,7 @@ dated record, and the agent cites them by commit.
 - Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
 - It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
 - Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.
-- The held-out scan reads this folder: the review used S021, S085, S091 and S301 (`REVIEW.md`'s note).
+- The held-out scan reads this folder and now adds S021, S085, S091 and S261 to `touched()` (`REVIEW.md`'s note).
 
 **The new planner, step U's spec: `2026-11-03/LAYOUT.md`.**
 - The solver-first layout: four places (Your plan, You, What if, Details), and the classic planner kept for couples.

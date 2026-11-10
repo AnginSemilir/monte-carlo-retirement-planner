@@ -36,6 +36,10 @@ commit marks them by itself.
   two `touched` lists and prints 17 of them by id.
 - No other D4 couple is named or was run. `scripts/d4exp.mjs` describes D4's couples from their plan inputs by place
   in the panel, without ids.
+- **What the agent's scan prints on this folder as pushed** (`node research/solver/held-out.mjs`, at f02e8741): "118
+  ids named, 4 not in touched() (269): S021, S085, S091, S261". S261 is in `couples-orders.json`'s frozen `touched`
+  list but not in `touched()` today; I ran the engine alone on it (the plan's rules, 2,000 paths, `taxsize.mjs`).
+  S301 was in `touched()` already, so naming it adds nothing. `held-out.test.mjs` passes on the pushed branch.
 
 ## The five things that matter
 

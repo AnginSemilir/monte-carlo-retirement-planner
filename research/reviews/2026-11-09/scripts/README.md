@@ -51,6 +51,8 @@ default to it, so they reproduce `results/`. The runs of 10 Nov used 99001 and 9
 |---|---|---|
 | `twostage.py` | D34's two error rates under a two-stage rule, simulated | figures in `REVIEW.md`, Review 3 |
 | `d4exp.mjs` | what D4's couples can show about a pension drawn beside a salary: plan inputs only, by place in the panel, no ids | 7 of 40 couples have such a year |
+| `d4-shard-test.sh <the patched batch-couples.sh>` | the split of D4's units between sessions (`prototype/d4-shard.diff`), on the lines the patch adds: launches nothing. `PLANT=1` must fail | `out-d4-shard.txt` |
+| `d4-same.mjs <arrays file A> <arrays file B>` | whether two sessions gave the same arrays for a unit, the seconds and the CPU's name set aside; prints two hashes and no value. For a preflight's files, not D4's | `out-d4-shard.txt` (on made-up files) |
 
 ## Review 4: gaps
 

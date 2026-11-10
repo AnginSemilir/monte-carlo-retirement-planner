@@ -1,0 +1,16 @@
+--- a/research/solver/batch-couples.sh
++++ b/research/solver/batch-couples.sh
+@@ -22,6 +22,13 @@
+ STAMPLINE="stamp: code $CODE audit $AUDIT prediction ${PREDICTION_FILE:-NOT-LAUNCHED} sha ${PREDICTION_SHA:--}"
+ NODEV=$(node --version)
+ TODO=$(seq 0 $((NU - 1)) | while read -r k; do f="$OUT/case$k.txt"; { [ -f "$f" ] && [ "$(head -1 "$f")" = "$STAMPLINE" ] && sed -n 2p "$f" | grep -q "; node $NODEV\$" && grep -qE '^ +done ' "$f"; } || echo "$k"; done)
++# D4_SHARD=i/n: this launch runs only the units still to do whose number leaves i when divided by n, so n sessions, one for
++# each i from 0 to n-1, run every unit once between them. Unset, all of them, as registered. A unit's paths and stamp do not
++# depend on which launch runs it. (The external review of 9 Nov, item 1; the maintainer's ruling on it.)
++SHARD="${D4_SHARD:-0/1}"
++case "$SHARD" in *[!0-9/]*|*/*/*|/*|*/|*/0) echo "batch-couples: D4_SHARD must be i/n with 0 <= i < n, not '$SHARD'"; exit 2;; esac
++[ "${SHARD%/*}" -lt "${SHARD#*/}" ] 2>/dev/null || { echo "batch-couples: D4_SHARD must be i/n with 0 <= i < n, not '$SHARD'"; exit 2; }
++TODO=$(printf '%s\n' $TODO | awk -v i="${SHARD%/*}" -v n="${SHARD#*/}" 'NF && $1 % n == i')
+ echo "D4: $NU units on seed 7021 (code $CODE, audit $AUDIT), $(printf '%s\n' $TODO | grep -c .) to run, from $(TZ=Europe/London date '+%d %b %H:%M') UK"
+ printf '%s\n' $TODO | grep . | xargs -P 4 -I{} sh -c \
+   "D4_OUT=$OUT node research/solver/audit-couples.mjs registered part {}/$NU > $OUT/case{}.txt 2>&1 || echo \"unit {} exited \$?\""

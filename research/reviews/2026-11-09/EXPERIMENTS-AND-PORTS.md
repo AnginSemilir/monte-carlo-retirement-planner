@@ -24,7 +24,7 @@ as the next D-line, in this form:
   frozen order. `held-out.mjs` reads this folder, and now adds S021, S085, S091 and S261 to `touched()` (`REVIEW.md`'s
   note; S301, which the review also names, was there already). Fetch the review branch before any panel is built.
 - **D4 is not touched** by anything here except item 1: not its worktree, its registration, seed 7021, its results or
-  `d4-backup`. No D4 result is read or estimated before its registered read.
+  `d4-backup`. No D4 result is read or estimated before its registered read, by the agent or by a worker.
 - Times are measured on one core of the review's machine: a single's solve at 45 points 400 to 510 s, its path on the
   whole menu 47 to 56 ms; a couple's solve 530 to 770 s, its path 390 to 610 ms.
 
@@ -36,7 +36,7 @@ gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths
 
 | # | Item | Kind | The agent's time | The machine's time | Moves a figure? |
 |---|---|---|---|---|---|
-| 1 | D4 on more cores | the maintainer's ruling, then a procedure | half a day | about a day, rented | no |
+| 1 | D4 on more cloud sessions | the maintainer's ruling, then a procedure | half a day | about two days on four more sessions | no |
 | 2 | A couple's path 2.4 times faster, exactly | port with an identity test | 3 hours | minutes | no |
 | 3 | The engine's year in HMRC's order | a defect: test first, port, sizing | 2.5 days | 6 core-hours | **yes, every household's** |
 | 4 | Relief on money the plan pays into a pension | port with a test; before the windfall factorial | 4 hours | minutes | only with the windfall split |
@@ -47,8 +47,9 @@ gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths
 | 9 | A two-stage rule for the registered runs after D4 | registration text and its sizing | half a day | none | no |
 
 Why this order:
-1. **Item 1 first** because D4 holds the container's four cores for about eight more days (745 core-hours remained at
-   56 of 520 units on 9 Nov), and every machine-time item below waits behind it.
+1. **Item 1 first** because D4 holds the main session's four cores for about eight more days (745 core-hours remained
+   at 56 of 520 units on 9 Nov), and every machine-time item below waits behind it. Moved to its own sessions, D4
+   finishes in about two days and the main session's cores are free.
 2. **Item 2 next** because it is exact, takes three hours, and makes every couples' run after it 2.4 times cheaper,
    item 6's among them.
 3. **Item 6's stage A is launched as soon as item 2 is in**, at low priority. It runs on the machine while the agent
@@ -61,50 +62,99 @@ Why this order:
 
 ---
 
-## Item 1. D4 on more cores
+## Item 1. D4 on more cloud sessions
 
-**Found.** `batch-couples.sh` runs D4's 520 units four at a time (`xargs -P 4`). The units are independent: path i of
-seed 7021 is drawn from 7021 + 7919 i wherever it runs, and the read's gate takes the stamp (code, audit, registration
-blob, Node version), not the host. Changing `-P 4` to `-P "${D4_JOBS:-4}"` in a copy at f02e8741 left the code hash,
-the audit hash and the smoke stamp unchanged; `batch-couples.sh` is in neither hash's file list.
+**Found.** `batch-couples.sh` runs D4's 520 units four at a time, on the four cores of the one session it runs in. The
+units are independent: path i of seed 7021 is drawn from 7021 + 7919 i wherever it runs. A unit's stamp is the code
+hash, the audit hash, the registration's blob and the Node version (`audit-couples.mjs` line 156): it holds neither the
+host nor the commit. A cloud session's machine is a fixed size (about 4 vCPUs, 16 GB, 30 GB of disk) and cannot be made
+larger, but every session has its own. So more sessions are more cores.
+
+**Withdrawn.** This item first said "rented cores". The maintainer works only through cloud sessions (10 Nov), so
+there is no machine to rent. Its check that two hosts agree was also wrong: it compared `sha256sum` of whole arrays
+files, and those hold the seconds taken and the CPU's name, so any two runs differ. Both are corrected below.
+
+**The change.** One edit to `batch-couples.sh`, `prototype/d4-shard.diff`: with `D4_SHARD=i/n` set, a launch runs only
+the units still to do whose number leaves i when divided by n. Unset, it runs all of them, as registered. Checked on
+the launch commit e09ac60 (`results/out-d4-shard.txt`; no unit was launched):
+- the code hash, the audit hash and the smoke stamp are the same with the patch and without (a8d0e9568319,
+  3b700ddd7940, 07f96d05c3e1), and the launcher's seed registry passes on the patched batch;
+- unset, the list of units to do is unchanged, in order; for n from 1 to 9, every unit is in exactly one shard, on a
+  full list and on one with gaps; a value that is not i/n with i below n is refused (`scripts/d4-shard-test.sh`; its
+  plant fails it).
 
 **What it is not.** It is not free of the registration. That says D4 is "launched only as" the batch through the
-launcher, "from a git worktree at the launch commit". The command stays the same, but one line of a file at that
-commit changes, and a second host appears. So this is a departure the maintainer rules on, not a mechanical step. I
-tested the stamps at f02e8741 on a copy, not at e09ac60.
+launcher, "from a git worktree at the launch commit ... where every relaunch under `RESUME=1` and the read also run".
+Here one file of that commit gains seven lines, the relaunches run in several worktrees in several sessions, and D63's
+backup goes to more than one branch. No stamp moves, and the read still runs once at e09ac60. It is a departure the
+maintainer rules on, not a mechanical step.
 
-**The ruling asked (M1).** "D4's remaining units run on rented cores, the batch's parallelism raised and nothing
-else; the read as registered." Without it, skip this item: D4 finishes on the container and the rest of this document
+**The ruling asked (M1).** "D4's remaining units run in more cloud sessions, the batch split between them by
+`D4_SHARD` and nothing else changed, each session's finished chunks backed up to its own branch as D63 has it; the
+read as registered." Without it, skip this item: D4 finishes in the session it is in, and the rest of this document
 stands, with its machine time at low priority beside D4.
 
-**The procedure, if ruled.** STOP at any step that does not hold.
-1. **The reviewer's three checks**, written up as `research/solver/reviews/<date>-d4-cores.md`:
-   - at e09ac60, `batch-couples.sh` is in neither `code-id.mjs`'s files nor `audit-couples.mjs`'s `STAMP_FILES`;
-   - `reduce-couples.mjs`'s gate reads no host, core count or finishing order;
-   - no unit's paths depend on which other units run beside it.
-2. **The edit:** one commit on a branch cut at e09ac60, changing `xargs -P 4` to `xargs -P "${D4_JOBS:-4}"` and
-   nothing else. In a worktree at that commit, `node research/solver/code-id.mjs` and the batch's `AUDIT` line print
-   the two hashes on the finished logs' stamp line. Print the stamp line only; print nothing else of a log.
-3. **The host** is the maintainer's to rent, and either to give the agent a session on or to run steps 3 to 7 on by
-   hand: x86-64 as the container is; Node at exactly the version on the logs' second line; the repository cloned with
-   `origin`'s refs; `python3 research/build-engine.py`; `node research/tests/run-all.mjs fast` green there. The
-   container's 12-hour limit does not exist there, so the run needs its own watch: the batch's log kept, and a check
-   every few hours that units are still finishing.
-4. **The two hosts agree, shown before any new unit counts.** Run one finished APP unit (the shortest kind) on the new
-   host into an empty folder. Compare `sha256sum` of its arrays file with the container's copy. Print the two hashes
-   and nothing else. Different hashes: STOP, and nothing from the new host is used.
-5. **The move.** Stop the container's batch at a window's end. Copy every finished chunk (its log and its arrays, byte
-   for byte, as D63 restores them) into the new host's results folder, with a `sha256sum` list checked at both ends.
-6. **The run:** `RESUME=1 D4_JOBS=<n> PREDICTION=research/solver/registrations/couples-d4.md
-   research/solver/run-from-snapshot.sh bash research/solver/batch-couples.sh`, with n the smaller of the machine's
-   cores and its memory in GB divided by 4 (a unit took under 3 GB here).
-7. **The return.** When the batch prints "D4 runs done", copy every chunk back to the container's worktree at e09ac60,
-   byte for byte, with the `sha256sum` list. The read runs there, once, as registered.
+**The procedure, if ruled.** STOP at any step that does not hold. "The main session" is the agent's own, where D4
+runs now. A "worker" is a new cloud session that does nothing but run one shard.
+1. **The reviewer's four checks**, written up as `research/solver/reviews/<date>-d4-sessions.md`:
+   - at e09ac60, `batch-couples.sh` is in neither `code-id.mjs`'s files nor `audit-couples.mjs`'s `STAMP_FILES`, and
+     names no script the smoke stamp does not already hold;
+   - `reduce-couples.mjs`'s gate reads no host, commit, core count or finishing order;
+   - no unit's paths depend on which other units run beside it, or in which session;
+   - with `D4_SHARD` unset the patched batch computes the list the unpatched one does
+     (`scripts/d4-shard-test.sh <the patched batch>` prints ALL PASS, and FAILED under `PLANT=1`).
+2. **The edit:** one commit on a branch cut at e09ac60 (`d4-shard`), `prototype/d4-shard.diff` and nothing else,
+   pushed. In a worktree at that commit, `node research/solver/code-id.mjs` and the batch's `AUDIT` line print the two
+   hashes on the finished logs' stamp line. Print a log's first line only. Print nothing else of a log: its "beside"
+   lines are results.
+3. **Two sessions agree, shown without touching a D4 chunk.** D63 has nothing on `d4-backup` read before all 520
+   units are in, so this runs on a preflight (the audit's own mode): one of the pilot's two couples, APP and CANDC at
+   one estate weight, 200 paths of seed 7002, the same command in the main session and in the first worker. Then
+   `node scripts/d4-same.mjs <the main session's arrays file> <the worker's>`, once for each arm. It sets aside the
+   seconds and the CPU's name, compares the rest whole, and prints two hashes and no value. It must print "the same"
+   for both. `DIFFERENT`: STOP, and no worker runs a D4 unit. Both sessions also print `node --version`: it must be
+   the version on the finished logs' second line, or a worker's chunks would carry a second stamp.
+4. **The first worker, alone.** Start one worker with the worker prompt below, as shard 0 of n. If the main session
+   can start a cloud session itself (a scheduled task run once), it does; if not, it sends the maintainer the prompt
+   to paste into a new session. A session with nothing but a tracked batch running may be paused as idle. So the
+   worker pushes a heartbeat with every backup (the time, and the numbers of the units in flight), and the rest of the
+   workers start only when the first one's branch has moved three times, 30 minutes apart, with no one prompting it.
+   If it stops moving: STOP. Workers cannot be left alone, and D4 stays in the main session.
+5. **The main session lets go.** At its window's end it stops its own D4 batch and launches no D4 unit again. Its
+   finished chunks are on `d4-backup` already. Its four cores are then free for items 2 to 7.
+6. **Each worker**, by the worker prompt:
+   - a worktree on the branch `d4-shard`, the engine built, `node --version` as step 3 has it;
+   - the finished chunks of `d4-backup` and of every `d4-backup-w*` branch copied into its results folder, byte for
+     byte and unread, so `RESUME=1` skips them;
+   - `RESUME=1 D4_SHARD=<i>/<n> PREDICTION=research/solver/registrations/couples-d4.md
+     research/solver/run-from-snapshot.sh bash research/solver/batch-couples.sh`, as a tracked task, relaunched the
+     same way at each 12-hour limit;
+   - every 30 minutes, each finished chunk (its log and its arrays, byte for byte) and the heartbeat pushed to its own
+     orphan branch `d4-backup-w<i>`, by a loop inside the tracked task, not by a turn of the model;
+   - when the batch prints `0 to run`, one last push, a report, and nothing more.
+7. **The gather and the read.** When every worker has reported, the main session copies every chunk on `d4-backup`
+   and on each `d4-backup-w<i>` into the results folder of its worktree at e09ac60, byte for byte and unread. A unit
+   found on two branches keeps one copy; list such units by number. Then the registered command, unedited, under
+   `RESUME=1` there: it must print `0 to run`. If it prints more, it runs them, as registered. Then the read, once, as
+   registered, and the backup branches go as D63 has it.
 
-**Size.** A 64-vCPU machine with 256 GB finishes the remainder in about a day, for some tens of pounds. The container
-would take about eight days from 9 Nov.
+**The worker prompt.** The same for each, but for its number.
 
-**Report back:** the review file, the two stamp lines, the two hashes of step 4, the two `sha256sum` lists.
+```
+You are worker <i> of <n> for D4's registered run. Fetch review/external-2026-10-21 and claude/project-access-i58m0x.
+Read item 1 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md on the first, and D63 and D61 in
+research/solver/STATE.md on the second. Do item 1's step 6 with D4_SHARD=<i>/<n>, and step 3's preflight if you are
+worker 0. Do nothing else: no other work, no edit to any file, and no D4 result read, printed or estimated. Report
+when your shard has nothing left to run, or at once if a step does not hold.
+```
+
+**Size.** About 745 core-hours remained at 56 of 520 units on 9 Nov. Four workers are 16 cores: about two days. Eight
+are 32: about one. Each worker still loses its units in flight at each 12-hour limit, as the one session does now. The
+machines cost nothing extra, but every session draws on the same plan's usage limits; a worker that only waits on its
+batch and pushes from a loop draws little.
+
+**Report back:** the review file, the two stamp lines, step 3's two lines from `d4-same.mjs`, the first worker's three
+heartbeats, and at the end the count of units from each branch.
 **Time box:** half a day of the agent's time, apart from the run.
 
 ---
@@ -577,7 +627,7 @@ paths.
 
 | | The question | What I would do |
 |---|---|---|
-| M1 | D4's remaining units on rented cores (item 1)? | Yes, after the reviewer's three checks. It saves about a week and changes no number. |
+| M1 | D4's remaining units in more cloud sessions (item 1)? | Yes, four of them, after the reviewer's four checks. It saves about six days, frees the main session's cores, costs nothing for the machines and changes no number. |
 | M2 | Item 3 moves every household's figure. Merge during the beta, or at its end? | At its end, before on by default, which is what B9 and the go or no-go list already say. It needs no new ruling. Sooner only if a beta user's decision is resting on a figure it moves by points. |
 | M3 | Is an amount typed as a one-off pension deposit what the household pays, or what arrives? | Ask in the input's label. Until then leave typed deposits as they are and fix only the plan's own routing (item 4). |
 | M4 | Couples outside the 40 to 60 band keep the app's rules until item 6C reads? | Yes. |
@@ -588,7 +638,7 @@ paths.
 
 The maintainer sends it. The lines under "The maintainer's answers" are the maintainer's own words, and each can be
 struck:
-- **The first** is M1. Struck, step 2 is skipped and D4 stays on the container.
+- **The first** is M1. Struck, step 2 is skipped and D4 stays in the session it is in.
 - **The second** is M4. Struck, there is no guard, and a couple who hold their money unevenly gets the solver as soon
   as D4's read turns it on.
 - **The third** lets the agent add the new tests' names to the fast tier's joining list in one edit, so each joins
@@ -603,8 +653,9 @@ Read research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md and REVIEW.md on revie
 Fetch that branch first: held-out.mjs reads it, and it now adds S021, S085, S091 and S261 to touched().
 
 The maintainer's answers:
-- D4's remaining units run on rented cores as item 1 sets out, the batch's parallelism raised and nothing else, the
-  read as registered.
+- D4's remaining units run in four more cloud sessions as item 1 sets out, the batch split between them by D4_SHARD
+  and nothing else changed, each session's finished chunks backed up to its own branch as D63 has it, the read as
+  registered.
 - When D4's read turns the couples' solver on, a couple whose first person holds less than 0.40 or more than 0.60 of
   the pots keeps the app's rules until item 6's registered test reads.
 - Unlock enforcement for exactly: couple-rank.test.mjs, engine-hmrc.test.mjs, windfall-relief.test.mjs,
@@ -612,8 +663,9 @@ The maintainer's answers:
 
 1. Make the FAST_JOINING edit first. Then record the document as the next D-line in STATE.md, with my answers, and
    item 3 as an open defect that changes a figure. Put M3 and M6 in DECISIONS-PENDING.md.
-2. Item 1: the reviewer's three checks and the one-line commit. Send me the review file and what the host needs
-   (its step 3). Steps 4 to 7 run when I give you the machine.
+2. Item 1: the reviewer's four checks and the one commit on its branch. Send me the review file. Then the first
+   worker: start it yourself if you can, or send me its prompt to paste. When its branch has moved three times, the
+   other three. Stop this session's own D4 batch at its window's end.
 3. Item 2: the port and its test. Three hours.
 4. Launch item 6's stage A at low priority (EXPLORATORY, seed 7002), its decision rule committed first. It decides
    nothing. Send me its read as a report.

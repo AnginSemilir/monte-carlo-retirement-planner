@@ -17,8 +17,13 @@ engine against HMRC's order, the switch-off identity, the couples' planted fault
 - 1.3's example was not the worst case. Interest of £20,000 alone is charged £1,486 where HMRC charges £286.
 - 1.5's second bullet was overstated. A blank salary while working is read as "earnings unknown" on purpose, and a
   retired non-earner is capped correctly. What remains is narrower and is restated there.
-- Review 3's "no change to the registration" was too strong. The registration says how D4 is launched, and a change of
-  parallelism is a departure from that wording even though no stamp changes. The row now says who rules on it.
+- Review 3's "no change to the registration" was too strong. The registration says how D4 is launched, and running
+  it any other way is a departure from that wording even though no stamp changes. The row now says who rules on it.
+- Review 3's rented machine is withdrawn. The maintainer works only through cloud sessions, whose machines are a
+  fixed size, so the row and item 1 now split D4's units between more sessions. Item 1's first version, pushed
+  earlier on 10 Nov, also compared two hosts by hashing whole arrays files. Those hold the seconds taken and the
+  CPU's name, so the hashes would always have differed. The check now sets those aside, and runs on a preflight, not
+  on a D4 chunk.
 
 **Households I touched, for the held-out books.** `held-out.mjs` reads every id named under this folder, so this
 commit marks them by itself.
@@ -60,10 +65,10 @@ commit marks them by itself.
    path bit for bit the same, by ranking each person through the single chooser's shared scoring. A single's path
    runs 3 to 10 times faster on a shortlist of the moves the tables already stored, with no survival loss visible
    on 4,000 paths.
-4. **D4 as registered can finish in about a day on rented cores** (Review 3). Only the number of units run at once
-   changes, and no stamp moves; the registration's launch wording is the reviewer's to check and the maintainer's to
-   rule on. Later runs can keep D34's error rates with a two-stage rule that spends about a quarter of the paths on
-   any couple gaining 2 points or more (simulated).
+4. **D4 as registered can finish in about two days, not eight, on four more cloud sessions** (Review 3). The units
+   are split between the sessions and no stamp moves; the registration's launch wording is the reviewer's to check and
+   the maintainer's to rule on. Later runs can keep D34's error rates with a two-stage rule that spends about a
+   quarter of the paths on any couple gaining 2 points or more (simulated).
 5. **The published figures in the engine are right.** Bands (Scotland included), the allowance taper, the lump sum,
    the ISA allowance and CGT all matched by hand. The errors are in how incomes are stacked, not in the figures.
 
@@ -328,7 +333,7 @@ path saved or lost of 100, the mean pot left 0.5% lower), which needs its own pa
 
 | Change | Saves | D4 now? |
 |---|---|---|
-| **More cores.** The 520 units are independent, path i is the seed's path i wherever it runs, and the gate reads the stamp (code, audit, registration blob, Node version), not the host. `batch-couples.sh` runs them four at a time (`xargs -P 4`) | about 745 core-hours remained at 56 of 520. On a rented 64-vCPU machine that is roughly a day, for some tens of pounds, with no 12-hour cut-offs. A unit took under 3 GB here, so memory sets how many run at once | **The maintainer's ruling, after the reviewer checks it.** The registration says D4 is "launched only as" the batch through the launcher, from a worktree at the launch commit. Running the same batch with more units at once keeps that command and every stamp: I changed `-P 4` to `-P "${D4_JOBS:-4}"` in a copy and the code hash, the audit hash and the smoke stamp did not move (at f02e8741; `batch-couples.sh` is in neither hash's file list). It is still an edit to a file of the frozen launch commit, so it is a departure to record, not a free change. The steps are item 1 of `EXPERIMENTS-AND-PORTS.md` |
+| **More cores, by more cloud sessions.** The 520 units are independent, path i is the seed's path i wherever it runs, and a unit's stamp (code, audit, registration blob, Node version) holds neither the host nor the commit. A cloud session's machine is a fixed size (about 4 vCPUs), but every session has its own | about 745 core-hours remained at 56 of 520. Four more sessions finish it in about two days and eight in about one, at no charge for the machines, and the main session's cores come free. Each session still loses its units in flight at each 12-hour limit | **The maintainer's ruling, after the reviewer checks it.** The registration says D4 is "launched only as" the batch through the launcher, from a worktree at the launch commit. Splitting the units between sessions takes one edit to `batch-couples.sh` (`D4_SHARD=i/n`, `prototype/d4-shard.diff`). At the launch commit e09ac60 the code hash, the audit hash and the smoke stamp are the same with it and without (`results/out-d4-shard.txt`). It is still an edit to a file of the frozen launch commit, and more than one worktree, so it is a departure to record, not a free change. The steps are item 1 of `EXPERIMENTS-AND-PORTS.md` |
 | **A two-stage rule.** (D4's registration records a different second stage, more paths for a comparison past D34's limit, as not chosen: D61. This one stops early, and is for the runs after D4.) After 5,000 paths a couple stops, unflagged, when its observed change against APP is +0.5 points or more; otherwise it runs to 19,000 and is read as now. 5,000 already covers every comparison against SHIPC (they size at 2,800 to 4,700) | simulated (`twostage.py`, 400,000 runs a case): a true 1-point loss is flagged 0.9647 of the time against 0.9648 with one stage at 9% discordance, and 0.9005 against 0.9010 at 12.45%; the quarter-point false alarm is unchanged at 0.050. A couple gaining 2 points or more uses 26% of the paths, one gaining 1 point 36%, one gaining nothing 90%. Singles gained 10.7 points in Phase 4 | No: new registration. The pooled items were already judged decisive at 8,000 |
 | **Rank each person through the shared scoring** (Review 2.2) | the engine's 746 core-hours fall by the path's 2.4 times, with every number the same | No: D4's code is frozen. Every run after it |
 | Reuse a couple's solve across its chunks | about 50 of the 73 solve core-hours (6%) | No: chunking is in the stamp |
@@ -418,7 +423,8 @@ library's; the gaps above are about households unlike it.
   (couple.js: `COUPLE.fast` and its plant) and `engine-hmrc.diff` (App.jsx: `__STACK_SALARY`, `__HMRC_ORDER`,
   `__ISA_SWEEP`). Each applies to f02e8741 with `git apply` from the repository root, and each is off unless switched
   on. The engine patch changes the engine only, so the solver's model disagrees with it once a switch is on: it is for
-  sizing, not for merging.
+  sizing, not for merging. `d4-shard.diff` (batch-couples.sh: `D4_SHARD`) is item 1's edit; it applies to D4's launch
+  commit e09ac60 and to f02e8741, and does nothing unless `D4_SHARD` is set.
 - `tests/engine-hmrc.test.mjs`: the engine's year against an independent reference (Review 1).
 - `scripts/`: `scripts/README.md` lists each script, its command and the output it gave. Each finds the repository
   from `REPO_ROOT` or from its own place in the tree; run `python3 research/build-engine.py` there first.

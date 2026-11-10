@@ -1,0 +1,24 @@
+# prototype/d4-shard.diff on D4's launch commit e09ac60 (git archive, the engine built there); no unit launched, no result touched
+the batch as launched:   code a8d0e9568319 audit 3b700ddd7940 smoke 07f96d05c3e1
+with the patch applied:  code a8d0e9568319 audit 3b700ddd7940 smoke 07f96d05c3e1
+the launcher's seed registry on the patched batch: seeds: 7021 (held out: Part D's D4, the couples (D61, 7 Nov)); exit 0
+files that differ between e09ac60 and f02e8741 among batch-couples.sh, code-id.mjs, audit-couples.mjs, reduce-couples.mjs, run-from-snapshot.sh: 0
+== scripts/d4-shard-test.sh on the patched batch
+PASS  D4_SHARD unset: the units to do are unchanged, in order (520, and 391 with gaps)
+PASS  every unit in exactly one shard: 18 cases (n = 1 to 9, the full list and one with gaps), 0 failing
+PASS  eleven values that are not i/n with 0 <= i < n are each refused with exit 2
+PASS  D4_SHARD=3/4 starts 3, 7, 11
+ALL PASS
+exit 0
+== the same, PLANT=1
+PASS  D4_SHARD unset: the units to do are unchanged, in order (520, and 391 with gaps)
+FAIL  every unit in exactly one shard: 18 cases (n = 1 to 9, the full list and one with gaps), 16 failing
+PASS  eleven values that are not i/n with 0 <= i < n are each refused with exit 2
+FAIL  D4_SHARD=3/4 starts 3, 7, 11
+FAILED: 2 (planted)
+exit 1
+== scripts/d4-same.mjs on made-up arrays files: two runs alike but for the seconds and the CPU; then a planted difference
+A 47388b8fde059c23  B 47388b8fde059c23  the same but for the seconds and the CPU
+exit 0
+A 47388b8fde059c23  B 6a07d31e63ad1760  DIFFERENT in: main.survived
+exit 1

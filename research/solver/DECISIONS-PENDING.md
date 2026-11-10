@@ -81,7 +81,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
 
 ## Open from the review of 9 Nov (D66; `research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md` at f77ca16c)
 
-- **Item 1's statement (a STOP, 10 Nov).** D4 stopped unread with 76 of 520 chunks finished, all on `d4-backup`. The
+- **Item 1's statement (a STOP, 10 Nov; closed by D67: "Keep panel, seed 7021").** D4 stopped unread with 76 of 520 chunks finished, all on `d4-backup`. The
   statement item 1 asks for ("no arrays file of D4 has been opened, and nothing of a unit's log has been read or printed
   by anyone beyond its stamp line, its second line and whether it holds a done line") cannot be made as worded: each
   log's third line (registered inputs: the couple, the unit, its cohort, its landed target, its paths) and its timings

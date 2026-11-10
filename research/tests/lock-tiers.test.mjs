@@ -59,6 +59,24 @@ const prep = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.
 const planOf = id => { const h = panel.find(x => x.id === id); const pk = armA(appPlan(h.plan), { tournament: false }).planState.spending.decumulationPolicy; return prep(solverPlanOf(h.plan, { decumulationPolicy: pk })); };
 const light = { lambda: LAMBDA, points: 4, bequestWeight: 0.02, adaptiveLattice: { na: 24, nb: 5, nz: 16, foot: true, stepAll: true }, ...(DEV ? { e3pcls: false } : {}) };
 const LOOP = { tsOnce: false }, AW = { mode: 90, disp: 9 }, D10M = { lambda: 10 * LAMBDA, ageWeight: AW };
+/*
+ * Check 1 against the code before the port where the review of 9 Nov's items 3 and 4 leave a table alone (D69): cash interest
+ * untaxed, no dividend yield, any Auto deposit typed into the taxable account. Check 1b pins the options-off solve of the
+ * household as the test takes it, at each of check 1's two settings: its tables and 40 forward runs, digested (PIN1B, taken on
+ * item 3's code; again on item 4's where the household has an Auto deposit). CHECK1_PLANT=1 swaps the two plans on this code's
+ * side: check 1 and check 1b must both fail. RECORD1B=1 prints 1b's digests.
+ */
+const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B === '1';
+const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
+const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings
+  'S090 e5': '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
+  'S090 loop': '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
+  'S328F e5': '7f0bb15e4811424cb0ecaf50ae0d15479681265f25c217079dc34d95f163e8ad',
+  'S328F loop': '7f0bb15e4811424cb0ecaf50ae0d15479681265f25c217079dc34d95f163e8ad'
+};
+const { tablesOf, digestOf } = await import(pathToFileURL(resolve(ROOT, 'src/solverDigest.js')).href);
+const { createHash } = await import('node:crypto');
+const digest1b = async (r, runs) => createHash('sha256').update(await digestOf(tablesOf(r))).update(runs.join('\n')).digest('hex');
 console.log(`The lock's and the age weights' tests${DEV ? ' (--dev: e3pcls off, not a record)' : ''}: the ported code at ${ROOT} (${headOf(ROOT)}${dirty(ROOT)}), the code before the port at ${BROOT} (${headOf(BROOT)}${dirty(BROOT)})`);
 
 const KEYS = ['surv', 'lsurv', 'resil', 'lresil', 'beq', 'short', 'pol'];
@@ -95,20 +113,26 @@ const lockOf = rc => ({ lockTiers: rc, riskAbove: aboveOf(rc) });
 console.log('=========== 1. OFF: THE TABLES AND RUNS OF THE CODE BEFORE THE PORT ===========');
 const H = {};
 for (const id of ['S090', 'S328F']) {
-  const plan = planOf(id);
-  H[id] = { plan };
+  const full = planOf(id), plan = NEUTRAL(full);
+  H[id] = { plan: full };
   for (const [name, extra, key] of [["the candidate's settings", {}, 'e5'], ['the layer loop (tsOnce: false)', LOOP, 'loop']]) {
     let t0 = Date.now();
-    const a = solve(C, E, M, plan, { ...light, ...extra }), ta = sec(t0);
-    if (!H[id].paths) H[id].paths = E.pathsForSeed(99001, 40, a.m.ctx.totalYears);
-    const ra = runsOf(S, a, H[id].paths);
+    const a = solve(C, E, M, PLANT1 ? full : plan, { ...light, ...extra }), ta = sec(t0);
+    const pathsN = E.pathsForSeed(99001, 40, a.m.ctx.totalYears), ra = runsOf(S, a, pathsN);
     t0 = Date.now();
-    const b = solve(B.C, B.E, B.M, plan, { ...light, ...extra }), st = sameTables(a, b), rd = runDiff(ra, runsOf(B.S, b, H[id].paths)), md = metaDiff(a, b);
+    const b = solve(B.C, B.E, B.M, plan, { ...light, ...extra }), st = sameTables(a, b), rd = runDiff(ra, runsOf(B.S, b, pathsN)), md = metaDiff(a, b);
     ok(st.same && st.n > 0 && rd < 0 && md.length === 0 && !a.lockTiers && !a.meta.lockTiers && !a.meta.ageWeight && !a.costOf.meta,
-      `1. ${id}, ${name}, both options off, against the code before the port: ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (the ported code's solve ${ta}, the code before's ${sec(t0)})`);
-    H[id][key] = a; H[id][`${key}Runs`] = ra;
+      `1. ${id}, ${name}, both options off, against the code before the port (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69${PLANT1 ? '; planted: this code on the plan as taken' : ''}): ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (the ported code's solve ${ta}, the code before's ${sec(t0)})`);
+    // 1b. both options off on the household as the test takes it, against its pinned digest; the later checks build on it
+    const off = solve(C, E, M, PLANT1 ? plan : full, { ...light, ...extra });
+    if (!H[id].paths) H[id].paths = E.pathsForSeed(99001, 40, off.m.ctx.totalYears);
+    const ro = runsOf(S, off, H[id].paths), dg = await digest1b(off, ro), pk = `${id} ${key}`;
+    if (RECORD1B) console.log(`RECORD1B ${pk} ${dg}`);
+    ok(dg === PIN1B[pk], `1b. ${id}, ${name}, both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs ${dg.slice(0, 16)} against the pin ${PIN1B[pk] ? PIN1B[pk].slice(0, 16) : 'not taken'}${PLANT1 ? '; planted: the neutral plan' : ''}`);
+    H[id][key] = off; H[id][`${key}Runs`] = ro;
   }
 }
+if (RECORD1B || PLANT1) { console.log(`\ncheck 1 and 1b only (${RECORD1B ? 'RECORD1B' : 'CHECK1_PLANT'}): ${passed} passed, ${failed} failed`); process.exit(failed ? 1 : 0); }
 
 // ---------------------------------------------------------------------------------------------------- 2. THE AGE WEIGHTS
 console.log('=========== 2. THE AGE WEIGHTS ===========');

@@ -294,18 +294,33 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   });
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
+  // the taxable pay of each person still working, at the bottom of their stack (the engine's step 4, the review of 9 Nov's
+  // item 3): the pay less what is given up to the pension (E.taxablePayOf), the pension contribution the take-home below takes
+  const taxablePay = { self: 0, part: 0 };
+  owners.forEach(o => {
+    if (!working[o.key] || !(o.salary > 0)) return;
+    const pen = ctx.acc[o.ids.pen];
+    const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
+    taxablePay[o.key] = E.taxablePayOf(E.salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
+  });
   // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
   if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
   const savingsTax = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+  const savingsInterest = { self: 0, part: 0 }, giaDividends = { self: 0, part: 0 };
   owners.forEach(o => {
     const a = ctx.acc[o.ids.cash];
     const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
     const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
-    savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
-    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
+    savingsInterest[o.key] = interest;
+    savingsTax[o.key] = P.savingsTax(taxablePay[o.key] + taxable[o.key], interest);
+    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); giaDividends[o.key] = div; dividendTax[o.key] = P.dividendTax(taxablePay[o.key] + taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
   });
+  // the person's whole year in HMRC's order (the engine's billOf), and the tax on the pay alone, which the take-home paid
+  const billOf = (key) => P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] });
+  const payTax = (key) => (taxablePay[key] > 0 ? E.incomeTax(taxablePay[key], P) : 0);
+  owners.forEach(o => { const b = billOf(o.key); savingsTax[o.key] = b.onInterest; dividendTax[o.key] = b.onDividends; });   // the whole year in the stack
   const netGuaranteed = {};
-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
+  owners.forEach(o => { const b = billOf(o.key); netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - ((b.onNonSavings - payTax(o.key)) - E.incomeTax(taxable[o.key], P)) - savingsTax[o.key] - dividendTax[o.key]; });
   const totalNetGuaranteed = owners.reduce((s, o) => s + netGuaranteed[o.key], 0);
   let workingTakeHome = 0;
   if (anyRetired) {
@@ -333,8 +348,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     if (pot <= 0) return 0;
     const fully = action.lump && state.lumpTaken[oKey];
     const headroom = fully ? 0 : pclsHeadroom(oKey);
-    if (taxable[oKey] >= ceiling) return 0;
-    const grossNeeded = E.grossPensionNeededForNet(netNeeded, taxable[oKey], P, fully, headroom, ceiling);
+    const T0 = taxablePay[oKey] + taxable[oKey];
+    if (T0 >= ceiling) return 0;
+    const grossNeeded = E.grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);
     if (gross <= 0) return 0;
     pots[o.ids.pen] = pot - gross;
@@ -343,10 +359,12 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     state.cumPcls[oKey] += taxFree;
     const taxablePart = gross - taxFree;
     taxablePensionDrawn[oKey] += taxablePart;
-    const before = E.calculateUKNetIncome(taxable[oKey], P);
+    // the net it delivers, every tax of the year in it, as the engine's draw (exactly the old net with no pay, interest or dividends)
+    const was = billOf(oKey), before = E.calculateUKNetIncome(taxable[oKey], P), taxBefore = E.incomeTax(taxable[oKey], P);
     taxable[oKey] += taxablePart;
-    const after = E.calculateUKNetIncome(taxable[oKey], P);
-    return taxFree + (after - before);
+    const now = billOf(oKey), after = E.calculateUKNetIncome(taxable[oKey], P), taxAfter = E.incomeTax(taxable[oKey], P);
+    savingsTax[oKey] = now.onInterest; dividendTax[oKey] = now.onDividends;
+    return taxFree + (after - before) - ((now.total - was.total) - (taxAfter - taxBefore));
   };
   const drawPot = (id, need) => {
     if (need <= 0) return 0;
@@ -500,7 +518,8 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       const exempt = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
       const taxableGain = Math.max(0, realisedGains[o.key] - exempt);
       if (taxableGain <= 0) return;
-      const taxableIncome = Math.max(0, taxable[o.key] - P.paAt(taxable[o.key]));
+      const allIncome = taxablePay[o.key] + taxable[o.key] + savingsInterest[o.key] + giaDividends[o.key];
+      const taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
       const atBasic = Math.min(taxableGain, basicRoom);
       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
@@ -608,7 +627,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
-  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
+  const taxPaid = owners.reduce((s, o) => s + (billOf(o.key).total - payTax(o.key)), 0);
 
   return {
     year, t, ageSelf, agePart,

@@ -194,7 +194,7 @@ for (const z of zs) {
 
 // ---- 5. the singles' tables ----
 {
-  const BEFORE = 'b12130607dc6ceb4a0290ea06af3d1f148c41639560c915fe0147d33d48858b0';   // S116, the code before D1 (b4ea006)
+  const BEFORE = 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4';   // S116, the code before D1 (b4ea006), re-taken on item 3's (D69)
   const t1 = Date.now();
   const r = solveForApp(E, M, E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan), { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
   const tabs = tablesOf(r), dg = await digestOf(tabs);

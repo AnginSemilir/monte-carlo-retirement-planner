@@ -334,9 +334,12 @@ for (const f of FIX) {
 
 // ---- 6. a single's tables, value reads and runs, the code before D2.3's ----
 {
-  const BEFORE = {   // taken on 08de944, the code before D2.3
-    S116: { tables: 'b12130607dc6ceb4a0290ea06af3d1f148c41639560c915fe0147d33d48858b0', runs: '83348278687da9526afdd1ce5b1d1f426295226fb02f0746269632c401ce8cfc', reads: 'da5fd63b56e030e9cc319c87358ec0152e85dd213d927193eeaf110f6bd27eb7' },
-    S224: { tables: '130e93bbc22fcfbfe5cd502e87bf61e5b9af1178a762df8a6d33a5df12c691a8', runs: '16c14981a6f9853ad146af64286e54e354b8a541e98401d8005f7b7006d44edb', reads: '3224079fcac5fee1f9d8a7cb3931167b23360c0f9b209c7309972f90e48aed6b' }
+  // taken on 08de944, the code before D2.3 (S116 tables b12130607dc6, runs 83348278687d, reads da5fd63b56e0; S224 130e93bbc22f,
+  // 16c14981a6f9, 3224079fcac5); re-taken on the review of 9 Nov's item 3 (D69): both singles hold cash and a taxable account,
+  // whose interest and dividends item 3 prices above the year's income (with none, the code before and item 3 give the same tables)
+  const BEFORE = {
+    S116: { tables: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4', runs: '8ab549f8d7580126c5a941766a3bcc1103557f9a628e99ef821559287d2ff0da', reads: 'a0d64da0839c6b4303ba7891607e0c5c7e0916a77d906f35b4dfab375177a7e1' },
+    S224: { tables: '4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08', runs: 'f98013541051f3fdaa0bc1ded40ca4aae786d4adb087fe74a3e5e80942ff1c04', reads: '4d7ef15fabca2aaa35aca6c21fe61c031f189dc8b7ab6777a934efd787343410' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];
@@ -354,6 +357,7 @@ for (const f of FIX) {
       runs.push(out);
     }
     const now = { tables: await digestOf(tablesOf(r)), runs: h(runs), reads: h(reads) };
+    if (process.env.COUPLE_TABLES_PRINT) console.log(`  ${id}: ${JSON.stringify(now)}`);
     for (const k of ['tables', 'runs', 'reads']) if (now[k] !== BEFORE[id][k]) bad.push(`${id} ${k} ${now[k].slice(0, 12)} against ${BEFORE[id][k].slice(0, 12)}`);
   }
   ok(6, 'a single\'s tables, value reads and runs under them the code before D2.3\'s, bit for bit (S116, S224)', bad.length === 0, bad.length ? bad.join('; ') : 'S116 and S224 the same');

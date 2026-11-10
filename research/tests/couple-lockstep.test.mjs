@@ -128,7 +128,10 @@ ok(2, 'the moves that matter were made: an uneven split, two orders, HR\'s ceili
 
 // ---- 3. what D2 leaves alone ----
 {
-  const BEFORE = { rows: 'a90aae26ebf1e021a206d6d13ee6a1d0739c06f371db2d5b5a54ebff49c7c5bf', table: '9f1e5192e6e593f68b1e928e1fb1a5a9a07f9d79c8b1e5c2885f88bd5e9487c5', tiered: 'b57bdf151a05a48a7120481d35b8f3d10570e80c7a0e5e3331adfd4e14cb849b' };   // taken on c6f9456, the code before D2
+  // taken on c6f9456, the code before D2 (rows a90aae26ebf1e021, table 9f1e5192e6e593f6, tiered b57bdf151a05a48a); re-taken on the
+  // review of 9 Nov's item 3 (D69): the year in HMRC's order moves the taxes of every household with pay, interest or dividends,
+  // and the row gains each person's taxable pay, interest, dividends and income tax
+  const BEFORE = { rows: '4218067c185a72666ba1d255879037b9534b46ce8238804608adbdc7ca1acf41', table: '0823389b94023f4b25279cc7dbdb413f86e7466104cb047ca291edfe2b2871d1', tiered: '504801548803ccd653f461a25bcd1e0fd582577624a0c719bcabd91272581948' };
   const spread = library.filter((_, i) => i % Math.floor(library.length / 12) === 0).slice(0, 12);
   const rows = spread.map(sc => E.simulateDeterministic(prep(sc.plan), 'expected'));
   const singles = ['S116', 'S224'].map(id => library.find(s => s.id === id));

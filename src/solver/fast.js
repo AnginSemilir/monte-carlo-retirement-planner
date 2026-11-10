@@ -32,6 +32,9 @@ export const STEP = { penPA: 0, penBasic: 1, penAny: 2, cash: 3, other: 4, isa: 
 const N4_TOKENS = ['penHR', 'penPAm', 'penBm'];
 // N4's plants, for its test only (research/tests/n4-menu.test.mjs): 'hrtop' the taper ceiling read as the higher band's top,
 // 'midband' the basic band's midpoint read as the higher band's, 'nobasis' the CGT sale's buy-back left at no cost; '' none
+/* The year's interest and dividends tax memo (the review of 9 Nov's item 3, step 2): `memo` on (tests compare it off); `plant` 'noceiling'
+   (engine-hmrc.test.mjs) leaves the draw's ceiling out of its key. */
+export const KNOCK = { memo: true, plant: '' };
 export const N4 = { plant: '' };
 const CATS = ['pen', 'isa', 'other', 'cash'];
 
@@ -214,7 +217,10 @@ export function compile(m, actions) {
     splitYear: new Uint8Array(T + 1),
     // the savings split (research, D38 (4)): where saves 1 and 2 put the year's contributions, by pot (index 0 unused), and
     // whether the year has a choice; filled only when the menu carries save copies
-    saveCon: [null, 1, 2].map(v => v && CATS.map(() => new Float64Array(T + 1))), saveYear: new Uint8Array(T + 1)
+    saveCon: [null, 1, 2].map(v => v && CATS.map(() => new Float64Array(T + 1))), saveYear: new Uint8Array(T + 1),
+    // the taxable pay while working (E.taxablePayOf: the pay less what the year's pension contribution gives up), at the bottom
+    // of the year's stack (the review of 9 Nov, item 3); and under each savings variant, whose pension contribution differs
+    pay: new Float64Array(T + 1), paySave: [null, 1, 2].map(v => v && new Float64Array(T + 1))
   };
   const saveOn = !!(actions && actions.some(a => a.save) && ctx.saveSplitAt);
   for (let t = 0; t <= T; t++) {
@@ -239,6 +245,11 @@ export function compile(m, actions) {
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
     const sv = saveOn && yr.working[t] ? ctx.saveSplitAt(t) : null;
     if (sv) { yr.saveYear[t] = 1; for (let v = 1; v <= 2; v++) CATS.forEach((c, i) => { const id = idOf[c]; yr.saveCon[v][i][t] = acc[id] ? (id in sv.variants[v] ? sv.variants[v][id] : yr.con[i][t]) : 0; }); }
+    if (yr.working[t] && o.salary > 0) {
+      const salary = E.salaryAtYear(o, t);
+      yr.pay[t] = E.taxablePayOf(salary, yr.con[0][t], P, o.selfEmployed) * yr.frac[t];
+      if (yr.saveYear[t]) for (let v = 1; v <= 2; v++) yr.paySave[v][t] = E.taxablePayOf(salary, yr.saveCon[v][0][t], P, o.selfEmployed) * yr.frac[t];
+    }
     yr.cgtExempt[t] = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
     yr.cashIsaCap[t] = P.cashIsaCapAt(age, year);
   }
@@ -393,7 +404,7 @@ export function cashSplit(c, t, tax) {
  * that per quadrature node from the post-decision state, and `grow` below does it.
  */
 export function flow(c, t, ai, s) {
-  const { P, tb, yr } = c;
+  const { E, P, tb, yr } = c;
   const a = c.acts[ai];
   const frac = yr.frac[t];
   const working = yr.working[t] === 1, access = yr.access[t] === 1;
@@ -413,6 +424,7 @@ export function flow(c, t, ai, s) {
   let cashIsa = s.length > 6 ? Math.min(cash, s[6] >= 0 ? s[6] : yr.cashIsaTypical[t]) : 0;
   let realised = s.length > 11 ? s[11] : 0, booked = 0;   // gains booked this year, from a forward run's carry (slot 11) on
   let taxable = yr.taxable0[t];
+  const pay = a.save && yr.saveYear[t] ? yr.paySave[a.save][t] : yr.pay[t];
   let taxPaid = 0, cgtPaid = 0, unmet = 0, drawdown = 0, harvested = 0;
   const cgtOn = P.cgtEnabled;
 
@@ -459,25 +471,54 @@ export function flow(c, t, ai, s) {
   }
   // 4. guaranteed income, less the tax on this year's savings interest (taxable cash only) and GIA dividends (engine 4a, 4b)
   const interest = c.cashNominal > 0 && cash > cashIsa ? (cash - cashIsa) * c.cashNominal * frac : 0;
-  const savingsTax = interest > 0 ? P.savingsTax(taxable, interest) : 0;
-  const dividendTax = P.giaDividendYield > 0 && gia > 0 ? P.dividendTax(taxable, interest, gia * P.giaDividendYield * frac) : 0; if (cgtOn && P.giaDividendYield > 0 && gia > 0) basis += gia * P.giaDividendYield * frac;   // reinvested at cost (F0a)
-  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - savingsTax - dividendTax;
+  const dividends = P.giaDividendYield > 0 && gia > 0 ? gia * P.giaDividendYield * frac : 0;
+  if (cgtOn && dividends > 0) basis += dividends;   // reinvested at cost (F0a)
+  // the year in HMRC's order (the engine's step 4, the review of 9 Nov's item 3): the taxable pay at the bottom, the interest
+  // and dividends above the rest, every tax of the year in the person's one bill; with none of the three the year takes the
+  // old arithmetic, to the bit
+  const stack = pay > 0 || interest > 0 || dividends > 0;
+  // KNOCK.memo (exact; step 2's remedy, the solve 20% slower without it): every move at one decision shares the year's interest
+  // and dividends, so each income level's bill and each gross draw is worked once, kept on the compiled household until the
+  // interest or dividends change. Keyed on everything the two read; plant 'noceiling' leaves the ceiling out of the draw's key
+  // (numeric keys, a draw's by its need and then its starting income; the year's functions made only in a year that needs them)
+  let K = null, billAt = null, grossKnock = null, billOf = null;
+  if (stack) {
+    if (KNOCK.memo) { K = c.knock; if (!K || K.i !== interest || K.d !== dividends) K = c.knock = { i: interest, d: dividends, bill: new Map(), gross: new Map() }; }
+    billAt = (N) => { if (!K) return P.personTax({ nonSavings: N, interest, dividends }); let b = K.bill.get(N); if (b === undefined) { b = P.personTax({ nonSavings: N, interest, dividends }); K.bill.set(N, b); } return b; };
+    grossKnock = (need, T0, fully, headroom, ceiling) => {
+      if (!K) return E.grossPensionNeededForNet(need, T0, P, fully, headroom, ceiling, { interest, dividends });
+      let byT = K.gross.get(need); if (byT === undefined) { byT = new Map(); K.gross.set(need, byT); }
+      let list = byT.get(T0); if (list === undefined) { list = []; byT.set(T0, list); }
+      const cKey = KNOCK.plant === 'noceiling' ? 0 : ceiling;
+      for (let j = 0; j < list.length; j += 4) if (list[j] === fully && list[j + 1] === headroom && list[j + 2] === cKey) return list[j + 3];
+      const g = E.grossPensionNeededForNet(need, T0, P, fully, headroom, ceiling, { interest, dividends, billAt });
+      list.push(fully, headroom, cKey, g);
+      return g;
+    };
+    billOf = () => billAt(pay + taxable);
+  }
+  const payTax = pay > 0 ? E.incomeTax(pay, P) : 0;
+  let bill = stack ? billOf() : null, savingsTax = stack ? bill.onInterest : 0, dividendTax = stack ? bill.onDividends : 0;
+  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - (stack ? (bill.onNonSavings - payTax) - E.incomeTax(taxable, P) : 0) - savingsTax - dividendTax;
+  // a draw's taxable part added to the stack: the interest's and dividends' tax re-priced, and what the old net misses of it
+  const restack = stack ? (taxBefore) => { const was = bill; bill = billOf(); savingsTax = bill.onInterest; dividendTax = bill.onDividends; return (bill.total - was.total) - (E.incomeTax(taxable, P) - taxBefore); } : null;
 
   /* Draw `need` net from the pension without taking taxable income past `ceiling`. */
   const drawPension = (need, ceiling) => {
     if (need <= 0 || !access || pen <= 0) return 0;
     const fully = a.lump && lumpTaken;
     const headroom = fully ? 0 : Math.max(0, P.lsa - cumPcls);
-    if (taxable >= ceiling) return 0;
-    const gross = Math.min(pen, grossForNet(c, need, taxable, fully, headroom, ceiling));
+    const T0 = pay + taxable;
+    if (T0 >= ceiling) return 0;
+    const gross = Math.min(pen, stack ? grossKnock(need, T0, fully, headroom, ceiling) : grossForNet(c, need, T0, fully, headroom, ceiling));
     if (gross <= 0) return 0;
     pen -= gross; drawdown += gross;
     const taxFree = fully ? 0 : Math.min(gross * P.pclsProp, headroom);
     cumPcls += taxFree;
     const tp = gross - taxFree;
-    const before = netOf(tb, taxable);
+    const before = netOf(tb, taxable), taxBefore = stack ? E.incomeTax(taxable, P) : 0;
     taxable += tp;
-    return taxFree + (netOf(tb, taxable) - before);
+    return taxFree + (netOf(tb, taxable) - before) - (stack ? restack(taxBefore) : 0);
   };
   const drawStep = (step, need) => {
     if (need <= 0) return 0;
@@ -596,9 +637,9 @@ export function flow(c, t, ai, s) {
       pen -= gross; drawdown += gross;
       const taxFree = Math.min(gross * P.pclsProp, headroom);
       cumPcls += taxFree;
-      const before = netOf(tb, taxable);
+      const before = netOf(tb, taxable), taxBefore = stack ? E.incomeTax(taxable, P) : 0;
       taxable += gross - taxFree;
-      const net = taxFree + (netOf(tb, taxable) - before);
+      const net = taxFree + (netOf(tb, taxable) - before) - (stack ? restack(taxBefore) : 0);
       const room = Math.max(0, P.isaAllowance - isaContrib);
       const toIsa = Math.min(net, room);
       isa += toIsa; isaContrib += toIsa; addGia(net - toIsa);
@@ -620,7 +661,7 @@ export function flow(c, t, ai, s) {
   if (cgtOn) {
     const taxableGain = Math.max(0, realised - yr.cgtExempt[t]);
     if (taxableGain > 0) {
-      const taxableIncome = Math.max(0, taxable - P.paAt(taxable));
+      const allIncome = pay + taxable + interest + dividends, taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
       const atBasic = Math.min(taxableGain, basicRoom);
       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
@@ -650,7 +691,8 @@ export function flow(c, t, ai, s) {
    */
   const late = cgtOn ? Math.max(0, realised - booked) : 0;
   if (s.length <= 11 && late > 0) {
-    const exemptLeft = Math.max(0, yr.cgtExempt[t] - booked), taxableIncome = Math.max(0, taxable - P.paAt(taxable));
+    const allIncome = pay + taxable + interest + dividends;
+    const exemptLeft = Math.max(0, yr.cgtExempt[t] - booked), taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
     const basicLeft = Math.max(0, P.cgtBandWidth - taxableIncome - Math.max(0, booked - yr.cgtExempt[t]));
     const g2 = Math.max(0, late - exemptLeft), at2 = Math.min(g2, basicLeft), bill = at2 * P.cgtBasicRate + (g2 - at2) * P.cgtHigherRate;
     if (bill > 0) {
@@ -670,7 +712,7 @@ export function flow(c, t, ai, s) {
     const move = Math.min(room, Math.max(0, cash - cashIsa));
     if (move > 0) { cashIsa += move; isaContrib += move; }
   }
-  taxPaid = taxOf(tb, taxable) + savingsTax + dividendTax;
+  taxPaid = stack ? billOf().total - payTax : taxOf(tb, taxable) + savingsTax + dividendTax;
   const preNmpaInsolvent = unmet > 1 && !access;      // the engine's test, with one owner
 
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
@@ -682,7 +724,8 @@ export function flow(c, t, ai, s) {
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
   if (c.tiers.gia && cgtOn) {
     c.last.cgtExemptLeft = Math.max(0, yr.cgtExempt[t] - realised);
-    c.last.cgtBasicLeft = Math.max(0, P.cgtBandWidth - Math.max(0, taxable - P.paAt(taxable)) - Math.max(0, realised - yr.cgtExempt[t]));
+    const allIncome = pay + taxable + interest + dividends;
+    c.last.cgtBasicLeft = Math.max(0, P.cgtBandWidth - Math.max(0, allIncome - P.paAt(allIncome)) - Math.max(0, realised - yr.cgtExempt[t]));
   }
   return unmet;
 }

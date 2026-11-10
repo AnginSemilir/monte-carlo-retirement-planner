@@ -66,6 +66,24 @@ const ON = { windfallSplit: true };
 const dated = h => (h.plan.oneOffContributions || []).filter(x => x.date || x.year);
 const NODEP = panel.find(h => !dated(h).length).id;
 const WIND = ['S026', 'S090'];
+/*
+ * Check 1 against the code before the option where the review of 9 Nov's items 3 and 4 leave a table alone (D69): cash interest
+ * untaxed, no dividend yield, any Auto deposit typed into the taxable account (item 3 prices interest and dividends above the
+ * year's income; item 4 relieves an Auto deposit the plan routes into a pension). Check 1b pins the option-unset solve of the
+ * household as the test takes it, interest, dividends and its Auto deposit with them: its tables and 40 forward runs, digested
+ * (PIN1B, taken on item 3's code; again on item 4's where the household has an Auto deposit). CHECK1_PLANT=1 swaps the two plans
+ * on this code's side: check 1 and check 1b must both fail. RECORD1B=1 prints 1b's digests.
+ */
+const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B === '1';
+const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
+const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings
+  S026: 'ccff7c1ac433d182dcd829a643f279fd53da5e521e908130f51b9b579561e2da',
+  S090: '29867aa6d256bf7f32df084a8f14bf6a61cf97ce8b7530c97fea8e96bb06a91c',
+  [NODEP]: '4adc22e273e981c7b38bc893ce22d1793b6d49c1c52a2b15c83834d91377af50'
+};
+const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');
+const { createHash } = await import('node:crypto');
+const digest1b = async (r, runs) => createHash('sha256').update(await digestOf(tablesOf(r))).update(runs.join('\n')).digest('hex');
 console.log(`The windfall split's tests: the code at ${ROOT} (${headOf(ROOT)}), the code before the option at ${BROOT} (${headOf(BROOT)}); windfall households ${WIND.join(', ')}, no deposit ${NODEP}; the light settings`);
 
 const KEYS = ['surv', 'lsurv', 'resil', 'lresil', 'beq', 'short', 'pol'];
@@ -99,16 +117,22 @@ try {
   console.log('=========== 1. OFF: THE CODE BEFORE THE OPTION ===========');
   const SOLVED = {};
   for (const id of [...WIND, NODEP]) {
-    const plan = planOf(id);
+    const full = planOf(id), plan = NEUTRAL(full);
     let t0 = Date.now();
-    const a = solve(C, E, M, plan), ta = sec(t0);
+    const a = solve(C, E, M, PLANT1 ? full : plan), ta = sec(t0);
     t0 = Date.now();
     const b = solve(B.C, B.E, B.M, plan);
     const st = sameTables(a, b), paths = pathsFor(a, 40), rd = runDiff(runsOf(S, a, paths), runsOf(B.S, b, paths)), md = metaDiff(a, b);
-    SOLVED[id] = { plan, off: a, paths };
     ok(st.same && rd < 0 && md.length === 0,
-      `1. ${id}, the option unset, against the code before it: ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (this code ${ta}, the code before ${sec(t0)})`);
+      `1. ${id}, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (this code ${ta}, the code before ${sec(t0)})${PLANT1 ? '; planted: this code on the plan as taken' : ''}`);
+    // 1b. the option unset on the household as the test takes it, against its pinned digest
+    const off = solve(C, E, M, PLANT1 ? plan : full), offPaths = pathsFor(off, 40), dg = await digest1b(off, runsOf(S, off, offPaths));
+    SOLVED[id] = { plan: full, off, paths: offPaths };
+    if (RECORD1B) console.log(`RECORD1B ${id} ${dg}`);
+    ok(dg === PIN1B[id], `1b. ${id}, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs ${dg.slice(0, 16)} against the pin ${PIN1B[id] ? PIN1B[id].slice(0, 16) : 'not taken'}${PLANT1 ? '; planted: the neutral plan' : ''}`);
   }
+  if (RECORD1B || PLANT1) { console.log(`\ncheck 1 and 1b only (${RECORD1B ? 'RECORD1B' : 'CHECK1_PLANT'}): ${passed} passed, ${failed} failed`); process.exit(failed ? 1 : 0); }
+
 
   // -------------------------------------------------------------------------------------------------- 2. THE ROUTING
   console.log('=========== 2. THE ROUTING AGAINST A HAND CALCULATION ===========');

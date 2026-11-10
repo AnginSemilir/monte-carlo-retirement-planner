@@ -12406,7 +12406,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </CollapsibleCard>
 
             <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
-              subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
+              subtitle="Defaults are 2026/27 (frozen to April 2031), and all thresholds are held constant in real terms.">
               {withRegion && ctlRegion()}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
                 {[

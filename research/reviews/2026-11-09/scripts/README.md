@@ -76,6 +76,12 @@ then:
 - A file that ends "stopped here by hand" was stopped before its remaining settings; the unfinished setting's
   half-printed lines were removed. Every other line of every file is as the script printed it.
 
+## The answers of 10 Nov (`ANSWERS-2026-11-10.md`)
+
+| Script | What it does | Output |
+|---|---|---|
+| `answers.mjs` | the plan inputs behind the answers: the named households' deposits and pay, a working single's taxed income beside pay under the app's rules, the library's Auto deposits, the touched singles by cash ISA money. No solve and no run | `out-answers.txt` |
+
 ## Review 3: D4's cost
 
 | Script | What it does | Output |

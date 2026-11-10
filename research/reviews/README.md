@@ -21,6 +21,9 @@ dated record, and the agent cites them by commit.
 - **Added later on 10 Nov: item 10, the solve on anchors and shortlists** (about 7 times faster on one core,
   approximately; `REVIEW.md` 2.3, `prototype/solve-coarse.diff`). It is not in the first prompt. Its own follow-up
   prompt is the file's last section.
+- `ANSWERS-2026-11-10.md`: the review's answers to the agent's questions of 10 Nov on items 3, 4 and 5
+  (`research/solver/QUESTIONS-2026-11-10.md` on the working branch). Two of them correct the review: item 4's case 6
+  and item 5's households.
 - Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
 - It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
 - Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.

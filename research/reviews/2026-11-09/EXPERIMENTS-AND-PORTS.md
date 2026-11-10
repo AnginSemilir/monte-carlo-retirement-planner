@@ -363,7 +363,9 @@ under-priced by the missing 25%, more for a higher-rate payer.
    rest of their relief as `bedAndSippFor` works it out (`refund`), paid to their cash.
 2. **Every other route that adds to a pension from the household's own money:** the staged transfers (step 1.5) and
    any Auto deposit. List each in the results file with what it does today. Each is relieved the same way, through one
-   function shared with `bedAndSippFor`.
+   function shared with `bedAndSippFor`. *(Added 10 Nov, `ANSWERS-2026-11-10.md` 1: 210 of the library's 420 plans
+   carry an Auto deposit, so this moves figures widely and is sized before it is committed; and no relief, and no
+   room for a one-off deposit, once the owner is 75.)*
 3. **A typed one-off deposit stays as it is.** Whether the amount typed is what the household pays or what arrives is
    a wording question for the input, and the maintainer's (M3, a row for `DECISIONS-PENDING.md`).
 4. The model repeats it wherever `model.js` and `fast.js` book the split.
@@ -375,7 +377,12 @@ under-priced by the missing 25%, more for a higher-rate payer.
    £25,000 sits in the 40% band; 20% of it came at source);
 4. the MPAA triggered: room £10,000, so the pension gains £10,000 for £8,000;
 5. **the plant:** relief dropped. Case 1 fails.
-6. With no windfall split on the move, every figure is as before, bit for bit (S116 and S210 at light settings).
+6. *(Corrected 10 Nov: as first written, "every figure as before on S116 and S210", this contradicted step 1.2,
+   because S210's own Auto deposit is routed to its pension. The review's mistake; `ANSWERS-2026-11-10.md` 1.)*
+   Nothing but the pension route moves, at light settings: S116 as before, bit for bit; S210 with its deposit
+   removed, and again with it typed into the taxable account, as before, bit for bit; S210 as the library enters
+   it, its 2033 route to the pound (£3,600 lands for £2,880; £168,120 goes on).
+7. *(Added 10 Nov.)* Aged 76, no earnings, a £10,000 windfall: nothing to the pension, £10,000 goes on.
 
 **If it passes:** the windfall factorial runs as planned. **If case 6 fails:** STOP; the change reached a path it
 should not have.
@@ -410,7 +417,9 @@ move and its amount to the pound. It needs no experiment: the estate shown alrea
 
 *Step 2. The experiment* (EXPLORATORY, seed 7002, on the engine after item 3).
 - **Households:** the review's eight, and the four singles in `phase4-orders.json`'s `touched` list with the most
-  money in a cash ISA (print them with their balances; S116 will be one).
+  money in a cash ISA (print them with their balances; S116 will be one). *(Corrected 10 Nov: S116 is not one. It
+  is seventh by pounds; five tie above it. The agent's thirteen stand: the eight, four of the five by library
+  order, and S116, with the pooled figures also printed without S116; `ANSWERS-2026-11-10.md` 4.)*
 - **Arms:** `'gia'` and `'isa'`, each household solved at 45 points under each.
 - **Paths:** 4,000, paired.
 - **Read:** survival, spending delivered, the mean pot left, the expected path's tax.

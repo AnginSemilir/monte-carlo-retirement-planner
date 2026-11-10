@@ -1,0 +1,31 @@
+1. The households the questions name: their pay, their ages and their one-off deposits
+  S210: single, aged 55, retires at 60, salary 77500, pension access 58, policy Bracket Fill Basic
+      deposit: 171000 in 2033 (aged 62), "Auto (policy decides)", staged to "Other Investments (e.g. GIA)"
+  S370: single, aged 50, retires at 50, salary 0, pension access 58, policy Bracket Fill Basic
+      deposit: 432000 in 2030 (aged 54), "Auto (policy decides)", staged to "Other Investments (e.g. GIA)"
+  S224: single, aged 55, retires at 60, salary 77500, pension access 58, policy Bracket Fill Basic
+      no one-off deposit
+  S116: single, aged 61, retires at 60, salary 0, pension access 58, policy Bracket Fill Basic
+      no one-off deposit
+
+2. A working single under the app's rules, the expected path: is anything but interest and dividends taxed beside pay?
+  S224: 5 working years (aged 55 to 59): taxable pension drawn 0, gains realised 0, CGT 0; interest 0, dividends 10227
+  S210: 5 working years (aged 55 to 59): taxable pension drawn 0, gains realised 0, CGT 0; interest 12321, dividends 46024
+
+3. The library's Auto deposits (a deposit the policy routes: the default order is the pension first)
+  420 plans; 210 one-off deposits, 210 of them Auto; the owner still working when it arrives: 60; aged 75 or over: 0
+  the owner's age when it arrives: 54 (30), 55 (30), 57 (30), 60 (30), 62 (30), 65 (30), 72 (30)
+
+4. The singles of phase4-orders.json's touched list by cash ISA money
+  153 singles, 98 with cash ISA money
+  S058: 540000 of 2400000 (23%); aged 68, retires at 66, salary 0
+  S118: 540000 of 2400000 (23%); aged 61, retires at 60, salary 0
+  S178: 540000 of 2400000 (23%); aged 56, retires at 55, salary 0
+  S238: 540000 of 2400000 (23%); aged 55, retires at 60, salary 142500
+  S418: 540000 of 2400000 (23%); aged 50, retires at 50, salary 0
+  S056: 427500 of 950000 (45%); aged 68, retires at 66, salary 0
+  S116: 427500 of 950000 (45%); aged 61, retires at 60, salary 0
+  S176: 427500 of 950000 (45%); aged 56, retires at 55, salary 0
+  S236: 427500 of 950000 (45%); aged 55, retires at 60, salary 77500
+  S296: 427500 of 950000 (45%); aged 45, retires at 60, salary 85000
+  S416: 427500 of 950000 (45%); aged 50, retires at 50, salary 0

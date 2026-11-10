@@ -39,7 +39,7 @@ export const FAST = [
 ];
 // B8's tests (the unlock of 1 Nov), each in the fast tier once its file exists: L1's floor, L2's split locked solve, L3's
 // lever matrix (its quick form), Phase 9's split simulation and Part D's couples (D1's quick form)
-export const FAST_JOINING = ['solver-floor.test.mjs', 'lock-split.test.mjs', 'lever-matrix.test.mjs', 'sim-split.test.mjs', 'couple-quick.test.mjs'];
+export const FAST_JOINING = ['solver-floor.test.mjs', 'lock-split.test.mjs', 'lever-matrix.test.mjs', 'sim-split.test.mjs', 'couple-quick.test.mjs', 'couple-rank.test.mjs', 'engine-hmrc.test.mjs', 'windfall-relief.test.mjs', 'couple-share.test.mjs', 'chooser-shortlist.test.mjs'];
 export const fastTier = () => [...FAST, ...FAST_JOINING.filter(f => existsSync(join(HERE, f)))];
 
 // run only as the script, never on import (hygiene.test.mjs imports FAST: unguarded, the import ran the suite, which ran

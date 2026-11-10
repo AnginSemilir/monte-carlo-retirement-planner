@@ -78,3 +78,22 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   (2)'s limit, noted: the next kilobyte on a switch-on build's classic first load comes to the maintainer. Items 2, 3, 4 and
   6 are one change of the site's code, from a release branch cut from `main` (Part D's code stays off it), merged on B1's
   gate.
+
+## Open from the review of 9 Nov (D66; `research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md` at f77ca16c)
+
+- **Item 1's statement (a STOP, 10 Nov).** D4 stopped unread with 76 of 520 chunks finished, all on `d4-backup`. The
+  statement item 1 asks for ("no arrays file of D4 has been opened, and nothing of a unit's log has been read or printed
+  by anyone beyond its stamp line, its second line and whether it holds a done line") cannot be made as worded: each
+  log's third line (registered inputs: the couple, the unit, its cohort, its landed target, its paths) and its timings
+  (the solve's seconds, the engine's seconds and milliseconds a path, the done line's seconds) were read and printed on
+  9 Nov, to time the run. No outcome of any unit was printed or read, and no arrays file was decompressed (STATE.md
+  section 5 has the statement in full). By item 1, the re-run then needs a new seed and couples the scan does not list,
+  and the maintainer rules on the panel. The agent's recommendation: keep the panel and seed 7021, since nothing read
+  carries an outcome, and record the statement as made in the re-run's registration for the design review to check.
+- **M3. A one-off pension deposit: what the household pays, or what arrives?** The review's advice: ask in the input's
+  label; until then typed deposits stay as they are, and item 4 fixes only the plan's own routing (the windfall split's
+  pension-first variant, the staged transfers, an Auto deposit).
+- **M6. The dated rules** (savings rates of 22, 42 and 47% from April 2027; NIC relief on salary sacrifice capped at
+  the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
+  engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
+  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.

@@ -342,3 +342,4 @@
 09 Nov 07:46 UK | main | research/solver/registrations/couples-d4.md | code a8d0e9568319 | e09ac60 | load 1.03 0.68 0.30 | host Intel(R) Xeon(R) Processor @ 2.30GHz x4 | bash research/solver/batch-couples.sh
 09 Nov 19:41 UK | main | research/solver/registrations/couples-d4.md | code a8d0e9568319 | e09ac60e | load 3.26 4.54 4.78 | host Intel(R) Xeon(R) Processor @ 2.30GHz x4 | bash research/solver/batch-couples.sh
 09 Nov 20:36 UK | main | research/solver/registrations/couples-d4.md | code a8d0e9568319 | e09ac60e | load 3.53 4.57 4.74 | host Intel(R) Xeon(R) Processor @ 2.30GHz x4 | bash research/solver/batch-couples.sh
+10 Nov 00:52 UK | main | research/solver/registrations/couples-d4.md | code a8d0e9568319 | e09ac60e | load 0.00 0.00 0.00 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples.sh

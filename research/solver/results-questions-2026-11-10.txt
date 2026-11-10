@@ -1,0 +1,93 @@
+# The outputs behind QUESTIONS-2026-11-10.md (EXPLORATORY). Item 3's code alone: /home/user/item3-only (HEAD f8ab8e24 + item 3's diff, sha256 adfc32eed01b); items 3 to 5: the working tree on da31a875/29b22bce, uncommitted.
+
+## Question 1: S210's move under item 4 (s210-why.mjs, light settings)
+S210 as in the library (an Auto deposit of £171,000 in 2033): item 3 alone f43d4dfade269f0c, items 3 to 5 cdd84a84415dbc56: they differ
+S210 its deposit removed: item 3 alone f9a4e63e00f6958e, items 3 to 5 f9a4e63e00f6958e: THE SAME
+S210 its deposit typed into the taxable account: item 3 alone c7785c6fc3ecdcb4, items 3 to 5 c7785c6fc3ecdcb4: THE SAME
+
+## Question 1: the Auto routes on item 3 alone and on items 3 to 5 (buildContext's oneOffContribs)
+S210 item 3 alone: 2033 pen_self 3600.00 (Auto), other_self 167400.00 (Auto)
+S210 items 3 to 5: 2033 pen_self 3600.00 (Auto), other_self 168120.00 (Auto)
+S370 item 3 alone: 2030 pen_self 3600.00 (Auto), other_self 428400.00 (Auto)
+S370 items 3 to 5: 2030 pen_self 3600.00 (Auto), other_self 429120.00 (Auto)
+
+## Question 2: savings-tax's fixture, year 1 (b23.mjs on items 3 to 5)
+netDrawdown                  9045.61 | 7905.20
+pensions                     287441.26 | 289371.69
+drawdownPensions             11181.74 | 9300.24
+taxablePensionSelf           8386.31 | 6975.18
+taxablePensionPart           0.00 | 0.00
+taxPaid                      8157.74 | 6276.24
+otherTaxableSelf             36976.00 | 36976.00
+otherTaxablePart             0.00 | 0.00
+savingsInterest              6702.05 | 0.00
+savingsTax                   1599.28 | 0.00
+taxablePaySelf               0.00 | 0.00
+taxablePayPart               0.00 | 0.00
+savingsInterestSelf          6702.05 | 0.00
+savingsInterestPart          0.00 | 0.00
+incomeTaxSelf                8157.74 | 6276.24
+incomeTaxPart                0.00 | 0.00
+dividendTax                  0.00 | 0.00
+old B2 figure P.savingsTax(otherTaxableSelf, interest) 1140.41
+
+## Question 2: the evidence the move is item 3's (zero-id.mjs: the code before against item 3 alone, light settings)
+S116 (age 61, retires 60, salary 0), as in the library: before b12130607dc6ceb4, after b954f145878ff460: they differ
+S116 (age 61, retires 60, salary 0), no interest or dividends: before 88f235c824d10d5f, after 88f235c824d10d5f: THE SAME
+S370 (age 50, retires 50, salary 0), as in the library: before ef14d14a9e511912, after 131663941b055307: they differ
+S370 (age 50, retires 50, salary 0), no interest or dividends: before 73f3de425f2eecd1, after 73f3de425f2eecd1: THE SAME
+S224 (age 55, retires 60, salary 77500), as in the library: before c006d1f344b3f8ca, after 4a38efe85909a4e3: they differ
+S224 (age 55, retires 60, salary 77500), no interest or dividends: before 32bdb946a3a924fe, after 32bdb946a3a924fe: THE SAME
+S026 (age 68, retires 66, salary 0), as in the library: before 1d9fca2ab2266cff, after a3bd8f0508b8bc35: they differ
+S026 (age 68, retires 66, salary 0), no interest or dividends: before 7d6320f70fa78765, after 7d6320f70fa78765: THE SAME
+S090 (age 61, retires 60, salary 0), as in the library: before 0652a605f8a58813, after ef2c97d8ce88978d: they differ
+S090 (age 61, retires 60, salary 0), no interest or dividends: before 0f28143a11a40e17, after 0f28143a11a40e17: THE SAME
+S040 (age 68, retires 66, salary 0), as in the library: before 407c66787db5cd4a, after 7138b1cd4c270872: they differ
+S040 (age 68, retires 66, salary 0), no interest or dividends: before ca2d3d523cdccb6c, after ca2d3d523cdccb6c: THE SAME
+
+## Question 2: speed-port check 1, recorded (--record) on item 3 alone
+== speed-port --record (quick) 14:36
+{"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"5d1db7e3976d8539","layer":"a57025bfad98fa0f","aref":"-","run":"7590b06881d951aa"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e1e8d5665f5868b5","layer":"08633d4b1ed6c481","aref":"26a9868a554fdb23","run":"23f06bbe4832b4d2"}}
+== speed-port --full --record 14:41
+{"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"c05ac829b37dd28d","layer":"430ecadff067a9be","aref":"-","run":"fe29b7fdbe5408bc"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"05b6173d2e1bb06f","layer":"f61589710165f884","aref":"35b72dc2dc22750d","run":"26fca04b1ecc49df"}}
+
+## Question 2: speed-port check 1, recorded on items 3 to 5
+== speed-port --record (quick), items 3 to 5 15:58
+{"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"572feb4a3c0c129e","layer":"219ee6ebe2370504","aref":"-","run":"727a78e82d66f90a"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e9852794d9c407ef","layer":"b8274efd10337928","aref":"bf852694ed07cef1","run":"68e2cee1fc7bee8a"}}
+== speed-port --full --record, items 3 to 5 16:03
+{"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"7bac7b3333a0d666","layer":"7d42f25fd016b17d","aref":"-","run":"b0369498b5f5f0b1"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"78aebbb838f596e3","layer":"26f82baf4fa996fb","aref":"54e184b7e46e15d4","run":"9f1770179ada36d1"}}
+
+## Beside: the solve's time (solve-time.mjs: the app's solve at 45 points, before and after, one process, alternating, CPU seconds)
+without the memo:
+S116 before: the solve 400.0 s of CPU (402 s on the clock), 800 moves
+S116 after: the solve 484.7 s of CPU (488 s on the clock), 800 moves
+S370 before: the solve 555.5 s of CPU (559 s on the clock), 800 moves
+S370 after: the solve 664.4 s of CPU (671 s on the clock), 800 moves
+with the memo:
+S116 before: the solve 346.1 s of CPU (347 s on the clock), 800 moves
+S116 after: the solve 365.8 s of CPU (367 s on the clock), 800 moves
+S370 before: the solve 505.9 s of CPU (508 s on the clock), 800 moves
+S370 after: the solve 556.4 s of CPU (560 s on the clock), 800 moves
+
+## Beside: the library sizing (size-hmrc.mjs library 1000)
+item 3's sizing, the plan's own rules (EXPLORATORY): 237 households of the two touched lists (38 couples, 98 still working), 1000 paths of seed 7002; the engine after less before, survival in points
+  mean -0.35; median +0.00; worst -3.70 (S214); best +0.10 (S253)
+  losing over 1 point 24, over 3 6, over 6 0; gaining over 1 0; within half a point either way 193
+  still working: 98, mean -0.53, worst -3.70; the expected path's tax up £56,894 a household
+  retired: 139, mean -0.22, worst -3.40; the expected path's tax up £12,802 a household
+  couples: 38, mean -0.15, worst -1.10; the expected path's tax up £12,480 a household
+  singles: 199, mean -0.39, worst -3.70; the expected path's tax up £34,577 a household
+  the twelve that lose most:
+    S214 working: 63.4% before, -3.70 (37 lost, 0 saved); the expected path's tax £521,977 to £784,579
+    S034 retired: 77.2% before, -3.40 (34 lost, 0 saved); the expected path's tax £313,585 to £494,213
+    S094 retired: 67.0% before, -3.30 (33 lost, 0 saved); the expected path's tax £329,896 to £476,351
+    S330 working: 72.9% before, -3.30 (33 lost, 0 saved); the expected path's tax £493,555 to £671,681
+    S272 working: 44.7% before, -3.10 (31 lost, 0 saved); the expected path's tax £351,884 to £434,886
+    S332 working: 43.6% before, -3.10 (31 lost, 0 saved); the expected path's tax £1,596,634 to £1,622,934
+    S238 working: 72.5% before, -2.90 (29 lost, 0 saved); the expected path's tax £391,391 to £525,963
+    S154 retired: 62.9% before, -2.70 (27 lost, 0 saved); the expected path's tax £358,309 to £515,535
+    S270 working: 80.2% before, -2.60 (26 lost, 0 saved); the expected path's tax £394,429 to £645,514
+    S334 working: 51.8% before, -2.40 (24 lost, 0 saved); the expected path's tax £3,531,577 to £5,070,291
+    S118 retired: 79.4% before, -2.20 (22 lost, 0 saved); the expected path's tax £294,972 to £416,000
+    S178 retired: 71.9% before, -2.10 (21 lost, 0 saved); the expected path's tax £347,373 to £476,209
+THE STEP'S STOP (a household moving by more than 6 points, or the mean by more than 1): not met

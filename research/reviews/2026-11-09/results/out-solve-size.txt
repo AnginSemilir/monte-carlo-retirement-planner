@@ -1,0 +1,11 @@
+solve()'s bytecode against V8's optimiser limit (research/tests/solve-size.test.mjs), on the branch at f02e8741 and on the same tree with prototype/solve-coarse.diff applied:
+--- the branch (f02e8741)
+PASS  V8's --max-optimized-bytecode-size read: 61440 bytes (Node v22.23.4)
+PASS  1. solve()'s bytecode 60516 bytes against the limit 61440: 924 under
+PASS  2. planted: 431 dead statements inside solve() take it to 66919 bytes, 5479 over the limit, and the check fails
+ALL PASS: 3 checks
+--- with solve-coarse.diff
+PASS  V8's --max-optimized-bytecode-size read: 61440 bytes (Node v22.23.4)
+PASS  1. solve()'s bytecode 61395 bytes against the limit 61440: 45 under
+PASS  2. planted: 212 dead statements inside solve() take it to 64294 bytes, 2854 over the limit, and the check fails
+ALL PASS: 3 checks

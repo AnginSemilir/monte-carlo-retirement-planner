@@ -12,6 +12,10 @@ as the next D-line, in this form:
 > The review of 9 Nov (`research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md`): its nine items in its order, each by its
 > experiment, decision rule and port; the maintainer's answers as sent. Item 3 is a defect that changes a figure.
 
+**Item 10 came later the same day** (the solve on anchors and shortlists), on the maintainer's "Ok, now focus on a
+faster solve. Aim for 5x faster." It is not in that prompt or that D-line. It has its own follow-up prompt, after the
+first, and its own D-line when that is sent.
+
 ## How to read it
 
 - Each item gives: what was found (the evidence is in `REVIEW.md` and `results/`), the experiment, the rule that
@@ -46,6 +50,7 @@ gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths
 | 7 | The chooser's shortlist (a single's path 3 times faster, approximately) | an experiment, then a port | 1 day | 4 core-hours | by under 0.1 points if it passes |
 | 8 | What the library never contains; the dated rules | units in item 6C's panel; one caption now | 2 hours | with 6C | no |
 | 9 | A two-stage rule for the couples' registered runs | registration text and its sizing | half a day | none | no |
+| 10 | The solve on anchors and shortlists (a solve about 7 times faster, approximately) | an experiment, then a port | 1.5 days | 11 core-hours, and gate 5 again | by under 0.1 points if it passes |
 
 Why this order:
 1. **Item 1's stop first** because it frees the main session's four cores at once, and every machine-time item below
@@ -60,6 +65,9 @@ Why this order:
 6. **Item 7's experiment waits for item 3**, so the shortlist is measured once, on the tables that will ship.
 7. **Item 6's stage C waits for the re-run's read.** If that does not turn the couples' solver on, it has nothing to
    fix.
+8. **Item 10's stage A runs in item 7's batch**, after item 3: the same eight households, the same paths and the
+   same whole-menu arm, so that arm is solved and run once for both. Like item 7 it is approximate, so it is measured
+   once, on the tables that ship. Until its ruling nothing takes it: no registered run, and not item 6's stage A.
 
 ---
 
@@ -630,6 +638,144 @@ paths.
 
 ---
 
+## Item 10. The solve on anchors and shortlists (a solve about 7 times faster, approximately)
+
+**Added later on 10 Nov,** on the maintainer's "Ok, now focus on a faster solve. Aim for 5x faster." It is not in the
+prompt already sent. Its own follow-up prompt is at the end of this file; when that arrives, record it as its own
+D-line.
+
+**Found** (`REVIEW.md` 2.3). The backward pass scores all 800 moves at every one of 14,580 cells a year. The prototype
+(`prototype/solve-coarse.diff`, `opts.coarse`, off unless set) solves a year's cells in two passes:
+
+- **The anchors take the whole menu, as now.** An anchor is a cell on every 2nd wealth point, every 3rd pension-share
+  and ISA-share point and every 2nd gain and allowance bucket, with each axis's last point: 828 of 14,580 cells.
+- **Every other cell scores a shortlist.** It starts from the moves the anchors around it stored this year and the
+  move the cell itself stored next year. Then, for three rounds, each tier layer's best move so far is widened by one
+  step (every spending level, one tier step, one draw-order step, the same draw order's other re-wraps) and the new
+  moves are scored. About 38 moves a cell.
+- **A listed move is scored exactly as the whole menu scores it.** Only the choice is narrowed.
+
+At 45 points on one core, 4,000 paths a household (`results/out-solve-final-*.txt`; the table in `REVIEW.md` 2.3):
+
+- **Time.** S116 341 s to 49 s, S224 369 to 53, S188 370 to 51: 6.9 to 7.2 times. S370, which has years before
+  pension access, 486 to 146 (3.3 times): 76 of the 146 s is its bridge reference, which the shortlist does not touch.
+  On a thinner reference lattice it is 84 s (5.8 times; 75 s in the 1,000-path run before).
+- **Outcomes.** 9 paths saved and 15 lost of 16,000: -0.04 points of survival (se 0.03), each household between
+  -0.03 and -0.05. Spending delivered is within 0.02 points of target on every household, and the mean pot left
+  within 0.2%.
+- **Tables.** Their own score falls by 0.003 to 0.004 points on average. The worst single cell loses 2.3.
+- **The thinner reference** left S370's 4,000 paths exactly as they were: the same 5 saved and 6 lost, the same
+  spending and pot.
+- **What must be exact, is.** With every move listed, the two-pass solve gives the whole menu's tables bit for bit.
+  Split across two workers it equals one thread bit for bit. Each plant is caught
+  (`tests/solve-coarse.test.mjs`, 12 checks).
+
+**Kind.** An approximate cut under D65. An experiment, then the maintainer's ruling naming the run, then the port. The
+thinner bridge reference is a second approximation with its own arms and its own ruling.
+
+**The setting, in full.** `coarse: { w: 2, a: 3, b: 3, g: 2, c: 2, src: 'NT', expand: 'LRVOH', climb: 3 }`
+(`solve-cfg.mjs` writes it `w2a3b3g2c2-NT-LRVOH-h3`). The thinner reference:
+`adaptiveLattice: { na: 80, nb: 21, nz: 64, foot: true, stepAll: true }` (the candidate's is 160, 41, 128).
+
+### Stage A. The experiment (EXPLORATORY, seed 7002; in item 7's batch, on the tables after item 3)
+
+- **Households:** the review's eight (`audit-curve.mjs` `HOUSEHOLDS`) and S224, S362, S366 and S370. Twelve. A
+  household "has a bridge year" where its solve builds the reference (`g.reader.adaptive` is set).
+- **Arms, one solve each at 45 points:**
+  - OFF: the candidate as it is. On the review's eight this is item 7's whole-menu arm: solve it and run it once.
+  - ON: OFF with `coarse` at the setting.
+  - REF: OFF with the thinner reference. Households with a bridge year only.
+  - ON+REF: both. Households with a bridge year only.
+  - If a width of item 7 has passed: ON's tables run with that width, on the review's eight. The two ship together
+    only if this arm passes too.
+- **Paths:** 16,000, the same for every arm, scored by the engine.
+- **Times:** each unit records its solve's seconds and its reference's (`g.reader.adaptive.secs`). Then gate 5's own
+  measurement (`batch-gate5.sh`, the machine running nothing else) with ON, and ON+REF, in the candidate's place.
+- **First, the port's check against the review.** Before the batch, run
+  `node research/reviews/2026-11-09/scripts/solve-anchors.mjs S116 45 1000 w2a3b3g2c2-NT-LRVOH-h3` on the tree with
+  the patch. It must print 964,205 of 2,099,520 table entries differing and 3.60e-3 points lost on average
+  (`results/out-solve-45d-S116.txt`, the same command; `out-solve-final-S116.txt` has the same two figures from the
+  patch as committed). On tables after item 3 those two figures move, so run this check on f02e8741 with the patch.
+- **Size:** about 11 core-hours, and gate 5's hour.
+
+**The decision rule, committed before launch.** ON passes if all five hold, ON against OFF, paired:
+1. pooled over the twelve, the survival difference's 95% interval has its lower end above -0.1 points;
+2. no household's interval lies wholly below -0.3;
+3. pooled spending delivered is within 0.05 points of target of OFF's;
+4. the pooled mean pot left is within 0.5%;
+5. the solve is at least 5 times as fast on one core on every household without a bridge year, by the units' own
+   times and by gate 5's.
+
+REF passes if 1 to 4 hold for REF against OFF and for ON+REF against OFF, on the households with a bridge year, and
+ON+REF is at least 5 times as fast as OFF on each of them.
+
+The pooled interval's half-width is about 0.02 points at 192,000 paths, at the discordance the review saw (0.5 to 3
+paths in 1,000), so the rule can tell a loss of 0.1 from none. On three bridge households alone it is about 0.05.
+
+**Outcomes.**
+- **ON passes:** to the maintainer, for the ruling naming the run. Then stage B.
+- **ON fails 1 to 4:** run `w2a2b2g2c2-NT-LRVOH-h3` (every 2nd share point an anchor, 1,472 anchors) once, by the
+  same rule. If that fails too, report and stop.
+- **ON passes 1 to 4 and fails 5:** report the times. Nothing is ported until the maintainer has seen them.
+- **REF fails:** the reference stays as it is. Households with a bridge year then get ON alone, about 3 times
+  faster, and the report says so.
+
+### Stage B. The port (after the maintainer's ruling naming stage A's run)
+
+1. **The code.** `git apply research/reviews/2026-11-09/prototype/solve-coarse.diff`, or its hunks by hand where
+   `src/solver/solve.js` has moved since f02e8741. Keep its names. It is:
+   - inside `solve()`: `copyPass(t, only)`; the `CTF` line after `splitCounts`; the cell loop wrapped in
+     `for (let pass = 0; pass < NPASS; pass++)` with its two `if (CTF !== null ...)` lines; `coarseSync` after the
+     loop;
+   - at the file's end: `COARSE`, `coarseSetup`, `coarseAdd`, `coarseWiden`, `coarseMask`, `coarseCell`,
+     `coarseSync`;
+   - one line in `researchFinish` (`meta.coarse`).
+2. **V8's limit.** With the hooks, `solve()` is 61,395 bytes of 61,440 (the branch: 60,516;
+   `results/out-solve-size.txt`). `solve-size.test.mjs` must pass unchanged. If the working branch's `solve()` has
+   grown, move other code out to a helper at the file's end first. Do not raise the limit, and do not put any of the
+   shortlist's code inside `solve()`: that is what made the first prototype 2.7 times slower.
+3. **The setting.** `coarse` is off in code. The setting is one constant in `src/solverSettings.js`
+   (`APP_COARSE`), the object above. `solveForApp` hands it to the solve at the dial's first position only: a
+   single's, and each person's of a couple. `meta.coarse` records it (the patch does this). `candidate.json` takes
+   `coarse`, and the thinner lattice if REF passed, by the ruling; the candidate's hash changes, and the D-line
+   records the old and the new. `fair-variables.mjs` takes the key `coarse` (a protected file: ask for the unlock,
+   naming the key).
+4. **A locked dial position keeps the whole menu.** Positions 3, 6 and 10 solve on `tsOnce: false`, the layer
+   loop, where `coarseSetup` throws. `solveForApp` must not pass `coarse` to that solve. Its base solve takes it. So
+   a user at a position above 1 saves less than half the wait, not six sevenths of it. Bringing the shortlist to the layer loop is
+   its own item after this one: `lockMask`'s rule in `coarseCell`'s choice, and the every-move identity against the
+   layer loop.
+5. **The test.** `tests/solve-coarse.test.mjs` moves to `research/tests/solve-coarse.test.mjs`, its imports
+   changed to the repository's own and its split run through `solveSplit`. Twelve checks, each plant failing:
+   - every cell an anchor: the solve's tables bit for bit;
+   - every move listed: the solve's tables bit for bit, on S116 and on S370. Plant `staleflow` parts them;
+   - the repeat-move rule on and off: bit for bit. Plant `posonly` parts them;
+   - split across two parts against one thread: bit for bit. Plant `nocopy` parts them;
+   - `meta.coarse`, no cell without a list, the anchors' share;
+   - refused on `tsOnce: false`.
+   It takes about six minutes, so it joins the full tier, not FAST. Under `--full` add the known answer: S116 at 45
+   points, 1,000 paths, survival within 0.5 points of the whole menu's.
+6. **The option off changes nothing.** The fast suite's pinned hashes are the check. Beside them, once:
+   `node scripts/solve-same.mjs <the tree before the port> <the tree after> S116 4 off`, and the same for S370. Each
+   must print 0 table values differing.
+7. **The fast suite; re-pin e3pcls** (D9): the solver's code hash changes.
+8. **Stored solves.** A solve stored with the option must not be restored as one without, nor the reverse. Check
+   that `coarse` is in what names a stored solve, and add that case to `cache-key.test.mjs`.
+9. **Gate 5 again,** with the option on, reported beside the old block. Its "0 of N values differ split" is the
+   four-part check of the split.
+
+**Not in this item.**
+- The locked dial positions (step 4 above).
+- The product baseline's path (no tier state). Under the switch the app does not run it.
+- A coarser wealth stride. Every 3rd wealth point took the three households without a bridge year from 49 to 53 s
+  down to 44 to 47, but it raised the table score lost on S370 (0.0074 against 0.0040) and on S188 (0.0105 against
+  0.0041). Every 4th lost 11 to 13 points of score at single cells. Neither is offered.
+
+**Report back:** stage A's read whole, each household's two times, and gate 5's block. **Time box:** a day for
+stage A, half a day for stage B.
+
+---
+
 ## What is asked of the maintainer
 
 | | The question | What I would do |
@@ -640,6 +786,8 @@ paths.
 | M4 | Couples outside the 40 to 60 band keep the app's rules until item 6C reads? | Yes. |
 | M5 | The shortlist on, after item 7's stage A? | By your ruling naming the run, if it passes its rule. |
 | M6 | The dated rules: carry them by tax year, or state the assumption? | State it now (one line on the page); carry the 2027 savings rates when the 2027/28 figures are next updated. |
+| M7 | Item 10's stage A now, on today's tables, or in item 7's batch after item 3? | In item 7's batch. Item 3 changes every table, so a run now is run again then: 11 core-hours twice. Now only if the beta's wait matters more this week than those hours. |
+| M8 | The solve on anchors and shortlists on, and the thinner bridge reference, after item 10's stage A? | By your ruling naming the run, each if it passes its rule. They are two approximations and get two answers. |
 
 ## The prompt for the agent
 
@@ -689,4 +837,27 @@ read. d4-backup is not opened.
 
 Stop at each STOP the document names and at the launch plan's section 5 stops. Each item has a time box: when one
 runs out, stop and report.
+```
+
+## The follow-up prompt for item 10
+
+The maintainer sends it when the faster solve is wanted. It adds to the first prompt and replaces none of it.
+- **To have stage A now as well (M7)**, replace step 1's first sentence with: "Run item 10's stage A now, on the
+  tables as they are, without item 7's arm, and again in item 7's batch after item 3."
+
+```
+Read item 10 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md and REVIEW.md 2.3 on
+review/external-2026-10-21 at its head. Fetch that branch first. Record it as its own D-line.
+
+1. Item 10's stage A runs in item 7's batch, on the tables after item 3 (EXPLORATORY, seed 7002), its decision rule
+   committed first. Before the batch, apply the review's patch to a scratch tree at f02e8741, run the review's test
+   there (12 checks, each plant failing) and reproduce the review's check on S116: the two figures item 10 names.
+2. Send me stage A's read whole, with each household's two times and gate 5's block. It decides nothing by itself.
+3. Stage B only after my ruling naming the run: the port by its nine steps. Until then the option is off in code
+   and out of candidate.json. Its test joins the full tier, not FAST. Where a step needs a protected file
+   (fair-variables.mjs, a test list), ask me for the unlock, naming the file and the change.
+4. A locked dial position keeps the whole menu: the option is never passed to a locked solve.
+
+No result of D4 is read, printed or estimated. Stop at each STOP the document names. Time box: a day for stage A,
+half a day for stage B. When one runs out, stop and report.
 ```

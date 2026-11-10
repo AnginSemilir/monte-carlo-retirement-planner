@@ -13,7 +13,8 @@ All EXPLORATORY. None is a registered run, and none reads a D4 result.
 `research/build-engine.py`.
 
 The runs of 9 Nov used seed 4242; `short.mjs`, `check.mjs`, `couple-fast.mjs` and `couple-share.mjs` take `SEED=` and
-default to it, so they reproduce `results/`. The runs of 10 Nov used 99001 and 99002.
+default to it, so they reproduce `results/`. The runs of 10 Nov used 99001 and 99002. The solve's runs (the `solve-*`
+scripts) used 99003.
 
 ## The checks every prototype passes first
 
@@ -44,6 +45,36 @@ default to it, so they reproduce `results/`. The runs of 10 Nov used 99001 and 9
 | `summ.py <outputs>` | the table of `REVIEW.md` 2.1 from `short.mjs`'s outputs | | |
 | `prof-couple.mjs` | where a couple's path spends its time | none | `out-prof-couple.txt` |
 | `couple-fast.mjs <couple> [points] [paths]` | a couple's path ranked by the shared scoring: identity and time. `PLANT=faststale` must fail; `SHORTLIST=0` leaves the shortlist out | `couple-rank.diff` (and `shortlist.diff` unless `SHORTLIST=0`) | `out-couple-fast-45.txt`, `out-couple-rank-identity.txt` |
+
+## Review 2: the solve on anchors and shortlists (10 Nov; `REVIEW.md` 2.3, item 10)
+
+All need `solve-coarse.diff` except `solve-coh.mjs`. A setting is one word, such as `w2a3b3g2c2-NT-LRVOH-h3`;
+`solve-cfg.mjs` reads it and says what each part means.
+
+| Script | What it does | Output |
+|---|---|---|
+| `solve-coh.mjs <household> <points>` | how often a cell's stored move is a neighbour's or its own next year's, by axis | `out-solve-coh-S116.txt` |
+| `solve-anchors.mjs <household> <points> <paths> <setting>[,...]` | the solve as it is, then each setting: the time, the tables against the whole menu's, and both plans on the same paths. `BREAK=1` adds the score lost by wealth point and year; `TIME_ONLY=1` times the solves and nothing else | `out-solve-45a-*.txt` to `45d`, `out-solve-final-*.txt` |
+| `solve-same.mjs <tree A> <tree B> <household> <points> <setting or off> [<setting for B>]` | two solves' tables, bit for bit. The port's check that the option off changes nothing (item 10, stage B, step 6) | printed |
+| `solve-split.mjs <household> <points> <parts> <setting or off>[,...]` | one thread against the worker split: the tables bit for bit, and both times | printed |
+| `solve-summ.py <setting> <outputs>` | the table of `REVIEW.md` 2.3 from `solve-anchors.mjs`'s outputs | |
+| `../tests/solve-coarse.test.mjs` | the 12 checks of what must be exact, each plant failing | printed |
+
+`out-solve-size.txt` is `research/tests/solve-size.test.mjs` on the branch and on the patched tree.
+
+How to read the `45` files. They are the search, in the order it ran, and each was made by the prototype as it stood
+then:
+- `45a` (S116, S370): the first settings, widened by level and tier only. Its `LRS` setting (every draw order) is
+  no longer in the patch.
+- `45b` and `45c`: every level, then one draw-order step and the other re-wraps. **Their times were taken with other
+  jobs on the machine** and their "solve as it is" time is that loaded run's; read their tables and paths, not
+  their times.
+- `45d`: climbing, with the repeat-move rule. Its "solve as it is" time is `45a`'s, taken under the same load (one
+  other job on the second core).
+- `final`: the patch as committed, 4,000 paths. S116's and S370's "solve as it is" time is `45a`'s again; S224's
+  and S188's are their own run's.
+- A file that ends "stopped here by hand" was stopped before its remaining settings; the unfinished setting's
+  half-printed lines were removed. Every other line of every file is as the script printed it.
 
 ## Review 3: D4's cost
 

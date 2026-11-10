@@ -64,10 +64,13 @@ commit marks them by itself.
    £302,000 of tax over one library household's plan. Put right, 24 of 237 library households lose more than a point
    of survival (the worst 3.7), and 196 move by half a point or less. A test of 22 checks against an independent
    reference fails 10 on the branch; the prototype passes all but one, which it does not build.
-3. **Two speed cuts, prototyped at 45 points** (Review 2). A couple's path runs 2.4 times faster with every
+3. **Three speed cuts, prototyped at 45 points** (Review 2). A couple's path runs 2.4 times faster with every
    path bit for bit the same, by ranking each person through the single chooser's shared scoring. A single's path
    runs 3 to 10 times faster on a shortlist of the moves the tables already stored, with no survival loss visible
-   on 4,000 paths.
+   on 4,000 paths. And, added on 10 Nov, the solve itself runs about 7 times faster on one core (49 to 53 s against
+   341 to 370) by scoring the whole menu at 828 of the year's 14,580 cells and a shortlist at the rest: 9 paths saved
+   and 15 lost of 16,000 (-0.04 points, se 0.03). A household with years before pension access gets 3.3 times from
+   that alone, and 5.8 with a thinner bridge reference.
 4. **D4 is better stopped unread and run once on the code that ships** (Review 3; advised on 10 Nov, on the
    maintainer's question). It is frozen on the engine with the tax defect of point 2. About 700 core-hours remain,
    where a whole re-run costs about 400 with the exact cut of point 3, and about 160 with a two-stage rule that keeps
@@ -252,8 +255,9 @@ on all income, which the prototype does not build) (`results/out-engine-hmrc-bra
 bit-for-bit identity check, and S1 to S3 and E2 a planted fault that fails it. I did not re-run those tests, and I did
 not read E5 or E7 to E11 line by line.
 
-Two cuts are prototyped below, in a scratch copy (`prototype/shortlist.diff`, `prototype/couple-rank.diff`). Both are
-off unless switched on, and both are measured at the product's 45 points.
+Three cuts are prototyped below, in scratch copies (`prototype/shortlist.diff`, `prototype/couple-rank.diff`, and
+since 10 Nov `prototype/solve-coarse.diff`). Each is off unless switched on, and each is measured at the product's 45
+points.
 
 ### 2.1 A single's path: score a shortlist, not all 800 moves (approximate; 3 to 10 times)
 
@@ -321,10 +325,98 @@ This changes no number, so it is a port, not a trade. It applies to D5's screens
 after D4 (D4's code is frozen). With the structure shortlist on top the path was 141 ms at 45 points (4.1 times; no
 path saved or lost of 100, the mean pot left 0.5% lower), which needs its own paired measurement on more paths.
 
-### 2.3 Not prototyped
+### 2.3 The solve: the whole menu at the anchors, a shortlist everywhere else (approximate; about 7 times)
 
-- **The solve** (360 to 500 s on one core): solving coarse with all moves, then fine with only the moves near-best at
-  the coarse cells. My estimate is 2 to 3 times; it is the least certain item here.
+Added on 10 Nov, on the maintainer's "Ok, now focus on a faster solve. Aim for 5x faster."
+
+The backward pass scores all 800 moves at every cell: 14,580 cells a year at 45 points, 36 to 46 years. But the moves
+it stores are alike from cell to cell. On S116 at 45 points a cell's move is one of its two wealth neighbours' or its
+own next year's at 94.5% of cell-layers, and at 94% to 99% along the other four axes
+(`results/out-solve-coh-S116.txt`). Where it is neither, it usually differs in one thing alone: the spending level,
+the tier, or the draw order or re-wrap.
+
+The prototype (`prototype/solve-coarse.diff`, `opts.coarse`, off unless set) solves each year in two passes:
+
+- **The anchors take the whole menu, as now.** An anchor is a cell on every 2nd wealth point, every 3rd pension-share
+  and ISA-share point and every 2nd gain and allowance bucket, with each axis's last point: 828 of 14,580 cells.
+- **Every other cell scores a shortlist.** It starts from the moves the anchors around it stored this year and the
+  move the cell itself stored next year. Then, for three rounds, each tier layer's best move so far is widened by one
+  step (every spending level, one tier step, one draw-order step, the same draw order's other re-wraps) and the new
+  moves are scored. About 38 moves a cell, against 800.
+- **A listed move is scored exactly as the whole menu scores it.** Only the choice is narrowed.
+
+Each household solved at 45 points on one core, the whole menu and the setting, and both plans run by the engine on
+the same 4,000 paths (`results/out-solve-final-*.txt`; the table is `scripts/solve-summ.py`'s). "Score lost" is the
+tables' own score, in points, averaged over every cell, year and layer. S370 is the one household of the four with
+years before pension access; its row is on the thinner bridge reference described below.
+
+| | The solve as it is | The setting | Table score lost (average; worst cell) | Paths saved, lost | Spending delivered | Mean pot left |
+|---|---|---|---|---|---|---|
+| S116 | 341 s, 89.33% | 49 s, 6.91 times | 0.0036; 1.86 | 3, 5 of 4,000 (-0.05 points, se 0.07) | -0.006 points of target | 0.00% |
+| S224 | 369 s, 70.33% | 53 s, 6.94 times | 0.0028; 0.58 | 1, 2 of 4,000 (-0.03 points, se 0.04) | -0.005 points of target | -0.09% |
+| S188 | 370 s, 69.22% | 51 s, 7.21 times | 0.0041; 2.26 | 0, 2 of 4,000 (-0.05 points, se 0.04) | -0.005 points of target | +0.17% |
+| S370 | 486 s, 84.30% | 84 s, 5.77 times | 0.0040; 1.32 | 5, 6 of 4,000 (-0.03 points, se 0.08) | -0.017 points of target | +0.02% |
+| all | | | | 9 saved, 15 lost of 16,000: -0.037 points (se 0.031) | | |
+
+On the bridge reference as it is, S370's solve is 146 s (3.34 times), with the same paths, spending and pot.
+
+**How it got there** (S116 and S370, 1,000 paths; `results/out-solve-45a-*.txt` to `45d`). "Score lost" is the tables'
+own score, in points, averaged over every cell, year and layer.
+
+| Step (the setting's word in the outputs) | S116: score lost, worst cell | S370: score lost, worst cell | What it showed |
+|---|---|---|---|
+| Every 4th wealth point, every 2nd share point; widened by one level and one tier step (`w4a2b2-NT-LR`) | 0.180, 83.7 | 0.211, 88.6 | Too coarse, and 211 moves a cell (every draw order) did not help |
+| Every 2nd wealth point, every 3rd share point, every 2nd bucket; every level (`w2a3b3g2c2-NT-LRV`) | 0.014, 7.5 | 0.043, 7.5 | The misses are now in draw order and re-wrap. S370's pot left fell 5.0% |
+| The same, widened by one draw-order step and the other re-wraps (`-LRVOH`) | 0.0029, 1.7 | 0.0065, 5.4 | Accurate, but 66 moves a cell: 4.5 times faster on S116 |
+| The same, climbing from each layer's best for three rounds (`-LRVOH-h3`) | 0.0036, 1.9 | 0.0040, 1.3 | 38 moves a cell: 7.0 times faster on S116 |
+
+Two things tried and dropped. A check that sent a cell back to the whole menu when its shortlist's best fell short of
+what the anchors predicted: at the light settings it sent a third of the cells back and improved no table (that
+run's output was not kept, and the check is not in the patch). And every 4th wealth point with the climb: 8.7 times
+faster on S116, but single cells lost 11 to 13 points of score on both households.
+
+**The bridge reference is the other half for a household with years before pension access.** S370's solve builds
+it in 76 s, and the shortlist does not touch it: 146 s in all. A thinner lattice (80 by 21 by 64 in place of 160 by 41
+by 128) builds in 14.5 s, which is the 84 s of the table. S370's 4,000 paths end exactly as on the full reference: the
+same 5 saved and 6 lost, the same spending and pot. The tables move a little: the worst year-0 cell is 0.73 points off
+the whole menu's, against 0.08 on the full reference. A far thinner lattice (48 by 9 by 32, the tests' own) built in
+2 s and left the 1,000-path counts as they were (`results/out-solve-45d-S370.txt`). This is a second approximation,
+measured on one household, so it gets its own arms in item 10.
+
+**What must be exact, is** (`tests/solve-coarse.test.mjs`, 12 checks):
+- every cell an anchor: the solve's tables bit for bit;
+- every move listed: the solve's tables bit for bit, on S116 (3,919,104 values) and on S370 (5,007,744). The cell's
+  arithmetic is a second copy of the whole menu's, and this is what holds the two together;
+- the repeat-move rule on and off: bit for bit;
+- split across two workers against one thread: bit for bit;
+- each of the three plants parts the tables.
+
+What this shows and does not:
+- **No loss beyond noise on 16,000 paths, and a hint of a small one.** 9 saved, 15 lost: -0.04 points (se 0.03), and
+  every household is slightly negative. A narrower choice cannot score better at a cell given the same tables ahead,
+  so a real loss of a few hundredths of a point is the likely reading. That is inside D65's 0.1. Item 10's stage A
+  (twelve households, 16,000 paths each) is sized to tell 0.1 from none.
+- **One bridge household.** The thinner reference rests on S370 alone.
+- **Not measured on four cores.** This machine has two. Split across two workers the tables are one thread's bit
+  for bit at the light settings (the test); the split's time at 45 points is not measured in this commit. Gate 5 has
+  to be measured again on the port.
+- **A locked dial position is not covered.** Positions 3, 6 and 10 solve on the layer loop, and the prototype refuses
+  to run there. Their base solve is faster; the locked solve is not. So a user at a position above 1 saves less
+  than half the wait.
+- **`solve()` is 45 bytes under V8's optimiser limit with the hooks in** (61,395 of 61,440; the branch has 924 to
+  spare; `results/out-solve-size.txt`). All of the shortlist's code is in helpers at the file's end. The first
+  prototype put a closure inside `solve()`, went 449 bytes over, and the whole solve ran three times slower (85 s
+  against 28 at the light settings; not kept as a file).
+- **Where the time goes now** (S116, 49 s). By proportion about 19 s is the anchors (5.7% of the whole menu's
+  341 s), and most of the other 30 is the cells between them: 38 moves at 344,000 cell-years. Every 3rd wealth point
+  takes S116 to 44 s (7.8 times) and S224 and S188 to 47 s, but it raises the table score lost on S370 (0.0074
+  against 0.0040) and on S188 (0.0105 against 0.0041). It is not part of the setting.
+
+My recommendation: measure it by item 10's rule and, if it passes, turn it on for the solve at the dial's first
+position, with the thinner reference if that passes its own arms.
+
+### 2.4 Not prototyped
+
 - **D5 still has no time budget for a couple.** Even after 2.2, 2,000 paths is several core-minutes for a 28-year
   couple and three times that for a 61-year one, before each person's skip costs.
 - **Phone memory has never been measured on a phone.** The harness's desktop browser peaks at 755 MB for the default
@@ -444,8 +536,11 @@ library's; the gaps above are about households unlike it.
   `__ISA_SWEEP`). Each applies to f02e8741 with `git apply` from the repository root, and each is off unless switched
   on. The engine patch changes the engine only, so the solver's model disagrees with it once a switch is on: it is for
   sizing, not for merging. `d4-shard.diff` (batch-couples.sh: `D4_SHARD`) is item 1's edit; it applies to D4's launch
-  commit e09ac60 and to f02e8741, and does nothing unless `D4_SHARD` is set.
+  commit e09ac60 and to f02e8741, and does nothing unless `D4_SHARD` is set. `solve-coarse.diff` (solve.js:
+  `opts.coarse`, Review 2.3) was written and measured on a tree without the other patches. It also applies on top of
+  `shortlist.diff`, and `solve()` stays 45 bytes under V8's limit with both in; the two together were not run.
 - `tests/engine-hmrc.test.mjs`: the engine's year against an independent reference (Review 1).
+- `tests/solve-coarse.test.mjs`: what must be exact about the solve on anchors and shortlists (Review 2.3).
 - `scripts/`: `scripts/README.md` lists each script, its command and the output it gave. Each finds the repository
   from `REPO_ROOT` or from its own place in the tree; run `python3 research/build-engine.py` there first.
 - `results/`: every run's output as printed. The 45-point uneven-couple lines (`out-share-S091.txt`) were recovered

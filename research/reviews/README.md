@@ -16,8 +16,11 @@ dated record, and the agent cites them by commit.
 - The maintainer's brief of 9 Nov: the engine's money rules against 2026/27 rules, the speed work, D4's cost, and large
   gaps not yet investigated. The findings and their evidence are `2026-11-09/REVIEW.md`.
 - `EXPERIMENTS-AND-PORTS.md` is the instructions: nine items in the order to do them, each with its experiment, its
-  decision rule, the port if it passes and its time box. Its last section is the prompt for the agent. Nothing in it
-  is done until the maintainer sends that prompt.
+  decision rule, the port if it passes and its time box, and the prompt for the agent. Nothing in it is done until
+  the maintainer sends that prompt.
+- **Added later on 10 Nov: item 10, the solve on anchors and shortlists** (about 7 times faster on one core,
+  approximately; `REVIEW.md` 2.3, `prototype/solve-coarse.diff`). It is not in the first prompt. Its own follow-up
+  prompt is the file's last section.
 - Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
 - It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
 - Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.

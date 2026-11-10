@@ -1,0 +1,14 @@
+PASS  1. every cell an anchor, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S370 at 4 points: 0 of 5007744 table values differ from the solve without the option
+PASS  2. planted (a move's flow kept from the cell before), S116: 2150784 of 3919104 table values differ
+PASS  3. w2a3b3g2c2-NT-LRVOH-h3 on S370 with the repeat-move rule against without it: 0 of 5007744 table values differ (266172 expectations taken from a listed move)
+PASS  3. planted (the position alone matched, neither the growth class nor the layer), S370: 2105742 of 5007744 table values differ
+PASS  4. w2a3b3g2c2-NT-LRVOH-h3 on S370, split across two parts against one thread: 0 of 5007744 table values differ
+PASS  4. planted (the anchors' copied cells not made before the second pass), S370 split: 1496987 of 5007744 table values differ
+PASS  5. meta.coarse records the setting: {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}
+PASS  5. 33839 cells solved on a shortlist of 34.6 moves on average; cells with nothing listed 0
+PASS  5. the anchors are 8.3% of the grid's cells at these strides (4 x 6 x 6 x 3 x 3)
+PASS  6. refused outside E5's path (tsOnce false): coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays
+ALL PASS: 12 checks
+exit 0

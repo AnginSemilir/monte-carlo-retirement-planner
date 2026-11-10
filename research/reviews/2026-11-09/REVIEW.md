@@ -346,7 +346,8 @@ The prototype (`prototype/solve-coarse.diff`, `opts.coarse`, off unless set) sol
 - **A listed move is scored exactly as the whole menu scores it.** Only the choice is narrowed.
 
 Each household solved at 45 points on one core, the whole menu and the setting, and both plans run by the engine on
-the same 4,000 paths (`results/out-solve-final-*.txt`; the table is `scripts/solve-summ.py`'s). "Score lost" is the
+the same 4,000 paths (`results/out-solve-final-*.txt`; the table is `scripts/solve-summ.py`'s, less S370's
+reference times, which are in the text below). "Score lost" is the
 tables' own score, in points, averaged over every cell, year and layer. S370 is the one household of the four with
 years before pension access; its row is on the thinner bridge reference described below.
 
@@ -359,6 +360,9 @@ years before pension access; its row is on the thinner bridge reference describe
 | all | | | | 9 saved, 15 lost of 16,000: -0.037 points (se 0.031) | | |
 
 On the bridge reference as it is, S370's solve is 146 s (3.34 times), with the same paths, spending and pot.
+
+The table's times were taken with another job on the machine's second core. With nothing else running, S116's pair
+was 337 s and 43 s: 7.9 times (`results/out-solve-split-S116.txt`).
 
 **How it got there** (S116 and S370, 1,000 paths; `results/out-solve-45a-*.txt` to `45d`). "Score lost" is the tables'
 own score, in points, averaged over every cell, year and layer.
@@ -383,7 +387,7 @@ the whole menu's, against 0.08 on the full reference. A far thinner lattice (48 
 2 s and left the 1,000-path counts as they were (`results/out-solve-45d-S370.txt`). This is a second approximation,
 measured on one household, so it gets its own arms in item 10.
 
-**What must be exact, is** (`tests/solve-coarse.test.mjs`, 12 checks):
+**What must be exact, is** (`tests/solve-coarse.test.mjs`, 12 checks, `results/out-solve-coarse-test.txt`):
 - every cell an anchor: the solve's tables bit for bit;
 - every move listed: the solve's tables bit for bit, on S116 (3,919,104 values) and on S370 (5,007,744). The cell's
   arithmetic is a second copy of the whole menu's, and this is what holds the two together;
@@ -397,8 +401,10 @@ What this shows and does not:
   so a real loss of a few hundredths of a point is the likely reading. That is inside D65's 0.1. Item 10's stage A
   (twelve households, 16,000 paths each) is sized to tell 0.1 from none.
 - **One bridge household.** The thinner reference rests on S370 alone.
-- **Not measured on four cores.** This machine has two. Split across two workers the tables are one thread's bit
-  for bit at the light settings (the test); the split's time at 45 points is not measured in this commit. Gate 5 has
+- **Not measured on four cores.** This machine has two. On those two, with nothing else running, S116's solve split
+  across two workers took 26 s against the whole menu's 212 s (8.2 times), and on one thread 43 s against 337 (7.9
+  times). Split and one thread gave the same 44,089,920 table values bit for bit, for the whole menu and for the
+  setting (`results/out-solve-split-S116.txt`). So the second pass does not cost the split anything here. Gate 5 has
   to be measured again on the port.
 - **A locked dial position is not covered.** Positions 3, 6 and 10 solve on the layer loop, and the prototype refuses
   to run there. Their base solve is faster; the locked solve is not. So a user at a position above 1 saves less

@@ -1,0 +1,4 @@
+S116 at 45 points, the solve on one thread and split across 2; EXPLORATORY
+  off: one thread 337.2 s; split 211.7 s (1.59 times its one thread); split against one thread: 0 of 44089920 table values differ
+  w2a3b3g2c2-NT-LRVOH-h3: one thread 42.6 s (7.92 times the solve as it is); split 25.8 s (1.65 times its one thread, 8.19 times the split solve as it is); split against one thread: 0 of 44089920 table values differ
+exit 0

@@ -56,9 +56,9 @@ All need `solve-coarse.diff` except `solve-coh.mjs`. A setting is one word, such
 | `solve-coh.mjs <household> <points>` | how often a cell's stored move is a neighbour's or its own next year's, by axis | `out-solve-coh-S116.txt` |
 | `solve-anchors.mjs <household> <points> <paths> <setting>[,...]` | the solve as it is, then each setting: the time, the tables against the whole menu's, and both plans on the same paths. `BREAK=1` adds the score lost by wealth point and year; `TIME_ONLY=1` times the solves and nothing else | `out-solve-45a-*.txt` to `45d`, `out-solve-final-*.txt` |
 | `solve-same.mjs <tree A> <tree B> <household> <points> <setting or off> [<setting for B>]` | two solves' tables, bit for bit. The port's check that the option off changes nothing (item 10, stage B, step 6) | printed |
-| `solve-split.mjs <household> <points> <parts> <setting or off>[,...]` | one thread against the worker split: the tables bit for bit, and both times | printed |
+| `solve-split.mjs <household> <points> <parts> <setting or off>[,...]` | one thread against the worker split: the tables bit for bit, and both times | `out-solve-split-S116.txt` |
 | `solve-summ.py <setting> <outputs>` | the table of `REVIEW.md` 2.3 from `solve-anchors.mjs`'s outputs | |
-| `../tests/solve-coarse.test.mjs` | the 12 checks of what must be exact, each plant failing | printed |
+| `../tests/solve-coarse.test.mjs` | the 12 checks of what must be exact, each plant failing | `out-solve-coarse-test.txt` |
 
 `out-solve-size.txt` is `research/tests/solve-size.test.mjs` on the branch and on the patched tree.
 

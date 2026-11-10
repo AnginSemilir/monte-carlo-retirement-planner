@@ -659,7 +659,9 @@ At 45 points on one core, 4,000 paths a household (`results/out-solve-final-*.tx
 
 - **Time.** S116 341 s to 49 s, S224 369 to 53, S188 370 to 51: 6.9 to 7.2 times. S370, which has years before
   pension access, 486 to 146 (3.3 times): 76 of the 146 s is its bridge reference, which the shortlist does not touch.
-  On a thinner reference lattice it is 84 s (5.8 times; 75 s in the 1,000-path run before).
+  On a thinner reference lattice it is 84 s (5.8 times; 75 s in the 1,000-path run before). Those times had another
+  job on the second core. With nothing else running, S116 is 337 s to 43 on one thread (7.9 times) and 212 s to 26
+  split across two workers (8.2 times), the tables bit for bit the same (`results/out-solve-split-S116.txt`).
 - **Outcomes.** 9 paths saved and 15 lost of 16,000: -0.04 points of survival (se 0.03), each household between
   -0.03 and -0.05. Spending delivered is within 0.02 points of target on every household, and the mean pot left
   within 0.2%.
@@ -746,7 +748,8 @@ paths in 1,000), so the rule can tell a loss of 0.1 from none. On three bridge h
    its own item after this one: `lockMask`'s rule in `coarseCell`'s choice, and the every-move identity against the
    layer loop.
 5. **The test.** `tests/solve-coarse.test.mjs` moves to `research/tests/solve-coarse.test.mjs`, its imports
-   changed to the repository's own and its split run through `solveSplit`. Twelve checks, each plant failing:
+   changed to the repository's own and its split run through `solveSplit`. Twelve checks, each plant failing
+   (`results/out-solve-coarse-test.txt`):
    - every cell an anchor: the solve's tables bit for bit;
    - every move listed: the solve's tables bit for bit, on S116 and on S370. Plant `staleflow` parts them;
    - the repeat-move rule on and off: bit for bit. Plant `posonly` parts them;

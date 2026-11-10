@@ -1,0 +1,29 @@
+237 library households already touched (38 couples, 98 still working), the plan as entered, 1000 paths of seed 99001; EXPLORATORY
+survival, HMRC's order and a worker's pay in the stack, less the engine as it is (points): mean -0.3; median +0.0; worst -3.7; best +0.1
+households losing over 1 point: 24; over 3: 2; over 5: 0; gaining over 1: 0; within 0.5 either way: 196
+a worker's pay alone (1.1): mean -0.2; worst -2.9; households losing over 1 point: 12
+  a quarter or more in the taxable account: 47 households, mean -0.9, worst -3.7; tax on the expected path up 65,727 a household
+  less than a quarter there: 190 households, mean -0.2, worst -3.0; tax on the expected path up 19,332 a household
+  still working: 98 households, mean -0.6, worst -3.7; tax on the expected path up 50,856 a household
+  retired: 139 households, mean -0.2, worst -2.6; tax on the expected path up 12,793 a household
+  couples: 38 households, mean -0.2, worst -1.7; tax on the expected path up 12,753 a household
+  singles: 199 households, mean -0.4, worst -3.7; tax on the expected path up 31,546 a household
+the twelve that lose most:
+  S330 working, 45% in the taxable account: 73.6% as it is, -3.7 (37 lost, 0 saved); pay alone -2.9; tax on the expected path 476,609 to 650,220
+  S214 working, 45% in the taxable account: 61.2% as it is, -3.5 (35 lost, 0 saved); pay alone -1.1; tax on the expected path 521,022 to 773,308
+  S238 working, 5% in the taxable account: 70.8% as it is, -3.0 (30 lost, 0 saved); pay alone -0.9; tax on the expected path 386,377 to 518,850
+  S270 working, 45% in the taxable account: 78.8% as it is, -3.0 (30 lost, 0 saved); pay alone -1.8; tax on the expected path 393,356 to 636,557
+  S272 working, 45% in the taxable account: 42.3% as it is, -2.8 (28 lost, 0 saved); pay alone -2.2; tax on the expected path 361,381 to 435,180
+  S334 working, 45% in the taxable account: 50.6% as it is, -2.8 (28 lost, 0 saved); pay alone -1.9; tax on the expected path 4,395,580 to 5,580,073
+  S034 retired, 45% in the taxable account: 75.4% as it is, -2.6 (26 lost, 0 saved); pay alone +0.0; tax on the expected path 313,585 to 494,213
+  S332 working, 45% in the taxable account: 41.4% as it is, -2.5 (25 lost, 0 saved); pay alone -1.9; tax on the expected path 1,510,638 to 1,561,795
+  S294 working, 5% in the taxable account: 72.9% as it is, -2.4 (24 lost, 0 saved); pay alone -1.6; tax on the expected path 309,558 to 472,144
+  S328 working, 45% in the taxable account: 60.5% as it is, -2.3 (23 lost, 0 saved); pay alone -1.0; tax on the expected path 321,562 to 406,016
+  S354 working, 5% in the taxable account: 71.9% as it is, -2.3 (23 lost, 0 saved); pay alone -2.1; tax on the expected path 289,736 to 410,788
+  S118 retired, 5% in the taxable account: 79.2% as it is, -2.2 (22 lost, 0 saved); pay alone +0.0; tax on the expected path 295,450 to 415,939
+the five that gain most:
+  S056, 5% in the taxable account, 0% in cash outside an ISA: 67.6% as it is, +0.1; tax 64,595 to 64,034
+  S042, 10% in the taxable account, 10% in cash outside an ISA: 99.1% as it is, +0.1; tax 105,516 to 107,042
+  S412, 5% in the taxable account, 23% in cash outside an ISA: 75.3% as it is, +0.0; tax 22,972 to 25,483
+  S410, 5% in the taxable account, 0% in cash outside an ISA: 98.5% as it is, +0.0; tax 0 to 319
+  S408, 5% in the taxable account, 45% in cash outside an ISA: 100.0% as it is, +0.0; tax 0 to 0

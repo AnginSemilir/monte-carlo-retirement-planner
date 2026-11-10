@@ -1,0 +1,20 @@
+import { repoRoot } from './root.mjs';
+const R = repoRoot(import.meta.url);
+const E = await import(R + '/research/engine.mjs');
+const M = await import(R + '/src/solver/model.js');
+const { solveForApp } = await import(R + '/src/solverApp.js');
+const S = await import(R + '/src/solverStrategy.js');
+const { buildScenarios } = await import(R + '/research/policy-study/scenarios.mjs');
+const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };
+let plan = E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan);
+plan = E.normalizePlan({ ...plan, spending: { ...plan.spending, targetSpend: 38288 } });
+const solved = solveForApp(E, M, plan, LIGHT), sc = S.solvedContext(E, solved), base = sc.policyOverride;
+let calls = 0;
+const noSweep = { ...sc, policyOverride: { ...base, choose: (st, t, held) => { const mv = base.choose(st, t, held); calls++; return mv ? { ...mv, sweepCash: false } : mv; } } };
+const T = sc.totalYears, paths = E.pathsForSeed(4242, 300, T);
+const st1 = E.freshState(sc), st2 = E.freshState(noSweep);
+const r1 = E.stepYear(sc, st1, 0, 'expected'), r2 = E.stepYear(noSweep, st2, 0, 'expected');
+console.log('year 0, swept / not swept: cash', Math.round(r1.cash), Math.round(r2.cash), 'taxable account', Math.round(r1.other), Math.round(r2.other), 'calls', calls, 'sweepCash on the table\'s move:', base.choose(E.freshState(sc), 0, null).sweepCash);
+let a = 0, b = 0, pa = 0, pb = 0, diff = 0;
+for (const zs of paths) { const x = S.runPath(E, sc, zs), y = S.runPath(E, noSweep, zs); if (x.survived) a++; if (y.survived) b++; if (x.survived !== y.survived) diff++; pa += x.terminalPot; pb += y.terminalPot; }
+console.log('survival swept', (a / 3).toFixed(1), 'not swept', (b / 3).toFixed(1), 'paths differing', diff, 'mean end pot', Math.round(pa / 300), Math.round(pb / 300));

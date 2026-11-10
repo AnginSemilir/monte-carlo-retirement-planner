@@ -1,0 +1,164 @@
+/*
+ * THE ENGINE'S YEAR AGAINST HMRC'S ORDER (the external review of 9 Nov, Review 1; EXPERIMENTS-AND-PORTS.md item 3).
+ *
+ * The other tax tests pin each published figure (tax-2026, scottax, savings-tax). This one pins how a person's incomes
+ * are STACKED within a year, which no test did: the solver's model repeats the engine's stacking line for line, so the two
+ * agree with each other and can both differ from HMRC.
+ *
+ * `hmrcYear` below is an independent statement of the order (ITA 2007 s23, as GOV.UK describes it): the personal allowance
+ * (tapered on ALL the year's income) against non-savings income first, then interest, then dividends; non-savings income on
+ * the region's ladder; interest and dividends on the UK's bands above it; the starting rate band (£5,000 less taxable
+ * non-savings income) and the savings allowance at 0% at the bottom of the TAXABLE interest; £500 at 0% at the bottom of the
+ * TAXABLE dividends.
+ *   A. `hmrcYear` itself, against twelve years worked by hand in the comments;
+ *   B. the engine's two functions (taxParams' savingsTax, dividendTax) against it over a grid;
+ *   C. whole years: each fixture's plan run on the expected path, and every year's `taxPaid` against `hmrcYear` on that
+ *      row's own incomes (a worker's pay included: the row's tax is the person's whole bill less the tax on the pay alone,
+ *      which the take-home already paid).
+ * As the engine stands at f02e8741, B and C fail (the review's 1.1, 1.2, 1.3): that is this test shown failing before the
+ * fix (CHECKLIST 7). PROTOTYPE=1 turns on the review's prototype switches, where REPO_ROOT is a copy with
+ * prototype/engine-hmrc.diff applied; there everything passes but C7 (the taper on all income, which the prototype does
+ * not build). The port passes all of it.
+ *   node research/reviews/2026-11-09/tests/engine-hmrc.test.mjs          (from the repository root, engine built)
+ */
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = (() => {
+  if (process.env.REPO_ROOT) return process.env.REPO_ROOT.replace(/\/$/, '');
+  let d = dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 10; i++) { if (existsSync(join(d, 'research', 'build-engine.py'))) return d; d = dirname(d); }
+  throw new Error('repository root not found: set REPO_ROOT');
+})();
+if (process.env.PROTOTYPE === '1') { globalThis.__STACK_SALARY = true; globalThis.__HMRC_ORDER = true; }
+const E = await import(ROOT + '/research/engine.mjs');
+const { buildScenarios } = await import(ROOT + '/research/policy-study/scenarios.mjs');
+
+let passed = 0, failed = 0;
+const ok = (name, cond, note = '') => { if (cond) passed++; else failed++; console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${note ? '  -- ' + note : ''}`); };
+const near = (a, b, tol = 0.5) => Math.abs(a - b) <= tol;
+const gbp = v => `£${(Math.round(v * 100) / 100).toLocaleString('en-GB')}`;
+
+/* ---------------------------------------------------------------- the reference: one person's year, by HMRC's order */
+const UK_BANDS = [37700, 125140];                                     // taxable income: basic to 37,700, higher to 125,140
+const SCOT_2026 = [[3967, 0.19], [16956, 0.20], [31092, 0.21], [62430, 0.42], [125140, 0.45], [Infinity, 0.48]];   // gov.scot, 2026 to 2027
+const RUK = [[UK_BANDS[0], 0.20], [UK_BANDS[1], 0.40], [Infinity, 0.45]];
+const bandTax = (lo, hi, bands) => { let t = 0, a = 0; for (const [top, r] of bands) { const w = Math.min(hi, top) - Math.max(lo, a); if (w > 0) t += w * r; a = top; } return t; };
+export function hmrcYear({ nonSavings = 0, interest = 0, dividends = 0, scottish = false }) {
+  const total = nonSavings + interest + dividends;
+  const pa = Math.max(0, 12570 - Math.max(0, total - 100000) / 2);
+  let left = pa;
+  const tns = Math.max(0, nonSavings - left); left = Math.max(0, left - nonSavings);
+  const ti = Math.max(0, interest - left); left = Math.max(0, left - interest);
+  const td = Math.max(0, dividends - left);
+  const onNonSavings = bandTax(0, tns, scottish ? SCOT_2026 : RUK);
+  const all = tns + ti + td;
+  const psa = all <= UK_BANDS[0] ? 1000 : all <= UK_BANDS[1] ? 500 : 0;
+  const zeroI = Math.min(ti, Math.max(0, 5000 - tns) + psa);
+  const onInterest = bandTax(tns + zeroI, tns + ti, RUK);
+  const zeroD = Math.min(td, 500);
+  const onDividends = bandTax(tns + ti + zeroD, tns + ti + td, [[UK_BANDS[0], 0.1075], [UK_BANDS[1], 0.3575], [Infinity, 0.3935]]);
+  return { pa, onNonSavings, onInterest, onDividends, total: onNonSavings + onInterest + onDividends };
+}
+
+console.log('=========== A. THE REFERENCE, AGAINST YEARS WORKED BY HAND ===========');
+// A1  £30,000 of pension, nothing else: (30,000 - 12,570) x 20% = 3,486
+ok('A1  a pension of £30,000', near(hmrcYear({ nonSavings: 30000 }).total, 3486));
+// A2  £8,000 of pension and £9,000 of interest: the allowance covers the 8,000 and 4,570 of the interest; the other 4,430 is
+//     inside the £5,000 starting rate band. Nothing to pay.
+ok('A2  £8,000 and £9,000 of interest: nothing', near(hmrcYear({ nonSavings: 8000, interest: 9000 }).total, 0));
+// A3  £10,000 and £10,000 of interest: the allowance covers 10,000 + 2,570; of the 7,430 left, 5,000 starting rate, 1,000
+//     savings allowance, 1,430 x 20% = 286
+ok('A3  £10,000 and £10,000 of interest: £286', near(hmrcYear({ nonSavings: 10000, interest: 10000 }).total, 286));
+// A4  GOV.UK's own example: wages £16,000, interest £200. Wages above the allowance, 3,430, cut the starting rate band to
+//     1,570, which covers the interest. Tax: 3,430 x 20% = 686, all on the wages.
+{ const r = hmrcYear({ nonSavings: 16000, interest: 200 }); ok('A4  GOV.UK: wages £16,000, interest £200', near(r.total, 686) && near(r.onInterest, 0)); }
+// A5  a pension drawn to the allowance (£12,570) and £8,489 of dividends: (8,489 - 500) x 10.75% = 858.82
+ok('A5  a draw to the allowance and £8,489 of dividends: £858.82', near(hmrcYear({ nonSavings: 12570, dividends: 8489 }).total, 858.82, 0.01));
+// A6  £12,070 and £1,500 of dividends: the allowance covers 500 of them, the next 500 are at 0%, 500 x 10.75% = 53.75
+ok('A6  £12,070 and £1,500 of dividends: £53.75', near(hmrcYear({ nonSavings: 12070, dividends: 1500 }).total, 53.75, 0.01));
+// A7  pay £60,000 and a pension of £12,929: on 72,929, 37,700 x 20% + 22,659 x 40% = 16,603.60; on the pay alone,
+//     37,700 x 20% + 9,730 x 40% = 11,432; the pension's tax is the difference, 5,171.60
+ok('A7  a pension of £12,929 on top of pay of £60,000: £5,171.60', near(hmrcYear({ nonSavings: 72929 }).total - hmrcYear({ nonSavings: 60000 }).total, 5171.6, 0.01));
+// A8  pay £142,500, interest £3,825.32, dividends £22,397.04: no allowance, no savings allowance; the interest at 45% =
+//     1,721.39; the dividends, (22,397.04 - 500) x 39.35% = 8,616.49
+{ const r = hmrcYear({ nonSavings: 142500, interest: 3825.32, dividends: 22397.04 }); ok('A8  pay £142,500: interest at 45%, dividends at 39.35%', near(r.onInterest, 1721.39, 0.01) && near(r.onDividends, 8616.49, 0.01)); }
+// A9  a state pension of £12,000, a taxable draw of £45,000 and £10,000 of dividends: taxable non-savings 44,430, past the
+//     basic band, so the dividends are all in the higher band: (10,000 - 500) x 35.75% = 3,396.25
+ok('A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends', near(hmrcYear({ nonSavings: 57000, dividends: 10000 }).onDividends, 3396.25, 0.01));
+// A10 Scotland, £30,000: taxable 17,430: 3,967 x 19% + 12,989 x 20% + 474 x 21% = 753.73 + 2,597.80 + 99.54 = 3,451.07.
+//     Scotland, £20,000 and £5,000 of interest: taxable 7,430 = 3,967 x 19% + 3,463 x 20% = 1,446.33; no starting rate band
+//     left; the interest, (5,000 - 1,000) x 20% (the UK's rate) = 800
+ok('A10 Scotland: £30,000; £20,000 with £5,000 of interest', near(hmrcYear({ nonSavings: 30000, scottish: true }).total, 3451.07, 0.01) && near(hmrcYear({ nonSavings: 20000, interest: 5000, scottish: true }).total, 2246.33, 0.01));
+// A11 the taper, £110,000: allowance 7,570; taxable 102,430: 37,700 x 20% + 64,730 x 40% = 33,432. And the taper counts ALL
+//     income: £95,000 with £20,000 of dividends leaves an allowance of 5,070, so 7,500 more of the 95,000 is taxed at 40%
+ok('A11 the taper on all income', near(hmrcYear({ nonSavings: 110000 }).total, 33432) && near(hmrcYear({ nonSavings: 95000, dividends: 20000 }).onNonSavings - hmrcYear({ nonSavings: 95000 }).onNonSavings, 3000));
+// A12 £49,000 and £3,000 of interest: taxable 36,430 + 3,000 passes 37,700, so the savings allowance is 500: 500 at 0%,
+//     770 x 20% = 154, 1,730 x 40% = 692; 846
+ok('A12 interest across the higher-rate line: £846', near(hmrcYear({ nonSavings: 49000, interest: 3000 }).onInterest, 846));
+
+console.log('=========== B. THE ENGINE\'S savingsTax AND dividendTax AGAINST THE REFERENCE ===========');
+{
+  const P = E.taxParams(E.DEFAULT_CONFIG);
+  const NS = [0, 4000, 8000, 10000, 12070, 12570, 15000, 17570, 30000, 49000, 60000, 130000], I = [0, 500, 3980, 9000, 20000], D = [0, 400, 1500, 8489, 30000];
+  let nI = 0, badI = 0, worstI = null, nD = 0, badD = 0, worstD = null;
+  for (const ns of NS) for (const i of I) {
+    if (i > 0) { const got = P.savingsTax(ns, i), want = hmrcYear({ nonSavings: ns, interest: i }).onInterest; nI++; if (!near(got, want)) { badI++; if (!worstI || Math.abs(got - want) > Math.abs(worstI.got - worstI.want)) worstI = { ns, i, got, want }; } }
+    for (const d of D) if (d > 0) { const got = P.dividendTax(ns, i, d), want = hmrcYear({ nonSavings: ns, interest: i, dividends: d }).onDividends; nD++; if (!near(got, want)) { badD++; if (!worstD || Math.abs(got - want) > Math.abs(worstD.got - worstD.want)) worstD = { ns, i, d, got, want }; } }
+  }
+  ok(`B1  savingsTax: ${nI} cases`, badI === 0, badI ? `${badI} differ; the worst: other income ${gbp(worstI.ns)}, interest ${gbp(worstI.i)}: the engine ${gbp(worstI.got)}, HMRC ${gbp(worstI.want)}` : '');
+  ok(`B2  dividendTax: ${nD} cases`, badD === 0, badD ? `${badD} differ; the worst: other income ${gbp(worstD.ns)}, interest ${gbp(worstD.i)}, dividends ${gbp(worstD.d)}: the engine ${gbp(worstD.got)}, HMRC ${gbp(worstD.want)}` : '');
+  ok('B3  the review\'s 1.3: £8,000 and £9,000 of interest is untaxed', near(P.savingsTax(8000, 9000), 0), `the engine ${gbp(P.savingsTax(8000, 9000))}`);
+}
+
+console.log('=========== C. WHOLE YEARS: EVERY ROW\'S taxPaid AGAINST THE REFERENCE ON THE ROW\'S OWN INCOMES ===========');
+const lib = buildScenarios();
+const planOf = (id) => JSON.parse(JSON.stringify(lib.find(s => s.id === id).plan));
+const setBal = (plan, id, balance, extra = {}) => { const a = plan.accounts.find(x => x.id === id); if (!a) throw new Error(`no account ${id}`); Object.assign(a, { balance, ...extra }); };
+const noSaving = (plan) => { plan.accounts.forEach(a => { a.contrib = 0; if ('employerContrib' in a) a.employerContrib = 0; }); return plan; };
+// the plan's rules drawing the pension to the allowance first and re-wrapping it: the move every solved plan favours
+const PA_FIRST = { steps: ['penPA', 'cash', 'other', 'isa', 'penBasic', 'penAny'], harvest: true };
+const FIXTURES = [
+  ['C1  S116 as the library has it (retired, Scotland)', () => planOf('S116')],
+  ['C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2)', () => { const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c); p.spending.policyOverride = PA_FIRST; return p; }],
+  ['C3  the same in England', () => { const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c); p.spending.policyOverride = PA_FIRST; p.config = { ...p.config, taxRegion: 'ruk' }; return p; }],
+  ['C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1)', () => noSaving(planOf('S210'))],
+  ['C5  S214, no saving (working to 60 on £142,500) (1.1)', () => noSaving(planOf('S214'))],
+  ['C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1)', () => {
+    const p = planOf('S021'); Object.assign(p.demographics, { currentAgePart: 60, retireAgePart: 66, salaryPart: 60000 });
+    p.accounts.forEach(a => { if (a.id === 'pen_part') Object.assign(a, { balance: 600000, contrib: 0 }); else if (/^(pen|isa|other|cash|cashIsa)_/.test(a.id)) a.balance = 0; });
+    return noSaving(p);
+  }],
+  // the allowance tapers on ALL the year's income (A11). The review's prototype does not build this: C7 fails on it too.
+  ['C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income', () => {
+    const p = planOf('S116'); const c = p.accounts.find(a => a.id === 'cashIsa_self').balance; setBal(p, 'cashIsa_self', 0); setBal(p, 'other_self', p.accounts.find(a => a.id === 'other_self').balance + c);
+    p.config = { ...p.config, taxRegion: 'ruk' };
+    p.otherIncomes = [{ id: 'db1', owner: 'Myself', name: 'DB', type: 'otherTaxable', amount: 95000, startAge: Number(p.demographics.currentAgeSelf), endAge: 120 }];
+    return p;
+  }]
+];
+for (const [name, make] of FIXTURES) {
+  const plan = E.resolveMpaa(E.normalizePlan(make()));
+  const ctx = E.buildContext(plan), rows = E.simulateDeterministic(ctx, 'expected');
+  const scottish = (plan.config || {}).taxRegion === 'scotland', couple = ctx.owners.length > 1;
+  let bad = 0, worst = null, under = 0, over = 0;
+  rows.forEach((x, t) => {
+    const frac = t === 0 ? ctx.yf : 1;
+    let want = 0;
+    ctx.owners.forEach((o, k) => {
+      const key = k === 0 ? 'Self' : 'Part';
+      const pay = x[`working${key}`] ? E.salaryAtYear(o, t) * frac : 0;
+      // a couple's interest and dividends are not split by person in the row, so C6 holds none; the port adds the split
+      if (couple && (x.savingsInterest > 0.5 || x.giaDividends > 0.5)) throw new Error(`${name}: a couple's fixture must hold no cash or taxable account until the row splits their income by person`);
+      const mine = { nonSavings: pay + x[`otherTaxable${key}`] + x[`taxablePension${key}`], interest: couple ? 0 : x.savingsInterest, dividends: couple ? 0 : x.giaDividends, scottish };
+      want += hmrcYear(mine).total - (pay > 0 ? hmrcYear({ nonSavings: pay, scottish }).total : 0);
+    });
+    const gap = x.taxPaid - want;
+    if (Math.abs(gap) > 1) { bad++; if (gap < 0) under -= gap; else over += gap; if (!worst || Math.abs(gap) > Math.abs(worst.gap)) worst = { year: x.year, gap, got: x.taxPaid, want }; }
+  });
+  ok(`${name}: ${rows.length} years`, bad === 0, bad ? `${bad} years differ by over £1: the engine ${gbp(under)} under and ${gbp(over)} over across the plan; the worst, ${worst.year}: the engine ${gbp(worst.got)}, HMRC ${gbp(worst.want)}` : '');
+}
+
+console.log(`\n${passed} passed, ${failed} failed${process.env.PROTOTYPE === '1' ? ' (the prototype\'s switches on)' : ''}`);
+process.exit(failed ? 1 : 0);

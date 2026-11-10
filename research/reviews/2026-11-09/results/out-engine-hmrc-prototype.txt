@@ -1,0 +1,27 @@
+=========== A. THE REFERENCE, AGAINST YEARS WORKED BY HAND ===========
+PASS  A1  a pension of £30,000
+PASS  A2  £8,000 and £9,000 of interest: nothing
+PASS  A3  £10,000 and £10,000 of interest: £286
+PASS  A4  GOV.UK: wages £16,000, interest £200
+PASS  A5  a draw to the allowance and £8,489 of dividends: £858.82
+PASS  A6  £12,070 and £1,500 of dividends: £53.75
+PASS  A7  a pension of £12,929 on top of pay of £60,000: £5,171.60
+PASS  A8  pay £142,500: interest at 45%, dividends at 39.35%
+PASS  A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends
+PASS  A10 Scotland: £30,000; £20,000 with £5,000 of interest
+PASS  A11 the taper on all income
+PASS  A12 interest across the higher-rate line: £846
+=========== B. THE ENGINE'S savingsTax AND dividendTax AGAINST THE REFERENCE ===========
+PASS  B1  savingsTax: 48 cases
+PASS  B2  dividendTax: 240 cases
+PASS  B3  the review's 1.3: £8,000 and £9,000 of interest is untaxed  -- the engine £0
+=========== C. WHOLE YEARS: EVERY ROW'S taxPaid AGAINST THE REFERENCE ON THE ROW'S OWN INCOMES ===========
+PASS  C1  S116 as the library has it (retired, Scotland): 36 years
+PASS  C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2): 36 years
+PASS  C3  the same in England: 36 years
+PASS  C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1): 41 years
+PASS  C5  S214, no saving (working to 60 on £142,500) (1.1): 41 years
+PASS  C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1): 28 years
+FAIL  C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income: 36 years  -- 36 years differ by over £1: the engine £105,753.14 under and £0 over across the plan; the worst, 2044: the engine £37,961.77, HMRC £41,594.57
+
+21 passed, 1 failed (the prototype's switches on)

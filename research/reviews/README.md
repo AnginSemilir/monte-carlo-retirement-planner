@@ -1,4 +1,4 @@
-# The external reviews: which document is current (3 Nov)
+# The external reviews: which document is current (10 Nov)
 
 This branch (`review/external-2026-10-21`) holds the external reviewer's work. It is not for merging. Each review is a
 dated record, and the agent cites them by commit.
@@ -11,6 +11,17 @@ dated record, and the agent cites them by commit.
 - Where it differs from the agent's `research/solver/PART-C-PLAN.md`, LAUNCH-PLAN.md holds.
 - Its figures: `2026-11-01/launch/`.
 - **Updated 3 Nov:** step U between step P and Phase 11; Phases 11 and 12 recast; the calendar redone.
+
+**The review of 9 Nov, and what to do about it: `2026-11-09/EXPERIMENTS-AND-PORTS.md`.**
+- The maintainer's brief of 9 Nov: the engine's money rules against 2026/27 rules, the speed work, D4's cost, and large
+  gaps not yet investigated. The findings and their evidence are `2026-11-09/REVIEW.md`.
+- `EXPERIMENTS-AND-PORTS.md` is the instructions: nine items in the order to do them, each with its experiment, its
+  decision rule, the port if it passes and its time box. Its last section is the prompt for the agent. Nothing in it
+  is done until the maintainer sends that prompt.
+- Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
+- It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
+- Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.
+- The held-out scan reads this folder: the review used S021, S085, S091 and S301 (`REVIEW.md`'s note).
 
 **The new planner, step U's spec: `2026-11-03/LAYOUT.md`.**
 - The solver-first layout: four places (Your plan, You, What if, Details), and the classic planner kept for couples.

@@ -1,0 +1,16 @@
+import { repoRoot } from './root.mjs';
+const R = repoRoot(import.meta.url);
+const E = await import(R + '/research/engine.mjs');
+const { buildScenarios } = await import(R + '/research/policy-study/scenarios.mjs');
+const all = buildScenarios();
+console.log('households', all.length);
+const rows = all.map(s => { const p = E.normalizePlan(s.plan), d = p.demographics; const bal = c => p.accounts.filter(a => a.category === c).reduce((x, a) => x + (Number(a.balance) || 0), 0);
+  const pen = bal('Pensions'), isa = bal('S&S ISAs'), gia = bal('Other Investments (e.g. GIA)'), cash = bal('Cash Savings'), cisa = bal('Cash ISA');
+  return { id: s.id, couple: d.planningMode !== 'single', age: d.currentAgeSelf, ageP: d.currentAgePart, ret: d.retireAgeSelf, retP: d.retireAgePart, sal: Number(d.salarySelf) || 0, salP: Number(d.salaryPart) || 0, pen, isa, gia, cash, cisa, tot: pen + isa + gia + cash + cisa, region: (p.config || {}).taxRegion, spend: p.spending.targetSpend, nmpa: d.privatePensionAge, dep: (p.oneOffContributions || []).length }; });
+const c = (f) => rows.filter(f).length;
+console.log('couples', c(r => r.couple), 'scot', c(r => r.region === 'scotland'), 'working self', c(r => r.age < r.ret), 'gia>=10%', c(r => r.gia / r.tot >= 0.1), 'cash(non-ISA)>100k', c(r => r.cash > 100000), 'cashISA>50k', c(r => r.cisa > 50000), 'with deposits', c(r => r.dep > 0));
+console.log('couple, one working past 57 while other retired:', rows.filter(r => r.couple && ((r.ret <= r.age && r.retP > r.ageP) || (r.retP <= r.ageP && r.ret > r.age) || Math.abs((r.ret - r.age) - (r.retP - r.ageP)) >= 2)).slice(0, 12).map(r => `${r.id}(${r.age}/${r.ageP} ret ${r.ret}/${r.retP} sal ${r.sal}/${r.salP} nmpa ${r.nmpa})`).join(' '));
+console.log('retired singles with big gia:', rows.filter(r => !r.couple && r.age >= r.ret && r.gia > 150000).slice(0, 10).map(r => `${r.id}(gia ${r.gia} pen ${r.pen} isa ${r.isa} cash ${r.cash} cisa ${r.cisa} ${r.region})`).join(' '));
+console.log('big non-ISA cash:', rows.filter(r => r.cash > 100000).slice(0, 10).map(r => `${r.id}(cash ${r.cash} pen ${r.pen} gia ${r.gia} age ${r.age} ret ${r.ret} ${r.couple ? 'couple' : 'single'})`).join(' '));
+console.log('big cash ISA:', rows.filter(r => r.cisa > 50000).slice(0, 14).map(r => `${r.id}(cisa ${r.cisa} of ${r.tot})`).join(' '));
+console.log('working singles with gia and salary>50k:', rows.filter(r => !r.couple && r.age < r.ret && r.gia > 50000 && r.sal > 50270).slice(0, 8).map(r => `${r.id}(sal ${r.sal} gia ${r.gia} age ${r.age} ret ${r.ret})`).join(' '));

@@ -1,0 +1,20 @@
+# couple-share.mjs on S091, 9 Nov, seed 4242, 300 paths: the lines as printed (recovered from the session's log; "light" is 4 wealth points)
+# GUARD unset (the plan as entered), 4 points:
+S091 as-held: first person pen 171k isa 86k other 257k cash 29k cashIsa 29k | second pen 114k isa 57k other 171k cash 19k cashIsa 19k | target 50457
+S091 as-held: the plan's rules 85.3% | the couples' rollout (light) 96.7% | 34 saved, 0 lost of 300 | solve 54 s, paths 578 ms each
+S091 pen-vs-isa: first person pen 285k isa 0k other 0k cash 0k cashIsa 0k | second pen 0k isa 143k other 428k cash 48k cashIsa 48k | target 47075
+S091 pen-vs-isa: the plan's rules 85.7% | the couples' rollout (light) 99.0% | 40 saved, 0 lost of 300 | solve 52 s, paths 492 ms each
+S091 pension-one: first person pen 285k isa 86k other 257k cash 29k cashIsa 29k | second pen 0k isa 57k other 171k cash 19k cashIsa 19k | target 50054
+S091 pension-one: the plan's rules 85.3% | the couples' rollout (light) 93.7% | 25 saved, 0 lost of 300 | solve 52 s, paths 531 ms each
+S091 ninety-ten: first person pen 257k isa 128k other 385k cash 43k cashIsa 43k | second pen 28k isa 14k other 43k cash 5k cashIsa 5k | target 50114
+S091 ninety-ten: the plan's rules 85.3% | the couples' rollout (light) 84.7% | 7 saved, 9 lost of 300 | solve 52 s, paths 587 ms each
+# GUARD=1 (guardrails, the 80% floor, the 5-year lookahead), 4 points:
+S091 as-held: first person pen 171k isa 86k other 257k cash 29k cashIsa 29k | second pen 114k isa 57k other 171k cash 19k cashIsa 19k | target 59744
+S091 as-held: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (light) 89.3% | 15 saved, 3 lost of 300 | solve 54 s, paths 589 ms each
+S091 ninety-ten: first person pen 257k isa 128k other 385k cash 43k cashIsa 43k | second pen 28k isa 14k other 43k cash 5k cashIsa 5k | target 59342
+S091 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (light) 68.3% | 1 saved, 52 lost of 300 | solve 55 s, paths 520 ms each
+S091 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points, each table solved on a 0.9 share of the spending) 89.7% | 15 saved, 2 lost of 300 | solve 48 s, paths 520 ms each
+# GUARD=1, POINTS=45:
+S091 as-held: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (45 points) 94.0% | 27 saved, 1 lost of 300 | solve 762 s, paths 612 ms each
+S091 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (45 points) 53.0% | 0 saved, 97 lost of 300 | solve 769 s, paths 387 ms each
+S091 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (45 points, each table solved on a 0.9 share of the spending) 96.0% | 32 saved, 0 lost of 300 | solve 531 s, paths 554 ms each

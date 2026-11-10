@@ -1,0 +1,13 @@
+import { repoRoot } from './root.mjs';
+const R = repoRoot(import.meta.url);
+const E = await import(R + '/research/engine.mjs');
+const { buildScenarios } = await import(R + '/research/policy-study/scenarios.mjs');
+const all = buildScenarios().map(s => E.normalizePlan(s.plan));
+const tally = f => { const m = new Map(); for (const p of all) { const v = f(p); m.set(v, (m.get(v) || 0) + 1); } return JSON.stringify([...m].sort((a, b) => b[1] - a[1]).slice(0, 8)); };
+console.log('other incomes (DB pension, rent, part-time work):', tally(p => (p.otherIncomes || []).length));
+console.log('spend bands:', tally(p => (p.spending.spendBands || []).length), ' one-off costs:', tally(p => (p.oneOffCosts || []).length), ' deposits:', tally(p => (p.oneOffContributions || []).length));
+console.log('state pension (first person):', tally(p => p.demographics.statePensionSelf), ' SPA:', tally(p => p.demographics.statePensionAge), ' access age:', tally(p => p.demographics.privatePensionAge), ' end age:', tally(p => p.demographics.terminalAge));
+console.log('employment:', tally(p => p.demographics.employmentSelf), ' region:', tally(p => p.config.taxRegion), ' drawdown:', tally(p => p.spending.drawdownStrategy), ' policy:', tally(p => p.spending.decumulationPolicy));
+console.log('ages:', tally(p => `${p.demographics.currentAgeSelf}->${p.demographics.retireAgeSelf}`));
+console.log('pension share of wealth (rounded):', tally(p => { const b = c => p.accounts.filter(a => a.category === c).reduce((t, a) => t + (Number(a.balance) || 0), 0); const pen = b('Pensions'), tot = p.accounts.reduce((t, a) => t + (Number(a.balance) || 0), 0); return tot > 0 ? Math.round(10 * pen / tot) / 10 : 'none'; }));
+console.log('unrealised gain entered:', tally(p => p.accounts.some(a => Number(a.unrealisedGain) > 0)), ' pension death tax:', tally(p => p.config.pensionDeathTaxRate));

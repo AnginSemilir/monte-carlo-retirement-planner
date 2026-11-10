@@ -1,0 +1,23 @@
+S091 at 4 points: a couple's path 645 ms over 36 years (17.9 ms a decision), 30 of 30 surviving; self time by function:
+  18.5%  readValues grid.js:322
+  12.4%  flow fast.js:395
+  12.2%  grossForNet fast.js:694
+  7.0%  locInto grid.js:309
+  7.0%  scoreMoves solve.js:1966
+  5.2%  expit grid.js:41
+  3.3%  ownerState couple.js:80
+  2.9%  (garbage collector) :0
+  2.8%  grow fast.js:727
+  2.6%  drawPension fast.js:467
+  2.6%  vecOf grid.js:591
+  2.1%  params.dividendTax engine.mjs:1266
+  2.0%  (anonymous) fast.js:713
+  2.0%  rankFor couple.js:272
+  1.7%  expectedValue couple.js:225
+  1.4%  (anonymous) couple.js:283
+  inclusive rankFor: 77.8%
+  inclusive expectedValue: 16.0%
+  inclusive step: 1.3%
+  inclusive chooseJoint: 96.1%
+  inclusive scoreMoves: 73.0%
+  inclusive shareBridge: 0.0%

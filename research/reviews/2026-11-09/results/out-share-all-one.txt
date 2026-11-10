@@ -1,0 +1,5 @@
+S007 all-one: first person pen 808k isa 76k other 19k cash 24k cashIsa 24k | second pen 0k isa 0k other 0k cash 0k cashIsa 0k | target 53576
+S007 all-one: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points) 65.0% | 0 saved, 61 lost of 300 | solve 47 s, paths 238 ms each
+S007 all-one: first person pen 808k isa 76k other 19k cash 24k cashIsa 24k | second pen 0k isa 0k other 0k cash 0k cashIsa 0k | target 53576
+S007 all-one: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points, the first person's table on 0.95 of the spending) 91.0% | 17 saved, 0 lost of 300 | solve 40 s, paths 405 ms each
+exit 0

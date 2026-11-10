@@ -1,0 +1,34 @@
+discordance, true loss (points): harm flagged one stage / two stages; stopped at stage 1
+-- stage 1 at 5000 paths, stop at an observed change of +0.5 points or more
+   d 9.00%, a true loss of 1.0: 0.9648 / 0.9647; stopped 0.0002
+   d 9.00%, a true loss of 0.25: 0.0497 / 0.0497; stopped 0.0409
+   d 12.45%, a true loss of 1.0: 0.9010 / 0.9005; stopped 0.0014
+   d 12.45%, a true loss of 0.25: 0.0503 / 0.0502; stopped 0.0685
+   d 10.0%, a true gain of 0.0: stopped at stage 1 0.137, so 17088 paths on average (90% of 19,000)
+   d 10.0%, a true gain of 0.5: stopped at stage 1 0.509, so 11868 paths on average (62% of 19,000)
+   d 10.0%, a true gain of 1.0: stopped at stage 1 0.873, so 6776 paths on average (36% of 19,000)
+   d 10.0%, a true gain of 2.0: stopped at stage 1 1.000, so 5004 paths on average (26% of 19,000)
+   d 10.0%, a true gain of 5.0: stopped at stage 1 1.000, so 5000 paths on average (26% of 19,000)
+   d 12.0%, a true gain of 10.0: stopped at stage 1 1.000, so 5000 paths on average (26% of 19,000)
+-- stage 1 at 5000 paths, stop at an observed change of +0.0 points or more
+   d 9.00%, a true loss of 1.0: 0.9641 / 0.9572; stopped 0.0100
+   d 9.00%, a true loss of 0.25: 0.0508 / 0.0492; stopped 0.2859
+   d 12.45%, a true loss of 1.0: 0.9014 / 0.8887; stopped 0.0238
+   d 12.45%, a true loss of 0.25: 0.0506 / 0.0485; stopped 0.3139
+   d 10.0%, a true gain of 0.0: stopped at stage 1 0.509, so 11873 paths on average (62% of 19,000)
+   d 10.0%, a true gain of 0.5: stopped at stage 1 0.873, so 6775 paths on average (36% of 19,000)
+   d 10.0%, a true gain of 1.0: stopped at stage 1 0.988, so 5165 paths on average (27% of 19,000)
+   d 10.0%, a true gain of 2.0: stopped at stage 1 1.000, so 5000 paths on average (26% of 19,000)
+   d 10.0%, a true gain of 5.0: stopped at stage 1 1.000, so 5000 paths on average (26% of 19,000)
+   d 12.0%, a true gain of 10.0: stopped at stage 1 1.000, so 5000 paths on average (26% of 19,000)
+-- stage 1 at 4000 paths, stop at an observed change of +0.5 points or more
+   d 9.00%, a true loss of 1.0: 0.9649 / 0.9644; stopped 0.0008
+   d 9.00%, a true loss of 0.25: 0.0498 / 0.0497; stopped 0.0599
+   d 12.45%, a true loss of 1.0: 0.9015 / 0.8999; stopped 0.0037
+   d 12.45%, a true loss of 0.25: 0.0502 / 0.0500; stopped 0.0934
+   d 10.0%, a true gain of 0.0: stopped at stage 1 0.165, so 16531 paths on average (87% of 19,000)
+   d 10.0%, a true gain of 0.5: stopped at stage 1 0.509, so 11365 paths on average (60% of 19,000)
+   d 10.0%, a true gain of 1.0: stopped at stage 1 0.847, so 6291 paths on average (33% of 19,000)
+   d 10.0%, a true gain of 2.0: stopped at stage 1 0.999, so 4019 paths on average (21% of 19,000)
+   d 10.0%, a true gain of 5.0: stopped at stage 1 1.000, so 4000 paths on average (21% of 19,000)
+   d 12.0%, a true gain of 10.0: stopped at stage 1 1.000, so 4000 paths on average (21% of 19,000)

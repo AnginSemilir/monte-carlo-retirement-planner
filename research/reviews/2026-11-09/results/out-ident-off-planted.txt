@@ -1,0 +1,12 @@
+FAIL  the engine alone, S116: 200 paths and the expected path's rows, 96 differing
+FAIL  the engine alone, S214: 200 paths and the expected path's rows, 145 differing
+FAIL  the engine alone, S210: 200 paths and the expected path's rows, 197 differing
+FAIL  the engine alone, S224: 200 paths and the expected path's rows, 94 differing
+FAIL  the engine alone, S002: 200 paths and the expected path's rows, 201 differing
+FAIL  the engine alone, S007: 200 paths and the expected path's rows, 201 differing
+FAIL  the engine alone, S187: 200 paths and the expected path's rows, 168 differing
+FAIL  the engine alone, S201: 200 paths and the expected path's rows, 181 differing
+FAIL  a single's solve and its policy, S116 at 4 points: 100 paths (survival, pot left, spending delivered) and the expected path's rows, 101 differing
+FAIL  a couple's solve and the rollout, S007 at 4 points: 60 paths (survival, pot left), 60 differing
+FAILED: verify against monte-carlo-retirement-planner, switches ON (planted): 1760 paths compared, 1444 differing
+exit 1

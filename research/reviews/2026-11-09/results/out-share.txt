@@ -1,0 +1,4 @@
+S127 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points) 75.0% | 4 saved, 35 lost of 300 | solve 54 s, paths 694 ms each
+S127 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points, the first person's table on 0.90 of the spending) 93.0% | 23 saved, 0 lost of 300 | solve 85 s, paths 927 ms each
+S007 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points) 76.0% | 1 saved, 29 lost of 300 | solve 45 s, paths 391 ms each
+S007 ninety-ten: the plan's rules with guardrails and the 80% floor 85.3% | the couples' rollout (4 points, the first person's table on 0.90 of the spending) 93.7% | 25 saved, 0 lost of 300 | solve 39 s, paths 431 ms each

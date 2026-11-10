@@ -1,0 +1,432 @@
+# External review, 9 Nov 2026
+
+Branch `claude/project-access-i58m0x` at f02e8741. Speed documents read from `review/external-2026-10-21`.
+`d4-backup` was not fetched or opened, and no D4 result, partial or otherwise, was read or estimated.
+
+**What to do about each finding is in `EXPERIMENTS-AND-PORTS.md`**: the experiment, its decision rule, the port if it
+passes, the order, and the prompt to send the agent. This file is the findings and their evidence.
+
+Everything I ran is EXPLORATORY (CHECKLIST 1). The runs of 9 Nov used seed 4242, which no registration names, mostly at
+the diagnostic test's light settings (4 wealth points, lattice 48 x 9 x 32) and 300 paths. The runs of 10 Nov (the
+engine against HMRC's order, the switch-off identity, the couples' planted fault) used the review's seeds 99001 and
+99002. The scripts are beside this file. Tax rules were checked against GOV.UK and gov.scot on 9 Nov (sources at the end).
+
+**Corrected on 10 Nov** (each was wrong or loose in the version of 9 Nov I sent the maintainer):
+- 1.2 was called small. Under the plan's own rules it is not: the engine misses about £302,000 of tax over one
+  library household's plan, and 24 of 237 households lose more than a point of survival when it is put right.
+- 1.3's example was not the worst case. Interest of £20,000 alone is charged £1,486 where HMRC charges £286.
+- 1.5's second bullet was overstated. A blank salary while working is read as "earnings unknown" on purpose, and a
+  retired non-earner is capped correctly. What remains is narrower and is restated there.
+- Review 3's "no change to the registration" was too strong. The registration says how D4 is launched, and a change of
+  parallelism is a departure from that wording even though no stamp changes. The row now says who rules on it.
+
+**Households I touched, for the held-out books.** `held-out.mjs` reads every id named under this folder, so this
+commit marks them by itself.
+- `couples-orders.json` lists 146 held-out library couples, D4's 20 first. Of the other 126 I solved S091 and ran the
+  engine alone on S021 (altered) and S085 (the plan's rules, 40 paths). Those three are newly used.
+- **One slip.** The engine's switch-off identity check of 10 Nov (`ident-off.mjs`, its first version) took eight
+  households, and one was S301, the library plan D4's younger cohort re-ages as S301F. It ran the plan as entered on the
+  engine alone, 200 paths of seed 4242, no solve, and printed only the count of differing paths (0). No survival figure
+  for it was printed or read. D4's panel is frozen in `couples-orders.json` and no arm's code is involved, so D4 is
+  not affected, but it should not have been in the list. The version committed here uses couples from the `touched`
+  list instead and was re-run.
+- Every other household was already used: the couples S127, S007, S187, S201, S053 and S261 are in a `touched` list;
+  the singles S116, S054, S022, S224, S370, S126, S002, S380, S092, S208, S210 and S214 are in `phase4-orders.json`'s,
+  and S030 and S188 were in Phase 4's own panel. `tax-library.mjs` runs the engine alone over the 237 households in the
+  two `touched` lists and prints 17 of them by id.
+- No other D4 couple is named or was run. `scripts/d4exp.mjs` describes D4's couples from their plan inputs by place
+  in the panel, without ids.
+
+## The five things that matter
+
+1. **The couples' solver breaks when the two people hold the money unevenly, and D4 cannot see it** (Review 4). Every
+   one of the library's 210 couples holds its money 60/40 in every wrapper with a 3-year age gap, so all 40 of D4's
+   couples do. On S091 at the product's 45 points, with the same household totals re-held 90/10, the couples' rollout
+   went from 8.7 points above the app's rules to 32.3 points below them. A setting that already exists
+   (`solveCouple`'s `share`, each table solved on that person's share of the spending) put it 10.7 points above. Two
+   more couples at light settings did the same: 9 to 10 points below, then about 8 above.
+2. **The engine does not stack a year's incomes as HMRC does** (Review 1). A worker's salary is left out of the
+   income their interest, dividends, gains and pension draws are taxed on, and interest and dividends are taxed before
+   the year's pension is drawn. A pension drawn from a partner who is still working is taxed as if they earned
+   nothing: £72 charged where HMRC would take £5,172 in my example. Under the plan's own rules the engine misses
+   £302,000 of tax over one library household's plan. Put right, 24 of 237 library households lose more than a point
+   of survival (the worst 3.7), and 196 move by half a point or less. A test of 22 checks against an independent
+   reference fails 10 on the branch; the prototype passes all but one, which it does not build.
+3. **Two speed cuts, prototyped at 45 points** (Review 2). A couple's path runs 2.4 times faster with every
+   path bit for bit the same, by ranking each person through the single chooser's shared scoring. A single's path
+   runs 3 to 10 times faster on a shortlist of the moves the tables already stored, with no survival loss visible
+   on 4,000 paths.
+4. **D4 as registered can finish in about a day on rented cores** (Review 3). Only the number of units run at once
+   changes, and no stamp moves; the registration's launch wording is the reviewer's to check and the maintainer's to
+   rule on. Later runs can keep D34's error rates with a two-stage rule that spends about a quarter of the paths on
+   any couple gaining 2 points or more (simulated).
+5. **The published figures in the engine are right.** Bands (Scotland included), the allowance taper, the lump sum,
+   the ISA allowance and CGT all matched by hand. The errors are in how incomes are stacked, not in the figures.
+
+---
+
+## Review 1: the engine's money rules against 2026/27 rules
+
+### What matches
+
+| Rule | Check | Result |
+|---|---|---|
+| rUK income tax | 8 incomes from £12,570 to £150,000 by hand | equal to the pound |
+| Scottish income tax, 2026/27 bands (19% to £16,537, 20% to £29,526, 21% to £43,662, 42% to £75,000, 45% to £125,140, 48%) | 11 incomes by hand; bands against gov.scot | equal to the penny |
+| Allowance taper | £110,000: allowance £7,570, 60% effective (67.5% in Scotland) | right |
+| Tax-free lump sum | 25% of each draw, capped at £268,275 less what is used; the full-lump option is one setting for the whole solve (`lump: !!opts.lump`), so it cannot be taken twice | right |
+| MPAA | starts with the first taxable pension income, not tax-free cash; £10,000 | right |
+| ISA allowance | £20,000 shared by the re-wrap, the surplus sweep and the cash ISA; £12,000 cash ISA cap under 65 from April 2027 | right |
+| CGT | £3,000 exempt, 18% and 24%, the UK basic band (£37,700) for a Scottish taxpayer, pro-rata basis | right |
+| Dividends | £500 at 0%, 10.75 / 35.75 / 39.35%, UK bands | right |
+| Non-earner's pension limit | £3,600 gross on headroom; Bed & SIPP relieved at 20% (D36's fix) | right |
+
+### S116 this year, by hand (solved at the product's 45 points)
+
+S116 is 61, retired, a Scottish taxpayer: pension £332,500, ISA £142,500, taxable account £47,500, cash ISA £427,500.
+
+| The solved plan's year | Engine | By hand |
+|---|---|---|
+| Draw £16,760 from the pension | £4,190 tax-free, £12,570 taxable, tax £0 | the same: the taxable part fills the allowance exactly |
+| Re-wrap the £16,760 into the ISA | within £20,000 | allowed |
+| Spend £41,600 (80% of target) from cash | no tax | right: it is cash ISA money |
+| Move the cash above six months' spending (about £360,000) into the taxable account | allowed, no tax now | allowed, but it leaves the ISA for good. A cash ISA can transfer to a stocks and shares ISA without using any allowance (finding 1.4) |
+| Next year's dividends on that account, £8,489 | tax £0 | £859: the pension draw has already used the allowance (finding 1.2) |
+
+### What the engine gets wrong, largest first
+
+**1.1 A worker's salary is not in their income stack.** `taxable[owner]` starts from other incomes and the state
+pension (App.jsx step 4). Salary is taxed separately inside `workingTakeHome`. So for anyone still working:
+
+- interest and dividends are taxed as if the salary were nil. S214 (salary £142,500, taxable account about £1.1m):
+  dividend tax £1,468 against £8,616, interest tax £0 against £1,721. S210 (salary £77,500): £0 against £2,991 and
+  £0 against £938. That is £3,900 to £8,900 a year too little for each working year;
+- gains are charged at 18% where a higher-rate earner pays 24% (from the code; not run);
+- a pension drawn from a working partner past access age is taxed alone. My example (partner 61, salary £60,000,
+  the household's spending drawn from their pension): £12,929 taxable, engine tax £72, HMRC £5,172. It also triggers
+  the MPAA, which the engine only warns about. One of the engine's own tests pins this behaviour: `uktax.test.mjs` D2
+  expects the plan's rules to draw a 58-year-old's pension beside their £70,000 salary and so trigger the MPAA.
+
+Size under the plan's own rules, with the salary put at the bottom of the stack (`prototype/engine-hmrc.diff`,
+`__STACK_SALARY` alone):
+- 2,000 paths of seed 4242 (`taxsize.mjs`): survival falls 0.05 to 0.95 points on six working library households
+  (S214 61.35% to 60.40%), and 3.65 points on the example couple;
+- every household in the two `touched` lists, 1,000 paths of seed 99001 (`results/out-tax-library.txt`): mean -0.2
+  points, worst -2.9, and 12 of 237 lose more than a point.
+
+That is the picture's error before any solver looks for the cheap draw.
+
+Moves it changes: the couples' joint move (the split, and each person's draw order) wherever one partner works past
+58. Seven of D4's 20 library couples have a two-year window (the 11th to the 17th of the panel's library list,
+`scripts/d4exp.mjs`); none of the 20 younger ones does. All three arms share the engine, so D4's comparison is touched
+only at the margin, but the survival shown to any working household with a large taxable account is too high. Fix
+before the couples' beta: add salary to the stack for interest, dividends, gains and draws.
+
+**1.2 Interest and dividend tax is fixed before the year's pension is drawn.** Step 4a/4b tax them on the income known
+then; the pension drawn afterwards is taxed on its own. HMRC sets the allowance against pension income first. So the
+allowance, the starting-rate band and the basic band can each be used twice. This is the mispricing sitting under the
+solver's favourite move (draw to the allowance and re-wrap). The engine's own comment at 4a names it: "a pension draw
+later in the year can push it up a band, and that second-order shift is deliberately not chased".
+
+It is not second-order for a household heavy in the taxable account. Each year's `taxPaid` on the expected path
+against an independent reference on the same year's incomes (`tests/engine-hmrc.test.mjs`, section C; the plan's own
+rules, the workers' saving switched off so the pay is the salary):
+
+| Household | Years the row's tax differs from HMRC's by over £1 | Tax missed over the plan | Worst year |
+|---|---|---|---|
+| S116 as the library has it (Scottish, retired) | 20 of 36 | £423 (and £699 over-charged in other years) | 2032: £1,571 against £1,645 |
+| S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first | 16 of 36 | £5,950 | 2026: £0 against £968 |
+| S210 (working, £77,500) | 41 of 41 | £33,146 | 2026: £0 against £4,021 |
+| S214 (working, £142,500, 45% in the taxable account) | 41 of 41 | **£302,307** | 2035: £10,295 against £21,016 |
+| The example couple (one drawing a pension beside a £60,000 salary) | 6 of 28 | £41,067 | 2029: £61,278 against £76,846 |
+
+Across the 237 households of the two `touched` lists, the plan as entered, 1,000 paths of seed 99001, with 1.1 to 1.3
+put right (`results/out-tax-library.txt`):
+- survival changes by -0.3 points on average and 0 at the median; 196 households move by half a point or less;
+- 24 lose more than a point, 2 more than 3 (the worst -3.7, S330), none more than 5, and none gains more than 0.1;
+- the 47 with a quarter or more in the taxable account lose 0.9 on average, and the tax on their expected path rises
+  by £65,727 a household (S214: £521,022 to £773,308);
+- the 98 still working lose 0.6 on average, the 139 retired 0.2 (worst -2.6, S034), the 38 couples 0.2 (worst -1.7).
+
+On a solved plan (45 points, solved once on the engine as it is, then run on the corrected engine without re-solving,
+so a floor on a re-solved plan; 1,000 paths of seed 99001; `results/out-variants-*.txt`):
+
+| | Solved plan's survival | Its tax on the expected path | Solved less the rules |
+|---|---|---|---|
+| S116 (retired, Scottish) | 90.4% to 89.8% | £60,813 to £66,293 | 48.7 to 48.1 points |
+| S092 (retired, nearly half in the taxable account) | 86.5% to 86.1% | £35,109 to £42,174 | 41.1 to 41.4 |
+| S210 (working, £77,500) | 99.9% to 99.9% | £57,320 to £71,859 | 2.9 to 3.8 |
+
+So the solver's margin over the rules holds on these three; what moves is the level both are shown at.
+
+Three smaller errors of the same family, all in the test:
+- the £500 dividend allowance is placed from the other income upward, so it overlaps unused personal allowance
+  (worth up to £53.75 a year);
+- the basic band left for capital gains ignores the year's interest and dividends;
+- the allowance's taper above £100,000 is applied to non-savings income alone, where HMRC tapers on all income
+  (worth up to £5,028 a year; £105,753 over the plan on the test's fixture C7, a £95,000 pension in payment beside a
+  large taxable account). The prototype does not fix this one; the reference does, so the port must.
+
+**1.3 `savingsTax` over-taxes when other income is below the allowance.** The starting-rate band and the savings
+allowance are placed from the other income upward, so they overlap the unused allowance instead of sitting above it.
+£8,000 of other income and £9,000 of interest: engine £600, HMRC £0. £10,000 and £10,000: £800 against £286. The worst
+on the test's grid is interest of £20,000 with no other income: £1,486 against £286. At most £2,514 a year (20% of the
+allowance). It runs the opposite way to 1.2 and is why S116's plan as entered is £276 over.
+
+**1.4 The solved plan's sweep takes cash out of a cash ISA and never says so.** Under a table, cash above the buffer
+goes to the taxable account every year (step 7d), whether or not it sits in a cash ISA. On S116 that is about £360,000
+in year 0, then taxed for life: about £12,000 of dividend tax and CGT over the plan on HMRC's order, against about
+£3,000 on the plan as entered. A transfer to a stocks and shares ISA would pay none of the difference. 126 of the 420
+library households hold over £50,000 in a cash ISA. The sweep is also not among the actions the pages show
+(`SKIP_PARTS` is level, draw, harvest and the two tiers; no solver wording mentions cash). On S116 at light settings
+it does not move survival (98.0% with and without, two paths differing) but lifts the mean end pot by 28%, so the
+estate shown assumes an action the user is never told to take.
+
+Prototyped (`__ISA_SWEEP`: the part of the swept cash that is cash ISA money goes to the stocks and shares ISA, the
+rest to the taxable account as now). At 45 points, the plan solved once on the engine as it is and run on the engine
+with 1.1 to 1.3 put right, 1,000 paths of seed 99001:
+
+| | Sweep to the taxable account | Cash ISA money kept in an ISA |
+|---|---|---|
+| S116, solved plan | 89.8%; mean pot left £1,248,748; tax on the expected path £66,293 | 90.4%; £1,360,497 (+8.9%); £47,252 |
+| S092, solved plan | 86.1%; £1,224,133; £42,174 | 85.9%; £1,235,170 (+0.9%); £37,539 |
+| S210, solved plan (almost no cash ISA) | 99.9%; £4,383,997; £71,859 | 99.9%; £4,383,992; £71,854 |
+
+The plan was not re-solved for it, and the ISA's money then follows the solver's chosen tier where the taxable
+account's follows its fixed mix, so part of the gain in the pot is the investment and not the tax.
+
+**1.5 Relief on money paid into a pension.**
+- Money the plan routes into a pension from the household's own funds lands at face value, with no relief
+  (`pots[x.id] += x.amount`, step 1). That covers the windfall split's pension-first variant (`autoSplitRoutes`
+  variant 1: `pen1 = min(A, penRoom)`) and a transfer from the household's own accounts. A £3,600 deposit adds £3,600,
+  where £2,880 paid in would add £3,600. The windfall factorial is next in the research queue and its pension-first
+  split is under-priced by the missing 25% (more for a higher-rate payer). Fix first. A deposit the user types in as
+  a one-off may be meant gross; that is a wording question for the input, not an engine error.
+- Narrower than I first wrote: `grossUpNet` with a nil salary gives relief at the higher rate and the upper NIC
+  rate (£2,880 net buys £4,966), but `wrapperHeadroomAtYear` reads a blank salary while still working as "earnings
+  unknown" on purpose and caps a retired non-earner at the no-earnings limit correctly. What remains is one line: the
+  savings split's own cap (`saveSplitRoutes`, App.jsx line 3368: `o.salary <= 0 && earnings <= 0` gives the full
+  allowance) has no retired check, where `bedAndSippFor`'s has since D36. It matters only to the savings factorial.
+- Not on the menu: a non-earner under 75 paying £2,880 for £3,600 each year. Worth up to £720 a person a year.
+
+**1.6 Dated changes the engine does not carry.**
+- Savings rates rise to 22 / 42 / 47% from April 2027; interest is taxed on the 20 / 40 / 45 ladder throughout.
+- NIC relief on salary sacrifice is capped at the first £2,000 from April 2029; the engine gives it in full (28% on
+  £10,000 sacrificed from £40,000, where it will be about 21.6%).
+- Thresholds are frozen in cash to April 2031, and the lump sum allowance, the ISA allowance and the £3,600 limit have
+  no indexation at all. The engine holds every one constant in real terms. From 2027/28 the full new State Pension
+  exceeds the allowance. Small for a retiree (about £240 a person a year by 2031); larger for the 61-year horizons,
+  where a lump sum allowance fixed in cash is worth about £145,000 of today's money in 25 years, not £268,275. This is
+  an assumption to state, not a bug; the Config caption still says "2025/26 (frozen to April 2028)".
+
+### Why no internal test sees these
+
+`src/solver/model.js` repeats the engine's stacking line for line (its lines 304, 305, 337 and 346 to 348; `fast.js`
+462 to 464), so the solver and the engine agree with each other and both differ from HMRC. The existing tax tests
+(`tax-2026`, `scottax`, `savings-tax`) pin the published figures and each function alone on stated inputs; none pins a
+whole year's stacking against a reference that is not the engine.
+
+`tests/engine-hmrc.test.mjs` does: an independent reference of about 20 lines, 12 hand-worked years, the engine's
+`savingsTax` and `dividendTax` over a grid, and every year's `taxPaid` on seven fixtures against the reference on that
+row's own incomes. On the branch it prints 12 passed, 10 failed; on the prototype, 21 passed, 1 failed (C7, the taper
+on all income, which the prototype does not build) (`results/out-engine-hmrc-branch.txt`, `-prototype.txt`).
+
+---
+
+## Review 2: the speed work
+
+**Is it sound?** Yes, as far as reading shows. The exact cuts I read (S1 to S3, the E2 split, step P) each carry a
+bit-for-bit identity check, and S1 to S3 and E2 a planted fault that fails it. I did not re-run those tests, and I did
+not read E5 or E7 to E11 line by line.
+
+Two cuts are prototyped below, in a scratch copy (`prototype/shortlist.diff`, `prototype/couple-rank.diff`). Both are
+off unless switched on, and both are measured at the product's 45 points.
+
+### 2.1 A single's path: score a shortlist, not all 800 moves (approximate; 3 to 10 times)
+
+The chooser scores every move at the position each year: 97.8% of a solved path. The backward pass already stored its
+best move at every cell (`pol`). The prototype scores, at the exact position as now, only the moves stored at the cells
+around it in every world, and scores the whole menu if none of those is affordable. Three widths:
+
+- **cells**: those moves for the tier pair held, and one spending level either way (6 to 9 moves a decision);
+- **structure**: every spending level and tier pair of those moves' draw order and re-wrap (55 to 75 moves);
+- **order**: every re-wrap too (175 to 215 moves).
+
+Each household solved once at 45 points; the whole menu and each shortlist run on the same 1,000 paths. "Saved, lost"
+are paths the shortlist survives and the whole menu does not, and the reverse. Spending is the change in spending
+delivered, in points of target.
+
+| | Whole menu | cells | structure | order |
+|---|---|---|---|---|
+| S116 | 55.1 ms a path, 88.9% | 5.4 ms, 10.3 times; 4 saved, 2 lost; +0.017 | 12.3 ms, 4.5 times; 2, 1; +0.005 | 26.1 ms, 2.1 times; 3, 1; -0.002 |
+| S224 | 47.5 ms, 70.4% | 6.6 ms, 7.2 times; 6, 7; +0.001 | 15.2 ms, 3.1 times; 0, 1; +0.012 | 28.1 ms, 1.7 times; 0, 0; +0.006 |
+| S188 | 46.8 ms, 69.7% | 5.7 ms, 8.2 times; 7, 9; -0.150 | 15.0 ms, 3.1 times; 2, 3; -0.079 | 27.6 ms, 1.7 times; 3, 4; +0.002 |
+| S370 | 56.3 ms, 84.2% | 6.0 ms, 9.4 times; 3, 3; -0.064 | 17.9 ms, 3.1 times; 2, 0; -0.018 | 26.2 ms, 2.2 times; 1, 0; -0.023 |
+| all four | | 20 saved, 21 lost of 4,000: -0.03 points (se 0.16) | 6 saved, 5 lost: +0.03 (se 0.08) | 7 saved, 5 lost |
+
+Replayed decision by decision along the whole menu's own paths (2,100 to 2,700 decisions a household), **cells** gives
+up more than 0.1 points of score at 0.5 to 1.1% of decisions and, on the two bridge households, more than 1 point at
+0.04 to 0.07% (the worst single decision 10.2 points, S370). **structure** gives up more than 0.1 points at 0 to 0.5%.
+
+**A check that removes the large misses.** Read the table's own value at the position; where the shortlist's best is
+more than 0.5 points below it, score the whole menu. On S370, the hardest of the four, that scores the whole menu at
+10% of decisions and leaves no decision giving up more than 0.3 points. Timed there: cells with the check 10.4 ms a
+path (5.5 times; 1 saved, 2 lost), structure with it 22.0 ms (2.6 times; 1 saved, 0 lost).
+
+What this shows and does not:
+- No survival loss is visible at 4,000 paths for any width. That bounds it at about 0.3 points for cells and 0.15 for
+  structure, not at the maintainer's 0.1%.
+- cells delivers slightly less spending on the two bridge households (0.06 to 0.15 points of target).
+- **It must be tested at 45 points.** At the light settings (4 points) cells loses 9 points of survival on S116, because
+  the stored level and tiers are unreliable on a coarse grid. At 45 points the misses are in the draw order and re-wrap.
+- To hold it to D65's bar: the eight households, 16,000 paired paths each (se about 0.09 points a household, 0.03
+  pooled), survival and spending delivered, with the replay's counts beside them.
+
+My recommendation: structure, or cells with the check, for the Strategy tab's paths and the research runs. Either takes
+the headline's 2,000 paths from 17 to 31 seconds to roughly 4 to 8.
+
+### 2.2 A couple's path: an exact cut of 2.4 times
+
+A couple's solved path costs 540 to 1,806 ms in D4's pilot, about 15 times a single's. Profiled (S091, light settings):
+78% of it is `rankFor` ranking each person's 800 moves with `scoreMoves`, the unshared scorer the speed review replaced
+in the single chooser. Valuing the joint candidates is 16% and the model's step 1%.
+
+`rankFor` can take the same scores from the single chooser's shared path (`chooseAction` leaves every move's score,
+with the switch charged, in `_sc`). Prototyped:
+
+| S091, 100 paths | A path as it is | Ranked by the shared scoring | Identity |
+|---|---|---|---|
+| 4 points | 573 ms | 238 ms (2.4 times) | every path's survival and pot left the same bit for bit |
+| 45 points | 575 ms | 235 ms (2.4 times) | the same bit for bit |
+
+Checked again on 10 Nov on a copy carrying exactly `prototype/couple-rank.diff` (S007 at 4 points, 100 paths of seed
+99002): 478 ms to 192, every path the same bit for bit; with the patch's planted fault (`faststale`, the scores of the
+decision before) all 100 paths differ (`results/out-couple-rank-identity.txt`). The patch's guard keeps the old path
+for a locked dial position, for Richardson's second table and for a table without the exact final year.
+
+This changes no number, so it is a port, not a trade. It applies to D5's screens and to every registered couples' run
+after D4 (D4's code is frozen). With the structure shortlist on top the path was 141 ms at 45 points (4.1 times; no
+path saved or lost of 100, the mean pot left 0.5% lower), which needs its own paired measurement on more paths.
+
+### 2.3 Not prototyped
+
+- **The solve** (360 to 500 s on one core): solving coarse with all moves, then fine with only the moves near-best at
+  the coarse cells. My estimate is 2 to 3 times; it is the least certain item here.
+- **D5 still has no time budget for a couple.** Even after 2.2, 2,000 paths is several core-minutes for a 28-year
+  couple and three times that for a 61-year one, before each person's skip costs.
+- **Phone memory has never been measured on a phone.** The harness's desktop browser peaks at 755 MB for the default
+  solve and 1.8 GB with a dial position (`results-phone-memory.txt`). D59 dropped the device run and D60 the Safari
+  check. One solve on a real iPhone and a mid-range Android settles it.
+
+---
+
+## Review 3: does D4 have to run this way?
+
+| Change | Saves | D4 now? |
+|---|---|---|
+| **More cores.** The 520 units are independent, path i is the seed's path i wherever it runs, and the gate reads the stamp (code, audit, registration blob, Node version), not the host. `batch-couples.sh` runs them four at a time (`xargs -P 4`) | about 745 core-hours remained at 56 of 520. On a rented 64-vCPU machine that is roughly a day, for some tens of pounds, with no 12-hour cut-offs. A unit took under 3 GB here, so memory sets how many run at once | **The maintainer's ruling, after the reviewer checks it.** The registration says D4 is "launched only as" the batch through the launcher, from a worktree at the launch commit. Running the same batch with more units at once keeps that command and every stamp: I changed `-P 4` to `-P "${D4_JOBS:-4}"` in a copy and the code hash, the audit hash and the smoke stamp did not move (at f02e8741; `batch-couples.sh` is in neither hash's file list). It is still an edit to a file of the frozen launch commit, so it is a departure to record, not a free change. The steps are item 1 of `EXPERIMENTS-AND-PORTS.md` |
+| **A two-stage rule.** (D4's registration records a different second stage, more paths for a comparison past D34's limit, as not chosen: D61. This one stops early, and is for the runs after D4.) After 5,000 paths a couple stops, unflagged, when its observed change against APP is +0.5 points or more; otherwise it runs to 19,000 and is read as now. 5,000 already covers every comparison against SHIPC (they size at 2,800 to 4,700) | simulated (`twostage.py`, 400,000 runs a case): a true 1-point loss is flagged 0.9647 of the time against 0.9648 with one stage at 9% discordance, and 0.9005 against 0.9010 at 12.45%; the quarter-point false alarm is unchanged at 0.050. A couple gaining 2 points or more uses 26% of the paths, one gaining 1 point 36%, one gaining nothing 90%. Singles gained 10.7 points in Phase 4 | No: new registration. The pooled items were already judged decisive at 8,000 |
+| **Rank each person through the shared scoring** (Review 2.2) | the engine's 746 core-hours fall by the path's 2.4 times, with every number the same | No: D4's code is frozen. Every run after it |
+| Reuse a couple's solve across its chunks | about 50 of the 73 solve core-hours (6%) | No: chunking is in the stamp |
+| Checkpoint inside a chunk, or 16 short chunks once solves are shared | the 89 core-hours run again at window ends (11%) | No |
+| The shortlist (Review 2.1) | a further 3 times or more on the engine's hours | No: it changes the solver, so the product takes it first |
+| Variance reduction (control variates from the free APP arm, stratifying on APP's margin) | 20% from the survival indicator alone; perhaps 2 times from stratifying | No, and not worth building once the two-stage rule exists |
+
+Together, for the registered runs after D4: the exact ranking cut and the two-stage rule take a D4-sized run from
+about 835 core-hours to roughly 160, before any shortlist.
+
+---
+
+## Review 4: large gaps not yet investigated
+
+### 4.1 Couples who hold their money unevenly
+
+`solveCouple` gives each person a single's table for half the household's spending from their own pots, and the
+rollout scores a joint move by the product of the two tables' survival (`expectedValue`: "both must last"). Pensions
+never move between them; only accessible money is shared, and only in bridge years (PART-D.md D2.4 names both limits).
+If one person cannot fund half alone, their table reads ruin everywhere, the product is near nil for every move, and
+the rollout chooses blind.
+
+S091 (61 and 58; the first retired, the second stopping at 60 with no salary entered), the target landed so the rules survive about 85%, 300 paths. The rules arm is the plan
+with guardrails on, the 80% floor and the 5-year lookahead, as arm A sets them (without arm A's policy search):
+
+| Who holds the money | Wealth points | Rules | Couples' rollout | Change |
+|---|---|---|---|---|
+| as the library has it, 60/40 | 45 | 85.3% | 94.0% | +8.7 (27 saved, 1 lost) |
+| 90/10 | 45 | 85.3% | 53.0% | **-32.3** (0 saved, 97 lost) |
+| 90/10, each table solved on that person's share of the spending (`share: 0.9`) | 45 | 85.3% | 96.0% | +10.7 (32 saved, 0 lost) |
+| as the library has it, 60/40 | 4 | 85.3% | 89.3% | +4.0 (15 saved, 3 lost) |
+| 90/10 | 4 | 85.3% | 68.3% | -17.0 (1 saved, 52 lost) |
+| 90/10, `share: 0.9` | 4 | 85.3% | 89.7% | +4.3 (15 saved, 2 lost) |
+
+Against the plan as entered (no guardrails, a weaker rules arm), at 4 points: 60/40 +11.3; one person holding all the
+pension and the other everything else +13.3; one holding all the pension and the rest 60/40 +8.3; 90/10 -0.7. So it
+is not which wrapper each person holds that matters, but whether each can fund half the spending alone.
+
+Two more couples of other ages, each re-held 90/10, at 4 points (both already in the `touched` list):
+
+| Couple | Rules | Rollout, each table on half the spending | Rollout, each table on that person's share of the pots |
+|---|---|---|---|
+| S127 (56 and 53, retired at 55, bridge years) | 85.3% | 75.0%: -10.3 (4 saved, 35 lost) | 93.0%: +7.7 (23 saved, 0 lost) |
+| S007 (68 and 65, both retired) | 85.3% | 76.0%: -9.3 (1 saved, 29 lost) | 93.7%: +8.3 (25 saved, 0 lost) |
+
+Limits: three couples, 300 paths each, and not arm A's policy search. The 60/40 control ran the same way at each
+setting, so the 41-point swing at 45 points is the holding, not the setup. Only S091 was run at 45 points.
+
+What I would do: (1) run this at 45 points on six couples re-held 75/25 and 90/10, and with one person much older;
+(2) set `share` from each person's share of the household's pots, as the runs above did (`couple-share.mjs`, `SHARE=auto`),
+or search a few values, since `audit-couples.mjs` never passes it. The state pensions and the ages are not in that rule
+and should be; (3) keep couples on the app's rules under the switch where either person's share is far from half
+until that has a registered test. D4's read still stands for couples like the library's. It says nothing about these.
+
+Two limits on that advice, both carried into item 6 of `EXPERIMENTS-AND-PORTS.md`:
+- D4 tests `share` at 0.5 on couples who hold 60/40. A rule that sets `share` from the pots would give those couples
+  0.6, which D4 never ran. So the rule has to leave 0.5 in place wherever D4's evidence covers, and that makes a step
+  in the rule at the edge of the band, which needs its own test.
+- One person holding nothing at all was not run at 45 points. At light settings it behaves like 90/10: S007 with the
+  first person holding everything, 300 paths of seed 99002, reads 65.0% against the rules' 85.3% (0 saved, 61 lost),
+  and 91.0% (17 saved, 0 lost) with the first person's table on 0.95 of the spending (`results/out-share-all-one.txt`).
+
+### 4.2 What the library never contains
+
+All held-out evidence is drawn from 420 households built on seven age patterns. None has:
+
+- any other income (no DB pension, annuity, rent or part-time work);
+- a gain already in the taxable account;
+- a state pension age other than 68 or a pension access age other than 58;
+- a couple other than 60/40 with a 3-year gap.
+
+I probed the first two on S116 (light settings, 300 paths, rules without guardrails). The solver's margin did not move:
++12.7 points as the library has it, +13.7 with a £15,000 DB pension, +13.3 with £30,000, +12.7 with half the taxable
+account a gain. No warning sign, on one household. Worth a registered panel that includes them before the claim "no
+harm to any household" is made for real users.
+
+### 4.3 No upper bound
+
+I did not build one. Nothing I read suggests the single's solver is far from optimal on households like the
+library's; the gaps above are about households unlike it.
+
+---
+
+## Prototypes, scripts and raw output (beside this file)
+
+- `prototype/`: `shortlist.diff` (solve.js: the shortlist, its check and its switches under `SHORT`), `couple-rank.diff`
+  (couple.js: `COUPLE.fast` and its plant) and `engine-hmrc.diff` (App.jsx: `__STACK_SALARY`, `__HMRC_ORDER`,
+  `__ISA_SWEEP`). Each applies to f02e8741 with `git apply` from the repository root, and each is off unless switched
+  on. The engine patch changes the engine only, so the solver's model disagrees with it once a switch is on: it is for
+  sizing, not for merging.
+- `tests/engine-hmrc.test.mjs`: the engine's year against an independent reference (Review 1).
+- `scripts/`: `scripts/README.md` lists each script, its command and the output it gave. Each finds the repository
+  from `REPO_ROOT` or from its own place in the tree; run `python3 research/build-engine.py` there first.
+- `results/`: every run's output as printed. The 45-point uneven-couple lines (`out-share-S091.txt`) were recovered
+  from the session's log, not written by the script to a file at the time.
+- With every switch off, a copy carrying all three patches gives the branch's numbers bit for bit
+  (`scripts/ident-off.mjs`; `results/out-ident-off.txt`: 1,760 paths, 0 differing; `out-ident-off-planted.txt`: its
+  planted run fails).
+
+## Sources
+
+- [Scottish Income Tax 2026 to 2027, gov.scot](https://www.gov.scot/publications/scottish-income-tax-rates-and-bands/pages/rates-and-bands-2026-to-2027/)
+- [Budget 2025, Annex A: rates and allowances, GOV.UK](https://www.gov.uk/government/publications/budget-2025-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances)
+- [Tax on savings interest: how much is tax-free, GOV.UK](https://www.gov.uk/apply-tax-free-interest-on-savings/how-much-is-tax-free)
+- [Autumn Budget 2025, M&G technical summary](https://www.mandg.com/adviser/tech-matters/government/autumn-budget-2025) (the freeze to April 2031, savings rates from April 2027, the cash ISA limit, the salary sacrifice cap from April 2029)

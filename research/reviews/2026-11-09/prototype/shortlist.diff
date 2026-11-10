@@ -1,0 +1,138 @@
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -1745,7 +1745,86 @@
+  * are integrated over, and the move with the best value wins. It is the same maximisation the solve
+  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
+  */
++/*
++ * PROTOTYPE (external review, 9 Nov; EXPLORATORY, off unless SHORT.on): THE CHOOSER'S SHORTLIST. The backward pass stored its
++ * best move at every cell (`pol`). At a position, the moves stored at the cells around it, in every world, for the tier pair
++ * held (SHORT.layers 'held') or for every pair ('all'), with their neighbours one spending level either way (SHORT.levels),
++ * are scored at the exact position as before; every other move is left out. No move affordable: the whole menu, as before.
++ */
++export const SHORT = { on: false, levels: true, layers: 'held', mode: 'cells', time: false, delta: null, probe: false, last: null, extra: null, stats: { decisions: 0, listed: 0, fallback: 0 } };
++function shortSetup(r) {
++  const acts = r.actions, n = acts.length, ca = r.c.acts, groups = new Map();
++  acts.forEach((a, ai) => {
++    const k = JSON.stringify([a.steps, !!a.harvest, a.harvestCeil || 'pa', ca[ai].tierPen || 0, ca[ai].tierIsa || 0, !!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale]);
++    if (!groups.has(k)) groups.set(k, []);
++    groups.get(k).push(ai);
++  });
++  const nbr = Array.from({ length: n }, () => []);
++  for (const list of groups.values()) {
++    list.sort((x, y) => (acts[x].spendLevel ?? 1) - (acts[y].spendLevel ?? 1));
++    list.forEach((ai, j) => { if (j > 0) nbr[ai].push(list[j - 1]); if (j + 1 < list.length) nbr[ai].push(list[j + 1]); });
++  }
++  // mode 'structure': every spending level and tier pair of a listed move's draw order and re-wrap
++  const sg = new Map(), struct = new Array(n);
++  acts.forEach((a, ai) => { const k = JSON.stringify([a.steps, !!a.harvest, a.harvestCeil || 'pa', !!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale]); if (!sg.has(k)) sg.set(k, []); sg.get(k).push(ai); struct[ai] = sg.get(k); });
++  // mode 'order': every level, tier pair and re-wrap of a listed move's draw order
++  const og = new Map(), order = new Array(n);
++  acts.forEach((a, ai) => { const k = JSON.stringify([a.steps, !!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale]); if (!og.has(k)) og.set(k, []); og.get(k).push(ai); order[ai] = og.get(k); });
++  return { nbr, struct, order, mask: new Uint8Array(n), need: new Uint8Array(n) };
++}
++function shortMask(r, s, t, held) {
++  const S = r._short || (r._short = shortSetup(r)), mask = S.mask;
++  mask.fill(0);
++  const tabs = r.mix ? r.mix.tables : [r];
++  let cnt = 0;
++  const add = ai => { if (!mask[ai]) { mask[ai] = 1; cnt++; } };
++  for (const tab of tabs) {
++    const g = tab.g, loc = locateVec(g, s);
++    let pols;
++    if (tab.tsLayers) {
++      let lj = -1;
++      if (held && SHORT.layers === 'held') { const ca = tab.c.acts; for (let ai = 0; ai < ca.length; ai++) if ((ca[ai].tierPen || 0) === held.pen && (ca[ai].tierIsa || 0) === held.isa) { lj = tab.tsLayerOf[ai]; break; } }
++      pols = lj >= 0 ? [tab.tsLayers[lj].pol] : tab.tsLayers.map(L => L.pol);
++    } else pols = [tab.pol];
++    const gs = loc.igw > 0 ? [loc.ig, loc.ig + 1] : [loc.ig], cs = loc.icw > 0 ? [loc.ic, loc.ic + 1] : [loc.ic];
++    for (let dp = 0; dp < 2; dp++) for (let di = 0; di < 2; di++) for (let dt = 0; dt < 2; dt++) for (const ig of gs) for (const ic of cs) {
++      const idx = g.index(Math.min(g.np - 1, loc.p.i + dp), Math.min(g.ni - 1, loc.i.i + di), Math.min(g.nt - 1, loc.t.i + dt), ig, ic);
++      for (const pol of pols) { add(pol[t][idx]); if (SHORT.time) { if (t > 0) add(pol[t - 1][idx]); if (t < r.m.ctx.totalYears) add(pol[t + 1][idx]); } }
++    }
++  }
++  if (SHORT.extra) for (const ai of SHORT.extra) add(ai);
++  if (SHORT.mode === 'structure' || SHORT.mode === 'order') { const G = SHORT.mode === 'order' ? S.order : S.struct, first = []; for (let ai = 0; ai < mask.length; ai++) if (mask[ai]) first.push(ai); for (const ai of first) for (const b of G[ai]) add(b); }
++  else if (SHORT.levels) { const first = []; for (let ai = 0; ai < mask.length; ai++) if (mask[ai]) first.push(ai); for (const ai of first) for (const b of S.nbr[ai]) add(b); }
++  SHORT.stats.decisions++; SHORT.stats.listed += cnt;
++  return mask;
++}
++/* PROTOTYPE: the shortlist's check. The table's own value at the position (the year's tables read where the household stands,
++ * the worlds weighted) is what the best move should score; a shortlist whose best falls short of it by more than SHORT.delta
++ * is not trusted and the whole menu is scored. SHORT.delta null: no check. */
++function tableValueAt(r, s, t, held) {
++  const tabs = r.mix ? r.mix.tables : [r], ws = r.mix ? r.mix.weights : [1], rd = r._tv || (r._tv = new Float64Array(4));
++  let v = 0;
++  for (let k = 0; k < tabs.length; k++) {
++    const tab = tabs[k];
++    let L = null;
++    if (tab.tsLayers && held) { const ca = tab.c.acts; for (let ai = 0; ai < ca.length; ai++) if ((ca[ai].tierPen || 0) === held.pen && (ca[ai].tierIsa || 0) === held.isa) { L = tab.tsLayers[tab.tsLayerOf[ai]]; break; } }
++    const LS = L ? L.lsurv : tab.lsurv, BQ = L ? L.beq : tab.beq, LR = L ? L.lresil : tab.lresil, SH = L ? L.short : tab.short;
++    readValues(tab.g, LS[t], BQ[t], s, rd, LR[t], SH[t], t);
++    v += ws[k] * (rd[0] + tab.wR * rd[2] + tab.wB * rd[1] - rd[3]);
++  }
++  return v;
++}
+ export function chooseAction(r, s, t, held = null) {
++  const ai = chooseActionCore(r, s, t, held);
++  if (SHORT.on && r._usedShort) {
++    r._usedShort = false;
++    const vi = tableValueAt(r, s, t, held), best = r._sc[ai];
++    SHORT.last = { vi, best };
++    if (SHORT.delta !== null && !(best >= vi - SHORT.delta)) { SHORT.stats.checked = (SHORT.stats.checked || 0) + 1; const on = SHORT.on; SHORT.on = false; const a2 = chooseActionCore(r, s, t, held); SHORT.on = on; return a2; }
++  } else if (SHORT.probe) SHORT.last = { vi: tableValueAt(r, s, t, held), best: r._sc ? r._sc[ai] : NaN };
++  return ai;
++}
++function chooseActionCore(r, s, t, held = null) {
+   const { actions } = r;
+   const T = r.m.ctx.totalYears;
+   /*
+@@ -1770,7 +1849,10 @@
+     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
+     // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
+     // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
+-    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
++    const canShare = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds');
++    CHOOSER.mask = SHORT.on && canShare && t < T && !r.nAt ? shortMask(r, s, t, held) : null;
++    const D = canShare ? decisionFlows(r, s, t, held) : null;
++    const wasShort = !!CHOOSER.mask; CHOOSER.mask = null; r._wasShort = wasShort; r._usedShort = wasShort;
+     // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike
+     const O = D && CHOOSER.once ? decisionRepeats(r, s, t, D) : null;
+     r.mix.tables.forEach((tab, k) => {
+@@ -1798,6 +1880,7 @@
+     scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)), held);
+     for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
+   }
++  if (r._wasShort) { r._wasShort = false; let any = false; for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity) { any = true; break; } if (!any) { SHORT.stats.fallback++; const on = SHORT.on; SHORT.on = false; const ai = chooseAction(r, s, t, held); SHORT.on = on; return ai; } }
+   // lockTiers: only the moves on the pair the candidate's chooser picks here stay in (lockMask, at the file's end)
+   if (r.lockTiers) { const lk = lockMask(r, s, t, held, SC); if (lk >= 0) return lk; }
+   let bestScore = -Infinity, bestB = -Infinity, best = 0;
+@@ -1962,7 +2045,7 @@
+  * a state under seven slots, Richardson's second table, a reader probe and the log-odds blend (both count every read), and
+  * scoreMoves stays the reference that probes and rankActions use.
+  */
+-export const CHOOSER = { share: true, check: false, plant: '', once: true };
++export const CHOOSER = { share: true, check: false, plant: '', once: true, mask: null };
+ export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0, once: 0, onceOff: 0 };
+ function decisionFlows(r, s, t, held) {
+   const c = r.c, actions = r.actions, n = actions.length, L = s.length;
+@@ -1973,8 +2056,11 @@
+     D.cU = new Uint32Array(D.cpost.buffer);
+   }
+   const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant, nT = movesAt(r, t);
++  const SL = CHOOSER.mask || null, need = SL ? r._short.need : null;
++  if (SL) { need.fill(0); for (let ai = 0; ai < nT; ai++) if (SL[ai]) need[base[ai]] = 1; }
+   for (let ai = 0; ai < nT; ai++) {
+     const o = ai * L, b = base[ai];
++    if (SL && !SL[ai] && !(b === ai && need[ai])) { fail[ai] = 1; tx[ai] = 0; continue; }
+     if (b === ai) {
+       const p = post.subarray(o, o + L); p.set(s);
+       const unmet = F.flow(c, t, ai, p);
+@@ -1984,6 +2070,7 @@
+     for (let q = 0; q < L; q++) cpost[o + q] = post[o + q];
+     if (held && !fail[ai] && !(plant === 'nocharge' && b !== ai)) F.chargeSwitch(c, cpost.subarray(o, o + L), held, c.acts[ai], t);
+   }
++  if (SL) for (let ai = 0; ai < nT; ai++) if (!SL[ai]) fail[ai] = 1;
+   return D;
+ }
+ const clsBitsF = new Float64Array(1), clsBitsU = new Uint32Array(clsBitsF.buffer);

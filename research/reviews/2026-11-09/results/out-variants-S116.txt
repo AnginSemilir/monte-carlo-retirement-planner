@@ -1,0 +1,17 @@
+S116 at 45 points (solve 511 s), 1000 paths of seed 99001; EXPLORATORY
+  the engine as it is:
+    rules  41.7% (0 saved, 0 lost against the engine as it is); spending delivered 87.07%; mean pot left 714260; tax on the expected path 42659
+    solved 90.4% (0 saved, 0 lost against the engine as it is); spending delivered 92.53%; mean pot left 1271488; tax on the expected path 60813
+    solved less rules: 48.7 points
+  + pay in the stack (1.1):
+    rules  41.7% (0 saved, 0 lost against the engine as it is); spending delivered 87.07%; mean pot left 714260; tax on the expected path 42659
+    solved 90.4% (0 saved, 0 lost against the engine as it is); spending delivered 92.53%; mean pot left 1271488; tax on the expected path 60813
+    solved less rules: 48.7 points
+  + HMRC order (1.2, 1.3):
+    rules  41.7% (0 saved, 0 lost against the engine as it is); spending delivered 87.07%; mean pot left 714303; tax on the expected path 42385
+    solved 89.8% (1 saved, 7 lost against the engine as it is); spending delivered 92.34%; mean pot left 1248748; tax on the expected path 66293
+    solved less rules: 48.1 points
+  + cash ISA kept in an ISA (1.4):
+    rules  41.7% (0 saved, 0 lost against the engine as it is); spending delivered 87.07%; mean pot left 714303; tax on the expected path 42385
+    solved 90.4% (8 saved, 8 lost against the engine as it is); spending delivered 93.20%; mean pot left 1360497; tax on the expected path 47252
+    solved less rules: 48.7 points

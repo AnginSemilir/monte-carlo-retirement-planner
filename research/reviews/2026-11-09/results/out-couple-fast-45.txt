@@ -1,0 +1,3 @@
+S091 at 45 points, 100 paths, 36 years: as it is 575 ms a path; ranked by the shared scoring 235 ms (2.4 times); every path's survival and pot left the same bit for bit: true
+   with the shortlist 'structure': 141 ms a path (4.1 times); 0 saved, 0 lost; mean pot left -0.52%
+   with the shortlist 'cells-held': 137 ms a path (4.2 times); 0 saved, 0 lost; mean pot left 0.45%

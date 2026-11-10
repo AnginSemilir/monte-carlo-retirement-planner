@@ -1,0 +1,137 @@
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1302,9 +1302,10 @@
+   params.dividendTax = (nonSavings, interest, dividends) => {
+     if (!(dividends > 0)) return 0;
+     const base = Math.max(0, nonSavings) + Math.max(0, interest);
+-    const hi = base + dividends, lo = Math.min(hi, base + divAllowance);
++    const hi = base + dividends, allowance = paAt(hi);
++    // PROTOTYPE (external review, 9 Nov; __HMRC_ORDER): the 0% dividend band starts where the personal allowance ends
++    const lo = Math.min(hi, (globalThis.__HMRC_ORDER ? Math.max(base, allowance) : base) + divAllowance);
+     if (hi <= lo) return 0;
+-    const allowance = paAt(hi);
+     const tl = Math.max(0, lo - allowance), th = Math.max(0, hi - allowance);
+     const bands = [[0, basicWidth, divBasic], [basicWidth, higherTop, divHigher], [higherTop, Infinity, divAdditional]];
+     let tax = 0;
+@@ -1322,8 +1323,12 @@
+   params.savingsTax = (nonSavings, interest) => {
+     if (!cashInterestTaxed || !(interest > 0)) return 0;
+     const ns = Math.max(0, nonSavings), i = interest;
+-    const starting = Math.max(0, Math.min(srBand, pa + srBand - ns));
+-    const exempt = Math.min(i, starting + psaAt(ns + i));
++    // PROTOTYPE (__HMRC_ORDER): the allowance the other income leaves covers interest first; the starting rate band and the
++    // savings allowance sit above it. As it is, both are placed from the other income upward and overlap that allowance.
++    const paNow = globalThis.__HMRC_ORDER ? paAt(ns + i) : pa;
++    const paLeft = globalThis.__HMRC_ORDER ? Math.max(0, paNow - ns) : 0;
++    const starting = Math.max(0, Math.min(srBand, paNow + srBand - ns));
++    const exempt = Math.min(i, paLeft + starting + psaAt(ns + i));
+     return Math.max(0, incomeTax(ns + i, ukParams) - incomeTax(ns + exempt, ukParams));
+   };
+   return params;
+@@ -2160,13 +2165,15 @@
+    * savings income, stacked on top of the non-savings income known here; a pension draw later in the year
+    * can push it up a band, and that second-order shift is deliberately not chased.
+    */
++  const earn = { self: 0, part: 0 };
++  if (globalThis.__STACK_SALARY) owners.forEach(o => { if (working[o.key]) earn[o.key] = salaryAtYear(o, t) * frac; });
+   const savingsInterest = { self: 0, part: 0 }, savingsTax = { self: 0, part: 0 };
+   if (P.cashInterestTaxed) owners.forEach(o => {
+     const a = ctx.acc[o.ids.cash];
+     if (!a) return;
+     const nominal = (1 + a.real) * (1 + ctx.inflation) - 1;
+     savingsInterest[o.key] = Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac);
+-    savingsTax[o.key] = P.savingsTax(taxable[o.key], savingsInterest[o.key]);
++    savingsTax[o.key] = P.savingsTax(taxable[o.key] + earn[o.key], savingsInterest[o.key]);
+   });
+   /*
+    * 4b. Tax on the year's dividends inside the GIA, on the same footing: the GIA is assumed to pay its
+@@ -2177,7 +2184,7 @@
+   const giaDividends = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+   if (P.giaDividendYield > 0) owners.forEach(o => {
+     giaDividends[o.key] = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac);
+-    dividendTax[o.key] = P.dividendTax(taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
++    dividendTax[o.key] = P.dividendTax(taxable[o.key] + earn[o.key], savingsInterest[o.key], giaDividends[o.key]);
+     // the dividends are reinvested (the GIA's total return includes them), so they buy units at cost (F0a, 21 Oct)
+     if (cgtOn && giaDividends[o.key] > 0) giaAddBasis(state, o.key, giaDividends[o.key]);
+   });
+@@ -2216,15 +2223,15 @@
+   const ownerByKey = {}; owners.forEach(o => { ownerByKey[o.key] = o; });
+ 
+   // draw `netNeeded` net from an owner's pension without taking taxable income above `ceiling`; returns net delivered
+-  const drawPension = (oKey, netNeeded, ceiling = Infinity) => {
++  const drawPensionOnce = (oKey, netNeeded, ceiling = Infinity) => {
+     const o = ownerByKey[oKey];
+     if (!o || netNeeded <= 0 || !access[oKey]) return 0;
+     const pot = pots[o.ids.pen] || 0;
+     if (pot <= 0) return 0;
+     const fully = ctx.fullLumpSum && state.lumpSumTaken[oKey];
+     const headroom = fully ? 0 : pclsHeadroom(oKey);
+-    if (taxable[oKey] >= ceiling) return 0;
+-    const grossNeeded = grossPensionNeededForNet(netNeeded, taxable[oKey], P, fully, headroom, ceiling);
++    if (taxable[oKey] + earn[oKey] >= ceiling) return 0;
++    const grossNeeded = grossPensionNeededForNet(netNeeded, taxable[oKey] + earn[oKey], P, fully, headroom, ceiling);
+     const gross = Math.min(pot, grossNeeded);
+     if (gross <= 0) return 0;
+     pots[o.ids.pen] = pot - gross;
+@@ -2233,10 +2240,24 @@
+     state.cumPcls[oKey] += taxFree;
+     const taxablePart = gross - taxFree;
+     taxablePensionDrawn[oKey] += taxablePart;
+-    const before = calculateUKNetIncome(taxable[oKey], P);
++    const before = calculateUKNetIncome(taxable[oKey] + earn[oKey], P);
+     taxable[oKey] += taxablePart;
+-    const after = calculateUKNetIncome(taxable[oKey], P);
+-    return taxFree + (after - before);
++    const after = calculateUKNetIncome(taxable[oKey] + earn[oKey], P);
++    let knock = 0;
++    if (globalThis.__HMRC_ORDER) {
++      // PROTOTYPE: the year's interest and dividends re-taxed on the income as it now stands; the rise is this draw's cost
++      const sv = P.savingsTax(taxable[oKey] + earn[oKey], savingsInterest[oKey]);
++      const dv = P.dividendTax(taxable[oKey] + earn[oKey], savingsInterest[oKey], giaDividends[oKey]);
++      knock = (sv - savingsTax[oKey]) + (dv - dividendTax[oKey]);
++      savingsTax[oKey] = sv; dividendTax[oKey] = dv;
++    }
++    return taxFree + (after - before) - knock;
++  };
++  // PROTOTYPE (__HMRC_ORDER): the gross-up knows income tax alone, so a draw that falls short by its knock-on is topped up
++  const drawPension = (oKey, netNeeded, ceiling = Infinity) => {
++    let got = drawPensionOnce(oKey, netNeeded, ceiling);
++    if (globalThis.__HMRC_ORDER) for (let k = 0; k < 4 && got > 0 && got < netNeeded - 0.5; k++) { const more = drawPensionOnce(oKey, netNeeded - got, ceiling); if (!(more > 0)) break; got += more; }
++    return got;
+   };
+   const drawPot = (id, need) => {
+     if (need <= 0) return 0;
+@@ -2543,7 +2564,8 @@
+       if (taxableGain <= 0) return;
+       // Unused personal allowance cannot be set against capital gains, so the band available to gains is
+       // the basic-rate width less TAXABLE income (income after PA) — never the full gross-income headroom.
+-      const taxableIncome = Math.max(0, taxable[o.key] - P.paAt(taxable[o.key]));
++      const allInc = taxable[o.key] + earn[o.key] + (globalThis.__HMRC_ORDER ? savingsInterest[o.key] + giaDividends[o.key] : 0);
++      const taxableIncome = Math.max(0, allInc - P.paAt(allInc));
+       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
+       const atBasic = Math.min(taxableGain, basicRoom);
+       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
+@@ -2577,8 +2599,12 @@
+       if (cash > bufferEach) {
+         const excess = cash - bufferEach;
+         pots[o.ids.cash] = bufferEach;
+-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+-        if (cgtOn) giaAddBasis(state, o.key, excess);
++        // PROTOTYPE (external review, 9 Nov; __ISA_SWEEP): the part of the excess that is cash ISA money (the buffer keeps the
++        // sheltered cash first, as 7e does) transfers to the stocks and shares ISA, which uses no allowance; the rest to the GIA
++        const fromIsa = globalThis.__ISA_SWEEP && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
++        if (fromIsa > 0) pots[o.ids.isa] += fromIsa;
++        pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
++        if (cgtOn) giaAddBasis(state, o.key, excess - fromIsa);
+       } else if (cash < bufferEach) {
+         const before = realisedGains[o.key];
+         const got = sellGia(o.ids.other, bufferEach - cash);
+@@ -2667,7 +2693,7 @@
+   const totalSelf = sumOwner(ownerByKey.self);
+   const totalPart = ctx.isCouple ? sumOwner(ownerByKey.part) : 0;
+   const totalCombined = totalSelf + totalPart;
+-  const taxPaid = owners.reduce((s, o) => s + incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
++  const taxPaid = owners.reduce((s, o) => s + incomeTax(taxable[o.key] + earn[o.key], P) - incomeTax(earn[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
+   const byCat = {};
+   CATEGORIES.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
+ 

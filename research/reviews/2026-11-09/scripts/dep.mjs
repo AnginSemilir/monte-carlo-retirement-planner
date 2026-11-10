@@ -1,0 +1,10 @@
+import { repoRoot } from './root.mjs';
+const R = repoRoot(import.meta.url);
+const E = await import(R + '/research/engine.mjs');
+const { buildScenarios } = await import(R + '/research/policy-study/scenarios.mjs');
+const base = E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan);
+const withDep = E.normalizePlan({ ...base, oneOffContributions: [{ id: 'x1', owner: 'Myself', category: 'Pensions', amount: 3600, date: '2027-06-01', transferredFrom: 'External' }] });
+console.log('deposit as normalised', JSON.stringify(withDep.oneOffContributions));
+const a = E.simulateDeterministic(E.resolveMpaa(base), 'expected'), b = E.simulateDeterministic(E.resolveMpaa(withDep), 'expected');
+for (const t of [0, 1, 2]) console.log('t', t, 'pension without / with the 3,600 deposit', Math.round(a[t].pensions), Math.round(b[t].pensions), 'total', Math.round(a[t].totalCombined), Math.round(b[t].totalCombined));
+const ctx = E.buildContext(withDep); console.log('contribs by year', JSON.stringify([...ctx.oneOffContribs.entries()]));

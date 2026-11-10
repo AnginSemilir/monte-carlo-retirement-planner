@@ -1,0 +1,5 @@
+S007 at 4 points, 100 paths, 28 years: as it is 478 ms a path; ranked by the shared scoring 192 ms (2.5 times); every path's survival and pot left the same bit for bit: true
+exit 0
+S007 at 4 points, 100 paths, 28 years: as it is 469 ms a path; ranked by the shared scoring 125 ms (3.8 times); every path's survival and pot left the same bit for bit: false
+IDENTITY FAILED: 100 of 100 paths differ (planted: faststale)
+exit 1

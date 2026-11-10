@@ -1,0 +1,16 @@
+S370 at 45 points, 2700 decisions: the whole menu's best score less the table's value at the position, in points: 1% -Infinity, 5% -1.662, median 0.010, 95% 0.375, 99% 2.279
+   cells-held, check off: whole menu scored at 0.0% of decisions; left: over 0.1 points given up at 1.07%, over 1 at 0.07%, mean NaN, worst 10.19
+   cells-held, check 0.50 points: whole menu scored at 10.3% of decisions; left: over 0.1 points given up at 0.30%, over 1 at 0.00%, mean 2.3e-3, worst 0.26
+   cells-held, check 0.20 points: whole menu scored at 18.9% of decisions; left: over 0.1 points given up at 0.15%, over 1 at 0.00%, mean 1.8e-3, worst 0.22
+   cells-held, check 0.10 points: whole menu scored at 23.5% of decisions; left: over 0.1 points given up at 0.07%, over 1 at 0.00%, mean 1.6e-3, worst 0.22
+   cells-held, check 0.05 points: whole menu scored at 26.3% of decisions; left: over 0.1 points given up at 0.00%, over 1 at 0.00%, mean 1.3e-3, worst 0.08
+   cells-all-time, check off: whole menu scored at 0.0% of decisions; left: over 0.1 points given up at 0.59%, over 1 at 0.07%, mean NaN, worst 5.45
+   cells-all-time, check 0.50 points: whole menu scored at 10.1% of decisions; left: over 0.1 points given up at 0.15%, over 1 at 0.00%, mean 1.5e-3, worst 0.22
+   cells-all-time, check 0.20 points: whole menu scored at 18.8% of decisions; left: over 0.1 points given up at 0.11%, over 1 at 0.00%, mean 1.3e-3, worst 0.22
+   cells-all-time, check 0.10 points: whole menu scored at 23.4% of decisions; left: over 0.1 points given up at 0.11%, over 1 at 0.00%, mean 1.2e-3, worst 0.22
+   cells-all-time, check 0.05 points: whole menu scored at 26.2% of decisions; left: over 0.1 points given up at 0.00%, over 1 at 0.00%, mean 9.1e-4, worst 0.05
+   structure, check off: whole menu scored at 0.0% of decisions; left: over 0.1 points given up at 0.52%, over 1 at 0.07%, mean NaN, worst 2.74
+   structure, check 0.50 points: whole menu scored at 10.1% of decisions; left: over 0.1 points given up at 0.15%, over 1 at 0.00%, mean 1.0e-3, worst 0.22
+   structure, check 0.20 points: whole menu scored at 18.8% of decisions; left: over 0.1 points given up at 0.11%, over 1 at 0.00%, mean 8.7e-4, worst 0.22
+   structure, check 0.10 points: whole menu scored at 23.4% of decisions; left: over 0.1 points given up at 0.11%, over 1 at 0.00%, mean 8.1e-4, worst 0.22
+   structure, check 0.05 points: whole menu scored at 26.2% of decisions; left: over 0.1 points given up at 0.00%, over 1 at 0.00%, mean 5.3e-4, worst 0.03

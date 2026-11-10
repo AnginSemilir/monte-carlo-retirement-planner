@@ -1,0 +1,12 @@
+PASS  the engine alone, S116: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S214: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S210: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S224: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S002: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S007: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S187: 200 paths and the expected path's rows, 0 differing
+PASS  the engine alone, S201: 200 paths and the expected path's rows, 0 differing
+PASS  a single's solve and its policy, S116 at 4 points: 100 paths (survival, pot left, spending delivered) and the expected path's rows, 0 differing
+PASS  a couple's solve and the rollout, S007 at 4 points: 60 paths (survival, pot left), 0 differing
+ALL PASS: verify against monte-carlo-retirement-planner, switches off: 1760 paths compared, 0 differing
+exit 0

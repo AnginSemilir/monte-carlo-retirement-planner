@@ -28,9 +28,10 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | built (`PART-D.md`), on the working branch | 6 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built, registered and ruled (D61), run from 7 Nov; stopped unread on 10 Nov with 76 of 520 chunks finished (D66), to run once more on the code after the review's items 2 to 5: the panel, the pilot and the sizing kept; the registration again (`couples-d4b.md`), the run and the read to come: 3 of its 6 items | 3.5 |
-| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 2 done (a couple's path by the shared scoring, three hours of its own times); items 3 to 9 to come | 0.4 |
+| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 2 done (a couple's path by the shared scoring, three hours of its own times); item 9 done (the two-stage rule's rates exactly, half a day); item 8's caption in (two hours); items 3, 4 and 5 built, waiting on the external review's answers (`QUESTIONS-2026-11-10.md`); item 6's stage A running; items 7 and 1's part 2 to come | 1.15 |
+| The review's item 10, the solve on anchors and shortlists (D68) | its own times | 1.5 | its check against the review done on a scratch tree; stage A in item 7's batch after item 3; stage B after the maintainer's ruling | 0.1 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **45** | | **28.9 (64%)** |
+| **Total** | | **46.5** | | **29.75 (64%)** |
 
 The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them, 100%.
 
@@ -54,3 +55,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them,
 | 8 Nov 18:40 UTC | D62's site change merged (pull request 11): the quick start's contributions, the phone's four-way split, phone-perf's ceiling, the browser check page gone; outside the calendar's steps, so no weight | 80% | 100% |
 | 10 Nov 08:44 UTC | D4 stopped unread (D66, the review of 9 Nov): its registration to be made again, and the review's items 2 to 9 added, eight days by its own times; the plan 45 days, no work lost but D4's units | 63% | 100% |
 | 10 Nov UTC | The review's item 2 ported (`COUPLE.fast`): a couple's path ranked from the shared scores, exact, `couple-rank.test.mjs` | 64% | 100% |
+| 10 Nov 16:30 UTC | Item 9 in (the two-stage rule's exact rates) and item 8's caption; item 10 added (D68), a day and a half; items 3 and 4 to the external review (item 4's STOP, item 3's pins) | 64% | 100% |

@@ -1,0 +1,46 @@
+# EXPLORATORY design check (the review of 9 Nov, item 9; D66): node research/tests/twostage.test.mjs, then --plants
+twostage: the two-stage rule's exact rates (size-phase4.mjs), N 19000
+  ok   1. never stopping, the two-stage rate is harmRate's at D34's lattice threshold (first stage at 5,000 paths and at N)   the largest difference 4.30e-10; d 9.00% loss 0.25: 0.047603; d 9.00% loss 1: 0.962393; d 12.45% loss 0.25: 0.049999; d 12.45% loss 1: 0.900729
+  ok   2. D4's rule (the threshold at the realised discordance's upper bound), never stopping: the rate the same split at 5,000 paths and unsplit   the largest difference 2.52e-10; d 9.00% loss 0.25: 0.045006; d 9.00% loss 1: 0.960455; d 12.45% loss 0.25: 0.045821; d 12.45% loss 1: 0.893523
+  ok   3. the review's figures (twostage.py, 400,000 runs a case): every flag rate, stop rate and mean of paths within 0.002 of the exact one   72 figures; the largest difference 0.0014 (5000/0 d 12.45% loss 0.25, stopped 0.3153 against 0.3139; 1.8 of the simulation's se past its rounding)
+  ok   4. not vacuous: at a true 1-point gain most units stop at 5,000 paths, at a true 1-point loss almost none do   stopped 0.8731 at a gain (6776 paths on average), 0.0002 at a loss
+  ok   5. the 1-point rate under two stages (5,000 paths, +0.5) within 0.001 of one stage's, the normal rule and D4's   the largest fall 0.0005; normal d 9.00%: 0.9645 one stage, 0.9644 two; normal d 12.45%: 0.9009 one stage, 0.9005 two; realised d 9.00%: 0.9605 one stage, 0.9604 two; realised d 12.45%: 0.8935 one stage, 0.8931 two
+
+the table (exact, the review's simulated in brackets):
+  5000/0.5 d 9.00% loss 1: one 0.9645 (0.9648) two 0.9644 (0.9647) stopped 0.0002 (0.0002)
+  5000/0.5 d 9.00% loss 0.25: one 0.0499 (0.0497) two 0.0499 (0.0497) stopped 0.0405 (0.0409)
+  5000/0.5 d 12.45% loss 1: one 0.9009 (0.901) two 0.9005 (0.9005) stopped 0.0014 (0.0014)
+  5000/0.5 d 12.45% loss 0.25: one 0.0499 (0.0503) two 0.0499 (0.0502) stopped 0.0690 (0.0685)
+  5000/0.5 d 10.0% gain 0: stopped 0.1366 (0.137) paths 17088 (17088)
+  5000/0.5 d 10.0% gain 0.5: stopped 0.5088 (0.509) paths 11877 (11868)
+  5000/0.5 d 10.0% gain 1: stopped 0.8731 (0.873) paths 6776 (6776)
+  5000/0.5 d 10.0% gain 2: stopped 0.9997 (1) paths 5005 (5004)
+  5000/0.5 d 10.0% gain 5: stopped 1.0000 (1) paths 5000 (5000)
+  5000/0.5 d 12.0% gain 10: stopped 1.0000 (1) paths 5000 (5000)
+  5000/0 d 9.00% loss 1: one 0.9645 (0.9641) two 0.9578 (0.9572) stopped 0.0097 (0.01)
+  5000/0 d 9.00% loss 0.25: one 0.0499 (0.0508) two 0.0483 (0.0492) stopped 0.2858 (0.2859)
+  5000/0 d 12.45% loss 1: one 0.9009 (0.9014) two 0.8884 (0.8887) stopped 0.0235 (0.0238)
+  5000/0 d 12.45% loss 0.25: one 0.0499 (0.0506) two 0.0480 (0.0485) stopped 0.3153 (0.3139)
+  5000/0 d 10.0% gain 0: stopped 0.5089 (0.509) paths 11875 (11873)
+  5000/0 d 10.0% gain 0.5: stopped 0.8730 (0.873) paths 6778 (6775)
+  5000/0 d 10.0% gain 1: stopped 0.9881 (0.988) paths 5166 (5165)
+  5000/0 d 10.0% gain 2: stopped 1.0000 (1) paths 5000 (5000)
+  5000/0 d 10.0% gain 5: stopped 1.0000 (1) paths 5000 (5000)
+  5000/0 d 12.0% gain 10: stopped 1.0000 (1) paths 5000 (5000)
+  4000/0.5 d 9.00% loss 1: one 0.9645 (0.9649) two 0.9640 (0.9644) stopped 0.0008 (0.0008)
+  4000/0.5 d 9.00% loss 0.25: one 0.0499 (0.0498) two 0.0498 (0.0497) stopped 0.0599 (0.0599)
+  4000/0.5 d 12.45% loss 1: one 0.9009 (0.9015) two 0.8992 (0.8999) stopped 0.0038 (0.0037)
+  4000/0.5 d 12.45% loss 0.25: one 0.0499 (0.0502) two 0.0497 (0.05) stopped 0.0930 (0.0934)
+  4000/0.5 d 10.0% gain 0: stopped 0.1647 (0.165) paths 16529 (16531)
+  4000/0.5 d 10.0% gain 0.5: stopped 0.5099 (0.509) paths 11352 (11365)
+  4000/0.5 d 10.0% gain 1: stopped 0.8475 (0.847) paths 6287 (6291)
+  4000/0.5 d 10.0% gain 2: stopped 0.9988 (0.999) paths 4018 (4019)
+  4000/0.5 d 10.0% gain 5: stopped 1.0000 (1) paths 4000 (4000)
+  4000/0.5 d 12.0% gain 10: stopped 1.0000 (1) paths 4000 (4000)
+
+twostage: 5 passed, 0 failed
+
+--plants:
+  plant bothways  fails 3, 4, 5 (expected 3, 4, 5): exact
+
+all plants exact

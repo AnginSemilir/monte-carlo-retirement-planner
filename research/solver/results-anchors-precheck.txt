@@ -1,0 +1,21 @@
+# EXPLORATORY (the review of 10 Nov, item 10; D68): before item 7's batch, the review's patch (prototype/solve-coarse.diff) on a scratch tree at f02e8741 (/home/user/item10-f02).
+# 1. its test, node research/reviews/2026-11-09/tests/solve-coarse.test.mjs on that tree (the review's out-solve-coarse-test.txt: the PASS lines the same, diffed):
+PASS  1. every cell an anchor, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S370 at 4 points: 0 of 5007744 table values differ from the solve without the option
+PASS  2. planted (a move's flow kept from the cell before), S116: 2150784 of 3919104 table values differ
+PASS  3. w2a3b3g2c2-NT-LRVOH-h3 on S370 with the repeat-move rule against without it: 0 of 5007744 table values differ (266172 expectations taken from a listed move)
+PASS  3. planted (the position alone matched, neither the growth class nor the layer), S370: 2105742 of 5007744 table values differ
+PASS  4. w2a3b3g2c2-NT-LRVOH-h3 on S370, split across two parts against one thread: 0 of 5007744 table values differ
+PASS  4. planted (the anchors' copied cells not made before the second pass), S370 split: 1496987 of 5007744 table values differ
+PASS  5. meta.coarse records the setting: {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}
+PASS  5. 33839 cells solved on a shortlist of 34.6 moves on average; cells with nothing listed 0
+PASS  5. the anchors are 8.3% of the grid's cells at these strides (4 x 6 x 6 x 3 x 3)
+PASS  6. refused outside E5's path (tsOnce false): coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays
+ALL PASS: 12 checks
+test exit 0
+
+# 2. its check on S116: node research/reviews/2026-11-09/scripts/solve-anchors.mjs S116 45 1000 w2a3b3g2c2-NT-LRVOH-h3 (CACHE=0), item 10's two figures: 964,205 of 2,099,520 table entries differing, 3.60e-3 points lost on average:
+S116 at 45 points: grid 45 x 6 x 6 x 3 x 3, 36 years, 800 moves; the solve as it is 360.3 s (its bridge reference 0.0 s); survival 89.10% on 1000 paths of seed 99003; EXPLORATORY
+  w2a3b3g2c2-NT-LRVOH-h3: the solve 49.1 s (7.34 times; its bridge reference 0.0 s); cells on a shortlist 343980 with 37.8 moves listed (10% of their expectations a listed move's own; 0 cells with nothing listed); tables: 964205 of 2099520 entries differ in a value, the stored move at 2.94%, the score lost 3.60e-3 points on average, over 0.1 points at 0.530%, over 1 point at 0.0063%, the worst 1.86, higher at 80866; year 0: 4.05e-3 on average, the worst 0.344 | paths: 0 saved, 1 lost of 1000 (-0.10 points, se 0.10); spending delivered -0.006 points of target; mean pot left -0.01%
+exit 0

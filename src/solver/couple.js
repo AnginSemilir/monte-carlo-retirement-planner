@@ -35,7 +35,12 @@
  * (couple-quick.test.mjs) put each D1 gap back as the code before D1 had it (with model.js's MODEL.plant 'nolevel', all four
  * are that code); 'fullfloor', 'nohhfloor', 'baselayer', 'nocharge' and 'noheld' (couple-tables.test.mjs) each D2.3 gap it
  * names; 'ownmoney' D2.4's (each person's bridge read on their own money); 'nolock' D3's (couple-levers.test.mjs: the rollout
- * unlocked from each person's base).
+ * unlocked from each person's base); 'faststale' the review of 9 Nov's item 2 (couple-rank.test.mjs: the shared ranking given
+ * the scores of the decision before).
+ * COUPLE.fast (on; the review of 9 Nov, item 2, D66): rankFor ranks a person's moves from the scores their own table's chooser
+ * leaves (chooseAction's shared scoring, the switch charged, in tab._sc and tab._bq), not by scoring every move again with
+ * scoreMoves, wherever that is the same sum: a mixture with the exact final year, no lock and no Richardson table. Exact: every
+ * ranking the same (couple-rank.test.mjs). COUPLE.check (tests only) ranks both ways and counts any that differ.
  */
 import { solve, solveMixture, rankActions, scoreMoves, chooseAction, NODES, WEIGHTS } from './solve.js';
 import { foldedVol } from './fast.js';
@@ -43,7 +48,10 @@ import { vecOf, readValues, bridgeTable } from './grid.js';
 import { profileOf as M_profileOf } from './model.js';
 
 export const SPLITS = [0, 0.25, 0.5, 0.75, 1];
-export const COUPLE = { plant: '' };
+export const COUPLE = { plant: '', fast: true, check: false };
+/* COUPLE.check's counts: the rankings past rankFor's first return, those made from the shared scores, those whose two
+   rankings differ (the first kept whole, to report) */
+export const COUPLE_CHECKED = { decisions: 0, fast: 0, differ: 0, first: null };
 const planted = (k) => COUPLE.plant !== '' && COUPLE.plant.split(',').includes(k);
 
 /* One person's plan, cut from the couple's: their wrappers and incomes, `share` of the household's spending. */
@@ -275,7 +283,35 @@ export function rankFor(tab, s, t, held, K) {
   // where they stand, as chooseAction's lockMask does a single's; where every move there fails, the base's own move. Plant 'nolock'
   const LK = tab.lockTiers && held && !planted('nolock') ? tab.lockTiers : null;
   if (!(sc > 0) && !LK) return rankActions(tab, s, t, held, K);
+  if (COUPLE.check) COUPLE_CHECKED.decisions++;
+  // COUPLE.fast (the review of 9 Nov, item 2): the scores the person's own chooser leaves (chooseAction: every move's score
+  // in tab._sc with the switch charged, its estate in tab._bq; a mixture's shared scoring), ranked as below. Not where
+  // chooseAction does more than score (a lock's mask, Richardson's second table) or scores another year (a table without the
+  // exact final year): those keep the scoring below. Plant 'faststale': the scores of the decision before
+  if (COUPLE.fast && tab.mix && !tab.lockTiers && !tab.rich && tab.finalExact) {
+    if (!planted('faststale') || !tab._sc) chooseAction(tab, s, t, held);
+    const SCf = tab._sc, BQf = tab._bq, idx = [];
+    for (let ai = 0; ai < SCf.length; ai++) if (SCf[ai] > -Infinity) idx.push(ai);
+    idx.sort((a, b) => (SCf[b] - SCf[a]) || (BQf[b] - BQf[a]));
+    const out = idx.slice(0, K);
+    if (COUPLE.check) {
+      COUPLE_CHECKED.fast++;
+      const keep = {}, old = rankScored(tab, s, t, held, K, sc, LK, keep);
+      if (old.length !== out.length || old.some((a, i) => a !== out[i])) {
+        COUPLE_CHECKED.differ++;
+        if (!COUPLE_CHECKED.first) COUPLE_CHECKED.first = { tab, t, s: Array.from(s), held: { ...held }, fast: out, scored: old, fastScores: Float64Array.from(SCf), fastBq: Float64Array.from(BQf), scoredScores: keep.SC, scoredBq: keep.BQ };
+      }
+    }
+    return out;
+  }
+  return rankScored(tab, s, t, held, K, sc, LK);
+}
+
+/* rankFor's ranking by scoring every move with scoreMoves (each world's, a mixture weighted), the lock's mask and the switch
+   charge applied; `keep`, when given, receives the score and estate vectors (COUPLE.check's report) */
+function rankScored(tab, s, t, held, K, sc, LK, keep = null) {
   const n = tab.actions.length, SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n), acts = tab.c.acts;
+  if (keep) { keep.SC = SC; keep.BQ = BQ; }
   const tt = tab.finalExact ? t : Math.min(t, tab.m.ctx.totalYears - 1);
   if (tab.mix) {
     // the mixture as chooseAction scores it: each table's score weighted, a move that fails in any table failing

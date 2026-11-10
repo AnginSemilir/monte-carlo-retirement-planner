@@ -28,9 +28,9 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | built (`PART-D.md`), on the working branch | 6 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built, registered and ruled (D61), run from 7 Nov; stopped unread on 10 Nov with 76 of 520 chunks finished (D66), to run once more on the code after the review's items 2 to 5: the panel, the pilot and the sizing kept; the registration again (`couples-d4b.md`), the run and the read to come: 3 of its 6 items | 3.5 |
-| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 1's stop made; items 2 to 9 to come | 0 |
+| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 2 done (a couple's path by the shared scoring, three hours of its own times); items 3 to 9 to come | 0.4 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **45** | | **28.5 (63%)** |
+| **Total** | | **45** | | **28.9 (64%)** |
 
 The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them, 100%.
 
@@ -53,3 +53,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them,
 | 7 Nov 18:20 UTC | Part D's D4 built and registered, the design re-review's PASS: to the maintainer before its run | 80% | 100% |
 | 8 Nov 18:40 UTC | D62's site change merged (pull request 11): the quick start's contributions, the phone's four-way split, phone-perf's ceiling, the browser check page gone; outside the calendar's steps, so no weight | 80% | 100% |
 | 10 Nov 08:44 UTC | D4 stopped unread (D66, the review of 9 Nov): its registration to be made again, and the review's items 2 to 9 added, eight days by its own times; the plan 45 days, no work lost but D4's units | 63% | 100% |
+| 10 Nov UTC | The review's item 2 ported (`COUPLE.fast`): a couple's path ranked from the shared scores, exact, `couple-rank.test.mjs` | 64% | 100% |

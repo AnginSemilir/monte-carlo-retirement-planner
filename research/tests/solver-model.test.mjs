@@ -271,7 +271,9 @@ console.log('=========== H. THE CASH SWEEP, WHICH IS WHAT LETS THE GRID DROP A D
     }
   }
   ok(`H1  with the sweep, the merge never moves the year the plan fails (${n} runs)`, failChangedOn === 0, `${failChangedOn} changed`);
-  ok('H2  ...and terminal wealth stays within 5% in the worst case', worstOn < 0.05, `worst ${(worstOn * 100).toFixed(2)}%`);
+  // 6% since 11 Nov (the maintainer's ruling): item 3 of the review of 9 Nov taxes the cash's interest in HMRC's order, and
+  // the worst case, S329 phased (an end pot of £79,361), moved from 3.64% to 5.12%; H1 holds on every run
+  ok('H2  ...and terminal wealth stays within 6% in the worst case', worstOn < 0.06, `worst ${(worstOn * 100).toFixed(2)}%`);
   ok('H3  without it the merge is not safe, which is why the sweep exists', failChangedOff > 0 && worstOff > worstOn * 20,
     `${failChangedOff} failure years moved, worst ${(worstOff * 100).toFixed(0)}% against ${(worstOn * 100).toFixed(2)}%`);
 

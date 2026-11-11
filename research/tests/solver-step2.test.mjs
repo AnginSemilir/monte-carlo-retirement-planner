@@ -21,7 +21,9 @@ const LEVELS = [1.2, 1.1, 1, 0.95, 0.9, 0.8];
   for (let t = 0; t < ex.pol.length; t++) for (let i = 0; i < ex.g.size; i++) { cells++; if (ex.pol[t][i] !== te.pol[t][i]) diff++; maxDv = Math.max(maxDv, Math.abs(ex.surv[t][i] - te.surv[t][i])); }
   ok(te.meta.levelSearch === 'ternary' && ex.meta.levelSearch === 'exhaustive', 'meta records the search');
   ok(diff / cells < 0.005, `ternary stores the exhaustive move on all but ${(100 * diff / cells).toFixed(3)}% of cells`);
-  ok(maxDv < 0.01, `survival tables agree within a point everywhere (max ${(100 * maxDv).toFixed(3)})`);
+  // two points since 11 Nov (the maintainer's ruling): the ternary search is a research option neither the candidate nor the
+  // app uses; item 3 of the review of 9 Nov (the year in HMRC's order) moved S162's largest gap from under a point to 1.95
+  ok(maxDv < 0.02, `survival tables agree within two points everywhere (max ${(100 * maxDv).toFixed(3)})`);
   ok(te.meta.evaluated < ex.meta.evaluated, `ternary evaluates fewer flows (${te.meta.evaluated} against ${ex.meta.evaluated})`);
 }
 

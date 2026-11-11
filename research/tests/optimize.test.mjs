@@ -256,13 +256,20 @@ console.log('=========== H. HOW MUCH PENSION TO DRAW EARLY ===========');
   const late = { pa: at(90, 'pa'), basic: at(90, 'basic') };
   ok('below 75 drawing early costs money', early.basic < early.pa,
     `${gbp(early.pa)} -> ${gbp(early.basic)}`);
-  ok('above 75 it earns money', late.basic > late.pa, `${gbp(late.pa)} -> ${gbp(late.basic)}`);
+  // Re-pinned 11 Nov (the maintainer's ruling, after item 3 of the review of 9 Nov stacked the year in HMRC's order): the
+  // interest and dividends now sit above the pension draw, so drawing to the top of the basic band takes them into the higher
+  // rate. Before item 3, at death 90 the basic ceiling gained £36,471 over the personal allowance; now it costs £3,822 on its
+  // own, less than the £6,288 it costs at death 72. The death age still decides it, as the two optimiser checks below show.
+  ok('above 75 drawing early costs less than below it', late.pa - late.basic < early.pa - early.basic,
+    `${gbp(late.pa)} -> ${gbp(late.basic)} at 90 against ${gbp(early.pa)} -> ${gbp(early.basic)} at 72`);
 
   const r72 = E.optimizeInheritance(household({ deathAge: 72 }));
   const r90 = E.optimizeInheritance(household({ deathAge: 90 }));
   ok('the optimiser leaves it alone for an early death', r72.best.ceiling !== 'basic', r72.best.ceiling);
   ok('and takes it for a late one', r90.best.ceiling === 'basic', r90.best.ceiling);
-  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling' && l.gain > 0),
+  // on its own, from the plan as it stands, the ceiling gains nothing at death 90 since item 3; beside the best order it still
+  // wins (the check above), so it is still listed as its own lever, its gain shown
+  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling'),
     gbp((r90.levers.find(l => l.key === 'ceiling') || {}).gain || 0));
 }
 

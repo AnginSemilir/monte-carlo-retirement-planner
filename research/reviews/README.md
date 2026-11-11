@@ -47,7 +47,10 @@ dated record, and the agent cites them by commit.
   change of estate shape. Item 7 is read again in that batch, its pot part one-sided, with a small addition to the
   shortlist (the slice).
 - The basic harvest ceiling should count the year's interest and dividends: an engine change, after the beta.
-- **It carries the prompt to send next,** which also covers item 11 and the couples' re-run.
+- **It carries the prompt to send next,** which also covers item 11 and the couples' re-run. The prompt is written
+  for a new session of the agent: `2026-11-11/NEW-SESSION.md` says where the last session stopped (read from the
+  repository at 14:34 UK on 11 Nov: D73's port uncommitted, the fast suite 49 of 60 on it, Full still running) and
+  the order from there.
 - Its patches, script and outputs: `2026-11-11/prototype/`, `scripts/`, `results/`. `2026-11-11/README.md` says how
   to run and read them.
 

@@ -8,6 +8,7 @@ Everything here is EXPLORATORY and decides nothing.
 
 | | |
 |---|---|
+| `NEW-SESSION.md` | for the agent's new session: where the last one stopped (read from the repository at 14:34 UK on 11 Nov: the head, the uncommitted port, the fast suite on it, CI) and the order from here. The prompt in `ANSWERS.md` follows it |
 | `prototype/chooser-tie.diff` | the tie-break, three switches on a solved table: `tieMargin` (the chooser's existing option), `tieSame` (only moves at the best move's spending level and tier pair), `tieAbove` (only where the household's wealth is above the estate cap). `solve.js` only. Off unless an arm sets them |
 | `prototype/shortlist-slice.diff` | on top of it, for item 7's shortlist: above the cap, with the tie-break on, every move at the shortlist's chosen level and tier pair joins the list and the decision is made again (`SHORT.slice`). A second scoring in the prototype; a port scores only the added moves |
 | `scripts/chooser-tie.mjs <household> [points 45] [paths 3000]` | one household solved once, then the same tables run forward with the chooser changed, every arm on the same paths against the whole menu. Its header gives the arms. `SOFT=1` solves the household again with the estate shape `'soft'` |

@@ -266,7 +266,9 @@ own test, more pot from more risk is not kept.
 
 ## 4. Order
 
-1. **Now:** D73's port, and item 11 (`2026-11-09/EXPERIMENTS-AND-PORTS.md`), which is exact.
+1. **Now:** D73's port, and item 11 (`2026-11-09/EXPERIMENTS-AND-PORTS.md`), which is exact. `NEW-SESSION.md` has
+   where the port stood when the last session stopped (the fast suite 49 of 60 on it) and the order between the
+   two.
 2. **Item 13's stage A as soon as that port is committed.** It needs af001697ce1b's tables and about 14
    core-hours, and it can share the machine with the couples' landing.
 3. **The couples' re-run is not held for it.** Item 13 does not reach a couple's path (stage B, step 4). But its
@@ -363,41 +365,50 @@ The maintainer's point applies to my figures of this morning too, so I read them
 | M14 | Item 7 read again in that batch (`structure` and `order` with the tie-break and the slice), its pot part one-sided, `cells` dropped? | Yes. `structure` is then level with the whole menu on the pot and 2.3 to 2.5 times faster. |
 | M15 | Any change of estate shape? | No. `'soft'` costs spending. |
 | M16 | The basic ceiling fixed as section 5, after the beta? | Yes. |
+| M17 | D73's port, its open choice: where `coarse` is dropped (`NEW-SESSION.md` section 3)? | In one place: `solveForApp` asks a predicate beside the solve's own refusal. A user who has withdrawn consent to more risk then gets the whole-menu solve at today's speed, not the faster one. |
 | M9 to M12 | From this morning (`2026-11-09/EXPERIMENTS-AND-PORTS.md`): item 11 in; S1 reported; the re-run on one session after the ports; item 12 | Yes, yes, yes, and item 12 only if `order` is ruled on and a faster couple's path is still wanted. |
 
 ## The prompt for the agent
 
-It carries M9 to M11 and M13 to M16 as I would answer them. Change any line you rule differently before sending. It
-replaces the prompt at the end of `2026-11-09/EXPERIMENTS-AND-PORTS.md`. It is written for a new session: its first
-line sends the agent to its own state and handoff before the review.
+It carries M9 to M11 and M13 to M17 as I would answer them. Change any line you rule differently before sending. It
+replaces the prompt at the end of `2026-11-09/EXPERIMENTS-AND-PORTS.md`. It is written for a new session:
+`NEW-SESSION.md` beside this file says where the last session stopped (read from the repository at 14:34 UK on 11
+Nov) and gives the order the prompt follows.
 
 ```
-This is a new session. On claude/project-access-i58m0x, read research/solver/STATE.md whole and
-research/solver/HANDOFF-2026-11-11.md first.
+This is a new session; the last one is paused. On claude/project-access-i58m0x, read research/solver/STATE.md whole
+and research/solver/HANDOFF-2026-11-11.md first. Then fetch review/external-2026-10-21 and read, at its head:
+research/reviews/2026-11-11/NEW-SESSION.md (where the last session stopped, and the order), ANSWERS.md beside it,
+then item 11 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md, REVIEW.md 2.4 and ANSWERS-2026-11-11.md.
+If the working branch's head is not 11bb254, read its log first and tell me what changed. Record each ruling as its
+own D-line.
 
-Then read research/reviews/2026-11-11/ANSWERS.md, then item 11 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md,
-REVIEW.md 2.4 and ANSWERS-2026-11-11.md, all on review/external-2026-10-21 at its head. Fetch that branch first.
-Record each ruling as its own D-line.
-
-1. Finish D73's port as the handoff's section 2 sets out.
-2. Item 11 with it: the port by its steps and its test. It is exact: any value that differs is a STOP. Run the
-   review's test on a scratch tree with the patch first (9 checks; --plants: each plant fails checks 1 and 2), then
-   the seven couples' tests of its check 7 and the fast suite on the port. Report the identity counts, the planted
-   failures and the two 45-point timings.
-3. Item 13, stage A (ANSWERS.md section 2), as soon as the port is committed: EXPLORATORY, seed 7002, its rule
-   committed first, the review's check on S328F reproduced first. Store lifetime tax for each path. Arms 4 to 6 are
-   item 7's second read, by section 3's rule; cells is not run. Send me the read whole. Nothing is ported before my
-   ruling.
-4. No change of estate shape.
-5. The couples' re-run stays held (D71) until the port and item 11 are in. Then, once: land the 40 couples again,
+1. Read Full's result on the head first. Do not push before it ends.
+2. D73's port as your handoff's section 2 sets out, state-check first. Two hours on it: if the cause is not the
+   forward run's sweep, stop and report.
+3. Early, in one message to me: the unlock request for the three FAST tests' digests (each test, its old figure,
+   its new and the working) and for fair-variables.mjs's rows. Where coarse is dropped: as NEW-SESSION.md section 3
+   sets out, unless you find a reason against it. Then stop and put it to me.
+4. Item 11 while that waits, in its own commit: the port by its steps and its test. It is exact: any value that
+   differs is a STOP. Run the review's test on a scratch tree with the patch first (9 checks; --plants: each plant
+   fails checks 1 and 2), then the seven couples' tests of its check 7 and the fast suite on the port. Report the
+   identity counts, the planted failures and the two 45-point timings.
+5. Commit D73's port once state-check is green and my unlock has come. Then its steps 6, 8 and 9 and the reviewer
+   agent.
+6. Item 13, stage A (ANSWERS.md section 2), once the port is committed: EXPLORATORY, seed 7002, its rule committed
+   first, the review's check on S328F reproduced first. Store lifetime tax for each path. Arms 4 to 6 are item 7's
+   second read, by section 3's rule; cells is not run. Send me the read whole. Nothing is ported before my ruling.
+7. No change of estate shape.
+8. The couples' re-run stays held (D71) until the port and item 11 are in. Then, once: land the 40 couples again,
    run the pilot again, and revise couples-d4b.md as ANSWERS-2026-11-11.md sections 3 and 4 say (S1 reported, not
    deciding; SHIPC on the first 1,000 paths a unit, its per-couple flags dropped; item 11 named; one session). Send
    the revised registration to the design review. Do not launch until I say so. Item 13's port goes in before the
    landing if I have ruled by then, otherwise after the re-run's read, never between.
-6. The basic harvest ceiling (section 5) and item 12 are not started. The ceiling waits for the end of the beta.
-7. No registered couples' arm takes a shortlist, item 12's options or item 13's tie-break.
+9. The basic harvest ceiling (ANSWERS.md section 5) and item 12 are not started. The ceiling waits for the end of
+   the beta.
+10. No registered couples' arm takes a shortlist, item 12's options or item 13's tie-break.
 
 No result of D4 or of seed 7021 is read, printed or estimated, and d4-backup is not opened. Stop at each STOP the
-documents name. Time boxes: three hours for item 11, half a day for item 13's stage A. When one runs out, stop and
-report.
+documents name. Time boxes: two hours for state-check, three hours for item 11, half a day for item 13's stage A.
+When one runs out, stop and report.
 ```

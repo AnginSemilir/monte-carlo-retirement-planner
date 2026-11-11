@@ -33,7 +33,10 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   stage B in and off (`shareRule` unset: each person's table on half the spending, as D4's couples, who hold 60/40, ran), and
   item 5's `sweepCashIsaTo` unset (the sweep to the taxable account, the code's default: the maintainer has not ruled on item
   5's read; a ruling before launch is applied here first and this registration revised); each arm's configuration hash as
-  that code gives it, the same two as D4's.
+  that code gives it, the same two as D4's. The run is tied to the code the couples were landed on (`couples-panel-d4b.json`'s
+  code, 0b45e5f9f059): the registered audit and the read each refuse any other, so a change of code before launch (item 5's
+  ruling among them) means landing again, a new pilot and a new design review. Each solver unit records each person's share
+  of the spending and its rule (fair-variables row 34), and the read refuses any but 0.5 by half.
 - **Households:** D4's 40 couples (`couples-panel.json`, named before seed 7021 was read: 20 library couples whose first person
   is older than 44, S011, S031, S047, S063, S083, S097, S115, S133, S149, S167, S189, S205, S223, S239, S259, S277, S293, S371,
   S387, S403; 20 whose first person is 44 or under, each person retiring at 52, S301F, S305F, S307F, S309F, S311F, S317F,
@@ -56,7 +59,11 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   it writes the run's `stage2.json` and prints only how many couple-weights go on); the read recomputes it from the first
   stage's chunks and refuses a run whose chunks or `stage2.json` disagree. The comparison against SHIPC is read at the paths
   its couple and weight ran (5,000 or 19,000), by D34's one-stage threshold and rates at that count from its realised
-  discordance (its stopping turns on the comparison against APP, not on it); the pooled items are read on the paths every
+  discordance. Its stopping turns on the comparison against APP, which shares CANDC's paths with it, so a stopped comparison's
+  printed rate is its unconditional one, not its rate given the stop (the design review's simulation: across the run a
+  quarter-point loss is flagged 0.026 to 0.041 of the time and a 1-point loss 0.938 to 0.970; given a stop at a true +0.5
+  against APP, 0.902); and read at 5,000 paths it keeps D34's 1-point rate only up to a discordance of 3.25% (12.45% at
+  19,000), the pilot's comparisons against SHIPC lying at 2.2% to 3.0%; the pooled items are read on the paths every
   couple ran in every arm, the first 5,000 (all 19,000 only if every couple-weight went on). A chunk runs as `couples-d4.md`'s
   did: the first stage one chunk of 5,000 a unit, the second CANDC in three chunks of the remaining 14,000, SHIPC and APP in
   one, each its own process, path i the seed's path i whichever chunk runs it; the check against `E.runTrial` and the rollout
@@ -87,7 +94,11 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   backing its finished chunks up to its own orphan branch, the read in one worktree (the review's item 1, part 3: two
   sessions agreeing on a preflight first, the first worker alone, its heartbeat). Each stage's chunks are gathered into one
   folder before the next: the stage gate runs there once every first-stage chunk is in, and its `stage2.json` goes to every
-  session before the second stage. Registered so, more sessions are no departure.
+  session before the second stage, with every first-stage chunk and its log (a worker without them stops at the gate, safely,
+  and waits). Registered so, more sessions are no departure. Which couples and weights went on is a partial result of seed
+  7021: it is in `stage2.json` and can be traced from the second stage's chunk numbers in the heartbeats, both on the backup
+  branches; nobody reads either beyond the batch's own use until the read, and the statement made at the read and the
+  worker prompt cover them.
 - **What became of D4 (difference 5):** D4, as registered (`couples-d4.md`), stopped on 10 Nov 08:44 UTC, unread, on the
   maintainer's ruling (D66, M1), with 76 of its 520 chunks finished; those 76 stay on the branch `d4-backup`, unread, until this
   run's read, and the branch then goes (D63). The statement made on that stop (STATE.md section 5, D67): no arrays file of D4
@@ -106,4 +117,7 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   pilot's discordances every comparison against APP keeps D34's rates at 19,000 but S011's at W0.02 (12.46% at its bound, a
   1-point loss read 0.897), which, as D61 rules, is named and reported if the run sees it; against SHIPC at the first stage's
   5,000 paths a 1-point loss reads 0.926 to 0.970 (D34's one-stage rates hold up to a discordance of 3.25% at 5,000).
-- **Design review:** to come (research/solver/reviews/).
+- **Design review:** research/solver/reviews/2026-11-11-couples-d4b-design.md (PASS, six MINORs: 1 and 3 fixed before
+  launch, the run tied to the landing's code and the spending flag paired, each with its planted case; 2 fixed, the share
+  recorded and checked; 4 and 6 stated above; 5, the shard filter, checked by the review across 1 to 7 shards with no gap and
+  no repeat, its own test with a plant to come before a worker session starts).

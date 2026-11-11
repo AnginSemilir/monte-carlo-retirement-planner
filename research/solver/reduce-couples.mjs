@@ -168,6 +168,8 @@ export function gate(U, panel, paths, logs = null, files = null, stage2 = null) 
       if (!x.beside || x.beside.N !== Math.min(x.N, LAYOUT.n1, BESIDE_N)) P.push(`${h.id} ${k}: the rollout beside ${x.beside ? `on ${x.beside.N} paths` : 'missing'}, not on ${Math.min(x.N, LAYOUT.n1, BESIDE_N)}`);
       const head = headOf(x.ran);
       if (head.config !== CONFIG[x.arm]) P.push(`${h.id} ${k}: its configuration ${head.config}, not the registration's ${CONFIG[x.arm]}`);
+      // each person's table on half the household's spending, as D4's couples ran (D70: shareRule off; the design review of 11 Nov, MINOR 2)
+      if (!LAYOUT.oneStage && (head.share !== '0.5' || head.shareRule !== 'half')) P.push(`${h.id} ${k}: its share ${head.share} by ${head.shareRule}, not 0.5 by half`);
       if (u['APP/-'] && head.hhMinPot !== kvOf(u['APP/-'].ran).minPot) P.push(`${h.id} ${k}: the household's minimum pot ${head.hhMinPot}, APP's ${kvOf(u['APP/-'].ran).minPot}`);
       for (const who of ['self', 'part']) {
         const p = personOf(x.ran, who);
@@ -253,7 +255,8 @@ export function report(U, panel) {
   const flags = [], rows = harmRows(U, panel);
   for (const r of rows) if (r.flag) flags.push(`${r.id} W${r.w} harm against ${r.nm}: loss ${r.loss.toFixed(3)} points over ${r.n} paths (${r.saved} saved, ${r.lost} lost), threshold ${r.t.toFixed(4)} at discordance up to ${(100 * r.dUp).toFixed(2)}% (a 1-point loss read ${r.tp.toFixed(3)})`);
   for (const h of panel) for (const w of WEIGHTS) {
-    const c = U[h.id][`CANDC/${w}`].main, a = U[h.id]['APP/-'].main, m = a.delivered.reduce((s, x) => s + x, 0) / a.delivered.length, d = 100 * (c.delivered.reduce((s, x) => s + x, 0) / c.delivered.length - m) / (m || 1);
+    // paired: on the paths both ran (the design review of 11 Nov, MINOR 3: one weight stopped, APP gone on for the other)
+    const c = U[h.id][`CANDC/${w}`].main, a = U[h.id]['APP/-'].main, n = Math.min(c.delivered.length, a.delivered.length), sum = x => x.subarray(0, n).reduce((s, y) => s + y, 0) / n, m = sum(a.delivered), d = 100 * (sum(c.delivered) - m) / (m || 1);
     if (d < SPEND_FLAG) flags.push(`${h.id} W${w} spending: ${d.toFixed(2)}% against APP`);
   }
   lines.push(flags.length ? flags.map(f => `  ${f}`).join('\n') : '  none');
@@ -297,7 +300,7 @@ function planted() {
   const stamp = { code: 'c', audit: 'a', prediction: REGISTRATION, sha: 's', node: 'v' };
   const person = (arm, w, over = {}) => Object.entries({ ...WANT[arm], bequestWeight: String(Number(w)), mix: '3', levels: '1,1.1,0.95,0.9,0.8', minPot: '500', raiseW: '0.003', finalIntegral: 'true', ...(arm === 'CANDC' ? { lattice: LATTICE } : {}), readerYears: '0', ...over }).map(([k, v]) => `${k} ${v}`).join(' ');
   const ranOf = (arm, w, over = {}, head = {}) => (arm === 'APP' ? Object.entries({ armA: 'Bracket_Fill', ...APP_WANT, minPot: '1000', ...head }).map(([k, v]) => `${k} ${v}`).join(' ')
-    : `config ${head.config || CONFIG[arm]} hhMinPot ${head.hhMinPot || '1000'} | self: ${person(arm, w, over)} | part: ${person(arm, w, over)}`);
+    : `config ${head.config || CONFIG[arm]} hhMinPot ${head.hhMinPot || '1000'} share ${head.share || '0.5'} shareRule ${head.shareRule || 'half'} | self: ${person(arm, w, over)} | part: ${person(arm, w, over)}`);
   // a unit in its chunks: the first stage's alone, or every chunk where `go`; f(i) gives path i's survival, fy(i) its failure
   // year, cd(i) its cost years' spending, dl(i) its spending
   const unit = (id, cohort, arm, w, lostIdx, { go = false, extra = {}, over = {}, head = {}, skip = -1, fy = i => (lostIdx(i) ? 10 : -1), cd = () => 10, dl = () => 100, costRetired = [true] } = {}) => {
@@ -349,6 +352,14 @@ function planted() {
   U = loadDir(dir);
   const R2 = report(U, panel);
   cases.push(['a losing CANDC fails S1 and A1 at both weights (NOT PASSED), and its harm flag fires', `${R2.out.outcome} ${R2.lines.some(l => /C1 W0.02 harm against SHIPC/.test(l))}`, 'NOT PASSED true']);
+  // one weight stopped, the other gone on (C1: APP loses paths 0-39; CANDC at 0.01 loses 0-59, so W0.01 goes on and APP with
+  // it; W0.02 stops): the spending flag paired on the paths both ran, not CANDC's 100 against APP's 400 (APP delivering
+  // 1,000 a path past the first stage: unpaired, W0.02 would read -87%)
+  rmSync(dir, { recursive: true, force: true }); mkdirSync(dir); fair();
+  unit('C1', 'lib', 'APP', '-', i => i < 40, { go: true, fy: i => (i < 40 ? 4 : -1), dl: i => (i < 100 ? 100 : 1000) });
+  unit('C1', 'lib', 'CANDC', '0.01', i => i < 60, { go: true, cd: () => 12 }); unit('C1', 'lib', 'SHIPC', '0.01', i => i < 10, { go: true });
+  { const U4 = loadDir(dir), st4 = stageOf(U4, panel), R4 = report(U4, panel), P4 = gate(U4, panel, paths, null, 'a');
+    cases.push(['one weight stopped and the other gone on: the gate passes, and the spending flag is read on the paths both ran (no flag at W0.02)', `${st4['C1|0.02'].on} ${st4['C1|0.01'].on} ${P4.length} ${R4.lines.some(l => /C1 W0\.02 spending/.test(l))}`, 'false true 0 false']); }
   // the gate's refusals, each planted once on a fair run
   const refusals = [
     ['a wrong seed', () => unit('C1', 'lib', 'CANDC', '0.02', () => false, { extra: { seed: 7002 } }), 'C1 CANDC/0.02: seed 7002'],
@@ -361,6 +372,7 @@ function planted() {
     ['CANDC and SHIPC on other minimum pots', () => unit('C1', 'lib', 'SHIPC', '0.02', i => i < 10, { over: { minPot: '400' } }), 'C1 W0.02 self: CANDC and SHIPC differ in minPot'],
     ['an arm\'s two weights differing beyond the estate weight', () => unit('C1', 'lib', 'SHIPC', '0.01', i => i < 10, { over: { raiseW: '0.004' } }), 'C1 SHIPC self: its two weights differ in raiseW'],
     ['APP without its lookahead', () => unit('C1', 'lib', 'APP', '-', i => i < 40, { head: { lookahead: '0' } }), 'C1 APP/-: ran with lookahead 0, not 5'],
+    ['a couple\'s share not half (the share rule on)', () => unit('C1', 'lib', 'SHIPC', '0.02', i => i < 10, { head: { share: '0.9', shareRule: 'pots' } }), 'C1 SHIPC/0.02: its share 0.9 by pots, not 0.5 by half'],
     ['the household\'s minimum pot not APP\'s', () => unit('C1', 'lib', 'SHIPC', '0.02', i => i < 10, { head: { hhMinPot: '900' } }), 'C1 SHIPC/0.02: the household\'s minimum pot 900, APP\'s 1000'],
     ['a missing unit', () => rmSync(join(dir, 'C1-APP-w--c0.json.gz')), 'C1: no APP/- unit'],
     ['a missing chunk', () => rmSync(join(dir, 'C2-CANDC-w0.02-c2.json.gz')), 'C2 CANDC/0.02: chunks 0,1,3, not 0 to 3'],
@@ -416,6 +428,9 @@ async function read(dir) {
   const { stampFilesHash } = await import('./audit-couples.mjs');
   const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, stampFilesHash(), stage2);
   console.log(`D4B READ: ${dir}; ${Object.keys(U).length} couples`);
+  // the run on the code the couples were landed on (the design review of 11 Nov, MINOR 1)
+  const landed = JSON.parse(readFileSync(join(HERE, 'couples-panel-d4b.json'), 'utf8')).code;
+  if (logStamp && logStamp.code !== landed) { console.log(`THE GATE: REFUSED (the run's code ${logStamp.code}, the panel landed on ${landed})`); process.exit(1); }
   if (problems.length) { console.log(`THE GATE: REFUSED (${problems.length})\n  ${problems.join('\n  ')}`); process.exit(1); }
   const st = stageOf(U, panel), on = Object.values(st).filter(v => v.on).length;
   console.log(`the gate: fair - ${panel.length} couples in every arm, each unit in its chunks, seed ${SEED} on their registered paths (${reg.N}) in two stages (the first ${LAYOUT.n1}; ${on} of ${Object.keys(st).length} couple-weights went on, as the run's stage gate decided), one stamp; CANDC ${CONFIG.CANDC}, SHIPC ${CONFIG.SHIPC}`);

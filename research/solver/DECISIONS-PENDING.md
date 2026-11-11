@@ -103,3 +103,9 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   sweep line would name the ISA. Beside it, deciding nothing (D69): the pooled figures without S116. Until a ruling the
   option stays off, and the couples' re-run registers on the code's default (`couples-d4b.md`, revised first if the ruling
   comes before its launch).
+- **The couples' re-run, before its run (the launch plan's stop; `registrations/couples-d4b.md`, its design review's PASS).**
+  On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
+  about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one
+  four-core session, about 13 over four), 673 at most. To decide: launch it; and whether to run it in up to four cloud
+  sessions (item 1, part 3). Item 5's ruling first, if it is to be the default for couples: a change of code means landing
+  again and a new pilot.

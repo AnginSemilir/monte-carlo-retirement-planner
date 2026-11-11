@@ -177,6 +177,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const REGISTERED = args[0] === 'registered', PILOT = process.env.D4_PILOT === '1';
   if (REGISTERED && (process.env.D4_ONLY || process.env.D4_W || process.env.D4_ARMS || process.env.D4_PTS || process.env.D4_PANEL || process.env.D4_PILOT)) { console.error('audit-couples: the registered run takes no limits'); process.exit(2); }
   if (REGISTERED && process.env.PREDICTION_FILE !== REGISTRATION) { console.error(`audit-couples: the registered run runs only under ${REGISTRATION}, through the launcher (PREDICTION_FILE ${process.env.PREDICTION_FILE || 'unset'})`); process.exit(2); }
+  // the registered run only on the code the couples were landed on (the design review of 11 Nov, MINOR 1): a change of code
+  // before launch means landing again, a new pilot and a new design review
+  if (REGISTERED) { const pc = JSON.parse(readFileSync(PANEL_FILE, 'utf8')).code, cc = codeId(); if (!cc || cc.hash !== pc) { console.error(`audit-couples: the code ${cc ? cc.hash : 'unknown'} is not the code the panel was landed on (${pc}): land again, pilot and review again`); process.exit(2); } }
   const SEED_RUN = REGISTERED ? SEED : Number(args[3]);
   if (!REGISTERED && (!(SEED_RUN > 0) || SEED_RUN === SEED)) { console.error(`audit-couples: a run other than the registered one needs a seed, and not ${SEED}`); process.exit(2); }
   const [pk, pn] = (args[2] || '0/1').split('/').map(Number);
@@ -213,7 +216,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       for (const [k, line] of lines.entries()) { const bad = wantProblems(arm, line, W, !!process.env.D4_PTS); if (bad.length) { console.error(`audit-couples: ${id} ${L} ${k ? 'part' : 'self'}: ${bad.join('; ')}`); process.exit(3); } }
       if (cp.m.ctx.solvencyFloor !== E.num(base.config.solvencyFloor, 0)) { console.error(`audit-couples: ${id} ${L}: the household's minimum pot ${cp.m.ctx.solvencyFloor}, not the panel's ${base.config.solvencyFloor}`); process.exit(3); }
       ctx = E.buildContext(withCouple(cp.plan, cp));
-      ran = `config ${config} hhMinPot ${cp.m.ctx.solvencyFloor} | self: ${lines[0]} | part: ${lines[1]}`;
+      ran = `config ${config} hhMinPot ${cp.m.ctx.solvencyFloor} share ${cp.share} shareRule ${cp.meta.shareRule} | self: ${lines[0]} | part: ${lines[1]}`;
     }
     const T = ctx.totalYears, Y = T + 1, inputs = inputsHash(ctx), costYears = costYearsOf(ctx), costRetired = costYears.map(t => retiredAt(ctx, t));
     console.log(`${''.padEnd(8)} ran ${L}: ${ran} inputs ${inputs} costYears ${costYears.map((t, q) => `${t}${costRetired[q] ? '' : ' (no one retired)'}`).join(',') || 'none'}${solveSecs ? ` | solve secs ${Math.round(solveSecs)}` : ''}`);

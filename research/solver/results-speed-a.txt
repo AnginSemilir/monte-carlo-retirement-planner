@@ -1,0 +1,128 @@
+SPEED-A (EXPLORATORY, D66, D68; SPEED-A.md): 36 units, 12 households (a bridge year: S368, S304F, S328F, S340F, S362, S366, S370), code 2ef2fb9bfeef, audit 4ea580362d45, seed 7002, 16000 paths, 45 points; the gate: fair
+
+==== ITEM 7: THE CHOOSER'S SHORTLIST (the review's eight; each width on OFF's tables against OFF) ====
+
+structure:
+  S030   survival 95.68% / 95.69%, d +0.006 (-0.049 to +0.061; 9 saved, 8 lost) | spending 96.994% / 96.995% | pot £1,227,253 / £1,228,790 | a path 44.37 / 8.49 ms
+  S050   survival 98.84% / 98.84%, d -0.006 (-0.033 to +0.020; 0 saved, 1 lost) | spending 97.222% / 97.218% | pot £301,650 / £302,219 | a path 39.96 / 7.87 ms
+  S090   survival 94.64% / 94.67%, d +0.031 (-0.017 to +0.081; 9 saved, 4 lost) | spending 96.703% / 96.707% | pot £1,690,047 / £1,694,924 | a path 53.06 / 10.37 ms
+  S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.345% | pot £5,268,890 / £5,275,339 | a path 41.13 / 11.67 ms
+  S188   survival 97.67% / 97.66%, d -0.006 (-0.059 to +0.046; 7 saved, 8 lost) | spending 103.130% / 103.129% | pot £2,689,203 / £2,687,344 | a path 40.23 / 12.87 ms
+  S304F  survival 98.14% / 98.14%, d +0.000 (-0.023 to +0.023; 0 saved, 0 lost) | spending 104.945% / 104.946% | pot £4,221,335 / £4,222,174 | a path 53.14 / 16.90 ms
+  S328F  survival 92.95% / 92.97%, d +0.019 (-0.015 to +0.053; 4 saved, 1 lost) | spending 102.080% / 102.081% | pot £4,805,261 / £4,998,221 | a path 60.58 / 17.05 ms
+  S340F  survival 94.96% / 95.01%, d +0.044 (-0.005 to +0.094; 10 saved, 3 lost) | spending 103.534% / 103.537% | pot £4,727,245 / £5,013,659 | a path 56.17 / 18.20 ms
+  1. pooled survival +0.011 (95% -0.001 to +0.023, se 0.0062); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0011 points of target; within 0.05: HOLDS
+  4. pooled mean pot left +1.973%; within 0.5%: FAILS
+  a path 48.58 ms to 12.93 ms pooled (3.76 times); FAILS
+
+cells-held@0.005:
+  S030   survival 95.68% / 95.67%, d -0.006 (-0.053 to +0.040; 5 saved, 6 lost) | spending 96.994% / 96.997% | pot £1,227,253 / £1,228,770 | a path 44.37 / 4.52 ms
+  S050   survival 98.84% / 98.81%, d -0.031 (-0.072 to +0.007; 1 saved, 6 lost) | spending 97.222% / 97.172% | pot £301,650 / £303,885 | a path 39.96 / 3.94 ms
+  S090   survival 94.64% / 94.64%, d +0.000 (-0.068 to +0.068; 14 saved, 14 lost) | spending 96.703% / 96.710% | pot £1,690,047 / £1,696,284 | a path 53.06 / 5.21 ms
+  S368   survival 99.80% / 99.69%, d -0.106 (-0.170 to -0.054; 1 saved, 18 lost) | spending 105.344% / 105.340% | pot £5,268,890 / £5,254,646 | a path 41.13 / 6.35 ms
+  S188   survival 97.67% / 97.63%, d -0.044 (-0.094 to +0.005; 3 saved, 10 lost) | spending 103.130% / 102.945% | pot £2,689,203 / £2,797,081 | a path 40.23 / 4.94 ms
+  S304F  survival 98.14% / 98.36%, d +0.225 (+0.129 to +0.327; 49 saved, 13 lost) | spending 104.945% / 105.085% | pot £4,221,335 / £4,203,684 | a path 53.14 / 6.33 ms
+  S328F  survival 92.95% / 92.99%, d +0.038 (-0.041 to +0.116; 22 saved, 16 lost) | spending 102.080% / 102.086% | pot £4,805,261 / £5,148,261 | a path 60.58 / 6.47 ms
+  S340F  survival 94.96% / 94.99%, d +0.031 (-0.046 to +0.109; 21 saved, 16 lost) | spending 103.534% / 103.534% | pot £4,727,245 / £5,157,135 | a path 56.17 / 6.81 ms
+  1. pooled survival +0.013 (95% -0.009 to +0.036, se 0.0115); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0104 points of target; within 0.05: HOLDS
+  4. pooled mean pot left +3.445%; within 0.5%: FAILS
+  a path 48.58 ms to 5.57 ms pooled (8.72 times); FAILS
+
+order (read only if neither of the first two passes):
+  S030   survival 95.68% / 95.68%, d +0.000 (-0.037 to +0.037; 3 saved, 3 lost) | spending 96.994% / 96.995% | pot £1,227,253 / £1,227,846 | a path 44.37 / 16.89 ms
+  S050   survival 98.84% / 98.84%, d -0.006 (-0.033 to +0.020; 0 saved, 1 lost) | spending 97.222% / 97.222% | pot £301,650 / £301,835 | a path 39.96 / 15.84 ms
+  S090   survival 94.64% / 94.64%, d +0.000 (-0.037 to +0.037; 3 saved, 3 lost) | spending 96.703% / 96.704% | pot £1,690,047 / £1,693,969 | a path 53.06 / 21.06 ms
+  S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.344% | pot £5,268,890 / £5,268,917 | a path 41.13 / 20.98 ms
+  S188   survival 97.67% / 97.67%, d +0.000 (-0.038 to +0.038; 3 saved, 3 lost) | spending 103.130% / 103.131% | pot £2,689,203 / £2,690,517 | a path 40.23 / 22.06 ms
+  S304F  survival 98.14% / 98.14%, d +0.000 (-0.023 to +0.023; 0 saved, 0 lost) | spending 104.945% / 104.946% | pot £4,221,335 / £4,220,126 | a path 53.14 / 28.60 ms
+  S328F  survival 92.95% / 92.96%, d +0.006 (-0.023 to +0.036; 2 saved, 1 lost) | spending 102.080% / 102.080% | pot £4,805,261 / £4,806,222 | a path 60.58 / 30.13 ms
+  S340F  survival 94.96% / 94.99%, d +0.025 (-0.019 to +0.070; 7 saved, 3 lost) | spending 103.534% / 103.536% | pot £4,727,245 / £4,751,239 | a path 56.17 / 31.01 ms
+  1. pooled survival +0.003 (95% -0.006 to +0.012, se 0.0044); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0009 points of target; within 0.05: HOLDS
+  4. pooled mean pot left +0.119%; within 0.5%: HOLDS
+  a path 48.58 ms to 23.32 ms pooled (2.08 times); PASSES 1 to 4
+
+The replay (the first 100 paths; at each decision of the whole menu's own path, each width's choice; score in points):
+  structure: 58.6 moves listed; a different move at 2229 of 35400 decisions (over 0.01 points given up at 43, over 0.1 at 5, over 1 at 0); the score given up 0.00009 points a decision on average, the worst 0.430; by household S030 98/2700, S050 44/2700, S090 107/3500, S368 73/4500, S188 339/4000, S304F 190/6000, S328F 624/6000, S340F 754/6000
+  cells-held@0.005: 5.6 moves listed; a different move at 3999 of 35400 decisions (over 0.01 points given up at 152, over 0.1 at 11, over 1 at 0); the score given up 0.00021 points a decision on average, the worst 0.308; by household S030 259/2700, S050 75/2700, S090 256/3500, S368 296/4500, S188 588/4000, S304F 497/6000, S328F 750/6000, S340F 1278/6000
+  order: 157.4 moves listed; a different move at 638 of 35400 decisions (over 0.01 points given up at 22, over 0.1 at 4, over 1 at 0); the score given up 0.00005 points a decision on average, the worst 0.430; by household S030 49/2700, S050 29/2700, S090 80/3500, S368 46/4500, S188 104/4000, S304F 171/6000, S328F 38/6000, S340F 121/6000
+ITEM 7 OUTCOME: NEITHER PASSES: order read by the same rule (it passes), reported; the item stops
+
+==== ITEM 10: THE SOLVE ON ANCHORS (ON against OFF, the twelve) ====
+
+ON against OFF:
+  S030   survival 95.68% / 95.71%, d +0.025 (-0.028 to +0.079; 10 saved, 6 lost) | spending 96.994% / 96.992% | pot £1,227,253 / £1,226,764 | a path 44.37 / 46.00 ms
+  S050   survival 98.84% / 98.83%, d -0.012 (-0.055 to +0.029; 3 saved, 5 lost) | spending 97.222% / 97.232% | pot £301,650 / £301,448 | a path 39.96 / 41.28 ms
+  S090   survival 94.64% / 94.66%, d +0.019 (-0.023 to +0.062; 6 saved, 3 lost) | spending 96.703% / 96.704% | pot £1,690,047 / £1,690,488 | a path 53.06 / 54.43 ms
+  S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.344% | pot £5,268,890 / £5,268,960 | a path 41.13 / 41.22 ms
+  S188   survival 97.67% / 97.66%, d -0.013 (-0.061 to +0.035; 5 saved, 7 lost) | spending 103.130% / 103.134% | pot £2,689,203 / £2,689,894 | a path 40.23 / 39.58 ms
+  S304F  survival 98.14% / 98.14%, d +0.000 (-0.023 to +0.023; 0 saved, 0 lost) | spending 104.945% / 104.946% | pot £4,221,335 / £4,221,325 | a path 53.14 / 56.67 ms
+  S328F  survival 92.95% / 92.96%, d +0.013 (-0.031 to +0.057; 6 saved, 4 lost) | spending 102.080% / 102.078% | pot £4,805,261 / £4,795,426 | a path 60.58 / 65.71 ms
+  S340F  survival 94.96% / 94.97%, d +0.006 (-0.028 to +0.041; 3 saved, 2 lost) | spending 103.534% / 103.534% | pot £4,727,245 / £4,722,045 | a path 56.17 / 61.04 ms
+  S224   survival 70.77% / 70.76%, d -0.013 (-0.085 to +0.060; 16 saved, 18 lost) | spending 83.364% / 83.362% | pot £2,093,399 / £2,097,622 | a path 44.27 / 45.63 ms
+  S362   survival 51.17% / 51.17%, d +0.000 (-0.001 to +0.001; 0 saved, 0 lost) | spending 103.456% / 103.456% | pot £819,734 / £819,797 | a path 40.38 / 42.41 ms
+  S366   survival 99.77% / 99.78%, d +0.006 (-0.020 to +0.034; 1 saved, 0 lost) | spending 104.961% / 104.961% | pot £4,685,462 / £4,685,793 | a path 43.23 / 45.76 ms
+  S370   survival 83.90% / 83.92%, d +0.025 (-0.058 to +0.108; 24 saved, 20 lost) | spending 88.453% / 88.441% | pot £4,582,521 / £4,584,138 | a path 48.18 / 50.86 ms
+  1. pooled survival +0.005 (95% -0.007 to +0.017, se 0.0061); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0001 points of target; within 0.05: HOLDS
+  4. pooled mean pot left -0.022%; within 0.5%: HOLDS
+  a path 47.06 ms to 49.21 ms pooled (0.96 times); PASSES 1 to 4
+
+The solves, unit A, back to back on one core (CPU seconds; the bridge reference's beside):
+  S030   OFF 245.4 s (reference 0.0), ON 36.6 s (reference 0.0): 6.70 times; 274825 cells on a shortlist, 38.6 moves listed
+  S050   OFF 221.7 s (reference 0.0), ON 36.2 s (reference 0.0): 6.12 times; 274825 cells on a shortlist, 35.8 moves listed
+  S090   OFF 303.9 s (reference 0.0), ON 43.4 s (reference 0.0): 7.00 times; 351265 cells on a shortlist, 36.8 moves listed
+  S368   OFF 431.3 s (reference 61.4), ON 140.6 s (reference 81.8): 3.07 times; 439530 cells on a shortlist, 34.0 moves listed; a bridge year
+  S188   OFF 325.5 s (reference 0.0), ON 46.2 s (reference 0.0): 7.05 times; 399040 cells on a shortlist, 35.7 moves listed
+  S304F  OFF 432.0 s (reference 40.7), ON 109.0 s (reference 44.3): 3.96 times; 604710 cells on a shortlist, 31.0 moves listed; a bridge year
+  S328F  OFF 431.0 s (reference 41.4), ON 108.2 s (reference 45.6): 3.98 times; 604710 cells on a shortlist, 33.0 moves listed; a bridge year
+  S340F  OFF 431.9 s (reference 41.3), ON 109.7 s (reference 45.2): 3.94 times; 604710 cells on a shortlist, 33.0 moves listed; a bridge year
+  S224   OFF 335.8 s (reference 0.0), ON 47.3 s (reference 0.0): 7.10 times; 399040 cells on a shortlist, 37.3 moves listed
+  S362   OFF 359.3 s (reference 69.2), ON 136.5 s (reference 76.4): 2.63 times; 446815 cells on a shortlist, 30.4 moves listed; a bridge year
+  S366   OFF 435.0 s (reference 67.2), ON 134.3 s (reference 74.8): 3.24 times; 446815 cells on a shortlist, 34.7 moves listed; a bridge year
+  S370   OFF 457.6 s (reference 66.9), ON 137.8 s (reference 75.2): 3.32 times; 446815 cells on a shortlist, 37.2 moves listed; a bridge year
+  5. the solve at least 5 times as fast on one core on every household without a bridge year: the units' own S030 6.70, S050 6.12, S090 7.00, S188 7.05, S224 7.10: HOLDS; gate 5's not yet measured
+
+REF against OFF (S368, S304F, S328F, S340F, S362, S366, S370):
+  S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.345% | pot £5,268,890 / £5,269,531 | a path 41.13 / 42.77 ms
+  S304F  survival 98.14% / 98.14%, d +0.000 (-0.034 to +0.034; 2 saved, 2 lost) | spending 104.945% / 104.949% | pot £4,221,335 / £4,219,904 | a path 53.14 / 55.17 ms
+  S328F  survival 92.95% / 92.95%, d +0.000 (-0.021 to +0.021; 0 saved, 0 lost) | spending 102.080% / 102.080% | pot £4,805,261 / £4,805,270 | a path 60.58 / 62.37 ms
+  S340F  survival 94.96% / 94.96%, d +0.000 (-0.022 to +0.022; 0 saved, 0 lost) | spending 103.534% / 103.534% | pot £4,727,245 / £4,727,215 | a path 56.17 / 57.58 ms
+  S362   survival 51.17% / 51.10%, d -0.075 (-0.146 to -0.004; 11 saved, 23 lost) | spending 103.456% / 103.454% | pot £819,734 / £818,528 | a path 40.38 / 40.37 ms
+  S366   survival 99.77% / 99.77%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 104.961% / 104.961% | pot £4,685,462 / £4,685,462 | a path 43.23 / 43.91 ms
+  S370   survival 83.90% / 83.91%, d +0.006 (-0.014 to +0.027; 1 saved, 0 lost) | spending 88.453% / 88.452% | pot £4,582,521 / £4,582,306 | a path 48.18 / 47.74 ms
+  1. pooled survival -0.010 (95% -0.021 to +0.001, se 0.0056); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered +0.0004 points of target; within 0.05: HOLDS
+  4. pooled mean pot left -0.008%; within 0.5%: HOLDS
+  a path 48.97 ms to 49.99 ms pooled (0.98 times); PASSES 1 to 4
+
+ON+REF against OFF (S368, S304F, S328F, S340F, S362, S366, S370):
+  S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.345% | pot £5,268,890 / £5,269,611 | a path 41.13 / 44.32 ms
+  S304F  survival 98.14% / 98.14%, d +0.000 (-0.034 to +0.034; 2 saved, 2 lost) | spending 104.945% / 104.950% | pot £4,221,335 / £4,219,853 | a path 53.14 / 55.45 ms
+  S328F  survival 92.95% / 92.96%, d +0.013 (-0.031 to +0.057; 6 saved, 4 lost) | spending 102.080% / 102.078% | pot £4,805,261 / £4,795,426 | a path 60.58 / 63.14 ms
+  S340F  survival 94.96% / 94.97%, d +0.006 (-0.028 to +0.041; 3 saved, 2 lost) | spending 103.534% / 103.534% | pot £4,727,245 / £4,721,960 | a path 56.17 / 58.47 ms
+  S362   survival 51.17% / 51.10%, d -0.075 (-0.146 to -0.004; 11 saved, 23 lost) | spending 103.456% / 103.454% | pot £819,734 / £818,588 | a path 40.38 / 42.10 ms
+  S366   survival 99.77% / 99.78%, d +0.006 (-0.020 to +0.034; 1 saved, 0 lost) | spending 104.961% / 104.961% | pot £4,685,462 / £4,685,793 | a path 43.23 / 43.99 ms
+  S370   survival 83.90% / 83.93%, d +0.031 (-0.052 to +0.115; 25 saved, 20 lost) | spending 88.453% / 88.440% | pot £4,582,521 / £4,583,806 | a path 48.18 / 48.81 ms
+  1. pooled survival -0.003 (95% -0.020 to +0.015, se 0.0089); its lower end above -0.1: HOLDS
+  2. no household wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0015 points of target; within 0.05: HOLDS
+  4. pooled mean pot left -0.053%; within 0.5%: HOLDS
+  a path 48.97 ms to 50.90 ms pooled (0.96 times); PASSES 1 to 4
+  S368   unit R on one core: OFF 455.5 s (reference 73.5), REF 379.7 s (reference 10.6), ON+REF 71.0 s (reference 10.2): ON+REF 6.42 times
+  S304F  unit R on one core: OFF 453.8 s (reference 47.0), REF 407.2 s (reference 7.1), ON+REF 70.7 s (reference 7.1): ON+REF 6.42 times
+  S328F  unit R on one core: OFF 441.6 s (reference 47.4), REF 411.9 s (reference 7.5), ON+REF 73.0 s (reference 7.2): ON+REF 6.05 times
+  S340F  unit R on one core: OFF 447.7 s (reference 48.2), REF 414.3 s (reference 7.8), ON+REF 72.0 s (reference 7.3): ON+REF 6.21 times
+  S362   unit R on one core: OFF 379.6 s (reference 92.7), REF 301.8 s (reference 13.0), ON+REF 70.6 s (reference 13.1): ON+REF 5.38 times
+  S366   unit R on one core: OFF 458.9 s (reference 84.4), REF 391.0 s (reference 11.9), ON+REF 74.2 s (reference 11.7): ON+REF 6.19 times
+  S370   unit R on one core: OFF 479.0 s (reference 77.1), REF 403.2 s (reference 13.0), ON+REF 73.9 s (reference 12.8): ON+REF 6.48 times
+  ON+REF at least 5 times as fast as OFF on each: HOLDS
+ITEM 10 OUTCOME: ON PASSES 1 TO 4 AND 5 BY THE UNITS' OWN TIMES: gate 5's measurement to come. REF PASSES. no width of item 7 passed: not read.
+The run: the solves 3.6 core-hours; the paths 11.3; the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz

@@ -1,0 +1,33 @@
+D73's port: the three pinned table digests it moves, and the working (d73-digests.mjs; code 904c4176ba2c)
+the candidate af001697ce1b (before D73 d71f65ae871e); its keys since D73: sweepCashIsaTo "isa", coarse {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}
+each solve the app's (solveForApp) at 4 points on the light reference lattice 48 x 9 x 32, as the tests make it
+
+couple-quick.test.mjs check 5 (BEFORE); windfall-relief.test.mjs check 6 (ITEM3.S116)
+  S116; pinned today: b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4
+    both keys out                      b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4   = the pinned figure
+    the sweep to the ISA alone         5ccf2d4f54d1ebb770c39dc99a5685bc0779700aac63c624e79fba6e1e620089
+    the anchors and shortlists alone   746bfc934cd9cb38593fb4c08443fc49cf5b30cc92beedaced4c8c3455376cfd
+    both, the candidate                81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13   <- the new figure
+
+windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit removed)
+  S210, its deposit removed; pinned today: f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653
+    both keys out                      f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653   = the pinned figure
+    the sweep to the ISA alone         f382fafad598609050e3238a05b9435450fd24785b7261a57b2d5755d2585ff3
+    the anchors and shortlists alone   978d895136d70193ce70fd8d320a4b18d2547cd8eb6aee09fe817fce9d7d66a6
+    both, the candidate                1daa7851917f000a97479b09485392689113801c740c484dc157fc4e825e9574   <- the new figure
+
+windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit typed into the taxable account)
+  S210, its deposit typed into the taxable account; pinned today: c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7
+    both keys out                      c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7   = the pinned figure
+    the sweep to the ISA alone         80a7e422c38cb00e7d3349f33060dd69aadca364bd0fef2de8fd1e3b9c0a0460
+    the anchors and shortlists alone   ce168571e076f904231bfe6b475437c1f071b4a6c763d71e8ae51195444b89f5
+    both, the candidate                bb84262fb4db77b4e24c0c57252471064c73c2c16dc7b9b273cec9c3012f274e   <- the new figure
+
+couple-share.test.mjs check 2 (BEFORE)
+  S007, each person's tables; pinned today: ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609
+    both keys out                      ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609   = the pinned figure
+    the sweep to the ISA alone         6a73b7d4750b6324eced36d35d4256cb175c02d79deb3fbcac72349454c4a2a3
+    the anchors and shortlists alone   78834fa2b548d84a115e2519637f612ed921f7cc123416cdfe9714a90a7fad57
+    both, the candidate                1320a1db06372238bfbbe1811f253475d3f02555f3067ec333a12a19e33e0bd7   <- the new figure
+
+VERDICT: with both keys out every solve gives the figure pinned today, so the port moves these tables by the two keys alone; with both in, each gives its new figure.

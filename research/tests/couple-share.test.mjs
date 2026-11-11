@@ -58,7 +58,9 @@ const solveAt = (pts) => (p, o) => solveForApp(E, M, p, { points: pts, research:
 
 // ---- 2. the rule off, and on where the band keeps half ----
 {
-  const BEFORE = 'ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609';   // S007 at 4 points, taken on the code before the option (items 3 to 5)
+  // S007 at 4 points, taken on the code before the option (items 3 to 5: ee4875424b94acb8...), re-taken on D73's candidate (11 Nov, D81 (A),
+  // D83: with the sweep to the ISA and the solve on anchors left out the solve gives the earlier figure, results-d73-digests.txt)
+  const BEFORE = '1320a1db06372238bfbbe1811f253475d3f02555f3067ec333a12a19e33e0bd7';
   const plan = prepareForSolve(E, E.normalizePlan(library.find(s => s.id === 'S007').plan));
   const dig = async cp => digestOf([...tablesOf(cp.tables.self), ...tablesOf(cp.tables.part)]);
   const off = solveCouple(E, M, plan, { solveOne: solveAt(4) }), dOff = await dig(off);

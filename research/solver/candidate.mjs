@@ -51,7 +51,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { solvePlan } from '../../src/solver/solve.js';
+import { solvePlan, coarseWhereFits } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from './research-opts.mjs';
 import { checkE3pclsPin } from './e3pcls-pin.mjs';
 
@@ -60,11 +60,16 @@ const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v === 
 export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
 if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
 /* the keys joined after 7u-F (D28, D29, D30; failDelivered after Phase 4, D43), and 7u-F's candidate: candidate.json less them */
+/* D73 (11 Nov): item 5's sweep to the ISA and item 10's solve on anchors (`coarse`) joined, and the bridge reference's lattice
+ * thinned (REF). BEFORE_D73_OPTS is the candidate before them (d71f65ae871e), every earlier candidate built from it */
+export const D73_KEYS = Object.freeze(['sweepCashIsaTo', 'coarse']);
+export const PRE_D73_LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true });
+export const BEFORE_D73_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D73_KEYS.includes(k)).map(([k, v]) => [k, k === 'adaptiveLattice' ? { ...PRE_D73_LATTICE } : v])));
 export const LATER_KEYS = Object.freeze(['tiersBelow', 'menuPlus', 'tableDealing', 'failDelivered']);
-export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
+export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
 /* the keys joined after Phase 4 (D43), and the candidate Phase 4 read (fcd8096217b7): candidate.json less them */
 export const AFTER_PHASE4_KEYS = Object.freeze(['failDelivered']);
-export const PHASE4_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !AFTER_PHASE4_KEYS.includes(k))));
+export const PHASE4_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !AFTER_PHASE4_KEYS.includes(k))));
 /* the adaptive package's keys (D5), and the candidate before the assembly: 7u-F's less them */
 export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
 export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(ASSEMBLED_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
@@ -91,12 +96,18 @@ export function candidatePlan(E, plan, reals = blendReals()) {
 }
 /* the candidate's hash, 7u-F's (e65e5e99ba49), the frozen one's (a61dba4ee1f5 before the assembly) and Phase 4's (fcd8096217b7);
    candidate.test.mjs pins them */
-export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
+export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
 /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
    FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
 export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
   // e3pcls is exact only on the code its identity test last passed on (e3pcls-pin.mjs): refuse before any solve otherwise
   const { e3pclsPinFile, e3pclsPinning, ...opts } = { ...base, ...extra };
   checkE3pclsPin({ ...opts, e3pclsPinFile, e3pclsPinning });
-  return solvePlan(E, M, candidatePlan(E, plan), opts);
+  // the candidate's `coarse` goes to a solve that can take it and is left out of one that cannot (solve.js coarseWhereFits:
+  // an arm with no joint tier state, consent withdrawn); an arm that names `coarse` itself goes to the solve as asked, whose
+  // refusal stands
+  const p = candidatePlan(E, plan), off = {};
+  const r = solvePlan(E, M, p, 'coarse' in extra ? opts : coarseWhereFits(E, M, p, opts, off));
+  if (off.why) r.meta.coarse = { off: off.why };
+  return r;
 }

@@ -20,7 +20,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from '../solver/research-opts.mjs';
-import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS, BEFORE_D73_OPTS, BEFORE_D73_HASH, D73_KEYS, PRE_D73_LATTICE } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
@@ -41,19 +41,25 @@ ok(Object.isFrozen(CANDIDATE_OPTS) && Object.isFrozen(RESEARCH_OPTS), 'CANDIDATE
 // (a61dba4ee1f5, STATE.md before the assembly); the package is D5's. 7u-F's candidate is candidate.json less the keys
 // added after it (D28, D29, D30, D43), and hashes as 7u-F registered it (e65e5e99ba49); Phase 4's is candidate.json less the
 // key added after Phase 4 (failDelivered, D43), and hashes as Phase 4 registered it (fcd8096217b7)
-ok(ASSEMBLED_HASH === 'e65e5e99ba49' && hashOf(ASSEMBLED_OPTS) === ASSEMBLED_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(ASSEMBLED_OPTS).length + LATER_KEYS.length,
-  `7u-F's candidate reproduces its registered hash e65e5e99ba49 (${ASSEMBLED_HASH}); the candidate ${CANDIDATE_HASH} adds ${LATER_KEYS.join(', ')}`);
+// D73 (11 Nov): the candidate before it (d71f65ae871e, the launch candidate) is candidate.json less D73's two keys with the
+// bridge reference's lattice as it was; every earlier candidate is built from it, so each still reproduces its hash
+ok(BEFORE_D73_HASH === 'd71f65ae871e' && hashOf(BEFORE_D73_OPTS) === BEFORE_D73_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(BEFORE_D73_OPTS).length + D73_KEYS.length && D73_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D73_OPTS))
+  && JSON.stringify(BEFORE_D73_OPTS.adaptiveLattice) === JSON.stringify(PRE_D73_LATTICE) && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ ...PRE_D73_LATTICE, na: 80, nb: 21, nz: 64 }) && CANDIDATE_HASH === 'af001697ce1b',
+  `the candidate before D73 reproduces its hash d71f65ae871e (${BEFORE_D73_HASH}); the candidate ${CANDIDATE_HASH} adds ${D73_KEYS.join(', ')} and thins the bridge reference's lattice`);
+ok(hashOf({ ...CANDIDATE_OPTS, sweepCashIsaTo: 'gia' }) !== CANDIDATE_HASH && hashOf({ ...CANDIDATE_OPTS, coarse: { ...CANDIDATE_OPTS.coarse, climb: 2 } }) !== CANDIDATE_HASH && hashOf({ ...BEFORE_D73_OPTS, sweepCashIsaTo: 'isa' }) !== BEFORE_D73_HASH, 'planted: the sweep sent elsewhere, a round fewer on the shortlists, or the sweep added to the candidate before D73 moves the hash');
+ok(ASSEMBLED_HASH === 'e65e5e99ba49' && hashOf(ASSEMBLED_OPTS) === ASSEMBLED_HASH && Object.keys(BEFORE_D73_OPTS).length === Object.keys(ASSEMBLED_OPTS).length + LATER_KEYS.length,
+  `7u-F's candidate reproduces its registered hash e65e5e99ba49 (${ASSEMBLED_HASH}); the candidate before D73 adds ${LATER_KEYS.join(', ')}`);
 ok(FROZEN_HASH === 'a61dba4ee1f5' && hashOf(FROZEN_OPTS) === FROZEN_HASH && Object.keys(ASSEMBLED_OPTS).length === Object.keys(FROZEN_OPTS).length + PACKAGE_KEYS.length,
   `the candidate before the assembly reproduces its recorded hash a61dba4ee1f5 (${FROZEN_HASH}); 7u-F's adds ${PACKAGE_KEYS.join(', ')}`);
-ok(PHASE4_HASH === 'fcd8096217b7' && hashOf(PHASE4_OPTS) === PHASE4_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(PHASE4_OPTS).length + AFTER_PHASE4_KEYS.length && AFTER_PHASE4_KEYS.every(k => LATER_KEYS.includes(k)),
-  `Phase 4's candidate reproduces its registered hash fcd8096217b7 (${PHASE4_HASH}); the candidate ${CANDIDATE_HASH} adds ${AFTER_PHASE4_KEYS.join(', ')}`);
+ok(PHASE4_HASH === 'fcd8096217b7' && hashOf(PHASE4_OPTS) === PHASE4_HASH && Object.keys(BEFORE_D73_OPTS).length === Object.keys(PHASE4_OPTS).length + AFTER_PHASE4_KEYS.length && AFTER_PHASE4_KEYS.every(k => LATER_KEYS.includes(k)),
+  `Phase 4's candidate reproduces its registered hash fcd8096217b7 (${PHASE4_HASH}); the candidate before D73 adds ${AFTER_PHASE4_KEYS.join(', ')}`);
 ok(CANDIDATE_OPTS.tiersBelow === 3 && JSON.stringify(CANDIDATE_OPTS.menuPlus) === JSON.stringify(['hr']) && Object.isFrozen(CANDIDATE_OPTS.menuPlus) && CANDIDATE_OPTS.tableDealing === false && CANDIDATE_OPTS.failDelivered === true,
   "the later keys are D28's, D29's, D30's and D43's: tiersBelow 3, menuPlus ['hr'] (HR whole, D27; frozen too), tableDealing false, failDelivered true");
 ok(hashOf({ ...CANDIDATE_OPTS, failDelivered: false }) !== CANDIDATE_HASH && hashOf({ ...PHASE4_OPTS, failDelivered: false }) !== PHASE4_HASH, 'planted: failDelivered off, or written out as off, moves the hash');
 ok(hashOf({ ...ASSEMBLED_OPTS, tiersBelow: 3 }) !== ASSEMBLED_HASH && hashOf({ ...CANDIDATE_OPTS, menuPlus: ['hrwrap'] }) !== CANDIDATE_HASH, 'planted: a menu key added, or HR in another form, moves the hash');
 ok(hashOf({ ...FROZEN_OPTS, switchCharge: 0.002 }) !== FROZEN_HASH && hashOf({ ...FROZEN_OPTS, readerSplit: 'rs' }) !== FROZEN_HASH, 'planted: a changed value or an extra key moves the hash');
-ok(CANDIDATE_OPTS.readerRef === 'adaptive' && CANDIDATE_OPTS.readerSplit === 'rs' && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }) && Object.isFrozen(CANDIDATE_OPTS.adaptiveLattice),
-  "the package is D5's: readerRef 'adaptive', the lattice na 160, nb 41, nz 128 with foot and stepAll (frozen too), readerSplit 'rs'");
+ok(CANDIDATE_OPTS.readerRef === 'adaptive' && CANDIDATE_OPTS.readerSplit === 'rs' && JSON.stringify(ASSEMBLED_OPTS.adaptiveLattice) === JSON.stringify({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }) && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ na: 80, nb: 21, nz: 64, foot: true, stepAll: true }) && Object.isFrozen(CANDIDATE_OPTS.adaptiveLattice),
+  "the package is D5's: readerRef 'adaptive', the lattice with foot and stepAll (frozen too; na 160, nb 41, nz 128 as 7u-F assembled it, na 80, nb 21, nz 64 since D73), readerSplit 'rs'");
 
 // 2. the product stays snapped; the research default is the interpolated axis
 const product = (decided, code) => 'pclsInterp' in decided && decided.pclsInterp === false && !code.pclsInterp;
@@ -86,11 +92,18 @@ const hrRan = acts => (acts.some(a => a.steps.includes('penHR')) && acts.some(a 
 // even where tiersFor fell back to two steps: the reviewer, 25 Oct)
 const below = acts => (acts.some(a => a.tierPen === 3 && a.tierIsa === 3) ? 3 : 2);
 // the table without the dealing cost ran where E5 did (it runs only with it, under the joint tier state)
-const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp, readerRef: r.meta.readerRef, readerSplit: r.meta.readerSplit, tiersBelow: below(r.actions), menuPlus: hrRan(r.actions), tableDealing: r.meta.tsOnce === true ? r.meta.tableDealing : 'E5 off', failDelivered: r.meta.failDelivered === true };
+const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tierState: !!r.meta.tierState, jointWorlds: !!r.meta.jointWorlds, bequestWeight: r.meta.bequestWeight, switchCharge: r.meta.switchCharge, switchMargin: r.switchMargin, e3: !!r.meta.e3, pclsInterp: r.g.pclsInterp, readerRef: r.meta.readerRef, readerSplit: r.meta.readerSplit, tiersBelow: below(r.actions), menuPlus: hrRan(r.actions), tableDealing: r.meta.tsOnce === true ? r.meta.tableDealing : 'E5 off', failDelivered: r.meta.failDelivered === true,
+  // D73: the sweep's cash ISA money to the ISA (every move carries it), the solve on anchors and shortlists as the solve recorded it (its
+  // counts left out), and the bridge reference's lattice as built ('unbuilt' on a household with no bridge year: the candidate's then)
+  sweepCashIsaTo: r.meta.sweepCashIsaTo && r.actions.every(a => a.sweepIsa === true) ? r.meta.sweepCashIsaTo : 'not on every move',
+  coarse: r.meta.coarse && !r.meta.coarse.off ? Object.fromEntries(Object.keys(CANDIDATE_OPTS.coarse).map(k => [k, r.meta.coarse[k]])) : 'off',
+  adaptiveLattice: (() => { const a = r.g.reader && r.g.reader.adaptive; return a && a.lattice ? { na: a.lattice.na, nb: a.lattice.nb, nz: a.lattice.nz, foot: !!a.lattice.foot, stepAll: !!a.lattice.stepAll } : 'unbuilt'; })() };
 const sameRun = o => Object.entries(o).every(([k, v]) => JSON.stringify(v) === JSON.stringify(CANDIDATE_OPTS[k]));
 ok(sameRun(ran), `solveCandidate ran the candidate (${JSON.stringify(ran)})`);
 ok(!sameRun({ ...ran, bridgeStep: undefined }), 'planted: a solve that dropped a setting (bridgeStep) fails the same check');
 ok(!sameRun({ ...ran, failDelivered: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, PHASE4_OPTS).meta.failDelivered === true }), 'planted: a solve on Phase 4\'s candidate (the failure year at its fixed price) fails the same check');
+{ const pre = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, BEFORE_D73_OPTS), L = pre.g.reader.adaptive.lattice;
+  ok(!sameRun({ ...ran, sweepCashIsaTo: pre.meta.sweepCashIsaTo || 'gia' }) && !sameRun({ ...ran, coarse: pre.meta.coarse || 'off' }) && !sameRun({ ...ran, adaptiveLattice: { na: L.na, nb: L.nb, nz: L.nz, foot: !!L.foot, stepAll: !!L.stepAll } }), 'planted: a solve on the candidate before D73 (the sweep to the taxable account, the whole menu, the lattice as it was) fails the same check three ways'); }
 const old = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, ASSEMBLED_OPTS);
 ok(!sameRun({ ...ran, menuPlus: hrRan(old.actions) }) && !sameRun({ ...ran, tiersBelow: below(old.actions) }) && !sameRun({ ...ran, tableDealing: old.meta.tsOnce === true ? old.meta.tableDealing : 'E5 off' }), 'planted: a solve without HR, one without the third step and one with the dealing cost in the table (7u-F\'s candidate) each fail it');
 const arm = solveCandidate(E, M, plan, { lambda: 0.5, points: 3, pclsInterp: false });

@@ -194,7 +194,9 @@ for (const z of zs) {
 
 // ---- 5. the singles' tables ----
 {
-  const BEFORE = 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4';   // S116, the code before D1 (b4ea006), re-taken on item 3's (D69)
+  // S116, the code before D1 (b4ea006), re-taken on item 3's (D69: b954f145878ff460...), and on D73's candidate (11 Nov, D81 (A), D83: the
+  // sweep to the ISA and the solve on anchors move a single's tables; with both keys out the solve gives item 3's figure, results-d73-digests.txt)
+  const BEFORE = '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13';
   const t1 = Date.now();
   const r = solveForApp(E, M, E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan), { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
   const tabs = tablesOf(r), dg = await digestOf(tabs);

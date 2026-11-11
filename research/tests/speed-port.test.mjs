@@ -29,7 +29,7 @@ import * as M from '../../src/solver/model.js';
 import * as S from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { modelStateOf, withTable } from '../../src/solver/bridge.js';
-import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, BEFORE_D73_OPTS, candidatePlan } from '../solver/candidate.mjs';
 import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { LAMBDA } from '../solver/panel-7uf.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -45,7 +45,9 @@ checkE3pclsPin({ ...CANDIDATE_OPTS });   // e3pcls guard: the candidate's solves
 // CAND is the candidate as D29 left it, the option unset (candidate.json less tableDealing since D30, and less failDelivered
 // since D43), so check 1 compares what the code before the port solved, and checks 3 and 4 set the option themselves (the
 // reviewer of 26 Oct, finding 2; of 29 Oct, finding 1b)
-const { tableDealing: _td, failDelivered: _fd, ...D29_OPTS } = CANDIDATE_OPTS;
+// built from the candidate before D73 (candidate.mjs BEFORE_D73_OPTS: no sweep to the ISA, no solve on anchors, the lattice as it was),
+// so it still means what D29 left (the unlock of 11 Nov, D82): no pinned digest moves
+const { tableDealing: _td, failDelivered: _fd, ...D29_OPTS } = BEFORE_D73_OPTS;
 const solve = (id, arm, extra = {}, pts = PTS) => {
   const base = { lambda: LAMBDA, points: pts, bequestWeight: 0.02 };
   return arm === 'SHIP' ? S.solvePlan(E, M, candidatePlan(E, planOf(id)), base) : S.solvePlan(E, M, candidatePlan(E, planOf(id)), { ...D29_OPTS, ...(pts === 45 ? {} : LIGHT), ...base, ...extra });

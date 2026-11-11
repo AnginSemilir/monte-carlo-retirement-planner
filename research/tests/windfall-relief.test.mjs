@@ -133,10 +133,13 @@ console.log(`windfall-relief: relief on the plan's own pension routes (the revie
   // no route into a pension is made from the household's money, every table is item 3's, bit for bit: S116 (no deposit); S210
   // with its deposit removed, and with it typed into the taxable account. S210 as the library enters it: its 2033 route to the
   // pound (£3,600 lands for £2,880; £168,120 goes on, where item 3 sent £167,400 on)
-  const ITEM3 = {   // taken on item 3's code alone
-    S116: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4',
-    'S210, its deposit removed': 'f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653',
-    'S210, its deposit typed into the taxable account': 'c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7'
+  // taken on item 3's code alone (b954f145878ff460..., f9a4e63e00f6958e..., c7785c6fc3ecdcb4...), and re-taken on D73's candidate (11 Nov,
+  // D81 (A), D83): the sweep to the ISA and the solve on anchors move these tables and nothing else in the port does (with both keys
+  // out each solve gives item 3's figure: results-d73-digests.txt)
+  const ITEM3 = {
+    S116: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13',
+    'S210, its deposit removed': '1daa7851917f000a97479b09485392689113801c740c484dc157fc4e825e9574',
+    'S210, its deposit typed into the taxable account': 'bb84262fb4db77b4e24c0c57252471064c73c2c16dc7b9b273cec9c3012f274e'
   };
   const { buildScenarios } = await import('../policy-study/scenarios.mjs');
   const lib = id => buildScenarios().find(s => s.id === id).plan, s210 = lib('S210');

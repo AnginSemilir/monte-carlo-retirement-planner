@@ -39,7 +39,7 @@ ok(same(APP_CANDIDATE, CANDIDATE_OPTS) && hashOf({ ...APP_CANDIDATE }) === CANDI
 ok(realsSame(APP_TIER_REALS, blendReals()), `1. the app's tier returns are O60's: ${JSON.stringify(APP_TIER_REALS)}`);
 ok(APP_LAMBDA === LAMBDA, `1. the app's dislike of cuts is Phase 4's lambda (${APP_LAMBDA})`);
 ok(JSON.stringify(APP_DIAL) === '[1,3,6,10]', `1. the dial's positions are D46's, 1 the default: ${APP_DIAL.join(', ')} times lambda`);
-ok(!same({ ...APP_CANDIDATE, switchCharge: 0.002 }, CANDIDATE_OPTS) && !same({ ...APP_CANDIDATE, adaptiveLattice: { ...APP_CANDIDATE.adaptiveLattice, nz: 64 } }, CANDIDATE_OPTS)
+ok(!same({ ...APP_CANDIDATE, switchCharge: 0.002 }, CANDIDATE_OPTS) && !same({ ...APP_CANDIDATE, adaptiveLattice: { ...APP_CANDIDATE.adaptiveLattice, nz: 32 } }, CANDIDATE_OPTS)
   && !realsSame({ ...APP_TIER_REALS, 'Low Risk': 2.77 }, blendReals()), '1. planted: one setting, the lattice, or one tier\'s return changed in the copy fails the comparison');
 { const p = planOf('S126'), a = appPlan(E, p), b = candidatePlan(E, p);
   ok(JSON.stringify(a) === JSON.stringify(b), '1. appPlan is candidatePlan on S126'); }

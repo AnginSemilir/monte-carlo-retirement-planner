@@ -10,10 +10,12 @@
   "pclsInterp": true,
   "e3pcls": true,
   "readerRef": "adaptive",
-  "adaptiveLattice": { "na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true },
+  "adaptiveLattice": { "na": 80, "nb": 21, "nz": 64, "foot": true, "stepAll": true },
   "readerSplit": "rs",
   "tiersBelow": 3,
   "menuPlus": ["hr"],
   "tableDealing": false,
-  "failDelivered": true
+  "failDelivered": true,
+  "sweepCashIsaTo": "isa",
+  "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 }
 }

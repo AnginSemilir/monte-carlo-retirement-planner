@@ -1,0 +1,6 @@
+S303@52:land (each person retiring at 52, target £36100 (the plan's own rules 85.0% on 500 paths), the floor at 80%) at 45 points (solve 1130 s), 100 paths of seed 4242, 61 years, bridge years 6 and 6: as it is 1294.0 ms a path; flat 166.3 ms (7.78 times)
+   decisions 6100: 0 differ; paths: 0 of 100 differ in survival or pot left; positions valued 35925, taken from one already valued 118113 (76.7%), table reads 5520270
+   every value both ways (20 paths): 32000 valued, 0 differ; every ranking both ways: 2440 ranked, 0 differ
+   planted 'flatrate': 31810 of 31910 values differ from the path as it is, 1194 of 1220 decisions, 19 of 20 paths
+   planted 'flatmemo': 4014 of 32060 values differ from the path as it is, 717 of 1220 decisions, 18 of 20 paths
+   planted 'flatmove': 3790 of 31920 values differ from the path as it is, 307 of 1220 decisions, 5 of 20 paths

@@ -1,4 +1,4 @@
-# The external reviews: which document is current (10 Nov)
+# The external reviews: which document is current (11 Nov)
 
 This branch (`review/external-2026-10-21`) holds the external reviewer's work. It is not for merging. Each review is a
 dated record, and the agent cites them by commit.
@@ -24,6 +24,13 @@ dated record, and the agent cites them by commit.
 - `ANSWERS-2026-11-10.md`: the review's answers to the agent's questions of 10 Nov on items 3, 4 and 5
   (`research/solver/QUESTIONS-2026-11-10.md` on the working branch). Two of them correct the review: item 4's case 6
   and item 5's households.
+- **Added on 11 Nov: item 11, a couple's joint move on flat arrays** (a couple's path 2 to 6 times faster, bit for
+  bit; `REVIEW.md` 2.4, `prototype/couple-flat.diff`, `tests/couple-flat.test.mjs`), **and item 12**, what
+  approximate cuts add to it (measured on 15,000 paths; an experiment before any is ported). Neither is in an
+  earlier prompt. Their follow-up prompt is the file's last section.
+- `ANSWERS-2026-11-11.md`: the review's answer to the agent's question of 11 Nov on how the couples' re-run should
+  run (`research/solver/QUESTIONS-2026-11-11.md`): held until items 5 and 10 are ruled and item 11 is in; then on
+  one session; S1 reported, not deciding. It also says why item 10's part 5 failed: the review's wording.
 - Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
 - It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
 - Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.

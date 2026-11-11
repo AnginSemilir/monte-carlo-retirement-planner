@@ -1,0 +1,14 @@
+couple-flat: a couple's joint move on flat arrays (COUPLE.flat), seed 7002
+S007: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 63.9s
+  ok   1. S007 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 26670 values differ
+  ok   2. S007 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S007 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision   11749 valued, 14921 taken from one already valued (55.9%), 352470 table reads; bridge years 0 and 0
+  ok   4. S007 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 2240 rankings differ
+S127: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 81.0s
+  ok   1. S127 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 40220 values differ
+  ok   2. S127 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S127 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision, and bridge years read   10416 valued, 29804 taken from one already valued (74.1%), 1055812 table reads; bridge years 2 and 3
+  ok   4. S127 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 3200 rankings differ
+  ok   5. the guard: with 'nocut' planted, and with an account that is not one of the two people's four, no position takes the flat path and each is valued by the path as it was   'nocut': 0 flat, the same value true; the odd account: 0 flat, the same value true; the household itself: 1 flat
+
+couple-flat: 9 passed, 0 failed

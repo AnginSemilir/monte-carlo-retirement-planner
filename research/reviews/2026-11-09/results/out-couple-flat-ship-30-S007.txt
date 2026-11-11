@@ -1,0 +1,3 @@
+S007, the product's settings at 30 points (solve 75 s), 100 paths of seed 4242, 28 years, bridge years 0 and 0: as it is 134.7 ms a path; flat 71.0 ms (1.90 times)
+   decisions 2800: 0 differ; paths: 0 of 100 differ in survival or pot left; positions valued 36097, taken from one already valued 39793 (52.4%), table reads 1082910
+   every value both ways (20 paths): 14450 valued, 0 differ; every ranking both ways: 0 ranked, 0 differ

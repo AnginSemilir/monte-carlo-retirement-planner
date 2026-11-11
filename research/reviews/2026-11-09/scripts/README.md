@@ -1,4 +1,4 @@
-# The review's scripts (9 and 10 Nov)
+# The review's scripts (9 to 11 Nov)
 
 All EXPLORATORY. None is a registered run, and none reads a D4 result.
 
@@ -75,6 +75,42 @@ then:
   and S188's are their own run's.
 - A file that ends "stopped here by hand" was stopped before its remaining settings; the unfinished setting's
   half-printed lines were removed. Every other line of every file is as the script printed it.
+
+## Review 2: a couple's joint move (11 Nov; `REVIEW.md` 2.4, items 11 and 12)
+
+These run on a checkout of `claude/project-access-i58m0x` at 61e8778 or 01825f2 (not f02e8741), the engine built.
+- Item 11 needs `couple-flat.diff` alone.
+- Item 12 needs `couple-flat.diff`, then `shortlist.diff`, then `couple-approx.diff`, applied in that order. Every
+  option of the last two is off unless an arm names it, and with all off the copy's flat path is checked against the
+  path as it is inside each run.
+
+Seed 4242 unless `SEED=` says otherwise; the test uses 7002. Every couple is in a `touched` list and none is in the
+panel. `plan-of.mjs` names them: `S007` is the library plan; `S303@52:land` is S303 with each person retiring at 52
+and its target set where the plan's own rules survive about 85% (a bisection on 500 paths of seed 990), the floor at
+80% of it, which is how the panel's younger cohort is made from a library couple.
+
+| Script | What it does | Output |
+|---|---|---|
+| `couple-prof.mjs <couple> [points] [paths]` | where a couple's path spends its time under the engine. `FLAT=0` on a patched copy profiles the path as it was | `out-couple-prof-before-*.txt`, `out-couple-prof-after-*.txt` (light settings) |
+| `couple-same.mjs <couple> [points] [paths]` | how many of a decision's candidates leave a position another has already left | `out-couple-same-S007.txt`, `-S303.txt` (light settings) |
+| `couple-flat.mjs <couple> [points] [paths]` | the flat path against the path as it is: every decision and path bit for bit, and both times. `CHECK=1` values every position both ways; `PLANT=` runs the plants; `ARM=SHIPC` solves at the product's settings | `out-couple-flat-45-S007.txt`, `-S303at52.txt`; `out-couple-flat-ship-30-*.txt` |
+| `../tests/couple-flat.test.mjs [--full] [--plants]` | item 11's test: 5 checks on two couples in the exact model, each plant failing checks 1 and 2 | `out-couple-flat-test.txt` (9 passed), `out-couple-flat-test-plants.txt` (all plants exact), `out-couple-flat-test-full.txt` (19 passed at 45 points; run while its first timing threshold stood at 1.7, now 1.5) |
+| `couple-approx.mjs <couple> [points] [paths]` | approximate arms stacked on the flat path, each against the flat path on the same paths. `ARMS=` names them; the header says how | `out-couple-approx-45-*.txt` (3,000 paths a couple; `-S127-checked.txt` is `order` with its check); at light settings, where a shortlist's outcomes mean nothing and only the times are read, `out-couple-approx-light-S127.txt` (every option tried) and `-S303at52.txt` (the joint options one by one with `order` on) |
+| `couple-approx-summ.py <outputs>` | the pooled table of `REVIEW.md` 2.4 | `out-couple-approx-summ.txt` |
+| `couples-budget.py <the sizing file> --candc L Y --shipc L Y [--solve F] [--shipc-paths N]` | the re-run's first stage from the agent's own pilot timings, with a path made faster by the factors given | `out-couples-budget.txt` |
+
+**Times.** The 45-point runs ran two at a time on a two-core machine, each its own process. A path as it is slows more
+under that load than the flat path does (it allocates far more), so the ratio depends on what else the machine is
+doing: S007 ran 1.95 and 1.98 times faster with one other job on the machine, and S303@52 6.15 times with one other
+job and 7.78 with two or three (`out-couple-flat-45-S303at52.txt`, taken while light test runs were also going).
+Read the ratios as "about", and re-time on the machine that matters.
+
+**One script changed after its runs.** `couple-flat.mjs` gained `ARM=` after the two 45-point outputs were
+printed. Without `ARM=` it solves and runs exactly as it did.
+
+**One file restored.** `out-couple-approx-45-S303.txt`: a second run opened the same file by mistake and emptied it
+while the first was still writing. Its first four lines were restored from the session's log; its other four are
+as the script wrote them.
 
 ## The answers of 10 Nov (`ANSWERS-2026-11-10.md`)
 

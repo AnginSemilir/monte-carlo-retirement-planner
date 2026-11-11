@@ -42,6 +42,11 @@ commit marks them by itself.
   the singles S116, S054, S022, S224, S370, S126, S002, S380, S092, S208, S210 and S214 are in `phase4-orders.json`'s,
   and S030 and S188 were in Phase 4's own panel. `tax-library.mjs` runs the engine alone over the 237 households in the
   two `touched` lists and prints 17 of them by id.
+- **On 11 Nov (2.4):** I solved the couples S007, S127, S303 and S391, and S303 again with each person retiring at
+  52 and its target lowered (how the panel dresses a younger couple, done here to a couple that is not in the
+  panel). S365 was solved once and set aside: it never survives, so it can show no path saved or lost. Item 12 also
+  names S209, S261 and S313 for its experiment. All eight are in `couples-orders.json`'s frozen `touched` list, and
+  `scripts/id-audit.mjs` on this folder still finds the same three newly used ids and S301, no more.
 - No other D4 couple is named or was run. `scripts/d4exp.mjs` describes D4's couples from their plan inputs by place
   in the panel, without ids.
 - **What the agent's scan prints on this folder as pushed** (`node research/solver/held-out.mjs`, at f02e8741): "118
@@ -64,13 +69,14 @@ commit marks them by itself.
    £302,000 of tax over one library household's plan. Put right, 24 of 237 library households lose more than a point
    of survival (the worst 3.7), and 196 move by half a point or less. A test of 22 checks against an independent
    reference fails 10 on the branch; the prototype passes all but one, which it does not build.
-3. **Three speed cuts, prototyped at 45 points** (Review 2). A couple's path runs 2.4 times faster with every
+3. **Four speed cuts, prototyped at 45 points** (Review 2). A couple's path runs 2.4 times faster with every
    path bit for bit the same, by ranking each person through the single chooser's shared scoring. A single's path
    runs 3 to 10 times faster on a shortlist of the moves the tables already stored, with no survival loss visible
    on 4,000 paths. And, added on 10 Nov, the solve itself runs about 7 times faster on one core (49 to 53 s against
    341 to 370) by scoring the whole menu at 828 of the year's 14,580 cells and a shortlist at the rest: 9 paths saved
    and 15 lost of 16,000 (-0.04 points, se 0.03). A household with years before pension access gets 3.3 times from
-   that alone, and 5.8 with a thinner bridge reference.
+   that alone, and 5.8 with a thinner bridge reference. Added on 11 Nov: a couple's path runs a further 2 to 6
+   times faster, again bit for bit, by valuing the joint move on flat arrays and each position once (2.4).
 4. **D4 is better stopped unread and run once on the code that ships** (Review 3; advised on 10 Nov, on the
    maintainer's question). It is frozen on the engine with the tax defect of point 2. About 700 core-hours remain,
    where a whole re-run costs about 400 with the exact cut of point 3, and about 160 with a two-stage rule that keeps
@@ -255,9 +261,9 @@ on all income, which the prototype does not build) (`results/out-engine-hmrc-bra
 bit-for-bit identity check, and S1 to S3 and E2 a planted fault that fails it. I did not re-run those tests, and I did
 not read E5 or E7 to E11 line by line.
 
-Three cuts are prototyped below, in scratch copies (`prototype/shortlist.diff`, `prototype/couple-rank.diff`, and
-since 10 Nov `prototype/solve-coarse.diff`). Each is off unless switched on, and each is measured at the product's 45
-points.
+Four cuts are prototyped below, in scratch copies (`prototype/shortlist.diff`, `prototype/couple-rank.diff`, since
+10 Nov `prototype/solve-coarse.diff`, and since 11 Nov `prototype/couple-flat.diff` with `couple-approx.diff`). Each
+is off unless switched on, and each is measured at the product's 45 points.
 
 ### 2.1 A single's path: score a shortlist, not all 800 moves (approximate; 3 to 10 times)
 
@@ -324,6 +330,7 @@ for a locked dial position, for Richardson's second table and for a table withou
 This changes no number, so it is a port, not a trade. It applies to D5's screens and to every registered couples' run
 after D4 (D4's code is frozen). With the structure shortlist on top the path was 141 ms at 45 points (4.1 times; no
 path saved or lost of 100, the mean pot left 0.5% lower), which needs its own paired measurement on more paths.
+2.4 has that measurement, made on 11 Nov: over 15,000 paths `structure` loses 0.16 points on couples.
 
 ### 2.3 The solve: the whole menu at the anchors, a shortlist everywhere else (approximate; about 7 times)
 
@@ -421,10 +428,117 @@ What this shows and does not:
 My recommendation: measure it by item 10's rule and, if it passes, turn it on for the solve at the dial's first
 position, with the thinner reference if that passes its own arms.
 
-### 2.4 Not prototyped
+### 2.4 A couple's joint move on flat arrays (exact; 2 to 6 times), and what approximate cuts add
 
-- **D5 still has no time budget for a couple.** Even after 2.2, 2,000 paths is several core-minutes for a 28-year
-  couple and three times that for a 61-year one, before each person's skip costs.
+Added on 11 Nov, on the maintainer's "Prototype the couples path speed up first, again aim for 5x", and then "go
+further still, still keeping cuts within noise but not necessarily exact."
+
+**Where a couple's path went after 2.2.** With each person's moves ranked from the chooser's shared scores, the
+time moved to the rollout's own valuing of each candidate. For every candidate (a split, each person's move, a
+level) and every market node, `expectedValue` builds a rates object, copies the couple's state, builds each person's
+state and vector as new objects, and reads each person's table twice at the same position. In a year before pension
+access `shareBridge` does all of that about 22 times a node. Profiled at light settings
+(`results/out-couple-prof-before-*.txt`, `out-couple-prof-after-*.txt`; S303@52 is S303 with each person retiring
+at 52 and its target landed, which is how the panel's younger cohort is made from a library couple):
+
+| Share of a path | S007, as it is | S007, flat | S303@52, as it is | S303@52, flat |
+|---|---|---|---|---|
+| Each person's ranking (the single chooser, twice) | 42% | 74% | 13% | 63% |
+| Valuing the candidates | 44% | 6% | 76% | 19% |
+| of which the bridge's search | none | none | 62% | 15% |
+| The model's step for each candidate | 4% | 7% | 2% | 7% |
+| A decision | 7.1 ms | 3.4 ms | 18.1 ms | 3.2 ms |
+
+Two things made the valuing dear. Its bookkeeping: on S303@52, 12% of the path rebuilt each person's state as an
+object, 16% built their vector as an array and copied it, and 6% copied the couple's state. And repetition: of the
+25 to 27 candidates a decision, only 19% (S303) to 40% (S007) leave a position that was not already valued in that
+same decision, because a split often changes nothing and two of a person's ranked moves often differ only in a
+level the household does not take (`scripts/couple-same.mjs`, `results/out-couple-same-*.txt`).
+
+**The exact cut** (`prototype/couple-flat.diff`, `COUPLE.flat`). The same sums in the same order on flat arrays; each
+account's growth factors kept in a table; each person's table read once for survival and the cut ahead; a position
+valued once a decision; a person's two best moves picked without sorting all 800. At 45 points, the path as it is on
+the first 40 paths against the flat path on 3,000, two runs side by side on a two-core machine:
+
+| At 45 points | Years | Years each person's table reads as before pension access | A path as it is | Flat | Faster |
+|---|---|---|---|---|---|
+| S007, retired | 28 | none | 158 ms | 80 ms | 2.0 times |
+| S303, both working to 65 | 61 | none | 292 ms | 118 ms | 2.5 |
+| S127 | 40 | 2 and 3 | 442 ms | 113 ms | 3.9 |
+| S391 | 46 | 8 and 8 | 1,071 ms | 181 ms | 5.9 |
+| S303@52 | 61 | 6 and 6 | 1,087 ms | 177 ms | 6.2 |
+
+Every decision and every path is the same bit for bit (`results/out-couple-approx-45-*.txt`, each file's first two
+lines; `out-couple-flat-45-*.txt` on a copy carrying exactly the patch; `out-couple-flat-test.txt`):
+- on the copy with exactly the patch, none of 2,800 decisions (S007) and 6,100 (S303@52) differs over 100 paths, and
+  with every position valued both ways none of 12,850 and 32,000 values does;
+- on the five couples above, the first 40 paths are the same and none of 117,950 values valued both ways differs;
+- each of three planted faults changes values and decisions, and the test passes its 9 checks in the exact model.
+
+**The ratio depends on the machine's load.** The path as it is allocates far more, so it slows more when another job
+shares the machine. The table was taken with one other job running. With two or three, S303@52 ran 7.8 times faster
+(1,294 ms against 166). In two runs each with one other job, S007 ran 1.95 and 1.98 times faster and S127 3.9 and
+3.7.
+
+It changes no figure, so it is a port with an identity test (item 11), like 2.2. It is worth most where the path was
+dearest: the couples with years before pension access, which are the couples that make the re-run's younger cohort
+cost four times its library cohort.
+
+**What is left is the single chooser.** After the cut, 63% to 74% of a couple's path is each person's own chooser,
+the code a single's path runs once a year. Nothing exact is left in the rollout that is worth more than a few
+percent, so going further means approximating, and almost all of what there is to win is in the ranking.
+
+**The approximate cuts, each against the flat path on the same 3,000 paths a couple**
+(`prototype/couple-approx.diff` with `shortlist.diff`; `scripts/couple-approx.mjs`; `results/out-couple-approx-45-*.txt`):
+
+| Pooled over the five couples, 15,000 paths | Faster than the flat path | Faster than as it is | Paths saved, lost | Survival, points (se) | Spending delivered | Pot left |
+|---|---|---|---|---|---|---|
+| The joint options alone | 1.00 to 1.18 times | 2.0 to 7.0 | 13, 12 | +0.01 (0.03) | -0.02% | -0.01% |
+| `order` in each person's ranking | 1.42 to 1.76 | 3.5 to 8.8 | 33, 42 | -0.06 (0.06) | -0.07% | -0.25% |
+| `order` and the joint options | 1.90 to 2.14 | 4.0 to 12.7 | 36, 50 | -0.09 (0.06) | -0.09% | -0.26% |
+| `structure` | 1.18 to 2.67 | 5.3 to 7.4 | 37, 61 | -0.16 (0.07) | -0.03% | +0.87% |
+| `cells` with its check | 1.58 to 3.73 | 7.4 to 11.3 | 46, 56 | -0.07 (0.07) | -0.21% | +2.74% |
+
+The joint options: one table read where the flat path makes two (`one`); the bridge's search on 5 points and 3
+steps, not 9 and 10 (`thin4x3`); a pair with a second-ranked move tried only beside the first pair's best split
+(`near`). `order`, `structure` and `cells` are item 7's shortlist widths, here in each person's ranking.
+
+How to read it, against the rule the maintainer set for item 7 (survival's interval above -0.1 points, spending
+within 0.05 points, the pot left within 0.5%):
+- **The joint options alone are inside noise on every measure, and worth little:** nothing on a retired couple, 6%
+  to 18% elsewhere. With `order` on they are worth 1.14 to 1.45 times, because the chooser no longer hides them.
+- **`order` is the one width that passed on singles** (the agent's read of 11 Nov: 2.1 times, the pot left +0.1%).
+  On couples it is 1.4 to 1.8 times, and it is not clearly inside noise. Every measure leans the wrong way: survival
+  -0.06 points (the interval -0.17 to +0.05), spending -0.07%, the pot -0.25%. S127 loses 12 paths and saves 5.
+  Spending is already past the rule's 0.05 (the table's figure is the change in the mean yearly spending delivered;
+  the rule's is in points of target, which is nearly the same thing for plans that deliver about their target).
+  Checking the shortlist's best move against the table's own value, as item 7 does for `cells`, does not help: on
+  S127, `order` with the check at 0.5 or at 0.2 points loses 11 and 10 paths and saves 5 and 4
+  (`results/out-couple-approx-45-S127-checked.txt`).
+- **`structure` and `cells` failed on singles for the pot left, and fail on couples more plainly.** Under
+  `structure` S127 loses 31 paths and saves 3. On S391 the pot left moves by +5.9% and +9.7%.
+- **15,000 paths cannot pass any of them.** The pooled half-width is 0.11 to 0.13 points, wider than the rule's
+  0.1. They can only show which are worth the proper experiment.
+
+**Tried and dropped** (light settings, `results/out-couple-approx-light-S127.txt`): valuing every candidate in the
+middle market world first and only the best four in every world (1.12 times, and 97 of 150 paths change, because
+positions already valued are skipped anyway); and each person's first-ranked move only (1.16 times, 143 of 150
+paths change: it is a change to what the rollout is, not a cut).
+
+**Where that leaves the aim of 5 times.** The exact cut alone gives it on the couples that were dear (5.9 and 6.2
+times) and not on the others (2.0 to 3.9). Everything measured, by couple, as it is against `order` with the joint
+options: S007 158 ms to 40 (4.0 times), S303 292 to 62 (4.7), S127 442 to 57 (7.8), S391 1,071 to 84 (12.7),
+S303@52 1,087 to 90 (12.1).
+
+My recommendation: port the exact cut now (item 11). Port nothing else on this evidence. If a faster couple's path
+is still wanted afterwards, item 12 is the experiment; I would expect `order` to be marginal on spending and would
+not expect `structure` or `cells` to pass.
+
+### 2.5 Not prototyped
+
+- **D5 still has no time budget for a couple.** After 2.4, 2,000 paths is about 3 core-minutes for a retired
+  28-year couple (80 ms a path) and about 6 for a couple with years before pension access (180 ms), before each
+  person's skip costs. Before 2.4 it was 5 and 36.
 - **Phone memory has never been measured on a phone.** The harness's desktop browser peaks at 755 MB for the default
   solve and 1.8 GB with a dial position (`results-phone-memory.txt`). D59 dropped the device run and D60 the Safari
   check. One solve on a real iPhone and a mid-range Android settles it.
@@ -545,8 +659,12 @@ library's; the gaps above are about households unlike it.
   commit e09ac60 and to f02e8741, and does nothing unless `D4_SHARD` is set. `solve-coarse.diff` (solve.js:
   `opts.coarse`, Review 2.3) was written and measured on a tree without the other patches. It also applies on top of
   `shortlist.diff`, and `solve()` stays 45 bytes under V8's limit with both in; the two together were not run.
+  `couple-flat.diff` (couple.js and grid.js: `COUPLE.flat`, Review 2.4, item 11) applies to 61e8778 and to 01825f2,
+  not to f02e8741: it stands on item 2 as the agent ported it. `couple-approx.diff` (couple.js: `COUPLE_APPROX`,
+  item 12) applies on top of `couple-flat.diff` and `shortlist.diff`, in that order.
 - `tests/engine-hmrc.test.mjs`: the engine's year against an independent reference (Review 1).
 - `tests/solve-coarse.test.mjs`: what must be exact about the solve on anchors and shortlists (Review 2.3).
+- `tests/couple-flat.test.mjs`: a couple's joint move on flat arrays against the path as it was (Review 2.4).
 - `scripts/`: `scripts/README.md` lists each script, its command and the output it gave. Each finds the repository
   from `REPO_ROOT` or from its own place in the tree; run `python3 research/build-engine.py` there first.
 - `results/`: every run's output as printed. The 45-point uneven-couple lines (`out-share-S091.txt`) were recovered

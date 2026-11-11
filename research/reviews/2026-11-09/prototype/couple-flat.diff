@@ -1,0 +1,338 @@
+--- a/src/solver/couple.js
++++ b/src/solver/couple.js
+@@ -44,14 +44,17 @@
+  * leaves (chooseAction's shared scoring, the switch charged, in tab._sc and tab._bq), not by scoring every move again with
+  * scoreMoves, wherever that is the same sum: a mixture with the exact final year, no lock and no Richardson table. Exact: every
+  * ranking the same (couple-rank.test.mjs). COUPLE.check (tests only) ranks both ways and counts any that differ.
++ * COUPLE.flat (on; the review of 11 Nov, item 11): the joint move's expectation on flat arrays (THE FLAT PATH below): the
++ * same sums in the same order, so every value is the same bit for bit (couple-flat.test.mjs). COUPLE.flatCheck (tests only)
++ * values every position both ways and counts any that differ. Plants 'flatrate', 'flatmemo' and 'flatmove' (the test's).
+  */
+ import { solve, solveMixture, rankActions, scoreMoves, chooseAction, NODES, WEIGHTS } from './solve.js';
+ import { foldedVol } from './fast.js';
+-import { vecOf, readValues, bridgeTable } from './grid.js';
++import { vecOf, readValues, bridgeTable, locateVec, interpPair, READER_PROBE } from './grid.js';
+ import { profileOf as M_profileOf } from './model.js';
+ 
+ export const SPLITS = [0, 0.25, 0.5, 0.75, 1];
+-export const COUPLE = { plant: '', fast: true, check: false };
++export const COUPLE = { plant: '', fast: true, check: false, flat: true, flatCheck: false };
+ /* COUPLE.check's counts: the rankings past rankFor's first return, those made from the shared scores, those whose two
+    rankings differ (the first kept whole, to report) */
+ export const COUPLE_CHECKED = { decisions: 0, fast: 0, differ: 0, first: null };
+@@ -250,7 +253,223 @@
+   out[0] = bv; out[1] = b1; out[2] = b2; out[3] = bx;
+ }
+ 
++/*
++ * THE FLAT PATH (COUPLE.flat; the review of 11 Nov, item 11). expectedValue values a position by building, for each of the
++ * market's nodes, a rates object (a log and an exponential an account), a copy of the couple's state, each person's state
++ * (ownerState: a new object, a pattern match a pot) and vector (vecOf: an array, then a typed copy), and by reading each
++ * person's table twice at the same position (value, then cutAhead). In a bridge year shareBridge does all of that about
++ * twenty times a node. None of it changes a figure. Here the same arithmetic runs on flat arrays:
++ *   - the position as 18 numbers (FLAT_N): the 8 pots (4 a person: pension, ISA, taxable, cash), then for each person the
++ *     taxable account's basis, the tax-free cash taken, the lump sum taken, the cash ISA part and the gains carried;
++ *   - each account's growth factor for a year, a tier and a node worked out once a couple (a table of them), not once a
++ *     candidate: it depends on nothing else;
++ *   - each person's vector filled from the flat position; the money moved in a bridge year moved on it (movedState's sums);
++ *   - each person's table read once for survival and the cut ahead (readValues gives both; value's own read of survival
++ *     is the same call without the cut), and resilience and the estate from one location (grid.js interpPair);
++ *   - a position already valued this decision (two candidates that leave the same money, tiers and layers: a split that
++ *     moves nothing, two moves that differ only in a level the household does not take) is not valued again.
++ * Every sum is taken in the order the path above takes it, so each value is that path's bit for bit; that path is kept
++ * (any other plant, a household whose accounts are not the two people's four, a reader probe or the log-odds blend, which
++ * count every read, COUPLE.flat off) and is the reference COUPLE.flatCheck compares every value against.
++ */
++export const COUPLE_FLAT = { values: 0, memo: 0, reads: 0, checked: 0, differ: 0, first: null };
++const FLAT_N = 18, FLAT_CAT = ['pen', 'isa', 'other', 'cash'], FLAT_PLANTS = ['flatrate', 'flatmemo', 'flatmove'];
++const flatOn = () => COUPLE.flat && !READER_PROBE.fn && (COUPLE.plant === '' || COUPLE.plant.split(',').every(k => FLAT_PLANTS.includes(k)));
++function flatOf(cp) {
++  if (cp._flat !== undefined) return cp._flat;
++  cp._flat = null;
++  const { m, tables } = cp, A = tables.self, B = tables.part;
++  const mixA = A.mix ? A.mix.tables : [A], mixB = B.mix ? B.mix.tables : [B];
++  // every account is one of the two people's four, under the engine's own names, and each person's table reads its own
++  // four under the first person's names (singlePlanFor's rename); anything else keeps the path above
++  const slot = new Map();
++  ['self', 'part'].forEach((w, p) => FLAT_CAT.forEach((c, k) => slot.set(`${c}_${w}`, 4 * p + k)));
++  for (const a of m.ctx.accounts) if (!slot.has(a.id) || a.id !== `${a.cat}_${a.owner}`) return null;
++  for (const w of ['self', 'part']) { const o = ownerOf(m, w); if (!o || FLAT_CAT.some(c => o.ids[c] !== `${c}_${w}`)) return null; }
++  for (const tb of [...mixA, ...mixB]) { const o = tb.m.ctx.owners[0]; if (!o || tb.m.ctx.owners.length !== 1 || FLAT_CAT.some(c => o.ids[c] !== `${c}_self`)) return null; }
++  if (mixA.length !== mixB.length) return null;
++  if ([...mixA, ...mixB].some(tb => tb.g && tb.g.reader && tb.g.reader.blend === 'logodds')) return null;
++  const T = m.ctx.totalYears, J = mixA.length, QZ = A.quadNodes || NODES, QW = A.quadWeights || WEIGHTS, K = QW.length;
++  const profs = m.ctx.tierProfiles || null;
++  const acc = m.ctx.accounts.map(a => {
++    const pr = (a.cat === 'pen' || a.cat === 'isa') && profs && profs[a.id] ? profs[a.id] : null;
++    return { a, slot: slot.get(a.id), p: a.owner === 'self' ? 0 : 1, cash: a.cat === 'cash', cat: a.cat, owner: a.owner, profs: pr, list: pr ? [a, ...pr] : [a] };
++  });
++  const NP = Math.max(...acc.map(x => x.list.length));
++  const keyN = FLAT_N + acc.length + 1 + 2 * J, MEMO = 64;
++  const keys = new Float64Array(MEMO * keyN);
++  cp._flat = {
++    mixA, mixB, T, J, K, QZ, QW, acc, NP,
++    shifts: A.mix ? A.mix.nodes : [0], wJ: A.mix ? A.mix.weights : [1], shiftMode: !!A.c.shiftMode,
++    // each account's growth factor by year, tier (0 its own, 1 + the tier held), world and node; NaN until asked for
++    fac: new Float64Array((T + 2) * acc.length * NP * J * K).fill(NaN),
++    pidx: new Int32Array(acc.length), LA: new Array(J).fill(null), LB: new Array(J).fill(null),
++    F0: new Float64Array(FLAT_N), G: new Float64Array(FLAT_N), X: new Float64Array(FLAT_N),
++    vA: new Float64Array(14), vB: new Float64Array(14), rA: new Float64Array(4), rB: new Float64Array(4), pair: new Float64Array(2),
++    keyN, MEMO, keys, keyBits: new Uint32Array(keys.buffer), key: new Float64Array(keyN), vals: new Float64Array(MEMO * 3), nm: 0
++  };
++  cp._flat.keyBitsOf = new Uint32Array(cp._flat.key.buffer);
++  return cp._flat;
++}
++/* a couple's model state into the flat position (ownerState's and vecOf's `|| 0` taken here) */
++function flatLoad(st, F) {
++  const P = st.pots, bs = st.basis, cg = st.cgtCarry, cu = st.cumPcls, lt = st.lumpTaken, ci = st.cashIsa;
++  F[0] = P.pen_self || 0; F[1] = P.isa_self || 0; F[2] = P.other_self || 0; F[3] = P.cash_self || 0;
++  F[4] = P.pen_part || 0; F[5] = P.isa_part || 0; F[6] = P.other_part || 0; F[7] = P.cash_part || 0;
++  F[8] = bs.self || 0; F[9] = bs.part || 0; F[10] = cu.self || 0; F[11] = cu.part || 0;
++  F[12] = lt.self ? 1 : 0; F[13] = lt.part ? 1 : 0;
++  F[14] = (ci && ci.self) || 0; F[15] = (ci && ci.part) || 0; F[16] = cg.self || 0; F[17] = cg.part || 0;
++}
++/* person p's vector from the flat position: vecOf(ownerState(...)) slot for slot (no guardrails' memory: slots 7 to 10) */
++function flatVec(F, p, s) {
++  const o = 4 * p, gia = F[o + 2] || 0, bs = F[8 + p] || 0, cash = F[o + 3] || 0;
++  s[0] = F[o] || 0; s[1] = F[o + 1] || 0; s[2] = gia + cash;
++  s[3] = gia > 0 ? Math.min(1, (gia - bs) / gia) : 0;
++  s[4] = F[10 + p] || 0; s[5] = F[12 + p] ? 1 : 0; s[6] = F[14 + p] || 0;
++  s[7] = -1; s[8] = 1; s[9] = 0; s[10] = 0;
++  s[11] = F[16 + p] || 0; s[12] = cash; s[13] = gia > 0 ? 0 : bs;
++}
++/* account i's growth factor in year t at tier slot pi, world j, node k: model.js grow's 1 + g x frac, g expectedValue's rate */
++function flatFac(cp, q, t, i, pi, j, k) {
++  const at = ((((t * q.acc.length + i) * q.NP + pi) * q.J + j) * q.K) + (planted('flatrate') ? 0 : k);
++  let f = q.fac[at];
++  if (f === f) return f;
++  const a = q.acc[i].list[pi], m = cp.m;
++  const vol = q.shiftMode ? a.vol : foldedVol(a.vol, a.sigmaParam, q.T - t + 1);
++  const g = Math.exp(Math.log(1 + a.real) + (q.shiftMode ? a.sigmaParam * q.shifts[j] : 0) + vol * q.QZ[k]) - 1;
++  f = 1 + g * (t === 0 ? m.ctx.yf : 1.0);
++  q.fac[at] = f;
++  return f;
++}
++/* one person's table at a position: R[0] survival, R[1] the estate, R[2] resilience, R[3] the cut ahead, each as value()
++   and cutAhead read it */
++function flatRead(q, tab, s, tt, layer, R) {
++  const k = Math.min(tt, tab.m.ctx.totalYears), L = layer !== null ? tab.tsLayers[layer] : tab, g = tab.g;
++  COUPLE_FLAT.reads++;
++  if (g.cov) { readValues(g, L.lsurv[k], L.beq[k], s, R, L.lresil[k], L.short[k], k); return; }
++  if ((g.bridge || g.reader) && g.linearResil && L.resil) {
++    // value(): survival by readValues, resilience and the estate by interp; cutAhead: readValues' fourth output
++    readValues(g, L.lsurv[k], L.beq[k], s, R, L.lresil[k], L.short[k], k);
++    interpPair(g, L.resil[k], L.beq[k], locateVec(g, s), q.pair);
++    R[2] = q.pair[0]; R[1] = q.pair[1];
++    return;
++  }
++  const v = tab.value(s, tt, layer);
++  R[0] = v.survival; R[1] = v.bequest; R[2] = v.resilience; R[3] = cutAhead(tab, s, tt, layer);
++}
++/* expectedValue's integrand at a flat position: both lasting, the resilience term, the household's estate, one cut */
++function flatAt(cp, q, F, j, t, o) {
++  const A = cp.tables.self;
++  flatVec(F, 0, q.vA); flatVec(F, 1, q.vB);
++  flatRead(q, q.mixA[j], q.vA, t + 1, q.LA[j], q.rA); flatRead(q, q.mixB[j], q.vB, t + 1, q.LB[j], q.rB);
++  const rA = q.rA, rB = q.rB, h = (rA[3] + rB[3]) / 2;
++  o[0] = rA[0] * rB[0] + A.wR * rA[2] * rB[2] + A.wB * (rA[1] + rB[1]) - h; o[1] = rA[0] * rB[0]; o[2] = h;
++  return o[0];
++}
++/* sharedState on the flat position: x of the second person's accessible money to the first (below 0 the other way),
++   movedState's sums in its order. Plant 'flatmove': the taxable account's basis left behind */
++function flatMoved(G, X, x) {
++  X.set(G);
++  if (x === 0) return X;
++  const from = x > 0 ? 1 : 0, to = 1 - from, oF = 4 * from, oT = 4 * to, xx = x > 0 ? x : -x;
++  const have = 0 + (G[oF + 1] || 0) + (G[oF + 2] || 0) + (G[oF + 3] || 0);
++  if (!(have > 0)) return X;
++  const f = Math.min(1, xx / have);
++  for (let k = 1; k <= 3; k++) {
++    const d = (G[oF + k] || 0) * f; if (!(d > 0)) continue;
++    X[oF + k] -= d; X[oT + k] = (X[oT + k] || 0) + d;
++    if (k === 2 && !planted('flatmove')) { const db = (G[8 + from] || 0) * f; X[8 + from] = (G[8 + from] || 0) - db; X[8 + to] = (X[8 + to] || 0) + db; }
++    if (k === 3 && X[14 + from] > X[oF + 3]) X[14 + from] = X[oF + 3];
++  }
++  return X;
++}
++/* shareBridge on the flat position, step for step; x = 0 is not valued twice (the search asks for it again whenever a
++   bound is 0, and the first answer is the answer) */
++function flatShare(cp, q, G, j, t, k1, bA, bB, out) {
++  const accA = 0 + (G[1] || 0) + (G[2] || 0) + (G[3] || 0), accB = 0 + (G[5] || 0) + (G[6] || 0) + (G[7] || 0);
++  const capA = bA && cp.need.self ? Math.max(0, cp.need.self[k1] || 0) : 0, capB = bB && cp.need.part ? Math.max(0, cp.need.part[k1] || 0) : 0;
++  const lo = -Math.min(accA, capB), hi = Math.min(accB, capA);
++  const v0 = flatAt(cp, q, G, j, t, AT);
++  let bx = 0, bv = v0, b1 = AT[1], b2 = AT[2];
++  const tryX = (x) => { if (x === 0) return v0; const v = flatAt(cp, q, flatMoved(G, q.X, x), j, t, AT); if (v > bv) { bv = v; bx = x; b1 = AT[1]; b2 = AT[2]; } return v; };
++  if (hi - lo > 1) {
++    const N = 8, xs = [];
++    for (let i = 0; i <= N; i++) xs.push(lo + (hi - lo) * i / N);
++    const vs = xs.map(tryX);
++    let ib = 0; for (let i = 1; i <= N; i++) if (vs[i] > vs[ib]) ib = i;
++    let a = xs[Math.max(0, ib - 1)], c = xs[Math.min(N, ib + 1)];
++    const R = (Math.sqrt(5) - 1) / 2;
++    let x1 = c - R * (c - a), x2 = a + R * (c - a), f1 = tryX(x1), f2 = tryX(x2);
++    for (let it = 0; it < 10 && c - a > 1; it++) {
++      if (f1 >= f2) { c = x2; x2 = x1; f2 = f1; x1 = c - R * (c - a); f1 = tryX(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + R * (c - a); f2 = tryX(x2); }
++    }
++  }
++  out[0] = bv; out[1] = b1; out[2] = b2; out[3] = bx;
++}
++function expectedValueFlat(cp, q, post, t, out, pick) {
++  const F0 = q.F0, G = q.G, acc = q.acc, nA = acc.length, J = q.J, K = q.K, T = q.T;
++  flatLoad(post, F0);
++  // each account at its person's tier held after the move (model.js profileOf), each person's layer (layerOf)
++  const th = post.tierHeld, key = q.key;
++  for (let i = 0; i < nA; i++) {
++    const a = acc[i]; let pi = 0;
++    if (a.profs && th) { const held = th[a.owner]; if (held) pi = 1 + Math.min(held[a.cat] || 0, a.profs.length - 1); }
++    q.pidx[i] = pi; key[FLAT_N + i] = pi;
++  }
++  for (let j = 0; j < J; j++) {
++    q.LA[j] = pick ? layerOf(q.mixA[j], pick.ia) : null; q.LB[j] = pick ? layerOf(q.mixB[j], pick.ib) : null;
++    key[FLAT_N + nA + 1 + 2 * j] = q.LA[j] === null ? -1 : q.LA[j]; key[FLAT_N + nA + 2 + 2 * j] = q.LB[j] === null ? -1 : q.LB[j];
++  }
++  // valued already this decision? the key: the position, the tiers, the year and the layers, compared bit for bit.
++  // Plant 'flatmemo': the first person's money alone
++  key.set(F0); key[FLAT_N + nA] = t;
++  const kb = q.keyBitsOf, KB = q.keyBits, n32 = planted('flatmemo') ? 8 : 2 * q.keyN;
++  for (let e = 0; e < q.nm; e++) {
++    const o32 = e * 2 * q.keyN; let same = true;
++    for (let i = 0; i < n32; i++) if (KB[o32 + i] !== kb[i]) { same = false; break; }
++    if (same) { COUPLE_FLAT.memo++; if (out) { out[0] = q.vals[3 * e + 1]; out[1] = q.vals[3 * e + 2]; } return q.vals[3 * e]; }
++  }
++  COUPLE_FLAT.values++;
++  let total = 0, both = 0, ahead = 0;
++  const k1 = Math.min(t + 1, T);
++  for (let j = 0; j < J; j++) {
++    const bA = bridgeAt(q.mixA[j], k1), bB = bridgeAt(q.mixB[j], k1), wj = q.wJ[j];
++    for (let k = 0; k < K; k++) {
++      // one year's growth (model.js grow): each pot by its factor, the cash ISA part with its pot
++      G.set(F0);
++      for (let i = 0; i < nA; i++) {
++        const a = acc[i], sl = a.slot, before = G[sl], now = Math.max(0, before * flatFac(cp, q, t, i, q.pidx[i], j, k));
++        G[sl] = now;
++        if (a.cash) { const ci = 14 + a.p; G[ci] = before > 0 ? Math.min(now, (G[ci] || 0) * (now / before)) : 0; }
++      }
++      if (bA || bB) flatShare(cp, q, G, j, t, k1, bA, bB, SHARE); else flatAt(cp, q, G, j, t, SHARE);
++      const w = wj * q.QW[k];
++      total += w * SHARE[0];
++      both += w * SHARE[1];
++      ahead += w * SHARE[2];
++    }
++  }
++  if (q.nm < q.MEMO) { const e = q.nm++; q.keys.set(key, e * q.keyN); q.vals[3 * e] = total; q.vals[3 * e + 1] = both; q.vals[3 * e + 2] = ahead; }
++  if (out) { out[0] = both; out[1] = ahead; }
++  return total;
++}
++
+ export function expectedValue(cp, post, t, out = null, pick = null) {
++  if (flatOn()) {
++    const q = flatOf(cp);
++    if (q) {
++      const v = expectedValueFlat(cp, q, post, t, out, pick);
++      if (COUPLE.flatCheck) {
++        const o2 = new Float64Array(2), v2 = expectedValueSlow(cp, post, t, o2, pick);
++        COUPLE_FLAT.checked++;
++        if (!Object.is(v, v2) || (out && (!Object.is(out[0], o2[0]) || !Object.is(out[1], o2[1])))) { COUPLE_FLAT.differ++; if (!COUPLE_FLAT.first) COUPLE_FLAT.first = { t, flat: [v, out ? out[0] : null, out ? out[1] : null], slow: [v2, o2[0], o2[1]], pick: pick ? { ...pick } : null }; }
++      }
++      return v;
++    }
++  }
++  return expectedValueSlow(cp, post, t, out, pick);
++}
++function expectedValueSlow(cp, post, t, out = null, pick = null) {
+   const { m, M, tables } = cp;
+   const A = tables.self, B = tables.part;
+   const mixA = A.mix ? A.mix.tables : [A], mixB = B.mix ? B.mix.tables : [B];
+@@ -310,10 +529,15 @@
+   // exact final year): those keep the scoring below. Plant 'faststale': the scores of the decision before
+   if (COUPLE.fast && tab.mix && !tab.lockTiers && !tab.rich && tab.finalExact) {
+     if (!planted('faststale') || !tab._sc) chooseAction(tab, s, t, held);
+-    const SCf = tab._sc, BQf = tab._bq, idx = [];
+-    for (let ai = 0; ai < SCf.length; ai++) if (SCf[ai] > -Infinity) idx.push(ai);
+-    idx.sort((a, b) => (SCf[b] - SCf[a]) || (BQf[b] - BQf[a]));
+-    const out = idx.slice(0, K);
++    const SCf = tab._sc, BQf = tab._bq;
++    let out;
++    if (COUPLE.flat) out = topOf(SCf, BQf, K);   // the first K of the sort below, without sorting the rest
++    else {
++      const idx = [];
++      for (let ai = 0; ai < SCf.length; ai++) if (SCf[ai] > -Infinity) idx.push(ai);
++      idx.sort((a, b) => (SCf[b] - SCf[a]) || (BQf[b] - BQf[a]));
++      out = idx.slice(0, K);
++    }
+     if (COUPLE.check) {
+       COUPLE_CHECKED.fast++;
+       const keep = {}, old = rankScored(tab, s, t, held, K, sc, LK, keep);
+@@ -327,6 +551,19 @@
+   return rankScored(tab, s, t, held, K, sc, LK);
+ }
+ 
++/* The first K moves of a stable sort by score, then estate (rankFor's): each move in turn put where that sort would put it
++   among the K kept, after every one it does not beat (COUPLE.flat; COUPLE.check compares it with rankScored's sort) */
++function topOf(SC, BQ, K) {
++  const out = [];
++  for (let ai = 0; ai < SC.length; ai++) {
++    if (!(SC[ai] > -Infinity)) continue;
++    let p = out.length;
++    while (p > 0 && ((SC[out[p - 1]] - SC[ai]) || (BQ[out[p - 1]] - BQ[ai])) < 0) p--;
++    if (p < K) { out.splice(p, 0, ai); if (out.length > K) out.pop(); }
++  }
++  return out;
++}
++
+ /* rankFor's ranking by scoring every move with scoreMoves (each world's, a mixture weighted), the lock's mask and the switch
+    charge applied; `keep`, when given, receives the score and estate vectors (COUPLE.check's report) */
+ function rankScored(tab, s, t, held, K, sc, LK, keep = null) {
+@@ -374,6 +611,7 @@
+   const lvl = (tab, i) => (tab.levelOf ? tab.levelOf[i] : tab.actions[i].spendLevel !== undefined ? tab.actions[i].spendLevel : 1);
+   const first = planted('firstlevel'), cut = !planted('nocut'), raiseSurv = !!tables.self.raiseSurvival;
+   const ev = new Float64Array(2);
++  if (cp._flat) cp._flat.nm = 0;   // COUPLE.flat: a new decision, nothing valued yet
+   let best = null, bestScore = -Infinity;
+   for (const split of splits) for (const ia of kA) for (const ib of kB) {
+     const aA = A.actions[ia], aB = B.actions[ib];
+--- a/src/solver/grid.js
++++ b/src/solver/grid.js
+@@ -648,6 +648,41 @@
+ }
+ 
+ /*
++ * interp twice from one location (the review of 11 Nov, item 11: a couple's rollout reads resilience and the estate at
++ * every position it values): two tables read linearly at the same corners, out[0] from arrA and out[1] from arrB. Each
++ * sum takes the corners in interp's order with interp's own products, so each figure is interp(g, arr, loc, false)'s
++ * bit for bit (couple-flat.test.mjs). Linear reads only.
++ */
++export function interpPair(g, arrA, arrB, loc, out) {
++  if (g.cov) throw new Error('coverage: interpPair has no year; read through readValues');
++  const { p, i, t, ig, ic } = loc;
++  const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;
++  const cw = g.pclsInterp && loc.icw > 0 && ic + 1 < g.pcls.length ? loc.icw : 0;
++  let a = 0, b = 0;
++  for (let dp = 0; dp < 2; dp++) {
++    const wp = dp ? p.w : 1 - p.w; if (wp === 0) continue;
++    for (let di = 0; di < 2; di++) {
++      const wi = di ? i.w : 1 - i.w; if (wi === 0) continue;
++      for (let dt = 0; dt < 2; dt++) {
++        const wt = dt ? t.w : 1 - t.w; if (wt === 0) continue;
++        const w3 = wp * wi * wt;
++        for (let dc = 0; dc < 2; dc++) {
++          const wc = dc ? cw : 1 - cw; if (wc === 0) continue;
++          const at = g.index(p.i + dp, i.i + di, t.i + dt, ig, ic + dc), w = w3 * wc * (1 - gw);
++          a += w * arrA[at]; b += w * arrB[at];
++          if (gw > 0) {
++            const at2 = g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic + dc), w2 = w3 * wc * gw;
++            a += w2 * arrA[at2]; b += w2 * arrB[at2];
++          }
++        }
++      }
++    }
++  }
++  out[0] = a; out[1] = b;
++  return out;
++}
++
++/*
+  * THE ZERO-GROWTH NEED, and why it is NOT a certain-success bound.
+  *
+  * The plan meant to skip every position rich enough to pay every remaining year with no growth at all

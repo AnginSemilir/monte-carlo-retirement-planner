@@ -1,0 +1,3 @@
+S303 at 4 points, 20 paths, 1220 decisions: 31140 candidates (25.5 a decision), 5840 distinct positions after the move (18.8%), 0 that do not fund the year
+   for one pair of moves and one level, the five splits leave: 1 position 2509 times, 2: 446, 3: 501, 4: 639, 5: 2133 (of 6228); with no drawdown at all 2208
+   the split chosen: 0: 626, 0.25: 74, 0.5: 149, 0.75: 123, 1: 248

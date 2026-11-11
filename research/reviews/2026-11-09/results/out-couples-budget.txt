@@ -1,0 +1,15 @@
+the sizing's first stage reproduced from its pilot lines: solves 25.7, engine 150.4, the rollout beside 11.7: 187.9 core-hours (the file: 25.7, 150.4, 11.7: 187.9)
+  as registered, by cohort and arm (solves + engine + beside, core-hours):
+    library  CANDC:   9.4 +  24.4 +  1.7 =   35.5
+    library  SHIPC:   3.4 +  27.7 +  2.0 =   33.1
+    younger  CANDC:   9.6 +  67.2 +  5.5 =   82.4
+    younger  SHIPC:   3.3 +  31.0 +  2.5 =   36.9
+projected (item 11 in, the arms as registered): a CANDC path 1.95 times faster in the library cohort and 6.15 in the younger, a SHIPC path 1.9 and 1.64, each CANDC solve 1, a SHIPC unit on 5000 paths:
+  the three arms:   87.1 core-hours,  21.8 hours on four cores (2.2 times less than as registered)
+  without SHIPC:   44.3 core-hours,  11.1 hours on four cores (4.2 times less than as registered)
+projected (item 11 in, SHIPC on its first 1,000 paths): a CANDC path 1.95 times faster in the library cohort and 6.15 in the younger, a SHIPC path 1.9 and 1.64, each CANDC solve 1, a SHIPC unit on 1000 paths:
+  the three arms:   60.3 core-hours,  15.1 hours on four cores (3.1 times less than as registered)
+  without SHIPC:   44.3 core-hours,  11.1 hours on four cores (4.2 times less than as registered)
+projected (the same with the faster solve at 3 times): a CANDC path 1.95 times faster in the library cohort and 6.15 in the younger, a SHIPC path 1.9 and 1.64, each CANDC solve 3, a SHIPC unit on 1000 paths:
+  the three arms:   47.6 core-hours,  11.9 hours on four cores (3.9 times less than as registered)
+  without SHIPC:   31.6 core-hours,   7.9 hours on four cores (5.9 times less than as registered)

@@ -1,0 +1,3 @@
+S303@52:land (each person retiring at 52, target £36100 (the plan's own rules 85.0% on 500 paths), the floor at 80%), the product's settings at 30 points (solve 353 s), 100 paths of seed 4242, 61 years, bridge years 0 and 0: as it is 427.1 ms a path; flat 260.5 ms (1.64 times)
+   decisions 6100: 0 differ; paths: 0 of 100 differ in survival or pot left; positions valued 39282, taken from one already valued 113598 (74.3%), table reads 1178460
+   every value both ways (20 paths): 31720 valued, 0 differ; every ranking both ways: 0 ranked, 0 differ

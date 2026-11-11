@@ -1,0 +1,176 @@
+--- a/src/solver/couple.js
++++ b/src/solver/couple.js
+@@ -272,6 +272,21 @@
+  * (any other plant, a household whose accounts are not the two people's four, a reader probe or the log-odds blend, which
+  * count every read, COUPLE.flat off) and is the reference COUPLE.flatCheck compares every value against.
+  */
++/* PROTOTYPE (the external review, 11 Nov, item 12; EXPLORATORY; every option off): approximate cuts to the joint move, on the
++ * flat path only. Each changes figures, so each is measured against the flat path on the same paths before anything takes it.
++ *   oneRead      each person's table read once at a position: resilience and the estate from readValues' own blend of the
++ *                corners it already holds, not from a second location (interp). The same corners and weights summed in
++ *                another order, so a value moves in its last places only;
++ *   shareN, shareIters   the bridge's search for the money to move: shareN + 1 points across the bounds (8: nine), then at
++ *                most shareIters steps of the golden section (10);
++ *   screen       n > 0: every candidate is first valued in the middle market world alone (a third of the reads), and only
++ *                the n best by that are valued in every world; the joint move is the best of those. 0: every candidate in
++ *                every world;
++ *   nodraw       (exact) a year in which the household draws nothing (model.js step reads the split only where the net
++ *                need is above nought): the first split's candidate stands for the other four, which are not stepped;
++ *   near         (approximate) each person's first-ranked moves are tried at every split; a pair with a second-ranked move
++ *                only at that pair's best split and the splits beside it. */
++export const COUPLE_APPROX = { oneRead: false, shareN: 8, shareIters: 10, screen: 0, nodraw: false, near: false, stats: { decisions: 0, candidates: 0, screenedOut: 0, stepped: 0, nodraw: 0, far: 0 } };
+ export const COUPLE_FLAT = { values: 0, memo: 0, reads: 0, checked: 0, differ: 0, first: null };
+ const FLAT_N = 18, FLAT_CAT = ['pen', 'isa', 'other', 'cash'], FLAT_PLANTS = ['flatrate', 'flatmemo', 'flatmove'];
+ const flatOn = () => COUPLE.flat && !READER_PROBE.fn && (COUPLE.plant === '' || COUPLE.plant.split(',').every(k => FLAT_PLANTS.includes(k)));
+@@ -350,6 +365,7 @@
+   if ((g.bridge || g.reader) && g.linearResil && L.resil) {
+     // value(): survival by readValues, resilience and the estate by interp; cutAhead: readValues' fourth output
+     readValues(g, L.lsurv[k], L.beq[k], s, R, L.lresil[k], L.short[k], k);
++    if (COUPLE_APPROX.oneRead) return;   // PROTOTYPE: the estate and resilience as that one read blends them
+     interpPair(g, L.resil[k], L.beq[k], locateVec(g, s), q.pair);
+     R[2] = q.pair[0]; R[1] = q.pair[1];
+     return;
+@@ -393,19 +409,63 @@
+   let bx = 0, bv = v0, b1 = AT[1], b2 = AT[2];
+   const tryX = (x) => { if (x === 0) return v0; const v = flatAt(cp, q, flatMoved(G, q.X, x), j, t, AT); if (v > bv) { bv = v; bx = x; b1 = AT[1]; b2 = AT[2]; } return v; };
+   if (hi - lo > 1) {
+-    const N = 8, xs = [];
++    const N = COUPLE_APPROX.shareN, NI = COUPLE_APPROX.shareIters, xs = [];   // 8 and 10 unless the prototype's options say otherwise
+     for (let i = 0; i <= N; i++) xs.push(lo + (hi - lo) * i / N);
+     const vs = xs.map(tryX);
+     let ib = 0; for (let i = 1; i <= N; i++) if (vs[i] > vs[ib]) ib = i;
+     let a = xs[Math.max(0, ib - 1)], c = xs[Math.min(N, ib + 1)];
+     const R = (Math.sqrt(5) - 1) / 2;
+-    let x1 = c - R * (c - a), x2 = a + R * (c - a), f1 = tryX(x1), f2 = tryX(x2);
+-    for (let it = 0; it < 10 && c - a > 1; it++) {
+-      if (f1 >= f2) { c = x2; x2 = x1; f2 = f1; x1 = c - R * (c - a); f1 = tryX(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + R * (c - a); f2 = tryX(x2); }
++    if (NI > 0) {
++      let x1 = c - R * (c - a), x2 = a + R * (c - a), f1 = tryX(x1), f2 = tryX(x2);
++      for (let it = 0; it < NI && c - a > 1; it++) {
++        if (f1 >= f2) { c = x2; x2 = x1; f2 = f1; x1 = c - R * (c - a); f1 = tryX(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + R * (c - a); f2 = tryX(x2); }
++      }
+     }
+   }
+   out[0] = bv; out[1] = b1; out[2] = b2; out[3] = bx;
+ }
++/* PROTOTYPE (COUPLE_APPROX.screen): a position's value world by world. The entry for the position (found or made as
++   expectedValueFlat's memo finds one: the same key) keeps each world's part of the three sums; `only` >= 0 works out that
++   world alone, -1 every world not yet worked out. Returns the entry. */
++function flatWorlds(cp, q, post, t, pick, only) {
++  const F0 = q.F0, G = q.G, acc = q.acc, nA = acc.length, J = q.J, K = q.K, T = q.T;
++  if (!q.wk) { q.wk = new Float64Array(q.MEMO * q.keyN); q.wkBits = new Uint32Array(q.wk.buffer); q.wp = new Float64Array(q.MEMO * J * 3); q.wd = new Uint8Array(q.MEMO * J); q.wn = 0; }
++  flatLoad(post, F0);
++  const th = post.tierHeld, key = q.key;
++  for (let i = 0; i < nA; i++) {
++    const a = acc[i]; let pi = 0;
++    if (a.profs && th) { const held = th[a.owner]; if (held) pi = 1 + Math.min(held[a.cat] || 0, a.profs.length - 1); }
++    q.pidx[i] = pi; key[FLAT_N + i] = pi;
++  }
++  for (let j = 0; j < J; j++) {
++    q.LA[j] = pick ? layerOf(q.mixA[j], pick.ia) : null; q.LB[j] = pick ? layerOf(q.mixB[j], pick.ib) : null;
++    key[FLAT_N + nA + 1 + 2 * j] = q.LA[j] === null ? -1 : q.LA[j]; key[FLAT_N + nA + 2 + 2 * j] = q.LB[j] === null ? -1 : q.LB[j];
++  }
++  key.set(F0); key[FLAT_N + nA] = t;
++  const kb = q.keyBitsOf, KB = q.wkBits, n32 = 2 * q.keyN;
++  let e = -1;
++  for (let x = 0; x < q.wn && e < 0; x++) { const o32 = x * n32; let same = true; for (let i = 0; i < n32; i++) if (KB[o32 + i] !== kb[i]) { same = false; break; } if (same) e = x; }
++  if (e < 0) { if (q.wn >= q.MEMO) throw new Error('couple: more positions in one decision than the screen keeps'); e = q.wn++; q.wk.set(key, e * q.keyN); for (let j = 0; j < J; j++) q.wd[e * J + j] = 0; }
++  const k1 = Math.min(t + 1, T);
++  for (let j = 0; j < J; j++) {
++    if ((only >= 0 && j !== only) || q.wd[e * J + j]) continue;
++    const bA = bridgeAt(q.mixA[j], k1), bB = bridgeAt(q.mixB[j], k1), wj = q.wJ[j];
++    let total = 0, both = 0, ahead = 0;
++    for (let k = 0; k < K; k++) {
++      G.set(F0);
++      for (let i = 0; i < nA; i++) {
++        const a = acc[i], sl = a.slot, before = G[sl], now = Math.max(0, before * flatFac(cp, q, t, i, q.pidx[i], j, k));
++        G[sl] = now;
++        if (a.cash) { const ci = 14 + a.p; G[ci] = before > 0 ? Math.min(now, (G[ci] || 0) * (now / before)) : 0; }
++      }
++      if (bA || bB) flatShare(cp, q, G, j, t, k1, bA, bB, SHARE); else flatAt(cp, q, G, j, t, SHARE);
++      const w = wj * q.QW[k];
++      total += w * SHARE[0]; both += w * SHARE[1]; ahead += w * SHARE[2];
++    }
++    const o = (e * J + j) * 3; q.wp[o] = total; q.wp[o + 1] = both; q.wp[o + 2] = ahead; q.wd[e * J + j] = 1;
++  }
++  return e;
++}
+ function expectedValueFlat(cp, q, post, t, out, pick) {
+   const F0 = q.F0, G = q.G, acc = q.acc, nA = acc.length, J = q.J, K = q.K, T = q.T;
+   flatLoad(post, F0);
+@@ -611,9 +671,21 @@
+   const lvl = (tab, i) => (tab.levelOf ? tab.levelOf[i] : tab.actions[i].spendLevel !== undefined ? tab.actions[i].spendLevel : 1);
+   const first = planted('firstlevel'), cut = !planted('nocut'), raiseSurv = !!tables.self.raiseSurvival;
+   const ev = new Float64Array(2);
+-  if (cp._flat) cp._flat.nm = 0;   // COUPLE.flat: a new decision, nothing valued yet
++  if (cp._flat) { cp._flat.nm = 0; cp._flat.wn = 0; }   // COUPLE.flat: a new decision, nothing valued yet
++  // PROTOTYPE (COUPLE_APPROX.screen): the candidates that fund the year are kept, valued in the middle world, and the best
++  // few valued in every world (below the loop)
++  const SCREEN = COUPLE_APPROX.screen > 0 && t < T && flatOn() && flatOf(cp) ? [] : null;
++  // PROTOTYPE (COUPLE_APPROX.nodraw, near): the pairs and levels an earlier split found drawing nothing; the first pair's
++  // best split so far (the pairs are taken first pair first, so it is whole before any other pair is tried)
++  const NODRAW = COUPLE_APPROX.nodraw && flatOn() ? new Set() : null, NEAR = COUPLE_APPROX.near && flatOn() && kA.length > 0 && kB.length > 0;
++  let nearBest = -Infinity, nearSplit = null;
+   let best = null, bestScore = -Infinity;
+-  for (const split of splits) for (const ia of kA) for (const ib of kB) {
++  const order = [];
++  if (NEAR) { for (const split of splits) order.push([split, kA[0], kB[0]]); for (const ia of kA) for (const ib of kB) if (ia !== kA[0] || ib !== kB[0]) for (const split of splits) order.push([split, ia, ib]); }
++  else for (const split of splits) for (const ia of kA) for (const ib of kB) order.push([split, ia, ib]);
++  for (const [split, ia, ib] of order) {
++    const firstPair = ia === kA[0] && ib === kB[0];
++    if (NEAR && !firstPair && nearSplit !== null && Math.abs(splits.indexOf(split) - splits.indexOf(nearSplit)) > 1) { COUPLE_APPROX.stats.far++; continue; }
+     const aA = A.actions[ia], aB = B.actions[ib];
+     // D1: the household's level from either person's ranked move (the first person's first), each valued by both tables
+     const levels = first ? [aA.spendLevel] : [...new Set([lvl(tables.self, ia), lvl(tables.part, ib)])];
+@@ -624,12 +696,17 @@
+         perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', ...tiersOf(A, aA, tA) }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa', ...tiersOf(B, aB, tB) } },
+         ia, ib
+       };
++      const gk = NODRAW ? `${ia}/${ib}/${level}` : null;
++      if (NODRAW && NODRAW.has(gk)) { COUPLE_APPROX.stats.nodraw++; continue; }   // the same position and score as the split already tried
+       const st = M.cloneState(state);
+       const row = M.step(m, st, joint, t, null, true);
++      COUPLE_APPROX.stats.stepped++;
++      if (NODRAW && !(row.netDrawdown > 0)) NODRAW.add(gk);
+       if (row.unmetDemand > 1 || row.preNmpaInsolvent) continue;
+       // D1: this year's cut, counted once for the household; a raise's credit weighted by the chance both last (raiseSurvival)
+       const cst = cut ? cutCostOf(cp, level !== undefined ? level : 1, t) : 0, rz = raiseSurv && cst < 0;
+       const swc = planted('nocharge') ? 0 : (tA && leaves(aA, hA) ? A.switchCharge || 0 : 0) + (tB && leaves(aB, hB) ? B.switchCharge || 0 : 0);
++      if (SCREEN) { SCREEN.push({ joint, st, cst, rz, swc }); continue; }
+       let score;
+       if (t >= T) {
+         const total = Object.values(st.pots).reduce((a, b) => a + b, 0), alive = total >= (m.ctx.solvencyFloor || 0) ? 1 : 0;
+@@ -642,6 +719,33 @@
+       // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
+       if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
+       if (score > bestScore) { bestScore = score; best = joint; best.score = score; }
++      if (NEAR && firstPair && score > nearBest) { nearBest = score; nearSplit = split; }
++    }
++  }
++  if (SCREEN && SCREEN.length) {
++    const q = cp._flat, J = q.J, jc = Math.floor(J / 2), wc = q.wJ[jc], n = COUPLE_APPROX.screen;
++    COUPLE_APPROX.stats.decisions++; COUPLE_APPROX.stats.candidates += SCREEN.length;
++    // the middle world's value of each (its part of the sums over its weight), scored as the whole is scored
++    for (const c of SCREEN) {
++      c.e = flatWorlds(cp, q, c.st, t, { ia: c.joint.ia, ib: c.joint.ib }, jc);
++      const o = (c.e * J + jc) * 3;
++      c.first = q.wp[o] / wc - (c.rz ? c.cst * (q.wp[o + 1] / wc) : c.cst) - c.swc;
++    }
++    let keep = SCREEN;
++    if (SCREEN.length > n) {
++      const order = SCREEN.map((c, i) => i).sort((a, b) => (SCREEN[b].first - SCREEN[a].first) || (a - b)), kept = new Set(order.slice(0, n));
++      // candidates that leave a kept position are kept with it: they cost nothing more
++      const entries = new Set([...kept].map(i => SCREEN[i].e));
++      keep = SCREEN.filter((c, i) => kept.has(i) || entries.has(c.e));
++      COUPLE_APPROX.stats.screenedOut += SCREEN.length - keep.length;
++    }
++    for (const c of keep) {
++      flatWorlds(cp, q, c.st, t, { ia: c.joint.ia, ib: c.joint.ib }, -1);
++      let v = 0, both = 0;
++      for (let j = 0; j < J; j++) { const o = (c.e * J + j) * 3; v += q.wp[o]; both += q.wp[o + 1]; }
++      const score = v - (c.rz ? c.cst * both : c.cst) - c.swc;
++      if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${c.joint.split}, moves ${c.joint.ia} and ${c.joint.ib}: ${score}`);
++      if (score > bestScore) { bestScore = score; best = c.joint; best.score = score; }
+     }
+   }
+   if (!best) {

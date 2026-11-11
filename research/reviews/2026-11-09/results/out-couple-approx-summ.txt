@@ -1,0 +1,21 @@
+5 couples at 45 points; the path as it is on its first paths, the flat path and every arm on the paths named
+  couple        years  bridge years  as it is  flat      times  flat path survival  identity on the first paths  every value both ways
+  S007             28   0 and  0       157.9     79.9   1.98   99.73% of 3000     true                         0 of 12850 differ; rankings 0 of 1120
+  S303             61   0 and  0       291.5    118.2   2.47   88.97% of 3000     true                         0 of 31440 differ; rankings 0 of 2440
+  S127             40   2 and  3       442.2    112.9   3.92   96.07% of 3000     true                         0 of 20070 differ; rankings 0 of 1600
+  S391             46   8 and  8      1071.0    180.5   5.93   97.90% of 3000     true                         0 of 21590 differ; rankings 0 of 1840
+  S303@52:land     61   6 and  6      1086.7    176.8   6.15   96.30% of 3000     true                         0 of 32000 differ; rankings 0 of 2440
+
+  arm                                        times as it is   times flat    saved  lost  of paths   difference (points)  se      pot left  spending  paths that differ
+  whole+nodraw#200                            1.94 to  6.25   0.94 to 1.02      0     0    1000     +0.000              0.000   +0.00%    +0.000%   0%
+      the couple furthest down: S007 0 saved, 0 lost of 200; the largest change in the pot left: S007 +0.00%
+  whole+one+thin4x3+nodraw+near               1.98 to  7.02   1.00 to 1.18     13    12   15000     +0.007              0.033   -0.01%    -0.016%   49%
+      the couple furthest down: S391 2 saved, 4 lost of 3000; the largest change in the pot left: S127 -0.08%
+  order                                       3.48 to  8.75   1.42 to 1.76     33    42   15000     -0.060              0.058   -0.25%    -0.074%   88%
+      the couple furthest down: S127 5 saved, 12 lost of 3000; the largest change in the pot left: S303@52:land -0.80%
+  order+one+thin4x3+nodraw+near               3.97 to 12.73   1.90 to 2.14     36    50   15000     -0.093              0.062   -0.26%    -0.089%   90%
+      the couple furthest down: S127 6 saved, 12 lost of 3000; the largest change in the pot left: S303@52:land -0.79%
+  structure                                   5.28 to  7.44   1.18 to 2.67     37    61   15000     -0.160              0.066   +0.87%    -0.027%   94%
+      the couple furthest down: S127 3 saved, 31 lost of 3000; the largest change in the pot left: S391 +5.90%
+  cells-held@0.005                            7.38 to 11.27   1.58 to 3.73     46    56   15000     -0.067              0.067   +2.74%    -0.214%   95%
+      the couple furthest down: S127 4 saved, 24 lost of 3000; the largest change in the pot left: S391 +9.73%

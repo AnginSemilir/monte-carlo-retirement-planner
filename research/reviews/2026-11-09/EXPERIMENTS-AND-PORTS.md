@@ -34,7 +34,8 @@ first, and its own D-line when that is sent.
   whole menu 47 to 56 ms; a couple's solve 530 to 770 s, its path 390 to 610 ms.
 
 Patches, scripts and outputs: `prototype/`, `scripts/` (see `scripts/README.md`), `tests/`, `results/`. Each patch
-applies to f02e8741 with `git apply`, and is off unless switched on. With every switch off, a copy carrying all three
+applies to f02e8741 with `git apply`, and is off unless switched on. Items 11 and 12's patches are the exception:
+they stand on item 2 as ported, and apply to 61e8778 and 01825f2. With every switch off, a copy carrying all three
 gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths, 0 differing; its planted run fails).
 
 ## The items in the order to do them
@@ -51,6 +52,8 @@ gives the branch's numbers bit for bit (`results/out-ident-off.txt`: 1,760 paths
 | 8 | What the library never contains; the dated rules | units in item 6C's panel; one caption now | 2 hours | with 6C | no |
 | 9 | A two-stage rule for the couples' registered runs | registration text and its sizing | half a day | none | no |
 | 10 | The solve on anchors and shortlists (a solve about 7 times faster, approximately) | an experiment, then a port | 1.5 days | 11 core-hours, and gate 5 again | by under 0.1 points if it passes |
+| 11 | A couple's joint move on flat arrays (a couple's path 2 to 6 times faster, exactly) | port with an identity test | 3 hours | minutes | no |
+| 12 | Approximate cuts on a couple's path (a further 1.4 to 2.1 times) | an experiment, then a port; waits on item 7's ruling | 1 day | 13 core-hours | by under 0.1 points if it passes |
 
 Why this order:
 1. **Item 1's stop first** because it frees the main session's four cores at once, and every machine-time item below
@@ -68,6 +71,10 @@ Why this order:
 8. **Item 10's stage A runs in item 7's batch**, after item 3: the same eight households, the same paths and the
    same whole-menu arm, so that arm is solved and run once for both. Like item 7 it is approximate, so it is measured
    once, on the tables that ship. Until its ruling nothing takes it: no registered run, and not item 6's stage A.
+9. **Item 11 as soon as it is sent** (added 11 Nov). It is exact, takes three hours, and must be in before the
+   couples are landed again for the re-run, which it makes 2 to 6 times cheaper a path (`ANSWERS-2026-11-11.md`).
+10. **Item 12 only after the maintainer has ruled on item 7's read,** and only if a width is ruled on. It measures
+    that width, and three small options, on couples. No registered couples' arm takes any of it.
 
 ---
 
@@ -788,6 +795,208 @@ stage A, half a day for stage B.
 
 ---
 
+## Item 11. A couple's joint move on flat arrays (a couple's path 2 to 6 times faster, exactly)
+
+Added on 11 Nov, on the maintainer's "Prototype the couples path speed up first, again aim for 5x."
+
+**Found** (`REVIEW.md` 2.4). With item 2 in, what is left of a couple's path is the rollout's own valuing of each
+candidate (`expectedValue` in `src/solver/couple.js`), and in a year before pension access the search for the money
+to move between the two (`shareBridge`), which does that valuing about 22 times a market node. Profiled at light
+settings (`results/out-couple-prof-before-*.txt`): valuing is 44% of S007's path and 76% of a couple dressed as the
+panel's younger cohort (62% in the bridge's search). On that couple most of it is bookkeeping: each person's state
+rebuilt as an object (12% of the path), their vector built as an array and copied (16%), the couple's state copied
+(6%), and each table read twice at one position. And of the 25 to 27 candidates a decision, only 19% to 40% leave a
+position that was not already valued in that decision (`results/out-couple-same-*.txt`).
+
+Done on flat arrays, with each position valued once a decision:
+
+| At 45 points | Years | Years each person's table reads as before pension access | A path as it is | Flat | Faster |
+|---|---|---|---|---|---|
+| S007, retired | 28 | none | 158 ms | 80 ms | 2.0 times |
+| S303, both working to 65 | 61 | none | 292 ms | 118 ms | 2.5 |
+| S127 | 40 | 2 and 3 | 442 ms | 113 ms | 3.9 |
+| S391 | 46 | 8 and 8 | 1,071 ms | 181 ms | 5.9 |
+| S303 retiring at 52, its target landed (the younger cohort's kind) | 61 | 6 and 6 | 1,087 ms | 177 ms | 6.2 |
+
+The path as it is ran the first 40 paths and the flat path 3,000, with one other job on a two-core machine
+(`results/out-couple-approx-45-*.txt`, each file's first line). Under heavier load the path as it is slows more than
+the flat path: the last couple ran 7.8 times faster then (`results/out-couple-flat-45-S303at52.txt`).
+
+Every decision is the same and every path is the same, bit for bit:
+- **On a copy carrying exactly the patch** (`results/out-couple-flat-45-S007.txt`, `-S303at52.txt`; 100 paths each):
+  none of S007's 2,800 decisions and none of the last couple's 6,100 differs, nor any path. With every position
+  valued both ways on 20 paths, none of 12,850 and 32,000 values differs, and none of 1,120 and 2,440 rankings.
+  Each plant changes values and decisions; the bridge's plant is run on the couple with bridge years, where it
+  changes 3,790 of 31,920 values and 307 of 1,220 decisions.
+- **On the copy that also carries item 12's options, all off:** each of the five couples' first 40 paths is the
+  same bit for bit, and none of 117,950 values and 9,440 rankings differs.
+- **At the product's settings** (30 points, as the re-run's SHIPC arm solves): none of 2,800 and 6,100 decisions
+  differs (`results/out-couple-flat-ship-30-*.txt`). The path is 1.9 and 1.6 times faster there.
+- **The test, in the exact model:** 9 passed, and each plant fails exactly checks 1 and 2.
+
+**Kind.** An exact port (D24's rule: one differing bit stops it). No experiment beyond its identity test, and no
+figure moves, so it needs no ruling beyond the one that lets it in.
+
+**Step 1. The port.** `prototype/couple-flat.diff` is the code that was measured. It applies to 61e8778 (and to
+01825f2) with `git apply`, and touches two files.
+1. `src/solver/grid.js`: `interpPair`, after `interp`. It reads two tables at one location, each sum taken in
+   `interp`'s order, so each figure is `interp`'s bit for bit.
+2. `src/solver/couple.js`:
+   - the block headed THE FLAT PATH, before `expectedValue`;
+   - `expectedValue` becomes the dispatcher. Its old body is `expectedValueSlow`, unchanged, and stays the reference;
+   - in `chooseJoint`, one line empties the decision's list of positions already valued;
+   - in `rankFor`, `topOf` picks a person's first K moves without sorting the other 798.
+3. What the flat path stands on. Each line is a guard in the patch or a check in the test:
+   - **The accounts.** Every account is one of the two people's four under the engine's own names (`pen_self` to
+     `cash_part`), and each person's table reads its own four under the first person's names. Anything else keeps
+     the path as it was (`flatOf` returns null).
+   - **The position.** 18 numbers: the 8 pots, then for each person the taxable account's basis, the tax-free cash
+     taken, the lump sum taken, the cash ISA part and the gains carried. Every `|| 0` of `ownerState` and `vecOf`
+     is taken in the same place.
+   - **The growth factors.** One table a couple, by year, account, tier held, world and node, filled as asked for.
+   - **The reads.** One `readValues` gives survival and the cut ahead (it is `value()`'s own read of survival with
+     the cut's table added). Resilience and the estate come from `interpPair`, and only where `value()` reads them
+     by `interp`: a table with the reader or the bridge on and linear resilience. A coverage grid takes all four
+     from the one read. Any other table keeps `value()` and `cutAhead`.
+   - **The positions already valued.** The key is the 18 numbers, each account's tier, the year and each world's
+     two layers, compared bit for bit. The list is emptied each decision and holds 64.
+   - **The bridge's search.** `movedState`'s sums in its order, on the flat position. x = 0 is not valued a second
+     time (the search asks for it again whenever a bound is 0).
+   - **Stood aside.** Under any plant but its own three, under a reader probe, and for a table on the log-odds
+     blend (both count every read), the path as it was runs.
+4. `COUPLE.flat`, on by default once step 2 passes. `COUPLE.flatCheck` (tests only) values every position both ways
+   and counts any that differ. `COUPLE_FLAT` holds the counts. The plants: `flatrate`, `flatmemo`, `flatmove`.
+5. Re-pin e3pcls (D9), as for item 2: its fingerprint covers every file under `src/solver`.
+
+**Step 2. Its test.** `tests/couple-flat.test.mjs` becomes `research/tests/couple-flat.test.mjs`, its imports made
+the static ones of `couple-rank.test.mjs`. It sits where `couple-rank.test.mjs` sits. Quick, `--plants` and `--full`.
+As run here: 9 passed, each plant fails exactly checks 1 and 2, and `--full` passed 19
+(`results/out-couple-flat-test.txt`, `out-couple-flat-test-plants.txt`, `out-couple-flat-test-full.txt`).
+1. **Every value the same.** S007 (no bridge year) and S127 (bridge years) at 6 points on the light lattice, 40
+   paths of seed 7002 in the exact model, `COUPLE.flatCheck` on: no position differs in its value, its chance both
+   last or its cut ahead.
+2. **Every path the same.** Each year's joint move and its score, survival, pot left and tax, bit for bit with
+   `COUPLE.flat` on and off.
+3. **Not vacuous.** Positions valued, positions taken from one already valued, and S127's bridge years are counted,
+   and none is nought.
+4. **Every ranking the same.** `COUPLE.check` on with `COUPLE.flat` on: `topOf` against scoring every move again
+   and sorting.
+5. **The guard.** With `nocut` planted, and with an account that is not one of the two people's four, no position
+   takes the flat path and each is valued as before.
+6. **`--full`:** checks 1 to 4 at 45 points, 100 paths, on both couples, and each couple's path timed.
+7. `couple-quick`, `couple-tables`, `couple-lockstep`, `couple-levers`, `couple-share`, `couple-rank` and
+   `solver-couple` pass unchanged with the default on. I did not run these seven: run them before the commit.
+8. The fast suite passes (CHECKLIST 4).
+
+**Acceptance.** Checks 1 to 8, and at 45 points S007's path at least 1.5 times as fast and S127's at least 3. Here
+they were 1.77 and 4.16 in the exact model with one other job running (`results/out-couple-flat-test-full.txt`:
+19 passed; it was run while the test's first threshold still stood at 1.7).
+
+**If it fails.** Any value that differs: STOP. Report `COUPLE_FLAT.first`: the year, the two moves, and the three
+figures each way. Do not narrow the comparison to make it pass.
+
+**If it passes.** `COUPLE.flat` on in code. D5's time budget for a couple is measured on it. The couples' re-run
+takes it through its code hash, which means landing again, a new pilot and its design review, as the registration
+already says of any change of code: do that once, after the rulings that are pending (`ANSWERS-2026-11-11.md`).
+
+**Not in the patch, and exact too.** In a year the household draws nothing, the model reads no split
+(`model.js` step reads `action.split` only where the net need is above nought), so one split's candidate stands for
+all five. It is `nodraw` in `prototype/couple-approx.diff` (item 12): run alone, it leaves all 200 paths the same
+bit for bit on each of the five couples. It saves a fifth of
+the model's steps on a couple with working years and nothing on a retired one. Port it with item 11 or leave it: it
+is worth 1% to 2% of a path.
+
+**Report back:** the identity counts, the planted failures, the seven tests of check 7, the two timings.
+**Time box:** three hours.
+
+---
+
+## Item 12. Approximate cuts on a couple's path (measured; an experiment before any is ported)
+
+Added on 11 Nov, on the maintainer's "go further still, still keeping cuts within noise but not necessarily exact."
+
+**Found** (`REVIEW.md` 2.4; `results/out-couple-approx-45-*.txt`, pooled by `scripts/couple-approx-summ.py` in
+`results/out-couple-approx-summ.txt`). After item 11 a couple's path is mostly each person's own chooser, so the
+cut that matters is item 7's shortlist in each person's ranking. Four smaller options act on the joint move itself.
+Each arm ran against the flat path on the same 3,000 paths a couple, at 45 points:
+
+| Pooled over five couples, 15,000 paths | Faster than the flat path | Faster than as it is | Paths saved, lost | Survival, points (se) | Spending delivered | Pot left |
+|---|---|---|---|---|---|---|
+| The joint options alone (`one`, `thin4x3`, `near`) | 1.00 to 1.18 times | 2.0 to 7.0 | 13, 12 | +0.01 (0.03) | -0.02% | -0.01% |
+| `order` in each person's ranking | 1.42 to 1.76 | 3.5 to 8.8 | 33, 42 | -0.06 (0.06) | -0.07% | -0.25% |
+| `order` and the joint options | 1.90 to 2.14 | 4.0 to 12.7 | 36, 50 | -0.09 (0.06) | -0.09% | -0.26% |
+| `structure` | 1.18 to 2.67 | 5.3 to 7.4 | 37, 61 | -0.16 (0.07) | -0.03% | +0.87% |
+| `cells` with its check at 0.5 points | 1.58 to 3.73 | 7.4 to 11.3 | 46, 56 | -0.07 (0.07) | -0.21% | +2.74% |
+
+- The joint options alone are inside noise on every measure and worth 0% to 18%. With `order` on they are worth
+  1.14 to 1.45 times.
+- `order`, the one width that passed on singles, leans the wrong way on every measure here, and spending is past
+  the rule's 0.05. The couple furthest down is S127: 5 saved, 12 lost. The shortlist's check against the table's own
+  value does not change that (11 and 10 lost, 5 and 4 saved, at 0.5 and 0.2 points:
+  `results/out-couple-approx-45-S127-checked.txt`).
+- `structure` and `cells` fail plainly: S127 loses 31 and 24 paths and saves 3 and 4; S391's pot left moves by +5.9%
+  and +9.7%. They are not in the experiment below.
+
+**Kind.** Approximate cuts under D65. An experiment, then the maintainer's ruling naming the run, then the port.
+Nothing here is ported on the review's 15,000 paths: they cannot tell a loss of 0.1 points from none.
+
+**What each option is** (`prototype/couple-approx.diff`, on top of `couple-flat.diff` and `shortlist.diff`; all off
+unless set, under `COUPLE_APPROX`):
+- **The ranking's shortlist** (`SHORT`, item 7's patch): each person's two best moves are picked from the shortlist,
+  not from all 800. `rankFor` takes whatever `chooseAction` scored, so nothing in `couple.js` changes.
+- **`oneRead`:** resilience and the estate are taken from the read that already gives survival and the cut ahead,
+  not from a second location. The same corners and weights summed in another order: a value moves in its last
+  places.
+- **`shareN`, `shareIters`** (`thin4x3`): the bridge's search for the money to move tries 5 points and at most 3
+  golden-section steps, not 9 and 10.
+- **`near`:** a pair holding a second-ranked move is tried only at the first pair's best split and the splits beside
+  it, not at all five.
+- **`nodraw`** is exact (item 11's last note) and is in this patch only because it was written second.
+- **`screen`** was tried and dropped (`REVIEW.md` 2.4). It stays in the patch, off, so its light record can be run
+  again.
+
+### Stage A. The experiment (EXPLORATORY, seed 7002; after item 11 is in, and only if the maintainer rules a width of item 7 on)
+
+- **Households:** eight touched couples, none in the panel, by `scripts/plan-of.mjs`'s names: S007, S127, S391, S303,
+  S261, S209, and two dressed as the panel's younger cohort, `S303@52:land` and `S313@52:land`.
+- **Arms, on one solve a couple at 45 points, all on the flat path:** the whole menu; the width the maintainer
+  ruled on for singles (`order`, on item 7's read of 11 Nov); that width with `thin4x3`; that width with `thin4x3`,
+  `oneRead` and `near`. `scripts/couple-approx.mjs` is the unit: `ARMS=order,order+thin4x3,order+one+thin4x3+near`.
+- **Paths:** 16,000, the same for every arm.
+- **First, the port's check against the review:** `scripts/couple-approx.mjs S303@52:land 45 3000` on a copy with the
+  three patches must print the review's line for each arm it shares (`results/out-couple-approx-45-S303at52.txt`):
+  the same paths saved and lost.
+- **Size:** about 13 core-hours.
+
+**The decision rule, committed before launch.** Item 7's four parts, read on the eight couples. An arm passes if:
+1. pooled, the paired survival difference's 95% interval has its lower end above -0.1 points;
+2. no couple's interval lies wholly below -0.3;
+3. pooled spending delivered is within 0.05 points of target of the whole menu's;
+4. the pooled mean pot left is within 0.5%.
+
+At 128,000 paths the pooled half-width is about 0.04 points at the discordance seen here (5 to 6 paths in 1,000).
+
+**Outcomes.**
+- **The stack passes:** it goes to the maintainer. **Only the plain width passes:** that alone.
+- **Neither passes:** couples keep the whole menu in each person's ranking. Item 11's exact cut stands by itself.
+
+### Stage B. The port (after the maintainer's ruling naming stage A's run)
+
+1. The shortlist reaches a couple through item 7's own option (`chooserShortlist`), passed to each person's table.
+   It is used where item 7's stage B says: the paths that only count. The expected path and any path whose
+   decisions the pages show keep the whole menu.
+2. The joint options that passed become options of `solveCouple` (`jointSearch: { shareSearch: [4, 3], oneRead,
+   near }`), off in code, recorded in the couple's `meta`; `fair-variables.mjs` takes the keys.
+3. `research/tests/couple-approx.test.mjs`: every option off, every path bit for bit as item 11 left it; `thin` with
+   the registered 8 and 10 is the path as it was; a plant for each option (the search's bounds halved; `near`
+   keeping only the first pair's own split) moves the paths; a coarse known answer (S127 at 45 points, 1,000 paths,
+   survival within 0.5 points of the whole menu's).
+4. No registered couples' arm takes any of it (`ANSWERS-2026-11-11.md`, section 4).
+
+**Report back:** stage A's read whole. **Time box:** half a day for stage A, half a day for stage B.
+
+---
+
 ## What is asked of the maintainer
 
 | | The question | What I would do |
@@ -800,6 +1009,10 @@ stage A, half a day for stage B.
 | M6 | The dated rules: carry them by tax year, or state the assumption? | State it now (one line on the page); carry the 2027 savings rates when the 2027/28 figures are next updated. |
 | M7 | Item 10's stage A now, on today's tables, or in item 7's batch after item 3? | In item 7's batch. Item 3 changes every table, so a run now is run again then: 11 core-hours twice. Now only if the beta's wait matters more this week than those hours. |
 | M8 | The solve on anchors and shortlists on, and the thinner bridge reference, after item 10's stage A? | By your ruling naming the run, each if it passes its rule. They are two approximations and get two answers. |
+| M9 | Item 11 in (exact; no figure moves)? | Yes. Three hours, and every couples' run after it is 2 to 6 times cheaper a path. |
+| M10 | In the couples' re-run: S1 reported, not deciding, and SHIPC on the first 1,000 paths a unit (`ANSWERS-2026-11-11.md`)? | Yes. No couple has had SHIPC, and as a gate it can only take the candidate away. |
+| M11 | The re-run launched only after items 5 and 10 are ruled and item 11 is in, on one session? | Yes. One landing, one pilot, one design review; about 60 core-hours, not 188. |
+| M12 | Item 12's experiment on couples? | Only if you rule item 7's `order` on for singles and still want a faster couple's path. I would expect it to be marginal on spending. |
 
 ## The prompt for the agent
 
@@ -872,4 +1085,31 @@ review/external-2026-10-21 at its head. Fetch that branch first. Record it as it
 
 No result of D4 is read, printed or estimated. Stop at each STOP the document names. Time box: a day for stage A,
 half a day for stage B. When one runs out, stop and report.
+```
+
+---
+
+## The follow-up prompt for item 11 and the couples' re-run
+
+The maintainer sends it when ready. It adds to the earlier prompts and replaces none of them. It carries M9 to M11
+as I would answer them: change a line you rule differently before sending.
+
+```
+Read item 11 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md, REVIEW.md 2.4 and ANSWERS-2026-11-11.md on
+review/external-2026-10-21 at its head. Fetch that branch first. Record each ruling as its own D-line.
+
+1. Item 11 now: the port by its steps, and its test. It is exact: any value that differs is a STOP. Before the
+   commit, run the review's test on a scratch tree with the patch (9 checks; --plants: each plant fails checks 1
+   and 2), then the seven couples' tests of its check 7 and the fast suite on the port. Report the identity counts,
+   the planted failures and the two 45-point timings.
+2. The couples' re-run stays held (D71) until I have ruled on items 5 and 10 and item 11 is in. Then, once: land
+   the 40 couples again on that code, run the pilot again, and revise couples-d4b.md as ANSWERS-2026-11-11.md
+   sections 3 and 4 say: S1 reported, not deciding; SHIPC on the first 1,000 paths a unit, its per-couple flags
+   dropped; item 11 named in the code paragraph; one session. Send the revised registration to the design review.
+   Do not launch until I say so.
+3. Item 12 is not started. It waits for my ruling on item 7's read.
+4. No registered couples' arm takes a shortlist or any option of item 12.
+
+No result of D4 or of seed 7021 is read, printed or estimated, and d4-backup is not opened. Stop at each STOP the
+documents name. Time box: three hours for item 11. When it runs out, stop and report.
 ```

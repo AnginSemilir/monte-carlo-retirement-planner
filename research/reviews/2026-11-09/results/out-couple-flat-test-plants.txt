@@ -1,0 +1,5 @@
+  plant flatrate   fails 1, 2 (expected 1, 2): exact
+  plant flatmemo   fails 1, 2 (expected 1, 2): exact
+  plant flatmove   fails 1, 2 (expected 1, 2): exact
+
+all plants exact

@@ -1,0 +1,6 @@
+S007 at 45 points (solve 521 s), 100 paths of seed 4242, 28 years, bridge years 0 and 0: as it is 152.5 ms a path; flat 78.2 ms (1.95 times)
+   decisions 2800: 0 differ; paths: 0 of 100 differ in survival or pot left; positions valued 25130, taken from one already valued 38200 (60.3%), table reads 753900
+   every value both ways (20 paths): 12850 valued, 0 differ; every ranking both ways: 1120 ranked, 0 differ
+   planted 'flatrate': 12770 of 12770 values differ from the path as it is, 560 of 560 decisions, 20 of 20 paths
+   planted 'flatmemo': 1300 of 13020 values differ from the path as it is, 559 of 560 decisions, 20 of 20 paths
+   planted 'flatmove': not run here: no bridge year, so the rollout moves no money between the two (it is run on the couples with one)

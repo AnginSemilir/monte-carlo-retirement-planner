@@ -1,0 +1,612 @@
+diff --git a/research/solver/STATE.md b/research/solver/STATE.md
+index 4a283566..2e6acd4c 100644
+--- a/research/solver/STATE.md
++++ b/research/solver/STATE.md
+@@ -10,10 +10,10 @@ research candidate is confirmed against the shipped settings once, on a held-out
+ ## 2. The candidate and the product baseline
+ 
+ <!-- printed:candidate -->
+-- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
++- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, the failure year at what it can pay after Phase 4, D43, and item 5's sweep to the ISA, item 10's solve on anchors and its thinner bridge reference, D73): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true, sweepCashIsaTo "isa", coarse {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash af001697ce1b; before D73 (`BEFORE_D73_OPTS`): d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
+ - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
+ - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
+-- The solver code the e3pcls pin last passed on: 19f41696dcb73973 (10 Nov, 23:19 UK); the code now: 19f41696dcb73973.
++- The solver code the e3pcls pin last passed on: 19f41696dcb73973 (10 Nov, 23:19 UK); the code now: 7baa89ee158ca7e5.
+ <!-- end printed:candidate -->
+ 
+ The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`, `candidate.test.mjs`, `e3-default.test.mjs`, `e3pcls-guard.test.mjs` and `f1-default.test.mjs`:
+@@ -22,12 +22,13 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
+ {"raiseCap": 1.1, "minPotYears": 1, "estateWeightMin": 0.01, "thinSurvival": 0.85, "thinPaths": 1000, "thinSeed": 7101,
+  "raiseSurvival": true, "failureShortfall": true, "finalIntegral": true, "riskAboveDefault": "auto", "giaTiers": "refused", "bridgeRead": false, "e3": false, "e3Research": true, "pclsInterp": false, "pclsInterpResearch": true, "e3pcls": false, "e3pclsResearch": true,
+  "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true,
+-   "readerRef": "adaptive", "adaptiveLattice": {"na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tableDealing": false, "failDelivered": true, "tiers": "o60-blend"},
++   "readerRef": "adaptive", "adaptiveLattice": {"na": 80, "nb": 21, "nz": 64, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tableDealing": false, "failDelivered": true, "sweepCashIsaTo": "isa", "coarse": {"w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3}, "tiers": "o60-blend"},
+  "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only"}
+ -->
+ 
+ ## 3. Decisions in force
+ One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have lapsed; they stay in the archive.
++- D73. 11 Nov, maintainer, on items 5, 7 and 10's reads (`results-isasweep.txt`; `results-speed-a.txt` and `results-gate5-speed.txt`, EXPLORATORY): "Item 5 isa default, item 10 ON and REF, item 7 pending external review": `sweepCashIsaTo: 'isa'` joins the candidate; item 10's stage B ports ON (`coarse`, `w2a3b3g2c2-NT-LRVOH-h3`) and REF (the bridge reference's lattice `{ na: 80, nb: 21, nz: 64 }`) into the candidate, part 5 read on the units' own times; the candidate's hash changes, the old and new recorded at the port; item 7 waits on the external review (`ITEM7-POT.md`); after the ports the couples are landed again (D71).
+ - D72. 11 Nov, maintainer, on the full tier red since item 3 (Full 152 and 160; Full 151 on 994d750f green): three figures item 3 moved, re-pinned with a dated note each: `optimize.test.mjs` H, the basic harvest ceiling at death 90 (`+£36,471` before, `-£3,822` on its own now, less than its cost at 72), checked as costing less above 75 than below it and listed as its own lever; `solver-model.test.mjs` H2's bound `6%` (S329 `3.64%` to `5.12%`); `solver-step2.test.mjs` check 1's bound two points (the ternary search, a research option, S162 `1.95`); whether the basic ceiling should stop below the higher-rate threshold by the year's savings income, a question for the external review.
+ - D71. 11 Nov, maintainer, on the re-run's registration (`couples-d4b.md`, its design review's PASS; `QUESTIONS-2026-11-11.md`): "Do not launch couples-d4b yet": held until the maintainer has ruled on items 5, 7 and 10 and any switched on is ported, the couples then landed again on that code as the registration says; the external review advises dropping SHIPC as a gate (no couple has had it) and is writing it up, and the registration is revised only after it; items 7 and 10's reads and gate 5 carry on; no result of D4 or of seed 7021 read, printed or estimated.
+ - D70. 10 Nov, maintainer, on item 6's stage A read (`results-share-a.txt`: all three parts of `SHARE-A.md`'s rule hold, the review's own run reproduced; by the rule, stage B now): "Unlock enforcement for exactly: fair-variables.mjs, a new group-D row 34 naming `share` and `shareRule`"; stage B builds `shareRule: 'pots'` as a research option, off, with `couple-share.test.mjs` (FAST_JOINING, D66); stage C after the re-run's read.
+@@ -168,7 +169,6 @@ Known limitations (Step 4's triage): gaps between a table's own forecast and sim
+ - O180, S370's bad world: table 51.3448 against 38.0000 run (152 of 400), 13.3448 points over (`results-hodep-s370.txt`). O189, S128's bridge part: world 0 GB 2.6233, world 1 GB 2.1200 points (`results-copyb.txt`).
+ - O198, the top-cell fix's year-1 residual under the plan reference, world 0: -0.5125 points (`results-copyx.txt`). TOP-CELL, AA-UR and FD-X: diagnostics of table reads, not run; dropped as gates (D2).
+ <!-- end printed:limitations -->
+-
+ ### Step 1 (21 Oct): the product-path defects, fixed
+ 
+ O200 (the final year's NaN), O199 (the same in the adaptive reference), F0 (the sweep's gain untaxed in the solver's models), F2a (the engine's tier above), F0a (the 2026/27 rules, guardrails and the lookahead under a table). Checking F0 against the engine found one more: the solver's forward runs clamped the taxable account's gain share at zero and so forgot an unrealised loss the engine keeps in its basis; they now carry it (`solver-carry.test.mjs`, check 4). After 7u-F (D20 (6)) the same silent-NaN choice in `adaptive.js` (its two argmax loops) and `couple.js` (the joint move) throws too, and `fast.js`'s guardrail "lost money last year" flag compares the pots after growth with those before it, as the engine does (it grew the pension and ISA a second time; inert under a table, which runs with guardrails off). V2's state check (D20 (4)) then found one more of F0's kind: the engine never realises a loss, so a taxable account sold out below its cost keeps that basis and money paid in later joins it, where a forward run's gain share (of a value of nothing) dropped it; a forward run now carries it in slot 13 (S370 the household that refills; no table reads the slot).
+@@ -295,5 +295,5 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct
+ ## 6. The next three actions
+ Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
+ 1. The beta's two weeks, from 6 Nov (the go or no-go list the maintainer's: no open defect that changes a figure, the checklist green on the final commit; on by default and the switch's removal the maintainer's).
+-2. The review of 9 Nov (D66), in its order, each item's time box kept: item 1's part 1, item 2 and item 9 done (the STOP ruled, D67); items 3 to 5 and 6's stage B in, item 5's experiment read (to the maintainer); items 7 and 10's stage A and gate 5 read (to the maintainer; item 7 stops); item 6's stage A (EXPLORATORY, seed 7002), its rule committed first, its read to the maintainer; item 3 (HMRC-ORDER), then items 4 and 5 in the same engine round; item 9, then the re-run (`couples-d4b.md`) held by D71 until items 5, 7 and 10 are ruled and ported and the external review's SHIPC advice is in; item 10's stage B after a ruling naming the run; after the re-run's read, item 6's stage C.
++2. The review of 9 Nov (D66), in its order, each item's time box kept: item 1's part 1, item 2 and item 9 done (the STOP ruled, D67); items 3 to 5 and 6's stage B in, item 5's experiment read (to the maintainer); items 7 and 10's stage A and gate 5 read (to the maintainer; item 7 stops); item 6's stage A (EXPLORATORY, seed 7002), its rule committed first, its read to the maintainer; item 3 (HMRC-ORDER), then items 4 and 5 in the same engine round; item 9, then the re-run (`couples-d4b.md`) held by D71 until items 5, 7 and 10 are ruled and ported and the external review's SHIPC advice is in; item 10's stage B and item 5's default (D73), then the couples landed again; after the re-run's read, item 6's stage C.
+ 3. Part D's D5 after the re-run's read; the research queue (B7: the windfall factorial after item 4, then the savings factorial) whenever cores are free. What remains for the maintainer: `DECISIONS-PENDING.md`.
+diff --git a/research/solver/candidate.json b/research/solver/candidate.json
+index 6ecabd11..40b61643 100644
+--- a/research/solver/candidate.json
++++ b/research/solver/candidate.json
+@@ -10,10 +10,12 @@
+   "pclsInterp": true,
+   "e3pcls": true,
+   "readerRef": "adaptive",
+-  "adaptiveLattice": { "na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true },
++  "adaptiveLattice": { "na": 80, "nb": 21, "nz": 64, "foot": true, "stepAll": true },
+   "readerSplit": "rs",
+   "tiersBelow": 3,
+   "menuPlus": ["hr"],
+   "tableDealing": false,
+-  "failDelivered": true
++  "failDelivered": true,
++  "sweepCashIsaTo": "isa",
++  "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 }
+ }
+diff --git a/research/solver/candidate.mjs b/research/solver/candidate.mjs
+index 8e17a026..7edf91e1 100644
+--- a/research/solver/candidate.mjs
++++ b/research/solver/candidate.mjs
+@@ -60,11 +60,16 @@ const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v ===
+ export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
+ if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
+ /* the keys joined after 7u-F (D28, D29, D30; failDelivered after Phase 4, D43), and 7u-F's candidate: candidate.json less them */
++/* D73 (11 Nov): item 5's sweep to the ISA and item 10's solve on anchors (`coarse`) joined, and the bridge reference's lattice
++ * thinned (REF). BEFORE_D73_OPTS is the candidate before them (d71f65ae871e), every earlier candidate built from it */
++export const D73_KEYS = Object.freeze(['sweepCashIsaTo', 'coarse']);
++export const PRE_D73_LATTICE = Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true });
++export const BEFORE_D73_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !D73_KEYS.includes(k)).map(([k, v]) => [k, k === 'adaptiveLattice' ? { ...PRE_D73_LATTICE } : v])));
+ export const LATER_KEYS = Object.freeze(['tiersBelow', 'menuPlus', 'tableDealing', 'failDelivered']);
+-export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
++export const ASSEMBLED_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !LATER_KEYS.includes(k))));
+ /* the keys joined after Phase 4 (D43), and the candidate Phase 4 read (fcd8096217b7): candidate.json less them */
+ export const AFTER_PHASE4_KEYS = Object.freeze(['failDelivered']);
+-export const PHASE4_OPTS = deepFreeze(Object.fromEntries(Object.entries(CANDIDATE_OPTS).filter(([k]) => !AFTER_PHASE4_KEYS.includes(k))));
++export const PHASE4_OPTS = deepFreeze(Object.fromEntries(Object.entries(BEFORE_D73_OPTS).filter(([k]) => !AFTER_PHASE4_KEYS.includes(k))));
+ /* the adaptive package's keys (D5), and the candidate before the assembly: 7u-F's less them */
+ export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
+ export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(ASSEMBLED_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
+@@ -91,7 +96,7 @@ export function candidatePlan(E, plan, reals = blendReals()) {
+ }
+ /* the candidate's hash, 7u-F's (e65e5e99ba49), the frozen one's (a61dba4ee1f5 before the assembly) and Phase 4's (fcd8096217b7);
+    candidate.test.mjs pins them */
+-export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
++export const CANDIDATE_HASH = hashOf(CANDIDATE_OPTS), BEFORE_D73_HASH = hashOf(BEFORE_D73_OPTS), ASSEMBLED_HASH = hashOf(ASSEMBLED_OPTS), FROZEN_HASH = hashOf(FROZEN_OPTS), PHASE4_HASH = hashOf(PHASE4_OPTS);
+ /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
+    FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
+ export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
+diff --git a/research/solver/e3pcls-pin.json b/research/solver/e3pcls-pin.json
+index ffb68a8a..2e068bdc 100644
+--- a/research/solver/e3pcls-pin.json
++++ b/research/solver/e3pcls-pin.json
+@@ -1,6 +1,6 @@
+ {
+-  "fingerprint": "19f41696dcb73973",
+-  "at": "10 Nov, 23:19 UK",
++  "fingerprint": "7baa89ee158ca7e5",
++  "at": "11 Nov, 11:46 UK",
+   "points": 4,
+   "passed": 27,
+   "test": "research/tests/solver-e3pcls.test.mjs",
+diff --git a/research/solver/solve-cfg.mjs b/research/solver/solve-cfg.mjs
+new file mode 100644
+index 00000000..7a185652
+--- /dev/null
++++ b/research/solver/solve-cfg.mjs
+@@ -0,0 +1,33 @@
++// The solve on anchors and shortlists (the review of 9 Nov, item 10; D73): its settings as one word, from the review's
++// scripts/solve-cfg.mjs at c3fea94d. The candidate carries w2a3b3g2c2-NT-LRVOH-h3 since D73.
++// A setting of the prototype (opts.coarse), written as one word:
++//     w<stride>a<stride>b<stride>[g<stride>c<stride>]-<sources>-<widening>[-<extra>...]      e.g. w2a3b3g2c2-NT-LRVOH-h3
++//   strides   every w-th wealth point, a-th pension-share point, b-th ISA-share point, g-th gain bucket and c-th allowance
++//             bucket is an anchor and takes the whole menu; each axis's last point is always one
++//   sources   N the moves the anchors around the cell stored this year, T the move the cell stored next year
++//   widening  one step from a move: L one spending level either way, V every spending level, R one tier step either way,
++//             O one draw-order step either way, H the same draw order's other re-wraps, E every move (the identity
++//             test's); `none` for none
++//   extras    h<rounds> climb: the sources are scored, then for that many rounds each layer's best move so far is widened
++//             and the new moves scored (without it every source move is widened once);
++//             q<na>x<nb>x<nz> the bridge reference's lattice (the candidate's is 80x21x64 since D73; 160x41x128 before);
++//             nomemo the repeat-move rule left out; any other word a plant's name (staleflow, posonly, nocopy)
++//   `off`     the solve as it is (off-x-x-q80x21x64: the solve as it is on a thinner bridge reference)
++export function parseConfig(c) {
++  if (c === 'off') return { coarse: null, lattice: null };
++  const [g, src, ex, ...extras] = c.split('-'), m = /^w(\d)a(\d)b(\d)(?:g(\d)c(\d))?$/.exec(g);
++  if (g !== 'off' && !m) throw new Error(`not a setting: ${c}`);
++  const coarse = g === 'off' ? null : { w: +m[1], a: +m[2], b: +m[3], g: +(m[4] || 1), c: +(m[5] || 1), src, expand: ex === 'none' ? '' : ex, plant: '' };
++  let lattice = null;
++  for (const x of extras) {
++    const q = /^q(\d+)x(\d+)x(\d+)$/.exec(x);
++    if (q) lattice = { na: +q[1], nb: +q[2], nz: +q[3], foot: true, stepAll: true };
++    else if (/^h\d$/.test(x)) coarse.climb = +x.slice(1);
++    else if (x === 'nomemo') coarse.memo = false;
++    else coarse.plant = x;
++  }
++  return { coarse, lattice };
++}
++// the research options a setting adds to a solve (light: the small reference lattice the 4-point checks use)
++// since D73 the candidate carries `coarse`: no setting, or `off`, takes it out (coarse undefined), so the solve is the one without it
++export const researchOf = (cfg, light = {}) => ({ ...light, ...(cfg && cfg.lattice ? { adaptiveLattice: cfg.lattice } : {}), coarse: cfg && cfg.coarse ? cfg.coarse : undefined });
+diff --git a/research/solver/state.mjs b/research/solver/state.mjs
+index 9c4bcf41..0f22ef19 100644
+--- a/research/solver/state.mjs
++++ b/research/solver/state.mjs
+@@ -36,7 +36,7 @@ const BLOCKS = {
+     const cand = { opts: C.CANDIDATE_OPTS, tiers: C.CANDIDATE_TIERS, reals: C.blendReals() };
+     const opts = Object.entries(C.CANDIDATE_OPTS).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ');
+     return [
+-      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; Phase 4's, failDelivered removed (\`PHASE4_OPTS\`): ${C.PHASE4_HASH}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
++      `- The candidate (\`research/solver/candidate.json\`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then ${C.ASSEMBLED_HASH} (\`ASSEMBLED_OPTS\`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, the failure year at what it can pay after Phase 4, D43, and item 5's sweep to the ISA, item 10's solve on anchors and its thinner bridge reference, D73): ${opts}; tiers ${C.CANDIDATE_TIERS} (O60's blend medians: ${Object.entries(cand.reals).map(([k, v]) => `${k} ${v}%`).join(', ')}). Hash ${C.CANDIDATE_HASH}${C.CANDIDATE_HASH === sha(cand) ? '' : ' (state.mjs reads ' + sha(cand) + ')'}; before D73 (\`BEFORE_D73_OPTS\`): ${C.BEFORE_D73_HASH}; Phase 4's, failDelivered removed (\`PHASE4_OPTS\`): ${C.PHASE4_HASH}; before the assembly, the package's keys removed (\`FROZEN_OPTS\`, 7u's CAND): ${C.FROZEN_HASH}.`,
+       `- 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (\`audit-7uf.mjs\`). Hash ${C.hashOf(Object.fromEntries(Object.entries(C.ASSEMBLED_OPTS).filter(([k]) => k !== 'readerRef' && k !== 'adaptiveLattice')))}.`,
+       `- The product baseline (\`PRODUCT_BASELINE\`, src/solver/solve.js): ${Object.entries(S.PRODUCT_BASELINE).map(([k, v]) => `${k} ${JSON.stringify(v)}`).join(', ')}. Hash ${sha(S.PRODUCT_BASELINE)}.`,
+       `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
+diff --git a/research/tests/solve-coarse.test.mjs b/research/tests/solve-coarse.test.mjs
+new file mode 100644
+index 00000000..ab16c99c
+--- /dev/null
++++ b/research/tests/solve-coarse.test.mjs
+@@ -0,0 +1,100 @@
++/*
++ * (Ported from the review of 9 Nov's tests/solve-coarse.test.mjs at c3fea94d, item 10's stage B, D73: the repository's imports,
++ * the split through e2.mjs's solveSplit, a seventh check that a locked dial position keeps the whole menu, its plant
++ * 'lockcoarse'; since D73 the candidate carries the setting, so the solves 'without the option' take it out.)
++ * THE SOLVE ON ANCHORS AND SHORTLISTS (`opts.coarse`; the external review of 9 Nov, item 10; EXPLORATORY, research only, off
++ * unless set). A year's cells are solved in two passes: the anchors on the whole menu, then every other cell on a shortlist
++ * (coarseSetup, coarseMask, coarseCell and coarseSync at the end of src/solver/solve.js). The shortlist is an approximation, so
++ * what is tested is everything around it that must be exact. Each check is shown failing on its plant (CHECKLIST 5).
++ *   1. every cell an anchor (`w1a1b1`): each world's tables, every layer, bit for bit the solve's without the option - the
++ *      two-pass loop and its hooks change nothing by themselves
++ *   2. every move listed (`expand: 'E'`) at the setting's anchors: bit for bit the solve's without the option, on a household
++ *      with no bridge year and on one with - a listed move is scored, summed over the worlds, chosen and stored exactly as the
++ *      whole menu's code does it (the cell's arithmetic is a second copy of that code, and this is what holds the two together)
++ *      plant `staleflow` (a move's flow kept from the cell before): the tables part
++ *   3. the repeat-move rule (a listed move with an earlier listed move's position, growth class and layer takes its
++ *      expectation): the setting's tables bit for bit the same with the rule and without (`memo: false`)
++ *      plant `posonly` (the position alone matched, neither the growth class nor the layer): the tables part. In E5's path a
++ *      move's layer is its own tier pair's, which fixes its class, so leaving out either alone changes nothing
++ *   4. the setting itself, on one thread and split across two parts (the app's worker split, E2): bit for bit the same - the
++ *      anchors are whole, and their copied cells made, before any part solves a cell between them
++ *      plant `nocopy` (part 0 does not make the anchors' copied cells before the second pass): the tables part
++ *   5. the setting's record: `meta.coarse` holds the strides, the sources, the widening, the rounds and the counts; every cell
++ *      between anchors found a list (none fell back for want of one); the anchors' share of the cells is the strides' own
++ *   6. refusal: outside the joint tier state's E5 path (`tsOnce: false`, which a locked dial position runs on) the option
++ *      throws, so no solve takes it in silence where its arithmetic is not the path's
++ * solve()'s bytecode under V8's limit with the hooks in is solve-size.test.mjs's check, unchanged.
++ *   REPO_ROOT=<a tree with solve-coarse.diff applied> node solve-coarse.test.mjs [--full]     (quick: 4 points; --full: 6)
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp, PLANT as APP_PLANT } from '../../src/solverApp.js';
++import { solvePlan } from '../../src/solver/solve.js';
++import * as SS from '../../src/solverSettings.js';
++import { solveSplit } from '../solver/e2.mjs';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++import { parseConfig, researchOf } from '../solver/solve-cfg.mjs';
++
++const FULL = process.argv.includes('--full'), PTS = FULL ? 6 : 4, SETTING = 'w2a3b3g2c2-NT-LRVOH-h3';
++const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
++let n = 0, failed = 0;
++const ok = (c, msg) => { if (c) { n++; console.log(`PASS  ${msg}`); } else { failed++; console.log(`FAIL  ${msg}`); } };
++const all = buildScenarios(), rawOf = id => all.find(s => s.id === id).plan;
++// the app's own solve of a plan at the dial's first position (solveForApp), with a setting's research options
++const solve = (id, cfg, extra = {}) => solveForApp(E, M, E.normalizePlan(rawOf(id)), { points: PTS, research: { ...researchOf(cfg ? parseConfig(cfg) : null, LIGHT), ...extra } });
++const KEYS = ['surv', 'beq', 'resil', 'short', 'pol', 'lsurv', 'lresil'];
++const differ = (a, b) => { let d = 0, m = 0; const A = a.mix.tables, B = b.mix.tables;
++  for (let k = 0; k < A.length; k++) for (let j = 0; j < A[k].tsLayers.length; j++) for (const key of KEYS) { const x = A[k].tsLayers[j][key], y = B[k].tsLayers[j][key]; if (!x) continue; for (let t = 0; t < x.length; t++) for (let i = 0; i < x[t].length; i++) { m++; if (!Object.is(x[t][i], y[t][i])) d++; } }
++  return { d, m }; };
++const said = ({ d, m }) => `${d} of ${m} table values differ`;
++
++// the solve split across parts through e2.mjs's solveSplit (its e3pcls pin checked first)
++function optionsOf(id, cfg) {
++  const raw = rawOf(id), norm = E.normalizePlan(raw), aims = SS.aimsOptions(norm, SS.APP_DIAL_VARIANT), locked = SS.lockedPlan(E, norm).riskAbove === false ? { riskAbove: false } : {};
++  return { plan: SS.appPlan(E, SS.prepareForSolve(E, raw)), opts: { ...SS.APP_CANDIDATE, ...aims, ...researchOf(parseConfig(cfg), LIGHT), lambda: aims.lambda, points: PTS, ...locked } };
++}
++const split = (id, cfg, parts) => { const { plan, opts } = optionsOf(id, cfg); return solveSplit(E, M, plan, opts, parts); };
++
++const A = 'S116', B = 'S370';   // B has years before pension access (the bridge reader, its reference and the exact steps)
++const baseA = solve(A, null), baseB = solve(B, null);
++
++// 1. every cell an anchor
++{ const x = differ(baseA, solve(A, 'w1a1b1-NT-LRV')); ok(x.d === 0, `1. every cell an anchor, ${A} at ${PTS} points: ${said(x)} from the solve without the option`); }
++
++// 2. every move listed, and its plant
++for (const [id, base] of [[A, baseA], [B, baseB]]) { const x = differ(base, solve(id, 'w2a3b3g2c2-NT-E')); ok(x.d === 0, `2. every move listed at the cells between anchors, ${id} at ${PTS} points: ${said(x)} from the solve without the option`); }
++{ const x = differ(baseA, solve(A, 'w2a3b3g2c2-NT-E-staleflow')); ok(x.d > 0, `2. planted (a move's flow kept from the cell before), ${A}: ${said(x)}`); }
++
++// 3. the repeat-move rule, and its plant
++const oneB = solve(B, SETTING);
++{ const x = differ(oneB, solve(B, SETTING + '-nomemo')); ok(x.d === 0, `3. ${SETTING} on ${B} with the repeat-move rule against without it: ${said(x)} (${oneB.meta.coarse.hits} expectations taken from a listed move)`); }
++{ const x = differ(oneB, solve(B, SETTING + '-posonly')); ok(x.d > 0, `3. planted (the position alone matched, neither the growth class nor the layer), ${B}: ${said(x)}`); }
++
++// 4. the setting, one thread and split, and its plant
++{ const x = differ(oneB, await split(B, SETTING, 2)); ok(x.d === 0, `4. ${SETTING} on ${B}, split across two parts against one thread: ${said(x)}`); }
++{ const x = differ(oneB, await split(B, SETTING + '-nocopy', 2)); ok(x.d > 0, `4. planted (the anchors' copied cells not made before the second pass), ${B} split: ${said(x)}`); }
++
++// 5. the record
++{ const m = oneB.meta.coarse, g = oneB.g, dims = [g.np, g.ni, g.nt, g.gain.length, g.pcls.length], str = [2, 3, 3, 2, 2];
++  const anchorsOn = (len, st) => { let c = 0; for (let i = 0; i < len; i++) if (i % st === 0 || i === len - 1) c++; return c; };
++  const share = dims.reduce((p, len, d) => p * anchorsOn(len, str[d]) / len, 1);
++  ok(!!m && m.w === 2 && m.a === 3 && m.b === 3 && m.g === 2 && m.c === 2 && m.src === 'NT' && m.expand === 'LRVOH' && m.climb === 3, `5. meta.coarse records the setting: ${JSON.stringify(m && { w: m.w, a: m.a, b: m.b, g: m.g, c: m.c, src: m.src, expand: m.expand, climb: m.climb })}`);
++  ok(!!m && m.fine > 0 && m.fallback === 0, `5. ${m && m.fine} cells solved on a shortlist of ${m && (m.listed / m.fine).toFixed(1)} moves on average; cells with nothing listed ${m && m.fallback}`);
++  ok(share > 0 && share < 0.2, `5. the anchors are ${(100 * share).toFixed(1)}% of the grid's cells at these strides (${dims.join(' x ')})`); }
++
++// 6. refusal: the solve itself, handed the setting outside E5's path
++{ const { plan, opts } = optionsOf(A, SETTING); let msg = ''; try { solvePlan(E, M, plan, { ...opts, tsOnce: false }); } catch (e) { msg = e.message; } ok(/coarse needs/.test(msg), `6. refused outside E5's path (tsOnce false): ${msg || 'NOT refused'}`); }
++
++// 7. a locked dial position keeps the whole menu (D68): the app hands the candidate's setting to the position's base solve, never to
++// the locked solve (tsOnce false); plant 'lockcoarse' (src/solverApp.js) hands it on, and the locked solve refuses
++{
++  const at3 = p => ({ ...p, solver: { ...(p.solver || {}), aims: { ...((p.solver && p.solver.aims) || {}), cuts: 3 } } });
++  const run = () => solveForApp(E, M, E.normalizePlan(at3(rawOf(A))), { points: PTS, research: LIGHT });
++  if (process.env.SOLVE_COARSE_PLANT === 'lockcoarse') APP_PLANT.rule = 'lockcoarse';
++  let r = null, msg = ''; try { r = run(); } catch (e) { msg = e.message; }
++  APP_PLANT.rule = '';
++  ok(!!r && !r.meta.coarse, `7. at the dial's position 3 the locked solve keeps the whole menu (meta.coarse ${r ? JSON.stringify(r.meta.coarse) : 'none'})${msg ? `: ${msg}` : ''}`);
++}
++
++console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
++process.exit(failed ? 1 : 0);
+diff --git a/src/PlannerCards.jsx b/src/PlannerCards.jsx
+index 050843a0..953d068a 100644
+--- a/src/PlannerCards.jsx
++++ b/src/PlannerCards.jsx
+@@ -82,7 +82,7 @@ export function SolverSettings({ points, paths, solve = null, plan = null, isPho
+   return (
+   <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
+     <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
+-    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate d71f65ae871e.</p>
++    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate af001697ce1b.</p>
+     {solve && <div className="pt-2"><DiagnosticCopy solve={solve} plan={plan} points={points} paths={paths} isPhone={isPhone} /></div>}
+   </section>
+   );
+diff --git a/src/solver/solve.js b/src/solver/solve.js
+index ef41126e..963d9b0f 100644
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -1118,9 +1118,11 @@ export function solve(E, M, plan, opts = {}) {
+   let pclsCopied = 0;
+   const isCovCopy = (ip, ii, t) => !!g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t);
+   // E2's copy pass: the copied cells, in the loop's own order, so a copy of a copy reads its source already made
+-  const copyPass = (t) => {
++  const copyPass = (t, only = null) => {   // `only` (coarse, split): the anchors' copied cells alone, uncounted (the year's own pass counts them)
++    const n0 = e3Copied, n1 = pclsCopied, n2 = covCopied;
+     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
+       const idx = g.index(ip, ii, it, ig, ic);
++      if (only !== null && only[idx] !== 0) continue;
+       let src = -1;
+       if (isE3Copy(ii, it, ig)) { src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic); e3Copied++; }
+       else if (isPclsCopy(ip, ii, ic, t)) { src = g.index(ip, ii, it, ig, 0); pclsCopied++; }
+@@ -1130,8 +1132,11 @@ export function solve(E, M, plan, opts = {}) {
+         L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+       }
+     }
++    if (only !== null) { e3Copied = n0; pclsCopied = n1; covCopied = n2; }
+   };
+   const nAt = splitCounts(c, actions, T);
++  // PROTOTYPE (external review, 10 Nov; `coarse`, research only, off by default): most cells solved on a shortlist (coarseSetup, at the file's end)
++  const CTF = opts.coarse ? coarseSetup(opts, g, actions, cs, E5 && LEAN && !TERN && !CFP, [nodeRealOfAtW, tsLayerOf, tsPairs, e9S, e9B, e9R, e9H, e11RD, FTERM, failDeliveredCost, failCostAt, shortOfAction, raiseOfAction, JW, layW, unmetBuf, wR, wB, switchCharge, MEMO ? clsW : null]) : null, NPASS = CTF ? 2 : 1;
+   for (let t = T; t >= 0; t--) {
+     const AT = nAt[t];   // the windfall split's copies (research, D37) only in a year with Auto money (splitCounts)
+     const spendYear = c.yr.spend[t] > 0;
+@@ -1167,12 +1172,14 @@ export function solve(E, M, plan, opts = {}) {
+       if (!RESTORE.layers[k] || RESTORE.layers[k].length !== ls.length) throw new Error(`restore: world ${k} has ${ls.length} layers, the stored solve ${RESTORE.layers[k] ? RESTORE.layers[k].length : 0}`);
+       ls.forEach((L, j) => { const R = RESTORE.layers[k][j]; for (const key of ['surv', 'beq', 'resil', 'pol', 'short']) L[key][t].set(R[key][t]); });
+     }
+-    else for (let ic = 0; ic < g.pcls.length; ic++) {
++    else for (let pass = 0; pass < NPASS; pass++) { for (let ic = 0; ic < g.pcls.length; ic++) {
+       for (let ig = 0; ig < g.gain.length; ig++) {
+         for (let it = 0; it < g.nt; it++) {
+           for (let ii = 0; ii < g.ni; ii++) {
+             for (let ip = 0; ip < g.np; ip++) {
+               const idx = g.index(ip, ii, it, ig, ic);
++              // `coarse`: the anchors first (pass 0, the whole menu), then the cells between them (pass 1, the shortlist)
++              if (CTF !== null && CTF.pass[idx] !== pass) continue;
+               // E2: a copied cell reads another cell of this year, so the copies wait until every part's cells are done
+               if (E2 && (isE3Copy(ii, it, ig) || isPclsCopy(ip, ii, ic, t) || isCovCopy(ip, ii, t))) continue;
+               if (E2 && Atomics.compareExchange(claim, cellNo++, 0, 1) !== 0) continue;
+@@ -1205,6 +1212,7 @@ export function solve(E, M, plan, opts = {}) {
+                 continue;
+               }
+               toVec(g, ip, ii, it, ig, ic, base, t);
++              if (CTF !== null && pass === 1 && coarseCell(CTF, t, AT, ip, ii, it, ig, ic, idx, stepAtW)) continue;
+               if (TERN) {
+                 cellStamp++;
+                 const ensure = (ai) => {
+@@ -1631,6 +1639,8 @@ export function solve(E, M, plan, opts = {}) {
+         }
+       }
+     }
++    // `coarse`, split: every part's anchors done, and their copied cells made, before any part solves a cell between them
++    if (E2 && pass + 1 < NPASS) coarseSync(E2, copyPass, t, CTF); }
+     const layersOf = (k) => (TS ? layW[k] : [{ surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k] }]);
+     if (E2) {
+       E2.barrier();
+@@ -2786,6 +2796,7 @@ function menuMove(a, opts) {
+ }
+ function researchFinish(r, LK, opts) {
+   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
++  if (opts.coarse) r.meta.coarse = { w: opts.coarse.w || 1, a: opts.coarse.a || 1, b: opts.coarse.b || 1, g: opts.coarse.g || 1, c: opts.coarse.c || 1, src: opts.coarse.src || 'NT', expand: opts.coarse.expand || '', climb: opts.coarse.climb || 0, ...COARSE.stats };   // the review's prototype
+   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
+   if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
+   if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
+@@ -2836,3 +2847,207 @@ function movesAt(r, t, SC, BQ) {
+   if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; }
+   return nT;
+ }
++
++/*
++ * PROTOTYPE (external review, 10 Nov; EXPLORATORY; research only, off unless `opts.coarse`): THE SOLVE ON ANCHORS AND SHORTLISTS.
++ * The backward pass scores every move at every cell. Here a year's cells are solved in two passes. The ANCHORS (every
++ * `w`-th wealth point, `a`-th pension-share point, `b`-th ISA-share point, `g`-th gain bucket and `c`-th allowance bucket,
++ * and each axis's last point) take the whole menu, as now. Every other cell chooses, for each tier layer held, among a
++ * shortlist. Its sources (`src`):
++ *   'N'  the moves the anchors around the cell stored this year (each layer's);
++ *   'T'  the move the cell itself stored next year (each layer's).
++ * Its widening (`expand`, one step from a move): 'L' one spending level either way, 'V' every spending level, 'R' one tier
++ * step either way, 'O' one draw-order step either way, 'H' the same draw order's other re-wraps ('E', the identity test's:
++ * every move). With `climb` 0 every source move is widened once. With `climb` n, the sources are scored, then for n rounds
++ * each layer's best move so far is widened and the new moves scored.
++ * A move on the list is scored exactly as the whole menu scores it; only the choice is narrowed. The joint tier state's E5
++ * path alone (coarseSetup refuses any other). coarseCell, below, solves a cell on its shortlist.
++ */
++export const COARSE = { stats: { fine: 0, listed: 0, fallback: 0, flows: 0, hits: 0 } };
++function coarseSetup(opts, g, actions, cs, ok, env) {
++  const C = opts.coarse, cacts = cs[cs.length >> 1].acts;
++  if (!ok || g.cov || opts.tsOncePlant || opts.payWhereOnePays) throw new Error("coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays");
++  const strides = [C.w || 1, C.a || 1, C.b || 1, C.g || 1, C.c || 1], dims = [g.np, g.ni, g.nt, g.gain.length, g.pcls.length];
++  const isA = (i, d) => i % strides[d] === 0 || i === dims[d] - 1;
++  const lo = dims.map((n, d) => Int32Array.from({ length: n }, (_, i) => (isA(i, d) ? i : i - (i % strides[d]))));
++  const hi = dims.map((n, d) => Int32Array.from({ length: n }, (_, i) => (isA(i, d) ? i : Math.min(i - (i % strides[d]) + strides[d], n - 1))));
++  // the pass each cell is solved in: 0 an anchor (the whole menu), 1 a cell between anchors (the shortlist)
++  const pass = new Uint8Array(g.size);
++  for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) pass[g.index(ip, ii, it, ig, ic)] = isA(ip, 0) && isA(ii, 1) && isA(it, 2) && isA(ig, 3) && isA(ic, 4) ? 0 : 1;
++  const A = actions.length, stKey = a => JSON.stringify([a.steps, !!a.harvest, a.harvestCeil || 'pa', !!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale]);
++  const tierOf = ai => `${cacts[ai].tierPen || 0}/${cacts[ai].tierIsa || 0}`, lvlOf = ai => (actions[ai].spendLevel !== undefined ? actions[ai].spendLevel : 1);
++  const group = keyOf => { const m = new Map(); for (let ai = 0; ai < A; ai++) { const k = keyOf(ai); if (!m.has(k)) m.set(k, []); m.get(k).push(ai); } return m; };
++  const nbrL = Array.from({ length: A }, () => []), nbrR = Array.from({ length: A }, () => []);
++  for (const list of group(ai => stKey(actions[ai]) + '|' + tierOf(ai)).values()) { list.sort((x, y) => lvlOf(x) - lvlOf(y)); list.forEach((ai, q) => { if (q > 0) nbrL[ai].push(list[q - 1]); if (q + 1 < list.length) nbrL[ai].push(list[q + 1]); }); }
++  for (const list of group(ai => stKey(actions[ai]) + '|' + lvlOf(ai)).values()) { list.sort((x, y) => (cacts[x].tierPen || 0) - (cacts[y].tierPen || 0) || (cacts[x].tierIsa || 0) - (cacts[y].tierIsa || 0)); list.forEach((ai, q) => { if (q > 0) nbrR[ai].push(list[q - 1]); if (q + 1 < list.length) nbrR[ai].push(list[q + 1]); }); }
++  const lvls = new Array(A); for (const list of group(ai => stKey(actions[ai]) + '|' + tierOf(ai)).values()) for (const ai of list) lvls[ai] = list;
++  // 'O' and 'H': a draw order is how many pension steps come before the first other source, and whether the ISA comes before
++  // the cash and taxable account; its neighbours are one of those apart, with the same re-wrap, level and tier. A move's
++  // other re-wraps keep its draw order, level and tier.
++  const restKey = a => JSON.stringify([!!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale]), wrapKey = a => JSON.stringify([!!a.harvest, a.harvestCeil || 'pa']);
++  const orderOf = a => { const st = a.steps, isPen = x => /^pen/.test(x); let np = 0; while (np < st.length && isPen(st[np])) np++; const ii = st.indexOf('isa'), ic = st.indexOf('cash'); return [np, ii >= 0 && ic >= 0 && ii < ic ? 1 : 0]; };
++  const nbrO = Array.from({ length: A }, () => []), nbrH = Array.from({ length: A }, () => []);
++  for (const list of group(ai => wrapKey(actions[ai]) + '|' + restKey(actions[ai]) + '|' + lvlOf(ai) + '|' + tierOf(ai)).values()) for (const x of list) { const ox = orderOf(actions[x]); for (const y of list) { const oy = orderOf(actions[y]); if (Math.abs(ox[0] - oy[0]) + Math.abs(ox[1] - oy[1]) === 1) nbrO[x].push(y); } }
++  for (const list of group(ai => JSON.stringify(actions[ai].steps) + '|' + restKey(actions[ai]) + '|' + lvlOf(ai) + '|' + tierOf(ai)).values()) for (const x of list) for (const y of list) if (y !== x) nbrH[x].push(y);
++  COARSE.stats = { fine: 0, listed: 0, fallback: 0, flows: 0, hits: 0 };
++  const [nodeRealOfAtW, tsLayerOf, tsPairs, e9S, e9B, e9R, e9H, e11RD, FTERM, failDeliveredCost, failCostAt, shortOfAction, raiseOfAction, JW, layW, unmetBuf, wR, wB, switchCharge, clsW] = env;
++  // solve()'s own rules for these, from the options
++  const FINT = !!opts.finalIntegral, E11 = true, failShort = !!opts.failureShortfall, raiseSurv = !!opts.raiseSurvival, eps = opts.eps !== undefined ? opts.eps : 1e-12;
++  const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
++  const K = cs.length, f64 = n => new Float64Array(n), perWorld = () => cs.map(() => f64(A));
++  // what coarseCell reads: the solve's own tables and year arrays (env), and scratch of its own
++  const X = { cs, c: cs[K >> 1], g, K, T: g.m.ctx.totalYears, nodeRealOfAtW, tsLayerOf, tsPairs, NL9: tsPairs.length, e9S, e9B, e9R, e9H, e11RD, FINT, FTERM, failDeliveredCost, failCostAt, shortOfAction, raiseOfAction, JW, layW, unmetBuf, E11, failShort, raiseSurv, wR, wB, switchCharge, eps, switchMargin,
++    tierBase: actions.map((a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai)),
++    base: f64(7), postBuf: f64(A * 7), failBuf: new Uint8Array(A), grown: f64(7), rd: f64(4), fx: f64(3), fxR: f64(4), sx: f64(4), sxR: f64(4),
++    e5S: perWorld(), e5B: perWorld(), e5R: perWorld(), e5H: perWorld(), e5X: perWorld(), e7Vs: f64(A), e7Vw: f64(A), e7Wb: f64(A), clsW: C.memo === false ? null : clsW, pidQ: new Int32Array(A) };
++  X.postU = new Uint32Array(X.postBuf.buffer);
++  const QW = opts.quadNodes && opts.quadNodes !== 5 ? gaussHermite(opts.quadNodes).weights : WEIGHTS;   // solve()'s own rule
++  // a move's widening, one list: the letters' neighbour lists merged
++  const X_ = C.expand || '', wide = Array.from({ length: A }, (_, ai) => { const set = new Set(); for (const [ch, l] of [['L', nbrL], ['R', nbrR], ['V', lvls], ['O', nbrO], ['H', nbrH]]) if (X_.includes(ch)) for (const b of l[ai]) if (b !== ai) set.add(b); return Int32Array.from(set); });
++  return { wide, every: X_.includes('E'), climb: C.climb || 0, lo, hi, pass, nb: new Int32Array(32), nn: 0, bestA: new Int32Array(tsPairs.length), mask: new Uint8Array(A), first: new Int32Array(A), n: 0, stamp: new Int32Array(A).fill(-1), cur: 0, X, QW, src: C.src || 'NT', plant: C.plant || '' };
++}
++function coarseAdd(S, ai, AT) { if (ai < AT && S.mask[ai] === 0) { S.mask[ai] = 1; S.first[S.n++] = ai; } }
++function coarseWiden(S, ai, AT) { const w = S.wide[ai]; for (let i = 0; i < w.length; i++) coarseAdd(S, w[i], AT); }
++function coarseMask(S, g, lays, t, T, AT, ip, ii, it, ig, ic) {
++  const mask = S.mask, NL = lays.length;
++  mask.fill(0); S.n = 0;
++  const add = ai => coarseAdd(S, ai, AT);
++  if (S.src.includes('T') && t < T) { const idx = g.index(ip, ii, it, ig, ic); for (let j = 0; j < NL; j++) add(lays[j].pol[t + 1][idx]); }
++  // the anchors around the cell: on each axis the anchor below and the one above (the cell's own index where it is an anchor's)
++  const L = S.lo, H = S.hi, p0 = L[0][ip], p1 = H[0][ip], a0 = L[1][ii], a1 = H[1][ii], b0 = L[2][it], b1 = H[2][it], g0 = L[3][ig], g1 = H[3][ig], c0 = L[4][ic], c1 = H[4][ic];
++  let nn = 0;
++  for (let zc = 0; zc < 2; zc++) { if (zc === 1 && c1 === c0) break; for (let zg = 0; zg < 2; zg++) { if (zg === 1 && g1 === g0) break;
++    for (let zp = 0; zp < 2; zp++) { if (zp === 1 && p1 === p0) break; for (let za = 0; za < 2; za++) { if (za === 1 && a1 === a0) break; for (let zb = 0; zb < 2; zb++) { if (zb === 1 && b1 === b0) break;
++      S.nb[nn++] = g.index(zp ? p1 : p0, za ? a1 : a0, zb ? b1 : b0, zg ? g1 : g0, zc ? c1 : c0);
++    } } }
++  } }
++  S.nn = nn;
++  if (S.src.includes('N')) for (let q = 0; q < nn; q++) { const nb = S.nb[q]; for (let j = 0; j < NL; j++) add(lays[j].pol[t][nb]); }
++  // the widening: every source move's here, or (`climb`) each layer's best so far, round by round, in coarseCell
++  const n0 = S.n;
++  if (S.climb === 0) for (let q = 0; q < n0; q++) coarseWiden(S, S.first[q], AT);
++  if (S.every) for (let ai = 0; ai < AT; ai++) add(ai);   // 'E', every move (the identity test's: the cell's arithmetic against the whole menu's)
++  const n = S.n;
++  if (n === 0) { COARSE.stats.fallback++; return null; }
++  COARSE.stats.fine++; COARSE.stats.listed += n;
++  S.first.subarray(0, n).sort();   // the menu's order, as the whole scan takes its ties
++  return mask;
++}
++
++/*
++ * `coarse`, A CELL BETWEEN ANCHORS: the E5 path's own arithmetic, move for move, on the shortlist alone (S.first[0..n), in
++ * the menu's order): each listed move's base flow once, each world's terms (phase A's, with the memo's rule among the listed
++ * moves, whose hits are the same values), the mixture sums (E7's) and each layer's choice by phase B's rule. Returns false
++ * where the shortlist is empty: the caller then scores the whole menu.
++ */
++function coarseCell(S, t, AT, ip, ii, it, ig, ic, idx, stepAtW) {
++  const { cs, c, g, K, T, nodeRealOfAtW, tsLayerOf, tsPairs, NL9, e9S, e9B, e9R, e9H, e11RD, FINT, FTERM, failDeliveredCost, failCostAt, shortOfAction, raiseOfAction, JW, layW, unmetBuf, E11, failShort, raiseSurv, wR, wB, switchCharge, eps, switchMargin,
++    tierBase, base, postBuf, failBuf, grown, rd, fx, fxR, sx, sxR, e5S, e5B, e5R, e5H, e5X, e7Vs, e7Vw, e7Wb, clsW, pidQ, postU } = S.X;
++  const { floor, deathTax, resilK, shortfall, beqOf } = FTERM, FD = unmetBuf !== null, QW = S.QW, NQ = QW.length;
++  if (coarseMask(S, g, layW[0], t, T, AT, ip, ii, it, ig, ic) === null) return false;
++  toVec(g, ip, ii, it, ig, ic, base, t);
++  // plant 'staleflow' (its identity test only): a base's flow kept from the cell before
++  const list = S.first, stamp = S.stamp, cur = S.plant === 'staleflow' && S.cur > 0 ? S.cur : ++S.cur, n0 = S.n;
++  let n = n0, q0 = 0;
++  // `climb` (rounds; 0: none): after each round's moves are scored, each layer's best so far is widened and the new moves scored
++  for (let round = 0; ; round++) {
++    for (let q = q0; q < n; q++) {
++      const ai = list[q], b0 = tierBase[ai], ob = b0 * 7;
++      if (stamp[b0] !== cur) {
++        stamp[b0] = cur;
++        for (let w = 0; w < 7; w++) postBuf[ob + w] = base[w];
++        const unmet = F.flow(c, t, b0, postBuf.subarray(ob, ob + 7));
++        COARSE.stats.flows++;
++        failBuf[b0] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
++        if (FD) unmetBuf[b0] = unmet;
++      }
++      if (b0 !== ai) { const o = ai * 7; for (let w = 0; w < 7; w++) postBuf[o + w] = postBuf[ob + w]; failBuf[ai] = failBuf[b0]; if (FD) unmetBuf[ai] = unmetBuf[b0]; }
++    }
++    // the solve's own memo rule (S1), among the listed moves: a move whose position after the flow (bit for bit), growth
++    // class and layer read are an earlier listed move's takes that move's expectation in each world. pidQ: the first list
++    // place with the same position. (`memo: false` leaves the rule out; plant 'posonly', its test only: neither the class nor the layer matched.)
++    if (clsW !== null) for (let q = q0; q < n; q++) {
++      const o = list[q] * 14; let p = 0;
++      for (; p < q; p++) { if (pidQ[p] !== p) continue; const op = list[p] * 14; let w = 0; while (w < 14 && postU[op + w] === postU[o + w]) w++; if (w === 14) break; }
++      pidQ[q] = p;
++    }
++    for (let k = 0; k < K; k++) {
++      const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k], eS = e5S[k], eB = e5B[k], eR = e5R[k], eH = e5H[k], eX = e5X[k], cls = clsW !== null ? clsW[k] : null;
++      for (let q = q0; q < n; q++) {
++        const ai = list[q], lj = tsLayerOf[ai], q9 = k * NL9 + lj;
++        const sNext = e9S[q9], bNext = e9B[q9], rNext = e9R[q9], hNext = e9H[q9];
++        const fail = failBuf[ai] === 1, o = ai * 7;
++        let s = 0, b = 0, rs = 0, h = 0;
++        let hit = -1;
++        if (!fail && cls !== null) { const pq = pidQ[q], cq = cls[ai]; for (let p = pq; p < q; p++) if (pidQ[p] === pq) { const ap = list[p]; if (((tsLayerOf[ap] === lj && cls[ap] === cq) || S.plant === 'posonly') && failBuf[ap] !== 1) { hit = ap; break; } } }
++        if (hit >= 0) { s = eS[hit]; b = eB[hit]; rs = eR[hit]; h = eX[hit]; COARSE.stats.hits++; }
++        else if (!fail) {
++          const nr = nodeRealOf[ai];
++          if (t === T && FINT) { finalYearExact(ck, t, postBuf.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
++          else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, postBuf.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
++          else for (let zi = 0; zi < NQ; zi++) {
++            for (let w = 0; w < 7; w++) grown[w] = postBuf[o + w];
++            F.grow(ck, t, grown, nr[zi]);
++            if (t === T) {
++              const total = grown[0] + grown[1] + grown[2];
++              const alive = !(floor > 0 && total < floor);
++              const net = Math.max(0, total - grown[0] * deathTax);
++              s += QW[zi] * (alive ? 1 : 0);
++              rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
++              b += QW[zi] * (alive ? beqOf(net) : 0);
++            } else {
++              readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1, E11, E11 ? e11RD[q9] : null);
++              s += QW[zi] * rd[0];
++              b += QW[zi] * rd[1];
++              rs += QW[zi] * rd[2];
++              h += QW[zi] * rd[3];
++            }
++          }
++        }
++        eX[ai] = h;   // the expectation's own cost term, before this move's
++        if (failShort && fail) h = FD ? failDeliveredCost(ai, t, ai) : failCostAt[t];
++        else h += shortOfAction[ai];
++        if (raiseSurv) h += raiseOfAction[ai] * s;
++        eS[ai] = s; eB[ai] = b; eR[ai] = rs; eH[ai] = h;
++      }
++    }
++    for (let q = q0; q < n; q++) {
++      const ai = list[q];
++      let vs = 0, vw = 0, wb = 0;
++      for (let k = 0; k < K; k++) {
++        const s = e5S[k][ai], b = e5B[k][ai], rs = e5R[k][ai], h0 = e5H[k][ai];
++        let h1 = h0; if (switchCharge > 0) h1 += switchCharge;
++        const sc0 = s + wR * rs + wB * b - h0; if (sc0 - sc0 !== 0) nonFiniteScore('the backward pass (coarse)', t, idx, k, ai, s, b, rs, h0);
++        const sc1 = s + wR * rs + wB * b - h1; if (sc1 - sc1 !== 0) nonFiniteScore('the backward pass (coarse)', t, idx, k, ai, s, b, rs, h1);
++        vs += JW[k] * sc0; vw += JW[k] * sc1; wb += JW[k] * b;
++      }
++      e7Vs[ai] = vs; e7Vw[ai] = vw; e7Wb[ai] = wb;
++    }
++    q0 = n;
++    if (round >= S.climb) break;
++    for (let j = 0; j < tsPairs.length; j++) { let bv = -Infinity, ba = -1; for (let q = 0; q < n; q++) { const ai = list[q], v = tsLayerOf[ai] === j ? e7Vs[ai] : e7Vw[ai]; if (v > bv) { bv = v; ba = ai; } } if (ba >= 0) coarseWiden(S, ba, AT); }
++    n = S.n;
++    if (n === q0) break;
++  }
++  if (n > n0) { COARSE.stats.listed += n - n0; list.subarray(0, n).sort(); }   // the menu's order again, with the climb's moves
++  const picks = S.bestA;
++  for (let j = 0; j < tsPairs.length; j++) {
++    let bestV = -Infinity, bestWB = -Infinity, bestA = list[0], stayV = -Infinity, stayWB = -Infinity, stayA = -1;
++    for (let q = 0; q < n; q++) {
++      const ai = list[q], v = tsLayerOf[ai] === j ? e7Vs[ai] : e7Vw[ai], wb = e7Wb[ai];
++      if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
++      if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
++    }
++    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) { bestA = stayA; bestV = stayV; }
++    picks[j] = bestA;
++  }
++  for (let j = 0; j < tsPairs.length; j++) {
++    const bestA = picks[j], swB = switchCharge > 0 && tsLayerOf[bestA] !== j;
++    for (let k = 0; k < K; k++) { let h = e5H[k][bestA]; if (swB) h += switchCharge; const Lj = layW[k][j]; Lj.surv[t][idx] = e5S[k][bestA]; Lj.beq[t][idx] = e5B[k][bestA]; Lj.resil[t][idx] = e5R[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = h; }
++  }
++  return true;
++}
++
++/* `coarse` under the split (E2): the barrier after the anchors' pass, part 0 making the anchors' copied cells, then all go
++ * on (plant 'nocopy', its test only: the anchors' copied cells left unmade) */
++function coarseSync(E2, copyPass, t, S) { E2.barrier(); if (E2.part === 0 && S.plant !== 'nocopy') copyPass(t, S.pass); E2.barrier(); }
+diff --git a/src/solverApp.js b/src/solverApp.js
+index ff0b79d5..0dda8289 100644
+--- a/src/solverApp.js
++++ b/src/solverApp.js
+@@ -10,11 +10,11 @@
+  * test fails any commit whose pin does not match the solver's code.
+  */
+ import { solvePlan } from './solver/solve.js';
+-import { APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
++import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
+ 
+-export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs only: 'holdrecord' keeps a restored solve's record
++export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position
+ 
+-export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
++export { APP_CANDIDATE, APP_COARSE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
+ 
+ /*
+  * The candidate's solve of a plan, as the app holds it (prepared here). `e2` splits it across workers (src/solverPool.js),
+@@ -46,7 +46,9 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
+   // the record's reference handed over in a wrapper of its own: adaptive.js keeps what it is given (its `rebuild` holds its input)
+   const ref = restore && restore.ref ? { ...restore.ref } : null;
+   const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref } } : {};
+-  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
++  // a locked dial position (tsOnce false, the layer loop) keeps the whole menu: `coarse` goes to its base's solve alone (D73)
++  const menu = PLANT.rule !== 'lockcoarse' && (aims.tsOnce === false || (research && research.tsOnce === false)) ? { coarse: undefined } : {};
++  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, ...menu, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
+   // the stored record's tables and reference are copied into the solve's own as it runs (solve.js `opts.restore`, adaptive.js
+   // `restore`), and the solve keeps its options and the reference its input: let the record go once the solve is done, so a
+   // restored solve holds its tables once and not beside the record (Phase 11, phone-memory.cjs; restore-memory.test.mjs). The
+diff --git a/src/solverSettings.js b/src/solverSettings.js
+index 5d18fb6a..8f84992f 100644
+--- a/src/solverSettings.js
++++ b/src/solverSettings.js
+@@ -8,11 +8,15 @@
+  * pins both to the research files and the copy's hash to CANDIDATE_HASH, so the candidate cannot change in one place and not
+  * the other. No `node:` imports.
+  */
++/* the solve on anchors and shortlists (the review of 9 Nov, item 10; D73): most cells solved on a shortlist of moves seeded by the
++ * anchor cells, which take the whole menu. Handed to a solve on the joint tier state's E5 path only: never to a locked dial
++ * position (tsOnce false), which keeps the whole menu (solverApp.js solveForApp) */
++export const APP_COARSE = Object.freeze({ w: 2, a: 3, b: 3, g: 2, c: 2, src: 'NT', expand: 'LRVOH', climb: 3 });
+ export const APP_CANDIDATE = Object.freeze({
+   bridgeRead: 'reader', tierState: true, jointWorlds: true, bequestWeight: 0.02, bridgeStep: 'exact', switchCharge: 0.001,
+   switchMargin: 0, e3: true, pclsInterp: true, e3pcls: true, readerRef: 'adaptive',
+-  adaptiveLattice: Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }), readerSplit: 'rs', tiersBelow: 3,
+-  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true
++  adaptiveLattice: Object.freeze({ na: 80, nb: 21, nz: 64, foot: true, stepAll: true }), readerSplit: 'rs', tiersBelow: 3,
++  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE
+ });
+ /* the tiers' real returns at the medians of their blends (O60, D13) */
+ export const APP_TIER_REALS = Object.freeze({ 'High Risk': 4.97, 'Medium/High Risk': 4.65, 'Medium Risk': 4.18, 'Medium/Low Risk': 3.55, 'Low Risk': 2.76 });

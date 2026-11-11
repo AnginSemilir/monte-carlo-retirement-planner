@@ -97,13 +97,12 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
   engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
   beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
-- **Item 5's experiment (EXPLORATORY, `ISA-SWEEP.md`, read 11 Nov: `results-isasweep.txt`).** All three parts of its rule hold,
-  so by its outcomes it comes here: a ruling naming the run would make `sweepCashIsaTo: 'isa'` the default (the sweep's cash
-  ISA money to the stocks and shares ISA, using no allowance, where today it goes to the taxable account), and the pages'
-  sweep line would name the ISA. Beside it, deciding nothing (D69): the pooled figures without S116. Until a ruling the
-  option stays off, and the couples' re-run registers on the code's default (`couples-d4b.md`, revised first if the ruling
-  comes before its launch).
-- **The couples' re-run: held (D71, 11 Nov) until items 5, 7 and 10 are ruled and ported, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
+- **Items 5 and 10 ruled (D73, 11 Nov): `'isa'` the default, item 10's ON and REF ported into the candidate; item 7 waits on the
+  external review (`ITEM7-POT.md`, five questions, the estate cap and the basic harvest ceiling among them).** The port is under
+  way, uncommitted: `drafts/item10-d73.patch` (`HANDOFF-2026-11-11.md`). Still to ask for when it is ready: the unlock of
+  `fair-variables.mjs` (rows naming `coarse` and `sweepCashIsaTo`) and of each FAST test whose pinned figure the new candidate
+  moves, each named with its old figure, its new and the working (D66).
+- **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
   On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
   about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one
   four-core session, about 13 over four), 673 at most. To decide: launch it; and whether to run it in up to four cloud

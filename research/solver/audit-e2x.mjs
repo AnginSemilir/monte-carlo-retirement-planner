@@ -46,6 +46,9 @@ const part = process.argv[3] === 'part' ? process.argv[4] : '0/1';
 const [pk, pn] = part.split('/').map(Number);
 if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-e2x: bad part ${part}`); process.exit(2); }
 const LAMBDA = 0.0223606797749979;
+// GATE5_RESEARCH (SPEED-A.md, the review of 9 Nov, items 7 and 10): research options, as JSON, added to the candidate's solves
+// alone (CAND and SPLIT), never the product's; printed as each case's `research` line. Unset or empty: none.
+const RX = process.env.GATE5_RESEARCH ? JSON.parse(process.env.GATE5_RESEARCH) : null;
 // e3 off: in the PRODUCT arm only - it is today's product solve as it ships (gate 5's reference), whose e3 is off; CAND and SPLIT carry RESEARCH_OPTS through CANDIDATE_OPTS (checked below)
 if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) { console.error('audit-e2x: the candidate does not carry RESEARCH_OPTS'); process.exit(2); }
 
@@ -77,6 +80,16 @@ const differ = (A, B) => { if (A.length !== B.length) return -1; let d = 0; for 
 const values = A => A.reduce((t, a) => t + a.length, 0);
 const secs = (t0) => ((Date.now() - t0) / 1000).toFixed(1);
 const load = () => loadavg().map(x => x.toFixed(2)).join(' ');
+// `audit-e2x.mjs <points> --bridge`: whether each household's solve builds the bridge reference (a 4-point probe on the light
+// lattice), one `gate5-bridge: <household> yes|no` line each (SPEED-A.md: item 10's rule 5 counts the households without)
+if (process.argv.includes('--bridge')) {
+  for (const id of PANEL) {
+    const h = caseOf(id), plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
+    const r = solveCandidate(E, M, plan, { lambda: LAMBDA, points: 4, adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } });
+    console.log(`gate5-bridge: ${id} ${r.g.reader && r.g.reader.adaptive ? 'yes' : 'no'}`);
+  }
+  process.exit(0);
+}
 
 console.log(`E2X: E2 SHOWN EXACT ON THE CANDIDATE, AND GATE 5 TIMED: ${PANEL.join(', ')} one at a time, ${POINTS} points; PRODUCT (solvePlan, one core), CAND (solveCandidate, one core), SPLIT (the candidate across ${PARTS} cores); host ${cpus().length} cores; part ${pk}/${pn}`);
 for (const [i, id] of PANEL.entries()) {
@@ -87,9 +100,10 @@ for (const [i, id] of PANEL.entries()) {
   console.log(`${id.padEnd(16)} case | points ${POINTS} | lambda ${LAMBDA} | parts ${PARTS}`);
   console.log(`${''.padEnd(16)} product points ${PPOINTS}`);
   console.log(`${''.padEnd(16)} candidate ${CANDIDATE_HASH}`);
-  const base = { lambda: LAMBDA, points: POINTS };
+  if (RX) console.log(`${''.padEnd(16)} research ${JSON.stringify(RX)}`);
+  const base = { lambda: LAMBDA, points: POINTS, ...(RX || {}) };
   let t0 = Date.now(), l0 = load();
-  const prod = solvePlan(E, M, plan, { ...base, points: PPOINTS });
+  const prod = solvePlan(E, M, plan, { lambda: LAMBDA, points: PPOINTS });
   const tP = secs(t0);
   if (prod.meta.bridgeRead || prod.meta.tierState || prod.g.pclsInterp) { console.error(`audit-e2x: ${id} PRODUCT ran a research setting`); process.exit(2); }
   console.log(`${''.padEnd(16)} time PRODUCT: secs ${tP} load ${l0}`);

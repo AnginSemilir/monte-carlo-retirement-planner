@@ -1,0 +1,18 @@
+# ITEM 6, STAGE B: A COUPLE'S SHARE OF THE SPENDING FROM THEIR POTS (solveCouple's opts.shareRule 'pots'; a research option, off;
+# the review of 9 Nov, item 6; D70, on stage A's read, results-share-a.txt). The test and its plant, on this commit's tree.
+
+## node research/tests/couple-share.test.mjs
+couple-share: a couple's share of the spending from their pots (the review of 9 Nov, item 6, stage B)
+PASS  1  shareFor on five couples worked by hand, and every library couple as held: 0.5  -- 60/40 0.5 (by hand 0.5); 45/55 0.5 (by hand 0.5); 75/25 0.75 (by hand 0.75); 90/10 0.9 (by hand 0.9); 100/0 0.95 (by hand 0.95); library couples off 0.5: 0 of 210
+PASS  2  the rule off: S007's tables the code before the option's, bit for bit; on, S007 as held (60/40): the same tables; meta records share and shareRule  -- off ee4875424b94acb8, on ee4875424b94acb8 against ee4875424b94acb8; meta off 0.5 half, on 0.5 pots
+PASS  3  S007 re-held 90/10 at 6 points, 200 paths: the rollout under the rule not more than 2 points below the rules arm  -- the share 0.9; the rules 85.5%, the rollout 98.5%: +13.0 points (target £56,400; 89 s)
+PASS  4  the refusals: a shareRule other than 'pots'; share and shareRule both given  -- solveCouple: shareRule 'even' is not 'pots'; solveCouple: share and shareRule both given
+
+couple-share: 4 passed, 0 failed
+
+## node research/tests/couple-share.test.mjs --planted (COUPLE.plant 'sharehalf': shareFor held at 0.5)
+plant sharehalf fails checks 1, 3 (expected 1, 3): exact
+under the plant, check 3: FAIL  3  S007 re-held 90/10 at 6 points, 200 paths: the rollout under the rule not more than 2 points below the rules arm  -- the share 0.5; the rules 85.5%, the rollout 74.0%: -11.5 points (target £56,400; 90 s)
+
+## fair-variables.mjs row 34 (D70's unlock)
+34. [D] A couple's share of the household's spending each person's table is solved on, and its rule

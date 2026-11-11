@@ -250,6 +250,30 @@
   "spawns": [],
   "nodeModules": false
  },
+ "couple-share.test.mjs": {
+  "read": [
+   "research/engine.mjs",
+   "research/policy-study/scenarios.mjs",
+   "research/solver/audit-share.mjs",
+   "research/solver/code-id.mjs",
+   "research/tests/couple-share.test.mjs",
+   "src/solver/adaptive.js",
+   "src/solver/couple.js",
+   "src/solver/fast.js",
+   "src/solver/grid.js",
+   "src/solver/model.js",
+   "src/solver/reader.js",
+   "src/solver/solve.js",
+   "src/solverApp.js",
+   "src/solverDigest.js",
+   "src/solverSettings.js"
+  ],
+  "probe": [],
+  "list": [],
+  "outdirs": [],
+  "spawns": [],
+  "nodeModules": false
+ },
  "diff.test.mjs": {
   "read": [
    "research/engine.mjs",
@@ -780,6 +804,7 @@
    "research/tests/couple-lockstep.test.mjs",
    "research/tests/couple-quick.test.mjs",
    "research/tests/couple-rank.test.mjs",
+   "research/tests/couple-share.test.mjs",
    "research/tests/couple-tables.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
@@ -1417,6 +1442,7 @@
    "src/solver/reader.js",
    "src/solver/solve.js",
    "src/solverApp.js",
+   "src/solverDigest.js",
    "src/solverSettings.js",
    "src/solverStrategy.js"
   ],
@@ -2267,6 +2293,7 @@
    "research/tests/couple-lockstep.test.mjs",
    "research/tests/couple-quick.test.mjs",
    "research/tests/couple-rank.test.mjs",
+   "research/tests/couple-share.test.mjs",
    "research/tests/couple-tables.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
@@ -2796,6 +2823,7 @@
    "research/solver/results-couple-lockstep.txt",
    "research/solver/results-couple-quick.txt",
    "research/solver/results-couple-rank.txt",
+   "research/solver/results-couple-share.txt",
    "research/solver/results-couple-tables.txt",
    "research/solver/results-couples-panel.txt",
    "research/solver/results-couples-pilot.txt",

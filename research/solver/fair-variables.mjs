@@ -43,6 +43,8 @@ export const VARIABLES = [
   { n: 23, g: 'D', name: 'Resilience and drift', where: '`WR`, `RESIL`, `DRIFT`', example: '' },
   { n: 24, g: 'D', name: 'The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim', where: '`FINALEXACT`, `SHAREDEAD`, `BRIDGEREAD`, `BLOCKTRIM`', example: '' },
   { n: 25, g: 'D', name: 'How it lands: bisection steps, level search', where: '`BISECT`, `TERNARY`', example: 'M6: five steps where eight were derived' },
+  // added on the maintainer's unlock of 10 Nov (D70; the review of 9 Nov, item 6, stage B)
+  { n: 34, g: 'D', name: "A couple's share of the household's spending each person's table is solved on, and its rule", where: '`share`, `shareRule` (couple.js solveCouple meta)', example: "the review of 9 Nov, item 6: each table on half where one person holds 90% of the pots reads ruin, and the rollout chooses blind" },
   { n: 26, g: 'E', name: "Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate)", where: '`ARMS`; engine config', example: '' },
   { n: 27, g: 'E', name: "How a fixed arm's withdrawal order is picked (the app's picker on the search paths)", where: '`pickFixed`; `label`', example: '' },
   { n: 28, g: 'F', name: 'Every file of a comparison made by the same code, or the change between them is the thing tested', where: '`code.hash`, `code.commit`; `solverVersion` is hand-set and was not bumped through the M17 fix or F1', example: 'the flex-mix pilot split across solver versions (21 Sep), hence `run-from-snapshot.sh`' },

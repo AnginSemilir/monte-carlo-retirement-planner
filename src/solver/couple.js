@@ -36,7 +36,10 @@
  * are that code); 'fullfloor', 'nohhfloor', 'baselayer', 'nocharge' and 'noheld' (couple-tables.test.mjs) each D2.3 gap it
  * names; 'ownmoney' D2.4's (each person's bridge read on their own money); 'nolock' D3's (couple-levers.test.mjs: the rollout
  * unlocked from each person's base); 'faststale' the review of 9 Nov's item 2 (couple-rank.test.mjs: the shared ranking given
- * the scores of the decision before).
+ * the scores of the decision before); 'sharehalf' the review's item 6 (couple-share.test.mjs: shareFor held at 0.5).
+ * opts.shareRule 'pots' (a research option, off; the review of 9 Nov, item 6, stage B; D70): each person's table solved on
+ * shareFor(plan) of the household's spending, not half: a person who cannot fund half alone has a table reading ruin
+ * everywhere, and the rollout then chooses blind. meta records share and shareRule.
  * COUPLE.fast (on; the review of 9 Nov, item 2, D66): rankFor ranks a person's moves from the scores their own table's chooser
  * leaves (chooseAction's shared scoring, the switch charged, in tab._sc and tab._bq), not by scoring every move again with
  * scoreMoves, wherever that is the same sum: a mixture with the exact final year, no lock and no Richardson table. Exact: every
@@ -53,6 +56,20 @@ export const COUPLE = { plant: '', fast: true, check: false };
    rankings differ (the first kept whole, to report) */
 export const COUPLE_CHECKED = { decisions: 0, fast: 0, differ: 0, first: null };
 const planted = (k) => COUPLE.plant !== '' && COUPLE.plant.split(',').includes(k);
+
+/* The first person's share of the household's spending their table is solved on, under opts.shareRule 'pots': 0.5 where the
+   first person holds 40% to 60% of the pots (D4 ran its couples, who hold 60/40, at 0.5), their share of the pots outside it,
+   held to 5% to 95%. The pots: every account of each person's (its id ending _self or _part). */
+export const SHARE_BAND = [0.4, 0.6], SHARE_HOLD = [0.05, 0.95];
+export function shareFor(plan) {
+  const of = w => (plan.accounts || []).filter(a => String(a.id).endsWith('_' + w)).reduce((t, a) => t + (Number(a.balance) || 0), 0);
+  const a = of('self'), b = of('part');
+  if (!(a + b > 0) || planted('sharehalf')) return 0.5;
+  const f = a / (a + b);
+  // the band's edges inclusive, past a sum's last-place rounding (a library couple's 60/40 is 0.6 to within 1e-12)
+  if (f >= SHARE_BAND[0] - 1e-9 && f <= SHARE_BAND[1] + 1e-9) return 0.5;
+  return Math.min(SHARE_HOLD[1], Math.max(SHARE_HOLD[0], f));
+}
 
 /* One person's plan, cut from the couple's: their wrappers and incomes, `share` of the household's spending. */
 export function singlePlanFor(plan, who, share = 0.5) {
@@ -104,7 +121,10 @@ export function ownerState(state, who) {
 export function solveCouple(E, M, plan, opts = {}) {
   const m0 = M.prepare(E, plan);
   if (!m0.ctx.isCouple) throw new Error('solveCouple takes a couple');
-  const share = opts.share !== undefined ? opts.share : 0.5;
+  if (opts.shareRule !== undefined && opts.shareRule !== 'pots') throw new Error(`solveCouple: shareRule '${opts.shareRule}' is not 'pots'`);
+  if (opts.shareRule === 'pots' && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
+  const shareRule = opts.shareRule === 'pots' ? 'pots' : 'half';
+  const share = opts.share !== undefined ? opts.share : shareRule === 'pots' ? shareFor(plan) : 0.5;
   const plans = {
     self: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'self', share))),
     part: E.resolveMpaa(E.normalizePlan(singlePlanFor(plan, 'part', 1 - share)))
@@ -129,7 +149,7 @@ export function solveCouple(E, M, plan, opts = {}) {
   // D2.4: each person's floor bills ahead to their pension access, where their table reads the bridge (the reader's years)
   const needOf = (tab) => (tab.g && tab.g.reader ? bridgeTable(E, tab.m, tab.c, Math.min(...tab.levelOf), 2).need : null);
   const need = { self: needOf(tables.self), part: needOf(tables.part) };
-  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points } };
+  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule } };
 }
 
 /*

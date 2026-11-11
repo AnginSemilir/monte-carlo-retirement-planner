@@ -1,0 +1,105 @@
+ITEM 7: WHERE THE SHORTLISTS' EXTRA POT COMES FROM (EXPLORATORY, seed 7002; SPEED-A's stored arrays, read by item7-potgap.mjs, item7-potcap.mjs and item7-potbelow.mjs on /home/user/speed-a's results/speed-7002, code 2ef2fb9bfeef; the estate cap: the default 'cap' shape, 4 x opening wealth in today's money, extra estate above it scored at zero)
+
+==== item7-potgap.mjs ====
+
+S030 (16000 paths): OFF pot mean £1,227,253, median £516,779, p10 £79,474, p90 £3,716,059
+  structure: mean gain £1,537 (0.13%), median path gain £0, p10 £-1,043, p90 £1,712; paths up 4685, down 5248, same 6067; median pot £516,557 (OFF £516,779); p10 £79,588
+    the mean gain by OFF's pot decile (lowest first, share of it): 2% -0% -1% -0% -3% -4% 5% 18% 26% 56%
+    the replay's differing decisions by kind: level 0, draw 54, isaFirst 31, harvest 56, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £1,517 (0.12%), median path gain £0, p10 £-4,075, p90 £6,533; paths up 6516, down 7622, same 1862; median pot £516,957 (OFF £516,779); p10 £79,774
+    the mean gain by OFF's pot decile (lowest first, share of it): 5% 3% 8% 4% -8% -1% -3% 11% 21% 60%
+    the replay's differing decisions by kind: level 4, draw 126, isaFirst 67, harvest 200, tierPen 3, tierIsa 3
+
+S050 (16000 paths): OFF pot mean £301,650, median £160,816, p10 £21,713, p90 £814,329
+  structure: mean gain £569 (0.19%), median path gain £0, p10 £-535, p90 £757; paths up 2638, down 2301, same 11061; median pot £161,157 (OFF £160,816); p10 £21,699
+    the mean gain by OFF's pot decile (lowest first, share of it): 1% 1% 0% 1% 5% 4% 8% 6% -6% 80%
+    the replay's differing decisions by kind: level 3, draw 26, isaFirst 14, harvest 17, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £2,235 (0.74%), median path gain £0, p10 £-1,791, p90 £6,201; paths up 4652, down 3460, same 7888; median pot £162,534 (OFF £160,816); p10 £21,729
+    the mean gain by OFF's pot decile (lowest first, share of it): 1% 1% 2% 4% 3% 5% 11% 11% 7% 54%
+    the replay's differing decisions by kind: level 11, draw 36, isaFirst 25, harvest 28, tierPen 4, tierIsa 4
+
+S090 (16000 paths): OFF pot mean £1,690,047, median £691,151, p10 £66,843, p90 £4,666,724
+  structure: mean gain £4,877 (0.29%), median path gain £0, p10 £-733, p90 £11,063; paths up 4604, down 3078, same 8318; median pot £692,664 (OFF £691,151); p10 £66,855
+    the mean gain by OFF's pot decile (lowest first, share of it): 1% -0% 1% 1% 2% 2% 4% 9% 9% 71%
+    the replay's differing decisions by kind: level 2, draw 66, isaFirst 53, harvest 35, tierPen 1, tierIsa 1
+  cells-held@0.005: mean gain £6,238 (0.37%), median path gain £0, p10 £-8,048, p90 £36,867; paths up 6607, down 5875, same 3518; median pot £691,309 (OFF £691,151); p10 £66,965
+    the mean gain by OFF's pot decile (lowest first, share of it): 2% 1% 3% 4% -1% -5% -1% 12% 14% 71%
+    the replay's differing decisions by kind: level 4, draw 104, isaFirst 108, harvest 151, tierPen 6, tierIsa 6
+
+S368 (16000 paths): OFF pot mean £5,268,890, median £4,182,931, p10 £770,232, p90 £10,600,488
+  structure: mean gain £6,449 (0.12%), median path gain £0, p10 £-194, p90 £8,322; paths up 2337, down 2023, same 11640; median pot £4,181,936 (OFF £4,182,931); p10 £770,232
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% -0% -0% -0% 1% -0% 0% 4% 25% 70%
+    the replay's differing decisions by kind: level 0, draw 53, isaFirst 0, harvest 42, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £-14,244 (-0.27%), median path gain £7,699, p10 £-9,432, p90 £99,365; paths up 11546, down 4447, same 7; median pot £4,182,291 (OFF £4,182,931); p10 £769,106
+    the mean gain by OFF's pot decile (lowest first, share of it): -1% -4% -13% -5% -8% 1% 0% 15% 25% 90%
+    the replay's differing decisions by kind: level 0, draw 91, isaFirst 122, harvest 136, tierPen 10, tierIsa 10
+
+S188 (16000 paths): OFF pot mean £2,689,203, median £1,444,732, p10 £60,170, p90 £6,422,526
+  structure: mean gain £-1,859 (-0.07%), median path gain £0, p10 £-29,816, p90 £52,577; paths up 6153, down 5833, same 4014; median pot £1,444,268 (OFF £1,444,732); p10 £60,073
+    the mean gain by OFF's pot decile (lowest first, share of it): -5% -9% 3% 14% -2% -47% -28% -58% 27% 205%
+    the replay's differing decisions by kind: level 3, draw 206, isaFirst 16, harvest 189, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £107,878 (4.01%), median path gain £2,669, p10 £-56,582, p90 £438,472; paths up 9034, down 4999, same 1967; median pot £1,498,300 (OFF £1,444,732); p10 £60,351
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% 1% 1% 2% 5% 9% 8% 7% 12% 55%
+    the replay's differing decisions by kind: level 49, draw 306, isaFirst 36, harvest 382, tierPen 68, tierIsa 68
+
+S304F (16000 paths): OFF pot mean £4,221,335, median £2,701,504, p10 £367,581, p90 £9,189,364
+  structure: mean gain £839 (0.02%), median path gain £0, p10 £-7,928, p90 £16,383; paths up 5881, down 5395, same 4724; median pot £2,702,460 (OFF £2,701,504); p10 £367,206
+    the mean gain by OFF's pot decile (lowest first, share of it): 3% -1% -3% -9% -17% 19% 32% 48% 57% -29%
+    the replay's differing decisions by kind: level 0, draw 130, isaFirst 69, harvest 94, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £-17,651 (-0.42%), median path gain £6,728, p10 £-111,857, p90 £136,055; paths up 9743, down 5346, same 911; median pot £2,660,599 (OFF £2,701,504); p10 £366,813
+    the mean gain by OFF's pot decile (lowest first, share of it): -8% -13% 7% 13% 23% 28% 17% -3% -0% 37%
+    the replay's differing decisions by kind: level 1, draw 166, isaFirst 143, harvest 276, tierPen 49, tierIsa 49
+
+S328F (16000 paths): OFF pot mean £4,805,261, median £2,135,877, p10 £41,436, p90 £10,663,286
+  structure: mean gain £192,960 (4.02%), median path gain £299, p10 £0, p90 £563,114; paths up 8234, down 1058, same 6708; median pot £2,143,382 (OFF £2,135,877); p10 £41,608
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% 0% 0% 0% 0% 1% 4% 10% 21% 63%
+    the replay's differing decisions by kind: level 0, draw 515, isaFirst 47, harvest 238, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £343,000 (7.14%), median path gain £5,470, p10 £-189, p90 £1,138,097; paths up 9631, down 1786, same 4583; median pot £2,144,900 (OFF £2,135,877); p10 £41,955
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% 0% 0% 0% 0% 1% 5% 14% 28% 51%
+    the replay's differing decisions by kind: level 3, draw 502, isaFirst 33, harvest 571, tierPen 5, tierIsa 5
+
+S340F (16000 paths): OFF pot mean £4,727,245, median £2,451,786, p10 £41,603, p90 £10,569,906
+  structure: mean gain £286,414 (6.06%), median path gain £3,149, p10 £-952, p90 £832,350; paths up 9118, down 2080, same 4802; median pot £2,457,531 (OFF £2,451,786); p10 £41,668
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% 0% 0% 0% 0% 1% 4% 9% 20% 67%
+    the replay's differing decisions by kind: level 2, draw 558, isaFirst 92, harvest 319, tierPen 0, tierIsa 0
+  cells-held@0.005: mean gain £429,890 (9.09%), median path gain £10,023, p10 £-1,969, p90 £1,326,714; paths up 11257, down 2930, same 1813; median pot £2,462,941 (OFF £2,451,786); p10 £41,741
+    the mean gain by OFF's pot decile (lowest first, share of it): 0% 0% 0% 0% 0% 1% 5% 12% 23% 59%
+    the replay's differing decisions by kind: level 4, draw 593, isaFirst 388, harvest 717, tierPen 5, tierIsa 5
+
+==== item7-potcap.mjs ====
+S030: opening wealth £950,000, cap £3,800,000 (today's money; the pot is in today's money too)
+  cap £3,800,000: OFF's paths above it 1529 (9.6%); structure: share of the gain on them 55%
+  cap £3,800,000: OFF's paths above it 1529 (9.6%); cells-held@0.005: share of the gain on them 59%
+S050: opening wealth £180,000, cap £720,000 (today's money; the pot is in today's money too)
+  cap £720,000: OFF's paths above it 2218 (13.9%); structure: share of the gain on them 83%
+  cap £720,000: OFF's paths above it 2218 (13.9%); cells-held@0.005: share of the gain on them 57%
+S090: opening wealth £950,000, cap £3,800,000 (today's money; the pot is in today's money too)
+  cap £3,800,000: OFF's paths above it 2517 (15.7%); structure: share of the gain on them 81%
+  cap £3,800,000: OFF's paths above it 2517 (15.7%); cells-held@0.005: share of the gain on them 85%
+S368: opening wealth £950,000, cap £3,800,000 (today's money; the pot is in today's money too)
+  cap £3,800,000: OFF's paths above it 8971 (56.1%); structure: share of the gain on them 99%
+  cap £3,800,000: OFF's paths above it 8971 (56.1%); cells-held@0.005: share of the gain on them 128%
+S188: opening wealth £950,000, cap £3,800,000 (today's money; the pot is in today's money too)
+  cap £3,800,000: OFF's paths above it 4376 (27.4%); structure: share of the gain on them 217%
+  cap £3,800,000: OFF's paths above it 4376 (27.4%); cells-held@0.005: share of the gain on them 73%
+S304F: opening wealth £450,000, cap £1,800,000 (today's money; the pot is in today's money too)
+  cap £1,800,000: OFF's paths above it 10587 (66.2%); structure: share of the gain on them 105%
+  cap £1,800,000: OFF's paths above it 10587 (66.2%); cells-held@0.005: share of the gain on them 106%
+S328F: opening wealth £450,000, cap £1,800,000 (today's money; the pot is in today's money too)
+  cap £1,800,000: OFF's paths above it 8841 (55.3%); structure: share of the gain on them 100%
+  cap £1,800,000: OFF's paths above it 8841 (55.3%); cells-held@0.005: share of the gain on them 99%
+S340F: opening wealth £450,000, cap £1,800,000 (today's money; the pot is in today's money too)
+  cap £1,800,000: OFF's paths above it 9399 (58.7%); structure: share of the gain on them 100%
+  cap £1,800,000: OFF's paths above it 9399 (58.7%); cells-held@0.005: share of the gain on them 100%
+
+==== item7-potbelow.mjs ====
+S030; structure: below the cap 0.09%, the pot as scored (capped) 0.06%; cells-held@0.005: below the cap 0.08%, the pot as scored (capped) 0.04%
+S050; structure: below the cap 0.06%, the pot as scored (capped) 0.03%; cells-held@0.005: below the cap 0.58%, the pot as scored (capped) 0.30%
+S090; structure: below the cap 0.13%, the pot as scored (capped) 0.06%; cells-held@0.005: below the cap 0.13%, the pot as scored (capped) 0.02%
+S368; structure: below the cap 0.01%, the pot as scored (capped) -0.00%; cells-held@0.005: below the cap 0.47%, the pot as scored (capped) 0.04%
+S188; structure: below the cap 0.27%, the pot as scored (capped) 0.02%; cells-held@0.005: below the cap 3.71%, the pot as scored (capped) 1.30%
+S304F; structure: below the cap -0.02%, the pot as scored (capped) -0.01%; cells-held@0.005: below the cap 0.37%, the pot as scored (capped) -0.20%
+S328F; structure: below the cap 0.35%, the pot as scored (capped) 0.06%; cells-held@0.005: below the cap 0.73%, the pot as scored (capped) 0.13%
+S340F; structure: below the cap 0.13%, the pot as scored (capped) 0.02%; cells-held@0.005: below the cap 0.38%, the pot as scored (capped) 0.06%
+POOLED structure: the mean pot 1.97%; on OFF's paths below the cap 0.13%; the pot as the solver scores it (capped) 0.02%
+POOLED cells-held@0.005: the mean pot 3.44%; on OFF's paths below the cap 0.98%; the pot as the solver scores it (capped) 0.22%

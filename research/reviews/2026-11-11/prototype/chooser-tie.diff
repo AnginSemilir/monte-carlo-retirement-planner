@@ -1,0 +1,20 @@
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -1922,9 +1922,17 @@
+    */
+   const tie = r.tieMargin || 0;
+   if (tie > 0) {
++    // PROTOTYPE (the external review, 11 Nov; EXPLORATORY): `tieSame` keeps the tie-break to the moves at the best move's
++    // spending level and tier pair, so it can change only which wrapper pays (the draw order and the re-wrap), never
++    // what the household spends or the risk it holds
++    const same = !!r.tieSame, tacts = r.c.acts, lv = r.levelOf;
++    // `tieAbove`: only where the household's wealth is already above the estate cap, which is where the tables put no
++    // value on a pound (the cap: the estate term at any larger sum)
++    if (r.tieAbove && !(s[0] + s[1] + s[2] > (r._cap || (r._cap = r.terminal.beqOf(1e18))))) return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, best) : best;
+     let pick = best, pickTx = TX[best], pickB = BQ[best];
+     for (let ai = 0; ai < n; ai++) {
+       if (SC[ai] < bestScore - tie) continue;
++      if (same && ((lv && lv[ai] !== lv[best]) || (tacts[ai].tierPen || 0) !== (tacts[best].tierPen || 0) || (tacts[ai].tierIsa || 0) !== (tacts[best].tierIsa || 0))) continue;
+       if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
+     }
+     return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, pick) : pick;

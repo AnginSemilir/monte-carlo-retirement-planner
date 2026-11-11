@@ -1,0 +1,40 @@
+--- a/src/solver/solve.js
++++ b/src/solver/solve.js
+@@ -1751,7 +1751,7 @@
+  * held (SHORT.layers 'held') or for every pair ('all'), with their neighbours one spending level either way (SHORT.levels),
+  * are scored at the exact position as before; every other move is left out. No move affordable: the whole menu, as before.
+  */
+-export const SHORT = { on: false, levels: true, layers: 'held', mode: 'cells', time: false, delta: null, probe: false, last: null, extra: null, stats: { decisions: 0, listed: 0, fallback: 0 } };
++export const SHORT = { on: false, levels: true, layers: 'held', mode: 'cells', time: false, delta: null, probe: false, last: null, extra: null, slice: false, after: null, stats: { decisions: 0, listed: 0, fallback: 0 } };
+ function shortSetup(r) {
+   const acts = r.actions, n = acts.length, ca = r.c.acts, groups = new Map();
+   acts.forEach((a, ai) => {
+@@ -1795,6 +1795,8 @@
+   if (SHORT.extra) for (const ai of SHORT.extra) add(ai);
+   if (SHORT.mode === 'structure' || SHORT.mode === 'order') { const G = SHORT.mode === 'order' ? S.order : S.struct, first = []; for (let ai = 0; ai < mask.length; ai++) if (mask[ai]) first.push(ai); for (const ai of first) for (const b of G[ai]) add(b); }
+   else if (SHORT.levels) { const first = []; for (let ai = 0; ai < mask.length; ai++) if (mask[ai]) first.push(ai); for (const ai of first) for (const b of S.nbr[ai]) add(b); }
++  // PROTOTYPE (the external review, 11 Nov): moves added after the widening, as they are (SHORT.slice, in chooseAction)
++  if (SHORT.after) for (const ai of SHORT.after) add(ai);
+   SHORT.stats.decisions++; SHORT.stats.listed += cnt;
+   return mask;
+ }
+@@ -1815,7 +1817,18 @@
+   return v;
+ }
+ export function chooseAction(r, s, t, held = null) {
+-  const ai = chooseActionCore(r, s, t, held);
++  let ai = chooseActionCore(r, s, t, held);
++  // PROTOTYPE (the external review, 11 Nov; EXPLORATORY): SHORT.slice. Where the tie-break above the estate cap is on and
++  // the household is above it, the shortlist is too short for the tie-break to work on: it holds a few draw orders, and the
++  // tie-break picks among the moves at one spending level and tier pair. So every move at the chosen move's level and
++  // tier pair joins the list and the decision is made again (a second scoring here; a port scores only the added moves)
++  if (SHORT.on && SHORT.slice && r._usedShort && r.tieMargin > 0 && r.tieAbove && s[0] + s[1] + s[2] > (r._cap || (r._cap = r.terminal.beqOf(1e18)))) {
++    const lv = r.levelOf, ca = r.c.acts, ex = [];
++    for (let k = 0; k < ca.length; k++) if ((!lv || lv[k] === lv[ai]) && (ca[k].tierPen || 0) === (ca[ai].tierPen || 0) && (ca[k].tierIsa || 0) === (ca[ai].tierIsa || 0)) ex.push(k);
++    SHORT.after = ex; SHORT.stats.sliced = (SHORT.stats.sliced || 0) + 1; SHORT.stats.slicedMoves = (SHORT.stats.slicedMoves || 0) + ex.length;
++    ai = chooseActionCore(r, s, t, held);
++    SHORT.after = null;
++  }
+   if (SHORT.on && r._usedShort) {
+     r._usedShort = false;
+     const vi = tableValueAt(r, s, t, held), best = r._sc[ai];

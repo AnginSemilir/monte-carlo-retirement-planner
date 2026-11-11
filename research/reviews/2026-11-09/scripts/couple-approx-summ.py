@@ -54,4 +54,8 @@ for name in order:
     print(f"  {name:42s} {min(xa):5.2f} to {max(xa):5.2f}   {min(xf):4.2f} to {max(xf):4.2f}  {s:5d} {l:5d}  {n:6d}     {100 * d:+.3f}              {100 * se:.3f}   {pot:+.2f}%    {sp:+.3f}%   {100 * mv / n:.0f}%")
     worst = min(rows, key=lambda r: (r['saved'] - r['lost']) / r['n'])
     potw = max(rows, key=lambda r: abs(r['pot']))
+    potl = min(rows, key=lambda r: r['pot'])
+    wd = (worst['saved'] - worst['lost']) / worst['n']
+    wse = math.sqrt(max(worst['saved'] + worst['lost'] - (worst['saved'] - worst['lost']) ** 2 / worst['n'], 0)) / worst['n']
     print(f"      the couple furthest down: {worst['id']} {worst['saved']} saved, {worst['lost']} lost of {worst['n']}; the largest change in the pot left: {potw['id']} {potw['pot']:+.2f}%")
+    print(f"      95% intervals (the paired difference, 1.96 se): pooled {100 * (d - 1.96 * se):+.3f} to {100 * (d + 1.96 * se):+.3f}; {worst['id']} {100 * wd:+.3f} ({100 * (wd - 1.96 * wse):+.3f} to {100 * (wd + 1.96 * wse):+.3f}); the lowest pot left: {potl['id']} {potl['pot']:+.2f}%")

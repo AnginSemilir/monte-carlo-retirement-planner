@@ -31,10 +31,25 @@ dated record, and the agent cites them by commit.
 - `ANSWERS-2026-11-11.md`: the review's answer to the agent's question of 11 Nov on how the couples' re-run should
   run (`research/solver/QUESTIONS-2026-11-11.md`): held until items 5 and 10 are ruled and item 11 is in; then on
   one session; S1 reported, not deciding. It also says why item 10's part 5 failed: the review's wording.
+- **Corrected later on 11 Nov,** on the maintainer's point that more pot at the same survival, spending and risk is
+  not a failure: `REVIEW.md` 2.4, item 12 and a note under item 7. The follow-up prompt for item 11 is replaced by
+  the one in `2026-11-11/ANSWERS.md`.
 - Its item 3 is a defect that changes a figure: the engine does not stack a year's incomes as HMRC does.
 - It adds to the launch plan and replaces none of it. Its stops are the launch plan's section 5 stops.
 - Its patches, scripts, test and outputs: `2026-11-09/prototype/`, `scripts/`, `tests/`, `results/`.
 - The held-out scan reads this folder and now adds S021, S085, S091 and S261 to `touched()` (`REVIEW.md`'s note).
+
+**The answers of 11 Nov on item 7's extra pot and the estate cap: `2026-11-11/ANSWERS.md`.**
+- It answers the agent's five questions (`research/solver/ITEM7-POT.md` on the working branch, and D72's on the
+  harvest ceiling). The extra pot is the whole menu paying avoidable tax above the estate cap, not the shortlist's
+  merit.
+- **Item 13:** a tie-break in the forward chooser, above the cap only (its experiment, decision rule and port). No
+  change of estate shape. Item 7 is read again in that batch, its pot part one-sided, with a small addition to the
+  shortlist (the slice).
+- The basic harvest ceiling should count the year's interest and dividends: an engine change, after the beta.
+- **It carries the prompt to send next,** which also covers item 11 and the couples' re-run.
+- Its patches, script and outputs: `2026-11-11/prototype/`, `scripts/`, `results/`. `2026-11-11/README.md` says how
+  to run and read them.
 
 **The new planner, step U's spec: `2026-11-03/LAYOUT.md`.**
 - The solver-first layout: four places (Your plan, You, What if, Details), and the classic planner kept for couples.

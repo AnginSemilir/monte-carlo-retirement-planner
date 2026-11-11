@@ -503,20 +503,30 @@ The joint options: one table read where the flat path makes two (`one`); the bri
 steps, not 9 and 10 (`thin4x3`); a pair with a second-ranked move tried only beside the first pair's best split
 (`near`). `order`, `structure` and `cells` are item 7's shortlist widths, here in each person's ranking.
 
-How to read it, against the rule the maintainer set for item 7 (survival's interval above -0.1 points, spending
-within 0.05 points, the pot left within 0.5%):
+How to read it, against item 7's rule (survival's interval above -0.1 points, no couple wholly below -0.3,
+spending within 0.05 points, the pot left not lower by more than 0.5%).
+
+*Corrected later on 11 Nov, on the maintainer's point that more pot at the same survival, spending and risk is not
+a failure.* I first read the pot part both ways and counted S391's higher pot against `structure` and `cells`.
+That was wrong, and the reading below no longer does. Why the pot rises, and what to do about it, is
+`../2026-11-11/ANSWERS.md`.
+
 - **The joint options alone are inside noise on every measure, and worth little:** nothing on a retired couple, 6%
   to 18% elsewhere. With `order` on they are worth 1.14 to 1.45 times, because the chooser no longer hides them.
 - **`order` is the one width that passed on singles** (the agent's read of 11 Nov: 2.1 times, the pot left +0.1%).
-  On couples it is 1.4 to 1.8 times, and it is not clearly inside noise. Every measure leans the wrong way: survival
-  -0.06 points (the interval -0.17 to +0.05), spending -0.07%, the pot -0.25%. S127 loses 12 paths and saves 5.
-  Spending is already past the rule's 0.05 (the table's figure is the change in the mean yearly spending delivered;
-  the rule's is in points of target, which is nearly the same thing for plans that deliver about their target).
-  Checking the shortlist's best move against the table's own value, as item 7 does for `cells`, does not help: on
-  S127, `order` with the check at 0.5 or at 0.2 points loses 11 and 10 paths and saves 5 and 4
-  (`results/out-couple-approx-45-S127-checked.txt`).
-- **`structure` and `cells` failed on singles for the pot left, and fail on couples more plainly.** Under
-  `structure` S127 loses 31 paths and saves 3. On S391 the pot left moves by +5.9% and +9.7%.
+  On couples it is 1.4 to 1.8 times and **undecided**. Every measure leans down, each by a little: survival -0.06
+  points (the interval -0.17 to +0.05), spending -0.07%, the pot -0.25%. S127 loses 12 paths and saves 5. Survival
+  and spending are inside D65's example of a loss worth taking (0.1%), and the pot is inside the rule's 0.5%. Only
+  the rule's 0.05 for spending is passed, and that figure was mine and is tighter than D65 (the table's figure is
+  the change in the mean yearly spending delivered; the rule's is in points of target, which is nearly the same
+  thing for plans that deliver about their target). Checking the shortlist's best move against the table's own
+  value, as item 7 does for `cells`, does not help: on S127, `order` with the check at 0.5 or at 0.2 points loses 11
+  and 10 paths and saves 5 and 4 (`results/out-couple-approx-45-S127-checked.txt`).
+- **`structure` and `cells` fail on couples, on survival and spending.** On S127 `structure` loses 31 paths and
+  saves 3 (-0.93 points, -1.31 to -0.55) and `cells` loses 24 and saves 4 (-0.67, -1.01 to -0.32): each interval
+  lies wholly below -0.3. `cells` also delivers 0.21% less spending. Their higher pot on S391 (+5.9% and +9.7%) does
+  not count against them. Their lower pot on S303@52 (-2.1% and -2.3%) would. The pot moves both ways because a
+  couple that ends above the estate cap has the same arbitrary choices up there as a single has.
 - **15,000 paths cannot pass any of them.** The pooled half-width is 0.11 to 0.13 points, wider than the rule's
   0.1. They can only show which are worth the proper experiment.
 
@@ -531,8 +541,8 @@ options: S007 158 ms to 40 (4.0 times), S303 292 to 62 (4.7), S127 442 to 57 (7.
 S303@52 1,087 to 90 (12.1).
 
 My recommendation: port the exact cut now (item 11). Port nothing else on this evidence. If a faster couple's path
-is still wanted afterwards, item 12 is the experiment; I would expect `order` to be marginal on spending and would
-not expect `structure` or `cells` to pass.
+is still wanted afterwards, item 12 is the experiment. `order` could pass it at D65's 0.1% and would be marginal at
+my 0.05 for spending. I would not expect `structure` or `cells` to pass, because of S127's survival.
 
 ### 2.5 Not prototyped
 

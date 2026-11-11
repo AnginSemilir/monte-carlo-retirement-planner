@@ -576,6 +576,12 @@ at D65's 0.1. It must be measured at 45 points: at 4 points `cells` loses 9.
 The pooled interval's half-width at 128,000 paths is about 0.03 points for `structure` and 0.06 for `cells`, at the
 discordance the review saw, so the rule can tell a loss of 0.1 from none.
 
+**Read on 11 Nov** (the agent's `results-speed-a.txt` and `ITEM7-POT.md`): `structure` and `cells` passed the first
+three parts and failed the fourth on a pot that was *higher* (+2.0% and +3.4%); `order` passed all four. The fourth
+part should have been one-sided: the maintainer's point, and the review agrees. The rule above is left as it was
+run. What the extra pot is, and item 7's second read with that part one-sided, are `../2026-11-11/ANSWERS.md`
+sections 1 and 3.
+
 **Outcomes.**
 - **Both pass:** the faster. **One passes:** that one.
 - **Neither:** measure `order` (every re-wrap too; 1.7 to 2.2 times) by the same rule, report, and stop.
@@ -930,12 +936,15 @@ Each arm ran against the flat path on the same 3,000 paths a couple, at 45 point
 
 - The joint options alone are inside noise on every measure and worth 0% to 18%. With `order` on they are worth
   1.14 to 1.45 times.
-- `order`, the one width that passed on singles, leans the wrong way on every measure here, and spending is past
-  the rule's 0.05. The couple furthest down is S127: 5 saved, 12 lost. The shortlist's check against the table's own
-  value does not change that (11 and 10 lost, 5 and 4 saved, at 0.5 and 0.2 points:
-  `results/out-couple-approx-45-S127-checked.txt`).
-- `structure` and `cells` fail plainly: S127 loses 31 and 24 paths and saves 3 and 4; S391's pot left moves by +5.9%
-  and +9.7%. They are not in the experiment below.
+- `order`, the one width that passed on singles, is undecided here. Every measure leans down by a little: survival
+  -0.06 points (-0.17 to +0.05), spending -0.07%, the pot -0.25% (S303@52: -0.8%). The couple furthest down is S127:
+  5 saved, 12 lost. The shortlist's check against the table's own value does not change that (11 and 10 lost, 5 and
+  4 saved, at 0.5 and 0.2 points: `results/out-couple-approx-45-S127-checked.txt`).
+- `structure` and `cells` fail on survival: S127 loses 31 and 24 paths and saves 3 and 4, each interval wholly below
+  -0.3 points. `cells` also delivers 0.21% less spending. They are not in the experiment below.
+- **Corrected later on 11 Nov.** I first counted S391's higher pot (+5.9% and +9.7%) against `structure` and `cells`.
+  On the maintainer's point that more pot at the same survival, spending and risk is not a failure, it no longer
+  counts, and part 4 of the rule below is one-sided. Where the extra pot comes from: `../2026-11-11/ANSWERS.md`.
 
 **Kind.** Approximate cuts under D65. An experiment, then the maintainer's ruling naming the run, then the port.
 Nothing here is ported on the review's 15,000 paths: they cannot tell a loss of 0.1 points from none.
@@ -968,11 +977,16 @@ unless set, under `COUPLE_APPROX`):
   the same paths saved and lost.
 - **Size:** about 13 core-hours.
 
-**The decision rule, committed before launch.** Item 7's four parts, read on the eight couples. An arm passes if:
+**The decision rule, committed before launch.** Item 7's four parts, read on the eight couples, with the pot part
+one-sided. An arm passes if:
 1. pooled, the paired survival difference's 95% interval has its lower end above -0.1 points;
 2. no couple's interval lies wholly below -0.3;
-3. pooled spending delivered is within 0.05 points of target of the whole menu's;
-4. the pooled mean pot left is within 0.5%.
+3. pooled spending delivered is not lower than the whole menu's by more than 0.05 points of target. That figure is
+   the review's and is tighter than D65's example of 0.1%: the maintainer sets it before launch;
+4. the pooled mean pot left is not lower by more than 0.5%, and no couple's by more than 1%;
+5. each person's tiers held, averaged over the decisions, are within 0.01 of the whole menu's. A higher pot passes
+   only with this: more pot from more risk is not kept. `scripts/couple-approx.mjs` does not tally the tiers yet:
+   add the tally first, as `../2026-11-11/scripts/chooser-tie.mjs` has it for a single.
 
 At 128,000 paths the pooled half-width is about 0.04 points at the discordance seen here (5 to 6 paths in 1,000).
 
@@ -1012,7 +1026,7 @@ At 128,000 paths the pooled half-width is about 0.04 points at the discordance s
 | M9 | Item 11 in (exact; no figure moves)? | Yes. Three hours, and every couples' run after it is 2 to 6 times cheaper a path. |
 | M10 | In the couples' re-run: S1 reported, not deciding, and SHIPC on the first 1,000 paths a unit (`ANSWERS-2026-11-11.md`)? | Yes. No couple has had SHIPC, and as a gate it can only take the candidate away. |
 | M11 | The re-run launched only after items 5 and 10 are ruled and item 11 is in, on one session? | Yes. One landing, one pilot, one design review; about 60 core-hours, not 188. |
-| M12 | Item 12's experiment on couples? | Only if you rule item 7's `order` on for singles and still want a faster couple's path. I would expect it to be marginal on spending. |
+| M12 | Item 12's experiment on couples? | Only if you rule item 7's `order` on for singles and still want a faster couple's path. It could pass at D65's 0.1% and would be marginal at the rule's 0.05 for spending. |
 
 ## The prompt for the agent
 
@@ -1090,6 +1104,9 @@ half a day for stage B. When one runs out, stop and report.
 ---
 
 ## The follow-up prompt for item 11 and the couples' re-run
+
+**Replaced later on 11 Nov** by the prompt at the end of `../2026-11-11/ANSWERS.md`, which carries this one's steps
+and the answers on item 7's pot. Send that one. This one is kept for the record.
 
 The maintainer sends it when ready. It adds to the earlier prompts and replaces none of them. It carries M9 to M11
 as I would answer them: change a line you rule differently before sending.

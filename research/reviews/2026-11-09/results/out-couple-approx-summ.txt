@@ -9,13 +9,19 @@
   arm                                        times as it is   times flat    saved  lost  of paths   difference (points)  se      pot left  spending  paths that differ
   whole+nodraw#200                            1.94 to  6.25   0.94 to 1.02      0     0    1000     +0.000              0.000   +0.00%    +0.000%   0%
       the couple furthest down: S007 0 saved, 0 lost of 200; the largest change in the pot left: S007 +0.00%
+      95% intervals (the paired difference, 1.96 se): pooled +0.000 to +0.000; S007 +0.000 (+0.000 to +0.000); the lowest pot left: S007 +0.00%
   whole+one+thin4x3+nodraw+near               1.98 to  7.02   1.00 to 1.18     13    12   15000     +0.007              0.033   -0.01%    -0.016%   49%
       the couple furthest down: S391 2 saved, 4 lost of 3000; the largest change in the pot left: S127 -0.08%
+      95% intervals (the paired difference, 1.96 se): pooled -0.059 to +0.072; S391 -0.067 (-0.227 to +0.093); the lowest pot left: S127 -0.08%
   order                                       3.48 to  8.75   1.42 to 1.76     33    42   15000     -0.060              0.058   -0.25%    -0.074%   88%
       the couple furthest down: S127 5 saved, 12 lost of 3000; the largest change in the pot left: S303@52:land -0.80%
+      95% intervals (the paired difference, 1.96 se): pooled -0.173 to +0.053; S127 -0.233 (-0.503 to +0.036); the lowest pot left: S303@52:land -0.80%
   order+one+thin4x3+nodraw+near               3.97 to 12.73   1.90 to 2.14     36    50   15000     -0.093              0.062   -0.26%    -0.089%   90%
       the couple furthest down: S127 6 saved, 12 lost of 3000; the largest change in the pot left: S303@52:land -0.79%
+      95% intervals (the paired difference, 1.96 se): pooled -0.214 to +0.028; S127 -0.200 (-0.477 to +0.077); the lowest pot left: S303@52:land -0.79%
   structure                                   5.28 to  7.44   1.18 to 2.67     37    61   15000     -0.160              0.066   +0.87%    -0.027%   94%
       the couple furthest down: S127 3 saved, 31 lost of 3000; the largest change in the pot left: S391 +5.90%
+      95% intervals (the paired difference, 1.96 se): pooled -0.289 to -0.031; S127 -0.933 (-1.313 to -0.554); the lowest pot left: S303@52:land -2.12%
   cells-held@0.005                            7.38 to 11.27   1.58 to 3.73     46    56   15000     -0.067              0.067   +2.74%    -0.214%   95%
       the couple furthest down: S127 4 saved, 24 lost of 3000; the largest change in the pot left: S391 +9.73%
+      95% intervals (the paired difference, 1.96 se): pooled -0.199 to +0.065; S127 -0.667 (-1.012 to -0.322); the lowest pot left: S303@52:land -2.29%

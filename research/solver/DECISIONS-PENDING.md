@@ -97,3 +97,9 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
   engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
   beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
+- **Item 5's experiment (EXPLORATORY, `ISA-SWEEP.md`, read 11 Nov: `results-isasweep.txt`).** All three parts of its rule hold,
+  so by its outcomes it comes here: a ruling naming the run would make `sweepCashIsaTo: 'isa'` the default (the sweep's cash
+  ISA money to the stocks and shares ISA, using no allowance, where today it goes to the taxable account), and the pages'
+  sweep line would name the ISA. Beside it, deciding nothing (D69): the pooled figures without S116. Until a ruling the
+  option stays off, and the couples' re-run registers on the code's default (`couples-d4b.md`, revised first if the ruling
+  comes before its launch).

@@ -15,6 +15,11 @@ Everything here is EXPLORATORY and decides nothing.
 | `scripts/root.mjs` | finds the copy to run on (`REPO_ROOT`) |
 | `results/` | every output, as the script printed it |
 
+**Item 12's stage A, run by the review** (added later on 11 Nov at the maintainer's request): `ITEM12-RUN.md` is
+its design, pushed before the run, and then its read. Its unit is `scripts/couple-approx-full.mjs` (with
+`scripts/plan-of.mjs`), its read `scripts/couple-approx-pool.py`, its outputs `results/item12/`. It runs on a copy
+with the three patches of `../2026-11-09/prototype` that item 12 names, not the two above.
+
 ## To run it
 
 On a copy of `claude/project-access-i58m0x` at 6331361 or 01825f2 (the candidate d71f65ae871e: item 3 in, item 10

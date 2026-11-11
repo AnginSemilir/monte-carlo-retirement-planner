@@ -1,0 +1,23 @@
+ITEM 13, STAGE A's PRECHECK (TIE-A.md; D76; EXPLORATORY): the review's check on S328F reproduced, 11 Nov
+
+A scratch tree at 6331361 (the candidate d71f65ae871e, before D73's port) with the review's three patches applied in its order
+(2026-11-09/prototype/shortlist.diff, 2026-11-11/prototype/chooser-tie.diff, 2026-11-11/prototype/shortlist-slice.diff, from
+review/external-2026-10-21 at eeb8ea0e): src/solver/solve.js sha256 prefix d910e98baa0da3c2 (the review's README: d910e98baa0da3c2).
+
+== REPO_ROOT=<the scratch tree> ARMS='whole+tieC@1e-4,structure+slice+tieC@1e-4' node chooser-tie.mjs S328F 45 3000
+S328F (as Phase 4 landed it) at 45 points (solve 458 s), seed 99004, 3000 paths, 61 years; opening wealth £450,000, the estate cap £1,800,000
+  whole menu: a path 70.1 ms; survival 92.30%; spending 101.713% of target; mean pot £4,594,823, capped £1,226,024; paths ending above the cap 1617 (53.9%); lifetime tax £398,543; tiers held on average 1.835 and 1.835, a re-wrap at 54.3% of decisions, the level chosen 102.71%
+  whole+tieC@1e-4                a path  68.2 ms | 0 saved, 0 lost (0.000 points, se 0.000) | spending +0.000 points of target | mean pot 23.19%, capped -0.05%, on the whole menu's paths below the cap -0.21% | lifetime tax -48.38% | paths with more pot 1310, with less 83 | tiers held on average 1.835 and 1.835, a re-wrap at 35.2% of decisions, the level chosen 102.71%
+  structure+slice+tieC@1e-4      a path  23.6 ms | 0 saved, 1 lost (-0.033 points, se 0.033) | spending -0.001 points of target | mean pot 23.54%, capped -0.02%, on the whole menu's paths below the cap 0.01% | lifetime tax -49.02% | paths with more pot 1577, with less 213 | tiers held on average 1.836 and 1.836, a re-wrap at 35.6% of decisions, the level chosen 102.71% | the slice: at 24.3% of decisions, 40.0 moves added on average
+
+== the review's own lines (results/out-chooser-tie-45-S328F-slice.txt)
+S328F (as Phase 4 landed it) at 45 points (solve 451 s), seed 99004, 3000 paths, 61 years; opening wealth £450,000, the estate cap £1,800,000
+  whole menu: a path 63.8 ms; survival 92.30%; spending 101.713% of target; mean pot £4,594,823, capped £1,226,024; paths ending above the cap 1617 (53.9%); lifetime tax £398,543; tiers held on average 1.835 and 1.835, a re-wrap at 54.3% of decisions, the level chosen 102.71%
+  whole+tieC@1e-4                a path  64.9 ms | 0 saved, 0 lost (0.000 points, se 0.000) | spending +0.000 points of target | mean pot 23.19%, capped -0.05%, on the whole menu's paths below the cap -0.21% | lifetime tax -48.38% | paths with more pot 1310, with less 83 | tiers held on average 1.835 and 1.835, a re-wrap at 35.2% of decisions, the level chosen 102.71%
+  structure+slice+tieC@1e-4      a path  25.9 ms | 0 saved, 1 lost (-0.033 points, se 0.033) | spending -0.001 points of target | mean pot 23.54%, capped -0.02%, on the whole menu's paths below the cap 0.01% | lifetime tax -49.02% | paths with more pot 1577, with less 213 | tiers held on average 1.836 and 1.836, a re-wrap at 35.6% of decisions, the level chosen 102.71% | the slice: at 24.3% of decisions, 40.0 moves added on average
+
+the same, every figure but the timings: the household and its cap
+the same, every figure but the timings: the whole menu
+the same, every figure but the timings: whole+tieC@1e-4
+the same, every figure but the timings: structure+slice+tieC@1e-4
+VERDICT: REPRODUCED (whole+tieC@1e-4: mean pot 23.19%, lifetime tax -48.38%, 0 saved, 0 lost; structure+slice+tieC@1e-4: mean pot 23.54%, 0 saved, 1 lost).

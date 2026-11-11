@@ -7,11 +7,17 @@
  *   2. unset or empty, D4_SHARD is 0/1: every chunk;
  *   3. the bad values are refused before anything runs: i >= n, n = 0, a sign, a letter, a missing part, three parts;
  *   4. the good values are taken: 0/1, 0/4, 3/4, 10/11.
+ * And the batch's other filter of chunk numbers, added with the revision of 11 Nov (D78: SHIPC runs the first 1,000 paths of
+ * each unit in the first stage and has no second-stage chunk whatever the stage gate decides), on its own line too:
+ *   5. ship_chunks names every number on a second-stage list that the audit's file list gives to a SHIPC unit, and none
+ *      where the list holds none; with the file list empty it names none and does not read the list as the file list.
  * Plant D4B_SHARD_PLANT=offbyone runs `$1 % n == i + 1` in place of the filter: check 1 fails (a chunk run twice or never).
+ * Plant D4B_SHARD_PLANT=noship has ship_chunks look for no SHIPC unit: check 5 fails (a SHIPC chunk on the list goes unseen).
  *   node research/tests/d4b-shard.test.mjs
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -55,6 +61,19 @@ const nums = out => out.split('\n').filter(Boolean).map(Number);
   const refused = ['0/1', '0/4', '3/4', '10/11'].filter(v => bash(v, INPUT).code !== 0);
   ok('4. the good values are taken (0/1, 0/4, 3/4, 10/11)', refused.length === 0, refused.join(', '));
 }
-console.log('EDGES: the last shard (3/4, 10/11) and i one below n taken, i equal to n refused, n of 0 refused, D4_SHARD empty or unset meaning all');
+// 5. the second stage's SHIPC filter, the script's own line, on a planted file list: one couple's units as the audit numbers
+// them (CANDC at both weights, SHIPC at both, APP; then the second stage's chunks)
+{
+  let line = pick(/^ship_chunks\(\) \{ awk /);
+  if (process.env.D4B_SHARD_PLANT === 'noship') line = line.replace('/-shipc-/', '/-nosuch-/');
+  const dir = mkdtempSync(join(tmpdir(), 'd4b-shard-')), uf = join(dir, 'unit-files.txt'), none = join(dir, 'none.txt');
+  const files = ['X-candc-w0.02-c0', 'X-candc-w0.01-c0', 'X-shipc-w0.02-c0', 'X-shipc-w0.01-c0', 'X-app-w--c0', 'X-candc-w0.02-c1', 'X-candc-w0.02-c2', 'X-candc-w0.02-c3', 'X-candc-w0.01-c1', 'X-candc-w0.01-c2', 'X-candc-w0.01-c3', 'X-app-w--c1'];
+  writeFileSync(uf, files.map((f, k) => `${k} ${f}.json.gz`).join('\n') + '\n'); writeFileSync(none, '');
+  const run = (list, f = uf) => { try { return execFileSync('bash', ['-c', `${line}\nship_chunks "$1"`, 'bash', f], { input: list.join('\n') + '\n', encoding: 'utf8' }).split('\n').filter(Boolean).join(','); } catch (e) { return `exit ${e.status}`; } };
+  const fair = run([5, 6, 7, 11]), planted = run([5, 3, 6, 2, 11]), empty = run([]), noList = run([5, 3], none);
+  rmSync(dir, { recursive: true, force: true });
+  ok('5. a second-stage list with SHIPC chunks on it has each named (3 and 2 of 5, 3, 6, 2, 11); CANDC\'s and APP\'s alone, or an empty list, none; an empty file list names none', fair === '' && planted === '3,2' && empty === '' && noList === '', `fair '${fair}', planted '${planted}', an empty list '${empty}', an empty file list '${noList}'`);
+}
+console.log('EDGES: the last shard (3/4, 10/11) and i one below n taken, i equal to n refused, n of 0 refused, D4_SHARD empty or unset meaning all; an empty second-stage list, an empty file list');
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

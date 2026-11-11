@@ -95,6 +95,15 @@ from a git worktree at the launch commit, where every relaunch under `RESUME=1` 
   finished log's third line (the couple, the unit, its cohort, its landed target and its paths: registered inputs), and on 9
   Nov five commands and one EXPLORATORY script printed that third line and timings only; no survival, estate, spending or other
   outcome of any unit has been printed or read by anyone. On that statement the maintainer kept the panel and the seed (D67).
-- **Budget:** to be measured (D21) from the pilot on this code, on this machine with nothing else running
-  (`results-couples-sizing-d4b.txt`).
+- **Budget:** measured (D21) from the pilot on this code (S011 and S301F, seed 7002, 1,000 paths a unit, the machine running
+  nothing else; `results-couples-sizing-d4b.txt`), each couple scaled from its cohort's pilot couple by its horizon: the first
+  stage 187.9 core-hours (200 chunks: the solves 25.7, the engine 150.4, the rollout beside 11.7), about 51 hours on four cores
+  in one session (5 windows of 12 hours under `RESUME=1`), about 13 hours over four sessions; the second stage from none (the
+  floor) to 484.9 core-hours if every couple and weight went on (the ceiling, about 129 hours on four cores); at the pilot
+  couples' own changes against APP (+9.0 to +10.2 points) every couple and weight stops at the first stage (the exact rule:
+  certain at those changes), so the expected run is about the first stage's. The longest chunk 2.63 hours (3.16 at a fifth
+  slower), inside the 12-hour limit. Against D4's 835.4 core-hours: item 2's faster path and item 9's two stages. On the
+  pilot's discordances every comparison against APP keeps D34's rates at 19,000 but S011's at W0.02 (12.46% at its bound, a
+  1-point loss read 0.897), which, as D61 rules, is named and reported if the run sees it; against SHIPC at the first stage's
+  5,000 paths a 1-point loss reads 0.926 to 0.970 (D34's one-stage rates hold up to a discordance of 3.25% at 5,000).
 - **Design review:** to come (research/solver/reviews/).

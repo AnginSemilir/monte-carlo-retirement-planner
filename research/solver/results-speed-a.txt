@@ -87,7 +87,7 @@ The solves, unit A, back to back on one core (CPU seconds; the bridge reference'
   S362   OFF 359.3 s (reference 69.2), ON 136.5 s (reference 76.4): 2.63 times; 446815 cells on a shortlist, 30.4 moves listed; a bridge year
   S366   OFF 435.0 s (reference 67.2), ON 134.3 s (reference 74.8): 3.24 times; 446815 cells on a shortlist, 34.7 moves listed; a bridge year
   S370   OFF 457.6 s (reference 66.9), ON 137.8 s (reference 75.2): 3.32 times; 446815 cells on a shortlist, 37.2 moves listed; a bridge year
-  5. the solve at least 5 times as fast on one core on every household without a bridge year: the units' own S030 6.70, S050 6.12, S090 7.00, S188 7.05, S224 7.10: HOLDS; gate 5's not yet measured
+  5. the solve at least 5 times as fast on one core on every household without a bridge year: the units' own S030 6.70, S050 6.12, S090 7.00, S188 7.05, S224 7.10: HOLDS; gate 5's : FAILS
 
 REF against OFF (S368, S304F, S328F, S340F, S362, S366, S370):
   S368   survival 99.80% / 99.80%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending 105.344% / 105.345% | pot £5,268,890 / £5,269,531 | a path 41.13 / 42.77 ms
@@ -124,5 +124,5 @@ ON+REF against OFF (S368, S304F, S328F, S340F, S362, S366, S370):
   S366   unit R on one core: OFF 458.9 s (reference 84.4), REF 391.0 s (reference 11.9), ON+REF 74.2 s (reference 11.7): ON+REF 6.19 times
   S370   unit R on one core: OFF 479.0 s (reference 77.1), REF 403.2 s (reference 13.0), ON+REF 73.9 s (reference 12.8): ON+REF 6.48 times
   ON+REF at least 5 times as fast as OFF on each: HOLDS
-ITEM 10 OUTCOME: ON PASSES 1 TO 4 AND 5 BY THE UNITS' OWN TIMES: gate 5's measurement to come. REF PASSES. no width of item 7 passed: not read.
+ITEM 10 OUTCOME: ON PASSES 1 TO 4 AND FAILS 5: the times to the maintainer; nothing ported. REF PASSES. no width of item 7 passed: not read.
 The run: the solves 3.6 core-hours; the paths 11.3; the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz

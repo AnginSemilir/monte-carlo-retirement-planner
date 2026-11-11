@@ -2979,6 +2979,7 @@
    "research/solver/results-gate-classic.txt",
    "research/solver/results-gate-new.txt",
    "research/solver/results-gate5-estimate.txt",
+   "research/solver/results-gate5-speed.txt",
    "research/solver/results-gate5.txt",
    "research/solver/results-gia-look.txt",
    "research/solver/results-grid-ceiling.txt",

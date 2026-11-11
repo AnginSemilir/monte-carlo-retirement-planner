@@ -28,10 +28,10 @@ singles' launch from 16 to 19; the figures fell with no work undone.
 | Phase 12, the beta's switch between the two planners | to 13 Nov | 2 | merged (pull request 10): the beta started | 2 |
 | Couples D1 to D3 | 13 to 19 Nov | 6 | built (`PART-D.md`), on the working branch | 6 |
 | Couples D4, pilot, registration and run | from 20 Nov, about a week | 7 | built, registered and ruled (D61), run from 7 Nov; stopped unread on 10 Nov with 76 of 520 chunks finished (D66), to run once more on the code after the review's items 2 to 5: the panel, the pilot and the sizing kept; the registration again (`couples-d4b.md`), the run and the read to come: 3 of its 6 items | 3.5 |
-| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 2 done (three hours of its own times); item 9 done (half a day); item 8's caption in (two hours); item 3 in (two and a half days), item 4 in (four hours) and item 5 in with its experiment read and to the maintainer (a day), all on the working branch, to `main` after the beta; item 6's stage A read and stage B in (of its day and seven-eighths, all but stage C, which waits on the re-run); item 7 to come (a day) | 6.525 |
-| The review's item 10, the solve on anchors and shortlists (D68) | its own times | 1.5 | its check against the review done on a scratch tree; stage A's rule, audit, batch and reducer committed with item 7's (`SPEED-A.md`), its batch next; stage B after the maintainer's ruling | 0.4 |
+| The review of 9 Nov, items 2 to 9 (D66) | its own times | 8 | item 2 done (three hours of its own times); item 9 done (half a day); item 8's caption in (two hours); item 3 in (two and a half days), item 4 in (four hours) and item 5 in with its experiment read and to the maintainer (a day), all on the working branch, to `main` after the beta; item 6's stage A read and stage B in (of its day and seven-eighths, all but stage C, which waits on the re-run); item 7 read (a day): neither width passes, so the item stops | 7.525 |
+| The review's item 10, the solve on anchors and shortlists (D68) | its own times | 1.5 | its check against the review done on a scratch tree; stage A (a day) run and read with gate 5 (`results-speed-a.txt`, `results-gate5-speed.txt`), to the maintainer; stage B (half a day) after a ruling naming the run | 1 |
 | Couples D5, the couples' screens in the new planner | estimate | 5 | not begun | 0 |
-| **Total** | | **46.5** | | **35.425 (76%)** |
+| **Total** | | **46.5** | | **37.025 (80%)** |
 
 The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them, 100%.
 
@@ -57,3 +57,4 @@ The singles' launch alone, Phase 12 ready, is the first 19 days: all 19 of them,
 | 10 Nov UTC | The review's item 2 ported (`COUPLE.fast`): a couple's path ranked from the shared scores, exact, `couple-rank.test.mjs` | 64% | 100% |
 | 10 Nov 16:30 UTC | Item 9 in (the two-stage rule's exact rates) and item 8's caption; item 10 added (D68), a day and a half; items 3 and 4 to the external review (item 4's STOP, item 3's pins) | 64% | 100% |
 | 11 Nov 01:05 UTC | Items 3, 4 and 5 committed (the engine's year in HMRC's order, relief on money the plan pays into a pension, the pages naming the sweep), item 6's stage B, item 5's experiment read (EXPLORATORY: passes, to the maintainer); items 7 and 10's stage A registered as exploratory and built | 76% | 100% |
+| 11 Nov 08:45 UTC | Items 7 and 10's stage A read with gate 5 (EXPLORATORY): item 7 stops (neither width passes); item 10's ON passes 1 to 4, the reducer's part 5 FAILS on gate 5's half (no gate 5 household without a bridge year), REF passes; to the maintainer | 80% | 100% |

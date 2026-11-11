@@ -1,0 +1,371 @@
+{
+ "built": "2026-11-10T23:39:50.816Z",
+ "code": "0b45e5f9f059",
+ "from": "couples-panel.json (D4), each couple landed again",
+ "touched": {
+  "count": 238,
+  "hash": "d639ac997267"
+ },
+ "panel": [
+  {
+   "id": "S011",
+   "base": "S011",
+   "cohort": "lib",
+   "target": 119900,
+   "survival": 84.6,
+   "label": "Bracket Fill Basic, lump sum",
+   "d4Target": 119900
+  },
+  {
+   "id": "S031",
+   "base": "S031",
+   "cohort": "lib",
+   "target": 68400,
+   "survival": 84.2,
+   "label": "Bracket Fill Basic",
+   "d4Target": 68100
+  },
+  {
+   "id": "S047",
+   "base": "S047",
+   "cohort": "lib",
+   "target": 119500,
+   "survival": 84.3,
+   "label": "Bracket Fill Basic",
+   "d4Target": 119500
+  },
+  {
+   "id": "S063",
+   "base": "S063",
+   "cohort": "lib",
+   "target": 35000,
+   "survival": 85,
+   "label": "Bracket Fill Basic, lump sum",
+   "d4Target": 35000
+  },
+  {
+   "id": "S083",
+   "base": "S083",
+   "cohort": "lib",
+   "target": 120800,
+   "survival": 84.8,
+   "label": "Windfall to ISA, lump sum",
+   "d4Target": 120800
+  },
+  {
+   "id": "S097",
+   "base": "S097",
+   "cohort": "lib",
+   "target": 16900,
+   "survival": 84.3,
+   "label": "Bracket Fill Basic (harvest off), lump sum",
+   "d4Target": 16900
+  },
+  {
+   "id": "S115",
+   "base": "S115",
+   "cohort": "lib",
+   "target": 58200,
+   "survival": 85.6,
+   "label": "Windfall to ISA",
+   "d4Target": 58800
+  },
+  {
+   "id": "S133",
+   "base": "S133",
+   "cohort": "lib",
+   "target": 14500,
+   "survival": 85.2,
+   "label": "ISA First, lump sum",
+   "d4Target": 14500
+  },
+  {
+   "id": "S149",
+   "base": "S149",
+   "cohort": "lib",
+   "target": 24000,
+   "survival": 85.8,
+   "label": "ISA First, lump sum",
+   "d4Target": 24400
+  },
+  {
+   "id": "S167",
+   "base": "S167",
+   "cohort": "lib",
+   "target": 97800,
+   "survival": 85,
+   "label": "Windfall to ISA, lump sum",
+   "d4Target": 97800
+  },
+  {
+   "id": "S189",
+   "base": "S189",
+   "cohort": "lib",
+   "target": 86200,
+   "survival": 84.89999999999999,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 86200
+  },
+  {
+   "id": "S205",
+   "base": "S205",
+   "cohort": "lib",
+   "target": 22400,
+   "survival": 84.7,
+   "label": "Bracket Fill Basic (harvest off), lump sum",
+   "d4Target": 22400
+  },
+  {
+   "id": "S223",
+   "base": "S223",
+   "cohort": "lib",
+   "target": 66300,
+   "survival": 85,
+   "label": "Bracket Fill Basic, lump sum",
+   "d4Target": 65400
+  },
+  {
+   "id": "S239",
+   "base": "S239",
+   "cohort": "lib",
+   "target": 114200,
+   "survival": 85.5,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 114200
+  },
+  {
+   "id": "S259",
+   "base": "S259",
+   "cohort": "lib",
+   "target": 83700,
+   "survival": 85.8,
+   "label": "Bracket Fill Basic, lump sum",
+   "d4Target": 86800
+  },
+  {
+   "id": "S277",
+   "base": "S277",
+   "cohort": "lib",
+   "target": 30800,
+   "survival": 85.7,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 31200
+  },
+  {
+   "id": "S293",
+   "base": "S293",
+   "cohort": "lib",
+   "target": 51500,
+   "survival": 85.7,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 51500
+  },
+  {
+   "id": "S371",
+   "base": "S371",
+   "cohort": "lib",
+   "target": 51300,
+   "survival": 84.39999999999999,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 51300
+  },
+  {
+   "id": "S387",
+   "base": "S387",
+   "cohort": "lib",
+   "target": 26000,
+   "survival": 84.7,
+   "label": "ISA First (harvest off), lump sum",
+   "d4Target": 26000
+  },
+  {
+   "id": "S403",
+   "base": "S403",
+   "cohort": "lib",
+   "target": 45600,
+   "survival": 85,
+   "label": "ISA First, lump sum",
+   "d4Target": 45600
+  },
+  {
+   "id": "S301F",
+   "base": "S301",
+   "cohort": "young",
+   "target": 20200,
+   "survival": 85.8,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 20200
+  },
+  {
+   "id": "S305F",
+   "base": "S305",
+   "cohort": "young",
+   "target": 33600,
+   "survival": 85.9,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 33600
+  },
+  {
+   "id": "S307F",
+   "base": "S307",
+   "cohort": "young",
+   "target": 63300,
+   "survival": 84.3,
+   "label": "Bracket Fill Basic, lump sum",
+   "d4Target": 63300
+  },
+  {
+   "id": "S309F",
+   "base": "S309",
+   "cohort": "young",
+   "target": 93200,
+   "survival": 85.9,
+   "label": "Bracket Fill Basic",
+   "d4Target": 96100
+  },
+  {
+   "id": "S311F",
+   "base": "S311",
+   "cohort": "young",
+   "target": 127700,
+   "survival": 84.5,
+   "label": "Bracket Fill Basic",
+   "d4Target": 127500
+  },
+  {
+   "id": "S317F",
+   "base": "S317",
+   "cohort": "young",
+   "target": 41600,
+   "survival": 85,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 41600
+  },
+  {
+   "id": "S319F",
+   "base": "S319",
+   "cohort": "young",
+   "target": 64800,
+   "survival": 85.8,
+   "label": "ISA First",
+   "d4Target": 68100
+  },
+  {
+   "id": "S321F",
+   "base": "S321",
+   "cohort": "young",
+   "target": 139200,
+   "survival": 84.8,
+   "label": "Bracket Fill Basic",
+   "d4Target": 140000
+  },
+  {
+   "id": "S323F",
+   "base": "S323",
+   "cohort": "young",
+   "target": 155300,
+   "survival": 84.7,
+   "label": "Bracket Fill Basic",
+   "d4Target": 155800
+  },
+  {
+   "id": "S325F",
+   "base": "S325",
+   "cohort": "young",
+   "target": 24400,
+   "survival": 84.89999999999999,
+   "label": "ISA First (harvest off)",
+   "d4Target": 24700
+  },
+  {
+   "id": "S327F",
+   "base": "S327",
+   "cohort": "young",
+   "target": 43700,
+   "survival": 85.8,
+   "label": "ISA First, lump sum",
+   "d4Target": 43900
+  },
+  {
+   "id": "S329F",
+   "base": "S329",
+   "cohort": "young",
+   "target": 40000,
+   "survival": 85.2,
+   "label": "ISA First, lump sum",
+   "d4Target": 40400
+  },
+  {
+   "id": "S331F",
+   "base": "S331",
+   "cohort": "young",
+   "target": 73400,
+   "survival": 85.5,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 75300
+  },
+  {
+   "id": "S333F",
+   "base": "S333",
+   "cohort": "young",
+   "target": 135300,
+   "survival": 84,
+   "label": "Bracket Fill Basic",
+   "d4Target": 144000
+  },
+  {
+   "id": "S335F",
+   "base": "S335",
+   "cohort": "young",
+   "target": 141500,
+   "survival": 85.39999999999999,
+   "label": "Bracket Fill",
+   "d4Target": 159100
+  },
+  {
+   "id": "S337F",
+   "base": "S337",
+   "cohort": "young",
+   "target": 23900,
+   "survival": 84.3,
+   "label": "ISA First",
+   "d4Target": 23900
+  },
+  {
+   "id": "S341F",
+   "base": "S341",
+   "cohort": "young",
+   "target": 40200,
+   "survival": 85.8,
+   "label": "Bracket Fill, lump sum",
+   "d4Target": 40300
+  },
+  {
+   "id": "S343F",
+   "base": "S343",
+   "cohort": "young",
+   "target": 72600,
+   "survival": 84.7,
+   "label": "Bracket Fill Basic",
+   "d4Target": 72800
+  },
+  {
+   "id": "S345F",
+   "base": "S345",
+   "cohort": "young",
+   "target": 132000,
+   "survival": 84.1,
+   "label": "Bracket Fill Basic",
+   "d4Target": 133300
+  },
+  {
+   "id": "S347F",
+   "base": "S347",
+   "cohort": "young",
+   "target": 138500,
+   "survival": 85.1,
+   "label": "Bracket Fill Basic",
+   "d4Target": 139600
+  }
+ ]
+}

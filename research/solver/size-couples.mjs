@@ -1,4 +1,12 @@
 /*
+ * THE RE-RUN (registrations/couples-d4b.md; the review of 9 Nov, items 1 and 9): the same pilot couples on the code after items
+ * 2 to 5, the paths at D61's 19,000 in item 9's two stages (every unit's first STAGE1, then the rest for each couple and weight
+ * whose CANDC survival there is below APP's plus STAGE_BAR points), the exact two-stage rates of each comparison against APP
+ * (size-phase4.mjs twoStageRate) and the one-stage rates against SHIPC at both stages' paths, and the budget: the first stage
+ * whole, the second for every couple and weight (the ceiling), for none (the floor), and as the pilot couples' own changes
+ * against APP would stop them (each couple taking its cohort's pilot couple's chance of stopping); written to
+ * couples-paths-d4b.json. D4's own sizing (one stage, couples-paths.json) as it was is in git.
+ *
  * PART D, D4'S PATHS AND BUDGET, FROM THE TWO-COUPLE PILOT (the launch plan's section 6, D4: "a two-couple pilot sizes the
  * run (D21) before any date is promised"), by the maintainer's harm rule (STATE.md D34) with Phase 4's exact rates
  * (size-phase4.mjs: harmRate, thresholdFor, sizeFor, normalCheck).
@@ -26,12 +34,12 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { tmpdir, cpus } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sizeFor, normalCheck, thresholdFor, harmRate } from './size-phase4.mjs';
+import { sizeFor, normalCheck, thresholdFor, harmRate, twoStageRate } from './size-phase4.mjs';
 import { clopperPearson } from './stats.mjs';
-import { CHUNKS_OF, unitsOf } from './audit-couples.mjs';
+import { chunksOf, rangeOf, unitsOf, STAGE1, STAGE_BAR } from './audit-couples.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const PATHS_FILE = join(HERE, 'couples-paths.json'), PANEL_N = 40, WEIGHTS = ['0.02', '0.01'];
+export const PATHS_FILE = join(HERE, 'couples-paths-d4b.json'), PANEL_N = 40, WEIGHTS = ['0.02', '0.01'], RUN_N = 19000;
 export const COMPS = WEIGHTS.flatMap(w => [[`APP/${w}`, `CANDC/${w}`, 'APP/-'], [`SHIPC/${w}`, `CANDC/${w}`, `SHIPC/${w}`]]);
 
 export function unitsIn(dir) {
@@ -56,10 +64,12 @@ export function sizePilot(U) {
 export function chunkSecs(U, panel, N, pilotOf, years) {
   const out = [];
   for (const [id, arm, w, j] of unitsOf(panel.map(h => h.id))) {
-    const h = panel.find(x => x.id === id), p = pilotOf[h.cohort], u = U[p][`${arm}/${w}`], f = years[id] / years[p], J = CHUNKS_OF[arm];
+    const [lo, hi] = rangeOf(N, arm, j);
+    if (hi <= lo) continue;
+    const h = panel.find(x => x.id === id), p = pilotOf[h.cohort], u = U[p][`${arm}/${w}`], f = years[id] / years[p];
     const solve = u.solveSecs * f, beside = j === 0 && u.beside ? u.beside.secs * f : 0, rest = Math.max(0, u.secs - u.solveSecs - u.engineSecs - (u.beside ? u.beside.secs : 0));
-    const lo = Math.floor((j * N) / J), hi = Math.floor(((j + 1) * N) / J), engine = (u.engineSecs / u.N) * f * (hi - lo);
-    out.push({ id, arm, w, j, solve, engine, beside, rest, secs: solve + engine + beside + rest, msPath: 1000 * (u.engineSecs / u.N) * f });
+    const engine = (u.engineSecs / u.N) * f * (hi - lo);
+    out.push({ id, arm, w, j, stage: j === 0 ? 1 : 2, solve, engine, beside, rest, secs: solve + engine + beside + rest, msPath: 1000 * (u.engineSecs / u.N) * f });
   }
   return out;
 }
@@ -68,6 +78,16 @@ export function budgetOf(chunks) {
   const B = { total: 0, solve: 0, engine: 0, beside: 0, arms: {} };
   for (const c of chunks) { B.total += c.secs; B.solve += c.solve; B.engine += c.engine; B.beside += c.beside; const a = (B.arms[c.arm] ||= { secs: 0, longest: 0 }); a.secs += c.secs; a.longest = Math.max(a.longest, c.secs); }
   return B;
+}
+/* the second stage's chunks a couple and weight runs if it goes on (CANDC and SHIPC at that weight), and APP's (run where
+   either weight goes on); each couple and weight's chance of going on, pOn[id|w]: the expected core-seconds of the second stage */
+export function stage2Expected(chunks, pOn) {
+  let e = 0;
+  for (const c of chunks.filter(c => c.stage === 2)) {
+    if (c.arm === 'APP') { const a = pOn[`${c.id}|0.02`], b = pOn[`${c.id}|0.01`]; e += c.secs * (1 - (1 - a) * (1 - b)); }
+    else e += c.secs * pOn[`${c.id}|${c.w}`];
+  }
+  return e;
 }
 /* the batch under the harness's limit: the units in order, `slots` at a time, each window `win` seconds; a unit running when its
    window closes is cut off and run again whole in the next window, with every unit not yet done, in the same order */
@@ -111,8 +131,11 @@ function planted() {
   cases.push(['each couple sized at its comparisons\' upper bounds; the run at the larger', `${S.H1.N === sizeFor([clopperPearson(180, n)[1], clopperPearson(40, n)[1], clopperPearson(180, n)[1], clopperPearson(40, n)[1]]).N} ${N === S.H2.N} ${S.H2.N >= S.H1.N}`, 'true true true']);
   // the budget: each unit from its cohort's pilot couple, scaled by the years, a solve in each chunk, the rollout in the first
   const panelP = [{ id: 'P1', cohort: 'lib' }, { id: 'P2', cohort: 'young' }], years = { H1: 28, H2: 61, P1: 56, P2: 61 }, C = chunkSecs(U, panelP, 16000, { lib: 'H1', young: 'H2' }, years);
-  const want = [2, 1].reduce((s, f) => s + 2 * (CHUNKS_OF.CANDC * (600 * f + 1) + 0.9 * f * 16000 + 450 * f) + 2 * (CHUNKS_OF.SHIPC * (200 * f + 1) + 0.45 * f * 16000 + 220 * f) + (1 + 0.0005 * f * 16000), 0);
-  cases.push(['the budget: each unit scaled by its years from its cohort\'s pilot couple, a solve in every chunk, the rollout in the first', `${C.length} ${Math.abs(budgetOf(C).total - want) < 1e-6}`, `${2 * (2 * CHUNKS_OF.CANDC + 2 * CHUNKS_OF.SHIPC + 1)} true`]);
+  const want = [2, 1].reduce((s, f) => s + 2 * (chunksOf('CANDC') * (600 * f + 1) + 0.9 * f * 16000 + 450 * f) + 2 * (chunksOf('SHIPC') * (200 * f + 1) + 0.45 * f * 16000 + 220 * f) + (chunksOf('APP') * 1 + 0.0005 * f * 16000), 0);
+  cases.push(['the budget: each unit scaled by its years from its cohort\'s pilot couple, a solve in every chunk, the rollout in the first', `${C.length} ${Math.abs(budgetOf(C).total - want) < 1e-6}`, `${2 * (2 * chunksOf('CANDC') + 2 * chunksOf('SHIPC') + chunksOf('APP'))} true`]);
+  { const all = Object.fromEntries(['P1', 'P2'].flatMap(id => WEIGHTS.map(w => [`${id}|${w}`, 1]))), none = Object.fromEntries(Object.keys(all).map(k => [k, 0])), half = { ...none, 'P1|0.02': 1 };
+    const s2 = C.filter(c => c.stage === 2).reduce((a, c) => a + c.secs, 0), app = C.filter(c => c.stage === 2 && c.id === 'P1' && c.arm === 'APP').reduce((a, c) => a + c.secs, 0), p1c = C.filter(c => c.stage === 2 && c.id === 'P1' && c.w === '0.02' && c.arm !== 'APP').reduce((a, c) => a + c.secs, 0);
+    cases.push(['the second stage expected: all of it when every couple and weight goes on, none when none does, and one weight going on runs its two arms and APP', `${Math.abs(stage2Expected(C, all) - s2) < 1e-6} ${stage2Expected(C, none)} ${Math.abs(stage2Expected(C, half) - (p1c + app)) < 1e-6}`, 'true 0 true']); }
   const h7 = 7 * 3600, S7 = scheduleOf(Array(5).fill({ secs: h7 }));
   cases.push(['the schedule: five 7-hour units on four cores, the fifth cut off at 12 hours and run again in a second window', `${S7.windows} ${S7.hours} ${S7.lost / 3600}`, '2 19 5']);
   let threw = false; try { scheduleOf([{ secs: 13 * 3600 }]); } catch { threw = true; }
@@ -135,40 +158,53 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const dir = process.argv[2] || join(HERE, 'results', 'd4-pilot'), U = unitsIn(dir), S = sizePilot(U);
   const missing = Object.entries(S).filter(([, s]) => s.missing);
   if (missing.length) { console.log(`size-couples: units missing: ${missing.map(([id, s]) => `${id} ${s.missing.join(',')}`).join('; ')}`); process.exit(1); }
-  const N = Number(process.env.D4_N) || Math.max(...Object.values(S).map(s => s.N)), panel = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel;
-  console.log(`D4's sizing from the pilot (${dir.replace(/.*research\/solver\//, '')}; ${Object.keys(U).length} couples, seed ${Object.values(Object.values(U)[0])[0].seed}, ${Object.values(Object.values(U)[0])[0].N} paths a unit; ${cpus()[0].model})`);
+  const N = RUN_N, n1 = Math.min(STAGE1, N), panel = JSON.parse(readFileSync(join(HERE, 'couples-panel-d4b.json'), 'utf8')).panel;
+  const any = Object.values(Object.values(U)[0])[0];
+  console.log(`THE RE-RUN'S SIZING from its pilot (${dir.replace(/.*research\/solver\//, '')}; ${Object.keys(U).length} couples, seed ${any.seed}, ${any.N} paths a unit; ${cpus()[0].model}), on the code after items 2 to 5; the paths at D61's ${N} in item 9's two stages, the first ${n1}, the bar +${STAGE_BAR} points against APP`);
   for (const [id, s] of Object.entries(S)) {
-    console.log(`  ${id}: sized at ${s.N} paths`);
-    for (const [i, c] of s.comps.entries()) { const r = s.rows[i], nc = normalCheck(r.d, s.N); console.log(`    CANDC less ${c.cmp.padEnd(10)} discordant ${c.k} of ${c.n} (${(100 * c.dHat).toFixed(2)}%, upper 95% ${(100 * c.dUp).toFixed(2)}%): threshold ${r.t.toFixed(4)} points at ${s.N}, false alarm at a quarter-point loss ${r.fp.toFixed(4)}, a 1-point loss read ${r.tp.toFixed(4)}; the normal check's threshold ${nc.t.toFixed(4)}, paths ${nc.nNeeded}`); }
+    console.log(`  ${id}: D34's one-stage size ${s.N} paths (beside; the run is at D61's ${N})`);
+    for (const c of s.comps) {
+      const d = Math.max(c.dUp, 0.0101), app = c.cmp.startsWith('APP');
+      if (app) {
+        const t = thresholdFor(d, N), two = D => twoStageRate(d, N, t, D, n1, STAGE_BAR), one = D => harmRate(d, N, t, D);
+        console.log(`    CANDC less ${c.cmp.padEnd(10)} discordant ${c.k} of ${c.n} (${(100 * c.dHat).toFixed(2)}%, upper 95% ${(100 * c.dUp).toFixed(2)}%): the threshold at ${N} ${t.toFixed(4)} points; two stages: a quarter-point loss read as harm ${two(0.25).flag.toFixed(4)}, a 1-point loss ${two(1).flag.toFixed(4)} (one stage at ${N}: ${one(0.25).toFixed(4)}, ${one(1).toFixed(4)})`);
+      } else {
+        const at = n => { const t = thresholdFor(d, n); return `at ${n} the threshold ${t.toFixed(4)}, a quarter-point loss ${harmRate(d, n, t, 0.25).toFixed(4)}, a 1-point loss ${harmRate(d, n, t, 1).toFixed(4)}`; };
+        console.log(`    CANDC less ${c.cmp.padEnd(10)} discordant ${c.k} of ${c.n} (${(100 * c.dHat).toFixed(2)}%, upper 95% ${(100 * c.dUp).toFixed(2)}%): one stage, read at the paths its couple and weight ran: ${at(n1)}; ${at(N)}`);
+      }
+    }
   }
-  console.log(`  the run: every couple at ${N} paths (${process.env.D4_N ? 'the maintainer\'s ruling; D34\'s size the larger of the pilot couples\', ' + Math.max(...Object.values(S).map(s => s.N)) : 'the larger of the pilot couples\''}); each couple's thresholds at the read from its own realised discordance at ${N}, by the same exact rates`);
-  for (const n of [N, 8000]) console.log(`  at ${n} paths a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of ${(100 * tpLimit(n)).toFixed(2)}%; above it the rate falls (at 15%: ${harmRate(0.15, n, thresholdFor(0.15, n), 1).toFixed(3)}, at 20%: ${harmRate(0.2, n, thresholdFor(0.2, n), 1).toFixed(3)})`);
+  console.log(`  the run: every couple at ${N} paths (D61), in two stages (item 9): after ${n1} paths a couple and weight whose CANDC survival is ${STAGE_BAR} points or more above APP's stops and is read as not harmed against APP; every other runs to ${N} and is read by D34's rule at ${N}, its rates the exact two-stage rates above; each couple's thresholds at the read from its own realised discordance`);
+  console.log(`  at ${N} paths a true 1-point loss reads as harm at least 90% of the time (one stage) up to a discordance (its upper bound) of ${(100 * tpLimit(N)).toFixed(2)}%; at ${n1}, ${(100 * tpLimit(n1)).toFixed(2)}%`);
+  // the two stages at the pilot's own changes against APP: how often a couple and weight stops, and the paths it uses
+  const pStop = {};
+  for (const [id, u] of Object.entries(U)) for (const w of WEIGHTS) {
+    const c = u[`CANDC/${w}`], a = u['APP/-'], x = bits(c), y = bits(a), n = Math.min(x.length, y.length);
+    let sc = 0, sa = 0, k = 0; for (let i = 0; i < n; i++) { sc += x[i]; sa += y[i]; if (x[i] !== y[i]) k++; }
+    const G = (100 * (sc - sa)) / n, dd = Math.max(k / n, 0.0101), r = twoStageRate(dd, N, thresholdFor(Math.max(clopperPearson(k, n)[1], 0.0101), N), -G, n1, STAGE_BAR);
+    pStop[`${id}|${w}`] = r.stop;
+    console.log(`  pilot ${id} W${w}: CANDC less APP ${G >= 0 ? '+' : ''}${G.toFixed(2)} points on ${n} paths (discordant ${(100 * k / n).toFixed(2)}%): were that its true change, it stops at the first stage ${(100 * r.stop).toFixed(1)}% of the time, ${Math.round(r.paths)} paths on average`);
+  }
   // the pilot couples' own times, each arm, and the horizons that scale them
-  const { readPanel } = await import('./couple-panel.mjs'), E = await import('../engine.mjs');
-  const full = readPanel(), years = Object.fromEntries(full.map(h => [h.id, E.buildContext(E.resolveMpaa(E.normalizePlan(h.plan))).totalYears + 1]));
+  const { readPanel } = await import('./couple-panel.mjs'), E = await import('../engine.mjs'), { PANEL_FILE } = await import('./audit-couples.mjs');
+  const full = readPanel(PANEL_FILE), years = Object.fromEntries(full.map(h => [h.id, E.buildContext(E.resolveMpaa(E.normalizePlan(h.plan))).totalYears + 1]));
   const pilotOf = Object.fromEntries(['lib', 'young'].map(co => [co, Object.keys(U).find(id => panel.find(h => h.id === id).cohort === co)]));
   for (const id of Object.keys(U)) console.log(`  pilot ${id} (${years[id]} years): ${Object.entries(U[id]).sort().map(([k, u]) => `${k} the solve ${Math.round(u.solveSecs)} s, the engine ${(1000 * u.engineSecs / u.N).toFixed(1)} ms a path${u.beside ? `, beside ${Math.round(u.beside.secs)} s` : ''}`).join('; ')}`);
   { const a = U[pilotOf.young]['CANDC/0.02'], b = U[pilotOf.lib]['CANDC/0.02']; console.log(`  the younger pilot couple's candidate engine ${(a.engineSecs / a.N / (b.engineSecs / b.N)).toFixed(2)} times the library one's a path (${years[pilotOf.young]} years against ${years[pilotOf.lib]}: ${(years[pilotOf.young] / years[pilotOf.lib]).toFixed(2)} times the years)`); }
   const ys = co => full.filter(h => h.cohort === co).map(h => years[h.id]);
   console.log(`  the horizons: library ${Math.min(...ys('lib'))} to ${Math.max(...ys('lib'))} years (mean ${(ys('lib').reduce((s, x) => s + x, 0) / 20).toFixed(1)}; the pilot's ${years[pilotOf.lib]}), younger ${Math.min(...ys('young'))} to ${Math.max(...ys('young'))} (the pilot's ${years[pilotOf.young]}); each unit scaled from its cohort's pilot couple by its years`);
-  for (const n of [N, 8000]) {
-    const C = chunkSecs(U, full, n, pilotOf, years), B = budgetOf(C), S = scheduleOf(C), long = C.reduce((m, c) => (c.secs > m.secs ? c : m));
-    console.log(`  the budget at ${n} paths over ${PANEL_N} couples, ${C.length} units (CANDC in ${CHUNKS_OF.CANDC} chunks, SHIPC in ${CHUNKS_OF.SHIPC}, APP whole): ${(B.total / 3600).toFixed(1)} core-hours (the solves ${(B.solve / 3600).toFixed(1)}, a solve in each chunk; the engine ${(B.engine / 3600).toFixed(1)}; the rollout beside it ${(B.beside / 3600).toFixed(1)}); ${Object.entries(B.arms).map(([k, a]) => `${k} ${(a.secs / 3600).toFixed(1)}`).join(', ')}`);
-    // the budget's spread: every couple at the younger pilot couple's rate a year (the library pilot couple reads no bridge
-    // year, the younger one six a person), and the pilot's engine time with E.runTrial's check on its first 200 paths in it
-    { const Cy = chunkSecs(U, full, n, { lib: pilotOf.young, young: pilotOf.young }, years), By = budgetOf(Cy), Sy = scheduleOf(Cy), u0 = U[pilotOf.lib]['CANDC/0.02'], chk = (Math.min(200, u0.N) + u0.N) / u0.N;
-      console.log(`    its spread: at the younger pilot couple's rate a year for every couple ${(By.total / 3600).toFixed(1)} core-hours, ${Sy.windows} windows, about ${Sy.hours.toFixed(0)} hours; the pilot's engine times include E.runTrial on ${Math.min(200, u0.N)} of its ${u0.N} paths, up to ${chk.toFixed(2)} times the engine's alone if the check costs a path's run (the engine's part then ${(B.engine / chk / 3600).toFixed(1)} core-hours)`); }
-    console.log(`    the longest unit ${(long.secs / 3600).toFixed(2)} hours (${long.id} ${long.arm}/${long.w} chunk ${long.j}); at a fifth slower ${(1.2 * long.secs / 3600).toFixed(2)}, inside the 12-hour limit; on four cores in 12-hour windows: ${S.windows} windows, about ${S.hours.toFixed(0)} hours (${(S.hours / 24).toFixed(1)} days), ${(S.lost / 3600).toFixed(1)} core-hours cut off at a window's end and run again`);
-  }
-  // the pooled items' se at the run's size, from the pilot's (its two couples, its paths): between the couples' paths moving
-  // independently (the se falls with the square root of the couples as well) and moving together (with the paths alone)
+  // the budget: the first stage whole; the second for every couple and weight (the ceiling), none (the floor), and expected at
+  // each couple taking its cohort pilot couple's chance of stopping at each weight
+  const C = chunkSecs(U, full, N, pilotOf, years), B1 = budgetOf(C.filter(c => c.stage === 1)), B2 = budgetOf(C.filter(c => c.stage === 2));
+  const pOn = Object.fromEntries(full.flatMap(h => WEIGHTS.map(w => [`${h.id}|${w}`, 1 - pStop[`${pilotOf[h.cohort]}|${w}`]])));
+  const e2 = stage2Expected(C, pOn), long = C.reduce((m, c) => (c.secs > m.secs ? c : m));
+  const sch = cs => scheduleOf(cs), S1s = sch(C.filter(c => c.stage === 1)), S2s = sch(C.filter(c => c.stage === 2));
+  console.log(`  the budget (D21: measured from the pilot's units on this machine, nothing else running), over ${PANEL_N} couples: the first stage ${(B1.total / 3600).toFixed(1)} core-hours (${C.filter(c => c.stage === 1).length} chunks; the solves ${(B1.solve / 3600).toFixed(1)}, the engine ${(B1.engine / 3600).toFixed(1)}, the rollout beside ${(B1.beside / 3600).toFixed(1)}), on four cores ${S1s.windows} windows, about ${S1s.hours.toFixed(0)} hours`);
+  console.log(`    the second stage: every couple and weight going on (the ceiling) ${(B2.total / 3600).toFixed(1)} core-hours (${C.filter(c => c.stage === 2).length} chunks, about ${S2s.hours.toFixed(0)} hours on four cores); none (the floor) 0; expected at the pilot couples' own changes against APP ${(e2 / 3600).toFixed(1)}`);
+  console.log(`    in all: from ${(B1.total / 3600).toFixed(1)} to ${((B1.total + B2.total) / 3600).toFixed(1)} core-hours, expected ${((B1.total + e2) / 3600).toFixed(1)}; the longest chunk ${(long.secs / 3600).toFixed(2)} hours (${long.id} ${long.arm}/${long.w} chunk ${long.j}), at a fifth slower ${(1.2 * long.secs / 3600).toFixed(2)}, inside the 12-hour limit`);
+  // the pooled items' se from the pilot's, read on the first stage's paths
   { const R = await import('./reduce-couples.mjs'), PU = R.loadDir(dir), pp = panel.filter(h => PU[h.id]), n0 = Object.values(Object.values(PU)[0])[0].N;
-    for (const w of ['0.02', '0.01']) { const it = R.itemsAt(PU, pp, w); console.log(`  W${w} the pilot's se (${pp.length} couples, ${n0} paths): S1 ${it.S1.se.toFixed(4)}, A1 ${it.A1.se.toFixed(4)} points, A2 ${it.A2.se.toFixed(4)}%; over ${PANEL_N} couples, S1's ${[N, 8000].map(n => `at ${n} paths from ${(it.S1.se * Math.sqrt(pp.length / PANEL_N) * Math.sqrt(n0 / n)).toFixed(3)} to ${(it.S1.se * Math.sqrt(n0 / n)).toFixed(3)}`).join(', ')} (against its bar of -0.1)`); } }
-  for (const n of [4000, 8000, 16000]) {
-    // D34's rates at this size, each pilot comparison at its upper bound: the threshold, and how often a true 1-point loss reads as harm
-    const rates = Object.entries(S).flatMap(([id, s]) => s.comps.map(c => { const d = Math.max(c.dUp, 0.0101), th = thresholdFor(d, n); return `${id} ${c.cmp} ${harmRate(d, n, th, 1).toFixed(2)}`; }));
-    console.log(`    at ${n} paths a unit, a true 1-point loss read as harm: ${rates.join(', ')}`);
-  }
-  writeFileSync(PATHS_FILE, JSON.stringify({ built: new Date().toISOString(), N, rule: 'every couple at N; thresholds at the read from each couple\'s realised discordance (Clopper-Pearson upper 95%) by size-phase4.mjs thresholdFor', paths: Object.fromEntries(panel.map(h => [h.id, N])) }, null, 1) + '\n');
-  console.log(`  written: couples-paths.json (${panel.length} couples at ${N})`);
+    for (const w of ['0.02', '0.01']) { const it = R.itemsAt(PU, pp, w); console.log(`  W${w} the pilot's se (${pp.length} couples, ${n0} paths): S1 ${it.S1.se.toFixed(4)}, A1 ${it.A1.se.toFixed(4)} points, A2 ${it.A2.se.toFixed(4)}%; over 40 couples on the first stage's ${n1} paths, S1's from ${(it.S1.se * Math.sqrt(n0 / n1) / Math.sqrt(40 / pp.length)).toFixed(3)} to ${(it.S1.se * Math.sqrt(n0 / n1)).toFixed(3)} (against its bar of -0.1)`); } }
+  writeFileSync(PATHS_FILE, JSON.stringify({ built: new Date().toISOString(), N, n1, bar: STAGE_BAR, rule: `every couple at N in two stages: after n1 paths a couple and weight whose CANDC survival is bar points or more above APP's stops (read as not harmed against APP); every other runs to N; thresholds at the read from each couple's realised discordance (Clopper-Pearson upper 95%) by size-phase4.mjs thresholdFor, at N against APP (the exact two-stage rates) and at the paths run against SHIPC`, paths: Object.fromEntries(panel.map(h => [h.id, N])) }, null, 1) + '\n');
+  console.log(`  written: couples-paths-d4b.json (${panel.length} couples at ${N}, the first stage ${n1})`);
 }

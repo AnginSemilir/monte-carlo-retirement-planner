@@ -83,8 +83,8 @@ export function armAAt(h, cohort, target) {
   return { survival: E.monteCarlo(E.buildContext(E.resolveMpaa(a.planState)), { trials: LAND_PATHS, seed: LAND_SEED }).successRate, label: a.label };
 }
 
-export function readPanel() {
-  const j = JSON.parse(readFileSync(PANEL_FILE, 'utf8')), all = couplesOf();
+export function readPanel(file = PANEL_FILE) {
+  const j = JSON.parse(readFileSync(file, 'utf8')), all = couplesOf();
   return j.panel.map(r => ({ ...r, plan: planOf(all.find(s => s.id === r.base), r.cohort, r.target) }));
 }
 

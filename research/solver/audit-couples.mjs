@@ -25,7 +25,15 @@
  * design review of 7 Nov, MINOR 5); the check against E.runTrial and the rollout beside run on the unit's first paths, in its
  * first chunk. Each chunk's arrays go to results/d4-run (D4_OUT), stamped with the code, the files in STAMP_FILES and the
  * Node version; the read joins a unit's chunks.
+ * THE RE-RUN (registrations/couples-d4b.md; the review of 9 Nov, items 1 and 9; D66, D67): the same 40 couples landed again on
+ * the code after items 2 to 5 (couples-panel-d4b.json), the same seed, and item 9's two stages: every unit's first STAGE1 paths
+ * (its chunk 0), then, for each couple and weight whose CANDC survival on them is below APP's plus STAGE_BAR points
+ * (stage-couples.mjs, the registered stage gate, into the run's stage2.json), the rest of its N in CHUNKS2[arm] chunks (CANDC,
+ * SHIPC at that weight, and APP where either weight goes on); a couple and weight at or above the bar stops there.
  *   node research/solver/audit-couples.mjs registered part k/n         the registered run (seed SEED, each couple's paths)
+ *   node research/solver/audit-couples.mjs --unit-files                each chunk's number and the arrays file it writes
+ *   node research/solver/audit-couples.mjs --stage-units 1             the stage-1 units' numbers, one a line
+ *   node research/solver/audit-couples.mjs --stage-units 2 <stage2.json>  the stage-2 units' numbers for the couples going on
  *   node research/solver/audit-couples.mjs <paths> part k/n <seed>     the pilot (D4_PILOT=1) or a preflight
  *   node research/solver/audit-couples.mjs --units                     the unit count (chunks)
  *   node research/solver/audit-couples.mjs --planted                   the audit's own checks on planted cases
@@ -38,7 +46,7 @@ import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { solveCouple, withCouple, runCouplePolicy } from '../../src/solver/couple.js';
 import { solveForApp, appPlan as appSolverPlan, prepareForSolve, APP_CANDIDATE } from '../../src/solverApp.js';
 import { hashOf } from './candidate.mjs';
-import { readPanel, appPlan, PANEL_FILE } from './couple-panel.mjs';
+import { readPanel, appPlan } from './couple-panel.mjs';
 import { armA } from './select-phase4.mjs';
 import { runPath, inputsHash, solverPlanOf } from './audit-phase4.mjs';
 import { codeId } from './code-id.mjs';
@@ -57,27 +65,41 @@ export const WEIGHTS = ['0.02', '0.01'], CHECK = 200, BESIDE = 500;
 export const CHUNKS_OF = { CANDC: 4, SHIPC: 2, APP: 1 };
 /* the paths a chunk runs, [lo, hi) of the unit's N */
 export const chunkRange = (N, J, j) => [Math.floor((j * N) / J), Math.floor(((j + 1) * N) / J)];
+/* item 9's two stages (couples-d4b.md): chunk 0 is the first STAGE1 paths; chunks 1 to CHUNKS2[arm] split [STAGE1, N) evenly */
+export const STAGE1 = 5000, STAGE_BAR = 0.5, CHUNKS2 = { CANDC: 3, SHIPC: 1, APP: 1 };
+export const chunksOf = arm => 1 + CHUNKS2[arm];
+export const rangeOf = (N, arm, j) => {
+  const n1 = Math.min(STAGE1, N);
+  if (j === 0) return [0, n1];
+  const K = CHUNKS2[arm], R = N - n1;
+  return [n1 + Math.floor(((j - 1) * R) / K), n1 + Math.floor((j * R) / K)];
+};
 /* the adaptive reference's lattice as the candidate sets it (APP_CANDIDATE.adaptiveLattice); 'unbuilt' where no bridge year
    was read */
 export const LATTICE = '160x41x128+foot+stepAll';
-export const PATHS_FILE = join(HERE, 'couples-paths.json'), REGISTRATION = 'research/solver/registrations/couples-d4.md';
+export const PATHS_FILE = join(HERE, 'couples-paths-d4b.json'), REGISTRATION = 'research/solver/registrations/couples-d4b.md';
+/* the re-run's panel: D4's 40 couples landed again (couple-panel.mjs reland); D4_PANEL another, for a pilot or preflight alone */
+export const PANEL_FILE = process.env.D4_PANEL || join(HERE, 'couples-panel-d4b.json');
 /* the files the stamp hashes, in this order (batch-couples.sh's AUDIT hashes the same list): this audit, the panel's code and arm
    A's, the code it borrows from Phase 4, the app's solve and its settings (CANDC's whole configuration), the candidate's hash,
    the frozen orders, the panel, the paths, and the read with the code it borrows, its provenance check (fair-gate.mjs) and
    audit-phase4.mjs's own import (the design reviews of 7 Nov: the first's BLOCKING 2, the second's MINOR 3) */
-export const STAMP_FILES = ['audit-couples.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', '../../src/solverApp.js', '../../src/solverSettings.js', 'candidate.mjs', 'research-opts.mjs', 'couples-orders.json', 'couples-panel.json', 'couples-paths.json', 'reduce-couples.mjs', 'reduce-phase4.mjs', 'size-phase4.mjs', 'size-couples.mjs', 'stats.mjs', 'fair-gate.mjs', 'audit-7uf-checks.mjs'];
+export const STAMP_FILES = ['audit-couples.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'audit-phase4.mjs', 'phase4-panel.mjs', '../../src/solverApp.js', '../../src/solverSettings.js', 'candidate.mjs', 'research-opts.mjs', 'couples-orders.json', 'couples-panel-d4b.json', 'couples-paths-d4b.json', 'reduce-couples.mjs', 'reduce-phase4.mjs', 'size-phase4.mjs', 'size-couples.mjs', 'stats.mjs', 'fair-gate.mjs', 'audit-7uf-checks.mjs', 'stage-couples.mjs'];
 /* each solver arm's configuration, hashed as state.mjs prints it: CANDC the candidate (candidate.mjs hashOf over the app's own
    settings, APP_CANDIDATE), SHIPC the product's settings (sha256 of PRODUCT_BASELINE); the audit refuses any other */
 export const CONFIG = { CANDC: 'd71f65ae871e', SHIPC: '07c069b6e330' };
 export const configOf = arm => (arm === 'CANDC' ? hashOf(APP_CANDIDATE) : createHash('sha256').update(JSON.stringify(PRODUCT_BASELINE)).digest('hex').slice(0, 12));
 export function stampFilesHash() {
   const h = createHash('sha256');
-  for (const f of STAMP_FILES) { const p = f === 'couples-panel.json' ? PANEL_FILE : join(HERE, f); if (existsSync(p)) h.update(readFileSync(p)); }
+  for (const f of STAMP_FILES) { const p = f === 'couples-panel-d4b.json' ? PANEL_FILE : join(HERE, f); if (existsSync(p)) h.update(readFileSync(p)); }
   return h.digest('hex').slice(0, 12);
 }
-/* the units, the longest first: CANDC at both weights, then SHIPC, then APP; each in its chunks */
-export const unitsOf = ids => [...ids.flatMap(id => WEIGHTS.map(w => [id, 'CANDC', w])), ...ids.flatMap(id => WEIGHTS.map(w => [id, 'SHIPC', w])), ...ids.map(id => [id, 'APP', '-'])]
-  .flatMap(([id, arm, w]) => Array.from({ length: CHUNKS_OF[arm] }, (_, j) => [id, arm, w, j]));
+/* the units: every unit's stage-1 chunk first, then the stage-2 chunks; within each, CANDC at both weights, then SHIPC, then APP
+   (the longest first) */
+const unitList = ids => [...ids.flatMap(id => WEIGHTS.map(w => [id, 'CANDC', w])), ...ids.flatMap(id => WEIGHTS.map(w => [id, 'SHIPC', w])), ...ids.map(id => [id, 'APP', '-'])];
+export const unitsOf = ids => [...unitList(ids).map(([id, arm, w]) => [id, arm, w, 0]), ...unitList(ids).flatMap(([id, arm, w]) => Array.from({ length: CHUNKS2[arm] }, (_, j) => [id, arm, w, j + 1]))];
+/* the stage-2 chunks a stage gate's decision runs: CANDC and SHIPC at each weight going on, APP where either does */
+export const goesOn = (on, id, arm, w) => (arm === 'APP' ? on.some(x => x.id === id) : on.some(x => x.id === id && x.w === w));
 export const fileOf = (id, arm, w, j = 0) => `${id}-${arm.toLowerCase()}-w${w}-c${j}.json.gz`;
 /* the cost years: each one-off cost's year as the engine's year index */
 export const costYearsOf = ctx => [...new Set([...(ctx.oneOffCosts instanceof Map ? ctx.oneOffCosts.keys() : [])].map(y => Number(y) - ctx.baseYear).filter(t => t >= 0 && t <= ctx.totalYears))].sort((a, b) => a - b);   // the engine keeps a Map of year to amount
@@ -125,10 +147,12 @@ function planted() {
   cases.push(['the cost years from the engine\'s Map, those outside the horizon left out; a plain object none', `${costYearsOf(ctx).join(',')} ${costYearsOf({ ...ctx, oneOffCosts: { 2029: 5000 } }).length}`, '3 0']);
   const young = { owners: [{ age0: 37, retireAge: 52 }, { age0: 34, retireAge: 52 }] };
   cases.push(['retired in year t when either person is at their retirement age (37 and 34, retiring at 52: not in year 3 or 14, in year 15)', `${retiredAt(young, 3)} ${retiredAt(young, 14)} ${retiredAt(young, 15)}`, 'false false true']);
-  const covers = (N, J) => { const r = Array.from({ length: J }, (_, j) => chunkRange(N, J, j)); return r[0][0] === 0 && r[J - 1][1] === N && r.every(([a, b], j) => a <= b && (j === 0 || a === r[j - 1][1])); };
-  cases.push(['the chunks cover a unit\'s paths once, in order (19,000 in four and two, 7 in four, 3 in one)', `${covers(19000, 4)} ${covers(19000, 2)} ${covers(7, 4)} ${covers(3, 1)}`, 'true true true true']);
-  const U = unitsOf(['X', 'Y']), per = k => U.filter(u => u.slice(0, 3).join('/') === k).length;
-  cases.push(['the units: each arm in its chunks, the longest first', `${U.length} ${per('X/CANDC/0.02')} ${per('X/SHIPC/0.01')} ${per('Y/APP/-')} ${U[0][1]} ${U[U.length - 1][1]}`, '26 4 2 1 CANDC APP']);
+  const covers = (N, arm) => { const J = chunksOf(arm), r = Array.from({ length: J }, (_, j) => rangeOf(N, arm, j)); return r[0][0] === 0 && r[0][1] === Math.min(STAGE1, N) && r[J - 1][1] === N && r.every(([a, b], j) => a <= b && (j === 0 || a === r[j - 1][1])); };
+  cases.push(['the two stages\' chunks cover a unit\'s paths once, in order (19,000: CANDC, SHIPC, APP; 5,000 and 7 paths)', `${covers(19000, 'CANDC')} ${covers(19000, 'SHIPC')} ${covers(19000, 'APP')} ${covers(5000, 'CANDC')} ${covers(7, 'CANDC')} ${rangeOf(19000, 'CANDC', 0).join('-')} ${rangeOf(19000, 'CANDC', 3).join('-')}`, 'true true true true true 0-5000 14333-19000']);
+  const U = unitsOf(['X', 'Y']), per = k => U.filter(u => u.slice(0, 3).join('/') === k).length, firstTwo = U.findIndex(u => u[3] > 0);
+  cases.push(['the units: every stage-1 chunk first, then each arm\'s stage-2 chunks, the longest first', `${U.length} ${firstTwo} ${per('X/CANDC/0.02')} ${per('X/SHIPC/0.01')} ${per('Y/APP/-')} ${U[0][1]} ${U[firstTwo - 1][1]} ${U[U.length - 1][1]}`, '28 10 4 2 2 CANDC APP APP']);
+  const on = [{ id: 'X', w: '0.01' }];
+  cases.push(['a stage gate\'s decision runs CANDC and SHIPC at the weight going on and APP, nothing else', `${U.filter(([id, arm, w, j]) => j > 0 && goesOn(on, id, arm, w)).map(([id, arm, w]) => `${id}${arm[0]}${w === '-' ? '' : w.slice(-1)}`).join(',')}`, 'XC1,XC1,XC1,XS1,XA']);
   let bad = 0;
   for (const [nm, got, w] of cases) { const ok = got === w; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${nm}: ${got}${ok ? '' : ` (want ${w})`}`); }
   console.log('EDGES: a lattice unbuilt, a cost year past the horizon, a year with no one retired, a chunk of nought paths');
@@ -138,8 +162,17 @@ function planted() {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
-  const panel = readPanel(), byId = Object.fromEntries(panel.map(h => [h.id, h]));
+  const panel = readPanel(PANEL_FILE), byId = Object.fromEntries(panel.map(h => [h.id, h]));
   if (args[0] === '--units') { console.log(`over ${panel.length} couples:`); console.log(unitsOf(panel.map(h => h.id)).length); process.exit(0); }
+  // each chunk's number and the arrays file it writes (backup-chunks.sh: a log is read for its done line alone)
+  if (args[0] === '--unit-files') { unitsOf(panel.map(h => h.id)).forEach(([id, arm, w, j], k) => console.log(`${k} ${fileOf(id, arm, w, j)}`)); process.exit(0); }
+  if (args[0] === '--stage-units') {
+    const U = unitsOf(panel.map(h => h.id));
+    if (args[1] === '1') U.forEach((u, k) => { if (u[3] === 0) console.log(k); });
+    else if (args[1] === '2') { const on = JSON.parse(readFileSync(args[2], 'utf8')).continue; U.forEach(([id, arm, w, j], k) => { if (j > 0 && goesOn(on, id, arm, w)) console.log(k); }); }
+    else { console.error('audit-couples: --stage-units 1, or 2 <stage2.json>'); process.exit(2); }
+    process.exit(0);
+  }
   if (args[0] === '--planted') process.exit(planted() ? 1 : 0);
   const REGISTERED = args[0] === 'registered', PILOT = process.env.D4_PILOT === '1';
   if (REGISTERED && (process.env.D4_ONLY || process.env.D4_W || process.env.D4_ARMS || process.env.D4_PTS || process.env.D4_PANEL || process.env.D4_PILOT)) { console.error('audit-couples: the registered run takes no limits'); process.exit(2); }
@@ -151,17 +184,18 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const nOf = id => (REGISTERED ? pathsOf[id] : Number(args[0]));
   const only = process.env.D4_ONLY ? new Set(process.env.D4_ONLY.split(',')) : null, arms = process.env.D4_ARMS ? new Set(process.env.D4_ARMS.split(',')) : null;
   const UNITS = unitsOf(panel.map(h => h.id).filter(id => !only || only.has(id))).filter(([, arm, w]) => (!arms || arms.has(arm)) && (!process.env.D4_W || w === '-' || w === process.env.D4_W));
-  const OUT = process.env.D4_OUT || join(HERE, 'results', REGISTERED ? 'd4-run' : PILOT ? 'd4-pilot' : 'd4-preflight');
+  const OUT = process.env.D4_OUT || join(HERE, 'results', REGISTERED ? 'd4b-run' : PILOT ? 'd4-pilot' : 'd4-preflight');
   mkdirSync(OUT, { recursive: true });
   const cid = codeId(), STAMP = { code: cid ? cid.hash : 'unknown', audit: stampFilesHash(), prediction: process.env.PREDICTION_FILE || 'NOT-LAUNCHED', sha: process.env.PREDICTION_SHA || '-', node: process.version };
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);   // fair-gate.mjs LOG_STAMP
-  console.log(`D4${REGISTERED ? '' : PILOT ? ' (THE PILOT)' : ' (A PREFLIGHT)'}: APP, CANDC (${CAND_PTS} points) and SHIPC (${SHIP_PTS} points) at the estate weights ${WEIGHTS.join(' and ')}; seed ${SEED_RUN}; ${UNITS.length} units; part ${pk}/${pn}; node ${STAMP.node}`);
+  console.log(`D4B${REGISTERED ? '' : PILOT ? ' (THE PILOT)' : ' (A PREFLIGHT)'}: APP, CANDC (${CAND_PTS} points) and SHIPC (${SHIP_PTS} points) at the estate weights ${WEIGHTS.join(' and ')}; seed ${SEED_RUN}; ${UNITS.length} units; part ${pk}/${pn}; node ${STAMP.node}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const surv = A => (100 * A.survived.reduce((a, x) => a + x, 0) / A.survived.length);
 
   UNITS.forEach(([id, arm, w, j], i) => {
     if (i % pn !== pk) return;
-    const J = CHUNKS_OF[arm], h = byId[id], N = nOf(id), [lo, hi] = chunkRange(N, J, j), L = `${arm}${w === '-' ? '' : `/W${w}`} c${j}/${J}`, base = h.plan, t0 = Date.now();
+    const J = chunksOf(arm), h = byId[id], N = nOf(id), [lo, hi] = rangeOf(N, arm, j), L = `${arm}${w === '-' ? '' : `/W${w}`} c${j}/${J}`, base = h.plan, t0 = Date.now();
+    if (hi <= lo) return;   // a second-stage chunk with no paths (a pilot or preflight within the first stage)
     console.log(`${id.padEnd(8)} case | unit ${L} | cohort ${h.cohort} target ${h.target} paths ${N}, this chunk ${lo} to ${hi}`);
     const a = armA(appPlan(base), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy };
     if (a.label !== h.label) { console.error(`audit-couples: ${id}: arm A's pick ${a.label} differs from the landing's ${h.label}`); process.exit(3); }

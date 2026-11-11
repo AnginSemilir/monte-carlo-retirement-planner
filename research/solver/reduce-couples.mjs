@@ -1,5 +1,9 @@
 /*
- * PART D, D4'S READ (registrations/couples-d4.md; audit-couples.mjs; STATE.md D34 the harm rule), once, after its gate:
+ * PART D, D4'S RE-RUN: THE READ (registrations/couples-d4b.md; audit-couples.mjs; STATE.md D34 the harm rule; the review of 9 Nov,
+ * items 1 and 9: D4's 40 couples landed again on the code after items 2 to 5, couples-panel-d4b.json, and two stages: every
+ * unit's first STAGE1 paths, then, for each couple and weight whose CANDC survival on them is below APP's plus STAGE_BAR points,
+ * the rest of its N (stage-couples.mjs, the run's stage2.json, which this read recomputes and holds to its own decision); a
+ * couple and weight at or above the bar stops there and is read as not harmed against APP), once, after its gate:
  *   - provenance (fair-gate.mjs requireFairLogs): every unit's log stamped by the launcher under the registration, the
  *     registration unedited since, one code across the logs;
  *   - the units: every couple of couples-panel.json in every arm (APP; CANDC and SHIPC at 0.02 and 0.01), each in its chunks
@@ -49,16 +53,22 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { survivalItem, spendingItem, lossOf, harmFlag, lumpGroups, kvOf, byPath } from './reduce-phase4.mjs';
-import { thresholdFor, harmRate } from './size-phase4.mjs';
+import { thresholdFor, harmRate, twoStageRate } from './size-phase4.mjs';
+import { STAGE1, STAGE_BAR } from './stage-couples.mjs';
 import { clopperPearson } from './stats.mjs';
 import { LOG_STAMP } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const REGISTRATION = 'research/solver/registrations/couples-d4.md', SEED = 7021, BESIDE_N = 500;
+export const REGISTRATION = 'research/solver/registrations/couples-d4b.md', SEED = 7021, BESIDE_N = 500;
 export const COHORTS = ['lib', 'young'], WEIGHTS = ['0.02', '0.01'], ARMS = ['APP/-', 'CANDC/0.02', 'CANDC/0.01', 'SHIPC/0.02', 'SHIPC/0.01'];
 export const A1_BAR = 0, A2_BAR = -1, S1_BAR = -0.1, SPEND_FLAG = -5, TP_BAR = 0.9;
 /* as audit-couples.mjs: each arm's chunks, each solver arm's configuration hash, the candidate's lattice */
-export const CHUNKS_OF = { CANDC: 4, SHIPC: 2, APP: 1 }, CONFIG = { CANDC: 'd71f65ae871e', SHIPC: '07c069b6e330' }, LATTICE = '160x41x128+foot+stepAll';
+export const CHUNKS2 = { CANDC: 3, SHIPC: 1, APP: 1 }, CONFIG = { CANDC: 'd71f65ae871e', SHIPC: '07c069b6e330' }, LATTICE = '160x41x128+foot+stepAll';
+/* the two stages as audit-couples.mjs lays them out: chunk 0 the first n1 paths, chunks 1 to CHUNKS2[arm] split [n1, N) evenly
+   (LAYOUT is the registration's; the planted checks alone set a smaller first stage) */
+export const LAYOUT = { n1: STAGE1, bar: STAGE_BAR, oneStage: false };   // oneStage: the pilot's units, each read whole at its N
+export const chunksOf = arm => 1 + CHUNKS2[arm];
+export const rangeOf = (N, arm, j) => { const n1 = Math.min(LAYOUT.n1, N); if (j === 0) return [0, n1]; const K = CHUNKS2[arm], R = N - n1; return [n1 + Math.floor(((j - 1) * R) / K), n1 + Math.floor((j * R) / K)]; };
 const LAMBDA = '0.0223606797749979';
 /* what each person's run record must say in each solver arm (as audit-couples.mjs WANT), and APP's run record */
 export const WANT = {
@@ -68,7 +78,6 @@ export const WANT = {
 export const APP_WANT = { guardrails: 'true', lookahead: '5', raiseCap: '1.1' };
 /* what CANDC and SHIPC share, person by person at a weight (CHECKLIST 3: the arms differ in the solver's settings alone) */
 export const FAIR = ['mix', 'lambda', 'levels', 'minPot', 'raiseW', 'finalIntegral', 'bequestWeight'];
-export const chunkRange = (N, J, j) => [Math.floor((j * N) / J), Math.floor(((j + 1) * N) / J)];
 
 const dec = (s, T) => { const b = Buffer.from(s, 'base64'); const c = new Uint8Array(b.length); c.set(b); return new T(c.buffer); };
 const arraysOf = x => x && { survived: dec(x.survived, Uint8Array), estate: dec(x.estate, Float32Array), wealth: dec(x.wealth, Float32Array), delivered: dec(x.delivered, Float32Array), unmet: dec(x.unmet, Float32Array), tax: dec(x.tax, Float32Array), failYear: dec(x.failYear, Int16Array), costDelivered: dec(x.costDelivered, Float32Array) };
@@ -97,32 +106,54 @@ export function loadDir(dir) {
   }
   return U;
 }
+/* the first stage's decision from the units (stage-couples.mjs's rule, recomputed): for each couple and weight, d1 (CANDC less
+   APP on the first n1 paths, points) and whether it goes on (d1 below the bar, and its N past n1) */
+export function stageOf(U, panel) {
+  const out = {};
+  for (const h of panel) for (const w of WEIGHTS) {
+    const c = U[h.id] && U[h.id][`CANDC/${w}`], a = U[h.id] && U[h.id]['APP/-'];
+    if (!c || !a) continue;
+    const n = Math.min(LAYOUT.n1, c.main.survived.length, a.main.survived.length);
+    let sc = 0, sa = 0; for (let i = 0; i < n; i++) { sc += c.main.survived[i]; sa += a.main.survived[i]; }
+    const d1 = (100 * (sc - sa)) / n;
+    out[`${h.id}|${w}`] = LAYOUT.oneStage ? { d1, n, on: true } : { d1, n, on: d1 < LAYOUT.bar - 1e-12 && c.N > LAYOUT.n1 };
+  }
+  return out;
+}
 /* a solver unit's run record: its head (the configuration, the household's minimum pot) and each person's */
 const headOf = ran => kvOf((ran || '').split(' | ')[0]);
 export const personOf = (ran, who) => { const m = new RegExp(`${who}: (.*?)(?: \\| |$)`).exec(ran || ''); return kvOf(m ? m[1] : ''); };
 /* the gate over the units: every problem, so a refusal names them all */
-export function gate(U, panel, paths, logs = null, files = null) {
-  const P = [], stamps = new Set();
+export function gate(U, panel, paths, logs = null, files = null, stage2 = null) {
+  const P = [], stamps = new Set(), st = stageOf(U, panel);
+  // the run's own decision (stage2.json) is this read's: the same couples and weights going on, from the same stamp
+  if (stage2) {
+    const mine = Object.entries(st).filter(([, v]) => v.on).map(([k]) => k).sort().join(), theirs = (stage2.continue || []).map(x => `${x.id}|${x.w}`).sort().join();
+    if (mine !== theirs) P.push(`the stage gate's decision (stage2.json) not the read's: it ran on ${theirs || 'none'}; the first stage says ${mine || 'none'}`);
+  }
+  const goesOn = (id, arm, w) => (arm === 'APP' ? WEIGHTS.some(v => (st[`${id}|${v}`] || {}).on) : !!(st[`${id}|${w}`] || {}).on);
   for (const h of panel) {
     const u = U[h.id] || {};
     if (!COHORTS.includes(h.cohort)) P.push(`${h.id}: cohort ${h.cohort}`);
     for (const k of ARMS) if (!u[k]) P.push(`${h.id}: no ${k} unit`);
     const got = ARMS.map(k => u[k]).filter(Boolean);
     for (const x of got) {
-      const k = `${x.arm}/${x.w}`, J = CHUNKS_OF[x.arm];
+      const k = `${x.arm}/${x.w}`, J = chunksOf(x.arm), on = goesOn(h.id, x.arm, x.w), want = on ? J : 1;
       stamps.add(JSON.stringify(x.stamp));
-      // its chunks: each there once, each on its share of the paths, each the unit's own in every shared field
+      // its chunks: each there once, each on its stage's share of the paths, each the unit's own in every shared field; the
+      // first stage's alone where its couple and weight stopped there, every chunk where it goes on
       const idx = x.parts.map(c => c.chunk);
-      if (x.parts.length !== J || new Set(idx).size !== J || idx.some(c => !(c >= 0 && c < J))) P.push(`${h.id} ${k}: chunks ${idx.join(',')}, not 0 to ${J - 1}`);
+      if (x.parts.length !== want || new Set(idx).size !== want || idx.some(c => !(c >= 0 && c < want))) P.push(`${h.id} ${k}: chunks ${idx.join(',')}, not ${on ? `0 to ${J - 1}` : '0 (stopped at the first stage)'}`);
       for (const c of x.parts) {
-        const [lo, hi] = chunkRange(x.N, J, c.chunk);
+        const [lo, hi] = rangeOf(x.N, x.arm, c.chunk);
         if (c.lo !== lo || c.hi !== hi) P.push(`${h.id} ${k} chunk ${c.chunk}: paths ${c.lo} to ${c.hi}, not ${lo} to ${hi}`);
         for (const f of SHARED) if (JSON.stringify(c[f]) !== JSON.stringify(x.parts[0][f])) P.push(`${h.id} ${k} chunk ${c.chunk}: its ${f} not its first chunk's`);
         if (c.chunk > 0 && c.beside) P.push(`${h.id} ${k} chunk ${c.chunk}: a rollout beside outside the first chunk`);
       }
       if (x.chunks !== J) P.push(`${h.id} ${k}: written in ${x.chunks} chunks, not ${J}`);
       if (x.seed !== SEED) P.push(`${h.id} ${k}: seed ${x.seed}`);
-      if (x.N !== paths[h.id] || x.main.survived.length !== x.N) P.push(`${h.id} ${k}: ${x.main.survived.length} of ${x.N} paths, registered ${paths[h.id]}`);
+      const nWant = on ? x.N : Math.min(LAYOUT.n1, x.N);
+      if (x.N !== paths[h.id] || x.main.survived.length !== nWant) P.push(`${h.id} ${k}: ${x.main.survived.length} of ${x.N} paths (${on ? 'going on' : 'stopped at the first stage'}: ${nWant}), registered ${paths[h.id]}`);
       if (x.target !== h.target) P.push(`${h.id} ${k}: target ${x.target}, the panel's ${h.target}`);
       if (x.stamp.prediction !== REGISTRATION) P.push(`${h.id} ${k}: stamped under ${x.stamp.prediction}, not ${REGISTRATION}`);
       if (files && x.stamp.audit !== files) P.push(`${h.id} ${k}: launched on files hashing ${x.stamp.audit}; the files this read takes hash ${files}`);
@@ -134,7 +165,7 @@ export function gate(U, panel, paths, logs = null, files = null) {
         for (const [f, v] of Object.entries(APP_WANT)) if (a[f] !== v) P.push(`${h.id} ${k}: ran with ${f} ${a[f]}, not ${v}`);
         continue;
       }
-      if (!x.beside || x.beside.N !== Math.min(x.N, BESIDE_N)) P.push(`${h.id} ${k}: the rollout beside ${x.beside ? `on ${x.beside.N} paths` : 'missing'}, not on ${Math.min(x.N, BESIDE_N)}`);
+      if (!x.beside || x.beside.N !== Math.min(x.N, LAYOUT.n1, BESIDE_N)) P.push(`${h.id} ${k}: the rollout beside ${x.beside ? `on ${x.beside.N} paths` : 'missing'}, not on ${Math.min(x.N, LAYOUT.n1, BESIDE_N)}`);
       const head = headOf(x.ran);
       if (head.config !== CONFIG[x.arm]) P.push(`${h.id} ${k}: its configuration ${head.config}, not the registration's ${CONFIG[x.arm]}`);
       if (u['APP/-'] && head.hhMinPot !== kvOf(u['APP/-'].ran).minPot) P.push(`${h.id} ${k}: the household's minimum pot ${head.hhMinPot}, APP's ${kvOf(u['APP/-'].ran).minPot}`);
@@ -173,19 +204,31 @@ export function decide(items) {
 }
 /* a couple's harm comparison against an arm: the loss over its paths, the threshold its own discordance sets at its paths, and
    both of D34's rates at that threshold (a quarter-point loss read as harm, and a 1-point loss) */
-export function harmOf(c, o) {
-  const L = lossOf(c, o), k = Math.round(L.disc * L.n), dUp = Math.max(clopperPearson(k, L.n)[1], 0.0101), t = thresholdFor(dUp, L.n);
+export function harmOf(c, o, n = Math.min(c.survived.length, o.survived.length)) {
+  const L = lossOf({ survived: c.survived.subarray(0, n) }, { survived: o.survived.subarray(0, n) }), k = Math.round(L.disc * L.n), dUp = Math.max(clopperPearson(k, L.n)[1], 0.0101), t = thresholdFor(dUp, L.n);
   return { ...L, k, dUp, t, fp: harmRate(dUp, L.n, t, 0.25), tp: harmRate(dUp, L.n, t, 1), flag: harmFlag(L, t) };
+}
+/* a comparison against APP under the two stages: its threshold at the couple's N from the realised discordance (over the paths
+   it ran), its rates the exact two-stage rates (size-phase4.mjs twoStageRate); stopped at the first stage, read as not harmed */
+export function harmTwoStage(c, o, N, st) {
+  if (LAYOUT.oneStage) return { ...harmOf(c, o), stopped: false, d1: st.d1, N };
+  const h = harmOf(c, o), tN = thresholdFor(h.dUp, N), r = D => twoStageRate(h.dUp, N, tN, D, Math.min(LAYOUT.n1, N), LAYOUT.bar);
+  return { ...h, t: tN, fp: r(0.25).flag, tp: r(1).flag, flag: st.on ? harmFlag(h, tN) : false, stopped: !st.on, d1: st.d1, N };
 }
 /* every comparison D34 (4) asks for: each couple and weight against APP and against SHIPC */
 export function harmRows(U, panel) {
-  const rows = [];
-  for (const h of panel) for (const w of WEIGHTS) for (const nm of ['APP', 'SHIPC']) rows.push({ id: h.id, w, nm, ...harmOf(U[h.id][`CANDC/${w}`].main, U[h.id][nm === 'APP' ? 'APP/-' : `SHIPC/${w}`].main) });
+  const rows = [], st = stageOf(U, panel);
+  for (const h of panel) for (const w of WEIGHTS) {
+    const c = U[h.id][`CANDC/${w}`], s = st[`${h.id}|${w}`];
+    rows.push({ id: h.id, w, nm: 'APP', ...harmTwoStage(c.main, U[h.id]['APP/-'].main, c.N, s) });
+    rows.push({ id: h.id, w, nm: 'SHIPC', ...harmOf(c.main, U[h.id][`SHIPC/${w}`].main), stopped: !s.on });
+  }
   return rows;
 }
 /* the items at a weight */
 export function itemsAt(U, panel, w) {
-  const n = Math.min(...panel.map(h => U[h.id]['APP/-'].main.survived.length));
+  // the paths every couple ran in every arm: the first stage's unless every couple and weight went on
+  const n = Math.min(...panel.flatMap(h => ARMS.map(k => U[h.id][k].main.survived.length)));
   const C = h => U[h.id][`CANDC/${w}`].main, A = h => U[h.id]['APP/-'].main, S = h => U[h.id][`SHIPC/${w}`].main;
   return { n, A1: survivalItem(panel.map(h => [C(h), A(h)]), n), A2: spendingItem(panel.map(h => [C(h), A(h)]), n), S1: survivalItem(panel.map(h => [C(h), S(h)]), n), CS: spendingItem(panel.map(h => [C(h), S(h)]), n) };
 }
@@ -215,8 +258,8 @@ export function report(U, panel) {
   }
   lines.push(flags.length ? flags.map(f => `  ${f}`).join('\n') : '  none');
   const below = rows.filter(r => !(r.tp >= TP_BAR));
-  lines.push('', `D34 (4), every comparison: the realised discordance (its Clopper-Pearson upper 95% bound, priced at 1.01% at least), the threshold it sets at the couple's paths, a quarter-point loss read as harm, a 1-point loss read as harm; the observed loss`);
-  for (const r of rows) lines.push(`  ${r.id.padEnd(6)} W${r.w} CANDC less ${r.nm.padEnd(5)} discordant ${r.k} of ${r.n} (${(100 * r.k / r.n).toFixed(2)}%, up to ${(100 * r.dUp).toFixed(2)}%): threshold ${r.t.toFixed(4)}, a quarter-point loss read ${r.fp.toFixed(3)}, a 1-point loss read ${r.tp.toFixed(3)}${r.tp >= TP_BAR ? '' : ' (BELOW 0.90)'}; loss ${r.loss.toFixed(3)} (${r.saved} saved, ${r.lost} lost)${r.flag ? ' FLAGGED' : ''}`);
+  lines.push('', `D34 (4), every comparison: the realised discordance (its Clopper-Pearson upper 95% bound, priced at 1.01% at least), the threshold it sets (against APP at the couple's N, its rates the exact two-stage rates; against SHIPC at the paths the couple and weight ran, D34's one-stage rates), a quarter-point loss read as harm, a 1-point loss read as harm; the observed loss; whether the couple and weight stopped at the first stage (its change against APP there)`);
+  for (const r of rows) lines.push(`  ${r.id.padEnd(6)} W${r.w} CANDC less ${r.nm.padEnd(5)} discordant ${r.k} of ${r.n} (${(100 * r.k / r.n).toFixed(2)}%, up to ${(100 * r.dUp).toFixed(2)}%): threshold ${r.t.toFixed(4)}, a quarter-point loss read ${r.fp.toFixed(3)}, a 1-point loss read ${r.tp.toFixed(3)}${r.tp >= TP_BAR ? '' : ' (BELOW 0.90)'}; loss ${r.loss.toFixed(3)} (${r.saved} saved, ${r.lost} lost)${r.stopped ? `; stopped at the first stage${r.nm === 'APP' ? ` (${r.d1 >= 0 ? '+' : ''}${r.d1.toFixed(3)} points against APP there): read as not harmed` : ''}` : ''}${r.flag ? ' FLAGGED' : ''}`);
   lines.push(`  the 1-point rate below D34's 0.90 on ${below.length} of ${rows.length} comparisons${below.length ? `: ${below.map(r => `${r.id} W${r.w} against ${r.nm} (${r.tp.toFixed(3)})`).join(', ')}; by the registration, reported as below D34's rate` : ''}`);
   lines.push('', 'REPORTED');
   const withCost = panel.filter(h => (U[h.id]['APP/-'].costYears || []).length), spendSet = withCost.filter(h => retiredInCost(U[h.id]['APP/-'])), leftOut = withCost.filter(h => !spendSet.includes(h));
@@ -247,54 +290,62 @@ export function report(U, panel) {
 }
 
 function planted() {
-  const cases = [];
+  const cases = [], n1Was = LAYOUT.n1;
+  LAYOUT.n1 = 100;   // a first stage of 100 of the planted units' 400 paths
   const dir = mkdtempSync(join(tmpdir(), 'd4read-')), n = 400, Y = 30;
   const b64 = (T, len, f) => Buffer.from(T.from({ length: len }, (_, i) => f(i)).buffer).toString('base64');
   const stamp = { code: 'c', audit: 'a', prediction: REGISTRATION, sha: 's', node: 'v' };
   const person = (arm, w, over = {}) => Object.entries({ ...WANT[arm], bequestWeight: String(Number(w)), mix: '3', levels: '1,1.1,0.95,0.9,0.8', minPot: '500', raiseW: '0.003', finalIntegral: 'true', ...(arm === 'CANDC' ? { lattice: LATTICE } : {}), readerYears: '0', ...over }).map(([k, v]) => `${k} ${v}`).join(' ');
   const ranOf = (arm, w, over = {}, head = {}) => (arm === 'APP' ? Object.entries({ armA: 'Bracket_Fill', ...APP_WANT, minPot: '1000', ...head }).map(([k, v]) => `${k} ${v}`).join(' ')
     : `config ${head.config || CONFIG[arm]} hhMinPot ${head.hhMinPot || '1000'} | self: ${person(arm, w, over)} | part: ${person(arm, w, over)}`);
-  // a unit in its chunks; f(i) gives path i's survival, fy(i) its failure year, cd(i) its cost years' spending, dl(i) its spending
-  const unit = (id, cohort, arm, w, lostIdx, { extra = {}, over = {}, head = {}, skip = -1, fy = i => (lostIdx(i) ? 10 : -1), cd = () => 10, dl = () => 100, costRetired = [true] } = {}) => {
-    const J = CHUNKS_OF[arm];
-    for (let j = 0; j < J; j++) {
+  // a unit in its chunks: the first stage's alone, or every chunk where `go`; f(i) gives path i's survival, fy(i) its failure
+  // year, cd(i) its cost years' spending, dl(i) its spending
+  const unit = (id, cohort, arm, w, lostIdx, { go = false, extra = {}, over = {}, head = {}, skip = -1, fy = i => (lostIdx(i) ? 10 : -1), cd = () => 10, dl = () => 100, costRetired = [true] } = {}) => {
+    const J = chunksOf(arm);
+    for (let j = 0; j < (go ? J : 1); j++) {
       if (j === skip) continue;
-      const [lo, hi] = chunkRange(n, J, j), len = hi - lo, at = f => i => f(lo + i);
-      writeFileSync(join(dir, `${id}-${arm}-w${w}-c${j}.json.gz`), gzipSync(JSON.stringify({ id, arm, w, chunk: j, chunks: J, lo, hi, cohort, target: 1000, inputs: 'I', stamp, ran: ranOf(arm, w, over, head), seed: SEED, N: n, n: len, Y, costYears: [3], costRetired, solveSecs: 1, engineSecs: 1, secs: 3, label: id === 'C1' ? 'Bracket Fill Basic, lump sum' : 'ISA First', cpu: 'cpu',
-        beside: arm === 'APP' || j > 0 ? null : { N: Math.min(n, BESIDE_N), engineOnly: 0, modelOnly: 0, secs: 1, survived: b64(Uint8Array, Math.min(n, BESIDE_N), () => 1) },
-        main: { survived: b64(Uint8Array, len, at(i => (lostIdx(i) ? 0 : 1))), estate: b64(Float32Array, len, () => 1), wealth: b64(Float32Array, len, () => 1), delivered: b64(Float32Array, len, at(dl)), unmet: b64(Float32Array, len, () => 0), tax: b64(Float32Array, len, () => 0), failYear: b64(Int16Array, len, at(fy)), costDelivered: b64(Float32Array, len, at(cd)) }, ...extra })));
+      const [lo, hi] = rangeOf(n, arm, j), len = hi - lo, at = f => i => f(lo + i), nb = Math.min(n, LAYOUT.n1, BESIDE_N);
+      writeFileSync(join(dir, `${id}-${arm}-w${w}-c${j}.json.gz`), gzipSync(JSON.stringify({ id, arm, w, chunk: j, chunks: J, lo, hi, cohort, target: 1000, inputs: 'I', stamp, ran: ranOf(arm, w, over, head), seed: SEED, N: n, n: len, Y, costYears: [3], costRetired, solveSecs: 1, engineSecs: 1, secs: 2, label: 'L', cpu: 'host',
+        beside: arm === 'APP' || j > 0 ? null : { N: nb, engineOnly: 0, modelOnly: 0, secs: 1, survived: b64(Uint8Array, nb, () => 1) },
+        main: { survived: b64(Uint8Array, len, at(i => (lostIdx(i) ? 0 : 1))), estate: b64(Float32Array, len, () => 1), wealth: b64(Float32Array, len, () => 1), delivered: b64(Float32Array, len, at(dl)), unmet: b64(Float32Array, len, () => 0), tax: b64(Float32Array, len, () => 0), failYear: b64(Int16Array, len, at(fy)), level: b64(Uint8Array, len * Y, () => 0), costDelivered: b64(Float32Array, len, at(cd)) }, ...extra })));
     }
   };
-  // two couples: CANDC survives every path, APP loses paths 0-39 (in year 4, inside the cost year's window on C1), SHIPC paths
-  // 0-9; C2's cost year falls before anyone retires (nothing to deliver in it in any arm)
+  // two couples. C1: APP loses paths 0-39 (in the first stage, failing in year 4, inside its cost year's window), CANDC none,
+  // so C1 stops at the first stage at both weights (+40 points); C2: APP loses paths 150-189 (in the second stage), so C2 is
+  // level at the first stage and goes on at both weights. SHIPC loses paths 0-9 on both. C2's cost year falls before anyone
+  // retires (nothing to deliver in it in any arm)
   const panel = [{ id: 'C1', cohort: 'lib', target: 1000, label: 'Bracket Fill Basic, lump sum' }, { id: 'C2', cohort: 'young', target: 1000, label: 'ISA First' }];
   const fair = () => {
     unit('C1', 'lib', 'APP', '-', i => i < 40, { fy: i => (i < 40 ? 4 : -1) });
-    unit('C2', 'young', 'APP', '-', i => i < 40, { cd: () => 0, costRetired: [false] });
+    unit('C2', 'young', 'APP', '-', i => i >= 150 && i < 190, { go: true, cd: () => 0, costRetired: [false] });
     for (const w of WEIGHTS) {
       unit('C1', 'lib', 'CANDC', w, () => false, { cd: () => 12 }); unit('C1', 'lib', 'SHIPC', w, i => i < 10);
-      unit('C2', 'young', 'CANDC', w, () => false, { cd: () => 0, costRetired: [false] }); unit('C2', 'young', 'SHIPC', w, i => i < 10, { cd: () => 0, costRetired: [false] });
+      unit('C2', 'young', 'CANDC', w, () => false, { go: true, cd: () => 0, costRetired: [false] }); unit('C2', 'young', 'SHIPC', w, i => i < 10, { go: true, cd: () => 0, costRetired: [false] });
     }
   };
   fair();
   const paths = { C1: n, C2: n };
-  let U = loadDir(dir), P = gate(U, panel, paths, null, 'a');
-  cases.push(['a fair run, each unit in its chunks, passes the gate', `${P.length}${P.length ? ` ${P[0]}` : ''}`, '0']);
-  cases.push(['the chunks joined path by path: CANDC 4 and SHIPC 2 chunks to 400 paths, APP\'s lost paths where they were', `${U.C1['CANDC/0.02'].parts.length} ${U.C1['SHIPC/0.02'].parts.length} ${U.C1['CANDC/0.02'].main.survived.length} ${U.C1['APP/-'].main.survived.slice(38, 42).join('')}`, '4 2 400 0011']);
+  let U = loadDir(dir), P = gate(U, panel, paths, null, 'a', { continue: [{ id: 'C2', w: '0.02' }, { id: 'C2', w: '0.01' }] });
+  cases.push(['a fair run, each unit in its stages\' chunks, its stage file the read\'s, passes the gate', `${P.length}${P.length ? ` ${P[0]}` : ''}`, '0']);
+  cases.push(['the chunks joined path by path: C2 going on, CANDC 4 and SHIPC 2 chunks to 400 paths; C1 stopped, its first stage\'s 100; C2 APP\'s lost paths where they were', `${U.C2['CANDC/0.02'].parts.length} ${U.C2['SHIPC/0.02'].parts.length} ${U.C2['CANDC/0.02'].main.survived.length} ${U.C1['CANDC/0.02'].parts.length} ${U.C1['CANDC/0.02'].main.survived.length} ${U.C2['APP/-'].main.survived.slice(148, 152).join('')}`, '4 2 400 1 100 1100']);
+  const st = stageOf(U, panel);
+  cases.push(['the first stage\'s decision: C1 +40 points against APP stops, C2 level goes on', `${st['C1|0.02'].d1.toFixed(1)} ${st['C1|0.02'].on} ${st['C2|0.01'].d1.toFixed(1)} ${st['C2|0.01'].on}`, '40.0 false 0.0 true']);
   const R = report(U, panel);
-  cases.push(['A1 is CANDC less APP, path by path over the couples: +10 points (40 of 400 lost by APP)', `${R.items['0.02'].A1.d.toFixed(3)}`, '10.000']);
-  cases.push(['S1 is CANDC less SHIPC: +2.5 points', `${R.items['0.02'].S1.d.toFixed(3)}`, '2.500']);
+  cases.push(['A1 is CANDC less APP on the paths every couple ran (the first stage\'s 100), path by path over the couples: +20 points', `${R.items['0.02'].n} ${R.items['0.02'].A1.d.toFixed(3)}`, '100 20.000']);
+  cases.push(['S1 is CANDC less SHIPC: +10 points', `${R.items['0.02'].S1.d.toFixed(3)}`, '10.000']);
   cases.push(['the outcome PASS when every item clears at both weights', R.out.outcome, 'PASS']);
-  cases.push(['the cost years\' spending over the couple retired in its cost year alone (+20%, not +10% with C2\'s noughts averaged in); C2 named as left out', `${R.lines.some(l => /W0\.02 the cost years' spending delivered, over the 1 couples .* CANDC less APP \+20\.000 /.test(l))} ${R.lines.some(l => /left out, no one retired in their cost year .*: 1, C2$/.test(l))}`, 'true true']);
-  cases.push(['the paths failing in a cost year or the two after: APP 5% over both couples (C1\'s 40 in year 4; C2\'s in year 10, outside), CANDC less APP -5 points', `${R.lines.some(l => /W0\.02 the paths failing .* APP 5\.000%, CANDC 0\.000%, SHIPC 0\.000%; CANDC less APP -5\.000 /.test(l))}`, 'true']);
+  const rowC1 = R.rows.find(r => r.id === 'C1' && r.w === '0.02' && r.nm === 'APP'), rowC2 = R.rows.find(r => r.id === 'C2' && r.w === '0.02' && r.nm === 'APP');
+  cases.push(['against APP: C1 stopped, read as not harmed over its 100 paths; C2 read at its 400 by the threshold at N, two-stage rates', `${rowC1.stopped} ${rowC1.flag} ${rowC1.n} ${rowC2.stopped} ${rowC2.n} ${rowC2.N} ${R.lines.some(l => /C1 +W0\.02 CANDC less APP .*stopped at the first stage \(\+40\.000 points against APP there\): read as not harmed/.test(l))}`, 'true false 100 false 400 400 true']);
+  cases.push(['the cost years\' spending over the couple retired in its cost year alone (+20%, not +10% with C2\'s noughts averaged in); C2 named as left out', `${R.lines.some(l => /W0\.02 the cost years' spending delivered, over the 1 couples .* CANDC less APP \+20\.000 /.test(l))} ${R.lines.some(l => /left out, .*: 1, C2$/.test(l))}`, 'true true']);
+  cases.push(['the paths failing in a cost year or the two after, on the first stage\'s paths: APP 20% over both couples (C1\'s 40 of 100 in year 4), CANDC less APP -20 points', `${R.lines.some(l => /W0\.02 the paths failing .* APP 20\.000%, CANDC 0\.000%, SHIPC 0\.000%; CANDC less APP -20\.000 /.test(l))}`, 'true']);
   cases.push(['every comparison printed for D34 (4): 2 couples, 2 weights, against APP and SHIPC', `${R.rows.length} ${R.lines.filter(l => /^ {2}C\d +W0\.0\d CANDC less /.test(l)).length}`, '8 8']);
   // A2's failing branch: CANDC delivering a tenth less spending than APP
   for (const w of WEIGHTS) unit('C1', 'lib', 'CANDC', w, () => false, { cd: () => 12, dl: () => 90 });
   U = loadDir(dir);
   const R3 = report(U, panel);
   cases.push(['a CANDC delivering a tenth less than APP on one couple fails A2 (-5%) and is flagged for spending', `${R3.out.outcome} ${/A2 at W0\.02/.test(R3.out.decides)} ${R3.lines.some(l => /C1 W0\.02 spending: -10\.00% against APP/.test(l))}`, 'NOT PASSED true true']);
-  // a CANDC unit that loses: S1 below its bar
-  for (const w of WEIGHTS) unit('C1', 'lib', 'CANDC', w, i => i < 60, { cd: () => 12 });
+  // a CANDC unit that loses: S1 below its bar (C1 then below APP at the first stage, so it would have gone on: written whole)
+  for (const w of WEIGHTS) unit('C1', 'lib', 'CANDC', w, i => i < 60, { go: true, cd: () => 12 });
   U = loadDir(dir);
   const R2 = report(U, panel);
   cases.push(['a losing CANDC fails S1 and A1 at both weights (NOT PASSED), and its harm flag fires', `${R2.out.outcome} ${R2.lines.some(l => /C1 W0.02 harm against SHIPC/.test(l))}`, 'NOT PASSED true']);
@@ -302,7 +353,7 @@ function planted() {
   const refusals = [
     ['a wrong seed', () => unit('C1', 'lib', 'CANDC', '0.02', () => false, { extra: { seed: 7002 } }), 'C1 CANDC/0.02: seed 7002'],
     ['another inputs hash', () => unit('C1', 'lib', 'SHIPC', '0.01', i => i < 10, { extra: { inputs: 'J' } }), 'C1: the arms\' inputs differ'],
-    ['a person run without the third tier step', () => unit('C2', 'young', 'CANDC', '0.01', () => false, { cd: () => 0, costRetired: [false], over: { tiersBelow: '2' } }), 'C2 CANDC/0.01 self: ran with tiersBelow 2, not 3'],
+    ['a person run without the third tier step', () => unit('C2', 'young', 'CANDC', '0.01', () => false, { go: true, cd: () => 0, costRetired: [false], over: { tiersBelow: '2' } }), 'C2 CANDC/0.01 self: ran with tiersBelow 2, not 3'],
     ['a person solved without HR (menuPlus removed)', () => unit('C1', 'lib', 'CANDC', '0.02', () => false, { over: { hr: 'no' } }), 'C1 CANDC/0.02 self: ran with hr no, not yes'],
     ['another configuration hash', () => unit('C1', 'lib', 'CANDC', '0.02', () => false, { head: { config: 'fcd8096217b7' } }), 'C1 CANDC/0.02: its configuration fcd8096217b7, not the registration\'s d71f65ae871e'],
     ['another lattice', () => unit('C1', 'lib', 'CANDC', '0.01', () => false, { over: { lattice: '80x41x128+foot+stepAll' } }), 'C1 CANDC/0.01 self: the lattice 80x41x128+foot+stepAll'],
@@ -311,16 +362,18 @@ function planted() {
     ['an arm\'s two weights differing beyond the estate weight', () => unit('C1', 'lib', 'SHIPC', '0.01', i => i < 10, { over: { raiseW: '0.004' } }), 'C1 SHIPC self: its two weights differ in raiseW'],
     ['APP without its lookahead', () => unit('C1', 'lib', 'APP', '-', i => i < 40, { head: { lookahead: '0' } }), 'C1 APP/-: ran with lookahead 0, not 5'],
     ['the household\'s minimum pot not APP\'s', () => unit('C1', 'lib', 'SHIPC', '0.02', i => i < 10, { head: { hhMinPot: '900' } }), 'C1 SHIPC/0.02: the household\'s minimum pot 900, APP\'s 1000'],
-    ['a missing unit', () => rmSync(join(dir, 'C2-APP-w--c0.json.gz')), 'C2: no APP/- unit'],
-    ['a missing chunk', () => rmSync(join(dir, 'C1-CANDC-w0.02-c2.json.gz')), 'C1 CANDC/0.02: chunks 0,1,3, not 0 to 3'],
-    ['a chunk on the wrong paths', () => unit('C1', 'lib', 'SHIPC', '0.02', i => i < 10, { extra: { lo: 150 }, skip: 0 }), 'C1 SHIPC/0.02 chunk 1: paths 150 to 400, not 200 to 400'],
-    ['a chunk on another run record', () => { const f = join(dir, 'C1-CANDC-w0.01-c3.json.gz'), j = JSON.parse(gunzipSync(readFileSync(f))); j.ran = j.ran.replace('readerYears 0', 'readerYears 1'); writeFileSync(f, gzipSync(JSON.stringify(j))); }, 'C1 CANDC/0.01 chunk 3: its ran not its first chunk\'s'],
-    ['a wrong path count', () => unit('C2', 'young', 'SHIPC', '0.02', i => i < 10, { cd: () => 0, costRetired: [false], extra: { N: 300 } }), 'C2 SHIPC/0.02: 400 of 300 paths, registered 400'],
-    ['a wrong target', () => unit('C2', 'young', 'SHIPC', '0.01', i => i < 10, { cd: () => 0, costRetired: [false], extra: { target: 990 } }), 'C2 SHIPC/0.01: target 990, the panel\'s 1000'],
-    ['a unit not launched under the registration', () => unit('C2', 'young', 'CANDC', '0.02', () => false, { cd: () => 0, costRetired: [false], extra: { stamp: { ...stamp, prediction: 'NOT-LAUNCHED' } } }), 'C2 CANDC/0.02: stamped under NOT-LAUNCHED'],
-    ['the rollout beside missing', () => unit('C2', 'young', 'SHIPC', '0.02', i => i < 10, { cd: () => 0, costRetired: [false], extra: { beside: null } }), 'C2 SHIPC/0.02: the rollout beside missing'],
-    ['the rollout beside short', () => unit('C2', 'young', 'CANDC', '0.01', () => false, { cd: () => 0, costRetired: [false], extra: { beside: { N: 100, engineOnly: 0, modelOnly: 0, secs: 1, survived: '' } } }), 'C2 CANDC/0.01: the rollout beside on 100 paths, not on 400'],
-    ['whether anyone is retired in the cost year not recorded', () => unit('C2', 'young', 'APP', '-', i => i < 40, { cd: () => 0, costRetired: null }), 'C2 APP/-: whether anyone is retired in each cost year not recorded']
+    ['a missing unit', () => rmSync(join(dir, 'C1-APP-w--c0.json.gz')), 'C1: no APP/- unit'],
+    ['a missing chunk', () => rmSync(join(dir, 'C2-CANDC-w0.02-c2.json.gz')), 'C2 CANDC/0.02: chunks 0,1,3, not 0 to 3'],
+    ['a chunk on the wrong paths', () => unit('C2', 'young', 'SHIPC', '0.02', i => i < 10, { go: true, cd: () => 0, costRetired: [false], extra: { lo: 150 }, skip: 0 }), 'C2 SHIPC/0.02 chunk 1: paths 150 to 400, not 100 to 400'],
+    ['a stopped couple and weight with second-stage chunks', () => unit('C1', 'lib', 'CANDC', '0.02', () => false, { go: true, cd: () => 12 }), 'C1 CANDC/0.02: chunks 0,1,2,3, not 0 (stopped at the first stage)'],
+    ['a couple and weight going on without its second stage', () => rmSync(join(dir, 'C2-SHIPC-w0.01-c1.json.gz')), 'C2 SHIPC/0.01: chunks 0, not 0 to 1'],
+    ['a chunk on another run record', () => { const f = join(dir, 'C2-CANDC-w0.01-c3.json.gz'), j = JSON.parse(gunzipSync(readFileSync(f))); j.ran = j.ran.replace('readerYears 0', 'readerYears 1'); writeFileSync(f, gzipSync(JSON.stringify(j))); }, 'C2 CANDC/0.01 chunk 3: its ran not its first chunk\'s'],
+    ['a wrong path count', () => unit('C2', 'young', 'SHIPC', '0.02', i => i < 10, { go: true, cd: () => 0, costRetired: [false], extra: { N: 300 } }), 'C2 SHIPC/0.02: 400 of 300 paths'],
+    ['a wrong target', () => unit('C2', 'young', 'SHIPC', '0.01', i => i < 10, { go: true, cd: () => 0, costRetired: [false], extra: { target: 990 } }), 'C2 SHIPC/0.01: target 990, the panel\'s 1000'],
+    ['a unit not launched under the registration', () => unit('C2', 'young', 'CANDC', '0.02', () => false, { go: true, cd: () => 0, costRetired: [false], extra: { stamp: { ...stamp, prediction: 'NOT-LAUNCHED' } } }), 'C2 CANDC/0.02: stamped under NOT-LAUNCHED'],
+    ['the rollout beside missing', () => unit('C2', 'young', 'SHIPC', '0.02', i => i < 10, { go: true, cd: () => 0, costRetired: [false], extra: { beside: null } }), 'C2 SHIPC/0.02: the rollout beside missing'],
+    ['the rollout beside short', () => unit('C2', 'young', 'CANDC', '0.01', () => false, { go: true, cd: () => 0, costRetired: [false], extra: { beside: { N: 50, engineOnly: 0, modelOnly: 0, secs: 1, survived: '' } } }), 'C2 CANDC/0.01: the rollout beside on 50 paths, not on 100'],
+    ['whether anyone is retired in the cost year not recorded', () => unit('C2', 'young', 'APP', '-', i => i >= 150 && i < 190, { go: true, cd: () => 0, costRetired: null }), 'C2 APP/-: whether anyone is retired in each cost year not recorded']
   ];
   for (const [nm, plant, want] of refusals) {
     rmSync(dir, { recursive: true, force: true }); mkdirSync(dir); fair();
@@ -331,7 +384,8 @@ function planted() {
   // the audit hash not the files', and more than one stamp
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir); fair();
   cases.push(['the gate names a unit launched on other files (its audit hash not the files\' as read)', `${gate(loadDir(dir), panel, paths, null, 'b').some(p => /launched on files hashing a; the files this read takes hash b/.test(p))}`, 'true']);
-  unit('C2', 'young', 'SHIPC', '0.01', i => i < 10, { cd: () => 0, costRetired: [false], extra: { stamp: { ...stamp, code: 'd' } } });
+  cases.push(['the gate names a stage file whose decision is not the read\'s (C1 at 0.02 run on)', `${gate(loadDir(dir), panel, paths, null, 'a', { continue: [{ id: 'C1', w: '0.02' }, { id: 'C2', w: '0.02' }, { id: 'C2', w: '0.01' }] }).some(p => /^the stage gate's decision \(stage2\.json\) not the read's/.test(p))}`, 'true']);
+  unit('C2', 'young', 'SHIPC', '0.01', i => i < 10, { go: true, cd: () => 0, costRetired: [false], extra: { stamp: { ...stamp, code: 'd' } } });
   cases.push(['the gate names more than one stamp across the units', `${gate(loadDir(dir), panel, paths, null, 'a').some(p => /^2 stamps across the units/.test(p))}`, 'true']);
   rmSync(dir, { recursive: true, force: true });
   // a couple's threshold from its own discordance: 40 of 400 discordant, all lost: a 10-point loss, flagged
@@ -344,7 +398,8 @@ function planted() {
     cases.push(['at 19,000 paths a 15% discordance holds a 1-point loss below 0.90 (named), a 5% one above it; the quarter-point rate at most 0.05 in both', `${a.tp < TP_BAR} ${b.tp >= TP_BAR} ${a.fp <= 0.05 && b.fp <= 0.05}`, 'true true true']); }
   let bad = 0;
   for (const [nm, got, w] of cases) { const ok = got === w; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${nm}: ${got}${ok ? '' : ` (want ${w})`}`); }
-  console.log('EDGES: no discordance, a missing unit, a missing chunk, a cost year with no one retired, a wrong seed, the weights differing beyond the estate weight, a losing candidate, A2 failing, a 1-point rate below 0.90');
+  LAYOUT.n1 = n1Was;
+  console.log('EDGES: no discordance, a missing unit, a missing chunk, a stopped couple with second-stage chunks, a couple going on without them, a stage file not the read\'s, a cost year with no one retired, a wrong seed, the weights differing beyond the estate weight, a losing candidate, A2 failing, a 1-point rate below 0.90');
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
   return bad;
 }
@@ -355,12 +410,15 @@ async function read(dir) {
   requireFairLogs(logs, REGISTRATION);
   const ls = [...Object.values(logs).join('\n').matchAll(LOG_STAMP)].map(([, code, audit, , sha]) => ({ code, audit, sha })), logStamp = ls[0] || null;
   if (new Set(ls.map(x => JSON.stringify(x))).size > 1) { console.log('THE GATE: REFUSED (the logs carry more than one stamp)'); process.exit(1); }
-  const panel = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel, reg = JSON.parse(readFileSync(join(HERE, 'couples-paths.json'), 'utf8'));
+  const panel = JSON.parse(readFileSync(join(HERE, 'couples-panel-d4b.json'), 'utf8')).panel, reg = JSON.parse(readFileSync(join(HERE, 'couples-paths-d4b.json'), 'utf8'));
+  const stage2 = JSON.parse(readFileSync(join(dir, 'stage2.json'), 'utf8'));
+  if (reg.n1 !== LAYOUT.n1 || reg.bar !== LAYOUT.bar) { console.log(`THE GATE: REFUSED (couples-paths-d4b.json's stages ${reg.n1} and ${reg.bar}, not this read's ${LAYOUT.n1} and ${LAYOUT.bar})`); process.exit(1); }
   const { stampFilesHash } = await import('./audit-couples.mjs');
-  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, stampFilesHash());
-  console.log(`D4 READ: ${dir}; ${Object.keys(U).length} couples`);
+  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, stampFilesHash(), stage2);
+  console.log(`D4B READ: ${dir}; ${Object.keys(U).length} couples`);
   if (problems.length) { console.log(`THE GATE: REFUSED (${problems.length})\n  ${problems.join('\n  ')}`); process.exit(1); }
-  console.log(`the gate: fair - ${panel.length} couples in every arm, each unit in its chunks, seed ${SEED} on their registered paths (${reg.N}), one stamp; CANDC ${CONFIG.CANDC}, SHIPC ${CONFIG.SHIPC}`);
+  const st = stageOf(U, panel), on = Object.values(st).filter(v => v.on).length;
+  console.log(`the gate: fair - ${panel.length} couples in every arm, each unit in its chunks, seed ${SEED} on their registered paths (${reg.N}) in two stages (the first ${LAYOUT.n1}; ${on} of ${Object.keys(st).length} couple-weights went on, as the run's stage gate decided), one stamp; CANDC ${CONFIG.CANDC}, SHIPC ${CONFIG.SHIPC}`);
   console.log(report(U, panel).lines.join('\n'));
 }
 
@@ -368,6 +426,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (process.argv[2] === '--planted') process.exit(planted() ? 1 : 0);
   // the pilot's figures through this read's items (EXPLORATORY: the pilot's seed, no registration, no gate but the units' own)
   if (process.argv[2] === '--pilot') {
+    LAYOUT.oneStage = true;
     const dir = process.argv[3] || join(HERE, 'results', 'd4-pilot'), U = loadDir(dir), panelAll = JSON.parse(readFileSync(join(HERE, 'couples-panel.json'), 'utf8')).panel;
     const panel = panelAll.filter(h => U[h.id] && ARMS.every(k => U[h.id][k]));
     const any = Object.values(U).flatMap(Object.values)[0];
@@ -378,5 +437,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(report(U, panel).lines.join('\n'));
     process.exit(0);
   }
-  await read(process.argv[2] || join(HERE, 'results', 'd4-run'));
+  await read(process.argv[2] || join(HERE, 'results', 'd4b-run'));
 }

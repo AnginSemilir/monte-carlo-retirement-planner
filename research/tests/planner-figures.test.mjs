@@ -140,7 +140,8 @@ console.log('=========== 6. THE NEXT TEN YEARS\' WORDS ===========');
         const kind = now === 0 ? 'back to the risk you chose' : was === 0 ? 'lower in risk' : now < was ? 'back up in risk' : 'further down in risk';
         if (!line || !line.includes(kind)) bad++;
       }
-      if (!w.lines.length || (w.lines.length === 1 && w.lines[0] === 'nothing to change') !== (row.parts.draw === 'none' && !row.parts.harvest && (row.parts.tierPen || 0) === (prev.tierPen || 0) && (row.parts.tierIsa || 0) === (prev.tierIsa || 0))) bad++;
+      // a year's sweep (item 5, part 1: the engine's 7d named to the pound, sweepWords) is something to do, as a draw is
+      if (!w.lines.length || (w.lines.length === 1 && w.lines[0] === 'nothing to change') !== (row.parts.draw === 'none' && !row.parts.harvest && !W.sweepWords(row.swept, { fmt }) && (row.parts.tierPen || 0) === (prev.tierPen || 0) && (row.parts.tierIsa || 0) === (prev.tierIsa || 0))) bad++;
     });
     ok(bad === 0, `6. ${id}: over its ten rows a tier is said only where it changes, as a step down, a step back up or a return (${said} changes said; ${bad} rows wrong)`);
   }

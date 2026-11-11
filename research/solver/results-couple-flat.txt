@@ -1,4 +1,4 @@
-ITEM 11 (D75), A COUPLE'S JOINT MOVE ON FLAT ARRAYS: the port's test, as run on 11 Nov (couple-flat.test.mjs; the working tree at 11bb254 with the review's prototype/couple-flat.diff, the cache guard added at the port and the e3pcls pin re-taken; nothing else running on the machine during --full)
+ITEM 11 (D75), A COUPLE'S JOINT MOVE ON FLAT ARRAYS: the port's test, as run on 11 Nov (couple-flat.test.mjs; the working tree at 11bb254 with the review's prototype/couple-flat.diff, the cache guard added at the port and the e3pcls pin re-taken; committed on d0f293bb + D81; nothing else running on the machine during --full)
 
 == node research/tests/couple-flat.test.mjs --full
 couple-flat: a couple's joint move on flat arrays (COUPLE.flat), seed 7002, --full

@@ -368,14 +368,18 @@ The maintainer's point applies to my figures of this morning too, so I read them
 ## The prompt for the agent
 
 It carries M9 to M11 and M13 to M16 as I would answer them. Change any line you rule differently before sending. It
-replaces the prompt at the end of `2026-11-09/EXPERIMENTS-AND-PORTS.md`.
+replaces the prompt at the end of `2026-11-09/EXPERIMENTS-AND-PORTS.md`. It is written for a new session: its first
+line sends the agent to its own state and handoff before the review.
 
 ```
-Read research/reviews/2026-11-11/ANSWERS.md, then item 11 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md,
+This is a new session. On claude/project-access-i58m0x, read research/solver/STATE.md whole and
+research/solver/HANDOFF-2026-11-11.md first.
+
+Then read research/reviews/2026-11-11/ANSWERS.md, then item 11 of research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md,
 REVIEW.md 2.4 and ANSWERS-2026-11-11.md, all on review/external-2026-10-21 at its head. Fetch that branch first.
 Record each ruling as its own D-line.
 
-1. Finish D73's port as the handoff sets out.
+1. Finish D73's port as the handoff's section 2 sets out.
 2. Item 11 with it: the port by its steps and its test. It is exact: any value that differs is a STOP. Run the
    review's test on a scratch tree with the patch first (9 checks; --plants: each plant fails checks 1 and 2), then
    the seven couples' tests of its check 7 and the fast suite on the port. Report the identity counts, the planted

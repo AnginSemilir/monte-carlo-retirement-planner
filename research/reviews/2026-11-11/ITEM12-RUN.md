@@ -151,6 +151,40 @@ interval wholly below -0.1 or a couple wholly below -0.3: neither happened.
 5. **If it is run again,** tally the equity weight held in place of the tier index, and keep these eight couples
    and this seed out of it.
 
+### The prompt for the agent, if the maintainer wants it measured on the port
+
+The maintainer sends it. It waits for item 7's read on singles, because a couple's ranking uses the same shortlist.
+Two lines are the maintainer's to change: the spending bar (0.1 points, D65's own figure; the review's 0.05 failed
+here by a hair) and whether a passing arm is built.
+
+```
+After item 7's second read (item 13's stage A, arms 4 to 8), and not before the couples' re-run is prepared and
+sent to its design review:
+
+Read research/reviews/2026-11-11/ITEM12-RUN.md on review/external-2026-10-21 at its head: the review's own run of
+item 12's stage A and its read. Then, only if a width of item 7 passed and is built:
+
+1. Run item 12's stage A (research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md) on the port. EXPLORATORY, seed
+   7002, its rule committed before launch. The comparison is the flat path on the whole menu (item 11 as
+   committed).
+2. Arms, each on the same 16,000 paths a couple: (a) the shortlist that passed item 7, as its stage B built it, in
+   each person's ranking; (b) the same with item 12's joint options (one read, the bridge search on 5 points and 3
+   steps, near).
+3. Eight touched couples, none in the panel, at least four with years before pension access. Prefer couples the
+   review did not use (S007, S127, S209, S261, S303, S391, S303@52, S313@52). If fewer than eight others are
+   touched, fill from the review's and say which.
+4. Tally, for each arm: each person's mean equity weight held in pension and in ISA over the decisions (not the
+   tier index, which is not a scale of risk), lifetime tax, and spending in points of target.
+5. The rule: item 12's parts 1, 2 and 4 as written; part 3 at 0.1 points of target; part 5 on the equity weight,
+   each person's within one point of the whole menu's.
+6. If an arm passes, build item 12's stage B for it, off in code, with its test, and send me the read. Switching it
+   on is mine. If neither passes, item 12 is closed: say so and build nothing.
+
+If no width passed item 7, do not run this: tell me, and item 12 is closed on the review's read. No registered
+couples' arm takes any of it (D80). Ask me for any unlock it needs. Time box: half a day for the run, half a day
+for the build.
+```
+
 ### Limits
 
 - The prototype, not a port, on the candidate before D73's.

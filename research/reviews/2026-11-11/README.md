@@ -16,7 +16,9 @@ Everything here is EXPLORATORY and decides nothing.
 | `results/` | every output, as the script printed it |
 
 **Item 12's stage A, run by the review** (added later on 11 Nov at the maintainer's request): `ITEM12-RUN.md` is
-its design, pushed before the run, and then its read. Its unit is `scripts/couple-approx-full.mjs` (with
+its design, pushed before the run (eeb8ea0e), and then its read: neither arm passes the rule as written (spending
+0.06 to 0.08 points lower; survival -0.02 to -0.03 points, inside noise). The pooled table is
+`results/out-item12-pooled.txt`. Its unit is `scripts/couple-approx-full.mjs` (with
 `scripts/plan-of.mjs`), its read `scripts/couple-approx-pool.py`, its outputs `results/item12/`. It runs on a copy
 with the three patches of `../2026-11-09/prototype` that item 12 names, not the two above.
 

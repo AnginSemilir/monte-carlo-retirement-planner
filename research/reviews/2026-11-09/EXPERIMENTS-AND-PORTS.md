@@ -964,6 +964,12 @@ unless set, under `COUPLE_APPROX`):
 - **`screen`** was tried and dropped (`REVIEW.md` 2.4). It stays in the patch, off, so its light record can be run
   again.
 
+**Run by the review on 11 Nov, at the maintainer's request** (`../2026-11-11/ITEM12-RUN.md`: the design pushed
+before the run, then the read; 128,000 paths of seed 99012 on the eight couples below, on the prototype). Neither
+`order` nor `order` with the joint options passes the rule as written: survival -0.020 points (-0.058 to +0.018)
+and -0.026 (-0.063 to +0.012), spending 0.055 and 0.076 points of target lower, the pot 0.1% lower. Nothing is
+ported. The stage below stands as written for the agent, if the maintainer wants it measured on a port.
+
 ### Stage A. The experiment (EXPLORATORY, seed 7002; after item 11 is in, and only if the maintainer rules a width of item 7 on)
 
 - **Households:** eight touched couples, none in the panel, by `scripts/plan-of.mjs`'s names: S007, S127, S391, S303,

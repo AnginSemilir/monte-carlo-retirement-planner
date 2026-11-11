@@ -82,3 +82,79 @@ No pooled figure is read before all sixteen chunks are in. If the machine is los
 couple is a balanced half (64,000 paths) and is read as that, said to be incomplete.
 
 About 14 core-hours: about seven hours on two cores.
+
+---
+
+## The read (11 Nov, 22:34 UK; every chunk in)
+
+`results/out-item12-pooled.txt` is `couple-approx-pool.py` over the sixteen outputs in `results/item12/`. Every chunk
+ended with exit 0, and on each one's first 20 paths the flat path gave the path as it is bit for bit. 128,000 paths.
+
+| Against the flat path on the whole menu | `order` | `order` with every joint option |
+|---|---|---|
+| Paths saved, lost | 292, 318 | 285, 318 |
+| Survival, points (95% interval) | -0.020 (-0.058 to +0.018) | -0.026 (-0.063 to +0.012) |
+| Spending delivered, points of target (se) | -0.055 (0.002) | -0.076 (0.002) |
+| Pot left: the mean of the couples'; the ratio of the summed pots | -0.12%; -0.25% | -0.08%; -0.15% |
+| The lowest couple's pot | S303@52 -0.67% | S303@52 -0.66% |
+| The couple furthest down on survival | S303@52 -0.194 (-0.283 to -0.105) | S127 -0.213 (-0.323 to -0.102) |
+| The largest difference in a person's mean tier held | 0.034 (S127) | 0.034 (S127) |
+| Faster than the flat path | 1.37 to 1.83 times | 1.80 to 2.25 times |
+
+**By the rule, for both arms:** part 1 HOLDS, part 2 HOLDS, part 3 FAILS at 0.05 points and HOLDS at 0.1, part 4
+HOLDS, part 5 FAILS. **So neither arm passes the rule as written.**
+
+### What it says
+
+- **Survival: no pooled loss beyond 0.06 points.** This morning's lean (-0.06 and -0.09 on 15,000 paths) was mostly
+  noise. But it is not nothing on every couple. Two lose about 0.2 points with intervals clear of nought (under `order`:
+  S127 -0.188, -0.301 to -0.074; S303@52 -0.194, -0.283 to -0.105). One gains (S007 +0.044, +0.011 to +0.076), and
+  S303 leans up (+0.137, -0.017 to +0.292). No couple is wholly below -0.3.
+- **Spending: a small loss, and a real one.** 0.055 points of target under `order` and 0.076 with the joint options,
+  each with a standard error of 0.002. By couple it runs from -0.20 (S303) to +0.13 (S261). It is past the review's
+  0.05 and inside D65's example of 0.1.
+- **The pot: a little lower,** inside the rule on every couple.
+- **The joint options on top of `order`** cost 0.02 points more spending and nothing measurable in survival (285
+  saved against 292, the same 318 lost), for 1.1 to 1.4 times more speed.
+- **Part 5 fails as written, and it is a blunt measure.** A person's mean tier index differs by up to 0.034. The
+  index is not a scale of risk (it lists the plan's own tier, the steps below it, then the tiers above), so this
+  shows that the tiers held differ slightly, not which way. The part was there to stop a higher pot being bought
+  with more risk, and the pot here is not higher. The better tally is the equity weight held. I did not take it.
+
+### Against what I expected
+
+| | `order`: expected | `order`: found | The stack: expected | The stack: found |
+|---|---|---|---|---|
+| Pooled survival | -0.10 to +0.02 | -0.020 | -0.13 to 0.00 | -0.026 |
+| Part 1 | 0.50 | holds | 0.35 | holds |
+| Part 2 | 0.85 | holds | 0.80 | holds |
+| Part 3 at 0.05; at 0.1 | 0.35; 0.70 | fails; holds | 0.25; 0.60 | fails; holds |
+| Part 4 | 0.80 | holds | 0.80 | holds |
+| Part 5 | 0.60 | fails | 0.50 | fails |
+
+"Harmless" was a pooled interval that includes nought with its lower end above -0.05. `order`'s is -0.058 to
++0.018: it includes nought and misses the lower end by a hair. "Wrong about a small loss at worst" was a pooled
+interval wholly below -0.1 or a couple wholly below -0.3: neither happened.
+
+### What I would do
+
+1. **Nothing is ported on this read.** By the rule both arms fail.
+2. **The one figure the maintainer's choice turns on is the spending bar.** At the review's 0.05 both arms fail. At
+   D65's 0.1 both pass parts 1 to 4, and what is left is part 5, which measures the wrong thing.
+3. **If the maintainer takes D65's bar, take the stack,** not `order` alone: it is 1.8 to 2.25 times faster than
+   the flat path for 0.02 points more spending. Never in a registered couples' arm.
+4. **My recommendation is to hold it until item 7 is settled on singles.** A couple's ranking uses the same
+   shortlist. If the singles' shortlist changes (the slice, with item 13's tie-break), the couples' port would be
+   done twice. After item 11 a couple's 2,000 paths take three to six minutes on one core, so halving that is
+   useful and not urgent. And the cost does not fall evenly: two of the eight couples lose about 0.2 points of
+   survival.
+5. **If it is run again,** tally the equity weight held in place of the tier index, and keep these eight couples
+   and this seed out of it.
+
+### Limits
+
+- The prototype, not a port, on the candidate before D73's.
+- One seed. Eight couples chosen by the review, two of them dressed as the younger cohort by the review's own
+  landing, not the panel's.
+- The intervals are 1.96 standard errors of the paired difference, not exact tests.
+- `order` here is item 7's shortlist as it stood this morning: no slice, no tie-break above the cap.

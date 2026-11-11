@@ -1,0 +1,31 @@
+32 arm-chunks, seed 99012, 8 couples: S007, S127, S209, S261, S303, S303@52:land, S313@52:land, S391
+
+==== order against the flat path on the whole menu ====
+  couple          paths   flat survival  saved  lost  difference (points; 95% interval)   spending, points of target (se)  pot left  lifetime tax  tiers held: flat | arm (pension/ISA, each person)        times flat
+  S007            16000    99.63%           7     0  +0.044 (+0.011 to +0.076)        +0.042 (0.003)                  -0.17%   -0.13%      0.756/0.756 1.563/1.563 | 0.755/0.755 1.577/1.577   1.80
+  S127            16000    95.88%          28    58  -0.188 (-0.301 to -0.074)        -0.111 (0.006)                  -0.56%   -2.36%      1.587/1.587 1.637/1.637 | 1.582/1.582 1.671/1.671   1.62
+  S209            16000    94.95%          26    19  +0.044 (-0.038 to +0.126)        -0.031 (0.003)                  +0.21%   -0.81%      1.775/1.775 1.877/1.877 | 1.768/1.768 1.880/1.880   1.83
+  S261            16000    90.27%          65    62  +0.019 (-0.119 to +0.157)        +0.128 (0.006)                  -0.42%   -8.22%      1.751/1.751 1.635/1.635 | 1.745/1.745 1.621/1.621   1.66
+  S303            16000    88.91%          91    69  +0.137 (-0.017 to +0.292)        -0.197 (0.009)                  +0.27%   -0.81%      2.661/2.661 2.139/2.139 | 2.666/2.666 2.142/2.142   1.69
+  S303@52:land    16000    96.40%          11    42  -0.194 (-0.283 to -0.105)        -0.045 (0.005)                  -0.67%   -2.43%      2.577/2.577 2.025/2.025 | 2.588/2.588 2.040/2.040   1.43
+  S313@52:land    16000    98.28%          23    25  -0.013 (-0.097 to +0.072)        -0.128 (0.007)                  +0.38%   +1.85%      1.723/1.723 1.808/1.808 | 1.723/1.723 1.818/1.818   1.37
+  S391            16000    97.51%          41    43  -0.013 (-0.125 to +0.100)        -0.102 (0.006)                  +0.00%   -1.31%      1.272/1.272 1.622/1.622 | 1.268/1.268 1.630/1.630   1.56
+  pooled over 8 couples, 128000 paths: 292 saved, 318 lost: -0.020 points, se 0.019, 95% interval -0.058 to +0.018
+    spending -0.055 points of target (se 0.002); pot left -0.12% (the mean of the couples'; -0.25% as the ratio of the summed pots); the lowest couple's pot S303@52:land -0.67%; times the flat path 1.37 to 1.83
+    the couple furthest down: S303@52:land -0.194 (-0.283 to -0.105); the largest difference in a person's mean tier held: S127 0.034
+  the rule: 1. pooled lower end above -0.1: HOLDS | 2. no couple wholly below -0.3: HOLDS | 3. spending not lower by more than 0.05 points: FAILS; by more than 0.1 (D65's example): HOLDS | 4. pooled pot not lower by more than 0.5% and no couple's by more than 1%: HOLDS | 5. each person's tiers within 0.01: FAILS
+
+==== order+one+thin4x3+nodraw+near against the flat path on the whole menu ====
+  couple          paths   flat survival  saved  lost  difference (points; 95% interval)   spending, points of target (se)  pot left  lifetime tax  tiers held: flat | arm (pension/ISA, each person)        times flat
+  S007            16000    99.63%           7     0  +0.044 (+0.011 to +0.076)        +0.041 (0.003)                  -0.17%   -0.16%      0.756/0.756 1.563/1.563 | 0.755/0.755 1.577/1.577   2.04
+  S127            16000    95.88%          24    58  -0.213 (-0.323 to -0.102)        -0.088 (0.006)                  -0.57%   -2.09%      1.587/1.587 1.637/1.637 | 1.580/1.580 1.671/1.671   2.07
+  S209            16000    94.95%          26    19  +0.044 (-0.038 to +0.126)        -0.117 (0.004)                  +0.43%   -0.85%      1.775/1.775 1.877/1.877 | 1.762/1.762 1.879/1.879   2.06
+  S261            16000    90.27%          54    54  +0.000 (-0.127 to +0.127)        +0.075 (0.006)                  -0.17%   -8.54%      1.751/1.751 1.635/1.635 | 1.744/1.744 1.622/1.622   1.88
+  S303            16000    88.91%          95    76  +0.119 (-0.041 to +0.279)        -0.227 (0.010)                  +0.32%   -0.85%      2.661/2.661 2.139/2.139 | 2.666/2.666 2.142/2.142   2.00
+  S303@52:land    16000    96.40%          15    43  -0.175 (-0.268 to -0.082)        -0.053 (0.008)                  -0.66%   -2.99%      2.577/2.577 2.025/2.025 | 2.588/2.588 2.040/2.040   1.94
+  S313@52:land    16000    98.28%          21    25  -0.025 (-0.108 to +0.058)        -0.125 (0.007)                  +0.17%   +0.31%      1.723/1.723 1.808/1.808 | 1.722/1.722 1.819/1.819   1.80
+  S391            16000    97.51%          43    43  +0.000 (-0.114 to +0.114)        -0.114 (0.006)                  -0.01%   -1.35%      1.272/1.272 1.622/1.622 | 1.267/1.267 1.628/1.628   2.25
+  pooled over 8 couples, 128000 paths: 285 saved, 318 lost: -0.026 points, se 0.019, 95% interval -0.063 to +0.012
+    spending -0.076 points of target (se 0.002); pot left -0.08% (the mean of the couples'; -0.15% as the ratio of the summed pots); the lowest couple's pot S303@52:land -0.66%; times the flat path 1.80 to 2.25
+    the couple furthest down: S127 -0.213 (-0.323 to -0.102); the largest difference in a person's mean tier held: S127 0.034
+  the rule: 1. pooled lower end above -0.1: HOLDS | 2. no couple wholly below -0.3: HOLDS | 3. spending not lower by more than 0.05 points: FAILS; by more than 0.1 (D65's example): HOLDS | 4. pooled pot not lower by more than 0.5% and no couple's by more than 1%: HOLDS | 5. each person's tiers within 0.01: FAILS

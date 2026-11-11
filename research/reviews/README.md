@@ -51,6 +51,10 @@ dated record, and the agent cites them by commit.
   for a new session of the agent: `2026-11-11/NEW-SESSION.md` says where the last session stopped (read from the
   repository at 14:34 UK on 11 Nov: D73's port uncommitted, the fast suite 49 of 60 on it, Full still running) and
   the order from there.
+- **Item 12's stage A, run by the review** at the maintainer's request: `2026-11-11/ITEM12-RUN.md` (its design
+  pushed before the run, then its read). 128,000 paths on eight touched couples: neither `order` nor `order` with
+  the joint options passes the rule as written. Spending is 0.06 to 0.08 points of target lower, survival -0.02 to
+  -0.03 points and inside noise. Nothing is ported.
 - Its patches, script and outputs: `2026-11-11/prototype/`, `scripts/`, `results/`. `2026-11-11/README.md` says how
   to run and read them.
 

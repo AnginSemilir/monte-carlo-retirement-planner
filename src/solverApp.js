@@ -12,7 +12,7 @@
 import { solvePlan, coarseWhereFits } from './solver/solve.js';
 import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position
+export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on
 
 export { APP_CANDIDATE, APP_COARSE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
 
@@ -51,7 +51,15 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
   const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
   const asked = { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
-  const r = solvePlan(E, M, solved, PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off));
+  const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
+  // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
+  // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)
+  // settles which this solve is, so a record that disagrees is another solve's and is refused, loudly
+  if (restore && restore.meta && PLANT.rule !== 'restoreany') {
+    const was = !!(restore.meta.coarse && !restore.meta.coarse.off), now = fitted.coarse !== undefined && !!fitted.coarse;
+    if (was !== now) throw new Error(`solveForApp: the stored solve was made on ${was ? 'anchors and shortlists' : 'the whole menu'} and this solve is on ${now ? 'anchors and shortlists' : 'the whole menu'}: not restored`);
+  }
+  const r = solvePlan(E, M, solved, fitted);
   if (off.why && !restore) r.meta.coarse = { off: off.why };
   // the stored record's tables and reference are copied into the solve's own as it runs (solve.js `opts.restore`, adaptive.js
   // `restore`), and the solve keeps its options and the reference its input: let the record go once the solve is done, so a

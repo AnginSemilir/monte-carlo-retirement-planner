@@ -45,3 +45,26 @@ run-all fast: 61 files found, 61 run, 61 passed
 == the protected files edited, each under the unlock named
 D83 (D81 (A), its condition met): couple-quick.test.mjs check 5, windfall-relief.test.mjs check 6, couple-share.test.mjs check 2 (the digests; results-d73-digests.txt); fair-variables.mjs rows 35 and 36
 D82: state-check.test.mjs (moveOf carries cgtSale and sweepIsa), speed-port.test.mjs (D29's candidate from BEFORE_D73_OPTS), solver-app.test.mjs (check 1's lattice plant nz 32)
+
+== step 8, stored solves (after the port's commit): node research/tests/solve-coarse.test.mjs --full
+PASS  10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (solveForApp: the stored solve was made on the whole menu and this solve is on anchors and ); the reverse (solveForApp: the stored solve was made on anchors and shortlists and this solve is on the )
+PASS  10. a record of its own kind restores: 0 of 5878656 table values differ on S116 solved on anchors; the whole-menu solve's digest the same; each one's meta.coarse kept
+PASS  11. the known answer, S116 at 45 points, 1,000 paths of seed 99001: survival 90.9% on anchors and shortlists (solved in 45 s), 90.8% on the whole menu (354 s); within 0.5 points
+ALL PASS: 19 checks
+== SOLVE_COARSE_PLANT=restoreany node research/tests/solve-coarse.test.mjs
+FAIL  10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (restore: world 0 has 4 layers, the stored solve 1); the reverse (restore: world 0 has 1 layers, the stored solve 4)
+FAILED: 1 of 18 checks
+== node research/tests/cache-key.test.mjs ; then CACHE_KEY_PLANT=nod73
+PASS  8  the stored solves' key names the candidate's coarse and sweepCashIsaTo, consent withdrawn and the dial's position  -- the plan a4ff65a95180; without the two keys 8f88f0f9fe22; consent withdrawn a4f0d5d84f8c; the dial at 3 bf26a929ee7b
+=========== 8 passed, 0 failed ===========
+FAIL  8  the stored solves' key names the candidate's coarse and sweepCashIsaTo, consent withdrawn and the dial's position  -- the plan 8f88f0f9fe22; without the two keys 8f88f0f9fe22; consent withdrawn a68a47c5e137; the dial at 3 944da3f7ec00
+=========== 7 passed, 1 failed: 8 ===========
+
+== step 9, gate 5 again on the port (results-gate5.txt), through the launcher from 597f7bf8, the machine running nothing else
+  bridge 4         0/36741600                135.0    63.3     25.6         0.469          0.190      2.47
+  S126             0/34992000                139.0    54.7     23.0         0.394          0.165      2.38
+  S370             0/40240800                137.1    74.6     28.8         0.544          0.210      2.59
+  share 0.50       0/34992000                135.6    56.8     22.3         0.419          0.164      2.55
+  median: CAND/PRODUCT x0.444, SPLIT/PRODUCT x0.178, the split's speed-up x2.51
+VERDICT E2: EXACT
+VERDICT GATE 5 (the split candidate at 45 points at most x1.25 the product's solve at 30, on each household): MET

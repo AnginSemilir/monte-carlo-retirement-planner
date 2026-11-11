@@ -12,7 +12,9 @@
  *   5. a change to the solver (src/solver/solve.js) moves it;
  *   6. the worker reads the key, and falls back to its URL only where no build wrote one (codeOf);
  *   7. the plugin's engine slice is research/build-engine.py's (the head of research/engine.mjs).
- *   CACHE_KEY_PLANT=url builds with the placeholder left in (the URL fallback): checks 1 and 2 fail.
+ *   8. what names a stored solve (src/solverKey.js) names the candidate's `coarse` and `sweepCashIsaTo`, consent withdrawn and
+ *      the dial's position (D73's port, step 8).
+ *   CACHE_KEY_PLANT=url builds with the placeholder left in (the URL fallback): checks 1 and 2 fail; CACHE_KEY_PLANT=nod73: check 8.
  * The full tier (about a minute: five builds; on a runner with no packages installed, the copy installs them first).
  */
 import { mkdtempSync, cpSync, symlinkSync, readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
@@ -28,6 +30,21 @@ const INPUTS = ['index.html', 'vite.config.js', 'vite-plugin-inline-edit.js', 'v
 let pass = 0, fail = 0;
 const failed = [];
 const ok = (n, c, extra = '') => { c ? pass++ : (fail++, failed.push(n.split(/\s+/)[0])); console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
+
+// 8 (D73's port, step 8; D74): what names a stored solve names the candidate's `coarse` and `sweepCashIsaTo`, and the two things
+// that take a solve off the anchors (consent to change risk withdrawn, a dial position above 1), so a solve stored one way is
+// never the stored solve of the other. No build: src/solverKey.js's own key. CACHE_KEY_PLANT=nod73 keys every solve without
+// the candidate's two keys (solverKey.js PLANT 'nod73'): check 8 fails.
+{
+  const E = await import('../engine.mjs'), { solveKey, PLANT: KEY_PLANT } = await import('../../src/solverKey.js'), { APP_CANDIDATE, withAims, atDial } = await import('../../src/solverSettings.js');
+  const { buildScenarios } = await import('../policy-study/scenarios.mjs');
+  const plan = buildScenarios().find(s => s.id === 'S116').plan, key = p => solveKey(E, p, {}, 'solver-code:x');
+  if (process.env.CACHE_KEY_PLANT === 'nod73') KEY_PLANT.rule = 'nod73';
+  const k0 = await key(plan), kNoConsent = await key(withAims(plan, { riskConsent: false })), kDial = await key(atDial(withAims(plan), 3));
+  const was = KEY_PLANT.rule; KEY_PLANT.rule = 'nod73'; const kWithout = await key(plan); KEY_PLANT.rule = was;
+  ok('8  the stored solves\' key names the candidate\'s coarse and sweepCashIsaTo, consent withdrawn and the dial\'s position', !!APP_CANDIDATE.coarse && APP_CANDIDATE.sweepCashIsaTo === 'isa' && new Set([k0, kNoConsent, kDial, kWithout]).size === 4,
+    `the plan ${k0.slice(0, 12)}; without the two keys ${kWithout.slice(0, 12)}; consent withdrawn ${kNoConsent.slice(0, 12)}; the dial at 3 ${kDial.slice(0, 12)}`);
+}
 
 const W = mkdtempSync(join(tmpdir(), 'cache-key-'));
 for (const f of INPUTS) if (existsSync(join(ROOT, f))) cpSync(join(ROOT, f), join(W, f), { recursive: true });

@@ -26,10 +26,13 @@
  *   7. a locked dial position keeps the whole menu, and meta.coarse says so; plant `lockcoarse` (SOLVE_COARSE_PLANT)
  *   8. consent to change risk withdrawn (one tier pair): the app's solve runs on the whole menu, its tables the solve's with the
  *      setting taken out, and meta.coarse says so (D74); plant `fitsall` (SOLVE_COARSE_PLANT: coarseFits says yes to every solve)
+ *  10. stored solves (the port's step 8): a record made on the whole menu is refused by a solve on anchors, and the reverse; a
+ *      record of its own kind restores to the same tables; plant `restoreany` (SOLVE_COARSE_PLANT)
  *   9. the predicate (solve.js coarseFits) is the refusal: over the options that take a solve off the path, the solve refuses
  *      exactly where the predicate says no
  * solve()'s bytecode under V8's limit with the hooks in is solve-size.test.mjs's check, unchanged.
- *   REPO_ROOT=<a tree with solve-coarse.diff applied> node solve-coarse.test.mjs [--full]     (quick: 4 points; --full: 6)
+ *  11. --full only: the known answer, S116 at 45 points, 1,000 paths, survival within 0.5 points of the whole menu's
+ *   node research/tests/solve-coarse.test.mjs [--full]     (quick: 4 points; --full: 6, and the known answer at 45)
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -132,6 +135,37 @@ const oneB = solve(B, SETTING);
   });
   const bad = got.filter(x => !x.okay);
   ok(bad.length === 0 && got[0].fits && got.slice(1).every(x => !x.fits), `9. the predicate against the refusal on ${got.length} option sets: fits ${got.filter(x => x.fits).map(x => x.name).join(', ')}; refused ${got.filter(x => !x.fits).map(x => x.name).join(', ')}${bad.length ? `; WRONG: ${bad.map(x => `${x.name} (fits ${x.fits}, kept ${x.kept}: ${x.msg})`).join('; ')}` : ''}`);
+}
+
+// 10. stored solves (the port's step 8): a solve stored on the whole menu is not restored as one on anchors and shortlists, nor
+// the reverse: the app's solve refuses the record; a record of its own kind restores to the same tables; plant 'restoreany'
+// (src/solverApp.js) lets any record through
+{
+  const { cacheOf } = await import('../../src/solverCache.js');
+  const noConsent = p => ({ ...p, solver: { ...(p.solver || {}), aims: { ...((p.solver && p.solver.aims) || {}), riskConsent: false } } });
+  const app = (plan, extra = {}) => solveForApp(E, M, E.normalizePlan(plan), { points: PTS, research: LIGHT, ...extra });
+  const whole = app(noConsent(rawOf(A))), recWhole = cacheOf(whole), recOn = cacheOf(baseOn);
+  if (process.env.SOLVE_COARSE_PLANT === 'restoreany') APP_PLANT.rule = 'restoreany';
+  const tryIt = f => { try { f(); return 'NOT refused'; } catch (e) { return e.message; } };
+  const m1 = tryIt(() => app(rawOf(A), { restore: recWhole })), m2 = tryIt(() => app(noConsent(rawOf(A)), { restore: recOn }));
+  APP_PLANT.rule = '';
+  ok(/^solveForApp: the stored solve was made on the whole menu and this solve is on anchors and shortlists/.test(m1) && /^solveForApp: the stored solve was made on anchors and shortlists and this solve is on the whole menu/.test(m2),
+    `10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (${m1.slice(0, 90)}); the reverse (${m2.slice(0, 90)})`);
+  const again = app(rawOf(A), { restore: cacheOf(baseOn) }), x = differ(baseOn, again);
+  const againWhole = app(noConsent(rawOf(A)), { restore: cacheOf(whole) });
+  ok(x.d === 0 && x.m > 0 && again.meta.restored === true && !!again.meta.coarse && !again.meta.coarse.off && (await digestOf(tablesOf(againWhole))) === (await digestOf(tablesOf(whole))) && !!againWhole.meta.coarse.off,
+    `10. a record of its own kind restores: ${said(x)} on ${A} solved on anchors; the whole-menu solve's digest the same; each one's meta.coarse kept`);
+}
+
+// 11 (--full only; the review's step 5): the known answer. S116 solved by the app at 45 points on anchors and shortlists and on
+// the whole menu, each run by the engine on the same 1,000 paths of seed 99001: survival within 0.5 points
+if (FULL) {
+  const { solvedContext, runPath } = await import('../../src/solverStrategy.js');
+  const at45 = extra => solveForApp(E, M, E.normalizePlan(rawOf(A)), { points: 45, research: extra });
+  const t0 = Date.now(), on = at45({}), t1 = Date.now(), whole = at45({ coarse: undefined }), t2 = Date.now();
+  const surv = r => { const sc = solvedContext(E, r), paths = E.pathsForSeed(99001, 1000, sc.totalYears); return 100 * paths.filter(zs => runPath(E, sc, zs).survived).length / paths.length; };
+  const sOn = surv(on), sWhole = surv(whole);
+  ok(!!on.meta.coarse && on.meta.coarse.fine > 0 && !whole.meta.coarse && Math.abs(sOn - sWhole) <= 0.5 + 1e-9, `11. the known answer, ${A} at 45 points, 1,000 paths of seed 99001: survival ${sOn.toFixed(1)}% on anchors and shortlists (solved in ${((t1 - t0) / 1000).toFixed(0)} s), ${sWhole.toFixed(1)}% on the whole menu (${((t2 - t1) / 1000).toFixed(0)} s); within 0.5 points`);
 }
 
 console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);

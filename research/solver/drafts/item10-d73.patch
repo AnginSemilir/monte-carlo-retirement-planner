@@ -1,50 +1,3 @@
-diff --git a/research/solver/STATE.md b/research/solver/STATE.md
-index 4a283566..2e6acd4c 100644
---- a/research/solver/STATE.md
-+++ b/research/solver/STATE.md
-@@ -10,10 +10,10 @@ research candidate is confirmed against the shipped settings once, on a held-out
- ## 2. The candidate and the product baseline
- 
- <!-- printed:candidate -->
--- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, and the failure year at what it can pay after Phase 4, D43): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":160,"nb":41,"nz":128,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
-+- The candidate (`research/solver/candidate.json`, read by candidate.mjs: assembled for 7u-F with the adaptive package, D5, its hash then e65e5e99ba49 (`ASSEMBLED_OPTS`); the third tier step and HR whole joined after the factorial, D28, D29, the table without the dealing cost after D30's check, the failure year at what it can pay after Phase 4, D43, and item 5's sweep to the ISA, item 10's solve on anchors and its thinner bridge reference, D73): bridgeRead "reader", tierState true, jointWorlds true, bequestWeight 0.02, bridgeStep "exact", switchCharge 0.001, switchMargin 0, e3 true, pclsInterp true, e3pcls true, readerRef "adaptive", adaptiveLattice {"na":80,"nb":21,"nz":64,"foot":true,"stepAll":true}, readerSplit "rs", tiersBelow 3, menuPlus ["hr"], tableDealing false, failDelivered true, sweepCashIsaTo "isa", coarse {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}; tiers o60-blend (O60's blend medians: High Risk 4.97%, Medium/High Risk 4.65%, Medium Risk 4.18%, Medium/Low Risk 3.55%, Low Risk 2.76%). Hash af001697ce1b; before D73 (`BEFORE_D73_OPTS`): d71f65ae871e; Phase 4's, failDelivered removed (`PHASE4_OPTS`): fcd8096217b7; before the assembly, the package's keys removed (`FROZEN_OPTS`, 7u's CAND): a61dba4ee1f5.
- - 7u-F's decomposing arm (DECOMP, D5): the candidate on the plan reference, readerRef and its lattice removed (`audit-7uf.mjs`). Hash be76284e736c.
- - The product baseline (`PRODUCT_BASELINE`, src/solver/solve.js): resilienceWeight 0, raiseWeight 0.003, finalExact true, mix 3, points 30, raiseSurvival true, failureShortfall true, finalIntegral true, bridgeRead false, e3 false. Hash 07c069b6e330.
--- The solver code the e3pcls pin last passed on: 19f41696dcb73973 (10 Nov, 23:19 UK); the code now: 19f41696dcb73973.
-+- The solver code the e3pcls pin last passed on: 19f41696dcb73973 (10 Nov, 23:19 UK); the code now: 7baa89ee158ca7e5.
- <!-- end printed:candidate -->
- 
- The decided defaults (the app's, and the candidate's), pinned to the code by `research/tests/plan-defaults.test.mjs`, `candidate.test.mjs`, `e3-default.test.mjs`, `e3pcls-guard.test.mjs` and `f1-default.test.mjs`:
-@@ -22,12 +22,13 @@ The decided defaults (the app's, and the candidate's), pinned to the code by `re
- {"raiseCap": 1.1, "minPotYears": 1, "estateWeightMin": 0.01, "thinSurvival": 0.85, "thinPaths": 1000, "thinSeed": 7101,
-  "raiseSurvival": true, "failureShortfall": true, "finalIntegral": true, "riskAboveDefault": "auto", "giaTiers": "refused", "bridgeRead": false, "e3": false, "e3Research": true, "pclsInterp": false, "pclsInterpResearch": true, "e3pcls": false, "e3pclsResearch": true,
-  "candidate": {"bridgeRead": "reader", "tierState": true, "jointWorlds": true, "bequestWeight": 0.02, "bridgeStep": "exact", "switchCharge": 0.001, "switchMargin": 0, "e3": true, "pclsInterp": true, "e3pcls": true,
--   "readerRef": "adaptive", "adaptiveLattice": {"na": 160, "nb": 41, "nz": 128, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tableDealing": false, "failDelivered": true, "tiers": "o60-blend"},
-+   "readerRef": "adaptive", "adaptiveLattice": {"na": 80, "nb": 21, "nz": 64, "foot": true, "stepAll": true}, "readerSplit": "rs", "tiersBelow": 3, "menuPlus": ["hr"], "tableDealing": false, "failDelivered": true, "sweepCashIsaTo": "isa", "coarse": {"w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3}, "tiers": "o60-blend"},
-  "margins": {"high": 0.25, "low": 0.5, "pooled": 0.1, "highAt": 95, "rel": 0.1}, "marginRelFloor": "report-only"}
- -->
- 
- ## 3. Decisions in force
- One line each, newest first: the date, who, the decision. The rulings recorded before 21 Oct that are not here have lapsed; they stay in the archive.
-+- D73. 11 Nov, maintainer, on items 5, 7 and 10's reads (`results-isasweep.txt`; `results-speed-a.txt` and `results-gate5-speed.txt`, EXPLORATORY): "Item 5 isa default, item 10 ON and REF, item 7 pending external review": `sweepCashIsaTo: 'isa'` joins the candidate; item 10's stage B ports ON (`coarse`, `w2a3b3g2c2-NT-LRVOH-h3`) and REF (the bridge reference's lattice `{ na: 80, nb: 21, nz: 64 }`) into the candidate, part 5 read on the units' own times; the candidate's hash changes, the old and new recorded at the port; item 7 waits on the external review (`ITEM7-POT.md`); after the ports the couples are landed again (D71).
- - D72. 11 Nov, maintainer, on the full tier red since item 3 (Full 152 and 160; Full 151 on 994d750f green): three figures item 3 moved, re-pinned with a dated note each: `optimize.test.mjs` H, the basic harvest ceiling at death 90 (`+£36,471` before, `-£3,822` on its own now, less than its cost at 72), checked as costing less above 75 than below it and listed as its own lever; `solver-model.test.mjs` H2's bound `6%` (S329 `3.64%` to `5.12%`); `solver-step2.test.mjs` check 1's bound two points (the ternary search, a research option, S162 `1.95`); whether the basic ceiling should stop below the higher-rate threshold by the year's savings income, a question for the external review.
- - D71. 11 Nov, maintainer, on the re-run's registration (`couples-d4b.md`, its design review's PASS; `QUESTIONS-2026-11-11.md`): "Do not launch couples-d4b yet": held until the maintainer has ruled on items 5, 7 and 10 and any switched on is ported, the couples then landed again on that code as the registration says; the external review advises dropping SHIPC as a gate (no couple has had it) and is writing it up, and the registration is revised only after it; items 7 and 10's reads and gate 5 carry on; no result of D4 or of seed 7021 read, printed or estimated.
- - D70. 10 Nov, maintainer, on item 6's stage A read (`results-share-a.txt`: all three parts of `SHARE-A.md`'s rule hold, the review's own run reproduced; by the rule, stage B now): "Unlock enforcement for exactly: fair-variables.mjs, a new group-D row 34 naming `share` and `shareRule`"; stage B builds `shareRule: 'pots'` as a research option, off, with `couple-share.test.mjs` (FAST_JOINING, D66); stage C after the re-run's read.
-@@ -168,7 +169,6 @@ Known limitations (Step 4's triage): gaps between a table's own forecast and sim
- - O180, S370's bad world: table 51.3448 against 38.0000 run (152 of 400), 13.3448 points over (`results-hodep-s370.txt`). O189, S128's bridge part: world 0 GB 2.6233, world 1 GB 2.1200 points (`results-copyb.txt`).
- - O198, the top-cell fix's year-1 residual under the plan reference, world 0: -0.5125 points (`results-copyx.txt`). TOP-CELL, AA-UR and FD-X: diagnostics of table reads, not run; dropped as gates (D2).
- <!-- end printed:limitations -->
--
- ### Step 1 (21 Oct): the product-path defects, fixed
- 
- O200 (the final year's NaN), O199 (the same in the adaptive reference), F0 (the sweep's gain untaxed in the solver's models), F2a (the engine's tier above), F0a (the 2026/27 rules, guardrails and the lookahead under a table). Checking F0 against the engine found one more: the solver's forward runs clamped the taxable account's gain share at zero and so forgot an unrealised loss the engine keeps in its basis; they now carry it (`solver-carry.test.mjs`, check 4). After 7u-F (D20 (6)) the same silent-NaN choice in `adaptive.js` (its two argmax loops) and `couple.js` (the joint move) throws too, and `fast.js`'s guardrail "lost money last year" flag compares the pots after growth with those before it, as the engine does (it grew the pension and ISA a second time; inert under a table, which runs with guardrails off). V2's state check (D20 (4)) then found one more of F0's kind: the engine never realises a loss, so a taxable account sold out below its cost keeps that basis and money paid in later joins it, where a forward run's gain share (of a value of nothing) dropped it; a forward run now carries it in slot 13 (S370 the household that refills; no table reads the slot).
-@@ -295,5 +295,5 @@ Households used before (D38): S368, run by the review's N1 assessment on 26 Oct
- ## 6. The next three actions
- Each step has its test and a time box (D20's order). 7u-F's reviews: `reviews/2026-10-23-read-7uf.md`, `-deep-7uf.md`.
- 1. The beta's two weeks, from 6 Nov (the go or no-go list the maintainer's: no open defect that changes a figure, the checklist green on the final commit; on by default and the switch's removal the maintainer's).
--2. The review of 9 Nov (D66), in its order, each item's time box kept: item 1's part 1, item 2 and item 9 done (the STOP ruled, D67); items 3 to 5 and 6's stage B in, item 5's experiment read (to the maintainer); items 7 and 10's stage A and gate 5 read (to the maintainer; item 7 stops); item 6's stage A (EXPLORATORY, seed 7002), its rule committed first, its read to the maintainer; item 3 (HMRC-ORDER), then items 4 and 5 in the same engine round; item 9, then the re-run (`couples-d4b.md`) held by D71 until items 5, 7 and 10 are ruled and ported and the external review's SHIPC advice is in; item 10's stage B after a ruling naming the run; after the re-run's read, item 6's stage C.
-+2. The review of 9 Nov (D66), in its order, each item's time box kept: item 1's part 1, item 2 and item 9 done (the STOP ruled, D67); items 3 to 5 and 6's stage B in, item 5's experiment read (to the maintainer); items 7 and 10's stage A and gate 5 read (to the maintainer; item 7 stops); item 6's stage A (EXPLORATORY, seed 7002), its rule committed first, its read to the maintainer; item 3 (HMRC-ORDER), then items 4 and 5 in the same engine round; item 9, then the re-run (`couples-d4b.md`) held by D71 until items 5, 7 and 10 are ruled and ported and the external review's SHIPC advice is in; item 10's stage B and item 5's default (D73), then the couples landed again; after the re-run's read, item 6's stage C.
- 3. Part D's D5 after the re-run's read; the research queue (B7: the windfall factorial after item 4, then the savings factorial) whenever cores are free. What remains for the maintainer: `DECISIONS-PENDING.md`.
 diff --git a/research/solver/candidate.json b/research/solver/candidate.json
 index 6ecabd11..40b61643 100644
 --- a/research/solver/candidate.json
@@ -65,9 +18,18 @@ index 6ecabd11..40b61643 100644
 +  "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 }
  }
 diff --git a/research/solver/candidate.mjs b/research/solver/candidate.mjs
-index 8e17a026..7edf91e1 100644
+index 8e17a026..7fe82f88 100644
 --- a/research/solver/candidate.mjs
 +++ b/research/solver/candidate.mjs
+@@ -51,7 +51,7 @@ import { readFileSync } from 'node:fs';
+ import { createHash } from 'node:crypto';
+ import { join, dirname } from 'node:path';
+ import { fileURLToPath } from 'node:url';
+-import { solvePlan } from '../../src/solver/solve.js';
++import { solvePlan, coarseWhereFits } from '../../src/solver/solve.js';
+ import { RESEARCH_OPTS } from './research-opts.mjs';
+ import { checkE3pclsPin } from './e3pcls-pin.mjs';
+ 
 @@ -60,11 +60,16 @@ const deepFreeze = o => { Object.values(o).forEach(v => { if (v && typeof v ===
  export const CANDIDATE_OPTS = deepFreeze(JSON.parse(readFileSync(join(HERE, 'candidate.json'), 'utf8')));
  if (!Object.entries(RESEARCH_OPTS).every(([k, v]) => CANDIDATE_OPTS[k] === v)) throw new Error('candidate.json does not carry RESEARCH_OPTS');
@@ -87,7 +49,7 @@ index 8e17a026..7edf91e1 100644
  /* the adaptive package's keys (D5), and the candidate before the assembly: 7u-F's less them */
  export const PACKAGE_KEYS = Object.freeze(['readerRef', 'adaptiveLattice', 'readerSplit']);
  export const FROZEN_OPTS = deepFreeze(Object.fromEntries(Object.entries(ASSEMBLED_OPTS).filter(([k]) => !PACKAGE_KEYS.includes(k))));
-@@ -91,7 +96,7 @@ export function candidatePlan(E, plan, reals = blendReals()) {
+@@ -91,12 +96,18 @@ export function candidatePlan(E, plan, reals = blendReals()) {
  }
  /* the candidate's hash, 7u-F's (e65e5e99ba49), the frozen one's (a61dba4ee1f5 before the assembly) and Phase 4's (fcd8096217b7);
     candidate.test.mjs pins them */
@@ -96,19 +58,128 @@ index 8e17a026..7edf91e1 100644
  /* the candidate's solve: its plan and options, then the caller's own (lambda, points, an arm's settings) on top; `base`
     FROZEN_OPTS for the candidate before the assembly (7u's CAND, the development tests) */
  export function solveCandidate(E, M, plan, extra = {}, base = CANDIDATE_OPTS) {
+   // e3pcls is exact only on the code its identity test last passed on (e3pcls-pin.mjs): refuse before any solve otherwise
+   const { e3pclsPinFile, e3pclsPinning, ...opts } = { ...base, ...extra };
+   checkE3pclsPin({ ...opts, e3pclsPinFile, e3pclsPinning });
+-  return solvePlan(E, M, candidatePlan(E, plan), opts);
++  // the candidate's `coarse` goes to a solve that can take it and is left out of one that cannot (solve.js coarseWhereFits:
++  // an arm with no joint tier state, consent withdrawn); an arm that names `coarse` itself goes to the solve as asked, whose
++  // refusal stands
++  const p = candidatePlan(E, plan), off = {};
++  const r = solvePlan(E, M, p, 'coarse' in extra ? opts : coarseWhereFits(E, M, p, opts, off));
++  if (off.why) r.meta.coarse = { off: off.why };
++  return r;
+ }
+diff --git a/research/solver/d73-digests.mjs b/research/solver/d73-digests.mjs
+new file mode 100644
+index 00000000..edda01de
+--- /dev/null
++++ b/research/solver/d73-digests.mjs
+@@ -0,0 +1,52 @@
++/*
++ * D73'S PORT, THE WORKING FOR THE THREE PINNED TABLE DIGESTS IT MOVES (D66: a FAST test's pinned figure that moves comes to the
++ * maintainer naming the test, the old figure, the new and the working). couple-quick check 5, windfall-relief check 6 and
++ * couple-share check 2 each pin the digest of the app's solve (solveForApp, the candidate's settings) at 4 points on the
++ * light reference lattice. D73 put two keys into the candidate that reach those solves: `sweepCashIsaTo: 'isa'` (item 5) and
++ * `coarse` (item 10's solve on anchors and shortlists); its third change, the reference's lattice, does not (each test sets
++ * its own light lattice). Here each pinned solve is made four ways on the ported code: both keys out (which must give the old
++ * pinned figure: nothing else in the port reaches these tables), each alone, and both (the new figure the test would pin).
++ *   node research/solver/d73-digests.mjs > research/solver/results-d73-digests.txt
++ */
++import * as E from '../engine.mjs';
++import * as M from '../../src/solver/model.js';
++import { solveForApp } from '../../src/solverApp.js';
++import { APP_CANDIDATE, prepareForSolve } from '../../src/solverSettings.js';
++import { solveCouple } from '../../src/solver/couple.js';
++import { tablesOf, digestOf } from '../../src/solverDigest.js';
++import { buildScenarios } from '../policy-study/scenarios.mjs';
++import { CANDIDATE_HASH, BEFORE_D73_HASH } from './candidate.mjs';
++import { codeId } from './code-id.mjs';
++
++const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
++const WAYS = [['both keys out', { sweepCashIsaTo: undefined, coarse: undefined }], ['the sweep to the ISA alone', { coarse: undefined }], ['the anchors and shortlists alone', { sweepCashIsaTo: undefined }], ['both, the candidate', {}]];
++const lib = buildScenarios(), planOf = id => lib.find(s => s.id === id).plan, s210 = planOf('S210');
++const single = plan => async extra => digestOf(tablesOf(solveForApp(E, M, E.normalizePlan(plan), { points: 4, research: { ...LIGHT, ...extra } })));
++const couple = plan => async extra => {
++  const cp = solveCouple(E, M, prepareForSolve(E, E.normalizePlan(plan)), { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...extra }, ageWith: o.partnerAge0 }) });
++  return digestOf([...tablesOf(cp.tables.self), ...tablesOf(cp.tables.part)]);
++};
++// each pinned figure: the test and check, what is solved, the figure pinned today
++const PINS = [
++  ['couple-quick.test.mjs check 5 (BEFORE); windfall-relief.test.mjs check 6 (ITEM3.S116)', 'S116', single(planOf('S116')), 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4'],
++  ['windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit removed)', 'S210, its deposit removed', single({ ...s210, oneOffContributions: [] }), 'f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653'],
++  ['windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit typed into the taxable account)', 'S210, its deposit typed into the taxable account', single({ ...s210, oneOffContributions: s210.oneOffContributions.map(x => ({ ...x, category: E.CATEGORY_LABEL.other })) }), 'c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7'],
++  ['couple-share.test.mjs check 2 (BEFORE)', 'S007, each person\'s tables', couple(planOf('S007')), 'ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609']
++];
++const id = codeId();
++console.log(`D73's port: the three pinned table digests it moves, and the working (d73-digests.mjs; code ${id.hash})`);
++console.log(`the candidate ${CANDIDATE_HASH} (before D73 ${BEFORE_D73_HASH}); its keys since D73: sweepCashIsaTo ${JSON.stringify(APP_CANDIDATE.sweepCashIsaTo)}, coarse ${JSON.stringify(APP_CANDIDATE.coarse)}`);
++console.log('each solve the app\'s (solveForApp) at 4 points on the light reference lattice 48 x 9 x 32, as the tests make it\n');
++let bad = 0;
++for (const [test, what, run, old] of PINS) {
++  console.log(`${test}\n  ${what}; pinned today: ${old}`);
++  for (const [name, extra] of WAYS) {
++    const d = await run(extra), isOld = d === old;
++    if (name === 'both keys out' && !isOld) bad++;
++    if (name === 'both, the candidate' && isOld) bad++;
++    console.log(`    ${name.padEnd(34)} ${d}${isOld ? '   = the pinned figure' : ''}${name === 'both, the candidate' ? '   <- the new figure' : ''}`);
++  }
++  console.log('');
++}
++console.log(bad === 0 ? 'VERDICT: with both keys out every solve gives the figure pinned today, so the port moves these tables by the two keys alone; with both in, each gives its new figure.' : `VERDICT: ${bad} solve(s) do not behave so: STOP, the port reaches these tables some other way.`);
++process.exit(bad === 0 ? 0 : 1);
 diff --git a/research/solver/e3pcls-pin.json b/research/solver/e3pcls-pin.json
-index ffb68a8a..2e068bdc 100644
+index ffb68a8a..9b490cae 100644
 --- a/research/solver/e3pcls-pin.json
 +++ b/research/solver/e3pcls-pin.json
 @@ -1,6 +1,6 @@
  {
 -  "fingerprint": "19f41696dcb73973",
 -  "at": "10 Nov, 23:19 UK",
-+  "fingerprint": "7baa89ee158ca7e5",
-+  "at": "11 Nov, 11:46 UK",
++  "fingerprint": "7ad62c6097fd1f06",
++  "at": "11 Nov, 15:14 UK",
    "points": 4,
    "passed": 27,
    "test": "research/tests/solver-e3pcls.test.mjs",
+diff --git a/research/solver/results-d73-digests.txt b/research/solver/results-d73-digests.txt
+new file mode 100644
+index 00000000..276cebc8
+--- /dev/null
++++ b/research/solver/results-d73-digests.txt
+@@ -0,0 +1,33 @@
++D73's port: the three pinned table digests it moves, and the working (d73-digests.mjs; code 904c4176ba2c)
++the candidate af001697ce1b (before D73 d71f65ae871e); its keys since D73: sweepCashIsaTo "isa", coarse {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}
++each solve the app's (solveForApp) at 4 points on the light reference lattice 48 x 9 x 32, as the tests make it
++
++couple-quick.test.mjs check 5 (BEFORE); windfall-relief.test.mjs check 6 (ITEM3.S116)
++  S116; pinned today: b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4
++    both keys out                      b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4   = the pinned figure
++    the sweep to the ISA alone         5ccf2d4f54d1ebb770c39dc99a5685bc0779700aac63c624e79fba6e1e620089
++    the anchors and shortlists alone   746bfc934cd9cb38593fb4c08443fc49cf5b30cc92beedaced4c8c3455376cfd
++    both, the candidate                81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13   <- the new figure
++
++windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit removed)
++  S210, its deposit removed; pinned today: f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653
++    both keys out                      f9a4e63e00f6958e4145dd577416bb9e6930ea8a46d391a19fbe5e0f83661653   = the pinned figure
++    the sweep to the ISA alone         f382fafad598609050e3238a05b9435450fd24785b7261a57b2d5755d2585ff3
++    the anchors and shortlists alone   978d895136d70193ce70fd8d320a4b18d2547cd8eb6aee09fe817fce9d7d66a6
++    both, the candidate                1daa7851917f000a97479b09485392689113801c740c484dc157fc4e825e9574   <- the new figure
++
++windfall-relief.test.mjs check 6 (ITEM3, S210 its deposit typed into the taxable account)
++  S210, its deposit typed into the taxable account; pinned today: c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7
++    both keys out                      c7785c6fc3ecdcb402f3dbf8a1cf9109a4fa6600e755776e785b998b907085e7   = the pinned figure
++    the sweep to the ISA alone         80a7e422c38cb00e7d3349f33060dd69aadca364bd0fef2de8fd1e3b9c0a0460
++    the anchors and shortlists alone   ce168571e076f904231bfe6b475437c1f071b4a6c763d71e8ae51195444b89f5
++    both, the candidate                bb84262fb4db77b4e24c0c57252471064c73c2c16dc7b9b273cec9c3012f274e   <- the new figure
++
++couple-share.test.mjs check 2 (BEFORE)
++  S007, each person's tables; pinned today: ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609
++    both keys out                      ee4875424b94acb82da47dff0f30a7fddf17613dad59e49b5dd329f91af58609   = the pinned figure
++    the sweep to the ISA alone         6a73b7d4750b6324eced36d35d4256cb175c02d79deb3fbcac72349454c4a2a3
++    the anchors and shortlists alone   78834fa2b548d84a115e2519637f612ed921f7cc123416cdfe9714a90a7fad57
++    both, the candidate                1320a1db06372238bfbbe1811f253475d3f02555f3067ec333a12a19e33e0bd7   <- the new figure
++
++VERDICT: with both keys out every solve gives the figure pinned today, so the port moves these tables by the two keys alone; with both in, each gives its new figure.
 diff --git a/research/solver/solve-cfg.mjs b/research/solver/solve-cfg.mjs
 new file mode 100644
 index 00000000..7a185652
@@ -163,10 +234,10 @@ index 9c4bcf41..0f22ef19 100644
        `- The solver code the e3pcls pin last passed on: ${P.readPin().fingerprint} (${P.readPin().at}); the code now: ${P.fingerprint()}.`
 diff --git a/research/tests/solve-coarse.test.mjs b/research/tests/solve-coarse.test.mjs
 new file mode 100644
-index 00000000..ab16c99c
+index 00000000..26b19a55
 --- /dev/null
 +++ b/research/tests/solve-coarse.test.mjs
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,138 @@
 +/*
 + * (Ported from the review of 9 Nov's tests/solve-coarse.test.mjs at c3fea94d, item 10's stage B, D73: the repository's imports,
 + * the split through e2.mjs's solveSplit, a seventh check that a locked dial position keeps the whole menu, its plant
@@ -192,17 +263,23 @@ index 00000000..ab16c99c
 + *      between anchors found a list (none fell back for want of one); the anchors' share of the cells is the strides' own
 + *   6. refusal: outside the joint tier state's E5 path (`tsOnce: false`, which a locked dial position runs on) the option
 + *      throws, so no solve takes it in silence where its arithmetic is not the path's
++ *   7. a locked dial position keeps the whole menu, and meta.coarse says so; plant `lockcoarse` (SOLVE_COARSE_PLANT)
++ *   8. consent to change risk withdrawn (one tier pair): the app's solve runs on the whole menu, its tables the solve's with the
++ *      setting taken out, and meta.coarse says so (D74); plant `fitsall` (SOLVE_COARSE_PLANT: coarseFits says yes to every solve)
++ *   9. the predicate (solve.js coarseFits) is the refusal: over the options that take a solve off the path, the solve refuses
++ *      exactly where the predicate says no
 + * solve()'s bytecode under V8's limit with the hooks in is solve-size.test.mjs's check, unchanged.
 + *   REPO_ROOT=<a tree with solve-coarse.diff applied> node solve-coarse.test.mjs [--full]     (quick: 4 points; --full: 6)
 + */
 +import * as E from '../engine.mjs';
 +import * as M from '../../src/solver/model.js';
 +import { solveForApp, PLANT as APP_PLANT } from '../../src/solverApp.js';
-+import { solvePlan } from '../../src/solver/solve.js';
++import { solvePlan, coarseFits, coarseWhereFits, tierPairsOf, COARSE } from '../../src/solver/solve.js';
 +import * as SS from '../../src/solverSettings.js';
 +import { solveSplit } from '../solver/e2.mjs';
 +import { buildScenarios } from '../policy-study/scenarios.mjs';
 +import { parseConfig, researchOf } from '../solver/solve-cfg.mjs';
++import { tablesOf, digestOf, sizeOf } from '../../src/solverDigest.js';
 +
 +const FULL = process.argv.includes('--full'), PTS = FULL ? 6 : 4, SETTING = 'w2a3b3g2c2-NT-LRVOH-h3';
 +const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
@@ -225,7 +302,7 @@ index 00000000..ab16c99c
 +const split = (id, cfg, parts) => { const { plan, opts } = optionsOf(id, cfg); return solveSplit(E, M, plan, opts, parts); };
 +
 +const A = 'S116', B = 'S370';   // B has years before pension access (the bridge reader, its reference and the exact steps)
-+const baseA = solve(A, null), baseB = solve(B, null);
++const baseA = solve(A, null), baseB = solve(B, null), baseOn = solveForApp(E, M, E.normalizePlan(rawOf(A)), { points: PTS, research: LIGHT });   // baseOn: the app's solve as it is, the candidate's setting on
 +
 +// 1. every cell an anchor
 +{ const x = differ(baseA, solve(A, 'w1a1b1-NT-LRV')); ok(x.d === 0, `1. every cell an anchor, ${A} at ${PTS} points: ${said(x)} from the solve without the option`); }
@@ -262,7 +339,39 @@ index 00000000..ab16c99c
 +  if (process.env.SOLVE_COARSE_PLANT === 'lockcoarse') APP_PLANT.rule = 'lockcoarse';
 +  let r = null, msg = ''; try { r = run(); } catch (e) { msg = e.message; }
 +  APP_PLANT.rule = '';
-+  ok(!!r && !r.meta.coarse, `7. at the dial's position 3 the locked solve keeps the whole menu (meta.coarse ${r ? JSON.stringify(r.meta.coarse) : 'none'})${msg ? `: ${msg}` : ''}`);
++  ok(!!r && !!r.meta.coarse && /locked dial position/.test(r.meta.coarse.off || '') && r.meta.coarse.fine === undefined, `7. at the dial's position 3 the locked solve keeps the whole menu (meta.coarse ${r ? JSON.stringify(r.meta.coarse) : 'none'})${msg ? `: ${msg}` : ''}`);
++}
++
++// 8. consent to change risk withdrawn (one tier pair, no tier state: a real product case): the app's solve runs on the whole
++// menu, its tables the solve's with the setting taken out by hand, and meta.coarse says so; plant 'fitsall' (solve.js COARSE.plant:
++// coarseFits says yes to every solve) hands the setting on, and the solve refuses
++{
++  const noConsent = p => ({ ...p, solver: { ...(p.solver || {}), aims: { ...((p.solver && p.solver.aims) || {}), riskConsent: false } } });
++  const run = extra => solveForApp(E, M, E.normalizePlan(noConsent(rawOf(A))), { points: PTS, research: { ...LIGHT, ...extra } });
++  if (process.env.SOLVE_COARSE_PLANT === 'fitsall') COARSE.plant = 'fitsall';
++  let r = null, msg = ''; try { r = run({}); } catch (e) { msg = e.message; }
++  COARSE.plant = '';
++  // no tier state, so no layers: the tables compared by their digest (src/solverDigest.js, every stored array)
++  const dg = r ? await digestOf(tablesOf(r)) : '', dg0 = r ? await digestOf(tablesOf(run({ coarse: undefined }))) : 'none';
++  ok(!!r && dg === dg0 && sizeOf(tablesOf(r)).values > 0 && !!r.meta.coarse && /no joint tier state/.test(r.meta.coarse.off || '') && !!r.meta.tierStateOff, `8. consent withdrawn on ${A}: the app's solve runs on the whole menu (${r ? `its ${sizeOf(tablesOf(r)).values} table values' digest ${dg.slice(0, 16)}, the solve's with the setting taken out ${dg0.slice(0, 16)}` : 'no solve'}; meta.coarse ${r ? JSON.stringify(r.meta.coarse) : 'none'})${msg ? `: ${msg}` : ''}`);
++  // and where the solve can take it, the app's solve does (the record of check 5 is the app's own solve of B)
++  ok(!!baseOn.meta.coarse && baseOn.meta.coarse.fine > 0 && !baseOn.meta.coarse.off, `8. where the solve can take it (${A}, consent as the plan's), the app's solve is on the shortlist: ${baseOn.meta.coarse && baseOn.meta.coarse.fine} cells`);
++}
++
++// 9. the predicate is the refusal: over the options that take a solve off the setting's path, solvePlan handed the setting
++// throws its refusal exactly where coarseFits says no, and coarseSetup's own cross-check (the predicate against the solve's
++// flags) never fires; coarseWhereFits takes the setting out of exactly those
++{
++  const { plan, opts } = optionsOf(A, SETTING);
++  const cases = [['as the candidate', {}], ['tsOnce false', { tsOnce: false }], ['tsLean false', { tsLean: false }], ['payWhereOnePays', { payWhereOnePays: true }], ['countFailPicks', { countFailPicks: true }],
++    ['consent withdrawn', { riskConsent: false }], ['a tsOnce plant', { tsOncePlant: 'nocharge' }], ['without joint worlds', { jointWorlds: false, readerRef: undefined, adaptiveLattice: undefined, readerSplit: undefined }]];
++  const got = cases.map(([name, extra]) => {
++    const o = { ...opts, ...extra, riskAbove: false }, fits = coarseFits(o, tierPairsOf(E, M, plan, o)), kept = coarseWhereFits(E, M, plan, o).coarse !== undefined;
++    let msg = ''; if (!fits) { try { solvePlan(E, M, plan, o); msg = 'NOT refused'; } catch (e) { msg = e.message; } }
++    return { name, fits, kept, okay: kept === fits && (fits ? true : /^coarse needs/.test(msg)), msg };
++  });
++  const bad = got.filter(x => !x.okay);
++  ok(bad.length === 0 && got[0].fits && got.slice(1).every(x => !x.fits), `9. the predicate against the refusal on ${got.length} option sets: fits ${got.filter(x => x.fits).map(x => x.name).join(', ')}; refused ${got.filter(x => !x.fits).map(x => x.name).join(', ')}${bad.length ? `; WRONG: ${bad.map(x => `${x.name} (fits ${x.fits}, kept ${x.kept}: ${x.msg})`).join('; ')}` : ''}`);
 +}
 +
 +console.log(failed ? `FAILED: ${failed} of ${n + failed} checks` : `ALL PASS: ${n} checks`);
@@ -281,7 +390,7 @@ index 050843a0..953d068a 100644
    </section>
    );
 diff --git a/src/solver/solve.js b/src/solver/solve.js
-index ef41126e..963d9b0f 100644
+index ef41126e..b110b789 100644
 --- a/src/solver/solve.js
 +++ b/src/solver/solve.js
 @@ -1118,9 +1118,11 @@ export function solve(E, M, plan, opts = {}) {
@@ -350,7 +459,7 @@ index ef41126e..963d9b0f 100644
    if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research
    if (opts.saveSplit) r.meta.saveSplit = r.actions.some(a => a.save) ? 'on' : 'no year to choose';   // D38 (4), research
    if (opts.sweepCashIsaTo) r.meta.sweepCashIsaTo = opts.sweepCashIsaTo;   // the review of 9 Nov, item 5, research (menuMove)
-@@ -2836,3 +2847,207 @@ function movesAt(r, t, SC, BQ) {
+@@ -2836,3 +2847,242 @@ function movesAt(r, t, SC, BQ) {
    if (SC) for (let ai = nT; ai < n; ai++) { SC[ai] = -Infinity; BQ[ai] = -Infinity; }
    return nT;
  }
@@ -370,10 +479,45 @@ index ef41126e..963d9b0f 100644
 + * A move on the list is scored exactly as the whole menu scores it; only the choice is narrowed. The joint tier state's E5
 + * path alone (coarseSetup refuses any other). coarseCell, below, solves a cell on its shortlist.
 + */
-+export const COARSE = { stats: { fine: 0, listed: 0, fallback: 0, flows: 0, hits: 0 } };
++export const COARSE = { stats: { fine: 0, listed: 0, fallback: 0, flows: 0, hits: 0 }, plant: '' };   // plant 'fitsall' (solve-coarse.test.mjs): coarseFits says yes to every solve
++/*
++ * WHETHER A SOLVE CAN TAKE `coarse` (D73's port; the review's NEW-SESSION.md of 11 Nov, section 3): the conditions of
++ * coarseSetup's refusal, read from the solve's options and the number of tier pairs on its menu, so a caller can ask before
++ * the solve: the joint tier state's E5 path (the table without the dealing cost, the tier state with two pairs or more, joint
++ * worlds, `tsOnce` not false) with its smaller cuts, the full level scan, and neither payWhereOnePays, countFailPicks, a
++ * coverage axis nor a tsOnce plant. coarseSetup checks it against the solve's own flags, so the two cannot drift apart.
++ */
++export function coarseFits(opts, pairs) {
++  if (COARSE.plant === 'fitsall') return true;
++  return opts.tableDealing === false && !!opts.tierState && pairs >= 2 && !!opts.jointWorlds && opts.tsOnce !== false && opts.tsLean !== false
++    && opts.levelSearch !== 'ternary' && !opts.payWhereOnePays && !opts.countFailPicks && !opts.coverage && !opts.tsOncePlant;
++}
++/* the tier pairs on a plan's menu as solvePlan builds it without the tier above (which only adds pairs): one with the user's
++   consent to change risk withdrawn, else the joint steps down the plan's wrappers can take */
++export function tierPairsOf(E, M, plan, opts = {}) {
++  if (opts.riskConsent === false || opts.tiers === false) return 1;
++  const m = M.prepare(E, plan);
++  if (opts.tiersBelow !== undefined) m.tiersBelow = opts.tiersBelow;
++  return tierCombos(m).length;
++}
++/*
++ * THE CANDIDATE'S OPTIONS AS A SOLVE OF THIS PLAN CAN TAKE THEM: `coarse` kept where coarseFits says the solve is on its path,
++ * taken out where it is not (consent to change risk withdrawn or one tier pair, a locked dial position), so that solve runs
++ * on the whole menu, as before D73. For the callers that hand the candidate to a solve (solverApp.js solveForApp,
++ * research/solver/candidate.mjs solveCandidate, the tests that spread the candidate into solvePlan): a call that names
++ * `coarse` itself goes straight to the solve, whose refusal stands. `off` (optional) is told why it was taken out.
++ */
++export function coarseWhereFits(E, M, plan, opts, off = null) {
++  if (!opts.coarse) return opts;
++  if (coarseFits(opts, tierPairsOf(E, M, plan, opts))) return opts;
++  if (off) off.why = opts.tsOnce === false ? 'a locked dial position keeps the whole menu' : 'no joint tier state on this solve: the whole menu';
++  return { ...opts, coarse: undefined };
++}
 +function coarseSetup(opts, g, actions, cs, ok, env) {
 +  const C = opts.coarse, cacts = cs[cs.length >> 1].acts;
-+  if (!ok || g.cov || opts.tsOncePlant || opts.payWhereOnePays) throw new Error("coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays");
++  const fits = !!ok && !g.cov && !opts.tsOncePlant && !opts.payWhereOnePays;
++  if (COARSE.plant !== 'fitsall' && coarseFits(opts, new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`)).size) !== fits) throw new Error(`coarseFits (${!fits}) disagrees with the solve's own path (${fits}): the predicate and the refusal have drifted apart`);
++  if (!fits) throw new Error("coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays");
 +  const strides = [C.w || 1, C.a || 1, C.b || 1, C.g || 1, C.c || 1], dims = [g.np, g.ni, g.nt, g.gain.length, g.pcls.length];
 +  const isA = (i, d) => i % strides[d] === 0 || i === dims[d] - 1;
 +  const lo = dims.map((n, d) => Int32Array.from({ length: n }, (_, i) => (isA(i, d) ? i : i - (i % strides[d]))));
@@ -559,14 +703,16 @@ index ef41126e..963d9b0f 100644
 + * on (plant 'nocopy', its test only: the anchors' copied cells left unmade) */
 +function coarseSync(E2, copyPass, t, S) { E2.barrier(); if (E2.part === 0 && S.plant !== 'nocopy') copyPass(t, S.pass); E2.barrier(); }
 diff --git a/src/solverApp.js b/src/solverApp.js
-index ff0b79d5..0dda8289 100644
+index ff0b79d5..4f647b92 100644
 --- a/src/solverApp.js
 +++ b/src/solverApp.js
-@@ -10,11 +10,11 @@
+@@ -9,12 +9,12 @@
+  * solve (e3pcls-pin.mjs reads files a browser cannot); the app runs only committed code, and the fast suite's e3pcls-guard
   * test fails any commit whose pin does not match the solver's code.
   */
- import { solvePlan } from './solver/solve.js';
+-import { solvePlan } from './solver/solve.js';
 -import { APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
++import { solvePlan, coarseWhereFits } from './solver/solve.js';
 +import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
  
 -export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs only: 'holdrecord' keeps a restored solve's record
@@ -577,14 +723,18 @@ index ff0b79d5..0dda8289 100644
  
  /*
   * The candidate's solve of a plan, as the app holds it (prepared here). `e2` splits it across workers (src/solverPool.js),
-@@ -46,7 +46,9 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
+@@ -46,7 +46,13 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
    // the record's reference handed over in a wrapper of its own: adaptive.js keeps what it is given (its `rebuild` holds its input)
    const ref = restore && restore.ref ? { ...restore.ref } : null;
    const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref } } : {};
 -  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
-+  // a locked dial position (tsOnce false, the layer loop) keeps the whole menu: `coarse` goes to its base's solve alone (D73)
-+  const menu = PLANT.rule !== 'lockcoarse' && (aims.tsOnce === false || (research && research.tsOnce === false)) ? { coarse: undefined } : {};
-+  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, ...menu, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
++  // `coarse` goes only to a solve that can take it (solve.js coarseFits, the conditions of the solve's own refusal): a locked
++  // dial position (tsOnce false, the layer loop) and a plan with no joint tier state (consent to change risk withdrawn, or
++  // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
++  const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
++  const asked = { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
++  const r = solvePlan(E, M, solved, PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off));
++  if (off.why && !restore) r.meta.coarse = { off: off.why };
    // the stored record's tables and reference are copied into the solve's own as it runs (solve.js `opts.restore`, adaptive.js
    // `restore`), and the solve keeps its options and the reference its input: let the record go once the solve is done, so a
    // restored solve holds its tables once and not beside the record (Phase 11, phone-memory.cjs; restore-memory.test.mjs). The

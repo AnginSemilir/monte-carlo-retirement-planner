@@ -2615,6 +2615,8 @@
    "research/solver/couples-paths.json",
    "research/solver/drafts",
    "research/solver/drafts/item10-d73.patch",
+   "research/solver/drafts/item11.patch",
+   "research/solver/drafts/results-couple-flat.txt",
    "research/solver/e3pcls-pin.json",
    "research/solver/f2-design.md",
    "research/solver/fixtures",

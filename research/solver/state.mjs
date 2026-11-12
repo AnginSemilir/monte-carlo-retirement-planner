@@ -443,6 +443,17 @@ const BLOCKS = {
     const cf = pick(W, /^PASS {2}6\. the code of 4c05bc0 fails the check: (it throws|the worst gap £[\d.]+)/m, m => m[1]);
     return [`- \`windfall-split.test.mjs\` ${pick(W, /^(ALL PASS: \d+ checks|FAILED: .*)$/m, m => m[1])} (\`results-windfall-split.txt\`, the light settings): the option unset, every table the same to the bit as on the code before it (${off.join(', ')} entries) and 40 runs the same; the routing against a hand calculation on ${nr} cases (S026: ${rt}), planted (the Auto deposit's own claims not given back) ${p2} apart; the engine and the forward run in step with each split forced (${ls.join(', ')}), planted (the split dropped from the engine's move) ${p3} apart; the option on, ${on}, ${mn}; the copies left out outside the deposit year, ${sk} table entries the same as with them scored in every year; a couple with an Auto deposit steps under the even funding split as under its own move (${cp}), where on 4c05bc0, whose moves carried the windfall as \`split\`, ${cf}.`, ...savings()];
   },
+  // item 13's stage A and item 7's second read (TIE-A.md; D76, D81): the gate, each arm's parts as the reducer printed them, the outcomes
+  tiea() {
+    const R = 'research/solver/results-tie-a.txt', t = read(R);
+    if (t === null) return [`- pending: ${R}`];
+    const head = pick(R, /^TIE-A \(EXPLORATORY[^)]*\): (\d+ units, \d+ households, code \w+, audit \w+, seed \d+, \d+ paths, \d+ points); the gate: fair/m, m => m[1]);
+    // an arm's section: from its title line to the blank line after it; its numbered parts and its verdict, the households' lines left in the file
+    const section = title => { const i = t.indexOf(`\n${title}`); if (i < 0) throw new Error(`state.mjs tiea: no section "${title}" in ${R}`); const rest = t.slice(i + 1), j = rest.indexOf('\n\n'); return (j < 0 ? rest : rest.slice(0, j)).split('\n'); };
+    const parts = title => { const L = section(title); return `${L.filter(l => /^ {2}\d\. /.test(l)).map(l => l.trim()).join('; ')}: ${L.filter(l => /^ {2}(PASSES|FAILS)/.test(l)).map(l => l.trim()).join('')}`; };
+    const out13 = pick(R, /^ITEM 13 OUTCOME: (.*)$/m, m => m[1]), out7 = pick(R, /^ITEM 7 OUTCOME: (.*)$/m, m => m[1]);
+    return [`- The gate: fair - ${head} (\`results-tie-a.txt\`). Arm 3, the whole menu with the tie-break above the cap within 0.01 points, against the whole menu: ${parts('Arm 3, ')}. Arm 2, within 0.001 points: ${parts('Arm 2, ')}. ITEM 13 OUTCOME: ${out13} structure with the slice against arm 3: ${parts('structure+slice+tieC@1e-4 against')}. order with the slice against arm 3: ${parts('order+slice+tieC@1e-4 against')}. ITEM 7 OUTCOME: ${out7}`];
+  },
   // the review's gaps sweep ported (D38 (6), AFTER-PHASE4 section 5): the full tier's run, and the CGT case on the code before its fix
   gaps() {
     const G = 'research/tests/results-gaps-sweep.txt';

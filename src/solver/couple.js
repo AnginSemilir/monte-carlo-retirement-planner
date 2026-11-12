@@ -602,6 +602,15 @@ function rankScored(tab, s, t, held, K, sc, LK, keep = null) {
 }
 
 /* The joint move for one year: the split and each person's move, by one-step rollout. */
+/* Where the year's sweep sends cash ISA money (D73: to the stocks and shares ISA under the candidate). Each person's table was
+   solved with every move carrying it or none (solve.js menuMove), and a single's table hands it to the engine with the move
+   (bridge.js tablePolicy); the household's move must carry it too, or the rollout and the engine sweep to the taxable account
+   under tables solved for the ISA (the reviewer of 11 Nov, BLOCKING 1: on S059 the engine swept its cash ISAs out of their
+   wrapper). One sweep for the household: tables that disagree are refused. Plant 'nosweepisa' (couple-sweep.test.mjs): dropped */
+function sweepOf(aA, aB) {
+  if (!!aA.sweepIsa !== !!aB.sweepIsa) throw new Error('couple: one person\'s table sweeps cash ISA money to the ISA and the other\'s to the taxable account (sweepCashIsaTo): solve both alike');
+  return aA.sweepIsa && !planted('nosweepisa') ? { sweepIsa: true } : {};
+}
 export function chooseJoint(cp, state, t) {
   const { m, M, tables, splits, topK } = cp;
   const T = m.ctx.totalYears;
@@ -625,7 +634,7 @@ export function chooseJoint(cp, state, t) {
     const levels = first ? [aA.spendLevel] : [...new Set([lvl(tables.self, ia), lvl(tables.part, ib)])];
     for (const level of levels) {
       const joint = {
-        steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null,
+        steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, ...sweepOf(aA, aB), lump: !!aA.lump, contrib: null,
         spendLevel: level, split, switchCost: cp.switchCost || 0,
         perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', ...tiersOf(A, aA, tA) }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa', ...tiersOf(B, aB, tB) } },
         ia, ib
@@ -653,7 +662,7 @@ export function chooseJoint(cp, state, t) {
   if (!best) {
     // nothing funds the year: the even split with each person's first-ranked move, and the year fails on its own terms
     const aA = tables.self.actions[kA[0] || 0], aB = tables.part.actions[kB[0] || 0];
-    best = { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null, spendLevel: aA.spendLevel, split: 0.5, switchCost: cp.switchCost || 0, perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', ...tiersOf(A, aA, tA) }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa', ...tiersOf(B, aB, tB) } }, ia: kA[0] || 0, ib: kB[0] || 0 };
+    best = { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, ...sweepOf(aA, aB), lump: !!aA.lump, contrib: null, spendLevel: aA.spendLevel, split: 0.5, switchCost: cp.switchCost || 0, perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', ...tiersOf(A, aA, tA) }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa', ...tiersOf(B, aB, tB) } }, ia: kA[0] || 0, ib: kB[0] || 0 };
   }
   return best;
 }

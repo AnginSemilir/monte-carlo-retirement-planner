@@ -31,6 +31,7 @@
  *   9. the predicate (solve.js coarseFits) is the refusal: over the options that take a solve off the path, the solve refuses
  *      exactly where the predicate says no
  * solve()'s bytecode under V8's limit with the hooks in is solve-size.test.mjs's check, unchanged.
+ *  12. E5 against the layer loop with the sweep to the ISA on and the setting out: every table bit for bit
  *  11. --full only: the known answer, S116 at 45 points, 1,000 paths, survival within 0.5 points of the whole menu's
  *   node research/tests/solve-coarse.test.mjs [--full]     (quick: 4 points; --full: 6, and the known answer at 45)
  */
@@ -127,12 +128,18 @@ const oneB = solve(B, SETTING);
 {
   const { plan, opts } = optionsOf(A, SETTING);
   const cases = [['as the candidate', {}], ['tsOnce false', { tsOnce: false }], ['tsLean false', { tsLean: false }], ['payWhereOnePays', { payWhereOnePays: true }], ['countFailPicks', { countFailPicks: true }],
-    ['consent withdrawn', { riskConsent: false }], ['a tsOnce plant', { tsOncePlant: 'nocharge' }], ['without joint worlds', { jointWorlds: false, readerRef: undefined, adaptiveLattice: undefined, readerSplit: undefined }]];
+    ['consent withdrawn', { riskConsent: false }], ['a tsOnce plant', { tsOncePlant: 'nocharge' }], ['without joint worlds', { jointWorlds: false, readerRef: undefined, adaptiveLattice: undefined, readerSplit: undefined }],
+    ['the table with the dealing cost', { tableDealing: true }]];
   const got = cases.map(([name, extra]) => {
     const o = { ...opts, ...extra, riskAbove: false }, fits = coarseFits(o, tierPairsOf(E, M, plan, o)), kept = coarseWhereFits(E, M, plan, o).coarse !== undefined;
     let msg = ''; if (!fits) { try { solvePlan(E, M, plan, o); msg = 'NOT refused'; } catch (e) { msg = e.message; } }
     return { name, fits, kept, okay: kept === fits && (fits ? true : /^coarse needs/.test(msg)), msg };
   });
+  // and one tier pair by the plan itself (its pension and ISA held in Cash Equivalents, which have no step down): no tier state
+  { const raw = rawOf(A), cash = { ...raw, accounts: raw.accounts.map(a => (/^(pen|isa)_/.test(a.id) ? { ...a, risk: 'Cash Equivalents' } : a)) }, planC = SS.appPlan(E, SS.prepareForSolve(E, cash)), o = { ...opts, riskAbove: false };
+    const pairs = tierPairsOf(E, M, planC, o), fits = coarseFits(o, pairs), kept = coarseWhereFits(E, M, planC, o).coarse !== undefined;
+    let msg = ''; try { solvePlan(E, M, planC, o); msg = 'NOT refused'; } catch (e) { msg = e.message; }
+    got.push({ name: `one tier pair by the plan itself (${pairs})`, fits, kept, okay: pairs === 1 && !fits && !kept && /^coarse needs/.test(msg), msg }); }
   const bad = got.filter(x => !x.okay);
   ok(bad.length === 0 && got[0].fits && got.slice(1).every(x => !x.fits), `9. the predicate against the refusal on ${got.length} option sets: fits ${got.filter(x => x.fits).map(x => x.name).join(', ')}; refused ${got.filter(x => !x.fits).map(x => x.name).join(', ')}${bad.length ? `; WRONG: ${bad.map(x => `${x.name} (fits ${x.fits}, kept ${x.kept}: ${x.msg})`).join('; ')}` : ''}`);
 }
@@ -147,15 +154,24 @@ const oneB = solve(B, SETTING);
   const whole = app(noConsent(rawOf(A))), recWhole = cacheOf(whole), recOn = cacheOf(baseOn);
   if (process.env.SOLVE_COARSE_PLANT === 'restoreany') APP_PLANT.rule = 'restoreany';
   const tryIt = f => { try { f(); return 'NOT refused'; } catch (e) { return e.message; } };
-  const m1 = tryIt(() => app(rawOf(A), { restore: recWhole })), m2 = tryIt(() => app(noConsent(rawOf(A)), { restore: recOn }));
+  // and a whole-menu record of the SAME plan (the setting taken out by hand: the same tier layers, so the solve's own count of
+  // layers cannot refuse it): solveForApp's refusal is the only guard there (the reviewer of 11 Nov, MINOR 3)
+  const recSame = cacheOf(solveForApp(E, M, E.normalizePlan(rawOf(A)), { points: PTS, research: { ...LIGHT, coarse: undefined } }));
+  const m1 = tryIt(() => app(rawOf(A), { restore: recWhole })), m2 = tryIt(() => app(noConsent(rawOf(A)), { restore: recOn })), m3 = tryIt(() => app(rawOf(A), { restore: recSame }));
   APP_PLANT.rule = '';
-  ok(/^solveForApp: the stored solve was made on the whole menu and this solve is on anchors and shortlists/.test(m1) && /^solveForApp: the stored solve was made on anchors and shortlists and this solve is on the whole menu/.test(m2),
-    `10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (${m1.slice(0, 90)}); the reverse (${m2.slice(0, 90)})`);
+  const WH = /^solveForApp: the stored solve was made on the whole menu and this solve is on anchors and shortlists/;
+  ok(WH.test(m1) && /^solveForApp: the stored solve was made on anchors and shortlists and this solve is on the whole menu/.test(m2) && WH.test(m3),
+    `10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (${m1.slice(0, 90)}); the reverse (${m2.slice(0, 90)}); a whole-menu record of the same plan, the same layers (${m3.slice(0, 90)})`);
   const again = app(rawOf(A), { restore: cacheOf(baseOn) }), x = differ(baseOn, again);
   const againWhole = app(noConsent(rawOf(A)), { restore: cacheOf(whole) });
   ok(x.d === 0 && x.m > 0 && again.meta.restored === true && !!again.meta.coarse && !again.meta.coarse.off && (await digestOf(tablesOf(againWhole))) === (await digestOf(tablesOf(whole))) && !!againWhole.meta.coarse.off,
     `10. a record of its own kind restores: ${said(x)} on ${A} solved on anchors; the whole-menu solve's digest the same; each one's meta.coarse kept`);
 }
+
+// 12. the port's exact identity with the sweep on (the reviewer of 11 Nov, MINOR 7: speed-port's identities now run on the
+// candidate before D73): the joint tier state's E5 path against the layer loop, the sweep to the ISA on and `coarse` out, on a
+// household with no bridge year and on one with: every table bit for bit
+for (const [id, base] of [[A, baseA], [B, baseB]]) { const x = differ(base, solve(id, null, { tsOnce: false })); ok(x.d === 0 && x.m > 0 && base.meta.sweepCashIsaTo === 'isa', `12. E5 against the layer loop with the sweep to the ISA on and the setting out, ${id} at ${PTS} points: ${said(x)}`); }
 
 // 11 (--full only; the review's step 5): the known answer. S116 solved by the app at 45 points on anchors and shortlists and on
 // the whole menu, each run by the engine on the same 1,000 paths of seed 99001: survival within 0.5 points

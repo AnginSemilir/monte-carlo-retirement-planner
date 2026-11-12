@@ -276,7 +276,7 @@ for (const f of FIX) {
     const leaves = (tab, ai, h) => (tab.c.acts[ai].tierPen || 0) !== h.pen || (tab.c.acts[ai].tierIsa || 0) !== h.isa;
     const oracle = (ia, ib, split, level) => {
       const aA = A.actions[ia], aB = B.actions[ib];
-      const j = { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost,
+      const j = { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, ...(aA.sweepIsa ? { sweepIsa: true } : {}), lump: !!aA.lump, contrib: null, spendLevel: level, split, switchCost: cp.switchCost,
         perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', tierPen: A.c.acts[ia].tierPen || 0, tierIsa: A.c.acts[ia].tierIsa || 0, tierPenName: A.c.tiers.pen[A.c.acts[ia].tierPen || 0].name, tierIsaName: A.c.tiers.isa[A.c.acts[ia].tierIsa || 0].name },
           part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa', tierPen: B.c.acts[ib].tierPen || 0, tierIsa: B.c.acts[ib].tierIsa || 0, tierPenName: B.c.tiers.pen[B.c.acts[ib].tierPen || 0].name, tierIsaName: B.c.tiers.isa[B.c.acts[ib].tierIsa || 0].name } } };
       const post = M.cloneState(state), row = M.step(cp.m, post, j, t, null, true);

@@ -93,7 +93,7 @@ const cutHand = (level, t) => {
 const lvlOf = (tab, i) => tab.levelOf[i];
 function jointOf(ia, ib, split, level) {
   const aA = A.actions[ia], aB = B.actions[ib];
-  return { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, lump: !!aA.lump, contrib: null, spendLevel: level, split,
+  return { steps: aA.steps, costSteps: aA.costSteps || aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa', sweepCash: true, ...(aA.sweepIsa ? { sweepIsa: true } : {}), lump: !!aA.lump, contrib: null, spendLevel: level, split,
     perOwner: { self: { steps: aA.steps, harvest: !!aA.harvest, harvestCeil: aA.harvestCeil || 'pa' }, part: { steps: aB.steps, harvest: !!aB.harvest, harvestCeil: aB.harvestCeil || 'pa' } }, ia, ib };
 }
 // the D1 rule's score of one joint candidate (null where it does not fund the year)

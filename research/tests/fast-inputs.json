@@ -295,6 +295,27 @@
   "spawns": [],
   "nodeModules": false
  },
+ "couple-sweep.test.mjs": {
+  "read": [
+   "research/engine.mjs",
+   "research/policy-study/scenarios.mjs",
+   "research/tests/couple-sweep.test.mjs",
+   "src/solver/adaptive.js",
+   "src/solver/couple.js",
+   "src/solver/fast.js",
+   "src/solver/grid.js",
+   "src/solver/model.js",
+   "src/solver/reader.js",
+   "src/solver/solve.js",
+   "src/solverApp.js",
+   "src/solverSettings.js"
+  ],
+  "probe": [],
+  "list": [],
+  "outdirs": [],
+  "spawns": [],
+  "nodeModules": false
+ },
  "diff.test.mjs": {
   "read": [
    "research/engine.mjs",
@@ -838,6 +859,7 @@
    "research/tests/couple-quick.test.mjs",
    "research/tests/couple-rank.test.mjs",
    "research/tests/couple-share.test.mjs",
+   "research/tests/couple-sweep.test.mjs",
    "research/tests/couple-tables.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
@@ -2353,6 +2375,7 @@
    "research/tests/couple-quick.test.mjs",
    "research/tests/couple-rank.test.mjs",
    "research/tests/couple-share.test.mjs",
+   "research/tests/couple-sweep.test.mjs",
    "research/tests/couple-tables.test.mjs",
    "research/tests/cov-b.test.mjs",
    "research/tests/cpu-time.mjs",
@@ -3450,6 +3473,7 @@
    "research/solver/reviews/2026-11-07-couples-d4-design-2.md",
    "research/solver/reviews/2026-11-07-couples-d4-design.md",
    "research/solver/reviews/2026-11-11-couples-d4b-design.md",
+   "research/solver/reviews/2026-11-11-default-d73.md",
    "research/solver/runs.log",
    "research/tests",
    "research/tests/cma-gbp.json",

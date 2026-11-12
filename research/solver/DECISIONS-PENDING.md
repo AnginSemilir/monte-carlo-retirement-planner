@@ -97,11 +97,18 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
   engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
   beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
-- **Items 5 and 10 ruled (D73, 11 Nov): `'isa'` the default, item 10's ON and REF ported into the candidate; item 7 waits on the
-  external review (`ITEM7-POT.md`, five questions, the estate cap and the basic harvest ceiling among them).** The port is under
-  way, uncommitted: `drafts/item10-d73.patch` (`HANDOFF-2026-11-11.md`). Still to ask for when it is ready: the unlock of
-  `fair-variables.mjs` (rows naming `coarse` and `sweepCashIsaTo`) and of each FAST test whose pinned figure the new candidate
-  moves, each named with its old figure, its new and the working (D66).
+- **Items 5 and 10 ruled (D73, 11 Nov) and ported (4e6c6a09; D74, D82, D83): the candidate is af001697ce1b.** The reviewer on the change of
+  default: FAIL, then PASS after one fix (`reviews/2026-11-11-default-d73.md`, `2026-11-12-default-d73-2.md`). Item 7 answered by the
+  external review and read again in item 13's stage A (D85, D86).
+- **OPEN, the maintainer's (12 Nov): what D73's sweep to the ISA means for a couple.** The reviewer found that a couple's joint
+  move left the sweep out, so under tables solved for the ISA the engine swept a couple's cash ISAs to the taxable account
+  (S059: all of it). The agent chose: a couple's move carries the sweep its tables were solved with (0b047efd,
+  `couple-sweep.test.mjs`), so couples get item 5 as singles do. The other reading: a couple's person-solves leave the key
+  out, and couples keep the sweep to the taxable account until measured (item 5's experiment was on singles). The couples
+  are landed and piloted on the first reading; choosing the second means a small code change, landing again (ten minutes),
+  the pilot and the design review again, before any launch.
+- **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in
+  code. The message with each one's read and every pinned figure it would move is to come.
 - **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
   On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
   about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one

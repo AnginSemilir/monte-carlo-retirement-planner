@@ -1,44 +1,45 @@
-# THE RE-RUN'S PANEL (the review of 9 Nov, item 1, part 2, difference 2; D66, D67): D4's 40 couples, in its order, each landed again on the code
-# after items 2 to 5 by couple-panel.mjs reland (from the library's target, arm A searched anew at each step, 85 +/- 1% on 1,000 paths of
-# seed 7005), before seed 7021 is read. Each couple's landing (results/d4b-land/<id>.json), then reland combine.
-reland  0 S011   target 119900 (D4's 119900) arm A 84.6 LANDED in 4 steps, Bracket Fill Basic, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  1 S031   target 68400 (D4's 68100) arm A 84.2 LANDED in 6 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  2 S047   target 119500 (D4's 119500) arm A 84.3 LANDED in 4 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  3 S063   target 35000 (D4's 35000) arm A 85.0 LANDED in 8 steps, Bracket Fill Basic, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  4 S083   target 120800 (D4's 120800) arm A 84.8 LANDED in 7 steps, Windfall to ISA, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  5 S097   target 16900 (D4's 16900) arm A 84.3 LANDED in 9 steps, Bracket Fill Basic (harvest off), lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  6 S115   target 58200 (D4's 58800) arm A 85.6 LANDED in 8 steps, Windfall to ISA; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  7 S133   target 14500 (D4's 14500) arm A 85.2 LANDED in 9 steps, ISA First, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  8 S149   target 24000 (D4's 24400) arm A 85.8 LANDED in 1 steps, ISA First, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland  9 S167   target 97800 (D4's 97800) arm A 85.0 LANDED in 6 steps, Windfall to ISA, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 10 S189   target 86200 (D4's 86200) arm A 84.9 LANDED in 4 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 11 S205   target 22400 (D4's 22400) arm A 84.7 LANDED in 9 steps, Bracket Fill Basic (harvest off), lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 12 S223   target 66300 (D4's 65400) arm A 85.0 LANDED in 8 steps, Bracket Fill Basic, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 13 S239   target 114200 (D4's 114200) arm A 85.5 LANDED in 5 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 14 S259   target 83700 (D4's 86800) arm A 85.8 LANDED in 3 steps, Bracket Fill Basic, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 15 S277   target 30800 (D4's 31200) arm A 85.7 LANDED in 7 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 16 S293   target 51500 (D4's 51500) arm A 85.7 LANDED in 7 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 17 S371   target 51300 (D4's 51300) arm A 84.4 LANDED in 4 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 18 S387   target 26000 (D4's 26000) arm A 84.7 LANDED in 2 steps, ISA First (harvest off), lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 19 S403   target 45600 (D4's 45600) arm A 85.0 LANDED in 5 steps, ISA First, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 20 S301F  target 20200 (D4's 20200) arm A 85.8 LANDED in 8 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 21 S305F  target 33600 (D4's 33600) arm A 85.9 LANDED in 9 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 22 S307F  target 63300 (D4's 63300) arm A 84.3 LANDED in 6 steps, Bracket Fill Basic, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 23 S309F  target 93200 (D4's 96100) arm A 85.9 LANDED in 7 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 24 S311F  target 127700 (D4's 127500) arm A 84.5 LANDED in 5 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 25 S317F  target 41600 (D4's 41600) arm A 85.0 LANDED in 7 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 26 S319F  target 64800 (D4's 68100) arm A 85.8 LANDED in 5 steps, ISA First; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 27 S321F  target 139200 (D4's 140000) arm A 84.8 LANDED in 5 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 28 S323F  target 155300 (D4's 155800) arm A 84.7 LANDED in 3 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 29 S325F  target 24400 (D4's 24700) arm A 84.9 LANDED in 6 steps, ISA First (harvest off); code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 30 S327F  target 43700 (D4's 43900) arm A 85.8 LANDED in 5 steps, ISA First, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 31 S329F  target 40000 (D4's 40400) arm A 85.2 LANDED in 7 steps, ISA First, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 32 S331F  target 73400 (D4's 75300) arm A 85.5 LANDED in 4 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 33 S333F  target 135300 (D4's 144000) arm A 84.0 LANDED in 6 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 34 S335F  target 141500 (D4's 159100) arm A 85.4 LANDED in 3 steps, Bracket Fill; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 35 S337F  target 23900 (D4's 23900) arm A 84.3 LANDED in 5 steps, ISA First; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 36 S341F  target 40200 (D4's 40300) arm A 85.8 LANDED in 6 steps, Bracket Fill, lump sum; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 37 S343F  target 72600 (D4's 72800) arm A 84.7 LANDED in 6 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 38 S345F  target 132000 (D4's 133300) arm A 84.1 LANDED in 6 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland 39 S347F  target 138500 (D4's 139600) arm A 85.1 LANDED in 6 steps, Bracket Fill Basic; code 0b45e5f9f059 head 9aef4a9fcdf2
-reland: 40 couples to couples-panel-d4b.json on code 0b45e5f9f059; arm A from 84.0% to 85.9%; every couple landed, none passed over; the targets moved on 21 of 40 (the largest S335F)
+# THE RE-RUN'S PANEL, LANDED AGAIN ON THE FINAL CODE (D78, D81 (E); the review of 9 Nov, item 1, part 2, difference 2; D66, D67): D4's 40 couples, in its
+# order, each landed again by couple-panel.mjs reland (from the library's target, arm A searched anew at each step, 85 +/- 1% on 1,000 paths of seed
+# 7005) on the code after D73's port, item 11 and the two stage Bs (off), before seed 7021 is read. Each couple's landing (results/d4b-land/<id>.json), then
+# reland combine. The landing before it (on 0b45e5f9f059, after items 2 to 5) is beside each: arm A is the app's rules, which none of those changes reaches.
+reland  0 S011   target 119900 (D4's 119900; the landing before 119900) arm A 84.6 (before 84.6) LANDED in 4 steps, Bracket Fill Basic, lump sum; code 1d5d2421c9ab
+reland  1 S031   target 68400 (D4's 68100; the landing before 68400) arm A 84.2 (before 84.2) LANDED in 6 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland  2 S047   target 119500 (D4's 119500; the landing before 119500) arm A 84.3 (before 84.3) LANDED in 4 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland  3 S063   target 35000 (D4's 35000; the landing before 35000) arm A 85.0 (before 85.0) LANDED in 8 steps, Bracket Fill Basic, lump sum; code 1d5d2421c9ab
+reland  4 S083   target 120800 (D4's 120800; the landing before 120800) arm A 84.8 (before 84.8) LANDED in 7 steps, Windfall to ISA, lump sum; code 1d5d2421c9ab
+reland  5 S097   target 16900 (D4's 16900; the landing before 16900) arm A 84.3 (before 84.3) LANDED in 9 steps, Bracket Fill Basic (harvest off), lump sum; code 1d5d2421c9ab
+reland  6 S115   target 58200 (D4's 58800; the landing before 58200) arm A 85.6 (before 85.6) LANDED in 8 steps, Windfall to ISA; code 1d5d2421c9ab
+reland  7 S133   target 14500 (D4's 14500; the landing before 14500) arm A 85.2 (before 85.2) LANDED in 9 steps, ISA First, lump sum; code 1d5d2421c9ab
+reland  8 S149   target 24000 (D4's 24400; the landing before 24000) arm A 85.8 (before 85.8) LANDED in 1 steps, ISA First, lump sum; code 1d5d2421c9ab
+reland  9 S167   target 97800 (D4's 97800; the landing before 97800) arm A 85.0 (before 85.0) LANDED in 6 steps, Windfall to ISA, lump sum; code 1d5d2421c9ab
+reland 10 S189   target 86200 (D4's 86200; the landing before 86200) arm A 84.9 (before 84.9) LANDED in 4 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 11 S205   target 22400 (D4's 22400; the landing before 22400) arm A 84.7 (before 84.7) LANDED in 9 steps, Bracket Fill Basic (harvest off), lump sum; code 1d5d2421c9ab
+reland 12 S223   target 66300 (D4's 65400; the landing before 66300) arm A 85.0 (before 85.0) LANDED in 8 steps, Bracket Fill Basic, lump sum; code 1d5d2421c9ab
+reland 13 S239   target 114200 (D4's 114200; the landing before 114200) arm A 85.5 (before 85.5) LANDED in 5 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 14 S259   target 83700 (D4's 86800; the landing before 83700) arm A 85.8 (before 85.8) LANDED in 3 steps, Bracket Fill Basic, lump sum; code 1d5d2421c9ab
+reland 15 S277   target 30800 (D4's 31200; the landing before 30800) arm A 85.7 (before 85.7) LANDED in 7 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 16 S293   target 51500 (D4's 51500; the landing before 51500) arm A 85.7 (before 85.7) LANDED in 7 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 17 S371   target 51300 (D4's 51300; the landing before 51300) arm A 84.4 (before 84.4) LANDED in 4 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 18 S387   target 26000 (D4's 26000; the landing before 26000) arm A 84.7 (before 84.7) LANDED in 2 steps, ISA First (harvest off), lump sum; code 1d5d2421c9ab
+reland 19 S403   target 45600 (D4's 45600; the landing before 45600) arm A 85.0 (before 85.0) LANDED in 5 steps, ISA First, lump sum; code 1d5d2421c9ab
+reland 20 S301F  target 20200 (D4's 20200; the landing before 20200) arm A 85.8 (before 85.8) LANDED in 8 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 21 S305F  target 33600 (D4's 33600; the landing before 33600) arm A 85.9 (before 85.9) LANDED in 9 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 22 S307F  target 63300 (D4's 63300; the landing before 63300) arm A 84.3 (before 84.3) LANDED in 6 steps, Bracket Fill Basic, lump sum; code 1d5d2421c9ab
+reland 23 S309F  target 93200 (D4's 96100; the landing before 93200) arm A 85.9 (before 85.9) LANDED in 7 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 24 S311F  target 127700 (D4's 127500; the landing before 127700) arm A 84.5 (before 84.5) LANDED in 5 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 25 S317F  target 41600 (D4's 41600; the landing before 41600) arm A 85.0 (before 85.0) LANDED in 7 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 26 S319F  target 64800 (D4's 68100; the landing before 64800) arm A 85.8 (before 85.8) LANDED in 5 steps, ISA First; code 1d5d2421c9ab
+reland 27 S321F  target 139200 (D4's 140000; the landing before 139200) arm A 84.8 (before 84.8) LANDED in 5 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 28 S323F  target 155300 (D4's 155800; the landing before 155300) arm A 84.7 (before 84.7) LANDED in 3 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 29 S325F  target 24400 (D4's 24700; the landing before 24400) arm A 84.9 (before 84.9) LANDED in 6 steps, ISA First (harvest off); code 1d5d2421c9ab
+reland 30 S327F  target 43700 (D4's 43900; the landing before 43700) arm A 85.8 (before 85.8) LANDED in 5 steps, ISA First, lump sum; code 1d5d2421c9ab
+reland 31 S329F  target 40000 (D4's 40400; the landing before 40000) arm A 85.2 (before 85.2) LANDED in 7 steps, ISA First, lump sum; code 1d5d2421c9ab
+reland 32 S331F  target 73400 (D4's 75300; the landing before 73400) arm A 85.5 (before 85.5) LANDED in 4 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 33 S333F  target 135300 (D4's 144000; the landing before 135300) arm A 84.0 (before 84.0) LANDED in 6 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 34 S335F  target 141500 (D4's 159100; the landing before 141500) arm A 85.4 (before 85.4) LANDED in 3 steps, Bracket Fill; code 1d5d2421c9ab
+reland 35 S337F  target 23900 (D4's 23900; the landing before 23900) arm A 84.3 (before 84.3) LANDED in 5 steps, ISA First; code 1d5d2421c9ab
+reland 36 S341F  target 40200 (D4's 40300; the landing before 40200) arm A 85.8 (before 85.8) LANDED in 6 steps, Bracket Fill, lump sum; code 1d5d2421c9ab
+reland 37 S343F  target 72600 (D4's 72800; the landing before 72600) arm A 84.7 (before 84.7) LANDED in 6 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 38 S345F  target 132000 (D4's 133300; the landing before 132000) arm A 84.1 (before 84.1) LANDED in 6 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland 39 S347F  target 138500 (D4's 139600; the landing before 138500) arm A 85.1 (before 85.1) LANDED in 6 steps, Bracket Fill Basic; code 1d5d2421c9ab
+reland: 40 couples to couples-panel-d4b.json on code 1d5d2421c9ab; arm A from 84.0% to 85.9%; every couple landed, none passed over; against the landing before (code 0b45e5f9f059): every target and every arm A survival the same; against D4's targets 21 of 40 moved

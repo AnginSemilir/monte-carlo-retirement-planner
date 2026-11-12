@@ -20,12 +20,14 @@ below this section says "the beta", read it as history. The order from here:
    - **Running:** the couples' re-run (item 1, `registrations/couples-d4b.md`), read once when every chunk is in, then
      the reviewer at the read and the deep reviewer.
    - **After its read:** (a) the tie-break joins the candidate (D90 (1)), the reviewer on the change of default;
-     (b) item 6's stage C, the registered test for couples who hold their money unevenly (until it reads such a couple
-     keeps the app's rules, M4); (c) item 12's stage A (D84), then the shortlist's trade back to the maintainer
-     (D90 (2)); (d) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it
-     changes the rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking
-     in; (e) Part D's D5, the couples' screens in the new planner, then couples on under the switch (the launch plan's
-     D6, no longer a couples' beta).
+     (b) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it changes the
+     rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking in. It is
+     being built now on a branch of its own (it does not rest on the read), and goes in before (d) so that the next
+     registered test is landed once, on the code that ships; (c) item 12's stage A (D84), then the shortlist's trade
+     back to the maintainer (D90 (2)); (d) item 6's stage C, the registered test for couples who hold their money
+     unevenly (until it reads such a couple keeps the app's rules, M4), landed after (a) to (c) so no change of code
+     falls between its landing and its read; (e) Part D's D5, the couples' screens in the new planner, then couples on
+     under the switch (the launch plan's D6, no longer a couples' beta).
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test (B7's "after the launch" is no
      longer a wait).

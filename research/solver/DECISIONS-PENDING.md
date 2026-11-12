@@ -130,7 +130,15 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   registration's blob, `src/`, the engine and the audit's stamp files the same there as at the registration's own commit
   (e6f0179a; the reviewer checked it, `reviews/2026-11-12-read-couple-sweep.md`).
 - **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in
-  code. The message with each one's read and every pinned figure it would move is to come.
+  code. The message with each one's read and every pinned figure it would move: `reports/2026-11-12-stage-b-switch-on.md`
+  (the figures in `results-stage-b-figures.txt`, EXPLORATORY). In short: the tie-break changes no path's survival or
+  spending, lowers tax and raises the pot, and moves 9 pinned run digests in 4 full-tier tests and the candidate's own
+  pins; the shortlist passes its rule while losing a little survival beyond noise (pooled, and on S030 and S370) for a
+  path about 1.9 times as fast, moves 12 pinned digests, needs 14 checks changed in 7 test files (one in FAST), and as
+  built also reaches a couple's ranking and the decisions the pages show. Neither goes on before the couples' re-run has
+  read (D78, D80) or to `main` before the beta's two weeks end. The agent's recommendation: the tie-break on after the
+  re-run's read; the shortlist not as built (first the whole menu kept for the decisions the pages show, and item 12's
+  stage A read for its effect on couples).
 - **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
   On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
   about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one

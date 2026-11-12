@@ -1755,7 +1755,67 @@ export function solve(E, M, plan, opts = {}) {
  * are integrated over, and the move with the best value wins. It is the same maximisation the solve
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
+/*
+ * THE CHOOSER'S SHORTLIST (`chooserShortlist: 'order'`; the review of 9 Nov, item 7, read again with the slice on 12 Nov,
+ * results-tie-a.txt; D81 (C), D86; research, off unless set, not in the candidate). The chooser scores every move at every
+ * decision, nearly all of a solved path's time. The backward pass stored its best move at every cell (`pol`): at a
+ * position, the moves stored at the cells around it, in every world and for every tier pair, are widened to every spending
+ * level, tier pair and re-wrap of each one's draw order, and only those are scored at the exact position, each exactly as
+ * the whole menu scores it; every other move is left out. No listed move affordable: the whole menu, as before (counted).
+ * An approximation (D65): for the paths that only count, never for a decision the pages show. The narrower width the
+ * review also measured ('structure': a move's draw order and re-wrap alone) failed the read (S370's survival, the capped
+ * pot) and is not built.
+ * THE SLICE. With the tie-break above the estate cap on (`tieAboveCap`) and the household above it, a shortlist is too short
+ * for the tie-break to work on (it holds a few draw orders, and the tie-break picks among the moves at one spending level and
+ * tier pair): every move at the chosen move's level and tier pair joins the list and the decision is made again.
+ * SHORTLIST.plant (chooser-shortlist.test.mjs): 'empty' lists nothing (every decision falls back to the whole menu), 'nobest'
+ * leaves the cells' stored moves themselves out of the list, 'noslice' the slice.
+ */
+export const SHORTLIST = { stats: { decisions: 0, listed: 0, fallback: 0, sliced: 0, slicedMoves: 0 }, plant: '' };
+function shortSetup(r) {
+  const acts = r.actions, n = acts.length;
+  const groupsOf = keyOf => { const g = new Map(), of = new Array(n); acts.forEach((a, ai) => { const k = keyOf(a); if (!g.has(k)) g.set(k, []); g.get(k).push(ai); of[ai] = g.get(k); }); return of; };
+  // 'order': every spending level, tier pair and re-wrap of a move's draw order
+  return { order: groupsOf(a => JSON.stringify([a.steps, !!a.lump, a.windfall || 0, a.save || 0, !!a.cgtSale])), mask: new Uint8Array(n), need: new Uint8Array(n), first: new Int32Array(n) };
+}
+function shortMask(r, s, t, after) {
+  const S = r._short || (r._short = shortSetup(r)), mask = S.mask, first = S.first, plant = SHORTLIST.plant;
+  mask.fill(0);
+  let cnt = 0, nf = 0;
+  const add = ai => { if (!mask[ai]) { mask[ai] = 1; cnt++; } };
+  if (plant !== 'empty') {
+    for (const tab of r.mix ? r.mix.tables : [r]) {
+      const g = tab.g, loc = locateVec(g, s), pols = tab.tsLayers ? tab.tsLayers.map(L => L.pol) : [tab.pol];
+      const gs = loc.igw > 0 ? [loc.ig, loc.ig + 1] : [loc.ig], cs = loc.icw > 0 ? [loc.ic, loc.ic + 1] : [loc.ic];
+      for (let dp = 0; dp < 2; dp++) for (let di = 0; di < 2; di++) for (let dt = 0; dt < 2; dt++) for (const ig of gs) for (const ic of cs) {
+        const idx = g.index(Math.min(g.np - 1, loc.p.i + dp), Math.min(g.ni - 1, loc.i.i + di), Math.min(g.nt - 1, loc.t.i + dt), ig, ic);
+        for (const pol of pols) add(pol[t][idx]);
+      }
+    }
+    for (let ai = 0; ai < mask.length; ai++) if (mask[ai]) first[nf++] = ai;
+    for (let q = 0; q < nf; q++) for (const b of S.order[first[q]]) add(b);
+    if (plant === 'nobest') for (let q = 0; q < nf; q++) { mask[first[q]] = 0; cnt--; }
+    if (after) for (const ai of after) add(ai);   // the slice: added as they are, after the widening
+  }
+  SHORTLIST.stats.decisions++; SHORTLIST.stats.listed += cnt;
+  return mask;
+}
 export function chooseAction(r, s, t, held = null) {
+  let ai = chooseActionCore(r, s, t, held, null);
+  if (r._usedShort) {
+    r._usedShort = false;
+    // the slice (above): a second scoring of the decision with the slice's moves listed too
+    if (r.tieAboveCap > 0 && r.estateCap > 0 && SHORTLIST.plant !== 'noslice' && Math.max(0, s[0] + s[1] + s[2] - s[0] * ((r.terminal && r.terminal.deathTax) || 0)) > r.estateCap) {
+      const lv = r.levelOf, ca = r.c.acts, ex = [];
+      for (let k = 0; k < ca.length; k++) if ((!lv || lv[k] === lv[ai]) && (ca[k].tierPen || 0) === (ca[ai].tierPen || 0) && (ca[k].tierIsa || 0) === (ca[ai].tierIsa || 0)) ex.push(k);
+      SHORTLIST.stats.sliced++; SHORTLIST.stats.slicedMoves += ex.length;
+      ai = chooseActionCore(r, s, t, held, ex);
+      r._usedShort = false;
+    }
+  }
+  return ai;
+}
+function chooseActionCore(r, s, t, held, after) {
   const { actions } = r;
   const T = r.m.ctx.totalYears;
   /*
@@ -1780,7 +1840,11 @@ export function chooseAction(r, s, t, held = null) {
     const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
     // S2 (below): the year's flows once a decision, shared by every world and every tier variant of a move
     // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
-    const D = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds') ? decisionFlows(r, s, t, held) : null;
+    const canShare = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds');
+    // the chooser's shortlist (above): the listed moves alone get a flow and a score this decision
+    CHOOSER.mask = r.chooserShortlist && canShare && t < T && !r.nAt ? shortMask(r, s, t, after) : null;
+    const D = canShare ? decisionFlows(r, s, t, held) : null;
+    r._usedShort = !!CHOOSER.mask; CHOOSER.mask = null;
     // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike
     const O = D && CHOOSER.once ? decisionRepeats(r, s, t, D) : null;
     r.mix.tables.forEach((tab, k) => {
@@ -1807,6 +1871,11 @@ export function chooseAction(r, s, t, held = null) {
     const S2 = r._sc2 || (r._sc2 = new Float64Array(n));
     scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)), held);
     for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
+  }
+  // the chooser's shortlist: no listed move affordable, so the whole menu is scored, as before (counted)
+  if (r._usedShort) {
+    let any = false; for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity) { any = true; break; }
+    if (!any) { SHORTLIST.stats.fallback++; const w = r.chooserShortlist; r.chooserShortlist = false; try { return chooseActionCore(r, s, t, held, null); } finally { r.chooserShortlist = w; r._usedShort = false; } }
   }
   // lockTiers: only the moves on the pair the candidate's chooser picks here stay in (lockMask, at the file's end)
   if (r.lockTiers) { const lk = lockMask(r, s, t, held, SC); if (lk >= 0) return lk; }
@@ -1847,6 +1916,33 @@ export function chooseAction(r, s, t, held = null) {
    * move with the least tax this year; an exact tie there still goes to the larger bequest. Off by
    * default; measured to recover 1.5 points on S070 and give back half a point on the largest wins.
    */
+  /*
+   * ABOVE THE ESTATE CAP, DO NOT PAY TAX THE OBJECTIVE CANNOT SEE (`tieAboveCap`, the review of 11 Nov, item 13; D76, D81 (B);
+   * research, off unless set, and not in the candidate). Under the estate shape 'cap' the tables put no value on a pound
+   * above the cap (four times the opening wealth), so there the whole menu breaks near-ties by nothing: on S328F it re-wraps
+   * at over half its decisions, and about half the tax it pays over the plan buys nothing the objective values
+   * (results-tie-a.txt). Where the household's wealth, as the estate term would take it if the plan ended now (net of the
+   * pension's death tax), is already above the cap: among the moves at the best move's spending level and tier pair that
+   * score within `tieAboveCap` of it, the one that pays the least tax this year; then the larger estate. Only the draw
+   * order and the re-wrap can change, never what the household spends or the risk it holds, and at or below the cap, where
+   * the tables do have a view, nothing changes. Forward only: no table reads it. A locked dial position (lockTiers) returns
+   * above and does not take it. CHOOSER.tiePlant (chooser-tie.test.mjs): 'anylevel' drops the level and tier-pair rule,
+   * 'anywhere' the cap test.
+   */
+  const tac = r.tieAboveCap || 0;
+  if (tac > 0 && r.estateCap > 0 && bestScore > -Infinity && (CHOOSER.tiePlant === 'anywhere' || Math.max(0, s[0] + s[1] + s[2] - s[0] * ((r.terminal && r.terminal.deathTax) || 0)) > r.estateCap)) {
+    const acts = r.c.acts, lv = r.levelOf, any = CHOOSER.tiePlant === 'anylevel';
+    let pick = best, pickTx = TX[best], pickB = BQ[best];
+    for (let ai = 0; ai < n; ai++) {
+      if (SC[ai] < bestScore - tac) continue;
+      if (!any && ((lv && lv[ai] !== lv[best]) || (acts[ai].tierPen || 0) !== (acts[best].tierPen || 0) || (acts[ai].tierIsa || 0) !== (acts[best].tierIsa || 0))) continue;
+      if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
+    }
+    best = pick;
+  }
+  // (`tieMargin`, below, is the older rule: any move within the margin, anywhere. It stays off and should never be set: on
+  // the review's run of 11 Nov it cut the spending level, by 11.8 points of target on S328F and 15.5 on S188, and the probe
+  // of 5 Oct had already found it not neutral, results-probe-tailm.txt)
   const tie = r.tieMargin || 0;
   if (tie > 0) {
     let pick = best, pickTx = TX[best], pickB = BQ[best];
@@ -1972,7 +2068,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV 
  * a state under seven slots, Richardson's second table, a reader probe and the log-odds blend (both count every read), and
  * scoreMoves stays the reference that probes and rankActions use.
  */
-export const CHOOSER = { share: true, check: false, plant: '', once: true };
+export const CHOOSER = { share: true, check: false, plant: '', once: true, tiePlant: '', mask: null };   // tiePlant: chooser-tie.test.mjs's ('anylevel', 'anywhere': chooseAction's tie-break above the estate cap)
 export const SHARE_CHECKED = { n: 0, hits: 0, miss: 0, fails: 0, decisions: 0, once: 0, onceOff: 0 };
 function decisionFlows(r, s, t, held) {
   const c = r.c, actions = r.actions, n = actions.length, L = s.length;
@@ -1983,8 +2079,13 @@ function decisionFlows(r, s, t, held) {
     D.cU = new Uint32Array(D.cpost.buffer);
   }
   const { post, cpost, fail, tx, base } = D, plant = CHOOSER.plant, nT = movesAt(r, t);
+  // the chooser's shortlist (CHOOSER.mask, set by chooseAction for this decision): a move off the list gets no flow and is
+  // marked failed, so no world scores it; a listed tier variant's base move still gets its flow
+  const SL = CHOOSER.mask || null, need = SL ? r._short.need : null;
+  if (SL) { need.fill(0); for (let ai = 0; ai < nT; ai++) if (SL[ai]) need[base[ai]] = 1; }
   for (let ai = 0; ai < nT; ai++) {
     const o = ai * L, b = base[ai];
+    if (SL && !SL[ai] && !(b === ai && need[ai])) { fail[ai] = 1; tx[ai] = 0; continue; }
     if (b === ai) {
       const p = post.subarray(o, o + L); p.set(s);
       const unmet = F.flow(c, t, ai, p);
@@ -1994,6 +2095,7 @@ function decisionFlows(r, s, t, held) {
     for (let q = 0; q < L; q++) cpost[o + q] = post[o + q];
     if (held && !fail[ai] && !(plant === 'nocharge' && b !== ai)) F.chargeSwitch(c, cpost.subarray(o, o + L), held, c.acts[ai], t);
   }
+  if (SL) for (let ai = 0; ai < nT; ai++) if (!SL[ai]) fail[ai] = 1;
   return D;
 }
 const clsBitsF = new Float64Array(1), clsBitsU = new Uint32Array(clsBitsF.buffer);
@@ -2795,6 +2897,20 @@ function menuMove(a, opts) {
   return { ...a, lump: !!opts.lump, sweepIsa: true };
 }
 function researchFinish(r, LK, opts) {
+  // item 13 (chooseAction's tie-break above the estate cap): the cap where the estate shape is the cap, nothing otherwise
+  // (under 'soft' the estate term still rises above it, and 'logfloor' has none); and the margin where the solve is handed one
+  const cap = opts.bequestShape === 'soft' || opts.bequestShape === 'logfloor' ? null : r.terminal.beqOf(Infinity);
+  for (const x of [r, ...(r.worlds || [])]) x.estateCap = cap;
+  if (opts.tieAboveCap !== undefined) {
+    if (!(opts.tieAboveCap >= 0 && opts.tieAboveCap <= 0.01)) throw new Error(`tieAboveCap ${opts.tieAboveCap}: a margin in score units, from 0 to 0.01 (1e-4 is 0.01 points of survival)`);
+    for (const x of [r, ...(r.worlds || [])]) x.tieAboveCap = opts.tieAboveCap;
+    r.meta.tieAboveCap = opts.tieAboveCap;
+  }
+  // item 7: the chooser's shortlist (chooseAction), where the solve is handed one
+  if (opts.chooserShortlist) {
+    if (opts.chooserShortlist !== 'order') throw new Error(`chooserShortlist ${opts.chooserShortlist}: 'order' (the only width that passed its read, D86)`);
+    r.chooserShortlist = opts.chooserShortlist; r.meta.chooserShortlist = opts.chooserShortlist;
+  }
   if (r.costOf.meta) r.meta.ageWeight = r.costOf.meta;
   if (opts.coarse) r.meta.coarse = { w: opts.coarse.w || 1, a: opts.coarse.a || 1, b: opts.coarse.b || 1, g: opts.coarse.g || 1, c: opts.coarse.c || 1, src: opts.coarse.src || 'NT', expand: opts.coarse.expand || '', climb: opts.coarse.climb || 0, ...COARSE.stats };   // the review's prototype
   if (opts.windfallSplit) r.meta.windfallSplit = r.actions.some(a => a.windfall) ? 'on' : 'no Auto deposit';   // D37, research

@@ -126,8 +126,9 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   choosing the first reading, and the read has no split by cash ISA holding. A word from the maintainer before the launch
   settles it, recorded as its own D-line.
 - **LAUNCHED by D88 and D89, the couples' sweep check having passed: the couples' re-run** (`registrations/couples-d4b.md`, complete; its
-  design review PASS, eight MINORs, none blocking). It is launched from a tree at the registration's commit; nothing under
-  `src/solver` is committed between that commit and the launch.
+  design review PASS, eight MINORs, none blocking). It was launched 12 Nov 12:27 UK from a worktree at 4e4174b1, the commit recording the sweep check's read: the
+  registration's blob, `src/`, the engine and the audit's stamp files the same there as at the registration's own commit
+  (e6f0179a; the reviewer checked it, `reviews/2026-11-12-read-couple-sweep.md`).
 - **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in
   code. The message with each one's read and every pinned figure it would move is to come.
 - **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):

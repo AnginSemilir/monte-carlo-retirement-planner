@@ -62,7 +62,7 @@ over `APP_CANDIDATE` (solverApp.js line 53), and `sweepCashIsaTo` is read in two
 2895 to 2897) and the meta (2918). The ISA arm is the registered run's CANDC call (`audit-couples.mjs` line 170: the
 same `solveCouple` over `solveForApp` with `ageWith`), at the estate weight 0.02. On six couples the ISA arm also
 swept money to the taxable account (S175 £169,821 a path beside £195,115 to the ISA); the two sum to the GIA arm's
-sweep within £400, and by the engine's line 2661 only cash ISA money above the buffer goes to the ISA, so that is the
+sweep within £600 on each of the six, and by the engine's line 2661 only cash ISA money above the buffer goes to the ISA, so that is the
 couple's other cash, not a leak.
 
 **3. The three parts, recomputed from the arrays.** They match. My script (its own decoding, counts, variance and
@@ -100,7 +100,7 @@ the registered read may claim, not on whether the run is sound.
    gives pooled survival `+0.329` beside "the pot's part resting on one couple"; the report says "Lifetime tax is
    lower pooled". From the arrays: S059's d of `+3.325` is 84% of the pooled figure; without it the eleven give
    `+0.057` (`+0.006` to `+0.107`), so part 1 still holds by a wide margin, but the gain a couple can expect is a
-   twentieth of a point, not a third. Tax: S059's £122,118 to £36,344 is 68% of the pooled fall; without it £47,059 to
+   twentieth of a point or so, not a third. Tax: S059's £122,118 to £36,344 is 68% of the pooled fall; without it £47,059 to
    £43,439 (`-7.69%`, not `-19.63%`), and four couples pay more under the sweep to the ISA (S053 £7,166 to £11,240,
    S173, S091, S017). The lower pots are not noise: by path, paired, S415 is `-£115,239` (se £7,187), S173 `-£31,858`
    (se £2,922), S175 `-£36,036` (se £6,041), S235 `-£48,460` (se £10,125), S391 `-£7,409` (se £2,595); S415's median
@@ -111,8 +111,8 @@ the registered read may claim, not on whether the run is sound.
 2. MINOR. "The sweep to the ISA stands for a couple" is measured at one estate weight and on couples under little
    strain; the registered run is neither. The check ran the candidate's default alone (every unit's log:
    `bequestWeight 0.02`); the registered CANDC runs at 0.02 and 0.01 (`audit-couples.mjs` line 74). The twelve are as
-   the library enters them: eight survive `97.5%` or more under either arm and only S059 (`81.7%`) is near where the
-   panel is landed (arm A about `85%`). The document's design says both, so the rule was kept; the read's claim
+   the library enters them: ten survive `97.5%` or more under either arm (S035 `93.3%`) and only S059 (`81.7%`) is near
+   where the panel is landed (arm A about `85%`). The document's design says both, so the rule was kept; the read's claim
    should carry them. It matters at the registered read: `DECISIONS-PENDING.md` already notes that most of the panel
    holds cash ISA money and that the read has no split by it, so nothing in the registered run can show what the sweep
    does to a landed couple, and this check does not either. No claim about the sweep on the panel's couples should be
@@ -138,8 +138,8 @@ the registered read may claim, not on whether the run is sound.
 
 5. MINOR. No forward run in the solver's own model beside the engine. Each arm is held to `E.runTrial` on 200 paths,
    which is the engine against itself; the registered run has `runCouplePolicy` beside its solver arms, and this check
-   has nothing of the kind, so a fidelity gap between a couple's rollout and the engine under the GIA arm (a path the
-   tests since 0b047efd no longer exercise as the default) would not show. The engine's own sweep was measured in both
+   has nothing of the kind, so a fidelity gap between a couple's rollout and the engine under the GIA arm would not
+   show. The engine's own sweep was measured in both
    arms and is as each arm's tables say, which covers the fault this check was built around.
 
 6. MINOR. The record of the launch differs from D88's words, and the run ran over its size. D88, `COUPLE-SWEEP.md`

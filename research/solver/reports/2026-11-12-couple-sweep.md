@@ -28,3 +28,21 @@ What the maintainer should know beside the outcome:
 By D88 and the maintainer's word on the check ("ok, let it finish then launch if it passes") the couples' re-run is
 launched as registered (`registrations/couples-d4b.md`). The reviewer is asked to check this read beside the launch; a
 FAIL on it stops the run unread and comes to the maintainer.
+
+## After the reviewer's read (PASS, six MINORs: `research/solver/reviews/2026-11-12-read-couple-sweep.md`)
+
+The reviewer recomputed the rule from the arrays with its own script and it matches. Its figures without S059, which
+the first form of this report gave for the pot alone:
+
+- Survival: S059 is most of the pooled gain. On the other eleven the reviewer's recomputation still holds part 1, with
+  a pooled gain a sixth the size.
+- The pot: on the other eleven the mean pot is lower under the sweep to the ISA, so part 3 would not hold without
+  S059. Leaving out any other one couple it holds. On five couples the smaller pot is beyond path noise.
+- Lifetime tax: S059 is about two-thirds of the pooled fall, and four couples pay a little more tax under the sweep to
+  the ISA.
+
+Also said by the reviewer: the check is at one estate weight, on couples as the library enters them (most survive on
+nearly every path), so it shows no harm by the rule and says nothing about the sweep on the panel's landed couples.
+The run took about eight core-hours against the six its rule document gave. The re-run was launched from 4e4174b1, the
+commit recording this read, not from the registration's own commit; the registration, the code and the audit's stamp
+files are the same at both.

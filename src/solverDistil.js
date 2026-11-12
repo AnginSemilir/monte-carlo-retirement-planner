@@ -9,7 +9,7 @@
  *
  *   const d = distilOf(E, solved, plan, { seed, n });   // { tree, rules, fidelity, decisions, cost, lost, saved, n, show }
  */
-import { solvedContext, runPath, partsOf, moveOf } from './solverStrategy.js';
+import { solvedContext, runPath, partsOf, moveOf, shownPolicy } from './solverStrategy.js';
 
 export const SHOW_BELOW = 0.5, DEPTH = 3, CUTS = 24;
 export const FEATURES = ['years', 'age', 'penShare'];
@@ -26,7 +26,8 @@ export function featuresOf(E, ctx, st, t) {
 
 /* the decisions: each retired year of each path, its features and the level the table chose */
 export function decisionsOf(E, solved, { seed = 12345, n = 400 } = {}) {
-  const sc = solvedContext(E, solved), base = sc.policyOverride, out = [];
+  // the decisions the rule is learnt from are decisions the page shows: made on the whole menu (solverStrategy.js shownPolicy)
+  const sc = solvedContext(E, solved), base = shownPolicy(sc.policyOverride), out = [];
   const paths = E.pathsForSeed(seed, n, sc.totalYears);
   for (const zs of paths) {
     const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = base.choose(st, t, held); if (E.spendTargetAtAge(sc, sc.ageSelf0 + t) > 0 && sc.ageSelf0 + t >= sc.owners[0].retireAge) out.push({ x: featuresOf(E, sc, st, t), y: mv.spendLevel }); return mv; } } };

@@ -1768,10 +1768,16 @@ export function solve(E, M, plan, opts = {}) {
  * THE SLICE. With the tie-break above the estate cap on (`tieAboveCap`) and the household above it, a shortlist is too short
  * for the tie-break to work on (it holds a few draw orders, and the tie-break picks among the moves at one spending level and
  * tier pair): every move at the chosen move's level and tier pair joins the list and the decision is made again.
+ * A DECISION THE PAGES SHOW (D90). "Never for a decision the pages show" is kept by the code, not by the caller's care: a
+ * decision made inside wholeMenu(fn) scores the whole menu whatever the solve was handed (counted, `stats.shown`), so this
+ * year's actions, the next years' rows, the ledger and the rule of thumb's decisions (src/solverStrategy.js shownPolicy) are
+ * the whole menu's own, and the shortlist is left to the paths that only count.
  * SHORTLIST.plant (chooser-shortlist.test.mjs): 'empty' lists nothing (every decision falls back to the whole menu), 'nobest'
- * leaves the cells' stored moves themselves out of the list, 'noslice' the slice.
+ * leaves the cells' stored moves themselves out of the list, 'noslice' the slice; shortlist-shown.test.mjs: 'shown' (a
+ * decision inside wholeMenu takes the shortlist all the same).
  */
-export const SHORTLIST = { stats: { decisions: 0, listed: 0, fallback: 0, sliced: 0, slicedMoves: 0 }, plant: '' };
+export const SHORTLIST = { stats: { decisions: 0, listed: 0, fallback: 0, sliced: 0, slicedMoves: 0, shown: 0 }, plant: '', whole: 0 };
+export function wholeMenu(fn) { SHORTLIST.whole++; try { return fn(); } finally { SHORTLIST.whole--; } }
 function shortSetup(r) {
   const acts = r.actions, n = acts.length;
   const groupsOf = keyOf => { const g = new Map(), of = new Array(n); acts.forEach((a, ai) => { const k = keyOf(a); if (!g.has(k)) g.set(k, []); g.get(k).push(ai); of[ai] = g.get(k); }); return of; };
@@ -1842,7 +1848,10 @@ function chooseActionCore(r, s, t, held, after) {
     // (not while a reader probe is attached or the log-odds blend is set: each counts every read, which sharing would cut)
     const canShare = CHOOSER.share && !r.c.tiers.gia && s.length >= 7 && !READER_PROBE.fn && !(r.g && r.g.reader && r.g.reader.blend === 'logodds');
     // the chooser's shortlist (above): the listed moves alone get a flow and a score this decision
-    CHOOSER.mask = r.chooserShortlist && canShare && t < T && !r.nAt ? shortMask(r, s, t, after) : null;
+    // (not inside wholeMenu: a decision the pages show keeps the whole menu, D90)
+    const shown = SHORTLIST.whole > 0 && SHORTLIST.plant !== 'shown';
+    if (shown && r.chooserShortlist) SHORTLIST.stats.shown++;
+    CHOOSER.mask = r.chooserShortlist && !shown && canShare && t < T && !r.nAt ? shortMask(r, s, t, after) : null;
     const D = canShare ? decisionFlows(r, s, t, held) : null;
     r._usedShort = !!CHOOSER.mask; CHOOSER.mask = null;
     // P1 (step P): the moves' repeats found once a decision, not once a world, where every world parts the moves alike

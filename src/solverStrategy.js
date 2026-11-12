@@ -22,7 +22,7 @@
  * lookahead), else the plain draw order the engine runs. Both arms run on pathsForSeed(seed, trials, years), path for path.
  */
 import { withTable, modelStateOf } from './solver/bridge.js';
-import { rankActions } from './solver/solve.js';
+import { rankActions, wholeMenu } from './solver/solve.js';
 import { vecOf } from './solver/grid.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
@@ -247,11 +247,21 @@ export function moveOf(r, ai, like) {
   for (const k of ['cgtSale', 'windfall', 'save', 'sweepIsa']) { if (a[k]) m[k] = a[k]; else delete m[k]; }
   return m;
 }
+/*
+ * A DECISION THE PAGES SHOW IS MADE ON THE WHOLE MENU (D90; src/solver/solve.js wholeMenu). Where a solve carries the
+ * chooser's shortlist (`chooserShortlist`, an approximation for the paths that only count), the table policy a page reads
+ * its moves from scores every move: this year's actions (firstMove), the next years' rows and the typical run (aheadOf), the
+ * ledger and the history check (rowsOf), and the decisions the rule of thumb is learnt from (src/solverDistil.js
+ * decisionsOf). The paths that are counted (strategyRuns, skipRuns after the forced first year, the rule of thumb's cost)
+ * keep the solve's own policy. With no shortlist on the solve it is the same policy, decision for decision
+ * (research/tests/shortlist-shown.test.mjs).
+ */
+export const shownPolicy = base => ({ ...base, choose: (st, t, held) => wholeMenu(() => base.choose(st, t, held)) });
 /* the first year's move as the engine chose it, the position it was chosen at, and the table policy's own object */
 export function firstMove(E, solved) {
-  const sc = solvedContext(E, solved), base = sc.policyOverride, T = sc.totalYears;
+  const sc = solvedContext(E, solved), base = sc.policyOverride, T = sc.totalYears, shown = shownPolicy(base);
   let rec = null;
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = base.choose(st, t, held); if (t === 0 && !rec) rec = { mv, s: vecOf(solved.m, modelStateOf(st)), held: held ? { pen: held.pen, isa: held.isa } : null }; return mv; } } };
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); if (t === 0 && !rec) rec = { mv, s: vecOf(solved.m, modelStateOf(st)), held: held ? { pen: held.pen, isa: held.isa } : null }; return mv; } } };
   E.runTrial(ctx, E.pathsForSeed(1, 1, T)[0]);
   return { ...rec, sc, base };
 }
@@ -331,14 +341,16 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
   const sc = solvedContext(E, solved), base = sc.policyOverride, n = runs.solved.length;
   const order = runs.solved.map((r, k) => [r.terminalPot, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const k = order[Math.min(n - 1, Math.floor(n * 0.5))][1];
-  const zs = E.pathsForSeed(runs.seed, k + 1, sc.totalYears)[k], rows = [];
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = base.choose(st, t, held); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) }); return mv; } } };
+  const zs = E.pathsForSeed(runs.seed, k + 1, sc.totalYears)[k], rows = [], shown = shownPolicy(base);
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); if (t < years) rows.push({ t, age: sc.ageSelf0 + t, year: sc.baseYear + t, parts: partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) }); return mv; } } };
   const state = E.freshState(ctx), zPath = zs.length > sc.totalYears + 1 ? zs[sc.totalYears + 1] : 0;
   for (let t = 0; t < Math.min(years, sc.totalYears + 1); t++) {
     const row = E.stepYear(ctx, state, t, { z: zs[t], zPath });
     if (rows[t]) Object.assign(rows[t], { spend: row.targetSpend > 0 ? row.targetSpend : 0, pot: Math.max(0, row.totalCombined), swept: { toGia: row.sweptToGia || 0, fromGia: row.sweptFromGia || 0, toIsa: row.sweptToIsa || 0 } });
   }
-  return { path: k, rows, typical: typicalOf(runs, k) };
+  // the typical run's levels: path k's as counted, or, where the counted paths took a shortlist, path k run on the whole
+  // menu, so the levels shown are those of the rows shown (D90)
+  return { path: k, rows, typical: solved.chooserShortlist ? Array.from(runPath(E, { ...sc, policyOverride: shown }, zs).level) : typicalOf(runs, k) };
 }
 
 /*
@@ -349,8 +361,8 @@ export function aheadOf(E, solved, plan, runs, { years = 10 } = {}) {
  * solved plan's own context (its minimum pot), as the history tab reads a run.
  */
 export function rowsOf(E, solved, market) {
-  const sc = solvedContext(E, solved), base = sc.policyOverride, moves = [];
-  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = base.choose(st, t, held); moves[t] = mv ? partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) : null; return mv; } } };
+  const sc = solvedContext(E, solved), base = sc.policyOverride, moves = [], shown = shownPolicy(base);
+  const ctx = { ...sc, policyOverride: { ...base, choose(st, t, held) { const mv = shown.choose(st, t, held); moves[t] = mv ? partsOf(solved.actions[mv.index], solved.c.acts[mv.index]) : null; return mv; } } };
   const state = E.freshState(ctx), rows = [], m = PLANT.rule === 'rowsexp' ? 'expected' : market;
   for (let t = 0; t <= ctx.totalYears; t++) rows.push(E.stepYear(ctx, state, t, m));
   return { rows, parts: rows.map((_, t) => (PLANT.rule === 'rowsfirst' ? moves[0] : moves[t]) || null), verdict: E.evaluateRows(ctx, rows) };

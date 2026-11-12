@@ -129,16 +129,16 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   design review PASS, eight MINORs, none blocking). It was launched 12 Nov 12:27 UK from a worktree at 4e4174b1, the commit recording the sweep check's read: the
   registration's blob, `src/`, the engine and the audit's stamp files the same there as at the registration's own commit
   (e6f0179a; the reviewer checked it, `reviews/2026-11-12-read-couple-sweep.md`).
-- **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in
-  code. The message with each one's read and every pinned figure it would move: `reports/2026-11-12-stage-b-switch-on.md`
-  (the figures in `results-stage-b-figures.txt`, EXPLORATORY). In short: the tie-break changes no path's survival or
-  spending, lowers tax and raises the pot, and moves 9 pinned run digests in 4 full-tier tests and the candidate's own
-  pins; the shortlist passes its rule while losing a little survival beyond noise (pooled, and on S030 and S370) for a
-  path about 1.9 times as fast, moves 12 pinned digests, needs 14 checks changed in 7 test files (one in FAST), and as
-  built also reaches a couple's ranking and the decisions the pages show. Neither goes on before the couples' re-run has
-  read (D78, D80) or to `main` before the beta's two weeks end. The agent's recommendation: the tie-break on after the
-  re-run's read; the shortlist not as built (first the whole menu kept for the decisions the pages show, and item 12's
-  stage A read for its effect on couples).
+- **RULED (D90, 12 Nov): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** "I agree with your
+  recommendations" (`reports/2026-11-12-stage-b-switch-on.md`; the figures in `results-stage-b-figures.txt`, EXPLORATORY).
+  (1) The tie-break joins the candidate after the couples' re-run's read, never between (D78, D80), and not to `main`
+  before the beta's two weeks end. (2) The shortlist is not switched on as built. Its guard is in: a decision the pages
+  show is made on the whole menu whatever the solve was handed (`wholeMenu`, `shownPolicy`; `shortlist-shown.test.mjs`,
+  `results-shortlist-shown.txt`; `reports/2026-11-12-shortlist-guard.md`). **Still to come back to the maintainer, after
+  item 12's stage A has read its effect on a couple's path (D84):** the trade itself, about half a path's time against
+  the survival its read lost (pooled, and on S030 and S370), and with it one point the guard leaves open: the first
+  year's move the counted paths take is the shortlist's, the page's the whole menu's; where they differ the survival
+  shown is of a first year the page does not show (the same move on the one household the test compares, S328F).
 - **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
   On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
   about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one

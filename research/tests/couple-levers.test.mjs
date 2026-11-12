@@ -26,7 +26,7 @@
 // e3pcls guard: the solves below go through solveForApp on this code (the app's path); e3pcls's own exactness is solver-e3pcls.test.mjs's
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { chooseAction, solvePlan } from '../../src/solver/solve.js';
+import { chooseAction, solvePlan, coarseWhereFits } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { solveCouple, singlePlanFor, ownerState, chooseJoint, ratesAt, withCouple, COUPLE } from '../../src/solver/couple.js';
 import { solveForApp, appPlan, prepareForSolve, lockedPlan, aimsOptions, APP_CANDIDATE, APP_AGE_WEIGHT, APP_LAMBDA, dialOf } from '../../src/solverApp.js';
@@ -221,7 +221,10 @@ for (const [i, c] of rows.entries()) {
   const cp = solveCouple(E, M, hp, { solveOne: (p, o) => {
     const pr = before(p), aims = aimsOptions(pr, c.variant);
     const aw = aims.ageWeight ? { ageWeight: { ...aims.ageWeight, with: o.partnerAge0 } } : {};
-    return solvePlan(E, M, appPlan(E, pr), { ...APP_CANDIDATE, ...aims, ...aw, ...OPTS.research, lambda: aims.lambda, points: OPTS.points, ...(lockedPlan(E, E.normalizePlan(p)).riskAbove === false ? { riskAbove: false } : {}) });
+    // the candidate's `coarse` only where the solve can take it, as solveForApp hands it (solve.js coarseWhereFits; D73's port): a dial
+    // position above 1 is on the layer loop, off the path the anchors run on, and solvePlan refuses `coarse` there
+    const sp = appPlan(E, pr);
+    return solvePlan(E, M, sp, coarseWhereFits(E, M, sp, { ...APP_CANDIDATE, ...aims, ...aw, ...OPTS.research, lambda: aims.lambda, points: OPTS.points, ...(lockedPlan(E, E.normalizePlan(p)).riskAbove === false ? { riskAbove: false } : {}) }));
   } });
   const b = checkCombo(c, { hp, cp }).bad;
   ok(b.some(x => x.includes('without the floor')), `4. [${i}] planted, the floor at 0: ${b.join('; ') || 'NOT CAUGHT'}`);

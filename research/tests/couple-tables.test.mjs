@@ -339,9 +339,13 @@ for (const f of FIX) {
   // whose interest and dividends item 3 prices above the year's income (with none, the code before and item 3 give the same tables)
   // runs re-taken on item 5's code, whose row gains the year's sweep (sweptToGia, sweptFromGia, sweptToIsa): with those three
   // stripped, each is item 4's to the bit; the tables and value reads unchanged
+  // all six re-taken on D73's candidate (12 Nov; before: S116 tables b954f145878f, runs 36c5ce5e9062, reads a0d64da0839c; S224
+  // 4a38efe85909, 099e73f40cfc, 4d7ef15fabca): the sweep to the ISA and the solve on anchors move a single's tables, and its runs
+  // and reads with them, and nothing else in the port does (with both keys out each solve gives the figures before:
+  // results-d73-fulltier.txt, printed by research/solver/d73-fulltier.mjs; S116's tables are couple-quick check 5's, D83)
   const BEFORE = {
-    S116: { tables: 'b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4', runs: '36c5ce5e9062fdee78212e51475a6c04d3bac29a73cc8b55ba789a20d1a5e83e', reads: 'a0d64da0839c6b4303ba7891607e0c5c7e0916a77d906f35b4dfab375177a7e1' },
-    S224: { tables: '4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08', runs: '099e73f40cfcd918c7eeaadca94382c2e5a4551ac5267e777b7d63da30dc467f', reads: '4d7ef15fabca2aaa35aca6c21fe61c031f189dc8b7ab6777a934efd787343410' }
+    S116: { tables: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13', runs: '7077d1657af4c8ce6979f6ae478dd42bb781ead35d73a646f7dd8141cc860b95', reads: '7f7cecad5c1af1c3bfeee54ae1afd9b878a632dfd34984c9b7270256094515f2' },
+    S224: { tables: '4b141f1fbc3a28af9ac1cf9f9da976db6612a397a5ecf8fb2770ce1a325ad2c1', runs: '64098a65a205c874810f199743b5cbe0284312cf9d00386fe11ebba60eb26cb2', reads: 'ab03fc40659b17ecd6f5b0369615e6708f91e8ada784f8233b26cf3af1a865c4' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];

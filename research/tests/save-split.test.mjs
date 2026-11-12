@@ -22,6 +22,11 @@
  *      option off, `meta.saveSplit` 'on'.
  *   5. THE SKIP: the copies left out outside the working years (SPLIT.skip) change no table and no run.
  *   6. THE REFUSALS: with the windfall split, or a value other than true, the solve throws.
+ * Since D73's port (11 Nov; the candidate sweeps cash ISA money to the ISA and is solved on anchors and shortlists, `coarse`):
+ * check 1 solves the candidate before D73 on this code (candidate.mjs BEFORE_D73_OPTS), which is what the code before the
+ * option solves; check 1b's pins are re-taken on the candidate as it is (the working: results-d73-fulltier.txt); check 3's
+ * replayed move carries `sweepIsa` as the table's own does (bridge.js tablePolicy); and check 5, an identity of the skip, is
+ * read with `coarse` taken out on both sides (a shortlist is drawn from the menu, so it differs with the copies in it).
  *   node research/tests/save-split.test.mjs [--base <root of the code before the option>] [--only 2]   (--only 2: the gross-up alone, no solves; not a record)
  */
 import { resolve, join, dirname } from 'node:path';
@@ -78,9 +83,12 @@ const PLANT1 = process.env.CHECK1_PLANT === '1', RECORD1B = process.env.RECORD1B
 const NEUTRAL = plan => E.resolveMpaa(E.normalizePlan({ ...plan, config: { ...plan.config, cashInterestTaxed: false, giaDividendYield: 0 }, oneOffContributions: (plan.oneOffContributions || []).map(x => (x.category === E.AUTO_DEPOSIT ? { ...x, category: E.CATEGORY_LABEL.other } : x)) }));
 const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light settings; S026's and S090's again on item 4's (each
   // has an Auto deposit in 2030 the plan routes into its pension: the same £3,600 now lands for £2,880, £720 more kept taxable)
-  S188: '847a1cbc6947bba10f8b17db2acae94497a7b25e5de571a74795d66955ab8d54',
-  S244: '2fcb676ee98a867e781c3d9ce91f9cb7a56655d61a495503d83e53e23157a56c',
-  [RETIRED]: 'dc4b42a7ce29f5fe5f8626135a429bc422f0d66435d7c451b8accd5c934e7fcd'
+  // re-taken on D73's candidate (12 Nov; before: S188 847a1cbc6947bba1..., S244 2fcb676ee98a867e..., S026 dc4b42a7ce29f5fe...): the
+  // sweep to the ISA and the solve on anchors move these tables and runs and nothing else in the port does (with both keys out
+  // each solve gives the figure before: results-d73-fulltier.txt, printed by research/solver/d73-fulltier.mjs)
+  S188: '18d011b40c673bad970d1c51cc45f696a3c9db4e72f2fb00c5bee04d1cdebafa',
+  S244: '50b52e353034a397bffee1ac9e94d574a591c73c6bd66927d260f1aa197fc5d1',
+  [RETIRED]: '736b3a2b9c82aa91658d5ddd48d29310df4d283c62150d418df2ed311d02363f'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');
 const { createHash } = await import('node:crypto');
@@ -110,7 +118,9 @@ const runsOf = (Sx, r, paths) => paths.map(zs => JSON.stringify(Sx.runPolicy(r, 
 const runDiff = (ra, rb) => ra.findIndex((x, i) => x !== rb[i]);
 const flat = (o, pre = '', out = {}) => { for (const [k, x] of Object.entries(o || {})) { if (k === 'ms') continue; if (x && typeof x === 'object' && !Array.isArray(x)) flat(x, `${pre}${k}.`, out); else out[`${pre}${k}`] = JSON.stringify(x); } return out; };
 const metaDiff = (a, b) => { const fa = flat(a.meta), fb = flat(b.meta); return [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter(k => fa[k] !== fb[k]).sort(); };
-const solve = (Cx, Ex, Mx, plan, o = {}) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o });
+const solve = (Cx, Ex, Mx, plan, o = {}, base) => Cx.solveCandidate(Ex, Mx, structuredClone(plan), { ...light, ...o }, base);
+// the whole menu named by the arm itself (check 5): the candidate's `coarse` left out of a solve that could take it
+const WHOLE = { coarse: undefined };
 const pathsFor = (r, n, seed = 99001) => E.pathsForSeed(seed, n, r.m.ctx.totalYears).map(z => Float64Array.from(z));
 
 try {
@@ -120,7 +130,8 @@ try {
   for (const id of ONLY2 ? [] : [...SAVERS, RETIRED]) {
     const full = planOf(id), plan = NEUTRAL(full);
     let t0 = Date.now();
-    const a = solve(C, E, M, PLANT1 ? full : plan), ta = sec(t0);
+    // this code's side on the candidate before D73 (no sweep to the ISA, no anchors): what the code before the option solves
+    const a = solve(C, E, M, PLANT1 ? full : plan, {}, C.BEFORE_D73_OPTS), ta = sec(t0);
     t0 = Date.now();
     const b = solve(B.C, B.E, B.M, plan);
     const st = sameTables(a, b), paths = pathsFor(a, 40), rd = runDiff(runsOf(S, a, paths), runsOf(B.S, b, paths)), md = metaDiff(a, b);
@@ -130,7 +141,7 @@ try {
     if (RECORD1B) console.log(`RECORD1B ${id} ${dg}`);
     ok(dg === PIN1B[id], `1b. ${id}, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs ${dg.slice(0, 16)} against the pin ${PIN1B[id] ? PIN1B[id].slice(0, 16) : 'not taken'}${PLANT1 ? '; planted: the neutral plan' : ''}`);
     ok(st.same && rd < 0 && md.length === 0,
-      `1. ${id}, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69${PLANT1 ? '; planted: this code on the plan as taken' : ''}): ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (this code ${ta}, the code before ${sec(t0)})`);
+      `1. ${id}, the option unset, the candidate before D73, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69${PLANT1 ? '; planted: this code on the plan as taken' : ''}): ${st.n} table entries the same to the bit${st.same ? '' : ` (first difference: ${st.at})`}; 40 forward runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`}; the run record ${md.length ? `differs at ${md.slice(0, 4).join(', ')}` : 'the same, its timings aside'} (this code ${ta}, the code before ${sec(t0)})`);
   }
   if (RECORD1B || PLANT1) { console.log(`\ncheck 1 and 1b only (${RECORD1B ? 'RECORD1B' : 'CHECK1_PLANT'}): ${passed} passed, ${failed} failed`); process.exit(failed ? 1 : 0); }
 
@@ -207,7 +218,9 @@ try {
   const moveOf = (r, ai, dropSave) => {
     const a = r.actions[ai], ca = r.c.acts[ai];
     return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-      spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.save && !dropSave ? { save: a.save } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: 'forced',
+      // sweepIsa as tablePolicy carries it (bridge.js): without it the engine swept the cash ISA money to the taxable account while the
+      // forward run swept it to the ISA, once D73 made 'isa' the candidate's (the class state-check's moveOf was fixed for, 11 Nov)
+      spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), ...(a.save && !dropSave ? { save: a.save } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code: 'forced',
       tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
   };
   const id0 = 'S188', plan0 = SOLVED[id0].plan;
@@ -279,12 +292,15 @@ try {
   // -------------------------------------------------------------------------------------------------- 5. THE SKIP
   console.log('=========== 5. THE COPIES LEFT OUT OUTSIDE THE WORKING YEARS ===========');
   {
+    // the skip's identity is the whole menu's: on anchors a cell's shortlist is drawn from the menu, the copies with it, so
+    // both sides are solved with `coarse` taken out (D73's port)
     t0 = Date.now();
+    const skipped = solve(C, E, M, plan0, { ...ON, ...WHOLE });
     S.SPLIT.skip = false;
     let all, rAll;
-    try { all = solve(C, E, M, plan0, ON); rAll = runsOf(S, all, SOLVED[id0].paths); } finally { S.SPLIT.skip = true; }
-    const ta = sec(t0), st = sameTables(rOn, all), rd = runDiff(runsOf(S, rOn, SOLVED[id0].paths), rAll);
-    ok(st.same && rd < 0, `5. ${id0}: the copies scored in every year (SPLIT.skip false) against left out after its ${WY} working years: ${st.n} table entries ${st.same ? 'the same to the bit' : `differ (${st.at})`}; 40 runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`} (every year ${ta})`);
+    try { all = solve(C, E, M, plan0, { ...ON, ...WHOLE }); rAll = runsOf(S, all, SOLVED[id0].paths); } finally { S.SPLIT.skip = true; }
+    const ta = sec(t0), st = sameTables(skipped, all), rd = runDiff(runsOf(S, skipped, SOLVED[id0].paths), rAll);
+    ok(st.same && rd < 0 && !skipped.meta.coarse && !all.meta.coarse && skipped.meta.saveSplit === 'on', `5. ${id0}: the copies scored in every year (SPLIT.skip false) against left out after its ${WY} working years, both on the whole menu (coarse taken out): ${st.n} table entries ${st.same ? 'the same to the bit' : `differ (${st.at})`}; 40 runs ${rd < 0 ? 'the same' : `differ first at path ${rd}`} (both solves ${ta})`);
   }
 
   // -------------------------------------------------------------------------------------------------- 6. THE REFUSALS

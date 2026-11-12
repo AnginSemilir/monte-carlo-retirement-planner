@@ -34,11 +34,10 @@ below this section says "the beta", read it as history. The order from here:
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.
 
-**Asked of the maintainer (D91): when `main` takes the work.** `main`, which the public link serves, runs the launch
-candidate; everything under "Built" is ahead of it. A merge stays the maintainer's word (D81 (F)), each on B1's gate.
-(1) Merge each batch once it passes the gate, the first when the re-run's cores are free (the gate's browser harnesses
-time themselves, so they are not run beside it). (2) One merge when the improvements are done. The agent would take
-(1): the maintainer is the app's one user, sees each improvement as it lands, and a fault shows early.
+**RULED (D92, 12 Nov): when `main` takes the work.** "Merge each batch as it passes the gate." `main`, which the public
+link serves, runs the launch candidate; everything under "Built" is ahead of it and is the first batch, gated when the
+re-run's cores are free (the gate's browser harnesses time themselves, so they are not run beside it). Each batch after
+it merges the same way, on B1's gate, from a release branch cut at the gate's commit.
 
 ## Where it stands
 

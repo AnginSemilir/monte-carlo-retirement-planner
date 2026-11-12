@@ -1,5 +1,7 @@
 # Registration: Part D's D4, the candidate for couples against the app's rules (CHECKLIST.md item 2; the launch plan's section 6, D4; PART-D.md)
 
+SUPERSEDED, 12 Nov: stopped unread on 10 Nov (D66) and run once more as `couples-d4b.md`, launched 12 Nov 12:27 UK (D88, D89). Kept as it was below; nothing reads it.
+
 Read once, by `research/solver/reduce-couples.mjs`, after its gate. The gate refuses a unit whose stamp is not the logs' one
 version: the code (code-id.mjs) and the audit hash over every file the run and the read take beyond it (audit-couples.mjs
 STAMP_FILES: the audit, the panel's and arm A's code, src/solverApp.js and src/solverSettings.js, candidate.mjs, the panel,

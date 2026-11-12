@@ -1,9 +1,10 @@
 {
- "built": "2026-11-11T03:04:52.003Z",
+ "built": "2026-11-12T08:15:27.417Z",
  "N": 19000,
  "n1": 5000,
  "bar": 0.5,
- "rule": "every couple at N in two stages: after n1 paths a couple and weight whose CANDC survival is bar points or more above APP's stops (read as not harmed against APP); every other runs to N; thresholds at the read from each couple's realised discordance (Clopper-Pearson upper 95%) by size-phase4.mjs thresholdFor, at N against APP (the exact two-stage rates) and at the paths run against SHIPC",
+ "shipN": 1000,
+ "rule": "every couple at N in two stages: after n1 paths a couple and weight whose CANDC survival is bar points or more above APP's stops (read as not harmed against APP); every other runs CANDC at that weight and APP to N; thresholds at the read from each couple's realised discordance (Clopper-Pearson upper 95%) by size-phase4.mjs thresholdFor, at N against APP (the exact two-stage rates); SHIPC on the first shipN paths of each unit, in one chunk, reported, with no threshold",
  "paths": {
   "S011": 19000,
   "S031": 19000,

@@ -48,18 +48,23 @@ maintainer says so (D78: "Do not launch until I say so"). When it launches, `cou
   money to the stocks and shares ISA, item 5's default; each person's table is solved on anchors and shortlists, item 10,
   handed only to a solve that can take it, D74; the bridge reference is the thinner lattice) and after item 11 (the joint
   move on flat arrays, `COUPLE.flat`, exact, on by default, `research/tests/couple-flat.test.mjs`, committed at 55d45143);
+  the household's joint move carrying the sweep each person's table was solved with (`couple.js` `sweepOf`,
+  `research/tests/couple-sweep.test.mjs`, committed at 0b047efd: before it a couple's cash ISA money was swept to the taxable
+  account under tables solved for the ISA; the other reading, a couple's person-solves leaving the key out, is the
+  maintainer's to choose before launch, and choosing it means landing, the pilot and this review again);
   with item 6's stage B in and off (`shareRule` unset: each person's table on half the spending, as D4's couples, who hold
   60/40, ran). Nothing of the review's items 7, 12 or 13 is in any arm (D80: "No registered couples' arm takes a shortlist,
-  item 12's options or item 13's tie-break"): the committed code has none of them, and the audit reads each by its name
+  item 12's options or item 13's tie-break"): items 13 and 7 are built since 21b58645 as options, off in code and out of
+  the candidate (`tieAboveCap`, `chooserShortlist`; D85, D86), item 12 is not built, and the audit reads each by its name
   wherever the code has it (solve.js's `SHORT`, the chooser's shortlist of item 7, which is not item 10's solve on anchors;
   couple.js's `COUPLE_APPROX`, item 12's approximate cuts to the joint move; on a solved plan `tieAboveCap`, item 13, the
   chooser's `tieMargin`, in the code today and off, with `tieSame` and `tieAbove`, and `chooserShortlist`), refuses to run
   with one on, and records the three for the gate, which refuses a unit recording one on or none at all. Each arm's
   configuration hash is as that code gives it: CANDC's `af001697ce1b`, SHIPC's the same as D4's. The run is tied to the code
-  the couples were landed on (`couples-panel-d4b.json`'s code, <TO FILL after the landing: the hash, as in Households>): the
+  the couples were landed on (`couples-panel-d4b.json`'s code, 1d5d2421c9ab): the
   registered audit and the read each refuse any other, so a change of code before launch means landing again, a new pilot
   and a new design review.
-- **Households:** D4's 40 couples, landed again on the code above (`couples-panel-d4b.json`, its code <TO FILL after the landing: the panel's code hash>; arm A from <TO FILL after the landing: the lowest and highest survival, and whether every couple landed>).
+- **Households:** D4's 40 couples, landed again on the code above (`couples-panel-d4b.json`, its code 1d5d2421c9ab; arm A from 84.0% to 85.9%, every couple landed, none passed over, each target and arm A's survival the same as on the landing before it, `results-couples-panel-d4b.txt`).
   They are `couples-panel.json`'s, named before seed 7021 was read: 20 library couples whose first person is older than 44,
   S011, S031, S047, S063, S083, S097, S115, S133, S149, S167, S189, S205, S223, S239, S259, S277, S293, S371, S387, S403; 20
   whose first person is 44 or under, each person retiring at 52, S301F, S305F, S307F, S309F, S311F, S317F, S319F, S321F,
@@ -148,15 +153,19 @@ maintainer says so (D78: "Do not launch until I say so"). When it launches, `cou
   the one holding D4's copy script and its README: no chunk, no arrays file and no log of D4, and nothing of seed 7021 (STATE.md
   section 5; the external review's answer of 11 Nov, section 6: accepted as recorded, D67's statement stands). The statement
   made at the read says so too; `d4-backup` is otherwise unopened and stays so (D78).
-- **Budget:** <TO FILL after the new pilot: every figure of this paragraph.> Measured (D21) from the pilot on the landing's
-  code (S011 and S301F, seed 7002, 1,000 paths a unit; `results-couples-sizing-d4b.txt`, printed by `size-couples.mjs`), each
-  couple scaled from its cohort's pilot couple by its horizon: the first stage <TO FILL: its core-hours and chunks; the
-  solves, the engine, the rollout beside; SHIPC's part, one solve and 1,000 paths a unit>, <TO FILL: the hours on four cores
-  in one session and its 12-hour windows>; the second stage from none (the floor) to <TO FILL: the ceiling, every couple and
-  weight going on>; <TO FILL: what the pilot couples' own changes against APP make the expected run>. The longest chunk
-  <TO FILL: its hours, and at a fifth slower>, against the 12-hour limit. <TO FILL: whether the machine ran anything else
-  during the pilot, and each comparison against APP whose rates at 19,000 fall short of D34's on the pilot's discordances>.
-  S1's pooled standard error over the 40 couples at 1,000 paths: <TO FILL: the sizing file's line>. Against the first form's
+- **Budget:** Measured (D21) from the pilot on the landing's
+  code (S011 and S301F, seed 7002, 1,000 paths a unit, through the launcher from dfc871d5, the machine running nothing else;
+  `results-couples-sizing-d4b.txt`, printed by `size-couples.mjs`), each couple scaled from its cohort's pilot couple by its
+  horizon: the first stage 47.8 core-hours (200 chunks: the solves 11.0, the engine 31.8, the rollout beside 4.9; by arm
+  CANDC 28.7, SHIPC 19.0 at one solve and 1,000 paths a unit, APP 0.1), about 12 hours on four cores in one session, one
+  12-hour window; the second stage from none (the floor) to 76.1 core-hours if every couple and weight went on (the
+  ceiling, 280 chunks, about 19 hours on four cores); at the pilot couples' own changes against APP (+9.0 to +10.0 points)
+  every couple and weight stops at the first stage (the exact rule: certain at those changes), so the expected run is the
+  first stage's 47.8 core-hours. The longest chunk 0.47 hours (0.57 at a fifth slower), against the 12-hour limit. On the
+  pilot's discordances every comparison against APP keeps D34's rates at 19,000 (the lowest a 1-point loss read 0.902, S011 at
+  W0.02, its discordance 10.20%, upper bound 12.24%, against the 12.45% up to which the rate holds).
+  S1's pooled standard error over the 40 couples at 1,000 paths: from 0.065 to 0.289 points at W0.02 and from 0.068 to 0.302
+  at W0.01 (the pilot's two couples' spread scaled, the sizing file's last lines). Against the first form's
   first stage of 187.9 core-hours (its pilot on 0b45e5f9f059): item 11's faster path for a couple, SHIPC on 1,000 paths a
   unit, and item 10's faster solve.
 - **Design review:** <TO FILL after the design review of this revised text: its file under research/solver/reviews/ and its verdict>.

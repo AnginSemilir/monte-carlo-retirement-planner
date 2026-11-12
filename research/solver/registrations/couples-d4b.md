@@ -168,8 +168,21 @@ maintainer says so (D78: "Do not launch until I say so"). When it launches, `cou
   at W0.01 (the pilot's two couples' spread scaled, the sizing file's last lines). Against the first form's
   first stage of 187.9 core-hours (its pilot on 0b45e5f9f059): item 11's faster path for a couple, SHIPC on 1,000 paths a
   unit, and item 10's faster solve.
-- **Design review:** <TO FILL after the design review of this revised text: its file under research/solver/reviews/ and its verdict>.
+- **Design review:** research/solver/reviews/2026-11-12-couples-d4b-design-2.md: PASS, eight MINORs, none blocking, on
+  this text and the files it names at ab5bc29d. After it, only this paragraph changed (its own line, and the words its
+  MINOR 3 asked for, below). Its MINORs, as taken: (1) with S1 not deciding, a couples' path that is carried out faithfully
+  but is worse passes if it costs less than A1's slack, and the note on S1 is weak below a point of loss on SHIPC's paths:
+  the read does not treat "no note" as "no loss" (D78's ruling, stated above); (2) the joint move's own sweep is in no
+  unit's record: it is held by the code the run is tied to and by `couple-sweep.test.mjs`; (4) the gate would accept a
+  CANDC person with no joint tier state: none of the panel's people is one; (5) the open choice of reading (Code, above)
+  touches most of the panel, since most of its couples hold cash ISA money: launching this registration is choosing the
+  first reading, and the read has no split by cash ISA holding, so it supports no claim about how much of a gain is the
+  sweep; (6) the code must not move between this review and the launch: the run is launched from a tree at the commit
+  that carries this text, whatever is committed after it; (7) the first stage nearly fills one window: if it runs past,
+  `RESUME=1` carries it into a second; (8) `solver-model.test.mjs` section H reaches eight panel base plans by place,
+  engine against model, no candidate and no seed 7021: recorded for the read's statement.
   The first form's review, research/solver/reviews/2026-11-11-couples-d4b-design.md (PASS, six MINORs), read the text
-  before this revision and does not cover it: its MINORs 1 to 3 stay fixed, each with its planted case (the run tied to the
-  landing's code, the share recorded and checked, the spending flag paired); 4 falls away with SHIPC's per-couple flags
+  before this revision and does not cover it: its MINORs 1 to 3 stay fixed (the run tied to the landing's code by two refusals, in
+  the audit and in the read, read in the code and not planted; the share recorded and checked and the spending flag
+  paired, each with its planted case); 4 falls away with SHIPC's per-couple flags
   (Paths, above); 5 is built and unused (Where it runs, above); 6 is stated above.

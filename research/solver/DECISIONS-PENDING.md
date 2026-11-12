@@ -107,6 +107,13 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   out, and couples keep the sweep to the taxable account until measured (item 5's experiment was on singles). The couples
   are landed and piloted on the first reading; choosing the second means a small code change, landing again (ten minutes),
   the pilot and the design review again, before any launch.
+  The design review of the revised registration (`reviews/2026-11-12-couples-d4b-design-2.md`, MINOR 5): most of the
+  panel's couples hold cash ISA money, so the choice touches most of the panel; launching `couples-d4b.md` as it stands is
+  choosing the first reading, and the read has no split by cash ISA holding. A word from the maintainer before the launch
+  settles it, recorded as its own D-line.
+- **READY, the maintainer's word to launch (D78, D81 (E)): the couples' re-run** (`registrations/couples-d4b.md`, complete; its
+  design review PASS, eight MINORs, none blocking). It is launched from a tree at the registration's commit; nothing under
+  `src/solver` is committed between that commit and the launch.
 - **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in
   code. The message with each one's read and every pinned figure it would move is to come.
 - **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):

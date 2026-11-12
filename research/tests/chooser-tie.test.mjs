@@ -18,6 +18,7 @@
  *      household's wealth is above the cap; and they do differ (not vacuous);
  *   5. a couple (S007): every path of the couples' rollout the same with the option on each person's table as without (the
  *      rollout ranks from the chooser's scores, which the rule does not touch).
+ *   6. the forward run (runPolicy) and the engine in step with the option on: the same paths survive, each ending within a pound.
  * The plants (CHOOSER_TIE_PLANT, solve.js CHOOSER.tiePlant): 'anylevel' (any move within the margin above the cap, whatever
  * its level or tier pair) fails check 4; 'anywhere' (the cap test dropped) fails checks 3 and 4. --plants runs each and
  * reads which checks fail.
@@ -28,7 +29,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { CHOOSER } from '../../src/solver/solve.js';
+import { CHOOSER, runPolicy } from '../../src/solver/solve.js';
 import { solveCouple, runCouplePolicy } from '../../src/solver/couple.js';
 import { solveForApp, appPlan, prepareForSolve } from '../../src/solverApp.js';
 import { solvedContext, runPath, partsOf } from '../../src/solverStrategy.js';
@@ -133,6 +134,14 @@ ok(1, 'the option unset: S328F\'s paths the code before the option\'s, bit for b
   const pOff = paths(off), pOn = paths(on);
   ok(5, 'a couple (S007): every path of the rollout the same with the option on each person\'s table as without', differ(pOn, pOff) === 0 && on.tables.self.tieAboveCap === MARGIN && on.tables.part.tieAboveCap === MARGIN,
     `${differ(pOn, pOff)} of 40 paths differ; each person's table carries the margin`);
+}
+// ---- 6. the forward run beside the engine, the option on (the reviewer at stage A's read, MINOR 2) ----
+{
+  setTie(A, MARGIN);
+  const sc = solvedContext(E, A), sub = pathsA.slice(0, 60); let differ6 = 0, worst = 0, alive = 0;
+  for (const zs of sub) { const f = runPolicy(A, zs), e = runPath(E, sc, zs); if (f.survived !== e.survived) differ6++; else if (f.survived) { alive++; worst = Math.max(worst, Math.abs(f.terminal - e.terminalPot)); } }
+  setTie(A, undefined);
+  ok(6, 'the forward run (runPolicy) and the engine in step with the option on: the same paths survive, and each ends within a pound', differ6 === 0 && alive > 0 && worst <= 1, `${differ6} of ${sub.length} paths differ in survival; of ${alive} surviving in both, the largest gap at the end £${worst.toExponential(1)}`);
 }
 console.log(`\nchooser-tie: ${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

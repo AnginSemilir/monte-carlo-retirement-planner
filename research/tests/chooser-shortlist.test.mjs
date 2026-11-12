@@ -18,6 +18,7 @@
  *   5. the slice: with the tie-break above the cap on, at each decision of the whole menu's own path the shortlist with the
  *      slice differs from it at no decision above the cap, and the slice acts; planted, the slice left out ('noslice'), it
  *      differs above the cap;
+ *   7. the forward run (runPolicy) and the engine in step with the shortlist and the tie-break on;
  *   6. --full only, the known answer: S116 at 45 points, 1,000 paths of seed 99001, survival within 0.5 points of the whole
  *      menu's.
  *   node research/tests/chooser-shortlist.test.mjs [--full]
@@ -25,7 +26,7 @@
 import { createHash } from 'node:crypto';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { SHORTLIST } from '../../src/solver/solve.js';
+import { SHORTLIST, runPolicy } from '../../src/solver/solve.js';
 import { solveForApp } from '../../src/solverApp.js';
 import { solvedContext, runPath } from '../../src/solverStrategy.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
@@ -102,6 +103,14 @@ const whole = run(A, pathsA);
   SHORTLIST.plant = 'noslice'; const p = replay(A, pathsA.slice(0, NREP), [null, MARGIN], ['order', MARGIN]); SHORTLIST.plant = '';
   ok(5, 'the slice, with the tie-break above the cap on: the shortlist differs from the whole menu at no decision above the cap, and the slice acts; planted, the slice left out, it differs above the cap', q.above > 0 && sliced > 0 && q.differAbove === 0 && p.differAbove > 0,
     `${q.decisions} decisions, ${q.above} above the cap, the slice at ${sliced}; differing above the cap ${q.differAbove} (in all ${q.differ}); planted, ${p.differAbove} (in all ${p.differ})`);
+}
+// ---- 7. the forward run beside the engine, the shortlist and the tie-break on (the reviewer at stage A's read, MINOR 2) ----
+{
+  set(A, 'order', MARGIN);
+  const sc = solvedContext(E, A), sub = pathsA.slice(0, 60); let differ7 = 0, worst = 0, alive = 0;
+  for (const zs of sub) { const f = runPolicy(A, zs), e = runPath(E, sc, zs); if (f.survived !== e.survived) differ7++; else if (f.survived) { alive++; worst = Math.max(worst, Math.abs(f.terminal - e.terminalPot)); } }
+  set(A, null, 0);
+  ok(7, 'the forward run (runPolicy) and the engine in step with the shortlist and the tie-break on: the same paths survive, and each ends within a pound', differ7 === 0 && alive > 0 && worst <= 1, `${differ7} of ${sub.length} paths differ in survival; of ${alive} surviving in both, the largest gap at the end £${worst.toExponential(1)}`);
 }
 // ---- 6. --full: the known answer ----
 if (FULL) {

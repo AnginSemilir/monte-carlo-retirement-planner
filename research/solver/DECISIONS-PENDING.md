@@ -105,7 +105,9 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   is kept in cash: the cash buffer's size, a standing rule (D18), the same for singles and couples and in every arm so far.
   Making it a lever is new solver work with its own experiment (the windfall split, D37, is the nearest thing built). Say if
   it should join the research queue.
-- **In hand (D88): what D73's sweep to the ISA means for a couple, measured before the re-run (`COUPLE-SWEEP.md`).** As D87 put it:
+- **Read, passing (D89): what D73's sweep to the ISA means for a couple, measured before the re-run (`COUPLE-SWEEP.md`, `results-couple-sweep.txt`, EXPLORATORY).** All three parts of the rule hold. For the maintainer to know: the pot's part
+  holds on one couple (S059, whose cash ISA money is the largest); six of the twelve leave a smaller mean pot under the sweep to
+  the ISA, with survival the same or higher on ten of the twelve and no loss beyond noise. As D87 put it:
   The maintainer, after "go with your recommendations" and before the launch: "but is a fixed rule here really the best way to do
   this? are we sure of that?" The agent's reply: not sure. Measured: the sweep to the ISA against the sweep to the taxable
   account on singles alone (item 5, `results-isasweep.txt`, EXPLORATORY). Not measured: either on a couple; the sweep as the
@@ -123,7 +125,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   panel's couples hold cash ISA money, so the choice touches most of the panel; launching `couples-d4b.md` as it stands is
   choosing the first reading, and the read has no split by cash ISA holding. A word from the maintainer before the launch
   settles it, recorded as its own D-line.
-- **READY, launched by D88 if the couples' sweep check passes: the couples' re-run** (`registrations/couples-d4b.md`, complete; its
+- **LAUNCHED by D88 and D89, the couples' sweep check having passed: the couples' re-run** (`registrations/couples-d4b.md`, complete; its
   design review PASS, eight MINORs, none blocking). It is launched from a tree at the registration's commit; nothing under
   `src/solver` is committed between that commit and the launch.
 - **OPEN, the maintainer's (D81 (D)): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** Both are built off in

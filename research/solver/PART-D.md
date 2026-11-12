@@ -1,5 +1,9 @@
 # Part D: couples in the solver (during the singles' beta)
 
+**Since D91 (12 Nov):** no beta with users is under way. The rule below against a single's number moving on `main`
+mid-beta has lapsed, D6 is couples on under the switch (not a couples' beta), and a merge to `main` is the maintainer's
+word on B1's gate. The rest stands as written.
+
 The launch plan's section 6 (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on review/external-2026-10-21 at 90fcb10) and
 B9: D1 to D3 build while the singles' beta runs, D4 is the registered held-out test (its registration to the maintainer
 before its run), D5 the couples' screens in the new planner, D6 the couples' beta. The rules while the beta runs: the

@@ -5,6 +5,41 @@ An index for finalising the plan. Each item names the file that holds its detail
 (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on review/external-2026-10-21 at 0e24e1b), adopted by the maintainer as
 D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 recast).
 
+## The order from 12 Nov (D91)
+
+The maintainer, 12 Nov: the app is for the maintainer alone for now and has not been launched properly; the link and the
+repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
+below this section says "the beta", read it as history. The order from here:
+
+1. **The improvements laid out**, in this order; the first not done is the next.
+   - **Built, on the working branch, not yet on `main`:** the newest candidate (D73: the sweep to the ISA, the solve on
+     anchors, the thinner bridge reference); the engine's year in HMRC's order (item 3) and relief on money the plan pays
+     into a pension (item 4); the pages naming the sweep (item 5) and item 8's caption; a couple's path faster, exactly
+     (items 2 and 11); Part D's D1 to D3; built and off: `shareRule: 'pots'` (item 6), `tieAboveCap` (item 13),
+     `chooserShortlist: 'order'` with its guard (item 7).
+   - **Running:** the couples' re-run (item 1, `registrations/couples-d4b.md`), read once when every chunk is in, then
+     the reviewer at the read and the deep reviewer.
+   - **After its read:** (a) the tie-break joins the candidate (D90 (1)), the reviewer on the change of default;
+     (b) item 6's stage C, the registered test for couples who hold their money unevenly (until it reads such a couple
+     keeps the app's rules, M4); (c) item 12's stage A (D84), then the shortlist's trade back to the maintainer
+     (D90 (2)); (d) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it
+     changes the rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking
+     in; (e) Part D's D5, the couples' screens in the new planner, then couples on under the switch (the launch plan's
+     D6, no longer a couples' beta).
+   - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
+     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test (B7's "after the launch" is no
+     longer a wait).
+   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
+2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
+3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
+   the solver on by default and the switch's removal.
+
+**Asked of the maintainer (D91): when `main` takes the work.** `main`, which the public link serves, runs the launch
+candidate; everything under "Built" is ahead of it. A merge stays the maintainer's word (D81 (F)), each on B1's gate.
+(1) Merge each batch once it passes the gate, the first when the re-run's cores are free (the gate's browser harnesses
+time themselves, so they are not run beside it). (2) One merge when the improvements are done. The agent would take
+(1): the maintainer is the app's one user, sees each improvement as it lands, and a fault shows early.
+
 ## Where it stands
 
 - **The candidate.** It passed Phase 4 against the app's rules and the product's settings (`results-phase4.txt`). It
@@ -59,7 +94,7 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
 
 - An unlock the plan needs that D53 did not give (a later edit to a protected test asks again).
 - The couples' registration (D4) before its run, and its read.
-- The beta's switch to on by default, and the switch's removal.
+- The solver on by default, and the switch's removal: before sharing it publicly (D91).
 - Any change of default not settled in section 3.
 - Any result showing the launch candidate harming a household beyond D34's threshold, or a defect that changes a figure:
   at once.
@@ -131,8 +166,8 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
   (e6f0179a; the reviewer checked it, `reviews/2026-11-12-read-couple-sweep.md`).
 - **RULED (D90, 12 Nov): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** "I agree with your
   recommendations" (`reports/2026-11-12-stage-b-switch-on.md`; the figures in `results-stage-b-figures.txt`, EXPLORATORY).
-  (1) The tie-break joins the candidate after the couples' re-run's read, never between (D78, D80), and not to `main`
-  before the beta's two weeks end. (2) The shortlist is not switched on as built. Its guard is in: a decision the pages
+  (1) The tie-break joins the candidate after the couples' re-run's read, never between (D78, D80); its wait for the
+  beta's end lapsed with the beta (D91). (2) The shortlist is not switched on as built. Its guard is in: a decision the pages
   show is made on the whole menu whatever the solve was handed (`wholeMenu`, `shownPolicy`; `shortlist-shown.test.mjs`,
   `results-shortlist-shown.txt`; `reports/2026-11-12-shortlist-guard.md`). **Still to come back to the maintainer, after
   item 12's stage A has read its effect on a couple's path (D84):** the trade itself, about half a path's time against

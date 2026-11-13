@@ -1,0 +1,6 @@
+stamp: code 1d5d2421c9ab audit 29a4a6a71f76 prediction research/solver/registrations/couples-d4b.md sha 3b9d5fc8c91a6008ded1de54bd9afe116fe27c84
+D4B: APP, CANDC (45 points) and SHIPC (30 points, the first 1000 paths of each unit alone) at the estate weights 0.02 and 0.01; seed 7021; 480 units; part 168/480; node v22.23.4
+S149     case | unit APP c0/2 | cohort lib target 24000 paths 19000, this chunk 0 to 5000
+         ran APP c0/2: armA ISA_First,_lump_sum guardrails true lookahead 5 raiseCap 1.1 minPot 205000 target 24000 inputs d3dbc49aa536 costYears 3
+         run APP c0/2: engine 86.1000 on 5000; engine secs 3 (0.6 ms a path)
+         done APP c0/2 secs 7

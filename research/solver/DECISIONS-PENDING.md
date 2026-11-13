@@ -11,7 +11,9 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**For the maintainer (13 Nov, night): item 6's stage C, ready to launch on your word.** In full:
+**RULED (D96, 13 Nov, night): item 6's stage C, launched on the agent's three recommendations.** The maintainer:
+"Proceed with your recommendation": launched as registered, at 19,000 paths a unit, no mirror. It runs once batch 2's
+gate ends, from a worktree at the commit recording D96; its read comes back with the outcome as registered. In full:
 `reports/2026-11-13-stage-c-registration.md`; the registration `registrations/couples-share.md`, its design review's PASS
 after one fix. Twelve held-out couples, 36 units (each re-held 75/25 and 90/10, and once with a DB pension, an existing gain or
 a state pension age of 67), seed 7022, about 61 core-hours. Three choices: (1) launch: the agent recommends yes; (2) the

@@ -64,8 +64,9 @@ five lesser ones (`reviews/2026-11-13-couples-share-design.md`); each is answere
   each comparison, CANDS against APP, at its discordance's upper 95% bound, from 16,000 to 23,000; the run at the largest,
   at most D61's 19,000, at which a true 1-point loss reads as harm at least 90% of the time up to a discordance of 12.45%. A
   comparison whose 1-point rate at its realised discordance falls below 0.90 is read at 19,000 and named at the read with
-  its rate (D34 (4), as D61 ruled for D4); in the pilot, the re-held units of the oldest couple (upper bounds 13% to 14.5%,
-  rates 0.855 to 0.883), each discordant because the candidate saves about 12 points of paths there. The shortfall can also
+  its rate (D34 (4), as D61 ruled for D4); in the pilot, six of the nine units, the oldest couple's and the youngest's,
+  re-held and with their feature (S015-75, S015-90, S015-db, S389-75, S389-90, S389-gain: upper bounds 13.2% to 14.5%,
+  rates 0.855 to 0.883), each discordant because the candidate saves 11 to 12 points of paths there. The shortfall can also
   fall where it matters: stage A's S267 at 90/10 was near neutral (d -0.8) at 18.4% discordance, where at 19,000 a true
   1-point loss reads as harm about 78% of the time (73% at 21%). D61 set the 19,000 for D4 alone, so applying it here is the
   maintainer's call at launch. The alternatives the design review costed: every unit at 30,000 paths (about 95 core-hours),
@@ -93,7 +94,12 @@ five lesser ones (`reviews/2026-11-13-couples-share-design.md`); each is answere
   whose elder holds more than 60% and at most 90% of the pots, in the same commit as the D-line naming this run, with the
   reviewer on the change of default; a couple whose younger partner holds more, or where either holds over 90% (the share
   held at 95%), keeps the app's rules until a test of those reads (the same units mirrored, about 40 more core-hours, which
-  the maintainer may add to this run before launch instead). NOT SHOWN, if no unit is flagged but the pooled gain's interval
+  the maintainer may add to this run before launch instead). What a PASS reaches beyond the panel is by inference, said so
+  in the D-line: the holdings from 60% to 75% (between the band and the panel's 75% units), and a couple uneven in some
+  wrappers only (the panel re-holds every wrapper alike). The guard reads the elder by age: after a PASS
+  src/couplesSwitch.js reads the share of the elder partner, not of the first person (every library couple's first person is
+  the elder, and a couple entered the other way round is another plan, its horizon counted from the first person's age);
+  equal ages have no elder and keep the band. NOT SHOWN, if no unit is flagged but the pooled gain's interval
   reaches 0: the guard stays; to the maintainer. A flagged unit goes to investigation whatever the outcome (D34 (3)).
   Reported, deciding nothing: the rule's own effect, CANDS less CANDH on the re-held units' first 1,000 paths, pooled and by
   unit; spending delivered over the re-held units, CANDS less APP; the mean pot left and lifetime tax by kind of unit; the
@@ -111,6 +117,10 @@ five lesser ones (`reviews/2026-11-13-couples-share-design.md`); each is answere
   4.3, APP 0.2), about 15.3 hours on four cores longest first; the longest unit 2.5 hours, inside the 12-hour limit. The
   pilot shared the machine with a fast-tier run for most of its 39 minutes, so these are on the high side. The units run four
   at a time at low priority, each pausing for the merge gate's harnesses (run-unit.sh).
+- **The files reviewed:** the second design review's PASS (`reviews/2026-11-13-couples-share-design-2.md`) is on the stamp
+  992cd7d616f0. Its four MINORs were then fixed, each in the read's words or this page, and the read now holds every unit to
+  the code the panel was landed on, so the stamp the launch must print is 327661b4d2fc: `TODO_ONLY=1` in the launch worktree
+  prints `stamp: code 7002a1fec94c audit 327661b4d2fc`, recorded with the launch; any other stamp stops the launch.
 - **Where it runs:** in one session, relaunched under `RESUME=1` after a restart (a unit is kept only when its log's stamp
   names this code, these files, this registration and its hash, its second line this Node, and it holds its done line). The
   results stay outside git (D17). A container wiped before the read means running again from the first unit; nothing will
@@ -120,4 +130,4 @@ five lesser ones (`reviews/2026-11-13-couples-share-design.md`); each is answere
   (the rollout beside the engine logs its paths and seconds only); the batch and the agent read only those until then.
 - **One estate weight:** 0.02, the 'standard' estate aim a couple's plan takes unless the household lowers it; the couples'
   re-run read both weights with the same outcome, and the share rule acts on the spending each table is solved on.
-- **Design review:** research/solver/reviews/2026-11-13-couples-share-design-2.md (the reviewer's, on this revision, before launch).
+- **Design review:** research/solver/reviews/2026-11-13-couples-share-design-2.md: PASS, four MINORs, fixed before launch (the files reviewed, above).

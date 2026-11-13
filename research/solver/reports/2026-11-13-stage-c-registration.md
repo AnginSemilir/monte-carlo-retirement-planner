@@ -9,7 +9,9 @@ person keeps the app's rules (M4).
 **The run.** Twelve held-out couples spread over the library's six age patterns, each re-held 75/25 and 90/10 and once with
 one of the three features: 36 units, each tuned so the app's rules survive about 85%. Seed 7022, never used before (reserved
 under D93). 19,000 paths a unit, about 61 core-hours, roughly 15 hours on four cores. The registration:
-`registrations/couples-share.md`. Design review: the first FAILED on two counts (`reviews/2026-11-13-couples-share-design.md`), answered in one fix (3cec591e); the second is under way, and this report goes to the maintainer only on its PASS.
+`registrations/couples-share.md`. Design review: the first FAILED on two counts (`reviews/2026-11-13-couples-share-design.md`), answered in one fix
+(3cec591e); the second PASSED with four MINORs (`reviews/2026-11-13-couples-share-design-2.md`), each fixed before launch, the
+launch stamp `audit 327661b4d2fc` on code 7002a1fec94c.
 
 **What each outcome does.**
 - A unit with a feature harmed: STOP, to you, whatever else reads.

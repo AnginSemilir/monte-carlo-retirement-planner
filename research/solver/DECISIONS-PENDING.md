@@ -11,6 +11,14 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer (13 Nov, night): item 6's stage C, ready to launch on your word.** In full:
+`reports/2026-11-13-stage-c-registration.md`; the registration `registrations/couples-share.md`, its design review's PASS
+after one fix. Twelve held-out couples, 36 units (each re-held 75/25 and 90/10, and once with a DB pension, an existing gain or
+a state pension age of 67), seed 7022, about 61 core-hours. Three choices: (1) launch: the agent recommends yes; (2) the
+paths: 19,000 a unit (D34's rate held only below about 12% discordance; D61's choice for D4, yours here) or 30,000 (about 95
+core-hours); the agent recommends 19,000; (3) the mirror, the younger partner holding more (about 40 core-hours more): the agent
+recommends not now, so a PASS lifts the guard only where the elder holds 60% to 90%.
+
 **For the maintainer and the external review (13 Nov, night): the harvest ceiling's allowance step trades tax for pot
 below the cap.** `results-ceiling-lead.txt` (EXPLORATORY, seed 7002; `CEILING-LEAD.md`); the reviewer at the read: PASS,
 three MINORs (`reviews/2026-11-13-read-ceiling-lead.md`). The ceiling (on `main` since the first batch) moved the

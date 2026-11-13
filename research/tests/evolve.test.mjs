@@ -9,7 +9,22 @@
  * with breeding" never worse than the tournament.
  */
 import * as E from '../engine.mjs';
-import { evolve, repairSteps, genomeKey, DRAW_STEPS, PEN_STEPS } from '../../src/evolve.js';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+// The plant (EVOLVE_PLANT=nodecode, shown once): a copy of src/evolve.js decoding the winner alone, as before 13 Nov, so an
+// elite whose statistics came from the cache is returned with no plan; D0 fails on it (and D1 with this fixture)
+const EV = await (async () => {
+  const src = join(dirname(fileURLToPath(import.meta.url)), '../../src/evolve.js');
+  if (process.env.EVOLVE_PLANT !== 'nodecode') return import(pathToFileURL(src).href);
+  const fix = 'for (const ind of [winner, ...popn.slice(0, Math.min(5, popn.length))]) if (!ind.plan) Object.assign(ind, decode(ind.g));', text = readFileSync(src, 'utf8');
+  if (text.split(fix).length !== 2) throw new Error('evolve.test: the plant\'s anchor is not in src/evolve.js once');
+  const tmp = mkdtempSync(join(tmpdir(), 'evolve-plant-')), f = join(tmp, 'evolve.js');
+  writeFileSync(f, text.replace(fix, 'if (!winner.plan) Object.assign(winner, decode(winner.g));'));
+  const m = await import(pathToFileURL(f).href); rmSync(tmp, { recursive: true, force: true }); return m;
+})();
+const { evolve, repairSteps, genomeKey, DRAW_STEPS, PEN_STEPS } = EV;
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let pass = 0, fail = 0;
@@ -120,6 +135,10 @@ console.log('=========== D. THE SAME BUDGET AS EVERYONE ELSE ===========');
   const ctx = E.buildContext(withGap.plan);
   const target = E.accumulationOutlay(ctx);
   const r = evolve(E, withGap.plan, { budget: 6000, seed: 8, pop: 8, coarse: 60, fine: 180 });
+  // the class of Full 214's failure: an individual returned with no plan, or with another genome's (an elite whose statistics
+  // came from the cache was never decoded)
+  const planless = r.elites.filter(e => !e.planState || !e.planState.spending || !e.planState.spending.policyOverride || JSON.stringify(e.planState.spending.policyOverride.steps) !== JSON.stringify(e.genome.steps));
+  ok('D0  every elite returned carries the plan of its own genome', planless.length === 0 && r.winner.planState, `${planless.length} of ${r.elites.length} without`);
   const spends = r.elites.map(e => E.accumulationOutlay(E.buildContext(e.planState)));
   const worst = Math.max(...spends.map(v => Math.abs(v / target - 1)));
   ok('D1  every elite pays in what the household already pays in', worst < 0.02, `worst ${(worst * 100).toFixed(2)}% from ${Math.round(target)}`);

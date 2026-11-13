@@ -266,7 +266,10 @@ export function* evolveGen(E, rawPlan, {
   }
   popn.sort((a, b) => better(b, a));
   const winner = popn[0];
-  if (!winner.plan) Object.assign(winner, decode(winner.g));
+  // An individual whose genome was scored before takes its statistics from the cache (score()) and is never decoded, so it
+  // can reach the top with no plan. Every individual returned is decoded here, the winner and the elites alike (Full 214,
+  // 13 Nov: an elite returned with no plan, which a caller would score as a blank household; evolve.test.mjs D0).
+  for (const ind of [winner, ...popn.slice(0, Math.min(5, popn.length))]) if (!ind.plan) Object.assign(ind, decode(ind.g));
   const out = (ind) => ({ genome: ind.g, planState: ind.plan, cand: ind.cand, stats: ind.stats, trials: ind.trials, describe: describeGenome(E, ind.g, ind.cand) });
   return { winner: out(winner), elites: popn.slice(0, Math.min(5, popn.length)).map(out), generations: gen + 1, used, history, shape };
 }

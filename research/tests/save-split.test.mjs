@@ -88,8 +88,11 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // each solve gives the figure before: results-d73-fulltier.txt, printed by research/solver/d73-fulltier.mjs)
   // all three again on 12 Nov (before: S188 18d011b40c673bad..., S244 50b52e353034a397..., S026 736b3a2b9c82aa91...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
-  S188: 'a42f62208fabdb3046718b6d846d29532960e50a84a3b93c7ffd81987dcf8b44',
-  S244: '614e53bfe8e20aad1366f5a98d06c60ffc7e1704dc14987dcaada896c7d0f3b3',
+  // S188 and S244 again on 13 Nov (before: S188 a42f62208fabdb30..., S244 614e53bfe8e20aad...): the tie-break above the estate cap joined the candidate (D95; D90 (1)), which moves a
+  // single's forward runs above the cap and no table (the same pins and no others moved in the measurement of 12 Nov, results-stage-b-figures.txt;
+  // with the candidate's margin set to nought this test passes on the figures before: results-tie-port.txt)
+  S188: '74320e7cf3eb83b4a3e2562af100db36d0c9092b451cf6bd332c55fbc6cf0251',
+  S244: '0b47fa3c72e1552231257b06e07839cc934c64d66dd3026ebd931f43b5ef3e41',
   [RETIRED]: '6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');

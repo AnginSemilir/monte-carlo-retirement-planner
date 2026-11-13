@@ -1,0 +1,50 @@
+THE TIE-BREAK'S PORT INTO THE CANDIDATE (D95; D90 (1)), 13 Nov: its working
+
+1. The candidate: af001697ce1b before (BEFORE_D90_OPTS), 17ff82379838 now; every earlier candidate's hash reproduces:
+   PASS  the candidate before D90's tie-break reproduces its hash af001697ce1b (af001697ce1b); the candidate 17ff82379838 adds tieAboveCap at 1e-4 (D85's margin)
+   PASS  the candidate before D73 reproduces its hash d71f65ae871e (d71f65ae871e); the candidate after it (af001697ce1b) adds sweepCashIsaTo, coarse and thins the bridge reference's lattice
+   PASS  7u-F's candidate reproduces its registered hash e65e5e99ba49 (e65e5e99ba49); the candidate before D73 adds tiersBelow, menuPlus, tableDealing, failDelivered
+   PASS  the candidate before the assembly reproduces its recorded hash a61dba4ee1f5 (a61dba4ee1f5); 7u-F's adds readerRef, adaptiveLattice, readerSplit
+   PASS  Phase 4's candidate reproduces its registered hash fcd8096217b7 (fcd8096217b7); the candidate before D73 adds failDelivered
+   PASS  solvePlan with nothing passed solves on the snapped axis (g.pclsInterp false)
+   PASS  an arm's own pclsInterp false, passed after the candidate, keeps the snap
+   =========== 56 passed, 0 failed ===========
+
+2. The four full-tier tests whose pinned forward runs it moves, on a scratch tree of the port with the candidate's margin set to nought
+   (candidate.json and APP_CANDIDATE; the pins as they were before the port): each passes on the figures before
+   lock-tiers: ALL PASS: 36 checks
+   save-split: ALL PASS: 23 checks
+   windfall-split: ALL PASS: 21 checks
+   couple-tables: ALL PASS: 8 passed, 0 failed (70s)
+
+3. The same four on the port, the pins re-taken (record mode's digests):
+   lock-tiers RECORD1B S090 e5 b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0
+   lock-tiers RECORD1B S090 loop 4d6ccf1b85056e5f31316a027d212ed686043572646c472e0f868c2e0fde68b3
+   lock-tiers RECORD1B S328F e5 79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb
+   lock-tiers RECORD1B S328F loop 9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa
+   lock-tiers check 1 and 1b only (RECORD1B): 4 passed, 4 failed
+   save-split RECORD1B S188 74320e7cf3eb83b4a3e2562af100db36d0c9092b451cf6bd332c55fbc6cf0251
+   save-split RECORD1B S244 0b47fa3c72e1552231257b06e07839cc934c64d66dd3026ebd931f43b5ef3e41
+   save-split RECORD1B S026 6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513
+   save-split check 1 and 1b only (RECORD1B): 4 passed, 2 failed
+   windfall-split RECORD1B S026 6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513
+   windfall-split RECORD1B S090 b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0
+   windfall-split RECORD1B S040 1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c
+   windfall-split check 1 and 1b only (RECORD1B): 5 passed, 1 failed
+   couple-tables S224 runs 3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc reads 1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2
+   lock-tiers: ALL PASS: 36 checks
+   save-split: ALL PASS: 23 checks
+   windfall-split: ALL PASS: 21 checks
+   couple-tables: ALL PASS: 8 passed, 0 failed (81s)
+   chooser-tie: chooser-tie: 7 passed, 0 failed
+   couple-tables check 4:   ok   4. the switch: each person's candidates their own chooser's, the joint score charging each person's switch, the chosen move the best   256 picks, 0 not the chooser's (26 the chooser's tie-break above the cap, within its margin of the ranking's first); 128 joint scores, the largest gap to the oracle 0.00e+0, 0 beaten by an
+
+4. chooser-tie.test.mjs's plants on the port:
+     plant anylevel  fails 4 (expected 4): exact
+     plant anywhere  fails 3, 4 (expected 3, 4): exact
+   
+   all plants exact
+
+5. chooser-tie's new check 7 on the margin-at-nought tree (the app's candidate without the margin): it alone fails
+     FAIL 7. the app's solve with nothing passed carries the candidate's margin, and its paths are the option's, bit for bit   the margin 0; outcomes f2fe4e1e6d872dc3 against the option set 5a04e5f0187b226a (off: f2fe4e1e6d872dc3)
+   chooser-tie: 6 passed, 1 failed

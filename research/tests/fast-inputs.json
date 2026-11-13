@@ -3553,6 +3553,7 @@
    "research/solver/results-steps370.txt",
    "research/solver/results-sweep-words.txt",
    "research/solver/results-tie-a.txt",
+   "research/solver/results-tie-port.txt",
    "research/solver/results-tie-precheck.txt",
    "research/solver/results-tier-above-cost.txt",
    "research/solver/results-tier-hold.txt",

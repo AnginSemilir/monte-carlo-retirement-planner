@@ -70,3 +70,13 @@ Beside the rule, deciding nothing in this run:
 
 About 100 minutes on four cores (24 solves and 384,000 paths; step 4's two arms took 66 minutes). Time box: half a
 day, the smoke run and the read included.
+
+## Amendment, 13 Nov, after the run and before any outcome was read
+
+The gate as launched refused S050, S188 and S368. Each is a Scottish plan, whose higher-rate band starts at £43,662,
+below the UK threshold less the probe's £6,000 (£44,270). So `pensionCeiling` leaves that band as given in every arm,
+as its rule (a) says, and the probe cannot tell RAWPA's engine from OFF's there. The engines are what their arms say:
+the allowance read back is as given in OFF and RAWPA and adjusted in NOW on all eight. Only the gate's test was wrong.
+It now asks, of RAWPA, the allowance as given and the band NOW's; of NOW, the allowance adjusted; and, where the probe
+does not reach a household's band edge, that the three arms' tables all differ (they do on all eight). It has a planted
+case for each. Nothing else in the read changed, and no outcome was printed before the change.

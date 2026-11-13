@@ -21,6 +21,7 @@ import { zFor } from './stats.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const LEAD = { households: ['S030', 'S090', 'S328F'], need: 2, cost: 0.5, not: 0.2 };
 export const ARMS = ['OFF', 'RAWPA', 'NOW'];
+export const LAUNCHED = 'd6a10c1d', AMENDED = ['reduce-ceiling-lead.mjs', 'CEILING-LEAD.md'];
 const f = (x, d = 3) => (x >= 0 ? '+' : '') + x.toFixed(d);
 const gbp = v => `£${Math.round(v).toLocaleString('en-GB')}`;
 const sgbp = v => `${v >= 0 ? '+' : '-'}£${Math.round(Math.abs(v)).toLocaleString('en-GB')}`;
@@ -67,8 +68,14 @@ export function gate(raw, ids, audit, size = { N: 16000, pts: 45, seed: 7002 }) 
     const o = U.arms.OFF.probe, r = U.arms.RAWPA.probe, w = U.arms.NOW.probe;
     if (!o || !r || !w) { P.push(`${U.id}: an arm's pensionCeiling not read back`); continue; }
     if (!(o.pa === o.rawPa && o.band === o.rawBand)) P.push(`${U.id} OFF: its pensionCeiling changes a ceiling`);
-    if (!(r.pa === r.rawPa && r.band < r.rawBand)) P.push(`${U.id} RAWPA: not the allowance raw and the band adjusted`);
-    if (!(w.pa < w.rawPa && w.band < w.rawBand && w.band === r.band)) P.push(`${U.id} NOW: not both adjusted, the band's RAWPA's`);
+    // the band's probe (£3,000 of interest and £3,000 of dividends) reaches a band's edge only where the band starts above
+    // the UK threshold less £6,000: a Scottish band (£43,662) stays as given in every arm, as pensionCeiling's (a) says, and
+    // the probe cannot tell RAWPA from OFF there; so where NOW's band is as given, the three arms' tables must all differ
+    // (changed 13 Nov after the run, before any outcome was read: the gate as launched refused S050, S188 and S368 on it)
+    const bandEdge = w.band < w.rawBand, digests = new Set(ARMS.map(a => U.arms[a].digest));
+    if (!(r.pa === r.rawPa && r.band === w.band && r.band <= r.rawBand)) P.push(`${U.id} RAWPA: not the allowance raw and the band NOW's`);
+    if (!(w.pa < w.rawPa && w.band <= w.rawBand)) P.push(`${U.id} NOW: the allowance not adjusted`);
+    if (!bandEdge && digests.size !== ARMS.length) P.push(`${U.id}: the probe does not reach its band's edge and the arms' tables do not all differ`);
   }
   return P;
 }
@@ -92,13 +99,19 @@ function planted() {
   // the gate
   const b64 = a => Buffer.from(a.buffer, a.byteOffset, a.byteLength).toString('base64');
   const probes = { OFF: { pa: 12570, band: 50270, rawPa: 12570, rawBand: 50270 }, RAWPA: { pa: 12570, band: 44270, rawPa: 12570, rawBand: 50270 }, NOW: { pa: 11000, band: 44270, rawPa: 12570, rawBand: 50270 } };
-  const armX = (a, o = {}) => ({ probe: probes[a], inputs: 'h', rest: 'pts 45', survived: b64(new Uint8Array(2)), pot: b64(new Float64Array(2)), delivered: b64(new Float64Array(2)), target: b64(new Float64Array(2)), tax: b64(new Float64Array(2)), ...o });
+  const armX = (a, o = {}) => ({ probe: probes[a], digest: `d${a}`, inputs: 'h', rest: 'pts 45', survived: b64(new Uint8Array(2)), pot: b64(new Float64Array(2)), delivered: b64(new Float64Array(2)), target: b64(new Float64Array(2)), tax: b64(new Float64Array(2)), ...o });
   const unit = (id, o = {}, arms = {}) => ({ id, seed: 7002, N: 2, pts: 45, inputs: 'h', candidate: 'c1', opening: 100, cap: 400, stamp: { code: 'c', audit: 'a' }, arms: { OFF: armX('OFF'), RAWPA: armX('RAWPA'), NOW: armX('NOW'), ...arms }, ...o });
   const size = { N: 2, pts: 45, seed: 7002 }, G = (units, ids = ['E', 'F']) => gate(units, ids, 'a', size);
   { const g0 = G([unit('E'), unit('F')]); check(`the gate passes two whole households${g0.length ? `: ${g0[0]}` : ''}`, g0.length === 0); }
   check('the gate refuses a missing household, two codes, two candidates, and a unit of another size', G([unit('E')]).some(x => /households missing: F/.test(x)) && G([unit('E'), unit('F', { stamp: { code: 'x', audit: 'a' } })]).some(x => /more than one code/.test(x)) && G([unit('E'), unit('F', { candidate: 'c2' })]).some(x => /more than one candidate/.test(x)) && gate([unit('E'), unit('F')], ['E', 'F'], 'a').some(x => /not 16000 paths/.test(x)));
   check('the gate refuses an OFF arm whose pensionCeiling changes a ceiling', G([unit('E', {}, { OFF: armX('OFF', { probe: probes.RAWPA }) }), unit('F')]).some(x => /E OFF: its pensionCeiling changes a ceiling/.test(x)));
-  check('the gate refuses a RAWPA arm that is NOW\'s engine or OFF\'s, and a NOW arm that is RAWPA\'s', G([unit('E', {}, { RAWPA: armX('RAWPA', { probe: probes.NOW }) }), unit('F')]).some(x => /E RAWPA: not the allowance raw/.test(x)) && G([unit('E', {}, { RAWPA: armX('RAWPA', { probe: probes.OFF }) }), unit('F')]).some(x => /E RAWPA: not the allowance raw/.test(x)) && G([unit('E', {}, { NOW: armX('NOW', { probe: probes.RAWPA }) }), unit('F')]).some(x => /E NOW: not both adjusted/.test(x)));
+  check('the gate refuses a RAWPA arm that is NOW\'s engine or OFF\'s, and a NOW arm that is RAWPA\'s', G([unit('E', {}, { RAWPA: armX('RAWPA', { probe: probes.NOW }) }), unit('F')]).some(x => /E RAWPA: not the allowance raw/.test(x)) && G([unit('E', {}, { RAWPA: armX('RAWPA', { probe: probes.OFF }) }), unit('F')]).some(x => /E RAWPA: not the allowance raw/.test(x)) && G([unit('E', {}, { NOW: armX('NOW', { probe: probes.RAWPA }) }), unit('F')]).some(x => /E NOW: the allowance not adjusted/.test(x)));
+  { // a Scottish band (£43,662): the probe leaves it as given in every arm; fair while the three arms' tables differ, refused where two are the same
+    const sc = { OFF: { pa: 12570, band: 43662, rawPa: 12570, rawBand: 43662 }, RAWPA: { pa: 12570, band: 43662, rawPa: 12570, rawBand: 43662 }, NOW: { pa: 7070, band: 43662, rawPa: 12570, rawBand: 43662 } };
+    const scot = (o = {}) => unit('E', {}, { OFF: armX('OFF', { probe: sc.OFF }), RAWPA: armX('RAWPA', { probe: sc.RAWPA, ...o }), NOW: armX('NOW', { probe: sc.NOW }) });
+    const g1 = G([scot(), unit('F')]);
+    check(`the gate passes a Scottish household whose arms' tables differ${g1.length ? `: ${g1[0]}` : ''}, and refuses one whose RAWPA tables are OFF's`, g1.length === 0 && G([scot({ digest: 'dOFF' }), unit('F')]).some(x => /E: the probe does not reach its band's edge and the arms' tables do not all differ/.test(x)));
+  }
   check('the gate refuses arms at different settings, an arm on another plan, a wrong cap and a missing arm', G([unit('E', {}, { OFF: armX('OFF', { rest: 'pts 30' }) }), unit('F')]).some(x => /E OFF: its settings are not NOW's/.test(x)) && G([unit('E', {}, { RAWPA: armX('RAWPA', { inputs: 'x' }) }), unit('F')]).some(x => /not on the household's plan/.test(x)) && G([unit('E', { cap: 300 }), unit('F')]).some(x => /the cap is not four times/.test(x)) && G([unit('E', {}, { RAWPA: undefined }), unit('F')]).some(x => /E: an arm missing/.test(x)));
   console.log(bad ? `\n${bad} planted check(s) failed` : '\nall planted checks pass');
   return bad;
@@ -115,11 +128,24 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   const raw = readdirSync(DIR).filter(x => /\.json\.gz$/.test(x)).map(x => JSON.parse(gunzipSync(readFileSync(join(DIR, x))).toString()));
   const ids = smoke ? raw.map(u => u.id) : HOUSEHOLDS;
-  const P = gate(raw, ids, smoke ? null : stampFilesHash(), smoke ? null : undefined);
+  // the units were stamped by the files as launched (d6a10c1d); the reducer and the rule page were changed after the run,
+  // before any outcome was read (CEILING-LEAD.md's amendment): the stamp is checked against the files at the launch, and
+  // every stamped file but those two is checked unchanged since
+  let audit = smoke ? null : stampFilesHash();
+  if (!smoke) {
+    const { execFileSync } = await import('node:child_process'), { createHash } = await import('node:crypto'), { STAMP_FILES } = await import('./audit-ceiling-lead.mjs');
+    const at = f => execFileSync('git', ['-C', HERE, 'show', `${LAUNCHED}:research/solver/${f}`]);
+    const h = createHash('sha256'); for (const f of STAMP_FILES) h.update(at(f)); audit = h.digest('hex').slice(0, 12);
+    const moved = STAMP_FILES.filter(f => !at(f).equals(readFileSync(join(HERE, f))));
+    const extra = moved.filter(f => !AMENDED.includes(f));
+    if (extra.length) { console.log(`CEILING-LEAD GATE: NOT FAIR\n  stamped files changed since the launch beyond the amendment's: ${extra.join(', ')}`); process.exit(1); }
+    console.log(`(the units' audit stamp checked against the files at the launch, ${LAUNCHED}: ${audit}; changed since, by the amendment: ${moved.join(', ') || 'none'})`);
+  }
+  const P = gate(raw, ids, audit, smoke ? null : undefined);
   if (P.length) { console.log(`CEILING-LEAD GATE: NOT FAIR\n  ${P.join('\n  ')}`); process.exit(1); }
   const units = ids.map(id => raw.find(u => u.id === id)), u0 = units[0];
   const U = units.map(u => ({ id: u.id, cap: u.cap, opening: u.opening, raw: u, arms: Object.fromEntries(ARMS.map(a => [a, armOf(u.arms[a])])) }));
-  console.log(`CEILING-LEAD (EXPLORATORY; CEILING-LEAD.md)${smoke ? ' SMOKE, NOT THE RUN' : ''}: ${ids.length} households, code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${u0.seed}, ${u0.N} paths, ${u0.pts} points, the candidate ${u0.candidate} (${u0.arms.NOW.rest}); the gate: fair (one code, audit, seed, count of paths, points and candidate; every arm on the household's plan at the same settings; each arm's pensionCeiling read back: OFF every ceiling as given, RAWPA the allowance's as given and the band's adjusted, NOW both adjusted)`);
+  console.log(`CEILING-LEAD (EXPLORATORY; CEILING-LEAD.md)${smoke ? ' SMOKE, NOT THE RUN' : ''}: ${ids.length} households, code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${u0.seed}, ${u0.N} paths, ${u0.pts} points, the candidate ${u0.candidate} (${u0.arms.NOW.rest}); the gate: fair (one code, audit, seed, count of paths, points and candidate; every arm on the household's plan at the same settings; each arm's pensionCeiling read back: OFF every ceiling as given, RAWPA the allowance's as given and the band's NOW's, NOW the allowance's adjusted; where the probe does not reach a band's edge, the three arms' tables all different)`);
   const del = x => { let d = 0, t = 0; for (let k = 0; k < x.delivered.length; k++) { d += x.delivered[k]; t += x.target[k]; } return (100 * d) / Math.max(1e-9, t); };
   const capped = (x, cap) => { let s = 0; for (let k = 0; k < x.pot.length; k++) s += Math.min(x.pot[k], cap); return s / x.pot.length; };
   console.log(`\nBy household and arm (OFF / RAWPA / NOW): survival; spending delivered, % of target; the mean pot left; the pot capped at the estate cap; lifetime tax, all paths; the tables' digests the same as NOW's or not; the solves' seconds:`);

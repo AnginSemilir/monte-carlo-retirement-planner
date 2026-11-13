@@ -11,6 +11,17 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer (13 Nov): the couples' re-run has read, PASS; do couples run the candidate under the switch?**
+In full: `reports/2026-11-13-couples-read.md`. On 40 held-out couples the candidate against the app's rules: survival
+about +10 points and spending delivered +6.5% (the standard estate weight), no harm flag. Beside it, from the reviewer
+at the read: a couple spends less in its first retired years; the pot left is much smaller (the giveaway above the
+estate cap, which the tie-break as built does not reach in a couple's joint move); the gain is the gain at an 85%
+landing; a few paths are lost that the app's rules keep. The agent's recommendation: yes, under the opt-in, after (1)
+the tie-break's port and its counterpart for a couple's joint move, built and measured, (2) item 6's stage C, (3) Part
+D's D5, the couples' screens saying the early cut and the smaller pot plainly; a couple outside 40% to 60% keeps the
+app's rules until item 6 reads (M4). The agent carries on with (1) to (3) in that order meanwhile; switching couples on
+waits for the maintainer's word.
+
 **RULED (D94, 13 Nov): "Proceed with your recommendations"**: the stage gate and the read amended for S293's one
 difference, reviewed before use, the chunks kept (the fallback: fix the audit and run the first stage again); the first
 load's ceilings at the measured figures plus one, 235 and 237, engine code moving them the same way at a later batch.

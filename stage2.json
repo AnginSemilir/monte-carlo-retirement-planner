@@ -1,0 +1,21 @@
+{
+ "built": "2026-11-13T07:50:56.375Z",
+ "rule": "after 5000 paths a couple and weight whose CANDC survival is 0.5 points or more above APP's stops; every other runs CANDC at that weight, and APP, to its N; SHIPC stops at its first 1000 paths whatever is decided",
+ "n1": 5000,
+ "bar": 0.5,
+ "shipN": 1000,
+ "stamp": {
+  "code": "1d5d2421c9ab",
+  "audit": "29a4a6a71f76",
+  "prediction": "research/solver/registrations/couples-d4b.md",
+  "sha": "3b9d5fc8c91a6008ded1de54bd9afe116fe27c84",
+  "node": "v22.23.4"
+ },
+ "continue": [],
+ "amendment": {
+  "doc": "research/solver/registrations/couples-d4b-amendment-1.md",
+  "couples": [
+   "S293"
+  ]
+ }
+}

@@ -255,14 +255,22 @@ for (const f of FIX) {
 
 // ---- 4. the switch: each person's candidates their own chooser's; the joint score charges each person's switch ----
 {
-  let picks = 0, pickBad = 0, scored = 0, worst = 0, beaten = 0, switched = 0, held = 0;
+  let picks = 0, pickBad = 0, pickTie = 0, scored = 0, worst = 0, beaten = 0, switched = 0, held = 0;
   for (const { f, t, state, joint } of DEC) {
     const { cp } = f, T = cp.m.ctx.totalYears, A = cp.tables.self, B = cp.tables.part;
     const hA = heldOf(state, 'self'), hB = heldOf(state, 'part');
-    // the single chooser's pick, with the tiers held, is the first of rankFor's candidates (or ties it within the chooser's eps)
+    // the single chooser's pick, with the tiers held, is the first of rankFor's candidates (or ties it within the chooser's eps).
+    // 13 Nov 2026 (D95): the candidate carries the tie-break above the estate cap, which a single's chooser takes and a
+    // couple's ranking does not (the deep review of the couples' read). So the chooser is asked here with its margin at
+    // nought, and the comparison stays the strict one (the reviewer on the change of default, finding 4); where the
+    // chooser's own pick, margin on, parts from it is counted beside
     for (const [tab, who, h] of [[A, 'self', hA], [B, 'part', hB]]) {
       const s = vecOf(tab.m, ownerState(state, who)), n = tab.actions.length;
-      const pick = chooseAction(tab, s, t, h), first = rankFor(tab, s, t, h, 1)[0];
+      const all = [tab, ...(tab.worlds || [])], was = all.map(x => x.tieAboveCap);
+      const withTie = chooseAction(tab, s, t, h);
+      all.forEach(x => { x.tieAboveCap = 0; }); const pick = chooseAction(tab, s, t, h); all.forEach((x, k) => { x.tieAboveCap = was[k]; });
+      const first = rankFor(tab, s, t, h, 1)[0];
+      if (withTie !== pick) pickTie++;
       if (pick !== first) {
         const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n);
         scoreMoves(tab, s, tab.finalExact ? t : Math.min(t, T - 1), SC, TX, BQ, h);
@@ -297,7 +305,7 @@ for (const f of FIX) {
   }
   ok(4, 'the switch: each person\'s candidates their own chooser\'s, the joint score charging each person\'s switch, the chosen move the best',
     pickBad === 0 && worst <= 1e-12 && beaten === 0 && switched > 0 && held > 0,
-    `${picks} picks, ${pickBad} not the chooser's; ${scored} joint scores, the largest gap to the oracle ${worst.toExponential(2)}, ${beaten} beaten by another candidate; ${switched} decisions switch a tier, ${held} hold`);
+    `${picks} picks, ${pickBad} not the chooser's with its tie-break's margin at nought (with the margin on, the chooser's own pick another move at ${pickTie}); ${scored} joint scores, the largest gap to the oracle ${worst.toExponential(2)}, ${beaten} beaten by another candidate; ${switched} decisions switch a tier, ${held} hold`);
 }
 
 // ---- 5. the engine under the solved couple and the rollout, path by path ----
@@ -346,9 +354,11 @@ for (const f of FIX) {
   // all six again on 12 Nov (before: S116 tables 81e774a399c6, runs 7077d1657af4, reads 7f7cecad5c1a; S224 4b141f1fbc3a, 64098a65a205,
   // ab03fc40659b): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
+  // S224's runs and reads again on 13 Nov (before: runs 8ab0d7a33f73, reads 82e3915b1a17): the tie-break above the estate cap joined the
+  // candidate (D95), which moves a single's forward runs above the cap and no table; S116's three and S224's tables unchanged
   const BEFORE = {
     S116: { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' },
-    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '8ab0d7a33f735eb1de28dff2e8d69a3986dcaa7317f38fb9a7cecb02b8d084d1', reads: '82e3915b1a177a183be6882466f0aadf4e2d45c381965d11b251c8ba06326b62' }
+    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '3c707d8249ba094d485daa7a66c854c62f52e84af6d396b13446d99177abc1dc', reads: '1f82d4ce3e21994044775a93665f786c7e50d92f494ddaceff21aeb915ba10b2' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];

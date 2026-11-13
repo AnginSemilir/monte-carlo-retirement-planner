@@ -16,7 +16,10 @@ export const APP_CANDIDATE = Object.freeze({
   bridgeRead: 'reader', tierState: true, jointWorlds: true, bequestWeight: 0.02, bridgeStep: 'exact', switchCharge: 0.001,
   switchMargin: 0, e3: true, pclsInterp: true, e3pcls: true, readerRef: 'adaptive',
   adaptiveLattice: Object.freeze({ na: 80, nb: 21, nz: 64, foot: true, stepAll: true }), readerSplit: 'rs', tiersBelow: 3,
-  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE
+  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE,
+  // D90 (1), 13 Nov: above the estate cap, among the moves at the best move's level and tier pair within a hundredth of a
+  // point of score, the one that pays the least tax this year (the review of 11 Nov, item 13; results-tie-a.txt)
+  tieAboveCap: 1e-4
 });
 /* the tiers' real returns at the medians of their blends (O60, D13) */
 export const APP_TIER_REALS = Object.freeze({ 'High Risk': 4.97, 'Medium/High Risk': 4.65, 'Medium Risk': 4.18, 'Medium/Low Risk': 3.55, 'Low Risk': 2.76 });

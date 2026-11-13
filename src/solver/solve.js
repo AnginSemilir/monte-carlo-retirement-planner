@@ -1927,15 +1927,16 @@ function chooseActionCore(r, s, t, held, after) {
    */
   /*
    * ABOVE THE ESTATE CAP, DO NOT PAY TAX THE OBJECTIVE CANNOT SEE (`tieAboveCap`, the review of 11 Nov, item 13; D76, D81 (B);
-   * research, off unless set, and not in the candidate). Under the estate shape 'cap' the tables put no value on a pound
+   * research, off unless set; in the candidate since D95, 13 Nov). Under the estate shape 'cap' the tables put no value on a pound
    * above the cap (four times the opening wealth), so there the whole menu breaks near-ties by nothing: on S328F it re-wraps
    * at over half its decisions, and about half the tax it pays over the plan buys nothing the objective values
    * (results-tie-a.txt). Where the household's wealth, as the estate term would take it if the plan ended now (net of the
    * pension's death tax), is already above the cap: among the moves at the best move's spending level and tier pair that
    * score within `tieAboveCap` of it, the one that pays the least tax this year; then the larger estate. Only the draw
    * order and the re-wrap can change, never what the household spends or the risk it holds, and at or below the cap, where
-   * the tables do have a view, nothing changes. Forward only: no table reads it. A locked dial position (lockTiers) returns
-   * above and does not take it. CHOOSER.tiePlant (chooser-tie.test.mjs): 'anylevel' drops the level and tier-pair rule,
+   * the tables do have a view, nothing changes. Forward only: no table reads it. A locked dial position (lockTiers) takes it
+   * too: the lock, above, returns only where no move on the base's pair can be paid, and the rule here keeps the best move's
+   * tier pair, so the lock holds (chooser-tie.test.mjs check 8; corrected 13 Nov, where this said it did not). CHOOSER.tiePlant (chooser-tie.test.mjs): 'anylevel' drops the level and tier-pair rule,
    * 'anywhere' the cap test.
    */
   const tac = r.tieAboveCap || 0;

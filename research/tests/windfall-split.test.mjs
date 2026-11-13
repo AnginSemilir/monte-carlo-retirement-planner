@@ -90,7 +90,10 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // all three again on 12 Nov (before: S026 736b3a2b9c82aa91..., S090 c789a06cbc51db2e..., S040 23c2e079444fecec...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
   S026: '6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513',
-  S090: '9e5c0edb5552470b2814a7906fb8592dfb634731c57f90e1e4a0896d263ccdd1',
+  // S090 again on 13 Nov (before: S090 9e5c0edb5552470b...): the tie-break above the estate cap joined the candidate (D95; D90 (1)), which moves a
+  // single's forward runs above the cap and no table (the same pins and no others moved in the measurement of 12 Nov, results-stage-b-figures.txt;
+  // with the candidate's margin set to nought this test passes on the figures before: results-tie-port.txt)
+  S090: 'b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0',
   [NODEP]: '1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');

@@ -27,6 +27,15 @@ back red in both modes, so nothing is merged (`results-reference.txt`; STATE.md 
   (`research/ui-harnesses/lib/reference.cjs`), so the checks are bit for bit again and now cover the money too; what
   they no longer hold is that a browser computes exactly what Node does, which stopped being true. Say if this should
   be done another way.
+- *Read, for the maintainer's eye: the harvest ceiling's step 4 passes its rule* (`results-harvest-ceiling-solved.txt`;
+  the reviewer's PASS, `reviews/2026-11-13-read-harvest-ceiling.md`), so by the rule it goes to `main` with the first
+  batch. What the pooled figures hide: the lower tax and larger pot are two households' (S328F, S340F), on paths that
+  end above the estate cap; on paths at or below the cap lifetime tax is higher on S090 (about a fifth), S328F and
+  S030, the three with most money in the taxable account. Survival is a shade lower, beyond noise and well inside the
+  rule. A lead, not shown: under the review's rule the allowance's ceiling now stops where the year's bill would first
+  rise, which removes a slice these households drew cheaply. The agent runs the one test that would tell (EXPLORATORY)
+  after item 12's stage A and brings it back; if it shows the allowance's step is the cost, that is a question for the
+  external review, not a change the agent makes.
 - *Done: the skip costs' fixture* is S064 where it was S116, whose re-wrap costs nothing to skip on the new code.
 
 **STOP (13 Nov): the couples' re-run's stage gate refused.** The first stage's 200 chunks are in and backed up; the

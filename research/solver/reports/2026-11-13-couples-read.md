@@ -89,3 +89,35 @@ Couples run the candidate under the opt-in switch, after:
 
 A couple outside 40% to 60% keeps the app's rules until item 6 reads (M4). The agent carries on with 1 to 5 in that
 order; switching couples on waits for the maintainer's word.
+
+## The couples' tier test, read (13 Nov, evening)
+
+`results-couple-tiers.txt` (EXPLORATORY, seed 7002; eight of the panel's couples, 4,000 paths each, by `COUPLE-TIERS.md`'s
+rule as committed before the run).
+
+- **The pot: both.** Over the four younger couples the median pot left, as a share of the app's rules', is 0.37 under
+  the candidate and 0.79 with consent to change risk withdrawn. The rule called the tiers the cause at 0.85 and not the
+  cause under 0.65, so this reads as both: the lower-risk funds are most of the fall, and something else is left. By
+  the rule that comes to the maintainer and no build is started on it. For the four library couples the same two
+  figures are 0.67 and 0.97 on average.
+- **What consent buys and costs.** The tier changes are 63% of the candidate's survival gain for these couples (47.5%
+  for singles). With consent withdrawn the candidate is +3.7 points of survival over the app's rules where it is +9.9
+  with it, and the pot is most of the way back.
+- **Tax.** Lifetime tax is higher under the candidate than under the app's rules, and higher again with consent
+  withdrawn (more money left to be taxed); most of it is paid in years the household stands above the estate cap. That
+  is where a tie rule for a couple's joint move would act, and with the tiers out of it the figures size it: pooled, a
+  mean £836,000 of tax above the cap against the app's rules' £133,000.
+- **The lost paths were the capital gains bill.** On the engine before the fix one younger couple loses 115 paths of
+  4,000 and another 11, all in one year, while holding more than they opened with. On the fixed engine: none.
+
+### What the agent recommends now
+
+1. The capital gains bill's fix goes to `main` with the second batch (done on the working branch, replayed here).
+2. On the pot, two things are true and both belong on the couples' screens (Part D's D5): the solver leaves a smaller
+   pot because it holds lower-risk funds, which is the price of most of the survival gain and which a couple controls
+   by consent; and above the estate cap it pays tax it need not.
+3. For the second, a tie rule for a couple's joint move is the candidate remedy, as item 13's was for singles. It is
+   not built: the rule here says a "both" comes to the maintainer first. The agent's recommendation is to build it
+   as item 13 was built: its rule committed first, an EXPLORATORY read on couples outside the panel, off in code until
+   the maintainer rules.
+4. Couples on under the switch then waits on that ruling, item 6's stage C and D5, as before.

@@ -1,0 +1,19 @@
+THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md): 8 couples of the panel, code d85a2b451777, audit 44f50b4375a7, seed 7002, 4000 paths, 45 points, estate weight 0.02, the candidate af001697ce1b; the gate: fair (one code, audit, seed, count of paths and points, the registered run's candidate; CANDC with more than one tier pair a person, CANDCNC with one and no tier step held)
+
+By couple (survival APP / CANDC / CANDCNC; the median pot left on the paths all three survive, APP's, then CANDC's and CANDCNC's over it; mean lifetime tax in each, and of it the tax paid in years above the estate cap; CANDC's mean tier steps held below the plan's own, the first person's pension/ISA and the second's):
+  S309F  young 86.20% / 96.78% / 89.72% | pot £50,082,811 (3448 paths), CANDC 0.34, CANDCNC 0.84 | tax £490,536 / £643,351 / £1,709,543, above the cap £317,932 / £324,598 / £1,358,760 | tiers held 2.84/2.84 and 2.58/2.58
+  S311F  young 85.15% / 92.77% / 88.58% | pot £48,431,263 (3402 paths), CANDC 0.33, CANDCNC 0.81 | tax £668,462 / £1,488,942 / £2,323,732, above the cap £384,095 / £865,275 / £1,922,092 | tiers held 2.44/2.44 and 2.20/2.20
+  S317F  young 85.63% / 95.15% / 88.63% | pot £7,028,520 (3425 paths), CANDC 0.40, CANDCNC 0.71 | tax £1,551 / £194,686 / £468,233, above the cap £1,354 / £194,318 / £435,104 | tiers held 1.85/1.85 and 1.72/1.72
+  S323F  young 85.02% / 93.95% / 87.70% | pot £34,453,651 (3400 paths), CANDC 0.42, CANDCNC 0.81 | tax £427,211 / £906,998 / £2,086,208, above the cap £269,930 / £807,968 / £1,860,340 | tiers held 1.87/1.87 and 1.70/1.70
+  S189   lib   84.70% / 96.60% / 88.48% | pot £14,969,339 (3388 paths), CANDC 0.54, CANDCNC 0.80 | tax £165,994 / £321,599 / £1,056,183, above the cap £38,607 / £47,911 / £606,873 | tiers held 2.50/2.50 and 2.41/2.41
+  S293   lib   85.02% / 95.93% / 90.42% | pot £3,817,759 (3399 paths), CANDC 0.59, CANDCNC 0.92 | tax £8,882 / £166,418 / £370,434, above the cap £7,703 / £164,698 / £326,375 | tiers held 1.83/1.83 and 1.82/1.82
+  S011   lib   86.63% / 96.88% / 90.45% | pot £3,567,045 (3457 paths), CANDC 0.85, CANDCNC 1.17 | tax £386,904 / £340,140 / £447,977, above the cap £35,338 / £11,994 / £90,990 | tiers held 1.34/1.34 and 1.98/1.98
+  S083   lib   85.13% / 94.63% / 88.80% | pot £4,633,473 (3403 paths), CANDC 0.68, CANDCNC 0.97 | tax £108,901 / £26,381 / £260,168, above the cap £5,122 / £6,132 / £88,639 | tiers held 1.49/1.49 and 1.50/1.50
+
+The rule:
+  1. the pot, the mean over the 4 younger couples of the median pot over APP's: CANDC 0.374, CANDCNC 0.794 (the tiers are the cause at 0.85 or more, not under 0.65; not reproduced if CANDC's is 0.85 or more): BOTH
+  2. the tiers' share of the gain, (CANDC less CANDCNC) over (CANDC less APP), survival pooled over the 8: 63.0% (60.9 to 65.1); the singles' 47.5% (46.2 to 48.8)
+  3. the bill's replay, CANDC's paths failing with more than the household opened with, the engine before the fix and this one: S309F 11 and 0 (most in plan year 23: 11 and 0); S311F 115 and 0 (most in plan year 23: 115 and 0); S317F 0 and 0; S323F 0 and 0; S189 0 and 0; S293 0 and 0; S011 0 and 0; S083 0 and 0: THE BILL
+  beside, deciding nothing: pooled mean lifetime tax APP £282,305, CANDC £511,064, CANDCNC £1,090,310; of it paid in years above the cap £132,510, £302,862, £836,147; pooled survival 85.43%, 95.33%, 89.10% (CANDC less APP +9.90 points, CANDCNC less APP +3.66)
+
+COUPLE-TIERS OUTCOME: the pot: BOTH; the lost year: THE BILL

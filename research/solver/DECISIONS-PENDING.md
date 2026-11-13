@@ -11,6 +11,15 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer (13 Nov, evening): the couples' tier test reads "both"; a tie rule for a couple's joint move?**
+`results-couple-tiers.txt`; in full in `reports/2026-11-13-couples-read.md`. With consent to change risk withdrawn the
+younger couples' median pot recovers from 0.37 of the app's rules' to 0.79: the lower-risk funds are most of the pot's
+fall, not all. The rest is tax paid above the estate cap, which no tie rule reaches for a couple. The lost paths were
+the capital gains bill, now fixed and replayed. The agent's recommendation: build a tie rule for a couple's joint move
+as item 13 was built for singles (its rule committed first, an EXPLORATORY read on couples outside the panel, off in
+code until ruled), and show both effects on the couples' screens. By the test's own rule nothing is built until the
+maintainer says.
+
 **For the maintainer (13 Nov): item 12 is closed; the shortlist's trade (D90 (2)).** Item 12's stage A read
 (`results-item12-a.txt`, EXPLORATORY): neither arm passes, so by D84 item 12 is closed and nothing is built. Both fail
 the same two parts, narrowly: spending delivered 0.11 and 0.12 points of target lower (the bar 0.1), and two couples'

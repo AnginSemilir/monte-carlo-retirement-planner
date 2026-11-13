@@ -104,9 +104,12 @@ rule as committed before the run).
   for singles). With consent withdrawn the candidate is +3.7 points of survival over the app's rules where it is +9.9
   with it, and the pot is most of the way back.
 - **Tax.** Lifetime tax is higher under the candidate than under the app's rules, and higher again with consent
-  withdrawn (more money left to be taxed); most of it is paid in years the household stands above the estate cap. That
-  is where a tie rule for a couple's joint move would act, and with the tiers out of it the figures size it: pooled, a
-  mean £836,000 of tax above the cap against the app's rules' £133,000.
+  withdrawn (more money left to be taxed), pooled; most of it is paid in years the household stands above the estate
+  cap. That is where a tie rule for a couple's joint move would act. Pooled, the candidate pays a mean £303,000 of tax
+  above the cap against the app's rules' £133,000 (£836,000 with consent withdrawn). These are ceilings on what a tie
+  rule could save, not estimates of it: no arm carries one, and for singles item 13 cut lifetime tax by about a fifth.
+  The pooled figures are the four younger couples'; on two of the library couples the candidate pays less tax than the
+  app's rules.
 - **The lost paths were the capital gains bill.** On the engine before the fix one younger couple loses 115 paths of
   4,000 and another 11, all in one year, while holding more than they opened with. On the fixed engine: none.
 
@@ -115,9 +118,39 @@ rule as committed before the run).
 1. The capital gains bill's fix goes to `main` with the second batch (done on the working branch, replayed here).
 2. On the pot, two things are true and both belong on the couples' screens (Part D's D5): the solver leaves a smaller
    pot because it holds lower-risk funds, which is the price of most of the survival gain and which a couple controls
-   by consent; and above the estate cap it pays tax it need not.
+   by consent; and above the estate cap it may pay tax it need not, which is unmeasured for a couple.
 3. For the second, a tie rule for a couple's joint move is the candidate remedy, as item 13's was for singles. It is
    not built: the rule here says a "both" comes to the maintainer first. The agent's recommendation is to build it
    as item 13 was built: its rule committed first, an EXPLORATORY read on couples outside the panel, off in code until
    the maintainer rules.
 4. Couples on under the switch then waits on that ruling, item 6's stage C and D5, as before.
+
+### The reviewer at the read (PASS, nine MINORs; `reviews/2026-11-13-read-couple-tiers.md`)
+
+Every figure above was recomputed from the units, and the rule and its files were unchanged from before the launch.
+Two sentences of the first write-up said more than the read shows, and are corrected here and in
+`DECISIONS-PENDING.md`:
+
+- **What is left of the pot's fall is not shown to be tax above the cap.** The reviewer traced one couple (S311F; a
+  lead, not a measurement). With consent withdrawn, tax compounded over the years is roughly two-thirds to
+  three-quarters of that arm's gap to the app's rules and where the money is held is the rest. With consent given, the
+  lower-risk funds are nearly all of the candidate's gap and tax a few percent. So for the candidate as couples would
+  run it, the pot's fall is the tiers; the "something more" shows mainly once the tiers are taken away.
+- **The £836,000 was the consent-withdrawn arm's figure**, not the candidate's, and neither is a saving (corrected
+  above).
+
+Also to be said beside the outcome:
+
+- The verdict is the median's. By the mean pot the same rule would read as the tiers alone, and in the worst tenth of
+  outcomes there is no fall in either arm: the fall is in the upper half of outcomes, where the household is well off
+  either way.
+- The replay shows the mechanism of the capital gains bill, not its size in the registered run (it loses more paths
+  here than there, the tables and the engine being from different sides of the fix).
+- The two candidate arms differ in a second thing: with consent withdrawn a solve runs on the whole menu, not on
+  anchors (D74). On singles that difference was negligible; on couples it is unmeasured.
+- The 63% share is not directly comparable with the singles' 47.5%, which was another candidate, engine and panel.
+
+**What this does to the recommendation.** A tie rule for a couple's joint move is still worth measuring, as a tax
+matter, but it is smaller than the first write-up implied and is not the cause of the smaller pot. The agent's revised
+recommendation: it need not hold couples back; measure it in the research queue (its rule first, EXPLORATORY, off in
+code) and let the couples' screens say plainly that the smaller pot is the price of the lower-risk funds.

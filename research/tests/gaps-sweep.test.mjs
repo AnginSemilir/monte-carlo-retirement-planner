@@ -68,8 +68,12 @@ const GIA = 'Other Investments (e.g. GIA)';
 const totalOf = p => p.accounts.filter(a => a.owner === 'Myself').reduce((s, a) => s + E.num(a.balance, 0), 0);
 const inc = (name, type, amount, startAge, endAge = '') => ({ id: name, name, owner: 'Myself', incomeType: type, amount, startAge, endAge });
 const CASES = [];
-const add = (name, base, edit, live, plant) => CASES.push({ name, base, edit, live, plant });
+const add = (name, base, edit, live, plant, opts = null) => CASES.push({ name, base, edit, live, plant, opts });
 for (const b of Object.keys(BASES)) add(`control ${b}`, b, () => {}, 'years', 'spend');
+// (a base for one case, no control of its own: S116 holds £386,163 in its cash ISA, £359,900 above its buffer in year 0)
+BASES.S116 = () => lib('S116');
+// the review of 9 Nov, item 5: the sweep's cash ISA money to the stocks and shares ISA (a solve option, research, off)
+add('the sweep\'s cash ISA money to the ISA (sweepCashIsaTo \'isa\')', 'S116', () => {}, 'sweepIsa', 'sweepIsa', { sweepCashIsaTo: 'isa' });
 for (const k of Object.keys(E.DECUMULATION_POLICIES)) add(`policy ${k}, an Auto deposit routed by it`, 'S370', p => { p.spending.decumulationPolicy = k; }, 'deposit', 'dep');
 add('policy Windfall to ISA, an Auto deposit while working', 'S224', p => { p.spending.decumulationPolicy = 'Windfall to ISA'; p.oneOffContributions = [dep('dW', 2, E.AUTO_DEPOSIT, 150000)]; }, 'deposit', 'dep');
 add('deposit into the ISA, the surplus staged into it', 'S380', p => { p.oneOffContributions = [dep('dI', 2, 'S&S ISAs', 100000)]; }, 'drip', 'drip');
@@ -135,6 +139,8 @@ const PLANTS = {
   // parts (S224 on 82e4ad6: £1.9e-9)
   cashisa: c => { const v = c.cashIsaContrib; c.cashIsaContrib = 0; const u = fill(c.yr.cashIsaCap, () => 0); return () => { c.cashIsaContrib = v; u(); }; },
   con: c => fill(c.yr.con[0], v => v * 0.5),
+  // the forward run sweeping the cash ISA money to the taxable account, as without the option
+  sweepIsa: c => { const old = c.acts.map(a => a.sweepIsa); c.acts.forEach(a => { a.sweepIsa = 0; }); return () => c.acts.forEach((a, i) => { a.sweepIsa = old[i]; }); },
   // the generic plant (controls and settings with no data of their own): every spending year 5% dearer
   spend: c => { const u1 = fill(c.yr.spend, v => v * 1.05), u2 = fill(c.yr.scheduled, v => v * 1.05); return () => { u1(); u2(); }; }
 };
@@ -157,7 +163,8 @@ const LIVE = {
   // the effective forms: a tranche counted only when the GIA holds money at the top of its year; a cash-ISA subscription only
   // in a working year with unsheltered cash at its top
   dripEff: (ctx, row, pre) => ctx.stagedTransfers.has(row.year) && pre.gia > 0,
-  cashisaEff: (ctx, row, pre) => row.workingSelf === 1 && pre.unsheltered > 0
+  cashisaEff: (ctx, row, pre) => row.workingSelf === 1 && pre.unsheltered > 0,
+  sweepIsa: (ctx, row) => row.sweptToIsa > 0
 };
 
 // ---------------------------------------------------------------- the lockstep (the state check's, one household)
@@ -174,14 +181,14 @@ const gapsOf = (e, f, he, hf) => {
 const moveOf = (r, ai, code) => {
   const a = r.actions[ai], ca = r.c.acts[ai];
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 
 function runCase(cs) {
   const raw = BASES[cs.base](); cs.edit(raw);
   const plan = planOf(raw), t0 = Date.now();
-  const r = solveCandidate(E, M, plan, LIGHT);
+  const r = solveCandidate(E, M, plan, cs.opts ? { ...LIGHT, ...cs.opts } : LIGHT);
   const solveSecs = (Date.now() - t0) / 1000;
   if (r.c.tiers.gia) throw new Error('sweep: the taxable account carries a tier, which moveOf does not hand to the engine');
   const T = r.m.ctx.totalYears, paths = E.pathsForSeed(SEED, NP, T).map(z => Float64Array.from(z));

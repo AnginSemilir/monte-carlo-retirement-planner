@@ -1,0 +1,41 @@
+# SPEED-A's prechecks (the review of 9 Nov, items 7 and 10, stage A; SPEED-A.md; EXPLORATORY). On the scratch tree: the working branch's
+# code at 0697abc5 (items 3 to 6 stage B) with prototype/shortlist.diff and prototype/solve-coarse.diff applied, the latter's
+# researchFinish line by hand.
+
+## solve()'s bytecode with both prototypes (research/tests/solve-size.test.mjs on the scratch tree)
+PASS  V8's --max-optimized-bytecode-size read: 61440 bytes (Node v22.23.4)
+PASS  1. solve()'s bytecode 61395 bytes against the limit 61440: 45 under
+PASS  2. planted: 212 dead statements inside solve() take it to 64294 bytes, 2854 over the limit, and the check fails
+ALL PASS: 3 checks
+
+## Both options off: every table the branch's, bit for bit (the review's scripts/solve-same.mjs <the branch> <the scratch tree> <household> 4 off)
+S116 at 4 points: vitejs-vite-kdvuf9qw (off, 28.7 s) against speed-a (off, 28.9 s): 0 of 3919104 table values differ
+S370 at 4 points: vitejs-vite-kdvuf9qw (off, 38.3 s) against speed-a (off, 40.9 s): 0 of 5007744 table values differ
+
+## The reducer's planted checks (node research/solver/reduce-speed.mjs --planted)
+  ok   all four hold: no change anywhere
+  ok   part 1 fails on a pooled loss of 0.2 points (its lower end -0.262)
+  ok   part 2 fails on one household wholly below -0.3 (A: d -0.60, upper end -0.461), the pooled change +0.200 passing part 1
+  ok   part 2 at its edge: 20 lost of 10,000 (upper end -0.120, not below -0.3) is not harmed
+  ok   part 3 fails on spending delivered 0.06 points below
+  ok   part 3 at its edge: 0.05 points below holds
+  ok   part 4 fails on the pot 0.6% lower
+  ok   part 4 at its edge: the pot 0.5% higher holds
+  ok   item 7: both pass, the faster taken (cells at 1 ms against structure at 3)
+  ok   item 7: one passes, that one
+  ok   item 7: neither passes, order read and the item stops
+  ok   item 10 part 5: 5.0 times on every household without a bridge year holds (the units' own; gate 5 pending)
+  ok   item 10 part 5: 4.9 times on one household fails
+  ok   item 10 part 5: a bridge household slower is not counted
+  ok   gate 5's block read: bridge 4 409.4, S126 386.9
+  ok   item 10 part 5 by gate 5: 5 times holds, 4 fails
+  ok   the gate passes fair units (one of the eight, one with a bridge year)
+  ok   the gate refuses a missing unit
+  ok   the gate refuses two codes
+  ok   the gate refuses unit B's ON tables not unit A's
+  ok   the gate refuses a bridge probe disagreeing with unit A
+  ok   the gate refuses an arm whose settings differ beyond its option
+  ok   the gate refuses a REF arm on the candidate's own reference
+EDGES: a household losing 20 of 10,000 (its interval reaching above -0.3: not harmed) against 60 (wholly below: harmed), spending 0.05 points below (holds) against 0.06 (fails), the pot 0.5% higher (holds) against 0.6% lower (fails), a solve 5.0 times as fast (holds) against 4.9 (fails), a bridge household not counted in part 5, a missing unit (refused)
+
+all planted checks pass

@@ -48,6 +48,10 @@
  */
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
+// tests only ('' everywhere else): 'nolevel' spends the target whatever the move's level, as before D1 (couple-quick.test.mjs);
+// 'non4' draws and harvests a couple's year without N4's ceilings, as before D2; 'notier' leaves a couple's tiers where they
+// are whatever the move (couple-lockstep.test.mjs)
+export const MODEL = { plant: '' };
 
 /*
  * The cash buffer for the household in projection year `t`, in full-year terms: months of the year's
@@ -79,7 +83,10 @@ export function cashAt(m, t, taxPot) {
  * once per solve; `step` may then allocate nothing.
  */
 export function prepare(E, rawPlan, opts = {}) {
-  const ctx = E.buildContext(E.resolveMpaa ? E.resolveMpaa(rawPlan) : rawPlan);
+  // `tiersBelow` (Part D, D2): the tier lists the engine builds under a table solved with that many steps below (App.jsx
+  // buildContext), so a couple's year takes each person's tier by the same list; the override chooses nothing here
+  const planned = opts.tiersBelow === 3 ? { ...rawPlan, spending: { ...rawPlan.spending, policyOverride: { kind: 'table', choose: () => null, tiersBelow: 3 } } } : rawPlan;
+  const ctx = E.buildContext(E.resolveMpaa ? E.resolveMpaa(planned) : planned);
   const reasons = [];
   // the spending guardrails are carried exactly since phase 2d; only the one-off cost lookahead is still refused
   if (ctx.lookaheadYears > 0) reasons.push('the one-off cost lookahead is on');
@@ -107,14 +114,18 @@ export function initialState(m) {
   // the guardrails' memory, as the engine keeps it: the rate the rails were set from, the multiplier so far,
   // whether last year lost money, and the draw the rails were last set against
   const guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
-  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa, guard };
+  // the tier each person's pension and ISA holds (index into the engine's list, 0 the plan's own), as the engine's state
+  const tierHeld = {};
+  ctx.owners.forEach(o => { tierHeld[o.key] = { pen: 0, isa: 0 }; });
+  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa, guard, tierHeld };
 }
 
 export function cloneState(s) {
   return {
     pots: { ...s.pots }, basis: { ...s.basis }, cgtCarry: { ...s.cgtCarry },
     cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) },
-    guard: s.guard ? { ...s.guard } : { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 }
+    guard: s.guard ? { ...s.guard } : { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 },
+    ...(s.tierHeld ? { tierHeld: Object.fromEntries(Object.entries(s.tierHeld).map(([k, v]) => [k, { ...v }])) } : {})
   };
 }
 
@@ -222,7 +233,9 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   if (drips) drips.forEach(x => {
     const move = sellGia(x.fromId, x.amount);
     if (move <= 0) return;
-    pots[x.toId] = (pots[x.toId] || 0) + move;
+    // into a pension grossed up, its refund to cash in proportion to what moved (the engine's 1.5; the review's item 4)
+    pots[x.toId] = (pots[x.toId] || 0) + (x.uplift ? move * x.uplift : move);
+    if (x.refundPer > 0 && pots[x.refundId] !== undefined) pots[x.refundId] += move * x.refundPer;
     if (x.toId.startsWith('other_')) addBasis(ownerOfId(x.toId), move);
   });
 
@@ -283,18 +296,33 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   });
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
+  // the taxable pay of each person still working, at the bottom of their stack (the engine's step 4, the review of 9 Nov's
+  // item 3): the pay less what is given up to the pension (E.taxablePayOf), the pension contribution the take-home below takes
+  const taxablePay = { self: 0, part: 0 };
+  owners.forEach(o => {
+    if (!working[o.key] || !(o.salary > 0)) return;
+    const pen = ctx.acc[o.ids.pen];
+    const penContrib = contrib ? Math.max(0, contrib[o.ids.pen] || 0) : (pen ? E.contribAtYear(pen, t) : 0);
+    taxablePay[o.key] = E.taxablePayOf(E.salaryAtYear(o, t), penContrib, P, o.selfEmployed) * frac;
+  });
   // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
   if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
   const savingsTax = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+  const savingsInterest = { self: 0, part: 0 }, giaDividends = { self: 0, part: 0 };
   owners.forEach(o => {
     const a = ctx.acc[o.ids.cash];
     const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
     const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
-    savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
-    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
+    savingsInterest[o.key] = interest;
+    savingsTax[o.key] = P.savingsTax(taxablePay[o.key] + taxable[o.key], interest);
+    if (P.giaDividendYield > 0) { const div = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac); giaDividends[o.key] = div; dividendTax[o.key] = P.dividendTax(taxablePay[o.key] + taxable[o.key], interest, div); addBasis(o.key, div); }   // reinvested at cost (F0a, 21 Oct)
   });
+  // the person's whole year in HMRC's order (the engine's billOf), and the tax on the pay alone, which the take-home paid
+  const billOf = (key) => P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] });
+  const payTax = (key) => (taxablePay[key] > 0 ? E.incomeTax(taxablePay[key], P) : 0);
+  owners.forEach(o => { const b = billOf(o.key); savingsTax[o.key] = b.onInterest; dividendTax[o.key] = b.onDividends; });   // the whole year in the stack
   const netGuaranteed = {};
-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
+  owners.forEach(o => { const b = billOf(o.key); netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - ((b.onNonSavings - payTax(o.key)) - E.incomeTax(taxable[o.key], P)) - savingsTax[o.key] - dividendTax[o.key]; });
   const totalNetGuaranteed = owners.reduce((s, o) => s + netGuaranteed[o.key], 0);
   let workingTakeHome = 0;
   if (anyRetired) {
@@ -322,8 +350,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     if (pot <= 0) return 0;
     const fully = action.lump && state.lumpTaken[oKey];
     const headroom = fully ? 0 : pclsHeadroom(oKey);
-    if (taxable[oKey] >= ceiling) return 0;
-    const grossNeeded = E.grossPensionNeededForNet(netNeeded, taxable[oKey], P, fully, headroom, ceiling);
+    const T0 = taxablePay[oKey] + taxable[oKey];
+    ceiling = E.pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);   // on the year's whole taxable income, as the engine's
+    if (T0 >= ceiling) return 0;
+    const grossNeeded = E.grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);
     if (gross <= 0) return 0;
     pots[o.ids.pen] = pot - gross;
@@ -332,10 +362,12 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     state.cumPcls[oKey] += taxFree;
     const taxablePart = gross - taxFree;
     taxablePensionDrawn[oKey] += taxablePart;
-    const before = E.calculateUKNetIncome(taxable[oKey], P);
+    // the net it delivers, every tax of the year in it, as the engine's draw (exactly the old net with no pay, interest or dividends)
+    const was = billOf(oKey), before = E.calculateUKNetIncome(taxable[oKey], P), taxBefore = E.incomeTax(taxable[oKey], P);
     taxable[oKey] += taxablePart;
-    const after = E.calculateUKNetIncome(taxable[oKey], P);
-    return taxFree + (after - before);
+    const now = billOf(oKey), after = E.calculateUKNetIncome(taxable[oKey], P), taxAfter = E.incomeTax(taxable[oKey], P);
+    savingsTax[oKey] = now.onInterest; dividendTax[oKey] = now.onDividends;
+    return taxFree + (after - before) - ((now.total - was.total) - (taxAfter - taxBefore));
   };
   const drawPot = (id, need) => {
     if (need <= 0) return 0;
@@ -356,6 +388,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (s === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
       else if (s === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
       else if (s === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
+      // N4's ceilings as the engine's cost draw (Part D, D2: before it a penHR cost step reached drawPot with no pot id and threw a
+      // TypeError); any other step this year knows nothing of throws by name
+      else if (E.N4_PEN && E.N4_PEN[s] && MODEL.plant !== 'non4') { const cap = E.N4_PEN[s](P); for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, cap); } }
+      else if (MODEL.plant !== 'non4' && (!owners.every(o => s in o.ids) || s === 'pen')) throw new Error(`model.step: no draw for the cost step ${s}`);
       else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[s], rem); } }
     }
     unmetCost = Math.max(0, rem);
@@ -366,6 +402,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   if (anyRetired) {
     const scheduled = E.spendTargetAtAge(ctx, ageSelf);
     annualLivingTarget = scheduled;
+    // a solved move may spend below the target (a cut) or above it (a raise) this year, as the engine's year does (its line
+    // "a solved table may spend below the target"); Part D, D1: before it this model spent the target whatever the move's
+    // level, so a couple's rollout chose a level its own year ignored (couple-quick.test.mjs; MODEL.plant 'nolevel' puts it back)
+    if (MODEL.plant !== 'nolevel' && action.spendLevel !== undefined && action.spendLevel !== 1) annualLivingTarget = scheduled * action.spendLevel;
     if (ctx.guardrails) {
       if (!state.guard) state.guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
       const g = ctx.guardrails, gs = state.guard;
@@ -430,7 +470,17 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     owners.forEach(o => { demand[o.key] = netDemand * shareOf(o); });
     const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
     const stepsOf = (o) => (action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key].steps : action.steps);
-    const drawFrom = (o, cat, need) => (cat === 'penPA' ? drawPension(o.key, need, P.pa) : cat === 'penBasic' ? drawPension(o.key, need, P.higherRateStartsAt) : cat === 'penAny' ? drawPension(o.key, need, Infinity) : drawPot(o.ids[cat], need));
+    // N4's pension ceilings (penHR, penPAm, penBm: the engine's N4_PEN) as the engine draws them (Part D, D2: before it a couple's
+    // penHR step reached drawPot with no pot id and threw a TypeError); any other step this year knows nothing of throws by name
+    const drawFrom = (o, cat, need) => {
+      if (cat === 'penPA') return drawPension(o.key, need, P.pa);
+      if (cat === 'penBasic') return drawPension(o.key, need, P.higherRateStartsAt);
+      if (cat === 'penAny') return drawPension(o.key, need, Infinity);
+      if (MODEL.plant === 'non4') return drawPot(o.ids[cat], need);   // the code before D2
+      if (E.N4_PEN && E.N4_PEN[cat]) return drawPension(o.key, need, E.N4_PEN[cat](P));
+      if (!(cat in o.ids) || cat === 'pen') throw new Error(`model.step: no draw for the step ${cat}`);
+      return drawPot(o.ids[cat], need);
+    };
     const K = Math.max(...owners.map(o => stepsOf(o).length));
     for (let k = 0; k < K; k++) {
       if (remaining() <= 0.005) break;
@@ -446,7 +496,8 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       // each person's own harvest switch and ceiling when the action carries them (a couple's year)
       const own = action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key] : action;
       if (!own.harvest) return;
-      const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa;
+      // N4's harvest ceilings (hr, pam, bm: the engine's N4_HARVEST) as the engine's year (Part D, D2)
+      const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : E.N4_HARVEST && E.N4_HARVEST[own.harvestCeil] && MODEL.plant !== 'non4' ? E.N4_HARVEST[own.harvestCeil](P) : P.pa;
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
       const net = drawPension(o.key, 1e12, harvestCeil);
@@ -470,7 +521,8 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       const exempt = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
       const taxableGain = Math.max(0, realisedGains[o.key] - exempt);
       if (taxableGain <= 0) return;
-      const taxableIncome = Math.max(0, taxable[o.key] - P.paAt(taxable[o.key]));
+      const allIncome = taxablePay[o.key] + taxable[o.key] + savingsInterest[o.key] + giaDividends[o.key];
+      const taxableIncome = Math.max(0, allIncome - P.paAt(allIncome));
       const basicRoom = Math.max(0, P.cgtBandWidth - taxableIncome);
       const atBasic = Math.min(taxableGain, basicRoom);
       const bill = atBasic * P.cgtBasicRate + (taxableGain - atBasic) * P.cgtHigherRate;
@@ -514,8 +566,16 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (cash > bufferEach) {
         const excess = cash - bufferEach;
         pots[o.ids.cash] = bufferEach;
-        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
-        addBasis(o.key, excess);                      // moved at cost, so no gain is created
+        // the sweepCashIsaTo option ('isa'; the engine's 7d): the cash ISA money above the buffer to the stocks and shares ISA
+        const fromIsa = action.sweepIsa && pots[o.ids.isa] !== undefined ? Math.min(excess, Math.max(0, state.cashIsa[o.key] - bufferEach)) : 0;
+        if (fromIsa > 0) {
+          pots[o.ids.isa] += fromIsa;
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + (excess - fromIsa);
+          addBasis(o.key, excess - fromIsa);
+        } else {
+          pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+          addBasis(o.key, excess);                      // moved at cost, so no gain is created
+        }
       } else if (cash < bufferEach) {
         // topping the buffer back up is a sale, so it books its gain like any other disposal - into next year's tally,
         // since this year's bill is settled (the engine's 7d; before 21 Oct it was booked here and never taxed, F0)
@@ -551,11 +611,34 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     const move = Math.min(room, Math.max(0, cashNow - state.cashIsa[o.key]));
     if (move > 0) { state.cashIsa[o.key] += move; isaContribThisYear[o.key] += move; cashIsaSubscribed[o.key] += move; }
   });
-  if (!skipGrowth) grow(m, state, t, rates);
+  /*
+   * 7f. THE TIER, under a couple's joint move (Part D, D2): each person's pension and ISA move to the tier their move holds,
+   * charged the round trip on the slice traded (the difference in equity weight, times the wrapper, times `switchCost`), as
+   * the engine's year (its 7f); then they grow at it. A move without `perOwner` holds the plan's tiers, as before.
+   */
+  let switchPaid = 0;
+  if (action.perOwner && state.tierHeld && MODEL.plant !== 'notier') {
+    const rate = action.switchCost || 0;
+    owners.forEach(o => {
+      const mv = action.perOwner[o.key], held = state.tierHeld[o.key]; if (!mv || !held) return;
+      for (const cat of ['pen', 'isa']) {
+        const id = o.ids[cat], profs = ctx.tierProfiles && ctx.tierProfiles[id]; if (!profs) continue;
+        const k = Math.min(cat === 'pen' ? (mv.tierPen || 0) : (mv.tierIsa || 0), profs.length - 1), name = cat === 'pen' ? mv.tierPenName : mv.tierIsaName;
+        if (name != null && profs[k].name !== name) throw new Error(`model.step: tier ${k} of ${id} is ${profs[k].name} here but ${name} in the move`);
+        if (k !== held[cat]) {
+          const d = Math.abs(profs[k].equityWeight - profs[held[cat]].equityWeight);
+          const x = (pots[id] || 0) * rate * d;
+          pots[id] = Math.max(0, (pots[id] || 0) - x); switchPaid += x; held[cat] = k;
+        }
+      }
+    });
+  }
+  // `rates` a map of account id to real rate, or a function of the state after the switch giving one (the tier held)
+  if (!skipGrowth) grow(m, state, t, typeof rates === 'function' ? rates(state) : rates);
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
-  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
+  const taxPaid = owners.reduce((s, o) => s + (billOf(o.key).total - payTax(o.key)), 0);
 
   return {
     year, t, ageSelf, agePart,
@@ -565,8 +648,16 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     totalCombined: byCat.pen + byCat.isa + byCat.other + byCat.cash,
     drawdownPensions, harvested, taxPaid, cgtPaid,
     taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part,
-    unmetDemand, preNmpaInsolvent, oneOffCost: cost
+    unmetDemand, preNmpaInsolvent, oneOffCost: cost, switchPaid
   };
+}
+
+/* The profile an account grows at: its person's tier held (the engine's list) for a pension or ISA, else the account's own. */
+export function profileOf(m, state, a) {
+  if ((a.cat !== 'pen' && a.cat !== 'isa') || !state || !state.tierHeld || !m.ctx.tierProfiles) return a;
+  const profs = m.ctx.tierProfiles[a.id], held = state.tierHeld[a.owner];
+  if (!profs || !held) return a;
+  return profs[Math.min(held[a.cat] || 0, profs.length - 1)];
 }
 
 /* Apply one year's growth. `rates` is a map of account id to real rate, or null for the plan's own. */

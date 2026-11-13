@@ -1,0 +1,23 @@
+COUPLE-SWEEP (EXPLORATORY; D87, D88; COUPLE-SWEEP.md): 12 couples, code 1d5d2421c9ab, audit 771a9eb6c328, seed 7002, 4000 paths, 45 points; the gate: fair (one code, audit, seed, count of paths and points; both arms on the couple's plan, their settings the same but the sweep; each arm's sweep, read back from each person's table, its own, and the engine's in step with it)
+
+By couple (cash ISA money at the start; years; survival GIA / ISA, d and its interval; spending delivered, points of target, ISA less GIA; the mean pot left GIA / ISA; lifetime tax GIA / ISA; the engine's sweep a path, GIA to the taxable account, ISA to the ISA; the solves' seconds):
+  S059  £1,080,000 | 28 years | 81.72% / 85.05%, d +3.325 (+2.741 to +3.926; 141 saved, 8 lost) | spending -0.1439 | pot £3,069,471 / £3,323,225 (+8.27%) | tax £122,118 / £36,344 | swept £919,261 / £918,200 | solves 176 s / 148 s
+  S035  £240,000 | 28 years | 93.25% / 93.47%, d +0.225 (-0.057 to +0.513; 20 saved, 11 lost) | spending -0.0078 | pot £3,280,355 / £3,291,371 (+0.34%) | tax £131,467 / £124,287 | swept £64,401 / £64,700 | solves 176 s / 153 s
+  S175  £213,750 | 40 years | 99.13% / 99.20%, d +0.075 (-0.143 to +0.302; 10 saved, 7 lost) | spending -0.3621 | pot £3,090,034 / £3,053,998 (-1.17%) | tax £51,305 / £46,832 | swept £364,536 / £195,115 | solves 245 s / 205 s
+  S235  £213,750 | 41 years | 98.90% / 98.92%, d +0.025 (-0.245 to +0.297; 14 saved, 13 lost) | spending +0.1919 | pot £3,615,885 / £3,567,425 (-1.34%) | tax £110,957 / £85,975 | swept £401,134 / £189,984 | solves 220 s / 204 s
+  S415  £213,750 | 46 years | 97.88% / 97.97%, d +0.100 (-0.123 to +0.331; 11 saved, 7 lost) | spending +0.3753 | pot £2,863,816 / £2,748,577 (-4.02%) | tax £54,682 / £46,140 | swept £364,370 / £194,880 | solves 207 s / 301 s
+  S053  £202,500 | 28 years | 100.00% / 100.00%, d +0.000 (-0.096 to +0.096; 0 saved, 0 lost) | spending -0.0407 | pot £1,279,394 / £1,329,680 (+3.93%) | tax £7,166 / £11,240 | swept £173,851 / £173,858 | solves 95 s / 133 s
+  S173  £202,500 | 40 years | 99.80% / 99.90%, d +0.100 (-0.053 to +0.282; 6 saved, 2 lost) | spending +0.2942 | pot £1,259,001 / £1,227,143 (-2.53%) | tax £16,819 / £17,678 | swept £167,007 / £166,953 | solves 191 s / 200 s
+  S079  £47,500 | 36 years | 97.55% / 97.60%, d +0.050 (-0.098 to +0.204; 4 saved, 2 lost) | spending -0.0906 | pot £2,638,165 / £2,634,154 (-0.15%) | tax £17,697 / £17,056 | swept £31,112 / £12,083 | solves 185 s / 181 s
+  S091  £47,500 | 36 years | 99.80% / 99.78%, d -0.025 (-0.190 to +0.132; 3 saved, 4 lost) | spending +0.0255 | pot £3,060,990 / £3,061,567 (+0.02%) | tax £45,876 / £48,460 | swept £31,347 / £12,486 | solves 191 s / 177 s
+  S391  £47,500 | 46 years | 97.83% / 97.92%, d +0.100 (-0.088 to +0.298; 8 saved, 4 lost) | spending +0.0200 | pot £2,871,952 / £2,864,543 (-0.26%) | tax £65,348 / £64,007 | swept £31,826 / £12,992 | solves 302 s / 160 s
+  S017  £45,000 | 28 years | 99.90% / 99.90%, d +0.000 (-0.118 to +0.118; 1 saved, 1 lost) | spending +0.0190 | pot £1,298,724 / £1,300,406 (+0.13%) | tax £8,819 / £8,875 | swept £16,424 / £16,407 | solves 154 s / 138 s
+  S029  £45,000 | 28 years | 99.47% / 99.45%, d -0.025 (-0.136 to +0.077; 0 saved, 1 lost) | spending +0.0063 | pot £1,249,209 / £1,252,465 (+0.26%) | tax £7,509 / £7,275 | swept £16,539 / £16,642 | solves 150 s / 72 s
+
+The rule (ISA-SWEEP.md's, as written for singles; ISA less GIA):
+  1. pooled survival, the mean of d over 12 couples: +0.329 (95% +0.262 to +0.397, se 0.0345); its lower end above -0.2: HOLDS
+  2. no couple's interval wholly below -0.5: none: HOLDS
+  3. the mean pot left, ISA less GIA averaged over couples: +£6,463; not lower: HOLDS
+  beside, deciding nothing: pooled spending delivered +0.0239 points of target; pooled lifetime tax £53,314 to £42,847 (-19.63%); couples with a lower mean pot under ISA: S175, S235, S415, S173, S079, S391; with an observed loss of survival: S091 -0.025, S029 -0.025
+
+COUPLE-SWEEP OUTCOME: PASSES: the sweep to the ISA stands for a couple (the first reading, D87); by D88 the couples' re-run is launched as registered, the code not having moved

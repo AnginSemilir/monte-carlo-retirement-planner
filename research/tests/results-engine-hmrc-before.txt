@@ -1,0 +1,30 @@
+# item 3, step 0 (D66): the review's tests/engine-hmrc.test.mjs (review/external-2026-10-21 at f77ca16c), run unchanged from a copy with
+# REPO_ROOT on claude/project-access-i58m0x at a6a922f1 (src/App.jsx, model.js and fast.js as at f02e8741), 10 Nov 09:13 UTC; exit 1.
+# Byte for byte the review's results/out-engine-hmrc-branch.txt. The output as printed:
+=========== A. THE REFERENCE, AGAINST YEARS WORKED BY HAND ===========
+PASS  A1  a pension of £30,000
+PASS  A2  £8,000 and £9,000 of interest: nothing
+PASS  A3  £10,000 and £10,000 of interest: £286
+PASS  A4  GOV.UK: wages £16,000, interest £200
+PASS  A5  a draw to the allowance and £8,489 of dividends: £858.82
+PASS  A6  £12,070 and £1,500 of dividends: £53.75
+PASS  A7  a pension of £12,929 on top of pay of £60,000: £5,171.60
+PASS  A8  pay £142,500: interest at 45%, dividends at 39.35%
+PASS  A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends
+PASS  A10 Scotland: £30,000; £20,000 with £5,000 of interest
+PASS  A11 the taper on all income
+PASS  A12 interest across the higher-rate line: £846
+=========== B. THE ENGINE'S savingsTax AND dividendTax AGAINST THE REFERENCE ===========
+FAIL  B1  savingsTax: 48 cases  -- 9 differ; the worst: other income £0, interest £20,000: the engine £1,486, HMRC £286
+FAIL  B2  dividendTax: 240 cases  -- 24 differ; the worst: other income £0, interest £0, dividends £30,000: the engine £1,873.73, HMRC £1,819.98
+FAIL  B3  the review's 1.3: £8,000 and £9,000 of interest is untaxed  -- the engine £600
+=========== C. WHOLE YEARS: EVERY ROW'S taxPaid AGAINST THE REFERENCE ON THE ROW'S OWN INCOMES ===========
+FAIL  C1  S116 as the library has it (retired, Scotland): 36 years  -- 20 years differ by over £1: the engine £422.81 under and £698.75 over across the plan; the worst, 2032: the engine £1,571.41, HMRC £1,644.59
+FAIL  C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2): 36 years  -- 16 years differ by over £1: the engine £5,950.23 under and £0 over across the plan; the worst, 2026: the engine £0, HMRC £967.5
+FAIL  C3  the same in England: 36 years  -- 16 years differ by over £1: the engine £5,950.23 under and £0 over across the plan; the worst, 2026: the engine £0, HMRC £967.5
+FAIL  C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1): 41 years  -- 41 years differ by over £1: the engine £33,146.03 under and £1,290 over across the plan; the worst, 2026: the engine £0, HMRC £4,021.27
+FAIL  C5  S214, no saving (working to 60 on £142,500) (1.1): 41 years  -- 41 years differ by over £1: the engine £302,306.98 under and £268.75 over across the plan; the worst, 2035: the engine £10,294.65, HMRC £21,015.82
+FAIL  C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1): 28 years  -- 6 years differ by over £1: the engine £41,066.76 under and £0 over across the plan; the worst, 2029: the engine £61,278.08, HMRC £76,846.08
+FAIL  C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income: 36 years  -- 36 years differ by over £1: the engine £105,753.14 under and £0 over across the plan; the worst, 2044: the engine £37,961.77, HMRC £41,594.57
+
+12 passed, 10 failed

@@ -1,0 +1,73 @@
+ITEM 11 (D75), A COUPLE'S JOINT MOVE ON FLAT ARRAYS: the port's test, as run on 11 Nov (couple-flat.test.mjs; the working tree at 11bb254 with the review's prototype/couple-flat.diff, the cache guard added at the port and the e3pcls pin re-taken; committed on d0f293bb + D81; nothing else running on the machine during --full)
+
+== node research/tests/couple-flat.test.mjs --full
+couple-flat: a couple's joint move on flat arrays (COUPLE.flat), seed 7002, --full
+S007: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 65.0s
+  ok   1. S007 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 26670 values differ
+  ok   2. S007 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S007 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision   11749 valued, 14921 taken from one already valued (55.9%), 352470 table reads; bridge years 0 and 0
+  ok   4. S007 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 2240 rankings differ
+S127: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 80.9s
+  ok   1. S127 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 40220 values differ
+  ok   2. S127 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S127 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision, and bridge years read   10416 valued, 29804 taken from one already valued (74.1%), 1055812 table reads; bridge years 2 and 3
+  ok   4. S127 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 3200 rankings differ
+  ok   5. the guard: with 'nocut' planted, and with an account that is not one of the two people's four, no position takes the flat path and each is valued by the path as it was; a copy of the solve holding other tables is valued on its own   'nocut': 0 flat, the same value true; the odd account: 0 flat, the same value true; the household itself: 1 flat; the copy with the tables swapped: 1 flat, 0.2015713729700075 against 0.2015713729700075 as it was (the household's own 0.09310110472399716)
+S007: two tables at the app's 45 points, solved in 541s
+  ok   1. S007 at 45 points, 100 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 64180 values differ
+  ok   2. S007 at 45 points, 100 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 100 paths differ
+  ok   3. S007 at 45 points, 100 paths: not vacuous: positions valued, some taken from one already valued this decision   25779 valued, 38401 taken from one already valued (59.8%), 773370 table reads; bridge years 0 and 0
+  ok   4. S007 at 45 points, 100 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 5600 rankings differ
+  S007 at 45 points: a path 165.8 ms as it was, 84.7 ms on flat arrays (1.96 times), 0 of 100 paths differ
+  ok   6. S007: a path at 45 points at least 1.5 times as fast on flat arrays   1.96 times
+S127: two tables at the app's 45 points, solved in 753s
+  ok   1. S127 at 45 points, 100 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 95020 values differ
+  ok   2. S127 at 45 points, 100 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 100 paths differ
+  ok   3. S127 at 45 points, 100 paths: not vacuous: positions valued, some taken from one already valued this decision, and bridge years read   25220 valued, 69800 taken from one already valued (73.5%), 2620764 table reads; bridge years 2 and 3
+  ok   4. S127 at 45 points, 100 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 7988 rankings differ
+  S127 at 45 points: a path 548.1 ms as it was, 122.6 ms on flat arrays (4.47 times), 0 of 100 paths differ
+  ok   6. S127: a path at 45 points at least 3 times as fast on flat arrays   4.47 times
+
+couple-flat: 19 passed, 0 failed
+
+== node research/tests/couple-flat.test.mjs --plants
+  plant flatrate   fails 1, 2 (expected 1, 2): exact
+  plant flatmemo   fails 1, 2 (expected 1, 2): exact
+  plant flatmove   fails 1, 2 (expected 1, 2): exact
+  plant flatstale  fails 5 (expected 5): exact
+
+all plants exact
+
+== the review's own test on a scratch tree at 61e8778 with exactly its patch (REPO_ROOT; before the port)
+couple-flat: a couple's joint move on flat arrays (COUPLE.flat), seed 7002
+S007: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 69.7s
+  ok   1. S007 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 26670 values differ
+  ok   2. S007 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S007 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision   11749 valued, 14921 taken from one already valued (55.9%), 352470 table reads; bridge years 0 and 0
+  ok   4. S007 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 2240 rankings differ
+S127: two tables at 6 points on the light lattice (mixture true, tier state true, bridge reader true), solved in 89.1s
+  ok   1. S127 at 6 points, 40 paths: every position the rollout values the same on flat arrays as by the path as it was: its value, both lasting, the cut ahead (COUPLE.flatCheck)   0 of 40220 values differ
+  ok   2. S127 at 6 points, 40 paths: every path the same with COUPLE.flat on and off (each year's joint move and its score, survival, pot left, tax)   0 of 40 paths differ
+  ok   3. S127 at 6 points, 40 paths: not vacuous: positions valued, some taken from one already valued this decision, and bridge years read   10416 valued, 29804 taken from one already valued (74.1%), 1055812 table reads; bridge years 2 and 3
+  ok   4. S127 at 6 points, 40 paths: every ranking the same picked without sorting as by scoring every move again and sorting (COUPLE.check)   0 of 3200 rankings differ
+  ok   5. the guard: with 'nocut' planted, and with an account that is not one of the two people's four, no position takes the flat path and each is valued by the path as it was   'nocut': 0 flat, the same value true; the odd account: 0 flat, the same value true; the household itself: 1 flat
+
+couple-flat: 9 passed, 0 failed
+  plant flatrate   fails 1, 2 (expected 1, 2): exact
+  plant flatmemo   fails 1, 2 (expected 1, 2): exact
+  plant flatmove   fails 1, 2 (expected 1, 2): exact
+
+all plants exact
+
+== the seven couples' tests of the item's check 7, on the review's patch as it is, COUPLE.flat on by default
+couple-quick: 6 passed, 0 failed
+couple-tables: ALL PASS: 8 passed, 0 failed (218s)
+couple-lockstep: 5 passed, 0 failed
+couple-levers: ALL PASS: 20 passed, 0 failed (1220s)
+couple-share: couple-share: 4 passed, 0 failed
+couple-rank: couple-rank: 4 passed, 0 failed
+solver-couple: =========== 12 passed, 0 failed ===========
+
+== the fast suite on the review's patch as it is (the STOP): run-all fast: 60 files found, 60 run, 58 passed, FAILED: check-state.test.mjs (1), solver-guards.test.mjs (1)
+solver-guards.test.mjs: FAIL  planted: a table whose value is NaN throws (no throw: the fallback taken in silence)
+(check-state: the printed pin line alone, the code changed and STATE.md not yet written)

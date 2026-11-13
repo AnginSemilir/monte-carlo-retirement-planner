@@ -67,6 +67,90 @@ export function sizeFor(ds) {
 }
 export const normalCheck = (d, N) => { const se = 100 * Math.sqrt(d / N); return { se, t: FP_LOSS + 1.645 * se, nNeeded: Math.ceil(d * 152000) }; };
 
+/*
+ * THE TWO-STAGE RULE (the review of 9 Nov, item 9; D66): after n1 paths a unit stops, read as not harmed, when its observed
+ * change (saved less lost, in points of n1) is +b1 or more; every other unit runs to N and is read at N as one stage is.
+ * Its rates exactly: each stage's discordant count and its lost count are binomials, independent given the chance a path is
+ * saved and the chance it is lost. The second stage is tabulated once (for each discordant count K2, the tail of its lost
+ * count), so each first-stage outcome's chance of a flag is one sum over K2. The threshold at N may depend on the realised
+ * discordance K / N: `t` is a number (points), a function of K, 'normal' (D34's normal cross-check on the realised
+ * discordance, the review's twostage.py: 0.25 + 1.645 x 100 sqrt(K / N) / sqrt(N)) or 'realised' (D4's registered rule,
+ * reduce-couples.mjs: thresholdFor at the realised discordance's Clopper-Pearson upper 95% bound, never below D_MIN). A unit
+ * at N is flagged as harmRate counts it: lost >= floor((K + t N / 100) / 2) + 1. Returns the chance of a flag, the chance of
+ * stopping at the first stage, and the paths a unit runs on average. b1 = Infinity never stops: one stage, harmRate's rate.
+ * TWO_STAGE.plant 'bothways' (twostage.test.mjs) stops on an observed loss of b1 or more as well as a gain.
+ */
+export const TWO_STAGE = { plant: '' };
+const lbinPmf = (k, n, p) => lchoose(n, k) + (k ? k * Math.log(p) : 0) + (n - k ? (n - k) * Math.log1p(-p) : 0);
+const spanOf = (n, p) => { const mu = n * p, sd = Math.sqrt(n * p * (1 - p)); return [Math.max(0, Math.floor(mu - 9 * sd - 5)), Math.min(n, Math.ceil(mu + 9 * sd + 5))]; };
+/* the threshold at N for each realised discordant count K, as a function (D4's rule warm-started: thresholdFor rises with K) */
+export function thresholdRule(t, N) {
+  if (typeof t === 'function') return t;
+  if (Number.isFinite(t)) return () => t;
+  if (t === 'normal') return K => FP_LOSS + 1.645 * 100 * Math.sqrt(K / N) / Math.sqrt(N);
+  if (t === 'realised') {
+    const memo = new Map(); let lastK = -1, lastJ = Math.max(0, Math.floor(FP_LOSS * N / 100));
+    const at = (K) => {
+      const d = Math.max(clopperPearson(K, N)[1], D_MIN);
+      let j = K > lastK ? lastJ : Math.max(0, Math.floor(FP_LOSS * N / 100));
+      while (harmRate(d, N, 100 * j / N, FP_LOSS) > FP_MAX) j++;
+      if (K > lastK) { lastK = K; lastJ = j; }
+      return 100 * j / N;
+    };
+    return K => { let v = memo.get(K); if (v === undefined) { v = at(K); memo.set(K, v); } return v; };
+  }
+  throw new Error(`size-phase4: a two-stage threshold must be a number, a function, 'normal' or 'realised' (${t})`);
+}
+export function twoStageRate(d, N, t, D, n1, b1) {
+  if (!(d > 0 && d < 1) || !(N >= 1) || !(n1 >= 1 && n1 <= N)) throw new Error(`size-phase4: twoStageRate at discordance ${d}, ${N} paths, first stage ${n1}`);
+  const q = 0.5 + D / (200 * d);
+  if (!(q >= 0 && q <= 1)) return { flag: NaN, stop: NaN, paths: NaN };   // a true change of D needs a discordance of at least |D| / 100
+  const n2 = N - n1, tOf = thresholdRule(t, N);
+  // the fewest lost paths of N that flag a unit with K discordant
+  const mOf = (K) => Math.floor((K + tOf(K) * N / 100) / 2 + 1e-9) + 1;
+  // stopped at the first stage: its change, saved less lost in points of n1, at or above +b1 (planted 'bothways': its size either way)
+  const stopAt = (X1) => (TWO_STAGE.plant === 'bothways' ? Math.abs(100 * X1 / n1) >= b1 - 1e-12 : -100 * X1 / n1 >= b1 - 1e-12);   // X1 = lost - saved
+  const S2 = [];
+  if (n2 > 0) {
+    const [k2lo, k2hi] = spanOf(n2, d);
+    for (let K2 = k2lo; K2 <= k2hi; K2++) {
+      const w = Math.exp(lbinPmf(K2, n2, d)); if (w < 1e-18) continue;
+      const [llo, lhi] = spanOf(K2, q), tail = new Float64Array(lhi - llo + 2);
+      for (let l = lhi; l >= llo; l--) tail[l - llo] = tail[l - llo + 1] + Math.exp(lbinPmf(l, K2, q));
+      S2.push({ K2, w, llo, lhi, tail });
+    }
+  } else S2.push({ K2: 0, w: 1, llo: 0, lhi: 0, tail: Float64Array.from([1, 0]) });
+  const [k1lo, k1hi] = spanOf(n1, d);
+  let flag = 0, stop = 0;
+  for (let K1 = k1lo; K1 <= k1hi; K1++) {
+    const w1 = Math.exp(lbinPmf(K1, n1, d)); if (w1 < 1e-18) continue;
+    const [llo, lhi] = spanOf(K1, q);
+    for (let l1 = llo; l1 <= lhi; l1++) {
+      const p1 = w1 * Math.exp(lbinPmf(l1, K1, q)); if (p1 < 1e-20) continue;
+      if (stopAt(2 * l1 - K1)) { stop += p1; continue; }
+      let pf = 0;
+      for (const { K2, w, llo: lo2, lhi: hi2, tail } of S2) {
+        const need = mOf(K1 + K2) - l1;   // the fewest second-stage losses that flag it
+        pf += w * (need <= lo2 ? 1 : need > hi2 ? 0 : tail[need - lo2]);
+      }
+      flag += p1 * pf;
+    }
+  }
+  stop = Math.min(1, stop);
+  return { flag: Math.min(1, flag), stop, paths: n1 + (1 - stop) * n2 };
+}
+/* the review's table (twostage.py, results/out-twostage.txt), exactly: per first stage, the flag's chance at a true 1-point
+   and quarter-point loss with one stage and with two, the chance of stopping, and the paths a unit runs at a true gain */
+export const TWO_STAGE_CASES = { N: 19000, stages: [[5000, 0.5], [5000, 0], [4000, 0.5]], losses: [[0.09, 1], [0.09, 0.25], [0.1245, 1], [0.1245, 0.25]], gains: [[0.10, 0], [0.10, 0.5], [0.10, 1], [0.10, 2], [0.10, 5], [0.12, 10]] };
+export function twoStageTable(t = 'normal', C = TWO_STAGE_CASES) {
+  const out = [];
+  for (const [n1, b1] of C.stages) {
+    for (const [d, D] of C.losses) { const one = twoStageRate(d, C.N, t, D, C.N, Infinity), two = twoStageRate(d, C.N, t, D, n1, b1); out.push({ n1, b1, d, D, one: one.flag, two: two.flag, stop: two.stop }); }
+    for (const [d, G] of C.gains) { const r = twoStageRate(d, C.N, t, -G, n1, b1); out.push({ n1, b1, d, G, stop: r.stop, paths: r.paths }); }
+  }
+  return out;
+}
+
 /* the pilot's units, by household and arm/weight */
 function unitsIn(dir) {
   const U = {};

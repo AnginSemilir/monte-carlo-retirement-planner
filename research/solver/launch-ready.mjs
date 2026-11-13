@@ -5,7 +5,8 @@
  * where that stamp is the release's own, so a result from other code never counts.
  *   1. run-all.sh ALL REQUIRED GREEN in both modes, the classic planner and the new (results-gate-classic.txt, -new.txt);
  *   2. both CI tiers green on the release commit (results-ci.txt, the runs as GitHub reports them: research/solver/ci-record.mjs);
- *   3. the full-scale browser solve: 45 points, the real settings, the floor at 80%, one household, its tables Node's bit for bit,
+ *   3. the full-scale browser solve: 45 points, the real settings, the floor at 80%, one household, its tables the reference's bit for bit
+ *      (since 13 Nov 2026 the same solve from the unbundled source in the harness's own Chromium; before it Node's: lib/reference.cjs),
  *      its time recorded (results-fullscale.txt, solver-fullscale-ui.cjs);
  *   4. the library sweep: every single normalises, prepares and solves at light settings without a throw, and a sample with every
  *      lever off its default (results-library-sweep.txt, library-sweep.test.mjs checks 1 and 2);
@@ -52,8 +53,8 @@ const gc = read('results-gate-classic.txt'), gn = read('results-gate-new.txt');
 // 3. the full-scale browser solve
 { const t = read('results-fullscale.txt'), why = fresh(t, 'results-fullscale.txt');
   const m = t && /the page: solved in ([\d.]+) s, split (\d+) ways/.exec(t);
-  line(3, 'the full-scale browser solve: 45 points, the real settings, the floor at 80%, its tables Node\'s bit for bit, its time recorded',
-    !why && /ok +the site as it ships solves S116 at 45 wealth points, its tables Node's bit for bit/.test(t) && /\nall ok\s*$/.test(t) && !!m, why || (m ? `S116 in ${m[1]} s split ${m[2]} ways` : 'no time recorded')); }
+  line(3, 'the full-scale browser solve: 45 points, the real settings, the floor at 80%, its tables the reference\'s bit for bit, its time recorded',
+    !why && /ok +the site as it ships solves S116 at 45 wealth points, its tables (Node's|the reference's) bit for bit/.test(t) && /\nall ok\s*$/.test(t) && !!m, why || (m ? `S116 in ${m[1]} s split ${m[2]} ways` : 'no time recorded')); }
 
 // 4 and 7. the library sweep and old exports
 const sw = read('results-library-sweep.txt'), swWhy = fresh(sw, 'results-library-sweep.txt');

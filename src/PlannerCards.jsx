@@ -82,7 +82,7 @@ export function SolverSettings({ points, paths, solve = null, plan = null, isPho
   return (
   <section data-solver-settings className="p-4 bg-surface border border-slate-200/90 rounded-xl text-xs text-slate-600 space-y-1">
     <h3 className="text-[15px] font-semibold text-slate-900">The solver&apos;s settings</h3>
-    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate d71f65ae871e.</p>
+    <p>{points} wealth points. The floor at 80% of your target where you set none. The dislike of cuts at 1, 3, 6 or 10 times its lowest setting. The headline on {paths.toLocaleString('en-GB')} simulated markets. The candidate af001697ce1b.</p>
     {solve && <div className="pt-2"><DiagnosticCopy solve={solve} plan={plan} points={points} paths={paths} isPhone={isPhone} /></div>}
   </section>
   );

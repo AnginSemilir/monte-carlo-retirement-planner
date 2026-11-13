@@ -1,0 +1,46 @@
+D4's panel (couples-panel.json, built 2026-11-07T15:12:25.838Z; the scan 238 ids, hash d639ac997267)
+library: 20 in the panel; 30 candidates landed in order (30 landed, 0 not), 0 passed over before the panel's last; arm A from 84.1% to 86.0%
+younger: 20 in the panel; 26 candidates landed in order (26 landed, 0 not), 0 passed over before the panel's last; arm A from 84.1% to 86.0%
+arm A's pick takes the full lump sum on 28 of 40 (by its label)
+  lib   S011   target 119900 arm A 85.4% (Bracket Fill Basic, lump sum); 28 years, ages 68 retiring at 66 and 65 retiring at 66; cost years 3
+  lib   S031   target 68100 arm A 86.0% (Bracket Fill Basic); 28 years, ages 68 retiring at 66 and 65 retiring at 66; cost years 3; named in confirmed-results.json (as S031)
+  lib   S047   target 119500 arm A 84.2% (Bracket Fill Basic, lump sum); 28 years, ages 68 retiring at 66 and 65 retiring at 66; cost years 3
+  lib   S063   target 35000 arm A 85.1% (Windfall to ISA, lump sum); 36 years, ages 61 retiring at 60 and 58 retiring at 60; cost years 3
+  lib   S083   target 120800 arm A 85.1% (Bracket Fill Basic, lump sum); 36 years, ages 61 retiring at 60 and 58 retiring at 60; cost years 3; named in confirmed-results.json (as S083)
+  lib   S097   target 16900 arm A 84.3% (Bracket Fill Basic (harvest off), lump sum); 36 years, ages 61 retiring at 60 and 58 retiring at 60; cost years 3
+  lib   S115   target 58800 arm A 84.1% (Bracket Fill Basic); 36 years, ages 61 retiring at 60 and 58 retiring at 60; cost years 3
+  lib   S133   target 14500 arm A 85.2% (ISA First, lump sum); 40 years, ages 56 retiring at 55 and 53 retiring at 55; cost years 3
+  lib   S149   target 24400 arm A 84.8% (ISA First, lump sum); 40 years, ages 56 retiring at 55 and 53 retiring at 55; cost years 3
+  lib   S167   target 97800 arm A 85.6% (Bracket Fill Basic, lump sum); 40 years, ages 56 retiring at 55 and 53 retiring at 55; cost years 3
+  lib   S189   target 86200 arm A 84.9% (Bracket Fill, lump sum); 41 years, ages 55 retiring at 60 and 52 retiring at 60; cost years 3 (no one retired)
+  lib   S205   target 22400 arm A 85.0% (Bracket Fill Basic (harvest off), lump sum); 41 years, ages 55 retiring at 60 and 52 retiring at 60; cost years 3 (no one retired); named in confirmed-results.json (as S205)
+  lib   S223   target 65400 arm A 85.6% (ISA First, lump sum); 41 years, ages 55 retiring at 60 and 52 retiring at 60; cost years 3 (no one retired)
+  lib   S239   target 114200 arm A 85.6% (Bracket Fill, lump sum); 41 years, ages 55 retiring at 60 and 52 retiring at 60; cost years 3 (no one retired)
+  lib   S259   target 86800 arm A 84.7% (Windfall to ISA); 52 years, ages 45 retiring at 60 and 42 retiring at 60; cost years 3 (no one retired)
+  lib   S277   target 31200 arm A 84.3% (ISA First); 52 years, ages 45 retiring at 60 and 42 retiring at 60; cost years 3 (no one retired)
+  lib   S293   target 51500 arm A 85.6% (Bracket Fill, lump sum); 52 years, ages 45 retiring at 60 and 42 retiring at 60; cost years 3 (no one retired)
+  lib   S371   target 51300 arm A 84.4% (Bracket Fill, lump sum); 46 years, ages 50 retiring at 50 and 47 retiring at 50; cost years 3
+  lib   S387   target 26000 arm A 84.8% (ISA First, lump sum); 46 years, ages 50 retiring at 50 and 47 retiring at 50; cost years 3
+  lib   S403   target 45600 arm A 85.3% (ISA First, lump sum); 46 years, ages 50 retiring at 50 and 47 retiring at 50; cost years 3
+  young S301F  target 20200 arm A 85.8% (Bracket Fill, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S305F  target 33600 arm A 85.9% (Bracket Fill, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S307F  target 63300 arm A 84.8% (Bracket Fill Basic, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired); named in confirmed-results.json (as S307)
+  young S309F  target 96100 arm A 85.1% (Bracket Fill, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S311F  target 127500 arm A 84.6% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired); named in confirmed-results.json (as S311)
+  young S317F  target 41600 arm A 85.0% (Bracket Fill, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S319F  target 68100 arm A 84.8% (ISA First, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S321F  target 140000 arm A 84.8% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S323F  target 155800 arm A 84.8% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S325F  target 24700 arm A 84.5% (ISA First); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S327F  target 43900 arm A 86.0% (ISA First, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired); named in confirmed-results.json (as S327)
+  young S329F  target 40400 arm A 85.1% (ISA First, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S331F  target 75300 arm A 85.4% (Bracket Fill, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S333F  target 144000 arm A 84.1% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S335F  target 159100 arm A 84.4% (Bracket Fill Basic, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S337F  target 23900 arm A 84.3% (ISA First); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S341F  target 40300 arm A 84.8% (ISA First, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S343F  target 72800 arm A 84.7% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S345F  target 133300 arm A 84.3% (Bracket Fill Basic); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+  young S347F  target 139600 arm A 85.3% (Bracket Fill Basic, lump sum); 61 years, ages 37 retiring at 52 and 34 retiring at 52; cost years 3 (no one retired)
+someone retired in a cost year: 13 of 40
+named outside the scan (../policy-study/confirmed-results.json): 6 of 40, S031, S083, S205, S307F (as S307), S311F (as S311), S327F (as S327)

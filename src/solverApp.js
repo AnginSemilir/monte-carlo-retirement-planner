@@ -9,12 +9,12 @@
  * solve (e3pcls-pin.mjs reads files a browser cannot); the app runs only committed code, and the fast suite's e3pcls-guard
  * test fails any commit whose pin does not match the solver's code.
  */
-import { solvePlan } from './solver/solve.js';
-import { APP_CANDIDATE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
+import { solvePlan, coarseWhereFits } from './solver/solve.js';
+import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
 
-export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs only: 'holdrecord' keeps a restored solve's record
+export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on
 
-export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
+export { APP_CANDIDATE, APP_COARSE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FLOOR, APP_DIAL_VARIANT, APP_AGE_WEIGHT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, dialOf, dialSettings } from './solverSettings.js';
 
 /*
  * The candidate's solve of a plan, as the app holds it (prepared here). `e2` splits it across workers (src/solverPool.js),
@@ -29,9 +29,12 @@ export { APP_CANDIDATE, APP_TIER_REALS, APP_LAMBDA, APP_POINTS, APP_DIAL, APP_FL
  * `variant` is the dial's (APP_DIAL_VARIANT unless a test or L4 names the other).
  */
 const aboveOf = r => { const d = r.meta.riskAbove && r.meta.riskAbove.decision; return typeof d === 'string' && d.startsWith('on'); };
-export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINTS, e2 = null, progress = null, research = null, restore = null, base = null, variant = APP_DIAL_VARIANT } = {}) {
+export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINTS, e2 = null, progress = null, research = null, restore = null, base = null, variant = APP_DIAL_VARIANT, ageWith = undefined } = {}) {
   // a tier ceiling (a lock) switches the tier above off; a restore solves the way its stored solve was chosen
-  const norm = E.normalizePlan(plan), aims = aimsOptions(norm, variant);
+  const norm = E.normalizePlan(plan), aims0 = aimsOptions(norm, variant);
+  // `ageWith` (Part D, D3): one person's table in a couple, the other's age today: B3a's age weights then read the chance that
+  // at least one of the two is alive (solve.js ageWeighted). Unset, a single's, as before
+  const aims = ageWith !== undefined && aims0.ageWeight ? { ...aims0, ageWeight: { ...aims0.ageWeight, with: ageWith } } : aims0;
   const locked = lockedPlan(E, norm).riskAbove === false ? { riskAbove: false } : {};
   let lock = {};
   const bp = dialBase(norm);
@@ -43,7 +46,21 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   // the record's reference handed over in a wrapper of its own: adaptive.js keeps what it is given (its `rebuild` holds its input)
   const ref = restore && restore.ref ? { ...restore.ref } : null;
   const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref } } : {};
-  const r = solvePlan(E, M, appPlan(E, prepareForSolve(E, plan)), { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again });
+  // `coarse` goes only to a solve that can take it (solve.js coarseFits, the conditions of the solve's own refusal): a locked
+  // dial position (tsOnce false, the layer loop) and a plan with no joint tier state (consent to change risk withdrawn, or
+  // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
+  const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
+  const asked = { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
+  const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
+  // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
+  // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)
+  // settles which this solve is, so a record that disagrees is another solve's and is refused, loudly
+  if (restore && restore.meta && PLANT.rule !== 'restoreany') {
+    const was = !!(restore.meta.coarse && !restore.meta.coarse.off), now = fitted.coarse !== undefined && !!fitted.coarse;
+    if (was !== now) throw new Error(`solveForApp: the stored solve was made on ${was ? 'anchors and shortlists' : 'the whole menu'} and this solve is on ${now ? 'anchors and shortlists' : 'the whole menu'}: not restored`);
+  }
+  const r = solvePlan(E, M, solved, fitted);
+  if (off.why && !restore) r.meta.coarse = { off: off.why };
   // the stored record's tables and reference are copied into the solve's own as it runs (solve.js `opts.restore`, adaptive.js
   // `restore`), and the solve keeps its options and the reference its input: let the record go once the solve is done, so a
   // restored solve holds its tables once and not beside the record (Phase 11, phone-memory.cjs; restore-memory.test.mjs). The

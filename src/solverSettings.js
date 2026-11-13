@@ -8,11 +8,15 @@
  * pins both to the research files and the copy's hash to CANDIDATE_HASH, so the candidate cannot change in one place and not
  * the other. No `node:` imports.
  */
+/* the solve on anchors and shortlists (the review of 9 Nov, item 10; D73): most cells solved on a shortlist of moves seeded by the
+ * anchor cells, which take the whole menu. Handed to a solve on the joint tier state's E5 path only: never to a locked dial
+ * position (tsOnce false), which keeps the whole menu (solverApp.js solveForApp) */
+export const APP_COARSE = Object.freeze({ w: 2, a: 3, b: 3, g: 2, c: 2, src: 'NT', expand: 'LRVOH', climb: 3 });
 export const APP_CANDIDATE = Object.freeze({
   bridgeRead: 'reader', tierState: true, jointWorlds: true, bequestWeight: 0.02, bridgeStep: 'exact', switchCharge: 0.001,
   switchMargin: 0, e3: true, pclsInterp: true, e3pcls: true, readerRef: 'adaptive',
-  adaptiveLattice: Object.freeze({ na: 160, nb: 41, nz: 128, foot: true, stepAll: true }), readerSplit: 'rs', tiersBelow: 3,
-  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true
+  adaptiveLattice: Object.freeze({ na: 80, nb: 21, nz: 64, foot: true, stepAll: true }), readerSplit: 'rs', tiersBelow: 3,
+  menuPlus: Object.freeze(['hr']), tableDealing: false, failDelivered: true, sweepCashIsaTo: 'isa', coarse: APP_COARSE
 });
 /* the tiers' real returns at the medians of their blends (O60, D13) */
 export const APP_TIER_REALS = Object.freeze({ 'High Risk': 4.97, 'Medium/High Risk': 4.65, 'Medium Risk': 4.18, 'Medium/Low Risk': 3.55, 'Low Risk': 2.76 });

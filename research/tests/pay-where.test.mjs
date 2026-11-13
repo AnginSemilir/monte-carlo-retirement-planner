@@ -15,6 +15,11 @@
  *   0. the code under test is not BASE's;
  *   4. identity: with the option unset, every table the same bit for bit as BASE's on every route on S050; planted, lambda x 2
  *      at BASE must differ.
+ * Since D73's port (11 Nov) the candidate is solved on anchors and shortlists (`coarse`), which neither the count nor the
+ * option can run on (solve.js coarseFits): every solve takes the candidate through coarseWhereFits, which leaves `coarse` out
+ * where the solve is off its path; check 1's solve without the count, which E5 would otherwise make on anchors, names
+ * `coarse` out itself, so the count's identity is read on the whole menu on both sides; and check 4 solves the candidate
+ * before D73 (BEFORE_D73_OPTS) on both codes, BASE knowing neither the sweep to the ISA nor the anchors.
  *   node research/tests/pay-where.test.mjs [--full]
  */
 // e3pcls guard: the solves compare tables on this code with the option off, on and planted (and against BASE's with --full); e3pcls's own exactness is solver-e3pcls.test.mjs's, which retakes the pin
@@ -25,8 +30,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solvePlan } from '../../src/solver/solve.js';
-import { candidatePlan, CANDIDATE_OPTS } from '../solver/candidate.mjs';
+import { solvePlan, coarseWhereFits } from '../../src/solver/solve.js';
+import { candidatePlan, CANDIDATE_OPTS, BEFORE_D73_OPTS } from '../solver/candidate.mjs';
 import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { readPanel } from '../solver/phase4-panel.mjs';
 
@@ -48,23 +53,28 @@ const LAMBDA = 0.0223606797749979, LIGHT = { lambda: LAMBDA, points: 4, bequestW
 const P = Object.fromEntries(readPanel().map(h => [h.id, h]));
 const planOf = id => E.resolveMpaa(E.normalizePlan({ ...P[id].plan, config: { ...P[id].plan.config, guardrails: false, lookaheadYears: 0 } }));
 const hashOf = r => { const h = createHash('sha256'), seen = new Set(); let k = 0; const walk = o => { if (!o || typeof o !== 'object' || seen.has(o)) return; seen.add(o); if (ArrayBuffer.isView(o)) { k++; h.update(Buffer.from(o.buffer, o.byteOffset, o.byteLength)); return; } if (Array.isArray(o)) { o.forEach(walk); return; } for (const key of Object.keys(o).sort()) walk(o[key]); }; walk(r.tablesW); return { hash: h.digest('hex').slice(0, 16), k }; };
-const CAND = { ...CANDIDATE_OPTS, ...LIGHT }, PROD = { lambda: LAMBDA, points: 4, failureShortfall: true, failDelivered: true };
-const ROUTES = {
+const PROD = { lambda: LAMBDA, points: 4, failureShortfall: true, failDelivered: true };
+const routesOn = base => { const CAND = { ...base, ...LIGHT }; return {
   E5: { plan: id => candidatePlan(E, planOf(id)), opts: CAND },
   TSLOOP: { plan: id => candidatePlan(E, planOf(id)), opts: { ...CAND, tsOnce: false } },
   JOINT: { plan: id => candidatePlan(E, planOf(id)), opts: { ...CAND, riskConsent: false } },
   PASS2: { plan: id => planOf(id), opts: PROD }
-};
+}; };
+// the candidate as it is, and for check 4 the candidate before D73 (what BASE's code can solve)
+const ROUTES = routesOn(CANDIDATE_OPTS), ROUTES_D73 = routesOn(BEFORE_D73_OPTS);
+// the whole menu named by the arm itself, where the candidate's solve would otherwise be on anchors (check 1's side without the count)
+const WHOLE = { coarse: undefined };
 const reached = (route, r) => ({ E5: !!r.meta.tierState && r.meta.tsOnce === true, TSLOOP: !!r.meta.tierState && r.meta.tsOnce === false,
   JOINT: !r.meta.tierState && !!r.meta.tierStateOff && !!r.meta.jointWorlds, PASS2: !r.meta.tierState && !r.meta.jointWorlds })[route];
-const NEW = (route, id, x = {}) => solvePlan(E, M, ROUTES[route].plan(id), { ...ROUTES[route].opts, ...x });
-const OLD = (route, id, x = {}) => O.solvePlan(E, M, ROUTES[route].plan(id), { ...ROUTES[route].opts, ...x });
+// each solve takes the candidate's `coarse` only where it can (coarseWhereFits): never with the count or the option, on the layer loop or with consent withdrawn
+const NEW = (route, id, x = {}, R = ROUTES) => { const p = R[route].plan(id); return solvePlan(E, M, p, coarseWhereFits(E, M, p, { ...R[route].opts, ...x })); };
+const OLD = (route, id, x = {}, R = ROUTES) => O.solvePlan(E, M, R[route].plan(id), { ...R[route].opts, ...x });
 
 for (const id of ['S050', 'S340F']) for (const route of Object.keys(ROUTES)) {
-  const r0 = NEW(route, id), off = hashOf(r0);
-  if (FULL && id === 'S050') { const b = hashOf(OLD(route, id)); ok(off.hash === b.hash && off.k > 0 && !r0.meta.payWhereOnePays, `4. ${id} ${route}: with the option unset the ${off.k} tables hash ${off.hash}, as at ${BASE} (${b.hash})`); }
+  const r0 = NEW(route, id, WHOLE), off = hashOf(r0);
+  if (FULL && id === 'S050') { const a = NEW(route, id, {}, ROUTES_D73), ha = hashOf(a), b = hashOf(OLD(route, id, {}, ROUTES_D73)); ok(ha.hash === b.hash && ha.k > 0 && !a.meta.payWhereOnePays, `4. ${id} ${route}: with the option unset the ${ha.k} tables of the candidate before D73 hash ${ha.hash}, as at ${BASE} (${b.hash})`); }
   const rc = NEW(route, id, { countFailPicks: true }), cnt = hashOf(rc);
-  ok(cnt.hash === off.hash && rc.meta.failPicks >= 0 && reached(route, r0), `1. ${id} ${route} at 4 points: counted alone (${rc.meta.failPicks} failing picks), the tables the same (${cnt.hash}); the route ${reached(route, r0) ? 'reached' : 'NOT REACHED'}`);
+  ok(cnt.hash === off.hash && rc.meta.failPicks >= 0 && reached(route, r0) && !r0.meta.coarse && !rc.meta.coarse, `1. ${id} ${route} at 4 points: counted alone (${rc.meta.failPicks} failing picks), the tables the same (${cnt.hash}), both solves on the whole menu; the route ${reached(route, r0) ? 'reached' : 'NOT REACHED'}`);
 }
 for (const route of Object.keys(ROUTES)) {
   const rc = NEW(route, 'S050', { countFailPicks: true, points: 12 }), picks = rc.meta.failPicks, off = hashOf(rc);

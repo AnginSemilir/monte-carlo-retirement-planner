@@ -1,0 +1,214 @@
+# THE HARVEST CEILING ON THE YEAR'S WHOLE TAXABLE INCOME (the review of 11 Nov, ANSWERS.md section 5; D72's question, D79, D91,
+# D93). A change of the rules' figures and of every table for a household with interest or dividends. Every output below is the
+# command's own, on the ceiling's code (this commit's tree) unless named.
+
+## Step 2: the prediction, written before any run of the fixed engine beyond the tax test's own cases
+optimize.test.mjs H: at death 90 the basic ceiling gains again over the personal allowance, by less than the +£36,471 it
+gained before item 3 (part of which was the engine's error); at death 72 it still costs money.
+
+## Step 1: the cases first. node research/tests/engine-hmrc.test.mjs on the code before the ceiling (section E's lines)
+FAIL  E1  the basic ceiling with £20,000 of other income and £8,000 of interest: £42,270; the draw's tax £4,454, the interest's £1,400 (to the threshold: £6,054 and £3,000)  -- the ceiling £50,270; the draw's tax £6,054, the interest's £3,000
+FAIL  E2  the same with £8,000 of dividends: £42,270; the dividends' tax £806.25 (to the threshold: £2,681.25)  -- the ceiling £50,270; the dividends' tax £2,681.25
+FAIL  E3  the allowance's ceiling: unchanged with £3,000 of interest; £9,570 with £9,000, £3,000 short, and nothing to pay at either  -- £3,000 of interest: £12,570; £9,000: £12,570
+FAIL  E4  Scotland, the basic ceiling: £43,662 with £3,000 of interest (its tax £400), £42,270 with £8,000 (its tax £1,400)  -- £3,000 of interest: £43,662; £8,000: £43,662
+FAIL  E5  1680 ceilings against a search over the reference's bill, England and Scotland  -- 1020 wrong; the first, the whole income past the threshold: ceiling £50,270, other income £0, interest £0, dividends £400: the engine £50,270
+FAIL  E6  the first year's harvest to the allowance costs nothing: the year's tax the same with it and without  -- without £0, with £1,082.4 (harvested £15,677.6, interest £10,605.75, dividends £2,000)
+FAIL  E7  the first year's harvest to the basic ceiling: the whole taxable income at £50,270 in England; in Scotland the draw at its own £43,662 or the whole at £50,270, whichever comes first  -- England £62,875.75; Scotland: the draw £43,662, the whole £56,267.75
+26 passed, 7 failed
+
+## Step 1: the same on the ceiling's code, whole, then --planted
+=========== A. THE REFERENCE, AGAINST YEARS WORKED BY HAND ===========
+PASS  A1  a pension of £30,000
+PASS  A2  £8,000 and £9,000 of interest: nothing
+PASS  A3  £10,000 and £10,000 of interest: £286
+PASS  A4  GOV.UK: wages £16,000, interest £200
+PASS  A5  a draw to the allowance and £8,489 of dividends: £858.82
+PASS  A6  £12,070 and £1,500 of dividends: £53.75
+PASS  A7  a pension of £12,929 on top of pay of £60,000: £5,171.60
+PASS  A8  pay £142,500: interest at 45%, dividends at 39.35%
+PASS  A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends
+PASS  A10 Scotland: £30,000; £20,000 with £5,000 of interest
+PASS  A11 the taper on all income
+PASS  A12 interest across the higher-rate line: £846
+=========== B. THE ENGINE'S savingsTax AND dividendTax AGAINST THE REFERENCE ===========
+PASS  B1  savingsTax: 48 cases
+PASS  B2  dividendTax: 240 cases
+PASS  B3  the review's 1.3: £8,000 and £9,000 of interest is untaxed  -- the engine £0
+=========== C. WHOLE YEARS: EVERY ROW'S taxPaid AGAINST THE REFERENCE ON THE ROW'S OWN INCOMES ===========
+PASS  C1  S116 as the library has it (retired, Scotland): 36 years
+PASS  C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2): 36 years
+PASS  C3  the same in England: 36 years
+PASS  C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1): 41 years
+PASS  C5  S214, no saving (working to 60 on £142,500) (1.1): 41 years
+PASS  C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1): 28 years
+PASS  C4S S210 with its saving (the taxable pay after contributions): 41 years
+PASS  C5S S214 with its saving (the taxable pay after contributions): 41 years
+PASS  C6S C6 with £200,000 of cash and a £300,000 taxable account split between the two: 28 years
+PASS  C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income: 36 years
+=========== E. A DRAW'S CEILING IS ON THE YEAR'S WHOLE TAXABLE INCOME (the review of 11 Nov, ANSWERS.md section 5) ===========
+PASS  E1  the basic ceiling with £20,000 of other income and £8,000 of interest: £42,270; the draw's tax £4,454, the interest's £1,400 (to the threshold: £6,054 and £3,000)  -- the ceiling £42,270; the draw's tax £4,454, the interest's £1,400
+PASS  E2  the same with £8,000 of dividends: £42,270; the dividends' tax £806.25 (to the threshold: £2,681.25)  -- the ceiling £42,270; the dividends' tax £806.25
+PASS  E3  the allowance's ceiling: unchanged with £3,000 of interest; £9,570 with £9,000, £3,000 short, and nothing to pay at either  -- £3,000 of interest: £12,570; £9,000: £9,570
+PASS  E4  Scotland, the basic ceiling: £43,662 with £3,000 of interest (its tax £400), £42,270 with £8,000 (its tax £1,400)  -- £3,000 of interest: £43,662; £8,000: £42,270
+PASS  E5  1680 ceilings against a search over the reference's bill, England and Scotland
+PASS  E6  the first year's harvest to the allowance costs nothing: the year's tax the same with it and without  -- without £0, with £0 (harvested £619, interest £10,605.75, dividends £2,000)
+PASS  E7  the first year's harvest to the basic ceiling: the whole taxable income at £50,270 in England; in Scotland the draw at its own £43,662 or the whole at £50,270, whichever comes first  -- England £50,270; Scotland: the draw £37,664.25, the whole £50,270
+=========== D. THE SOLVER'S MEMO OF THE YEAR'S INTEREST AND DIVIDENDS TAX ===========
+PASS  D1  S116 at light settings: every table the same to the bit with the memo on and off  -- off e6548bee07f4, on e6548bee07f4
+
+33 passed, 0 failed
+planted nopaydiv: the checks that fail: C4, C5, C4S, C5S, C6S; C5 and C5S among them: yes
+planted noceiling: the checks that fail: D1; D1 among them: yes
+planted rawceiling: the checks that fail: E1, E2, E3, E4, E5, E6, E7; E1 and E3 and E5 and E6 and E7 among them: yes
+
+## Step 2's outcome: node research/tests/optimize.test.mjs, section H (the ceiling's code)
+PASS  below 75 drawing early never gains  -- £1,549,873 -> £1,549,873
+PASS  below 75 drawing early costs money (spending £25,000, so the harvest has room)  -- £1,594,714 -> £1,588,424
+PASS  above 75 drawing early gains again  -- £1,710,715 -> £1,712,487 at 90
+PASS  above 75 drawing early costs less than below it  -- £1,710,715 -> £1,712,487 at 90 against £1,594,714 -> £1,588,424 at 72
+PASS  the optimiser leaves it alone for an early death  -- pa
+PASS  and takes it for a late one  -- basic
+PASS  it is reported as its own lever  -- £1,772
+=========== 165 passed, 0 failed ===========
+The review's prediction HELD: at death 90 the basic ceiling gains again, by less than the old +£36,471. The agent's added
+clause ("at death 72 it still costs money") MISSED on the test's household as it was: spending £45,000, its order already draws
+to the basic ceiling, which now stops short by the year's interest and dividends, so the harvest takes nothing more and the two
+are the same to the pound. With the same household spending £25,000 the harvest has room and costs money below 75, as before.
+The five checks of optimize.test.mjs the ceiling moved (each re-set with a dated note in the test): the winning transfers'
+ranking (the household's stacked pension top-up third of eight before, outside the eight now; the check moved to the same
+household spending £30,000, where it is third before and after); below 75 drawing early; the basic band's free part
+(£27,770 before, now less the year's interest and dividends); the action plan's figure for it; the whole allowance free
+(now on a household with no cash and no taxable account, with a new check that interest and dividends leave less free).
+
+## Step 3: the sizing on the plan's own rules. BEFORE a worktree at 0e3511ea (the commit before the ceiling's), its engine built:
+## BEFORE=<that tree> SIZING=ceiling node research/solver/size-hmrc.mjs library 1000
+the harvest ceiling's sizing, the plan's own rules (EXPLORATORY): 237 households of the two touched lists (38 couples, 98 still working), 1000 paths of seed 7002; the engine after less before, survival in points
+  mean +0.16; median +0.00; worst -0.10 (S058); best +4.80 (S214)
+  losing over 1 point 0, over 3 0, over 6 0; gaining over 1 10; within half a point either way 219
+  still working: 98, mean +0.13, worst -0.10; the expected path's tax up £-13,543 a household
+  retired: 139, mean +0.19, worst -0.10; the expected path's tax up £-14,415 a household
+  couples: 38, mean +0.04, worst -0.10; the expected path's tax up £-4,336 a household
+  singles: 199, mean +0.18, worst -0.10; the expected path's tax up £-15,910 a household
+  the twelve that lose most:
+    S058 retired: 92.3% before, -0.10 (3 lost, 2 saved); the expected path's tax £403,714 to £202,110
+    S285 (couple) working: 73.8% before, -0.10 (1 lost, 0 saved); the expected path's tax £608,339 to £591,909
+    S000 retired: 100.0% before, +0.00 (0 lost, 0 saved); the expected path's tax £0 to £0
+    S001 (couple) retired: 100.0% before, +0.00 (0 lost, 0 saved); the expected path's tax £0 to £0
+    S002 retired: 99.9% before, +0.00 (0 lost, 0 saved); the expected path's tax £1,430 to £0
+    S003 (couple) retired: 100.0% before, +0.00 (0 lost, 0 saved); the expected path's tax £5,204 to £528
+    S004 retired: 87.0% before, +0.00 (0 lost, 0 saved); the expected path's tax £28,198 to £28,198
+    S005 (couple) retired: 99.8% before, +0.00 (0 lost, 0 saved); the expected path's tax £0 to £0
+    S006 retired: 99.8% before, +0.00 (0 lost, 0 saved); the expected path's tax £96,908 to £96,908
+    S007 (couple) retired: 95.2% before, +0.00 (0 lost, 0 saved); the expected path's tax £86,012 to £86,012
+    S008 retired: 65.4% before, +0.00 (0 lost, 0 saved); the expected path's tax £176,964 to £176,964
+    S009 (couple) retired: 81.3% before, +0.00 (0 lost, 0 saved); the expected path's tax £238,072 to £238,072
+THE STEP'S STOP (any household's survival falling by more than 1 point): not met
+
+## The pinned figures that move, and the working (D66's form: the test, the old figure, the new, the working)
+Each test below was run twice on the ceiling's code with the pins as they stood before it: on this tree ("new"), and on a scratch
+tree holding the same code with pensionCeiling's first line made to return its argument ("raw": the ceiling switched off, nothing
+else changed). Exit 0 is a pass. Every test that fails on the new tree passes on the raw one, so the ceiling moves each figure and
+nothing else in its commit does:
+  new candidate exit 0 97 s
+  raw candidate exit 0 124 s
+  new chooser-shortlist exit 1 123 s
+  raw chooser-shortlist exit 0 133 s
+  new chooser-tie exit 1 216 s
+  raw chooser-tie exit 0 243 s
+  new couple-lockstep exit 1 14 s
+  raw couple-lockstep exit 0 16 s
+  new couple-quick exit 1 43 s
+  raw couple-quick exit 0 43 s
+  new couple-share exit 1 64 s
+  raw couple-share exit 0 67 s
+  new couple-tables exit 1 114 s
+  raw couple-tables exit 0 96 s
+  new lock-tiers exit 1 1064 s
+  raw lock-tiers exit 0 1097 s
+  new n4-menu exit 1 463 s
+  raw n4-menu exit 0 489 s
+  new phase4-audit exit 1 8 s
+  raw phase4-audit exit 0 7 s
+  new save-split exit 1 383 s
+  raw save-split exit 0 375 s
+  new solver-diagnostic exit 0 34 s
+  raw solver-diagnostic exit 0 55 s
+  new speed-port exit 1 892 s
+  raw speed-port exit 0 1081 s
+  raw speed-port --full (13 Nov, the figures of its full mode as pinned before, on the tree with the ceiling switched off): ALL PASS: 26 checks
+  new windfall-relief exit 1 34 s
+  raw windfall-relief exit 0 39 s
+  new windfall-split exit 1 379 s
+  raw windfall-split exit 0 340 s
+
+Not pins, re-set with a dated note in the test: savings-tax B3b and B4 (the basic step stops where pension, other income and
+interest reach the threshold); phase4-audit's draw-order check (S272's dividends use its whole allowance, so its allowance step
+draws nothing and the MPAA's year moves with the draw order); n4-menu check 2's hand cases (each draw stops short of its figure by the
+year's interest); optimize.test.mjs's five (step 2 above).
+
+The pins, old (-) and new (+), as the tests hold them (git diff of research/tests, the lines carrying a digest):
++++ b/research/tests/chooser-shortlist.test.mjs
+-const BEFORE = '03f2dad1043f20fd99b7c61e0636f1186d076d72ad67f769b760348bc4caee0b';   // S328F at 4 points, 200 paths, on the code before the option (f822e999)
++// S328F at 4 points, 200 paths, on the code before the option (f822e999: 03f2dad1043f20fd...); re-taken 12 Nov on the ceiling on the
++const BEFORE = 'f2fe4e1e6d872dc30d28c27d7e943b96d84282c65b27f75a3842be01336d4e44';
++++ b/research/tests/chooser-tie.test.mjs
+-const BEFORE = '03f2dad1043f20fd99b7c61e0636f1186d076d72ad67f769b760348bc4caee0b';   // S328F at 4 points, 200 paths: its outcomes' digest, taken on the code before the option (f822e999)
++// S328F at 4 points, 200 paths: its outcomes' digest, taken on the code before the option (f822e999: 03f2dad1043f20fd...); re-taken 12 Nov
++const BEFORE = 'f2fe4e1e6d872dc30d28c27d7e943b96d84282c65b27f75a3842be01336d4e44';
++++ b/research/tests/couple-lockstep.test.mjs
+-  const BEFORE = { rows: 'a044fb81cf6a2ec24843fc1a63b8a89a615cd9a808a1901eab21e73bbbce7a46', table: '32b7644cdc8ad96dc7e4c3d2507b3672cdae36fb1e2eb7d11860dbd36c48533a', tiered: '30ab75647c245fc40be760555933f46b00f2761a9212e58d04c28c5354249b42' };
++  // all three again on 12 Nov (a044fb81cf6a2ec2..., 32b7644cdc8ad96d..., 30ab75647c245fc4...): the ceiling on the year's whole taxable
++  const BEFORE = { rows: 'a758cd0848fea833fca8374c37dc05d5464b0e1bdb2990b485f6835680030849', table: '4cfe05301673446c7287c4d83c30011cb71516b2404933c44db180b2a6932af5', tiered: 'f271e153eb459908475d7df50bef8ca19586a06b312514633e70938dd2e1bd1e' };
++++ b/research/tests/couple-quick.test.mjs
+-  const BEFORE = '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13';
++  // re-taken again (81e774a399c6b29e...): 12 Nov, the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93's unlock): S116's dividends count
++  const BEFORE = 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3';
++++ b/research/tests/couple-share.test.mjs
+-  const BEFORE = '1320a1db06372238bfbbe1811f253475d3f02555f3067ec333a12a19e33e0bd7';
++  // re-taken again (1320a1db06372238...): 12 Nov, the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93's
++  const BEFORE = 'c843d68b9d612a0790eeaf47c7859e9ab845ccb21e7db48de6202fc4f4f084ba';
++++ b/research/tests/couple-tables.test.mjs
+-    S116: { tables: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13', runs: '7077d1657af4c8ce6979f6ae478dd42bb781ead35d73a646f7dd8141cc860b95', reads: '7f7cecad5c1af1c3bfeee54ae1afd9b878a632dfd34984c9b7270256094515f2' },
+-    S224: { tables: '4b141f1fbc3a28af9ac1cf9f9da976db6612a397a5ecf8fb2770ce1a325ad2c1', runs: '64098a65a205c874810f199743b5cbe0284312cf9d00386fe11ebba60eb26cb2', reads: 'ab03fc40659b17ecd6f5b0369615e6708f91e8ada784f8233b26cf3af1a865c4' }
++    S116: { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' },
++    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '8ab0d7a33f735eb1de28dff2e8d69a3986dcaa7317f38fb9a7cecb02b8d084d1', reads: '82e3915b1a177a183be6882466f0aadf4e2d45c381965d11b251c8ba06326b62' }
++++ b/research/tests/lock-tiers.test.mjs
+-  'S090 e5': 'c789a06cbc51db2ef8ebb900d0b71c47d2e32e62268dc31551451b18ff513174',
+-  'S090 loop': '349a6b25a08868f37a7a08fa00509e273dc8b9d61573ba70b9cef6f9172b2019',
+-  'S328F e5': 'a2d5a178a50037e6cecccaa88b692aad415d742f6c1cf1d2c22c364068af960b',
+-  'S328F loop': 'af6a40fb9e205cad29be0284c437d67f61f23a65dc2ad09d198564289f448139'
++  // all four again on 12 Nov (before: S090 e5 c789a06cbc51db2e..., loop 349a6b25a08868f3...; S328F e5 a2d5a178a50037e6..., loop
++  // af6a40fb9e205cad...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
++  'S090 e5': '9e5c0edb5552470b2814a7906fb8592dfb634731c57f90e1e4a0896d263ccdd1',
++  'S090 loop': 'e1304c6b49700cce7027688d7dd2e45e7efb97614dcd193c7f5bdb2ce85cdb58',
++  'S328F e5': 'c1681777bb8fa67ab705f34801c3c1e3203b9a527a5738589b0fbb94a1abb6da',
++  'S328F loop': '4d651a23e55e6930927478356f36665adfb945e5c858de0e2b3e2ede2af8f778'
++++ b/research/tests/save-split.test.mjs
+-  S188: '18d011b40c673bad970d1c51cc45f696a3c9db4e72f2fb00c5bee04d1cdebafa',
+-  S244: '50b52e353034a397bffee1ac9e94d574a591c73c6bd66927d260f1aa197fc5d1',
+-  [RETIRED]: '736b3a2b9c82aa91658d5ddd48d29310df4d283c62150d418df2ed311d02363f'
++  // all three again on 12 Nov (before: S188 18d011b40c673bad..., S244 50b52e353034a397..., S026 736b3a2b9c82aa91...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
++  S188: 'a42f62208fabdb3046718b6d846d29532960e50a84a3b93c7ffd81987dcf8b44',
++  S244: '614e53bfe8e20aad1366f5a98d06c60ffc7e1704dc14987dcaada896c7d0f3b3',
++  [RETIRED]: '6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513'
++++ b/research/tests/speed-port.test.mjs
+-  quick: {"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"572feb4a3c0c129e","layer":"219ee6ebe2370504","aref":"-","run":"727a78e82d66f90a"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e9852794d9c407ef","layer":"b8274efd10337928","aref":"bf852694ed07cef1","run
+-  full: {"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"7bac7b3333a0d666","layer":"7d42f25fd016b17d","aref":"-","run":"b0369498b5f5f0b1"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"78aebbb838f596e3","layer":"26f82baf4fa996fb","aref":"54e184b7e46e15d4","run"
++  quick: {"S224 SHIP":{"table":"b7ebc7c4bd50438b","layer":"f48e17f08ef26ba9","aref":"-","run":"8141966a8032bc9b"},"S370 SHIP":{"table":"42cf8ffa407421d8","layer":"a1ab9ea357cc9f1d","aref":"-","run":"746f99c088d052d9"},"S224 CAND":{"table":"919ec9ee5bc6acff","layer":"5d979be57c47bc2d","aref":"-","run":"124de2a8e5e5ed90"},"S370 CAND":{"table":"940e5f027d410da4","layer":"c7738c7bd88ec923","aref":"bf852694ed07cef1","run
++  full: {"S224 SHIP":{"table":"7e5eca461bd5d44d","layer":"a43f9880ecb640ef","aref":"-","run":"0e72f70990a0b116"},"S370 SHIP":{"table":"35d968139187152a","layer":"f4a2e7e8d242cf11","aref":"-","run":"80f99b45b683414b"},"S224 CAND":{"table":"f154984a6ddc3e33","layer":"566a5e04b780df60","aref":"-","run":"09d5a9ed64b03289"},"S370 CAND":{"table":"5f17b301140f3967","layer":"c9fd36b3d79a6e7a","aref":"54e184b7e46e15d4","run"
++++ b/research/tests/windfall-relief.test.mjs
++  // re-taken again (81e774a399c6b29e..., 1daa7851917f000a..., bb84262fb4db77b4...): 12 Nov, the ceiling on the year's whole taxable
+-    S116: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13',
+-    'S210, its deposit removed': '1daa7851917f000a97479b09485392689113801c740c484dc157fc4e825e9574',
+-    'S210, its deposit typed into the taxable account': 'bb84262fb4db77b4e24c0c57252471064c73c2c16dc7b9b273cec9c3012f274e'
++    S116: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3',
++    'S210, its deposit removed': '14c9a95ebb1b8c496126c177f8ef5baaea2a88d9780df05fc3485b8072725466',
++    'S210, its deposit typed into the taxable account': '70e557bd71a3d75b1767c0e3414c89bf2be4397d80ad185709aa19de18a994bd'
++++ b/research/tests/windfall-split.test.mjs
+-  S026: '736b3a2b9c82aa91658d5ddd48d29310df4d283c62150d418df2ed311d02363f',
+-  S090: 'c789a06cbc51db2ef8ebb900d0b71c47d2e32e62268dc31551451b18ff513174',
+-  [NODEP]: '23c2e079444fececb5946aa130ddb66a2f6d478f3b896b9e98352cb69946f6ff'
++  // all three again on 12 Nov (before: S026 736b3a2b9c82aa91..., S090 c789a06cbc51db2e..., S040 23c2e079444fecec...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
++  S026: '6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513',
++  S090: '9e5c0edb5552470b2814a7906fb8592dfb634731c57f90e1e4a0896d263ccdd1',
++  [NODEP]: '1e2e0187a8f3ceaccb503e2d73febb4ae96bb158314d233085bb8c3efcdd393c'

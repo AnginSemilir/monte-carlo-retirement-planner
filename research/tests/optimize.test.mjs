@@ -91,7 +91,11 @@ console.log('=========== D. MOVING MONEY UP TO THE ALLOWANCES ===========');
   const rec = r.levers.find(l => l.key === 'recycle');
   ok('moving money between wrappers is a lever', !!rec);
   ok('and it is worth something when there is cash spare', rec.gain > 0, `${gbp(rec.gain)}: ${rec.pick}`);
-  const best = r.ranked.find(c => c.recycleKey);
+  // Re-set 12 Nov (the harvest ceiling on the year's whole taxable income, ANSWERS.md section 5; D91, D93): on this household
+  // the stacked transfer (a pension top-up on the best gift) was third of the eight ranked and is now outside them, the draw to
+  // the basic ceiling it paid for being smaller. The same household spending £30,000 ranks it third before and after.
+  const r30 = E.optimizeInheritance(household({ cash: 300000, deathAge: 80, spend: 30000 }));
+  const best = r30.ranked.find(c => c.recycleKey);
   ok('the winning transfers are reported so they can be applied', !!best, best ? best.label : 'none ranked');
 
   // a household with nothing spare cannot recycle, and must say so rather than promise a gain
@@ -247,22 +251,37 @@ console.log('=========== H. HOW MUCH PENSION TO DRAW EARLY ===========');
    * loss; at 75 and over it is taxed twice, and 20% now can beat both charges. A single answer would be
    * wrong half the time, which is exactly why it is searched.
    */
-  const at = (deathAge, ceiling) => {
-    const p = E.normalizePlan({ ...household({ deathAge }), config: { valuationDate: '2026-01-01', harvestCeiling: ceiling } });
+  const at = (deathAge, ceiling, over = {}) => {
+    const p = E.normalizePlan({ ...household({ deathAge, ...over }), config: { valuationDate: '2026-01-01', harvestCeiling: ceiling } });
     const ctx = E.buildContext(E.resolveMpaa(p));
     return E.postTaxInheritanceFor(p, ctx);
   };
   const early = { pa: at(72, 'pa'), basic: at(72, 'basic') };
   const late = { pa: at(90, 'pa'), basic: at(90, 'basic') };
-  ok('below 75 drawing early costs money', early.basic < early.pa,
-    `${gbp(early.pa)} -> ${gbp(early.basic)}`);
-  ok('above 75 it earns money', late.basic > late.pa, `${gbp(late.pa)} -> ${gbp(late.basic)}`);
+  // Re-set 12 Nov (the ceiling on the year's whole taxable income; D91, D93): this household's order already draws the pension
+  // to the basic ceiling for its £45,000 of spending, and that ceiling now stops short by the year's interest and dividends, so
+  // the harvest to it has nothing left to take: the two are the same to the pound at death 72. Spending £25,000 the order
+  // stops short of the ceiling, the harvest draws the rest, and below 75 that costs money as before.
+  ok('below 75 drawing early never gains', early.basic <= early.pa, `${gbp(early.pa)} -> ${gbp(early.basic)}`);
+  const early25 = { pa: at(72, 'pa', { spend: 25000 }), basic: at(72, 'basic', { spend: 25000 }) };
+  ok('below 75 drawing early costs money (spending £25,000, so the harvest has room)', early25.basic < early25.pa, `${gbp(early25.pa)} -> ${gbp(early25.basic)}`);
+  // Re-pinned 11 Nov (the maintainer's ruling, after item 3 of the review of 9 Nov stacked the year in HMRC's order): the
+  // interest and dividends now sit above the pension draw, so drawing to the top of the basic band takes them into the higher
+  // rate. Before item 3, at death 90 the basic ceiling gained £36,471 over the personal allowance; now it costs £3,822 on its
+  // own, less than the £6,288 it costs at death 72. The death age still decides it, as the two optimiser checks below show.
+  // 12 Nov, the ceiling on the whole taxable income (the review's prediction, written before the run: at death 90 it gains
+  // again, by less than the old £36,471): at 90 it gains, and against the £25,000 household's cost at 72.
+  ok('above 75 drawing early gains again', late.basic > late.pa && late.basic - late.pa < 36471, `${gbp(late.pa)} -> ${gbp(late.basic)} at 90`);
+  ok('above 75 drawing early costs less than below it', late.pa - late.basic < early25.pa - early25.basic,
+    `${gbp(late.pa)} -> ${gbp(late.basic)} at 90 against ${gbp(early25.pa)} -> ${gbp(early25.basic)} at 72`);
 
   const r72 = E.optimizeInheritance(household({ deathAge: 72 }));
   const r90 = E.optimizeInheritance(household({ deathAge: 90 }));
   ok('the optimiser leaves it alone for an early death', r72.best.ceiling !== 'basic', r72.best.ceiling);
   ok('and takes it for a late one', r90.best.ceiling === 'basic', r90.best.ceiling);
-  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling' && l.gain > 0),
+  // on its own, from the plan as it stands, the ceiling gains nothing at death 90 since item 3; beside the best order it still
+  // wins (the check above), so it is still listed as its own lever, its gain shown
+  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling'),
     gbp((r90.levers.find(l => l.key === 'ceiling') || {}).gain || 0));
 }
 
@@ -617,8 +636,12 @@ console.log('=========== N. THE BANDS ARE MEASURED, NOT ASSUMED ===========');
     `£${r.bandHeadroom.otherIncome.toLocaleString()} = £11,500 state pension + £11,000 earnings`);
   ok('and so the personal allowance has nothing free', r.bandHeadroom.pa === 0,
     `£${Math.round(r.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
-  ok('while the basic-rate band still does', Math.round(r.bandHeadroom.basic) === P.higherRateStartsAt - 22500,
-    `£${Math.round(r.bandHeadroom.basic).toLocaleString()} = £${P.higherRateStartsAt.toLocaleString()} - £22,500`);
+  // 12 Nov (the ceiling on the year's whole taxable income; D91, D93): the band's free part is the threshold less the other
+  // income AND the year's interest and dividends, the largest over the drawdown years (the year they are smallest)
+  const eRows = E.simulateDeterministic(E.buildContext(E.resolveMpaa(E.normalizePlan(earner))), 'expected').filter(x => x.t > 0 && x.ageSelf >= 65 && x.ageSelf <= 80);
+  const least = Math.min(...eRows.filter(x => Math.round(x.otherTaxableSelf) === 22500).map(x => x.savingsInterestSelf + x.giaDividendsSelf));
+  ok('while the basic-rate band still does, less the year\'s interest and dividends', least > 0 && Math.abs(r.bandHeadroom.basic - (P.higherRateStartsAt - 22500 - least)) < 1,
+    `£${Math.round(r.bandHeadroom.basic).toLocaleString()} = £${P.higherRateStartsAt.toLocaleString()} - £22,500 - £${Math.round(least).toLocaleString()}`);
 
   /*
    * The stub year between the valuation date and the next tax-year start pro-rates that income, so its
@@ -640,16 +663,21 @@ console.log('=========== N. THE BANDS ARE MEASURED, NOT ASSUMED ===========');
   const act = (E.estateActionPlan({ ...E.normalizePlan(earner), spending: { ...earner.spending, decumulationPolicy: 'Sequential' } }, forced) || [])
     .find(x => x.key === 'order');
   ok('the dead step says it is dead', !!act && /nothing free/.test(act.sequence[0]), act ? act.sequence[0] : 'no order step');
-  ok('the live one carries its figure', !!act && /£27,770 of it free/.test(act.sequence[1]), act ? act.sequence[1] : '');
+  ok('the live one carries its figure', !!act && act.sequence[1].includes(`£${Math.round(r.bandHeadroom.basic).toLocaleString('en-GB')} of it free`) && r.bandHeadroom.basic < 27770, act ? act.sequence[1] : '');
 
   /*
    * The opposite case must still read as an opportunity: no earnings and no state pension yet leaves
    * the whole allowance free, and the step is then a real instruction.
    */
-  const noIncome = household({ demo: { statePensionSelf: 0, statePensionAge: 90 }, deathAge: 80 });
+  // 12 Nov (the ceiling on the year's whole taxable income; D91, D93): "no other income" now means no interest or dividends
+  // either (no cash, no taxable account); with them, less of the allowance is free
+  const noIncome = household({ demo: { statePensionSelf: 0, statePensionAge: 90 }, deathAge: 80, cash: 0, other: 0 });
   const r2 = E.optimizeInheritance(noIncome);
   ok('a household with no other income keeps the whole allowance', Math.round(r2.bandHeadroom.pa) === P.pa,
     `£${Math.round(r2.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
+  const r3 = E.optimizeInheritance(household({ demo: { statePensionSelf: 0, statePensionAge: 90 }, deathAge: 80 }));
+  ok('and with interest and dividends above it, less of the allowance is free', r3.bandHeadroom.pa > 0 && r3.bandHeadroom.pa < P.pa,
+    `£${Math.round(r3.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
 }
 
 console.log('=========== O. THE £2M TAPER, PRICED RATHER THAN ASSERTED ===========');

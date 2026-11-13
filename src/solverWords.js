@@ -72,6 +72,17 @@ export const PART_WORDS = {
   tierPen: k => `Move your pension ${steps(k)} lower in risk`,
   tierIsa: k => `Move your ISA ${steps(k)} lower in risk`
 };
+/* the year's sweep (the engine's 7d; the review of 9 Nov, item 5, part 1), to the pound: null in a year it moves nothing */
+export function sweepWords(sw, { fmt }) {
+  if (!sw) return null;
+  // research/tests/sweep-words.test.mjs plants: 'sweepround' the amount to the nearest £1,000, 'sweepback' the top-up worded as the move out
+  const amt = x => fmt(WORDS_PLANT.rule === 'sweepround' ? Math.round(x / 1000) * 1000 : x);
+  // under sweepCashIsaTo 'isa' (research, off) the cash ISA money above the buffer goes to the stocks and shares ISA
+  if (sw.toIsa >= 0.5) return `Move ${amt(sw.toIsa)} of cash ISA money above your buffer to your stocks and shares ISA${sw.toGia >= 0.5 ? `, and ${amt(sw.toGia)} of other cash to your taxable account` : ''}`;
+  if (sw.toGia >= 0.5 || (WORDS_PLANT.rule === 'sweepback' && sw.fromGia >= 0.5)) return `Move ${amt(sw.toGia || sw.fromGia)} of cash above your buffer to your taxable account`;
+  if (sw.fromGia >= 0.5) return `Top your cash buffer up with ${amt(sw.fromGia)} from your taxable account`;
+  return null;
+}
 export function actionWords(x, ctx) {
   const what = PART_WORDS[x.part] ? PART_WORDS[x.part](x.value, ctx) : `${x.part} ${x.value}`;
   const cost = x.cost === null ? 'No other move this year differs here.'
@@ -98,6 +109,8 @@ export function aheadWords(row, { fmt }, prev = null) {
   const p = row.parts, lines = [];
   if (p.draw !== 'none') lines.push(PART_WORDS.draw(p.draw));
   if (p.harvest) lines.push(PART_WORDS.harvest(p.harvest));
+  const sw = sweepWords(row.swept, { fmt });
+  if (sw) lines.push(sw);
   const pen = p.tierPen || 0, isa = p.tierIsa || 0, wp = prev ? prev.tierPen || 0 : 0, wi = prev ? prev.tierIsa || 0 : 0;
   if (pen === isa && wp === wi) { const w = tierWords('pension and ISA', wp, pen); if (w) lines.push(w); }
   else for (const w of [tierWords('pension', wp, pen), tierWords('ISA', wi, isa)]) if (w) lines.push(w);
@@ -122,7 +135,7 @@ export function aheadRowsWords(rows, ctx) {
    null in a year the table chose no move */
 const SHORT_DRAW = { 'pa-half': 'half the personal allowance', pa: 'the personal allowance', 'basic-mid': 'mid basic rate', basic: 'the basic-rate limit', hr: 'the taper threshold' };
 const SHORT_WRAP = { pa: 'the personal allowance', basic: 'the basic-rate limit', hr: 'the taper threshold', pam: 'half the personal allowance', bm: 'mid basic rate' };
-export function ledgerWords(p, spending) {
+export function ledgerWords(p, spending, row = null) {
   if (!p) return null;
   const w = [];
   if (spending) w.push(`spend ${pct(100 * p.level)}`);
@@ -130,6 +143,9 @@ export function ledgerWords(p, spending) {
   if (p.harvest) w.push(`pension to ISA, to ${SHORT_WRAP[p.harvest] || p.harvest}`);
   if (p.tierPen) w.push(`pension ${steps(p.tierPen)} safer`);
   if (p.tierIsa) w.push(`ISA ${steps(p.tierIsa)} safer`);
+  if (row && row.sweptToIsa >= 0.5) w.push(`cash ISA ${Math.round(row.sweptToIsa).toLocaleString('en-GB')} to ISA`);
+  if (row && row.sweptToGia >= 0.5) w.push(`cash ${Math.round(row.sweptToGia).toLocaleString('en-GB')} to taxable`);
+  else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
   return w.join(' · ') || 'as planned';
 }
 export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';

@@ -19,6 +19,9 @@
 > - **A per-browser opt-in for the beta in place of `SOLVER = true`** (B6, R6): the opt-in goes on `main` off by default
 >   when the readiness checklist prints all PASS, the gate's two modes becoming the opt-in on and off; `SOLVER` becomes
 >   true in Phase 12; the opt-in on by default, and the switch's removal, stay the maintainer's.
+> - **No beta with users is under way** (D91, 12 Nov): the app is the maintainer's alone until it is shared publicly. The
+>   two weeks of both paths are not a wait; the order is the improvements laid out, the maintainer's work on the UI, then
+>   sharing it, with on by default and the switch's removal decided then (`DECISIONS-PENDING.md`, its first section).
 
 D40 (1): the candidate ships behind Part C's switch. This page turns the archived plan's Part C (archive/PLAN.md, "Part C.
 The app (phases 7 to 12), behind a switch") into a build order, updated for what has happened since it was written. Nothing

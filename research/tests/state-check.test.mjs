@@ -62,7 +62,9 @@ const planOf = p => { const h = JSON.parse(JSON.stringify(p)); return E.resolveM
 const moveOf = (r, ai, code) => {
   const a = r.actions[ai], ca = r.c.acts[ai];
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    // cgtSale and sweepIsa as tablePolicy carries them (bridge.js): without sweepIsa the engine swept the cash ISA money to the taxable
+    // account while the forward run swept it to the ISA, once D73 made 'isa' the candidate's (the unlock of 11 Nov, D82)
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 const MONEY = [0, 1, 2, 4, 6, 11, 12, 13];

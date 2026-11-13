@@ -1,0 +1,20 @@
+HARVEST-CEILING, STEP 4 (EXPLORATORY; D91, D93; HARVEST-CEILING.md): 8 households, code 9df7a2f23c75, audit de68816f06dd, seed 7002, 16000 paths, 45 points; BEFORE the tree at 0e3511ea; the gate: fair (one code, audit, seed, count of paths and points; both arms on the household's plan at the same settings; BEFORE's engine without the ceiling, AFTER's with it)
+
+By household (survival BEFORE / AFTER, d and its interval; spending delivered, points of target, AFTER less BEFORE; the mean pot left BEFORE / AFTER; lifetime tax BEFORE / AFTER; whether the tables differ; the solves' seconds):
+  S030   95.72% / 95.67%, d -0.050 (-0.119 to +0.018; 10 saved, 18 lost) | spending -0.0117 | pot £1,226,881 / £1,227,028 (+0.01%) | tax £70,002 / £71,155 | tables differ | 54 s / 34 s
+  S050   99.04% / 99.05%, d +0.006 (-0.020 to +0.033; 1 saved, 0 lost) | spending +0.0007 | pot £298,794 / £298,802 (+0.00%) | tax £825 / £797 | tables differ | 52 s / 34 s
+  S090   94.66% / 94.57%, d -0.087 (-0.190 to +0.014; 26 saved, 40 lost) | spending +0.0004 | pot £1,691,087 / £1,676,310 (-0.87%) | tax £72,190 / £79,250 | tables differ | 62 s / 42 s
+  S368   99.90% / 99.90%, d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending -0.0001 | pot £5,332,829 / £5,299,725 (-0.62%) | tax £51,910 / £51,254 | tables differ | 94 s / 77 s
+  S188   97.66% / 97.67%, d +0.013 (-0.021 to +0.046; 3 saved, 1 lost) | spending +0.0004 | pot £2,692,911 / £2,693,159 (+0.01%) | tax £193,720 / £193,208 | tables differ | 48 s / 47 s
+  S304F  98.11% / 98.11%, d -0.006 (-0.033 to +0.020; 0 saved, 1 lost) | spending -0.0001 | pot £4,227,017 / £4,224,715 (-0.05%) | tax £85,689 / £85,618 | tables differ | 74 s / 73 s
+  S328F  93.02% / 92.99%, d -0.031 (-0.089 to +0.026; 7 saved, 12 lost) | spending -0.0264 | pot £4,737,886 / £4,997,050 (+5.47%) | tax £403,989 / £318,214 | tables differ | 83 s / 73 s
+  S340F  94.99% / 95.01%, d +0.013 (-0.020 to +0.045; 3 saved, 1 lost) | spending -0.0001 | pot £4,659,056 / £4,832,690 (+3.73%) | tax £366,786 / £295,602 | tables differ | 73 s / 72 s
+
+The rule (AFTER less BEFORE):
+  1. pooled survival, the mean of d over 8 households: -0.018 (95% -0.035 to -0.001, se 0.0087); its lower end above -0.1: HOLDS
+  2. no household's interval wholly below -0.3: none: HOLDS
+  3. pooled spending delivered -0.0046 points of target; within 0.05 either way: HOLDS
+  4. the pooled mean pot left +1.540%; not lower by more than 0.5%: HOLDS
+  beside, deciding nothing: pooled lifetime tax £155,639 to £136,887 (-12.05%)
+
+HARVEST-CEILING OUTCOME: PASSES 1 to 4: the ceiling stands as built and goes to main with its batch (D92)

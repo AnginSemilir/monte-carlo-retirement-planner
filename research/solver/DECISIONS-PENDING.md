@@ -5,6 +5,82 @@ An index for finalising the plan. Each item names the file that holds its detail
 (`research/reviews/2026-11-01/LAUNCH-PLAN.md` on review/external-2026-10-21 at 0e24e1b), adopted by the maintainer as
 D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 recast).
 
+## The order from 12 Nov (D91)
+
+The maintainer, 12 Nov: the app is for the maintainer alone for now and has not been launched properly; the link and the
+repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
+below this section says "the beta", read it as history. The order from here:
+
+**RULED (D94, 13 Nov): "Proceed with your recommendations"**: the stage gate and the read amended for S293's one
+difference, reviewed before use, the chunks kept (the fallback: fix the audit and run the first stage again); the first
+load's ceilings at the measured figures plus one, 235 and 237, engine code moving them the same way at a later batch.
+The two entries below are kept as they were put.
+
+**For the maintainer (13 Nov): the first load's size, and the gate's reference.** B1's gate on the first batch came
+back red in both modes, so nothing is merged (`results-reference.txt`; STATE.md section 5).
+- *The ruling needed: the first load's ceilings.* On the working branch's head the classic planner's first load is
+  234KB against its ceiling of 232, which is D58 (2)'s limit, and the new planner's is 234KB (a saved plan) and 236KB
+  (an empty one) against 234. `main` reads 232 and 232 / 233. The growth is the engine's own code: the year in HMRC's
+  order, relief on pension contributions, the pages naming the sweep, the harvest ceiling. Options: (1) the ceilings
+  move to the measured figures plus one, 235 and 237, as D57 and D58 (2) did, and a later batch whose growth is engine
+  code moves them the same way, reported at its merge (the agent's recommendation: it saves a stop at every batch that
+  corrects the tax engine); (2) the same, this once; (3) hold 232 and 234: the agent looks for about 3KB to move out of
+  the first load before anything merges, box half a day, with no promise it is there.
+- *Done, for the maintainer's eye: where the harnesses' reference is worked out.* The container's restart brought a
+  newer Chromium, and its exp and log no longer agree with Node's to the last place; `main`'s own code fails the
+  bit-for-bit checks here. The reference is now the same source, unbundled, run in the harness's own browser
+  (`research/ui-harnesses/lib/reference.cjs`), so the checks are bit for bit again and now cover the money too; what
+  they no longer hold is that a browser computes exactly what Node does, which stopped being true. Say if this should
+  be done another way.
+- *Read, for the maintainer's eye: the harvest ceiling's step 4 passes its rule* (`results-harvest-ceiling-solved.txt`;
+  the reviewer's PASS, `reviews/2026-11-13-read-harvest-ceiling.md`), so by the rule it goes to `main` with the first
+  batch. What the pooled figures hide: the lower tax and larger pot are two households' (S328F, S340F), on paths that
+  end above the estate cap; on paths at or below the cap lifetime tax is higher on S090 (about a fifth), S328F and
+  S030, the three with most money in the taxable account. Survival is a shade lower, beyond noise and well inside the
+  rule. A lead, not shown: under the review's rule the allowance's ceiling now stops where the year's bill would first
+  rise, which removes a slice these households drew cheaply. The agent runs the one test that would tell (EXPLORATORY)
+  after item 12's stage A and brings it back; if it shows the allowance's step is the cost, that is a question for the
+  external review, not a change the agent makes.
+- *Done: the skip costs' fixture* is S064 where it was S116, whose re-wrap costs nothing to skip on the new code.
+
+**STOP (13 Nov): the couples' re-run's stage gate refused.** The first stage's 200 chunks are in and backed up; the
+registered stage gate decided nothing, because S293's solver arms and APP were run on plans that hash differently. The
+cause, from the plans alone: the second person's MPAA age (58 against 60), a derived field that moves no money on this
+couple (`results-d4b-plan-check.txt`). No outcome of seed 7021 has been read. Every route forward changes a stamped
+file, so it is the maintainer's: (1) amend the gate and the read for this one known difference, reviewed before use,
+and keep the chunks (the agent's recommendation); (2) fix the cause in the audit and run the first stage again, about
+twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/2026-11-13-d4b-stage-gate.md`.
+
+1. **The improvements laid out**, in this order; the first not done is the next.
+   - **Built, on the working branch, not yet on `main`:** the newest candidate (D73: the sweep to the ISA, the solve on
+     anchors, the thinner bridge reference); the engine's year in HMRC's order (item 3) and relief on money the plan pays
+     into a pension (item 4); the pages naming the sweep (item 5) and item 8's caption; a couple's path faster, exactly
+     (items 2 and 11); Part D's D1 to D3; built and off: `shareRule: 'pots'` (item 6), `tieAboveCap` (item 13),
+     `chooserShortlist: 'order'` with its guard (item 7).
+   - **Running:** the couples' re-run (item 1, `registrations/couples-d4b.md`), read once when every chunk is in, then
+     the reviewer at the read and the deep reviewer.
+   - **After its read:** (a) the tie-break joins the candidate (D90 (1)), the reviewer on the change of default;
+     (b) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it changes the
+     rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking in. It is
+     being built now on a branch of its own (it does not rest on the read), and goes in before (d) so that the next
+     registered test is landed once, on the code that ships; (c) item 12's stage A (D84), then the shortlist's trade
+     back to the maintainer (D90 (2)); (d) item 6's stage C, the registered test for couples who hold their money
+     unevenly (until it reads such a couple keeps the app's rules, M4), landed after (a) to (c) so no change of code
+     falls between its landing and its read; (e) Part D's D5, the couples' screens in the new planner, then couples on
+     under the switch (the launch plan's D6, no longer a couples' beta).
+   - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
+     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test (B7's "after the launch" is no
+     longer a wait).
+   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
+2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
+3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
+   the solver on by default and the switch's removal.
+
+**RULED (D92, 12 Nov): when `main` takes the work.** "Merge each batch as it passes the gate." `main`, which the public
+link serves, runs the launch candidate; everything under "Built" is ahead of it and is the first batch, gated when the
+re-run's cores are free (the gate's browser harnesses time themselves, so they are not run beside it). Each batch after
+it merges the same way, on B1's gate, from a release branch cut at the gate's commit.
+
 ## Where it stands
 
 - **The candidate.** It passed Phase 4 against the app's rules and the product's settings (`results-phase4.txt`). It
@@ -25,8 +101,9 @@ D51 to D54, and at 90fcb10 since D58 (step U, Phases 11 and 12 and Part D's D5 r
   - Step U, the new planner (D58: `research/reviews/2026-11-03/LAYOUT.md`, the launch plan at 90fcb10), is merged to
     `main` (pull request 8, d3e9fe8) on B1's gate, behind the beta.
   - Phase 11, the phone on the new planner (`PHASE-11.md`), is merged to `main` (pull request 9, 9407889) on B1's gate.
-  - Then Phase 12 as recast (under way, `PHASE-12.md`); couples as Part D during the singles' beta (B9), D5 the couples'
-    screens in the new planner.
+  - Phase 12, the opt-in between the two planners (`PHASE-12.md`), is merged to `main` (pull request 10, 0ee3a3b) on
+    B1's gate, its readiness checklist all PASS (eight lines, D60): the beta started (R6). Then couples as Part D during
+    the singles' beta (B9), D5 the couples' screens in the new planner.
 - **The research queue** (B7, EXPLORATORY): GAIN-BUCKET read (`results-gainbucket.txt`, STATE.md's open items): survival
   unchanged; spending beyond noise on three households, two up and one down, each under a fiftieth of a percent of lifetime
   spending. By B7 a gain is a v2 proposal: to the maintainer, below. The windfall factorial is next, whenever cores are free.
@@ -58,30 +135,89 @@ for singles under the switch), and the rules R1 to R6 that decide on their measu
 
 - An unlock the plan needs that D53 did not give (a later edit to a protected test asks again).
 - The couples' registration (D4) before its run, and its read.
-- The beta's switch to on by default, and the switch's removal.
+- The solver on by default, and the switch's removal: before sharing it publicly (D91).
 - Any change of default not settled in section 3.
 - Any result showing the launch candidate harming a household beyond D34's threshold, or a defect that changes a figure:
   at once.
 - A time box running out; a red CI not fixed within a session.
 - The reads of L4 and L5 (as reports; R1 to R3 decide them), and what R2 leaves off the dial.
-- **Open now: GAIN-BUCKET's v2 proposal (B7).** The gain axis interpolated (`gainInterp`) against the candidate's nearest
-  bucket: survival no effect beyond noise; spending up on two households and down on one, each tiny (`results-gainbucket.txt`;
-  the read's review, `reviews/2026-11-03-read-gainbucket.md`). The choice: a registered v2 test after the launch, or
-  declined as immaterial. Beside it (the re-review's MINOR): the count depends on the test, chosen after seeing the data. The
-  sign-flip test of the mean, the figure reported, flags three households; an exact sign test, which reads the typical path,
-  flags seven, four up and three down, one of them down although its mean is up. The verdict is a gain under either. Also
-  reported: the run took about twice its pilot's core-hours.
-- **Open now: phone-perf's long-task ceiling** (2,200ms, set 30 Oct on the maintainer's call). Step U's gate read one
-  pass over it on bytes that had passed hours before. Twelve alternated runs on a quiet machine put step U's site build at or
-  below main's, and main's own build over the ceiling on three of its six (`results-phone-perf-step-u.txt`): the ceiling sits
-  inside main's spread on this machine, so a gate can fail it by chance. The choice: move it, as on 30 Oct, or keep it and
-  re-measure when it fails. Kept until then.
-- **Closed: the Safari and Firefox solve**, excluded from the readiness checklist by D60 (6 Nov). The browser check page
-  (`public/browser-check.html`) stays in Phase 12's release, unused; removing it is a later change of the site's code.
-- **Reported from Phase 11: the phone's budget** (two parts for a solve with a base on a touch device, set in the harness's
-  browser, not on a phone: `results-phone-memory.txt`), yours to move; and **a restored solve's paths run on one worker**
-  (back at the dial's default the figures take longer than after a fresh split solve), not changed.
-- **Open now: the contribution fields in the quick start** (your report on step U's preview): they are in You, Your money, and
-  the quick start now points there; asking for them in the quick start itself goes beyond LAYOUT.md, so it is your call.
-- **Noted: load-perf's switch-on ceiling** is at D58 (2)'s limit (`results-load-perf-step-u.txt`): the next kilobyte on a
-  switch-on build's classic first load comes to the maintainer.
+- **Closed on 8 Nov (D62), the seven items left open on 7 Nov**, the maintainer: "1,2 ho with your recommendations, 3b, 4b,
+  5,6,7 your recommendations". (1) GAIN-BUCKET's v2 test declined as immaterial (B7): survival unchanged, spending beyond
+  noise on three households, two up and one down, each under a fiftieth of a percent of lifetime spending (`results-gainbucket.txt`);
+  `gainInterp` stays a research option, off. (2) phone-perf's long-task ceiling moved from 2,200ms to 2,700ms, above main's
+  own worst in twelve alternated runs (`results-phone-perf-step-u.txt`). (3) The quick start asks each pot's annual
+  contribution and the contribution's yearly increase, beside its balance (beyond LAYOUT.md section 5, which pointed to You,
+  Your money). (4) The phone's budget lifted: a solve with a base splits four ways on a touch device, as on any other
+  (faster, at more memory; set in the harness's browser, not on a phone: `results-phone-memory.txt`). (5) A restored solve's
+  paths stay on one worker for the beta (speed only, never a figure). (6) The browser check page
+  (`public/browser-check.html`) removed, with its Chromium harness and its reader. (7) load-perf's switch-on ceiling at D58
+  (2)'s limit, noted: the next kilobyte on a switch-on build's classic first load comes to the maintainer. Items 2, 3, 4 and
+  6 are one change of the site's code, from a release branch cut from `main` (Part D's code stays off it), merged on B1's
+  gate.
+
+## Open from the review of 9 Nov (D66; `research/reviews/2026-11-09/EXPERIMENTS-AND-PORTS.md` at f77ca16c)
+
+- **Item 1's statement (a STOP, 10 Nov; closed by D67: "Keep panel, seed 7021").** D4 stopped unread with 76 of 520 chunks finished, all on `d4-backup`. The
+  statement item 1 asks for ("no arrays file of D4 has been opened, and nothing of a unit's log has been read or printed
+  by anyone beyond its stamp line, its second line and whether it holds a done line") cannot be made as worded: each
+  log's third line (registered inputs: the couple, the unit, its cohort, its landed target, its paths) and its timings
+  (the solve's seconds, the engine's seconds and milliseconds a path, the done line's seconds) were read and printed on
+  9 Nov, to time the run. No outcome of any unit was printed or read, and no arrays file was decompressed (STATE.md
+  section 5 has the statement in full). By item 1, the re-run then needs a new seed and couples the scan does not list,
+  and the maintainer rules on the panel. The agent's recommendation: keep the panel and seed 7021, since nothing read
+  carries an outcome, and record the statement as made in the re-run's registration for the design review to check.
+- **M3. A one-off pension deposit: what the household pays, or what arrives?** The review's advice: ask in the input's
+  label; until then typed deposits stay as they are, and item 4 fixes only the plan's own routing (the windfall split's
+  pension-first variant, the staged transfers, an Auto deposit).
+- **M6. The dated rules** (savings rates of 22, 42 and 47% from April 2027; NIC relief on salary sacrifice capped at
+  the first £2,000 from April 2029; the thresholds frozen in cash to April 2031, held constant in real terms by the
+  engine): carry them by tax year, or state the assumption? The review's advice: state it now (one line on the page,
+  beside item 8's caption), and carry the 2027 savings rates when the 2027/28 figures are next updated.
+- **Items 5 and 10 ruled (D73, 11 Nov) and ported (4e6c6a09; D74, D82, D83): the candidate is af001697ce1b.** The reviewer on the change of
+  default: FAIL, then PASS after one fix (`reviews/2026-11-11-default-d73.md`, `2026-11-12-default-d73-2.md`). Item 7 answered by the
+  external review and read again in item 13's stage A (D85, D86).
+- **Noted for the maintainer (D88, 12 Nov): the sweep as the solver's own choice is not built.** The destination is not a
+  real choice (the ISA is never worse than the taxable account in tax, access or allowance). What would be one is how much
+  is kept in cash: the cash buffer's size, a standing rule (D18), the same for singles and couples and in every arm so far.
+  Making it a lever is new solver work with its own experiment (the windfall split, D37, is the nearest thing built). Say if
+  it should join the research queue.
+- **Read, passing (D89): what D73's sweep to the ISA means for a couple, measured before the re-run (`COUPLE-SWEEP.md`, `results-couple-sweep.txt`, EXPLORATORY).** All three parts of the rule hold. For the maintainer to know: the pot's part
+  holds on one couple (S059, whose cash ISA money is the largest); six of the twelve leave a smaller mean pot under the sweep to
+  the ISA, with survival the same or higher on ten of the twelve and no loss beyond noise. As D87 put it:
+  The maintainer, after "go with your recommendations" and before the launch: "but is a fixed rule here really the best way to do
+  this? are we sure of that?" The agent's reply: not sure. Measured: the sweep to the ISA against the sweep to the taxable
+  account on singles alone (item 5, `results-isasweep.txt`, EXPLORATORY). Not measured: either on a couple; the sweep as the
+  solver's own choice (never built; the windfall split, D37, is the nearest, off, its factorial not run). Options: (1) launch
+  as it stands, the sweep to the ISA for couples; (2) first the two fixed sweeps side by side on touched couples outside the
+  panel, EXPLORATORY, about half a day, then launch on what holds; (3) build the sweep as a solver choice first: days, and the
+  couples landed and reviewed again. The agent would take (1), with (2) run afterwards as a check. As it was first put: The reviewer found that a couple's joint
+  move left the sweep out, so under tables solved for the ISA the engine swept a couple's cash ISAs to the taxable account
+  (S059: all of it). The agent chose: a couple's move carries the sweep its tables were solved with (0b047efd,
+  `couple-sweep.test.mjs`), so couples get item 5 as singles do. The other reading: a couple's person-solves leave the key
+  out, and couples keep the sweep to the taxable account until measured (item 5's experiment was on singles). The couples
+  are landed and piloted on the first reading; choosing the second means a small code change, landing again (ten minutes),
+  the pilot and the design review again, before any launch.
+  The design review of the revised registration (`reviews/2026-11-12-couples-d4b-design-2.md`, MINOR 5): most of the
+  panel's couples hold cash ISA money, so the choice touches most of the panel; launching `couples-d4b.md` as it stands is
+  choosing the first reading, and the read has no split by cash ISA holding. A word from the maintainer before the launch
+  settles it, recorded as its own D-line.
+- **LAUNCHED by D88 and D89, the couples' sweep check having passed: the couples' re-run** (`registrations/couples-d4b.md`, complete; its
+  design review PASS, eight MINORs, none blocking). It was launched 12 Nov 12:27 UK from a worktree at 4e4174b1, the commit recording the sweep check's read: the
+  registration's blob, `src/`, the engine and the audit's stamp files the same there as at the registration's own commit
+  (e6f0179a; the reviewer checked it, `reviews/2026-11-12-read-couple-sweep.md`).
+- **RULED (D90, 12 Nov): switching on `tieAboveCap` (D85) and `chooserShortlist: 'order'` (D86).** "I agree with your
+  recommendations" (`reports/2026-11-12-stage-b-switch-on.md`; the figures in `results-stage-b-figures.txt`, EXPLORATORY).
+  (1) The tie-break joins the candidate after the couples' re-run's read, never between (D78, D80); its wait for the
+  beta's end lapsed with the beta (D91). (2) The shortlist is not switched on as built. Its guard is in: a decision the pages
+  show is made on the whole menu whatever the solve was handed (`wholeMenu`, `shownPolicy`; `shortlist-shown.test.mjs`,
+  `results-shortlist-shown.txt`; `reports/2026-11-12-shortlist-guard.md`). **Still to come back to the maintainer, after
+  item 12's stage A has read its effect on a couple's path (D84):** the trade itself, about half a path's time against
+  the survival its read lost (pooled, and on S030 and S370), and with it one point the guard leaves open: the first
+  year's move the counted paths take is the shortlist's, the page's the whole menu's; where they differ the survival
+  shown is of a first year the page does not show (the same move on the one household the test compares, S328F).
+- **The couples' re-run: held (D71, 11 Nov) until items 5 and 10 are ported (D73) and item 7 is settled, then landed again; the registration revised after the external review's SHIPC write-up.** As it stood (`registrations/couples-d4b.md`, its design review's PASS):
+  On the same 40 couples (landed again) and seed 7021, on the code after items 2 to 5, in item 9's two stages, its budget
+  about 188 core-hours if every couple and weight stops at the first stage as the pilot suggests (about 51 hours on one
+  four-core session, about 13 over four), 673 at most. To decide: launch it; and whether to run it in up to four cloud
+  sessions (item 1, part 3). Item 5's ruling first, if it is to be the default for couples: a change of code means landing
+  again and a new pilot.

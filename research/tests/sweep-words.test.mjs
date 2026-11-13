@@ -1,0 +1,107 @@
+/*
+ * THE PAGES SHOW THE SWEEP (the review of 9 Nov, item 5, part 1; D66). Under a solved table the engine keeps cash at its buffer
+ * (stepYear 7d): cash above it moves to the taxable account, a shortfall is topped up from it. The estate the pages show already
+ * assumes the move; now every listing of the solved plan's actions says so, to the pound: this year's actions
+ * (solverStrategy.js actionsOf's `sweep`, PlannerPlan.jsx and the printed sheet), the next ten years (aheadOf's rows) and the
+ * audit table's action column (ledgerWords). S116 (£359,900 of cash above its buffer in its first year) at light settings:
+ *   1. this year's sweep is the engine's own: the first year's row on three random paths moves the same amount, and actionsOf
+ *      carries it (the year's flows before the sweep take no market);
+ *   2. the words name the move, its accounts and its amount to the pound;
+ *   3. the next ten years: each year's row on the median path carries the engine's sweep for that year, and its words name it
+ *      (a move out in year 0, the buffer topped up after); the grouping keeps years whose amounts and moves match;
+ *   4. the audit column names the year's sweep with its amount.
+ * Since D73 the candidate sends the cash ISA part of that excess to the stocks and shares ISA (`sweepCashIsaTo: 'isa'`), and
+ * S116's £359,900 is all cash ISA money. So checks 1 to 4 run on the solve with the key left out (the sweep to the taxable
+ * account, a move out in year 0 and the buffer topped up after), and the candidate as it is has its own:
+ *   5. this year's sweep to the ISA is the engine's first year, the same on every path, and nothing goes to the taxable account;
+ *   6. the words name the cash ISA money, the stocks and shares ISA and the amount to the pound, in this year's actions and in
+ *      the next ten years' first row;
+ *   7. the audit column names the year's sweep to the ISA with its amount.
+ * The plants (WORDS_PLANT.rule): 'sweepround' (the amount to the nearest £1,000) fails 2, 3 and 6; 'sweepback' (a top-up worded as
+ * a move out) fails 3. --plants runs both.
+ *   node research/tests/sweep-words.test.mjs [--plants]
+ */
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solveForApp } from '../../src/solverApp.js';
+import { actionsOf, aheadOf, strategyRuns, rowsOf } from '../../src/solverStrategy.js';
+import { sweepWords, aheadRowsWords, ledgerWords, WORDS_PLANT } from '../../src/solverWords.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
+
+const SELF = fileURLToPath(import.meta.url);
+const PLANTS = { sweepround: [2, 3, 6], sweepback: [3] };
+if (process.argv.includes('--plants')) {
+  let bad = 0;
+  for (const [p, want] of Object.entries(PLANTS)) {
+    const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, SWEEP_WORDS_PLANT: p }, encoding: 'utf8' });
+    const failed = [...new Set([...r.stdout.matchAll(/^FAIL {2}(\d)/gm)].map(m => Number(m[1])))];
+    const exact = failed.length === want.length && want.every(n => failed.includes(n));
+    if (!exact) bad++;
+    console.log(`plant ${p.padEnd(10)} fails ${failed.join(', ') || 'none'} (expected ${want.join(', ')}): ${exact ? 'exact' : 'NOT EXACT'}`);
+    if (!exact) console.log(r.stdout + r.stderr);
+  }
+  process.exit(bad ? 1 : 0);
+}
+WORDS_PLANT.rule = process.env.SWEEP_WORDS_PLANT || '';
+let passed = 0, failed = 0;
+const ok = (n, label, c, detail = '') => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}  ${label}${detail ? '  -- ' + detail : ''}`); if (c) passed++; else failed++; };
+const fmt = E.formatGBP, pound = x => fmt(x);
+const plan = E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan);
+const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } };
+// checks 1 to 4: the sweep to the taxable account (the candidate's key left out); checks 5 to 7, below: the candidate as it is
+const solved = solveForApp(E, M, plan, { points: 4, research: { ...LIGHT, sweepCashIsaTo: undefined } });
+console.log(`sweep-words: the sweep in the solved plan's listings, S116 at light settings${WORDS_PLANT.rule ? `; planted: ${WORDS_PLANT.rule}` : ''}`);
+
+// 1. this year's sweep, the engine's own on any path
+const acts = actionsOf(E, solved, plan, { n: 40 });
+const { rows: rowsExp } = rowsOf(E, solved, 'expected');
+const onPaths = E.pathsForSeed(7002, 3, solved.m.ctx.totalYears).map(zs => {
+  const { rows } = rowsOf(E, solved, { z: zs[0], zPath: zs.length > solved.m.ctx.totalYears + 1 ? zs[solved.m.ctx.totalYears + 1] : 0 });
+  return rows[0].sweptToGia;
+});
+ok(1, 'this year\'s sweep is the engine\'s first year, the same on every path', acts.sweep.toGia > 0 && onPaths.every(x => x === acts.sweep.toGia) && rowsExp[0].sweptToGia === acts.sweep.toGia,
+  `actionsOf: £${acts.sweep.toGia.toFixed(2)} to the taxable account, £${acts.sweep.fromGia.toFixed(2)} back; the first year on three paths ${onPaths.map(x => x.toFixed(2)).join(', ')}`);
+
+// 2. its words, to the pound
+const w = sweepWords(acts.sweep, { fmt });
+ok(2, 'the words name the move, its accounts and its amount to the pound', !!w && w.includes(pound(acts.sweep.toGia)) && /cash/.test(w) && /taxable account/.test(w), `"${w}" (the amount ${pound(acts.sweep.toGia)})`);
+
+// 3. the next ten years
+const runs = strategyRuns(E, solved, plan, { seed: 12345, from: 0, to: 200 });
+const ahead = aheadOf(E, solved, plan, runs, { years: 10 });
+const groups = aheadRowsWords(ahead.rows, { target: plan.spending.targetSpend, fmt });
+let named = 0, moved = 0, wrong = [];
+for (const r of ahead.rows) {
+  const sw = r.swept, any = sw && (sw.toGia >= 0.5 || sw.fromGia >= 0.5);
+  if (!any) continue;
+  moved++;
+  const g = groups.find(x => x.from.t <= r.t && r.t <= x.to.t), want = sw.toGia >= 0.5 ? `Move ${pound(sw.toGia)} of cash above your buffer` : `Top your cash buffer up with ${pound(sw.fromGia)}`;
+  if (g && g.lines.some(l => l.startsWith(want))) named++; else wrong.push(`${r.year}: wanted "${want}", got "${g ? g.lines.join('; ') : 'no group'}"`);
+}
+ok(3, 'the next ten years: each year\'s sweep on the median path named with its amount and direction', moved > 1 && named === moved,
+  `${named} of ${moved} years with a sweep named; ${groups.length} rows for ${ahead.rows.length} years${wrong.length ? `; ${wrong.slice(0, 2).join(' | ')}` : ''}; the first: ${groups[0].lines.join('; ')}`);
+
+// 4. the audit column
+const lw = ledgerWords(rowsOf(E, solved, 'expected').parts[0], true, rowsExp[0]);
+ok(4, 'the audit table\'s action column names the year\'s sweep with its amount', lw.includes(`cash ${Math.round(rowsExp[0].sweptToGia).toLocaleString('en-GB')} to taxable`), `"${lw}"`);
+
+// ---- the candidate as it is (D73): the cash ISA money above the buffer to the stocks and shares ISA ----
+{
+  const cand = solveForApp(E, M, plan, { points: 4, research: LIGHT }), T = cand.m.ctx.totalYears;
+  const a = actionsOf(E, cand, plan, { n: 40 }), exp = rowsOf(E, cand, 'expected');
+  const first = E.pathsForSeed(7002, 3, T).map(zs => rowsOf(E, cand, { z: zs[0], zPath: zs.length > T + 1 ? zs[T + 1] : 0 }).rows[0]);
+  ok(5, 'the candidate: this year\'s sweep to the ISA is the engine\'s first year, the same on every path, nothing to the taxable account', cand.meta.sweepCashIsaTo === 'isa' && a.sweep.toIsa > 0 && a.sweep.toGia === 0 && first.every(r => r.sweptToIsa === a.sweep.toIsa && r.sweptToGia === 0) && exp.rows[0].sweptToIsa === a.sweep.toIsa,
+    `actionsOf: £${a.sweep.toIsa.toFixed(2)} to the ISA, £${a.sweep.toGia.toFixed(2)} to the taxable account; the first year on three paths ${first.map(r => r.sweptToIsa.toFixed(2)).join(', ')}`);
+  const wI = sweepWords(a.sweep, { fmt });
+  const aheadI = aheadOf(E, cand, plan, strategyRuns(E, cand, plan, { seed: 12345, from: 0, to: 200 }), { years: 10 }), g0 = aheadRowsWords(aheadI.rows, { target: plan.spending.targetSpend, fmt })[0];
+  const want = `Move ${pound(a.sweep.toIsa)} of cash ISA money above your buffer to your stocks and shares ISA`;
+  ok(6, 'the candidate: the words name the cash ISA money, the stocks and shares ISA and the amount to the pound, this year and in the next ten years\' first row', !!wI && wI.startsWith(want) && aheadI.rows[0].swept.toIsa === a.sweep.toIsa && g0.lines.some(l => l.startsWith(want)),
+    `"${wI}"; the next ten years' first row: ${g0.lines.join('; ')}`);
+  const lwI = ledgerWords(exp.parts[0], true, exp.rows[0]);
+  ok(7, 'the candidate: the audit table\'s action column names the year\'s sweep to the ISA with its amount', lwI.includes(`cash ISA ${Math.round(exp.rows[0].sweptToIsa).toLocaleString('en-GB')} to ISA`), `"${lwI}"`);
+}
+
+console.log(`\nsweep-words: ${passed} passed, ${failed} failed${WORDS_PLANT.rule ? ` (planted: ${WORDS_PLANT.rule})` : ''}`);
+process.exit(failed ? 1 : 0);

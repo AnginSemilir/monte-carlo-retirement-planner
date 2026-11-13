@@ -1,0 +1,163 @@
+EVERY PINNED FIGURE THAT WOULD MOVE WITH A STAGE B OPTION SWITCHED ON (D81 (D), D85, D86): a measurement, EXPLORATORY; nothing is switched on
+12 Nov, in a scratch worktree at ab5bc29d (the working branch's head), by research/solver/stage-b-figures.sh; nothing committed, the tree put back after
+
+THE TWO CONFIGURATIONS (each made in the worktree only, then put back)
+  T    tieAboveCap 1e-4 in research/solver/candidate.json and in APP_CANDIDATE (src/solverSettings.js)        the candidate's hash af001697ce1b -> 17ff82379838
+  TO   T, and chooserShortlist 'order' in both (item 7 as it was read: with the tie-break on)                  the candidate's hash af001697ce1b -> 3892a04d98ad
+  (hashes as candidate.mjs's hashOf gives them; the app's copy hashes the same in each; `order` alone was not read and is not a configuration here)
+
+WHAT A SWITCH-ON NEEDS BESIDE THE TWO KEYS, found on the way and done in the worktree so the measurement is of the switch-on and not of its omissions
+  1. research/solver/candidate.mjs. The earlier candidates (BEFORE_D73_OPTS, and through it PHASE4_OPTS, ASSEMBLED_OPTS, FROZEN_OPTS) are candidate.json
+     less the keys joined since, so a new key in candidate.json joins every one of them unless it is named there. In the worktree: STAGE_B_KEYS
+     ['tieAboveCap', 'chooserShortlist'] added and left out of BEFORE_D73_OPTS, as D73's port named its own keys (D73_KEYS). With it the four recorded
+     hashes stand under T and under TO: before D73 d71f65ae871e, Phase 4 fcd8096217b7, 7u-F's e65e5e99ba49, the frozen a61dba4ee1f5.
+  2. research/solver/e3pcls-pin.json. The pin's fingerprint covers candidate.json and candidate.mjs as well as src/solver (e3pcls-pin.mjs RESEARCH_CODE), so
+     the edit makes the pin stale and solveCandidate refuses every solve until it is taken again. Taken again in the worktree under each configuration
+     (solver-e3pcls.test.mjs 4 --pin, every check passing): the fingerprint 55b84474b6b34f08 -> 964a77add6561459 under T, -> 079a62b1e5d6272e under TO
+     (those two are the worktree's, with item 1's edit in candidate.mjs; a switch-on's own text of candidate.mjs gives its own).
+
+WHAT WAS RUN, under each configuration: 104 test files, each on its own in its default form (no --full, no 45-point solve): the fast tier's 64
+(run-all.mjs --list), the 40 others that name the candidate (the brief's grep), and two more that reach it through another script (held-out,
+levers-resume). T three files at a time, then two; TO two at a time, then one (the machine shared with a batch, then with the registered couples' run).
+T: 95 passed, 8 failed, 1 stopped at forty minutes. TO: 91 passed, 12 failed, 1 stopped at forty minutes.
+NO TABLE DIGEST MOVED under either configuration. Every separately pinned table digest passed (speed-port check 1, couple-quick check 5, windfall-relief
+check 6, couple-share check 2, couple-tables check 6's tables, solve-coarse), and where a pin hashes tables and runs together a scratch check
+(the app's solve at 4 points on the light lattice, the keys out, T, TO) gives the same tables three times on S090, S328F, S224, S026 and S188.
+Old figures are the pins as the test files hold them at ab5bc29d (those of D73's port are also in results-d73-fulltier.txt, "now"). The failing tests
+were not run again on the unedited tree. New figures are what each test printed: where a test prints 16 hex digits of a digest, 16 are given, and the
+whole digest comes from the test's own record mode at the switch-on (lock-tiers RECORD1B and the like).
+
+==== T: tieAboveCap 1e-4 ====
+
+(a) pinned figures that moved because forward paths changed: 9 pins in 4 test files (8 different digests: S090's is one pin held by two tests)
+test | check | what is pinned | old (as pinned) | new
+couple-tables.test.mjs | 6 | S224, its runs (10 paths of seed 99004, the engine's rows under the app's solve) | 64098a65a205c874810f199743b5cbe0284312cf9d00386fe11ebba60eb26cb2 | d18d0575872ed8c2fffbd9442fb700bf97132ab74bae3673b7218e5ecac16d9b
+couple-tables.test.mjs | 6 | S224, its value reads along those runs | ab03fc40659b17ecd6f5b0369615e6708f91e8ada784f8233b26cf3af1a865c4 | 788d3c2afaf6495bdb8ac54e661bdd64187b151688ea791c2c734852578d718c
+   (the same check's other four pins did not move: S116's tables, runs and reads, and S224's tables 4b141f1fbc3a28af...)
+lock-tiers.test.mjs | 1b | S090, the candidate's settings, its tables and 40 forward runs | c789a06cbc51db2e... | ba798f0e30fa08b0...
+lock-tiers.test.mjs | 1b | S090, the layer loop (tsOnce: false), its tables and 40 forward runs | 349a6b25a08868f3... | a0aa6a93b3bccf53...
+lock-tiers.test.mjs | 1b | S328F, the candidate's settings, its tables and 40 forward runs | a2d5a178a50037e6... | 456b7a5bed006d66...
+lock-tiers.test.mjs | 1b | S328F, the layer loop (tsOnce: false), its tables and 40 forward runs | af6a40fb9e205cad... | 6a3ed21cc1edd881...
+save-split.test.mjs | 1b | S188, the option unset, its tables and 40 forward runs | 18d011b40c673bad... | 7bd5bc12f4450c8c...
+save-split.test.mjs | 1b | S244, the option unset, its tables and 40 forward runs | 50b52e353034a397... | 1192494bf379d61a...
+windfall-split.test.mjs | 1b | S090, the option unset, its tables and 40 forward runs (lock-tiers' S090 pin) | c789a06cbc51db2e... | ba798f0e30fa08b0...
+   (not moved under T: save-split's and windfall-split's S026, 736b3a2b9c82aa91..., and windfall-split's S040, 23c2e079444fecec...)
+
+(b) structural pins of the candidate itself: 3 checks in 2 test files, and the pin file
+candidate.test.mjs | 1 (the first check) | STATE.md's decided-defaults block against candidate.json, key for key | the block's candidate, 19 keys and the tier set | the code's has tieAboveCap 0.0001 as well: the block gains the key
+candidate.test.mjs | 1b (the candidate before D73) | the candidate's hash, and its key count as BEFORE_D73_OPTS' plus D73_KEYS' | af001697ce1b; 19 keys = 17 + 2 | 17ff82379838; 20 keys (the check's count gains the new key list, as item 1 above)
+   (the test stops at its first failure; run once more in the worktree with every failing check listed, these two fail and the other 52 pass, its smoke
+   solve and its spread-order scan among them; the smoke solve does not look for the new key, which a switch-on would add to it)
+check-state.test.mjs | "the committed STATE.md passes" | STATE.md's printed block "candidate" | ..., coarse {...}; tiers o60-blend ... Hash af001697ce1b ... the e3pcls pin last passed on 55b84474b6b34f08 | ..., coarse {...}, tieAboveCap 0.0001; tiers o60-blend ... Hash 17ff82379838 ... the pin 964a77add6561459 (state.mjs --write; the other printed blocks unchanged; check-state.mjs says the same)
+research/solver/e3pcls-pin.json | (no test fails once it is taken again) | the fingerprint | 55b84474b6b34f08 | 964a77add6561459 (item 2 above)
+   passing with nothing to change: plan-defaults, e3-default, e3pcls-guard, solver-app (the app's copy is candidate.json key for key and hashes the same),
+   cache-key and solve-key (the stored solves' key is computed from APP_CANDIDATE, not pinned: it moves, so a solve stored before the switch-on is not restored)
+
+(c) needs a change of test, not a re-pin: 4 checks in 3 test files
+chooser-tie.test.mjs | 1 | its "option unset" arm is the app's solve with nothing passed, which now carries the margin: outcomes 2d6e0c0fe6e354ea against the pin 03f2dad1043f20fd (the code before the option), and the solve's record names a margin where the check wants none. The pin is right for a solve with the margin out; the test must take it out itself
+chooser-shortlist.test.mjs | 1 | the same arm and the same pin: outcomes 2d6e0c0fe6e354ea against 03f2dad1043f20fd
+chooser-shortlist.test.mjs | 3 | planted, the list emptied: its whole-menu paths are the candidate's (the margin on), its planted paths are run with the margin set to nought by the test: 93 of 200 paths differ
+couple-tables.test.mjs | 4 | "each person's candidates their own chooser's": a couple's ranking (couple.js rankFor) does not take the tie-break, a single's chooser does, so above the cap the two part beyond the chooser's tolerance: 28 of 256 picks. (A couple's path itself is the same with the tie-break as without: chooser-tie check 5 passes.)
+
+==== TO: tieAboveCap 1e-4 and chooserShortlist 'order' ====
+
+(a) pinned figures that moved because forward paths changed: 12 pins in 4 test files (10 different digests: S090's and S026's are each one pin held by two tests)
+test | check | what is pinned | old (as pinned) | new
+couple-tables.test.mjs | 6 | S224, its runs | 64098a65a205... | d18d0575872e... (the first 12 digits are T's: on these 10 paths the shortlist chooses as the whole menu)
+couple-tables.test.mjs | 6 | S224, its value reads along those runs | ab03fc40659b... | 788d3c2afaf6... (T's, as above)
+   (not moved: S116's tables, runs and reads; S224's tables)
+lock-tiers.test.mjs | 1b | S090, the candidate's settings, its tables and 40 forward runs | c789a06cbc51db2e... | ef85c56ffeacd8f5...
+lock-tiers.test.mjs | 1b | S090, the layer loop (tsOnce: false), its tables and 40 forward runs | 349a6b25a08868f3... | dd392d1d73d8a772...
+lock-tiers.test.mjs | 1b | S328F, the candidate's settings, its tables and 40 forward runs | a2d5a178a50037e6... | 6c30c94e2f47054f...
+lock-tiers.test.mjs | 1b | S328F, the layer loop (tsOnce: false), its tables and 40 forward runs | af6a40fb9e205cad... | 1c714f6dff974a09...
+save-split.test.mjs | 1b | S188, the option unset, its tables and 40 forward runs | 18d011b40c673bad... | 2c0cc9831eebd2d2...
+save-split.test.mjs | 1b | S244, the option unset, its tables and 40 forward runs | 50b52e353034a397... | 07f28ac5f67e806d...
+save-split.test.mjs | 1b | S026 (its retired household), the option unset, its tables and 40 forward runs | 736b3a2b9c82aa91... | 391dc91d7c88d76d...
+windfall-split.test.mjs | 1b | S026, the option unset, its tables and 40 forward runs (save-split's S026 pin) | 736b3a2b9c82aa91... | 391dc91d7c88d76d...
+windfall-split.test.mjs | 1b | S090, the option unset, its tables and 40 forward runs (lock-tiers' S090 pin) | c789a06cbc51db2e... | ef85c56ffeacd8f5...
+windfall-split.test.mjs | 1b | S040 (no Auto deposit), the option unset, its tables and 40 forward runs | 23c2e079444fecec... | 33227403dac0a427...
+
+(b) structural pins of the candidate itself: the same 3 checks in 2 test files, and the pin file
+candidate.test.mjs | 1 | the decided-defaults block against candidate.json | 19 keys and the tier set | the code's has tieAboveCap 0.0001 and chooserShortlist "order" as well
+candidate.test.mjs | 1b | the candidate's hash, and its key count | af001697ce1b; 19 keys | 3892a04d98ad; 21 keys (the other 52 checks pass, run as under T)
+check-state.test.mjs | "the committed STATE.md passes" | STATE.md's printed block "candidate" | as under T | ..., coarse {...}, tieAboveCap 0.0001, chooserShortlist "order"; tiers o60-blend ... Hash 3892a04d98ad ... the pin 079a62b1e5d6272e
+research/solver/e3pcls-pin.json | | the fingerprint | 55b84474b6b34f08 | 079a62b1e5d6272e
+
+(c) needs a change of test, not a re-pin: 14 checks in 7 test files
+chooser-tie.test.mjs | 1 | as under T: outcomes a6fb31c6691b6a99 against the pin 03f2dad1043f20fd
+chooser-shortlist.test.mjs | 1 | as under T, and its "unset" solve now records the shortlist too: outcomes a6fb31c6691b6a99 against 03f2dad1043f20fd
+chooser-shortlist.test.mjs | 3 | as under T: 184 of 200 paths differ
+couple-tables.test.mjs | 4 | as under T: 25 of 256 picks not the chooser's
+chooser-share.test.mjs (in FAST: protected, an edit needs the maintainer's unlock) | S224 CAND and S370 CAND, "every move's score, tax and estate ... the same bit for bit as scoreMoves's" (2 checks) | the check compares the shared scores of every move with scoreMoves's; under the shortlist a move off the list has no score (-Infinity at year 0, world 0, move 80 on S224, move 160 on S370)
+chooser-share.test.mjs | S224 CAND and S370 CAND, "the engine's outcomes on 200 paths with the sharing off and on" (2 checks) | the shortlist acts only where the year's flows are shared (CHOOSER.share), so with the sharing off the paths are the whole menu's and with it on the shortlist's: 22fce0f3e80d47a4 / 8d523c4d8c695ad8 on S224, 81ee5551150baaff / 36fd454ebfb2abf7 on S370. An identity between two routes that no longer holds
+chooser-once.test.mjs | 1, S224 CAND and S370 CAND (2 checks) | the same comparison with scoreMoves's, at the same moves
+couple-rank.test.mjs | 1 | "every ranking the same as scoring every move again" (COUPLE.check): with COUPLE.fast a person's candidates are ranked from the scores their own chooser leaves, and the chooser now scores the shortlist alone: 1145 of 3360 rankings differ on S007
+couple-rank.test.mjs | 2 | "every path the same with COUPLE.fast on and off": 60 of 60 paths differ on S007 (off, each person is ranked on the whole menu; on, on the shortlist)
+couple-flat.test.mjs | 4, S007 and S127 (2 checks) | the same ranking check on the flat path: 778 of 2240 rankings differ on S007, 957 of 3200 on S127 (its other checks, the flat path against the path before it, pass)
+
+==== FINDINGS BESIDE THE FIGURES (each for the maintainer's message; none fixed here) ====
+1. THE SHORTLIST REACHES A COUPLE'S PATH (TO). Items 2 and 11 are exact because each person's ranking is the whole menu's; with `order` on each person's
+   table and COUPLE.fast on (as it is), a couple's joint move takes each person's candidates from their shortlist, and every path of S007 changes
+   (couple-rank check 2). No run has read a couple's outcomes that way: it is item 12's arm (a) (D84), not yet run, and D80 keeps it out of a
+   registered couples' arm. The tie-break alone (T) leaves a couple's path as it is.
+2. THE COUPLES' RE-RUN (couples-d4b.md; read from the code, nothing of it run). Its CANDC arm is hashOf(APP_CANDIDATE), registered as af001697ce1b
+   (audit-couples.mjs and reduce-couples.mjs CONFIG, the registration's Arms); src/solverSettings.js and candidate.mjs are in its stamp (STAMP_FILES); and
+   D80's guard refuses a person's table carrying tieAboveCap or chooserShortlist. Either key in APP_CANDIDATE before that run has read changes the
+   registered arm's hash and its stamp, and the audit refuses to run.
+3. THE DECISIONS THE PAGES SHOW (TO; read from the code, not run). solve.js says of the shortlist "for the paths that only count, never for a decision the
+   pages show". With the key in APP_CANDIDATE every decision goes through it: this year's actions and their skip costs, the next ten years, the year by
+   year ledger and the rule of thumb all take their moves from tablePolicy's choose (src/solverStrategy.js, src/solverDistil.js), which is chooseAction on
+   the solved plan. Nothing in src keeps the whole menu for them. The tests of those pages pass under TO because each compares the page's route with
+   Node's on the same code.
+4. HOW FAR THE PATHS MOVE (the scratch check, 40 paths of seed 99001, the app's solve at 4 points on the light lattice; EXPLORATORY, not a test's figure):
+   paths run differently from the keys out, T / TO: S090 4 / 19, S328F 15 / 37, S224 5 / 6, S026 0 / 36, S188 3 / 5; surviving, out / T / TO: S090 39 / 39 / 39,
+   S328F 36 / 36 / 37, S224 26 / 26 / 26, S026 39 / 39 / 39, S188 39 / 39 / 39.
+5. Protected files. Under T no protected test needs an edit (check-state.test.mjs passes once STATE.md's block is written again). Under TO
+   chooser-share.test.mjs is in FAST. fair-variables.mjs already has rows 37 and 38.
+
+==== THE TESTS THAT PASSED UNCHANGED ====
+Under T and under TO (91): adaptive-corner adaptive-dup adaptive-step audit-7uf-checks bed-sipp bridge cache-key cf check-prediction couple-levers
+couple-quick couple-share couple-sweep dial-variant diff e2 e3-default e3pcls-guard engine-fidelity engine-hmrc entrants fail-delivered fair-gate
+final-integral gaps-sweep guardrails held-out hooks hygiene inheritance known-answer lever-matrix lever-matrix-full levers-resume lock-ref lock-split
+lookahead n4-menu pctband phase4-audit phone-budget phone-grid plan-defaults planner-figures policy priorities reader reader-copy reader-neblend
+reader-ru reduce-7uf restore-memory risk-consent salarygrowth savings-tax scottax settings sim-split skip-split solve-coarse solve-key solve-size
+solver-aims solver-app solver-cache solver-carry solver-cash solver-client solver-close solver-diagnostic solver-distil solver-e3pcls solver-figures
+solver-floor solver-guards solver-invariants solver-locks solver-memo solver-progress solver-q-tsj solver-rows solver-scratch solver-strategy
+speed-port state-check sweep-words table-guards tax-2026 tier-above tier-steps windfall-relief
+Under T only (4, each failing under TO, above): chooser-once chooser-share couple-flat couple-rank
+(hygiene failed once under T on this measurement's own script, which named the main checkout by its path; the script now tells the main checkout by its
+.git directory, and hygiene passes under both)
+
+==== NOT RUN, AND WHY ====
+library-sweep.test.mjs, pr31-split.test.mjs: over forty minutes each by their recorded times (shard-times.json: 107 and 84 minutes). library-sweep solves
+   every single of the library through the app's solve and checks for throws and keys; pr31-split spreads the candidate into a solve of its own.
+pay-where.test.mjs: started under each configuration and stopped at the forty-minute limit on the shared machine (19 minutes by its recorded time);
+   its ten checks printed before the stop all passed under both (table checks of an option off in the candidate; its forward check runs only under --full).
+fast-skip.test.mjs: reaches the candidate only through the fast tier's files it traces; 74 minutes by its recorded time.
+The --full forms: adaptive-dup-full, chooser-share-full, solver-memo-full, state-check-full, and every test's own --full (the 45-point solves, the known
+   answers at full scale). A figure pinned only there (speed-port --full, chooser-shortlist check 6 and the like) was not measured.
+The failing tests on the unedited tree (a baseline): not run, for the cores; the old figures are the pins as written.
+The couples' scripts' planted suites (audit-couples, reduce-couples, stage-couples, size-couples): not run, by this measurement's rules; finding 2 is from the code.
+The browser harnesses: not run (below).
+
+==== THE BROWSER HARNESSES: NOT RUN; MAY MOVE ====
+None pins a literal survival, pound or digest from a solved plan's forward run: each compares the page with Node on the same code at the light
+settings (4 points, the thin lattice), so the two move together. What may move is a fixture chosen because it "reads so at these settings":
+solver-strategy-ui.cjs (REQUIRED, new planner): the wording's four cases, each a library household that reads so now (S000 at target, S162 a short dip,
+   S054 a long dip, S364 never back at target; the main one S126); the rule of thumb "shown exactly when following it costs under half a point"; the skip
+   costs' fixture S116 (the first move's re-wrap must cost above 0 to skip, the costs not all 0, a planted dominated move at least 0).
+solver-planner-ui.cjs (REQUIRED, new planner): S116 "starts below its target (a dip)" with its back mark and raise line, S090 "at its target from the first
+   year" with no raise line, S224 working; the card's figures against Node's strategyOf.
+solver-projection-ui.cjs (REQUIRED, new planner): S126 and S188: the outlook's bands, the ledger's totals and moves, history's verdicts, the dial's four
+   rows, the age lines, the limits search's answers and the scenario's line, each against Node's; no fixture condition found beyond those.
+solver-progress-ui.cjs (REQUIRED, every visitor's plumbing): S126's tables digest and a 300-path simulation, the page's against Node's (the tables do not
+   move; the simulation moves on both sides alike).
+solver-config-ui.cjs (REQUIRED): the stored solves' keys, computed; no forward figure.
+solver-isolation-ui.cjs, solver-fullscale-ui.cjs: tables digests against Node's only; the tables do not move.
+phone-perf-ui.cjs (section 5) and phone-memory.cjs: time and memory under ceilings, not a figure of the forward run; a path's cost changes with either
+   key (the tie-break a pass over the moves above the cap, the shortlist far fewer moves scored), so the timings may move.
+load-perf-ui.cjs: the bundle's size under its ceilings (228KB, 232KB with the switch on, at D58 (2)'s limit); APP_CANDIDATE is in the page's own code
+   (src/solverKey.js imports it), so the key or keys add a few bytes there.
+
+THE FILES: the logs of both runs, each test's output whole, are in the session's scratch folder (figures/T, figures/TO: summary.tsv, collected.txt,
+hashes.txt, pin.log, candidate-all.log, state-candidate.txt; figures/tables-same.txt the scratch check).

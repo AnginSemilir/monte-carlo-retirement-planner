@@ -13,7 +13,7 @@ export function solvedSheetHtml(figures, { fmt, levers, rulesLine, code }) {
   return buildSolvedPlanHtml({
     answer: W.headlineWords(h, fmt), explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers, code,
     thisYearTitle: h.retired ? 'This year' : 'This year, before you retire',
-    actions: m.actions ? m.actions.actions.map(x => W.actionWords(x, wctx)) : [],
+    actions: m.actions ? [...m.actions.actions.map(x => W.actionWords(x, wctx)), ...(W.sweepWords(m.actions.sweep, wctx) ? [{ what: W.sweepWords(m.actions.sweep, wctx), cost: 'As the plan keeps cash at its buffer.' }] : [])] : [],
     rule: m.distil && m.distil.show ? W.ruleWords(m.distil, wctx) : null,
     ahead: m.ahead ? W.aheadRowsWords(m.ahead.rows, wctx) : [], comeBack: W.COME_BACK,
     compare: {

@@ -81,13 +81,17 @@ const fastYear = (plan, mv) => {
 {
   // the taper threshold: a need of £120k drawn pension first up to the taper threshold stops there, the rest from the other pots
   const plan = planOf(RICH, { giaDividendYield: 0 }), mv = move(['penPA', 'penBasic', 'penHR', ...PRE, 'penAny']);
-  const f = fastYear(plan, mv), e = engineYear(plan, mv), eTax = 0.75 * e.row.drawdownPensions;
-  ok(near(f.taxable, P.thr) && near(eTax, P.thr) && f.s[2] < f.s0[2], `2  a draw first up to the taper threshold stops at it (gross income £${f.taxable.toFixed(2)} in the forward run, £${eTax.toFixed(2)} in the engine; £${P.thr}), and the rest of the need comes from the other pots`);
+  // 12 Nov (the ceiling on the year's whole taxable income, ANSWERS.md section 5; D91, D93's unlock): a ceiling is where the
+  // draw AND the year's interest (the plan's £15,000 of cash; no dividends here) together reach the figure, so each draw below
+  // stops short of it by the interest, `I`. The allowance's half is unchanged: the interest is inside the starting rate band.
+  const f = fastYear(plan, mv), e = engineYear(plan, mv), eTax = 0.75 * e.row.drawdownPensions, I = e.row.savingsInterestSelf;
+  ok(I > 0 && near(f.taxable + I, P.thr) && near(eTax + I, P.thr) && f.s[2] < f.s0[2], `2  a draw first up to the taper threshold stops where it and the year's £${I.toFixed(2)} of interest reach it (gross income £${f.taxable.toFixed(2)} in the forward run, £${eTax.toFixed(2)} in the engine; £${P.thr}), and the rest of the need comes from the other pots`);
   const fb = fastYear(plan, move(['penPA', 'penBasic', ...PRE, 'penAny']));
-  ok(near(fb.taxable, P.higherRateStartsAt), `2  the product's basic-rate ceiling, beside it, stops at £${fb.taxable.toFixed(2)} (£${P.higherRateStartsAt})`);
+  ok(near(fb.taxable + I, P.higherRateStartsAt), `2  the product's basic-rate ceiling, beside it, stops at £${fb.taxable.toFixed(2)} (£${P.higherRateStartsAt} less the interest)`);
   for (const [tok, cap, steps] of [['penPAm', P.pa / 2, ['penPAm', ...PRE, 'penPA', 'penBm', 'penBasic', 'penAny']], ['penBm', MIDB, ['penPAm', 'penPA', 'penBm', ...PRE, 'penBasic', 'penAny']]]) {
     const fm = fastYear(plan, move(steps)), em = engineYear(plan, move(steps));
-    ok(near(fm.taxable, cap) && near(0.75 * em.row.drawdownPensions, cap), `2  a draw first up to ${tok} stops at its midpoint (£${fm.taxable.toFixed(2)} and £${(0.75 * em.row.drawdownPensions).toFixed(2)}; £${cap})`);
+    const stop = tok === 'penBm' ? cap - I : cap;
+    ok(near(fm.taxable, stop) && near(0.75 * em.row.drawdownPensions, stop), `2  a draw first up to ${tok} stops at its midpoint${tok === 'penBm' ? ' less the interest' : ''} (£${fm.taxable.toFixed(2)} and £${(0.75 * em.row.drawdownPensions).toFixed(2)}; £${cap})`);
   }
 }
 {
@@ -96,8 +100,10 @@ const fastYear = (plan, mv) => {
   const plan = planOf({ ...CARRY, spending: { ...CARRY.spending, targetSpend: 5000 } }, { giaDividendYield: 0 });
   const mv = move(['cash', 'other', 'isa', 'penPA', 'penBasic', 'penAny'], { harvest: true, harvestCeil: 'bm' });
   const f = fastYear(plan, mv), e = engineYear(plan, mv), f0 = fastYear(plan, { ...mv, harvest: false }), e0 = engineYear(plan, { ...mv, harvest: false });
-  const gross = MIDB / 0.75, net = gross - (MIDB - P.pa) * P.basicRate;
-  ok(near(f.taxable, MIDB) && near(f.s0[0] - f.s[0], gross) && near(e.row.drawdownPensions, gross), `2  a re-wrap to the basic band's midpoint draws £${gross.toFixed(2)} gross (forward run £${(f.s0[0] - f.s[0]).toFixed(2)}, engine £${e.row.drawdownPensions.toFixed(2)}), gross income ending at £${MIDB}`);
+  // (12 Nov, the ceiling on the whole taxable income: the re-wrap's taxable part is the midpoint less the year's interest, `I`,
+  // which the savings allowance covers with the harvest and without it)
+  const I = e.row.savingsInterestSelf, gross = (MIDB - I) / 0.75, net = gross - (MIDB - I - P.pa) * P.basicRate;
+  ok(I > 0 && near(f.taxable + I, MIDB) && near(f.s0[0] - f.s[0], gross) && near(e.row.drawdownPensions, gross), `2  a re-wrap to the basic band's midpoint draws £${gross.toFixed(2)} gross (forward run £${(f.s0[0] - f.s[0]).toFixed(2)}, engine £${e.row.drawdownPensions.toFixed(2)}), gross income and the £${I.toFixed(2)} of interest ending at £${MIDB}`);
   const dIsa = f.s[1] - f0.s[1], dGia = f.gia(f.s) - f0.gia(f0.s), dBasis = f.basis(f.s) - f0.basis(f0.s), dBasisE = e.st.giaBasis.self - e0.st.giaBasis.self;
   ok(near(dIsa, P.isaAllowance) && near(dGia, net - P.isaAllowance) && near(dBasis, net - P.isaAllowance) && near(dBasisE, net - P.isaAllowance),
     `2  its net £${net.toFixed(2)} fills the ISA's £${P.isaAllowance} (up £${dIsa.toFixed(2)} on the same move without it) and the rest, £${(net - P.isaAllowance).toFixed(2)}, goes to the taxable account at cost (its basis up £${dBasis.toFixed(2)}, the engine's £${dBasisE.toFixed(2)})`);
@@ -135,7 +141,7 @@ const gainOf = v => v[3] * (v[2] - v[12]);
 const moveOf = (r, ai, code) => {
   const a = r.actions[ai], ca = r.c.acts[ai];
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 // the same move with the kind's own part removed: its N4 tokens, its N4 re-wrap, its sale

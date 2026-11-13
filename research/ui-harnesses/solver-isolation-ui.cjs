@@ -9,7 +9,9 @@
  *    (this harness's own static server), a single household from the research library:
  *      - the first load registers the worker and reloads once; then the page is cross-origin isolated;
  *      - a plan saved before the worker existed still loads (the plan seeded before the first load is the plan on screen);
- *      - in the isolated page a solve split across workers gives the whole solve's tables, Node's bit for bit.
+ *      - in the isolated page a solve split across workers gives the whole solve's tables, the reference's bit for bit
+ *        (the unbundled source solved in this same Chromium, lib/reference.cjs: since 13 Nov 2026 the container's Chromium
+ *        and Node differ in the last place of exp and log, so Node's tables are another arithmetic's).
  * 3. With service workers unavailable (blocked for the context): the page is not isolated, and the solve runs whole in one
  *    worker, the same tables.
  * 4. The switch file (`coi-off` served beside the worker) while the worker controls the page: on the next load the page
@@ -19,6 +21,7 @@
  *   ISOLATION_PLANT=nosw ...   the worker's script left out of the site: the isolation and the split must fail
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+const { reference } = require('./lib/reference.cjs');
 const { execFileSync } = require('node:child_process');
 const { join, extname, normalize } = require('node:path');
 const { mkdtempSync, rmSync, existsSync, statSync, createReadStream } = require('node:fs');
@@ -69,11 +72,17 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
 
 (async () => {
   execFileSync('python3', [join(ROOT, 'research/build-engine.py')], { stdio: 'ignore' });
-  const E = await load('research/engine.mjs'), M = await load('src/solver/model.js'), D = await load('src/solverDigest.js');
-  const { solveForApp } = await load('src/solverApp.js'), { buildScenarios } = await load('research/policy-study/scenarios.mjs');
+  const { buildScenarios } = await load('research/policy-study/scenarios.mjs');
   const plan = buildScenarios().find(s => s.id === 'S126').plan;
-  const nodeDigest = await D.digestOf(D.tablesOf(solveForApp(E, M, plan, LIGHT)));
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  // the reference: the whole solve from the unbundled source, in this Chromium (lib/reference.cjs)
+  const ref = await reference(b);
+  const refDigest = await ref.run(async ({ plan, opts }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js'), D = await import('/src/solverDigest.js');
+    const { solveForApp } = await import('/src/solverApp.js');
+    return D.digestOf(D.tablesOf(solveForApp(E, M, plan, opts)));
+  }, { plan, opts: LIGHT });
+  await ref.close();
 
   // 1. the site as built: the classic planner
   { const ctx = await b.newContext(), p = await ctx.newPage(), urls = [], errs = [];
@@ -110,7 +119,7 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
       const drawn = await p.waitForFunction(() => !!document.querySelector('[data-place]'), null, { timeout: 15000 }).then(() => true, () => false);
       ok('a plan saved before the worker existed still loads', savedPlan && savedPlan.spending && Number(savedPlan.spending.targetSpend) === Number(plan.spending.targetSpend) && drawn, `target ${savedPlan && savedPlan.spending && savedPlan.spending.targetSpend}, the app drawn ${drawn}`);
       const split = await solveIn(p, plan, LIGHT, 2);
-      ok('in the isolated page a solve split across two workers gives the whole solve\'s tables, Node\'s bit for bit', split.canSplit && split.parts === 2 && split.digest === nodeDigest, `${split.parts} parts, ${split.values} values, ${split.digest.slice(0, 16)} against ${nodeDigest.slice(0, 16)}`);
+      ok('in the isolated page a solve split across two workers gives the whole solve\'s tables, the reference\'s bit for bit', split.canSplit && split.parts === 2 && split.digest === refDigest, `${split.parts} parts, ${split.values} values, ${split.digest.slice(0, 16)} against ${refDigest.slice(0, 16)}`);
       ok('switch on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
 
       // 4. the switch file, served while the worker controls the page (the live site's case): on the next load the page
@@ -134,7 +143,7 @@ const solveIn = (p, plan, opts, parts) => p.evaluate(async ({ plan, opts, parts 
       await p.goto(`http://localhost:${BARE_PORT}/`, { waitUntil: 'load' }); await p.waitForTimeout(3000);
       const s = await state(p).catch(() => ({ isolated: false, regs: 0 }));
       const whole = await solveIn(p, plan, LIGHT, 2);
-      ok('service workers blocked: the page is not isolated, and the solve runs whole in one worker, the same tables', !s.isolated && !whole.canSplit && whole.parts === 1 && whole.digest === nodeDigest, `isolated ${s.isolated}, ${whole.parts} part, ${whole.digest.slice(0, 16)}`);
+      ok('service workers blocked: the page is not isolated, and the solve runs whole in one worker, the same tables', !s.isolated && !whole.canSplit && whole.parts === 1 && whole.digest === refDigest, `isolated ${s.isolated}, ${whole.parts} part, ${whole.digest.slice(0, 16)}`);
       ok('service workers blocked: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await ctx.close(); }
   } finally {

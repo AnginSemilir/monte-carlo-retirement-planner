@@ -1,0 +1,47 @@
+THE COUPLES' RE-RUN'S PLANS, ARM BY ARM (EXPLORATORY; the plans' inputs alone, on the code of the tree at 4e4174b1; no file of the run and no path of seed 7021 read): 40 couples of the panel
+  S011 (Bracket Fill Basic, lump sum): APP faee327066bf, SHIPC faee327066bf, CANDC faee327066bf: one plan
+  S031 (Bracket Fill Basic): APP 368b3553a0e6, SHIPC 368b3553a0e6, CANDC 368b3553a0e6: one plan
+  S047 (Bracket Fill Basic): APP 66fc0aff487a, SHIPC 66fc0aff487a, CANDC 66fc0aff487a: one plan
+  S063 (Bracket Fill Basic, lump sum): APP ad53fd0f42b8, SHIPC ad53fd0f42b8, CANDC ad53fd0f42b8: one plan
+  S083 (Windfall to ISA, lump sum): APP 6f866378d440, SHIPC 6f866378d440, CANDC 6f866378d440: one plan
+  S097 (Bracket Fill Basic (harvest off), lump sum): APP 888008e32b92, SHIPC 888008e32b92, CANDC 888008e32b92: one plan
+  S115 (Windfall to ISA): APP 0ecf1ffb6fd2, SHIPC 0ecf1ffb6fd2, CANDC 0ecf1ffb6fd2: one plan
+  S133 (ISA First, lump sum): APP 82030bc8774e, SHIPC 82030bc8774e, CANDC 82030bc8774e: one plan
+  S149 (ISA First, lump sum): APP d3dbc49aa536, SHIPC d3dbc49aa536, CANDC d3dbc49aa536: one plan
+  S167 (Windfall to ISA, lump sum): APP 529ebf7682f4, SHIPC 529ebf7682f4, CANDC 529ebf7682f4: one plan
+  S189 (Bracket Fill, lump sum): APP 7cca0e1a6880, SHIPC 7cca0e1a6880, CANDC 7cca0e1a6880: one plan
+  S205 (Bracket Fill Basic (harvest off), lump sum): APP c7c3b62f9418, SHIPC c7c3b62f9418, CANDC c7c3b62f9418: one plan
+  S223 (Bracket Fill Basic, lump sum): APP 37db3be43c03, SHIPC 37db3be43c03, CANDC 37db3be43c03: one plan
+  S239 (Bracket Fill, lump sum): APP 05bf4a176d00, SHIPC 05bf4a176d00, CANDC 05bf4a176d00: one plan
+  S259 (Bracket Fill Basic, lump sum): APP 1389754fe696, SHIPC 1389754fe696, CANDC 1389754fe696: one plan
+  S277 (Bracket Fill, lump sum): APP f18c7cd9bb64, SHIPC f18c7cd9bb64, CANDC f18c7cd9bb64: one plan
+  S293 (Bracket Fill, lump sum): APP 59b230b4798b, SHIPC 6080f4d27c15, CANDC 6080f4d27c15: DIFFERENT PLANS
+    SHIPC against APP, part: mpaaAge 58 against 60
+    CANDC against APP, part: mpaaAge 58 against 60
+    with every owner's MPAA age left out of the hash: APP 878cc4897992, SHIPC 878cc4897992, CANDC 878cc4897992: the same, so the MPAA age is the only difference
+    the MPAA's limit £10000; the plan's yearly pension contributions: pen_self £6960; pen_part £4176
+    arm A's plan run by the engine on 2000 paths of seed 7002 with the MPAA ages 60 and 60 (arm A's) and 60 and 58 (the solver arms'): 0 paths differ in survival, estate, lifetime tax or unmet spending
+  S371 (Bracket Fill, lump sum): APP d6c4d7a1ea0b, SHIPC d6c4d7a1ea0b, CANDC d6c4d7a1ea0b: one plan
+  S387 (ISA First (harvest off), lump sum): APP b9a845f2d3c9, SHIPC b9a845f2d3c9, CANDC b9a845f2d3c9: one plan
+  S403 (ISA First, lump sum): APP d46b33adaa27, SHIPC d46b33adaa27, CANDC d46b33adaa27: one plan
+  S301F (Bracket Fill, lump sum): APP 634c92ccbbdf, SHIPC 634c92ccbbdf, CANDC 634c92ccbbdf: one plan
+  S305F (Bracket Fill, lump sum): APP a20ad7ab67ab, SHIPC a20ad7ab67ab, CANDC a20ad7ab67ab: one plan
+  S307F (Bracket Fill Basic, lump sum): APP 933e60472418, SHIPC 933e60472418, CANDC 933e60472418: one plan
+  S309F (Bracket Fill Basic): APP aa4beca9bcbb, SHIPC aa4beca9bcbb, CANDC aa4beca9bcbb: one plan
+  S311F (Bracket Fill Basic): APP eb43498d3165, SHIPC eb43498d3165, CANDC eb43498d3165: one plan
+  S317F (Bracket Fill, lump sum): APP bc7063b1b6c5, SHIPC bc7063b1b6c5, CANDC bc7063b1b6c5: one plan
+  S319F (ISA First): APP 72229f61d889, SHIPC 72229f61d889, CANDC 72229f61d889: one plan
+  S321F (Bracket Fill Basic): APP 29225143725c, SHIPC 29225143725c, CANDC 29225143725c: one plan
+  S323F (Bracket Fill Basic): APP 75a148a4c0f6, SHIPC 75a148a4c0f6, CANDC 75a148a4c0f6: one plan
+  S325F (ISA First (harvest off)): APP 2524328da2a8, SHIPC 2524328da2a8, CANDC 2524328da2a8: one plan
+  S327F (ISA First, lump sum): APP aef5466c6340, SHIPC aef5466c6340, CANDC aef5466c6340: one plan
+  S329F (ISA First, lump sum): APP 056b14b76f73, SHIPC 056b14b76f73, CANDC 056b14b76f73: one plan
+  S331F (Bracket Fill, lump sum): APP 470e957a68fe, SHIPC 470e957a68fe, CANDC 470e957a68fe: one plan
+  S333F (Bracket Fill Basic): APP fcfd0d5bcdb7, SHIPC fcfd0d5bcdb7, CANDC fcfd0d5bcdb7: one plan
+  S335F (Bracket Fill): APP 79461a6e01bd, SHIPC 79461a6e01bd, CANDC 79461a6e01bd: one plan
+  S337F (ISA First): APP a2b34c2b188e, SHIPC a2b34c2b188e, CANDC a2b34c2b188e: one plan
+  S341F (Bracket Fill, lump sum): APP f95c8aaf83d1, SHIPC f95c8aaf83d1, CANDC f95c8aaf83d1: one plan
+  S343F (Bracket Fill Basic): APP 645ae2d358e2, SHIPC 645ae2d358e2, CANDC 645ae2d358e2: one plan
+  S345F (Bracket Fill Basic): APP c44bc01a130f, SHIPC c44bc01a130f, CANDC c44bc01a130f: one plan
+  S347F (Bracket Fill Basic): APP 02ad49df1bd2, SHIPC 02ad49df1bd2, CANDC 02ad49df1bd2: one plan
+1 of 40 couples with arms on different plans

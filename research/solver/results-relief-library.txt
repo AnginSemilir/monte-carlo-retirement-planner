@@ -1,0 +1,18 @@
+item 4's sizing, the plan's own rules (EXPLORATORY, D69): 113 households of the two touched lists with an Auto deposit (14 couples, 47 still working at the start), 1000 paths of seed 7002; items 3 and 4 less item 3 alone, survival in points
+  mean +0.13; median +0.00; the lowest +0.00 (S002); the highest +1.30 (S270)
+  falling by more than 1 point 0, moving by more than 3 0; any loss 0; any gain 44; unmoved 69
+  the Auto route into a pension relieved on 113: the money kept from the pension's cost £3,842 a household on average, refunds to cash on 19 (£234,233 in all)
+  the twelve that move most:
+    S270 working: 76.6% before, +1.30 (13 saved, 0 lost); Auto 2038 £171,000; into the pension £70,457, the rest on £100,543 to £114,634, a refund £6,946
+    S246 working: 69.1% before, +1.10 (11 saved, 0 lost); Auto 2038 £171,000; into the pension £70,457, the rest on £100,543 to £114,634, a refund £6,946
+    S290 working: 53.6% before, +1.10 (11 saved, 0 lost); Auto 2038 £32,400; into the pension £31,084, the rest on £1,316 to £7,533, a refund £0
+    S250 working: 42.3% before, +0.80 (8 saved, 0 lost); Auto 2038 £432,000; into the pension £129,724, the rest on £302,276 to £328,221, a refund £27,842
+    S258 working: 77.1% before, +0.80 (8 saved, 0 lost); Auto 2038 £171,000; into the pension £70,457, the rest on £100,543 to £114,634, a refund £6,946
+    S262 working: 53.2% before, +0.60 (6 saved, 0 lost); Auto 2038 £432,000; into the pension £129,724, the rest on £302,276 to £328,221, a refund £27,842
+    S278 working: 53.8% before, +0.60 (6 saved, 0 lost); Auto 2038 £32,400; into the pension £31,084, the rest on £1,316 to £7,533, a refund £0
+    S330 working: 69.1% before, +0.60 (6 saved, 0 lost); Auto 2044 £171,000; into the pension £53,710, the rest on £117,290 to £128,032, a refund £3,446
+    S350 working: 49.8% before, +0.60 (6 saved, 0 lost); Auto 2044 £32,400; into the pension £23,473, the rest on £8,927 to £13,621, a refund £0
+    S314 working: 49.4% before, +0.50 (5 saved, 0 lost); Auto 2044 £32,400; into the pension £23,473, the rest on £8,927 to £13,621, a refund £0
+    S206 working: 95.9% before, +0.40 (4 saved, 0 lost); Auto 2033 £32,400; into the pension £3,600, the rest on £28,800 to £29,520, a refund £0
+    S282 working: 72.8% before, +0.40 (4 saved, 0 lost); Auto 2038 £171,000; into the pension £70,457, the rest on £100,543 to £114,634, a refund £6,946
+THE STOP (any household's survival falling by more than 1 point, or moving by more than 3): not met

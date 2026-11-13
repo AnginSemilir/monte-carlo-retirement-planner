@@ -7,16 +7,18 @@
  *    steps 200 then 500 paths), opted in to the new planner (rp_planner 'new': step U, LAYOUT.md section 11.2), a single
  *    household from the research library (never anybody's own plan):
  *      - Your plan is the solved plan, and comes as its own chunk;
- *      - its figures, once all its paths are in, are Node's (src/solverStrategy.js strategyOf on the saved plan, solved at the
- *        same light settings, on the projection's seed): the solved plan's bit for bit (the headline, its comparison column,
- *        the raise), your plan's and both arms' money bands within a relative 1e-12 (Node's Math.pow and Chromium's round in
- *        the last place differently: research/ui-harnesses/pow-probe.cjs);
+ *      - its figures, once all its paths are in, are the reference's bit for bit, every one (src/solverStrategy.js strategyOf
+ *        on the saved plan, solved at the same light settings, on the projection's seed, from the unbundled source in this
+ *        same Chromium: lib/reference.cjs, 13 Nov 2026. Until then the reference was Node's, the money held within a
+ *        relative 1e-12 for Math.pow's last place; this container's Chromium now differs from Node in exp and log too, so
+ *        Node's tables are another arithmetic's: research/ui-harnesses/pow-probe.cjs); and the two survival figures, the
+ *        solved plan's and your plan's, are Node's;
  *      - the words on the card and the explanation under it are the wording table's for that case (src/solverWords.js);
  *      - this year's actions come in, then the rule of thumb (src/solverDistil.js), shown exactly when following it costs
  *        under half a point of survival (the harness's light settings: 300 paired paths).
  * 3. The wording's four cases (B4), each on a library household that reads so at these settings: starting at the target,
  *    a short dip (the note), a long dip (the full text), never back at target (the full text).
- *    And the skip costs on their fixture (SKIP_FIXTURE): the page's Node's, a known costly action above 0, the costs not all
+ *    And the skip costs on their fixture (SKIP_FIXTURE): the page's the reference's, a known costly action above 0, the costs not all
  *    0, and a planted dominated action at least 0.
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
  *    and the classic planner (the app's rules).
@@ -25,6 +27,7 @@
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
 const { mkdtempSync, rmSync } = require('node:fs');
@@ -41,8 +44,13 @@ const CASES = { main: 'S126', atTarget: 'S000', short: 'S162', long: 'S054', nev
 // basic-rate limit (research/solver/skip-scan.mjs, 2 Nov: none of the 30 retired in their bridge). S116 (61, the state
 // pension at 67) draws it to the personal allowance and re-wraps it, and cuts its spending to 80%; skipping the re-wrap
 // lost 3 paths of 300 and saved none, skipping the cut lost 4 and saved none (skip-scan.mjs --all)
+// 13 Nov 2026: on the code after the review of 9 Nov's items 3 to 5 and D73 (the year in HMRC's order, the sweep to the ISA,
+// the solve on anchors) S116's re-wrap costs nothing to skip (lost 0, saved 0), where main's code still reads it costly;
+// the scan again on that code (skip-scan.mjs --all, research/solver/results-skip-scan.txt): S064 (61, the state pension at
+// 68) draws the pension to the personal allowance and re-wraps it, a tier down; skipping the re-wrap lost 2 paths of 300
+// and saved none. S068's and S106's re-wraps read the same; S064 is the first by its number.
 // planted (STRATEGY_SKIP_FIXTURE=S126, a household surviving nearly every path, its skips all 0): the costly check fails
-const SKIP_FIXTURE = process.env.STRATEGY_SKIP_FIXTURE || 'S116';
+const SKIP_FIXTURE = process.env.STRATEGY_SKIP_FIXTURE || 'S064';
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
@@ -95,6 +103,19 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
   const fmt = v => E.formatGBP(v);
   const nodeStrategy = pl => strategyOf(E, solveForApp(E, M, pl, LIGHT), pl, { trials: LIGHT.strategySteps[LIGHT.strategySteps.length - 1], seed: SEED });
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  // the reference: the same figures from the unbundled source, in this Chromium (lib/reference.cjs); as JSON, the route the
+  // page's own figures take through its data attribute
+  const ref = await reference(b);
+  const refStrategy = async pl => JSON.parse(await ref.run(async ({ pl, light, seed }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
+    return JSON.stringify(strategyOf(E, solveForApp(E, M, pl, light), pl, { trials: light.strategySteps[light.strategySteps.length - 1], seed }));
+  }, { pl, light: LIGHT, seed: SEED }));
+  const refActions = async pl => JSON.parse(await ref.run(async ({ pl, light, seed }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { solveForApp } = await import('/src/solverApp.js'), { actionsOf } = await import('/src/solverStrategy.js');
+    return JSON.stringify(actionsOf(E, solveForApp(E, M, pl, light), pl, { seed, n: light.strategyActionsN }).actions);
+  }, { pl, light: LIGHT, seed: SEED }));
 
   // 1. not opted in (Phase 12: the switch is on in the source, so a visitor who has not opted in is the switch-off case; the
   // gate's served build, either mode's)
@@ -126,19 +147,15 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       // the card's words and the explanation beside it: in the new planner the explanation sits under the card in Your plan
       // (src/PlannerPlan.jsx), no longer inside it
       const text = done ? await p.evaluate(() => { const c = document.querySelector('[data-solver-strategy]'), x = document.querySelector('[data-place="plan"] [data-strategy-explanation]'); return (c ? c.textContent : '') + ' ' + (x ? x.textContent : ''); }) : '';
-      const node = done ? nodeStrategy(await saved(p)) : null;
       if (which === 'main') {
-        // the solved plan's figures bit for bit (the headline, its comparison column, the raise, the outlook's spending), your
-        // plan's and both arms' money bands within a relative 1e-12: Node's Math.pow and Chromium's round differently in the
-        // last place (research/ui-harnesses/pow-probe.cjs, results-pow-probe.txt), and the money passes through it (your plan's
-        // median pot on S126 1 ulp apart since 2 Nov; step U's outlook, the solved plan's money bands, a few years 1 ulp apart),
-        // where the counts (survival, the headline's levels and years) do not move
-        const only = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: o.outlook && { ...o.outlook, wealth: null } });
-        const solvedSame = done && JSON.stringify(only(figs)) === JSON.stringify(only(node));
-        const rd = (x, y) => Math.abs(x - y) / Math.max(1, Math.abs(y));
-        const rel = done ? Math.max(...Object.keys(node.compare.yours).map(k => rd(figs.compare.yours[k], node.compare.yours[k])),
-          ...['yours', 'solved'].flatMap(arm => node.outlook.wealth[arm].flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => rd(figs.outlook.wealth[arm][t][k], bd[k]))))) : Infinity;
-        ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's and the money bands within a relative 1e-12`, solvedSame && rel <= 1e-12, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}% (Node ${node.headline.survival.toFixed(1)}%), yours ${figs.compare.yours.survival.toFixed(1)}% (largest relative gap ${rel.toExponential(1)}); ${diffs(only(figs), only(node)).slice(0, 2).join('; ') || 'every other figure the same'}` : 'not done');
+        // every figure the reference's bit for bit: the same source, unbundled, in this same Chromium (lib/reference.cjs), so
+        // the arithmetic is the page's own and a difference is the plumbing's; Node's solve beside it, its two survival
+        // figures held (the counts did not move between Node's arithmetic and Chromium's; the money's last place does)
+        const pl = done ? await saved(p) : null, want = done ? await refStrategy(pl) : null, node = done ? nodeStrategy(pl) : null;
+        const same = done && JSON.stringify(figs) === JSON.stringify(want);
+        const nodeSame = done && figs.headline.survival === node.headline.survival && figs.compare.yours.survival === node.compare.yours.survival;
+        ok(`${id}: all ${LIGHT.strategySteps[1]} paths in, every figure the reference's bit for bit (headline, comparison, raise, both arms' money bands)`, same, done ? `${figs.headline.case}, start ${figs.headline.startLevel}%, survival ${figs.headline.survival.toFixed(1)}%, yours ${figs.compare.yours.survival.toFixed(1)}%; ${diffs(figs, want).slice(0, 2).join('; ') || 'every figure the same'}` : 'not done');
+        ok(`${id}: the solved plan's survival and your plan's are Node's`, nodeSame, done ? `${figs.headline.survival} and ${figs.compare.yours.survival} against Node's ${node.headline.survival} and ${node.compare.yours.survival}` : 'not done');
         ok(`${id}: Your plan came as its own chunk`, urls.some(u => /PlannerPlan/.test(u)));
         // this year's actions, then the rule of thumb, shown exactly when following it costs under half a point
         let more = true;
@@ -161,7 +178,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       await p.context().close();
     }
 
-    // 2b. the skip costs on the fixture: the page's Node's; the re-wrap (the pension drawn to the allowance in a bridge year)
+    // 2b. the skip costs on the fixture: the page's the reference's; the re-wrap (the pension drawn to the allowance in a bridge year)
     // costs above 0; the costs not all 0; a planted dominated action (the year's move at its highest spending level, the rest
     // of it unchanged) costs at least 0
     if (!only || only.includes('skips')) {
@@ -169,11 +186,12 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
       let done = true;
       try { await p.waitForSelector('[data-strategy-actions="done"]', { timeout: 900000 }); } catch (e) { done = false; }
       const page = done ? await p.$$eval('[data-strategy-action]', els => els.map(el => ({ part: el.dataset.strategyAction, cost: el.dataset.strategyCost === '' ? null : Number(el.dataset.strategyCost) }))) : [];
+      // the dominated action below is Node's own run on Node's solve; the page's costs are held to the reference's
       const pl = done ? await saved(p) : null, r = done ? solveForApp(E, M, pl, LIGHT) : null;
-      const node = done ? actionsOf(E, r, pl, { seed: SEED, n: LIGHT.strategyActionsN }) : null;
+      const node = done ? { actions: await refActions(pl) } : null;
       const same = done && JSON.stringify(page) === JSON.stringify(node.actions.map(x => ({ part: x.part, cost: x.cost })));
       const harvest = done ? node.actions.find(x => x.part === 'harvest') : null;
-      ok(`${SKIP_FIXTURE}: this year's skip costs in, the page's Node's (${LIGHT.strategyActionsN} paired paths)`, same, done ? page.map(x => `${x.part} ${x.cost === null ? '-' : x.cost.toFixed(2)}`).join('; ') : 'not done');
+      ok(`${SKIP_FIXTURE}: this year's skip costs in, the page's the reference's (${LIGHT.strategyActionsN} paired paths)`, same, done ? page.map(x => `${x.part} ${x.cost === null ? '-' : x.cost.toFixed(2)}`).join('; ') : 'not done');
       ok(`${SKIP_FIXTURE}: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0`, !!harvest && harvest.cost > 0 && node.actions.some(x => x.cost), harvest ? `the re-wrap ${harvest.cost.toFixed(2)} points (lost ${harvest.lost}, saved ${harvest.saved})` : 'no re-wrap in the first move');
       if (done) {
         const f = firstMove(E, r), sc = f.sc, q = partsOf(r.actions[f.mv.index], r.c.acts[f.mv.index]), top = Math.max(...r.actions.map(x => x.spendLevel || 1));
@@ -207,7 +225,7 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
     if (server) server.kill();
     rmSync(OUT, { recursive: true, force: true });
   }
-  await b.close();
+  await ref.close(); await b.close();
   console.log(fails ? `\n${fails} FAILED` : '\nall ok');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.log(`  FAIL  the harness threw: ${e && e.stack ? e.stack : e}`); process.exit(1); });

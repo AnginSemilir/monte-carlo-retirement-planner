@@ -1,0 +1,70 @@
+D73'S PORT (the review of 9 Nov, item 10's stage B and item 5's default; D73, D74, D82, D83): the checks on the code as committed, 11 Nov
+the candidate d71f65ae871e -> af001697ce1b (sweepCashIsaTo 'isa', coarse w2a3b3g2c2-NT-LRVOH-h3, the bridge reference's lattice 80 x 21 x 64)
+
+== step 6, the new defaults left out: node research/solver/d73-step6.mjs <a tree at 11bb254> <this tree> S116 ; ... S370
+S116 at 4 points: the tree before the port against the port with sweepCashIsaTo and coarse left out: 0 of 3919104 table values differ
+S370 at 4 points: the tree before the port against the port with sweepCashIsaTo and coarse left out: 0 of 5007744 table values differ
+
+== node research/tests/state-check.test.mjs
+PASS  1. lockstep, 1047 household-years: the engine's state in the solver's slots against the forward run's, worst gaps: pension 0.0e+0; ISA 8.1e-10 (S370 path 4 year 45); taxable and cash 9.3e-10 (carry path 6 year 19); tax-free cash taken 5.8e-11 (S370 path 7 year 19); cash ISA 1.3e-10 (carry path 9 year 23); gains carried 5.4
+PASS  the move handed to the engine is tablePolicy's own whenever both pick the same index (mismatches 0)
+ALL PASS: 14 checks
+
+== node research/tests/solve-coarse.test.mjs
+PASS  1. every cell an anchor, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S116 at 4 points: 0 of 3919104 table values differ from the solve without the option
+PASS  2. every move listed at the cells between anchors, S370 at 4 points: 0 of 5007744 table values differ from the solve without the option
+PASS  2. planted (a move's flow kept from the cell before), S116: 2150769 of 3919104 table values differ
+PASS  3. w2a3b3g2c2-NT-LRVOH-h3 on S370 with the repeat-move rule against without it: 0 of 5007744 table values differ (261030 expectations taken from a listed move)
+PASS  3. planted (the position alone matched, neither the growth class nor the layer), S370: 2101769 of 5007744 table values differ
+PASS  4. w2a3b3g2c2-NT-LRVOH-h3 on S370, split across two parts against one thread: 0 of 5007744 table values differ
+PASS  4. planted (the anchors' copied cells not made before the second pass), S370 split: 1214338 of 5007744 table values differ
+PASS  5. meta.coarse records the setting: {"w":2,"a":3,"b":3,"g":2,"c":2,"src":"NT","expand":"LRVOH","climb":3}
+PASS  5. 33839 cells solved on a shortlist of 34.3 moves on average; cells with nothing listed 0
+PASS  5. the anchors are 8.3% of the grid's cells at these strides (4 x 6 x 6 x 3 x 3)
+PASS  6. refused outside E5's path (tsOnce false): coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays
+PASS  7. at the dial's position 3 the locked solve keeps the whole menu (meta.coarse {"off":"a locked dial position keeps the whole menu"})
+PASS  8. consent withdrawn on S116: the app's solve runs on the whole menu (its 699840 table values' digest d70ea0834d133ac1, the solve's with the setting taken out d70ea0834d133ac1; meta.coarse {"off":"no joint tier state on this solve: the whole menu"})
+PASS  8. where the solve can take it (S116, consent as the plan's), the app's solve is on the shortlist: 25524 cells
+PASS  9. the predicate against the refusal on 8 option sets: fits as the candidate; refused tsOnce false, tsLean false, payWhereOnePays, countFailPicks, consent withdrawn, a tsOnce plant, without joint worlds
+ALL PASS: 16 checks
+
+== SOLVE_COARSE_PLANT=lockcoarse, then fitsall (each plant's failing check)
+FAIL  7. at the dial's position 3 the locked solve keeps the whole menu (meta.coarse none): coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays
+FAIL  8. consent withdrawn on S116: the app's solve runs on the whole menu (no solve; meta.coarse none): coarse needs the joint tier state's E5 path with its smaller cuts, the full level scan, and neither a coverage axis nor payWhereOnePays
+
+== node research/tests/solve-size.test.mjs
+PASS  V8's --max-optimized-bytecode-size read: 61440 bytes (Node v22.23.4)
+PASS  1. solve()'s bytecode 61395 bytes against the limit 61440: 45 under
+PASS  2. planted: 212 dead statements inside solve() take it to 64294 bytes, 2854 over the limit, and the check fails
+ALL PASS: 3 checks
+
+== node research/tests/run-all.mjs fast -j 4
+run-all fast: 61 files found, 61 run, 61 passed
+
+== the protected files edited, each under the unlock named
+D83 (D81 (A), its condition met): couple-quick.test.mjs check 5, windfall-relief.test.mjs check 6, couple-share.test.mjs check 2 (the digests; results-d73-digests.txt); fair-variables.mjs rows 35 and 36
+D82: state-check.test.mjs (moveOf carries cgtSale and sweepIsa), speed-port.test.mjs (D29's candidate from BEFORE_D73_OPTS), solver-app.test.mjs (check 1's lattice plant nz 32)
+
+== step 8, stored solves (after the port's commit): node research/tests/solve-coarse.test.mjs --full
+PASS  10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (solveForApp: the stored solve was made on the whole menu and this solve is on anchors and ); the reverse (solveForApp: the stored solve was made on anchors and shortlists and this solve is on the )
+PASS  10. a record of its own kind restores: 0 of 5878656 table values differ on S116 solved on anchors; the whole-menu solve's digest the same; each one's meta.coarse kept
+PASS  11. the known answer, S116 at 45 points, 1,000 paths of seed 99001: survival 90.9% on anchors and shortlists (solved in 45 s), 90.8% on the whole menu (354 s); within 0.5 points
+ALL PASS: 19 checks
+== SOLVE_COARSE_PLANT=restoreany node research/tests/solve-coarse.test.mjs
+FAIL  10. a stored solve of the other kind is refused: a whole-menu record for a solve on anchors (restore: world 0 has 4 layers, the stored solve 1); the reverse (restore: world 0 has 1 layers, the stored solve 4)
+FAILED: 1 of 18 checks
+== node research/tests/cache-key.test.mjs ; then CACHE_KEY_PLANT=nod73
+PASS  8  the stored solves' key names the candidate's coarse and sweepCashIsaTo, consent withdrawn and the dial's position  -- the plan a4ff65a95180; without the two keys 8f88f0f9fe22; consent withdrawn a4f0d5d84f8c; the dial at 3 bf26a929ee7b
+=========== 8 passed, 0 failed ===========
+FAIL  8  the stored solves' key names the candidate's coarse and sweepCashIsaTo, consent withdrawn and the dial's position  -- the plan 8f88f0f9fe22; without the two keys 8f88f0f9fe22; consent withdrawn a68a47c5e137; the dial at 3 944da3f7ec00
+=========== 7 passed, 1 failed: 8 ===========
+
+== step 9, gate 5 again on the port (results-gate5.txt), through the launcher from 597f7bf8, the machine running nothing else
+  bridge 4         0/36741600                135.0    63.3     25.6         0.469          0.190      2.47
+  S126             0/34992000                139.0    54.7     23.0         0.394          0.165      2.38
+  S370             0/40240800                137.1    74.6     28.8         0.544          0.210      2.59
+  share 0.50       0/34992000                135.6    56.8     22.3         0.419          0.164      2.55
+  median: CAND/PRODUCT x0.444, SPLIT/PRODUCT x0.178, the split's speed-up x2.51
+VERDICT E2: EXACT
+VERDICT GATE 5 (the split candidate at 45 points at most x1.25 the product's solve at 30, on each household): MET

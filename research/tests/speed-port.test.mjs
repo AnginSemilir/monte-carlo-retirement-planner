@@ -29,7 +29,7 @@ import * as M from '../../src/solver/model.js';
 import * as S from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { modelStateOf, withTable } from '../../src/solver/bridge.js';
-import { CANDIDATE_OPTS, candidatePlan } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, BEFORE_D73_OPTS, candidatePlan } from '../solver/candidate.mjs';
 import { checkE3pclsPin } from '../solver/e3pcls-pin.mjs';
 import { LAMBDA } from '../solver/panel-7uf.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -45,7 +45,9 @@ checkE3pclsPin({ ...CANDIDATE_OPTS });   // e3pcls guard: the candidate's solves
 // CAND is the candidate as D29 left it, the option unset (candidate.json less tableDealing since D30, and less failDelivered
 // since D43), so check 1 compares what the code before the port solved, and checks 3 and 4 set the option themselves (the
 // reviewer of 26 Oct, finding 2; of 29 Oct, finding 1b)
-const { tableDealing: _td, failDelivered: _fd, ...D29_OPTS } = CANDIDATE_OPTS;
+// built from the candidate before D73 (candidate.mjs BEFORE_D73_OPTS: no sweep to the ISA, no solve on anchors, the lattice as it was),
+// so it still means what D29 left (the unlock of 11 Nov, D82): no pinned digest moves
+const { tableDealing: _td, failDelivered: _fd, ...D29_OPTS } = BEFORE_D73_OPTS;
 const solve = (id, arm, extra = {}, pts = PTS) => {
   const base = { lambda: LAMBDA, points: pts, bequestWeight: 0.02 };
   return arm === 'SHIP' ? S.solvePlan(E, M, candidatePlan(E, planOf(id)), base) : S.solvePlan(E, M, candidatePlan(E, planOf(id)), { ...D29_OPTS, ...(pts === 45 ? {} : LIGHT), ...base, ...extra });
@@ -76,10 +78,13 @@ const hashes = r => ({ table: arraysHash(r.mix.tables, 3), layer: arraysHash([r.
 const same = (a, b) => ['table', 'layer', 'aref', 'run'].every(k => a[k] === b[k]);
 const tablesOnly = r => `${arraysHash(r.mix.tables, 3)}/${arraysHash([r.tablesW], 99)}`;
 
-// 1. identity, the option unset: the code before the port (0021898), recorded there with --record
+// 1. identity, the option unset: the code before the port (0021898), recorded there with --record; re-recorded on item 3's code (D69),
+// and S370's again on item 4's (its Auto deposit, routed into the pension, relieved); all four again on 12 Nov (the ceiling on the
+// year's whole taxable income, ANSWERS.md section 5; D91, D93's unlock: with the ceiling's one function switched off each is the
+// figure before, results-harvest-ceiling.txt)
 const WANT = {
-  quick: {"S224 SHIP":{"table":"1e7cb1868f1e3ee8","layer":"0f2baf48de46bb59","aref":"-","run":"f86a428710404f38"},"S370 SHIP":{"table":"c818f491471a363f","layer":"6e99a4198bd55789","aref":"-","run":"9291e4b208bfc7f2"},"S224 CAND":{"table":"b3aee4e120470d44","layer":"9c63773b72b98676","aref":"-","run":"76a93a8197e10a36"},"S370 CAND":{"table":"b84ebf1d6c25052c","layer":"2d1c886ece7e4b0f","aref":"26a9868a554fdb23","run":"8055e77b0a15da5a"}},
-  full: {"S224 SHIP":{"table":"5dd89c0ef1bc4aad","layer":"0a1db04e01ce4006","aref":"-","run":"c909633f6c90da3c"},"S370 SHIP":{"table":"1b6ec15444d9e032","layer":"cba22d0450f4cab9","aref":"-","run":"563d54ee2038647b"},"S224 CAND":{"table":"4268de771a289678","layer":"958f37834f7f4b76","aref":"-","run":"dc9e97f6bdb44afb"},"S370 CAND":{"table":"a0b1792426a29d6e","layer":"68e88a44a93db1eb","aref":"35b72dc2dc22750d","run":"ab382b36ee46175d"}}
+  quick: {"S224 SHIP":{"table":"b7ebc7c4bd50438b","layer":"f48e17f08ef26ba9","aref":"-","run":"8141966a8032bc9b"},"S370 SHIP":{"table":"42cf8ffa407421d8","layer":"a1ab9ea357cc9f1d","aref":"-","run":"746f99c088d052d9"},"S224 CAND":{"table":"919ec9ee5bc6acff","layer":"5d979be57c47bc2d","aref":"-","run":"124de2a8e5e5ed90"},"S370 CAND":{"table":"940e5f027d410da4","layer":"c7738c7bd88ec923","aref":"bf852694ed07cef1","run":"b9c4492a09df6a95"}},
+  full: {"S224 SHIP":{"table":"7e5eca461bd5d44d","layer":"a43f9880ecb640ef","aref":"-","run":"0e72f70990a0b116"},"S370 SHIP":{"table":"35d968139187152a","layer":"f4a2e7e8d242cf11","aref":"-","run":"80f99b45b683414b"},"S224 CAND":{"table":"f154984a6ddc3e33","layer":"566a5e04b780df60","aref":"-","run":"09d5a9ed64b03289"},"S370 CAND":{"table":"5f17b301140f3967","layer":"c9fd36b3d79a6e7a","aref":"54e184b7e46e15d4","run":"da8959dc29100818"}}
 };
 const got = {}, solved = {};
 for (const [id, arm] of [['S224', 'SHIP'], ['S370', 'SHIP'], ['S224', 'CAND'], ['S370', 'CAND']]) { const r = solve(id, arm); solved[`${id} ${arm}`] = r; got[`${id} ${arm}`] = hashes(r); }
@@ -118,7 +123,7 @@ const gainOf = v => v[3] * (v[2] - v[12]);
 const moveOf = (r, ai, code) => {
   const a = r.actions[ai], ca = r.c.acts[ai];
   return { steps: a.steps, costSteps: a.costSteps || a.steps, harvest: !!a.harvest, harvestCeil: a.harvestCeil || 'pa', lump: !!a.lump, sweepCash: a.sweepCash !== false,
-    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
+    spendLevel: a.spendLevel !== undefined ? a.spendLevel : 1, ...(a.cgtSale ? { cgtSale: true } : {}), ...(a.sweepIsa ? { sweepIsa: true } : {}), tierPen: ca.tierPen || 0, tierIsa: ca.tierIsa || 0, index: ai, code,
     tierPenName: r.c.tiers.pen[ca.tierPen || 0].name, tierIsaName: r.c.tiers.isa[ca.tierIsa || 0].name };
 };
 const rng = seed => { let x = seed >>> 0; return () => { x = (x + 0x6D2B79F5) >>> 0; let t = Math.imul(x ^ (x >>> 15), 1 | x); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };

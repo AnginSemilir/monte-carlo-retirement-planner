@@ -1,0 +1,245 @@
+# ITEM 3: THE ENGINE'S YEAR IN HMRC'S ORDER (the review of 9 Nov, item 3; D66, D69). A defect that changes a figure: not to
+# main before the beta's two weeks end. Every output below is the command's own, on item 3's code (this commit's tree) unless named.
+
+## Step 0: the review's test on the code before (research/tests/results-engine-hmrc-before.txt): 12 passed, 10 failed, byte for byte the review's.
+
+## Steps 1 to 3: node research/tests/engine-hmrc.test.mjs, then --planted
+PASS  A1  a pension of £30,000
+PASS  A2  £8,000 and £9,000 of interest: nothing
+PASS  A3  £10,000 and £10,000 of interest: £286
+PASS  A4  GOV.UK: wages £16,000, interest £200
+PASS  A5  a draw to the allowance and £8,489 of dividends: £858.82
+PASS  A6  £12,070 and £1,500 of dividends: £53.75
+PASS  A7  a pension of £12,929 on top of pay of £60,000: £5,171.60
+PASS  A8  pay £142,500: interest at 45%, dividends at 39.35%
+PASS  A9  £57,000 and £10,000 of dividends: £3,396.25 on the dividends
+PASS  A10 Scotland: £30,000; £20,000 with £5,000 of interest
+PASS  A11 the taper on all income
+PASS  A12 interest across the higher-rate line: £846
+PASS  B1  savingsTax: 48 cases
+PASS  B2  dividendTax: 240 cases
+PASS  B3  the review's 1.3: £8,000 and £9,000 of interest is untaxed  -- the engine £0
+PASS  C1  S116 as the library has it (retired, Scotland): 36 years
+PASS  C2  S116 with its cash ISA held in the taxable account, the pension drawn to the allowance first (1.2): 36 years
+PASS  C3  the same in England: 36 years
+PASS  C4  S210, no saving (working to 60 on £77,500, a taxable account and cash) (1.1): 41 years
+PASS  C5  S214, no saving (working to 60 on £142,500) (1.1): 41 years
+PASS  C6  a couple: the first retired at 68, the second 60 and working to 66 on £60,000, holding the only money, a £600,000 pension (1.1): 28 years
+PASS  C4S S210 with its saving (the taxable pay after contributions): 41 years
+PASS  C5S S214 with its saving (the taxable pay after contributions): 41 years
+PASS  C6S C6 with £200,000 of cash and a £300,000 taxable account split between the two: 28 years
+PASS  C7  S116 in England with a £95,000 pension in payment and its cash ISA held in the taxable account: the allowance tapers on all income: 36 years
+PASS  D1  S116 at light settings: every table the same to the bit with the memo on and off  -- off b954f145878f, on b954f145878f
+26 passed, 0 failed
+planted nopaydiv: the checks that fail: C4, C5, C4S, C5S, C6S; C5 and C5S among them: yes
+planted noceiling: the checks that fail: D1; D1 among them: yes
+
+## Step 2: the solve's time (the app's solve at 45 points, the code before and item 3, one process alternating, CPU seconds)
+without the memo (the year's tax worked every move):
+S116 before: the solve 400.0 s of CPU (402 s on the clock), 800 moves
+S116 after: the solve 484.7 s of CPU (488 s on the clock), 800 moves
+S370 before: the solve 555.5 s of CPU (559 s on the clock), 800 moves
+S370 after: the solve 664.4 s of CPU (671 s on the clock), 800 moves
+with the year's tax tabulated once a decision (KNOCK.memo; numeric keys), the rule's remedy:
+S116 before: the solve 346.1 s of CPU (347 s on the clock), 800 moves
+S116 after: the solve 365.8 s of CPU (367 s on the clock), 800 moves
+S370 before: the solve 505.9 s of CPU (508 s on the clock), 800 moves
+S370 after: the solve 556.4 s of CPU (560 s on the clock), 800 moves
+the memo exact (memo-id.mjs, light settings): the same tables on and off, its plant moving them:
+S116: memo off b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4 (39.1 s), on b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4 (31.8 s): THE SAME; planted noceiling 9e23e03c21fdcb77fe96b54a611de363bfbe29f08fff90a61f3ae4c737d5030f: differs
+S370: memo off 131663941b055307fe1397203808c62bfc4b00e3b5e058d28a29c00f6b50aa9f (46.3 s), on 131663941b055307fe1397203808c62bfc4b00e3b5e058d28a29c00f6b50aa9f (38.4 s): THE SAME; planted noceiling 6ae8a6b7ab630589add16ca01ce2b48bfe10c115c100fd43e90f997c1d2b4887: differs
+S224: memo off 4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08 (33.6 s), on 4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08 (28.5 s): THE SAME; planted noceiling f2447b48c31cd5ca567baa99f4d5079afa1a5867655ccb651013be9b175f236e: differs
+
+## Step 3.3: the pinned figures that move (the maintainer's unlock, D69, for exactly these)
+savings-tax.test.mjs B2: the interest's tax, old pin P.savingsTax(otherTaxableSelf, interest) = £1,140.41 (the interest above the DB and state pension alone); new P.savingsTax(otherTaxableSelf + taxablePensionSelf, interest) = £1,599.28. Working: £36,976 + £8,386.31 = £45,362.31, less £12,570, £32,792.31 taxable; the interest to £39,494.36, past £37,700, so the £500 allowance: £500 at 0%, £4,407.69 at 20% (£881.54), £1,794.36 at 40% (£717.74).
+savings-tax.test.mjs B3: old, the net drawdown rises by the whole savings tax; new, it rises by the interest's tax on the income before the draw, £1,140.41 (£9,045.61 against £7,905.20). New B3b: the gross draw rises by the year's whole tax rise, £1,881.50 both (£11,181.74 against £9,300.24; the tax £8,157.74 against £6,276.24: the extra pension's own tax, £1,411.13 at 20%, £282.23, and the £1,599.28). B4 unchanged (1.18). The review worked B2 and B3 by hand to the same figures (ANSWERS-2026-11-10.md, answer 2).
+couple-quick.test.mjs check 5 (S116 at the sweep's light settings): b12130607dc6ceb4a0290ea06af3d1f148c41639560c915fe0147d33d48858b0 (the code before D1, b4ea006) -> b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4. S116 holds taxable cash and a taxable account; the same with the memo on and off (above); unchanged by items 4 and 5.
+speed-port.test.mjs check 1 (the option unset; tables, layers, the adaptive reference, the engine's outcomes on 50 paths), old -> item 3:
+  S224 SHIP: table 1e7cb1868f1e3ee8 -> bbe79a835b7e4f81, layer 0f2baf48de46bb59 -> 670835efe8724270, aref - -> - (the same), run f86a428710404f38 -> 30cb766b8871eaea
+  S370 SHIP: table c818f491471a363f -> 5d1db7e3976d8539, layer 6e99a4198bd55789 -> a57025bfad98fa0f, aref - -> - (the same), run 9291e4b208bfc7f2 -> 7590b06881d951aa
+  S224 CAND: table b3aee4e120470d44 -> 12e3ee5548d3dbb4, layer 9c63773b72b98676 -> 4ff5a3b368123b4f, aref - -> - (the same), run 76a93a8197e10a36 -> e8021a9e5dc285cb
+  S370 CAND: table b84ebf1d6c25052c -> e1e8d5665f5868b5, layer 2d1c886ece7e4b0f -> 08633d4b1ed6c481, aref 26a9868a554fdb23 -> 26a9868a554fdb23 (the same), run 8055e77b0a15da5a -> 23f06bbe4832b4d2
+  S224 SHIP: table 5dd89c0ef1bc4aad -> 8c6e1e51ba300ebf, layer 0a1db04e01ce4006 -> 24797c8c59f2d12d, aref - -> - (the same), run c909633f6c90da3c -> f9915342617f92de
+  S370 SHIP: table 1b6ec15444d9e032 -> c05ac829b37dd28d, layer cba22d0450f4cab9 -> 430ecadff067a9be, aref - -> - (the same), run 563d54ee2038647b -> fe29b7fdbe5408bc
+  S224 CAND: table 4268de771a289678 -> dd42b14c1fbc3e3a, layer 958f37834f7f4b76 -> f15212bef3432e43, aref - -> - (the same), run dc9e97f6bdb44afb -> badc7a1ae9ee4938
+  S370 CAND: table a0b1792426a29d6e -> 05b6173d2e1bb06f, layer 68e88a44a93db1eb -> f61589710165f884, aref 35b72dc2dc22750d -> 35b72dc2dc22750d (the same), run ab382b36ee46175d -> 26fca04b1ecc49df
+(item 4's commit moves S370's again: its Auto deposit's route relieved; S224's stay.)
+
+## uktax D2 (D69 (2)): the fixture's year with the partner at 58, printed before the unlock was used
+item 3 alone: uktax D2's fixture, year 2029 (t 3; the partner 58, the first person 62); the MPAA derived at the partner's 58
+  the partner: taxable pay £45000.00, the taxable pension drawn from their pot £2047.41, all non-savings income £47047.41; the rate on its last pound 20% (the higher rate starts at £50270 of income); the income tax the row gives the partner £409.48
+  the first person: the taxable pension drawn £12570.00, other taxable income £0.00; the rate on the last pound 0%
+  the partner's draw above the basic rate: none
+All of the partner's draw at the basic rate: D2 passes for the right reason; no unlock for uktax.
+
+## The evidence the move is item 3's: with no interest or dividends in any year, the code before and item 3 (zero-id.mjs, light settings)
+S116 (age 61, retires 60, salary 0), as in the library: before b12130607dc6ceb4, after b954f145878ff460: they differ
+S116 (age 61, retires 60, salary 0), no interest or dividends: before 88f235c824d10d5f, after 88f235c824d10d5f: THE SAME
+S370 (age 50, retires 50, salary 0), as in the library: before ef14d14a9e511912, after 131663941b055307: they differ
+S370 (age 50, retires 50, salary 0), no interest or dividends: before 73f3de425f2eecd1, after 73f3de425f2eecd1: THE SAME
+S224 (age 55, retires 60, salary 77500), as in the library: before c006d1f344b3f8ca, after 4a38efe85909a4e3: they differ
+S224 (age 55, retires 60, salary 77500), no interest or dividends: before 32bdb946a3a924fe, after 32bdb946a3a924fe: THE SAME
+S026 (age 68, retires 66, salary 0), as in the library: before 1d9fca2ab2266cff, after a3bd8f0508b8bc35: they differ
+S026 (age 68, retires 66, salary 0), no interest or dividends: before 7d6320f70fa78765, after 7d6320f70fa78765: THE SAME
+S090 (age 61, retires 60, salary 0), as in the library: before 0652a605f8a58813, after ef2c97d8ce88978d: they differ
+S090 (age 61, retires 60, salary 0), no interest or dividends: before 0f28143a11a40e17, after 0f28143a11a40e17: THE SAME
+S040 (age 68, retires 66, salary 0), as in the library: before 407c66787db5cd4a, after 7138b1cd4c270872: they differ
+S040 (age 68, retires 66, salary 0), no interest or dividends: before ca2d3d523cdccb6c, after ca2d3d523cdccb6c: THE SAME
+
+## Step 3.4: V1 and V2 on S210 (a working household with a taxable account) and S214
+S210: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (the engine survives 1904); 54 s
+S214: 0 paths survive only in the solver's model, 0 only in the engine, of 2000 (the engine survives 1291); 43 s
+THE GAPS SWEEP: code 9e03a9dd575e, the light candidate, 40 paths each of seed 99001; 1 cases
+PASS  V2 on S210, working to 60 on £77,500 with a taxable account and cash [S210, 41 years, solve 35 s]: 1640 household-years in step, the change live in 1640; worst gap £6.5e-9 (gain held), lump flag and tiers exact; picks differ in 1 years (the largest score gap 0.0e+0, ties); mismatched moves 0; planted (spend): parts by £540481.78; the forward run survives 39 of 40
+SWEEP: ALL 1 cases PASS
+
+## The full tier's pins re-taken on item 3's code (D69 (3))
+Check 1 (against the code before each option, with cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account) and check 1b (the option unset on the household as each test takes it, its tables and 40 forward runs against a digest pinned on item 3's code), the light settings (D69 (3)):
+windfall-split:
+PASS  1. S026, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3048192 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 24 s, the code before 30 s)
+PASS  1b. S026, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs ccff7c1ac433d182 against the pin ccff7c1ac433d182
+PASS  1. S090, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 27 s, the code before 38 s)
+PASS  1b. S090, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs 29867aa6d256bf7f against the pin 29867aa6d256bf7f
+PASS  1. S040, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3048192 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 20 s, the code before 26 s)
+PASS  1b. S040, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs 4adc22e273e981c7 against the pin 4adc22e273e981c7
+ALL PASS: 21 checks
+save-split:
+PASS  1b. S188, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 847a1cbc6947bba1 against the pin 847a1cbc6947bba1
+PASS  1. S188, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 4463424 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 35 s, the code before 77 s)
+PASS  1b. S244, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 2fcb676ee98a867e against the pin 2fcb676ee98a867e
+PASS  1. S244, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 5660928 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 32 s, the code before 79 s)
+PASS  1b. S026, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs ccff7c1ac433d182 against the pin ccff7c1ac433d182
+PASS  1. S026, the option unset, against the code before it (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3048192 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (this code 21 s, the code before 53 s)
+ALL PASS: 23 checks
+lock-tiers:
+PASS  1. S090, the candidate's settings, both options off, against the code before the port (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the ported code's solve 28 
+PASS  1b. S090, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 29867aa6d256bf7f against the pin 29867aa6d256bf7f
+PASS  1. S090, the layer loop (tsOnce: false), both options off, against the code before the port (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 3919104 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the ported code's sol
+PASS  1b. S090, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 29867aa6d256bf7f against the pin 29867aa6d256bf7f
+PASS  1. S328F, the candidate's settings, both options off, against the code before the port (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the ported code's solve 38
+PASS  1b. S328F, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 7f0bb15e4811424c against the pin 7f0bb15e4811424c
+PASS  1. S328F, the layer loop (tsOnce: false), both options off, against the code before the port (cash interest untaxed, no dividend yield, any Auto deposit typed into the taxable account: D69): 6640704 table entries the same to the bit; 40 forward runs the same; the run record the same, its timings aside (the ported code's so
+PASS  1b. S328F, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 7f0bb15e4811424c against the pin 7f0bb15e4811424c
+ALL PASS: 23 checks
+Each changed check shown failing on its plant (CHECK1_PLANT=1: this code's side solved on the plan as taken for check 1, on the neutral plan for check 1b):
+== windfall-split CHECK1_PLANT=1 17:22
+check 1 and 1b only (CHECK1_PLANT): 0 passed, 6 failed
+== save-split CHECK1_PLANT=1 17:26
+check 1 and 1b only (CHECK1_PLANT): 0 passed, 6 failed
+== lock-tiers CHECK1_PLANT=1 17:31
+check 1 and 1b only (CHECK1_PLANT): 0 passed, 8 failed
+couple-tables check 6 (S116, S224: tables, runs, value reads), re-taken on item 3's code (the old digests in the test's comment):
+  S116: {"tables":"b954f145878ff4604101cff2c8513547430df0e9a0835547f3b5471982b65eb4","runs":"8ab549f8d7580126c5a941766a3bcc1103557f9a628e99ef821559287d2ff0da","reads":"a0d64da0839c6b4303ba7891607e0c5c7e0916a77d906f35b4dfab375177a7e1"}
+  S224: {"tables":"4a38efe85909a4e3af5410d1795d1e47cc5c3a7970760a76fbc32ca65360ed08","runs":"f98013541051f3fdaa0bc1ded40ca4aae786d4adb087fe74a3e5e80942ff1c04","reads":"4d7ef15fabca2aaa35aca6c21fe61c031f189dc8b7ab6777a934efd787343410"}
+ALL PASS: 8 passed, 0 failed (251s)
+couple-lockstep check 3 (12 households with no table; 2 singles under a table; 2 under a tiered table), re-taken on item 3's code; checks 1 and 2 (the engine and the couples' year in step) passing before and after:
+  digests: rows 4218067c185a72666ba1d255879037b9534b46ce8238804608adbdc7ca1acf41 table 0823389b94023f4b25279cc7dbdb413f86e7466104cb047ca291edfe2b2871d1 tiered 504801548803ccd653f461a25bcd1e0fd582577624a0c719bcabd91272581948
+  FAIL 3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table 4218067c185a7266 (before a90aae26ebf1e021); 2 singles x 10 paths under a table 0823389b
+5 passed, 0 failed
+
+## Step 3.6: the pattern search
+THE PATTERN SEARCH (CHECKLIST 7; item 3's step 3.6): every call in src/ of incomeTax(, calculateUKNetIncome(, savingsTax(,
+dividendTax( and paAt(, the income each stands on, and whether the year's pay, interest and dividends are in it.
+
+src/App.jsx (the engine)
+  1245, 1273, 1291  paAt in the band ladders (ukLadder, divLadder): the allowance at the person's whole income, tapered on all of it.
+  1315              personTax's allowance: paAt(non-savings + interest + dividends): all three in it.
+  1329, 1330        savingsTax, dividendTax: personTax's interest and dividend parts, the non-savings income given by the caller.
+  1338, 1344, 1348  incomeTax: tax on one non-savings income alone, by definition (its callers below).
+  1358              calculateUKNetIncome: that income less incomeTax.
+  1373              calculateUKTaxAndNIC: the pay alone, its tax and NIC. Right: the pay sits at the bottom of the stack, so its tax
+                    does not depend on what lies above it (save the allowance's taper, which a pension draw, interest or
+                    dividends above £100,000 of adjusted net income would move: not chased, as the pay's own take-home).
+  1415, 1416        salary sacrifice's saving: the salary alone, as above.
+  1509, 1510        grossPensionNeededForNet with no interest or dividends: the draw on the year's non-savings income (pay
+                    included by its callers, T0 = pay + taxable).
+  1569              grossWithSavingsAbove: the draw with the interest and dividends above it (personTax, or the memo's billAt).
+  2247, 2258        the row's savingsTax and dividendTax: on taxablePay + taxable (pay, pensions, other income): all non-savings in.
+  2272, 2273        billOf: personTax on taxablePay + taxable, interest, dividends; payTax: the pay alone (subtracted, so taxPaid
+                    is the whole bill less the pay's own tax, which the take-home already paid).
+  2279              netGuaranteed: the guaranteed income's net less the rise in the bill over its old non-savings tax: all in.
+  2291              take-home: the pay alone (as 1373).
+  2314              the draw: grossPensionNeededForNet(net, T0 = pay + taxable, ..., { interest, dividends }): all in.
+  2325, 2327        restack: the bill before and after the draw: all in.
+  2637              the gains' band: paAt(all income), all income = pay + taxable + interest + dividends: all in.
+  3789              bedAndSippFor (now pensionRelief): the relief on the contribution against the person's relevant earnings
+                    alone. HMRC gives higher-rate relief by extending the basic band, which can also move interest and dividends
+                    out of the higher rate; not counted (item 4 keeps bedAndSippFor's rule, the review's own).
+  4628, 4629        inheritedPensionTax: a beneficiary's income, a non-savings figure by construction (out of scope, D64).
+src/solver/model.js (the exact model): 315, 316, 319, 320, 323, 332, 353, 363, 365, 522: the engine's lines above, line for
+                    line (the row's taxes on taxablePay + taxable; billOf; payTax; netGuaranteed; take-home; the draw with
+                    interest and dividends above; restack; the gains' band on all income).
+src/solver/fast.js (the forward run and the tables)
+  46                netOf's table: calculateUKNetIncome tabulated on non-savings income; with pay, interest or dividends in the
+                    year (stack) the net is corrected by the bill (502, 504), so the table is read only for the old net.
+  500, 502, 504     payTax, netGuaranteed, restack: as the engine's.
+  519, 640          the draws' tax before: stack only.
+  664, 695, 728     the gains' band: allIncome = pay + taxable + interest + dividends.
+src/solver/grid.js (sizing only, no tax figure)
+  561               the bridge's need: the guaranteed income's net in a year before access (no pay counted: the years it covers
+                    are retired; no interest or dividends: a sizing estimate of the grid's bridge axis, not a tax).
+  677               the wealth axis's top: the need grossed at the worst rate (a bound, not a tax).
+Not read by the review, read here:
+  netGuaranteed     above (2279): all in.
+  the Bed and SIPP relief   above (3789).
+  the accumulation tournament   its candidates are run by the engine (runTrial), so its outcomes carry the fix; its own
+                    arithmetic (allocateBudget, accumulationCandidate) prices contributions' relief on earnings (1415, 3789).
+  the Simple page's figures   src/Simple.jsx and src/simplePlan.js call no tax function: their figures are the engine's runs.
+  src/Docs.jsx 214  the documentation's paragraph on cash interest ("nothing is charged on it ... no wrapper for taxable cash")
+                    predates the cash interest tax (cashInterestTaxed) and is out of date before and after this item: a line
+                    for step 5's page change, the maintainer's words.
+
+## Step 4.1: the plan's own rules on the touched lists (size-hmrc.mjs library 1000)
+item 3's sizing, the plan's own rules (EXPLORATORY): 237 households of the two touched lists (38 couples, 98 still working), 1000 paths of seed 7002; the engine after less before, survival in points
+  mean -0.35; median +0.00; worst -3.70 (S214); best +0.10 (S253)
+  losing over 1 point 24, over 3 6, over 6 0; gaining over 1 0; within half a point either way 193
+  still working: 98, mean -0.53, worst -3.70; the expected path's tax up £56,894 a household
+  retired: 139, mean -0.22, worst -3.40; the expected path's tax up £12,802 a household
+  couples: 38, mean -0.15, worst -1.10; the expected path's tax up £12,480 a household
+  singles: 199, mean -0.39, worst -3.70; the expected path's tax up £34,577 a household
+  the twelve that lose most:
+    S214 working: 63.4% before, -3.70 (37 lost, 0 saved); the expected path's tax £521,977 to £784,579
+    S034 retired: 77.2% before, -3.40 (34 lost, 0 saved); the expected path's tax £313,585 to £494,213
+    S094 retired: 67.0% before, -3.30 (33 lost, 0 saved); the expected path's tax £329,896 to £476,351
+    S330 working: 72.9% before, -3.30 (33 lost, 0 saved); the expected path's tax £493,555 to £671,681
+    S272 working: 44.7% before, -3.10 (31 lost, 0 saved); the expected path's tax £351,884 to £434,886
+    S332 working: 43.6% before, -3.10 (31 lost, 0 saved); the expected path's tax £1,596,634 to £1,622,934
+    S238 working: 72.5% before, -2.90 (29 lost, 0 saved); the expected path's tax £391,391 to £525,963
+    S154 retired: 62.9% before, -2.70 (27 lost, 0 saved); the expected path's tax £358,309 to £515,535
+    S270 working: 80.2% before, -2.60 (26 lost, 0 saved); the expected path's tax £394,429 to £645,514
+    S334 working: 51.8% before, -2.40 (24 lost, 0 saved); the expected path's tax £3,531,577 to £5,070,291
+    S118 retired: 79.4% before, -2.20 (22 lost, 0 saved); the expected path's tax £294,972 to £416,000
+    S178 retired: 71.9% before, -2.10 (21 lost, 0 saved); the expected path's tax £347,373 to £476,209
+THE STEP'S STOP (a household moving by more than 6 points, or the mean by more than 1): not met
+
+## Step 4.2: the review's eight solved at 45 points, 4,000 paths (size-hmrc.mjs solved, then read)
+(EXPLORATORY; run on item 3's code alone, after its commit; the solve's seconds, before and after, per household)
+S030 before: solved 95.60%, the rules (Bracket Fill Basic, lump sum) 86.88%; solve 279 s
+S030 after: solved 95.60%, the rules (Bracket Fill Basic) 86.00%; solve 299 s
+S050 before: solved 98.80%, the rules (ISA First) 84.80%; solve 258 s
+S050 after: solved 98.83%, the rules (ISA First, lump sum) 83.83%; solve 274 s
+S090 before: solved 94.75%, the rules (Bracket Fill Basic) 86.47%; solve 357 s
+S090 after: solved 94.65%, the rules (Bracket Fill Basic) 85.95%; solve 364 s
+S368 before: solved 99.85%, the rules (ISA First) 84.42%; solve 500 s
+S368 after: solved 99.85%, the rules (ISA First) 84.42%; solve 521 s
+S188 before: solved 97.55%, the rules (Bracket Fill Basic, lump sum) 83.67%; solve 382 s
+S188 after: solved 97.58%, the rules (Bracket Fill Basic, lump sum) 83.38%; solve 413 s
+S304F before: solved 98.28%, the rules (Bracket Fill Basic) 86.30%; solve 521 s
+S304F after: solved 98.25%, the rules (Bracket Fill Basic) 86.30%; solve 541 s
+S328F before: solved 93.10%, the rules (Bracket Fill, lump sum) 84.95%; solve 477 s
+S328F after: solved 92.92%, the rules (Bracket Fill, lump sum) 84.25%; solve 504 s
+S340F before: solved 95.08%, the rules (Bracket Fill Basic) 85.30%; solve 549 s
+S340F after: solved 95.03%, the rules (Bracket Fill Basic) 85.20%; solve 535 s
+item 3's sizing, the solved plans (EXPLORATORY): 8 households at 45 points, seed 7002; survival, the margin over the rules, the expected path's tax (before -> after)
+  S030: solved 95.60% -> 95.60%; the rules 86.88% -> 86.00%; the margin +8.72 -> +9.60; the solved plan's tax £60,937 -> £58,574 (4000 paths)
+  S050: solved 98.80% -> 98.83%; the rules 84.80% -> 83.83%; the margin +14.00 -> +15.00; the solved plan's tax £0 -> £11 (4000 paths)
+  S090: solved 94.75% -> 94.65%; the rules 86.47% -> 85.95%; the margin +8.28 -> +8.70; the solved plan's tax £25,138 -> £31,972 (4000 paths)
+  S188: solved 97.55% -> 97.58%; the rules 83.67% -> 83.38%; the margin +13.88 -> +14.20; the solved plan's tax £256,239 -> £257,375 (4000 paths)
+  S304F: solved 98.28% -> 98.25%; the rules 86.30% -> 86.30%; the margin +11.98 -> +11.95; the solved plan's tax £49,521 -> £50,145 (4000 paths)
+  S328F: solved 93.10% -> 92.92%; the rules 84.95% -> 84.25%; the margin +8.15 -> +8.67; the solved plan's tax £22,399 -> £33,418 (4000 paths)
+  S340F: solved 95.08% -> 95.03%; the rules 85.30% -> 85.20%; the margin +9.78 -> +9.83; the solved plan's tax £43,522 -> £47,799 (4000 paths)
+  S368: solved 99.85% -> 99.85%; the rules 84.42% -> 84.42%; the margin +15.42 -> +15.42; the solved plan's tax £37,465 -> £37,475 (4000 paths)
+  pooled margin over the rules +11.28 -> +11.67 points (after less before +0.40)
+THE STEP'S STOP (the pooled margin over the rules falling by more than 2 points): not met
+
+## Step 5: the pages' line, in the maintainer's words (not yet given). The review's draft: "We corrected how income tax is worked out when you have a salary, savings interest or dividends in the same year as ..."

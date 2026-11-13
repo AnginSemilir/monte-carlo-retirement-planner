@@ -1,13 +1,13 @@
-GATE: passed - 4 households, each once and done, the candidate d71f65ae871e (each case's stamp) at 45 points and the product at 30, PRODUCT, CAND and SPLIT timed, CAND and SPLIT the candidate on 1 and 4 parts, every comparison on its arrays, the plant on S126, one code
-GATE 5 AFTER N4 AND INSTRUCTION 6 (a measurement; D11, D24 (3), D25, D26): bridge 4, S126, S370, share 0.50, one at a time, code bf6398dac4b1; the product as it ships at 30 points on one core (PRODUCT), the candidate at 45 points on one core (CAND) and split across 4 cores (SPLIT); every table of CAND and SPLIT compared bit for bit
+GATE: passed - 4 households, each once and done, the candidate af001697ce1b (each case's stamp) at 45 points and the product at 30, PRODUCT, CAND and SPLIT timed, CAND and SPLIT the candidate on 1 and 4 parts, every comparison on its arrays, the plant on S126, one code
+GATE 5 AFTER N4 AND INSTRUCTION 6 (a measurement; D11, D24 (3), D25, D26): bridge 4, S126, S370, share 0.50, one at a time, code f811177deb53; the product as it ships at 30 points on one core (PRODUCT), the candidate at 45 points on one core (CAND) and split across 4 cores (SPLIT); every table of CAND and SPLIT compared bit for bit
   household        differ/values         PRODUCT s  CAND s  SPLIT s  CAND/PRODUCT  SPLIT/PRODUCT  speed-up
-  bridge 4         0/36741600                135.9   409.4    116.7         3.013          0.859      3.51
-  S126             0/34992000                139.4   386.9    106.5         2.775          0.764      3.63
-  S370             0/40240800                128.3   508.7    134.9         3.965          1.051      3.77
-  share 0.50       0/34992000                129.0   363.6     96.5         2.819          0.748      3.77
-  median: CAND/PRODUCT x2.916, SPLIT/PRODUCT x0.811, the split's speed-up x3.70
-  load (1-minute average) at each timing's start: bridge 4 1.13/1.07/0.99; S126 3.84/1.29/1.22; S370 2.82/1.22/1.01; share 0.50 4.63/1.42/1.00
-PLANTED: a dropping part on S126 differs in 2088684 values
+  bridge 4         0/36741600                135.0    63.3     25.6         0.469          0.190      2.47
+  S126             0/34992000                139.0    54.7     23.0         0.394          0.165      2.38
+  S370             0/40240800                137.1    74.6     28.8         0.544          0.210      2.59
+  share 0.50       0/34992000                135.6    56.8     22.3         0.419          0.164      2.55
+  median: CAND/PRODUCT x0.444, SPLIT/PRODUCT x0.178, the split's speed-up x2.51
+  load (1-minute average) at each timing's start: bridge 4 1.03/1.00/1.10; S126 2.84/1.18/1.25; S370 3.01/1.21/1.31; share 0.50 3.10/1.23/1.13
+PLANTED: a dropping part on S126 differs in 2079417 values
 
 VERDICT E2: EXACT
 VERDICT GATE 5 (the split candidate at 45 points at most x1.25 the product's solve at 30, on each household): MET

@@ -1,0 +1,39 @@
+D4'S PILOT, EXPLORATORY (results/d4-pilot): S011, S301F; seed 7002, 1000 paths a unit, each unit whole; not the registered read
+each couple's five units on one inputs hash: yes
+W0.02: A1 survival CANDC less APP +9.500 (8.086 to 10.914, se 0.7213) points: PASSES; A2 spending delivered +2.634 (2.422 to 2.846, se 0.1080)%: PASSES (on the 1000 paths every couple ran in CANDC and APP)
+W0.01: A1 survival CANDC less APP +9.250 (7.833 to 10.667, se 0.7228) points: PASSES; A2 spending delivered +3.499 (3.282 to 3.717, se 0.1111)%: PASSES (on the 1000 paths every couple ran in CANDC and APP)
+OUTCOME: PASS: the candidate for couples goes to the maintainer, who decides whether couples run it under Part C's switch
+
+S1, REPORTED, NOT DECIDING (D78): the candidate for couples against the couples' solver at the product's settings, which no couple has had
+W0.02: S1 survival CANDC less SHIPC +1.300 (0.734 to 1.866, se 0.2888) points, pooled over the 2 couples on SHIPC's own paths (the first 1000 of each unit, CANDC's same paths) (spending delivered CANDC less SHIPC -0.223 (-0.348 to -0.097, se 0.0642)%)
+W0.01: S1 survival CANDC less SHIPC +1.050 (0.457 to 1.643, se 0.3025) points, pooled over the 2 couples on SHIPC's own paths (the first 1000 of each unit, CANDC's same paths) (spending delivered CANDC less SHIPC +0.099 (-0.046 to 0.245, se 0.0741)%)
+
+FLAGS (D34: for investigation, none blocking on its own; against APP and for spending: none against SHIPC, D78)
+  none
+
+D34 (4), every comparison against APP (none against SHIPC: its per-couple flags are dropped, D78): the realised discordance (its Clopper-Pearson upper 95% bound, priced at 1.01% at least), the threshold it sets at the couple's N, its rates the exact two-stage rates: a quarter-point loss read as harm, a 1-point loss read as harm; the observed loss; whether the couple and weight stopped at the first stage (its change against APP there)
+  S011   W0.02 CANDC less APP   discordant 102 of 1000 (10.20%, up to 12.24%): threshold 2.1000, a quarter-point loss read 0.043, a 1-point loss read 0.149 (BELOW 0.90); loss -10.000 (101 saved, 1 lost)
+  S011   W0.01 CANDC less APP   discordant 96 of 1000 (9.60%, up to 11.60%): threshold 2.0000, a quarter-point loss read 0.047, a 1-point loss read 0.164 (BELOW 0.90); loss -9.400 (95 saved, 1 lost)
+  S301F  W0.02 CANDC less APP   discordant 90 of 1000 (9.00%, up to 10.95%): threshold 2.0000, a quarter-point loss read 0.043, a 1-point loss read 0.157 (BELOW 0.90); loss -9.000 (90 saved, 0 lost)
+  S301F  W0.01 CANDC less APP   discordant 91 of 1000 (9.10%, up to 11.06%): threshold 2.0000, a quarter-point loss read 0.043, a 1-point loss read 0.159 (BELOW 0.90); loss -9.100 (91 saved, 0 lost)
+  the 1-point rate below D34's 0.90 on 4 of 4 comparisons: S011 W0.02 against APP (0.149), S011 W0.01 against APP (0.164), S301F W0.02 against APP (0.157), S301F W0.01 against APP (0.159); by the registration, reported as below D34's rate
+
+REPORTED (against APP on the paths every couple ran in CANDC and APP; against SHIPC on SHIPC's own paths, the first of each unit)
+W0.02 the cost years' spending delivered, over the 1 couples with someone retired in a cost year: CANDC less APP +2.225 (1.468 to 2.983, se 0.3867)%, less SHIPC +2.480 (1.799 to 3.161, se 0.3476)% (on SHIPC's 1000 paths)
+  left out, no one retired in their cost year (no spending to deliver in it, nought in every arm): 1, S301F
+W0.02 the paths failing in a cost year or the two after it, over the 2 couples with a cost year: APP 0.000%, CANDC 0.000%; CANDC less APP +0.000 (0.000 to 0.000, se 0.0000) points; on SHIPC's 1000 paths SHIPC 0.000%, CANDC 0.000%, CANDC less SHIPC +0.000 (0.000 to 0.000, se 0.0000) points
+W0.02 where arm A takes the lump sum (2): A1 +9.500 (8.086 to 10.914, se 0.7213) points, A2 +2.634 (2.422 to 2.846, se 0.1080)%
+W0.02 S1 over the library cohort (1): +0.800 (0.068 to 1.532, se 0.3735) points (spending -1.130 (-1.283 to -0.977, se 0.0781)%)
+W0.02 S1 over the younger cohort (1): +1.800 (0.976 to 2.624, se 0.4206) points (spending +0.685 (0.483 to 0.887, se 0.1030)%)
+W0.02 over the 1 couples either of whose candidate tables reads a bridge year: A1 +9.000 (7.225 to 10.775, se 0.9054) points, S1 +1.800 (0.976 to 2.624, se 0.4206) points (spending CANDC less APP +4.862 (4.538 to 5.186, se 0.1652)%) [S301F]
+W0.02 over the 1 couples neither of whose does: A1 +10.000 (8.119 to 11.881, se 0.9596) points, S1 +0.800 (0.068 to 1.532, se 0.3735) points (spending CANDC less APP +0.405 (0.100 to 0.711, se 0.1557)%)
+W0.01 the cost years' spending delivered, over the 1 couples with someone retired in a cost year: CANDC less APP +11.049 (10.582 to 11.517, se 0.2385)%, less SHIPC +9.694 (8.800 to 10.587, se 0.4558)% (on SHIPC's 1000 paths)
+  left out, no one retired in their cost year (no spending to deliver in it, nought in every arm): 1, S301F
+W0.01 the paths failing in a cost year or the two after it, over the 2 couples with a cost year: APP 0.000%, CANDC 0.000%; CANDC less APP +0.000 (0.000 to 0.000, se 0.0000) points; on SHIPC's 1000 paths SHIPC 0.000%, CANDC 0.000%, CANDC less SHIPC +0.000 (0.000 to 0.000, se 0.0000) points
+W0.01 where arm A takes the lump sum (2): A1 +9.250 (7.833 to 10.667, se 0.7228) points, A2 +3.499 (3.282 to 3.717, se 0.1111)%
+W0.01 S1 over the library cohort (1): +0.100 (-0.659 to 0.859, se 0.3875) points (spending -0.724 (-0.877 to -0.572, se 0.0778)%)
+W0.01 S1 over the younger cohort (1): +2.000 (1.132 to 2.868, se 0.4429) points (spending +0.923 (0.677 to 1.169, se 0.1255)%)
+W0.01 over the 1 couples either of whose candidate tables reads a bridge year: A1 +9.100 (7.317 to 10.883, se 0.9100) points, S1 +2.000 (1.132 to 2.868, se 0.4429) points (spending CANDC less APP +5.206 (4.862 to 5.549, se 0.1751)%) [S301F]
+W0.01 over the 1 couples neither of whose does: A1 +9.400 (7.569 to 11.231, se 0.9341) points, S1 +0.100 (-0.659 to 0.859, se 0.3875) points (spending CANDC less APP +1.793 (1.500 to 2.086, se 0.1496)%)
+the couples' rollout in the model beside the engine: 4000 paths, the engine alone surviving 0, the model alone 0
+the units' core-hours 1.2 (the solves 0.5); the longest unit 0.25 hours, its longest chunk 0.25; the hosts: Intel(R) Xeon(R) Processor @ 2.10GHz

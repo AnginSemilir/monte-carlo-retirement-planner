@@ -13,7 +13,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
-import { headlineWords, explanationWords, raiseWords, actionWords, aheadRowsWords, ruleWords, COME_BACK } from './solverWords.js';
+import { headlineWords, explanationWords, raiseWords, actionWords, sweepWords, aheadRowsWords, ruleWords, COME_BACK } from './solverWords.js';
 import { useSwipe } from './swipe.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { timings } from './solveStatus.js';
@@ -363,12 +363,14 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
       <h3 className="text-[15px] font-semibold text-slate-900">{h.retired ? 'This year' : 'This year, before you retire'}</h3>
       {isPhone && <p className="text-xs text-slate-500">Each shows what skipping it, this year only, would cost.</p>}
       {!mine.actions ? <p className="text-xs text-slate-500">Working out what each of this year&apos;s steps is worth…</p>
-        : !mine.actions.actions.length ? <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>
+        : !mine.actions.actions.length ? (sweepWords(mine.actions.sweep, ctx) ? null : <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>)
           : <ol className="space-y-2">{mine.actions.actions.map((x, i) => { const t = actionWords(x, ctx); return (
             <li key={x.part} className="flex gap-3" data-strategy-action={x.part} data-strategy-cost={x.cost === null ? '' : x.cost}>
               <span className="text-xs font-semibold text-indigo-700 tabular-nums">{i + 1}</span>
               <div><div className="text-sm font-medium text-slate-800">{t.what}</div><div className="text-xs text-slate-500">{t.cost}</div></div>
             </li>); })}</ol>}
+      {mine.actions && sweepWords(mine.actions.sweep, ctx) && (
+        <p className="text-sm text-slate-700" data-strategy-sweep={Math.round(mine.actions.sweep.toGia || mine.actions.sweep.fromGia)}>{sweepWords(mine.actions.sweep, ctx)}, as the plan keeps cash at its buffer.</p>)}
     </div>
   );
   const rule = mine.distil && (mine.distil.show ? (() => { const t = ruleWords(mine.distil, ctx); return (

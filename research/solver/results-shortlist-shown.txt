@@ -1,0 +1,10 @@
+shortlist-shown: a decision the pages show is made on the whole menu, S328F, seed 99004
+  ok   1. no shortlist on the solve: the ledger's moves are the solve's own policy's, year for year, and no decision is counted as held to the whole menu   61 years with a move, 0 differ; counted as held 0
+  ok   2. the shortlist on: this year's move and its skips, the next ten years and the typical run, the ledger, the history check and the rule of thumb's decisions are the whole menu's; none of their decisions took a shortlist   differing: none; 2694 decisions held to the whole menu, 0 on a shortlist; 1380 decisions learnt from, 610 years of history
+  ok   3. the paths that are counted take the shortlist: the strategy's runs and the skips' runs decide on it, none held to the whole menu   the strategy's runs 4588 decisions on a shortlist (0 held), 25 of 60 paths end otherwise than on the whole menu; S116's 2 skips (the whole menu's own, from the whole menu's first move 36) run 1367 decisions on a shortlist (0 held)
+  ok   4. the typical run where the counted paths took the shortlist: the levels of the whole menu's own run of the path the rows are shown on, and the rows the whole menu's   path 9: 0 of 61 years' levels differ; the counted run's own levels differ from them in 0
+  ok   5. planted, a decision inside wholeMenu takes the shortlist all the same: what the pages show differs from the whole menu's, its decisions counted as shortlisted   differing: history, fit; 3476 decisions on a shortlist
+  ok   6. planted in the page's own policy, the ledger read without the guard: its moves differ from the whole menu's; read through shownPolicy they are the whole menu's   17 of 610 years' moves differ without the guard, 0 with it
+  beside: the first year's move the counted paths take is move 0, the page's move 0: the same; wholeMenu nests (2) and leaves nothing set (0)
+
+shortlist-shown: 6 passed, 0 failed

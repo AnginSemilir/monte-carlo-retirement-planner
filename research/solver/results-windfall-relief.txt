@@ -1,0 +1,98 @@
+# ITEM 4: RELIEF ON MONEY THE PLAN PAYS INTO A PENSION (the review of 9 Nov, item 4; D66, D69). A change of figure for any
+# plan with an Auto deposit routed into a pension: not to main before the beta's two weeks end, with item 3.
+
+## The test: node research/tests/windfall-relief.test.mjs, then --planted
+PASS  1  no earnings, £10,000, room £3,600: split 1 puts £3,600 in the pension for £2,880, £7,120 goes on to the ISA; the plan's own routing the same, the rest taxable  -- split 1: pen £3600.00, isa £7120.00 (the pension costing £2880.00); the plan's routing: pen £3600.00, other £7120.00
+PASS  2  pay £40,000, £20,000, room £40,000: the pension gains £25,000 for £20,000, no refund  -- split 1: pen £25000.00
+PASS  3  pay £80,000 in England, £20,000: the pension gains £25,000 for £20,000, and £5,000 comes back to cash  -- split 1: pen £25000.00, cash £5000.00
+PASS  4  the MPAA triggered, room £10,000: the pension gains £10,000 for £8,000, £12,000 goes on to the ISA  -- room £10000.00; split 1: pen £10000.00, isa £12000.00
+PASS  5  a £20,000 deposit typed into the pension, room £3,600: £3,600 now as typed, £16,400 parked; each later transfer takes £2,880 and lands £3,600; the engine's year books it grossed up  -- now pen £3600.00, other £16400.00; 6 transfers, the first 2029: £2880.00 landing £3600.00; in all £16400.00 moved, £20500.00 landed; the drip year 2029: the pension £3740.39 higher for £2986.27 more sold from the GIA
+PASS  6  no route into a pension from the household's money: S116, and S210 with its deposit removed and typed into the taxable account, every table as on item 3's code, bit for bit; S210 as entered, its 2033 route to the pound  -- S116 b954f145878ff460 (item 3's b954f145878ff460); S210, its deposit removed f9a4e63e00f6958e (item 3's f9a4e63e00f6958e); S210, its deposit typed into the taxable account c7785c6fc3ecdcb4 (item 3's c7785c6fc3ecdcb4); S210's 2033 route: pen £3600.00, other £168120.00
+PASS  7  aged 76, no earnings, £10,000: nothing to the pension, £10,000 on to the ISA, split 1 and the plan's own routing  -- the pension's room £0.00; split 1: isa £10000.00; the plan's routing: isa £10000.00
+windfall-relief: 7 passed, 0 failed
+plant norelief fails cases 1, 2, 3, 4, 5, 6 (expected 1, 2, 3, 4, 5, 6): exact
+plant no75 fails cases 7 (expected 7): exact
+
+## Step 1.2's list: every route into a pension, what it did and what it does now
+STEP 1.2'S LIST: every route that adds to a pension, what it did before this item and what it does now (App.jsx unless named)
+
+Relieved now, through pensionRelief (the room taken gross, the money paying gross x 0.8, a higher-rate refund to cash):
+  1. the windfall split's pension-first variant (autoSplitRoutes, split 1; research, off unless a table's move asks):
+     before: pen1 = min(A, room), at face value; now the pension takes min(room, A / 0.8) for its net, any refund to cash.
+  2. an Auto deposit the policy routes into a pension (the plan's own routing, policyRoute, in every plan with an Auto
+     deposit whose policy order reaches the pension first: DEFAULT_DEPOSIT_ORDER does): before, claim(amt) at face value;
+     now claim(amt / 0.8) gross for the net, the rest of the windfall on to the taxable account, any refund to cash.
+  3. a staged transfer out of the taxable account into a pension (stepYear 1.5, the drips staging a deposit's surplus):
+     before, the GIA sold x and the pension gained x; now each tranche claims its room gross, the GIA pays the net, the
+     pension gains the net x 1.25 (uplift), and a refund (refundPer) lands in cash, both in proportion to what the GIA could
+     sell. The model (model.js 1.5) and the forward run (fast.js: dripLand, dripRefund) the same.
+Relieved already, unchanged:
+  4. Bed and SIPP (bedAndSippFor, the tournament's one-off move): relieved since D36; now through pensionRelief, the same
+     arithmetic.
+  5. the savings split (saveSplitRoutes, research): its pension saving is the plan's net cost grossed up (allocateBudget).
+  6. the tournament's accumulation candidates (allocateBudget): the net budget grossed up per owner.
+As the person enters them (the household pays what they type, or the figure is gross by its own definition):
+  7. a deposit typed into a pension (a one-off contribution in the Pensions wrapper, from outside or transferred from a
+     wrapper): lands as typed. Whether the amount typed is what the household pays or what arrives is the maintainer's
+     wording question (M3, DECISIONS-PENDING.md). Its staged surplus (3 above) is relieved.
+  8. regular contributions (contribAtYear): the plan's own gross figures, their take-home cost priced by
+     netCostOfPensionContrib (relief at source or salary sacrifice).
+From 75 (D69 (1), the review's answer 1): no relief and no room for a one-off deposit (App.jsx PENSION_RELIEF_TO_AGE):
+  wrapperHeadroomAtYear gives the pension no room, so an Auto deposit's route walks on to the ISA; pensionRelief relieves
+  nothing; bedAndSippFor makes no move. windfall-relief case 7 pins it, its plant 'no75' failing it alone.
+Not modelled, before or after: a higher-rate refund's own effect on the year's interest and dividends (HMRC extends the
+basic band; pensionRelief, as bedAndSippFor, works it on earnings alone). Not chased.
+
+## Case 6's STOP and its ruling (D69 (1)): the outputs behind QUESTIONS-2026-11-10.md, question 1, are in results-questions-2026-11-10.txt
+
+## No relief and no room from 75 (D69 (1), addition 2): what bedAndSippFor did at 75 before and does now (bedsipp75.mjs)
+before item 4 (item 3 alone), aged 74: moves £2880.00 from the ISA, £3600.00 lands in the pension (relief £720.00, refund £0.00); the pension's room for a one-off deposit £3600.00
+before item 4 (item 3 alone), aged 76: moves £2880.00 from the ISA, £3600.00 lands in the pension (relief £720.00, refund £0.00); the pension's room for a one-off deposit £3600.00
+items 3 to 5, aged 74: moves £2880.00 from the ISA, £3600.00 lands in the pension (relief £720.00, refund £0.00); the pension's room for a one-off deposit £3600.00
+items 3 to 5, aged 76: no move (none due); the pension's room for a one-off deposit £0.00
+
+## The library, before the commit (D69 (1), addition 1): results-relief-library.txt (size-relief.mjs on this commit's tree,
+## items 3 and 4 against item 3 alone, the age-75 rule in). Its STOP line:
+THE STOP (any household's survival falling by more than 1 point, or moving by more than 3): not met
+
+## The pins that move (D69 (2) and (3)): each where a household's Auto deposit is routed into its pension (item4-why.mjs: the
+## deposits and where the plan's own routing puts them, item 3 alone against this commit; couple-lockstep's twelve after the five named)
+S026: Auto 2030 £32400; before pen £3600 other £28800; after pen £3600 other £29520
+S090: Auto 2030 £171000; before pen £3600 other £167400; after pen £3600 other £168120
+S370: Auto 2030 £432000; before pen £3600 other £428400; after pen £3600 other £429120
+S116: Auto none; before -; after -
+S224: Auto none; before -; after -
+S000: Auto none; before -; after -
+S035 (couple): Auto 2030 £432000; before pen £3600 other £428400; after pen £3600 other £429120
+S070: Auto 2030 £432000; before pen £3600 other £428400; after pen £3600 other £429120
+S105 (couple): Auto none; before -; after -
+S140: Auto none; before -; after -
+S175 (couple): Auto 2030 £171000; before pen £3600 other £167400; after pen £3600 other £168120
+S210: Auto 2033 £171000; before pen £3600 other £167400; after pen £3600 other £168120
+S245 (couple): Auto none; before -; after -
+S280: Auto none; before -; after -
+S315 (couple): Auto 2044 £81000; before pen £36603 other £44397; after pen £36603 other £51718
+S350: Auto 2044 £32400; before pen £23473 other £8927; after pen £23473 other £13621
+S385 (couple): Auto none; before -; after -
+speed-port check 1, re-recorded on this commit (--record, then --full --record; S224 the same, S370 moved):
+{"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"572feb4a3c0c129e","layer":"219ee6ebe2370504","aref":"-","run":"727a78e82d66f90a"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e9852794d9c407ef","layer":"b8274efd10337928","aref":"bf852694ed07cef1","run":"68e2cee1fc7bee8a"}}
+{"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"7bac7b3333a0d666","layer":"7d42f25fd016b17d","aref":"-","run":"b0369498b5f5f0b1"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"78aebbb838f596e3","layer":"26f82baf4fa996fb","aref":"54e184b7e46e15d4","run":"9f1770179ada36d1"}}
+The full tier with the pins re-taken (check 1 on the neutral plans unchanged; couple-tables unchanged, S116 and S224 having no Auto deposit):
+windfall-split: ALL PASS: 21 checks
+PASS  1b. S026, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs dc4b42a7ce29f5fe against the pin dc4b42a7ce29f5fe
+PASS  1b. S090, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs f1e1167100e2f43b against the pin f1e1167100e2f43b
+PASS  1b. S040, the option unset, as the test takes it (interest, dividends and its Auto deposit): its tables and 40 forward runs 4adc22e273e981c7 against the pin 4adc22e273e981c7
+save-split: ALL PASS: 23 checks
+PASS  1b. S188, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 847a1cbc6947bba1 against the pin 847a1cbc6947bba1
+PASS  1b. S244, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 2fcb676ee98a867e against the pin 2fcb676ee98a867e
+PASS  1b. S026, the option unset, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs dc4b42a7ce29f5fe against the pin dc4b42a7ce29f5fe
+lock-tiers: ALL PASS: 23 checks
+PASS  1b. S090, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs f1e1167100e2f43b against the pin f1e1167100e2f43b
+PASS  1b. S090, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs f1e1167100e2f43b against the pin f1e1167100e2f43b
+PASS  1b. S328F, the candidate's settings, both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 7f0bb15e4811424c against the pin 7f0bb15e4811424c
+PASS  1b. S328F, the layer loop (tsOnce: false), both options off, as the test takes it (interest, dividends and any Auto deposit): its tables and 40 forward runs 7f0bb15e4811424c against the pin 7f0bb15e4811424c
+couple-lockstep: 5 passed, 0 failed
+  ok   3. the engine's year with no table, and a single's years under a solved table, with and without tiers, the code before D2's bit for bit   12 households with no table 03cbe34b1579e5a4 (before 03cbe34b1579e5a4); 2 singles x 10 paths un
+couple-tables: ALL PASS: 8 passed, 0 failed (248s)
+
+## The pages' line, in the maintainer's words (not yet given). The review's draft: "A windfall that the plan pays into a pension now gets its tax relief."

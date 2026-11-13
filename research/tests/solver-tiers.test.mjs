@@ -13,12 +13,40 @@ import { solve, runPolicy, buildActions, tierCombos } from '../../src/solver/sol
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { cpuNs } from './cpu-time.mjs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 let pass = 0, fail = 0;
 const failed = [];   // named again on the last line: the full tier's log keeps only a failing file's last three lines
 const ok = (n, c, extra = '') => { c ? pass++ : (fail++, failed.push(`${n.split(/\s+/)[0]}${extra ? ` (${extra})` : ''}`)); console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const prep = (p) => E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(p)), config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
+
+/* section C's solves, alone in this process (the parent's section C runs this and reads its last line) */
+if (process.argv.includes('--section-c')) {
+  let worse = 0, ratioMax = 0, used = 0;
+  const picks = [singles[3], singles[Math.floor(singles.length * 0.6)]];
+  // C2 is about the solve's own cost, so each solve is timed on this thread's CPU clock (cpu-time.mjs), one cold run as
+  // before: the full tier runs two files at once (run-shard.mjs -j 2), and on the wall clock a neighbour's load landing on
+  // one solve and not the other moved the ratio (Full 63, 3 Nov: the only check of the file that can differ between runs of
+  // the same code, it failed where Full 61 had passed). SOLVER_TIERS_PLANT=slow solves the tier problem three times inside
+  // its timing, a slowdown C2 must catch.
+  const again = process.env.SOLVER_TIERS_PLANT === 'slow' ? 3 : 1;
+  for (const sc of picks) {
+    const plan = prep(sc.plan);
+    let a, b;
+    const tA = Math.round(cpuNs(() => { a = solve(E, M, plan, { points: 16, skipLump: true }); }, 1, 1).first / 1e6);
+    const tB = Math.round(cpuNs(() => { for (let k = 0; k < again; k++) b = solve(E, M, plan, { points: 16, skipLump: true, tiers: true }); }, 1, 1).first / 1e6);
+    const va = a.value(M.initialState(a.m), 0).score, vb = b.value(M.initialState(b.m), 0).score;
+    if (vb < va - 1e-9) worse++;
+    ratioMax = Math.max(ratioMax, tB / tA);
+    const rs = E.pathsForSeed(31, 200, b.m.ctx.totalYears).map(z => runPolicy(b, z));
+    used += rs.reduce((x, r) => x + r.tierPenYears + r.tierIsaYears, 0) / rs.length;
+    console.log(`      ${sc.id} ${sc.name.slice(0, 30)}: value ${va.toFixed(4)} -> ${vb.toFixed(4)}, ${tA}ms -> ${tB}ms of CPU (${b.actions.length} moves), tier-down years ${ (rs.reduce((x, r) => x + r.tierPenYears, 0) / rs.length).toFixed(1)} pension / ${(rs.reduce((x, r) => x + r.tierIsaYears, 0) / rs.length).toFixed(1)} ISA a run`);
+  }
+  console.log(`SECTION-C ${JSON.stringify({ worse, ratioMax, used })}`);
+  process.exit(0);
+}
 
 console.log('=========== A. THE TIERS A WRAPPER MAY HOLD ===========');
 {
@@ -66,26 +94,14 @@ console.log('=========== B. TIER VARIANTS SHARE THE FLOW AND DIFFER ONLY IN GROW
 
 console.log('=========== C. THE SOLVE WITH TIERS ON: NO WORSE, AND ITS COST ===========');
 {
-  const picks = [singles[3], singles[Math.floor(singles.length * 0.6)]];
-  let worse = 0, ratioMax = 0, used = 0;
-  // C2 is about the solve's own cost, so each solve is timed on this thread's CPU clock (cpu-time.mjs), one cold run as
-  // before: the full tier runs two files at once (run-shard.mjs -j 2), and on the wall clock a neighbour's load landing on
-  // one solve and not the other moved the ratio (Full 63, 3 Nov: the only check of the file that can differ between runs of
-  // the same code, it failed where Full 61 had passed). SOLVER_TIERS_PLANT=slow solves the tier problem three times inside
-  // its timing, a slowdown C2 must catch.
-  const again = process.env.SOLVER_TIERS_PLANT === 'slow' ? 3 : 1;
-  for (const sc of picks) {
-    const plan = prep(sc.plan);
-    let a, b;
-    const tA = Math.round(cpuNs(() => { a = solve(E, M, plan, { points: 16, skipLump: true }); }, 1, 1).first / 1e6);
-    const tB = Math.round(cpuNs(() => { for (let k = 0; k < again; k++) b = solve(E, M, plan, { points: 16, skipLump: true, tiers: true }); }, 1, 1).first / 1e6);
-    const va = a.value(M.initialState(a.m), 0).score, vb = b.value(M.initialState(b.m), 0).score;
-    if (vb < va - 1e-9) worse++;
-    ratioMax = Math.max(ratioMax, tB / tA);
-    const rs = E.pathsForSeed(31, 200, b.m.ctx.totalYears).map(z => runPolicy(b, z));
-    used += rs.reduce((x, r) => x + r.tierPenYears + r.tierIsaYears, 0) / rs.length;
-    console.log(`      ${sc.id} ${sc.name.slice(0, 30)}: value ${va.toFixed(4)} -> ${vb.toFixed(4)}, ${tA}ms -> ${tB}ms of CPU (${b.actions.length} moves), tier-down years ${ (rs.reduce((x, r) => x + r.tierPenYears, 0) / rs.length).toFixed(1)} pension / ${(rs.reduce((x, r) => x + r.tierIsaYears, 0) / rs.length).toFixed(1)} ISA a run`);
-  }
+  // The solves run in a child process of their own (--section-c), so C2 times them in a clean process: run after section B,
+  // whose direct F.flow calls on short, extreme states leave V8's code for the flow slower, the same tiered solve took 15.1 s
+  // of CPU against 7.2 s alone (S006, 11 Nov, after item 3's stacked year; Full 152 and 160 read C2 at 4.25x). The child does
+  // the work below and hands its counts back; the checks and their bounds are as before. SOLVER_TIERS_PLANT reaches the child.
+  const out = execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--section-c'], { encoding: 'utf8', env: process.env });
+  const r = JSON.parse(out.split('\n').find(l => l.startsWith('SECTION-C ')).slice(10));
+  out.split('\n').filter(l => l.startsWith('      ')).forEach(l => console.log(l));
+  const { worse, ratioMax, used } = r;
   ok('C1  on the same grid, more moves never lower the opening value', worse === 0);
   ok('C2  the joint tier moves cost less than two and a half times the phase 2 solve (the flow is shared)', ratioMax < 2.5, `worst ${ratioMax.toFixed(2)}x; the gate\'s 1.5x is judged in the plan`);
   ok('C3  the forward run reports the years spent below the plan\'s tier', Number.isFinite(used));

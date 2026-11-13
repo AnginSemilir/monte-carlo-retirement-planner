@@ -60,10 +60,24 @@ const rowOn = rowsOn[0], rowOff = rowsOff[0], yOn = rowsOn[1], yOff = rowsOff[1]
 const cashAcc = E.buildContext(on).acc['cash_self'];
 const nominal = (1 + cashAcc.real) * (1 + E.buildContext(on).inflation) - 1;
 ok('B1  the row reports the year\'s interest on the cash held', near(rowOn.savingsInterest, 200000 * nominal * E.buildContext(on).yf, 1), `${rowOn.savingsInterest.toFixed(0)}`);
-ok('B2  ...and the tax on it, the DB pension leaving no starting-rate room and the basic-rate allowance', yOn.savingsTax > 0 && near(yOn.savingsTax, P.savingsTax(yOn.otherTaxableSelf, yOn.savingsInterest), 0.01), `${yOn.savingsTax.toFixed(2)} on ${yOn.savingsInterest.toFixed(0)} of interest`);
-ok('B3  the tax is a cost the year funds: the drawdown rises by it', near(yOn.netDrawdown - yOff.netDrawdown, yOn.savingsTax, 1), `${(yOn.netDrawdown - yOff.netDrawdown).toFixed(2)} vs ${yOn.savingsTax.toFixed(2)}`);
-// the year's tax rises by the savings tax AND the income tax on the extra pension drawn to fund it
-ok('B4  ...and the year\'s tax carries it, plus the tax on the draw that funds it', yOn.taxPaid - yOff.taxPaid >= yOn.savingsTax - 1 && yOn.taxPaid - yOff.taxPaid <= yOn.savingsTax * 1.6, `+${(yOn.taxPaid - yOff.taxPaid).toFixed(2)} for ${yOn.savingsTax.toFixed(2)} of savings tax`);
+// in HMRC's order (the review of 9 Nov, item 3; D69's unlock): the interest sits above all the year's non-savings income, the
+// pension draw's taxable part included. Here £36,976 + £8,386.31 drawn, £32,792.31 taxable, the interest past the £37,700
+// limit, so the £500 allowance: £1,599.28 (the old pin, the interest above the DB and state pension alone, was £1,140.41)
+// (12 Nov, the ceiling on the whole taxable income: the draw now stops short of the limit by the interest, which is then all in
+// the basic band: £1,142.37; the check's own arithmetic is unchanged)
+ok('B2  ...and the tax on it, the interest above the year\'s whole non-savings income (the pension drawn included)', yOn.savingsTax > 0 && near(yOn.savingsTax, P.savingsTax(yOn.otherTaxableSelf + yOn.taxablePensionSelf, yOn.savingsInterest), 0.01), `${yOn.savingsTax.toFixed(2)} on ${yOn.savingsInterest.toFixed(0)} of interest`);
+// the year funds it: the net drawdown rises by the interest's tax on the income before the draw (£1,140.41), and the draw pays
+// its own knock-on inside the gross-up, so the gross draw rises by exactly the year's tax rise (£1,881.50 both)
+ok('B3  the tax is a cost the year funds: the net drawdown rises by the interest\'s tax on the income before the draw', near(yOn.netDrawdown - yOff.netDrawdown, P.savingsTax(yOn.otherTaxableSelf, yOn.savingsInterest), 1), `${(yOn.netDrawdown - yOff.netDrawdown).toFixed(2)} vs ${P.savingsTax(yOn.otherTaxableSelf, yOn.savingsInterest).toFixed(2)}`);
+// 12 Nov (the ceiling on the year's whole taxable income, ANSWERS.md section 5; D91, D93's unlock): B3b and B4 re-set. Before,
+// the order's basic step drew the pension to the £50,270 threshold and left the interest above it, in the higher band: the
+// gross draw rose by the year's whole tax rise (£1,881.50) and the interest's tax was £1,599.28. Now the step stops where the
+// year's whole taxable income reaches the threshold, the cash funds the rest, and the interest is all in the basic band with
+// the £1,000 allowance.
+ok('B3b ...and the basic step stops where the pension, the other income and the interest together reach the threshold; the cash funds the rest', near(yOn.otherTaxableSelf + yOn.taxablePensionSelf + yOn.savingsInterest, P.basicLimit, 0.01) && yOn.drawdownPensions < yOff.drawdownPensions && near(yOn.savingsTax, (yOn.savingsInterest - 1000) * 0.2, 0.01),
+  `the whole taxable income ${(yOn.otherTaxableSelf + yOn.taxablePensionSelf + yOn.savingsInterest).toFixed(2)}; the gross draw ${(yOn.drawdownPensions - yOff.drawdownPensions).toFixed(2)}; the interest's tax ${yOn.savingsTax.toFixed(2)}`);
+// the year's tax rises by the savings tax less the basic-rate tax on the taxable pension no longer drawn
+ok('B4  ...and the year\'s tax carries it, less the tax on the pension the step no longer draws', near(yOn.taxPaid - yOff.taxPaid, yOn.savingsTax - 0.2 * (yOff.taxablePensionSelf - yOn.taxablePensionSelf), 0.01) && yOn.taxPaid > yOff.taxPaid, `+${(yOn.taxPaid - yOff.taxPaid).toFixed(2)} for ${yOn.savingsTax.toFixed(2)} of savings tax and ${(yOff.taxablePensionSelf - yOn.taxablePensionSelf).toFixed(2)} less taxable pension`);
 ok('B5  switched off the year is what it was before', rowOff.savingsTax === 0 && rowOff.savingsInterest === 0);
 {
   const gia = withRows({ ...base, config: { ...base.config, cashInterestTaxed: false } }, { other_self: { balance: 150000, risk: 'Medium Risk' } });

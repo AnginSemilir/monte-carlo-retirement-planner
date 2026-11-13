@@ -648,6 +648,41 @@ export function interp(g, arr, loc, survival) {
 }
 
 /*
+ * interp twice from one location (the review of 11 Nov, item 11: a couple's rollout reads resilience and the estate at
+ * every position it values): two tables read linearly at the same corners, out[0] from arrA and out[1] from arrB. Each
+ * sum takes the corners in interp's order with interp's own products, so each figure is interp(g, arr, loc, false)'s
+ * bit for bit (couple-flat.test.mjs). Linear reads only.
+ */
+export function interpPair(g, arrA, arrB, loc, out) {
+  if (g.cov) throw new Error('coverage: interpPair has no year; read through readValues');
+  const { p, i, t, ig, ic } = loc;
+  const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;
+  const cw = g.pclsInterp && loc.icw > 0 && ic + 1 < g.pcls.length ? loc.icw : 0;
+  let a = 0, b = 0;
+  for (let dp = 0; dp < 2; dp++) {
+    const wp = dp ? p.w : 1 - p.w; if (wp === 0) continue;
+    for (let di = 0; di < 2; di++) {
+      const wi = di ? i.w : 1 - i.w; if (wi === 0) continue;
+      for (let dt = 0; dt < 2; dt++) {
+        const wt = dt ? t.w : 1 - t.w; if (wt === 0) continue;
+        const w3 = wp * wi * wt;
+        for (let dc = 0; dc < 2; dc++) {
+          const wc = dc ? cw : 1 - cw; if (wc === 0) continue;
+          const at = g.index(p.i + dp, i.i + di, t.i + dt, ig, ic + dc), w = w3 * wc * (1 - gw);
+          a += w * arrA[at]; b += w * arrB[at];
+          if (gw > 0) {
+            const at2 = g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic + dc), w2 = w3 * wc * gw;
+            a += w2 * arrA[at2]; b += w2 * arrB[at2];
+          }
+        }
+      }
+    }
+  }
+  out[0] = a; out[1] = b;
+  return out;
+}
+
+/*
  * THE ZERO-GROWTH NEED, and why it is NOT a certain-success bound.
  *
  * The plan meant to skip every position rich enough to pay every remaining year with no growth at all

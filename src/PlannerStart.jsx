@@ -15,6 +15,7 @@ import React, { useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
 import { SIMPLE_BLANK, toFullPlan, readiness, simpleHasInput } from './simplePlan.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
+import { COUPLES } from './couplesSwitch.js';
 
 const SIMPLE_KEY = 'rp_simple_v1';
 const saved = () => { try { const s = JSON.parse(localStorage.getItem(SIMPLE_KEY) || 'null'); return simpleHasInput(s) ? { ...SIMPLE_BLANK, ...s } : null; } catch (e) { return null; } };
@@ -81,10 +82,18 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
       <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
         <button type="button" data-quick-all onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Or fill in everything now</button>
       </div>
+      {/* Part D, D5: with couples on (src/couplesSwitch.js, D6 the maintainer's word) a couple fills in You for both of them */}
+      {COUPLES ? (
+      <div className="text-xs text-slate-600 border-t border-slate-100 pt-3" data-quick-couple="on">
+        <span className="font-semibold text-slate-800">Planning for two?</span> Fill in everything now, choosing a plan for two people under You: the plan is worked out for the two of you together.{' '}
+        <button type="button" onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Fill in a plan for two</button>
+      </div>
+      ) : (
       <div className="text-xs text-slate-600 border-t border-slate-100 pt-3" data-quick-couple>
         <span className="font-semibold text-slate-800">Planning for two?</span> The new planner works out plans for one person for now. A couple&apos;s plan uses the classic planner.{' '}
         <button type="button" onClick={onClassic} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Open the classic planner</button>
       </div>
+      )}
     </section>
   );
 }

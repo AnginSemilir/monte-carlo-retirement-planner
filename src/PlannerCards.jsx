@@ -13,13 +13,22 @@ import { SolverPlanAnswers } from './SolverSimple.jsx';
 import { solverApproximations } from './solverApproximations.js';
 import { DiagnosticCopy } from './DiagnosticCopy.jsx';
 
-/* a couple's plan (LAYOUT.md section 6): the classic planner, or a plan for one person */
-export function Couples({ isPhone, onClassic, onOnePerson }) {
+/* a couple's plan the solver does not run (LAYOUT.md section 6; Part D, D5): the classic planner, or a plan for one person.
+   `why` 'off': couples are not on in the solver yet (src/couplesSwitch.js COUPLES, D6 the maintainer's word), the words as
+   before D5; 'uneven': couples are on, and this one holds less than 40% or more than 60% of its pots with its first person,
+   which keeps the app's rules until item 6's stage C reads (M4 in D66); `share` the first person's share of the pots */
+export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
+  const uneven = why === 'uneven', pc = x => `${Math.round(100 * x)}%`;
   return (
-  <section data-planner-couple className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+  <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
+    {uneven ? <>
+      <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for couples who hold their money about evenly, for now</h2>
+      <p className="text-sm text-slate-600" data-couple-share={share}>Your plan has {pc(share)} of your money with you and {pc(1 - share)} with your partner. A couple where one holds more than 60% is still being tested in the solver, so for now your plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </> : <>
     <h2 className="text-[15px] font-semibold text-slate-900">The new planner works out plans for one person for now</h2>
     <p className="text-sm text-slate-600">Your plan is for two people. Until the solver plans for couples, which is being built, a couple&apos;s plan follows the app&apos;s own rules in the classic planner. Your inputs are kept either way.</p>
+    </>}
     <div className="flex flex-wrap gap-2">
       <button type="button" data-open-classic onClick={onClassic} className={`px-4 rounded-lg bg-accent hover:bg-accent-hover text-onaccent text-sm font-bold cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Open the classic planner</button>
       <button type="button" onClick={onOnePerson} className={`px-4 rounded-lg border border-slate-300 bg-surface text-sm font-semibold text-slate-800 cursor-pointer ${isPhone ? 'min-h-11' : 'min-h-9'}`}>Change to a plan for one person</button>
@@ -34,7 +43,7 @@ export function WhatIf({ solvedInHand, plan, solve, ageNow, last, seed, upto, en
   return (
     <div className="grid gap-6 min-[1100px]:grid-cols-2 items-start">
       {!solvedInHand && <p data-whatif-wait className="text-sm text-slate-600 min-[1100px]:col-span-2">Each card here works your plan out again at another setting, once your plan itself is worked out.</p>}
-      <SolverAges plan={plan} solve={solve} ageNow={ageNow} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} />
+      <SolverAges plan={plan} solve={solve} ageNow={ageNow} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} couple={!!(plan && plan.demographics && plan.demographics.planningMode === 'couple')} />
       <SolverTargets plan={plan} solve={solve} seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} />
       <div data-whatif-limits className="p-4 rounded-xl border border-slate-200/90 bg-surface">
         {solvedInHand ? <SolverPlanAnswers plan={plan} fromSpend={null} ageNow={ageNow} last={last} engine={engine} opts={opts} fmt={fmt} whatIf />

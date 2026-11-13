@@ -13,7 +13,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import '@fontsource/newsreader/latin-500.css';
-import { headlineWords, explanationWords, raiseWords, actionWords, sweepWords, aheadRowsWords, ruleWords, COME_BACK } from './solverWords.js';
+import { headlineWords, explanationWords, raiseWords, actionWords, sweepWords, aheadRowsWords, ruleWords, COME_BACK, coupleActionWords, coupleAheadRowsWords, coupleSplitWords } from './solverWords.js';
 import { useSwipe } from './swipe.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 import { timings } from './solveStatus.js';
@@ -73,8 +73,11 @@ export function PlannerPlan({ plan, solve, seed, fmt, isPhone, steps = STEPS, ac
       try {
         const { actions } = solve.actions ? await solve.actions(plan, seed, actionsN) : await solve.ask('actions', { plan, seed, n: actionsN });
         if (live) setMore(m => ({ ...m, key: solve.key, actions }));
-        const { distil } = await solve.ask('distil', { plan, seed, n: actionsN });
-        if (live) setMore(m => ({ ...m, key: solve.key, distil }));
+        // the rule of thumb is learnt from one person's table: a couple's plan has none (Part D, D5.4)
+        if (!(solve.solveMeta && solve.solveMeta.couple)) {
+          const { distil } = await solve.ask('distil', { plan, seed, n: actionsN });
+          if (live) setMore(m => ({ ...m, key: solve.key, distil }));
+        }
       } catch (e) { /* the actions and the rule are extra; the headline stands without them */ }
     })();
     return () => { live = false; };
@@ -182,7 +185,7 @@ function AnswerCard({ s, state, steps, fmt, isPhone, pctDone, failed, onRetry, o
       </div>
     );
   }
-  const h = s.headline, w = headlineWords(h, fmt);
+  const h = s.headline, w = headlineWords(h, fmt, !!(diag && diag.solve && diag.solve.solveMeta && diag.solve.solveMeta.couple));
   const [lead, rest] = splitAmount(w.amount);
   const stale = state === 'stale';
   return (
@@ -364,11 +367,13 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
       {isPhone && <p className="text-xs text-slate-500">Each shows what skipping it, this year only, would cost.</p>}
       {!mine.actions ? <p className="text-xs text-slate-500">Working out what each of this year&apos;s steps is worth…</p>
         : !mine.actions.actions.length ? (sweepWords(mine.actions.sweep, ctx) ? null : <p className="text-sm text-slate-700" data-strategy-action="none">Nothing to change this year: keep to your plan as it stands.</p>)
-          : <ol className="space-y-2">{mine.actions.actions.map((x, i) => { const t = actionWords(x, ctx); return (
-            <li key={x.part} className="flex gap-3" data-strategy-action={x.part} data-strategy-cost={x.cost === null ? '' : x.cost}>
+          : <ol className="space-y-2">{mine.actions.actions.map((x, i) => { const two = !!mine.actions.couple, t = two ? coupleActionWords(x, ctx) : actionWords(x, ctx); return (
+            <li key={two ? `${x.who}-${x.part}` : x.part} className="flex gap-3" data-strategy-action={two ? `${x.who}:${x.part}` : x.part} data-strategy-cost={x.cost === null ? '' : x.cost}>
               <span className="text-xs font-semibold text-indigo-700 tabular-nums">{i + 1}</span>
               <div><div className="text-sm font-medium text-slate-800">{t.what}</div><div className="text-xs text-slate-500">{t.cost}</div></div>
             </li>); })}</ol>}
+      {mine.actions && mine.actions.couple && coupleSplitWords(mine.actions.move.parts.split) && (
+        <p className="text-sm text-slate-700" data-strategy-split={mine.actions.move.parts.split}>{coupleSplitWords(mine.actions.move.parts.split)}.</p>)}
       {mine.actions && sweepWords(mine.actions.sweep, ctx) && (
         <p className="text-sm text-slate-700" data-strategy-sweep={Math.round(mine.actions.sweep.toGia || mine.actions.sweep.fromGia)}>{sweepWords(mine.actions.sweep, ctx)}, as the plan keeps cash at its buffer.</p>)}
     </div>
@@ -379,7 +384,7 @@ function belowParts({ s, mine, ctx, dim, isPhone, rulesLine }) {
       {t.lines.map((l, i) => <p key={i} className="text-sm text-slate-800">{l}</p>)}
       <p className="text-xs text-slate-500">{t.note}</p>
     </div>); })() : <div hidden data-strategy-rule="hidden" data-strategy-rule-cost={mine.distil.cost} />);
-  const groups = mine.ahead ? aheadRowsWords(mine.ahead.rows, ctx) : null;
+  const groups = mine.ahead ? (mine.ahead.couple ? coupleAheadRowsWords(mine.ahead.rows, ctx) : aheadRowsWords(mine.ahead.rows, ctx)) : null;
   const ahead = groups && (
     <div className={`p-4 bg-surface border border-slate-200/90 rounded-xl ${op}`} data-strategy-ahead={mine.ahead.rows.length} data-ahead-groups={groups.length}
       data-ahead-spend={JSON.stringify(mine.ahead.rows.map(r => [r.age, r.spend]))}>

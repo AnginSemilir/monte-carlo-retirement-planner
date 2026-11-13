@@ -120,6 +120,8 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
         <h2 className="text-[15px] font-semibold text-slate-900">What matters to you</h2>
         <p className="text-xs text-slate-500 mt-1">{isPhone ? 'Not running out comes first. These choices tell the solver what you want from the rest. A change is worked out when you tap Solve again.'
           : 'Not running out comes first. These choices tell the solver what you want from the rest, and each one solves your plan again.'}</p>
+        {plan.demographics && plan.demographics.planningMode === 'couple' && (
+          <p data-aims-couple className="text-xs text-slate-500 mt-1">For the two of you: each choice applies to both of your halves of the plan.</p>)}
       </div>
       <Row Fine={ui.Fine} title="How much do you dislike cuts?" isPhone={isPhone}
         help="Low: protect against running out, even if spending dips for a while. High: keep spending steadier, accepting a higher chance of running out. Low is the default.">

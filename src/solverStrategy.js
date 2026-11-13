@@ -22,6 +22,7 @@
  * lookahead), else the plain draw order the engine runs. Both arms run on pathsForSeed(seed, trials, years), path for path.
  */
 import { withTable, modelStateOf } from './solver/bridge.js';
+import { withCouple } from './solver/couple.js';
 import { rankActions, wholeMenu } from './solver/solve.js';
 import { vecOf } from './solver/grid.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
@@ -36,8 +37,11 @@ export const PLANT = { rule: '' };
 
 /* the plan as entered, as the projection runs it (src/mcWorker.js: resolveMpaa, then buildContext) */
 export const yourContext = (E, plan) => E.buildContext(E.resolveMpaa(E.normalizePlan(plan)));
-/* the solved plan, as the worker's 'simulate' runs it */
-export const solvedContext = (E, solved) => E.buildContext(withTable(solved.m.ctx.plan, solved));
+/* the solved plan, as the worker's 'simulate' runs it: a single's table (bridge.js withTable), or a couple's two through the
+   joint move (couple.js withCouple, Part D D5.2), the household's plan as solved (its minimum pot set) */
+// research/tests/couple-figures.test.mjs plant 'oneperson': a couple's context built from the first person's table alone
+export const solvedContext = (E, solved) => E.buildContext(solved && solved.tables && solved.plans
+  ? (PLANT.rule === 'oneperson' ? withTable(solved.plan, solved.tables.self) : withCouple(solved.plan, solved)) : withTable(solved.m.ctx.plan, solved));
 
 /*
  * One path through the engine: runTrial's outcome (survived, the terminal pot, net of the pension's death tax, the lifetime
@@ -83,7 +87,10 @@ export function compareOf(rs) {
 
 /* the first year with a target: the first retired year (the same on every path: the schedule does not depend on markets) */
 /* (the engine counts year t as retired when the age then is the retirement age or above: age0 + t >= retireAge) */
-export const retireYearOf = ctx => Math.max(0, Math.min(ctx.totalYears, Math.ceil(ctx.owners[0].retireAge - ctx.ageSelf0)));
+/* (a couple's household is retired from the first year either person is, the engine's rule: a year with no one retired has no
+   living spending; for a single, the one person's: Part D, D5.2) */
+// plant 'firstalone' (couple-figures.test.mjs): the household's first retired year read from the first person alone
+export const retireYearOf = ctx => Math.max(0, Math.min(ctx.totalYears, Math.min(...(PLANT.rule === 'firstalone' ? ctx.owners.slice(0, 1) : ctx.owners).map(o => Math.ceil(o.retireAge - o.age0)))));
 
 /*
  * The headline (wording section 1): the safe starting spend, which is the first retired year's level (for a household already

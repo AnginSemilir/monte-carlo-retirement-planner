@@ -163,3 +163,71 @@ The launch plan's D4, its arms, panel and rule as given there; the build, from 7
 - **The seed:** 7021, used by no run before (the held-out scan of seeds: no file in the tree or the review branch names
   it as a seed); reserving it in `check-prediction.mjs`'s registry is a protected edit, asked of the maintainer with the
   registration.
+
+## D5. The couples' screens in the new planner (box three days, from 13 Nov 22:00 UTC; the launch plan's two, D58's recast)
+
+The launch plan's D5 (section 6; LAYOUT.md sections 6 and 13): "What matters to you" and the limits per person, this
+year's actions per person on Your plan, the wording for a household, the couples card retired, `solver-planner-ui.cjs` with
+a couple. Behind a switch, `COUPLES`, off in the source: D6, couples on, is the maintainer's word (D91), so until then a
+couple's plan keeps the card and the app's rules exactly as now, and the harnesses' light build turns it on. With it on, a
+couple whose first person holds less than 40% or more than 60% of the pots keeps the app's rules until item 6's stage C
+reads (M4 in D66), and the page says why. The box is a day over the launch plan's two: the worker and the figures below
+were built for one table, and a couple brings two and the joint move.
+
+- **D5.1 The couple's solve, from two single solves** (no screen). Each person's table is solved as an ordinary single
+  solve on the plan couple.js cuts for them (`couplePlans`, factored out of `solveCouple` so both take the same plans),
+  with their partner's age today (`ageWith`, D3): its own key, so the store keeps and restores it; split across the
+  workers; a dial position's base first; progress named for whose table it is. The owner then assembles the couple
+  (`solveCouple`'s `solveOne` handing back the two tables, each checked to be the one solved for that person's plan), and
+  keeps it as the solve in hand. Test (`couple-solve-client.test.mjs`, in Node through the worker's own handlers): the
+  assembled couple the same as `solveCouple` run whole, its two tables' digests and the engine's run of the couple on 200
+  paths bit for bit, restored from the store as solved; plants: the two tables swapped, a table solved without `ageWith`.
+- **D5.2 The couple's figures.** The worker's questions on a couple: `simulate`, `strategy` (the headline, the comparison,
+  the outlook) on the engine's run of the solved couple (`withCouple`), the first retired year the household's (either
+  person retired, the engine's rule), `digest` over both tables. The rule of thumb (`distil`) is for one table and says so
+  for a couple. Test (`couple-figures.test.mjs`): each figure against the engine's own run of the solved couple, path for
+  path; the plan as entered beside it as for a single; plants: the household's first year read from the first person
+  alone, the solved couple's context swapped for one person's.
+- **D5.3 This year's actions, the next years and the ledger, per person.** The joint move taken apart for each person (their
+  spending share, draw, harvest and tiers) and the split; each part's skip cost as a single's (the best-ranked move that
+  differs in that part, for that person, the other's move and the split held, forced in the first year, the plan on after),
+  split across the parts as a single's; the next ten years and the audit rows with both people's moves. Test
+  (`couple-actions.test.mjs`): the parts read back from the joint move the engine took, each skip forced as stated, the
+  costs the same split and whole; plants: a skip that moves the other person, the split dropped from the forced move.
+- **D5.4 The screens.** `solverRules` widened to a couple under `COUPLES`, inside the band; Your plan's answer card, the
+  outlook and this year's actions in a household's words ("you and your partner"; each person's actions under their
+  name); What matters to you (the household's aims) and the limits per person (each person's locks, as D3 built them); What
+  if's target card and scenarios for a couple, the age card per person where it can (else it says why); Details with both
+  tables' settings and the ledger; the couples card shown only where `COUPLES` is off or the couple is outside the band,
+  then saying why; the quick start's "Planning for two?" line moved with it. Tests: the wording table's household strings
+  (`solver-words` checks), and the next step's harness.
+- **D5.5 The harness.** `solver-planner-ui.cjs` gains a couple: the couple solves (two tables, the progress naming each),
+  the answer card and actions per person, the figures the worker's own, bit for bit as the single's checks are; a couple
+  outside the band shown the card with its reason; `COUPLES` off, the card and the app's rules exactly as before; each
+  check failed once on its plant. Then B1's gate in both modes, the reviewer, a report to the maintainer with the
+  screenshots; D6 (couples on) stays the maintainer's.
+
+**D5's state (13 Nov, night; uncommitted parts committed with their tests).** D5.1: `src/solverCouple.js` (couplePlans,
+assembleCouple), the worker's slot for each person and its `couple-plans` and `couple` asks, the client's couple phases
+(`startSolve`'s `couple`; `useSolver` and What if's `startFigures` route a couple there), each person's key carrying their
+partner's age (`solverKey.js`, a single's key unchanged); `couple-solve-client.test.mjs` 6 checks, the couple from two
+solves bit for bit `solveCouple`'s whole, plants 'swap' and 'noage' failing. D5.2: `solvedContext` and `retireYearOf` for a
+couple (the household retired from the first year either person is); `couple-figures.test.mjs`. D5.3: the joint move taken
+apart for each person, each skip forced on its own person, the next years and the rows (`coupleActionsOf`, `coupleAheadOf`,
+`coupleRowsOf`, dispatched by the worker; the rule of thumb is one table's and says so); `couple-actions.test.mjs` 5 checks,
+plants 'skipother' and 'nosplit' failing. D5.4: `src/couplesSwitch.js` (COUPLES, off; the band, held to couple.js's);
+`solverRules` widened to an in-band couple with couples on; the couples card only for a couple the solver does not run,
+giving its reason ('off' or 'uneven', with the shares); Your plan's headline, actions, split and next years, the ledger and
+the printed sheet in a household's words (`couple-words.test.mjs` 5 checks, plant 'partneryour'); What if's age card and
+limits card saying the age moved is the first person's; a couple's scenario solved where couples are on and it is in the
+band; the quick start's line for two; the strip naming whose half is being worked out. D5.5: `solver-planner-ui.cjs` check
+19 (a build with COUPLES_ON=1: an in-band couple solved, its figures the reference's bit for bit; re-held 90/10, the card
+'uneven'), check 10's card 'off', plants 'couplecard' and 'coupleage'.
+Known limits, each said where it shows: the limits per person wait on couple.js cutting each person's own locks into their
+plan, a change in src/solver, which moves the code id the stage C panel was landed on, so it follows stage C's launch; the
+store keeps two solves (CACHE_MAX), so a couple at a dial position above the first restores in part; the age searched by the
+age card and the limits card is the first person's.
+Not yet done, and needed before D6: a couple's figures (the headline's runs, this year's skips) run in the owner worker alone,
+the parts being let go after each person's table; a couple's path through the engine costs about 150 to 200 ms at the app's
+settings (the couples' re-run's pilot), so the headline's 5,000 paths and the skips take minutes where a single's take
+seconds. To be measured in the browser, then the runs split across the workers as a single's are (D5.6, before couples go on).

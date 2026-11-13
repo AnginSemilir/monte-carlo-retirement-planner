@@ -18,6 +18,7 @@ import React, { useEffect, useState } from 'react';
 import { dialLineWords } from './solverWords.js';
 import { ageOptions, atAge, targetOptions, atSpend } from './solverSettings.js';
 import { moreJob, costWords } from './solveStatus.js';
+import { coupleSolverOn } from './couplesSwitch.js';
 
 /*
  * Step U (LAYOUT.md sections 3.1, 3.3 and 8): a row waiting its turn says so, not "working it out…" (L11); `cost` is said under
@@ -116,17 +117,18 @@ export function FiguresList({ plan, solve, own, options, order, sig, seed, upto,
 /* the retirement-age dial (B11), What if's first card (step U): on request, the solved plan at each of the ages either side of
    the plan's own, one solve an age, each keeping its figures; its cost said before it is asked */
 const NEAREST = 'Nearest first. Each on the same 2,000 simulated markets; your plan\'s answer uses 5,000.';
-export function SolverAges({ plan, solve, ageNow, seed, upto, engine, opts, fmt }) {
+/* a couple's plan (Part D, D5.4): the card moves the first person's retirement age, the partner's as planned, and says so */
+export function SolverAges({ plan, solve, ageNow, seed, upto, engine, opts, fmt, couple = false }) {
   const ao = ageOptions(plan, ageNow);
   if (!ao) return null;
   const sig = JSON.stringify(atAge(plan, 0));
   return (
-    <div data-solver-ages className="p-4 rounded-xl border border-slate-200/90 bg-surface space-y-1.5">
+    <div data-solver-ages data-ages-couple={couple ? 'yes' : undefined} className="p-4 rounded-xl border border-slate-200/90 bg-surface space-y-1.5">
       <h3 className="text-[15px] font-semibold text-slate-900">Retiring earlier or later</h3>
-      <p className="text-xs text-slate-500">The solved plan at each age, worked out when you ask: one solve an age, so it takes a while.</p>
-      <FiguresList plan={plan} solve={solve} own={ao.own} options={ao.ages.map(a => ({ id: a, label: `Retire at ${a}`, plan: atAge(plan, a) }))} order={ao.order} sig={sig}
-        seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="ages" showLabel={`Solve retiring at ${ao.ages[0]} to ${ao.ages[ao.ages.length - 1]}`}
-        ownLabel={`Retiring at ${ao.own}, as planned`} ownTag=" (your plan)" cost={costWords(ao.order.length)} place="whatif" foot={NEAREST} />
+      <p className="text-xs text-slate-500">The solved plan at each age, worked out when you ask: one solve an age, so it takes a while.{couple ? ' Your partner\'s retirement age stays as planned.' : ''}</p>
+      <FiguresList plan={plan} solve={solve} own={ao.own} options={ao.ages.map(a => ({ id: a, label: couple ? `You retire at ${a}` : `Retire at ${a}`, plan: atAge(plan, a) }))} order={ao.order} sig={sig}
+        seed={seed} upto={upto} engine={engine} opts={opts} fmt={fmt} name="ages" showLabel={`Solve ${couple ? 'you ' : ''}retiring at ${ao.ages[0]} to ${ao.ages[ao.ages.length - 1]}`}
+        ownLabel={couple ? `You retiring at ${ao.own}, as planned` : `Retiring at ${ao.own}, as planned`} ownTag=" (your plan)" cost={costWords(ao.order.length)} place="whatif" foot={NEAREST} />
     </div>
   );
 }
@@ -153,7 +155,7 @@ export function SolverTargets({ plan, solve, seed, upto, engine, opts, fmt }) {
  * SCENARIOS EACH CARRY A SOLVE, ON REQUEST (item 6): under the scenario comparison, the solved plan's figures for the plan on
  * screen (the solve in hand) and, when asked, for each scenario compared, one solve a scenario in workers of its own, its
  * tables let go and its figures kept for the page's visit (by the scenario's plan, so a scenario saved again solves again).
- * A couple's scenario keeps the app's rules (D42).
+ * A couple's scenario keeps the app's rules (D42), unless couples are on and it holds its money about evenly (Part D, D5).
  */
 const scenarioFigs = new Map();   // the plan (as JSON) -> { h } | { error }
 export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, fmt }) {
@@ -192,12 +194,13 @@ export function SolverScenarios({ rows, plan, solve, seed, upto, engine, opts, f
       <div className="text-xs font-semibold text-slate-800">The solved plan, scenario by scenario</div>
       <ul className="space-y-0.5">
         {rows.map(r => {
-          const couple = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple';
+          // a couple's scenario is solved where couples are on and it holds its money about evenly (Part D, D5; M4 in D66)
+          const cs = r.plan && r.plan.demographics && r.plan.demographics.planningMode === 'couple' ? coupleSolverOn(r.plan) : null, couple = !!(cs && !cs.on);
           const f = r.isBase ? (here.key === solve.key && here.h ? { h: here.h } : null) : scenarioFigs.get(JSON.stringify(r.plan)) || null;
           return (
             <li key={r.id} data-solver-scenario={r.id} data-solver-scenario-survival={f && f.h ? f.h.survival : ''} className="flex flex-wrap items-center gap-x-2">
               <span className="font-semibold text-slate-800">{r.name}:</span>
-              {couple ? <span>a couple&apos;s plan keeps the app&apos;s rules for now.</span>
+              {couple ? <span>{cs.why === 'uneven' ? 'a couple holding its money this unevenly keeps the app\'s rules for now.' : 'a couple\'s plan keeps the app\'s rules for now.'}</span>
                 : f && f.h ? <span>{dialLineWords(f.h, fmt)}.</span>
                   : f && f.error ? <span>could not be worked out ({f.error}).</span>
                     : r.isBase ? <span>working it out…</span>

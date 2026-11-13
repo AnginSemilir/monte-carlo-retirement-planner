@@ -147,6 +147,8 @@ export function SolverPlanAnswers({ plan, fromSpend, goal: goal0 = SEARCH_GOAL, 
   const most = SEARCH_MOST.target + (own > ageNow ? SEARCH_MOST.age : 0);
   return (
     <div className="space-y-2">
+      {plan && plan.demographics && plan.demographics.planningMode === 'couple' && (
+        <p data-limits-couple className="text-xs text-slate-500">The retirement age it searches is yours; your partner&apos;s stays as planned.</p>)}
       {whatIf && (
         <label className="flex items-center gap-2 text-xs text-slate-700">The chance your money lasts, at least
           <input type="number" min="50" max="99" step="1" data-limits-goal value={g} onChange={e => setG(Math.max(50, Math.min(99, Number(e.target.value) || SEARCH_GOAL)))}

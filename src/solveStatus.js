@@ -32,7 +32,9 @@ export function statusOf(solve, { isPhone = false, asked = true, simulating = fa
   if (solveState === 'idle' && isPhone && !asked) return { state: 'ask', text: 'Not worked out on this phone yet', pct: null, left: null, action: 'request' };
   if (solveState === 'stale') return { state: 'stale', text: isPhone ? 'Your plan changed: working it out again' : `Your plan changed: working it out again${tail}`, pct: null, left: null, action: null };
   if (solveState === 'solving') {
-    const pct = PCT(progress), stage = progress && progress.stage === 'base' ? ' at the Low setting first' : '';
+    // a couple's plan (Part D, D5.1) is worked out one person's half at a time, each progress naming whose (`who`)
+    const whose = progress && progress.who === 'self' ? ': your half' : progress && progress.who === 'part' ? ': your partner\'s half' : '';
+    const pct = PCT(progress), stage = (progress && progress.stage === 'base' ? ' at the Low setting first' : '') + whose;
     const what = !progress ? '' : progress.phase === 'years' ? 'year by year, ' : 'the years before your pension opens, ';
     const text = isPhone ? `Working out${stage}: ${pct === null ? '…' : `${pct}%`}` : `Working out your plan${stage}${pct === null ? '…' : `: ${what}${pct}%`}${tail}`;
     return { state: 'solving', text, pct, left: isPhone ? null : timeLeft(progress, elapsed), action: null };

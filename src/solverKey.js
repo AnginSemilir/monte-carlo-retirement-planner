@@ -21,7 +21,9 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, 
 
 /* the key of a solve: `code` names the code that solves it (the worker chunk's fingerprinted URL in a build). The plan carries
  * what the solver aims for (Phase 8); lambda is the dial's unless given, as solveForApp takes it. */
-export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT } = {}, code = '') {
+// `ageWith` (Part D, D5.1): one person's table in a couple is solved with their partner's age today (solveForApp, B3a's age
+// weights), so it names the solve too; a single's key has none (canonical leaves an undefined field out), so is unchanged
+export async function solveKey(E, plan, { lambda = undefined, points = APP_POINTS, research = null, variant = APP_DIAL_VARIANT, ageWith = undefined } = {}, code = '') {
   // the plan as the solver reads it (Phase 11): its aims and locks with their defaults filled in, so a plan that has never
   // had them and one that carries the defaults are one solve (the quick start's plan, then the dial's base or a choice made
   // and taken back), and the view of whose money (a couple's display) left out
@@ -29,7 +31,7 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
   if (PLANT.rule === 'raw') p.activeProfileView = activeProfileView;
   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
-  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ...dialSettings(p, variant) }, code });
+  const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith, ...dialSettings(p, variant) }, code });
   return hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body)));
 }
 export { canonical };

@@ -34,10 +34,11 @@ export const WORDS = {
   raise: (r) => `If markets do well, you could spend up to ${Math.round(r.level - 100)}% above your target from about age ${r.age}.`
 };
 
-export function headlineWords(h, fmt) {
+/* `couple` (Part D, D5.4): the household's headline, said to the two of them */
+export function headlineWords(h, fmt, couple = false) {
   const at = h.case === 'atTarget';
   return {
-    title: WORDS.title(h),
+    title: couple ? (h.retired ? 'Your safe starting spend, for the two of you' : 'Your safe starting spend when the first of you retires') : WORDS.title(h),
     amount: at ? WORDS.atTarget(h, fmt) : WORDS.below(h, fmt),
     share: at ? null : WORDS.share(h, fmt),
     back: at ? null : h.case === 'never' ? WORDS.never(h) : WORDS.back(h),
@@ -154,4 +155,86 @@ export const COME_BACK = 'Come back next year: the plan is worked out again from
 export function ruleWords(d, { target, fmt }) {
   const lines = d.rules.map(r => `${r.when.length ? `If ${r.when.join(' and ')}: ` : ''}spend ${fmt(r.level * target)} (${pct(100 * r.level)} of your target).`);
   return { title: 'A rule of thumb', lines, note: `It matches the plan's own choice in ${pct(100 * d.fidelity)} of years; following it instead costs ${d.cost > 0 ? `${d.cost.toFixed(1)} points` : 'no points'} of survival on ${d.n.toLocaleString()} markets.` };
+}
+
+/*
+ * A COUPLE'S WORDS (Part D, D5.4; research/solver/PART-D.md): this year's actions, the next years and the ledger for a
+ * household, each person's move under their own name (the partner's in the third person: "their pension"), the household's
+ * spending level said once, and the year's split of what the household spends between the two (src/solver/model.js: the
+ * joint move's `split`, the share the first person's money funds). The parts come from src/solverCouple.js (jointParts:
+ * { level, split, self, part }; this year's actions each with `who`: 'self', 'part' or 'household').
+ */
+const THEIR = m => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v.replace(/\byour\b/g, 'their')]));
+const DRAW_THEIR = THEIR(DRAW), WRAP_THEIR = THEIR(WRAP);
+export const WHO_NAME = { self: 'You', part: 'Your partner', household: 'Together' };
+export const PARTNER_WORDS = {
+  draw: v => (v === 'any' ? 'Take what is needed from their pension first' : `Take from their pension first, ${DRAW_THEIR[v] || v}`),
+  harvest: v => `Move their pension money into their ISA, up to ${WRAP_THEIR[v] || v}`,
+  tierPen: k => `Move their pension ${steps(k)} lower in risk`,
+  tierIsa: k => `Move their ISA ${steps(k)} lower in risk`
+};
+// research/tests/couple-words.test.mjs plant 'partneryour': the partner's moves worded as if they were the first person's
+const personWords = (who, part, v, ctx) => {
+  const theirs = who === 'part' && WORDS_PLANT.rule !== 'partneryour';
+  return (theirs ? PARTNER_WORDS[part] : PART_WORDS[part]) ? (theirs ? PARTNER_WORDS[part](v) : PART_WORDS[part](v, ctx)) : `${part} ${v}`;
+};
+export function coupleActionWords(x, ctx) {
+  const what = `${WHO_NAME[x.who] || x.who}: ${x.who === 'household' ? PART_WORDS.level(x.value, ctx) : personWords(x.who, x.part, x.value, ctx)}`;
+  return { what, cost: actionWords({ ...x, part: 'level', value: 1 }, ctx).cost };
+}
+/* the year's split, said where it is uneven (an even split says nothing) */
+export function coupleSplitWords(split) {
+  if (split === undefined || split === null || Math.abs(split - 0.5) < 1e-9) return null;
+  if (split >= 1 - 1e-9) return 'This year, what you spend comes from your money, not your partner\'s';
+  if (split <= 1e-9) return 'This year, what you spend comes from your partner\'s money, not yours';
+  return `This year, ${pct(100 * split)} of what you spend comes from your money and ${pct(100 * (1 - split))} from your partner's`;
+}
+export function coupleAheadWords(row, ctx, prev = null) {
+  const p = row.parts, lines = [];
+  const sp = coupleSplitWords(p.split);
+  if (sp) lines.push(sp.replace(/^This year, /, '').replace(/^w/, 'W'));
+  for (const who of ['self', 'part']) {
+    const q = p[who], was = prev ? prev[who] : null, name = WHO_NAME[who];
+    if (q.draw !== 'none') lines.push(`${name}: ${personWords(who, 'draw', q.draw, ctx)}`);
+    if (q.harvest) lines.push(`${name}: ${personWords(who, 'harvest', q.harvest, ctx)}`);
+    const pen = q.tierPen || 0, isa = q.tierIsa || 0, wp = was ? was.tierPen || 0 : 0, wi = was ? was.tierIsa || 0 : 0;
+    const tw = (what, a, b) => { const w = tierWords(what, a, b); return w && who === 'part' ? w.replace(/\byour\b/g, 'their') : w; };
+    if (pen === isa && wp === wi) { const w = tw('pension and ISA', wp, pen); if (w) lines.push(`${name}: ${w}`); }
+    else for (const w of [tw('pension', wp, pen), tw('ISA', wi, isa)]) if (w) lines.push(`${name}: ${w}`);
+  }
+  const sw = sweepWords(row.swept, ctx);
+  if (sw) lines.push(sw);
+  if (!lines.length) lines.push('nothing to change');
+  return { when: `${row.year} (age ${row.age})`, spend: row.spend > 0 ? `${ctx.fmt(row.spend)} (${pct(100 * p.level)})` : 'still working', lines, notes: lines.join('; ') };
+}
+export function coupleAheadRowsWords(rows, ctx) {
+  const out = [];
+  rows.forEach((r, i) => {
+    const w = coupleAheadWords(r, ctx, i ? rows[i - 1].parts : null), last = out[out.length - 1];
+    if (last && last.spend === w.spend && last.notes === w.notes) { last.to = r; return; }
+    out.push({ ...w, from: r, to: r });
+  });
+  return out.map(g => (g.from === g.to ? g : {
+    ...g, when: `${g.from.year} to ${g.to.year} (ages ${g.from.age} to ${g.to.age})`,
+    lines: g.lines.map((l, j) => (j === g.lines.length - 1 ? `${l}, each year` : l))
+  }));
+}
+/* the audit table's action column for a couple: the household's level, the split, then each person's move, short */
+export function coupleLedgerWords(p, spending, row = null) {
+  if (!p) return null;
+  const w = [];
+  if (spending) w.push(`spend ${pct(100 * p.level)}`);
+  if (p.split !== undefined && Math.abs(p.split - 0.5) > 1e-9) w.push(`${pct(100 * p.split)} from you`);
+  for (const who of ['self', 'part']) {
+    const q = p[who], name = who === 'self' ? 'you' : 'partner', bits = [];
+    if (q.draw !== 'none') bits.push(q.draw === 'any' ? 'pension first' : `pension first, to ${SHORT_DRAW[q.draw] || q.draw}`);
+    if (q.harvest) bits.push(`pension to ISA, to ${SHORT_WRAP[q.harvest] || q.harvest}`);
+    if (q.tierPen) bits.push(`pension ${steps(q.tierPen)} safer`);
+    if (q.tierIsa) bits.push(`ISA ${steps(q.tierIsa)} safer`);
+    if (bits.length) w.push(`${name}: ${bits.join(', ')}`);
+  }
+  if (row && row.sweptToIsa >= 0.5) w.push(`cash ISA ${Math.round(row.sweptToIsa).toLocaleString('en-GB')} to ISA`);
+  if (row && row.sweptToGia >= 0.5) w.push(`cash ${Math.round(row.sweptToGia).toLocaleString('en-GB')} to taxable`);
+  else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
+  return w.join(' · ') || 'as planned';
 }

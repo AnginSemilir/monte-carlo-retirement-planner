@@ -36,6 +36,13 @@
  *   rows      { id, market }                            one market's run of the solved plan year by year ('expected', or
  *                                                       { historical: true, startYear }), each year's move: { id, rows }
  *   digest    { id }                                    the tables' fingerprint (src/solverDigest.js): { id, digest, values, bytes }
+ * A COUPLE (Part D, D5.1; src/solverCouple.js): each person's table is a 'solve' (or a dial position's 'base' then 'solve')
+ * with `slot` 'self' or 'part', kept for that person; then
+ *   couple-plans  { id, plan, shareRule }               the household's plan as solved and each person's plan and partner's age,
+ *                                                       as couple.js cuts them: { id, household, plans, ageWith, share, shareRule }
+ *   couple        { id, household, shareRule }          the couple assembled from the two tables kept (each checked to be the
+ *                                                       one solved for its person's plan and partner's age), kept as the solve in
+ *                                                       hand: { id, done, meta }. Every question above then answers for it.
  *
  * Imports the engine from App.jsx, as mcWorker.js does, with the two shims first.
  */
@@ -43,11 +50,12 @@ import './workerShim.js';
 import './solverProcessShim.js';
 import * as App from './App.jsx';
 import * as M from './solver/model.js';
-import { withTable } from './solver/bridge.js';
 import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
-import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf } from './solverStrategy.js';
+import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf, solvedContext } from './solverStrategy.js';
+import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf } from './solverCouple.js';
+import { headRuns } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
 import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf } from './solverCache.js';
 
@@ -55,6 +63,7 @@ import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord,
 const E = { ...App, ...App.E };
 let solved = null, held = null;   // held: { key, r }, the base a dial position is solved on, kept between solves
 let runs = null;                  // the Strategy tab's paths run so far: { r, plan, runs } (src/solverStrategy.js)
+let persons = { self: null, part: null };   // a couple's two tables, each { r, plan, ageWith }, until assembled (D5.1)
 // the code that solves, for the cache: in a build, its module graph's key, which vite-plugin-solver-code.js writes over the
 // placeholder (a screen change keeps it; step P1 (g)); under `vite dev`, this worker's own URL, as before
 const CODE = codeOf('__SOLVER_CODE_KEY__', self.location);
@@ -86,14 +95,15 @@ self.onmessage = async ({ data }) => {
         self.postMessage({ id, done: true, meta: plainMeta(held.r), secs: 0, restored: 'held', code: CODE });
         return;
       }
-      if (isBase) held = null; else solved = null;
+      if (isBase) held = null; else { solved = null; runs = null; if (data.slot) persons[data.slot] = null; }
       let base = null;
       if (!isBase && data.baseKey) {
         if (!held || held.key !== data.baseKey) throw new Error('solverWorker: the dial position\'s base is not held');
         base = held.r;
       }
       const progress = p => self.postMessage({ id, progress: isBase ? { ...p, stage: 'base' } : base ? { ...p, stage: 'position' } : p });
-      const keep = (r) => { if (isBase) held = { key: data.key, r }; else solved = r; };
+      // a couple's person (D5.1): kept in their slot with the plan and partner's age it was solved on, for the assembly
+      const keep = (r) => { if (isBase) held = { key: data.key, r }; else if (data.slot) persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith }; else solved = r; };
       const rec = data.key && data.parts <= 1 ? await loadSolve(data.key, CODE) : null;
       if (rec) {
         const r = solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(base ? { base } : {}) });
@@ -111,9 +121,18 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'probe') { self.postMessage({ id, hit: await probeSolve(data.key, CODE) }); return; }
+    if (kind === 'couple-plans') { self.postMessage({ id, ...couplePlans(E, data.plan, { shareRule: data.shareRule }) }); return; }
+    if (kind === 'couple') {
+      if (!persons.self || !persons.part) throw new Error('solverWorker: a couple asked before both tables were solved');
+      const cp = assembleCouple(E, M, data.household, { self: persons.self.r, part: persons.part.r }, {
+        shareRule: data.shareRule, solvedOn: { self: { plan: persons.self.plan, ageWith: persons.self.ageWith }, part: { plan: persons.part.plan, ageWith: persons.part.ageWith } } });
+      solved = cp; runs = null;
+      self.postMessage({ id, done: true, meta: coupleMeta(cp) });
+      return;
+    }
     if (!solved) throw new Error(`solverWorker: '${kind}' asked before a solve finished`);
     if (kind === 'simulate') {
-      const ctx = E.buildContext(withTable(solved.m.ctx.plan, solved));
+      const ctx = solvedContext(E, solved);   // a single's table, or a couple's two through the joint move (D5.2)
       self.postMessage({ id, stats: E.monteCarlo(ctx, { trials: data.trials, seed: data.seed, collectPaths: !!data.collectPaths }) });
       return;
     }
@@ -130,6 +149,18 @@ self.onmessage = async ({ data }) => {
       const a = strategyAnswer(E, solved, runs, data);
       runs = a.held;
       self.postMessage({ id, strategy: a.strategy });
+      return;
+    }
+    // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person
+    if (isCouple(solved) && (kind === 'distil' || kind === 'skipruns')) throw new Error(kind === 'distil' ? 'solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s' : 'solverWorker: a couple\'s skips run in the owner');
+    if (isCouple(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
+      const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
+      if (kind === 'rows') self.postMessage({ id, rows: coupleRowsOf(E, solved, data.market) });
+      else if (kind === 'actions') self.postMessage({ id, actions: coupleActionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null }) });
+      else {
+        if (!same) throw new Error('solverWorker: \'ahead\' asked before the strategy\'s runs');
+        self.postMessage({ id, ahead: coupleAheadOf(E, solved, data.plan, data.upto > 0 ? headRuns(same, data.upto) : same, { years: data.years }) });
+      }
       return;
     }
     if (kind === 'distil') {
@@ -153,7 +184,7 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'digest') {
-      const A = tablesOf(solved);
+      const A = isCouple(solved) ? [...tablesOf(solved.tables.self), ...tablesOf(solved.tables.part)] : tablesOf(solved);
       self.postMessage({ id, digest: await digestOf(A), ...sizeOf(A) });
       return;
     }

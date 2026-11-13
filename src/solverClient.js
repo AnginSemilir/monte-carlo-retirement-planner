@@ -26,6 +26,7 @@ import { arenaFor, failArena } from './solverPool.js';
 export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 
 export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
@@ -66,9 +67,11 @@ export async function baseOf(engine, plan, opts = {}) {
 export function startFigures(engine, plan, { seed, upto, keyed = false, parts = defaultParts(), ...opts } = {}) {
   let job = null, cancelled = false;
   const done = (async () => {
-    const base = await baseOf(engine, plan, opts), key = keyed ? await keyOf(engine, plan, opts) : null;
+    // a couple's variant (Part D, D5.1): its two tables solved in turn, each with its own base (startSolve's `couple`)
+    const isCouplePlan = !!(plan && plan.demographics && plan.demographics.planningMode === 'couple');
+    const base = isCouplePlan ? null : await baseOf(engine, plan, opts), key = keyed ? await keyOf(engine, plan, opts) : null;
     if (cancelled) throw new Error('cancelled');
-    job = startSolve(plan, { ...opts, key, base, parts });
+    job = startSolve(plan, { ...opts, key, base, parts, ...(isCouplePlan ? { couple: { engine } } : {}) });
     try {
       await job.done;
       const { strategy } = await job.strategy(plan, seed, upto, { exact: true });
@@ -78,7 +81,14 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
   return { done, cancel() { cancelled = true; if (job) { job.cancel(); job.close(); } } };
 }
 
-export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, ...opts } = {}) {
+/*
+ * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's. The owner cuts
+ * each person's plan from it ('couple-plans'); each is then solved as a single's plan is, in turn, with their partner's age
+ * today (`ageWith`) in its settings and so in its key: restored from the store, else split across workers and stored, a dial
+ * position's base first; its progress names whose table it is (`who`); its parts let go after it, so the owner alone answers
+ * a couple's questions. The owner then assembles the couple ('couple') and keeps it as the solve in hand.
+ */
+export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, couple = null, ...opts } = {}) {
   const parts = partsFor(asked, base);
   const owner = newWorker(), workers = [owner], pending = new Map();
   let seq = 0, finished = false, rejectDone = null, arena = null, n = 1;
@@ -88,14 +98,14 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
   const release = () => { if (PLANT.rule === 'keepshared') return; arena = null; for (const w of workers) { w.onmessage = null; w.onerror = null; } };
   const stop = () => { if (arena) failArena(arena); workers.forEach(w => w.terminate()); release(); };
   // the owner's answers: ask() replies by id, the solve's own messages under id 0
-  let onMain = null;
+  let onMain = null, phaseWho = null;
   owner.onmessage = ({ data }) => {
     if (data.id !== 0) {
       const p = pending.get(data.id); if (!p) return; pending.delete(data.id);
       if (data.error) p.reject(new Error(data.error)); else p.resolve(data);
       return;
     }
-    if (data.progress) { if (onProgress) onProgress(data.progress); return; }
+    if (data.progress) { if (onProgress) onProgress(phaseWho ? { ...data.progress, who: phaseWho } : data.progress); return; }
     if (data.stored !== undefined) { if (onStored) onStored(data.stored, data.why || null); return; }
     if (onMain) onMain(data);
   };
@@ -152,39 +162,64 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
   const done = new Promise((resolve, reject) => {
     rejectDone = reject;
     // one solve: the base of a dial position ('base') or the plan itself ('solve'), restored when stored, else split where it can be
-    const phase = async (kind, phasePlan, phaseKey, baseKey) => {
+    // `phaseBase` the phase's dial base ({ plan, key }) or null; `phaseOpts` its settings (a couple's person's carry `ageWith`);
+    // `slot` a couple's person ('self' or 'part'), whose solve the owner keeps in their slot and whose parts are let go after it
+    const phase = async (kind, phasePlan, phaseKey, phaseBase, phaseOpts = opts, slot = null) => {
+      const baseKey = phaseBase ? phaseBase.key : null;
       const hit = phaseKey ? (await ask('probe', { key: phaseKey })).hit : false;
       if (finished) return null;
       n = 1; arena = null;
       if (!hit && parts > 1 && canSplit()) { arena = arenaFor(); if (arena) n = parts; }
       // a split position's parts each restore its base, shared once by the owner that holds it
-      let partBase = n > 1 && baseKey ? { plan: base.plan, rec: (await ask('share')).rec } : null;
+      let partBase = n > 1 && baseKey ? { plan: phaseBase.plan, rec: (await ask('share')).rec } : null;
       const ends = [];
       for (let i = 1; i < n; i++) {
         const w = newWorker(); workers.push(w);
         ends.push(new Promise((res, rej) => {
           w.onmessage = ({ data }) => (data.error ? rej(new Error(data.error)) : res());
           w.onerror = e => rej(new Error((e && e.message) || `solver part ${i} failed`));
-          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts, ...(partBase ? { base: partBase } : {}) });
+          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(partBase ? { base: partBase } : {}) });
         }));
       }
       const main = new Promise((res, rej) => {
         onMain = data => (data.error ? rej(new Error(data.error)) : res(data));
         owner.onerror = e => rej(new Error((e && e.message) || 'the solver failed'));
-        owner.postMessage({ id: 0, kind, plan: phasePlan, opts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}) });
+        owner.postMessage({ id: 0, kind, plan: phasePlan, opts: phaseOpts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}), ...(slot ? { slot } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
       // the parts hold the base they were sent: the page lets its copy go (solver-close.test.mjs)
       if (PLANT.rule !== 'keepshared') partBase = null;
       // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9);
       // a dial position's base lets them go
-      if (kind === 'solve') kept = workers.slice(1).map(askerOf); else workers.splice(1).forEach(w => w.terminate());
+      if (kind === 'solve' && !slot) kept = workers.slice(1).map(askerOf); else workers.splice(1).forEach(w => w.terminate());
       return m;
     };
     (async () => {
+      if (couple) {
+        const cpl = await ask('couple-plans', { plan, shareRule: couple.shareRule });
+        if (finished) return;
+        let secs = 0, restored = true;
+        for (const who of ['self', 'part']) {
+          // plant 'coupleage' (solver-planner-ui check 19): each table solved without its partner's age, which the assembly refuses
+          const pOpts = PLANNER_PLANT.has('coupleage') ? { ...opts } : { ...opts, ageWith: cpl.ageWith[who] };
+          const pKey = await solveKey(couple.engine, cpl.plans[who], pOpts), pBase = await baseOf(couple.engine, cpl.plans[who], pOpts);
+          if (finished) return;
+          phaseWho = who;
+          const b = pBase ? await phase('base', pBase.plan, pBase.key, null, pOpts) : null;
+          if (finished || (pBase && !b)) return;
+          const m = await phase('solve', cpl.plans[who], pKey, pBase, pOpts, who);
+          if (finished || !m) return;
+          secs += m.secs + (b ? b.secs : 0); restored = restored && !!m.restored;
+        }
+        phaseWho = null;
+        const c = await ask('couple', { household: cpl.household, shareRule: couple.shareRule });
+        if (finished) return; finished = true;
+        resolve({ meta: c.meta, secs, parts: n, restored, base: null, code: null, couple: { share: cpl.share, shareRule: cpl.shareRule } });
+        return;
+      }
       const b = base ? await phase('base', base.plan, base.key, null) : null;
       if (finished || (base && !b)) return;
-      const m = await phase('solve', plan, key, base ? base.key : null);
+      const m = await phase('solve', plan, key, base);
       if (finished || !m) return; finished = true;
       resolve({ meta: m.meta, secs: m.secs + (b ? b.secs : 0), parts: n, restored: !!m.restored, base: b ? { restored: b.restored || false, secs: b.secs } : null, code: m.code || null });
     })().catch(err => { if (finished) return; finished = true; stop(); reject(err); });

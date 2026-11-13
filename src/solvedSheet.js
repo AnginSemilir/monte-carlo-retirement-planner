@@ -10,12 +10,14 @@ import * as W from './solverWords.js';
 
 export function solvedSheetHtml(figures, { fmt, levers, rulesLine, code }) {
   const st = figures.strategy, m = figures.more || {}, h = st.headline, wctx = { target: h.target, fmt }, c = st.compare;
+  // a couple's plan (Part D, D5.4): the household's words, each person's moves under their name, the year's split
+  const two = !!(m.actions && m.actions.couple) || !!(m.ahead && m.ahead.couple), split = m.actions && m.actions.couple ? W.coupleSplitWords(m.actions.move.parts.split) : null;
   return buildSolvedPlanHtml({
-    answer: W.headlineWords(h, fmt), explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers, code,
+    answer: W.headlineWords(h, fmt, two), explanation: W.explanationWords(h), trials: st.trials.toLocaleString('en-GB'), levers, code,
     thisYearTitle: h.retired ? 'This year' : 'This year, before you retire',
-    actions: m.actions ? [...m.actions.actions.map(x => W.actionWords(x, wctx)), ...(W.sweepWords(m.actions.sweep, wctx) ? [{ what: W.sweepWords(m.actions.sweep, wctx), cost: 'As the plan keeps cash at its buffer.' }] : [])] : [],
+    actions: m.actions ? [...m.actions.actions.map(x => (m.actions.couple ? W.coupleActionWords(x, wctx) : W.actionWords(x, wctx))), ...(split ? [{ what: `${split}.`, cost: 'How the year\'s spending is shared between your money and your partner\'s.' }] : []), ...(W.sweepWords(m.actions.sweep, wctx) ? [{ what: W.sweepWords(m.actions.sweep, wctx), cost: 'As the plan keeps cash at its buffer.' }] : [])] : [],
     rule: m.distil && m.distil.show ? W.ruleWords(m.distil, wctx) : null,
-    ahead: m.ahead ? W.aheadRowsWords(m.ahead.rows, wctx) : [], comeBack: W.COME_BACK,
+    ahead: m.ahead ? (m.ahead.couple ? W.coupleAheadRowsWords(m.ahead.rows, wctx) : W.aheadRowsWords(m.ahead.rows, wctx)) : [], comeBack: W.COME_BACK,
     compare: {
       title: `The solved plan against your current approach, on the same ${st.trials.toLocaleString('en-GB')} markets`, line: rulesLine,
       rows: [['Chance the money lasts', `${c.yours.survival.toFixed(1)}%`, `${c.solved.survival.toFixed(1)}%`], ['Pot left at the end, typical', fmt(c.yours.medianPot), fmt(c.solved.medianPot)],

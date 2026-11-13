@@ -38,7 +38,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readPanel } from '../solver/phase4-panel.mjs';
 
 const SELF = fileURLToPath(import.meta.url);
-const PLANTS = { anylevel: [4], anywhere: [3, 4] };
+const PLANTS = { anylevel: [4, 8], anywhere: [3, 4, 8] };
 if (process.argv.includes('--plants')) {
   let bad = 0;
   for (const [p, want] of Object.entries(PLANTS)) {
@@ -154,6 +154,17 @@ ok(1, 'the option off (the margin nought): S328F\'s paths the code before the op
   const own = run(D, pathsA);
   ok(7, 'the app\'s solve with nothing passed carries the candidate\'s margin, and its paths are the option\'s, bit for bit', D.tieAboveCap === MARGIN && D.meta.tieAboveCap === MARGIN && hashOf(own) === hashOf(on) && hashOf(own) !== dOff,
     `the margin ${D.tieAboveCap}; outcomes ${hashOf(own).slice(0, 16)} against the option set ${hashOf(on).slice(0, 16)} (off: ${dOff.slice(0, 16)})`);
+}
+// ---- 8. a locked dial position (the reviewer on the change of default, 13 Nov, finding 1) ----
+// The dial's positions 3, 6 and 10 are solved locked to the base's tier pair (lockTiers), and the chooser's lock does not return
+// before the tie-break: the candidate's margin reaches them. results-tie-a.txt read position 1 alone. Here position 3, as the
+// app solves it with nothing passed: the rule holds decision by decision, and no path's survival changes with it
+{
+  const p3 = { ...planOf('S328F'), solver: { aims: { cuts: 3, estate: 'standard', raises: 'capped', riskConsent: true } } };
+  const L = solveForApp(E, M, p3, { points: 4, research: { ...LIGHT } }), pathsL = E.pathsForSeed(SEED, 100, solvedContext(E, L).totalYears);
+  const on = run(L, pathsL), q = replay(L, pathsL.slice(0, 50)); setTie(L, undefined); const off = run(L, pathsL); setTie(L, MARGIN);
+  ok(8, 'a locked dial position (3, the app\'s solve): it carries the margin; wherever the choice differs, at the best move\'s level and tier pair, above the cap, with no more tax that year; no path\'s survival changes', !!L.lockTiers && L.tieAboveCap === MARGIN && q.differ > 0 && q.level === 0 && q.pair === 0 && q.atOrBelow === 0 && q.moreTax === 0 && on.every((x, k) => x[0] === off[k][0]),
+    `locked ${!!L.lockTiers}, the margin ${L.tieAboveCap}; ${q.decisions} decisions (${q.above} above the cap), a different move at ${q.differ}: at another level ${q.level}, at another tier pair ${q.pair}, at or below the cap ${q.atOrBelow}, with more tax ${q.moreTax}; ${differ(on, off)} of 100 paths differ, ${on.filter((x, k) => x[0] !== off[k][0]).length} in survival`);
 }
 console.log(`\nchooser-tie: ${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

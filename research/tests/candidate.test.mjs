@@ -103,11 +103,14 @@ const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tier
   // counts left out), and the bridge reference's lattice as built ('unbuilt' on a household with no bridge year: the candidate's then)
   sweepCashIsaTo: r.meta.sweepCashIsaTo && r.actions.every(a => a.sweepIsa === true) ? r.meta.sweepCashIsaTo : 'not on every move',
   coarse: r.meta.coarse && !r.meta.coarse.off ? Object.fromEntries(Object.keys(CANDIDATE_OPTS.coarse).map(k => [k, r.meta.coarse[k]])) : 'off',
+  // D95: the tie-break above the estate cap, as the solve recorded it and as the chooser of every world carries it
+  tieAboveCap: [r, ...(r.worlds || [])].every(x => x.tieAboveCap === r.meta.tieAboveCap) ? r.meta.tieAboveCap : 'not on every world',
   adaptiveLattice: (() => { const a = r.g.reader && r.g.reader.adaptive; return a && a.lattice ? { na: a.lattice.na, nb: a.lattice.nb, nz: a.lattice.nz, foot: !!a.lattice.foot, stepAll: !!a.lattice.stepAll } : 'unbuilt'; })() };
 const sameRun = o => Object.entries(o).every(([k, v]) => JSON.stringify(v) === JSON.stringify(CANDIDATE_OPTS[k]));
 ok(sameRun(ran), `solveCandidate ran the candidate (${JSON.stringify(ran)})`);
 ok(!sameRun({ ...ran, bridgeStep: undefined }), 'planted: a solve that dropped a setting (bridgeStep) fails the same check');
 ok(!sameRun({ ...ran, failDelivered: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, PHASE4_OPTS).meta.failDelivered === true }), 'planted: a solve on Phase 4\'s candidate (the failure year at its fixed price) fails the same check');
+ok(!sameRun({ ...ran, tieAboveCap: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, BEFORE_D90_OPTS).meta.tieAboveCap }), 'planted: a solve on the candidate before D90\'s tie-break (no margin) fails the same check');
 { const pre = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, BEFORE_D73_OPTS), L = pre.g.reader.adaptive.lattice;
   ok(!sameRun({ ...ran, sweepCashIsaTo: pre.meta.sweepCashIsaTo || 'gia' }) && !sameRun({ ...ran, coarse: pre.meta.coarse || 'off' }) && !sameRun({ ...ran, adaptiveLattice: { na: L.na, nb: L.nb, nz: L.nz, foot: !!L.foot, stepAll: !!L.stepAll } }), 'planted: a solve on the candidate before D73 (the sweep to the taxable account, the whole menu, the lattice as it was) fails the same check three ways'); }
 const old = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, ASSEMBLED_OPTS);

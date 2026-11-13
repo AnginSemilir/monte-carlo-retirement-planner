@@ -48,3 +48,30 @@ THE TIE-BREAK'S PORT INTO THE CANDIDATE (D95; D90 (1)), 13 Nov: its working
 5. chooser-tie's new check 7 on the margin-at-nought tree (the app's candidate without the margin): it alone fails
      FAIL 7. the app's solve with nothing passed carries the candidate's margin, and its paths are the option's, bit for bit   the margin 0; outcomes f2fe4e1e6d872dc3 against the option set 5a04e5f0187b226a (off: f2fe4e1e6d872dc3)
    chooser-tie: 6 passed, 1 failed
+
+AFTER THE REVIEWER ON THE CHANGE OF DEFAULT (reviews/2026-11-13-default-d95.md: PASS, seven MINORs), 13 Nov
+
+6. Finding 1, the tie-break at a locked dial position (it does reach positions 3, 6 and 10; solve.js's comment corrected): chooser-tie check 8, and the plants with it
+     ok   7. the app's solve with nothing passed carries the candidate's margin, and its paths are the option's, bit for bit   the margin 0.0001; outcomes 5a04e5f0187b226a against the option set 5a04e5f0187b226a (off: f2fe4e1e6d872dc3)
+     ok   8. a locked dial position (3, the app's solve): it carries the margin; wherever the choice differs, at the best move's level and tier pair, above the cap, with no more tax that year; no path's survival changes   locked true, the margin 0.0001; 3000 decisions (845 above the cap), a different move at 617: at another level 0, at another tier pair 0, at or below the cap 0, with more tax 0; 50 of 100 paths differ, 
+   chooser-tie: 8 passed, 0 failed
+     plant anylevel  fails 4, 8 (expected 4, 8): exact
+     plant anywhere  fails 3, 4, 8 (expected 3, 4, 8): exact
+   
+   all plants exact
+
+7. Finding 4, couple-tables check 4 strict again (the chooser asked with its margin at nought):
+     ok   4. the switch: each person's candidates their own chooser's, the joint score charging each person's switch, the chosen move the best   256 picks, 0 not the chooser's with its tie-break's margin at nought (with the margin on, the chooser's own pick another move at 27); 128 joint scores, the largest gap to the oracle 0.00e+
+   ALL PASS: 8 passed, 0 failed (83s)
+
+8. Finding 2, the couples' audit's planted suite (the registered run's audit: its candidate the one before D95, the new one refused):
+   planted (25): all read as they should
+
+9. Finding 3: candidate.test.mjs with the smoke solve's tie-break (research/tests/results-candidate.txt), and V1 and V2 on the new candidate (results-v-candidate-d95.txt):
+   =========== 57 passed, 0 failed ===========
+   V1 on the candidate 17ff82379838: ALL PASS (7 of 7 households)
+   V2 on the candidate 17ff82379838: the controls' bar 1; S330 0 / 0, S224 0 / 0, S070 0 / 0, S370 0 / 0, S380 0 / 0: ALL PASS
+
+10. Finding 7: the page's named candidate pinned (page-candidate.test.mjs), and its plant:
+   PASS  the page names the candidate once, by the hash of the app's candidate, which is the research candidate's  -- the page 17ff82379838; the app's 17ff82379838; the research candidate's 17ff82379838
+   planted (the page naming the candidate before D95): the check fails, as it should

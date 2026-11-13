@@ -134,11 +134,12 @@ const BLOCKS = {
   },
   // the candidate as D29 and D30 left it (THIRD-STEP.md and SPEED-PORT.md step 4): its pin with the decided defaults, V1 and V2 on it
   async cand29() {
-    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d73.txt';
+    const T = 'research/tests/results-candidate.txt', V = 'research/solver/results-v-candidate-d95.txt';
     if (read(T) === null || read(V) === null) return [`- pending: ${read(T) === null ? T : V}`];
     const got = pick(T, /^PASS {2}7u-F's candidate reproduces its registered hash (\w+) \((\w+)\)/m, m => m[2]), fz = pick(T, /^PASS {2}the candidate before the assembly reproduces its recorded hash (\w+) \((\w+)\)/m, m => m[2]);
-    const d73 = pick(T, /^PASS {2}the candidate before D73 reproduces its hash (\w+) \((\w+)\); the candidate (\w+) adds/m, m => ({ pre: m[2], cand: m[3] }));
-    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${d73.cand} the same as the decided defaults key for key; the candidate before D73 ${d73.pre}, 7u-F's ${got} and the frozen ${fz} reproduced; its smoke solve running the third step, HR whole, the table without the dealing cost (E5), the failure year at what it can pay (D43), the sweep's cash ISA money to the ISA and the solve on anchors on the thinner bridge reference (D73); Phase 4's fcd8096217b7 reproduced. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d73.txt\`; on D43's candidate, \`-d43.txt\`; on D30's, \`-d30.txt\`; on D29's, \`-d29.txt\`).`];
+    const d73 = pick(T, /^PASS {2}the candidate before D73 reproduces its hash (\w+) \((\w+)\)/m, m => ({ pre: m[2] }));
+    const d90 = pick(T, /^PASS {2}the candidate before D90's tie-break reproduces its hash (\w+) \((\w+)\); the candidate (\w+) adds/m, m => ({ pre: m[2], cand: m[3] }));
+    return [`- \`candidate.test.mjs\` ${pick(T, /^=+ (\d+ passed, \d+ failed) =+$/m, m => m[1])} (\`results-candidate.txt\`): the candidate ${d90.cand} the same as the decided defaults key for key; the candidate before D90's tie-break ${d90.pre}, before D73 ${d73.pre}, 7u-F's ${got} and the frozen ${fz} reproduced; its smoke solve running the third step, HR whole, the table without the dealing cost (E5), the failure year at what it can pay (D43), the sweep's cash ISA money to the ISA and the solve on anchors on the thinner bridge reference (D73) and the tie-break above the estate cap on every world (D95); Phase 4's fcd8096217b7 reproduced. ${pick(V, /^V1 on .*$/m)}; ${pick(V, /^V2 on .*$/m)} (\`results-v-candidate-d95.txt\`; on D73's candidate, \`-d73.txt\`; on D43's, \`-d43.txt\`; on D30's, \`-d30.txt\`; on D29's, \`-d29.txt\`).`];
   },
   // the speed port's build (D30, SPEED-PORT.md step 2): its test in the full form
   speedport() {

@@ -261,17 +261,21 @@ for (const f of FIX) {
     const hA = heldOf(state, 'self'), hB = heldOf(state, 'part');
     // the single chooser's pick, with the tiers held, is the first of rankFor's candidates (or ties it within the chooser's eps).
     // 13 Nov 2026 (D95): the candidate carries the tie-break above the estate cap, which a single's chooser takes and a
-    // couple's ranking does not (the deep review of the couples' read): above the cap the chooser may pick a move within
-    // the table's margin of the best that pays less tax, so the two may part by that margin and no more (counted)
+    // couple's ranking does not (the deep review of the couples' read). So the chooser is asked here with its margin at
+    // nought, and the comparison stays the strict one (the reviewer on the change of default, finding 4); where the
+    // chooser's own pick, margin on, parts from it is counted beside
     for (const [tab, who, h] of [[A, 'self', hA], [B, 'part', hB]]) {
       const s = vecOf(tab.m, ownerState(state, who)), n = tab.actions.length;
-      const pick = chooseAction(tab, s, t, h), first = rankFor(tab, s, t, h, 1)[0];
+      const all = [tab, ...(tab.worlds || [])], was = all.map(x => x.tieAboveCap);
+      const withTie = chooseAction(tab, s, t, h);
+      all.forEach(x => { x.tieAboveCap = 0; }); const pick = chooseAction(tab, s, t, h); all.forEach((x, k) => { x.tieAboveCap = was[k]; });
+      const first = rankFor(tab, s, t, h, 1)[0];
+      if (withTie !== pick) pickTie++;
       if (pick !== first) {
         const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n);
         scoreMoves(tab, s, tab.finalExact ? t : Math.min(t, T - 1), SC, TX, BQ, h);
         const charged = (ai) => SC[ai] - ((tab.c.acts[ai].tierPen || 0) !== h.pen || (tab.c.acts[ai].tierIsa || 0) !== h.isa ? tab.switchCharge : 0);
-        const gap = Math.abs(charged(pick) - charged(first));
-        if (!(gap <= Math.max(tab.eps, tab.tieAboveCap || 0))) pickBad++; else if (gap > tab.eps) pickTie++;
+        if (!(Math.abs(charged(pick) - charged(first)) <= tab.eps)) pickBad++;
       }
       picks++;
     }
@@ -301,7 +305,7 @@ for (const f of FIX) {
   }
   ok(4, 'the switch: each person\'s candidates their own chooser\'s, the joint score charging each person\'s switch, the chosen move the best',
     pickBad === 0 && worst <= 1e-12 && beaten === 0 && switched > 0 && held > 0,
-    `${picks} picks, ${pickBad} not the chooser's (${pickTie} the chooser's tie-break above the cap, within its margin of the ranking's first); ${scored} joint scores, the largest gap to the oracle ${worst.toExponential(2)}, ${beaten} beaten by another candidate; ${switched} decisions switch a tier, ${held} hold`);
+    `${picks} picks, ${pickBad} not the chooser's with its tie-break's margin at nought (with the margin on, the chooser's own pick another move at ${pickTie}); ${scored} joint scores, the largest gap to the oracle ${worst.toExponential(2)}, ${beaten} beaten by another candidate; ${switched} decisions switch a tier, ${held} hold`);
 }
 
 // ---- 5. the engine under the solved couple and the rollout, path by path ----

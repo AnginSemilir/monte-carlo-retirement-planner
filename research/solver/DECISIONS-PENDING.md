@@ -11,6 +11,16 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer (13 Nov): item 12 is closed; the shortlist's trade (D90 (2)).** Item 12's stage A read
+(`results-item12-a.txt`, EXPLORATORY): neither arm passes, so by D84 item 12 is closed and nothing is built. Both fail
+the same two parts, narrowly: spending delivered 0.11 and 0.12 points of target lower (the bar 0.1), and two couples'
+equity weight just over a point from the whole menu's. Survival, the pot and tax hold. The first arm is the built
+shortlist (`chooserShortlist: 'order'`) on a couple's path, so the trade D90 (2) left open now reads: for a single, a
+path about 1.9 times as fast for a pooled 0.019 points of survival, beyond noise (`results-tie-a.txt`); for a couple,
+a path 0.9 to 1.8 times as fast and a fail of its own rule on spending and on the risk held. The agent's
+recommendation: leave the shortlist off. Its guard stays in, so it costs nothing where it is. Switching it on is the
+maintainer's.
+
 **For the maintainer (13 Nov): the couples' re-run has read, PASS; do couples run the candidate under the switch?**
 In full: `reports/2026-11-13-couples-read.md`. On 40 held-out couples the candidate against the app's rules: survival
 about +10 points and spending delivered +6.5% (the standard estate weight), no harm flag. Beside it, from the reviewer

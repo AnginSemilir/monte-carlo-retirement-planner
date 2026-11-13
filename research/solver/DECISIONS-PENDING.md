@@ -16,11 +16,15 @@ In full: `reports/2026-11-13-couples-read.md`. On 40 held-out couples the candid
 about +10 points and spending delivered +6.5% (the standard estate weight), no harm flag. Beside it, from the reviewer
 at the read: a couple spends less in its first retired years; the pot left is much smaller (the giveaway above the
 estate cap, which the tie-break as built does not reach in a couple's joint move); the gain is the gain at an 85%
-landing; a few paths are lost that the app's rules keep. The agent's recommendation: yes, under the opt-in, after (1)
-the tie-break's port and its counterpart for a couple's joint move, built and measured, (2) item 6's stage C, (3) Part
-D's D5, the couples' screens saying the early cut and the smaller pot plainly; a couple outside 40% to 60% keeps the
-app's rules until item 6 reads (M4). The agent carries on with (1) to (3) in that order meanwhile; switching couples on
-waits for the maintainer's word.
+landing; a few paths are lost that the app's rules keep. The deep review (`reviews/2026-11-13-deep-couples-d4b.md`): the PASS is
+sound for survival and spending; the smaller pot is probably the lower-risk funds the solver holds, not the giveaway
+(capped, the pot is level with the app's rules'); the paths lost in one year are an engine defect (one person's capital
+gains bill cannot be paid from the other's ISA or pension), in every arm. The agent's recommendation: yes, under the
+opt-in, after (1) that defect's fix with its test, (2) the deep review's one test, the couples' tier test (EXPLORATORY,
+about five core-hours), which says whether anything in the solver must change first, (3) the tie-break for singles
+(D90 (1)), (4) item 6's stage C, (5) Part D's D5, the couples' screens showing the early cut and the pot plainly; a
+couple outside 40% to 60% keeps the app's rules until item 6 reads (M4). The agent carries on with (1) to (5) in that
+order meanwhile; switching couples on waits for the maintainer's word.
 
 **RULED (D94, 13 Nov): "Proceed with your recommendations"**: the stage gate and the read amended for S293's one
 difference, reviewed before use, the chunks kept (the fallback: fix the audit and run the first stage again); the first

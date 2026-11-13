@@ -46,17 +46,46 @@ does not print them.
    year, their ninth in retirement; the rest fail the minimum pot in the last year or two. Not harm by the rule; a lead,
    with the deep review.
 
+## The deep review (`reviews/2026-11-13-deep-couples-d4b.md`)
+
+Its figures are recomputed from the run's stored arrays; no new path was run. Where it names a cause it says what is
+inferred and what is shown.
+
+- **The PASS is sound** for survival and for spending over the whole plan: every one of the 40 couples gains, +7.3 to
+  +14.2 points, the singles' Phase 4 figure for figure. About 2.2 of the 10 points are failures on the minimum pot in
+  the last year. It does not show a better estate.
+- **The smaller pot is probably the tiers, not the giveaway above the cap.** This corrects point 2 above. Where the
+  solver values the pot (capped at four times opening wealth) the candidate's mean pot is 1.03 of the app's rules', and
+  the lowest tenth is higher on all 40 couples. The fall is above the cap, and largest for the younger couples (their
+  median pot 0.52 of the app's). Extra tax and spending explain about 2% of that gap; the couples' solver at the
+  product's settings shows the same pot. What is left is that the solver holds lower-risk funds than the plan's own,
+  which gives up growth on the paths that end rich. Inferred: the run stored no tier. The tie-break cannot reach a
+  couple as built, and on this reading it would not restore the pot anyway; it is a tax matter (lifetime tax is 1.34
+  times the app's on the younger couples, on paths ending rich).
+- **The paths lost in one year are an engine defect, not ruin.** On the three younger couples the household ends those
+  paths with millions; the shortfall is a few hundred pounds. By the code, a person's capital gains bill may be paid
+  from their own cash, taxable account, ISA and pension and from either person's cash, but never from the other
+  person's ISA or pension, so a second person whose pension is still locked can owe a bill nothing may pay, and the
+  path is counted as failed. Inferred from the code and the amounts; no path was replayed. It is in every arm (the
+  app's rules have the same class in other years), and is 0.015 to 0.030 points here.
+- **Its one test** (not launched): the couples' tier test. Eight of the panel's couples, the candidate with consent to
+  change risk withdrawn beside the candidate and the app's rules, seed 7002, 4,000 paths, about five core-hours,
+  storing each person's tier by year. The tiers are the cause if, with consent withdrawn, the younger couples' median
+  pot is at least 0.85 of the app's; not if under 0.65.
+
 ## The agent's recommendation
 
-Couples run the candidate under the opt-in switch, in the order already planned and with two additions the read asks
-for:
+Couples run the candidate under the opt-in switch, after:
 
-1. the tie-break joins the candidate (D90 (1), the reviewer on the change of default), **and its counterpart for a
-   couple's joint move is built and measured** (EXPLORATORY, on couples outside the panel, its rule committed first),
-   since the estate's fall is the read's largest finding and the port as built does not reach couples;
-2. item 6's stage C, the registered test for couples outside 40% to 60%;
-3. Part D's D5, the couples' screens, saying the early cut and the smaller pot as plainly as the singles' screens say
-   the cut;
-4. then couples on under the switch, a couple outside 40% to 60% keeping the app's rules until item 6 reads (M4).
+1. **the engine defect is fixed**, with a test of its class shown failing first (a bill the household can plainly pay
+   is paid), and its effect sized on the library;
+2. **the couples' tier test** (EXPLORATORY, its rule committed first), run when item 12's stage A frees the cores. If
+   the tiers are the cause, nothing in the solver changes and the couples' screens show the pot beside the survival
+   figure, with what withholding consent does to each. If not, a tie rule for a couple's joint move is built and read
+   first, and couples keep the app's rules meanwhile;
+3. the tie-break joins the candidate for singles (D90 (1), the reviewer on the change of default);
+4. item 6's stage C, the registered test for couples outside 40% to 60%;
+5. Part D's D5, the couples' screens.
 
-The deep review of this read is under way; what it finds is added below when it reports.
+A couple outside 40% to 60% keeps the app's rules until item 6 reads (M4). The agent carries on with 1 to 5 in that
+order; switching couples on waits for the maintainer's word.

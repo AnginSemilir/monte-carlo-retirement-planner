@@ -1,0 +1,112 @@
+THE HARNESSES' REFERENCE, MOVED INTO THE HARNESS'S OWN BROWSER (13 Nov 2026; research/ui-harnesses/lib/reference.cjs)
+
+1. B1's gate on the first batch (run-all.sh 4173 --both on 0e3511ea, 13 Nov 02:09 to 03:40 UTC, nothing beside it): SOMETHING REQUIRED FAILED in both modes.
+   Its failing lines:
+   --- load-perf ---
+     FAIL  ...and no more javascript than the ceiling allows   233KB over the wire, ceiling 232KB (a switch-on build, D58 (2); 214KB before the loading work)
+     FAIL  the new planner's first load: no more javascript than its own ceiling allows   a saved plan 233KB, an empty plan 236KB, ceiling 234KB
+   --- solver-progress ---
+     FAIL  the page's tables are Node's bit for bit   3115746 values, 29c7f5a908cb6d93 against 5479b648ad8789f4
+     FAIL  the solved plan's simulation is Node's exactly   survival 98.33333333333333 against 98.33333333333333 on 300 paths
+     FAIL  the restored tables and simulation are Node's   29c7f5a908cb6d93; survival 98.33333333333333
+     FAIL  a solve split across two workers gives the whole solve's tables   2 parts, 9.9 s, 29c7f5a908cb6d93
+   --- solver-strategy ---
+     FAIL  S126: all 500 paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's and the money bands within a relative 1e-12   short, start 80%, survival 98.8% (Node 98.8%), yours 94.8% (largest relative gap 9.3e-7); .compare.solved.medianPot: 2453054.1489173635 against 2453054.1489173654; 
+     FAIL  S116: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   the re-wrap 0.00 points (lost 0, saved 0)
+   --- solver-isolation ---
+     FAIL  in the isolated page a solve split across two workers gives the whole solve's tables, Node's bit for bit   2 parts, 3115746 values, 29c7f5a908cb6d93 against 5479b648ad8789f4
+     FAIL  service workers blocked: the page is not isolated, and the solve runs whole in one worker, the same tables   isolated false, 1 part, 29c7f5a908cb6d93
+   --- solver-planner ---
+     FAIL  2. all 500 paths in, the figures Node's: the solved plan's bit for bit, your current approach's and both arms' money bands within a relative 1e-12   start 80%, survival 83.00% (Node 83.00%), trials 500; yours and the money within 5.4e-15; first apart at .compare.solved.medianPot: page 887522.2959646087 against Node 88752
+
+2. The same harnesses on main's own code (392773bb, ALL REQUIRED GREEN at this gate on 8 Nov), in this container (EXPLORATORY):
+   == main 392773bb: classic build ==
+   --- load-perf ---
+   --- solver-progress ---
+     Node: S126 solved in 25.4 s, 2410 arrays, digest 5ae122e927620cd1; survival 98.33333333333333
+     FAIL  the page's tables are Node's bit for bit   3115746 values, d1db086d8321972c against 5ae122e927620cd1
+     FAIL  the solved plan's simulation is Node's exactly   survival 98.33333333333333 against 98.33333333333333 on 300 paths
+     FAIL  the restored tables and simulation are Node's   d1db086d8321972c; survival 98.33333333333333
+     FAIL  a solve split across two workers gives the whole solve's tables   2 parts, 88.5 s, d1db086d8321972c
+   4 FAILED
+   --- solver-strategy ---
+     FAIL  S126: all 500 paths in, the solved plan's figures Node's bit for bit (headline, comparison, raise), your plan's and the money bands within a relative 1e-12   short, start 80%, survival 98.8% (Node 98.8%), yours 94.8% (largest relative gap 1.6e-15); .compare.solved.medianPot: 2453537.5592257613 against 2453537.5592257623;
+   1 FAILED
+   --- solver-planner ---
+     FAIL  2. all 500 paths in, the figures Node's: the solved plan's bit for bit, your current approach's and both arms' money bands within a relative 1e-12   start 80%, survival 81.60% (Node 81.60%), trials 500; yours and the money within 6.3e-15; first apart at .compare.solved.lifetimeTax: page 42150.91875068823 against Node 421
+   load-perf prints no failing line on main. So: the bit-for-bit failures are this container's (its Chromium 153 and Node 22 part in
+   the last place of exp, log, cbrt, expm1 and log1p as well as pow: results-pow-probe.txt); the first load's size and the skip
+   costs' fixture are the working branch's.
+
+3. The reworked harnesses on the working tree (0c988f63 with these edits), the reference worked out from the unbundled source in
+   the harness's own Chromium:
+   --- solver-progress ---
+     the reference (the unbundled source in Chromium 153.0.8010.12): digest 02bfb4b76e75382c; survival 98
+     ok    the page's tables are the reference's bit for bit   3115746 values, 02bfb4b76e75382c against 02bfb4b76e75382c (Node's arithmetic gives e88a0439e37fbb57)
+     ok    the solved plan's simulation is the reference's exactly   survival 98 against 98 on 300 paths
+     ok    ...and its survival is Node's   98 against 98
+     ok    the restored tables and simulation are the reference's   02bfb4b76e75382c; survival 98
+   all ok
+   exit 0
+   --- solver-strategy ---
+     ok    S126: all 500 paths in, every figure the reference's bit for bit (headline, comparison, raise, both arms' money bands)   short, start 80%, survival 99.0%, yours 94.8%; every figure the same
+     ok    S126: the solved plan's survival and your plan's are Node's   99 and 94.8 against Node's 99 and 94.8
+     ok    S116: this year's skip costs in, the page's the reference's (300 paired paths)   level 0.00; harvest 0.00
+     FAIL  S116: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   the re-wrap 0.00 points (lost 0, saved 0)
+   1 FAILED
+   exit 1
+   --- solver-isolation ---
+     ok    in the isolated page a solve split across two workers gives the whole solve's tables, the reference's bit for bit   2 parts, 3115746 values, 02bfb4b76e75382c against 02bfb4b76e75382c
+   all ok
+   exit 0
+   --- solver-planner ---
+     ok    2. all 500 paths in, every figure the reference's bit for bit (the solved plan's, your current approach's, both arms' money bands)   start 80%, survival 83.40%, trials 500
+     ok    2. the solved plan's survival and your current approach's are Node's   83.4 and 40 against Node's 83.4 and 40
+     ok    3. "Compare the four settings": four rows on the first step's paths, the plan's own marked, a queued row "waiting its turn", no line repeating the answer   4 rows; queued true; own 82 against Node's first step 82
+   all ok
+   exit 0
+   --- solver-projection ---
+     ok    Your plan's outlook: the money bands the engine's monteCarlo bands for each arm within 1e-12, the spending bands Node's   40 years; the median at the end 2295478 (the engine 2295478); the solved plan's within 1.8e-15, yours within 1.3e-15
+     ok    Details' year by year is the solved plan's ledger: every year's total Node's, and every year's move Node's   solved ledger true, 40 rows (Node 40), totals differing 0, moves differing 0
+     ok    "Your current approach" gives your plan's ledger, Node's, with no move column   your ledger true, 40 rows, move cells 0
+     ok    the history check is the solved plan through real history, labelled the out-of-model check: its verdict and pot left Node's, your current approach's verdict beside it Node's   from 1965: the solved plan survived, the pot left 2611098 (Node 2611098); yours survived (Node survived)
+     ok    each setting's row is Node's for the plan at that setting, the plan's own the headline on the first paths   1: 98.9% (Node 98.9%), 3: 99% (Node 99%), 6: 98.75% (Node 98.75%), 10: 98.5% (Node 98.5%)
+     ok    the age card's line at the plan's own age is the headline's figures, Node's   "Retiring at 60, as planned: start at £57,200 (80% of target), back at target by 2058; chance your money lasts 62%." (Node 61.5%)
+     ok    each age's line is Node's for the plan retiring at that age   57: 45.6% (Node 45.6%), 58: 51.45% (Node 51.45%), 59: 56.45% (Node 56.45%), 60: 61.5% (Node 61.5%), 61: 66.15% (Node 66.15%), 62: 70.05% (Node 70.05%), 63: 73.95% (Node 73.95%)
+     ok    What if's limits are Node's search over the same solves, every setting tried the same, named apart from the safe starting spend   the highest target £49500 (Node £49500; tried 71500, 59500, 49500, 54500, 52000, 51000, 50500, 50000), the earliest age  (Node null)
+     ok    on What if, the current plan's line is Node's, and "Solve this scenario" gives the scenario's, Node's   the plan 98.9% (Node 98.9%), the scenario 98.9% (Node 98.9%)
+   all ok
+   exit 0
+   --- solver-config ---
+     ok    the plan on screen solves, under Node's key for the saved plan   73a3a6a9770a6e1b against 73a3a6a9770a6e1b
+     ok    the dial at 3: the saved plan carries it, and the solve's key moves to Node's for it   16b9ae94fa4b1054 against 16b9ae94fa4b1054
+     ok    the estate lower: the saved plan carries it, and the solve's key moves to Node's for it   6392284121011528 against 6392284121011528
+     ok    raises blocked: the saved plan carries it, and the solve's key moves to Node's for it   0b96afd3be7ce0f7 against 0b96afd3be7ce0f7
+     ok    consent withdrawn: the saved plan carries it, and the solve's key moves to Node's for it   990587c63763c197 against 990587c63763c197
+     ok    the minimum pot at 40,000: the saved plan carries it, and the solve's key moves to Node's for it   b4e995f32767905e against b4e995f32767905e
+     ok    no pension before 63: the saved plan carries it, and the solve's key moves to Node's for it   cdb3e643bb667557 against cdb3e643bb667557
+     ok    the pension's tier at most Medium/Low: the saved plan carries it, and the solve's key moves to Node's for it   667b4ed2332865a5 against 667b4ed2332865a5
+     ok    the lump sum never: the saved plan carries it, and the solve's key moves to Node's for it   7c92ff30ec4e6195 against 7c92ff30ec4e6195
+   all ok
+   exit 0
+   --- solver-strategy ---
+     ok    S064: this year's skip costs in, the page's the reference's (300 paired paths)   level 0.00; harvest 0.67; tierPen 0.67; tierIsa 0.67
+   all ok
+   exit 0
+   (some-new's solver-strategy ran before the fixture moved: its one failing line is the fixture's, on S116; the last block is the
+   fixture's case alone on S064, after)
+
+4. The plant (REFERENCE_PLANT=bundle: the server gives the reference a grid.js whose normal distribution function is nudged, as a
+   bundle that changed the code would), solver-progress:
+     the reference (the unbundled source in Chromium 153.0.8010.12): digest 7126a7e468b8f9f4; survival 98
+     FAIL  the page's tables are the reference's bit for bit   3115746 values, 02bfb4b76e75382c against 7126a7e468b8f9f4 (Node's arithmetic gives e88a0439e37fbb57)
+     FAIL  the restored tables and simulation are the reference's   02bfb4b76e75382c; survival 98
+     FAIL  a solve split across two workers gives the whole solve's tables   2 parts, 13.6 s, 02bfb4b76e75382c
+   3 FAILED
+   exit 1
+
+5. The skip costs' fixture planted (STRATEGY_SKIP_FIXTURE=S126), solver-strategy's skips case:
+     FAIL  S126: the re-wrap (the pension drawn to the personal allowance in a bridge year) costs above 0 to skip, and the costs are not all 0   no re-wrap in the first move
+     FAIL  S126: the year's move forced to spend 110% (a planted dominated action) costs at least 0   -0.33 points (lost 0, saved 1)
+   2 FAILED
+   exit 1

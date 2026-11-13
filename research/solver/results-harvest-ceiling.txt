@@ -135,6 +135,7 @@ nothing else in its commit does:
   raw solver-diagnostic exit 0 55 s
   new speed-port exit 1 892 s
   raw speed-port exit 0 1081 s
+  raw speed-port --full (13 Nov, the figures of its full mode as pinned before, on the tree with the ceiling switched off): ALL PASS: 26 checks
   new windfall-relief exit 1 34 s
   raw windfall-relief exit 0 39 s
   new windfall-split exit 1 379 s

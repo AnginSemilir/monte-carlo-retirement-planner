@@ -10,9 +10,11 @@
  *   WORK  S224: 55, still working (the age card).
  * Its checks, each numbered as LAYOUT.md section 11.1 numbers them:
  *   1  the places: four, in order, each with its data-place; none of the classic labels;
- *   2  the first solve: the strip idle, solving, simulating, solved; the card solving, filling, done; its figures Node's once
- *      all its paths are in (strategyOf on the saved plan at the same light settings and seed): the solved plan's bit for bit,
- *      your current approach's within a relative 1e-12;
+ *   2  the first solve: the strip idle, solving, simulating, solved; the card solving, filling, done; its figures the
+ *      reference's bit for bit once all its paths are in (strategyOf on the saved plan at the same light settings and seed,
+ *      from the unbundled source in this same Chromium: lib/reference.cjs, 13 Nov 2026; before it Node's, the money within a
+ *      relative 1e-12, until this container's Chromium parted from Node in exp and log as well as pow), and the two survival
+ *      figures Node's;
  *   3  beside the answer: the levers panel right of the card, its top within 40px; no line under the dial repeating the
  *      answer's figures; "Compare the four settings" gives four rows on the first step's paths, the plan's own marked, a queued
  *      row saying "waiting its turn";
@@ -65,6 +67,7 @@
  *   node research/ui-harnesses/solver-planner-ui.cjs [port] [--plants]      (the build is served on port + 11, the rollback on + 12)
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
+const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
 const { mkdtempSync, rmSync } = require('node:fs');
@@ -152,7 +155,7 @@ const firstDiff = (a, b, at = '') => {
   if (a && b && typeof a === 'object' && typeof b === 'object') {
     for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) { const d = firstDiff(a[k], b[k], `${at}.${k}`); if (d) return d; }
   }
-  return `${at || '(top)'}: page ${JSON.stringify(a)} against Node ${JSON.stringify(b)}`.slice(0, 240);
+  return `${at || '(top)'}: page ${JSON.stringify(a)} against the reference ${JSON.stringify(b)}`.slice(0, 240);
 };
 
 (async () => {
@@ -168,6 +171,14 @@ const firstDiff = (a, b, at = '') => {
   const OUT = mkdtempSync(join(tmpdir(), 'solver-planner-'));
   let server = null;
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  // the reference: the same figures from the unbundled source, in this Chromium (lib/reference.cjs); as JSON, the route the
+  // page's own figures take
+  const ref = await reference(b);
+  const refStrategy = async pl => JSON.parse(await ref.run(async ({ pl, light, seed, trials }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js');
+    const { solveForApp } = await import('/src/solverApp.js'), { strategyOf } = await import('/src/solverStrategy.js');
+    return JSON.stringify(strategyOf(E, solveForApp(E, M, pl, light), pl, { trials, seed }));
+  }, { pl, light: LIGHT, seed: SEED, trials: last }));
   try {
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), PLANNER_PLANT: PLANTED.join(',') } });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', PREVIEW_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
@@ -212,15 +223,12 @@ const firstDiff = (a, b, at = '') => {
       ok(2, 'the strip: solving with its percentage rising, then simulating, then solved', order(stripSeen, ['solving', 'simulating', 'solved']) && rising, `${stripSeen.join(' > ')}; ${pcts[0]}% to ${pcts[pcts.length - 1]}%`);
       ok(2, 'the card: solving, then filling, then done', order(cardSeen, ['solving', 'filling', 'done']), cardSeen.join(' > '));
       const page = await figs(p), pl = await saved(p), node = nodeOf(pl);
-      // the money passes through Math.pow, which Chromium's V8 and Node's round differently in the last place on some inputs
-      // (research/ui-harnesses/pow-probe.cjs; an unminified build parts at the same figure: S116's year-19 median, 1 ulp), for
-      // the solved plan as for your current approach; so the money bands are held within a relative 1e-12, every other figure
-      // bit for bit
-      const strip2 = o => ({ ...o, compare: { solved: o.compare.solved }, outlook: { ...o.outlook, wealth: null } });
-      const solvedSame = page && JSON.stringify(strip2(page)) === JSON.stringify(strip2(node.s));
-      const yoursRel = page ? Math.max(...Object.keys(node.s.compare.yours).map(k => relDiff(page.compare.yours[k], node.s.compare.yours[k])),
-        ...['yours', 'solved'].flatMap(arm => node.s.outlook.wealth[arm].flatMap((bd, t) => ['p10', 'p25', 'p50', 'p75', 'p90'].map(k => relDiff(page.outlook.wealth[arm][t][k], bd[k]))))) : Infinity;
-      ok(2, `all ${last} paths in, the figures Node's: the solved plan's bit for bit, your current approach's and both arms' money bands within a relative 1e-12`, solvedSame && yoursRel <= 1e-12, page ? `start ${page.headline.startLevel}%, survival ${page.headline.survival.toFixed(2)}% (Node ${node.s.headline.survival.toFixed(2)}%), trials ${page.trials}; yours and the money within ${yoursRel.toExponential(1)}${solvedSame ? '' : `; first apart at ${firstDiff(strip2(page), strip2(node.s))}`}` : 'no figures');
+      // every figure the reference's bit for bit: the same source, unbundled, in this same Chromium (lib/reference.cjs), so the
+      // arithmetic is the page's own (Node's differs from this Chromium's in the last place of pow, exp and log:
+      // research/ui-harnesses/pow-probe.cjs); Node's two survival figures held beside it
+      const want = page ? await refStrategy(pl) : null, same = page && JSON.stringify(page) === JSON.stringify(want);
+      ok(2, `all ${last} paths in, every figure the reference's bit for bit (the solved plan's, your current approach's, both arms' money bands)`, same, page ? `start ${page.headline.startLevel}%, survival ${page.headline.survival.toFixed(2)}%, trials ${page.trials}${same ? '' : `; first apart at ${firstDiff(page, want)}`}` : 'no figures');
+      ok(2, "the solved plan's survival and your current approach's are Node's", !!page && page.headline.survival === node.s.headline.survival && page.compare.yours.survival === node.s.compare.yours.survival, page ? `${page.headline.survival} and ${page.compare.yours.survival} against Node's ${node.s.headline.survival} and ${node.s.compare.yours.survival}` : 'no figures');
 
       // 3. beside the answer
       const a = await box(p, '[data-plan-answer]'), lv = await box(p, '[data-solver-aims]');
@@ -537,7 +545,7 @@ const firstDiff = (a, b, at = '') => {
       ok(13, 'the quick start: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {
-    await b.close();
+    await ref.close(); await b.close();
     if (server) server.kill();
     rmSync(OUT, { recursive: true, force: true });
   }

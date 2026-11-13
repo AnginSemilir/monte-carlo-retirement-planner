@@ -11,9 +11,13 @@
  * the cores the page is told it has), and its tables' fingerprint must be Node's. Recorded: both times, the parts, whether the page
  * was cross-origin isolated, the tables' size.
  * Its plant (FULLSCALE_PLANT=grid: the page asked for 44 wealth points, not the app's 45) fails the check.
+ * 13 Nov 2026: the fingerprint the page must give is the reference's, the same solve from the unbundled source in this same
+ * Chromium (lib/reference.cjs): this container's Chromium and Node no longer give the same double for exp and log
+ * (pow-probe.cjs), so Node's tables are another arithmetic's. Node's solve is still made, for its time and the tables' size.
  *   node research/ui-harnesses/solver-fullscale-ui.cjs [port] [--parts N]      (the site is served on port + 13)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
 const { mkdtempSync, rmSync } = require('node:fs');
@@ -53,6 +57,15 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
   let server = null;
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   try {
+    // the reference: the same solve from the unbundled source, in this Chromium, on one thread
+    const ref = await reference(b), tr = Date.now();
+    const refDigest = await ref.run(async ({ plan }) => {
+      const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js'), D = await import('/src/solverDigest.js');
+      const { solveForApp } = await import('/src/solverApp.js');
+      return D.digestOf(D.tablesOf(solveForApp(E, M, plan, {})));
+    }, { plan });
+    await ref.close();
+    console.log(`  the reference (the unbundled source in Chromium ${b.version()}): solved in ${((Date.now() - tr) / 1000).toFixed(1)} s on one thread, digest ${refDigest.slice(0, 16)}`);
     execFileSync(process.execPath, [VITE, 'build', '--outDir', OUT, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env });
     server = spawn(process.execPath, [VITE, 'preview', '--outDir', OUT, '--port', SITE_PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
     let up = false;
@@ -71,8 +84,8 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
       return { secs, parts: done.parts, isolated: crossOriginIsolated, digest: dg.digest, values: dg.values, points: done.meta && done.meta.points };
     }, [plan, PARTS, PLANT]);
     console.log(`  the page: solved in ${res.secs.toFixed(1)} s, split ${res.parts} ways, ${res.isolated ? 'cross-origin isolated' : 'not isolated'}, ${res.values} values, digest ${res.digest.slice(0, 16)}`);
-    ok(`the site as it ships solves S116 at ${APP_POINTS} wealth points, its tables Node's bit for bit`, up && res.digest === nodeDigest && res.values === size.values,
-      `${res.digest.slice(0, 16)} against Node's ${nodeDigest.slice(0, 16)}; ${res.values} values against ${size.values}`);
+    ok(`the site as it ships solves S116 at ${APP_POINTS} wealth points, its tables the reference's bit for bit`, up && res.digest === refDigest && res.values === size.values,
+      `${res.digest.slice(0, 16)} against the reference's ${refDigest.slice(0, 16)} (Node's arithmetic gives ${nodeDigest.slice(0, 16)}); ${res.values} values against ${size.values}`);
     ok('the times recorded', res.secs > 0 && nodeSecs > 0, `the page ${res.secs.toFixed(1)} s split ${res.parts} ways, Node ${nodeSecs.toFixed(1)} s on one core`);
     ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
   } finally { if (server) server.kill(); await b.close(); rmSync(OUT, { recursive: true, force: true }); }

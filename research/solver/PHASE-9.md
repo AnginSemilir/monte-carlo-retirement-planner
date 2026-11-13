@@ -78,6 +78,11 @@ a solve that failed (F16).
   lost no path and saved one of 300 (-0.33 points). A first year's move is not dominated path by path, since the table's
   later choices follow from where it leaves the plan; the check holds on S116 (4 lost, 2 saved) and can fail by chance on
   another household or seed.
+  13 Nov: on the code after the review of 9 Nov's items 3 to 5 and D73, S116's re-wrap costs nothing to skip (lost 0, saved
+  0), so the fixture is S064 (61, the state pension at 68; the pension drawn to the personal allowance and re-wrapped, a tier
+  down): skipping the re-wrap lost 2 paths of 300 and saved none; the dominated action lost 3 and saved none
+  (`skip-scan.mjs --all`, `results-skip-scan.txt`; the harness's skips case and its plant in `results-reference.txt`). The
+  page's skip costs are held to the reference's (the unbundled source in the harness's own Chromium), no longer Node's.
 - **The budgets, measured on this machine: NOT MET** (`budget-strategy.mjs`, `results-budget-strategy.txt`; four
   households at the app's settings, split four ways, nothing else running). The headline on 2,000 paths 74 to 121 s after the
   solve, against 60; the skip costs 33 to 173 s more, against 120 (in one worker before the split, 64 to 360). The cause: a

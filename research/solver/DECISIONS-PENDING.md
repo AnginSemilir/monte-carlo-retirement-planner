@@ -11,6 +11,24 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer (13 Nov): the first load's size, and the gate's reference.** B1's gate on the first batch came
+back red in both modes, so nothing is merged (`results-reference.txt`; STATE.md section 5).
+- *The ruling needed: the first load's ceilings.* On the working branch's head the classic planner's first load is
+  234KB against its ceiling of 232, which is D58 (2)'s limit, and the new planner's is 234KB (a saved plan) and 236KB
+  (an empty one) against 234. `main` reads 232 and 232 / 233. The growth is the engine's own code: the year in HMRC's
+  order, relief on pension contributions, the pages naming the sweep, the harvest ceiling. Options: (1) the ceilings
+  move to the measured figures plus one, 235 and 237, as D57 and D58 (2) did, and a later batch whose growth is engine
+  code moves them the same way, reported at its merge (the agent's recommendation: it saves a stop at every batch that
+  corrects the tax engine); (2) the same, this once; (3) hold 232 and 234: the agent looks for about 3KB to move out of
+  the first load before anything merges, box half a day, with no promise it is there.
+- *Done, for the maintainer's eye: where the harnesses' reference is worked out.* The container's restart brought a
+  newer Chromium, and its exp and log no longer agree with Node's to the last place; `main`'s own code fails the
+  bit-for-bit checks here. The reference is now the same source, unbundled, run in the harness's own browser
+  (`research/ui-harnesses/lib/reference.cjs`), so the checks are bit for bit again and now cover the money too; what
+  they no longer hold is that a browser computes exactly what Node does, which stopped being true. Say if this should
+  be done another way.
+- *Done: the skip costs' fixture* is S064 where it was S116, whose re-wrap costs nothing to skip on the new code.
+
 **STOP (13 Nov): the couples' re-run's stage gate refused.** The first stage's 200 chunks are in and backed up; the
 registered stage gate decided nothing, because S293's solver arms and APP were run on plans that hash differently. The
 cause, from the plans alone: the second person's MPAA age (58 against 60), a derived field that moves no money on this

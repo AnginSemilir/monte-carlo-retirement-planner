@@ -3,21 +3,26 @@
  *
  * The classic planner (every visitor's unless they opt in; since Phase 12 the switch is on and the classic planner is the app
  * with it off, bit for bit) must be the app of today: its first load fetches no solver code and nothing on the page solves. The plumbing behind it is reached through the lazy chunk's one way in
- * (window.__solverHarness, src/useSolver.js), and checked against Node on the same household and settings:
+ * (window.__solverHarness, src/useSolver.js), and checked against a reference on the same household and settings: the
+ * unbundled source run in this same Chromium (lib/reference.cjs, 13 Nov 2026: this container's Chromium and Node no longer
+ * give the same double for exp and log, so a reference worked out in Node differs from the page in arithmetic alone;
+ * Node's solve is still made, and the solved plan's survival held to it):
  *   - a solve in the page's worker reports its progress, each phase rising year by year to its end;
- *   - its tables are Node's bit for bit (src/solverDigest.js, the same SHA-256 fingerprint in both);
- *   - the solved plan, simulated by the engine in the worker that owns the tables, gives Node's statistics exactly;
+ *   - its tables are the reference's bit for bit (src/solverDigest.js, the same SHA-256 fingerprint in both);
+ *   - the solved plan, simulated by the engine in the worker that owns the tables, gives the reference's statistics
+ *     exactly, and Node's survival;
  *   - a cancelled solve stops at once and says so;
  *   - the page is cross-origin isolated (the preview server's headers, vite.config.js), and a solve split across two
  *     workers (src/solverPool.js) gives the same tables as the whole one;
  *   - Phase 7b: the solve is stored under its key (src/solverKey.js, src/solverCache.js); after a reload the same key restores
- *     it, in a fraction of the solve's time, with Node's tables and simulation; a pound more of spending target is another key,
+ *     it, in a fraction of the solve's time, with the reference's tables and simulation; a pound more of spending target is another key,
  *     and solves afresh.
  * S126 from the research library (never anybody's own plan) at 4 wealth points and a light lattice, so it runs in minutes.
  *
  *   node research/ui-harnesses/solver-progress-ui.cjs [port]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+const { reference } = require('./lib/reference.cjs');
 const { execFileSync } = require('node:child_process');
 const { join } = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -48,6 +53,17 @@ const progressOk = calls => {
   console.log(`  Node: S126 solved in ${nodeSecs.toFixed(1)} s, ${A.length} arrays, digest ${nodeDigest.slice(0, 16)}; survival ${nodeStats.successRate}`);
 
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  // the reference: the same solve and simulation from the unbundled source, in this Chromium (lib/reference.cjs)
+  const ref = await reference(b);
+  const R = await ref.run(async ({ plan, opts, sim }) => {
+    const E = await import('/research/engine.mjs'), M = await import('/src/solver/model.js'), { withTable } = await import('/src/solver/bridge.js');
+    const { solveForApp } = await import('/src/solverApp.js'), D = await import('/src/solverDigest.js');
+    const r = solveForApp(E, M, plan, opts);
+    return { digest: await D.digestOf(D.tablesOf(r)), stats: E.monteCarlo(E.buildContext(withTable(r.m.ctx.plan, r)), sim) };
+  }, { plan, opts: OPTS, sim: SIM });
+  await ref.close();
+  const refDigest = R.digest, refStats = R.stats;
+  console.log(`  the reference (the unbundled source in Chromium ${b.version()}): digest ${refDigest.slice(0, 16)}; survival ${refStats.successRate}`);
   const p = await b.newPage({ viewport: { width: 1400, height: 1100 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   const urls = []; p.on('request', q => urls.push(q.url()));
@@ -69,8 +85,9 @@ const progressOk = calls => {
   const phases = [...new Set(whole.prog.map(x => x.phase))];
   ok('the solve reports its progress, each phase rising year by year to its end', progressOk(whole.prog) && phases.includes('years'),
     `${whole.prog.length} reports, phases ${phases.join(', ')}; solved in ${whole.secs.toFixed(1)} s in the page, ${nodeSecs.toFixed(1)} s in Node`);
-  ok("the page's tables are Node's bit for bit", whole.dg.digest === nodeDigest && whole.dg.values > 0, `${whole.dg.values} values, ${whole.dg.digest.slice(0, 16)} against ${nodeDigest.slice(0, 16)}`);
-  ok("the solved plan's simulation is Node's exactly", JSON.stringify(whole.stats) === JSON.stringify(nodeStats), `survival ${whole.stats.successRate} against ${nodeStats.successRate} on ${SIM.trials} paths`);
+  ok("the page's tables are the reference's bit for bit", whole.dg.digest === refDigest && whole.dg.values > 0, `${whole.dg.values} values, ${whole.dg.digest.slice(0, 16)} against ${refDigest.slice(0, 16)} (Node's arithmetic gives ${nodeDigest.slice(0, 16)})`);
+  ok("the solved plan's simulation is the reference's exactly", JSON.stringify(whole.stats) === JSON.stringify(refStats), `survival ${whole.stats.successRate} against ${refStats.successRate} on ${SIM.trials} paths`);
+  ok("...and its survival is Node's", whole.stats.successRate === nodeStats.successRate, `${whole.stats.successRate} against ${nodeStats.successRate}`);
 
   const cancel = await p.evaluate(async ({ plan, opts }) => {
     const c = await window.__solverHarness();
@@ -97,7 +114,7 @@ const progressOk = calls => {
   }, { plan, opts: OPTS, sim: SIM });
   ok('after a reload the same key restores the solve, quicker than solving it', again.key === whole.key && again.done.restored === true && again.secs < whole.secs,
     `restored in ${again.secs.toFixed(1)} s against ${whole.secs.toFixed(1)} s solved`);
-  ok("the restored tables and simulation are Node's", again.dg.digest === nodeDigest && JSON.stringify(again.stats) === JSON.stringify(nodeStats), `${again.dg.digest.slice(0, 16)}; survival ${again.stats.successRate}`);
+  ok("the restored tables and simulation are the reference's", again.dg.digest === refDigest && JSON.stringify(again.stats) === JSON.stringify(refStats), `${again.dg.digest.slice(0, 16)}; survival ${again.stats.successRate}`);
   ok('a pound more of spending target is another key, and solves afresh', again.k2 !== again.key && !again.editedRestored && again.editedStillSolving, `key ${again.k2.slice(0, 16)}; still solving after 4 s`);
 
   ok('a cancelled solve stops at once and says so', cancel.ok && cancel.ms < 1000, `${cancel.why} after ${cancel.ms === undefined ? '?' : cancel.ms.toFixed(0)} ms`);
@@ -111,7 +128,7 @@ const progressOk = calls => {
       job.close();
       return { done, secs, dg };
     }, { plan, opts: OPTS });
-    ok('a solve split across two workers gives the whole solve\'s tables', split.done.parts === 2 && split.done.meta.e2 && split.done.meta.e2.parts === 2 && split.dg.digest === nodeDigest,
+    ok('a solve split across two workers gives the whole solve\'s tables', split.done.parts === 2 && split.done.meta.e2 && split.done.meta.e2.parts === 2 && split.dg.digest === refDigest,
       `${split.done.parts} parts, ${split.secs.toFixed(1)} s, ${split.dg.digest.slice(0, 16)}`);
   }
   ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));

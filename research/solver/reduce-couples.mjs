@@ -29,6 +29,14 @@
  *   - each unit's stamp under the registration, its code, audit and registration blob the logs' own, and its audit hash that
  *     of the files this read takes (audit-couples.mjs stampFilesHash: the audit's files, the app's solve and its settings, the
  *     candidate's hash, the panel, the paths, this reducer and the code it borrows).
+ * AMENDMENT 1 (13 Nov 2026; D94 (1); registrations/couples-d4b-amendment-1.md; couples-d4b-amendment.mjs), made after the
+ * first stage and before any outcome was read: (a) a couple's five units are on one plan when they carry one inputs hash,
+ * or are the one known difference whole (onePlan: S293, APP on arm A's hash and every solver unit on the solver arms'; the
+ * second person's MPAA age, moving no money: results-d4b-plan-check.txt), and the read names the couple it was used for;
+ * (b) the audit hash every chunk must carry is the launch's own: the files this read takes with the two files the
+ * amendment changed (stage-couples.mjs and this reducer) as they were at the launch commit (launchStampHash), which must be
+ * the launch's stamp, so any other stamped file that has moved since is refused as before. Nothing else of the gate, and
+ * nothing of the decision below, is changed.
  * THE DECISION, at each estate weight (both must pass), on the paths every couple ran in CANDC and APP (the first stage's,
  * or all of them where every couple and weight went on), each path's change averaged over
  * the 40 couples and the 95% interval taken from the spread across paths (Phase 4's rule, reduce-phase4.mjs byPath):
@@ -73,6 +81,7 @@ import { thresholdFor, harmRate, twoStageRate } from './size-phase4.mjs';
 import { STAGE1, STAGE_BAR, SHIP_N } from './stage-couples.mjs';
 import { clopperPearson } from './stats.mjs';
 import { LOG_STAMP } from './fair-gate.mjs';
+import { onePlan, usedFor, launchStampHash, LAUNCH, AMENDED } from './couples-d4b-amendment.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const REGISTRATION = 'research/solver/registrations/couples-d4b.md', SEED = 7021, BESIDE_N = 500;
@@ -152,7 +161,7 @@ export function stageOf(U, panel) {
 const headOf = ran => kvOf((ran || '').split(' | ')[0]);
 export const personOf = (ran, who) => { const m = new RegExp(`${who}: (.*?)(?: \\| |$)`).exec(ran || ''); return kvOf(m ? m[1] : ''); };
 /* the gate over the units: every problem, so a refusal names them all */
-export function gate(U, panel, paths, logs = null, files = null, stage2 = null) {
+export function gate(U, panel, paths, logs = null, files = null, stage2 = null, known = undefined) {
   const P = [], stamps = new Set(), st = stageOf(U, panel);
   // the run's own decision (stage2.json) is this read's: the same couples and weights going on, from the same stamp
   if (stage2) {
@@ -213,7 +222,8 @@ export function gate(U, panel, paths, logs = null, files = null, stage2 = null) 
       }
     }
     if (got.length && new Set(got.map(x => x.Y)).size > 1) P.push(`${h.id}: the arms' horizons differ`);
-    if (got.length && new Set(got.map(x => x.inputs)).size > 1) P.push(`${h.id}: the arms' inputs differ (${got.map(x => `${x.arm}/${x.w} ${x.inputs}`).join(', ')})`);
+    // one plan: one inputs hash, or amendment 1's one known difference, whole (couples-d4b-amendment.mjs onePlan)
+    if (got.length && got.every(x => x.inputs) && !onePlan(h.id, got.map(x => ({ arm: x.arm, inputs: x.inputs })), known)) P.push(`${h.id}: the arms' inputs differ (${got.map(x => `${x.arm}/${x.w} ${x.inputs}`).join(', ')})`);
     if (got.length && new Set(got.map(x => JSON.stringify([x.costYears, x.costRetired]))).size > 1) P.push(`${h.id}: the arms' cost years differ`);
     // person by person: an arm's two weights the same but for the estate weight; CANDC and SHIPC the same in FAIR at a weight
     const bare = (ran, who) => { const p = personOf(ran, who); delete p.bequestWeight; return p; };
@@ -483,6 +493,19 @@ function planted() {
     const Q = gate(loadDir(dir), panel, paths, null, 'a');
     cases.push([`the gate names ${nm}`, `${Q.some(p => p.startsWith(want))}${Q.some(p => p.startsWith(want)) ? '' : ` [${Q.join(' / ')}]`}`, 'true']);
   }
+  // AMENDMENT 1 (D94 (1)): the one known difference, planted as couple C1 with APP on I and every solver unit on J
+  { const KN = { id: 'C1', app: 'I', solver: 'J' }, onJ = (id, cohort, arms, o = {}) => { for (const w of WEIGHTS) for (const arm of arms) unit(id, cohort, arm, w, arm === 'SHIPC' ? i => i < 10 : () => false, { ...(arm === 'CANDC' && id === 'C1' ? { cd: () => 12 } : {}), ...o, extra: { inputs: 'J' } }); };
+    const again = () => { rmSync(dir, { recursive: true, force: true }); mkdirSync(dir); fair(); };
+    again(); onJ('C1', 'lib', ['CANDC', 'SHIPC']);
+    { const Ua = loadDir(dir), Q = gate(Ua, panel, paths, null, 'a', null, KN), Q0 = gate(Ua, panel, paths, null, 'a'), Qz = gate(Ua, panel, paths, null, 'a', null, { id: 'C2', app: 'I', solver: 'J' });
+      cases.push(['amendment 1: the known difference, whole (C1: APP on I, every solver unit on J), passes the gate', `${Q.length}${Q.length ? ` ${Q[0]}` : ''}`, '0']);
+      cases.push(['amendment 1: the same units with the amendment naming a couple not in the run (the registered gate), or naming C2, are refused', `${Q0.some(p => p.startsWith('C1: the arms\' inputs differ'))} ${Qz.some(p => p.startsWith('C1: the arms\' inputs differ'))}`, 'true true']); }
+    again(); onJ('C1', 'lib', ['SHIPC']);
+    cases.push(['amendment 1: the known couple with only its SHIPC units on the other hash (a mix) is refused', `${gate(loadDir(dir), panel, paths, null, 'a', null, KN).some(p => p.startsWith('C1: the arms\' inputs differ'))}`, 'true']);
+    again(); for (const w of WEIGHTS) for (const arm of ['CANDC', 'SHIPC']) unit('C1', 'lib', arm, w, arm === 'SHIPC' ? i => i < 10 : () => false, { ...(arm === 'CANDC' ? { cd: () => 12 } : {}), extra: { inputs: 'K' } });
+    cases.push(['amendment 1: the known couple on any other hash is refused', `${gate(loadDir(dir), panel, paths, null, 'a', null, KN).some(p => p.startsWith('C1: the arms\' inputs differ'))}`, 'true']);
+    again(); onJ('C2', 'young', ['CANDC'], { go: true, cd: () => 0, costRetired: [false] }); onJ('C2', 'young', ['SHIPC'], { cd: () => 0, costRetired: [false] });
+    cases.push(['amendment 1: the two hashes on another couple (C2) are refused', `${gate(loadDir(dir), panel, paths, null, 'a', null, KN).some(p => p.startsWith('C2: the arms\' inputs differ'))}`, 'true']); }
   // a person with no joint tier state (consent withdrawn, or one tier pair) recording the solve on anchors off with its reason
   // is not refused for it: C1's two CANDC units, both people (none of the 40 couples has such a person: each has four pairs)
   rmSync(dir, { recursive: true, force: true }); mkdirSync(dir); fair();
@@ -521,8 +544,12 @@ async function read(dir) {
   const stage2 = JSON.parse(readFileSync(join(dir, 'stage2.json'), 'utf8'));
   if (reg.n1 !== LAYOUT.n1 || reg.bar !== LAYOUT.bar || reg.shipN !== LAYOUT.ship) { console.log(`THE GATE: REFUSED (couples-paths-d4b.json's stages ${reg.n1} and ${reg.bar} and SHIPC's paths ${reg.shipN}, not this read's ${LAYOUT.n1}, ${LAYOUT.bar} and ${LAYOUT.ship})`); process.exit(1); }
   if (stage2.shipN !== LAYOUT.ship) { console.log(`THE GATE: REFUSED (the stage gate's stage2.json has SHIPC on ${stage2.shipN} paths, not this read's ${LAYOUT.ship})`); process.exit(1); }
-  const { stampFilesHash } = await import('./audit-couples.mjs');
-  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, stampFilesHash(), stage2);
+  // amendment 1 (b): the audit hash a chunk must carry is the launch's, the files this read takes with the amended two as at
+  // the launch commit; another stamped file that has moved since the launch still moves it, and is refused here
+  const { STAMP_FILES, PANEL_FILE } = await import('./audit-couples.mjs');
+  const files = launchStampHash(STAMP_FILES, f => (f === 'couples-panel-d4b.json' ? PANEL_FILE : join(HERE, f)));
+  if (files !== LAUNCH.audit) { console.log(`THE GATE: REFUSED (the files this read takes, with ${AMENDED.join(' and ')} as at the launch commit ${LAUNCH.commit}, hash ${files}, not the launch's ${LAUNCH.audit}: a stamped file other than the amended two has changed since the launch)`); process.exit(1); }
+  const U = loadDir(dir), problems = gate(U, panel, reg.paths, logStamp, files, stage2);
   console.log(`D4B READ: ${dir}; ${Object.keys(U).length} couples`);
   // the run on the code the couples were landed on (the design review of 11 Nov, MINOR 1)
   const landed = JSON.parse(readFileSync(join(HERE, 'couples-panel-d4b.json'), 'utf8')).code;
@@ -530,6 +557,9 @@ async function read(dir) {
   if (problems.length) { console.log(`THE GATE: REFUSED (${problems.length})\n  ${problems.join('\n  ')}`); process.exit(1); }
   const st = stageOf(U, panel), on = Object.values(st).filter(v => v.on).length;
   console.log(`the gate: fair - ${panel.length} couples in every arm, each unit in its chunks, seed ${SEED} on their registered paths (${reg.N}) in two stages (the first ${LAYOUT.n1}; ${on} of ${Object.keys(st).length} couple-weights went on, as the run's stage gate decided; SHIPC on the first ${LAYOUT.ship} paths of each unit, in one chunk, whatever went on), one stamp; CANDC ${CONFIG.CANDC} (the sweep to the ISA; the solve on anchors ${COARSE_ON} wherever a person's solve has the joint tier state; the reference's lattice ${LATTICE}), SHIPC ${CONFIG.SHIPC}; the couples' path on its flat arrays and shared scores; no shortlist, item 12 option or tie-break in any unit (D80)`);
+  // amendment 1 (a): said beside the figures, the couples whose units were taken as one plan by the one known difference
+  const amended = panel.filter(h => usedFor(h.id, ARMS.map(k => U[h.id][k]).filter(Boolean).map(x => ({ arm: x.arm, inputs: x.inputs }))));
+  console.log(`amendment 1 (D94 (1); registrations/couples-d4b-amendment-1.md): ${amended.length ? `used for ${amended.map(h => h.id).join(', ')}, whose solver arms' plan and arm A's differ in the second person's MPAA age alone (results-d4b-plan-check.txt); every other couple's five units on one inputs hash` : 'not used: every couple\'s five units on one inputs hash'}; each chunk on the launch's stamp (${files}), ${AMENDED.join(' and ')} taken as at ${LAUNCH.commit}`);
   console.log(report(U, panel).lines.join('\n'));
 }
 

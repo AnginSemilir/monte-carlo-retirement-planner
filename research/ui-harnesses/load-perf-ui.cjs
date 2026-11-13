@@ -74,8 +74,16 @@ const JS_CEILING = 228;
  * section 10). The byte count is deterministic. The measured figure plus one would be 233, past D58's limit, so the ceiling
  * is the limit itself, 232, with no headroom left: the next kilobyte on a switch-on build's first load goes to the
  * maintainer. A switch-on build is one where the opted-in runs below reach the new planner.
+ *
+ * 235 on 13 Nov 2026, the maintainer's ruling (D94 (2)): the first batch of the improvements read 234KB at B1's gate (233 on
+ * 0e3511ea, 234 with the harvest ceiling; main's own build 232). The growth is the engine's own code in src/App.jsx: the
+ * year in HMRC's order, relief on money paid into a pension, the pages naming the year's sweep, the ceiling on the year's
+ * whole taxable income. So the measured figure plus one, and D58 (2)'s limit is amended: a later batch whose growth in
+ * the first load is the engine's own code moves this the same way, the measured figure plus one with a dated note,
+ * reported at its merge; growth of any other kind (a dependency, a screen's code in the entry) still stops for the
+ * maintainer.
  */
-const JS_CEILING_SWITCH_ON = 232;
+const JS_CEILING_SWITCH_ON = 235;
 /*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so
@@ -118,7 +126,9 @@ const CEILING = 3800;
  * there, and the run says so rather than measuring the classic planner twice.
  */
 // 5 Nov 2026 (D58 (2)): measured 232KB for a saved plan and 233KB for an empty one (the quick start's chunk), so 234
-const PLANNER_JS_CEILING = 234;
+// 13 Nov 2026 (D94 (2)): measured 234KB for a saved plan and 236KB for an empty one on the first batch of the improvements
+// (the same engine code as the classic ceiling's note above), so 237
+const PLANNER_JS_CEILING = 237;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
@@ -277,7 +287,7 @@ async function typingLatency(b) {
   for (const r of np) console.log(`  ${r.label}: content ${r.content}ms, ${r.js}KB${r.opted ? '' : ' (the new planner is not in this build: the switch is off)'}`);
   const switchOn = np.every(r => r.opted), jsCeiling = switchOn ? JS_CEILING_SWITCH_ON : JS_CEILING;
   ok('...and no more javascript than the ceiling allows', runs[0].js > 0 && runs[0].js <= jsCeiling,
-    `${runs[0].js}KB over the wire, ceiling ${jsCeiling}KB (${switchOn ? 'a switch-on build, D58 (2)' : 'the site\'s build'}; ${BEFORE.js}KB before the loading work)`);
+    `${runs[0].js}KB over the wire, ceiling ${jsCeiling}KB (${switchOn ? 'a switch-on build, D58 (2) and D94 (2)' : 'the site\'s build'}; ${BEFORE.js}KB before the loading work)`);
   ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
   if (switchOn) {
     const top = Math.max(...np.map(r => r.js));

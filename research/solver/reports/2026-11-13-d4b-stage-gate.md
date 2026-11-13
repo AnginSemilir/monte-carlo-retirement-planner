@@ -60,3 +60,9 @@ solver arms will take arm A's MPAA ages from item 6's stage C on.
 
 The cores are free. They go to the first batch's merge gate (D92), the harvest ceiling's step 4 and item 12's stage A
 (EXPLORATORY, other couples, seed 7002), none of which touches the re-run or its seed.
+
+## Ruled (13 Nov, D94 (1))
+
+The maintainer: "Proceed with your recommendations". Option 1 is carried out as
+`registrations/couples-d4b-amendment-1.md` sets it out; the `reviewer` agent sees the amendment before the amended gate
+is run; option 2 is the fallback if its FAIL stands after one fix.

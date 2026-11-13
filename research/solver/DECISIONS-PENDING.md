@@ -11,6 +11,11 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D94, 13 Nov): "Proceed with your recommendations"**: the stage gate and the read amended for S293's one
+difference, reviewed before use, the chunks kept (the fallback: fix the audit and run the first stage again); the first
+load's ceilings at the measured figures plus one, 235 and 237, engine code moving them the same way at a later batch.
+The two entries below are kept as they were put.
+
 **For the maintainer (13 Nov): the first load's size, and the gate's reference.** B1's gate on the first batch came
 back red in both modes, so nothing is merged (`results-reference.txt`; STATE.md section 5).
 - *The ruling needed: the first load's ceilings.* On the working branch's head the classic planner's first load is

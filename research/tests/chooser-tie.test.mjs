@@ -58,7 +58,9 @@ let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
 const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NP = 200, MARGIN = 1e-4;
 const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
-const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, ...research } });
+// 13 Nov 2026 (D95): the candidate now carries the margin, so the app's solve with nothing passed has the option on. "Off"
+// here is the margin handed in as nought, which the chooser reads as no tie-break; check 7 holds the app's own solve
+const solve = (id, research = {}) => solveForApp(E, M, planOf(id), { points: 4, research: { ...LIGHT, tieAboveCap: 0, ...research } });
 const setTie = (r, m) => { for (const x of [r, ...(r.worlds || [])]) { if (m === undefined) delete x.tieAboveCap; else x.tieAboveCap = m; } };
 // every path's outcome under the solved plan as it stands: survival, the pot left, lifetime tax, spending delivered, each year's level
 const run = (r, paths) => { const sc = solvedContext(E, r); return paths.map(zs => { const o = runPath(E, sc, zs); return [o.survived, o.terminalPot, o.lifetimeTax, o.delivered, o.failT, ...o.level]; }); };
@@ -98,7 +100,7 @@ const A = solve('S328F'), TA = solvedContext(E, A).totalYears, pathsA = E.pathsF
 const opening = A.m.ctx.accounts.reduce((x, a) => x + a.balance, 0);
 const offA = run(A, pathsA), dOff = hashOf(offA);
 if (RECORD) { console.log(`RECORD S328F ${dOff}`); process.exit(0); }
-ok(1, 'the option unset: S328F\'s paths the code before the option\'s, bit for bit; the solve carries the cap and no margin', dOff === BEFORE && A.tieAboveCap === undefined && A.meta.tieAboveCap === undefined && Math.abs(A.estateCap - 4 * opening) < 1e-6,
+ok(1, 'the option off (the margin nought): S328F\'s paths the code before the option\'s, bit for bit; the solve carries the cap and a margin of nought', dOff === BEFORE && A.tieAboveCap === 0 && A.meta.tieAboveCap === 0 && Math.abs(A.estateCap - 4 * opening) < 1e-6,
   `outcomes ${dOff.slice(0, 16)} against ${BEFORE.slice(0, 16)}; the cap £${Math.round(A.estateCap)}, four times the opening £${Math.round(opening)}`);
 // ---- 2. the option set: the tables, the record, the refusal, the shape 'soft' ----
 {
@@ -131,7 +133,7 @@ ok(1, 'the option unset: S328F\'s paths the code before the option\'s, bit for b
 {
   const plan = appPlan(E, prepareForSolve(E, lib.find(s => s.id === 'S007').plan));
   const cpOf = research => solveCouple(E, M, plan, { solveOne: (p, o) => solveForApp(E, M, p, { points: 4, research: { ...LIGHT, ...research }, ageWith: o.partnerAge0 }) });
-  const off = cpOf({}), on = cpOf({ tieAboveCap: MARGIN }), zsAll = E.pathsForSeed(SEED, 40, off.m.ctx.totalYears);
+  const off = cpOf({ tieAboveCap: 0 }), on = cpOf({ tieAboveCap: MARGIN }), zsAll = E.pathsForSeed(SEED, 40, off.m.ctx.totalYears);
   const paths = cp => zsAll.map(zs => { const trace = []; const o = runCouplePolicy(cp, Float64Array.from(zs), trace); return [o.survived, o.terminal, o.lifetimeTax, ...trace.flatMap(j => [j.ia, j.ib, j.split, j.spendLevel, j.score])]; });
   const pOff = paths(off), pOn = paths(on);
   ok(5, 'a couple (S007): every path of the rollout the same with the option on each person\'s table as without', differ(pOn, pOff) === 0 && on.tables.self.tieAboveCap === MARGIN && on.tables.part.tieAboveCap === MARGIN,
@@ -144,6 +146,14 @@ ok(1, 'the option unset: S328F\'s paths the code before the option\'s, bit for b
   for (const zs of sub) { const f = runPolicy(A, zs), e = runPath(E, sc, zs); if (f.survived !== e.survived) differ6++; else if (f.survived) { alive++; worst = Math.max(worst, Math.abs(f.terminal - e.terminalPot)); } }
   setTie(A, undefined);
   ok(6, 'the forward run (runPolicy) and the engine in step with the option on: the same paths survive, and each ends within a pound', differ6 === 0 && alive > 0 && worst <= 1, `${differ6} of ${sub.length} paths differ in survival; of ${alive} surviving in both, the largest gap at the end £${worst.toExponential(1)}`);
+}
+// ---- 7. the app's own solve (D95, 13 Nov): nothing passed, the candidate's margin ----
+{
+  const D = solveForApp(E, M, planOf('S328F'), { points: 4, research: { ...LIGHT } });
+  setTie(A, MARGIN); const on = run(A, pathsA); setTie(A, undefined);
+  const own = run(D, pathsA);
+  ok(7, 'the app\'s solve with nothing passed carries the candidate\'s margin, and its paths are the option\'s, bit for bit', D.tieAboveCap === MARGIN && D.meta.tieAboveCap === MARGIN && hashOf(own) === hashOf(on) && hashOf(own) !== dOff,
+    `the margin ${D.tieAboveCap}; outcomes ${hashOf(own).slice(0, 16)} against the option set ${hashOf(on).slice(0, 16)} (off: ${dOff.slice(0, 16)})`);
 }
 console.log(`\nchooser-tie: ${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

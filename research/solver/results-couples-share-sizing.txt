@@ -1,0 +1,16 @@
+ITEM 6 STAGE C'S SIZING from its pilot (results/share-c-pilot; 9 units of 3 couples, seed 7002, 1000 paths a unit, code 7002a1fec94c; Intel(R) Xeon(R) Processor @ 2.10GHz)
+  S015-75     CANDS less APP +12.30 points on 1000; discordant 123 (12.30%, upper 95% 14.50%): D34's size 23000
+  S015-90     CANDS less APP +12.30 points on 1000; discordant 123 (12.30%, upper 95% 14.50%): D34's size 23000
+  S015-db     CANDS less APP +11.10 points on 1000; discordant 111 (11.10%, upper 95% 13.21%): D34's size 21000
+  S211-75     CANDS less APP +9.80 points on 1000; discordant 98 (9.80%, upper 95% 11.81%): D34's size 19000
+  S211-90     CANDS less APP +10.00 points on 1000; discordant 100 (10.00%, upper 95% 12.03%): D34's size 19000
+  S211-db     CANDS less APP +4.10 points on 1000; discordant 47 (4.70%, upper 95% 6.20%): D34's size 16000
+  S389-75     CANDS less APP +12.00 points on 1000; discordant 120 (12.00%, upper 95% 14.18%): D34's size 22000
+  S389-90     CANDS less APP +11.40 points on 1000; discordant 114 (11.40%, upper 95% 13.53%): D34's size 21000
+  S389-gain   CANDS less APP +11.10 points on 1000; discordant 113 (11.30%, upper 95% 13.43%): D34's size 21000
+the run: every unit at 19000 paths (the largest of the pilot's sizes, at most D61's 19000); at 19000 a true 1-point loss reads as harm at least 90% of the time up to a discordance (its upper bound) of 12.45%; past it in the pilot: S015-75 (upper 14.50%, its 1-point rate at 19000 0.855), S015-90 (upper 14.50%, its 1-point rate at 19000 0.855), S015-db (upper 13.21%, its 1-point rate at 19000 0.883), S389-75 (upper 14.18%, its 1-point rate at 19000 0.862), S389-90 (upper 13.53%, its 1-point rate at 19000 0.876), S389-gain (upper 13.43%, its 1-point rate at 19000 0.877), each read at 19000 and named at the read with its rate (D34 (4), as D61); CANDH on each unit's first 1000
+the budget (D21: measured from the pilot's units on this machine), over 36 units: 61.3 core-hours (CANDS 56.9, CANDH 4.3, APP 0.2); on 4 cores, longest first, about 15.3 hours; the longest unit 2.48 hours, at a fifth slower 2.97, inside the 12-hour limit: yes
+  pilot S015 (28 years): CANDS the solve 147 s, the engine 184.5 ms a path, beside 78 s; CANDH the solve 166 s; APP the engine 0.7 ms a path
+  pilot S211 (41 years): CANDS the solve 192 s, the engine 308.2 ms a path, beside 122 s; CANDH the solve 188 s; APP the engine 0.8 ms a path
+  pilot S389 (46 years): CANDS the solve 297 s, the engine 392.5 ms a path, beside 139 s; CANDH the solve 263 s; APP the engine 1.0 ms a path
+written: couples-share-paths.json (36 units at 19000)

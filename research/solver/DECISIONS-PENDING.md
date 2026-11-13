@@ -11,16 +11,19 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
-**For the maintainer and the external review (13 Nov, night): the harvest ceiling's allowance step costs tax below the
-cap.** `results-ceiling-lead.txt` (EXPLORATORY, seed 7002; `CEILING-LEAD.md`). The ceiling (on `main` since the first
-batch) moved the allowance's ceiling down to where the year's bill would first rise. On the three households with most
-in the taxable account, that one step is 95% of the tax they now pay more on paths that end below the estate cap
-(S090: about £11,000 more over a lifetime). Survival with the allowance's step as before is a shade higher, pooled
-+0.02 points, at the edge of noise. With the tie-break in, the ceiling's tax saving above the cap that its first read
-showed is gone. The ceiling still passes its own rule. By this test's rule nothing changes in the code: the question
-goes to the external review, whether the menu should offer the allowance's step at its old place as well as its new
-one, so the solver can price that slice itself. The agent's view: yes, worth asking; it is a small change with its
-own test if the review agrees.
+**For the maintainer and the external review (13 Nov, night): the harvest ceiling's allowance step trades tax for pot
+below the cap.** `results-ceiling-lead.txt` (EXPLORATORY, seed 7002; `CEILING-LEAD.md`); the reviewer at the read: PASS,
+three MINORs (`reviews/2026-11-13-read-ceiling-lead.md`). The ceiling (on `main` since the first batch) moved the
+allowance's ceiling down to where the year's bill would first rise. On the three households with most in the taxable
+account, that one step is 95% of the extra tax they pay on paths that end below the estate cap (S090: about £11,000 over
+a lifetime). On the same paths it also leaves a larger pot (S090: about £29,000 more on average; the pot capped at the
+estate cap, over all paths, about £26,500 or 2% more). With the allowance's step as before, survival is a shade higher
+(pooled +0.02 points, at the edge of noise) and spending a hair higher, for less tax and a smaller pot. How the step
+does it is not shown: the runs store no moves. With the tie-break in, the tax saving above the cap that the ceiling's
+first read showed is gone; the ceiling still passes its own rule. By this test's rule nothing changes in the code: the
+question goes to the external review with the trade as it stands, whether the allowance's step should also be offered
+at its old place so the solver chooses between the two. The agent's view: worth asking, as a trade rather than a loss;
+a small change with its own test if the review agrees.
 
 **For the maintainer (13 Nov, evening): the couples' tier test reads "both"; a tie rule for a couple's joint move?**
 `results-couple-tiers.txt`; in full in `reports/2026-11-13-couples-read.md`. With consent to change risk withdrawn the

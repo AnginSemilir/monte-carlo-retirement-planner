@@ -22,6 +22,12 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const LEAD = { households: ['S030', 'S090', 'S328F'], need: 2, cost: 0.5, not: 0.2 };
 export const ARMS = ['OFF', 'RAWPA', 'NOW'];
 export const LAUNCHED = 'd6a10c1d', AMENDED = ['reduce-ceiling-lead.mjs', 'CEILING-LEAD.md'];
+/* the stamped files that changed since the launch (`at` gives a file's bytes at the launch, `now` its bytes in the tree), and
+   those of them the amendment does not allow (the reviewer at the read, finding 2: this check gets its planted case) */
+export function stampDrift(files, at, now, amended = AMENDED) {
+  const moved = files.filter(f => !Buffer.from(at(f)).equals(Buffer.from(now(f))));
+  return { moved, extra: moved.filter(f => !amended.includes(f)) };
+}
 const f = (x, d = 3) => (x >= 0 ? '+' : '') + x.toFixed(d);
 const gbp = v => `£${Math.round(v).toLocaleString('en-GB')}`;
 const sgbp = v => `${v >= 0 ? '+' : '-'}£${Math.round(Math.abs(v)).toLocaleString('en-GB')}`;
@@ -113,6 +119,10 @@ function planted() {
     check(`the gate passes a Scottish household whose arms' tables differ${g1.length ? `: ${g1[0]}` : ''}, and refuses one whose RAWPA tables are OFF's`, g1.length === 0 && G([scot({ digest: 'dOFF' }), unit('F')]).some(x => /E: the probe does not reach its band's edge and the arms' tables do not all differ/.test(x)));
   }
   check('the gate refuses arms at different settings, an arm on another plan, a wrong cap and a missing arm', G([unit('E', {}, { OFF: armX('OFF', { rest: 'pts 30' }) }), unit('F')]).some(x => /E OFF: its settings are not NOW's/.test(x)) && G([unit('E', {}, { RAWPA: armX('RAWPA', { inputs: 'x' }) }), unit('F')]).some(x => /not on the household's plan/.test(x)) && G([unit('E', { cap: 300 }), unit('F')]).some(x => /the cap is not four times/.test(x)) && G([unit('E', {}, { RAWPA: undefined }), unit('F')]).some(x => /E: an arm missing/.test(x)));
+  { const files = ['reduce-ceiling-lead.mjs', 'CEILING-LEAD.md', 'stats.mjs', 'audit-ceiling-lead.mjs'], launched = Object.fromEntries(files.map(f => [f, `${f} as launched`]));
+    const drift = edits => stampDrift(files, f => launched[f], f => edits[f] || launched[f]);
+    const none = drift({}), amended = drift({ 'reduce-ceiling-lead.mjs': 'the gate amended', 'CEILING-LEAD.md': 'its amendment' }), planted1 = drift({ 'stats.mjs': 'the interval changed' }), planted2 = drift({ 'audit-ceiling-lead.mjs': 'an arm changed', 'CEILING-LEAD.md': 'x' });
+    check('the stamp check: nothing changed passes; the reducer and the rule page changed pass (the amendment); stats.mjs changed is refused; the audit changed is refused beside an allowed change', none.moved.length === 0 && amended.extra.length === 0 && amended.moved.length === 2 && planted1.extra.join() === 'stats.mjs' && planted2.extra.join() === 'audit-ceiling-lead.mjs'); }
   console.log(bad ? `\n${bad} planted check(s) failed` : '\nall planted checks pass');
   return bad;
 }
@@ -136,8 +146,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const { execFileSync } = await import('node:child_process'), { createHash } = await import('node:crypto'), { STAMP_FILES } = await import('./audit-ceiling-lead.mjs');
     const at = f => execFileSync('git', ['-C', HERE, 'show', `${LAUNCHED}:research/solver/${f}`]);
     const h = createHash('sha256'); for (const f of STAMP_FILES) h.update(at(f)); audit = h.digest('hex').slice(0, 12);
-    const moved = STAMP_FILES.filter(f => !at(f).equals(readFileSync(join(HERE, f))));
-    const extra = moved.filter(f => !AMENDED.includes(f));
+    const { moved, extra } = stampDrift(STAMP_FILES, at, f => readFileSync(join(HERE, f)));
     if (extra.length) { console.log(`CEILING-LEAD GATE: NOT FAIR\n  stamped files changed since the launch beyond the amendment's: ${extra.join(', ')}`); process.exit(1); }
     console.log(`(the units' audit stamp checked against the files at the launch, ${LAUNCHED}: ${audit}; changed since, by the amendment: ${moved.join(', ') || 'none'})`);
   }

@@ -79,4 +79,14 @@ as its rule (a) says, and the probe cannot tell RAWPA's engine from OFF's there.
 the allowance read back is as given in OFF and RAWPA and adjusted in NOW on all eight. Only the gate's test was wrong.
 It now asks, of RAWPA, the allowance as given and the band NOW's; of NOW, the allowance adjusted; and, where the probe
 does not reach a household's band edge, that the three arms' tables all differ (they do on all eight). It has a planted
-case for each. Nothing else in the read changed, and no outcome was printed before the change.
+case for each. The units carry the audit stamp of the files as launched, so the read checks that stamp against the
+stamped files at the launch commit (d6a10c1d), with every stamped file but the reducer and this page unchanged since
+(`stampDrift`, with its planted case). Nothing else in the read changed, and no outcome was printed before the change.
+
+The reviewer at the read (`reviews/2026-11-13-read-ceiling-lead.md`: PASS, three MINORs) adds: the amended gate no longer
+tests a band's adjustment on any household (its `bandEdge` is read from NOW's own probe); a probe at £10,000 of interest
+and dividends, which reaches every band, would have tested each arm's engine on all eight, and the reviewer ran it on the
+engines `engineFor` builds at d6a10c1d: no exception in 10,080 inputs to OFF giving the ceiling as given, RAWPA the
+allowance as given and NOW's value elsewhere. The smoke ran one household (S090), which is why the refusal showed only
+after the run; a gate with a probe for each household is smoke-run on every household. No forward run (`fast.js`) stands
+beside the engine in this test: each arm's paths are held to `E.runTrial` alone.

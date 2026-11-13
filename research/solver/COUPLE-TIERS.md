@@ -30,7 +30,9 @@ comes first.
 
 ## The gate
 
-One code, audit stamp, seed, path count and points across the eight units; every arm's arrays one a path; APP on arm
+One code, audit stamp, seed, path count and points across the eight units; the candidate the registered run's
+(af001697ce1b: the test is of what the registered read read, so it is launched before the tie-break's port, D95, joins
+the working branch); every arm's arrays one a path; APP on arm
 A's pick; CANDC with more than one tier pair for each person; CANDCNC with exactly one pair for each person and no tier
 step held in any year.
 

@@ -6,10 +6,11 @@
   ok   the gate refuses a CANDCNC with two tier pairs
   ok   the gate refuses a CANDCNC holding a tier step
   ok   the gate refuses a CANDC with one tier pair, a missing couple and another audit
+  ok   the gate refuses a unit on another candidate
   ok   the bill's replay: paths failing rich in one year before the fix and none of them now reads THE BILL (THE BILL); some still there reads NOT SHOWN (NOT SHOWN); not run reads NOT RUN (NOT RUN)
 
 all planted checks pass
 
---- a smoke, not the run (two couples, 100 paths, 4 points; no result):
-THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md) SMOKE, NOT THE RUN: 2 couples of the panel, code d85a2b451777, audit d8e2ee952512, seed 7002, 100 paths, 4 points, estate weight 0.02; the gate: f
-the two units and the read ran end to end
+--- a smoke, not the run (one couple, 40 paths, 4 points; no result):
+THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md) SMOKE, NOT THE RUN: 1 couples of the panel, code d85a2b451777, audit 44f50b4375a7, seed 7002, 40 paths, 4 points, estate weight 0.02, the candidate af001697ce1b; the 
+the unit and the read ran end to end, the candidate recorded as the registered run's

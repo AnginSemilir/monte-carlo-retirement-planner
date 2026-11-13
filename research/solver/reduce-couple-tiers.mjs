@@ -18,12 +18,14 @@ const mean = a => { let s = 0; for (const x of a) s += x; return a.length ? s / 
 const sum = o => Object.values(o || {}).reduce((s, x) => s + x, 0);
 
 /* the gate over the units (each with its arms decoded): every problem */
+export const REGISTERED = 'af001697ce1b';   // the candidate of the couples' registered read (audit-couples.mjs CONFIG.CANDC)
 export function gate(units, ids, audit, size = { N: 4000, pts: 45, seed: 7002 }) {
   const P = [], missing = ids.filter(id => !units.some(u => u.id === id));
   if (missing.length) P.push(`couples missing: ${missing.join(', ')}`);
   const one = (what, f) => { const vs = [...new Set(units.map(f))]; if (vs.length > 1) P.push(`more than one ${what}: ${vs.join(', ')}`); };
   one('code', u => u.stamp.code); one('audit', u => u.stamp.audit); one('seed', u => u.seed); one('count of paths', u => u.N); one('points', u => u.pts);
   if (audit && units.some(u => u.stamp.audit !== audit)) P.push(`a unit's audit is not these files' (${audit})`);
+  if (units.some(u => u.candidate !== REGISTERED)) P.push(`a unit's candidate is not the registered run's (${REGISTERED}): ${[...new Set(units.map(u => u.candidate))].join(', ')}`);
   if (size && units.some(u => u.N !== size.N || u.pts !== size.pts || u.seed !== size.seed)) P.push(`a unit is not ${size.N} paths of seed ${size.seed} at ${size.pts} points`);
   for (const U of units) {
     for (const a of ARMS) {
@@ -84,7 +86,7 @@ function planted() {
   // a couple: every arm surviving all paths but APP's first 60 and CANDCNC's first 30; pots flat at pA, pC, pNC
   const unit = (id, pA, pC, pNC, o = {}) => {
     const arm = (pot, lost, extra = {}) => ({ ran: 'x', survived: Uint8Array.from({ length: N }, (_, i) => (i < lost ? 0 : 1)), failYear: new Int16Array(N).fill(-1), pot: new Float64Array(N).fill(pot), tax: new Float64Array(N).fill(100), taxAbove: new Float64Array(N).fill(10), delivered: new Float64Array(N).fill(1), tiers: { alive: [N, N], selfPen: [0, 0], selfIsa: [0, 0], partPen: [0, 0], partIsa: [0, 0] }, richFail: {}, before: null, ...extra });
-    return { id, cohort: 'young', N, pts: 45, seed: 7002, stamp: { code: 'c', audit: 'a' }, arms: { APP: arm(pA, 60, { ran: 'armA X', pairs: null }), CANDC: arm(pC, 0, { pairs: [4, 4], tiers: { alive: [N, N], selfPen: [N, 2 * N], selfIsa: [N, N], partPen: [0, 0], partIsa: [0, 0] }, ...(o.C || {}) }), CANDCNC: arm(pNC, 30, { pairs: [1, 1], ...(o.NC || {}) }) } };
+    return { id, cohort: 'young', N, pts: 45, seed: 7002, candidate: o.candidate || REGISTERED, stamp: { code: 'c', audit: 'a' }, arms: { APP: arm(pA, 60, { ran: 'armA X', pairs: null }), CANDC: arm(pC, 0, { pairs: [4, 4], tiers: { alive: [N, N], selfPen: [N, 2 * N], selfIsa: [N, N], partPen: [0, 0], partIsa: [0, 0] }, ...(o.C || {}) }), CANDCNC: arm(pNC, 30, { pairs: [1, 1], ...(o.NC || {}) }) } };
   };
   const ids = ['A', 'B'], V = (pC, pNC) => rule([unit('A', 100, pC, pNC), unit('B', 100, pC, pNC)], ids);
   check('a complete planted set passes the gate', gate([unit('A', 100, 50, 90), unit('B', 100, 50, 90)], ids, 'a', { N, pts: 45, seed: 7002 }).length === 0);
@@ -97,6 +99,7 @@ function planted() {
   check('the gate refuses a CANDCNC with two tier pairs', gate([unit('A', 100, 50, 90, { NC: { pairs: [2, 1] } })], ['A'], 'a', { N, pts: 45, seed: 7002 }).some(x => /CANDCNC: tier pairs 2\/1/.test(x)));
   check('the gate refuses a CANDCNC holding a tier step', gate([unit('A', 100, 50, 90, { NC: { pairs: [1, 1], tiers: { alive: [N, N], selfPen: [0, 3], selfIsa: [0, 0], partPen: [0, 0], partIsa: [0, 0] } } })], ['A'], 'a', { N, pts: 45, seed: 7002 }).some(x => /a tier step held/.test(x)));
   check('the gate refuses a CANDC with one tier pair, a missing couple and another audit', (() => { const P = gate([unit('A', 100, 50, 90, { C: { pairs: [1, 4] } })], ['A', 'B'], 'b', { N, pts: 45, seed: 7002 }); return P.some(x => /CANDC: tier pairs 1\/4/.test(x)) && P.some(x => /couples missing: B/.test(x)) && P.some(x => /audit is not these files/.test(x)); })());
+  check('the gate refuses a unit on another candidate', gate([unit('A', 100, 50, 90, { candidate: '17ff82379838' })], ['A'], 'a', { N, pts: 45, seed: 7002 }).some(x => /candidate is not the registered run's/.test(x)));
   // the bill's replay: 12 rich failures in year 23 before, none now
   const fy = (() => { const f = new Int16Array(N).fill(-1); f[0] = 40; return f; })();
   const rep = (now) => rule([unit('S309F', 100, 50, 90, { C: { pairs: [4, 4], failYear: fy, richFail: now, before: { richFail: { 23: 12, 40: 1 } } } }), unit('S311F', 100, 50, 90, { C: { pairs: [4, 4], failYear: fy, richFail: now, before: { richFail: { 23: 5 } } } })], []).replay;
@@ -121,7 +124,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (P.length) { console.log(`COUPLE-TIERS GATE: NOT FAIR\n  ${P.join('\n  ')}`); process.exit(1); }
   const ordered = ids.map(id => units.find(u => u.id === id)), u0 = ordered[0], R = rule(ordered, YOUNGER);
   const gbp = v => `£${Math.round(v).toLocaleString('en-GB')}`, f = (v, d = 2) => `${v >= 0 ? '+' : ''}${v.toFixed(d)}`;
-  console.log(`THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md)${smoke ? ' SMOKE, NOT THE RUN' : ''}: ${ids.length} couples of the panel, code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${u0.seed}, ${u0.N} paths, ${u0.pts} points, estate weight ${u0.W}; the gate: fair (one code, audit, seed, count of paths and points; CANDC with more than one tier pair a person, CANDCNC with one and no tier step held)`);
+  console.log(`THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md)${smoke ? ' SMOKE, NOT THE RUN' : ''}: ${ids.length} couples of the panel, code ${u0.stamp.code}, audit ${u0.stamp.audit}, seed ${u0.seed}, ${u0.N} paths, ${u0.pts} points, estate weight ${u0.W}, the candidate ${u0.candidate}; the gate: fair (one code, audit, seed, count of paths and points, the registered run's candidate; CANDC with more than one tier pair a person, CANDCNC with one and no tier step held)`);
   console.log(`\nBy couple (survival APP / CANDC / CANDCNC; the median pot left on the paths all three survive, APP's, then CANDC's and CANDCNC's over it; mean lifetime tax in each, and of it the tax paid in years above the estate cap; CANDC's mean tier steps held below the plan's own, the first person's pension/ISA and the second's):`);
   for (const h of R.H) console.log(`  ${h.id.padEnd(6)} ${String(h.cohort).padEnd(5)} ${h.sA.toFixed(2)}% / ${h.sC.toFixed(2)}% / ${h.sNC.toFixed(2)}% | pot ${gbp(h.medA)} (${h.both} paths), CANDC ${h.rC.toFixed(2)}, CANDCNC ${h.rNC.toFixed(2)} | tax ${gbp(h.taxA)} / ${gbp(h.taxC)} / ${gbp(h.taxNC)}, above the cap ${gbp(h.aboveA)} / ${gbp(h.aboveC)} / ${gbp(h.aboveNC)} | tiers held ${h.held.slice(0, 2).map(x => x.toFixed(2)).join('/')} and ${h.held.slice(2).map(x => x.toFixed(2)).join('/')}`);
   console.log(`\nThe rule:`);

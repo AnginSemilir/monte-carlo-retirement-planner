@@ -25,7 +25,7 @@ import { solveForApp, prepareForSolve, appPlan as appSolverPlan } from '../../sr
 import { readPanel, appPlan } from './couple-panel.mjs';
 import { armA } from './select-phase4.mjs';
 import { runPath, solverPlanOf } from './audit-phase4.mjs';
-import { PANEL_FILE, solverPlan, solveArm } from './audit-couples.mjs';
+import { PANEL_FILE, solverPlan, solveArm, configOf, CONFIG } from './audit-couples.mjs';
 import { settingsOf } from './audit-speed.mjs';
 import { codeId } from './code-id.mjs';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
@@ -95,7 +95,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${process.env.PREDICTION_SHA || '-'}`);   // fair-gate.mjs LOG_STAMP
   const u = UNITS[pk], id = u.id, t0 = Date.now(), h = readPanel(PANEL_FILE).find(x => x.id === id);
   if (!h) { console.error(`audit-couple-tiers: ${id} is not in the panel`); process.exit(2); }
-  console.log(`COUPLE-TIERS (EXPLORATORY): unit ${pk}/${pn}: ${id} (${h.cohort}), seed ${SEED}, ${n} paths, ${pts} points, estate weight ${W}; the engine before the bill's fix ${BEFORE ? 'beside CANDC' : 'not run'}; node ${STAMP.node}`);
+  // the candidate both solver arms take is the registered run's (audit-couples.mjs CONFIG: the reviewer on D95, finding 2): a
+  // tree whose candidate has moved on is refused here, so the test is of what the registered read read
+  const candidate = configOf('CANDC');
+  if (candidate !== CONFIG.CANDC) { console.error(`audit-couple-tiers: the candidate here hashes ${candidate}, not the registered run's ${CONFIG.CANDC}`); process.exit(2); }
+  console.log(`COUPLE-TIERS (EXPLORATORY): unit ${pk}/${pn}: ${id} (${h.cohort}), seed ${SEED}, ${n} paths, ${pts} points, estate weight ${W}, the candidate ${candidate}; the engine before the bill's fix ${BEFORE ? 'beside CANDC' : 'not run'}; node ${STAMP.node}`);
   const a = armA(appPlan(h.plan), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy };
   // CANDCNC's plan: CANDC's as audit-couples.mjs builds it, consent to change risk withdrawn
   const ncPlan = appSolverPlan(E, prepareForSolve(E, { ...solverPlanOf(h.plan, aPol), solver: { aims: { cuts: 1, estate: 'standard', raises: 'capped', riskConsent: false } } }));
@@ -125,6 +129,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(`${''.padEnd(8)} ran ${arm}: ${ran}`);
     console.log(`${''.padEnd(8)} done ${arm}: solve ${solveSecs.toFixed(0)} s; engine ${surv.toFixed(2)}% on ${n}; the shared runner on the first ${Math.min(CHECK, n)} paths the same${before ? `; failing with more than it opened with, the engine before the bill's fix ${Object.values(before.richFail).reduce((s, x) => s + x, 0)}, this engine ${Object.values(R.richFail).reduce((s, x) => s + x, 0)}` : ''}`);
   }
-  writeFileSync(join(OUT, fileOf(u)), gzipSync(JSON.stringify({ k: pk, id, cohort: h.cohort, seed: SEED, N: n, pts, W, opening, cap: CAP_TIMES * opening, stamp: STAMP, cpu: cpus()[0].model, before: BEFORE ? 'run' : 'not run', arms })));
+  writeFileSync(join(OUT, fileOf(u)), gzipSync(JSON.stringify({ k: pk, id, cohort: h.cohort, seed: SEED, N: n, pts, W, candidate, opening, cap: CAP_TIMES * opening, stamp: STAMP, cpu: cpus()[0].model, before: BEFORE ? 'run' : 'not run', arms })));
   console.log(`${''.padEnd(8)} done unit ${pk} secs ${Math.round((Date.now() - t0) / 1000)}`);
 }

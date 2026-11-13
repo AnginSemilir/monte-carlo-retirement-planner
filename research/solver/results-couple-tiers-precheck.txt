@@ -1,0 +1,15 @@
+  ok   a complete planted set passes the gate
+  ok   consent withdrawn restoring the pot (0.90 of APP's against 0.50) reads THE TIERS ARE THE CAUSE (THE TIERS ARE THE CAUSE)
+  ok   the edge: exactly 0.85 reads THE TIERS ARE THE CAUSE, 0.84 BOTH, 0.65 BOTH, 0.64 NOT THE TIERS (THE TIERS ARE THE CAUSE / BOTH / BOTH / NOT THE TIERS)
+  ok   the candidate's own pot at 0.85 of APP's or more reads NOT REPRODUCED whatever consent does (NOT REPRODUCED)
+  ok   the tiers' share of the gain: 30 of 60 paths, half (50.0%, 37.3 to 62.7)
+  ok   the gate refuses a CANDCNC with two tier pairs
+  ok   the gate refuses a CANDCNC holding a tier step
+  ok   the gate refuses a CANDC with one tier pair, a missing couple and another audit
+  ok   the bill's replay: paths failing rich in one year before the fix and none of them now reads THE BILL (THE BILL); some still there reads NOT SHOWN (NOT SHOWN); not run reads NOT RUN (NOT RUN)
+
+all planted checks pass
+
+--- a smoke, not the run (two couples, 100 paths, 4 points; no result):
+THE COUPLES' TIER TEST (EXPLORATORY; COUPLE-TIERS.md) SMOKE, NOT THE RUN: 2 couples of the panel, code d85a2b451777, audit d8e2ee952512, seed 7002, 100 paths, 4 points, estate weight 0.02; the gate: f
+the two units and the read ran end to end

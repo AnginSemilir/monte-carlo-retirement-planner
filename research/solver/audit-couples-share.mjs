@@ -66,7 +66,6 @@ export const fileOf = (id, arm) => `${id}-${arm.toLowerCase()}.json.gz`;
 export const pilotIds = panel => panel.filter(u => PILOT_PLACES.includes(u.place)).map(u => u.id);
 /* the paths an arm runs on a unit of N: CANDH its first CANDH_N, the others all N */
 export const pathsFor = (arm, N) => (arm === 'CANDH' ? Math.min(CANDH_N, N) : N);
-const light = pts => (pts <= 6 ? { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } : {});
 /* each person's settings line, as audit-couples.mjs writes it (wantProblems reads it) */
 const latticeName = L => `${L.na}x${L.nb}x${L.nz}${L.foot ? '+foot' : ''}${L.stepAll ? '+stepAll' : ''}`;
 const readerYearsOf = r => { const rd = (r.mix ? r.mix.tables[0].g : r.g).reader; return rd ? Array.from(rd.years).reduce((s, x) => s + x, 0) : 0; };
@@ -76,7 +75,7 @@ export const settingsOf = r => `pts ${r.g.np} mix ${r.meta.mixture} lambda ${r.m
 export const shareWant = (arm, plan) => (arm === 'CANDS' ? { share: shareFor(plan), rule: 'pots' } : { share: 0.5, rule: 'half' });
 /* a solver arm's couple, each person's table solved as the app solves it, on the couples' candidate */
 export function solveArm(arm, hp, pts) {
-  const one = (p, o) => solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { tieAboveCap: undefined, ...light(pts) } });
+  const one = (p, o) => solveForApp(E, M, p, { points: pts, ageWith: o.partnerAge0, research: { tieAboveCap: undefined } });
   return solveCouple(E, M, hp, arm === 'CANDS' ? { shareRule: 'pots', solveOne: one } : { solveOne: one });
 }
 
@@ -151,8 +150,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       ctx = E.buildContext(withCouple(cp.plan, cp));
       ran = `config ${configOf(arm)} hhMinPot ${cp.m.ctx.solvencyFloor} share ${cp.share} shareRule ${cp.meta.shareRule} flat ${COUPLE.flat} fast ${COUPLE.fast} shortlist ${d80.shortlist} item12 ${d80.item12} tieBreak ${d80.tieBreak} | self: ${lines[0]} | part: ${lines[1]}`;
     }
-    const T = ctx.totalYears, inputs = inputsHash(ctx);
-    console.log(`${''.padEnd(11)} ran ${arm}: ${ran} inputs ${inputs}${solveSecs ? ` | solve secs ${Math.round(solveSecs)}` : ''}`);
+    // the inputs every arm must share (audit-phase4.mjs inputsHash), and the same with each person's MPAA age left out: that age
+    // follows the arm's own drawing policy (resolveMpaa; arm A's lump sum against the candidate's draws, as S293's in the couples'
+    // re-run, D94), so it may differ between a unit's arms; the read compares the second and names each unit where the ages differ
+    const T = ctx.totalYears, inputs = inputsHash(ctx), inputsNoMpaa = inputsHash({ ...ctx, owners: ctx.owners.map(o => ({ ...o, mpaaAge: null })) }), mpaa = ctx.owners.map(o => (Number.isFinite(o.mpaaAge) ? o.mpaaAge : null));
+    console.log(`${''.padEnd(11)} ran ${arm}: ${ran} inputs ${inputs} inputsNoMpaa ${inputsNoMpaa} mpaa ${mpaa.join('/')}${solveSecs ? ` | solve secs ${Math.round(solveSecs)}` : ''}`);
     const e0 = Date.now(), paths = E.pathsForSeed(seed, n, T);
     const A = { survived: new Uint8Array(n), wealth: new Float32Array(n), estate: new Float32Array(n), delivered: new Float32Array(n), unmet: new Float32Array(n), tax: new Float32Array(n), failYear: new Int16Array(n) };
     let bad = 0;
@@ -172,7 +174,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       beside = { N: NB, survived: b64(pb), engineOnly, modelOnly, secs: (Date.now() - b0) / 1000 };
       console.log(`${''.padEnd(11)} beside ${arm}: the rollout in the model ${(100 * pb.reduce((x, y) => x + y, 0) / NB).toFixed(4)} on ${NB}; the engine alone ${engineOnly}, the model alone ${modelOnly}`);
     }
-    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, base: u.base, place: u.place, kind: u.kind, variant: u.variant, feature: u.feature, target: ctx.targetSpend, inputs, stamp: STAMP, ran, seed, N, n, W, pts,
+    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, base: u.base, place: u.place, kind: u.kind, variant: u.variant, feature: u.feature, target: ctx.targetSpend, inputs, inputsNoMpaa, mpaa, stamp: STAMP, ran, seed, N, n, W, pts,
       share: cp ? cp.share : null, shareRule: cp ? cp.meta.shareRule : null, config: cp ? configOf(arm) : null, solveSecs, engineSecs: eSecs, secs: (Date.now() - t0) / 1000, label: a.label, cpu: cpus()[0].model, beside,
       main: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
     console.log(`${''.padEnd(11)} done ${arm} secs ${Math.round((Date.now() - t0) / 1000)}`);

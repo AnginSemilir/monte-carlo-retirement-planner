@@ -68,7 +68,10 @@ function replay(r, paths, ref, ask) {
 console.log(`chooser-shortlist: the chooser's shortlist and its slice, seed ${SEED}${FULL ? ', --full' : ''}`);
 const A = solve('S328F'), pathsA = E.pathsForSeed(SEED, NP, solvedContext(E, A).totalYears), nMoves = A.actions.length;
 // ---- 1. the option unset, and set ----
-const BEFORE = '03f2dad1043f20fd99b7c61e0636f1186d076d72ad67f769b760348bc4caee0b';   // S328F at 4 points, 200 paths, on the code before the option (f822e999)
+// S328F at 4 points, 200 paths, on the code before the option (f822e999: 03f2dad1043f20fd...); re-taken 12 Nov on the ceiling on the
+// year's whole taxable income (ANSWERS.md section 5; D91, D93's unlock): a draw's ceiling stops short by the year's interest and
+// dividends; with the ceiling's one function switched off the paths are the figure before (results-harvest-ceiling.txt)
+const BEFORE = 'f2fe4e1e6d872dc30d28c27d7e943b96d84282c65b27f75a3842be01336d4e44';
 const whole = run(A, pathsA);
 {
   const B = solve('S328F', { chooserShortlist: 'order' }), dA = await digestOf(tablesOf(A)), dB = await digestOf(tablesOf(B));

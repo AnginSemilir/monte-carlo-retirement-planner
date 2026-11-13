@@ -37,7 +37,7 @@ const HERE = dirname(fileURLToPath(import.meta.url)), SELF = fileURLToPath(impor
 // --planted: this test again on the planted engine, read for which checks fail (C5 must, among them)
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['nopaydiv', ['C5', 'C5S']], ['noceiling', ['D1']]]) {
+  for (const [plant, want] of [['nopaydiv', ['C5', 'C5S']], ['noceiling', ['D1']], ['rawceiling', ['E1', 'E3', 'E5', 'E6', 'E7']]]) {
     const r = spawnSync(process.execPath, [SELF], { env: { ...process.env, ENGINE_HMRC_PLANT: plant }, encoding: 'utf8' });
     const failed = [...r.stdout.matchAll(/^FAIL {2}(\S+)/gm)].map(m => m[1]);
     const ok = want.every(w => failed.includes(w));
@@ -56,6 +56,14 @@ if (PLANT === 'nopaydiv') {
   const planted = "const billOf = (key) => { const b = P.personTax({ nonSavings: taxablePay[key] + taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] }); const d = P.personTax({ nonSavings: taxable[key], interest: savingsInterest[key], dividends: giaDividends[key] }).onDividends; return { ...b, onDividends: d, total: b.onNonSavings + b.onInterest + d }; };";
   tmp = mkdtempSync(join(tmpdir(), 'engine-hmrc-'));
   writeFileSync(join(tmp, 'engine.mjs'), src.replace(anchor, planted));
+  E = await import(join(tmp, 'engine.mjs'));
+} else if (PLANT === 'rawceiling') {
+  // the plant: a draw's ceiling read on the non-savings income alone, as before the fix (section E)
+  const src = readFileSync(join(HERE, '../engine.mjs'), 'utf8');
+  const anchor = "if (!(i > 0 || d > 0) || !Number.isFinite(ceiling)) return ceiling;";
+  if (src.split(anchor).length !== 2) throw new Error('engine-hmrc: the plant\'s anchor is not in research/engine.mjs once');
+  tmp = mkdtempSync(join(tmpdir(), 'engine-hmrc-'));
+  writeFileSync(join(tmp, 'engine.mjs'), src.replace(anchor, "if (true) return ceiling;"));
   E = await import(join(tmp, 'engine.mjs'));
 } else E = await import('../engine.mjs');
 
@@ -194,8 +202,94 @@ for (const [name, make] of FIXTURES) {
   ok(`${name}: ${rows.length} years`, bad === 0, bad ? `${bad} years differ by over £1: the engine ${gbp(under)} under and ${gbp(over)} over across the plan; the worst, ${worst.year}: the engine ${gbp(worst.got)}, HMRC ${gbp(worst.want)}` : '');
 }
 
+console.log('=========== E. A DRAW\'S CEILING IS ON THE YEAR\'S WHOLE TAXABLE INCOME (the review of 11 Nov, ANSWERS.md section 5) ===========');
+{
+  const P = E.taxParams(E.DEFAULT_CONFIG), PS = E.taxParams({ ...E.DEFAULT_CONFIG, taxRegion: 'scotland' });
+  const ceil = (p, c, T0, i, d) => (E.pensionCeiling ? E.pensionCeiling(p, c, T0, i, d) : c);
+  const U = 50270, PA = 12570;
+  // E1  the review's table, 2026/27: other income £20,000 and £8,000 of interest, a harvest to the basic ceiling. To the
+  //     threshold less the interest, £42,270: its taxable part 22,270, at 20% = 4,454; the interest, 7,000 x 20% after the
+  //     £1,000 allowance = 1,400. To the threshold itself, as before: 30,270 x 20% = 6,054, and the interest is in the higher
+  //     band, a £500 allowance and 7,500 x 40% = 3,000. The last 8,000 of the draw costs 1,600 on itself and 1,600 on the interest.
+  {
+    const c = ceil(P, P.higherRateStartsAt, 20000, 8000, 0), at = hmrcYear({ nonSavings: c, interest: 8000 }), base = hmrcYear({ nonSavings: 20000, interest: 8000 }), old = hmrcYear({ nonSavings: U, interest: 8000 });
+    ok('E1  the basic ceiling with £20,000 of other income and £8,000 of interest: £42,270; the draw\'s tax £4,454, the interest\'s £1,400 (to the threshold: £6,054 and £3,000)',
+      near(c, 42270) && near(at.onNonSavings - base.onNonSavings, 4454) && near(at.onInterest, 1400) && near(old.onNonSavings - base.onNonSavings, 6054) && near(old.onInterest, 3000),
+      `the ceiling ${gbp(c)}; the draw's tax ${gbp(at.onNonSavings - base.onNonSavings)}, the interest's ${gbp(at.onInterest)}`);
+  }
+  // E2  the same with £8,000 of dividends in the interest's place: to £42,270 they are in the basic band, (8,000 - 500) x
+  //     10.75% = 806.25; to the threshold they are all in the higher band, 7,500 x 35.75% = 2,681.25
+  {
+    const c = ceil(P, P.higherRateStartsAt, 20000, 0, 8000), at = hmrcYear({ nonSavings: c, dividends: 8000 }), old = hmrcYear({ nonSavings: U, dividends: 8000 });
+    ok('E2  the same with £8,000 of dividends: £42,270; the dividends\' tax £806.25 (to the threshold: £2,681.25)', near(c, 42270) && near(at.onDividends, 806.25) && near(old.onDividends, 2681.25), `the ceiling ${gbp(c)}; the dividends' tax ${gbp(at.onDividends)}`);
+  }
+  // E3  the allowance's ceiling, nothing else coming in. £3,000 of interest: the allowance itself (the interest sits in the
+  //     starting rate band above it, 0%). £9,000: the allowance, the £5,000 band and the £1,000 savings allowance cover
+  //     18,570 of income, so the draw stops at 18,570 - 9,000 = 9,570, £3,000 short; a pound more costs 20p on the interest.
+  {
+    const a = ceil(P, P.pa, 0, 3000, 0), b = ceil(P, P.pa, 0, 9000, 0);
+    ok('E3  the allowance\'s ceiling: unchanged with £3,000 of interest; £9,570 with £9,000, £3,000 short, and nothing to pay at either',
+      near(a, PA) && near(b, 9570) && near(hmrcYear({ nonSavings: a, interest: 3000 }).total, 0) && near(hmrcYear({ nonSavings: b, interest: 9000 }).total, 0) && hmrcYear({ nonSavings: b + 100, interest: 9000 }).total > 19,
+      `£3,000 of interest: ${gbp(a)}; £9,000: ${gbp(b)}`);
+  }
+  // E4  Scotland: the basic step's own ceiling is where the 42% rate starts, £43,662; interest is taxed on the UK's bands, so
+  //     its test is against £50,270. £20,000 of other income and £3,000 of interest: 47,270 is past the Scottish ceiling, so
+  //     43,662, and the interest is (3,000 - 1,000) x 20% = 400. With £8,000 of interest: 42,270, and the interest 1,400.
+  {
+    const a = ceil(PS, PS.higherRateStartsAt, 20000, 3000, 0), b = ceil(PS, PS.higherRateStartsAt, 20000, 8000, 0);
+    ok('E4  Scotland, the basic ceiling: £43,662 with £3,000 of interest (its tax £400), £42,270 with £8,000 (its tax £1,400)',
+      near(PS.higherRateStartsAt, 43662) && near(a, 43662) && near(b, 42270) && near(hmrcYear({ nonSavings: a, interest: 3000, scottish: true }).onInterest, 400) && near(hmrcYear({ nonSavings: b, interest: 8000, scottish: true }).onInterest, 1400),
+      `£3,000 of interest: ${gbp(a)}; £8,000: ${gbp(b)}`);
+  }
+  // E5  a search over the reference's own bill. The allowance's ceiling (and half of it): the bill at the ceiling is the bill
+  //     with no draw, on every case; and where the year's whole income is below the UK threshold it is the LARGEST such draw,
+  //     a pound more costing something unless it is the ceiling itself. The basic ceiling and the taper's: never past the
+  //     ceiling, and the whole income at it no more than the threshold, or the draw is one that costs nothing.
+  {
+    const T0s = [0, 4000, 9000, 12570, 15000, 30000], Is = [0, 500, 3000, 6500, 9000, 20000, 45000], Ds = [0, 400, 2000, 8489, 45000];
+    let n = 0, bad = 0, worst = '';
+    const note = (what, c, T0, i, d, got) => { bad++; if (!worst) worst = `${what}: ceiling ${gbp(c)}, other income ${gbp(T0)}, interest ${gbp(i)}, dividends ${gbp(d)}: the engine ${gbp(got)}`; };
+    for (const scottish of [false, true]) for (const T0 of T0s) for (const i of Is) for (const d of Ds) {
+      const p = scottish ? PS : P, bill = (N) => hmrcYear({ nonSavings: N, interest: i, dividends: d, scottish }).total, b0 = bill(T0);
+      for (const c of [p.pa, p.pa / 2]) {
+        const got = ceil(p, c, T0, i, d); n++;
+        if (got > c + 1e-9) note('past the ceiling', c, T0, i, d, got);
+        else if (got > T0 && Math.abs(bill(got) - b0) > 0.005) note('the draw costs', c, T0, i, d, got);
+        else if (T0 + i + d < U && T0 < c && got < c - 1e-9 && Math.abs(bill(Math.max(got, T0) + 1) - b0) <= 0.005) note('a larger draw is free', c, T0, i, d, got);
+      }
+      for (const c of [p.higherRateStartsAt, p.thr]) {
+        const got = ceil(p, c, T0, i, d), S = c === p.higherRateStartsAt ? U : c; n++;
+        if (got > c + 1e-9) note('past the ceiling', c, T0, i, d, got);
+        else if (got > T0 && got + i + d > S + 1e-6 && Math.abs(bill(got) - b0) > 0.005) note('the whole income past the threshold', c, T0, i, d, got);
+        else if (got < Math.min(c, S - i - d) - 1e-6) note('short of the threshold less the interest and dividends', c, T0, i, d, got);
+      }
+    }
+    ok(`E5  ${n} ceilings against a search over the reference's bill, England and Scotland`, bad === 0 && !!E.pensionCeiling, bad ? `${bad} wrong; the first, ${worst}` : (E.pensionCeiling ? '' : 'the engine has no pensionCeiling'));
+  }
+  // E6, E7  whole years. S116 in England with £300,000 of cash and £100,000 in the taxable account (its ISAs emptied), its
+  //     spending met from the cash: about £10,600 of interest and £2,000 of dividends in the first year, no other income.
+  const withCash = (harvest, ceiling, region = 'ruk') => {
+    const p = planOf('S116'); p.config = { ...p.config, taxRegion: region, harvestPersonalAllowance: harvest, harvestCeiling: ceiling };
+    setBal(p, 'cashIsa_self', 0); setBal(p, 'isa_self', 0); setBal(p, 'cash_self', 300000); setBal(p, 'other_self', 100000);
+    p.spending.policyOverride = { steps: ['cash', 'other', 'isa', 'penAny'], harvest };
+    return E.simulateDeterministic(E.buildContext(E.resolveMpaa(E.normalizePlan(p))), 'expected')[0];
+  };
+  {
+    // E6  the harvest to the allowance is the plan's "free" move: the year's tax with it is the year's tax without it
+    const off = withCash(false, 'pa'), on = withCash(true, 'pa');
+    ok('E6  the first year\'s harvest to the allowance costs nothing: the year\'s tax the same with it and without', on.harvested > 0 && near(on.taxPaid, off.taxPaid, 0.01),
+      `without ${gbp(off.taxPaid)}, with ${gbp(on.taxPaid)} (harvested ${gbp(on.harvested)}, interest ${gbp(on.savingsInterestSelf)}, dividends ${gbp(on.giaDividendsSelf)})`);
+    // E7  the harvest to the basic ceiling leaves the year's whole taxable income at the UK threshold, in England and in Scotland
+    const whole = (x) => x.otherTaxableSelf + x.taxablePensionSelf + x.savingsInterestSelf + x.giaDividendsSelf;
+    const en = withCash(true, 'basic'), sc = withCash(true, 'basic', 'scotland');
+    ok('E7  the first year\'s harvest to the basic ceiling: the whole taxable income at £50,270 in England; in Scotland the draw at its own £43,662 or the whole at £50,270, whichever comes first',
+      near(whole(en), U, 1) && en.harvested > 0 && sc.harvested > 0 && near(Math.min(43662 - (sc.otherTaxableSelf + sc.taxablePensionSelf), U - whole(sc)), 0, 1),
+      `England ${gbp(whole(en))}; Scotland: the draw ${gbp(sc.otherTaxableSelf + sc.taxablePensionSelf)}, the whole ${gbp(whole(sc))}`);
+  }
+}
+
 console.log('=========== D. THE SOLVER\'S MEMO OF THE YEAR\'S INTEREST AND DIVIDENDS TAX ===========');
-if (PLANT !== 'nopaydiv') {
+if (PLANT !== 'nopaydiv' && PLANT !== 'rawceiling') {
   const M = await import('../../src/solver/model.js'), F = await import('../../src/solver/fast.js');
   const { solveForApp } = await import('../../src/solverApp.js'), { tablesOf, digestOf } = await import('../../src/solverDigest.js');
   const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } };

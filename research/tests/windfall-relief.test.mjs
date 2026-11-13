@@ -136,10 +136,13 @@ console.log(`windfall-relief: relief on the plan's own pension routes (the revie
   // taken on item 3's code alone (b954f145878ff460..., f9a4e63e00f6958e..., c7785c6fc3ecdcb4...), and re-taken on D73's candidate (11 Nov,
   // D81 (A), D83): the sweep to the ISA and the solve on anchors move these tables and nothing else in the port does (with both keys
   // out each solve gives item 3's figure: results-d73-digests.txt)
+  // re-taken again (81e774a399c6b29e..., 1daa7851917f000a..., bb84262fb4db77b4...): 12 Nov, the ceiling on the year's whole taxable
+  // income (ANSWERS.md section 5; D91, D93's unlock): each household's interest and dividends count towards a draw's ceiling; with
+  // the ceiling's one function switched off each solve gives the figure before (results-harvest-ceiling.txt)
   const ITEM3 = {
-    S116: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13',
-    'S210, its deposit removed': '1daa7851917f000a97479b09485392689113801c740c484dc157fc4e825e9574',
-    'S210, its deposit typed into the taxable account': 'bb84262fb4db77b4e24c0c57252471064c73c2c16dc7b9b273cec9c3012f274e'
+    S116: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3',
+    'S210, its deposit removed': '14c9a95ebb1b8c496126c177f8ef5baaea2a88d9780df05fc3485b8072725466',
+    'S210, its deposit typed into the taxable account': '70e557bd71a3d75b1767c0e3414c89bf2be4397d80ad185709aa19de18a994bd'
   };
   const { buildScenarios } = await import('../policy-study/scenarios.mjs');
   const lib = id => buildScenarios().find(s => s.id === id).plan, s210 = lib('S210');

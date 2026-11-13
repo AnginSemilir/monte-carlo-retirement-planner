@@ -60,7 +60,9 @@ const solveAt = (pts) => (p, o) => solveForApp(E, M, p, { points: pts, research:
 {
   // S007 at 4 points, taken on the code before the option (items 3 to 5: ee4875424b94acb8...), re-taken on D73's candidate (11 Nov, D81 (A),
   // D83: with the sweep to the ISA and the solve on anchors left out the solve gives the earlier figure, results-d73-digests.txt)
-  const BEFORE = '1320a1db06372238bfbbe1811f253475d3f02555f3067ec333a12a19e33e0bd7';
+  // re-taken again (1320a1db06372238...): 12 Nov, the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93's
+  // unlock): with the ceiling's one function switched off the solve gives the figure before (results-harvest-ceiling.txt)
+  const BEFORE = 'c843d68b9d612a0790eeaf47c7859e9ab845ccb21e7db48de6202fc4f4f084ba';
   const plan = prepareForSolve(E, E.normalizePlan(library.find(s => s.id === 'S007').plan));
   const dig = async cp => digestOf([...tablesOf(cp.tables.self), ...tablesOf(cp.tables.part)]);
   const off = solveCouple(E, M, plan, { solveOne: solveAt(4) }), dOff = await dig(off);

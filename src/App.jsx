@@ -1597,6 +1597,37 @@ function grossWithSavingsAbove(target, T0, p, isFullyCrystallized, pclsHeadroom,
   return Number.isFinite(Gmax) ? Math.min(hi, Gmax) : hi;
 }
 
+/*
+ * WHERE A PENSION DRAW WITH A CEILING STOPS, GIVEN THE YEAR'S INTEREST AND DIVIDENDS (the review of 11 Nov, ANSWERS.md section 5;
+ * D72's question, D79, D91). A ceiling is on the year's WHOLE taxable income, not on the non-savings part of it: HMRC stacks
+ * interest and dividends above the draw (item 3), so a draw that fills a band to its top pushes every pound of them over it.
+ * Returns the non-savings income a draw may take the person to, never past `ceiling`: the larger of
+ *   (a) the ceiling less the year's interest and dividends. The basic step's test is against the UK's threshold whatever the
+ *       region (savings income is taxed on the UK's bands), so a Scottish draw stops at its own ceiling or at the UK threshold
+ *       less the interest and dividends, whichever comes first;
+ *   (b) the furthest a draw can go inside the allowance with the year's whole bill unchanged: the allowance itself while the
+ *       starting rate band and the savings allowance still cover the interest and the dividend allowance the dividends, short
+ *       of it where they do not. Nothing is counted as free once the whole income is at the UK threshold.
+ * So the allowance's ceiling is (b), and a band's ceiling is (a) or whatever of the draw is free. With no interest and no
+ * dividends it is `ceiling` itself, to the bit. research/tests/engine-hmrc.test.mjs section E holds it to hand cases and to a
+ * search over a reference bill written apart from the engine's.
+ */
+function pensionCeiling(cfg, ceiling, otherTaxableIncome, interest, dividends) {
+  const i = Math.max(0, num(interest, 0)), d = Math.max(0, num(dividends, 0));
+  if (!(i > 0 || d > 0) || !Number.isFinite(ceiling)) return ceiling;
+  const p = taxParams(cfg), T0 = Math.max(0, num(otherTaxableIncome, 0)), U = p.basicLimit;
+  if (T0 >= ceiling) return ceiling;   // already at it: no draw
+  const a = Math.min(ceiling, (ceiling === p.higherRateStartsAt ? U : ceiling) - i - d);
+  let free = T0;
+  if (T0 + i + d < U) {
+    let top = Math.min(ceiling, p.pa, U - i - d);
+    if (i > 0 && p.cashInterestTaxed) top = Math.min(top, p.pa + p.srBand + p.psaBasic - i);
+    if (d > p.divAllowance && T0 + i < p.pa) top = Math.min(top, p.pa + p.divAllowance - i - d);
+    free = Math.max(T0, top);
+  }
+  return Math.max(a, free);
+}
+
 // ---------------------------------------------------------------- seeded randomness
 function mulberry32(seed) {
   let a = (seed >>> 0) || 0x9E3779B9;
@@ -2331,6 +2362,8 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
     const fully = ctx.fullLumpSum && state.lumpSumTaken[oKey];
     const headroom = fully ? 0 : pclsHeadroom(oKey);
     const T0 = taxablePay[oKey] + taxable[oKey];
+    // the ceiling is on the year's whole taxable income: the interest and dividends above the draw count towards it
+    ceiling = pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);
     if (T0 >= ceiling) return 0;
     const grossNeeded = grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);
@@ -4077,6 +4110,8 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
       const accessAge = Math.max(o.retireAge, ctx.nmpa);
       const drawYears = Math.max(1, ctx.terminalAge - accessAge);
       const guaranteedTaxable = o.statePension + ctx.otherIncomes.filter(i => i.owner === o.key && !i.taxFree).reduce((s, i) => s + i.amount, 0);
+      // (a pot-sizing rule of thumb on guaranteed income alone: the year's interest and dividends are not known here, so
+      // pensionCeiling's subtraction is not taken; the draw itself takes it)
       const taxableRoom = Math.max(0, P.higherRateStartsAt - guaranteedTaxable);
       const grossWithdrawal = taxableRoom / Math.max(0.01, 1 - P.pclsProp);
       const targetPot = grossWithdrawal * annuityFactor(a.real, drawYears);
@@ -6517,8 +6552,10 @@ function optimizeInheritance(rawPlan, opts = {}) {
       const rows = (baseline.rows || []).filter(r => r.t > 0 && r.ageSelf >= baseCtx.owners[0].retireAge && r.ageSelf <= deathAge);
       if (!rows.length) return null;
       const other = (r) => num(r.otherTaxableSelf, 0) + num(r.otherTaxablePart, 0);
-      const pa = Math.max(0, ...rows.map(r => P.pa - other(r)));
-      const basic = Math.max(0, ...rows.map(r => P.higherRateStartsAt - other(r)));
+      // the ceilings are on the year's whole taxable income (pensionCeiling): the row's interest and dividends count too
+      const above = (r) => [num(r.savingsInterestSelf, 0) + num(r.savingsInterestPart, 0), num(r.giaDividendsSelf, 0) + num(r.giaDividendsPart, 0)];
+      const pa = Math.max(0, ...rows.map(r => pensionCeiling(P, P.pa, other(r), ...above(r)) - other(r)));
+      const basic = Math.max(0, ...rows.map(r => pensionCeiling(P, P.higherRateStartsAt, other(r), ...above(r)) - other(r)));
       const typical = other(rows[Math.min(1, rows.length - 1)]);
       return { pa: Math.max(0, pa), basic: Math.max(0, basic), otherIncome: typical };
     })(),
@@ -6642,7 +6679,7 @@ function policyPlaybook(policyKey, P, opts = {}) {
     title: 'Each year, to cover your spending',
     body: `Take from ${list(pol.steps).join(', then ')}. Stop as soon as the year's spending is covered — everything further down the list is left untouched.`,
     detail: pol.steps.includes('penPA')
-      ? `The two pension steps are ceilings on TOTAL taxable income for the year, not on the pension alone: ${formatGBP(P.pa)} for the first and ${formatGBP(P.higherRateStartsAt)} for the second. A state pension, post-retirement earnings or any other taxable income counts towards them first, so where those already exceed ${formatGBP(P.pa)} the first step draws nothing at all and the order moves straight on.`
+      ? `The two pension steps are ceilings on TOTAL taxable income for the year, not on the pension alone: ${formatGBP(P.pa)} for the first and ${formatGBP(P.higherRateStartsAt)} for the second. A state pension, post-retirement earnings or any other taxable income counts towards them first, so where those already exceed ${formatGBP(P.pa)} the first step draws nothing at all and the order moves straight on. The year's interest and dividends count too: they are taxed above the pension, so each step stops short of its figure by whatever a larger draw would push into tax or into the next band.`
       : 'This policy does not manage tax bands: each wrapper is emptied before the next is touched.'
   });
   if (guardrailStep) out.push(guardrailStep);
@@ -7082,7 +7119,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+const E = { pensionCeiling, niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, taxablePayOf, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle

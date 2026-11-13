@@ -86,9 +86,11 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // re-taken on D73's candidate (12 Nov; before: S188 847a1cbc6947bba1..., S244 2fcb676ee98a867e..., S026 dc4b42a7ce29f5fe...): the
   // sweep to the ISA and the solve on anchors move these tables and runs and nothing else in the port does (with both keys out
   // each solve gives the figure before: results-d73-fulltier.txt, printed by research/solver/d73-fulltier.mjs)
-  S188: '18d011b40c673bad970d1c51cc45f696a3c9db4e72f2fb00c5bee04d1cdebafa',
-  S244: '50b52e353034a397bffee1ac9e94d574a591c73c6bd66927d260f1aa197fc5d1',
-  [RETIRED]: '736b3a2b9c82aa91658d5ddd48d29310df4d283c62150d418df2ed311d02363f'
+  // all three again on 12 Nov (before: S188 18d011b40c673bad..., S244 50b52e353034a397..., S026 736b3a2b9c82aa91...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
+  // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
+  S188: 'a42f62208fabdb3046718b6d846d29532960e50a84a3b93c7ffd81987dcf8b44',
+  S244: '614e53bfe8e20aad1366f5a98d06c60ffc7e1704dc14987dcaada896c7d0f3b3',
+  [RETIRED]: '6358b69104c2fa0cacadfc35405925b210a3b851b012686c7e818b69a3fee513'
 };
 const { tablesOf, digestOf } = await imp(ROOT, 'src/solverDigest.js');
 const { createHash } = await import('node:crypto');

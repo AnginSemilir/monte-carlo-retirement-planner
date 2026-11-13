@@ -33,8 +33,16 @@ const stays = [
   ['the full lump sum', p => { p.spending.drawdownStrategy = 'Full 25% Lump Sum'; }],
   ['the harvest off', p => { p.config.harvestPersonalAllowance = false; }],
   ['the guardrails and the lookahead off', p => { p.config.guardrails = false; p.config.lookaheadYears = 0; }]];
-const checks = h => [...moves.map(([nm, f]) => [`moves with ${nm}`, h(ctxOf(f)) !== h(same)]), ...stays.map(([nm, f]) => [`stays under ${nm}`, h(ctxOf(f)) === h(same)])];
+// 12 Nov (the ceiling on the year's whole taxable income, ANSWERS.md section 5; D91, D93's unlock): the hash holds each
+// owner's MPAA age, which resolveMpaa takes from the plan's own first taxable pension draw. S272's dividends use its whole
+// allowance, so its order's allowance step now draws nothing (nothing of the allowance is free) and under ISA First the first
+// taxable draw comes years later: the MPAA's year is the draw order's doing there, and a hash that holds it moves, as it
+// should. The policy's own blindness is checked with the MPAA's year held to the plan's, and the year's move beside it.
+const mpaaHeld = ctx => ({ ...ctx, owners: ctx.owners.map((o, k) => ({ ...o, mpaaAge: same.owners[k].mpaaAge })) });
+const checks = h => [...moves.map(([nm, f]) => [`moves with ${nm}`, h(ctxOf(f)) !== h(same)]), ...stays.map(([nm, f]) => [`stays under ${nm}${/draw order/.test(nm) ? ', the MPAA\'s year held' : ''}`, h(/draw order/.test(nm) ? mpaaHeld(ctxOf(f)) : ctxOf(f)) === h(same)])];
 for (const [nm, c] of checks(inputsHash)) ok(c, `inputsHash ${nm} (S272)`);
+{ const isaFirst = ctxOf(stays[0][1]), a = same.owners[0].mpaaAge, b = isaFirst.owners[0].mpaaAge;
+  ok(a === b ? inputsHash(isaFirst) === inputsHash(same) : inputsHash(isaFirst) !== inputsHash(same), `inputsHash moves with the MPAA's year and only with it under another draw order (S272: ${Number.isFinite(a) ? a : 'never'} as planned, ${Number.isFinite(b) ? b : 'never'} under ISA First)`); }
 const blind = ctx => inputsHash({ ...ctx, accounts: ctx.accounts.map(a => ({ ...a, balance: 0 })) });
 ok(checks(blind).some(([, c]) => !c) && !checks(blind)[0][1], 'the plant: a hash blind to the balances fails the check on a pound of balance');
 

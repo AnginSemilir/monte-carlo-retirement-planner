@@ -79,10 +79,12 @@ const same = (a, b) => ['table', 'layer', 'aref', 'run'].every(k => a[k] === b[k
 const tablesOnly = r => `${arraysHash(r.mix.tables, 3)}/${arraysHash([r.tablesW], 99)}`;
 
 // 1. identity, the option unset: the code before the port (0021898), recorded there with --record; re-recorded on item 3's code (D69),
-// and S370's again on item 4's (its Auto deposit, routed into the pension, relieved)
+// and S370's again on item 4's (its Auto deposit, routed into the pension, relieved); all four again on 12 Nov (the ceiling on the
+// year's whole taxable income, ANSWERS.md section 5; D91, D93's unlock: with the ceiling's one function switched off each is the
+// figure before, results-harvest-ceiling.txt)
 const WANT = {
-  quick: {"S224 SHIP":{"table":"bbe79a835b7e4f81","layer":"670835efe8724270","aref":"-","run":"30cb766b8871eaea"},"S370 SHIP":{"table":"572feb4a3c0c129e","layer":"219ee6ebe2370504","aref":"-","run":"727a78e82d66f90a"},"S224 CAND":{"table":"12e3ee5548d3dbb4","layer":"4ff5a3b368123b4f","aref":"-","run":"e8021a9e5dc285cb"},"S370 CAND":{"table":"e9852794d9c407ef","layer":"b8274efd10337928","aref":"bf852694ed07cef1","run":"68e2cee1fc7bee8a"}},
-  full: {"S224 SHIP":{"table":"8c6e1e51ba300ebf","layer":"24797c8c59f2d12d","aref":"-","run":"f9915342617f92de"},"S370 SHIP":{"table":"7bac7b3333a0d666","layer":"7d42f25fd016b17d","aref":"-","run":"b0369498b5f5f0b1"},"S224 CAND":{"table":"dd42b14c1fbc3e3a","layer":"f15212bef3432e43","aref":"-","run":"badc7a1ae9ee4938"},"S370 CAND":{"table":"78aebbb838f596e3","layer":"26f82baf4fa996fb","aref":"54e184b7e46e15d4","run":"9f1770179ada36d1"}}
+  quick: {"S224 SHIP":{"table":"b7ebc7c4bd50438b","layer":"f48e17f08ef26ba9","aref":"-","run":"8141966a8032bc9b"},"S370 SHIP":{"table":"42cf8ffa407421d8","layer":"a1ab9ea357cc9f1d","aref":"-","run":"746f99c088d052d9"},"S224 CAND":{"table":"919ec9ee5bc6acff","layer":"5d979be57c47bc2d","aref":"-","run":"124de2a8e5e5ed90"},"S370 CAND":{"table":"940e5f027d410da4","layer":"c7738c7bd88ec923","aref":"bf852694ed07cef1","run":"b9c4492a09df6a95"}},
+  full: {"S224 SHIP":{"table":"7e5eca461bd5d44d","layer":"a43f9880ecb640ef","aref":"-","run":"0e72f70990a0b116"},"S370 SHIP":{"table":"35d968139187152a","layer":"f4a2e7e8d242cf11","aref":"-","run":"80f99b45b683414b"},"S224 CAND":{"table":"f154984a6ddc3e33","layer":"566a5e04b780df60","aref":"-","run":"09d5a9ed64b03289"},"S370 CAND":{"table":"5f17b301140f3967","layer":"c9fd36b3d79a6e7a","aref":"54e184b7e46e15d4","run":"da8959dc29100818"}}
 };
 const got = {}, solved = {};
 for (const [id, arm] of [['S224', 'SHIP'], ['S370', 'SHIP'], ['S224', 'CAND'], ['S370', 'CAND']]) { const r = solve(id, arm); solved[`${id} ${arm}`] = r; got[`${id} ${arm}`] = hashes(r); }

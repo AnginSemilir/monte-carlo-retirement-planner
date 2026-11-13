@@ -11,6 +11,14 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**STOP (13 Nov): the couples' re-run's stage gate refused.** The first stage's 200 chunks are in and backed up; the
+registered stage gate decided nothing, because S293's solver arms and APP were run on plans that hash differently. The
+cause, from the plans alone: the second person's MPAA age (58 against 60), a derived field that moves no money on this
+couple (`results-d4b-plan-check.txt`). No outcome of seed 7021 has been read. Every route forward changes a stamped
+file, so it is the maintainer's: (1) amend the gate and the read for this one known difference, reviewed before use,
+and keep the chunks (the agent's recommendation); (2) fix the cause in the audit and run the first stage again, about
+twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/2026-11-13-d4b-stage-gate.md`.
+
 1. **The improvements laid out**, in this order; the first not done is the next.
    - **Built, on the working branch, not yet on `main`:** the newest candidate (D73: the sweep to the ISA, the solve on
      anchors, the thinner bridge reference); the engine's year in HMRC's order (item 3) and relief on money the plan pays

@@ -343,9 +343,12 @@ for (const f of FIX) {
   // 4a38efe85909, 099e73f40cfc, 4d7ef15fabca): the sweep to the ISA and the solve on anchors move a single's tables, and its runs
   // and reads with them, and nothing else in the port does (with both keys out each solve gives the figures before:
   // results-d73-fulltier.txt, printed by research/solver/d73-fulltier.mjs; S116's tables are couple-quick check 5's, D83)
+  // all six again on 12 Nov (before: S116 tables 81e774a399c6, runs 7077d1657af4, reads 7f7cecad5c1a; S224 4b141f1fbc3a, 64098a65a205,
+  // ab03fc40659b): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
+  // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
   const BEFORE = {
-    S116: { tables: '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13', runs: '7077d1657af4c8ce6979f6ae478dd42bb781ead35d73a646f7dd8141cc860b95', reads: '7f7cecad5c1af1c3bfeee54ae1afd9b878a632dfd34984c9b7270256094515f2' },
-    S224: { tables: '4b141f1fbc3a28af9ac1cf9f9da976db6612a397a5ecf8fb2770ce1a325ad2c1', runs: '64098a65a205c874810f199743b5cbe0284312cf9d00386fe11ebba60eb26cb2', reads: 'ab03fc40659b17ecd6f5b0369615e6708f91e8ada784f8233b26cf3af1a865c4' }
+    S116: { tables: 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3', runs: 'ef9cde5176d306d5e5155d17d1be705cbc3216226c02d5719eb981d74c08782b', reads: '6bfd6886300f5024cd6ad84d963a79a4577c1ad0ccb10507bb45a6780e6b9fc4' },
+    S224: { tables: '401e8096847fdb5dad24c210243bd0f5dbc7273fceb9bc67a75f1895c4097be6', runs: '8ab0d7a33f735eb1de28dff2e8d69a3986dcaa7317f38fb9a7cecb02b8d084d1', reads: '82e3915b1a177a183be6882466f0aadf4e2d45c381965d11b251c8ba06326b62' }
   };
   const h = (x) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
   const bad = [];

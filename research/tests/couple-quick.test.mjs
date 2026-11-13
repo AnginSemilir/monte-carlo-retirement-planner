@@ -196,7 +196,9 @@ for (const z of zs) {
 {
   // S116, the code before D1 (b4ea006), re-taken on item 3's (D69: b954f145878ff460...), and on D73's candidate (11 Nov, D81 (A), D83: the
   // sweep to the ISA and the solve on anchors move a single's tables; with both keys out the solve gives item 3's figure, results-d73-digests.txt)
-  const BEFORE = '81e774a399c6b29e6d39151ece157e6ad48c6fc407606f782b83d8c96ce32b13';
+  // re-taken again (81e774a399c6b29e...): 12 Nov, the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93's unlock): S116's dividends count
+  // towards its allowance's ceiling; with the ceiling's one function switched off the solve gives the figure before, results-harvest-ceiling.txt
+  const BEFORE = 'e6548bee07f4aec4cf18b15a0ce567368789fe361307e68fc152ec6aab0ffed3';
   const t1 = Date.now();
   const r = solveForApp(E, M, E.normalizePlan(buildScenarios().find(s => s.id === 'S116').plan), { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } } });
   const tabs = tablesOf(r), dg = await digestOf(tabs);

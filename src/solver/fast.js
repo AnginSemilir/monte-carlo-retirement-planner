@@ -516,6 +516,7 @@ export function flow(c, t, ai, s) {
     const fully = a.lump && lumpTaken;
     const headroom = fully ? 0 : Math.max(0, P.lsa - cumPcls);
     const T0 = pay + taxable;
+    if (interest > 0 || dividends > 0) ceiling = E.pensionCeiling(P, ceiling, T0, interest, dividends);   // on the year's whole taxable income, as the engine's
     if (T0 >= ceiling) return 0;
     const gross = Math.min(pen, stack ? grossKnock(need, T0, fully, headroom, ceiling) : grossForNet(c, need, T0, fully, headroom, ceiling));
     if (gross <= 0) return 0;

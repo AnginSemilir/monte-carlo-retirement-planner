@@ -134,7 +134,10 @@ ok(2, 'the moves that matter were made: an uneven split, two orders, HR\'s ceili
   // on an Auto deposit the plan routes into a pension: S035, S070, S175, S210, S315 and S350 of the twelve, and S370, have one;
   // S116 and S224 do not); all three again on item 5's, whose row gains the year's sweep (sweptToGia, sweptFromGia, sweptToIsa):
   // with those three stripped, each is item 4's to the bit
-  const BEFORE = { rows: 'a044fb81cf6a2ec24843fc1a63b8a89a615cd9a808a1901eab21e73bbbce7a46', table: '32b7644cdc8ad96dc7e4c3d2507b3672cdae36fb1e2eb7d11860dbd36c48533a', tiered: '30ab75647c245fc40be760555933f46b00f2761a9212e58d04c28c5354249b42' };
+  // all three again on 12 Nov (a044fb81cf6a2ec2..., 32b7644cdc8ad96d..., 30ab75647c245fc4...): the ceiling on the year's whole taxable
+  // income (ANSWERS.md section 5; D91, D93) moves the draws of every household with interest or dividends; with the ceiling's one
+  // function switched off each is the figure before (results-harvest-ceiling.txt)
+  const BEFORE = { rows: 'a758cd0848fea833fca8374c37dc05d5464b0e1bdb2990b485f6835680030849', table: '4cfe05301673446c7287c4d83c30011cb71516b2404933c44db180b2a6932af5', tiered: 'f271e153eb459908475d7df50bef8ca19586a06b312514633e70938dd2e1bd1e' };
   const spread = library.filter((_, i) => i % Math.floor(library.length / 12) === 0).slice(0, 12);
   const rows = spread.map(sc => E.simulateDeterministic(prep(sc.plan), 'expected'));
   const singles = ['S116', 'S224'].map(id => library.find(s => s.id === id));

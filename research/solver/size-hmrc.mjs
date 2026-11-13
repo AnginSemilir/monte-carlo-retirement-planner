@@ -12,6 +12,9 @@
  *   BEFORE=/home/user/before-item3 node research/solver/size-hmrc.mjs library [paths 1000]
  *   BEFORE=/home/user/before-item3 node research/solver/size-hmrc.mjs solved <id> [paths 4000]
  *   node research/solver/size-hmrc.mjs read
+ * SIZING=ceiling: the same two engines' comparison for the harvest ceiling on the year's whole taxable income (ANSWERS.md
+ * section 5, step 3; D91, D93), BEFORE a tree at the code before it: its own label, its own results folder, and its own STOP
+ * for the library (any household's survival falling by more than 1 point: a ceiling that only ever draws less cannot do that).
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -20,7 +23,8 @@ import { pathToFileURL } from 'node:url';
 
 // AFTER_ROOT: the tree to read as the engine after (this one unless set)
 const AFTER = process.env.AFTER_ROOT || join(dirname(fileURLToPath(import.meta.url)), '../..'), SD = join(AFTER, 'research/solver'), SEED = 7002;
-const OUT = join(SD, 'results', `hmrc-${SEED}`);
+const CEIL = process.env.SIZING === 'ceiling', WHAT = CEIL ? "the harvest ceiling's sizing" : "item 3's sizing";
+const OUT = join(SD, 'results', `${CEIL ? 'ceiling' : 'hmrc'}-${SEED}`);
 const [mode, a1, a2] = process.argv.slice(2);
 const load = async (R) => ({
   E: await import(pathToFileURL(join(R, 'research/engine.mjs')).href), M: await import(pathToFileURL(join(R, 'src/solver/model.js')).href),
@@ -51,14 +55,14 @@ if (mode === 'library') {
     rows.push(r);
   }
   const n = rows.length, by = [...rows].sort((x, y) => x.d - y.d), mean = rows.reduce((t, r) => t + r.d, 0) / n, cnt = g => rows.filter(g).length;
-  console.log(`item 3's sizing, the plan's own rules (EXPLORATORY): ${n} households of the two touched lists (${cnt(r => r.couple)} couples, ${cnt(r => r.working)} still working), ${nP} paths of seed ${SEED}; the engine after less before, survival in points`);
+  console.log(`${WHAT}, the plan's own rules (EXPLORATORY): ${n} households of the two touched lists (${cnt(r => r.couple)} couples, ${cnt(r => r.working)} still working), ${nP} paths of seed ${SEED}; the engine after less before, survival in points`);
   console.log(`  mean ${f1(mean)}; median ${f1(by[Math.floor(n / 2)].d)}; worst ${f1(by[0].d)} (${by[0].id}); best ${f1(by[n - 1].d)} (${by[n - 1].id})`);
   console.log(`  losing over 1 point ${cnt(r => r.d < -1)}, over 3 ${cnt(r => r.d < -3)}, over 6 ${cnt(r => r.d < -6)}; gaining over 1 ${cnt(r => r.d > 1)}; within half a point either way ${cnt(r => Math.abs(r.d) <= 0.5)}`);
   const grp = (name, g) => { const xs = rows.filter(g); if (xs.length) console.log(`  ${name}: ${xs.length}, mean ${f1(xs.reduce((t, r) => t + r.d, 0) / xs.length)}, worst ${f1(Math.min(...xs.map(r => r.d)))}; the expected path's tax up £${Math.round(xs.reduce((t, r) => t + r.tax_after - r.tax_before, 0) / xs.length).toLocaleString('en-GB')} a household`); };
   grp('still working', r => r.working); grp('retired', r => !r.working); grp('couples', r => r.couple); grp('singles', r => !r.couple);
   console.log('  the twelve that lose most:'); by.slice(0, 12).forEach(r => console.log(`    ${r.id}${r.couple ? ' (couple)' : ''}${r.working ? ' working' : ' retired'}: ${r.sBefore.toFixed(1)}% before, ${f1(r.d)} (${r.lost} lost, ${r.saved} saved); the expected path's tax £${Math.round(r.tax_before).toLocaleString('en-GB')} to £${Math.round(r.tax_after).toLocaleString('en-GB')}`));
-  const stop = rows.some(r => Math.abs(r.d) > 6) || Math.abs(mean) > 1;
-  console.log(`THE STEP'S STOP (a household moving by more than 6 points, or the mean by more than 1): ${stop ? 'STOP' : 'not met'}`);
+  const stop = CEIL ? rows.some(r => r.d < -1) : rows.some(r => Math.abs(r.d) > 6) || Math.abs(mean) > 1;
+  console.log(`THE STEP'S STOP (${CEIL ? "any household's survival falling by more than 1 point" : 'a household moving by more than 6 points, or the mean by more than 1'}): ${stop ? 'STOP' : 'not met'}`);
 } else if (mode === 'solved') {
   if (!process.env.BEFORE || !a1) { console.error('size-hmrc: BEFORE=<a worktree at f8ab8e24> ... solved <id> [paths]'); process.exit(2); }
   const id = a1, nP = Number(a2 || 4000);
@@ -79,7 +83,7 @@ if (mode === 'library') {
   const units = existsSync(OUT) ? readdirSync(OUT).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(OUT, f), 'utf8'))) : [];
   const pct = a => 100 * a.reduce((x, y) => x + y, 0) / a.length;
   let mB = 0, mA = 0;
-  console.log(`item 3's sizing, the solved plans (EXPLORATORY): ${units.length} households at 45 points, seed ${SEED}; survival, the margin over the rules, the expected path's tax (before -> after)`);
+  console.log(`${WHAT}, the solved plans (EXPLORATORY): ${units.length} households at 45 points, seed ${SEED}; survival, the margin over the rules, the expected path's tax (before -> after)`);
   for (const u of units) {
     const sB = pct(u.before.solved), rB = pct(u.before.rules), sA = pct(u.after.solved), rA = pct(u.after.rules);
     mB += sB - rB; mA += sA - rA;

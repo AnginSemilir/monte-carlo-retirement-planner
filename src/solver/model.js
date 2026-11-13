@@ -351,6 +351,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     const fully = action.lump && state.lumpTaken[oKey];
     const headroom = fully ? 0 : pclsHeadroom(oKey);
     const T0 = taxablePay[oKey] + taxable[oKey];
+    ceiling = E.pensionCeiling(P, ceiling, T0, savingsInterest[oKey], giaDividends[oKey]);   // on the year's whole taxable income, as the engine's
     if (T0 >= ceiling) return 0;
     const grossNeeded = E.grossPensionNeededForNet(netNeeded, T0, P, fully, headroom, ceiling, { interest: savingsInterest[oKey], dividends: giaDividends[oKey] });
     const gross = Math.min(pot, grossNeeded);

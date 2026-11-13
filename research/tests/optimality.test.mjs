@@ -100,7 +100,11 @@ console.log('\n=========== C. THE PERSONAL ALLOWANCE IS NOT LEFT UNUSED ========
 console.log('\n=========== D. A CARD\'S GAIN SURVIVES A CHANGE OF SEED ===========');
 {
   let tested = 0, held = 0, detail = [];
-  for (const i of [10, 200]) {
+  // 13 Nov 2026: the households were 10 and 200. Only S200 gave a card (one gain), and with the harvest ceiling on the year's
+  // whole taxable income (the review of 11 Nov, ANSWERS.md section 5) it gives none, so the check tested nothing and failed
+  // (Full 194). Now the next household up from each with a card on the first seed (11 and 201; chosen by that rule before
+  // their gains were tried on the second seed).
+  for (const i of [11, 201]) {
     const plan = E.normalizePlan(scs[i].plan);
     const a = sweep(plan, 800, 31);
     const t = E.buildTradeoffs(a);

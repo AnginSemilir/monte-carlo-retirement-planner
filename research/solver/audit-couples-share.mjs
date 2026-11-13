@@ -34,15 +34,15 @@ import { armA } from './select-phase4.mjs';
 import { runPath, inputsHash, solverPlanOf } from './audit-phase4.mjs';
 import { solverPlan, wantProblems, coarseName, coupleProblems, d80Of, d80Problems } from './audit-couples.mjs';
 import { readSharePanel, SHARE_PANEL } from './couples-share-panel.mjs';
-import { codeId } from './code-id.mjs';
+import { codeId, codeFiles } from './code-id.mjs';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { cpus } from 'node:os';
 import { gzipSync } from 'node:zlib';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
+const HERE = dirname(fileURLToPath(import.meta.url)), REPO = join(HERE, '../..');
 const { solveCouple, withCouple, runCouplePolicy, COUPLE, shareFor } = CPL;
 export const SEED = 7022, PILOT_SEED = 7002, PTS = 45, W = 0.02, CHECK = 200, BESIDE = 500, CANDH_N = 1000, PILOT_N = 1000;
 export const ARMS = ['CANDS', 'CANDH', 'APP'];
@@ -54,10 +54,38 @@ export const CONFIG = { CANDS: '27d2a7c7ee9d', CANDH: 'af001697ce1b' };
 export const configOf = arm => (arm === 'CANDS' ? hashOf({ ...COUPLES_CANDIDATE, shareRule: 'pots' }) : hashOf(COUPLES_CANDIDATE));
 /* the pilot: three couples of the panel, an older, a middle and a younger one, each unit of theirs (places 0, 6 and 10) */
 export const PILOT_PLACES = [0, 6, 10];
-export const STAMP_FILES = ['audit-couples-share.mjs', 'reduce-couples-share.mjs', 'couples-share-panel.mjs', 'couples-share-panel.json', 'audit-couples.mjs', 'audit-phase4.mjs', 'audit-share.mjs', 'couple-panel.mjs', 'select-phase4.mjs', 'phase4-panel.mjs', 'reduce-couples.mjs', 'reduce-isasweep.mjs', 'size-phase4.mjs', 'stats.mjs', 'candidate.mjs', '../../src/solverApp.js', '../../src/solverSettings.js'];
-export function stampFilesHash() {
+/*
+ * THE STAMP: every file the run and its read take beyond the code (code-id.mjs codeFiles: research/engine.mjs, src/solver), found
+ * by following the imports of the audit, the read, the sizing, the panel's script and the batch to the end, as code-id.mjs
+ * smokeFiles follows them (from, a dynamic import(), a side-effect import, require, a worker's new URL), and the data files
+ * they read: the panel, its frozen order and the paths. So a change to anything the read decides with (reduce-phase4.mjs's
+ * survivalItem, lossOf and harmFlag; fair-gate.mjs; size-phase4.mjs's thresholds; the paths file) changes the stamp, and the
+ * gate refuses a unit run before it (the design review of 13 Nov, BLOCKING 1). `read` and `exists` are the planted checks' way in.
+ */
+export const STAMP_ROOTS = ['research/solver/audit-couples-share.mjs', 'research/solver/reduce-couples-share.mjs', 'research/solver/size-couples-share.mjs', 'research/solver/couples-share-panel.mjs', 'research/solver/batch-couples-share.sh'];
+export const STAMP_DATA = ['research/solver/couples-share-panel.json', 'research/solver/couples-share-orders.json', 'research/solver/couples-share-paths.json'];
+export function stampFiles(root = REPO, read = f => readFileSync(join(root, f), 'utf8'), exists = f => existsSync(join(root, f))) {
+  const code = new Set(codeFiles(root)), seen = new Set(STAMP_ROOTS), queue = [...STAMP_ROOTS], out = [...STAMP_ROOTS];
+  while (queue.length) {
+    const f = queue.shift();
+    if (!exists(f)) continue;
+    for (const m of read(f).matchAll(/(?:from\s+|import\s*\(\s*|import\s+|require\s*\(\s*|new\s+URL\s*\(\s*)['"]([^'"]+)['"]/g)) {
+      if (!m[1].startsWith('.')) continue;
+      const rel = relative(root, join(root, dirname(f), m[1])).split('\\').join('/');
+      if (/^new\s/.test(m[0]) && !/\.m?js$/.test(m[1]) && !exists(rel)) continue;
+      if (rel.startsWith('..') || seen.has(rel)) continue;
+      seen.add(rel);
+      if (!code.has(rel)) out.push(rel);
+      if (/\.m?js$/.test(rel)) queue.push(rel);
+    }
+    // a batch names the scripts it runs by their path from the repository's root
+    if (/\.sh$/.test(f)) for (const m of read(f).matchAll(/research\/solver\/([\w.-]+\.mjs)/g)) { const rel = `research/solver/${m[1]}`; if (!seen.has(rel)) { seen.add(rel); out.push(rel); queue.push(rel); } }
+  }
+  return [...new Set([...out.sort(), ...STAMP_DATA])];
+}
+export function stampFilesHash(root = REPO) {
   const h = createHash('sha256');
-  for (const f of STAMP_FILES) h.update(readFileSync(f === 'couples-share-panel.json' ? SHARE_PANEL : join(HERE, f)));
+  for (const f of stampFiles(root)) h.update(f).update(existsSync(join(root, f)) ? readFileSync(join(root, f)) : 'missing');
   return h.digest('hex').slice(0, 12);
 }
 /* the units: every unit's CANDS first (the longest), then CANDH, then APP */
@@ -93,6 +121,17 @@ async function planted() {
   // D80 on the couples' candidate's solved tables: a table carrying the tie-break is refused, one without it is not
   { const tab = (meta = {}) => ({ meta: { ...meta }, worlds: [], mix: null });
     cases.push(['D80: a person\'s table with the tie-break is refused; one without it is not', `${d80Problems(d80Of(undefined, [tab({ tieAboveCap: 1e-4 })])).length > 0} ${d80Problems(d80Of(undefined, [tab()])).length}`, 'true 0']); }
+  // the stamp (the design review of 13 Nov, BLOCKING 1): what the read decides with is in it; the code's own files are not
+  { const f = stampFiles(), need = ['research/solver/reduce-phase4.mjs', 'research/solver/fair-gate.mjs', 'research/solver/size-phase4.mjs', 'research/solver/stats.mjs', 'research/solver/reduce-couples.mjs', 'src/solverApp.js', 'src/solverSettings.js', ...STAMP_DATA];
+    cases.push(['the stamp holds every file the read decides with and the data files, and none of the code\'s own (code-id.mjs)', `${need.every(x => f.includes(x))} ${f.some(x => x === 'research/engine.mjs' || x.startsWith('src/solver/'))}`, 'true false']);
+    // a planted import in the read, static and dynamic, is followed
+    const text = rel => readFileSync(join(REPO, rel), 'utf8');
+    // the planted lines are built here, not written out, so this file's own text names no planted module to the scan
+    const q = name => ['\'', './', name, '\''].join(''), lines = ['\n', 'import', ' ', q('planted-dep.mjs'), ';\nconst x = await ', 'import', '(', q('planted-dyn.mjs'), ');\n'].join('');
+    const plantRead = rel => (rel === 'research/solver/reduce-couples-share.mjs' ? text(rel) + lines : rel.startsWith('research/solver/planted-') ? '' : text(rel));
+    const plantExists = rel => rel.startsWith('research/solver/planted-') || existsSync(join(REPO, rel));
+    const g = stampFiles(REPO, plantRead, plantExists);
+    cases.push(['a module the read imports, statically or by a dynamic import, joins the stamp', `${g.includes('research/solver/planted-dep.mjs')} ${g.includes('research/solver/planted-dyn.mjs')} ${f.includes('research/solver/planted-dep.mjs')}`, 'true true false']); }
   let bad = 0;
   for (const [n, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${n}: ${got}${ok ? '' : ` (want ${want})`}`); }
   console.log(bad ? `PLANTED CHECK FAILED: ${bad} of ${cases.length}` : `planted (${cases.length}): all read as they should`);
@@ -132,7 +171,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(`${id.padEnd(11)} case | unit ${arm} | ${u.kind} ${u.kind === 'feature' ? u.feature : u.variant} | target ${u.target} paths ${N}, this arm ${n}`);
     const a = armA(appPlan(base), { tournament: false }), aPol = { decumulationPolicy: a.planState.spending.decumulationPolicy, drawdownStrategy: a.planState.spending.drawdownStrategy };
     if (a.label !== u.label) { console.error(`audit-couples-share: ${id}: arm A's pick ${a.label} differs from the landing's ${u.label}`); process.exit(3); }
-    let ctx, cp = null, solveSecs = 0, ran;
+    let ctx, cp = null, solveSecs = 0, ran, mpaaOwn = null;
     if (arm === 'APP') {
       ctx = E.buildContext(E.resolveMpaa(a.planState));
       if (!ctx.guardrails || ctx.lookaheadYears !== 5 || ctx.raiseCapFrac !== 1.1 || ctx.solvencyFloor !== E.num(base.config.solvencyFloor, 0) || !ctx.isCouple) { console.error(`audit-couples-share: ${id} APP: guardrails ${ctx.guardrails}, lookahead ${ctx.lookaheadYears}, raise cap ${ctx.raiseCapFrac}, minimum pot ${ctx.solvencyFloor}, couple ${ctx.isCouple}`); process.exit(3); }
@@ -147,7 +186,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       if (cp.m.ctx.solvencyFloor !== E.num(base.config.solvencyFloor, 0)) { console.error(`audit-couples-share: ${id} ${arm}: the household's minimum pot ${cp.m.ctx.solvencyFloor}, not the panel's ${base.config.solvencyFloor}`); process.exit(3); }
       const d80 = d80Of(undefined, [cp.tables.self, cp.tables.part]), off = [...coupleProblems(), ...d80Problems(d80)];
       if (off.length) { console.error(`audit-couples-share: ${id} ${arm}: ${off.join('; ')}`); process.exit(3); }
-      ctx = E.buildContext(withCouple(cp.plan, cp));
+      // the solver arms take arm A's MPAA ages (the report D94 adopted, reports/2026-11-13-d4b-stage-gate.md: "the audit's solver
+      // arms will take arm A's MPAA ages from item 6's stage C on"): the age follows each arm's own drawing (E.resolveMpaa: the
+      // first year with taxable pension income on the plan's own expected run), and the engine reads it only for a pension's room
+      // for dated deposits and staging, which the inputs hash still holds alike; each arm's own ages recorded beside
+      const aDemo = E.resolveMpaa(a.planState).demographics, own = [cp.plan.demographics.mpaaAgeSelf, cp.plan.demographics.mpaaAgePart];
+      ctx = E.buildContext(withCouple({ ...cp.plan, demographics: { ...cp.plan.demographics, mpaaAgeSelf: aDemo.mpaaAgeSelf, mpaaAgePart: aDemo.mpaaAgePart } }, cp));
+      mpaaOwn = own.map(x => (x === '' || x === undefined || x === null ? null : Number(x)));
       ran = `config ${configOf(arm)} hhMinPot ${cp.m.ctx.solvencyFloor} share ${cp.share} shareRule ${cp.meta.shareRule} flat ${COUPLE.flat} fast ${COUPLE.fast} shortlist ${d80.shortlist} item12 ${d80.item12} tieBreak ${d80.tieBreak} | self: ${lines[0]} | part: ${lines[1]}`;
     }
     // the inputs every arm must share (audit-phase4.mjs inputsHash), and the same with each person's MPAA age left out: that age
@@ -165,16 +210,18 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     });
     if (bad) { console.error(`audit-couples-share: ${id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     const eSecs = (Date.now() - e0) / 1000;
-    console.log(`${''.padEnd(11)} run ${arm}: engine ${surv(A).toFixed(4)} on ${n}; engine secs ${Math.round(eSecs)} (${(1000 * eSecs / n).toFixed(1)} ms a path)`);
+    // under the registration a log carries no outcome: its stamp, its record of the settings, its timings and its done line
+    // (the design review of 13 Nov, MINOR 5); the pilot's and a smoke's say the survival too
+    console.log(`${''.padEnd(11)} run ${arm}: ${REGISTERED ? '' : `engine ${surv(A).toFixed(4)} on ${n}; `}engine secs ${Math.round(eSecs)} (${(1000 * eSecs / n).toFixed(1)} ms a path)`);
     let beside = null;
     if (arm === 'CANDS') {
       const NB = Math.min(n, BESIDE), pb = new Uint8Array(NB); let engineOnly = 0, modelOnly = 0;
       const b0 = Date.now();
       paths.slice(0, NB).forEach((zs, k) => { pb[k] = runCouplePolicy(cp, Float64Array.from(zs)).survived ? 1 : 0; if (A.survived[k] && !pb[k]) engineOnly++; if (pb[k] && !A.survived[k]) modelOnly++; });
       beside = { N: NB, survived: b64(pb), engineOnly, modelOnly, secs: (Date.now() - b0) / 1000 };
-      console.log(`${''.padEnd(11)} beside ${arm}: the rollout in the model ${(100 * pb.reduce((x, y) => x + y, 0) / NB).toFixed(4)} on ${NB}; the engine alone ${engineOnly}, the model alone ${modelOnly}`);
+      console.log(`${''.padEnd(11)} beside ${arm}: the rollout in the model on ${NB} paths, ${Math.round(beside.secs)} s${REGISTERED ? '' : `: ${(100 * pb.reduce((x, y) => x + y, 0) / NB).toFixed(4)}; the engine alone ${engineOnly}, the model alone ${modelOnly}`}`);
     }
-    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, base: u.base, place: u.place, kind: u.kind, variant: u.variant, feature: u.feature, target: ctx.targetSpend, inputs, inputsNoMpaa, mpaa, stamp: STAMP, ran, seed, N, n, W, pts,
+    writeFileSync(join(OUT, fileOf(id, arm)), gzipSync(JSON.stringify({ id, arm, base: u.base, place: u.place, kind: u.kind, variant: u.variant, feature: u.feature, target: ctx.targetSpend, inputs, inputsNoMpaa, mpaa, mpaaOwn, stamp: STAMP, ran, seed, N, n, W, pts,
       share: cp ? cp.share : null, shareRule: cp ? cp.meta.shareRule : null, config: cp ? configOf(arm) : null, solveSecs, engineSecs: eSecs, secs: (Date.now() - t0) / 1000, label: a.label, cpu: cpus()[0].model, beside,
       main: Object.fromEntries(Object.entries(A).map(([k, v]) => [k, b64(v)])) })));
     console.log(`${''.padEnd(11)} done ${arm} secs ${Math.round((Date.now() - t0) / 1000)}`);

@@ -533,6 +533,15 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       for (const cat of ['cash', 'other', 'isa']) { if (rem > 0) rem -= drawPot(o.ids[cat], rem); }
       for (const x of owners) { if (rem > 0) rem -= drawPot(x.ids.cash, rem); }
       if (rem > 0) rem -= drawPension(o.key, rem);
+      // the partner's taxable account, ISA and open pension pay what is left (the engine's rule, 13 Nov 2026; App.jsx 7c)
+      for (const x of owners) {
+        if (x === o || !(rem > 0)) continue;
+        const gainsX = realisedGains[x.key];
+        for (const cat of ['other', 'isa']) { if (rem > 0) rem -= drawPot(x.ids[cat], rem); }
+        if (rem > 0) rem -= drawPension(x.key, rem);
+        state.cgtCarry[x.key] += realisedGains[x.key] - gainsX;
+        realisedGains[x.key] = gainsX;
+      }
       unmetCgt += Math.max(0, rem);
       // a sale made to settle the bill books its own gain, which falls into next year's tally
       state.cgtCarry[o.key] += realisedGains[o.key] - gainsBeforeSettling;

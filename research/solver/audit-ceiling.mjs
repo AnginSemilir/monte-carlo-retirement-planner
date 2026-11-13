@@ -70,7 +70,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     });
     if (bad) { console.error(`audit-ceiling: ${id} ${arm}: runPath differs from E.runTrial on ${bad} of the first ${Math.min(CHECK, n)} paths`); process.exit(3); }
     const c = r.meta && r.meta.coarse;
-    arms[arm] = { commit: commitOf(R), ceiling: typeof E.pensionCeiling === 'function', inputs: mine, digest: D.digestOf(D.tablesOf(r)), rest: `pts ${pts} | coarse ${c ? (c.off ? `off (${c.off})` : 'on') : 'none'}`, solveSecs, survived, delivered, target, pot, tax };
+    arms[arm] = { commit: commitOf(R), ceiling: typeof E.pensionCeiling === 'function', inputs: mine, digest: await D.digestOf(D.tablesOf(r)), rest: `pts ${pts} | coarse ${c ? (c.off ? `off (${c.off})` : 'on') : 'none'}`, solveSecs, survived, delivered, target, pot, tax };
     console.log(`${''.padEnd(8)} ran ${arm}: tree ${arms[arm].commit}, the ceiling ${arms[arm].ceiling ? 'in' : 'not in'} its engine, tables ${arms[arm].digest.slice(0, 12)} | ${arms[arm].rest}`);
     console.log(`${''.padEnd(8)} done ${arm}: solve ${solveSecs.toFixed(0)} s; the engine against E.runTrial on the first ${Math.min(CHECK, n)} paths the same`);
   }

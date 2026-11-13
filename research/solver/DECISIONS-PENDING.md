@@ -20,6 +20,13 @@ path about 1.9 times as fast for a pooled 0.019 points of survival, beyond noise
 a path 0.9 to 1.8 times as fast and a fail of its own rule on spending and on the risk held. The agent's
 recommendation: leave the shortlist off. Its guard stays in, so it costs nothing where it is. Switching it on is the
 maintainer's.
+The reviewer at the read (`reviews/2026-11-13-read-item12-a.md`: PASS) adds, beside "closed": the spending fail is
+real on these paths but depends on which couples were drawn (without any one of three couples the first arm would hold
+that part; the review's own eight held it); the risk drifts towards less equity, by just over a point on two couples;
+the first arm would pass only with both of those couples left out, the second not even then; one couple (S253) loses
+survival beyond noise in both arms while the pooled figure is level; and the run was on the code before the harvest
+ceiling and the capital gains bill's fix. The rule was the maintainer's and is not run again by the agent; if the
+maintainer wants item 12 read again on other couples or on the current engine, that is a new ruling.
 
 **For the maintainer (13 Nov): the couples' re-run has read, PASS; do couples run the candidate under the switch?**
 In full: `reports/2026-11-13-couples-read.md`. On 40 held-out couples the candidate against the app's rules: survival

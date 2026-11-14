@@ -438,8 +438,20 @@ works the couple out at a few splits and keeps the one its own forecast rates be
   - the pick's gain over the pots' share and over the means' share, against D4's targets;
   - the solve time with the light pass and without it.
 
-**Then a registered test** of whichever holds up: a new held-out seed, its design review, its registration to the
-maintainer before launch. Only that can change the default. D99 stands until then.
+**Then speed work (D103: "But after that run speed work to try to gain back that added time").** Choosing among a few
+shares solves a couple several times. Before the registered test, so that the test is of what would ship, the choice is
+made faster:
+- the target: a couple's solve with the choice at most a quarter more than today's, gate 5's measure (D11), timed on the
+  read's couples on this machine with nothing else running;
+- the routes, tried in turn:
+  - a light first pass that chooses the share at fewer wealth points, with only the chosen share solved in full; its read
+    says how often the light pick is the full one's;
+  - fewer candidates, by a bracketing search on the forecast;
+  - work shared between the candidates' solves where a table's parts do not depend on the share;
+- each cut exact, or where approximate a large saving for a small measured loss (D65), each with its test.
+
+**Then a registered test** of whichever holds up, with the speed work in it: a new held-out seed, its design review, its
+registration to the maintainer before launch. Only that can change the default. D99 stands until then.
 
 **Leads carried beside it.**
 - The 90/10 holding costs points no share recovers: S129-90 against S129-75, -2.775 at its best share, against -0.325

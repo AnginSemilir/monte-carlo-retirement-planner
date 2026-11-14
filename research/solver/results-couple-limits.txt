@@ -1,0 +1,12 @@
+research/tests/couple-limits.test.mjs, 14 Nov 01:52 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
+
+PASS  1. S069: each person's plan carries their own ceilings and not the other's; the household's accounts held to each person's; the normaliser keeps the partner's  -- the partner's pension Low Risk, the first person's Medium Risk
+PASS  2. without the partner's ceilings, as before: lockedPlan the function before D5's on every household and setting, each couple's two plans carrying the household's locks, no new field  -- 1260 plans: 0 differ through lockedPlan; 0 couples' plans not carrying the household's locks; 0 with a field for the partner's
+PASS  3. solved: the partner's table offers no pension tier riskier than their ceiling, the first person's does; on 40 paths every year holds the partner's pension at Low Risk or safer  -- the partner's pension tiers Low Risk, Cash Equivalents; the first person's High Risk, Medium/High Risk, Medium Risk, Medium/Low Risk; 1440 years run, the partner's riskier than Low Risk in 0, the first person's in 1440
+PASS  4. the partner's ceiling changed alone: the first person's plan and key as they were, the partner's key moved  -- the first person's key 1bcd2abc68a5 and 1bcd2abc68a5; the partner's f5bb7e7628aa and 441406f9d8e7
+
+ALL PASS: 4 checks
+
+--planted:
+plant 'nopartlock': the checks that fail: 1, 4; wanted 1, 4: yes
+plant 'nopartceil': the checks that fail: 1, 3; wanted 1, 3: yes

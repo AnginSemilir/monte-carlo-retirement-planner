@@ -81,7 +81,7 @@ export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}),
 /* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
 export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
-export const PLANT = { rule: '' };   // tests only: 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve)
+export const PLANT = { rule: '' };   // tests only: 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve); 'nopartceil' (couple-limits.test.mjs, lockedPlan: the partner's own ceilings not held)
 /* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
    position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
 export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));
@@ -131,7 +131,9 @@ const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk',
  * the solver solves, so the engine that runs the solved plan holds to them too. Each shrinks what the solver may do:
  *   pensionBefore  the plan's pension access age raised to it (never lowered): no pension, nor lump sum, before that age;
  *   tierCeiling    the pension's or ISA's tier lowered to it where riskier (single households: the wrappers of 'self'), and
- *                  the tier above switched off (`riskAbove: false`), so no tier the solver may choose is riskier;
+ *                  the tier above switched off (`riskAbove: false`), so no tier the solver may choose is riskier; a couple's
+ *                  partner's own (`tierCeilingPart`, Part D, D5: the limits per person) holds their wrappers (`_part`), the
+ *                  first person's `tierCeiling` theirs; where the partner has none of their own, `tierCeiling` holds both;
  *   lumpSum        'never' phased drawdown, 'now' the full tax-free lump at first access, 'free' the plan's own choice (the
  *                  solver does not choose the lump yet: the lump sum's route is the maintainer's call, D41 (5)).
  * Applied twice is applied once.
@@ -145,12 +147,13 @@ export function lockedPlan(E, plan) {
     if (L.pensionBefore > now) p = { ...p, demographics: { ...d, privatePensionAge: L.pensionBefore } };
   }
   if (L.lumpSum === 'never' || L.lumpSum === 'now') p = { ...p, spending: { ...p.spending, drawdownStrategy: L.lumpSum === 'now' ? 'Full 25% Lump Sum' : 'Phased Drawdown' } };
-  const tc = L.tierCeiling || {};
+  const tc = L.tierCeiling || {}, tp = 'tierCeilingPart' in L && PLANT.rule !== 'nopartceil' ? L.tierCeilingPart || {} : null;
+  const real = c => !!c && RISK.includes(c);
   for (const [w, prefix] of [['pen', 'pen_'], ['isa', 'isa_']]) {
-    const ceil = tc[w];
-    if (!ceil || !RISK.includes(ceil)) continue;
+    const self = real(tc[w]) ? tc[w] : null, part = tp ? (real(tp[w]) ? tp[w] : null) : self;
+    if (!self && !part) continue;
     binds = true;
-    p = { ...p, accounts: (p.accounts || []).map(a => (a.id && a.id.startsWith(prefix) && RISK.indexOf(a.risk) < RISK.indexOf(ceil) ? { ...a, risk: ceil } : a)) };
+    p = { ...p, accounts: (p.accounts || []).map(a => { const ceil = /_part$/.test(String(a.id)) ? part : self; return (ceil && a.id && a.id.startsWith(prefix) && RISK.indexOf(a.risk) < RISK.indexOf(ceil) ? { ...a, risk: ceil } : a); }) };
   }
   return { plan: p, riskAbove: binds ? false : undefined };
 }

@@ -6,8 +6,14 @@
  * only beside its model (r.m holds the engine's functions, r.c the compiled context), and neither crosses to the page. So the
  * page asks the owner questions instead (simulate the solved plan; the tables' fingerprint), and keeps only the state.
  *
- *   part      { part, parts, arena, plan, opts, base }  one part of a split solve; replies { done } or { error }; `base`
- *                                                       ({ plan, rec }, a dial position's) is restored in the part first
+ *   part      { part, parts, arena, plan, opts, base,   one part of a split solve; replies { done } or { error }; `base`
+ *              restore, slot }                          ({ plan, rec }, a dial position's) is restored in the part first;
+ *                                                       `restore` (D5.6): a stored solve restored split, the part following
+ *                                                       the owner (src/solverCache.js followRecord); `slot` (D5.6): a couple's
+ *                                                       person, the table kept in their slot for the couple assembled after
+ *   follow    { id, key }                               a stored solve to restore split (D5.6): the record kept here for the
+ *                                                       'solve' after it ({ restoreSplit: true }), its small fields for the
+ *                                                       parts: { id, follow } (null where the store has let it go)
  *   base      { id, plan, opts, parts, arena, key }     a dial position's base (step L2): kept here between solves, from
  *                                                       memory, the store, or solved; replies as solve, restored 'held' when
  *                                                       it was in memory
@@ -42,7 +48,9 @@
  *                                                       as couple.js cuts them: { id, household, plans, ageWith, share, shareRule }
  *   couple        { id, household, shareRule }          the couple assembled from the two tables kept (each checked to be the
  *                                                       one solved for its person's plan and partner's age), kept as the solve in
- *                                                       hand: { id, done, meta }. Every question above then answers for it.
+ *                                                       hand: { id, done, meta }. Every question above then answers for it. A
+ *                                                       part holding both people's tables (D5.6) is asked it too, and then runs
+ *                                                       its share of the couple's paths ('runs') and skips ('skipruns').
  *
  * Imports the engine from App.jsx, as mcWorker.js does, with the two shims first.
  */
@@ -54,16 +62,22 @@ import { solveForApp } from './solverApp.js';
 import { arenaPool } from './solverPool.js';
 import { tablesOf, digestOf, sizeOf } from './solverDigest.js';
 import { strategyRuns, strategyAnswer, actionsOf, skipRuns, aheadAnswer, rowsOf, solvedContext } from './solverStrategy.js';
-import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf } from './solverCouple.js';
+import { couplePlans, assembleCouple, coupleMeta, isCouple, coupleActionsOf, coupleAheadOf, coupleRowsOf, coupleSkipRuns } from './solverCouple.js';
 import { headRuns } from './solverStrategy.js';
 import { distilOf } from './solverDistil.js';
-import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf } from './solverCache.js';
+import { probeSolve, loadSolve, storeSolveWhy, touchSolve, cacheOf, shareRecord, codeOf, followRecord } from './solverCache.js';
 
 // the engine as the solver reads it: App.jsx's exports and its E namespace (research/engine.mjs is the same union)
 const E = { ...App, ...App.E };
 let solved = null, held = null;   // held: { key, r }, the base a dial position is solved on, kept between solves
 let runs = null;                  // the Strategy tab's paths run so far: { r, plan, runs } (src/solverStrategy.js)
 let persons = { self: null, part: null };   // a couple's two tables, each { r, plan, ageWith }, until assembled (D5.1)
+let pending = null;                          // a stored solve 'follow' loaded, { key, rec }, until its split restore takes it (D5.6)
+const takePending = (key) => {
+  const p = pending; pending = null;
+  if (!p || p.key !== key) throw new Error('solverWorker: the stored solve to restore split was not loaded for this key');
+  return p.rec;
+};
 // the code that solves, for the cache: in a build, its module graph's key, which vite-plugin-solver-code.js writes over the
 // placeholder (a screen change keeps it; step P1 (g)); under `vite dev`, this worker's own URL, as before
 const CODE = codeOf('__SOLVER_CODE_KEY__', self.location);
@@ -76,11 +90,22 @@ self.onmessage = async ({ data }) => {
       const pool = arenaPool(data.part, data.parts, data.arena);
       try {
         const base = data.base ? solveForApp(E, M, data.base.plan, { ...data.opts, restore: data.base.rec }) : null;
-        // kept: a split solve's part runs its share of the Strategy tab's paths ('runs', Phase 9)
-        solved = solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}) });
-        runs = null;
+        // kept: a split solve's part runs its share of the Strategy tab's paths ('runs', Phase 9). A stored solve restored
+        // split (D5.6): this part follows the owner, which copies the record in (`restore`, src/solverCache.js followRecord).
+        // A couple's person (D5.6): the part keeps that person's table in their slot, for the couple it assembles after
+        const r = solveForApp(E, M, data.plan, { ...data.opts, e2: pool, ...(base ? { base } : {}), ...(data.restore ? { restore: data.restore } : {}) });
+        if (data.slot) persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith };
+        else { solved = r; runs = null; }
       } catch (e) { pool.fail(); throw e; }
       self.postMessage({ done: true });
+      return;
+    }
+    // a stored solve to restore split (D5.6): the record kept here for the 'solve' that follows, its small fields handed back
+    // for the parts (src/solverCache.js followRecord), or null where the store has let it go
+    if (kind === 'follow') {
+      const rec = await loadSolve(data.key, CODE);
+      pending = rec ? { key: data.key, rec } : null;
+      self.postMessage({ id, follow: rec ? followRecord(rec) : null });
       return;
     }
     if (kind === 'share') {
@@ -104,9 +129,13 @@ self.onmessage = async ({ data }) => {
       const progress = p => self.postMessage({ id, progress: isBase ? { ...p, stage: 'base' } : base ? { ...p, stage: 'position' } : p });
       // a couple's person (D5.1): kept in their slot with the plan and partner's age it was solved on, for the assembly
       const keep = (r) => { if (isBase) held = { key: data.key, r }; else if (data.slot) persons[data.slot] = { r, plan: data.plan, ageWith: data.opts && data.opts.ageWith }; else solved = r; };
-      const rec = data.key && data.parts <= 1 ? await loadSolve(data.key, CODE) : null;
+      // restored split (D5.6): the record 'follow' kept, copied in by this part 0 while the parts follow it
+      const rec = data.restoreSplit ? takePending(data.key) : data.key && data.parts <= 1 ? await loadSolve(data.key, CODE) : null;
       if (rec) {
-        const r = solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(base ? { base } : {}) });
+        const rpool = data.parts > 1 ? arenaPool(0, data.parts, data.arena) : null;
+        let r;
+        try { r = solveForApp(E, M, data.plan, { ...data.opts, restore: rec, progress, ...(rpool ? { e2: rpool } : {}), ...(base ? { base } : {}) }); }
+        catch (e) { if (rpool) rpool.fail(); throw e; }
         keep(r);
         self.postMessage({ id, done: true, meta: plainMeta(r), secs: (performance.now() - t0) / 1000, restored: true, code: CODE });
         return;
@@ -141,7 +170,8 @@ self.onmessage = async ({ data }) => {
       return;
     }
     if (kind === 'skipruns') {
-      self.postMessage({ id, skipruns: skipRuns(E, solved, { seed: data.seed, from: data.from, to: data.to }) });
+      const span = { seed: data.seed, from: data.from, to: data.to };
+      self.postMessage({ id, skipruns: isCouple(solved) ? coupleSkipRuns(E, solved, span) : skipRuns(E, solved, span) });
       return;
     }
     if (kind === 'strategy') {
@@ -152,11 +182,11 @@ self.onmessage = async ({ data }) => {
       return;
     }
     // a couple's questions about its moves (Part D, D5.3): each year's joint move taken apart for each person
-    if (isCouple(solved) && (kind === 'distil' || kind === 'skipruns')) throw new Error(kind === 'distil' ? 'solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s' : 'solverWorker: a couple\'s skips run in the owner');
+    if (isCouple(solved) && kind === 'distil') throw new Error('solverWorker: the rule of thumb is worked out for one person\'s table, not a couple\'s');
     if (isCouple(solved) && (kind === 'rows' || kind === 'actions' || kind === 'ahead')) {
       const same = runs && runs.r === solved && runs.plan === JSON.stringify(data.plan) && runs.runs.seed === data.seed ? runs.runs : null;
       if (kind === 'rows') self.postMessage({ id, rows: coupleRowsOf(E, solved, data.market) });
-      else if (kind === 'actions') self.postMessage({ id, actions: coupleActionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null }) });
+      else if (kind === 'actions') self.postMessage({ id, actions: coupleActionsOf(E, solved, data.plan, { seed: data.seed, n: data.n, base: same ? same.solved : null, parts: data.parts || null }) });
       else {
         if (!same) throw new Error('solverWorker: \'ahead\' asked before the strategy\'s runs');
         self.postMessage({ id, ahead: coupleAheadOf(E, solved, data.plan, data.upto > 0 ? headRuns(same, data.upto) : same, { years: data.years }) });

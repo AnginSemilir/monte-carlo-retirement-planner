@@ -19,6 +19,8 @@ const TIERS = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk'
 const word = v => (v === undefined || v === null ? 'default' : typeof v === 'string' && WORD.test(v) ? v : 'other');
 const age = v => (v === undefined || v === null ? 'none' : Number.isInteger(v) && v >= 0 && v <= 120 ? String(v) : 'other');
 const tier = v => (v === undefined || v === null ? 'none' : TIERS.includes(v) ? v : 'other');
+// a couple's partner's own ceilings (Part D, D5: the limits per person), where the plan carries them
+const partCeilings = locks => (locks.tierCeilingPart && typeof locks.tierCeilingPart === 'object' ? `, partner's pension ceiling ${tier(locks.tierCeilingPart.pen)}, partner's ISA ceiling ${tier(locks.tierCeilingPart.isa)}` : '');
 const secs = v => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v < 1e5 ? `${v.toFixed(1)}s` : 'none');
 // a number of 100 or more, written any way (1234, 1,234, 1234.56, 1.2e5), is taken out of the error's text: an amount never
 // reaches it, while a year, an age or a count under 100 that says what failed is kept
@@ -51,7 +53,7 @@ export function diagnosticFields({ solve = null, plan = null, points = null, pat
     ['completed', solve && solve.solveState === 'solved' && !m.error ? 'yes' : 'no'],
     ['dial', DIAL.includes(aims.cuts) ? String(aims.cuts) : aims.cuts === undefined ? '1 (default)' : 'other'],
     ['aims', `estate ${word(aims.estate)}, raises ${word(aims.raises)}, risk consent ${aims.riskConsent === false ? 'no' : 'yes'}`],
-    ['limits', `pension before ${age(locks.pensionBefore)}, pension ceiling ${tier(ceil.pen)}, ISA ceiling ${tier(ceil.isa)}, lump sum ${word(locks.lumpSum)}`],
+    ['limits', `pension before ${age(locks.pensionBefore)}, pension ceiling ${tier(ceil.pen)}, ISA ceiling ${tier(ceil.isa)}${partCeilings(locks)}, lump sum ${word(locks.lumpSum)}`],
     ['floor', target > 0 && floor > 0 ? `${Math.round(100 * floor / target)}% of the target` : 'the default'],
     ['grid', `${Number.isInteger(points) && points > 0 && points < 1000 ? points : 'other'} wealth points, ${Number.isInteger(paths) && paths > 0 && paths < 1e6 ? paths : 'other'} paths`],
     ['times', `solve ${secs(m.secs)}${m.restored === true ? ', restored from the store' : m.restored === 'held' ? ', held' : ''}`],

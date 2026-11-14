@@ -45,7 +45,8 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   }
   // the record's reference handed over in a wrapper of its own: adaptive.js keeps what it is given (its `rebuild` holds its input)
   const ref = restore && restore.ref ? { ...restore.ref } : null;
-  const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref } } : {};
+  // a part of a restored solve split (Part D, D5.6; src/solverCache.js followRecord) follows part 0, which copies the record in
+  const again = restore ? { riskAbove: restore.riskAbove, restore: { layers: restore.layers, ref, ...(restore.follow ? { follow: true } : {}) } } : {};
   // `coarse` goes only to a solve that can take it (solve.js coarseFits, the conditions of the solve's own refusal): a locked
   // dial position (tsOnce false, the layer loop) and a plan with no joint tier state (consent to change risk withdrawn, or
   // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)

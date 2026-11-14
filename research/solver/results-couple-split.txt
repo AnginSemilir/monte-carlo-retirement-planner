@@ -1,0 +1,12 @@
+research/tests/couple-split.test.mjs, 14 Nov 01:39 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
+
+PASS  1. a couple with three parts: each part handed both people's tables and assembling the couple, its paths and skips shared out, every figure and cost the whole run's  -- S069: parts 1, 2 (both tables true); shared true; survival 95.00%; skips 0.00 -1.67 -1.67 -1.67 -1.67 -1.67; restored false
+PASS  2. the couple again from the store: each person restored split (followed, the parts handed no tables), the parts kept, the figures and costs the whole run's  -- restored true; follows 2; parts 2; shared true
+PASS  3. a single restored with two parts: restored split, its part kept and running its share, the figures the whole run's  -- restored true; parts 1; shared true
+PASS  4. a part leaving out the first path of its share of the skips: refused, never a different cost  -- joinSkipRuns: a part ran other than its paths, so they do not meet in path order
+
+ALL PASS: 4 checks
+
+--planted:
+plant 'coupleowner': the checks that fail: 1, 2; wanted 1: yes
+plant 'wholerestore': the checks that fail: 2, 3; wanted 2, 3: yes

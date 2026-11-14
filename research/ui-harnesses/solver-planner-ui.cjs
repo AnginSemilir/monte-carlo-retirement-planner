@@ -58,8 +58,10 @@
  *      card, the headline said to the two of them, this year's actions each named for its person, every figure the
  *      reference's bit for bit (the couple solved from the unbundled source in this Chromium as the worker solves it:
  *      src/solverCouple.js couplePlans, solveForApp for each person with their partner's age, assembleCouple; strategyOf on
- *      it); the same couple re-held 90/10 shows the couples card with its reason ('uneven'); and check 10's card, couples
- *      off, gives its reason 'off';
+ *      it); a reload restores both tables from the store, split across the parts (D5.6), every figure the reference's again;
+ *      You's Limits gives each person their own ceiling rows and says the pension age and the lump sum hold for both;
+ *      the same couple re-held 90/10 shows the couples card with its reason ('uneven'); and check 10's card, couples off,
+ *      gives its reason 'off';
  *  18  the diagnostic (Phase 12 item 4, F17): "Copy the details for a bug report" in Details on a solved plan gives the
  *      whitelist's fields in order and no number of 100 or more outside the lines of counts, seconds, versions and hex; on the
  *      failure card, not completed and the error's words.
@@ -589,6 +591,28 @@ const firstDiff = (a, b, at = '') => {
           ok(19, 'couples on: every figure the reference\'s bit for bit (each person\'s table with their partner\'s age, then the couple, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
           ok(19, 'couples on: this year\'s actions each named for its person (or nothing to change)', acts.length > 0 && acts.every(a => a === 'none' || /^(self|part|household):/.test(a)), acts.join(', ') || 'none shown');
           ok(19, 'couples on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          // (c) D5.6: a reload restores both people's tables from the store, split across the parts as a fresh solve is (the
+          // owner copying each record in, its parts following it), and the parts run their shares of the couple's paths: every
+          // figure the reference's again, the solve named restored with its parts, the actions per person
+          await p.reload({ waitUntil: 'networkidle' });
+          const again = await waitCard(p, 'done', WAIT_MS), page2 = again ? await figs(p) : null;
+          await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
+          const acts2 = await p.$$eval('[data-strategy-action]', els => els.map(e => e.dataset.strategyAction));
+          await goPlace(p, 'Details');
+          const g19 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
+          const restored = !!g19 && /restored from the store/.test(g19.at.times || ''), nparts = g19 ? Number(g19.at.parts) : 0;
+          ok(19, 'couples on, reloaded: both people\'s tables restored from the store, split (D5.6), every figure the reference\'s again, the actions per person',
+            again && !!page2 && JSON.stringify(page2) === JSON.stringify(want) && restored && nparts > 1 && acts2.length > 0 && acts2.every(a => a === 'none' || /^(self|part|household):/.test(a)),
+            `done ${again}; ${g19 ? `times "${g19.at.times}", parts ${g19.at.parts}` : 'no diagnostic'}; survival ${page2 ? page2.headline.survival : '-'}% against ${want && want.headline.survival}%`);
+          ok(19, 'couples on, reloaded: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+          // (d) the limits per person (D5): You's Limits gives a ceiling row for each of the partner's wrappers, and says the
+          // pension age and the lump sum hold for both
+          await goPlace(p, 'You');
+          await p.waitForSelector('[data-place="you"] [data-section="limits"] [data-solver-locks]', { timeout: 20000 }).catch(() => {});
+          const lim = await p.evaluate(() => ({ both: !!document.querySelector('[data-place="you"] [data-section="limits"] [data-locks-couple]'),
+            part: [...document.querySelectorAll('[data-place="you"] [data-section="limits"] [data-solver-lock^="tier-part-"]')].map(e => e.dataset.solverLock),
+            self: [...document.querySelectorAll('[data-place="you"] [data-section="limits"] [data-solver-lock^="tier-"]')].map(e => e.dataset.solverLock).filter(x => !x.startsWith('tier-part-')) }));
+          ok(19, 'couples on: the limits per person, a ceiling row for each person\'s wrappers, the age and the lump sum said to hold for both', lim.both && lim.part.length > 0 && lim.self.length > 0, JSON.stringify(lim));
           await p.context().close(); }
         // (b) the same couple re-held 90/10: the couples card, its reason the uneven holding
         { const re = JSON.parse(JSON.stringify(even.plan)), tot = {};

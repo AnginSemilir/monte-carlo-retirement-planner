@@ -1062,7 +1062,10 @@ function normalizeSolverLocks(src) {
   const l = isPlainObject(src.locks) ? src.locks : {}, tc = isPlainObject(l.tierCeiling) ? l.tierCeiling : {};
   const age = l.pensionBefore === null || l.pensionBefore === '' || l.pensionBefore === undefined ? NaN : num(l.pensionBefore, NaN);
   const tier = v => (typeof v === 'string' && DEFAULT_RISK_PROFILES[v] ? v : null);
-  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free' } };
+  // a couple's partner's own ceilings (Part D, D5: the limits per person; src/solverSettings.js lockedPlan), kept only where
+  // the plan carries them, so every other plan normalises as before
+  const part = isPlainObject(l.tierCeilingPart) ? { tierCeilingPart: { pen: tier(l.tierCeilingPart.pen), isa: tier(l.tierCeilingPart.isa) } } : {};
+  return { locks: { pensionBefore: Number.isFinite(age) ? clamp(Math.round(age), 0, 120) : null, tierCeiling: { pen: tier(tc.pen), isa: tier(tc.isa) }, lumpSum: ['never', 'now'].includes(l.lumpSum) ? l.lumpSum : 'free', ...part } };
 }
 /*
  * WHAT THE SOLVER AIMS FOR (Part C Phase 8, research/solver/PHASE-8.md): `plan.solver.aims`, kept only where a plan carries it.

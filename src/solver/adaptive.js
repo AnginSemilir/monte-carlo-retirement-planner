@@ -87,7 +87,11 @@ export function adaptiveReference(input) {
   let nonMono = 0;
   const takeL = phase(nb * NG);
   // Part C Phase 7b: a restored reference (solve.js `opts.restore`) takes the stored arrays in place of each build
-  if (restore) { AST.set(restore.AST); nonMono = restore.nonMono || 0; }
+  // A restored solve split (Part D, D5.6; solve.js RESTORE): every part makes the arrays on the arena, part 0 copies them in
+  // and the others `follow` (handed ASTY and the counts, no arrays); the sums after the years (E2.sum, its barriers) hold every
+  // part until part 0 has copied, before anything reads them. Split, part 0 alone carries the record's counts, so their sum
+  // is the record's (before, every part carried them under a dial position's reference, `refFrom`, and the sum was parts times)
+  if (restore) { if (!restore.follow) AST.set(restore.AST); nonMono = E2 && E2.part !== 0 ? 0 : restore.nonMono || 0; }
   else for (let ig = 0; ig < NG; ig++) for (let jb = 0; jb < nb; jb++) {
     if (!takeL()) continue;
     const b = BG[jb], gf = gains[ig];
@@ -160,10 +164,13 @@ export function adaptiveReference(input) {
     for (let k = 0; k < K; k++) V[k][t] = f64(na * nb * NG);
     MV[t] = i32(na * nb * NG);
     if (restore) {
-      for (let k = 0; k < K; k++) V[k][t].set(restore.V[k][t]);
-      MV[t].set(restore.MV[t]);
-      if (foot) { for (let k = 0; k < K; k++) V0[k][t] = Float64Array.from(restore.V0[k][t]); MV0[t] = Int32Array.from(restore.MV0[t]); }
-      footLive = restore.footLive || 0;
+      if (foot) { for (let k = 0; k < K; k++) V0[k][t] = f64(nb * NG); MV0[t] = i32(nb * NG); }
+      if (!restore.follow) {
+        for (let k = 0; k < K; k++) V[k][t].set(restore.V[k][t]);
+        MV[t].set(restore.MV[t]);
+        if (foot) { for (let k = 0; k < K; k++) V0[k][t].set(restore.V0[k][t]); MV0[t].set(restore.MV0[t]); }
+      }
+      footLive = E2 && E2.part !== 0 ? 0 : restore.footLive || 0;
       if (progress) progress({ phase: 'reference', done: bridge.length - 1 - yi, total: bridge.length - 1 });
       continue;
     }

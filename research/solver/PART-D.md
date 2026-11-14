@@ -223,11 +223,36 @@ limits card saying the age moved is the first person's; a couple's scenario solv
 band; the quick start's line for two; the strip naming whose half is being worked out. D5.5: `solver-planner-ui.cjs` check
 19 (a build with COUPLES_ON=1: an in-band couple solved, its figures the reference's bit for bit; re-held 90/10, the card
 'uneven'), check 10's card 'off', plants 'couplecard' and 'coupleage'.
-Known limits, each said where it shows: the limits per person wait on couple.js cutting each person's own locks into their
-plan, a change in src/solver, which moves the code id the stage C panel was landed on, so it follows stage C's launch; the
-store keeps two solves (CACHE_MAX), so a couple at a dial position above the first restores in part; the age searched by the
-age card and the limits card is the first person's.
-Not yet done, and needed before D6: a couple's figures (the headline's runs, this year's skips) run in the owner worker alone,
-the parts being let go after each person's table; a couple's path through the engine costs about 150 to 200 ms at the app's
-settings (the couples' re-run's pilot), so the headline's 5,000 paths and the skips take minutes where a single's take
-seconds. To be measured in the browser, then the runs split across the workers as a single's are (D5.6, before couples go on).
+The limits per person (14 Nov, after stage C's launch, as planned): each person's ceiling on the riskiest tier of their own
+pension and ISA (`plan.solver.locks.tierCeilingPart` for the partner; App.jsx normalizeSolverLocks keeps it only where a plan
+carries it, so every other plan and every stored solve's key are as before); src/solver/couple.js cuts it into the partner's
+plan, src/solverSettings.js lockedPlan holds each person's accounts to their own, and the Limits card gives each person a row
+for each wrapper they hold, the first change writing both; the pension age and the lump sum stay the household's (the engine
+keeps one access age and one lump-sum choice for a household), and the card says so; the diagnostic names the partner's
+ceilings. `couple-limits.test.mjs` (the full tier) 4 checks: the cut and the household's accounts; every one of the library's
+420 households under three settings the same through lockedPlan as through the function before (1,260, none differing); solved,
+the partner's pension never riskier than their ceiling on 40 paths while the first person's menu runs to High Risk; the
+partner's ceiling changed alone leaving the first person's plan and key as they were (their stored table restored); plants
+'nopartlock' (checks 1 and 4: the cut before D5) and 'nopartceil' (checks 1 and 3: the household and the partner's table
+disagree, and model.js step refuses the move, never runs it); `results-couple-limits.txt`.
+D5.6 (14 Nov): a couple's figures shared across the solve's parts. A couple's path costs about 150 to 200 ms at the app's
+settings (the couples' re-run's pilot); profiled (EXPLORATORY, light settings, `results-couple-path-profile.txt`), about 77% of it is each person's own ranking
+(the single's chooser, once per person per year) and about 14% valuing the joint moves, so the paths are what to share. A
+stored solve was restored in the owner alone (solve.js refused a split restore), so a couple with either table from the store,
+and a returning single, kept no parts. Now: a stored solve is restored split (solve.js and adaptive.js: every part makes the
+same tables on the arena, part 0 copies the record in, the others follow it with the record's small fields alone,
+src/solverCache.js followRecord; no table is copied per part), and a couple's two solves run on the same parts, which then
+assemble the couple beside the owner and run their shares of its paths ('runs') and skips ('skipruns', coupleSkipRuns, joined in
+path order). Found on the way and fixed: under a split dial position every part carried the base reference's counts, so their
+sum was the parts times them (a diagnostic, no figure). The restore's code in solve.js sits in two helpers at the file's end,
+keeping solve() under V8's optimised bytecode limit (`solve-size.test.mjs`). Tests (the full tier): `restore-split.test.mjs` 5 checks (S370 restored
+split three ways: every part's tables, reference and its counts the whole restore's bit for bit, the figures on 120 paths
+joined the whole's; a split dial position's counts the same as unsplit), failing 4 of 5 on the code before, plants 'stale' (2)
+and 'noasty' (3, 4) (`results-restore-split.txt`); `couple-split.test.mjs` 4 checks (the client driven through stand-ins: S069 with three parts, each part
+holding both tables and assembling the couple, the figures and the skip costs the whole run's; again from the store, restored
+split; a single restored split; a part's share of the skips missing a path refused), plants 'coupleowner' (1) and
+'wholerestore' (2, 3) (`results-couple-split.txt`). In the browser: `solver-planner-ui.cjs` check 19 reloads the couple, both tables restored split, every
+figure the reference's again.
+Known limits, each said where it shows: the store keeps two solves (CACHE_MAX), so a couple at a dial position above the first
+restores in part; the age searched by the age card and the limits card is the first person's; a dial position's parts each
+restore its base from a shared copy, so a couple at a dial position above the first holds more memory than a single's.

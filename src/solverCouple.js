@@ -13,7 +13,7 @@
  */
 import { shareFor, singlePlanFor, solveCouple, chooseJoint, rankFor, ownerState } from './solver/couple.js';
 import { vecOf } from './solver/grid.js';
-import { solvedContext, runPath, partsOf, retireYearOf, firstSweep } from './solverStrategy.js';
+import { solvedContext, runPath, partsOf, retireYearOf, firstSweep, joinSkipRuns } from './solverStrategy.js';
 import { prepareForSolve } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 
@@ -145,16 +145,39 @@ export function coupleSkipsOf(E, cp) {
   }
   return { f, list };
 }
+/* each skip's name, the same in every part that ranks it (joinSkipRuns refuses parts that ran other skips) */
+const skipNames = sk => sk.list.map(x => (x.joint ? `${x.who} ${x.part} ${JSON.stringify(jointParts(x.joint))}` : null));
+/*
+ * This year's skips run on paths from..to-1 of `seed` (a single's skipRuns, for a couple, D5.6): each skip's joint move forced
+ * in the first year, the plan after; a split solve's part runs its share and the owner joins them in path order
+ * (solverStrategy.js joinSkipRuns), so the costs are the whole run's (research/tests/couple-split.test.mjs). Plant 'skipdrop'
+ * (that test): a part after the first leaves out the first path of its share, which the join refuses.
+ */
+export function coupleSkipRuns(E, cp, { seed = 12345, from = 0, to = 1000 } = {}, sk = coupleSkipsOf(E, cp)) {
+  const { f, list } = sk, paths = E.pathsForSeed(seed, to, f.sc.totalYears).slice(PLANT.rule === 'skipdrop' && from > 0 ? from + 1 : from);
+  return {
+    seed, from, to, skips: skipNames(sk),
+    survived: list.map(x => {
+      if (!x.joint) return null;
+      const forced = { ...f.sc, policyOverride: { ...f.base, choose: (st, t) => (t === 0 ? x.joint : f.base.choose(st, t)) } };
+      return Uint8Array.from(paths, zs => (runPath(E, forced, Float64Array.from(zs)).survived ? 1 : 0));
+    })
+  };
+}
 /* this year's actions for a couple: the joint move taken apart and each skip's survival cost on paths 0..n-1 of `seed`,
-   against the plan's own runs (`base`, the strategy's, where held), as a single's actionsOf */
-export function coupleActionsOf(E, cp, plan, { seed = 12345, n = 1000, base = null } = {}) {
-  const sk = coupleSkipsOf(E, cp), { f } = sk, paths = E.pathsForSeed(seed, n, f.sc.totalYears);
-  const planRuns = base && base.length >= n ? base.slice(0, n) : paths.map(zs => runPath(E, f.sc, Float64Array.from(zs)));
-  const actions = sk.list.map(x => {
+   against the plan's own runs (`base`, the strategy's, where held), as a single's actionsOf; `parts`, the split solve's parts'
+   skip runs (coupleSkipRuns), joined in path order, else run here whole */
+export function coupleActionsOf(E, cp, plan, { seed = 12345, n = 1000, base = null, parts = null } = {}) {
+  const sk = coupleSkipsOf(E, cp), { f } = sk;
+  const runs = parts && parts.length ? joinSkipRuns(parts) : coupleSkipRuns(E, cp, { seed, from: 0, to: n }, sk);
+  if (runs.from !== 0 || runs.to !== n || runs.seed !== seed) throw new Error(`coupleActionsOf: the skips' runs are paths ${runs.from} to ${runs.to - 1} of seed ${runs.seed}, not 0 to ${n - 1} of ${seed}`);
+  if (JSON.stringify(runs.skips) !== JSON.stringify(skipNames(sk))) throw new Error('coupleActionsOf: the parts ran other skips than this couple ranks');
+  const planRuns = base && base.length >= n ? base.slice(0, n) : E.pathsForSeed(seed, n, f.sc.totalYears).map(zs => runPath(E, f.sc, Float64Array.from(zs)));
+  const actions = sk.list.map((x, j) => {
     if (!x.joint) return { who: x.who, part: x.part, value: x.value, skip: null, cost: null };
-    const forced = { ...f.sc, policyOverride: { ...f.base, choose: (st, t) => (t === 0 ? x.joint : f.base.choose(st, t)) } };
+    const sv = runs.survived[j];
     let saved = 0, lost = 0;
-    paths.forEach((zs, k) => { const sv = runPath(E, forced, Float64Array.from(zs)).survived; if (planRuns[k].survived && !sv) lost++; else if (!planRuns[k].survived && sv) saved++; });
+    for (let k = 0; k < n; k++) { if (planRuns[k].survived && !sv[k]) lost++; else if (!planRuns[k].survived && sv[k]) saved++; }
     return { who: x.who, part: x.part, value: x.value, skip: { parts: jointParts(x.joint) }, cost: (100 * (lost - saved)) / n, lost, saved, n };
   });
   return { couple: true, move: { parts: jointParts(f.joint) }, actions, retired: retireYearOf(f.sc) === 0, sweep: firstSweep(E, f.sc) };

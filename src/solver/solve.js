@@ -717,10 +717,11 @@ export function solve(E, M, plan, opts = {}) {
    * world k and tier layer j (the plain tables are layer 0 without the tier state), ref the adaptive reference's arrays. Each
    * year's cells are copied in where the cell loop would solve them, and the rest of the year (the log-odds, the reader's
    * tables, next year's caches) runs as it always does, so what comes back is the solve's result bit for bit
-   * (solver-cache.test.mjs). Never split.
+   * (solver-cache.test.mjs). Split (Part D, D5.6; restore-split.test.mjs): every part makes the same tables on the arena, part
+   * 0 alone copies the record in, the others `follow` (handed the record's small fields, no tables), and the year's barrier
+   * holds them until it has; part 0 makes the log-odds as in a split solve, and each part its reader tables after.
    */
-  const RESTORE = opts.restore || null;
-  if (RESTORE && E2) throw new Error('a restored solve is not split: it solves nothing');
+  const RESTORE = restoreOf(opts, E2);
   const f64 = E2 ? E2.f64 : (n) => new Float64Array(n), u16 = E2 ? E2.u16 : (n) => new Uint16Array(n);
   // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
   const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = f64(g.size); return a; };
@@ -1119,6 +1120,7 @@ export function solve(E, M, plan, opts = {}) {
   const isCovCopy = (ip, ii, t) => !!g.cov && ii > 0 && shareNode(g, ip, ii, t) === shareNode(g, ip, ii - 1, t);
   // E2's copy pass: the copied cells, in the loop's own order, so a copy of a copy reads its source already made
   const copyPass = (t, only = null) => {   // `only` (coarse, split): the anchors' copied cells alone, uncounted (the year's own pass counts them)
+    if (RESTORE) return;   // a restored solve split (D5.6): the record holds every cell, the copies among them
     const n0 = e3Copied, n1 = pclsCopied, n2 = covCopied;
     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
       const idx = g.index(ip, ii, it, ig, ic);
@@ -1167,11 +1169,7 @@ export function solve(E, M, plan, opts = {}) {
       else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
     }
     let cellNo = 0;
-    if (RESTORE) for (let k = 0; k < K; k++) {
-      const ls = TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }];
-      if (!RESTORE.layers[k] || RESTORE.layers[k].length !== ls.length) throw new Error(`restore: world ${k} has ${ls.length} layers, the stored solve ${RESTORE.layers[k] ? RESTORE.layers[k].length : 0}`);
-      ls.forEach((L, j) => { const R = RESTORE.layers[k][j]; for (const key of ['surv', 'beq', 'resil', 'pol', 'short']) L[key][t].set(R[key][t]); });
-    }
+    if (RESTORE) restoreYear(RESTORE, t, K, TS ? layW : null, [survW, beqW, resilW, polW, shortW]);
     else for (let pass = 0; pass < NPASS; pass++) { for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -3212,3 +3210,23 @@ function coarseCell(S, t, AT, ip, ii, it, ig, ic, idx, stepAtW) {
 /* `coarse` under the split (E2): the barrier after the anchors' pass, part 0 making the anchors' copied cells, then all go
  * on (plant 'nocopy', its test only: the anchors' copied cells left unmade) */
 function coarseSync(E2, copyPass, t, S) { E2.barrier(); if (E2.part === 0 && S.plant !== 'nocopy') copyPass(t, S.pass); E2.barrier(); }
+
+/*
+ * A RESTORED SOLVE'S RECORD AND ITS YEAR (Part C Phase 7b; split, Part D D5.6; kept out of solve() for V8's bytecode limit,
+ * solve-size.test.mjs). Split, part 0 copies the record in and every other part follows it (`follow`: the record's small
+ * fields alone, src/solverCache.js followRecord); the year's barrier holds them until part 0 has.
+ */
+function restoreOf(opts, E2) {
+  const R = opts.restore || null;
+  if (R && E2 && !(E2.part === 0 ? R.layers : R.follow)) throw new Error('a restored solve split: part 0 copies the record in and the others follow it (restore.follow)');
+  return R;
+}
+/* year t's cells of every world and tier layer copied in from the record (`layW` the tier layers, else the plain tables W) */
+function restoreYear(R, t, K, layW, W) {
+  if (R.follow) return;
+  for (let k = 0; k < K; k++) {
+    const ls = layW ? layW[k] : [{ surv: W[0][k], beq: W[1][k], resil: W[2][k], pol: W[3][k], short: W[4][k] }];
+    if (!R.layers[k] || R.layers[k].length !== ls.length) throw new Error(`restore: world ${k} has ${ls.length} layers, the stored solve ${R.layers[k] ? R.layers[k].length : 0}`);
+    ls.forEach((L, j) => { const X = R.layers[k][j]; for (const key of ['surv', 'beq', 'resil', 'pol', 'short']) L[key][t].set(X[key][t]); });
+  }
+}

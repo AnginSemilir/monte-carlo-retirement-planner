@@ -21,9 +21,10 @@ const LOCKS_FREE = Object.freeze({ pensionBefore: null, tierCeiling: Object.free
 const DIAL_LABELS = { 1: 'Low', 3: 'Medium', 6: 'High', 10: 'Very high' };
 const RISK = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
 
-/* the plan's own riskiest tier in a wrapper (ids pen_ and isa_, as src/solverSettings.js lockedPlan reads them), or null */
-const ownTier = (plan, prefix) => {
-  const tiers = (plan.accounts || []).filter(a => a.id && a.id.startsWith(prefix) && RISK.includes(a.risk)).map(a => RISK.indexOf(a.risk));
+/* the plan's own riskiest tier in a wrapper (ids pen_ and isa_, as src/solverSettings.js lockedPlan reads them), or null; `who`
+   ('self' or 'part') one person's of a couple's (their ids end _self or _part) */
+const ownTier = (plan, prefix, who = null) => {
+  const tiers = (plan.accounts || []).filter(a => a.id && a.id.startsWith(prefix) && (!who || a.id.endsWith('_' + who)) && RISK.includes(a.risk)).map(a => RISK.indexOf(a.risk));
   return tiers.length ? RISK[Math.min(...tiers)] : null;
 };
 /* plan.solver[part] merged with a patch, the part's defaults beneath what the plan already has */
@@ -162,30 +163,41 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
   const L = { ...LOCKS_FREE, ...((plan.solver && plan.solver.locks) || {}) }, tc = { ...LOCKS_FREE.tierCeiling, ...(L.tierCeiling || {}) };
   const set = patch => patchSolver(setPlan, 'locks', patch);
   const d = plan.demographics || {}, strategy = (plan.spending && plan.spending.drawdownStrategy) || 'Phased Drawdown';
-  const wrappers = [['pen', 'pen_', 'pension'], ['isa', 'isa_', 'ISA']].filter(([, prefix]) => ownTier(plan, prefix));
+  // a couple (Part D, D5: the limits per person): each person's ceilings on their own pension and ISA; the partner's are their
+  // own once either is set here (`tierCeilingPart`), and until then the household's, as the solver reads them
+  // (src/solverSettings.js lockedPlan), so both are written together the first time either moves
+  const isCouple = d.planningMode === 'couple', hasPart = isCouple && L.tierCeilingPart && typeof L.tierCeilingPart === 'object';
+  const tp = { ...LOCKS_FREE.tierCeiling, ...(hasPart ? L.tierCeilingPart : tc) };
+  const setTier = (who, w, v) => set(who === 'part' ? { tierCeilingPart: { ...tp, [w]: v } } : { tierCeiling: { ...tc, [w]: v }, ...(isCouple ? { tierCeilingPart: { ...tp } } : {}) });
+  const people = isCouple ? [['self', 'your'], ['part', 'your partner\'s']] : [[null, 'your']];
+  const wrappers = people.flatMap(([who, whose]) => [['pen', 'pen_', 'pension'], ['isa', 'isa_', 'ISA']].filter(([, prefix]) => ownTier(plan, prefix, who)).map(([w, prefix, name]) => [who, whose, w, prefix, name]));
   return (
     <section data-solver-locks className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
       <PhoneCollapse isPhone={isPhone}>
       <div>
         <h2 className="text-base font-semibold text-slate-900">What the solver may change</h2>
         <p className="text-xs text-slate-500 mt-1">Left free, the solver decides. A limit here holds in every year of the solved plan.</p>
+        {isCouple && <p data-locks-couple className="text-xs text-slate-500 mt-1">For the two of you: the pension age and the lump sum hold for both of you; the riskiest tier is set for each of you.</p>}
       </div>
       <Row Fine={ui.Fine} title="Do not draw the pension before age" isPhone={isPhone}
         help={`Blank leaves it to the solver, from your pension access age${d.privatePensionAge ? ` (${d.privatePensionAge})` : ''}. An age before that changes nothing.`}>
         <input type="number" min="0" max="120" data-solver-lock="pensionBefore" placeholder="free" value={L.pensionBefore ?? ''}
           onChange={e => set({ pensionBefore: e.target.value === '' ? null : Number(e.target.value) })} className={`${fieldCls} max-w-[8rem]`} />
       </Row>
-      {wrappers.map(([w, prefix, name]) => (
-        <Row key={w} title={`The riskiest tier your ${name} may hold`} isPhone={isPhone}>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <select aria-label={`Riskiest tier for the ${name}`} data-solver-lock={`tier-${w}`} value={tc[w] || ''} onChange={e => set({ tierCeiling: { ...tc, [w]: e.target.value || null } })} className={`${fieldCls} max-w-[14rem]`}>
-              <option value="">No limit</option>
-              {RISK.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
-            <span className="text-slate-500">Your plan: {ownTier(plan, prefix)}</span>
-          </div>
-        </Row>
-      ))}
+      {wrappers.map(([who, whose, w, prefix, name]) => {
+        const v = who === 'part' ? tp[w] : tc[w];
+        return (
+          <Row key={`${who || 'single'}-${w}`} title={`The riskiest tier ${whose} ${name} may hold`} isPhone={isPhone}>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <select aria-label={isCouple ? `Riskiest tier for ${whose} ${name}` : `Riskiest tier for the ${name}`} data-solver-lock={who === 'part' ? `tier-part-${w}` : `tier-${w}`} value={v || ''} onChange={e => setTier(who, w, e.target.value || null)} className={`${fieldCls} max-w-[14rem]`}>
+                <option value="">No limit</option>
+                {RISK.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+              <span className="text-slate-500">{who === 'part' ? 'Their plan' : 'Your plan'}: {ownTier(plan, prefix, who)}</span>
+            </div>
+          </Row>
+        );
+      })}
       <Row Fine={ui.Fine} title="The tax-free lump sum" isPhone={isPhone}
         help="Free keeps the choice your plan carries; the solver does not choose the lump sum yet. Never draws the tax-free part with each withdrawal; now takes the full tax-free lump when the pension opens.">
         <select aria-label="The tax-free lump sum" data-solver-lock="lumpSum" value={L.lumpSum} onChange={e => set({ lumpSum: e.target.value })} className={`${fieldCls} max-w-[22rem]`}>

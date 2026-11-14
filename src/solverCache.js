@@ -156,3 +156,13 @@ export function cacheOf(r) {
   const decision = r.meta.riskAbove ? r.meta.riskAbove.decision : '';
   return { layers, ref, riskAbove: decision.startsWith('on'), meta: JSON.parse(JSON.stringify(r.meta)) };
 }
+/*
+ * What a part of a restored solve split is handed (Part D, D5.6; solve.js RESTORE, adaptive.js `restore`): part 0 copies the
+ * stored record into the shared tables; every other part follows it, making the same tables on the arena and copying
+ * nothing, so it needs the record's small fields alone: which solve the 'auto' risk rule kept, the meta, the reference's step
+ * thresholds (each part keeps its own) and its counts. No table crosses to a part.
+ */
+export function followRecord(rec) {
+  const ref = rec.ref ? { follow: true, ASTY: rec.ref.ASTY, nonMono: rec.ref.nonMono, footLive: rec.ref.footLive || 0 } : null;
+  return { follow: true, layers: null, ref, riskAbove: rec.riskAbove, meta: rec.meta };
+}

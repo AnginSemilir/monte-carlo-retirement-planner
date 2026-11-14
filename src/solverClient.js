@@ -14,9 +14,10 @@
  *   job.close();                                          // the owner worker, and the solved tables with it, let go
  *   const f = startFigures(engine, plan, { seed, upto });  // a variant's figures, its tables let go (Phase 10, F6)
  *
- * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored in that
- * one worker; otherwise the plan is solved, split across workers where the page is cross-origin isolated (src/solverPool.js),
- * and stored. Elsewhere the solve runs whole in one worker.
+ * With a key, the owner first asks the store (src/solverCache.js): a stored solve of the same key and code is restored, split
+ * across workers where the page is cross-origin isolated (Part D, D5.6: the owner copies the record into the shared tables and
+ * its parts follow it, so the parts kept hold the solve, as a fresh split solve's do); otherwise the plan is solved, split the
+ * same way (src/solverPool.js), and stored. Elsewhere the solve runs whole in one worker.
  * A dial position above 1 (step L2) names its base ({ plan, key }: baseOf): the owner first restores or solves the base and
  * keeps it, then solves the position on it; a split position's parts each restore the base from one shared copy. The store
  * keeps the base beside the latest position (src/solverCache.js), so another position of the same plan costs one solve.
@@ -28,7 +29,7 @@ import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
-export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -84,9 +85,11 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
 /*
  * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's. The owner cuts
  * each person's plan from it ('couple-plans'); each is then solved as a single's plan is, in turn, with their partner's age
- * today (`ageWith`) in its settings and so in its key: restored from the store, else split across workers and stored, a dial
- * position's base first; its progress names whose table it is (`who`); its parts let go after it, so the owner alone answers
- * a couple's questions. The owner then assembles the couple ('couple') and keeps it as the solve in hand.
+ * today (`ageWith`) in its settings and so in its key: restored from the store, else solved, each split across workers and
+ * stored, a dial position's base first; its progress names whose table it is (`who`). The owner then assembles the couple
+ * ('couple') and keeps it as the solve in hand. The two people's solves run on the same parts (D5.6), which then assemble
+ * the couple too and keep it, so the couple's paths and skips are shared out as a single's are
+ * (research/tests/couple-split.test.mjs); where the two did not split alike, the owner runs them all.
  */
 export function startSolve(plan, { key = null, base = null, parts: asked = defaultParts(), onProgress = null, onStored = null, couple = null, ...opts } = {}) {
   const parts = partsFor(asked, base);
@@ -115,6 +118,7 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
   };
   // a kept part's questions, answered by id as the owner's are
   let kept = [];
+  let shared = null;   // a couple's parts (D5.6): { ws, both }, the first person's solve's, kept for the second's and the couple
   const askerOf = w => {
     const waiting = new Map();
     w.onmessage = ({ data }) => { const p = waiting.get(data.id); if (!p) return; waiting.delete(data.id); if (data.error) p.reject(new Error(data.error)); else p.resolve(data); };
@@ -163,35 +167,55 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
     rejectDone = reject;
     // one solve: the base of a dial position ('base') or the plan itself ('solve'), restored when stored, else split where it can be
     // `phaseBase` the phase's dial base ({ plan, key }) or null; `phaseOpts` its settings (a couple's person's carry `ageWith`);
-    // `slot` a couple's person ('self' or 'part'), whose solve the owner keeps in their slot and whose parts are let go after it
+    // `slot` a couple's person ('self' or 'part'), whose solve the owner keeps in their slot. A couple's two people share their
+    // parts (D5.6): the first person's solve's parts are kept and solve (or restore) the second person's too, so each part ends
+    // holding both tables, assembles the couple beside the owner and runs its share of the couple's paths, as a single's parts
+    // do; where the two did not split alike (the arena refused, say) their parts are let go and the owner runs every path.
     const phase = async (kind, phasePlan, phaseKey, phaseBase, phaseOpts = opts, slot = null) => {
       const baseKey = phaseBase ? phaseBase.key : null;
       const hit = phaseKey ? (await ask('probe', { key: phaseKey })).hit : false;
       if (finished) return null;
       n = 1; arena = null;
-      if (!hit && parts > 1 && canSplit()) { arena = arenaFor(); if (arena) n = parts; }
+      // a stored solve is restored split as a fresh one is solved split (D5.6): the owner loads the record and copies it in,
+      // its parts follow it (src/solverCache.js followRecord), so the parts kept hold it; a dial position's base, restored or
+      // held, stays the owner's alone. Where the store let the record go meanwhile (`follow` null), the plan is solved, split
+      // (plant 'wholerestore', tests only: a stored solve restored in the owner alone, as before)
+      let follow = null;
+      if (parts > 1 && canSplit() && (!hit || kind === 'solve') && !(hit && PLANT.rule === 'wholerestore')) {
+        if (hit) follow = (await ask('follow', { key: phaseKey })).follow;
+        if (finished) return null;
+        arena = arenaFor(); if (arena) n = parts;
+      }
       // a split position's parts each restore its base, shared once by the owner that holds it
       let partBase = n > 1 && baseKey ? { plan: phaseBase.plan, rec: (await ask('share')).rec } : null;
-      const ends = [];
+      const reuse = slot === 'part' && shared && shared.ws.length === n - 1 && n > 1 ? shared.ws : null;
+      const mine = [], ends = [];
       for (let i = 1; i < n; i++) {
-        const w = newWorker(); workers.push(w);
+        const w = reuse ? reuse[i - 1] : newWorker();
+        if (!reuse) workers.push(w);
+        mine.push(w);
         ends.push(new Promise((res, rej) => {
           w.onmessage = ({ data }) => (data.error ? rej(new Error(data.error)) : res());
           w.onerror = e => rej(new Error((e && e.message) || `solver part ${i} failed`));
-          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(partBase ? { base: partBase } : {}) });
+          w.postMessage({ kind: 'part', part: i, parts: n, arena, plan: phasePlan, opts: phaseOpts, ...(partBase ? { base: partBase } : {}), ...(follow ? { restore: follow } : {}), ...(slot ? { slot } : {}) });
         }));
       }
       const main = new Promise((res, rej) => {
         onMain = data => (data.error ? rej(new Error(data.error)) : res(data));
         owner.onerror = e => rej(new Error((e && e.message) || 'the solver failed'));
-        owner.postMessage({ id: 0, kind, plan: phasePlan, opts: phaseOpts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}), ...(slot ? { slot } : {}) });
+        owner.postMessage({ id: 0, kind, plan: phasePlan, opts: phaseOpts, parts: n, arena, key: phaseKey, ...(baseKey ? { baseKey } : {}), ...(slot ? { slot } : {}), ...(follow ? { restoreSplit: true } : {}) });
       });
       const [m] = await Promise.all([main, ...ends]);
       // the parts hold the base they were sent: the page lets its copy go (solver-close.test.mjs)
       if (PLANT.rule !== 'keepshared') partBase = null;
-      // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9);
-      // a dial position's base lets them go
-      if (kind === 'solve' && !slot) kept = workers.slice(1).map(askerOf); else workers.splice(1).forEach(w => w.terminate());
+      const drop = ws => { for (const w of ws) { w.terminate(); const j = workers.indexOf(w); if (j > 0) workers.splice(j, 1); } };
+      // the plan's own solve keeps its parts, each holding the solve, to run its share of the Strategy tab's paths (Phase 9); a
+      // couple's first person's keeps them for the second's, and the second's (on the same parts) for the couple; a dial
+      // position's base lets them go
+      if (kind === 'solve' && !slot) kept = mine.map(askerOf);
+      else if (kind === 'solve' && slot === 'self' && n > 1) shared = { ws: mine, both: false };
+      else if (kind === 'solve' && slot === 'part' && reuse) shared.both = true;
+      else { drop(mine); if (kind === 'solve' && slot === 'part' && shared) { drop(shared.ws); shared = null; } }
       return m;
     };
     (async () => {
@@ -213,7 +237,16 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         }
         phaseWho = null;
         const c = await ask('couple', { household: cpl.household, shareRule: couple.shareRule });
-        if (finished) return; finished = true;
+        if (finished) return;
+        // the parts that hold both tables assemble the couple too, and run their shares of its paths (D5.6)
+        if (shared && shared.both && PLANT.rule !== 'coupleowner') {
+          const askers = shared.ws.map(askerOf);
+          await Promise.all(askers.map(a => a('couple', { household: cpl.household, shareRule: couple.shareRule })));
+          if (finished) return;
+          kept = askers;
+        } else if (shared) { shared.ws.forEach(w => { w.terminate(); const j = workers.indexOf(w); if (j > 0) workers.splice(j, 1); }); }
+        shared = null;
+        finished = true;
         resolve({ meta: c.meta, secs, parts: n, restored, base: null, code: null, couple: { share: cpl.share, shareRule: cpl.shareRule } });
         return;
       }

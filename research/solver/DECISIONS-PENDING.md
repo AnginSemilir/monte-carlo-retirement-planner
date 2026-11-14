@@ -156,11 +156,16 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      (item 7).
    - **Batch 3, at its gate (14 Nov):** Part D's D5 behind `COUPLES` (off), the store in chunks, a restored solve shared
      across its parts, the limits per person.
-   - **Running:** item 6's stage C (D96), read once when every run is in, then the reviewer at the read and the deep
-     reviewer.
+   - **Read (14 Nov): item 6's stage C, PASS** (`results-couples-share.txt`; in plain words and in full,
+     `reports/2026-11-14-stage-c-read.md`): every one of the 36 units gains on the app's rules, none flagged; the pooled
+     gain over the 24 re-held units +10.7 points (+10.4 to +10.9). By the registration and D97 (1) it decides the couples'
+     default (`shareRule: 'pots'`) and lifts the guard for couples whose elder holds more than 60% and at most 90%. The
+     reviewer at the read and the deep reviewer next.
    - **Next, in this order (D97):** (a) the speed mode: `chooserShortlist: 'order'` offered as an opt-in "Beta - speed
-     mode", off by default, a warning for singles and one for couples, with its tests, to `main` with the next batch;
-     (b) after stage C's read, couples on under the opt-in by its outcome, the reviewer on the change of default; (c) the
+     mode", off by default, a warning for singles and one for couples, with its tests, to `main` with the next batch
+     (built, 11293476; its browser checks to run); (b) couples on under the opt-in by stage C's PASS: the share rule, the
+     guard on the elder's share and the switch, in one commit with the D-line naming the run, the reviewer on the change
+     of default, then one gate for batch 3, the speed mode and couples on; (c) the
      shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
      (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
      joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and

@@ -10,7 +10,8 @@
  * change re-solves (src/useSolver.js). Every position offered has been measured (PHASE-8.md); the defaults are the candidate's.
  */
 import React from 'react';
-import { APP_DIAL, APP_FLOOR, AIMS_DEFAULT, dialOrder, dialSig, atDial } from './solverSettings.js';
+import { APP_DIAL, APP_FLOOR, AIMS_DEFAULT, dialOrder, dialSig, atDial, speedOf, withSpeed } from './solverSettings.js';
+import { SPEED_WORDS } from './solverWords.js';
 import { FiguresList } from './SolverFigures.jsx';
 import { costWords } from './solveStatus.js';
 import { coupleSolverOn } from './couplesSwitch.js';
@@ -154,6 +155,19 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
       <Row Fine={ui.Fine} title="The lowest spending in a bad year" isPhone={isPhone}>
         <p data-solver-floor className="text-xs text-slate-700">{floorLine(plan)}</p>
       </Row>
+      {/* the speed mode (D97 (3), D98): the chooser's shortlist on the paths that only count, with the maintainer's warning for a
+          single or for a couple the solver runs; the plan carries it (src/solverSettings.js withSpeed), so turning it on or off
+          solves again. A couple the solver does not run (couples off, or outside the band: src/couplesSwitch.js) is not offered
+          it, so their card is as before. Plants (solver-planner-ui.cjs): 'speedoff' (check 20), the box writes nothing;
+          'speedcouple' (check 10), the box offered to a couple the solver does not run */}
+      {(!(plan.demographics && plan.demographics.planningMode === 'couple') || coupleSolverOn(plan).on || PLANNER_PLANT.has('speedcouple')) && (
+      <Row Fine={ui.Fine} title={SPEED_WORDS.title} isPhone={isPhone}>
+        <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer w-fit">
+          <input type="checkbox" data-solver-speed checked={speedOf(plan)} onChange={e => { if (!PLANNER_PLANT.has('speedoff')) { const on = e.target.checked; setPlan(prev => withSpeed(prev, on)); } }} className="accent-blue-600" />
+          {SPEED_WORDS.label}
+        </label>
+        <p data-solver-speed-warning className="text-xs text-amber-800 mt-1">{plan.demographics && plan.demographics.planningMode === 'couple' ? SPEED_WORDS.couple : SPEED_WORDS.single}</p>
+      </Row>)}
       </PhoneCollapse>
       {solveLine && <SolveLine solve={solve} onRequest={onSolveRequest} />}
     </section>

@@ -1187,8 +1187,10 @@ function normalizePlan(raw) {
     plan.riskProfiles[k] = { ...DEFAULT_RISK_PROFILES[k], ...(isPlainObject(rp[k]) ? rp[k] : {}) };
   });
   plan.accounts.forEach(a => { if (!plan.riskProfiles[a.risk]) a.risk = 'High Risk'; });
-  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c)
-  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}) };
+  // the solver's locks, only where the plan carries them: a plan without them normalises exactly as before (Part C Phase 7c).
+  // `speed` 'fast', the speed mode (D97 (3): the chooser's shortlist on the paths that only count, src/solverSettings.js
+  // speedOptions), kept only where the plan carries it, so every other plan normalises as before
+  if (isPlainObject(src.solver)) plan.solver = { ...normalizeSolverLocks(src.solver), ...(isPlainObject(src.solver.aims) ? { aims: normalizeSolverAims(src.solver.aims) } : {}), ...(src.solver.speed === 'fast' ? { speed: 'fast' } : {}) };
   return plan;
 }
 

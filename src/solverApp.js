@@ -10,7 +10,7 @@
  * test fails any commit whose pin does not match the solver's code.
  */
 import { solvePlan, coarseWhereFits } from './solver/solve.js';
-import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase } from './solverSettings.js';
+import { APP_CANDIDATE, APP_COARSE, APP_POINTS, APP_DIAL_VARIANT, appPlan, prepareForSolve, lockedPlan, aimsOptions, dialBase, speedOptions } from './solverSettings.js';
 
 export const PLANT = { rule: '' };   // research/tests/restore-memory.test.mjs: 'holdrecord' keeps a restored solve's record; solve-coarse.test.mjs: 'lockcoarse' hands `coarse` to a locked position, 'restoreany' restores a stored solve whatever menu it was made on
 
@@ -51,7 +51,8 @@ export function solveForApp(E, M, plan, { lambda = undefined, points = APP_POINT
   // dial position (tsOnce false, the layer loop) and a plan with no joint tier state (consent to change risk withdrawn, or
   // one tier pair) keep the whole menu, at the speed before D73, and meta.coarse says so (D73; D74)
   const solved = appPlan(E, prepareForSolve(E, plan)), off = {};
-  const asked = { ...APP_CANDIDATE, ...aims, ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
+  // the speed mode (D97 (3); src/solverSettings.js speedOptions): the chooser's shortlist, from the plan, as its key names it
+  const asked = { ...APP_CANDIDATE, ...aims, ...speedOptions(norm), ...research, lambda: lambda !== undefined ? lambda : aims.lambda, points, ...(e2 ? { e2 } : {}), ...(progress ? { progress } : {}), ...locked, ...lock, ...again };
   const fitted = PLANT.rule === 'lockcoarse' ? asked : coarseWhereFits(E, M, solved, asked, off);
   // a stored solve made on the whole menu is never restored as one on anchors and shortlists, nor the reverse (the port's step
   // 8, D74): what names a stored solve (src/solverKey.js: the candidate with `coarse`, the plan, the dial's position, the code)

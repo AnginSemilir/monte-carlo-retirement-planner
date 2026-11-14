@@ -1,0 +1,32 @@
+research/tests/speed-mode.test.mjs (the speed mode, D97 (3), D98; the full tier), 14 Nov 08:45 UK, on the working tree
+
+=========== 1. THE PLAN KEEPS IT ===========
+  ok   1. normalizePlan keeps 'fast' (fast) and drops the rest (none kept); the library's 420 households carry none (0); on then off, the plan's own (the same); never on, handed back as it is
+=========== 2. IT NAMES THE SOLVE ===========
+  ok   2. the key in speed mode 1b979bc2ccaf against the plan's own 7acde6a34230 (apart); on then off 7acde6a34230 (the plan's own)
+=========== 3. IT REACHES THE SOLVE ===========
+  ok   3. S126: in speed mode the solve carries the shortlist (order, its meta order), the plan's own none (none); the tables the same (0a74a26889d6d6de and 0a74a26889d6d6de); decisions scored on a shortlist over 120 paths: 4851 in speed mode, 0 without
+=========== 4. THIS YEAR'S ACTIONS ARE THE WHOLE MENU'S ===========
+  ok   4. S126: the first move 99 in speed mode, 99 without; this year's actions the same, part for part (level 0.8; tierPen 3; tierIsa 3)
+=========== 5. A DIAL POSITION ===========
+  ok   5. S126 at position 3 in speed mode: its base in speed mode, the base's solve order, the position's order
+=========== 6. A COUPLE ===========
+  ok   6. S007: in speed mode each person's plan carries it (true, true) and the first person's solve the shortlist (order); without it, neither (false, false)
+=========== 7. THE WORDS ===========
+  ok   7. the warnings are D98's word for word (a single's yes, a couple's yes); the title "Beta – speed mode"
+
+=========== ALL PASS: 7 ===========
+
+--planted:
+plant 'speednone': the checks that fail: 3,5,6; wanted 3,5,6: yes
+plant 'speedunkeyed': the checks that fail: 2; wanted 2: yes
+
+on the code before (a scratch tree at 5730cf38 with this change's files but App.jsx's normalizePlan as it was, dropping `solver.speed`), 14 Nov 08:47 UK:
+  FAIL 1. normalizePlan keeps 'fast' (undefined) and drops the rest (none kept); the library's 420 households carry none (0); on then off, the plan's own (the same); never on, handed back as it is
+  FAIL 2. the key in speed mode 7acde6a34230 against the plan's own 7acde6a34230 (THE SAME); on then off 7acde6a34230 (the plan's own)
+  FAIL 3. S126: in speed mode the solve carries the shortlist (none, its meta none), the plan's own none (none); the tables the same (0a74a26889d6d6de and 0a74a26889d6d6de); decisions scored on a shortlist over 120 paths: 0 in speed mode, 0 without
+  ok   4. S126: the first move 99 in speed mode, 99 without; this year's actions the same, part for part (level 0.8; tierPen 3; tierIsa 3)
+  FAIL 5. S126 at position 3 in speed mode: its base NOT in speed mode, the base's solve without the shortlist, the position's without the shortlist
+  FAIL 6. S007: in speed mode each person's plan carries it (false, false) and the first person's solve the shortlist (none); without it, neither (false, false)
+  ok   7. the warnings are D98's word for word (a single's yes, a couple's yes); the title "Beta – speed mode"
+=========== FAILED: 5 of 7 ===========

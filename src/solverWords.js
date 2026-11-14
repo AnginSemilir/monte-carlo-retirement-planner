@@ -149,6 +149,14 @@ export function ledgerWords(p, spending, row = null) {
   else if (row && row.sweptFromGia >= 0.5) w.push(`taxable ${Math.round(row.sweptFromGia).toLocaleString('en-GB')} to cash`);
   return w.join(' · ') || 'as planned';
 }
+/* THE SPEED MODE'S WORDS (D97 (3); its two warnings the maintainer's, word for word, D98; src/SolverConfig.jsx SolverAims):
+   a single's, and a couple's whom the solver runs (src/couplesSwitch.js) */
+export const SPEED_WORDS = Object.freeze({
+  title: 'Beta \u2013 speed mode',
+  label: 'Work out the figures in speed mode',
+  single: 'Speed mode works out your figures about twice as fast by looking at fewer options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on average, and at most about 2 in 1,000. This year\'s recommended actions still use every option.',
+  couple: 'For couples, speed mode is less tested. It ranged from slightly slower to nearly twice as fast, and it spent a little less and held slightly less in shares than the full calculation. Use the full calculation for decisions.'
+});
 export const COME_BACK = 'Come back next year: the plan is worked out again from where your money then stands.';
 
 /* the rule of thumb (item 7): shown only where following it costs under half a point (src/solverDistil.js SHOW_BELOW) */

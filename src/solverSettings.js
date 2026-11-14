@@ -81,7 +81,32 @@ export const atDial = (plan, x) => ({ ...plan, solver: { ...(plan.solver || {}),
 /* the solver's aims as the Config tab stores them: a choice there writes every aim, the defaults filled in (SolverConfig.jsx) */
 export const AIMS_DEFAULT = Object.freeze({ cuts: 1, estate: 'standard', raises: 'capped', riskConsent: true });
 export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.solver || {}), aims: { ...AIMS_DEFAULT, ...((plan.solver && plan.solver.aims) || {}), ...patch } } });
-export const PLANT = { rule: '' };   // tests only: 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve); 'nopartceil', 'singlepart', 'partfree' (couple-limits.test.mjs, lockedPlan: the partner's own ceilings not held; read on a single's plan, as before 14 Nov; the partner's wrappers left free where they have no ceilings of their own)
+/*
+ * THE SPEED MODE ("Beta - speed mode"; D97 (3), D98, 14 Nov). `plan.solver.speed` 'fast' (App.jsx normalizePlan keeps it only
+ * where a plan carries it) hands the solve the chooser's shortlist (`chooserShortlist: 'order'`, src/solver/solve.js: the paths
+ * that only count score the moves the table's own cells chose and their kin, never a decision the pages show; the review of
+ * 9 Nov, item 7; results-tie-a.txt for singles, results-item12-a.txt for couples). The plan carries it, so it names the solve
+ * as every other setting does (src/solverKey.js): a solve in speed mode is stored apart from one without, and a dial position
+ * and its base, a What if variant and each person of a couple (src/solver/couple.js) take it from the plan. Off, the plan
+ * carries no field, so it solves and is named as before. research/tests/speed-mode.test.mjs.
+ */
+export const SPEED_OPTIONS = Object.freeze({ chooserShortlist: 'order' });
+export const speedOf = plan => !!(plan && plan.solver && plan.solver.speed === 'fast');
+// plant 'speednone' (speed-mode.test.mjs): the solve not handed the speed mode the plan asks for
+export const speedOptions = plan => (speedOf(plan) && PLANT.rule !== 'speednone' ? SPEED_OPTIONS : {});
+export function withSpeed(plan, on) {
+  const s = (plan && plan.solver) || null;
+  if (!on && !(s && 'speed' in s)) return plan;
+  const rest = { ...(s || {}) };
+  delete rest.speed;
+  if (on) return { ...plan, solver: { ...rest, speed: 'fast' } };
+  // off: no field left behind, and no empty solver section where the plan had none before the speed mode was turned on
+  if (Object.keys(rest).length) return { ...plan, solver: rest };
+  const out = { ...plan };
+  delete out.solver;
+  return out;
+}
+export const PLANT = { rule: '' };   // tests only: 'speednone' (speed-mode.test.mjs, speedOptions: the speed mode not handed to the solve); 'rawsig' (solver-figures.test.mjs) keys the dial's figures on the plan as stored; 'needsolver', 'lumpthrow' (library-sweep.test.mjs, prepareForSolve); 'nopartceil', 'singlepart', 'partfree' (couple-limits.test.mjs, lockedPlan: the partner's own ceilings not held; read on a single's plan, as before 14 Nov; the partner's wrappers left free where they have no ceilings of their own)
 /* what the dial's figures belong to (Phase 10, item 3): the plan at position 1 with its aims filled in, so choosing another
    position (which writes the defaults the plan left out) keeps them, and any other edit drops them */
 export const dialSig = plan => JSON.stringify(atDial(PLANT.rule === 'rawsig' ? plan : withAims(plan), 1));

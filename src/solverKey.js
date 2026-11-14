@@ -29,6 +29,8 @@ export async function solveKey(E, plan, { lambda = undefined, points = APP_POINT
   // and taken back), and the view of whose money (a couple's display) left out
   const { activeProfileView, ...p } = prepareForSolve(E, PLANT.rule === 'raw' ? plan : withAims(plan || {}));
   if (PLANT.rule === 'raw') p.activeProfileView = activeProfileView;
+  // plant 'speedunkeyed' (speed-mode.test.mjs): the speed mode left out of the key, so a solve in it and one without share a name
+  if (PLANT.rule === 'speedunkeyed' && p.solver && 'speed' in p.solver) { p.solver = { ...p.solver }; delete p.solver.speed; }
   // a dial position above 1 adds its variant and its lock to the base (step L2); position 1's key is as before
   // step U's plant 'keyguard' (research/ui-harnesses/solver-planner-ui.cjs, check 7): the key made to read the guardrails
   const body = canonical({ plan: p, ...(PLANNER_PLANT.has('keyguard') ? { guardrails: !!(plan && plan.config && plan.config.guardrails) } : {}), settings: { candidate: PLANT.rule === 'nod73' ? { ...APP_CANDIDATE, coarse: undefined, sweepCashIsaTo: undefined } : APP_CANDIDATE, lambda: lambda !== undefined ? lambda : aimsOptions(p, variant).lambda, points, research, ageWith: ageWith === undefined && PLANT.rule === 'agenull' ? null : ageWith, ...dialSettings(p, variant) }, code });

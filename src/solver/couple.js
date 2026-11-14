@@ -153,6 +153,7 @@ export function solveCouple(E, M, plan, opts = {}) {
   if (opts.shareRule !== undefined && opts.shareRule !== 'pots') throw new Error(`solveCouple: shareRule '${opts.shareRule}' is not 'pots'`);
   if (opts.shareRule === 'pots' && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
   const from = estateFrom(m0.ctx, opts.estateWeight);
+  if (opts.tieJoint !== undefined && !(opts.tieJoint >= 0 && opts.tieJoint <= 0.01)) throw new Error(`solveCouple: tieJoint ${opts.tieJoint}: a margin in score units, from 0 to 0.01 (1e-4 is 0.01 points of survival)`);
   const shareRule = opts.shareRule === 'pots' ? 'pots' : 'half';
   const share = opts.share !== undefined ? opts.share : shareRule === 'pots' ? shareFor(plan) : 0.5;
   const plans = {
@@ -181,7 +182,7 @@ export function solveCouple(E, M, plan, opts = {}) {
   const need = { self: needOf(tables.self), part: needOf(tables.part) };
   // the joint estate weight: the first person's table's, or under opts.estateWeight 'elder' the elder's (estateFrom)
   const wB = tables[from].wB;
-  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}) } };
+  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, ...(opts.tieJoint > 0 ? { tieJoint: opts.tieJoint } : {}), meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}), ...(opts.tieJoint !== undefined ? { tieJoint: opts.tieJoint } : {}) } };
 }
 
 /*
@@ -641,6 +642,28 @@ function sweepOf(aA, aB) {
   if (!!aA.sweepIsa !== !!aB.sweepIsa) throw new Error('couple: one person\'s table sweeps cash ISA money to the ISA and the other\'s to the taxable account (sweepCashIsaTo): solve both alike');
   return aA.sweepIsa && !planted('nosweepisa') ? { sweepIsa: true } : {};
 }
+/* both people above their estate caps: each person's wealth as their table's estate term would take it if the plan ended now
+   (net of the pension's death tax, as solve.js chooseAction's tieAboveCap reads a single's), against their table's cap; no
+   cap on either table (an estate shape without one), never. Plant 'tieanywhere': always */
+export function aboveCaps(tables, sA, sB) {
+  if (planted('tieanywhere')) return true;
+  const one = (tab, s) => tab.estateCap > 0 && Math.max(0, s[0] + s[1] + s[2] - s[0] * ((tab.terminal && tab.terminal.deathTax) || 0)) > tab.estateCap;
+  return one(tables.self, sA) && one(tables.part, sB);
+}
+/* the tie rule's pick among `cands` ({ joint, score, tax, wealth }) given the best: at the best's spending level and each
+   person's tier pair, within `margin` of its score, the least tax this year, then the larger household wealth after the move;
+   the best where none is better. Plant 'tieanylevel': any level and tier pair (research/tests/couple-tie.test.mjs check 6) */
+const tiersOfJoint = j => ['self', 'part'].map(w => `${(j.perOwner[w] && j.perOwner[w].tierPen) || 0}/${(j.perOwner[w] && j.perOwner[w].tierIsa) || 0}`).join(' ');
+export function tiePick(cands, best, margin) {
+  const any = planted('tieanylevel'), lvB = best.joint.spendLevel, tB = tiersOfJoint(best.joint);
+  let pick = best;
+  for (const c of cands) {
+    if (c.joint === best.joint || c.score < best.score - margin) continue;
+    if (!any && (c.joint.spendLevel !== lvB || tiersOfJoint(c.joint) !== tB)) continue;
+    if (c.tax < pick.tax - 1e-9 || (Math.abs(c.tax - pick.tax) <= 1e-9 && c.wealth > pick.wealth)) pick = c;
+  }
+  return pick;
+}
 export function chooseJoint(cp, state, t) {
   const { m, M, tables, splits, topK } = cp;
   const T = m.ctx.totalYears;
@@ -657,7 +680,9 @@ export function chooseJoint(cp, state, t) {
   const first = planted('firstlevel'), cut = !planted('nocut'), raiseSurv = !!tables.self.raiseSurvival;
   const ev = new Float64Array(2);
   if (cp._flat) cp._flat.nm = 0;   // COUPLE.flat: a new decision, nothing valued yet
-  let best = null, bestScore = -Infinity;
+  let best = null, bestScore = -Infinity, bestTax = 0, bestWealth = 0;
+  // the tie rule above the estate caps (cp.tieJoint, below): every joint move that funds the year, kept where the rule can act
+  const tj = cp.tieJoint > 0 && t < T && aboveCaps(tables, sA, sB) ? [] : null;
   for (const split of splits) for (const ia of kA) for (const ib of kB) {
     const aA = A.actions[ia], aB = B.actions[ib];
     // D1: the household's level from either person's ranked move (the first person's first), each valued by both tables
@@ -686,8 +711,28 @@ export function chooseJoint(cp, state, t) {
       // a move that funds the year reads finite tables, so a non-finite score is a bug: it would never win, and the year would
       // fall to the fallback below in silence (solve.js nonFiniteScore's rule; the follow-up review of 22 Oct, answer 6)
       if (!Number.isFinite(score)) throw new Error(`couple: non-finite score in the joint move, year ${t}, split ${split}, moves ${ia} and ${ib}: ${score}`);
-      if (score > bestScore) { bestScore = score; best = joint; best.score = score; }
+      const tax = tj ? row.taxPaid + row.cgtPaid : 0, wealth = tj ? Object.values(st.pots).reduce((a, b) => a + b, 0) : 0;
+      if (tj) tj.push({ joint, score, tax, wealth });
+      if (score > bestScore) { bestScore = score; best = joint; best.score = score; bestTax = tax; bestWealth = wealth; }
     }
+  }
+  /*
+   * THE TIE RULE ABOVE THE ESTATE CAPS (D97 (2); research/solver/TIE-C.md; an option, off in code: cp.tieJoint, solveCouple's
+   * opts.tieJoint, a margin in score units). A single's chooser has it since D95 (solve.js chooseAction, tieAboveCap), and it
+   * cannot reach a couple: rankFor ranks each person's moves from their chooser's scores, and the joint move takes the first
+   * strictly best (the deep review of the couples' read). Each person's estate term puts no value on a pound above their
+   * table's cap, four times their opening wealth, so where both people's wealth, as the estate term would take it if the plan
+   * ended now, is above their caps, the joint move breaks near-ties by nothing and can pay tax that buys nothing. There: among
+   * the joint moves at the best move's spending level and each person's tier pair that score within the margin of it, the
+   * one paying the least tax this year (the exact model's row, as the rollout counts it); then the larger household wealth
+   * after the move. Only the split and each person's draw order and re-wrap can change, never what the household spends or
+   * the risk either holds; at or below either cap nothing changes, nor in the plan's last year, whose score counts every
+   * pound left (1e-9 a pound) whatever the caps. Forward only: no table reads it. COUPLE.plant
+   * (research/tests/couple-tie.test.mjs): 'tieanylevel' drops the level and tier-pair rule, 'tieanywhere' the caps' test.
+   */
+  if (tj && best) {
+    const p = tiePick(tj, { joint: best, score: bestScore, tax: bestTax, wealth: bestWealth }, cp.tieJoint);
+    if (p.joint !== best) { best = p.joint; best.score = p.score; }
   }
   if (!best) {
     // nothing funds the year: the even split with each person's first-ranked move, and the year fails on its own terms

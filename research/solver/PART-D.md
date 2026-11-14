@@ -382,6 +382,14 @@ person's age.
      for bit;
    - the weight is the same whichever partner a couple has first;
    - equal ages keep the first person's weight.
+
+   Built 14 Nov (`couple.js` `estateFrom` and `solveCouple`'s `estateWeight: 'elder'`, off in code; the plan entered the
+   other way by `couple-order.mjs` `otherOrder`). `couple-estate.test.mjs` (FAST_JOINING) passes all 7 checks, and its plant
+   `estatefirst` fails exactly checks 3, 4 and 5:
+   - with the option unset, S007's joint value at the start and its engine runs are the code before's, bit for bit;
+   - all 76 couples tested (stage C's 36 units, the re-run's 40) are entered elder first, so the option keeps their weight;
+   - S007 entered younger first weighs its estate 1.5 times as much without the option. Under it, the joint score at the
+     start is the elder-first order's, to the bit.
 2. The read. Stage C's twelve couples are entered both ways: the elder first as tested, and the younger first with the
    horizon held to the same year. Each is held so the elder holds 75% and 90%, each order is solved with and without the
    option, and all are run on the same paths. One couple is entered with an age gap wide enough that the partner entered
@@ -416,7 +424,9 @@ Today the split follows the savings each holds, half each between 40% and 60%. T
 the couples it tried, and no single rule that fits them all. So the solver is to choose each couple's split itself: it
 works the couple out at a few splits and keeps the one its own forecast rates best.
 
-**The build (EXPLORATORY first; after the merge of batch 3).**
+**The build (EXPLORATORY; after the read).** The read came first (`SHARE-CHOOSE.md`, launched 14 Nov 17:37 UK from
+4380aa81). It works the forecast out itself, as the rollout scores a joint move. The option is then built with D103's speed
+work, in the form the read supports. As planned:
 - `shareRule: 'choose'` in `src/solver/couple.js`, a research option, off in code.
 - Each couple is solved at a few first-person shares around its own, and the solver keeps the share whose assembled couple
   its own forecast at the start rates best. The forecast is the joint value the rollout maximises at the household's
@@ -428,7 +438,7 @@ works the couple out at a few splits and keeps the one its own forecast rates be
   - with the option unset everything is bit for bit as now;
   - the light pass's pick is recorded beside the full one's.
 
-**The exploratory read**, its rule committed first:
+**The exploratory read** (`SHARE-CHOOSE.md`; stage A), its rule committed first:
 - the units: the share ensemble's ten, and plain 60/40 couples without a DB (the reviewer's finding 1);
 - the arms, all on the same paths: the solver's pick, the full-means share (pots, contributions to come, state and DB
   pensions), the pots' share (D99) and each share tried;

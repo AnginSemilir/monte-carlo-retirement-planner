@@ -115,6 +115,21 @@ function personLocks(solver, who) {
   return { solver: { ...solver, locks: who === 'part' ? { ...rest, tierCeiling: tierCeilingPart || {} } : rest } };
 }
 
+/*
+ * THE JOINT ESTATE WEIGHT (Part D, D7's stage A; D100: an option, off in code). The joint move weighs the two people's estates
+ * at one table's weight `wB` (solve.js: 0.02 of that person's own opening wealth), the first person's, as stage C tested it:
+ * so a couple entered the other way round, the younger first and holding little, weighs its estate three to nine times more
+ * than any couple tested (the deep review of stage C, section 2). opts.estateWeight 'elder' takes the elder's table's weight
+ * whichever person is entered first, by the engine's ages today, equal ages keeping the first person's: a couple entered
+ * elder first is solved as before, bit for bit. Plant 'estatefirst': the option keeps the first person's weight
+ * (research/tests/couple-estate.test.mjs)
+ */
+export function estateFrom(ctx, rule) {
+  if (rule === undefined) return 'self';
+  if (rule !== 'elder') throw new Error(`solveCouple: estateWeight '${rule}' is not 'elder'`);
+  return ctx.agePart0 > ctx.ageSelf0 && !planted('estatefirst') ? 'part' : 'self';
+}
+
 /* The couple's model state seen as one person's single-plan state, without copying the pots' values twice. */
 export function ownerState(state, who) {
   const pots = {};
@@ -137,6 +152,7 @@ export function solveCouple(E, M, plan, opts = {}) {
   if (!m0.ctx.isCouple) throw new Error('solveCouple takes a couple');
   if (opts.shareRule !== undefined && opts.shareRule !== 'pots') throw new Error(`solveCouple: shareRule '${opts.shareRule}' is not 'pots'`);
   if (opts.shareRule === 'pots' && opts.share !== undefined) throw new Error('solveCouple: share and shareRule both given');
+  const from = estateFrom(m0.ctx, opts.estateWeight);
   const shareRule = opts.shareRule === 'pots' ? 'pots' : 'half';
   const share = opts.share !== undefined ? opts.share : shareRule === 'pots' ? shareFor(plan) : 0.5;
   const plans = {
@@ -163,7 +179,9 @@ export function solveCouple(E, M, plan, opts = {}) {
   // D2.4: each person's floor bills ahead to their pension access, where their table reads the bridge (the reader's years)
   const needOf = (tab) => (tab.g && tab.g.reader ? bridgeTable(E, tab.m, tab.c, Math.min(...tab.levelOf), 2).need : null);
   const need = { self: needOf(tables.self), part: needOf(tables.part) };
-  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule } };
+  // the joint estate weight: the first person's table's, or under opts.estateWeight 'elder' the elder's (estateFrom)
+  const wB = tables[from].wB;
+  return { E, M, m, plan: planH, plans, tables, share, tiersBelow, switchCost: scA, need, splits: opts.splits || SPLITS, topK: opts.topK || 2, wB, meta: { ms: Date.now() - t0, mixture: tables.self.meta.mixture || 0, points: tables.self.meta.points, share, shareRule, ...(opts.estateWeight !== undefined ? { estateWeight: opts.estateWeight, estateFrom: from } : {}) } };
 }
 
 /*
@@ -380,7 +398,7 @@ function flatAt(cp, q, F, j, t, o) {
   flatVec(F, 0, q.vA); flatVec(F, 1, q.vB);
   flatRead(q, q.mixA[j], q.vA, t + 1, q.LA[j], q.rA); flatRead(q, q.mixB[j], q.vB, t + 1, q.LB[j], q.rB);
   const rA = q.rA, rB = q.rB, h = (rA[3] + rB[3]) / 2;
-  o[0] = rA[0] * rB[0] + A.wR * rA[2] * rB[2] + A.wB * (rA[1] + rB[1]) - h; o[1] = rA[0] * rB[0]; o[2] = h;
+  o[0] = rA[0] * rB[0] + A.wR * rA[2] * rB[2] + cp.wB * (rA[1] + rB[1]) - h; o[1] = rA[0] * rB[0]; o[2] = h;
   return o[0];
 }
 /* sharedState on the flat position: x of the second person's accessible money to the first (below 0 the other way),
@@ -507,12 +525,13 @@ function expectedValueSlow(cp, post, t, out = null, pick = null) {
       M.grow(m, g, t, rates);
       // each person read at the tier pair their move goes to (D2: the tier state's layer; `pick` the two moves)
       const LA = pick ? layerOf(mixA[j], pick.ia) : null, LB = pick ? layerOf(mixB[j], pick.ib) : null;
-      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's; one cut, counted once
+      // both must last: survival multiplies; the resilience term likewise; the bequest is the household's, at the joint estate
+      // weight (cp.wB: the first person's table's, or the elder's, estateFrom); one cut, counted once
       const at = (gg, o) => {
         const sA = vecOf(mixA[j].m, ownerState(gg, 'self')), sB = vecOf(mixB[j].m, ownerState(gg, 'part'));
         const vA = mixA[j].value(sA, t + 1, LA), vB = mixB[j].value(sB, t + 1, LB);
         const h = cut ? (cutAhead(mixA[j], sA, t + 1, LA) + cutAhead(mixB[j], sB, t + 1, LB)) / 2 : 0;
-        o[0] = vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + A.wB * (vA.bequest + vB.bequest) - h; o[1] = vA.survival * vB.survival; o[2] = h;
+        o[0] = vA.survival * vB.survival + A.wR * vA.resilience * vB.resilience + cp.wB * (vA.bequest + vB.bequest) - h; o[1] = vA.survival * vB.survival; o[2] = h;
         return o[0];
       };
       // D2.4: in a bridge year, the two people's accessible money shared between them as best serves both (shareBridge)

@@ -15,12 +15,20 @@ From the plans alone, with no file of the run and no path of seed 7021 read (`d4
 `results-d4b-plan-check.txt`, EXPLORATORY):
 
 - the one hashed input that differs is the second person's MPAA age: 58 in the solver arms' plan, 60 in arm A's. The
-  engine derives it from the plan's own expected path, and arm A's plan is resolved with the guardrails on and the
-  lookahead at 5 where the solver arms' is resolved with both off;
+  engine derives it from the plan's own expected path (the first year a taxable pension draw is made), and that path
+  follows the plan's policy: arm A's pick for this couple is Bracket Fill with the lump sum, and the solver arms' plan
+  keeps the plan's own Bracket Fill Basic, phased (`audit-phase4.mjs` `solverPlanOf` changes the policy's name only
+  where the deposit order differs). The guardrails and the lookahead move nothing: each plan resolves the same ages
+  with both on and with both off. (Corrected 13 Nov after the review of this amendment, finding 1: this page and the
+  report first gave the guardrails and the lookahead as the cause. The rule below does not rest on the cause.);
 - with every owner's MPAA age left out, the three arms' plans hash the same;
 - it moves no money on this couple: both people's pension contributions are below the MPAA's limit, and arm A's plan run
   on 2,000 paths of the tuning seed gives the same survival, estate, lifetime tax and unmet spending on every path under
-  either age;
+  either age; and the solver arms' own plan was compared under either age (added after the review, finding 2): the
+  household's engine context, every field and not only the hashed ones, differs in the age's two labels alone at both
+  weights and in both arms, and each person's own plan, on which their table is solved, resolves its own age to 60
+  either way. The engine's year and `src/solver` do not read the label; it acts only as the pension's room for dated
+  deposits and staged transfers, of which S293 has none;
 - the other 39 couples resolve the same ages in every arm.
 
 ## What changes
@@ -43,6 +51,21 @@ From the plans alone, with no file of the run and no path of seed 7021 read (`d4
    couple-weights going on and nothing else. The launch tree's batch, relaunched under `RESUME=1`, finds that file, does
    not run its own gate, and runs the second stage's chunks.
 4. **What the read says.** The read prints, beside its figures, that amendment 1 was used and for which couple.
+5. **What holds the amended files** (the review's finding 3). The three files are outside what the chunks' stamp can
+   check, so the stage gate was run, and the read is made, with them at the blobs the review read at 9718568f:
+   `couples-d4b-amendment.mjs` 172cf67f9524, `stage-couples.mjs` 0242929ca413, `reduce-couples.mjs` cae05c5a8e75. The
+   reviewer at the read checks the three blobs first.
+6. **The stage gate runs outside the launcher** (finding 5), from the working tree; its decision is held by the read,
+   which recomputes it from the first stage's chunks and refuses if `stage2.json` says otherwise. Had the amended gate
+   refused, nothing would have been written and a relaunch would have met the registered gate's refusal again: a STOP.
+
+## Used (13 Nov)
+
+The review passed the amendment for use (`reviews/2026-11-13-couples-d4b-amendment-1.md`: PASS, five MINORs, answered
+above and in `d4b-plan-check.mjs`; its finding 4, two planted cases the read's own entry lacks, is not taken up before
+the read, since it would move `reduce-couples.mjs` off the reviewed blob). The amended stage gate was then run once, at
+9718568f with the tree clean, on the run's folder. It printed its one line: no couple and weight goes on to a second
+stage. So the first stage's 200 chunks are the whole run.
 
 ## What does not change
 

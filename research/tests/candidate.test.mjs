@@ -20,7 +20,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, PRODUCT_BASELINE } from '../../src/solver/solve.js';
 import { RESEARCH_OPTS } from '../solver/research-opts.mjs';
-import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS, BEFORE_D73_OPTS, BEFORE_D73_HASH, D73_KEYS, PRE_D73_LATTICE } from '../solver/candidate.mjs';
+import { CANDIDATE_OPTS, CANDIDATE_TIERS, TIERS, blendReals, candidatePlan, solveCandidate, FROZEN_OPTS, FROZEN_HASH, CANDIDATE_HASH, PACKAGE_KEYS, hashOf, ASSEMBLED_OPTS, ASSEMBLED_HASH, LATER_KEYS, PHASE4_OPTS, PHASE4_HASH, AFTER_PHASE4_KEYS, BEFORE_D73_OPTS, BEFORE_D73_HASH, D73_KEYS, PRE_D73_LATTICE, BEFORE_D90_OPTS, BEFORE_D90_HASH, D90_KEYS } from '../solver/candidate.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), SOLVER = join(HERE, '../solver');
@@ -43,9 +43,15 @@ ok(Object.isFrozen(CANDIDATE_OPTS) && Object.isFrozen(RESEARCH_OPTS), 'CANDIDATE
 // key added after Phase 4 (failDelivered, D43), and hashes as Phase 4 registered it (fcd8096217b7)
 // D73 (11 Nov): the candidate before it (d71f65ae871e, the launch candidate) is candidate.json less D73's two keys with the
 // bridge reference's lattice as it was; every earlier candidate is built from it, so each still reproduces its hash
-ok(BEFORE_D73_HASH === 'd71f65ae871e' && hashOf(BEFORE_D73_OPTS) === BEFORE_D73_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(BEFORE_D73_OPTS).length + D73_KEYS.length && D73_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D73_OPTS))
-  && JSON.stringify(BEFORE_D73_OPTS.adaptiveLattice) === JSON.stringify(PRE_D73_LATTICE) && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ ...PRE_D73_LATTICE, na: 80, nb: 21, nz: 64 }) && CANDIDATE_HASH === 'af001697ce1b',
-  `the candidate before D73 reproduces its hash d71f65ae871e (${BEFORE_D73_HASH}); the candidate ${CANDIDATE_HASH} adds ${D73_KEYS.join(', ')} and thins the bridge reference's lattice`);
+// D90 (1) (13 Nov): item 13's tie-break above the estate cap joined after the couples' registered read. The candidate before it
+// (af001697ce1b, the candidate that read read) is candidate.json less its one key; every earlier candidate is built from it
+ok(BEFORE_D90_HASH === 'af001697ce1b' && hashOf(BEFORE_D90_OPTS) === BEFORE_D90_HASH && Object.keys(CANDIDATE_OPTS).length === Object.keys(BEFORE_D90_OPTS).length + D90_KEYS.length && D90_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D90_OPTS))
+  && CANDIDATE_OPTS.tieAboveCap === 1e-4 && CANDIDATE_HASH === '17ff82379838',
+  `the candidate before D90's tie-break reproduces its hash af001697ce1b (${BEFORE_D90_HASH}); the candidate ${CANDIDATE_HASH} adds ${D90_KEYS.join(', ')} at 1e-4 (D85's margin)`);
+ok(hashOf({ ...CANDIDATE_OPTS, tieAboveCap: 1e-5 }) !== CANDIDATE_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 1e-4 }) === CANDIDATE_HASH && hashOf({ ...BEFORE_D90_OPTS, tieAboveCap: 0 }) !== BEFORE_D90_HASH, 'planted: another margin, or the margin written out as nought on the candidate before it, moves the hash; the candidate before it with the margin added is the candidate');
+ok(BEFORE_D73_HASH === 'd71f65ae871e' && hashOf(BEFORE_D73_OPTS) === BEFORE_D73_HASH && Object.keys(BEFORE_D90_OPTS).length === Object.keys(BEFORE_D73_OPTS).length + D73_KEYS.length && D73_KEYS.every(k => k in CANDIDATE_OPTS && !(k in BEFORE_D73_OPTS))
+  && JSON.stringify(BEFORE_D73_OPTS.adaptiveLattice) === JSON.stringify(PRE_D73_LATTICE) && JSON.stringify(CANDIDATE_OPTS.adaptiveLattice) === JSON.stringify({ ...PRE_D73_LATTICE, na: 80, nb: 21, nz: 64 }),
+  `the candidate before D73 reproduces its hash d71f65ae871e (${BEFORE_D73_HASH}); the candidate after it (${BEFORE_D90_HASH}) adds ${D73_KEYS.join(', ')} and thins the bridge reference's lattice`);
 ok(hashOf({ ...CANDIDATE_OPTS, sweepCashIsaTo: 'gia' }) !== CANDIDATE_HASH && hashOf({ ...CANDIDATE_OPTS, coarse: { ...CANDIDATE_OPTS.coarse, climb: 2 } }) !== CANDIDATE_HASH && hashOf({ ...BEFORE_D73_OPTS, sweepCashIsaTo: 'isa' }) !== BEFORE_D73_HASH, 'planted: the sweep sent elsewhere, a round fewer on the shortlists, or the sweep added to the candidate before D73 moves the hash');
 ok(ASSEMBLED_HASH === 'e65e5e99ba49' && hashOf(ASSEMBLED_OPTS) === ASSEMBLED_HASH && Object.keys(BEFORE_D73_OPTS).length === Object.keys(ASSEMBLED_OPTS).length + LATER_KEYS.length,
   `7u-F's candidate reproduces its registered hash e65e5e99ba49 (${ASSEMBLED_HASH}); the candidate before D73 adds ${LATER_KEYS.join(', ')}`);
@@ -97,11 +103,14 @@ const ran = { bridgeRead: r.meta.bridgeRead, bridgeStep: r.meta.bridgeStep, tier
   // counts left out), and the bridge reference's lattice as built ('unbuilt' on a household with no bridge year: the candidate's then)
   sweepCashIsaTo: r.meta.sweepCashIsaTo && r.actions.every(a => a.sweepIsa === true) ? r.meta.sweepCashIsaTo : 'not on every move',
   coarse: r.meta.coarse && !r.meta.coarse.off ? Object.fromEntries(Object.keys(CANDIDATE_OPTS.coarse).map(k => [k, r.meta.coarse[k]])) : 'off',
+  // D95: the tie-break above the estate cap, as the solve recorded it and as the chooser of every world carries it
+  tieAboveCap: [r, ...(r.worlds || [])].every(x => x.tieAboveCap === r.meta.tieAboveCap) ? r.meta.tieAboveCap : 'not on every world',
   adaptiveLattice: (() => { const a = r.g.reader && r.g.reader.adaptive; return a && a.lattice ? { na: a.lattice.na, nb: a.lattice.nb, nz: a.lattice.nz, foot: !!a.lattice.foot, stepAll: !!a.lattice.stepAll } : 'unbuilt'; })() };
 const sameRun = o => Object.entries(o).every(([k, v]) => JSON.stringify(v) === JSON.stringify(CANDIDATE_OPTS[k]));
 ok(sameRun(ran), `solveCandidate ran the candidate (${JSON.stringify(ran)})`);
 ok(!sameRun({ ...ran, bridgeStep: undefined }), 'planted: a solve that dropped a setting (bridgeStep) fails the same check');
 ok(!sameRun({ ...ran, failDelivered: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, PHASE4_OPTS).meta.failDelivered === true }), 'planted: a solve on Phase 4\'s candidate (the failure year at its fixed price) fails the same check');
+ok(!sameRun({ ...ran, tieAboveCap: solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, BEFORE_D90_OPTS).meta.tieAboveCap }), 'planted: a solve on the candidate before D90\'s tie-break (no margin) fails the same check');
 { const pre = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, BEFORE_D73_OPTS), L = pre.g.reader.adaptive.lattice;
   ok(!sameRun({ ...ran, sweepCashIsaTo: pre.meta.sweepCashIsaTo || 'gia' }) && !sameRun({ ...ran, coarse: pre.meta.coarse || 'off' }) && !sameRun({ ...ran, adaptiveLattice: { na: L.na, nb: L.nb, nz: L.nz, foot: !!L.foot, stepAll: !!L.stepAll } }), 'planted: a solve on the candidate before D73 (the sweep to the taxable account, the whole menu, the lattice as it was) fails the same check three ways'); }
 const old = solveCandidate(E, M, plan, { lambda: 0.5, points: 3 }, ASSEMBLED_OPTS);

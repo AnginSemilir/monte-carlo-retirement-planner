@@ -38,7 +38,9 @@ let passed = 0, failed = 0;
 const ok = (n, label, c, detail = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${n}. ${label}${detail ? '   ' + detail : ''}`); if (c) passed++; else failed++; };
 const LIGHT = { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, SEED = 99004, NP = 200, NREP = 60, MARGIN = 1e-4;
 const lib = buildScenarios(), planOf = id => { const h = readPanel().find(x => x.id === id); return h ? h.plan : E.normalizePlan(lib.find(s => s.id === id).plan); };
-const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, ...research } : research });
+// 13 Nov 2026 (D95): the candidate now carries the tie-break's margin; these checks are of the shortlist against the whole
+// menu without it, so the margin is handed in as nought unless a check sets it (the slice's checks do)
+const solve = (id, research = {}, points = 4) => solveForApp(E, M, planOf(id), { points, research: points <= 6 ? { ...LIGHT, tieAboveCap: 0, ...research } : { tieAboveCap: 0, ...research } });
 // the chooser's switches on a solved plan, as the solve's options would set them
 const set = (r, width, tie) => { if (width) r.chooserShortlist = width; else delete r.chooserShortlist; for (const x of [r, ...(r.worlds || [])]) { if (tie) x.tieAboveCap = tie; else delete x.tieAboveCap; } };
 const resetStats = () => { for (const k of Object.keys(SHORTLIST.stats)) SHORTLIST.stats[k] = 0; };

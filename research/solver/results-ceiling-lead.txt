@@ -1,0 +1,57 @@
+(the units' audit stamp checked against the files at the launch, d6a10c1d: ffc1d7fd23c0; changed since, by the amendment: reduce-ceiling-lead.mjs, CEILING-LEAD.md)
+CEILING-LEAD (EXPLORATORY; CEILING-LEAD.md): 8 households, code 7002a1fec94c, audit ffc1d7fd23c0, seed 7002, 16000 paths, 45 points, the candidate 17ff82379838 (pts 45 | coarse on | tieAboveCap 0.0001); the gate: fair (one code, audit, seed, count of paths, points and candidate; every arm on the household's plan at the same settings; each arm's pensionCeiling read back: OFF every ceiling as given, RAWPA the allowance's as given and the band's NOW's, NOW the allowance's adjusted; where the probe does not reach a band's edge, the three arms' tables all different)
+
+By household and arm (OFF / RAWPA / NOW): survival; spending delivered, % of target; the mean pot left; the pot capped at the estate cap; lifetime tax, all paths; the tables' digests the same as NOW's or not; the solves' seconds:
+  S030   95.72% / 95.72% / 95.67% | spending 96.992 / 96.994 / 96.981 | pot £1,233,795 / £1,233,046 / £1,233,946 | capped (cap £3,800,000) £1,101,250 / £1,100,977 / £1,101,730 | tax £67,408 / £67,565 / £68,554 | tables differ / differ / same | solve 43 s / 38 s / 32 s
+  S050   99.04% / 99.04% / 99.05% | spending 97.657 / 97.657 / 97.658 | pot £300,022 / £300,022 / £299,994 | capped (cap £720,000) £263,065 / £263,065 / £263,061 | tax £13 / £13 / £11 | tables differ / differ / same | solve 42 s / 34 s / 36 s
+  S090   94.66% / 94.65% / 94.57% | spending 96.703 / 96.704 / 96.704 | pot £1,711,144 / £1,710,552 / £1,693,881 | capped (cap £3,800,000) £1,334,449 / £1,333,741 / £1,360,242 | tax £65,551 / £65,919 / £74,608 | tables differ / differ / same | solve 53 s / 46 s / 39 s
+  S368   99.90% / 99.90% / 99.90% | spending 105.350 / 105.350 / 105.350 | pot £5,366,402 / £5,366,416 / £5,331,889 | capped (cap £3,800,000) £2,969,294 / £2,969,295 / £2,968,958 | tax £37,332 / £37,331 / £37,292 | tables differ / differ / same | solve 81 s / 77 s / 71 s
+  S188   97.66% / 97.66% / 97.67% | spending 103.136 / 103.136 / 103.137 | pot £2,726,477 / £2,726,523 / £2,726,019 | capped (cap £3,800,000) £1,830,282 / £1,830,284 / £1,830,308 | tax £181,216 / £181,218 / £180,950 | tables differ / differ / same | solve 49 s / 47 s / 45 s
+  S304F  98.11% / 98.11% / 98.11% | spending 104.935 / 104.935 / 104.935 | pot £4,421,778 / £4,421,542 / £4,395,285 | capped (cap £1,800,000) £1,481,683 / £1,481,684 / £1,481,623 | tax £48,699 / £48,675 / £43,632 | tables differ / differ / same | solve 75 s / 76 s / 73 s
+  S328F  93.02% / 93.03% / 92.99% | spending 102.088 / 102.089 / 102.061 | pot £5,899,504 / £5,884,011 / £5,931,030 | capped (cap £1,800,000) £1,242,128 / £1,241,845 / £1,243,177 | tax £205,377 / £208,371 / £207,719 | tables differ / differ / same | solve 74 s / 76 s / 73 s
+  S340F  94.99% / 95.01% / 95.01% | spending 103.547 / 103.547 / 103.547 | pot £6,133,158 / £6,131,292 / £6,068,358 | capped (cap £1,800,000) £1,292,539 / £1,292,584 / £1,292,571 | tax £68,958 / £69,303 / £66,355 | tables differ / differ / same | solve 78 s / 77 s / 75 s
+
+The rule, on S030, S090, S328F: over the paths at or below the cap in all three arms, the mean lifetime tax (OFF / RAWPA / NOW), the rise NOW less OFF and the allowance step's part NOW less RAWPA, each with its paired 95% interval:
+  S030   14452 of 16000 paths | tax £64,219 / £64,331 / £65,433 | the rise +£1,214 (+£1,165 to +£1,262): reproduced | the allowance step's part +£1,101 (+£1,060 to +£1,143), 90.8% of the rise
+  S090   13222 of 16000 paths | tax £54,391 / £54,677 / £65,739 | the rise +£11,348 (+£11,134 to +£11,561): reproduced | the allowance step's part +£11,062 (+£10,847 to +£11,278), 97.5% of the rise
+  S328F  7060 of 16000 paths | tax £34,084 / £34,382 / £36,482 | the rise +£2,398 (+£2,289 to +£2,507): reproduced | the allowance step's part +£2,100 (+£1,995 to +£2,205), 87.6% of the rise
+  1. the rise wholly above nought on at least 2 of the 3: on 3 (S030, S090, S328F)
+  2. the share over those, the parts' sum over the rises' sum: 95.4% (50% or more the cost, under 20% not)
+
+Beside the rule, deciding nothing here: the other households' lines by the same measure:
+  S050   13798 of 16000 paths | tax £15 / £15 / £13 | the rise -£2 (-£3 to -£2) | the allowance step's part -£2 (-£3 to -£2)
+  S368   6998 of 16000 paths | tax £39,438 / £39,438 / £39,455 | the rise +£17 (+£13 to +£21) | the allowance step's part +£17 (+£13 to +£21)
+  S188   11621 of 16000 paths | tax £185,510 / £185,509 / £185,239 | the rise -£271 (-£358 to -£184) | the allowance step's part -£270 (-£357 to -£183)
+  S304F  5399 of 16000 paths | tax £50,044 / £50,044 / £50,073 | the rise +£29 (+£12 to +£46) | the allowance step's part +£29 (+£12 to +£46)
+  S340F  6606 of 16000 paths | tax £50,613 / £50,525 / £50,564 | the rise -£49 (-£89 to -£10) | the allowance step's part +£38 (-£1 to +£78)
+
+Beside the rule: HARVEST-CEILING.md's four parts (1 pooled survival's lower end above -0.1; 2 no household wholly below -0.3; 3 pooled spending within 0.05 points of target; 4 the pooled mean pot not lower by more than 0.5%), the tie-break in both arms:
+  NOW against OFF (the ceiling's own rule again): 1. survival -0.018 (-0.035 to -0.001); 2. wholly below: none; 3. spending -0.0046; 4. the pot -0.403%: PASSES 1 to 4; beside: the capped pot +0.234%, lifetime tax £84,319 to £84,890 (+0.68%)
+      S030   d -0.050 (-0.119 to +0.018; 10 saved, 18 lost) | spending -0.0117 | pot +0.01% | tax +1.70%
+      S050   d +0.006 (-0.020 to +0.033; 1 saved, 0 lost) | spending +0.0007 | pot -0.01% | tax -16.63%
+      S090   d -0.087 (-0.190 to +0.014; 26 saved, 40 lost) | spending +0.0004 | pot -1.01% | tax +13.82%
+      S368   d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending -0.0001 | pot -0.64% | tax -0.11%
+      S188   d +0.013 (-0.021 to +0.046; 3 saved, 1 lost) | spending +0.0004 | pot -0.02% | tax -0.15%
+      S304F  d -0.006 (-0.033 to +0.020; 0 saved, 1 lost) | spending -0.0001 | pot -0.60% | tax -10.41%
+      S328F  d -0.031 (-0.089 to +0.026; 7 saved, 12 lost) | spending -0.0265 | pot +0.53% | tax +1.14%
+      S340F  d +0.013 (-0.020 to +0.045; 3 saved, 1 lost) | spending -0.0001 | pot -1.06% | tax -3.77%
+  RAWPA against OFF: 1. survival +0.002 (-0.003 to +0.006); 2. wholly below: none; 3. spending +0.0004; 4. the pot -0.068%: PASSES 1 to 4; beside: the capped pot -0.011%, lifetime tax £84,319 to £84,799 (+0.57%)
+      S030   d +0.000 (-0.028 to +0.028; 1 saved, 1 lost) | spending +0.0018 | pot -0.06% | tax +0.23%
+      S050   d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending +0.0000 | pot +0.00% | tax +0.00%
+      S090   d -0.006 (-0.031 to +0.018; 0 saved, 1 lost) | spending +0.0005 | pot -0.03% | tax +0.56%
+      S368   d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending +0.0000 | pot +0.00% | tax -0.00%
+      S188   d +0.000 (-0.023 to +0.023; 0 saved, 0 lost) | spending +0.0000 | pot +0.00% | tax +0.00%
+      S304F  d +0.000 (-0.023 to +0.023; 0 saved, 0 lost) | spending -0.0001 | pot -0.01% | tax -0.05%
+      S328F  d +0.006 (-0.018 to +0.030; 1 saved, 0 lost) | spending +0.0008 | pot -0.26% | tax +1.46%
+      S340F  d +0.013 (-0.024 to +0.050; 4 saved, 2 lost) | spending +0.0004 | pot -0.03% | tax +0.50%
+  RAWPA against NOW: 1. survival +0.020 (+0.002 to +0.037); 2. wholly below: none; 3. spending +0.0051; 4. the pot +0.336%: PASSES 1 to 4; beside: the capped pot -0.244%, lifetime tax £84,890 to £84,799 (-0.11%)
+      S030   d +0.050 (-0.020 to +0.121; 19 saved, 11 lost) | spending +0.0136 | pot -0.07% | tax -1.44%
+      S050   d -0.006 (-0.033 to +0.020; 0 saved, 1 lost) | spending -0.0007 | pot +0.01% | tax +19.95%
+      S090   d +0.081 (-0.021 to +0.184; 40 saved, 27 lost) | spending +0.0001 | pot +0.98% | tax -11.65%
+      S368   d +0.000 (-0.024 to +0.024; 0 saved, 0 lost) | spending +0.0001 | pot +0.65% | tax +0.11%
+      S188   d -0.013 (-0.046 to +0.021; 1 saved, 3 lost) | spending -0.0004 | pot +0.02% | tax +0.15%
+      S304F  d +0.006 (-0.020 to +0.033; 1 saved, 0 lost) | spending -0.0000 | pot +0.60% | tax +11.56%
+      S328F  d +0.038 (-0.021 to +0.096; 13 saved, 7 lost) | spending +0.0273 | pot -0.79% | tax +0.31%
+      S340F  d +0.000 (-0.028 to +0.028; 1 saved, 1 lost) | spending +0.0005 | pot +1.04% | tax +4.44%
+
+CEILING-LEAD OUTCOME: THE ALLOWANCE STEP IS THE COST (the share 95.4%); the ceiling's own rule with the tie-break in both arms: PASSES 1 to 4

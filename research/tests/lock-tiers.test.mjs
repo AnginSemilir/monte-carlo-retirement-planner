@@ -87,10 +87,13 @@ const PIN1B = {   // taken on item 3's code (the review of 9 Nov), the light set
   // all four again on 12 Nov (before: S090 e5 c789a06cbc51db2e..., loop 349a6b25a08868f3...; S328F e5 a2d5a178a50037e6..., loop
   // af6a40fb9e205cad...): the ceiling on the year's whole taxable income (ANSWERS.md section 5; D91, D93) moves the draws of a household with interest or dividends,
   // and nothing else in its commit does (with the ceiling's one function switched off this test passes on the figures before: results-harvest-ceiling.txt)
-  'S090 e5': '9e5c0edb5552470b2814a7906fb8592dfb634731c57f90e1e4a0896d263ccdd1',
-  'S090 loop': 'e1304c6b49700cce7027688d7dd2e45e7efb97614dcd193c7f5bdb2ce85cdb58',
-  'S328F e5': 'c1681777bb8fa67ab705f34801c3c1e3203b9a527a5738589b0fbb94a1abb6da',
-  'S328F loop': '4d651a23e55e6930927478356f36665adfb945e5c858de0e2b3e2ede2af8f778'
+  // all four again on 13 Nov (before: S090 e5 9e5c0edb5552470b..., S090 loop e1304c6b49700cce..., S328F e5 c1681777bb8fa67a..., S328F loop 4d651a23e55e6930...): the tie-break above the estate cap joined the candidate (D95; D90 (1)), which moves a
+  // single's forward runs above the cap and no table (the same pins and no others moved in the measurement of 12 Nov, results-stage-b-figures.txt;
+  // with the candidate's margin set to nought this test passes on the figures before: results-tie-port.txt)
+  'S090 e5': 'b3cba73d08fe2c0b7f6f7769be977ab80bb079cc774d161cce204758d6d601a0',
+  'S090 loop': '4d6ccf1b85056e5f31316a027d212ed686043572646c472e0f868c2e0fde68b3',
+  'S328F e5': '79d3eb8d19e0c7b56221b837ab05d4a1278cd3241c6ec826bdd1ee58d3f4c2eb',
+  'S328F loop': '9a7e04cf0a63e5991b5b6319aa1b45c8bb6563b485de99d0f8baf4fc146e57fa'
 };
 const { tablesOf, digestOf } = await import(pathToFileURL(resolve(ROOT, 'src/solverDigest.js')).href);
 const { createHash } = await import('node:crypto');

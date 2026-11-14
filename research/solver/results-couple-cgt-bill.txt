@@ -1,0 +1,9 @@
+PASS  1. the first year's bill is paid in full, and no path of 20 fails with money left in the household  -- the bill £3,690, the year's unmet demand £0; paths failing with over £100,000 left 0 of 20 (failing at all, their money gone: 1); the first person's ISA after the year £924,199
+PASS  2. the first person's ISA pays it: lower by the bill, grown as the year grew it, than with capital gains tax off, to the pound  -- the ISA £928,025 without the tax, £924,199 with it: £3,826 against the bill £3,690 grown by 1.0369, £3,826
+PASS  3. a single has no partner: 20 paths the same on the fixed engine and on the engine before the fix  -- every outcome the same; lifetime tax on the first path £13,520
+PASS  4. the exact model's year pays the same bill from the same ISA as the engine  -- the bill £3,690 (the engine £3,690), unmet £0 (£0), the model's ISA lower by £3,826 (the engine's by £3,826)
+
+ALL PASS: 4 checks
+
+--- planted:
+planted (the partner's pots skipped, as before the fix): the checks that fail: 1, 2, 4; 1, 2 and 4 and not 3: yes

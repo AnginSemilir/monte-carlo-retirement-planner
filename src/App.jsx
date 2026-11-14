@@ -2699,6 +2699,20 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
       for (const cat of ['cash', 'other', 'isa']) { if (rem > 0) rem -= drawPot(o.ids[cat], rem); }
       for (const x of owners) { if (rem > 0) rem -= drawPot(x.ids.cash, rem); }
       if (rem > 0) rem -= drawPension(o.key, rem);
+      // 13 Nov 2026 (the deep review of the couples' read): a couple pays a bill from the household's money. Where the
+      // person's own pots, either person's cash and their own open pension leave it unpaid, the partner's taxable
+      // account, ISA and open pension pay it. Before, a second person whose pension was still locked could owe a few
+      // hundred pounds that nothing might pay, and the path was counted as failed beside a partner's ISA of any size
+      // (research/tests/couple-cgt-bill.test.mjs). A sale of the partner's taxable account for it books its gain to
+      // the partner's next year, as the person's own sale does. A single has no partner: nothing changes.
+      for (const x of owners) {
+        if (x === o || !(rem > 0)) continue;
+        const gainsX = realisedGains[x.key];
+        for (const cat of ['other', 'isa']) { if (rem > 0) rem -= drawPot(x.ids[cat], rem); }
+        if (rem > 0) rem -= drawPension(x.key, rem);
+        state.cgtCarry[x.key] += realisedGains[x.key] - gainsX;
+        realisedGains[x.key] = gainsX;
+      }
       unmetCgt += Math.max(0, rem);
       // selling to pay the bill realises further gain — defer it to next year rather than recursing
       state.cgtCarry[o.key] += realisedGains[o.key] - gainsBeforeSettling;

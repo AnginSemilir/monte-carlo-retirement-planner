@@ -21,6 +21,21 @@ THE COUPLES' RE-RUN'S PLANS, ARM BY ARM (EXPLORATORY; the plans' inputs alone, o
     with every owner's MPAA age left out of the hash: APP 878cc4897992, SHIPC 878cc4897992, CANDC 878cc4897992: the same, so the MPAA age is the only difference
     the MPAA's limit £10000; the plan's yearly pension contributions: pen_self £6960; pen_part £4176
     arm A's plan run by the engine on 2000 paths of seed 7002 with the MPAA ages 60 and 60 (arm A's) and 60 and 58 (the solver arms'): 0 paths differ in survival, estate, lifetime tax or unmet spending
+    where the age comes from (the MPAA ages self/part as the engine resolves them):
+      arm A's plan (policy Bracket Fill, drawdown Full 25% Lump Sum, guardrails true, lookahead 5): 60/60; with the guardrails and the lookahead off: 60/60
+      the plan the solver arms take (policy Bracket Fill Basic, drawdown Phased Drawdown, guardrails false, lookahead 5): 60/58; with the guardrails and the lookahead off: 60/58
+    SHIPC W0.02: the household's context with the MPAA ages 60 and 58 against 60 and 60: 668 fields compared, 2 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60; ctx.owners.1.mpaaAge: 58 | 60
+      self's own plan (its MPAA age resolved afresh: 60 and 60): 512 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+      part's own plan (its MPAA age resolved afresh: 60 and 60): 512 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+    SHIPC W0.01: the household's context with the MPAA ages 60 and 58 against 60 and 60: 668 fields compared, 2 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60; ctx.owners.1.mpaaAge: 58 | 60
+      self's own plan (its MPAA age resolved afresh: 60 and 60): 512 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+      part's own plan (its MPAA age resolved afresh: 60 and 60): 512 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+    CANDC W0.02: the household's context with the MPAA ages 60 and 58 against 60 and 60: 676 fields compared, 2 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60; ctx.owners.1.mpaaAge: 58 | 60
+      self's own plan (its MPAA age resolved afresh: 60 and 60): 520 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+      part's own plan (its MPAA age resolved afresh: 60 and 60): 520 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+    CANDC W0.01: the household's context with the MPAA ages 60 and 58 against 60 and 60: 676 fields compared, 2 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60; ctx.owners.1.mpaaAge: 58 | 60
+      self's own plan (its MPAA age resolved afresh: 60 and 60): 520 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
+      part's own plan (its MPAA age resolved afresh: 60 and 60): 520 fields compared, 1 differ: ctx.plan.demographics.mpaaAgePart: 58 | 60
   S371 (Bracket Fill, lump sum): APP d6c4d7a1ea0b, SHIPC d6c4d7a1ea0b, CANDC d6c4d7a1ea0b: one plan
   S387 (ISA First (harvest off), lump sum): APP b9a845f2d3c9, SHIPC b9a845f2d3c9, CANDC b9a845f2d3c9: one plan
   S403 (ISA First, lump sum): APP d46b33adaa27, SHIPC d46b33adaa27, CANDC d46b33adaa27: one plan

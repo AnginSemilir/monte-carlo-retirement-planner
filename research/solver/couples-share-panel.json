@@ -1,0 +1,355 @@
+{
+ "built": "2026-11-13T20:26:24.150Z",
+ "code": "7002a1fec94c",
+ "touched": {
+  "count": 295,
+  "hash": "af1a9e309651"
+ },
+ "passed": [
+  {
+   "base": "S073",
+   "feature": "spa67",
+   "notLanded": [
+    "90"
+   ]
+  }
+ ],
+ "panel": [
+  {
+   "base": "S015",
+   "place": 0,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S015-75",
+     "variant": "75",
+     "target": 41000,
+     "survival": 85.1,
+     "label": "ISA First, lump sum"
+    },
+    {
+     "id": "S015-90",
+     "variant": "90",
+     "target": 41000,
+     "survival": 84.39999999999999,
+     "label": "ISA First, lump sum"
+    },
+    {
+     "id": "S015-db",
+     "variant": "db",
+     "target": 53200,
+     "survival": 84.2,
+     "label": "ISA First, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S043",
+   "place": 1,
+   "feature": "gain",
+   "units": [
+    {
+     "id": "S043-75",
+     "variant": "75",
+     "target": 65300,
+     "survival": 85.8,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S043-90",
+     "variant": "90",
+     "target": 64700,
+     "survival": 85.6,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S043-gain",
+     "variant": "gain",
+     "target": 65900,
+     "survival": 85,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S103",
+   "place": 2,
+   "feature": "spa67",
+   "units": [
+    {
+     "id": "S103-75",
+     "variant": "75",
+     "target": 58200,
+     "survival": 84.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S103-90",
+     "variant": "90",
+     "target": 57500,
+     "survival": 85.6,
+     "label": "Windfall to ISA, lump sum"
+    },
+    {
+     "id": "S103-spa67",
+     "variant": "spa67",
+     "target": 58800,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S129",
+   "place": 3,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S129-75",
+     "variant": "75",
+     "target": 60600,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill"
+    },
+    {
+     "id": "S129-90",
+     "variant": "90",
+     "target": 60600,
+     "survival": 85.1,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S129-db",
+     "variant": "db",
+     "target": 69900,
+     "survival": 85.8,
+     "label": "Bracket Fill, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S155",
+   "place": 4,
+   "feature": "gain",
+   "units": [
+    {
+     "id": "S155-75",
+     "variant": "75",
+     "target": 110200,
+     "survival": 84.8,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S155-90",
+     "variant": "90",
+     "target": 110200,
+     "survival": 84.1,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S155-gain",
+     "variant": "gain",
+     "target": 108100,
+     "survival": 85.2,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S183",
+   "place": 5,
+   "feature": "spa67",
+   "units": [
+    {
+     "id": "S183-75",
+     "variant": "75",
+     "target": 39700,
+     "survival": 84.6,
+     "label": "ISA First, lump sum"
+    },
+    {
+     "id": "S183-90",
+     "variant": "90",
+     "target": 39700,
+     "survival": 84.7,
+     "label": "Windfall to ISA, lump sum"
+    },
+    {
+     "id": "S183-spa67",
+     "variant": "spa67",
+     "target": 40300,
+     "survival": 84.89999999999999,
+     "label": "Windfall to ISA, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S211",
+   "place": 6,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S211-75",
+     "variant": "75",
+     "target": 68600,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S211-90",
+     "variant": "90",
+     "target": 68600,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S211-db",
+     "variant": "db",
+     "target": 78700,
+     "survival": 84.7,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S237",
+   "place": 7,
+   "feature": "gain",
+   "units": [
+    {
+     "id": "S237-75",
+     "variant": "75",
+     "target": 101800,
+     "survival": 84.6,
+     "label": "Bracket Fill Basic, lump sum"
+    },
+    {
+     "id": "S237-90",
+     "variant": "90",
+     "target": 101800,
+     "survival": 84.89999999999999,
+     "label": "Bracket Fill Basic"
+    },
+    {
+     "id": "S237-gain",
+     "variant": "gain",
+     "target": 103200,
+     "survival": 84.3,
+     "label": "Bracket Fill Basic, lump sum"
+    }
+   ]
+  },
+  {
+   "base": "S265",
+   "place": 8,
+   "feature": "spa67",
+   "units": [
+    {
+     "id": "S265-75",
+     "variant": "75",
+     "target": 31900,
+     "survival": 84.89999999999999,
+     "label": "ISA First"
+    },
+    {
+     "id": "S265-90",
+     "variant": "90",
+     "target": 31900,
+     "survival": 84.6,
+     "label": "ISA First"
+    },
+    {
+     "id": "S265-spa67",
+     "variant": "spa67",
+     "target": 31900,
+     "survival": 85.39999999999999,
+     "label": "Bracket Fill"
+    }
+   ]
+  },
+  {
+   "base": "S291",
+   "place": 9,
+   "feature": "db",
+   "units": [
+    {
+     "id": "S291-75",
+     "variant": "75",
+     "target": 55400,
+     "survival": 84.3,
+     "label": "Bracket Fill, lump sum"
+    },
+    {
+     "id": "S291-90",
+     "variant": "90",
+     "target": 54200,
+     "survival": 85.6,
+     "label": "Bracket Fill, lump sum"
+    },
+    {
+     "id": "S291-db",
+     "variant": "db",
+     "target": 65000,
+     "survival": 84.5,
+     "label": "Bracket Fill Basic"
+    }
+   ]
+  },
+  {
+   "base": "S389",
+   "place": 10,
+   "feature": "gain",
+   "units": [
+    {
+     "id": "S389-75",
+     "variant": "75",
+     "target": 21000,
+     "survival": 84.5,
+     "label": "ISA First"
+    },
+    {
+     "id": "S389-90",
+     "variant": "90",
+     "target": 21000,
+     "survival": 84.2,
+     "label": "ISA First"
+    },
+    {
+     "id": "S389-gain",
+     "variant": "gain",
+     "target": 21000,
+     "survival": 84.89999999999999,
+     "label": "ISA First"
+    }
+   ]
+  },
+  {
+   "base": "S019",
+   "place": 11,
+   "feature": "spa67",
+   "units": [
+    {
+     "id": "S019-75",
+     "variant": "75",
+     "target": 54600,
+     "survival": 84.6,
+     "label": "ISA First"
+    },
+    {
+     "id": "S019-90",
+     "variant": "90",
+     "target": 54600,
+     "survival": 85.9,
+     "label": "ISA First"
+    },
+    {
+     "id": "S019-spa67",
+     "variant": "spa67",
+     "target": 54600,
+     "survival": 85.5,
+     "label": "ISA First"
+    }
+   ]
+  }
+ ]
+}

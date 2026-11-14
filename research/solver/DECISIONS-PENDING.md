@@ -11,6 +11,65 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**For the maintainer and the external review (13 Nov, night): the harvest ceiling's allowance step trades tax for pot
+below the cap.** `results-ceiling-lead.txt` (EXPLORATORY, seed 7002; `CEILING-LEAD.md`); the reviewer at the read: PASS,
+three MINORs (`reviews/2026-11-13-read-ceiling-lead.md`). The ceiling (on `main` since the first batch) moved the
+allowance's ceiling down to where the year's bill would first rise. On the three households with most in the taxable
+account, that one step is 95% of the extra tax they pay on paths that end below the estate cap (S090: about £11,000 over
+a lifetime). On the same paths it also leaves a larger pot (S090: about £29,000 more on average; the pot capped at the
+estate cap, over all paths, about £26,500 or 2% more). With the allowance's step as before, survival is a shade higher
+(pooled +0.02 points, at the edge of noise) and spending a hair higher, for less tax and a smaller pot. How the step
+does it is not shown: the runs store no moves. With the tie-break in, the tax saving above the cap that the ceiling's
+first read showed is gone; the ceiling still passes its own rule. By this test's rule nothing changes in the code: the
+question goes to the external review with the trade as it stands, whether the allowance's step should also be offered
+at its old place so the solver chooses between the two. The agent's view: worth asking, as a trade rather than a loss;
+a small change with its own test if the review agrees.
+
+**For the maintainer (13 Nov, evening): the couples' tier test reads "both"; a tie rule for a couple's joint move?**
+`results-couple-tiers.txt`; in full in `reports/2026-11-13-couples-read.md`. With consent to change risk withdrawn the
+younger couples' median pot recovers from 0.37 of the app's rules' to 0.79: the lower-risk funds are most of the pot's
+fall, not all. What is left is not shown by the read (corrected after the reviewer, PASS with nine MINORs,
+`reviews/2026-11-13-read-couple-tiers.md`): its trace of one couple, a lead, puts it mostly in tax once the tiers are
+taken away, and with consent given the tiers are nearly all of the fall and tax a few percent. No tie rule reaches a
+couple's joint move, and what one would save is unmeasured (pooled tax above the cap: the candidate £303,000, the
+app's rules £133,000, a ceiling). The lost paths were the capital gains bill, now fixed and replayed. The agent's
+recommendation, revised: a tie rule for couples is a tax matter and need not hold couples back; measure it in the
+research queue as item 13 was (its rule first, EXPLORATORY, off in code until ruled), and have the couples' screens
+say the smaller pot is the price of the lower-risk funds. By the test's own rule nothing is built until the maintainer
+says.
+
+**For the maintainer (13 Nov): item 12 is closed; the shortlist's trade (D90 (2)).** Item 12's stage A read
+(`results-item12-a.txt`, EXPLORATORY): neither arm passes, so by D84 item 12 is closed and nothing is built. Both fail
+the same two parts, narrowly: spending delivered 0.11 and 0.12 points of target lower (the bar 0.1), and two couples'
+equity weight just over a point from the whole menu's. Survival, the pot and tax hold. The first arm is the built
+shortlist (`chooserShortlist: 'order'`) on a couple's path, so the trade D90 (2) left open now reads: for a single, a
+path about 1.9 times as fast for a pooled 0.019 points of survival, beyond noise (`results-tie-a.txt`); for a couple,
+a path 0.9 to 1.8 times as fast and a fail of its own rule on spending and on the risk held. The agent's
+recommendation: leave the shortlist off. Its guard stays in, so it costs nothing where it is. Switching it on is the
+maintainer's.
+The reviewer at the read (`reviews/2026-11-13-read-item12-a.md`: PASS) adds, beside "closed": the spending fail is
+real on these paths but depends on which couples were drawn (without any one of three couples the first arm would hold
+that part; the review's own eight held it); the risk drifts towards less equity, by just over a point on two couples;
+the first arm would pass only with both of those couples left out, the second not even then; one couple (S253) loses
+survival beyond noise in both arms while the pooled figure is level; and the run was on the code before the harvest
+ceiling and the capital gains bill's fix. The rule was the maintainer's and is not run again by the agent; if the
+maintainer wants item 12 read again on other couples or on the current engine, that is a new ruling.
+
+**For the maintainer (13 Nov): the couples' re-run has read, PASS; do couples run the candidate under the switch?**
+In full: `reports/2026-11-13-couples-read.md`. On 40 held-out couples the candidate against the app's rules: survival
+about +10 points and spending delivered +6.5% (the standard estate weight), no harm flag. Beside it, from the reviewer
+at the read: a couple spends less in its first retired years; the pot left is much smaller (the giveaway above the
+estate cap, which the tie-break as built does not reach in a couple's joint move); the gain is the gain at an 85%
+landing; a few paths are lost that the app's rules keep. The deep review (`reviews/2026-11-13-deep-couples-d4b.md`): the PASS is
+sound for survival and spending; the smaller pot is probably the lower-risk funds the solver holds, not the giveaway
+(capped, the pot is level with the app's rules'); the paths lost in one year are an engine defect (one person's capital
+gains bill cannot be paid from the other's ISA or pension), in every arm. The agent's recommendation: yes, under the
+opt-in, after (1) that defect's fix with its test, (2) the deep review's one test, the couples' tier test (EXPLORATORY,
+about five core-hours), which says whether anything in the solver must change first, (3) the tie-break for singles
+(D90 (1)), (4) item 6's stage C, (5) Part D's D5, the couples' screens showing the early cut and the pot plainly; a
+couple outside 40% to 60% keeps the app's rules until item 6 reads (M4). The agent carries on with (1) to (5) in that
+order meanwhile; switching couples on waits for the maintainer's word.
+
 **RULED (D94, 13 Nov): "Proceed with your recommendations"**: the stage gate and the read amended for S293's one
 difference, reviewed before use, the chunks kept (the fallback: fix the audit and run the first stage again); the first
 load's ceilings at the measured figures plus one, 235 and 237, engine code moving them the same way at a later batch.

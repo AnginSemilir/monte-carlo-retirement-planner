@@ -1,0 +1,52 @@
+ITEM 6'S STAGE C, THE PANEL (couples-share-panel.json, built 2026-11-13T20:26:24.150Z, code 7002a1fec94c; the scan 295 ids, hash af1a9e309651; the order frozen 2026-11-13T20:19:42.864Z)
+12 couples taken evenly over the untouched library order (114 couples), 36 units; passed over: S073 (90)
+  place  0 S015 ages 68/65, retiring 66/66; library target 13500; its feature: db
+      S015-75     target 41000, arm A 85.1% (ISA First, lump sum); the first person holds 75.0% of the pots; 28 years
+      S015-90     target 41000, arm A 84.4% (ISA First, lump sum); the first person holds 90.0% of the pots; 28 years
+      S015-db     target 53200, arm A 84.2% (ISA First, lump sum); the first person holds 60.0% of the pots; 28 years; £15000 a year from 68
+  place  1 S043 ages 68/65, retiring 66/66; library target 40500; its feature: gain
+      S043-75     target 65300, arm A 85.8% (Bracket Fill Basic, lump sum); the first person holds 75.0% of the pots; 28 years
+      S043-90     target 64700, arm A 85.6% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; 28 years
+      S043-gain   target 65900, arm A 85.0% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; 28 years; a gain of £47500 on £95000 in the taxable accounts
+  place  2 S103 ages 61/58, retiring 60/60; library target 40000; its feature: spa67
+      S103-75     target 58200, arm A 84.4% (Bracket Fill Basic, lump sum); the first person holds 75.0% of the pots; 36 years
+      S103-90     target 57500, arm A 85.6% (Windfall to ISA, lump sum); the first person holds 90.0% of the pots; 36 years
+      S103-spa67  target 58800, arm A 85.2% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; 36 years; the state pension from 67
+  place  3 S129 ages 56/53, retiring 55/55; library target 74500; its feature: db
+      S129-75     target 60600, arm A 85.4% (Bracket Fill); the first person holds 75.0% of the pots; 40 years
+      S129-90     target 60600, arm A 85.1% (Bracket Fill Basic); the first person holds 90.0% of the pots; 40 years
+      S129-db     target 69900, arm A 85.8% (Bracket Fill, lump sum); the first person holds 60.0% of the pots; 40 years; £15000 a year from 68
+  place  4 S155 ages 56/53, retiring 55/55; library target 135500; its feature: gain
+      S155-75     target 110200, arm A 84.8% (Bracket Fill Basic, lump sum); the first person holds 75.0% of the pots; 40 years
+      S155-90     target 110200, arm A 84.1% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; 40 years
+      S155-gain   target 108100, arm A 85.2% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; 40 years; a gain of £540000 on £1080000 in the taxable accounts
+  place  5 S183 ages 55/52, retiring 60/60; library target 19500; its feature: spa67
+      S183-75     target 39700, arm A 84.6% (ISA First, lump sum); the first person holds 75.0% of the pots; 41 years
+      S183-90     target 39700, arm A 84.7% (Windfall to ISA, lump sum); the first person holds 90.0% of the pots; 41 years
+      S183-spa67  target 40300, arm A 84.9% (Windfall to ISA, lump sum); the first person holds 60.0% of the pots; 41 years; the state pension from 67
+  place  6 S211 ages 55/52, retiring 60/60; library target 53500; its feature: db
+      S211-75     target 68600, arm A 85.4% (Bracket Fill Basic, lump sum); the first person holds 75.0% of the pots; 41 years
+      S211-90     target 68600, arm A 85.4% (Bracket Fill Basic, lump sum); the first person holds 90.0% of the pots; 41 years
+      S211-db     target 78700, arm A 84.7% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; 41 years; £15000 a year from 68
+  place  7 S237 ages 55/52, retiring 60/60; library target 88000; its feature: gain
+      S237-75     target 101800, arm A 84.6% (Bracket Fill Basic, lump sum); the first person holds 75.0% of the pots; 41 years
+      S237-90     target 101800, arm A 84.9% (Bracket Fill Basic); the first person holds 90.0% of the pots; 41 years
+      S237-gain   target 103200, arm A 84.3% (Bracket Fill Basic, lump sum); the first person holds 60.0% of the pots; 41 years; a gain of £60000 on £120000 in the taxable accounts
+  place  8 S265 ages 45/42, retiring 60/60; library target 25500; its feature: spa67
+      S265-75     target 31900, arm A 84.9% (ISA First); the first person holds 75.0% of the pots; 52 years
+      S265-90     target 31900, arm A 84.6% (ISA First); the first person holds 90.0% of the pots; 52 years
+      S265-spa67  target 31900, arm A 85.4% (Bracket Fill); the first person holds 60.0% of the pots; 52 years; the state pension from 67
+  place  9 S291 ages 45/42, retiring 60/60; library target 38500; its feature: db
+      S291-75     target 55400, arm A 84.3% (Bracket Fill, lump sum); the first person holds 75.0% of the pots; 52 years
+      S291-90     target 54200, arm A 85.6% (Bracket Fill, lump sum); the first person holds 90.0% of the pots; 52 years
+      S291-db     target 65000, arm A 84.5% (Bracket Fill Basic); the first person holds 60.0% of the pots; 52 years; £15000 a year from 68
+  place 10 S389 ages 50/47, retiring 50/50; library target 24000; its feature: gain
+      S389-75     target 21000, arm A 84.5% (ISA First); the first person holds 75.0% of the pots; 46 years
+      S389-90     target 21000, arm A 84.2% (ISA First); the first person holds 90.0% of the pots; 46 years
+      S389-gain   target 21000, arm A 84.9% (ISA First); the first person holds 60.0% of the pots; 46 years; a gain of £101250 on £202500 in the taxable accounts
+  place 11 S019 ages 68/65, retiring 66/66; library target 40500; its feature: spa67
+      S019-75     target 54600, arm A 84.6% (ISA First); the first person holds 75.0% of the pots; 28 years
+      S019-90     target 54600, arm A 85.9% (ISA First); the first person holds 90.0% of the pots; 28 years
+      S019-spa67  target 54600, arm A 85.5% (ISA First); the first person holds 60.0% of the pots; 28 years; the state pension from 67
+named outside the scan (../policy-study/confirmed-results.json): 5 of 12, S043, S103, S183, S211, S019
+arm A's pick takes the full lump sum on 23 of 36 units (by its label)

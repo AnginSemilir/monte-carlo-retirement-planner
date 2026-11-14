@@ -17,5 +17,6 @@
   "tableDealing": false,
   "failDelivered": true,
   "sweepCashIsaTo": "isa",
-  "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 }
+  "coarse": { "w": 2, "a": 3, "b": 3, "g": 2, "c": 2, "src": "NT", "expand": "LRVOH", "climb": 3 },
+  "tieAboveCap": 0.0001
 }

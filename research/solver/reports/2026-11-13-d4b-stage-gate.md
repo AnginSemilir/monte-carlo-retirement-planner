@@ -66,3 +66,17 @@ The cores are free. They go to the first batch's merge gate (D92), the harvest c
 The maintainer: "Proceed with your recommendations". Option 1 is carried out as
 `registrations/couples-d4b-amendment-1.md` sets it out; the `reviewer` agent sees the amendment before the amended gate
 is run; option 2 is the fallback if its FAIL stands after one fix.
+
+## Corrected (13 Nov, after the review of the amendment)
+
+The cause given above is wrong in one sentence. The second person's MPAA age does not differ because arm A's plan has
+the guardrails on and the lookahead at 5: each plan resolves the same ages with both on and with both off. It differs
+because the plans carry different policies: arm A's pick for S293 is Bracket Fill with the lump sum, the solver arms'
+plan keeps the plan's own Bracket Fill Basic, phased, and the expected path's first taxable pension draw for the second
+person falls two years apart under the two. What the ruling rested on stands, and is now shown more fully
+(`results-d4b-plan-check.txt`): one field differs, and under either age the solver arms' household context differs in
+that label alone and each person's own plan is the same.
+
+The review passed the amendment for use (`reviews/2026-11-13-couples-d4b-amendment-1.md`). The amended stage gate then
+ran once and printed its one line: no couple and weight goes on to a second stage, so the first stage's chunks are the
+whole run.

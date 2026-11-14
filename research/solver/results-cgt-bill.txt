@@ -1,0 +1,14 @@
+THE COUPLE'S CAPITAL GAINS BILL, SIZED (EXPLORATORY, seed 7002, 1000 paths, deciding nothing): the engine before the fix (the tree at 09e2632a) against this tree's; 210 couples of the library, each plan as entered on its own rules
+  S361   survival 0.0% to 0.0% (0 saved, 0 lost); failing with more than it opened with: 990 before, 990 after
+  S363   survival 26.2% to 26.2% (0 saved, 0 lost); failing with more than it opened with: 680 before, 680 after
+  S365   survival 0.0% to 0.0% (0 saved, 0 lost); failing with more than it opened with: 693 before, 693 after
+  S367   survival 0.2% to 0.2% (0 saved, 0 lost); failing with more than it opened with: 666 before, 666 after
+  S369   survival 0.0% to 0.0% (0 saved, 0 lost); failing with more than it opened with: 690 before, 690 after
+  S371   survival 0.0% to 0.0% (0 saved, 0 lost); failing with more than it opened with: 388 before, 388 after
+  S373   survival 97.5% to 97.5% (0 saved, 0 lost); failing with more than it opened with: 21 before, 21 after
+  S385   survival 98.0% to 98.0% (0 saved, 0 lost); failing with more than it opened with: 17 before, 17 after
+  S397   survival 96.9% to 96.9% (0 saved, 0 lost); failing with more than it opened with: 27 before, 27 after
+  S401   survival 62.4% to 62.4% (0 saved, 0 lost); failing with more than it opened with: 20 before, 20 after
+  S409   survival 99.1% to 99.1% (0 saved, 0 lost); failing with more than it opened with: 7 before, 7 after
+199 of 210 couples: no path's survival differs and none fails rich under either engine
+pooled: mean survival 76.214% to 76.214% (+0.000 points); 0 paths saved, 0 lost of 210000; the largest gain S001 +0.0, the largest loss S001 +0.0; paths failing with more than the household opened with: 4199 before, 4199 after

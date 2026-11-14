@@ -11,6 +11,36 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**FOR THE MAINTAINER (14 Nov, night): the share choice's read is THE FORECAST MISSES; which way on?**
+`results-share-choose.txt` (EXPLORATORY, seed 7002; `SHARE-CHOOSE.md`); in plain words and in full,
+`reports/2026-11-14-share-choose-read.md`; beside it, `results-share-choose-beside.txt`.
+- **The forecast cannot choose the split.** On two of 14 couples its pick was clearly worse than the best split tried:
+  S129-75 by 2.950 points (mostly the plan ending below its minimum pot) and S183-spa67 by 2.675 (running out mid-plan).
+  The best split beat its pick by 0.464 points overall, against a bar of 0.2. By the rule nothing is built for the app.
+- **The fixed split by each partner's full means does better: +1.448 points over today's split.** Most of that, +1.114 of
+  it pooled, is simply dropping the 40%-to-60% band: +1.950 on the eight couples holding 60/40, the only holding inside the
+  band that was tried. On the four plain couples the means' split is level with dropping the band.
+  It loses on S129-90 (-0.950) and S129-75 (-0.225), every lost path ending below the minimum pot. Its average pot left is
+  lower beyond noise on 7 of 14 couples.
+- **A choice by short simulation is best measured (+0.081 over the means' split) but costs ten to eleven times a couple's
+  solve today** (x11.42 by the run's clocks), against D103's target of a quarter more.
+
+Three ways on, the agent recommending the first:
+1. **a registered test of two fixed rules against today's split:** the band dropped, and the means' split. Neither adds
+   solve time, so D103's speed work is not needed. Its couples would include:
+   - ones where the two differ: 90/10 holdings, final-salary pensions, different state pension ages;
+   - holdings inside the band other than 60/40, the first person under half among them, or the rule scoped to what it
+     tested.
+
+   Its registration comes to you before launch;
+2. **speed work on a choice by simulation** (D103), then an exploratory read of a smaller version;
+3. **keep today's split.**
+
+D99 stands meanwhile. The reviewer at the read:
+- first FAIL, one BLOCKING: the first draft costed a choice by simulation at its solves alone. It was answered in one fix
+  with its four MINORs;
+- then PASS, two MINORs, both answered (`reviews/2026-11-14-read-share-choose.md`, `-2.md`).
+
 **RULED (D103, 14 Nov, evening): speed work to gain back the share choice's time.** The maintainer, on D102: "But after
 that run speed work to try to gain back that added time". After D102's build and its exploratory read, and before its
 registered test (so the test is of what would ship), the share choice is made faster:

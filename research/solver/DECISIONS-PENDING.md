@@ -11,6 +11,17 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D100, 14 Nov, afternoon): couples in the other order get their own test.** The maintainer: "Ensure a follow up test
+is placed in the plan so we can open up couples in the other order." Since D99 the solver plans for an uneven couple only
+when the older partner is entered first, as every couple stage C tested was. The test, in full in `PART-D.md` D7:
+- stage A, EXPLORATORY: the joint estate weight made the same whichever partner is entered first (couples entered elder
+  first unchanged bit for bit), then stage C's couples entered both ways and compared on the same paths;
+- stage B, registered on a new held-out seed: the couples entered the other way against the app's rules by stage C's rule.
+  Its PASS opens the guard for them, the reviewer on the change of default.
+
+It comes after the share ensemble, ahead of (c) to (e) below. Stage B's registration comes to the maintainer before its
+launch, as stage C's did, unless the maintainer says to launch it once its design review passes.
+
 **RULED (D98, 14 Nov, morning): "Agreed with all"**, on the agent's reply to D97: (2) as read, a couple's tie rule
 passing its rule joins the couples' candidate with no further word (the reviewer on the change of default); (3) the speed
 mode's warnings as drafted, for a single: "Speed mode works out your figures about twice as fast by looking at fewer
@@ -174,7 +185,9 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      (built, 11293476; its browser checks to run); (b) couples on under the opt-in by stage C's PASS (D99, built 14 Nov): the
      share rule, the guard on the elder's share and the switch, in one commit with the D-line naming the run
      (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
-     speed mode and couples on; (c) the
+     speed mode and couples on; then the share ensemble (`SHARE-ENSEMBLE.md`, its rule committed, EXPLORATORY) and
+     couples in the other order (D100: `PART-D.md` D7, stage A EXPLORATORY, then stage B registered, its PASS opening the
+     guard for the elder entered second); (c) the
      shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
      (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
      joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and

@@ -338,3 +338,47 @@ Its tests:
   - `solver-config-ui.cjs` and `solver-strategy-ui.cjs`: their couple a couple outside the guard.
 
 The reviewer on the change of default before `main`; merged on B1's gate with batch 3 and the speed mode (D92).
+
+## D7. Couples in the other order (planned; D100)
+
+The maintainer, 14 Nov: "Ensure a follow up test is placed in the plan so we can open up couples in the other order."
+
+**In plain words.** The app calls the first partner entered "you". Stage C tested couples where "you" are the older
+partner and hold most of the money. So since D99 the solver plans for a couple holding its money unevenly only when the
+older partner is entered first. The other way round is common: "you" are the younger partner and your older partner holds
+the larger pension. Those couples keep the app's rules until this test reads.
+
+**Why it was held back.** The deep review of stage C (`reviews/2026-11-14-deep-couples-share.md`, section 2) found the
+joint move is not symmetric in the two partners. It weighs both estates at the first-entered person's own table's weight,
+which is 0.02 of that person's opening wealth. When the first person holds little, the estate counts three to nine times
+more than in any tested couple. A plan entered the other way is also a different plan, its horizon counted from the first
+person's age.
+
+**Stage A (EXPLORATORY, seed 7002, its rule committed first; after the share ensemble).**
+1. The build. The joint estate weight is made the same whichever partner is entered first: the elder's table's weight, as
+   an option, off in code. Its test:
+   - a couple entered elder first, every couple stage C and the couples' re-run tested among them, is solved the same bit
+     for bit;
+   - the weight is the same whichever partner a couple has first;
+   - equal ages keep the first person's weight.
+2. The read. Stage C's twelve couples are entered both ways: the elder first as tested, and the younger first with the
+   horizon held to the same year. Each is held so the elder holds 75% and 90%, each order is solved with and without the
+   option, and all are run on the same paths. The rule, committed first: the other order within D4's targets of the
+   tested order (0.5 points a couple, 0.2 pooled), with the option and without it.
+   - With the option within the targets: stage B tests it.
+   - Within them without it too: stage B tests the candidate as it is.
+   - Neither: back to the maintainer.
+   - Cost: about half a day to build and a few core-hours to run.
+
+**Stage B (registered: a new held-out seed, its registration and design review first).**
+- The twelve couples entered the other way, the younger first and the elder holding 75% and 90%, landed so the app's rules
+  survive about 85 in 100.
+- The candidate, with stage A's option if its read chose it, against the app's rules by stage C's rule: D34's harm rule on
+  each couple and the pooled gain.
+- Its PASS opens the guard for the elder entered second (`src/couplesSwitch.js` `ELDER_FIRST` off), with stage A's option
+  in the candidate if it was chosen, in one commit with the D-line naming the run, the reviewer on the change of default.
+- About 40 core-hours, the registration of stage C's estimate for twelve couples mirrored.
+
+**Not in it.** A couple whose younger partner holds more than 60% is still untested, in either order; the same machinery
+could cover it in a later run. Also untested: a couple whose elder holds over 90%, and a couple whose two people are the
+same age outside the band.

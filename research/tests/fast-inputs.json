@@ -3648,6 +3648,7 @@
    "research/solver/results-scorecard-xasr2.txt",
    "research/solver/results-scorecard.txt",
    "research/solver/results-share-a.txt",
+   "research/solver/results-share-ensemble.txt",
    "research/solver/results-share-nodes-mutations.txt",
    "research/solver/results-shortlist-shown.txt",
    "research/solver/results-sim-mixture.txt",

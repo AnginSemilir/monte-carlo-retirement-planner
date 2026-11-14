@@ -11,6 +11,22 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D102, 14 Nov, evening): the solver chooses a couple's share ("Option 2.").** The share ensemble
+(`results-share-ensemble.txt`, EXPLORATORY; in plain words and in full, `reports/2026-11-14-share-ensemble.md`) read THE
+SHARE'S MEASURE.
+- On 7 of 10 couples another share beat the pots' share, by about 2 points on average.
+- Every share of every couple was above the app's rules.
+- No single rule fitted every couple. The reviewer at the read (PASS, eight MINORs) found that the 40% to 60% band itself may
+  be the cost for 60/40 couples.
+
+Of a fixed share from each person's means and the solver choosing the share, the maintainer chose the second. In full in
+`PART-D.md` D8:
+- built as an option, off in code;
+- read EXPLORATORY beside the means' share and the pots';
+- then a registered test, its registration to the maintainer before launch.
+
+D99 stands until then.
+
 **RULED (D101, 14 Nov, afternoon): the new planner's first-load ceiling to 240KB.** B1's gate on the third batch found the
 new planner's first load on an empty plan at 239KB against its ceiling of 237KB, a saved plan at 235KB. The growth since
 batch 3's first gate is about 1.2KB compressed: the speed mode's and the couples' screens' code, not the engine's, so by
@@ -192,6 +208,7 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      share rule, the guard on the elder's share and the switch, in one commit with the D-line naming the run
      (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
      speed mode and couples on; then the share ensemble (`SHARE-ENSEMBLE.md`, its rule committed, EXPLORATORY) and
+     the solver choosing a couple's share (D102: `PART-D.md` D8, built off, read EXPLORATORY, then a registered test);
      couples in the other order (D100: `PART-D.md` D7, stage A EXPLORATORY, then stage B registered, its PASS opening the
      guard for the elder entered second); the guard's age cap (a partner who would pass 120 before the plan ends kept on the
      app's rules, with its check: the reviewer on D99, second round, MINOR 1), with the next batch; a couple's solve

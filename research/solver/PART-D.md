@@ -405,3 +405,44 @@ person's age.
 **Not in it.** A couple whose younger partner holds more than 60% is still untested, in either order; the same machinery
 could cover it in a later run. Also untested: a couple whose elder holds over 90%, and a couple whose two people are the
 same age outside the band.
+
+## D8. The solver chooses a couple's share (planned; D102)
+
+The maintainer, 14 Nov, on the share ensemble's read (THE SHARE'S MEASURE; `reports/2026-11-14-share-ensemble.md`), offered a
+fixed share from each person's means or the solver choosing the share: "Option 2."
+
+**In plain words.** A couple's plan is two plans, one for each partner, and the household's spending is split between them.
+Today the split follows the savings each holds, half each between 40% and 60%. The ensemble found better splits on most of
+the couples it tried, and no single rule that fits them all. So the solver is to choose each couple's split itself: it
+works the couple out at a few splits and keeps the one its own forecast rates best.
+
+**The build (EXPLORATORY first; after the merge of batch 3).**
+- `shareRule: 'choose'` in `src/solver/couple.js`, a research option, off in code.
+- Each couple is solved at a few first-person shares around its own, and the solver keeps the share whose assembled couple
+  its own forecast at the start rates best. The forecast is the joint value the rollout maximises at the household's
+  opening state. Every share's forecast is kept in the record.
+- A light first pass, at fewer wealth points, chooses; the chosen share is then solved in full, so a couple's solve in the
+  app stays near today's time.
+- The test of its class:
+  - the pick is the best forecast;
+  - with the option unset everything is bit for bit as now;
+  - the light pass's pick is recorded beside the full one's.
+
+**The exploratory read**, its rule committed first:
+- the units: the share ensemble's ten, and plain 60/40 couples without a DB (the reviewer's finding 1);
+- the arms, all on the same paths: the solver's pick, the full-means share (pots, contributions to come, state and DB
+  pensions), the pots' share (D99) and each share tried;
+- seed 7002;
+- what it reads:
+  - whether the forecast ranks the shares as the simulation does;
+  - the pick's gain over the pots' share and over the means' share, against D4's targets;
+  - the solve time with the light pass and without it.
+
+**Then a registered test** of whichever holds up: a new held-out seed, its design review, its registration to the
+maintainer before launch. Only that can change the default. D99 stands until then.
+
+**Leads carried beside it.**
+- The 90/10 holding costs points no share recovers: S129-90 against S129-75, -2.775 at its best share, against -0.325
+  under the app's rules.
+- The joint estate weight follows the first person's table (D7's stage A).
+

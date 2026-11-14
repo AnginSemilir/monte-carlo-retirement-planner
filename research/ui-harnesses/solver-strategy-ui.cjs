@@ -22,11 +22,15 @@
  *    0, and a planted dominated action at least 0.
  * 4. A failed solve (the launch plan's F16): the worker planted to fail every question; Your plan says so, offers "try again"
  *    and the classic planner (the app's rules).
- * 5. A couple under the switch (D42): the couples card, nothing solved.
+ * 5. A couple the solver does not run under the switch (D42; since couples are on, D99, one outside src/couplesSwitch.js's
+ *    guard, its younger partner holding 75%): the couples card, nothing solved.
  *
  *   node research/ui-harnesses/solver-strategy-ui.cjs [port]      (the preview build is served on port + 8)
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+// a couple the solver does not run (src/couplesSwitch.js, D99: its younger partner holding 75% of every wrapper, outside the
+// guard), so it keeps the app's rules and the couples card under the switch, as every couple did before couples were on
+const unevenOf = plan => { const re = JSON.parse(JSON.stringify(plan)), tot = {}; for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); tot[k] = (tot[k] || 0) + (Number(a.balance) || 0); } for (const a of re.accounts) { const k = a.id.replace(/_(self|part)$/, ''); if (/_self$/.test(a.id)) a.balance = tot[k] * 0.25; else if (/_part$/.test(a.id)) a.balance = tot[k] * 0.75; } return re; };
 const { reference } = require('./lib/reference.cjs');
 const { execFileSync, spawn } = require('node:child_process');
 const { join } = require('node:path');
@@ -216,9 +220,9 @@ const waitDone = (p, ms = 900000) => p.waitForSelector('[data-solver-strategy][d
 
     // 5. a couple
     if (!couple) ok('a couple in the library to test with', false);
-    else { const { p, errs, urls } = await open(b, PREVIEW_PORT, couple.plan), s = await tab(p);
+    else { const { p, errs, urls } = await open(b, PREVIEW_PORT, unevenOf(couple.plan)), s = await tab(p);
       await p.waitForTimeout(2000);
-      ok(`switch on, opted in, a couple (${couple.id}): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
+      ok(`switch on, opted in, a couple the solver does not run (${couple.id}, its younger partner holding 75%): the couples card, and nothing solved`, s.couple && !s.strategy && !urls.some(u => /solverWorker/.test(u)), JSON.stringify(s));
       ok('a couple: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.context().close(); }
   } finally {

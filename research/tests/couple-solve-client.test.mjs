@@ -11,8 +11,9 @@
  *   3. a table solved for another plan, or for another partner's age, is refused by the assembly;
  *   4. the couple's figures run: the headline and the comparison on the couple (strategyRuns, headlineOf), its first retired year
  *      the household's (the earlier of the two people's), and a single's first retired year as before;
- *   5. the page's switch module (src/couplesSwitch.js) reads the band as couple.js does: its band couple.js's SHARE_BAND, and a
- *      plan on exactly when couple.js's shareFor gives it the half share, over the library's couples re-held from 30/70 to 90/10;
+ *   5. the page's switch module (src/couplesSwitch.js) reads the band as couple.js does: its band couple.js's SHARE_BAND, and on
+ *      every plan where couple.js's shareFor gives the half share, over the library's couples re-held from 30/70 to 90/10;
+ *      outside the band it is on or off by the guard on the elder's share (D99; research/tests/couple-default.test.mjs);
  *   6. the solve's key (src/solverKey.js): every one of the library's 210 singles keyed as on the code before D5 (their keys'
  *      digest pinned, taken on 3cec591e, fefdb387's parent, 14 Nov; the reviewer of 14 Nov, finding 7), and a person's moved by
  *      their partner's age.
@@ -99,15 +100,16 @@ ok('2. the couple from two separate solves is solveCouple\'s whole: both tables 
     runs.solved.length === 60 && runs.yours.length === 60 && Number.isFinite(h.survival) && rt === want && retireYearOf(sc) === singleWas,
     `the household retired from year ${rt} (the people from ${ctx.owners.map(o => Math.ceil(o.retireAge - o.age0)).join(' and ')}); survival ${h.survival.toFixed(1)}% on 60 paths; a single's year ${retireYearOf(sc)} (was ${singleWas})`); }
 
-// 5. the page's switch reads the band as couple.js does
+// 5. the page's switch reads the band as couple.js does: on wherever shareFor gives the half share; outside the band, the guard
+// on the elder's share decides (D99; couple-default.test.mjs check 2 holds that)
 { const reheld = (p, f) => ({ ...p, accounts: p.accounts.map(a => { const tot = p.accounts.filter(x => x.id.replace(/_(self|part)$/, '') === a.id.replace(/_(self|part)$/, '')).reduce((t, x) => t + (Number(x.balance) || 0), 0); return /_self$/.test(a.id) ? { ...a, balance: tot * f } : /_part$/.test(a.id) ? { ...a, balance: tot * (1 - f) } : a; }) });
-  let n = 0, differ = 0, onCount = 0;
+  let n = 0, half = 0, differ = 0, onCount = 0;
   for (const c of couples) for (const f of [null, 0.3, 0.4, 0.5, 0.6, 0.65, 0.9]) {
     const p = f === null ? c.plan : reheld(c.plan, f), mine = coupleSolverOn(p, true).on, theirs = shareFor(p) === 0.5;
-    n++; if (mine !== theirs) differ++; if (mine) onCount++;
+    n++; if (theirs) { half++; if (!mine) differ++; } if (mine) onCount++;
   }
-  ok('5. the page\'s switch module reads couple.js\'s band: the same band, and a plan on exactly where shareFor gives the half share', JSON.stringify(COUPLE_BAND) === JSON.stringify(SHARE_BAND) && differ === 0 && !coupleSolverOn(plan, false).on,
-    `${n} plans (the library's couples as held and re-held 30/70 to 90/10), ${onCount} on, ${differ} differing`); }
+  ok('5. the page\'s switch module reads couple.js\'s band: the same band, and every plan on where shareFor gives the half share', JSON.stringify(COUPLE_BAND) === JSON.stringify(SHARE_BAND) && half > 0 && differ === 0 && !coupleSolverOn(plan, false).on,
+    `${n} plans (the library's couples as held and re-held 30/70 to 90/10), ${half} at the half share, ${differ} of them off; ${onCount} on in all`); }
 
 // 6. the key: every single keyed as on the code before D5 (the digest of their 210 keys, taken on 3cec591e, fefdb387's parent:
 // research/solver/results-couple-solve-client.txt), and a person's key moved by their partner's age

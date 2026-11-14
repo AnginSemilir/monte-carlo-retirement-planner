@@ -1,7 +1,7 @@
 /*
  * THE COUPLES' SCREENS, PICTURED FOR THE MAINTAINER (Part D, D5's report). EXPLORATORY: pictures, deciding nothing; not in
  * run-all's lists. Builds the harness's light build with couples on (vite.config.js: SOLVER_HARNESS=1, its light settings,
- * COUPLES_ON=1), opens a library couple holding 60/40 in the new planner, waits for the solve and its figures, and takes:
+ * couples on in the source since D99), opens a library couple holding 60/40 in the new planner, waits for the solve and its figures, and takes:
  *   desktop (1,440 by 900): Your plan whole; You's Limits; What if; Details;
  *   phone (an iPhone 13): Your plan after "Solve my plan".
  * The light settings make the figures quick and coarse: the pictures show the screens, not a plan's numbers.
@@ -26,7 +26,7 @@ const load = rel => import(pathToFileURL(join(ROOT, rel)).href);
   const { buildScenarios } = await load('research/policy-study/scenarios.mjs');
   const c = buildScenarios().find(s => s.id === 'S069');
   const out = mkdtempSync(join(tmpdir(), 'shots-couple-'));
-  execFileSync(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT), COUPLES_ON: '1' } });
+  execFileSync(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', SOLVER_HARNESS_OPTS: JSON.stringify(LIGHT) } });
   const server = spawn(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--outDir', out, '--port', PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
   await new Promise(res => setTimeout(res, 3000));
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });

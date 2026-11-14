@@ -157,7 +157,7 @@ export function SolverAims({ plan, setPlan, solve, isPhone, fmt, updateConfig, t
       </Row>
       {/* the speed mode (D97 (3), D98): the chooser's shortlist on the paths that only count, with the maintainer's warning for a
           single or for a couple the solver runs; the plan carries it (src/solverSettings.js withSpeed), so turning it on or off
-          solves again. A couple the solver does not run (couples off, or outside the band: src/couplesSwitch.js) is not offered
+          solves again. A couple the solver does not run (couples off, or outside the guard: src/couplesSwitch.js) is not offered
           it, so their card is as before. Plants (solver-planner-ui.cjs): 'speedoff' (check 20), the box writes nothing;
           'speedcouple' (check 10), the box offered to a couple the solver does not run */}
       {(!(plan.demographics && plan.demographics.planningMode === 'couple') || coupleSolverOn(plan).on || PLANNER_PLANT.has('speedcouple')) && (
@@ -182,7 +182,7 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
   // a couple the solver runs (Part D, D5: the limits per person): each person's ceilings on their own pension and ISA; the
   // partner's are their own once either is set here (`tierCeilingPart`), and until then the household's, as the solver reads
   // them (src/solverSettings.js lockedPlan), so both are written together the first time either moves. A couple the solver
-  // does not run (couples off, or outside the band: src/couplesSwitch.js) keeps the card as before D5, one row a wrapper for
+  // does not run (couples off, or outside the guard: src/couplesSwitch.js) keeps the card as before D5, one row a wrapper for
   // the household (the reviewer of 14 Nov, finding 1; solver-planner-ui.cjs check 10, its plant 'lockspart' the card read
   // from the planning mode alone)
   const isCouple = d.planningMode === 'couple' && (coupleSolverOn(plan).on || PLANNER_PLANT.has('lockspart'));

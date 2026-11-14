@@ -90,6 +90,15 @@ export const withAims = (plan, patch = {}) => ({ ...plan, solver: { ...(plan.sol
  * and its base, a What if variant and each person of a couple (src/solver/couple.js) take it from the plan. Off, the plan
  * carries no field, so it solves and is named as before. research/tests/speed-mode.test.mjs.
  */
+/*
+ * THE COUPLES' DEFAULT (D99, 14 Nov; item 6's stage C, research/solver/registrations/couples-share.md, read once: PASS,
+ * results-couples-share.txt). A couple's two tables are each solved on that person's share of the household's spending: half
+ * where the first person holds 40% to 60% of the pots, their share of the pots outside it (src/solver/couple.js shareFor,
+ * `shareRule: 'pots'`). The solver's own default stays the half share, a research option there, as the candidate's options are
+ * off in the solver's code; the page solves a couple with this (src/solverClient.js startSolve). Which couples the page solves
+ * at all is src/couplesSwitch.js's guard. Pinned to STATE.md's decided-defaults block by research/tests/couple-default.test.mjs.
+ */
+export const APP_COUPLE = Object.freeze({ shareRule: 'pots' });
 export const SPEED_OPTIONS = Object.freeze({ chooserShortlist: 'order' });
 export const speedOf = plan => !!(plan && plan.solver && plan.solver.speed === 'fast');
 // plant 'speednone' (speed-mode.test.mjs): the solve not handed the speed mode the plan asks for

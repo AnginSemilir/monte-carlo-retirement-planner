@@ -26,10 +26,10 @@ import { arenaFor, failArena } from './solverPool.js';
 // Part C Phase 10 (B5): the page's isolation where its host sends no headers, asked for with the first solve (src/useSolver.js)
 export { ensureIsolation } from './isolation.js';
 import { solveKey } from './solverKey.js';
-import { dialBase } from './solverSettings.js';
+import { dialBase, APP_COUPLE } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
-export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs); 'halfdefault' solves a couple on the half share unless asked otherwise, as before D99 (couple-default.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -83,7 +83,9 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
 }
 
 /*
- * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's. The owner cuts
+ * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's, solved on the
+ * couples' default share rule (src/solverSettings.js APP_COUPLE, D99: each person's share of the pots outside 40% to 60%)
+ * unless `shareRule` names another ('half', the research's; couple-default.test.mjs). The owner cuts
  * each person's plan from it ('couple-plans'); each is then solved as a single's plan is, in turn, with their partner's age
  * today (`ageWith`) in its settings and so in its key: where the job is keyed (the plan's own solve, not a variant's), restored
  * from the store, else solved and stored, each split across workers, a dial position's base first (always keyed, as a
@@ -221,7 +223,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
     };
     (async () => {
       if (couple) {
-        const cpl = await ask('couple-plans', { plan, shareRule: couple.shareRule });
+        const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' ? undefined : APP_COUPLE.shareRule;
+        const cpl = await ask('couple-plans', { plan, shareRule });
         if (finished) return;
         let secs = 0, restored = true;
         for (const who of ['self', 'part']) {
@@ -240,12 +243,12 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
           secs += m.secs + (b ? b.secs : 0); restored = restored && !!m.restored;
         }
         phaseWho = null;
-        const c = await ask('couple', { household: cpl.household, shareRule: couple.shareRule });
+        const c = await ask('couple', { household: cpl.household, shareRule });
         if (finished) return;
         // the parts that hold both tables assemble the couple too, and run their shares of its paths (D5.6)
         if (shared && shared.both && PLANT.rule !== 'coupleowner') {
           const askers = shared.ws.map(askerOf);
-          await Promise.all(askers.map(a => a('couple', { household: cpl.household, shareRule: couple.shareRule })));
+          await Promise.all(askers.map(a => a('couple', { household: cpl.household, shareRule })));
           if (finished) return;
           kept = askers;
         } else if (shared) { shared.ws.forEach(w => { w.terminate(); const j = workers.indexOf(w); if (j > 0) workers.splice(j, 1); }); }

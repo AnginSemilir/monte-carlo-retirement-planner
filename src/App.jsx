@@ -8698,9 +8698,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
   // Part C Phase 7: the plan's solve state, nothing with the switch off (Phases 8 to 10 read it). A single household's plan, and
-  // a couple's where couples are on (Part D, D5: src/couplesSwitch.js COUPLES, off until D6, the maintainer's word) and the
-  // couple holds 40% to 60% of the pots with its first person (M4 in D66, until item 6's stage C reads); any other couple's
-  // plan keeps the app's rules and is not solved (D42), the couples card saying why
+  // a couple's where couples are on (Part D, D5 and D6: src/couplesSwitch.js COUPLES, on since D99) and the couple is inside
+  // the guard (its first person holding 40% to 60% of the pots, or its elder by age more than 60% and at most 90%: item 6's
+  // stage C, D99); any other couple's plan keeps the app's rules and is not solved (D42), the couples card saying why
   const coupleState = plan?.demographics?.planningMode === 'couple' ? coupleSolverOn(plan) : null;
   const solverRules = solverOn && (plan?.demographics?.planningMode === 'single' || !!(coupleState && coupleState.on));
   // the navigation: the new planner's four places, or the classic tabs

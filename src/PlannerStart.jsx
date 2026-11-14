@@ -82,7 +82,7 @@ export function QuickStart({ onStart, onFillAll, onClassic, isPhone, regions, st
       <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
         <button type="button" data-quick-all onClick={onFillAll} className={`font-semibold text-indigo-700 hover:underline cursor-pointer ${isPhone ? 'min-h-11' : ''}`}>Or fill in everything now</button>
       </div>
-      {/* Part D, D5: with couples on (src/couplesSwitch.js, D6 the maintainer's word) a couple fills in You for both of them */}
+      {/* Part D, D5 and D6: with couples on (src/couplesSwitch.js, on since D99) a couple fills in You for both of them */}
       {COUPLES ? (
       <div className="text-xs text-slate-600 border-t border-slate-100 pt-3" data-quick-couple="on">
         <span className="font-semibold text-slate-800">Planning for two?</span> Fill in everything now, choosing a plan for two people under You: the plan is worked out for the two of you together.{' '}

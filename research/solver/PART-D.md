@@ -304,3 +304,37 @@ restore, 'couple' or 'skipruns', which run only in the browser; a restored dial 
 people do not split alike, and a cancel or close with the shared parts alive run in no test; check 19's couple (S001 at the
 light settings) survives every path, so of its figures the bands alone test much, and no plant fails its reload by a fault in
 the restore.
+
+## D6. Couples on (14 Nov; D97 (1), D99)
+
+By item 6's stage C, read once on 14 Nov: PASS (`registrations/couples-share.md`, `results-couples-share.txt`,
+`reports/2026-11-14-stage-c-read.md`), and the maintainer's D97 (1), in one commit with the D-line naming the run (D99):
+- **the couples' default:** each person's table solved on their share of the pots outside 40% to 60%
+  (`src/solverSettings.js` `APP_COUPLE`, `shareRule: 'pots'`), the page's solve of a couple taking it
+  (`src/solverClient.js` `startSolve`). The solver's own default stays the half share, a research option there;
+- **the guard:** a couple runs the solver when its first person holds 40% to 60% of the pots, or when its first person
+  is the elder by age and holds more than 60% and at most 90% (`src/couplesSwitch.js` `ELDER_UP_TO`, `ELDER_FIRST`, the
+  ages read as the engine reads them). Every tested couple had its elder entered first. The deep review found why an
+  elder entered second is a different case: the joint move weighs both estates at the first person's own table's weight.
+  A couple that keeps the app's rules, and the couples card (which now says what has been tested):
+  - its younger partner holds more;
+  - its elder is entered second and holds more;
+  - its elder holds over 90%;
+  - its two people are the same age and are outside the band;
+- **the switch:** `COUPLES` on. Off, the rollback, is a harness's build with `COUPLES_OFF=1` (vite.config.js), which
+  `solver-planner-ui.cjs` check 10 builds to see a couple's screens exactly as before D5.
+
+Its tests:
+- `couple-default.test.mjs` (fast tier): the decided-defaults block against the code. The guard over the library's 210
+  couples re-held at twelve shares under four arrangements of their ages, held to the engine's own reading of the ages. The
+  page's solve of a couple held 90/10, cut and assembled on the pots' share. Its plants 'firstnotelder', 'eldereither'
+  and 'halfdefault' each fail exactly their check.
+- `couple-default-identity.mjs` (EXPLORATORY, `results-couple-default-identity.txt`): a couple's solve at the new defaults,
+  by the audit's route and the page's, against the code stage C tested, on four of its units.
+- `couple-solve-client.test.mjs` check 5: the switch on wherever the half share holds.
+- The harnesses:
+  - `solver-planner-ui.cjs` check 19, on the site's build: a 60/40 couple solved bit for bit; 90/10 with the elder solved;
+    25/75 the card 'uneven'.
+  - `solver-config-ui.cjs` and `solver-strategy-ui.cjs`: their couple a couple outside the guard.
+
+The reviewer on the change of default before `main`; merged on B1's gate with batch 3 and the speed mode (D92).

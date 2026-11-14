@@ -2,7 +2,7 @@
  * A COUPLE'S FIGURES IN THE BROWSER, AT THE APP'S SETTINGS (Part D, D5.6; research/solver/PART-D.md). EXPLORATORY: a measurement,
  * deciding nothing; a diagnostic, not in run-all's lists.
  *
- * Builds the site with couples on (vite.config.js: SOLVER_HARNESS=1 with no light settings, so the app's own, and COUPLES_ON=1),
+ * Builds the site with couples on (vite.config.js: SOLVER_HARNESS=1 with no light settings, so the app's own; couples on in the source since D99),
  * serves it with the preview server's isolation headers, and drives the solver through the page's own client
  * (window.__solverHarness, src/solverClient.js), as profile-browser.cjs does. On a library couple holding 60/40 (S069, 61 and
  * 58, some of its paths failing), split four ways:
@@ -44,7 +44,7 @@ function loadLine() {
   const { buildScenarios } = await load('research/policy-study/scenarios.mjs');
   const plan = buildScenarios().find(s => s.id === 'S069').plan;
   const out = mkdtempSync(join(tmpdir(), 'profile-couple-'));
-  execFileSync(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1', COUPLES_ON: '1' } });
+  execFileSync(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', out, '--emptyOutDir', '--logLevel', 'error'], { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], env: { ...process.env, SOLVER_HARNESS: '1' } });
   const server = spawn(process.execPath, [join(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--outDir', out, '--port', PORT, '--strictPort'], { cwd: ROOT, stdio: 'ignore' });
   await new Promise(res => setTimeout(res, 3000));
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });

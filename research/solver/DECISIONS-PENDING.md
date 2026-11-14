@@ -160,12 +160,21 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      `reports/2026-11-14-stage-c-read.md`): every one of the 36 units gains on the app's rules, none flagged; the pooled
      gain over the 24 re-held units +10.7 points (+10.4 to +10.9). By the registration and D97 (1) it decides the couples'
      default (`shareRule: 'pots'`) and lifts the guard for couples whose elder holds more than 60% and at most 90%. The
-     reviewer at the read and the deep reviewer next.
+     reviewer at the read: PASS, six MINORs, the write-up corrected (by unit the gain is survival's: the median pot lower
+     on 20 of 24 uneven units, tax higher on 10 of 36, spending lower on 5 of 36, the oldest couples). The deep review: the
+     PASS sound; **the guard opens only where the older partner is entered first**, as every tested couple was: the joint
+     move weighs both estates at the first person's own weight, which for an elder entered second would be three to nine
+     times any tested (D99 holds them back, "for what the panel tested"). Two leads for the maintainer, neither blocking:
+     the share is read from today's pots alone, not from each person's incomes (its one test, a share ensemble,
+     EXPLORATORY, about 6 core-hours, queued after the gate); and the joint estate weight itself (a household-level weight
+     would need its own test). For the maintainer's UI work: the couples' screens should say the pot is smaller on most
+     uneven couples, tax higher on the long-horizon ones, and the oldest couples gain survival, not spending.
    - **Next, in this order (D97):** (a) the speed mode: `chooserShortlist: 'order'` offered as an opt-in "Beta - speed
      mode", off by default, a warning for singles and one for couples, with its tests, to `main` with the next batch
-     (built, 11293476; its browser checks to run); (b) couples on under the opt-in by stage C's PASS: the share rule, the
-     guard on the elder's share and the switch, in one commit with the D-line naming the run, the reviewer on the change
-     of default, then one gate for batch 3, the speed mode and couples on; (c) the
+     (built, 11293476; its browser checks to run); (b) couples on under the opt-in by stage C's PASS (D99, built 14 Nov): the
+     share rule, the guard on the elder's share and the switch, in one commit with the D-line naming the run
+     (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
+     speed mode and couples on; (c) the
      shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
      (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
      joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and

@@ -59,7 +59,10 @@ function loadLine() {
     const run = async (plant, n1, nA) => p.evaluate(async ({ plan, seed, plant, n1, nA }) => {
       const c = await window.__solverHarness();
       c.PLANT.rule = plant;
-      const stored = [], t0 = performance.now(), job = c.startSolve(plan, { parts: 4, couple: { engine: window.__solverEngine }, onStored: (ok, why) => stored.push(ok ? 'stored' : `not stored (${why})`) });
+      // keyed as the page keys its own solve (src/useSolver.js), so each person's solve is restored and stored: since 14 Nov a
+      // couple's job without a key keys neither (src/solverClient.js; the second review of D5, finding 1)
+      const key = await c.keyOf(window.__solverEngine, plan, {});
+      const stored = [], t0 = performance.now(), job = c.startSolve(plan, { parts: 4, key, couple: { engine: window.__solverEngine }, onStored: (ok, why) => stored.push(ok ? 'stored' : `not stored (${why})`) });
       const done = await job.done, solveS = (performance.now() - t0) / 1000;
       const t1 = performance.now(); const s = await job.strategy(plan, seed, n1); const headS = (performance.now() - t1) / 1000;
       const t2 = performance.now(); const a = await job.actions(plan, seed, nA); const actS = (performance.now() - t2) / 1000;

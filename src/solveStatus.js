@@ -12,6 +12,15 @@
  */
 const PCT = p => (p && p.total ? Math.round((100 * p.done) / p.total) : null);
 
+/*
+ * The store's note on the solve in hand (useSolver's storeNote): a job can store more than one solve (a dial position's base
+ * and the position; a couple's two people, src/solverClient.js calling onStored for each), and the note keeps the first one
+ * not kept, so one kept after it does not hide it (research/tests/store-note.test.mjs; the second review of D5, 14 Nov,
+ * finding 2). STATUS_PLANT (tests only): 'lastnote' keeps the last store's result alone, as before.
+ */
+export const STATUS_PLANT = { rule: '' };
+export const storeNoteAfter = (note, stored, why) => (STATUS_PLANT.rule === 'lastnote' ? (stored ? null : why) : note || (stored ? null : why));
+
 // a solve's time: seconds under 90 seconds, whole minutes from there
 export const solveTime = secs => (secs < 90 ? `${Math.round(secs)} seconds` : `${Math.round(secs / 60)} minutes`);
 

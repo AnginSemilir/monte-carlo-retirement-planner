@@ -7,7 +7,8 @@
  * last passed in this clone is kept in the git directory (fast-skip.json, never committed). A test runs unless every
  * input is as it was then; one that started another program (git, python, a shell) always runs; one with no record runs.
  * Each test that runs is traced again, and a pass records it. Paths under node_modules count as package-lock.json; a path
- * that exists here but not in a clean checkout (untracked, and not build-engine.py's) is left out (checkoutPaths).
+ * that exists here but not in a clean checkout (untracked, and not build-engine.py's) is left out (checkoutPaths), kept in
+ * the cache instead, and a test runs again once git tracks one of them (localOf).
  *
  *   node research/tests/fast-skip.mjs [-j N]       run the fast tier's tests whose inputs changed (exit 1 on a failure;
  *                                                   exit 2 when all passed and fast-inputs.json changed: stage it)
@@ -17,6 +18,8 @@
  *                                                   inputs (listed names as empty stand-ins), traced again; it fails if
  *                                                   the test fails there or touches anything its record lacks
  *   --root DIR --tests a.test.mjs,b.test.mjs --inputs FILE --cache FILE     another tree and list (fast-skip.test.mjs)
+ *   --plant untracked                                tests only: the skip as it was before 14 Nov, blind to a path git
+ *                                                   began to track (fast-skip.test.mjs check 5)
  * CI runs the whole fast tier on every push (run-all.mjs fast), so a skip here can never hide a failure from CI.
  */
 import { spawn, execFileSync } from 'node:child_process';
@@ -65,10 +68,20 @@ export function checkoutPaths(root, generated = GENERATED) {
   for (const f of files) { s.add(f); for (let p = f; p.includes('/');) { p = p.slice(0, p.lastIndexOf('/')); s.add(p); } }
   return s;
 }
+const localIn = (root, known) => p => { if (known.has(p)) return false; try { lstatSync(join(root, p)); return true; } catch { return false; } };
 export function keepCheckout(root, rec, known) {
   if (!known) return rec;
-  const local = p => { if (known.has(p)) return false; try { lstatSync(join(root, p)); return true; } catch { return false; } };
+  const local = localIn(root, known);
   return { ...rec, read: rec.read.filter(p => !local(p)), probe: rec.probe.filter(p => !local(p)), list: rec.list.filter(p => !local(p)) };
+}
+/* the paths keepCheckout leaves out of a record (there in this clone, not in a clean checkout), kept in this clone's cache:
+   once git tracks one, the test runs again so its record gains it. Without this a file a test read while it was new and
+   untracked never reached the record: committing it changed no input the skip looks at, so the test was skipped and the
+   full tier's trace check failed on the committed tree (settings.test.mjs reading batch-other-order.sh, Full 259, 14 Nov) */
+export function localOf(root, rec, known) {
+  if (!known) return [];
+  const local = localIn(root, known);
+  return [...new Set([...rec.read, ...rec.probe, ...rec.list].filter(local))].sort();
 }
 
 /* run one test file under the trace, in a tree; resolves to { code, secs, tail, traces } */
@@ -131,12 +144,19 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
 
   // which tests run, and why
+  const PLANT = (opt('--plant') || '').split(',');   // tests only (fast-skip.test.mjs check 5): 'untracked', the skip before 14 Nov
+  const known0 = args.includes('--all') ? null : checkoutPaths(ROOT);
   const plan = tests.map(f => {
     const rec = inputs[f], c = cache[f];
     if (args.includes('--all')) return { f, why: 'asked' };
     if (!rec) return { f, why: 'no traced inputs yet' };
     if (rec.spawns.length) return { f, why: `starts ${rec.spawns.join(', ')}` };
     if (!c) return { f, why: 'no pass recorded in this clone' };
+    if (!PLANT.includes('untracked')) {
+      if (known0 && !Array.isArray(c.local)) return { f, why: 'its pass kept no list of the untracked paths it touched' };
+      const now = known0 ? c.local.filter(p => known0.has(p)) : [];
+      if (now.length) return { f, why: `now in git: ${now.slice(0, 4).join(', ')}${now.length > 4 ? ` and ${now.length - 4} more` : ''}` };
+    }
     const now = fingerprint(ROOT, rec), changed = Object.keys(now).filter(k => now[k] !== c.fp[k]);
     return changed.length || !sameFp(now, c.fp) ? { f, why: `changed: ${changed.slice(0, 4).join(', ') || 'its input list'}${changed.length > 4 ? ` and ${changed.length - 4} more` : ''}` } : { f, why: null };
   });
@@ -156,9 +176,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const r = await traced(ROOT, testPath(f));
     console.log(`${r.code === 0 ? 'ok  ' : 'FAIL'} ${f} (${r.secs} s)${r.code === 0 ? '' : `: ${r.tail.slice(0, 300)}`}`);
     if (r.code !== 0) { bad.push(f); delete cache[f]; save(); return; }
-    const rec = keepCheckout(ROOT, recordOf(r.traces), known);
+    const raw = recordOf(r.traces), rec = keepCheckout(ROOT, raw, known);
     if (JSON.stringify(rec) !== JSON.stringify(inputs[f])) { inputs[f] = rec; inputsChanged = true; }
-    cache[f] = { fp: fingerprint(ROOT, rec), passed: new Date().toISOString() };
+    cache[f] = { fp: fingerprint(ROOT, rec), local: localOf(ROOT, raw, known), passed: new Date().toISOString() };
     save();
   });
   for (const f of Object.keys(inputs)) if (!tests.includes(f) && !opt('--tests')) { delete inputs[f]; inputsChanged = true; }

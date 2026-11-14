@@ -363,3 +363,4 @@
 13 Nov 23:16 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 7.29 4.16 2.98 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
 14 Nov 00:24 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 0.40 0.12 0.04 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
 14 Nov 02:58 UK | main | research/solver/registrations/couples-share.md | code 7002a1fec94c | ce8ca278 | load 0.32 0.09 0.03 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-couples-share.sh
+14 Nov 14:57 UK | main | none: EXPLORATORY: the share ensemble (SHARE-ENSEMBLE.md) | code b7cd77e5ebec | edb5f861 | load 1.11 1.51 1.93 | host Intel(R) Xeon(R) Processor @ 2.10GHz x4 | bash research/solver/batch-share-ensemble.sh

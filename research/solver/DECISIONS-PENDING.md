@@ -11,6 +11,17 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D98, 14 Nov, morning): "Agreed with all"**, on the agent's reply to D97: (2) as read, a couple's tie rule
+passing its rule joins the couples' candidate with no further word (the reviewer on the change of default); (3) the speed
+mode's warnings as drafted, for a single: "Speed mode works out your figures about twice as fast by looking at fewer
+options in each simulated year. In our tests it very slightly lowered the chance your money lasts: about 2 in 10,000 on
+average, and at most about 2 in 1,000. This year's recommended actions still use every option." and for a couple: "For
+couples, speed mode is less tested. It ranged from slightly slower to nearly twice as fast, and it spent a little less and
+held slightly less in shares than the full calculation. Use the full calculation for decisions."; (4) the harvest
+ceiling's allowance step offered at both places, where it stood before and where it stands now, the solver choosing:
+built off in code with its test, read EXPLORATORY by its rule committed first, its passing the ruling naming the run (in
+the candidate, the reviewer on the change of default), failing closed and reported.
+
 **RULED (D97, 14 Nov, morning): the four items of the morning report.** The maintainer: "1 - go with your
 recommendation 2 - add the test to the plan after couples, but don't wait for me to ok it. 3 - run a wider test on it.
 For now add as an optional 'beta - speed mode' toggle with a warning to singles and couples. 4 - wouldn't the point of
@@ -153,12 +164,12 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
      (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
      joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and
-     reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing, if the maintainer
-     says so.
+     reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing (D98): built off
+     with its test, read EXPLORATORY by its rule committed first; passing, it joins the candidate without another word,
+     the reviewer on the change of default; failing, closed and reported.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
-   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval, the
-     allowance step (D97 (4)).
+   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
 2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.

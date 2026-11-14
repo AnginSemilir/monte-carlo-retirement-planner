@@ -53,8 +53,8 @@ person's table as it was, so it is restored rather than solved again (`couple-li
 
 **The reviewer.** The first review failed D5 on three counts, each fixed once (D81 (F)) and now with the reviewer again
 (`reviews/2026-11-14-d5.md`): with couples off a couple's limits card had changed; a single carrying a partner's ceiling had
-the riskier tiers switched off; and the one measurement at the app's settings restored neither table, which was the
-browser's limit above.
+the tier above (the riskier tier the solver may open) switched off; and the one measurement at the app's settings restored
+neither table, which was the browser's limit above.
 
 **Found on the way and fixed.** Under a split dial position, every worker carried the base's reference counts, so their
 sum was the number of workers times the true count. It was a diagnostic only; no figure moved.
@@ -65,7 +65,7 @@ sum was the number of workers times the true count. It was a diagnostic only; no
   single; a returning single at a dial position above the first now holds its base in every worker (more than before, not
   measured).
 - A couple's joint move takes no tie rule above the estate cap (open for you in `DECISIONS-PENDING.md`).
-- Some paths of the split restore run only in the browser, and some in no test (PART-D.md lists them).
+- Some parts of the split restore are exercised only in the browser, and some by no test (PART-D.md lists them).
 
 **Next.** The reviewer on these fixes; then B1's gate on the third batch, which carries D5 with the switch off and the
 store's fix, then the merge under D92. Couples on (D6) is yours, after stage C reads.

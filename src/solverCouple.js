@@ -18,12 +18,27 @@ import { prepareForSolve } from './solverSettings.js';
 import { appPlan } from './solverApp.js';
 
 /* research/tests/couple-solve-client.test.mjs only: 'swap' hands each person the other's table; 'noage' cuts the plans with no
-   partner's age (each solved as a single would be) */
+   partner's age (each solved as a single would be); research/tests/couple-default.test.mjs only: 'rawages' leaves a blank age
+   or end age as the plan has it, as before D99's fix round (householdPlan) */
 export const PLANT = { rule: '' };
 
 /* the household's plan as a couple's tables are solved on: prepared as a single's is (prepareForSolve, then appPlan, so the
-   tiers' returns are the tables'), as research/solver/audit-couples.mjs solverPlan prepares the candidate's */
-export const householdPlan = (E, plan) => appPlan(E, prepareForSolve(E, plan));
+   tiers' returns are the tables'), as research/solver/audit-couples.mjs solverPlan prepares the candidate's. Each person's age
+   today and the plan's end age are then given as the engine reads them (App.jsx buildContext: a blank age 40 for the first
+   person and the first person's for the partner, a blank end age 100, an end age at or below the first person's age a year
+   past it), wherever the plan's own figures would read otherwise: couple.js singlePlanFor reads them as plain numbers, so a
+   blank age cut that person's plan at age 0 and a blank end age gave each person no horizon (the reviewer on D99, finding 4;
+   research/tests/couple-default.test.mjs check 5). A plan whose figures already read as the engine's is returned as it was,
+   so every couple solved before is solved the same. */
+export function householdPlan(E, plan) {
+  const hp = appPlan(E, prepareForSolve(E, plan));
+  if (PLANT.rule === 'rawages') return hp;
+  const d = hp.demographics, ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(hp)));
+  const want = { currentAgeSelf: ctx.ageSelf0, currentAgePart: ctx.agePart0, terminalAge: ctx.terminalAge };
+  const reads = (v, x) => v !== '' && v !== null && v !== undefined && typeof v !== 'boolean' && Number(v) === x;
+  const fix = Object.fromEntries(Object.entries(want).filter(([k, x]) => !reads(d[k], x)));
+  return Object.keys(fix).length ? { ...hp, demographics: { ...d, ...fix } } : hp;
+}
 
 /*
  * The two people's plans as solveCouple cuts them (couple.js: the share of the household's spending, singlePlanFor, then

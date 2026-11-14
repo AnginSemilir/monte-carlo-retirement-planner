@@ -337,7 +337,17 @@ Its tests:
     25/75 the card 'uneven'.
   - `solver-config-ui.cjs` and `solver-strategy-ui.cjs`: their couple a couple outside the guard.
 
-The reviewer on the change of default before `main`; merged on B1's gate with batch 3 and the speed mode (D92).
+Not yet measured: a couple's solve on a phone. Each part holds both people's tables, about twice a single's memory, and
+Phase 11's phone budget and memory were measured on a single's. It is in the queue.
+
+The reviewer on the change of default: FAIL, one BLOCKING, answered in one fix with its five MINORs
+(`reviews/2026-11-14-default-d99.md`; `reports/2026-11-14-stage-c-read.md`):
+- the coverage list follows the switch;
+- the 90/10 couple is solved to the end in the harness, against a reference on the pots' share;
+- a blank age or end age is read as the engine reads it;
+- the words at the guard's edges are corrected.
+
+The reviewer again before `main`; merged on B1's gate with batch 3 and the speed mode (D92).
 
 ## D7. Couples in the other order (planned; D100)
 

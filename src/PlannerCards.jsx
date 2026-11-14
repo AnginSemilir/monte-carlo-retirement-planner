@@ -20,7 +20,9 @@ import { DiagnosticCopy } from './DiagnosticCopy.jsx';
    (src/couplesSwitch.js coupleSolverOn); `share` the first person's share of the pots */
 export function Couples({ isPhone, onClassic, onOnePerson, why = 'off', share = null }) {
   if (PLANNER_PLANT.has('nocouple')) return null;
-  const uneven = why === 'uneven', pc = x => `${Math.round(100 * x)}%`;
+  // a share shown at an edge of the guard (10%, 40%, 60%, 90%) is not rounded onto it, so a couple just outside is not told it holds
+  // what was tested (the reviewer on D99, finding 5): "just over 90%", "just under 40%"
+  const uneven = why === 'uneven', pc = x => { const p = 100 * x, r = Math.round(p); return [10, 40, 60, 90].includes(r) && Math.abs(p - r) > 1e-9 ? `just ${p > r ? 'over' : 'under'} ${r}%` : `${r}%`; };
   return (
   <section data-planner-couple={why} className="p-5 bg-surface border border-slate-200/90 rounded-xl space-y-3 max-w-3xl">
     {uneven ? <>

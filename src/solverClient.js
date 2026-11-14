@@ -223,7 +223,8 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
     };
     (async () => {
       if (couple) {
-        const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' ? undefined : APP_COUPLE.shareRule;
+        // plant 'couplehalf' (solver-planner-ui check 19, a build's PLANNER_PLANT): the page solving a couple on the half share, as before D99
+        const shareRule = couple.shareRule !== undefined ? couple.shareRule : PLANT.rule === 'halfdefault' || PLANNER_PLANT.has('couplehalf') ? undefined : APP_COUPLE.shareRule;
         const cpl = await ask('couple-plans', { plan, shareRule });
         if (finished) return;
         let secs = 0, restored = true;

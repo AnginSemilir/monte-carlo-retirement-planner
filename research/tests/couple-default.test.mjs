@@ -18,11 +18,20 @@
  *      asked): a couple held 90/10 is cut and assembled on the pots' share, each person's plan cut on 90% and 10% of the
  *      household's spending, the job's record naming 'pots' and 0.9; a rule the caller names ('half') is kept; and the
  *      solver's own default stays the half share (src/solverCouple.js couplePlans unasked), the app's default living in the
- *      app's settings as the candidate's do.
+ *      app's settings as the candidate's do;
+ *   4. what the page tells a user about couples follows the switch (the reviewer on D99, finding 1): the solver's coverage
+ *      list (src/solverApproximations.js, the coverage card and the documentation) says which couples it plans for and that any
+ *      other keeps the app's rules, with couples on; with them off (the rollback), the line before D99; eight lines either way;
+ *   5. a couple's cut gives each person what the couple's own run reads (the reviewer on D99, finding 4): over 30 of the
+ *      library's couples, with each person's age, each retirement age or the plan's end age left blank, the ages as text, or
+ *      the end age at the first person's age, each person's plan (src/solverCouple.js couplePlans) has the age today, the
+ *      retirement age, the salary, the state pension and the horizon the household's context gives that person.
  * Plants (--planted runs each and wants its checks to fail): 'firstnotelder' (src/couplesSwitch.js: the first person taken for
  * the elder whatever the ages: check 2), 'eldereither' (src/couplesSwitch.js: the guard lifted for an elder entered second too,
  * as D99's first draft: check 2), 'halfdefault' (src/solverClient.js: a couple solved on the half share unless asked otherwise,
- * as before D99: check 3). Check 1's planted blocks run in every run.
+ * as before D99: check 3), 'oldcouples' (src/solverApproximations.js: the line before D99 with couples on: check 4), 'rawages'
+ * (src/solverCouple.js householdPlan: a blank age or end age left as the plan has it: check 5). Check 1's planted blocks run
+ * in every run.
  *   node research/tests/couple-default.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -32,13 +41,14 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { COUPLES, COUPLE_BAND, ELDER_UP_TO, ELDER_FIRST, coupleSolverOn, elderOf, PLANT as SWITCH_PLANT } from '../../src/couplesSwitch.js';
 import { APP_COUPLE } from '../../src/solverSettings.js';
-import { couplePlans } from '../../src/solverCouple.js';
+import { couplePlans, PLANT as COUPLE_PLANT } from '../../src/solverCouple.js';
+import { solverApproximations, COUPLES_LINE, PLANT as WORDS_PLANT } from '../../src/solverApproximations.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']]]) {
+  for (const [plant, want] of [['firstnotelder', ['2']], ['eldereither', ['2']], ['halfdefault', ['3']], ['oldcouples', ['4']], ['rawages', ['5']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_DEFAULT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c)) && failed.every(c => want.includes(c));
@@ -49,6 +59,8 @@ if (process.argv.includes('--planted')) {
 }
 const PLANTED = process.env.COUPLE_DEFAULT_PLANT || '';
 if (PLANTED === 'firstnotelder' || PLANTED === 'eldereither') SWITCH_PLANT.rule = PLANTED;
+if (PLANTED === 'oldcouples') WORDS_PLANT.rule = PLANTED;
+if (PLANTED === 'rawages') COUPLE_PLANT.rule = PLANTED;
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
@@ -133,6 +145,32 @@ const withAges = (plan, how) => { const re = JSON.parse(JSON.stringify(plan)), d
       && !!cutH && cutH.shareRule === 'half' && !!joinedH && joinedH.shareRule === 'half' && named.d.couple.shareRule === 'half' && named.d.couple.share === 0.5
       && research.shareRule === 'half' && research.share === 0.5,
     `${c.id} held 90/10, target ${target}: asked to cut on ${cut && cut.shareRule} (each person's spending ${cut ? cut.spend.map(x => Math.round(x)).join(' and ') : '-'}), to assemble on ${joined && joined.shareRule}, the record ${byDefault.d.couple.shareRule} at ${byDefault.d.couple.share}; named 'half': ${cutH && cutH.shareRule}, ${joinedH && joinedH.shareRule}, ${named.d.couple.shareRule} at ${named.d.couple.share}; couplePlans unasked: ${research.shareRule} at ${research.share}`); }
+
+// 4. the words the page shows about couples follow the switch
+{ const on = solverApproximations(), off = solverApproximations({ couples: false });
+  const lineOn = on.find(l => /couple/i.test(l)), lineOff = off.find(l => /couple/i.test(l));
+  const saysWho = !!lineOn && /40% to 60%/.test(lineOn) && /entered first/.test(lineOn) && new RegExp(`${Math.round(100 * ELDER_UP_TO)}%`).test(lineOn) && /Any other couple's plan keeps the app's own rules/.test(lineOn);
+  ok('4. the coverage list says which couples the solver plans for and that any other keeps the app\'s rules (couples on); the line before D99 with couples off; eight lines either way',
+    COUPLES && on.length === 8 && off.length === 8 && saysWho && lineOn === COUPLES_LINE.on && lineOff === COUPLES_LINE.off && !on.includes(COUPLES_LINE.off),
+    `on: "${lineOn}"; off: "${lineOff}"`); }
+
+// 5. a couple's cut against the couple's own context, whatever is left blank
+{ const FIELDS = ['currentAgeSelf', 'currentAgePart', 'retireAgeSelf', 'retireAgePart', 'terminalAge'];
+  const variants = [...FIELDS.map(f => [`${f} blank`, d => { d[f] = ''; }]),
+    ['the ages as text', d => { d.currentAgeSelf = String(d.currentAgeSelf); d.currentAgePart = String(d.currentAgePart); }],
+    ['the end age at the first person\'s age', d => { d.terminalAge = d.currentAgeSelf; }]];
+  let n = 0, differ = 0; const first = [];
+  for (const c of couples.slice(0, 30)) for (const [name, f] of variants) {
+    const p = JSON.parse(JSON.stringify(c.plan)); f(p.demographics);
+    const hctx = E.buildContext(E.resolveMpaa(E.normalizePlan(p))), cut = couplePlans(E, p);
+    for (const [i, who] of [[0, 'self'], [1, 'part']]) {
+      const pctx = E.buildContext(cut.plans[who]), o = hctx.owners[i], q = pctx.owners[0];
+      const same = q.age0 === o.age0 && q.retireAge === o.retireAge && q.salary === o.salary && q.statePension === o.statePension && pctx.totalYears === hctx.totalYears;
+      n++; if (!same) { differ++; if (first.length < 3) first.push(`${c.id}, ${name}, ${who}: age ${q.age0} (the couple's ${o.age0}), retiring ${q.retireAge} (${o.retireAge}), ${pctx.totalYears} years (${hctx.totalYears})`); }
+    }
+  }
+  ok('5. a couple\'s cut gives each person the age, retirement age, salary, state pension and horizon the couple\'s own run reads, whatever is left blank',
+    n === 30 * variants.length * 2 && differ === 0, `${n} people (30 couples, ${variants.length} variants), ${differ} differing${first.length ? `: ${first.join('; ')}` : ''}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

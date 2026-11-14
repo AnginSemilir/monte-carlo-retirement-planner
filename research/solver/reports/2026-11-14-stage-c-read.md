@@ -47,8 +47,9 @@ These are the trades the solver makes for keeping the money lasting. The details
 - the new share rule becomes the couples' default;
 - couples can now use the solver when they hold 40% to 60% each, or when the older partner holds more than 60% and at
   most 90%, as long as the older partner is the one entered first, as "you";
-- a couple whose younger partner holds more, whose older partner is entered second, or where one holds more than 90%,
-  keeps the app's rules until a test of those reads.
+- a couple whose younger partner holds more, whose older partner is entered second and holds more than 60%, or where
+  one holds more than 90%, keeps the app's rules until a test of those reads. Inside 40% to 60% a couple runs whichever
+  way round it is entered, as before.
 
 The second reviewer found the reason for "entered first", described below. Every tested couple had the older partner
 first. The guard therefore opens only for that case, which is what the registration's "for what the panel tested" allows.
@@ -179,6 +180,33 @@ on every one of 500 paths: survival, pot, estate, spending delivered and tax.
 - The tie-break in the app's candidate does not reach a couple (D95).
 - The page solves a couple as the registered arm did.
 
+## The reviewer on the change of default: FAIL, one fix (`reviews/2026-11-14-default-d99.md`)
+
+**The blocking finding.** The new planner's coverage list still said "It solves for one person. A couple's plan keeps the
+app's own rules." That is false for every couple the solver now runs. The list feeds the Details card and the
+documentation, and nothing checked its words. It now follows the switch: it names the couples the solver plans for and
+says any other keeps the app's rules, and the rollback build shows the old line (`couple-default.test.mjs` check 4, its
+plant failing it).
+
+**The minor findings, each answered in the same fix round:**
+- **No check ran an uneven couple to the end in the page.** The harness's couple reference now solves on the couples'
+  default share rule, and the 90/10 couple is solved to the end and checked against it bit for bit. A page solving it on
+  the half share fails there: the plant `couplehalf`.
+- **A blank age broke a couple's cut.** A partner's age, the first person's age or the plan's end age left blank was read
+  as nought, so that partner's half was solved from age 0, or with no horizon. The engine reads a blank as 40, as the
+  first person's age, or as 100. The household's plan now carries the engine's reading wherever the plan's own would differ,
+  and every plan that was already readable is unchanged. The test of its class: `couple-default.test.mjs` check 5, which
+  compares 30 couples under seven kinds of blank or odd entry against the couple's own run. With the fix taken out, it
+  fails.
+- **Inside 40% to 60% a couple runs whichever way round it is entered.** The records now say "the elder entered second and
+  holding more than 60%". When the first person holds 40%, the estate weight is 0.05 per household pound, above the 0.033
+  the 60/40 couples ran. That is a lead for D100's stage A; the band is the maintainer's.
+- **Two pieces of wording** a couple outside the guard could read:
+  - the quick start no longer says every couple is worked out together;
+  - the couples card no longer rounds a share onto the guard's edge: 90.4% shows as "just over 90%".
+- **A couple's solve on a phone has not been measured.** It holds two tables in every part. This is recorded, and the
+  measurement is in the queue.
+
 ## What a PASS reaches, and what it does not
 
 The panel's uneven units hold 75% and 90% with the elder entered first.
@@ -189,7 +217,7 @@ The panel's uneven units hold 75% and 90% with the elder entered first.
 
 **Not covered, so these keep the app's rules:**
 - the younger partner holding more;
-- the elder entered second;
+- the elder entered second and holding more than 60% (inside 40% to 60% either order runs, the maintainer's band);
 - the elder holding over 90%;
 - equal ages outside the band.
 

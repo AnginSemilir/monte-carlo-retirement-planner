@@ -190,8 +190,9 @@ plant failing it).
 
 **The minor findings, each answered in the same fix round:**
 - **No check ran an uneven couple to the end in the page.** The harness's couple reference now solves on the couples'
-  default share rule, and the 90/10 couple is solved to the end and checked against it bit for bit. A page solving it on
-  the half share fails there: the plant `couplehalf`.
+  default share rule, and the 90/10 couple is solved to the end and checked against it bit for bit. That check first runs
+  in B1's gate on this commit. Its plant `couplehalf`, a page solving the couple on the half share, is run alone before the
+  merge; it must fail exactly that line, and the run is recorded.
 - **A blank age broke a couple's cut.** A partner's age, the first person's age or the plan's end age left blank was read
   as nought, so that partner's half was solved from age 0, or with no horizon. The engine reads a blank as 40, as the
   first person's age, or as 100. The household's plan now carries the engine's reading wherever the plan's own would differ,
@@ -206,6 +207,18 @@ plant failing it).
   - the couples card no longer rounds a share onto the guard's edge: 90.4% shows as "just over 90%".
 - **A couple's solve on a phone has not been measured.** It holds two tables in every part. This is recorded, and the
   measurement is in the queue.
+
+**The reviewer again: PASS, two MINORs** (`reviews/2026-11-14-default-d99-2.md`). Every fix is in. The household's plan
+moved none of 246 couples' plans: the library's 210 and stage C's 36. The two MINORs:
+- **A partner entered second who would pass 120 before the plan ends gets a shorter table than the couple's horizon.**
+  - The cut gives each person the couple's years from their own age, and a single plan's end age stops at 120.
+  - The solve's figures then fail with the failure card. It is loud, and no figure is wrong.
+  - It is rare: it needs an age gap wider than 120 less the end age. One case is 70 and 49 with an end age of 100. Another
+    is a blank first age read as 40 beside a partner of 66, with an end age of 95.
+  - It predates D99, but couples on make it reachable. Its fix, the guard keeping such a couple on the app's rules with a
+    check of its class, goes with the next batch. D7's stage A enters one such couple.
+- **The 90/10 check and its plant** were described as shown before they had run. They are corrected above, and the plant's
+  run alone is recorded before the merge.
 
 ## What a PASS reaches, and what it does not
 

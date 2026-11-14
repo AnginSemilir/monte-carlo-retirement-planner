@@ -187,7 +187,9 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      (`couple-default.test.mjs`; `PART-D.md` D6), the reviewer on the change of default, then one gate for batch 3, the
      speed mode and couples on; then the share ensemble (`SHARE-ENSEMBLE.md`, its rule committed, EXPLORATORY) and
      couples in the other order (D100: `PART-D.md` D7, stage A EXPLORATORY, then stage B registered, its PASS opening the
-     guard for the elder entered second); a couple's solve measured on the phone's budget (each part holds both tables;
+     guard for the elder entered second); the guard's age cap (a partner who would pass 120 before the plan ends kept on the
+     app's rules, with its check: the reviewer on D99, second round, MINOR 1), with the next batch; a couple's solve
+     measured on the phone's budget (each part holds both tables;
      Phase 11 measured a single's), before sharing publicly; (c) the
      shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
      (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it

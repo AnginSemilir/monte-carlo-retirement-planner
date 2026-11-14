@@ -347,7 +347,16 @@ The reviewer on the change of default: FAIL, one BLOCKING, answered in one fix w
 - a blank age or end age is read as the engine reads it;
 - the words at the guard's edges are corrected.
 
-The reviewer again before `main`; merged on B1's gate with batch 3 and the speed mode (D92).
+The reviewer again: PASS, two MINORs (`reviews/2026-11-14-default-d99-2.md`).
+
+Known and not yet fixed (the reviewer's MINOR 1): a partner entered second who would pass 120 before the plan ends gets a
+table shorter than the couple's horizon. The cut gives each person the couple's years from their own age, and a single
+plan's end age stops at 120. The solve's figures then fail with the failure card. It is loud, and no figure is wrong.
+- It is rare: it needs an age gap wider than 120 less the end age.
+- It predates D99.
+- Its fix, the guard keeping such a couple on the app's rules with a check of its class, goes with the next batch.
+
+Merged on B1's gate with batch 3 and the speed mode (D92), the plant `couplehalf`'s run alone recorded first.
 
 ## D7. Couples in the other order (planned; D100)
 
@@ -373,7 +382,9 @@ person's age.
    - equal ages keep the first person's weight.
 2. The read. Stage C's twelve couples are entered both ways: the elder first as tested, and the younger first with the
    horizon held to the same year. Each is held so the elder holds 75% and 90%, each order is solved with and without the
-   option, and all are run on the same paths. The rule, committed first: the other order within D4's targets of the
+   option, and all are run on the same paths. One couple is entered with an age gap wide enough that the partner entered
+   second would pass 120 before the plan ends (the reviewer on D99, second round, MINOR 1), to show the guard's age cap
+   holds in either order. The rule, committed first: the other order within D4's targets of the
    tested order (0.5 points a couple, 0.2 pooled), with the option and without it.
    - With the option within the targets: stage B tests it.
    - Within them without it too: stage B tests the candidate as it is.

@@ -247,7 +247,10 @@ const firstDiff = (a, b, at = '') => {
         if (st && stripSeen[stripSeen.length - 1] !== st.state) stripSeen.push(st.state);
         if (cd && cardSeen[cardSeen.length - 1] !== cd) cardSeen.push(cd);
         const m = st && /(\d+)%/.exec(st.text); if (m && st.state === 'solving') pcts.push(Number(m[1]));
-        if (cd === 'filling' && typAtFilling === null) typAtFilling = await p.$eval('[data-outlook="spend"]', el => el.dataset.outlookTypical).catch(() => null);
+        // the typical line as the first step drew it: read once it is drawn (between the first step's figures and the ten-year
+        // rows' answer the outlook is drawn without it, data-outlook-typical empty; read in that moment, an undrawn line passed
+        // for a moved one: B1's gate on batch 3, 14 Nov, check 5)
+        if (cd === 'filling' && !typAtFilling) typAtFilling = (await p.$eval('[data-outlook="spend"]', el => el.dataset.outlookTypical).catch(() => null)) || null;
         if (cd === 'done' && st && st.state === 'solved') break;
         await p.waitForTimeout(200);
       }
@@ -302,7 +305,7 @@ const firstDiff = (a, b, at = '') => {
       const raiseWant = node.s.raise && !(node.s.raise.t === node.s.headline.retireT && node.s.raise.level <= node.s.headline.startLevel) ? 'shown' : 'none';
       ok(5, 'both charts drawn, every mark at the worker\'s figures (the bands, the money\'s bands, the typical run)', !!o && bandsDrawn && typDrawn && wDrawn, o ? `${o.bpts.length} band marks, ${o.tpts.length} typical marks, ${o.wpts.length} money marks` : 'no charts');
       ok(5, 'the line\'s first ten years are the ten-year rows\' spending, and it has not moved since the first step', !!o && ten.length === 10 && JSON.stringify(ten) === JSON.stringify(o.typical.slice(0, 10)) && (typAtFilling === null || typAtFilling === JSON.stringify(o.typical)),
-        o ? `${ten.join(' ')} against ${o.typical ? o.typical.slice(0, 10).join(' ') : '-'}` : '');
+        o ? `${ten.join(' ')} against ${o.typical ? o.typical.slice(0, 10).join(' ') : '-'}; since the first step ${typAtFilling === null ? 'not seen drawn while filling' : typAtFilling === JSON.stringify(o.typical) ? 'unmoved' : 'MOVED'}` : '');
       ok(5, `the back mark at the headline's back year (${page && page.headline.backYear}) and the raise line ${raiseWant}`, !!o && (page.headline.backT === null ? !o.backX : near(Number(o.backX), age0 + page.headline.backT)) && o.raise === raiseWant, o ? `mark at ${o.backX}; raise ${o.raise}` : '');
 
       // 6. this year, the rule, ten years, the comparison

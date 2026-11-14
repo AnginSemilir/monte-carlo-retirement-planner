@@ -35,6 +35,8 @@
  *   9  Details: the solved ledger with its action column; the history check; Assumptions with Display and the solver's
  *      settings; the docs section;
  *  10  a couple: the couples card on three places; "Open the classic planner" shows the classic tabs, and a reload keeps them;
+ *      with couples off, You's Limits as before D5 (a row a wrapper for the household, no line for the two of them) and its
+ *      first change writing the household's ceiling alone (the reviewer of 14 Nov, finding 1);
  *  11  a failure (the worker planted to fail every question): the failure card, "Try again", the classic link, your current
  *      approach's figures under it, its money chart named as yours alone (there is no solved plan), the levers still usable;
  *  12  the phone: the four places each 44px or more; no horizontal scroll on any place; nothing solved and no solver chunk
@@ -58,7 +60,8 @@
  *      card, the headline said to the two of them, this year's actions each named for its person, every figure the
  *      reference's bit for bit (the couple solved from the unbundled source in this Chromium as the worker solves it:
  *      src/solverCouple.js couplePlans, solveForApp for each person with their partner's age, assembleCouple; strategyOf on
- *      it); a reload restores both tables from the store, split across the parts (D5.6), every figure the reference's again;
+ *      it); a reload restores both tables from the store (the diagnostic: restored, parts above one), every figure the
+ *      reference's again (whether the parts then run shares of the paths the page cannot show: couple-split.test.mjs);
  *      You's Limits gives each person their own ceiling rows and says the pension age and the lump sum hold for both;
  *      the same couple re-held 90/10 shows the couples card with its reason ('uneven'); and check 10's card, couples off,
  *      gives its reason 'off';
@@ -68,7 +71,8 @@
  * Its plants (PLANNER_PLANT, built into the preview: src/plannerPlant.js), each failing exactly its own check, all in one
  * run with --plants (results-planner-ui-plants.txt): leversunder (3), fifthplace (1), onefewer (2), noband (4), chartyear (5),
  * keyguard (7), contribold (7: Your money's contributions drawn grey and their increase named as the classic table names it),
- * nocouple (10), failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
+ * nocouple (10), lockspart (10: You's Limits giving a couple the solver does not run the card for two, as f1b2b457 did),
+ * failboth (11: the failure view's money chart drawn as both arms, the solved plan's named), phonesolve (12),
  * staleask (12), navtarget40 (12), noquickcontrib (13: the plan the quick start builds without the contributions it was given),
  * classicfetch (14), optinloses (15: the switch between the planners resets the plan), betaignored (16: the page reads
  * rp_planner whatever PLANNER_BETA says), tournamentdocs (17: the documentation keeps the tournament's sections in the new
@@ -89,8 +93,8 @@ const ROOT = join(__dirname, '../..');
 const STORE = 'rp_plan_full_v28', SEED = 12345;
 const LIGHT = { points: 4, research: { adaptiveLattice: { na: 48, nb: 9, nz: 32, foot: true, stepAll: true } }, strategySteps: [200, 500], strategyActionsN: 300 };
 const FIX = { main: 'S116', raise: 'S090', work: 'S224' };
-const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage'];
-const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19 };
+const ALL_PLANTS = ['leversunder', 'fifthplace', 'onefewer', 'noband', 'chartyear', 'keyguard', 'contribold', 'nocouple', 'lockspart', 'failboth', 'phonesolve', 'staleask', 'navtarget40', 'noquickcontrib', 'classicfetch', 'optinloses', 'betaignored', 'tournamentdocs', 'diagwhole', 'couplecard', 'coupleage'];
+const PLANT_CHECKS = { leversunder: 3, fifthplace: 1, onefewer: 2, noband: 4, chartyear: 5, keyguard: 7, contribold: 7, nocouple: 10, lockspart: 10, failboth: 11, phonesolve: 12, staleask: 12, navtarget40: 12, noquickcontrib: 13, classicfetch: 14, optinloses: 15, betaignored: 16, tournamentdocs: 17, diagwhole: 18, couplecard: 19, coupleage: 19 };
 const PLANTED = PLANTS_RUN ? ALL_PLANTS : (process.env.PLANNER_PLANT || '').split(',').filter(Boolean);
 const failed = new Set();
 let fails = 0;
@@ -432,6 +436,26 @@ const firstDiff = (a, b, at = '') => {
       // couples off in this build (src/couplesSwitch.js, D6 the maintainer's word): the card gives that as its reason (D5.4)
       const why10 = await p.evaluate(() => { const el = document.querySelector('[data-place="plan"] [data-planner-couple]'); return el ? el.dataset.plannerCouple : null; });
       ok(10, 'a couple, couples off: the card gives its reason, \'off\'', why10 === 'off', `the card ${why10 === null ? 'missing' : `says '${why10}'`}`);
+      // You's Limits, couples off (the reviewer of 14 Nov, finding 1): the card as before D5, a row a wrapper for the household,
+      // no line for the two of them, and its first change writes the household's ceiling alone
+      await goPlace(p, 'You');
+      const LIM = '[data-place="you"] [data-section="limits"] [data-solver-locks]';
+      await p.waitForSelector(LIM, { timeout: 20000 }).catch(() => {});
+      const lim10 = await p.evaluate(sel => { const c = document.querySelector(sel); return c ? { both: !!c.querySelector('[data-locks-couple]'), rows: [...c.querySelectorAll('select[data-solver-lock^="tier-"]')].map(x => `${x.dataset.solverLock}:${x.getAttribute('aria-label')}`) } : null; }, LIM);
+      const OLD = { 'tier-pen': 'Riskiest tier for the pension', 'tier-isa': 'Riskiest tier for the ISA' };
+      let wrote10 = null;
+      if (lim10 && lim10.rows.length) {
+        const first = lim10.rows[0].split(':')[0];
+        await p.selectOption(`${LIM} select[data-solver-lock="${first}"]`, 'Low Risk').catch(() => {});
+        await p.waitForTimeout(800);
+        const sv = await saved(p);
+        wrote10 = sv && sv.solver && sv.solver.locks ? { first, locks: sv.solver.locks } : { first, locks: null };
+      }
+      const asBefore = !!lim10 && !lim10.both && lim10.rows.length > 0 && lim10.rows.every(r => { const [k, ...l] = r.split(':'); return OLD[k] === l.join(':'); });
+      const wroteOne = !!wrote10 && !!wrote10.locks && wrote10.locks.tierCeiling && wrote10.locks.tierCeiling[wrote10.first.slice(5)] === 'Low Risk' && !('tierCeilingPart' in wrote10.locks);
+      ok(10, 'a couple, couples off: You\'s Limits as before D5 (a row a wrapper for the household, no line for the two of them), its first change writing the household\'s ceiling alone', asBefore && wroteOne,
+        lim10 ? `rows ${lim10.rows.join(' | ') || 'none'}; the line for the two of them ${lim10.both ? 'shown' : 'not shown'}; the saved locks ${JSON.stringify(wrote10 && wrote10.locks)}` : 'no Limits card on You');
+      await goPlace(p, 'Your plan');
       await p.click('[data-planner-couple] [data-open-classic]').catch(() => {});
       await p.waitForTimeout(800);
       const tabs = await p.$$eval('[data-tabbar] button', bs => bs.map(x => x.textContent.trim()));
@@ -591,9 +615,10 @@ const firstDiff = (a, b, at = '') => {
           ok(19, 'couples on: every figure the reference\'s bit for bit (each person\'s table with their partner\'s age, then the couple, strategyOf on it)', same, page ? `survival ${page.headline.survival}% against ${want && want.headline.survival}%` : 'no figures');
           ok(19, 'couples on: this year\'s actions each named for its person (or nothing to change)', acts.length > 0 && acts.every(a => a === 'none' || /^(self|part|household):/.test(a)), acts.join(', ') || 'none shown');
           ok(19, 'couples on: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
-          // (c) D5.6: a reload restores both people's tables from the store, split across the parts as a fresh solve is (the
-          // owner copying each record in, its parts following it), and the parts run their shares of the couple's paths: every
-          // figure the reference's again, the solve named restored with its parts, the actions per person
+          // (c) D5.6: a reload restores both people's tables from the store (the owner copying each record in, its parts
+          // following it): every figure the reference's again, the solve named restored with its parts, the actions per person.
+          // The diagnostic's parts are the last phase's count, so whether the parts then ran shares of the couple's paths is not
+          // seen here (the reviewer of 14 Nov, finding 4 (e)): couple-split.test.mjs shows it for the client
           await p.reload({ waitUntil: 'networkidle' });
           const again = await waitCard(p, 'done', WAIT_MS), page2 = again ? await figs(p) : null;
           await p.waitForSelector('[data-strategy-actions="done"]', { timeout: WAIT_MS }).catch(() => {});
@@ -601,7 +626,7 @@ const firstDiff = (a, b, at = '') => {
           await goPlace(p, 'Details');
           const g19 = await diagnosticIn(p, '[data-place="details"] [data-solver-settings]');
           const restored = !!g19 && /restored from the store/.test(g19.at.times || ''), nparts = g19 ? Number(g19.at.parts) : 0;
-          ok(19, 'couples on, reloaded: both people\'s tables restored from the store, split (D5.6), every figure the reference\'s again, the actions per person',
+          ok(19, 'couples on, reloaded: both people\'s tables restored from the store, the parts above one, every figure the reference\'s again, the actions per person',
             again && !!page2 && JSON.stringify(page2) === JSON.stringify(want) && restored && nparts > 1 && acts2.length > 0 && acts2.every(a => a === 'none' || /^(self|part|household):/.test(a)),
             `done ${again}; ${g19 ? `times "${g19.at.times}", parts ${g19.at.parts}` : 'no diagnostic'}; survival ${page2 ? page2.headline.survival : '-'}% against ${want && want.headline.survival}%`);
           ok(19, 'couples on, reloaded: no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));

@@ -179,9 +179,12 @@ were built for one table, and a couple brings two and the joint move.
   with their partner's age today (`ageWith`, D3): its own key, so the store keeps and restores it; split across the
   workers; a dial position's base first; progress named for whose table it is. The owner then assembles the couple
   (`solveCouple`'s `solveOne` handing back the two tables, each checked to be the one solved for that person's plan), and
-  keeps it as the solve in hand. Test (`couple-solve-client.test.mjs`, in Node through the worker's own handlers): the
-  assembled couple the same as `solveCouple` run whole, its two tables' digests and the engine's run of the couple on 200
-  paths bit for bit, restored from the store as solved; plants: the two tables swapped, a table solved without `ageWith`.
+  keeps it as the solve in hand. Test (`couple-solve-client.test.mjs`, in Node, calling `couplePlans`, `assembleCouple` and
+  `solveCouple` directly, with no worker, client or store): the assembled couple the same as `solveCouple` run whole, its
+  two tables' digests and the engine's run of the couple on 200 paths bit for bit; every single keyed as on the code before
+  D5 (the digest of the library's 210 singles' keys, pinned on fefdb387's parent); plants: the two tables swapped, a table
+  solved without `ageWith`, a partner's age of null in every key. The couple restored from the store is
+  `couple-split.test.mjs` check 2's (the client, stand-in workers) and the browser harness's check 19's (light settings).
 - **D5.2 The couple's figures.** The worker's questions on a couple: `simulate`, `strategy` (the headline, the comparison,
   the outlook) on the engine's run of the solved couple (`withCouple`), the first retired year the household's (either
   person retired, the engine's rule), `digest` over both tables. The rule of thumb (`distil`) is for one table and says so
@@ -193,7 +196,8 @@ were built for one table, and a couple brings two and the joint move.
   differs in that part, for that person, the other's move and the split held, forced in the first year, the plan on after),
   split across the parts as a single's; the next ten years and the audit rows with both people's moves. Test
   (`couple-actions.test.mjs`): the parts read back from the joint move the engine took, each skip forced as stated, the
-  costs the same split and whole; plants: a skip that moves the other person, the split dropped from the forced move.
+  costs the same with the plan's runs handed in as run afresh (split against whole is `couple-split.test.mjs` check 1's);
+  plants: a skip that moves the other person, the split dropped from the forced move.
 - **D5.4 The screens.** `solverRules` widened to a couple under `COUPLES`, inside the band; Your plan's answer card, the
   outlook and this year's actions in a household's words ("you and your partner"; each person's actions under their
   name); What matters to you (the household's aims) and the limits per person (each person's locks, as D3 built them); What
@@ -211,7 +215,8 @@ were built for one table, and a couple brings two and the joint move.
 assembleCouple), the worker's slot for each person and its `couple-plans` and `couple` asks, the client's couple phases
 (`startSolve`'s `couple`; `useSolver` and What if's `startFigures` route a couple there), each person's key carrying their
 partner's age (`solverKey.js`, a single's key unchanged); `couple-solve-client.test.mjs` 6 checks, the couple from two
-solves bit for bit `solveCouple`'s whole, plants 'swap' and 'noage' failing. D5.2: `solvedContext` and `retireYearOf` for a
+solves bit for bit `solveCouple`'s whole, plants 'swap' and 'noage' failing, and (14 Nov, the reviewer's finding 7) check 6
+pinned to the singles' keys before D5, its plant 'agenull' (`results-couple-solve-client.txt`). D5.2: `solvedContext` and `retireYearOf` for a
 couple (the household retired from the first year either person is); `couple-figures.test.mjs`. D5.3: the joint move taken
 apart for each person, each skip forced on its own person, the next years and the rows (`coupleActionsOf`, `coupleAheadOf`,
 `coupleRowsOf`, dispatched by the worker; the rule of thumb is one table's and says so); `couple-actions.test.mjs` 5 checks,
@@ -226,15 +231,23 @@ band; the quick start's line for two; the strip naming whose half is being worke
 The limits per person (14 Nov, after stage C's launch, as planned): each person's ceiling on the riskiest tier of their own
 pension and ISA (`plan.solver.locks.tierCeilingPart` for the partner; App.jsx normalizeSolverLocks keeps it only where a plan
 carries it, so every other plan and every stored solve's key are as before); src/solver/couple.js cuts it into the partner's
-plan, src/solverSettings.js lockedPlan holds each person's accounts to their own, and the Limits card gives each person a row
-for each wrapper they hold, the first change writing both; the pension age and the lump sum stay the household's (the engine
-keeps one access age and one lump-sum choice for a household), and the card says so; the diagnostic names the partner's
-ceilings. `couple-limits.test.mjs` (the full tier) 4 checks: the cut and the household's accounts; every one of the library's
-420 households under three settings the same through lockedPlan as through the function before (1,260, none differing); solved,
+plan, and src/solverSettings.js lockedPlan holds each person's accounts to their own on a couple's plan; on a single's plan it
+neither reads the field nor keeps it in the plan the solver takes, so a couple's plan made a single's locks, keys and solves
+as without it (the reviewer of 14 Nov, finding 2: before, a single carrying it had the tier above switched off). The Limits
+card gives each person a row for each wrapper they hold only where the couple is solved (couples on, inside the band), the
+first change writing both; anywhere else it is the card as before D5, a row a wrapper for the household (finding 1: with
+couples off it had changed). The pension age and the lump sum stay the household's (the engine keeps one access age and one
+lump-sum choice for a household), and the card says so; the diagnostic names the partner's ceilings.
+`couple-limits.test.mjs` (the full tier) 5 checks: the cut and the household's accounts; every one of the library's 420
+households under three settings the same through lockedPlan as through the function before (1,260, none differing); solved,
 the partner's pension never riskier than their ceiling on 40 paths while the first person's menu runs to High Risk; the
-partner's ceiling changed alone leaving the first person's plan and key as they were (their stored table restored); plants
-'nopartlock' (checks 1 and 4: the cut before D5) and 'nopartceil' (checks 1 and 3: the household and the partner's table
-disagree, and model.js step refuses the move, never runs it); `results-couple-limits.txt`.
+partner's ceiling changed alone leaving the first person's plan and key as they were (their stored table restored); every one
+of the library's 210 singles carrying a partner's ceilings the same through lockedPlan as without them, and S126 keyed as
+without them; plants 'nopartlock' (checks 1 and 4: the cut before D5), 'nopartceil' (checks 1 and 3: the household and the
+partner's table disagree, and model.js step refuses the move, never runs it), 'partfree' (check 2: the partner's wrappers
+left free where they have no ceilings of their own) and 'singlepart' (check 5: the field read on a single's plan, as before
+14 Nov); `results-couple-limits.txt`. The browser harness's check 10 reads You's Limits with couples off (as before D5, its
+first change writing the household's ceiling alone), its plant 'lockspart'.
 D5.6 (14 Nov): a couple's figures shared across the solve's parts. A couple's path costs about 150 to 200 ms at the app's
 settings (the couples' re-run's pilot); profiled (EXPLORATORY, light settings, `results-couple-path-profile.txt`), about 77% of it is each person's own ranking
 (the single's chooser, once per person per year) and about 14% valuing the joint moves, so the paths are what to share. A
@@ -248,11 +261,40 @@ sum was the parts times them (a diagnostic, no figure). The restore's code in so
 keeping solve() under V8's optimised bytecode limit (`solve-size.test.mjs`). Tests (the full tier): `restore-split.test.mjs` 5 checks (S370 restored
 split three ways: every part's tables, reference and its counts the whole restore's bit for bit, the figures on 120 paths
 joined the whole's; a split dial position's counts the same as unsplit), failing 4 of 5 on the code before, plants 'stale' (2)
-and 'noasty' (3, 4) (`results-restore-split.txt`); `couple-split.test.mjs` 4 checks (the client driven through stand-ins: S069 with three parts, each part
+and 'noasty' (2, 3, 4) (`results-restore-split.txt`); `couple-split.test.mjs` 5 checks (the client driven through stand-ins: S069 with three parts, each part
 holding both tables and assembling the couple, the figures and the skip costs the whole run's; again from the store, restored
-split; a single restored split; a part's share of the skips missing a path refused), plants 'coupleowner' (1) and
-'wholerestore' (2, 3) (`results-couple-split.txt`). In the browser: `solver-planner-ui.cjs` check 19 reloads the couple, both tables restored split, every
-figure the reference's again.
+split; a single restored split; a part's share of the skips missing a path refused; and, 14 Nov, the reviewer's finding 6, a
+couple's What if variant neither restored nor stored, each person's solve keyed only where the job is), plants
+'coupleowner' (1, 2), 'wholerestore' (2, 3) and 'keyvariant' (5) (`results-couple-split.txt`). In the browser:
+`solver-planner-ui.cjs` check 19 reloads the couple at the harness's light settings: both tables restored and every figure
+the reference's again; whether the parts then ran shares of the paths it cannot see (the diagnostic's parts are the last
+phase's count), which `couple-split.test.mjs` shows for the client.
+The store in chunks (14 Nov, found by the reviewer's finding 3 and fixed): this container's Chromium (153 since the restart of
+13 Nov) refuses any one IndexedDB value over 133,169,152 bytes, and a solve's record at the app's settings is about 200 to
+290 MB (`results-profile.txt`: 204 to 291 MB, kept and restored in about 2 s on Chromium 141 on 4 Nov), so since then no solve
+at 45 points was kept, a single's or a couple's, and every visit solved again. The store said only "the store failed (null)":
+during the refused put Chromium fires an error event at the transaction before setting its error, and the store's
+transaction rejected on that event; the next request then threw at once, an unhandled rejection in the worker (the probe in
+`results-couple-timing.txt`). `src/solverCache.js` now keeps a record as a head beside chunks of at most 64 MB of its typed
+arrays, each its own value, joined back on a load; a record kept whole before loads as it was; an evicted or replaced solve
+drops all its chunks; a store that fails names the browser's own words, taken at the abort, and what the transaction's work
+throws aborts it. `cache-chunks.test.mjs` (the full tier) 15 checks on an in-memory IndexedDB that refuses a value over a set
+size in Chromium's order (a 140 MB record whole refused with the browser's reason and in chunks kept and loaded bit for bit;
+S370's light record restored from chunks to the same tables; no rejection left unhandled), failing 12 of 15 on the code
+before, plants 'whole' (2, 3, 5) and 'keepparts' (3) (`results-cache-chunks.txt`). In the browser at the app's settings
+(`results-couple-timing.txt`, EXPLORATORY: S069, four workers, stage C's four runs beside it at the lowest priority): both of
+the couple's tables kept, and after a reload restored in 8.2 s, where the run before the fix solved them again in 176.4 s; the
+reloaded headline's 2,000 paths 97.9 s against 97.5 s fresh, so a restored couple shares its paths as a fresh one does; a
+headline path 48.7 ms shared against 90.2 ms in one worker (1.85 times as fast).
 Known limits, each said where it shows: the store keeps two solves (CACHE_MAX), so a couple at a dial position above the first
 restores in part; the age searched by the age card and the limits card is the first person's; a dial position's parts each
-restore its base from a shared copy, so a couple at a dial position above the first holds more memory than a single's.
+restore its base from a shared copy, so a couple at a dial position above the first holds more memory than a single's, and a
+returning single at a dial position above the first now holds its base in every part as a fresh split position does (the
+reviewer's finding 5: more than before D5.6, not measured for a restore).
+What the tests leave unshown (the reviewer's finding 4): on the follow path only the strategy's figures run
+(`restore-split.test.mjs` check 4; a restored single's skip costs shared out run nowhere); `couple-split.test.mjs`'s stand-ins
+solve each table whole and never follow, so it tests the client's sequence and not the worker's 'follow', 'part' with a
+restore, 'couple' or 'skipruns', which run only in the browser; a restored dial position split, the branch where the two
+people do not split alike, and a cancel or close with the shared parts alive run in no test; check 19's couple (S001 at the
+light settings) survives every path, so of its figures the bands alone test much, and no plant fails its reload by a fault in
+the restore.

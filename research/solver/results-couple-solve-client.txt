@@ -1,0 +1,19 @@
+research/tests/couple-solve-client.test.mjs, 14 Nov 05:07 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
+
+PASS  1. S121: each person's plan and partner's age cut as solveCouple hands them to its solveOne  -- self aged 56 with a partner of 53; part aged 53 with 56; share 0.5
+PASS  2. the couple from two separate solves is solveCouple's whole: both tables and the engine's run of it, bit for bit  -- tables 66368e18446a and f40fa818fa07 (whole 66368e18446a and f40fa818fa07); the engine's run differing on 0 of 200 paths
+PASS  3. the assembly refuses a table solved on another plan, with another partner's age, or with no record  -- true true true
+PASS  4. the couple's headline and comparison run on the joint move; its first retired year the earlier of the two; a single's as before  -- the household retired from year 0 (the people from -1 and 2); survival 100.0% on 60 paths; a single's year 0 (was 0)
+PASS  5. the page's switch module reads couple.js's band: the same band, and a plan on exactly where shareFor gives the half share  -- 1470 plans (the library's couples as held and re-held 30/70 to 90/10), 840 on, 0 differing
+PASS  6. every single keyed as on the code before D5; a person's key moved by their partner's age  -- 210 singles' keys' digest 6825f36b3e1a20ff against 6825f36b3e1a20ff before D5; the first person's key a2c7f8b4e39a, and with the partner a year older 167ef1da7915
+
+ALL PASS: 6 checks
+
+--planted:
+plant 'swap': the checks that fail: 2; wanted 2: yes
+plant 'noage': the checks that fail: 2; wanted 2: yes
+plant 'agenull': the checks that fail: 6; wanted 6: yes
+
+check 6's pin, the digest of the library's 210 singles' solve keys (scratchpad singles-keys.mjs, 14 Nov), taken on the code before D5 and on this tree:
+  3cec591e (fefdb387's parent, a worktree with its own engine built): 210 singles, their keys' digest 6825f36b3e1a20ff; the first, S000: 476228c47aec351f
+  the working tree: 210 singles, their keys' digest 6825f36b3e1a20ff; the first, S000: 476228c47aec351f

@@ -14,8 +14,11 @@
  *      however it is written (1234, 1,234, 1234.56, 1.2e5);
  *   4. a field whose value is not of its form is written "other": a lever word carrying an amount, an age out of range, a tier
  *      that is not a tier, a key that is not a key's hash, a code that is not the solver's;
- *   5. the floor is a share of the target, the key its first 16 hex digits, the code the solver's module-graph key.
- * The plant (DIAG_PLANT 'whole': the record appended whole, the obvious diagnostic) fails check 1 and check 2.
+ *   5. the floor is a share of the target, the key its first 16 hex digits, the code the solver's module-graph key;
+ *   6. a partner's ceilings (Part D, D5: the limits per person) named for a couple's plan, and not for a single's plan carrying
+ *      them, which the solver reads as without them (src/solverSettings.js lockedPlan).
+ * The plants (DIAG_PLANT): 'whole' (the record appended whole, the obvious diagnostic) fails check 1 and check 2; 'partany' (the
+ * partner's ceilings named on any plan) fails check 6.
  *   node research/tests/solver-diagnostic.test.mjs [--plant whole]
  *   node research/tests/solver-diagnostic.test.mjs --plants
  */
@@ -23,7 +26,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2), self = fileURLToPath(import.meta.url);
-const PLANTS = { whole: [1, 2] };
+const PLANTS = { whole: [1, 2], partany: [6] };
 if (args[0] === '--plants') {
   let bad = 0;
   for (const [name, want] of Object.entries(PLANTS)) {
@@ -97,6 +100,12 @@ const s = Object.fromEntries(tSolved.split('\n').slice(1).map(l => [l.split(':')
 ok(5, 'the floor a share of the target, the key its first 16 hex digits, the code the solver\'s, the grid and times as given, the browser named',
   s.floor === `${Math.round(100 * 41876 / 52345)}% of the target` && s.key === KEY.slice(0, 16) && s.code === 'solver-code:0123456789abcdef' && s.grid === '45 wealth points, 5000 paths' && s.times === 'solve 153.3s' && s.parts === '4' && s.dial === '3' && /^Safari 18 on iOS$/.test(s.browser) && s.completed === 'yes',
   JSON.stringify(s).slice(0, 260));
+
+// 6. a partner's ceilings: named for a couple's plan, not for a single's plan carrying them
+const partLocks = { pensionBefore: null, tierCeiling: { pen: null, isa: null }, tierCeilingPart: { pen: 'Low Risk', isa: null }, lumpSum: 'free' };
+const limitsOf = mode => Object.fromEntries(D.diagnosticFields({ solve: solved, plan: { demographics: { planningMode: mode }, solver: { locks: partLocks } } })).limits;
+const lc = limitsOf('couple'), ls = limitsOf('single');
+ok(6, 'a partner\'s ceilings named for a couple\'s plan, not for a single\'s plan carrying them', /partner's pension ceiling Low Risk/.test(lc) && !/partner/.test(ls), `a couple: "${lc}"; a single: "${ls}"`);
 
 console.log(`\n${passed} passed, ${failed} failed${PLANT_NAME ? ` (planted: ${PLANT_NAME})` : ''}`);
 process.exit(failed ? 1 : 0);

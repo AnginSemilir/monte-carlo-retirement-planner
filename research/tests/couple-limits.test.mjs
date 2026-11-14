@@ -16,11 +16,16 @@
  *      no pension tier riskier than Low Risk, the first person's does, and on 40 paths of the engine's run of the couple every
  *      year's joint move holds the partner's pension at Low Risk or safer;
  *   4. the partner's ceiling changed alone: the first person's plan and solve's key as they were (their stored table restored),
- *      the partner's key moved.
+ *      the partner's key moved;
+ *   5. a single carrying a partner's ceilings (a couple's plan made a single's: the reviewer of 14 Nov, finding 2): every one
+ *      of the library's singles, with no ceiling of their own and with the pension's, the same through lockedPlan as without
+ *      the field; S126 with the partner's pension at Low Risk (the reviewer's probe) keyed as without it, the tier above left
+ *      to the solver.
  * Plants (--planted): COUPLE.plant 'nopartlock' (both plans keep the household's locks whole, as the cut before D5: checks 1
  * and 4; the household's accounts are held to each person's before either plan is cut, so it reaches the partner's table only
  * where the tier above would open for them) and solverSettings.js PLANT 'nopartceil' (lockedPlan holding no one to the
- * partner's own: 1 and 3).
+ * partner's own: 1 and 3), 'partfree' (the partner's wrappers left free where they have no ceilings of their own: 2) and
+ * 'singlepart' (the partner's ceilings read on a single's plan, as before 14 Nov: 5).
  *   node research/tests/couple-limits.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -37,7 +42,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['nopartlock', ['1', '4']], ['nopartceil', ['1', '3']]]) {
+  for (const [plant, want] of [['nopartlock', ['1', '4']], ['nopartceil', ['1', '3']], ['partfree', ['2']], ['singlepart', ['5']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_LIMITS_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c));
@@ -46,7 +51,7 @@ if (process.argv.includes('--planted')) {
   }
   process.exit(bad ? 1 : 0);
 }
-{ const pl = process.env.COUPLE_LIMITS_PLANT || ''; if (pl === 'nopartceil') SETTINGS_PLANT.rule = pl; else COUPLE.plant = pl; }
+{ const pl = process.env.COUPLE_LIMITS_PLANT || ''; if (['nopartceil', 'partfree', 'singlepart'].includes(pl)) SETTINGS_PLANT.rule = pl; else COUPLE.plant = pl; }
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
@@ -134,6 +139,20 @@ const SELF = { pen: 'Medium Risk', isa: null }, PART = { pen: 'Low Risk', isa: '
   const kb = { self: await solveKey(E, b.plans.self, { ageWith: b.ageWith.self }), part: await solveKey(E, b.plans.part, { ageWith: b.ageWith.part }) };
   ok('4. the partner\'s ceiling changed alone: the first person\'s plan and key as they were, the partner\'s key moved',
     JSON.stringify(a.plans.self) === JSON.stringify(b.plans.self) && ka.self === kb.self && ka.part !== kb.part, `the first person's key ${ka.self.slice(0, 12)} and ${kb.self.slice(0, 12)}; the partner's ${ka.part.slice(0, 12)} and ${kb.part.slice(0, 12)}`); }
+
+// 5. a single carrying a partner's ceilings: locked, keyed and solved as without them
+{ const stray = { pen: 'Low Risk', isa: 'Low Risk' };
+  let n = 0, differ = 0;
+  for (const s of lib.filter(x => x.plan.demographics.planningMode === 'single')) for (const tc of [{ pen: null, isa: null }, { pen: 'Medium Risk', isa: null }]) {
+    const p = E.normalizePlan(withLocks(s.plan, { tierCeiling: tc })), q = E.normalizePlan(withLocks(s.plan, { tierCeiling: tc, tierCeilingPart: stray }));
+    n++;
+    if (JSON.stringify(lockedPlan(E, q)) !== JSON.stringify(lockedPlan(E, p))) differ++;
+  }
+  const s126 = lib.find(x => x.id === 'S126').plan;
+  const p = E.normalizePlan(withLocks(s126, { tierCeiling: { pen: null, isa: null } })), q = E.normalizePlan(withLocks(s126, { tierCeiling: { pen: null, isa: null }, tierCeilingPart: { pen: 'Low Risk', isa: null } }));
+  const kp = await solveKey(E, p), kq = await solveKey(E, q), lq = lockedPlan(E, q);
+  ok('5. a single carrying a partner\'s ceilings locks, keys and solves as without them: lockedPlan the same on every single and setting; S126 keyed as without them, the tier above left to the solver',
+    n > 0 && differ === 0 && kp === kq && lq.riskAbove === undefined, `${n} plans: ${differ} differ through lockedPlan; S126's key ${kp.slice(0, 12)} and ${kq.slice(0, 12)}; its riskAbove ${lq.riskAbove}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

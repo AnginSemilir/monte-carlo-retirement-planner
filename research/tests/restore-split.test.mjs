@@ -17,7 +17,7 @@
  *      reference's counts the same as unsplit (before, every part carried the base's counts and the sum was twice them).
  * Plants (--planted runs each and wants its checks to fail): 'stale' (part 0 restores from a record with one cell of the last
  * year moved: 2; the figures on 120 paths pass, no path reaching that cell), 'noasty' (the following parts handed no step
- * thresholds: 3 and 4).
+ * thresholds: 2, 3 and 4).
  * The full tier.
  *   node research/tests/restore-split.test.mjs [--planted]
  */
@@ -37,7 +37,7 @@ import { buildScenarios } from '../policy-study/scenarios.mjs';
 const SELF = fileURLToPath(import.meta.url);
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['stale', ['2']], ['noasty', ['3', '4']]]) {
+  for (const [plant, want] of [['stale', ['2']], ['noasty', ['2', '3', '4']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [SELF], { env: { ...process.env, RESTORE_SPLIT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c));

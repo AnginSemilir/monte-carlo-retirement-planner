@@ -13,9 +13,12 @@
  *      the household's (the earlier of the two people's), and a single's first retired year as before;
  *   5. the page's switch module (src/couplesSwitch.js) reads the band as couple.js does: its band couple.js's SHARE_BAND, and a
  *      plan on exactly when couple.js's shareFor gives it the half share, over the library's couples re-held from 30/70 to 90/10;
- *   6. the solve's key (src/solverKey.js): a single's the same with no partner's age as before, and a person's moved by it.
+ *   6. the solve's key (src/solverKey.js): every one of the library's 210 singles keyed as on the code before D5 (their keys'
+ *      digest pinned, taken on 3cec591e, fefdb387's parent, 14 Nov; the reviewer of 14 Nov, finding 7), and a person's moved by
+ *      their partner's age.
  * Plants (--planted runs each and wants its checks to fail): 'swap' (assembleCouple hands each person the other's table: check
- * 2), 'noage' (the plans cut with no partner's age, each solved as a single's: check 2 refused, so 2 fails).
+ * 2), 'noage' (the plans cut with no partner's age, each solved as a single's: check 2 refused, so 2 fails), 'agenull'
+ * (src/solverKey.js: a partner's age of null in every key without one, which moves every single's key: check 6).
  *   node research/tests/couple-solve-client.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -26,14 +29,15 @@ import { couplePlans, assembleCouple, householdPlan, isCouple, PLANT } from '../
 import { COUPLE_BAND, coupleSolverOn } from '../../src/couplesSwitch.js';
 import { solvedContext, strategyRuns, headlineOf, retireYearOf, runPath } from '../../src/solverStrategy.js';
 import { tablesOf, digestOf } from '../../src/solverDigest.js';
-import { solveKey } from '../../src/solverKey.js';
+import { solveKey, PLANT as KEY_PLANT } from '../../src/solverKey.js';
+import { createHash } from 'node:crypto';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['swap', ['2']], ['noage', ['2']]]) {
+  for (const [plant, want] of [['swap', ['2']], ['noage', ['2']], ['agenull', ['6']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_SOLVE_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), ok = want.every(c => failed.includes(c));
@@ -42,7 +46,7 @@ if (process.argv.includes('--planted')) {
   }
   process.exit(bad ? 1 : 0);
 }
-PLANT.rule = process.env.COUPLE_SOLVE_PLANT || '';
+{ const pl = process.env.COUPLE_SOLVE_PLANT || ''; if (pl === 'agenull') KEY_PLANT.rule = pl; else PLANT.rule = pl; }
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
@@ -105,10 +109,15 @@ ok('2. the couple from two separate solves is solveCouple\'s whole: both tables 
   ok('5. the page\'s switch module reads couple.js\'s band: the same band, and a plan on exactly where shareFor gives the half share', JSON.stringify(COUPLE_BAND) === JSON.stringify(SHARE_BAND) && differ === 0 && !coupleSolverOn(plan, false).on,
     `${n} plans (the library's couples as held and re-held 30/70 to 90/10), ${onCount} on, ${differ} differing`); }
 
-// 6. the key
-{ const single = lib.find(s => s.plan.demographics.planningMode === 'single').plan;
-  const a = await solveKey(E, single, {}), b = await solveKey(E, single, { ageWith: undefined }), c = await solveKey(E, cut.plans.self, { ageWith: cut.ageWith.self }), d = await solveKey(E, cut.plans.self, { ageWith: cut.ageWith.self + 1 });
-  ok('6. a single\'s key as before with no partner\'s age; a person\'s key moved by their partner\'s age', a === b && c !== d, `${a.slice(0, 12)} ${b.slice(0, 12)}; ${c.slice(0, 12)} ${d.slice(0, 12)}`); }
+// 6. the key: every single keyed as on the code before D5 (the digest of their 210 keys, taken on 3cec591e, fefdb387's parent:
+// research/solver/results-couple-solve-client.txt), and a person's key moved by their partner's age
+{ const KEYS_BEFORE_D5 = '6825f36b3e1a20ff';
+  const singles = lib.filter(s => s.plan.demographics.planningMode === 'single'), h = createHash('sha256');
+  for (const s of singles) h.update(`${s.id}:${await solveKey(E, s.plan, {})};`);
+  const got = h.digest('hex').slice(0, 16);
+  const c = await solveKey(E, cut.plans.self, { ageWith: cut.ageWith.self }), d = await solveKey(E, cut.plans.self, { ageWith: cut.ageWith.self + 1 });
+  ok('6. every single keyed as on the code before D5; a person\'s key moved by their partner\'s age', singles.length === 210 && got === KEYS_BEFORE_D5 && c !== d,
+    `${singles.length} singles' keys' digest ${got} against ${KEYS_BEFORE_D5} before D5; the first person's key ${c.slice(0, 12)}, and with the partner a year older ${d.slice(0, 12)}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

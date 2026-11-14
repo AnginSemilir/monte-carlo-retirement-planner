@@ -1,4 +1,4 @@
-research/tests/restore-split.test.mjs, 14 Nov 01:34 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
+research/tests/restore-split.test.mjs, 14 Nov 05:07 UK, on the working tree (code 7d11b0e01252); the machine running stage C's batch beside it
 
 PASS  1. S370's record restored whole gives the solve's tables  -- 6ea4212685302893 against 6ea4212685302893
 PASS  2. restored split 3 ways: part 0's tables and each following part's the whole restore's, bit for bit, each marked restored  -- part 0 6ea421268530, part 1 6ea421268530, part 2 6ea421268530 (whole 6ea421268530)
@@ -10,7 +10,7 @@ ALL PASS: 5 checks
 
 --planted:
 plant 'stale': the checks that fail: 2; wanted 2: yes
-plant 'noasty': the checks that fail: 2, 3, 4; wanted 3, 4: yes
+plant 'noasty': the checks that fail: 2, 3, 4; wanted 2, 3, 4: yes
 
 on the code before the change (/home/user/scratch-rsplit at de969be2, the test and its two helpers copied in, with src/solverCache.js and src/solverApp.js, which the test imports):
 PASS  1. S370's record restored whole gives the solve's tables  -- 6ea4212685302893 against 6ea4212685302893

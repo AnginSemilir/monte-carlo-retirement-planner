@@ -1,0 +1,42 @@
+A COUPLE'S STORE AND RESTORE AT THE APP'S SETTINGS, IN THE BROWSER (Part D, D5.6; the reviewer of 14 Nov, finding 3). EXPLORATORY: measurements, deciding nothing.
+Taken 14 Nov, 04:20 to 04:37 UK, on the working tree at e292349b (the solver's code id 7d11b0e01252: src/solver and the engine, unchanged by this fix) with src/solverCache.js's chunked store as first written; its transaction's handling of a request that throws came after and reaches only a refused write, which section 3 never makes (research/tests/cache-chunks.test.mjs check 7).
+
+== 1. how large a value this container's Chromium keeps in one IndexedDB put (scratchpad idb-size-probe.cjs; a list of Float64Arrays, as a solve's record is)
+Chrome/153.0.0.0 16 MB: stored
+Chrome/153.0.0.0 64 MB: stored
+Chrome/153.0.0.0 100 MB: stored
+Chrome/153.0.0.0 128 MB: stored
+Chrome/153.0.0.0 140 MB: aborted; the request's error null; the transaction's UnknownError: The serialized keys and/or value are too large (size=140000512 bytes, max=133169152 bytes).
+Chrome/153.0.0.0 200 MB: aborted; the request's error null; the transaction's UnknownError: The serialized keys and/or value are too large (size=200000707 bytes, max=133169152 bytes).
+Chrome/153.0.0.0 214 MB: aborted; the request's error null; the transaction's UnknownError: The serialized keys and/or value are too large (size=214000757 bytes, max=133169152 bytes).
+
+== 2. the order in which it refuses one, with a request made before it and one after, in one transaction (scratchpad idb-order-probe.cjs)
+Chrome/153.0.0.0: in one transaction, a delete, then a 140 MB put, then a small put:
+  the transaction's onerror, from other (the transaction's error null)
+  the big put returned a request (the transaction's error UnknownError)
+  the index put threw TransactionInactiveError: Failed to execute 'put' on 'IDBObjectStore': The transaction has finished. (the transaction's error UnknownError)
+  (the script returns to the event loop)
+  the delete before: error AbortError (the transaction's error UnknownError)
+  the transaction's onerror, from the delete before (the transaction's error UnknownError)
+  abort (the transaction's error UnknownError: The serialized keys and/or value are too large (size=140000510 bytes, max=133169152 bytes).)
+
+== 3. the couple's figures, store and restore (research/ui-harnesses/profile-couple.cjs: S069 at the app's settings, four parts; the load printed at its start and end)
+A COUPLE'S FIGURES IN THE BROWSER (D5.6; EXPLORATORY): S069 at the app's settings, split four ways; Chrome/153.0.0.0, 4 cores, isolated true
+at the start, the machine's load 4.87 / 4.91 / 5.93 (1, 5, 15 minutes); beside this measurement: 4 x audit-couples-share.mjs (nice 19)
+
+1. the parts kept: the two solves 158.5 s (restored false, 4 parts); the headline's 2,000 paths 97.5 s (48.7 ms a path); this year's 5 skips on 1,000 paths 210.5 s; survival 96.4%
+2. the owner alone (as before D5.6): the solves 6.7 s (restored true); the headline's 500 paths 45.1 s (90.2 ms a path); 5 skips on 200 paths 78.2 s
+   a path of the headline 90.2 ms alone against 48.7 ms shared (x1.85); a skip's path 78.2 ms against 42.1 ms
+3. after a reload: the two tables restored in 8.2 s (4 parts); the headline's 2,000 paths 97.9 s; the skips 209.7 s; survival 96.4%
+   the stores: 1. stored; stored; 2. no store reported; 3. no store reported
+at the end, the machine's load 7.34 / 8.05 / 7.51 (1, 5, 15 minutes); beside this measurement: 4 x audit-couples-share.mjs (nice 19)
+
+no page errors
+
+EXPLORATORY: a measurement for D5.6, deciding nothing.
+
+== before the chunked store: the same script's run of 14 Nov, about 03:31 to 03:53 UK, on f1b2b457's store (the record kept whole), stage C's units and the reviewer's runs beside it (scratchpad profile-couple.log; its store results not printed: the script then set no onStored)
+1. the parts kept: the two solves 157.7 s (restored false, 4 parts); the headline's 2,000 paths 92.6 s (46.3 ms a path); this year's 5 skips on 1,000 paths 210.4 s; survival 96.4%
+2. the owner alone (as before D5.6): the solves 158.5 s (restored false); the headline's 500 paths 46.7 s (93.3 ms a path); 5 skips on 200 paths 81.2 s
+   a path of the headline 93.3 ms alone against 46.3 ms shared (x2.01); a skip's path 81.2 ms against 42.1 ms
+3. after a reload: the two tables NOT restored in 176.4 s (4 parts); the headline's 2,000 paths 100.5 s; the skips 302.0 s; survival 96.4%

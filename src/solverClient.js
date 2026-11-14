@@ -29,7 +29,7 @@ import { solveKey } from './solverKey.js';
 import { dialBase } from './solverSettings.js';
 import { PLANNER_PLANT } from './plannerPlant.js';
 
-export const PLANT = { rule: '' };   // tests only: 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs)
+export const PLANT = { rule: '' };   // tests only: 'keyvariant' keys a couple's variant's person solves, stored and restored (couple-split.test.mjs check 5); 'noqueue' lets two figures' asks run at once (solver-client.test.mjs); 'keepshared' keeps a job's shared memory after it is let go (solver-close.test.mjs); 'phonetwo' holds the phone's budget at two, as before D62 (phone-budget.test.mjs); 'coupleowner' lets a couple's parts go, 'wholerestore' restores a stored solve in the owner alone, both as before D5.6 (couple-split.test.mjs)
 export const canSplit = () => typeof SharedArrayBuffer !== 'undefined' && (typeof crossOriginIsolated === 'undefined' || crossOriginIsolated)
   && typeof SharedArrayBuffer.prototype.grow === 'function';
 /* gate 5's four cores at most (D11), fewer where the machine has fewer */
@@ -85,8 +85,9 @@ export function startFigures(engine, plan, { seed, upto, keyed = false, parts = 
 /*
  * A COUPLE (Part D, D5.1; src/solverCouple.js): with `couple` ({ engine, shareRule }), the plan is a couple's. The owner cuts
  * each person's plan from it ('couple-plans'); each is then solved as a single's plan is, in turn, with their partner's age
- * today (`ageWith`) in its settings and so in its key: restored from the store, else solved, each split across workers and
- * stored, a dial position's base first; its progress names whose table it is (`who`). The owner then assembles the couple
+ * today (`ageWith`) in its settings and so in its key: where the job is keyed (the plan's own solve, not a variant's), restored
+ * from the store, else solved and stored, each split across workers, a dial position's base first (always keyed, as a
+ * single's); its progress names whose table it is (`who`). The owner then assembles the couple
  * ('couple') and keeps it as the solve in hand. The two people's solves run on the same parts (D5.6), which then assemble
  * the couple too and keep it, so the couple's paths and skips are shared out as a single's are
  * (research/tests/couple-split.test.mjs); where the two did not split alike, the owner runs them all.
@@ -226,7 +227,10 @@ export function startSolve(plan, { key = null, base = null, parts: asked = defau
         for (const who of ['self', 'part']) {
           // plant 'coupleage' (solver-planner-ui check 19): each table solved without its partner's age, which the assembly refuses
           const pOpts = PLANNER_PLANT.has('coupleage') ? { ...opts } : { ...opts, ageWith: cpl.ageWith[who] };
-          const pKey = await solveKey(couple.engine, cpl.plans[who], pOpts), pBase = await baseOf(couple.engine, cpl.plans[who], pOpts);
+          // each person's solve keyed only where the job is (startFigures' contract: a variant neither restored nor stored unless
+          // `keyed`; the reviewer of 14 Nov, finding 6; couple-split.test.mjs check 5); each person's dial base keyed, as a single's
+          const pKey = key || PLANT.rule === 'keyvariant' ? await solveKey(couple.engine, cpl.plans[who], pOpts) : null;
+          const pBase = await baseOf(couple.engine, cpl.plans[who], pOpts);
           if (finished) return;
           phaseWho = who;
           const b = pBase ? await phase('base', pBase.plan, pBase.key, null, pOpts) : null;

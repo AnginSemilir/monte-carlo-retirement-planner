@@ -1,13 +1,14 @@
-research/tests/solver-diagnostic.test.mjs (Phase 12 item 4), code-stamp:bbd259ce464e0648, 06 Nov 08:01 UTC
+research/tests/solver-diagnostic.test.mjs (Phase 12 item 4, F17; check 6 Part D's D5, the reviewer of 14 Nov), 14 Nov 05:12 UK, on the working tree (code 7d11b0e01252); stage C's batch beside it
 
   ok   1. no amount in the text, on a solved record and a failed one (34 amounts from the plan and the planted 987654.32, each in five forms)   leaked: none
   ok   2. every whitelisted field once, in order, and nothing else   code, key, state, completed, dial, aims, limits, floor, grid, times, parts, isolated, browser, error
   ok   3. the error keeps a year, an age and a count under 100, and loses every number of 100 or more however written   failed in year 12 at age 73 after 40 tries: #, #, #, #, # and #
   ok   4. a value not of its form is written "other" (a word with an amount, an age out of range, a tier that is not one, a key, a code)   {"code":"unknown","key":"none","state":"solved","completed":"yes","dial":"other","aims":"estate other, raises capped, risk consent yes","limits":"pension before other, pension ceiling other, ISA ceiling Low Risk, lump su
   ok   5. the floor a share of the target, the key its first 16 hex digits, the code the solver's, the grid and times as given, the browser named   {"code":"solver-code:0123456789abcdef","key":"a3f9c2e1b7d4058e","state":"solved","completed":"yes","dial":"3","aims":"estate standard, raises capped, risk consent yes","limits":"pension before 60, pension ceiling Medium Risk, ISA ceiling none, lump sum never",
+  ok   6. a partner's ceilings named for a couple's plan, not for a single's plan carrying them   a couple: "pension before none, pension ceiling none, ISA ceiling none, partner's pension ceiling Low Risk, partner's ISA ceiling none, lump sum free"; a single: "pension before none, pension ceiling none, ISA ceiling none, lump sum free"
 
-5 passed, 0 failed
+6 passed, 0 failed
 
---- its plant, run once (node research/tests/solver-diagnostic.test.mjs --plants)
 plant 'whole': checks failing 1, 2 (its own: 1, 2) ok
-PLANTS: all 1 fail exactly their own checks
+plant 'partany': checks failing 6 (its own: 6) ok
+PLANTS: all 2 fail exactly their own checks

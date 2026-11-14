@@ -13,6 +13,8 @@ import React from 'react';
 import { APP_DIAL, APP_FLOOR, AIMS_DEFAULT, dialOrder, dialSig, atDial } from './solverSettings.js';
 import { FiguresList } from './SolverFigures.jsx';
 import { costWords } from './solveStatus.js';
+import { coupleSolverOn } from './couplesSwitch.js';
+import { PLANNER_PLANT } from './plannerPlant.js';
 // the page's own pieces (phone.jsx's Fine and PhoneCollapse, numberFormat.jsx's MoneyInput, ui.js's fieldCls) come in as the
 // `ui` prop from App.jsx: imported here, they split phone.jsx out of the page's first chunk into one of its own, a request
 // more on every load (load-perf, with the switch on)
@@ -163,10 +165,14 @@ export function SolverLocks({ plan, setPlan, isPhone, ui }) {
   const L = { ...LOCKS_FREE, ...((plan.solver && plan.solver.locks) || {}) }, tc = { ...LOCKS_FREE.tierCeiling, ...(L.tierCeiling || {}) };
   const set = patch => patchSolver(setPlan, 'locks', patch);
   const d = plan.demographics || {}, strategy = (plan.spending && plan.spending.drawdownStrategy) || 'Phased Drawdown';
-  // a couple (Part D, D5: the limits per person): each person's ceilings on their own pension and ISA; the partner's are their
-  // own once either is set here (`tierCeilingPart`), and until then the household's, as the solver reads them
-  // (src/solverSettings.js lockedPlan), so both are written together the first time either moves
-  const isCouple = d.planningMode === 'couple', hasPart = isCouple && L.tierCeilingPart && typeof L.tierCeilingPart === 'object';
+  // a couple the solver runs (Part D, D5: the limits per person): each person's ceilings on their own pension and ISA; the
+  // partner's are their own once either is set here (`tierCeilingPart`), and until then the household's, as the solver reads
+  // them (src/solverSettings.js lockedPlan), so both are written together the first time either moves. A couple the solver
+  // does not run (couples off, or outside the band: src/couplesSwitch.js) keeps the card as before D5, one row a wrapper for
+  // the household (the reviewer of 14 Nov, finding 1; solver-planner-ui.cjs check 10, its plant 'lockspart' the card read
+  // from the planning mode alone)
+  const isCouple = d.planningMode === 'couple' && (coupleSolverOn(plan).on || PLANNER_PLANT.has('lockspart'));
+  const hasPart = isCouple && L.tierCeilingPart && typeof L.tierCeilingPart === 'object';
   const tp = { ...LOCKS_FREE.tierCeiling, ...(hasPart ? L.tierCeilingPart : tc) };
   const setTier = (who, w, v) => set(who === 'part' ? { tierCeilingPart: { ...tp, [w]: v } } : { tierCeiling: { ...tc, [w]: v }, ...(isCouple ? { tierCeilingPart: { ...tp } } : {}) });
   const people = isCouple ? [['self', 'your'], ['part', 'your partner\'s']] : [[null, 'your']];

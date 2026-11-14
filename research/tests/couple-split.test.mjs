@@ -19,9 +19,11 @@
  *   3. a single (S126) restored with two parts: restored split, its part kept, its figures the whole run's (before, a restored
  *      solve kept no parts and the owner ran every path);
  *   4. a part leaving out the first path of its share of the couple's skips (solverCouple.js PLANT 'skipdrop'): refused by the
- *      join, never a different cost.
- * Plants (--planted): the client's 'coupleowner' (the couple's parts let go: check 1) and 'wholerestore' (a stored solve restored
- * in the owner alone: checks 2 and 3).
+ *      join, never a different cost;
+ *   5. a couple's What if variant (startFigures, not keyed): its two people's solves neither restored nor stored, the store as
+ *      it was (the client's contract; the reviewer of 14 Nov, finding 6).
+ * Plants (--planted): the client's 'coupleowner' (the couple's parts let go: checks 1 and 2), 'wholerestore' (a stored solve restored
+ * in the owner alone: checks 2 and 3) and 'keyvariant' (a variant's people keyed: check 5).
  *   node research/tests/couple-split.test.mjs [--planted]
  */
 import * as E from '../engine.mjs';
@@ -36,7 +38,7 @@ import { fileURLToPath } from 'node:url';
 
 if (process.argv.includes('--planted')) {
   let bad = 0;
-  for (const [plant, want] of [['coupleowner', ['1']], ['wholerestore', ['2', '3']]]) {
+  for (const [plant, want] of [['coupleowner', ['1', '2']], ['wholerestore', ['2', '3']], ['keyvariant', ['5']]]) {
     let out = '';
     try { out = execFileSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, COUPLE_SPLIT_PLANT: plant }, encoding: 'utf8' }); } catch (e) { out = String(e.stdout || ''); }
     const failed = [...out.matchAll(/^FAIL {2}(\d)\./gm)].map(m => m[1]), okp = want.every(c => failed.includes(c));
@@ -62,7 +64,7 @@ const solveOnce = (p, o) => { const k = JSON.stringify([p, o]); if (!solves.has(
 let nextId = 0;
 class InProcessWorker {
   constructor() { this.n = nextId++; this.solved = null; this.persons = { self: null, part: null }; this.runs = null; this.pending = null; this.onmessage = null; this.onerror = null; this.dead = false; }
-  postMessage(data) { log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, part: data.part }); setImmediate(() => this.handle(data)); }
+  postMessage(data) { log.push({ w: this.n, kind: data.kind, slot: data.slot || null, follow: !!data.restore || !!data.restoreSplit, part: data.part, key: data.key || null }); setImmediate(() => this.handle(data)); }
   terminate() { this.dead = true; }
   reply(m) { setImmediate(() => { if (!this.dead && this.onmessage) this.onmessage({ data: m }); }); }
   // a person's table, kept in its slot, or the solve in hand; solved whole (a split solve's tables) or restored from the store
@@ -169,6 +171,16 @@ const partsOf = sent => [...new Set(sent.filter(m => m.kind === 'part').map(m =>
   } catch (e) { refused = e.message; }
   COUPLE_PLANT.rule = '';
   ok('4. a part leaving out the first path of its share of the skips: refused, never a different cost', /path order/.test(refused), refused || 'not refused'); }
+
+// 5. a couple's What if variant, not keyed: neither restored nor stored
+{ const variant = { ...couple.plan, spending: { ...couple.plan.spending, targetSpend: Math.round(Number(couple.plan.spending.targetSpend) * 0.95) } };
+  const before = [...store.keys()].join(), at = log.length;
+  let threw = '';
+  try { await C.startFigures(E, variant, { ...light, seed: SEED, upto: 60, parts: 3 }).done; } catch (e) { threw = e.message; }
+  const sent = log.slice(at), keyed = sent.filter(m => m.kind === 'solve' && m.key).length, asked = sent.filter(m => m.kind === 'probe' || m.kind === 'follow').length;
+  ok('5. a couple\'s What if variant, not keyed: its two people\'s solves neither restored nor stored, the store as it was',
+    !threw && sent.filter(m => m.kind === 'solve').length === 2 && keyed === 0 && asked === 0 && [...store.keys()].join() === before,
+    threw ? `threw: ${threw}` : `${sent.filter(m => m.kind === 'solve').length} solves, ${keyed} keyed; ${asked} asks of the store; ${store.size} solves stored, as before: ${[...store.keys()].join() === before}`); }
 
 console.log(`\n${fail ? `FAILED: ${fail} of ${pass + fail} checks` : `ALL PASS: ${pass} checks`}`);
 process.exit(fail ? 1 : 0);

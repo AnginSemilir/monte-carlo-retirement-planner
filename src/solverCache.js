@@ -23,13 +23,21 @@ const open = () => new Promise((resolve, reject) => {
   q.onsuccess = () => resolve(q.result);
   q.onerror = () => reject(q.error);
 });
+/*
+ * One transaction: `fn` makes its requests, the result is what `fn` returns once the transaction commits. Chromium 153 refuses
+ * a value too large in its own order (results-couple-timing.txt, the probe): an error event at the transaction while the
+ * transaction's error is still null (the store said "the store failed (null)", rejecting on it), then the error set and the
+ * transaction finished, so the next request throws at once (TransactionInactiveError); the requests already made fail with
+ * AbortError, and the abort carries the reason. So the reason is taken at the abort, and what `fn` throws aborts the
+ * transaction (nothing half-written commits) and is the reason only where the transaction has none of its own.
+ */
 const tx = (db, mode, fn) => new Promise((resolve, reject) => {
   const t = db.transaction(STORE, mode), s = t.objectStore(STORE);
-  let out;
-  Promise.resolve(fn(s)).then(v => { out = v; });
+  let out, failed = null;
+  Promise.resolve(fn(s)).then(v => { out = v; }, e => { failed = failed || e; try { t.abort(); } catch { /* finished already */ } });
   t.oncomplete = () => resolve(out);
-  t.onerror = () => reject(t.error);
-  t.onabort = () => reject(t.error || new Error('aborted'));
+  t.onerror = ev => { failed = (ev && ev.target && ev.target.error) || t.error || failed; };
+  t.onabort = () => reject(t.error || failed || new Error('aborted'));
 });
 const req = q => new Promise((resolve, reject) => { q.onsuccess = () => resolve(q.result); q.onerror = () => reject(q.error); });
 
@@ -44,6 +52,41 @@ export function storePlan(index, entry, { max = CACHE_MAX, budget = CACHE_BUDGET
   while (over()) { const i = rest.findIndex(e => e.key !== keep); if (i < 0) break; evict.push(rest[i].key); rest.splice(i, 1); }
   return over() ? { store: false, evict: [], why: 'no room for it beside the solve it keeps' } : { store: true, evict };
 }
+/*
+ * A STORED SOLVE IN CHUNKS (Part D, D5.6's measurement, 14 Nov). Chromium refuses one IndexedDB value over 127 MiB ("The
+ * serialized keys and/or value are too large", max 133169152 bytes, this container's Chromium 153), and a solve's record at
+ * the app's settings is about 200 MB, so every solve at 45 points failed to store and every visit solved again. The record
+ * is kept as a head (its fields, each typed array named by its place) beside chunks of at most CHUNK_BYTES of its typed
+ * arrays, each its own value (`part:<key>:<i>`), and joined back on a load, the same arrays (cache-chunks.test.mjs). A
+ * record stored whole (before) loads as it was. CACHE_PLANT (tests only): 'whole' stores a record whole, as before;
+ * 'keepparts' drops a solve's head and leaves its chunks behind.
+ */
+export const CHUNK_BYTES = 64e6;
+export const CACHE_PLANT = { rule: '' };
+export function splitRecord(rec, max = CHUNK_BYTES) {
+  const leaves = [];
+  const walk = v => {
+    if (ArrayBuffer.isView(v)) { leaves.push(v); return { $a: leaves.length - 1 }; }
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  const head = walk(rec), chunks = [];
+  let cur = [], size = 0;
+  for (const a of leaves) { if (cur.length && size + a.byteLength > max) { chunks.push(cur); cur = []; size = 0; } cur.push(a); size += a.byteLength; }
+  if (cur.length) chunks.push(cur);
+  return { head, chunks };
+}
+export function joinRecord(head, chunks) {
+  const leaves = chunks.flat();
+  const walk = v => {
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') return Object.keys(v).length === 1 && Number.isInteger(v.$a) ? leaves[v.$a] : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return walk(head);
+}
+const dropSolve = (s, e) => { s.delete(`solve:${e.key}`); if (CACHE_PLANT.rule === 'keepparts') return; for (let i = 0; i < (e.chunks || 0); i++) s.delete(`part:${e.key}:${i}`); };
 /* a stored record's bytes: its typed arrays' */
 export function recordBytes(rec) {
   let n = 0;
@@ -73,8 +116,13 @@ export async function loadSolve(key, code) {
       const ix = await readIndex(s), e = ix.find(x => x.key === key && x.code === code);
       if (!e) return null;
       const r = await req(s.get(`solve:${key}`));
-      if (r) { e.used = Date.now(); s.put(ix, 'index'); }
-      return r || null;
+      if (!r) return null;
+      e.used = Date.now(); s.put(ix, 'index');
+      if (!r.head) return r;   // stored whole
+      const chunks = [];
+      for (let i = 0; i < r.chunks; i++) chunks.push(await req(s.get(`part:${key}:${i}`)));
+      if (chunks.some(c => !Array.isArray(c))) return null;
+      return { ...joinRecord(r.head, chunks), key: r.key, code: r.code, stored: r.stored };
     });
     db.close();
     return rec && rec.key === key && rec.code === code ? rec : null;
@@ -89,8 +137,9 @@ export async function touchSolve(key, code) {
     return true;
   } catch { return false; }
 }
-/* store this solve, with the code that made it, by storePlan's rule; { stored, why } (why: the reason it was not) */
-export async function storeSolveWhy(key, code, record, { keep = null, max = CACHE_MAX, budget = CACHE_BUDGET } = {}) {
+/* store this solve, with the code that made it, by storePlan's rule, its typed arrays in chunks of at most `chunk` bytes;
+   { stored, why } (why: the reason it was not) */
+export async function storeSolveWhy(key, code, record, { keep = null, max = CACHE_MAX, budget = CACHE_BUDGET, chunk = CHUNK_BYTES } = {}) {
   let db = null;
   try {
     db = await open();
@@ -99,11 +148,20 @@ export async function storeSolveWhy(key, code, record, { keep = null, max = CACH
       const all = await readIndex(s), stale = all.filter(e => e.code !== code), ix = all.filter(e => e.code === code);
       const p = storePlan(ix, { key, bytes }, { keep, max, budget });
       if (!p.store) return p;
-      for (const e of stale) s.delete(`solve:${e.key}`);
-      for (const k of p.evict) s.delete(`solve:${k}`);
+      for (const e of stale) dropSolve(s, e);
+      for (const k of p.evict) dropSolve(s, ix.find(e => e.key === k) || { key: k });
+      const was = all.find(e => e.key === key);
+      if (was) dropSolve(s, was);
       const now = Date.now(), kept = ix.filter(e => e.key !== key && !p.evict.includes(e.key));
-      s.put({ ...record, key, code, stored: now }, `solve:${key}`);
-      s.put([...kept, { key, code, bytes, used: now }], 'index');
+      let chunks = 0;
+      if (CACHE_PLANT.rule === 'whole') s.put({ ...record, key, code, stored: now }, `solve:${key}`);
+      else {
+        const sp = splitRecord(record, chunk);
+        sp.chunks.forEach((c, i) => s.put(c, `part:${key}:${i}`));
+        chunks = sp.chunks.length;
+        s.put({ head: sp.head, chunks, key, code, stored: now }, `solve:${key}`);
+      }
+      s.put([...kept, { key, code, bytes, used: now, chunks }], 'index');
       return p;
     });
     db.close();
@@ -111,7 +169,8 @@ export async function storeSolveWhy(key, code, record, { keep = null, max = CACH
   } catch (e) {
     if (db) db.close();
     const quota = e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message || '')));
-    return { stored: false, why: quota ? "the browser's storage for this site is full" : `the store failed (${(e && (e.name || e.message)) || e})` };
+    const what = e && e.name && e.message ? `${e.name}: ${e.message}` : (e && (e.name || e.message)) || String(e);   // the browser's own words
+    return { stored: false, why: quota ? "the browser's storage for this site is full" : `the store failed (${what})` };
   }
 }
 export async function storeSolve(key, code, record, opts) { return (await storeSolveWhy(key, code, record, opts)).stored; }

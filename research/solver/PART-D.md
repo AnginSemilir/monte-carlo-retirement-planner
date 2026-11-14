@@ -282,15 +282,21 @@ throws aborts it. `cache-chunks.test.mjs` (the full tier) 15 checks on an in-mem
 size in Chromium's order (a 140 MB record whole refused with the browser's reason and in chunks kept and loaded bit for bit;
 S370's light record restored from chunks to the same tables; no rejection left unhandled), failing 12 of 15 on the code
 before, plants 'whole' (2, 3, 5) and 'keepparts' (3) (`results-cache-chunks.txt`). In the browser at the app's settings
-(`results-couple-timing.txt`, EXPLORATORY: S069, four workers, stage C's four runs beside it at the lowest priority): both of
-the couple's tables kept, and after a reload restored in 8.2 s, where the run before the fix solved them again in 176.4 s; the
-reloaded headline's 2,000 paths 97.9 s against 97.5 s fresh, so a restored couple shares its paths as a fresh one does; a
-headline path 48.7 ms shared against 90.2 ms in one worker (1.85 times as fast).
+(`results-couple-timing.txt`, EXPLORATORY, on 59315a29: S069, four workers, stage C's four runs beside it at the lowest
+priority): both of the couple's tables kept, and after a reload restored in 8.1 s, where the run before the fix solved them
+again in 176.4 s; the reloaded headline's 2,000 paths 101.0 s against 92.2 s fresh, so a restored couple shares its paths as a
+fresh one does; a headline path 46.1 ms shared against 86.4 ms in one worker (1.87 times as fast).
 Known limits, each said where it shows: the store keeps two solves (CACHE_MAX), so a couple at a dial position above the first
 restores in part; the age searched by the age card and the limits card is the first person's; a dial position's parts each
 restore its base from a shared copy, so a couple at a dial position above the first holds more memory than a single's, and a
 returning single at a dial position above the first now holds its base in every part as a fresh split position does (the
 reviewer's finding 5: more than before D5.6, not measured for a restore).
+The reviewer at D5 (14 Nov): FAIL, three BLOCKING (`reviews/2026-11-14-d5.md`: the limits card with couples off, a single
+carrying a partner's ceiling, no restore at the app's settings), each answered in one fix (D81 (F)); then PASS
+(`reviews/2026-11-14-d5-2.md`), its two MINORs answered: `profile-couple.cjs` keys its couple's job as the page does (a
+couple's job without a key now keys neither person's solve), and the page's note that a solve is not kept keeps the first
+store not kept where a job stores more than one solve (src/solveStatus.js storeNoteAfter; `store-note.test.mjs`, the full
+tier, 3 checks, its plant 'lastnote' failing 1 and 3; `results-store-note.txt`).
 What the tests leave unshown (the reviewer's finding 4): on the follow path only the strategy's figures run
 (`restore-split.test.mjs` check 4; a restored single's skip costs shared out run nowhere); `couple-split.test.mjs`'s stand-ins
 solve each table whole and never follow, so it tests the client's sequence and not the worker's 'follow', 'part' with a

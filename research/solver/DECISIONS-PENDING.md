@@ -229,6 +229,12 @@ twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/20
      reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing (D98): built off
      with its test, read EXPLORATORY by its rule committed first; passing, it joins the candidate without another word,
      the reviewer on the change of default; failing, closed and reported.
+   - **Where they stand (14 Nov, evening).** D102's stage A running (`SHARE-CHOOSE.md`, launched 17:37 UK, its read near
+     midnight); then three reads in turn, each with its rule committed: couples in the other order (D100's stage A,
+     `OTHER-ORDER.md`; its option `estateWeight: 'elder'` built off in code), a couple's tie rule (`TIE-C.md`; `tieJoint`
+     built off in code) and the speed mode on more singles and couples (`SPEED-B.md`). Found at D100's smoke, for the
+     maintainer: some of a couple's household choices follow whoever is entered first (whether the lump sum is taken, the
+     order a one-off cost is met in), so the other order parts from the tested one even at the same estate weight.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
      EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
    - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.

@@ -11,6 +11,23 @@ The maintainer, 12 Nov: the app is for the maintainer alone for now and has not 
 repository are public, knowingly. So no beta with users is under way and nothing waits on a beta's end. Where a line
 below this section says "the beta", read it as history. The order from here:
 
+**RULED (D97, 14 Nov, morning): the four items of the morning report.** The maintainer: "1 - go with your
+recommendation 2 - add the test to the plan after couples, but don't wait for me to ok it. 3 - run a wider test on it.
+For now add as an optional 'beta - speed mode' toggle with a warning to singles and couples. 4 - wouldn't the point of
+backward induction be that we don't add a hardcoded rule and let the solver choose? But please let me know if this has
+been disproven or is less likely to work in this scenario from tests seen so far". As the agent reads them: (1) couples
+run the candidate under the opt-in once item 6's stage C has read, by its outcome (PASS: couples whose elder holds more
+than 60% and at most 90% too; THE GUARD STAYS: couples outside 40% to 60% keep the app's rules; STOP: back to the
+maintainer first, as the registration says), the reviewer on the change of default, merged on B1's gate; (2) a tie rule
+for a couple's joint move, measured after couples are on, as item 13 was (its rule committed first, EXPLORATORY, off in
+code): passing its rule is the ruling naming the run, built and in the couples' candidate with the reviewer on the change
+of default and no further word; failing, closed and reported; (3) `chooserShortlist: 'order'` read again, wider, on singles
+and couples (EXPLORATORY, its rule committed first, when stage C frees the cores), and meanwhile offered in the app as an
+opt-in "Beta - speed mode", off by default, with a warning for singles and one for couples; (4) a question, answered in the
+reply of 14 Nov: nothing so far disproves letting the solver choose; the agent's recommendation was that (the allowance's
+step offered at both places, the solver choosing); building it waits on the maintainer's word. The four entries below are
+kept as they were put.
+
 **RULED (D96, 13 Nov, night): item 6's stage C, launched on the agent's three recommendations.** The maintainer:
 "Proceed with your recommendation": launched as registered, at 19,000 paths a unit, no mirror. It runs once batch 2's
 gate ends, from a worktree at the commit recording D96; its read comes back with the outcome as registered. In full:
@@ -121,26 +138,27 @@ and keep the chunks (the agent's recommendation); (2) fix the cause in the audit
 twelve hours of four cores; (3) drop S293, not recommended. In full: `reports/2026-11-13-d4b-stage-gate.md`.
 
 1. **The improvements laid out**, in this order; the first not done is the next.
-   - **Built, on the working branch, not yet on `main`:** the newest candidate (D73: the sweep to the ISA, the solve on
-     anchors, the thinner bridge reference); the engine's year in HMRC's order (item 3) and relief on money the plan pays
-     into a pension (item 4); the pages naming the sweep (item 5) and item 8's caption; a couple's path faster, exactly
-     (items 2 and 11); Part D's D1 to D3; built and off: `shareRule: 'pots'` (item 6), `tieAboveCap` (item 13),
-     `chooserShortlist: 'order'` with its guard (item 7).
-   - **Running:** the couples' re-run (item 1, `registrations/couples-d4b.md`), read once when every chunk is in, then
-     the reviewer at the read and the deep reviewer.
-   - **After its read:** (a) the tie-break joins the candidate (D90 (1)), the reviewer on the change of default;
-     (b) the basic harvest ceiling (`research/reviews/2026-11-11/ANSWERS.md` section 5: its cases first; it changes the
-     rules' figures and every table), which D79 held for the beta's end and the agent reads D91 as taking in. It is
-     being built now on a branch of its own (it does not rest on the read), and goes in before (d) so that the next
-     registered test is landed once, on the code that ships; (c) item 12's stage A (D84), then the shortlist's trade
-     back to the maintainer (D90 (2)); (d) item 6's stage C, the registered test for couples who hold their money
-     unevenly (until it reads such a couple keeps the app's rules, M4), landed after (a) to (c) so no change of code
-     falls between its landing and its read; (e) Part D's D5, the couples' screens in the new planner, then couples on
-     under the switch (the launch plan's D6, no longer a couples' beta).
+   - **On `main`:** batches 1 and 2 (pull requests 12 and 13): the newest candidate (D73; D95's tie-break for singles),
+     the engine's year in HMRC's order (item 3), relief on money paid into a pension (item 4), the pages naming the sweep
+     (item 5), item 8's caption, a couple's path faster (items 2 and 11), Part D's D1 to D3, the harvest ceiling, the
+     capital gains bill's fix; built and off: `shareRule: 'pots'` (item 6), `chooserShortlist: 'order'` with its guard
+     (item 7).
+   - **Batch 3, at its gate (14 Nov):** Part D's D5 behind `COUPLES` (off), the store in chunks, a restored solve shared
+     across its parts, the limits per person.
+   - **Running:** item 6's stage C (D96), read once when every run is in, then the reviewer at the read and the deep
+     reviewer.
+   - **Next, in this order (D97):** (a) the speed mode: `chooserShortlist: 'order'` offered as an opt-in "Beta - speed
+     mode", off by default, a warning for singles and one for couples, with its tests, to `main` with the next batch;
+     (b) after stage C's read, couples on under the opt-in by its outcome, the reviewer on the change of default; (c) the
+     shortlist's wider read (EXPLORATORY, its rule committed first) when stage C frees the cores, to the maintainer;
+     (d) after couples are on, a tie rule for a couple's joint move (EXPLORATORY, its rule committed first): passing, it
+     joins the couples' candidate without another word, the reviewer on the change of default; failing, closed and
+     reported; (e) the harvest ceiling's allowance step offered at both places, the solver choosing, if the maintainer
+     says so.
    - **Whenever cores are free:** the research queue (B7), the windfall factorial then the savings factorial,
-     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test (B7's "after the launch" is no
-     longer a wait).
-   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval.
+     EXPLORATORY; a gain comes to the maintainer as a proposal with its registered test.
+   - **Open with the maintainer** (below): M3, M6, the cash buffer's size as a lever, `survivalChangeU`'s interval, the
+     allowance step (D97 (4)).
 2. **The maintainer's work on the UI.** Its scope is the maintainer's; nothing is planned for it here yet.
 3. **Sharing it publicly.** Before it: the readiness checklist taken again on that commit, and the maintainer's word on
    the solver on by default and the switch's removal.

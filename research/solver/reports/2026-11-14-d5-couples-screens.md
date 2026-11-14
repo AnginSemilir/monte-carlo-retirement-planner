@@ -61,6 +61,14 @@ position and its base) now says it is not kept on this device when any part of i
 **Found on the way and fixed.** Under a split dial position, every worker carried the base's reference counts, so their
 sum was the number of workers times the true count. It was a diagnostic only; no figure moved.
 
+**Found after the reviews: a check I had left failing.** D5 changed how the first retired year is worked out
+(`retireYearOf`: each person's own age, so a couple's household is retired from the first year either person is). One
+full-tier test (`solver-strategy.test.mjs`) builds a hand-made context whose person carried no age, so one of its 34 checks
+got no year and failed. It failed in every full-tier run on the working branch from D5's first commit (13 Nov, 22:40 UK)
+until this morning, and I had not read those runs. The test's context now carries each person's age, as the engine's does.
+Nothing in the app moved: the engine always gives each person their age, and the same test's checks on real plans passed
+throughout. The fix is in the test alone, so the code the gate ran on is unchanged (the same stamp).
+
 **Known limits, each said on the page where it shows, or in PART-D.md.**
 - The age card and the limits card search the first person's retirement age.
 - Above the dial's first position the store keeps two solves, so a couple restores in part and holds more memory than a
